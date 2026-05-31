@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>iCoDer Web Components Demo</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 800px; margin: 0 auto; padding: 24px; background: #f8fafc; }
+    h1 { font-size: 24px; color: #1e293b; margin-bottom: 8px; }
+    p { color: #64748b; margin-bottom: 24px; }
+    .demo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .demo-card { background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+    .demo-card h2 { font-size: 16px; margin: 0 0 12px 0; color: #334155; }
+    @media (max-width: 640px) { .demo-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <h1>iCoDer Web Components</h1>
+  <p>Framework-agnostic custom elements for clinical AI integration. Use these with vanilla JS, React, Vue, or Angular.</p>
+
+  <div class="demo-grid">
+    <div class="demo-card">
+      <h2>&lt;icoder-dictation&gt;</h2>
+      <icoder-dictation
+        base-url="http://localhost:8000"
+        language="zh-CN"
+        placeholder="点击麦克风开始临床听写...">
+      </icoder-dictation>
+    </div>
+    <div class="demo-card">
+      <h2>&lt;icoder-assistant&gt;</h2>
+      <icoder-assistant
+        base-url="http://localhost:8000"
+        agent-id="f449aaf3f96e"
+        placeholder="输入临床问题...">
+      </icoder-assistant>
+    </div>
+  </div>
+
+  <script src="icoder-dictation.js"></script>
+  <script src="icoder-assistant.js"></script>
+  <script>
+    // Listen for events
+    document.querySelector('icoder-dictation').addEventListener('transcription', (e) => {
+      console.log('Transcription:', e.detail);
+    });
+  </script>
+</body>
+</html>

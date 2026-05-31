@@ -1,0 +1,86 @@
+{
+  "info": {
+    "name": "iCoDer Medical Coding API",
+    "description": "iCoDer API collection for healthcare AI medical coding. Includes OAuth 2.0, Expert Registry, Reviews pipeline, and more.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }]
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8000" },
+    { "key": "access_token", "value": "" },
+    { "key": "client_id", "value": "" },
+    { "key": "client_secret", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        { "name": "Login", "request": { "method": "POST", "url": "{{base_url}}/api/auth/login", "body": { "mode": "raw", "raw": "{\"username\":\"admin\",\"password\":\"admin123\"}" }, "description": "Get JWT access token" }},
+        { "name": "Register", "request": { "method": "POST", "url": "{{base_url}}/api/auth/register", "body": { "mode": "raw", "raw": "{\"username\":\"newuser\",\"email\":\"user@test.com\",\"password\":\"pass\",\"full_name\":\"Test\"}" }}},
+        { "name": "Get Me", "request": { "method": "GET", "url": "{{base_url}}/api/auth/me" }},
+        { "name": "Refresh Token", "request": { "method": "POST", "url": "{{base_url}}/api/auth/refresh", "body": { "mode": "raw", "raw": "{\"refresh_token\":\"{{refresh_token}}\"}" }}}
+      ]
+    },
+    {
+      "name": "OAuth 2.0",
+      "item": [
+        { "name": "Create Client", "request": { "method": "POST", "url": "{{base_url}}/api/oauth/clients", "body": { "mode": "urlencoded", "urlencoded": [{"key":"name","value":"Postman Client"},{"key":"scopes","value":"api:read api:write"}] }}},
+        { "name": "Get Token", "request": { "method": "POST", "url": "{{base_url}}/api/oauth/token", "body": { "mode": "urlencoded", "urlencoded": [{"key":"grant_type","value":"client_credentials"},{"key":"client_id","value":"{{client_id}}"},{"key":"client_secret","value":"{{client_secret}}"}] }}},
+        { "name": "List Clients", "request": { "method": "GET", "url": "{{base_url}}/api/oauth/clients" }}
+      ]
+    },
+    {
+      "name": "Experts",
+      "item": [
+        { "name": "List Experts", "request": { "method": "GET", "url": "{{base_url}}/api/experts" }},
+        { "name": "Expert Registry", "request": { "method": "GET", "url": "{{base_url}}/api/experts/registry" }},
+        { "name": "Search by Capability", "request": { "method": "GET", "url": "{{base_url}}/api/experts/registry/search?capability=diagnosis_coding" }},
+        { "name": "Run Expert", "request": { "method": "POST", "url": "{{base_url}}/api/experts/{{expert_id}}/run?input=患者腰痛入院" }},
+        { "name": "Categories", "request": { "method": "GET", "url": "{{base_url}}/api/experts/categories" }}
+      ]
+    },
+    {
+      "name": "Medical Coding Pipeline",
+      "item": [
+        { "name": "Create Encounter from Text", "request": { "method": "POST", "url": "{{base_url}}/api/encounters/text", "body": { "mode": "raw", "raw": "{\"raw_text\":\"患者腰痛入院MRI示椎体骨折\",\"department\":\"骨科\"}" }}},
+        { "name": "Create Review", "request": { "method": "POST", "url": "{{base_url}}/api/reviews", "body": { "mode": "raw", "raw": "{\"encounter_id\":\"{{encounter_id}}\"}" }}},
+        { "name": "Get Review", "request": { "method": "GET", "url": "{{base_url}}/api/reviews/{{review_id}}" }},
+        { "name": "Get Report (Markdown)", "request": { "method": "GET", "url": "{{base_url}}/api/reviews/{{review_id}}/report/markdown" }}
+      ]
+    },
+    {
+      "name": "Billing & Usage",
+      "item": [
+        { "name": "Balance", "request": { "method": "GET", "url": "{{base_url}}/api/billing/balance" }},
+        { "name": "Transactions", "request": { "method": "GET", "url": "{{base_url}}/api/billing/transactions" }},
+        { "name": "Usage Summary", "request": { "method": "GET", "url": "{{base_url}}/api/usage/summary" }}
+      ]
+    },
+    {
+      "name": "A2A Protocol",
+      "item": [
+        { "name": "Agent Card", "request": { "method": "GET", "url": "{{base_url}}/api/experts/a2a/.well-known/agent.json" }},
+        { "name": "Discover Agents", "request": { "method": "GET", "url": "{{base_url}}/api/experts/a2a/agents?capability=diagnosis_coding" }},
+        { "name": "Create Task", "request": { "method": "POST", "url": "{{base_url}}/api/experts/a2a/tasks?description=编码审核&query=患者腰痛&capabilities=diagnosis_coding" }},
+        { "name": "List Tasks", "request": { "method": "GET", "url": "{{base_url}}/api/experts/a2a/tasks" }}
+      ]
+    },
+    {
+      "name": "Memory",
+      "item": [
+        { "name": "Save Memory", "request": { "method": "POST", "url": "{{base_url}}/api/experts/memory/save?session_id=test&role=user&content=患者偏好骨科编码" }},
+        { "name": "Recall", "request": { "method": "GET", "url": "{{base_url}}/api/experts/memory/recall?query=骨科" }},
+        { "name": "User Profile", "request": { "method": "GET", "url": "{{base_url}}/api/experts/memory/profile" }}
+      ]
+    },
+    {
+      "name": "Health",
+      "item": [
+        { "name": "Health Check", "request": { "method": "GET", "url": "{{base_url}}/api/health" }}
+      ]
+    }
+  ]
+}

@@ -2,7 +2,9 @@
 
 ## [1.0.0] - 2026-05-31
 
-### 首次生产发布
+### Corti-competitive Clinical AI Platform — 首次生产发布
+
+**战略定位**：无限逼近 Corti 的临床 AI 平台——Agent Runtime + 编码审核 + 语音转录 + 文书生成 + 事实提取 + 嵌入助手，即开即用。SDK/API/Web Components 供 HIS 厂商和第三方深度集成。可审计是基础设施而非定位边界。
 
 **核心平台：**
 - Agent Runtime：合同强制、Deny-First 安全模型、Runtime 持久化

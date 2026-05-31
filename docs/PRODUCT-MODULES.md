@@ -1,8 +1,10 @@
-# iCoDer 医疗AI — 功能模块
+# iCoDer — Clinical AI Platform
 
 ## 产品定位
 
-iCoDer 是**可审计的临床AI**——每条编码可溯源到病历原文，每条决策链SHA-256哈希可重放。预置编码审核、语音转录、文书生成、事实提取等临床AI能力，即开即用。支持SDK/API供HIS厂商和开发者深度集成。
+iCoDer 是**Corti-competitive 临床 AI 平台**。预置编码审核、语音转录、文书生成、事实提取、嵌入助手等即开即用的临床 AI 能力，同时提供 Agent Runtime（多租户、Marketplace、合同强制工具系统、Deny-First 安全模型）、SDK/API、Web Components 供 HIS 厂商和第三方开发者深度集成与二次开发。
+
+**核心差异**：每步决策**可审计**——编码溯源到病历原文，决策链 SHA-256 哈希可重放，满足医保纠纷举证和合规要求。这不是定位边界，而是保证 AI 安全性的基础设施。
 
 ---
 

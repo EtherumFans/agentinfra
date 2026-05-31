@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>iCoDer Medical Coding Agent - 临床编码审计控制台</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:ital,wght@0,400;0,600;0,700;1,400&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --vermillion: hsl(9, 68%, 48%);
+    --vermillion-light: hsl(9, 68%, 58%);
+    --vermillion-dark: hsl(9, 68%, 38%);
+    --vermillion-bg: hsl(9, 68%, 95%);
+    --jade: hsl(155, 33%, 38%);
+    --jade-light: hsl(155, 33%, 50%);
+    --jade-dark: hsl(155, 33%, 28%);
+    --jade-bg: hsl(155, 30%, 94%);
+    --bg-warm: hsl(40, 14%, 98%);
+    --bg-card: #ffffff;
+    --text-primary: hsl(0, 0%, 15%);
+    --text-secondary: hsl(0, 0%, 45%);
+    --text-muted: hsl(0, 0%, 65%);
+    --border-light: hsl(40, 10%, 90%);
+    --border-med: hsl(40, 10%, 82%);
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.04);
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 16px;
+    --font-brand: 'DM Serif Display', serif;
+    --font-body: 'Noto Sans SC', -apple-system, sans-serif;
+    --font-code: 'JetBrains Mono', monospace;
+  }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--bg-warm);
+    color: var(--text-primary);
+    width: 1440px;
+    height: 900px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ===== HEADER ===== */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 28px;
+    background: #fff;
+    border-bottom: 1px solid var(--border-light);
+    flex-shrink: 0;
+  }
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .brand-mark {
+    width: 32px;
+    height: 32px;
+    background: var(--vermillion);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-brand);
+    font-size: 18px;
+    color: #fff;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  .brand-title {
+    font-family: var(--font-brand);
+    font-size: 20px;
+    color: var(--text-primary);
+    letter-spacing: -0.3px;
+    line-height: 1.2;
+  }
+  .brand-title span {
+    color: var(--vermillion);
+  }
+  .brand-subtitle {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 400;
+    letter-spacing: 0.3px;
+  }
+  .header-center {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+  .patient-tag {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 14px;
+    background: var(--bg-warm);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+  }
+  .patient-tag .label {
+    color: var(--text-muted);
+    font-weight: 400;
+  }
+  .patient-tag .value {
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .patient-tag .divider {
+    width: 1px;
+    height: 16px;
+    background: var(--border-med);
+  }
+  .badge-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .badge-status.live {
+    background: var(--jade-bg);
+    color: var(--jade-dark);
+  }
+  .badge-status .dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--jade);
+  }
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+  .header-right .avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--vermillion-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--vermillion);
+  }
+
+  /* ===== MAIN LAYOUT ===== */
+  .main {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* ===== CHAT AREA ===== */
+  .chat-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    border-right: 1px solid var(--border-light);
+  }
+  .chat-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-med) transparent;
+  }
+
+  /* ===== MESSAGE BUBBLES ===== */
+  .message {
+    display: flex;
+    gap: 10px;
+    max-width: 85%;
+  }
+  .message.agent { align-self: flex-start; }
+  .message.user { align-self: flex-end; flex-direction: row-reverse; }
+
+  .msg-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 4px;
+  }
+  .message.agent .msg-avatar {
+    background: var(--jade-bg);
+    color: var(--jade-dark);
+  }
+  .message.user .msg-avatar {
+    background: var(--vermillion-bg);
+    color: var(--vermillion);
+  }
+
+  .msg-bubble {
+    padding: 10px 16px;
+    border-radius: var(--radius-md);
+    font-size: 13.5px;
+    line-height: 1.65;
+  }
+  .message.agent .msg-bubble {
+    background: #fff;
+    border: 1px solid var(--border-light);
+    border-top-left-radius: 2px;
+    color: var(--text-primary);
+  }
+  .message.user .msg-bubble {
+    background: var(--vermillion);
+    color: #fff;
+    border-top-right-radius: 2px;
+  }
+
+  /* ===== CODING RESULT CARD ===== */
+  .coding-card {
+    background: #fff;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    align-self: flex-start;
+    max-width: 88%;
+    box-shadow: var(--shadow-sm);
+  }
+  .coding-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: var(--bg-warm);
+    border-bottom: 1px solid var(--border-light);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+  }
+  .coding-card-header .badge {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 100px;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+  .coding-card-header .badge.jade {
+    background: var(--jade-bg);
+    color: var(--jade-dark);
+  }
+  .coding-card-body {
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .code-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .code-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-muted);
+    white-space: nowrap;
+    min-width: 60px;
+    padding-top: 5px;
+  }
+  .code-block {
+    flex: 1;
+  }
+  .code-main {
+    font-family: var(--font-code);
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    line-height: 1.2;
+    color: var(--text-primary);
+  }
+  .code-main.primary {
+    color: var(--vermillion-dark);
+  }
+  .code-main.secondary {
+    color: var(--jade-dark);
+  }
+  .code-desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 1px;
+    line-height: 1.4;
+  }
+  .code-meta {
+    display: flex;
+    gap: 12px;
+    margin-top: 2px;
+    font-size: 11px;
+  }
+  .code-meta span {
+    color: var(--text-muted);
+  }
+  .code-meta .highlight {
+    color: var(--jade);
+    font-weight: 500;
+  }
+
+  .divider-card {
+    height: 1px;
+    background: var(--border-light);
+    margin: 2px 0;
+  }
+
+  /* Candidate list */
+  .candidate-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .candidate-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+  .candidate-item:hover {
+    background: var(--bg-warm);
+  }
+  .candidate-item .code {
+    font-family: var(--font-code);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .candidate-item .desc {
+    color: var(--text-secondary);
+    flex: 1;
+    margin-left: 10px;
+  }
+  .candidate-item .confidence {
+    font-family: var(--font-code);
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .candidate-item .confidence.high {
+    color: var(--jade);
+  }
+  .candidate-item .confidence.med {
+    color: hsl(35, 80%, 50%);
+  }
+
+  /* ===== INPUT BAR ===== */
+  .input-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 28px;
+    background: #fff;
+    border-top: 1px solid var(--border-light);
+    flex-shrink: 0;
+  }
+  .input-bar input {
+    flex: 1;
+    height: 40px;
+    border: 1px solid var(--border-med);
+    border-radius: var(--radius-sm);
+    padding: 0 14px;
+    font-family: var(--font-body);
+    font-size: 13.5px;
+    color: var(--text-primary);
+    outline: none;
+    background: var(--bg-warm);
+    transition: border-color 0.15s;
+  }
+  .input-bar input::placeholder {
+    color: var(--text-muted);
+  }
+  .input-bar input:focus {
+    border-color: var(--vermillion);
+  }
+  .btn-send {
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: var(--vermillion);
+    color: #fff;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+    flex-shrink: 0;
+  }
+  .btn-send:hover {
+    background: var(--vermillion-dark);
+  }
+  .btn-send svg {
+    width: 18px;
+    height: 18px;
+    fill: currentColor;
+  }
+
+  /* ===== SETTINGS PANEL ===== */
+  .settings-panel {
+    width: 280px;
+    flex-shrink: 0;
+    background: #fff;
+    padding: 20px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    overflow-y: auto;
+  }
+  .settings-panel-title {
+    font-family: var(--font-brand);
+    font-size: 15px;
+    color: var(--text-primary);
+    letter-spacing: -0.2px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  .setting-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .setting-group-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+  }
+
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 0;
+  }
+  .toggle-label {
+    font-size: 13px;
+    color: var(--text-primary);
+  }
+  .toggle-hint {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: -2px;
+  }
+
+  /* Toggle switch */
+  .toggle-switch {
+    position: relative;
+    width: 38px;
+    height: 22px;
+    flex-shrink: 0;
+  }
+  .toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  .toggle-slider {
+    position: absolute;
+    inset: 0;
+    background: var(--border-med);
+    border-radius: 22px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .toggle-slider::before {
+    content: '';
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    left: 2px;
+    bottom: 2px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  }
+  .toggle-switch input:checked + .toggle-slider {
+    background: var(--vermillion);
+  }
+  .toggle-switch input:checked + .toggle-slider::before {
+    transform: translateX(16px);
+  }
+
+  .setting-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+    font-size: 13px;
+  }
+  .setting-info-row .label {
+    color: var(--text-secondary);
+  }
+  .setting-info-row .value {
+    font-family: var(--font-code);
+    font-size: 12px;
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+
+  .progress-bar {
+    height: 4px;
+    background: var(--border-light);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 4px;
+  }
+  .progress-bar .fill {
+    height: 100%;
+    border-radius: 4px;
+    background: var(--jade);
+  }
+
+  .setting-divider {
+    border: none;
+    height: 1px;
+    background: var(--border-light);
+    margin: 2px 0;
+  }
+
+  .quick-action {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .quick-action button {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--border-med);
+    border-radius: var(--radius-sm);
+    background: #fff;
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: left;
+  }
+  .quick-action button:hover {
+    border-color: var(--vermillion);
+    color: var(--vermillion);
+    background: var(--vermillion-bg);
+  }
+  .quick-action button.primary-action {
+    background: var(--vermillion);
+    color: #fff;
+    border-color: var(--vermillion);
+    text-align: center;
+    font-weight: 600;
+  }
+  .quick-action button.primary-action:hover {
+    background: var(--vermillion-dark);
+  }
+
+  /* ===== TIMESTAMP ===== */
+  .msg-time {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 2px;
+    padding: 0 4px;
+  }
+  .message.agent .msg-time { text-align: left; }
+  .message.user .msg-time { text-align: right; }
+
+  .msg-content {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Code inline */
+  .code-inline {
+    font-family: var(--font-code);
+    font-size: 12.5px;
+    background: var(--bg-warm);
+    padding: 1px 5px;
+    border-radius: 3px;
+    border: 1px solid var(--border-light);
+    color: var(--vermillion-dark);
+  }
+
+  /* Confidence indicator */
+  .confidence-indicator {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    padding: 6px 10px;
+    background: var(--jade-bg);
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    color: var(--jade-dark);
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<header class="header">
+  <div class="header-left">
+    <div class="brand-mark">iC</div>
+    <div>
+      <div class="brand-title">iCoDer <span>临床编码智能体</span></div>
+      <div class="brand-subtitle">Medical Coding Agent · 编码审计控制台</div>
+    </div>
+  </div>
+  <div class="header-center">
+    <div class="patient-tag">
+      <span class="label">患者</span>
+      <span class="value">赵建国</span>
+      <span class="divider"></span>
+      <span class="label">病历号</span>
+      <span class="value">HX202405061234</span>
+      <span class="divider"></span>
+      <span class="label">入院</span>
+      <span class="value">2026-05-01</span>
+    </div>
+    <span class="badge-status live">
+      <span class="dot"></span>
+      编码会话活跃
+    </span>
+  </div>
+  <div class="header-right">
+    <span>编码员 · 张医生</span>
+    <div class="avatar">张</div>
+  </div>
+</header>
+
+<!-- ===== MAIN ===== -->
+<div class="main">
+
+  <!-- ===== CHAT AREA ===== -->
+  <div class="chat-area">
+    <div class="chat-scroll">
+
+      <!-- Agent message -->
+      <div class="message agent">
+        <div class="msg-avatar">iC</div>
+        <div class="msg-content">
+          <div class="msg-bubble">
+            您好，我已接收患者<b>赵建国</b>的病历资料。正在分析出院诊断与手术记录，准备进行ICD-10编码建议。主要诊断方向：<b>冠状动脉粥样硬化性心脏病</b>。
+          </div>
+          <div class="msg-time">09:34:12</div>
+        </div>
+      </div>
+
+      <!-- User message -->
+      <div class="message user">
+        <div class="msg-avatar">张</div>
+        <div class="msg-content">
+          <div class="msg-bubble">
+            请审核本次住院的主要诊断编码，重点关注是否有并发症需要附加编码。
+          </div>
+          <div class="msg-time" style="color:hsla(0,0%,100%,0.5)">09:34:48</div>
+        </div>
+      </div>
+
+      <!-- Agent message with coding result -->
+      <div class="message agent">
+        <div class="msg-avatar">iC</div>
+        <div class="msg-content">
+          <div class="msg-bubble">
+            已审核完成。根据出院小结与手术记录，以下为本次编码建议：
+          </div>
+          <div class="msg-time">09:35:23</div>
+        </div>
+      </div>
+
+      <!-- CODING RESULT CARD -->
+      <div class="coding-card">
+        <div class="coding-card-header">
+          <span>编码结果 · 编码置信度</span>
+          <span class="badge jade">高置信度 92%</span>
+        </div>
+        <div class="coding-card-body">
+
+          <!-- Primary Diagnosis -->
+          <div class="code-row">
+            <div class="code-label">主诊断</div>
+            <div class="code-block">
+              <div class="code-main primary">I25.101</div>
+              <div class="code-desc">冠状动脉粥样硬化性心脏病 · 三支病变</div>
+              <div class="code-meta">
+                <span>CC 记录 <span class="highlight">已确认</span></span>
+                <span>MCC <span class="highlight">否</span></span>
+                <span>DRG <span class="highlight">FM19</span></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="divider-card"></div>
+
+          <!-- Procedure -->
+          <div class="code-row">
+            <div class="code-label">手术</div>
+            <div class="code-block">
+              <div class="code-main secondary">38.9301</div>
+              <div class="code-desc">经皮冠状动脉药物洗脱支架植入术 · 三支</div>
+              <div class="code-meta">
+                <span>术者 <span class="highlight">李伟 主任</span></span>
+                <span>日期 <span class="highlight">2026-05-03</span></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="divider-card"></div>
+
+          <!-- Candidate list -->
+          <div>
+            <div style="font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:6px;letter-spacing:0.3px;text-transform:uppercase;">附加诊断候选</div>
+            <div class="candidate-list">
+              <div class="candidate-item">
+                <span class="code">I10.x00</span>
+                <span class="desc">原发性高血压 · 3级</span>
+                <span class="confidence high">98%</span>
+              </div>
+              <div class="candidate-item">
+                <span class="code">E11.900</span>
+                <span class="desc">2型糖尿病 · 不伴并发症</span>
+                <span class="confidence high">95%</span>
+              </div>
+              <div class="candidate-item">
+                <span class="code">I25.103</span>
+                <span class="desc">冠状动脉粥样硬化性心脏病 · 双支病变</span>
+                <span class="confidence med">67%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Confidence footer -->
+          <div class="confidence-indicator">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.5" opacity="0.3"/>
+              <path d="M7 2 A5 5 0 0 1 12 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            与 HIS 系统比对一致 · 编码规则 <span style="font-family:var(--font-code);font-weight:600;">CN-DRG 2026</span> 已应用
+          </div>
+        </div>
+      </div>
+
+      <!-- User follow-up -->
+      <div class="message user">
+        <div class="msg-avatar">张</div>
+        <div class="msg-content">
+          <div class="msg-bubble">
+            收到。请将 I25.101 设为主诊断，附加 I10.x00 与 E11.900。手术编码 38.9301 确认无误。
+          </div>
+          <div class="msg-time" style="color:hsla(0,0%,100%,0.5)">09:36:05</div>
+        </div>
+      </div>
+
+      <!-- Agent confirmation -->
+      <div class="message agent">
+        <div class="msg-avatar">iC</div>
+        <div class="msg-content">
+          <div class="msg-bubble">
+            <b>已确认。</b>编码已锁定：<br>
+            <span class="code-inline">I25.101</span> 冠状动脉粥样硬化性心脏病 · 主诊断<br>
+            <span class="code-inline">I10.x00</span> 原发性高血压 · 附加诊断<br>
+            <span class="code-inline">E11.900</span> 2型糖尿病 · 附加诊断<br>
+            <span class="code-inline">38.9301</span> 经皮冠状动脉药物洗脱支架植入术<br><br>
+            将于 30 秒内同步至 HIS 系统。如需调整请在此对话中告知。
+          </div>
+          <div class="msg-time">09:36:12</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- INPUT BAR -->
+    <div class="input-bar">
+      <input type="text" placeholder="输入编码查询、审核指令或讨论..." value="请审核本次入院记录中是否有遗漏的合并症编码">
+      <button class="btn-send">
+        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== SETTINGS PANEL ===== -->
+  <aside class="settings-panel">
+    <div class="settings-panel-title">编码配置 · 专家模式</div>
+
+    <div class="setting-group">
+      <div class="setting-group-label">智能体模式</div>
+      <div class="toggle-row">
+        <div>
+          <div class="toggle-label">专家审核模式</div>
+          <div class="toggle-hint">启用深度编码规则推理</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="toggle-row">
+        <div>
+          <div class="toggle-label">自动审计模式</div>
+          <div class="toggle-hint">提交前自动比对编码规则</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="toggle-row">
+        <div>
+          <div class="toggle-label">DRG 分组校验</div>
+          <div class="toggle-hint">实时 CN-DRG 分组核对</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <hr class="setting-divider">
+
+    <div class="setting-group">
+      <div class="setting-group-label">编码上下文</div>
+      <div class="setting-info-row">
+        <span class="label">ICD 版本</span>
+        <span class="value">ICD-10 · v2025</span>
+      </div>
+      <div class="setting-info-row">
+        <span class="label">手术编码表</span>
+        <span class="value">ICD-9-CM-3</span>
+      </div>
+      <div class="setting-info-row">
+        <span class="label">医院</span>
+        <span class="value">四川大学华西医院</span>
+      </div>
+      <div class="setting-info-row">
+        <span class="label">科室</span>
+        <span class="value">心血管内科</span>
+      </div>
+    </div>
+
+    <hr class="setting-divider">
+
+    <div class="setting-group">
+      <div class="setting-group-label">会话统计</div>
+      <div class="setting-info-row">
+        <span class="label">编码审核次数</span>
+        <span class="value">128</span>
+      </div>
+      <div class="setting-info-row">
+        <span class="label">准确率</span>
+        <span class="value">96.3%</span>
+      </div>
+      <div class="setting-info-row">
+        <span class="label">当前置信度</span>
+        <span class="value" style="color:var(--jade);">92%</span>
+      </div>
+      <div class="progress-bar">
+        <div class="fill" style="width:92%"></div>
+      </div>
+    </div>
+
+    <hr class="setting-divider">
+
+    <div class="setting-group">
+      <div class="setting-group-label">快速操作</div>
+      <div class="quick-action">
+        <button class="primary-action">提交至 HIS 系统</button>
+        <button>导出编码审核报告</button>
+        <button>查看编码规则依据</button>
+        <button>重置当前会话编码</button>
+      </div>
+    </div>
+
+  </aside>
+
+</div>
+
+</body>
+</html>

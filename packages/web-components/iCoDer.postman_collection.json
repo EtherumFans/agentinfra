@@ -1,0 +1,90 @@
+{
+  "info": {
+    "name": "iCoDer API",
+    "description": "iCoDer Medical AI Agent Platform — API Collection for Developers",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+  },
+  "variable": [
+    {"key": "base_url", "value": "http://localhost:8000"},
+    {"key": "access_token", "value": ""}
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/api/auth/login",
+            "body": {"mode": "raw", "raw": "{\"username\":\"admin\",\"password\":\"admin123\"}", "options": {"raw": {"language": "json"}}},
+            "header": [{"key": "Content-Type", "value": "application/json"}]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Agents",
+      "item": [
+        {"name": "List Agents", "request": {"method": "GET", "url": "{{base_url}}/api/agents"}},
+        {"name": "Create Agent", "request": {"method": "POST", "url": "{{base_url}}/api/agents", "body": {"mode": "raw", "raw": "{\"name\":\"My Agent\",\"description\":\"Description\",\"system_prompt\":\"You are...\",\"category\":\"coding\"}", "options": {"raw": {"language": "json"}}}}},
+        {"name": "Get Agent", "request": {"method": "GET", "url": "{{base_url}}/api/agents/{{agent_id}}"}},
+        {"name": "Run Agent", "request": {"method": "POST", "url": "{{base_url}}/api/agents/{{agent_id}}/run", "body": {"mode": "raw", "raw": "{\"input\":\"Clinical text to analyze\",\"conversation_history\":[]}"}}},
+        {"name": "Stream Agent (SSE)", "request": {"method": "POST", "url": "{{base_url}}/api/agents/{{agent_id}}/stream"}},
+        {"name": "Publish Agent", "request": {"method": "POST", "url": "{{base_url}}/api/agents/{{agent_id}}/publish?env=prod"}},
+        {"name": "Agent Marketplace", "request": {"method": "GET", "url": "{{base_url}}/api/agents/marketplace/list"}},
+        {"name": "Create Thread", "request": {"method": "POST", "url": "{{base_url}}/api/agents/{{agent_id}}/threads"}}
+      ]
+    },
+    {
+      "name": "Experts",
+      "item": [
+        {"name": "List Experts", "request": {"method": "GET", "url": "{{base_url}}/api/experts?type=all"}},
+        {"name": "Create Expert", "request": {"method": "POST", "url": "{{base_url}}/api/experts", "body": {"mode": "raw", "raw": "{\"name\":\"My Expert\",\"description\":\"Description\",\"system_prompt\":\"You are...\",\"category\":\"coding\"}"}}}
+      ]
+    },
+    {
+      "name": "Medical Coding (Pipeline)",
+      "item": [
+        {"name": "Create Review (Async)", "request": {"method": "POST", "url": "{{base_url}}/api/reviews?async=true", "body": {"mode": "raw", "raw": "{\"encounter_id\":\"DEMO-001\"}"}}},
+        {"name": "Batch Review", "request": {"method": "POST", "url": "{{base_url}}/api/reviews/batch", "body": {"mode": "raw", "raw": "{\"encounter_ids\":[\"DEMO-001\",\"DEMO-002\"]}"}}},
+        {"name": "Get Review", "request": {"method": "GET", "url": "{{base_url}}/api/reviews/{{review_id}}"}},
+        {"name": "Task Status", "request": {"method": "GET", "url": "{{base_url}}/api/reviews/tasks/{{task_id}}"}},
+        {"name": "Batch Transcribe", "request": {"method": "POST", "url": "{{base_url}}/api/reviews/transcripts", "body": {"mode": "raw", "raw": "{\"audio_urls\":[\"https://example.com/audio1.mp3\"],\"language\":\"zh-CN\"}"}}}
+      ]
+    },
+    {
+      "name": "Fact Extraction",
+      "item": [
+        {"name": "Extract Facts", "request": {"method": "POST", "url": "{{base_url}}/api/facts/extract", "body": {"mode": "raw", "raw": "{\"text\":\"Patient with chest pain and hypertension\",\"output_language\":\"zh-CN\"}"}}}
+      ]
+    },
+    {
+      "name": "A2A Protocol",
+      "item": [
+        {"name": "Discover Agents", "request": {"method": "GET", "url": "{{base_url}}/api/experts/a2a/agents"}},
+        {"name": "Agent Card", "request": {"method": "GET", "url": "{{base_url}}/api/experts/a2a/.well-known/agent.json"}}
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {"name": "Platform Stats", "request": {"method": "GET", "url": "{{base_url}}/api/admin/stats"}},
+        {"name": "List All Agents", "request": {"method": "GET", "url": "{{base_url}}/api/admin/agents"}},
+        {"name": "List Users", "request": {"method": "GET", "url": "{{base_url}}/api/admin/users"}}
+      ]
+    },
+    {
+      "name": "Runtime",
+      "item": [
+        {"name": "Get Runtime Status", "request": {"method": "GET", "url": "{{base_url}}/api/runtime/status/{{case_id}}"}},
+        {"name": "Get Audit Trail", "request": {"method": "GET", "url": "{{base_url}}/api/runtime/audit/{{case_id}}"}},
+        {"name": "Get Review Summary", "request": {"method": "GET", "url": "{{base_url}}/api/runtime/summary/{{review_id}}"}}
+      ]
+    }
+  ]
+}

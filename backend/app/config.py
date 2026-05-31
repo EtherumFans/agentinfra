@@ -6,7 +6,7 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     # Application
-    APP_NAME: str = "iCoDer Medical Coding Agent"
+    APP_NAME: str = "iCoDer Clinical AI Platform"
     APP_VERSION: str = "1.0.0"
     APP_ENV: str = "production"
     DEBUG: bool = False

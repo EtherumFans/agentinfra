@@ -2,11 +2,9 @@
 
 ## 产品定位
 
-iCoDer 是**可审计的临床AI**——每条编码溯源到病历原文，每条决策链SHA-256哈希可重放。预置编码审核、语音转录、文书生成等临床AI能力，即开即用。同时提供SDK/API供HIS厂商和开发者深度集成。
+iCoDer 是**Corti-competitive 临床 AI 平台**——预置编码审核、语音转录、文书生成、事实提取、嵌入助手等临床 AI 能力即开即用。Agent Runtime 提供多租户、Marketplace、合同强制工具系统、Deny-First 安全模型。SDK/API/Web Components 供 HIS 厂商和第三方深度集成。
 
-**与 Corti 的差异**：Corti 和 iCoDer 都是医疗 AI 产品，面向不同市场优化：
-- Corti 面向 EU/US 医院，快速 SaaS 部署
-- iCoDer 的差异化在于**可审计**——原生支持 ICD-10-CN/ICD-9-CM-3，确定性 ICD 索引算法（非 LLM 幻觉），每条编码决策链可完整重放，满足医保纠纷举证和《数据安全法》合规要求
+**与 Corti 的关系**：iCoDer 在产品形态、能力边界和开发者体验上**无限逼近 Corti**——同样是 Agent Runtime 平台，支持语音转录→事实提取→编码审核→报告生成的完整临床 AI 工作流。区别在于 iCoDer 将**可审计**作为基础设施内置：每条编码可溯源，每条决策链 SHA-256 哈希可重放，这是 AI 安全性的前提而非定位边界。
 
 ---
 

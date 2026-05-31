@@ -1,16 +1,21 @@
-# iCoDer Medical Coding Agent V1.0
+# iCoDer — Clinical AI Platform
 
-面向中国医院病案首页与医保结算清单场景的编码审核智能体。
+Corti-competitive 临床 AI 平台。Agent Runtime + 编码审核 + 语音转录 + 文书生成 + 事实提取 + 嵌入助手，即开即用。SDK/API/Web Components 供 HIS 厂商和第三方深度集成。
+
+**无限逼近 Corti**，但每条决策链可审计、可溯源、可重放。
 
 ## Overview
 
-iCoDer is a production-grade AI-powered medical coding audit platform designed for Chinese hospital scenarios. It supports:
+iCoDer is a production-grade clinical AI platform competing with Corti. Core capabilities:
 
-- **Evidence-based coding**: Every recommended code traces back to medical record evidence
-- **Rule-validated**: All code judgments pass through ICD-10/ICD-9-CM-3 code tables and coding rules
-- **Auditable**: Complete audit trail from input → evidence → candidates → rules → report → human review
-- **Reviewable**: Coders can confirm, reject, or modify AI-suggested codes with documented reasons
-- **Iterable**: Human review results feed back into gold cases and evaluation
+- **Agent Runtime**: Multi-tenant, contract-enforced tool system, Deny-First security, Marketplace
+- **Medical Coding**: Evidence-based ICD-10-CN / ICD-9-CM-3 coding with full audit trail
+- **Speech-to-Text**: Real-time clinical dictation with speaker diarization
+- **Text Generation**: Template-driven clinical document generation
+- **Fact Extraction**: Structured clinical entity extraction from unstructured text
+- **Embedded Assistant**: Web Component for EHR/EMR integration
+- **SDK/API**: Python & JavaScript SDKs for HIS vendor integration
+- **Auditable**: Every code traces to source evidence, every decision chain is SHA-256 verifiable
 
 ## Architecture
 
@@ -82,48 +87,49 @@ Access the app at `http://localhost:80` and the API docs at `http://localhost:80
 
 ## Features (V1.0)
 
-### Core Workflow
-1. Medical record text input (paste or sample case)
-2. Clinical evidence extraction (diagnosis, procedures, anatomy, etiology, negation)
-3. ICD-10/ICD-9-CM-3 code candidate generation
-4. Code dictionary validation and rule checking
-5. DRG/DIP risk analysis
-6. Documentation gap identification
-7. Structured Coding Review Report generation (Markdown/HTML)
-8. Human review workflow (confirm/reject/modify)
-9. Evidence Pack export
+### Core Capabilities
+- **Agent Runtime**: Multi-tenant, contract-enforced tool system (Hoare-style pre/post conditions), Deny-First security model, runtime persistence
+- **Medical Coding**: Evidence-based ICD-10-CN / ICD-9-CM-3 coding, 9-step pipeline, evidence ranking, confidence calibration, disagreement analysis
+- **Speech-to-Text**: Real-time clinical dictation, speaker diarization, Medvoice/Web engines
+- **Text Generation**: Template-driven clinical document generation
+- **Fact Extraction**: Structured clinical entity extraction from unstructured text
+- **Embedded Assistant**: Web Component for EHR/EMR integration, Context tag system
+- **Marketplace**: Agent registration, discovery, installation
+- **SDK/API**: Python & JavaScript SDKs, REST API, OAuth 2.0, API client management
 
-### Pages
-- **Home / Agent Studio**: Input area with settings panel and expert configuration
-- **Coding Workbench**: 4-panel layout (record, evidence, candidates, report)
-- **Case Review**: Human review interface for confirming/rejecting codes
-- **Gold Cases**: Benchmark case management for evaluation
-- **Evaluation**: Agent performance metrics dashboard
-- **Code Dictionaries**: ICD-10, ICD-9-CM-3, insurance code search
-- **Rule Libraries**: Coding rule retrieval and application
+### Platform Pages (21 pages)
+AI Studio (Overview, Agents, Speech-to-Text, Text Generation, Fact Extraction, Medical Coding, Embedded Assistant), API Clients, Team, Billing, Usage, Settings, Gold Cases, Evaluation, Expert Library, Developer Quickstart, Docs, Release Notes, Tickets, Support
 
-### Agent Pipeline (9-step fixed orchestration)
-1. Evidence Extraction Expert
-2. ICD Diagnosis Expert + Procedure Coding Expert
-3. Medical Record Homepage Expert
-4. Code Dictionary Tool
-5. Coding Rule Tool
-6. Evidence Verification Expert
-7. DRG/DIP Expert + Documentation Gap Expert
-8. Report Expert
-9. Human Review
+### Security
+- OAuth 2.0 (access/refresh tokens, org switching, token revocation)
+- Password reset flow (forgot/reset/change) + login rate limiting
+- Circuit Breaker for LLM provider failover
+- JWT authentication with 6 roles (Admin, Coder, DeptHead, Insurance, QC, Clinician)
+- Complete audit logging, input validation, bcrypt password hashing
+
+### Testing
+- Backend: 579 tests passed, 10 skipped
+- Frontend: 21-page smoke test, auth gate tests, Playwright project mode
 
 ## API Endpoints
 
 | Prefix | Description |
 |---|---|
-| `/api/auth` | Authentication (register, login, refresh) |
+| `/api/auth` | Authentication (login, register, forgot/reset/change password, revoke tokens) |
+| `/api/organizations` | Multi-tenant org management |
 | `/api/encounters` | Case management |
 | `/api/reviews` | Coding review lifecycle |
-| `/api/codes` | Code dictionary search & explore |
-| `/api/rules` | Rule library retrieval |
+| `/api/agents` | Agent CRUD & Marketplace |
+| `/api/experts` | Expert library |
+| `/api/codes` | Code dictionary search (33K ICD-10-CN + 23K ICD-9-CM-3) |
 | `/api/gold-cases` | Gold standard case management |
-| `/api/evaluation` | Agent evaluation |
+| `/api/evaluation` | Agent evaluation metrics |
+| `/api/billing` | Usage billing |
+| `/api/usage` | Usage analytics |
+| `/api/team` | Team management |
+| `/api/admin` | Admin API (tenant management) |
+| `/api/keys` | API key management |
+| `/api/runtime` | Runtime session monitoring |
 | `/api/health` | Health check |
 
 Full API documentation available at `/docs` (Swagger UI).
@@ -142,21 +148,25 @@ npm test
 
 ## Security
 
-- JWT authentication with role-based access control (6 roles)
+- OAuth 2.0 with role-based access control (6 roles)
+- Password reset/change flow + login rate limiting
+- LLM Circuit Breaker for provider failover
+- Token revocation (logout all devices)
+- Contract-enforced Agent Runtime (Hoare-style pre/post conditions)
 - Complete audit logging for all operations
 - Patient ID anonymization
-- Built-in data never leaves the server
-- Production deployments support private deployment behind hospital firewall
+- Built-in data stays on-premise — supports private deployment behind hospital firewall
 - Input validation on all endpoints
 - Password hashing with bcrypt
 
 ## Compliance
 
-Aligned with:
+Platform supports:
 - 住院病案首页数据填写质量规范
 - 医疗保障基金结算清单填写规范
-- ICD-10 / ICD-9-CM-3 coding standards
+- ICD-10-CN / ICD-9-CM-3 coding standards
 - DRG/DIP payment reform requirements
+- 《数据安全法》— 可审计决策链满足合规举证
 
 ## License
 

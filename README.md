@@ -42,6 +42,8 @@ iCoDer/
 
 ## Quick Start
 
+> 5 分钟快速入门：[QUICKSTART.md](./docs/QUICKSTART.md)
+
 ### Prerequisites
 
 - Python 3.11+

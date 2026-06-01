@@ -686,6 +686,53 @@ async def get_report_html(
     return HTMLResponse(content=review.report_html or "<p>No report generated</p>")
 
 
+@router.get("/{review_id}/evidence-pack")
+async def get_evidence_pack(
+    review_id: str,
+    format: str = Query("json", enum=["json"], description="Export format (json only; pdf/ofd planned)"),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Export a complete audit evidence pack for a coding review.
+
+    Returns structured JSON containing:
+    - metadata: review_id, agent_version, model_used, processing_time
+    - input: encounter summary and codes
+    - evidence_items: all extracted clinical evidence
+    - code_decisions: per-code decision chain (reasoning, validation, human review)
+    - pipeline_health: step-level pipeline status
+    - timeline: operation timeline from creation to export
+    - integrity: SHA-256 content hash (unsigned — CA signing layer interface)
+    """
+    from app.services.evidence_pack import build_evidence_pack
+
+    result = await db.execute(
+        select(CodingReview).where(
+            (CodingReview.review_id == review_id) | (CodingReview.id == review_id)
+        )
+    )
+    review = result.scalar_one_or_none()
+    if not review:
+        raise HTTPException(status_code=404, detail="Review not found")
+
+    # Eager-load relationships for evidence and candidates
+    await db.refresh(review, attribute_names=["evidences", "candidates", "encounter"])
+
+    pack = build_evidence_pack(review)
+
+    if format == "json":
+        from fastapi.responses import JSONResponse
+        return JSONResponse(
+            content=pack,
+            headers={
+                "Content-Disposition": f'attachment; filename="evidence-pack-{review.review_id}.json"',
+                "X-Content-Hash": pack["integrity"]["content_hash"],
+            },
+        )
+
+    raise HTTPException(status_code=400, detail=f"Unsupported format: {format}. Supported: json")
+
+
 # ===== Async Task Status & Progress =====
 
 @router.get("/tasks/{task_id}")

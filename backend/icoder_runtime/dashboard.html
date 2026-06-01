@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>iCoDer Runtime Dashboard</title>
+<style>
+:root{--bg:#fafbfc;--card:#fff;--border:#e1e4e8;--text:#24292e;--muted:#586069;--primary:#0366d6;--green:#28a745;--red:#d73a49;--amber:#f66a0a;--radius:6px;--shadow:0 1px 3px rgba(0,0,0,.08)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);max-width:960px;margin:0 auto;padding:16px}
+header{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);margin-bottom:16px}
+header h1{font-size:18px;font-weight:600}
+header .version{font-size:12px;color:var(--muted)}
+.tabs{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:16px}
+.tab{padding:8px 20px;cursor:pointer;font-size:14px;border:none;background:none;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-2px}
+.tab.active{color:var(--text);border-bottom-color:var(--primary);font-weight:600}
+.panel{display:none}
+.panel.active{display:block}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px;box-shadow:var(--shadow)}
+.card-header{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.card-header .icon{font-size:20px}
+.card-header .name{font-weight:600}
+.card-meta{font-size:12px;color:var(--muted);margin-bottom:8px}
+.card-actions{display:flex;gap:8px}
+.btn{display:inline-flex;align-items:center;gap:4px;padding:6px 14px;font-size:13px;border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;background:var(--card);color:var(--text)}
+.btn:hover{background:#f3f4f6}
+.btn-primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+.btn-primary:hover{background:#0256cc}
+.btn-danger{color:var(--red);border-color:var(--red)}
+.badge{font-size:11px;padding:2px 8px;border-radius:10px;font-weight:500}
+.badge-ready{background:#dcffe4;color:var(--green)}
+.badge-incompat{background:#ffeef0;color:var(--red)}
+.tag{font-size:11px;padding:1px 6px;background:#f1f8ff;color:var(--primary);border-radius:3px;margin-right:4px}
+.run-entry{cursor:pointer}
+.run-entry:hover{background:#f6f8fa}
+.run-detail{background:#f6f8fa;border-radius:var(--radius);padding:12px;margin-top:8px;font-size:13px}
+.evidence-item{padding:6px 0;border-bottom:1px solid #eaecef}
+.evidence-item:last-child{border-bottom:none}
+.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.3);z-index:100;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--card);border-radius:var(--radius);padding:24px;max-width:520px;width:90%;box-shadow:0 8px 24px rgba(0,0,0,.15)}
+.modal h2{font-size:16px;margin-bottom:12px}
+.modal label{display:block;font-size:13px;font-weight:500;margin:8px 0 4px}
+.modal input,.modal textarea{width:100%;padding:8px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px}
+.modal textarea{min-height:120px;resize:vertical}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+.empty{text-align:center;padding:48px 0;color:var(--muted);font-size:14px}
+.import-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:40px;text-align:center;cursor:pointer}
+.import-zone.drag-over{border-color:var(--primary);background:#f1f8ff}
+.import-step{padding:16px;margin-top:12px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius)}
+.import-step h3{font-size:14px;margin-bottom:8px}
+.import-step .preview{font-size:12px;color:var(--muted);background:#f6f8fa;padding:8px;border-radius:3px;max-height:200px;overflow:auto;white-space:pre-wrap}
+.error-msg{background:#ffeef0;color:var(--red);padding:8px 12px;border-radius:var(--radius);margin-top:8px;font-size:13px}
+.success-msg{background:#dcffe4;color:var(--green);padding:8px 12px;border-radius:var(--radius);margin-top:8px;font-size:13px}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid #e1e4e8;border-top-color:var(--primary);border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>iCoDer Runtime <span class="version" id="version"></span></h1>
+  </div>
+  <button class="btn btn-primary" onclick="switchTab('import')">Import Agent Pack</button>
+</header>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('agents')">Agents</button>
+  <button class="tab" onclick="switchTab('history')">Run History</button>
+  <button class="tab" onclick="switchTab('import')">Import</button>
+</div>
+
+<!-- Agents Tab -->
+<div id="panel-agents" class="panel active">
+  <div id="agents-list"></div>
+  <div class="empty" id="agents-empty">No agents loaded. Import an Agent Pack to get started.</div>
+</div>
+
+<!-- Run History Tab -->
+<div id="panel-history" class="panel">
+  <div id="runs-list"></div>
+  <div class="empty" id="runs-empty">No runs yet. Go to Agents and run one.</div>
+</div>
+
+<!-- Import Tab -->
+<div id="panel-import" class="panel">
+  <div class="import-zone" id="import-zone" onclick="document.getElementById('import-file').click()">
+    <p>Drop .icoder-agent file here or click to upload</p>
+    <input type="file" id="import-file" accept=".icoder-agent,.json" style="display:none" onchange="handleImportFile(event)">
+  </div>
+  <div id="import-preview"></div>
+</div>
+
+<!-- Run Modal -->
+<div class="modal-overlay" id="run-modal">
+  <div class="modal">
+    <h2 id="run-modal-title">Run Agent</h2>
+    <label>Input Text</label>
+    <textarea id="run-input" placeholder="Paste clinical text here..."></textarea>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeRunModal()">Cancel</button>
+      <button class="btn btn-primary" id="run-submit-btn" onclick="submitRun()">Run Agent</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = '';
+
+async function api(path, opts = {}) {
+  const res = await fetch(API + path, {
+    headers: { 'Content-Type': 'application/json', ...opts.headers },
+    ...opts,
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: res.statusText }));
+    throw new Error(typeof err.detail === 'string' ? err.detail : JSON.stringify(err.detail));
+  }
+  return res.json();
+}
+
+// ── Init ──
+let currentTab = 'agents';
+let currentRunAgentId = '';
+
+async function init() {
+  try {
+    const s = await api('/api/runtime/status');
+    document.getElementById('version').textContent = 'v' + s.version;
+  } catch(e) {}
+  await loadAgents();
+  await loadRuns();
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.textContent.trim().toLowerCase().includes(tab)));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + tab).classList.add('active');
+  if (tab === 'history') loadRuns();
+}
+
+// ── Agents ──
+async function loadAgents() {
+  try {
+    const data = await api('/api/agents');
+    const list = document.getElementById('agents-list');
+    const empty = document.getElementById('agents-empty');
+    if (data.agents.length === 0) {
+      list.innerHTML = '';
+      empty.style.display = 'block';
+      return;
+    }
+    empty.style.display = 'none';
+    list.innerHTML = data.agents.map(a => `
+      <div class="card">
+        <div class="card-header">
+          <span class="icon">${a.icon === 'Shield' ? '🛡️' : a.icon === 'Stethoscope' ? '🩺' : '📋'}</span>
+          <span class="name">${esc(a.name)}</span>
+          <span class="badge ${a.status === 'ready' ? 'badge-ready' : 'badge-incompat'}">${a.status}</span>
+        </div>
+        <div class="card-meta">
+          <span class="tag">v${esc(a.version)}</span>
+          <span class="tag">${esc(a.category)}</span>
+          <span>${a.expert_count} experts</span>
+          <span style="margin-left:8px">${a.tool_count} tools</span>
+          ${a.loaded_at ? `<span style="margin-left:8px;color:var(--muted)">Loaded: ${a.loaded_at.slice(0,16).replace('T',' ')}</span>` : ''}
+        </div>
+        <div class="card-actions">
+          <button class="btn btn-primary" onclick="openRunModal('${a.id}','${esc(a.name)}')" ${a.status !== 'ready' ? 'disabled' : ''}>▶ Run</button>
+          <button class="btn" onclick="exportAgent('${a.id}')">⬇ Export Pack</button>
+          <button class="btn btn-danger" onclick="deleteAgent('${a.id}')">✕ Delete</button>
+        </div>
+      </div>
+    `).join('');
+  } catch(e) {}
+}
+
+function openRunModal(agentId, agentName) {
+  currentRunAgentId = agentId;
+  document.getElementById('run-modal-title').textContent = 'Run: ' + agentName;
+  document.getElementById('run-input').value = '';
+  document.getElementById('run-modal').classList.add('open');
+}
+
+function closeRunModal() {
+  document.getElementById('run-modal').classList.remove('open');
+}
+
+async function submitRun() {
+  const input = document.getElementById('run-input').value.trim();
+  if (!input) return;
+  const btn = document.getElementById('run-submit-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Running...';
+  try {
+    const result = await api('/api/runs', {
+      method: 'POST',
+      body: JSON.stringify({ agent_id: currentRunAgentId, input }),
+    });
+    closeRunModal();
+    btn.disabled = false;
+    btn.textContent = 'Run Agent';
+    switchTab('history');
+    // Scroll to the new run
+    setTimeout(() => {
+      const el = document.getElementById('run-' + result.id);
+      if (el) { el.scrollIntoView({ behavior: 'smooth' }); el.click(); }
+    }, 200);
+  } catch(e) {
+    alert('Run failed: ' + e.message);
+    btn.disabled = false;
+    btn.textContent = 'Run Agent';
+  }
+}
+
+async function exportAgent(agentId) {
+  try {
+    window.open(API + '/api/agents/' + agentId + '/export', '_blank');
+  } catch(e) { alert('Export failed: ' + e.message); }
+}
+
+async function deleteAgent(agentId) {
+  if (!confirm('Delete this agent?')) return;
+  try {
+    await api('/api/agents/' + agentId, { method: 'DELETE' });
+    loadAgents();
+  } catch(e) { alert('Delete failed: ' + e.message); }
+}
+
+// ── Runs ──
+async function loadRuns() {
+  try {
+    const data = await api('/api/runs?limit=50');
+    const list = document.getElementById('runs-list');
+    const empty = document.getElementById('runs-empty');
+    if (data.runs.length === 0) {
+      list.innerHTML = '';
+      empty.style.display = 'block';
+      return;
+    }
+    empty.style.display = 'none';
+    list.innerHTML = data.runs.map(r => `
+      <div class="card run-entry" id="run-${r.id}" onclick="toggleRunDetail('${r.id}')">
+        <div class="card-header">
+          <span>📝</span>
+          <span class="name">${esc(r.agent_name)}</span>
+          <span class="tag">v${esc(r.agent_version)}</span>
+          <span style="margin-left:auto;font-size:12px;color:var(--muted)">${r.created_at.slice(0,16).replace('T',' ')}</span>
+        </div>
+        <div class="card-meta">
+          <span>Review: ${r.review_id}</span>
+          <span style="margin-left:12px">⏱ ${r.processing_time_ms}ms</span>
+          <span style="margin-left:12px">📋 ${r.audit_entries} audit entries</span>
+          <span style="margin-left:12px">${r.chain_valid ? '✅ Chain valid' : '❌ Chain broken'}</span>
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px">${esc(r.input_preview)}</div>
+        <div class="run-detail" id="run-detail-${r.id}" style="display:none"></div>
+      </div>
+    `).join('');
+  } catch(e) {}
+}
+
+async function toggleRunDetail(runId) {
+  const el = document.getElementById('run-detail-' + runId);
+  if (el.style.display === 'none') {
+    try {
+      const run = await api('/api/runs/' + runId);
+      const log = run.state_log || {};
+      const entries = log.entries || [];
+      el.innerHTML = `
+        <h4>Audit Trail (${entries.length} entries)</h4>
+        ${entries.map(e => `
+          <div class="evidence-item">
+            <strong>${esc(e.step)}</strong>
+            <span style="color:var(--muted);margin-left:8px">${e.timestamp.slice(11,19)}</span>
+            ${e.actor ? `<span style="color:var(--muted);margin-left:8px">by ${esc(e.actor)}</span>` : ''}
+            <div style="font-size:11px;color:var(--muted);margin-top:2px">
+              ${e.payload && Object.keys(e.payload).length ? Object.entries(e.payload).map(([k,v]) => `${k}: ${JSON.stringify(v).slice(0,60)}`).join(' | ') : ''}
+            </div>
+            <div style="font-size:10px;font-family:monospace;color:var(--muted);margin-top:1px">hash: ${e.entry_hash}</div>
+          </div>
+        `).join('')}
+        <div style="margin-top:8px">
+          ${run.chain_valid ? '✅' : '❌'} Chain verified
+          ${run.contract_valid ? ' | ✅ Contract valid' : ' | ❌ Contract violated'}
+        </div>
+      `;
+      el.style.display = 'block';
+    } catch(e) {}
+  } else {
+    el.style.display = 'none';
+  }
+}
+
+// ── Import ──
+const dropZone = document.getElementById('import-zone');
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) processFile(file);
+});
+
+async function handleImportFile(event) {
+  const file = event.target.files[0];
+  if (file) processFile(file);
+}
+
+async function processFile(file) {
+  const preview = document.getElementById('import-preview');
+  try {
+    const text = await file.text();
+    const pack = JSON.parse(text);
+
+    // Validate
+    const resp = await api('/api/agents/import', {
+      method: 'POST',
+      body: JSON.stringify({ pack }),
+    }).catch(e => { throw new Error(e.message); });
+
+    // Show success
+    preview.innerHTML = `
+      <div class="import-step">
+        <h3>Step 1: Parse ✅</h3>
+        <div class="preview">Name: ${esc(pack.manifest?.name || '?')} | Version: ${esc(pack.manifest?.version || '?')} | Category: ${esc(pack.manifest?.category || '?')}</div>
+      </div>
+      <div class="import-step">
+        <h3>Step 2: Validate ✅</h3>
+        <div class="preview">Experts: ${(pack.experts||[]).length} | Tools: ${(pack.tools||[]).length} | Runtime: ${pack.requirements?.min_runtime_version || '?'}</div>
+      </div>
+      <div class="success-msg">✅ ${esc(resp.name)} imported successfully.</div>
+      <div class="card-actions" style="margin-top:12px">
+        <button class="btn btn-primary" onclick="switchTab('agents')">Go to Agents</button>
+        <button class="btn" onclick="openRunModal('${resp.id}','${esc(resp.name)}')">Run Now</button>
+      </div>
+    `;
+    loadAgents();
+  } catch(e) {
+    preview.innerHTML = `<div class="error-msg">Import failed: ${esc(e.message)}</div>`;
+  }
+}
+
+function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+init();
+</script>
+</body>
+</html>

@@ -282,3 +282,102 @@ async def get_review_audit_summary(
             "decision_summary": {"total_decisions": 0, "approved": 0, "rejected": 0},
             "state_timeline": [], "warnings": [],
         }
+
+
+@router.get("/trace/{pipeline_id}")
+async def get_execution_trace(
+    pipeline_id: str,
+    current_user=Depends(get_current_user),
+):
+    """Get Agent execution trace for timeline visualization.
+
+    Returns tool calls, state transitions, audit records, and guard outcomes
+    in a chronological timeline suitable for frontend rendering.
+    """
+    from sqlalchemy import select as _s
+    from app.database import async_session_factory
+    from app.models.runtime_persistence import (
+        RuntimeSession, RuntimeTransition, RuntimeAuditRecord, DUCDecision,
+    )
+
+    async with async_session_factory() as db:
+        # Look up session
+        stmt = _s(RuntimeSession).where(
+            (RuntimeSession.runtime_id == pipeline_id) |
+            (RuntimeSession.pipeline_id == pipeline_id) |
+            (RuntimeSession.review_id == pipeline_id)
+        )
+        result = await db.execute(stmt)
+        session = result.scalar_one_or_none()
+
+        if not session:
+            raise HTTPException(status_code=404, detail="No runtime session found")
+
+        # Fetch transitions
+        trans_stmt = _s(RuntimeTransition).where(
+            RuntimeTransition.runtime_id == session.runtime_id
+        ).order_by(RuntimeTransition.created_at.asc())
+        trans_result = await db.execute(trans_stmt)
+        transitions = trans_result.scalars().all()
+
+        # Fetch audit records
+        audit_stmt = _s(RuntimeAuditRecord).where(
+            RuntimeAuditRecord.runtime_id == session.runtime_id
+        ).order_by(RuntimeAuditRecord.created_at.asc())
+        audit_result = await db.execute(audit_stmt)
+        audit_records = audit_result.scalars().all()
+
+        # Fetch DUC decisions
+        duc_stmt = _s(DUCDecision).where(
+            DUCDecision.runtime_id == session.runtime_id
+        ).order_by(DUCDecision.created_at.asc())
+        duc_result = await db.execute(duc_stmt)
+        duc_decisions = duc_result.scalars().all()
+
+    # Build timeline events
+    events = []
+
+    for t in transitions:
+        events.append({
+            "type": "state_transition",
+            "from_state": t.from_state,
+            "to_state": t.to_state,
+            "actor": t.actor or "",
+            "timestamp": t.created_at.isoformat() if t.created_at else "",
+        })
+
+    for a in audit_records:
+        events.append({
+            "type": "audit",
+            "event": a.event_type,
+            "actor": a.actor or "",
+            "payload": a.payload or {},
+            "timestamp": a.created_at.isoformat() if a.created_at else "",
+            "content_hash": a.content_hash or "",
+        })
+
+    for d in duc_decisions:
+        events.append({
+            "type": "human_decision",
+            "subject": d.subject or "",
+            "decision": d.decision or "",
+            "reviewer": d.reviewer or "",
+            "rationale": d.rationale or "",
+            "timestamp": d.created_at.isoformat() if d.created_at else "",
+        })
+
+    # Sort by timestamp
+    events.sort(key=lambda e: e["timestamp"])
+
+    return {
+        "pipeline_id": pipeline_id,
+        "runtime_id": session.runtime_id,
+        "current_state": session.current_state,
+        "total_events": len(events),
+        "events": events,
+        "summary": {
+            "state_transitions": len(transitions),
+            "audit_records": len(audit_records),
+            "human_decisions": len(duc_decisions),
+        },
+    }

@@ -6,7 +6,7 @@ Experts to complete tasks."
 """
 import json
 import uuid
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from sqlalchemy import select, or_
@@ -133,6 +133,81 @@ async def create_agent(
     await db.commit()
     await db.refresh(agent)
     return await _agent_to_dict(agent)
+
+
+class AgentCloneRequest(BaseModel):
+    name: str | None = None
+    description: str | None = None
+
+@router.post("/{agent_id}/clone")
+async def clone_agent(
+    agent_id: str,
+    name: str | None = Body(None),
+    description: str | None = Body(None),
+    user: User = Depends(get_current_user),
+    org: Organization = Depends(get_current_organization),
+    db: AsyncSession = Depends(get_db),
+):
+    """Clone a prebuilt agent or template into a user-owned custom agent."""
+    name_override = name
+    description_override = description
+
+    # 1. Try cloning from a DB Agent (prebuilt or custom)
+    result = await db.execute(
+        select(Agent).where(Agent.id == agent_id)
+    )
+    source = result.scalar_one_or_none()
+    if source:
+        cloned = Agent(
+            organization_id=org.id,
+            name=name_override or f"{source.name} (Copy)",
+            description=description_override or source.description,
+            system_prompt=source.system_prompt,
+            icon=source.icon,
+            category=source.category,
+            expert_ids=source.expert_ids or [],
+            default_expert_id=source.default_expert_id or "",
+            a2a_enabled=source.a2a_enabled,
+            config=source.config or {},
+            is_prebuilt=False,
+            is_published=False,
+            created_by=user.id,
+            status="draft",
+            version="1.0.0",
+            usage_count=0,
+        )
+        db.add(cloned)
+        await db.commit()
+        await db.refresh(cloned)
+        return await _agent_to_dict(cloned)
+
+    # 2. Try cloning from a hardcoded template
+    template = next((t for t in AGENT_TEMPLATES if t["id"] == agent_id), None)
+    if not template:
+        raise HTTPException(status_code=404, detail="Agent or template not found")
+
+    cloned = Agent(
+        organization_id=org.id,
+        name=name_override or f"{template['title']} (Copy)",
+        description=description_override or template["description"],
+        system_prompt=template["system_prompt"],
+        icon=template["icon"],
+        category=template["category"],
+        expert_ids=template.get("expert_ids", []),
+        default_expert_id=template.get("expert_ids", [""])[0] if template.get("expert_ids") else "",
+        a2a_enabled=False,
+        config=template.get("config", {}),
+        is_prebuilt=False,
+        is_published=False,
+        created_by=user.id,
+        status="draft",
+        version="1.0.0",
+        usage_count=0,
+    )
+    db.add(cloned)
+    await db.commit()
+    await db.refresh(cloned)
+    return await _agent_to_dict(cloned)
 
 
 @router.get("/categories")

@@ -226,6 +226,29 @@ async def get_agent_templates():
     return {"templates": AGENT_TEMPLATES}
 
 
+@router.get("/templates/{template_id}/download")
+async def download_template_pack(template_id: str):
+    """Download a template as a .icoder-agent package file."""
+    from fastapi.responses import Response
+    from icoder_runtime.agent_pack import pack_from_template
+
+    template = next((t for t in AGENT_TEMPLATES if t["id"] == template_id), None)
+    if not template:
+        raise HTTPException(status_code=404, detail="Template not found")
+
+    pack = pack_from_template(template)
+    import json
+    content = json.dumps(pack, ensure_ascii=False, indent=2)
+
+    return Response(
+        content=content,
+        media_type="application/json",
+        headers={
+            "Content-Disposition": f'attachment; filename="{template_id}-v1.0.0.icoder-agent"',
+        },
+    )
+
+
 @router.get("/{agent_id}")
 async def get_agent(
     agent_id: str,

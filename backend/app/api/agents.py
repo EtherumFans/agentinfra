@@ -142,15 +142,14 @@ class AgentCloneRequest(BaseModel):
 @router.post("/{agent_id}/clone")
 async def clone_agent(
     agent_id: str,
-    name: str | None = Body(None),
-    description: str | None = Body(None),
     user: User = Depends(get_current_user),
     org: Organization = Depends(get_current_organization),
     db: AsyncSession = Depends(get_db),
+    body: AgentCloneRequest | None = None,
 ):
     """Clone a prebuilt agent or template into a user-owned custom agent."""
-    name_override = name
-    description_override = description
+    name_override = body.name if body else None
+    description_override = body.description if body else None
 
     # 1. Try cloning from a DB Agent (prebuilt or custom)
     result = await db.execute(

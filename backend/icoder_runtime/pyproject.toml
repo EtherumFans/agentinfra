@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "icoder-runtime"
+version = "1.0.0"
+description = "iCoDer Runtime — Contract-Enforced Agent Execution Engine"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "Apache-2.0"}
+authors = [{name = "iCoDer"}]
+keywords = ["ai", "agent", "runtime", "compliance", "audit", "contract"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+dependencies = [
+    "fastapi>=0.100.0",
+    "uvicorn>=0.30.0",
+    "pydantic>=2.0.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "pytest-asyncio>=0.23"]
+
+[project.scripts]
+icoder-runtime = "icoder_runtime.serve:main"
+
+[tool.setuptools.packages.find]
+include = ["icoder_runtime*"]

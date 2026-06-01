@@ -189,9 +189,11 @@ def cmd_pack(dir_path: str, output: str | None):
 
 
 def cmd_dashboard(port: int):
-    """Start local dashboard (placeholder — Phase 3.2)."""
-    print(f"Dashboard not yet implemented. Coming in Phase 3.2.")
-    print(f"Use 'icoder-runtime serve --port {port}' to start the HTTP API instead.")
+    """Start local dashboard with Web UI."""
+    from .serve import main as serve_main
+    import sys
+    sys.argv = ["icoder-dashboard", "--port", str(port), "--host", "127.0.0.1"]
+    serve_main()
 
 
 def _build_pack_from_dir(dir_path: Path, agent_data: dict) -> dict:

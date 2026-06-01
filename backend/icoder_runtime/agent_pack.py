@@ -2,21 +2,30 @@
 
 Format spec:
   {
-    "format_version": "1.0",
+    "format_version": "1.1",
+    "agent_type": "certified" | "community",
     "manifest": {name, version, description, category, icon},
     "system_prompt": "...",
     "experts": [{id, name, description, system_prompt, capabilities, config}],
     "tools": [{id, name, description, tier, category, requires, guarantees,
                params: {key: {type, required, description}}, accuracy_tags,
-               is_injectable}],
+               is_injectable, executor_file: "<path in code/>"}],
+    "code": {"tool_id.py": "<Python source with def run(params): return dict>"},
     "permissions": {key, name, description,
                     tools: {tool_id: {action: "allow"|"deny"|"require_human",
                                       max_per_session: int}}},
     "requirements": {min_runtime_version: "1.0.0"}
   }
 
-All references are self-contained — no external service dependencies.
+- agent_type="certified": no code/ allowed, pure declarative
+- agent_type="community": code/ allowed, sandboxed execution
 """
+
+import base64
+import json
+import logging
+from pathlib import Path
+from typing import Optional
 
 import json
 import hashlib
@@ -29,7 +38,7 @@ from .permissions import PermissionPolicy, ToolPermission
 
 logger = logging.getLogger(__name__)
 
-FORMAT_VERSION = "1.0"
+FORMAT_VERSION = "1.1"
 FILE_EXTENSION = ".icoder-agent"
 
 
@@ -135,6 +144,33 @@ def validate_pack(pack: dict) -> list[str]:
         if tier not in (1, 2):
             errors.append(f"Tool[{i}]: invalid tier {tier}")
 
+    # Agent type validation
+    agent_type = pack.get("agent_type", "certified")
+    if agent_type not in ("certified", "community"):
+        errors.append(f"Invalid agent_type: {agent_type}")
+
+    # Code validation: only community agents may contain code
+    if agent_type == "community":
+        code = pack.get("code", {})
+        for filename, source in code.items():
+            if not isinstance(source, str) or len(source) == 0:
+                errors.append(f"code/{filename}: empty or invalid")
+            if len(source) > 100_000:
+                errors.append(f"code/{filename}: exceeds 100KB limit")
+            if "import os" in source.lower() and "import os.path" not in source.lower():
+                pass  # minimal os imports may be useful, rely on sandbox restrictions
+    elif pack.get("code"):
+        errors.append("certified agents cannot contain code/")
+
+    # Tool executor_file references must exist in code/
+    for i, t in enumerate(pack.get("tools", [])):
+        ef = t.get("executor_file")
+        if ef:
+            if agent_type != "community":
+                errors.append(f"Tool[{i}]: executor_file requires agent_type=community")
+            if ef not in pack.get("code", {}):
+                errors.append(f"Tool[{i}]: executor_file '{ef}' not found in code/")
+
     # Requirements
     req = pack.get("requirements", {})
     if not req.get("min_runtime_version"):
@@ -171,8 +207,23 @@ def import_pack(pack: dict) -> tuple[AgentDefinition, list[ExpertDefinition],
         for e in pack.get("experts", [])
     ]
 
-    tools = [
-        ToolDefinition(
+    code_files = pack.get("code", {})
+    tools = []
+    for t in pack.get("tools", []):
+        executor = None
+        ef = t.get("executor_file")
+        if ef and ef in code_files:
+            from .sandbox import execute as sandbox_exec
+            source = code_files[ef]
+
+            def _make_executor(src):
+                def _runner(**params):
+                    return sandbox_exec(src, params)
+                return _runner
+
+            executor = _make_executor(source)
+
+        tools.append(ToolDefinition(
             id=t["id"], name=t["name"],
             description=t.get("description", ""),
             tier=ToolTier(t.get("tier", 2)),
@@ -183,9 +234,8 @@ def import_pack(pack: dict) -> tuple[AgentDefinition, list[ExpertDefinition],
             input_schema={"type": "object", "properties": t.get("params", {})} if t.get("params") else None,
             accuracy_tags=t.get("accuracy_tags", []),
             is_injectable=t.get("is_injectable", False),
-        )
-        for t in pack.get("tools", [])
-    ]
+            executor=executor,
+        ))
 
     permissions = pack.get("permissions", {})
 

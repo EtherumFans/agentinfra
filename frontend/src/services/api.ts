@@ -312,6 +312,8 @@ export const runtimeApi = {
     ),
   summary: (reviewId: string) =>
     api.get<AuditSummary>(`/runtime/summary/${reviewId}`),
+  trace: (pipelineId: string) =>
+    api.get(`/runtime/trace/${pipelineId}`),
   review: (caseId: string, action: string, rationale: string, decision: string) =>
     api.post<{ status: string; state: string }>(`/runtime/review/${caseId}`, {
       case_id: caseId, action, rationale, decision,

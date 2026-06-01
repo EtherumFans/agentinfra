@@ -62,10 +62,21 @@ async def list_tools(category: str | None = None, tier: int | None = None):
     }
 
 
+# ── Custom Preset Registry ──
+from app.services.permissions import PRESET_POLICIES, PermissionPolicy, ToolPermission
+
+_custom_presets: dict[str, dict] = {}
+
+
+def _all_presets() -> dict[str, dict]:
+    """Return built-in + custom presets."""
+    return {**PRESET_POLICIES, **_custom_presets}
+
+
 @router.get("/permission-presets")
 async def list_permission_presets():
-    """List available permission policy presets for Agent creation."""
-    from app.services.permissions import PRESET_POLICIES
+    """List available permission policy presets (built-in + custom)."""
+    all_presets = _all_presets()
     return {
         "presets": [
             {
@@ -75,9 +86,62 @@ async def list_permission_presets():
                 "tool_count": len(info["policy"].permissions),
                 "tools": list(info["policy"].permissions.keys()),
             }
-            for key, info in PRESET_POLICIES.items()
+            for key, info in all_presets.items()
         ],
+        "builtin_count": len(PRESET_POLICIES),
+        "custom_count": len(_custom_presets),
     }
+
+
+class PresetCreateRequest(BaseModel):
+    key: str = Field(..., min_length=1, max_length=64, pattern=r"^[a-z0-9_]+$")
+    name: str = Field(..., min_length=1)
+    description: str = ""
+    tools: dict[str, dict] = Field(..., min_length=1, description="{tool_id: {action: allow|deny|require_human, max_per_session: int}}")
+
+
+@router.post("/permission-presets", status_code=201)
+async def register_custom_preset(body: PresetCreateRequest):
+    """Register a custom permission preset for Agent creation.
+
+    Each tool in the preset specifies: {action: allow | deny | require_human}
+    """
+    key = body.key
+    if key in PRESET_POLICIES:
+        raise HTTPException(status_code=409, detail="Cannot override built-in preset")
+    if key in _custom_presets:
+        raise HTTPException(status_code=409, detail=f"Preset '{key}' already exists")
+
+    permissions = {}
+    for tool_id, config in body.tools.items():
+        action = config.get("action", "deny")
+        allowed = action == "allow" or action == "require_human"
+        requires_human = action == "require_human"
+        permissions[tool_id] = ToolPermission(
+            tool_id=tool_id,
+            allowed=allowed,
+            requires_human=requires_human,
+            max_per_session=config.get("max_per_session", 50),
+        )
+
+    _custom_presets[key] = {
+        "name": body.name,
+        "description": body.description,
+        "policy": PermissionPolicy(permissions=permissions),
+    }
+
+    return {"key": key, "name": body.name, "tool_count": len(permissions), "registered": True}
+
+
+@router.delete("/permission-presets/{key}")
+async def unregister_custom_preset(key: str):
+    """Remove a custom permission preset."""
+    if key in PRESET_POLICIES:
+        raise HTTPException(status_code=403, detail="Cannot remove built-in preset")
+    if key not in _custom_presets:
+        raise HTTPException(status_code=404, detail="Preset not found")
+    del _custom_presets[key]
+    return {"status": "removed", "key": key}
 
 
 @router.get("/categories")

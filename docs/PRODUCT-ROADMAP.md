@@ -1,95 +1,146 @@
-# iCoDer Product Roadmap
+# iCoDer Product Roadmap v2
 ## Medical Revenue Compliance AI Runtime Platform
 
-Target: Transform from a medical coding audit system into a self-service Agent Runtime platform for ISVs and developers.
+Runtime 是底座，HIS 厂商是分发通道，Agent 包是分发单元。Marketplace 是 ISV 的"Agent 包注册表"，不是云端应用商店。
 
 ---
 
-## Phase 1: Developer Onboarding (Weeks 1-2)
-
-Goal: A developer can `pip install icoder-runtime`, clone a template, and get a working compliance Agent in 5 minutes.
-
-| # | Work Item | Effort | Deliverable |
-|---|-----------|--------|-------------|
-| 1.1 | **Agent clone endpoint** | 1 day | `POST /api/agents/{agent_id}/clone` — instantiate a template as a user-owned Agent. Prebuilt agents become editable copies. |
-| 1.2 | **Quickstart documentation** | 3 days | One page: install → configure LLM → clone Medical Coding template → run → see evidence chain. With screenshots. |
-| 1.3 | **SDK scenario tutorials** | 3 days | Three code-along guides: (a) Build a coding audit Agent, (b) Add a custom compliance Tool, (c) Export an evidence pack via API. |
-| 1.4 | **Audit evidence pack export API** | 1 week | `POST /api/reviews/{id}/evidence-pack` → structured JSON/PDF: original text → evidence → code candidates → rule validation → human confirmations → timestamps. Ready for CA signing layer. |
-
-**Phase 1 exit criteria:** A new developer, with no prior iCoDer knowledge, can `pip install` and create a running Agent within 5 minutes. Evidence pack API returns a complete audit trail for any review.
-
----
-
-## Phase 2: Platform Extensibility (Weeks 3-4)
-
-Goal: ISVs can register custom Tools and build Agents without touching iCoDer source code.
-
-| # | Work Item | Effort | Deliverable |
-|---|-----------|--------|-------------|
-| 2.1 | **Tool registration API** | 1-2 weeks | `POST /api/tools` — ISV uploads a Tool spec (JSON: name, contract pre/post conditions, parameter schema, accuracy tags, Tier level). Runtime auto-registers and enforces contracts. |
-| 2.2 | **Permission preset configuration** | 1 week | `POST /api/permissions/presets` — ISV defines custom permission sets. Which operations require `requires_human: true`, which auto-approve. |
-| 2.3 | **Agent Tracing UI** | 2 weeks | Frontend dashboard: timeline view of Agent execution — tool calls, pre/post condition results, LLM invocations, state transitions. Color-coded pass/fail. Per-step evidence drill-down. |
-
-**Phase 2 exit criteria:** An ISV can register a custom Tool (e.g., "Local Hospital Billing Rule Checker") with contract specs, bind it to an Agent, run it, and observe the full trace in the Dashboard.
-
----
-
-## Phase 3: Marketplace as Distribution (Weeks 5-6)
-
-Goal: Marketplace goes from "Agent list" to "Agent distribution platform" — install, rate, version-manage.
-
-| # | Work Item | Effort | Deliverable |
-|---|-----------|--------|-------------|
-| 3.1 | **Marketplace install flow** | 3 days | One-click install: browse → install → Agent appears in user's workspace. Version compatibility check on install. |
-| 3.2 | **Agent version management** | 2 days | Diff view between versions. Rollback to previous version. Changelog per version. |
-| 3.3 | **Usage analytics per Agent** | 3 days | Agent owner sees: installs, runs, avg latency, error rate, token usage. Tenant-scoped (each org sees only their agents). |
-| 3.4 | **ISV documentation pack** | 1 week | Complete ISV guide: Tool contract writing → Agent packaging → Marketplace publishing → pricing setup → analytics interpretation. |
-
-**Phase 3 exit criteria:** A third-party ISV can publish an Agent to the Marketplace, another user can install it, run it, and the original ISV can see usage analytics.
-
----
-
-## Phase 4: Developer Tooling (Weeks 7-8)
-
-Goal: Developer productivity and self-service maturity.
-
-| # | Work Item | Effort | Deliverable |
-|---|-----------|--------|-------------|
-| 4.1 | **CLI tool** | 1 week | `pip install icoder-cli` → `icoder init my-agent` (scaffolds project), `icoder deploy` (pushes to platform), `icoder test` (runs against local Runtime). |
-| 4.2 | **Agent Playground** | 2 weeks | Web UI: select Agent, type input, see real-time trace output. No code needed. Test compliance rules interactively. |
-| 4.3 | **Python SDK reference docs** | 1 week | Auto-generated from docstrings. Full API reference: Runtime, Agent, Tool, EvidencePack, Audit. |
-
----
-
-## Dependency Graph
+## 架构目标
 
 ```
-Phase 1 ──→ Phase 2 ──→ Phase 3 ──→ Phase 4
-  │            │
-  └── 1.4      └── 2.3 (Tracing UI depends on evidence chain data model)
-  (Evidence     (Tool registration
-   pack)         enables ISV tools)
+icoder-runtime (Apache 2.0, pip install, 零外部依赖)
+├── contract_engine      ── 合同强制验证
+├── permissions          ── Deny-First 权限
+├── guardrails           ── 输入/输出护栏
+├── symbolic_state       ── 决策链 SHA-256 哈希
+├── agent_runner         ── Agent 执行引擎
+├── tool_registry        ── 工具注册表
+├── agent_pack           ── Agent 包导入/导出（含自定义 Expert/Tool 完整定义）
+├── http_server          ── 本地 HTTP API 模式（icoder-runtime serve --port 8765）
+└── local_sqlite         ── 本地持久化
+
+icoder-platform (SaaS, 闭源)
+├── marketplace          ── Agent 包注册表
+├── auth / billing       ── 认证 + 计费
+└── dashboard            ── Web 管理界面
 ```
 
-Phase 1 is fully self-contained. Phase 2.1 (Tool registration) is the architectural gate — after this, ISVs can build without source access.
+数据流：
+
+```
+ISV 开发 Agent → pip install icoder-runtime → 本地测试
+    → 打包 .icoder-agent → 上传到 Marketplace
+
+HIS 厂商 → 浏览 Marketplace → 下载 .icoder-agent
+    → 集成到 HIS 部署脚本 → 随系统升级进入医院内网
+
+医院 Runtime → 接收 HIS 预置的 Agent 包 → 本地执行
+```
 
 ---
 
-## What Does NOT Change
+## Phase 1: Runtime 独立（Weeks 1-3）
 
-- Runtime core (contract engine, symbolic state, permissions, guardrails)
-- Database schema
-- Existing Agent template system (20 templates)
-- Agent CRUD API
-- Authentication / multi-tenancy
+目标：HIS 厂商可以 `pip install icoder-runtime`，5 分钟内在本地跑通编码审核 Agent。Runtime 不依赖 auth/billing/dashboard/cloud。
+
+| # | Work Item | Effort | Deliverable |
+|---|-----------|--------|-------------|
+| 1.1 | 从 `orchestrator.py` 中抽出 symbolic_state 为独立模块 | 1 周 | `icoder-runtime/symbolic_state.py` |
+| 1.2 | 移除 Runtime 核心对 auth 的依赖 | 3 天 | `agent_runner.py` 不再依赖 `get_current_user` |
+| 1.3 | Runtime 本地 HTTP 服务模式 | 3 天 | `icoder-runtime serve --port 8765`。HIS 后端通过 localhost HTTP 调用，不要求引入 Python 依赖 |
+| 1.4 | 包化：`setup.py` + `pyproject.toml` | 2 天 | `pip install icoder-runtime` 可用 |
+| 1.5 | Runtime 本地部署文档 | 2 天 | HIS 厂商集成指南：安装→启动 HTTP 服务→加载 Agent→调用→导出证据包 |
+| 1.6 | 后端测试适配新包结构 | 3 天 | 579 个测试在新包结构下全绿 |
+
+**Phase 1 exit criteria：**
+- `pip install icoder-runtime` 成功
+- 导入 `from icoder_runtime import AgentRunner` 可用
+- 无 auth/billing/dashboard 依赖
+- 579 测试全绿
 
 ---
 
-## Key Metrics Per Phase
+## Phase 2: Agent 包（Weeks 4-5）
 
-| Phase | Success Metric |
-|-------|---------------|
-| Phase 1 | Time-to-first-Agent ≤ 5 minutes for a new developer |
-| Phase 2 | 1 ISV successfully registers a custom Tool and builds an Agent with it |
-| Phase 3 | 1 third-party Agent published, installed, and running in a separate org |
-| Phase 4 | 1 Agent built entirely via CLI + Playground (no source code editing) |
+目标：Agent 可以被打包成一个 `.icoder-agent` 文件，在有 Runtime 的任何地方导入运行。
+
+| # | Work Item | Effort | Deliverable |
+|---|-----------|--------|-------------|
+| 2.1 | `.icoder-agent` 包格式定义 | 2 天 | 自包含格式：`manifest`, `system_prompt`, `experts`（含 ISV 自定义 Expert 完整定义）, `tools`（自定义 Tool specs 含合同）, `permissions`, `requirements`。包内引用完全自描述，不依赖外部注册表 |
+| 2.2 | `icoder_runtime.agent_pack` 模块 | 3 天 | `export(agent_id) → .icoder-agent`；`import(path) → Agent definition`。导入时自动注册包内自定义 Tool/Expert 到本地 Runtime |
+| 2.3 | Agent 模板 → 一键导出 | 1 天 | 20 个预置模板可以一键导出为 `.icoder-agent` 包 |
+| 2.4 | 导入验证 | 2 天 | 校验：manifest 完整性、Runtime 版本兼容性、Tool 合同字段合法性、Expert 引用完整性 |
+| 2.5 | HIS 厂商集成示例 | 2 天 | 完整示例：`pip install` → `icoder-runtime serve` → `agent import` → HTTP 调用 |
+
+**Phase 2 exit criteria：**
+- 从 Agent 模板导出一个 `.icoder-agent` 文件
+- 在另一台机器上 `pip install icoder-runtime` → `import agent` → 成功运行
+- HIS 集成示例可在本地完整跑通
+
+---
+
+## Phase 3: 开发者工具（Weeks 6-7）
+
+目标：ISV 可以 self-service 构建、测试、打包、发布 Agent。Runtime 自带本地 Dashboard。
+
+| # | Work Item | Effort | Deliverable |
+|---|-----------|--------|-------------|
+| 3.1 | CLI 工具 | 1 周 | `icoder init my-agent`（脚手架 → 生成 system_prompt + tools + permissions 模板）; `icoder test`（本地 Runtime 测试）; `icoder pack`（导出 .icoder-agent） |
+| 3.2 | 本地 Dashboard | 2 周 | `icoder dashboard` — 本地 Web UI：Agent 列表、运行历史、证据链查看、Agent 包导入/导出。不需要登录 |
+| 3.3 | SDK 参考文档（从 docstring 自动生成） | 1 周 | 完整 API 参考：Runtime, AgentRunner, ToolRegistry, SymbolicState, AgentPack |
+| 3.4 | ISV 开发指南 | 3 天 | 从零到发布：创建 Agent → 写 Tool 合同 → 配置权限 → 本地测试 → 打包 → 发布到 Marketplace |
+
+**Phase 3 exit criteria：**
+- `icoder init → icoder test → icoder pack` 全流程走通
+- 本地 Dashboard 可查看运行历史和证据链
+- ISV 指南完整覆盖开发→打包→发布流程
+
+---
+
+## Phase 4: Marketplace 注册表（Weeks 8-9）
+
+目标：ISV 有地方发布 Agent 包，HIS 厂商有地方发现和下载 Agent 包。
+
+| # | Work Item | Effort | Deliverable |
+|---|-----------|--------|-------------|
+| 4.1 | Agent 包上传/发布端点 | 3 天 | `POST /api/marketplace/publish` — 上传 .icoder-agent + 描述 + 截图。自动解析 manifest 并索引 |
+| 4.2 | 浏览/搜索/下载 | 3 天 | 分类浏览 + 全文搜索 + 版本列表 + 下载计数 + 一键下载 |
+| 4.3 | 发布者 Dashboard | 3 天 | 发布者看自己 Agent 的下载量趋势 |
+| 4.4 | Agent 包签名（可选） | 2 天 | SHA-256 签名 + 发布者公钥。导入时可选验证。首次发布跳过，Phase 4 后期加入 |
+
+**Phase 4 exit criteria：**
+- ISV 可以通过 CLI 或 Web 上传 Agent 包到 Marketplace
+- HIS 厂商可以在 Marketplace 浏览、搜索、下载 Agent 包
+- 下载的 Agent 包可以在本地 Runtime 中导入并运行
+
+---
+
+## 不再做的事（相比 v1 Roadmap）
+
+| 原计划 | 原因 |
+|--------|------|
+| 在线"安装"Agent 到云端 Workspace | Agent 不运行在云端。分发单元是文件，不是在线激活 |
+| 版本 diff 视图 + 回滚 UI | 版本管理 = 文件级。diff 是 CLI 工具的事，不在 MVP |
+| ISV 云端用量分析 Dashboard | 没有云端调用就没有云端用量。改为本地统计 |
+| Agent Playground（Web UI 在线测试） | 本地 Dashboard 已经覆盖。在线 Playground 无实际需求 |
+
+---
+
+## 不做 Marketplace 的 SaaS 怎么赚钱
+
+| 收入来源 | 说明 |
+|---------|------|
+| iCoDer Platform（SaaS）订阅 | ISV/HIS 厂商使用云端 Dashboard、Marketplace 发布、多租户管理的订阅费 |
+| Runtime 企业支持 | HIS 厂商 Runtime 集成技术支持、定制化 Tool 开发 |
+| 医疗合规解决方案 | 医院/医保/商保的 POC → 年度授权 → 私有化部署（项目制，但与 Runtime 分离） |
+
+---
+
+## 关键指标
+
+| Phase | 指标 |
+|-------|------|
+| Phase 1 | `pip install icoder-runtime` 成功且 579 测试全绿 |
+| Phase 2 | 一个 HIS 厂商用 .icoder-agent 包在本地 Runtime 跑通编码审核 |
+| Phase 3 | 一个 ISV 用 CLI 全流程（init → test → pack）创建自己的 Agent |
+| Phase 4 | 一个 ISV 的 Agent 包在 Marketplace 上被另一个 HIS 厂商下载并使用 |

@@ -122,12 +122,18 @@ class ToolRegistry:
         return resolved
 
     async def execute(self, tool_id: str, params: dict) -> dict:
-        """Execute a tool by ID with the given parameters."""
+        """Execute a tool by ID with the given parameters.
+
+        For built-in tools (Tier 1/2), the Python executor handles the logic.
+        For external tools (registered via API, no executor), returns params as-is
+        — the LLM performed the execution during tool calling.
+        """
         tool = self._tools.get(tool_id)
         if not tool:
             raise ValueError(f"Tool '{tool_id}' not found in registry")
         if not tool.executor:
-            raise ValueError(f"Tool '{tool_id}' has no executor")
+            logger.debug(f"Tool '{tool_id}' has no executor (external), returning params")
+            return params
         return await tool.executor(**params)
 
     def __len__(self) -> int:

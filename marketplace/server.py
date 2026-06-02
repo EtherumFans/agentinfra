@@ -142,7 +142,8 @@ async def list_packages(
         result.append({
             "id": p["id"], "name": p["name"], "version": p["version"],
             "description": p.get("description",""), "category": p.get("category","general"),
-            "icon": p.get("icon","Bot"), "expert_count": p.get("expert_count",0),
+            "icon": p.get("icon","Bot"), "agent_type": p.get("agent_type", "certified"),
+            "expert_count": p.get("expert_count",0),
             "tool_count": p.get("tool_count",0),
             "publisher_name": p.get("publisher_name",""),
             "downloads": p.get("downloads",0),

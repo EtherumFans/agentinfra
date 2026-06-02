@@ -141,8 +141,10 @@ async function loadPackages() {
   try {
     const d = await api(`/packages?search=${encodeURIComponent(search)}&category=${category}&sort=${sort}`);
     loading.style.display = 'none';
-    if (d.packages.length === 0) { empty.style.display = 'block'; return; }
-    list.innerHTML = d.packages.map(p => `
+    let pkgs = d.packages;
+    if (currentType !== 'all') pkgs = pkgs.filter(p => (p.agent_type || 'certified') === currentType);
+    if (pkgs.length === 0) { empty.style.display = 'block'; return; }
+    list.innerHTML = pkgs.map(p => `
       <div class="card">
         <div class="card-icon">${iconEmoji(p.icon)}</div>
         <div class="card-body">
@@ -151,6 +153,7 @@ async function loadPackages() {
           <div class="desc">${esc(p.description)}</div>
           <div class="tags">
             <span class="tag">${esc(p.category)}</span>
+            <span class="${p.agent_type === 'community' ? 'tag tag-community' : 'tag tag-certified'}">${p.agent_type || 'certified'}</span>
           </div>
           <div class="card-actions">
             <a href="${API}/packages/${p.id}/download" class="btn btn-primary" download>Download</a>

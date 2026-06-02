@@ -5,6 +5,7 @@ and agent lifecycle management for platform integrators.
 """
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -186,4 +187,36 @@ async def org_usage_stats(
         "members": user_count,
         "agents": agent_count,
         "plan": org.plan,
+    }
+
+
+# ── Runtime Dashboard (admin only) ──
+
+@router.get("/runtime", response_class=HTMLResponse)
+async def admin_runtime_dashboard(
+    admin: User = Depends(get_admin_user),
+):
+    """Admin-only Runtime Dashboard embedded in main platform."""
+    from pathlib import Path
+    html_path = Path(__file__).parent.parent.parent / "icoder_runtime" / "dashboard.html"
+    if html_path.exists():
+        return html_path.read_text(encoding="utf-8")
+    return "<h1>Dashboard not found</h1>"
+
+
+@router.get("/runtime/status")
+async def admin_runtime_status(
+    admin: User = Depends(get_admin_user),
+):
+    """Get Runtime status for the platform."""
+    import json
+    from pathlib import Path
+    agents_file = Path.home() / ".icoder" / "agents.json"
+    runs_file = Path.home() / ".icoder" / "runs.json"
+
+    agents = json.loads(agents_file.read_text(encoding="utf-8")) if agents_file.exists() else {}
+    runs = json.loads(runs_file.read_text(encoding="utf-8")) if runs_file.exists() else {}
+    return {
+        "agents_loaded": len(agents),
+        "runs_recorded": len(runs),
     }

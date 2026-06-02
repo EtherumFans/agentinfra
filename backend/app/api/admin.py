@@ -83,11 +83,21 @@ async def list_all_agents(
 
 @router.get("/users")
 async def list_users(
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    search: str = Query("", max_length=64),
     admin: User = Depends(get_admin_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """List all users."""
-    result = await db.execute(select(User).order_by(User.created_at.desc()))
+    """List all users with pagination."""
+    q = select(User)
+    if search:
+        q = q.where(
+            User.username.ilike(f"%{search}%") | User.full_name.ilike(f"%{search}%")
+        )
+    total = (await db.execute(select(func.count()).select_from(q.subquery()))).scalar()
+    q = q.order_by(User.created_at.desc()).offset(offset).limit(limit)
+    result = await db.execute(q)
     users = result.scalars().all()
     return {
         "users": [
@@ -96,7 +106,9 @@ async def list_users(
              "is_active": u.is_active, "created_at": u.created_at.isoformat()}
             for u in users
         ],
-        "total": len(users),
+        "total": total,
+        "limit": limit,
+        "offset": offset,
     }
 
 

@@ -21,14 +21,8 @@ Format spec:
 - agent_type="community": code/ allowed, sandboxed execution
 """
 
-import base64
-import json
-import logging
-from pathlib import Path
-from typing import Optional
-
-import json
 import hashlib
+import json
 import logging
 from pathlib import Path
 from typing import Optional
@@ -141,8 +135,9 @@ def validate_pack(pack: dict) -> list[str]:
         if not t.get("name"):
             errors.append(f"Tool[{i}]: missing name")
         tier = t.get("tier")
-        if tier not in (1, 2):
-            errors.append(f"Tool[{i}]: invalid tier {tier}")
+        valid_tiers = {t.value for t in ToolTier}
+        if tier not in valid_tiers:
+            errors.append(f"Tool[{i}]: invalid tier {tier} (valid: {sorted(valid_tiers)})")
 
     # Agent type validation
     agent_type = pack.get("agent_type", "certified")

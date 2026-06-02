@@ -69,12 +69,14 @@ header h1{font-size:20px;font-weight:600}
 </div>
 
 <div class="tabs" id="type-tabs">
-  <button class="tab-btn active" onclick="setType('all')">All</button>
-  <button class="tab-btn" onclick="setType('certified')">Certified</button>
-  <button class="tab-btn" onclick="setType('community')">Community</button>
+  <button class="tab-btn active" data-type="all" onclick="setType('all')">All</button>
+  <button class="tab-btn" data-type="certified" onclick="setType('certified')">Certified</button>
+  <button class="tab-btn" data-type="community" onclick="setType('community')">Community</button>
 </div>
 
 <div id="packages-list"></div>
+<div class="empty" id="packages-loading" style="display:none">Loading...</div>
+<div class="empty" id="packages-error" style="display:none;color:#d73a49"></div>
 <div class="empty" id="packages-empty">No agents published yet. Be the first!</div>
 
 <!-- Publish Modal -->
@@ -96,11 +98,11 @@ header h1{font-size:20px;font-weight:600}
 </div>
 
 <script>
-const API = '';
+const API = (() => { const p = location.pathname; return p.startsWith('/marketplace') ? '/api/marketplace' : '/api'; })();
 
 let currentType = 'all';
 
-function setType(t) { currentType = t; document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.textContent.toLowerCase().includes(t))); loadPackages(); }
+function setType(t) { currentType = t; document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.type === t)); loadPackages(); }
 
 async function api(path, opts = {}) {
   const res = await fetch(API + path, { headers: { 'Content-Type': 'application/json', ...opts.headers }, ...opts });
@@ -110,16 +112,17 @@ async function api(path, opts = {}) {
 
 async function loadStats() {
   try {
-    const s = await api('/api/stats');
+    const s = await api('/stats');
     document.getElementById('stats').innerHTML = `<span>${s.total_packages} packages</span><span>${s.total_downloads} downloads</span><span>${s.categories} categories</span>`;
   } catch(e) {}
 }
 
 async function loadCategories() {
   try {
-    const d = await api('/api/packages/categories');
+    const d = await api('/packages/categories');
     const sel = document.getElementById('category');
-    d.categories.forEach(c => { const o = document.createElement('option'); o.value = c.name; o.textContent = `${c.name} (${c.count})`; sel.appendChild(o); });
+    sel.replaceChildren(new Option('All Categories', ''));
+    d.categories.forEach(c => { sel.appendChild(new Option(`${c.name} (${c.count})`, c.name)); });
   } catch(e) {}
 }
 
@@ -127,15 +130,21 @@ async function loadPackages() {
   const search = document.getElementById('search').value;
   const category = document.getElementById('category').value;
   const sort = document.getElementById('sort').value;
+  const list = document.getElementById('packages-list');
+  const empty = document.getElementById('packages-empty');
+  const loading = document.getElementById('packages-loading');
+  const error = document.getElementById('packages-error');
+  list.innerHTML = '';
+  empty.style.display = 'none';
+  error.style.display = 'none';
+  loading.style.display = 'block';
   try {
-    const d = await api(`/api/packages?search=${encodeURIComponent(search)}&category=${category}&sort=${sort}`);
-    const list = document.getElementById('packages-list');
-    const empty = document.getElementById('packages-empty');
-    if (d.packages.length === 0) { list.innerHTML = ''; empty.style.display = 'block'; return; }
-    empty.style.display = 'none';
+    const d = await api(`/packages?search=${encodeURIComponent(search)}&category=${category}&sort=${sort}`);
+    loading.style.display = 'none';
+    if (d.packages.length === 0) { empty.style.display = 'block'; return; }
     list.innerHTML = d.packages.map(p => `
       <div class="card">
-        <div class="card-icon">${p.icon === 'Shield' ? '\u{1f6e1}' : p.icon === 'Stethoscope' ? '\u{1fa7a}' : '\u{1f4cb}'}</div>
+        <div class="card-icon">${iconEmoji(p.icon)}</div>
         <div class="card-body">
           <h3>${esc(p.name)} <span style="font-weight:400;font-size:12px;color:var(--muted)">v${esc(p.version)}</span></h3>
           <div class="meta">${esc(p.category)} · ${p.expert_count} experts · ${p.tool_count} tools · by ${esc(p.publisher_name)} · ${p.downloads} downloads</div>
@@ -144,12 +153,16 @@ async function loadPackages() {
             <span class="tag">${esc(p.category)}</span>
           </div>
           <div class="card-actions">
-            <a href="${API}/api/packages/${p.id}/download" class="btn btn-primary" download>Download</a>
+            <a href="${API}/packages/${p.id}/download" class="btn btn-primary" download>Download</a>
           </div>
         </div>
       </div>
     `).join('');
-  } catch(e) { console.error(e); }
+  } catch(e) {
+    loading.style.display = 'none';
+    error.style.display = 'block';
+    error.textContent = 'Failed to load packages: ' + e.message;
+  }
 }
 
 function openPublishModal() { document.getElementById('publish-modal').classList.add('open'); }
@@ -164,13 +177,24 @@ async function publishAgent() {
   try {
     const text = await file.text();
     const pack = JSON.parse(text);
-    await api('/api/packages', { method: 'POST', body: JSON.stringify({ pack, publisher_name: name, publisher_email: email }) });
+    await api('/packages', { method: 'POST', body: JSON.stringify({ pack, publisher_name: name, publisher_email: email }) });
     document.getElementById('publish-msg').innerHTML = '<div class="success">Published!</div>';
     setTimeout(() => { closePublishModal(); loadPackages(); loadStats(); loadCategories(); }, 1000);
   } catch(e) { document.getElementById('publish-msg').innerHTML = `<div class="error">${esc(e.message)}</div>`; }
 }
 
 function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function iconEmoji(name) {
+  const map = {
+    Shield: '\u{1f6e1}', Stethoscope: '\u{1fa7a}', Bot: '\u{1f916}',
+    Wrench: '\u{1f527}', Clipboard: '\u{1f4cb}', Search: '\u{1f50d}',
+    Lock: '\u{1f512}', Heart: '\u{2764}', Brain: '\u{1f9e0}',
+    Chart: '\u{1f4ca}', Gear: '\u{2699}', Doc: '\u{1f4c4}',
+    Hospital: '\u{1f3e5}', User: '\u{1f464}', Star: '\u{2b50}',
+  };
+  return map[name] || '\u{1f4cb}';
+}
 
 loadStats(); loadCategories(); loadPackages();
 </script>

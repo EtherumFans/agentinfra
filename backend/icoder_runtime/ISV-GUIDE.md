@@ -138,7 +138,7 @@ icoder pack .
 
 - **HIS 厂商集成**：将 .icoder-agent 文件放在 HIS 部署脚本的预置目录中，HIS 后端通过 Runtime HTTP API 调用
 - **直接分享**：通过邮件/微信发送给客户，客户在本地 Runtime 中导入
-- **Marketplace 发布**（即将推出）：上传到 iCoDer Marketplace 供搜索和下载
+- **Marketplace 发布**：上传到 [iCoDer Marketplace](/marketplace) 供搜索和下载。在 Marketplace 页面点击「Publish Agent」上传 .icoder-agent 文件即可
 
 ## 10. Runtime HTTP API
 

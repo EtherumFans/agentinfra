@@ -95,15 +95,12 @@ def execute(code: str, params: dict, timeout: int = MAX_TIMEOUT_SEC) -> dict:
     except subprocess.TimeoutExpired:
         raise SandboxTimeout(f"Execution exceeded {timeout}s limit")
 
+    elapsed = time.time() - t0
     stdout = proc.stdout.decode("utf-8", errors="replace").strip()
     stderr = proc.stderr.decode("utf-8", errors="replace").strip()
 
     if "Timeout: exceeded" in stdout:
         raise SandboxTimeout(f"Execution exceeded {timeout}s limit")
-
-    elapsed = time.time() - t0
-    stdout = proc.stdout.decode("utf-8", errors="replace").strip()
-    stderr = proc.stderr.decode("utf-8", errors="replace").strip()
 
     if proc.returncode != 0:
         detail = stdout[:200] or stderr[:200]

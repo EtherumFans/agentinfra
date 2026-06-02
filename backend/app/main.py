@@ -193,6 +193,7 @@ from app.api.code_tables import router as code_tables_router
 from app.api.organizations import router as organizations_router
 from app.api.fhir import router as fhir_router
 from app.api.tools import router as tools_router
+from app.api.marketplace import router as marketplace_router
 from app.middleware.rate_limit import rate_limit_middleware
 
 # Rate limiting middleware
@@ -220,6 +221,7 @@ app.include_router(code_tables_router)
 app.include_router(organizations_router)
 app.include_router(fhir_router)
 app.include_router(tools_router)
+app.include_router(marketplace_router)
 
 
 @app.get("/")

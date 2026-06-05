@@ -1,8 +1,55 @@
 {
   "packages": {
-    "compliance-guardrail-agent-1.0.0": {
-      "id": "compliance-guardrail-agent-1.0.0",
-      "name": "Compliance Guardrail Agent",
+    "cdi-review-1.0.0": {
+      "name": "临床文书改进",
+      "version": "1.0.0",
+      "description": "审查临床文书质量，识别编码特异性和文档完整性改进机会。",
+      "category": "质控",
+      "icon": "ClipboardList",
+      "publisher_name": "iCoDer",
+      "publisher_email": "hello@icoder.ai",
+      "expert_count": 0,
+      "tool_count": 6,
+      "downloads": 0,
+      "published_at": "2026-06-05T00:00:00+00:00",
+      "integrity": {
+        "sha256": "b46454ec405d5498a5bce4390e20d08b0cf9817c4aa2a9bfad3d8a7b7613808e"
+      }
+    },
+    "code-validation-1.0.0": {
+      "name": "编码校验",
+      "version": "1.0.0",
+      "description": "按官方编码规则验证编码集，发现错误、冲突和合规风险。纯确定性规则引擎。",
+      "category": "编码",
+      "icon": "CheckCircle",
+      "publisher_name": "iCoDer",
+      "publisher_email": "hello@icoder.ai",
+      "expert_count": 0,
+      "tool_count": 5,
+      "downloads": 0,
+      "published_at": "2026-06-05T00:00:00+00:00",
+      "integrity": {
+        "sha256": "fd948abef7a028ab47866100de36e320c6cef89038d9d3061ebc86334927fd48"
+      }
+    },
+    "code_reconciler-1.0.0": {
+      "name": "Code Reconciler",
+      "version": "1.0.0",
+      "description": "协调并最终确定编码集：移除互斥编码、确定主诊断、排序编码、生成审计就绪输出。每个编码附带纳排依据和证据链接。",
+      "category": "medical-coding",
+      "icon": "GitMerge",
+      "publisher_name": "iCoDer",
+      "publisher_email": "hello@icoder.ai",
+      "expert_count": 0,
+      "tool_count": 7,
+      "downloads": 0,
+      "published_at": "2026-06-05T00:00:00+00:00",
+      "integrity": {
+        "sha256": "cc69df6b61d544aef9a88ca9e710744bfacb765d38cade673e78a8df6d4c7897"
+      }
+    },
+    "compliance-guardrail-1.0.0": {
+      "name": "合规护栏",
       "version": "1.0.0",
       "description": "在提交医保结算清单前，按配置的医保或医院规则集评估编码集的合规性",
       "category": "医保",
@@ -10,13 +57,189 @@
       "publisher_name": "iCoDer",
       "publisher_email": "hello@icoder.ai",
       "expert_count": 0,
-      "tool_count": 0,
-      "downloads": 2,
-      "published_at": "2026-06-02T00:49:20.816879+00:00",
+      "tool_count": 5,
+      "downloads": 0,
+      "published_at": "2026-06-05T00:00:00+00:00",
       "integrity": {
-        "sha256": "2239befe1123aeb5d98cbcd1795ca24b031a76cd506f794a43b2880671e7f50d"
+        "sha256": "b76f3a7435f3c0e10d92454290ba8bedb4a6a75d5726de0f8dde6782129d98b6"
+      }
+    },
+    "denial-appeals-1.0.0": {
+      "name": "拒付申诉",
+      "version": "1.0.0",
+      "description": "生成有循证依据的医保拒付申诉回复。",
+      "category": "医保",
+      "icon": "FileWarning",
+      "publisher_name": "iCoDer",
+      "publisher_email": "hello@icoder.ai",
+      "expert_count": 0,
+      "tool_count": 6,
+      "downloads": 0,
+      "published_at": "2026-06-05T00:00:00+00:00",
+      "integrity": {
+        "sha256": "3060e7b32993214c15c53c5148dc2ddfcd6b2661f99698c208740e49d0c66c16"
+      }
+    },
+    "diagnosis-extractor-1.0.0": {
+      "name": "诊断提取",
+      "version": "1.0.0",
+      "description": "从病历中提取诊断并分配 ICD-10-CN 编码。",
+      "category": "编码",
+      "icon": "Stethoscope",
+      "publisher_name": "iCoDer",
+      "publisher_email": "hello@icoder.ai",
+      "expert_count": 0,
+      "tool_count": 5,
+      "downloads": 0,
+      "published_at": "2026-06-05T00:00:00+00:00",
+      "integrity": {
+        "sha256": "bdbf39654b98fd6e0bcbbc32ed5e6a235fb8879d53241f74bfb7083bf661bff3"
+      }
+    },
+    "documentation-gap-1.0.0": {
+      "name": "文档缺口检测",
+      "version": "1.0.0",
+      "description": "识别缺失或不完整的临床文档，生成补充建议。",
+      "category": "质控",
+      "icon": "FileWarning",
+      "publisher_name": "iCoDer",
+      "publisher_email": "hello@icoder.ai",
+      "expert_count": 0,
+      "tool_count": 6,
+      "downloads": 0,
+      "published_at": "2026-06-05T00:00:00+00:00",
+      "integrity": {
+        "sha256": "9d462318309a2e9689eb971d7b486a037fce13c2a97f221363c16d886d872f28"
+      }
+    },
+    "drg-analyzer-1.0.0": {
+      "name": "DRG 分组分析",
+      "version": "1.0.0",
+      "description": "分析编码方案对 DRG 分组和医保支付的影响。",
+      "category": "医保",
+      "icon": "PieChart",
+      "publisher_name": "iCoDer",
+      "publisher_email": "hello@icoder.ai",
+      "expert_count": 0,
+      "tool_count": 5,
+      "downloads": 0,
+      "published_at": "2026-06-05T00:00:00+00:00",
+      "integrity": {
+        "sha256": "3316831b9b0e18376ba57d0f5da804f3b74c990578142ca71c4840dbcfecfbc7"
+      }
+    },
+    "evidence-ranker-1.0.0": {
+      "name": "证据排名",
+      "version": "1.0.0",
+      "description": "对编码候选的证据强度进行排名，检测证据冲突。纯确定性算法。",
+      "category": "编码",
+      "icon": "BarChart3",
+      "publisher_name": "iCoDer",
+      "publisher_email": "hello@icoder.ai",
+      "expert_count": 0,
+      "tool_count": 6,
+      "downloads": 0,
+      "published_at": "2026-06-05T00:00:00+00:00",
+      "integrity": {
+        "sha256": "2cc9aafbe24b2d343272b6202fa803cee314075daeb6015029b45f96c9444bfa"
+      }
+    },
+    "evidence_extractor-1.0.0": {
+      "name": "Evidence Extractor",
+      "version": "1.0.0",
+      "description": "从病历文本中提取结构化临床事实：诊断事实、手术事实、否定发现、病史条件。输出带证据文本和字符位置的 JSON。",
+      "category": "medical-coding",
+      "icon": "FileSearch",
+      "publisher_name": "iCoDer",
+      "publisher_email": "hello@icoder.ai",
+      "expert_count": 0,
+      "tool_count": 3,
+      "downloads": 0,
+      "published_at": "2026-06-05T00:00:00+00:00",
+      "integrity": {
+        "sha256": "009a4e0a8a5727889647467c063f958a9141c61d40d535711a50c4d95f260ed9"
+      }
+    },
+    "index_navigator-1.0.0": {
+      "name": "Index Navigator",
+      "version": "1.0.0",
+      "description": "对每个提取的临床事实进行 ICD-10/ICD-9-CM-3 字母索引导航，输出候选编码列表及匹配分数。纯确定性算法，零 LLM 参与。",
+      "category": "medical-coding",
+      "icon": "BookOpenText",
+      "publisher_name": "iCoDer",
+      "publisher_email": "hello@icoder.ai",
+      "expert_count": 0,
+      "tool_count": 4,
+      "downloads": 0,
+      "published_at": "2026-06-05T00:00:00+00:00",
+      "integrity": {
+        "sha256": "cffea67aa1132f979c3a28d229de33e3e9a4bb5ebcc6c42d405bd350f6779c1f"
+      }
+    },
+    "medical_coding-1.0.0": {
+      "name": "Medical Coding Agent",
+      "version": "1.0.0",
+      "description": "iCoDer 官方医学编码审核 Agent。基于病历文本生成 ICD-10 诊断编码和 ICD-9-CM-3 手术操作编码建议，提供证据引用和合规风险提示。",
+      "category": "medical-coding",
+      "icon": "Stethoscope",
+      "publisher_name": "iCoDer",
+      "publisher_email": "hello@icoder.ai",
+      "expert_count": 0,
+      "tool_count": 0,
+      "downloads": 0,
+      "published_at": "2026-06-05T00:00:00+00:00",
+      "integrity": {
+        "sha256": "470df79ff8263f5a12a0602d01ccdaf69061db11336e06e95f088225e060b2d5"
+      }
+    },
+    "note-completeness-1.0.0": {
+      "name": "病历完整性",
+      "version": "1.0.0",
+      "description": "实时检查病历完整性、准确性和合规性。",
+      "category": "质控",
+      "icon": "FileCheck",
+      "publisher_name": "iCoDer",
+      "publisher_email": "hello@icoder.ai",
+      "expert_count": 0,
+      "tool_count": 6,
+      "downloads": 0,
+      "published_at": "2026-06-05T00:00:00+00:00",
+      "integrity": {
+        "sha256": "7ab58e220992f15ab59afc2ff404b43ece23e8d210531287c4a79394d48ed55b"
+      }
+    },
+    "procedure-extractor-1.0.0": {
+      "name": "手术提取",
+      "version": "1.0.0",
+      "description": "从手术记录中提取手术操作并分配 ICD-9-CM-3 编码。",
+      "category": "编码",
+      "icon": "Scalpel",
+      "publisher_name": "iCoDer",
+      "publisher_email": "hello@icoder.ai",
+      "expert_count": 0,
+      "tool_count": 5,
+      "downloads": 0,
+      "published_at": "2026-06-05T00:00:00+00:00",
+      "integrity": {
+        "sha256": "da553ba709bd6396c21c63fbe1b39e7565398d7820c84971652ca6f214730225"
+      }
+    },
+    "tabular_validator-1.0.0": {
+      "name": "Tabular Validator",
+      "version": "1.0.0",
+      "description": "对候选编码进行规则验证：编码格式、重复检测、置信度范围、证据要求、DRG/DIP 分组影响。纯确定性规则引擎，零 LLM 参与。",
+      "category": "medical-coding",
+      "icon": "Shield",
+      "publisher_name": "iCoDer",
+      "publisher_email": "hello@icoder.ai",
+      "expert_count": 0,
+      "tool_count": 6,
+      "downloads": 0,
+      "published_at": "2026-06-05T00:00:00+00:00",
+      "integrity": {
+        "sha256": "92136d1e26a22dd9dde8c241ccab7908f75e7fe3b10f6bd053f15b388416675a"
       }
     }
   },
-  "updated_at": "2026-06-02T08:04:39.126433+00:00"
+  "updated_at": "2026-06-05T00:00:00+00:00"
 }

@@ -38,6 +38,12 @@ export default function AgentDetailPage() {
   const [installLoading, setInstallLoading] = useState(false);
   const toast = useToastStore((s) => s.addToast);
 
+  // Agent Test Panel
+  const [showTestPanel, setShowTestPanel] = useState(false);
+  const [testInput, setTestInput] = useState('');
+  const [testResult, setTestResult] = useState<any>(null);
+  const [testLoading, setTestLoading] = useState(false);
+
   // Chat state
   const [chatInput, setChatInput] = useState('');
   const [chatMessages, setChatMessages] = useState<{ role: string; content: string }[]>([]);
@@ -488,6 +494,10 @@ export default function AgentDetailPage() {
         )}
         {runtimeInstalled && (
           <div className="flex gap-1 ml-auto">
+            <button onClick={() => setShowTestPanel(!showTestPanel)}
+              className="px-2 py-0.5 rounded text-[11px] bg-blue-50 text-blue-600 hover:bg-blue-100">
+              测试
+            </button>
             <button onClick={async () => {
               try {
                 const newAction = runtimeStatus === 'enabled' ? 'disable' : 'enable';
@@ -502,6 +512,92 @@ export default function AgentDetailPage() {
           </div>
         )}
       </div>
+
+      {/* Agent Test Panel */}
+      {showTestPanel && (
+        <div className="px-6 py-3 bg-blue-50/50 border-b border-blue-100">
+          <div className="flex items-center justify-between mb-2">
+            <h4 className="text-xs font-semibold text-foreground">Agent 测试</h4>
+            <button onClick={() => { setShowTestPanel(false); setTestResult(null); setTestInput(''); }}
+              className="p-0.5 rounded hover:bg-accent"><X size={14} className="text-muted-foreground" /></button>
+          </div>
+          <div className="flex gap-2">
+            <textarea value={testInput} onChange={e => setTestInput(e.target.value)}
+              placeholder="输入测试病历，验证 Agent 编码结果..."
+              rows={4} className="flex-1 text-xs border border-border rounded-lg px-3 py-2 bg-background resize-none focus:outline-none focus:ring-1 focus:ring-ring" />
+            <button onClick={async () => {
+              if (!testInput.trim() || testLoading) return;
+              setTestLoading(true); setTestResult(null);
+              try {
+                const ref = agentRef || (agent?.name?.toLowerCase()?.replace(/\s+/g,'-')||'agent') + '-' + (agent?.version||'1.0.0');
+                const data = await runtimeApi.runAgent(ref, testInput);
+                setTestResult(data);
+              } catch (e: any) { setTestResult({ error: e?.message || '测试失败' }); }
+              finally { setTestLoading(false); }
+            }} disabled={testLoading || !testInput.trim()}
+              className="px-4 py-2 rounded-lg bg-blue-600 text-white text-xs font-medium hover:bg-blue-700 disabled:opacity-40 shrink-0 self-end">
+              {testLoading ? '运行中...' : '运行测试'}
+            </button>
+          </div>
+          {testResult && (
+            <div className="mt-3 bg-background rounded-lg border border-border p-3 text-xs space-y-2">
+              {testResult.error ? (
+                <p className="text-red-600">{testResult.error}</p>
+              ) : (
+                <>
+                  <div className="flex gap-4">
+                    <span>状态: <b>{testResult.status || '—'}</b></span>
+                    <span>耗时: <b>{testResult.processing_time_ms || 0}ms</b></span>
+                    <span>安全: <b>{testResult.safety ? '已校验' : '—'}</b></span>
+                  </div>
+                  {testResult.primary_diagnosis?.code && (
+                    <div>
+                      <p className="text-muted-foreground">主诊断</p>
+                      <p className="font-mono text-sm">{testResult.primary_diagnosis.code} — {testResult.primary_diagnosis.description || ''}</p>
+                    </div>
+                  )}
+                  {testResult.secondary_diagnoses?.length > 0 && (
+                    <div>
+                      <p className="text-muted-foreground">次要诊断 ({testResult.secondary_diagnoses.length})</p>
+                      <div className="flex flex-wrap gap-1">
+                        {testResult.secondary_diagnoses.slice(0, 10).map((d: any, i: number) => (
+                          <span key={i} className="px-1.5 py-0.5 bg-muted rounded font-mono text-[10px]">{d.code}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {testResult.procedures?.length > 0 && (
+                    <div>
+                      <p className="text-muted-foreground">手术 ({testResult.procedures.length})</p>
+                      <div className="flex flex-wrap gap-1">
+                        {testResult.procedures.map((p: any, i: number) => (
+                          <span key={i} className="px-1.5 py-0.5 bg-muted rounded font-mono text-[10px]">{p.code}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {testResult.issues_found?.length > 0 && (
+                    <div>
+                      <p className="text-muted-foreground">问题 ({testResult.issues_found.length})</p>
+                      {testResult.issues_found.slice(0, 5).map((iss: any, i: number) => (
+                        <p key={i} className="text-[10px] text-amber-700">[{iss.severity}] {iss.message}</p>
+                      ))}
+                    </div>
+                  )}
+                  {testResult.safety?.post_check?.rule_issues?.length > 0 && (
+                    <div>
+                      <p className="text-muted-foreground">规则检查</p>
+                      {testResult.safety.post_check.rule_issues.map((r: any, i: number) => (
+                        <p key={i} className="text-[10px] text-red-600">[{r.severity}] {r.message}</p>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      )}
       {/* Main: chat (left) + panel (right) */}
       <div className="flex-1 flex min-h-0">
         {/* Left: Chat area — bg-muted/20 with card content */}

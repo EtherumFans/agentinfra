@@ -161,8 +161,13 @@ class PlatformRuntime:
         user_input: str,
         *,
         permission_policy=None,
+        delegated_by: dict | None = None,
     ) -> dict[str, Any]:
         """Run an installed agent against user input.
+
+        delegated_by: {"user_id": "...", "username": "...", "agent_account_id": "..."}
+        When provided, the Agent executes on behalf of this user with a delegation JWT.
+        """
 
         Looks up the agent in the persistent RuntimeAgentRegistry.
 
@@ -207,4 +212,5 @@ class PlatformRuntime:
             agent, user_input,
             permission_policy=permission_policy,
             data_policy=self._data_policy,
+            delegated_by=delegated_by,
         )

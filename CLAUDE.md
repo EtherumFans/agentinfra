@@ -2,9 +2,12 @@
 
 ## 产品定位
 
-iCoDer 是面向中国医院场景的**医疗收入合规 AI Runtime 基础设施**。
+iCoDer 是面向中国医院场景的**医疗收入合规 AI 平台**。
 
-它不是单一编码工具，而是一个能加载、运行、治理多个合规 Agent 的平台 Runtime。
+它部署在医院内网服务器上（Docker），医生通过浏览器访问，HIS/EMR 通过 API 集成。
+不是装在医生电脑上的桌面软件。
+
+Runtime 是 iCoDer Server 的内核执行引擎（不是独立的便携 Runtime）。
 
 ```
 医疗收入合规体系
@@ -49,29 +52,27 @@ Agent 开发 → pack → Marketplace publish → install → PlatformRuntime �
   → LLMGateway → DeepSeek V4 → Compliance RuleEngine → RepairLoop → RuntimeRunResult
 ```
 
-## 运行模式
+## 部署模型
 
-| 模式 | 环境变量 | 说明 |
-|------|---------|------|
-| legacy | `ICODER_EXECUTION_MODE=legacy` | 旧 Orchestrator 路径 (DEPRECATED) |
-| platform_runtime | `ICODER_EXECUTION_MODE=platform_runtime` | 新 PlatformRuntime 路径 |
-| shadow | `ICODER_EXECUTION_MODE=shadow` | 旧路径返回, 新路径后台对比 |
+| 环境 | 方式 | 说明 |
+|------|------|------|
+| 开发环境 | `python -m uvicorn` + `npm run dev` | 本地前后端分离 |
+| 医院生产 | `docker compose up -d` | 一键部署 (PostgreSQL + Redis + Nginx) |
+| ISV 开发 | CLI: `icoder pack`, `icoder test` | Agent 打包和本地测试 |
+
+**Runtime 不再是独立的 pip 包安装到医生电脑。** Runtime 是 iCoDer Server 的内核。
 
 ## 启动命令
 
 ```bash
-# 标准开发启动
-export ICODER_CREDENTIAL_LLM=<your-deepseek-api-key>
-export ICODER_ALLOW_EXTERNAL_LLM=true
-export ICODER_EXECUTION_MODE=platform_runtime
-export ICODER_REVIEW_CODING_MODE=platform_runtime  # 不设置则跟随 EXECUTION_MODE
-export ICODER_FALLBACK_TO_LEGACY=false              # 开发阶段建议关闭，验证新路径
-cd backend
-python -m uvicorn app.main:app --host 0.0.0.0 --port 8000
+# 开发环境
+docker compose up -d   # 推荐: PostgreSQL + Redis + Nginx
+# 或
+cd backend && python -m uvicorn app.main:app --port 8000  # 轻量开发
 
-# 前端
-cd frontend
-npm run dev
+# 环境变量
+export ICODER_EXECUTION_MODE=platform_runtime
+export ICODER_ALLOW_EXTERNAL_LLM=true
 ```
 
 ## 金标准评估

@@ -52,11 +52,8 @@ export default function Layout() {
       items: [
         { to: '/ai-studio', label: t.overview, icon: FlaskConical, end: true },
         { to: '/ai-studio/agents', label: t.agents, icon: Layers },
-        { to: '/ai-studio/speech-to-text', label: t.speechToText, icon: Mic },
-        { to: '/ai-studio/text-generation', label: t.textGeneration, icon: AlignLeft },
         { to: '/ai-studio/fact-extraction', label: t.factExtraction, icon: ListTree },
         { to: '/ai-studio/medical-coding', label: t.medicalCoding, icon: Asterisk },
-        { to: '/ai-studio/embedded-assistant', label: t.embeddedAssistant, icon: Sparkles },
       ],
     },
     {

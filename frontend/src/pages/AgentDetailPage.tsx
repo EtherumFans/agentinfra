@@ -44,6 +44,12 @@ export default function AgentDetailPage() {
   const [testResult, setTestResult] = useState<any>(null);
   const [testLoading, setTestLoading] = useState(false);
 
+  // Agent Evaluation
+  const [showEval, setShowEval] = useState(false);
+  const [evalResult, setEvalResult] = useState<any>(null);
+  const [evalLoading, setEvalLoading] = useState(false);
+  const [evalHistory, setEvalHistory] = useState<any[]>([]);
+
   // Chat state
   const [chatInput, setChatInput] = useState('');
   const [chatMessages, setChatMessages] = useState<{ role: string; content: string }[]>([]);
@@ -352,6 +358,29 @@ export default function AgentDetailPage() {
     setChatInput(instruction);
   };
 
+  // Agent Evaluation
+  const fetchEvalHistory = async () => {
+    try {
+      const ref = agentRef || (agent?.name?.toLowerCase()?.replace(/\s+/g,'-')||'') + '-' + (agent?.version||'1.0.0');
+      const resp = await fetch(`/api/agents/${encodeURIComponent(ref)}/evaluation-history`);
+      if (resp.ok) { const d = await resp.json(); setEvalHistory(d.evaluations||[]); }
+    } catch {}
+  };
+  const runEvaluation = async () => {
+    setEvalLoading(true);
+    try {
+      const ref = agentRef || (agent?.name?.toLowerCase()?.replace(/\s+/g,'-')||'') + '-' + (agent?.version||'1.0.0');
+      const token = localStorage.getItem('access_token') || '';
+      const resp = await fetch(`/api/agents/${encodeURIComponent(ref)}/evaluate`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      });
+      if (resp.ok) {
+        const d = await resp.json(); setEvalResult(d);
+        setEvalHistory(prev => [{ evaluated_at: d.evaluated_at, primary_dx_accuracy: d.primary_dx_accuracy }, ...prev].slice(0,10));
+      }
+    } catch {} finally { setEvalLoading(false); }
+  };
+
   // Save settings
   const handleSaveSettings = async () => {
     if (!agent?.id) return;
@@ -497,6 +526,10 @@ export default function AgentDetailPage() {
             <button onClick={() => setShowTestPanel(!showTestPanel)}
               className="px-2 py-0.5 rounded text-[11px] bg-blue-50 text-blue-600 hover:bg-blue-100">
               测试
+            </button>
+            <button onClick={() => { setShowEval(!showEval); if (!showEval && !evalHistory.length) fetchEvalHistory(); }}
+              className="px-2 py-0.5 rounded text-[11px] bg-green-50 text-green-600 hover:bg-green-100">
+              评估
             </button>
             <button onClick={async () => {
               try {
@@ -790,8 +823,49 @@ export default function AgentDetailPage() {
         {/* Separator */}
         <div className="h-full w-px bg-border/40 shrink-0" />
 
-        {/* Right: SettingsCodeTab panel */}
-        <div className="w-80 bg-muted/10 shrink-0">
+        {/* Right: SettingsCodeTab panel or Eval panel */}
+        <div className="w-80 bg-muted/10 shrink-0 overflow-y-auto">
+          {showEval ? (
+            <div className="p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-semibold text-foreground">Agent 评估</h4>
+                <button onClick={() => setShowEval(false)} className="p-0.5 rounded hover:bg-accent"><X size={14} className="text-muted-foreground" /></button>
+              </div>
+              <button onClick={runEvaluation} disabled={evalLoading}
+                className="w-full py-2 rounded-lg bg-green-600 text-white text-xs font-medium hover:bg-green-700 disabled:opacity-40">
+                {evalLoading ? '评估中...' : '运行金标准评估'}
+              </button>
+              {evalResult && (
+                <div className="bg-white rounded-lg border p-3 space-y-2 text-xs">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="text-center p-2 bg-muted/50 rounded"><p className="text-lg font-bold text-green-700">{evalResult.primary_dx_accuracy ? (evalResult.primary_dx_accuracy*100).toFixed(0)+'%' : '—'}</p><p className="text-[10px] text-muted-foreground">诊断准确率</p></div>
+                    <div className="text-center p-2 bg-muted/50 rounded"><p className="text-lg font-bold text-blue-700">{evalResult.primary_proc_accuracy ? (evalResult.primary_proc_accuracy*100).toFixed(0)+'%' : '—'}</p><p className="text-[10px] text-muted-foreground">手术准确率</p></div>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground text-center">{evalResult.total_cases} cases in {evalResult.elapsed_seconds}s</p>
+                  <div className="max-h-48 overflow-y-auto space-y-1">
+                    {evalResult.per_case?.map((c: any, i: number) => (
+                      <div key={i} className="flex items-center gap-2 py-1 border-b border-muted">
+                        <span className="text-[10px] font-mono">{c.case_id}</span>
+                        <span className="text-[10px] font-mono">{c.expected_dx}</span>
+                        <span className="ml-auto">{c.dx_match ? '✅' : '❌'}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {evalHistory.length > 0 && (
+                <div className="bg-white rounded-lg border p-3 text-xs">
+                  <p className="font-medium mb-1">历史趋势</p>
+                  {evalHistory.slice(0,5).map((h: any, i: number) => (
+                    <div key={i} className="flex justify-between py-0.5 text-[10px]">
+                      <span className="text-muted-foreground">{h.evaluated_at?.slice(0,16)||''}</span>
+                      <span className="font-mono text-green-700">{h.primary_dx_accuracy ? (h.primary_dx_accuracy*100).toFixed(0)+'%' : '—'}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
           <SettingsCodeTab
             labels={{ settings: '设置', code: '代码', tools: '工具' }}
             tools={
@@ -1104,6 +1178,7 @@ Console.WriteLine($"Agent response: {result}");`}
               />
             }
           />
+        )}
         </div>
       </div>
 

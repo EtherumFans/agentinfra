@@ -205,8 +205,13 @@ def import_pack(pack: dict) -> tuple[AgentDefinition, list[ExpertDefinition],
     code_files = pack.get("code", {})
     tools = []
     for t in pack.get("tools", []):
+        # Accept both string tool IDs and full tool dicts
+        if isinstance(t, str):
+            tool_def = {"id": t, "name": t, "description": t, "tier": 1, "category": "general"}
+        else:
+            tool_def = t
         executor = None
-        ef = t.get("executor_file")
+        ef = tool_def.get("executor_file")
         if ef and ef in code_files:
             from .sandbox import execute as sandbox_exec
             source = code_files[ef]
@@ -219,16 +224,16 @@ def import_pack(pack: dict) -> tuple[AgentDefinition, list[ExpertDefinition],
             executor = _make_executor(source)
 
         tools.append(ToolDefinition(
-            id=t["id"], name=t["name"],
-            description=t.get("description", ""),
-            tier=ToolTier(t.get("tier", 2)),
-            category=t.get("category", "general"),
-            icon=t.get("icon", "Wrench"),
-            requires=t.get("requires", []),
-            guarantees=t.get("guarantees", {}),
-            input_schema={"type": "object", "properties": t.get("params", {})} if t.get("params") else None,
-            accuracy_tags=t.get("accuracy_tags", []),
-            is_injectable=t.get("is_injectable", False),
+            id=tool_def["id"], name=tool_def["name"],
+            description=tool_def.get("description", ""),
+            tier=ToolTier(tool_def.get("tier", 2)),
+            category=tool_def.get("category", "general"),
+            icon=tool_def.get("icon", "Wrench"),
+            requires=tool_def.get("requires", []),
+            guarantees=tool_def.get("guarantees", {}),
+            input_schema={"type": "object", "properties": tool_def.get("params", {})} if tool_def.get("params") else None,
+            accuracy_tags=tool_def.get("accuracy_tags", []),
+            is_injectable=tool_def.get("is_injectable", False),
             executor=executor,
         ))
 

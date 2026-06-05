@@ -15,9 +15,7 @@ import SettingsPage from './pages/SettingsPage';
 import BillingPage from './pages/BillingPage';
 import UsagePage from './pages/UsagePage';
 import DeveloperQuickstartPage from './pages/DeveloperQuickstartPage';
-import SpeechToTextPage from './pages/SpeechToTextPage';
 import TextGenerationPage from './pages/TextGenerationPage';
-import EmbeddedAssistantPage from './pages/EmbeddedAssistantPage';
 import APIClientsPage from './pages/APIClientsPage';
 import TeamPage from './pages/TeamPage';
 import ExpertLibraryPage from './pages/ExpertLibraryPage';
@@ -59,9 +57,7 @@ function App() {
         <Route path="ai-studio/agents" element={<AgentsPage />} />
         <Route path="ai-studio/agents/new" element={<NewAgentPage />} />
         <Route path="ai-studio/agents/:agentId" element={<AgentDetailPage />} />
-        <Route path="ai-studio/speech-to-text" element={<SpeechToTextPage />} />
         <Route path="ai-studio/text-generation" element={<TextGenerationPage />} />
-        <Route path="ai-studio/embedded-assistant" element={<EmbeddedAssistantPage />} />
         <Route path="ai-studio/fact-extraction" element={<FactExtractionPage />} />
         <Route path="ai-studio/medical-coding" element={<MedicalCodingPage />} />
         <Route path="ai-studio/runtime" element={<RuntimeConsolePage />} />

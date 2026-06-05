@@ -11,7 +11,7 @@ import {
   X, Sparkles, Loader2, Copy, Pencil, FileText,
   ChevronDown, Stethoscope, FilePlus, Hospital,
   Wrench, ExternalLink, GripVertical, Plus,
-  Check,
+  Check, BookOpen,
 } from 'lucide-react';
 import type { ClinicalEvidence, CodeCandidate } from '../types';
 import AddExpertModal from '../components/AddExpertModal';
@@ -723,11 +723,34 @@ export default function MedicalCodingPage() {
                 </span>
               )}
             </div>
-            <button onClick={handlePredict} disabled={!hasText || loading}
-              className="w-full py-3 rounded-xl bg-primary text-white text-[15px] font-medium hover:bg-primary/90 disabled:opacity-20 transition-all flex items-center justify-center gap-2 active:scale-[0.98]">
-              {loading ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
-              {loading ? '分析中...' : '开始编码'}
-            </button>
+            <div className="flex gap-2">
+              {/* Samples dropdown — Corti-style quick demo data */}
+              <div className="relative">
+                <button onClick={() => setShowSampleMenu(!showSampleMenu)}
+                  className="px-3 py-2 rounded-lg border border-border text-xs text-muted-foreground hover:text-foreground hover:bg-accent transition-colors flex items-center gap-1">
+                  <BookOpen size={13} /> 示例
+                </button>
+                {showSampleMenu && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setShowSampleMenu(false)} />
+                    <div className="absolute bottom-full mb-1 left-0 bg-popover border border-border rounded-lg shadow-lg z-50 py-1 min-w-[300px] max-h-48 overflow-y-auto">
+                      {samples.map((s: any, i: number) => (
+                        <button key={i} onClick={() => { setInput(s.text); setShowSampleMenu(false); }}
+                          className="w-full text-left px-3 py-2 text-xs hover:bg-accent transition-colors">
+                          <p className="font-medium text-foreground truncate">{s.label}</p>
+                          <p className="text-[10px] text-muted-foreground truncate">{s.text.slice(0, 60)}...</p>
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+              <button onClick={handlePredict} disabled={!hasText || loading}
+                className="flex-1 py-3 rounded-xl bg-primary text-white text-[15px] font-medium hover:bg-primary/90 disabled:opacity-20 transition-all flex items-center justify-center gap-2 active:scale-[0.98]">
+                {loading ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
+                {loading ? '分析中...' : '开始编码'}
+              </button>
+            </div>
           </div>
 
         </div>

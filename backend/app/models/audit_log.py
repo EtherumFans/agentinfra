@@ -21,6 +21,11 @@ class AuditLog(Base, TimestampMixin):
     status: Mapped[str] = mapped_column(String(32), default="success")  # success, failure, warning
     error_message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
+    # Agent delegation audit (iter 3)
+    agent_id: Mapped[Optional[str]] = mapped_column(String(128), nullable=True, index=True)
+    agent_account_id: Mapped[Optional[str]] = mapped_column(String(12), nullable=True)
+    delegated_by_user_id: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+
     # For LLM audit
     model_input_summary: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     model_output_summary: Mapped[Optional[str]] = mapped_column(Text, nullable=True)

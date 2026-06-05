@@ -78,6 +78,35 @@ def create_refresh_token(user_id: str, org_id: str = "", token_version: int = 0)
     return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
 
 
+def create_delegation_token(
+    user_id: str,
+    username: str,
+    agent_id: str,
+    agent_account_id: str,
+    scopes: list[str] | None = None,
+    org_id: str = "",
+) -> str:
+    """Create a delegation JWT — user delegates authority to an Agent.
+
+    This JWT carries both user identity (who authorized) and agent identity
+    (which Agent is executing). External systems verify this token to audit:
+    "User X via Agent Y performed operation Z."
+    """
+    expire = datetime.now(timezone.utc) + timedelta(minutes=30)  # Short-lived
+    payload = {
+        "sub": user_id,
+        "username": username,
+        "agent": agent_id,
+        "agent_account_id": agent_account_id,
+        "scopes": scopes or [],
+        "org_id": org_id,
+        "exp": expire,
+        "iat": datetime.now(timezone.utc),
+        "type": "delegation",
+    }
+    return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+
+
 def decode_token(token: str) -> dict:
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])

@@ -250,15 +250,21 @@ class AgentRunner:
         user_input: str,
         permission_policy: PermissionPolicy | None = None,
         data_policy=None,
+        delegated_by: dict | None = None,
     ) -> dict:
         """Execute an Agent against user input with platform-level safety guards.
 
         Safety flow:
           PreExecutionGuard → LLM call → PostExecutionGuard → SafetySpiralDetector
 
+        delegated_by: {"user_id": "...", "username": "...", "agent_account_id": "..."}
+        When provided, a delegation JWT is generated so the Agent can authenticate
+        to external systems (HIS/EMR) with both user and agent identity.
+
         Returns: {review_id, agent_name, processing_time_ms,
                   primary_diagnosis, output, state_log,
-                  safety: {pre_check, post_check, spiral_check}}
+                  safety: {pre_check, post_check, spiral_check},
+                  delegation_token: str | None}
         """
         t0 = time.time()
 
@@ -267,6 +273,18 @@ class AgentRunner:
         audit = AuditState(session_id=session_id)
         policy = permission_policy or PermissionPolicy(permissions={})
         audit.record("run_started", agent.name)
+
+        # ── Delegation token (agent identity + user identity) ──
+        delegation_token = None
+        if delegated_by and delegated_by.get("user_id"):
+            from app.middleware.auth import create_delegation_token
+            delegation_token = create_delegation_token(
+                user_id=delegated_by["user_id"],
+                username=delegated_by.get("username", ""),
+                agent_id=agent.id,
+                agent_account_id=delegated_by.get("agent_account_id", ""),
+            )
+            audit.record("delegation_created", agent.id, {"by": delegated_by["user_id"]})
 
         # ── PreExecutionGuard ──
         pre_guard = PreExecutionGuard(data_policy=data_policy, guardrails=safety_guardrails)
@@ -406,6 +424,7 @@ class AgentRunner:
                 "blocked": False,
             },
             "errors": [llm_error] if llm_error else [],
+            "delegation_token": delegation_token,
         }
 
     def _build_expert_prompt(self, experts: list[ExpertDefinition], messages: list) -> str:

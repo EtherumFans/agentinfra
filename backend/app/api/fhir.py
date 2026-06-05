@@ -287,8 +287,143 @@ async def fhir_metadata():
             "resource": [
                 {"type": "Patient", "interaction": [{"code": "read"}, {"code": "search-type"}]},
                 {"type": "Encounter", "interaction": [{"code": "read"}, {"code": "search-type"}]},
-                {"type": "Condition", "interaction": [{"code": "search-type"}]},
-                {"type": "Procedure", "interaction": [{"code": "search-type"}]},
+                {"type": "Condition", "interaction": [{"code": "search-type"}, {"code": "create"}]},
+                {"type": "Procedure", "interaction": [{"code": "search-type"}, {"code": "create"}]},
             ],
         }],
     }
+
+
+# ── HIS Push Endpoints (POST) ─────────────────────────────────────────
+
+@router.post("/Condition")
+async def fhir_condition_create(
+    body: dict,
+    db: AsyncSession = Depends(get_db),
+    org: Organization = Depends(get_current_organization),
+):
+    """HIS pushes a Condition → auto-trigger coding review."""
+    resource = body.get("resource", body)
+    patient_id = resource.get("subject", {}).get("reference", "").replace("Patient/", "")
+    coding = (resource.get("code", {}).get("coding", [{}])[0] or {})
+    code = coding.get("code", "")
+    name = coding.get("display", "")
+    if not code:
+        raise HTTPException(status_code=400, detail="Condition.code is required")
+
+    enc = Encounter(
+        patient_id=patient_id or f"his-{uuid.uuid4().hex[:8]}",
+        department="HIS",
+        organization_id=org.id,
+        admission_reason=name,
+        existing_diagnosis_codes=[{"code": code, "name": name}],
+    )
+    db.add(enc)
+    await db.flush()
+
+    from app.services.review_coding_service import ReviewCodingService
+    from app.main import app as _app
+    rt = getattr(_app.state, "platform_runtime", None)
+    svc = ReviewCodingService(rt)
+    review_id = ""
+    try:
+        result = await svc.review({"encounter_id": enc.id})
+        review_id = result.get("review_id", "")
+    except Exception:
+        pass
+
+    return {
+        "resourceType": "Condition", "id": enc.id,
+        "code": {"coding": [_fhir_coding("http://hl7.org/fhir/sid/icd-10-cn", code, name)]},
+        "subject": _fhir_ref("Patient", enc.patient_id),
+        "_review_id": review_id,
+    }
+
+
+@router.post("/Procedure")
+async def fhir_procedure_create(
+    body: dict,
+    db: AsyncSession = Depends(get_db),
+    org: Organization = Depends(get_current_organization),
+):
+    """HIS pushes a Procedure → triggers surgical coding review."""
+    resource = body.get("resource", body)
+    patient_id = resource.get("subject", {}).get("reference", "").replace("Patient/", "")
+    coding = (resource.get("code", {}).get("coding", [{}])[0] or {})
+    code = coding.get("code", "")
+    name = coding.get("display", "")
+    if not code:
+        raise HTTPException(status_code=400, detail="Procedure.code is required")
+
+    enc = Encounter(
+        patient_id=patient_id or f"his-{uuid.uuid4().hex[:8]}",
+        department="SURGERY", organization_id=org.id,
+        existing_procedure_codes=[{"code": code, "name": name}],
+    )
+    db.add(enc)
+    await db.flush()
+
+    from app.services.review_coding_service import ReviewCodingService
+    from app.main import app as _app
+    rt = getattr(_app.state, "platform_runtime", None)
+    svc = ReviewCodingService(rt)
+    review_id = ""
+    try:
+        result = await svc.review({"encounter_id": enc.id})
+        review_id = result.get("review_id", "")
+    except Exception:
+        pass
+
+    return {
+        "resourceType": "Procedure", "id": enc.id,
+        "code": {"coding": [_fhir_coding("http://hl7.org/fhir/sid/icd-9-cm-3", code, name)]},
+        "subject": _fhir_ref("Patient", enc.patient_id),
+        "_review_id": review_id,
+    }
+
+
+# ── Batch FHIR Push ───────────────────────────────────────────────────
+
+@router.post("/Bundle")
+async def fhir_bundle_create(
+    body: dict,
+    db: AsyncSession = Depends(get_db),
+    org: Organization = Depends(get_current_organization),
+):
+    """HIS pushes a FHIR Bundle (multiple resources) → batch processing."""
+    entries = body.get("entry", [])
+    if not entries:
+        raise HTTPException(status_code=400, detail="Bundle.entry is required")
+
+    results = []
+    for entry in entries:
+        resource = entry.get("resource", {})
+        rtype = resource.get("resourceType", "")
+        if rtype in ("Condition", "Procedure"):
+            endpoint = fhir_condition_create if rtype == "Condition" else fhir_procedure_create
+            try:
+                r = await endpoint({"resource": resource}, db=db, org=org)
+                results.append({"type": rtype, "status": "created", "id": r["id"]})
+            except Exception:
+                results.append({"type": rtype, "status": "failed"})
+        else:
+            results.append({"type": rtype, "status": "skipped"})
+
+    return {"resourceType": "Bundle", "type": "transaction-response", "entry": [{"response": r} for r in results]}
+
+
+# ── Webhook Registry ──────────────────────────────────────────────────
+
+webhook_registry: dict[str, list[str]] = {}
+
+
+@router.post("/webhook/register")
+async def fhir_webhook_register(
+    body: dict,
+    org: Organization = Depends(get_current_organization),
+):
+    url = body.get("url", "")
+    if not url:
+        raise HTTPException(status_code=400, detail="url is required")
+    webhook_registry.setdefault(org.id, []).append(url)
+    return {"status": "registered", "url": url}

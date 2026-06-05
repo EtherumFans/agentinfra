@@ -193,3 +193,111 @@ async def list_installed_agents(
 
     agents = rt.list_agents()
     return {"agents": agents, "total": len(agents)}
+
+
+# ── Offline Import/Export (hospital intranet) ─────────────────────────
+
+
+class OfflineImportRequest(BaseModel):
+    pack: dict  # Full .icoder-agent pack JSON
+    publisher_name: str = ""
+    publisher_email: str = ""
+
+
+@router.post("/packages/import")
+async def offline_import(
+    body: OfflineImportRequest,
+    user: User = Depends(get_current_user),
+):
+    """Import an .icoder-agent pack file directly (offline/USB deployment).
+
+    Hospital intranet scenario: ISV exports .icoder-agent file → USB/flash drive
+    → hospital IT imports via this endpoint. No internet required.
+    """
+    from app.main import app as _app
+    rt = getattr(_app.state, "platform_runtime", None)
+    if not rt:
+        raise HTTPException(status_code=503, detail="Runtime not available")
+
+    try:
+        result = rt.install_agent(
+            body.pack,
+            publisher_name=body.publisher_name or body.pack.get("publisher_name", "offline"),
+            publisher_email=body.publisher_email or body.pack.get("publisher_email", ""),
+        )
+        # Sync to DB
+        from app.models.agent import Agent as AgentModel
+        from app.database import async_session_factory
+        async with async_session_factory() as session:
+            existing = await session.execute(
+                select(AgentModel).where(AgentModel.id == result["agent_id"])
+            )
+            if not existing.scalar_one_or_none():
+                manifest = body.pack.get("manifest", {})
+                db_agent = AgentModel(
+                    id=result["agent_id"],
+                    name=manifest.get("name", result["agent_id"]),
+                    version=manifest.get("version", "1.0.0"),
+                    is_prebuilt=False,
+                    is_published=True,
+                    status="prod",
+                )
+                session.add(db_agent)
+                await session.commit()
+
+        return {
+            "status": "imported",
+            "agent_ref": result["agent_id"],
+            "name": result["name"],
+            "version": result["version"],
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.get("/packages/{pkg_id}/export")
+async def offline_export(pkg_id: str):
+    """Export an installed agent as an .icoder-agent file for offline deployment."""
+    from app.main import app as _app
+    rt = getattr(_app.state, "platform_runtime", None)
+    if not rt:
+        raise HTTPException(status_code=503, detail="Runtime not available")
+
+    try:
+        agent_data = rt.get_agent(pkg_id)
+    except Exception:
+        raise HTTPException(status_code=404, detail=f"Agent not found: {pkg_id}")
+
+    pack = agent_data.get("pack_data", {})
+    if not pack:
+        # Reconstruct pack from agent data
+        pack = {
+            "format_version": "1.1",
+            "agent_type": agent_data.get("agent_type", "certified"),
+            "manifest": {
+                "name": agent_data.get("name", ""),
+                "version": agent_data.get("version", ""),
+                "description": agent_data.get("description", ""),
+                "category": agent_data.get("category", "general"),
+                "icon": agent_data.get("icon", "Bot"),
+            },
+            "system_prompt": agent_data.get("system_prompt", ""),
+            "experts": agent_data.get("experts", []),
+            "tools": agent_data.get("tools", []),
+            "permissions": agent_data.get("permissions", {}),
+            "requirements": agent_data.get("requirements", {"min_runtime_version": "1.0.0"}),
+            "llm_capabilities": agent_data.get("llm_capabilities", {}),
+            "integrity": agent_data.get("integrity", {}),
+        }
+        # Compute SHA256
+        import hashlib
+        pack_json = json.dumps(pack, sort_keys=True, ensure_ascii=False)
+        pack["integrity"] = {"sha256": hashlib.sha256(pack_json.encode()).hexdigest()}
+
+    from fastapi.responses import JSONResponse
+    return JSONResponse(
+        content=pack,
+        headers={
+            "Content-Disposition": f"attachment; filename={agent_data.get('name','agent')}-{agent_data.get('version','1.0.0')}.icoder-agent.json"
+        },
+    )

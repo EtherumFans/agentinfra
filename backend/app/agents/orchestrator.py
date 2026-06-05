@@ -1,4 +1,7 @@
 # iCoDer - Agent Orchestrator
+# *** DEPRECATED — will be removed in v2.2 ***
+# Migration: ReviewCodingService → PlatformRuntime.run_agent("medical-coding-reviewer")
+# See MIGRATION_RUNTIME.md for details.
 # Fixed pipeline: Evidence → Diagnosis/Procedure → Homepage → Rules → Verify → DRG → Report → Human Review
 import logging
 import time

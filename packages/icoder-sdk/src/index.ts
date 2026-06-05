@@ -10,6 +10,9 @@ export type { SttSessionConfig } from './resources/speech-to-text';
 export { TextGenResource } from './resources/textgen';
 export { BillingResource, UsageResource } from './resources/billing';
 export { OAuthResource } from './resources/oauth';
+export { RuntimeResource } from './resources/runtime';
+export { MarketplaceResource } from './resources/marketplace';
+export { ComplianceResource } from './resources/compliance';
 
 export type {
   TokenResponse, User, UserRole, Encounter, Review,
@@ -30,6 +33,9 @@ import { SpeechToTextResource } from './resources/speech-to-text';
 import { TextGenResource } from './resources/textgen';
 import { BillingResource, UsageResource } from './resources/billing';
 import { OAuthResource } from './resources/oauth';
+import { RuntimeResource } from './resources/runtime';
+import { MarketplaceResource } from './resources/marketplace';
+import { ComplianceResource } from './resources/compliance';
 
 export default class iCoDer {
   client: iCoDerClient;
@@ -42,6 +48,9 @@ export default class iCoDer {
   billing: BillingResource;
   usage: UsageResource;
   oauth: OAuthResource;
+  runtime: RuntimeResource;
+  marketplace: MarketplaceResource;
+  compliance: ComplianceResource;
 
   constructor(config: import('./client').iCoDerConfig) {
     this.client = new iCoDerClient(config);
@@ -54,5 +63,8 @@ export default class iCoDer {
     this.billing = new BillingResource(this.client.http);
     this.usage = new UsageResource(this.client.http);
     this.oauth = new OAuthResource(this.client.http);
+    this.runtime = new RuntimeResource(this.client.http);
+    this.marketplace = new MarketplaceResource(this.client.http);
+    this.compliance = new ComplianceResource(this.client.http);
   }
 }

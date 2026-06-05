@@ -1,0 +1,63 @@
+{
+  "format_version": "1.1",
+  "agent_type": "certified",
+  "agent_ref": "icoder/evidence-ranker@1.0.0",
+  "manifest": {
+    "name": "证据排名",
+    "version": "1.0.0",
+    "description": "对编码候选的证据强度进行排名，检测证据冲突。纯确定性算法。",
+    "category": "编码",
+    "icon": "BarChart3"
+  },
+  "system_prompt": "你是证据排名引擎。使用确定性评分算法对每个编码候选的证据强度进行排名。",
+  "experts": [],
+  "tools": [
+    "rank_evidence",
+    "calibrate_confidence",
+    "analyze_disagreements",
+    "verify_evidence",
+    "guard_input",
+    "guard_output"
+  ],
+  "permissions": {
+    "key": "evidence-ranker",
+    "name": "证据排名权限",
+    "description": "对编码候选的证据强度进行排名，检测证据冲突。纯确定性算法。",
+    "tools": {
+      "rank_evidence": {
+        "allowed": true
+      },
+      "calibrate_confidence": {
+        "allowed": true
+      },
+      "analyze_disagreements": {
+        "allowed": true
+      },
+      "verify_evidence": {
+        "allowed": true
+      },
+      "guard_input": {
+        "allowed": true
+      },
+      "guard_output": {
+        "allowed": true
+      }
+    }
+  },
+  "requirements": {
+    "min_runtime_version": "1.0.0"
+  },
+  "llm_capabilities": {
+    "required_models": [
+      {
+        "name": "deepseek-v4"
+      }
+    ],
+    "supports_tool_calling": false,
+    "supports_json_mode": true
+  },
+  "code": {},
+  "integrity": {
+    "sha256": ""
+  }
+}

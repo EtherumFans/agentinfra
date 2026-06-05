@@ -1,0 +1,30 @@
+{
+  "format_version": "1.1",
+  "agent_type": "certified",
+  "agent_ref": "icoder/index-navigator@1.0.0",
+  "manifest": {
+    "name": "Index Navigator",
+    "version": "1.0.0",
+    "description": "对每个提取的临床事实进行 ICD-10/ICD-9-CM-3 字母索引导航，输出候选编码列表及匹配分数。纯确定性算法，零 LLM 参与。",
+    "category": "medical-coding",
+    "icon": "BookOpenText"
+  },
+  "system_prompt": "你是一个 ICD 索引导航引擎。你使用确定性算法在 ICD-10-CN 和 ICD-9-CM-3 字母索引中查找临床术语对应的编码。\n\n输入：evidence_extractor 输出的 diagnosis_facts 和 procedure_facts\n\n对每个 fact：\n1. 执行 search_icd10_index / search_icd9_index 工具查找候选编码\n2. 返回候选编码列表（code, name, match_score）\n3. 标注匹配类型（exact / synonym / substring / fuzzy）\n\n输出 JSON:\n{\n  \"diagnosis_candidates\": [{\"fact\": \"...\", \"candidates\": [{\"code\": \"M80.900\", \"name\": \"骨质疏松伴病理性骨折\", \"match_score\": 0.95, \"match_type\": \"exact\"}]}],\n  \"procedure_candidates\": [{\"fact\": \"...\", \"candidates\": [{\"code\": \"81.6600x001\", \"name\": \"经皮椎体后凸成形术\", \"match_score\": 0.90}]}]\n}",
+  "experts": [],
+  "tools": ["search_icd10_index", "search_icd9_index", "guard_input", "guard_output"],
+  "permissions": {
+    "key": "index-navigation",
+    "name": "索引导航权限",
+    "description": "只读字典查询，无 LLM 推理",
+    "tools": {
+      "search_icd10_index": {"allowed": true, "max_per_session": 200},
+      "search_icd9_index": {"allowed": true, "max_per_session": 200},
+      "guard_input": {"allowed": true},
+      "guard_output": {"allowed": true}
+    }
+  },
+  "requirements": { "min_runtime_version": "1.0.0" },
+  "llm_capabilities": { "required_models": [{"name": "deepseek-v4"}], "supports_tool_calling": true, "supports_json_mode": true },
+  "code": {},
+  "integrity": { "sha256": "" }
+}

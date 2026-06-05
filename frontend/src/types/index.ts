@@ -242,29 +242,23 @@ export interface GoldCase {
 
 export interface EvaluationSummary {
   total_cases: number;
-  primary_diag_accuracy: number;
-  main_proc_accuracy: number;
-  missing_code_recall: number;
-  unsupported_code_precision: number;
-  documentation_gap_recall: number;
-  evidence_completeness_avg: number;
-  hallucination_rate: number;
-  avg_overall_score: number;
-  per_case_results: EvaluationResult[];
+  correct: number;
+  primary_dx_match_rate: number;
+  per_case: EvalCaseResult[];
+  per_category: Record<string, { total: number; correct: number; rate: number }>;
+  elapsed_seconds: number;
+  execution_mode: string;
 }
 
-export interface EvaluationResult {
+export interface EvalCaseResult {
   case_id: string;
-  agent_primary_diag: string;
-  agent_main_proc: string;
-  primary_diag_match: boolean;
-  main_proc_match: boolean;
-  missing_codes_found: string[];
-  unsupported_codes_identified: string[];
-  documentation_gaps_found: DocumentationGap[];
-  hallucinated_codes: string[];
-  evidence_completeness: number;
-  overall_score: number;
+  category: string;
+  title: string;
+  expected_dx: string;
+  actual_dx: string;
+  correct: boolean;
+  run_id: string;
+  latency_ms: number;
 }
 
 export interface CodeSearchResult {

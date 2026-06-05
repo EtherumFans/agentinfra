@@ -402,6 +402,62 @@ def detect_unsupported_codes(
     return unsupported
 
 
+# ── Span-level validation ────────────────────────────────────────────────────
+
+
+def validate_evidence_spans(
+    evidence_items: list, source_documents: dict[str, str] | None = None
+) -> dict:
+    """Validate that evidence spans point to correct positions in source text.
+
+    Args:
+        evidence_items: list of dict/EvidenceSpan with char_start/char_end/text
+        source_documents: {doc_id: full_text} mapping for validation
+
+    Returns: {valid: bool, validated: int, mismatches: [...], missing_spans: int}
+    """
+    from official_agents.medical_coding.schema import EvidenceSpan
+
+    validated = 0
+    mismatches = []
+    missing_spans = 0
+
+    for item in evidence_items:
+        span = EvidenceSpan.from_dict(item) if isinstance(item, dict) else item
+        if not isinstance(span, EvidenceSpan):
+            continue
+
+        # Check if span has positional info
+        if span.char_start == 0 and span.char_end == 0:
+            missing_spans += 1
+            continue
+
+        # Validate against source if available
+        if source_documents and span.doc_id and span.doc_id in source_documents:
+            source = source_documents[span.doc_id]
+            if not span.validate(source):
+                actual = source[span.char_start:span.char_end] if span.char_start < span.char_end else ""
+                mismatches.append({
+                    "doc_id": span.doc_id,
+                    "expected": span.text[:80],
+                    "actual_at_position": actual[:80] if span.char_start < len(source) else "[out of bounds]",
+                    "char_start": span.char_start,
+                    "char_end": span.char_end,
+                })
+                continue
+
+        validated += 1
+
+    return {
+        "valid": len(mismatches) == 0,
+        "total": len(evidence_items),
+        "validated": validated,
+        "mismatches": mismatches,
+        "mismatch_count": len(mismatches),
+        "missing_spans": missing_spans,
+    }
+
+
 # ── main entry point ────────────────────────────────────────────────────────
 
 def rank_all_evidence(

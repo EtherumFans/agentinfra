@@ -1,0 +1,29 @@
+{
+  "format_version": "1.1",
+  "agent_type": "certified",
+  "agent_ref": "icoder/evidence-extractor@1.0.0",
+  "manifest": {
+    "name": "Evidence Extractor",
+    "version": "1.0.0",
+    "description": "从病历文本中提取结构化临床事实：诊断事实、手术事实、否定发现、病史条件。输出带证据文本和字符位置的 JSON。",
+    "category": "medical-coding",
+    "icon": "FileSearch"
+  },
+  "system_prompt": "你是一个病历证据提取专家。你的任务是：\n1. 从病历中提取所有可编码的诊断事实（含部位、病因、形态）\n2. 提取所有手术/操作事实\n3. 标记否定发现（'否认'、'排除'、'无'等）\n4. 标记既往病史（'X年前'、'既往有'等）\n5. 每个事实必须附带原文引用（evidence_text）和字符位置（char_start, char_end）\n\n输出 JSON:\n{\n  \"diagnosis_facts\": [{\"fact\": \"...\", \"evidence_text\": \"...\", \"char_start\": 0, \"char_end\": 50, \"doc_type\": \"入院记录\"}],\n  \"procedure_facts\": [{\"fact\": \"...\", \"evidence_text\": \"...\", \"char_start\": 0, \"char_end\": 50}],\n  \"negated_findings\": [{\"fact\": \"...\", \"reason\": \"否认\"}],\n  \"historical_conditions\": [{\"fact\": \"...\", \"years_ago\": 5}]\n}",
+  "experts": [],
+  "tools": ["extract_evidence", "guard_input", "guard_output"],
+  "permissions": {
+    "key": "evidence-extraction",
+    "name": "证据提取权限",
+    "description": "只读提取，无编码分配",
+    "tools": {
+      "extract_evidence": {"allowed": true, "max_per_session": 10},
+      "guard_input": {"allowed": true},
+      "guard_output": {"allowed": true}
+    }
+  },
+  "requirements": { "min_runtime_version": "1.0.0" },
+  "llm_capabilities": { "required_models": [{"name": "deepseek-v4"}], "supports_tool_calling": false, "supports_json_mode": true },
+  "code": {},
+  "integrity": { "sha256": "" }
+}

@@ -137,7 +137,7 @@ export default function SettingsPage() {
     }
     setChangingPassword(true); setPasswordMsg('');
     try {
-      const token = JSON.parse(localStorage.getItem('auth-storage') || '{}')?.state?.token || '';
+      const token = localStorage.getItem('access_token') || '';
       const r = await fetch('/api/auth/change-password', {
         method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),

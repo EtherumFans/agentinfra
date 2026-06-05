@@ -366,8 +366,7 @@ class MedicalRecordHomepageExpert(BaseExpert):
     ) -> str:
         """Build a iCoDer-style prompt asking LLM to select the primary diagnosis."""
         lines = [
-            "You are a senior medical coding auditor. Your task is to select the PRIMARY diagnosis "
-            "for this inpatient encounter based on clinical reasoning.",
+            "你是资深医学编码审核专家。你的任务是根据临床推理为本次住院病历选择主要诊断。",
             "",
             "## Encounter Context",
         ]

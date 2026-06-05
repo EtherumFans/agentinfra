@@ -1,4 +1,7 @@
 # iCoDer - LLM Service (DeepSeek V4 Pro)
+# *** DEPRECATED (LLM calling parts) — will be removed in v2.1 ***
+# Migration: Use icoder_runtime.core.llm_gateway.LLMGateway instead.
+# See MIGRATION_RUNTIME.md for details.
 import asyncio
 import json
 import logging

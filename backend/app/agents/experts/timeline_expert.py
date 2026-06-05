@@ -8,9 +8,9 @@ from app.agents.base import BaseExpert
 
 logger = logging.getLogger(__name__)
 
-SYSTEM_PROMPT = """You are an expert clinical timeline reconstruction system for Chinese inpatient medical records.
+SYSTEM_PROMPT = """你是中国住院病历临床时间线重建专家。
 
-Your task: reconstruct a chronological timeline of ALL clinical events from the patient's medical documents.
+你的任务：根据患者病历文书重建所有临床事件的时间顺序。
 
 ## Extraction Rules
 

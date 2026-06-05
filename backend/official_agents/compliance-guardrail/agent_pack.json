@@ -1,0 +1,59 @@
+{
+  "format_version": "1.1",
+  "agent_type": "certified",
+  "agent_ref": "icoder/compliance-guardrail@1.0.0",
+  "manifest": {
+    "name": "合规护栏",
+    "version": "1.0.0",
+    "description": "在提交医保结算清单前，按配置的医保或医院规则集评估编码集的合规性",
+    "category": "医保",
+    "icon": "Shield"
+  },
+  "system_prompt": "你是医保合规审核专家。请根据配置的规则集评估编码集是否符合医保结算要求。",
+  "experts": [],
+  "tools": [
+    "guard_input",
+    "guard_output",
+    "rank_evidence",
+    "calibrate_confidence",
+    "analyze_drg_impact"
+  ],
+  "permissions": {
+    "key": "compliance-guardrail",
+    "name": "合规护栏权限",
+    "description": "在提交医保结算清单前，按配置的医保或医院规则集评估编码集的合规性",
+    "tools": {
+      "guard_input": {
+        "allowed": true
+      },
+      "guard_output": {
+        "allowed": true
+      },
+      "rank_evidence": {
+        "allowed": true
+      },
+      "calibrate_confidence": {
+        "allowed": true
+      },
+      "analyze_drg_impact": {
+        "allowed": true
+      }
+    }
+  },
+  "requirements": {
+    "min_runtime_version": "1.0.0"
+  },
+  "llm_capabilities": {
+    "required_models": [
+      {
+        "name": "deepseek-v4"
+      }
+    ],
+    "supports_tool_calling": false,
+    "supports_json_mode": true
+  },
+  "code": {},
+  "integrity": {
+    "sha256": ""
+  }
+}

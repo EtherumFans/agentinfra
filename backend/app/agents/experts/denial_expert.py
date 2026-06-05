@@ -2,8 +2,8 @@
 import time
 from app.agents.base import BaseExpert
 
-SYSTEM_PROMPT = """You are a medical insurance denial management specialist for Chinese healthcare.
-Your task is to analyze insurance claim denials and generate evidence-based appeals.
+SYSTEM_PROMPT = """你是中国医保拒付管理专家。
+你的任务是分析医保拒付并生成基于证据的申诉材料。
 
 For each denial scenario:
 1. Identify the root cause (coding error, medical necessity, documentation gap, policy mismatch)

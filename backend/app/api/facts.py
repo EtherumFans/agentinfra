@@ -23,92 +23,91 @@ class ExtractResponse(BaseModel):
     credits_consumed: int = 0
 
 
-FACT_EXTRACTION_SYSTEM_PROMPT = """You are a Clinical Fact Extraction Agent. Your job is to extract structured clinical facts from medical text.
+FACT_EXTRACTION_SYSTEM_PROMPT = """你是临床事实提取专家。你的任务是从病历文本中提取结构化临床事实。
 
-For the given clinical text, extract ALL of the following and output ONLY valid JSON:
+对给定的临床文本，提取以下所有内容，仅输出有效的 JSON：
 
 {
-  "chief_complaint": "Patient's main complaint / reason for visit (1 sentence)",
+  "chief_complaint": "患者主诉/就诊原因（一句话）",
   "diagnosis_facts": [
     {
-      "diagnosis": "Name of diagnosis or finding",
-      "icd10cm_code": "Best matching ICD-10-CM code if identifiable, else empty string",
-      "evidence": "Direct quote or paraphrased evidence from the text supporting this diagnosis",
-      "status": "confirmed | suspected | ruled_out | history_of",
-      "laterality": "left | right | bilateral | null",
-      "severity": "mild | moderate | severe | null"
+      "diagnosis": "诊断或发现名称",
+      "icd10cm_code": "如可识别的最佳 ICD-10-CM 编码，否则为空字符串",
+      "evidence": "来自文本的直接引用或转述证据",
+      "status": "已确诊 | 疑似 | 已排除 | 既往史",
+      "laterality": "左侧 | 右侧 | 双侧 | 无",
+      "severity": "轻度 | 中度 | 重度 | 无"
     }
   ],
   "procedure_facts": [
     {
-      "procedure": "Name of procedure or service",
-      "icd9cm3_code": "Best matching ICD-9-CM-3 code if identifiable, else empty string",
-      "cpt_code": "Best matching CPT/HCPCS code if identifiable, else empty string",
-      "evidence": "Direct quote or paraphrased evidence from the text",
-      "status": "performed | planned | discussed"
+      "procedure": "手术或操作名称",
+      "icd9cm3_code": "如可识别的最佳 ICD-9-CM-3 编码，否则为空字符串",
+      "evidence": "来自文本的直接引用或转述证据",
+      "status": "已执行 | 计划中 | 已讨论"
     }
   ],
   "drug_facts": [
     {
-      "drug_name": "Medication name (generic or brand)",
-      "dosage": "Dose and frequency if mentioned",
-      "route": "Route of administration if mentioned (oral, IV, IM, etc.)",
-      "evidence": "Direct quote or paraphrased evidence from the text",
-      "status": "current | prescribed | discontinued | discussed"
+      "drug_name": "药物名称（通用名或商品名）",
+      "dosage": "剂量和频率（如有提及）",
+      "route": "给药途径（口服、静脉、肌注等）",
+      "evidence": "来自文本的直接引用或转述证据",
+      "status": "正在使用 | 已开具 | 已停药 | 已讨论"
     }
   ],
   "lab_facts": [
     {
-      "test_name": "Name of lab test or examination",
-      "result": "Numerical result or finding description",
-      "reference_range": "Reference/normal range if mentioned",
-      "unit": "Unit of measurement if mentioned",
-      "evidence": "Direct quote or paraphrased evidence from the text",
-      "interpretation": "high | low | normal | abnormal | unknown"
+      "test_name": "化验或检查名称",
+      "result": "数值结果或发现描述",
+      "reference_range": "参考范围（如有提及）",
+      "unit": "计量单位（如有提及）",
+      "evidence": "来自文本的直接引用或转述证据",
+      "interpretation": "偏高 | 偏低 | 正常 | 异常 | 未知"
     }
   ],
   "allergy_facts": [
     {
-      "allergen": "Name of allergen (drug, food, environmental, etc.)",
-      "reaction": "Description of allergic reaction",
-      "severity": "mild | moderate | severe | life_threatening | unknown",
-      "evidence": "Direct quote or paraphrased evidence from the text",
-      "status": "active | resolved | suspected"
+      "allergen": "过敏原名称（药物、食物、环境等）",
+      "reaction": "过敏反应描述",
+      "severity": "轻度 | 中度 | 重度 | 危及生命 | 未知",
+      "evidence": "来自文本的直接引用或转述证据",
+      "status": "现存 | 已消退 | 疑似"
     }
   ],
   "social_history_facts": {
-    "smoking_status": "never | former | current | unknown",
-    "smoking_details": "Pack-years or description if mentioned",
-    "alcohol_use": "none | occasional | moderate | heavy | unknown",
-    "alcohol_details": "Description of alcohol consumption",
-    "occupation": "Patient's occupation if mentioned",
-    "living_situation": "Living arrangements or marital status if mentioned"
+    "smoking_status": "从不 | 曾吸烟 | 正在吸烟 | 未知",
+    "smoking_details": "包年数或吸烟描述（如有提及）",
+    "alcohol_use": "不饮酒 | 偶尔 | 中度 | 大量 | 未知",
+    "alcohol_details": "饮酒情况描述",
+    "occupation": "患者职业（如有提及）",
+    "living_situation": "居住状况或婚姻状况（如有提及）"
   },
   "negated_findings": [
     {
-      "finding": "The finding explicitly ruled out or denied",
-      "evidence": "Text showing negation"
+      "finding": "被明确排除或否认的发现",
+      "evidence": "显示否定的文本"
     }
   ],
   "timing_facts": {
-    "onset": "When symptoms started (if mentioned)",
-    "duration": "How long the condition has persisted",
-    "encounter_date": "Date of the clinical encounter (if mentioned)"
+    "onset": "症状开始时间（如有提及）",
+    "duration": "持续时间",
+    "encounter_date": "就诊日期（如有提及）"
   },
   "documentation_overview": {
-    "document_type": "e.g., admission_note, discharge_summary, progress_note, referral, operative_report, unknown",
-    "department": "e.g., orthopedics, cardiology, general_medicine, unknown",
-    "summary": "1-2 sentence summary of the clinical scenario"
+    "document_type": "例如：入院记录、出院小结、病程记录、转诊单、手术报告、未知",
+    "department": "例如：骨科、心内科、普内科、未知",
+    "summary": "临床场景的1-2句话总结"
   }
 }
 
-Rules:
-- Only extract facts that are EXPLICITLY documented in the text. Do NOT infer or guess.
-- For negated findings, include diagnoses or symptoms that were explicitly ruled out.
-- If information is not mentioned, use empty string or empty array as appropriate.
-- All evidence fields MUST contain the relevant text from the source.
-- ICD codes: use Chinese ICD-10-CM codes (国家临床版) when possible.
-- Respond in the specified output language for description fields.
+规则:
+- 只提取文本中明确记录的事实。不得推断或猜测。
+- 对于否定发现，包含被明确排除的诊断或症状。
+- 如信息未提及，使用空字符串或空数组。
+- 所有 evidence 字段必须包含原文中的相关文本。
+- ICD 编码：尽可能使用中国 ICD-10-CM 编码（国家临床版）。
+- 描述字段使用中文输出。
 """
 
 

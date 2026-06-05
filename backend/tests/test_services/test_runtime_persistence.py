@@ -50,6 +50,7 @@ class TestPersistenceFlush:
 
         # Mock DB
         db = AsyncMock()
+        db.add = MagicMock()  # AsyncSession.add() is synchronous
         mock_result = MagicMock()
         mock_result.scalar_one_or_none.return_value = None  # No existing session
         db.execute = AsyncMock(return_value=mock_result)
@@ -68,6 +69,7 @@ class TestPersistenceFlush:
         rt.transition(CaseState.FACTS_EXTRACTED, actor="expert")
 
         db = AsyncMock()
+        db.add = MagicMock()  # AsyncSession.add() is synchronous
         mock_result = MagicMock()
         mock_result.scalar_one_or_none.return_value = None
         db.execute = AsyncMock(return_value=mock_result)
@@ -87,6 +89,7 @@ class TestPersistenceFlush:
         rt.transition(CaseState.ARCHIVED, actor="test")
 
         db = AsyncMock()
+        db.add = MagicMock()  # AsyncSession.add() is synchronous
         mock_result = MagicMock()
         mock_result.scalar_one_or_none.return_value = None
         db.execute = AsyncMock(return_value=mock_result)
@@ -103,6 +106,7 @@ class TestPersistenceFlush:
         rt.human_confirm("confirm_decision", "doctor_li", "Verified OK")
 
         db = AsyncMock()
+        db.add = MagicMock()  # AsyncSession.add() is synchronous
         mock_result = MagicMock()
         mock_result.scalar_one_or_none.return_value = None
         db.execute = AsyncMock(return_value=mock_result)
@@ -289,6 +293,7 @@ class TestStateSync:
     async def test_sync_review_status_updates_db(self):
         """sync_review_status writes to DB when triggered."""
         db = AsyncMock()
+        db.add = MagicMock()  # AsyncSession.add() is synchronous
         review_mock = MagicMock()
         review_mock.human_review_status = "pending"
         mock_result = MagicMock()
@@ -406,6 +411,7 @@ class TestRecovery:
         rt.transition(CaseState.ARCHIVED, actor="test")
 
         db = AsyncMock()
+        db.add = MagicMock()  # AsyncSession.add() is synchronous
         mock_result = MagicMock()
         mock_result.scalar_one_or_none.return_value = None
         db.execute = AsyncMock(return_value=mock_result)
@@ -431,6 +437,7 @@ class TestPersistenceExceptionPaths:
 
         # DB that raises on commit
         db = AsyncMock()
+        db.add = MagicMock()  # AsyncSession.add() is synchronous
         mock_result = MagicMock()
         mock_result.scalar_one_or_none.return_value = None
         db.execute = AsyncMock(return_value=mock_result)
@@ -473,6 +480,7 @@ class TestPersistenceExceptionPaths:
         rt.transition(CaseState.FACTS_EXTRACTED, actor="test")
 
         db = AsyncMock()
+        db.add = MagicMock()  # AsyncSession.add() is synchronous
         # Existing session found
         existing = MagicMock()
         existing.current_state = "INGESTED"

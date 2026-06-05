@@ -3,7 +3,7 @@ import time
 import uuid
 from app.agents.base import BaseExpert
 
-SYSTEM_PROMPT = """You are a coding audit trail specialist. Your task is to create a traceable record of every coding decision made during a medical coding review.
+SYSTEM_PROMPT = """你是编码审计追溯专家。你的任务是为医学编码审核过程中的每个编码决策创建可追溯的记录。
 
 For each coding decision:
 1. Document the decision point (what code was chosen, from what alternatives)

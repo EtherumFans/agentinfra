@@ -5,6 +5,8 @@ import { useAppStore } from '../store';
 import { useCostStore } from '../store';
 import { useT, useLocaleStore } from '../i18n';
 import { encountersApi, reviewsApi, codeTablesApi, agentsApi, expertsApi } from '../services/api';
+import { runtimeApi } from '../services/runtimeApi';
+import type { RuntimeRunResult, MedicalCodingStatus } from '../types/runtime';
 import {
   X, Sparkles, Loader2, Copy, Pencil, FileText,
   ChevronDown, Stethoscope, FilePlus, Hospital,
@@ -45,9 +47,18 @@ export default function MedicalCodingPage() {
   const [showSampleMenu, setShowSampleMenu] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [runtimeMode, setRuntimeMode] = useState(() => localStorage.getItem('icoder-mc-runtime-mode') !== 'legacy');
+  const [runtimeResult, setRuntimeResult] = useState<RuntimeRunResult | null>(null);
+  const [executionModeLabel, setExecutionModeLabel] = useState('');
   const [confThreshold, setConfThreshold] = useState(0.6);
   const [expandResults, setExpandResults] = useState(true);
   const [systemPrompt, setSystemPrompt] = useState('');
+  const [dsStatus, setDsStatus] = useState<MedicalCodingStatus | null>(null);
+
+  // Fetch DeepSeek status on mount
+  useEffect(() => {
+    runtimeApi.getMedicalCodingStatus().then((s) => setDsStatus(s)).catch(() => {});
+  }, []);
   const [agentExperts, setAgentExperts] = useState<any[]>([]);
 
   // Custom experts (user-created)
@@ -152,38 +163,60 @@ export default function MedicalCodingPage() {
   // Build events for EventInspector
   const events = useMemo(() => {
     const evts: Array<{ type: string; data: Record<string, unknown>; timestamp: string; credits?: number }> = [];
-    if (result) {
+    if (runtimeResult) {
+      evts.push({
+        type: 'POST /api/runtime/agents/run',
+        data: { status: '200 OK', run_id: runtimeResult.run_id, agent_ref: runtimeResult.agent_ref },
+        timestamp: new Date().toLocaleTimeString(locale, { hour12: false }),
+        credits: runtimeResult.processing_time_ms ? (runtimeResult.processing_time_ms / 1000) * 0.02 : undefined,
+      });
+      evts.push({
+        type: 'RUNTIME',
+        data: { status: runtimeResult.status, steps: runtimeResult.audit_trail?.length || 0, duration_ms: runtimeResult.processing_time_ms || 0 },
+        timestamp: new Date().toLocaleTimeString(locale, { hour12: false }),
+      });
+      evts.push({
+        type: 'CODING',
+        data: {
+          primary_diag: runtimeResult.primary_diagnosis?.code || '—',
+          secondary_count: runtimeResult.secondary_diagnoses?.length || 0,
+          procedure_count: runtimeResult.procedures?.length || 0,
+          issues: runtimeResult.issues_found?.length || 0,
+        },
+        timestamp: new Date().toLocaleTimeString(locale, { hour12: false }),
+      });
+    } else if (result) {
       evts.push({
         type: 'POST /api/reviews',
-        data: { status: '200 OK', review_id: result.id },
+        data: { status: '200 OK', review_id: (result as any).id },
         timestamp: new Date().toLocaleTimeString(locale, { hour12: false }),
         credits: result.processing_time_ms ? (result.processing_time_ms / 1000) * 0.02 : undefined,
       });
       evts.push({
         type: 'PIPELINE',
-        data: { pipeline_id: result.pipeline_id || '—', steps: 8, duration_ms: result.processing_time_ms || 0 },
+        data: { pipeline_id: (result as any).pipeline_id || '—', steps: 8, duration_ms: result.processing_time_ms || 0 },
         timestamp: new Date().toLocaleTimeString(locale, { hour12: false }),
       });
       evts.push({
         type: 'EVIDENCE',
         data: {
-          diagnosis_facts: result.evidences?.filter((e: ClinicalEvidence) => e.entity_type === 'diagnosis_evidence').length || 0,
-          procedure_facts: result.evidences?.filter((e: ClinicalEvidence) => e.entity_type === 'procedure_evidence').length || 0,
+          diagnosis_facts: (result as any).evidences?.filter((e: any) => e.entity_type === 'diagnosis_evidence').length || 0,
+          procedure_facts: (result as any).evidences?.filter((e: any) => e.entity_type === 'procedure_evidence').length || 0,
         },
         timestamp: new Date().toLocaleTimeString(locale, { hour12: false }),
       });
       evts.push({
         type: 'CANDIDATES',
         data: {
-          total: result.candidates?.length || 0,
-          supported: result.validation_summary?.supported || 0,
-          needs_review: result.validation_summary?.needs_review || 0,
+          total: (result as any).candidates?.length || 0,
+          supported: (result as any).validation_summary?.supported || 0,
+          needs_review: (result as any).validation_summary?.needs_review || 0,
         },
         timestamp: new Date().toLocaleTimeString(locale, { hour12: false }),
       });
     }
     return evts;
-  }, [result]);
+  }, [result, runtimeResult, locale]);
 
   // Calculate total credits consumed from processing time
   const totalCredits = useMemo(() => {
@@ -197,6 +230,44 @@ export default function MedicalCodingPage() {
     setProcessing(true);
     setError(null);
     setResult(null);
+    setRuntimeResult(null);
+
+    if (runtimeMode) {
+      // ── Runtime mode: use Medical Coding Agent via Runtime API ──
+      const startTime = Date.now();
+      const progressTimer = setInterval(() => {
+        const elapsed = Math.round((Date.now() - startTime) / 1000);
+        setExecutionModeLabel(`Processing... ${elapsed}s`);
+      }, 500);
+      try {
+        setExecutionModeLabel('Connecting DeepSeek...');
+        const data = await runtimeApi.runAgent('icoder/medical-coding-agent@1.0.0', text);
+        clearInterval(progressTimer);
+        setRuntimeResult(data);
+        setResult(data);
+        const elapsed = data.processing_time_ms || (Date.now() - startTime);
+        setExecutionModeLabel(`Done (${Math.round(elapsed / 1000)}s)`);
+        if (data.processing_time_ms) {
+          addCost((data.processing_time_ms / 1000) * 0.02);
+        }
+      } catch (err: any) {
+        clearInterval(progressTimer);
+        const msg = err.response?.data?.detail || err.message || 'Runtime 处理失败';
+        setError(msg);
+        setExecutionModeLabel('platform_runtime (failed)');
+        await legacyPredict(text);
+      }
+    } else {
+      // ── Legacy mode ──
+      setExecutionModeLabel('legacy');
+      await legacyPredict(text);
+    }
+
+    setLoading(false);
+    setProcessing(false);
+  };
+
+  const legacyPredict = async (text: string) => {
     try {
       const { data: encounter } = await encountersApi.createFromText({
         raw_text: text, department: '内科', patient_id: '匿名',
@@ -204,15 +275,11 @@ export default function MedicalCodingPage() {
       const { data: review } = await reviewsApi.create(encounter.id);
       setCurrentReview(review);
       setResult(review);
-      // Live cost integration
       if (review.processing_time_ms) {
         addCost((review.processing_time_ms / 1000) * 0.02);
       }
     } catch (err: any) {
       setError(err.response?.data?.detail || '处理失败');
-    } finally {
-      setLoading(false);
-      setProcessing(false);
     }
   };
 
@@ -628,6 +695,34 @@ export default function MedicalCodingPage() {
               {showSampleMenu && <div className="fixed inset-0 z-[5]" onClick={() => setShowSampleMenu(false)} />}
             </div>
 
+            {/* DeepSeek + Runtime Status Bar */}
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
+              {dsStatus && (
+                <>
+                  <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-medium ${
+                    dsStatus.deepseek_configured ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                  }`} title={`Provider: ${dsStatus.provider_mode}, Model: ${dsStatus.model}`}>
+                    {dsStatus.deepseek_configured ? `DeepSeek ${dsStatus.model}` : 'DeepSeek: No API Key'}
+                  </span>
+                  <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${
+                    dsStatus.provider_mode === 'real' ? 'bg-green-100 text-green-700' :
+                    dsStatus.provider_mode === 'mock' ? 'bg-amber-100 text-amber-700' :
+                    'bg-gray-100 text-gray-600'
+                  }`}>
+                    {dsStatus.provider_mode === 'real' ? 'Real' : dsStatus.provider_mode === 'mock' ? 'Mock' : dsStatus.provider_mode}
+                  </span>
+                </>
+              )}
+              {executionModeLabel && (
+                <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${
+                  executionModeLabel.includes('failed') ? 'bg-red-100 text-red-700' :
+                  executionModeLabel.includes('Done') ? 'bg-green-100 text-green-700' :
+                  executionModeLabel.includes('Processing') ? 'bg-blue-100 text-blue-700' :
+                  'bg-gray-100 text-gray-600'}`}>
+                  {executionModeLabel}
+                </span>
+              )}
+            </div>
             <button onClick={handlePredict} disabled={!hasText || loading}
               className="w-full py-3 rounded-xl bg-primary text-white text-[15px] font-medium hover:bg-primary/90 disabled:opacity-20 transition-all flex items-center justify-center gap-2 active:scale-[0.98]">
               {loading ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
@@ -652,6 +747,110 @@ export default function MedicalCodingPage() {
               </div>
             ) : (
               <>
+              {/* ── RuntimeRunResult: Layered Display ── */}
+              {runtimeResult && (
+                <div className="mb-4 space-y-2">
+                  {/* Header */}
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <span className="font-mono text-[10px]">{runtimeResult.run_id?.slice(0,12)}</span>
+                    <span className={`px-1 py-0.5 rounded text-[10px] font-medium ${
+                      runtimeResult.status === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                    }`}>{runtimeResult.status}</span>
+                    <span>{runtimeResult.processing_time_ms}ms</span>
+                  </div>
+
+                  {/* Section 1: Primary Diagnosis */}
+                  <details open className="rounded-lg border border-green-200 bg-green-50/50">
+                    <summary className="px-3 py-2 text-sm font-medium text-green-800 cursor-pointer">
+                      主诊断: {runtimeResult.primary_diagnosis?.code || '—'} — {runtimeResult.primary_diagnosis?.description || '—'}
+                      {runtimeResult.primary_diagnosis?.confidence != null && (
+                        <span className="ml-2 text-xs text-green-600">({(runtimeResult.primary_diagnosis.confidence * 100).toFixed(0)}%)</span>
+                      )}
+                    </summary>
+                    <div className="px-3 pb-2 text-xs text-green-700 space-y-1">
+                      {runtimeResult.primary_diagnosis?.evidence?.length > 0 && (
+                        <div>
+                          <span className="font-medium">证据:</span>
+                          {runtimeResult.primary_diagnosis.evidence.map((e, i) => (
+                            <div key={i} className="pl-2 text-green-600 italic">"{e}"</div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </details>
+
+                  {/* Section 2: Secondary Diagnoses */}
+                  {runtimeResult.secondary_diagnoses?.length > 0 && (
+                    <details className="rounded-lg border border-blue-200 bg-blue-50/50">
+                      <summary className="px-3 py-2 text-sm font-medium text-blue-800 cursor-pointer">
+                        次要诊断 ({runtimeResult.secondary_diagnoses.length})
+                      </summary>
+                      <div className="px-3 pb-2 space-y-1">
+                        {runtimeResult.secondary_diagnoses.map((d, i) => (
+                          <div key={i} className="text-xs text-blue-700">
+                            <span className="font-mono font-medium">{d.code}</span> — {d.description}
+                            {d.confidence != null && <span className="ml-1 text-blue-500">({(d.confidence * 100).toFixed(0)}%)</span>}
+                          </div>
+                        ))}
+                      </div>
+                    </details>
+                  )}
+
+                  {/* Section 3: Procedures */}
+                  {runtimeResult.procedures?.length > 0 && (
+                    <details className="rounded-lg border border-purple-200 bg-purple-50/50">
+                      <summary className="px-3 py-2 text-sm font-medium text-purple-800 cursor-pointer">
+                        手术操作 ({runtimeResult.procedures.length})
+                      </summary>
+                      <div className="px-3 pb-2 space-y-1">
+                        {runtimeResult.procedures.map((p, i) => (
+                          <div key={i} className="text-xs text-purple-700">
+                            <span className="font-mono font-medium">{p.code}</span> — {p.description}
+                            {p.confidence != null && <span className="ml-1 text-purple-500">({(p.confidence * 100).toFixed(0)}%)</span>}
+                          </div>
+                        ))}
+                      </div>
+                    </details>
+                  )}
+
+                  {/* Section 4: Rule Warnings */}
+                  {runtimeResult.issues_found?.length > 0 && (
+                    <details className="rounded-lg border border-amber-200 bg-amber-50/50">
+                      <summary className="px-3 py-2 text-sm font-medium text-amber-800 cursor-pointer">
+                        规则告警 ({runtimeResult.issues_found.length})
+                        {runtimeResult.issues_found.filter((i) => i.severity === 'critical' || i.severity === 'high').length > 0 && (
+                          <span className="ml-2 text-xs text-red-600">
+                            ({runtimeResult.issues_found.filter((i) => i.severity === 'critical' || i.severity === 'high').length} critical/high)
+                          </span>
+                        )}
+                      </summary>
+                      <div className="px-3 pb-2 space-y-1">
+                        {runtimeResult.issues_found.map((issue, i) => (
+                          <div key={i} className={`text-xs border-l-2 pl-2 ${
+                            issue.severity === 'critical' ? 'border-red-400 text-red-700' :
+                            issue.severity === 'high' ? 'border-orange-400 text-orange-700' :
+                            'border-amber-300 text-amber-700'
+                          }`}>
+                            <span className="font-mono text-[10px]">{issue.code}</span>: {issue.message}
+                          </div>
+                        ))}
+                      </div>
+                    </details>
+                  )}
+
+                  {/* Section 5: Quality Flags */}
+                  {(runtimeResult as any).quality_flags && Object.values((runtimeResult as any).quality_flags).some(Boolean) && (
+                    <details className="rounded-lg border border-gray-200 bg-gray-50/50">
+                      <summary className="px-3 py-2 text-xs font-medium text-gray-600 cursor-pointer">Quality Flags</summary>
+                      <div className="px-3 pb-2 flex flex-wrap gap-1">
+                        {Object.entries((runtimeResult as any).quality_flags).filter(([,v]) => v).map(([k]) => (
+                          <span key={k} className="text-[10px] px-1.5 py-0.5 rounded bg-gray-200 text-gray-700">{k}</span>
+                        ))}
+                      </div>
+                    </details>
+                  )}
+                </div>
+              )}
 
                 {/* ---------- Loading / Streaming ---------- */}
                 {loading && (

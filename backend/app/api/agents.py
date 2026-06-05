@@ -437,8 +437,8 @@ async def list_marketplace(
     search: str = "",
     db: AsyncSession = Depends(get_db),
 ):
-    """List published agents in the marketplace."""
-    q = select(Agent).where(Agent.status == "published")
+    """List published agents in the marketplace (status != draft)."""
+    q = select(Agent).where(Agent.status != "draft")
     if category:
         q = q.where(Agent.category == category)
     if search:
@@ -462,7 +462,51 @@ async def run_agent(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Execute an Agent with multi-Expert orchestration."""
+    """Execute an Agent with multi-Expert orchestration.
+
+    Execution path is controlled by runtime.execution_mode:
+    - legacy: uses app.services.agent_runner (old DB-based path)
+    - platform_runtime: uses PlatformRuntime (new registry-based path)
+    - shadow: returns old path result, runs new path in background
+    """
+    # Load runtime config from app state
+    from fastapi import Request
+    try:
+        from app.main import app as _app
+        rt = _app.state.platform_runtime if hasattr(_app.state, "platform_runtime") else None
+        config = _app.state.runtime_config if hasattr(_app.state, "runtime_config") else None
+    except Exception:
+        rt = None
+        config = None
+
+    use_new = config and config.should_use_new_path("execution") if config else False
+    is_shadow = config and config.should_shadow_run("execution") if config else False
+
+    # --- New path: PlatformRuntime ---
+    if (use_new or is_shadow) and rt:
+        # Try to find the agent in the registry by ID or partial match
+        from icoder_runtime.core.registry import get_registry
+        reg = getattr(_app.state, "agent_registry", None) or get_registry()
+        record = reg.find(agent_id)
+
+        if record:
+            try:
+                new_result = await rt.run_agent(record.agent_id, body.input)
+                if use_new:
+                    return new_result
+                # Shadow mode: run new, return old — log diff
+                if is_shadow:
+                    logger.info(f"[SHADOW] PlatformRuntime result: review_id={new_result.get('review_id')}")
+            except Exception as e:
+                logger.warning(f"PlatformRuntime run failed (mode={config.execution_mode}): {e}")
+                if use_new and config.fallback_to_legacy:
+                    logger.info("Falling back to legacy agent_runner...")
+                elif use_new:
+                    raise HTTPException(status_code=500, detail=f"PlatformRuntime error: {e}")
+
+    # --- Legacy path (original) ---
+    # DEPRECATED: this path will be removed when execution_mode defaults to platform_runtime.
+    # See MIGRATION_RUNTIME.md for migration timeline.
     result = await db.execute(select(Agent).where(Agent.id == agent_id))
     agent = result.scalar_one_or_none()
     if not agent:

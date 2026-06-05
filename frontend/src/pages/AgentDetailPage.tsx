@@ -476,6 +476,7 @@ export default function AgentDetailPage() {
       {/* Runtime status bar */}
       <div className="flex items-center gap-4 px-6 py-2 bg-muted/30 border-b text-xs">
         <span className="text-muted-foreground">Runtime:</span>
+        <span className="text-[11px] font-mono text-muted-foreground ml-auto">¥0.000000</span>
         {runtimeInstalled ? (
           <>
             <span className={`px-1.5 py-0.5 rounded-full font-medium ${

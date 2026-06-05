@@ -69,9 +69,31 @@ async def evaluate_agent(
                 run_id = result.get("review_id", "")
                 output = result.get("output", "")
                 try:
-                    parsed = json.loads(output) if isinstance(output, str) and output.strip().startswith("{") else {}
-                    actual_dx = (parsed.get("primary_diagnosis") or {}).get("code", "")
-                    actual_proc = (parsed.get("main_procedure") or parsed.get("primary_procedure", {})).get("code", "")
+                    # Handle markdown-wrapped JSON (```json ... ```)
+                    clean = output.strip()
+                    if clean.startswith("```"):
+                        clean = clean.split("```")[1]
+                        if clean.startswith("json"): clean = clean[4:]
+                        clean = clean.strip()
+                    parsed = json.loads(clean) if clean.startswith("{") else {}
+
+                    # Extract primary diagnosis — handle multiple formats
+                    if "primary_diagnosis" in parsed:
+                        actual_dx = (parsed.get("primary_diagnosis") or {}).get("code", "")
+                    elif "diagnosis_codes" in parsed:
+                        codes = parsed.get("diagnosis_codes", [])
+                        actual_dx = codes[0].get("code", "") if codes else ""
+                    elif "diagnoses" in parsed:
+                        codes = parsed.get("diagnoses", [])
+                        actual_dx = codes[0].get("code", "") if codes else ""
+
+                    # Extract primary procedure
+                    if "procedures" in parsed:
+                        procs = parsed.get("procedures", [])
+                        actual_proc = procs[0].get("code", "") if procs else ""
+                    elif "procedure_codes" in parsed:
+                        procs = parsed.get("procedure_codes", [])
+                        actual_proc = procs[0].get("code", "") if procs else ""
                 except Exception:
                     pass
             except Exception:

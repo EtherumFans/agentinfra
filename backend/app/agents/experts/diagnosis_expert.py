@@ -10,8 +10,8 @@ from app.agents.base import BaseExpert
 from app.services.code_dictionary import code_dict_service
 from app.services.clinical_triage import clinical_triage_service
 
-SYSTEM_PROMPT_NAVIGATOR = """You are an ICD-10 index navigator for Chinese inpatient medical records.
-Your job is to browse the ICD-10 index to find the most specific code for a clinical finding.
+SYSTEM_PROMPT_NAVIGATOR = """你是中国住院病历ICD-10索引导航专家。
+你的任务是通过浏览ICD-10索引为临床发现找到最精准的编码。
 
 Step-by-step navigation:
 1. Look at the index entries provided — they show the hierarchical ICD index structure
@@ -30,8 +30,7 @@ Key principles:
 
 Output valid JSON only."""
 
-SYSTEM_PROMPT_SELECTOR = """You are a coding selector. Given an ICD index navigation result
-with multiple candidate codes at different specificity levels, select the best code.
+SYSTEM_PROMPT_SELECTOR = """你是编码选择专家。根据ICD索引导航返回的多个候选编码（不同精度层级），选择最佳编码。
 
 Rules:
 1. Select the MOST SPECIFIC code that clinical evidence supports

@@ -9,6 +9,9 @@ import {
   Search, Check, Sparkles, BookOpen, Copy, User, Clock,
 } from 'lucide-react';
 import { agentsApi, expertsApi, memoryApi, billingApi, oauthApi } from '../services/api';
+import { runtimeApi } from '../services/runtimeApi';
+import { useToastStore } from '../store';
+import type { RuntimeRunResult } from '../types/runtime';
 import SettingsCodeTab from '../components/common/SettingsCodeTab';
 import ToolSelector from '../components/agents/ToolSelector';
 import CodeSnippet from '../components/common/CodeSnippet';
@@ -25,6 +28,15 @@ export default function AgentDetailPage() {
   const [agent, setAgent] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  // Runtime state
+  const [agentRef, setAgentRef] = useState('');
+  const [runtimeInstalled, setRuntimeInstalled] = useState(false);
+  const [runtimeStatus, setRuntimeStatus] = useState('');
+  const [runtimeTier, setRuntimeTier] = useState<number | null>(null);
+  const [useRuntime, setUseRuntime] = useState(() => localStorage.getItem('icoder-agent-runtime-mode') !== 'legacy');
+  const [installLoading, setInstallLoading] = useState(false);
+  const toast = useToastStore((s) => s.addToast);
 
   // Chat state
   const [chatInput, setChatInput] = useState('');
@@ -124,6 +136,20 @@ export default function AgentDetailPage() {
       const a = r2.data;
       setAgent(a);
       setAgentName(a.name || '');
+      // Check Runtime status for this agent
+      const cleanName = (a.name || 'agent').toLowerCase().replace(/\s+/g, '-').replace(/\(copy\)/g, '').replace(/-+$/g, '');
+      const ref = cleanName + '-' + (a.version || '1.0.0');
+      setAgentRef(ref);
+      runtimeApi.listAgents().then(({ agents: installed }) => {
+        const found = installed.find((inst: { agent_ref: string }) =>
+          inst.agent_ref.includes(cleanName) || inst.agent_ref === ref
+        );
+        if (found) {
+          setRuntimeInstalled(true);
+          setRuntimeStatus(found.status);
+          setRuntimeTier((found as any).tier ?? null);
+        }
+      }).catch(() => {});
       setSystemPrompt(a.system_prompt || '');
       const cfg = a.config || {};
       setRoutingStrategy(cfg.routing_strategy || 'llm_plan');
@@ -412,6 +438,70 @@ export default function AgentDetailPage() {
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
+      {/* Runtime status bar */}
+      <div className="flex items-center gap-4 px-6 py-2 bg-muted/30 border-b text-xs">
+        <span className="text-muted-foreground">Runtime:</span>
+        {runtimeInstalled ? (
+          <>
+            <span className={`px-1.5 py-0.5 rounded-full font-medium ${
+              runtimeStatus === 'enabled' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+            }`}>{runtimeStatus || 'installed'}</span>
+            <span className="text-muted-foreground font-mono text-[11px]">{agentRef}</span>
+            {/* Tier badge */}
+            {runtimeTier != null && (
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-medium ${
+                runtimeTier >= 3 ? 'bg-red-100 text-red-700' :
+                runtimeTier >= 2 ? 'bg-amber-100 text-amber-700' :
+                'bg-green-100 text-green-700'
+              }`} title={`Security Tier ${runtimeTier}: ${
+                runtimeTier === 0 ? 'Pure Prompt' : runtimeTier === 1 ? 'Read-only Tools' :
+                runtimeTier === 2 ? 'Sandbox Code' : runtimeTier === 3 ? 'Network Access' : 'System Write-back'
+              }`}>
+                Tier {runtimeTier}
+                {runtimeTier >= 3 ? ' (Approval Required)' : runtimeTier >= 2 ? ' (Default Disabled)' : ''}
+              </span>
+            )}
+          </>
+        ) : (
+          <button onClick={async () => {
+            setInstallLoading(true);
+            try {
+              const data = await runtimeApi.installAgent(
+                agent.name,
+                agent.version || '1.0.0',
+                agent.is_prebuilt ? 'certified' : 'community'
+              );
+              setAgentRef(data.agent_ref || agentRef);
+              setRuntimeInstalled(true);
+              setRuntimeStatus(data.status || 'enabled');
+              toast('Agent 已安装到 Runtime', 'success');
+            } catch (e: any) {
+              const msg = e?.response?.data?.detail || e?.message || '安装失败';
+              toast(msg, 'error');
+            }
+            finally { setInstallLoading(false); }
+          }}
+            disabled={installLoading}
+            className="px-2 py-0.5 rounded text-[11px] bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
+            {installLoading ? 'Installing...' : 'Install to Runtime'}
+          </button>
+        )}
+        {runtimeInstalled && (
+          <div className="flex gap-1 ml-auto">
+            <button onClick={async () => {
+              try {
+                const newAction = runtimeStatus === 'enabled' ? 'disable' : 'enable';
+                await runtimeApi.agentLifecycle(agentRef, newAction);
+                setRuntimeStatus(runtimeStatus === 'enabled' ? 'disabled' : 'enabled');
+                toast(`Agent ${newAction === 'enable' ? '已启用' : '已禁用'}`, 'success');
+              } catch { toast('操作失败，请检查权限', 'error'); }
+            }}
+              className="px-2 py-0.5 rounded text-[11px] bg-gray-100 hover:bg-gray-200">
+              {runtimeStatus === 'enabled' ? 'Disable' : 'Enable'}
+            </button>
+          </div>
+        )}
+      </div>
       {/* Main: chat (left) + panel (right) */}
       <div className="flex-1 flex min-h-0">
         {/* Left: Chat area — bg-muted/20 with card content */}

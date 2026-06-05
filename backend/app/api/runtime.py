@@ -12,7 +12,10 @@ from app.services.runtime import (
     runtime_registry, CaseState, GateOutcome, DUC_ACTIONS
 )
 
-router = APIRouter(prefix="/api/runtime", tags=["runtime"])
+# *** DEPRECATED prefix: /api/runtime-legacy ***
+# Old DeterministicRuntime endpoints. Preserved for backward compat.
+# New code should use /api/runtime/* (PlatformRuntime) instead.
+router = APIRouter(prefix="/api/runtime-legacy", tags=["runtime-legacy"])
 
 
 class HumanReviewRequest(BaseModel):

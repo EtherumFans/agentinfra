@@ -27,6 +27,71 @@ from app.agents.orchestrator import agent_orchestrator
 from app.services.task_manager import task_manager
 from app.services.runtime import runtime_registry, CaseState, GateOutcome
 
+# ── Feature-flagged routing helper ──
+
+
+def _get_runtime_review_service():
+    """Get ReviewCodingService and runtime config from app state."""
+    from app.services.review_coding_service import ReviewCodingService
+    try:
+        from app.main import app as _app
+        rt = _app.state.platform_runtime if hasattr(_app.state, "platform_runtime") else None
+        config = _app.state.runtime_config if hasattr(_app.state, "runtime_config") else None
+    except Exception:
+        rt = None
+        config = None
+    svc = ReviewCodingService(rt)
+    return svc, config
+
+
+async def _run_review_new_path(encounter_data: dict) -> dict | None:
+    """Run review through ReviewCodingService → PlatformRuntime."""
+    import logging
+    _log = logging.getLogger(__name__)
+    try:
+        svc, _ = _get_runtime_review_service()
+        result = await svc.review(encounter_data)
+        _log.info(f"ReviewCodingService result: review_id={result.get('review_id')}, source={result.get('source')}")
+        return result
+    except Exception as e:
+        _log.warning(f"ReviewCodingService failed: {e}")
+        return None
+
+
+async def _run_review_with_routing(encounter_data: dict, progress_callback=None) -> dict:
+    """Route review to old or new path based on runtime config."""
+    import logging
+    _log = logging.getLogger(__name__)
+    _, config = _get_runtime_review_service()
+
+    use_new = config and config.should_use_new_path("review") if config else False
+    is_shadow = config and config.should_shadow_run("review") if config else False
+
+    # Legacy: always use old path
+    if not use_new and not is_shadow:
+        # DEPRECATED: direct orchestrator call. See MIGRATION_RUNTIME.md.
+        return await agent_orchestrator.run_pipeline(encounter_data, progress_callback=progress_callback)
+
+    # Platform Runtime mode
+    if use_new:
+        new_result = await _run_review_new_path(encounter_data)
+        if new_result:
+            return new_result
+        if config and config.fallback_to_legacy:
+            _log.warning("ReviewCodingService failed, falling back to legacy orchestrator")
+            return await agent_orchestrator.run_pipeline(encounter_data, progress_callback=progress_callback)
+        raise HTTPException(status_code=500, detail="ReviewCodingService failed and fallback disabled")
+
+    # Shadow mode: run old, fire new in background
+    if is_shadow:
+        import asyncio as _asyncio
+        _asyncio.create_task(_run_review_new_path(encounter_data))
+        return await agent_orchestrator.run_pipeline(encounter_data, progress_callback=progress_callback)
+
+    # Shouldn't reach here
+    return await agent_orchestrator.run_pipeline(encounter_data, progress_callback=progress_callback)
+
+
 def _safe_dict(obj, default=None):
     """Return obj if it's a dict, otherwise return default."""
     return obj if isinstance(obj, dict) else (default or {})
@@ -232,7 +297,7 @@ async def create_review(
                 async def _on_progress(pct, step):
                     await task_manager.update_progress(task_id, pct, step)
 
-                pipeline_result = await agent_orchestrator.run_pipeline(
+                pipeline_result = await _run_review_with_routing(
                     encounter_data, progress_callback=_on_progress,
                 )
 
@@ -304,7 +369,7 @@ async def create_review(
         }
 
     # --- Synchronous mode ---
-    pipeline_result = await agent_orchestrator.run_pipeline(encounter_data)
+    pipeline_result = await _run_review_with_routing(encounter_data)
     review_id = pipeline_result["review_id"]
     review = CodingReview(
         organization_id=current_org.id,
@@ -448,7 +513,7 @@ async def create_batch_review(
                 await task_manager.update_progress(tid, 5, "启动批量编码审核")
                 async def _on_progress(pct, step):
                     await task_manager.update_progress(tid, min(95, pct), step)
-                pipeline_result = await agent_orchestrator.run_pipeline(enc_data, progress_callback=_on_progress)
+                pipeline_result = await _run_review_with_routing(enc_data, progress_callback=_on_progress)
                 await task_manager.update_progress(tid, 95, "保存结果")
                 async with async_session_factory() as bg_db:
                     review_id_bg = pipeline_result.get("review_id", tid)

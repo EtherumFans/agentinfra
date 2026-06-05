@@ -1,0 +1,63 @@
+{
+  "format_version": "1.1",
+  "agent_type": "certified",
+  "agent_ref": "icoder/documentation-gap@1.0.0",
+  "manifest": {
+    "name": "文档缺口检测",
+    "version": "1.0.0",
+    "description": "识别缺失或不完整的临床文档，生成补充建议。",
+    "category": "质控",
+    "icon": "FileWarning"
+  },
+  "system_prompt": "你是临床文档完整性审核专家。检查病历文档完整性并按严重程度排列缺口。",
+  "experts": [],
+  "tools": [
+    "check_documentation_gaps",
+    "cdi_review",
+    "generate_cdi_query",
+    "extract_evidence",
+    "guard_input",
+    "guard_output"
+  ],
+  "permissions": {
+    "key": "documentation-gap",
+    "name": "文档缺口检测权限",
+    "description": "识别缺失或不完整的临床文档，生成补充建议。",
+    "tools": {
+      "check_documentation_gaps": {
+        "allowed": true
+      },
+      "cdi_review": {
+        "allowed": true
+      },
+      "generate_cdi_query": {
+        "allowed": true
+      },
+      "extract_evidence": {
+        "allowed": true
+      },
+      "guard_input": {
+        "allowed": true
+      },
+      "guard_output": {
+        "allowed": true
+      }
+    }
+  },
+  "requirements": {
+    "min_runtime_version": "1.0.0"
+  },
+  "llm_capabilities": {
+    "required_models": [
+      {
+        "name": "deepseek-v4"
+      }
+    ],
+    "supports_tool_calling": false,
+    "supports_json_mode": true
+  },
+  "code": {},
+  "integrity": {
+    "sha256": ""
+  }
+}

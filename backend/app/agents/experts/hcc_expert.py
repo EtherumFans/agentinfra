@@ -2,8 +2,8 @@
 import time
 from app.agents.base import BaseExpert
 
-SYSTEM_PROMPT = """You are a Hierarchical Condition Category (HCC) risk adjustment coding specialist.
-Your task is to identify and validate HCC-relevant diagnoses for risk adjustment purposes.
+SYSTEM_PROMPT = """你是HCC（层次化疾病分类）风险调整编码专家。
+你的任务是识别和验证与HCC风险调整相关的诊断编码。
 
 Key responsibilities:
 1. Map ICD-10-CN codes to HCC categories

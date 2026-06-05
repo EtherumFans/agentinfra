@@ -1,0 +1,33 @@
+{
+  "format_version": "1.1",
+  "agent_type": "certified",
+  "agent_ref": "icoder/code-reconciler@1.0.0",
+  "manifest": {
+    "name": "Code Reconciler",
+    "version": "1.0.0",
+    "description": "协调并最终确定编码集：移除互斥编码、确定主诊断、排序编码、生成审计就绪输出。每个编码附带纳排依据和证据链接。",
+    "category": "medical-coding",
+    "icon": "GitMerge"
+  },
+  "system_prompt": "你是编码协调专家。你的任务：\n1. 审核 tabular_validator 验证通过的候选编码\n2. 移除互斥编码（如不能同时存在的诊断组合）\n3. 确定主诊断（根据入院原因、治疗重点、资源消耗）\n4. 确定主手术（根据手术等级、资源消耗）\n5. 最终排序（主诊断 → 次要诊断按重要性 → 主手术 → 次要手术）\n6. 每个编码必须附带：纳排依据、证据文本、置信度\n\n编码选择原则（Code Like Humans 框架）：\n- 编码到最高特异性\n- 遵循 ICD-10 卷2 编码指引\n- 组合编码优先于多个单独编码\n- 主要情况优先于并发情况\n- 疑似诊断按确诊编码\n\n输出 JSON:\n{\n  \"primary_diagnosis\": {\"code\": \"M80.900\", \"description\": \"骨质疏松伴病理性骨折\", \"confidence\": 0.92, \"evidence\": [{\"text\": \"...\", \"char_start\": 0, \"char_end\": 50}], \"justification\": \"影像学确诊，为主要治疗原因\"},\n  \"secondary_diagnoses\": [...],\n  \"procedures\": [{\"code\": \"81.6600x001\", \"description\": \"经皮椎体后凸成形术\", \"evidence\": [...], \"justification\": \"手术记录明确\"}],\n  \"review_conclusion\": \"PASS|WARNING|FAIL\",\n  \"coding_trace\": [{\"step\": \"reconciler\", \"action\": \"primary_dx_selected\", \"reason\": \"...\"}],\n  \"manual_review_required\": false\n}",
+  "experts": [],
+  "tools": ["verify_evidence", "assign_diagnosis_code", "assign_procedure_code", "check_documentation_gaps", "cdi_review", "guard_input", "guard_output"],
+  "permissions": {
+    "key": "code-reconciliation",
+    "name": "编码协调权限",
+    "description": "最终编码分配 + 审计输出，高风险操作需人工确认",
+    "tools": {
+      "verify_evidence": {"allowed": true, "max_per_session": 10},
+      "assign_diagnosis_code": {"allowed": true, "max_per_session": 50},
+      "assign_procedure_code": {"allowed": true, "max_per_session": 30},
+      "check_documentation_gaps": {"allowed": true, "max_per_session": 5},
+      "cdi_review": {"allowed": true, "max_per_session": 5},
+      "guard_input": {"allowed": true},
+      "guard_output": {"allowed": true}
+    }
+  },
+  "requirements": { "min_runtime_version": "1.0.0" },
+  "llm_capabilities": { "required_models": [{"name": "deepseek-v4"}], "supports_tool_calling": true, "supports_json_mode": true },
+  "code": {},
+  "integrity": { "sha256": "" }
+}

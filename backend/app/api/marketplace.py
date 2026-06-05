@@ -26,32 +26,17 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["marketplace"])
 
-# ── Storage (shared with main platform) ──
+# ── Storage (shared with main platform, uses unified MarketplaceService) ──
 _STORE_DIR = Path(__file__).parent.parent.parent / "marketplace_data"
 _STORE_DIR.mkdir(exist_ok=True)
 _PACKAGES_DIR = _STORE_DIR / "packages"
 _PACKAGES_DIR.mkdir(exist_ok=True)
-_INDEX_FILE = _STORE_DIR / "index.json"
 
+from marketplace_core.storage import FileSystemStorage
+from marketplace_core.service import MarketplaceService
 
-def _load_index():
-    if _INDEX_FILE.exists():
-        return json.loads(_INDEX_FILE.read_text(encoding="utf-8"))
-    return {"packages": {}}
-
-
-def _save_index(data):
-    data["updated_at"] = datetime.now(timezone.utc).isoformat()
-    _INDEX_FILE.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
-
-
-def _validate_pack(pack):
-    errors = []
-    if not pack.get("format_version"): errors.append("Missing format_version")
-    m = pack.get("manifest", {})
-    if not m.get("name"): errors.append("Missing manifest.name")
-    if not m.get("version"): errors.append("Missing manifest.version")
-    return errors
+_storage = FileSystemStorage(_STORE_DIR)
+_service = MarketplaceService(_storage)
 
 
 class PublishRequest(BaseModel):
@@ -70,20 +55,7 @@ async def marketplace_frontend():
 
 @router.get("/api/marketplace/packages")
 async def list_packages(search: str = "", category: str = "", sort: str = "newest", limit: int = 50):
-    idx = _load_index()
-    pkgs = list(idx["packages"].values())
-    if search:
-        q = search.lower()
-        pkgs = [p for p in pkgs if q in p["name"].lower() or q in p.get("description", "").lower()]
-    if category:
-        pkgs = [p for p in pkgs if p.get("category") == category]
-    if sort == "downloads":
-        pkgs.sort(key=lambda p: p.get("downloads", 0), reverse=True)
-    elif sort == "name":
-        pkgs.sort(key=lambda p: p["name"])
-    else:
-        pkgs.sort(key=lambda p: p.get("published_at", ""), reverse=True)
-    return {"packages": pkgs[:limit], "total": len(pkgs)}
+    return _service.search(query=search, category=category, sort=sort, limit=limit)
 
 
 @router.post("/api/marketplace/packages", status_code=201)
@@ -93,50 +65,26 @@ async def publish_package(
     db: AsyncSession = Depends(get_db),
 ):
     pack = req.pack
-    errors = _validate_pack(pack)
-    if errors:
-        raise HTTPException(status_code=400, detail={"errors": errors})
-
-    manifest = pack["manifest"]
-    pkg_id = f"{manifest['name'].lower().replace(' ','-')}-{manifest['version']}"
-
-    pkg_dir = _PACKAGES_DIR / pkg_id
-    pkg_dir.mkdir(exist_ok=True)
-    (pkg_dir / "package.json").write_text(json.dumps(pack, ensure_ascii=False, indent=2), encoding="utf-8")
-
-    idx = _load_index()
-    idx["packages"][pkg_id] = {
-        "id": pkg_id, "name": manifest["name"], "version": manifest["version"],
-        "description": manifest.get("description", ""),
-        "category": manifest.get("category", "general"),
-        "icon": manifest.get("icon", "Bot"),
-        "agent_type": pack.get("agent_type", "certified"),
-        "expert_count": len(pack.get("experts", [])),
-        "tool_count": len(pack.get("tools", [])),
-        "publisher_name": req.publisher_name or user.username,
-        "publisher_email": req.publisher_email or user.email,
-        "downloads": 0,
-        "published_at": datetime.now(timezone.utc).isoformat(),
-        "integrity": pack.get("integrity", {}),
-    }
-    _save_index(idx)
-    return {"id": pkg_id, "name": manifest["name"], "published": True}
+    try:
+        result = _service.publish(
+            pack,
+            publisher_name=req.publisher_name or user.username,
+            publisher_email=req.publisher_email or (user.email or ""),
+        )
+        return result
+    except Exception as e:
+        detail = e.detail if hasattr(e, "detail") else {"errors": [str(e)]}
+        raise HTTPException(status_code=400, detail=detail)
 
 
 @router.get("/api/marketplace/packages/categories")
 async def list_categories():
-    idx = _load_index()
-    cats = {}
-    for p in idx["packages"].values():
-        c = p.get("category", "general")
-        cats[c] = cats.get(c, 0) + 1
-    return {"categories": [{"name": k, "count": v} for k, v in sorted(cats.items())]}
+    return _service.list_categories()
 
 
 @router.get("/api/marketplace/packages/{pkg_id}")
 async def get_package(pkg_id: str):
-    idx = _load_index()
-    pkg = idx["packages"].get(pkg_id)
+    pkg = _service.get_package(pkg_id)
     if not pkg:
         raise HTTPException(status_code=404, detail="Package not found")
     return pkg
@@ -144,22 +92,104 @@ async def get_package(pkg_id: str):
 
 @router.get("/api/marketplace/packages/{pkg_id}/download")
 async def download_package(pkg_id: str):
-    pkg_path = _PACKAGES_DIR / pkg_id / "package.json"
-    if not pkg_path.exists():
+    pack = _service.download(pkg_id)
+    if pack is None:
         raise HTTPException(status_code=404, detail="Package file not found")
-    idx = _load_index()
-    if pkg_id in idx["packages"]:
-        idx["packages"][pkg_id]["downloads"] = idx["packages"][pkg_id].get("downloads", 0) + 1
-        _save_index(idx)
-    return FileResponse(pkg_path, media_type="application/json", filename=f"{pkg_id}.icoder-agent")
+    # Write temp file for download
+    # Return download as streaming response to avoid temp file leak
+    from fastapi.responses import StreamingResponse
+    import io
+    content = json.dumps(pack, ensure_ascii=False, indent=2)
+    return StreamingResponse(
+        io.StringIO(content),
+        media_type="application/json",
+        headers={"Content-Disposition": f'attachment; filename="{pkg_id}.icoder-agent"'},
+    )
 
 
 @router.get("/api/marketplace/stats")
 async def marketplace_stats():
-    idx = _load_index()
-    pkgs = idx["packages"].values()
-    return {
-        "total_packages": len(pkgs),
-        "total_downloads": sum(p.get("downloads", 0) for p in pkgs),
-        "categories": len(set(p.get("category") for p in pkgs)),
-    }
+    return _service.get_stats()
+
+
+@router.post("/api/marketplace/packages/{pkg_id}/install")
+async def install_package(
+    pkg_id: str,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Install a marketplace package to the Embedded Runtime.
+
+    Writes to BOTH the RuntimeAgentRegistry (new) AND the DB Agent table (backward compat).
+    The installed agent is immediately runnable via /api/agents/{id}/run.
+    """
+    pkg_path = _PACKAGES_DIR / pkg_id / "package.json"
+    if not pkg_path.exists():
+        raise HTTPException(status_code=404, detail="Package not found")
+
+    try:
+        pack = json.loads(pkg_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="Invalid package file")
+
+    # Get the platform runtime
+    try:
+        from app.main import app as _app
+        rt = _app.state.platform_runtime if hasattr(_app.state, "platform_runtime") else None
+    except Exception:
+        rt = None
+
+    if not rt:
+        raise HTTPException(status_code=503, detail="Platform Runtime not available")
+
+    # Install into RuntimeAgentRegistry (new persistent store)
+    try:
+        result = rt.install_agent(
+            pack,
+            publisher_name=user.username,
+            publisher_email=user.email or "",
+        )
+    except Exception as e:
+        detail = e.detail if hasattr(e, "detail") else {"errors": [str(e)]}
+        raise HTTPException(status_code=400, detail=detail)
+
+    # Also sync to DB Agent table for backward compat with old /api/agents/{id}/run
+    manifest = pack.get("manifest", {})
+    try:
+        db_agent = Agent(
+            id=result["agent_id"],
+            name=manifest.get("name", ""),
+            description=manifest.get("description", ""),
+            category=manifest.get("category", "general"),
+            icon=manifest.get("icon", "Bot"),
+            system_prompt=pack.get("system_prompt", ""),
+            expert_ids=[e.get("id") for e in pack.get("experts", [])],
+            status="published",
+            organization_id=user.organization_id,
+        )
+        db.add(db_agent)
+        await db.commit()
+        logger.info(f"Agent synced to DB: {result['agent_id']}")
+    except Exception as e:
+        logger.warning(f"Failed to sync agent to DB (registry install succeeded): {e}")
+        await db.rollback()
+
+    return result
+
+
+@router.get("/api/marketplace/installed")
+async def list_installed_agents(
+    user: User = Depends(get_current_user),
+):
+    """List agents installed in the Embedded Runtime."""
+    try:
+        from app.main import app as _app
+        rt = _app.state.platform_runtime if hasattr(_app.state, "platform_runtime") else None
+    except Exception:
+        rt = None
+
+    if not rt:
+        return {"agents": [], "total": 0}
+
+    agents = rt.list_agents()
+    return {"agents": agents, "total": len(agents)}

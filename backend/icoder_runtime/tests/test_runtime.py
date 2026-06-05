@@ -8,6 +8,8 @@ from icoder_runtime.contract_engine import SymbolicState, ContractViolation
 from icoder_runtime.permissions import PermissionPolicy, PermissionOutcome, ToolPermission
 from icoder_runtime.tool_registry import ToolRegistry
 from icoder_runtime.evidence_pack import build_evidence_pack
+from icoder_runtime.core.llm_gateway import LLMGateway, MockLLMProvider
+from icoder_runtime.core.errors import LLMProviderNotConfigured
 from icoder_runtime import __version__
 
 
@@ -150,13 +152,26 @@ class TestToolRegistry:
 
 
 class TestAgentRunner:
-    def test_run_without_llm(self):
+    @staticmethod
+    def _gateway():
+        g = LLMGateway()
+        g.register(MockLLMProvider(), default=True)
+        return g
+
+    def test_run_with_mock_provider(self):
         agent = AgentDefinition(id="test", name="Test Agent", system_prompt="You are a tester.")
-        runner = AgentRunner()
+        runner = AgentRunner(gateway=self._gateway())
         result = asyncio.run(runner.run(agent, "test input"))
         assert "review_id" in result
         assert result["agent_name"] == "Test Agent"
         assert result["processing_time_ms"] >= 0
+        assert result["output"]  # mock provider returns content
+
+    def test_run_without_llm_throws(self):
+        agent = AgentDefinition(id="test", name="Test Agent", system_prompt="You are a tester.")
+        runner = AgentRunner()
+        with pytest.raises(LLMProviderNotConfigured):
+            asyncio.run(runner.run(agent, "test input"))
 
     def test_run_with_experts(self):
         agent = AgentDefinition(
@@ -165,14 +180,14 @@ class TestAgentRunner:
             expert_ids=["e1"],
         )
         exp = ExpertDefinition(id="e1", name="E1", description="Test")
-        runner = AgentRunner()
+        runner = AgentRunner(gateway=self._gateway())
         runner.register_expert(exp)
         result = asyncio.run(runner.run(agent, "test"))
         assert "review_id" in result
 
     def test_run_audit_chain(self):
         agent = AgentDefinition(id="test", name="Test")
-        runner = AgentRunner()
+        runner = AgentRunner(gateway=self._gateway())
         result = asyncio.run(runner.run(agent, "test"))
         state_log = result["state_log"]
         assert state_log["chain_valid"] is True
@@ -185,7 +200,7 @@ class TestAgentRunner:
         policy = PermissionPolicy(permissions={
             "e1": ToolPermission("e1", allowed=False),
         })
-        runner = AgentRunner()
+        runner = AgentRunner(gateway=self._gateway())
         runner.register_expert(exp)
         result = asyncio.run(runner.run(agent, "test", permission_policy=policy))
         assert result["state_log"]["chain_valid"] is True

@@ -1,0 +1,59 @@
+{
+  "format_version": "1.1",
+  "agent_type": "certified",
+  "agent_ref": "icoder/procedure-extractor@1.0.0",
+  "manifest": {
+    "name": "手术提取",
+    "version": "1.0.0",
+    "description": "从手术记录中提取手术操作并分配 ICD-9-CM-3 编码。",
+    "category": "编码",
+    "icon": "Scalpel"
+  },
+  "system_prompt": "你是手术编码专家。从手术记录中提取所有手术/操作并按 ICD-9-CM-3 分配编码。",
+  "experts": [],
+  "tools": [
+    "extract_evidence",
+    "search_icd9_index",
+    "assign_procedure_code",
+    "guard_input",
+    "guard_output"
+  ],
+  "permissions": {
+    "key": "procedure-extractor",
+    "name": "手术提取权限",
+    "description": "从手术记录中提取手术操作并分配 ICD-9-CM-3 编码。",
+    "tools": {
+      "extract_evidence": {
+        "allowed": true
+      },
+      "search_icd9_index": {
+        "allowed": true
+      },
+      "assign_procedure_code": {
+        "allowed": true
+      },
+      "guard_input": {
+        "allowed": true
+      },
+      "guard_output": {
+        "allowed": true
+      }
+    }
+  },
+  "requirements": {
+    "min_runtime_version": "1.0.0"
+  },
+  "llm_capabilities": {
+    "required_models": [
+      {
+        "name": "deepseek-v4"
+      }
+    ],
+    "supports_tool_calling": false,
+    "supports_json_mode": true
+  },
+  "code": {},
+  "integrity": {
+    "sha256": ""
+  }
+}

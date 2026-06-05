@@ -46,7 +46,7 @@ api.interceptors.response.use(
         }
       }
     }
-    // Global error toast for non-401 errors
+    // Global error toast — map to readable Chinese
     if (error.response) {
       const status = error.response.status;
       const detail = (error.response.data as any)?.detail;
@@ -55,9 +55,14 @@ api.interceptors.response.use(
       } else if (status === 429) {
         toast('请求过于频繁，请稍后重试', 'warning');
       } else if (status === 404) {
-        // 404 is often expected (e.g. search with no results), skip toast
-      } else if (status === 400 && !detail) {
-        toast('请求参数错误', 'warning');
+        // 404 is often expected, skip toast
+      } else if (status === 403) {
+        toast('权限不足，请联系管理员', 'error');
+      } else if (status === 400) {
+        // Map structured errors to readable Chinese
+        const msg = typeof detail === 'string' ? detail :
+          (Array.isArray((detail as any)?.errors) ? (detail as any).errors.join('; ') : '');
+        toast(msg || '请求参数错误', 'warning');
       } else if (status === 0 || error.code === 'ECONNABORTED') {
         toast('网络连接超时，请检查网络后重试', 'error');
       } else if (!error.response && error.request) {
@@ -83,6 +88,8 @@ export const authApi = {
     api.post('/auth/forgot-password', { email }),
   changePassword: (currentPassword: string, newPassword: string) =>
     api.post('/auth/change-password', { current_password: currentPassword, new_password: newPassword }),
+  resetPassword: (token: string, newPassword: string) =>
+    api.post('/auth/reset-password', { token, new_password: newPassword }),
 };
 
 // Organizations
@@ -270,6 +277,8 @@ export const agentsApi = {
   unpublish: (id: string) => api.post(`/agents/${id}/unpublish`),
   version: (id: string) => api.post(`/agents/${id}/version`),
   marketplace: (category = '', search = '') => api.get<{ agents: any[] }>('/agents/marketplace/list', { params: { category, search } }),
+  clone: (id: string, name?: string, description?: string) =>
+    api.post(`/agents/${id}/clone`, { name, description }),
 };
 
 // A2A Protocol

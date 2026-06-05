@@ -3,8 +3,8 @@ import time
 import json
 from app.agents.base import BaseExpert
 
-SYSTEM_PROMPT = """You are an expert clinical evidence extraction system for Chinese inpatient medical records.
-Your task is to extract structured clinical facts from medical record text.
+SYSTEM_PROMPT = """你是中国住院病历临床证据提取专家。
+你的任务是从病历文本中提取结构化临床事实。
 
 Extract the following entities:
 1. **chief_complaint**: 主诉 (main reason for admission)

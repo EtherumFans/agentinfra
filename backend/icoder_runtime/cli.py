@@ -67,6 +67,19 @@ def main():
     p_dash = sub.add_parser("dashboard", help="Start local Web UI")
     p_dash.add_argument("--port", type=int, default=8766)
 
+    # install
+    p_install = sub.add_parser("install", help="Install a .icoder-agent file into local runtime")
+    p_install.add_argument("file", help="Path to .icoder-agent file")
+
+    # list
+    p_list = sub.add_parser("list", help="List installed agents")
+    p_list.add_argument("--type", dest="agent_type", default="", help="Filter by agent_type")
+
+    # run
+    p_run = sub.add_parser("run", help="Run an installed agent")
+    p_run.add_argument("agent_id", help="Agent ID or name")
+    p_run.add_argument("--input", "-i", default="", help="Input text for the agent")
+
     args = parser.parse_args()
 
     if args.command == "init":
@@ -75,6 +88,12 @@ def main():
         cmd_test(args.path)
     elif args.command == "pack":
         cmd_pack(args.path, args.output)
+    elif args.command == "install":
+        cmd_install(args.file)
+    elif args.command == "list":
+        cmd_list(args.agent_type)
+    elif args.command == "run":
+        cmd_run(args.agent_id, args.input)
     elif args.command == "serve":
         from .serve import main as serve_main
         sys.argv = ["icoder-runtime", "--port", str(args.port), "--host", args.host]
@@ -255,6 +274,114 @@ def _read_file(path: Path) -> str:
     if path.exists():
         return path.read_text(encoding="utf-8").strip()
     return ""
+
+
+def cmd_install(file_path: str):
+    """Install a .icoder-agent file into the local runtime."""
+    from .core.agent_pack_v1 import AgentPackageV1
+    from .core.llm_gateway import LLMGateway, MockLLMProvider
+    from .embedded.platform_runtime import PlatformRuntime
+
+    path = Path(file_path).resolve()
+    if not path.exists():
+        print(f"Error: File not found: {file_path}")
+        sys.exit(1)
+
+    try:
+        pack = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as e:
+        print(f"Error: Invalid JSON in {file_path}: {e}")
+        sys.exit(1)
+
+    # Validate
+    try:
+        pkg = AgentPackageV1.from_dict(pack)
+    except Exception as e:
+        detail = e.detail if hasattr(e, "detail") else {"errors": [str(e)]}
+        print(f"Validation failed: {detail}")
+        sys.exit(1)
+
+    # Install via PlatformRuntime
+    gateway = LLMGateway()
+    gateway.register(MockLLMProvider(), default=True)
+    rt = PlatformRuntime(gateway=gateway)
+
+    import asyncio as _asyncio
+    _asyncio.run(rt.start())
+
+    try:
+        result = rt.install_agent(pack)
+        print(f"Installed: {result['name']} v{result['version']}")
+        print(f"  ID: {result['agent_id']}")
+    except Exception as e:
+        print(f"Install failed: {e}")
+        sys.exit(1)
+
+
+def cmd_list(agent_type: str = ""):
+    """List agents installed in the local runtime."""
+    from .core.llm_gateway import LLMGateway, MockLLMProvider
+    from .embedded.platform_runtime import PlatformRuntime
+
+    gateway = LLMGateway()
+    gateway.register(MockLLMProvider(), default=True)
+    rt = PlatformRuntime(gateway=gateway)
+
+    import asyncio as _asyncio
+    _asyncio.run(rt.start())
+
+    agents = rt.list_agents(agent_type=agent_type)
+    if not agents:
+        print("No agents installed.")
+        return
+
+    print(f"{'ID':<40} {'Name':<30} {'Version':<10} {'Type':<12}")
+    print("-" * 92)
+    for a in agents:
+        print(f"{a['id']:<40} {a['name']:<30} {a.get('version',''):<10} {a.get('agent_type',''):<12}")
+
+
+def cmd_run(agent_id: str, user_input: str = ""):
+    """Run an installed agent."""
+    from .core.llm_gateway import LLMGateway, MockLLMProvider
+    from .embedded.platform_runtime import PlatformRuntime
+
+    gateway = LLMGateway()
+    gateway.register(MockLLMProvider(), default=True)
+    rt = PlatformRuntime(gateway=gateway)
+
+    import asyncio as _asyncio
+    _asyncio.run(rt.start())
+
+    # Find agent by id or partial name match
+    agents = rt.list_agents()
+    matched = None
+    for a in agents:
+        if a["id"] == agent_id or agent_id in a["id"] or agent_id.lower() in a["name"].lower():
+            matched = a
+            break
+
+    if not matched:
+        print(f"Error: Agent '{agent_id}' not found. Use 'icoder-runtime list' to see installed agents.")
+        sys.exit(1)
+
+    if not user_input:
+        user_input = "患者女性，65岁。胸痛3小时入院。心电图示ST段抬高。诊断为急性前壁心肌梗死。"
+
+    print(f"Running: {matched['name']} ({matched['id']})")
+    print(f"Input: {user_input[:80]}...")
+    print()
+
+    try:
+        result = _asyncio.run(rt.run_agent(matched["id"], user_input))
+        print(f"Review ID: {result.get('review_id', 'N/A')}")
+        print(f"Processing: {result.get('processing_time_ms', 0)}ms")
+        output = result.get("output", "")
+        if output:
+            print(f"\nOutput:\n{output[:500]}")
+    except Exception as e:
+        print(f"Run failed: {e}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":

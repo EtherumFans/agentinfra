@@ -26,6 +26,8 @@ import TicketsPage from './pages/TicketsPage';
 import NewAgentPage from './pages/NewAgentPage';
 import DocsPage from './pages/DocsPage';
 import ReleaseNotesPage from './pages/ReleaseNotesPage';
+import RuntimeConsolePage from './pages/RuntimeConsolePage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 import ToastContainer from './components/common/Toast';
 
 
@@ -62,6 +64,7 @@ function App() {
         <Route path="ai-studio/embedded-assistant" element={<EmbeddedAssistantPage />} />
         <Route path="ai-studio/fact-extraction" element={<FactExtractionPage />} />
         <Route path="ai-studio/medical-coding" element={<MedicalCodingPage />} />
+        <Route path="ai-studio/runtime" element={<RuntimeConsolePage />} />
         {/* Manage */}
         <Route path="api-clients" element={<APIClientsPage />} />
         <Route path="team" element={<TeamPage />} />
@@ -77,6 +80,7 @@ function App() {
         <Route path="support" element={<SupportPage />} />
         <Route path="tickets" element={<TicketsPage />} />
       </Route>
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
     </>

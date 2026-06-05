@@ -2,8 +2,8 @@
 import time
 from app.agents.base import BaseExpert
 
-SYSTEM_PROMPT = """You are a Clinical Documentation Improvement (CDI) specialist for Chinese inpatient medical records.
-Your task is to review clinical documentation and suggest improvements for more specific coding.
+SYSTEM_PROMPT = """你是中国住院病历临床文书改进（CDI）专家。
+你的任务是审查临床文书并提出改进建议，以实现更精准的编码。
 
 For each documentation gap found:
 1. Identify the specific missing information

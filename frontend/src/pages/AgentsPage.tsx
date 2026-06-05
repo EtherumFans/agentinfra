@@ -5,33 +5,12 @@ import { useT, useLocaleStore } from '../i18n';
 import {
   Bot, Search, BookOpen, Plus, Clock, User, ChevronRight,
   ChevronDown, Loader2, X, Sparkles,
-  Copy, Check, Wrench, Trash2, Send,
+  Copy, Check, Wrench, Trash2, Send, Globe, Share2, Rocket,
 } from 'lucide-react';
 import { billingApi, expertsApi, agentsApi, oauthApi } from '../services/api';
-
-// Fallback prebuilt agents — used only when API is unavailable
-const PREBUILT_AGENTS: { key: string; name: string; desc: string; useCase: string }[] = [
-  { key: 'icd10-navigator', name: 'ICD-10 索引导航', desc: '从临床术语遍历ICD-10字母索引，为编码员审核提供候选编码', useCase: '编码' },
-  { key: 'rule-explainer', name: '规则解释', desc: '解释特定ICD-10-CN、ICD-9-CM-3或医保编码被选中的原因及编码规则依据', useCase: '编码' },
-  { key: 'compliance-guardrail', name: '合规护栏', desc: '在提交医保结算清单前，按配置的医保或医院规则集评估编码集的合规性', useCase: '医保' },
-  { key: 'code-validation', name: '编码校验', desc: '按官方编码规则验证编码集，发现错误、冲突和合规风险', useCase: '编码' },
-  { key: 'procedure-extractor', name: '手术提取', desc: '从手术记录中提取手术操作并分配ICD-9-CM-3编码', useCase: '编码' },
-  { key: 'diagnosis-extractor', name: '诊断提取', desc: '从病历中提取诊断并分配ICD-10-CN编码', useCase: '编码' },
-  { key: 'surgical-registry', name: '外科质控登记', desc: '从手术记录/日志自动提取数据填入外科质量登记数据库', useCase: '质控' },
-  { key: 'icu-summary', name: 'ICU入院摘要', desc: '综合EHR数据自动生成ICU入院结构化临床摘要', useCase: '文书' },
-  { key: 'triage', name: '急诊分诊', desc: '使用验证过的风险评分和循证紧急度分级，辅助急诊分诊决策', useCase: '急诊' },
-  { key: 'note-completeness', name: '病历完整性', desc: '实时检查病历完整性、准确性和合规性', useCase: '质控' },
-  { key: 'med-reconciliation', name: '用药重整', desc: '入院/转科/出院环节提供准确的用药重整', useCase: '药学' },
-  { key: 'denial-appeals', name: '拒付申诉', desc: '生成有循证依据的申诉回复', useCase: '医保' },
-  { key: 'discharge-edu', name: '出院宣教', desc: '生成个性化的清晰出院指导', useCase: '护理' },
-  { key: 'nursing-handoff', name: '护理交班', desc: '结构化护理交班报告', useCase: '护理' },
-  { key: 'prior-auth', name: '预授权', desc: '自动生成符合指南的预授权文件', useCase: '医保' },
-  { key: 'referral-gen', name: '转诊生成', desc: '生成结构化转诊信', useCase: '文书' },
-  { key: 'clinical-edu', name: '临床教育', desc: '为医护人员提供循证医学教育支持', useCase: '教育' },
-  { key: 'clinical-guidelines', name: '临床指南', desc: '检索最新临床指南和诊疗路径', useCase: '教育' },
-  { key: 'cdi', name: '临床文书改进', desc: '审查临床文书质量，识别缺口', useCase: '质控' },
-  { key: 'medical-coding', name: '医学编码', desc: '将临床文本转化为ICD-10-CN/ICD-9-CM-3编码', useCase: '编码' },
-];
+import { runtimeApi } from '../services/runtimeApi';
+import { useToastStore } from '../store';
+import type { InstalledAgent, MarketplacePackage } from '../types/runtime';
 
 const USE_CASE_KEYS = ['全部', '编码', '医保', '质控', '文书', '急诊', '护理', '药学'];
 const USE_CASES = USE_CASE_KEYS;
@@ -46,6 +25,7 @@ export default function AgentsPage() {
   const t = useT();
   const locale = useLocaleStore((s) => s.locale);
   const navigate = useNavigate();
+  const toast = useToastStore((s) => s.addToast);
   const [activeTab, setActiveTab] = useState<TabType>('my');
   const [searchQuery, setSearchQuery] = useState('');
   const [useCase, setUseCase] = useState('全部');
@@ -66,9 +46,11 @@ export default function AgentsPage() {
   const [newAgentExperts, setNewAgentExperts] = useState<any[]>([]);
   const [generatingPrompt, setGeneratingPrompt] = useState(false);
   const [showClonePicker, setShowClonePicker] = useState(false);
-  // Agents from API (backend Agent entities)
-  const [apiAgents, setApiAgents] = useState<any[]>([]);
-  const [agentsLoading, setAgentsLoading] = useState(true);
+  // Agents from new Runtime API (per tab)
+  const [myAgents, setMyAgents] = useState<InstalledAgent[]>([]);
+  const [certifiedAgents, setCertifiedAgents] = useState<InstalledAgent[]>([]);
+  const [myAgentsLoading, setMyAgentsLoading] = useState(true);
+  const [certifiedLoading, setCertifiedLoading] = useState(true);
   // Agent templates (from backend)
   const [agentTemplates, setAgentTemplates] = useState<any[]>([]);
   const [showTemplatePicker, setShowTemplatePicker] = useState(false);
@@ -79,24 +61,19 @@ export default function AgentsPage() {
   const [selectedApiClient, setSelectedApiClient] = useState<string>('');
   // Delete confirmation modal state
   const [deleteConfirmAgent, setDeleteConfirmAgent] = useState<any>(null);
+  // DB agents (for clone picker and create flow only)
+  const [dbAgents, setDbAgents] = useState<any[]>([]);
 
   useEffect(() => {
     billingApi.balance().then(r => setBalance(r.data.balance)).catch(() => {});
-    // Fetch ALL experts and build name→id lookup for agent routing
+    // Fetch ALL experts for name→id lookup
     expertsApi.list('', '', 'all').then(r => {
       const experts = r.data?.experts || [];
       const nameMap: Record<string, string> = {};
       for (const e of experts) nameMap[e.name] = e.id;
       setExpertNameToId(nameMap);
     }).catch(() => {});
-    // Fetch agents from backend API
-    agentsApi.list('', '', 'all').then(r => {
-      setApiAgents(r.data?.agents || []);
-    }).catch(() => {
-      // Fallback: use static data if API unavailable (backward compat)
-      setApiAgents([]);
-    }).finally(() => setAgentsLoading(false));
-    // Fetch OAuth clients for API Client selector
+    // Fetch OAuth clients
     oauthApi.list().then(r => {
       const clients = r.data?.clients || [];
       setApiClients(clients);
@@ -106,55 +83,88 @@ export default function AgentsPage() {
     agentsApi.templates().then(r => {
       setAgentTemplates(r.data?.templates || []);
     }).catch(() => {});
+    // Fetch DB agents for clone picker
+    agentsApi.list('', '', 'all').then(r => {
+      setDbAgents(r.data?.agents || []);
+    }).catch(() => setDbAgents([]));
   }, []);
+
+  // ── Tab data loading ──
+  const loadMyAgents = () => {
+    setMyAgentsLoading(true);
+    runtimeApi.listAgents('community')
+      .then(data => setMyAgents(data.agents || []))
+      .catch(() => setMyAgents([]))
+      .finally(() => setMyAgentsLoading(false));
+  };
+  const loadCertifiedAgents = () => {
+    setCertifiedLoading(true);
+    runtimeApi.listAgents('certified')
+      .then(data => setCertifiedAgents(data.agents || []))
+      .catch(() => setCertifiedAgents([]))
+      .finally(() => setCertifiedLoading(false));
+  };
+  useEffect(() => { if (activeTab === 'my') loadMyAgents(); }, [activeTab]);
+  useEffect(() => { if (activeTab === 'prebuilt') loadCertifiedAgents(); }, [activeTab]);
 
   // Load memory context when entering agent detail chat — moved to AgentDetailPage
 
-  // Unique creators for filter dropdown (computed from base agents for the active tab)
+  // Unique creators for filter dropdown (from community agents)
   const uniqueCreators = [...new Set(
-    (activeTab === 'my'
-      ? apiAgents.filter((a: any) => !a.is_prebuilt)
-      : []
-    ).map((a: any) => a.createdBy || a.created_by || '').filter(Boolean)
+    myAgents.map(a => a.publisher_name || '').filter(Boolean)
   )];
 
-  // 筛选Agent — 优先使用 API 数据，fallback 到静态数组
-  const filteredAgents = (() => {
-    const baseAgents = activeTab === 'my'
-      ? (apiAgents.length > 0 ? apiAgents.filter(a => !a.is_prebuilt) : [])
-      : (apiAgents.length > 0 ? apiAgents.filter(a => a.is_prebuilt) : PREBUILT_AGENTS);
-    return baseAgents.filter(a => {
-      const matchSearch = !searchQuery || a.name.includes(searchQuery) || (a.desc || a.description || '').includes(searchQuery);
-      const matchUseCase = useCase === '全部' || (a as any).useCase === useCase || (a as any).category === useCase;
-      const matchCreator = !createdByFilter || (a.createdBy || a.created_by || '') === createdByFilter;
-      return matchSearch && matchUseCase && matchCreator;
-    });
-  })();
+  // Filtered agents for each tab
+  const filteredMyAgents = myAgents.filter(a => {
+    const matchSearch = !searchQuery || a.name.includes(searchQuery) || a.description.includes(searchQuery);
+    const matchCreator = !createdByFilter || (a.publisher_name || '') === createdByFilter;
+    return matchSearch && matchCreator;
+  });
+  const filteredCertifiedAgents = certifiedAgents.filter(a => {
+    const matchSearch = !searchQuery || a.name.includes(searchQuery) || a.description.includes(searchQuery);
+    const matchUseCase = useCase === '全部' || a.category === useCase;
+    return matchSearch && matchUseCase;
+  });
 
   // Marketplace agents
-  const [marketAgents, setMarketAgents] = useState<any[]>([]);
+  const [marketAgents, setMarketAgents] = useState<MarketplacePackage[]>([]);
   const [marketLoading, setMarketLoading] = useState(false);
   const [marketCategory, setMarketCategory] = useState('');
   const [marketSearch, setMarketSearch] = useState('');
-  const [publishEnv, setPublishEnv] = useState('prod');
   const loadMarketplace = () => {
     setMarketLoading(true);
-    agentsApi.marketplace(marketCategory, marketSearch).then(r => setMarketAgents(r.data.agents || [])).catch(() => {}).finally(() => setMarketLoading(false));
+    runtimeApi.listMarketplacePackages(marketSearch, marketCategory)
+      .then(data => setMarketAgents(data.packages || []))
+      .catch(() => setMarketAgents([]))
+      .finally(() => setMarketLoading(false));
   };
   useEffect(() => { if (activeTab === 'marketplace') loadMarketplace(); }, [activeTab, marketCategory, marketSearch]);
 
-  // Publish / Version handlers
+  // Publish / Version handlers (refresh DB + Runtime)
+  const refreshAll = () => {
+    agentsApi.list('', '', 'all').then(r => setDbAgents(r.data.agents || [])).catch(() => {});
+    loadMyAgents();
+  };
   const handlePublish = async (agentId: string, env = 'prod') => {
-    await agentsApi.publish(agentId, env);
-    agentsApi.list().then(r => setApiAgents(r.data.agents || [])).catch(() => {});
+    try {
+      await agentsApi.publish(agentId, env);
+      refreshAll();
+      toast('发布成功', 'success');
+    } catch { toast('发布失败', 'error'); }
   };
   const handleUnpublish = async (agentId: string) => {
-    await agentsApi.unpublish(agentId);
-    agentsApi.list().then(r => setApiAgents(r.data.agents || [])).catch(() => {});
+    try {
+      await agentsApi.unpublish(agentId);
+      refreshAll();
+      toast('已撤回发布', 'success');
+    } catch { toast('撤回失败', 'error'); }
   };
   const handleBumpVersion = async (agentId: string) => {
-    await agentsApi.version(agentId);
-    agentsApi.list().then(r => setApiAgents(r.data.agents || [])).catch(() => {});
+    try {
+      await agentsApi.version(agentId);
+      refreshAll();
+      toast('版本号已更新', 'success');
+    } catch { toast('版本更新失败', 'error'); }
   };
 
   // Normalize agent display data (works with both API and static objects)
@@ -173,22 +183,15 @@ export default function AgentsPage() {
 
   // Agent detail view moved to AgentDetailPage (/ai-studio/agents/:agentId)
 
-  // Clone from existing agent
-  const cloneAgent = (agent: any) => {
-    setNewAgentName(agent.name + ' (副本)');
-    setNewAgentDesc(agent.desc || agent.description || '');
-    setNewAgentPrompt(agent.system_prompt || '');
-    setNewAgentCategory(agent.useCase || agent.category || '编码');
-    if (agent.expert_ids?.length) {
-      // Resolve expert names from IDs for display
-      const bound: any[] = [];
-      for (const eid of agent.expert_ids) {
-        const name = Object.entries(expertNameToId).find(([, id]) => id === eid)?.[0] || eid;
-        bound.push({ id: eid, name, icon: 'Bot' });
-      }
-      setNewAgentExperts(bound);
-    }
+  // Clone from existing agent — uses backend POST /api/agents/{id}/clone
+  const cloneAgent = async (agent: any) => {
     setShowClonePicker(false);
+    try {
+      const res = await agentsApi.clone(agent.id || agent.key, agent.name + ' (副本)');
+      const cloned = res.data;
+      toast('已克隆为草稿', 'success');
+      navigate('/ai-studio/agents/' + (cloned.id || cloned.agent_id));
+    } catch { toast('克隆失败', 'error'); }
   };
 
   // AI-assisted system prompt generation
@@ -237,12 +240,11 @@ export default function AgentsPage() {
       setShowNewAgentModal(false);
       setNewAgentName(''); setNewAgentDesc(''); setNewAgentPrompt(''); setNewAgentExperts([]);
       // Refresh and switch to My Agents tab
-      const r = await agentsApi.list('', '', 'all');
-      setApiAgents(r.data?.agents || []);
+      agentsApi.list('', '', 'all').then(r => setDbAgents(r.data?.agents || [])).catch(() => {});
+      loadMyAgents();
       setActiveTab('my');
       // Navigate to the newly created agent
-      const created = r.data?.agents?.find((a: any) => a.id === res.data?.id);
-      if (created) navigate('/ai-studio/agents/' + created.id);
+      navigate('/ai-studio/agents/' + res.data?.id);
     } catch { /* silently fail */ }
     setCreatingAgent(false);
   };
@@ -355,9 +357,12 @@ export default function AgentsPage() {
 
       {/* Agent列表 */}
       <div className="px-6 pb-6">
-        {activeTab === 'my' ? (
-          // My Agents
-          filteredAgents.length === 0 ? (
+
+        {/* Tab: 我的智能体 — Runtime community agents */}
+        {activeTab === 'my' && (
+          myAgentsLoading ? (
+            <div className="text-center py-12"><Loader2 className="animate-spin h-6 w-6 mx-auto text-muted-foreground" /></div>
+          ) : filteredMyAgents.length === 0 ? (
             <div className="flex items-center justify-between px-6 py-8 rounded-xl bg-background shadow-sm ring-1 ring-border/20">
               <div>
                 <p className="text-sm font-medium text-foreground">{t.noMyAgents}</p>
@@ -373,101 +378,96 @@ export default function AgentsPage() {
               </div>
             </div>
           ) : (
-            filteredAgents.map(agent => {
-              const d = agentDisplay(agent);
-              return (
-              <div
-                key={d.key}
-                className="flex items-center gap-4 w-full px-4 py-3 border-b border-border hover:bg-accent transition-colors group cursor-pointer"
-                onClick={() => navigate('/ai-studio/agents/' + (agent.id || agent.key))}
-              >
+            filteredMyAgents.map(agent => (
+              <div key={agent.agent_ref} className="flex items-center gap-4 w-full px-4 py-3 border-b border-border hover:bg-accent transition-colors group">
                 <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
                   <Bot size={16} className="text-primary" />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground">{d.name}</p>
-                  <p className="text-xs text-muted-foreground truncate">{d.desc}</p>
+                <div className="flex-1 min-w-0 cursor-pointer" onClick={() => navigate('/ai-studio/agents/' + agent.agent_ref)}>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">{agent.name}</p>
+                    <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${
+                      agent.status === 'enabled' ? 'bg-green-100 text-green-700' :
+                      agent.status === 'disabled' ? 'bg-red-100 text-red-700' :
+                      'bg-muted text-muted-foreground'
+                    }`}>{agent.status}</span>
+                    <span className="text-[10px] font-mono text-muted-foreground">v{agent.version}</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground truncate">{agent.description}</p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-medium ${
+                      agent.tier >= 3 ? 'bg-red-100 text-red-700' :
+                      agent.tier >= 2 ? 'bg-amber-100 text-amber-700' :
+                      'bg-green-100 text-green-700'
+                    }`}>T{agent.tier}</span>
+                    {agent.expert_count > 0 && <span className="text-[9px] text-muted-foreground">{agent.expert_count} experts</span>}
+                    {agent.tool_count > 0 && <span className="text-[9px] text-muted-foreground">{agent.tool_count} tools</span>}
+                    <span className="text-[9px] text-muted-foreground">{agent.agent_type}</span>
+                  </div>
                 </div>
-                <div className="text-xs text-muted-foreground text-right shrink-0">
-                  {agent.version && <div className="text-[10px] font-mono">v{agent.version}</div>}
-                  {agent.status && (
-                    <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${agent.status === 'prod' ? 'bg-secondary/10 text-secondary' : agent.status === 'staging' ? 'bg-yellow-100 text-yellow-700' : agent.status === 'dev' ? 'bg-blue-100 text-blue-700' : 'bg-muted text-muted-foreground'}`}>
-                      {agent.status === 'prod' ? 'prod' : agent.status === 'staging' ? 'staging' : agent.status === 'dev' ? 'dev' : '草稿'}
-                    </span>
+                <div className="flex items-center gap-1 shrink-0">
+                  {agent.status === 'disabled' || agent.status === 'installed' ? (
+                    <button onClick={async (e) => { e.stopPropagation(); await runtimeApi.agentLifecycle(agent.agent_ref, 'enable'); loadMyAgents(); toast('已启用', 'success'); }}
+                      className="px-2 py-1 rounded text-[11px] bg-green-100 text-green-700 hover:bg-green-200">启用</button>
+                  ) : (
+                    <button onClick={async (e) => { e.stopPropagation(); await runtimeApi.agentLifecycle(agent.agent_ref, 'disable'); loadMyAgents(); toast('已禁用', 'success'); }}
+                      className="px-2 py-1 rounded text-[11px] bg-amber-50 text-amber-700 hover:bg-amber-100">禁用</button>
                   )}
-                  {d.createdAt && <div className="flex items-center gap-1 justify-end"><Clock size={10} /> {d.createdAt}</div>}
-                  {d.createdBy && <div className="flex items-center gap-1 justify-end mt-0.5"><User size={10} /> {d.createdBy}</div>}
-                </div>
-                <div className="flex items-center gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-all">
-                  {!agent.is_prebuilt && agent.status === 'draft' && (
-                    <>
-                      <select onClick={(e) => e.stopPropagation()} onChange={(e) => setPublishEnv(e.target.value)} value={publishEnv} className="text-[9px] border border-border rounded px-1 py-0.5 bg-card" title="发布环境">
-                        <option value="dev">dev</option><option value="staging">staging</option><option value="prod">prod</option>
-                      </select>
-                      <button onClick={(e) => { e.stopPropagation(); handlePublish(agent.id, publishEnv); }} className="p-1 rounded text-secondary hover:bg-secondary/10" title="发布"><Send size={12} /></button>
-                    </>
-                  )}
-                  {!agent.is_prebuilt && agent.status !== 'draft' && agent.status !== '' && (
-                    <button onClick={(e) => { e.stopPropagation(); handleUnpublish(agent.id); }} className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-accent" title="撤回">{agent.status === 'prod' ? '🔴' : agent.status === 'staging' ? '🟡' : '🔵'}</button>
-                  )}
-                  {!agent.is_prebuilt && (
-                    <button onClick={(e) => { e.stopPropagation(); handleBumpVersion(agent.id); }} className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-accent" title="版本+1"><Plus size={12} /></button>
-                  )}
-                  <button onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(window.location.origin + '/ai-studio/agents/' + agent.id); }} className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-accent" title="复制分享链接">📋</button>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); setDeleteConfirmAgent(agent); }}
-                    className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent"
-                    title="删除"
-                  ><Trash2 size={14} /></button>
+                  <button onClick={async (e) => { e.stopPropagation(); if (!confirm('确定要卸载吗？')) return;
+                    try { await runtimeApi.agentLifecycle(agent.agent_ref, 'uninstall'); loadMyAgents(); toast('已卸载', 'success'); } catch { toast('卸载失败', 'error'); }
+                  }} className="px-2 py-1 rounded text-[11px] bg-red-50 text-red-600 hover:bg-red-100"><Trash2 size={11} />卸载</button>
                 </div>
               </div>
-            )})
+            ))
           )
-        ) : (
-          // Prebuilt Agents — 网格布局
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3">
-            {filteredAgents.map(agent => {
-              const d = agentDisplay(agent);
-              return (
-              <div
-                key={d.key}
-                className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-4 hover:ring-primary/30 hover:shadow-md transition-all cursor-pointer group"
-                onClick={() => navigate('/ai-studio/agents/' + (agent.id || agent.key))}
-              >
+        )}
+
+        {/* Tab: 预置AI智能体 — Runtime certified agents */}
+        {activeTab === 'prebuilt' && (
+          certifiedLoading ? (
+            <div className="text-center py-12"><Loader2 className="animate-spin h-6 w-6 mx-auto text-muted-foreground" /></div>
+          ) : filteredCertifiedAgents.length === 0 ? (
+            <div className="text-center py-16 bg-background rounded-xl shadow-sm ring-1 ring-border/20">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-muted flex items-center justify-center">
+                <Search size={32} className="text-muted-foreground" />
+              </div>
+              <h3 className="text-base font-semibold text-foreground mb-2">{t.noMatchingAgents}</h3>
+              <p className="text-sm text-muted-foreground mb-4">{t.noMatchingAgentsHint}</p>
+              <button onClick={() => { setSearchQuery(''); setUseCase('全部'); }} className="px-4 py-2 rounded-lg border border-border text-sm text-foreground hover:bg-accent transition-colors">{t.clearFilter}</button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3">
+              {filteredCertifiedAgents.map(agent => (
+              <div key={agent.agent_ref} className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-4 hover:ring-primary/30 hover:shadow-md transition-all cursor-pointer group"
+                onClick={() => navigate('/ai-studio/agents/' + agent.agent_ref)}>
                 <div className="flex items-start gap-3">
                   <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
                     <Bot size={15} className="text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">
-                      {d.name}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed line-clamp-2">
-                      {d.desc}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">{agent.name}</p>
+                      <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${agent.status === 'enabled' ? 'bg-green-100 text-green-700' : 'bg-muted text-muted-foreground'}`}>{agent.status}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed line-clamp-2">{agent.description}</p>
                     <div className="flex items-center gap-2 mt-2">
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
-                        {d.useCase}
-                      </span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{agent.category}</span>
+                      <span className={`text-[9px] px-1 py-0.5 rounded-full font-medium ${agent.tier >= 3 ? 'bg-red-100 text-red-700' : agent.tier >= 2 ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>T{agent.tier}</span>
+                      <span className="text-[10px] font-mono text-muted-foreground">v{agent.version}</span>
+                    </div>
+                    <div className="flex items-center gap-2 mt-1">
+                      {agent.expert_count > 0 && <span className="text-[9px] text-muted-foreground">{agent.expert_count} experts</span>}
+                      {agent.tool_count > 0 && <span className="text-[9px] text-muted-foreground">{agent.tool_count} tools</span>}
                     </div>
                   </div>
                 </div>
               </div>
-            )})}
-          </div>
-        )}
-
-        {activeTab === 'prebuilt' && filteredAgents.length === 0 && (
-          <div className="text-center py-16 bg-background rounded-xl shadow-sm ring-1 ring-border/20">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-muted flex items-center justify-center">
-              <Search size={32} className="text-muted-foreground" />
+              ))}
             </div>
-            <h3 className="text-base font-semibold text-foreground mb-2">{t.noMatchingAgents}</h3>
-            <p className="text-sm text-muted-foreground mb-4">{t.noMatchingAgentsHint}</p>
-            <button onClick={() => { setSearchQuery(''); setUseCase('全部'); }} className="px-4 py-2 rounded-lg border border-border text-sm text-foreground hover:bg-accent transition-colors">{t.clearFilter}</button>
-          </div>
+          )
         )}
 
+        {/* Tab: Agent市场 — Marketplace packages */}
         {activeTab === 'marketplace' && (
           <div>
             <div className="flex items-center gap-2 mb-3">
@@ -486,45 +486,43 @@ export default function AgentsPage() {
               <div className="text-center py-12"><Loader2 className="animate-spin h-6 w-6 mx-auto text-muted-foreground" /></div>
             ) : marketAgents.length === 0 ? (
               <div className="text-center py-16 bg-background rounded-xl shadow-sm ring-1 ring-border/20">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-muted flex items-center justify-center">
-                  <Search size={32} className="text-muted-foreground" />
-                </div>
+                <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-muted flex items-center justify-center"><Search size={32} className="text-muted-foreground" /></div>
                 <h3 className="text-base font-semibold text-foreground mb-2">暂无已发布的 Agent</h3>
                 <p className="text-sm text-muted-foreground mb-4">发布你的 Agent 后，它将出现在市场中供其他用户发现和使用</p>
                 <button onClick={() => setActiveTab('my')} className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm hover:bg-primary/90">去发布我的 Agent</button>
               </div>
             ) : (
               <div className="space-y-1">
-                {marketAgents.map((agent: any) => {
-                  const d = agentDisplay(agent);
-                  return (
-                    <div key={agent.id} className="flex items-center gap-4 w-full px-4 py-3 border-b border-border hover:bg-accent transition-colors cursor-pointer rounded-lg bg-card" onClick={() => navigate('/ai-studio/agents/' + agent.id)}>
-                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                        <Bot size={16} className="text-primary" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <p className="text-sm font-medium text-foreground">{d.name}</p>
-                          <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${agent.status === 'prod' ? 'bg-secondary/10 text-secondary' : agent.status === 'staging' ? 'bg-yellow-100 text-yellow-700' : 'bg-blue-100 text-blue-700'}`}>
-                            {agent.status === 'prod' ? 'prod' : agent.status === 'staging' ? 'staging' : agent.status === 'dev' ? 'dev' : '已发布'}
-                          </span>
-                          <span className="text-[10px] font-mono text-muted-foreground">v{agent.version || '1.0.0'}</span>
-                        </div>
-                        <p className="text-xs text-muted-foreground truncate">{d.desc}</p>
-                      </div>
-                      <div className="text-xs text-muted-foreground text-right shrink-0">
-                        <div className="flex items-center gap-1 justify-end"><User size={10} /> {d.createdBy || 'admin'}</div>
-                        <div className="flex items-center gap-1 justify-end mt-0.5">
-                          <span>📊 {(agent.usage_count || 0)}次使用</span>
-                        </div>
-                      </div>
+                {marketAgents.map((pkg) => (
+                <div key={pkg.id} className="flex items-center gap-4 w-full px-4 py-3 border-b border-border hover:bg-accent transition-colors rounded-lg bg-card">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0"><Bot size={16} className="text-primary" /></div>
+                  <div className="flex-1 min-w-0 cursor-pointer" onClick={() => navigate('/ai-studio/agents/' + pkg.id)}>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-medium text-foreground">{pkg.name}</p>
+                      <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-secondary/10 text-secondary">{pkg.agent_type}</span>
+                      <span className="text-[10px] font-mono text-muted-foreground">v{pkg.version}</span>
                     </div>
-                  );
-                })}
+                    <p className="text-xs text-muted-foreground truncate">{pkg.description}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{pkg.category}</span>
+                      {pkg.expert_count > 0 && <span className="text-[9px] text-muted-foreground">{pkg.expert_count} experts</span>}
+                      {pkg.tool_count > 0 && <span className="text-[9px] text-muted-foreground">{pkg.tool_count} tools</span>}
+                    </div>
+                  </div>
+                  <div className="text-xs text-muted-foreground text-right shrink-0">
+                    <div className="flex items-center gap-1 justify-end"><User size={10} /> {pkg.publisher_name || 'iCoDer'}</div>
+                    <div className="flex items-center gap-1 justify-end mt-0.5"><span>📊 {(pkg.downloads || 0)}次下载</span></div>
+                  </div>
+                  <button onClick={async (e) => { e.stopPropagation();
+                    try { await runtimeApi.installMarketplacePackage(pkg.id); runtimeApi.listAgents().catch(() => {}); loadMyAgents(); toast('已安装', 'success'); } catch { toast('安装失败', 'error'); }
+                  }} className="px-2 py-1 rounded text-[10px] bg-green-100 text-green-700 hover:bg-green-200 shrink-0">Install</button>
+                </div>
+                ))}
               </div>
             )}
           </div>
         )}
+
       </div>
 
       {/* New Agent Creation Panel (slide-over, iCoDer-style) */}
@@ -566,7 +564,7 @@ export default function AgentsPage() {
                   <div className="border-t border-border px-4 py-3 bg-muted/30 max-h-56 overflow-y-auto space-y-2">
                     <p className="text-[10px] text-muted-foreground">{t.cloneHint}</p>
                     <div className="grid gap-1.5">
-                      {apiAgents.filter(a => a.is_prebuilt).slice(0, 8).map(agent => (
+                      {dbAgents.filter(a => a.is_prebuilt).slice(0, 8).map(agent => (
                         <button
                           key={agent.id}
                           onClick={() => cloneAgent(agent)}
@@ -582,7 +580,7 @@ export default function AgentsPage() {
                           <span className="text-[10px] text-primary opacity-0 group-hover:opacity-100 transition-opacity shrink-0">{t.cloneAction}</span>
                         </button>
                       ))}
-                      {(!apiAgents || apiAgents.filter(a => a.is_prebuilt).length === 0) && (
+                      {(!dbAgents || dbAgents.filter(a => a.is_prebuilt).length === 0) && (
                         <p className="text-[10px] text-muted-foreground text-center py-2">{t.noTemplatesAvailable}</p>
                       )}
                     </div>
@@ -812,7 +810,8 @@ export default function AgentsPage() {
                 onClick={async () => {
                   try {
                     await agentsApi.delete(deleteConfirmAgent.id || deleteConfirmAgent.key);
-                    setApiAgents(prev => prev.filter(a => (a.id || a.key) !== (deleteConfirmAgent.id || deleteConfirmAgent.key)));
+                    setDbAgents(prev => prev.filter(a => (a.id || a.key) !== (deleteConfirmAgent.id || deleteConfirmAgent.key)));
+                    loadMyAgents();
                     setDeleteConfirmAgent(null);
                   } catch { /* silently fail */ }
                 }}

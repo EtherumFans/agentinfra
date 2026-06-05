@@ -111,7 +111,7 @@ async def generate_text(
     if system_prompt:
         system_msg = system_prompt + "\nRespond in Chinese medical language."
     else:
-        system_msg = SYSTEM_PROMPT_GENERATOR if style == "system_prompt" else "You are a medical documentation assistant. Generate professional clinical text."
+        system_msg = SYSTEM_PROMPT_GENERATOR if style == "system_prompt" else "你是医学文书助手。请生成专业的临床文本。"
 
     messages = [
         {"role": "system", "content": system_msg},

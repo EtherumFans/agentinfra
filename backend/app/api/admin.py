@@ -220,15 +220,13 @@ async def admin_runtime_dashboard(
 async def admin_runtime_status(
     admin: User = Depends(get_admin_user),
 ):
-    """Get Runtime status for the platform."""
-    import json
-    from pathlib import Path
-    agents_file = Path.home() / ".icoder" / "agents.json"
-    runs_file = Path.home() / ".icoder" / "runs.json"
-
-    agents = json.loads(agents_file.read_text(encoding="utf-8")) if agents_file.exists() else {}
-    runs = json.loads(runs_file.read_text(encoding="utf-8")) if runs_file.exists() else {}
-    return {
-        "agents_loaded": len(agents),
-        "runs_recorded": len(runs),
-    }
+    """Get Embedded Runtime status for the platform."""
+    from fastapi import Request
+    # Access the platform runtime from app state
+    from app.main import app as _app
+    rt = _app.state.platform_runtime if hasattr(_app.state, "platform_runtime") else None
+    if rt:
+        status = rt.status()
+        status["agents"] = rt.list_agents()
+        return status
+    return {"started": False, "error": "PlatformRuntime not initialized"}

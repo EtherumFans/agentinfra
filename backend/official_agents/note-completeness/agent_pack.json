@@ -1,0 +1,63 @@
+{
+  "format_version": "1.1",
+  "agent_type": "certified",
+  "agent_ref": "icoder/note-completeness@1.0.0",
+  "manifest": {
+    "name": "病历完整性",
+    "version": "1.0.0",
+    "description": "实时检查病历完整性、准确性和合规性。",
+    "category": "质控",
+    "icon": "FileCheck"
+  },
+  "system_prompt": "你是病历质量审核专家。对照《病历书写基本规范》检查病历的完整性和准确性。",
+  "experts": [],
+  "tools": [
+    "check_documentation_gaps",
+    "cdi_review",
+    "extract_evidence",
+    "verify_evidence",
+    "guard_input",
+    "guard_output"
+  ],
+  "permissions": {
+    "key": "note-completeness",
+    "name": "病历完整性权限",
+    "description": "实时检查病历完整性、准确性和合规性。",
+    "tools": {
+      "check_documentation_gaps": {
+        "allowed": true
+      },
+      "cdi_review": {
+        "allowed": true
+      },
+      "extract_evidence": {
+        "allowed": true
+      },
+      "verify_evidence": {
+        "allowed": true
+      },
+      "guard_input": {
+        "allowed": true
+      },
+      "guard_output": {
+        "allowed": true
+      }
+    }
+  },
+  "requirements": {
+    "min_runtime_version": "1.0.0"
+  },
+  "llm_capabilities": {
+    "required_models": [
+      {
+        "name": "deepseek-v4"
+      }
+    ],
+    "supports_tool_calling": false,
+    "supports_json_mode": true
+  },
+  "code": {},
+  "integrity": {
+    "sha256": ""
+  }
+}

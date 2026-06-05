@@ -308,7 +308,6 @@ class TestHomepageExpertFullRun:
         assert reasoning["confidence_level"] in ("high", "medium")
 
     @pytest.mark.asyncio
-    @pytest.mark.xfail(reason="LLM response varies between runs — DeepSeek may not always emit R001")
     async def test_no_chemo_context_r001_only(self):
         """Without chemo context, score-based ranking with R001 only."""
         expert = MedicalRecordHomepageExpert()

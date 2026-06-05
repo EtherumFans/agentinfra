@@ -1,0 +1,59 @@
+{
+  "format_version": "1.1",
+  "agent_type": "certified",
+  "agent_ref": "icoder/code-validation@1.0.0",
+  "manifest": {
+    "name": "编码校验",
+    "version": "1.0.0",
+    "description": "按官方编码规则验证编码集，发现错误、冲突和合规风险。纯确定性规则引擎。",
+    "category": "编码",
+    "icon": "CheckCircle"
+  },
+  "system_prompt": "你是编码校验引擎。使用确定性规则引擎验证编码集的格式、完整性和合规性。",
+  "experts": [],
+  "tools": [
+    "rank_evidence",
+    "calibrate_confidence",
+    "analyze_disagreements",
+    "guard_input",
+    "guard_output"
+  ],
+  "permissions": {
+    "key": "code-validation",
+    "name": "编码校验权限",
+    "description": "按官方编码规则验证编码集，发现错误、冲突和合规风险。纯确定性规则引擎。",
+    "tools": {
+      "rank_evidence": {
+        "allowed": true
+      },
+      "calibrate_confidence": {
+        "allowed": true
+      },
+      "analyze_disagreements": {
+        "allowed": true
+      },
+      "guard_input": {
+        "allowed": true
+      },
+      "guard_output": {
+        "allowed": true
+      }
+    }
+  },
+  "requirements": {
+    "min_runtime_version": "1.0.0"
+  },
+  "llm_capabilities": {
+    "required_models": [
+      {
+        "name": "deepseek-v4"
+      }
+    ],
+    "supports_tool_calling": false,
+    "supports_json_mode": true
+  },
+  "code": {},
+  "integrity": {
+    "sha256": ""
+  }
+}

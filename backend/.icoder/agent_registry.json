@@ -1,0 +1,79 @@
+{
+  "schema_version": "1.0",
+  "updated_at": "2026-06-04T14:21:36.509865+00:00",
+  "agents": {
+    "medical-coding-agent-1.0.0": {
+      "agent_id": "medical-coding-agent-1.0.0",
+      "name": "Medical Coding Agent",
+      "version": "1.0.0",
+      "description": "iCoDer 官方医学编码审核 Agent。基于病历文本生成 ICD-10 诊断编码和 ICD-9-CM-3 手术操作编码建议，提供证据引用和合规风险提示。",
+      "category": "medical-coding",
+      "icon": "Stethoscope",
+      "agent_type": "certified",
+      "system_prompt": "你是中国医院病案编码审核助手。你必须基于病历证据生成候选编码，不得编造证据。输出 JSON 格式的编码建议，包含诊断编码、手术操作编码、证据引用和置信度。",
+      "expert_ids": [],
+      "experts": [],
+      "tools": [],
+      "permissions": {
+        "key": "medical-coding-default",
+        "name": "医学编码默认权限",
+        "description": "允许编码查询、规则校验，禁止修改编码",
+        "tools": {}
+      },
+      "publisher_name": "iCoDer",
+      "publisher_email": "hello@icoder.ai",
+      "min_runtime_version": "1.0.0",
+      "llm_capabilities": {
+        "required_models": [
+          {
+            "name": "deepseek-v4"
+          }
+        ],
+        "supports_tool_calling": false,
+        "supports_json_mode": true
+      },
+      "integrity": {
+        "sha256": "23d850b821199755b1cab8cfe56d3c422c7b3799500ec0958279105a6d4ccce1"
+      },
+      "pack_data": {
+        "format_version": "1.1",
+        "agent_type": "certified",
+        "agent_ref": "icoder/medical-coding-agent@1.0.0",
+        "manifest": {
+          "name": "Medical Coding Agent",
+          "version": "1.0.0",
+          "description": "iCoDer 官方医学编码审核 Agent。基于病历文本生成 ICD-10 诊断编码和 ICD-9-CM-3 手术操作编码建议，提供证据引用和合规风险提示。",
+          "category": "medical-coding",
+          "icon": "Stethoscope"
+        },
+        "system_prompt": "你是中国医院病案编码审核助手。你必须基于病历证据生成候选编码，不得编造证据。输出 JSON 格式的编码建议，包含诊断编码、手术操作编码、证据引用和置信度。",
+        "experts": [],
+        "tools": [],
+        "permissions": {
+          "key": "medical-coding-default",
+          "name": "医学编码默认权限",
+          "description": "允许编码查询、规则校验，禁止修改编码",
+          "tools": {}
+        },
+        "requirements": {
+          "min_runtime_version": "1.0.0"
+        },
+        "llm_capabilities": {
+          "required_models": [
+            {
+              "name": "deepseek-v4"
+            }
+          ],
+          "supports_tool_calling": false,
+          "supports_json_mode": true
+        },
+        "code": {},
+        "integrity": {
+          "sha256": "23d850b821199755b1cab8cfe56d3c422c7b3799500ec0958279105a6d4ccce1"
+        }
+      },
+      "status": "installed",
+      "installed_at": "2026-06-04T14:21:36.509865+00:00"
+    }
+  }
+}

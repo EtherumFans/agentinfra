@@ -45,7 +45,6 @@ async def test_demo_cases_available(auth_client: AsyncClient):
 
 
 @pytest.mark.asyncio
-@pytest.mark.xfail(reason="LLM response varies between runs")
 async def test_gold_cases_api_accessible(auth_client: AsyncClient):
     """Gold cases API is reachable."""
     resp = await auth_client.get("/api/gold-cases?page=1&page_size=20")
@@ -104,12 +103,11 @@ async def test_evaluation_metrics_run(auth_client: AsyncClient):
     if resp.status_code == 200:
         data = resp.json()
         # Metric fields
-        for key in ("primary_diag_accuracy", "main_proc_accuracy",
-                     "evidence_completeness_avg", "hallucination_rate",
-                     "missing_code_recall", "avg_overall_score",
-                     "total_cases", "per_case_results"):
+        for key in ("primary_dx_match_rate", "total_cases",
+                     "per_case", "per_category", "elapsed_seconds",
+                     "execution_mode"):
             assert key in data, f"Missing metric field: {key}"
-        assert isinstance(data["per_case_results"], list)
+        assert isinstance(data["per_case"], list)
     elif resp.status_code == 500:
         # May fail if no LLM — acceptable for smoke test
         pass

@@ -10,8 +10,8 @@ from app.agents.base import BaseExpert
 from app.services.code_dictionary import code_dict_service
 from app.services.clinical_triage import clinical_triage_service
 
-SYSTEM_PROMPT_NAVIGATOR = """You are an ICD-9-CM-3 procedure code navigator for Chinese inpatient records.
-Your job is to browse the ICD-9-CM-3 index to find the most specific procedure code.
+SYSTEM_PROMPT_NAVIGATOR = """你是中国住院病历ICD-9-CM-3手术操作编码导航专家。
+你的任务是通过浏览ICD-9-CM-3索引为手术操作找到最精准的编码。
 
 Navigation steps:
 1. Identify the main procedure term from the clinical description
@@ -29,8 +29,7 @@ Key ICD-9-CM-3 principles:
 
 Output valid JSON only."""
 
-SYSTEM_PROMPT_SELECTOR = """You are a procedure code selector. Given ICD-9-CM-3 index navigation
-results, select the best code for the procedure described.
+SYSTEM_PROMPT_SELECTOR = """你是手术编码选择专家。根据ICD-9-CM-3索引导航结果，为描述的手术操作选择最佳编码。
 
 Rules:
 1. Match the approach first (endoscopic=54.21 vs open=54.11 for laparoscopy/laparotomy)

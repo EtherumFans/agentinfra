@@ -47,12 +47,11 @@ export default function EvaluationPage() {
   };
 
   const metrics = result ? [
-    { label: t.primaryDiagAccuracy, value: `${(result.primary_diag_accuracy * 100).toFixed(1)}%`, target: '≥75%', icon: Target, color: result.primary_diag_accuracy >= 0.75 ? 'text-secondary' : 'text-destructive' },
-    { label: t.mainProcAccuracy, value: `${(result.main_proc_accuracy * 100).toFixed(1)}%`, target: '≥80%', icon: Crosshair, color: result.main_proc_accuracy >= 0.80 ? 'text-secondary' : 'text-destructive' },
-    { label: t.evidenceCompleteness, value: `${(result.evidence_completeness_avg * 100).toFixed(1)}%`, target: '≥90%', icon: Eye, color: result.evidence_completeness_avg >= 0.90 ? 'text-secondary' : 'text-destructive' },
-    { label: t.hallucinationRate, value: `${(result.hallucination_rate * 100).toFixed(1)}%`, target: '≤5%', icon: AlertTriangle, color: result.hallucination_rate <= 0.05 ? 'text-secondary' : 'text-destructive' },
-    { label: t.missingCodeRecall, value: `${(result.missing_code_recall * 100).toFixed(1)}%`, target: '≥70%', icon: Brain, color: result.missing_code_recall >= 0.70 ? 'text-secondary' : 'text-destructive' },
-    { label: t.overallScore, value: `${(result.avg_overall_score * 100).toFixed(1)}%`, target: '≥70%', icon: BarChart3, color: result.avg_overall_score >= 0.70 ? 'text-secondary' : 'text-destructive' },
+    { label: '主诊断匹配率', value: `${(result.primary_dx_match_rate * 100).toFixed(1)}%`, target: '≥75%', icon: Target, color: result.primary_dx_match_rate >= 0.75 ? 'text-secondary' : 'text-destructive' },
+    { label: '正确数', value: `${result.correct} / ${result.total_cases}`, target: `≥${Math.ceil(result.total_cases * 0.75)}`, icon: CheckCircle, color: result.correct >= result.total_cases * 0.75 ? 'text-secondary' : 'text-destructive' },
+    { label: '耗时', value: `${result.elapsed_seconds.toFixed(1)}s`, target: '≤30s', icon: Play, color: result.elapsed_seconds <= 30 ? 'text-secondary' : 'text-destructive' },
+    { label: '执行模式', value: result.execution_mode, target: 'platform_runtime', icon: BarChart3, color: result.execution_mode === 'platform_runtime' ? 'text-secondary' : 'text-destructive' },
+    { label: '分类数', value: `${Object.keys(result.per_category || {}).length}`, target: '≥3', icon: Brain, color: Object.keys(result.per_category || {}).length >= 3 ? 'text-secondary' : 'text-destructive' },
   ] : [];
 
   const getCompareResult = (id: string) => evalHistory.find(r => r.id === id)?.result;
@@ -132,18 +131,24 @@ export default function EvaluationPage() {
           {resultA && resultB && (
             <div className="bg-card rounded-xl shadow-sm ring-1 ring-border/20 p-4">
               <h4 className="text-sm font-semibold mb-2">对比分析</h4>
-              <div className="grid grid-cols-6 gap-2 text-center text-xs">
-                {['primary_diag_accuracy','main_proc_accuracy','evidence_completeness_avg','hallucination_rate','missing_code_recall','avg_overall_score'].map(key => {
+              <div className="grid grid-cols-4 gap-2 text-center text-xs">
+                {[
+                  { key: 'primary_dx_match_rate', label: '主诊断匹配率' },
+                  { key: 'correct', label: '正确数' },
+                  { key: 'elapsed_seconds', label: '耗时(s)' },
+                  { key: 'total_cases', label: '案例数' },
+                ].map(({ key, label }) => {
                   const va = (resultA as any)[key] || 0;
                   const vb = (resultB as any)[key] || 0;
-                  const diff = vb - va;
+                  const diff = typeof va === 'number' ? vb - va : 0;
                   const better = diff > 0.01 ? 'B' : diff < -0.01 ? 'A' : '—';
                   const betterColor = better === 'A' ? 'text-blue-500' : better === 'B' ? 'text-secondary' : 'text-muted-foreground';
+                  const fmt = (v: any) => typeof v === 'number' ? (v < 1 ? `${(v*100).toFixed(0)}%` : String(v)) : String(v);
                   return (
                     <div key={key} className="bg-muted/50 rounded-lg p-2">
-                      <p className="text-[10px] text-muted-foreground mb-0.5">{key.replace(/_/g,' ')}</p>
-                      <p className="font-mono"><span>{(va*100).toFixed(0)}%</span> <span className="text-muted-foreground">→</span> <span>{(vb*100).toFixed(0)}%</span></p>
-                      <p className={`font-medium text-[10px] ${betterColor}`}>{better !== '—' ? `${better} 更优 (${(Math.abs(diff)*100).toFixed(1)}%)` : '持平'}</p>
+                      <p className="text-[10px] text-muted-foreground mb-0.5">{label}</p>
+                      <p className="font-mono"><span>{fmt(va)}</span> <span className="text-muted-foreground">→</span> <span>{fmt(vb)}</span></p>
+                      <p className={`font-medium text-[10px] ${betterColor}`}>{better !== '—' ? `${better} 更优` : '持平'}</p>
                     </div>
                   );
                 })}
@@ -162,7 +167,7 @@ export default function EvaluationPage() {
                 <h4 className="text-xs font-semibold mb-2">综合评分趋势</h4>
                 <div className="h-16 flex items-end gap-0.5">
                   {evalHistory.slice().reverse().map((r, i) => (
-                    <div key={r.id} className="flex-1 bg-primary/30 hover:bg-primary/50 rounded-t transition-colors" style={{ height: `${r.result.avg_overall_score * 100}%` }} title={`${(r.result.avg_overall_score*100).toFixed(0)}% — ${new Date(r.timestamp).toLocaleDateString()}`} />
+                    <div key={r.id} className="flex-1 bg-primary/30 hover:bg-primary/50 rounded-t transition-colors" style={{ height: `${r.result.primary_dx_match_rate * 100}%` }} title={`${(r.result.primary_dx_match_rate*100).toFixed(0)}% — ${new Date(r.timestamp).toLocaleDateString()}`} />
                   ))}
                 </div>
                 <div className="flex justify-between mt-1 text-[9px] text-muted-foreground">
@@ -174,7 +179,7 @@ export default function EvaluationPage() {
                 <div key={r.id} className="bg-card rounded-lg shadow-sm ring-1 ring-border/20 p-3 flex items-center justify-between">
                   <div>
                     <p className="text-xs font-medium text-foreground">{new Date(r.timestamp).toLocaleString()}</p>
-                    <p className="text-[10px] text-muted-foreground">{r.label} · 综合 {(r.result.avg_overall_score*100).toFixed(0)}% · 诊断准确率 {(r.result.primary_diag_accuracy*100).toFixed(0)}%</p>
+                    <p className="text-[10px] text-muted-foreground">{r.label} · 匹配率 {(r.result.primary_dx_match_rate*100).toFixed(0)}% · {r.result.correct}/{r.result.total_cases} 正确</p>
                   </div>
                   <button onClick={() => setEvalHistory(prev => prev.filter(h => h.id !== r.id))} className="p-1 text-muted-foreground hover:text-destructive transition-colors"><Trash2 size={12} /></button>
                 </div>
@@ -199,19 +204,17 @@ function EmptyState({ icon: Icon, text, hint }: { icon: any; text: string; hint:
 
 function getMetricsForResult(result: EvaluationSummary, t: any) {
   return [
-    { label: t.primaryDiagAccuracy, value: `${(result.primary_diag_accuracy * 100).toFixed(1)}%`, target: '≥75%', icon: Target, color: result.primary_diag_accuracy >= 0.75 ? 'text-secondary' : 'text-destructive' },
-    { label: t.mainProcAccuracy, value: `${(result.main_proc_accuracy * 100).toFixed(1)}%`, target: '≥80%', icon: Crosshair, color: result.main_proc_accuracy >= 0.80 ? 'text-secondary' : 'text-destructive' },
-    { label: t.evidenceCompleteness, value: `${(result.evidence_completeness_avg * 100).toFixed(1)}%`, target: '≥90%', icon: Eye, color: result.evidence_completeness_avg >= 0.90 ? 'text-secondary' : 'text-destructive' },
-    { label: t.hallucinationRate, value: `${(result.hallucination_rate * 100).toFixed(1)}%`, target: '≤5%', icon: AlertTriangle, color: result.hallucination_rate <= 0.05 ? 'text-secondary' : 'text-destructive' },
-    { label: t.missingCodeRecall, value: `${(result.missing_code_recall * 100).toFixed(1)}%`, target: '≥70%', icon: Brain, color: result.missing_code_recall >= 0.70 ? 'text-secondary' : 'text-destructive' },
-    { label: t.overallScore, value: `${(result.avg_overall_score * 100).toFixed(1)}%`, target: '≥70%', icon: BarChart3, color: result.avg_overall_score >= 0.70 ? 'text-secondary' : 'text-destructive' },
+    { label: '主诊断匹配率', value: `${(result.primary_dx_match_rate * 100).toFixed(1)}%`, target: '≥75%', icon: Target, color: result.primary_dx_match_rate >= 0.75 ? 'text-secondary' : 'text-destructive' },
+    { label: '正确数', value: `${result.correct} / ${result.total_cases}`, target: `≥${Math.ceil(result.total_cases * 0.75)}`, icon: CheckCircle, color: result.correct >= result.total_cases * 0.75 ? 'text-secondary' : 'text-destructive' },
+    { label: '耗时', value: `${result.elapsed_seconds.toFixed(1)}s`, target: '≤30s', icon: Play, color: result.elapsed_seconds <= 30 ? 'text-secondary' : 'text-destructive' },
+    { label: '模式', value: result.execution_mode, target: 'runtime', icon: BarChart3, color: 'text-secondary' },
   ];
 }
 
 function EvalResultView({ result, metrics, t, compact }: { result: EvaluationSummary; metrics: any[]; t: any; compact?: boolean }) {
   return (
     <>
-      <div className={`grid ${compact ? 'grid-cols-3' : 'grid-cols-6'} gap-2 mb-4`}>
+      <div className={`grid ${compact ? 'grid-cols-2' : 'grid-cols-5'} gap-2 mb-4`}>
         {metrics.map((m: any) => (
           <div key={m.label} className="bg-card rounded-xl shadow-sm ring-1 ring-border/20 p-3 text-center">
             <m.icon size={compact ? 16 : 24} className={`mx-auto mb-1 ${m.color}`} />
@@ -223,25 +226,38 @@ function EvalResultView({ result, metrics, t, compact }: { result: EvaluationSum
       </div>
       {!compact && (
         <div className="bg-card rounded-xl shadow-sm ring-1 ring-border/20 p-4">
-          <h3 className="font-semibold mb-3">{t.perCaseResults} ({result.total_cases} 个案例)</h3>
+          <h3 className="font-semibold mb-3">逐例结果 ({result.total_cases} 个案例)</h3>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead><tr className="border-b text-left">{['案例','AI诊断','诊断匹配','手术匹配','幻觉编码','证据','评分'].map(h => <th key={h} className="py-2 px-2 text-xs">{h}</th>)}</tr></thead>
+              <thead><tr className="border-b text-left">{['案例','类别','期望诊断','AI诊断','匹配','耗时'].map(h => <th key={h} className="py-2 px-2 text-xs">{h}</th>)}</tr></thead>
               <tbody>
-                {result.per_case_results.map((r: any, i: number) => (
+                {result.per_case.map((r, i) => (
                   <tr key={i} className="border-b hover:bg-accent">
                     <td className="py-1.5 px-2 font-mono text-[10px]">{r.case_id}</td>
-                    <td className="py-1.5 px-2 font-mono text-[10px]">{r.agent_primary_diag}</td>
-                    <td className="py-1.5 px-2">{r.primary_diag_match ? <CheckCircle size={14} className="text-secondary" /> : <XCircle size={14} className="text-destructive" />}</td>
-                    <td className="py-1.5 px-2">{r.main_proc_match ? <CheckCircle size={14} className="text-secondary" /> : <XCircle size={14} className="text-destructive" />}</td>
-                    <td className="py-1.5 px-2 text-destructive text-[10px]">{r.hallucinated_codes?.join(', ') || t.none}</td>
-                    <td className="py-1.5 px-2 text-[10px]">{(r.evidence_completeness * 100).toFixed(0)}%</td>
-                    <td className="py-1.5 px-2 font-semibold text-[10px]">{(r.overall_score * 100).toFixed(0)}%</td>
+                    <td className="py-1.5 px-2 text-[10px] text-muted-foreground">{r.category}</td>
+                    <td className="py-1.5 px-2 font-mono text-[10px]">{r.expected_dx}</td>
+                    <td className="py-1.5 px-2 font-mono text-[10px]">{r.actual_dx || '—'}</td>
+                    <td className="py-1.5 px-2">{r.correct ? <CheckCircle size={14} className="text-secondary" /> : <XCircle size={14} className="text-destructive" />}</td>
+                    <td className="py-1.5 px-2 text-[10px] text-muted-foreground">{r.latency_ms}ms</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
+          {/* Per-category summary */}
+          {result.per_category && Object.keys(result.per_category).length > 0 && (
+            <div className="mt-4">
+              <h4 className="text-xs font-semibold mb-2">分类汇总</h4>
+              <div className="grid grid-cols-3 gap-2">
+                {Object.entries(result.per_category).map(([cat, stats]) => (
+                  <div key={cat} className="bg-muted/50 rounded-lg p-2 text-center">
+                    <p className="text-[11px] font-medium">{cat}</p>
+                    <p className="text-[10px] text-muted-foreground">{stats.correct}/{stats.total} ({(stats.rate*100).toFixed(0)}%)</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </>

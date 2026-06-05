@@ -1,3 +1,4 @@
+# *** DEPRECATED — will be removed in v2.1. See MIGRATION_RUNTIME.md ***
 """Agent Runner — execute an Agent by orchestrating multiple Experts.
 
 iCoDer Agentic Framework equivalent: "Agent orchestrates Experts. When a user

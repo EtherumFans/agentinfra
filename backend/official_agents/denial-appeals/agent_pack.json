@@ -1,0 +1,63 @@
+{
+  "format_version": "1.1",
+  "agent_type": "certified",
+  "agent_ref": "icoder/denial-appeals@1.0.0",
+  "manifest": {
+    "name": "拒付申诉",
+    "version": "1.0.0",
+    "description": "生成有循证依据的医保拒付申诉回复。",
+    "category": "医保",
+    "icon": "FileWarning"
+  },
+  "system_prompt": "你是医保拒付申诉专家。根据拒付原因和病历证据生成有循证依据的申诉回复。",
+  "experts": [],
+  "tools": [
+    "extract_evidence",
+    "verify_evidence",
+    "rank_evidence",
+    "analyze_drg_impact",
+    "guard_input",
+    "guard_output"
+  ],
+  "permissions": {
+    "key": "denial-appeals",
+    "name": "拒付申诉权限",
+    "description": "生成有循证依据的医保拒付申诉回复。",
+    "tools": {
+      "extract_evidence": {
+        "allowed": true
+      },
+      "verify_evidence": {
+        "allowed": true
+      },
+      "rank_evidence": {
+        "allowed": true
+      },
+      "analyze_drg_impact": {
+        "allowed": true
+      },
+      "guard_input": {
+        "allowed": true
+      },
+      "guard_output": {
+        "allowed": true
+      }
+    }
+  },
+  "requirements": {
+    "min_runtime_version": "1.0.0"
+  },
+  "llm_capabilities": {
+    "required_models": [
+      {
+        "name": "deepseek-v4"
+      }
+    ],
+    "supports_tool_calling": false,
+    "supports_json_mode": true
+  },
+  "code": {},
+  "integrity": {
+    "sha256": ""
+  }
+}

@@ -175,6 +175,8 @@ class AgentPackageV1:
             tools = []
         valid_tiers = {1, 2}
         for i, t in enumerate(tools):
+            if isinstance(t, str):
+                continue  # String tool IDs are valid — skip field validation
             if not t.get("id"):
                 errors.append(f"tools[{i}]: id is required.")
             if not t.get("name"):

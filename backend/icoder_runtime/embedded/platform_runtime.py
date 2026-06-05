@@ -192,14 +192,16 @@ class PlatformRuntime:
         for e in record.experts or []:
             self._runner.register_expert(ExpertDefinition(**e))
         for t in record.tools or []:
-            from ..types import ToolDefinition, ToolTier
-            self._runner.register_tool(ToolDefinition(
-                id=t["id"], name=t["name"], description=t.get("description", ""),
-                tier=ToolTier(t.get("tier", 2)),
-                category=t.get("category", "general"),
-                requires=t.get("requires", []), guarantees=t.get("guarantees", {}),
-                input_schema={"type": "object", "properties": t.get("params", {})} if t.get("params") else None,
-            ))
+            if isinstance(t, str):
+                self._runner.register_tool(ToolDefinition(id=t, name=t, description=t, tier=ToolTier(1), category="general"))
+            else:
+                self._runner.register_tool(ToolDefinition(
+                    id=t["id"], name=t["name"], description=t.get("description", ""),
+                    tier=ToolTier(t.get("tier", 2)),
+                    category=t.get("category", "general"),
+                    requires=t.get("requires", []), guarantees=t.get("guarantees", {}),
+                    input_schema={"type": "object", "properties": t.get("params", {})} if t.get("params") else None,
+                ))
 
         return await self._runner.run(
             agent, user_input,

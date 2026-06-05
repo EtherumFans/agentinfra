@@ -303,7 +303,7 @@ async def agent_lifecycle_standard(
     admin: User = Depends(get_admin_user),
     db: AsyncSession = Depends(get_db),
 ):
-    return await agent_lifecycle(agent_ref=agent_ref, body=body, admin=admin, db=db)
+    return await agent_lifecycle(agent_ref=agent_ref, body=body, user=admin, db=db)
 
 
 @runtime_router.post("/agents/{agent_ref}/run")

@@ -1,7 +1,1334 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-06-04T14:21:36.509865+00:00",
+  "updated_at": "2026-06-05T00:45:22.231757+00:00",
   "agents": {
+    "临床文书改进-1.0.0": {
+      "agent_id": "临床文书改进-1.0.0",
+      "name": "临床文书改进",
+      "version": "1.0.0",
+      "description": "审查临床文书质量，识别编码特异性和文档完整性改进机会。",
+      "category": "质控",
+      "icon": "ClipboardList",
+      "agent_type": "certified",
+      "system_prompt": "你是临床文档改进专家。审查病历文档质量并给出改进建议。",
+      "expert_ids": [],
+      "experts": [],
+      "tools": [
+        "cdi_review",
+        "check_documentation_gaps",
+        "generate_cdi_query",
+        "extract_evidence",
+        "guard_input",
+        "guard_output"
+      ],
+      "permissions": {
+        "key": "cdi-review",
+        "name": "临床文书改进权限",
+        "description": "审查临床文书质量，识别编码特异性和文档完整性改进机会。",
+        "tools": {
+          "cdi_review": {
+            "allowed": true
+          },
+          "check_documentation_gaps": {
+            "allowed": true
+          },
+          "generate_cdi_query": {
+            "allowed": true
+          },
+          "extract_evidence": {
+            "allowed": true
+          },
+          "guard_input": {
+            "allowed": true
+          },
+          "guard_output": {
+            "allowed": true
+          }
+        }
+      },
+      "publisher_name": "iCoDer",
+      "publisher_email": "hello@icoder.ai",
+      "min_runtime_version": "1.0.0",
+      "llm_capabilities": {
+        "required_models": [
+          {
+            "name": "deepseek-v4"
+          }
+        ],
+        "supports_tool_calling": false,
+        "supports_json_mode": true
+      },
+      "integrity": {
+        "sha256": ""
+      },
+      "pack_data": {
+        "format_version": "1.1",
+        "agent_type": "certified",
+        "agent_ref": "icoder/cdi-review@1.0.0",
+        "manifest": {
+          "name": "临床文书改进",
+          "version": "1.0.0",
+          "description": "审查临床文书质量，识别编码特异性和文档完整性改进机会。",
+          "category": "质控",
+          "icon": "ClipboardList"
+        },
+        "system_prompt": "你是临床文档改进专家。审查病历文档质量并给出改进建议。",
+        "experts": [],
+        "tools": [
+          "cdi_review",
+          "check_documentation_gaps",
+          "generate_cdi_query",
+          "extract_evidence",
+          "guard_input",
+          "guard_output"
+        ],
+        "permissions": {
+          "key": "cdi-review",
+          "name": "临床文书改进权限",
+          "description": "审查临床文书质量，识别编码特异性和文档完整性改进机会。",
+          "tools": {
+            "cdi_review": {
+              "allowed": true
+            },
+            "check_documentation_gaps": {
+              "allowed": true
+            },
+            "generate_cdi_query": {
+              "allowed": true
+            },
+            "extract_evidence": {
+              "allowed": true
+            },
+            "guard_input": {
+              "allowed": true
+            },
+            "guard_output": {
+              "allowed": true
+            }
+          }
+        },
+        "requirements": {
+          "min_runtime_version": "1.0.0"
+        },
+        "llm_capabilities": {
+          "required_models": [
+            {
+              "name": "deepseek-v4"
+            }
+          ],
+          "supports_tool_calling": false,
+          "supports_json_mode": true
+        },
+        "code": {},
+        "integrity": {
+          "sha256": ""
+        }
+      },
+      "status": "installed",
+      "installed_at": "2026-06-05T00:45:22.171183+00:00"
+    },
+    "编码校验-1.0.0": {
+      "agent_id": "编码校验-1.0.0",
+      "name": "编码校验",
+      "version": "1.0.0",
+      "description": "按官方编码规则验证编码集，发现错误、冲突和合规风险。纯确定性规则引擎。",
+      "category": "编码",
+      "icon": "CheckCircle",
+      "agent_type": "certified",
+      "system_prompt": "你是编码校验引擎。使用确定性规则引擎验证编码集的格式、完整性和合规性。",
+      "expert_ids": [],
+      "experts": [],
+      "tools": [
+        "rank_evidence",
+        "calibrate_confidence",
+        "analyze_disagreements",
+        "guard_input",
+        "guard_output"
+      ],
+      "permissions": {
+        "key": "code-validation",
+        "name": "编码校验权限",
+        "description": "按官方编码规则验证编码集，发现错误、冲突和合规风险。纯确定性规则引擎。",
+        "tools": {
+          "rank_evidence": {
+            "allowed": true
+          },
+          "calibrate_confidence": {
+            "allowed": true
+          },
+          "analyze_disagreements": {
+            "allowed": true
+          },
+          "guard_input": {
+            "allowed": true
+          },
+          "guard_output": {
+            "allowed": true
+          }
+        }
+      },
+      "publisher_name": "iCoDer",
+      "publisher_email": "hello@icoder.ai",
+      "min_runtime_version": "1.0.0",
+      "llm_capabilities": {
+        "required_models": [
+          {
+            "name": "deepseek-v4"
+          }
+        ],
+        "supports_tool_calling": false,
+        "supports_json_mode": true
+      },
+      "integrity": {
+        "sha256": ""
+      },
+      "pack_data": {
+        "format_version": "1.1",
+        "agent_type": "certified",
+        "agent_ref": "icoder/code-validation@1.0.0",
+        "manifest": {
+          "name": "编码校验",
+          "version": "1.0.0",
+          "description": "按官方编码规则验证编码集，发现错误、冲突和合规风险。纯确定性规则引擎。",
+          "category": "编码",
+          "icon": "CheckCircle"
+        },
+        "system_prompt": "你是编码校验引擎。使用确定性规则引擎验证编码集的格式、完整性和合规性。",
+        "experts": [],
+        "tools": [
+          "rank_evidence",
+          "calibrate_confidence",
+          "analyze_disagreements",
+          "guard_input",
+          "guard_output"
+        ],
+        "permissions": {
+          "key": "code-validation",
+          "name": "编码校验权限",
+          "description": "按官方编码规则验证编码集，发现错误、冲突和合规风险。纯确定性规则引擎。",
+          "tools": {
+            "rank_evidence": {
+              "allowed": true
+            },
+            "calibrate_confidence": {
+              "allowed": true
+            },
+            "analyze_disagreements": {
+              "allowed": true
+            },
+            "guard_input": {
+              "allowed": true
+            },
+            "guard_output": {
+              "allowed": true
+            }
+          }
+        },
+        "requirements": {
+          "min_runtime_version": "1.0.0"
+        },
+        "llm_capabilities": {
+          "required_models": [
+            {
+              "name": "deepseek-v4"
+            }
+          ],
+          "supports_tool_calling": false,
+          "supports_json_mode": true
+        },
+        "code": {},
+        "integrity": {
+          "sha256": ""
+        }
+      },
+      "status": "installed",
+      "installed_at": "2026-06-05T00:45:22.174264+00:00"
+    },
+    "code-reconciler-1.0.0": {
+      "agent_id": "code-reconciler-1.0.0",
+      "name": "Code Reconciler",
+      "version": "1.0.0",
+      "description": "协调并最终确定编码集：移除互斥编码、确定主诊断、排序编码、生成审计就绪输出。每个编码附带纳排依据和证据链接。",
+      "category": "medical-coding",
+      "icon": "GitMerge",
+      "agent_type": "certified",
+      "system_prompt": "你是编码协调专家。你的任务：\n1. 审核 tabular_validator 验证通过的候选编码\n2. 移除互斥编码（如不能同时存在的诊断组合）\n3. 确定主诊断（根据入院原因、治疗重点、资源消耗）\n4. 确定主手术（根据手术等级、资源消耗）\n5. 最终排序（主诊断 → 次要诊断按重要性 → 主手术 → 次要手术）\n6. 每个编码必须附带：纳排依据、证据文本、置信度\n\n编码选择原则（Code Like Humans 框架）：\n- 编码到最高特异性\n- 遵循 ICD-10 卷2 编码指引\n- 组合编码优先于多个单独编码\n- 主要情况优先于并发情况\n- 疑似诊断按确诊编码\n\n输出 JSON:\n{\n  \"primary_diagnosis\": {\"code\": \"M80.900\", \"description\": \"骨质疏松伴病理性骨折\", \"confidence\": 0.92, \"evidence\": [{\"text\": \"...\", \"char_start\": 0, \"char_end\": 50}], \"justification\": \"影像学确诊，为主要治疗原因\"},\n  \"secondary_diagnoses\": [...],\n  \"procedures\": [{\"code\": \"81.6600x001\", \"description\": \"经皮椎体后凸成形术\", \"evidence\": [...], \"justification\": \"手术记录明确\"}],\n  \"review_conclusion\": \"PASS|WARNING|FAIL\",\n  \"coding_trace\": [{\"step\": \"reconciler\", \"action\": \"primary_dx_selected\", \"reason\": \"...\"}],\n  \"manual_review_required\": false\n}",
+      "expert_ids": [],
+      "experts": [],
+      "tools": [
+        "verify_evidence",
+        "assign_diagnosis_code",
+        "assign_procedure_code",
+        "check_documentation_gaps",
+        "cdi_review",
+        "guard_input",
+        "guard_output"
+      ],
+      "permissions": {
+        "key": "code-reconciliation",
+        "name": "编码协调权限",
+        "description": "最终编码分配 + 审计输出，高风险操作需人工确认",
+        "tools": {
+          "verify_evidence": {
+            "allowed": true,
+            "max_per_session": 10
+          },
+          "assign_diagnosis_code": {
+            "allowed": true,
+            "max_per_session": 50
+          },
+          "assign_procedure_code": {
+            "allowed": true,
+            "max_per_session": 30
+          },
+          "check_documentation_gaps": {
+            "allowed": true,
+            "max_per_session": 5
+          },
+          "cdi_review": {
+            "allowed": true,
+            "max_per_session": 5
+          },
+          "guard_input": {
+            "allowed": true
+          },
+          "guard_output": {
+            "allowed": true
+          }
+        }
+      },
+      "publisher_name": "iCoDer",
+      "publisher_email": "hello@icoder.ai",
+      "min_runtime_version": "1.0.0",
+      "llm_capabilities": {
+        "required_models": [
+          {
+            "name": "deepseek-v4"
+          }
+        ],
+        "supports_tool_calling": true,
+        "supports_json_mode": true
+      },
+      "integrity": {
+        "sha256": ""
+      },
+      "pack_data": {
+        "format_version": "1.1",
+        "agent_type": "certified",
+        "agent_ref": "icoder/code-reconciler@1.0.0",
+        "manifest": {
+          "name": "Code Reconciler",
+          "version": "1.0.0",
+          "description": "协调并最终确定编码集：移除互斥编码、确定主诊断、排序编码、生成审计就绪输出。每个编码附带纳排依据和证据链接。",
+          "category": "medical-coding",
+          "icon": "GitMerge"
+        },
+        "system_prompt": "你是编码协调专家。你的任务：\n1. 审核 tabular_validator 验证通过的候选编码\n2. 移除互斥编码（如不能同时存在的诊断组合）\n3. 确定主诊断（根据入院原因、治疗重点、资源消耗）\n4. 确定主手术（根据手术等级、资源消耗）\n5. 最终排序（主诊断 → 次要诊断按重要性 → 主手术 → 次要手术）\n6. 每个编码必须附带：纳排依据、证据文本、置信度\n\n编码选择原则（Code Like Humans 框架）：\n- 编码到最高特异性\n- 遵循 ICD-10 卷2 编码指引\n- 组合编码优先于多个单独编码\n- 主要情况优先于并发情况\n- 疑似诊断按确诊编码\n\n输出 JSON:\n{\n  \"primary_diagnosis\": {\"code\": \"M80.900\", \"description\": \"骨质疏松伴病理性骨折\", \"confidence\": 0.92, \"evidence\": [{\"text\": \"...\", \"char_start\": 0, \"char_end\": 50}], \"justification\": \"影像学确诊，为主要治疗原因\"},\n  \"secondary_diagnoses\": [...],\n  \"procedures\": [{\"code\": \"81.6600x001\", \"description\": \"经皮椎体后凸成形术\", \"evidence\": [...], \"justification\": \"手术记录明确\"}],\n  \"review_conclusion\": \"PASS|WARNING|FAIL\",\n  \"coding_trace\": [{\"step\": \"reconciler\", \"action\": \"primary_dx_selected\", \"reason\": \"...\"}],\n  \"manual_review_required\": false\n}",
+        "experts": [],
+        "tools": [
+          "verify_evidence",
+          "assign_diagnosis_code",
+          "assign_procedure_code",
+          "check_documentation_gaps",
+          "cdi_review",
+          "guard_input",
+          "guard_output"
+        ],
+        "permissions": {
+          "key": "code-reconciliation",
+          "name": "编码协调权限",
+          "description": "最终编码分配 + 审计输出，高风险操作需人工确认",
+          "tools": {
+            "verify_evidence": {
+              "allowed": true,
+              "max_per_session": 10
+            },
+            "assign_diagnosis_code": {
+              "allowed": true,
+              "max_per_session": 50
+            },
+            "assign_procedure_code": {
+              "allowed": true,
+              "max_per_session": 30
+            },
+            "check_documentation_gaps": {
+              "allowed": true,
+              "max_per_session": 5
+            },
+            "cdi_review": {
+              "allowed": true,
+              "max_per_session": 5
+            },
+            "guard_input": {
+              "allowed": true
+            },
+            "guard_output": {
+              "allowed": true
+            }
+          }
+        },
+        "requirements": {
+          "min_runtime_version": "1.0.0"
+        },
+        "llm_capabilities": {
+          "required_models": [
+            {
+              "name": "deepseek-v4"
+            }
+          ],
+          "supports_tool_calling": true,
+          "supports_json_mode": true
+        },
+        "code": {},
+        "integrity": {
+          "sha256": ""
+        }
+      },
+      "status": "installed",
+      "installed_at": "2026-06-05T00:45:22.176918+00:00"
+    },
+    "合规护栏-1.0.0": {
+      "agent_id": "合规护栏-1.0.0",
+      "name": "合规护栏",
+      "version": "1.0.0",
+      "description": "在提交医保结算清单前，按配置的医保或医院规则集评估编码集的合规性",
+      "category": "医保",
+      "icon": "Shield",
+      "agent_type": "certified",
+      "system_prompt": "你是医保合规审核专家。请根据配置的规则集评估编码集是否符合医保结算要求。",
+      "expert_ids": [],
+      "experts": [],
+      "tools": [
+        "guard_input",
+        "guard_output",
+        "rank_evidence",
+        "calibrate_confidence",
+        "analyze_drg_impact"
+      ],
+      "permissions": {
+        "key": "compliance-guardrail",
+        "name": "合规护栏权限",
+        "description": "在提交医保结算清单前，按配置的医保或医院规则集评估编码集的合规性",
+        "tools": {
+          "guard_input": {
+            "allowed": true
+          },
+          "guard_output": {
+            "allowed": true
+          },
+          "rank_evidence": {
+            "allowed": true
+          },
+          "calibrate_confidence": {
+            "allowed": true
+          },
+          "analyze_drg_impact": {
+            "allowed": true
+          }
+        }
+      },
+      "publisher_name": "iCoDer",
+      "publisher_email": "hello@icoder.ai",
+      "min_runtime_version": "1.0.0",
+      "llm_capabilities": {
+        "required_models": [
+          {
+            "name": "deepseek-v4"
+          }
+        ],
+        "supports_tool_calling": false,
+        "supports_json_mode": true
+      },
+      "integrity": {
+        "sha256": ""
+      },
+      "pack_data": {
+        "format_version": "1.1",
+        "agent_type": "certified",
+        "agent_ref": "icoder/compliance-guardrail@1.0.0",
+        "manifest": {
+          "name": "合规护栏",
+          "version": "1.0.0",
+          "description": "在提交医保结算清单前，按配置的医保或医院规则集评估编码集的合规性",
+          "category": "医保",
+          "icon": "Shield"
+        },
+        "system_prompt": "你是医保合规审核专家。请根据配置的规则集评估编码集是否符合医保结算要求。",
+        "experts": [],
+        "tools": [
+          "guard_input",
+          "guard_output",
+          "rank_evidence",
+          "calibrate_confidence",
+          "analyze_drg_impact"
+        ],
+        "permissions": {
+          "key": "compliance-guardrail",
+          "name": "合规护栏权限",
+          "description": "在提交医保结算清单前，按配置的医保或医院规则集评估编码集的合规性",
+          "tools": {
+            "guard_input": {
+              "allowed": true
+            },
+            "guard_output": {
+              "allowed": true
+            },
+            "rank_evidence": {
+              "allowed": true
+            },
+            "calibrate_confidence": {
+              "allowed": true
+            },
+            "analyze_drg_impact": {
+              "allowed": true
+            }
+          }
+        },
+        "requirements": {
+          "min_runtime_version": "1.0.0"
+        },
+        "llm_capabilities": {
+          "required_models": [
+            {
+              "name": "deepseek-v4"
+            }
+          ],
+          "supports_tool_calling": false,
+          "supports_json_mode": true
+        },
+        "code": {},
+        "integrity": {
+          "sha256": ""
+        }
+      },
+      "status": "installed",
+      "installed_at": "2026-06-05T00:45:22.181560+00:00"
+    },
+    "拒付申诉-1.0.0": {
+      "agent_id": "拒付申诉-1.0.0",
+      "name": "拒付申诉",
+      "version": "1.0.0",
+      "description": "生成有循证依据的医保拒付申诉回复。",
+      "category": "医保",
+      "icon": "FileWarning",
+      "agent_type": "certified",
+      "system_prompt": "你是医保拒付申诉专家。根据拒付原因和病历证据生成有循证依据的申诉回复。",
+      "expert_ids": [],
+      "experts": [],
+      "tools": [
+        "extract_evidence",
+        "verify_evidence",
+        "rank_evidence",
+        "analyze_drg_impact",
+        "guard_input",
+        "guard_output"
+      ],
+      "permissions": {
+        "key": "denial-appeals",
+        "name": "拒付申诉权限",
+        "description": "生成有循证依据的医保拒付申诉回复。",
+        "tools": {
+          "extract_evidence": {
+            "allowed": true
+          },
+          "verify_evidence": {
+            "allowed": true
+          },
+          "rank_evidence": {
+            "allowed": true
+          },
+          "analyze_drg_impact": {
+            "allowed": true
+          },
+          "guard_input": {
+            "allowed": true
+          },
+          "guard_output": {
+            "allowed": true
+          }
+        }
+      },
+      "publisher_name": "iCoDer",
+      "publisher_email": "hello@icoder.ai",
+      "min_runtime_version": "1.0.0",
+      "llm_capabilities": {
+        "required_models": [
+          {
+            "name": "deepseek-v4"
+          }
+        ],
+        "supports_tool_calling": false,
+        "supports_json_mode": true
+      },
+      "integrity": {
+        "sha256": ""
+      },
+      "pack_data": {
+        "format_version": "1.1",
+        "agent_type": "certified",
+        "agent_ref": "icoder/denial-appeals@1.0.0",
+        "manifest": {
+          "name": "拒付申诉",
+          "version": "1.0.0",
+          "description": "生成有循证依据的医保拒付申诉回复。",
+          "category": "医保",
+          "icon": "FileWarning"
+        },
+        "system_prompt": "你是医保拒付申诉专家。根据拒付原因和病历证据生成有循证依据的申诉回复。",
+        "experts": [],
+        "tools": [
+          "extract_evidence",
+          "verify_evidence",
+          "rank_evidence",
+          "analyze_drg_impact",
+          "guard_input",
+          "guard_output"
+        ],
+        "permissions": {
+          "key": "denial-appeals",
+          "name": "拒付申诉权限",
+          "description": "生成有循证依据的医保拒付申诉回复。",
+          "tools": {
+            "extract_evidence": {
+              "allowed": true
+            },
+            "verify_evidence": {
+              "allowed": true
+            },
+            "rank_evidence": {
+              "allowed": true
+            },
+            "analyze_drg_impact": {
+              "allowed": true
+            },
+            "guard_input": {
+              "allowed": true
+            },
+            "guard_output": {
+              "allowed": true
+            }
+          }
+        },
+        "requirements": {
+          "min_runtime_version": "1.0.0"
+        },
+        "llm_capabilities": {
+          "required_models": [
+            {
+              "name": "deepseek-v4"
+            }
+          ],
+          "supports_tool_calling": false,
+          "supports_json_mode": true
+        },
+        "code": {},
+        "integrity": {
+          "sha256": ""
+        }
+      },
+      "status": "installed",
+      "installed_at": "2026-06-05T00:45:22.184569+00:00"
+    },
+    "诊断提取-1.0.0": {
+      "agent_id": "诊断提取-1.0.0",
+      "name": "诊断提取",
+      "version": "1.0.0",
+      "description": "从病历中提取诊断并分配 ICD-10-CN 编码。",
+      "category": "编码",
+      "icon": "Stethoscope",
+      "agent_type": "certified",
+      "system_prompt": "你是诊断编码专家。从病历中提取所有诊断并按 ICD-10-CN 分配编码。",
+      "expert_ids": [],
+      "experts": [],
+      "tools": [
+        "extract_evidence",
+        "search_icd10_index",
+        "assign_diagnosis_code",
+        "guard_input",
+        "guard_output"
+      ],
+      "permissions": {
+        "key": "diagnosis-extractor",
+        "name": "诊断提取权限",
+        "description": "从病历中提取诊断并分配 ICD-10-CN 编码。",
+        "tools": {
+          "extract_evidence": {
+            "allowed": true
+          },
+          "search_icd10_index": {
+            "allowed": true
+          },
+          "assign_diagnosis_code": {
+            "allowed": true
+          },
+          "guard_input": {
+            "allowed": true
+          },
+          "guard_output": {
+            "allowed": true
+          }
+        }
+      },
+      "publisher_name": "iCoDer",
+      "publisher_email": "hello@icoder.ai",
+      "min_runtime_version": "1.0.0",
+      "llm_capabilities": {
+        "required_models": [
+          {
+            "name": "deepseek-v4"
+          }
+        ],
+        "supports_tool_calling": false,
+        "supports_json_mode": true
+      },
+      "integrity": {
+        "sha256": ""
+      },
+      "pack_data": {
+        "format_version": "1.1",
+        "agent_type": "certified",
+        "agent_ref": "icoder/diagnosis-extractor@1.0.0",
+        "manifest": {
+          "name": "诊断提取",
+          "version": "1.0.0",
+          "description": "从病历中提取诊断并分配 ICD-10-CN 编码。",
+          "category": "编码",
+          "icon": "Stethoscope"
+        },
+        "system_prompt": "你是诊断编码专家。从病历中提取所有诊断并按 ICD-10-CN 分配编码。",
+        "experts": [],
+        "tools": [
+          "extract_evidence",
+          "search_icd10_index",
+          "assign_diagnosis_code",
+          "guard_input",
+          "guard_output"
+        ],
+        "permissions": {
+          "key": "diagnosis-extractor",
+          "name": "诊断提取权限",
+          "description": "从病历中提取诊断并分配 ICD-10-CN 编码。",
+          "tools": {
+            "extract_evidence": {
+              "allowed": true
+            },
+            "search_icd10_index": {
+              "allowed": true
+            },
+            "assign_diagnosis_code": {
+              "allowed": true
+            },
+            "guard_input": {
+              "allowed": true
+            },
+            "guard_output": {
+              "allowed": true
+            }
+          }
+        },
+        "requirements": {
+          "min_runtime_version": "1.0.0"
+        },
+        "llm_capabilities": {
+          "required_models": [
+            {
+              "name": "deepseek-v4"
+            }
+          ],
+          "supports_tool_calling": false,
+          "supports_json_mode": true
+        },
+        "code": {},
+        "integrity": {
+          "sha256": ""
+        }
+      },
+      "status": "installed",
+      "installed_at": "2026-06-05T00:45:22.189473+00:00"
+    },
+    "文档缺口检测-1.0.0": {
+      "agent_id": "文档缺口检测-1.0.0",
+      "name": "文档缺口检测",
+      "version": "1.0.0",
+      "description": "识别缺失或不完整的临床文档，生成补充建议。",
+      "category": "质控",
+      "icon": "FileWarning",
+      "agent_type": "certified",
+      "system_prompt": "你是临床文档完整性审核专家。检查病历文档完整性并按严重程度排列缺口。",
+      "expert_ids": [],
+      "experts": [],
+      "tools": [
+        "check_documentation_gaps",
+        "cdi_review",
+        "generate_cdi_query",
+        "extract_evidence",
+        "guard_input",
+        "guard_output"
+      ],
+      "permissions": {
+        "key": "documentation-gap",
+        "name": "文档缺口检测权限",
+        "description": "识别缺失或不完整的临床文档，生成补充建议。",
+        "tools": {
+          "check_documentation_gaps": {
+            "allowed": true
+          },
+          "cdi_review": {
+            "allowed": true
+          },
+          "generate_cdi_query": {
+            "allowed": true
+          },
+          "extract_evidence": {
+            "allowed": true
+          },
+          "guard_input": {
+            "allowed": true
+          },
+          "guard_output": {
+            "allowed": true
+          }
+        }
+      },
+      "publisher_name": "iCoDer",
+      "publisher_email": "hello@icoder.ai",
+      "min_runtime_version": "1.0.0",
+      "llm_capabilities": {
+        "required_models": [
+          {
+            "name": "deepseek-v4"
+          }
+        ],
+        "supports_tool_calling": false,
+        "supports_json_mode": true
+      },
+      "integrity": {
+        "sha256": ""
+      },
+      "pack_data": {
+        "format_version": "1.1",
+        "agent_type": "certified",
+        "agent_ref": "icoder/documentation-gap@1.0.0",
+        "manifest": {
+          "name": "文档缺口检测",
+          "version": "1.0.0",
+          "description": "识别缺失或不完整的临床文档，生成补充建议。",
+          "category": "质控",
+          "icon": "FileWarning"
+        },
+        "system_prompt": "你是临床文档完整性审核专家。检查病历文档完整性并按严重程度排列缺口。",
+        "experts": [],
+        "tools": [
+          "check_documentation_gaps",
+          "cdi_review",
+          "generate_cdi_query",
+          "extract_evidence",
+          "guard_input",
+          "guard_output"
+        ],
+        "permissions": {
+          "key": "documentation-gap",
+          "name": "文档缺口检测权限",
+          "description": "识别缺失或不完整的临床文档，生成补充建议。",
+          "tools": {
+            "check_documentation_gaps": {
+              "allowed": true
+            },
+            "cdi_review": {
+              "allowed": true
+            },
+            "generate_cdi_query": {
+              "allowed": true
+            },
+            "extract_evidence": {
+              "allowed": true
+            },
+            "guard_input": {
+              "allowed": true
+            },
+            "guard_output": {
+              "allowed": true
+            }
+          }
+        },
+        "requirements": {
+          "min_runtime_version": "1.0.0"
+        },
+        "llm_capabilities": {
+          "required_models": [
+            {
+              "name": "deepseek-v4"
+            }
+          ],
+          "supports_tool_calling": false,
+          "supports_json_mode": true
+        },
+        "code": {},
+        "integrity": {
+          "sha256": ""
+        }
+      },
+      "status": "installed",
+      "installed_at": "2026-06-05T00:45:22.193258+00:00"
+    },
+    "drg-分组分析-1.0.0": {
+      "agent_id": "drg-分组分析-1.0.0",
+      "name": "DRG 分组分析",
+      "version": "1.0.0",
+      "description": "分析编码方案对 DRG 分组和医保支付的影响。",
+      "category": "医保",
+      "icon": "PieChart",
+      "agent_type": "certified",
+      "system_prompt": "你是 DRG/DIP 支付分析专家。分析编码方案对 DRG 分组的影响并给出优化建议。",
+      "expert_ids": [],
+      "experts": [],
+      "tools": [
+        "analyze_drg_impact",
+        "rank_evidence",
+        "calibrate_confidence",
+        "guard_input",
+        "guard_output"
+      ],
+      "permissions": {
+        "key": "drg-analyzer",
+        "name": "DRG 分组分析权限",
+        "description": "分析编码方案对 DRG 分组和医保支付的影响。",
+        "tools": {
+          "analyze_drg_impact": {
+            "allowed": true
+          },
+          "rank_evidence": {
+            "allowed": true
+          },
+          "calibrate_confidence": {
+            "allowed": true
+          },
+          "guard_input": {
+            "allowed": true
+          },
+          "guard_output": {
+            "allowed": true
+          }
+        }
+      },
+      "publisher_name": "iCoDer",
+      "publisher_email": "hello@icoder.ai",
+      "min_runtime_version": "1.0.0",
+      "llm_capabilities": {
+        "required_models": [
+          {
+            "name": "deepseek-v4"
+          }
+        ],
+        "supports_tool_calling": false,
+        "supports_json_mode": true
+      },
+      "integrity": {
+        "sha256": ""
+      },
+      "pack_data": {
+        "format_version": "1.1",
+        "agent_type": "certified",
+        "agent_ref": "icoder/drg-analyzer@1.0.0",
+        "manifest": {
+          "name": "DRG 分组分析",
+          "version": "1.0.0",
+          "description": "分析编码方案对 DRG 分组和医保支付的影响。",
+          "category": "医保",
+          "icon": "PieChart"
+        },
+        "system_prompt": "你是 DRG/DIP 支付分析专家。分析编码方案对 DRG 分组的影响并给出优化建议。",
+        "experts": [],
+        "tools": [
+          "analyze_drg_impact",
+          "rank_evidence",
+          "calibrate_confidence",
+          "guard_input",
+          "guard_output"
+        ],
+        "permissions": {
+          "key": "drg-analyzer",
+          "name": "DRG 分组分析权限",
+          "description": "分析编码方案对 DRG 分组和医保支付的影响。",
+          "tools": {
+            "analyze_drg_impact": {
+              "allowed": true
+            },
+            "rank_evidence": {
+              "allowed": true
+            },
+            "calibrate_confidence": {
+              "allowed": true
+            },
+            "guard_input": {
+              "allowed": true
+            },
+            "guard_output": {
+              "allowed": true
+            }
+          }
+        },
+        "requirements": {
+          "min_runtime_version": "1.0.0"
+        },
+        "llm_capabilities": {
+          "required_models": [
+            {
+              "name": "deepseek-v4"
+            }
+          ],
+          "supports_tool_calling": false,
+          "supports_json_mode": true
+        },
+        "code": {},
+        "integrity": {
+          "sha256": ""
+        }
+      },
+      "status": "installed",
+      "installed_at": "2026-06-05T00:45:22.198249+00:00"
+    },
+    "证据排名-1.0.0": {
+      "agent_id": "证据排名-1.0.0",
+      "name": "证据排名",
+      "version": "1.0.0",
+      "description": "对编码候选的证据强度进行排名，检测证据冲突。纯确定性算法。",
+      "category": "编码",
+      "icon": "BarChart3",
+      "agent_type": "certified",
+      "system_prompt": "你是证据排名引擎。使用确定性评分算法对每个编码候选的证据强度进行排名。",
+      "expert_ids": [],
+      "experts": [],
+      "tools": [
+        "rank_evidence",
+        "calibrate_confidence",
+        "analyze_disagreements",
+        "verify_evidence",
+        "guard_input",
+        "guard_output"
+      ],
+      "permissions": {
+        "key": "evidence-ranker",
+        "name": "证据排名权限",
+        "description": "对编码候选的证据强度进行排名，检测证据冲突。纯确定性算法。",
+        "tools": {
+          "rank_evidence": {
+            "allowed": true
+          },
+          "calibrate_confidence": {
+            "allowed": true
+          },
+          "analyze_disagreements": {
+            "allowed": true
+          },
+          "verify_evidence": {
+            "allowed": true
+          },
+          "guard_input": {
+            "allowed": true
+          },
+          "guard_output": {
+            "allowed": true
+          }
+        }
+      },
+      "publisher_name": "iCoDer",
+      "publisher_email": "hello@icoder.ai",
+      "min_runtime_version": "1.0.0",
+      "llm_capabilities": {
+        "required_models": [
+          {
+            "name": "deepseek-v4"
+          }
+        ],
+        "supports_tool_calling": false,
+        "supports_json_mode": true
+      },
+      "integrity": {
+        "sha256": ""
+      },
+      "pack_data": {
+        "format_version": "1.1",
+        "agent_type": "certified",
+        "agent_ref": "icoder/evidence-ranker@1.0.0",
+        "manifest": {
+          "name": "证据排名",
+          "version": "1.0.0",
+          "description": "对编码候选的证据强度进行排名，检测证据冲突。纯确定性算法。",
+          "category": "编码",
+          "icon": "BarChart3"
+        },
+        "system_prompt": "你是证据排名引擎。使用确定性评分算法对每个编码候选的证据强度进行排名。",
+        "experts": [],
+        "tools": [
+          "rank_evidence",
+          "calibrate_confidence",
+          "analyze_disagreements",
+          "verify_evidence",
+          "guard_input",
+          "guard_output"
+        ],
+        "permissions": {
+          "key": "evidence-ranker",
+          "name": "证据排名权限",
+          "description": "对编码候选的证据强度进行排名，检测证据冲突。纯确定性算法。",
+          "tools": {
+            "rank_evidence": {
+              "allowed": true
+            },
+            "calibrate_confidence": {
+              "allowed": true
+            },
+            "analyze_disagreements": {
+              "allowed": true
+            },
+            "verify_evidence": {
+              "allowed": true
+            },
+            "guard_input": {
+              "allowed": true
+            },
+            "guard_output": {
+              "allowed": true
+            }
+          }
+        },
+        "requirements": {
+          "min_runtime_version": "1.0.0"
+        },
+        "llm_capabilities": {
+          "required_models": [
+            {
+              "name": "deepseek-v4"
+            }
+          ],
+          "supports_tool_calling": false,
+          "supports_json_mode": true
+        },
+        "code": {},
+        "integrity": {
+          "sha256": ""
+        }
+      },
+      "status": "installed",
+      "installed_at": "2026-06-05T00:45:22.202193+00:00"
+    },
+    "evidence-extractor-1.0.0": {
+      "agent_id": "evidence-extractor-1.0.0",
+      "name": "Evidence Extractor",
+      "version": "1.0.0",
+      "description": "从病历文本中提取结构化临床事实：诊断事实、手术事实、否定发现、病史条件。输出带证据文本和字符位置的 JSON。",
+      "category": "medical-coding",
+      "icon": "FileSearch",
+      "agent_type": "certified",
+      "system_prompt": "你是一个病历证据提取专家。你的任务是：\n1. 从病历中提取所有可编码的诊断事实（含部位、病因、形态）\n2. 提取所有手术/操作事实\n3. 标记否定发现（'否认'、'排除'、'无'等）\n4. 标记既往病史（'X年前'、'既往有'等）\n5. 每个事实必须附带原文引用（evidence_text）和字符位置（char_start, char_end）\n\n输出 JSON:\n{\n  \"diagnosis_facts\": [{\"fact\": \"...\", \"evidence_text\": \"...\", \"char_start\": 0, \"char_end\": 50, \"doc_type\": \"入院记录\"}],\n  \"procedure_facts\": [{\"fact\": \"...\", \"evidence_text\": \"...\", \"char_start\": 0, \"char_end\": 50}],\n  \"negated_findings\": [{\"fact\": \"...\", \"reason\": \"否认\"}],\n  \"historical_conditions\": [{\"fact\": \"...\", \"years_ago\": 5}]\n}",
+      "expert_ids": [],
+      "experts": [],
+      "tools": [
+        "extract_evidence",
+        "guard_input",
+        "guard_output"
+      ],
+      "permissions": {
+        "key": "evidence-extraction",
+        "name": "证据提取权限",
+        "description": "只读提取，无编码分配",
+        "tools": {
+          "extract_evidence": {
+            "allowed": true,
+            "max_per_session": 10
+          },
+          "guard_input": {
+            "allowed": true
+          },
+          "guard_output": {
+            "allowed": true
+          }
+        }
+      },
+      "publisher_name": "iCoDer",
+      "publisher_email": "hello@icoder.ai",
+      "min_runtime_version": "1.0.0",
+      "llm_capabilities": {
+        "required_models": [
+          {
+            "name": "deepseek-v4"
+          }
+        ],
+        "supports_tool_calling": false,
+        "supports_json_mode": true
+      },
+      "integrity": {
+        "sha256": ""
+      },
+      "pack_data": {
+        "format_version": "1.1",
+        "agent_type": "certified",
+        "agent_ref": "icoder/evidence-extractor@1.0.0",
+        "manifest": {
+          "name": "Evidence Extractor",
+          "version": "1.0.0",
+          "description": "从病历文本中提取结构化临床事实：诊断事实、手术事实、否定发现、病史条件。输出带证据文本和字符位置的 JSON。",
+          "category": "medical-coding",
+          "icon": "FileSearch"
+        },
+        "system_prompt": "你是一个病历证据提取专家。你的任务是：\n1. 从病历中提取所有可编码的诊断事实（含部位、病因、形态）\n2. 提取所有手术/操作事实\n3. 标记否定发现（'否认'、'排除'、'无'等）\n4. 标记既往病史（'X年前'、'既往有'等）\n5. 每个事实必须附带原文引用（evidence_text）和字符位置（char_start, char_end）\n\n输出 JSON:\n{\n  \"diagnosis_facts\": [{\"fact\": \"...\", \"evidence_text\": \"...\", \"char_start\": 0, \"char_end\": 50, \"doc_type\": \"入院记录\"}],\n  \"procedure_facts\": [{\"fact\": \"...\", \"evidence_text\": \"...\", \"char_start\": 0, \"char_end\": 50}],\n  \"negated_findings\": [{\"fact\": \"...\", \"reason\": \"否认\"}],\n  \"historical_conditions\": [{\"fact\": \"...\", \"years_ago\": 5}]\n}",
+        "experts": [],
+        "tools": [
+          "extract_evidence",
+          "guard_input",
+          "guard_output"
+        ],
+        "permissions": {
+          "key": "evidence-extraction",
+          "name": "证据提取权限",
+          "description": "只读提取，无编码分配",
+          "tools": {
+            "extract_evidence": {
+              "allowed": true,
+              "max_per_session": 10
+            },
+            "guard_input": {
+              "allowed": true
+            },
+            "guard_output": {
+              "allowed": true
+            }
+          }
+        },
+        "requirements": {
+          "min_runtime_version": "1.0.0"
+        },
+        "llm_capabilities": {
+          "required_models": [
+            {
+              "name": "deepseek-v4"
+            }
+          ],
+          "supports_tool_calling": false,
+          "supports_json_mode": true
+        },
+        "code": {},
+        "integrity": {
+          "sha256": ""
+        }
+      },
+      "status": "installed",
+      "installed_at": "2026-06-05T00:45:22.206194+00:00"
+    },
+    "index-navigator-1.0.0": {
+      "agent_id": "index-navigator-1.0.0",
+      "name": "Index Navigator",
+      "version": "1.0.0",
+      "description": "对每个提取的临床事实进行 ICD-10/ICD-9-CM-3 字母索引导航，输出候选编码列表及匹配分数。纯确定性算法，零 LLM 参与。",
+      "category": "medical-coding",
+      "icon": "BookOpenText",
+      "agent_type": "certified",
+      "system_prompt": "你是一个 ICD 索引导航引擎。你使用确定性算法在 ICD-10-CN 和 ICD-9-CM-3 字母索引中查找临床术语对应的编码。\n\n输入：evidence_extractor 输出的 diagnosis_facts 和 procedure_facts\n\n对每个 fact：\n1. 执行 search_icd10_index / search_icd9_index 工具查找候选编码\n2. 返回候选编码列表（code, name, match_score）\n3. 标注匹配类型（exact / synonym / substring / fuzzy）\n\n输出 JSON:\n{\n  \"diagnosis_candidates\": [{\"fact\": \"...\", \"candidates\": [{\"code\": \"M80.900\", \"name\": \"骨质疏松伴病理性骨折\", \"match_score\": 0.95, \"match_type\": \"exact\"}]}],\n  \"procedure_candidates\": [{\"fact\": \"...\", \"candidates\": [{\"code\": \"81.6600x001\", \"name\": \"经皮椎体后凸成形术\", \"match_score\": 0.90}]}]\n}",
+      "expert_ids": [],
+      "experts": [],
+      "tools": [
+        "search_icd10_index",
+        "search_icd9_index",
+        "guard_input",
+        "guard_output"
+      ],
+      "permissions": {
+        "key": "index-navigation",
+        "name": "索引导航权限",
+        "description": "只读字典查询，无 LLM 推理",
+        "tools": {
+          "search_icd10_index": {
+            "allowed": true,
+            "max_per_session": 200
+          },
+          "search_icd9_index": {
+            "allowed": true,
+            "max_per_session": 200
+          },
+          "guard_input": {
+            "allowed": true
+          },
+          "guard_output": {
+            "allowed": true
+          }
+        }
+      },
+      "publisher_name": "iCoDer",
+      "publisher_email": "hello@icoder.ai",
+      "min_runtime_version": "1.0.0",
+      "llm_capabilities": {
+        "required_models": [
+          {
+            "name": "deepseek-v4"
+          }
+        ],
+        "supports_tool_calling": true,
+        "supports_json_mode": true
+      },
+      "integrity": {
+        "sha256": ""
+      },
+      "pack_data": {
+        "format_version": "1.1",
+        "agent_type": "certified",
+        "agent_ref": "icoder/index-navigator@1.0.0",
+        "manifest": {
+          "name": "Index Navigator",
+          "version": "1.0.0",
+          "description": "对每个提取的临床事实进行 ICD-10/ICD-9-CM-3 字母索引导航，输出候选编码列表及匹配分数。纯确定性算法，零 LLM 参与。",
+          "category": "medical-coding",
+          "icon": "BookOpenText"
+        },
+        "system_prompt": "你是一个 ICD 索引导航引擎。你使用确定性算法在 ICD-10-CN 和 ICD-9-CM-3 字母索引中查找临床术语对应的编码。\n\n输入：evidence_extractor 输出的 diagnosis_facts 和 procedure_facts\n\n对每个 fact：\n1. 执行 search_icd10_index / search_icd9_index 工具查找候选编码\n2. 返回候选编码列表（code, name, match_score）\n3. 标注匹配类型（exact / synonym / substring / fuzzy）\n\n输出 JSON:\n{\n  \"diagnosis_candidates\": [{\"fact\": \"...\", \"candidates\": [{\"code\": \"M80.900\", \"name\": \"骨质疏松伴病理性骨折\", \"match_score\": 0.95, \"match_type\": \"exact\"}]}],\n  \"procedure_candidates\": [{\"fact\": \"...\", \"candidates\": [{\"code\": \"81.6600x001\", \"name\": \"经皮椎体后凸成形术\", \"match_score\": 0.90}]}]\n}",
+        "experts": [],
+        "tools": [
+          "search_icd10_index",
+          "search_icd9_index",
+          "guard_input",
+          "guard_output"
+        ],
+        "permissions": {
+          "key": "index-navigation",
+          "name": "索引导航权限",
+          "description": "只读字典查询，无 LLM 推理",
+          "tools": {
+            "search_icd10_index": {
+              "allowed": true,
+              "max_per_session": 200
+            },
+            "search_icd9_index": {
+              "allowed": true,
+              "max_per_session": 200
+            },
+            "guard_input": {
+              "allowed": true
+            },
+            "guard_output": {
+              "allowed": true
+            }
+          }
+        },
+        "requirements": {
+          "min_runtime_version": "1.0.0"
+        },
+        "llm_capabilities": {
+          "required_models": [
+            {
+              "name": "deepseek-v4"
+            }
+          ],
+          "supports_tool_calling": true,
+          "supports_json_mode": true
+        },
+        "code": {},
+        "integrity": {
+          "sha256": ""
+        }
+      },
+      "status": "installed",
+      "installed_at": "2026-06-05T00:45:22.211533+00:00"
+    },
     "medical-coding-agent-1.0.0": {
       "agent_id": "medical-coding-agent-1.0.0",
       "name": "Medical Coding Agent",
@@ -73,7 +1400,376 @@
         }
       },
       "status": "installed",
-      "installed_at": "2026-06-04T14:21:36.509865+00:00"
+      "installed_at": "2026-06-05T00:45:22.217052+00:00"
+    },
+    "病历完整性-1.0.0": {
+      "agent_id": "病历完整性-1.0.0",
+      "name": "病历完整性",
+      "version": "1.0.0",
+      "description": "实时检查病历完整性、准确性和合规性。",
+      "category": "质控",
+      "icon": "FileCheck",
+      "agent_type": "certified",
+      "system_prompt": "你是病历质量审核专家。对照《病历书写基本规范》检查病历的完整性和准确性。",
+      "expert_ids": [],
+      "experts": [],
+      "tools": [
+        "check_documentation_gaps",
+        "cdi_review",
+        "extract_evidence",
+        "verify_evidence",
+        "guard_input",
+        "guard_output"
+      ],
+      "permissions": {
+        "key": "note-completeness",
+        "name": "病历完整性权限",
+        "description": "实时检查病历完整性、准确性和合规性。",
+        "tools": {
+          "check_documentation_gaps": {
+            "allowed": true
+          },
+          "cdi_review": {
+            "allowed": true
+          },
+          "extract_evidence": {
+            "allowed": true
+          },
+          "verify_evidence": {
+            "allowed": true
+          },
+          "guard_input": {
+            "allowed": true
+          },
+          "guard_output": {
+            "allowed": true
+          }
+        }
+      },
+      "publisher_name": "iCoDer",
+      "publisher_email": "hello@icoder.ai",
+      "min_runtime_version": "1.0.0",
+      "llm_capabilities": {
+        "required_models": [
+          {
+            "name": "deepseek-v4"
+          }
+        ],
+        "supports_tool_calling": false,
+        "supports_json_mode": true
+      },
+      "integrity": {
+        "sha256": ""
+      },
+      "pack_data": {
+        "format_version": "1.1",
+        "agent_type": "certified",
+        "agent_ref": "icoder/note-completeness@1.0.0",
+        "manifest": {
+          "name": "病历完整性",
+          "version": "1.0.0",
+          "description": "实时检查病历完整性、准确性和合规性。",
+          "category": "质控",
+          "icon": "FileCheck"
+        },
+        "system_prompt": "你是病历质量审核专家。对照《病历书写基本规范》检查病历的完整性和准确性。",
+        "experts": [],
+        "tools": [
+          "check_documentation_gaps",
+          "cdi_review",
+          "extract_evidence",
+          "verify_evidence",
+          "guard_input",
+          "guard_output"
+        ],
+        "permissions": {
+          "key": "note-completeness",
+          "name": "病历完整性权限",
+          "description": "实时检查病历完整性、准确性和合规性。",
+          "tools": {
+            "check_documentation_gaps": {
+              "allowed": true
+            },
+            "cdi_review": {
+              "allowed": true
+            },
+            "extract_evidence": {
+              "allowed": true
+            },
+            "verify_evidence": {
+              "allowed": true
+            },
+            "guard_input": {
+              "allowed": true
+            },
+            "guard_output": {
+              "allowed": true
+            }
+          }
+        },
+        "requirements": {
+          "min_runtime_version": "1.0.0"
+        },
+        "llm_capabilities": {
+          "required_models": [
+            {
+              "name": "deepseek-v4"
+            }
+          ],
+          "supports_tool_calling": false,
+          "supports_json_mode": true
+        },
+        "code": {},
+        "integrity": {
+          "sha256": ""
+        }
+      },
+      "status": "installed",
+      "installed_at": "2026-06-05T00:45:22.221201+00:00"
+    },
+    "手术提取-1.0.0": {
+      "agent_id": "手术提取-1.0.0",
+      "name": "手术提取",
+      "version": "1.0.0",
+      "description": "从手术记录中提取手术操作并分配 ICD-9-CM-3 编码。",
+      "category": "编码",
+      "icon": "Scalpel",
+      "agent_type": "certified",
+      "system_prompt": "你是手术编码专家。从手术记录中提取所有手术/操作并按 ICD-9-CM-3 分配编码。",
+      "expert_ids": [],
+      "experts": [],
+      "tools": [
+        "extract_evidence",
+        "search_icd9_index",
+        "assign_procedure_code",
+        "guard_input",
+        "guard_output"
+      ],
+      "permissions": {
+        "key": "procedure-extractor",
+        "name": "手术提取权限",
+        "description": "从手术记录中提取手术操作并分配 ICD-9-CM-3 编码。",
+        "tools": {
+          "extract_evidence": {
+            "allowed": true
+          },
+          "search_icd9_index": {
+            "allowed": true
+          },
+          "assign_procedure_code": {
+            "allowed": true
+          },
+          "guard_input": {
+            "allowed": true
+          },
+          "guard_output": {
+            "allowed": true
+          }
+        }
+      },
+      "publisher_name": "iCoDer",
+      "publisher_email": "hello@icoder.ai",
+      "min_runtime_version": "1.0.0",
+      "llm_capabilities": {
+        "required_models": [
+          {
+            "name": "deepseek-v4"
+          }
+        ],
+        "supports_tool_calling": false,
+        "supports_json_mode": true
+      },
+      "integrity": {
+        "sha256": ""
+      },
+      "pack_data": {
+        "format_version": "1.1",
+        "agent_type": "certified",
+        "agent_ref": "icoder/procedure-extractor@1.0.0",
+        "manifest": {
+          "name": "手术提取",
+          "version": "1.0.0",
+          "description": "从手术记录中提取手术操作并分配 ICD-9-CM-3 编码。",
+          "category": "编码",
+          "icon": "Scalpel"
+        },
+        "system_prompt": "你是手术编码专家。从手术记录中提取所有手术/操作并按 ICD-9-CM-3 分配编码。",
+        "experts": [],
+        "tools": [
+          "extract_evidence",
+          "search_icd9_index",
+          "assign_procedure_code",
+          "guard_input",
+          "guard_output"
+        ],
+        "permissions": {
+          "key": "procedure-extractor",
+          "name": "手术提取权限",
+          "description": "从手术记录中提取手术操作并分配 ICD-9-CM-3 编码。",
+          "tools": {
+            "extract_evidence": {
+              "allowed": true
+            },
+            "search_icd9_index": {
+              "allowed": true
+            },
+            "assign_procedure_code": {
+              "allowed": true
+            },
+            "guard_input": {
+              "allowed": true
+            },
+            "guard_output": {
+              "allowed": true
+            }
+          }
+        },
+        "requirements": {
+          "min_runtime_version": "1.0.0"
+        },
+        "llm_capabilities": {
+          "required_models": [
+            {
+              "name": "deepseek-v4"
+            }
+          ],
+          "supports_tool_calling": false,
+          "supports_json_mode": true
+        },
+        "code": {},
+        "integrity": {
+          "sha256": ""
+        }
+      },
+      "status": "installed",
+      "installed_at": "2026-06-05T00:45:22.226152+00:00"
+    },
+    "tabular-validator-1.0.0": {
+      "agent_id": "tabular-validator-1.0.0",
+      "name": "Tabular Validator",
+      "version": "1.0.0",
+      "description": "对候选编码进行规则验证：编码格式、重复检测、置信度范围、证据要求、DRG/DIP 分组影响。纯确定性规则引擎，零 LLM 参与。",
+      "category": "medical-coding",
+      "icon": "Shield",
+      "agent_type": "certified",
+      "system_prompt": "你是一个编码规则验证引擎。你使用确定性规则引擎（RuleEngineAdapter）验证候选编码集。\n\n输入：index_navigator 输出的候选编码列表\n\n验证规则：\n- R001: 主诊断不能为空\n- R002: ICD-10 格式校验\n- R003: 重复编码检测\n- R004: ICD-9-CM-3 格式校验\n- R005: 重复手术编码检测\n- R006: 置信度范围 (0-1)\n- R007: 低置信度触发人工复核\n- R008: 编码证据不能为空\n- R009: 主诊断来自诊断列表\n- R010: 只有一个 primary 诊断\n- R011: 最多一个 primary 手术\n- R012: critical/high 规则失败触发人工复核\n\n同时执行 DRG/DIP 预留规则（warning only）。\n\n输出 JSON:\n{\n  \"passed\": true/false,\n  \"issues\": [{\"severity\": \"critical\", \"code\": \"R001\", \"message\": \"...\", \"suggestion\": \"...\"}],\n  \"manual_review_required\": true/false,\n  \"validated_candidates\": [...]\n}",
+      "expert_ids": [],
+      "experts": [],
+      "tools": [
+        "rank_evidence",
+        "calibrate_confidence",
+        "analyze_disagreements",
+        "analyze_drg_impact",
+        "guard_input",
+        "guard_output"
+      ],
+      "permissions": {
+        "key": "tabular-validation",
+        "name": "表格验证权限",
+        "description": "规则验证 + DRG分析，不分配编码",
+        "tools": {
+          "rank_evidence": {
+            "allowed": true
+          },
+          "calibrate_confidence": {
+            "allowed": true
+          },
+          "analyze_disagreements": {
+            "allowed": true
+          },
+          "analyze_drg_impact": {
+            "allowed": true,
+            "max_per_session": 5
+          },
+          "guard_input": {
+            "allowed": true
+          },
+          "guard_output": {
+            "allowed": true
+          }
+        }
+      },
+      "publisher_name": "iCoDer",
+      "publisher_email": "hello@icoder.ai",
+      "min_runtime_version": "1.0.0",
+      "llm_capabilities": {
+        "required_models": [
+          {
+            "name": "deepseek-v4"
+          }
+        ],
+        "supports_tool_calling": false,
+        "supports_json_mode": true
+      },
+      "integrity": {
+        "sha256": ""
+      },
+      "pack_data": {
+        "format_version": "1.1",
+        "agent_type": "certified",
+        "agent_ref": "icoder/tabular-validator@1.0.0",
+        "manifest": {
+          "name": "Tabular Validator",
+          "version": "1.0.0",
+          "description": "对候选编码进行规则验证：编码格式、重复检测、置信度范围、证据要求、DRG/DIP 分组影响。纯确定性规则引擎，零 LLM 参与。",
+          "category": "medical-coding",
+          "icon": "Shield"
+        },
+        "system_prompt": "你是一个编码规则验证引擎。你使用确定性规则引擎（RuleEngineAdapter）验证候选编码集。\n\n输入：index_navigator 输出的候选编码列表\n\n验证规则：\n- R001: 主诊断不能为空\n- R002: ICD-10 格式校验\n- R003: 重复编码检测\n- R004: ICD-9-CM-3 格式校验\n- R005: 重复手术编码检测\n- R006: 置信度范围 (0-1)\n- R007: 低置信度触发人工复核\n- R008: 编码证据不能为空\n- R009: 主诊断来自诊断列表\n- R010: 只有一个 primary 诊断\n- R011: 最多一个 primary 手术\n- R012: critical/high 规则失败触发人工复核\n\n同时执行 DRG/DIP 预留规则（warning only）。\n\n输出 JSON:\n{\n  \"passed\": true/false,\n  \"issues\": [{\"severity\": \"critical\", \"code\": \"R001\", \"message\": \"...\", \"suggestion\": \"...\"}],\n  \"manual_review_required\": true/false,\n  \"validated_candidates\": [...]\n}",
+        "experts": [],
+        "tools": [
+          "rank_evidence",
+          "calibrate_confidence",
+          "analyze_disagreements",
+          "analyze_drg_impact",
+          "guard_input",
+          "guard_output"
+        ],
+        "permissions": {
+          "key": "tabular-validation",
+          "name": "表格验证权限",
+          "description": "规则验证 + DRG分析，不分配编码",
+          "tools": {
+            "rank_evidence": {
+              "allowed": true
+            },
+            "calibrate_confidence": {
+              "allowed": true
+            },
+            "analyze_disagreements": {
+              "allowed": true
+            },
+            "analyze_drg_impact": {
+              "allowed": true,
+              "max_per_session": 5
+            },
+            "guard_input": {
+              "allowed": true
+            },
+            "guard_output": {
+              "allowed": true
+            }
+          }
+        },
+        "requirements": {
+          "min_runtime_version": "1.0.0"
+        },
+        "llm_capabilities": {
+          "required_models": [
+            {
+              "name": "deepseek-v4"
+            }
+          ],
+          "supports_tool_calling": false,
+          "supports_json_mode": true
+        },
+        "code": {},
+        "integrity": {
+          "sha256": ""
+        }
+      },
+      "status": "installed",
+      "installed_at": "2026-06-05T00:45:22.231757+00:00"
     }
   }
 }

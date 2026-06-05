@@ -655,10 +655,25 @@ export default function MedicalCodingPage() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handlePredict(); } }}
-              placeholder="输入临床文本..."
+              placeholder={input ? '' : '输入临床文本...'}
               rows={14}
               className="w-full text-[15px] leading-relaxed border-0 p-0 pt-8 bg-transparent focus:outline-none placeholder:text-muted-foreground/30 resize-none text-foreground flex-1"
             />
+            {/* Guided empty state — Corti-style sample selection */}
+            {!input && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <p className="text-sm text-muted-foreground mb-3 pointer-events-auto">选择示例病历开始体验：</p>
+                <div className="flex gap-2 pointer-events-auto">
+                  {samples.slice(0, 3).map((s: any, i: number) => (
+                    <button key={i} onClick={() => setInput(s.text)}
+                      className="px-3 py-2 rounded-lg border border-border/50 text-xs text-muted-foreground hover:text-foreground hover:border-primary/30 hover:bg-accent/50 transition-all text-left max-w-[200px]">
+                      <p className="font-medium text-foreground truncate">{s.label}</p>
+                      <p className="text-[10px] text-muted-foreground truncate mt-0.5">{s.text.slice(0, 50)}...</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Sample cases — top-right collapsible */}
             <div className="absolute top-3 right-4 z-10">

@@ -9,6 +9,22 @@ on:
 jobs:
   backend:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: icoder
+          POSTGRES_PASSWORD: icoder_test
+          POSTGRES_DB: icoder_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 3
+        ports:
+          - 5432:5432
+    env:
+      ICODER_DATABASE_URL: postgresql+asyncpg://icoder:icoder_test@localhost:5432/icoder_test
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

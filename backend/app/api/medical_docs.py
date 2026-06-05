@@ -156,11 +156,20 @@ async def generate_document(body: GenerateRequest):
         import json
         generated = json.loads(result) if isinstance(result, str) else result
     except Exception:
-        # Fallback: extract from encounter data keys
+        # Fallback: extract from encounter data keys + LLM call via text-gen
         generated = {}
-        for s in tpl["sections"]:
-            key = s["key"]
-            generated[key] = encounter.get(key, encounter.get(s["label"], "待补充"))
+        try:
+            from app.services.llm_service import llm_service
+            text_result = await llm_service.generate_text(
+                f"基于以下病历生成{tpl['name']}的各字段内容，JSON格式：\\n" + str(encounter)[:2000]
+            )
+            generated = json.loads(text_result) if isinstance(text_result, str) else {}
+        except:
+            pass
+        if not generated:
+            for s in tpl["sections"]:
+                key = s["key"]
+                generated[key] = encounter.get(key, encounter.get(s["label"], "待补充"))
 
     # Format sections with the generated/fallback data
     sections = []

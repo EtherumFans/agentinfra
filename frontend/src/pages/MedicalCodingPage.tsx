@@ -42,7 +42,7 @@ export default function MedicalCodingPage() {
 
   const [input, setInput] = useState('');
   const [codingSystems, setCodingSystems] = useState<{ code_system: string; name: string; is_default: boolean }[]>([]);
-  const [selectedSystems, setSelectedSystems] = useState<string[]>([]);
+  const [selectedSystems, setSelectedSystems] = useState<string[]>(['icd10-cn', 'icd9-cm-3']);
   const [showSystemMenu, setShowSystemMenu] = useState(false);
   const [showSampleMenu, setShowSampleMenu] = useState(false);
   const [result, setResult] = useState<any>(null);

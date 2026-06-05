@@ -224,6 +224,25 @@ export default function AgentsPage() {
     setGeneratingPrompt(false);
   };
 
+  // Auto-generate prompt when template is selected (Corti-style AI assist)
+  const generatePromptForTemplate = async (name: string, desc: string, category: string) => {
+    if (!name || generatingPrompt) return;
+    setGeneratingPrompt(true);
+    try {
+      const token = localStorage.getItem('access_token') || '';
+      if (!token) { setGeneratingPrompt(false); return; }
+      const resp = await fetch('/api/text-gen/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ template: 'system_prompt', language: 'zh-CN', context: { agent_name: name, description: desc, category } }),
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data.output) setNewAgentPrompt(data.output);
+      }
+    } catch {} finally { setGeneratingPrompt(false); }
+  };
+
   // New Agent Creation
   const handleCreateAgent = async () => {
     if (!newAgentName.trim() || creatingAgent) return;
@@ -547,225 +566,56 @@ export default function AgentsPage() {
             </div>
 
             {/* Form body */}
-            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
-              {/* Clone from existing */}
-              <div className="border border-border rounded-lg overflow-hidden">
-                <button
-                  onClick={() => setShowClonePicker(!showClonePicker)}
-                  className="w-full flex items-center justify-between px-4 py-3 hover:bg-accent/30 transition-colors text-left"
-                >
-                  <div className="flex items-center gap-2">
-                    <Copy size={14} className="text-muted-foreground" />
-                    <span className="text-sm font-medium text-foreground">{t.cloneFromExisting}</span>
-                  </div>
-                  <ChevronRight size={14} className={`text-muted-foreground transition-transform ${showClonePicker ? 'rotate-90' : ''}`} />
-                </button>
-                {showClonePicker && (
-                  <div className="border-t border-border px-4 py-3 bg-muted/30 max-h-56 overflow-y-auto space-y-2">
-                    <p className="text-[10px] text-muted-foreground">{t.cloneHint}</p>
-                    <div className="grid gap-1.5">
-                      {dbAgents.filter(a => a.is_prebuilt).slice(0, 8).map(agent => (
-                        <button
-                          key={agent.id}
-                          onClick={() => cloneAgent(agent)}
-                          className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-accent transition-colors text-left group"
-                        >
-                          <div className="w-7 h-7 rounded-md bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
-                            <Bot size={13} className="text-primary" />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="text-xs font-medium text-foreground truncate">{agent.name}</p>
-                            <p className="text-[10px] text-muted-foreground truncate">{agent.category}</p>
-                          </div>
-                          <span className="text-[10px] text-primary opacity-0 group-hover:opacity-100 transition-opacity shrink-0">{t.cloneAction}</span>
-                        </button>
-                      ))}
-                      {(!dbAgents || dbAgents.filter(a => a.is_prebuilt).length === 0) && (
-                        <p className="text-[10px] text-muted-foreground text-center py-2">{t.noTemplatesAvailable}</p>
-                      )}
-                    </div>
-                  </div>
-                )}
+            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
+              <div>
+                <label className="text-xs font-semibold text-foreground block mb-2">选择模板</label>
+                <div className="relative mb-2">
+                  <Search size={12} className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <input value={templateSearch} onChange={e => setTemplateSearch(e.target.value)}
+                    placeholder="搜索模板..."
+                    className="w-full pl-6 pr-2 py-1.5 text-xs bg-transparent border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-ring" />
+                </div>
+                <div className="max-h-56 overflow-y-auto space-y-1">
+                  {agentTemplates.length > 0
+                    ? agentTemplates.filter((t: any) => !templateSearch || (t.title||t.name||'').toLowerCase().includes(templateSearch.toLowerCase())).map((tpl: any) => (
+                      <label key={tpl.id} className={'flex items-start gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-colors ' + (selectedTemplate === tpl.id ? 'bg-primary/10 border border-primary/20' : 'hover:bg-accent border border-transparent')}>
+                        <input type="radio" name="agent-template" className="mt-0.5 accent-primary shrink-0"
+                          checked={selectedTemplate === tpl.id}
+                          onChange={() => { setSelectedTemplate(tpl.id); setNewAgentName(tpl.title||tpl.name||''); setNewAgentDesc(tpl.description||''); setNewAgentCategory((tpl as any).category||'编码'); generatePromptForTemplate(tpl.title||tpl.name||'', tpl.description||'', (tpl as any).category||'编码'); }} />
+                        <div className="min-w-0"><p className="text-xs font-medium text-foreground">{tpl.title||tpl.name}</p><p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-2">{tpl.description}</p></div>
+                      </label>
+                    ))
+                    : (dbAgents.filter(a => a.is_prebuilt).slice(0, 8)||[]).map((a: any) => (
+                      <label key={a.id||a.key} className={'flex items-start gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-colors ' + (selectedTemplate===(a.id||a.key) ? 'bg-primary/10 border border-primary/20' : 'hover:bg-accent border border-transparent')}>
+                        <input type="radio" name="agent-template" className="mt-0.5 accent-primary shrink-0"
+                          checked={selectedTemplate===(a.id||a.key)}
+                          onChange={() => { setSelectedTemplate(a.id||a.key); setNewAgentName(a.name||''); setNewAgentDesc(a.desc||a.description||''); setNewAgentCategory(a.category||'编码'); generatePromptForTemplate(a.name||'', a.desc||a.description||'', a.category||'编码'); }} />
+                        <div className="min-w-0"><p className="text-xs font-medium text-foreground">{a.name}</p><p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-2">{a.desc||a.description||''}</p></div>
+                      </label>
+                    ))
+                  }
+                </div>
               </div>
-
-              {/* Use a template */}
+              <div>
+                <label className="text-xs font-semibold text-foreground block mb-1.5">Agent 名称 <span className="text-muted-foreground">*</span></label>
+                <input value={newAgentName} onChange={e => setNewAgentName(e.target.value)} placeholder="例如：我的合规审核助手"
+                  className="w-full text-sm border border-border rounded-lg px-3 py-2.5 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/50" autoFocus />
+              </div>
               <div className="border border-border rounded-lg overflow-hidden">
-                <button
-                  onClick={() => setShowTemplatePicker(!showTemplatePicker)}
-                  className="w-full flex items-center justify-between px-4 py-3 hover:bg-accent/30 transition-colors text-left"
-                >
-                  <div className="flex items-center gap-2">
-                    <BookOpen size={14} className="text-muted-foreground" />
-                    <span className="text-sm font-medium text-foreground">{t.useTemplate}</span>
-                  </div>
-                  <ChevronRight size={14} className={`text-muted-foreground transition-transform ${showTemplatePicker ? 'rotate-90' : ''}`} />
+                <button onClick={() => setShowTemplatePicker(!showTemplatePicker)} className="w-full flex items-center justify-between px-3 py-2 hover:bg-accent/30 transition-colors text-left">
+                  <span className="text-xs font-medium text-muted-foreground">高级设置</span>
+                  <ChevronRight size={14} className={'text-muted-foreground transition-transform ' + (showTemplatePicker ? 'rotate-90' : '')} />
                 </button>
                 {showTemplatePicker && (
-                  <div className="border-t border-border px-4 py-3 bg-muted/30 max-h-72 overflow-y-auto space-y-1.5">
-                    <p className="text-[10px] text-muted-foreground mb-2">{t.useTemplateHint}</p>
-                    {/* Template search */}
-                    <div className="relative mb-2">
-                      <Search size={12} className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                      <input
-                        value={templateSearch}
-                        onChange={e => setTemplateSearch(e.target.value)}
-                        placeholder={t.searchTemplates}
-                        className="w-full pl-6 pr-2 py-1 text-xs bg-transparent border border-border rounded focus:outline-none focus:ring-1 focus:ring-ring"
-                      />
-                    </div>
-                    {(agentTemplates.length === 0 && !templateSearch) ? (
-                      <p className="text-[10px] text-muted-foreground text-center py-2">{t.loadingTemplates}</p>
-                    ) : (
-                      agentTemplates
-                        .filter((tpl: any) => {
-                          if (!templateSearch) return true;
-                          const q = templateSearch.toLowerCase();
-                          return (tpl.title || tpl.name || '').toLowerCase().includes(q);
-                        })
-                        .map((tpl: any) => (
-                        <label
-                          key={tpl.id}
-                          className={`flex items-start gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-colors ${
-                            selectedTemplate === tpl.id
-                              ? 'bg-primary/10 border border-primary/20'
-                              : 'hover:bg-accent border border-transparent'
-                          }`}
-                        >
-                          <input
-                            type="radio"
-                            name="agent-template"
-                            className="mt-0.5 accent-primary shrink-0"
-                            checked={selectedTemplate === tpl.id}
-                            onChange={() => {
-                              if (selectedTemplate === tpl.id) {
-                                setSelectedTemplate('');
-                              } else {
-                                setSelectedTemplate(tpl.id);
-                                setNewAgentName(tpl.title || '');
-                                setNewAgentDesc(tpl.description || '');
-                                setNewAgentPrompt(tpl.system_prompt || '');
-                              }
-                            }}
-                          />
-                          <div className="min-w-0 flex-1">
-                            <p className="text-xs font-medium text-foreground">{tpl.title}</p>
-                            <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-2">{tpl.description}</p>
-                          </div>
-                        </label>
-                      ))
-                    )}
+                  <div className="border-t border-border px-3 py-3 bg-muted/20 space-y-3">
+                    <div><label className="text-[10px] font-semibold text-foreground block mb-1">描述</label><input value={newAgentDesc} onChange={e => setNewAgentDesc(e.target.value)} placeholder="Agent 的功能描述" className="w-full text-xs border border-border rounded-lg px-2 py-1.5 bg-transparent" /></div>
+                    <div><label className="text-[10px] font-semibold text-foreground block mb-1">分类</label><div className="flex flex-wrap gap-1">{USE_CASES.filter(c => c !== '全部').map(c => (<button key={c} onClick={() => setNewAgentCategory(c)} className={'text-[10px] px-2 py-1 rounded-full border transition-colors ' + (newAgentCategory===c ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:bg-accent')}>{c}</button>))}</div></div>
+                    <div><label className="text-[10px] font-semibold text-foreground block mb-1">系统提示词</label><div className="border border-border rounded-lg overflow-hidden"><div className="bg-muted/50 px-2 py-1 border-b border-border flex items-center justify-between"><span className="text-[10px] font-mono text-muted-foreground">&lt;role&gt;</span><button onClick={generatePrompt} disabled={!newAgentName.trim()||generatingPrompt} className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded border border-border/50 hover:bg-accent disabled:opacity-40">{generatingPrompt ? <><Loader2 size={10} className="animate-spin" /></> : <><Sparkles size={10} /> AI 生成</>}</button></div><textarea value={newAgentPrompt} onChange={e => setNewAgentPrompt(e.target.value)} placeholder="系统提示词..." rows={4} className="w-full text-xs bg-transparent px-2 py-1.5 resize-none focus:outline-none leading-relaxed" /></div></div>
                   </div>
                 )}
-              </div>
-
-              {/* Name */}
-              <div>
-                <label className="text-xs font-semibold text-foreground block mb-1.5">{t.name} <span className="text-muted-foreground">*</span></label>
-                <input
-                  value={newAgentName}
-                  onChange={e => setNewAgentName(e.target.value)}
-                  placeholder={t.agentNamePlaceholder}
-                  className="w-full text-sm border border-border rounded-lg px-3 py-2.5 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/50"
-                  autoFocus
-                />
-              </div>
-
-              {/* Description */}
-              <div>
-                <label className="text-xs font-semibold text-foreground block mb-1.5">{t.description}</label>
-                <input
-                  value={newAgentDesc}
-                  onChange={e => setNewAgentDesc(e.target.value)}
-                  placeholder={t.agentDescPlaceholder}
-                  className="w-full text-sm border border-border rounded-lg px-3 py-2.5 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/50"
-                />
-              </div>
-
-              {/* Category */}
-              <div>
-                <label className="text-xs font-semibold text-foreground block mb-1.5">{t.category}</label>
-                <div className="flex flex-wrap gap-1.5">
-                  {USE_CASES.filter(c => c !== '全部').map(c => (
-                    <button
-                      key={c}
-                      onClick={() => setNewAgentCategory(c)}
-                      className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
-                        newAgentCategory === c
-                          ? 'bg-primary text-primary-foreground border-primary'
-                          : 'border-border text-muted-foreground hover:bg-accent'
-                      }`}
-                    >
-                      {c}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* System Prompt */}
-              <div>
-                <label className="text-xs font-semibold text-foreground block mb-1.5">
-                  {t.systemPrompt}
-                  <span className="text-muted-foreground font-normal ml-1">{t.optional}</span>
-                </label>
-                <div className="border border-border rounded-lg overflow-hidden">
-                  <div className="bg-muted/50 px-3 py-1.5 border-b border-border flex items-center justify-between">
-                    <span className="text-[10px] font-mono text-muted-foreground">&lt;role&gt;</span>
-                    <button
-                      onClick={generatePrompt}
-                      disabled={!newAgentName.trim() || generatingPrompt}
-                      className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded border border-border/50 hover:bg-accent hover:border-border disabled:opacity-40 transition-all text-muted-foreground hover:text-foreground"
-                      title="AI 辅助生成系统提示词"
-                    >
-                      {generatingPrompt ? (
-                        <><Loader2 size={10} className="animate-spin" /> {t.generating}</>
-                      ) : (
-                        <><Sparkles size={10} /> {t.aiGenerate}</>
-                      )}
-                    </button>
-                  </div>
-                  <textarea
-                    value={newAgentPrompt}
-                    onChange={e => setNewAgentPrompt(e.target.value)}
-                    placeholder={t.systemPromptPlaceholder}
-                    rows={6}
-                    className="w-full text-xs bg-transparent px-3 py-2.5 text-foreground placeholder:text-muted-foreground resize-none focus:outline-none leading-relaxed"
-                  />
-                </div>
-              </div>
-
-              {/* Expert binding */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <label className="text-xs font-semibold text-foreground">{t.bindExperts}</label>
-                  <span className="text-[10px] text-muted-foreground">{t.selectedCount.replace('{count}', String(newAgentExperts.length))}</span>
-                </div>
-                {/* Selected experts */}
-                {newAgentExperts.length > 0 && (
-                  <div className="space-y-1 mb-3">
-                    {newAgentExperts.map(expert => (
-                      <div key={expert.id} className="flex items-center gap-2 py-1.5 px-2.5 rounded-lg bg-accent/30 text-xs">
-                        <Wrench size={12} className="text-muted-foreground shrink-0" />
-                        <span className="flex-1 truncate">{expert.name}</span>
-                        <button
-                          onClick={() => setNewAgentExperts(prev => prev.filter(e => e.id !== expert.id))}
-                          className="p-0.5 rounded hover:bg-accent text-muted-foreground hover:text-foreground"
-                        >
-                          <X size={12} />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {/* Inline expert picker */}
-                <CreateExpertPicker
-                  selectedIds={newAgentExperts.map(e => e.id)}
-                  onAdd={(expert: any) => setNewAgentExperts(prev => [...prev, expert])}
-                  onRemove={(id: string) => setNewAgentExperts(prev => prev.filter(e => e.id !== id))}
-                />
               </div>
             </div>
-
-            {/* Footer */}
+{/* Footer */}
             <div className="flex items-center justify-between px-6 py-4 border-t border-border bg-muted/30 shrink-0">
               <button
                 onClick={() => { setShowNewAgentModal(false); setNewAgentExperts([]); }}

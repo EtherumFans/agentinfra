@@ -1,4 +1,5 @@
 # Pytest configuration for iCoDer
+import os
 import pytest_asyncio
 import pytest
 from httpx import AsyncClient, ASGITransport
@@ -6,8 +7,11 @@ from app.main import app
 from app.database import init_db, Base, engine
 from app.config import settings
 
-# Override test settings
-settings.DATABASE_URL = "sqlite+aiosqlite:///./data/test.db"
+# Test DB: use ICODER_DATABASE_URL if set (PostgreSQL in CI), else SQLite with WAL mode
+_test_db_url = os.environ.get("ICODER_DATABASE_URL", "")
+if not _test_db_url:
+    _test_db_url = "sqlite+aiosqlite:///./data/test.db"
+settings.DATABASE_URL = _test_db_url
 settings.DEBUG = False
 
 

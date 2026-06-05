@@ -6,10 +6,13 @@ import {
   Copy, Check,
   X, Plus, Trash2, Pencil, Info, Shield,
 } from 'lucide-react';
-import { textGenApi } from '../services/api';
+import { textGenApi, authApi } from '../services/api';
 import EventInspector from '../components/common/EventInspector';
 import CodeSnippet from '../components/common/CodeSnippet';
 import SettingsCodeTab from '../components/common/SettingsCodeTab';
+
+// Medical document template types from backend
+interface MedDocSection { key: string; label: string; value: string; required: boolean; filled: boolean; }
 
 // 文书模板 — 支持用户编辑
 type Template = { key: string; name: string; desc: string; category: string; sample: string };

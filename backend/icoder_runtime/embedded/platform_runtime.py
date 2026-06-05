@@ -167,7 +167,6 @@ class PlatformRuntime:
 
         delegated_by: {"user_id": "...", "username": "...", "agent_account_id": "..."}
         When provided, the Agent executes on behalf of this user with a delegation JWT.
-        """
 
         Looks up the agent in the persistent RuntimeAgentRegistry.
 

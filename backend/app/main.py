@@ -343,6 +343,13 @@ app.include_router(standard_runtime_router)   # /api/runtime/* (standard)
 app.include_router(compliance_router)          # /api/compliance/*
 
 
+@app.get("/api/metrics")
+async def metrics():
+    """Prometheus-compatible metrics endpoint."""
+    from app.middleware.logging import get_metrics
+    return get_metrics()
+
+
 @app.get("/")
 async def root():
     return {

@@ -23,14 +23,18 @@ security = HTTPBearer(auto_error=False)
 
 
 def hash_password(password: str) -> str:
-    """Hash password using SHA-256 with salt (production-ready alternative to bcrypt compat issue)."""
-    salt = secrets.token_hex(16)
-    hash_digest = hashlib.sha256(f"{salt}{password}".encode()).hexdigest()
-    return f"$sha256${salt}${hash_digest}"
+    """Hash password using bcrypt (production default)."""
+    import bcrypt
+    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+
+
+def _needs_rehash(hashed_password: str) -> bool:
+    """Check if a password hash should be upgraded to bcrypt."""
+    return hashed_password.startswith("$sha256$")
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Verify password against stored hash."""
+    """Verify password against stored hash. Supports bcrypt ($2b$/$2a$) and legacy SHA-256."""
     try:
         if hashed_password.startswith("$sha256$"):
             parts = hashed_password.split("$")
@@ -47,13 +51,14 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         return False
 
 
-def create_access_token(user_id: str, username: str, role: str, org_id: str = "") -> str:
+def create_access_token(user_id: str, username: str, role: str, org_id: str = "", token_version: int = 0) -> str:
     expire = datetime.now(timezone.utc) + timedelta(minutes=settings.JWT_EXPIRE_MINUTES)
     payload = {
         "sub": user_id,
         "username": username,
         "role": role,
         "org_id": org_id,
+        "token_version": token_version,
         "exp": expire,
         "iat": datetime.now(timezone.utc),
         "type": "access",
@@ -61,11 +66,12 @@ def create_access_token(user_id: str, username: str, role: str, org_id: str = ""
     return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
 
 
-def create_refresh_token(user_id: str, org_id: str = "") -> str:
+def create_refresh_token(user_id: str, org_id: str = "", token_version: int = 0) -> str:
     expire = datetime.now(timezone.utc) + timedelta(days=settings.JWT_REFRESH_EXPIRE_DAYS)
     payload = {
         "sub": user_id,
         "org_id": org_id,
+        "token_version": token_version,
         "exp": expire,
         "type": "refresh",
     }
@@ -104,6 +110,10 @@ async def get_current_user(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
     if not user.is_active:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User account is deactivated")
+    # Check token_version: if user's tokens have been revoked, reject
+    token_version = payload.get("token_version", 0)
+    if user.token_version > token_version:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token revoked. Please re-authenticate.")
     return user
 
 

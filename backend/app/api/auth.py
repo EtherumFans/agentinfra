@@ -106,8 +106,8 @@ async def register(data: UserCreate, request: Request, db: AsyncSession = Depend
 
     orgs = [OrgInfo(id=org.id, name=org.name, slug=org.slug, plan=org.plan,
                     role="owner", is_default=True)]
-    access_token = create_access_token(user.id, user.username, user.role.value, org.id)
-    refresh_token = create_refresh_token(user.id, org.id)
+    access_token = create_access_token(user.id, user.username, user.role.value, org.id, token_version=0)
+    refresh_token = create_refresh_token(user.id, org.id, token_version=0)
 
     return TokenResponse(
         access_token=access_token,
@@ -140,6 +140,13 @@ async def login(data: UserLogin, request: Request, db: AsyncSession = Depends(ge
                          ip_address=request.client.host if request.client else None, status="failure")
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
+    # Auto-upgrade legacy SHA-256 passwords to bcrypt
+    from app.middleware.auth import _needs_rehash
+    if _needs_rehash(user.hashed_password):
+        user.hashed_password = hash_password(data.password)
+        await db.commit()
+        logger.info(f"Password hash upgraded to bcrypt for user: {user.username}")
+
     if not user.is_active:
         raise HTTPException(status_code=403, detail="Account deactivated")
 
@@ -157,8 +164,8 @@ async def login(data: UserLogin, request: Request, db: AsyncSession = Depends(ge
                      ip_address=request.client.host if request.client else None,
                      details={"org_count": len(orgs), "current_org_id": default_org_id})
 
-    access_token = create_access_token(user.id, user.username, user.role.value, default_org_id)
-    refresh_token = create_refresh_token(user.id, default_org_id)
+    access_token = create_access_token(user.id, user.username, user.role.value, default_org_id, token_version=user.token_version)
+    refresh_token = create_refresh_token(user.id, default_org_id, token_version=user.token_version)
 
     return TokenResponse(
         access_token=access_token,
@@ -187,8 +194,8 @@ async def refresh_token(data: TokenRefresh, db: AsyncSession = Depends(get_db)):
     if org_id and not any(o.id == org_id for o in orgs):
         org_id = orgs[0].id if orgs else ""
 
-    access_token = create_access_token(user.id, user.username, user.role.value, org_id)
-    new_refresh = create_refresh_token(user.id, org_id)
+    access_token = create_access_token(user.id, user.username, user.role.value, org_id, token_version=user.token_version)
+    new_refresh = create_refresh_token(user.id, org_id, token_version=user.token_version)
 
     return TokenResponse(
         access_token=access_token,
@@ -229,7 +236,7 @@ async def switch_org(data: SwitchOrgRequest, request: Request,
 
     access_token = create_access_token(current_user.id, current_user.username,
                                        current_user.role.value, org.id)
-    refresh_token = create_refresh_token(current_user.id, org.id)
+    refresh_token = create_refresh_token(current_user.id, org.id, token_version=current_user.token_version)
 
     return TokenResponse(
         access_token=access_token,
@@ -369,9 +376,17 @@ async def revoke_tokens(
 
 
 async def _revoke_user_tokens(db: AsyncSession, user_id: str, reason: str = "logout") -> int:
-    """Revoke all active OAuth tokens for a user. Returns count revoked."""
+    """Revoke all active tokens for a user — increments token_version to invalidate all JWTs."""
+    # Increment token_version to invalidate all existing JWTs immediately
+    from app.models.user import User
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    if user:
+        user.token_version += 1
+        logger.info(f"User {user.username} token_version incremented to {user.token_version} (reason: {reason})")
+    # Also revoke OAuth tokens
     from app.models.oauth import OAuthToken
-    result = await db.execute(
+    oauth_result = await db.execute(
         select(OAuthToken).where(
             OAuthToken.client_id.in_(
                 select(OAuthToken.client_id).where(
@@ -380,10 +395,10 @@ async def _revoke_user_tokens(db: AsyncSession, user_id: str, reason: str = "log
             )
         )
     )
-    tokens = result.scalars().all()
+    tokens = oauth_result.scalars().all()
     for t in tokens:
         t.is_revoked = True
-    return len(tokens)
+    return len(tokens) + (1 if user else 0)
 
 
 # ── Login Rate Limiter ───────────────────────────────────────────────────

@@ -6,17 +6,28 @@ from app.config import settings
 
 logger = logging.getLogger(__name__)
 
-engine = create_async_engine(
-    settings.DATABASE_URL,
-    echo=settings.DEBUG,
-    connect_args={"check_same_thread": False},
-)
+_is_sqlite = "sqlite" in settings.DATABASE_URL
+
+_engine_kwargs: dict = {"echo": settings.DEBUG}
+if _is_sqlite:
+    _engine_kwargs["connect_args"] = {"check_same_thread": False}
+else:
+    _engine_kwargs["pool_size"] = 20
+    _engine_kwargs["max_overflow"] = 10
+    _engine_kwargs["pool_recycle"] = 3600
+    _engine_kwargs["pool_pre_ping"] = True
+
+engine = create_async_engine(settings.DATABASE_URL, **_engine_kwargs)
 
 AsyncSessionLocal = async_sessionmaker(
     engine,
     class_=AsyncSession,
     expire_on_commit=False,
 )
+
+logger.info(f"Database: {'SQLite' if _is_sqlite else 'PostgreSQL'}")
+if not _is_sqlite:
+    logger.info(f"Connection pool: size=20, overflow=10, recycle=3600s")
 
 
 class Base(DeclarativeBase):

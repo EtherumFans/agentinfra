@@ -35,8 +35,6 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
 
   const PRODUCT_TABS = [
-    { key: 'transcribe' as const, label: t.productHubTranscribe, description: t.productHubTranscribeDesc, cta: t.productHubTranscribeCta, ctaLink: '/ai-studio/speech-to-text', secondaryLabel: t.productHubTranscribeSecondary, secondaryLink: '/ai-studio/speech-to-text', buildLabel: t.productHubTranscribeBuild, buildLink: '/developer-quickstart?useCase=dictation' },
-    { key: 'document' as const, label: t.productHubDocument, description: t.productHubDocumentDesc, cta: t.productHubDocumentCta, ctaLink: '/ai-studio/text-generation', secondaryLabel: t.productHubDocumentSecondary, secondaryLink: '/ai-studio/text-generation', buildLabel: t.productHubDocumentBuild, buildLink: '/developer-quickstart?useCase=scribe' },
     { key: 'chat' as const, label: t.productHubChat, description: t.productHubChatDesc, cta: t.productHubChatCta, ctaLink: '/ai-studio/agents', secondaryLabel: t.productHubChatSecondary, secondaryLink: '/ai-studio/agents', buildLabel: t.productHubChatBuild, buildLink: '/developer-quickstart?useCase=chat' },
     { key: 'code' as const, label: t.productHubCode, labelSuffix: t.productHubNew, description: t.productHubCodeDesc, cta: t.productHubCodeCta, ctaLink: '/ai-studio/medical-coding', secondaryLabel: t.productHubCodeSecondary, secondaryLink: '/ai-studio/medical-coding', buildLabel: t.productHubCodeBuild, buildLink: '/developer-quickstart?useCase=coding' },
   ];

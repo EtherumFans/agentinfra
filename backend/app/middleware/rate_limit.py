@@ -14,7 +14,7 @@ from app.config import settings
 logger = logging.getLogger(__name__)
 
 WINDOW_SECONDS = 60
-LOGIN_LIMIT = 5  # Strict limit for login endpoint
+LOGIN_LIMIT = getattr(settings, 'LOGIN_RATE_LIMIT_PER_MINUTE', None) or max(5, settings.RATE_LIMIT_PER_MINUTE // 6)
 
 # Per-IP request tracking (memory backend)
 _request_counts: dict[str, list[float]] = defaultdict(list)

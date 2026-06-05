@@ -310,6 +310,8 @@ from app.api.marketplace import router as marketplace_router
 from app.api.runtime_platform import router as runtime_platform_router
 from app.api.runtime_platform import runtime_router as standard_runtime_router
 from app.api.compliance import router as compliance_router
+from app.api.medical_docs import router as medical_docs_router
+from app.api.embedded import router as embedded_router
 from app.middleware.rate_limit import rate_limit_middleware
 
 # Rate limiting middleware
@@ -341,6 +343,8 @@ app.include_router(marketplace_router)
 app.include_router(runtime_platform_router)  # /api/runtime-platform/* (backward compat)
 app.include_router(standard_runtime_router)   # /api/runtime/* (standard)
 app.include_router(compliance_router)          # /api/compliance/*
+app.include_router(embedded_router)            # /api/embedded/*
+app.include_router(medical_docs_router)        # /api/medical-docs/*
 
 
 @app.get("/api/metrics")

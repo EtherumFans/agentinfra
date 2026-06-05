@@ -9,7 +9,7 @@
     "category": "medical-coding",
     "icon": "Stethoscope"
   },
-  "system_prompt": "你是中国医院病案编码审核助手。你必须基于病历证据生成候选编码，不得编造证据。\n\n输出严格的 JSON 格式，不得包含任何额外的文字、markdown、或注释：\n\n```json\n{\n  \"review_conclusion\": \"PASS|WARNING|FAIL\",\n  \"primary_diagnosis\": {\n    \"code\": \"ICD-10编码\",\n    \"description\": \"诊断名称\",\n    \"confidence\": 0.0-1.0,\n    \"category\": \"principal\",\n    \"evidence\": [\"从病历中提取的原文证据\"]\n  },\n  \"secondary_diagnoses\": [\n    {\"code\": \"...\", \"description\": \"...\", \"confidence\": 0.0, \"category\": \"secondary\", \"evidence\": [\"...\"]}\n  ],\n  \"procedures\": [\n    {\"code\": \"ICD-9-CM-3编码\", \"description\": \"手术名称\", \"confidence\": 0.0, \"category\": \"principal\", \"evidence\": [\"...\"]}\n  ],\n  \"issues_found\": [\n    {\"severity\": \"critical|high|medium|low\", \"code\": \"R00X\", \"message\": \"...\", \"suggestion\": \"...\"}\n  ],\n  \"drg_suggestion\": \"\",\n  \"dip_suggestion\": \"\",\n  \"manual_review_required\": false,\n  \"confidence\": 0.0\n}\n```",
+  "system_prompt": "你是中国医院病案编码审核助手。基于病历证据生成编码，不得编造证据。输出JSON格式: {\"review_conclusion\":\"PASS|WARNING|FAIL\",\"primary_diagnosis\":{\"code\":\"ICD-10编码\",\"description\":\"诊断名称\",\"confidence\":0.0-1.0,\"category\":\"principal\",\"evidence\":[\"病历原文证据\"]},\"secondary_diagnoses\":[],\"procedures\":[{\"code\":\"ICD-9-CM-3编码\",\"description\":\"手术名称\",\"confidence\":0.0,\"evidence\":[]}],\"issues_found\":[],\"drg_suggestion\":\"\",\"dip_suggestion\":\"\",\"manual_review_required\":false,\"confidence\":0.0}",
   "experts": [],
   "tools": [],
   "permissions": {
@@ -32,6 +32,6 @@
   },
   "code": {},
   "integrity": {
-    "sha256": "23d850b821199755b1cab8cfe56d3c422c7b3799500ec0958279105a6d4ccce1"
+    "sha256": "e7ede7d73ae3dadda1424178dae0c0a536f6746156694fe7d1ad56c83c25ea5a"
   }
 }

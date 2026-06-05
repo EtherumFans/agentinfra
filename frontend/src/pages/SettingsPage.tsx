@@ -4,7 +4,7 @@ import { useAuthStore } from '../store';
 import type { OrgInfo } from '../store';
 import { Settings, User, Shield, Database, Activity, Loader2, ExternalLink as ExternalLinkIcon, Check, Building2, UserPlus, X, ChevronDown, Lock, Key } from 'lucide-react';
 import { useT } from '../i18n';
-import { configApi, a2aApi, orgApi } from '../services/api';
+import { configApi, a2aApi, orgApi, authApi } from '../services/api';
 
 const COUNTRIES = [
   { value: 'US', label: 'United States' },
@@ -151,6 +151,17 @@ export default function SettingsPage() {
     setChangingPassword(false);
   };
 
+  const handleRevokeSessions = async () => {
+    if (!confirm('确定要登出所有设备吗？所有会话将立即失效。')) return;
+    try {
+      await authApi.revokeTokens('manual');
+      alert('所有会话已失效。请重新登录。');
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      window.location.href = '/login';
+    } catch { alert('操作失败'); }
+  };
+
   const handleSave = async () => {
     setSaving(true);
     try {
@@ -228,6 +239,10 @@ export default function SettingsPage() {
             </button>
             {passwordMsg && <p className={`text-xs ${passwordMsg.includes('成功') ? 'text-green-600' : 'text-red-500'}`}>{passwordMsg}</p>}
           </div>
+          <button onClick={handleRevokeSessions}
+            className="mt-3 w-full py-2 rounded-lg text-xs font-medium bg-red-50 text-red-600 hover:bg-red-100 border border-red-200">
+            登出所有设备
+          </button>
         </div>
 
         <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-5">

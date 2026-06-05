@@ -172,10 +172,20 @@ export default function RuntimeConsolePage() {
       {/* Rule Engine */}
       <Section title="Rule Engine">
         {reStatus ? (
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-            <StatCard label="Status" value={reStatus.status} />
-            <StatCard label="Rule Sets" value={reStatus.total_rule_sets} sub={reStatus.loaded_rule_sets?.join(', ')} />
-          </div>
+          <>
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 8 }}>
+              <StatCard label="Status" value={reStatus.status} />
+              <StatCard label="Rule Sets" value={reStatus.total_rule_sets} sub={reStatus.loaded_rule_sets?.join(', ')} />
+            </div>
+            <button onClick={async () => {
+              try {
+                const rules = await runtimeApi.getRules();
+                alert(JSON.stringify(rules, null, 2));
+              } catch { alert('Failed to load rules'); }
+            }} style={{ fontSize: 12, padding: '4px 12px', borderRadius: 4, border: '1px solid #d1d5db', background: '#fff', cursor: 'pointer' }}>
+              查看全部规则
+            </button>
+          </>
         ) : <div style={{ color: '#9ca3af' }}>Not available</div>}
       </Section>
 

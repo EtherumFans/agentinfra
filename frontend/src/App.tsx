@@ -20,7 +20,6 @@ import APIClientsPage from './pages/APIClientsPage';
 import TeamPage from './pages/TeamPage';
 import ExpertLibraryPage from './pages/ExpertLibraryPage';
 import SupportPage from './pages/SupportPage';
-import TicketsPage from './pages/TicketsPage';
 import NewAgentPage from './pages/NewAgentPage';
 import DocsPage from './pages/DocsPage';
 import ReleaseNotesPage from './pages/ReleaseNotesPage';
@@ -74,7 +73,6 @@ function App() {
         <Route path="expert-library" element={<ExpertLibraryPage />} />
         {/* Support */}
         <Route path="support" element={<SupportPage />} />
-        <Route path="tickets" element={<TicketsPage />} />
       </Route>
       <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />

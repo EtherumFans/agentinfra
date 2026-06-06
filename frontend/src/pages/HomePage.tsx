@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Loader2, Activity, ChevronDown,
+  Loader2, Activity, ChevronDown, Layers, Asterisk,
 } from 'lucide-react';
 import { billingApi, usageApi, encountersApi, reviewsApi, oauthApi } from '../services/api';
 import { useT, useLocaleStore } from '../i18n';
@@ -87,35 +87,21 @@ export default function HomePage() {
   return (
     <div className="flex h-full bg-muted/20">
       <div className="flex-1 overflow-y-auto">
-        <section className="flex w-full flex-col items-center gap-6 px-4 py-8 relative overflow-hidden">
-          <div className="absolute inset-0 pointer-events-none opacity-[0.12]" style={{ backgroundImage: 'radial-gradient(circle, hsl(var(--foreground)) 1px, transparent 1px)', backgroundSize: '16px 16px' }} />
-          <div className="flex w-full justify-center" role="tablist">
-            <div className="relative inline-flex max-w-full overflow-x-auto rounded-[10px] bg-muted p-0.5 gap-0.5">
-              {PRODUCT_TABS.map(tab => (
-                <button key={tab.key} role="tab" aria-selected={activeTab === tab.key} onClick={() => setActiveTab(tab.key)}
-                  className={`relative flex cursor-pointer items-center justify-center rounded-lg px-1.5 py-1 text-base transition-colors ${activeTab === tab.key ? 'text-foreground bg-popover shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
-                  {tab.label}{tab.labelSuffix && <span className="ml-1 text-[11px] px-1 py-0.5 rounded font-semibold bg-primary/10 text-primary">{tab.labelSuffix}</span>}
-                </button>
-              ))}
-            </div>
+        <div className="px-6 py-4">
+          {/* Quick actions */}
+          <div className="flex items-center gap-2 mb-4">
+            <button onClick={() => navigate('/ai-studio/agents')} className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 flex items-center gap-1.5">
+              <Layers size={16} /> Agent 工作台
+            </button>
+            <button onClick={() => navigate('/ai-studio/medical-coding')} className="px-4 py-2 rounded-lg border border-border text-sm font-medium hover:bg-accent flex items-center gap-1.5">
+              <Asterisk size={16} /> 医学编码
+            </button>
+            <button onClick={() => navigate('/developer-quickstart')} className="px-4 py-2 rounded-lg border border-border text-sm font-medium hover:bg-accent flex items-center gap-1.5">
+              <Activity size={16} /> SDK 集成
+            </button>
           </div>
-          <div className="flex w-full flex-col items-center gap-8">
-            <div className="relative min-h-[56px] w-[640px] max-w-full text-center flex items-center"><p className="text-base text-foreground leading-relaxed">{activeProduct.description}</p></div>
-            <div className="flex w-full flex-col rounded-xl border border-border bg-popover p-4 shadow-sm md:w-auto md:flex-row md:items-center md:gap-4">
-              <div className="flex items-center justify-between gap-4 py-2 md:py-0">
-                <a href={activeProduct.ctaLink} onClick={(e) => { e.preventDefault(); navigate(activeProduct.ctaLink); }} className="text-sm font-medium text-foreground hover:underline">{activeProduct.cta}</a>
-                <a href={activeProduct.secondaryLink} onClick={(e) => { e.preventDefault(); navigate(activeProduct.secondaryLink); }} className="inline-flex items-center px-3 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors">{activeProduct.secondaryLabel}</a>
-              </div>
-              <div className="h-px w-full bg-border md:h-8 md:w-px" />
-              <div className="flex items-center justify-between gap-4 py-2 md:py-0">
-                <a href={activeProduct.buildLink} onClick={(e) => { e.preventDefault(); navigate(activeProduct.buildLink); }} className="text-sm font-medium text-foreground hover:underline">{activeProduct.buildLabel}</a>
-                <a href="/developer-quickstart" onClick={(e) => { e.preventDefault(); navigate('/developer-quickstart'); }} className="inline-flex items-center px-3 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors">{t.productHubDevQuickstart}</a>
-              </div>
-            </div>
-          </div>
-        </section>
 
-        <div className="px-6 pb-6">
+        <div className="px-0 pb-6">
           {loading && <div className="flex justify-center py-2"><Loader2 className="animate-spin h-4 w-4 text-muted-foreground" /></div>}
           <div className="flex items-center gap-2 mb-4">
             <div className="w-1 h-4 rounded-full bg-primary/40" />
@@ -201,6 +187,7 @@ export default function HomePage() {
               </div>
             </div>
           )}
+        </div>
         </div>
       </div>
 

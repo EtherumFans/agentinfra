@@ -180,6 +180,21 @@ export default function AgentDetailPage() {
       }
     }).catch(async () => {
       if (!isActive()) return;
+      // Try Runtime API (for installed agents)
+      try {
+        const { agents: installed } = await runtimeApi.listAgents();
+        const found = installed.find((a: any) => a.agent_ref === agentId);
+        if (found) {
+          setAgent({ id: found.agent_ref, name: found.name, description: found.description, version: found.version, category: found.category, system_prompt: '', expert_ids: [], config: {}, is_prebuilt: found.agent_type === 'certified' });
+          setAgentName(found.name);
+          setAgentRef(found.agent_ref);
+          setRuntimeInstalled(true);
+          setRuntimeStatus(found.status);
+          setRuntimeTier(found.tier ?? null);
+          return;
+        }
+      } catch {}
+      // Try templates
       try {
         const templatesRes = await agentsApi.templates();
         if (!isActive()) return;

@@ -45,6 +45,8 @@ export default function MedicalCodingPage() {
   const [selectedSystems, setSelectedSystems] = useState<string[]>(['icd10-cn', 'icd9-cm-3']);
   const [showSystemMenu, setShowSystemMenu] = useState(false);
   const [showSampleMenu, setShowSampleMenu] = useState(false);
+  const [selectedAgent, setSelectedAgent] = useState('medical-coding-agent-1.0.0');
+  const [availableAgents, setAvailableAgents] = useState<{agent_ref:string;name:string}[]>([]);
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [runtimeMode, setRuntimeMode] = useState(() => localStorage.getItem('icoder-mc-runtime-mode') !== 'legacy');
@@ -58,6 +60,12 @@ export default function MedicalCodingPage() {
   // Fetch DeepSeek status on mount
   useEffect(() => {
     runtimeApi.getMedicalCodingStatus().then((s) => setDsStatus(s)).catch(() => {});
+    // Load available coding agents
+    runtimeApi.listAgents('certified').then(d => {
+      const coding = (d.agents||[]).filter((a:any) => a.category === 'medical-coding' || a.category === '编码');
+      setAvailableAgents(coding.length ? coding : d.agents||[]);
+      if (coding.length > 0) setSelectedAgent(coding[0].agent_ref);
+    }).catch(() => {});
   }, []);
   const [agentExperts, setAgentExperts] = useState<any[]>([]);
 
@@ -241,7 +249,7 @@ export default function MedicalCodingPage() {
       }, 500);
       try {
         setExecutionModeLabel('Connecting DeepSeek...');
-        const data = await runtimeApi.runAgent('icoder/medical-coding-agent@1.0.0', text);
+        const data = await runtimeApi.runAgent(selectedAgent, text);
         clearInterval(progressTimer);
         setRuntimeResult(data);
         setResult(data);
@@ -649,6 +657,15 @@ export default function MedicalCodingPage() {
             </div>
           </div>
 
+          {/* Agent selector */}
+          <div className="flex items-center gap-2">
+            <select value={selectedAgent} onChange={e => setSelectedAgent(e.target.value)}
+              className="text-xs border border-border rounded-lg px-2 py-1.5 bg-card text-foreground">
+              {availableAgents.map(a => (
+                <option key={a.agent_ref} value={a.agent_ref}>{a.name}</option>
+              ))}
+            </select>
+          </div>
           {/* Input card */}
           <div className="bg-background rounded-xl shadow-sm border border-border/20 p-5 flex flex-col gap-5 flex-1 relative">
             <textarea

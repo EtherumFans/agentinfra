@@ -55,6 +55,11 @@ async def marketplace_frontend():
 
 @router.get("/api/marketplace/packages")
 async def list_packages(search: str = "", category: str = "", sort: str = "newest", limit: int = 50):
+    # Reload index on each request (file-based marketplace)
+    try:
+        _service._index = _storage.load_index()
+    except:
+        pass
     return _service.search(query=search, category=category, sort=sort, limit=limit)
 
 

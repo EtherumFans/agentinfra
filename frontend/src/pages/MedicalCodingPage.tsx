@@ -609,838 +609,90 @@ export default function MedicalCodingPage() {
     </div>
   );
 
-  return (
+    return (
     <div className="flex flex-col h-full bg-muted/20">
-      {/* HEADER — provided by global Layout component */}
-
       <div className="flex-1 flex min-h-0">
-        {/* ===== LEFT: 75% main content ===== */}
-        <div className="flex-[75_1_0px] bg-muted/20 p-4 min-w-0">
-          <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 h-full">
-            <div className="flex h-full gap-6 p-6">
-        {/* ===== LEFT: Input Card ===== */}
-        <div className="max-w-2xl shrink-0 flex flex-col gap-3 flex-1">
-          {/* Row 1: Coding systems + Agent */}
-          <div className="flex items-center gap-3 text-xs">
-            <div className="flex items-center gap-1.5 flex-wrap flex-1">
-              <span className="text-muted-foreground shrink-0">编码:</span>
-              {selectedSystems.map(sys => {
-                const info = codingSystems.find(cs => cs.code_system === sys);
-                return (
-                  <span key={sys} className="px-2 py-0.5 rounded-md bg-muted text-muted-foreground">
-                    {info?.name || sys}
-                  </span>
-                );
-              })}
-              <div className="relative">
-                <button onClick={() => setShowSystemMenu(!showSystemMenu)} className="text-primary hover:underline text-[11px]">管理 ▾</button>
-                {showSystemMenu && (
-                  <div className="absolute top-full left-0 mt-1 bg-background rounded-xl shadow-lg border border-border/20 py-2 z-50 min-w-[220px] max-h-56 overflow-y-auto">
-                    {codingSystems.map((sys) => (
-                      <label key={sys.code_system} className={`flex items-center gap-2 px-4 py-2 text-[13px] cursor-pointer hover:bg-muted/50 ${selectedSystems.includes(sys.code_system) ? 'text-foreground' : 'text-muted-foreground'}`}>
-                        <input type="checkbox" checked={selectedSystems.includes(sys.code_system)} onChange={() => toggleSystem(sys.code_system)} className="accent-primary shrink-0 rounded" />
-                        {sys.name}
-                      </label>
-                    ))}
-                    <div className="border-t border-border/20 mt-1 pt-1 px-3">
-                      <button onClick={() => setShowSystemMenu(false)} className="w-full text-center text-xs text-primary hover:bg-accent py-1 rounded">完成</button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-            <div className="flex items-center gap-1.5 shrink-0">
-              <span className="text-muted-foreground">Agent:</span>
-              <select value={selectedAgent} onChange={e => setSelectedAgent(e.target.value)}
-                className="border border-border rounded-md px-2 py-1 bg-card text-foreground text-xs">
-                {availableAgents.map(a => (
-                  <option key={a.agent_ref} value={a.agent_ref}>{a.name}</option>
-                ))}
-              </select>
-            </div>
-            {/* AI status indicator (simple) */}
-            {dsStatus && (
-              <span className={`shrink-0 w-2 h-2 rounded-full ${dsStatus.provider_mode === 'real' ? 'bg-green-500' : 'bg-amber-500'}`} title={dsStatus.provider_mode === 'real' ? 'AI 就绪' : 'Mock 模式'} />
+        {/* ===== LEFT: Input + Event Inspector ===== */}
+        <div className="flex-1 p-4 min-w-0 flex flex-col">
+          {/* Action bar: Predict + Samples + Clear + Copy */}
+          <div className="flex items-center gap-2 mb-3">
+            <button onClick={handlePredict} disabled={!hasText || loading}
+              className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-30 transition-all flex items-center gap-1.5">
+              {loading ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+              {loading ? 'Analyzing...' : 'Predict codes'}
+            </button>
+            <button onClick={() => setShowSampleMenu(!showSampleMenu)}
+              className="px-3 py-2 rounded-lg border border-border text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors flex items-center gap-1">
+              <BookOpen size={14} /> Samples
+            </button>
+            <button onClick={() => setInput('')} disabled={!input}
+              className="px-3 py-2 rounded-lg border border-border text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors disabled:opacity-30">
+              Clear input
+            </button>
+            <button onClick={() => { navigator.clipboard.writeText(input); }} disabled={!input}
+              className="px-3 py-2 rounded-lg border border-border text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors disabled:opacity-30">
+              Copy input
+            </button>
+            {executionModeLabel && (
+              <span className={"ml-auto text-xs " + (executionModeLabel.includes('Processing') ? 'text-blue-600' : executionModeLabel.includes('Done') ? 'text-green-600' : 'text-muted-foreground')}>
+                {executionModeLabel}
+              </span>
             )}
           </div>
 
-          {/* Input card */}
-          <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 flex flex-col flex-1 relative">
-            {/* Corti-style toolbar: Predict + Samples + Clear + Copy */}
-            <div className="flex items-center gap-2 px-4 pt-3">
-              <button onClick={handlePredict} disabled={!hasText || loading}
-                className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-30 transition-all flex items-center gap-1.5">
-                {loading ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
-                {loading ? 'Analyzing...' : 'Predict codes'}
-              </button>
-              <button onClick={() => setShowSampleMenu(!showSampleMenu)}
-                className="px-3 py-2 rounded-lg border border-border text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors flex items-center gap-1">
-                <BookOpen size={14} /> Samples
-              </button>
-              <button onClick={() => setInput('')} disabled={!input}
-                className="px-3 py-2 rounded-lg border border-border text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors disabled:opacity-30">
-                Clear input
-              </button>
-              <button onClick={() => { navigator.clipboard.writeText(input); }} disabled={!input}
-                className="px-3 py-2 rounded-lg border border-border text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors disabled:opacity-30">
-                Copy input
-              </button>
-              {executionModeLabel && (
-                <span className={`ml-auto text-xs ${executionModeLabel.includes('Processing') ? 'text-blue-600 animate-pulse' : executionModeLabel.includes('Done') ? 'text-green-600' : 'text-muted-foreground'}`}>
-                  {executionModeLabel}
-                </span>
-              )}
-            </div>
+          {/* Textarea with guided demo */}
+          <div className="flex-1 relative bg-background rounded-xl shadow-sm ring-1 ring-border/20">
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handlePredict(); } }}
-              placeholder={input ? '' : '输入临床文本，粘贴病历、出院小结或手术记录...'}
-              rows={12}
-              className="w-full text-[15px] leading-relaxed border-0 p-6 pb-4 bg-transparent focus:outline-none placeholder:text-muted-foreground/30 resize-none text-foreground flex-1"
+              placeholder="Enter clinical text…"
+              rows={14}
+              className="w-full h-full text-sm leading-relaxed border-0 p-6 bg-transparent focus:outline-none placeholder:text-muted-foreground/30 resize-none text-foreground"
             />
-            {/* Guided demo — Corti-style */}
+            {/* Guided demo overlay */}
             {!input && !showGuideDismissed && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/95 rounded-xl z-10">
-                <button onClick={() => setShowGuideDismissed(true)} className="absolute top-3 right-3 text-xs text-muted-foreground hover:text-foreground">Dismiss guided demo</button>
-                <p className="text-sm text-muted-foreground mb-4 text-center max-w-md">Medical Coding converts unstructured clinical contexts into structured medical codes. Select a sample to continue:</p>
-                <div className="flex gap-3 mb-4">
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/95 rounded-xl z-10 px-6">
+                <button onClick={() => setShowGuideDismissed(true)} className="absolute top-4 right-4 text-xs text-muted-foreground hover:text-foreground">Dismiss guided demo</button>
+                <p className="text-sm text-muted-foreground mb-6 text-center max-w-lg">Medical Coding converts unstructured clinical contexts (e.g., encounter notes, discharge summaries, transcripts) into structured medical codes. Select a sample to continue:</p>
+                <div className="flex gap-3 mb-6">
                   {samples.slice(0, 3).map((s: any, i: number) => (
                     <button key={i} onClick={() => { setGuideStep(i); setInput(s.text); }}
-                      className={`px-4 py-3 rounded-xl border-2 text-left transition-all max-w-[220px] ${guideStep === i ? 'border-primary bg-primary/5' : 'border-border/50 hover:border-primary/30'}`}>
-                      <p className="text-sm font-medium text-foreground">{s.label}</p>
-                      <p className="text-[11px] text-muted-foreground mt-1 line-clamp-2">{s.text.slice(0, 80)}...</p>
+                      className={"px-5 py-4 rounded-xl border-2 text-left transition-all max-w-[240px] " + (guideStep === i ? 'border-primary bg-primary/5' : 'border-border/50 hover:border-primary/30')}>
+                      <p className="text-sm font-semibold text-foreground">{s.label}</p>
+                      <p className="text-xs text-muted-foreground mt-1 line-clamp-3">{s.text.slice(0, 120)}...</p>
                     </button>
                   ))}
                 </div>
                 <div className="flex gap-2">
-                  <button onClick={() => setGuideStep(Math.max(0, guideStep-1))} disabled={guideStep===0} className="px-3 py-1.5 text-xs border border-border rounded-lg disabled:opacity-30">← Back</button>
-                  <button onClick={() => { if(guideStep<2) setGuideStep(guideStep+1); }} className="px-3 py-1.5 text-xs bg-primary text-primary-foreground rounded-lg">{guideStep<2 ? 'Next →' : 'Use this sample'}</button>
+                  <button onClick={() => setGuideStep(Math.max(0, guideStep-1))} disabled={guideStep===0}
+                    className="px-4 py-2 text-sm border border-border rounded-lg disabled:opacity-30 hover:bg-accent transition-colors">Back</button>
+                  <button onClick={() => { if(guideStep<2) setGuideStep(guideStep+1); }}
+                    className="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors">{guideStep<2 ? 'Next' : 'Use this sample'}</button>
                 </div>
               </div>
             )}
-            {/* Toolbar */}
-            <div className="flex items-center justify-between px-4 pb-3">
-            </div>
           </div>
 
-        </div>
-
-        {/* ===== CENTER: Compact status ===== */}
-        <div className="flex-1 flex flex-col min-w-0 items-center justify-center">
-          {!result ? (
-            <div className="text-center">
-              <Stethoscope size={48} className="mx-auto text-muted-foreground/15 mb-4" />
-              <p className="text-sm text-muted-foreground">输入病历，开始智能编码</p>
-            </div>
-          ) : (
-            <div className="text-center space-y-1">
-              <p className="text-sm font-medium text-foreground">{result.primary_diagnosis?.code||'—'} {result.primary_diagnosis?.description||''}</p>
-              <p className="text-xs text-muted-foreground">置信度 {((result.primary_diagnosis?.confidence||0)*100).toFixed(0)}% · {result.review_conclusion||'?'} · {result.procedures?.length||0} 手术</p>
-              <p className="text-[10px] text-muted-foreground">详情见右侧面板 →</p>
-            </div>
-          )}
-        </div>
-        <div className="flex-1 flex flex-col min-w-0 hidden">
-          <div className="flex-1 overflow-y-auto">
-            {!result ? (
-              <div className="flex flex-col items-center justify-center h-full">
-                <div className="w-20 h-20 rounded-3xl bg-muted flex items-center justify-center mb-6">
-                  <Stethoscope size={36} className="text-muted-foreground" />
-                </div>
-                <h2 className="text-xl font-semibold text-foreground mb-2 tracking-tight">智能编码</h2>
-                <p className="text-[15px] text-muted-foreground max-w-xs text-center leading-relaxed">
-                  输入临床文本，为诊断和手术推荐ICD编码
-                </p>
-              </div>
-            ) : (
-              <>
-              {/* ── RuntimeRunResult: Layered Display ── */}
-              {runtimeResult && (
-                <div className="mb-4 space-y-2">
-                  {/* Header */}
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <span className="font-mono text-[10px]">{runtimeResult.run_id?.slice(0,12)}</span>
-                    <span className={`px-1 py-0.5 rounded text-[10px] font-medium ${
-                      runtimeResult.status === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                    }`}>{runtimeResult.status}</span>
-                    <span>{runtimeResult.processing_time_ms}ms</span>
-                  </div>
-
-                  {/* Section 1: Primary Diagnosis */}
-                  <details open className="rounded-lg border border-green-200 bg-green-50/50">
-                    <summary className="px-3 py-2 text-sm font-medium text-green-800 cursor-pointer">
-                      主诊断: {runtimeResult.primary_diagnosis?.code || '—'} — {runtimeResult.primary_diagnosis?.description || '—'}
-                      {runtimeResult.primary_diagnosis?.confidence != null && (
-                        <span className="ml-2 text-xs text-green-600">({(runtimeResult.primary_diagnosis.confidence * 100).toFixed(0)}%)</span>
-                      )}
-                    </summary>
-                    <div className="px-3 pb-2 text-xs text-green-700 space-y-1">
-                      {runtimeResult.primary_diagnosis?.evidence?.length > 0 && (
-                        <div>
-                          <span className="font-medium">证据:</span>
-                          {runtimeResult.primary_diagnosis.evidence.map((e, i) => (
-                            <div key={i} className="pl-2 text-green-600 italic">"{e}"</div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </details>
-
-                  {/* Section 2: Secondary Diagnoses */}
-                  {runtimeResult.secondary_diagnoses?.length > 0 && (
-                    <details className="rounded-lg border border-blue-200 bg-blue-50/50">
-                      <summary className="px-3 py-2 text-sm font-medium text-blue-800 cursor-pointer">
-                        次要诊断 ({runtimeResult.secondary_diagnoses.length})
-                      </summary>
-                      <div className="px-3 pb-2 space-y-1">
-                        {runtimeResult.secondary_diagnoses.map((d, i) => (
-                          <div key={i} className="text-xs text-blue-700">
-                            <span className="font-mono font-medium">{d.code}</span> — {d.description}
-                            {d.confidence != null && <span className="ml-1 text-blue-500">({(d.confidence * 100).toFixed(0)}%)</span>}
-                          </div>
-                        ))}
-                      </div>
-                    </details>
-                  )}
-
-                  {/* Section 3: Procedures */}
-                  {runtimeResult.procedures?.length > 0 && (
-                    <details className="rounded-lg border border-purple-200 bg-purple-50/50">
-                      <summary className="px-3 py-2 text-sm font-medium text-purple-800 cursor-pointer">
-                        手术操作 ({runtimeResult.procedures.length})
-                      </summary>
-                      <div className="px-3 pb-2 space-y-1">
-                        {runtimeResult.procedures.map((p, i) => (
-                          <div key={i} className="text-xs text-purple-700">
-                            <span className="font-mono font-medium">{p.code}</span> — {p.description}
-                            {p.confidence != null && <span className="ml-1 text-purple-500">({(p.confidence * 100).toFixed(0)}%)</span>}
-                          </div>
-                        ))}
-                      </div>
-                    </details>
-                  )}
-
-                  {/* Section 4: Rule Warnings */}
-                  {runtimeResult.issues_found?.length > 0 && (
-                    <details className="rounded-lg border border-amber-200 bg-amber-50/50">
-                      <summary className="px-3 py-2 text-sm font-medium text-amber-800 cursor-pointer">
-                        规则告警 ({runtimeResult.issues_found.length})
-                        {runtimeResult.issues_found.filter((i) => i.severity === 'critical' || i.severity === 'high').length > 0 && (
-                          <span className="ml-2 text-xs text-red-600">
-                            ({runtimeResult.issues_found.filter((i) => i.severity === 'critical' || i.severity === 'high').length} critical/high)
-                          </span>
-                        )}
-                      </summary>
-                      <div className="px-3 pb-2 space-y-1">
-                        {runtimeResult.issues_found.map((issue, i) => (
-                          <div key={i} className={`text-xs border-l-2 pl-2 ${
-                            issue.severity === 'critical' ? 'border-red-400 text-red-700' :
-                            issue.severity === 'high' ? 'border-orange-400 text-orange-700' :
-                            'border-amber-300 text-amber-700'
-                          }`}>
-                            <span className="font-mono text-[10px]">{issue.code}</span>: {issue.message}
-                          </div>
-                        ))}
-                      </div>
-                    </details>
-                  )}
-
-                  {/* Section 5: Quality Flags */}
-                  {(runtimeResult as any).quality_flags && Object.values((runtimeResult as any).quality_flags).some(Boolean) && (
-                    <details className="rounded-lg border border-gray-200 bg-gray-50/50">
-                      <summary className="px-3 py-2 text-xs font-medium text-gray-600 cursor-pointer">Quality Flags</summary>
-                      <div className="px-3 pb-2 flex flex-wrap gap-1">
-                        {Object.entries((runtimeResult as any).quality_flags).filter(([,v]) => v).map(([k]) => (
-                          <span key={k} className="text-[10px] px-1.5 py-0.5 rounded bg-gray-200 text-gray-700">{k}</span>
-                        ))}
-                      </div>
-                    </details>
-                  )}
-                </div>
-              )}
-
-                {/* ---------- Loading / Streaming ---------- */}
-                {loading && (
-                  <div className="px-6 mb-6">
-                    <div className="max-w-3xl mx-auto">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <div className="flex gap-1">
-                          <span className="w-2 h-2 rounded-full bg-primary/40 animate-bounce" style={{animationDelay: '0ms'}} />
-                          <span className="w-2 h-2 rounded-full bg-primary/40 animate-bounce" style={{animationDelay: '150ms'}} />
-                          <span className="w-2 h-2 rounded-full bg-primary/40 animate-bounce" style={{animationDelay: '300ms'}} />
-                        </div>
-                        <span>分析临床文本中...</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* ---------- Stream output status ---------- */}
-                {streamOutput && (
-                  <div className="px-6 mb-6">
-                    <div className="max-w-3xl mx-auto">
-                      <div className="text-xs text-muted-foreground bg-muted/30 rounded-lg px-4 py-2 whitespace-pre-wrap">
-                        {streamOutput}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* ---------- Result — 3-view output (Rendered / JSON / Code) ---------- */}
-                {result && (
-                  <div className="px-2">
-                    {/* View tabs */}
-                    <div className="flex items-center gap-1 mb-4 border-b border-border">
-                      <button onClick={() => setOutputView('rendered')}
-                        className={`text-xs px-3 py-2 border-b-2 transition-colors ${outputView === 'rendered' ? 'border-primary text-foreground font-medium' : 'border-transparent text-muted-foreground hover:text-foreground'}`}>
-                        渲染
-                      </button>
-                      <button onClick={() => setOutputView('json')}
-                        className={`text-xs px-3 py-2 border-b-2 transition-colors ${outputView === 'json' ? 'border-primary text-foreground font-medium' : 'border-transparent text-muted-foreground hover:text-foreground'}`}>
-                        JSON
-                      </button>
-                      <button onClick={() => setOutputView('code')}
-                        className={`text-xs px-3 py-2 border-b-2 transition-colors ${outputView === 'code' ? 'border-primary text-foreground font-medium' : 'border-transparent text-muted-foreground hover:text-foreground'}`}>
-                        代码
-                      </button>
-                      <div className="flex-1" />
-                      <button onClick={() => { navigator.clipboard.writeText(JSON.stringify(result, null, 2)); setCopied('result'); setTimeout(() => setCopied(''), 2000); }}
-                        className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 px-2 py-1 rounded hover:bg-accent transition-colors">
-                        {copied === 'result' ? <Check size={12} /> : <Copy size={12} />}
-                        {copied === 'result' ? '已复制' : '复制'}
-                      </button>
-                    </div>
-
-                    {/* ===== RENDERED VIEW ===== */}
-                    {outputView === 'rendered' && (
-                      <div className="space-y-6">
-                        {/* Pipeline Health Banner */}
-                        {result.pipeline_health && result.pipeline_health !== 'healthy' && (
-                          <div className={`px-4 py-3 rounded-lg text-sm ${
-                            result.pipeline_health === 'failed'
-                              ? 'bg-red-50 border border-red-200 text-red-800'
-                              : 'bg-amber-50 border border-amber-200 text-amber-800'
-                          }`}>
-                            {result.pipeline_health === 'failed'
-                              ? '部分核心步骤执行失败，编码结果可能不完整'
-                              : '部分分析步骤未完成，核心编码结果仍可用'}
-                          </div>
-                        )}
-                        {/* Primary Diagnosis */}
-                        {result.primary_diagnosis?.code && (
-                          <div>
-                            <p className="text-xs font-medium text-muted-foreground mb-2">主诊断</p>
-                            <div className="bg-card border border-border rounded-xl p-5 space-y-3">
-                              <div className="flex items-baseline gap-3 flex-wrap">
-                                <code className="text-2xl font-bold text-primary font-mono">{result.primary_diagnosis.code}</code>
-                                <span className="px-2 py-0.5 text-[10px] font-medium rounded-full bg-emerald-50 text-emerald-700">
-                                  置信度 {(result.primary_diagnosis.confidence * 100).toFixed(0)}%
-                                </span>
-                                {/* Status */}
-                                {result.primary_diagnosis.judgment && (
-                                  <span className={`px-2 py-0.5 text-[10px] font-medium rounded-full ${
-                                    result.primary_diagnosis.judgment === 'supported' || result.primary_diagnosis.judgment === 'confirmed'
-                                      ? 'bg-emerald-50 text-emerald-700'
-                                      : 'bg-amber-50 text-amber-700'
-                                  }`}>
-                                    {result.primary_diagnosis.judgment === 'supported' || result.primary_diagnosis.judgment === 'confirmed'
-                                      ? '✓ 有证据'
-                                      : '⚠ 需复核'}
-                                  </span>
-                                )}
-                              </div>
-                              <p className="text-sm text-foreground leading-relaxed">{result.primary_diagnosis.name}</p>
-                              {/* Primary Diagnosis Reasoning */}
-                              {result.primary_diagnosis?.reasoning?.why_selected && (
-                                <div className="bg-muted/20 rounded-lg p-3 space-y-2 border border-border/50">
-                                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">选择依据</p>
-                                  <p className="text-xs text-foreground leading-relaxed">{result.primary_diagnosis.reasoning.why_selected}</p>
-                                  {result.primary_diagnosis.reasoning.why_not_selected?.length > 0 && (
-                                    <div>
-                                      <p className="text-[10px] font-medium text-muted-foreground mt-2 mb-1 uppercase tracking-wider">未选择的诊断</p>
-                                      <div className="space-y-1">
-                                        {result.primary_diagnosis.reasoning.why_not_selected.map((wn: any, wi: number) => (
-                                          <div key={wi} className="flex items-start gap-2 text-[11px] bg-muted/30 rounded px-2 py-1">
-                                            <code className="font-mono text-muted-foreground shrink-0">{wn.code}</code>
-                                            <span className="text-muted-foreground">{wn.name}</span>
-                                            <span className="text-muted-foreground/70">— {wn.reason}</span>
-                                            {wn.rule_reference && <span className="text-[10px] bg-amber-100 text-amber-700 px-1 rounded shrink-0">{wn.rule_reference}</span>}
-                                          </div>
-                                        ))}
-                                      </div>
-                                    </div>
-                                  )}
-                                  {result.primary_diagnosis.reasoning.rule_basis?.length > 0 && (
-                                    <div className="flex items-center gap-1 flex-wrap">
-                                      {result.primary_diagnosis.reasoning.rule_basis.map((r: string, ri: number) => (
-                                        <span key={ri} className="text-[10px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded font-mono">{r}</span>
-                                      ))}
-                                    </div>
-                                  )}
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-[10px] text-muted-foreground">置信度判定:</span>
-                                    <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${
-                                      result.primary_diagnosis.reasoning.confidence_level === 'high' ? 'bg-emerald-50 text-emerald-700'
-                                      : result.primary_diagnosis.reasoning.confidence_level === 'medium' ? 'bg-amber-50 text-amber-700'
-                                      : 'bg-red-50 text-red-700'
-                                    }`}>
-                                      {result.primary_diagnosis.reasoning.confidence_level === 'high' ? '高' : result.primary_diagnosis.reasoning.confidence_level === 'medium' ? '中' : '低'}
-                                    </span>
-                                  </div>
-                                </div>
-                              )}
-                              {/* Evidence for primary diagnosis */}
-                              {result.primary_diagnosis.evidence_ids && getEvidenceByIds(result.primary_diagnosis.evidence_ids).length > 0 && (
-                                <div>
-                                  <p className="text-[10px] font-medium text-muted-foreground mb-1.5 uppercase tracking-wider">证据依据</p>
-                                  <div className="space-y-1.5">
-                                    {getEvidenceByIds(result.primary_diagnosis.evidence_ids).map((ev: ClinicalEvidence) => (
-                                      <div key={ev.id} className="text-xs bg-muted/30 rounded-lg px-3 py-2 border-l-2 border-primary/40">
-                                        <p className="text-muted-foreground leading-relaxed">&ldquo;{ev.text}&rdquo;</p>
-                                        <p className="text-[10px] text-muted-foreground mt-0.5">
-                                          {ev.entity_type === 'diagnosis_evidence' ? '诊断证据' : ev.entity_type}
-                                          {ev.certainty ? ` · ${ev.certainty}` : ''}
-                                          {ev.confidence > 0 ? ` · ${(ev.confidence * 100).toFixed(0)}%` : ''}
-                                        </p>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Evidence Ranking Panel */}
-                        {evidenceRanking && (evidenceRanking.top_supporting_evidence?.length > 0 || evidenceRanking.weak_evidence?.length > 0 || evidenceRanking.conflicting_evidence?.length > 0) && (
-                          <div>
-                            <p className="text-xs font-medium text-muted-foreground mb-2">证据全景</p>
-                            <div className="bg-card border border-border rounded-xl overflow-hidden">
-                              {/* Summary bar */}
-                              <div className="flex items-center gap-4 px-4 py-2 bg-muted/30 border-b border-border text-[10px]">
-                                {evidenceRanking.evidence_strength_avg != null && (
-                                  <span>证据强度均值 <strong className="text-foreground">{(evidenceRanking.evidence_strength_avg * 100).toFixed(0)}%</strong></span>
-                                )}
-                                {evidenceRanking.unsupported_code_rate != null && (
-                                  <span>无证据编码率 <strong className={evidenceRanking.unsupported_code_rate > 0.3 ? 'text-red-600' : 'text-foreground'}>{(evidenceRanking.unsupported_code_rate * 100).toFixed(0)}%</strong></span>
-                                )}
-                                {evidenceRanking.conflict_rate != null && (
-                                  <span>冲突率 <strong className={evidenceRanking.conflict_rate > 0.2 ? 'text-red-600' : 'text-foreground'}>{(evidenceRanking.conflict_rate * 100).toFixed(0)}%</strong></span>
-                                )}
-                              </div>
-                              <div className="divide-y divide-border/50">
-                                {/* Top Supporting Evidence */}
-                                {evidenceRanking.top_supporting_evidence?.map((ev: any, ei: number) => (
-                                  <div key={`top-${ei}`} className="flex items-start gap-3 px-4 py-2.5 hover:bg-muted/20 transition-colors">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-1.5 shrink-0" />
-                                    <div className="flex-1 min-w-0">
-                                      <div className="flex items-center gap-2 mb-0.5">
-                                        <span className="text-[10px] font-medium text-emerald-700 bg-emerald-50 px-1 rounded">强证据</span>
-                                        <span className="text-[10px] text-muted-foreground">{ev.source_document}</span>
-                                        <code className="text-[10px] font-mono text-muted-foreground ml-auto">{ev.related_code}</code>
-                                      </div>
-                                      <p className="text-[11px] text-foreground leading-relaxed line-clamp-2">&ldquo;{ev.text}&rdquo;</p>
-                                    </div>
-                                  </div>
-                                ))}
-                                {/* Weak Evidence */}
-                                {evidenceRanking.weak_evidence?.map((ev: any, ei: number) => (
-                                  <div key={`weak-${ei}`} className="flex items-start gap-3 px-4 py-2.5 hover:bg-muted/20 transition-colors">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0" />
-                                    <div className="flex-1 min-w-0">
-                                      <div className="flex items-center gap-2 mb-0.5">
-                                        <span className="text-[10px] font-medium text-amber-700 bg-amber-50 px-1 rounded">弱证据</span>
-                                        <span className="text-[10px] text-muted-foreground">{ev.source_document}</span>
-                                        <code className="text-[10px] font-mono text-muted-foreground ml-auto">{ev.related_code}</code>
-                                      </div>
-                                      <p className="text-[11px] text-muted-foreground leading-relaxed line-clamp-2">&ldquo;{ev.text}&rdquo;</p>
-                                    </div>
-                                  </div>
-                                ))}
-                                {/* Conflicting Evidence */}
-                                {evidenceRanking.conflicting_evidence?.map((ev: any, ei: number) => (
-                                  <div key={`conflict-${ei}`} className="flex items-start gap-3 px-4 py-2.5 hover:bg-muted/20 transition-colors">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-red-400 mt-1.5 shrink-0" />
-                                    <div className="flex-1 min-w-0">
-                                      <div className="flex items-center gap-2 mb-0.5">
-                                        <span className="text-[10px] font-medium text-red-700 bg-red-50 px-1 rounded">冲突</span>
-                                        <span className="text-[10px] text-muted-foreground">{ev.source_document}</span>
-                                        <code className="text-[10px] font-mono text-muted-foreground ml-auto">{ev.related_code}</code>
-                                      </div>
-                                      <p className="text-[11px] text-red-700 leading-relaxed line-clamp-2">&ldquo;{ev.text}&rdquo;</p>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                              {/* Conflicts summary */}
-                              {evidenceRanking.conflicts?.length > 0 && (
-                                <div className="px-4 py-2 bg-red-50/30 border-t border-border">
-                                  {evidenceRanking.conflicts.map((cf: any, ci: number) => (
-                                    <p key={ci} className="text-[10px] text-red-700 leading-relaxed">
-                                      ⚠ {cf.conflict_summary}
-                                    </p>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Main Procedure */}
-                        {result.main_procedure?.code && (
-                          <div>
-                            <p className="text-xs font-medium text-muted-foreground mb-2">主手术</p>
-                            <div className="bg-card border border-border rounded-xl p-5 space-y-3">
-                              <div className="flex items-baseline gap-3 flex-wrap">
-                                <code className="text-2xl font-bold text-secondary font-mono">{result.main_procedure.code}</code>
-                                <span className="px-2 py-0.5 text-[10px] font-medium rounded-full bg-emerald-50 text-emerald-700">
-                                  置信度 {(result.main_procedure.confidence * 100).toFixed(0)}%
-                                </span>
-                                {/* Status */}
-                                {result.main_procedure.judgment && (
-                                  <span className={`px-2 py-0.5 text-[10px] font-medium rounded-full ${
-                                    result.main_procedure.judgment === 'supported' || result.main_procedure.judgment === 'confirmed'
-                                      ? 'bg-emerald-50 text-emerald-700'
-                                      : 'bg-amber-50 text-amber-700'
-                                  }`}>
-                                    {result.main_procedure.judgment === 'supported' || result.main_procedure.judgment === 'confirmed'
-                                      ? '✓ 有证据'
-                                      : '⚠ 需复核'}
-                                  </span>
-                                )}
-                              </div>
-                              <p className="text-sm text-foreground leading-relaxed">{result.main_procedure.name}</p>
-                              {/* Evidence for main procedure */}
-                              {result.main_procedure.evidence_ids && getEvidenceByIds(result.main_procedure.evidence_ids).length > 0 && (
-                                <div>
-                                  <p className="text-[10px] font-medium text-muted-foreground mb-1.5 uppercase tracking-wider">证据依据</p>
-                                  <div className="space-y-1.5">
-                                    {getEvidenceByIds(result.main_procedure.evidence_ids).map((ev: ClinicalEvidence) => (
-                                      <div key={ev.id} className="text-xs bg-muted/30 rounded-lg px-3 py-2 border-l-2 border-secondary/40">
-                                        <p className="text-muted-foreground leading-relaxed">&ldquo;{ev.text}&rdquo;</p>
-                                        <p className="text-[10px] text-muted-foreground mt-0.5">
-                                          {ev.entity_type === 'procedure_evidence' ? '手术证据' : ev.entity_type}
-                                          {ev.certainty ? ` · ${ev.certainty}` : ''}
-                                        </p>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* All Candidate Codes with Evidence and Alternatives */}
-                        {result.candidates?.length > 0 && (
-                          <div>
-                            <p className="text-xs font-medium text-muted-foreground mb-2">
-                              全部候选编码 ({result.candidates.length})
-                            </p>
-                            <div className="space-y-2">
-                              {result.candidates.map((c: any, i: number) => {
-                                const candidateEvidence = getEvidenceByIds(c.evidence_ids || []);
-                                const alternatives = (alternativesMap[c.finding] || []).filter(
-                                  (alt: CodeCandidate) => alt.code !== c.code
-                                );
-                                return (
-                                  <div key={c.id || i}
-                                    className="bg-card border border-border rounded-xl p-4 hover:border-primary/20 transition-colors">
-                                    {/* Code + Name + Status + Score */}
-                                    <div className="flex items-start gap-3">
-                                      <code className="text-sm font-semibold text-foreground font-mono w-28 shrink-0 mt-0.5">{c.code}</code>
-                                      <div className="flex-1 min-w-0">
-                                        <p className="text-sm text-foreground leading-snug">{c.name}</p>
-                                        {c.finding && (
-                                          <p className="text-[10px] text-muted-foreground mt-0.5 truncate">{c.finding}</p>
-                                        )}
-                                      </div>
-                                      <div className="flex items-center gap-2 shrink-0">
-                                        {/* Status badge */}
-                                        <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded-full ${
-                                          c.status === 'supported' || c.status === 'confirmed'
-                                            ? 'bg-emerald-50 text-emerald-700'
-                                            : c.status === 'needs_review'
-                                            ? 'bg-amber-50 text-amber-700'
-                                            : c.status === 'rejected' || c.status === 'unsupported'
-                                            ? 'bg-red-50 text-red-700'
-                                            : 'bg-muted/50 text-muted-foreground'
-                                        }`}>
-                                          {c.status === 'supported' || c.status === 'confirmed'
-                                            ? '✓ 有证据'
-                                            : c.status === 'needs_review'
-                                            ? '⚠ 需复核'
-                                            : c.status === 'rejected'
-                                            ? '✖ 已排除'
-                                            : c.status === 'unsupported'
-                                            ? '✖ 证据不足'
-                                            : c.status || '○ 待处理'}
-                                        </span>
-                                        {/* Routing tier badge */}
-                                        {(() => {
-                                          const rd = routingMap[c.code];
-                                          const cc = confidenceMap[c.code];
-                                          const calibratedScore = cc?.calibrated_score ?? (rd?.calibrated_score ?? c.score);
-                                          const tier = rd?.tier;
-                                          const tierColor = tier === 'auto' ? 'bg-emerald-50 text-emerald-700'
-                                            : tier === 'review' ? 'bg-amber-50 text-amber-700'
-                                            : tier === 'escalate' ? 'bg-red-50 text-red-700'
-                                            : '';
-                                          const tierLabel = tier === 'auto' ? 'AUTO' : tier === 'review' ? 'REVIEW' : tier === 'escalate' ? 'ESCALATE' : '';
-                                          const barColor = calibratedScore >= 0.8 ? 'bg-emerald-400'
-                                            : calibratedScore >= 0.6 ? 'bg-amber-400'
-                                            : 'bg-red-400';
-                                          return (
-                                            <>
-                                              {tierLabel && (
-                                                <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded-full ${tierColor}`}>
-                                                  {tierLabel}
-                                                </span>
-                                              )}
-                                              {/* Confidence bar */}
-                                              <div className="flex items-center gap-1">
-                                                <div className="w-14 h-1.5 rounded-full bg-muted overflow-hidden">
-                                                  <div className={`h-full rounded-full ${barColor}`} style={{width: `${(calibratedScore * 100).toFixed(0)}%`}} />
-                                                </div>
-                                                <span className="text-[10px] text-muted-foreground w-8 text-right">{(calibratedScore * 100).toFixed(0)}%</span>
-                                              </div>
-                                            </>
-                                          );
-                                        })()}
-                                      </div>
-                                    </div>
-
-                                    {/* Evidence quotes */}
-                                    {candidateEvidence.length > 0 && (
-                                      <div className="mt-3 pl-1">
-                                        <p className="text-[10px] font-medium text-muted-foreground mb-1 uppercase tracking-wider">证据依据</p>
-                                        <div className="space-y-1">
-                                          {candidateEvidence.map((ev: ClinicalEvidence) => (
-                                            <div key={ev.id} className="text-[11px] bg-muted/20 rounded-lg px-3 py-1.5 border-l-2 border-primary/30">
-                                              <p className="text-muted-foreground leading-relaxed">&ldquo;{ev.text}&rdquo;</p>
-                                              <p className="text-[10px] text-muted-foreground mt-0.5">
-                                                {ev.certainty ? `${ev.certainty}` : ''}
-                                                {ev.confidence > 0 ? ` · ${(ev.confidence * 100).toFixed(0)}%` : ''}
-                                              </p>
-                                            </div>
-                                          ))}
-                                        </div>
-                                      </div>
-                                    )}
-
-                                    {/* Alternatives */}
-                                    {alternatives.length > 0 && (
-                                      <div className="mt-3 pl-1">
-                                        <p className="text-[10px] font-medium text-muted-foreground mb-1 uppercase tracking-wider">替代编码</p>
-                                        <div className="flex flex-wrap gap-1.5">
-                                          {alternatives.map((alt: CodeCandidate) => (
-                                            <span key={alt.id || alt.code}
-                                              className="text-[10px] px-2 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200 flex items-center gap-1">
-                                              <code className="font-mono">{alt.code}</code>
-                                              <span className="text-blue-300">|</span>
-                                              <span className="truncate max-w-[120px]">{alt.name}</span>
-                                              <span className="text-blue-400 ml-0.5">{(alt.score * 100).toFixed(0)}%</span>
-                                            </span>
-                                          ))}
-                                        </div>
-                                      </div>
-                                    )}
-
-                                    {/* Rule checks (if any) */}
-                                    {c.rule_checks?.length > 0 && (
-                                      <div className="mt-3 pl-1">
-                                        <p className="text-[10px] font-medium text-muted-foreground mb-1 uppercase tracking-wider">规则检查</p>
-                                        <div className="space-y-0.5">
-                                          {c.rule_checks.map((r: any, ri: number) => (
-                                            <div key={ri} className={`text-[10px] px-2 py-0.5 rounded ${
-                                              r.status === 'pass' ? 'text-emerald-600 bg-emerald-50/50'
-                                              : r.status === 'warn' ? 'text-amber-600 bg-amber-50/50'
-                                              : 'text-red-600 bg-red-50/50'
-                                            }`}>
-                                              {r.status === 'pass' ? '✓' : r.status === 'warn' ? '⚠' : '✖'} {r.rule_name}: {r.message}
-                                            </div>
-                                          ))}
-                                        </div>
-                                      </div>
-                                    )}
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {/* ===== JSON VIEW ===== */}
-                    {outputView === 'json' && (
-                      <div className="bg-muted/20 border border-border rounded-xl overflow-hidden">
-                        <pre className="text-[11px] font-mono leading-relaxed p-4 overflow-x-auto max-h-[70vh] overflow-y-auto whitespace-pre">
-                          {JSON.stringify(result, null, 2)}
-                        </pre>
-                      </div>
-                    )}
-
-                    {/* ===== CODE VIEW ===== */}
-                    {outputView === 'code' && (
-                      <div className="border border-border rounded-xl overflow-hidden" style={{ height: '20rem' }}>
-                        <CodeSnippet
-                          javascript={codeSnippetJS}
-                          python={codeSnippetPython}
-                          json={codeSnippetJSON}
-                        />
-                      </div>
-                    )}
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-
-          {/* Event Inspector footer */}
-          <div className="shrink-0 border-t border-border">
+          {/* Event Inspector */}
+          <div className="mt-3">
             <EventInspector events={events} creditsConsumed={totalCredits} />
-          </div>
-        </div>
-
-            </div>
           </div>
         </div>
 
         {/* Separator */}
         <div className="h-full w-px bg-border/40" />
 
-        {/* ===== RIGHT: 25% Results Panel ===== */}
-        <div className="flex-[30_1_0px] bg-muted/10 min-w-0 flex flex-col">
-          {result ? (
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              <div className="flex items-center justify-between">
-                <h4 className="text-sm font-semibold text-foreground">编码结果</h4>
-                <div className="flex gap-1">
-                  <button onClick={() => setOutputView('rendered')} className={`text-[10px] px-2 py-0.5 rounded ${outputView==='rendered'?'bg-primary/10 text-primary':'text-muted-foreground'}`}>预览</button>
-                  <button onClick={() => setOutputView('json')} className={`text-[10px] px-2 py-0.5 rounded ${outputView==='json'?'bg-primary/10 text-primary':'text-muted-foreground'}`}>JSON</button>
-                </div>
-              </div>
-              {/* Primary diagnosis */}
-              {result.primary_diagnosis?.code && (
-                <div className="bg-background rounded-lg border p-3">
-                  <p className="text-[10px] text-muted-foreground mb-1">主诊断</p>
-                  <p className="text-sm font-semibold text-foreground">{result.primary_diagnosis.code} {result.primary_diagnosis.description||''}</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-[10px] text-muted-foreground">置信度 {((result.primary_diagnosis.confidence||0)*100).toFixed(0)}%</span>
-                    <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${result.review_conclusion==='PASS'?'bg-green-100 text-green-700':result.review_conclusion==='WARNING'?'bg-amber-100 text-amber-700':'bg-red-100 text-red-700'}`}>{result.review_conclusion||'?'}</span>
-                  </div>
-                </div>
-              )}
-              {/* Procedures */}
-              {result.procedures?.length > 0 && (
-                <div className="bg-background rounded-lg border p-3">
-                  <p className="text-[10px] text-muted-foreground mb-1">手术/操作 ({result.procedures.length})</p>
-                  {result.procedures.slice(0,5).map((p:any,i:number)=>(
-                    <p key={i} className="text-xs font-mono text-foreground">{p.code} {p.description||''}</p>
-                  ))}
-                </div>
-              )}
-              {/* Issues */}
-              {result.issues_found?.length > 0 && (
-                <div className="bg-background rounded-lg border p-3">
-                  <p className="text-[10px] text-muted-foreground mb-1">合规问题 ({result.issues_found.length})</p>
-                  {result.issues_found.slice(0,5).map((iss:any,i:number)=>(
-                    <p key={i} className="text-[10px] text-amber-700">[{iss.severity}] {iss.code}: {iss.message}</p>
-                  ))}
-                </div>
-              )}
-              {/* Event Inspector */}
-              <EventInspector events={events} creditsConsumed={totalCredits} />
-              {/* Quick settings toggle */}
-              <button onClick={() => setRightPanel(rightPanel==='settings'?'code':'settings')} className="w-full text-xs text-muted-foreground hover:text-foreground py-1">
-                {rightPanel==='settings' ? '收起设置 ▴' : '编码设置 ▾'}
-              </button>
-              {rightPanel==='settings' && settingsContent}
-            </div>
-          ) : (
-            <div className="flex items-center justify-center h-full text-center p-4">
-              <div>
-                <Stethoscope size={32} className="mx-auto text-muted-foreground/20 mb-2" />
-                <p className="text-xs text-muted-foreground">输入病历文本，点击「开始编码」</p>
-                <p className="text-[10px] text-muted-foreground mt-1">编码结果将显示在此处</p>
-              </div>
-            </div>
-          )}
+        {/* ===== RIGHT: Settings | Code Panel ===== */}
+        <div className="w-80 bg-muted/10 flex flex-col">
+          <SettingsCodeTab
+            defaultTab={rightPanel}
+            settings={settingsContent}
+            code={codeContent}
+          />
         </div>
       </div>
 
-      {/* ========== Include/Exclude Code Dialogs ========== */}
-      {showIncludeDialog && (
-        <CodeFilterDialog
-          type="include"
-          codes={includeCodes}
-          onSave={setIncludeCodes}
-          onClose={() => setShowIncludeDialog(false)}
-        />
-      )}
-      {showExcludeDialog && (
-        <CodeFilterDialog
-          type="exclude"
-          codes={excludeCodes}
-          onSave={setExcludeCodes}
-          onClose={() => setShowExcludeDialog(false)}
-        />
-      )}
-
-      {/* ========== Add Expert Modal ========== */}
-      {showAddExpert && (
-        <AddExpertModal
-          onClose={() => setShowAddExpert(false)}
-          onCreated={() => {
-            setShowAddExpert(false);
-            setCustomExperts([...customExperts, { id: `custom-${Date.now()}`, name: '新专家', key: 'custom-expert' }]);
-          }}
-        />
-      )}
-    </div>
-  );
-}
-
-// ---- Sub-component: Code Filter Dialog (Include/Exclude) ----
-function CodeFilterDialog({ type, codes, onSave, onClose }: {
-  type: 'include' | 'exclude';
-  codes: string[];
-  onSave: (codes: string[]) => void;
-  onClose: () => void;
-}) {
-  const [text, setText] = useState(codes.join('\n'));
-
-  const handleSave = () => {
-    const parsed = text.split('\n').map(s => s.trim()).filter(Boolean);
-    onSave(parsed);
-    onClose();
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
-      <div className="bg-background border border-border rounded-xl p-5 w-96 max-w-full shadow-xl" onClick={e => e.stopPropagation()}>
-        <h3 className="text-sm font-semibold mb-3">{type === 'include' ? '包含编码' : '排除编码'}</h3>
-        <textarea
-          value={text}
-          onChange={e => setText(e.target.value)}
-          placeholder="输入编码，每行一个..."
-          rows={6}
-          className="w-full text-xs border border-border rounded-lg px-3 py-2 bg-transparent resize-none focus:outline-none focus:ring-1 focus:ring-ring"
-        />
-        <p className="text-[10px] text-muted-foreground mt-1">每行输入一个编码，或粘贴逗号分隔的编码。</p>
-        <div className="flex justify-end gap-2 mt-3">
-          <button onClick={onClose}
-            className="text-xs h-7 px-3 rounded border border-border hover:bg-accent transition-colors">
-            取消
-          </button>
-          <button onClick={handleSave}
-            className="text-xs h-7 px-3 rounded bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
-            保存
-          </button>
-        </div>
-      </div>
+      {showAddExpert && <AddExpertModal onClose={() => setShowAddExpert(false)} onCreated={() => { setShowAddExpert(false); }} />}
     </div>
   );
 }

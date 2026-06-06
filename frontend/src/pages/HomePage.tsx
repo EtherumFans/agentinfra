@@ -1,196 +1,168 @@
-// iCoDer Console Home — iCoDer-style Product Hub with i18n
-import { useState, useEffect, useCallback } from 'react';
+// iCoDer Console Home — Clinical AI Workbench
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  Loader2, Activity, ChevronDown, Layers, Asterisk,
-} from 'lucide-react';
-import { billingApi, usageApi, encountersApi, reviewsApi, oauthApi } from '../services/api';
-import { useT, useLocaleStore } from '../i18n';
-
-interface ChartPoint { label: string; value: number; }
-
-const TIME_RANGES = [
-  { key: 7, labelKey: 'last7DaysLabel' as const },
-  { key: 30, labelKey: 'last30DaysLabel' as const },
-  { key: 90, labelKey: 'last90DaysLabel' as const },
-];
+import { Bot, Stethoscope, Layers, BrainCircuit, Plus, Play, Upload, Code, ChevronDown, Loader2, TrendingUp } from 'lucide-react';
+import { billingApi } from '../services/api';
+import { runtimeApi } from '../services/runtimeApi';
+import { useT } from '../i18n';
 
 export default function HomePage() {
   const t = useT();
-  const locale = useLocaleStore((s) => s.locale);
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'transcribe' | 'document' | 'chat' | 'code'>('transcribe');
-  const [chartPeriod, setChartPeriod] = useState<'daily' | 'weekly' | 'monthly'>('daily');
-  const [comparePeriod, setComparePeriod] = useState(false);
-  const [timeRange, setTimeRange] = useState(30);
-  const [apiClients, setApiClients] = useState<any[]>([]);
-  const [apiClientFilter, setApiClientFilter] = useState('all');
   const [balance, setBalance] = useState<number | null>(null);
-  const [consumed, setConsumed] = useState(0);
-  const [historyData, setHistoryData] = useState<{ date: string; credits: number }[]>([]);
-  const [totalRequests, setTotalRequests] = useState(0);
-  const [avgResponseTime, setAvgResponseTime] = useState(0);
-  const [recentEncounters, setRecentEncounters] = useState<any[]>([]);
-  const [recentReviews, setRecentReviews] = useState<any[]>([]);
+  const [agentCount, setAgentCount] = useState(0);
+  const [certifiedCount, setCertifiedCount] = useState(0);
+  const [recentAgents, setRecentAgents] = useState<any[]>([]);
+  const [showUsage, setShowUsage] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const PRODUCT_TABS = [
-    { key: 'chat' as const, label: t.productHubChat, description: t.productHubChatDesc, cta: t.productHubChatCta, ctaLink: '/ai-studio/agents', secondaryLabel: t.productHubChatSecondary, secondaryLink: '/ai-studio/agents', buildLabel: t.productHubChatBuild, buildLink: '/developer-quickstart?useCase=chat' },
-    { key: 'code' as const, label: t.productHubCode, labelSuffix: t.productHubNew, description: t.productHubCodeDesc, cta: t.productHubCodeCta, ctaLink: '/ai-studio/medical-coding', secondaryLabel: t.productHubCodeSecondary, secondaryLink: '/ai-studio/medical-coding', buildLabel: t.productHubCodeBuild, buildLink: '/developer-quickstart?useCase=coding' },
-  ];
-
-  const formatCurrency = (value: number, fractionDigits = 2) =>
-    new Intl.NumberFormat(locale, { style: 'currency', currency: 'CNY', minimumFractionDigits: fractionDigits, maximumFractionDigits: fractionDigits }).format(value);
-
-  const fetchData = useCallback(async () => {
-    setLoading(true);
-    try {
-      const [balR, useR, histR, encR, revR] = await Promise.allSettled([billingApi.balance(), usageApi.summary(timeRange), usageApi.history(timeRange), encountersApi.list(1, 5), reviewsApi.list(1, 5)]);
-      if (balR.status === 'fulfilled') setBalance(balR.value.data.balance);
-      if (useR.status === 'fulfilled') { setConsumed(useR.value.data.credits_used || 0); setTotalRequests(useR.value.data.total_requests || 0); setAvgResponseTime(useR.value.data.avg_response_time_ms || 0); }
-      if (histR.status === 'fulfilled') setHistoryData(histR.value.data?.items || histR.value.data || []);
-      if (encR.status === 'fulfilled') setRecentEncounters(encR.value.data.items || []);
-      if (revR.status === 'fulfilled') setRecentReviews(revR.value.data.items || []);
-    } finally { setLoading(false); }
-  }, [timeRange]);
-
-  useEffect(() => { fetchData(); }, [fetchData]);
-
   useEffect(() => {
-    oauthApi.list().then(r => setApiClients(r.data?.clients || [])).catch(() => {});
+    Promise.all([
+      billingApi.balance().then(r => setBalance(r.data.balance)).catch(() => {}),
+      runtimeApi.listAgents().then(d => {
+        const all = d.agents || [];
+        setAgentCount(all.length);
+        setCertifiedCount(all.filter((a: any) => a.agent_type === 'certified').length);
+        setRecentAgents(all.slice(0, 5));
+      }).catch(() => {}),
+    ]).finally(() => setLoading(false));
   }, []);
 
-  // Real time-series chart data from history API
-  const chartData: ChartPoint[] = (() => {
-    if (historyData.length > 0) {
-      // Bucket history items by date
-      const buckets: Record<string, number> = {};
-      historyData.forEach(item => {
-        const date = (item as any).date || (item as any).timestamp?.slice(0, 10) || (item as any).created_at?.slice(0, 10);
-        if (!date) return;
-        const credits = (item as any).credits_consumed || (item as any).credits || 1;
-        buckets[date] = (buckets[date] || 0) + credits;
-      });
-      const sorted = Object.entries(buckets).sort(([a], [b]) => a.localeCompare(b));
-      return sorted.map(([date, value]) => ({
-        label: date.slice(5),
-        value,
-      }));
-    }
-    // No history data — return empty chart
-    return [];
-  })();
-  const compareData: ChartPoint[] = [];
-
-  const activeProduct = PRODUCT_TABS.find(tab => tab.key === activeTab)!;
+  const formatCurrency = (v: number) => `¥${v.toFixed(2)}`;
 
   return (
     <div className="flex h-full bg-muted/20">
       <div className="flex-1 overflow-y-auto">
-        <div className="px-6 py-4">
-          {/* Quick actions */}
-          <div className="flex items-center gap-2 mb-4">
-            <button onClick={() => navigate('/ai-studio/agents')} className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 flex items-center gap-1.5">
-              <Layers size={16} /> Agent 工作台
+        <div className="max-w-4xl mx-auto px-6 py-8 space-y-6">
+
+          {/* Hero */}
+          <div className="text-center mb-2">
+            <h1 className="text-2xl font-bold text-foreground tracking-tight">收入合规 AI 工作台</h1>
+            <p className="text-sm text-muted-foreground mt-2">管理医学编码 Agent，追踪合规审核结果，连接 HIS/EMR 系统</p>
+          </div>
+
+          {/* Feature cards */}
+          <div className="grid grid-cols-2 gap-4">
+            <button onClick={() => navigate('/ai-studio/agents')}
+              className="group flex items-start gap-4 p-5 bg-background rounded-xl shadow-sm ring-1 ring-border/20 hover:ring-primary/30 hover:shadow-md transition-all text-left">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
+                <Layers size={20} className="text-primary" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-foreground">Agent 工作台</p>
+                <p className="text-xs text-muted-foreground mt-1">{agentCount} 个 Agent 已安装 · 管理 · 评估 · 市场</p>
+              </div>
             </button>
-            <button onClick={() => navigate('/ai-studio/medical-coding')} className="px-4 py-2 rounded-lg border border-border text-sm font-medium hover:bg-accent flex items-center gap-1.5">
-              <Asterisk size={16} /> 医学编码
-            </button>
-            <button onClick={() => navigate('/developer-quickstart')} className="px-4 py-2 rounded-lg border border-border text-sm font-medium hover:bg-accent flex items-center gap-1.5">
-              <Activity size={16} /> SDK 集成
+            <button onClick={() => navigate('/ai-studio/medical-coding')}
+              className="group flex items-start gap-4 p-5 bg-background rounded-xl shadow-sm ring-1 ring-border/20 hover:ring-primary/30 hover:shadow-md transition-all text-left">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
+                <Stethoscope size={20} className="text-primary" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-foreground">医学编码</p>
+                <p className="text-xs text-muted-foreground mt-1">ICD-10/ICD-9-CM-3 · 真实 LLM 驱动 · 规则引擎校验</p>
+              </div>
             </button>
           </div>
 
-        <div className="px-0 pb-6">
-          {loading && <div className="flex justify-center py-2"><Loader2 className="animate-spin h-4 w-4 text-muted-foreground" /></div>}
-          <div className="flex items-center gap-2 mb-4">
-            <div className="w-1 h-4 rounded-full bg-primary/40" />
-            <h3 className="text-sm font-semibold text-foreground">{t.overviewSection}</h3>
-          </div>
-          <div className="grid grid-cols-4 gap-4 mb-6">
-            <div className="bg-card rounded-xl shadow-sm ring-1 ring-border/20 p-5"><p className="text-xs text-muted-foreground mb-1">{t.availableCredits}</p><p className="text-2xl font-bold font-mono text-foreground">{balance !== null ? formatCurrency(balance) : '--'}</p><button onClick={() => navigate('/billing')} className="text-xs text-foreground hover:underline mt-3 inline-block">{t.addCredits}</button></div>
-            <div className="bg-card rounded-xl shadow-sm ring-1 ring-border/20 p-5"><p className="text-xs text-muted-foreground mb-1">{t.totalCreditsConsumed}</p><p className="text-2xl font-bold font-mono text-foreground">{formatCurrency(consumed)}</p><button onClick={() => navigate('/usage')} className="text-xs text-foreground hover:underline mt-3 inline-block">{t.viewUsage}</button></div>
-            <div className="bg-card rounded-xl shadow-sm ring-1 ring-border/20 p-5"><p className="text-xs text-muted-foreground mb-1">{t.apiRequests}</p><p className="text-2xl font-bold font-mono text-foreground">{totalRequests.toLocaleString()}</p><span className="text-xs text-muted-foreground mt-3 inline-block">{TIME_RANGES.find(tr => tr.key === timeRange) ? t[TIME_RANGES.find(tr => tr.key === timeRange)!.labelKey] : t.last30DaysLabel}</span></div>
-            <div className="bg-card rounded-xl shadow-sm ring-1 ring-border/20 p-5"><p className="text-xs text-muted-foreground mb-1">{t.avgResponseTimeMs}</p><p className="text-2xl font-bold font-mono text-foreground">{avgResponseTime > 0 ? `${avgResponseTime.toFixed(0)}ms` : '--'}</p><span className="text-xs text-muted-foreground mt-3 inline-block">{t.milliseconds}</span></div>
-          </div>
-          <div className="bg-card rounded-xl shadow-sm ring-1 ring-border/20 p-5 mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <div className="w-1 h-4 rounded-full bg-primary/40" />
-                <h4 className="text-sm font-semibold text-foreground">{t.creditsConsumed}</h4>
+          {/* Agent overview stats */}
+          {!loading && (
+            <div className="grid grid-cols-4 gap-3">
+              <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-4 text-center">
+                <p className="text-2xl font-bold text-foreground">{agentCount}</p>
+                <p className="text-[11px] text-muted-foreground mt-1">已安装 Agent</p>
               </div>
-              <div className="flex items-center gap-2">
-                {/* Time range filter — iCoDer-style dropdown */}
-                <div className="relative">
-                  <select
-                    value={timeRange}
-                    onChange={e => setTimeRange(Number(e.target.value))}
-                    className="appearance-none text-xs px-2.5 py-1.5 pr-7 rounded-lg border border-border bg-card text-foreground cursor-pointer hover:border-primary/30 focus:outline-none focus:ring-1 focus:ring-ring"
-                  >
-                    {TIME_RANGES.map(tr => (
-                      <option key={tr.key} value={tr.key}>{t[tr.labelKey]}</option>
-                    ))}
-                  </select>
-                  <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-                </div>
-                {/* API client filter — iCoDer-style dropdown */}
-                {apiClients.length > 0 && (
-                  <div className="relative">
-                    <select
-                      value={apiClientFilter}
-                      onChange={e => setApiClientFilter(e.target.value)}
-                      className="appearance-none text-xs px-2.5 py-1.5 pr-7 rounded-lg border border-border bg-card text-foreground cursor-pointer hover:border-primary/30 focus:outline-none focus:ring-1 focus:ring-ring"
-                    >
-                      <option value="all">{t.allApiClients}</option>
-                      {apiClients.map((c: any) => (
-                        <option key={c.client_id} value={c.client_id}>{c.client_name || c.client_id}</option>
-                      ))}
-                    </select>
-                    <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-                  </div>
-                )}
-                <label className="flex items-center gap-1.5 cursor-pointer text-xs text-muted-foreground hover:text-foreground transition-colors select-none"><input type="checkbox" checked={comparePeriod} onChange={e => setComparePeriod(e.target.checked)} className="w-3.5 h-3.5 rounded border-border accent-foreground cursor-pointer" />{t.comparePeriod}</label>
-                <div className="flex items-center rounded-lg border border-border p-0.5">
-                  {(['daily', 'weekly', 'monthly'] as const).map(p => (
-                    <button key={p} onClick={() => setChartPeriod(p)} className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors capitalize ${chartPeriod === p ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}>{p === 'daily' ? t.daily : p === 'weekly' ? t.weekly : t.monthly}</button>
-                  ))}
-                </div>
+              <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-4 text-center">
+                <p className="text-2xl font-bold text-foreground">{certifiedCount}</p>
+                <p className="text-[11px] text-muted-foreground mt-1">iCoDer 认证</p>
               </div>
-            </div>
-            <div className="relative h-32">
-              <div className="absolute inset-0 flex items-end gap-0.5">{chartData.map((pt, i) => { const maxVal = Math.max(...chartData.map(d => d.value), 0.01); return <div key={i} className="flex-1 rounded-sm bg-foreground/85 hover:bg-foreground transition-colors" style={{ height: `${Math.max(4, (pt.value / maxVal) * 100)}%` }} title={`${pt.label}: ${formatCurrency(pt.value, 3)}`} />; })}</div>
-              {comparePeriod && compareData.length > 0 && <svg className="absolute inset-0 w-full h-full pointer-events-none" preserveAspectRatio="none" viewBox={`0 0 ${compareData.length} 100`}><polyline fill="none" stroke="hsl(var(--primary))" strokeWidth="1.5" strokeDasharray="3 3" strokeLinecap="round" strokeLinejoin="round" opacity="0.6" points={compareData.map((pt, i) => { const maxVal = Math.max(...chartData.map(d => d.value), 0.01); return `${i},${100 - (pt.value / maxVal) * 100}`; }).join(' ')} /></svg>}
-            </div>
-            {chartData.length > 0 && <div className="flex justify-between mt-2 text-[10px] text-muted-foreground">{chartData.filter((_, i) => i % Math.max(1, Math.floor(chartData.length / 5)) === 0 || i === chartData.length - 1).map((pt, i) => <span key={i}>{pt.label}</span>)}</div>}
-          </div>
-          {(recentEncounters.length > 0 || recentReviews.length > 0) && (
-            <div className="w-full max-w-3xl">
-              <div className="bg-card rounded-xl shadow-sm ring-1 ring-border/20 p-5">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-1 h-4 rounded-full bg-primary/40" />
-                  <Activity size={14} className="text-muted-foreground" /><h4 className="text-sm font-semibold text-foreground">{t.recentActivity}</h4>
-                </div>
-                <div className="space-y-1.5">
-                  {recentEncounters.slice(0, 3).map((enc: any) => (
-                    <div key={enc.id} className="flex items-center justify-between text-xs cursor-pointer hover:bg-accent/50 rounded px-2 py-1 -mx-2" onClick={() => navigate('/ai-studio/medical-coding')}>
-                      <div><span className="font-mono text-muted-foreground">{enc.encounter_id || enc.id}</span><span className="ml-2 text-foreground">{enc.department || '--'}</span></div>
-                      <span className="text-[10px] text-muted-foreground">{enc.created_at ? new Date(enc.created_at).toLocaleDateString(locale) : ''}</span>
-                    </div>
-                  ))}
-                  {recentReviews.slice(0, 3).map((rev: any) => (
-                    <div key={rev.id} className="flex items-center justify-between text-xs cursor-pointer hover:bg-accent/50 rounded px-2 py-1 -mx-2" onClick={() => navigate('/ai-studio/medical-coding')}>
-                      <div><span className="font-mono text-muted-foreground">{rev.review_id || rev.id}</span>{rev.primary_diagnosis_name && <span className="ml-2 text-foreground truncate max-w-60 inline-block">{rev.primary_diagnosis_name}</span>}</div>
-                      <span className="text-[10px] text-muted-foreground">{rev.created_at ? new Date(rev.created_at).toLocaleDateString(locale) : ''}</span>
-                    </div>
-                  ))}
-                </div>
+              <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-4 text-center">
+                <p className="text-2xl font-bold text-foreground">{agentCount - certifiedCount}</p>
+                <p className="text-[11px] text-muted-foreground mt-1">社区 Agent</p>
+              </div>
+              <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-4 text-center">
+                <p className="text-2xl font-bold text-foreground">{balance !== null ? formatCurrency(balance) : '--'}</p>
+                <p className="text-[11px] text-muted-foreground mt-1">可用额度</p>
               </div>
             </div>
           )}
-        </div>
+
+          {/* Recent agents */}
+          {recentAgents.length > 0 && (
+            <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-5">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><Bot size={14} className="text-primary" /> Agent 列表</h3>
+                <button onClick={() => navigate('/ai-studio/agents')} className="text-xs text-primary hover:underline">全部</button>
+              </div>
+              <div className="space-y-1">
+                {recentAgents.map((a: any) => (
+                  <div key={a.agent_ref} onClick={() => navigate('/ai-studio/agents/' + a.agent_ref)}
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-accent cursor-pointer transition-colors group">
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20">
+                      <Bot size={14} className="text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">{a.name}</p>
+                      <p className="text-[10px] text-muted-foreground">{a.description?.slice(0, 60) || a.category}</p>
+                    </div>
+                    <span className="text-[10px] font-mono text-muted-foreground">v{a.version}</span>
+                    <span className={`px-1.5 py-0.5 rounded-full text-[9px] ${a.status === 'enabled' ? 'bg-green-100 text-green-700' : 'bg-muted text-muted-foreground'}`}>
+                      {a.status}
+                    </span>
+                    <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-medium ${a.tier >= 3 ? 'bg-red-100 text-red-700' : a.tier >= 2 ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>
+                      T{a.tier}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Quick actions */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <button onClick={() => navigate('/ai-studio/agents/new')}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
+              <Plus size={14} /> 新建 Agent
+            </button>
+            <button onClick={() => navigate('/evaluation')}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium border border-border hover:bg-accent transition-colors">
+              <Play size={14} /> 运行评估
+            </button>
+            <button onClick={() => navigate('/developer-quickstart')}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium border border-border hover:bg-accent transition-colors">
+              <Code size={14} /> SDK 集成
+            </button>
+          </div>
+
+          {/* Usage (collapsible) */}
+          <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 overflow-hidden">
+            <button onClick={() => setShowUsage(!showUsage)}
+              className="w-full flex items-center justify-between px-5 py-3 hover:bg-accent/30 transition-colors">
+              <span className="text-xs font-semibold text-foreground flex items-center gap-2">
+                <TrendingUp size={14} className="text-muted-foreground" /> 用量概览
+              </span>
+              <ChevronDown size={14} className={`text-muted-foreground transition-transform ${showUsage ? 'rotate-180' : ''}`} />
+            </button>
+            {showUsage && (
+              <div className="px-5 pb-4 grid grid-cols-3 gap-4 border-t border-border pt-4">
+                <div>
+                  <p className="text-[10px] text-muted-foreground">可用额度</p>
+                  <p className="text-lg font-bold font-mono">{balance !== null ? formatCurrency(balance) : '--'}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-muted-foreground">已安装 Agent</p>
+                  <p className="text-lg font-bold font-mono">{agentCount}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-muted-foreground">认证 Agent</p>
+                  <p className="text-lg font-bold font-mono">{certifiedCount}</p>
+                </div>
+              </div>
+            )}
+          </div>
+
         </div>
       </div>
-
     </div>
   );
 }

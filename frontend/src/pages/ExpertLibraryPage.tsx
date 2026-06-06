@@ -473,9 +473,13 @@ export default function ExpertLibraryPage() {
         {experts.length === 0 && (
           <div className="col-span-full text-center py-12 bg-background rounded-xl shadow-sm ring-1 ring-border/20">
             <Bot size={48} className="mx-auto mb-3 text-muted-foreground/30" />
-            <p className="text-sm text-muted-foreground">{t.noExpertsFound}</p>
-            <button onClick={() => setShowAddModal(true)} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-all shadow-sm shadow-primary/20 mt-4">
-              <Plus size={14} /> {t.createFirstExpert}
+            <p className="text-sm font-medium text-foreground mb-2">还没有专家</p>
+            <p className="text-xs text-muted-foreground mb-4 max-w-md mx-auto leading-relaxed">
+              专家是 Agent 的能力单元。每个专家擅长特定领域（如 ICD-10 编码、DRG 分析、病历质控）。
+              创建专家后，可在 Agent 设置中绑定使用。
+            </p>
+            <button onClick={() => setShowAddModal(true)} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-all shadow-sm shadow-primary/20">
+              <Plus size={14} /> 创建第一个专家
             </button>
           </div>
         )}

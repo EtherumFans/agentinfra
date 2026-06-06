@@ -617,66 +617,63 @@ export default function MedicalCodingPage() {
           <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 h-full">
             <div className="flex h-full gap-6 p-6">
         {/* ===== LEFT: Input Card ===== */}
-        <div className="w-[420px] shrink-0 flex flex-col gap-4">
-          {/* Coding systems — iCoDer-style single box */}
-          <div className="bg-background rounded-xl border border-border/20 shadow-sm px-4 py-3">
-            <div className="flex items-center gap-2 flex-wrap">
-              {selectedSystems.length === 0 ? (
-                <span className="text-[13px] text-muted-foreground">未选择编码系统</span>
-              ) : (
-                selectedSystems.map(sys => {
-                  const info = codingSystems.find(cs => cs.code_system === sys);
-                  return (
-                    <span key={sys} className="text-[11px] px-2.5 py-1 rounded-lg bg-muted text-muted-foreground flex items-center gap-1.5">
-                      {info?.name || sys}
-                      <button onClick={() => toggleSystem(sys)} className="hover:text-foreground">&times;</button>
-                    </span>
-                  );
-                })
-              )}
-              <div className="relative ml-auto">
-                <button onClick={() => setShowSystemMenu(!showSystemMenu)}
-                  className="flex items-center gap-1 text-[12px] text-muted-foreground hover:text-foreground transition-colors">
-                  <Plus size={14} /> 添加
-                </button>
+        <div className="max-w-2xl shrink-0 flex flex-col gap-3 flex-1">
+          {/* Row 1: Coding systems + Agent */}
+          <div className="flex items-center gap-3 text-xs">
+            <div className="flex items-center gap-1.5 flex-wrap flex-1">
+              <span className="text-muted-foreground shrink-0">编码:</span>
+              {selectedSystems.map(sys => {
+                const info = codingSystems.find(cs => cs.code_system === sys);
+                return (
+                  <span key={sys} className="px-2 py-0.5 rounded-md bg-muted text-muted-foreground flex items-center gap-1">
+                    {info?.name || sys}
+                    <button onClick={() => toggleSystem(sys)} className="hover:text-foreground">&times;</button>
+                  </span>
+                );
+              })}
+              <div className="relative">
+                <button onClick={() => setShowSystemMenu(!showSystemMenu)} className="text-primary hover:underline">+ 选择</button>
                 {showSystemMenu && (
-                  <div className="absolute top-full right-0 mt-1 bg-background rounded-xl shadow-lg border border-border/20 py-2 z-50 min-w-[240px] max-h-56 overflow-y-auto">
+                  <div className="absolute top-full left-0 mt-1 bg-background rounded-xl shadow-lg border border-border/20 py-2 z-50 min-w-[220px] max-h-56 overflow-y-auto">
                     {codingSystems.map((sys) => (
                       <label key={sys.code_system} className={`flex items-center gap-2 px-4 py-2 text-[13px] cursor-pointer hover:bg-muted/50 ${selectedSystems.includes(sys.code_system) ? 'text-foreground' : 'text-muted-foreground'}`}>
-                        <input type="checkbox" checked={selectedSystems.includes(sys.code_system)}
-                          onChange={() => toggleSystem(sys.code_system)} className="accent-primary shrink-0 rounded" />
+                        <input type="checkbox" checked={selectedSystems.includes(sys.code_system)} onChange={() => toggleSystem(sys.code_system)} className="accent-primary shrink-0 rounded" />
                         {sys.name}
                       </label>
                     ))}
                     <div className="border-t border-border/20 mt-1 pt-1 px-3">
-                      <button onClick={() => setShowSystemMenu(false)} className="w-full text-center text-xs text-primary hover:bg-accent py-1 rounded transition-colors">完成</button>
+                      <button onClick={() => setShowSystemMenu(false)} className="w-full text-center text-xs text-primary hover:bg-accent py-1 rounded">完成</button>
                     </div>
                   </div>
                 )}
               </div>
             </div>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <span className="text-muted-foreground">Agent:</span>
+              <select value={selectedAgent} onChange={e => setSelectedAgent(e.target.value)}
+                className="border border-border rounded-md px-2 py-1 bg-card text-foreground text-xs">
+                {availableAgents.map(a => (
+                  <option key={a.agent_ref} value={a.agent_ref}>{a.name}</option>
+                ))}
+              </select>
+            </div>
+            {/* AI status indicator (simple) */}
+            {dsStatus && (
+              <span className={`shrink-0 w-2 h-2 rounded-full ${dsStatus.provider_mode === 'real' ? 'bg-green-500' : 'bg-amber-500'}`} title={dsStatus.provider_mode === 'real' ? 'AI 就绪' : 'Mock 模式'} />
+            )}
           </div>
 
-          {/* Agent selector */}
-          <div className="flex items-center gap-2">
-            <select value={selectedAgent} onChange={e => setSelectedAgent(e.target.value)}
-              className="text-xs border border-border rounded-lg px-2 py-1.5 bg-card text-foreground">
-              {availableAgents.map(a => (
-                <option key={a.agent_ref} value={a.agent_ref}>{a.name}</option>
-              ))}
-            </select>
-          </div>
           {/* Input card */}
-          <div className="bg-background rounded-xl shadow-sm border border-border/20 p-5 flex flex-col gap-5 flex-1 relative">
+          <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 flex flex-col flex-1 relative">
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handlePredict(); } }}
-              placeholder={input ? '' : '输入临床文本...'}
-              rows={14}
-              className="w-full text-[15px] leading-relaxed border-0 p-0 pt-8 bg-transparent focus:outline-none placeholder:text-muted-foreground/30 resize-none text-foreground flex-1"
+              placeholder={input ? '' : '输入临床文本，粘贴病历、出院小结或手术记录...'}
+              rows={12}
+              className="w-full text-[15px] leading-relaxed border-0 p-6 pb-4 bg-transparent focus:outline-none placeholder:text-muted-foreground/30 resize-none text-foreground flex-1"
             />
-            {/* Guided empty state — Corti-style sample selection */}
+            {/* Guided empty state */}
             {!input && (
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                 <p className="text-sm text-muted-foreground mb-3 pointer-events-auto">选择示例病历开始体验：</p>
@@ -691,95 +688,38 @@ export default function MedicalCodingPage() {
                 </div>
               </div>
             )}
-
-            {/* Sample cases — top-right collapsible */}
-            <div className="absolute top-3 right-4 z-10">
-              <div className="relative">
-                <button onClick={() => setShowSampleMenu(!showSampleMenu)}
-                  className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-border/50 text-muted-foreground hover:text-foreground hover:border-border hover:bg-accent/50 transition-all">
-                  <FileText size={13} />
-                  <span>使用样例</span>
-                  <ChevronDown size={10} className={`transition-transform ${showSampleMenu ? 'rotate-180' : ''}`} />
-                </button>
-                {showSampleMenu && (
-                  <div className="absolute top-full right-0 mt-1 bg-popover border border-border rounded-xl shadow-lg py-1 min-w-[200px] z-20 max-h-64 overflow-y-auto">
-                    {samples.map((s: any) => (
-                      <div key={s.key} className="group flex items-center">
-                        <button onClick={() => { setInput(s.text); setShowSampleMenu(false); }}
-                          className="flex-1 text-left px-3 py-2 text-xs text-foreground hover:bg-accent transition-colors">
-                          {s.title}
-                        </button>
-                        <button onClick={(e) => { e.stopPropagation(); setEditingSample({ key: s.key, title: s.title, text: s.text }); }}
-                          className="p-1 mr-1 rounded opacity-0 group-hover:opacity-100 hover:bg-accent text-muted-foreground transition-all">
-                          <Pencil size={11} />
-                        </button>
-                      </div>
-                    ))}
-                    <div className="border-t border-border/20 mt-1 pt-1 px-1">
-                      <button onClick={() => setEditingSample({ key: `sample-${Date.now()}`, title: '', text: '' })}
-                        className="w-full text-left px-3 py-2 text-xs text-primary hover:bg-accent transition-colors flex items-center gap-1.5">
-                        <Plus size={12} /> 添加样例
-                      </button>
-                    </div>
+            {/* Toolbar */}
+            <div className="flex items-center justify-between px-4 pb-3">
+              <div className="flex items-center gap-2">
+                {input && (
+                  <div className="relative">
+                    <button onClick={() => setShowSampleMenu(!showSampleMenu)}
+                      className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
+                      <BookOpen size={12} /> 示例
+                    </button>
+                    {showSampleMenu && (
+                      <>
+                        <div className="fixed inset-0 z-40" onClick={() => setShowSampleMenu(false)} />
+                        <div className="absolute bottom-full left-0 mb-1 bg-popover border border-border rounded-lg shadow-lg z-50 py-1 min-w-[240px] max-h-48 overflow-y-auto">
+                          {samples.map((s: any, i: number) => (
+                            <button key={i} onClick={() => { setInput(s.text); setShowSampleMenu(false); }}
+                              className="w-full text-left px-3 py-2 text-xs hover:bg-accent"><p className="font-medium truncate">{s.label}</p></button>
+                          ))}
+                        </div>
+                      </>
+                    )}
                   </div>
                 )}
-              </div>
-              {showSampleMenu && <div className="fixed inset-0 z-[5]" onClick={() => setShowSampleMenu(false)} />}
-            </div>
-
-            {/* DeepSeek + Runtime Status Bar */}
-            <div className="flex items-center gap-2 mb-2 flex-wrap">
-              {dsStatus && (
-                <>
-                  <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-medium ${
-                    dsStatus.deepseek_configured ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                  }`} title={`Provider: ${dsStatus.provider_mode}, Model: ${dsStatus.model}`}>
-                    {dsStatus.deepseek_configured ? `DeepSeek ${dsStatus.model}` : 'DeepSeek: No API Key'}
+                {executionModeLabel && (
+                  <span className={`text-[10px] ${executionModeLabel.includes('Processing') ? 'text-blue-600' : executionModeLabel.includes('Done') ? 'text-green-600' : 'text-muted-foreground'}`}>
+                    {executionModeLabel.includes('Processing') ? <Loader2 size={10} className="inline animate-spin mr-1" /> : null}
+                    {executionModeLabel}
                   </span>
-                  <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${
-                    dsStatus.provider_mode === 'real' ? 'bg-green-100 text-green-700' :
-                    dsStatus.provider_mode === 'mock' ? 'bg-amber-100 text-amber-700' :
-                    'bg-gray-100 text-gray-600'
-                  }`}>
-                    {dsStatus.provider_mode === 'real' ? 'Real' : dsStatus.provider_mode === 'mock' ? 'Mock' : dsStatus.provider_mode}
-                  </span>
-                </>
-              )}
-              {executionModeLabel && (
-                <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${
-                  executionModeLabel.includes('failed') ? 'bg-red-100 text-red-700' :
-                  executionModeLabel.includes('Done') ? 'bg-green-100 text-green-700' :
-                  executionModeLabel.includes('Processing') ? 'bg-blue-100 text-blue-700' :
-                  'bg-gray-100 text-gray-600'}`}>
-                  {executionModeLabel}
-                </span>
-              )}
-            </div>
-            <div className="flex gap-2">
-              {/* Samples dropdown — Corti-style quick demo data */}
-              <div className="relative">
-                <button onClick={() => setShowSampleMenu(!showSampleMenu)}
-                  className="px-3 py-2 rounded-lg border border-border text-xs text-muted-foreground hover:text-foreground hover:bg-accent transition-colors flex items-center gap-1">
-                  <BookOpen size={13} /> 示例
-                </button>
-                {showSampleMenu && (
-                  <>
-                    <div className="fixed inset-0 z-40" onClick={() => setShowSampleMenu(false)} />
-                    <div className="absolute bottom-full mb-1 left-0 bg-popover border border-border rounded-lg shadow-lg z-50 py-1 min-w-[300px] max-h-48 overflow-y-auto">
-                      {samples.map((s: any, i: number) => (
-                        <button key={i} onClick={() => { setInput(s.text); setShowSampleMenu(false); }}
-                          className="w-full text-left px-3 py-2 text-xs hover:bg-accent transition-colors">
-                          <p className="font-medium text-foreground truncate">{s.label}</p>
-                          <p className="text-[10px] text-muted-foreground truncate">{s.text.slice(0, 60)}...</p>
-                        </button>
-                      ))}
-                    </div>
-                  </>
                 )}
               </div>
               <button onClick={handlePredict} disabled={!hasText || loading}
-                className="flex-1 py-3 rounded-xl bg-primary text-white text-[15px] font-medium hover:bg-primary/90 disabled:opacity-20 transition-all flex items-center justify-center gap-2 active:scale-[0.98]">
-                {loading ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
+                className="px-6 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-30 transition-all flex items-center gap-1.5">
+                {loading ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
                 {loading ? '分析中...' : '开始编码'}
               </button>
             </div>

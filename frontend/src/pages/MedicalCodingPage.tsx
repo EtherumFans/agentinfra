@@ -408,196 +408,81 @@ export default function MedicalCodingPage() {
   // ---- Shared settings panel content ----
   const settingsContent = (
     <div className="p-4 space-y-5">
-      {/* Name */}
+      {/* Coding systems */}
       <div>
-        <label className="text-xs font-medium text-foreground block mb-1">名称</label>
-        <input defaultValue="Medical Coding Agent"
-          className="w-full text-sm border border-border rounded-lg px-3 py-2 bg-transparent text-foreground focus:outline-none" />
-      </div>
-
-      {/* System prompt */}
-      <div>
-        <label className="text-xs font-medium text-foreground flex items-center gap-1 mb-1">
-          系统提示词
-          <span className="w-4 h-4 rounded-full border border-border flex items-center justify-center text-[10px] text-muted-foreground cursor-help">?</span>
-        </label>
-        <div className="border border-border rounded-lg overflow-hidden">
-          <div className="bg-muted/50 px-3 py-1.5 border-b border-border flex items-center gap-2">
-            <span className="text-[10px] font-mono text-muted-foreground">&lt;role&gt;</span>
-          </div>
-          <textarea value={systemPrompt} onChange={(e) => setSystemPrompt(e.target.value)}
-            rows={6}
-            className="w-full text-xs bg-transparent px-3 py-2 text-muted-foreground resize-none focus:outline-none leading-relaxed" />
-        </div>
-      </div>
-
-      {/* Coding config */}
-      <div className="space-y-3">
-        <div>
-          <label className="text-xs font-medium text-foreground block mb-1">编码系统</label>
-          <div className="relative">
-            <button
-              onClick={() => setShowSystemMenu(!showSystemMenu)}
-              className="w-full flex items-center justify-between text-xs border border-border rounded-lg px-3 py-2 bg-transparent hover:border-primary/30 transition-colors"
-            >
-              <span className={selectedSystems.length ? 'text-foreground' : 'text-muted-foreground'}>
-                {selectedSystems.length ? `已选 ${selectedSystems.length} 个编码系统` : '选择编码系统'}
-              </span>
-              <ChevronDown size={14} className={`text-muted-foreground transition-transform ${showSystemMenu ? 'rotate-180' : ''}`} />
-            </button>
-            {showSystemMenu && (
-              <div className="absolute top-full mt-1 left-0 right-0 bg-popover border border-border rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto py-1">
-                {codingSystems.map((sys) => (
-                  <label key={sys.code_system} className={`flex items-center gap-2 px-3 py-1.5 text-xs cursor-pointer hover:bg-accent transition-colors ${selectedSystems.includes(sys.code_system) ? 'bg-primary/5' : ''}`}>
-                    <input
-                      type="checkbox"
-                      checked={selectedSystems.includes(sys.code_system)}
-                      onChange={() => toggleSystem(sys.code_system)}
-                      className="accent-primary shrink-0"
-                    />
-                    <span className="text-foreground">{sys.name}</span>
-                    <span className="text-[10px] text-muted-foreground ml-auto">{sys.code_system}</span>
-                  </label>
-                ))}
-                <div className="border-t border-border mt-1 pt-1 px-2">
-                  <button onClick={() => setShowSystemMenu(false)} className="w-full text-center text-xs text-primary hover:bg-accent py-1 rounded transition-colors">完成</button>
-                </div>
-              </div>
-            )}
-            {showSystemMenu && <div className="fixed inset-0 z-40" onClick={() => setShowSystemMenu(false)} />}
-          </div>
-        </div>
-        {/* Expand toggle */}
-        <div className="flex items-center justify-between py-1.5 border-t border-border pt-3">
-          <div>
-            <label className="text-xs font-medium text-foreground">展开结果</label>
-            <p className="text-[10px] text-muted-foreground">显示所有候选编码</p>
-          </div>
-          <button onClick={() => setExpandResults(!expandResults)}
-            className={`relative w-8 h-5 rounded-full transition-colors shrink-0 ${expandResults ? 'bg-primary' : 'bg-muted border border-border'}`}>
-            <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-background shadow-sm transition-all ${expandResults ? 'left-3.5' : 'left-0.5'}`} />
+        <label className="text-xs font-medium text-foreground block mb-2">Coding systems</label>
+        <div className="relative">
+          <button onClick={() => setShowSystemMenu(!showSystemMenu)}
+            className="w-full flex items-center gap-2 text-xs border border-border rounded-lg px-3 py-2 bg-transparent hover:border-primary/30 transition-colors">
+            {selectedSystems.map(sys => {
+              const info = codingSystems.find(cs => cs.code_system === sys);
+              return (
+                <span key={sys} className="px-2 py-0.5 rounded-md bg-muted text-muted-foreground flex items-center gap-1">
+                  {info?.name || sys}
+                  <button onClick={(e) => { e.stopPropagation(); toggleSystem(sys); }} className="hover:text-foreground">&times;</button>
+                </span>
+              );
+            })}
           </button>
-        </div>
-        <div>
-          <label className="text-xs font-medium text-foreground block mb-1">置信度阈值: {confThreshold}</label>
-          <input type="range" min={0} max={1} step={0.05} value={confThreshold}
-            onChange={(e) => setConfThreshold(parseFloat(e.target.value))}
-            className="w-full accent-primary" />
+          {showSystemMenu && (
+            <div className="absolute top-full mt-1 left-0 right-0 bg-popover border border-border rounded-lg shadow-lg z-50 max-h-56 overflow-y-auto py-1">
+              {codingSystems.map((sys) => (
+                <label key={sys.code_system} className={"flex items-center gap-2 px-3 py-1.5 text-xs cursor-pointer hover:bg-accent " + (selectedSystems.includes(sys.code_system) ? 'bg-primary/5' : '')}>
+                  <input type="checkbox" checked={selectedSystems.includes(sys.code_system)} onChange={() => toggleSystem(sys.code_system)} className="accent-primary shrink-0" />
+                  <span>{sys.name}</span>
+                </label>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Include / Exclude code filters */}
-      <div className="space-y-3">
-        <div>
-          <label className="text-xs font-medium text-foreground block mb-1">包含编码</label>
+      {/* Filter codes */}
+      <div>
+        <label className="text-xs font-medium text-foreground block mb-2">Filter codes</label>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-muted-foreground">Include</span>
+            <button onClick={() => setShowIncludeDialog(true)} className="text-xs text-primary hover:underline">Add codes</button>
+          </div>
           {includeCodes.length > 0 && (
-            <div className="flex flex-wrap gap-1 mb-2">
+            <div className="flex flex-wrap gap-1">
               {includeCodes.map((code, i) => (
-                <span key={i}
-                  className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
+                <span key={i} className="text-[11px] px-2 py-0.5 rounded-md bg-muted flex items-center gap-1">
                   {code}
-                  <button onClick={() => setIncludeCodes(includeCodes.filter((_, j) => j !== i))}
-                    className="hover:text-red-500">&times;</button>
+                  <button onClick={() => setIncludeCodes(includeCodes.filter((_, j) => j !== i))} className="hover:text-foreground">&times;</button>
                 </span>
               ))}
             </div>
           )}
-          <button onClick={() => setShowIncludeDialog(true)}
-            className="text-xs text-primary hover:underline flex items-center gap-1">
-            <Plus size={12} /> 添加编码
-          </button>
-        </div>
-        <div>
-          <label className="text-xs font-medium text-foreground block mb-1">排除编码</label>
-          {excludeCodes.length > 0 && (
-            <div className="flex flex-wrap gap-1 mb-2">
-              {excludeCodes.map((code, i) => (
-                <span key={i}
-                  className="text-[10px] px-1.5 py-0.5 rounded bg-red-50 text-red-700 border border-red-200 flex items-center gap-1">
-                  {code}
-                  <button onClick={() => setExcludeCodes(excludeCodes.filter((_, j) => j !== i))}
-                    className="hover:text-red-500">&times;</button>
-                </span>
-              ))}
-            </div>
-          )}
-          <button onClick={() => setShowExcludeDialog(true)}
-            className="text-xs text-primary hover:underline flex items-center gap-1">
-            <Plus size={12} /> Add codes
-          </button>
-        </div>
-      </div>
-
-      {/* Experts */}
-      <div>
-        <h4 className="text-xs font-semibold text-foreground mb-3 flex items-center gap-1">
-          <Wrench size={12} /> 专家
-        </h4>
-        <div className="space-y-1">
-          {agentExperts.map(expert => (
-            <div key={expert.id} className="flex items-center py-1.5 group">
-              <div className="flex items-center gap-2 min-w-0 flex-1">
-                <GripVertical size={12} className="text-muted-foreground/40 shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-xs font-medium text-foreground">{expert.name}</p>
-                  <p className="text-[10px] text-muted-foreground">{expert.key}</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setAgentExperts(agentExperts.filter(e => e.id !== expert.id))}
-                className="p-0.5 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                title="移除"
-              >
-                <X size={12} />
-              </button>
-            </div>
-          ))}
-        </div>
-        <button onClick={() => navigate('/expert-library')}
-          className="text-xs text-primary hover:underline mt-3 flex items-center gap-1">
-          浏览专家库 <ExternalLink size={10} />
-        </button>
-      </div>
-
-      {/* Custom experts */}
-      <div>
-        <h4 className="text-xs font-semibold text-foreground mb-2">自定义专家</h4>
-        {customExperts.length > 0 && (
-          <div className="space-y-1 mb-2">
-            {customExperts.map((ce: any) => (
-              <div key={ce.id} className="flex items-center py-1">
-                <GripVertical size={12} className="text-muted-foreground/40 shrink-0 mr-2" />
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs font-medium text-foreground">{ce.name}</p>
-                  <p className="text-[10px] text-muted-foreground">{ce.key || ce.id}</p>
-                </div>
-                <button onClick={() => setCustomExperts(customExperts.filter(e => e.id !== ce.id))}
-                  className="text-destructive/70 hover:text-destructive">
-                  <X size={12} />
-                </button>
-              </div>
-            ))}
+          <div className="flex items-center justify-between mt-3">
+            <span className="text-xs text-muted-foreground">Exclude</span>
+            <button onClick={() => setShowExcludeDialog(true)} className="text-xs text-primary hover:underline">Add codes</button>
           </div>
-        )}
-        <button onClick={() => setShowAddExpert(true)}
-          className="text-xs text-primary hover:underline flex items-center gap-1">
-          <Plus size={12} /> 添加专家
-        </button>
+          {excludeCodes.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {excludeCodes.map((code, i) => (
+                <span key={i} className="text-[11px] px-2 py-0.5 rounded-md bg-muted flex items-center gap-1">
+                  {code}
+                  <button onClick={() => setExcludeCodes(excludeCodes.filter((_, j) => j !== i))} className="hover:text-foreground">&times;</button>
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Pinned message parts */}
-      <div>
-        <h4 className="text-xs font-semibold text-foreground mb-2">固定消息部分</h4>
-        <select value={pinnedParts} onChange={(e) => setPinnedParts(e.target.value)}
-          className="w-full min-h-[2.75rem] px-3 py-2 text-sm bg-card border border-input rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-ring transition-colors text-xs">
-          <option value="default">默认</option>
-          <option value="role_only">仅角色</option>
-          <option value="full_context">完整上下文</option>
-          <option value="custom">自定义模板...</option>
-        </select>
+      {/* Expand switch */}
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-medium text-foreground">Expand</span>
+        <button onClick={() => setExpandResults(!expandResults)}
+          className={"relative w-9 h-5 rounded-full transition-colors " + (expandResults ? 'bg-primary' : 'bg-gray-300')}>
+          <span className={"absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform " + (expandResults ? 'translate-x-4' : 'translate-x-0.5')} />
+        </button>
       </div>
     </div>
   );
+
 
   const codeContent = (
     <div className="h-full">

@@ -843,6 +843,13 @@ export default function AgentDetailPage() {
                     <div className="text-center p-2 bg-muted/50 rounded"><p className="text-lg font-bold text-blue-700">{evalResult.primary_proc_accuracy ? (evalResult.primary_proc_accuracy*100).toFixed(0)+'%' : '—'}</p><p className="text-[10px] text-muted-foreground">手术准确率</p></div>
                   </div>
                   <p className="text-[10px] text-muted-foreground text-center">{evalResult.total_cases} cases in {evalResult.elapsed_seconds}s</p>
+                  <button onClick={() => {
+                    const rows = [['Case ID','Expected DX','Actual DX','Match','Expected PROC','Actual PROC','Match','Latency(ms)']];
+                    (evalResult.per_case||[]).forEach((c:any) => rows.push([c.case_id,c.expected_dx,c.actual_dx,c.dx_match?'YES':'NO',c.expected_proc||'',c.actual_proc||'',c.proc_match?'YES':'NO',String(c.latency_ms||0)]));
+                    const csv = rows.map(r => r.join(',')).join('\n');
+                    const blob = new Blob(['﻿'+csv], {type:'text/csv;charset=utf-8'});
+                    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `eval-${agentRef||'agent'}-${new Date().toISOString().slice(0,10)}.csv`; a.click();
+                  }} className="w-full mt-2 py-1.5 rounded text-[10px] border border-border text-muted-foreground hover:text-foreground">导出 CSV</button>
                   <div className="max-h-48 overflow-y-auto space-y-1">
                     {evalResult.per_case?.map((c: any, i: number) => (
                       <div key={i} className="flex items-center gap-2 py-1 border-b border-muted">

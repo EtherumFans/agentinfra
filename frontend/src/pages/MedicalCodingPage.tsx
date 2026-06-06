@@ -666,6 +666,31 @@ export default function MedicalCodingPage() {
 
           {/* Input card */}
           <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 flex flex-col flex-1 relative">
+            {/* Corti-style toolbar: Predict + Samples + Clear + Copy */}
+            <div className="flex items-center gap-2 px-4 pt-3">
+              <button onClick={handlePredict} disabled={!hasText || loading}
+                className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-30 transition-all flex items-center gap-1.5">
+                {loading ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+                {loading ? 'Analyzing...' : 'Predict codes'}
+              </button>
+              <button onClick={() => setShowSampleMenu(!showSampleMenu)}
+                className="px-3 py-2 rounded-lg border border-border text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors flex items-center gap-1">
+                <BookOpen size={14} /> Samples
+              </button>
+              <button onClick={() => setInput('')} disabled={!input}
+                className="px-3 py-2 rounded-lg border border-border text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors disabled:opacity-30">
+                Clear input
+              </button>
+              <button onClick={() => { navigator.clipboard.writeText(input); }} disabled={!input}
+                className="px-3 py-2 rounded-lg border border-border text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors disabled:opacity-30">
+                Copy input
+              </button>
+              {executionModeLabel && (
+                <span className={`ml-auto text-xs ${executionModeLabel.includes('Processing') ? 'text-blue-600 animate-pulse' : executionModeLabel.includes('Done') ? 'text-green-600' : 'text-muted-foreground'}`}>
+                  {executionModeLabel}
+                </span>
+              )}
+            </div>
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -674,55 +699,28 @@ export default function MedicalCodingPage() {
               rows={12}
               className="w-full text-[15px] leading-relaxed border-0 p-6 pb-4 bg-transparent focus:outline-none placeholder:text-muted-foreground/30 resize-none text-foreground flex-1"
             />
-            {/* Guided empty state */}
-            {!input && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <p className="text-sm text-muted-foreground mb-3 pointer-events-auto">选择示例病历开始体验：</p>
-                <div className="flex gap-2 pointer-events-auto">
+            {/* Guided demo — Corti-style */}
+            {!input && !showGuideDismissed && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/95 rounded-xl z-10">
+                <button onClick={() => setShowGuideDismissed(true)} className="absolute top-3 right-3 text-xs text-muted-foreground hover:text-foreground">Dismiss guided demo</button>
+                <p className="text-sm text-muted-foreground mb-4 text-center max-w-md">Medical Coding converts unstructured clinical contexts into structured medical codes. Select a sample to continue:</p>
+                <div className="flex gap-3 mb-4">
                   {samples.slice(0, 3).map((s: any, i: number) => (
-                    <button key={i} onClick={() => setInput(s.text)}
-                      className="px-3 py-2 rounded-lg border border-border/50 text-xs text-muted-foreground hover:text-foreground hover:border-primary/30 hover:bg-accent/50 transition-all text-left max-w-[200px]">
-                      <p className="font-medium text-foreground truncate">{s.label}</p>
-                      <p className="text-[10px] text-muted-foreground truncate mt-0.5">{s.text.slice(0, 50)}...</p>
+                    <button key={i} onClick={() => { setGuideStep(i); setInput(s.text); }}
+                      className={`px-4 py-3 rounded-xl border-2 text-left transition-all max-w-[220px] ${guideStep === i ? 'border-primary bg-primary/5' : 'border-border/50 hover:border-primary/30'}`}>
+                      <p className="text-sm font-medium text-foreground">{s.label}</p>
+                      <p className="text-[11px] text-muted-foreground mt-1 line-clamp-2">{s.text.slice(0, 80)}...</p>
                     </button>
                   ))}
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={() => setGuideStep(Math.max(0, guideStep-1))} disabled={guideStep===0} className="px-3 py-1.5 text-xs border border-border rounded-lg disabled:opacity-30">← Back</button>
+                  <button onClick={() => { if(guideStep<2) setGuideStep(guideStep+1); }} className="px-3 py-1.5 text-xs bg-primary text-primary-foreground rounded-lg">{guideStep<2 ? 'Next →' : 'Use this sample'}</button>
                 </div>
               </div>
             )}
             {/* Toolbar */}
             <div className="flex items-center justify-between px-4 pb-3">
-              <div className="flex items-center gap-2">
-                {input && (
-                  <div className="relative">
-                    <button onClick={() => setShowSampleMenu(!showSampleMenu)}
-                      className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
-                      <BookOpen size={12} /> 示例
-                    </button>
-                    {showSampleMenu && (
-                      <>
-                        <div className="fixed inset-0 z-40" onClick={() => setShowSampleMenu(false)} />
-                        <div className="absolute bottom-full left-0 mb-1 bg-popover border border-border rounded-lg shadow-lg z-50 py-1 min-w-[240px] max-h-48 overflow-y-auto">
-                          {samples.map((s: any, i: number) => (
-                            <button key={i} onClick={() => { setInput(s.text); setShowSampleMenu(false); }}
-                              className="w-full text-left px-3 py-2 text-xs hover:bg-accent"><p className="font-medium truncate">{s.label}</p></button>
-                          ))}
-                        </div>
-                      </>
-                    )}
-                  </div>
-                )}
-                {executionModeLabel && (
-                  <span className={`text-[10px] ${executionModeLabel.includes('Processing') ? 'text-blue-600' : executionModeLabel.includes('Done') ? 'text-green-600' : 'text-muted-foreground'}`}>
-                    {executionModeLabel.includes('Processing') ? <Loader2 size={10} className="inline animate-spin mr-1" /> : null}
-                    {executionModeLabel}
-                  </span>
-                )}
-              </div>
-              <button onClick={handlePredict} disabled={!hasText || loading}
-                className="px-6 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-30 transition-all flex items-center gap-1.5">
-                {loading ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
-                {loading ? '分析中...' : '开始编码'}
-              </button>
             </div>
           </div>
 

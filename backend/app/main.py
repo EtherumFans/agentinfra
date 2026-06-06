@@ -210,6 +210,17 @@ async def lifespan(app: FastAPI):
         registered = provider.register_all(platform_runtime)
         logger.info(f"BuiltinAgentPackProvider: {len(discovered)} packs discovered, {registered} registered")
 
+        # Sync all Runtime agents to DB (DB is master for CRUD)
+        from app.services.agent_registry_sync_service import AgentRegistrySyncService
+        from app.models.agent import Agent as AgentModel
+        try:
+            sync_svc = AgentRegistrySyncService(agent_registry)
+            async with async_session_factory() as session:
+                result = await sync_svc.repair_from_registry(session)
+                logger.info(f"Registry→DB sync: {result.get('created', 0)} created, {result.get('updated', 0)} updated")
+        except Exception as e:
+            logger.warning(f"Registry→DB sync skipped (DB may not be ready): {e}")
+
     # Register A2A agents for discovery
     from app.services.a2a_protocol import a2a_registry
     a2a_registry.register_all_experts()

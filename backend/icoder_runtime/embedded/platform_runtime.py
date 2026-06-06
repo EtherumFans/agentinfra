@@ -142,6 +142,37 @@ class PlatformRuntime:
                 self._runner.register_tool(t)
 
         logger.info(f"Agent installed: {record.agent_id}")
+
+        # Sync to DB agents table (DB is master for CRUD, Runtime for execution)
+        try:
+            from app.database import async_session_factory
+            from sqlalchemy import select
+            from app.models.agent import Agent as AgentModel
+            async with async_session_factory() as session:
+                result = await session.execute(select(AgentModel).where(AgentModel.id == record.agent_id))
+                existing = result.scalar_one_or_none()
+                if not existing:
+                    manifest = pack.get("manifest", {})
+                    db_agent = AgentModel(
+                        id=record.agent_id,
+                        name=record.name,
+                        version=record.version,
+                        description=record.description,
+                        category=record.category,
+                        icon=record.icon,
+                        system_prompt=record.system_prompt or "",
+                        expert_ids=record.expert_ids or [],
+                        is_prebuilt=(record.agent_type == "certified"),
+                        is_published=True,
+                        status="prod",
+                        config={},
+                    )
+                    session.add(db_agent)
+                    await session.commit()
+                    logger.info(f"Agent synced to DB: {record.agent_id}")
+        except Exception as e:
+            logger.warning(f"Failed to sync agent to DB (non-fatal): {e}")
+
         return {"agent_id": record.agent_id, "name": record.name, "version": record.version, "status": "installed"}
 
     def list_agents(self, agent_type: str = "") -> list[dict[str, Any]]:

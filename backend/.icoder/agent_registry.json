@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-06-05T16:11:23.394474+00:00",
+  "updated_at": "2026-06-06T01:16:12.040625+00:00",
   "agents": {
     "临床文书改进-1.0.0": {
       "agent_id": "临床文书改进-1.0.0",
@@ -125,7 +125,7 @@
         }
       },
       "status": "installed",
-      "installed_at": "2026-06-05T16:11:23.207343+00:00"
+      "installed_at": "2026-06-06T01:16:11.959740+00:00"
     },
     "编码校验-1.0.0": {
       "agent_id": "编码校验-1.0.0",
@@ -135,7 +135,7 @@
       "category": "编码",
       "icon": "CheckCircle",
       "agent_type": "certified",
-      "system_prompt": "你是编码校验引擎。使用确定性规则引擎验证编码集的格式、完整性和合规性。",
+      "system_prompt": "验证编码集的格式和合规性。输出JSON: {\"review_conclusion\":\"PASS|WARNING|FAIL\",\"primary_diagnosis\":{},\"procedures\":[],\"issues_found\":[],\"manual_review_required\":false}",
       "expert_ids": [],
       "experts": [],
       "tools": [
@@ -180,7 +180,7 @@
         "supports_json_mode": true
       },
       "integrity": {
-        "sha256": ""
+        "sha256": "821ea2fc38db66ff63d14fd5b8f711d7fe2e23ec21b5867c94b23854d414ded8"
       },
       "pack_data": {
         "format_version": "1.1",
@@ -193,7 +193,7 @@
           "category": "编码",
           "icon": "CheckCircle"
         },
-        "system_prompt": "你是编码校验引擎。使用确定性规则引擎验证编码集的格式、完整性和合规性。",
+        "system_prompt": "验证编码集的格式和合规性。输出JSON: {\"review_conclusion\":\"PASS|WARNING|FAIL\",\"primary_diagnosis\":{},\"procedures\":[],\"issues_found\":[],\"manual_review_required\":false}",
         "experts": [],
         "tools": [
           "rank_evidence",
@@ -238,11 +238,11 @@
         },
         "code": {},
         "integrity": {
-          "sha256": ""
+          "sha256": "821ea2fc38db66ff63d14fd5b8f711d7fe2e23ec21b5867c94b23854d414ded8"
         }
       },
       "status": "installed",
-      "installed_at": "2026-06-05T16:11:23.217338+00:00"
+      "installed_at": "2026-06-06T01:16:11.966507+00:00"
     },
     "code-reconciler-1.0.0": {
       "agent_id": "code-reconciler-1.0.0",
@@ -252,7 +252,7 @@
       "category": "medical-coding",
       "icon": "GitMerge",
       "agent_type": "certified",
-      "system_prompt": "你是编码协调专家。你的任务：\n1. 审核 tabular_validator 验证通过的候选编码\n2. 移除互斥编码（如不能同时存在的诊断组合）\n3. 确定主诊断（根据入院原因、治疗重点、资源消耗）\n4. 确定主手术（根据手术等级、资源消耗）\n5. 最终排序（主诊断 → 次要诊断按重要性 → 主手术 → 次要手术）\n6. 每个编码必须附带：纳排依据、证据文本、置信度\n\n编码选择原则（Code Like Humans 框架）：\n- 编码到最高特异性\n- 遵循 ICD-10 卷2 编码指引\n- 组合编码优先于多个单独编码\n- 主要情况优先于并发情况\n- 疑似诊断按确诊编码\n\n输出 JSON:\n{\n  \"primary_diagnosis\": {\"code\": \"M80.900\", \"description\": \"骨质疏松伴病理性骨折\", \"confidence\": 0.92, \"evidence\": [{\"text\": \"...\", \"char_start\": 0, \"char_end\": 50}], \"justification\": \"影像学确诊，为主要治疗原因\"},\n  \"secondary_diagnoses\": [...],\n  \"procedures\": [{\"code\": \"81.6600x001\", \"description\": \"经皮椎体后凸成形术\", \"evidence\": [...], \"justification\": \"手术记录明确\"}],\n  \"review_conclusion\": \"PASS|WARNING|FAIL\",\n  \"coding_trace\": [{\"step\": \"reconciler\", \"action\": \"primary_dx_selected\", \"reason\": \"...\"}],\n  \"manual_review_required\": false\n}",
+      "system_prompt": "协调并最终确定编码集。输出JSON: {\"review_conclusion\":\"PASS|WARNING|FAIL\",\"primary_diagnosis\":{\"code\":\"\",\"description\":\"\",\"confidence\":0.0,\"evidence\":[],\"justification\":\"\"},\"secondary_diagnoses\":[],\"procedures\":[],\"issues_found\":[],\"manual_review_required\":false}",
       "expert_ids": [],
       "experts": [],
       "tools": [
@@ -310,7 +310,7 @@
         "supports_json_mode": true
       },
       "integrity": {
-        "sha256": ""
+        "sha256": "b4683e8385acec0fce24f049a1a9b47245095cc2ebc32a35eba4024f14b48cd1"
       },
       "pack_data": {
         "format_version": "1.1",
@@ -323,7 +323,7 @@
           "category": "medical-coding",
           "icon": "GitMerge"
         },
-        "system_prompt": "你是编码协调专家。你的任务：\n1. 审核 tabular_validator 验证通过的候选编码\n2. 移除互斥编码（如不能同时存在的诊断组合）\n3. 确定主诊断（根据入院原因、治疗重点、资源消耗）\n4. 确定主手术（根据手术等级、资源消耗）\n5. 最终排序（主诊断 → 次要诊断按重要性 → 主手术 → 次要手术）\n6. 每个编码必须附带：纳排依据、证据文本、置信度\n\n编码选择原则（Code Like Humans 框架）：\n- 编码到最高特异性\n- 遵循 ICD-10 卷2 编码指引\n- 组合编码优先于多个单独编码\n- 主要情况优先于并发情况\n- 疑似诊断按确诊编码\n\n输出 JSON:\n{\n  \"primary_diagnosis\": {\"code\": \"M80.900\", \"description\": \"骨质疏松伴病理性骨折\", \"confidence\": 0.92, \"evidence\": [{\"text\": \"...\", \"char_start\": 0, \"char_end\": 50}], \"justification\": \"影像学确诊，为主要治疗原因\"},\n  \"secondary_diagnoses\": [...],\n  \"procedures\": [{\"code\": \"81.6600x001\", \"description\": \"经皮椎体后凸成形术\", \"evidence\": [...], \"justification\": \"手术记录明确\"}],\n  \"review_conclusion\": \"PASS|WARNING|FAIL\",\n  \"coding_trace\": [{\"step\": \"reconciler\", \"action\": \"primary_dx_selected\", \"reason\": \"...\"}],\n  \"manual_review_required\": false\n}",
+        "system_prompt": "协调并最终确定编码集。输出JSON: {\"review_conclusion\":\"PASS|WARNING|FAIL\",\"primary_diagnosis\":{\"code\":\"\",\"description\":\"\",\"confidence\":0.0,\"evidence\":[],\"justification\":\"\"},\"secondary_diagnoses\":[],\"procedures\":[],\"issues_found\":[],\"manual_review_required\":false}",
         "experts": [],
         "tools": [
           "verify_evidence",
@@ -381,11 +381,11 @@
         },
         "code": {},
         "integrity": {
-          "sha256": ""
+          "sha256": "b4683e8385acec0fce24f049a1a9b47245095cc2ebc32a35eba4024f14b48cd1"
         }
       },
       "status": "installed",
-      "installed_at": "2026-06-05T16:11:23.231512+00:00"
+      "installed_at": "2026-06-06T01:16:11.972161+00:00"
     },
     "合规护栏-1.0.0": {
       "agent_id": "合规护栏-1.0.0",
@@ -395,7 +395,7 @@
       "category": "医保",
       "icon": "Shield",
       "agent_type": "certified",
-      "system_prompt": "你是医保合规审核专家。请根据配置的规则集评估编码集是否符合医保结算要求。",
+      "system_prompt": "评估编码集的医保合规性。输出JSON: {\"review_conclusion\":\"PASS|WARNING|FAIL\",\"issues_found\":[],\"manual_review_required\":false,\"drg_suggestion\":\"\"}",
       "expert_ids": [],
       "experts": [],
       "tools": [
@@ -440,7 +440,7 @@
         "supports_json_mode": true
       },
       "integrity": {
-        "sha256": ""
+        "sha256": "9a90e59246320ac0125ac884ee854c2da1598532978e5109098011ee3ac96a33"
       },
       "pack_data": {
         "format_version": "1.1",
@@ -453,7 +453,7 @@
           "category": "医保",
           "icon": "Shield"
         },
-        "system_prompt": "你是医保合规审核专家。请根据配置的规则集评估编码集是否符合医保结算要求。",
+        "system_prompt": "评估编码集的医保合规性。输出JSON: {\"review_conclusion\":\"PASS|WARNING|FAIL\",\"issues_found\":[],\"manual_review_required\":false,\"drg_suggestion\":\"\"}",
         "experts": [],
         "tools": [
           "guard_input",
@@ -498,11 +498,11 @@
         },
         "code": {},
         "integrity": {
-          "sha256": ""
+          "sha256": "9a90e59246320ac0125ac884ee854c2da1598532978e5109098011ee3ac96a33"
         }
       },
       "status": "installed",
-      "installed_at": "2026-06-05T16:11:23.245045+00:00"
+      "installed_at": "2026-06-06T01:16:11.980483+00:00"
     },
     "拒付申诉-1.0.0": {
       "agent_id": "拒付申诉-1.0.0",
@@ -627,7 +627,7 @@
         }
       },
       "status": "installed",
-      "installed_at": "2026-06-05T16:11:23.257566+00:00"
+      "installed_at": "2026-06-06T01:16:11.988822+00:00"
     },
     "诊断提取-1.0.0": {
       "agent_id": "诊断提取-1.0.0",
@@ -637,7 +637,7 @@
       "category": "编码",
       "icon": "Stethoscope",
       "agent_type": "certified",
-      "system_prompt": "你是诊断编码专家。从病历中提取所有诊断并按 ICD-10-CN 分配编码。",
+      "system_prompt": "从病历中提取诊断并分配ICD-10-CN编码。输出JSON: {\"primary_diagnosis\":{\"code\":\"\",\"description\":\"\",\"confidence\":0.0,\"evidence\":[]},\"secondary_diagnoses\":[],\"issues_found\":[]}",
       "expert_ids": [],
       "experts": [],
       "tools": [
@@ -682,7 +682,7 @@
         "supports_json_mode": true
       },
       "integrity": {
-        "sha256": ""
+        "sha256": "13580a8b9715ae65e8304d3ae7163a1c44d000539b5bc7458166492c4bb62ad3"
       },
       "pack_data": {
         "format_version": "1.1",
@@ -695,7 +695,7 @@
           "category": "编码",
           "icon": "Stethoscope"
         },
-        "system_prompt": "你是诊断编码专家。从病历中提取所有诊断并按 ICD-10-CN 分配编码。",
+        "system_prompt": "从病历中提取诊断并分配ICD-10-CN编码。输出JSON: {\"primary_diagnosis\":{\"code\":\"\",\"description\":\"\",\"confidence\":0.0,\"evidence\":[]},\"secondary_diagnoses\":[],\"issues_found\":[]}",
         "experts": [],
         "tools": [
           "extract_evidence",
@@ -740,11 +740,11 @@
         },
         "code": {},
         "integrity": {
-          "sha256": ""
+          "sha256": "13580a8b9715ae65e8304d3ae7163a1c44d000539b5bc7458166492c4bb62ad3"
         }
       },
       "status": "installed",
-      "installed_at": "2026-06-05T16:11:23.270917+00:00"
+      "installed_at": "2026-06-06T01:16:11.994671+00:00"
     },
     "文档缺口检测-1.0.0": {
       "agent_id": "文档缺口检测-1.0.0",
@@ -869,7 +869,7 @@
         }
       },
       "status": "installed",
-      "installed_at": "2026-06-05T16:11:23.283122+00:00"
+      "installed_at": "2026-06-06T01:16:12.002384+00:00"
     },
     "drg-分组分析-1.0.0": {
       "agent_id": "drg-分组分析-1.0.0",
@@ -986,7 +986,7 @@
         }
       },
       "status": "installed",
-      "installed_at": "2026-06-05T16:11:23.298742+00:00"
+      "installed_at": "2026-06-06T01:16:12.008043+00:00"
     },
     "证据排名-1.0.0": {
       "agent_id": "证据排名-1.0.0",
@@ -1111,7 +1111,7 @@
         }
       },
       "status": "installed",
-      "installed_at": "2026-06-05T16:11:23.311073+00:00"
+      "installed_at": "2026-06-06T01:16:12.012064+00:00"
     },
     "evidence-extractor-1.0.0": {
       "agent_id": "evidence-extractor-1.0.0",
@@ -1214,7 +1214,7 @@
         }
       },
       "status": "installed",
-      "installed_at": "2026-06-05T16:11:23.325214+00:00"
+      "installed_at": "2026-06-06T01:16:12.016090+00:00"
     },
     "index-navigator-1.0.0": {
       "agent_id": "index-navigator-1.0.0",
@@ -1327,7 +1327,7 @@
         }
       },
       "status": "installed",
-      "installed_at": "2026-06-05T16:11:23.336567+00:00"
+      "installed_at": "2026-06-06T01:16:12.020311+00:00"
     },
     "病历完整性-1.0.0": {
       "agent_id": "病历完整性-1.0.0",
@@ -1452,7 +1452,7 @@
         }
       },
       "status": "installed",
-      "installed_at": "2026-06-05T16:11:23.364357+00:00"
+      "installed_at": "2026-06-06T01:16:12.030429+00:00"
     },
     "手术提取-1.0.0": {
       "agent_id": "手术提取-1.0.0",
@@ -1462,7 +1462,7 @@
       "category": "编码",
       "icon": "Scalpel",
       "agent_type": "certified",
-      "system_prompt": "你是手术编码专家。从手术记录中提取所有手术/操作并按 ICD-9-CM-3 分配编码。",
+      "system_prompt": "从手术记录中提取手术操作并分配ICD-9-CM-3编码。输出JSON: {\"primary_diagnosis\":{},\"procedures\":[{\"code\":\"\",\"description\":\"\",\"confidence\":0.0,\"evidence\":[]}],\"issues_found\":[]}",
       "expert_ids": [],
       "experts": [],
       "tools": [
@@ -1507,7 +1507,7 @@
         "supports_json_mode": true
       },
       "integrity": {
-        "sha256": ""
+        "sha256": "fc38489af836b80833e24b894396c2de2ca34abe3e51f5cea9e93206ed56d8f0"
       },
       "pack_data": {
         "format_version": "1.1",
@@ -1520,7 +1520,7 @@
           "category": "编码",
           "icon": "Scalpel"
         },
-        "system_prompt": "你是手术编码专家。从手术记录中提取所有手术/操作并按 ICD-9-CM-3 分配编码。",
+        "system_prompt": "从手术记录中提取手术操作并分配ICD-9-CM-3编码。输出JSON: {\"primary_diagnosis\":{},\"procedures\":[{\"code\":\"\",\"description\":\"\",\"confidence\":0.0,\"evidence\":[]}],\"issues_found\":[]}",
         "experts": [],
         "tools": [
           "extract_evidence",
@@ -1565,11 +1565,11 @@
         },
         "code": {},
         "integrity": {
-          "sha256": ""
+          "sha256": "fc38489af836b80833e24b894396c2de2ca34abe3e51f5cea9e93206ed56d8f0"
         }
       },
       "status": "installed",
-      "installed_at": "2026-06-05T16:11:23.380617+00:00"
+      "installed_at": "2026-06-06T01:16:12.035061+00:00"
     },
     "medical-coding-agent-1.0.0": {
       "agent_id": "medical-coding-agent-1.0.0",
@@ -1642,7 +1642,7 @@
         }
       },
       "status": "installed",
-      "installed_at": "2026-06-05T16:11:23.350504+00:00"
+      "installed_at": "2026-06-06T01:16:12.025311+00:00"
     },
     "tabular-validator-1.0.0": {
       "agent_id": "tabular-validator-1.0.0",
@@ -1769,7 +1769,7 @@
         }
       },
       "status": "installed",
-      "installed_at": "2026-06-05T16:11:23.394474+00:00"
+      "installed_at": "2026-06-06T01:16:12.040625+00:00"
     }
   }
 }

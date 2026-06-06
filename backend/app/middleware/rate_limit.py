@@ -14,7 +14,9 @@ from app.config import settings
 logger = logging.getLogger(__name__)
 
 WINDOW_SECONDS = 60
-LOGIN_LIMIT = getattr(settings, 'LOGIN_RATE_LIMIT_PER_MINUTE', None) or max(5, settings.RATE_LIMIT_PER_MINUTE // 6)
+_DEV_MODE = settings.DEBUG or settings.APP_ENV == "development"
+LOGIN_LIMIT = 1000 if _DEV_MODE else max(5, settings.RATE_LIMIT_PER_MINUTE // 6)
+GENERAL_LIMIT = 10000 if _DEV_MODE else settings.RATE_LIMIT_PER_MINUTE
 
 # Per-IP request tracking (memory backend)
 _request_counts: dict[str, list[float]] = defaultdict(list)
@@ -53,7 +55,7 @@ async def rate_limit_middleware(request: Request, call_next):
         client_ip = request.client.host if request.client else "unknown"
 
     # Login endpoint: stricter limit
-    limit = LOGIN_LIMIT if request.url.path == "/api/auth/login" else settings.RATE_LIMIT_PER_MINUTE
+    limit = LOGIN_LIMIT if request.url.path == "/api/auth/login" else GENERAL_LIMIT
 
     r = _get_redis()
     if r:

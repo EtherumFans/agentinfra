@@ -625,14 +625,13 @@ export default function MedicalCodingPage() {
               {selectedSystems.map(sys => {
                 const info = codingSystems.find(cs => cs.code_system === sys);
                 return (
-                  <span key={sys} className="px-2 py-0.5 rounded-md bg-muted text-muted-foreground flex items-center gap-1">
+                  <span key={sys} className="px-2 py-0.5 rounded-md bg-muted text-muted-foreground">
                     {info?.name || sys}
-                    <button onClick={() => toggleSystem(sys)} className="hover:text-foreground">&times;</button>
                   </span>
                 );
               })}
               <div className="relative">
-                <button onClick={() => setShowSystemMenu(!showSystemMenu)} className="text-primary hover:underline">+ 选择</button>
+                <button onClick={() => setShowSystemMenu(!showSystemMenu)} className="text-primary hover:underline text-[11px]">管理 ▾</button>
                 {showSystemMenu && (
                   <div className="absolute top-full left-0 mt-1 bg-background rounded-xl shadow-lg border border-border/20 py-2 z-50 min-w-[220px] max-h-56 overflow-y-auto">
                     {codingSystems.map((sys) => (
@@ -727,8 +726,22 @@ export default function MedicalCodingPage() {
 
         </div>
 
-        {/* ===== RIGHT: Output ===== */}
-        <div className="flex-1 flex flex-col min-w-0">
+        {/* ===== CENTER: Compact status ===== */}
+        <div className="flex-1 flex flex-col min-w-0 items-center justify-center">
+          {!result ? (
+            <div className="text-center">
+              <Stethoscope size={48} className="mx-auto text-muted-foreground/15 mb-4" />
+              <p className="text-sm text-muted-foreground">输入病历，开始智能编码</p>
+            </div>
+          ) : (
+            <div className="text-center space-y-1">
+              <p className="text-sm font-medium text-foreground">{result.primary_diagnosis?.code||'—'} {result.primary_diagnosis?.description||''}</p>
+              <p className="text-xs text-muted-foreground">置信度 {((result.primary_diagnosis?.confidence||0)*100).toFixed(0)}% · {result.review_conclusion||'?'} · {result.procedures?.length||0} 手术</p>
+              <p className="text-[10px] text-muted-foreground">详情见右侧面板 →</p>
+            </div>
+          )}
+        </div>
+        <div className="flex-1 flex flex-col min-w-0 hidden">
           <div className="flex-1 overflow-y-auto">
             {!result ? (
               <div className="flex flex-col items-center justify-center h-full">
@@ -1298,13 +1311,63 @@ export default function MedicalCodingPage() {
         {/* Separator */}
         <div className="h-full w-px bg-border/40" />
 
-        {/* ===== RIGHT: 25% Settings/Code Panel ===== */}
-        <div className="flex-[25_1_0px] bg-muted/10 min-w-0">
-          <SettingsCodeTab
-            defaultTab={rightPanel}
-            settings={settingsContent}
-            code={codeContent}
-          />
+        {/* ===== RIGHT: 25% Results Panel ===== */}
+        <div className="flex-[30_1_0px] bg-muted/10 min-w-0 flex flex-col">
+          {result ? (
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-semibold text-foreground">编码结果</h4>
+                <div className="flex gap-1">
+                  <button onClick={() => setOutputView('rendered')} className={`text-[10px] px-2 py-0.5 rounded ${outputView==='rendered'?'bg-primary/10 text-primary':'text-muted-foreground'}`}>预览</button>
+                  <button onClick={() => setOutputView('json')} className={`text-[10px] px-2 py-0.5 rounded ${outputView==='json'?'bg-primary/10 text-primary':'text-muted-foreground'}`}>JSON</button>
+                </div>
+              </div>
+              {/* Primary diagnosis */}
+              {result.primary_diagnosis?.code && (
+                <div className="bg-background rounded-lg border p-3">
+                  <p className="text-[10px] text-muted-foreground mb-1">主诊断</p>
+                  <p className="text-sm font-semibold text-foreground">{result.primary_diagnosis.code} {result.primary_diagnosis.description||''}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-[10px] text-muted-foreground">置信度 {((result.primary_diagnosis.confidence||0)*100).toFixed(0)}%</span>
+                    <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${result.review_conclusion==='PASS'?'bg-green-100 text-green-700':result.review_conclusion==='WARNING'?'bg-amber-100 text-amber-700':'bg-red-100 text-red-700'}`}>{result.review_conclusion||'?'}</span>
+                  </div>
+                </div>
+              )}
+              {/* Procedures */}
+              {result.procedures?.length > 0 && (
+                <div className="bg-background rounded-lg border p-3">
+                  <p className="text-[10px] text-muted-foreground mb-1">手术/操作 ({result.procedures.length})</p>
+                  {result.procedures.slice(0,5).map((p:any,i:number)=>(
+                    <p key={i} className="text-xs font-mono text-foreground">{p.code} {p.description||''}</p>
+                  ))}
+                </div>
+              )}
+              {/* Issues */}
+              {result.issues_found?.length > 0 && (
+                <div className="bg-background rounded-lg border p-3">
+                  <p className="text-[10px] text-muted-foreground mb-1">合规问题 ({result.issues_found.length})</p>
+                  {result.issues_found.slice(0,5).map((iss:any,i:number)=>(
+                    <p key={i} className="text-[10px] text-amber-700">[{iss.severity}] {iss.code}: {iss.message}</p>
+                  ))}
+                </div>
+              )}
+              {/* Event Inspector */}
+              <EventInspector events={events} creditsConsumed={totalCredits} />
+              {/* Quick settings toggle */}
+              <button onClick={() => setRightPanel(rightPanel==='settings'?'code':'settings')} className="w-full text-xs text-muted-foreground hover:text-foreground py-1">
+                {rightPanel==='settings' ? '收起设置 ▴' : '编码设置 ▾'}
+              </button>
+              {rightPanel==='settings' && settingsContent}
+            </div>
+          ) : (
+            <div className="flex items-center justify-center h-full text-center p-4">
+              <div>
+                <Stethoscope size={32} className="mx-auto text-muted-foreground/20 mb-2" />
+                <p className="text-xs text-muted-foreground">输入病历文本，点击「开始编码」</p>
+                <p className="text-[10px] text-muted-foreground mt-1">编码结果将显示在此处</p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

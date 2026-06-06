@@ -45,6 +45,8 @@ export default function MedicalCodingPage() {
   const [selectedSystems, setSelectedSystems] = useState<string[]>(['icd10-cn', 'icd9-cm-3']);
   const [showSystemMenu, setShowSystemMenu] = useState(false);
   const [showSampleMenu, setShowSampleMenu] = useState(false);
+  const [showGuideDismissed, setShowGuideDismissed] = useState(false);
+  const [guideStep, setGuideStep] = useState(0);
   const [selectedAgent, setSelectedAgent] = useState('medical-coding-agent-1.0.0');
   const [availableAgents, setAvailableAgents] = useState<{agent_ref:string;name:string}[]>([]);
   const [result, setResult] = useState<any>(null);

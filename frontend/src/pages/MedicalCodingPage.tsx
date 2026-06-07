@@ -7,6 +7,9 @@ import { useT } from '../i18n';
 import { codeTablesApi } from '../services/api';
 import { runtimeApi } from '../services/runtimeApi';
 import type { RuntimeRunResult } from '../types/runtime';
+import type { ExtractedDiagnosis, CandidateCode } from '../types/runtime';
+import { EvidenceHighlighter } from '../components/medical-coding/EvidenceHighlighter';
+import { DiagnosisCard } from '../components/medical-coding/DiagnosisCard';
 import {
   X, Sparkles, Loader2, Plus, ChevronRight, ChevronLeft,
   Eraser, Copy, BookText, Info, RotateCcw, HelpCircle,
@@ -266,6 +269,11 @@ export default function MedicalCodingPage() {
   const primaryDiag = (result as RuntimeRunResult)?.primary_diagnosis;
   const secondaryDiags = (result as RuntimeRunResult)?.secondary_diagnoses || [];
   const procedures = (result as RuntimeRunResult)?.procedures || [];
+  const isMedcoderMode = (result as RuntimeRunResult)?.mode === 'medcoder';
+  const extractedDiagnoses: ExtractedDiagnosis[] =
+    (result as RuntimeRunResult)?.extracted_diagnoses || [];
+  // Map dx index → user-selected code (override)
+  const [userOverrides, setUserOverrides] = useState<Record<number, string>>({});
   const allCodes = [primaryDiag, ...secondaryDiags, ...procedures]
     .filter(Boolean)
     .slice()
@@ -530,6 +538,47 @@ export default function MedicalCodingPage() {
                         <div key={i} className="text-xs text-muted-foreground bg-primary/5 rounded px-2.5 py-1.5">“{q}”</div>
                       ))}
                     </div>
+                  </div>
+                )}
+
+                {/* MedCodER per-diagnosis cards (only when mode==='medcoder') */}
+                {isMedcoderMode && (
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">
+                        {t.medcoderPipeline}
+                      </p>
+                      <span className="text-[10px] font-mono text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">
+                        {extractedDiagnoses.length} diagnoses
+                      </span>
+                    </div>
+                    {extractedDiagnoses.length === 0 ? (
+                      <div className="text-xs text-muted-foreground italic">
+                        {t.noExtractedDiagnoses}
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {extractedDiagnoses.map((dx, i) => (
+                          <DiagnosisCard
+                            key={i}
+                            diagnosis={dx}
+                            index={i}
+                            selectedCode={userOverrides[i]}
+                            onSelectCode={(idx, c) => {
+                              setUserOverrides((prev) => ({ ...prev, [idx]: c.code }));
+                            }}
+                            onOverride={(idx, code) => {
+                              setUserOverrides((prev) => ({ ...prev, [idx]: code }));
+                            }}
+                          />
+                        ))}
+                      </div>
+                    )}
+                    {((result as RuntimeRunResult)?.structured as any)?.notes && (
+                      <div className="mt-3 text-[11px] text-muted-foreground italic">
+                        {t.pipelineNotes}: {((result as RuntimeRunResult)?.structured as any).notes}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

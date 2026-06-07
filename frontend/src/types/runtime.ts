@@ -21,6 +21,9 @@ export interface RuntimeRunResult {
   confidence_calibration?: { routing_decisions?: any[]; coding_confidences?: any[] };
   evidence_ranking?: any;
   quality_flags?: Record<string, boolean>;
+  // MedCodER pipeline output (mode="medcoder" only)
+  mode?: 'deepseek' | 'prompt_llm' | 'hybrid' | 'no_repair' | 'medcoder';
+  extracted_diagnoses?: ExtractedDiagnosis[];
 }
 
 export interface DiagnosisEntry {
@@ -37,6 +40,35 @@ export interface ProcedureEntry {
   confidence: number;
   category: string;
   evidence: string[];
+}
+
+// ── MedCodER pipeline types (NAACL 2025 3-stage) ──
+
+export interface EvidenceSpan {
+  text: string;
+  char_start: number;
+  char_end: number;
+  doc_id?: string;
+  doc_type?: string;
+  confidence: number;
+}
+
+export interface CandidateCode {
+  code: string;
+  name: string;
+  score: number;
+  chapter: string;
+  source: 'llm' | 'retrieve' | 'differentiation_kb' | 'rerank';
+}
+
+export interface ExtractedDiagnosis {
+  disease_text: string;
+  supporting_evidence: EvidenceSpan[];
+  llm_initial_code: string;
+  retrieved_codes: CandidateCode[];
+  final_top_k: CandidateCode[];
+  final_confidence: number;
+  rerank_notes: string;
 }
 
 export interface CodingIssue {

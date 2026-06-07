@@ -3,50 +3,34 @@
 Supports both surgical cases (procedure-code → ADRG/DRG) and medical cases
 (diagnosis-code → MDC → medical ADRG). CC/MCC level determined from secondary
 diagnoses when available.
+
+KB source: bundled inline in `drg_kb.py` (CHS-DRG 1.1 高频手术 + DRG 名称字典).
+No external file dependency.
 """
-import json
 import logging
 import re
-from pathlib import Path
 from typing import Optional
+
+from app.services.drg_kb import (
+    SURGERY_TO_DRG,
+    DRG_NAMES,
+    check_gender_consistency as _check_gender,
+)
 
 logger = logging.getLogger(__name__)
 
-# Path to OpenDRG knowledge base
-KB_ROOT = Path(__file__).parent.parent.parent.parent.parent / "iCoDerA" / "data" / "procedure_coding"
-MAPPING_PATH = KB_ROOT / "surgery_to_drg_mapping.json"
-DRG_GROUPS_PATH = KB_ROOT / "drg_groups_chs11.json"
-ADRG_PATH = KB_ROOT / "drg_adrg_mapping_chs11.json"
-
-# Lazy-loaded singletons
-_surgery_drg_map: dict = {}
-_drg_groups: dict = {}
-_adrg_map: dict = {}
-_loaded = False
+# Backward compat: old code referenced these as globals
+_surgery_drg_map: dict = {"surgery_to_drg": [
+    {"icd9cm3_code": code, **info} for code, info in SURGERY_TO_DRG.items()
+]}
+_drg_groups: dict = DRG_NAMES
+_adrg_map: list = []
+_loaded = True
 
 
 def _ensure_loaded():
-    global _loaded, _surgery_drg_map, _drg_groups, _adrg_map
-    if _loaded:
-        return
-    try:
-        if MAPPING_PATH.exists():
-            with open(MAPPING_PATH, "r", encoding="utf-8") as f:
-                _surgery_drg_map = json.load(f)
-            logger.info("DRG Grouper: loaded %d surgery-to-DRG mappings",
-                        len(_surgery_drg_map.get("surgery_to_drg", [])))
-
-        if DRG_GROUPS_PATH.exists():
-            with open(DRG_GROUPS_PATH, "r", encoding="utf-8") as f:
-                _drg_groups = json.load(f)
-            logger.info("DRG Grouper: loaded %d DRG groups", len(_drg_groups))
-
-        if ADRG_PATH.exists():
-            with open(ADRG_PATH, "r", encoding="utf-8") as f:
-                _adrg_map = json.load(f)
-    except Exception as e:
-        logger.error("DRG Grouper init failed: %s", e)
-    _loaded = True
+    """No-op: KB is bundled, always loaded. Kept for backward compat."""
+    return True
 
 
 # ── MDC mapping: ICD-10 chapter letter → MDC ─────────────────────────────────
@@ -282,47 +266,63 @@ def group_drg(
     # ── Surgical case: procedure-based grouping ──
     if procedure_code:
         norm_proc = normalize_code(procedure_code)
-        surgeries = _surgery_drg_map.get("surgery_to_drg", [])
 
-        match = None
-        for surg in surgeries:
-            if normalize_code(surg.get("icd9cm3_code", "")) == norm_proc:
-                match = surg
-                break
+        # Direct lookup in bundled SURGERY_TO_DRG (new structure: flat dict)
+        match = SURGERY_TO_DRG.get(procedure_code) or SURGERY_TO_DRG.get(norm_proc)
 
         if match:
-            drg_groups = match.get("drg_groups", [])
-            adrg_groups = match.get("adrg_groups", [])
-            mdc_groups = match.get("mdc_groups", [])
-
             result["grouping_method"] = "surgical"
             result["coverage"] = True
+            result["mdc"] = match.get("mdc", mdc)
+            result["adrg"] = match.get("adrg", "")
 
-            if drg_groups:
-                # Refine DRG with CC level
-                adrg = adrg_groups[0] if adrg_groups else ""
-                result["adrg"] = adrg
-                result["mdc"] = mdc_groups[0] if mdc_groups else mdc
+            # Pick DRG by CC level
+            if cc_level >= 2:
+                drg = match.get("with_mcc", "")
+            elif cc_level >= 1:
+                drg = match.get("with_cc", "")
+            else:
+                drg = match.get("without", "")
 
-                # Build refined DRG with CC suffix
-                drg = _build_medical_drg(adrg, cc_level) if adrg else drg_groups[0]
-                # Only refine if the surgery mapping doesn't already have a specific DRG
-                if len(drg_groups) == 1 and not drg_groups[0][-1] in "1359":
-                    pass  # Keep mapped DRG if it has no CC suffix
-                else:
-                    drg = _build_medical_drg(adrg, cc_level) if adrg else drg_groups[0]
+            if drg:
                 result["drg"] = drg
-
-                if isinstance(_drg_groups, dict):
-                    result["drg_name"] = _drg_groups.get(drg, drg_groups[0])
-
-            if not result["drg_name"] and drg_groups:
-                drg0 = drg_groups[0]
-                if isinstance(_drg_groups, dict):
-                    result["drg_name"] = _drg_groups.get(drg0, "")
+                drg_names = match.get("drg_names", {})
+                result["drg_name"] = drg_names.get(drg, DRG_NAMES.get(drg, match.get("name", "")))
+            else:
+                result["drg_name"] = match.get("name", "")
 
             return result
         else:
+            # Fallback: try legacy structure for backward compat
+            surgeries = _surgery_drg_map.get("surgery_to_drg", [])
+            legacy_match = None
+            for surg in surgeries:
+                if normalize_code(surg.get("icd9cm3_code", "")) == norm_proc:
+                    legacy_match = surg
+                    break
+            if legacy_match:
+                drg_groups = legacy_match.get("drg_groups", [])
+                adrg_groups = legacy_match.get("adrg_groups", [])
+                mdc_groups = legacy_match.get("mdc_groups", [])
+                result["grouping_method"] = "surgical"
+                result["coverage"] = True
+                if drg_groups:
+                    adrg = adrg_groups[0] if adrg_groups else ""
+                    result["adrg"] = adrg
+                    result["mdc"] = mdc_groups[0] if mdc_groups else mdc
+                    drg = _build_medical_drg(adrg, cc_level) if adrg else drg_groups[0]
+                    if len(drg_groups) == 1 and drg_groups[0][-1] not in "1359":
+                        pass
+                    else:
+                        drg = _build_medical_drg(adrg, cc_level) if adrg else drg_groups[0]
+                    result["drg"] = drg
+                    if isinstance(_drg_groups, dict):
+                        result["drg_name"] = _drg_groups.get(drg, drg_groups[0])
+                if not result["drg_name"] and drg_groups:
+                    drg0 = drg_groups[0]
+                    if isinstance(_drg_groups, dict):
+                        result["drg_name"] = _drg_groups.get(drg0, "")
+                return result
             result["drg_name"] = f"手术编码 {procedure_code} 未匹配到DRG分组"
             return result
 
@@ -350,25 +350,32 @@ def group_drg(
 
 
 def get_adrg_list() -> list[dict]:
-    """Get all ADRG groups."""
-    _ensure_loaded()
+    """Get all ADRG groups (bundled CHS-DRG 1.1)."""
+    from app.services.drg_kb import ADRG_LIST
     result = []
-    mappings = _adrg_map if isinstance(_adrg_map, list) else []
-    for m in mappings[:50]:
-        if isinstance(m, dict):
-            result.append({
-                "code": m.get("adrg", m.get("code", "")),
-                "name": m.get("name", ""),
-                "mdc": m.get("mdc", ""),
-            })
+    for code, name, mdc, surgical in ADRG_LIST:
+        result.append({
+            "code": code,
+            "name": name,
+            "mdc": mdc,
+            "surgical": surgical,
+        })
     return result
 
 
 def get_drg_list() -> list[dict]:
-    """Get all DRG groups."""
-    _ensure_loaded()
+    """Get all DRG groups (bundled CHS-DRG 1.1)."""
     result = []
-    items = _drg_groups.items() if isinstance(_drg_groups, dict) else []
-    for code, name in list(items)[:100]:
+    for code, name in DRG_NAMES.items():
         result.append({"code": code, "name": name})
     return result
+
+
+def check_gender_consistency(diagnosis_code: str, patient_gender: str) -> dict:
+    """Re-export from drg_kb for ergonomic top-level access."""
+    return _check_gender(diagnosis_code, patient_gender)
+
+
+def get_surgery_drg(procedure_code: str) -> dict | None:
+    """Look up surgery → DRG mapping by ICD-9-CM-3 code."""
+    return SURGERY_TO_DRG.get(procedure_code)

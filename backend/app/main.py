@@ -10,6 +10,7 @@ from fastapi.responses import JSONResponse
 
 from app.config import settings
 from app.database import init_db
+import app.models  # noqa: F401 — register all models with Base before init_db() creates tables
 
 # Configure logging
 logging.basicConfig(
@@ -324,6 +325,7 @@ from app.api.compliance import router as compliance_router
 from app.api.medical_docs import router as medical_docs_router
 from app.api.agent_evaluation import router as agent_eval_router
 from app.api.embedded import router as embedded_router
+from app.api.drg import router as drg_router
 from app.middleware.rate_limit import rate_limit_middleware
 
 # Rate limiting middleware
@@ -358,6 +360,7 @@ app.include_router(compliance_router)          # /api/compliance/*
 app.include_router(embedded_router)            # /api/embedded/*
 app.include_router(medical_docs_router)        # /api/medical-docs/*
 app.include_router(agent_eval_router)          # /api/agents/{id}/evaluate
+app.include_router(drg_router)                 # /api/drg/*
 
 
 @app.get("/api/metrics")

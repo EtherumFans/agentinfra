@@ -200,6 +200,14 @@ async def lifespan(app: FastAPI):
     app.state.runtime_audit_logger = runtime_audit_logger
     logger.info("Observability initialized: run_history, fallback, shadow_diff, audit_log")
 
+    # ── MedCodER index flag (lazy-init on first /api/medical-coding/medcoder call) ──
+    # Setting it to False here means /api/health can report "medcoder not ready"
+    # honestly, and the heavy BGE-M3 + FAISS index only loads on demand.
+    app.state.medcoder_index_ready = False
+    app.state.medcoder_index_error: str | None = None
+    app.state.medcoder_index_loading = False
+    logger.info("MedCodER index: not yet loaded (lazy init on first request)")
+
     logger.info(f"Embedded Runtime started: {platform_runtime.status()}")
 
     # ── Register Official Agent Packs (BuiltinAgentPackProvider) ──
@@ -290,6 +298,9 @@ async def health_check():
         "app": settings.APP_NAME,
         "version": settings.APP_VERSION,
         "environment": settings.APP_ENV,
+        "medcoder_index_ready": getattr(app.state, "medcoder_index_ready", False),
+        "medcoder_index_loading": getattr(app.state, "medcoder_index_loading", False),
+        "medcoder_index_error": getattr(app.state, "medcoder_index_error", None),
         "llm_provider": settings.LLM_PROVIDER,
         "llm_model": settings.LLM_MODEL,
     }

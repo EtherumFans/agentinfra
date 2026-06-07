@@ -86,9 +86,91 @@ python scripts/e2e_runtime_validation.py --base-url http://localhost:8000
 # Repair loop: HybridCodingAdapter.infer_async, not the e2e script.
 ```
 
+## MedCodER 管线 (NAACL 2025 Industry Track)
+
+`HybridCodingAdapter` 新增 `mode="medcoder"`，实现 5 阶段 ICD 编码管线（参考 Baksi et al., NAACL 2025, p.449-459）：
+
+```
+EMR text
+  ↓
+[Stage 1: Extraction] (DeepSeek chat, 1 call)
+  抽取 {disease, supporting_evidence, llm_initial_code} × N
+  server-side 用 rapidfuzz.partial_ratio ≥ 0.85 snap 句子到 char span
+  ↓
+[Stage 2: Retrieval] (BGE-M3 + FAISS, 本地, no LLM)
+  synonym expansion → embed (BAAI/bge-m3, 1024-dim) → FAISS top-20
+  filter 通过 icd10cn_code_catalog (37,897 码合规兜底)
+  ↓
+[Stage 3: Merge]
+  candidate_set = (LLM codes) ∪ (Retrieved top-20) → cap 30
+  注入 coding_differentiation_kb P0/P1 hints
+  ↓
+[Stage 4: Re-rank] (DeepSeek, RankGPT-style, 1 call)
+  对每个 disease, top-5 + per-diagnosis final_confidence
+  Few-shot: cot_generation_progress_v2 中 verified 案例
+  ↓
+[Stage 5: Compliance + Calibration]
+  MedCodERRetrievalRuleSet (catalog membership + 高 similarity)
+  per-diagnosis calibration (不再 flat primary)
+  ↓
+MedicalCodingOutputSchema (extracted_diagnoses: list[ExtractedDiagnosis])
+```
+
+**触发**: runtime endpoint 传 `?mode=medcoder` 或 `headers["X-Coding-Mode"]=medcoder`。
+**前端**: MedicalCodingPage 加 toggle "MedCodER pipeline"，启用时展示 per-disease `DiagnosisCard` (evidence chips + TopKChips + override)。
+
+**数据资产** (`E:\iCoDerA\`, 只读):
+- `icd10cn_code_catalog.json` — 37,897 码 (35,468 中文同义词 + 5,560 英文)
+- `icd10cn_synonym_map.json` — 75,968 同义词 + 21 类 term_index
+- `evidence_anchoring_kb.json` — 972 码 × 6,490 evidence patterns
+- `coding_differentiation_kb.json` — 2,090 code-pair 决策 (P0/P1/P2)
+- `gold_disease_catalog.json` — 37,897 码规范化
+- `cot_generation_progress_v2.json` — 175/500 rerank CoT few-shot
+
+**本地模型 + 索引**:
+- `data/medcoder/models/` — BGE-M3 (2.3GB, sentence-transformers 首次跑自动下载)
+- `data/medcoder/faiss.index` + `metadata.pkl` — 一次性构建
+  ```bash
+  python scripts/build_medcoder_index.py --asset-dir E:/iCoDerA/DataAsset --out data/medcoder
+  ```
+  Build time: ~10-15min on CPU; 索引只构建一次，运行时 lazy load。
+
+## MedCodER 评估
+
+```bash
+# 4 个 ablation variant — 对齐论文 Fig 2
+python scripts/e2e_medcoder_validation.py --cases tests/fixtures/ccl2026_val_100.json --variant full
+python scripts/e2e_medcoder_validation.py --cases tests/fixtures/ccl2026_val_100.json --variant prompt
+python scripts/e2e_medcoder_validation.py --cases tests/fixtures/ccl2026_val_100.json --variant retrieve
+python scripts/e2e_medcoder_validation.py --cases tests/fixtures/ccl2026_val_100.json --variant prompt+retrieve
+# iCoDer 201 baseline
+python scripts/e2e_medcoder_validation.py --cases tests/fixtures/icoder_201.json --variant full
+```
+
+**4 个 variant**:
+- `prompt` — Stage 1 only (LLM 初始编码)
+- `retrieve` — Stage 2 only (BGE-M3 RAG, no LLM)
+- `prompt+retrieve` — Stage 1+2 合并去重 (no re-rank)
+- `full` — 5 阶段完整管线 (Stage 1+2+3+4+5)
+
+**指标**:
+- `F1@1`, `F1@2`, `F1@5` — subdivision-tolerant (I50.900 ≡ I50.9)
+- per-case micro-F1 (over primary + secondary dx)
+- aggregate micro-pooled (整个数据集上算)
+
+**预期** (按论文 Fig 2): `full > prompt+retrieve > prompt ≈ retrieve > baseline`。
+
+**评测集**:
+- `tests/fixtures/ccl2026_train_gold.json` — 1800 cases (CCL 2026 train.xlsx, 公开)
+- `tests/fixtures/ccl2026_val_100.json` — 100 cases random sample (seed=42), CI 用
+- `tests/fixtures/icoder_201.json` — 201 cases (gold_case_importer 产), 回归对照
+
 ## 技术栈
 
 - 后端: FastAPI + SQLAlchemy (async) + SQLite
 - LLM: DeepSeek V4 (deepseek-v4-flash) via LLMGateway
+- Embedding: BGE-M3 (BAAI/bge-m3) 本地 sentence-transformers, 1024-dim
+- 向量索引: FAISS IndexFlatIP (cosine via inner product on normalized)
+- 数据: iCoDerA 资产 (只读, 医院本地)
 - 前端: React + TypeScript + Vite + Tailwind CSS
-- 测试: pytest (80 tests)
+- 测试: pytest (752 tests, 80 baseline + 672 MedCodER/规则/修复)

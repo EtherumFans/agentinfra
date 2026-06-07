@@ -175,7 +175,11 @@ def _get_case_text(case: dict) -> str:
 
 
 def _prompt_only_topk(case: dict, gateway) -> list[str]:
-    """Variant 1: Stage 1 LLM only → return its llm_initial_codes for each dx."""
+    """Variant 1: Stage 1 LLM only → return its llm_initial_codes for each dx.
+
+    Synchronous wrapper around the LLM call. Uses asyncio.run() per case —
+    safe because it doesn't touch BGE-M3/FAISS (no thread contention).
+    """
     if not gateway:
         return []
     from icoder_runtime.providers.medical_coding.medcoder_adapter import (
@@ -194,21 +198,30 @@ def _prompt_only_topk(case: dict, gateway) -> list[str]:
 
 
 def _retrieve_only_topk(case: dict, retriever, k: int = 20) -> list[str]:
-    """Variant 2: Stage 2 retrieve only → use text as query, return top-K."""
+    """Variant 2: Stage 2 retrieve only → use text as query, return top-K.
+
+    Uses ``retrieve_sync`` (not async) to avoid the asyncio+BGE-M3 segfault
+    that occurs when the retriever is called inside an event loop that also
+    scheduled an LLM call.
+    """
     if not retriever:
         return []
     text = _get_case_text(case)
     if not text:
         return []
     try:
-        cands = asyncio.run(retriever.retrieve_async(text[:200], top_k=k))
+        cands = retriever.retrieve_sync(text[:200], top_k=k)
     except Exception:
         return []
     return [c.code for c in cands]
 
 
 def _prompt_plus_retrieve_topk(case: dict, gateway, retriever, k: int = 20) -> list[str]:
-    """Variant 3: Stage 1 + Stage 2 union, no re-rank."""
+    """Variant 3: Stage 1 + Stage 2 union, no re-rank.
+
+    Prompt uses async LLM; retrieve uses sync wrapper. Mixing these in the
+    same case avoids the asyncio+BGE-M3 crash.
+    """
     prompt_codes = _prompt_only_topk(case, gateway)
     retrieve_codes = _retrieve_only_topk(case, retriever, k=k)
     seen: set[str] = set()
@@ -241,6 +254,47 @@ def _full_topk(case: dict, adapter) -> list[str]:
     return out_codes
 
 
+async def _async_prompt_plus_retrieve(case: dict, gateway, retriever, k: int = 20) -> list[str]:
+    """Async prompt + sync retrieve (BGE-M3 must stay out of the event loop).
+
+    The retrieve half runs in a thread to keep BGE-M3's OpenMP calls from
+    racing with the asyncio/httpx stack. Returns the deduped union.
+    """
+    from icoder_runtime.providers.medical_coding.medcoder_adapter import (
+        build_extraction_messages, parse_extraction_response,
+    )
+    text = _get_case_text(case)
+    if not text or not gateway:
+        return []
+
+    # LLM extraction (async, awaits httpx)
+    try:
+        msgs = build_extraction_messages(text)
+        resp = await gateway.generate(msgs, provider="default")
+        items = parse_extraction_response(resp.get("content", ""))
+        prompt_codes = [it.get("llm_initial_code", "") for it in items if it.get("llm_initial_code")]
+    except Exception:
+        prompt_codes = []
+
+    # Retrieve in a thread (BGE-M3 is sync + OpenMP-heavy)
+    retrieve_codes: list[str] = []
+    if retriever is not None:
+        try:
+            cands = await asyncio.to_thread(retriever.retrieve_sync, text[:200], k)
+            retrieve_codes = [c.code for c in cands]
+        except Exception:
+            pass
+
+    # Union, preserve order
+    seen: set[str] = set()
+    out: list[str] = []
+    for c in prompt_codes + retrieve_codes:
+        if c and c not in seen:
+            out.append(c)
+            seen.add(c)
+    return out
+
+
 # ── Evaluation loop ──
 
 
@@ -252,7 +306,13 @@ def run_evaluation(
     adapter=None,
     k_values: tuple[int, ...] = (1, 2, 5),
 ) -> dict:
-    """Run the chosen variant on each case; return aggregate F1@K + per-case results."""
+    """Run the chosen variant on each case; return aggregate F1@K + per-case results.
+
+    For "prompt+retrieve" and "full" variants that mix LLM + retriever,
+    uses a single asyncio.run() at the top level to avoid the C-level
+    segfault that occurs when BGE-M3/FAISS is called inside an asyncio
+    loop that's nested under another asyncio.run().
+    """
     if variant not in VARIANTS:
         raise ValueError(f"Unknown variant '{variant}'. Choose from {VARIANTS}")
 
@@ -268,7 +328,9 @@ def run_evaluation(
         elif variant == "retrieve":
             top_k = _retrieve_only_topk(case, retriever)
         elif variant == "prompt+retrieve":
-            top_k = _prompt_plus_retrieve_topk(case, gateway, retriever)
+            # Run both halves inside a single event loop to avoid
+            # nested asyncio.run() + BGE-M3 segfault.
+            top_k = asyncio.run(_async_prompt_plus_retrieve(case, gateway, retriever))
         elif variant == "full":
             top_k = _full_topk(case, adapter)
         else:
@@ -341,8 +403,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--use-mock-gateway",
         action="store_true",
-        default=True,
-        help="Use a mock LLM gateway (default: True for offline tests).",
+        default=False,
+        help="Use a mock LLM gateway (default: real DeepSeek).",
     )
     args = parser.parse_args(argv)
 
@@ -357,31 +419,38 @@ def main(argv: list[str] | None = None) -> int:
     retriever = None
     adapter = None
     if args.variant in ("prompt", "prompt+retrieve"):
-        # Mock LLM gateway for offline eval
-        from icoder_runtime.providers.medical_coding.medcoder_adapter import (
-            build_extraction_messages, parse_extraction_response,
-        )
-        class _MockGateway:
-            def __init__(self):
-                self.call_count = 0
-            async def generate(self, messages, *, provider: str = "", **kwargs):
-                self.call_count += 1
-                # Mock: extract a single likely-disease from the text
-                user = ""
-                for m in reversed(messages):
-                    if m.get("role") == "user":
-                        user = m.get("content", "")
-                        break
-                # Very crude: return a mock extraction with a placeholder code
-                # that won't match the gold, so the F1@1 ≈ 0
-                if "心" in user or "胸" in user:
-                    return {"content": '[{"disease_text": "心力衰竭", "supporting_evidence": "胸闷", "llm_initial_code": "I50.900"}]'}
-                if "高血" in user:
-                    return {"content": '[{"disease_text": "高血压", "supporting_evidence": "高血压", "llm_initial_code": "I10"}]'}
-                return {"content": '[{"disease_text": "未知", "supporting_evidence": "未知", "llm_initial_code": "R69"}]'}
-        gateway = _MockGateway()
+        if args.use_mock_gateway:
+            # Mock LLM gateway for offline eval
+            from icoder_runtime.providers.medical_coding.medcoder_adapter import (
+                build_extraction_messages, parse_extraction_response,
+            )
+            class _MockGateway:
+                def __init__(self):
+                    self.call_count = 0
+                async def generate(self, messages, *, provider: str = "", **kwargs):
+                    self.call_count += 1
+                    # Mock: extract a single likely-disease from the text
+                    user = ""
+                    for m in reversed(messages):
+                        if m.get("role") == "user":
+                            user = m.get("content", "")
+                            break
+                    # Very crude: return a mock extraction with a placeholder code
+                    # that won't match the gold, so the F1@1 ≈ 0
+                    if "心" in user or "胸" in user:
+                        return {"content": '[{"disease_text": "心力衰竭", "supporting_evidence": "胸闷", "llm_initial_code": "I50.900"}]'}
+                    if "高血" in user:
+                        return {"content": '[{"disease_text": "高血压", "supporting_evidence": "高血压", "llm_initial_code": "I10"}]'}
+                    return {"content": '[{"disease_text": "未知", "supporting_evidence": "未知", "llm_initial_code": "R69"}]'}
+            gateway = _MockGateway()
+        else:
+            from icoder_runtime.core.llm_gateway import LLMGateway, DeepSeekProvider
+            provider = DeepSeekProvider()
+            gateway = LLMGateway()
+            gateway.register(provider, default=True)
+            print(f"Using real DeepSeek gateway (model={provider.model})")
 
-    if args.variant in ("retrieve", "prompt+retrieve"):
+    if args.variant in ("retrieve", "prompt+retrieve", "full"):
         try:
             from icoder_runtime.providers.medical_coding.medcoder_retriever import MedCodERRetriever
             retriever = MedCodERRetriever(index_dir=args.retriever_index_dir)
@@ -389,6 +458,13 @@ def main(argv: list[str] | None = None) -> int:
             print(f"WARNING: could not create retriever ({e}). retrieve variants will return 0 codes.")
 
     if args.variant == "full":
+        if gateway is None and not args.use_mock_gateway:
+            # Need a real LLM gateway for the full pipeline
+            from icoder_runtime.core.llm_gateway import LLMGateway, DeepSeekProvider
+            provider = DeepSeekProvider()
+            gateway = LLMGateway()
+            gateway.register(provider, default=True)
+            print(f"Using real DeepSeek gateway (model={provider.model})")
         from icoder_runtime.providers.medical_coding.hybrid_adapter import HybridCodingAdapter
         adapter = HybridCodingAdapter(gateway=gateway, mode="medcoder", retriever=retriever)
 

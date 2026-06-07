@@ -201,6 +201,22 @@ export interface LocaleDict {
   outpatientRecord: string;
   consultationRecord: string;
 
+  // MedCodER pipeline UI
+  medcoderPipeline: string;
+  medcoderMode: string;
+  enableMedcoder: string;
+  evidenceHighlight: string;
+  topKCandidates: string;
+  overrideCode: string;
+  overridePlaceholder: string;
+  overrideConfirm: string;
+  diagnosisCard: string;
+  supportingEvidence: string;
+  llmInitialCode: string;
+  rerankNotes: string;
+  noExtractedDiagnoses: string;
+  pipelineNotes: string;
+
   // Medical Coding — Corti-aligned extras
   samples: string;
   openGuide: string;
@@ -902,6 +918,22 @@ const zhCN: LocaleDict = {
   operationRecord: '手术记录',
   outpatientRecord: '门诊病历',
   consultationRecord: '会诊记录',
+
+  // MedCodER pipeline UI
+  medcoderPipeline: 'MedCodER 管线',
+  medcoderMode: 'MedCodER 模式 (NAACL 2025)',
+  enableMedcoder: '启用 MedCodER 管线',
+  evidenceHighlight: '证据高亮',
+  topKCandidates: 'Top-K 候选编码',
+  overrideCode: '修改编码',
+  overridePlaceholder: '输入 ICD-10 编码',
+  overrideConfirm: '确定',
+  diagnosisCard: '疾病诊断',
+  supportingEvidence: '支持证据',
+  llmInitialCode: 'LLM 初始编码',
+  rerankNotes: '重排说明',
+  noExtractedDiagnoses: '无疾病抽取结果',
+  pipelineNotes: '管线说明',
 
   // Medical Coding — Corti-aligned extras
   samples: '样例',
@@ -1622,6 +1654,22 @@ const enUS: LocaleDict = {
   operationRecord: 'Operation record',
   outpatientRecord: 'Outpatient record',
   consultationRecord: 'Consultation record',
+
+  // MedCodER pipeline UI
+  medcoderPipeline: 'MedCodER pipeline',
+  medcoderMode: 'MedCodER mode (NAACL 2025)',
+  enableMedcoder: 'Enable MedCodER pipeline',
+  evidenceHighlight: 'Evidence highlight',
+  topKCandidates: 'Top-K candidates',
+  overrideCode: 'Override code',
+  overridePlaceholder: 'Enter ICD-10 code',
+  overrideConfirm: 'Confirm',
+  diagnosisCard: 'Diagnosis',
+  supportingEvidence: 'Supporting evidence',
+  llmInitialCode: 'LLM initial code',
+  rerankNotes: 'Re-rank notes',
+  noExtractedDiagnoses: 'No extracted diagnoses',
+  pipelineNotes: 'Pipeline notes',
 
   // Medical Coding — Corti-aligned extras
   samples: 'Samples',

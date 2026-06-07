@@ -9,6 +9,11 @@ from typing import Any
 from icoder_runtime.core.coding_schema import (
     CodingEngineAdapter, MedicalCodingOutputSchema,
 )
+from .dictionary_rag import (
+    lookup_candidate_codes,
+    format_candidates_block,
+    _extract_user_text,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -49,6 +54,20 @@ class PromptLLMAdapter(CodingEngineAdapter):
         self._gateway = gateway
         self._system_prompt = system_prompt or CODING_SYSTEM_PROMPT
 
+    async def _build_prompt_with_candidates(self, base_prompt: str, encounter_text: str) -> str:
+        """RAG injection — same pattern as DeepSeekCodingAdapter."""
+        if not encounter_text:
+            return base_prompt
+        try:
+            candidates = await lookup_candidate_codes(encounter_text, max_total=8)
+        except Exception as e:
+            logger.warning(f"PromptLLMAdapter: RAG lookup failed: {e}")
+            return base_prompt
+        block = format_candidates_block(candidates)
+        if not block:
+            return base_prompt
+        return f"{base_prompt}\n\n{block}"
+
     async def infer_async(
         self,
         messages: list[dict[str, str]],
@@ -60,7 +79,10 @@ class PromptLLMAdapter(CodingEngineAdapter):
             logger.warning("PromptLLMAdapter: no gateway configured, falling back to mock")
             return MedicalCodingOutputSchema.mock_result()
 
-        full_messages = [{"role": "system", "content": self._system_prompt}] + list(messages)
+        # RAG injection
+        encounter_text = _extract_user_text(messages)
+        system_prompt = await self._build_prompt_with_candidates(self._system_prompt, encounter_text)
+        full_messages = [{"role": "system", "content": system_prompt}] + list(messages)
 
         try:
             result = await self._gateway.generate(full_messages)

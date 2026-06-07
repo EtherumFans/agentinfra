@@ -29,6 +29,11 @@ from icoder_runtime.core.coding_schema import (
     CodingEngineAdapter, MedicalCodingOutputSchema,
     DiagnosisEntry, ProcedureEntry, CodingIssue,
 )
+from .dictionary_rag import (
+    lookup_candidate_codes,
+    format_candidates_block,
+    _extract_user_text,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -149,6 +154,24 @@ class DeepSeekCodingAdapter(CodingEngineAdapter):
             "ICODER_DEEPSEEK_REQUIRE_STRUCTURED_OUTPUT", "true"
         ).lower() == "true"
 
+    async def _build_prompt_with_candidates(self, base_prompt: str, encounter_text: str) -> str:
+        """Inject ICD-10 candidate codes (RAG) into the system prompt.
+
+        If RAG fails or returns no candidates, the base prompt is returned
+        unchanged so the call still works in degraded mode.
+        """
+        if not encounter_text:
+            return base_prompt
+        try:
+            candidates = await lookup_candidate_codes(encounter_text, max_total=8)
+        except Exception as e:
+            logger.warning(f"DeepSeekCodingAdapter: RAG lookup failed: {e}")
+            return base_prompt
+        block = format_candidates_block(candidates)
+        if not block:
+            return base_prompt
+        return f"{base_prompt}\n\n{block}"
+
     async def infer_async(
         self,
         messages: list[dict[str, str]],
@@ -161,7 +184,10 @@ class DeepSeekCodingAdapter(CodingEngineAdapter):
             logger.error("DeepSeekCodingAdapter: gateway not configured")
             return self._error_schema("LLM gateway not configured")
 
-        full_messages = [{"role": "system", "content": CODING_SYSTEM_PROMPT}] + list(messages)
+        # RAG: inject candidate ICD-10 codes from dictionary lookup
+        encounter_text = _extract_user_text(messages)
+        system_prompt = await self._build_prompt_with_candidates(CODING_SYSTEM_PROMPT, encounter_text)
+        full_messages = [{"role": "system", "content": system_prompt}] + list(messages)
 
         last_error = None
         for attempt in range(self._max_retries + 1):

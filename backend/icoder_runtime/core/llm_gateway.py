@@ -46,6 +46,20 @@ class BaseLLMProvider(ABC):
         """
         ...
 
+    async def embed(self, texts: list[str]) -> list[list[float]]:
+        """Optional: embed ``texts`` to fixed-dim vectors.
+
+        Providers don't have to support embedding — the default raises
+        NotImplementedError. MedCodER uses a local BGE-M3 embedder loaded
+        in-process, not the gateway; this hook exists for the
+        OpenAI-compatible provider so future code can call
+        ``gateway.embed([...])`` uniformly.
+        """
+        raise NotImplementedError(
+            f"Provider {self.name} does not implement embed(); "
+            "use the local BGE-M3 embedder (icoder_runtime.providers.medical_coding.embedding_bge_m3.BGEEmbedder) instead."
+        )
+
     def health_check(self) -> dict:
         """Return provider health status."""
         return {"provider": self.name, "status": "unknown"}

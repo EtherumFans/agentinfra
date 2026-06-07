@@ -139,6 +139,103 @@ class CodingIssue:
 
 
 @dataclass
+class CandidateCode:
+    """A single ICD code candidate produced by the retriever / LLM.
+
+    ``source`` discriminates provenance: ``llm`` (initial code from Stage 1
+    LLM), ``retrieve`` (BGE-M3 + FAISS top-K), ``differentiation_kb`` (rule
+    suggested by coding_differentiation_kb), or ``rerank`` (post RankGPT).
+    """
+    code: str = ""
+    name: str = ""
+    score: float = 0.0
+    chapter: str = ""
+    source: str = "retrieve"  # llm | retrieve | differentiation_kb | rerank
+
+    def to_dict(self) -> dict:
+        return {
+            "code": self.code,
+            "name": self.name,
+            "score": self.score,
+            "chapter": self.chapter,
+            "source": self.source,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "CandidateCode":
+        return cls(
+            code=data.get("code", ""),
+            name=data.get("name", ""),
+            score=float(data.get("score", 0.0)),
+            chapter=data.get("chapter", ""),
+            source=data.get("source", "retrieve"),
+        )
+
+
+@dataclass
+class ExtractedDiagnosis:
+    """One disease extracted from EMR text in the MedCodER pipeline.
+
+    Carries the full provenance chain:
+      - disease_text: the LLM's normalization of the disease mention
+      - supporting_evidence: list[EvidenceSpan] pinpointing source text
+      - llm_initial_code: the LLM's best ICD guess in Stage 1
+      - retrieved_codes: top-K from BGE-M3 + FAISS in Stage 2
+      - final_top_k: re-ranked top-K from Stage 4
+      - final_confidence: per-diagnosis calibrated confidence
+      - rerank_notes: short rationale from the re-ranker
+    """
+    disease_text: str = ""
+    supporting_evidence: list = field(default_factory=list)  # list[EvidenceSpan]
+    llm_initial_code: str = ""
+    retrieved_codes: list = field(default_factory=list)  # list[CandidateCode]
+    final_top_k: list = field(default_factory=list)  # list[CandidateCode]
+    final_confidence: float = 0.0
+    rerank_notes: str = ""
+
+    def evidence_spans(self) -> list[EvidenceSpan]:
+        return _parse_evidence(self.supporting_evidence)
+
+    def to_dict(self) -> dict:
+        return {
+            "disease_text": self.disease_text,
+            "supporting_evidence": [e.to_dict() if isinstance(e, EvidenceSpan) else e
+                                    for e in self.supporting_evidence],
+            "llm_initial_code": self.llm_initial_code,
+            "retrieved_codes": [c.to_dict() if isinstance(c, CandidateCode) else c
+                                for c in self.retrieved_codes],
+            "final_top_k": [c.to_dict() if isinstance(c, CandidateCode) else c
+                            for c in self.final_top_k],
+            "final_confidence": self.final_confidence,
+            "rerank_notes": self.rerank_notes,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "ExtractedDiagnosis":
+        # Re-hydrate supporting_evidence (list of dicts) to EvidenceSpan list
+        raw_evidence = data.get("supporting_evidence", [])
+        spans: list = []
+        for item in raw_evidence:
+            if isinstance(item, EvidenceSpan):
+                spans.append(item)
+            elif isinstance(item, dict):
+                spans.append(EvidenceSpan.from_dict(item))
+            elif isinstance(item, str):
+                spans.append(EvidenceSpan(text=item))
+        return cls(
+            disease_text=data.get("disease_text", ""),
+            supporting_evidence=spans,
+            llm_initial_code=data.get("llm_initial_code", ""),
+            retrieved_codes=[CandidateCode.from_dict(c) if isinstance(c, dict) else c
+                             for c in data.get("retrieved_codes", [])],
+            final_top_k=[CandidateCode.from_dict(c) if isinstance(c, dict) else c
+                         for c in data.get("final_top_k", [])],
+            final_confidence=float(data.get("final_confidence", 0.0)),
+            rerank_notes=data.get("rerank_notes", ""),
+        )
+
+
+@dataclass
 class MedicalCodingOutputSchema:
     """Standard output for any medical coding agent execution."""
 
@@ -165,6 +262,17 @@ class MedicalCodingOutputSchema:
     repair_success: bool = False
     repair_rounds: int = 0
 
+    # MedCodER pipeline output (NAACL 2025 Industry Track 3-stage).
+    # ``mode`` discriminates which adapter produced this output:
+    #   "deepseek"    — DeepSeek prompt only (legacy)
+    #   "prompt_llm"  — generic LLM via prompt (legacy)
+    #   "hybrid"      — DeepSeek + trigger RAG + repair (default)
+    #   "no_repair"   — Hybrid without repair loop (ablation)
+    #   "medcoder"    — Full 5-stage MedCodER pipeline (BGE-M3 + FAISS + RankGPT)
+    # ``extracted_diagnoses`` is only populated when ``mode == "medcoder"``.
+    mode: str = "hybrid"
+    extracted_diagnoses: list = field(default_factory=list)  # list[ExtractedDiagnosis]
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "review_conclusion": self.review_conclusion,
@@ -183,6 +291,9 @@ class MedicalCodingOutputSchema:
             "repair_attempted": self.repair_attempted,
             "repair_success": self.repair_success,
             "repair_rounds": self.repair_rounds,
+            "mode": self.mode,
+            "extracted_diagnoses": [d.to_dict() if isinstance(d, ExtractedDiagnosis) else d
+                                    for d in self.extracted_diagnoses],
         }
 
     @classmethod
@@ -220,6 +331,9 @@ class MedicalCodingOutputSchema:
             repair_attempted=data.get("repair_attempted", False),
             repair_success=data.get("repair_success", False),
             repair_rounds=data.get("repair_rounds", 0),
+            mode=data.get("mode", "hybrid"),
+            extracted_diagnoses=[ExtractedDiagnosis.from_dict(d) if isinstance(d, dict) else d
+                                 for d in data.get("extracted_diagnoses", [])],
         )
 
     @classmethod

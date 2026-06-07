@@ -7,9 +7,10 @@ interface CodeSnippetProps {
   python?: string;
   json?: string;
   csharp?: string;
+  compact?: boolean;
 }
 
-export default function CodeSnippet({ javascript, python, json, csharp }: CodeSnippetProps) {
+export default function CodeSnippet({ javascript, python, json, csharp, compact = false }: CodeSnippetProps) {
   const [format, setFormat] = useState<'javascript' | 'python' | 'json' | 'csharp'>('javascript');
   const [copied, setCopied] = useState(false);
 
@@ -24,12 +25,17 @@ export default function CodeSnippet({ javascript, python, json, csharp }: CodeSn
     setTimeout(() => setCopied(false), 2000);
   }, [code]);
 
-  const tabs = [
-    { key: 'javascript' as const, label: 'JavaScript (SDK)' },
-    { key: 'python' as const, label: 'Python (SDK)' },
-    { key: 'csharp' as const, label: 'C# (.NET SDK)' },
-    { key: 'json' as const, label: 'JSON Config' },
-  ];
+  const tabs = compact
+    ? [
+        { key: 'javascript' as const, label: 'JavaScript' },
+        { key: 'json' as const, label: 'JSON' },
+      ]
+    : [
+        { key: 'javascript' as const, label: 'JavaScript (SDK)' },
+        { key: 'python' as const, label: 'Python (SDK)' },
+        { key: 'csharp' as const, label: 'C# (.NET SDK)' },
+        { key: 'json' as const, label: 'JSON Config' },
+      ];
 
   return (
     <div className="flex flex-col h-full">

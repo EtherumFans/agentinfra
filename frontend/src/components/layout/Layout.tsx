@@ -7,11 +7,12 @@ import { BACKEND_BASE_URL } from '../../config';
 import { oauthApi } from '../../services/api';
 import { useT, useLocaleStore } from '../../i18n';
 import OrgSwitcher from './OrgSwitcher';
+import { ErrorBoundary } from '../common/ErrorBoundary';
 import {
   PanelLeftClose, PanelLeft, Home, FlaskConical,
   Mic, AlignLeft, Sparkles, ListTree, Asterisk, BrainCircuit,
   KeyRound, Users, CreditCard, ChartNoAxesColumn, Settings,
-  MessageSquare, Ticket, ArrowUpRight, Bell,
+  MessageSquare, ArrowUpRight, Bell,
   ChevronDown, Rocket, Layers, Folder, ChevronsUpDown, Database,
 } from 'lucide-react';
 
@@ -78,7 +79,6 @@ export default function Layout() {
       name: t.support,
       items: [
         { to: '/support', label: t.getHelp, icon: MessageSquare },
-        { to: '/tickets', label: t.ticketsPortal, icon: Ticket },
       ],
     },
   ];
@@ -153,8 +153,8 @@ export default function Layout() {
                     暂无新通知
                   </div>
                   <div className="px-4 py-2 border-t border-border bg-muted/30">
-                    <button onClick={() => { navigate('/tickets'); setShowNotif(false); }}
-                      className="text-xs text-primary hover:underline w-full text-left">查看所有工单</button>
+                    <button onClick={() => { navigate('/support'); setShowNotif(false); }}
+                      className="text-xs text-primary hover:underline w-full text-left">查看帮助</button>
                   </div>
                 </div>
               )}
@@ -331,7 +331,9 @@ export default function Layout() {
 
         {/* Main content */}
         <main className="flex-1 min-h-0 overflow-y-auto bg-background flex flex-col">
-          <Outlet />
+          <ErrorBoundary>
+            <Outlet />
+          </ErrorBoundary>
         </main>
       </div>
     </div>

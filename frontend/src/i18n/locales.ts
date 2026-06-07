@@ -195,6 +195,51 @@ export interface LocaleDict {
   guidedDemo: string;
   guidedDemoDesc: string;
 
+  // Sample document types
+  admissionRecord: string;
+  operationRecord: string;
+  outpatientRecord: string;
+  consultationRecord: string;
+
+  // Medical Coding — Corti-aligned extras
+  samples: string;
+  openGuide: string;
+  dismissGuide: string;
+  selectCodingSystem: string;
+  selectCodingSystemDesc: string;
+  guideStepSample: string;
+  guideStepSystem: string;
+  guideStepSampleDesc: string;
+  startByAddingText: string;
+  next: string;
+  done: string;
+  add: string;
+  ready: string;
+  expand: string;
+  include: string;
+  exclude: string;
+  filterCodes: string;
+  addCodes: string;
+  noSystemsSelected: string;
+  processingFailed: string;
+  sampleLoaded: string;
+  startingPrediction: string;
+  addIncludeCode: string;
+  addExcludeCode: string;
+  enterCodePlaceholder: string;
+  tableCode: string;
+  tableDescription: string;
+  tableConfidence: string;
+  medicalCodingBreadcrumb: string;
+  tabCode: string;
+  failedPrefix: string;
+  completedPrefix: string;
+  preGuardViolations: string;
+  contractVerified: string;
+  safety: string;
+  schema: string;
+  resetSettings: string;
+
   // Fact Extraction
   factExtractionTitle: string;
   factExtractionDesc: string;
@@ -851,6 +896,51 @@ const zhCN: LocaleDict = {
   orthopedicReferralDesc: '含影像学发现和疑似诊断的专科转诊记录',
   guidedDemo: '引导演示',
   guidedDemoDesc: '交互式引导，逐步了解医学编码AI智能体的使用方法',
+
+  // Sample document types
+  admissionRecord: '入院记录',
+  operationRecord: '手术记录',
+  outpatientRecord: '门诊病历',
+  consultationRecord: '会诊记录',
+
+  // Medical Coding — Corti-aligned extras
+  samples: '样例',
+  openGuide: '打开引导',
+  dismissGuide: '关闭引导',
+  selectCodingSystem: '选择编码体系',
+  selectCodingSystemDesc: '勾选要在本次预测中使用的编码体系（与右侧设置共享）',
+  guideStepSample: '选择文书样例',
+  guideStepSystem: '选择编码体系',
+  guideStepSampleDesc: '选择一份样本文档，向导将自动填入输入区并触发预测',
+  startByAddingText: '开始添加文本输入',
+  next: '下一步',
+  done: '完成',
+  add: '添加',
+  ready: '就绪',
+  expand: '展开',
+  include: '包含',
+  exclude: '排除',
+  filterCodes: '筛选编码',
+  addCodes: '添加编码',
+  noSystemsSelected: '未选择编码体系',
+  processingFailed: '处理失败',
+  sampleLoaded: '已加载样例',
+  startingPrediction: '开始预测...',
+  addIncludeCode: '添加包含编码',
+  addExcludeCode: '添加排除编码',
+  enterCodePlaceholder: '输入编码（如 J18.1）',
+  tableCode: '编码',
+  tableDescription: '描述',
+  tableConfidence: '置信度',
+  medicalCodingBreadcrumb: '医学编码',
+  tabCode: '代码',
+  failedPrefix: '失败',
+  completedPrefix: '已完成',
+  preGuardViolations: '预检查：{count} 个违规',
+  contractVerified: '合约：{status}',
+  safety: '安全',
+  schema: '架构',
+  resetSettings: '重置设置',
 
   // Fact Extraction
   factExtractionTitle: '事实提取',
@@ -1526,6 +1616,51 @@ const enUS: LocaleDict = {
   orthopedicReferralDesc: 'Specialist referral with imaging findings and suspected diagnosis',
   guidedDemo: 'Guided demo',
   guidedDemoDesc: 'Interactive walkthrough of the Medical Coding agent',
+
+  // Sample document types
+  admissionRecord: 'Admission record',
+  operationRecord: 'Operation record',
+  outpatientRecord: 'Outpatient record',
+  consultationRecord: 'Consultation record',
+
+  // Medical Coding — Corti-aligned extras
+  samples: 'Samples',
+  openGuide: 'Open guided demo',
+  dismissGuide: 'Dismiss guided demo',
+  selectCodingSystem: 'Select coding systems',
+  selectCodingSystemDesc: 'Pick the coding systems to use for this prediction (shared with right Settings)',
+  guideStepSample: 'Pick a sample document',
+  guideStepSystem: 'Pick coding systems',
+  guideStepSampleDesc: 'Choose a sample document — the wizard will fill the input and trigger prediction',
+  startByAddingText: 'Start by adding text input',
+  next: 'Next',
+  done: 'Done',
+  add: 'Add',
+  ready: 'Ready',
+  expand: 'Expand',
+  include: 'Include',
+  exclude: 'Exclude',
+  filterCodes: 'Filter codes',
+  addCodes: 'Add codes',
+  noSystemsSelected: 'No systems selected',
+  processingFailed: 'Processing failed',
+  sampleLoaded: 'Sample loaded',
+  startingPrediction: 'Starting prediction...',
+  addIncludeCode: 'Add include code',
+  addExcludeCode: 'Add exclude code',
+  enterCodePlaceholder: 'Enter code (e.g. J18.1)',
+  tableCode: 'Code',
+  tableDescription: 'Description',
+  tableConfidence: 'Conf.',
+  medicalCodingBreadcrumb: 'Medical coding',
+  tabCode: 'Code',
+  failedPrefix: 'Failed',
+  completedPrefix: 'Completed —',
+  preGuardViolations: 'Pre-guard: {count} violations',
+  contractVerified: 'Contract: {status}',
+  safety: 'Safety',
+  schema: 'Schema',
+  resetSettings: 'Reset settings',
 
   // Fact Extraction
   factExtractionTitle: 'Fact Extraction',

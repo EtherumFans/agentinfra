@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-06-06T02:32:20.065509+00:00",
+  "updated_at": "2026-06-06T11:20:53.438353+00:00",
   "agents": {
     "临床文书改进-1.0.0": {
       "agent_id": "临床文书改进-1.0.0",
@@ -125,7 +125,7 @@
         }
       },
       "status": "installed",
-      "installed_at": "2026-06-06T02:32:19.915870+00:00"
+      "installed_at": "2026-06-06T11:20:53.299977+00:00"
     },
     "编码校验-1.0.0": {
       "agent_id": "编码校验-1.0.0",
@@ -242,7 +242,7 @@
         }
       },
       "status": "installed",
-      "installed_at": "2026-06-06T02:32:19.927585+00:00"
+      "installed_at": "2026-06-06T11:20:53.315652+00:00"
     },
     "code-reconciler-1.0.0": {
       "agent_id": "code-reconciler-1.0.0",
@@ -385,7 +385,7 @@
         }
       },
       "status": "installed",
-      "installed_at": "2026-06-06T02:32:19.937620+00:00"
+      "installed_at": "2026-06-06T11:20:53.323017+00:00"
     },
     "合规护栏-1.0.0": {
       "agent_id": "合规护栏-1.0.0",
@@ -502,7 +502,7 @@
         }
       },
       "status": "installed",
-      "installed_at": "2026-06-06T02:32:19.949380+00:00"
+      "installed_at": "2026-06-06T11:20:53.332152+00:00"
     },
     "拒付申诉-1.0.0": {
       "agent_id": "拒付申诉-1.0.0",
@@ -627,7 +627,7 @@
         }
       },
       "status": "installed",
-      "installed_at": "2026-06-06T02:32:19.954412+00:00"
+      "installed_at": "2026-06-06T11:20:53.339936+00:00"
     },
     "诊断提取-1.0.0": {
       "agent_id": "诊断提取-1.0.0",
@@ -744,7 +744,7 @@
         }
       },
       "status": "installed",
-      "installed_at": "2026-06-06T02:32:19.966084+00:00"
+      "installed_at": "2026-06-06T11:20:53.347977+00:00"
     },
     "文档缺口检测-1.0.0": {
       "agent_id": "文档缺口检测-1.0.0",
@@ -869,7 +869,7 @@
         }
       },
       "status": "installed",
-      "installed_at": "2026-06-06T02:32:19.976551+00:00"
+      "installed_at": "2026-06-06T11:20:53.355668+00:00"
     },
     "drg-分组分析-1.0.0": {
       "agent_id": "drg-分组分析-1.0.0",
@@ -924,7 +924,7 @@
         "supports_json_mode": true
       },
       "integrity": {
-        "sha256": ""
+        "sha256": "c391d8a96ffb34e4239638356504880e021d5e940804a748d591126030703add"
       },
       "pack_data": {
         "format_version": "1.1",
@@ -982,11 +982,11 @@
         },
         "code": {},
         "integrity": {
-          "sha256": ""
+          "sha256": "c391d8a96ffb34e4239638356504880e021d5e940804a748d591126030703add"
         }
       },
       "status": "installed",
-      "installed_at": "2026-06-06T02:32:19.987647+00:00"
+      "installed_at": "2026-06-06T11:20:53.363296+00:00"
     },
     "证据排名-1.0.0": {
       "agent_id": "证据排名-1.0.0",
@@ -1111,7 +1111,7 @@
         }
       },
       "status": "installed",
-      "installed_at": "2026-06-06T02:32:20.001063+00:00"
+      "installed_at": "2026-06-06T11:20:53.374185+00:00"
     },
     "evidence-extractor-1.0.0": {
       "agent_id": "evidence-extractor-1.0.0",
@@ -1214,7 +1214,7 @@
         }
       },
       "status": "installed",
-      "installed_at": "2026-06-06T02:32:20.011428+00:00"
+      "installed_at": "2026-06-06T11:20:53.383297+00:00"
     },
     "index-navigator-1.0.0": {
       "agent_id": "index-navigator-1.0.0",
@@ -1327,7 +1327,80 @@
         }
       },
       "status": "installed",
-      "installed_at": "2026-06-06T02:32:20.021865+00:00"
+      "installed_at": "2026-06-06T11:20:53.393310+00:00"
+    },
+    "medical-coding-agent-1.0.0": {
+      "agent_id": "medical-coding-agent-1.0.0",
+      "name": "Medical Coding Agent",
+      "version": "1.0.0",
+      "description": "iCoDer 官方医学编码审核 Agent。基于病历文本生成 ICD-10 诊断编码和 ICD-9-CM-3 手术操作编码建议，提供证据引用和合规风险提示。",
+      "category": "medical-coding",
+      "icon": "Stethoscope",
+      "agent_type": "certified",
+      "system_prompt": "你是中国医院病案编码审核助手。基于病历证据生成编码，不得编造证据。输出JSON格式: {\"review_conclusion\":\"PASS|WARNING|FAIL\",\"primary_diagnosis\":{\"code\":\"ICD-10编码\",\"description\":\"诊断名称\",\"confidence\":0.0-1.0,\"category\":\"principal\",\"evidence\":[\"病历原文证据\"]},\"secondary_diagnoses\":[],\"procedures\":[{\"code\":\"ICD-9-CM-3编码\",\"description\":\"手术名称\",\"confidence\":0.0,\"evidence\":[]}],\"issues_found\":[],\"drg_suggestion\":\"\",\"dip_suggestion\":\"\",\"manual_review_required\":false,\"confidence\":0.0}",
+      "expert_ids": [],
+      "experts": [],
+      "tools": [],
+      "permissions": {
+        "key": "medical-coding-default",
+        "name": "医学编码默认权限",
+        "description": "允许编码查询、规则校验，禁止修改编码",
+        "tools": {}
+      },
+      "publisher_name": "iCoDer",
+      "publisher_email": "hello@icoder.ai",
+      "min_runtime_version": "1.0.0",
+      "llm_capabilities": {
+        "required_models": [
+          {
+            "name": "deepseek-v4"
+          }
+        ],
+        "supports_tool_calling": false,
+        "supports_json_mode": true
+      },
+      "integrity": {
+        "sha256": "e7ede7d73ae3dadda1424178dae0c0a536f6746156694fe7d1ad56c83c25ea5a"
+      },
+      "pack_data": {
+        "format_version": "1.1",
+        "agent_type": "certified",
+        "agent_ref": "icoder/medical-coding-agent@1.0.0",
+        "manifest": {
+          "name": "Medical Coding Agent",
+          "version": "1.0.0",
+          "description": "iCoDer 官方医学编码审核 Agent。基于病历文本生成 ICD-10 诊断编码和 ICD-9-CM-3 手术操作编码建议，提供证据引用和合规风险提示。",
+          "category": "medical-coding",
+          "icon": "Stethoscope"
+        },
+        "system_prompt": "你是中国医院病案编码审核助手。基于病历证据生成编码，不得编造证据。输出JSON格式: {\"review_conclusion\":\"PASS|WARNING|FAIL\",\"primary_diagnosis\":{\"code\":\"ICD-10编码\",\"description\":\"诊断名称\",\"confidence\":0.0-1.0,\"category\":\"principal\",\"evidence\":[\"病历原文证据\"]},\"secondary_diagnoses\":[],\"procedures\":[{\"code\":\"ICD-9-CM-3编码\",\"description\":\"手术名称\",\"confidence\":0.0,\"evidence\":[]}],\"issues_found\":[],\"drg_suggestion\":\"\",\"dip_suggestion\":\"\",\"manual_review_required\":false,\"confidence\":0.0}",
+        "experts": [],
+        "tools": [],
+        "permissions": {
+          "key": "medical-coding-default",
+          "name": "医学编码默认权限",
+          "description": "允许编码查询、规则校验，禁止修改编码",
+          "tools": {}
+        },
+        "requirements": {
+          "min_runtime_version": "1.0.0"
+        },
+        "llm_capabilities": {
+          "required_models": [
+            {
+              "name": "deepseek-v4"
+            }
+          ],
+          "supports_tool_calling": false,
+          "supports_json_mode": true
+        },
+        "code": {},
+        "integrity": {
+          "sha256": "e7ede7d73ae3dadda1424178dae0c0a536f6746156694fe7d1ad56c83c25ea5a"
+        }
+      },
+      "status": "installed",
+      "installed_at": "2026-06-06T11:20:53.403866+00:00"
     },
     "病历完整性-1.0.0": {
       "agent_id": "病历完整性-1.0.0",
@@ -1452,7 +1525,7 @@
         }
       },
       "status": "installed",
-      "installed_at": "2026-06-06T02:32:20.044848+00:00"
+      "installed_at": "2026-06-06T11:20:53.414235+00:00"
     },
     "手术提取-1.0.0": {
       "agent_id": "手术提取-1.0.0",
@@ -1569,80 +1642,7 @@
         }
       },
       "status": "installed",
-      "installed_at": "2026-06-06T02:32:20.054580+00:00"
-    },
-    "medical-coding-agent-1.0.0": {
-      "agent_id": "medical-coding-agent-1.0.0",
-      "name": "Medical Coding Agent",
-      "version": "1.0.0",
-      "description": "iCoDer 官方医学编码审核 Agent。基于病历文本生成 ICD-10 诊断编码和 ICD-9-CM-3 手术操作编码建议，提供证据引用和合规风险提示。",
-      "category": "medical-coding",
-      "icon": "Stethoscope",
-      "agent_type": "certified",
-      "system_prompt": "你是中国医院病案编码审核助手。基于病历证据生成编码，不得编造证据。输出JSON格式: {\"review_conclusion\":\"PASS|WARNING|FAIL\",\"primary_diagnosis\":{\"code\":\"ICD-10编码\",\"description\":\"诊断名称\",\"confidence\":0.0-1.0,\"category\":\"principal\",\"evidence\":[\"病历原文证据\"]},\"secondary_diagnoses\":[],\"procedures\":[{\"code\":\"ICD-9-CM-3编码\",\"description\":\"手术名称\",\"confidence\":0.0,\"evidence\":[]}],\"issues_found\":[],\"drg_suggestion\":\"\",\"dip_suggestion\":\"\",\"manual_review_required\":false,\"confidence\":0.0}",
-      "expert_ids": [],
-      "experts": [],
-      "tools": [],
-      "permissions": {
-        "key": "medical-coding-default",
-        "name": "医学编码默认权限",
-        "description": "允许编码查询、规则校验，禁止修改编码",
-        "tools": {}
-      },
-      "publisher_name": "iCoDer",
-      "publisher_email": "hello@icoder.ai",
-      "min_runtime_version": "1.0.0",
-      "llm_capabilities": {
-        "required_models": [
-          {
-            "name": "deepseek-v4"
-          }
-        ],
-        "supports_tool_calling": false,
-        "supports_json_mode": true
-      },
-      "integrity": {
-        "sha256": "e7ede7d73ae3dadda1424178dae0c0a536f6746156694fe7d1ad56c83c25ea5a"
-      },
-      "pack_data": {
-        "format_version": "1.1",
-        "agent_type": "certified",
-        "agent_ref": "icoder/medical-coding-agent@1.0.0",
-        "manifest": {
-          "name": "Medical Coding Agent",
-          "version": "1.0.0",
-          "description": "iCoDer 官方医学编码审核 Agent。基于病历文本生成 ICD-10 诊断编码和 ICD-9-CM-3 手术操作编码建议，提供证据引用和合规风险提示。",
-          "category": "medical-coding",
-          "icon": "Stethoscope"
-        },
-        "system_prompt": "你是中国医院病案编码审核助手。基于病历证据生成编码，不得编造证据。输出JSON格式: {\"review_conclusion\":\"PASS|WARNING|FAIL\",\"primary_diagnosis\":{\"code\":\"ICD-10编码\",\"description\":\"诊断名称\",\"confidence\":0.0-1.0,\"category\":\"principal\",\"evidence\":[\"病历原文证据\"]},\"secondary_diagnoses\":[],\"procedures\":[{\"code\":\"ICD-9-CM-3编码\",\"description\":\"手术名称\",\"confidence\":0.0,\"evidence\":[]}],\"issues_found\":[],\"drg_suggestion\":\"\",\"dip_suggestion\":\"\",\"manual_review_required\":false,\"confidence\":0.0}",
-        "experts": [],
-        "tools": [],
-        "permissions": {
-          "key": "medical-coding-default",
-          "name": "医学编码默认权限",
-          "description": "允许编码查询、规则校验，禁止修改编码",
-          "tools": {}
-        },
-        "requirements": {
-          "min_runtime_version": "1.0.0"
-        },
-        "llm_capabilities": {
-          "required_models": [
-            {
-              "name": "deepseek-v4"
-            }
-          ],
-          "supports_tool_calling": false,
-          "supports_json_mode": true
-        },
-        "code": {},
-        "integrity": {
-          "sha256": "e7ede7d73ae3dadda1424178dae0c0a536f6746156694fe7d1ad56c83c25ea5a"
-        }
-      },
-      "status": "installed",
-      "installed_at": "2026-06-06T02:32:20.033835+00:00"
+      "installed_at": "2026-06-06T11:20:53.425717+00:00"
     },
     "tabular-validator-1.0.0": {
       "agent_id": "tabular-validator-1.0.0",
@@ -1769,7 +1769,7 @@
         }
       },
       "status": "installed",
-      "installed_at": "2026-06-06T02:32:20.065509+00:00"
+      "installed_at": "2026-06-06T11:20:53.438353+00:00"
     }
   }
 }

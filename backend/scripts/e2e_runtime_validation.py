@@ -46,6 +46,54 @@ def _hash(text: str) -> str:
     return hashlib.sha256(text.encode()).hexdigest()[:16]
 
 
+def _norm_code(code: str) -> str:
+    """Subdivision-tolerant ICD-10 normalization.
+
+    I50.900 → I50.9  (trailing subdivision zeros are stripped)
+    I50.x00 → I50    (x placeholder stripped, all subdivision zeros stripped)
+    Z45.800x012 → Z45.800012  (x placeholder stripped, digits after preserved)
+    C20.x00 → C20    (x + all subdivision zeros stripped)
+    Leading/trailing whitespace and case are also normalized.
+    The dot separator is preserved when there's a non-empty tail.
+    """
+    if not code:
+        return ""
+    c = code.strip().upper()
+    # X is a placeholder, never meaningful — strip it everywhere
+    c = c.replace("X", "")
+    if "." in c:
+        head, _, tail = c.partition(".")
+        tail = tail.rstrip("0")
+        if tail:
+            return f"{head}.{tail}"
+        return head
+    return c
+
+
+def _compute_case_f1(expected_codes: set[str], predicted_codes: set[str]) -> float:
+    """Per-case micro-F1 over ICD-10 diagnosis codes (subdivision-tolerant).
+
+    Normalizes each code via _norm_code before comparison. Counts every code
+    as one unit; partial credit for partial overlap.
+    """
+    if not expected_codes and not predicted_codes:
+        return 1.0
+    exp_norm = {_norm_code(c) for c in expected_codes}
+    act_norm = {_norm_code(c) for c in predicted_codes}
+    exp_norm.discard("")
+    act_norm.discard("")
+    if not exp_norm and not act_norm:
+        return 1.0
+    tp = len(exp_norm & act_norm)
+    fp = len(act_norm - exp_norm)
+    fn = len(exp_norm - act_norm)
+    p = tp / max(tp + fp, 1)
+    r = tp / max(tp + fn, 1)
+    if p + r < 1e-9:
+        return 0.0
+    return 2 * p * r / (p + r)
+
+
 def classify_error(expected_code: str, actual_code: str) -> str:
     """Classify coding error type."""
     if not expected_code or not actual_code:
@@ -121,6 +169,10 @@ def run_evaluation() -> dict:
         repaired_output = None
         initial_hash = _hash(json.dumps(data, sort_keys=True, ensure_ascii=False, default=str))
 
+        # Build gold set (normalized) for honest repair_success judgment
+        gold_norm = {_norm_code(exp_dx)} | {_norm_code(c) for c in exp_sec if c}
+        gold_norm.discard("")
+
         if rule_issues and any(i.get("severity") in ("critical", "high") for i in rule_issues):
             repair_attempted = True
             issue_text = "; ".join(f"{i.get('rule_id', '?')}: {i.get('message', '')}" for i in rule_issues[:3])
@@ -135,22 +187,59 @@ def run_evaluation() -> dict:
             })
             if repair_code == 200:
                 repaired_output = repair_data
-                repair_act_dx = repair_data.get("primary_diagnosis", {}).get("code", "")
-                repair_success = (repair_act_dx != act_dx)  # Changed after repair
+                # Collect normalized codes from the repaired output
+                new_codes = set()
+                rdx = repair_data.get("primary_diagnosis", {}).get("code", "")
+                if rdx:
+                    new_codes.add(_norm_code(rdx))
+                rs = repair_data.get("structured") or {}
+                for d in rs.get("secondary_diagnoses", []):
+                    if isinstance(d, dict) and d.get("code"):
+                        new_codes.add(_norm_code(d["code"]))
+                # Collect normalized codes from the original output
+                old_codes = set()
+                if act_dx:
+                    old_codes.add(_norm_code(act_dx))
+                for d in act_sec:
+                    if d:
+                        old_codes.add(_norm_code(d))
+                # Repair succeeds only if the new code matches gold AND
+                # the old code did not already match gold (otherwise it
+                # was already correct; no "fix" happened).
+                repair_success = bool(new_codes & gold_norm) and not (old_codes & gold_norm)
                 if repair_success:
                     data = repair_data  # Use repaired output
-                    act_dx = repair_act_dx
+                    act_dx = rdx
+                    # Refresh act_sec from the repaired structured payload
+                    act_sec = []
+                    rs2 = repair_data.get("structured") or {}
+                    for d in rs2.get("secondary_diagnoses", []):
+                        if isinstance(d, dict) and d.get("code"):
+                            act_sec.append(d["code"])
 
         # Error classification
         error_type = classify_error(exp_dx, act_dx)
         is_rule_sensitive = "MC-R-M80-001" in rule_fired
 
         elapsed = time.time() - case_start
+
+        # Per-case diagnosis micro-F1 (primary + secondary, subdivision-tolerant)
+        exp_set = {_norm_code(c) for c in [exp_dx] + exp_sec if c}
+        exp_set.discard("")
+        act_set = {_norm_code(c) for c in [act_dx] + act_sec if c}
+        act_set.discard("")
+        case_f1 = _compute_case_f1(exp_set, act_set)
+
         results.append({
             "case_id": case_id,
             "category": case.get("category", "unknown"),
             "expected_dx": exp_dx,
             "actual_dx": act_dx,
+            "expected_secondary_dx": exp_sec,
+            "actual_secondary_dx": act_sec,
+            "expected_codes_norm": sorted(exp_set),
+            "actual_codes_norm": sorted(act_set),
+            "per_case_f1": round(case_f1, 4),
             "error_type": error_type,
             "correct": (exp_dx == act_dx),
             "run_id": run_id,
@@ -183,28 +272,24 @@ def run_evaluation() -> dict:
     # Primary diagnosis match
     primary_match_rate = correct / max(total, 1)
 
-    # Set-based diagnosis precision/recall
-    all_exp_dx_codes: set[str] = set()
-    all_act_dx_codes: set[str] = set()
-    for r in results:
-        case_data = [c for c in cases if c["id"] == r["case_id"]]
-        if case_data:
-            expected = case_data[0].get("expected", {})
-            e_dx = (expected.get("primary_diagnosis") or {}).get("code", "")
-            if e_dx:
-                all_exp_dx_codes.add(e_dx)
-            for d in expected.get("secondary_diagnoses", []):
-                if d.get("code"):
-                    all_exp_dx_codes.add(d["code"])
-        if r["actual_dx"]:
-            all_act_dx_codes.add(r["actual_dx"])
+    # Per-case diagnosis micro-F1 (primary + secondary, subdivision-tolerant)
+    # Each case contributes its per_case_f1 equally; the macro average is
+    # the headline number. We also compute a micro-pooled variant for
+    # reference, but the per-case number is the one that moves with recall.
+    per_case_f1_values = [r["per_case_f1"] for r in results]
+    diagnosis_code_f1 = sum(per_case_f1_values) / max(len(per_case_f1_values), 1)
 
-    tp = len(all_exp_dx_codes & all_act_dx_codes)
-    fp = len(all_act_dx_codes - all_exp_dx_codes)
-    fn = len(all_exp_dx_codes - all_act_dx_codes)
-    dx_precision = tp / max(tp + fp, 1)
-    dx_recall = tp / max(tp + fn, 1)
-    dx_f1 = 2 * dx_precision * dx_recall / max(dx_precision + dx_recall, 0.001)
+    # Micro-pooled (for reference): pool all TP/FP/FN across cases
+    micro_tp = micro_fp = micro_fn = 0
+    for r in results:
+        exp_set = set(r["expected_codes_norm"])
+        act_set = set(r["actual_codes_norm"])
+        micro_tp += len(exp_set & act_set)
+        micro_fp += len(act_set - exp_set)
+        micro_fn += len(exp_set - act_set)
+    dx_precision = micro_tp / max(micro_tp + micro_fp, 1)
+    dx_recall = micro_tp / max(micro_tp + micro_fn, 1)
+    micro_pooled_f1 = 2 * dx_precision * dx_recall / max(dx_precision + dx_recall, 1e-9)
 
     # Error type distribution
     error_types: dict[str, int] = {}
@@ -241,7 +326,8 @@ def run_evaluation() -> dict:
             "primary_diagnosis_match_rate": round(primary_match_rate, 4),
             "diagnosis_code_precision": round(dx_precision, 4),
             "diagnosis_code_recall": round(dx_recall, 4),
-            "diagnosis_code_f1": round(dx_f1, 4),
+            "diagnosis_code_f1": round(diagnosis_code_f1, 4),
+            "diagnosis_code_f1_micro_pooled": round(micro_pooled_f1, 4),
             "repair_attempted_count": repair_attempted_count,
             "repair_success_count": repair_success_count,
             "repair_success_rate": round(repair_success_count / max(repair_attempted_count, 1), 4),
@@ -296,7 +382,8 @@ def main():
     print(f"  Correct (primary dx match):     {ev['correct']}/{ev['total_cases']} ({ev['primary_diagnosis_match_rate']:.1%})")
     print(f"  Diagnosis Precision:            {ev['diagnosis_code_precision']:.4f}")
     print(f"  Diagnosis Recall:               {ev['diagnosis_code_recall']:.4f}")
-    print(f"  Diagnosis F1:                   {ev['diagnosis_code_f1']:.4f}")
+    print(f"  Diagnosis F1 (per-case):        {ev['diagnosis_code_f1']:.4f}")
+    print(f"  Diagnosis F1 (micro-pooled):    {ev['diagnosis_code_f1_micro_pooled']:.4f}")
     print(f"  Repair attempted:               {ev['repair_attempted_count']}")
     print(f"  Repair succeeded:               {ev['repair_success_count']}")
     print(f"  Rule triggered cases:           {ev['rule_triggered_cases']}")

@@ -79,7 +79,11 @@ export ICODER_ALLOW_EXTERNAL_LLM=true
 
 ```bash
 python scripts/e2e_runtime_validation.py --base-url http://localhost:8000
-# 30 cases, Precision 0.73, Recall 0.79, F1 0.76
+# 201 cases, F1 = per-case micro-F1 over primary + secondary dx,
+# subdivision-tolerant (I50.900 ≡ I50.9 ≡ I50.x00).
+# See tests/regression/test_f1_baseline.py for the metric.
+# Headline: diagnosis_code_f1 (per-case) and diagnosis_code_f1_micro_pooled
+# Repair loop: HybridCodingAdapter.infer_async, not the e2e script.
 ```
 
 ## 技术栈

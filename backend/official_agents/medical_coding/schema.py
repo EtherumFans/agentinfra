@@ -158,6 +158,13 @@ class MedicalCodingOutputSchema:
     model: str = ""
     is_mock: bool = False
 
+    # Repair-loop tracking (Phase 2 of F1 0.76 → 0.85+)
+    # Defaults preserve backward compatibility — old callers that construct
+    # the schema directly don't need to know about these.
+    repair_attempted: bool = False
+    repair_success: bool = False
+    repair_rounds: int = 0
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "review_conclusion": self.review_conclusion,
@@ -173,6 +180,9 @@ class MedicalCodingOutputSchema:
             "provider": self.provider,
             "model": self.model,
             "is_mock": self.is_mock,
+            "repair_attempted": self.repair_attempted,
+            "repair_success": self.repair_success,
+            "repair_rounds": self.repair_rounds,
         }
 
     @classmethod
@@ -207,6 +217,9 @@ class MedicalCodingOutputSchema:
             provider=provider,
             model=data.get("model", data.get("_meta", {}).get("provider", "")),
             is_mock=is_mock,
+            repair_attempted=data.get("repair_attempted", False),
+            repair_success=data.get("repair_success", False),
+            repair_rounds=data.get("repair_rounds", 0),
         )
 
     @classmethod

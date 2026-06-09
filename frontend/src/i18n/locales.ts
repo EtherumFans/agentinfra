@@ -216,6 +216,13 @@ export interface LocaleDict {
   rerankNotes: string;
   noExtractedDiagnoses: string;
   pipelineNotes: string;
+  // Per-diagnosis card i18n (C10)
+  diagnosisNumber: string;       // e.g. "诊断 #1" / "Diagnosis #1"
+  topKClickHint: string;         // e.g. "Top-5 候选 (点击选择)" / "Top-5 candidates (click to select)"
+  extractedDiagnosesCount: string; // e.g. "3 diagnoses" / "3 个诊断"
+  noDiseaseName: string;         // fallback "(无疾病名)" / "(no disease name)"
+  confidencePercent: string;     // e.g. "置信度 85%" / "Confidence 85%"
+  positionRange: string;         // evidence chip title e.g. "位置 0-12" / "Position 0-12"
 
   // Medical Coding — Corti-aligned extras
   samples: string;
@@ -934,6 +941,13 @@ const zhCN: LocaleDict = {
   rerankNotes: '重排说明',
   noExtractedDiagnoses: '无疾病抽取结果',
   pipelineNotes: '管线说明',
+  // Per-diagnosis card (C10)
+  diagnosisNumber: '诊断 #{{n}}',
+  topKClickHint: 'Top-{{k}} 候选 (点击选择)',
+  extractedDiagnosesCount: '{{n}} 个诊断',
+  noDiseaseName: '(无疾病名)',
+  confidencePercent: '置信度 {{p}}%',
+  positionRange: '位置 {{start}}-{{end}}',
 
   // Medical Coding — Corti-aligned extras
   samples: '样例',
@@ -1670,6 +1684,13 @@ const enUS: LocaleDict = {
   rerankNotes: 'Re-rank notes',
   noExtractedDiagnoses: 'No extracted diagnoses',
   pipelineNotes: 'Pipeline notes',
+  // Per-diagnosis card (C10)
+  diagnosisNumber: 'Diagnosis #{{n}}',
+  topKClickHint: 'Top-{{k}} candidates (click to select)',
+  extractedDiagnosesCount: '{{n}} diagnoses',
+  noDiseaseName: '(no disease name)',
+  confidencePercent: 'Confidence {{p}}%',
+  positionRange: 'Position {{start}}-{{end}}',
 
   // Medical Coding — Corti-aligned extras
   samples: 'Samples',

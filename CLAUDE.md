@@ -163,7 +163,7 @@ python scripts/e2e_medcoder_validation.py --cases tests/fixtures/icoder_201.json
 **评测集**:
 - `tests/fixtures/ccl2026_train_gold.json` — 1800 cases (CCL 2026 train.xlsx, 公开)
 - `tests/fixtures/ccl2026_val_100.json` — 100 cases random sample (seed=42), CI 用
-- `tests/fixtures/icoder_201.json` — 201 cases (gold_case_importer 产), 回归对照
+- `tests/fixtures/icoder_201.json` — 201 cases (sample of `ccl2026_train_gold.json`, seed=42, `source: icoder_201_subset`), 回归对照. Regenerate with `python scripts/build_icoder_201_fixture.py` if the CCL train file is updated.
 
 ## 技术栈
 

@@ -1,6 +1,7 @@
 # iCoDer Medical Coding Agent - FastAPI Application
 import json
 import logging
+import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -206,7 +207,51 @@ async def lifespan(app: FastAPI):
     app.state.medcoder_index_ready = False
     app.state.medcoder_index_error: str | None = None
     app.state.medcoder_index_loading = False
+    app.state.medcoder_retriever = None  # populated by C7 if subprocess mode is on
     logger.info("MedCodER index: not yet loaded (lazy init on first request)")
+
+    # C7: When running with the subprocess retriever, eagerly spawn the
+    # worker and probe it so /api/health can report medcoder_index_ready
+    # accurately (vs. always-False lazy init). The probe is sync
+    # (queue.get with timeout) so we run it in a thread to keep the
+    # startup event loop unblocked.
+    _subprocess_mode = (
+        os.environ.get("MEDCODER_SUBPROCESS") == "1" or os.name == "nt"
+    )
+    if _subprocess_mode:
+        import asyncio as _asyncio
+        try:
+            app.state.medcoder_index_loading = True
+            from icoder_runtime.providers.medical_coding.medcoder_retriever import (
+                SubprocessMedCodERRetriever,
+            )
+            loop = _asyncio.get_running_loop()
+            retriever: SubprocessMedCodERRetriever = await loop.run_in_executor(
+                None, SubprocessMedCodERRetriever
+            )
+            if retriever.is_ready:
+                app.state.medcoder_index_ready = True
+                app.state.medcoder_retriever = retriever
+                logger.info(
+                    "MedCodER subprocess retriever: ready (pid=%s)", retriever.pid
+                )
+            else:
+                app.state.medcoder_index_error = (
+                    "SubprocessMedCodERRetriever worker did not respond to "
+                    "startup probe (see logs for ensure_loaded failure)"
+                )
+                retriever.close()
+                logger.warning(
+                    "MedCodER subprocess retriever: probe failed; "
+                    "/api/health will report medcoder_index_ready=false"
+                )
+        except Exception as e:
+            app.state.medcoder_index_error = f"Failed to start MedCodER worker: {e}"
+            logger.warning(
+                "MedCodER subprocess retriever: startup failed: %s", e
+            )
+        finally:
+            app.state.medcoder_index_loading = False
 
     logger.info(f"Embedded Runtime started: {platform_runtime.status()}")
 

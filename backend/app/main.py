@@ -106,6 +106,14 @@ async def lifespan(app: FastAPI):
     logger.info(f"LLM: {settings.LLM_PROVIDER} / {settings.LLM_MODEL}")
     await init_db()
     logger.info("Database initialized")
+    # Auto-seed demo users on first startup (idempotent — seed.py checks if already seeded)
+    if settings.APP_ENV in ("development", "dev") or settings.SEED_ON_STARTUP:
+        try:
+            from app.seed import seed as _seed
+            await _seed()
+            logger.info("Seed: completed (admin/admin123 demo user available)")
+        except Exception as e:
+            logger.warning(f"Seed: skipped (non-fatal): {e}")
     # --- Runtime Recovery: restore active sessions from DB ---
     recovered = await _recover_runtime_sessions()
     logger.info(f"Runtime recovery: {recovered} active session(s) restored")

@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     APP_ENV: str = "production"
     DEBUG: bool = False
     SECRET_KEY: str = ""  # Set via ICODER_SECRET_KEY env var. Generate: python -c "import secrets; print(secrets.token_urlsafe(48))"
+    SEED_ON_STARTUP: bool = True  # Auto-seed demo users (admin/admin123) on first launch if DB is empty
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

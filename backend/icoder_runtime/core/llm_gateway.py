@@ -20,6 +20,39 @@ from abc import ABC, abstractmethod
 from typing import Any
 
 from .errors import LLMProviderNotConfigured, ProviderError
+from icoder_runtime.circuit_breaker import (
+    CircuitBreaker,
+    llm_circuit_breaker as gateway_circuit_breaker,
+)
+
+__all__ = [
+    "BaseLLMProvider",
+    "MockLLMProvider",
+    "DeepSeekProvider",
+    "OpenAICompatibleProvider",
+    "MedicalCodingLLMProvider",
+    "LLMGateway",
+    "ProviderError",
+    "LLMProviderNotConfigured",
+    "CircuitBreaker",
+    "gateway_circuit_breaker",
+]
+
+
+def _check_circuit_or_raise(cb: CircuitBreaker) -> None:
+    """Raise ProviderError if the circuit is open.
+
+    Caller should fall back to a degraded path (e.g., MockLLMProvider)
+    after catching this. The circuit tracks transient LLM failures
+    (timeouts, 429, 503) and short-circuits requests when a provider
+    is known unhealthy.
+    """
+    if cb.is_open:
+        raise ProviderError(
+            f"Circuit '{cb.name}' is open; refusing LLM call. "
+            "Caller should fall back to degraded mode."
+        )
+
 
 logger = logging.getLogger(__name__)
 

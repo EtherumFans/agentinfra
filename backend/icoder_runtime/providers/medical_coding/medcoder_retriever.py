@@ -323,3 +323,74 @@ class MedCodERRetriever:
                 "MedCodERRetriever: index ntotal=%d != metadata len=%d",
                 self._index.ntotal, len(self._metadata),
             )
+
+
+# ── Subprocess worker (C4) ──
+#
+# Windows can't safely run BGE-M3 (sentence-transformers + OpenMP) and
+# httpx async I/O in the same Python process — the OS kills the
+# interpreter with a C-level segfault. The worker runs in a fresh
+# subprocess that owns the FAISS index + embedder in isolation; the
+# parent process only sends request tuples and reads back candidates.
+# See tests/test_services/test_medcoder_retriever_worker.py.
+
+import multiprocessing as _mp  # local alias to avoid name shadowing in callers
+from typing import Any, Optional
+
+
+class MedCodERRetrieverWorker:
+    """Subprocess entry point for MedCodER retrieval.
+
+    Protocol: parent pushes ``(req_id, disease, top_k)`` onto ``queue_in``.
+    Worker pushes back ``(req_id, candidates)`` on success, or
+    ``(req_id, {"error": repr(exc)})`` on failure. Push ``None`` to
+    ``queue_in`` to shut down the worker cleanly.
+
+    The worker eagerly calls ``ensure_loaded()`` once so that a missing
+    index or FAISS import error is reported back to the parent as
+    ``("__startup_error__", "FileNotFoundError(...)")`` instead of
+    hanging on the first retrieve.
+
+    Pass a pre-built ``retriever`` to inject a fake one in tests; the
+    retriever must be picklable and expose ``ensure_loaded()`` and
+    ``retrieve_sync(disease, top_k=...)`` methods.
+    """
+
+    STARTUP_ERROR_ID = "__startup_error__"
+
+    @staticmethod
+    def run(
+        queue_in,
+        queue_out,
+        index_dir: str = DEFAULT_INDEX_DIR,
+        retriever: Optional[Any] = None,
+    ) -> None:
+        if retriever is None:
+            retriever = MedCodERRetriever(index_dir=index_dir)
+
+        try:
+            retriever.ensure_loaded()
+        except Exception as e:
+            try:
+                queue_out.put((MedCodERRetrieverWorker.STARTUP_ERROR_ID, repr(e)))
+            except Exception:
+                pass
+            return
+
+        while True:
+            try:
+                msg = queue_in.get()
+            except (EOFError, OSError):
+                # Parent process died — exit cleanly
+                return
+            if msg is None:
+                # Sentinel from parent: shut down
+                return
+            req_id, disease, top_k = msg[0], msg[1], (msg[2] if len(msg) > 2 else None)
+            try:
+                cands = retriever.retrieve_sync(disease, top_k=top_k)
+                queue_out.put((req_id, cands))
+            except Exception as e:
+                # Send an error envelope; keep the loop alive so the
+                # parent can continue sending requests.
+                queue_out.put((req_id, {"error": repr(e)}))

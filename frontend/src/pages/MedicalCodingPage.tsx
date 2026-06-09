@@ -549,7 +549,7 @@ export default function MedicalCodingPage() {
                         {t.medcoderPipeline}
                       </p>
                       <span className="text-[10px] font-mono text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">
-                        {extractedDiagnoses.length} diagnoses
+                        {t.extractedDiagnosesCount.replace('{{n}}', String(extractedDiagnoses.length))}
                       </span>
                     </div>
                     {extractedDiagnoses.length === 0 ? (

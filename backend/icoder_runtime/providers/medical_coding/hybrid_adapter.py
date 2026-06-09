@@ -17,6 +17,7 @@ Pipeline (mode: medcoder — NAACL 2025 Industry Track 3-stage):
 from __future__ import annotations
 
 import logging
+import os
 from typing import Any
 
 from icoder_runtime.core.coding_schema import (
@@ -564,15 +565,42 @@ class HybridCodingAdapter(CodingEngineAdapter):
         return out
 
     def _get_retriever(self):
-        """Lazy-create a MedCodERRetriever on first use."""
-        if self._retriever is None and self._retriever_lazy:
-            try:
-                from .medcoder_retriever import MedCodERRetriever
+        """Lazy-create a MedCodERRetriever on first use.
+
+        Selection (C5):
+          - if ``MEDCODER_SUBPROCESS=1`` is set in the environment, use
+            ``SubprocessMedCodERRetriever`` (BGE-M3 + FAISS run in a
+            worker process; safe on Windows).
+          - else if running on Windows (``os.name == 'nt'``), default to
+            the subprocess wrapper — the in-process variant segfaults
+            on this platform when combined with httpx async I/O.
+          - else use the in-process ``MedCodERRetriever``.
+        """
+        if self._retriever is not None or not self._retriever_lazy:
+            return self._retriever
+
+        use_subprocess = (
+            os.environ.get("MEDCODER_SUBPROCESS") == "1"
+            or os.name == "nt"
+        )
+        try:
+            from .medcoder_retriever import (
+                MedCodERRetriever,
+                SubprocessMedCodERRetriever,
+            )
+            if use_subprocess:
+                self._retriever = SubprocessMedCodERRetriever()
+                logger.info(
+                    "MedCodER: using SubprocessMedCodERRetriever "
+                    "(MEDCODER_SUBPROCESS=%s, os.name=%s)",
+                    os.environ.get("MEDCODER_SUBPROCESS", "0"), os.name,
+                )
+            else:
                 self._retriever = MedCodERRetriever()
-            except Exception as e:
-                logger.warning("MedCodER: could not create retriever: %s", e)
-                self._retriever = None
-                self._retriever_lazy = False  # don't retry
+        except Exception as e:
+            logger.warning("MedCodER: could not create retriever: %s", e)
+            self._retriever = None
+        self._retriever_lazy = False  # don't retry on next call
         return self._retriever
 
     def health_check(self) -> dict:

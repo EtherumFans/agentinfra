@@ -26,6 +26,7 @@ Usage::
 """
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
 import pickle
@@ -195,7 +196,6 @@ class MedCodERRetriever:
         The retriever is I/O-bound on embed + FAISS, both of which are CPU;
         use ``retrieve_async`` from the runtime, this in tests.
         """
-        import asyncio
         try:
             loop = asyncio.get_event_loop()
         except RuntimeError:
@@ -394,3 +394,157 @@ class MedCodERRetrieverWorker:
                 # Send an error envelope; keep the loop alive so the
                 # parent can continue sending requests.
                 queue_out.put((req_id, {"error": repr(e)}))
+
+
+# ── Subprocess client (C5) ──
+#
+# SubprocessMedCodERRetriever is the parent-process side of the
+# isolation scheme. It owns the worker Process and translates the
+# public MedCodERRetriever surface (``retrieve_async`` /
+# ``retrieve_sync``) into request/response queue traffic. Callers
+# (HybridCodingAdapter) can drop it in wherever they currently use
+# MedCodERRetriever; no other code change is required.
+#
+# Selection: in ``hybrid_adapter._get_retriever``, choose the
+# subprocess wrapper when ``MEDCODER_SUBPROCESS=1`` is set in the
+# environment, or when running on Windows (``os.name == 'nt'``) so
+# the default behavior on the affected platform is the safer one.
+
+
+class SubprocessMedCodERRetriever:
+    """Subprocess-isolated retriever with the same surface as MedCodERRetriever.
+
+    Every call to ``retrieve_async`` (or ``retrieve_sync``) round-trips
+    through a worker process that owns the BGE-M3 / FAISS imports.
+    The parent never imports those modules, so the Windows segfault
+    that occurs when sentence-transformers and httpx share a process
+    is avoided.
+
+    Args:
+        index_dir: directory containing ``faiss.index`` + ``metadata.pkl``.
+        timeout:   seconds to wait for a single response. Default 30s.
+    """
+
+    def __init__(self, index_dir: str = DEFAULT_INDEX_DIR, timeout: float = 30.0):
+        self.index_dir = index_dir
+        self.timeout = timeout
+        self._q_in: _mp.Queue = _mp.Queue()
+        self._q_out: _mp.Queue = _mp.Queue()
+        self._proc: _mp.Process = _mp.Process(
+            target=MedCodERRetrieverWorker.run,
+            args=(self._q_in, self._q_out, index_dir),
+            daemon=True,
+        )
+        self._proc.start()
+        self._next_id = 0
+        self._lock = threading.Lock()
+        self._closed = False
+
+    def _alloc_id(self) -> str:
+        with self._lock:
+            rid = f"r{self._next_id}"
+            self._next_id += 1
+            return rid
+
+    async def retrieve_async(
+        self,
+        disease: str,
+        top_k: int | None = None,
+        expand_synonyms: bool = True,
+    ) -> list:
+        """Async wrapper that round-trips through the worker."""
+        if self._closed or not self._proc.is_alive():
+            return []
+        req_id = self._alloc_id()
+        try:
+            self._q_in.put((req_id, disease, top_k))
+        except Exception as e:
+            logger.warning("SubprocessMedCodERRetriever: send failed: %s", e)
+            return []
+
+        loop = asyncio.get_event_loop()
+        try:
+            resp_id, candidates = await loop.run_in_executor(
+                None, self._q_out.get, True, self.timeout
+            )
+        except Exception as e:
+            logger.warning("SubprocessMedCodERRetriever: receive failed: %s", e)
+            return []
+
+        if resp_id != req_id:
+            logger.warning(
+                "SubprocessMedCodERRetriever: req_id mismatch (got %s, want %s)",
+                resp_id, req_id,
+            )
+            return []
+        if isinstance(candidates, dict) and "error" in candidates:
+            logger.warning(
+                "SubprocessMedCodERRetriever: worker error: %s", candidates["error"]
+            )
+            return []
+        return candidates or []
+
+    def retrieve_sync(
+        self,
+        disease: str,
+        top_k: int | None = None,
+        expand_synonyms: bool = True,
+    ) -> list:
+        """Synchronous wrapper. In a running event loop, falls back to inline."""
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+        if loop.is_running():
+            return self._retrieve_inline(disease, top_k, expand_synonyms)
+        return loop.run_until_complete(
+            self.retrieve_async(disease, top_k, expand_synonyms)
+        )
+
+    def _retrieve_inline(self, disease: str, top_k: int | None, expand_synonyms: bool) -> list:
+        if self._closed or not self._proc.is_alive():
+            return []
+        req_id = self._alloc_id()
+        try:
+            self._q_in.put((req_id, disease, top_k))
+        except Exception:
+            return []
+        try:
+            resp_id, candidates = self._q_out.get(timeout=self.timeout)
+        except Exception:
+            return []
+        if resp_id != req_id:
+            return []
+        if isinstance(candidates, dict) and "error" in candidates:
+            return []
+        return candidates or []
+
+    def close(self) -> None:
+        """Send the shutdown sentinel and join the worker. Idempotent."""
+        if self._closed:
+            return
+        self._closed = True
+        try:
+            self._q_in.put(None)
+        except Exception:
+            pass
+        if self._proc.is_alive():
+            self._proc.join(timeout=5)
+        if self._proc.is_alive():
+            logger.warning("SubprocessMedCodERRetriever: terminating worker")
+            self._proc.terminate()
+            self._proc.join(timeout=2)
+
+    def __del__(self):
+        try:
+            self.close()
+        except Exception:
+            pass
+
+    @property
+    def is_alive(self) -> bool:
+        return self._proc.is_alive()
+
+    @property
+    def pid(self) -> int | None:
+        return self._proc.pid if self._proc else None

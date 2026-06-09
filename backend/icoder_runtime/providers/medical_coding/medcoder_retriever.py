@@ -425,7 +425,7 @@ class SubprocessMedCodERRetriever:
         timeout:   seconds to wait for a single response. Default 30s.
     """
 
-    def __init__(self, index_dir: str = DEFAULT_INDEX_DIR, timeout: float = 30.0):
+    def __init__(self, index_dir: str = DEFAULT_INDEX_DIR, timeout: float = 30.0, probe_timeout: float = 10.0):
         self.index_dir = index_dir
         self.timeout = timeout
         self._q_in: _mp.Queue = _mp.Queue()
@@ -439,6 +439,36 @@ class SubprocessMedCodERRetriever:
         self._next_id = 0
         self._lock = threading.Lock()
         self._closed = False
+        # C7: Probe the worker at startup so the parent can report
+        # "index ready / not ready" without waiting for the first
+        # real request. If the worker died during ensure_loaded
+        # (missing FAISS, missing index file, OOM), the probe
+        # returns False and is_ready reflects that.
+        self._probe_ok: bool = self._probe(probe_timeout)
+
+    def _probe(self, probe_timeout: float) -> bool:
+        """Synchronous startup probe: send a benign retrieve, wait for response.
+
+        Returns True if the worker responded (even with an empty list,
+        which is the legitimate "no candidates" response), False on
+        timeout, req_id mismatch, error envelope, or worker death.
+        """
+        if not self._proc.is_alive():
+            return False
+        req_id = self._alloc_id()
+        try:
+            self._q_in.put((req_id, "__probe__", 1))
+        except Exception:
+            return False
+        try:
+            resp_id, payload = self._q_out.get(timeout=probe_timeout)
+        except Exception:
+            return False
+        if resp_id != req_id:
+            return False
+        if isinstance(payload, dict) and "error" in payload:
+            return False
+        return True
 
     def _alloc_id(self) -> str:
         with self._lock:
@@ -544,6 +574,17 @@ class SubprocessMedCodERRetriever:
     @property
     def is_alive(self) -> bool:
         return self._proc.is_alive()
+
+    @property
+    def is_ready(self) -> bool:
+        """True if the worker responded to the startup probe AND is still alive.
+
+        Cached at construction time: ``_probe_ok`` records the
+        startup handshake result. ``_proc.is_alive()`` catches
+        later deaths. Used by ``/api/health`` to report index
+        readiness without blocking the event loop.
+        """
+        return self._probe_ok and self._proc.is_alive()
 
     @property
     def pid(self) -> int | None:

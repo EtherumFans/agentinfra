@@ -55,6 +55,41 @@ def _check_circuit_or_raise(cb: CircuitBreaker) -> None:
         )
 
 
+def _mock_fallback_response(reason: str) -> dict[str, Any]:
+    """Build a degraded response that looks like a DeepSeek API call but signals fallback.
+
+    Used by DeepSeekProvider.generate() when the call cannot be served
+    by a real LLM (no API key, circuit open, exhausted retries, 4xx
+    errors, network failures). The response carries ``degraded=True``,
+    ``degraded_reason``, ``is_mock=True`` and ``provider="mock"`` so
+    callers can detect and route around it.
+    """
+    fallback = {
+        "review_conclusion": "UNKNOWN",
+        "primary_diagnosis": {"code": "", "description": ""},
+        "issues_found": [
+            {
+                "severity": "warning",
+                "code": "DEGRADED_MODE",
+                "message": f"LLM provider unavailable: {reason}",
+            }
+        ],
+        "confidence": 0.0,
+        "notes": f"[DeepSeek degraded] {reason}. Mock response, not a real LLM call.",
+    }
+    return {
+        "content": json.dumps(fallback, ensure_ascii=False),
+        "model": "mock/1.0",
+        "usage": {"input_tokens": 0, "output_tokens": 0},
+        "latency_ms": 0,
+        "degraded": True,
+        "degraded_reason": reason,
+        "is_mock": True,
+        "provider": "mock",
+        "structured": fallback,
+    }
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -178,8 +213,19 @@ class DeepSeekProvider(BaseLLMProvider):
         response_schema: dict | None = None,
         context: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
+        # Graceful degradation (C3): every error path returns a mock
+        # fallback response tagged with ``degraded=True`` and
+        # ``degraded_reason``. Callers can check ``response.get("degraded")``
+        # to detect fallback and route around it (e.g., skip re-ranking).
+        # This method never raises ProviderError to the eval loop.
+
+        # 1. Circuit open at entry — provider known unhealthy, short-circuit.
+        if gateway_circuit_breaker.is_open:
+            return _mock_fallback_response("circuit_open")
+
+        # 2. No API key — misconfiguration. Fall back without touching the circuit.
         if not self.api_key:
-            raise ProviderError("DeepSeek API key not configured.")
+            return _mock_fallback_response("no_api_key")
 
         import httpx
 
@@ -202,8 +248,7 @@ class DeepSeekProvider(BaseLLMProvider):
 
         t0 = time.time()
         # Retry budget: 3 attempts on transient (429 / 503) with 1s, 2s backoff.
-        # 401/400 and other HTTPStatusError paths re-raise immediately — those
-        # are caller/contract problems, not infrastructure issues.
+        # Final failure returns a degraded mock response (no raise).
         for attempt in range(3):
             try:
                 client_kwargs: dict[str, Any] = {"timeout": self.timeout}
@@ -216,9 +261,7 @@ class DeepSeekProvider(BaseLLMProvider):
                             await asyncio.sleep(1 << attempt)
                             continue
                         gateway_circuit_breaker.record_failure()
-                        raise ProviderError(
-                            f"DeepSeek API error: HTTP {resp.status_code} after 3 attempts"
-                        )
+                        return _mock_fallback_response("provider_429_503")
                     # Non-retryable HTTP error (400, 401, 403, 404, 422, etc.)
                     # raise_for_status raises HTTPStatusError → caught below.
                     resp.raise_for_status()
@@ -226,16 +269,25 @@ class DeepSeekProvider(BaseLLMProvider):
                     gateway_circuit_breaker.record_success()
                     break
             except httpx.HTTPStatusError as e:
-                # Non-retryable HTTP error — re-raise as ProviderError.
-                # Do NOT record_failure: a 401 is a misconfiguration, not
-                # a sign the provider is unhealthy.
+                # 4xx — caller/contract problem. No record_failure (a 401 is
+                # not a sign the provider is unhealthy; it's a misconfig).
                 status = e.response.status_code if e.response is not None else "?"
-                raise ProviderError(f"DeepSeek API error: HTTP {status}") from e
+                return _mock_fallback_response(f"provider_http_{status}")
             except httpx.HTTPError as e:
-                # Network-level (timeout, DNS, connect) — re-raise as ProviderError.
-                # No retry, no record_failure: matches the previous single-attempt
-                # behavior; higher-level retry/fallback will be wired in C3.
-                raise ProviderError(f"DeepSeek API error: {e}") from e
+                # Network-level (timeout, DNS, connect) — degraded fallback.
+                # No record_failure: a single network blip shouldn't open the circuit.
+                return _mock_fallback_response("provider_network_error")
+
+        choice = data["choices"][0]
+        return {
+            "content": choice["message"]["content"],
+            "model": data.get("model", self.model),
+            "usage": {
+                "input_tokens": data.get("usage", {}).get("prompt_tokens", 0),
+                "output_tokens": data.get("usage", {}).get("completion_tokens", 0),
+            },
+            "latency_ms": int((time.time() - t0) * 1000),
+        }
 
         choice = data["choices"][0]
         return {

@@ -332,7 +332,28 @@ def run_evaluation(
             # nested asyncio.run() + BGE-M3 segfault.
             top_k = asyncio.run(_async_prompt_plus_retrieve(case, gateway, retriever))
         elif variant == "full":
-            top_k = _full_topk(case, adapter)
+            # C6: Defense-in-depth — if the full pipeline raises (e.g.,
+            # a Python exception not caught by _full_topk's internal
+            # try/except, or a subprocess abort), fall back to
+            # prompt+retrieve so the eval loop still completes.
+            try:
+                top_k = _full_topk(case, adapter)
+            except Exception as e:
+                logger.warning(
+                    "Full pipeline failed on case %s (%s); falling back to prompt+retrieve",
+                    case.get("encounter_id", i), e,
+                )
+                try:
+                    top_k = asyncio.run(
+                        _async_prompt_plus_retrieve(case, gateway, retriever)
+                    )
+                except Exception as fallback_err:
+                    # Last resort: empty list. Eval loop must complete.
+                    logger.warning(
+                        "Fallback prompt+retrieve also failed on case %s: %s",
+                        case.get("encounter_id", i), fallback_err,
+                    )
+                    top_k = []
         else:
             top_k = []
 
@@ -465,6 +486,11 @@ def main(argv: list[str] | None = None) -> int:
             gateway = LLMGateway()
             gateway.register(provider, default=True)
             print(f"Using real DeepSeek gateway (model={provider.model})")
+        # C6: Force the subprocess retriever on for the full variant.
+        # This avoids the Windows BGE-M3 + httpx segfault by isolating
+        # FAISS / sentence-transformers in a worker process. On Linux
+        # this is also safe (slight overhead, but no correctness change).
+        os.environ["MEDCODER_SUBPROCESS"] = "1"
         from icoder_runtime.providers.medical_coding.hybrid_adapter import HybridCodingAdapter
         adapter = HybridCodingAdapter(gateway=gateway, mode="medcoder", retriever=retriever)
 

@@ -190,6 +190,79 @@ class TestRunEvaluation:
         assert result["summary"]["f1_at_2"] == 1.0
         assert result["summary"]["f1_at_5"] == 1.0
 
+    def test_full_variant_completes_with_mock_adapter(self, tmp_path):
+        """C6: --variant full must complete (no raise) even on a tiny fixture.
+
+        Uses a mock adapter that returns a synthetic ExtractedDiagnosis
+        matching the gold code. The point of this test is the
+        defense-in-depth: a pipeline exception (e.g., worker died)
+        must NOT crash the eval loop.
+        """
+        fixture = tmp_path / "gold.json"
+        fixture.write_text(json.dumps([
+            {"encounter_id": "c1", "text": "患者胸闷", "expected_principal_diagnosis": "I50.900"},
+        ]), encoding="utf-8")
+
+        cases = em.load_gold_cases(str(fixture))
+        assert len(cases) == 1
+
+        # Build a fake adapter whose infer_async returns one diagnosis
+        # carrying the gold code.
+        from official_agents.medical_coding.schema import (
+            MedicalCodingOutputSchema, ExtractedDiagnosis, DiagnosisEntry, CandidateCode,
+        )
+        out = MedicalCodingOutputSchema(
+            review_conclusion="PASS",
+            primary_diagnosis=DiagnosisEntry(code="I50.900", description="心衰", confidence=0.9),
+            mode="medcoder",
+        )
+        out.extracted_diagnoses = [
+            ExtractedDiagnosis(
+                disease_text="心衰",
+                supporting_evidence=[],
+                llm_initial_code="I50.900",
+                final_top_k=[CandidateCode(code="I50.900", name="心衰", score=0.9, chapter="")],
+                final_confidence=0.9,
+            )
+        ]
+        class _Adapter:
+            async def infer_async(self, messages, **kwargs):
+                return out
+        result = em.run_evaluation(cases, variant="full", adapter=_Adapter(), gateway=None)
+        assert result["summary"]["variant"] == "full"
+        assert result["summary"]["n_cases"] == 1
+        # F1@1 is 1.0 because the gold code is in top-1.
+        assert result["summary"]["f1_at_1"] == 1.0
+        # No exception escaped the run_evaluation loop.
+
+    def test_full_variant_handles_silent_adapter_failure(self, tmp_path):
+        """C6: if the adapter raises, _full_topk's internal try/except
+        returns [] rather than crashing. The eval loop completes with
+        F1=0 for that case (no codes predicted), not an unhandled exception.
+        """
+        fixture = tmp_path / "gold.json"
+        fixture.write_text(json.dumps([
+            {"encounter_id": "c1", "text": "患者胸闷", "expected_principal_diagnosis": "I50.900"},
+        ]), encoding="utf-8")
+
+        cases = em.load_gold_cases(str(fixture))
+        assert len(cases) == 1
+
+        class _FailingAdapter:
+            async def infer_async(self, messages, **kwargs):
+                raise RuntimeError("simulated worker death")
+
+        result = em.run_evaluation(
+            cases, variant="full", adapter=_FailingAdapter(), gateway=None,
+        )
+        assert result["summary"]["variant"] == "full"
+        assert result["summary"]["n_cases"] == 1
+        # _full_topk returned []; F1 is 0, but the eval didn't crash.
+        assert result["summary"]["f1_at_1"] == 0.0
+        # The case is still recorded in per_case.
+        assert len(result["per_case"]) == 1
+        assert result["per_case"][0]["predicted_top_5"] == []
+
 
 # ── Sanity: script is importable ──
 

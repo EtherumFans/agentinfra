@@ -264,13 +264,16 @@ class MedicalCodingOutputSchema:
 
     # MedCodER pipeline output (NAACL 2025 Industry Track 3-stage).
     # ``mode`` discriminates which adapter produced this output:
-    #   "deepseek"    — DeepSeek prompt only (legacy)
-    #   "prompt_llm"  — generic LLM via prompt (legacy)
-    #   "hybrid"      — DeepSeek + trigger RAG + repair (default)
-    #   "no_repair"   — Hybrid without repair loop (ablation)
-    #   "medcoder"    — Full 5-stage MedCodER pipeline (BGE-M3 + FAISS + RankGPT)
+    #   ""             — unset (e.g., mock_result); caller's responsibility
+    #   "deepseek"     — DeepSeek prompt only (legacy)
+    #   "prompt_llm"   — generic LLM via prompt (legacy)
+    #   "hybrid"       — DeepSeek + trigger RAG + repair
+    #   "no_repair"    — Hybrid without repair loop (ablation)
+    #   "medcoder"     — Full 5-stage MedCodER pipeline (BGE-M3 + FAISS + RankGPT)
+    # Default is empty string (not "hybrid") so that mock_result() and
+    # other unset paths don't falsely claim a real hybrid pipeline ran.
     # ``extracted_diagnoses`` is only populated when ``mode == "medcoder"``.
-    mode: str = "hybrid"
+    mode: str = ""
     extracted_diagnoses: list = field(default_factory=list)  # list[ExtractedDiagnosis]
 
     def to_dict(self) -> dict[str, Any]:
@@ -331,7 +334,7 @@ class MedicalCodingOutputSchema:
             repair_attempted=data.get("repair_attempted", False),
             repair_success=data.get("repair_success", False),
             repair_rounds=data.get("repair_rounds", 0),
-            mode=data.get("mode", "hybrid"),
+            mode=data.get("mode", ""),
             extracted_diagnoses=[ExtractedDiagnosis.from_dict(d) if isinstance(d, dict) else d
                                  for d in data.get("extracted_diagnoses", [])],
         )

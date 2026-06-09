@@ -12,6 +12,7 @@ Providers:
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import os
@@ -159,6 +160,7 @@ class DeepSeekProvider(BaseLLMProvider):
         max_tokens: int = 4096,
         temperature: float = 0.1,
         timeout: int = 120,
+        _transport: Any = None,
     ):
         self.api_key = api_key or os.environ.get("ICODER_CREDENTIAL_LLM", "")
         self.base_url = base_url.rstrip("/")
@@ -166,6 +168,8 @@ class DeepSeekProvider(BaseLLMProvider):
         self.max_tokens = max_tokens
         self.temperature = temperature
         self.timeout = timeout
+        # Private: test hook to inject a MockTransport. None in production.
+        self._transport = _transport
 
     async def generate(
         self,
@@ -197,13 +201,41 @@ class DeepSeekProvider(BaseLLMProvider):
         }
 
         t0 = time.time()
-        try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                resp = await client.post(url, json=payload, headers=headers)
-                resp.raise_for_status()
-                data = resp.json()
-        except httpx.HTTPError as e:
-            raise ProviderError(f"DeepSeek API error: {e}")
+        # Retry budget: 3 attempts on transient (429 / 503) with 1s, 2s backoff.
+        # 401/400 and other HTTPStatusError paths re-raise immediately — those
+        # are caller/contract problems, not infrastructure issues.
+        for attempt in range(3):
+            try:
+                client_kwargs: dict[str, Any] = {"timeout": self.timeout}
+                if self._transport is not None:
+                    client_kwargs["transport"] = self._transport
+                async with httpx.AsyncClient(**client_kwargs) as client:
+                    resp = await client.post(url, json=payload, headers=headers)
+                    if resp.status_code in (429, 503):
+                        if attempt < 2:
+                            await asyncio.sleep(1 << attempt)
+                            continue
+                        gateway_circuit_breaker.record_failure()
+                        raise ProviderError(
+                            f"DeepSeek API error: HTTP {resp.status_code} after 3 attempts"
+                        )
+                    # Non-retryable HTTP error (400, 401, 403, 404, 422, etc.)
+                    # raise_for_status raises HTTPStatusError → caught below.
+                    resp.raise_for_status()
+                    data = resp.json()
+                    gateway_circuit_breaker.record_success()
+                    break
+            except httpx.HTTPStatusError as e:
+                # Non-retryable HTTP error — re-raise as ProviderError.
+                # Do NOT record_failure: a 401 is a misconfiguration, not
+                # a sign the provider is unhealthy.
+                status = e.response.status_code if e.response is not None else "?"
+                raise ProviderError(f"DeepSeek API error: HTTP {status}") from e
+            except httpx.HTTPError as e:
+                # Network-level (timeout, DNS, connect) — re-raise as ProviderError.
+                # No retry, no record_failure: matches the previous single-attempt
+                # behavior; higher-level retry/fallback will be wired in C3.
+                raise ProviderError(f"DeepSeek API error: {e}") from e
 
         choice = data["choices"][0]
         return {

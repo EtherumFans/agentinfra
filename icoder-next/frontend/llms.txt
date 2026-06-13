@@ -1,0 +1,28 @@
+# iCoDer — 医疗收入合规 AI Runtime (on-prem)
+
+> iCoDer 是部署在医院内网的医疗收入合规 AI 平台。它把 Corti 的「薄 Agent × Experts + 可嵌入组件」开发者范式，反转为私有化部署、并下沉到中国编码体系（ICD-10-CN / ICD-9-CM-3）+ DRG/DIP + 医保合规 + 证据回链。本切片是「病案首页编码审核 Agent」的端到端薄竖切：embed 组件 → API → Runtime(薄 Agent × coding-expert 4 工具) → 证据回链报告。
+
+## 核心契约
+- 数据不出院：所有推理在院内服务器完成；baseURL 指向医院内网。
+- 鉴权由宿主应用持有并注入短时令牌（stateless token），嵌入组件从不持有凭据。
+- 证据为字符级 span（start 含 / end 不含），原文片段恒等于 text[start:end]。
+- codes（确信 · 可计费）与 candidates（需人工复核）语义不同，**不可合并、codes 不可重排**。
+- 高风险/易错码强制经合规门禁 + 人工复核；production_writeback 恒为禁用。
+
+## 嵌入
+- [嵌入组件 icoder-embedded.js](/icoder-embedded.js): 无依赖 Web Component `<icoder-embedded>`，生命周期 ready→auth→configure→show，事件总线 `embedded-event`。
+- [宿主 demo](/index.html): 完整可运行示例（角色切换 / 事件控制台 / HTML·React·JSON 复制代码）。
+- [集成 Skill](/.well-known/agent-skills/icoder-coding-review/SKILL.md): 集成方必读的硬规则与事件契约。
+
+## API
+- `POST /api/coding-review/run` — 运行编码审核，返回 RunResult（codes/candidates/compliance/drg_route/stages/versions）。
+- `GET /api/coding-review/{run_id}` — 取回一次运行。
+- `GET /api/coding-review/{run_id}/report?format=html|json` — 经 PHI 脱敏的证据回链报告。
+- `POST /api/coding-review/{run_id}/human-review` — 人工复核（role ∈ coder|admin；reviewer_role 从令牌注入）。
+- `GET /agents` / `GET /agents/{agent_id}/card` — A2A 风格的 Agent 发现与 Agent Card。
+- `GET /healthz` — 健康检查。
+
+## Agent
+- 病案首页编码审核 Agent (`icoder/homepage-coding-review-agent@1.0.0`)：薄 Agent = systemPrompt + 挂载 coding-expert。
+- coding-expert 4 工具：search / verify / guidelines / explore（+ 证据定位 find_evidences）。
+- 5 个高风险/易错编码点：I66.901 / J98.414 / M80.900 / 45.1600x001 / Z51.102。

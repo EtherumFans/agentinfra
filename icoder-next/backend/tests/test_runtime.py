@@ -10,8 +10,8 @@ from sample_data import SAMPLE_TEXT
 
 from icoder.experts.coding_expert import CodingExpert
 from icoder.runtime.gateway import DeterministicProvider, LLMGateway
-from icoder.runtime.registry import default_registry
-from icoder.runtime.runner import AgentRunner, RulesetMissing
+from icoder.runtime.registry import AgentDefinition, AgentRegistry, default_registry
+from icoder.runtime.runner import AgentRunner, ExpertMissing, RulesetMissing
 
 AGENT_ID = "icoder/homepage-coding-review-agent"
 DRG_AGENT_ID = "icoder/drg-grouping-review-agent"
@@ -21,7 +21,7 @@ REVENUE_AGENT_ID = "icoder/revenue-compliance-review-agent"
 def _runner() -> AgentRunner:
     expert = CodingExpert()
     gateway = LLMGateway(DeterministicProvider(expert.lexicon()))
-    return AgentRunner(gateway=gateway, agents=default_registry(), expert=expert)
+    return AgentRunner(gateway=gateway, agents=default_registry())
 
 
 def test_pipeline_has_seven_observed_stages():
@@ -144,3 +144,47 @@ def test_missing_ruleset_refuses_to_run():
 def test_unknown_agent_raises_keyerror():
     with pytest.raises(KeyError):
         _runner().run("icoder/does-not-exist", SAMPLE_TEXT)
+
+
+# ---- agent.experts is load-bearing (Corti's agents×experts composition) ----
+
+def _runner_with(agents: AgentRegistry) -> AgentRunner:
+    expert = CodingExpert()
+    gateway = LLMGateway(DeterministicProvider(expert.lexicon()))
+    return AgentRunner(gateway=gateway, agents=agents)
+
+
+def _thin_agent(agent_id: str, experts: list[str],
+                rule_sets: tuple[str, ...] = ("medical_coding",)) -> AgentDefinition:
+    return AgentDefinition(
+        id=agent_id, name="thin", version="1.0.0", category="test",
+        experts=list(experts), system_prompt="", rule_sets=list(rule_sets),
+    )
+
+
+def test_agent_without_grouping_expert_skips_grouping():
+    """An Agent composing only coding-expert runs the coding pipeline but NO grouping:
+    the group stage is absent and drg_route is None — proof that agent.experts drives
+    which capability executes, not the runner."""
+    reg = AgentRegistry()
+    reg.register(_thin_agent("icoder/coding-only", ["coding-expert"]))
+    run = _runner_with(reg).run("icoder/coding-only", SAMPLE_TEXT)
+    assert [s.stage for s in run.stages] == [
+        "ingest", "extract", "retrieve", "verify", "sequence", "compliance",
+    ]
+    assert run.drg_route is None
+    assert run.codes[0].code == "I50.900"   # coding capability itself unchanged
+
+
+def test_agent_declaring_unregistered_expert_refuses_to_run():
+    reg = AgentRegistry()
+    reg.register(_thin_agent("icoder/bad", ["coding-expert", "imaging-expert"]))
+    with pytest.raises(ExpertMissing):
+        _runner_with(reg).run("icoder/bad", SAMPLE_TEXT)
+
+
+def test_agent_without_coding_expert_refuses_to_run():
+    reg = AgentRegistry()
+    reg.register(_thin_agent("icoder/no-coding", ["grouping-expert"]))
+    with pytest.raises(ExpertMissing):
+        _runner_with(reg).run("icoder/no-coding", SAMPLE_TEXT)

@@ -1,0 +1,80 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Light palette — RGB channel triples consumed by tailwind.config.js. These resolve
+     to the exact prior hex values, so the light theme is byte-for-byte unchanged. */
+  :root {
+    --c-teal: 15 157 143;       /* #0f9d8f */
+    --c-teal-50: 240 253 250;   /* #f0fdfa */
+    --c-teal-100: 215 236 232;  /* #d7ece8 */
+    --c-teal-600: 12 122 111;   /* #0c7a6f */
+    --c-teal-700: 10 101 92;    /* #0a655c */
+    --c-ink: 29 36 48;          /* #1d2430 */
+    --c-muted: 91 107 128;      /* #5b6b80 */
+    --c-faint: 98 113 138;      /* #62718a — AA 4.6:1+ on white & surface (12px text) */
+    --c-line: 227 232 238;      /* #e3e8ee */
+    --c-surface: 246 248 250;   /* #f6f8fa */
+    --c-canvas: 251 252 253;    /* #fbfcfd */
+    --c-panel: 255 255 255;     /* white */
+    color-scheme: light;
+  }
+
+  /* Dark palette — Apple-restrained near-monochrome slate + a brightened teal accent.
+     Elevation comes from `panel` being lighter than `canvas` (soft shadows vanish on
+     dark), and `line` borders carry definition. Teal-50/100 become dark tints and
+     teal-600/700 become light teals so text-on-tint stays legible. */
+  .dark {
+    --c-teal: 43 182 166;       /* #2bb6a6 */
+    --c-teal-50: 18 46 42;      /* #122e2a — dark teal fill */
+    --c-teal-100: 31 77 69;     /* #1f4d45 — dark teal border */
+    --c-teal-600: 95 214 198;   /* #5fd6c6 — light teal text on dark tint */
+    --c-teal-700: 142 231 218;  /* #8ee7da */
+    --c-ink: 230 235 241;       /* #e6ebf1 */
+    --c-muted: 154 168 184;     /* #9aa8b8 */
+    --c-faint: 130 143 159;     /* #828f9f — AA 4.6:1+ on dark surface (12px text) */
+    --c-line: 39 48 57;         /* #273039 */
+    --c-surface: 27 34 42;      /* #1b222a */
+    --c-canvas: 11 15 20;       /* #0b0f14 */
+    --c-panel: 20 26 33;        /* #141a21 */
+    color-scheme: dark;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    @apply bg-canvas text-ink font-sans antialiased;
+  }
+  /* Apple-restrained focus ring: a soft teal halo, never a hard blue outline. */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-teal/40 ring-offset-1 ring-offset-canvas;
+  }
+}
+
+@layer utilities {
+  .animate-rise {
+    animation: rise 200ms ease-out both;
+  }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
+
+/* Respect the OS "reduce motion" setting: no entrance animation, no transitions,
+   instant scroll. A polished product never moves more than the user wants. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .animate-rise {
+    animation: none !important;
+  }
+}

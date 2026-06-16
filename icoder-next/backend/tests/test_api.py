@@ -105,6 +105,41 @@ def test_unknown_agent_card_is_404(client):
     assert r.status_code == 404
 
 
+def test_offline_run_signals_deterministic_local(client):
+    """No key (conftest default) -> deterministic offline fallback. It is surfaced via
+    versions.model_version so the UI can show the offline banner — and it is a 200, not a
+    503: this slice degrades rather than refusing. The trace is the classic 7-stage one
+    (an extract stage, no research tool events)."""
+    r = client.post("/api/coding-review/run", json={"text": SAMPLE_TEXT}, headers=AUTH)
+    assert r.status_code == 200
+    body = r.json()
+    assert body["versions"]["model_version"] == "deterministic-local"
+    stage_names = [s["stage"] for s in body["stages"]]
+    assert "extract" in stage_names
+    assert "tool" not in stage_names  # no LLM research trace on the offline path
+
+
+def test_run_503_when_llm_endpoint_unavailable(client, monkeypatch):
+    """With a chat-capable provider whose endpoint errors, /run is a clean 503
+    llm_unavailable — never a fabricated report — and leaks no credential material."""
+    import icoder.api.routes_coding_review as mod
+    from icoder.runtime.gateway import LLMGateway, ProviderError
+
+    class _Raising:
+        name = "fake"
+        model = "fake-1"
+
+        def chat(self, messages, tools=None, tool_choice=None):
+            raise ProviderError("LLM endpoint https://unreachable.invalid is unreachable: ConnectError")
+
+    monkeypatch.setattr(mod.LLMGateway, "from_env",
+                        classmethod(lambda cls, lexicon: LLMGateway(_Raising())))
+    r = client.post("/api/coding-review/run", json={"text": SAMPLE_TEXT}, headers=AUTH)
+    assert r.status_code == 503
+    assert r.json()["detail"]["code"] == "llm_unavailable"
+    assert "Bearer" not in r.text and "api_key" not in r.text
+
+
 def test_revenue_agent_run_via_api(client):
     """Capstone Agent over the same endpoint: 4-domain composite gate, route unchanged."""
     r = client.post(

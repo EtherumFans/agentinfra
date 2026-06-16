@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from ..runtime.registry import default_registry
+from ..runtime.registry import default_registry, effective_surface
 from .auth import require_auth
 
 router = APIRouter(prefix="/agents", tags=["agentic"])
@@ -30,20 +30,35 @@ def agent_card(agent_id: str, auth: dict = Depends(require_auth)):
     agent = _agents.get(agent_id)
     if agent is None:
         raise HTTPException(status_code=404, detail="unknown agent")
+    # Three run surfaces, each on its own endpoint. extract = pure fact/abstraction
+    # (no gate, no human review); tool = Corti-style atomic agent answering in prose on
+    # the tool-calling executor; coding-review = the full deterministic pipeline. The
+    # frontend branches on `surface` rather than hardcoding agent ids.
+    surface = effective_surface(agent)
+    run_endpoint = {
+        "extract": "/api/coding/extract",
+        "tool": f"/api/agents/{agent.id}/run",
+        "coding-review": "/api/coding-review/run",
+    }[surface]
     return {
         "schemaVersion": "a2a/0.1",
         "id": agent.id,
         "name": agent.name,
         "version": agent.version,
         "description": agent.output_contract,
-        "capabilities": {"streaming": False, "humanInTheLoop": True, "evidenceLinked": True},
+        "capabilities": {
+            "streaming": False,
+            "humanInTheLoop": bool(agent.rule_sets),
+            "evidenceLinked": True,
+        },
         "skills": [{"id": e} for e in agent.experts],
         "nonGoals": agent.non_goals,
-        "endpoints": {"run": "/api/coding-review/run"},
+        "endpoints": {"run": run_endpoint},
         "x-icoder": {
             "deployment": "on-prem",
             "data_residency": "in-hospital",
             "coding_systems": ["ICD-10-CN", "ICD-9-CM-3"],
             "production_writeback_blocked": True,
+            "surface": surface,
         },
     }

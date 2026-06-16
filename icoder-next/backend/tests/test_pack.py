@@ -60,7 +60,7 @@ def test_round_trip_preserves_all_fields(tmp_path):
     # spot-check the load-bearing ones survived (Chinese prompt, experts, default rule_sets)
     assert restored.rule_sets == ["medical_coding"]
     assert "coding-expert" in restored.experts
-    assert "{{COMPLIANCE_RULESET}}" in restored.system_prompt
+    assert "submit_findings" in restored.system_prompt  # research prompt's terminal tool survives
 
 
 def test_verify_pack_accepts_a_clean_pack(tmp_path):
@@ -185,7 +185,7 @@ def test_installed_agent_runs_end_to_end(tmp_path):
     market.install(AGENT_ID, fresh)
     expert = CodingExpert()
     gateway = LLMGateway(DeterministicProvider(expert.lexicon()))
-    runner = AgentRunner(gateway=gateway, agents=fresh, expert=expert)
+    runner = AgentRunner(gateway=gateway, agents=fresh)
 
     run = runner.run(AGENT_ID, SAMPLE_TEXT)
     assert run.codes[0].code == "I50.900"

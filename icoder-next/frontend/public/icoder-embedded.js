@@ -24,6 +24,12 @@
 
   const TEAL = "#0f9d8f";
 
+  // ICD instructional-note labels. excludes1 = hard mutual-exclusion (warn tone); rest advisory.
+  const NOTE_LABEL = {
+    includes: "包含", excludes1: "不可同时编码", excludes2: "可另编码",
+    code_first: "先编码", use_additional: "附加编码",
+  };
+
   const STYLE = `
     :host { display:block; font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
             color:#1d2430; --teal:${TEAL}; }
@@ -38,15 +44,15 @@
     mark.ev { background:rgba(15,157,143,.16); border-bottom:2px solid var(--teal);
               border-radius:3px; padding:0 1px; cursor:pointer; }
     mark.ev.flash { background:rgba(255,193,7,.55); transition:background .2s; }
-    .empty { color:#90a0b3; font-size:13px; padding:8px 0; }
+    .empty { color:#62718a; font-size:13px; padding:8px 0; }
     .code { border:1px solid #e3e8ee; border-radius:10px; padding:10px 12px; margin-bottom:10px; }
     .code .top { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
     .mono { font-family:"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace; }
     .ccode { font-weight:600; }
     .disp { color:#48566a; font-size:13px; }
     .badge { font-size:11px; padding:1px 7px; border-radius:999px; border:1px solid transparent; }
-    .b-primary { background:var(--teal); color:#fff; }
-    .b-risk { background:#fff4e5; color:#b9770e; border-color:#f3d29a; }
+    .b-primary { background:#0c7a6f; color:#fff; }
+    .b-risk { background:#fff4e5; color:#94620a; border-color:#f3d29a; }
     .b-sys { background:#eef2f7; color:#5b6b80; }
     .b-conf { background:#eef2f7; color:#5b6b80; }
     .chips { margin-top:6px; display:flex; gap:6px; flex-wrap:wrap; }
@@ -57,17 +63,33 @@
     .gate.block { background:#fef2f2; border:1px solid #fecaca; color:#b42318; }
     .hit { font-size:12px; margin-top:6px; }
     .sev-Critical { color:#b42318; font-weight:600; }
-    .sev-Moderate { color:#b9770e; }
+    .sev-Moderate { color:#94620a; }
     .sev-Informational { color:#5b6b80; }
-    .btn { font:inherit; font-size:12px; cursor:pointer; border:1px solid var(--teal);
-           color:var(--teal); background:#fff; border-radius:7px; padding:3px 10px; }
-    .btn:hover { background:var(--teal); color:#fff; }
-    .meta { margin-top:10px; font-size:11px; color:#90a0b3; }
+    .btn { font:inherit; font-size:12px; cursor:pointer; border:1px solid #0c7a6f;
+           color:#0c7a6f; background:#fff; border-radius:7px; padding:3px 10px; }
+    .btn:hover { background:#0c7a6f; color:#fff; }
+    .meta { margin-top:10px; font-size:11px; color:#62718a; }
     .drg { margin-top:10px; font-size:12px; color:#33414f; line-height:1.6;
            background:#f1f7f6; border:1px solid #d7ece8; border-radius:8px; padding:8px 10px; }
-    .drg.muted { color:#90a0b3; background:#f6f8fa; border-color:#e6e8ea; }
+    .drg.muted { color:#62718a; background:#f6f8fa; border-color:#e6e8ea; }
+    .drg-r { margin-top:6px; padding-top:6px; border-top:1px solid #d7ece8; }
+    .drg-r b { font-size:11px; color:#48566a; }
+    .drg-r div { font-size:11px; color:#5b6b80; line-height:1.6; }
+    .note { font-size:11px; color:#5b6b80; margin-top:6px; line-height:1.5; }
+    .note .k { display:inline-block; font-weight:600; background:#eef2f7; color:#5b6b80;
+               border-radius:4px; padding:0 5px; margin-right:6px; }
+    .note .k.warn { background:#fff4e5; color:#94620a; }
+    .alt { margin-top:6px; border:1px dashed #d7dde5; border-radius:8px; padding:6px 8px; background:#fafbfc; }
+    .alt-h { font-size:11px; font-weight:600; color:#62718a; margin-bottom:3px; }
+    .alt-row { font-size:11px; color:#5b6b80; line-height:1.6; }
+    .alt-r { color:#7a8699; }
     .err { background:#fef2f2; border:1px solid #fecaca; color:#b42318;
            border-radius:8px; padding:8px 10px; font-size:13px; }
+    .loading { display:flex; align-items:center; gap:8px; color:#48566a; font-size:13px; padding:8px 0; }
+    .spin { width:14px; height:14px; border:2px solid #d7ece8; border-top-color:var(--teal);
+            border-radius:50%; animation:icoder-spin .8s linear infinite; flex:none; }
+    @keyframes icoder-spin { to { transform:rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) { .spin { animation:none; } * { transition:none !important; } }
   `;
 
   function esc(s) {
@@ -139,6 +161,7 @@
       if (!this._token) { this._fail("缺少令牌：host 需先 configureSession({ token })"); return; }
       if (!text || !text.trim()) { this._fail("病历文本为空"); return; }
       this._emit("run.started", {});
+      this._loading();
       try {
         const res = await fetch(`${this.baseURL}/api/coding-review/run`, {
           method: "POST",
@@ -191,11 +214,23 @@
         ).join("");
         const reviewBtn = c.status === "candidate"
           ? `<button class="btn" data-accept="${esc(c.code)}">采纳为编码</button>` : "";
+        const notes = (c.notes || []).map((n) =>
+          `<div class="note"><span class="k ${n.kind === "excludes1" ? "warn" : ""}">${esc(NOTE_LABEL[n.kind] || n.kind)}</span>${esc(n.text)}</div>`
+        ).join("");
+        const alts = (c.alternatives || []).length
+          ? `<div class="alt"><div class="alt-h">鉴别诊断 · 未采纳</div>`
+            + c.alternatives.map((a) =>
+                `<div class="alt-row"><span class="mono">${esc(a.code)}</span> ${esc(a.display)}`
+                + (a.reason ? ` · <span class="alt-r">${esc(a.reason)}</span>` : "") + `</div>`
+              ).join("")
+            + `</div>`
+          : "";
         return `<div class="code">
           <div class="top"><span class="ccode mono">${esc(c.code)}</span>
             <span class="disp">${esc(c.display)}</span>${badges}
             <span style="flex:1"></span>${reviewBtn}</div>
           <div class="chips">${chips || '<span class="empty">无证据</span>'}</div>
+          ${notes}${alts}
         </div>`;
       };
 
@@ -211,6 +246,7 @@
              <div><b>DRG/DIP 分组</b> · ${kind} · 严重度 ${esc(sev)}${drg.mdc ? " · MDC " + esc(drg.mdc) : ""}</div>
              <div>ADRG <span class="mono">${esc(drg.adrg || "-")}</span> → DRG <span class="mono">${esc(drg.drg || "-")}</span> · ${esc(drg.group_name || "")}</div>
              ${drg.dip_code ? `<div>DIP <span class="mono">${esc(drg.dip_code)}</span> ${esc(drg.dip_name || "")} · 分值 ${esc(String(drg.dip_score))}</div>` : ""}
+             ${(drg.rationale && drg.rationale.length) ? `<div class="drg-r"><b>分组理由</b>${drg.rationale.map((r) => `<div>· ${esc(r)}</div>`).join("")}</div>` : ""}
            </div>`
         : `<div class="drg muted">DRG：${esc(drg.note || "未分组")}</div>`;
 
@@ -251,7 +287,8 @@
       const [s, en] = jump.split("-");
       const m = this.shadowRoot.querySelector(`mark.ev[data-start="${s}"][data-end="${en}"]`);
       if (!m) return;
-      m.scrollIntoView({ block: "center", behavior: "smooth" });
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      m.scrollIntoView({ block: "center", behavior: reduce ? "auto" : "smooth" });
       m.classList.add("flash");
       setTimeout(() => m.classList.remove("flash"), 900);
     }
@@ -270,6 +307,14 @@
       } catch (err) {
         this._fail("人工复核网络错误", String(err));
       }
+    }
+
+    _loading() {
+      const html = `<div class="loading"><span class="spin"></span>正在编码审核 · 约 30–40 秒</div>`;
+      const doc = this.shadowRoot.getElementById("doc");
+      const res = this.shadowRoot.getElementById("result");
+      if (doc) doc.innerHTML = html;
+      if (res) res.innerHTML = html;
     }
 
     _fail(message, detail) {

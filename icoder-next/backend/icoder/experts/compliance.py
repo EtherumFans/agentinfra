@@ -36,6 +36,21 @@ class RuleContext:
 class MedicalCodingRuleSet:
     rule_set = "medical_coding"
     version = RULESET_VERSION
+    label = "编码合规"
+    # Human-readable catalog mirroring the hits emitted in check() below — the single
+    # source the rule browser reads. Keep in sync when check() changes.
+    rules = [
+        {"rule_id": "R001", "severity": "Critical", "title": "证据支撑",
+         "intent": "每个可计费编码必须有证据回链；缺证据者不可计费。"},
+        {"rule_id": "R003", "severity": "Critical", "title": "目录成员校验",
+         "intent": "编码必须在 ICD-10-CN / ICD-9-CM-3 目录内（防止幻觉编码）。"},
+        {"rule_id": "MC-R-HR-001", "severity": "Moderate", "title": "高风险易错码复核",
+         "intent": "高风险易错码路由至候选，并强制人工复核。"},
+        {"rule_id": "MC-R-M80-001", "severity": "Moderate", "title": "骨质疏松性骨折(M80)复核",
+         "intent": "M80 系列高风险易错码强制人工复核。"},
+        {"rule_id": "R004", "severity": "Moderate", "title": "主要诊断必填",
+         "intent": "已编码病例必须确定主要诊断。"},
+    ]
 
     def check(self, ctx: RuleContext) -> list[RuleHit]:
         hits: list[RuleHit] = []
@@ -77,6 +92,17 @@ class DrgDipRuleSet:
     """Grouping-compliance rules — the iCoDer wedge Corti has no analog for."""
     rule_set = "drg_dip"
     version = "drg_dip@1.0.0"
+    label = "分组合规 · DRG/DIP"
+    rules = [
+        {"rule_id": "DG-R001", "severity": "Moderate", "title": "无主诊断无法入组",
+         "intent": "有编码但无主要诊断，则病例无法入组 DRG/DIP。"},
+        {"rule_id": "DG-R005", "severity": "Informational", "title": "未命中具体 ADRG",
+         "intent": "主诊断未命中具体 ADRG，落入歧义/未入组。"},
+        {"rule_id": "DG-R004", "severity": "Moderate", "title": "疑似低靠组",
+         "intent": "候选合并症/并发症(CC/MCC)待确认；确认后将上调 DRG 严重度。"},
+        {"rule_id": "DIP-R001", "severity": "Informational", "title": "DIP 目录缺失",
+         "intent": "主诊断未在示例 DIP 目录内。"},
+    ]
 
     def __init__(self, grouper: GroupingExpert | None = None):
         self._g = grouper or GroupingExpert()
@@ -128,6 +154,13 @@ class DocumentEvidenceRuleSet:
     """
     rule_set = "document_evidence"
     version = "document_evidence@1.0.0"
+    label = "病历合规"
+    rules = [
+        {"rule_id": "DE-R001", "severity": "Moderate", "title": "主诊断证据锚点",
+         "intent": "主要诊断须在去标识病历中锚定，否则病历支撑不足。"},
+        {"rule_id": "DE-R002", "severity": "Moderate", "title": "手术记录支撑",
+         "intent": "确认的手术/操作码须有手术记录类证据支撑。"},
+    ]
 
     def check(self, ctx: RuleContext) -> list[RuleHit]:
         hits: list[RuleHit] = []
@@ -161,6 +194,13 @@ class InsuranceAuditRuleSet:
     """
     rule_set = "insurance_audit"
     version = "insurance_audit@1.0.0"
+    label = "结算合规"
+    rules = [
+        {"rule_id": "IA-R001", "severity": "Moderate", "title": "外科组支付资质",
+         "intent": "确认手术进入外科组，结算前须核验医保支付资质与术前授权。"},
+        {"rule_id": "IA-R002", "severity": "Moderate", "title": "候选手术改变结算路径",
+         "intent": "候选手术未确认；确认后将改变结算路径（内科组→外科组）与支付金额。"},
+    ]
 
     def check(self, ctx: RuleContext) -> list[RuleHit]:
         hits: list[RuleHit] = []

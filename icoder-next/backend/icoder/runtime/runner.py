@@ -24,6 +24,7 @@ from __future__ import annotations
 import re
 import time
 from contextlib import contextmanager
+from typing import cast
 
 from ..experts.catalog import CATALOG, CATALOG_VERSION, HIGH_RISK
 from ..experts.coding_expert import CodingExpert
@@ -36,7 +37,8 @@ from ..experts.compliance import (
     RuleEngine,
 )
 from ..experts.grouping_expert import GroupingExpert
-from .gateway import LLMGateway
+from ..experts.registry import ExpertRegistry, default_expert_registry
+from .gateway import LLMGateway, RawExtraction
 from .registry import AgentRegistry
 from .types import (
     CodeResult,
@@ -53,23 +55,40 @@ class RulesetMissing(RuntimeError):
     """Raised when no compliance ruleset is injected — the runtime refuses to run."""
 
 
+class ExpertMissing(RuntimeError):
+    """Raised when an Agent declares an Expert the runtime has not registered (or omits
+    the essential coding-expert) — the runtime refuses to run rather than silently
+    substituting a different capability."""
+
+
 class PHIRedactor:
     """Minimal PHI redactor. Production binds app/services/phi_redactor.py; this slice
     masks the obvious identifiers so the report/embed never render raw PHI."""
 
+    # (pattern, replacement, label): label names the PHI category for the typed report.
     _patterns = [
-        (re.compile(r"\b\d{17}[\dXx]\b"), "[身份证]"),
-        (re.compile(r"\b1[3-9]\d{9}\b"), "[手机]"),
-        (re.compile(r"住院号[:：]?\s*[A-Za-z0-9]+"), "住院号：[已脱敏]"),
-        (re.compile(r"姓名[:：]?\s*[一-龥]{2,4}"), "姓名：[已脱敏]"),
+        (re.compile(r"\b\d{17}[\dXx]\b"), "[身份证]", "身份证"),
+        (re.compile(r"\b1[3-9]\d{9}\b"), "[手机]", "手机"),
+        (re.compile(r"住院号[:：]?\s*[A-Za-z0-9]+"), "住院号：[已脱敏]", "住院号"),
+        (re.compile(r"姓名[:：]?\s*[一-龥]{2,4}"), "姓名：[已脱敏]", "姓名"),
     ]
 
     def redact(self, text: str) -> tuple[str, int]:
         count = 0
-        for pat, repl in self._patterns:
+        for pat, repl, _label in self._patterns:
             text, n = pat.subn(repl, text)
             count += n
         return text, count
+
+    def redact_typed(self, text: str) -> tuple[str, list[dict]]:
+        """Like redact, but also report how many of each PHI category were masked. Only
+        the type + count is returned — the original identifiers are never echoed back."""
+        by_type: list[dict] = []
+        for pat, repl, label in self._patterns:
+            text, n = pat.subn(repl, text)
+            if n:
+                by_type.append({"type": label, "count": n})
+        return text, by_type
 
 
 @contextmanager
@@ -89,18 +108,18 @@ def _first_start(c: CodeResult) -> int:
 
 class AgentRunner:
     def __init__(self, gateway: LLMGateway, agents: AgentRegistry,
-                 expert: CodingExpert | None = None,
-                 grouper: GroupingExpert | None = None,
+                 experts: ExpertRegistry | None = None,
                  rulesets: dict | None = None,
                  redactor: PHIRedactor | None = None):
         self.gateway = gateway
         self.agents = agents
-        self.expert = expert or CodingExpert()
-        self.grouper = grouper or GroupingExpert()
-        # name -> RuleSet; the running agent selects a subset via agent.rule_sets
+        self.experts = experts or default_expert_registry()
+        # name -> RuleSet; the running agent selects a subset via agent.rule_sets. The
+        # drg_dip set reuses the registered grouping-expert for its stateless CC/MCC lookup.
+        grouper = self.experts.get(GroupingExpert.id)
         self.rulesets = rulesets or {
             "medical_coding": MedicalCodingRuleSet(),
-            "drg_dip": DrgDipRuleSet(self.grouper),
+            "drg_dip": DrgDipRuleSet(cast("GroupingExpert | None", grouper)),
             "insurance_audit": InsuranceAuditRuleSet(),
             "document_evidence": DocumentEvidenceRuleSet(),
         }
@@ -119,26 +138,73 @@ class AgentRunner:
         if not selected:
             raise RulesetMissing(f"Agent {agent.id} 声明的规则集均未注册，拒绝执行")
 
+        # Resolve the agent's declared Experts against what the runtime has registered.
+        # This is what makes ``agent.experts`` load-bearing: an Agent only runs the
+        # capability it composes (Corti's agents×experts split), and the runtime refuses
+        # rather than silently substituting a different Expert. coding-expert is essential
+        # (Stages 3–5); grouping-expert is optional (no grouping-expert -> no group stage).
+        missing = [e for e in agent.experts if self.experts.get(e) is None]
+        if missing:
+            raise ExpertMissing(
+                f"Agent {agent.id} 声明的 Expert 未注册：{', '.join(missing)}，拒绝执行"
+            )
+        if CodingExpert.id not in agent.experts:
+            raise ExpertMissing(f"Agent {agent.id} 未挂载 {CodingExpert.id}，无法进行编码")
+        coding = cast(CodingExpert, self.experts.get(CodingExpert.id))
+        grouper = (
+            cast(GroupingExpert, self.experts.get(GroupingExpert.id))
+            if GroupingExpert.id in agent.experts
+            else None
+        )
+
         stages: list[StageObservation] = []
         tool_calls = 0
         llm_calls = 0
 
-        # Stage 1 — ingest + PHI redaction
-        with _timed(stages, "ingest", "phi-redactor") as obs:
-            red_text, n_spans = self.redactor.redact(text)
-            obs.summary = f"脱敏 {n_spans} 处 PHI"
+        # Stage 1+2 — ingest + extraction. Two paths by provider capability (gateway.py:6):
+        #   with key -> OpenAICompatibleProvider exposes .chat -> Corti-style tool-calling
+        #     research loop (executor redacts PHI first; the model only sees red_text) that
+        #     submits structured facts via submit_findings. This makes agent.system_prompt
+        #     load-bearing and yields a real multi-step tool-call trace.
+        #   no key -> DeterministicProvider has no .chat -> verbatim offline fallback (the
+        #     original ingest + lexicon extract). This slice degrades, it never 503s.
+        chat = getattr(self.gateway.provider, "chat", None)
+        if callable(chat):
+            from .executor import AgentExecutor  # lazy: executor imports from this module
 
-        # Stage 2 — extraction (LLM provider, or deterministic local)
-        with _timed(stages, "extract", f"llm:{self.gateway.provider.name}") as obs:
-            extractions = self.gateway.extract(red_text)
-            llm_calls += 1
-            obs.summary = f"抽取 {len(extractions)} 个临床实体"
+            ex = AgentExecutor(self.gateway.provider, self.experts, self.redactor).run(
+                agent, text, submit_findings=True
+            )
+            red_text = ex.redaction_text
+            n_spans = sum(int(d.get("count", 0)) for d in ex.phi)
+            stages.append(StageObservation(
+                stage="ingest", tool="phi-redactor", tool_run_id=new_id("tr"),
+                duration_ms=0.0, summary=f"脱敏 {n_spans} 处 PHI",
+            ))
+            stages.extend(ex.stages)  # research trace: tool(search/verify/...) + submit
+            extractions = [
+                RawExtraction(term=e["term"], evidence_text=e.get("evidence_quote", ""))
+                for e in (ex.findings or {}).get("entities", [])
+                if isinstance(e, dict) and e.get("term")
+            ]
+            llm_calls += int(ex.usage.get("llm_calls", 0))
+            tool_calls += int(ex.usage.get("tool_calls", 0))
+        else:
+            # Stage 1 — ingest + PHI redaction
+            with _timed(stages, "ingest", "phi-redactor") as obs:
+                red_text, n_spans = self.redactor.redact(text)
+                obs.summary = f"脱敏 {n_spans} 处 PHI"
+            # Stage 2 — extraction (deterministic local lexicon)
+            with _timed(stages, "extract", f"llm:{self.gateway.provider.name}") as obs:
+                extractions = self.gateway.extract(red_text)
+                llm_calls += 1
+                obs.summary = f"抽取 {len(extractions)} 个临床实体"
 
         # Stage 3 — retrieve candidate codes + evidence offsets
         chosen: dict[str, CodeResult] = {}
         with _timed(stages, "retrieve", "coding-expert.search") as obs:
             for ex in extractions:
-                hits = self.expert.search(ex.term)
+                hits = coding.search(ex.term)
                 tool_calls += 1
                 if not hits:
                     continue
@@ -153,7 +219,7 @@ class AgentRunner:
                     )
                     chosen[code] = cr
                 seen = {e.start for e in cr.evidences}
-                for ev in self.expert.find_evidences(red_text, ex.evidence_text):
+                for ev in coding.find_evidences(red_text, ex.evidence_text):
                     if ev.start not in seen:
                         cr.evidences.append(ev)
                         seen.add(ev.start)
@@ -162,13 +228,13 @@ class AgentRunner:
         # Stage 4 — verify + guidelines + differentiation per code
         with _timed(stages, "verify", "coding-expert.verify") as obs:
             for code, cr in chosen.items():
-                v = self.expert.verify(code)
+                v = coding.verify(code)
                 tool_calls += 1
                 if v:
                     cr.notes = v["notes"]
-                self.expert.guidelines(code)
+                coding.guidelines(code)
                 tool_calls += 1
-                cr.alternatives = self.expert.alternatives(code)
+                cr.alternatives = coding.alternatives(code)
                 tool_calls += 1
             obs.summary = f"校验 {len(chosen)} 个码（指令注释/指南/鉴别）"
 
@@ -203,12 +269,15 @@ class AgentRunner:
             c.status = "candidate"
 
         # Stage 6 — DRG/DIP grouping (grouping-expert) on the confirmed codes only.
-        # Runs before compliance so the drg_dip rule set can inspect the route.
-        with _timed(stages, "group", "grouping-expert.group") as obs:
-            secondaries = [c for c in code_diag if c is not primary]
-            drg = self.grouper.group(primary, secondaries, code_proc)
-            tool_calls += 1
-            obs.summary = (drg.drg or drg.note or "未分组")
+        # Runs before compliance so the drg_dip rule set can inspect the route. Skipped
+        # entirely when the Agent does not compose grouping-expert (drg_route stays None).
+        drg = None
+        if grouper is not None:
+            with _timed(stages, "group", "grouping-expert.group") as obs:
+                secondaries = [c for c in code_diag if c is not primary]
+                drg = grouper.group(primary, secondaries, code_proc)
+                tool_calls += 1
+                obs.summary = (drg.drg or drg.note or "未分组")
 
         # Stage 7 — compliance gate: fold the agent's rule sets into one ComplianceGate.
         rs_label = "+".join(rs.rule_set for rs in selected)

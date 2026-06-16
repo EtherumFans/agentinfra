@@ -11,13 +11,22 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 
 from ..runtime.store import RunStore
+from .routes_agent_run import router as agent_run_router
 from .routes_agentic import router as agentic_router
+from .routes_coding_lookup import router as coding_lookup_router
 from .routes_coding_review import router as coding_router
 
 FRONTEND_DIR = Path(__file__).resolve().parents[3] / "frontend"
+
+
+def _spa_dir() -> Path:
+    """Serve the built React console (frontend/dist) when present, else the raw
+    frontend dir (still holds the vanilla embed assets if no build has run)."""
+    dist = FRONTEND_DIR / "dist"
+    return dist if dist.exists() else FRONTEND_DIR
 
 
 def create_app(db_path: str | None = None) -> FastAPI:
@@ -48,15 +57,31 @@ def create_app(db_path: str | None = None) -> FastAPI:
         app.state.store.close()
 
     app.include_router(coding_router)
+    app.include_router(coding_lookup_router)
     app.include_router(agentic_router)
+    app.include_router(agent_run_router)
 
     @app.get("/healthz", tags=["meta"])
     def healthz():
         return {"ok": True, "service": "icoder-next", "version": "0.1.0"}
 
-    # Static frontend last, so API routes win. html=True serves index.html at "/".
-    if FRONTEND_DIR.exists():
-        app.mount("/", StaticFiles(directory=str(FRONTEND_DIR), html=True), name="frontend")
+    # Static frontend last, so API routes win. A catch-all that serves real files
+    # (built assets, icoder-embedded.js, llms.txt, .well-known, /embed-demo) and falls
+    # back to index.html for client-side deep links (e.g. /agents/icoder/...).
+    spa = _spa_dir()
+
+    if spa.exists():
+
+        @app.get("/{full_path:path}", include_in_schema=False)
+        def serve_spa(full_path: str):
+            target = (spa / full_path).resolve()
+            # path-traversal guard: stay inside the frontend dir
+            if spa.resolve() in target.parents or target == spa.resolve():
+                if target.is_dir():
+                    target = target / "index.html"
+                if target.is_file():
+                    return FileResponse(target)
+            return FileResponse(spa / "index.html")
 
     return app
 

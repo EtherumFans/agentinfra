@@ -97,13 +97,16 @@ class RunStore:
             return None
         return RunResult.model_validate_json(row["blob"])
 
-    def list_runs(self, limit: int = 50, offset: int = 0) -> list[dict]:
+    def list_runs(self, limit: int = 50, offset: int = 0,
+                  agent_id: str | None = None) -> list[dict]:
         cols = ", ".join(_SUMMARY_COLS)
+        where = "WHERE agent_id = ? " if agent_id else ""
+        params: tuple = (agent_id, limit, offset) if agent_id else (limit, offset)
         with self._lock:
             rows = self._conn.execute(
-                f"SELECT {cols} FROM runs ORDER BY created_at DESC, rowid DESC "
-                "LIMIT ? OFFSET ?",
-                (limit, offset),
+                f"SELECT {cols} FROM runs {where}"
+                "ORDER BY created_at DESC, rowid DESC LIMIT ? OFFSET ?",
+                params,
             ).fetchall()
         return [dict(r) for r in rows]
 

@@ -130,6 +130,20 @@ def test_list_runs_pagination(store):
     assert len(store.list_runs(limit=2, offset=4)) == 1
 
 
+def test_list_runs_filter_by_agent(store):
+    base = time.time()
+    a = _sample_run(run_id="run_a", created_at=base)
+    a.agent_id = "icoder/homepage-coding-review-agent"
+    b = _sample_run(run_id="run_b", created_at=base + 1)
+    b.agent_id = "icoder/drg-grouping-review-agent"
+    store.save_run(a)
+    store.save_run(b)
+    assert [r["run_id"] for r in store.list_runs()] == ["run_b", "run_a"]
+    only_a = store.list_runs(agent_id="icoder/homepage-coding-review-agent")
+    assert [r["run_id"] for r in only_a] == ["run_a"]
+    assert store.list_runs(agent_id="icoder/nope") == []
+
+
 def test_list_summary_has_no_blob(store):
     store.save_run(_sample_run())
     [summary] = store.list_runs()
@@ -183,7 +197,7 @@ def test_run_persists_and_lists(client):
 
 def test_list_empty(client):
     assert client.get("/api/coding-review/runs", headers=AUTH).json() == {
-        "runs": [], "limit": 50, "offset": 0,
+        "runs": [], "limit": 50, "offset": 0, "agent_id": None,
     }
 
 
@@ -192,6 +206,18 @@ def test_list_pagination_params(client):
         _run(client)
     assert len(client.get("/api/coding-review/runs?limit=2", headers=AUTH).json()["runs"]) == 2
     assert len(client.get("/api/coding-review/runs?limit=100", headers=AUTH).json()["runs"]) == 3
+
+
+def test_list_filter_by_agent_param(client):
+    run_id = _run(client)  # homepage agent
+    body = client.get(
+        "/api/coding-review/runs?agent_id=icoder/homepage-coding-review-agent",
+        headers=AUTH,
+    ).json()
+    assert body["agent_id"] == "icoder/homepage-coding-review-agent"
+    assert any(r["run_id"] == run_id for r in body["runs"])
+    other = client.get("/api/coding-review/runs?agent_id=icoder/nonexistent", headers=AUTH).json()
+    assert other["runs"] == []
 
 
 def test_audit_endpoint_has_run_created(client):

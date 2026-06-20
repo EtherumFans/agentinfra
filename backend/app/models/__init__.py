@@ -16,6 +16,7 @@ from app.models.agent import Agent
 from app.models.oauth import OAuthClient, OAuthToken
 from app.models.runtime_persistence import RuntimeSession, RuntimeTransition, RuntimeAuditRecord, DUCDecision
 from app.models.code_table import CodeTable, CodeMapping
+from app.models.coding_review_run import CodingReviewRun
 
 __all__ = [
     "TimestampMixin",
@@ -35,4 +36,5 @@ __all__ = [
     "OAuthClient", "OAuthToken",
     "RuntimeSession", "RuntimeTransition", "RuntimeAuditRecord", "DUCDecision",
     "CodeTable", "CodeMapping",
+    "CodingReviewRun",
 ]

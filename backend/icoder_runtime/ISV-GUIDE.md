@@ -2,6 +2,10 @@
 
 从零到发布：在 iCoDer Runtime 上构建合规 Agent。
 
+> **【2026-06-17 定位更新】** 本指南的"`pip install icoder-runtime` → 本地运行"流程基于早期独立 Runtime 模型，已废弃。
+> 现行方向：**Runtime 是 iCoDer Server 的内核，v1 以托管云（hosted cloud）交付**；ISV 通过注册账户 + API Client / SDK + `.icoder-agent` 包在托管平台上构建、测试、发布 Agent，而非在本地 pip 安装 Runtime。
+> 下方的安装 / 初始化命令以本说明为准；Agent 结构（agent.json / system_prompt / tools / permissions）与 pack 协议仍然适用。
+
 ## 1. 安装
 
 ```bash

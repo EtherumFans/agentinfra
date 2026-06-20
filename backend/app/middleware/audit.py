@@ -24,10 +24,12 @@ async def log_action(
     model_version: Optional[str] = None,
     tool_calls_made: Optional[dict] = None,
     tokens_used: Optional[int] = None,
+    organization_id: Optional[str] = None,
 ):
     """Record an audit log entry."""
     try:
         log_entry = AuditLog(
+            organization_id=organization_id,
             user_id=user_id,
             username=username,
             action=action,

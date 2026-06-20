@@ -304,6 +304,37 @@ async def lifespan(app: FastAPI):
                 pass
     _asyncio.create_task(_check_timeouts())
     logger.info("Runtime timeout checker started")
+
+    # ── M2a Run Trace recorder (wired into HybridCodingAdapter + AgentRunner) ──
+    # M2b will consume this; M2a exposes it for platform-wide run tracking.
+    from icoder_runtime.m2a.recorder import M2aRecorder
+    from icoder_runtime.m2a.run_trace import RunTraceService
+    m2a_recorder = M2aRecorder(
+        run_trace=RunTraceService(),
+        default_agent_ref="icoder_runtime",
+    )
+    app.state.m2a_recorder = m2a_recorder
+    logger.info("M2a recorder: wired into Runtime (recorder=%s)", "active" if m2a_recorder.is_active() else "inactive")
+
+    # ── Version metadata (M3-0 Commit 8) ──
+    # Read once at startup from data/versions.json. The report renderer
+    # reads these from app.state.icoder_versions via the API endpoint.
+    import json as _json_versions
+    from pathlib import Path as _PathVersions
+    _versions_path = _PathVersions(__file__).parent.parent / "data" / "versions.json"
+    try:
+        with open(_versions_path, encoding="utf-8") as _vf:
+            app.state.icoder_versions = _json_versions.load(_vf)
+    except Exception as _e:
+        logger.warning(f"versions.json load failed: {_e!r}; using defaults")
+        app.state.icoder_versions = {
+            "model_version": "unknown",
+            "code_dict_version": "unknown",
+            "rule_version": "unknown",
+            "agent_version": "icoder/homepage-coding-review-agent@1.0.0",
+            "data_asset_version": "iCoDerA v1.0.0",
+        }
+
     yield
     logger.info("Shutting down")
 
@@ -390,6 +421,8 @@ from app.api.medical_docs import router as medical_docs_router
 from app.api.agent_evaluation import router as agent_eval_router
 from app.api.embedded import router as embedded_router
 from app.api.drg import router as drg_router
+from app.api.m2a import router as m2a_router
+from app.api.icoder_coding_review import router as icoder_coding_review_router
 from app.middleware.rate_limit import rate_limit_middleware
 
 # Rate limiting middleware
@@ -414,6 +447,7 @@ app.include_router(agents_router)
 app.include_router(admin_router)
 app.include_router(ws_router)
 app.include_router(code_tables_router)
+app.include_router(icoder_coding_review_router)  # M3-0 病案首页编码审核 Agent API
 app.include_router(organizations_router)
 app.include_router(fhir_router)
 app.include_router(tools_router)
@@ -425,6 +459,7 @@ app.include_router(embedded_router)            # /api/embedded/*
 app.include_router(medical_docs_router)        # /api/medical-docs/*
 app.include_router(agent_eval_router)          # /api/agents/{id}/evaluate
 app.include_router(drg_router)                 # /api/drg/*
+app.include_router(m2a_router)                 # /api/m2a/* (M2a 技术闭环)
 
 
 @app.get("/api/metrics")

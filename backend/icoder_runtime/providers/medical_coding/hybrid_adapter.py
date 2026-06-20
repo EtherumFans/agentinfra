@@ -73,7 +73,7 @@ class HybridCodingAdapter(CodingEngineAdapter):
 
     name = "hybrid_coding_adapter"
 
-    def __init__(self, gateway=None, mode: str = "hybrid", retriever=None):
+    def __init__(self, gateway=None, mode: str = "hybrid", retriever=None, recorder=None):
         self._gateway = gateway
         self._mode = mode  # deepseek | prompt_llm | hybrid | no_repair | medcoder
         self._rule_adapter = RuleEngineAdapter()
@@ -94,6 +94,12 @@ class HybridCodingAdapter(CodingEngineAdapter):
         # MedCodER retriever (lazy-initialized in medcoder_pipeline)
         self._retriever = retriever
         self._retriever_lazy = retriever is None
+
+        # M2aRecorder (M3-0 集成): 当 recorder 提供时, infer_async 会用
+        # recorder.inference() 上下文 + ctx.stage() 自动记录 trace 到
+        # production_runs.jsonl. M2a test contract 要求 adapter 接受 recorder
+        # 并暴露 _recorder 属性 (None = inactive, 显式提供 = active).
+        self._recorder = recorder
 
     def _build_repair_messages(
         self, original_messages: list, issues: list,
@@ -193,7 +199,35 @@ class HybridCodingAdapter(CodingEngineAdapter):
         if self._mode == "medcoder":
             return await self._medcoder_pipeline(messages, context)
 
-        # Stage 1: Coding inference
+        # M2aRecorder (M3-0 集成): 当 recorder 提供时, 包 3 个 stage 到 trace —
+        # "inference" (Stage 1 primary+fallback) / "rule_validation" (Stage 2-4 validate/merge/repair)
+        # / "calibration" (Stage 5 calibrate). 当 recorder=None, 走原始 1 段流程.
+        if self._recorder is None:
+            return await self._infer_pipeline_inner(
+                messages, tools, response_schema, context
+            )
+
+        with self._recorder.inference(
+            agent_ref=f"hybrid_coding_adapter:{self._mode}"
+        ) as inf_ctx:
+            with inf_ctx.stage("inference"):
+                result, rule_result = await self._stage_inference(
+                    messages, tools, response_schema, context
+                )
+                if result is None:  # inference hard-failed (mock fallback)
+                    return MedicalCodingOutputSchema.mock_result()
+            with inf_ctx.stage("rule_validation"):
+                result = await self._stage_rule_validation(result, rule_result, messages, tools, response_schema, context)
+            with inf_ctx.stage("calibration"):
+                self._apply_calibration(result)
+        return result
+
+    # ── Pipeline stages (split out so the recorder can wrap them) ──
+
+    async def _stage_inference(
+        self, messages, tools, response_schema, context,
+    ) -> tuple[MedicalCodingOutputSchema | None, object]:
+        """Stage 1: Coding inference (primary + fallback). Returns (result, rule_result_placeholder)."""
         logger.info(f"HybridCodingAdapter: Stage 1 — {self._inference.name}")
         try:
             result = await self._inference.infer_async(messages, tools, response_schema, context)
@@ -203,16 +237,23 @@ class HybridCodingAdapter(CodingEngineAdapter):
                 result = await self._fallback_inference.infer_async(messages, tools, response_schema, context)
             except Exception as e2:
                 logger.error(f"Fallback inference also failed: {e2}")
-                return MedicalCodingOutputSchema.mock_result()
+                return None, None
+        return result, None
 
+    async def _stage_rule_validation(
+        self, result, _placeholder, messages, tools, response_schema, context,
+    ) -> MedicalCodingOutputSchema:
+        """Stage 2-4: Rule validation + merge + repair. Returns the final result
+        (which may be ``repaired`` if repair succeeded)."""
         # Stage 2: Rule validation
         logger.info("HybridCodingAdapter: Stage 2 — RuleEngineAdapter")
         rule_result = self._rule_adapter.validate(result)
 
         # Stage 3: Merge rule issues into output
         result.issues_found = rule_result.issues
-        result.manual_review_required = (result.manual_review_required or
-                                        rule_result.manual_review_required)
+        result.manual_review_required = (
+            result.manual_review_required or rule_result.manual_review_required
+        )
 
         # Update review_conclusion based on validation
         if rule_result.quality_flags.get("primary_diagnosis_missing"):
@@ -232,10 +273,9 @@ class HybridCodingAdapter(CodingEngineAdapter):
 
         # Stage 4 (Phase 2 of F1 0.76→0.85+): In-process repair loop.
         # The declared MC-R-REPAIR-001 rule says rule violations should
-        # trigger a re-prompt. Until now no code implemented that. We
-        # do one bounded retry when severity in (critical, high) and
-        # the LLM produced a non-trivial output (not just an error
-        # schema). Cap is 1 retry (no infinite loop).
+        # trigger a re-prompt. We do one bounded retry when severity in
+        # (critical, high) and the LLM produced a non-trivial output.
+        # Cap is 1 retry (no infinite loop).
         SEVERE = ("critical", "high")
         severe_issues = [i for i in rule_result.issues if i.severity in SEVERE]
         if self._repair_enabled and severe_issues and not result.is_mock:
@@ -246,7 +286,6 @@ class HybridCodingAdapter(CodingEngineAdapter):
                 repaired = await self._inference.infer_async(
                     repair_messages, tools, response_schema, context,
                 )
-                # Re-validate the repaired output
                 repaired_rules = self._rule_adapter.validate(repaired)
                 still_severe = [i for i in repaired_rules.issues if i.severity in SEVERE]
                 if not still_severe:
@@ -271,20 +310,25 @@ class HybridCodingAdapter(CodingEngineAdapter):
                         f"(severe issues: {len(severe_issues)} → 0)"
                     )
                 else:
-                    # Repair didn't help — keep original result, mark as failed repair
                     logger.info(
                         f"HybridCodingAdapter: repair did not clear severe issues "
                         f"({len(still_severe)} still severe)"
                     )
             except Exception as e:
                 logger.warning(f"HybridCodingAdapter: repair attempt failed: {e}")
-                # Keep original result; repair_attempted=True, repair_success=False
+        return result
 
-        # Stage 5 (Phase 3 of F1 0.76→0.85+): Confidence calibration.
-        # Runs after repair so we calibrate the final answer. Sets
-        # manual_review_required if any code's tier is "escalate".
+    async def _infer_pipeline_inner(
+        self, messages, tools, response_schema, context,
+    ) -> MedicalCodingOutputSchema:
+        """Original (no-recorder) 5-stage pipeline. M2aRecorder=None 时走这里."""
+        result, _ = await self._stage_inference(messages, tools, response_schema, context)
+        if result is None:
+            return MedicalCodingOutputSchema.mock_result()
+        result = await self._stage_rule_validation(
+            result, None, messages, tools, response_schema, context
+        )
         self._apply_calibration(result)
-
         return result
 
     # ── MedCodER 5-stage pipeline (mode="medcoder") ──

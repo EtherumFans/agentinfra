@@ -227,7 +227,8 @@ class AgentRunner:
 
     def __init__(self, llm_callable=None, gateway: LLMGateway | None = None,
                  experts: dict[str, ExpertDefinition] | None = None,
-                 tools: dict[str, ToolDefinition] | None = None):
+                 tools: dict[str, ToolDefinition] | None = None,
+                 recorder=None):
         self.llm = llm_callable  # deprecated — use gateway instead
         self.gateway = gateway
         if llm_callable is not None and gateway is None:
@@ -237,6 +238,8 @@ class AgentRunner:
             )
         self._experts = experts or {}
         self._tools = tools or {}
+        # M2a Run Trace recorder (opt-in, no-op if None)
+        self._recorder = recorder
 
     def register_expert(self, exp: ExpertDefinition):
         self._experts[exp.id] = exp
@@ -274,6 +277,30 @@ class AgentRunner:
         policy = permission_policy or PermissionPolicy(permissions={})
         audit.record("run_started", agent.name)
 
+        # M2a recorder integration (opt-in, no-op if recorder is None)
+        from icoder_runtime.m2a.recorder import noop_inference, noop_stage
+        _rec_ctx = (
+            self._recorder.inference(agent_ref=agent.id or agent.name, metadata={
+                "agent_name": agent.name,
+                "agent_version": agent.version,
+                "delegated_by": delegated_by,
+            }) if self._recorder is not None else noop_inference()
+        )
+        with _rec_ctx as _inf_ctx:
+            return await self._run_with_recorder(
+                agent, user_input, permission_policy, data_policy,
+                delegated_by, t0, session_id, audit, policy, _inf_ctx,
+            )
+
+    async def _run_with_recorder(
+        self, agent, user_input, permission_policy, data_policy,
+        delegated_by, t0, session_id, audit, policy, _inf_ctx,
+    ):
+        # M2a recorder stage helper
+        from icoder_runtime.m2a.recorder import noop_stage
+        def _stage(name, tool_input=None):
+            return _inf_ctx.stage(name, tool_input) if _inf_ctx else noop_stage()
+
         # ── Delegation token (agent identity + user identity) ──
         delegation_token = None
         if delegated_by and delegated_by.get("user_id"):
@@ -288,10 +315,13 @@ class AgentRunner:
 
         # ── PreExecutionGuard ──
         pre_guard = PreExecutionGuard(data_policy=data_policy, guardrails=safety_guardrails)
-        pre_check = await pre_guard.check(agent, user_input, policy)
+        with _stage("pre_execution_guard", {"input_len": len(user_input)}):
+            pre_check = await pre_guard.check(agent, user_input, policy)
         audit.record("pre_guard", payload=pre_check)
         if not pre_check["passed"]:
             logger.warning(f"PreExecutionGuard BLOCKED agent={agent.name}: {pre_check['violations']}")
+            if _inf_ctx:
+                _inf_ctx.final_status = "error"
             return {
                 "review_id": session_id,
                 "agent_name": agent.name,
@@ -329,6 +359,8 @@ class AgentRunner:
         from .circuit_breaker import llm_circuit_breaker
         if llm_circuit_breaker.is_open:
             audit.record("circuit_breaker_open")
+            if _inf_ctx:
+                _inf_ctx.final_status = "error"
             return {
                 "review_id": session_id,
                 "agent_name": agent.name,
@@ -350,37 +382,50 @@ class AgentRunner:
         # Execute via LLM
         output_text = ""
         llm_error = None
-        if self.gateway and self.gateway.is_configured:
-            try:
-                prompt = self._build_expert_prompt(active_experts, messages)
-                result = await self.gateway.generate(
-                    [{"role": "system", "content": system}, {"role": "user", "content": prompt}],
-                )
-                output_text = result["content"]
-                llm_circuit_breaker.record_success()
-            except Exception as e:
-                logger.error(f"LLM gateway call failed: {e}")
-                output_text = f"[LLM error: {e}]"
-                llm_error = str(e)
-                llm_circuit_breaker.record_failure()
-        elif self.llm:
-            # Legacy path — deprecated, handles both sync and async callables
-            try:
-                prompt = self._build_expert_prompt(active_experts, messages)
-                result = self.llm(prompt)
-                import inspect as _inspect
-                if _inspect.iscoroutine(result) or _inspect.isawaitable(result):
-                    output_text = await result
-                else:
-                    output_text = str(result)
-                llm_circuit_breaker.record_success()
-            except Exception as e:
-                logger.error(f"LLM call failed: {e}")
-                output_text = f"[LLM error: {e}]"
-                llm_error = str(e)
-                llm_circuit_breaker.record_failure()
-        else:
-            raise LLMProviderNotConfigured()
+        with _stage("llm_call", {"agent": agent.name, "experts": len(active_experts)}) as _s:
+            if self.gateway and self.gateway.is_configured:
+                try:
+                    prompt = self._build_expert_prompt(active_experts, messages)
+                    result = await self.gateway.generate(
+                        [{"role": "system", "content": system}, {"role": "user", "content": prompt}],
+                    )
+                    output_text = result["content"]
+                    llm_circuit_breaker.record_success()
+                    if _s:
+                        _s.set_output({"output_len": len(output_text)})
+                except Exception as e:
+                    logger.error(f"LLM gateway call failed: {e}")
+                    output_text = f"[LLM error: {e}]"
+                    llm_error = str(e)
+                    llm_circuit_breaker.record_failure()
+                    if _s:
+                        _s.set_status("error", error=str(e))
+            elif self.llm:
+                # Legacy path — deprecated, handles both sync and async callables
+                try:
+                    prompt = self._build_expert_prompt(active_experts, messages)
+                    result = self.llm(prompt)
+                    import inspect as _inspect
+                    if _inspect.iscoroutine(result) or _inspect.isawaitable(result):
+                        output_text = await result
+                    else:
+                        output_text = str(result)
+                    llm_circuit_breaker.record_success()
+                    if _s:
+                        _s.set_output({"output_len": len(str(output_text))})
+                except Exception as e:
+                    logger.error(f"LLM call failed: {e}")
+                    output_text = f"[LLM error: {e}]"
+                    llm_error = str(e)
+                    llm_circuit_breaker.record_failure()
+                    if _s:
+                        _s.set_status("error", error=str(e))
+            else:
+                if _s:
+                    _s.set_status("error", error="LLMProviderNotConfigured")
+                if _inf_ctx:
+                    _inf_ctx.final_status = "error"
+                raise LLMProviderNotConfigured()
 
         audit.record("llm_response", payload={"output": output_text[:500]})
 
@@ -395,11 +440,13 @@ class AgentRunner:
 
         # ── PostExecutionGuard ──
         post_guard = PostExecutionGuard(guardrails=safety_guardrails)
-        post_check = await post_guard.check(output_text, agent)
+        with _stage("post_execution_guard"):
+            post_check = await post_guard.check(output_text, agent)
         audit.record("post_guard", payload=post_check)
 
         # ── SafetySpiralDetector ──
-        spiral_check = safety_spiral_detector.record(agent.id, post_check)
+        with _stage("safety_spiral"):
+            spiral_check = safety_spiral_detector.record(agent.id, post_check)
 
         if spiral_check["should_escalate"]:
             logger.warning(

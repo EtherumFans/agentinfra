@@ -96,8 +96,28 @@ class DiagnosisEntry:
             "description": self.description,
             "confidence": self.confidence,
             "category": self.category,
-            "evidence": [e.to_dict() if isinstance(e, EvidenceSpan) else e for e in self.evidence],
+            "evidence": [_serialize_evidence_item(e) for e in self.evidence],
         }
+
+
+def _serialize_evidence_item(e):
+    """Serialize one evidence item to a dict for API/JSON consumers.
+
+    Accepts EvidenceSpan, dict (already-serialized), or bare string.
+    Strings are wrapped as {text, kind=auto_bootstrap} so consumers
+    always see dicts.
+    """
+    if isinstance(e, EvidenceSpan):
+        d = e.to_dict()
+        d.setdefault("kind", "auto_bootstrap")
+        return d
+    if isinstance(e, dict):
+        d = dict(e)
+        d.setdefault("kind", "auto_bootstrap")
+        return d
+    if isinstance(e, str):
+        return {"text": e, "kind": "auto_bootstrap"}
+    return {"text": str(e), "kind": "auto_bootstrap"}
 
 
 @dataclass
@@ -118,7 +138,7 @@ class ProcedureEntry:
             "description": self.description,
             "confidence": self.confidence,
             "category": self.category,
-            "evidence": [e.to_dict() if isinstance(e, EvidenceSpan) else e for e in self.evidence],
+            "evidence": [_serialize_evidence_item(e) for e in self.evidence],
         }
 
 

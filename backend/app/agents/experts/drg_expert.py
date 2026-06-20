@@ -64,7 +64,7 @@ class DRGDIPExpert(BaseExpert):
         })
 
     def _group_drg(self, diag_code: str, proc_code: str) -> dict:
-        """Real DRG grouping via OpenDRG CHS-DRG 1.1 grouper (99.2% coverage)."""
+        """DRG 分组（**仅作为非生产联调或研究参考**）: 调用分组器适配器（OpenDRG CHS-DRG 1.1 仅作联调参考）;未配置真实分组器时返回 unavailable/degraded。"""
         if not proc_code:
             return {"drg": "", "drg_name": "内科病例 (无手术操作)", "coverage": False}
         return group_drg([diag_code], proc_code)

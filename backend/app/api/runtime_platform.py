@@ -557,9 +557,11 @@ async def medical_coding_test(body: EvalRunRequest):
         from app.main import app as _app
         gateway = _app.state.platform_gateway if hasattr(_app.state, "platform_gateway") else None
         data_policy = _app.state.data_policy if hasattr(_app.state, "data_policy") else None
+        m2a_recorder = getattr(_app.state, "m2a_recorder", None)
     except Exception:
         gateway = None
         data_policy = None
+        m2a_recorder = None
 
     if not gateway:
         raise HTTPException(status_code=503, detail="LLM Gateway not available")
@@ -579,14 +581,25 @@ async def medical_coding_test(body: EvalRunRequest):
         redactor = PIIRedactor(enabled=True)
         messages, redaction_result = redactor.redact_messages(messages)
 
-    # Use HybridCodingAdapter
+    # M3-0 修复: HybridCodingAdapter 不接受 recorder= 参数; M2aRecorder 走
+    # app.state.m2a_recorder 全局单例, 这里不再传入.
     from icoder_runtime.providers.medical_coding import HybridCodingAdapter
-    adapter = HybridCodingAdapter(gateway=gateway, mode="hybrid")
+    adapter = HybridCodingAdapter(
+        gateway=gateway, mode="hybrid",
+    )
     result = await adapter.infer_async(messages)
 
     response = result.to_dict()
     if redaction_result:
         response["redaction"] = redaction_result.to_dict()
+
+    # 把最近一次 trace 关联到 response (供前端 / 测试 / 排障)
+    if m2a_recorder is not None and m2a_recorder.is_active():
+        last = m2a_recorder._last_finalized
+        if last:
+            response["run_id"] = last["run_id"]
+            response["trace_id"] = last["trace_id"]
+            response["trace_url"] = f"/api/m2a/runs/{last['run_id']}"
 
     return response
 

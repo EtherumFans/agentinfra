@@ -190,7 +190,9 @@ def test_get_retriever_uses_subprocess_when_env_var_set(monkeypatch):
     importlib.reload(ha)
     adapter = ha.HybridCodingAdapter(gateway=_MockGateway(), mode="medcoder")
 
-    retriever = adapter._get_retriever()
+    # M1: retriever selection moved to MedCodERStrategy; reach it through
+    # the adapter's owned strategy.
+    retriever = adapter._strategy._get_retriever()
     assert created["subprocess"] is True
     assert created["inprocess"] is False
     assert isinstance(retriever, FakeSubprocess)
@@ -230,7 +232,9 @@ def test_get_retriever_uses_inprocess_when_unix_and_no_env(monkeypatch):
     importlib.reload(ha)
     adapter = ha.HybridCodingAdapter(gateway=_MockGateway(), mode="medcoder")
 
-    retriever = adapter._get_retriever()
+    # M1: retriever selection moved to MedCodERStrategy; reach it through
+    # the adapter's owned strategy.
+    retriever = adapter._strategy._get_retriever()
     assert created["subprocess"] is False
     assert created["inprocess"] is True
     assert isinstance(retriever, FakeInprocess)

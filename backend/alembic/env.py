@@ -14,6 +14,13 @@ from app.models import *  # noqa: F401, F403
 from app.models.runtime_persistence import (  # noqa: F401
     RuntimeSession, RuntimeTransition, RuntimeAuditRecord, DUCDecision,
 )
+from app.icoder.agent_runtime.context.db_models import (  # noqa: F401
+    ContextRow,
+    ContextMessageRow,
+    ContextTaskRefRow,
+    ContextArtifactRefRow,
+    OriginalInputAuditRow,
+)
 
 config = context.config
 if config.config_file_name is not None:

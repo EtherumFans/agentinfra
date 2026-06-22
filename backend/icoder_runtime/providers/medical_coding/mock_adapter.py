@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import logging
 from typing import Any
-from icoder_runtime.core.coding_schema import (
+from official_agents.medical_coding.schema import (
     CodingEngineAdapter, MedicalCodingOutputSchema,
     DiagnosisEntry,
 )

@@ -397,11 +397,11 @@ class MedicalCodingLLMProvider(BaseLLMProvider):
         If None and gateway is provided, uses PromptLLMAdapter.
         If both None, uses mock mode.
         """
-        from .coding_schema import CodingEngineAdapter
+        from official_agents.medical_coding.schema import CodingEngineAdapter
         if coding_engine is not None and isinstance(coding_engine, CodingEngineAdapter):
             self._engine = coding_engine
         elif gateway is not None:
-            from .coding_schema import PromptLLMAdapter
+            from official_agents.medical_coding.schema import PromptLLMAdapter
             self._engine = PromptLLMAdapter(gateway)
         else:
             self._engine = None
@@ -413,7 +413,7 @@ class MedicalCodingLLMProvider(BaseLLMProvider):
         response_schema: dict | None = None,
         context: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        from .coding_schema import MedicalCodingOutputSchema
+        from official_agents.medical_coding.schema import MedicalCodingOutputSchema
 
         if self._engine is not None:
             return await self._generate_real(messages, tools, response_schema, context)
@@ -429,7 +429,7 @@ class MedicalCodingLLMProvider(BaseLLMProvider):
         response_schema: dict | None,
         context: dict[str, Any] | None,
     ) -> dict[str, Any]:
-        from .coding_schema import MedicalCodingOutputSchema
+        from official_agents.medical_coding.schema import MedicalCodingOutputSchema
 
         result = await self._engine.infer_async(
             messages=messages, tools=tools, response_schema=response_schema, context=context
@@ -456,7 +456,7 @@ class MedicalCodingLLMProvider(BaseLLMProvider):
         }
 
     def health_check(self) -> dict:
-        from .coding_schema import CodingEngineAdapter
+        from official_agents.medical_coding.schema import CodingEngineAdapter
         if self._engine is None:
             return {"provider": self.name, "mode": "mock", "status": "healthy", "engine_type": "none"}
         if isinstance(self._engine, CodingEngineAdapter):

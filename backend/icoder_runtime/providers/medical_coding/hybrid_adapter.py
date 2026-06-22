@@ -20,10 +20,8 @@ import logging
 import os
 from typing import Any
 
-from icoder_runtime.core.coding_schema import (
-    CodingEngineAdapter, MedicalCodingOutputSchema, CodingIssue,
-)
 from official_agents.medical_coding.schema import (
+    CodingEngineAdapter, MedicalCodingOutputSchema, CodingIssue,
     CandidateCode, ExtractedDiagnosis,
 )
 from .deepseek_coding_adapter import DeepSeekCodingAdapter

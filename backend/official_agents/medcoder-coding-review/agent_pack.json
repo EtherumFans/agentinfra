@@ -1,0 +1,133 @@
+{
+  "format_version": "1.2",
+  "agent_type": "reference",
+  "agent_ref": "icoder/medcoder-coding-review-agent@1.0.0",
+  "manifest": {
+    "name": "MedCodER Coding Review Agent",
+    "version": "1.0.0",
+    "description": "iCoDer Runtime 上的标准编码审核 Agent。完全替代 homepage-coding-review 的 14-stage cosmetic pipeline, 直接基于 MedCodER 5 阶段管线 (Extraction → Retrieval → Merge → Re-Rank → Calibration) 编排。输入中文病历, 输出 per-disease ExtractedDiagnosis (含证据 char span、Top-5 candidate、final_confidence、rule_flags), 通过 A2A v0.3 DataPart 返回。AI-assisted coding, 所有低置信度 / 证据不足 / 规则冲突的编码均需人工复核。",
+    "category": "medical-coding",
+    "icon": "Microscope",
+    "tags": ["medcoder", "reference-agent", "rag", "rerank", "calibration"]
+  },
+  "system_prompt": "你是 iCoDer MedCodER 编码审核 Agent。严格按 MedCodER 5 阶段管线处理输入病历:\n\nStage 1 — Extraction (LLM, DeepSeek-v4):\n  从病历识别每个诊断的 disease_text + supporting_evidence (原文 + char span)\n  + llm_initial_code。每条 evidence 必须能在原文中找到对应片段, 不得编造。\n\nStage 2 — Retrieval (BGE-M3 + FAISS, 本地):\n  对每个 disease_text 做 synonym expansion (top-3), embed (BAAI/bge-m3, 1024-dim),\n  FAISS top-20, filter via icd10cn_code_catalog (37,897 码)。\n\nStage 3 — Merge (LLM data plane):\n  candidate_set = (LLM codes) ∪ (retrieved top-20), cap 30 per disease.\n  注入 coding_differentiation_kb P0/P1 hints.\n\nStage 4 — Re-Rank (LLM, DeepSeek-v4):\n  RankGPT-style 重排 top-5 per disease. 输出 per-disease final_confidence\n  + rerank_notes (引用 evidence)。\n\nStage 5 — Compliance + Calibration:\n  MedCodERRetrievalRuleSet (MR-001/002/003): catalog membership,\n  similarity ≥ 0.5, chapter metadata. 每条 diagnosis 的 final_confidence < 0.5\n  触发 manual_review_required。\n\n硬约束:\n- production_writeback_blocked = true (不写回 EMR/HIS/医保)\n- phi_redacted = true (Context 强制 PHI 脱敏)\n- 输出必须是 JSON, 遵循 icoder/MedicalCodingOutputSchema/v1\n- extracted_diagnoses 字段必须非空 (MedCodER 标志性输出)",
+  "experts": [
+    {
+      "expert_id": "coding-expert",
+      "name": "Coding Expert",
+      "role": "primary",
+      "description": "MedCodER 5 阶段编排。委托 hybrid_adapter.infer_async(mode='medcoder'), 输出 MedicalCodingOutputSchema。"
+    }
+  ],
+  "tools": [
+    {"name": "search_icd", "type": "mcp", "stage": "retrieval", "ref": "icoder/medical-coding-agent/tools/search_icd"},
+    {"name": "verify_code", "type": "mcp", "stage": "compliance", "ref": "icoder/medical-coding-agent/tools/verify_code"},
+    {"name": "get_differentiation_hint", "type": "mcp", "stage": "merge", "ref": "icoder/medical-coding-agent/tools/get_differentiation_hint"},
+    {"name": "rerank_codes", "type": "mcp", "stage": "rerank", "ref": "icoder/medical-coding-agent/tools/rerank_codes"},
+    {"name": "calibrate_confidence", "type": "mcp", "stage": "calibration", "ref": "icoder/medical-coding-agent/tools/calibrate_confidence"}
+  ],
+  "model": {
+    "primary": "deepseek-v4",
+    "fallback": "deepseek-v4-flash",
+    "embedding": "BAAI/bge-m3",
+    "embedding_dim": 1024,
+    "temperature": 0.0,
+    "max_tokens": 4096
+  },
+  "pipeline": {
+    "name": "medcoder-5-stage",
+    "stages": [
+      {"name": "extraction", "engine": "llm", "model": "deepseek-v4", "input_count_target": "n_diagnoses_in_emr", "output_count_target": "n_diagnoses_in_emr"},
+      {"name": "retrieval", "engine": "bge-m3+faiss", "top_k": 20, "synonym_cap": 3, "catalog_filter": "icd10cn_code_catalog"},
+      {"name": "merge", "engine": "code", "cap_per_disease": 30, "hints_source": "coding_differentiation_kb"},
+      {"name": "rerank", "engine": "llm", "model": "deepseek-v4", "top_k": 5, "few_shot_source": "cot_generation_progress_v2.json (Phase 2 wire)"},
+      {"name": "calibration", "engine": "rule_set", "ruleset": "MedCodERRetrievalRuleSet", "confidence_floor": 0.5}
+    ],
+    "replaces": "homepage-coding-review 14-stage cosmetic pipeline (弃用 M2 删除)"
+  },
+  "non_goals": [
+    "不直接做最终诊断决策 — 所有编码建议需经编码员人工确认",
+    "不写回 EMR / HIS / 医保结算系统",
+    "不评估模型效果 (F1@1/@2/@5 仅在 e2e_medcoder_validation.py 内部使用)",
+    "不声称 fully automated coding — UI 上始终展示 'AI-assisted, 需人工复核' 标记",
+    "不绕过 PHI redaction (Context 强制)",
+    "不并行运行 14-stage cosmetic trace (homepage-coding-review 已弃用)",
+    "不输出未脱敏 PHI 给最终用户"
+  ],
+  "output_contract": {
+    "schema_ref": "icoder/MedicalCodingOutputSchema/v1",
+    "a2a_parts": ["DataPart"],
+    "extracted_diagnoses_required": true,
+    "required_fields": [
+      "review_conclusion",
+      "primary_diagnosis",
+      "secondary_diagnoses",
+      "procedures",
+      "issues_found",
+      "manual_review_required",
+      "confidence",
+      "mode",
+      "extracted_diagnoses"
+    ],
+    "stage_trace_format": {
+      "stage": "extraction|retrieval|merge|rerank|calibration",
+      "status": "ok|failed|skipped",
+      "latency_ms": "number",
+      "input_count": "number",
+      "output_count": "number",
+      "summary": "string"
+    }
+  },
+  "permissions": {
+    "key": "medcoder-coding-review-default",
+    "name": "MedCodER 编码审核默认权限",
+    "description": "允许 5 MCP tool 调用。禁止自动写回。",
+    "tools": {
+      "search_icd": "allowed",
+      "verify_code": "allowed",
+      "get_differentiation_hint": "allowed",
+      "rerank_codes": "allowed",
+      "calibrate_confidence": "allowed",
+      "writeback": "blocked"
+    },
+    "production_writeback_blocked": true
+  },
+  "phi_redaction": "required",
+  "context_required": true,
+  "recorder_required": true,
+  "metrics_required": true,
+  "human_review_required_when": [
+    "manual_review_required == true (per-disease confidence < 0.5)",
+    "issues_found non-empty (规则冲突)",
+    "primary_diagnosis.code missing",
+    "extracted_diagnoses empty"
+  ],
+  "requirements": {
+    "min_runtime_version": "2.0.0",
+    "icoder_runtime_modules": [
+      "icoder_runtime.providers.medical_coding.hybrid_adapter",
+      "icoder_runtime.providers.medical_coding.medcoder_retriever",
+      "icoder_runtime.providers.medical_coding.medcoder_adapter",
+      "compliance_services.medcoder_retrieval_rules"
+    ]
+  },
+  "llm_capabilities": {
+    "required_models": [
+      {"name": "deepseek-v4", "purpose": "stage1_extraction + stage4_rerank"},
+      {"name": "BAAI/bge-m3", "purpose": "stage2_retrieval embedding"}
+    ],
+    "supports_tool_calling": true,
+    "supports_json_mode": true,
+    "supports_mcp_tools": true
+  },
+  "a2a": {
+    "protocol_version": "0.3",
+    "endpoint": "/api/icoder/agents/medcoder-coding-review/v1/message:send",
+    "discovery": "/api/icoder/agents",
+    "agent_card_ref": "icoder/medcoder-coding-review-agent@1.0.0"
+  },
+  "code": {},
+  "integrity": {
+    "sha256": "PLACEHOLDER_RECOMPUTED_AT_PUBLISH"
+  }
+}

@@ -9,7 +9,7 @@ Repair loop semantics:
 """
 import pytest
 
-from icoder_runtime.core.coding_schema import (
+from official_agents.medical_coding.schema import (
     MedicalCodingOutputSchema, DiagnosisEntry, CodingIssue,
 )
 from icoder_runtime.providers.medical_coding.hybrid_adapter import HybridCodingAdapter

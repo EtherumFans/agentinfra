@@ -1,0 +1,245 @@
+"""ContextRepository — strict per-contextId data access (SPEC §6.2).
+
+Every method takes ``context_id`` as a positional parameter; there is no
+API surface that lets a caller read or write without supplying one.
+"""
+
+from __future__ import annotations
+
+import json
+from datetime import datetime, timezone
+
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from .context import Context, ContextArtifactRef, ContextMessage, ContextTaskRef
+from .context_id import is_valid_context_id
+from .context_isolation import ContextIsolationError, ContextNotFoundError
+from .context_status import ContextStatus
+from .db_models import (
+    ContextArtifactRefRow,
+    ContextMessageRow,
+    ContextRow,
+    ContextTaskRefRow,
+)
+
+
+def _as_utc(dt: datetime) -> datetime:
+    """SQLite drops tzinfo on round-trip; re-attach UTC if naive."""
+    return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
+
+
+class ContextRepository:
+    """Mandatory-contextId data access layer."""
+
+    def __init__(self, session: AsyncSession) -> None:
+        self._session = session
+
+    async def _require_valid_id(self, context_id: str) -> None:
+        if not is_valid_context_id(context_id):
+            raise ContextIsolationError(
+                f"context_id must be canonical UUID v4: {context_id!r}",
+                context_id=context_id,
+            )
+
+    async def _require_context_exists(self, context_id: str) -> None:
+        await self._require_valid_id(context_id)
+        row = await self._session.get(ContextRow, context_id)
+        if row is None:
+            raise ContextNotFoundError(
+                f"context {context_id!r} not found",
+                context_id=context_id,
+            )
+
+    @staticmethod
+    def _row_to_context(row: ContextRow) -> Context:
+        metadata = json.loads(row.metadata_json) if row.metadata_json else {}
+        return Context(
+            id=row.id,
+            created_at=_as_utc(row.created_at),
+            updated_at=_as_utc(row.updated_at),
+            expires_at=_as_utc(row.expires_at),
+            agent_id=row.agent_id,
+            status=ContextStatus(row.status),
+            metadata=metadata,
+            redacted_input_hash=row.redacted_input_hash,
+            original_input_ref=row.original_input_ref,
+        )
+
+    async def create_context(self, ctx: Context) -> Context:
+        await self._require_valid_id(ctx.id)
+        row = ContextRow(
+            id=ctx.id,
+            created_at=ctx.created_at,
+            updated_at=ctx.updated_at,
+            expires_at=ctx.expires_at,
+            agent_id=ctx.agent_id,
+            status=ctx.status.value,
+            metadata_json=ctx.metadata.model_dump_json(),
+            redacted_input_hash=ctx.redacted_input_hash,
+            original_input_ref=ctx.original_input_ref,
+        )
+        self._session.add(row)
+        await self._session.commit()
+        return ctx
+
+    async def get_context(self, context_id: str) -> Context | None:
+        await self._require_valid_id(context_id)
+        row = await self._session.get(ContextRow, context_id)
+        return self._row_to_context(row) if row else None
+
+    async def update_status(
+        self,
+        context_id: str,
+        status: ContextStatus,
+        *,
+        updated_at: datetime | None = None,
+        expires_at: datetime | None = None,
+    ) -> None:
+        await self._require_context_exists(context_id)
+        row = await self._session.get(ContextRow, context_id)
+        assert row is not None
+        row.status = status.value
+        row.updated_at = updated_at or datetime.now(timezone.utc)
+        if expires_at is not None:
+            row.expires_at = expires_at
+        await self._session.commit()
+
+    async def delete_context(self, context_id: str) -> None:
+        await self._require_context_exists(context_id)
+        row = await self._session.get(ContextRow, context_id)
+        assert row is not None
+        await self._session.delete(row)
+        await self._session.commit()
+
+    async def get_messages(
+        self, context_id: str, *, message_id: str | None = None
+    ) -> list[ContextMessage]:
+        await self._require_valid_id(context_id)
+        stmt = select(ContextMessageRow).where(
+            ContextMessageRow.context_id == context_id
+        )
+        if message_id is not None:
+            stmt = stmt.where(ContextMessageRow.message_id == message_id)
+        rows = (await self._session.execute(stmt)).scalars().all()
+        return [
+            ContextMessage(
+                message_id=r.message_id,
+                role=r.role,
+                parts=json.loads(r.parts_json),
+                timestamp=_as_utc(r.timestamp),
+                redacted=r.redacted,
+                metadata=json.loads(r.metadata_json) if r.metadata_json else {},
+            )
+            for r in rows
+        ]
+
+    async def add_message(
+        self, context_id: str, message: ContextMessage
+    ) -> ContextMessage:
+        await self._require_context_exists(context_id)
+        row = ContextMessageRow(
+            context_id=context_id,
+            message_id=message.message_id,
+            role=message.role,
+            parts_json=json.dumps(message.parts, ensure_ascii=False),
+            timestamp=message.timestamp,
+            redacted=message.redacted,
+            metadata_json=message.metadata.model_dump_json()
+            if hasattr(message.metadata, "model_dump_json")
+            else json.dumps(message.metadata, ensure_ascii=False),
+        )
+        self._session.add(row)
+        await self._session.commit()
+        return message
+
+    async def get_tasks(self, context_id: str) -> list[ContextTaskRef]:
+        await self._require_valid_id(context_id)
+        stmt = select(ContextTaskRefRow).where(
+            ContextTaskRefRow.context_id == context_id
+        )
+        rows = (await self._session.execute(stmt)).scalars().all()
+        return [
+            ContextTaskRef(
+                task_id=r.task_id,
+                state=r.state,
+                started_at=_as_utc(r.started_at),
+                completed_at=_as_utc(r.completed_at) if r.completed_at else None,
+            )
+            for r in rows
+        ]
+
+    async def add_task(
+        self, context_id: str, task_ref: ContextTaskRef
+    ) -> ContextTaskRef:
+        await self._require_context_exists(context_id)
+        row = ContextTaskRefRow(
+            context_id=context_id,
+            task_id=task_ref.task_id,
+            state=task_ref.state,
+            started_at=task_ref.started_at,
+            completed_at=task_ref.completed_at,
+        )
+        self._session.add(row)
+        await self._session.commit()
+        return task_ref
+
+    async def get_artifacts(self, context_id: str) -> list[ContextArtifactRef]:
+        await self._require_valid_id(context_id)
+        stmt = select(ContextArtifactRefRow).where(
+            ContextArtifactRefRow.context_id == context_id
+        )
+        rows = (await self._session.execute(stmt)).scalars().all()
+        return [
+            ContextArtifactRef(
+                artifact_id=r.artifact_id,
+                name=r.name,
+                mime_type=r.mime_type,
+                url=r.url,
+            )
+            for r in rows
+        ]
+
+    async def add_artifact(
+        self, context_id: str, artifact_ref: ContextArtifactRef
+    ) -> ContextArtifactRef:
+        await self._require_context_exists(context_id)
+        row = ContextArtifactRefRow(
+            context_id=context_id,
+            artifact_id=artifact_ref.artifact_id,
+            name=artifact_ref.name,
+            mime_type=artifact_ref.mime_type,
+            url=artifact_ref.url,
+        )
+        self._session.add(row)
+        await self._session.commit()
+        return artifact_ref
+
+    async def list_by_agent(
+        self,
+        agent_id: str,
+        *,
+        status: ContextStatus | None = None,
+        limit: int = 100,
+    ) -> list[Context]:
+        """Admin/operator listing. NOT a cross-contextId read — returns whole Contexts."""
+        stmt = select(ContextRow).where(ContextRow.agent_id == agent_id)
+        if status is not None:
+            stmt = stmt.where(ContextRow.status == status.value)
+        stmt = stmt.limit(limit)
+        rows = (await self._session.execute(stmt)).scalars().all()
+        return [self._row_to_context(r) for r in rows]
+
+    async def list_all(
+        self,
+        *,
+        status: ContextStatus | None = None,
+        limit: int = 1000,
+    ) -> list[Context]:
+        """GC sweep helper: list contexts across all agents."""
+        stmt = select(ContextRow)
+        if status is not None:
+            stmt = stmt.where(ContextRow.status == status.value)
+        stmt = stmt.limit(limit)
+        rows = (await self._session.execute(stmt)).scalars().all()
+        return [self._row_to_context(r) for r in rows]

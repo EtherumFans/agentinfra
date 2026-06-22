@@ -4,6 +4,7 @@ import logging
 import os
 from contextlib import asynccontextmanager
 from pathlib import Path
+from typing import Any, Callable
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -151,18 +152,30 @@ async def lifespan(app: FastAPI):
     else:
         logger.info(f"MedicalCodingLLMProvider registered (mode={mc_mode}). No real coding engine — using MOCK.")
 
-    # DeepSeek (real LLM) if configured
-    if settings.LLM_API_KEY or settings.LLM_PROVIDER == "deepseek":
+    # DeepSeek (real LLM) if configured. Canonical key env var is
+    # ICODER_CREDENTIAL_LLM (matches credential_vault + llm_service).
+    # settings.LLM_API_KEY is the legacy alias; fall back to it for
+    # backward compatibility with .env-based dev setups.
+    _deepseek_key = (
+        os.environ.get("ICODER_CREDENTIAL_LLM", "").strip()
+        or settings.LLM_API_KEY
+    )
+    if _deepseek_key or settings.LLM_PROVIDER == "deepseek":
         try:
             platform_gateway.register(
                 DeepSeekProvider(
-                    api_key=settings.LLM_API_KEY,
+                    api_key=_deepseek_key,
                     base_url=settings.LLM_BASE_URL,
                     model=settings.LLM_MODEL,
                 ),
                 default=True,
             )
-            logger.info("Embedded Runtime: DeepSeekProvider registered as default")
+            logger.info(
+                "Embedded Runtime: DeepSeekProvider registered as default "
+                "(key source=%s, model=%s)",
+                "env" if os.environ.get("ICODER_CREDENTIAL_LLM", "").strip() else "settings",
+                settings.LLM_MODEL,
+            )
         except Exception as e:
             logger.warning(f"DeepSeekProvider registration failed, using mock: {e}")
             platform_gateway.register(MockLLMProvider(), default=True)
@@ -234,8 +247,16 @@ async def lifespan(app: FastAPI):
                 SubprocessMedCodERRetriever,
             )
             loop = _asyncio.get_running_loop()
+            # T7: probe_timeout=10s is too short for first-time BGE-M3 load
+            # (~30-90s on Windows). Bump to 90s. Also keep the retriever
+            # alive on probe failure so HybridCodingAdapter can reuse the
+            # in-progress load (avoid triggering a second 30-90s load).
             retriever: SubprocessMedCodERRetriever = await loop.run_in_executor(
-                None, SubprocessMedCodERRetriever
+                None,
+                lambda: SubprocessMedCodERRetriever(
+                    timeout=120.0,
+                    probe_timeout=90.0,
+                ),
             )
             if retriever.is_ready:
                 app.state.medcoder_index_ready = True
@@ -244,14 +265,19 @@ async def lifespan(app: FastAPI):
                     "MedCodER subprocess retriever: ready (pid=%s)", retriever.pid
                 )
             else:
+                # Probe timed out but worker is still loading — KEEP IT
+                # ALIVE. The first request will wait up to ``timeout``
+                # (120s) and may succeed once BGE-M3 finishes loading.
                 app.state.medcoder_index_error = (
-                    "SubprocessMedCodERRetriever worker did not respond to "
-                    "startup probe (see logs for ensure_loaded failure)"
+                    "SubprocessMedCodERRetriever probe timed out (worker "
+                    "still loading BGE-M3+FAISS); first request may block "
+                    "until ready"
                 )
-                retriever.close()
+                app.state.medcoder_retriever = retriever
                 logger.warning(
-                    "MedCodER subprocess retriever: probe failed; "
-                    "/api/health will report medcoder_index_ready=false"
+                    "MedCodER subprocess retriever: probe timed out but "
+                    "worker kept alive (pid=%s); ready flag=False",
+                    retriever.pid,
                 )
         except Exception as e:
             app.state.medcoder_index_error = f"Failed to start MedCodER worker: {e}"
@@ -283,10 +309,187 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             logger.warning(f"Registry→DB sync skipped (DB may not be ready): {e}")
 
-    # Register A2A agents for discovery
-    from app.services.a2a_protocol import a2a_registry
-    a2a_registry.register_all_experts()
-    logger.info(f"A2A: {a2a_registry.agent_count} agents registered")
+    # --- Mount new A2A v0.3 package (replaces a2a_registry in Commit 3) ---
+    # T5/T6: LLMCall/ExpertInvoker wire to the real LLMGateway + MedCodER
+    # HybridCodingAdapter via sync adapters. Set ICODER_PHASE1_STUB_LLM=1
+    # to short-circuit to inline stubs (used by tests + smoke checks).
+    try:
+        from app.icoder.agent_runtime.a2a import (
+            mount_a2a,
+            AgentProvider,
+            ExpertCaller,
+        )
+        from app.icoder.agent_runtime.a2a.agent_card import (
+            homepage_coding_review_card,
+        )
+        from app.icoder.agent_runtime.orchestrator import (
+            Aggregator,
+            Delegator,
+            DictAgentProvider,
+            InboundHandler,
+            PHIRedactor,
+            Planner,
+        )
+        from app.icoder.agent_runtime.orchestrator.planner import PlannerConfig
+        from app.icoder.agent_runtime.orchestrator.delegator import DelegatorConfig
+        from app.icoder.agent_runtime.orchestrator.wiring import (
+            build_expert_invoker_from_hybrid,
+            build_llm_call_from_gateway,
+        )
+
+        _phase1_stub_llm = os.environ.get("ICODER_PHASE1_STUB_LLM", "0") == "1"
+
+        if _phase1_stub_llm:
+            logger.info(
+                "A2A wiring: ICODER_PHASE1_STUB_LLM=1 — using inline stubs "
+                "(no real LLM, no MedCodER)"
+            )
+            _llm_call: Callable[[str, str], dict] = lambda _s, _u: {"content": "{}"}
+            _expert_invoker: Callable[[Any], dict] = lambda _i: {"echo": True}
+        else:
+            # Construct HybridCodingAdapter in mode="medcoder" so the NAACL
+            # 5-stage pipeline runs when coding-expert is invoked. The
+            # retriever is lazy — BGE-M3 + FAISS only load on first
+            # infer_async() call (see hybrid_adapter._get_retriever).
+            _hybrid_adapter = None
+            try:
+                from icoder_runtime.providers.medical_coding import (
+                    HybridCodingAdapter,
+                )
+                # T7: pass the lifespan's already-spawned retriever (if any)
+                # so HybridCodingAdapter doesn't trigger a SECOND BGE-M3
+                # load in its own subprocess (30-90s wasted).
+                _shared_retriever = (
+                    getattr(app.state, "medcoder_retriever", None)
+                )
+                _hybrid_adapter = HybridCodingAdapter(
+                    gateway=platform_gateway,
+                    mode="medcoder",
+                    retriever=_shared_retriever,
+                )
+                logger.info(
+                    "A2A wiring: HybridCodingAdapter(mode='medcoder') constructed "
+                    "(retriever=%s)",
+                    "shared" if _shared_retriever is not None else "lazy",
+                )
+            except Exception as _he:
+                logger.warning(
+                    f"A2A wiring: HybridCodingAdapter construction failed, "
+                    f"falling back to stub invoker: {_he}"
+                )
+
+            _llm_call = build_llm_call_from_gateway(
+                platform_gateway,
+                default_provider=platform_gateway.default_provider or "",
+            )
+            _expert_invoker = build_expert_invoker_from_hybrid(_hybrid_adapter)
+            logger.info(
+                "A2A wiring: LLMGateway=%s, MedCodER=%s",
+                "real" if platform_gateway.is_configured else "stub",
+                "real" if _hybrid_adapter is not None else "stub",
+            )
+
+        def _build_phase1_agent_provider() -> "DictAgentProvider":
+            """Build DictAgentProvider with a real AgentDefinition for
+            ``homepage-coding-review`` so the Planner has system_prompt +
+            expert_ids context (the planner calls ``agent.name`` /
+            ``agent.expert_ids`` / ``agent.config``).
+
+            Loads the official ``agent_pack.json`` when available; falls
+            back to a minimal definition that just exposes
+            ``coding-expert`` so the MedCodERExpertAdapter can route.
+            """
+            from icoder_runtime.types import AgentDefinition
+            _agent = AgentDefinition(
+                id="homepage-coding-review",
+                name="Homepage Coding Review Agent",
+                description="病案首页编码审核 Agent",
+                system_prompt="你是 iCoDer 病案首页编码审核助手。",
+                icon="FileSearch",
+                category="official_reference_agent",
+                expert_ids=["coding-expert"],
+                default_expert_id="coding-expert",
+                config={
+                    "non_goals": ["不可用于生产写回", "不可用于医保上传"],
+                    "output_contract": "MedicalCodingOutputSchema",
+                },
+                is_prebuilt=True,
+                version="1.0.0",
+                status="published",
+            )
+            # Try to enrich from official pack if present (system_prompt
+            # is the main value; expert_ids stay ["coding-expert"] for
+            # Phase 1 — drg-expert / compliance-expert are Phase 5).
+            try:
+                from icoder_runtime.agent_pack import import_pack
+                _pack_path = (
+                    Path(__file__).parent.parent
+                    / "official_agents"
+                    / "homepage-coding-review"
+                    / "agent_pack.json"
+                )
+                if _pack_path.exists():
+                    _pack = json.loads(_pack_path.read_text(encoding="utf-8"))
+                    _pack_agent, _, _, _ = import_pack(_pack)
+                    _agent = AgentDefinition(
+                        id="homepage-coding-review",
+                        name=_pack_agent.name,
+                        description=_pack_agent.description,
+                        system_prompt=_pack_agent.system_prompt or _agent.system_prompt,
+                        icon=_pack_agent.icon,
+                        category=_pack_agent.category,
+                        expert_ids=_pack_agent.expert_ids or _agent.expert_ids,
+                        default_expert_id=_agent.default_expert_id,
+                        config=_agent.config,
+                        is_prebuilt=True,
+                        version=_pack_agent.version,
+                        status="published",
+                    )
+            except Exception as _ae:
+                logger.warning(
+                    f"A2A wiring: failed to enrich agent from official pack, "
+                    f"using minimal definition: {_ae}"
+                )
+            return DictAgentProvider({"homepage-coding-review": _agent})
+
+        phase1_handler = InboundHandler(
+            phi_redactor=PHIRedactor(),
+            planner=Planner(
+                llm_call=_llm_call,
+                config=PlannerConfig(sleep_fn=lambda _: None),
+            ),
+            delegator=Delegator(
+                invoker=_expert_invoker,
+                config=DelegatorConfig(sleep_fn=lambda _: None),
+            ),
+            aggregator=Aggregator(),
+            agent_provider=_build_phase1_agent_provider(),
+        )
+
+        def _phase1_agent_provider(agent_id: str):
+            if agent_id == "homepage-coding-review":
+                return homepage_coding_review_card()
+            return None
+
+        def _phase1_expert_caller(expert_id: str, body: dict):
+            return {
+                "kind": "message",
+                "role": "agent",
+                "messageId": "phase1-stub",
+                "contextId": "",
+                "parts": [{"kind": "data", "data": {"expert_id": expert_id, "echo": body}}],
+                "metadata": {},
+            }
+
+        mount_a2a(
+            app,
+            handler=phase1_handler,
+            agent_provider=_phase1_agent_provider,
+            expert_caller=_phase1_expert_caller,
+        )
+        logger.info("A2A v0.3 package mounted (Phase 1 stub)" if _phase1_stub_llm else "A2A v0.3 package mounted (real wiring)")
+    except Exception as e:
+        logger.warning(f"A2A v0.3 mount skipped: {e}")
     # Start runtime timeout checker (background task)
     import asyncio as _asyncio
     async def _check_timeouts():

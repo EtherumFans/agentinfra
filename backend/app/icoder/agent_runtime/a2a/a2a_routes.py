@@ -1,0 +1,100 @@
+"""A2A mounting point.
+
+Aggregates the four A2A routers (inbound, outbound, discovery, task-stub)
+and exposes :func:`mount_a2a` for the application to call once at startup.
+
+Mounting layout:
+
+- ``/.well-known/agent.json``     — root (app-level prefix)
+- ``/llms.txt``                    — root
+- ``/api/icoder/agents``           — agent list + capability filter
+- ``/api/icoder/agents/{id}/card`` — single AgentCard
+- ``/api/icoder/agents/{id}/v1/message:send`` — inbound message/send
+- ``/api/icoder/internal/experts/{id}/v1/message:send`` — outbound
+- ``/api/icoder/tasks/{id}``       — Phase 1 stub (501)
+- ``/api/icoder/tasks/{id}/cancel`` — Phase 1 stub (501)
+"""
+
+from __future__ import annotations
+
+from typing import Any
+
+from fastapi import APIRouter, FastAPI
+
+from ..orchestrator.inbound_handler import InboundHandler
+from .routes_discovery import AgentProvider, build_discovery_router
+from .routes_inbound import build_inbound_router
+from .routes_outbound import ExpertCaller, build_outbound_router
+from .routes_task_stub import build_task_stub_router
+
+
+def build_a2a_routers(
+    *,
+    handler: InboundHandler,
+    agent_provider: AgentProvider,
+    expert_caller: ExpertCaller,
+) -> dict[str, Any]:
+    """Build all four A2A routers without mounting.
+
+    Returns a dict keyed by mount-point category:
+
+    - ``"inbound"`` — APIRouter for ``/api/icoder/agents/{agent_id}``
+    - ``"outbound"`` — APIRouter for ``/api/icoder/internal/experts``
+    - ``"discovery_root"`` — APIRouter for root-level (well-known, llms.txt)
+    - ``"discovery_agents"`` — APIRouter for ``/api/icoder/agents``
+    - ``"task_stub"`` — APIRouter for ``/api/icoder/tasks``
+    """
+    return {
+        "inbound": build_inbound_router(handler),
+        "outbound": build_outbound_router(expert_caller),
+        "discovery_root": build_discovery_router(agent_provider)[0],
+        "discovery_agents": build_discovery_router(agent_provider)[1],
+        "task_stub": build_task_stub_router(),
+    }
+
+
+def mount_a2a(
+    app: FastAPI,
+    *,
+    handler: InboundHandler,
+    agent_provider: AgentProvider,
+    expert_caller: ExpertCaller,
+) -> dict[str, APIRouter]:
+    """Mount all A2A routers onto ``app`` (idempotent).
+
+    Returns the same dict as :func:`build_a2a_routers` for callers
+    that want direct router references (e.g., tests).
+    """
+    routers = build_a2a_routers(
+        handler=handler,
+        agent_provider=agent_provider,
+        expert_caller=expert_caller,
+    )
+    # Inbound: agent_id is a path param. We wrap with a parent router
+    # so callers don't need to know the per-agent path layout.
+    inbound_parent = APIRouter(prefix="/api/icoder/agents/{agent_id}")
+    inbound_parent.include_router(routers["inbound"])
+    app.include_router(inbound_parent)
+
+    # Outbound (Orchestrator → Expert): wrap with /api/icoder parent prefix
+    # so the spec-aligned path is /api/icoder/internal/experts/{id}/v1/...
+    outbound_parent = APIRouter(prefix="/api/icoder")
+    outbound_parent.include_router(routers["outbound"])
+    app.include_router(outbound_parent)
+
+    # Discovery root (no prefix) — /.well-known/agent.json, /llms.txt
+    app.include_router(routers["discovery_root"])
+
+    # Discovery agents — /api/icoder/agents (already prefixed)
+    app.include_router(routers["discovery_agents"])
+
+    # Task stub — /api/icoder/tasks (already prefixed)
+    app.include_router(routers["task_stub"])
+
+    return routers
+
+
+__all__ = [
+    "build_a2a_routers",
+    "mount_a2a",
+]

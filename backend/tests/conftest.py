@@ -1,4 +1,26 @@
 # Pytest configuration for iCoDer
+
+# FastAPI/starlette env patch — fastapi 0.115.0 still passes ``on_startup``
+# to starlette 1.3.1's Router, which removed the kwarg. Must run before
+# ANY ``FastAPI()`` or ``APIRouter()`` instantiation in the import chain.
+import starlette.routing as _sr  # noqa: E402
+
+_orig_router_init = _sr.Router.__init__
+
+
+def _patched_router_init(self, *args, **kwargs):
+    for k in ("on_startup", "on_shutdown"):
+        kwargs.pop(k, None)
+    return _orig_router_init(self, *args, **kwargs)
+
+
+_sr.Router.__init__ = _patched_router_init
+
+import fastapi.routing as _fr  # noqa: E402
+
+_fr.APIRouter.on_startup = []
+_fr.APIRouter.on_shutdown = []
+
 import os
 import pytest_asyncio
 import pytest

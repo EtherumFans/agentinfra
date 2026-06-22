@@ -397,7 +397,8 @@ async def lifespan(app: FastAPI):
 
             Loads the official ``agent_pack.json`` when available; falls
             back to a minimal definition that just exposes
-            ``coding-expert`` so the MedCodERExpertAdapter can route.
+            ``coding-expert`` so the CodingExpert (via the wiring factory)
+            can route.
             """
             from icoder_runtime.types import AgentDefinition
             _agent = AgentDefinition(

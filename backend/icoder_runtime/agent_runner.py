@@ -126,7 +126,7 @@ class PostExecutionGuard:
         schema_valid = False
         schema_issues = []
         try:
-            from icoder_runtime.core.coding_schema import MedicalCodingOutputSchema
+            from official_agents.medical_coding.schema import MedicalCodingOutputSchema
             import json as _json
             parsed = _json.loads(output_text) if output_text.strip().startswith("{") else {}
             if parsed:
@@ -140,7 +140,7 @@ class PostExecutionGuard:
         manual_review_required = False
         try:
             from icoder_runtime.providers.medical_coding.rule_engine_adapter import RuleEngineAdapter
-            from icoder_runtime.core.coding_schema import MedicalCodingOutputSchema
+            from official_agents.medical_coding.schema import MedicalCodingOutputSchema
             import json as _json
             parsed = _json.loads(output_text) if output_text.strip().startswith("{") else {}
             if parsed:

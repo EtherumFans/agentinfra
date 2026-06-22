@@ -623,7 +623,7 @@ class RuleValidateRequest(BaseModel):
 @runtime_router.post("/rule-engine/validate")
 async def rule_engine_validate(body: RuleValidateRequest):
     """Validate a MedicalCodingOutputSchema against all rules."""
-    from icoder_runtime.core.coding_schema import MedicalCodingOutputSchema
+    from official_agents.medical_coding.schema import MedicalCodingOutputSchema
     from icoder_runtime.providers.medical_coding.rule_engine_adapter import RuleEngineAdapter
 
     schema = MedicalCodingOutputSchema.from_dict(body.structured_output, provider="api")

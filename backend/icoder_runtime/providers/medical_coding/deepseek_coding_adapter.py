@@ -25,7 +25,7 @@ import os
 import re
 from typing import Any
 
-from icoder_runtime.core.coding_schema import (
+from official_agents.medical_coding.schema import (
     CodingEngineAdapter, MedicalCodingOutputSchema,
     DiagnosisEntry, ProcedureEntry, CodingIssue,
 )

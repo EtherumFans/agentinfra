@@ -13,7 +13,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Any
 
-from icoder_runtime.core.coding_schema import (
+from official_agents.medical_coding.schema import (
     CodingEngineAdapter, MedicalCodingOutputSchema, CodingIssue,
 )
 

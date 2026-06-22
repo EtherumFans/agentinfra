@@ -1,7 +1,7 @@
 """T7 — Real DeepSeek e2e for the Orchestrator (SPEC §11.4).
 
 Drives the production lifespan: LLMGateway → DeepSeekProvider (real key)
-→ Planner → MedCodERExpertAdapter → HybridCodingAdapter(mode='medcoder')
+→ Planner → CodingExpert → MedCodERStrategy → HybridCodingAdapter(mode='medcoder')
 → InboundHandler → A2A v0.3 inbound route.
 
 The test posts a single CCL2026 case through

@@ -1,32 +1,111 @@
 {
-  "format_version": "1.1",
-  "agent_type": "certified",
+  "format_version": "1.2",
+  "agent_type": "expert-stub",
   "agent_ref": "icoder/tabular-validator@1.0.0",
   "manifest": {
     "name": "Tabular Validator",
     "version": "1.0.0",
-    "description": "对候选编码进行规则验证：编码格式、重复检测、置信度范围、证据要求、DRG/DIP 分组影响。纯确定性规则引擎，零 LLM 参与。",
+    "description": "Stage 5 of MedCodER 5-stage pipeline (Compliance + Calibration). 对候选编码进行规则验证：编码格式、重复检测、置信度范围、证据要求、DRG/DIP 分组影响。纯确定性规则引擎，零 LLM 参与。",
     "category": "medical-coding",
-    "icon": "Shield"
+    "icon": "Shield",
+    "tags": ["medcoder", "stage-5", "compliance", "calibration", "rule-engine"]
   },
-  "system_prompt": "你是一个编码规则验证引擎。你使用确定性规则引擎（RuleEngineAdapter）验证候选编码集。\n\n输入：index_navigator 输出的候选编码列表\n\n验证规则：\n- R001: 主诊断不能为空\n- R002: ICD-10 格式校验\n- R003: 重复编码检测\n- R004: ICD-9-CM-3 格式校验\n- R005: 重复手术编码检测\n- R006: 置信度范围 (0-1)\n- R007: 低置信度触发人工复核\n- R008: 编码证据不能为空\n- R009: 主诊断来自诊断列表\n- R010: 只有一个 primary 诊断\n- R011: 最多一个 primary 手术\n- R012: critical/high 规则失败触发人工复核\n\n同时执行 DRG/DIP 预留规则（warning only）。\n\n输出 JSON:\n{\n  \"passed\": true/false,\n  \"issues\": [{\"severity\": \"critical\", \"code\": \"R001\", \"message\": \"...\", \"suggestion\": \"...\"}],\n  \"manual_review_required\": true/false,\n  \"validated_candidates\": [...]\n}",
-  "experts": [],
-  "tools": ["rank_evidence", "calibrate_confidence", "analyze_disagreements", "analyze_drg_impact", "guard_input", "guard_output"],
+  "system_prompt": "你是一个编码规则验证引擎。你使用确定性规则引擎（MedicalCodingRuleSet）验证候选编码集。\n\n输入：code_reconciler 输出的最终编码列表\n\n验证规则 (R001-R010 + MC-R-M80-001):\n- R001: 主诊断不能为空\n- R002: ICD-10 格式校验\n- R003: 重复编码检测\n- R004: ICD-9-CM-3 格式校验\n- R005: 重复手术编码检测\n- R006: 置信度范围 (0-1)\n- R007: 低置信度触发人工复核\n- R008: 编码证据不能为空\n- R009: 主诊断来自诊断列表\n- R010: 只有一个 primary 诊断\n- R011: 最多一个 primary 手术\n- R012: critical/high 规则失败触发人工复核\n- MC-R-M80-001: MedCodER catalog membership + 高 similarity\n\n输出 JSON:\n{\n  \"passed\": true/false,\n  \"issues\": [{\"severity\": \"critical\", \"code\": \"R001\", \"message\": \"...\", \"suggestion\": \"...\"}],\n  \"manual_review_required\": true/false,\n  \"fired_rules\": [\"R001\", \"R002\", ...],\n  \"quality_flags\": {\"duplicate_codes\": false, \"low_confidence\": false, ...}\n}",
+  "experts": [
+    {
+      "expert_id": "tabular-validator",
+      "name": "Tabular Validator",
+      "role": "primary",
+      "description": "MedCodER Stage 5 — MedicalCodingRuleSet 12-rule table (R001-R010 + MC-R-M80-001). Deterministic, no LLM, drives manual_review_required."
+    }
+  ],
+  "tools": [
+    {"name": "verify_code", "type": "mcp", "stage": "validation", "ref": "app.icoder.mcp.server:/mcp/v1/tools/call/verify_code"},
+    {"name": "calibrate_confidence", "type": "mcp", "stage": "calibration", "ref": "app.icoder.mcp.server:/mcp/v1/tools/call/calibrate_confidence"},
+    {"name": "guard_input", "type": "guard", "stage": "pre-validation", "ref": "app.icoder.guards.input_guard:guard_input"},
+    {"name": "guard_output", "type": "guard", "stage": "post-validation", "ref": "app.icoder.guards.output_guard:guard_output"}
+  ],
+  "model": {
+    "primary": "none",
+    "fallback": "none",
+    "temperature": 0.0
+  },
+  "pipeline": {
+    "name": "stage5-validation",
+    "stages": [
+      {"name": "input_guard", "engine": "guard", "purpose": "structured output schema sanity check"},
+      {"name": "rule_validate", "engine": "code", "ruleset": "MedicalCodingRuleSet", "rule_ids": ["R001","R002","R003","R004","R005","R006","R007","R008","R009","R010","R011","R012","MC-R-M80-001"]},
+      {"name": "manual_review_decision", "engine": "code", "policy": "any critical|high issue → manual_review_required=true"},
+      {"name": "output_guard", "engine": "guard", "purpose": "wire-format validation"}
+    ],
+    "upstream_stage": "stage4-rerank (code_reconciler)",
+    "downstream_stage": "none (terminal stage of MedCodER)"
+  },
+  "non_goals": [
+    "不分配 ICD 编码 — 仅验证已生成的编码集",
+    "不调用 LLM — 纯确定性规则引擎",
+    "不评估 F1 指标 — 在 e2e_medcoder_validation.py 内部",
+    "不写回 EMR / HIS / 医保结算",
+    "不绕过 manual_review_required 标志 (PHI 安全)"
+  ],
+  "output_contract": {
+    "schema_ref": "icoder/ValidationResult/v1",
+    "a2a_parts": ["DataPart"],
+    "required_fields": [
+      "passed",
+      "issues",
+      "manual_review_required",
+      "rule_set"
+    ],
+    "field_shapes": {
+      "passed": "bool",
+      "issues[].severity": "critical|high|medium|low|info",
+      "issues[].code": "str (R001 / R002 / ... / MC-R-M80-001)",
+      "issues[].message": "str",
+      "issues[].suggestion": "str",
+      "manual_review_required": "bool (true if any critical|high issue)",
+      "fired_rules": "list[str]",
+      "quality_flags": "dict[str, bool]"
+    }
+  },
   "permissions": {
     "key": "tabular-validation",
     "name": "表格验证权限",
     "description": "规则验证 + DRG分析，不分配编码",
     "tools": {
-      "rank_evidence": {"allowed": true},
-      "calibrate_confidence": {"allowed": true},
-      "analyze_disagreements": {"allowed": true},
-      "analyze_drg_impact": {"allowed": true, "max_per_session": 5},
-      "guard_input": {"allowed": true},
-      "guard_output": {"allowed": true}
-    }
+      "verify_code": "allowed",
+      "calibrate_confidence": "allowed",
+      "guard_input": "allowed",
+      "guard_output": "allowed",
+      "writeback": "blocked"
+    },
+    "production_writeback_blocked": true
   },
-  "requirements": { "min_runtime_version": "1.0.0" },
-  "llm_capabilities": { "required_models": [{"name": "deepseek-v4"}], "supports_tool_calling": false, "supports_json_mode": true },
+  "phi_redaction": "required",
+  "context_required": true,
+  "recorder_required": true,
+  "metrics_required": true,
+  "requirements": {
+    "min_runtime_version": "2.0.0",
+    "icoder_runtime_modules": [
+      "compliance_services.rule_engine",
+      "compliance_services.medical_coding_rules"
+    ]
+  },
+  "llm_capabilities": {
+    "required_models": [],
+    "supports_tool_calling": false,
+    "supports_json_mode": false,
+    "supports_mcp_tools": true
+  },
+  "a2a": {
+    "protocol_version": "0.3",
+    "endpoint": "/api/icoder/agents/tabular-validator/v1/message:send",
+    "discovery": "/api/icoder/agents",
+    "agent_card_ref": "icoder/tabular-validator@1.0.0"
+  },
   "code": {},
-  "integrity": { "sha256": "" }
+  "integrity": {
+    "sha256": "PLACEHOLDER_RECOMPUTED_AT_PUBLISH"
+  }
 }

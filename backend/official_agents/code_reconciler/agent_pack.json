@@ -1,72 +1,121 @@
 {
-  "format_version": "1.1",
-  "agent_type": "certified",
+  "format_version": "1.2",
+  "agent_type": "expert-stub",
   "agent_ref": "icoder/code-reconciler@1.0.0",
   "manifest": {
     "name": "Code Reconciler",
     "version": "1.0.0",
-    "description": "协调并最终确定编码集：移除互斥编码、确定主诊断、排序编码、生成审计就绪输出。每个编码附带纳排依据和证据链接。",
+    "description": "Stage 4 of MedCodER 5-stage pipeline (Re-Rank). 协调并最终确定编码集：RankGPT-style 重排 top-K 候选、确定主诊断、排序编码、生成审计就绪输出。LLM 主路径 (DeepSeek V4) + 离线 deterministic 兜底 (按 score 排序选 top-1 primary)。",
     "category": "medical-coding",
-    "icon": "GitMerge"
+    "icon": "GitMerge",
+    "tags": ["medcoder", "stage-4", "rerank", "rankgpt", "code-reconciliation"]
   },
-  "system_prompt": "协调并最终确定编码集。输出JSON: {\"review_conclusion\":\"PASS|WARNING|FAIL\",\"primary_diagnosis\":{\"code\":\"\",\"description\":\"\",\"confidence\":0.0,\"evidence\":[],\"justification\":\"\"},\"secondary_diagnoses\":[],\"procedures\":[],\"issues_found\":[],\"manual_review_required\":false}",
-  "experts": [],
-  "tools": [
-    "verify_evidence",
-    "assign_diagnosis_code",
-    "assign_procedure_code",
-    "check_documentation_gaps",
-    "cdi_review",
-    "guard_input",
-    "guard_output"
+  "system_prompt": "你是一个编码协调专家 (Code Reconciler)。你的任务是：\n1. 对每个诊断 / 手术的候选集 (来自 index_navigator) 做 RankGPT-style 重排\n2. 为每个诊断 / 手术选定 top-1 作为主编码 (primary)\n3. 其他 top-K 作为 secondary / procedure\n4. 每个最终编码附纳排依据 (justification) 和证据链接 (evidence)\n5. 触发 manual_review_required: confidence < 0.5 / 无 primary / 规则冲突\n\n输出 JSON:\n{\n  \"review_conclusion\": \"PASS|WARNING|FAIL\",\n  \"primary_diagnosis\": {\"code\": \"\", \"name\": \"\", \"confidence\": 0.0, \"evidence\": [], \"justification\": \"\"},\n  \"secondary_diagnoses\": [...],\n  \"procedures\": [...],\n  \"issues_found\": [...],\n  \"manual_review_required\": false\n}",
+  "experts": [
+    {
+      "expert_id": "code-reconciler",
+      "name": "Code Reconciler",
+      "role": "primary",
+      "description": "MedCodER Stage 4 — RankGPT-style re-rank top-K + primary/secondary/procedure assignment. LLM gateway (DeepSeek V4) with offline score-based fallback."
+    }
   ],
+  "tools": [
+    {"name": "rerank_codes", "type": "mcp", "stage": "rerank", "ref": "app.icoder.mcp.server:/mcp/v1/tools/call/rerank_codes"},
+    {"name": "calibrate_confidence", "type": "mcp", "stage": "calibration", "ref": "app.icoder.mcp.server:/mcp/v1/tools/call/calibrate_confidence"},
+    {"name": "get_differentiation_hint", "type": "mcp", "stage": "merge", "ref": "app.icoder.mcp.server:/mcp/v1/tools/call/get_differentiation_hint"},
+    {"name": "guard_input", "type": "guard", "stage": "pre-rerank", "ref": "app.icoder.guards.input_guard:guard_input"},
+    {"name": "guard_output", "type": "guard", "stage": "post-rerank", "ref": "app.icoder.guards.output_guard:guard_output"}
+  ],
+  "model": {
+    "primary": "deepseek-v4",
+    "fallback": "deepseek-v4-flash",
+    "temperature": 0.0,
+    "max_tokens": 4096,
+    "json_mode": true
+  },
+  "pipeline": {
+    "name": "stage4-rerank",
+    "stages": [
+      {"name": "input_guard", "engine": "guard", "purpose": "candidate set schema validation"},
+      {"name": "llm_rerank", "engine": "llm", "model": "deepseek-v4", "top_k": 5, "few_shot_source": "cot_generation_progress_v2.json", "fallback": "offline_score_rank"},
+      {"name": "primary_assignment", "engine": "code", "policy": "top-1 by score per first disease fact = primary_diagnosis"},
+      {"name": "manual_review_decision", "engine": "code", "policy": "confidence < 0.5 OR no primary → manual_review_required=true"},
+      {"name": "output_guard", "engine": "guard", "purpose": "wire-format validation"}
+    ],
+    "upstream_stage": "stage3-merge (medcoder_strategy internal) + stage2-retrieval (index_navigator)",
+    "downstream_stage": "stage5-validation (tabular_validator)"
+  },
+  "non_goals": [
+    "不做最终质量评估 — F1 指标在 e2e_medcoder_validation.py 内部",
+    "不写回 EMR / HIS / 医保结算",
+    "不绕过 manual_review_required 标志 (PHI 安全)",
+    "不重新提取事实 — 输入来自 evidence_extractor (Stage 1) 和 index_navigator (Stage 2)",
+    "不并行运行 homepage-coding-review 14-stage (已弃用 M2)"
+  ],
+  "output_contract": {
+    "schema_ref": "icoder/CodeReconciliation/v1",
+    "a2a_parts": ["DataPart"],
+    "required_fields": [
+      "primary_diagnosis",
+      "secondary_diagnoses",
+      "procedures",
+      "issues_found",
+      "manual_review_required",
+      "review_conclusion"
+    ],
+    "field_shapes": {
+      "primary_diagnosis.code": "str (ICD-10 format)",
+      "primary_diagnosis.name": "str",
+      "primary_diagnosis.confidence": "float (0.0-1.0)",
+      "primary_diagnosis.evidence": "list[str]",
+      "primary_diagnosis.justification": "str",
+      "secondary_diagnoses[].code": "str",
+      "procedures[].code": "str (ICD-9-CM-3 format)",
+      "issues_found[].code": "str (MC-R-* or R001-R012)",
+      "manual_review_required": "bool",
+      "review_conclusion": "PASS|WARNING|FAIL"
+    }
+  },
   "permissions": {
     "key": "code-reconciliation",
     "name": "编码协调权限",
     "description": "最终编码分配 + 审计输出，高风险操作需人工确认",
     "tools": {
-      "verify_evidence": {
-        "allowed": true,
-        "max_per_session": 10
-      },
-      "assign_diagnosis_code": {
-        "allowed": true,
-        "max_per_session": 50
-      },
-      "assign_procedure_code": {
-        "allowed": true,
-        "max_per_session": 30
-      },
-      "check_documentation_gaps": {
-        "allowed": true,
-        "max_per_session": 5
-      },
-      "cdi_review": {
-        "allowed": true,
-        "max_per_session": 5
-      },
-      "guard_input": {
-        "allowed": true
-      },
-      "guard_output": {
-        "allowed": true
-      }
-    }
+      "rerank_codes": "allowed",
+      "calibrate_confidence": "allowed",
+      "get_differentiation_hint": "allowed",
+      "guard_input": "allowed",
+      "guard_output": "allowed",
+      "writeback": "blocked"
+    },
+    "production_writeback_blocked": true
   },
+  "phi_redaction": "required",
+  "context_required": true,
+  "recorder_required": true,
+  "metrics_required": true,
   "requirements": {
-    "min_runtime_version": "1.0.0"
+    "min_runtime_version": "2.0.0",
+    "icoder_runtime_modules": [
+      "icoder_runtime.core.llm_gateway"
+    ]
   },
   "llm_capabilities": {
     "required_models": [
-      {
-        "name": "deepseek-v4"
-      }
+      {"name": "deepseek-v4", "purpose": "stage4_rerank (RankGPT-style + few-shot from cot_generation_progress_v2.json)"}
     ],
-    "supports_tool_calling": true,
-    "supports_json_mode": true
+    "supports_tool_calling": false,
+    "supports_json_mode": true,
+    "supports_mcp_tools": true
+  },
+  "a2a": {
+    "protocol_version": "0.3",
+    "endpoint": "/api/icoder/agents/code-reconciler/v1/message:send",
+    "discovery": "/api/icoder/agents",
+    "agent_card_ref": "icoder/code-reconciler@1.0.0"
   },
   "code": {},
   "integrity": {
-    "sha256": "b4683e8385acec0fce24f049a1a9b47245095cc2ebc32a35eba4024f14b48cd1"
+    "sha256": "PLACEHOLDER_RECOMPUTED_AT_PUBLISH"
   }
 }

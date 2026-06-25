@@ -1,30 +1,110 @@
 {
-  "format_version": "1.1",
-  "agent_type": "certified",
+  "format_version": "1.2",
+  "agent_type": "expert-stub",
   "agent_ref": "icoder/index-navigator@1.0.0",
   "manifest": {
     "name": "Index Navigator",
     "version": "1.0.0",
-    "description": "对每个提取的临床事实进行 ICD-10/ICD-9-CM-3 字母索引导航，输出候选编码列表及匹配分数。纯确定性算法，零 LLM 参与。",
+    "description": "Stage 2 of MedCodER 5-stage pipeline. 对每个提取的临床事实进行 ICD-10/ICD-9-CM-3 向量索引导航，输出候选编码列表及匹配分数。纯确定性算法，零 LLM 参与。BGE-M3 + FAISS (本地 37,897 码索引) + synonym expansion 兜底。",
     "category": "medical-coding",
-    "icon": "BookOpenText"
+    "icon": "BookOpenText",
+    "tags": ["medcoder", "stage-2", "retrieval", "bge-m3", "faiss"]
   },
-  "system_prompt": "你是一个 ICD 索引导航引擎。你使用确定性算法在 ICD-10-CN 和 ICD-9-CM-3 字母索引中查找临床术语对应的编码。\n\n输入：evidence_extractor 输出的 diagnosis_facts 和 procedure_facts\n\n对每个 fact：\n1. 执行 search_icd10_index / search_icd9_index 工具查找候选编码\n2. 返回候选编码列表（code, name, match_score）\n3. 标注匹配类型（exact / synonym / substring / fuzzy）\n\n输出 JSON:\n{\n  \"diagnosis_candidates\": [{\"fact\": \"...\", \"candidates\": [{\"code\": \"M80.900\", \"name\": \"骨质疏松伴病理性骨折\", \"match_score\": 0.95, \"match_type\": \"exact\"}]}],\n  \"procedure_candidates\": [{\"fact\": \"...\", \"candidates\": [{\"code\": \"81.6600x001\", \"name\": \"经皮椎体后凸成形术\", \"match_score\": 0.90}]}]\n}",
-  "experts": [],
-  "tools": ["search_icd10_index", "search_icd9_index", "guard_input", "guard_output"],
+  "system_prompt": "你是一个 ICD 索引导航引擎。你使用确定性算法在 ICD-10-CN 和 ICD-9-CM-3 字母索引中查找临床术语对应的编码。\n\n输入：evidence_extractor 输出的 diagnosis_facts 和 procedure_facts\n\n对每个 fact：\n1. 执行 search_icd10_index / search_icd9_index 工具查找候选编码\n2. 返回候选编码列表（code, name, match_score）\n3. 标注匹配类型（vector / synonym / fuzzy）\n\n输出 JSON:\n{\n  \"diagnosis_candidates\": [{\"fact\": \"...\", \"candidates\": [{\"code\": \"M80.900\", \"name\": \"骨质疏松伴病理性骨折\", \"match_score\": 0.95, \"match_type\": \"vector\"}]}],\n  \"procedure_candidates\": [{\"fact\": \"...\", \"candidates\": [{\"code\": \"81.6600x001\", \"name\": \"经皮椎体后凸成形术\", \"match_score\": 0.90}]}]\n}",
+  "experts": [
+    {
+      "expert_id": "index-navigator",
+      "name": "Index Navigator",
+      "role": "primary",
+      "description": "MedCodER Stage 2 — BGE-M3 + FAISS top-K candidate retrieval. No LLM, fully deterministic. Graceful degradation when retriever is missing."
+    }
+  ],
+  "tools": [
+    {"name": "search_icd", "type": "mcp", "stage": "retrieval", "ref": "app.icoder.mcp.server:/mcp/v1/tools/call/search_icd"},
+    {"name": "guard_input", "type": "guard", "stage": "pre-retrieval", "ref": "app.icoder.guards.input_guard:guard_input"},
+    {"name": "guard_output", "type": "guard", "stage": "post-retrieval", "ref": "app.icoder.guards.output_guard:guard_output"}
+  ],
+  "model": {
+    "primary": "none",
+    "fallback": "none",
+    "embedding": "BAAI/bge-m3",
+    "embedding_dim": 1024
+  },
+  "pipeline": {
+    "name": "stage2-retrieval",
+    "stages": [
+      {"name": "input_guard", "engine": "guard", "purpose": "length cap + fact list validation"},
+      {"name": "vector_retrieve", "engine": "bge-m3+faiss", "top_k": 20, "synonym_cap": 3, "catalog_filter": "icd10cn_code_catalog"},
+      {"name": "output_guard", "engine": "guard", "purpose": "catalog membership check"}
+    ],
+    "upstream_stage": "stage1-extraction (evidence_extractor)",
+    "downstream_stage": "stage3-merge (medcoder_strategy internal)"
+  },
+  "non_goals": [
+    "不做最终编码决策 — 仅产出候选集，重排由 code_reconciler (Stage 4) 完成",
+    "不调用 LLM — 纯向量检索 + 词典过滤",
+    "不评估 F1 指标 — 在 e2e_medcoder_validation.py 内部",
+    "不写回 EMR / HIS / 医保结算",
+    "不绕过 PHI redaction"
+  ],
+  "output_contract": {
+    "schema_ref": "icoder/CandidateSet/v1",
+    "a2a_parts": ["DataPart"],
+    "required_fields": [
+      "diagnosis_candidates",
+      "procedure_candidates",
+      "retriever_status"
+    ],
+    "field_shapes": {
+      "diagnosis_candidates[].fact": "str",
+      "diagnosis_candidates[].candidates[].code": "str (ICD-10 format)",
+      "diagnosis_candidates[].candidates[].name": "str",
+      "diagnosis_candidates[].candidates[].score": "float (0.0-1.0, cosine via inner product on normalized vectors)",
+      "diagnosis_candidates[].candidates[].chapter": "str",
+      "diagnosis_candidates[].candidates[].match_type": "str (vector|synonym|fuzzy)",
+      "procedure_candidates[].candidates[].code": "str (ICD-9-CM-3 format)",
+      "retriever_status": "ok|degraded|missing"
+    }
+  },
   "permissions": {
     "key": "index-navigation",
     "name": "索引导航权限",
     "description": "只读字典查询，无 LLM 推理",
     "tools": {
-      "search_icd10_index": {"allowed": true, "max_per_session": 200},
-      "search_icd9_index": {"allowed": true, "max_per_session": 200},
-      "guard_input": {"allowed": true},
-      "guard_output": {"allowed": true}
-    }
+      "search_icd": "allowed",
+      "guard_input": "allowed",
+      "guard_output": "allowed",
+      "writeback": "blocked"
+    },
+    "production_writeback_blocked": true
   },
-  "requirements": { "min_runtime_version": "1.0.0" },
-  "llm_capabilities": { "required_models": [{"name": "deepseek-v4"}], "supports_tool_calling": true, "supports_json_mode": true },
+  "phi_redaction": "required",
+  "context_required": true,
+  "recorder_required": true,
+  "metrics_required": true,
+  "requirements": {
+    "min_runtime_version": "2.0.0",
+    "icoder_runtime_modules": [
+      "icoder_runtime.providers.medical_coding.medcoder_retriever",
+      "data.medcoder.faiss.index"
+    ]
+  },
+  "llm_capabilities": {
+    "required_models": [
+      {"name": "BAAI/bge-m3", "purpose": "stage2_retrieval embedding"}
+    ],
+    "supports_tool_calling": false,
+    "supports_json_mode": false,
+    "supports_mcp_tools": true
+  },
+  "a2a": {
+    "protocol_version": "0.3",
+    "endpoint": "/api/icoder/agents/index-navigator/v1/message:send",
+    "discovery": "/api/icoder/agents",
+    "agent_card_ref": "icoder/index-navigator@1.0.0"
+  },
   "code": {},
-  "integrity": { "sha256": "" }
+  "integrity": {
+    "sha256": "PLACEHOLDER_RECOMPUTED_AT_PUBLISH"
+  }
 }

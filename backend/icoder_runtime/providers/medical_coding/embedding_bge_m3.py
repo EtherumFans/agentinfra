@@ -24,6 +24,8 @@ import os
 import threading
 from typing import Sequence
 
+import numpy as np
+
 logger = logging.getLogger(__name__)
 
 # Where the model is downloaded / cached. The build_medcoder_index.py script
@@ -106,12 +108,25 @@ class BGEEmbedder:
 
         Empty / None inputs return a single zero vector — this keeps the
         downstream retriever simple (length always matches len(texts)).
+
+        For large inputs prefer :meth:`embed_numpy` to avoid Python-list
+        materialization (saves ~1 GB of overhead at 38k × 1024).
         """
         if not texts:
             return []
+        arr = self.embed_numpy(texts)
+        return arr.tolist()
+
+    def embed_numpy(self, texts: Sequence[str]) -> np.ndarray:
+        """Encode ``texts`` into a 2-D float32 array of shape (len(texts), dim).
+
+        This is the memory-efficient path used by the FAISS index builder
+        and the runtime retriever. Vectors are L2-normalized so inner
+        product == cosine.
+        """
+        if not texts:
+            return np.zeros((0, self.dim), dtype="float32")
         self.ensure_loaded()
-        # Replace any empty strings with a single space so the model
-        # doesn't choke on zero-length inputs.
         normalized = [(t or " ").strip() or " " for t in texts]
         vectors = self._model.encode(  # type: ignore[union-attr]
             normalized,
@@ -120,12 +135,19 @@ class BGEEmbedder:
             show_progress_bar=False,
             convert_to_numpy=True,
         )
-        return [v.astype("float32").tolist() for v in vectors]
+        arr = np.asarray(vectors, dtype="float32")
+        if arr.ndim != 2 or arr.shape[1] != self.dim:
+            raise RuntimeError(
+                f"Unexpected embedding shape {arr.shape}; expected (N, {self.dim})"
+            )
+        return np.ascontiguousarray(arr)
 
     def embed_one(self, text: str) -> list[float]:
         """Convenience: encode a single string and return the vector."""
-        out = self.embed([text])
-        return out[0] if out else [0.0] * self.dim
+        if not text:
+            return [0.0] * self.dim
+        arr = self.embed_numpy([text])
+        return arr[0].tolist()
 
 
 def _dir_has_model(path: str) -> bool:

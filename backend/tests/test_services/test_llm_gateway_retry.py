@@ -185,8 +185,15 @@ async def test_network_timeout_returns_degraded_no_circuit_failure(fresh_circuit
 
 
 @pytest.mark.asyncio
-async def test_missing_api_key_returns_degraded_without_http():
-    """No api_key → degraded mock before any HTTP call. No record_failure."""
+async def test_missing_api_key_returns_degraded_without_http(monkeypatch):
+    """No api_key → degraded mock before any HTTP call. No record_failure.
+
+    Phase A A2 (2026-06-25): the dev environment persists ICODER_CREDENTIAL_LLM
+    in the OS user env, so the previous ``api_key=""`` argument was being
+    silently replaced by the constructor's env fallback. Explicitly clear
+    the env var so this test genuinely exercises the no-key path.
+    """
+    monkeypatch.delenv("ICODER_CREDENTIAL_LLM", raising=False)
     provider = DeepSeekProvider(api_key="")
 
     resp = await provider.generate([{"role": "user", "content": "hi"}])

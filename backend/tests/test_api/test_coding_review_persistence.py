@@ -63,7 +63,7 @@ def test_post_run_inserts_row_in_db(client):
     row = rows
     assert row.id == run_id
     assert row.case_id == "c-persist-001"
-    assert row.agent_ref == "icoder/homepage-coding-review-agent@1.0.0"
+    assert row.agent_ref == "icoder/medcoder-coding-review-agent@1.0.0"
     assert row.prediction_mode == "link_validation"
     assert row.input_source == "manual"
     assert row.encounter_text == SAMPLE_INPUT["encounter_text"]
@@ -89,7 +89,7 @@ def test_get_run_id_reads_from_db(client):
     body = g.json()
     assert body["run_id"] == run_id
     assert body["trace_id"]  # non-empty
-    assert body["agent_ref"] == "icoder/homepage-coding-review-agent@1.0.0"
+    assert body["agent_ref"] == "icoder/medcoder-coding-review-agent@1.0.0"
 
 
 # ── Test 3: GET /{run_id}/report reads from DB ─────────────────────────

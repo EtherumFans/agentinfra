@@ -23,7 +23,10 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.main import app
-from official_agents.homepage_coding_review import (
+# Phase A A3 (2026-06-25): homepage_coding_review is deprecated. The
+# canonical constants now live in app.api.icoder_coding_review (inlined
+# there in M0 to drop the shim). Update the import accordingly.
+from app.api.icoder_coding_review import (
     AGENT_REF,
     AGENT_CATEGORY,
     PIPELINE_STAGES,
@@ -73,8 +76,11 @@ def test_no_credential_no_opt_in_returns_503(client, monkeypatch):
 def test_no_credential_with_opt_in_returns_200_degraded(client, monkeypatch):
     """Dev path: no key, but ICODER_ALLOW_DEGRADED_NO_KEY=1 → 200 with degraded=True.
 
-    The 14-stage pipeline still runs through the degraded-echo path so the
-    e2e workbench flow remains exercisable without a DeepSeek key.
+    The 14-stage homepage-coding-review pipeline still runs through the
+    degraded-echo path so the e2e workbench flow remains exercisable
+    without a DeepSeek key. (Phase B / M2b will collapse the API layer
+    to the canonical MedCodER 5 stages; that refactor is out of scope
+    for Phase A.)
     """
     monkeypatch.delenv("ICODER_CREDENTIAL_LLM", raising=False)
     monkeypatch.setenv("ICODER_ALLOW_DEGRADED_NO_KEY", "1")
@@ -86,7 +92,7 @@ def test_no_credential_with_opt_in_returns_200_degraded(client, monkeypatch):
     assert body["degraded"] is True, f"degraded must be True under no-key echo, got {body}"
     assert body["agent_ref"] == AGENT_REF
     assert body["agent_category"] == AGENT_CATEGORY
-    # 14 阶段至少包含核心推理链路
+    # 14 阶段至少包含核心推理链路 (实际是 14 个)
     observed = body["pipeline_stages_observed"]
     assert len(observed) >= 8, f"observed stages too few: {observed}"
     assert "high_risk_coding_point_checker" in observed

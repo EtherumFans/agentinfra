@@ -97,7 +97,7 @@ export default function EmbedDemoCodingReviewPage() {
       const payload: HumanReviewAction = {
         action: action as HumanReviewAction['action'],
         target_code: code,
-        target_role: role,
+        target_role: role as HumanReviewAction['target_role'],
         reason_code: 'R007',
         reviewer: 'embed-demo-reviewer',
         reviewer_role: 'medical_insurance_reviewer',
@@ -122,7 +122,7 @@ export default function EmbedDemoCodingReviewPage() {
         <span className="font-semibold">某 HIS 系统 (Mock)</span>
         <span className="text-xs text-slate-400">· 病案首页</span>
         <div className="ml-auto flex items-center gap-3 text-xs text-slate-300">
-          <Link to="/studio/agents/homepage-coding-review" className="hover:text-white flex items-center gap-0.5">
+          <Link to="/studio/medical-coding" className="hover:text-white flex items-center gap-0.5">
             打开完整 iCoDer Workbench <ExternalLink size={10} />
           </Link>
         </div>

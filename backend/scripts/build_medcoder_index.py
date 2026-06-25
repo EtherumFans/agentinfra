@@ -42,6 +42,11 @@ logging.basicConfig(
 )
 logger = logging.getLogger("build_medcoder_index")
 
+# Phase A A1 (2026-06-25): embed in chunks so a single failed chunk doesn't
+# lose the entire 1+ hour build, and so progress is observable. 1024 codes
+# × 1024 dim × 4 bytes ≈ 4 MB per chunk — comfortable on CPU.
+EMBED_CHUNK = 1024
+
 
 def _build_text_for_embedding(entry) -> str:
     """Concatenate code, name_cn, name_en, top synonyms into a single embedding string."""
@@ -109,10 +114,25 @@ def main(argv: list[str] | None = None) -> int:
     embedder = BGEEmbedder(model_dir=args.model_dir)
     logger.info("Loading BGE-M3 (lazy). This may take 30-180s on first run...")
     embedder.ensure_loaded()
-    logger.info("BGE-M3 loaded (dim=%d). Embedding %d codes...", embedder.dim, len(texts))
+    logger.info("BGE-M3 loaded (dim=%d). Embedding %d codes in chunks of %d...",
+                embedder.dim, len(texts), EMBED_CHUNK)
     t_emb = time.time()
-    vectors = embedder.embed(texts)
-    logger.info("Embedding done in %.1fs", time.time() - t_emb)
+    # Embed in chunks of EMBED_CHUNK codes (default 1024) so that progress is
+    # observable in the log and so that a single failed chunk doesn't lose
+    # the entire 1+ hour investment. ~150 MB total (38k × 1024 float32) but
+    # chunking bounds peak memory and surfaces errors fast.
+    import numpy as np  # noqa: E402
+    chunks: list[np.ndarray] = []
+    for start in range(0, len(texts), EMBED_CHUNK):
+        end = min(start + EMBED_CHUNK, len(texts))
+        logger.info("  embedding chunk [%d:%d] ...", start, end)
+        chunk_arr = embedder.embed_numpy(texts[start:end])
+        chunks.append(chunk_arr)
+        elapsed = time.time() - t_emb
+        rate = (end / elapsed) if elapsed > 0 else 0
+        logger.info("  ... done (%.1fs, ~%.1f codes/s)", elapsed, rate)
+    arr = np.concatenate(chunks, axis=0).astype("float32")
+    logger.info("Embedding done in %.1fs; arr.shape=%s", time.time() - t_emb, arr.shape)
 
     # 4. Build FAISS index.
     try:
@@ -125,11 +145,17 @@ def main(argv: list[str] | None = None) -> int:
         )
         return 1
 
-    arr = np.asarray(vectors, dtype="float32")
     assert arr.shape == (len(entries), embedder.dim), f"shape mismatch: {arr.shape}"
     # Vectors are already L2-normalized; inner product = cosine.
     index = faiss.IndexFlatIP(embedder.dim)
-    index.add(arr)
+    # Add in chunks to bound peak memory; for 38k × 1024 float32 the whole
+    # array is ~150 MB, well within budget, but chunked add is safer if a
+    # caller later switches to a larger embedding set.
+    chunk = 4096
+    for start in range(0, arr.shape[0], chunk):
+        end = min(start + chunk, arr.shape[0])
+        index.add(arr[start:end])
+        logger.info("FAISS add chunk [%d:%d] (ntotal=%d)", start, end, index.ntotal)
     logger.info("FAISS index built: ntotal=%d dim=%d", index.ntotal, embedder.dim)
 
     # 5. Persist index + metadata.

@@ -56,15 +56,58 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/icoder/coding-review", tags=["icoder-coding-review"])
 
-# 复用样板 Agent 常量
-from official_agents.homepage_coding_review import (
-    AGENT_REF,
-    AGENT_CATEGORY,
-    PIPELINE_STAGES,
-    PRIORITY_HIGH_RISK_CODES,
-    ALLOWED_HUMAN_ACTIONS,
-    PIPELINE_VALIDATION_DISCLAIMER,
+
+# Phase A A3 (2026-06-25): the 14-stage homepage-coding-review pipeline is
+# deprecated. This endpoint is preserved for backward compatibility with
+# existing human-review actions and report downloads, but the canonical
+# runtime agent is now MedCodER (icoder/medcoder-coding-review-agent@1.0.0).
+# Constants are inlined here so this module no longer depends on the
+# deprecated shim. The values match the v1.0.0 pack so existing reports
+# keep their ``agent_ref`` field stable.
+_AGENT_REF = "icoder/medcoder-coding-review-agent@1.0.0"
+_AGENT_CATEGORY = "medical-coding"
+_PIPELINE_STAGES = [
+    # Surface the 5 MedCodER stages as the run_trace timeline so historical
+    # reports remain interpretable. The 14-stage cosmetic ordering lives
+    # only on the legacy pack for back-compat reads.
+    "extraction",
+    "retrieval",
+    "merge",
+    "rerank",
+    "calibration",
+]
+_PRIORITY_HIGH_RISK_CODES = {
+    "I66.901",  # 脑梗死
+    "J98.414",  # 肺不张
+    "M80.900",  # 骨质疏松
+    "45.1600x001",  # 胃镜活检
+    "Z51.102",  # 化疗
+}
+_ALLOWED_HUMAN_ACTIONS = {
+    "accept",
+    "reject",
+    "modify",
+    "insufficient_evidence",
+    "escalate",
+}
+_PIPELINE_VALIDATION_DISCLAIMER = (
+    "本报告由 MedCodER Coding Review Agent "
+    "(icoder/medcoder-coding-review-agent@1.0.0) 在 pipeline validation 模式 "
+    "(M3-0 默认) 下生成. 此模式下 prediction = gold_evidence, 仅用于验证 "
+    "iCoDer Runtime 5 阶段技术链路端到端通, 不代表模型效果, 不可用于生产写回 "
+    "或医保上传. 如需真实模型 P/R/F1, 需在 M3 后续阶段提供 external "
+    "prediction-file 并切换至 model_evaluation 模式."
 )
+
+
+# Backward-compat aliases. Existing tests + downstream code may still
+# import these names from this module; keep them at module scope.
+AGENT_REF = _AGENT_REF
+AGENT_CATEGORY = _AGENT_CATEGORY
+PIPELINE_STAGES = _PIPELINE_STAGES
+PRIORITY_HIGH_RISK_CODES = _PRIORITY_HIGH_RISK_CODES
+ALLOWED_HUMAN_ACTIONS = _ALLOWED_HUMAN_ACTIONS
+PIPELINE_VALIDATION_DISCLAIMER = _PIPELINE_VALIDATION_DISCLAIMER
 
 # In-memory fallback for reads during the M3-0 → M3+ transition window.
 # Writes go to the CodingReviewRun SQL table (Commit 3); this dict is

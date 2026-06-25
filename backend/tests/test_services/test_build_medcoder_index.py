@@ -92,6 +92,15 @@ class _FakeEmbedder:
         v /= np.linalg.norm(v, axis=1, keepdims=True) + 1e-12
         return v.tolist()
 
+    def embed_numpy(self, texts):
+        """Phase A A1: real BGEEmbedder now exposes embed_numpy() to avoid
+        the .tolist() round-trip on 37k×1024 vectors (was 1 GB Python overhead
+        in build_medcoder_index.py). Mirror the same surface here."""
+        arr = np.asarray(self.embed(texts), dtype="float32")
+        if arr.ndim != 2 or arr.shape[1] != self.dim:
+            raise RuntimeError(f"unexpected shape {arr.shape}")
+        return np.ascontiguousarray(arr)
+
 
 def _fake_faiss_module(fake_index):
     """Return a fake faiss module whose IndexFlatIP() yields ``fake_index``."""

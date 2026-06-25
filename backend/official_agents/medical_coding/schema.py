@@ -11,6 +11,8 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any
 
+from .modes import Mode, MEDCODER_MODES, LEGACY_MODES, coerce  # noqa: F401
+
 
 # ── Span-level Evidence ──
 
@@ -283,18 +285,28 @@ class MedicalCodingOutputSchema:
     repair_rounds: int = 0
 
     # MedCodER pipeline output (NAACL 2025 Industry Track 3-stage).
-    # ``mode`` discriminates which adapter produced this output:
-    #   ""             — unset (e.g., mock_result); caller's responsibility
-    #   "deepseek"     — DeepSeek prompt only (legacy)
-    #   "prompt_llm"   — generic LLM via prompt (legacy)
-    #   "hybrid"       — DeepSeek + trigger RAG + repair
-    #   "no_repair"    — Hybrid without repair loop (ablation)
-    #   "medcoder"     — Full 5-stage MedCodER pipeline (BGE-M3 + FAISS + RankGPT)
-    # Default is empty string (not "hybrid") so that mock_result() and
-    # other unset paths don't falsely claim a real hybrid pipeline ran.
-    # ``extracted_diagnoses`` is only populated when ``mode == "medcoder"``.
-    mode: str = ""
+    # ``mode`` discriminates which adapter produced this output. Validated
+    # against :class:`Mode` (M2 — StrEnum). String-compat preserved:
+    # ``Mode.MEDCODER == "medcoder"`` is True, so JSON payloads round-trip
+    # unchanged. See ``MEDCODER_CAPABILITY_AUDIT.md`` Part 7.4 (M2) for
+    # the full vocabulary (5 MedCodER modes + 4 legacy + UNSET).
+    #
+    # ``extracted_diagnoses`` is only populated when ``mode`` is one of
+    # the MedCodER modes (see ``MEDCODER_MODES``).
+    mode: Mode = Mode.UNSET
     extracted_diagnoses: list = field(default_factory=list)  # list[ExtractedDiagnosis]
+
+    # Phase B (Coding Method Runtime 骨架) — canonical method_id +
+    # per-stage trace. ``method_id`` is the new SSOT (e.g. "medcoder.full",
+    # "legacy.deepseek"); ``mode`` is preserved for back-compat with
+    # persisted JSON. ``method_stage_trace`` is a list of MethodStageTraceEntry
+    # dicts (typed as ``list[dict]`` here to avoid circular imports with
+    # :mod:`icoder_runtime.methods.base`; the runtime always produces
+    # properly-shaped dicts).
+    method_id: str = ""
+    method_name: str = ""
+    method_family: str = ""  # medcoder | legacy | noop
+    method_stage_trace: list = field(default_factory=list)  # list[dict]
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -317,6 +329,10 @@ class MedicalCodingOutputSchema:
             "mode": self.mode,
             "extracted_diagnoses": [d.to_dict() if isinstance(d, ExtractedDiagnosis) else d
                                     for d in self.extracted_diagnoses],
+            "method_id": self.method_id,
+            "method_name": self.method_name,
+            "method_family": self.method_family,
+            "method_stage_trace": list(self.method_stage_trace),
         }
 
     @classmethod
@@ -354,9 +370,13 @@ class MedicalCodingOutputSchema:
             repair_attempted=data.get("repair_attempted", False),
             repair_success=data.get("repair_success", False),
             repair_rounds=data.get("repair_rounds", 0),
-            mode=data.get("mode", ""),
+            mode=coerce(data.get("mode", "")),
             extracted_diagnoses=[ExtractedDiagnosis.from_dict(d) if isinstance(d, dict) else d
                                  for d in data.get("extracted_diagnoses", [])],
+            method_id=data.get("method_id", ""),
+            method_name=data.get("method_name", ""),
+            method_family=data.get("method_family", ""),
+            method_stage_trace=list(data.get("method_stage_trace", []) or []),
         )
 
     @classmethod

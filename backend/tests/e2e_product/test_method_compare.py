@@ -161,8 +161,9 @@ def test_compare_aggregates_consensus(client):
     assert r.status_code == 200
     body = r.json()
     # All noop → primary_code empty → consensus empty
+    # Phase D1: consensus_count replaced by consensus_score (weighted)
     assert body["consensus_primary_code"] == ""
-    assert body["consensus_count"] == 0
+    assert body["consensus_score"] == 0.0
 
 
 def test_compare_rejects_empty_method_list(client):
@@ -337,3 +338,45 @@ def test_get_method_clh(client):
     assert body["stage_count"] == 4
     # Crucially: CLH does NOT require the FAISS retriever
     assert "retriever" not in body["required_capabilities"]
+
+
+# ── Phase D1: parallel /compare + weighted consensus_score ──
+
+
+def test_compare_returns_consensus_score_not_count(client):
+    """Phase D1: response carries ``consensus_score`` (weighted), not ``consensus_count``."""
+    r = client.post(
+        "/api/icoder/coding-review/compare",
+        json={
+            "emr_text": "冠心病合并高血压",
+            "method_ids": ["noop.unavailable", "noop.unavailable"],
+        },
+    )
+    assert r.status_code == 200
+    body = r.json()
+    # New shape — consensus_score (weighted sum of family_weight ×
+    # confidence × evidence_strength) replaces Phase B's consensus_count.
+    assert "consensus_score" in body
+    assert body["consensus_score"] == 0.0  # both noop → no contribution
+    assert "consensus_count" not in body  # field is gone
+
+
+def test_compare_includes_evidence_strength_in_results(client):
+    """Each result entry carries its derived evidence_strength for the aggregator."""
+    r = client.post(
+        "/api/icoder/coding-review/compare",
+        json={
+            "emr_text": "冠心病",
+            "method_ids": ["noop.unavailable"],
+        },
+    )
+    body = r.json()
+    assert len(body["results"]) == 1
+    entry = body["results"][0]
+    # Phase D1: evidence_strength field is exposed on the wire so the
+    # frontend / external clients can reproduce the consensus math.
+    assert "evidence_strength" in entry
+    # status="unavailable" → derived to 0.0 inside the aggregator path
+    # (the field on the entry is 1.0 default, but the aggregator uses
+    # status != "ok" → 0.0 internally).
+    assert entry["status"] == "unavailable"

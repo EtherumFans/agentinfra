@@ -259,11 +259,11 @@ export default function MethodComparePage() {
                     label="Consensus"
                     value={response.consensus_primary_code || '—'}
                     sub={
-                      response.consensus_count > 0
-                        ? `${response.consensus_count} method(s) agree`
+                      response.consensus_score > 0
+                        ? `score ${response.consensus_score.toFixed(3)} (weighted)`
                         : ''
                     }
-                    highlight={response.consensus_count > 1}
+                    highlight={response.consensus_score >= 1.0}
                   />
                 </div>
               </section>

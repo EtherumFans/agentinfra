@@ -161,7 +161,13 @@ export interface CompareResponse {
   capabilities: Record<'llm' | 'retriever' | 'rule_set', boolean>;
   results: CompareResultEntry[];
   consensus_primary_code: string;
-  consensus_count: number;
+  // Phase D1: weighted consensus score (sum of
+  // family_weight × confidence × evidence_strength per method that
+  // agreed on the consensus primary). Replaces the Phase B simple
+  // count of agreeing methods — weighted consensus lets MedCodER-family
+  // methods with strong evidence outrank legacy-family votes even when
+  // fewer in number.
+  consensus_score: number;
 }
 
 export interface RunV2Request {

@@ -105,6 +105,15 @@ class MethodResult:
     stage_trace: list[MethodStageTraceEntry] = field(default_factory=list)
     processing_time_ms: int = 0
 
+    # Evidence strength (Phase D1) — 0.0-1.0 quality signal for the
+    # primary_code derivation, derived from stage_trace + secondary_codes.
+    # Used by the weighted consensus aggregator; NOT consumed by the
+    # frontend trace viewer (which still renders the raw stage_trace).
+    # Default 1.0 keeps legacy JSON round-trips lossless: a result that
+    # was written before this field existed round-trips to a value
+    # indistinguishable from "all stages green".
+    evidence_strength: float = 1.0
+
     # Full structured schema dump (MedicalCodingOutputSchema.to_dict())
     # Preserved so callers can access mode / extracted_diagnoses / etc.
     full_schema: dict | None = None
@@ -126,6 +135,7 @@ class MethodResult:
             "confidence": self.confidence,
             "stage_trace": [e.to_dict() for e in self.stage_trace],
             "processing_time_ms": self.processing_time_ms,
+            "evidence_strength": self.evidence_strength,
         }
 
 

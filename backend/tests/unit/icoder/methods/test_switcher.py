@@ -80,6 +80,43 @@ class _NeedsRetriever(CodingMethod):
         return MethodResult(method_id=self.method_id, status="ok")
 
 
+class _SlowMethod(CodingMethod):
+    """Method that sleeps ``self.delay_s`` seconds before returning OK.
+
+    Used to verify that ``MethodSwitcher.compare`` actually runs in
+    parallel (Phase D1 asyncio.gather upgrade). ``delay_s`` is read
+    fresh on each call so tests can configure it via class attribute.
+    """
+
+    method_id = "test.slow"
+    method_name = "Slow Method"
+    method_family = "medcoder"
+    stage_count = 1
+    required_capabilities = ()
+    description = "sleeps delay_s before returning OK"
+
+    delay_s: float = 0.5
+
+    async def run(self, emr_text, ctx=None):
+        import asyncio as _aio
+        await _aio.sleep(self.delay_s)
+        from icoder_runtime.methods.base import MethodStageTraceEntry
+        return MethodResult(
+            method_id=self.method_id,
+            method_name=self.method_name,
+            method_family=self.method_family,
+            status="ok",
+            primary_code="I50.900",
+            primary_name="心力衰竭",
+            primary_confidence=0.85,
+            stage_trace=[
+                MethodStageTraceEntry(stage_name="extraction", status="ok", latency_ms=100),
+                MethodStageTraceEntry(stage_name="retrieval", status="ok", latency_ms=200),
+            ],
+            processing_time_ms=300,
+        )
+
+
 # ── probe_capabilities ──
 
 
@@ -240,6 +277,57 @@ class TestSwitcherCompare:
         GLOBAL_REGISTRY.register(_OkMethod())
         results = await GLOBAL_SWITCHER.compare(["test.ok"], "")
         assert results[0].status == "unavailable"
+
+    @pytest.mark.asyncio
+    async def test_compare_runs_methods_in_parallel(self):
+        """Phase D1: 4 methods × 0.5s sleep should finish in <1s (parallel).
+
+        Sequential would take 4 × 0.5s = 2s. We assert <1.5s to leave
+        generous slack for CI variance while still catching a regression
+        to sequential for-loop.
+        """
+        import asyncio as _aio
+        import time as _time
+        # Register 4 copies of _SlowMethod under distinct ids so the
+        # registry returns 4 distinct instances.
+        for i in range(4):
+            class _S(_SlowMethod):
+                method_id = f"test.slow.{i}"
+                delay_s = 0.5
+            GLOBAL_REGISTRY.register(_S())
+        method_ids = [f"test.slow.{i}" for i in range(4)]
+        t0 = _time.monotonic()
+        results = await GLOBAL_SWITCHER.compare(method_ids, "emr")
+        elapsed = _time.monotonic() - t0
+        assert len(results) == 4
+        assert all(r.status == "ok" for r in results)
+        # Parallel: ~0.5s wall. Sequential would be ~2s.
+        assert elapsed < 1.5, f"compare took {elapsed:.2f}s — likely sequential, not parallel"
+
+    @pytest.mark.asyncio
+    async def test_compare_single_method_timeout_returns_unavailable(self):
+        """Phase D1: per-method timeout converts long-running methods to status='unavailable'."""
+        class _VerySlow(_SlowMethod):
+            method_id = "test.very_slow"
+            delay_s = 2.0  # 2s sleep
+        GLOBAL_REGISTRY.register(_VerySlow())
+        results = await GLOBAL_SWITCHER.compare(["test.very_slow"], "emr", timeout_s=0.1)
+        assert len(results) == 1
+        assert results[0].status == "unavailable"
+        assert "timeout" in results[0].reason
+        assert "0.1" in results[0].reason
+
+    @pytest.mark.asyncio
+    async def test_compare_timeout_none_disables_timeout(self):
+        """Phase D1: timeout_s=None bypasses the wait_for — slow methods complete normally."""
+        class _ModSlow(_SlowMethod):
+            method_id = "test.mod_slow"
+            delay_s = 0.2
+        GLOBAL_REGISTRY.register(_ModSlow())
+        results = await GLOBAL_SWITCHER.compare(["test.mod_slow"], "emr", timeout_s=None)
+        assert len(results) == 1
+        assert results[0].status == "ok"
+        assert results[0].primary_code == "I50.900"
 
 
 # ── MethodSwitcher.describe ──

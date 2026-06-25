@@ -126,6 +126,40 @@ class TestMethodResult:
         assert r.full_schema == {"mode": "deepseek", "extra": 1}
         assert "full_schema" not in r.to_dict()
 
+    def test_evidence_strength_default(self):
+        # Phase D1: default 1.0 keeps legacy JSON round-trips lossless.
+        r = MethodResult(method_id="m5", method_name="M5", method_family="medcoder")
+        assert r.evidence_strength == 1.0
+        assert r.to_dict()["evidence_strength"] == 1.0
+
+    def test_evidence_strength_round_trip(self):
+        # Explicit override is preserved through to_dict().
+        r = MethodResult(
+            method_id="m6",
+            method_name="M6",
+            method_family="medcoder",
+            evidence_strength=0.5,
+        )
+        assert r.evidence_strength == 0.5
+        d = r.to_dict()
+        assert d["evidence_strength"] == 0.5
+
+    def test_evidence_strength_status_not_ok(self):
+        # The default 1.0 holds even when status != "ok" — it is the
+        # aggregator's job (in _evidence_strength helper) to map
+        # status != "ok" to 0.0. MethodResult itself is just a dataclass.
+        r = MethodResult(
+            method_id="m7",
+            method_name="M7",
+            method_family="medcoder",
+            status="error",
+            reason="intentional crash",
+            evidence_strength=1.0,  # method author chose to leave it alone
+        )
+        d = r.to_dict()
+        assert d["status"] == "error"
+        assert d["evidence_strength"] == 1.0
+
 
 # ── CodingMethod ABC contract ──
 

@@ -101,6 +101,8 @@ class CompareResultEntry(BaseModel):
     confidence: float = 0.0
     stage_trace: list[dict] = Field(default_factory=list)
     processing_time_ms: int = 0
+    # Phase D1: derived quality signal (0.0-1.0) for weighted consensus
+    evidence_strength: float = 1.0
 
 
 class CompareResponse(BaseModel):
@@ -110,7 +112,12 @@ class CompareResponse(BaseModel):
     capabilities: dict[str, bool]
     results: list[CompareResultEntry]
     consensus_primary_code: str = ""
-    consensus_count: int = 0  # how many methods agree on the consensus primary
+    # Phase D1: weighted consensus score (sum of family_weight ×
+    # confidence × evidence_strength per method that agreed on the
+    # consensus primary). Replaces the Phase B simple count of agreeing
+    # methods — weighted consensus lets MedCodER-family methods with
+    # strong evidence outrank legacy-family votes even if fewer in number.
+    consensus_score: float = 0.0
 
 
 class RunV2Request(BaseModel):
@@ -236,7 +243,84 @@ def _result_to_entry(result: MethodResult) -> CompareResultEntry:
         confidence=result.confidence,
         stage_trace=[e.to_dict() for e in result.stage_trace],
         processing_time_ms=result.processing_time_ms,
+        evidence_strength=result.evidence_strength,
     )
+
+
+# ── Phase D1 weighted consensus ──
+
+# Method-family weight in consensus aggregation. Reflects the trust
+# hierarchy we want the operator to see: a MedCodER variant with the
+# 5-stage pipeline + re-rank + calibration is the strongest signal;
+# legacy hybrid adapters are weaker; noop contributes nothing.
+_FAMILY_WEIGHT: dict[str, float] = {
+    "medcoder": 1.0,
+    "legacy": 0.8,
+    "noop": 0.0,
+}
+
+
+def _evidence_strength(result: MethodResult) -> float:
+    """Derive a 0.0-1.0 evidence-quality signal from a single result.
+
+    Heuristic — true Phase D future work would replace this with a
+    learned quality model:
+
+    - ``status != "ok"``            → 0.0  (unusable)
+    - empty ``stage_trace``         → 0.5  (unknown; trust the basic confidence)
+    - all stages ``ok`` + secondary → 1.0  (fully corroborated)
+    - all stages ``ok`` (no secondary) → 0.8  (clean run but thin evidence)
+    - any stage not ``ok``         → 0.5  (partial degradation)
+    """
+    if result.status != "ok":
+        return 0.0
+    trace = result.stage_trace or []
+    if not trace:
+        return 0.5
+    all_ok = all(s.status == "ok" for s in trace)
+    has_secondary = bool(result.secondary_codes)
+    if all_ok and has_secondary:
+        return 1.0
+    if all_ok:
+        return 0.8
+    return 0.5
+
+
+def _weighted_consensus(entries: list[CompareResultEntry]) -> tuple[str, float]:
+    """Compute (consensus_code, consensus_score) from compare entries.
+
+    Each method contributes ``family_weight × primary_confidence ×
+    evidence_strength`` to the score for its ``primary_code``. The
+    winning code is the one with the highest aggregated score; ties
+    break by sum of ``primary_confidence`` (so a tied MedCodER vs
+    legacy result still prefers MedCodER via the family weight).
+
+    Returns ``("", 0.0)`` when no method produced an ``ok`` result with
+    a non-empty ``primary_code``.
+    """
+    scores: dict[str, float] = {}
+    confidences: dict[str, float] = {}
+    for e in entries:
+        if e.status != "ok" or not e.primary_code:
+            continue
+        family_w = _FAMILY_WEIGHT.get(e.method_family, 0.5)
+        score = family_w * e.primary_confidence * e.evidence_strength
+        scores[e.primary_code] = scores.get(e.primary_code, 0.0) + score
+        confidences[e.primary_code] = (
+            confidences.get(e.primary_code, 0.0) + e.primary_confidence
+        )
+
+    if not scores:
+        return ("", 0.0)
+
+    def _tiebreak_key(kv: tuple[str, float]) -> tuple[float, float]:
+        return (kv[1], confidences.get(kv[0], 0.0))
+
+    (consensus_code, consensus_score) = max(
+        scores.items(),
+        key=_tiebreak_key,
+    )
+    return (consensus_code, round(consensus_score, 6))
 
 
 @compare_router.post("/compare", response_model=CompareResponse)
@@ -267,15 +351,8 @@ async def compare_methods(req: CompareRequest) -> CompareResponse:
     )
     entries = [_result_to_entry(r) for r in results]
 
-    # Compute consensus: primary_code appearing in most results.
-    code_counts: dict[str, int] = {}
-    for e in entries:
-        if e.status == "ok" and e.primary_code:
-            code_counts[e.primary_code] = code_counts.get(e.primary_code, 0) + 1
-    consensus_code = ""
-    consensus_count = 0
-    if code_counts:
-        consensus_code, consensus_count = max(code_counts.items(), key=lambda kv: (kv[1], -ord(kv[0][0]) if kv[0] else 0))
+    # Phase D1: weighted consensus (replaces simple max-count).
+    consensus_code, consensus_score = _weighted_consensus(entries)
 
     return CompareResponse(
         case_id=req.case_id,
@@ -284,7 +361,7 @@ async def compare_methods(req: CompareRequest) -> CompareResponse:
         capabilities=probe_capabilities(),
         results=entries,
         consensus_primary_code=consensus_code,
-        consensus_count=consensus_count,
+        consensus_score=consensus_score,
     )
 
 

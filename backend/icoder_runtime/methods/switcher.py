@@ -31,6 +31,7 @@ consumers — Phase B does not expand legacy paths.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
 from typing import Any
@@ -134,6 +135,7 @@ class MethodSwitcher:
         method_id: str,
         emr_text: str,
         ctx: dict[str, Any] | None = None,
+        caps: dict[str, bool] | None = None,
     ) -> MethodResult:
         """Run the given method on the EMR text.
 
@@ -141,6 +143,12 @@ class MethodSwitcher:
         return ``status="unavailable"`` with a descriptive reason rather
         than invoking the method. Empty ``emr_text`` short-circuits to
         the noop method.
+
+        ``caps`` is an optional pre-computed capability snapshot. When
+        None (single-method call), a fresh probe is taken. When supplied
+        (parallel-batch path inside :meth:`compare`), the shared snapshot
+        is used — this avoids serializing on the FAISS health-check I/O
+        inside the parallel fan-out.
         """
         method = self._registry.get(method_id)
         if method is None:
@@ -161,8 +169,10 @@ class MethodSwitcher:
                 reason="empty emr_text",
             )
 
-        # Capability check
-        caps = probe_capabilities()
+        # Capability check — use the shared snapshot if supplied (parallel
+        # compare-batch path), else probe fresh (single-method path).
+        if caps is None:
+            caps = probe_capabilities()
         missing = [
             c.value for c in method.required_capabilities
             if not caps.get(c.value, False)
@@ -194,19 +204,97 @@ class MethodSwitcher:
         method_ids: list[str],
         emr_text: str,
         ctx: dict[str, Any] | None = None,
+        *,
+        timeout_s: float | None = 60.0,
     ) -> list[MethodResult]:
-        """Run multiple methods on the same EMR text (sequentially).
+        """Run multiple methods on the same EMR text in parallel.
 
-        Sequential for Phase B (simpler error attribution + trace
-        timing). Parallel execution is a Phase C optimization. Returns
-        the list of results in the same order as ``method_ids`` —
-        callers that want comparison grouping should sort by
-        ``primary_code`` / ``confidence`` / ``processing_time_ms``.
+        Phase D1 upgrade: replaced sequential for-loop with
+        ``asyncio.gather`` so the wall-clock cost of comparing N methods
+        is ``max(per-method latency)`` rather than ``sum``.
+
+        Capability probing is performed ONCE up-front and shared across
+        all tasks — the FAISS health check inside :func:`probe_capabilities`
+        is synchronous file I/O and would otherwise block the event loop
+        serially before each task reaches its ``await`` point.
+
+        Each method is wrapped in :meth:`_run_with_timeout` so that:
+
+        - A single method crashing does NOT fail the whole batch
+          (the crash path inside ``run()`` already converts exceptions
+          to ``status="error"`` MethodResults, so this is belt-and-suspenders).
+        - A method exceeding ``timeout_s`` returns
+          ``status="unavailable" reason="timeout after Xs"`` rather
+          than hanging the entire ``/compare`` request.
+
+        Results are returned in the same order as ``method_ids`` — gather
+        preserves input order in its return tuple.
+
+        ``timeout_s=None`` disables the per-method timeout (use only for
+        offline batch jobs that are allowed to wait indefinitely).
         """
-        out: list[MethodResult] = []
-        for mid in method_ids:
-            out.append(await self.run(mid, emr_text, ctx))
-        return out
+        # Probe capabilities ONCE — share across all tasks. The probe
+        # does sync file I/O (FAISS health check ≈ 0.78s on a 148MB
+        # index), so calling it per-task would serialize the parallel
+        # fan-out before any task reaches its await point.
+        shared_caps = probe_capabilities()
+        tasks = [
+            asyncio.create_task(
+                self._run_with_timeout(mid, emr_text, ctx, timeout_s, shared_caps)
+            )
+            for mid in method_ids
+        ]
+        return list(await asyncio.gather(*tasks))
+
+    async def _run_with_timeout(
+        self,
+        method_id: str,
+        emr_text: str,
+        ctx: dict[str, Any] | None,
+        timeout_s: float | None,
+        caps: dict[str, bool] | None = None,
+    ) -> MethodResult:
+        """Single-method wrapper used by :meth:`compare`.
+
+        Translates ``asyncio.TimeoutError`` into a structured
+        ``status="unavailable"`` result so the surrounding ``gather`` is
+        never cancelled by one slow method.
+
+        ``caps`` is the shared capability snapshot from the caller —
+        when None (single-method ``run()`` path), a fresh probe is
+        taken. Sharing the snapshot across the compare-batch lets
+        parallel tasks skip the FAISS health-check round-trip.
+
+        ``run()`` itself catches domain exceptions and returns
+        ``status="error"`` — the outer ``try`` is a last-resort guard so
+        even an ``asyncio.CancelledError`` injected from outside (e.g.
+        the FastAPI client disconnecting) doesn't crash the comparison.
+        """
+        method = self._registry.get(method_id)
+        if timeout_s is None:
+            return await self.run(method_id, emr_text, ctx)
+        try:
+            return await asyncio.wait_for(
+                self.run(method_id, emr_text, ctx, caps=caps),
+                timeout=timeout_s,
+            )
+        except asyncio.TimeoutError:
+            return MethodResult(
+                method_id=method.method_id if method else method_id,
+                method_name=method.method_name if method else "(unknown)",
+                method_family=method.method_family if method else "",
+                status="unavailable",
+                reason=f"timeout after {timeout_s}s",
+            )
+        except Exception as e:  # noqa: BLE001 — never let one bad method break the batch
+            logger.exception("MethodSwitcher.compare: method=%s crashed", method_id)
+            return MethodResult(
+                method_id=method.method_id if method else method_id,
+                method_name=method.method_name if method else "(unknown)",
+                method_family=method.method_family if method else "",
+                status="error",
+                reason=f"method crashed in compare: {e!r}",
+            )
 
     def describe(self, method_id: str) -> dict[str, Any] | None:
         """Return registry-safe metadata for one method, or None."""

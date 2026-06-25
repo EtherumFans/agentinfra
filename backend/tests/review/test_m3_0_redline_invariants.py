@@ -494,8 +494,8 @@ class TestVersionMetadata:
             data = json.load(f)
         for field in ("model_version", "code_dict_version", "rule_version", "agent_version", "data_asset_version"):
             assert field in data, f"missing field: {field}"
-        # agent_version 必须是样板 Agent ref
-        assert data["agent_version"] == "icoder/homepage-coding-review-agent@1.0.0"
+        # agent_version 必须是样板 Agent ref (M2 起为 MedCodER)
+        assert data["agent_version"] == "icoder/medcoder-coding-review-agent@1.0.0"
 
     def test_report_includes_version_metadata(self, client, monkeypatch):
         """HTML 报告包含 5 个版本字段."""
@@ -563,7 +563,7 @@ class TestCodingReviewRunDBPersistence:
         assert row is not None
         assert row.id == run_id
         assert row.case_id == "c-redline-001"
-        assert row.agent_ref == "icoder/homepage-coding-review-agent@1.0.0"
+        assert row.agent_ref == "icoder/medcoder-coding-review-agent@1.0.0"
         assert row.prediction_mode == "link_validation"
 
     def test_get_run_reads_from_db_after_memory_cleared(self, client, monkeypatch):

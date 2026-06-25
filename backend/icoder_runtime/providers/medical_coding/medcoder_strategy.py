@@ -38,6 +38,7 @@ from official_agents.medical_coding.schema import (
     MedicalCodingOutputSchema, CodingIssue, CandidateCode,
     ExtractedDiagnosis, EvidenceSpan, DiagnosisEntry,
 )
+from official_agents.medical_coding.modes import Mode
 from .medcoder_adapter import (
     build_extraction_messages,
     build_rerank_messages,
@@ -257,7 +258,7 @@ class MedCodERStrategy:
         ctx = ctx or {}
         out = MedicalCodingOutputSchema()
         out.extracted_diagnoses = list(extracted)
-        out.mode = "medcoder"
+        out.mode = Mode.MEDCODER
         out.provider = "medcoder"
 
         # 1) Rule set (advisory → advisory CodingIssue list)
@@ -342,14 +343,14 @@ class MedCodERStrategy:
         emr_text = self._extract_emr_text(emr_text)
         if not emr_text:
             out = MedicalCodingOutputSchema.mock_result("medcoder")
-            out.mode = "medcoder"
+            out.mode = Mode.MEDCODER
             return out
 
         extraction = await self.stage1_extraction(emr_text)
         if not extraction:
             logger.warning("MedCodER: Stage 1 produced 0 diagnoses, falling back to mock")
             out = MedicalCodingOutputSchema.mock_result("medcoder")
-            out.mode = "medcoder"
+            out.mode = Mode.MEDCODER
             out.notes = "MedCodER Stage 1 (extraction) returned 0 diseases"
             return out
 
@@ -371,14 +372,14 @@ class MedCodERStrategy:
         emr_text = self._extract_emr_text(emr_text)
         if not emr_text:
             out = MedicalCodingOutputSchema.mock_result("medcoder")
-            out.mode = "medcoder"
+            out.mode = Mode.MEDCODER
             out.notes = "MedCodER variant=prompt: empty EMR"
             return out
 
         extraction = await self.stage1_extraction(emr_text)
         if not extraction:
             out = MedicalCodingOutputSchema.mock_result("medcoder")
-            out.mode = "medcoder"
+            out.mode = Mode.MEDCODER
             out.notes = "MedCodER variant=prompt: Stage 1 returned 0 diseases"
             return out
 
@@ -409,7 +410,7 @@ class MedCodERStrategy:
         emr_text = self._extract_emr_text(emr_text)
         if not emr_text:
             out = MedicalCodingOutputSchema.mock_result("medcoder")
-            out.mode = "medcoder"
+            out.mode = Mode.MEDCODER
             out.notes = "MedCodER variant=retrieve: empty EMR"
             return out
 
@@ -447,14 +448,14 @@ class MedCodERStrategy:
         emr_text = self._extract_emr_text(emr_text)
         if not emr_text:
             out = MedicalCodingOutputSchema.mock_result("medcoder")
-            out.mode = "medcoder"
+            out.mode = Mode.MEDCODER
             out.notes = "MedCodER variant=prompt+retrieve: empty EMR"
             return out
 
         extraction = await self.stage1_extraction(emr_text)
         if not extraction:
             out = MedicalCodingOutputSchema.mock_result("medcoder")
-            out.mode = "medcoder"
+            out.mode = Mode.MEDCODER
             out.notes = "MedCodER variant=prompt+retrieve: Stage 1 returned 0 diseases"
             return out
 

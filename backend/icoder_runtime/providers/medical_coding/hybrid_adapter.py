@@ -27,6 +27,9 @@ from typing import Any
 from official_agents.medical_coding.schema import (
     CodingEngineAdapter, MedicalCodingOutputSchema,
 )
+from official_agents.medical_coding.modes import (
+    Mode, MEDCODER_MODES, LEGACY_MODES, coerce,
+)
 from .deepseek_coding_adapter import DeepSeekCodingAdapter
 from .prompt_llm_adapter import PromptLLMAdapter
 from .rule_engine_adapter import RuleEngineAdapter
@@ -35,31 +38,33 @@ from .medcoder_strategy import MedCodERStrategy
 logger = logging.getLogger(__name__)
 
 
-# MedCodER modes (M1): the 4 explicit variants + the canonical alias
-# ``"medcoder"`` for backward compatibility (maps to ``variant="full"``).
-MEDCODER_MODES: tuple[str, ...] = (
-    "medcoder",
-    "medcoder_full",
-    "medcoder_prompt",
-    "medcoder_retrieve",
-    "medcoder_prompt+retrieve",
-)
+# MedCodER modes are centralized in :mod:`official_agents.medical_coding.modes`
+# (M2 — StrEnum SSOT). Re-exported here for back-compat with imports like
+# ``from .hybrid_adapter import MEDCODER_MODES``. The values are :class:`Mode`
+# enum members; comparisons (``mode in MEDCODER_MODES``) coerce the LHS via
+# :func:`coerce` before the check.
+
+__all__ = ["MEDCODER_MODES", "LEGACY_MODES", "Mode", "coerce"]
 
 
-def _mode_to_variant(mode: str) -> str:
-    """Map a medcoder mode string to a ``MedCodERStrategy.run_variant``
-    variant name.
+def _mode_to_variant(mode: Mode) -> str:
+    """Map a medcoder mode (already coerced to :class:`Mode`) to a
+    ``MedCodERStrategy.run_variant`` variant name.
 
-    ``"medcoder"`` is the canonical alias for ``"medcoder_full"``; all
+    ``Mode.MEDCODER`` is the canonical alias for ``Mode.MEDCODER_FULL``; all
     other values follow the ``medcoder_<variant>`` naming convention.
+
+    Accepts ``Mode`` (preferred) or ``str`` (legacy callers; coerced
+    defensively).
     """
-    if mode == "medcoder" or mode == "medcoder_full":
+    m = mode if isinstance(mode, Mode) else coerce(mode)
+    if m == Mode.MEDCODER or m == Mode.MEDCODER_FULL:
         return "full"
-    if mode.startswith("medcoder_"):
-        return mode[len("medcoder_"):]
-    # Defensive: only reachable if mode was added to MEDCODER_MODES but
+    if m.value.startswith("medcoder_"):
+        return m.value[len("medcoder_"):]
+    # Defensive: only reachable if a new Mode was added to MEDCODER_MODES but
     # not to this dispatcher. Log and fall back to "full".
-    logger.warning("HybridCodingAdapter: unknown medcoder mode %r; using 'full'", mode)
+    logger.warning("HybridCodingAdapter: unknown medcoder mode %r; using 'full'", m)
     return "full"
 
 
@@ -95,19 +100,25 @@ class HybridCodingAdapter(CodingEngineAdapter):
 
     name = "hybrid_coding_adapter"
 
-    def __init__(self, gateway=None, mode: str = "hybrid", retriever=None, recorder=None):
+    def __init__(self, gateway=None, mode: str | Mode = "hybrid", retriever=None, recorder=None):
         self._gateway = gateway
-        self._mode = mode
+        # M2: coerce once at the boundary so every downstream comparison
+        # (``mode in MEDCODER_MODES`` etc.) uses the StrEnum SSOT. Unknown
+        # values fall back to ``Mode.UNSET`` rather than raising — keeps
+        # back-compat with persisted JSON from older versions.
+        self._mode = coerce(mode)
         self._rule_adapter = RuleEngineAdapter()
         # Repair is on by default; off in "no_repair" mode (tests + opt-out)
         # Medcoder modes have their own retry strategy, so repair loop is off.
-        self._repair_enabled = mode not in ("no_repair",) and mode not in MEDCODER_MODES
+        self._repair_enabled = (
+            self._mode != Mode.NO_REPAIR and self._mode not in MEDCODER_MODES
+        )
 
         # Resolve inference adapter (legacy pipeline only — medcoder modes
         # bypass this via the strategy).
-        if mode in ("deepseek", "no_repair"):
+        if self._mode == Mode.DEEPSEEK or self._mode == Mode.NO_REPAIR:
             self._inference = DeepSeekCodingAdapter(gateway=gateway)
-        elif mode == "prompt_llm":
+        elif self._mode == Mode.PROMPT_LLM:
             self._inference = PromptLLMAdapter(gateway=gateway)
         else:  # hybrid / medcoder_*: default to DeepSeek (only used in hybrid)
             self._inference = DeepSeekCodingAdapter(gateway=gateway)
@@ -116,7 +127,7 @@ class HybridCodingAdapter(CodingEngineAdapter):
 
         # MedCodER strategy (M1). Lazy-constructed when mode ∈ MEDCODER_MODES
         # so legacy modes don't pay the BGE-M3 / FAISS import cost.
-        if mode in MEDCODER_MODES:
+        if self._mode in MEDCODER_MODES:
             self._strategy: MedCodERStrategy | None = MedCodERStrategy(
                 gateway=gateway,
                 retriever=retriever,
@@ -251,7 +262,7 @@ class HybridCodingAdapter(CodingEngineAdapter):
             )
 
         with self._recorder.inference(
-            agent_ref=f"hybrid_coding_adapter:{self._mode}"
+            agent_ref=f"hybrid_coding_adapter:{self._mode.value if hasattr(self._mode, 'value') else self._mode}"
         ) as inf_ctx:
             with inf_ctx.stage("inference"):
                 result, rule_result = await self._stage_inference(

@@ -231,6 +231,55 @@ async def lifespan(app: FastAPI):
     app.state.medcoder_retriever = None  # populated by C7 if subprocess mode is on
     logger.info("MedCodER index: not yet loaded (lazy init on first request)")
 
+    # ── M2.5: FAISS index health check (governance — NO silent continue) ──
+    # Runs synchronously at startup so /api/health + MCP /tools/call can
+    # observe the structured health report. If the index is missing or
+    # corrupt, status="degraded" with a specific reason; downstream
+    # search_icd calls return -32002 instead of silently returning empty.
+    try:
+        from app.services.medcoder_index_health import (
+            index_health_check,
+            is_icd9cm3_retriever_available,
+        )
+        _medcoder_index_dir = Path("data/medcoder")
+        _medcoder_health = index_health_check(_medcoder_index_dir)
+        app.state.medcoder_index_health = _medcoder_health
+        if _medcoder_health["status"] == "ok":
+            logger.info(
+                "MedCodER FAISS index: OK (ntotal=%d, dim=%d, dir=%s)",
+                _medcoder_health["ntotal"],
+                _medcoder_health["dim"],
+                _medcoder_index_dir,
+            )
+        else:
+            logger.error(
+                "MedCodER FAISS index: DEGRADED — %s. "
+                "MCP /mcp/v1/tools/call/search_icd will return -32002 "
+                "until the index is rebuilt. "
+                "Run: python scripts/build_medcoder_index.py",
+                _medcoder_health["reason"],
+            )
+        # ICD-9-CM-3 index is optional (NEW in M2.5). Log a warning if
+        # it's not built yet — it's expected to be missing on first run.
+        _icd9cm3_ok = is_icd9cm3_retriever_available(_medcoder_index_dir)
+        if not _icd9cm3_ok:
+            logger.warning(
+                "MedCodER ICD-9-CM-3 FAISS index: not yet built. "
+                "Run: python scripts/build_medcoder_icd9cm3_index.py"
+            )
+    except Exception as _e:  # noqa: BLE001 — surface any unexpected error
+        # Belt-and-suspenders: even if the health check itself raises,
+        # record a degraded report so the rest of the app knows.
+        logger.exception("MedCodER index health check crashed: %s", _e)
+        app.state.medcoder_index_health = {
+            "status": "degraded",
+            "reason": f"health check itself crashed: {_e}",
+            "checks": {},
+            "ntotal": None,
+            "dim": None,
+            "metadata_len": None,
+        }
+
     # C7: When running with the subprocess retriever, eagerly spawn the
     # worker and probe it so /api/health can report medcoder_index_ready
     # accurately (vs. always-False lazy init). The probe is sync
@@ -489,6 +538,63 @@ async def lifespan(app: FastAPI):
             expert_caller=_phase1_expert_caller,
         )
         logger.info("A2A v0.3 package mounted (Phase 1 stub)" if _phase1_stub_llm else "A2A v0.3 package mounted (real wiring)")
+
+        # ── M2: Mount MCP server (5 MedCodER tools) ──
+        # The MCP server reuses the same MedCodERStrategy that the A2A
+        # CodingExpert path uses (via _hybrid_adapter._strategy). This
+        # guarantees one BGE-M3 + FAISS load is shared across both routes.
+        try:
+            from app.icoder.mcp import mount_mcp
+            from pathlib import Path as _Path
+            _mcp_pack_path = (
+                _Path(__file__).parent.parent
+                / "official_agents"
+                / "medcoder-coding-review"
+                / "agent_pack.json"
+            )
+            _mcp_pack_tools: list[dict] = []
+            if _mcp_pack_path.is_file():
+                import json as _json
+                _mcp_pack_tools = _json.loads(
+                    _mcp_pack_path.read_text(encoding="utf-8"),
+                ).get("tools", [])
+
+            _mcp_strategy = (
+                getattr(_hybrid_adapter, "_strategy", None)
+                if _hybrid_adapter is not None
+                else None
+            )
+            if _mcp_strategy is not None:
+                # Optional PHI redactor (fail-closed when missing + ctx_id).
+                _phi_redactor = None
+                try:
+                    from app.icoder.agent_runtime.orchestrator.phi_redactor import (
+                        PHIRedactor,
+                    )
+                    _phi_redactor = PHIRedactor()
+                except Exception:
+                    _phi_redactor = None
+
+                mount_mcp(
+                    app,
+                    strategy=_mcp_strategy,
+                    phi_redactor=_phi_redactor,
+                    agent_pack_tools=_mcp_pack_tools,
+                )
+                logger.info(
+                    "MCP server mounted (5 MedCodER tools, strategy=%s, "
+                    "phi_redactor=%s)",
+                    type(_mcp_strategy).__name__,
+                    "real" if _phi_redactor is not None else "fail-closed",
+                )
+            else:
+                logger.warning(
+                    "MCP mount skipped: no MedCodERStrategy available "
+                    "(hybrid_adapter=%s)",
+                    _hybrid_adapter,
+                )
+        except Exception as e:
+            logger.warning(f"MCP mount skipped: {e}")
     except Exception as e:
         logger.warning(f"A2A v0.3 mount skipped: {e}")
     # Start runtime timeout checker (background task)
@@ -627,6 +733,10 @@ from app.api.embedded import router as embedded_router
 from app.api.drg import router as drg_router
 from app.api.m2a import router as m2a_router
 from app.api.icoder_coding_review import router as icoder_coding_review_router
+from app.api.icoder_coding_methods import (
+    router as icoder_coding_methods_router,
+    compare_router as icoder_coding_compare_router,
+)
 from app.middleware.rate_limit import rate_limit_middleware
 
 # Rate limiting middleware
@@ -652,6 +762,8 @@ app.include_router(admin_router)
 app.include_router(ws_router)
 app.include_router(code_tables_router)
 app.include_router(icoder_coding_review_router)  # M3-0 病案首页编码审核 Agent API
+app.include_router(icoder_coding_methods_router)  # Phase B /api/icoder/coding-methods/{list, {id}}
+app.include_router(icoder_coding_compare_router)  # Phase B /api/icoder/coding-review/{compare, run-v2}
 app.include_router(organizations_router)
 app.include_router(fhir_router)
 app.include_router(tools_router)

@@ -386,9 +386,33 @@ class MedCodERRetrieverWorker:
             if msg is None:
                 # Sentinel from parent: shut down
                 return
-            req_id, disease, top_k = msg[0], msg[1], (msg[2] if len(msg) > 2 else None)
+            req_id, disease_or_bytes, top_k = msg[0], msg[1], (msg[2] if len(msg) > 2 else None)
+            # The parent always encodes the disease as UTF-8 bytes before
+            # queuing (see ``_retrieve_via_queue``), so decode back to str
+            # here. The legacy str-only path is kept for forward-compat.
+            if isinstance(disease_or_bytes, bytes):
+                disease = disease_or_bytes.decode("utf-8", errors="replace")
+            else:
+                disease = disease_or_bytes
+            # Probe requests bypass FAISS entirely — the worker just
+            # acknowledges liveness with an empty list. This avoids two
+            # failure modes: (1) the probe's fake disease text producing
+            # a junk candidate that collides with the parent's first real
+            # response when the probe times out and the parent resets
+            # ``_next_id`` to 0, and (2) BGE-M3 doing a wasted embedding
+            # pass for a non-disease string.
+            if disease == "__probe__":
+                logger.debug(
+                    "MedCodERRetrieverWorker: probe ack req_id=%s", req_id,
+                )
+                queue_out.put((req_id, []))
+                continue
             try:
                 cands = retriever.retrieve_sync(disease, top_k=top_k)
+                logger.debug(
+                    "MedCodERRetrieverWorker: req_id=%s disease=%r -> %d cands",
+                    req_id, disease, len(cands),
+                )
                 queue_out.put((req_id, cands))
             except Exception as e:
                 # Send an error envelope; keep the loop alive so the
@@ -452,6 +476,16 @@ class SubprocessMedCodERRetriever:
         Returns True if the worker responded (even with an empty list,
         which is the legitimate "no candidates" response), False on
         timeout, req_id mismatch, error envelope, or worker death.
+
+        On any failure path the probe drains both queues and resets
+        ``_next_id`` to 0 so that the first real ``retrieve_async``
+        call allocates ``r0`` and the worker (which is still blocked
+        on ``ensure_loaded`` followed by ``queue_in.get``) lines up
+        with the parent's counter. Without this reset a slow
+        ``ensure_loaded`` (BGE-M3 model load + FAISS index load can
+        exceed the 10s probe_timeout) causes the worker's eventual
+        probe response to land on the parent's NEXT request —
+        manifesting as ``req_id mismatch (got r0, want r1)``.
         """
         if not self._proc.is_alive():
             return False
@@ -459,16 +493,51 @@ class SubprocessMedCodERRetriever:
         try:
             self._q_in.put((req_id, "__probe__", 1))
         except Exception:
-            return False
+            return self._probe_failed_reset()
         try:
             resp_id, payload = self._q_out.get(timeout=probe_timeout)
         except Exception:
-            return False
+            return self._probe_failed_reset()
         if resp_id != req_id:
-            return False
+            # The probe response (or the prior startup_error envelope)
+            # arrived after timeout / under a different id. Drain and
+            # reset so real requests start clean.
+            return self._probe_failed_reset()
         if isinstance(payload, dict) and "error" in payload:
-            return False
+            return self._probe_failed_reset()
         return True
+
+    def _probe_failed_reset(self) -> bool:
+        """Best-effort recovery after a probe failure.
+
+        Drains BOTH queues (the probe request may still be in q_in,
+        which the worker would process and reply to — that reply would
+        then collide with our first real call's response because both
+        share ``_next_id == 0`` after the reset). Resets ``_next_id``
+        to 0 and ``_next_probe_id`` so real calls and any subsequent
+        probes do not collide. Returns ``False`` so the caller can
+        record ``_probe_ok = False`` for ``is_ready``.
+        """
+        try:
+            for _ in range(64):
+                try:
+                    self._q_in.get_nowait()
+                except Exception:
+                    break
+        except Exception:
+            pass
+        try:
+            for _ in range(64):
+                try:
+                    self._q_out.get_nowait()
+                except Exception:
+                    break
+        except Exception:
+            pass
+        with self._lock:
+            self._next_id = 0
+            self._next_probe_id = 0
+        return False
 
     def _alloc_id(self) -> str:
         with self._lock:
@@ -482,37 +551,18 @@ class SubprocessMedCodERRetriever:
         top_k: int | None = None,
         expand_synonyms: bool = True,
     ) -> list:
-        """Async wrapper that round-trips through the worker."""
-        if self._closed or not self._proc.is_alive():
-            return []
-        req_id = self._alloc_id()
-        try:
-            self._q_in.put((req_id, disease, top_k))
-        except Exception as e:
-            logger.warning("SubprocessMedCodERRetriever: send failed: %s", e)
-            return []
+        """Async wrapper that round-trips through the worker.
 
+        Delegates to the synchronous :meth:`_retrieve_via_queue` via
+        ``run_in_executor`` so the queue-drain logic is shared between
+        the async and inline code paths. This avoids the previous
+        "req_id mismatch" bug where the worker's late probe response
+        was consumed as the parent's real reply.
+        """
         loop = asyncio.get_event_loop()
-        try:
-            resp_id, candidates = await loop.run_in_executor(
-                None, self._q_out.get, True, self.timeout
-            )
-        except Exception as e:
-            logger.warning("SubprocessMedCodERRetriever: receive failed: %s", e)
-            return []
-
-        if resp_id != req_id:
-            logger.warning(
-                "SubprocessMedCodERRetriever: req_id mismatch (got %s, want %s)",
-                resp_id, req_id,
-            )
-            return []
-        if isinstance(candidates, dict) and "error" in candidates:
-            logger.warning(
-                "SubprocessMedCodERRetriever: worker error: %s", candidates["error"]
-            )
-            return []
-        return candidates or []
+        return await loop.run_in_executor(
+            None, self._retrieve_via_queue, disease, top_k,
+        )
 
     def retrieve_sync(
         self,
@@ -532,22 +582,60 @@ class SubprocessMedCodERRetriever:
         )
 
     def _retrieve_inline(self, disease: str, top_k: int | None, expand_synonyms: bool) -> list:
+        return self._retrieve_via_queue(disease, top_k)
+
+    def _retrieve_via_queue(self, disease: str, top_k: int | None) -> list:
+        """Synchronous queue round-trip core shared by ``retrieve_async``
+        and ``_retrieve_inline``.
+
+        Sends the request, then drains responses until one matches the
+        expected ``req_id``. Tolerates stale responses left in the
+        queue by a previous probe whose worker reply arrived after the
+        parent's ``probe_timeout`` — without this drain the parent's
+        real call would consume the worker's late probe reply and
+        either fail the ``resp_id == req_id`` check or, worse, accept
+        the late probe reply as if it were our own result (causing
+        ``req_id mismatch (got r0, want r1)`` or garbage candidates
+        returning from a real disease query).
+        """
+        import time as _time
         if self._closed or not self._proc.is_alive():
             return []
         req_id = self._alloc_id()
+        # Send the disease as UTF-8 bytes — see docstring for rationale.
+        payload = (req_id, (disease or "").encode("utf-8"), top_k)
         try:
-            self._q_in.put((req_id, disease, top_k))
-        except Exception:
+            self._q_in.put(payload)
+        except Exception as e:
+            logger.warning("SubprocessMedCodERRetriever: send failed: %s", e)
             return []
-        try:
-            resp_id, candidates = self._q_out.get(timeout=self.timeout)
-        except Exception:
-            return []
-        if resp_id != req_id:
-            return []
-        if isinstance(candidates, dict) and "error" in candidates:
-            return []
-        return candidates or []
+
+        deadline = _time.monotonic() + self.timeout
+        while True:
+            remaining = deadline - _time.monotonic()
+            if remaining <= 0:
+                logger.warning(
+                    "SubprocessMedCodERRetriever: timeout waiting for %s",
+                    req_id,
+                )
+                return []
+            try:
+                resp_id, candidates = self._q_out.get(timeout=remaining)
+            except Exception as e:
+                logger.warning("SubprocessMedCodERRetriever: receive failed: %s", e)
+                return []
+            if resp_id == req_id:
+                if isinstance(candidates, dict) and "error" in candidates:
+                    logger.warning(
+                        "SubprocessMedCodERRetriever: worker error: %s",
+                        candidates["error"],
+                    )
+                    return []
+                return candidates or []
+            logger.debug(
+                "SubprocessMedCodERRetriever: drained stale response %s (want %s)",
+                resp_id, req_id,
+            )
 
     def close(self) -> None:
         """Send the shutdown sentinel and join the worker. Idempotent."""

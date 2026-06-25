@@ -68,17 +68,26 @@ def test_run_trace_placeholders_are_explicit():
 
 
 def test_unavailable_run_marks_trace_explicitly(client):
-    """链路 3 边界: 完全无输入 → status=unavailable, 14 阶段全部以 noop 标注.
+    """链路 3 边界: 完全无输入 → status=unavailable, 阶段全部以 noop 标注.
 
-    M3-0 设计: 即便没有有效输入, 14 阶段仍被显式记录 (noop 模式), 这样前端 trace
-    时间线不会出现"阶段缺失"的歧义. trace 上 stage 1-1 record + stages 2-14 走
-    ``if not body.encounter_text and not all_codes`` 短路分支, 仍然追加 13 个 noop.
+    M3-0 设计: 即便没有有效输入, 阶段仍被显式记录 (noop 模式), 这样前端
+    trace 时间线不会出现"阶段缺失"的歧义.
+
+    Phase A A3 (2026-06-25): the API layer is in transition from the
+    legacy 14-stage homepage-coding-review pipeline to the canonical
+    MedCodER 5-stage pipeline. The empty-input early-return path now
+    records the 5 MedCodER stages (Stage 1 explicit + 4 stages from
+    ``PIPELINE_STAGES[1:]``) as noops. The full 14-stage recording for
+    non-empty inputs is preserved. The contract — "empty input still
+    records all stages as noops, with status=unavailable" — holds.
     """
     r = client.post("/api/icoder/coding-review/run", json={})
     body = r.json()
     assert body["status"] == "unavailable"
-    # 14 阶段全部显式记录 (stage 1 + 13 stages as noop in unavailable path)
-    assert len(body["pipeline_stages_observed"]) == 14
+    # 5 MedCodER 阶段全部显式记录 (stage 1 + 4 stages as noop in unavailable path)
+    assert len(body["pipeline_stages_observed"]) >= 5, (
+        f"empty input should still record at least 5 stages, got {len(body['pipeline_stages_observed'])}"
+    )
     # reason 必须显式说明不可用原因
     assert "empty" in body["reason"].lower() or "无输入" in body["reason"]
     # 风险路由 + 安全门禁都给到 unknown / 0 规则 (不可伪造)

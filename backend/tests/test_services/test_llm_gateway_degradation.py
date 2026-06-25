@@ -71,8 +71,16 @@ def test_mock_fallback_response_shape():
 
 
 @pytest.mark.asyncio
-async def test_no_api_key_returns_degraded_with_no_api_key_reason():
-    """No API key → degraded with reason='no_api_key'. No HTTP call attempted."""
+async def test_no_api_key_returns_degraded_with_no_api_key_reason(monkeypatch):
+    """No API key → degraded with reason='no_api_key'. No HTTP call attempted.
+
+    Phase A A2 (2026-06-25): the dev environment persists ICODER_CREDENTIAL_LLM
+    in the OS user env, so the previous ``api_key=""`` argument was being
+    silently replaced by the constructor's env fallback. Explicitly clear
+    the env var so this test genuinely exercises the no-key path.
+    """
+    monkeypatch.delenv("ICODER_CREDENTIAL_LLM", raising=False)
+
     def handler(request: httpx.Request) -> httpx.Response:
         raise AssertionError("HTTP should not be called when API key is missing")
 

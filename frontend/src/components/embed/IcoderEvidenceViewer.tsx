@@ -82,10 +82,17 @@ export const IcoderEvidenceViewer: React.FC<IcoderEvidenceViewerProps> = ({
       const head = desc.slice(0, 6);
       const idx = enc.indexOf(head);
       const text = idx >= 0 ? enc.slice(idx, idx + Math.min(head.length + 6, 18)) : desc;
+      // Compute char_start / char_end so EvidenceHighlighter can render the
+      // <mark>. If we couldn't locate the snippet in the source text, fall
+      // back to (0, 0) which EvidenceHighlighter filters out (no highlight).
+      const char_start = idx >= 0 ? idx : 0;
+      const char_end = idx >= 0 ? char_start + text.length : 0;
       out.push({
         id: `emb-${c!.code}-${Math.random().toString(36).slice(2, 8)}`,
         field: 'present_illness',
         text,
+        char_start,
+        char_end,
         match_method: 'auto_bootstrap',
         confidence: c!.confidence,
         kind: 'auto_bootstrap',

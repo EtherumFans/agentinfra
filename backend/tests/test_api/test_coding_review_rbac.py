@@ -125,7 +125,7 @@ def test_run_with_admin_token_succeeds(client):
         headers=_auth(token),
     )
     assert r.status_code == 200, f"admin run failed: {r.text}"
-    assert r.json()["agent_ref"] == "icoder/homepage-coding-review-agent@1.0.0"
+    assert r.json()["agent_ref"] == "icoder/medcoder-coding-review-agent@1.0.0"
 
 
 def test_run_with_coder_token_succeeds(client):

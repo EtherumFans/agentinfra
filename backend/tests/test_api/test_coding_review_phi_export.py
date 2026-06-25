@@ -109,7 +109,7 @@ def test_html_report_has_version_metadata(client):
     assert h.status_code == 200
     body = h.text
     # The agent version appears in the §1 section
-    assert "homepage-coding-review-agent" in body, (
+    assert "medcoder-coding-review-agent" in body, (
         f"agent_version not in HTML report"
     )
 

@@ -1,20 +1,48 @@
 """iCoDer M3-0 — 病案首页编码审核 Agent (Python import alias).
 
-This module re-exports the constants from the actual package at
-`official_agents/homepage-coding-review/__init__.py` so that Python can
-import them via the underscore-named path (Python doesn't allow hyphens
-in module names).
+DEPRECATED 2026-06-22 → M2b
+===========================
 
-The hyphen-named directory `homepage-coding-review/` matches the
-agent_ref convention used elsewhere in iCoDer (e.g. `medical-coding`,
-`cdi-review`, `code-reconciler`).
+This 14-stage cosmetic pipeline has been superseded by MedCodER's 5-stage
+pipeline exposed via ``icoder/medcoder-coding-review-agent@1.0.0`` (M0+M1).
+New code MUST use the MedCodER Coding Review Agent (see
+``official_agents/medcoder-coding-review/agent_pack.json`` and
+``MedCodERStrategy.run_variant`` via ``CodingExpert``).
+
+This module is retained for back-compat with the 7 call sites listed
+below; it will be **deleted in M2b** after the 4 ``e2e_product`` tests
+are rewritten to exercise the MedCodER 5-stage trace:
+
+  - icoder_runtime/reports/coding_review_report.py:43
+  - app/api/icoder_coding_review.py:60
+  - tests/test_api/test_icoder_coding_review_no_key.py:26
+  - tests/e2e_product/test_high_risk_priority_codes.py:22
+  - tests/e2e_product/test_report_disclaimer_visible.py:56
+  - tests/e2e_product/test_pipeline_validation_full_flow.py:24
+  - tests/e2e_product/test_run_trace_14_stages.py:14
+
+Replacement: ``icoder/medcoder-coding-review-agent@1.0.0`` (MCP tools at
+``POST /mcp/v1/tools/{list,call}``).
 """
 
 from __future__ import annotations
 
 import importlib
 import sys
+import warnings
 from pathlib import Path
+
+# Emit a DeprecationWarning at import time so callers (tests + reports)
+# notice the migration window. ``stacklevel=2`` makes the warning point
+# at the importer, not this module.
+warnings.warn(
+    "official_agents.homepage_coding_review is deprecated since 2026-06-22; "
+    "use the MedCodER Coding Review Agent "
+    "(icoder/medcoder-coding-review-agent@1.0.0) instead. "
+    "This module will be removed in M2b.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 # Load the hyphen-named package via importlib
 _HYPHEN_PKG = "homepage-coding-review"

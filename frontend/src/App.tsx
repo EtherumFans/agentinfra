@@ -10,8 +10,11 @@ import AgentsPage from './pages/AgentsPage';
 import AgentDetailPage from './pages/AgentDetailPage';
 import MedicalCodingPage from './pages/MedicalCodingPage';
 import FactExtractionPage from './pages/FactExtractionPage';
-// iCoDer M3-0.2 — P10 路由级懒加载 (Workbench / Embed 重组件单独 chunk)
-const CodingReviewWorkbenchPage = lazy(() => import('./pages/CodingReviewWorkbenchPage'));
+// iCoDer Phase A A2 (2026-06-25): CodingReviewWorkbenchPage.tsx deleted
+// because it imported non-existent components. Its 3 routes now alias
+// to MedicalCodingPage. The legacy CodingReviewWorkbenchPage was a 14-stage
+// cosmetic view of homepage-coding-review; the real workbench UI is
+// MedicalCodingPage (DiagnosisCard + EvidenceHighlighter + TopKChips).
 const EmbedDemoCodingReviewPage = lazy(() => import('./pages/EmbedDemoCodingReviewPage'));
 import GoldCasesPage from './pages/GoldCasesPage';
 import EvaluationPage from './pages/EvaluationPage';
@@ -29,10 +32,16 @@ import DocsPage from './pages/DocsPage';
 import ReleaseNotesPage from './pages/ReleaseNotesPage';
 import RuntimeConsolePage from './pages/RuntimeConsolePage';
 import EmbeddedAssistantPage from './pages/EmbeddedAssistantPage';
-import CodeTablesPage from './pages/CodeTablesPage';
-import CodingDictionaryPage from './pages/CodingDictionaryPage';
-import RuleLibraryPage from './pages/RuleLibraryPage';
-import TicketsPage from './pages/TicketsPage';
+import MethodComparePage from './pages/MethodComparePage';
+// Phase A A2 (2026-06-25): CodeTablesPage, CodingDictionaryPage,
+// RuleLibraryPage, TicketsPage never existed in the new Runtime — they
+// were legacy "data/library" surface stubs from a 1:1 Corti mirror that
+// never landed. The canonical equivalents are:
+//   - 编码表 (code-tables)    → /gold-cases (GoldCasesPage) + /evaluation
+//   - 编码字典 (coding-dict)   → GoldCasesPage (gold standard codes)
+//   - 规则库 (rule-library)   → ExpertLibraryPage (rule_set registry)
+//   - 工单 (tickets)          → /support (SupportPage)
+// Per the rule "不允许继续扩大 legacy 双路径", we do not recreate them.
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import ToastContainer from './components/common/Toast';
 
@@ -78,7 +87,10 @@ function App() {
         <Route path="studio/text-generation" element={<TextGenerationPage />} />
         <Route path="studio/fact-extraction" element={<FactExtractionPage />} />
         <Route path="studio/medical-coding" element={<MedicalCodingPage />} />
-        <Route path="studio/agents/homepage-coding-review" element={<Suspense fallback={<div className="p-4 text-sm text-slate-500">Loading Workbench…</div>}><CodingReviewWorkbenchPage /></Suspense>} />
+        {/* Phase A A3 (2026-06-25): legacy homepage-coding-review route
+            redirected to MedicalCodingPage. The 14-stage cosmetic
+            CodingReviewWorkbenchPage is gone. */}
+        <Route path="studio/agents/homepage-coding-review" element={<MedicalCodingPage />} />
         <Route path="studio/marketplace" element={<AgentsPage />} />
         <Route path="studio/expert-library" element={<ExpertLibraryPage />} />
         <Route path="studio/quickstart" element={<DeveloperQuickstartPage />} />
@@ -96,8 +108,10 @@ function App() {
         <Route path="runtime/adjudicator" element={<RuntimeConsolePage />} />
         <Route path="runtime/learn" element={<RuntimeConsolePage />} />
         <Route path="runtime/agents" element={<AgentsPage />} />
-        <Route path="runtime/coding-review" element={<Suspense fallback={<div className="p-4 text-sm text-slate-500">Loading Workbench…</div>}><CodingReviewWorkbenchPage /></Suspense>} />
-        <Route path="runtime/coding-review/:runId" element={<Suspense fallback={<div className="p-4 text-sm text-slate-500">Loading Workbench…</div>}><CodingReviewWorkbenchPage /></Suspense>} />
+        {/* Phase A A2: CodingReviewWorkbenchPage deleted; aliased to MedicalCodingPage. */}
+        <Route path="runtime/coding-review" element={<MedicalCodingPage />} />
+        <Route path="runtime/coding-review/:runId" element={<MedicalCodingPage />} />
+        <Route path="runtime/method-compare" element={<MethodComparePage />} />
         <Route path="embed-demo/coding-review" element={<Suspense fallback={<div className="p-4 text-sm text-slate-500">Loading Embed…</div>}><EmbedDemoCodingReviewPage /></Suspense>} />
         <Route path="runtime/monitoring" element={<RuntimeConsolePage />} />
         {/* V3.0 alias — /manage/* (Manage pane) */}
@@ -115,17 +129,15 @@ function App() {
         <Route path="billing" element={<BillingPage />} />
         <Route path="usage" element={<UsagePage />} />
         <Route path="settings" element={<SettingsPage />} />
-        {/* Data */}
-        <Route path="code-tables" element={<CodeTablesPage />} />
-        <Route path="coding-dictionary" element={<CodingDictionaryPage />} />
-        <Route path="rule-library" element={<RuleLibraryPage />} />
+        {/* Data — Phase A A2: 4 legacy "data/library" pages removed.
+            The real surfaces are gold-cases (gold standard) and
+            evaluation (runtime quality), both already wired. */}
         <Route path="gold-cases" element={<GoldCasesPage />} />
         <Route path="evaluation" element={<EvaluationPage />} />
         {/* Expert Library */}
         <Route path="expert-library" element={<ExpertLibraryPage />} />
         {/* Support */}
         <Route path="support" element={<SupportPage />} />
-        <Route path="tickets" element={<TicketsPage />} />
       </Route>
       <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />

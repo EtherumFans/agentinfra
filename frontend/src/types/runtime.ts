@@ -22,7 +22,7 @@ export interface RuntimeRunResult {
   evidence_ranking?: any;
   quality_flags?: Record<string, boolean>;
   // MedCodER pipeline output (mode="medcoder" only)
-  mode?: 'deepseek' | 'prompt_llm' | 'hybrid' | 'no_repair' | 'medcoder';
+  mode?: 'deepseek' | 'prompt_llm' | 'hybrid' | 'no_repair' | 'medcoder' | 'code_like_humans';
   extracted_diagnoses?: ExtractedDiagnosis[];
 }
 
@@ -45,11 +45,21 @@ export interface ProcedureEntry {
 // ── MedCodER pipeline types (NAACL 2025 3-stage) ──
 
 export interface EvidenceSpan {
+  /** Optional client-side id (embed scenario). Not produced by runtime. */
+  id?: string;
   text: string;
   char_start: number;
   char_end: number;
   doc_id?: string;
   doc_type?: string;
+  /** Field this span lives in (embed scenario, M3-0 default "present_illness"). */
+  field?: string;
+  /** Optional match method label (exact / fuzzy / rapidfuzz / auto_bootstrap). */
+  match_method?: 'exact' | 'fuzzy' | 'rapidfuzz' | 'auto_bootstrap' | string;
+  /** Optional UI kind (e.g. "auto_bootstrap"). */
+  kind?: string;
+  /** The code this span supports (embed scenario). */
+  target_code?: string;
   confidence: number;
 }
 
@@ -87,6 +97,83 @@ export interface AuditTrailEntry {
 export interface RuntimeError {
   code: string;
   message: string;
+}
+
+// ── Phase B: Coding Method Runtime types ────────────────────────
+
+export type MethodFamily = 'medcoder' | 'legacy' | 'noop';
+
+export interface CodingMethodInfo {
+  method_id: string;
+  method_name: string;
+  method_name_en?: string;
+  method_family: MethodFamily;
+  stage_count: number;
+  required_capabilities: Array<'llm' | 'retriever' | 'rule_set'>;
+  description: string;
+  available: boolean;
+}
+
+export interface ListMethodsResponse {
+  methods: CodingMethodInfo[];
+  capabilities: Record<'llm' | 'retriever' | 'rule_set', boolean>;
+  total: number;
+}
+
+export interface MethodStageTraceEntry {
+  stage_name: string;
+  status: 'ok' | 'skipped' | 'failed' | 'noop' | string;
+  latency_ms: number;
+  output_size: number;
+  notes: string;
+}
+
+export interface MethodResult {
+  method_id: string;
+  method_name: string;
+  method_family: MethodFamily | string;
+  status: 'ok' | 'unavailable' | 'error' | string;
+  reason: string;
+  primary_code: string;
+  primary_name: string;
+  primary_confidence: number;
+  secondary_codes: Array<{ code: string; name: string; confidence: number; category: string }>;
+  procedure_codes: Array<{ code: string; name: string; confidence: number; category: string }>;
+  issues: Array<{ severity: string; code: string; message: string; suggestion: string }>;
+  manual_review_required: boolean;
+  confidence: number;
+  stage_trace: MethodStageTraceEntry[];
+  processing_time_ms: number;
+}
+
+export interface CompareResultEntry extends MethodResult {}
+
+export interface CompareRequest {
+  emr_text: string;
+  method_ids: string[];
+  case_id?: string;
+}
+
+export interface CompareResponse {
+  case_id: string;
+  emr_chars: number;
+  method_count: number;
+  capabilities: Record<'llm' | 'retriever' | 'rule_set', boolean>;
+  results: CompareResultEntry[];
+  consensus_primary_code: string;
+  consensus_count: number;
+}
+
+export interface RunV2Request {
+  emr_text: string;
+  method_id?: string;
+  mode?: string;
+  case_id?: string;
+}
+
+export interface RunV2Response extends MethodResult {
+  run_id: string;
+  agent_ref: string;
 }
 
 export interface RuntimeStatus {

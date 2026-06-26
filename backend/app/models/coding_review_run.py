@@ -1,9 +1,14 @@
 """iCoDer M3-0 — CodingReviewRun SQLAlchemy model.
 
 A CodingReviewRun is the persistent state of a single invocation of the
-``icoder/homepage-coding-review-agent@1.0.0`` 14-stage pipeline. It replaces
+MedCodER 5-stage Coding Review Agent
+(``icoder/medcoder-coding-review-agent@1.0.0``). It replaces
 the in-memory ``_RUNS_STORE: dict`` previously used by
 ``app.api.icoder_coding_review``.
+
+Phase D3 (2026-06-26): the legacy 14-stage ``homepage-coding-review``
+agent has been removed; the ``agent_ref`` column still accepts the
+legacy string for back-compat reads of historical rows.
 
 Design notes
 ------------

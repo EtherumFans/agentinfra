@@ -1,4 +1,10 @@
-"""A2A AgentCard + substructure tests (SPEC §8)."""
+"""A2A AgentCard + substructure tests (SPEC §8).
+
+Phase D3 (2026-06-26): the legacy 14-stage ``homepage-coding-review``
+fixture was removed from ``app.icoder.agent_runtime.a2a.agent_card``.
+The canonical Phase 2 standard Agent Card is
+``medcoder_coding_review_card``; the tests below exercise it.
+"""
 
 from __future__ import annotations
 
@@ -11,7 +17,7 @@ from app.icoder.agent_runtime.a2a import (
     AgentListResponse,
     AgentSkill,
     SecurityScheme,
-    homepage_coding_review_card,
+    medcoder_coding_review_card,
 )
 
 
@@ -92,6 +98,7 @@ def test_security_scheme_minimal():
 
 def test_security_scheme_with_description():
     s = SecurityScheme(type="oauth2", description="OAuth2 flow")
+    assert s.type == "oauth2"
     assert s.description == "OAuth2 flow"
 
 
@@ -163,68 +170,92 @@ def test_card_documentation_url_via_alias():
 
 
 # ---------------------------------------------------------------------------
-# homepage_coding_review_card — Phase 1 fixture (SPEC §8.3)
+# medcoder_coding_review_card — Phase 2 standard Agent Card (SPEC §8.3)
+# Phase D3 (2026-06-26): replaces the homepage_coding_review_card fixture.
 # ---------------------------------------------------------------------------
 
 
-def test_homepage_card_basics():
-    c = homepage_coding_review_card()
-    assert c.name == "Homepage Coding Review Agent"
-    assert "首页" in c.description or "病案" in c.description
-    assert "homepage-coding-review" in c.url
+def test_medcoder_card_basics():
+    c = medcoder_coding_review_card()
+    assert c.name == "MedCodER Coding Review Agent"
+    assert "编码审核" in c.description or "MedCodER" in c.description
+    assert "medcoder-coding-review" in c.url
     assert c.version == "1.0.0"
     assert c.provider == "iCoDer"
 
 
-def test_homepage_card_capabilities():
-    c = homepage_coding_review_card()
+def test_medcoder_card_capabilities():
+    c = medcoder_coding_review_card()
     assert c.capabilities.streaming is False
     assert c.capabilities.pushNotifications is False
     assert c.capabilities.stateTransitionHistory is True
 
 
-def test_homepage_card_skills():
-    c = homepage_coding_review_card()
-    ids = [s.id for s in c.skills]
-    assert "icd_coding" in ids
-    assert "drg_grouping" in ids
+def test_medcoder_card_skills_include_5_mcp_tools_and_orchestrator():
+    c = medcoder_coding_review_card()
+    ids = {s.id for s in c.skills}
+    # 5 MCP tools (one skill each) + 1 orchestration skill
+    expected = {
+        "search_icd",
+        "verify_code",
+        "rerank_codes",
+        "get_differentiation_hint",
+        "calibrate_confidence",
+        "medcoder_5_stage_pipeline",
+    }
+    assert expected.issubset(ids), f"missing skills: {expected - ids}"
 
 
-def test_homepage_card_skill_references_icoder_schema():
-    c = homepage_coding_review_card()
-    icd = next(s for s in c.skills if s.id == "icd_coding")
-    assert "MedicalCodingOutputSchema" in icd.output_schema.get("$ref", "")
+def test_medcoder_card_skill_references_icoder_schema():
+    c = medcoder_coding_review_card()
+    search = next(s for s in c.skills if s.id == "search_icd")
+    # search_icd output schema references icoder/CandidateCode/v1
+    # (the actual factory wraps the $ref under items.type=array, so
+    #  we serialize and search for the schema string).
+    import json
+    blob = json.dumps(search.output_schema, ensure_ascii=False)
+    assert "CandidateCode" in blob, (
+        f"search_icd output_schema should reference icoder/CandidateCode/v1, got {blob}"
+    )
 
 
-def test_homepage_card_security_schemes():
-    c = homepage_coding_review_card()
+def test_medcoder_card_security_schemes():
+    c = medcoder_coding_review_card()
     assert "bearer" in c.securitySchemes
     assert c.securitySchemes["bearer"].type == "apiKey"
 
 
-def test_homepage_card_metadata_icoder_namespace():
-    c = homepage_coding_review_card()
+def test_medcoder_card_metadata_icoder_namespace():
+    c = medcoder_coding_review_card()
     assert "icoder" in c.metadata
     icoder = c.metadata["icoder"]
     assert icoder["production_writeback_blocked"] is True
     assert icoder["phi_redaction"] == "required"
-    assert "medical_coding" in icoder["rule_sets"]
+    # MedCodER declares coding-expert as the sole Expert
     assert "coding-expert" in icoder["experts"]
 
 
-def test_homepage_card_base_url_prepends():
-    c = homepage_coding_review_card(base_url="https://api.icoder.cn")
+def test_medcoder_card_pipeline_stages_declared():
+    c = medcoder_coding_review_card()
+    md = c.metadata["icoder"]
+    assert md["pipeline"]["stages"] == [
+        "extraction", "retrieval", "merge", "rerank", "calibration",
+    ]
+
+
+def test_medcoder_card_base_url_prepends():
+    c = medcoder_coding_review_card(base_url="https://api.icoder.cn")
     assert c.url.startswith("https://api.icoder.cn")
-    assert "homepage-coding-review" in c.url
+    assert "medcoder-coding-review" in c.url
 
 
-def test_homepage_card_no_base_url_relative():
-    c = homepage_coding_review_card()
+def test_medcoder_card_no_base_url_relative():
+    c = medcoder_coding_review_card()
     assert c.url.startswith("/api/icoder/agents/")
 
 
-def test_homepage_card_default_input_output_modes():
-    c = homepage_coding_review_card()
+def test_medcoder_card_default_input_output_modes():
+    c = medcoder_coding_review_card()
     assert c.defaultInputModes == ["text"]
     assert c.defaultOutputModes == ["application/json"]
 
@@ -235,9 +266,9 @@ def test_homepage_card_default_input_output_modes():
 
 
 def test_agent_list_response_minimal():
-    r = AgentListResponse(agents=[homepage_coding_review_card()])
+    r = AgentListResponse(agents=[medcoder_coding_review_card()])
     assert len(r.agents) == 1
-    assert r.agents[0].name == "Homepage Coding Review Agent"
+    assert r.agents[0].name == "MedCodER Coding Review Agent"
 
 
 def test_agent_list_response_empty():
@@ -251,7 +282,7 @@ def test_agent_list_response_empty():
 
 
 def test_card_roundtrip_via_dict():
-    c = homepage_coding_review_card()
+    c = medcoder_coding_review_card()
     d = c.model_dump(by_alias=True, exclude_none=False)
     c2 = AgentCard.model_validate(d)
     assert c2.name == c.name

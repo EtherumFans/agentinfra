@@ -18,7 +18,7 @@ from typing import Any, Callable, Union
 from fastapi import APIRouter, Query, Request
 from fastapi.responses import JSONResponse, PlainTextResponse
 
-from .agent_card import AgentCard, AgentListResponse, homepage_coding_review_card
+from .agent_card import AgentCard, AgentListResponse, medcoder_coding_review_card
 from .envelope import make_error_response
 from .errors import A2AError, A2AErrorCode, agent_not_found
 from .version import A2A_PROTOCOL_HEADER, A2A_PROTOCOL_VERSION
@@ -116,13 +116,13 @@ def _list_all_cards(provider: AgentProvider) -> list[AgentCard]:
     or dicts in AgentCard shape. We normalize to AgentCard.
     """
     # The provider contract: given an agent_id, return its card or None.
-    # Phase 1 has 1 known agent: homepage-coding-review. The provider
+    # Phase 1 has 1 known agent: medcoder-coding-review. The provider
     # may not know it — fall back to the fixture if the provider returns
     # None for it (means Registry not yet wired up).
-    card = _resolve_card(provider, "homepage-coding-review")
+    card = _resolve_card(provider, "medcoder-coding-review")
     if card is None:
-        # Provider doesn't have it; emit the Phase 1 fixture.
-        card = homepage_coding_review_card()
+        # Provider doesn't have it; emit the Phase 2 fixture.
+        card = medcoder_coding_review_card()
     return [card]
 
 

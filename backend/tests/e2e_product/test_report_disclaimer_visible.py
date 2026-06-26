@@ -53,7 +53,8 @@ def test_report_disclaimer_visible(client):
 
 def test_report_distinguishes_priority_codes(client):
     """链路 8: 至少一个 PRIORITY 码触发, 报告含 **PRIORITY** 标记."""
-    from official_agents.homepage_coding_review import PRIORITY_HIGH_RISK_CODES
+    # Phase D3 (2026-06-26): import from the SSOT.
+    from icoder_runtime.constants.coding_review_constants import PRIORITY_HIGH_RISK_CODES
     r = client.post("/api/icoder/coding-review/run", json={
         "primary_disease_codes": "I66.901",  # 单个 PRIORITY 码足够
     })

@@ -27,7 +27,7 @@ from app.icoder.agent_runtime.a2a import (
     build_a2a_routers,
 )
 from app.icoder.agent_runtime.a2a.a2a_routes import mount_a2a
-from app.icoder.agent_runtime.a2a.agent_card import homepage_coding_review_card
+from app.icoder.agent_runtime.a2a.agent_card import medcoder_coding_review_card
 from app.icoder.agent_runtime.a2a.routes_discovery import AgentProvider
 from app.icoder.agent_runtime.a2a.routes_outbound import ExpertCaller
 from app.icoder.agent_runtime.orchestrator import (
@@ -49,8 +49,8 @@ from app.icoder.agent_runtime.orchestrator.delegator import DelegatorConfig
 
 @dataclass
 class _StubAgent:
-    id: str = "homepage-coding-review"
-    name: str = "Homepage Coding Review Agent"
+    id: str = "medcoder-coding-review"
+    name: str = "MedCodER Coding Review Agent"
     expert_ids: list[str] = field(default_factory=lambda: ["coding-expert"])
     config: dict = field(default_factory=dict)
 
@@ -91,7 +91,7 @@ def _build_handler(invoker=None, llm_response: dict | None = None) -> InboundHan
     )
     aggregator = Aggregator()
     provider = DictAgentProvider(
-        {"homepage-coding-review": _StubAgent()}
+        {"medcoder-coding-review": _StubAgent()}
     )
     return InboundHandler(
         phi_redactor=PHIRedactor(),
@@ -103,11 +103,11 @@ def _build_handler(invoker=None, llm_response: dict | None = None) -> InboundHan
 
 
 def _build_agent_provider() -> AgentProvider:
-    """Return the canonical homepage-coding-review card."""
+    """Return the canonical medcoder-coding-review card."""
 
     def _provider(agent_id: str):
-        if agent_id == "homepage-coding-review":
-            return homepage_coding_review_card()
+        if agent_id == "medcoder-coding-review":
+            return medcoder_coding_review_card()
         return None
 
     return _provider
@@ -196,7 +196,7 @@ def _inbound_envelope(text: str = "病历主诉胸痛", **extra) -> dict:
 def test_inbound_message_send_happy_path(client):
     """§11.2.1 — happy path: 200 + JSON-RPC success + A2A header + run_id."""
     r = client.post(
-        "/api/icoder/agents/homepage-coding-review/v1/message:send",
+        "/api/icoder/agents/medcoder-coding-review/v1/message:send",
         headers=_version_header(),
         json=_inbound_envelope(text="病历主诉胸痛"),
     )
@@ -223,7 +223,7 @@ def test_inbound_message_send_happy_path(client):
 def test_inbound_missing_version_header_returns_400(client):
     """§11.2.2 — missing A2A-Protocol-Version → HTTP 400 + parse error envelope."""
     r = client.post(
-        "/api/icoder/agents/homepage-coding-review/v1/message:send",
+        "/api/icoder/agents/medcoder-coding-review/v1/message:send",
         json=_inbound_envelope(),
     )
     assert r.status_code == 400, r.text
@@ -242,7 +242,7 @@ def test_inbound_malformed_json_returns_parse_error(client):
     returns 400 directly because it cannot even build an envelope).
     """
     r = client.post(
-        "/api/icoder/agents/homepage-coding-review/v1/message:send",
+        "/api/icoder/agents/medcoder-coding-review/v1/message:send",
         headers=_version_header(),
         content="not-json-at-all",
     )
@@ -256,7 +256,7 @@ def test_inbound_unsupported_method_returns_32601(client):
     body = _inbound_envelope()
     body["method"] = "tasks/cancel"  # not in SUPPORTED_METHODS
     r = client.post(
-        "/api/icoder/agents/homepage-coding-review/v1/message:send",
+        "/api/icoder/agents/medcoder-coding-review/v1/message:send",
         headers=_version_header(),
         json=body,
     )
@@ -277,7 +277,7 @@ def test_inbound_filepart_rejected_with_invalid_params(client):
         }
     ]
     r = client.post(
-        "/api/icoder/agents/homepage-coding-review/v1/message:send",
+        "/api/icoder/agents/medcoder-coding-review/v1/message:send",
         headers=_version_header(),
         json=body,
     )
@@ -327,7 +327,7 @@ def test_inbound_phi_redaction_failure_returns_phi_code(handler, agent_provider,
         delegator=delegator,
         aggregator=Aggregator(),
         agent_provider=DictAgentProvider(
-            {"homepage-coding-review": _StubAgent()}
+            {"medcoder-coding-review": _StubAgent()}
         ),
     )
 
@@ -340,7 +340,7 @@ def test_inbound_phi_redaction_failure_returns_phi_code(handler, agent_provider,
     )
     client = TestClient(app)
     r = client.post(
-        "/api/icoder/agents/homepage-coding-review/v1/message:send",
+        "/api/icoder/agents/medcoder-coding-review/v1/message:send",
         headers=_version_header(),
         json=_inbound_envelope(text="张三 主诉胸痛"),
     )
@@ -389,7 +389,7 @@ def test_well_known_agent_json_lists_cards(client):
     body = r.json()
     assert "agents" in body
     assert len(body["agents"]) >= 1
-    assert body["agents"][0]["name"] == "Homepage Coding Review Agent"
+    assert body["agents"][0]["name"] == "MedCodER Coding Review Agent"
     # JSON-RPC envelope not used here — raw list
     assert A2A_PROTOCOL_HEADER in r.headers
 
@@ -401,8 +401,8 @@ def test_llms_txt_renders_markdown(client):
     assert r.headers["content-type"].startswith("text/markdown")
     body = r.text
     assert "# iCoDer v1 Agent Runtime" in body
-    assert "Homepage Coding Review Agent" in body
-    assert "icd_coding" in body
+    assert "MedCodER Coding Review Agent" in body
+    assert "search_icd" in body
     assert A2A_PROTOCOL_HEADER in r.headers
 
 
@@ -416,7 +416,7 @@ def test_agents_list_returns_simplified_cards(client):
     agent = body["agents"][0]
     # Simplified shape: id/name/description/version/capabilities/url
     assert "id" in agent
-    assert agent["name"] == "Homepage Coding Review Agent"
+    assert agent["name"] == "MedCodER Coding Review Agent"
     assert "capabilities" in agent
     assert "url" in agent
     assert "v1/message:send" in agent["url"]
@@ -425,17 +425,20 @@ def test_agents_list_returns_simplified_cards(client):
 def test_agent_card_returns_full_card(client):
     """§11.2.12 — GET /api/icoder/agents/{id}/card → full AgentCard."""
     r = client.get(
-        "/api/icoder/agents/homepage-coding-review/card",
+        "/api/icoder/agents/medcoder-coding-review/card",
         headers=_version_header(),
     )
     assert r.status_code == 200, r.text
     body = r.json()
-    assert body["name"] == "Homepage Coding Review Agent"
+    assert body["name"] == "MedCodER Coding Review Agent"
     assert body["version"] == "1.0.0"
     assert "skills" in body
     skill_ids = {s["id"] for s in body["skills"]}
-    assert "icd_coding" in skill_ids
-    assert "drg_grouping" in skill_ids
+    # MedCodER card surfaces the 5 MCP tools + 1 orchestration skill
+    assert "search_icd" in skill_ids
+    assert "verify_code" in skill_ids
+    assert "rerank_codes" in skill_ids
+    assert "medcoder_5_stage_pipeline" in skill_ids
     assert "metadata" in body
     assert body["metadata"]["icoder"]["production_writeback_blocked"] is True
 
@@ -455,7 +458,7 @@ def test_agents_list_capability_filter(client):
     """Bonus: capability filter narrows results."""
     r = client.get(
         "/api/icoder/agents",
-        params={"capability": "icd_coding"},
+        params={"capability": "search_icd"},
         headers=_version_header(),
     )
     assert r.status_code == 200, r.text
@@ -519,12 +522,12 @@ def test_all_a2a_routes_set_protocol_header(client, handler, agent_provider, exp
         ("GET", "/api/icoder/agents", None),
         (
             "GET",
-            "/api/icoder/agents/homepage-coding-review/card",
+            "/api/icoder/agents/medcoder-coding-review/card",
             None,
         ),
         (
             "POST",
-            "/api/icoder/agents/homepage-coding-review/v1/message:send",
+            "/api/icoder/agents/medcoder-coding-review/v1/message:send",
             _inbound_envelope(),
         ),
     ]

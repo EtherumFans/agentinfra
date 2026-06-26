@@ -4,10 +4,16 @@ Revision ID: 004
 Revises: 003
 Create Date: 2026-06-11
 
-Adds the persistent state table for the 14-stage
-``icoder/homepage-coding-review-agent@1.0.0`` pipeline. Replaces the
-in-memory ``_RUNS_STORE: dict`` previously used by
+Adds the persistent state table for the Medical Coding Review Agent
+(MedCodER 5-stage pipeline, ``icoder/medcoder-coding-review-agent@1.0.0``).
+Replaces the in-memory ``_RUNS_STORE: dict`` previously used by
 ``app.api.icoder_coding_review``.
+
+Phase D3 (2026-06-26): the legacy 14-stage ``homepage-coding-review``
+agent has been removed; the agent_ref stored in this table is now the
+MedCodER agent_ref. Existing rows from before Phase D3 still reference
+the legacy ``icoder/homepage-coding-review-agent@1.0.0`` string and
+remain readable (the column is just a string identifier).
 
 Schema notes
 ------------

@@ -21,9 +21,9 @@ sys.path.insert(0, str(REPO_ROOT))
 
 from fastapi.testclient import TestClient
 from app.main import app
-# Phase A A3 (2026-06-25): homepage_coding_review is deprecated; pull the
-# canonical constants from the inlined location in app.api.icoder_coding_review.
-from app.api.icoder_coding_review import (
+# Phase D3 (2026-06-26): canonical constants now live in the SSOT. The
+# legacy ``homepage-coding-review`` 14-stage shim is removed.
+from icoder_runtime.constants.coding_review_constants import (
     AGENT_REF, AGENT_CATEGORY, PRIORITY_HIGH_RISK_CODES, PIPELINE_STAGES,
 )
 

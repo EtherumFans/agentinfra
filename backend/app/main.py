@@ -369,7 +369,7 @@ async def lifespan(app: FastAPI):
             ExpertCaller,
         )
         from app.icoder.agent_runtime.a2a.agent_card import (
-            homepage_coding_review_card,
+            medcoder_coding_review_card,
         )
         from app.icoder.agent_runtime.orchestrator import (
             Aggregator,
@@ -440,7 +440,7 @@ async def lifespan(app: FastAPI):
 
         def _build_phase1_agent_provider() -> "DictAgentProvider":
             """Build DictAgentProvider with a real AgentDefinition for
-            ``homepage-coding-review`` so the Planner has system_prompt +
+            ``medcoder-coding-review`` so the Planner has system_prompt +
             expert_ids context (the planner calls ``agent.name`` /
             ``agent.expert_ids`` / ``agent.config``).
 
@@ -451,12 +451,12 @@ async def lifespan(app: FastAPI):
             """
             from icoder_runtime.types import AgentDefinition
             _agent = AgentDefinition(
-                id="homepage-coding-review",
-                name="Homepage Coding Review Agent",
-                description="病案首页编码审核 Agent",
+                id="medcoder-coding-review",
+                name="MedCodER Coding Review Agent",
+                description="iCoDer 病案首页编码审核 Agent (MedCodER 5 阶段)",
                 system_prompt="你是 iCoDer 病案首页编码审核助手。",
                 icon="FileSearch",
-                category="official_reference_agent",
+                category="medical-coding",
                 expert_ids=["coding-expert"],
                 default_expert_id="coding-expert",
                 config={
@@ -475,14 +475,14 @@ async def lifespan(app: FastAPI):
                 _pack_path = (
                     Path(__file__).parent.parent
                     / "official_agents"
-                    / "homepage-coding-review"
+                    / "medcoder-coding-review"
                     / "agent_pack.json"
                 )
                 if _pack_path.exists():
                     _pack = json.loads(_pack_path.read_text(encoding="utf-8"))
                     _pack_agent, _, _, _ = import_pack(_pack)
                     _agent = AgentDefinition(
-                        id="homepage-coding-review",
+                        id="medcoder-coding-review",
                         name=_pack_agent.name,
                         description=_pack_agent.description,
                         system_prompt=_pack_agent.system_prompt or _agent.system_prompt,
@@ -500,7 +500,7 @@ async def lifespan(app: FastAPI):
                     f"A2A wiring: failed to enrich agent from official pack, "
                     f"using minimal definition: {_ae}"
                 )
-            return DictAgentProvider({"homepage-coding-review": _agent})
+            return DictAgentProvider({"medcoder-coding-review": _agent})
 
         phase1_handler = InboundHandler(
             phi_redactor=PHIRedactor(),
@@ -517,8 +517,8 @@ async def lifespan(app: FastAPI):
         )
 
         def _phase1_agent_provider(agent_id: str):
-            if agent_id == "homepage-coding-review":
-                return homepage_coding_review_card()
+            if agent_id == "medcoder-coding-review":
+                return medcoder_coding_review_card()
             return None
 
         def _phase1_expert_caller(expert_id: str, body: dict):
@@ -637,11 +637,12 @@ async def lifespan(app: FastAPI):
             app.state.icoder_versions = _json_versions.load(_vf)
     except Exception as _e:
         logger.warning(f"versions.json load failed: {_e!r}; using defaults")
+        # Phase D3 (2026-06-26): default to the canonical MedCodER agent_ref.
         app.state.icoder_versions = {
             "model_version": "unknown",
             "code_dict_version": "unknown",
             "rule_version": "unknown",
-            "agent_version": "icoder/homepage-coding-review-agent@1.0.0",
+            "agent_version": "icoder/medcoder-coding-review-agent@1.0.0",
             "data_asset_version": "iCoDerA v1.0.0",
         }
 

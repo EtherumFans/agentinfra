@@ -87,10 +87,11 @@ function App() {
         <Route path="studio/text-generation" element={<TextGenerationPage />} />
         <Route path="studio/fact-extraction" element={<FactExtractionPage />} />
         <Route path="studio/medical-coding" element={<MedicalCodingPage />} />
-        {/* Phase A A3 (2026-06-25): legacy homepage-coding-review route
-            redirected to MedicalCodingPage. The 14-stage cosmetic
-            CodingReviewWorkbenchPage is gone. */}
-        <Route path="studio/agents/homepage-coding-review" element={<MedicalCodingPage />} />
+        {/* Phase D3 (2026-06-26): homepage-coding-review shim was deleted
+            on the backend (official_agents.homepage_coding_review module
+            + homepage_coding_review_card() factory). The legacy frontend
+            URL now redirects to the canonical medical-coding path. */}
+        <Route path="studio/agents/homepage-coding-review" element={<Navigate to="/runtime/coding-review" replace />} />
         <Route path="studio/marketplace" element={<AgentsPage />} />
         <Route path="studio/expert-library" element={<ExpertLibraryPage />} />
         <Route path="studio/quickstart" element={<DeveloperQuickstartPage />} />

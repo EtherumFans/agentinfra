@@ -35,7 +35,7 @@ from __future__ import annotations
 
 import html
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -299,8 +299,8 @@ def render_report(
         model_version / code_dict_version / rule_version: 硬性显示, 缺失则显 "unknown"
         pipeline_stages_observed: 14 阶段中实际执行的, 用于和 PIPELINE_STAGES 对比
     """
-    started_at = started_at or datetime.utcnow().isoformat() + "Z"
-    finished_at = finished_at or datetime.utcnow().isoformat() + "Z"
+    started_at = started_at or datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+    finished_at = finished_at or datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     observed = set(pipeline_stages_observed or [])
     stage_rows = []
     for s in PIPELINE_STAGES:
@@ -463,7 +463,7 @@ def write_report(report_html: str, output_dir: Path) -> Path:
     """写报告到 output_dir, 返回写入的 Path (M3-0 仅 HTML)."""
     output_dir.mkdir(parents=True, exist_ok=True)
     # 注意: run_id 中可能含特殊字符, 这里以时间戳为文件名 + run_id 末 12 位
-    timestamp = datetime.utcnow().strftime("%Y%m%dT%H%M%S")
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S")
     out_path = output_dir / f"coding_review_report_{timestamp}.html"
     out_path.write_text(report_html, encoding="utf-8")
     return out_path

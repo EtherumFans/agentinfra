@@ -32,6 +32,7 @@ from __future__ import annotations
 
 import logging
 import os
+from dataclasses import dataclass, field
 from typing import Any, Callable
 
 from official_agents.medical_coding.schema import (
@@ -49,6 +50,70 @@ from .medcoder_adapter import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+# Sentinel for ``__init__``: distinguishes "no retriever argument provided"
+# (use lazy default-retriever creation) from "retriever=None passed
+# explicitly" (caller has no retriever at all — surface the failure).
+# E1.1 (2026-06-26) — needed to make
+# ``test_stage2_retrieve_no_retriever_returns_structured_degraded`` pass
+# without breaking the M1 ``MedCodERStrategy(retriever=...)`` callers
+# that do want lazy creation.
+_NO_RETRIEVER = object()
+
+
+# Stage 2 (retrieve) error codes — explicit contract for graceful degradation.
+# E1.1 (2026-06-26): silent ``return []`` was a pre-existing failure
+# (test_stage2_retrieve_no_retriever_returns_empty). Now we surface the
+# failure mode via a structured ``Stage2Result`` so downstream code
+# (MCP ``search_icd``, D2 ``index_navigator_expert``, the orchestrator
+# Aggregator) can route / display / log the degraded state.
+STAGE2_OK = "MEDCODER_RETRIEVE_OK"
+STAGE2_RETRIEVER_UNAVAILABLE = "MEDCODER_RETRIEVER_UNAVAILABLE"
+STAGE2_RETRIEVE_FAILED = "MEDCODER_RETRIEVE_FAILED"
+STAGE2_EMPTY_INPUT = "MEDCODER_RETRIEVE_EMPTY_INPUT"
+
+
+@dataclass
+class Stage2Result:
+    """Stage 2 (retrieve) result with explicit degradation semantics.
+
+    E1.1: replaces the legacy ``list[CandidateCode]`` return shape with
+    a structured envelope so callers can distinguish:
+
+      - happy path  → ``candidates=[...]``, ``degraded=False``,
+        ``error_code=MEDCODER_RETRIEVE_OK``
+      - no retriever → ``candidates=[]``, ``degraded=True``,
+        ``error_code=MEDCODER_RETRIEVER_UNAVAILABLE``
+      - runtime failure → ``candidates=[]``, ``degraded=True``,
+        ``error_code=MEDCODER_RETRIEVE_FAILED``
+      - empty input → ``candidates=[]``, ``degraded=False``,
+        ``error_code=MEDCODER_RETRIEVE_EMPTY_INPUT``
+        (NOT a failure; just nothing to retrieve)
+
+    The ``candidates`` field stays a list so ``for c in result.candidates``
+    still works for M1 callers.
+    """
+
+    candidates: list[CandidateCode] = field(default_factory=list)
+    degraded: bool = False
+    error_code: str = STAGE2_OK
+    error_detail: str = ""
+
+    @property
+    def is_ok(self) -> bool:
+        return not self.degraded and self.error_code == STAGE2_OK
+
+    def to_dict(self) -> dict:
+        return {
+            "candidates": [
+                c.to_dict() if hasattr(c, "to_dict") else c
+                for c in self.candidates
+            ],
+            "degraded": self.degraded,
+            "error_code": self.error_code,
+            "error_detail": self.error_detail,
+        }
 
 
 # ── Constants ──
@@ -100,14 +165,38 @@ class MedCodERStrategy:
     def __init__(
         self,
         gateway: Any = None,
-        retriever: Any = None,
+        retriever: Any = _NO_RETRIEVER,
         rule_set: Any = None,
         merge_cap: int = DEFAULT_MERGE_CAP,
         rerank_top_k: int = DEFAULT_RERANK_TOP_K,
+        procedure_retriever: Any = None,
     ) -> None:
+        # E1.1: explicit ``retriever=None`` is now distinct from "not
+        # provided" (default). The latter uses lazy auto-creation; the
+        # former tells the strategy "I have no retriever" — surface the
+        # failure via ``Stage2Result`` rather than silently faking one.
+        if retriever is _NO_RETRIEVER:
+            self._retriever: Any = None
+            self._retriever_lazy = True
+        elif retriever is None:
+            self._retriever = None
+            self._retriever_lazy = False  # do NOT lazy-create
+        else:
+            self._retriever = retriever
+            self._retriever_lazy = False
+        # E1.3: parallel procedure retriever (ICD-9-CM-3). No
+        # sentinel dance — the procedure retriever is an opt-in
+        # sidecar used by callers that want to enrich Stage 2 with
+        # procedure RAG. ``procedure_retriever=None`` (default)
+        # lazy-creates a subprocess-isolated wrapper on Windows; an
+        # explicit instance (test injection) skips lazy creation.
+        if procedure_retriever is not None:
+            self._proc_retriever: Any = procedure_retriever
+            self._proc_retriever_lazy = False
+        else:
+            self._proc_retriever = None
+            self._proc_retriever_lazy = True
         self._gateway = gateway
-        self._retriever = retriever
-        self._retriever_lazy = retriever is None
         self._rule_set = rule_set
         self._merge_cap = merge_cap
         self._rerank_top_k = rerank_top_k
@@ -139,24 +228,130 @@ class MedCodERStrategy:
         self,
         disease_text: str,
         top_k: int = 20,
-    ) -> list[CandidateCode]:
+    ) -> Stage2Result:
         """Stage 2: BGE-M3 + FAISS top-K ICD candidate codes.
 
-        Returns ``[]`` when the retriever is missing, the disease text
-        is empty, or the underlying call fails. Source is
-        ``"retrieve"`` on every returned candidate.
+        E1.1 (2026-06-26): returns a ``Stage2Result`` with explicit
+        ``degraded`` / ``error_code`` so the silent ``return []`` failure
+        mode is no longer invisible. The 4 cases:
+
+          - empty input  → ``Stage2Result(candidates=[], degraded=False,
+                            error_code=MEDCODER_RETRIEVE_EMPTY_INPUT)``
+          - no retriever → ``Stage2Result(candidates=[], degraded=True,
+                            error_code=MEDCODER_RETRIEVER_UNAVAILABLE)``
+          - exception    → ``Stage2Result(candidates=[], degraded=True,
+                            error_code=MEDCODER_RETRIEVE_FAILED, error_detail=str(e))``
+          - happy path   → ``Stage2Result(candidates=[...], degraded=False,
+                            error_code=MEDCODER_RETRIEVE_OK)``
+
+        M1 callers that iterate ``for c in stage2_retrieve(...).candidates``
+        keep working unchanged; M1 callers that did
+        ``stage2_retrieve(...) == []`` should be migrated to check
+        ``result.is_ok`` and ``result.degraded`` (see
+        ``stage2_retrieve_legacy`` for the raw-list shim).
         """
         text = (disease_text or "").strip()
         if not text:
-            return []
+            return Stage2Result(
+                candidates=[],
+                degraded=False,
+                error_code=STAGE2_EMPTY_INPUT,
+                error_detail="empty disease_text",
+            )
         retriever = self._get_retriever()
         if retriever is None:
-            return []
+            logger.warning(
+                "MedCodER: Stage 2 retriever unavailable (no FAISS index loaded)"
+            )
+            return Stage2Result(
+                candidates=[],
+                degraded=True,
+                error_code=STAGE2_RETRIEVER_UNAVAILABLE,
+                error_detail="BGE-M3 + FAISS retriever not initialized",
+            )
         try:
-            return await retriever.retrieve_async(text, top_k=top_k)
+            candidates = await retriever.retrieve_async(text, top_k=top_k)
+            return Stage2Result(
+                candidates=candidates,
+                degraded=False,
+                error_code=STAGE2_OK,
+            )
         except Exception as e:
             logger.warning("MedCodER: Stage 2 retrieve failed: %s", e)
-            return []
+            return Stage2Result(
+                candidates=[],
+                degraded=True,
+                error_code=STAGE2_RETRIEVE_FAILED,
+                error_detail=str(e),
+            )
+
+    def stage2_retrieve_legacy(self, *args, **kwargs) -> list[CandidateCode]:
+        """Back-compat shim — sync wrapper that returns raw ``candidates`` list.
+
+        E1.1: replaces the old ``stage2_retrieve`` signature
+        (``list[CandidateCode]``) for any caller that hasn't migrated
+        to ``Stage2Result`` yet. Prefer the new structured return.
+        """
+        import asyncio
+        result = asyncio.run(self.stage2_retrieve(*args, **kwargs))
+        return result.candidates
+
+    async def stage2_retrieve_procedure(
+        self,
+        procedure_text: str,
+        top_k: int = 20,
+    ) -> Stage2Result:
+        """Stage 2 (procedure sidecar): BGE-M3 + FAISS over ICD-9-CM-3.
+
+        E1.3: closes the procedure-side retrieval gap (the 53 MB
+        ``faiss_icd9cm3.index`` was built but never consumed). Same
+        :class:`Stage2Result` envelope as the diagnosis retriever so
+        callers handle both the same way. ``candidates`` are
+        :class:`CandidateCode` with ``source="retrieve"`` and the
+        ICD-9-CM-3 chapter name in ``chapter``.
+
+        Used by callers that already have a procedure mention (e.g.
+        from a structured EMR field, or a follow-up call after the
+        diagnosis retriever finds a procedure-like candidate). The
+        main 5-stage pipeline does not call this method yet — wiring
+        it into the LLM extraction prompt is a follow-up task
+        (E1.4: extract ``procedure_mentions`` alongside
+        ``disease_mentions``).
+        """
+        text = (procedure_text or "").strip()
+        if not text:
+            return Stage2Result(
+                candidates=[],
+                degraded=False,
+                error_code=STAGE2_OK,
+            )
+        proc_retriever = self._get_procedure_retriever()
+        if proc_retriever is None:
+            logger.warning(
+                "MedCodER: procedure retriever unavailable "
+                "(no ICD-9-CM-3 FAISS index loaded)"
+            )
+            return Stage2Result(
+                candidates=[],
+                degraded=True,
+                error_code=STAGE2_RETRIEVER_UNAVAILABLE,
+                error_detail="ICD-9-CM-3 retriever not initialized",
+            )
+        try:
+            candidates = await proc_retriever.retrieve_async(text, top_k=top_k)
+            return Stage2Result(
+                candidates=candidates,
+                degraded=False,
+                error_code=STAGE2_OK,
+            )
+        except Exception as e:
+            logger.warning("MedCodER: procedure retrieve failed: %s", e)
+            return Stage2Result(
+                candidates=[],
+                degraded=True,
+                error_code=STAGE2_RETRIEVE_FAILED,
+                error_detail=str(e),
+            )
 
     async def stage3_merge(
         self,
@@ -417,7 +612,7 @@ class MedCodERStrategy:
         disease_mentions = self._split_sentences(emr_text) or [emr_text[:200]]
         extracted: list[ExtractedDiagnosis] = []
         for mention in disease_mentions:
-            retrieved = await self.stage2_retrieve(mention, top_k=20)
+            retrieved = (await self.stage2_retrieve(mention, top_k=20)).candidates
             final_top_k: list[CandidateCode] = []
             for c in retrieved[: self._rerank_top_k]:
                 if isinstance(c, CandidateCode):
@@ -463,7 +658,7 @@ class MedCodERStrategy:
         for dx in extraction:
             disease_text = (dx.get("disease_text") or "").strip()
             llm_code = (dx.get("llm_initial_code") or "").strip()
-            retrieved = await self.stage2_retrieve(disease_text, top_k=20)
+            retrieved = (await self.stage2_retrieve(disease_text, top_k=20)).candidates
             merged = await self.stage3_merge(
                 [{"code": llm_code}] if llm_code else [],
                 retrieved,
@@ -519,8 +714,8 @@ class MedCodERStrategy:
                     confidence=0.9,
                 ))
 
-        # 1) Retrieve
-        retrieved = await self.stage2_retrieve(disease_text, top_k=20)
+        # 1) Retrieve (E1.1: stage2_retrieve returns Stage2Result envelope)
+        retrieved = (await self.stage2_retrieve(disease_text, top_k=20)).candidates
 
         # 2) Merge
         merged = await self.stage3_merge(
@@ -710,6 +905,53 @@ class MedCodERStrategy:
             return MedCodERRetriever()
         except Exception as e:
             logger.warning("MedCodERStrategy: could not create retriever: %s", e)
+            return None
+
+    def _get_procedure_retriever(self) -> Any:
+        """Lazy-create the ICD-9-CM-3 procedure retriever (E1.3).
+
+        Mirrors :meth:`_get_retriever` but for the procedure index.
+        Returns ``None`` if creation fails (index not built, FAISS
+        missing, etc.) — the caller surfaces the failure via
+        ``Stage2Result(error_code=STAGE2_RETRIEVER_UNAVAILABLE)``.
+        """
+        if not self._proc_retriever_lazy:
+            return self._proc_retriever
+        self._proc_retriever = self._create_default_procedure_retriever()
+        self._proc_retriever_lazy = False
+        return self._proc_retriever
+
+    def _create_default_procedure_retriever(self) -> Any:
+        """Build the default ICD-9-CM-3 procedure retriever (E1.3).
+
+        Same subprocess-vs-in-process selection as
+        :meth:`_create_default_retriever`. The procedure index
+        (``faiss_icd9cm3.index``) is loaded by
+        ``MedCodERICD9CM3Retriever``; the subprocess wrapper
+        ``SubprocessMedCodERICD9CM3Retriever`` isolates BGE-M3 from
+        the parent's httpx async loop on Windows.
+        """
+        use_subprocess = (
+            os.environ.get("MEDCODER_SUBPROCESS") == "1"
+            or os.name == "nt"
+        )
+        try:
+            from .medcoder_retriever import (
+                MedCodERICD9CM3Retriever,
+                SubprocessMedCodERICD9CM3Retriever,
+            )
+            if use_subprocess:
+                logger.info(
+                    "MedCodERStrategy: using SubprocessMedCodERICD9CM3Retriever "
+                    "(MEDCODER_SUBPROCESS=%s, os.name=%s)",
+                    os.environ.get("MEDCODER_SUBPROCESS", "0"), os.name,
+                )
+                return SubprocessMedCodERICD9CM3Retriever()
+            return MedCodERICD9CM3Retriever()
+        except Exception as e:
+            logger.warning(
+                "MedCodERStrategy: could not create procedure retriever: %s", e,
+            )
             return None
 
     def _get_rule_set(self) -> Any:

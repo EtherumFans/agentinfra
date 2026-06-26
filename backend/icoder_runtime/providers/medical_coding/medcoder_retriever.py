@@ -41,6 +41,15 @@ INDEX_FILENAME = "faiss.index"
 META_FILENAME = "metadata.pkl"
 DEFAULT_TOP_K = 20
 
+# ICD-9-CM-3 procedure index — separate files, separate retriever.
+# Built by ``scripts/build_medcoder_icd9cm3_index.py`` (53 MB index over
+# 13,617 procedure codes). Lives in the same data/medcoder/ dir but is
+# consumed only by ``MedCodERICD9CM3Retriever``; the ICD-10 retriever
+# (above) hard-codes the diagnosis filenames. See E1.3 — closes the
+# procedure-side retrieval gap.
+INDEX_FILENAME_ICD9CM3 = "faiss_icd9cm3.index"
+META_FILENAME_ICD9CM3 = "metadata_icd9cm3.pkl"
+
 
 @dataclass
 class RetrieverStats:
@@ -325,6 +334,250 @@ class MedCodERRetriever:
             )
 
 
+# ── ICD-9-CM-3 procedure retriever (E1.3) ────────────────────────
+#
+# Same BGE-M3 + FAISS surface as ``MedCodERRetriever`` but over the
+# ICD-9-CM-3 procedure code index (13,617 codes, 53 MB). The two
+# retrievers share the BGE-M3 model but live behind separate index
+# files; calling code instantiates both side-by-side.
+#
+# Differences vs. the diagnosis retriever:
+#   1. Index files: ``faiss_icd9cm3.index`` + ``metadata_icd9cm3.pkl``.
+#   2. No catalog filter — no ``ICD9CM3Loader`` exists yet (audit gap
+#      #3 in E1.2 wiring audit). Procedure codes are not subject to
+#      the same subcode explosion as ICD-10-CN, so the raw index
+#      output is close to the gold surface. When the loader lands, drop
+#      a filter in here that mirrors ``MedCodERRetriever._get_loader``.
+#   3. ``chapter`` field is the ICD-9-CM-3 chapter (e.g. ``第1章 手术
+#      与操作``), populated from ``metadata["chapter_name"]``.
+
+
+class MedCodERICD9CM3Retriever:
+    """Top-K ICD-9-CM-3 procedure retriever (BGE-M3 + FAISS IndexFlatIP).
+
+    Mirrors :class:`MedCodERRetriever` exactly so callers can drop it
+    in next to the diagnosis retriever. No catalog filter (see class
+    docstring); returns :class:`CandidateCode` list with
+    ``source="retrieve"``.
+    """
+
+    def __init__(
+        self,
+        index_dir: str = DEFAULT_INDEX_DIR,
+        embedder=None,
+        default_top_k: int = DEFAULT_TOP_K,
+    ):
+        self.index_dir = index_dir
+        self.default_top_k = default_top_k
+        self._embedder = embedder
+        self._lock = threading.Lock()
+        self._loaded = False
+        self._index = None
+        self._metadata: list[dict] = []
+        self._stats = RetrieverStats()
+        self._load_error: Exception | None = None
+
+    @property
+    def stats(self) -> RetrieverStats:
+        return RetrieverStats(**self._stats.__dict__)
+
+    @property
+    def is_loaded(self) -> bool:
+        return self._loaded
+
+    @property
+    def load_error(self) -> Exception | None:
+        return self._load_error
+
+    def ensure_loaded(self) -> None:
+        if self._loaded:
+            return
+        with self._lock:
+            if self._loaded:
+                return
+            self._load()
+
+    async def retrieve_async(
+        self,
+        disease: str,
+        top_k: int | None = None,
+        expand_synonyms: bool = False,  # accepted for API parity; not used
+    ) -> list:
+        from official_agents.medical_coding.schema import CandidateCode
+
+        text = (disease or "").strip()
+        if not text:
+            return []
+
+        self.ensure_loaded()
+        if self._index is None:
+            logger.warning(
+                "MedCodERICD9CM3Retriever: index not loaded, returning empty list"
+            )
+            return []
+
+        k = min(top_k or self.default_top_k, self._index.ntotal)
+
+        embedder = self._get_embedder()
+        try:
+            q_vec = embedder.embed_one(text)
+        except Exception as e:
+            logger.error("MedCodERICD9CM3Retriever: embed failed: %s", e)
+            return []
+
+        try:
+            import faiss  # type: ignore
+            import numpy as np  # type: ignore
+            arr = np.asarray([q_vec], dtype="float32")
+            scores, idxs = self._index.search(arr, k)
+        except Exception as e:
+            logger.error("MedCodERICD9CM3Retriever: faiss search failed: %s", e)
+            return []
+
+        flat_scores = scores[0].tolist() if hasattr(scores, "tolist") else list(scores[0])
+        flat_idxs = idxs[0].tolist() if hasattr(idxs, "tolist") else list(idxs[0])
+
+        out: list[CandidateCode] = []
+        for score, idx in zip(flat_scores, flat_idxs):
+            if idx < 0 or idx >= len(self._metadata):
+                continue
+            meta = self._metadata[idx]
+            code = meta.get("code", "")
+            if not code:
+                continue
+            # No catalog filter — see class docstring. The metadata
+            # itself is the catalog (13,617 rows, built from
+            # icd9cm3_code_catalog.json).
+            out.append(CandidateCode(
+                code=code,
+                name=meta.get("name_cn", ""),
+                score=float(score),
+                chapter=meta.get("chapter_name", ""),
+                source="retrieve",
+            ))
+
+        self._stats.last_query = text
+        self._stats.last_top_score = out[0].score if out else 0.0
+        self._stats.last_filtered_count = len(out)
+        return out
+
+    def retrieve_sync(
+        self,
+        disease: str,
+        top_k: int | None = None,
+        expand_synonyms: bool = False,
+    ) -> list:
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+        if loop.is_running():
+            return self._retrieve_inline(disease, top_k)
+        return loop.run_until_complete(
+            self.retrieve_async(disease, top_k)
+        )
+
+    def _retrieve_inline(self, disease: str, top_k: int | None) -> list:
+        from official_agents.medical_coding.schema import CandidateCode
+
+        text = (disease or "").strip()
+        if not text:
+            return []
+        self.ensure_loaded()
+        if self._index is None:
+            return []
+        k = min(top_k or self.default_top_k, self._index.ntotal)
+        embedder = self._get_embedder()
+        try:
+            q_vec = embedder.embed_one(text)
+        except Exception:
+            return []
+        try:
+            import faiss  # noqa: F401
+            import numpy as np
+            arr = np.asarray([q_vec], dtype="float32")
+            scores, idxs = self._index.search(arr, k)
+        except Exception:
+            return []
+        out: list[CandidateCode] = []
+        for score, idx in zip(scores[0].tolist(), idxs[0].tolist()):
+            if idx < 0 or idx >= len(self._metadata):
+                continue
+            meta = self._metadata[idx]
+            code = meta.get("code", "")
+            if not code:
+                continue
+            out.append(CandidateCode(
+                code=code, name=meta.get("name_cn", ""),
+                score=float(score), chapter=meta.get("chapter_name", ""),
+                source="retrieve",
+            ))
+        return out
+
+    def health_check(self) -> dict:
+        return {
+            "retriever": "MedCodERICD9CM3Retriever",
+            "loaded": self._loaded,
+            "ntotal": self._stats.ntotal,
+            "dim": self._stats.dim,
+            "source": self._stats.source,
+            "load_error": str(self._load_error) if self._load_error else None,
+        }
+
+    # ── Internals ──
+
+    def _get_embedder(self):
+        if self._embedder is None:
+            from .embedding_bge_m3 import BGEEmbedder
+            self._embedder = BGEEmbedder()
+        return self._embedder
+
+    def _load(self) -> None:
+        try:
+            import faiss  # type: ignore
+        except ImportError as e:
+            self._load_error = e
+            raise RuntimeError(
+                "faiss-cpu not installed. Run `pip install faiss-cpu`."
+            ) from e
+
+        index_path = os.path.join(self.index_dir, INDEX_FILENAME_ICD9CM3)
+        meta_path = os.path.join(self.index_dir, META_FILENAME_ICD9CM3)
+        if not os.path.isfile(index_path):
+            self._load_error = FileNotFoundError(index_path)
+            raise FileNotFoundError(
+                f"ICD-9-CM-3 FAISS index not found at {index_path}. "
+                f"Run `python scripts/build_medcoder_icd9cm3_index.py` first."
+            )
+        if not os.path.isfile(meta_path):
+            self._load_error = FileNotFoundError(meta_path)
+            raise FileNotFoundError(
+                f"ICD-9-CM-3 metadata not found at {meta_path}"
+            )
+
+        logger.info(
+            "MedCodERICD9CM3Retriever: loading FAISS index from %s", index_path,
+        )
+        self._index = faiss.read_index(index_path)
+        with open(meta_path, "rb") as f:
+            self._metadata = pickle.load(f)
+        self._stats.loaded = True
+        self._stats.ntotal = self._index.ntotal
+        self._stats.dim = self._index.d
+        self._stats.source = index_path
+        self._loaded = True
+        logger.info(
+            "MedCodERICD9CM3Retriever: loaded ntotal=%d dim=%d",
+            self._index.ntotal, self._index.d,
+        )
+
+        if self._index.ntotal != len(self._metadata):
+            logger.warning(
+                "MedCodERICD9CM3Retriever: index ntotal=%d != metadata len=%d",
+                self._index.ntotal, len(self._metadata),
+            )
+
+
 # ── Subprocess worker (C4) ──
 #
 # Windows can't safely run BGE-M3 (sentence-transformers + OpenMP) and
@@ -364,9 +617,13 @@ class MedCodERRetrieverWorker:
         queue_out,
         index_dir: str = DEFAULT_INDEX_DIR,
         retriever: Optional[Any] = None,
+        retriever_factory=None,
     ) -> None:
         if retriever is None:
-            retriever = MedCodERRetriever(index_dir=index_dir)
+            if retriever_factory is not None:
+                retriever = retriever_factory(index_dir)
+            else:
+                retriever = MedCodERRetriever(index_dir=index_dir)
 
         try:
             retriever.ensure_loaded()
@@ -449,14 +706,20 @@ class SubprocessMedCodERRetriever:
         timeout:   seconds to wait for a single response. Default 30s.
     """
 
-    def __init__(self, index_dir: str = DEFAULT_INDEX_DIR, timeout: float = 30.0, probe_timeout: float = 10.0):
+    def __init__(self, index_dir: str = DEFAULT_INDEX_DIR, timeout: float = 30.0, probe_timeout: float = 10.0, retriever_factory=None):
         self.index_dir = index_dir
         self.timeout = timeout
         self._q_in: _mp.Queue = _mp.Queue()
         self._q_out: _mp.Queue = _mp.Queue()
+        # Worker is shared with the ICD-9-CM-3 wrapper (E1.3); the
+        # ``retriever_factory`` is a thin lambda that constructs the
+        # appropriate retriever class for the index dir.
+        proc_args: tuple = (self._q_in, self._q_out, index_dir)
+        if retriever_factory is not None:
+            proc_args = (self._q_in, self._q_out, index_dir, None, retriever_factory)
         self._proc: _mp.Process = _mp.Process(
             target=MedCodERRetrieverWorker.run,
-            args=(self._q_in, self._q_out, index_dir),
+            args=proc_args,
             daemon=True,
         )
         self._proc.start()
@@ -677,3 +940,43 @@ class SubprocessMedCodERRetriever:
     @property
     def pid(self) -> int | None:
         return self._proc.pid if self._proc else None
+
+
+# ── ICD-9-CM-3 subprocess wrapper (E1.3) ─────────────────────────
+#
+# Thin subclass that wires the existing ``SubprocessMedCodERRetriever``
+# to load ``MedCodERICD9CM3Retriever`` inside the worker process. Same
+# probe + queue + drain protocol as the diagnosis wrapper, so callers
+# that already use ``SubprocessMedCodERRetriever`` can drop this in
+# next to it without changing the surrounding code.
+
+
+def _make_icd9cm3_retriever(index_dir: str) -> "MedCodERICD9CM3Retriever":
+    """Module-level factory — required because Windows ``spawn`` can't
+    pickle a lambda (no qualified name). The worker passes the
+    ``index_dir`` it received in its ``__init__`` so this is purely
+    a name rebind for the multiprocessing boundary.
+    """
+    return MedCodERICD9CM3Retriever(index_dir=index_dir)
+
+
+class SubprocessMedCodERICD9CM3Retriever(SubprocessMedCodERRetriever):
+    """Subprocess-isolated ICD-9-CM-3 retriever (E1.3).
+
+    Inherits the queue + probe + drain machinery from the diagnosis
+    wrapper. The only difference is the retriever class instantiated
+    inside the worker, which points at the 9cm3 index files.
+    """
+
+    def __init__(
+        self,
+        index_dir: str = DEFAULT_INDEX_DIR,
+        timeout: float = 30.0,
+        probe_timeout: float = 10.0,
+    ):
+        super().__init__(
+            index_dir=index_dir,
+            timeout=timeout,
+            probe_timeout=probe_timeout,
+            retriever_factory=_make_icd9cm3_retriever,
+        )

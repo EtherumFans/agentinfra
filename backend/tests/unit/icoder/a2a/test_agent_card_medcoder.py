@@ -167,3 +167,24 @@ def test_medcoder_card_url_points_to_message_send_endpoint():
     # With base_url override
     card2 = medcoder_coding_review_card(base_url="https://icoder.example.com")
     assert card2.url == "https://icoder.example.com/api/icoder/agents/medcoder-coding-review/v1/message:send"
+
+
+def test_medcoder_card_declares_three_rule_sets():
+    """The MedCodER agent card must declare the 3 rule_sets used by the
+    compliance engine (medical_coding / drg_dip / audit). External A2A
+    consumers rely on this metadata to route the right rule_set to the
+    right agent. Regression locked down after D3 migration lost this
+    field (Finding-004 from D4 QA)."""
+    card = medcoder_coding_review_card()
+    rule_sets = card.metadata["icoder"]["rule_sets"]
+    assert isinstance(rule_sets, list), f"rule_sets must be a list, got {type(rule_sets)}"
+    assert set(rule_sets) == {"medical_coding", "drg_dip", "audit"}, (
+        f"rule_sets must be exactly {{medical_coding, drg_dip, audit}}, got {rule_sets}"
+    )
+    # Order-preserving check: medical_coding first (primary), audit last
+    assert rule_sets[0] == "medical_coding", (
+        f"rule_sets[0] must be 'medical_coding' (primary), got {rule_sets[0]}"
+    )
+    assert rule_sets[-1] == "audit", (
+        f"rule_sets[-1] must be 'audit' (downstream), got {rule_sets[-1]}"
+    )

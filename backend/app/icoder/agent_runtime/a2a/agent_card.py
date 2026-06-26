@@ -260,6 +260,11 @@ def medcoder_coding_review_card(base_url: str = "") -> AgentCard:
         metadata={
             "icoder": {
                 "agent_ref": "icoder/medcoder-coding-review-agent@1.0.0",
+                "rule_sets": [
+                    "medical_coding",
+                    "drg_dip",
+                    "audit",
+                ],
                 "experts": ["coding-expert"],
                 "mcp_tools": [
                     "search_icd",

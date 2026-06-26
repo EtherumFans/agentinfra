@@ -23,10 +23,11 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.main import app
-# Phase A A3 (2026-06-25): homepage_coding_review is deprecated. The
-# canonical constants now live in app.api.icoder_coding_review (inlined
-# there in M0 to drop the shim). Update the import accordingly.
-from app.api.icoder_coding_review import (
+# Phase D3 (2026-06-26): canonical constants now live in the SSOT
+# ``icoder_runtime.constants.coding_review_constants``. The legacy
+# ``homepage-coding-review`` 14-stage shim is gone. The re-export
+# aliases in app.api.icoder_coding_review remain for back-compat.
+from icoder_runtime.constants.coding_review_constants import (
     AGENT_REF,
     AGENT_CATEGORY,
     PIPELINE_STAGES,

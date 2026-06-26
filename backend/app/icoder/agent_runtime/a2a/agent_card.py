@@ -122,83 +122,13 @@ class AgentListResponse(BaseModel):
 # ---------------------------------------------------------------------------
 # Phase 1 fixture
 # ---------------------------------------------------------------------------
-
-
-def homepage_coding_review_card(base_url: str = "") -> AgentCard:
-    """Build the canonical Phase 1 agent card (SPEC §8.3 sample).
-
-    The single Phase 1 agent is ``homepage-coding-review`` (病案首页
-    编码审核).
-    """
-    url = (
-        f"{base_url}/api/icoder/agents/homepage-coding-review/v1/message:send"
-        if base_url
-        else "/api/icoder/agents/homepage-coding-review/v1/message:send"
-    )
-    return AgentCard(
-        name="Homepage Coding Review Agent",
-        description=(
-            "病案首页编码审核 Agent。给定病历文本, 输出主诊断/次诊断/手术编码, "
-            "标注高风险易错码, 生成 DRG/DIP 分组建议, 全链路审计。"
-        ),
-        url=url,
-        version="1.0.0",
-        provider="iCoDer",
-        documentationUrl="/docs/agents/homepage-coding-review",
-        capabilities=AgentCapabilities(
-            streaming=False,
-            pushNotifications=False,
-            stateTransitionHistory=True,
-            extensions=[],
-        ),
-        skills=[
-            AgentSkill(
-                id="icd_coding",
-                name="ICD-10-CN / ICD-9-CM-3 编码审核",
-                description=(
-                    "从病历抽取诊断和手术, 映射到 ICD-10-CN / ICD-9-CM-3"
-                ),
-                inputSchema={"type": "object", "properties": {"text": {"type": "string"}}},
-                outputSchema={"$ref": "icoder/MedicalCodingOutputSchema/v1"},
-                examples=[
-                    {
-                        "input": {"text": "患者男 65 岁, 急性前壁心梗 3 小时"},
-                        "output": {"primary_diagnosis": {"code": "I21.0"}},
-                    }
-                ],
-            ),
-            AgentSkill(
-                id="drg_grouping",
-                name="CHS-DRG / DIP 分组",
-                description="基于诊断和手术, 计算 CHS-DRG 入组路径 + DIP 病种",
-                inputSchema={"type": "object"},
-                outputSchema={"$ref": "icoder/DrgGroupingOutputSchema/v1"},
-                examples=[],
-            ),
-        ],
-        defaultInputModes=["text"],
-        defaultOutputModes=["application/json"],
-        securitySchemes={
-            "bearer": SecurityScheme(
-                type="apiKey",
-                description="Phase 4 才校验, Phase 1 接受任意 bearer",
-            )
-        },
-        metadata={
-            "icoder": {
-                "rule_sets": ["medical_coding", "drg_dip", "audit"],
-                "non_goals": [
-                    "不直接做最终诊断决策",
-                    "不写回 EMR/HIS",
-                    "不评估模型效果",
-                ],
-                "experts": ["coding-expert", "drg-expert", "compliance-expert"],
-                "production_writeback_blocked": True,
-                "phi_redaction": "required",
-                "runtime_version": "1.0.0",
-            }
-        },
-    )
+#
+# Phase D3 (2026-06-26): the 14-stage ``homepage-coding-review`` cosmetic
+# fixture was removed. The canonical Phase 2 standard Agent Card is
+# ``medcoder_coding_review_card()`` below — it declares the 5 MedCodER
+# stages + 5 MCP tools + 6 non_goals. The legacy 14-stage pipeline is
+# preserved only inside the API layer's ``_execute_pipeline_14_stages``
+# path for back-compat with the M3-0 report HTML.
 
 
 def medcoder_coding_review_card(base_url: str = "") -> AgentCard:
@@ -378,6 +308,5 @@ __all__ = [
     "AgentListResponse",
     "AgentSkill",
     "SecurityScheme",
-    "homepage_coding_review_card",
     "medcoder_coding_review_card",
 ]

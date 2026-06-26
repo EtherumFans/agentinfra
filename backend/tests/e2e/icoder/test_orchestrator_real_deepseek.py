@@ -5,7 +5,7 @@ Drives the production lifespan: LLMGateway → DeepSeekProvider (real key)
 → InboundHandler → A2A v0.3 inbound route.
 
 The test posts a single CCL2026 case through
-``POST /api/icoder/agents/homepage-coding-review/v1/message:send`` and
+``POST /api/icoder/agents/medcoder-coding-review/v1/message:send`` and
 asserts the full A2A envelope + state machine + that the response carries
 at least one diagnosis code (subdivision-tolerant against the fixture's
 expected ICD-10).
@@ -116,7 +116,7 @@ def test_orchestrator_real_deepseek_end_to_end(real_client):
     timeout_s = int(os.environ.get("ICODER_TEST_TIMEOUT_S", _DEFAULT_TIMEOUT_S))
 
     r = real_client.post(
-        "/api/icoder/agents/homepage-coding-review/v1/message:send",
+        "/api/icoder/agents/medcoder-coding-review/v1/message:send",
         headers=headers,
         json=inbound_envelope,
         timeout=timeout_s,

@@ -10,13 +10,15 @@ in ``app.icoder.agent_runtime.a2a.agent_card``. It declares:
   - 6 non_goals (production_writeback_blocked, no fully automated claims, etc.)
   - production_writeback_blocked=true, phi_redaction=required
 
-The 14-stage cosmetic ``homepage-coding-review`` agent is DEPRECATED.
+Phase D3 (2026-06-26): the legacy 14-stage ``homepage-coding-review``
+agent and its ``homepage_coding_review_card`` fixture have been removed.
+The MedCodER card is the only published agent card; the
+``pipeline.replaces`` field preserves the deprecation history string.
 """
 
 from __future__ import annotations
 
 from app.icoder.agent_runtime.a2a.agent_card import (
-    homepage_coding_review_card,
     medcoder_coding_review_card,
 )
 
@@ -127,6 +129,9 @@ def test_medcoder_card_writeback_blocked_and_phi_required():
 
 # ---------------------------------------------------------------------------
 # Replaces homepage-coding-review (no parallel 14-stage)
+# Phase D3 (2026-06-26): the homepage-coding-review agent is removed, but
+# the replaces string in the medcoder card's pipeline metadata preserves
+# the deprecation history for downstream log readers.
 # ---------------------------------------------------------------------------
 
 
@@ -135,11 +140,6 @@ def test_medcoder_card_replaces_homepage_14_stage():
     md = card.metadata["icoder"]
     assert "homepage-coding-review" in md["pipeline"]["replaces"]
     assert "14-stage" in md["pipeline"]["replaces"]
-
-    # Homepage card is retained for backward compat but should NOT be the
-    # primary reference. Its declaration should remain unchanged.
-    hp = homepage_coding_review_card()
-    assert hp.metadata["icoder"]["production_writeback_blocked"] is True
 
 
 # ---------------------------------------------------------------------------

@@ -24,7 +24,7 @@ from .agent_card import (
     AgentListResponse,
     AgentSkill,
     SecurityScheme,
-    homepage_coding_review_card,
+    medcoder_coding_review_card,
 )
 from .envelope import (
     SUPPORTED_METHODS,
@@ -160,7 +160,7 @@ __all__ = [
     "AgentListResponse",
     "AgentSkill",
     "SecurityScheme",
-    "homepage_coding_review_card",
+    "medcoder_coding_review_card",
     # iCoDer metadata
     "ALL_ICODER_SCHEMAS",
     "DelegationMetadata",

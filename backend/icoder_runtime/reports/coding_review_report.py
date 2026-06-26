@@ -1,6 +1,6 @@
 """iCoDer M3-0 — 病案首页编码审核报告生成器 (HTML, 18 节, 含 pipeline validation disclaimer).
 
-Agent: icoder/homepage-coding-review-agent@1.0.0
+Agent: icoder/medcoder-coding-review-agent@1.0.0
 Positioning: 这是 iCoDer 基础设施上的第一个官方样板 Agent 的报告, 不是 iCoDer 全部产品定位.
 
 **Output**: 纯 HTML (M3-0 阶段) — PDF 留 M3+ 阶段.
@@ -39,8 +39,9 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-# 复用样板 Agent 定义的常量
-from official_agents.homepage_coding_review import (
+# Phase D3 (2026-06-26): pull canonical constants from the SSOT — the
+# legacy ``homepage-coding-review`` 14-stage shim has been removed.
+from icoder_runtime.constants.coding_review_constants import (
     AGENT_REF,
     PIPELINE_STAGES,
     PRIORITY_HIGH_RISK_CODES,
@@ -315,8 +316,8 @@ def render_report(
     body.append(_section("1. Agent 名称与版本", f"""
 <dl class="kv">
   <dt>Agent ref</dt><dd><code>{_esc(AGENT_REF)}</code></dd>
-  <dt>Category</dt><dd>official_reference_agent</dd>
-  <dt>Subcategory</dt><dd>homepage-coding-review</dd>
+  <dt>Category</dt><dd>medical-coding</dd>
+  <dt>Subcategory</dt><dd>medcoder-coding-review</dd>
   <dt>Positioning</dt><dd>本 Agent 是 iCoDer 基础设施上的第一个官方样板 Agent, 不代表 iCoDer 全部产品定位</dd>
 </dl>
 """, anchor="section-1-agent"))

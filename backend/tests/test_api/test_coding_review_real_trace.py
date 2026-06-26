@@ -126,8 +126,10 @@ def test_response_pipeline_stages_has_14_entries(client):
     assert len(observed) == 14, (
         f"expected 14 stages, got {len(observed)}: {observed}"
     )
-    # The 14 stage names from official_agents.homepage_coding_review must all
-    # be present (order is preserved by the pipeline).
+    # The 14 stage names from the legacy _execute_pipeline_14_stages path
+    # must all be present (order is preserved by the pipeline). Phase D3
+    # keeps this 14-stage behavior intact for the M2a recorder migration
+    # test; the 5-stage MedCodER is exercised by e2e_product tests.
     assert observed == EXPECTED_14_STAGES, (
         f"observed stages mismatch: {observed}"
     )
@@ -205,10 +207,10 @@ def test_api_run_id_matches_m2a_run_id(client):
     )
 
 
-# ── 5. agent_ref is the homepage-coding-review agent ───────────────────
+# ── 5. agent_ref is the medcoder-coding-review agent ──────────────────
 
 
-def test_m2a_trace_agent_ref_is_homepage_coding_review(client):
+def test_m2a_trace_agent_ref_is_medcoder_coding_review(client):
     """The M2a trace carries the agent_ref from the inference() context."""
     r = client.post("/api/icoder/coding-review/run", json=SAMPLE_INPUT)
     assert r.status_code == 200
@@ -222,9 +224,10 @@ def test_m2a_trace_agent_ref_is_homepage_coding_review(client):
 
 
 # ── 6. Empty input still records stages (degraded but traced) ─────────
-# Phase A A3 (2026-06-25): the API layer is in transition between the
-# legacy 14-stage homepage-coding-review pipeline and the canonical
-# MedCodER 5-stage pipeline. For empty input, the early-return path
+# Phase A A3 (2026-06-25) + Phase D3 (2026-06-26): the API layer is
+# in transition between the legacy 14-stage homepage-coding-review
+# pipeline and the canonical MedCodER 5-stage pipeline. For empty
+# input, the early-return path
 # loops over PIPELINE_STAGES[1:] (the 4 new stages) and combines them
 # with the explicit Stage 1 record (document_normalizer) — yielding 5
 # stage entries. For full input, the legacy 14-stage code path still

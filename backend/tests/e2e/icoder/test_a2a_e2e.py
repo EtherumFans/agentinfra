@@ -28,7 +28,7 @@ from app.icoder.agent_runtime.a2a import (
     A2A_PROTOCOL_VERSION,
     mount_a2a,
 )
-from app.icoder.agent_runtime.a2a.agent_card import homepage_coding_review_card
+from app.icoder.agent_runtime.a2a.agent_card import medcoder_coding_review_card
 from app.icoder.agent_runtime.orchestrator import (
     Aggregator,
     Delegator,
@@ -48,8 +48,8 @@ from app.icoder.agent_runtime.orchestrator.planner import PlannerConfig
 
 @dataclass
 class _Agent:
-    id: str = "homepage-coding-review"
-    name: str = "Homepage Coding Review Agent"
+    id: str = "medcoder-coding-review"
+    name: str = "MedCodER Coding Review Agent"
     expert_ids: list[str] = field(default_factory=lambda: ["coding-expert"])
     config: dict = field(default_factory=dict)
 
@@ -88,7 +88,7 @@ def _build_handler() -> InboundHandler:
         planner=planner,
         delegator=delegator,
         aggregator=Aggregator(),
-        agent_provider=DictAgentProvider({"homepage-coding-review": _Agent()}),
+        agent_provider=DictAgentProvider({"medcoder-coding-review": _Agent()}),
     )
 
 
@@ -109,8 +109,8 @@ def _expert_caller(expert_id: str, body: dict) -> dict:
 
 
 def _agent_provider(agent_id: str):
-    if agent_id == "homepage-coding-review":
-        return homepage_coding_review_card()
+    if agent_id == "medcoder-coding-review":
+        return medcoder_coding_review_card()
     return None
 
 
@@ -149,11 +149,11 @@ def test_e2e_discovery_then_send_then_validate(client):
     cards = r.json()["agents"]
     assert len(cards) >= 1
     card = next(
-        c for c in cards if c["url"].endswith("/homepage-coding-review/v1/message:send")
+        c for c in cards if c["url"].endswith("/medcoder-coding-review/v1/message:send")
     )
     assert card["version"] == "1.0.0"
     skill_ids = {s["id"] for s in card["skills"]}
-    assert "icd_coding" in skill_ids
+    assert "search_icd" in skill_ids  # MedCodER card surface
 
     # [2] Send a message — happy path with PHI
     inbound_envelope = {
@@ -173,7 +173,7 @@ def test_e2e_discovery_then_send_then_validate(client):
         },
     }
     r = client.post(
-        "/api/icoder/agents/homepage-coding-review/v1/message:send",
+        "/api/icoder/agents/medcoder-coding-review/v1/message:send",
         headers=headers,
         json=inbound_envelope,
     )

@@ -19,7 +19,9 @@ sys.path.insert(0, str(REPO_ROOT))
 
 from fastapi.testclient import TestClient
 from app.main import app
-from official_agents.homepage_coding_review import PRIORITY_HIGH_RISK_CODES
+# Phase D3 (2026-06-26): import from the SSOT — the homepage-coding-review
+# shim is removed.
+from icoder_runtime.constants.coding_review_constants import PRIORITY_HIGH_RISK_CODES
 
 
 @pytest.fixture
@@ -119,13 +121,17 @@ def test_no_softspot_in_app_api():
 
 
 def test_chinese_term_used():
-    """红线: "高风险易错编码点" 术语在 official_agents 中存在."""
-    init_file = REPO_ROOT / "official_agents" / "homepage-coding-review" / "__init__.py"
-    if not init_file.exists():
-        pytest.skip("homepage-coding-review __init__.py not found")
-    content = init_file.read_text(encoding="utf-8")
+    """红线: "高风险易错编码点" 术语在 SSOT 常量文件中存在.
+
+    Phase D3 (2026-06-26): 旧 ``official_agents/homepage-coding-review/__init__.py``
+    已删, 常量已迁到 ``icoder_runtime/constants/coding_review_constants.py``.
+    """
+    ssot_file = REPO_ROOT / "icoder_runtime" / "constants" / "coding_review_constants.py"
+    if not ssot_file.exists():
+        pytest.skip("coding_review_constants.py SSOT not found")
+    content = ssot_file.read_text(encoding="utf-8")
     assert "高风险易错编码点" in content, \
-        "官方术语 '高风险易错编码点' 必须在 official_agents 中存在"
+        "官方术语 '高风险易错编码点' 必须在 SSOT 常量文件中存在"
 
 
 def test_report_uses_chinese_term():

@@ -492,7 +492,13 @@ def main(argv: list[str] | None = None) -> int:
         # this is also safe (slight overhead, but no correctness change).
         os.environ["MEDCODER_SUBPROCESS"] = "1"
         from icoder_runtime.providers.medical_coding.hybrid_adapter import HybridCodingAdapter
-        adapter = HybridCodingAdapter(gateway=gateway, mode="medcoder", retriever=retriever)
+        # M2.5 (2026-06-26): Do NOT pass retriever=retriever here — on
+        # Windows the in-process MedCodERRetriever segfaults when called
+        # from inside the asyncio event loop (BGE-M3 + httpx). Passing
+        # None forces MedCodERStrategy to use lazy auto-creation, which
+        # checks MEDCODER_SUBPROCESS=1 / os.name=='nt' and picks the
+        # subprocess wrapper. Without this, the eval crashes on case 1.
+        adapter = HybridCodingAdapter(gateway=gateway, mode="medcoder")
 
     # Run eval
     result = run_evaluation(cases, args.variant, gateway=gateway, retriever=retriever, adapter=adapter)

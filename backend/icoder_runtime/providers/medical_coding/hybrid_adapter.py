@@ -128,9 +128,20 @@ class HybridCodingAdapter(CodingEngineAdapter):
         # MedCodER strategy (M1). Lazy-constructed when mode ∈ MEDCODER_MODES
         # so legacy modes don't pay the BGE-M3 / FAISS import cost.
         if self._mode in MEDCODER_MODES:
+            # E1.1 sentinel: when caller did NOT pass retriever (the
+            # default), forward ``_NO_RETRIEVER`` so MedCodERStrategy
+            # lazy-creates one (subprocess on Windows / in-process on
+            # Unix per MEDCODER_SUBPROCESS env). Forwarding ``None``
+            # would tell the strategy "I have no retriever" — that
+            # forces every Stage 2 call to return degraded. Fixes both
+            # ``test_get_retriever_uses_subprocess_when_env_var_set``
+            # and the e2e eval (Windows segfault was masking the real
+            # root cause: retriever was never created).
+            from .medcoder_strategy import _NO_RETRIEVER
+            strategy_retriever = retriever if retriever is not None else _NO_RETRIEVER
             self._strategy: MedCodERStrategy | None = MedCodERStrategy(
                 gateway=gateway,
-                retriever=retriever,
+                retriever=strategy_retriever,
             )
         else:
             self._strategy = None

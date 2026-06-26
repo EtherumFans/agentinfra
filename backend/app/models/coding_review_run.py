@@ -33,7 +33,7 @@ Design notes
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 from sqlalchemy import (
@@ -58,7 +58,7 @@ def _new_run_id() -> str:
 
 def _utcnow() -> datetime:
     """Naive UTC datetime with sub-second precision (avoids SQLite sec-only now)."""
-    return datetime.utcnow()
+    return datetime.now(timezone.utc)
 
 
 class CodingReviewRun(Base):

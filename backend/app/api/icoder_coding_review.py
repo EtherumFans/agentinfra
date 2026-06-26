@@ -17,7 +17,7 @@ import os
 import time
 import uuid
 from contextlib import contextmanager
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterator, Optional
 
@@ -712,7 +712,7 @@ async def coding_review_run(
                 },
             )
 
-    started_at = datetime.utcnow().isoformat() + "Z"
+    started_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     run_id = uuid.uuid4().hex[:24]
     trace_id = uuid.uuid4().hex[:24]
 
@@ -794,7 +794,7 @@ async def coding_review_run(
                 stage_ctx.safety_gate = result.get("safety_gate", {})
             except Exception:
                 pass
-    finished_at = datetime.utcnow().isoformat() + "Z"
+    finished_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
     # Compute high-risk hits for audit log (also used by the report renderer).
     hr_set = _load_high_risk_set()
@@ -835,8 +835,8 @@ async def coding_review_run(
         encounter_text=body.encounter_text or None,
         organization_id=await _resolve_user_org_id(current_user.id, db),
         created_by_user_id=current_user.id,
-        started_at=datetime.utcnow(),
-        finished_at=datetime.utcnow(),
+        started_at=datetime.now(timezone.utc),
+        finished_at=datetime.now(timezone.utc),
     )
     db.add(db_row)
     await db.flush()  # ensure DB-level id is materialized before commit
@@ -1000,7 +1000,7 @@ async def coding_review_human_review(
 
     # 7. 记录 (M3-0: in-memory; M3+: DB + AuditLog)
     record_id = uuid.uuid4().hex[:16]
-    recorded_at = datetime.utcnow().isoformat() + "Z"
+    recorded_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     # Reviewer identity is sourced from the JWT, not the request body —
     # the body values are kept as a fallback only, with a warning if they
     # disagree with the authenticated user.
@@ -1203,7 +1203,7 @@ async def coding_review_report(
             content=json.dumps(report_dict, ensure_ascii=False, indent=2),
             filename=f"coding_review_report_{run_id}.json",
             disclaimer=report_dict["disclaimer"],
-            generated_at=datetime.utcnow().isoformat() + "Z",
+            generated_at=datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         )
 
     # HTML 模式
@@ -1234,7 +1234,7 @@ async def coding_review_report(
         content=html_content,
         filename=f"coding_review_report_{run_id}.html",
         disclaimer=PIPELINE_VALIDATION_DISCLAIMER if mode == "link_validation" else "model_evaluation 模式 (M3+)",
-        generated_at=datetime.utcnow().isoformat() + "Z",
+        generated_at=datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
     )
 
 

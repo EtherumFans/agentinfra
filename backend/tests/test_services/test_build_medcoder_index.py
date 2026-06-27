@@ -254,3 +254,114 @@ def test_limit_truncates_catalog(tmp_path, monkeypatch):
     # The embedder should have been called with exactly 2 texts
     assert len(fake_embedder._calls[0]) == 2
     assert fake_index.ntotal == 2
+
+
+# ── E1.9 dtype threading ─────────────────────────────────────────
+
+
+def _setup_tiny_asset(asset):
+    """Helper: write a 1-code catalog + empty synonyms file under ``asset``."""
+    import json
+    cat = {
+        "_meta": {"total_codes": 1},
+        "chapters": {"I00-I99": {"chapter_no": "第9章", "chapter_name": "循环系统疾病"}},
+        "codes": [
+            {"code": "I50.900", "name_cn": "心力衰竭", "name_en": "Heart failure",
+             "synonyms_cn": ["心衰"], "synonyms_en": [],
+             "chapter_range": "I00-I99", "chapter_no": "第9章", "chapter_name": "循环系统疾病",
+             "category_code": "I50", "clinical_category": "心衰", "is_extended": False,
+             "is_dagger_asterisk": False, "is_generated_category": False,
+             "is_insurance_gray": False},
+        ],
+    }
+    syn = {"_meta": {"total_synonyms": 0}, "synonyms": {}, "term_index": {}}
+    (asset / "icd10cn_code_catalog.json").write_text(json.dumps(cat), encoding="utf-8")
+    (asset / "icd10cn_synonym_map.json").write_text(json.dumps(syn), encoding="utf-8")
+
+
+def test_default_bge_dtype_is_float16(tmp_path, monkeypatch):
+    """E1.9: with no --bge-dtype and no env, embedder gets torch_dtype=float16."""
+    monkeypatch.delenv("MEDCODER_BGE_DTYPE", raising=False)
+    asset = tmp_path / "asset"
+    asset.mkdir()
+    _setup_tiny_asset(asset)
+    out = tmp_path / "out"
+    out.mkdir()
+
+    fake_embedder = _FakeEmbedder()
+    fake_index = MagicMock()
+    fake_index.ntotal = 0
+    fake_index.add = MagicMock(side_effect=lambda arr: setattr(fake_index, "ntotal", arr.shape[0]))
+    fake_faiss = _fake_faiss_module(fake_index)
+
+    from app.services import icd10cn_loader as loader_mod
+    real_cls = loader_mod.ICD10CNLoader
+
+    class _PatchedLoader(real_cls):
+        def __init__(self, asset_dir=None):
+            super().__init__(asset_dir=str(asset))
+
+    captured_kwargs: list[dict] = []
+
+    class _CaptureFake(_FakeEmbedder):
+        def __init__(self, **kwargs):
+            captured_kwargs.append(kwargs)
+            super().__init__()
+
+    with patch("icoder_runtime.providers.medical_coding.embedding_bge_m3.BGEEmbedder",
+               side_effect=_CaptureFake), \
+         patch("app.services.icd10cn_loader.ICD10CNLoader", _PatchedLoader), \
+         patch.dict("sys.modules", {"faiss": fake_faiss}):
+        import scripts.build_medcoder_index as bm
+        bm.faiss = fake_faiss
+        rc = bm.main([
+            "--asset-dir", str(asset),
+            "--out", str(out),
+        ])
+
+    assert rc == 0
+    assert captured_kwargs, "BGEEmbedder was never called"
+    assert captured_kwargs[0].get("torch_dtype") == "float16"
+
+
+def test_explicit_bge_dtype_flag(tmp_path, monkeypatch):
+    """E1.9: --bge-dtype=float32 forwards to BGEEmbedder(torch_dtype='float32')."""
+    asset = tmp_path / "asset"
+    asset.mkdir()
+    _setup_tiny_asset(asset)
+    out = tmp_path / "out"
+    out.mkdir()
+
+    captured_kwargs: list[dict] = []
+
+    class _CaptureFake(_FakeEmbedder):
+        def __init__(self, **kwargs):
+            captured_kwargs.append(kwargs)
+            super().__init__()
+
+    fake_index = MagicMock()
+    fake_index.ntotal = 0
+    fake_index.add = MagicMock(side_effect=lambda arr: setattr(fake_index, "ntotal", arr.shape[0]))
+    fake_faiss = _fake_faiss_module(fake_index)
+
+    from app.services import icd10cn_loader as loader_mod
+    real_cls = loader_mod.ICD10CNLoader
+
+    class _PatchedLoader(real_cls):
+        def __init__(self, asset_dir=None):
+            super().__init__(asset_dir=str(asset))
+
+    with patch("icoder_runtime.providers.medical_coding.embedding_bge_m3.BGEEmbedder",
+               side_effect=_CaptureFake), \
+         patch("app.services.icd10cn_loader.ICD10CNLoader", _PatchedLoader), \
+         patch.dict("sys.modules", {"faiss": fake_faiss}):
+        import scripts.build_medcoder_index as bm
+        bm.faiss = fake_faiss
+        rc = bm.main([
+            "--asset-dir", str(asset),
+            "--out", str(out),
+            "--bge-dtype", "float32",
+        ])
+
+    assert rc == 0
+    assert captured_kwargs[0].get("torch_dtype") == "float32"

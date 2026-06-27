@@ -1169,6 +1169,14 @@ class MedCodERStrategy:
             or os.name == "nt"
         )
         try:
+            # E1.9 (2026-06-27): pin BGE-M3 to fp16 BEFORE constructing the
+            # retriever. The in-process path constructs BGEEmbedder at
+            # construction time (via ``_get_embedder`` → BGEEmbedder(**kwargs)
+            # → reads MEDCODER_BGE_DTYPE / DEVICE env). The subprocess path
+            # spawns a child that inherits parent env at start time, so
+            # setdefault before subprocess.start() means the child loads fp16.
+            os.environ.setdefault("MEDCODER_BGE_DTYPE", "float16")
+            os.environ.setdefault("MEDCODER_BGE_DEVICE", "cpu")
             from .medcoder_retriever import (
                 MedCodERRetriever,
                 SubprocessMedCodERRetriever,
@@ -1214,6 +1222,9 @@ class MedCodERStrategy:
             or os.name == "nt"
         )
         try:
+            # E1.9: same fp16 env pin as above (see _create_default_retriever).
+            os.environ.setdefault("MEDCODER_BGE_DTYPE", "float16")
+            os.environ.setdefault("MEDCODER_BGE_DEVICE", "cpu")
             from .medcoder_retriever import (
                 MedCodERICD9CM3Retriever,
                 SubprocessMedCodERICD9CM3Retriever,

@@ -1,0 +1,150 @@
+# iCoDer Managed Cloud — Region Catalog (Phase 1 cloud-flip 2026-06-27)
+#
+# Declarative config for the iCoDer 托管云 SaaS Environment layer.
+# Phase 1: documentation only. Phase 2: control-plane reads this file
+# during provisioning + region routing.
+#
+# Schema reference: docs/cloud/MULTI_REGION.md §1
+
+environments:
+  - code: eu
+    name: European Union
+    compliance:
+      - GDPR
+      - EHDS
+    data_residency_required: true
+    cross_environment_replication: forbidden
+    regions:
+      - code: eu-frankfurt
+        name: Frankfurt, Germany
+        cloud_provider: aws
+        enabled: false  # Phase 2
+        sla:
+          availability: 99.5
+          p50_latency_ms: 8000   # MedCodER full pipeline, BGE-M3 warm
+          p99_latency_ms: 30000
+        rto_hours: 4
+        rpo_hours: 1
+      - code: eu-stockholm
+        name: Stockholm, Sweden
+        cloud_provider: aws
+        enabled: false  # Phase 3
+        sla:
+          availability: 99.9
+          p50_latency_ms: 8000
+          p99_latency_ms: 30000
+        rto_hours: 0.5
+        rpo_minutes: 1
+        note: "active-active partner with eu-frankfurt (Phase 3)"
+
+  - code: us
+    name: United States
+    compliance:
+      - HIPAA
+      - HITECH
+    data_residency_required: true
+    cross_environment_replication: forbidden
+    regions:
+      - code: us-virginia
+        name: Virginia, USA
+        cloud_provider: aws
+        enabled: false  # Phase 2
+        sla:
+          availability: 99.5
+          p50_latency_ms: 8000
+          p99_latency_ms: 30000
+        rto_hours: 4
+        rpo_hours: 1
+      - code: us-oregon
+        name: Oregon, USA
+        cloud_provider: aws
+        enabled: false  # Phase 3
+        sla:
+          availability: 99.9
+          p50_latency_ms: 8000
+          p99_latency_ms: 30000
+        rto_hours: 0.5
+        rpo_minutes: 1
+        note: "active-active partner with us-virginia (Phase 3)"
+
+  - code: cn
+    name: China Mainland
+    compliance:
+      - 数据安全法
+      - 个人信息保护法
+      - 医疗数据管理规定
+    data_residency_required: true
+    cross_environment_replication: forbidden
+    regions:
+      - code: cn-hangzhou
+        name: Hangzhou, China
+        cloud_provider: aliyun
+        enabled: false  # Phase 2 (initial China region)
+        sla:
+          availability: 99.5
+          p50_latency_ms: 8000
+          p99_latency_ms: 30000
+        rto_hours: 4
+        rpo_hours: 1
+      - code: cn-beijing
+        name: Beijing, China
+        cloud_provider: aliyun
+        enabled: false  # Phase 3
+        sla:
+          availability: 99.9
+          p50_latency_ms: 8000
+          p99_latency_ms: 30000
+        rto_hours: 0.5
+        rpo_minutes: 1
+        note: "active-active partner with cn-hangzhou (Phase 3)"
+
+# ── LLM Provider Routing ──────────────────────────────────────────────────────
+# Per-environment inference endpoints. Phase 2: LLMGateway reads this
+# to route by tenant.environment. Tenants may override at Console level.
+llm_providers:
+  eu:
+    default: deepseek
+    endpoints:
+      - provider: deepseek
+        base_url: https://api-eu.deepseek.com/v1
+        default_model: deepseek-v4-flash
+  us:
+    default: deepseek
+    endpoints:
+      - provider: deepseek
+        base_url: https://api-us.deepseek.com/v1
+        default_model: deepseek-v4-flash
+      - provider: anthropic
+        base_url: https://api.anthropic.com/v1
+        default_model: claude-sonnet-4-6
+  cn:
+    default: deepseek
+    endpoints:
+      - provider: deepseek
+        base_url: https://api.deepseek.com/v1
+        default_model: deepseek-v4-flash
+
+# ── Shared Assets (跨 region 镜像, 只读) ───────────────────────────────────────
+shared_assets:
+  - name: icd10cn-code-catalog
+    s3_bucket_template: icoder-assets-{region}
+    version: v2026-06-27
+    size_mb: 45
+  - name: bge-m3-model
+    s3_bucket_template: icoder-assets-{region}
+    version: v2026-06-27
+    size_mb: 2300
+  - name: faiss-icd10-index
+    s3_bucket_template: icoder-assets-{region}
+    version: v2026-06-27
+    size_mb: 150
+  - name: faiss-icd9cm3-index
+    s3_bucket_template: icoder-assets-{region}
+    version: v2026-06-27
+    size_mb: 53
+
+# ── Out-of-Scope (Phase 1) ────────────────────────────────────────────────────
+# - active-active region failover (Phase 3)
+# - edge node PHI redaction (separate RFC)
+# - Stripe billing wire-up
+# - Tenant cross-environment migration

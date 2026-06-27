@@ -771,6 +771,9 @@ from app.api.runtime import router as runtime_router
 from app.api.websocket import router as ws_router
 from app.api.code_tables import router as code_tables_router
 from app.api.organizations import router as organizations_router
+from app.api.platform_environments import router as platform_environments_router
+from app.api.platform_api_clients import router as platform_api_clients_router
+from app.api.platform_tenants import router as platform_tenants_router
 from app.api.fhir import router as fhir_router
 from app.api.tools import router as tools_router
 from app.api.marketplace import router as marketplace_router
@@ -815,6 +818,9 @@ app.include_router(icoder_coding_review_router)  # M3-0 病案首页编码审核
 app.include_router(icoder_coding_methods_router)  # Phase B /api/icoder/coding-methods/{list, {id}}
 app.include_router(icoder_coding_compare_router)  # Phase B /api/icoder/coding-review/{compare, run-v2}
 app.include_router(organizations_router)
+app.include_router(platform_environments_router)  # Phase 1 cloud-flip stub (501)
+app.include_router(platform_api_clients_router)    # Phase 1 cloud-flip stub (501)
+app.include_router(platform_tenants_router)         # Phase 1 cloud-flip stub (501)
 app.include_router(fhir_router)
 app.include_router(tools_router)
 app.include_router(marketplace_router)

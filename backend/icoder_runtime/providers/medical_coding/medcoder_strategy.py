@@ -47,6 +47,7 @@ from .medcoder_adapter import (
     parse_rerank_response,
     fuzzy_evidence_to_span,
     get_differentiation_hints,
+    ExtractionResult,
 )
 
 logger = logging.getLogger(__name__)
@@ -203,8 +204,14 @@ class MedCodERStrategy:
 
     # ── 5 public stage methods ─────────────────────────────────────
 
-    async def stage1_extraction(self, emr_text: str) -> list[dict]:
-        """Stage 1: LLM call → list of {disease, evidence, llm_initial_code}.
+    async def stage1_extraction(self, emr_text: str) -> Any:
+        """Stage 1: LLM call → :class:`ExtractionResult`.
+
+        E1.4: returns ``ExtractionResult`` (diseases + procedure_mentions)
+        instead of a raw disease list. ``ExtractionResult`` is iterable
+        over diseases so existing ``for dx in extraction`` callers keep
+        working. Use ``extraction.diseases`` for explicit access or
+        ``extraction.procedure_mentions`` for the new procedure list.
 
         Falls back to ``_mock_stage1`` when the gateway is missing or
         the LLM call raises. The fallback is intentional — strategy tests
@@ -212,7 +219,7 @@ class MedCodERStrategy:
         result.
         """
         if not emr_text or not emr_text.strip():
-            return []
+            return ExtractionResult()
         ext_messages = build_extraction_messages(emr_text)
         if not self._gateway:
             return self._mock_stage1(emr_text)
@@ -534,7 +541,13 @@ class MedCodERStrategy:
         ctx: dict,
     ) -> MedicalCodingOutputSchema:
         """Full 5-stage pipeline. Equivalent to legacy
-        ``HybridCodingAdapter._medcoder_pipeline`` (M0)."""
+        ``HybridCodingAdapter._medcoder_pipeline`` (M0).
+
+        E1.4: also runs procedure RAG (Stage 2 over ICD-9-CM-3) for each
+        mention in ``extraction.procedure_mentions``. Populates
+        ``output.procedures`` with one :class:`ProcedureEntry` per
+        mention (top-1 by retrieval score).
+        """
         emr_text = self._extract_emr_text(emr_text)
         if not emr_text:
             out = MedicalCodingOutputSchema.mock_result("medcoder")
@@ -556,6 +569,8 @@ class MedCodERStrategy:
 
         output = await self.stage5_compliance(extracted_diagnoses, ctx)
         self._populate_primary_secondary(output, extracted_diagnoses)
+        # E1.4: procedure RAG sidecar (ICD-9-CM-3)
+        await self._populate_procedures(output, list(extraction.procedure_mentions))
         return output
 
     async def _run_prompt_only(
@@ -589,7 +604,12 @@ class MedCodERStrategy:
                 final_confidence=1.0,
             )
             extracted.append(edx)
-        return await self.stage5_compliance(extracted, ctx)
+        output = await self.stage5_compliance(extracted, ctx)
+        # E1.4: procedure RAG sidecar (ICD-9-CM-3) — same as ``full`` but
+        # without LLM rerank on the diagnosis side. Procedure candidates
+        # still go through :meth:`stage2_retrieve_procedure`.
+        await self._populate_procedures(output, list(extraction.procedure_mentions))
+        return output
 
     async def _run_retrieve_only(
         self,
@@ -681,9 +701,60 @@ class MedCodERStrategy:
                 final_confidence=top1.score if top1 else 0.0,
                 rerank_notes="prompt+retrieve: no LLM rerank",
             ))
-        return await self.stage5_compliance(extracted, ctx)
+        output = await self.stage5_compliance(extracted, ctx)
+        # E1.4: procedure RAG sidecar (ICD-9-CM-3) — same as ``full``.
+        await self._populate_procedures(output, list(extraction.procedure_mentions))
+        return output
 
     # ── Internal helpers ──────────────────────────────────────────
+
+    async def _populate_procedures(
+        self,
+        out: MedicalCodingOutputSchema,
+        mentions: list[str],
+    ) -> None:
+        """E1.4: populate ``out.procedures`` from extracted procedure mentions.
+
+        For each mention, calls :meth:`stage2_retrieve_procedure`
+        (BGE-M3 + FAISS over ICD-9-CM-3) and takes the top-1 candidate
+        as a :class:`ProcedureEntry`. Dedup is on code. Caps at 10
+        mentions per EMR — longer lists are truncated (rare in practice;
+        EMRs have <5 procedures).
+
+        Failures are non-fatal: a degraded retriever leaves
+        ``out.procedures`` empty. The diagnosis pipeline still
+        completes — procedure is a sidecar.
+        """
+        from official_agents.medical_coding.schema import ProcedureEntry
+
+        if not mentions:
+            return
+
+        seen_codes: set[str] = set()
+        procedures: list[ProcedureEntry] = []
+        # Cap mentions to avoid blowing up the LLM-extracted list
+        # (long EMRs with explicit "all procedures listed" sections
+        # can produce 30+ mentions).
+        for mention in mentions[:10]:
+            text = (mention or "").strip()
+            if not text:
+                continue
+            result = await self.stage2_retrieve_procedure(text, top_k=5)
+            if result.degraded or not result.candidates:
+                continue
+            top1 = result.candidates[0]
+            code = (top1.code or "").strip()
+            if not code or code in seen_codes:
+                continue
+            seen_codes.add(code)
+            procedures.append(ProcedureEntry(
+                code=code,
+                description=top1.name or "",
+                confidence=float(top1.score) if top1.score else 0.0,
+                category="therapeutic",  # default; future work: classify
+                evidence=[text],
+            ))
+        out.procedures = procedures
 
     async def _build_extracted_diagnosis(
         self,
@@ -830,17 +901,20 @@ class MedCodERStrategy:
         parts = re.split(r"[。；\n.!?;]+", text)
         return [p.strip() for p in parts if p and p.strip()]
 
-    def _mock_stage1(self, emr_text: str) -> list[dict]:
+    def _mock_stage1(self, emr_text: str) -> ExtractionResult:
         """Deterministic Stage 1 result when gateway is missing/failed.
 
         Single "心力衰竭" diagnosis with a stable ICD initial code. Tests
         rely on this shape — change with care.
+
+        E1.4: returns :class:`ExtractionResult` (diseases + empty
+        procedure_mentions). The mock has no procedure extraction.
         """
-        return [{
+        return ExtractionResult(diseases=[{
             "disease_text": "心力衰竭",
             "supporting_evidence": emr_text[:80] if emr_text else "胸闷气短",
             "llm_initial_code": "I50.900",
-        }]
+        }])
 
     def _mock_rerank(self, candidates: list[dict]) -> list[dict]:
         """Top-K by score when Stage 4 LLM is missing or fails."""

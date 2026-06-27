@@ -8,11 +8,21 @@ eval script.
 
 Each stage is exercised independently with stub gateways / retrievers;
 no real LLM or FAISS index is needed.
+
+E1.1 (2026-06-26): ``stage2_retrieve`` returns ``Stage2Result`` envelope
+(candidates + degraded + error_code). Tests for the strategy itself
+mock the stage methods, so the s2 mock returns a ``Stage2Result``
+instead of a raw list. See ``Stage2Result`` in
+``icoder_runtime/providers/medical_coding/medcoder_strategy.py``.
 """
 from __future__ import annotations
 
 import pytest
 from unittest.mock import AsyncMock, MagicMock
+
+from icoder_runtime.providers.medical_coding.medcoder_strategy import (
+    Stage2Result,
+)
 
 from official_agents.medical_coding.schema import (
     MedicalCodingOutputSchema,
@@ -25,6 +35,9 @@ from icoder_runtime.providers.medical_coding.medcoder_strategy import (
     CALIBRATION_FLOOR,
     DEFAULT_MERGE_CAP,
     DEFAULT_RERANK_TOP_K,
+)
+from icoder_runtime.providers.medical_coding.medcoder_adapter import (
+    ExtractionResult,
 )
 
 
@@ -74,17 +87,25 @@ async def test_stage1_extraction_no_gateway_returns_mock():
     """Without a gateway, stage 1 returns the deterministic mock result."""
     strat = MedCodERStrategy()
     out = await strat.stage1_extraction("患者主诉胸闷气短")
-    assert isinstance(out, list)
+    # E1.4: ExtractionResult is iterable as diseases for back-compat.
+    assert isinstance(out, ExtractionResult)
     assert len(out) == 1
     assert out[0]["disease_text"] == "心力衰竭"
     assert out[0]["llm_initial_code"] == "I50.900"
+    assert out.procedure_mentions == []
 
 
 @pytest.mark.asyncio
 async def test_stage1_extraction_empty_emr_returns_empty():
     strat = MedCodERStrategy(gateway=_StubGateway("[]"))
-    assert await strat.stage1_extraction("") == []
-    assert await strat.stage1_extraction("   \n  ") == []
+    # E1.4: ExtractionResult has no public list-equal API; compare fields.
+    out_empty = await strat.stage1_extraction("")
+    out_blank = await strat.stage1_extraction("   \n  ")
+    assert isinstance(out_empty, ExtractionResult)
+    assert out_empty.diseases == []
+    assert out_empty.procedure_mentions == []
+    assert isinstance(out_blank, ExtractionResult)
+    assert out_blank.diseases == []
 
 
 @pytest.mark.asyncio
@@ -98,6 +119,7 @@ async def test_stage1_extraction_with_gateway_parses_json():
     assert len(out) == 1
     assert out[0]["disease_text"] == "高血压"
     assert out[0]["llm_initial_code"] == "I10"
+    assert out.procedure_mentions == []
     assert len(gw.calls) == 1  # one LLM call
 
 
@@ -124,46 +146,129 @@ async def test_stage1_extraction_handles_code_fenced_json():
     assert out[0]["disease_text"] == "糖尿病"
 
 
+@pytest.mark.asyncio
+async def test_stage1_extraction_object_shape_parses_procedure_mentions():
+    """E1.4: new object-shape response parses procedure_mentions."""
+    obj_content = (
+        '{"diseases": [{"disease_text": "肺癌", "supporting_evidence": "胸部CT", '
+        '"llm_initial_code": "C34.900"}], '
+        '"procedure_mentions": ["支气管镜检查", "肺部活检"]}'
+    )
+    strat = MedCodERStrategy(gateway=_StubGateway(obj_content))
+    out = await strat.stage1_extraction("胸部CT 影像学检查...")
+    assert len(out) == 1
+    assert out[0]["disease_text"] == "肺癌"
+    assert out.procedure_mentions == ["支气管镜检查", "肺部活检"]
+
+
+@pytest.mark.asyncio
+async def test_stage1_extraction_legacy_array_shape_no_procedure_mentions():
+    """E1.4 back-compat: legacy array-shape response → empty procedure_mentions."""
+    legacy = '[{"disease_text": "心衰", "llm_initial_code": "I50.900"}]'
+    strat = MedCodERStrategy(gateway=_StubGateway(legacy))
+    out = await strat.stage1_extraction("...")
+    assert len(out) == 1
+    assert out[0]["disease_text"] == "心衰"
+    assert out.procedure_mentions == []  # back-compat: no procedure field
+
+
 # ── 2. stage2_retrieve ──────────────────────────────────────────────
 
 
 @pytest.mark.asyncio
-async def test_stage2_retrieve_no_retriever_returns_empty():
+async def test_stage2_retrieve_no_retriever_returns_structured_degraded():
+    """E1.1 (2026-06-26): when retriever is None, stage 2 must surface
+    the failure mode via a ``Stage2Result`` envelope — NOT silently
+    return ``[]``. The contract:
+
+      - ``candidates == []``
+      - ``degraded is True``
+      - ``error_code == "MEDCODER_RETRIEVER_UNAVAILABLE"``
+      - ``is_ok is False``
+
+    This replaces the pre-existing test that asserted
+    ``stage2_retrieve("心衰") == []`` (silent degradation — rejected by
+    the E1.1 product gate).
+    """
+    from icoder_runtime.providers.medical_coding.medcoder_strategy import (
+        Stage2Result, STAGE2_RETRIEVER_UNAVAILABLE,
+    )
     strat = MedCodERStrategy(retriever=None)
-    # retriever is None; stage 2 should return [] without error
-    assert await strat.stage2_retrieve("心衰") == []
+    result = await strat.stage2_retrieve("心衰")
+    assert isinstance(result, Stage2Result)
+    assert result.candidates == []
+    assert result.degraded is True
+    assert result.error_code == STAGE2_RETRIEVER_UNAVAILABLE
+    assert result.is_ok is False
+    # And the result serializes to a dict with the same shape (for the
+    # Aggregator / Recorder downstream).
+    blob = result.to_dict()
+    assert blob["degraded"] is True
+    assert blob["error_code"] == STAGE2_RETRIEVER_UNAVAILABLE
 
 
 @pytest.mark.asyncio
 async def test_stage2_retrieve_empty_text_returns_empty():
     retriever = _StubRetriever([CandidateCode(code="I50.900", name="心衰")])
     strat = MedCodERStrategy(retriever=retriever)
-    assert await strat.stage2_retrieve("") == []
-    assert await strat.stage2_retrieve("   ") == []
+    result_empty = await strat.stage2_retrieve("")
+    assert result_empty.candidates == []
+    # Empty input is NOT a failure — just no work to do.
+    assert result_empty.degraded is False
+    from icoder_runtime.providers.medical_coding.medcoder_strategy import (
+        STAGE2_EMPTY_INPUT,
+    )
+    assert result_empty.error_code == STAGE2_EMPTY_INPUT
+    # Whitespace-only is also empty.
+    result_ws = await strat.stage2_retrieve("   ")
+    assert result_ws.candidates == []
+    assert result_ws.degraded is False
     assert retriever.calls == []  # retriever never called for empty input
 
 
 @pytest.mark.asyncio
 async def test_stage2_retrieve_delegates_to_retriever():
+    from icoder_runtime.providers.medical_coding.medcoder_strategy import (
+        Stage2Result, STAGE2_OK,
+    )
     cands = [
         CandidateCode(code="I50.900", name="心力衰竭", score=0.95),
         CandidateCode(code="I50.0", name="充血性心衰", score=0.7),
     ]
     retriever = _StubRetriever(cands)
     strat = MedCodERStrategy(retriever=retriever)
-    out = await strat.stage2_retrieve("心衰", top_k=5)
-    assert out == cands
+    result = await strat.stage2_retrieve("心衰", top_k=5)
+    # E1.1: stage2_retrieve returns Stage2Result envelope
+    assert isinstance(result, Stage2Result)
+    assert result.candidates == cands
+    assert result.degraded is False
+    assert result.error_code == STAGE2_OK
+    assert result.is_ok is True
     assert retriever.calls == [("心衰", 5)]
 
 
 @pytest.mark.asyncio
-async def test_stage2_retrieve_retriever_failure_returns_empty():
+async def test_stage2_retrieve_retriever_failure_returns_structured_degraded():
+    """E1.1: when the retriever raises at runtime, surface the failure
+    via ``Stage2Result(degraded=True, error_code=MEDCODER_RETRIEVE_FAILED)``
+    — NOT a silent ``[]``.
+    """
+    from icoder_runtime.providers.medical_coding.medcoder_strategy import (
+        Stage2Result, STAGE2_RETRIEVE_FAILED,
+    )
+
     class _BrokenRetriever:
         async def retrieve_async(self, disease, top_k=None):
             raise RuntimeError("FAISS down")
 
     strat = MedCodERStrategy(retriever=_BrokenRetriever())
-    assert await strat.stage2_retrieve("心衰") == []
+    result = await strat.stage2_retrieve("心衰")
+    assert isinstance(result, Stage2Result)
+    assert result.candidates == []
+    assert result.degraded is True
+    assert result.error_code == STAGE2_RETRIEVE_FAILED
+    assert "FAISS down" in result.error_detail
+    assert result.is_ok is False
 
 
 # ── 3. stage3_merge ────────────────────────────────────────────────
@@ -333,8 +438,10 @@ async def test_run_variant_full_dispatches_to_5_stages(monkeypatch):
     """``full`` runs all 5 stages. Stub each stage and assert call order."""
     calls: list[str] = []
 
-    async def s1(emr_text): calls.append("stage1"); return [{"disease_text": "x", "llm_initial_code": "I10"}]
-    async def s2(text, top_k=20): calls.append("stage2"); return []
+    async def s1(emr_text):
+        calls.append("stage1")
+        return ExtractionResult(diseases=[{"disease_text": "x", "llm_initial_code": "I10"}])
+    async def s2(text, top_k=20): calls.append("stage2"); return Stage2Result(candidates=[])
     async def s3(llm, ret, dt): calls.append("stage3"); return []
     async def s4(dt, ev, cand, hints=None): calls.append("stage4"); return []
     async def s5(extracted, ctx=None): calls.append("stage5"); return MedicalCodingOutputSchema.mock_result("medcoder")
@@ -354,7 +461,9 @@ async def test_run_variant_full_dispatches_to_5_stages(monkeypatch):
 async def test_run_variant_prompt_only_uses_stage1_only():
     calls: list[str] = []
 
-    async def s1(emr_text): calls.append("stage1"); return [{"disease_text": "高血压", "llm_initial_code": "I10"}]
+    async def s1(emr_text):
+        calls.append("stage1")
+        return ExtractionResult(diseases=[{"disease_text": "高血压", "llm_initial_code": "I10"}])
     async def s2(text, top_k=20): calls.append("stage2")
     async def s3(llm, ret, dt): calls.append("stage3")
     async def s4(dt, ev, cand, hints=None): calls.append("stage4")
@@ -396,11 +505,11 @@ async def test_run_variant_prompt_plus_retrieve_uses_stage_1_2_3_5():
 
     async def s1(emr_text):
         calls.append("stage1")
-        return [{"disease_text": "高血压", "llm_initial_code": "I10"}]
+        return ExtractionResult(diseases=[{"disease_text": "高血压", "llm_initial_code": "I10"}])
 
     async def s2(text, top_k=20):
         calls.append("stage2")
-        return []
+        return Stage2Result(candidates=[])
 
     async def s3(llm, ret, dt):
         calls.append("stage3")

@@ -13,10 +13,109 @@
   "system_prompt": "你是 iCoDer MedCodER 编码审核 Agent。严格按 MedCodER 5 阶段管线处理输入病历:\n\nStage 1 — Extraction (LLM, DeepSeek-v4):\n  从病历识别每个诊断的 disease_text + supporting_evidence (原文 + char span)\n  + llm_initial_code。每条 evidence 必须能在原文中找到对应片段, 不得编造。\n\nStage 2 — Retrieval (BGE-M3 + FAISS, 本地):\n  对每个 disease_text 做 synonym expansion (top-3), embed (BAAI/bge-m3, 1024-dim),\n  FAISS top-20, filter via icd10cn_code_catalog (37,897 码)。\n\nStage 3 — Merge (LLM data plane):\n  candidate_set = (LLM codes) ∪ (retrieved top-20), cap 30 per disease.\n  注入 coding_differentiation_kb P0/P1 hints.\n\nStage 4 — Re-Rank (LLM, DeepSeek-v4):\n  RankGPT-style 重排 top-5 per disease. 输出 per-disease final_confidence\n  + rerank_notes (引用 evidence)。\n\nStage 5 — Compliance + Calibration:\n  MedCodERRetrievalRuleSet (MR-001/002/003): catalog membership,\n  similarity ≥ 0.5, chapter metadata. 每条 diagnosis 的 final_confidence < 0.5\n  触发 manual_review_required。\n\n硬约束:\n- production_writeback_blocked = true (不写回 EMR/HIS/医保)\n- phi_redacted = true (Context 强制 PHI 脱敏)\n- 输出必须是 JSON, 遵循 icoder/MedicalCodingOutputSchema/v1\n- extracted_diagnoses 字段必须非空 (MedCodER 标志性输出)",
   "experts": [
     {
-      "expert_id": "coding-expert",
-      "name": "Coding Expert",
-      "role": "primary",
-      "description": "MedCodER 5 阶段编排。委托 hybrid_adapter.infer_async(mode='medcoder'), 输出 MedicalCodingOutputSchema。"
+      "id": "evidence-extractor",
+      "name": "Evidence Extractor (MedCodER Stage 1)",
+      "role": "stage1_extraction",
+      "description": "Stage 1: 从病历抽取 diagnosis_facts / procedure_facts / negated_findings / historical_conditions, 每个 fact 含 evidence_text + char_start/char_end。LLM-backed (DeepSeek V4) with deterministic offline fallback.",
+      "system_prompt": "你是一个病历证据提取专家。从病历中提取诊断事实、手术事实、否定发现、既往病史。输出 JSON，必须包含 diagnosis_facts / procedure_facts / negated_findings / historical_conditions 四个数组，每个 fact 必须附 evidence_text 和 char_start/char_end。",
+      "tools": [],
+      "model": "deepseek-v4",
+      "non_goals": [
+        "不直接做最终诊断决策",
+        "不写回 EMR/HIS/医保",
+        "不评估模型效果",
+        "不绕过 PHI redaction",
+        "不编造 evidence_text (必须能在原文中找到)"
+      ],
+      "output_contract": {
+        "schema_ref": "icoder/MedCodERFactsSchema/v1",
+        "fields": [
+          "diagnosis_facts",
+          "procedure_facts",
+          "negated_findings",
+          "historical_conditions"
+        ]
+      },
+      "timeout_ms": 30000
+    },
+    {
+      "id": "index-navigator",
+      "name": "Index Navigator (MedCodER Stage 2)",
+      "role": "stage2_retrieval",
+      "description": "Stage 2: BGE-M3 + FAISS 检索 top-20 候选 ICD 编码 (含 synonym expansion). 优雅降级: retriever not loaded = retriever_status=missing + 空 candidate list.",
+      "system_prompt": "你是一个 ICD 编码检索专家。对每个 disease_fact / procedure_fact 调用 BGE-M3 + FAISS 检索 top-20 候选编码, 注入 synonym expansion (top-3)。每个 candidate 含 code / name / score / chapter / match_type='vector'。",
+      "tools": ["search_icd", "semantic_search"],
+      "model": "BAAI/bge-m3",
+      "non_goals": [
+        "不写回 EMR/HIS",
+        "不评估模型效果",
+        "不重排 (重排是 Stage 4 code-reconciler 的事)",
+        "不编造 code (FAISS 查不到的留空)"
+      ],
+      "output_contract": {
+        "schema_ref": "icoder/MedCodERCandidatesSchema/v1",
+        "fields": [
+          "diagnosis_candidates",
+          "procedure_candidates",
+          "retriever_status"
+        ]
+      },
+      "timeout_ms": 30000
+    },
+    {
+      "id": "code-reconciler",
+      "name": "Code Reconciler (MedCodER Stage 3 + 4)",
+      "role": "stage3_merge_stage4_rerank",
+      "description": "Stage 3+4: 合并 LLM codes + retrieved top-20 (cap 30/disease), 注入 coding_differentiation_kb P0/P1 hints, RankGPT-style 重排 top-5 per disease, 输出 per-disease final_confidence + review_conclusion.",
+      "system_prompt": "你是一个编码协调专家。基于候选编码列表，对每个诊断 / 手术重排成 top-K 并选定主诊断 / 主手术。输出 JSON 包含 primary_diagnosis / secondary_diagnoses / procedures / issues_found 四个字段。每个最终编码必须附 confidence (0-1) 和 evidence (list of strings from original EMR)。",
+      "tools": ["get_differentiation_hint", "rerank_codes"],
+      "model": "deepseek-v4",
+      "non_goals": [
+        "不直接做最终诊断决策",
+        "不写回 EMR/HIS",
+        "不评估模型效果",
+        "不绕过 PHI redaction",
+        "不编造 confidence (低于 0.5 必须 manual_review_required)"
+      ],
+      "output_contract": {
+        "schema_ref": "icoder/MedicalCodingOutputSchema/v1",
+        "fields": [
+          "primary_diagnosis",
+          "secondary_diagnoses",
+          "procedures",
+          "issues_found",
+          "manual_review_required",
+          "review_conclusion"
+        ]
+      },
+      "timeout_ms": 30000
+    },
+    {
+      "id": "tabular-validator",
+      "name": "Tabular Validator (MedCodER Stage 5)",
+      "role": "stage5_calibration",
+      "description": "Stage 5: 跑 MedicalCodingRuleSet (12 rules: R001-R010 + MC-R-M80-001), 输出 passed / issues / manual_review_required / fired_rules / quality_flags. 纯确定性, no LLM.",
+      "system_prompt": "你是一个编码合规校验专家。对 code-reconciler 输出跑 MedicalCodingRuleSet (medical_coding rule_set), 12 条硬规则 (R001-R010 + MC-R-M80-001)。返回 passed (bool) / issues (list of severity/code/message/suggestion) / manual_review_required (any severity critical/high) / fired_rules / quality_flags。",
+      "tools": ["verify_code", "calibrate_confidence"],
+      "model": "deterministic",
+      "non_goals": [
+        "不直接做最终诊断决策",
+        "不写回 EMR/HIS",
+        "不调 LLM (纯确定性)",
+        "不修改上游 expert 输出 (read-only validation)"
+      ],
+      "output_contract": {
+        "schema_ref": "icoder/MedCodERValidationSchema/v1",
+        "fields": [
+          "passed",
+          "issues",
+          "manual_review_required",
+          "rule_set",
+          "fired_rules",
+          "quality_flags"
+        ]
+      },
+      "timeout_ms": 15000
     }
   ],
   "tools": [

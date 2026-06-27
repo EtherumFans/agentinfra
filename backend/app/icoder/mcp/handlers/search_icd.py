@@ -61,7 +61,13 @@ async def handle(arguments: dict[str, Any], request: Request) -> dict[str, Any]:
     # Stage 2 takes a disease mention; for ``search_icd`` we treat the whole
     # ``emr_text`` as one query. The strategy's retriever handles sentence-
     # boundary splitting if needed downstream (Stage 2 with long input).
-    candidates = await strategy.stage2_retrieve(emr_text, top_k=top_k)
+    #
+    # E1.1 (2026-06-26): ``stage2_retrieve`` now returns a ``Stage2Result``
+    # envelope (candidates + degraded + error_code). The MCP handler
+    # surfaces ``degraded`` + ``error_code`` to the caller so the
+    # consumer can route around missing retriever gracefully.
+    stage2_result = await strategy.stage2_retrieve(emr_text, top_k=top_k)
+    candidates = stage2_result.candidates
 
     # Convert CandidateCode dataclasses to dicts for JSON serialization.
     out: list[dict] = []
@@ -74,7 +80,14 @@ async def handle(arguments: dict[str, Any], request: Request) -> dict[str, Any]:
             out.append({"code": str(c), "name": "", "score": 0.0,
                         "chapter": "", "source": "retrieve"})
 
-    return {"candidates": out, "source": "retrieve"}
+    return {
+        "candidates": out,
+        "source": "retrieve",
+        # E1.1: surface the Stage 2 degradation state to MCP consumers.
+        "degraded": stage2_result.degraded,
+        "error_code": stage2_result.error_code,
+        "error_detail": stage2_result.error_detail,
+    }
 
 
 __all__ = ["handle"]

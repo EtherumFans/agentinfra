@@ -105,7 +105,15 @@ async def test_smoke_recall_returns_expected_icd_family(
         indexed anchors typically score 0.7+)
     """
     top_k = 5
-    candidates = await medcoder_strategy.stage2_retrieve(disease_text, top_k=top_k)
+    # E1.1 (2026-06-26): stage2_retrieve now returns Stage2Result envelope
+    stage2_result = await medcoder_strategy.stage2_retrieve(disease_text, top_k=top_k)
+    candidates = stage2_result.candidates
+    assert stage2_result.is_ok, (
+        f"{label}: stage2_retrieve returned degraded status "
+        f"(degraded={stage2_result.degraded}, error_code={stage2_result.error_code!r}, "
+        f"detail={stage2_result.error_detail!r}). "
+        f"FAISS index may be empty or BGE-M3 embedding is broken."
+    )
     assert candidates, (
         f"{label}: stage2_retrieve returned 0 candidates for {disease_text!r}. "
         "FAISS index may be empty or BGE-M3 embedding is broken."
@@ -137,7 +145,9 @@ async def test_smoke_recall_all_5_anchors_have_overall_recall(medcoder_strategy)
     """
     hits = 0
     for disease_text, expected_prefix, _label in SMOKE_ANCHORS:
-        cands = await medcoder_strategy.stage2_retrieve(disease_text, top_k=5)
+        # E1.1: stage2_retrieve returns Stage2Result envelope
+        result = await medcoder_strategy.stage2_retrieve(disease_text, top_k=5)
+        cands = result.candidates
         if any((c.code or "").startswith(expected_prefix) for c in cands):
             hits += 1
     assert hits >= 4, (

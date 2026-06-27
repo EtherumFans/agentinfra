@@ -37,11 +37,20 @@ def mock_request() -> MagicMock:
     M2.5: also set ``app.state.medcoder_index_health`` to a healthy report
     so the search_icd handler's governance gate doesn't raise
     ``-32002 Retriever Unavailable`` for handler unit tests.
+
+    E1.1 (2026-06-26): ``stage2_retrieve`` returns ``Stage2Result`` envelope
+    (candidates + degraded + error_code). The default mock returns an
+    empty Stage2Result (candidates=[], degraded=False, is_ok=True).
+    Individual tests can override the mock to return a populated result.
     """
+    from icoder_runtime.providers.medical_coding.medcoder_strategy import (
+        Stage2Result,
+    )
+
     req = MagicMock()
     app_state = MagicMock()
     strategy = MagicMock()
-    strategy.stage2_retrieve = AsyncMock(return_value=[])
+    strategy.stage2_retrieve = AsyncMock(return_value=Stage2Result(candidates=[]))
     strategy.stage4_rerank = AsyncMock(return_value=[])
     strategy._get_rule_set = MagicMock(return_value=MagicMock())
     app_state.medcoder_strategy = strategy
@@ -66,13 +75,17 @@ def mock_request() -> MagicMock:
 async def test_search_icd_calls_strategy_stage2(mock_request: MagicMock):
     """``search_icd`` invokes ``strategy.stage2_retrieve`` with the right args."""
     from app.icoder.mcp.handlers.search_icd import handle
+    from icoder_runtime.providers.medical_coding.medcoder_strategy import (
+        Stage2Result,
+    )
 
     expected = [
         {"code": "I50.900", "name": "心力衰竭", "score": 0.9,
          "chapter": "第9章", "source": "retrieve"},
     ]
+    # E1.1: stage2_retrieve now returns Stage2Result envelope
     mock_request.app.state.medcoder_strategy.stage2_retrieve = AsyncMock(
-        return_value=expected,
+        return_value=Stage2Result(candidates=expected),
     )
 
     out = await handle({"emr_text": "胸痛 2 小时", "top_k": 5}, mock_request)
@@ -80,7 +93,14 @@ async def test_search_icd_calls_strategy_stage2(mock_request: MagicMock):
     mock_request.app.state.medcoder_strategy.stage2_retrieve.assert_awaited_once_with(
         "胸痛 2 小时", top_k=5,
     )
-    assert out == {"candidates": expected, "source": "retrieve"}
+    # E1.1 (2026-06-26): handler now also surfaces Stage 2 envelope
+    # fields (degraded + error_code + error_detail) so MCP consumers
+    # can detect degraded retrieval without parsing the result list.
+    assert out["candidates"] == expected
+    assert out["source"] == "retrieve"
+    assert out["degraded"] is False
+    assert out["error_code"] == "MEDCODER_RETRIEVE_OK"
+    assert out["error_detail"] == ""
 
 
 async def test_search_icd_empty_emr_yields_empty_candidates(mock_request: MagicMock):
@@ -88,7 +108,18 @@ async def test_search_icd_empty_emr_yields_empty_candidates(mock_request: MagicM
     from app.icoder.mcp.handlers.search_icd import handle
 
     out = await handle({"emr_text": "", "top_k": 5}, mock_request)
-    assert out == {"candidates": [], "source": "retrieve"}
+    # E1.1: also check the envelope surface. The mock's default
+    # Stage2Result has error_code="MEDCODER_RETRIEVE_OK" (NOT the
+    # production short-circuit "MEDCODER_RETRIEVE_EMPTY_INPUT", which
+    # is only set by the real stage2 method when called with empty
+    # input). This test exercises the handler surface, not the
+    # production short-circuit; the latter is covered by the strategy
+    # unit test ``test_stage2_retrieve_empty_text_returns_empty``.
+    assert out["candidates"] == []
+    assert out["source"] == "retrieve"
+    assert out["degraded"] is False
+    assert out["error_code"] == "MEDCODER_RETRIEVE_OK"
+    assert out["error_detail"] == ""
 
 
 async def test_search_icd_degraded_returns_32002(mock_request: MagicMock):

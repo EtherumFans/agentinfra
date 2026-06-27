@@ -175,6 +175,13 @@ def build_expert_invoker_from_hybrid(
     The returned callable satisfies the public
     ``Callable[[ExpertInvocation], dict]`` contract — ``app/main.py``
     and the Delegator do not need to know about ``CodingExpert``.
+
+    E1 (2026-06-26): the canonical path is now
+    :func:`build_expert_invoker_for_medcoder` which routes to 4 D2
+    expert packs (evidence_extractor / index_navigator / code_reconciler
+    / tabular_validator). This factory is kept as the back-compat
+    fallback for any non-medcoder Agent or M1 callers that still expect
+    a single ``coding-expert`` wrapper.
     """
     if hybrid is None:
         logger.warning(
@@ -207,6 +214,123 @@ def build_expert_invoker_from_hybrid(
 
     def _invoker(invocation: ExpertInvocation) -> dict:
         return _dispatch_expert_invocation(coding_expert, invocation)
+
+    return _invoker
+
+
+# ---------------------------------------------------------------------------
+# E1 (2026-06-26) — 4 D2 expert packs as the canonical MedCodER path
+# ---------------------------------------------------------------------------
+# Per ORCHESTRATOR §3.2 + AGENT_CARD §3.2: the Orchestrator's ``invoker`` is
+# the single point where AgentDefinition.expert_ids are dispatched to real
+# Python Expert impls. E1 replaces the single ``coding-expert`` glue
+# (MedCodERStrategy) with 4 atomic D2 expert packs, each owning one stage
+# of the MedCodER 5-stage pipeline:
+#
+#   - evidence-extractor  (Stage 1 — LLM fact extraction)
+#   - index-navigator     (Stage 2 — BGE-M3 + FAISS retrieval)
+#   - code-reconciler     (Stage 3 + 4 — merge + RankGPT-style rerank)
+#   - tabular-validator   (Stage 5 — MedicalCodingRuleSet calibration)
+#
+# ``coding-expert`` is kept as a back-compat dispatch (M1 hybrid path) for
+# any caller that hasn't migrated to the 4-expert AgentDefinition yet. The
+# Plaquard downstream aggregation just merges whatever experts[].result
+# came back, so the back-compat dispatch is transparent to the Aggregator.
+
+
+def build_expert_invoker_for_medcoder(
+    llm_gateway: "LLMGateway | None" = None,
+    *,
+    medcoder_retriever: Any = None,
+    rule_engine: Any = None,
+    hybrid_fallback: "HybridCodingAdapter | None" = None,
+) -> Callable[[ExpertInvocation], dict]:
+    """Build the canonical E1 invoker dispatching 4 D2 expert packs.
+
+    Per E1 (2026-06-26) — this is the canonical MedCodER Agent path. Each
+    of the 4 atomic experts is a real Python impl (D2) with both
+    ``__call__(invocation) -> dict`` (sync) and ``invoke_async(arg, ctx)
+    -> dict`` (async) entry points. The Orchestrator's Delegator
+    (sync, per Phase 1 SPEC §3.1) drives them sequentially.
+
+    Args:
+        llm_gateway: :class:`LLMGateway` for the LLM-backed experts
+            (evidence_extractor / code_reconciler). When ``None``, those
+            experts fall back to deterministic offline mode and mark
+            their result with ``is_mock=True``.
+        medcoder_retriever: :class:`MedCodERRetriever` for
+            index_navigator. When ``None`` or un-loaded, the expert
+            returns ``retriever_status="missing"`` with empty candidate
+            lists (graceful degradation per D2 design).
+        rule_engine: :class:`RuleEngine` for tabular_validator. When
+            ``None``, the expert lazy-imports ``RuleEngine()`` (the
+            singleton that lives in ``app.services.rule_engine_registry``).
+        hybrid_fallback: optional M1 ``HybridCodingAdapter`` that owns
+            the ``coding-expert`` strategy. When supplied,
+            ``coding-expert`` invocations still route to the M1
+            ``CodingExpert(strategy)`` for back-compat. When ``None``,
+            ``coding-expert`` falls through to the Phase-1 stub.
+
+    Returns:
+        A ``Callable[[ExpertInvocation], dict]`` dispatcher. Each call
+        routes to the matching expert instance (one of the 4 D2 packs,
+        or the M1 back-compat ``CodingExpert``, or the Phase-1 stub).
+    """
+    # Lazy imports — keep the wiring module cheap to import.
+    from app.icoder.agent_runtime.experts.code_reconciler_expert import (
+        CodeReconcilerExpert,
+    )
+    from app.icoder.agent_runtime.experts.evidence_extractor_expert import (
+        EvidenceExtractorExpert,
+    )
+    from app.icoder.agent_runtime.experts.index_navigator_expert import (
+        IndexNavigatorExpert,
+    )
+    from app.icoder.agent_runtime.experts.tabular_validator_expert import (
+        TabularValidatorExpert,
+    )
+
+    evidence_expert = EvidenceExtractorExpert(llm_gateway=llm_gateway)
+    index_expert = IndexNavigatorExpert(retriever=medcoder_retriever)
+    reconcile_expert = CodeReconcilerExpert(llm_gateway=llm_gateway)
+    validate_expert = TabularValidatorExpert(rule_engine=rule_engine)
+
+    # Back-compat: only build the M1 CodingExpert wrapper if a hybrid
+    # adapter with a real strategy is provided. Otherwise the M1 path
+    # collapses to the Phase-1 stub.
+    coding_expert = None
+    if hybrid_fallback is not None:
+        strategy = getattr(hybrid_fallback, "_strategy", None)
+        if strategy is not None:
+            from app.icoder.agent_runtime.experts.coding_expert import (
+                CodingExpert,
+            )
+            coding_expert = CodingExpert(
+                strategy,
+                default_variant=_resolve_default_variant(
+                    getattr(hybrid_fallback, "_mode", None),
+                ),
+            )
+
+    def _invoker(invocation: ExpertInvocation) -> dict:
+        eid = invocation.expert_id
+        if eid == EvidenceExtractorExpert.EXPERT_ID:
+            return evidence_expert(invocation)
+        if eid == IndexNavigatorExpert.EXPERT_ID:
+            return index_expert(invocation)
+        if eid == CodeReconcilerExpert.EXPERT_ID:
+            return reconcile_expert(invocation)
+        if eid == TabularValidatorExpert.EXPERT_ID:
+            return validate_expert(invocation)
+        # Back-compat: M1 ``coding-expert`` glue.
+        if eid == "coding-expert" and coding_expert is not None:
+            return coding_expert(invocation)
+        logger.warning(
+            "wiring.build_expert_invoker_for_medcoder: unknown expert_id=%r — "
+            "returning Phase-1 stub",
+            eid,
+        )
+        return _stub_expert_invoker(invocation)
 
     return _invoker
 
@@ -269,6 +393,7 @@ def build_llm_call_from_gateway(
 
 __all__ = [
     "LMGatewaySyncAdapter",
-    "build_llm_call_from_gateway",
+    "build_expert_invoker_for_medcoder",
     "build_expert_invoker_from_hybrid",
+    "build_llm_call_from_gateway",
 ]

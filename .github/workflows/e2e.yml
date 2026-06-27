@@ -28,9 +28,9 @@ jobs:
         working-directory: frontend
         run: npx playwright install --with-deps chromium
 
-      - name: Start docker compose
+      - name: Start docker compose (local-dev only)
         run: |
-          docker compose up -d --build
+          docker compose -f docker-compose.local-dev.yml up -d --build
           # Wait for backend healthcheck
           for i in $(seq 1 30); do
             if curl -sf http://localhost:8000/api/health > /dev/null 2>&1; then
@@ -64,4 +64,4 @@ jobs:
 
       - name: Docker compose down
         if: always()
-        run: docker compose down -v
+        run: docker compose -f docker-compose.local-dev.yml down -v

@@ -715,14 +715,21 @@ class MedCodERStrategy:
     ) -> None:
         """E1.4: populate ``out.procedures`` from extracted procedure mentions.
 
-        For each mention, calls :meth:`stage2_retrieve_procedure`
-        (BGE-M3 + FAISS over ICD-9-CM-3) and takes the top-1 candidate
-        as a :class:`ProcedureEntry`. Dedup is on code. Caps at 10
-        mentions per EMR — longer lists are truncated (rare in practice;
-        EMRs have <5 procedures).
+        E1.6: for each mention, run a **catalog-mention pre-lookup** against
+        the ICD-9-CM-3 catalog (substring match on ``name_cn`` /
+        ``synonyms_cn``) before falling back to BGE-M3 retrieval.
+        Catalog matches are guaranteed hits (score=1.0) and take priority
+        over fuzzy retrieval when codes collide.
 
-        Failures are non-fatal: a degraded retriever leaves
-        ``out.procedures`` empty. The diagnosis pipeline still
+        For each mention:
+          1. Catalog lookup → list of "guaranteed" candidates (score=1.0).
+          2. BGE-M3 + FAISS retrieval → top-K fuzzy candidates.
+          3. Merge: union, dedup on code (catalog wins), take top-K.
+        The top-1 of the merged list becomes a ``ProcedureEntry``.
+
+        Dedup is on code (across mentions). Caps at 10 mentions per EMR.
+        Failures are non-fatal: a degraded retriever + missing catalog
+        leaves ``out.procedures`` empty. The diagnosis pipeline still
         completes — procedure is a sidecar.
         """
         from official_agents.medical_coding.schema import ProcedureEntry
@@ -739,22 +746,118 @@ class MedCodERStrategy:
             text = (mention or "").strip()
             if not text:
                 continue
-            result = await self.stage2_retrieve_procedure(text, top_k=5)
-            if result.degraded or not result.candidates:
+            merged = await self._merge_procedure_candidates(text, top_k=5)
+            if not merged:
                 continue
-            top1 = result.candidates[0]
-            code = (top1.code or "").strip()
+            top = merged[0]
+            code = (top.code or "").strip()
             if not code or code in seen_codes:
                 continue
             seen_codes.add(code)
             procedures.append(ProcedureEntry(
                 code=code,
-                description=top1.name or "",
-                confidence=float(top1.score) if top1.score else 0.0,
+                description=top.name or "",
+                confidence=float(top.score) if top.score else 0.0,
                 category="therapeutic",  # default; future work: classify
                 evidence=[text],
             ))
         out.procedures = procedures
+
+    async def _merge_procedure_candidates(
+        self,
+        text: str,
+        top_k: int = 5,
+    ) -> list:
+        """E1.6: merge catalog-mention pre-lookup ∪ BGE-M3 retrieval.
+
+        Returns a list of ``CandidateCode`` (or compatible shape) sorted
+        by descending score. Catalog matches score 1.0; retrieval
+        candidates keep their FAISS inner-product scores.
+
+        Either side can fail independently:
+          - Catalog lookup: best-effort substring match, no exceptions.
+          - BGE-M3 retrieval: may degrade (FAISS missing, embed failed).
+
+        Returns ``[]`` if both sides produce nothing. The caller treats
+        empty as "no procedure" — non-fatal.
+        """
+        from official_agents.medical_coding.schema import CandidateCode
+
+        catalog_candidates = self._catalog_lookup_procedure(text)
+        retrieved = await self.stage2_retrieve_procedure(text, top_k=top_k)
+
+        # Merge: keyed by code, max score wins, catalog always at 1.0.
+        merged: dict[str, CandidateCode] = {}
+        for c in catalog_candidates:
+            if c.code and c.code not in merged:
+                merged[c.code] = c
+        for c in (retrieved.candidates or []):
+            if not c.code:
+                continue
+            existing = merged.get(c.code)
+            if existing is None or (c.score or 0.0) > (existing.score or 0.0):
+                merged[c.code] = c
+
+        # Sort by score desc, then by code for deterministic ordering.
+        return sorted(
+            merged.values(),
+            key=lambda c: (-(c.score or 0.0), c.code),
+        )
+
+    def _catalog_lookup_procedure(self, text: str) -> list:
+        """E1.6: substring match ``text`` against ICD-9-CM-3 catalog entries.
+
+        Returns a list of ``CandidateCode`` with ``score=1.0`` (catalog
+        match is a guaranteed hit). Searches ``name_cn`` and
+        ``synonyms_cn`` for substring containment in either direction:
+
+          - mention ⊂ name (e.g. "剖宫产" in "剖宫产术") → match
+          - name ⊂ mention (e.g. mention "剖宫产术" matches catalog "剖宫产") → match
+
+        Best-effort: returns ``[]`` if the loader is unavailable. Caps at
+        10 candidates to bound work per mention.
+        """
+        from official_agents.medical_coding.schema import CandidateCode
+
+        if not text or not text.strip():
+            return []
+        needle = text.strip()
+        try:
+            from app.services.icd9cm3_loader import get_loader
+            loader = get_loader()
+            loader.ensure_loaded()
+        except Exception:
+            return []
+
+        out: list[CandidateCode] = []
+        # Linear scan: 13.6k entries × 10 mentions ≈ 136k comparisons per
+        # case. Fast enough in Python (~10 ms). A precomputed index would
+        # trade memory for speed; deferred until profiling shows it's
+        # worth it.
+        for entry in loader.all_codes():
+            name_cn = entry.name_cn or ""
+            synonyms_cn = entry.synonyms_cn or ()
+            haystacks = (name_cn, *synonyms_cn)
+            if not any(hay for hay in haystacks):
+                continue
+            matched = False
+            for hay in haystacks:
+                if not hay:
+                    continue
+                if needle in hay or hay in needle:
+                    matched = True
+                    break
+            if matched:
+                out.append(CandidateCode(
+                    code=entry.code,
+                    name=entry.name_cn,
+                    score=1.0,
+                    chapter=entry.chapter_name or "",
+                    source="catalog",
+                ))
+                if len(out) >= 10:
+                    break
+        return out
 
     async def _build_extracted_diagnosis(
         self,

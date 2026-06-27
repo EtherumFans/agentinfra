@@ -165,14 +165,16 @@ class CandidateCode:
     """A single ICD code candidate produced by the retriever / LLM.
 
     ``source`` discriminates provenance: ``llm`` (initial code from Stage 1
-    LLM), ``retrieve`` (BGE-M3 + FAISS top-K), ``differentiation_kb`` (rule
-    suggested by coding_differentiation_kb), or ``rerank`` (post RankGPT).
+    LLM), ``retrieve`` (BGE-M3 + FAISS top-K), ``catalog`` (E1.6 ICD-9-CM-3
+    exact substring match against the catalog, score=1.0),
+    ``differentiation_kb`` (rule suggested by coding_differentiation_kb),
+    or ``rerank`` (post RankGPT).
     """
     code: str = ""
     name: str = ""
     score: float = 0.0
     chapter: str = ""
-    source: str = "retrieve"  # llm | retrieve | differentiation_kb | rerank
+    source: str = "retrieve"  # llm | retrieve | catalog | differentiation_kb | rerank
 
     def to_dict(self) -> dict:
         return {

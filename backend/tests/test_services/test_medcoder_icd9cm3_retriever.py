@@ -328,9 +328,16 @@ class TestIcd9cm3Stage2Procedure:
         from icoder_runtime.providers.medical_coding.medcoder_retriever import (
             MedCodERICD9CM3Retriever,
         )
+        # Permissive loader: synthetic fixture codes (e.g. 96.0401) aren't
+        # in the real ICD-9-CM-3 catalog. The catalog filter is exercised
+        # by ``test_catalog_filter_drops_ghost_codes``.
+        class _PermissiveLoader:
+            def has(self, code: str) -> bool:
+                return True
         proc_ret = MedCodERICD9CM3Retriever(
             index_dir=str(tmp_icd9cm3_index_dir),
             embedder=_FakeEmbedder(),
+            icd9cm3_loader=_PermissiveLoader(),
         )
 
         s = strat_mod.MedCodERStrategy(procedure_retriever=proc_ret)
@@ -427,7 +434,13 @@ class TestPopulateProcedures:
         assert len(out.procedures) <= 10
 
     def test_failed_retriever_leaves_procedures_empty(self):
-        """If procedure retriever raises, output.procedures stays empty."""
+        """If procedure retriever raises AND catalog lookup misses, output.procedures stays empty.
+
+        E1.6 added a catalog-mention pre-lookup that runs BEFORE retrieval.
+        When the retriever fails, the catalog lookup can still rescue the
+        mention if the catalog has a substring match. To assert the
+        "both sides fail" path, use a mention the catalog can't find.
+        """
         from icoder_runtime.providers.medical_coding import medcoder_strategy as strat_mod
 
         class _BrokenProcRet:
@@ -436,8 +449,29 @@ class TestPopulateProcedures:
 
         s = strat_mod.MedCodERStrategy(procedure_retriever=_BrokenProcRet())
         out = MedicalCodingOutputSchema()
-        asyncio.run(s._populate_procedures(out, ["结肠镜"]))
+        # "完全无关的中文" is a synthetic mention — not in ICD-9-CM-3 catalog,
+        # so catalog lookup returns empty, retrieval raises, procedures stay empty.
+        asyncio.run(s._populate_procedures(out, ["完全无关的中文"]))
         assert out.procedures == []
+
+    def test_catalog_lookup_rescues_when_retrieval_fails(self, tmp_icd9cm3_index_dir):
+        """E1.6: when the procedure retriever raises, the catalog lookup
+        still fills ``output.procedures`` from substring matches. The
+        sidecar is more resilient than E1.4's retriever-only path.
+        """
+        from icoder_runtime.providers.medical_coding import medcoder_strategy as strat_mod
+
+        class _BrokenProcRet:
+            async def retrieve_async(self, text, top_k=None):
+                raise RuntimeError("BGE-M3 cold load failure")
+
+        s = strat_mod.MedCodERStrategy(procedure_retriever=_BrokenProcRet())
+        out = MedicalCodingOutputSchema()
+        # "剖宫产" should substring-match ICD-9-CM-3 catalog (which has 剖宫产术).
+        asyncio.run(s._populate_procedures(out, ["剖宫产"]))
+        assert len(out.procedures) >= 1
+        assert out.procedures[0].code  # non-empty code
+        assert out.procedures[0].confidence == 1.0  # catalog match is guaranteed
 
 
 # ── Subprocess wrapper smoke (deferred) ───────────────────────────

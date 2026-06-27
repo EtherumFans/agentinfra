@@ -680,3 +680,264 @@ def test_create_default_retriever_inline_on_posix(monkeypatch):
     fake_inline_cls.assert_called_once()
     fake_subprocess_cls.assert_not_called()
     assert result is fake_inline_cls.return_value
+
+
+# ── E1.6: catalog-mention pre-lookup ────────────────────────────────
+
+
+class TestCatalogLookupProcedure:
+    """E1.6: ``_catalog_lookup_procedure`` does a substring scan of the
+    ICD-9-CM-3 catalog. Returns ``CandidateCode(score=1.0, source='catalog')``
+    for each match. Best-effort: empty list on loader failure.
+    """
+
+    def test_exact_match_finds_code(self, monkeypatch):
+        from official_agents.medical_coding.schema import CandidateCode
+        from icoder_runtime.providers.medical_coding import medcoder_strategy as strat_mod
+
+        class _FakeEntry:
+            def __init__(self, code, name_cn, synonyms=()):
+                self.code = code
+                self.name_cn = name_cn
+                self.synonyms_cn = synonyms
+                self.chapter_name = "操作与介入"
+
+        class _FakeLoader:
+            def ensure_loaded(self):
+                pass
+            def all_codes(self):
+                return [
+                    _FakeEntry("45.2301", "结肠镜检查"),
+                    _FakeEntry("74.1x02", "剖宫产术"),
+                    _FakeEntry("88.0101", "腹部CT"),
+                ]
+
+        # Patch the loader's get_loader() to return our fake
+        import app.services.icd9cm3_loader as loader_mod
+        monkeypatch.setattr(loader_mod, "get_loader", lambda: _FakeLoader())
+
+        strat = MedCodERStrategy()
+        cands = strat._catalog_lookup_procedure("剖宫产")
+        codes = [c.code for c in cands]
+        assert "74.1x02" in codes
+        assert all(c.score == 1.0 for c in cands)
+        assert all(c.source == "catalog" for c in cands)
+
+    def test_substring_match_in_either_direction(self, monkeypatch):
+        from icoder_runtime.providers.medical_coding import medcoder_strategy as strat_mod
+        import app.services.icd9cm3_loader as loader_mod
+
+        class _FakeEntry:
+            def __init__(self, code, name_cn):
+                self.code = code
+                self.name_cn = name_cn
+                self.synonyms_cn = ()
+                self.chapter_name = ""
+
+        class _FakeLoader:
+            def ensure_loaded(self): pass
+            def all_codes(self):
+                return [_FakeEntry("74.1x02", "剖宫产术")]
+
+        monkeypatch.setattr(loader_mod, "get_loader", lambda: _FakeLoader())
+        strat = MedCodERStrategy()
+        # Needle ⊂ hay (catalog has full name)
+        c1 = strat._catalog_lookup_procedure("剖宫产")
+        assert "74.1x02" in [c.code for c in c1]
+        # Hay ⊂ needle (catalog has short form)
+        c2 = strat._catalog_lookup_procedure("经典剖宫产术住院")
+        assert "74.1x02" in [c.code for c in c2]
+
+    def test_synonyms_match(self, monkeypatch):
+        from icoder_runtime.providers.medical_coding import medcoder_strategy as strat_mod
+        import app.services.icd9cm3_loader as loader_mod
+
+        class _FakeEntry:
+            def __init__(self, code, name_cn, synonyms=()):
+                self.code = code
+                self.name_cn = name_cn
+                self.synonyms_cn = synonyms
+                self.chapter_name = ""
+
+        class _FakeLoader:
+            def ensure_loaded(self): pass
+            def all_codes(self):
+                return [_FakeEntry("45.2301", "结肠镜检查", synonyms=("肠镜",))]
+
+        monkeypatch.setattr(loader_mod, "get_loader", lambda: _FakeLoader())
+        strat = MedCodERStrategy()
+        cands = strat._catalog_lookup_procedure("肠镜")
+        assert "45.2301" in [c.code for c in cands]
+
+    def test_no_match_returns_empty(self, monkeypatch):
+        from icoder_runtime.providers.medical_coding import medcoder_strategy as strat_mod
+        import app.services.icd9cm3_loader as loader_mod
+
+        class _FakeEntry:
+            def __init__(self, code, name_cn):
+                self.code = code
+                self.name_cn = name_cn
+                self.synonyms_cn = ()
+                self.chapter_name = ""
+
+        class _FakeLoader:
+            def ensure_loaded(self): pass
+            def all_codes(self):
+                return [_FakeEntry("45.2301", "结肠镜检查")]
+
+        monkeypatch.setattr(loader_mod, "get_loader", lambda: _FakeLoader())
+        strat = MedCodERStrategy()
+        assert strat._catalog_lookup_procedure("完全无关的中文") == []
+
+    def test_empty_input_returns_empty(self):
+        strat = MedCodERStrategy()
+        assert strat._catalog_lookup_procedure("") == []
+        assert strat._catalog_lookup_procedure("   ") == []
+
+    def test_loader_failure_returns_empty(self, monkeypatch):
+        from icoder_runtime.providers.medical_coding import medcoder_strategy as strat_mod
+        import app.services.icd9cm3_loader as loader_mod
+
+        def _boom():
+            raise FileNotFoundError("catalog not built")
+        monkeypatch.setattr(loader_mod, "get_loader", _boom)
+        strat = MedCodERStrategy()
+        assert strat._catalog_lookup_procedure("剖宫产") == []
+
+    def test_caps_at_10_candidates(self, monkeypatch):
+        from icoder_runtime.providers.medical_coding import medcoder_strategy as strat_mod
+        import app.services.icd9cm3_loader as loader_mod
+
+        class _FakeEntry:
+            def __init__(self, code, name_cn):
+                self.code = code
+                self.name_cn = name_cn
+                self.synonyms_cn = ()
+                self.chapter_name = ""
+
+        class _FakeLoader:
+            def ensure_loaded(self): pass
+            def all_codes(self):
+                return [_FakeEntry(f"45.{i:04x}", "剖宫产") for i in range(50)]
+
+        monkeypatch.setattr(loader_mod, "get_loader", lambda: _FakeLoader())
+        strat = MedCodERStrategy()
+        cands = strat._catalog_lookup_procedure("剖宫产")
+        assert len(cands) <= 10
+
+
+class TestMergeProcedureCandidates:
+    """E1.6: ``_merge_procedure_candidates`` unions catalog lookup ∪
+    retrieval, dedups on code (catalog wins on collision), sorts by score.
+    """
+
+    def test_catalog_match_beats_retrieval(self, monkeypatch):
+        from official_agents.medical_coding.schema import CandidateCode
+        from icoder_runtime.providers.medical_coding import medcoder_strategy as strat_mod
+        import app.services.icd9cm3_loader as loader_mod
+
+        class _FakeEntry:
+            code = "74.1x02"
+            name_cn = "剖宫产术"
+            synonyms_cn = ()
+            chapter_name = ""
+
+        class _FakeLoader:
+            def ensure_loaded(self): pass
+            def all_codes(self): return [_FakeEntry]
+
+        monkeypatch.setattr(loader_mod, "get_loader", lambda: _FakeLoader())
+
+        strat = MedCodERStrategy()
+        # Stub retriever returns a different top-1
+        strat._proc_retriever_lazy = False
+        async def _fake_retrieve(text, top_k=None):
+            return [
+                CandidateCode(code="99.9999", name="garbage", score=0.5, source="retrieve"),
+            ]
+        strat._proc_retriever = MagicMock()
+        strat._proc_retriever.retrieve_async = _fake_retrieve
+
+        import asyncio
+        merged = asyncio.run(strat._merge_procedure_candidates("剖宫产"))
+        codes = [c.code for c in merged]
+        # Catalog match wins
+        assert codes[0] == "74.1x02"
+        assert merged[0].source == "catalog"
+
+    def test_no_catalog_match_falls_back_to_retrieval(self, monkeypatch):
+        from official_agents.medical_coding.schema import CandidateCode
+        from icoder_runtime.providers.medical_coding import medcoder_strategy as strat_mod
+        import app.services.icd9cm3_loader as loader_mod
+
+        class _FakeLoader:
+            def ensure_loaded(self): pass
+            def all_codes(self): return []
+
+        monkeypatch.setattr(loader_mod, "get_loader", lambda: _FakeLoader())
+
+        strat = MedCodERStrategy()
+        strat._proc_retriever_lazy = False
+        async def _fake_retrieve(text, top_k=None):
+            return [
+                CandidateCode(code="74.1x02", name="剖宫产术", score=0.85, source="retrieve"),
+            ]
+        strat._proc_retriever = MagicMock()
+        strat._proc_retriever.retrieve_async = _fake_retrieve
+
+        import asyncio
+        merged = asyncio.run(strat._merge_procedure_candidates("剖宫产"))
+        assert len(merged) == 1
+        assert merged[0].code == "74.1x02"
+        assert merged[0].source == "retrieve"
+
+    def test_both_sides_empty_returns_empty(self, monkeypatch):
+        from icoder_runtime.providers.medical_coding import medcoder_strategy as strat_mod
+        import app.services.icd9cm3_loader as loader_mod
+
+        class _FakeLoader:
+            def ensure_loaded(self): pass
+            def all_codes(self): return []
+
+        monkeypatch.setattr(loader_mod, "get_loader", lambda: _FakeLoader())
+
+        strat = MedCodERStrategy()
+        strat._proc_retriever_lazy = False
+        async def _fake_retrieve(text, top_k=None):
+            return []
+        strat._proc_retriever = MagicMock()
+        strat._proc_retriever.retrieve_async = _fake_retrieve
+
+        import asyncio
+        merged = asyncio.run(strat._merge_procedure_candidates("剖宫产"))
+        assert merged == []
+
+    def test_retrieval_failure_non_fatal(self, monkeypatch):
+        from official_agents.medical_coding.schema import CandidateCode
+        from icoder_runtime.providers.medical_coding import medcoder_strategy as strat_mod
+        import app.services.icd9cm3_loader as loader_mod
+
+        class _FakeEntry:
+            code = "74.1x02"
+            name_cn = "剖宫产术"
+            synonyms_cn = ()
+            chapter_name = ""
+
+        class _FakeLoader:
+            def ensure_loaded(self): pass
+            def all_codes(self): return [_FakeEntry]
+
+        monkeypatch.setattr(loader_mod, "get_loader", lambda: _FakeLoader())
+
+        strat = MedCodERStrategy()
+        strat._proc_retriever_lazy = False
+        async def _fake_retrieve(text, top_k=None):
+            raise RuntimeError("BGE-M3 cold load failure")
+        strat._proc_retriever = MagicMock()
+        strat._proc_retriever.retrieve_async = _fake_retrieve
+
+        import asyncio
+        merged = asyncio.run(strat._merge_procedure_candidates("剖宫产"))
+        # Catalog match still present even though retrieval failed.
+        assert len(merged) == 1
+        assert merged[0].source == "catalog"

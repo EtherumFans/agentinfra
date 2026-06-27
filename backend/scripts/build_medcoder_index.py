@@ -86,6 +86,17 @@ def main(argv: list[str] | None = None) -> int:
         default=0,
         help="If > 0, only embed the first N codes (for smoke tests).",
     )
+    # E1.9 (2026-06-27): pin BGE-M3 dtype at index-build time. fp16 halves
+    # peak memory (3-4 GB → 1.5-2 GB) so the build completes on dev box
+    # (16 GB RAM) without OOM. Default ``None`` → resolved inside main()
+    # from MEDCODER_BGE_DTYPE env var so monkeypatch.delenv after import
+    # still takes effect (argparse default is evaluated at module load).
+    parser.add_argument(
+        "--bge-dtype",
+        default=None,
+        choices=("float32", "float16", "bfloat16"),
+        help="BGE-M3 torch_dtype for the model load. Default: MEDCODER_BGE_DTYPE env (float16).",
+    )
     args = parser.parse_args(argv)
 
     t0 = time.time()
@@ -111,7 +122,10 @@ def main(argv: list[str] | None = None) -> int:
         BGEEmbedder,
     )
 
-    embedder = BGEEmbedder(model_dir=args.model_dir)
+    embedder = BGEEmbedder(
+        model_dir=args.model_dir,
+        torch_dtype=(args.bge_dtype or os.environ.get("MEDCODER_BGE_DTYPE", "float16")),
+    )
     logger.info("Loading BGE-M3 (lazy). This may take 30-180s on first run...")
     embedder.ensure_loaded()
     logger.info("BGE-M3 loaded (dim=%d). Embedding %d codes in chunks of %d...",

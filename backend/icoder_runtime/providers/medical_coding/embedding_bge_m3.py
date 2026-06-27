@@ -24,6 +24,15 @@ import os
 import threading
 from typing import Sequence
 
+# E1.9 (2026-06-27): OMP runtime conflict suppression. faiss-cpu ships
+# libomp140.x86_64.dll, torch (via mkl) ships libiomp5md.dll. Loading
+# both in the same process triggers OMP Error #15 ("multiple copies of
+# the OpenMP runtime") which aborts the process. MedCodER's retriever
+# loads faiss AND may import torch (e.g. for fp16 dtype resolution), so
+# we suppress the conflict. Set BEFORE the first torch import. No-op on
+# platforms where this isn't relevant.
+os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
+
 import numpy as np
 
 logger = logging.getLogger(__name__)
@@ -49,10 +58,34 @@ class BGEEmbedder:
         model_name: str = MODEL_NAME,
         model_dir: str = DEFAULT_MODEL_DIR,
         batch_size: int = BATCH_SIZE,
+        device: str | None = None,
+        torch_dtype: str | None = None,
+        model_kwargs: dict | None = None,
+        encode_kwargs: dict | None = None,
     ) -> None:
         self.model_name = model_name
         self.model_dir = model_dir
         self.batch_size = batch_size
+        # E1.9 (2026-06-27): memory knobs. fp16 load halves peak memory
+        # (3-4 GB → 1.5-2 GB) and keeps the dev box viable for full
+        # icoder_201 + ccl2026_val_100 eval. Defaults: device=cpu,
+        # torch_dtype=float16. Both env-overridable via MEDCODER_BGE_*
+        # so subprocess workers (Windows spawn inherits parent env)
+        # get consistent settings without explicit plumbing.
+        self.device = device or os.environ.get("MEDCODER_BGE_DEVICE", "cpu")
+        self.torch_dtype = (
+            torch_dtype or os.environ.get("MEDCODER_BGE_DTYPE", "float16")
+        )
+        # Store the dtype string in model_kwargs; resolve to torch.dtype
+        # at load time (avoid ``import torch`` in __init__ — costs ~1s
+        # per BGEEmbedder() and breaks under pytest's torch C-ext load
+        # when other tests have already imported torch in a way that
+        # confuses the loader).
+        _mk: dict = dict(model_kwargs or {})
+        if "torch_dtype" not in _mk and self.torch_dtype != "float32":
+            _mk["torch_dtype"] = self.torch_dtype  # string; resolved in _load()
+        self.model_kwargs = _mk
+        self.encode_kwargs = dict(encode_kwargs or {})
         self._model = None
         self._lock = threading.Lock()
         self._load_error: Exception | None = None
@@ -96,8 +129,26 @@ class BGEEmbedder:
         if not _dir_has_model(local_path):
             local_path = self.model_name
 
-        logger.info("Loading BGE-M3 from %s (this can take a few minutes on first call)", local_path)
-        self._model = SentenceTransformer(local_path, cache_folder=self.model_dir)
+        logger.info("Loading BGE-M3 from %s (device=%s, dtype=%s, this can take a few minutes on first call)",
+                    local_path, self.device, self.torch_dtype)
+        # Resolve string dtype → torch.dtype. sentence-transformers 3.x
+        # expects a real torch.dtype; passing a string raises TypeError.
+        # We resolve here (not in __init__) so tests that never call
+        # ``_load()`` — i.e., inspecting default attributes — don't pay
+        # the ~1s torch import cost. ``import torch`` happens only when
+        # a real model load is triggered; tests that only inspect attrs
+        # never trigger it (and so avoid the OMP runtime conflict with
+        # faiss-cpu that some Windows + pytest combos hit).
+        load_kwargs = dict(self.model_kwargs or {})
+        if "torch_dtype" in load_kwargs and isinstance(load_kwargs["torch_dtype"], str):
+            import torch  # type: ignore
+            load_kwargs["torch_dtype"] = getattr(torch, load_kwargs["torch_dtype"])
+        self._model = SentenceTransformer(
+            local_path,
+            cache_folder=self.model_dir,
+            device=self.device,
+            model_kwargs=load_kwargs or None,
+        )
         # Sanity: dim must match.
         if getattr(self._model, "get_sentence_embedding_dimension", lambda: None)() not in (None, EMBED_DIM):
             actual = self._model.get_sentence_embedding_dimension()
@@ -128,12 +179,14 @@ class BGEEmbedder:
             return np.zeros((0, self.dim), dtype="float32")
         self.ensure_loaded()
         normalized = [(t or " ").strip() or " " for t in texts]
+        encode_kwargs = dict(self.encode_kwargs)
+        encode_kwargs.setdefault("batch_size", self.batch_size)
+        encode_kwargs.setdefault("normalize_embeddings", True)
+        encode_kwargs.setdefault("show_progress_bar", False)
+        encode_kwargs.setdefault("convert_to_numpy", True)
         vectors = self._model.encode(  # type: ignore[union-attr]
             normalized,
-            batch_size=self.batch_size,
-            normalize_embeddings=True,
-            show_progress_bar=False,
-            convert_to_numpy=True,
+            **encode_kwargs,
         )
         arr = np.asarray(vectors, dtype="float32")
         if arr.ndim != 2 or arr.shape[1] != self.dim:

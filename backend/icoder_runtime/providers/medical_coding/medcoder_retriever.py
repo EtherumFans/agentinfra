@@ -82,10 +82,16 @@ class MedCodERRetriever:
         embedder=None,
         icd_loader=None,
         default_top_k: int = DEFAULT_TOP_K,
+        embedder_kwargs: dict | None = None,
     ):
         self.index_dir = index_dir
         self.default_top_k = default_top_k
         self._embedder = embedder
+        # E1.9 (2026-06-27): forward to BGEEmbedder when caller doesn't
+        # supply an explicit embedder. Used to thread device/torch_dtype
+        # from env vars (MEDCODER_BGE_*) without forcing every caller
+        # to instantiate BGEEmbedder by hand.
+        self._embedder_kwargs = embedder_kwargs or {}
         self._icd_loader = icd_loader
         self._lock = threading.Lock()
         self._loaded = False
@@ -275,7 +281,7 @@ class MedCodERRetriever:
     def _get_embedder(self):
         if self._embedder is None:
             from .embedding_bge_m3 import BGEEmbedder
-            self._embedder = BGEEmbedder()
+            self._embedder = BGEEmbedder(**self._embedder_kwargs)
         return self._embedder
 
     def _get_loader(self):
@@ -373,10 +379,14 @@ class MedCodERICD9CM3Retriever:
         embedder=None,
         icd9cm3_loader=None,
         default_top_k: int = DEFAULT_TOP_K,
+        embedder_kwargs: dict | None = None,
     ):
         self.index_dir = index_dir
         self.default_top_k = default_top_k
         self._embedder = embedder
+        # E1.9 (2026-06-27): forward to BGEEmbedder when caller doesn't
+        # supply an explicit embedder.
+        self._embedder_kwargs = embedder_kwargs or {}
         # E1.5: default to None so the loader is lazy-imported (avoids
         # pulling the catalog on unit tests with synthetic indexes).
         # ``_get_loader()`` resolves None → ``get_loader()``.
@@ -547,7 +557,7 @@ class MedCodERICD9CM3Retriever:
     def _get_embedder(self):
         if self._embedder is None:
             from .embedding_bge_m3 import BGEEmbedder
-            self._embedder = BGEEmbedder()
+            self._embedder = BGEEmbedder(**self._embedder_kwargs)
         return self._embedder
 
     def _get_loader(self):

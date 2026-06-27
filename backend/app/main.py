@@ -296,6 +296,14 @@ async def lifespan(app: FastAPI):
             from icoder_runtime.providers.medical_coding.medcoder_retriever import (
                 SubprocessMedCodERRetriever,
             )
+            # E1.9 (2026-06-27): pin BGE-M3 to fp16 before spawning the
+            # worker. Windows ``_mp.Process`` (spawn) inherits the parent
+            # env at start time, so the worker's BGEEmbedder() reads these
+            # values via MEDCODER_BGE_DTYPE / MEDCODER_BGE_DEVICE and
+            # loads in fp16 (~1.5-2 GB peak) instead of fp32 (~3-4 GB,
+            # which OOMs on the Windows 1 GB malloc limit).
+            os.environ.setdefault("MEDCODER_BGE_DTYPE", "float16")
+            os.environ.setdefault("MEDCODER_BGE_DEVICE", "cpu")
             loop = _asyncio.get_running_loop()
             # T7: probe_timeout=10s is too short for first-time BGE-M3 load
             # (~30-90s on Windows). Bump to 90s. Also keep the retriever

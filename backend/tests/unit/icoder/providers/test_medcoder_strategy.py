@@ -941,3 +941,321 @@ class TestMergeProcedureCandidates:
         # Catalog match still present even though retrieval failed.
         assert len(merged) == 1
         assert merged[0].source == "catalog"
+
+
+# ── E1.7: catalog-text scanner ──────────────────────────────────────
+
+
+class TestCatalogScanEmrText:
+    """E1.7: ``_catalog_scan_emr_text`` finds catalog name substrings
+    inside the EMR text. Returns matched ``name_cn`` (canonical form)
+    as supplementary procedure mentions.
+    """
+
+    def test_finds_substring_matches(self, monkeypatch):
+        from icoder_runtime.providers.medical_coding import medcoder_strategy as strat_mod
+        import app.services.icd9cm3_loader as loader_mod
+
+        class _FakeEntry:
+            def __init__(self, code, name_cn, synonyms=()):
+                self.code = code
+                self.name_cn = name_cn
+                self.synonyms_cn = synonyms
+                self.chapter_name = ""
+
+        class _FakeLoader:
+            def ensure_loaded(self): pass
+            def all_codes(self):
+                return [
+                    _FakeEntry("45.2301", "结肠镜检查"),
+                    _FakeEntry("74.1x02", "剖宫产术"),
+                    _FakeEntry("38.8609", "脐动脉插管术"),
+                ]
+
+        monkeypatch.setattr(loader_mod, "get_loader", lambda: _FakeLoader())
+        strat = MedCodERStrategy()
+
+        emr = "患者行剖宫产术，术后给予脐动脉插管术监测。"
+        mentions = strat._catalog_scan_emr_text(emr)
+        # Both 剖宫产术 and 脐动脉插管术 should be found
+        assert "剖宫产术" in mentions
+        assert "脐动脉插管术" in mentions
+        # 结肠镜检查 is NOT in the EMR text — should not appear.
+        assert "结肠镜检查" not in mentions
+
+    def test_synonym_match_uses_canonical_name(self, monkeypatch):
+        from icoder_runtime.providers.medical_coding import medcoder_strategy as strat_mod
+        import app.services.icd9cm3_loader as loader_mod
+
+        class _FakeEntry:
+            def __init__(self, code, name_cn, synonyms=()):
+                self.code = code
+                self.name_cn = name_cn
+                self.synonyms_cn = synonyms
+                self.chapter_name = ""
+
+        class _FakeLoader:
+            def ensure_loaded(self): pass
+            def all_codes(self):
+                # Use a synonym that's >= min_name_len (3) so it survives
+                # the default filter. Single-char/2-char synonyms get
+                # filtered out as too noisy.
+                return [_FakeEntry("45.2301", "结肠镜检查", synonyms=("肠镜检查",))]
+
+        monkeypatch.setattr(loader_mod, "get_loader", lambda: _FakeLoader())
+        strat = MedCodERStrategy()
+
+        emr = "患者行肠镜检查。"
+        mentions = strat._catalog_scan_emr_text(emr)
+        # Synonym matches; canonical name (name_cn) is returned, not the
+        # synonym itself.
+        assert mentions == ["结肠镜检查"]
+
+    def test_no_match_returns_empty(self, monkeypatch):
+        from icoder_runtime.providers.medical_coding import medcoder_strategy as strat_mod
+        import app.services.icd9cm3_loader as loader_mod
+
+        class _FakeEntry:
+            def __init__(self, code, name_cn):
+                self.code = code
+                self.name_cn = name_cn
+                self.synonyms_cn = ()
+                self.chapter_name = ""
+
+        class _FakeLoader:
+            def ensure_loaded(self): pass
+            def all_codes(self):
+                return [_FakeEntry("45.2301", "结肠镜检查")]
+
+        monkeypatch.setattr(loader_mod, "get_loader", lambda: _FakeLoader())
+        strat = MedCodERStrategy()
+        assert strat._catalog_scan_emr_text("患者无特殊症状") == []
+
+    def test_empty_text_returns_empty(self):
+        strat = MedCodERStrategy()
+        assert strat._catalog_scan_emr_text("") == []
+        assert strat._catalog_scan_emr_text("   ") == []
+
+    def test_loader_failure_returns_empty(self, monkeypatch):
+        from icoder_runtime.providers.medical_coding import medcoder_strategy as strat_mod
+        import app.services.icd9cm3_loader as loader_mod
+
+        def _boom():
+            raise FileNotFoundError("catalog not built")
+        monkeypatch.setattr(loader_mod, "get_loader", _boom)
+        strat = MedCodERStrategy()
+        assert strat._catalog_scan_emr_text("剖宫产") == []
+
+    def test_min_name_len_filters_short_names(self, monkeypatch):
+        """Very short catalog names (< min_name_len) are skipped to
+        avoid false positives (single Chinese chars match too broadly)."""
+        from icoder_runtime.providers.medical_coding import medcoder_strategy as strat_mod
+        import app.services.icd9cm3_loader as loader_mod
+
+        class _FakeEntry:
+            def __init__(self, code, name_cn):
+                self.code = code
+                self.name_cn = name_cn
+                self.synonyms_cn = ()
+                self.chapter_name = ""
+
+        class _FakeLoader:
+            def ensure_loaded(self): pass
+            def all_codes(self):
+                return [_FakeEntry("A", "术"), _FakeEntry("B", "剖宫产术")]
+
+        monkeypatch.setattr(loader_mod, "get_loader", lambda: _FakeLoader())
+        strat = MedCodERStrategy()
+        mentions = strat._catalog_scan_emr_text("行剖宫产术治疗", min_name_len=3)
+        # "术" (1 char) skipped; "剖宫产术" (4 chars) kept.
+        assert "术" not in mentions
+        assert "剖宫产术" in mentions
+
+    def test_prefix_matches_long_qualified_catalog_names(self, monkeypatch):
+        """E1.7 workhorse case: real catalog has long qualified names
+        (e.g. "剖宫产术，子宫下段横切口") that don't appear verbatim in
+        EMR text, but the short core prefix (e.g. "剖宫产") does. The
+        scanner should match these via prefix containment.
+        """
+        from icoder_runtime.providers.medical_coding import medcoder_strategy as strat_mod
+        import app.services.icd9cm3_loader as loader_mod
+
+        class _FakeEntry:
+            def __init__(self, code, name_cn):
+                self.code = code
+                self.name_cn = name_cn
+                self.synonyms_cn = ()
+                self.chapter_name = ""
+
+        class _FakeLoader:
+            def ensure_loaded(self): pass
+            def all_codes(self):
+                return [
+                    # Long qualified name — full string won't appear in EMR
+                    _FakeEntry("74.1x01", "剖宫产术，子宫下段横切口"),
+                    # Short name — already in EMR
+                    _FakeEntry("45.2301", "阑尾切除术"),
+                ]
+
+        monkeypatch.setattr(loader_mod, "get_loader", lambda: _FakeLoader())
+        strat = MedCodERStrategy()
+        emr = "行剖宫产术，术后给予抗炎治疗。既往行阑尾切除术。"
+        mentions = strat._catalog_scan_emr_text(emr)
+        # Both should be found:
+        # - "剖宫产术，子宫下段横切口" via prefix "剖宫产" (3 chars) in EMR
+        # - "阑尾切除术" via full name in EMR
+        assert "剖宫产术，子宫下段横切口" in mentions
+        assert "阑尾切除术" in mentions
+
+    def test_prefix_does_not_match_unrelated_names(self, monkeypatch):
+        """The 3-char prefix must actually appear in the EMR, not just
+        share characters with the catalog name. E.g. catalog "X线透视"
+        shouldn't match an EMR that doesn't contain "X线"."""
+        from icoder_runtime.providers.medical_coding import medcoder_strategy as strat_mod
+        import app.services.icd9cm3_loader as loader_mod
+
+        class _FakeEntry:
+            def __init__(self, code, name_cn):
+                self.code = code
+                self.name_cn = name_cn
+                self.synonyms_cn = ()
+                self.chapter_name = ""
+
+        class _FakeLoader:
+            def ensure_loaded(self): pass
+            def all_codes(self):
+                return [_FakeEntry("88.0101", "X线透视检查")]
+
+        monkeypatch.setattr(loader_mod, "get_loader", lambda: _FakeLoader())
+        strat = MedCodERStrategy()
+        emr = "患者行冠状动脉支架植入术。"
+        mentions = strat._catalog_scan_emr_text(emr)
+        # "X线" is not in the EMR, so no false positive.
+        assert mentions == []
+
+    def test_caps_at_max_mentions(self, monkeypatch):
+        from icoder_runtime.providers.medical_coding import medcoder_strategy as strat_mod
+        import app.services.icd9cm3_loader as loader_mod
+
+        class _FakeEntry:
+            def __init__(self, code, name_cn):
+                self.code = code
+                self.name_cn = name_cn
+                self.synonyms_cn = ()
+                self.chapter_name = ""
+
+        class _FakeLoader:
+            def ensure_loaded(self): pass
+            def all_codes(self):
+                # 50 entries all containing "剖宫产术" in name.
+                return [_FakeEntry(f"74.{i:02d}", f"剖宫产术{i}") for i in range(50)]
+
+        monkeypatch.setattr(loader_mod, "get_loader", lambda: _FakeLoader())
+        strat = MedCodERStrategy()
+        mentions = strat._catalog_scan_emr_text("剖宫产术", max_mentions=10)
+        assert len(mentions) <= 10
+
+
+class TestPopulateProceduresE1_7:
+    """E1.7: ``_populate_procedures`` accepts an ``emr_text`` kwarg. When
+    provided, runs ``_catalog_scan_emr_text`` and merges with LLM-extracted
+    mentions before retrieval. Catalog-scan mentions supplement what the
+    LLM missed (e.g., buried procedures like 脐动脉插管).
+    """
+
+    def test_catalog_scan_supplements_llm_mentions(self, monkeypatch):
+        from official_agents.medical_coding.schema import CandidateCode, MedicalCodingOutputSchema
+        from icoder_runtime.providers.medical_coding import medcoder_strategy as strat_mod
+        import app.services.icd9cm3_loader as loader_mod
+
+        class _FakeEntry:
+            def __init__(self, code, name_cn):
+                self.code = code
+                self.name_cn = name_cn
+                self.synonyms_cn = ()
+                self.chapter_name = ""
+
+        class _FakeLoader:
+            def ensure_loaded(self): pass
+            def all_codes(self):
+                return [
+                    _FakeEntry("74.1x02", "剖宫产术"),
+                    _FakeEntry("38.8609", "脐动脉插管术"),
+                ]
+
+        monkeypatch.setattr(loader_mod, "get_loader", lambda: _FakeLoader())
+
+        strat = MedCodERStrategy()
+        strat._proc_retriever_lazy = False
+        async def _fake_retrieve(text, top_k=None):
+            return []
+        strat._proc_retriever = MagicMock()
+        strat._proc_retriever.retrieve_async = _fake_retrieve
+
+        out = MedicalCodingOutputSchema()
+        # LLM only mentioned 剖宫产术; EMR contains 脐动脉插管术 too.
+        import asyncio
+        emr = "行剖宫产术，术后行脐动脉插管术监测。"
+        asyncio.run(strat._populate_procedures(
+            out, mentions=["剖宫产术"], emr_text=emr,
+        ))
+        # Both procedures should appear (via catalog lookup score=1.0).
+        codes = [p.code for p in out.procedures]
+        assert "74.1x02" in codes
+        assert "38.8609" in codes
+
+    def test_no_emr_text_skips_catalog_scan(self, monkeypatch):
+        """E1.4 back-compat: when emr_text is empty, behavior is unchanged
+        (no catalog scan)."""
+        from official_agents.medical_coding.schema import MedicalCodingOutputSchema
+        from icoder_runtime.providers.medical_coding import medcoder_strategy as strat_mod
+
+        strat = MedCodERStrategy()
+        strat._proc_retriever_lazy = False
+        async def _fake_retrieve(text, top_k=None):
+            return []
+        strat._proc_retriever = MagicMock()
+        strat._proc_retriever.retrieve_async = _fake_retrieve
+
+        out = MedicalCodingOutputSchema()
+        import asyncio
+        asyncio.run(strat._populate_procedures(out, mentions=[]))
+        assert out.procedures == []
+
+    def test_catalog_scan_dedups_with_llm_mentions(self, monkeypatch):
+        """If LLM and catalog-scan both find the same procedure, dedup
+        on text → only one ProcedureEntry."""
+        from official_agents.medical_coding.schema import MedicalCodingOutputSchema
+        from icoder_runtime.providers.medical_coding import medcoder_strategy as strat_mod
+        import app.services.icd9cm3_loader as loader_mod
+
+        class _FakeEntry:
+            def __init__(self, code, name_cn):
+                self.code = code
+                self.name_cn = name_cn
+                self.synonyms_cn = ()
+                self.chapter_name = ""
+
+        class _FakeLoader:
+            def ensure_loaded(self): pass
+            def all_codes(self):
+                return [_FakeEntry("74.1x02", "剖宫产术")]
+
+        monkeypatch.setattr(loader_mod, "get_loader", lambda: _FakeLoader())
+
+        strat = MedCodERStrategy()
+        strat._proc_retriever_lazy = False
+        async def _fake_retrieve(text, top_k=None):
+            return []
+        strat._proc_retriever = MagicMock()
+        strat._proc_retriever.retrieve_async = _fake_retrieve
+
+        out = MedicalCodingOutputSchema()
+        import asyncio
+        emr = "行剖宫产术"
+        asyncio.run(strat._populate_procedures(
+            out, mentions=["剖宫产术"], emr_text=emr,
+        ))
+        codes = [p.code for p in out.procedures]
+        # Single procedure entry, not duplicated.
+        assert codes.count("74.1x02") == 1

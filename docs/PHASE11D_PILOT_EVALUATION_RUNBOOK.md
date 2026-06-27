@@ -15,7 +15,7 @@
 - [ ] `python -m app.seed` 已执行 (导入 10 demo cases)
 
 ### 文件准备
-- [ ] 医院数据接收清单 (`HOSPITAL_DATA_REQUEST_TEMPLATE.md`)
+- [ ] 云端 Tenant 数据接收清单 (`docs/cloud/CLOUD_INTAKE_TEMPLATE.md`)
 - [ ] 金标病例模板 (通过 CLI 生成)
 - [ ] 已知限制说明 (`PILOT_KNOWN_LIMITATIONS.md`)
 - [ ] 验收清单 (`PILOT_ACCEPTANCE_CHECKLIST.md`)

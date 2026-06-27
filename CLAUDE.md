@@ -1,13 +1,15 @@
-# iCoDer — 医疗收入合规 AI Runtime 基础设施
+# iCoDer — 医疗收入合规 AI 平台 (托管云 SaaS, Corti-style)
 
 ## 产品定位
 
-iCoDer 是面向中国医院场景的**医疗收入合规 AI 平台**。
+iCoDer 是面向中国医院场景的**医疗收入合规 AI 平台**,以**托管云 SaaS** 形式交付
+(Environments: EU / US / CN; 医院 = Tenant; HIS/EMR = API Client)。
 
-它部署在医院内网服务器上（Docker），医生通过浏览器访问，HIS/EMR 通过 API 集成。
-不是装在医生电脑上的桌面软件。
+前端 React SPA,后端 = 多租户 FastAPI on 托管控制面。医院 HIS/EMR 通过 API Client
+(`backend-service` 服务端集成 或 `ROPC embedded` Web Component 嵌入) 接入。
+**不再**支持医院内网 Docker 部署。
 
-Runtime 是 iCoDer Server 的内核执行引擎（不是独立的便携 Runtime）。
+Runtime 是 iCoDer Server 的内核执行引擎(不是独立的便携 Runtime)。
 
 ```
 医疗收入合规体系
@@ -35,7 +37,7 @@ Runtime 是 iCoDer Server 的内核执行引擎（不是独立的便携 Runtime�
 - RuntimeAgentRegistry — 持久化 Agent 注册表
 - AgentRunner — Agent 执行引擎
 - LLMGateway — LLM Provider 路由层
-- DataPolicy — 医院私有化数据不出院策略
+- DataPolicy — 边缘 PHI 脱敏 + 区域数据驻留策略 (EU/US/CN 租户路由;原始 PHI 不进入云审计通道,仅脱敏样本用于合规审计)
 - RunHistory, AuditLog, FallbackTracker, ShadowDiffService — 可观测性
 
 ## Compliance Services 职责
@@ -56,8 +58,8 @@ Agent 开发 → pack → Marketplace publish → install → PlatformRuntime �
 
 | 环境 | 方式 | 说明 |
 |------|------|------|
-| 开发环境 | `python -m uvicorn` + `npm run dev` | 本地前后端分离 |
-| 医院生产 | `docker compose up -d` | 一键部署 (PostgreSQL + Redis + Nginx) |
+| 本地开发 | `python -m uvicorn` + `npm run dev`, 或 `docker compose -f docker-compose.local-dev.yml up` | 前后端分离 / 全栈容器。**仅供本地开发,绝不允许部署医院或生产** |
+| 托管云 SaaS | `https://{tenant_slug}.{region}.icoder.cloud` | 三层架构: Environment (EU/US/CN) → Tenant (医院) → API Client (backend-service / ROPC embedded)。详见 [docs/cloud/CLOUD_DEPLOYMENT.md](docs/cloud/CLOUD_DEPLOYMENT.md) |
 | ISV 开发 | CLI: `icoder pack`, `icoder test` | Agent 打包和本地测试 |
 
 **Runtime 不再是独立的 pip 包安装到医生电脑。** Runtime 是 iCoDer Server 的内核。
@@ -65,15 +67,28 @@ Agent 开发 → pack → Marketplace publish → install → PlatformRuntime �
 ## 启动命令
 
 ```bash
-# 开发环境
-docker compose up -d   # 推荐: PostgreSQL + Redis + Nginx
+# 本地开发 (唯一受测开发路径;ICODER_DEPLOYMENT_MODE=local)
+docker compose -f docker-compose.local-dev.yml up -d --build
 # 或
-cd backend && python -m uvicorn app.main:app --port 8000  # 轻量开发
+cd backend && python -m uvicorn app.main:app --port 8000
+cd frontend && npm run dev  # 前端单独跑
 
-# 环境变量
+# 托管云接入 (ICODER_DEPLOYMENT_MODE=cloud,所有 ICODER_* cloud-only vars 必填)
+export ICODER_DEPLOYMENT_MODE=cloud
+export ICODER_HOSTED_URL=https://api.icoder.cloud
+export ICODER_ENVIRONMENT=cn
+export ICODER_REGION=cn-hangzhou
+export ICODER_TENANT_ID=<tenant_id>
+export ICODER_API_CLIENT_ID=<client_id>
+export ICODER_API_CLIENT_SECRET=<client_secret>
+# LLM_API_KEY 走云 KMS 注入,不进文件
+
+# 环境变量 (兼容)
 export ICODER_EXECUTION_MODE=platform_runtime
 export ICODER_ALLOW_EXTERNAL_LLM=true
 ```
+
+详见 [docs/cloud/CLOUD_DEPLOYMENT.md](docs/cloud/CLOUD_DEPLOYMENT.md) §6 + [.env.cloud.example](.env.cloud.example)。
 
 ## 金标准评估
 
@@ -171,6 +186,6 @@ python scripts/e2e_medcoder_validation.py --cases tests/fixtures/icoder_201.json
 - LLM: DeepSeek V4 (deepseek-v4-flash) via LLMGateway
 - Embedding: BGE-M3 (BAAI/bge-m3) 本地 sentence-transformers, 1024-dim
 - 向量索引: FAISS IndexFlatIP (cosine via inner product on normalized)
-- 数据: iCoDerA 资产 (只读, 医院本地)
+- 数据: iCoDerA 资产(只读;本地开发 / CI/eval 用 `E:\iCoDerA\`;托管云 region-shared object storage,`ICODER_ASSET_BUCKET=icoder-assets-{region}`)
 - 前端: React + TypeScript + Vite + Tailwind CSS
 - 测试: pytest (752 tests, 80 baseline + 672 MedCodER/规则/修复)

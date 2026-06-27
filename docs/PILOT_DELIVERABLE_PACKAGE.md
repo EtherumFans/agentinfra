@@ -11,7 +11,7 @@
 | # | 交付物 | 文件 | 用途 |
 |---|--------|------|------|
 | 1 | 金标病例模板 | `scripts/pilot_eval_runbook.py generate-template` | 编码员填写金标编码 |
-| 2 | 数据申请模板 | `docs/HOSPITAL_DATA_REQUEST_TEMPLATE.md` | 向医院信息科申请数据 |
+| 2 | 数据申请模板 | `docs/cloud/CLOUD_INTAKE_TEMPLATE.md` | 向医院/ISV 信息科申请云端 Tenant 数据接入 |
 | 3 | 已知限制说明 | `docs/PILOT_KNOWN_LIMITATIONS.md` | 试点前向医院明确能力边界 |
 | 4 | 验收清单 | `docs/PILOT_ACCEPTANCE_CHECKLIST.md` | 试点验收逐项确认 |
 | 5 | 评估基线报告 | `docs/EVALUATION_BASELINE_REPORT.md` | 10 demo cases 初始评估基线 |
@@ -27,8 +27,8 @@
 ## 交付流程
 
 ```
-Step 1: 医院提供数据
-  → HOSPITAL_DATA_REQUEST_TEMPLATE.md
+Step 1: 医院/ISV 提供数据 (云端 Tenant 接入)
+  → CLOUD_INTAKE_TEMPLATE.md (PHI 边缘脱敏通道)
 
 Step 2: 生成模板 → 编码员填写
   → pilot_eval_runbook.py generate-template

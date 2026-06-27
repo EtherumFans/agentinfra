@@ -355,21 +355,32 @@ class MedCodERRetriever:
 class MedCodERICD9CM3Retriever:
     """Top-K ICD-9-CM-3 procedure retriever (BGE-M3 + FAISS IndexFlatIP).
 
-    Mirrors :class:`MedCodERRetriever` exactly so callers can drop it
-    in next to the diagnosis retriever. No catalog filter (see class
-    docstring); returns :class:`CandidateCode` list with
+    Mirrors :class:`MedCodERRetriever` so callers can drop it in next to
+    the diagnosis retriever. Returns :class:`CandidateCode` list with
     ``source="retrieve"``.
+
+    E1.5 — optional catalog compliance filter via ``icd9cm3_loader``. Pass
+    an :class:`ICD9CM3Loader`-compatible object (defaults to
+    ``get_loader()``). Codes returned by FAISS that are NOT in the
+    catalog are dropped from the result list, mirroring the diagnosis
+    retriever's behavior. Pass ``icd9cm3_loader=None`` to disable the
+    filter (useful in tests that build tiny synthetic indexes).
     """
 
     def __init__(
         self,
         index_dir: str = DEFAULT_INDEX_DIR,
         embedder=None,
+        icd9cm3_loader=None,
         default_top_k: int = DEFAULT_TOP_K,
     ):
         self.index_dir = index_dir
         self.default_top_k = default_top_k
         self._embedder = embedder
+        # E1.5: default to None so the loader is lazy-imported (avoids
+        # pulling the catalog on unit tests with synthetic indexes).
+        # ``_get_loader()`` resolves None → ``get_loader()``.
+        self._icd9cm3_loader = icd9cm3_loader
         self._lock = threading.Lock()
         self._loaded = False
         self._index = None
@@ -438,6 +449,7 @@ class MedCodERICD9CM3Retriever:
         flat_idxs = idxs[0].tolist() if hasattr(idxs, "tolist") else list(idxs[0])
 
         out: list[CandidateCode] = []
+        loader = self._get_loader()
         for score, idx in zip(flat_scores, flat_idxs):
             if idx < 0 or idx >= len(self._metadata):
                 continue
@@ -445,9 +457,12 @@ class MedCodERICD9CM3Retriever:
             code = meta.get("code", "")
             if not code:
                 continue
-            # No catalog filter — see class docstring. The metadata
-            # itself is the catalog (13,617 rows, built from
-            # icd9cm3_code_catalog.json).
+            # E1.5 catalog compliance filter: drop codes that aren't in
+            # the real icd9cm3_code_catalog.json. Catches ghost codes
+            # that may have leaked into the FAISS metadata via stale
+            # index builds. Mirrors the diagnosis retriever's filter.
+            if loader is not None and not loader.has(code):
+                continue
             out.append(CandidateCode(
                 code=code,
                 name=meta.get("name_cn", ""),
@@ -500,12 +515,15 @@ class MedCodERICD9CM3Retriever:
         except Exception:
             return []
         out: list[CandidateCode] = []
+        loader = self._get_loader()
         for score, idx in zip(scores[0].tolist(), idxs[0].tolist()):
             if idx < 0 or idx >= len(self._metadata):
                 continue
             meta = self._metadata[idx]
             code = meta.get("code", "")
             if not code:
+                continue
+            if loader is not None and not loader.has(code):
                 continue
             out.append(CandidateCode(
                 code=code, name=meta.get("name_cn", ""),
@@ -531,6 +549,18 @@ class MedCodERICD9CM3Retriever:
             from .embedding_bge_m3 import BGEEmbedder
             self._embedder = BGEEmbedder()
         return self._embedder
+
+    def _get_loader(self):
+        """Resolve the catalog loader lazily.
+
+        ``None`` (the default) means "use the singleton"; tests that
+        build synthetic indexes pass an explicit ``icd9cm3_loader=None``
+        to skip the filter entirely.
+        """
+        if self._icd9cm3_loader is None:
+            from app.services.icd9cm3_loader import get_loader
+            self._icd9cm3_loader = get_loader()
+        return self._icd9cm3_loader
 
     def _load(self) -> None:
         try:

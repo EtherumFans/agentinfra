@@ -1,0 +1,98 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# iCoDer Local Development Stack — docker-compose.local-dev.yml
+#
+# 用途: 本地开发 / CI e2e 测试。**绝不允许**用于生产部署或医院内网交付。
+#
+# 生产部署走 iCoDer 托管云 SaaS (Environment EU/US/CN):
+#   https://{tenant_slug}.{region}.icoder.cloud
+# 详见: docs/cloud/CLOUD_DEPLOYMENT.md
+#
+# 本文件特性:
+#   - ICODER_DEPLOYMENT_MODE=local (默认,所有 cloud-only env vars optional)
+#   - SEED_ON_STARTUP=true (local dev 自动 seed admin/admin123)
+#   - bind-mount 而非 named volume (便于 teardown / gitignore ./.data/)
+#   - CORS localhost (frontend dev server)
+# ─────────────────────────────────────────────────────────────────────────────
+
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: icoder-db
+    environment:
+      - POSTGRES_USER=icoder
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-icoder_dev}
+      - POSTGRES_DB=icoder
+    volumes:
+      - ./.data/pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U icoder"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  redis:
+    image: redis:7-alpine
+    container_name: icoder-redis
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  backend:
+    build: ./backend
+    container_name: icoder-backend
+    ports:
+      - "8000:8000"
+    environment:
+      # Deployment mode: local (本地开发,所有 cloud-only vars optional)
+      - ICODER_DEPLOYMENT_MODE=local
+      - APP_ENV=local
+      - DEBUG=true
+      # Database — cloud production 必须用 managed Postgres + DATABASE_URL env
+      - DATABASE_URL=${DATABASE_URL:-postgresql+asyncpg://icoder:${DB_PASSWORD:-icoder_dev}@db:5432/icoder}
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=${SECRET_KEY}
+      # CORS — cloud 必须列所有前端域名;local 默认可豁免
+      - CORS_ORIGINS=["http://localhost:5173","http://localhost:3000","http://localhost"]
+      # LLM
+      - LLM_PROVIDER=${LLM_PROVIDER:-deepseek}
+      - LLM_MODEL=${LLM_MODEL:-deepseek-chat}
+      - LLM_API_KEY=${LLM_API_KEY:-}
+      - LLM_BASE_URL=${LLM_BASE_URL:-https://api.deepseek.com/v1}
+      # Local dev auto-seed admin/admin123 (cloud production 强制 false)
+      - SEED_ON_STARTUP=true
+      # PHI redaction 在 cloud 默认 edge;local 默认 disabled (除非显式 env)
+      - ICODER_PHI_REDACTION_MODE=${ICODER_PHI_REDACTION_MODE:-disabled}
+      - ICODER_AUDIT_SINK=local
+    volumes:
+      - ./.data/icoder:/app/data
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  frontend:
+    build: ./frontend
+    container_name: icoder-frontend
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./certs:/etc/nginx/certs:ro
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped

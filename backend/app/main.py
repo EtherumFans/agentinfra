@@ -9,6 +9,7 @@ from typing import Any, Callable
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.config import settings
 from app.database import init_db
@@ -382,11 +383,21 @@ async def lifespan(app: FastAPI):
         from app.icoder.agent_runtime.orchestrator.planner import PlannerConfig
         from app.icoder.agent_runtime.orchestrator.delegator import DelegatorConfig
         from app.icoder.agent_runtime.orchestrator.wiring import (
-            build_expert_invoker_from_hybrid,
+            build_expert_invoker_for_medcoder,
             build_llm_call_from_gateway,
         )
 
         _phase1_stub_llm = os.environ.get("ICODER_PHASE1_STUB_LLM", "0") == "1"
+
+        # E1.1 (2026-06-26): hoist `_hybrid_adapter = None` to the outer
+        # scope so the MCP mount code (which runs unconditionally AFTER
+        # this if/else) can safely check `if _hybrid_adapter is not None`
+        # even when ICODER_PHASE1_STUB_LLM=1 (i.e., we skipped the else
+        # branch where it would have been constructed). Pre-fix: when
+        # stub mode is on, the else branch never ran, so `_hybrid_adapter`
+        # was never bound — but the MCP block still tried to read it,
+        # causing UnboundLocalError → MCP mount skipped with warning.
+        _hybrid_adapter: Any = None
 
         if _phase1_stub_llm:
             logger.info(
@@ -400,7 +411,6 @@ async def lifespan(app: FastAPI):
             # 5-stage pipeline runs when coding-expert is invoked. The
             # retriever is lazy — BGE-M3 + FAISS only load on first
             # infer_async() call (see hybrid_adapter._get_retriever).
-            _hybrid_adapter = None
             try:
                 from icoder_runtime.providers.medical_coding import (
                     HybridCodingAdapter,
@@ -431,11 +441,33 @@ async def lifespan(app: FastAPI):
                 platform_gateway,
                 default_provider=platform_gateway.default_provider or "",
             )
-            _expert_invoker = build_expert_invoker_from_hybrid(_hybrid_adapter)
+            # E1 (2026-06-26): canonical MedCodER path now routes to 4
+            # D2 expert packs (evidence_extractor / index_navigator /
+            # code_reconciler / tabular_validator) instead of the single
+            # ``coding-expert`` glue. ``hybrid_fallback=_hybrid_adapter``
+            # keeps the M1 coding-expert back-compat dispatch alive for
+            # any legacy caller.
+            _rule_engine = None
+            try:
+                from compliance_services.rule_engine import RuleEngine
+                _rule_engine = RuleEngine()
+            except Exception as _re:
+                logger.warning(
+                    f"A2A wiring: RuleEngine construction failed, "
+                    f"tabular-validator will lazy-import at call time: {_re}"
+                )
+            _expert_invoker = build_expert_invoker_for_medcoder(
+                platform_gateway,
+                medcoder_retriever=getattr(app.state, "medcoder_retriever", None),
+                rule_engine=_rule_engine,
+                hybrid_fallback=_hybrid_adapter,
+            )
             logger.info(
-                "A2A wiring: LLMGateway=%s, MedCodER=%s",
+                "A2A wiring: LLMGateway=%s, MedCodER=%s, RuleEngine=%s, "
+                "expert_packs=E1_4pack",
                 "real" if platform_gateway.is_configured else "stub",
                 "real" if _hybrid_adapter is not None else "stub",
+                "real" if _rule_engine is not None else "lazy",
             )
 
         def _build_phase1_agent_provider() -> "DictAgentProvider":
@@ -665,6 +697,23 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# E1.1 (2026-06-26): MCP context_id middleware must be added at module
+# load time, BEFORE the lifespan runs. Starlette eagerly builds
+# ``middleware_stack`` on the first ``__call__`` (which is the lifespan
+# startup scope). Once that happens, ``app.add_middleware()`` raises
+# RuntimeError("Cannot add middleware after an application has started").
+# Pre-fix: mount_mcp() was called from inside the lifespan and tried to
+# add the context_id middleware then → the whole MCP mount was skipped.
+# This install is idempotent: ``mount_mcp`` checks for the attribute on
+# ``app.state`` and skips the duplicate middleware add.
+try:
+    from app.icoder.mcp.server import _context_id_middleware
+    app.add_middleware(BaseHTTPMiddleware, dispatch=_context_id_middleware)
+    app.state._mcp_context_id_middleware_installed = True
+    logger.info("MCP context_id middleware installed at module load time")
+except Exception as _mw_e:
+    logger.warning(f"MCP context_id middleware install skipped: {_mw_e}")
 
 
 # Global exception handler — only catches truly unhandled exceptions

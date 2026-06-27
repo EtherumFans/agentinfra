@@ -39,7 +39,13 @@ def app_with_strategy() -> FastAPI:
 
     app = FastAPI()
     strategy = MagicMock()
-    strategy.stage2_retrieve = AsyncMock(return_value=[])
+    # E1.1 (2026-06-26): stage2_retrieve now returns Stage2Result envelope
+    # (candidates + degraded + error_code). The default empty mock returns
+    # a no-op Stage2Result (candidates=[], degraded=False, is_ok=True).
+    from icoder_runtime.providers.medical_coding.medcoder_strategy import (
+        Stage2Result,
+    )
+    strategy.stage2_retrieve = AsyncMock(return_value=Stage2Result(candidates=[]))
     strategy.stage4_rerank = AsyncMock(return_value=[])
     strategy._get_rule_set = MagicMock(return_value=MagicMock())
     mount_mcp(app, strategy=strategy, phi_redactor=None)
@@ -135,11 +141,15 @@ def test_tools_call_search_icd_happy_path(
     client: TestClient, app_with_strategy: FastAPI,
 ):
     """tools/call dispatches search_icd → strategy.stage2_retrieve."""
+    from icoder_runtime.providers.medical_coding.medcoder_strategy import (
+        Stage2Result,
+    )
+    # E1.1: stage2_retrieve returns Stage2Result envelope
     app_with_strategy.state.medcoder_strategy.stage2_retrieve = AsyncMock(
-        return_value=[{
+        return_value=Stage2Result(candidates=[{
             "code": "I50.900", "name": "心力衰竭",
             "score": 0.9, "chapter": "第9章", "source": "retrieve",
-        }],
+        }]),
     )
 
     r = _post(

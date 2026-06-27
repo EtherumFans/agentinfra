@@ -14,6 +14,7 @@ exercise that contract end-to-end.
 
 from __future__ import annotations
 
+import json
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -26,6 +27,7 @@ from app.icoder.agent_runtime.orchestrator.wiring import (
     LMGatewaySyncAdapter,
     _dispatch_expert_invocation,
     _stub_expert_invoker,
+    build_expert_invoker_for_medcoder,
     build_expert_invoker_from_hybrid,
     build_llm_call_from_gateway,
 )
@@ -386,4 +388,156 @@ def test_stub_expert_invoker_contract():
         "expert_id": "any-expert",
         "echo": "any",
         "phase1_stub": True,
+    }
+
+
+# ---------------------------------------------------------------------------
+# E1 (2026-06-26) — build_expert_invoker_for_medcoder
+# ---------------------------------------------------------------------------
+# Per E1 design (memory/project_e1_first_real_agent_2026_06_26.md), the
+# canonical MedCodER Agent path now dispatches 4 D2 expert packs instead
+# of a single ``coding-expert`` glue. These tests lock down:
+#   1. The 4 expert_ids route to the 4 Python impls (not stubs).
+#   2. The M1 ``coding-expert`` back-compat is preserved when a hybrid
+#      fallback is provided.
+#   3. Unknown expert_ids fall through to the Phase-1 stub.
+# Per Agent Card SPEC §3.3 (Q7 5件套), each expert_pack.json expert entry
+# must have id / system_prompt / tools / model / non_goals / output_contract
+# — see test_agent_pack_e1_4_experts_5_piece_complete below.
+
+
+# Stable expert_id strings (mirror EXPERT_ID class attrs on each expert)
+_FOUR_EXPERT_IDS = (
+    "evidence-extractor",
+    "index-navigator",
+    "code-reconciler",
+    "tabular-validator",
+)
+
+
+def test_e1_invoker_routes_4_d2_expert_ids_to_real_packs():
+    """E1: each of the 4 D2 expert_ids is dispatched to its real Python
+    impl, NOT the Phase-1 stub. We verify by checking that each call
+    returns a result dict with the matching ``expert_id`` and a stage-
+    specific output field, and that ``phase1_stub`` is absent."""
+    invoker = build_expert_invoker_for_medcoder(
+        llm_gateway=None,
+        medcoder_retriever=None,
+        rule_engine=None,
+        hybrid_fallback=None,
+    )
+    # evidence-extractor (LLM-offline) returns diagnosis_facts
+    out_evidence = invoker(_make_invocation("evidence-extractor", "老年男性胸痛 3 小时。"))
+    assert out_evidence["expert_id"] == "evidence-extractor"
+    assert "phase1_stub" not in out_evidence
+    assert "diagnosis_facts" in out_evidence  # E1 Stage 1 schema
+
+    # index-navigator (no retriever) returns retriever_status=missing
+    out_index = invoker(_make_invocation("index-navigator", "{}"))
+    assert out_index["expert_id"] == "index-navigator"
+    assert out_index["retriever_status"] == "missing"
+    assert "phase1_stub" not in out_index
+
+    # code-reconciler (no LLM) returns primary_diagnosis (offline path)
+    payload = {
+        "diagnosis_candidates": [
+            {"fact": "胸痛", "candidates": [
+                {"code": "I20.0", "name": "不稳定型心绞痛", "score": 0.9, "chapter": "心血管"},
+            ]},
+        ],
+        "procedure_candidates": [],
+    }
+    out_reconcile = invoker(
+        _make_invocation("code-reconciler", json.dumps(payload, ensure_ascii=False)),
+    )
+    assert out_reconcile["expert_id"] == "code-reconciler"
+    assert "primary_diagnosis" in out_reconcile  # E1 Stage 3+4 schema
+    assert "phase1_stub" not in out_reconcile
+
+    # tabular-validator (RuleEngine lazy-loaded) returns passed/issues
+    out_validate = invoker(
+        _make_invocation("tabular-validator", json.dumps({
+            "primary_diagnosis": {"code": "I20.0"},
+            "secondary_diagnoses": [],
+            "procedures": [],
+            "confidence": 0.9,
+        })),
+    )
+    assert out_validate["expert_id"] == "tabular-validator"
+    assert "passed" in out_validate  # E1 Stage 5 schema
+    assert "rule_set" in out_validate
+    assert "phase1_stub" not in out_validate
+
+
+def test_e1_invoker_coding_expert_uses_hybrid_fallback_when_provided():
+    """E1 back-compat: when ``hybrid_fallback`` is supplied, the M1
+    ``coding-expert`` invocations still route to ``CodingExpert(strategy)``
+    — never to the Phase-1 stub."""
+    h = _make_hybrid_mock(
+        return_value=_StubStrategyResult({"primary_diagnosis": {"code": "I50.900"}}),
+    )
+    invoker = build_expert_invoker_for_medcoder(
+        llm_gateway=None,
+        hybrid_fallback=h,
+    )
+    out = invoker(_make_invocation("coding-expert", "病历文本"))
+    assert out["primary_diagnosis"] == {"code": "I50.900"}
+    assert out["expert_id"] == "coding-expert"
+    assert "phase1_stub" not in out
+
+
+def test_e1_invoker_coding_expert_falls_back_to_stub_without_hybrid():
+    """E1 back-compat: when no ``hybrid_fallback`` is provided, the
+    ``coding-expert`` (M1 path) returns the Phase-1 stub. This is the
+    E1 design — the canonical Agent path is 4 expert packs; the M1
+    hybrid wrapper is opt-in via ``hybrid_fallback``."""
+    invoker = build_expert_invoker_for_medcoder(
+        llm_gateway=None,
+        hybrid_fallback=None,
+    )
+    out = invoker(_make_invocation("coding-expert", "病历文本"))
+    assert out["phase1_stub"] is True
+    assert out["expert_id"] == "coding-expert"
+
+
+def test_e1_invoker_unknown_expert_id_falls_back_to_stub():
+    """E1: any expert_id not in the 4 D2 packs (and not 'coding-expert'
+    with a hybrid_fallback) returns the Phase-1 stub. This is the
+    forward-compat path for Phase 5 (drg-expert, compliance-expert)."""
+    invoker = build_expert_invoker_for_medcoder(
+        llm_gateway=None,
+        hybrid_fallback=None,
+    )
+    out = invoker(_make_invocation("drg-expert", "分组"))
+    assert out["phase1_stub"] is True
+    assert out["expert_id"] == "drg-expert"
+
+
+def test_e1_invoker_4_expert_ids_match_d2_class_constants():
+    """Lockdown: the 4 strings the factory dispatches on must match
+    the EXPERT_ID class attribute on each D2 expert pack. If a D2
+    pack's EXPERT_ID changes, the wiring dispatch breaks silently —
+    this test catches the regression at the boundary."""
+    from app.icoder.agent_runtime.experts.code_reconciler_expert import (
+        CodeReconcilerExpert,
+    )
+    from app.icoder.agent_runtime.experts.evidence_extractor_expert import (
+        EvidenceExtractorExpert,
+    )
+    from app.icoder.agent_runtime.experts.index_navigator_expert import (
+        IndexNavigatorExpert,
+    )
+    from app.icoder.agent_runtime.experts.tabular_validator_expert import (
+        TabularValidatorExpert,
+    )
+    assert EvidenceExtractorExpert.EXPERT_ID == "evidence-extractor"
+    assert IndexNavigatorExpert.EXPERT_ID == "index-navigator"
+    assert CodeReconcilerExpert.EXPERT_ID == "code-reconciler"
+    assert TabularValidatorExpert.EXPERT_ID == "tabular-validator"
+    # And the factory's expected set must include all 4.
+    assert set(_FOUR_EXPERT_IDS) == {
+        EvidenceExtractorExpert.EXPERT_ID,
+        IndexNavigatorExpert.EXPERT_ID,
+        CodeReconcilerExpert.EXPERT_ID,
+        TabularValidatorExpert.EXPERT_ID,
     }

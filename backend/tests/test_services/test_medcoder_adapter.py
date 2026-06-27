@@ -26,11 +26,34 @@ from icoder_runtime.providers.medical_coding.medcoder_adapter import (  # noqa: 
 class TestPromptBuilders:
     def test_extraction_messages_structure(self):
         msgs = build_extraction_messages("患者主诉胸痛3天。")
-        assert len(msgs) == 2
+        # E1.8: 1 system + 3 few-shot user/assistant pairs + 1 user = 8
+        assert len(msgs) == 8
         assert msgs[0]["role"] == "system"
-        assert msgs[1]["role"] == "user"
-        assert "胸痛" in msgs[1]["content"]
         assert "disease_text" in msgs[0]["content"]  # schema hint
+        # Few-shot pairs occupy msgs[1:7]
+        for i in range(1, 7, 2):
+            assert msgs[i]["role"] == "user"
+            assert msgs[i + 1]["role"] == "assistant"
+        # Final user message contains the EMR text
+        assert msgs[7]["role"] == "user"
+        assert "胸痛" in msgs[7]["content"]
+
+    def test_extraction_few_shot_covers_buried_procedures(self):
+        """E1.8: few-shot Example 2 (buried procedures) must appear in messages."""
+        msgs = build_extraction_messages("any emr")
+        # Indexing: [system, ex1_user, ex1_asst, ex2_user, ex2_asst, ex3_user, ex3_asst, user]
+        example2_assistant = msgs[4]["content"]
+        assert "procedure_mentions" in example2_assistant
+        # And must include at least one buried procedure (脐动脉插管).
+        assert "脐动脉插管" in example2_assistant or "剖宫产" in example2_assistant
+
+    def test_extraction_few_shot_covers_no_procedures_case(self):
+        """E1.8: few-shot Example 3 (no procedures) — procedure_mentions: []."""
+        msgs = build_extraction_messages("any emr")
+        example3_assistant = msgs[6]["content"]
+        assert "procedure_mentions" in example3_assistant
+        # The empty array literal must be present.
+        assert "[]" in example3_assistant
 
     def test_rerank_messages_structure(self):
         cands = [

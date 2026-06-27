@@ -322,11 +322,15 @@ def test_handle_rejects_empty_parts():
 
 
 def test_handle_rejects_unknown_agent():
+    """A2A spec §6.2 — unknown agent_id returns the AGENT_NOT_FOUND
+    business code with HTTP 404, NOT the generic invalid_request.
+    See also: ``app/icoder/agent_runtime/a2a/errors.py::A2AErrorCode.AGENT_NOT_FOUND``.
+    """
     handler, _ = _build_handler()
     resp = handler.handle(agent_id="ghost-agent", request=_ok_request())
     assert resp.kind == "error"
-    assert resp.http_status == 400
-    assert resp.error["code"] == "invalid_request"
+    assert resp.http_status == 404
+    assert resp.error["code"] == "AGENT_NOT_FOUND"
     assert "ghost-agent" in resp.error["message"]
 
 

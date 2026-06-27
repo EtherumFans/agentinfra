@@ -464,7 +464,16 @@ def mount_mcp(
     # Install the context_id middleware (idempotent — FastAPI dedupes by
     # function identity, but we wrap in a closure so each mount call gets
     # its own middleware function reference).
-    app.middleware("http")(_context_id_middleware)
+    #
+    # E1.1 (2026-06-26): if the middleware was already installed at
+    # module-load time (see app/main.py), skip — Starlette eagerly builds
+    # ``middleware_stack`` on the first ``__call__`` (which is the lifespan
+    # startup scope), and ``app.add_middleware()`` raises
+    # ``RuntimeError("Cannot add middleware after an application has
+    # started")`` after that point.
+    if not getattr(app.state, "_mcp_context_id_middleware_installed", False):
+        app.middleware("http")(_context_id_middleware)
+        app.state._mcp_context_id_middleware_installed = True
 
     # Boot-time assertion: TOOL_REGISTRY matches the Agent Pack's tools list.
     if agent_pack_tools is not None:

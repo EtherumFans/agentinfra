@@ -220,22 +220,25 @@ class InboundHandler:
                 stage="received",
             )
         if agent is None:
+            # A2A spec §6.2 — unknown agent_id is AGENT_NOT_FOUND (HTTP 404).
+            # This is distinct from invalid_request (400) which is reserved
+            # for malformed request envelopes (handled in step 0).
             if self._config.fail_fast_on_agent_missing:
                 return self._error_response(
                     context_id=context_id,
                     run_id=run_id,
-                    code="invalid_request",
+                    code="AGENT_NOT_FOUND",
                     message=f"agent_id={agent_id!r} not found",
-                    http_status=400,
+                    http_status=404,
                     stage="received",
                 )
             agent = None  # placeholder; downstream will fail
             return self._error_response(
                 context_id=context_id,
                 run_id=run_id,
-                code="invalid_request",
+                code="AGENT_NOT_FOUND",
                 message=f"agent_id={agent_id!r} not found",
-                http_status=400,
+                http_status=404,
                 stage="received",
             )
 

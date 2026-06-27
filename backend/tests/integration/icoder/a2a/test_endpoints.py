@@ -289,20 +289,19 @@ def test_inbound_filepart_rejected_with_invalid_params(client):
 def test_inbound_unknown_agent_returns_agent_not_found(client):
     """§11.2.6 — agent_id not in provider → AGENT_NOT_FOUND.
 
-    Per InboundHandler semantics (T3): an unknown agent is reported as
-    ``invalid_request`` with HTTP 400 (the request itself is malformed
-    from the server's point of view), and the A2A code layer maps it
-    to INVALID_REQUEST (-32600). The agent's identity is in the
-    error envelope's ``data.details``.
+    E1.1 (2026-06-26): InboundHandler now strictly returns the A2A
+    business code ``AGENT_NOT_FOUND`` with HTTP 404 for unknown
+    agents (per A2A spec §6.2 — distinct from INVALID_REQUEST / 400
+    which is reserved for malformed request envelopes).
     """
     r = client.post(
         "/api/icoder/agents/ghost-agent/v1/message:send",
         headers=_version_header(),
         json=_inbound_envelope(),
     )
-    assert r.status_code == 400, r.text
+    assert r.status_code == 404, r.text
     body = r.json()
-    assert body["error"]["data"]["a2a_error_code"] == "INVALID_REQUEST"
+    assert body["error"]["data"]["a2a_error_code"] == "AGENT_NOT_FOUND"
     assert "ghost-agent" in body["error"]["data"]["details"]
 
 

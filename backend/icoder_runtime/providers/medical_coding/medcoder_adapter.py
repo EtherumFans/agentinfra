@@ -43,11 +43,86 @@ EXTRACTION_SYSTEM_PROMPT = (
 )
 
 
+# E1.8: few-shot exemplars for Stage 1. Three scenarios:
+#   1. Obvious case (clear primary disease + obvious procedure)
+#   2. Buried procedures (long narrative with multiple procedures
+#      mentioned in passing — the E1.7 motivating failure mode)
+#   3. No procedures (medical management only)
+_EXTRACTION_FEW_SHOT: list[dict[str, str]] = [
+    # Example 1: obvious case
+    {
+        "role": "user",
+        "content": (
+            "患者因急性胆囊炎入院，入院后行腹腔镜胆囊切除术，"
+            "术后给予抗炎治疗，痊愈出院。"
+        ),
+    },
+    {
+        "role": "assistant",
+        "content": (
+            "{\n"
+            '  "diseases": [\n'
+            '    {"disease_text": "急性胆囊炎", "supporting_evidence": "因急性胆囊炎入院", "llm_initial_code": "K81.000"}\n'
+            "  ],\n"
+            '  "procedure_mentions": ["腹腔镜胆囊切除术"]\n'
+            "}"
+        ),
+    },
+    # Example 2: buried procedures (the E1.7 motivating case)
+    {
+        "role": "user",
+        "content": (
+            "患者孕39周，G2P1，因胎儿窘迫行子宫下段剖宫产术，"
+            "术中出血约400ml，新生儿Apgar评分1分钟7分，"
+            "转儿科后给予脐动脉插管术监测，术后产妇留置导尿。"
+        ),
+    },
+    {
+        "role": "assistant",
+        "content": (
+            "{\n"
+            '  "diseases": [\n'
+            '    {"disease_text": "胎儿窘迫", "supporting_evidence": "因胎儿窘迫行子宫下段剖宫产术", "llm_initial_code": "O36.300"}\n'
+            "  ],\n"
+            '  "procedure_mentions": ["子宫下段剖宫产术", "脐动脉插管术", "留置导尿"]\n'
+            "}"
+        ),
+    },
+    # Example 3: no procedures (medical management only)
+    {
+        "role": "user",
+        "content": (
+            "患者2型糖尿病病史5年，长期口服二甲双胍，"
+            "本次因血糖控制不佳入院，调整降糖方案后出院。"
+        ),
+    },
+    {
+        "role": "assistant",
+        "content": (
+            "{\n"
+            '  "diseases": [\n'
+            '    {"disease_text": "2型糖尿病", "supporting_evidence": "患者2型糖尿病病史5年", "llm_initial_code": "E11.900"}\n'
+            "  ],\n"
+            '  "procedure_mentions": []\n'
+            "}"
+        ),
+    },
+]
+
+
 def build_extraction_messages(emr_text: str) -> list[dict[str, str]]:
-    return [
+    """Build Stage 1 messages: system prompt + few-shot exemplars + user EMR.
+
+    E1.8: prepend 3 few-shot user/assistant pairs after the system prompt
+    to teach comprehensive procedure extraction. The exemplars cover
+    obvious, buried, and no-procedure cases.
+    """
+    messages: list[dict[str, str]] = [
         {"role": "system", "content": EXTRACTION_SYSTEM_PROMPT},
+        *_EXTRACTION_FEW_SHOT,
         {"role": "user", "content": emr_text},
     ]
+    return messages
 
 
 # ── Stage 1: Extraction result (E1.4) ───────────────────────────────

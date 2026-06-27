@@ -133,9 +133,16 @@ def tmp_icd9cm3_index_dir(tmp_path):
 @pytest.fixture
 def retriever(tmp_icd9cm3_index_dir):
     from icoder_runtime.providers.medical_coding import medcoder_retriever as ret_mod
+    # Permissive loader: synthetic test fixtures use codes not in the
+    # real catalog. E1.5 catalog filter is exercised by
+    # ``test_catalog_filter_drops_ghost_codes``.
+    class _PermissiveLoader:
+        def has(self, code: str) -> bool:
+            return True
     return ret_mod.MedCodERICD9CM3Retriever(
         index_dir=str(tmp_icd9cm3_index_dir),
         embedder=_FakeEmbedder(),
+        icd9cm3_loader=_PermissiveLoader(),
     )
 
 
@@ -198,12 +205,11 @@ class TestIcd9cm3Retrieval:
         assert retriever.retrieve_sync("", top_k=5) == []
         assert retriever.retrieve_sync("   ", top_k=5) == []
 
-    def test_no_catalog_filter_drops_ghost_codes(self, tmp_path):
-        """E1.3 retriever intentionally does NOT filter through
-        ``icd10cn_loader`` (no ICD9CM3Loader exists). A ghost code
-        not in any catalog survives the retrieve — that's the
-        documented behavior, not a bug. This test pins that contract
-        so a future loader addition is forced to update the test.
+    def test_catalog_filter_drops_ghost_codes(self, tmp_path):
+        """E1.5: catalog compliance filter drops codes not in
+        ``icd9cm3_loader``. Mirrors the diagnosis retriever's filter.
+        Test pins that ``icd9cm3_loader=None`` still allows the filter
+        to be disabled (synthetic indexes, FAISS-only behavior).
         """
         metadata = [
             {"code": "45.2301", "name_cn": "结肠镜检查", "name_en": "Colonoscopy",
@@ -223,14 +229,62 @@ class TestIcd9cm3Retrieval:
         faiss.write_index(idx, str(tmp_path / "faiss_icd9cm3.index"))
 
         from icoder_runtime.providers.medical_coding import medcoder_retriever as ret_mod
+
+        # Stub loader: only ``45.2301`` is in the catalog. Ghost code
+        # ``ZZ.9999`` is filtered out.
+        class _StubLoader:
+            def has(self, code: str) -> bool:
+                return code == "45.2301"
+
         r = ret_mod.MedCodERICD9CM3Retriever(
-            index_dir=str(tmp_path), embedder=_FakeEmbedder(),
+            index_dir=str(tmp_path),
+            embedder=_FakeEmbedder(),
+            icd9cm3_loader=_StubLoader(),
         )
         r.ensure_loaded()
         cands = r.retrieve_sync("test", top_k=5)
         codes = [c.code for c in cands]
-        # Ghost code survives (no filter). Pin so future loader
-        # addition is intentional.
+        assert "ZZ.9999" not in codes
+        assert "45.2301" in codes
+
+    def test_permissive_loader_lets_ghost_codes_through(self, tmp_path):
+        """E1.5: callers control filtering by the loader's ``has()``
+        behavior. A permissive loader (always True) effectively
+        disables the filter — used in tests where raw FAISS ranking
+        is what's under test.
+        """
+        metadata = [
+            {"code": "45.2301", "name_cn": "结肠镜检查", "name_en": "Colonoscopy",
+             "category": "diagnostic", "chapter_no": "第1章",
+             "chapter_name": "操作与介入", "chapter_range": "00.00-99.99"},
+            {"code": "ZZ.9999", "name_cn": "幽灵", "name_en": "Ghost",
+             "category": "", "chapter_no": "", "chapter_name": "",
+             "chapter_range": ""},
+        ]
+        (tmp_path / "metadata_icd9cm3.pkl").write_bytes(pickle.dumps(metadata))
+        import faiss
+        rng = np.random.default_rng(seed=99)
+        arr = rng.standard_normal((2, 1024)).astype("float32")
+        arr /= np.linalg.norm(arr, axis=1, keepdims=True) + 1e-12
+        idx = faiss.IndexFlatIP(1024)
+        idx.add(arr)
+        faiss.write_index(idx, str(tmp_path / "faiss_icd9cm3.index"))
+
+        from icoder_runtime.providers.medical_coding import medcoder_retriever as ret_mod
+
+        class _PermissiveLoader:
+            def has(self, code: str) -> bool:
+                return True
+
+        r = ret_mod.MedCodERICD9CM3Retriever(
+            index_dir=str(tmp_path),
+            embedder=_FakeEmbedder(),
+            icd9cm3_loader=_PermissiveLoader(),
+        )
+        r.ensure_loaded()
+        cands = r.retrieve_sync("test", top_k=5)
+        codes = [c.code for c in cands]
+        # Permissive loader — both codes survive.
         assert "ZZ.9999" in codes
         assert "45.2301" in codes
 

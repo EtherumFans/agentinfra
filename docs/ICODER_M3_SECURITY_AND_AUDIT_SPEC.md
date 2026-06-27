@@ -81,16 +81,17 @@
 
 ## 5. 数据策略 (Data Policy)
 
-iCoDer 部署在医院内网, **数据不出院**:
+iCoDer v1 以**托管云 SaaS** 形式交付 (Corti-style), 数据按 tenant.environment (EU/US/CN) 分区驻留。**PHI 边缘脱敏**: 医院/HIS 端 edge node 完成 PHI 脱敏, 原始 PHI 不进入云审计通道, 仅脱敏样本入云 (用于合规举证 + 全链路审计)。
 
-| 数据 | 存储 | 出院 |
+| 数据 | 存储 | 出云 (audit channel) |
 |------|------|------|
-| 病历原文 (encounter_text) | Runtime in-memory | ✗ |
-| Agent run 结果 | in-memory → PostgreSQL | ✗ |
-| 审计日志 | PostgreSQL | ✗ |
-| LLM 调用的 prompt | LLM Gateway 日志 (本地) | 仅当 `ICODER_ALLOW_EXTERNAL_LLM=true` 才发到外部 LLM |
-| 嵌入向量 (BGE-M3) | 本地 (data/medcoder/) | ✗ |
-| FAISS 索引 | 本地 (data/medcoder/) | ✗ |
+| 病历原文 (encounter_text) | HIS/EMR edge node | ✗ (PHI 留在院内) |
+| 病历脱敏样本 (redacted text) | 托管云 audit log | ✓ (满足 audit 抽样举证) |
+| Agent run 结果 | 托管云 PostgreSQL (per-tenant) | ✓ |
+| 审计日志 (脱敏后) | 托管云 PostgreSQL (per-tenant) | ✓ |
+| LLM 调用的 prompt | LLM Gateway 日志 (per-tenant region) | 仅 `ICODER_ALLOW_EXTERNAL_LLM=true` 才发到外部 LLM (区域路由) |
+| 嵌入向量 (BGE-M3) | 区域 S3-compatible bucket (`ICODER_ASSET_BUCKET`) | ✓ (只读共享资产) |
+| FAISS 索引 | 区域 S3-compatible bucket | ✓ (只读共享资产) |
 
 **M3-0 默认**: `ICODER_ALLOW_EXTERNAL_LLM=true` (用于接入 DeepSeek V4); 切到 `false` 时自动回退到 `MockLLMProvider`, 标记 `degraded=true, degraded_reason=no_llm_gateway_or_disallowed`。
 
@@ -143,7 +144,7 @@ iCoDer 部署在医院内网, **数据不出院**:
 
 ## 9. 已知安全限制 (M3-0 边界)
 
-> **M3-0 是 pipeline validation 阶段, 不应在医院生产环境直接使用**。以下安全特性 **M3+ 阶段必须实现**:
+> **M3-0 是 pipeline validation 阶段, 不应在生产 Tenant 直接上线**。以下安全特性 **M3+ 阶段必须实现**:
 
 1. RBAC 强制 (FastAPI Depends + JWT 解码)
 2. 审计日志持久化 (PostgreSQL)

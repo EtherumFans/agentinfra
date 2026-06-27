@@ -25,16 +25,16 @@ icoder-platform (SaaS, 闭源)
 └── dashboard            ── Web 管理界面
 ```
 
-数据流：
+数据流 (Corti-style 托管云):
 
 ```
-ISV 开发 Agent → pip install icoder-runtime → 本地测试
-    → 打包 .icoder-agent → 上传到 Marketplace
+ISV 开发 Agent → 本地 icoder-cli 调试 (本地 dev)
+    → 打包 .icoder-agent → 上传到 Marketplace (托管云 Console)
 
-HIS 厂商 → 浏览 Marketplace → 下载 .icoder-agent
-    → 集成到 HIS 部署脚本 → 随系统升级进入医院内网
+医院 / ISV Tenant → 浏览 Marketplace → 安装 Agent
+    → Agent 注册到 Tenant 命名空间 → 按需 invoke via API Client (backend-service 或 ROPC embedded)
 
-医院 Runtime → 接收 HIS 预置的 Agent 包 → 本地执行
+托管云 Runtime → 接收 API Client 请求 → 执行 Agent → 返回结果 (PHI 脱敏后入审计通道)
 ```
 
 ---
@@ -132,7 +132,7 @@ HIS 厂商 → 浏览 Marketplace → 下载 .icoder-agent
 |---------|------|
 | iCoDer Platform（SaaS）订阅 | ISV/HIS 厂商使用云端 Dashboard、Marketplace 发布、多租户管理的订阅费 |
 | Runtime 企业支持 | HIS 厂商 Runtime 集成技术支持、定制化 Tool 开发 |
-| 医疗合规解决方案 | 医院/医保/商保的 POC → 年度授权 → 私有化部署（项目制，但与 Runtime 分离） |
+| 医疗合规解决方案 | 医院/医保/商保的 POC → 年度授权 → 托管云 Tenant 订阅（项目制，但与 Runtime 分离） |
 
 ---
 

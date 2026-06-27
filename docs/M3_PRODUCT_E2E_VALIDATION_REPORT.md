@@ -45,7 +45,7 @@ M3-0 (官方样板 Agent)      — 本轮交付, 12 条主链路全部覆盖
 ```text
 ✗ 模型效果已验证
 ✗ 医学质量闭环完成
-⚠ 医院生产试点条件未完全满足 (R1 B0 prediction / R2 真实模型评估 / R3 gold evidence / R4 PHI 抽检 — 临床可信门禁未通过, 见 §13.5)
+⚠ EU/US/CN 租户 Shadow Pilot 条件未完全满足 (R1 B0 prediction / R2 真实模型评估 / R3 gold evidence / R4 PHI 抽检 — 临床可信门禁未通过, 见 §13.5)
 ⚠ 院内受控 Shadow Pilot 前置工程条件已基本具备 (R5/R6/R7/R9/R10 工程层面已闭环)
 ✗ 医保上传自动放行
 ✗ 生产写回 EMR/HIS
@@ -236,7 +236,7 @@ frontend/package.json:
 | 内部演示 | ✅ **允许** | 12 链路 + 10 边界全 pass, 0 Blocker, 18+59=77 自动化测试全绿, 904 总回归无破坏 |
 | ISV 技术交流 | ✅ **允许** | 同上, 可演示 iCoDer Runtime 全链路 + 14 阶段 + 5 校验规则 |
 | 医院试点前评估 | ✅ **条件允许** | 需附 M3-0 限制声明 + 选定 R1/R2/R5/R6/R7 的修复路径 |
-| 医院生产试点 | ❌ **不允许** | R1-R7 风险未消, RBAC 未强制, 审计日志未持久化, B0 未接 |
+| EU/US/CN 租户 Shadow Pilot | ❌ **不允许** | R1-R7 风险未消, RBAC 未强制, 审计日志未持久化, B0 未接 |
 | 生产写回 | ❌ **不允许** | `production_writeback_blocked=true` 硬阻断, 设计如此 |
 | 模型效果宣称 | ❌ **不允许** | Pipeline Validation 模式独立可跑 (链路 ≠ 模型), B0 未接 |
 
@@ -262,7 +262,7 @@ frontend/package.json:
 ```text
 ❌ 不能宣称模型效果已验证
 ❌ 不能宣称医学质量闭环完成
-❌ 不能宣称医院生产试点完成
+❌ 不能宣称 EU/US/CN 租户 Shadow Pilot 完成
 ❌ 不能宣称可医保上传自动放行
 ❌ 不能宣称可生产写回 EMR/HIS
 ❌ 不能宣称已接真实 DRG/DIP 分组器
@@ -284,7 +284,7 @@ frontend/package.json:
 | 当前版本是否可以内部演示 | ✅ **可以** | 12 链路 + 10 边界全 pass, 0 Blocker |
 | 当前版本是否可以 ISV 技术交流 | ✅ **可以** | 同上, 演示 Runtime 全链路 + 14 阶段 + 5 校验规则 |
 | 当前版本是否可以医院试点前评估 | ✅ **条件可以** | 需附 M3-0 限制声明 + 修复路径; 文档中明确红线 |
-| 当前版本是否可以医院生产试点 | ⚠️ **条件未完全满足** | R5, R6, R7, R9, R10 工程层面已闭环; 但 R1 B0 prediction 未接入 / R2 真实模型评估未开始 / R3 gold evidence 未人工确认 / R4 PHI 抽检未启动 — 临床可信门禁未通过, 不可直接进入医院生产试点。见 §13.5 M3-1 Clinical Validation Readiness Checklist |
+| 当前版本是否可以 EU/US/CN 租户 Shadow Pilot | ⚠️ **条件未完全满足** | R5, R6, R7, R9, R10 工程层面已闭环; 但 R1 B0 prediction 未接入 / R2 真实模型评估未开始 / R3 gold evidence 未人工确认 / R4 PHI 抽检未启动 — 临床可信门禁未通过, 不可直接进入生产 Tenant Shadow Pilot。见 §13.5 M3-1 Clinical Validation Readiness Checklist |
 | 当前版本是否可以生产写回 | ❌ **不可以** | `production_writeback_blocked=true` 硬阻断 |
 | 当前版本是否可以宣称模型效果 | ❌ **不可以** | Pipeline Validation 模式 ≠ 模型评估, B0 未接 |
 
@@ -298,11 +298,11 @@ frontend/package.json:
 
 1. **R1 + R2**: 接 B0 prediction file + 真实 F1 测量 — 从 "样板 Agent" 转向 "真实业务 Agent"
 2. **R5 + R6**: RBAC 强制 + 审计日志持久化 — 医院合规审计的前置
-3. **R3 + R4**: 启动 gold evidence 人工标注 + PHI 抽检 — 引入医院方参与
+3. **R3 + R4**: 启动 gold evidence 人工标注 + PHI 抽检 — 引入 Tenant (医院/医保) 临床方参与
 
 ### 13.2 中期 (M3-1 阶段)
 
-4. **R7**: 选定试点医院的 DRG/DIP 分组器 (本地或私有化), 开始适配联调
+4. **R7**: 选定试点 Tenant (CN region 医院/医保), 联调 DRG/DIP 分组器 (托管云内部服务 + 区域路由)
 5. **R9 + R10**: Run Trace 阶段级 trace 持久化 + 数据资产版本动态化
 
 ### 13.3 长期 (M3 主体)

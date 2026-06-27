@@ -83,16 +83,18 @@ Thumbs.db
 
 ## 二、Docker 治理
 
-### 2.1 当前 Docker 架构
+### 2.1 当前 Local-Dev Docker 架构 (本地开发专用)
 
 ```
-docker-compose.yml
+docker-compose.local-dev.yml   # 本地开发专用;生产部署走托管云 SaaS
 ├── backend (python:3.11-slim)
 │   └── Dockerfile: pip install → uvicorn :8000
 └── frontend (node:20-alpine → nginx:alpine)
     └── Dockerfile: npm build → nginx serve :80
         └── nginx.conf: SPA + /api/ → proxy_pass backend:8000
 ```
+
+> **2026-06-27 战略反转**: v1 不再支持医院内网 Docker 部署, 改为托管云 SaaS (Corti-style: Environment EU/US/CN → Tenant → API Client)。本地 Docker 仅作开发/CI 用途。详见 [docs/cloud/CLOUD_DEPLOYMENT.md](../cloud/CLOUD_DEPLOYMENT.md)。
 
 ### 2.2 Docker 问题清单
 
@@ -105,7 +107,7 @@ docker-compose.yml
 | D-5 | **docker-compose 挂载 .env 为只读文件** | P2 | `./backend/.env:/app/.env:ro` — 但 .env 文件在 git 中被追踪，应改用环境变量注入 |
 | D-6 | **SQLite 在生产容器中使用** | P1 | `sqlite+aiosqlite:///./data/icoder.db` — 容器重启时数据可能丢失，应挂载 volume 或切换到 PostgreSQL |
 | D-7 | **healthcheck 用 Python urllib 内联** | P2 | 后端 healthcheck 启动 Python 解释器进程开销大，建议改用 `curl` 或 `wget`；前端 healthcheck 用 `wget -qO-` 但 alpine nginx 镜像不含 wget |
-| D-8 | **data volume 定义但未挂载到 backend** | P1 | `docker-compose.yml:33` 定义了 `volumes: data:` 但 backend 服务的 volumes 写的是 `./data:/app/data`（bind mount 而非 named volume） |
+| D-8 | **data volume 定义但未挂载到 backend** | P1 | `docker-compose.local-dev.yml:33` 定义了 `volumes: data:` 但 backend 服务的 volumes 写的是 `./data:/app/data`（bind mount 而非 named volume） |
 | D-9 | **backend 无 depends_on 数据库** | P2 | 虽然当前用 SQLite 无需外部 DB，但设计上预留了 PostgreSQL 切换空间，缺少 DB 服务定义 |
 | D-10 | **前端 300s proxy_read_timeout 过长** | P3 | 编码审核 pipeline 可能需要长超时，但 5 分钟对所有 `/api/` 请求都适用会导致连接堆积 |
 
@@ -368,15 +370,17 @@ screenshots
 □ DoD-8  无死按钮              — grep onClick 无空函数
 ```
 
-## 附录 B：Docker 部署检查清单
+## 附录 B：本地开发 Docker 检查清单 (本地 dev only, 生产走托管云)
 
 ```
 □ .dockerignore 存在且完整
 □ nginx.conf 含 WebSocket 代理
 □ 敏感配置通过环境变量注入（非 .env 文件挂载）
-□ data 使用 named volume（非 bind mount）
+□ data 使用 bind mount 或 named volume (开发 teardown 便利)
 □ healthcheck 可用（curl/wget 非 Python）
 □ 镜像无构建工具链残留
 □ npm ci 无 --legacy-peer-deps
 □ 前端 proxy_read_timeout 合理（通用 60s + pipeline 专用更长）
 ```
+
+> **2026-06-27 cloud-flip 后**: 此附录仅适用于本地开发 Docker stack (`docker-compose.local-dev.yml`)。生产部署见 [docs/cloud/CLOUD_DEPLOYMENT.md §4 SLA & Data-Residency Matrix](../cloud/CLOUD_DEPLOYMENT.md)。

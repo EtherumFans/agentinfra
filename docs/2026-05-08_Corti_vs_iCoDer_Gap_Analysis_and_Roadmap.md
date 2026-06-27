@@ -28,7 +28,7 @@
 | **数据库** | PostgreSQL + Redis + 向量数据库 | SQLite (嵌入式) | 🔴 严重 |
 | **实时通信** | WebSocket + WebRTC | WebSocket (仅 STT) | 🔴 无 WebRTC |
 | **认证** | OAuth 2.0 + SAML + SSO | JWT + OAuth 2.0 M2M | 🟡 无企业 SSO |
-| **部署** | Kubernetes 集群 | Docker Compose 单机 | 🟡 无自动扩缩容 |
+| **部署** | 托管云 SaaS (EU/US/CN region + auto-scaling) | Docker Compose 单机 (本地开发) | 🟡 本地开发无自动扩缩容 |
 | **可观测性** | OpenTelemetry + Grafana | Python logging | 🔴 无结构化监控 |
 
 ---
@@ -263,7 +263,7 @@
 | | — 添加国家医保局飞行检查常见问题规则 | | | |
 | | — 添加地方医保编码规则 | | | |
 
-**第一阶段产出**: 可在中国医院内网部署运行、支持完整 ICD-10-CN 编码、异步管道、准确率可接受的 STT
+**第一阶段产出**: 可在托管云 CN region 部署运行、支持完整 ICD-10-CN 编码、异步管道、准确率可接受的 STT
 
 ---
 
@@ -411,7 +411,7 @@ Month 1      Month 2      Month 3      Month 4      Month 5      Month 6      Mo
 | Whisper 中文医学准确率不达标 | 1.3/2.2 | 考虑商业 STT 方案（讯飞/百度/阿里）作为备选 |
 | 腾讯会议 SDK 审核周期长 | 2.3 延迟 | 先完善通用 getDisplayMedia 方案，SDK 集成并行推进 |
 | PostgreSQL 迁移数据丢失 | 1.1 风险 | 完整备份 + 灰度迁移 + 回滚方案 |
-| 医院内网部署复杂度 | 全阶段 | 提供 Docker 一键部署 + 离线安装包 |
+| 多区域 Tenant 接入合规 | 全阶段 | EU/US/CN region 路由 + PHI 边缘脱敏 + 区域数据驻留 |
 
 ---
 

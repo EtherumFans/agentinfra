@@ -311,10 +311,10 @@ GET  /stats             # 知识库统计信息
 └─────────────────────────────────────────────┘
 ```
 
-### 部署
+### 部署 (本地开发 Docker, 生产走托管云 SaaS)
 
 ```yaml
-# docker-compose.yml
+# docker-compose.local-dev.yml   # 本地开发专用
 services:
   kb-api:
     build: ./knowledge-base
@@ -324,7 +324,10 @@ services:
     environment:
       - KB_DB_PATH=/app/data/kb.db
       - KB_LOG_LEVEL=INFO
+      - ICODER_DEPLOYMENT_MODE=local   # 2026-06-27 cloud-flip: 默认 local
 ```
+
+> **2026-06-27 cloud-flip**: v1 不再医院内网 Docker 部署, knowledge-base 子服务托管云内嵌为受管服务 (per-tenant region 路由)。本地 Docker 仅作开发用途。详见 [docs/cloud/CLOUD_DEPLOYMENT.md](../cloud/CLOUD_DEPLOYMENT.md)。
 
 ### 目录结构
 

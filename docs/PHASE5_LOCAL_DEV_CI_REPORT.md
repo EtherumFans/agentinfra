@@ -16,8 +16,8 @@ cd iCoDer
 # Optional: set LLM API key
 export LLM_API_KEY=sk-your-key
 
-# Build + start
-docker compose up -d --build
+# Build + start (local-dev only — production 走托管云 SaaS)
+docker compose -f docker-compose.local-dev.yml up -d --build
 
 # Verify
 curl http://localhost:8000/api/health
@@ -61,7 +61,7 @@ open http://localhost:8000/docs  # Backend Swagger
 | 阶段 | 说明 |
 |------|------|
 | 触发 | `workflow_dispatch` (手动) |
-| 环境 | `docker compose up -d --build` |
+| 环境 | `docker compose -f docker-compose.local-dev.yml up -d --build` |
 | 测试 | `npx playwright test` |
 | 产物 | `playwright-report/` artifact, 保留 7 天 |
 
@@ -114,7 +114,7 @@ npm run build                           # Production build
 
 | 标准 | 结果 |
 |------|------|
-| docker compose up 可启动前后端 | ✅ 修复 nginx WS proxy + healthcheck |
+| docker compose -f docker-compose.local-dev.yml up 可启动前后端 | ✅ 修复 nginx WS proxy + healthcheck |
 | /api/health 正常 | ✅ curl -f 验证 |
 | alembic upgrade head CI 通过 | ✅ CI workflow 含 3 步验证 |
 | backend pytest 149/149 | ✅ |

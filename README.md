@@ -37,12 +37,13 @@ iCoDer/
 │       ├── services/ # API client
 │       ├── store/    # Zustand state management
 │       └── types/    # TypeScript type definitions
-└── docker-compose.yml
+└── docker-compose.local-dev.yml   # 仅本地开发;生产走托管云
 ```
 
 ## Quick Start
 
 > 5 分钟快速入门：[QUICKSTART.md](./docs/QUICKSTART.md)
+> 云端部署：[docs/cloud/CLOUD_DEPLOYMENT.md](./docs/cloud/CLOUD_DEPLOYMENT.md)
 
 ### Prerequisites
 
@@ -50,17 +51,16 @@ iCoDer/
 - Node.js 20+
 - npm 9+
 
-### Backend Setup
+### Local Backend Setup
 
 ```bash
 cd backend
 pip install -r requirements.txt
-cp .env.example .env  # Edit with your LLM API key
-python -m app.seed     # Seed demo data
+cp ../.env.cloud.example ../.env.cloud  # ICODER_DEPLOYMENT_MODE=local 默认所有 vars optional
 uvicorn app.main:app --reload
 ```
 
-### Frontend Setup
+### Local Frontend Setup
 
 ```bash
 cd frontend
@@ -68,13 +68,20 @@ npm install --legacy-peer-deps
 npm run dev
 ```
 
-### Docker Deployment
+### Local Docker Stack (本地开发全栈)
 
 ```bash
-docker-compose up --build
+docker compose -f docker-compose.local-dev.yml up --build
+# 仅本地开发;绝不允许用于生产或医院部署
 ```
 
-Access the app at `http://localhost:80` and the API docs at `http://localhost:8000/docs`.
+### Cloud SaaS Deployment (生产)
+
+iCoDer v1 以**托管云 SaaS** 形式交付 (Corti-style: Environment EU/US/CN → Tenant → API Client)。
+医院 / ISV 通过 onboarding intake 获取 Tenant 后,从 `https://{tenant_slug}.{region}.icoder.cloud` 接入。
+**不再**支持医院内网 Docker 部署。详见 [docs/cloud/CLOUD_DEPLOYMENT.md](./docs/cloud/CLOUD_DEPLOYMENT.md)。
+
+Access the app at `http://localhost:80` (local dev) and the API docs at `http://localhost:8000/docs`.
 
 ## Default Credentials
 
@@ -157,7 +164,7 @@ npm test
 - Contract-enforced Agent Runtime (Hoare-style pre/post conditions)
 - Complete audit logging for all operations
 - Patient ID anonymization
-- Built-in data stays on-premise — supports private deployment behind hospital firewall
+- Built-in data subject to PHI redaction-at-edge contract — original PHI stays in hospital HIS/EMR; only redacted samples enter cloud audit channel (see [docs/cloud/CLOUD_DEPLOYMENT.md §4](./docs/cloud/CLOUD_DEPLOYMENT.md))
 - Input validation on all endpoints
 - Password hashing with bcrypt
 

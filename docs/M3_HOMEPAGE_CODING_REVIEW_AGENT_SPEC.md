@@ -8,7 +8,7 @@
 
 ## 0. 关键定位 (硬性)
 
-- **iCoDer** = 医疗收入合规 AI Runtime 基础设施 (面向 Agent 开发 + 运行, 部署在医院内网)
+- **iCoDer** = 医疗收入合规 AI Runtime 基础设施 (面向 Agent 开发 + 运行, **2026-06-27 起以托管云 SaaS 形式交付**, Corti-style: Environment EU/US/CN → Tenant → API Client)
 - **本 Agent** = iCoDer 上的 **第一个官方样板 Agent** (Official Reference Agent / Starter Agent)
 - 本 Agent **不可被视为 iCoDer 全部产品定位**, 不代表 iCoDer 商业化形态
 - **不在 M3-0 阶段做 SFT、不改 B0、不编造模型预测**。M3-0 是 **pipeline validation** 模式, 验证 Runtime 全链路。

@@ -14,6 +14,7 @@ from __future__ import annotations
 import json
 import logging
 import re
+from dataclasses import dataclass, field
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -23,13 +24,22 @@ logger = logging.getLogger(__name__)
 
 
 EXTRACTION_SYSTEM_PROMPT = (
-    "你是一名资深中国医院编码审核员，专长 ICD-10 中文版编码。"
-    "从以下病历文本中抽取所有疾病诊断，并为每个诊断：\n"
+    "你是一名资深中国医院编码审核员，专长 ICD-10 中文版与 ICD-9-CM-3 手术编码。"
+    "从以下病历文本中抽取所有疾病诊断 + 所有手术/操作，每个诊断或手术：\n\n"
+    "【疾病诊断】每个疾病给出：\n"
     "1) 规范化疾病名 (disease_text)\n"
     "2) 摘录支持证据的原文句子 (supporting_evidence，必须是病历中实际出现的文本片段)\n"
     "3) 给出你的初始 ICD-10 编码猜测 (llm_initial_code)\n\n"
-    "严格按 JSON 数组输出，schema:\n"
-    '[{"disease_text": "...", "supporting_evidence": "原文片段", "llm_initial_code": "I50.900"}]'
+    "【手术/操作】列出所有手术与操作名称（procedure_mentions），"
+    "如 \"腹腔镜胆囊切除术\"、\"结肠镜检查\"、\"气管插管\"。"
+    "只列名称，不要猜测编码。\n\n"
+    "严格按 JSON 对象输出，schema:\n"
+    "{\n"
+    '  "diseases": [\n'
+    '    {"disease_text": "...", "supporting_evidence": "原文片段", "llm_initial_code": "I50.900"}\n'
+    '  ],\n'
+    '  "procedure_mentions": ["手术或操作名称1", "手术或操作名称2"]\n'
+    "}"
 )
 
 
@@ -38,6 +48,40 @@ def build_extraction_messages(emr_text: str) -> list[dict[str, str]]:
         {"role": "system", "content": EXTRACTION_SYSTEM_PROMPT},
         {"role": "user", "content": emr_text},
     ]
+
+
+# ── Stage 1: Extraction result (E1.4) ───────────────────────────────
+
+
+@dataclass
+class ExtractionResult:
+    """Stage 1 LLM extraction result. E1.4 adds ``procedure_mentions``.
+
+    Backward-compatible with the legacy "list of diseases" shape: the
+    dataclass is iterable as ``diseases`` so existing code that does
+    ``for dx in extraction: ...`` keeps working. Direct attribute access
+    uses ``.diseases`` and ``.procedure_mentions``.
+    """
+    diseases: list[dict] = field(default_factory=list)
+    procedure_mentions: list[str] = field(default_factory=list)
+
+    def __iter__(self):
+        return iter(self.diseases)
+
+    def __len__(self):
+        return len(self.diseases)
+
+    def __getitem__(self, idx):
+        return self.diseases[idx]
+
+    def __bool__(self):
+        return bool(self.diseases or self.procedure_mentions)
+
+    def to_dict(self) -> dict:
+        return {
+            "diseases": list(self.diseases),
+            "procedure_mentions": list(self.procedure_mentions),
+        }
 
 
 # ── Stage 4: Re-rank prompt ──
@@ -94,39 +138,133 @@ def build_rerank_messages(
 # ── JSON parsing helpers ──
 
 
-def parse_extraction_response(content: str) -> list[dict]:
-    """Parse the Stage 1 LLM JSON response into list[dict].
+def parse_extraction_response(content: str) -> "ExtractionResult":
+    """Parse the Stage 1 LLM JSON response into :class:`ExtractionResult`.
 
     Tolerant to:
       - code-fenced JSON ```json ... ```
       - trailing commas
       - leading/trailing prose around the JSON
+      - legacy array shape ``[{disease}, ...]`` (E1.4 back-compat)
+
+    E1.4: returns :class:`ExtractionResult` (diseases + procedure_mentions)
+    instead of a raw ``list[dict]``. Legacy array responses are mapped
+    to ``ExtractionResult(diseases=...)`` with empty procedure_mentions.
+
+    Shape detection: the first non-whitespace, non-fence character
+    decides which branch to take (``[`` → legacy array, ``{`` → new
+    object). This avoids the regex-greediness bug where a dict literal
+    inside an array was matched as the top-level object.
     """
     if not content:
-        return []
-    # Strip code fences
+        return ExtractionResult()
     content = re.sub(r"^```(?:json)?\s*", "", content.strip(), flags=re.IGNORECASE)
     content = re.sub(r"\s*```$", "", content.strip())
-    # Try to find the JSON array
-    match = re.search(r"\[.*\]", content, flags=re.DOTALL)
+    content = content.strip()
+
+    # Decide shape by the first structural character.
+    head_idx = 0
+    while head_idx < len(content) and content[head_idx] in " \t\r\n":
+        head_idx += 1
+    if head_idx >= len(content):
+        return ExtractionResult()
+    head = content[head_idx]
+
+    if head == "{":
+        return _parse_object_response(content)
+    if head == "[":
+        return _parse_array_response(content)
+
+    # Fallback (content starts with prose like "Here is the result:"):
+    # find the first structural char and dispatch on that.
+    first_open = -1
+    for i, ch in enumerate(content):
+        if ch == "[":
+            first_open = i
+            shape = "array"
+            break
+        if ch == "{":
+            first_open = i
+            shape = "object"
+            break
+    if first_open < 0:
+        return ExtractionResult()
+    if shape == "array":
+        arr = _try_match_and_load(content[first_open:], r"\[.*\]", flags=re.DOTALL)
+        if isinstance(arr, list):
+            return ExtractionResult(diseases=_normalize_disease_list(arr))
+    else:
+        obj = _try_match_and_load(content[first_open:], r"\{.*\}", flags=re.DOTALL)
+        if isinstance(obj, dict):
+            return _extraction_from_object(obj)
+    return ExtractionResult()
+
+
+def _parse_object_response(content: str) -> "ExtractionResult":
+    """Parse a content string whose top-level JSON is an object."""
+    obj = _try_match_and_load(content, r"\{.*\}", flags=re.DOTALL)
+    if isinstance(obj, dict):
+        return _extraction_from_object(obj)
+    return ExtractionResult()
+
+
+def _parse_array_response(content: str) -> "ExtractionResult":
+    """Parse a content string whose top-level JSON is an array (legacy)."""
+    arr = _try_match_and_load(content, r"\[.*\]", flags=re.DOTALL)
+    if isinstance(arr, list):
+        return ExtractionResult(diseases=_normalize_disease_list(arr))
+    return ExtractionResult()
+
+
+def _try_match_and_load(content: str, pattern: str, **flags):
+    """Find the first match of ``pattern`` in ``content`` and try to JSON-load it.
+
+    Returns the parsed value on success, ``None`` on failure.
+    """
+    match = re.search(pattern, content, **flags)
     if not match:
-        return []
+        return None
     raw = match.group(0)
-    # Try strict parse first
     try:
-        out = json.loads(raw)
+        return json.loads(raw)
     except json.JSONDecodeError:
-        # Try with relaxed parser: remove trailing commas
-        raw = re.sub(r",\s*([}\]])", r"\1", raw)
-        try:
-            out = json.loads(raw)
-        except json.JSONDecodeError:
-            return []
-    if not isinstance(out, list):
-        return []
-    # Normalize: ensure each entry is a dict with the expected keys
+        return _try_relaxed_json_loads(raw)
+
+
+def _try_relaxed_json_loads(raw: str):
+    """Best-effort tolerant JSON parse: strips trailing commas, retries."""
+    try:
+        relaxed = re.sub(r",\s*([}\]])", r"\1", raw)
+        return json.loads(relaxed)
+    except json.JSONDecodeError:
+        return None
+
+
+def _extraction_from_object(obj: dict) -> "ExtractionResult":
+    """Map a parsed object response to :class:`ExtractionResult`."""
+    raw_diseases = obj.get("diseases", []) or []
+    raw_mentions = obj.get("procedure_mentions", []) or []
+    diseases = _normalize_disease_list(raw_diseases) if isinstance(raw_diseases, list) else []
+    mentions: list[str] = []
+    if isinstance(raw_mentions, list):
+        for m in raw_mentions:
+            if isinstance(m, str):
+                m_clean = m.strip()
+                if m_clean:
+                    mentions.append(m_clean)
+            elif isinstance(m, dict):
+                # Permissive: accept {"name": "..."} or {"mention": "..."} shape
+                for k in ("name", "mention", "procedure_text", "text"):
+                    if m.get(k):
+                        mentions.append(str(m[k]).strip())
+                        break
+    return ExtractionResult(diseases=diseases, procedure_mentions=mentions)
+
+
+def _normalize_disease_list(items: list) -> list[dict]:
+    """Normalize each disease dict to the expected 3-key shape."""
     norm: list[dict] = []
-    for item in out:
+    for item in items:
         if isinstance(item, dict):
             norm.append({
                 "disease_text": str(item.get("disease_text", "")).strip(),

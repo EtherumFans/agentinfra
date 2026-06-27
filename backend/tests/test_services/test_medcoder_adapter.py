@@ -85,9 +85,12 @@ class TestExtractionParser:
         assert len(out) == 1
 
     def test_empty_or_invalid_returns_empty(self):
-        assert parse_extraction_response("") == []
-        assert parse_extraction_response("not json at all") == []
-        assert parse_extraction_response("{}") == []  # not an array
+        # E1.4: returns ExtractionResult (was list[dict]). Empty/invalid
+        # responses produce ExtractionResult with no diseases.
+        assert parse_extraction_response("").diseases == []
+        assert parse_extraction_response("not json at all").diseases == []
+        # Standalone ``{}`` has no ``diseases`` key → empty result.
+        assert parse_extraction_response("{}").diseases == []  # not an object-with-diseases
 
     def test_normalizes_missing_fields(self):
         content = '[{"disease_text": "心衰"}]'

@@ -308,6 +308,84 @@ class TestIcd9cm3Stage2Procedure:
         assert result.candidates == []
 
 
+# ── E1.4: _populate_procedures (procedure RAG sidecar) ────────────
+
+
+from official_agents.medical_coding.schema import MedicalCodingOutputSchema  # noqa: E402
+
+
+class TestPopulateProcedures:
+    """E1.4: ``MedCodERStrategy._populate_procedures`` consumes
+    ``extraction.procedure_mentions`` and populates
+    ``MedicalCodingOutputSchema.procedures`` from ICD-9-CM-3 RAG."""
+
+    def _make_strategy_with_fake_proc_ret(self, tmp_icd9cm3_index_dir):
+        from icoder_runtime.providers.medical_coding import medcoder_strategy as strat_mod
+        from icoder_runtime.providers.medical_coding.medcoder_retriever import (
+            MedCodERICD9CM3Retriever,
+        )
+        proc_ret = MedCodERICD9CM3Retriever(
+            index_dir=str(tmp_icd9cm3_index_dir),
+            embedder=_FakeEmbedder(),
+        )
+        s = strat_mod.MedCodERStrategy(procedure_retriever=proc_ret)
+        return s
+
+    def test_no_mentions_leaves_procedures_empty(self, tmp_icd9cm3_index_dir):
+        s = self._make_strategy_with_fake_proc_ret(tmp_icd9cm3_index_dir)
+        out = MedicalCodingOutputSchema()
+        asyncio.run(s._populate_procedures(out, []))
+        assert out.procedures == []
+
+    def test_populates_one_procedure_per_mention(self, tmp_icd9cm3_index_dir):
+        s = self._make_strategy_with_fake_proc_ret(tmp_icd9cm3_index_dir)
+        out = MedicalCodingOutputSchema()
+        asyncio.run(s._populate_procedures(out, ["结肠镜检查", "气管插管"]))
+        # Random FAISS projections may map both mentions to the same
+        # top-1 (deterministic hash → same vec → same nearest), so
+        # dedup is on code. Verify each ProcedureEntry has the right shape.
+        assert len(out.procedures) >= 1
+        assert len(out.procedures) <= 2  # dedup
+        for p in out.procedures:
+            assert p.code
+            assert p.description
+            assert 0.0 <= p.confidence <= 1.0
+            assert p.category == "therapeutic"
+            assert p.evidence  # the mention is recorded
+
+    def test_dedup_on_duplicate_codes(self, tmp_icd9cm3_index_dir):
+        """Two mentions mapping to the same top-1 code → 1 ProcedureEntry."""
+        s = self._make_strategy_with_fake_proc_ret(tmp_icd9cm3_index_dir)
+        out = MedicalCodingOutputSchema()
+        # Same mention twice — deterministic embedder will produce
+        # identical vectors and identical top-1.
+        asyncio.run(s._populate_procedures(out, ["结肠镜", "结肠镜"]))
+        codes = [p.code for p in out.procedures]
+        assert len(codes) == len(set(codes)), \
+            f"duplicate codes survived: {codes}"
+
+    def test_caps_at_10_mentions(self, tmp_icd9cm3_index_dir):
+        s = self._make_strategy_with_fake_proc_ret(tmp_icd9cm3_index_dir)
+        out = MedicalCodingOutputSchema()
+        mentions = [f"procedure_{i}" for i in range(20)]
+        asyncio.run(s._populate_procedures(out, mentions))
+        # Cap is 10; with random projections + dedup, fewer entries.
+        assert len(out.procedures) <= 10
+
+    def test_failed_retriever_leaves_procedures_empty(self):
+        """If procedure retriever raises, output.procedures stays empty."""
+        from icoder_runtime.providers.medical_coding import medcoder_strategy as strat_mod
+
+        class _BrokenProcRet:
+            async def retrieve_async(self, text, top_k=None):
+                raise RuntimeError("BGE-M3 cold load failure")
+
+        s = strat_mod.MedCodERStrategy(procedure_retriever=_BrokenProcRet())
+        out = MedicalCodingOutputSchema()
+        asyncio.run(s._populate_procedures(out, ["结肠镜"]))
+        assert out.procedures == []
+
+
 # ── Subprocess wrapper smoke (deferred) ───────────────────────────
 #
 # Full subprocess test lives in

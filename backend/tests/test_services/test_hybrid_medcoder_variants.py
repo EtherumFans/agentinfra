@@ -126,6 +126,7 @@ def test_medcoder_modes_constant_lists_all_supported_values() -> None:
         "medcoder_prompt",
         "medcoder_retrieve",
         "medcoder_prompt+retrieve",
+        "code_like_humans",
     }
 
 
@@ -138,6 +139,7 @@ def test_medcoder_modes_constant_lists_all_supported_values() -> None:
     "medcoder_prompt",
     "medcoder_retrieve",
     "medcoder_prompt+retrieve",
+    "code_like_humans",
 ])
 def test_medcoder_mode_constructs_strategy(mode: str) -> None:
     """Any medcoder mode causes the adapter to lazily own a

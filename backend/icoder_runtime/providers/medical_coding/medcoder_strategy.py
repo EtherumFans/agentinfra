@@ -570,7 +570,7 @@ class MedCodERStrategy:
         output = await self.stage5_compliance(extracted_diagnoses, ctx)
         self._populate_primary_secondary(output, extracted_diagnoses)
         # E1.4: procedure RAG sidecar (ICD-9-CM-3)
-        await self._populate_procedures(output, list(extraction.procedure_mentions))
+        await self._populate_procedures(output, list(extraction.procedure_mentions), emr_text=emr_text)
         return output
 
     async def _run_prompt_only(
@@ -608,7 +608,7 @@ class MedCodERStrategy:
         # E1.4: procedure RAG sidecar (ICD-9-CM-3) — same as ``full`` but
         # without LLM rerank on the diagnosis side. Procedure candidates
         # still go through :meth:`stage2_retrieve_procedure`.
-        await self._populate_procedures(output, list(extraction.procedure_mentions))
+        await self._populate_procedures(output, list(extraction.procedure_mentions), emr_text=emr_text)
         return output
 
     async def _run_retrieve_only(
@@ -703,7 +703,7 @@ class MedCodERStrategy:
             ))
         output = await self.stage5_compliance(extracted, ctx)
         # E1.4: procedure RAG sidecar (ICD-9-CM-3) — same as ``full``.
-        await self._populate_procedures(output, list(extraction.procedure_mentions))
+        await self._populate_procedures(output, list(extraction.procedure_mentions), emr_text=emr_text)
         return output
 
     # ── Internal helpers ──────────────────────────────────────────
@@ -712,6 +712,7 @@ class MedCodERStrategy:
         self,
         out: MedicalCodingOutputSchema,
         mentions: list[str],
+        emr_text: str = "",
     ) -> None:
         """E1.4: populate ``out.procedures`` from extracted procedure mentions.
 
@@ -721,11 +722,16 @@ class MedCodERStrategy:
         Catalog matches are guaranteed hits (score=1.0) and take priority
         over fuzzy retrieval when codes collide.
 
+        E1.7: when ``emr_text`` is provided, also run a **catalog-text
+        scan** to find procedure mentions the LLM may have missed
+        (e.g., buried "脐动脉插管" inside a longer narrative). Catalog-scan
+        mentions are appended to the LLM-extracted list before dedup.
+
         For each mention:
           1. Catalog lookup → list of "guaranteed" candidates (score=1.0).
           2. BGE-M3 + FAISS retrieval → top-K fuzzy candidates.
           3. Merge: union, dedup on code (catalog wins), take top-K.
-        The top-1 of the merged list becomes a ``ProcedureEntry``.
+        The top-1 of the merged list becomes a :class:`ProcedureEntry`.
 
         Dedup is on code (across mentions). Caps at 10 mentions per EMR.
         Failures are non-fatal: a degraded retriever + missing catalog
@@ -734,7 +740,23 @@ class MedCodERStrategy:
         """
         from official_agents.medical_coding.schema import ProcedureEntry
 
-        if not mentions:
+        # E1.7: augment LLM-extracted mentions with a catalog-text scan.
+        # The LLM extraction misses buried procedures (the realistic
+        # smoke showed hit@1=0% even with oracle retriever — the gap
+        # is upstream extraction completeness).
+        all_mentions = list(mentions or [])
+        if emr_text:
+            scan_mentions = self._catalog_scan_emr_text(emr_text)
+            # Append (not prepend) — LLM mentions are usually higher
+            # signal. Dedup on case-insensitive exact match.
+            seen_text = {m.strip().lower() for m in all_mentions if m and m.strip()}
+            for sm in scan_mentions:
+                key = sm.strip().lower()
+                if key and key not in seen_text:
+                    all_mentions.append(sm)
+                    seen_text.add(key)
+
+        if not all_mentions:
             return
 
         seen_codes: set[str] = set()
@@ -742,7 +764,7 @@ class MedCodERStrategy:
         # Cap mentions to avoid blowing up the LLM-extracted list
         # (long EMRs with explicit "all procedures listed" sections
         # can produce 30+ mentions).
-        for mention in mentions[:10]:
+        for mention in all_mentions[:10]:
             text = (mention or "").strip()
             if not text:
                 continue
@@ -762,6 +784,85 @@ class MedCodERStrategy:
                 evidence=[text],
             ))
         out.procedures = procedures
+
+    def _catalog_scan_emr_text(
+        self,
+        text: str,
+        min_name_len: int = 3,
+        max_mentions: int = 20,
+    ) -> list[str]:
+        """E1.7: scan EMR text for all ICD-9-CM-3 catalog name matches.
+
+        For each catalog entry whose ``name_cn`` (or any synonym) is a
+        substring of ``text`` and has length ≥ ``min_name_len``, return
+        the matched name as a procedure mention. This supplements LLM
+        extraction by catching buried procedure names the LLM may have
+        missed.
+
+        Args:
+          text: EMR text to scan.
+          min_name_len: minimum catalog name length to consider. Lower
+            values increase recall but add noise (single Chinese chars
+            match too broadly).
+          max_mentions: cap on returned mentions.
+
+        Returns:
+          List of matched catalog names (in catalog iteration order).
+        """
+        if not text or not text.strip():
+            return []
+
+        try:
+            from app.services.icd9cm3_loader import get_loader
+            loader = get_loader()
+            loader.ensure_loaded()
+        except Exception:
+            return []
+
+        out: list[str] = []
+        seen: set[str] = set()
+        # Linear scan: 13.6k entries × EMR text length. For each entry,
+        # check name_cn + synonyms for substring containment.
+        #
+        # Catalog names are often long with qualifiers (e.g. "古典式剖宫产"
+        # is 5 chars, "剖宫产术，子宫下段横切口" is 10 chars). EMR text
+        # rarely contains the full qualified name verbatim — usually
+        # just the short core fragment (e.g. "剖宫产"). We use
+        # bidirectional substring matching as the workhorse:
+        #   1) name in text  (full catalog name appears in EMR) → match
+        #   2) text-fragment in name (EMR fragment inside long catalog
+        #      name) → not useful: text is the whole EMR, longer than
+        #      almost any name. The right direction is short-prefix
+        #      matching: take the first min_name_len chars of each
+        #      catalog name and check if that prefix is in the EMR.
+        # This catches "剖宫产" (3-char prefix) in "古典式剖宫产" when
+        # the EMR says "行剖宫产术...".
+        for entry in loader.all_codes():
+            names_to_check = (entry.name_cn, *entry.synonyms_cn)
+            matched = False
+            for n in names_to_check:
+                if not n or len(n) < min_name_len:
+                    continue
+                # Check 1: full name appears in EMR
+                if n in text:
+                    matched = True
+                    break
+                # Check 2: short prefix of name appears in EMR.
+                # Use the first min_name_len chars of the name (3 by
+                # default) — captures the meaningful core of the
+                # procedure name regardless of trailing qualifiers.
+                prefix = n[:min_name_len]
+                if prefix != n and prefix in text:
+                    matched = True
+                    break
+            if matched:
+                canonical = entry.name_cn
+                if canonical and canonical not in seen:
+                    seen.add(canonical)
+                    out.append(canonical)
+                    if len(out) >= max_mentions:
+                        return out
+        return out
 
     async def _merge_procedure_candidates(
         self,

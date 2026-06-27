@@ -62,7 +62,7 @@ class TestLoaderLoading:
         assert stats.term_index_size >= 50000  # 56,424 nominal
         assert stats.loaded_from == DEFAULT_ASSET_DIR
 
-    def test_explicit_asset_dir_override(self, tmp_path):
+    def test_explicit_asset_dir_override(self, tmp_path, monkeypatch):
         # Write a tiny fake asset dir to verify path env override
         import json
         cat = {
@@ -93,7 +93,10 @@ class TestLoaderLoading:
         (tmp_path / "icd10cn_code_catalog.json").write_text(json.dumps(cat), encoding="utf-8")
         (tmp_path / "icd10cn_synonym_map.json").write_text(json.dumps(syn), encoding="utf-8")
 
-        os.environ["ICODER_DATA_ASSET_DIR"] = str(tmp_path)
+        # Use monkeypatch so the env var is reverted after the test.
+        # Setting os.environ directly leaks the fake dir into later tests
+        # (notably icd9cm3_loader tests, which also read ICODER_DATA_ASSET_DIR).
+        monkeypatch.setenv("ICODER_DATA_ASSET_DIR", str(tmp_path))
         ldr = ICD10CNLoader()
         stats = ldr.load()
         assert stats.catalog_codes == 2

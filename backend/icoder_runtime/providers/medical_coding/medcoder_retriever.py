@@ -322,7 +322,14 @@ class MedCodERRetriever:
             raise FileNotFoundError(f"metadata.pkl not found at {meta_path}")
 
         logger.info("MedCodERRetriever: loading FAISS index from %s", index_path)
-        self._index = faiss.read_index(index_path)
+        # E1.10 (2026-06-28): IO_FLAG_MMAP maps the index into the process
+        # virtual address space on demand instead of forcing a contiguous
+        # heap allocation. On Windows, IndexFlatIP loads of >100 MB can
+        # std::bad_alloc even when total RAM is plentiful — the heap is
+        # fragmented by other modules (faiss-cpu SWIG, numpy, app state).
+        # mmap sidesteps that. Search still works because IndexFlatIP
+        # search is a full scan; the OS pages the data in on first touch.
+        self._index = faiss.read_index(index_path, faiss.IO_FLAG_MMAP)
         with open(meta_path, "rb") as f:
             self._metadata = pickle.load(f)
         self._stats.loaded = True
@@ -598,7 +605,9 @@ class MedCodERICD9CM3Retriever:
         logger.info(
             "MedCodERICD9CM3Retriever: loading FAISS index from %s", index_path,
         )
-        self._index = faiss.read_index(index_path)
+        # E1.10: mmap to avoid Windows contiguous heap allocation failures.
+        # See MedCodERRetriever._load for full rationale.
+        self._index = faiss.read_index(index_path, faiss.IO_FLAG_MMAP)
         with open(meta_path, "rb") as f:
             self._metadata = pickle.load(f)
         self._stats.loaded = True

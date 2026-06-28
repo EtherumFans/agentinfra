@@ -72,9 +72,11 @@ class TestBGEEmbedderMemoryKnobs:
         emb = BGEEmbedder()
         assert emb.torch_dtype == "float16"
         assert emb.device == "cpu"
-        # Don't load (model not real); just inspect attrs.
-        # model_kwargs should carry the dtype string for _load() to resolve.
-        assert emb.model_kwargs.get("torch_dtype") == "float16"
+        # E1.10: default key is the new ``dtype`` (transformers 4.50+).
+        # Legacy ``torch_dtype`` still works when explicitly passed — see
+        # test_explicit_legacy_torch_dtype_key.
+        assert emb.model_kwargs.get("dtype") == "float16"
+        assert "torch_dtype" not in emb.model_kwargs
 
     def test_env_override_to_float32(self, fake_sentence_transformers, monkeypatch):
         monkeypatch.setenv("MEDCODER_BGE_DTYPE", "float32")
@@ -83,7 +85,8 @@ class TestBGEEmbedderMemoryKnobs:
         )
         emb = BGEEmbedder()
         assert emb.torch_dtype == "float32"
-        # fp32 is sentence-transformers default — no torch_dtype injected.
+        # fp32 is sentence-transformers default — no dtype injected.
+        assert "dtype" not in emb.model_kwargs
         assert "torch_dtype" not in emb.model_kwargs
 
     def test_env_override_to_bfloat16(self, fake_sentence_transformers, monkeypatch):
@@ -93,7 +96,7 @@ class TestBGEEmbedderMemoryKnobs:
         )
         emb = BGEEmbedder()
         assert emb.torch_dtype == "bfloat16"
-        assert emb.model_kwargs.get("torch_dtype") == "bfloat16"
+        assert emb.model_kwargs.get("dtype") == "bfloat16"
 
     def test_device_default_is_cpu(self, fake_sentence_transformers, monkeypatch):
         monkeypatch.delenv("MEDCODER_BGE_DEVICE", raising=False)
@@ -118,11 +121,12 @@ class TestBGEEmbedderMemoryKnobs:
         emb = BGEEmbedder()
         emb._load()
         assert fake_sentence_transformers["device"] == "cpu"
-        # ``_load()`` resolves the dtype string into a real ``torch.dtype``
-        # before forwarding to SentenceTransformer. We import torch here
-        # for the comparison (this test is happy-path — torch works).
+        # E1.10: ``_load()`` resolves the dtype string into a real
+        # ``torch.dtype`` under the new ``dtype`` key. We import torch
+        # here for the comparison (this test is happy-path — torch works).
         import torch
-        assert fake_sentence_transformers["model_kwargs"].get("torch_dtype") == torch.float16
+        assert fake_sentence_transformers["model_kwargs"].get("dtype") == torch.float16
+        assert "torch_dtype" not in fake_sentence_transformers["model_kwargs"]
         assert fake_sentence_transformers["cache_folder"] == emb.model_dir
 
     def test_explicit_kwargs_override_env(self, fake_sentence_transformers, monkeypatch):
@@ -133,8 +137,37 @@ class TestBGEEmbedderMemoryKnobs:
         )
         emb = BGEEmbedder(torch_dtype="float32")
         assert emb.torch_dtype == "float32"
-        # No torch_dtype injected (fp32 is sentence-transformers default)
+        # No dtype injected (fp32 is sentence-transformers default)
+        assert "dtype" not in emb.model_kwargs
         assert "torch_dtype" not in emb.model_kwargs
+
+    def test_explicit_legacy_torch_dtype_key(self, fake_sentence_transformers, monkeypatch):
+        """E1.10 back-compat: callers (tests, external libs) that hand-build
+        ``BGEEmbedder(model_kwargs={"torch_dtype": "float16"})`` still get
+        correct torch.dtype resolution in ``_load()``. The ``__init__``
+        code preserves any caller-supplied key; ``_load()`` resolves
+        whichever is present, preferring ``dtype`` and falling back to
+        ``torch_dtype``.
+        """
+        from icoder_runtime.providers.medical_coding.embedding_bge_m3 import (
+            BGEEmbedder,
+        )
+        emb = BGEEmbedder(model_kwargs={"torch_dtype": "float16"})
+        # __init__ must not clobber caller-supplied key with new "dtype".
+        assert "torch_dtype" in emb.model_kwargs
+        assert emb.model_kwargs["torch_dtype"] == "float16"
+        assert "dtype" not in emb.model_kwargs
+        # _load() resolves the legacy key into a real torch.dtype.
+        import torch
+        emb._load()
+        forwarded = fake_sentence_transformers["model_kwargs"]
+        # Either the legacy key resolved to a real dtype, or it was
+        # moved to the new key — both are acceptable as long as fp16
+        # made it to SentenceTransformer.
+        if "dtype" in forwarded:
+            assert forwarded["dtype"] == torch.float16
+        else:
+            assert forwarded.get("torch_dtype") == torch.float16
 
     def test_encode_uses_encode_kwargs_defaults(self, fake_sentence_transformers, monkeypatch):
         """E1.9: ``encode_kwargs`` defaults match pre-E1.9 behavior
@@ -152,8 +185,8 @@ class TestBGEEmbedderMemoryKnobs:
         assert out.shape == (3, 1024)
 
     def test_unknown_dtype_falls_back_to_fp32(self, fake_sentence_transformers, monkeypatch):
-        """Unknown dtype name (typo, unsupported) → load with no torch_dtype,
-        which falls back to sentence-transformers default fp32 + warning.
+        """Unknown dtype name (typo, unsupported) → load with no dtype
+        key, which falls back to sentence-transformers default fp32 + warning.
         """
         monkeypatch.setenv("MEDCODER_BGE_DTYPE", "float128")  # doesn't exist
         from icoder_runtime.providers.medical_coding.embedding_bge_m3 import (
@@ -164,4 +197,4 @@ class TestBGEEmbedderMemoryKnobs:
         # _load() to attempt resolution; if torch.getattr fails inside
         # _load(), the kwarg is dropped.
         assert emb.torch_dtype == "float128"
-        assert emb.model_kwargs.get("torch_dtype") == "float128"
+        assert emb.model_kwargs.get("dtype") == "float128"

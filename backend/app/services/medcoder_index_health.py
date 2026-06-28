@@ -121,7 +121,12 @@ def index_health_check(
         )
 
     try:
-        index = faiss.read_index(str(faiss_path))
+        # E1.10 (2026-06-28): use IO_FLAG_MMAP to avoid Windows
+        # std::bad_alloc on contiguous heap allocation. Health check
+        # is the gate that decides whether smoke_recall runs at all,
+        # so this MUST succeed in the same constrained memory
+        # environments where retriever usage also matters.
+        index = faiss.read_index(str(faiss_path), faiss.IO_FLAG_MMAP)
     except Exception as e:  # noqa: BLE001 — surface any load failure
         return _degraded(
             index_dir, faiss_path, metadata_path, checks,

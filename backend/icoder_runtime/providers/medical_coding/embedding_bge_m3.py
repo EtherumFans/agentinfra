@@ -82,8 +82,17 @@ class BGEEmbedder:
         # when other tests have already imported torch in a way that
         # confuses the loader).
         _mk: dict = dict(model_kwargs or {})
-        if "torch_dtype" not in _mk and self.torch_dtype != "float32":
-            _mk["torch_dtype"] = self.torch_dtype  # string; resolved in _load()
+        # E1.10 (2026-06-28): use ``dtype`` (new name) instead of
+        # ``torch_dtype`` (deprecated in sentence-transformers 3.x /
+        # transformers 4.50+). The deprecated key still works but logs
+        # a warning AND — under sentence-transformers 3.2.1 + Windows
+        # — has been observed to NOT actually downcast weights, leaving
+        # the model at fp32 (~2.3 GB on disk → 2.3 GB resident) which
+        # then OOMs on 32-batch encode. The new ``dtype`` key is what
+        # transformers passes to AutoModel.from_pretrained, which is
+        # where the downcast actually happens.
+        if "dtype" not in _mk and "torch_dtype" not in _mk and self.torch_dtype != "float32":
+            _mk["dtype"] = self.torch_dtype  # string; resolved in _load()
         self.model_kwargs = _mk
         self.encode_kwargs = dict(encode_kwargs or {})
         self._model = None
@@ -140,7 +149,14 @@ class BGEEmbedder:
         # never trigger it (and so avoid the OMP runtime conflict with
         # faiss-cpu that some Windows + pytest combos hit).
         load_kwargs = dict(self.model_kwargs or {})
-        if "torch_dtype" in load_kwargs and isinstance(load_kwargs["torch_dtype"], str):
+        # Resolve string dtype → torch.dtype. E1.10: prefer the new
+        # ``dtype`` key; fall back to legacy ``torch_dtype`` if a
+        # caller passed it explicitly (back-compat for any test that
+        # hand-built BGEEmbedder with model_kwargs={"torch_dtype": ...}).
+        if "dtype" in load_kwargs and isinstance(load_kwargs["dtype"], str):
+            import torch  # type: ignore
+            load_kwargs["dtype"] = getattr(torch, load_kwargs["dtype"])
+        elif "torch_dtype" in load_kwargs and isinstance(load_kwargs["torch_dtype"], str):
             import torch  # type: ignore
             load_kwargs["torch_dtype"] = getattr(torch, load_kwargs["torch_dtype"])
         self._model = SentenceTransformer(

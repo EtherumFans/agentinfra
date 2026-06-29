@@ -23,6 +23,7 @@ import BillingPage from './pages/BillingPage';
 import UsagePage from './pages/UsagePage';
 import CustomersPage from './pages/CustomersPage';
 import TemplatesPage from './pages/TemplatesPage';
+import TicketsPage from './pages/TicketsPage';
 
 const TextGenerationPage = lazy(() => import('./pages/TextGenerationPage'));
 const DeveloperQuickstartPage = lazy(() => import('./pages/DeveloperQuickstartPage'));
@@ -108,6 +109,10 @@ function App() {
         <Route path="manage/templates" element={<TemplatesPage />} />
         <Route path="manage/settings" element={<SettingsPage />} />
         <Route path="manage/support" element={<SupportPage />} />
+
+        {/* Support */}
+        <Route path="support" element={<SupportPage />} />
+        <Route path="tickets" element={<TicketsPage />} />
         <Route path="manage/audit-log" element={<ExpertLibraryPage />} />
         <Route path="manage/rule-sets" element={<ExpertLibraryPage />} />
         <Route path="api-clients" element={<APIClientsPage />} />

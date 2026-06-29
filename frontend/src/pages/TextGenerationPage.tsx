@@ -1,10 +1,12 @@
 import { useLocaleStore } from '../i18n';
+import { useT } from '../i18n';
 // iCoDer Text Generation — Apple Minimalist Design
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import {
   BookOpen, Sparkles, Loader2,
   Copy, Check,
-  X, Plus, Trash2, Pencil, Info, Shield,
+  X, Plus, Trash2, Pencil, Info, Shield, ChevronRight,
 } from 'lucide-react';
 import { textGenApi, authApi } from '../services/api';
 import EventInspector from '../components/common/EventInspector';
@@ -75,6 +77,7 @@ const TEMPLATE_CATEGORIES = ['全部', '住院', '门诊', '手术', '急诊', '
 
 export default function TextGenerationPage() {
   const locale = useLocaleStore(s => s.locale);
+  const t = useT();
   const [templates, setTemplates] = useState<Template[]>(() => {
     const saved = localStorage.getItem('icoder-textgen-templates');
     return saved ? JSON.parse(saved) : DEFAULT_TEMPLATES;
@@ -334,7 +337,15 @@ print(result.output)`;
   );
 
   return (
-    <div className="flex h-full">
+    <div className="flex flex-col h-full bg-background">
+      {/* ==================== HEADER (breadcrumb — cost/Docs in global header) ==================== */}
+      <div className="flex items-center gap-2 px-4 py-1.5 border-b border-border/20 shrink-0 text-xs">
+        <Link to="/ai-studio/overview" className="text-muted-foreground hover:text-foreground transition-colors">{t.aiStudio}</Link>
+        <ChevronRight size={12} className="text-muted-foreground/50" />
+        <span className="text-foreground font-medium truncate">{t.textGenBreadcrumb}</span>
+      </div>
+
+      <div className="flex h-full">
       {/* ===== LEFT: Main Content (75%) ===== */}
       <div className="flex flex-col overflow-hidden bg-muted/20" style={{ flex: '75 1 0px' }}>
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
@@ -553,6 +564,7 @@ print(result.output)`;
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

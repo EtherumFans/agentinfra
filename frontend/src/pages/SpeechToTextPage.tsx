@@ -1,7 +1,9 @@
 import { useLocaleStore } from '../i18n';
+import { useT } from '../i18n';
 // iCoDer Speech To Text — iCoDer Console 1:1 replica
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Mic, MicOff, Copy, X, Plus, Settings2, AudioWaveform, Sparkles, ListTree } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Mic, MicOff, Copy, X, Plus, Settings2, AudioWaveform, Sparkles, ListTree, ChevronRight } from 'lucide-react';
 import { appendWithPunctuation, llmPunctuate } from '../utils/stt-punctuation';
 import EventInspector from '../components/common/EventInspector';
 import CodeSnippet from '../components/common/CodeSnippet';
@@ -31,6 +33,7 @@ const LANGUAGES = [
 
 export default function SpeechToTextPage() {
   const locale = useLocaleStore(s => s.locale);
+  const t = useT();
   const [transcript, setTranscript] = useState('');
   const [interim, setInterim] = useState('');
   const [isListening, setIsListening] = useState(false);
@@ -256,7 +259,15 @@ export default function SpeechToTextPage() {
   useEffect(() => { getRecognitionRef.current = getRecognition; }, [getRecognition]);
 
   return (
-    <div className="flex h-full">
+    <div className="flex flex-col h-full bg-background">
+      {/* ==================== HEADER (breadcrumb — cost/Docs in global header) ==================== */}
+      <div className="flex items-center gap-2 px-4 py-1.5 border-b border-border/20 shrink-0 text-xs">
+        <Link to="/ai-studio/overview" className="text-muted-foreground hover:text-foreground transition-colors">{t.aiStudio}</Link>
+        <ChevronRight size={12} className="text-muted-foreground/50" />
+        <span className="text-foreground font-medium truncate">{t.speechToTextBreadcrumb}</span>
+      </div>
+
+      <div className="flex h-full">
       {/* ===== LEFT: Main Content (75%) ===== */}
       <div className="flex flex-col overflow-hidden bg-muted/20" style={{ flex: '75 1 0px' }}>
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
@@ -540,6 +551,7 @@ export default function SpeechToTextPage() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

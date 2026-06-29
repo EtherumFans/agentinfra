@@ -846,7 +846,8 @@ app.include_router(m2a_router)                 # /api/m2a/* (M2a 技术闭环)
 app.include_router(icoder_agents_hub_router)    # /api/icoder/agents/* (P1.0-B Agent Hub)
 app.include_router(icoder_doctor_router)       # /api/icoder/doctor/* (P1.0-C Doctor)
 app.include_router(icoder_runs_router)         # /api/icoder/runs/* (P1.0-E Run Trace)
-# NOTE: P1.1-B icoder_registry_compat_router mounted in a follow-up commit.
+from app.api.icoder_registry_compat import router as icoder_registry_compat_router  # P1.1-B
+app.include_router(icoder_registry_compat_router)  # /api/icoder/registry/* (P1.1-B Registry Compat)
 
 
 @app.get("/api/metrics")

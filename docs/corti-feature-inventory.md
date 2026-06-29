@@ -22,7 +22,7 @@
 | Manage | Billing | iCoDer 有 BillingPage | |
 | Manage | Usage | iCoDer 有 UsagePage | |
 | Manage | **Customers** | iCoDer 有 CustomersPage (Loop 1 落地) | 嵌入式 Assistant 下游 end-user 管理;region 扩 CN |
-| Manage | Templates (Beta) | iCoDer **没有** | 待 walk — Loop 2 |
+| Manage | **Templates (Beta)** | iCoDer 有 TemplatesPage (Loop 2 落地) | 模板库 + 模板构建器 + 内置 9 个中文病历模板 |
 | Manage | Settings | iCoDer 有 SettingsPage | |
 | Support | Get Help | iCoDer 有 SupportPage | |
 | Support | Tickets Portal | iCoDer **没有** | 待 walk — Loop 9 |

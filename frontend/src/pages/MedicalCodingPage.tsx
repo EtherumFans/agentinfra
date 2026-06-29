@@ -12,7 +12,7 @@ import { EvidenceHighlighter } from '../components/medical-coding/EvidenceHighli
 import { DiagnosisCard } from '../components/medical-coding/DiagnosisCard';
 import {
   X, Sparkles, Loader2, Plus, ChevronRight, ChevronLeft,
-  Eraser, Copy, BookText, Info, RotateCcw, HelpCircle,
+  Eraser, Copy, BookText, Info, RotateCcw,
   FileText, ChevronDown, Check,
 } from 'lucide-react';
 import CodeSnippet from '../components/common/CodeSnippet';
@@ -120,12 +120,7 @@ export default function MedicalCodingPage() {
   // ── Sample dropdown (top header "Samples" button) ──
   const [sampleMenuOpen, setSampleMenuOpen] = useState(false);
 
-  // ── Guided demo (2-step wizard) — button-triggered, NOT auto-show ──
-  const [guideOpen, setGuideOpen] = useState(false);
-  const [guideStep, setGuideStep] = useState(0); // 0=sample, 1=coding system
-  const [guideSelectedSample, setGuideSelectedSample] = useState<string | null>(null);
-  const openGuide = () => { setGuideOpen(true); setGuideStep(0); setGuideSelectedSample(null); };
-  const closeGuide = () => setGuideOpen(false);
+  // ── Inline templates (Corti-style 4-card layout) ──
 
   // ── Coding systems ──
   const [codingSystems, setCodingSystems] = useState<{code_system:string;name:string;is_default:boolean}[]>([]);
@@ -179,18 +174,19 @@ export default function MedicalCodingPage() {
     }).catch(() => {});
   }, []);
 
-  // ── Guide nav (2-step wizard) ──
-  const nextGuideStep = () => setGuideStep(1);  // step 0 → step 1
-  const prevGuideStep = () => setGuideStep(0);  // step 1 → step 0
-  const runGuidePredict = () => {
-    // step 1 final: fill selected sample into textarea, then predict
-    if (!guideSelectedSample) return;
-    const sample = samples.find(s => s.key === guideSelectedSample);
+  // ── Inline templates (Corti-style 4-card layout) ──
+  const loadSampleAndRun = (sampleKey: typeof samples[number]['key']) => {
+    const sample = samples.find(s => s.key === sampleKey);
     if (!sample) return;
     setInput(sample.text);
-    closeGuide();
-    // Trigger predict on next tick so the input state flushes first
+    addEvent(t.sampleLoaded, 'info');
     setTimeout(() => handlePredict(sample.text), 0);
+  };
+  const loadSampleOnly = (sampleKey: typeof samples[number]['key']) => {
+    const sample = samples.find(s => s.key === sampleKey);
+    if (!sample) return;
+    setInput(sample.text);
+    addEvent(t.sampleLoaded, 'info');
   };
 
   // ── Predict ──
@@ -345,12 +341,8 @@ export default function MedicalCodingPage() {
         <div className="flex-1 flex flex-col p-4 min-w-0 border-r border-border/20">
           <div className="flex items-center gap-2 mb-2 relative">
             <span className="text-sm font-medium text-foreground">{t.inputLabel}</span>
-            {/* "?" trigger — opens the 2-step Guide wizard (NOT auto-shown) */}
-            <button onClick={openGuide} title={t.openGuide}
-              className="ml-auto px-1.5 py-1 text-muted-foreground hover:text-foreground rounded-md flex items-center gap-1">
-              <HelpCircle size={14} />
-            </button>
-            {/* "Samples" button — opens a simple dropdown menu (NOT the guide) */}
+            <div className="ml-auto" />
+            {/* "Samples" button — opens a simple dropdown menu */}
             <div className="relative">
               <button onClick={() => setSampleMenuOpen(o => !o)}
                 className={`px-2.5 py-1 text-xs text-muted-foreground hover:text-foreground border border-border rounded-md flex items-center gap-1 ${sampleMenuOpen ? 'bg-accent' : ''}`}>
@@ -388,100 +380,37 @@ export default function MedicalCodingPage() {
               placeholder={t.enterClinicalText}
               className="w-full h-full resize-none bg-background rounded-xl border border-border/30 p-4 text-sm leading-relaxed placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/10 transition-shadow"
             />
-            {/* ─────── Guided demo: 2-step wizard (button-triggered) ─────── */}
-            {guideOpen && (
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="bg-card border border-border rounded-xl p-4 shadow-lg w-[400px] max-w-[90%] pointer-events-auto">
-                  {/* Header */}
-                  <div className="flex items-start gap-2 mb-2">
-                    <div className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                      <Sparkles size={12} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-foreground">{t.guidedDemo}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {guideStep === 0 ? t.startByAddingText : t.selectCodingSystem}
-                      </p>
-                    </div>
-                    <button onClick={closeGuide} className="text-muted-foreground hover:text-foreground -mt-1 -mr-1 p-1" title={t.dismissGuide ?? 'Dismiss'}>
-                      <X size={14} />
-                    </button>
-                  </div>
-                  {/* Step indicator (2 dots) */}
-                  <div className="flex items-center gap-1 mb-3">
-                    <div className={`h-1 flex-1 rounded-full transition-colors ${guideStep >= 0 ? 'bg-primary' : 'bg-muted'}`} />
-                    <div className={`h-1 flex-1 rounded-full transition-colors ${guideStep >= 1 ? 'bg-primary' : 'bg-muted'}`} />
-                  </div>
-                  <p className="text-xs text-muted-foreground leading-relaxed mb-3">
-                    {guideStep === 0 ? t.guidedDemoDesc : t.selectCodingSystemDesc}
-                  </p>
+          </div>
 
-                  {/* Step 0: sample list */}
-                  {guideStep === 0 && (
-                    <div className="space-y-1 mb-3">
-                      {samples.map(s => (
-                        <button key={s.key}
-                          onClick={() => setGuideSelectedSample(s.key)}
-                          className={`w-full text-left px-3 py-2 rounded-md border text-xs transition-colors flex items-center gap-2 ${
-                            guideSelectedSample === s.key
-                              ? 'border-primary bg-primary/5'
-                              : 'border-border/40 hover:bg-accent'
-                          }`}>
-                          <FileText size={12} className={guideSelectedSample === s.key ? 'text-primary' : 'text-muted-foreground'} />
-                          <span className="font-medium text-foreground flex-1">{s.title}</span>
-                          {guideSelectedSample === s.key && <Check size={12} className="text-primary" />}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Step 1: coding systems (shares selectedSystems with right Settings panel) */}
-                  {guideStep === 1 && (
-                    <div className="space-y-1 mb-3 max-h-48 overflow-y-auto">
-                      {codingSystems.length === 0 ? (
-                        <p className="text-xs text-muted-foreground/60 text-center py-4">—</p>
-                      ) : (
-                        codingSystems.map(cs => {
-                          const selected = selectedSystems.includes(cs.code_system);
-                          return (
-                            <button key={cs.code_system}
-                              onClick={() => selected ? removeSystem(cs.code_system) : addSystem(cs.code_system)}
-                              className={`w-full text-left px-3 py-2 rounded-md border text-xs transition-colors flex items-center gap-2 ${
-                                selected ? 'border-primary bg-primary/5' : 'border-border/40 hover:bg-accent'
-                              }`}>
-                              <FileText size={12} className={selected ? 'text-primary' : 'text-muted-foreground'} />
-                              <span className="font-medium text-foreground flex-1">{shortSystemLabel(cs.code_system)}</span>
-                              {selected && <Check size={12} className="text-primary" />}
-                            </button>
-                          );
-                        })
-                      )}
-                    </div>
-                  )}
-
-                  {/* Bottom nav: Back / Next OR Back / Predict codes */}
-                  <div className="flex items-center justify-end gap-1">
-                    {guideStep === 1 && (
-                      <button onClick={prevGuideStep}
-                        className="px-2 py-1 text-xs text-muted-foreground hover:text-foreground border border-border rounded-md flex items-center gap-0.5">
-                        <ChevronLeft size={12} /> {t.back}
-                      </button>
-                    )}
-                    {guideStep === 0 ? (
-                      <button onClick={nextGuideStep} disabled={!guideSelectedSample}
-                        className="px-2 py-1 text-xs text-primary-foreground bg-primary hover:bg-primary/90 rounded-md flex items-center gap-0.5 disabled:opacity-30">
-                        {t.next} <ChevronRight size={12} />
-                      </button>
-                    ) : (
-                      <button onClick={runGuidePredict} disabled={!guideSelectedSample || selectedSystems.length === 0}
-                        className="px-2.5 py-1 text-xs text-primary-foreground bg-primary hover:bg-primary/90 rounded-md flex items-center gap-1 disabled:opacity-30">
-                        <Sparkles size={12} /> {t.predictCodes}
-                      </button>
-                    )}
-                  </div>
-                </div>
+          {/* ─────── Get started with: 4 inline template cards (Corti IA) ─────── */}
+          <div className="mt-3 rounded-xl border border-border/30 bg-muted/20 p-4">
+            <div className="flex items-start gap-3 mb-3">
+              <div className="w-8 h-8 rounded-md bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                <Sparkles size={16} />
               </div>
-            )}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-foreground">{t.medicalCoding}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{t.medicalCodingDesc}</p>
+              </div>
+            </div>
+            <p className="text-[11px] font-medium text-muted-foreground mb-2">{t.getStartedWith}</p>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { key: 'admission' as const, label: t.hospitalMedicalRecord, desc: t.hospitalMedicalRecordDesc, run: false },
+                { key: 'outpatient' as const, label: t.gpTranscript, desc: t.gpTranscriptDesc, run: false },
+                { key: 'consultation' as const, label: t.orthopedicReferral, desc: t.orthopedicReferralDesc, run: false },
+                { key: 'admission' as const, label: t.guidedDemo, desc: t.guidedDemoDesc, run: true },
+              ].map((card) => (
+                <button key={card.label} onClick={() => card.run ? loadSampleAndRun(card.key) : loadSampleOnly(card.key)}
+                  className="text-left p-2.5 rounded-lg border border-border/30 bg-background hover:border-primary/40 hover:bg-primary/5 transition-colors flex items-start gap-2">
+                  <FileText size={14} className="text-muted-foreground shrink-0 mt-0.5" />
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium text-foreground truncate">{card.label}</p>
+                    <p className="text-[10px] text-muted-foreground line-clamp-1 mt-0.5">{card.desc}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 

@@ -6,6 +6,7 @@ import {
   Bot, Search, BookOpen, Plus, Clock, User, ChevronRight,
   ChevronDown, Loader2, X, Sparkles,
   Copy, Check, Wrench, Trash2, Send, Globe, Share2, Rocket,
+  Layers,
 } from 'lucide-react';
 import { billingApi, expertsApi, agentsApi, oauthApi } from '../services/api';
 import { runtimeApi } from '../services/runtimeApi';
@@ -245,14 +246,16 @@ export default function AgentsPage() {
     <div className="flex-1 flex flex-col min-h-0 bg-muted/20">
       <div className="flex-1 p-6 overflow-y-auto">
         <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20">
-          {/* Section header with accent bar */}
-          <div className="flex items-center gap-3 px-6 pt-5 pb-3 border-b border-border/40">
-            <div className="w-1 h-4 rounded-full bg-primary/40" />
-            <h2 className="text-lg font-semibold text-foreground">{t.agents}</h2>
-            <div className="flex-1" />
+          {/* Section header with accent bar (Corti: "Create an agent" + subtitle + + New Agent) */}
+          <div className="flex items-start gap-3 px-6 pt-5 pb-3 border-b border-border/40">
+            <Layers size={18} className="text-muted-foreground shrink-0 mt-0.5" />
+            <div className="min-w-0 flex-1">
+              <h2 className="text-base font-semibold text-foreground tracking-tight">{t.createAgent}</h2>
+              <p className="text-[11px] text-muted-foreground mt-0.5">{t.createAgentSubtitle}</p>
+            </div>
             <button
-              onClick={() => setShowNewAgentModal(true)}
-              className="text-xs px-3 py-1.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center gap-1"
+              onClick={() => navigate('/ai-studio/agents/new')}
+              className="shrink-0 inline-flex items-center gap-1.5 text-xs px-3 py-2 bg-foreground text-background rounded-lg hover:opacity-90 transition-opacity font-medium"
             >
               <Plus size={14} /> {t.newAgent}
             </button>

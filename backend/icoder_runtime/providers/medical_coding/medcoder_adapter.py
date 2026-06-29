@@ -13,11 +13,30 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import re
 from dataclasses import dataclass, field
 from typing import Any
 
 logger = logging.getLogger(__name__)
+
+
+# P1.0-A: feature flag — E1.8 few-shot exemplars are EXPERIMENTAL.
+# Default OFF. Set ``ICODER_EXPERIMENTAL_MEDCODER_FEWSHOT=true`` to re-enable.
+# E2.0 5-case smoke showed no F1@1 improvement and F1@5 regression; see
+# docs/experiments/E2_0_NEGATIVE_SIGNAL_ARCHIVE.md. Re-enable only via
+# dedicated coding-quality project; not for product default path.
+MEDCODER_FEWSHOT_ENV = "ICODER_EXPERIMENTAL_MEDCODER_FEWSHOT"
+
+
+def is_medcoder_fewshot_enabled() -> bool:
+    """Return True iff E1.8 Stage 1 few-shot exemplars should be injected.
+
+    P1.0-A: defaults to False. Strict string match against "1"/"true"/"yes"
+    (case-insensitive). All other values (including unset) → False.
+    """
+    raw = os.environ.get(MEDCODER_FEWSHOT_ENV, "").strip().lower()
+    return raw in ("1", "true", "yes", "on")
 
 
 # ── Stage 1: Extraction prompt ──
@@ -111,17 +130,23 @@ _EXTRACTION_FEW_SHOT: list[dict[str, str]] = [
 
 
 def build_extraction_messages(emr_text: str) -> list[dict[str, str]]:
-    """Build Stage 1 messages: system prompt + few-shot exemplars + user EMR.
+    """Build Stage 1 messages: system prompt + (optional) few-shot + user EMR.
 
     E1.8: prepend 3 few-shot user/assistant pairs after the system prompt
     to teach comprehensive procedure extraction. The exemplars cover
     obvious, buried, and no-procedure cases.
+
+    P1.0-A: gate few-shot behind ``ICODER_EXPERIMENTAL_MEDCODER_FEWSHOT``
+    (default off). E2.0 5-case smoke showed no F1@1 improvement and F1@5
+    regression. The exemplars remain in this module so the opt-in can be
+    re-enabled without code change.
     """
     messages: list[dict[str, str]] = [
         {"role": "system", "content": EXTRACTION_SYSTEM_PROMPT},
-        *_EXTRACTION_FEW_SHOT,
-        {"role": "user", "content": emr_text},
     ]
+    if is_medcoder_fewshot_enabled():
+        messages.extend(_EXTRACTION_FEW_SHOT)
+    messages.append({"role": "user", "content": emr_text})
     return messages
 
 

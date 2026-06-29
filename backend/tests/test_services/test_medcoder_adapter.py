@@ -17,6 +17,8 @@ from icoder_runtime.providers.medical_coding.medcoder_adapter import (  # noqa: 
     parse_extraction_response,
     parse_rerank_response,
     fuzzy_evidence_to_span,
+    is_medcoder_fewshot_enabled,
+    MEDCODER_FEWSHOT_ENV,
 )
 
 
@@ -25,7 +27,17 @@ from icoder_runtime.providers.medical_coding.medcoder_adapter import (  # noqa: 
 
 class TestPromptBuilders:
     def test_extraction_messages_structure(self):
-        msgs = build_extraction_messages("患者主诉胸痛3天。")
+        # P1.0-A: few-shot is gated behind ICODER_EXPERIMENTAL_MEDCODER_FEWSHOT.
+        # Existing E1.8 structure test must opt in to verify few-shot content.
+        old = os.environ.get(MEDCODER_FEWSHOT_ENV)
+        os.environ[MEDCODER_FEWSHOT_ENV] = "true"
+        try:
+            msgs = build_extraction_messages("患者主诉胸痛3天。")
+        finally:
+            if old is None:
+                os.environ.pop(MEDCODER_FEWSHOT_ENV, None)
+            else:
+                os.environ[MEDCODER_FEWSHOT_ENV] = old
         # E1.8: 1 system + 3 few-shot user/assistant pairs + 1 user = 8
         assert len(msgs) == 8
         assert msgs[0]["role"] == "system"
@@ -40,7 +52,15 @@ class TestPromptBuilders:
 
     def test_extraction_few_shot_covers_buried_procedures(self):
         """E1.8: few-shot Example 2 (buried procedures) must appear in messages."""
-        msgs = build_extraction_messages("any emr")
+        old = os.environ.get(MEDCODER_FEWSHOT_ENV)
+        os.environ[MEDCODER_FEWSHOT_ENV] = "true"
+        try:
+            msgs = build_extraction_messages("any emr")
+        finally:
+            if old is None:
+                os.environ.pop(MEDCODER_FEWSHOT_ENV, None)
+            else:
+                os.environ[MEDCODER_FEWSHOT_ENV] = old
         # Indexing: [system, ex1_user, ex1_asst, ex2_user, ex2_asst, ex3_user, ex3_asst, user]
         example2_assistant = msgs[4]["content"]
         assert "procedure_mentions" in example2_assistant
@@ -49,7 +69,15 @@ class TestPromptBuilders:
 
     def test_extraction_few_shot_covers_no_procedures_case(self):
         """E1.8: few-shot Example 3 (no procedures) — procedure_mentions: []."""
-        msgs = build_extraction_messages("any emr")
+        old = os.environ.get(MEDCODER_FEWSHOT_ENV)
+        os.environ[MEDCODER_FEWSHOT_ENV] = "true"
+        try:
+            msgs = build_extraction_messages("any emr")
+        finally:
+            if old is None:
+                os.environ.pop(MEDCODER_FEWSHOT_ENV, None)
+            else:
+                os.environ[MEDCODER_FEWSHOT_ENV] = old
         example3_assistant = msgs[6]["content"]
         assert "procedure_mentions" in example3_assistant
         # The empty array literal must be present.
@@ -77,6 +105,64 @@ class TestPromptBuilders:
     def test_rerank_handles_empty_candidates(self):
         msgs = build_rerank_messages("unknown", "x", [])
         assert "无候选" in msgs[1]["content"]
+
+
+# ── P1.0-A: few-shot feature flag gate ───────────────────────────────────
+
+
+class TestFewShotGate:
+    """P1.0-A: E1.8 few-shot exemplars are gated by ICODER_EXPERIMENTAL_MEDCODER_FEWSHOT.
+
+    Default is OFF (E2.0 negative signal — see docs/experiments/E2_0_NEGATIVE_SIGNAL_ARCHIVE.md).
+    Coding-quality project can opt in via env var to re-test new prompts.
+    """
+
+    @pytest.fixture(autouse=True)
+    def _isolate_env(self, monkeypatch):
+        # Strip the env var before each test, then let individual tests set what they need.
+        monkeypatch.delenv(MEDCODER_FEWSHOT_ENV, raising=False)
+
+    def test_default_off_returns_2_messages(self):
+        """Without env var set, build_extraction_messages returns system + user only."""
+        msgs = build_extraction_messages("患者主诉胸痛")
+        assert len(msgs) == 2
+        assert msgs[0]["role"] == "system"
+        assert msgs[1]["role"] == "user"
+        assert "胸痛" in msgs[1]["content"]
+
+    def test_explicit_true_returns_8_messages(self, monkeypatch):
+        monkeypatch.setenv(MEDCODER_FEWSHOT_ENV, "true")
+        msgs = build_extraction_messages("患者主诉胸痛")
+        # 1 system + 3 pairs × 2 + 1 user = 8
+        assert len(msgs) == 8
+
+    def test_explicit_false_returns_2_messages(self, monkeypatch):
+        monkeypatch.setenv(MEDCODER_FEWSHOT_ENV, "false")
+        msgs = build_extraction_messages("x")
+        assert len(msgs) == 2
+
+    def test_truthy_variants_enable(self, monkeypatch):
+        for v in ("1", "TRUE", "True", "yes", "on"):
+            monkeypatch.setenv(MEDCODER_FEWSHOT_ENV, v)
+            assert is_medcoder_fewshot_enabled() is True, f"value {v!r} should enable"
+
+    def test_other_values_disable(self, monkeypatch):
+        for v in ("0", "no", "off", "", "random", "truebutnotreally"):
+            monkeypatch.setenv(MEDCODER_FEWSHOT_ENV, v)
+            assert is_medcoder_fewshot_enabled() is False, f"value {v!r} should disable"
+
+    def test_exemplars_still_loaded_when_disabled(self, monkeypatch):
+        """The exemplars must remain importable for opt-in re-enable — we only
+        skip injecting them at prompt-build time. This test locks that in.
+        """
+        monkeypatch.setenv(MEDCODER_FEWSHOT_ENV, "false")
+        # The constant exists and is non-empty.
+        assert len(mod._EXTRACTION_FEW_SHOT) >= 6
+        # But the message list does not include them.
+        msgs = build_extraction_messages("x")
+        for m in msgs:
+            assert "脐动脉插管" not in m["content"]
+            assert "急性胆囊炎" not in m["content"]
 
 
 # ── JSON parsers ──

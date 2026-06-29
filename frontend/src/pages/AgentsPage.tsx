@@ -34,6 +34,7 @@ export default function AgentsPage() {
   const [cost, setCost] = useState('0.000000');
   const [createdByFilter, setCreatedByFilter] = useState('');
   const [showCreatedByFilter, setShowCreatedByFilter] = useState(false);
+  const [showUseCaseFilter, setShowUseCaseFilter] = useState(false);
 
   // Expert name → ID lookup (for clone/creation flow)
   const [expertNameToId, setExpertNameToId] = useState<Record<string, string>>({});
@@ -329,22 +330,30 @@ export default function AgentsPage() {
         )}
       </div>
 
-      {/* Use Case 筛选标签行 */}
+      {/* Use case 过滤器 (Corti: 单 dropdown ▾) */}
       {activeTab === 'prebuilt' && (
-        <div className="flex items-center gap-1.5 px-6 pb-2 flex-wrap">
-          {USE_CASES.map(uc => (
-            <button
-              key={uc}
-              onClick={() => setUseCase(uc)}
-              className={`px-2.5 py-1 text-xs rounded-full border transition-colors ${
-                useCase === uc
-                  ? 'bg-primary text-primary-foreground border-primary'
-                  : 'border-border text-muted-foreground hover:bg-accent'
-              }`}
-            >
-              {uc === '全部' ? t.all : uc}
-            </button>
-          ))}
+        <div className="relative flex items-center gap-2 px-6 pb-2">
+          <button
+            onClick={() => setShowUseCaseFilter(v => !v)}
+            className="flex items-center gap-1.5 text-sm h-8 px-3 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+          >
+            <span>{t.useCaseFilter}</span>
+            <span className="text-foreground font-medium">{useCase === '全部' ? t.all : useCase}</span>
+            <ChevronDown size={12} />
+          </button>
+          {showUseCaseFilter && (
+            <div className="absolute left-6 top-full mt-1 bg-popover border border-border rounded-lg shadow-lg p-1 min-w-[160px] z-10">
+              {USE_CASES.map(uc => (
+                <button
+                  key={uc}
+                  onClick={() => { setUseCase(uc); setShowUseCaseFilter(false); }}
+                  className={`w-full text-left px-3 py-1.5 text-xs rounded-md transition-colors ${useCase === uc ? 'bg-accent text-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'}`}
+                >
+                  {uc === '全部' ? t.all : uc}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

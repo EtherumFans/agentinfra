@@ -254,6 +254,18 @@ export const templatesApi = {
   delete: (id: string) => api.delete(`/templates/${id}`),
 };
 
+// Tickets Portal — Corti /tickets parity (in-app equivalent)
+export const ticketsApi = {
+  list: (params: { search?: string; status?: string; priority?: string; created_by_me?: boolean; page?: number; page_size?: number } = {}) =>
+    api.get<{ tickets: any[]; total: number; page: number; page_size: number }>('/tickets', { params }),
+  get: (id: string) => api.get<any>(`/tickets/${id}`),
+  create: (data: { subject: string; description?: string; priority?: 'low' | 'medium' | 'high' }) =>
+    api.post<any>('/tickets', data),
+  update: (id: string, data: { subject?: string; description?: string; status?: string; priority?: string }) =>
+    api.patch<any>(`/tickets/${id}`, data),
+  delete: (id: string) => api.delete(`/tickets/${id}`),
+};
+
 // Experts
 export const expertsApi = {
   list: (category = '', search = '', type = 'all') =>

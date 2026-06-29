@@ -12,9 +12,9 @@ import {
   PanelLeftClose, PanelLeft, Home, FlaskConical,
   Mic, AlignLeft, Sparkles, ListTree, Asterisk, BrainCircuit,
   KeyRound, Users, CreditCard, ChartNoAxesColumn, Settings,
-  MessageSquare, ArrowUpRight, Bell,
+  ArrowUpRight, Bell,
   ChevronDown, Rocket, Layers, Folder, ChevronsUpDown, Database,
-  Terminal, Stethoscope, Users2, FileText,
+  Terminal, Stethoscope, Users2, FileText, MessageSquare,
 } from 'lucide-react';
 
 const PROJECT_SLUG = 'icoder-medical-coding';
@@ -88,6 +88,7 @@ export default function Layout() {
       name: t.support,
       items: [
         { to: '/support', label: t.getHelp, icon: MessageSquare },
+        { to: '/tickets', label: t.ticketsTitle, icon: FileText, external: true, end: false },
       ],
     },
   ];

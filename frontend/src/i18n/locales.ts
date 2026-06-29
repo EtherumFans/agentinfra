@@ -452,6 +452,32 @@ export interface LocaleDict {
   templateLanguageZh: string;
   templateLanguageEn: string;
 
+  // Tickets Portal — Corti /tickets parity
+  ticketsTitle: string;
+  ticketsDesc: string;
+  ticketsAll: string;
+  ticketsCreatedByMe: string;
+  ticketsNewTicket: string;
+  ticketsSubject: string;
+  ticketsDescription: string;
+  ticketsPriority: string;
+  ticketsStatus: string;
+  ticketsColSubject: string;
+  ticketsColStatus: string;
+  ticketsColPriority: string;
+  ticketsColUpdated: string;
+  ticketsColActions: string;
+  ticketsNoData: string;
+  ticketsDeleteConfirm: string;
+  ticketsManagedElsewhere: string;
+  ticketsStatusOpen: string;
+  ticketsStatusInProgress: string;
+  ticketsStatusResolved: string;
+  ticketsStatusClosed: string;
+  ticketsPriorityLow: string;
+  ticketsPriorityMedium: string;
+  ticketsPriorityHigh: string;
+
   // Settings
   settingsTitle: string;
   account: string;
@@ -702,9 +728,6 @@ export interface LocaleDict {
   systemPromptPlaceholder: string;
   termsOfService: string;
   thinking: string;
-  ticketsDesc: string;
-  ticketsManagedElsewhere: string;
-  ticketsTitle: string;
   usageLabel: string;
   viewDetails: string;
   viewDocumentation: string;
@@ -1226,6 +1249,32 @@ const zhCN: LocaleDict = {
   templateLanguageZh: '中文',
   templateLanguageEn: 'English',
 
+  // Tickets
+  ticketsTitle: '工单',
+  ticketsDesc: '追踪问题与功能请求',
+  ticketsAll: '全部',
+  ticketsCreatedByMe: '我创建的',
+  ticketsNewTicket: '新建工单',
+  ticketsSubject: '主题',
+  ticketsDescription: '描述',
+  ticketsPriority: '优先级',
+  ticketsStatus: '状态',
+  ticketsColSubject: '主题',
+  ticketsColStatus: '状态',
+  ticketsColPriority: '优先级',
+  ticketsColUpdated: '更新时间',
+  ticketsColActions: '操作',
+  ticketsNoData: '未找到工单',
+  ticketsDeleteConfirm: '确定删除该工单？此操作不可撤销。',
+  ticketsStatusOpen: '待处理',
+  ticketsStatusInProgress: '处理中',
+  ticketsStatusResolved: '已解决',
+  ticketsStatusClosed: '已关闭',
+  ticketsPriorityLow: '低',
+  ticketsPriorityMedium: '中',
+  ticketsPriorityHigh: '高',
+  ticketsManagedElsewhere: '工单通过帮助台系统进行管理',
+
   // Settings
   settingsTitle: '设置',
   account: '账户',
@@ -1476,9 +1525,6 @@ const zhCN: LocaleDict = {
   systemPromptPlaceholder: '定义AI智能体的角色、专业领域和行为规范...',
   termsOfService: '服务条款',
   thinking: '思考中...',
-  ticketsDesc: '管理您的支持工单',
-  ticketsManagedElsewhere: '工单通过帮助台系统进行管理',
-  ticketsTitle: '工单系统',
   usageLabel: '用法',
   viewDetails: '查看详情',
   viewDocumentation: '查看文档',
@@ -2018,6 +2064,32 @@ const enUS: LocaleDict = {
   templateLanguageZh: '中文',
   templateLanguageEn: 'English',
 
+  // Tickets
+  ticketsTitle: 'Tickets',
+  ticketsDesc: 'Track issues and feature requests.',
+  ticketsAll: 'All',
+  ticketsCreatedByMe: 'Created by me',
+  ticketsNewTicket: 'New ticket',
+  ticketsSubject: 'Subject',
+  ticketsDescription: 'Description',
+  ticketsPriority: 'Priority',
+  ticketsStatus: 'Status',
+  ticketsColSubject: 'Subject',
+  ticketsColStatus: 'Status',
+  ticketsColPriority: 'Priority',
+  ticketsColUpdated: 'Updated',
+  ticketsColActions: 'Actions',
+  ticketsNoData: 'No tickets found',
+  ticketsDeleteConfirm: 'Delete this ticket? This cannot be undone.',
+  ticketsStatusOpen: 'Open',
+  ticketsStatusInProgress: 'In progress',
+  ticketsStatusResolved: 'Resolved',
+  ticketsStatusClosed: 'Closed',
+  ticketsPriorityLow: 'Low',
+  ticketsPriorityMedium: 'Medium',
+  ticketsPriorityHigh: 'High',
+  ticketsManagedElsewhere: 'Tickets managed through help desk',
+
   // Settings
   settingsTitle: 'Settings',
   account: 'Account',
@@ -2268,9 +2340,6 @@ const enUS: LocaleDict = {
   systemPromptPlaceholder: 'Define the agent\'s role, specialty domain, and behavior rules...',
   termsOfService: 'Terms of service',
   thinking: 'Thinking...',
-  ticketsDesc: 'Manage your support tickets',
-  ticketsManagedElsewhere: 'Tickets managed through help desk',
-  ticketsTitle: 'Ticket System',
   usageLabel: 'Usage',
   viewDetails: 'View details',
   viewDocumentation: 'View documentation',

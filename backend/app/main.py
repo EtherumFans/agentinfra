@@ -803,6 +803,7 @@ from app.api.icoder_agents_hub import router as icoder_agents_hub_router
 from app.api.icoder_coding_review import router as icoder_coding_review_router
 from app.api.customers import router as customers_router
 from app.api.templates import router as templates_router
+from app.api.tickets import router as tickets_router
 from app.middleware.rate_limit import rate_limit_middleware
 
 # Rate limiting middleware
@@ -830,6 +831,7 @@ app.include_router(code_tables_router)
 app.include_router(icoder_coding_review_router)  # M3-0 病案首页编码审核 Agent API
 app.include_router(customers_router)             # /api/customers/* (Corti parity)
 app.include_router(templates_router)             # /api/templates/* (Templates Beta — Corti parity)
+app.include_router(tickets_router)               # /api/tickets/* (Tickets Portal — Corti parity)
 app.include_router(organizations_router)
 app.include_router(platform_environments_router)  # Phase 1 cloud-flip stub (501)
 app.include_router(platform_api_clients_router)    # Phase 1 cloud-flip stub (501)

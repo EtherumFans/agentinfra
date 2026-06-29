@@ -21,6 +21,7 @@ from app.models.customer import Customer, CustomerRegion
 from app.models.template import (
     Template, TemplateCategory, TemplateLanguage, TemplateScope,
 )
+from app.models.ticket import Ticket, TicketStatus, TicketPriority
 
 __all__ = [
     "TimestampMixin",
@@ -43,4 +44,5 @@ __all__ = [
     "CodingReviewRun",
     "Customer", "CustomerRegion",
     "Template", "TemplateCategory", "TemplateLanguage", "TemplateScope",
+    "Ticket", "TicketStatus", "TicketPriority",
 ]

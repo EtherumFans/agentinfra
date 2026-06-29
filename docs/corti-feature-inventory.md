@@ -25,7 +25,7 @@
 | Manage | **Templates (Beta)** | iCoDer 有 TemplatesPage (Loop 2 落地) | 模板库 + 模板构建器 + 内置 9 个中文病历模板 |
 | Manage | Settings | iCoDer 有 SettingsPage | |
 | Support | Get Help | iCoDer 有 SupportPage | |
-| Support | Tickets Portal | iCoDer **没有** | 待 walk — Loop 9 |
+| Support | Tickets Portal | iCoDer 有 TicketsPage (Loop 9 落地,in-app 等价) | Corti 是外部 Zendesk,iCoDer 走自实现 |
 
 ## Project Home 页面(`/project/<id>`) — 顶部 4 tabs
 
@@ -153,7 +153,8 @@
 **未走 / 404**:
 - `/manage/customers` 路由 404,真地址是 `/customers`
 - Speech to Text > Ambient / Pre-recorded(子页)未单独走
-- Usage(Manage)、Get Help、Tickets Portal 未走
+- Usage(Manage)、Get Help 未走
+- Tickets Portal 已 walk(Corti 外部 Zendesk,iCoDer 实现等价 in-app TicketsPage)
 
 ---
 

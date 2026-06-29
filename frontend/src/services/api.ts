@@ -242,6 +242,18 @@ export const customersApi = {
   delete: (customerId: string) => api.delete(`/customers/${encodeURIComponent(customerId)}`),
 };
 
+// Templates (Beta) — Corti /templates parity
+export const templatesApi = {
+  list: (params: { search?: string; category?: string; language?: string; page?: number; page_size?: number } = {}) =>
+    api.get<{ templates: any[]; total: number; page: number; page_size: number }>('/templates', { params }),
+  get: (id: string) => api.get<any>(`/templates/${id}`),
+  create: (data: {
+    name: string; description?: string; content?: string;
+    category?: string; language?: string; scope?: string;
+  }) => api.post<any>('/templates', data),
+  delete: (id: string) => api.delete(`/templates/${id}`),
+};
+
 // Experts
 export const expertsApi = {
   list: (category = '', search = '', type = 'all') =>

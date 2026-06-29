@@ -976,5 +976,113 @@ Maintain a professional, empathetic tone. Do not diagnose — present screening 
     print(f"Login with: admin / admin123")
 
 
+# ── Built-in Templates seed (Corti /templates parity) ──────────────────────
+# Idempotent: skip if at least one built-in Template already exists for the
+# default org. Built-ins mirror the existing Text Generation DEFAULT_TEMPLATES
+# so users see a consistent library whether they came in via Text Gen or the
+# new Templates (Beta) page. Each gets the new categories surfaced by the
+# Templates IA (inpatient / surgery / outpatient / emergency / consultation).
+BUILTIN_TEMPLATES = [
+    {
+        "key": "discharge_summary",
+        "name": "出院小结",
+        "description": "标准出院小结，包含入院情况、诊疗经过、出院诊断、出院医嘱",
+        "category": "inpatient",
+        "sample": "患者，男，65岁，因\"反复胸闷、心悸3年，加重1周\"入院。",
+    },
+    {
+        "key": "admission_record",
+        "name": "入院记录",
+        "description": "完整入院记录，含主诉、现病史、既往史、体格检查、初步诊断",
+        "category": "inpatient",
+        "sample": "主诉：腰痛4个月余。",
+    },
+    {
+        "key": "progress_note",
+        "name": "日常病程记录",
+        "description": "SOAP格式病程记录：主观、客观、评估、计划",
+        "category": "inpatient",
+        "sample": "S（主观）：患者诉腰痛较前缓解。",
+    },
+    {
+        "key": "preop_discussion",
+        "name": "术前讨论记录",
+        "description": "术前讨论：手术指征、手术方案、风险评估、替代方案",
+        "category": "surgery",
+        "sample": "讨论时间：2026年5月9日",
+    },
+    {
+        "key": "operation_record",
+        "name": "手术记录",
+        "description": "手术经过、术中所见、标本送检、术中特殊情况",
+        "category": "surgery",
+        "sample": "手术名称：T7、T9、T12、L2经皮穿刺脊柱后凸成形术",
+    },
+    {
+        "key": "referral_letter",
+        "name": "转诊信",
+        "description": "转诊至其他科室或医院，含转诊原因、已有检查、治疗建议",
+        "category": "outpatient",
+        "sample": "转诊科室：心血管内科",
+    },
+    {
+        "key": "outpatient_note",
+        "name": "门诊就诊记录",
+        "description": "通用门诊就诊记录，含主诉、查体、诊断、处理意见",
+        "category": "outpatient",
+        "sample": "主诉：咳嗽、咳痰3天。",
+    },
+    {
+        "key": "emergency_note",
+        "name": "急诊记录",
+        "description": "急诊就诊记录：来院方式、生命体征、急诊处理、离院方式",
+        "category": "emergency",
+        "sample": "来院方式：120急救车送入。",
+    },
+    {
+        "key": "consultation_record",
+        "name": "会诊记录",
+        "description": "科间会诊申请与意见：会诊目的、病史摘要、会诊意见",
+        "category": "consultation",
+        "sample": "会诊申请科室：骨科 申请会诊科室：心内科",
+    },
+]
+
+
+async def seed_builtin_templates():
+    """Idempotent seed: add built-in templates for every existing org
+    if they don't already have at least one. Safe to call on every startup."""
+    from app.models.template import (
+        Template, TemplateCategory, TemplateLanguage, TemplateScope,
+    )
+    from sqlalchemy import select as _select
+
+    async with AsyncSessionLocal() as session:
+        orgs = (await session.execute(_select(Organization))).scalars().all()
+        if not orgs:
+            return
+        for org in orgs:
+            existing = (await session.execute(
+                _select(Template).where(
+                    Template.organization_id == org.id,
+                    Template.is_builtin == True,  # noqa: E712
+                ).limit(1)
+            )).scalar_one_or_none()
+            if existing:
+                continue
+            for tpl in BUILTIN_TEMPLATES:
+                session.add(Template(
+                    organization_id=org.id,
+                    name=tpl["name"],
+                    description=tpl["description"],
+                    content=tpl["sample"],
+                    category=TemplateCategory(tpl["category"]),
+                    language=TemplateLanguage.ZH_CN,
+                    scope=TemplateScope.ALL_CUSTOMERS,
+                    is_builtin=True,
+                ))
+        await session.commit()
+
+
 if __name__ == "__main__":
     asyncio.run(seed())

@@ -22,6 +22,7 @@ import SettingsPage from './pages/SettingsPage';
 import BillingPage from './pages/BillingPage';
 import UsagePage from './pages/UsagePage';
 import CustomersPage from './pages/CustomersPage';
+import TemplatesPage from './pages/TemplatesPage';
 
 const TextGenerationPage = lazy(() => import('./pages/TextGenerationPage'));
 const DeveloperQuickstartPage = lazy(() => import('./pages/DeveloperQuickstartPage'));
@@ -104,6 +105,7 @@ function App() {
         <Route path="manage/usage" element={<UsagePage />} />
         <Route path="manage/billing" element={<BillingPage />} />
         <Route path="manage/customers" element={<CustomersPage />} />
+        <Route path="manage/templates" element={<TemplatesPage />} />
         <Route path="manage/settings" element={<SettingsPage />} />
         <Route path="manage/support" element={<SupportPage />} />
         <Route path="manage/audit-log" element={<ExpertLibraryPage />} />
@@ -113,6 +115,7 @@ function App() {
         <Route path="billing" element={<BillingPage />} />
         <Route path="usage" element={<UsagePage />} />
         <Route path="customers" element={<CustomersPage />} />
+        <Route path="templates" element={<TemplatesPage />} />
         <Route path="settings" element={<SettingsPage />} />
 
         <Route path="gold-cases" element={<GoldCasesPage />} />

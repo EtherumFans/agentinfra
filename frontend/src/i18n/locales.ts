@@ -425,6 +425,33 @@ export interface LocaleDict {
   customerDeleteSuccess: string;
   customerCreateSuccess: string;
 
+  // Templates (Beta) — Corti /templates parity
+  templatesTitle: string;
+  templatesDesc: string;
+  templateBuilder: string;
+  viewTemplates: string;
+  viewSections: string;
+  searchTemplatesPlaceholder: string;
+  allTypes: string;
+  filter: string;
+  builtinBadge: string;
+  scopeAllCustomers: string;
+  noTemplates: string;
+  createTemplate: string;
+  templateNamePlaceholder: string;
+  templateDescPlaceholder: string;
+  templateContentPlaceholder: string;
+  templateCategory: string;
+  templateLanguage: string;
+  templateCategoryInpatient: string;
+  templateCategorySurgery: string;
+  templateCategoryOutpatient: string;
+  templateCategoryEmergency: string;
+  templateCategoryConsultation: string;
+  templateCategoryCustom: string;
+  templateLanguageZh: string;
+  templateLanguageEn: string;
+
   // Settings
   settingsTitle: string;
   account: string;
@@ -1171,6 +1198,33 @@ const zhCN: LocaleDict = {
   customerDeleteConfirm: '确定删除该客户？此操作不可撤销。',
   customerDeleteSuccess: '客户已删除',
   customerCreateSuccess: '客户已创建',
+
+  // Templates
+  templatesTitle: '模板',
+  templatesDesc: '管理用于结构化文档生成的模板与章节',
+  templateBuilder: '模板构建器',
+  viewTemplates: '模板',
+  viewSections: '章节',
+  searchTemplatesPlaceholder: '搜索模板',
+  allTypes: '所有类型',
+  filter: '筛选',
+  builtinBadge: 'iCoDer 模板',
+  scopeAllCustomers: '所有客户',
+  noTemplates: '未找到模板',
+  createTemplate: '新建模板',
+  templateNamePlaceholder: '例如：出院小结',
+  templateDescPlaceholder: '简短描述这个模板的用途',
+  templateContentPlaceholder: '模板正文（提示词或结构化模板）',
+  templateCategory: '类别',
+  templateLanguage: '语言',
+  templateCategoryInpatient: '住院',
+  templateCategorySurgery: '手术',
+  templateCategoryOutpatient: '门诊',
+  templateCategoryEmergency: '急诊',
+  templateCategoryConsultation: '会诊',
+  templateCategoryCustom: '自定义',
+  templateLanguageZh: '中文',
+  templateLanguageEn: 'English',
 
   // Settings
   settingsTitle: '设置',
@@ -1936,6 +1990,33 @@ const enUS: LocaleDict = {
   customerDeleteConfirm: 'Delete this customer? This cannot be undone.',
   customerDeleteSuccess: 'Customer deleted',
   customerCreateSuccess: 'Customer created',
+
+  // Templates
+  templatesTitle: 'Templates',
+  templatesDesc: 'Manage templates and sections for generating structured documents.',
+  templateBuilder: 'Template builder',
+  viewTemplates: 'Templates',
+  viewSections: 'Sections',
+  searchTemplatesPlaceholder: 'Search',
+  allTypes: 'All types',
+  filter: 'Filter',
+  builtinBadge: 'iCoDer template',
+  scopeAllCustomers: 'All customers',
+  noTemplates: 'No templates found',
+  createTemplate: 'Create template',
+  templateNamePlaceholder: 'e.g. Discharge Note',
+  templateDescPlaceholder: 'Short description of this template',
+  templateContentPlaceholder: 'Template content (prompt or structured template)',
+  templateCategory: 'Category',
+  templateLanguage: 'Language',
+  templateCategoryInpatient: 'Inpatient',
+  templateCategorySurgery: 'Surgery',
+  templateCategoryOutpatient: 'Outpatient',
+  templateCategoryEmergency: 'Emergency',
+  templateCategoryConsultation: 'Consultation',
+  templateCategoryCustom: 'Custom',
+  templateLanguageZh: '中文',
+  templateLanguageEn: 'English',
 
   // Settings
   settingsTitle: 'Settings',

@@ -8,7 +8,7 @@ import {
   Stethoscope, BookOpenText, Shield, CheckCircle,
   ClipboardList, FileText, AlertTriangle, ClipboardCheck,
   Pill, FileWarning, GraduationCap, Users, FileCheck,
-  Send, FileSearch, ChevronRight,
+  Send, FileSearch, ChevronRight, Plus, Lightbulb, ArrowRight,
 } from 'lucide-react';
 import { agentsApi, expertsApi } from '../services/api';
 
@@ -239,48 +239,78 @@ export default function NewAgentPage() {
             <div className="space-y-6">
               {selected ? (
                 <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-6">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-1 h-4 rounded-full bg-primary/40" />
-                    <h3 className="font-medium text-xs uppercase tracking-wider text-muted-foreground">AI智能体预览</h3>
+                  {/* Title + Customize agent (Corti: same row) */}
+                  <div className="flex items-start justify-between gap-3 mb-6">
+                    <div className="min-w-0 flex-1">
+                      <h2 className="text-base font-semibold text-foreground mb-2">{selected.title}</h2>
+                      <p className="text-xs text-muted-foreground">{selected.description}</p>
+                    </div>
+                    <button
+                      onClick={handleCreateFromTemplate}
+                      disabled={creating}
+                      className="shrink-0 inline-flex items-center gap-1.5 text-xs px-3 py-2 bg-foreground text-background rounded-lg hover:opacity-90 transition-opacity font-medium disabled:opacity-50"
+                    >
+                      {t.customizeAgent}
+                      <ArrowRight size={12} />
+                    </button>
                   </div>
-                  <h2 className="text-base font-semibold text-foreground mb-2">{selected.title}</h2>
-                  <p className="text-xs text-muted-foreground mb-4">{selected.description}</p>
 
-                  {selected.category && (
-                    <div className="flex items-center gap-2 mb-4">
-                      <span className="text-[10px] text-muted-foreground">分类：</span>
-                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-accent/70 text-muted-foreground`}>
-                        {selected.category}
-                      </span>
-                    </div>
-                  )}
-
-                  {(selected.expert_ids || []).length > 0 && (
-                    <div className="mb-4">
-                      <span className="text-[10px] text-muted-foreground block mb-1.5">
-                        预配置专家 ({selected.expert_ids.length}):
-                      </span>
-                      <div className="flex flex-wrap gap-1">
-                        {selected.expert_ids.map((name: string) => (
-                          <span key={name} className="text-[10px] px-2 py-0.5 bg-accent rounded-full text-muted-foreground">
-                            {name}
-                          </span>
-                        ))}
+                  {/* Chat-style preview (Corti: Ask the agent...) */}
+                  <div className="flex flex-col items-center justify-center py-8">
+                    <p className="text-3xl font-semibold text-foreground tracking-tight mb-6">
+                      {t.askTheAgent}
+                    </p>
+                    <div className="w-full max-w-md">
+                      <div className="relative bg-background rounded-2xl ring-1 ring-border/40 focus-within:ring-2 focus-within:ring-ring/50 transition-shadow">
+                        <textarea
+                          placeholder={t.agentInputPlaceholder}
+                          rows={2}
+                          className="w-full resize-none bg-transparent text-sm text-foreground placeholder:text-muted-foreground px-4 pt-3 pb-10 focus:outline-none rounded-2xl"
+                          onKeyDown={e => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                              e.preventDefault();
+                              handleCreateFromTemplate();
+                            }
+                          }}
+                        />
+                        <div className="absolute left-3 bottom-2">
+                          <button
+                            type="button"
+                            className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                            aria-label="attach"
+                          >
+                            <Plus size={14} />
+                          </button>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-end gap-1 mt-2">
+                        <button
+                          type="button"
+                          className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors px-2 py-1"
+                        >
+                          <Plus size={11} /> {t.addContext}
+                        </button>
                       </div>
                     </div>
-                  )}
+                  </div>
 
-                  {selected.system_prompt && (
-                    <div className="mt-4">
-                      <span className="text-[10px] text-muted-foreground block mb-1.5">系统提示词预览:</span>
-                      <div className="bg-muted/20 rounded-lg p-3 max-h-48 overflow-y-auto">
-                        <pre className="text-[10px] text-muted-foreground whitespace-pre-wrap font-mono leading-relaxed">
-                          {selected.system_prompt.slice(0, 500)}
-                          {selected.system_prompt.length > 500 ? '\n...' : ''}
-                        </pre>
-                      </div>
-                    </div>
-                  )}
+                  {/* Helper chips (Corti: What can you do? / Suggest prompt) */}
+                  <div className="flex items-center justify-center gap-4 pt-6 border-t border-border/40">
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      <Lightbulb size={12} />
+                      {t.whatCanYouDo}
+                    </button>
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      <Sparkles size={12} />
+                      {t.suggestPrompt}
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-6 flex flex-col items-center justify-center min-h-[300px]">
@@ -294,17 +324,9 @@ export default function NewAgentPage() {
                 </div>
               )}
 
-              {/* Info */}
-              <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-5">
-                <div className="flex items-start gap-3">
-                  <Sparkles size={16} className="text-muted-foreground shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-xs font-medium text-foreground mb-1">与AI智能体对话将消耗额度</p>
-                    <p className="text-[10px] text-muted-foreground">
-                      每条消息根据涉及的专家数量和响应复杂度消耗相应额度。
-                    </p>
-                  </div>
-                </div>
+              {/* Credit reminder (Corti bottom gray) */}
+              <div className="text-center pt-1">
+                <p className="text-[10px] text-muted-foreground/70">{t.messagingConsumesCredits}</p>
               </div>
             </div>
           </div>

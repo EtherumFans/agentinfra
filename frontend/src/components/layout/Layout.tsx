@@ -10,11 +10,11 @@ import OrgSwitcher from './OrgSwitcher';
 import { ErrorBoundary } from '../common/ErrorBoundary';
 import {
   PanelLeftClose, PanelLeft, Home, FlaskConical,
-  Mic, AlignLeft, Sparkles, ListTree, Asterisk, BrainCircuit,
+  Mic, AlignLeft, ListTree, Asterisk,
   KeyRound, Users, CreditCard, ChartNoAxesColumn, Settings,
   ArrowUpRight, Bell, BookOpen, RotateCcw,
   ChevronDown, Rocket, Layers, Folder, ChevronsUpDown, Database,
-  Terminal, Stethoscope, Users2, FileText, MessageSquare,
+  Bot, Users2, FileText, MessageSquare,
 } from 'lucide-react';
 
 const PROJECT_SLUG = 'icoder-medical-coding';
@@ -42,7 +42,7 @@ export default function Layout() {
   const [editingProjectName, setEditingProjectName] = useState(false);
   const navigate = useNavigate();
 
-  // Navigation matches iCoDer Console exactly
+  // Navigation matches Corti Console IA exactly
   const topItems = [
     { to: '/', label: t.home, icon: Home, end: true },
     { to: '/developer-quickstart', label: t.developerQuickstart, icon: Rocket },
@@ -54,14 +54,11 @@ export default function Layout() {
       items: [
         { to: '/ai-studio', label: t.overview, icon: FlaskConical, end: true },
         { to: '/ai-studio/agents', label: t.agents, icon: Layers },
+        { to: '/ai-studio/speech-to-text', label: t.speechToText, icon: Mic },
+        { to: '/ai-studio/text-generation', label: t.textGeneration, icon: AlignLeft },
+        { to: '/ai-studio/embedded-assistant', label: t.embeddedAssistant, icon: Bot },
         { to: '/ai-studio/fact-extraction', label: t.factExtraction, icon: ListTree },
         { to: '/ai-studio/medical-coding', label: t.medicalCoding, icon: Asterisk },
-      ],
-    },
-    {
-      name: 'Runtime',
-      items: [
-        { to: '/runtime/coding-review', label: 'Medical Coding', icon: Stethoscope, end: false },
       ],
     },
     {
@@ -69,19 +66,11 @@ export default function Layout() {
       items: [
         { to: '/api-clients', label: t.apiClients, icon: KeyRound },
         { to: '/team', label: t.team, icon: Users },
-        { to: '/customers', label: t.customersTitle, icon: Users2 },
-        { to: '/templates', label: t.templatesTitle, icon: FileText },
         { to: '/billing', label: t.billing, icon: CreditCard },
         { to: '/usage', label: t.usage, icon: ChartNoAxesColumn },
+        { to: '/customers', label: t.customersTitle, icon: Users2 },
+        { to: '/templates', label: t.templatesTitle, icon: FileText },
         { to: '/settings', label: t.settings, icon: Settings },
-      ],
-    },
-    {
-      name: t.data,
-      items: [
-        { to: '/gold-cases', label: t.goldCases, icon: Sparkles },
-        { to: '/evaluation', label: t.evaluation, icon: ChartNoAxesColumn },
-        { to: '/expert-library', label: t.expertLibrary, icon: BrainCircuit },
       ],
     },
     {

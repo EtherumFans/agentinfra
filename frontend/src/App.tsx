@@ -43,6 +43,9 @@ import MethodComparePage from './pages/MethodComparePage';
 //   - 工单 (tickets)          → /support (SupportPage)
 // Per the rule "不允许继续扩大 legacy 双路径", we do not recreate them.
 import ResetPasswordPage from './pages/ResetPasswordPage';
+import AgentHubPage from './pages/AgentHubPage';
+import RunTracePage from './pages/RunTracePage';
+import DoctorReportPage from './pages/DoctorReportPage';
 import ToastContainer from './components/common/Toast';
 
 
@@ -104,6 +107,9 @@ function App() {
         {/* V3.0 alias — /runtime/* (Runtime pane) */}
         <Route path="runtime" element={<RuntimeConsolePage />} />
         <Route path="runtime/console" element={<RuntimeConsolePage />} />
+        <Route path="runtime/agent-hub" element={<AgentHubPage />} />
+        <Route path="runtime/runs" element={<RunTracePage />} />
+        <Route path="runtime/doctor" element={<DoctorReportPage />} />
         <Route path="runtime/quality" element={<EvaluationPage />} />
         <Route path="runtime/shadow-eval" element={<EvaluationPage />} />
         <Route path="runtime/adjudicator" element={<RuntimeConsolePage />} />

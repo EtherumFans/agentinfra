@@ -14,6 +14,7 @@ import {
   KeyRound, Users, CreditCard, ChartNoAxesColumn, Settings,
   MessageSquare, ArrowUpRight, Bell,
   ChevronDown, Rocket, Layers, Folder, ChevronsUpDown, Database,
+  Terminal, Activity, Stethoscope,
 } from 'lucide-react';
 
 const PROJECT_SLUG = 'icoder-medical-coding';
@@ -55,6 +56,16 @@ export default function Layout() {
         { to: '/ai-studio/agents', label: t.agents, icon: Layers },
         { to: '/ai-studio/fact-extraction', label: t.factExtraction, icon: ListTree },
         { to: '/ai-studio/medical-coding', label: t.medicalCoding, icon: Asterisk },
+      ],
+    },
+    {
+      name: 'Runtime',
+      items: [
+        { to: '/runtime/agent-hub', label: 'Agent Hub', icon: Layers, end: false },
+        { to: '/runtime/runs', label: 'Run Trace', icon: Activity, end: false },
+        { to: '/runtime/doctor', label: 'Doctor Report', icon: Stethoscope, end: false },
+        { to: '/runtime/console', label: 'Runtime Console', icon: Terminal, end: false },
+        { to: '/runtime/coding-review', label: 'Medical Coding', icon: Stethoscope, end: false },
       ],
     },
     {

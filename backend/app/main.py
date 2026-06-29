@@ -793,6 +793,9 @@ from app.api.agent_evaluation import router as agent_eval_router
 from app.api.embedded import router as embedded_router
 from app.api.drg import router as drg_router
 from app.api.m2a import router as m2a_router
+from app.api.icoder_agents_hub import router as icoder_agents_hub_router
+from app.api.icoder_doctor import router as icoder_doctor_router
+from app.api.icoder_runs import router as icoder_runs_router
 from app.api.icoder_coding_review import router as icoder_coding_review_router
 from app.api.icoder_coding_methods import (
     router as icoder_coding_methods_router,
@@ -840,6 +843,10 @@ app.include_router(medical_docs_router)        # /api/medical-docs/*
 app.include_router(agent_eval_router)          # /api/agents/{id}/evaluate
 app.include_router(drg_router)                 # /api/drg/*
 app.include_router(m2a_router)                 # /api/m2a/* (M2a 技术闭环)
+app.include_router(icoder_agents_hub_router)    # /api/icoder/agents/* (P1.0-B Agent Hub)
+app.include_router(icoder_doctor_router)       # /api/icoder/doctor/* (P1.0-C Doctor)
+app.include_router(icoder_runs_router)         # /api/icoder/runs/* (P1.0-E Run Trace)
+# NOTE: P1.1-B icoder_registry_compat_router mounted in a follow-up commit.
 
 
 @app.get("/api/metrics")

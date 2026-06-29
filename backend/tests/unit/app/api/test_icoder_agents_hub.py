@@ -15,12 +15,18 @@ from __future__ import annotations
 
 import os
 import sys
+from urllib.parse import quote
 
 import pytest
 
 _BACKEND_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 if _BACKEND_ROOT not in sys.path:
     sys.path.insert(0, _BACKEND_ROOT)
+
+
+def _q(agent_ref: str) -> str:
+    """URL-encode an agent_ref the way the front-end does (encodeURIComponent)."""
+    return quote(agent_ref, safe="")
 
 
 # ── Fixtures ────────────────────────────────────────────────────────────────
@@ -72,7 +78,7 @@ class TestGetAgentCard:
         if not agents:
             pytest.skip("Registry not populated in this test environment")
         agent_ref = agents[0]["agent_ref"]
-        r = client.get(f"/api/icoder/agents/{agent_ref}/card")
+        r = client.get(f"/api/icoder/agents/{_q(agent_ref)}/card")
         assert r.status_code == 200
         body = r.json()
         assert "name" in body
@@ -93,7 +99,7 @@ class TestGetAgentHealth:
         if not agents:
             pytest.skip("Registry not populated")
         agent_ref = agents[0]["agent_ref"]
-        r = client.get(f"/api/icoder/agents/{agent_ref}/health")
+        r = client.get(f"/api/icoder/agents/{_q(agent_ref)}/health")
         assert r.status_code == 200
         body = r.json()
         # Required keys per the spec
@@ -120,7 +126,7 @@ class TestGetAgentRequirements:
         if not agents:
             pytest.skip("Registry not populated")
         agent_ref = agents[0]["agent_ref"]
-        r = client.get(f"/api/icoder/agents/{agent_ref}/requirements")
+        r = client.get(f"/api/icoder/agents/{_q(agent_ref)}/requirements")
         assert r.status_code == 200
         body = r.json()
         # Required keys
@@ -150,6 +156,6 @@ class TestFewShotFlagVisibility:
         if not agents:
             pytest.skip("Registry not populated")
         agent_ref = agents[0]["agent_ref"]
-        body = client.get(f"/api/icoder/agents/{agent_ref}/requirements").json()
+        body = client.get(f"/api/icoder/agents/{_q(agent_ref)}/requirements").json()
         names = [e["name"] for e in body["env_vars"]]
         assert "ICODER_EXPERIMENTAL_MEDCODER_FEWSHOT" in names

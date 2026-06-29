@@ -4,12 +4,19 @@ P1.0-B: 4 endpoints under /api/icoder/agents/* that consolidate the
 existing /api/runtime-platform/* and /api/runtime/agents/* surfaces
 into one discoverable namespace.
 
+P1.1-C: ``list_agents`` is now Loader-driven (returns all 16 packs on
+disk, with status / production_ready / registered cross-ref). The
+four per-agent endpoints (``/card``, ``/health``, ``/requirements``)
+still use the legacy ``RuntimeAgentRegistry`` for backward compatibility
+— they only answer for the 10 v1.1 registered packs. P1.1-G will
+extend them to metadata-only packs.
+
 Endpoints
 ---------
-GET /api/icoder/agents                    — list installed agents
-GET /api/icoder/agents/{agent_id}/card    — A2A v0.3 Agent Card
-GET /api/icoder/agents/{agent_id}/health  — per-agent runtime health
-GET /api/icoder/agents/{agent_id}/requirements — declared needs (assets, tools, env, permissions)
+GET /api/icoder/agents                    — list ALL packs (Loader + registry cross-ref)
+GET /api/icoder/agents/{agent_id}/card    — A2A v0.3 Agent Card (registry only)
+GET /api/icoder/agents/{agent_id}/health  — per-agent runtime health (registry only)
+GET /api/icoder/agents/{agent_id}/requirements — declared needs (registry only)
 
 Design rules
 ------------
@@ -19,18 +26,31 @@ Design rules
 * Unknown agent_id returns AGENT_NOT_FOUND (404, NOT 500/200-empty).
 * No fake data. If a dependency is missing, the field is null and the
   caller learns the truth.
+* list_agents never fails on a malformed pack — it surfaces the
+  status field so the front-end can render an honest badge.
 """
 from __future__ import annotations
 
 import logging
 import os
+from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
 
+from icoder_runtime.core.registry_status import (
+    AgentCompatibilityEntry,
+    compute_compatibility,
+)
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/icoder/agents", tags=["agent-hub"])
+
+
+def _official_agents_dir() -> Path:
+    # backend/app/api/icoder_agents_hub.py → backend/official_agents
+    return Path(__file__).resolve().parents[2] / "official_agents"
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────
@@ -79,12 +99,19 @@ def _resolve_agent_ref(agent_id: str) -> Any | None:
     except Exception:
         pass
     try:
-        # 3. Fallback: scan all and match by name or agent_ref substring
+        # 3. Fallback: scan all and match by name, agent_ref (top-level), or
+        # pack_data.agent_ref. The early Registry.install() path stored
+        # rec.agent_id as a Chinese name (e.g. "手术提取-1.0.0") and did not
+        # set rec.agent_ref — but pack_data.agent_ref (e.g. "icoder/...")
+        # was always written. P1.1-C: also match that.
         for r in reg.list_all():
+            pd = getattr(r, "pack_data", None) or {}
+            pd_ref = pd.get("agent_ref", "") if isinstance(pd, dict) else ""
             if (
                 getattr(r, "agent_id", "") == agent_id
                 or getattr(r, "agent_ref", "") == agent_id
                 or getattr(r, "name", "") == agent_id
+                or pd_ref == agent_id
             ):
                 return r
     except Exception:
@@ -93,7 +120,12 @@ def _resolve_agent_ref(agent_id: str) -> Any | None:
 
 
 def _agent_summary(rec: Any) -> dict[str, Any]:
-    """Render a registry record into the Agent Hub list summary."""
+    """Render a registry record into the Agent Hub list summary.
+
+    Legacy path used by the ``/card`` endpoint (registry-only). The
+    new ``list_agents`` endpoint (P1.1-C) uses :func:`_entry_to_summary`
+    instead, which renders from the Loader's NormalizedPack view.
+    """
     try:
         s = rec.to_summary()
     except Exception:
@@ -119,6 +151,39 @@ def _agent_summary(rec: Any) -> dict[str, Any]:
         s["experimental"] = None
         s["production_ready"] = None
     return s
+
+
+def _entry_to_summary(e: AgentCompatibilityEntry) -> dict[str, Any]:
+    """Render a Loader ``AgentCompatibilityEntry`` into the Hub list summary.
+
+    P1.1-C shape — every pack on disk gets a row, with the loader's
+    status (executable / metadata_only / invalid) and a ``registered``
+    cross-ref to the legacy RuntimeAgentRegistry.
+    """
+    tier_label = _TIER_LABELS.get(e.tier, f"Tier {e.tier} — Unknown")
+    # Map loader status to a stable string the front-end can switch on.
+    status = e.status if e.status in ("executable", "metadata_only", "invalid") else "unknown"
+    return {
+        "agent_ref": e.agent_ref,
+        "name": e.name,
+        "version": e.version,
+        "description": "",  # NormalizedPack surface does not carry description; card endpoint fills it in
+        "status": status,
+        "tier": e.tier,
+        "tier_label": tier_label,
+        "agent_type": e.agent_type,
+        "format_version": e.format_version,
+        "category": e.category,
+        "icon": e.icon,
+        "experimental": e.experimental,
+        "production_ready": e.production_ready,
+        "enabled_by_default": e.enabled_by_default,
+        "registered": e.registered,
+        "registry_agent_id": e.registry_agent_id,
+        "expert_count": e.expert_count,
+        "tool_count": e.tool_count,
+        "source_path": e.source_path,
+    }
 
 
 # ── Raw-pack helpers (no AgentPackageV1 validation) ────────────────────────
@@ -167,24 +232,50 @@ def _permissions_from_raw_pack(raw_pack: dict) -> dict:
 
 @router.get("")
 async def list_agents() -> dict[str, Any]:
-    """List agents discoverable on this Runtime.
+    """List all agent packs discoverable on this Runtime (P1.1-C).
 
-    Returns a minimal envelope. Frontend Agent Hub page iterates ``agents``
-    and shows name + tier + status. The detailed /card and /requirements
-    endpoints fill in on click.
+    Loader-driven: returns every pack on disk (16 on this checkout),
+    with a ``registered`` cross-ref to the legacy RuntimeAgentRegistry.
+    Front-end switches on the ``status`` field (executable /
+    metadata_only / invalid) to render a status badge.
+
+    Registry cross-ref is best-effort: a missing registry (server not
+    fully booted) does NOT cause an error — entries just get
+    ``registered=False``. The ``registry_status`` envelope field
+    reflects whether the cross-ref ran.
     """
-    reg = _get_registry()
-    if not reg:
-        return {"agents": [], "total": 0, "registry_status": "not_initialized"}
-    records = reg.list_all()
+    registry = _get_registry()
+    try:
+        report = compute_compatibility(_official_agents_dir(), registry=registry)
+    except Exception as e:
+        logger.warning("list_agents: compute_compatibility failed: %s", e)
+        return {
+            "agents": [],
+            "total": 0,
+            "registry_status": "loader_error",
+            "loader_error": str(e),
+        }
+    agents = [_entry_to_summary(e) for e in report.entries]
+    # Stable ordering: executable first (alphabetical), then metadata_only,
+    # then invalid — easier for the user to scan the Hub list.
+    order = {"executable": 0, "metadata_only": 1, "invalid": 2}
+    agents.sort(key=lambda a: (order.get(a["status"], 9), a["name"]))
     return {
-        "agents": [_agent_summary(r) for r in records],
-        "total": len(records),
-        "registry_status": "ok",
+        "agents": agents,
+        "total": len(agents),
+        "registry_status": "ok" if registry is not None else "registry_not_initialized",
+        "summary": {
+            "total_discovered": report.total_discovered,
+            "total_registered": report.total_registered,
+            "executable": report.by_status.get("executable", 0),
+            "metadata_only": report.metadata_only,
+            "invalid": report.invalid,
+            "production_ready": report.production_ready,
+        },
     }
 
 
-@router.get("/{agent_id}/card")
+@router.get("/{agent_id:path}/card")
 async def get_agent_card(agent_id: str) -> dict[str, Any]:
     """Return the A2A v0.3 Agent Card for one agent.
 
@@ -288,7 +379,7 @@ async def get_agent_card(agent_id: str) -> dict[str, Any]:
     }
 
 
-@router.get("/{agent_id}/health")
+@router.get("/{agent_id:path}/health")
 async def get_agent_health(agent_id: str) -> dict[str, Any]:
     """Return per-agent runtime health.
 
@@ -403,7 +494,7 @@ async def get_agent_health(agent_id: str) -> dict[str, Any]:
     return health
 
 
-@router.get("/{agent_id}/requirements")
+@router.get("/{agent_id:path}/requirements")
 async def get_agent_requirements(agent_id: str) -> dict[str, Any]:
     """Return the assets, tools, models, env vars, and permissions an agent needs.
 

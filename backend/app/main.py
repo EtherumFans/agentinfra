@@ -848,6 +848,8 @@ app.include_router(icoder_doctor_router)       # /api/icoder/doctor/* (P1.0-C Do
 app.include_router(icoder_runs_router)         # /api/icoder/runs/* (P1.0-E Run Trace)
 from app.api.icoder_registry_compat import router as icoder_registry_compat_router  # P1.1-B
 app.include_router(icoder_registry_compat_router)  # /api/icoder/registry/* (P1.1-B Registry Compat)
+from app.api.icoder_agents_compat import router as icoder_agents_compat_router  # P1.1-C
+app.include_router(icoder_agents_compat_router)  # /api/icoder/agents/{id}/{validation,compatibility} (P1.1-C)
 
 
 @app.get("/api/metrics")

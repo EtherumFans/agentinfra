@@ -21,11 +21,11 @@
 | Manage | Team | iCoDer 有 TeamPage | |
 | Manage | Billing | iCoDer 有 BillingPage | |
 | Manage | Usage | iCoDer 有 UsagePage | |
-| Manage | Customers | iCoDer **没有** | 待 walk 看是否需要 |
-| Manage | Templates (Beta) | iCoDer **没有** | 待 walk 看是否需要 |
+| Manage | **Customers** | iCoDer 有 CustomersPage (Loop 1 落地) | 嵌入式 Assistant 下游 end-user 管理;region 扩 CN |
+| Manage | Templates (Beta) | iCoDer **没有** | 待 walk — Loop 2 |
 | Manage | Settings | iCoDer 有 SettingsPage | |
 | Support | Get Help | iCoDer 有 SupportPage | |
-| Support | Tickets Portal | iCoDer **没有** | 待 walk |
+| Support | Tickets Portal | iCoDer **没有** | 待 walk — Loop 9 |
 
 ## Project Home 页面(`/project/<id>`) — 顶部 4 tabs
 

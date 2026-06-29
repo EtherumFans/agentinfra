@@ -403,6 +403,28 @@ export interface LocaleDict {
   recentActivity: string;
   requests: string;
 
+  // Customers (Embedded Assistant end-user mgmt — Corti parity)
+  customersTitle: string;
+  customersDesc: string;
+  addCustomer: string;
+  searchCustomerPlaceholder: string;
+  clearFilters: string;
+  customerColName: string;
+  customerColNfr: string;
+  customerColRegion: string;
+  customerColCustomerId: string;
+  customerColCreated: string;
+  customerColActions: string;
+  customerIdSuffix: string;
+  customerIdSuffixHelp: string;
+  customerRegionUs: string;
+  customerRegionEu: string;
+  customerRegionCn: string;
+  customerNoData: string;
+  customerDeleteConfirm: string;
+  customerDeleteSuccess: string;
+  customerCreateSuccess: string;
+
   // Settings
   settingsTitle: string;
   account: string;
@@ -1127,6 +1149,28 @@ const zhCN: LocaleDict = {
   avgResponseTime: '平均响应时间',
   recentActivity: '最近活动',
   requests: '请求',
+
+  // Customers
+  customersTitle: '客户',
+  customersDesc: '管理 Embedded Assistant 的下游客户与终端用户',
+  addCustomer: '新建客户',
+  searchCustomerPlaceholder: '按名称 / Customer ID / Region / Tenant 搜索',
+  clearFilters: '清除筛选',
+  customerColName: '名称',
+  customerColNfr: 'NFR',
+  customerColRegion: '区域',
+  customerColCustomerId: 'Customer ID',
+  customerColCreated: '创建时间',
+  customerColActions: '操作',
+  customerIdSuffix: 'Customer ID 后缀',
+  customerIdSuffixHelp: '支持字母、数字、-、_（最多 64 字符）',
+  customerRegionUs: '美国',
+  customerRegionEu: '欧洲',
+  customerRegionCn: '中国',
+  customerNoData: '未找到客户',
+  customerDeleteConfirm: '确定删除该客户？此操作不可撤销。',
+  customerDeleteSuccess: '客户已删除',
+  customerCreateSuccess: '客户已创建',
 
   // Settings
   settingsTitle: '设置',
@@ -1870,6 +1914,28 @@ const enUS: LocaleDict = {
   avgResponseTime: 'Avg Response Time',
   recentActivity: 'Recent Activity',
   requests: 'requests',
+
+  // Customers
+  customersTitle: 'Customers',
+  customersDesc: 'Manage your customers and end-users for Embedded Assistant.',
+  addCustomer: 'Add customer',
+  searchCustomerPlaceholder: 'Search by name, customer ID, region, or tenant',
+  clearFilters: 'Clear Filters',
+  customerColName: 'Name',
+  customerColNfr: 'NFR',
+  customerColRegion: 'Region',
+  customerColCustomerId: 'Customer ID',
+  customerColCreated: 'Created',
+  customerColActions: 'Actions',
+  customerIdSuffix: 'Customer ID Suffix',
+  customerIdSuffixHelp: 'Alphanumeric, dash, or underscore (max 64 chars).',
+  customerRegionUs: 'United States',
+  customerRegionEu: 'European Union',
+  customerRegionCn: 'China',
+  customerNoData: 'No customers found',
+  customerDeleteConfirm: 'Delete this customer? This cannot be undone.',
+  customerDeleteSuccess: 'Customer deleted',
+  customerCreateSuccess: 'Customer created',
 
   // Settings
   settingsTitle: 'Settings',

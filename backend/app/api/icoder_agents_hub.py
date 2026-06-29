@@ -5,18 +5,29 @@ existing /api/runtime-platform/* and /api/runtime/agents/* surfaces
 into one discoverable namespace.
 
 P1.1-C: ``list_agents`` is now Loader-driven (returns all 16 packs on
-disk, with status / production_ready / registered cross-ref). The
-four per-agent endpoints (``/card``, ``/health``, ``/requirements``)
-still use the legacy ``RuntimeAgentRegistry`` for backward compatibility
-— they only answer for the 10 v1.1 registered packs. P1.1-G will
-extend them to metadata-only packs.
+disk, with status / production_ready / registered cross-ref).
+
+P1.1-D: the three per-agent endpoints (``/card``, ``/health``,
+``/requirements``) now answer for ALL 16 packs, not just the 10 in
+the legacy ``RuntimeAgentRegistry``. Resolution order:
+
+  1. Legacy RuntimeAgentRegistry — full A2A / health / requirements
+     envelope (unchanged for already-registered packs; preserves the
+     medcoder-coding-review / medical-coding-agent canonical card).
+  2. Loader-compat report — for ``metadata_only`` packs on disk that
+     have NOT been installed in the legacy registry. Same envelope
+     shape, with ``metadata.icoder.status = "metadata_only"`` so the
+     front-end can render a "Why not executable?" badge.
+  3. 404 ``AGENT_NOT_LOADABLE`` if the loader classifies the pack as
+     ``INVALID`` (broken agent_pack.json / missing required fields).
+  4. 404 ``AGENT_NOT_FOUND`` if the pack is not on disk at all.
 
 Endpoints
 ---------
 GET /api/icoder/agents                    — list ALL packs (Loader + registry cross-ref)
-GET /api/icoder/agents/{agent_id}/card    — A2A v0.3 Agent Card (registry only)
-GET /api/icoder/agents/{agent_id}/health  — per-agent runtime health (registry only)
-GET /api/icoder/agents/{agent_id}/requirements — declared needs (registry only)
+GET /api/icoder/agents/{agent_id}/card    — A2A v0.3 Agent Card (registry + metadata_only)
+GET /api/icoder/agents/{agent_id}/health  — per-agent runtime health (registry + metadata_only)
+GET /api/icoder/agents/{agent_id}/requirements — declared needs (registry + metadata_only)
 
 Design rules
 ------------
@@ -24,6 +35,9 @@ Design rules
   MedCodER index health, MCP tool registry). This router is a thin
   consolidation layer, not a parallel implementation.
 * Unknown agent_id returns AGENT_NOT_FOUND (404, NOT 500/200-empty).
+* Invalid pack on disk returns AGENT_NOT_LOADABLE (404) with
+  validation_errors + why_not_executable in detail, so the front-end
+  can diagnose without re-running the Loader.
 * No fake data. If a dependency is missing, the field is null and the
   caller learns the truth.
 * list_agents never fails on a malformed pack — it surfaces the
@@ -31,6 +45,7 @@ Design rules
 """
 from __future__ import annotations
 
+import json
 import logging
 import os
 from pathlib import Path
@@ -117,6 +132,43 @@ def _resolve_agent_ref(agent_id: str) -> Any | None:
     except Exception:
         pass
     return None
+
+
+def _find_loader_entry(agent_id: str) -> AgentCompatibilityEntry | None:
+    """Look up ``agent_id`` in the Loader-compat report.
+
+    P1.1-D fallback for the per-agent endpoints: when an agent is on
+    disk but not in the legacy RuntimeAgentRegistry, the Loader-compat
+    report (built by :func:`compute_compatibility`) still has an
+    ``AgentCompatibilityEntry`` for it. Returns that entry, or None if
+    the pack is not on disk at all.
+    """
+    try:
+        report = compute_compatibility(_official_agents_dir(), registry=_get_registry())
+    except Exception as e:
+        logger.warning("_find_loader_entry: compute_compatibility failed: %s", e)
+        return None
+    for e in report.entries:
+        if e.agent_ref == agent_id:
+            return e
+    return None
+
+
+def _read_raw_pack_for_entry(entry: AgentCompatibilityEntry) -> dict[str, Any]:
+    """Read the raw agent_pack.json for a metadata_only Loader entry.
+
+    The Loader entry surfaces a curated subset of fields; rendering the
+    A2A / requirements envelopes needs the full raw pack (experts,
+    tools, manifest). The entry's ``source_path`` points at the
+    agent_pack.json file.
+    """
+    try:
+        sp = Path(entry.source_path or "")
+        if sp.is_file():
+            return json.loads(sp.read_text(encoding="utf-8"))
+    except Exception as e:
+        logger.warning("Failed to read raw pack for %s: %s", entry.agent_ref, e)
+    return {}
 
 
 def _agent_summary(rec: Any) -> dict[str, Any]:
@@ -227,6 +279,320 @@ def _permissions_from_raw_pack(raw_pack: dict) -> dict:
     }
 
 
+def _raise_agent_not_found(agent_id: str) -> None:
+    raise HTTPException(
+        status_code=404,
+        detail={
+            "error_code": "AGENT_NOT_FOUND",
+            "agent_id": agent_id,
+            "message": f"Agent not found: {agent_id}",
+        },
+    )
+
+
+def _raise_agent_not_loadable(agent_id: str, entry: AgentCompatibilityEntry) -> None:
+    raise HTTPException(
+        status_code=404,
+        detail={
+            "error_code": "AGENT_NOT_LOADABLE",
+            "agent_id": agent_id,
+            "validation_errors": list(entry.validation_errors),
+            "why_not_executable": list(entry.why_not_executable),
+            "message": f"Agent pack is not loadable: {agent_id}",
+        },
+    )
+
+
+def _render_card_from_loader_entry(
+    entry: AgentCompatibilityEntry, agent_id: str
+) -> dict[str, Any]:
+    """Render the A2A v0.3 Agent Card for a metadata_only pack.
+
+    Same envelope shape as the registry-driven case, with
+    ``metadata.icoder.status = "metadata_only"`` and
+    ``production_ready = False`` so the front-end can render an honest
+    "not runnable" badge. Reads the raw pack from disk
+    (``entry.source_path``) to access ``experts[]`` / ``tools[]`` /
+    ``manifest``.
+    """
+    raw_pack = _read_raw_pack_for_entry(entry)
+    manifest = raw_pack.get("manifest", {}) if isinstance(raw_pack, dict) else {}
+    experts = raw_pack.get("experts", []) if isinstance(raw_pack, dict) else []
+    tools = raw_pack.get("tools", []) if isinstance(raw_pack, dict) else []
+
+    skills: list[dict] = []
+    for expert in experts:
+        if not isinstance(expert, dict):
+            continue
+        skills.append({
+            "id": expert.get("id", "") or expert.get("expert_id", ""),
+            "name": expert.get("name", ""),
+            "description": expert.get("description", ""),
+            "inputSchema": {},
+            "outputSchema": {},
+        })
+    for tool in tools:
+        if isinstance(tool, str):
+            skills.append({
+                "id": tool, "name": tool, "description": "",
+                "inputSchema": {}, "outputSchema": {},
+            })
+            continue
+        if not isinstance(tool, dict):
+            continue
+        skills.append({
+            "id": tool.get("id", "") or tool.get("name", "") or tool.get("ref", ""),
+            "name": tool.get("name", "") or tool.get("id", ""),
+            "description": tool.get("description", ""),
+            "inputSchema": {},
+            "outputSchema": {},
+        })
+
+    return {
+        "name": manifest.get("name", "") or entry.name,
+        "description": manifest.get("description", ""),
+        "version": manifest.get("version", "") or entry.version,
+        "provider": {"name": "iCoDer", "url": "https://icoder.cloud"},
+        "capabilities": {
+            "streaming": False,
+            "pushNotifications": False,
+            "stateTransitionHistory": True,
+            "extensions": [],
+        },
+        "skills": skills,
+        "defaultInputModes": ["text"],
+        "defaultOutputModes": ["text", "data"],
+        "securitySchemes": [
+            {"type": "apiKey", "description": "iCoDer API Client key"}
+        ],
+        "metadata": {
+            "icoder": {
+                "agent_ref": entry.agent_ref,
+                "tier": entry.tier,
+                "experimental": entry.experimental,
+                "production_ready": False,  # metadata_only is never production-ready
+                "status": "metadata_only",
+                "why_not_executable": list(entry.why_not_executable),
+            }
+        },
+    }
+
+
+def _render_health_from_loader_entry(
+    entry: AgentCompatibilityEntry, agent_id: str
+) -> dict[str, Any]:
+    """Render the runtime health envelope for a metadata_only pack.
+
+    Same global runtime checks (FAISS / LLM / MCP / recorder) as the
+    registry case — those reflect the runtime, not the specific pack —
+    but the registry field is overridden to ``available: false,
+    reason: "metadata_only"`` and the overall status is
+    ``"metadata_only"`` (a new value: not ready to run, but the
+    runtime is fine).
+    """
+    state = _get_app_state()
+    ref = entry.agent_ref or ""
+    is_medcoder = ("medcoder" in ref.lower()) or ("medical-coding" in ref.lower())
+
+    health: dict[str, Any] = {
+        "agent_id": agent_id,
+        "registry": {"available": False, "reason": "metadata_only"},
+        "faiss_index": {"available": False, "applies_to": is_medcoder},
+        "llm_provider": {"available": False},
+        "mcp_tools": {"available": False},
+        "recorder": {"available": False},
+        "overall": "unknown",
+    }
+
+    # ── FAISS index (MedCodER only) ──
+    if is_medcoder and state is not None:
+        try:
+            ready = getattr(state, "medcoder_index_ready", False)
+            err = getattr(state, "medcoder_index_error", None)
+            loading = getattr(state, "medcoder_index_loading", False)
+            health["faiss_index"] = {
+                "available": bool(ready),
+                "ready": bool(ready),
+                "loading": bool(loading),
+                "error": err,
+                "applies_to": True,
+            }
+        except Exception:
+            pass
+
+    # ── LLM provider ──
+    if state is not None:
+        try:
+            gateway = getattr(state, "platform_gateway", None)
+            if gateway is not None:
+                providers = gateway.list_providers()
+                deepseek = providers.get("deepseek", {})
+                health["llm_provider"] = {
+                    "available": deepseek.get("status") == "configured",
+                    "status": deepseek.get("status", "unknown"),
+                    "model": deepseek.get("model", "unknown"),
+                    "provider": "deepseek",
+                }
+        except Exception:
+            pass
+
+    # ── MCP tools ──
+    try:
+        from app.icoder.mcp.tool_registry import TOOL_REGISTRY
+
+        health["mcp_tools"] = {
+            "available": True,
+            "registered": sorted(TOOL_REGISTRY.keys()),
+            "count": len(TOOL_REGISTRY),
+        }
+    except Exception:
+        pass
+
+    # ── Recorder ──
+    if state is not None:
+        recorder = getattr(state, "m2a_recorder", None)
+        if recorder is not None:
+            health["recorder"] = {
+                "available": True,
+                "active": bool(recorder.is_active()),
+            }
+        else:
+            history = getattr(state, "run_history", None)
+            health["recorder"] = {
+                "available": history is not None,
+                "kind": "m2a" if recorder is not None else "legacy",
+            }
+
+    # metadata_only always blocks the pack from being runnable, regardless
+    # of the global runtime state.
+    health["overall"] = "metadata_only"
+    health["blockers"] = [
+        "agent is metadata_only — not registered with legacy RuntimeAgentRegistry"
+    ]
+    return health
+
+
+def _render_requirements_from_loader_entry(
+    entry: AgentCompatibilityEntry, agent_id: str
+) -> dict[str, Any]:
+    """Render the requirements envelope for a metadata_only pack.
+
+    Reads the raw pack from disk (``entry.source_path``). Mirrors the
+    registry-path rendering, with two differences:
+    * ``production_ready = False`` (always — metadata_only is never
+      production-ready).
+    * ``files = []`` (suppress the MedCodER filesystem probe — the
+      pack is not runnable, so checking whether ``data/medcoder/``
+      has the index files is not actionable here).
+    """
+    raw_pack = _read_raw_pack_for_entry(entry)
+    if not isinstance(raw_pack, dict):
+        # Couldn't read the pack from disk — surface as best we can.
+        return {
+            "agent_id": agent_id,
+            "agent_ref": entry.agent_ref,
+            "format_version": entry.format_version,
+            "agent_type": entry.agent_type,
+            "tier": entry.tier,
+            "tier_label": _TIER_LABELS.get(entry.tier, f"Tier {entry.tier} — Unknown"),
+            "experimental": entry.experimental,
+            "production_ready": False,
+            "permissions": {},
+            "files": [],
+            "mcp_tools": [],
+            "env_vars": [],
+            "experts": [],
+            "requirements": {},
+            "human_review_required_when": [],
+        }
+
+    tier = _tier_from_raw_pack(raw_pack)
+    agent_type = raw_pack.get("agent_type", "")
+    pack_format_version = raw_pack.get("format_version", "")
+    raw_experts = raw_pack.get("experts") or []
+    raw_tools = raw_pack.get("tools") or []
+    raw_reqs = raw_pack.get("requirements") or {}
+    raw_permissions = _permissions_from_raw_pack(raw_pack)
+    raw_human_review = raw_pack.get("human_review_required_when") or []
+
+    # ── MCP tools referenced by this agent ──
+    mcp_tools_required: list[dict[str, Any]] = []
+    try:
+        from app.icoder.mcp.tool_registry import TOOL_REGISTRY
+
+        registered = set(TOOL_REGISTRY.keys())
+        for tool in raw_tools:
+            if isinstance(tool, str):
+                mcp_tools_required.append(
+                    {"name": tool, "description": "", "registered": tool in registered, "stage": ""}
+                )
+                continue
+            if not isinstance(tool, dict):
+                continue
+            name = tool.get("name") or tool.get("id") or tool.get("ref", "")
+            mcp_tools_required.append(
+                {
+                    "name": name,
+                    "description": tool.get("description", ""),
+                    "registered": name in registered,
+                    "stage": tool.get("stage", ""),
+                }
+            )
+    except Exception:
+        pass
+
+    # ── Env vars (LLM + feature flags) — same hard-coded list as the
+    # registry path; the question "which env vars does this agent need?"
+    # applies to metadata_only packs too (so the doctor can warn about
+    # ICODER_EXPERIMENTAL_MEDCODER_FEWSHOT etc. even for stub packs). ──
+    env_vars_required: list[dict[str, Any]] = []
+    env_var_names = [
+        ("ICODER_CREDENTIAL_LLM", "DeepSeek API key (LLM provider)"),
+        ("LLM_BASE_URL", "DeepSeek base URL"),
+        ("LLM_MODEL", "LLM model name"),
+        ("MEDCODER_BGE_DTYPE", "BGE-M3 dtype (float16/float32/bfloat16)"),
+        ("MEDCODER_BGE_DEVICE", "BGE-M3 device (cpu/cuda)"),
+        ("MEDCODER_SUBPROCESS", "Force subprocess retriever (1/0)"),
+        (
+            "ICODER_EXPERIMENTAL_MEDCODER_FEWSHOT",
+            "E1.8 Stage 1 few-shot (P1.0-A: default off)",
+        ),
+    ]
+    for name, desc in env_var_names:
+        env_vars_required.append(
+            {
+                "name": name,
+                "description": desc,
+                "set": name in os.environ,
+                "value": (
+                    "<redacted>" if "CREDENTIAL" in name or "KEY" in name
+                    else os.environ.get(name, "")
+                ),
+            }
+        )
+
+    return {
+        "agent_id": agent_id,
+        "agent_ref": entry.agent_ref,
+        "format_version": pack_format_version,
+        "agent_type": agent_type,
+        "tier": tier,
+        "tier_label": _TIER_LABELS.get(tier, f"Tier {tier} — Unknown"),
+        "experimental": entry.experimental,
+        "production_ready": False,  # metadata_only is never production-ready
+        "permissions": raw_permissions,
+        "files": [],  # suppress MedCodER probe for non-runnable packs
+        "mcp_tools": mcp_tools_required,
+        "env_vars": env_vars_required,
+        "experts": [
+            {"id": e.get("id"), "role": e.get("role")}
+            for e in raw_experts if isinstance(e, dict)
+        ],
+        "requirements": raw_reqs,
+        "human_review_required_when": raw_human_review,
+    }
+
+
 # ── Endpoints ──────────────────────────────────────────────────────────────
 
 
@@ -279,22 +645,26 @@ async def list_agents() -> dict[str, Any]:
 async def get_agent_card(agent_id: str) -> dict[str, Any]:
     """Return the A2A v0.3 Agent Card for one agent.
 
-    * If the agent is ``icoder/medcoder-coding-review-agent@1.0.0``, returns
-      the canonical ``medcoder_coding_review_card()`` (A2A SPEC §8).
-    * Otherwise returns a synthesized card derived from the agent pack's
-      manifest + skills (so marketplace-discoverable agents always have a
-      card, even pre-A2A Discovery completion).
+    P1.1-D resolution order (see module docstring):
+    1. Legacy RuntimeAgentRegistry — full A2A card. Includes the
+       canonical ``medcoder_coding_review_card()`` for the medcoder /
+       medical-coding refs.
+    2. Loader-compat ``metadata_only`` entry — synthesized A2A envelope
+       with ``metadata.icoder.status = "metadata_only"``.
+    3. 404 ``AGENT_NOT_LOADABLE`` if the loader classifies the pack as
+       ``INVALID`` (broken agent_pack.json / missing required fields).
+    4. 404 ``AGENT_NOT_FOUND`` if the pack is not on disk at all.
     """
     rec = _resolve_agent_ref(agent_id)
     if not rec:
-        raise HTTPException(
-            status_code=404,
-            detail={
-                "error_code": "AGENT_NOT_FOUND",
-                "agent_id": agent_id,
-                "message": f"Agent not found: {agent_id}",
-            },
-        )
+        # P1.1-D fallback: consult the Loader-compat surface so metadata_only
+        # packs on disk return a card instead of 404.
+        entry = _find_loader_entry(agent_id)
+        if entry is not None and entry.status == "invalid":
+            _raise_agent_not_loadable(agent_id, entry)
+        if entry is not None and entry.status == "metadata_only":
+            return _render_card_from_loader_entry(entry, agent_id)
+        _raise_agent_not_found(agent_id)
 
     # Try canonical A2A factory first.
     try:
@@ -384,25 +754,30 @@ async def get_agent_health(agent_id: str) -> dict[str, Any]:
     """Return per-agent runtime health.
 
     Aggregates:
-    * Registry presence
+    * Registry presence (P1.1-D: false for metadata_only packs, true for
+      registered packs)
     * MedCodER FAISS index readiness (only for MedCodER agents)
     * LLM provider configuration (DeepSeek status from gateway)
     * MCP tools reachability (for agents that declare MCP tool refs)
     * run_trace recorder presence (for agents with recorder_required)
+
+    P1.1-D resolution order is the same as ``/card``. INVALID packs
+    return 404 ``AGENT_NOT_LOADABLE``; metadata_only packs return
+    200 with ``registry.available = false`` and
+    ``overall = "metadata_only"``.
 
     No fake data: missing dependencies surface as ``"available": false``
     so the Agent Hub UI can render an honest status badge.
     """
     rec = _resolve_agent_ref(agent_id)
     if not rec:
-        raise HTTPException(
-            status_code=404,
-            detail={
-                "error_code": "AGENT_NOT_FOUND",
-                "agent_id": agent_id,
-                "message": f"Agent not found: {agent_id}",
-            },
-        )
+        # P1.1-D fallback: same resolution order as /card.
+        entry = _find_loader_entry(agent_id)
+        if entry is not None and entry.status == "invalid":
+            _raise_agent_not_loadable(agent_id, entry)
+        if entry is not None and entry.status == "metadata_only":
+            return _render_health_from_loader_entry(entry, agent_id)
+        _raise_agent_not_found(agent_id)
 
     state = _get_app_state()
     ref = getattr(rec, "agent_ref", "") or ""
@@ -503,20 +878,25 @@ async def get_agent_requirements(agent_id: str) -> dict[str, Any]:
     * icoder_doctor.py → "Are all required assets present?"
     * Onboarding docs → which env vars to set, which files to provide.
 
+    P1.1-D resolution order is the same as ``/card``. INVALID packs
+    return 404 ``AGENT_NOT_LOADABLE``; metadata_only packs return
+    200 with ``production_ready = false`` and ``files = []`` (the
+    MedCodER filesystem probe is suppressed — the pack is not runnable
+    so we don't bother checking whether the index files are present).
+
     No fake data: missing files / unconfigured env vars are returned as
     ``"present": false``. The doctor script is responsible for FAIL/WARN
     on these.
     """
     rec = _resolve_agent_ref(agent_id)
     if not rec:
-        raise HTTPException(
-            status_code=404,
-            detail={
-                "error_code": "AGENT_NOT_FOUND",
-                "agent_id": agent_id,
-                "message": f"Agent not found: {agent_id}",
-            },
-        )
+        # P1.1-D fallback: same resolution order as /card.
+        entry = _find_loader_entry(agent_id)
+        if entry is not None and entry.status == "invalid":
+            _raise_agent_not_loadable(agent_id, entry)
+        if entry is not None and entry.status == "metadata_only":
+            return _render_requirements_from_loader_entry(entry, agent_id)
+        _raise_agent_not_found(agent_id)
 
     # Read raw pack_data — discovery path must work even for packs that
     # fail AgentPackageV1.from_dict validation (e.g., format_version 1.2,

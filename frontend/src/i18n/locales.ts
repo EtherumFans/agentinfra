@@ -150,6 +150,11 @@ export interface LocaleDict {
   searchAgents: string;
   noAgents: string;
   createAgent: string;
+  createAgentSubtitle: string;
+  askTheAgent: string;
+  agentInputPlaceholder: string;
+  messagingConsumesCredits: string;
+  customizeAgent: string;
   creatingAgent: string;
   noMyAgents: string;
   noMyAgentsHint: string;
@@ -977,6 +982,11 @@ const zhCN: LocaleDict = {
   searchAgents: '搜索AI智能体...',
   noAgents: '暂无AI智能体',
   createAgent: '创建AI智能体',
+  createAgentSubtitle: '构建医疗AI智能体，在您的业务系统中执行任务',
+  askTheAgent: '咨询AI智能体...',
+  agentInputPlaceholder: '我可以帮您什么？',
+  messagingConsumesCredits: '与AI智能体对话将消耗额度',
+  customizeAgent: '自定义智能体',
   creatingAgent: '创建中...',
   noMyAgents: '还没有AI智能体',
   noMyAgentsHint: '创建您的第一个AI智能体，或从预置模板快速开始',
@@ -1822,6 +1832,11 @@ const enUS: LocaleDict = {
   searchAgents: 'Search agents...',
   noAgents: 'No agents found',
   createAgent: 'Create an agent',
+  createAgentSubtitle: 'Build healthcare agents to take action across your systems',
+  askTheAgent: 'Ask the agent...',
+  agentInputPlaceholder: 'What can I help you with?',
+  messagingConsumesCredits: 'Messaging an agent consumes credits',
+  customizeAgent: 'Customize agent',
   creatingAgent: 'Creating...',
   noMyAgents: 'No agents yet',
   noMyAgentsHint: 'Create your first agent or start from a prebuilt template',

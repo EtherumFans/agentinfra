@@ -1,5 +1,7 @@
 // iCoDer Usage Page — connected to real backend
-import { Activity, Loader2, ChevronDown } from 'lucide-react';
+// Corti IA: header + period segmented control + 3 metric cards (with
+// icons + prev-period comparison line) + activity history list
+import { Activity, Loader2, ChevronDown, BarChart3, Zap, Clock } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import { useT } from '../i18n';
 import { usageApi, oauthApi } from '../services/api';
@@ -80,23 +82,25 @@ export default function UsagePage() {
         <p className="text-sm text-muted-foreground">{t.usageDesc}</p>
       </div>
 
-      {/* Period selector + API client filter — iCoDer-style */}
-      <div className="flex items-center gap-2 mb-6 flex-wrap">
-        {[7, 30, 90].map((d) => (
-          <button
-            key={d}
-            onClick={() => setDays(d)}
-            className={`px-3 py-1 text-xs rounded-full border transition-colors ${
-              days === d
-                ? 'bg-primary text-primary-foreground border-primary'
-                : 'border-border/20 text-muted-foreground hover:bg-accent'
-            }`}
-          >
-            {d}d
-          </button>
-        ))}
+      {/* Period selector (segmented control) + API client filter + compare toggle */}
+      <div className="flex items-center gap-3 mb-6 flex-wrap">
+        <div className="inline-flex items-center rounded-lg border border-border/20 bg-background p-0.5">
+          {[7, 30, 90].map((d) => (
+            <button
+              key={d}
+              onClick={() => setDays(d)}
+              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                days === d
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {d}d
+            </button>
+          ))}
+        </div>
         {apiClients.length > 0 && (
-          <div className="relative ml-2">
+          <div className="relative">
             <select
               value={apiClientFilter}
               onChange={e => setApiClientFilter(e.target.value)}
@@ -110,7 +114,7 @@ export default function UsagePage() {
             <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
           </div>
         )}
-        <div className="flex items-center gap-1.5 ml-3">
+        <div className="flex items-center gap-1.5 ml-auto">
           <input
             type="checkbox"
             id="compare-period"
@@ -124,10 +128,15 @@ export default function UsagePage() {
         </div>
       </div>
 
-      {/* Summary cards with comparison */}
-      <div className="grid grid-cols-3 gap-4 max-w-2xl mb-8">
-        <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-4">
-          <p className="text-xs text-muted-foreground mb-1">{t.totalRequests}</p>
+      {/* Summary cards with comparison (Corti-style: icon + label + value + sub) */}
+      <div className="grid grid-cols-3 gap-4 max-w-3xl mb-8">
+        <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-5">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-7 h-7 rounded-md bg-primary/10 text-primary flex items-center justify-center">
+              <BarChart3 size={14} />
+            </div>
+            <p className="text-xs text-muted-foreground">{t.totalRequests}</p>
+          </div>
           <p className="text-2xl font-bold font-mono text-foreground">{summary?.total_requests ?? 0}</p>
           <p className="text-xs text-muted-foreground mt-1">过去 {days} 天</p>
           {compareSummary && (
@@ -139,8 +148,13 @@ export default function UsagePage() {
             />
           )}
         </div>
-        <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-4">
-          <p className="text-xs text-muted-foreground mb-1">{t.creditsUsed}</p>
+        <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-5">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-7 h-7 rounded-md bg-amber-500/10 text-amber-600 flex items-center justify-center">
+              <Zap size={14} />
+            </div>
+            <p className="text-xs text-muted-foreground">{t.creditsUsed}</p>
+          </div>
           <p className="text-2xl font-bold font-mono text-foreground">¥{summary?.credits_used?.toFixed(2) ?? '0.00'}</p>
           <p className="text-xs text-muted-foreground mt-1">过去 {days} 天</p>
           {compareSummary && (
@@ -152,8 +166,13 @@ export default function UsagePage() {
             />
           )}
         </div>
-        <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-4">
-          <p className="text-xs text-muted-foreground mb-1">{t.avgResponseTime}</p>
+        <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-5">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-7 h-7 rounded-md bg-blue-500/10 text-blue-600 flex items-center justify-center">
+              <Clock size={14} />
+            </div>
+            <p className="text-xs text-muted-foreground">{t.avgResponseTime}</p>
+          </div>
           <p className="text-2xl font-bold font-mono text-foreground">
             {summary?.avg_response_time_ms ? `${summary.avg_response_time_ms.toFixed(0)}ms` : t.noData}
           </p>

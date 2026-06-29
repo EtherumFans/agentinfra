@@ -2,7 +2,7 @@
 // Global header (64px) + Sidebar (w/ project selector, nav groups, footer) + Main
 import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { useAuthStore, useThemeStore } from '../../store';
+import { useAuthStore, useThemeStore, useCostStore } from '../../store';
 import { BACKEND_BASE_URL } from '../../config';
 import { oauthApi } from '../../services/api';
 import { useT, useLocaleStore } from '../../i18n';
@@ -12,7 +12,7 @@ import {
   PanelLeftClose, PanelLeft, Home, FlaskConical,
   Mic, AlignLeft, Sparkles, ListTree, Asterisk, BrainCircuit,
   KeyRound, Users, CreditCard, ChartNoAxesColumn, Settings,
-  ArrowUpRight, Bell,
+  ArrowUpRight, Bell, BookOpen, RotateCcw,
   ChevronDown, Rocket, Layers, Folder, ChevronsUpDown, Database,
   Terminal, Stethoscope, Users2, FileText, MessageSquare,
 } from 'lucide-react';
@@ -107,6 +107,10 @@ export default function Layout() {
   const theme = useThemeStore(s => s.theme);
   const toggleTheme = useThemeStore(s => s.toggleTheme);
 
+  // Live cost counter (Corti-style: $X.XXXXXX + Reset)
+  const liveCost = useCostStore(s => s.liveCost);
+  const resetCost = useCostStore(s => s.resetCost);
+
   const ThemeToggle = () => (
     <button
       onClick={toggleTheme}
@@ -137,6 +141,21 @@ export default function Layout() {
             iCoDer
           </a>
           <div className="flex items-center gap-2">
+            {/* Live cost counter + Reset (Corti IA) */}
+            {liveCost > 0 && (
+              <div className="flex items-center gap-1 px-2 py-1 rounded-md border border-border bg-background">
+                <span className="text-xs font-mono text-muted-foreground">${liveCost.toFixed(6)}</span>
+                <button onClick={resetCost} title="Reset live cost"
+                  className="p-0.5 text-muted-foreground hover:text-foreground transition-colors">
+                  <RotateCcw size={10} />
+                </button>
+              </div>
+            )}
+            {/* Docs link (Corti IA — persistent in header) */}
+            <a href="/docs"
+              className="text-xs px-2 py-1 rounded text-muted-foreground hover:text-foreground hover:bg-accent transition-colors flex items-center gap-1">
+              <BookOpen size={12} /> {t.documentation ?? 'Docs'}
+            </a>
             <button
               onClick={() => setLocale(locale === 'zh-CN' ? 'en-US' : 'zh-CN')}
               className="text-xs px-2 py-1 rounded border border-border hover:bg-accent transition-colors font-medium"

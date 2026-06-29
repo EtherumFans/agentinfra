@@ -315,15 +315,11 @@ export default function MedicalCodingPage() {
   // ── Render ──
   return (
     <div className="flex flex-col h-full bg-background">
-      {/* ==================== HEADER (breadcrumb + meta) ==================== */}
+      {/* ==================== HEADER (breadcrumb only — cost/Docs now in global header) ==================== */}
       <div className="flex items-center gap-2 px-4 py-1.5 border-b border-border/20 shrink-0 text-xs">
         <Link to="/ai-studio/overview" className="text-muted-foreground hover:text-foreground transition-colors">{t.aiStudio}</Link>
         <ChevronRight size={12} className="text-muted-foreground/50" />
         <span className="text-foreground font-medium truncate">{t.medicalCodingBreadcrumb}</span>
-        <div className="ml-auto flex items-center gap-3 text-muted-foreground">
-          {liveCost > 0 && <span className="font-mono">${liveCost.toFixed(6)}</span>}
-          <a href="/docs" className="hover:text-foreground transition-colors">{t.documentation}</a>
-        </div>
       </div>
 
       {/* ==================== ACTION BAR (Predict codes) ==================== */}

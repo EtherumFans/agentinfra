@@ -6,6 +6,12 @@ P1.0-C: Surface the runtime's health as a structured report so:
 * the Agent Hub UI `/runtime/doctor` page can render the same JSON
 * CI / pre-deploy gates can call `icoder_doctor.py --json` and assert on it
 
+P1.1-E: Checks 09 and 10 now iterate via the Loader
+(``load_packs_from_dir``) instead of a raw filesystem scan, so the
+doctor sees the same 16 packs the Hub does. Check 21 reports the
+Loader classification (executable / metadata_only / invalid)
+breakdown.
+
 Design rules:
 * Read-only. Never mutates runtime state.
 * Each check returns ``{id, title, status, detail}`` where status is
@@ -13,7 +19,7 @@ Design rules:
 * Aggregate verdict: FAIL if any FAIL; else WARN if any WARN; else OK.
 * Exit code: 0 on OK, 1 on WARN, 2 on FAIL.
 
-Checks (20 total — see ``CHECKS`` list at bottom):
+Checks (21 total — see ``CHECKS`` list at bottom):
 
   01. python_version
   02. fastapi_version
@@ -23,8 +29,8 @@ Checks (20 total — see ``CHECKS`` list at bottom):
   06. app_main_imports
   07. api_health_endpoint
   08. agent_registry_present
-  09. agent_pack_files_present
-  10. agent_pack_required_fields
+  09. agent_pack_files_present          — P1.1-E: Loader-driven
+  10. agent_pack_required_fields        — P1.1-E: Loader-driven
   11. mcp_tool_registry_loads
   12. mcp_tool_registry_matches_pack
   13. faiss_icd10_index
@@ -35,6 +41,7 @@ Checks (20 total — see ``CHECKS`` list at bottom):
   18. icoder_state_dir_gitignored
   19. fewshot_flag_default_off
   20. medcoder_index_health_via_app_state
+  21. loader_classification             — P1.1-E: NEW
 
 Each check is a function ``_check_<id>(ctx) -> dict`` taking a shared
 context dict. Pure functions — same input → same output (modulo
@@ -275,100 +282,203 @@ def _check_agent_registry_present(ctx: dict) -> CheckResult:
 
 
 def _check_agent_pack_files_present(ctx: dict) -> CheckResult:
-    """Each official_agents/<name>/agent_pack.json must exist and be valid JSON."""
+    """P1.1-E: enumerate packs via the Loader (was: filesystem scan).
+
+    Replaces P1.0-C raw-JSON scan with ``load_packs_from_dir()`` so the
+    doctor sees the same 16 packs the Loader + Hub do. Surfaces the
+    per-status breakdown (executable / metadata_only / invalid) in
+    ``detail`` so the front-end Doctor UI can render an honest count
+    instead of treating all packs uniformly.
+
+    Status: FAIL if any pack is INVALID (Loader rejected it);
+    OK otherwise (metadata_only packs ARE on disk — check 10 probes
+    their fields, check 21 reports the classification).
+    """
+    try:
+        from icoder_runtime.core.agent_pack_loader import load_packs_from_dir
+    except Exception as e:
+        return _fail("09.agent_pack_files_present",
+                     "official_agents/*/agent_pack.json present (Loader-driven)",
+                     f"Loader import failed: {type(e).__name__}: {e}",
+                     error=str(e))
     agents_dir = BACKEND_ROOT / "official_agents"
-    packs: list[dict] = []
-    bad: list[str] = []
     if not agents_dir.is_dir():
         return _fail("09.agent_pack_files_present",
-                     "official_agents/*/agent_pack.json present",
+                     "official_agents/*/agent_pack.json present (Loader-driven)",
                      f"missing dir: {agents_dir}")
-    import json as _json
-    for path in sorted(agents_dir.iterdir()):
-        if not path.is_dir():
-            continue
-        # Skip Python cache dirs and dotfiles (sibling artifacts of the
-        # agent pack directories themselves, not agent packs).
-        if path.name.startswith(".") or path.name == "__pycache__":
-            continue
-        pack_path = path / "agent_pack.json"
-        if not pack_path.is_file():
-            bad.append(f"{path.name}/agent_pack.json (missing)")
-            continue
-        try:
-            with open(pack_path, encoding="utf-8") as f:
-                pack = _json.load(f)
-            packs.append({"dir": path.name, "format_version": pack.get("format_version"),
-                          "agent_type": pack.get("agent_type")})
-        except Exception as e:
-            bad.append(f"{path.name}/agent_pack.json ({e})")
-    if bad:
+    try:
+        packs = load_packs_from_dir(agents_dir)
+    except Exception as e:
         return _fail("09.agent_pack_files_present",
-                     "official_agents/*/agent_pack.json present",
-                     f"{len(bad)} bad", bad=bad, good=len(packs))
+                     "official_agents/*/agent_pack.json present (Loader-driven)",
+                     f"load_packs_from_dir failed: {type(e).__name__}: {e}",
+                     error=str(e))
+    if not packs:
+        return _fail("09.agent_pack_files_present",
+                     "official_agents/*/agent_pack.json present (Loader-driven)",
+                     f"Loader discovered 0 packs in {agents_dir}",
+                     total=0)
+    by_status: dict[str, int] = {}
+    agent_refs: list[str] = []
+    invalid_count = 0
+    for p in packs:
+        s = p.status.value if hasattr(p.status, "value") else str(p.status)
+        by_status[s] = by_status.get(s, 0) + 1
+        agent_refs.append(p.agent_ref)
+        if s == "invalid":
+            invalid_count += 1
+    if invalid_count > 0:
+        return _fail("09.agent_pack_files_present",
+                     "official_agents/*/agent_pack.json present (Loader-driven)",
+                     f"{invalid_count} pack(s) on disk are INVALID (Loader rejected)",
+                     total=len(packs), by_status=by_status, agent_refs=agent_refs)
     return _ok("09.agent_pack_files_present",
-               "official_agents/*/agent_pack.json present",
-               f"{len(packs)} pack(s)",
-               packs=packs)
+               "official_agents/*/agent_pack.json present (Loader-driven)",
+               f"Loader discovered {len(packs)} pack(s)",
+               total=len(packs), by_status=by_status, agent_refs=agent_refs)
 
 
 def _check_agent_pack_required_fields(ctx: dict) -> CheckResult:
-    """Raw-pack required fields (skips AgentPackageV1.from_dict() on purpose —
-    Phase D3 packs use format_version=1.2 + agent_type=reference, which the
-    v1.1 validator rejects. Doctor checks raw fields instead.)."""
-    import json as _json
+    """P1.1-E: iterate NormalizedPack (was: raw JSON read).
+
+    Cross-validates that the doctor's required-field understanding
+    matches the Loader's. Reads ``p.raw`` (the original
+    agent_pack.json dict) for each ``NormalizedPack`` and checks the
+    same required fields the P1.0-C version did
+    (``manifest.{name,version}``, ``system_prompt``,
+    ``requirements.min_runtime_version``). P1.1-A already validates
+    these; this check is a sanity assertion that both views agree.
+    """
+    try:
+        from icoder_runtime.core.agent_pack_loader import load_packs_from_dir
+    except Exception as e:
+        return _fail("10.agent_pack_required_fields",
+                     "Agent packs have required raw fields (Loader-driven)",
+                     f"Loader import failed: {type(e).__name__}: {e}",
+                     error=str(e))
+    agents_dir = BACKEND_ROOT / "official_agents"
+    try:
+        packs = load_packs_from_dir(agents_dir)
+    except Exception as e:
+        return _fail("10.agent_pack_required_fields",
+                     "Agent packs have required raw fields (Loader-driven)",
+                     f"load_packs_from_dir failed: {type(e).__name__}: {e}",
+                     error=str(e))
 
     required_top = ("manifest", "system_prompt")
     required_manifest = ("name", "version")
     required_req = ("min_runtime_version",)
-    agents_dir = BACKEND_ROOT / "official_agents"
     issues: list[str] = []
     inspected = 0
-    for path in sorted(agents_dir.iterdir()):
-        if not path.is_dir():
-            continue
-        # Skip Python cache dirs and dotfiles (sibling artifacts of the
-        # agent pack directories themselves, not agent packs).
-        if path.name.startswith(".") or path.name == "__pycache__":
-            continue
-        pack_path = path / "agent_pack.json"
-        if not pack_path.is_file():
-            continue
+    for p in packs:
         inspected += 1
-        try:
-            with open(pack_path, encoding="utf-8") as f:
-                pack = _json.load(f)
-        except Exception as e:
-            issues.append(f"{path.name}: JSON load failed: {e}")
-            continue
+        raw = p.raw if hasattr(p, "raw") and isinstance(p.raw, dict) else {}
         for key in required_top:
-            if key not in pack:
-                issues.append(f"{path.name}: missing top-level {key!r}")
-        manifest = pack.get("manifest", {})
+            if key not in raw:
+                issues.append(f"{p.agent_ref}: missing top-level {key!r}")
+        manifest = raw.get("manifest", {})
         if not isinstance(manifest, dict):
-            issues.append(f"{path.name}: manifest is not a dict")
+            issues.append(f"{p.agent_ref}: manifest is not a dict")
             continue
         for key in required_manifest:
             if not manifest.get(key):
-                issues.append(f"{path.name}: missing manifest.{key}")
-        sp = pack.get("system_prompt", "")
+                issues.append(f"{p.agent_ref}: missing manifest.{key}")
+        sp = raw.get("system_prompt", "")
         if not isinstance(sp, str) or not sp.strip():
-            issues.append(f"{path.name}: system_prompt is empty")
-        req = pack.get("requirements", {})
+            issues.append(f"{p.agent_ref}: system_prompt is empty")
+        req = raw.get("requirements", {})
         if not isinstance(req, dict):
-            issues.append(f"{path.name}: requirements is not a dict")
+            issues.append(f"{p.agent_ref}: requirements is not a dict")
             continue
         for key in required_req:
             if not req.get(key):
-                issues.append(f"{path.name}: missing requirements.{key}")
+                issues.append(f"{p.agent_ref}: missing requirements.{key}")
     if issues:
         return _fail("10.agent_pack_required_fields",
-                     "Agent packs have required raw fields",
+                     "Agent packs have required raw fields (Loader-driven)",
                      f"{len(issues)} issue(s) across {inspected} pack(s)",
                      issues=issues)
     return _ok("10.agent_pack_required_fields",
-               "Agent packs have required raw fields",
+               "Agent packs have required raw fields (Loader-driven)",
                f"{inspected} pack(s) inspected", inspected=inspected)
+
+
+def _check_loader_classification(ctx: dict) -> CheckResult:
+    """P1.1-E: report on the Loader-compat surface (compute_compatibility).
+
+    Uses ``compute_compatibility()`` (the SSOT introduced in P1.1-B)
+    to get the full report. Surfaces the breakdown so the front-end
+    Doctor UI can show "10 executable / 6 metadata_only / 0 invalid"
+    instead of treating all packs uniformly. Best-effort registry
+    cross-ref: tries ``app.state.agent_registry`` for richer
+    ``registered`` flags; falls back to ``registry=None`` in CLI mode
+    (where the doctor runs without app state).
+
+    Verdict:
+      * FAIL: any INVALID pack on disk (broken agent_pack.json — needs fix)
+      * WARN: any METADATA_ONLY pack (known stubs, not runnable yet)
+      * OK: all packs are EXECUTABLE
+    """
+    try:
+        from icoder_runtime.core.registry_status import compute_compatibility
+    except Exception as e:
+        return _fail("21.loader_classification",
+                     "Agent pack Loader classification (Loader-driven)",
+                     f"compute_compatibility import failed: {type(e).__name__}: {e}",
+                     error=str(e))
+    agents_dir = BACKEND_ROOT / "official_agents"
+
+    # Best-effort registry handle. The doctor runs as a CLI (no app
+    # state) or via the API (with app state); only the latter has
+    # state.agent_registry. Try it, fall back to None silently.
+    registry = None
+    try:
+        from app.main import app as _app
+        state = getattr(_app, "state", None)
+        if state is not None:
+            registry = getattr(state, "agent_registry", None)
+    except Exception:
+        pass
+
+    try:
+        report = compute_compatibility(agents_dir, registry=registry)
+    except Exception as e:
+        return _fail("21.loader_classification",
+                     "Agent pack Loader classification (Loader-driven)",
+                     f"compute_compatibility raised: {type(e).__name__}: {e}",
+                     error=str(e))
+
+    invalid = report.invalid
+    metadata_only = report.metadata_only
+    executable = report.by_status.get("executable", 0)
+    total = report.total_discovered
+
+    if invalid > 0:
+        return _fail("21.loader_classification",
+                     "Agent pack Loader classification (Loader-driven)",
+                     f"{invalid} pack(s) on disk are INVALID (broken agent_pack.json)",
+                     total_discovered=total, executable=executable,
+                     metadata_only=metadata_only, invalid=invalid,
+                     production_ready=report.production_ready,
+                     by_status=report.by_status, by_type=report.by_type,
+                     by_format=report.by_format)
+    if metadata_only > 0:
+        return _warn("21.loader_classification",
+                     "Agent pack Loader classification (Loader-driven)",
+                     f"{metadata_only} pack(s) are METADATA_ONLY (known stubs, not runnable)",
+                     total_discovered=total, executable=executable,
+                     metadata_only=metadata_only, invalid=invalid,
+                     production_ready=report.production_ready,
+                     by_status=report.by_status, by_type=report.by_type,
+                     by_format=report.by_format)
+    return _ok("21.loader_classification",
+               "Agent pack Loader classification (Loader-driven)",
+               f"All {total} pack(s) are EXECUTABLE",
+               total_discovered=total, executable=executable,
+               metadata_only=metadata_only, invalid=invalid,
+               production_ready=report.production_ready,
+               by_status=report.by_status, by_type=report.by_type,
+               by_format=report.by_format)
 
 
 def _check_mcp_tool_registry_loads(ctx: dict) -> CheckResult:
@@ -608,6 +718,7 @@ CHECKS: list[tuple[str, Callable[[dict], CheckResult]]] = [
     ("18.icoder_state_dir_gitignored", _check_icoder_state_dir_gitignored),
     ("19.fewshot_flag_default_off", _check_fewshot_flag_default_off),
     ("20.medcoder_index_health_via_app_state", _check_medcoder_index_health_via_app_state),
+    ("21.loader_classification", _check_loader_classification),
 ]
 
 

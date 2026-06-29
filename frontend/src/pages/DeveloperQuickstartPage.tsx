@@ -126,9 +126,9 @@ const [oauthError, setOauthError] = useState<string | null>(null);
       <div className="flex items-center gap-1.5 mb-4 text-xs text-muted-foreground"><Link to="/" className="hover:text-foreground">{t.home}</Link><ChevronRight size={12} /><span className="text-foreground font-medium">{t.devQsTitle}</span></div>
       <div className="flex items-center justify-between mb-6"><div><h2 className="text-2xl font-bold text-foreground mb-1">{t.devQsTitle}</h2><p className="text-sm text-muted-foreground max-w-xl">{t.devQsSubtitle}</p></div><a href="/docs" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-foreground hover:bg-accent transition-colors h-8"><BookOpen size={14} /> {t.devQsApiDocs}</a></div>
 
-      <div className="flex items-center gap-1 mb-6" role="tablist">
+      <div className="inline-flex items-center rounded-lg border border-border/20 bg-background p-0.5 mb-6 shadow-sm" role="tablist">
         {([{ key: 'ai-tools' as MainTab, label: t.devQsAiToolsTab }, { key: 'js-sdk' as MainTab, label: t.devQsJsSdkTab }, { key: 'dotnet-sdk' as MainTab, label: t.devQsDotNetTab }, { key: 'api-playground' as MainTab, label: 'API Playground' }]).map(tab => (
-          <button key={tab.key} role="tab" aria-selected={mainTab === tab.key} onClick={() => setMainTab(tab.key)} className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${mainTab === tab.key ? 'bg-accent text-foreground' : 'text-muted-foreground hover:text-foreground'}`}>{tab.label}</button>
+          <button key={tab.key} role="tab" aria-selected={mainTab === tab.key} onClick={() => setMainTab(tab.key)} className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${mainTab === tab.key ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>{tab.label}</button>
         ))}
       </div>
 

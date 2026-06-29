@@ -23,6 +23,32 @@ export interface LocaleDict {
 
   // Sidebar
   home: string;
+  homeSubtitle: string;
+  homeFooterHint: string;
+  homeTabTranscribe: string;
+  homeTabTranscribeDesc: string;
+  homeTabTranscribeCta: string;
+  homeTabDocument: string;
+  homeTabDocumentDesc: string;
+  homeTabDocumentCta: string;
+  homeTabChat: string;
+  homeTabChatDesc: string;
+  homeTabChatCta: string;
+  homeTabCode: string;
+  homeTabCodeDesc: string;
+  homeTabCodeCta: string;
+  homePropRealtime: string;
+  homePropDication: string;
+  homePropDetect: string;
+  homePropTemplate: string;
+  homePropMultilang: string;
+  homePropStructured: string;
+  homePropEmbed: string;
+  homePropSession: string;
+  homePropMultimodal: string;
+  homePropIcdCn: string;
+  homePropEvidence: string;
+  homePropRule: string;
   developerQuickstart: string;
   developerDocs: string;
   creating: string;
@@ -836,6 +862,32 @@ const zhCN: LocaleDict = {
 
   // Sidebar
   home: '首页',
+  homeSubtitle: '医疗收入合规 AI 工作台',
+  homeFooterHint: '所有工作台支持通过 API Client 程序化访问',
+  homeTabTranscribe: '转写',
+  homeTabTranscribeDesc: '实时捕捉医患对话,为环境式病历和临床级口述应用提供支持',
+  homeTabTranscribeCta: '开始录音',
+  homeTabDocument: '文书',
+  homeTabDocumentDesc: '基于临床文本自动生成结构化医疗文书',
+  homeTabDocumentCta: '生成文书',
+  homeTabChat: '对话',
+  homeTabChatDesc: '为你的应用嵌入 AI 对话助手',
+  homeTabChatCta: '打开助手',
+  homeTabCode: '编码',
+  homeTabCodeDesc: '基于临床证据生成准确的医学编码(ICD-10-CN / ICD-9-CM-3)',
+  homeTabCodeCta: '打开编码工作台',
+  homePropRealtime: '实时转写,支持环境式病历',
+  homePropDication: '临床级口述应用',
+  homePropDetect: '自动识别临床指令',
+  homePropTemplate: '可定制文书模板',
+  homePropMultilang: '多语言输出',
+  homePropStructured: '结构化字段输出',
+  homePropEmbed: 'Web Component 嵌入',
+  homePropSession: '会话级上下文保持',
+  homePropMultimodal: '多模态输入支持',
+  homePropIcdCn: '中国编码体系(ICD-10-CN / ICD-9-CM-3)',
+  homePropEvidence: '基于证据片段的代码引用',
+  homePropRule: '规则引擎校验 + 修复循环',
   developerQuickstart: '开发者快速入门',
   developerDocs: '开发者文档',
   creating: '创建中...',
@@ -1651,6 +1703,32 @@ const enUS: LocaleDict = {
 
   // Sidebar
   home: 'Home',
+  homeSubtitle: 'Medical revenue compliance AI workbench',
+  homeFooterHint: 'All workbenches support API access via API Clients.',
+  homeTabTranscribe: 'Transcribe',
+  homeTabTranscribeDesc: 'Capture conversation in real time for ambient scribes and clinical-grade dictation applications',
+  homeTabTranscribeCta: 'Start recording',
+  homeTabDocument: 'Document',
+  homeTabDocumentDesc: 'Generate structured clinical documentation from clinical text',
+  homeTabDocumentCta: 'Generate document',
+  homeTabChat: 'Chat',
+  homeTabChatDesc: 'Embed an AI assistant into your application',
+  homeTabChatCta: 'Open assistant',
+  homeTabCode: 'Code',
+  homeTabCodeDesc: 'Generate accurate medical codes grounded in clinical evidence (ICD-10-CN / ICD-9-CM-3)',
+  homeTabCodeCta: 'Open coding workbench',
+  homePropRealtime: 'Real-time transcription for ambient scribes',
+  homePropDication: 'Clinical-grade dictation applications',
+  homePropDetect: 'Automatic clinical command detection',
+  homePropTemplate: 'Customizable document templates',
+  homePropMultilang: 'Multi-language output',
+  homePropStructured: 'Structured field output',
+  homePropEmbed: 'Web Component embedding',
+  homePropSession: 'Session-level context retention',
+  homePropMultimodal: 'Multi-modal input support',
+  homePropIcdCn: 'Chinese coding system (ICD-10-CN / ICD-9-CM-3)',
+  homePropEvidence: 'Evidence-based code citations',
+  homePropRule: 'Rule engine validation + repair loop',
   developerQuickstart: 'Developer quickstart',
   developerDocs: 'Developer Docs',
   creating: 'Creating...',

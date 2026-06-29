@@ -248,24 +248,6 @@ export interface InstalledAgent {
   min_runtime_version?: string;
 }
 
-export interface MarketplacePackage {
-  id: string;
-  name: string;
-  version: string;
-  description: string;
-  category: string;
-  icon: string;
-  agent_type: string;
-  publisher_name: string;
-  publisher_email?: string;
-  expert_count: number;
-  tool_count: number;
-  downloads: number;
-  published_at: string;
-  integrity?: { sha256: string };
-  min_runtime_version?: string;
-}
-
 export interface MedicalCodingStatus {
   provider: string;
   mode: string;

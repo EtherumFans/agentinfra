@@ -3,7 +3,7 @@
 import axios from 'axios';
 import type {
   RuntimeStatus, DataPolicy, RegistryHealth, FallbackStats, ShadowStats,
-  InstalledAgent, MarketplacePackage, RuntimeRunResult, MedicalCodingStatus, RuleEngineStatus,
+  InstalledAgent, RuntimeRunResult, MedicalCodingStatus, RuleEngineStatus,
 } from '../types/runtime';
 
 const api = axios.create({ baseURL: '/api/runtime', timeout: 30000 });
@@ -38,20 +38,9 @@ export const runtimeApi = {
   agentLifecycle: (agentRef: string, action: string) =>
     api.post(`/agents/${encodeURIComponent(agentRef)}/lifecycle`, { action }).then(r => r.data),
 
-  // ── Marketplace ──
-  listMarketplacePackages: (search = '', category = '', sort = 'newest', limit = 50) =>
-    api.get<{ packages: MarketplacePackage[]; total: number }>(
-      '/api/marketplace/packages', { params: { search, category, sort, limit } }
-    ).then(r => r.data),
-  getMarketplacePackage: (pkgId: string) =>
-    api.get<MarketplacePackage>(`/api/marketplace/packages/${encodeURIComponent(pkgId)}`).then(r => r.data),
-  installMarketplacePackage: (pkgId: string) =>
-    api.post(`/api/marketplace/packages/${encodeURIComponent(pkgId)}/install`).then(r => r.data),
-
-  // ── Runs ──
+  // ── Runs (recent runs overview; full trace at /api/m2a/runs/{id})
   listRuns: (agentRef = '', limit = 50) =>
-    api.get('/runs', { params: { agent_ref: agentRef, limit } }).then(r => r.data),
-  getRun: (runId: string) => api.get(`/runs/${runId}`).then(r => r.data),
+    api.get<{ runs: RuntimeRunResult[]; total: number }>('/runs', { params: { agent_ref: agentRef, limit } }).then(r => r.data),
 
   // ── Observability ──
   getFallbackStats: (hours = 24) =>

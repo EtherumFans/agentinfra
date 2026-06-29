@@ -784,7 +784,6 @@ from app.api.platform_api_clients import router as platform_api_clients_router
 from app.api.platform_tenants import router as platform_tenants_router
 from app.api.fhir import router as fhir_router
 from app.api.tools import router as tools_router
-from app.api.marketplace import router as marketplace_router
 from app.api.runtime_platform import router as runtime_platform_router
 from app.api.runtime_platform import runtime_router as standard_runtime_router
 from app.api.compliance import router as compliance_router
@@ -794,13 +793,7 @@ from app.api.embedded import router as embedded_router
 from app.api.drg import router as drg_router
 from app.api.m2a import router as m2a_router
 from app.api.icoder_agents_hub import router as icoder_agents_hub_router
-from app.api.icoder_doctor import router as icoder_doctor_router
-from app.api.icoder_runs import router as icoder_runs_router
 from app.api.icoder_coding_review import router as icoder_coding_review_router
-from app.api.icoder_coding_methods import (
-    router as icoder_coding_methods_router,
-    compare_router as icoder_coding_compare_router,
-)
 from app.middleware.rate_limit import rate_limit_middleware
 
 # Rate limiting middleware
@@ -826,15 +819,12 @@ app.include_router(admin_router)
 app.include_router(ws_router)
 app.include_router(code_tables_router)
 app.include_router(icoder_coding_review_router)  # M3-0 病案首页编码审核 Agent API
-app.include_router(icoder_coding_methods_router)  # Phase B /api/icoder/coding-methods/{list, {id}}
-app.include_router(icoder_coding_compare_router)  # Phase B /api/icoder/coding-review/{compare, run-v2}
 app.include_router(organizations_router)
 app.include_router(platform_environments_router)  # Phase 1 cloud-flip stub (501)
 app.include_router(platform_api_clients_router)    # Phase 1 cloud-flip stub (501)
 app.include_router(platform_tenants_router)         # Phase 1 cloud-flip stub (501)
 app.include_router(fhir_router)
 app.include_router(tools_router)
-app.include_router(marketplace_router)
 app.include_router(runtime_platform_router)  # /api/runtime-platform/* (backward compat)
 app.include_router(standard_runtime_router)   # /api/runtime/* (standard)
 app.include_router(compliance_router)          # /api/compliance/*
@@ -844,8 +834,6 @@ app.include_router(agent_eval_router)          # /api/agents/{id}/evaluate
 app.include_router(drg_router)                 # /api/drg/*
 app.include_router(m2a_router)                 # /api/m2a/* (M2a 技术闭环)
 app.include_router(icoder_agents_hub_router)    # /api/icoder/agents/* (P1.0-B Agent Hub)
-app.include_router(icoder_doctor_router)       # /api/icoder/doctor/* (P1.0-C Doctor)
-app.include_router(icoder_runs_router)         # /api/icoder/runs/* (P1.0-E Run Trace)
 from app.api.icoder_registry_compat import router as icoder_registry_compat_router  # P1.1-B
 app.include_router(icoder_registry_compat_router)  # /api/icoder/registry/* (P1.1-B Registry Compat)
 from app.api.icoder_agents_compat import router as icoder_agents_compat_router  # P1.1-C

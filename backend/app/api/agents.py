@@ -289,50 +289,6 @@ async def update_agent(
     return await _agent_to_dict(agent)
 
 
-@router.post("/{agent_id}/publish")
-async def publish_agent(
-    agent_id: str,
-    env: str = "prod",
-    user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-):
-    """Publish an agent to the marketplace with environment."""
-    result = await db.execute(select(Agent).where(Agent.id == agent_id))
-    agent = result.scalar_one_or_none()
-    if not agent:
-        raise HTTPException(status_code=404, detail="Agent not found")
-    if env not in ("dev", "staging", "prod"):
-        raise HTTPException(status_code=400, detail="Invalid environment. Use dev, staging, or prod")
-    agent.status = env
-    agent.is_published = True
-    from datetime import datetime, timezone
-    agent.config = (agent.config or {}) | {
-        "published_at": datetime.now(timezone.utc).isoformat(),
-        "environment": env,
-    }
-    await db.commit()
-    await db.refresh(agent)
-    return await _agent_to_dict(agent)
-
-
-@router.post("/{agent_id}/unpublish")
-async def unpublish_agent(
-    agent_id: str,
-    user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-):
-    """Unpublish an agent (move back to draft)."""
-    result = await db.execute(select(Agent).where(Agent.id == agent_id))
-    agent = result.scalar_one_or_none()
-    if not agent:
-        raise HTTPException(status_code=404, detail="Agent not found")
-    agent.status = "draft"
-    agent.is_published = False
-    await db.commit()
-    await db.refresh(agent)
-    return await _agent_to_dict(agent)
-
-
 @router.get("/{agent_id}/share")
 async def get_agent_share_link(
     agent_id: str,
@@ -429,24 +385,6 @@ async def restore_thread(
 async def thread_stats():
     """Get thread state manager statistics."""
     return thread_manager.stats()
-
-
-@router.get("/marketplace/list")
-async def list_marketplace(
-    category: str = "",
-    search: str = "",
-    db: AsyncSession = Depends(get_db),
-):
-    """List published agents in the marketplace (status != draft)."""
-    q = select(Agent).where(Agent.status != "draft")
-    if category:
-        q = q.where(Agent.category == category)
-    if search:
-        q = q.where(Agent.name.ilike(f"%{search}%") | Agent.description.ilike(f"%{search}%"))
-    q = q.order_by(Agent.usage_count.desc())
-    result = await db.execute(q)
-    agents = result.scalars().all()
-    return {"agents": [await _agent_to_dict(a) for a in agents]}
 
 
 # ---- Agent Execution (multi-Expert orchestration) ----

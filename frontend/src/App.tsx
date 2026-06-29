@@ -1,4 +1,9 @@
-// iCoDer — iCoDer Console 1:1 Routing
+// iCoDer — iCoDer Console routing.
+// Phase 2026-06-29: Doctor / MethodCompare / RunTrace / Marketplace / old
+// AgentHub pages deleted. Routes into /runtime/doctor, /runtime/method-compare,
+// /runtime/runs, /runtime/agent-hub, /marketplace removed. The legacy /studio/
+// and /manage/ aliases remain as no-op redirects so old links don't 404 while
+// Task #4 rewrites the sidebar to align with Corti's IA.
 import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './store';
@@ -10,43 +15,25 @@ import AgentsPage from './pages/AgentsPage';
 import AgentDetailPage from './pages/AgentDetailPage';
 import MedicalCodingPage from './pages/MedicalCodingPage';
 import FactExtractionPage from './pages/FactExtractionPage';
-// iCoDer Phase A A2 (2026-06-25): CodingReviewWorkbenchPage.tsx deleted
-// because it imported non-existent components. Its 3 routes now alias
-// to MedicalCodingPage. The legacy CodingReviewWorkbenchPage was a 14-stage
-// cosmetic view of homepage-coding-review; the real workbench UI is
-// MedicalCodingPage (DiagnosisCard + EvidenceHighlighter + TopKChips).
-const EmbedDemoCodingReviewPage = lazy(() => import('./pages/EmbedDemoCodingReviewPage'));
-import GoldCasesPage from './pages/GoldCasesPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
+import ToastContainer from './components/common/Toast';
 import EvaluationPage from './pages/EvaluationPage';
 import SettingsPage from './pages/SettingsPage';
 import BillingPage from './pages/BillingPage';
 import UsagePage from './pages/UsagePage';
-import DeveloperQuickstartPage from './pages/DeveloperQuickstartPage';
-import TextGenerationPage from './pages/TextGenerationPage';
-import APIClientsPage from './pages/APIClientsPage';
-import TeamPage from './pages/TeamPage';
-import ExpertLibraryPage from './pages/ExpertLibraryPage';
-import SupportPage from './pages/SupportPage';
-import NewAgentPage from './pages/NewAgentPage';
-import DocsPage from './pages/DocsPage';
-import ReleaseNotesPage from './pages/ReleaseNotesPage';
-import RuntimeConsolePage from './pages/RuntimeConsolePage';
-import EmbeddedAssistantPage from './pages/EmbeddedAssistantPage';
-import MethodComparePage from './pages/MethodComparePage';
-// Phase A A2 (2026-06-25): CodeTablesPage, CodingDictionaryPage,
-// RuleLibraryPage, TicketsPage never existed in the new Runtime — they
-// were legacy "data/library" surface stubs from a 1:1 Corti mirror that
-// never landed. The canonical equivalents are:
-//   - 编码表 (code-tables)    → /gold-cases (GoldCasesPage) + /evaluation
-//   - 编码字典 (coding-dict)   → GoldCasesPage (gold standard codes)
-//   - 规则库 (rule-library)   → ExpertLibraryPage (rule_set registry)
-//   - 工单 (tickets)          → /support (SupportPage)
-// Per the rule "不允许继续扩大 legacy 双路径", we do not recreate them.
-import ResetPasswordPage from './pages/ResetPasswordPage';
-import AgentHubPage from './pages/AgentHubPage';
-import RunTracePage from './pages/RunTracePage';
-import DoctorReportPage from './pages/DoctorReportPage';
-import ToastContainer from './components/common/Toast';
+
+const TextGenerationPage = lazy(() => import('./pages/TextGenerationPage'));
+const DeveloperQuickstartPage = lazy(() => import('./pages/DeveloperQuickstartPage'));
+const NewAgentPage = lazy(() => import('./pages/NewAgentPage'));
+const DocsPage = lazy(() => import('./pages/DocsPage'));
+const ReleaseNotesPage = lazy(() => import('./pages/ReleaseNotesPage'));
+const EmbeddedAssistantPage = lazy(() => import('./pages/EmbeddedAssistantPage'));
+const SupportPage = lazy(() => import('./pages/SupportPage'));
+const ExpertLibraryPage = lazy(() => import('./pages/ExpertLibraryPage'));
+const APIClientsPage = lazy(() => import('./pages/APIClientsPage'));
+const TeamPage = lazy(() => import('./pages/TeamPage'));
+const GoldCasesPage = lazy(() => import('./pages/GoldCasesPage'));
+const EmbedDemoCodingReviewPage = lazy(() => import('./pages/EmbedDemoCodingReviewPage'));
 
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -68,11 +55,11 @@ function App() {
       />
       <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
         <Route index element={<HomePage />} />
-        {/* Main */}
         <Route path="developer-quickstart" element={<DeveloperQuickstartPage />} />
         <Route path="docs" element={<DocsPage />} />
         <Route path="release-notes" element={<ReleaseNotesPage />} />
-        {/* AI Studio (legacy — V3.0 /ai-studio/* 仍可访问，新路径 /studio/* 见下方 alias) */}
+
+        {/* AI Studio */}
         <Route path="ai-studio" element={<AIStudioOverviewPage />} />
         <Route path="ai-studio/agents" element={<AgentsPage />} />
         <Route path="ai-studio/agents/new" element={<NewAgentPage />} />
@@ -81,8 +68,8 @@ function App() {
         <Route path="ai-studio/fact-extraction" element={<FactExtractionPage />} />
         <Route path="ai-studio/medical-coding" element={<MedicalCodingPage />} />
         <Route path="ai-studio/embedded-assistant" element={<EmbeddedAssistantPage />} />
-        <Route path="ai-studio/runtime" element={<RuntimeConsolePage />} />
-        {/* V3.0 alias — /studio/* (Studio pane) */}
+
+        {/* V3.0 alias — /studio/* */}
         <Route path="studio" element={<AIStudioOverviewPage />} />
         <Route path="studio/agents" element={<AgentsPage />} />
         <Route path="studio/agents/new" element={<NewAgentPage />} />
@@ -90,38 +77,27 @@ function App() {
         <Route path="studio/text-generation" element={<TextGenerationPage />} />
         <Route path="studio/fact-extraction" element={<FactExtractionPage />} />
         <Route path="studio/medical-coding" element={<MedicalCodingPage />} />
-        {/* Phase D3 (2026-06-26): homepage-coding-review shim was deleted
-            on the backend (official_agents.homepage_coding_review module
-            + homepage_coding_review_card() factory). The legacy frontend
-            URL now redirects to the canonical medical-coding path. */}
+        {/* homepage-coding-review shim: legacy route → medical-coding */}
         <Route path="studio/agents/homepage-coding-review" element={<Navigate to="/runtime/coding-review" replace />} />
-        <Route path="studio/marketplace" element={<AgentsPage />} />
         <Route path="studio/expert-library" element={<ExpertLibraryPage />} />
         <Route path="studio/quickstart" element={<DeveloperQuickstartPage />} />
         <Route path="studio/docs" element={<DocsPage />} />
-        <Route path="studio/orchestration" element={<RuntimeConsolePage />} />
         <Route path="studio/release-notes" element={<ReleaseNotesPage />} />
         <Route path="studio/speech-to-text" element={<TextGenerationPage />} />
         <Route path="studio/embedded-assistant" element={<EmbeddedAssistantPage />} />
         <Route path="studio/new-agent" element={<NewAgentPage />} />
-        {/* V3.0 alias — /runtime/* (Runtime pane) */}
-        <Route path="runtime" element={<RuntimeConsolePage />} />
-        <Route path="runtime/console" element={<RuntimeConsolePage />} />
-        <Route path="runtime/agent-hub" element={<AgentHubPage />} />
-        <Route path="runtime/runs" element={<RunTracePage />} />
-        <Route path="runtime/doctor" element={<DoctorReportPage />} />
+
+        {/* Runtime — only MedicalCoding remains. RuntimeConsole / Runs / Doctor
+            are iCoDer-internal concepts with no Corti equivalent; quality +
+            shadow-eval pages are pending Corti Mapping (see Task #4). */}
         <Route path="runtime/quality" element={<EvaluationPage />} />
         <Route path="runtime/shadow-eval" element={<EvaluationPage />} />
-        <Route path="runtime/adjudicator" element={<RuntimeConsolePage />} />
-        <Route path="runtime/learn" element={<RuntimeConsolePage />} />
         <Route path="runtime/agents" element={<AgentsPage />} />
-        {/* Phase A A2: CodingReviewWorkbenchPage deleted; aliased to MedicalCodingPage. */}
         <Route path="runtime/coding-review" element={<MedicalCodingPage />} />
         <Route path="runtime/coding-review/:runId" element={<MedicalCodingPage />} />
-        <Route path="runtime/method-compare" element={<MethodComparePage />} />
         <Route path="embed-demo/coding-review" element={<Suspense fallback={<div className="p-4 text-sm text-slate-500">Loading Embed…</div>}><EmbedDemoCodingReviewPage /></Suspense>} />
-        <Route path="runtime/monitoring" element={<RuntimeConsolePage />} />
-        {/* V3.0 alias — /manage/* (Manage pane) */}
+
+        {/* Manage */}
         <Route path="manage" element={<SettingsPage />} />
         <Route path="manage/team" element={<TeamPage />} />
         <Route path="manage/usage" element={<UsagePage />} />
@@ -130,20 +106,15 @@ function App() {
         <Route path="manage/support" element={<SupportPage />} />
         <Route path="manage/audit-log" element={<ExpertLibraryPage />} />
         <Route path="manage/rule-sets" element={<ExpertLibraryPage />} />
-        {/* Manage */}
         <Route path="api-clients" element={<APIClientsPage />} />
         <Route path="team" element={<TeamPage />} />
         <Route path="billing" element={<BillingPage />} />
         <Route path="usage" element={<UsagePage />} />
         <Route path="settings" element={<SettingsPage />} />
-        {/* Data — Phase A A2: 4 legacy "data/library" pages removed.
-            The real surfaces are gold-cases (gold standard) and
-            evaluation (runtime quality), both already wired. */}
+
         <Route path="gold-cases" element={<GoldCasesPage />} />
         <Route path="evaluation" element={<EvaluationPage />} />
-        {/* Expert Library */}
         <Route path="expert-library" element={<ExpertLibraryPage />} />
-        {/* Support */}
         <Route path="support" element={<SupportPage />} />
       </Route>
       <Route path="/reset-password" element={<ResetPasswordPage />} />

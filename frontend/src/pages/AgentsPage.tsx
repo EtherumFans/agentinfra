@@ -10,7 +10,7 @@ import {
 import { billingApi, expertsApi, agentsApi, oauthApi } from '../services/api';
 import { runtimeApi } from '../services/runtimeApi';
 import { useToastStore } from '../store';
-import type { InstalledAgent, MarketplacePackage } from '../types/runtime';
+import type { InstalledAgent } from '../types/runtime';
 
 const USE_CASE_KEYS = ['全部', '编码', '医保', '质控', '文书', '急诊', '护理', '药学'];
 const USE_CASES = USE_CASE_KEYS;
@@ -19,7 +19,7 @@ const USE_CASES = USE_CASE_KEYS;
 
 // Agent expert configuration moved to AgentDetailPage
 
-type TabType = 'my' | 'prebuilt' | 'marketplace';
+type TabType = 'my' | 'prebuilt';
 
 export default function AgentsPage() {
   const t = useT();
@@ -126,43 +126,15 @@ export default function AgentsPage() {
     return matchSearch && matchUseCase;
   });
 
-  // Marketplace agents
-  const [marketAgents, setMarketAgents] = useState<MarketplacePackage[]>([]);
-  const [marketLoading, setMarketLoading] = useState(false);
-  const [marketCategory, setMarketCategory] = useState('');
-  const [marketSearch, setMarketSearch] = useState('');
-  const loadMarketplace = () => {
-    setMarketLoading(true);
-    runtimeApi.listMarketplacePackages(marketSearch, marketCategory)
-      .then(data => setMarketAgents(data.packages || []))
-      .catch(() => setMarketAgents([]))
-      .finally(() => setMarketLoading(false));
+  // Refresh Runtime agents list.
+  const refreshRuntimeAgents = () => {
+    runtimeApi.listAgents().catch(() => {});
   };
-  useEffect(() => { if (activeTab === 'marketplace') loadMarketplace(); }, [activeTab, marketCategory, marketSearch]);
 
-  // Publish / Version handlers (refresh DB + Runtime)
-  const refreshAll = () => {
-    agentsApi.list('', '', 'all').then(r => setDbAgents(r.data.agents || [])).catch(() => {});
-    loadMyAgents();
-  };
-  const handlePublish = async (agentId: string, env = 'prod') => {
-    try {
-      await agentsApi.publish(agentId, env);
-      refreshAll();
-      toast('发布成功', 'success');
-    } catch { toast('发布失败', 'error'); }
-  };
-  const handleUnpublish = async (agentId: string) => {
-    try {
-      await agentsApi.unpublish(agentId);
-      refreshAll();
-      toast('已撤回发布', 'success');
-    } catch { toast('撤回失败', 'error'); }
-  };
   const handleBumpVersion = async (agentId: string) => {
     try {
       await agentsApi.version(agentId);
-      refreshAll();
+      refreshRuntimeAgents();
       toast('版本号已更新', 'success');
     } catch { toast('版本更新失败', 'error'); }
   };
@@ -292,7 +264,6 @@ export default function AgentsPage() {
           {([
             { id: 'my' as TabType, label: t.myAgents },
             { id: 'prebuilt' as TabType, label: t.prebuiltAgents },
-            { id: 'marketplace' as TabType, label: 'Agent 市场' },
           ]).map(tab => (
             <button
               key={tab.id}
@@ -484,62 +455,6 @@ export default function AgentsPage() {
               ))}
             </div>
           )
-        )}
-
-        {/* Tab: Agent市场 — Marketplace packages */}
-        {activeTab === 'marketplace' && (
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <div className="relative flex-1">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                <input value={marketSearch} onChange={e => setMarketSearch(e.target.value)} placeholder="搜索 Agent..." className="w-full pl-9 pr-3 py-2 text-sm border border-border rounded-lg bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring" />
-              </div>
-              <select value={marketCategory} onChange={e => setMarketCategory(e.target.value)} className="text-xs border border-border rounded-lg px-2 py-2 bg-card text-foreground">
-                <option value="">全部分类</option>
-                <option value="coding">编码</option><option value="insurance">医保</option><option value="quality">质控</option>
-                <option value="documentation">文书</option><option value="emergency">急诊</option><option value="nursing">护理</option>
-                <option value="pharmacy">药学</option><option value="education">教育</option>
-              </select>
-            </div>
-            {marketLoading ? (
-              <div className="text-center py-12"><Loader2 className="animate-spin h-6 w-6 mx-auto text-muted-foreground" /></div>
-            ) : marketAgents.length === 0 ? (
-              <div className="text-center py-16 bg-background rounded-xl shadow-sm ring-1 ring-border/20">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-muted flex items-center justify-center"><Search size={32} className="text-muted-foreground" /></div>
-                <h3 className="text-base font-semibold text-foreground mb-2">暂无已发布的 Agent</h3>
-                <p className="text-sm text-muted-foreground mb-4">发布你的 Agent 后，它将出现在市场中供其他用户发现和使用</p>
-                <button onClick={() => setActiveTab('my')} className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm hover:bg-primary/90">去发布我的 Agent</button>
-              </div>
-            ) : (
-              <div className="space-y-1">
-                {marketAgents.map((pkg) => (
-                <div key={pkg.id} className="flex items-center gap-4 w-full px-4 py-3 border-b border-border hover:bg-accent transition-colors rounded-lg bg-card">
-                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0"><Bot size={16} className="text-primary" /></div>
-                  <div className="flex-1 min-w-0 cursor-pointer" onClick={() => navigate('/ai-studio/agents/' + pkg.id)}>
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium text-foreground">{pkg.name}</p>
-                      <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-secondary/10 text-secondary">{pkg.agent_type}</span>
-                      <span className="text-[10px] font-mono text-muted-foreground">v{pkg.version}</span>
-                    </div>
-                    <p className="text-xs text-muted-foreground truncate">{pkg.description}</p>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{pkg.category}</span>
-                      {pkg.expert_count > 0 && <span className="text-[9px] text-muted-foreground">{pkg.expert_count} experts</span>}
-                      {pkg.tool_count > 0 && <span className="text-[9px] text-muted-foreground">{pkg.tool_count} tools</span>}
-                    </div>
-                  </div>
-                  <div className="text-xs text-muted-foreground text-right shrink-0">
-                    <div className="flex items-center gap-1 justify-end"><User size={10} /> {pkg.publisher_name || 'iCoDer'}</div>
-                    <div className="flex items-center gap-1 justify-end mt-0.5"><span>📊 {(pkg.downloads || 0)}次下载</span></div>
-                  </div>
-                  <button onClick={async (e) => { e.stopPropagation();
-                    try { await runtimeApi.installMarketplacePackage(pkg.id); runtimeApi.listAgents().catch(() => {}); loadMyAgents(); toast('已安装', 'success'); } catch { toast('安装失败', 'error'); }
-                  }} className="px-2 py-1 rounded text-[10px] bg-green-100 text-green-700 hover:bg-green-200 shrink-0">Install</button>
-                </div>
-                ))}
-              </div>
-            )}
-          </div>
         )}
 
       </div>

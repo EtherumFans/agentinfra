@@ -275,10 +275,7 @@ export const agentsApi = {
   delete: (id: string) => api.delete(`/agents/${id}`),
   categories: () => api.get<{ categories: { name: string; count: number }[] }>('/agents/categories'),
   templates: () => api.get<{ templates: any[] }>('/agents/templates'),
-  publish: (id: string, env = 'prod') => api.post(`/agents/${id}/publish?env=${env}`),
-  unpublish: (id: string) => api.post(`/agents/${id}/unpublish`),
   version: (id: string) => api.post(`/agents/${id}/version`),
-  marketplace: (category = '', search = '') => api.get<{ agents: any[] }>('/agents/marketplace/list', { params: { category, search } }),
   clone: (id: string, name?: string, description?: string) =>
     api.post(`/agents/${id}/clone`, { name, description }),
 };

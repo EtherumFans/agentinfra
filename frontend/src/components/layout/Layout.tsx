@@ -14,7 +14,7 @@ import {
   KeyRound, Users, CreditCard, ChartNoAxesColumn, Settings,
   MessageSquare, ArrowUpRight, Bell,
   ChevronDown, Rocket, Layers, Folder, ChevronsUpDown, Database,
-  Terminal, Stethoscope,
+  Terminal, Stethoscope, Users2,
 } from 'lucide-react';
 
 const PROJECT_SLUG = 'icoder-medical-coding';
@@ -69,6 +69,7 @@ export default function Layout() {
       items: [
         { to: '/api-clients', label: t.apiClients, icon: KeyRound },
         { to: '/team', label: t.team, icon: Users },
+        { to: '/customers', label: t.customersTitle, icon: Users2 },
         { to: '/billing', label: t.billing, icon: CreditCard },
         { to: '/usage', label: t.usage, icon: ChartNoAxesColumn },
         { to: '/settings', label: t.settings, icon: Settings },

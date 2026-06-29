@@ -232,6 +232,16 @@ export const textGenApi = {
   templates: () => api.get<{ templates: any[] }>('/text-gen/templates'),
 };
 
+// Customers (Embedded Assistant end-user mgmt — Corti parity)
+export const customersApi = {
+  list: (params: { search?: string; region?: string; page?: number; page_size?: number } = {}) =>
+    api.get<{ customers: any[]; total: number; page: number; page_size: number }>('/customers', { params }),
+  get: (customerId: string) => api.get<any>(`/customers/${encodeURIComponent(customerId)}`),
+  create: (data: { display_name: string; customer_id_suffix: string; region: 'us' | 'eu' | 'cn' }) =>
+    api.post<any>('/customers', data),
+  delete: (customerId: string) => api.delete(`/customers/${encodeURIComponent(customerId)}`),
+};
+
 // Experts
 export const expertsApi = {
   list: (category = '', search = '', type = 'all') =>

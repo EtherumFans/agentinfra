@@ -1,8 +1,9 @@
 // iCoDer Embedded Assistant — iCoDer Console exact replica
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { BACKEND_BASE_URL } from '../config';
 import {
-  RefreshCw, Mic, MicOff, X, Asterisk, Settings, Code, Activity, Sparkles, Plus, Layout, Pencil, GripVertical, Monitor, Smartphone, Copy, ExternalLink,
+  RefreshCw, Mic, MicOff, X, Asterisk, Settings, Code, Activity, Sparkles, Plus, Layout, Pencil, GripVertical, Monitor, Smartphone, Copy, ExternalLink, ChevronRight,
 } from 'lucide-react';
 import { useT, useLocaleStore } from '../i18n';
 import { useCostStore } from '../store';
@@ -222,7 +223,15 @@ export default function EmbeddedAssistantPage() {
   const tourIcon = (step: number) => { const T = TOUR_STEPS[step]; if (!T) return null; const Icon = T.icon; return <Icon size={16} />; };
 
   return (
-    <div className="flex h-full" key={sessionKey}>
+    <div className="flex flex-col h-full bg-background" key={sessionKey}>
+      {/* ==================== HEADER (breadcrumb — cost/Docs in global header) ==================== */}
+      <div className="flex items-center gap-2 px-4 py-1.5 border-b border-border/20 shrink-0 text-xs">
+        <Link to="/ai-studio/overview" className="text-muted-foreground hover:text-foreground transition-colors">{t.aiStudio}</Link>
+        <ChevronRight size={12} className="text-muted-foreground/50" />
+        <span className="text-foreground font-medium truncate">{t.embeddedAssistantBreadcrumb}</span>
+      </div>
+
+      <div className="flex h-full">
       {/* ===== LEFT: Preview Panel (75%) ===== */}
       <div className="flex flex-col overflow-hidden bg-muted/30" style={{ flex: '75 1 0px' }}>
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
@@ -699,6 +708,7 @@ export default function EmbeddedAssistantPage() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

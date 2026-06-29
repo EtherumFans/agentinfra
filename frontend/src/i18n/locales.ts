@@ -280,6 +280,10 @@ export interface LocaleDict {
   tableDescription: string;
   tableConfidence: string;
   medicalCodingBreadcrumb: string;
+  speechToTextBreadcrumb: string;
+  textGenBreadcrumb: string;
+  factExtractionBreadcrumb: string;
+  embeddedAssistantBreadcrumb: string;
   tabCode: string;
   failedPrefix: string;
   completedPrefix: string;
@@ -1103,6 +1107,10 @@ const zhCN: LocaleDict = {
   tableDescription: '描述',
   tableConfidence: '置信度',
   medicalCodingBreadcrumb: '医学编码',
+  speechToTextBreadcrumb: '语音转录',
+  textGenBreadcrumb: '文书生成',
+  factExtractionBreadcrumb: '事实抽取',
+  embeddedAssistantBreadcrumb: '嵌入助手',
   tabCode: '代码',
   failedPrefix: '失败',
   completedPrefix: '已完成',
@@ -1944,6 +1952,10 @@ const enUS: LocaleDict = {
   tableDescription: 'Description',
   tableConfidence: 'Conf.',
   medicalCodingBreadcrumb: 'Medical coding',
+  speechToTextBreadcrumb: 'Speech to Text',
+  textGenBreadcrumb: 'Text Generation',
+  factExtractionBreadcrumb: 'Fact Extraction',
+  embeddedAssistantBreadcrumb: 'Embedded Assistant',
   tabCode: 'Code',
   failedPrefix: 'Failed',
   completedPrefix: 'Completed —',

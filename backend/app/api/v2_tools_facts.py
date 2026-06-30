@@ -479,3 +479,69 @@ async def get_v2_tools_fact_groups(
     """
     items = _stub_fact_groups()
     return FactsFactGroupsListResponse(data=items)
+
+
+# ─── Phase 1.3 cycle 16 — Facts UPDATE (Corti §13.5) ───────────────
+# Spec source: ``docs/corti-reverse-engineered/facts-update-fact.md``
+# (6,927B, fetched 2026-07-01 from
+# ``https://docs.corti.ai/api-reference/facts/update-fact.md``).
+#
+# This is the **fourth endpoint of the §13.5 Facts family** (2 more to
+# follow: update-facts batch). Distinct from add-facts (cycle 14) — this
+# is PATCH (in-place update) of an existing fact.
+#
+# **Stub strategy** (no DB):
+#   - PATCH semantics: only fields present in the request body are
+#     changed; omitted fields retain their "current" value.
+#   - Since there's no DB, the stub tracks the "current" value as the
+#     most recent state for each (interaction_id, fact_id) — but
+#     because every test sends a fresh request, we approximate by
+#     using sensible defaults: text="(unchanged)", group="other",
+#     source="user", isDiscarded=False, groupId derived from
+#     interaction_id, createdAt/updatedAt deterministic.
+#   - Path UUIDs are echoed into response id and groupId so SDK
+#     callers can verify the path-echo contract.
+
+from app.schemas.v2_tools_facts import (
+    FactsUpdateRequest,
+    FactsUpdateResponse,
+)
+
+
+@router.patch("/interactions/{interaction_id}/facts/{fact_id}", response_model=FactsUpdateResponse)
+async def patch_v2_tools_interaction_fact(
+    interaction_id: str,
+    fact_id: str,
+    body: FactsUpdateRequest,
+    current_user: User = Depends(get_current_user),
+):
+    """Corti §13.5 facts_update — update a single fact.
+
+    Spec: ``PATCH /interactions/{id}/facts/{factId}`` (operationId
+    ``facts_update``). Path: ``/api/v2/tools/interactions/{interaction_id}/facts/{fact_id}``
+    (mounted under the existing ``/api/v2/tools`` prefix).
+
+    Request body: ``{text?, group?, source?, isDiscarded?}`` — all
+    fields optional (PATCH semantics).
+    Response: ``{id, text, group, groupId, source, isDiscarded, createdAt, updatedAt}``
+    — all 8 fields **required** per spec.
+
+    Stub does NOT persist (no DB). Fields present in the request body
+    override defaults; omitted fields use deterministic placeholder
+    values (``text="(unchanged)"``, ``group="other"``, ``source="user"``,
+    ``isDiscarded=False``). Path UUIDs are echoed into response
+    ``id`` (== fact_id) and ``groupId`` (derived from interaction_id).
+
+    Error response per spec is **504** (RFC9457 ``ErrorResponse``).
+    """
+    short_tag = interaction_id.replace("-", "")[:12]
+    return FactsUpdateResponse(
+        id=fact_id,
+        text=body.text if body.text is not None else "(unchanged)",
+        group=body.group if body.group is not None else "other",
+        groupId=f"{interaction_id}-grp-{short_tag}",
+        source=body.source if body.source is not None else "user",
+        isDiscarded=body.isDiscarded if body.isDiscarded is not None else False,
+        createdAt="2026-07-01T12:00:00Z",
+        updatedAt="2026-07-01T12:00:01Z",
+    )

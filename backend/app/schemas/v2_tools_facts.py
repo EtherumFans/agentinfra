@@ -373,3 +373,51 @@ class FactsFactGroupsListResponse(BaseModel):
         default_factory=list,
         description="A list of available fact groups",
     )
+
+
+# ─── Phase 1.3 cycle 16 — Facts UPDATE (Corti §13.5) ───────────────
+# Spec source: ``docs/corti-reverse-engineered/facts-update-fact.md``
+# (6,927B, fetched 2026-07-01 from
+# ``https://docs.corti.ai/api-reference/facts/update-fact.md``).
+#
+# This is the **fourth endpoint of the §13.5 Facts family** (2 more to
+# follow: update-facts batch). Distinct from add-facts (cycle 14) — this
+# is PATCH (in-place update) of an existing fact.
+
+
+class FactsUpdateRequest(BaseModel):
+    """Request shape for ``PATCH /interactions/{id}/facts/{factId}``.
+
+    Per spec (``FactsUpdateRequest``), all 4 fields are **optional**
+    (PATCH semantics — caller sends only what they want to change).
+    iCoDer honors the spec exactly: a request with an empty body is
+    valid (no-op).
+    """
+    text: Optional[str] = Field(default=None, description="The updated text of the fact")
+    group: Optional[str] = Field(default=None, description="The updated group key for the fact")
+    source: Optional[str] = Field(
+        default=None,
+        description="The updated source ('core'/'user'/'system')",
+    )
+    isDiscarded: Optional[bool] = Field(
+        default=None,
+        description="Set to true to mark the fact as discarded by an end-user",
+    )
+
+
+class FactsUpdateResponse(BaseModel):
+    """Response shape for ``PATCH /interactions/{id}/facts/{factId}``.
+
+    Per spec (``FactsUpdateResponse``), **all 8 fields are required**:
+    id, text, group, groupId, source, isDiscarded, createdAt, updatedAt.
+    This is stricter than add-facts (cycle 14) where the response fields
+    were all optional. iCoDer honors the spec exactly.
+    """
+    id: str = Field(..., description="The unique identifier of the fact (UUID)")
+    text: str = Field(..., description="The (possibly updated) text content of the fact")
+    group: str = Field(..., description="The (possibly updated) group key")
+    groupId: str = Field(..., description="The unique identifier of the associated group (UUID)")
+    source: str = Field(..., description="The (possibly updated) source")
+    isDiscarded: bool = Field(..., description="Whether the fact is marked as discarded")
+    createdAt: str = Field(..., description="ISO 8601 timestamp when the fact was originally created")
+    updatedAt: str = Field(..., description="ISO 8601 timestamp when the fact was last updated")

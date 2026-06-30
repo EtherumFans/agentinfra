@@ -247,3 +247,75 @@ class FactsListResponse(BaseModel):
         default_factory=list,
         description="A list of facts associated with the interaction",
     )
+
+
+# ─── Phase 1.3 cycle 14 — Facts ADD (Corti §13.5) ──────────────────
+# Spec source: ``docs/corti-reverse-engineered/facts-add-facts.md``
+# (7,143B, fetched 2026-07-01 from
+# ``https://docs.corti.ai/api-reference/facts/add-facts.md``).
+#
+# This is the **second endpoint of the §13.5 Facts family** (4 more to
+# follow: list-fact-groups, update-fact, update-facts). Distinct from
+# Phase 1.2 cycle 1 §3.2/§13.4 extract-facts (LLM call) — add-facts is a
+# CRUD-style create where the caller supplies the fact text+group.
+
+
+class FactsCreateInput(BaseModel):
+    """One fact in the ``facts[]`` create payload.
+
+    Per spec (``FactsCreateInput`` in
+    ``docs/corti-reverse-engineered/facts-add-facts.md``), ``text`` and
+    ``group`` are **required**; ``source`` is optional (enum
+    core|system|user, default corti picks; iCoDer stub defaults to
+    ``user`` since the caller is the one creating it).
+    """
+    text: str = Field(default="", description="The text content of the fact")
+    group: str = Field(default="other", description="The key identifying the group the fact belongs to")
+    source: Optional[str] = Field(
+        default="user",
+        description="Source: 'core' (LLM), 'user' (added by user), 'system' (e.g. EHR)",
+    )
+
+
+class FactsCreateRequest(BaseModel):
+    """Request shape for ``POST /interactions/{id}/facts/``.
+
+    Per spec (``FactsCreateRequest``), ``facts`` is **required** (array
+    of ``FactsCreateInput``).
+    """
+    facts: _List[FactsCreateInput] = Field(
+        default_factory=list,
+        description="A list of facts to be created",
+    )
+
+
+class FactsCreateItem(BaseModel):
+    """One fact in the ``facts[]`` create response.
+
+    All fields are optional in the spec (the server may or may not
+    populate them). iCoDer mirrors the spec exactly.
+    """
+    id: Optional[str] = Field(default=None, description="The unique identifier of the newly created fact (UUID)")
+    text: Optional[str] = Field(default=None, description="The textual content of the created fact")
+    group: Optional[str] = Field(default=None, description="The group key categorizing the fact")
+    groupId: Optional[str] = Field(default=None, description="The unique identifier of the group")
+    source: Optional[str] = Field(
+        default=None,
+        description="Source: 'core' (LLM), 'user' (added by user), 'system' (e.g. EHR)",
+    )
+    isDiscarded: Optional[bool] = Field(
+        default=None,
+        description="Whether the fact has been marked as discarded by an end-user",
+    )
+    updatedAt: Optional[str] = Field(default=None, description="ISO 8601 timestamp when the fact was last updated")
+
+
+class FactsCreateResponse(BaseModel):
+    """Response shape for ``POST /interactions/{id}/facts/``.
+
+    Per spec (``FactsCreateResponse``), ``facts`` is **required**.
+    """
+    facts: _List[FactsCreateItem] = Field(
+        default_factory=list,
+        description="A list of successfully created facts",
+    )

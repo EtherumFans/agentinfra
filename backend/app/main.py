@@ -814,6 +814,7 @@ from app.api.m2a import router as m2a_router
 from app.api.icoder_agents_hub import router as icoder_agents_hub_router
 from app.api.icoder_coding_review import router as icoder_coding_review_router
 from app.api.v2_tools_coding import router as v2_tools_coding_router
+from app.api.v2_tools_facts import router as v2_tools_facts_router
 from app.api.customers import router as customers_router
 from app.api.templates import router as templates_router
 from app.api.tickets import router as tickets_router
@@ -843,6 +844,7 @@ app.include_router(ws_router)
 app.include_router(code_tables_router)
 app.include_router(icoder_coding_review_router)  # M3-0 病案首页编码审核 Agent API
 app.include_router(v2_tools_coding_router)         # Phase 1.1 (2026-06-30) /api/v2/tools/coding (Corti §3.1 parity)
+app.include_router(v2_tools_facts_router)          # Phase 1.2 cycle 1 (2026-06-30) /api/v2/tools/extract-facts (Corti §3.2 / §13.4 FactsR™)
 app.include_router(customers_router)             # /api/customers/* (Corti parity)
 app.include_router(templates_router)             # /api/templates/* (Templates Beta — Corti parity)
 app.include_router(tickets_router)               # /api/tickets/* (Tickets Portal — Corti parity)

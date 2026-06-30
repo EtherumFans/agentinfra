@@ -319,3 +319,57 @@ class FactsCreateResponse(BaseModel):
         default_factory=list,
         description="A list of successfully created facts",
     )
+
+
+# ─── Phase 1.3 cycle 15 — Facts LIST-FACT-GROUPS (Corti §13.5) ─────
+# Spec source: ``docs/corti-reverse-engineered/facts-list-fact-groups.md``
+# (4,552B, fetched 2026-07-01 from
+# ``https://docs.corti.ai/api-reference/facts/list-fact-groups.md``).
+#
+# **This is a GLOBAL endpoint, NOT path-scoped to an interaction.**
+# Path: ``GET /factgroups/`` (no ``/interactions/{id}/...`` prefix).
+# In iCoDer: ``GET /api/v2/tools/factgroups/`` (under the existing
+# ``/api/v2/tools`` prefix).
+#
+# Returns the **catalog of fact-group keys** the platform supports
+# (e.g. demographics, chief-complaint, vital-signs, ...). iCoDer
+# reuses the canonical ``CORTI_FACT_GROUPS`` frozenset already defined
+# in this module — the stub just projects those keys into the
+# ``{data: [...]}`` envelope with deterministic per-group UUIDs.
+
+
+class FactsFactGroupsItemTranslation(BaseModel):
+    """One translation row inside ``FactsFactGroupsItem.translations[]``.
+
+    Per spec, all fields are optional (server may not populate any of
+    them). iCoDer mirrors the spec exactly.
+    """
+    id: Optional[int] = Field(default=None, description="Translation id (integer)")
+    languages_id: Optional[str] = Field(default=None, description="Language identifier (e.g. 'en-US')")
+    name: Optional[str] = Field(default=None, description="Localized display name of the fact group")
+
+
+class FactsFactGroupsItem(BaseModel):
+    """One fact-group entry in the ``data[]`` array.
+
+    Per spec, all fields are optional. iCoDer mirrors the spec exactly.
+    """
+    id: Optional[str] = Field(default=None, description="UUID of the fact group")
+    key: Optional[str] = Field(default=None, description="Kebab-case key identifying the group (e.g. 'demographics')")
+    translations: _List[FactsFactGroupsItemTranslation] = Field(
+        default_factory=list,
+        description="Per-language display names for this group",
+    )
+
+
+class FactsFactGroupsListResponse(BaseModel):
+    """Response shape for ``GET /factgroups/``.
+
+    Per spec (``FactsFactGroupsListResponse``), ``data`` is **required**
+    (array of ``FactsFactGroupsItem``). The envelope uses ``data``
+    (not ``factGroups``) per the Corti contract.
+    """
+    data: _List[FactsFactGroupsItem] = Field(
+        default_factory=list,
+        description="A list of available fact groups",
+    )

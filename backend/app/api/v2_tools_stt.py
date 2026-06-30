@@ -42,7 +42,7 @@ import os
 import uuid
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 
 from app.middleware.auth import get_current_user
 from app.models.user import User
@@ -574,4 +574,87 @@ async def upload_v2_tools_interaction_recording(
 
     return RecordingsCreateResponse(
         recordingId=f"{interaction_id}-rec-stub",
+    )
+
+
+# ─── Endpoint: get-recording (cycle 11) ─────────────────────────────
+
+
+# Per Corti spec, get-recording returns raw binary (text/plain +
+# format: binary). The second non-JSON response in iCoDer's v2 surface.
+_STUB_RECORDING_BYTES = b"\x00" * 64  # tiny placeholder
+
+
+@router.get(
+    "/interactions/{interaction_id}/recordings/{recording_id}",
+    status_code=200,
+    response_class=Response,
+)
+async def get_v2_tools_interaction_recording(
+    interaction_id: str,
+    recording_id: str,
+    current_user: User = Depends(get_current_user),
+) -> Response:
+    """Corti §13.3 Recordings — ``GET /interactions/{id}/recordings/{recordingId}``.
+
+    Returns the raw binary content of the recording file
+    (``text/plain`` + ``format: binary`` per Corti spec). The second
+    non-JSON response in iCoDer's v2 surface.
+
+    Sentinel pattern:
+    - ``missing-{uuid}`` → 404 ``recording_not_found``.
+    - Default → 200 + small synthetic audio bytes (real audio storage
+      is a separate Phase 1.3 task).
+    """
+    if not interaction_id or not interaction_id.strip():
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "requestid": str(uuid.uuid4()),
+                "status": 400,
+                "type": "invalid_request",
+                "detail": "interaction_id is required.",
+            },
+        )
+    if not recording_id or not recording_id.strip():
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "requestid": str(uuid.uuid4()),
+                "status": 400,
+                "type": "invalid_request",
+                "detail": "recording_id is required.",
+            },
+        )
+
+    if recording_id.startswith("missing-"):
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "requestid": str(uuid.uuid4()),
+                "status": 404,
+                "type": "recording_not_found",
+                "detail": f"Recording {recording_id} not found for interaction {interaction_id}.",
+            },
+        )
+
+    if not os.environ.get("ICODER_CREDENTIAL_LLM", "").strip():
+        if os.environ.get("ICODER_ALLOW_DEGRADED_NO_KEY", "") != "1":
+            raise HTTPException(
+                status_code=503,
+                detail={
+                    "requestid": str(uuid.uuid4()),
+                    "status": 503,
+                    "type": "service_unavailable",
+                    "detail": "ICODER_CREDENTIAL_LLM not set; hospital-pilot gate refuses to serve.",
+                },
+            )
+
+    return Response(
+        content=_STUB_RECORDING_BYTES,
+        media_type="text/plain",
+        headers={
+            "X-Stub-Recording-Id": recording_id,
+            "X-Stub-Interaction-Id": interaction_id,
+        },
     )

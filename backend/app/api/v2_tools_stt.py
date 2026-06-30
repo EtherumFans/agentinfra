@@ -658,3 +658,74 @@ async def get_v2_tools_interaction_recording(
             "X-Stub-Interaction-Id": interaction_id,
         },
     )
+
+
+# ─── Endpoint: delete-recording (cycle 12) ───────────────────────────
+
+
+@router.delete(
+    "/interactions/{interaction_id}/recordings/{recording_id}",
+    status_code=204,
+)
+async def delete_v2_tools_interaction_recording(
+    interaction_id: str,
+    recording_id: str,
+    current_user: User = Depends(get_current_user),
+) -> Response:
+    """Corti §13.3 Recordings — ``DELETE /interactions/{id}/recordings/{recordingId}``.
+
+    Returns **204 No Content** on success (no body). Stub does not
+    actually delete anything (no DB).
+
+    Sentinel pattern:
+    - ``missing-{uuid}`` → 404 ``recording_not_found`` (mirrors cycle-11).
+    - Default → 204 No Content.
+
+    Closes the **recordings family** (4 of 4 endpoints).
+    """
+    if not interaction_id or not interaction_id.strip():
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "requestid": str(uuid.uuid4()),
+                "status": 400,
+                "type": "invalid_request",
+                "detail": "interaction_id is required.",
+            },
+        )
+    if not recording_id or not recording_id.strip():
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "requestid": str(uuid.uuid4()),
+                "status": 400,
+                "type": "invalid_request",
+                "detail": "recording_id is required.",
+            },
+        )
+
+    if recording_id.startswith("missing-"):
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "requestid": str(uuid.uuid4()),
+                "status": 404,
+                "type": "recording_not_found",
+                "detail": f"Recording {recording_id} not found for interaction {interaction_id}.",
+            },
+        )
+
+    if not os.environ.get("ICODER_CREDENTIAL_LLM", "").strip():
+        if os.environ.get("ICODER_ALLOW_DEGRADED_NO_KEY", "") != "1":
+            raise HTTPException(
+                status_code=503,
+                detail={
+                    "requestid": str(uuid.uuid4()),
+                    "status": 503,
+                    "type": "service_unavailable",
+                    "detail": "ICODER_CREDENTIAL_LLM not set; hospital-pilot gate refuses to serve.",
+                },
+            )
+
+    # Stub: nothing to delete (no DB). Return 204 No Content.
+    return Response(status_code=204)

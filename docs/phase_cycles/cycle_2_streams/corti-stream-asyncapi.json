@@ -1,0 +1,604 @@
+{
+  "asyncapi": "3.0.0",
+  "info": {
+    "title": "Real-Time Ambient Documentation",
+    "version": "1.0.0",
+    "description": "Live conversational transcript, fact extraction, and note generation for real-time medical interactions."
+  },
+  "servers": {
+    "beta-eu": {
+      "host": "api.beta-eu.corti.app",
+      "protocol": "wss",
+      "description": "Beta European environment - Real-time WebSocket endpoint for interaction streams."
+    },
+    "eu": {
+      "host": "api.eu.corti.app",
+      "protocol": "wss",
+      "description": "European environment - Real-time WebSocket endpoint for interaction streams."
+    },
+    "us": {
+      "host": "api.us.corti.app",
+      "protocol": "wss",
+      "description": "US environment - Real-time WebSocket endpoint for interaction streams."
+    }
+  },
+  "channels": {
+    "stream": {
+      "address": "/audio-bridge/v2/interactions/{id}/streams?tenant-name={tenant-name}&token={token}",
+      "servers": [
+        {"$ref": "#/servers/beta-eu"},
+        {"$ref": "#/servers/eu"},
+        {"$ref": "#/servers/us"}
+      ],
+      "parameters": {
+        "id": {
+          "$ref": "#/components/parameters/id"
+        },
+        "tenant-name": {
+          "$ref": "#/components/parameters/tenant-name"
+        },
+        "token": {
+          "$ref": "#/components/parameters/token"
+        }
+      },
+      "bindings": {
+        "ws": {
+          "query": {
+            "type": "object",
+            "properties": {
+              "tenant-name": {
+                "$ref": "#/components/parameters/tenant-name"
+              },
+              "token": {
+                "$ref": "#/components/parameters/token"
+              }
+            },
+            "required": ["tenant-name", "token"]
+          }
+        }
+      },
+      "messages": {
+        "configuration": {
+          "$ref": "#/components/messages/configuration"
+        },
+        "configStatus": {
+          "$ref": "#/components/messages/configStatus"
+        },
+        "transcript": {
+          "$ref": "#/components/messages/transcript"
+        },
+        "facts": {
+          "$ref": "#/components/messages/facts"
+        },
+        "end": {
+          "$ref": "#/components/messages/end"
+        },
+        "ended": {
+          "$ref": "#/components/messages/ended"
+        },
+        "usage": {
+          "$ref": "#/components/messages/usage"
+        },
+        "error": {
+          "$ref": "#/components/messages/error"
+        },
+        "audio": {
+          "$ref": "#/components/messages/audio"
+        }
+      }
+    }
+  },
+  "operations": {
+    "sendConfiguration": {
+      "action": "send",
+      "channel": {
+        "$ref": "#/channels/stream"
+      },
+      "messages": [
+        {
+          "$ref": "#/channels/stream/messages/configuration"
+        }
+      ]
+    },
+    "sendAudio": {
+      "action": "send",
+      "channel": {
+        "$ref": "#/channels/stream"
+      },
+      "messages": [
+        {
+          "$ref": "#/channels/stream/messages/audio"
+        }
+      ]
+    },
+    "sendEnd": {
+      "action": "send",
+      "channel": {
+        "$ref": "#/channels/stream"
+      },
+      "messages": [
+        {
+          "$ref": "#/channels/stream/messages/end"
+        }
+      ]
+    },
+    "receiveConfigStatus": {
+      "action": "receive",
+      "channel": {
+        "$ref": "#/channels/stream"
+      },
+      "messages": [
+        {
+          "$ref": "#/channels/stream/messages/configStatus"
+        }
+      ]
+    },
+    "receiveTranscript": {
+      "action": "receive",
+      "channel": {
+        "$ref": "#/channels/stream"
+      },
+      "messages": [
+        {
+          "$ref": "#/channels/stream/messages/transcript"
+        }
+      ]
+    },
+    "receiveFacts": {
+      "action": "receive",
+      "channel": {
+        "$ref": "#/channels/stream"
+      },
+      "messages": [
+        {
+          "$ref": "#/channels/stream/messages/facts"
+        }
+      ]
+    },
+    "receiveEnded": {
+      "action": "receive",
+      "channel": {
+        "$ref": "#/channels/stream"
+      },
+      "messages": [
+        {
+          "$ref": "#/channels/stream/messages/ended"
+        }
+      ]
+    },
+    "receiveUsage": {
+      "action": "receive",
+      "channel": {
+        "$ref": "#/channels/stream"
+      },
+      "messages": [
+        {
+          "$ref": "#/channels/stream/messages/usage"
+        }
+      ]
+    },
+    "receiveError": {
+      "action": "receive",
+      "channel": {
+        "$ref": "#/channels/stream"
+      },
+      "messages": [
+        {
+          "$ref": "#/channels/stream/messages/error"
+        }
+      ]
+    }
+  },
+  "components": {
+    "parameters": {
+      "id": {
+        "description": "Unique identifier for the interaction session."
+      },
+      "tenant-name": {
+        "description": "Specifies the tenant context."
+      },
+      "token": {
+        "description": "Bearer access token for authentication."
+      }
+    },
+    "messages": {
+      "configuration": {
+        "title": "Stream Configuration Message",
+        "description": "Setup configuration for the stream. Must be sent within 15 seconds of opening the WebSocket.",
+        "contentType": "application/json",
+        "payload": {
+          "$ref": "#/components/schemas/StreamConfigMessage"
+        }
+      },
+      "configStatus": {
+        "title": "Configuration Status Message",
+        "description": "Server response to configuration message indicating acceptance or rejection.",
+        "contentType": "application/json",
+        "payload": {
+          "$ref": "#/components/schemas/StreamConfigStatusMessage"
+        }
+      },
+      "transcript": {
+        "title": "Transcript",
+        "description": "Transcript message sent from server to client.",
+        "contentType": "application/json",
+        "payload": {
+          "$ref": "#/components/schemas/StreamTranscriptMessage"
+        }
+      },
+      "facts": {
+        "title": "Facts",
+        "description": "Fact message sent from server to client.",
+        "contentType": "application/json",
+        "payload": {
+          "$ref": "#/components/schemas/StreamFactsMessage"
+        }
+      },
+      "end": {
+        "title": "End Stream Message",
+        "description": "Client message to end the stream.",
+        "contentType": "application/json",
+        "payload": {
+          "$ref": "#/components/schemas/StreamEndMessage"
+        }
+      },
+      "ended": {
+        "title": "Stream Ended Message",
+        "description": "Server message indicating the stream has ended.",
+        "contentType": "application/json",
+        "payload": {
+          "$ref": "#/components/schemas/StreamEndedMessage"
+        }
+      },
+      "usage": {
+        "title": "Usage Information Message",
+        "description": "Server message with usage/credits information.",
+        "contentType": "application/json",
+        "payload": {
+          "$ref": "#/components/schemas/StreamUsageMessage"
+        }
+      },
+      "error": {
+        "title": "Error",
+        "description": "Server message indicating an error has occurred.",
+        "contentType": "application/json",
+        "payload": {
+          "$ref": "#/components/schemas/StreamErrorMessage"
+        }
+      },
+      "audio": {
+        "title": "Audio Data",
+        "description": "Raw binary audio data sent from client to server. Recommended: webm/opus format, max 64000 bytes per chunk, ~500ms per chunk.",
+        "contentType": "application/octet-stream",
+        "payload": {
+          "type": "string",
+          "format": "binary"
+        }
+      }
+    },
+    "schemas": {
+      "StreamConfigMessage": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "config"
+          },
+          "configuration": {
+            "$ref": "#/components/schemas/StreamConfig"
+          }
+        },
+        "required": ["type", "configuration"]
+      },
+      "StreamConfig": {
+        "type": "object",
+        "properties": {
+          "transcription": {
+            "$ref": "#/components/schemas/StreamConfigTranscription"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/StreamConfigMode"
+          }
+        },
+        "required": ["transcription", "mode"]
+      },
+      "StreamConfigTranscription": {
+        "type": "object",
+        "properties": {
+          "primaryLanguage": {
+            "$ref": "#/components/schemas/StreamSupportedLanguage",
+            "description": "Primary spoken language for transcription"
+          },
+          "isDiarization": {
+            "type": "boolean",
+            "default": false,
+            "description": "Enable speaker diarization"
+          },
+          "isMultichannel": {
+            "type": "boolean",
+            "default": false,
+            "description": "Enable multi-channel audio processing"
+          },
+          "participants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StreamConfigParticipant"
+            },
+            "minItems": 1,
+            "description": "List of participants with roles assigned to a channel"
+          }
+        },
+        "required": ["primaryLanguage", "participants"]
+      },
+      "StreamConfigMode": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["facts", "transcription", "documentation"],
+            "description": "Processing mode"
+          },
+          "outputLocale": {
+            "$ref": "#/components/schemas/StreamSupportedLanguage",
+            "description": "Output language locale specific to facts."
+          },
+          "templateId": {
+            "type": "string",
+            "description": "Template identifier for processing configuration"
+          }
+        },
+        "required": ["type"]
+      },
+      "StreamConfigStatusMessage": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "CONFIG_ACCEPTED",
+                "CONFIG_DENIED",
+                "CONFIG_MISSING",
+                "CONFIG_NOT_PROVIDED",
+                "CONFIG_ALREADY_RECEIVED",
+                "CONFIG_TIMEOUT"
+              ],
+              "description": "Configuration status result"
+            },
+            "reason": {
+              "type": "string",
+              "description": "Optional reason for rejection (e.g., 'language unavailable')"
+            }
+          },
+          "required": ["type"]
+        },
+      "StreamEndedMessage": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "ENDED"
+          }
+        },
+        "required": ["type"]
+      },
+      "StreamUsageMessage": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "usage"
+          },
+          "credits": {
+            "type": "number",
+            "description": "The amount of credits used for this stream."
+          }
+        },
+        "required": ["type", "credits"]
+      },
+      "StreamErrorMessage": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "error"
+          },
+          "error": {
+            "$ref": "#/components/schemas/StreamErrorDetail"
+          }
+        },
+        "required": ["type", "error"]
+      },
+      "StreamErrorDetail": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Error identifier"
+          },
+          "title": {
+            "type": "string",
+            "description": "Error title"
+          },
+          "status": {
+            "type": "integer",
+            "description": "HTTP status code or similar error code"
+          },
+          "details": {
+            "type": "string",
+            "description": "Detailed error message"
+          },
+          "doc": {
+            "type": "string",
+            "description": "Link to documentation or further information"
+          }
+        },
+        "required": ["id", "title", "status", "details", "doc"]
+      },
+      "StreamTranscriptMessage": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "transcript"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StreamTranscript"
+            },
+            "minItems": 1
+          }
+        },
+        "required": ["type", "data"]
+      },
+      "StreamTranscript": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the transcript"
+          },
+          "transcript": {
+            "type": "string",
+            "description": "The transcribed text"
+          },
+          "final": {
+            "type": "boolean",
+            "description": "Indicates whether the transcript is finalized or interim"
+          },
+          "speakerId": {
+            "type": "integer",
+            "description": "Speaker identifier (-1 if diarization is off)"
+          },
+          "participant": {
+            "$ref": "#/components/schemas/StreamParticipant"
+          },
+          "time": {
+            "$ref": "#/components/schemas/StreamTranscriptTime"
+          }
+        },
+        "required": ["id", "transcript", "final", "speakerId", "participant", "time"]
+      },
+      "StreamParticipant": {
+        "type": "object",
+        "properties": {
+          "channel": {
+            "type": "integer",
+            "description": "Audio channel number (e.g. 0 or 1)"
+          }
+        },
+        "required": ["channel"]
+      },
+      "StreamConfigParticipant": {
+        "type": "object",
+        "properties": {
+          "channel": {
+            "type": "integer",
+            "description": "Audio channel number (e.g. 0 or 1)"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["doctor", "patient", "multiple"],
+            "description": "Role of the participant (e.g., doctor, patient, or multiple)"
+          }
+        },
+        "required": ["channel", "role"]
+      },
+      "StreamTranscriptTime": {
+        "type": "object",
+        "properties": {
+          "start": {
+            "type": "number",
+            "description": "Start time of the transcript segment"
+          },
+          "end": {
+            "type": "number",
+            "description": "End time of the transcript segment"
+          }
+        },
+        "required": ["start", "end"]
+      },
+      "StreamFactsMessage": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "facts"
+          },
+          "fact": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StreamFact"
+            },
+            "minItems": 1
+          }
+        },
+        "required": ["type", "fact"]
+      },
+      "StreamFact": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the fact"
+          },
+          "text": {
+            "type": "string",
+            "description": "Text description of the fact"
+          },
+          "group": {
+            "type": "string",
+            "description": "Categorization of the fact (e.g., medical-history)"
+          },
+          "groupId": {
+            "type": "string",
+            "description": "Unique identifier for the group"
+          },
+          "isDiscarded": {
+            "type": "boolean",
+            "description": "Indicates if the fact was discarded"
+          },
+          "source": {
+            "type": "string",
+            "description": "Source of the fact (e.g., core for generated automatically)"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the fact was created"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the fact was last updated"
+          },
+          "createdAtTzOffset": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timezone offset for createdAt timestamp"
+          },
+          "updatedAtTzOffset": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timezone offset for updatedAt timestamp"
+          }
+        },
+        "required": ["id", "text", "group", "groupId", "isDiscarded", "source", "createdAt"]
+      },
+      "StreamEndMessage": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "end"
+          }
+        },
+        "required": ["type"]
+      },
+      "StreamSupportedLanguage": {
+        "type": "string",
+        "description": "Supported language codes"
+      }
+    }
+  }
+}

@@ -215,3 +215,104 @@ async def post_v2_tools_extract_facts(
         outputLanguage=out_lang,
         usageInfo=FactUsageInfo(creditsConsumed=_estimate_credits(usage)),
     )
+
+
+# ─── Phase 1.3 cycle 13 — Facts LIST (Corti §13.5) ──────────────────
+# Spec source: ``docs/corti-reverse-engineered/facts-list-facts.md``
+# (6,314B, fetched 2026-07-01 from
+# ``https://docs.corti.ai/api-reference/facts/list-facts.md``).
+#
+# This is the **first endpoint of the §13.5 Facts family** (5 more to
+# follow: add-facts, list-fact-groups, update-fact, update-facts).
+# Distinct from Phase 1.2 cycle 1 §3.2/§13.4 extract-facts (LLM call) —
+# list-facts is a CRUD-style read of stored facts.
+#
+# **Stub strategy** (no DB):
+#   - ``empty-{uuid}`` interaction_id → ``facts: []`` (exercises the
+#     empty envelope path)
+#   - default → 2 facts with mixed group/source (core + system) and
+#     evidence with reference/quote echoed from interaction_id prefix.
+#   - ``facts[*].id`` and ``facts[*].groupId`` echo interaction_id so
+#     SDK callers can verify the path-echo contract.
+
+from app.schemas.v2_tools_facts import (
+    FactsEvidence,
+    FactsListItem,
+    FactsListResponse,
+)
+
+
+def _stub_facts_for_interaction(interaction_id: str) -> List[FactsListItem]:
+    """Deterministic stub data per interaction UUID.
+
+    Returns ``[]`` when interaction_id starts with ``empty-`` so callers
+    can verify the spec's empty-envelope path. Otherwise returns 2 facts
+    with mixed ``source`` and ``group`` values, each with one evidence
+    row whose ``reference`` and ``quote`` echo the interaction_id.
+    """
+    if interaction_id.startswith("empty-"):
+        return []
+
+    # Derive a deterministic short tag from interaction_id so tests can
+    # assert path-echo without hard-coding UUIDs.
+    short_tag = interaction_id.replace("-", "")[:12]
+    ts = "2026-07-01T12:00:00Z"
+    return [
+        FactsListItem(
+            id=f"{interaction_id}-fact-{short_tag}-01",
+            text="67-year-old male presenting with recurrent chest tightness.",
+            group="demographics",
+            groupId=f"{interaction_id}-grp-{short_tag}-01",
+            isDiscarded=False,
+            source="core",
+            createdAt=ts,
+            updatedAt=ts,
+            evidence=[
+                FactsEvidence(
+                    type="transcript",
+                    reference=f"/interactions/{interaction_id}/transcripts/{short_tag}",
+                    quote="67-year-old male, recurrent chest tightness for 3 days.",
+                ),
+            ],
+        ),
+        FactsListItem(
+            id=f"{interaction_id}-fact-{short_tag}-02",
+            text="LVEF 38% on echocardiogram (2026-06-28).",
+            group="imaging-results",
+            groupId=f"{interaction_id}-grp-{short_tag}-02",
+            isDiscarded=False,
+            source="system",
+            createdAt=ts,
+            updatedAt=ts,
+            evidence=[
+                FactsEvidence(
+                    type="report",
+                    reference=f"/interactions/{interaction_id}/recordings/{short_tag}",
+                    quote="LVEF 38%; mild mitral regurgitation.",
+                ),
+            ],
+        ),
+    ]
+
+
+@router.get("/interactions/{interaction_id}/facts", response_model=FactsListResponse)
+@router.get("/interactions/{interaction_id}/facts/", response_model=FactsListResponse)
+async def get_v2_tools_interaction_facts(
+    interaction_id: str,
+    current_user: User = Depends(get_current_user),
+):
+    """Corti §13.5 facts_list — list facts for an interaction.
+
+    Spec: ``GET /interactions/{id}/facts/`` (operationId ``facts_list``).
+    Path: ``/api/v2/tools/interactions/{interaction_id}/facts/`` (mounted
+    under the existing ``/api/v2/tools`` prefix).
+
+    Returns a ``{facts: [...]}`` envelope. Stub does NOT hit a DB —
+    ``empty-{uuid}`` interaction IDs return an empty list; all other
+    IDs return 2 deterministic facts whose ``id``/``groupId``/``reference``
+    echo the interaction_id (path-echo contract).
+
+    Error response per spec is **504** (RFC9457 ``ErrorResponse``).
+    """
+    facts = _stub_facts_for_interaction(interaction_id)
+    return FactsListResponse(facts=facts)

@@ -730,6 +730,18 @@ try:
 except Exception as _mw_e:
     logger.warning(f"MCP context_id middleware install skipped: {_mw_e}")
 
+# Phase 1.0 (2026-06-30): Tenant header middleware (Corti parity). Reads
+# ``Tenant-Name`` / ``X-Tenant``, cross-checks with JWT ``org_id``, and —
+# in cloud mode — makes the header mandatory on authenticated calls.
+# OAuth itself is exempt so first-time callers can bootstrap a token.
+try:
+    from app.middleware.tenant_extractor import TenantHeaderMiddleware
+    app.add_middleware(TenantHeaderMiddleware)
+    app.state._tenant_middleware_installed = True
+    logger.info("TenantHeaderMiddleware installed at module load time")
+except Exception as _tenant_e:
+    logger.warning(f"TenantHeaderMiddleware install skipped: {_tenant_e}")
+
 
 # Global exception handler — only catches truly unhandled exceptions
 @app.exception_handler(Exception)

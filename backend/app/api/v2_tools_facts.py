@@ -545,3 +545,75 @@ async def patch_v2_tools_interaction_fact(
         createdAt="2026-07-01T12:00:00Z",
         updatedAt="2026-07-01T12:00:01Z",
     )
+
+
+# ─── Phase 1.3 cycle 17 — Facts UPDATE-FACTS BATCH (Corti §13.5) ──
+# Spec source: ``docs/corti-reverse-engineered/facts-update-facts.md``
+# (7,424B, fetched 2026-07-01 from
+# ``https://docs.corti.ai/api-reference/facts/update-facts.md``).
+#
+# This is the **fifth endpoint of the §13.5 Facts family** (1 more to
+# follow). Distinct from update-fact (cycle 16):
+# - Path is **trailing-slash collection** ``/interactions/{id}/facts/``
+#   (vs single-resource PATCH ``/interactions/{id}/facts/{factId}``).
+# - Request wraps in ``{facts: [...]}`` (vs bare object for single).
+# - **NO ``source`` field in batch request** (per spec — only factId,
+#   text, group, isDiscarded are updateable via batch).
+#
+# **Stub strategy** (no DB):
+#   - Each input fact is echoed back with all 8 required response fields
+#     populated. Fields present in the input override defaults; omitted
+#     fields use deterministic placeholders.
+#   - Path UUIDs are echoed: ``id`` == input.factId, ``groupId`` derived
+#     from ``interaction_id``.
+#   - Source is NOT in the request (per spec) but IS in the response —
+#     stub defaults to "user".
+
+from app.schemas.v2_tools_facts import (
+    FactsBatchUpdateItem,
+    FactsBatchUpdateRequest,
+    FactsBatchUpdateResponse,
+)
+
+
+@router.patch("/interactions/{interaction_id}/facts", response_model=FactsBatchUpdateResponse)
+@router.patch("/interactions/{interaction_id}/facts/", response_model=FactsBatchUpdateResponse)
+async def patch_v2_tools_interaction_facts_batch(
+    interaction_id: str,
+    body: FactsBatchUpdateRequest,
+    current_user: User = Depends(get_current_user),
+):
+    """Corti §13.5 facts_batch_update — batch update multiple facts.
+
+    Spec: ``PATCH /interactions/{id}/facts/`` (operationId
+    ``facts_batch_update``). Path: ``/api/v2/tools/interactions/{interaction_id}/facts/``
+    (mounted under the existing ``/api/v2/tools`` prefix).
+
+    Request body: ``{facts: [{factId, text?, group?, isDiscarded?}, ...]}``
+    — ``factId`` required, the rest optional.
+    Response: ``{facts: [{id, text, group, groupId, source, isDiscarded, createdAt, updatedAt}, ...]}``
+    — all 8 fields **required** per spec, per item.
+
+    Stub does NOT persist (no DB). Each input fact is echoed back with
+    deterministic server-assigned ``createdAt``/``updatedAt`` and
+    path-echoed ``id`` (== input.factId) + ``groupId`` (derived from
+    interaction_id).
+
+    Error response per spec is **504** (RFC9457 ``ErrorResponse``).
+    """
+    short_tag = interaction_id.replace("-", "")[:12]
+    out: List[FactsBatchUpdateItem] = []
+    for fact_in in body.facts:
+        out.append(
+            FactsBatchUpdateItem(
+                id=fact_in.factId,
+                text=fact_in.text if fact_in.text is not None else "(unchanged)",
+                group=fact_in.group if fact_in.group is not None else "other",
+                groupId=f"{interaction_id}-grp-{short_tag}",
+                source="user",  # not in request per spec
+                isDiscarded=fact_in.isDiscarded if fact_in.isDiscarded is not None else False,
+                createdAt="2026-07-01T12:00:00Z",
+                updatedAt="2026-07-01T12:00:01Z",
+            )
+        )
+    return FactsBatchUpdateResponse(facts=out)

@@ -49,6 +49,7 @@ from app.models.user import User
 from app.schemas.v2_tools_stt import (
     CommonTranscriptResponse,
     CommonUsageInfo,
+    RecordingsListResponse,
     TranscriptsCreateRequest,
     TranscriptsData,
     TranscriptsListItem,
@@ -410,3 +411,84 @@ async def create_v2_tools_interaction_transcript(
             )
 
     return _stub_create_transcript(interaction_id, body)
+
+
+# ─── Stub data (Cycle 9 — list-recordings) ──────────────────────────
+
+
+def _stub_recordings_for_interaction(interaction_id: str) -> List[str]:
+    """Deterministic stub data per interaction UUID.
+
+    Returns an empty list when ``interaction_id`` is the special
+    sentinel ``empty-{uuid}`` (exercises the spec's array-empty contract).
+    Otherwise returns 2 deterministic UUIDs derived from the
+    interaction_id (path-echo pattern, mirrors cycle-6 transcripts).
+
+    Unlike transcripts list (cycle 6), this envelope's ``recordings``
+    field is NOT ``nullable: true`` per spec — empty list is the
+    canonical "no recordings" signal.
+    """
+    if interaction_id.startswith("empty-"):
+        return []
+
+    # Two deterministic UUIDs — first segment echoes the interaction_id
+    # so the path-scoping contract is testable.
+    prefix = interaction_id.replace("-", "")[:8]
+    return [
+        f"{prefix}-1111-2222-3333-444444444444",
+        f"{prefix}-aaaa-bbbb-cccc-dddddddddddd",
+    ]
+
+
+# ─── Endpoint: list-recordings (cycle 9) ────────────────────────────
+
+
+@router.get(
+    "/interactions/{interaction_id}/recordings/",
+    response_model=RecordingsListResponse,
+    status_code=200,
+)
+@router.get(
+    "/interactions/{interaction_id}/recordings",
+    response_model=RecordingsListResponse,
+    status_code=200,
+)
+async def list_v2_tools_interaction_recordings(
+    interaction_id: str,
+    current_user: User = Depends(get_current_user),
+) -> RecordingsListResponse:
+    """Corti §13.3 Recordings — ``GET /interactions/{id}/recordings/``.
+
+    Returns the canonical list of recording UUIDs for the interaction.
+    Per spec, the envelope's ``recordings`` field is a non-nullable
+    array of UUID strings (empty list when the interaction has no
+    recordings; ``null`` is not valid).
+
+    Path-scoped to a single interaction UUID.
+    """
+    if not interaction_id or not interaction_id.strip():
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "requestid": str(uuid.uuid4()),
+                "status": 400,
+                "type": "invalid_request",
+                "detail": "interaction_id is required.",
+            },
+        )
+
+    if not os.environ.get("ICODER_CREDENTIAL_LLM", "").strip():
+        if os.environ.get("ICODER_ALLOW_DEGRADED_NO_KEY", "") != "1":
+            raise HTTPException(
+                status_code=503,
+                detail={
+                    "requestid": str(uuid.uuid4()),
+                    "status": 503,
+                    "type": "service_unavailable",
+                    "detail": "ICODER_CREDENTIAL_LLM not set; hospital-pilot gate refuses to serve.",
+                },
+            )
+
+    return RecordingsListResponse(
+        recordings=_stub_recordings_for_interaction(interaction_id),
+    )

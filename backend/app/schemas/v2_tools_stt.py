@@ -230,3 +230,23 @@ class TranscriptsCreateRequest(BaseModel):
     keyterms: Optional[TranscriptsCreateKeyterms] = Field(
         default=None, description="Vocabulary hints (max 1,000 terms per stream)"
     )
+
+
+# ─── RecordingsListResponse (cycle 9 list-recordings) ───────────────
+
+
+class RecordingsListResponse(BaseModel):
+    """``RecordingsListResponse`` schema — list-recordings response envelope.
+
+    Required: ``recordings`` (array of recording UUID strings).
+
+    Unlike transcripts list (cycle 6), this envelope's ``recordings``
+    field is NOT ``nullable: true`` per spec — it must always be an
+    array (empty list is valid, but not null).
+
+    Spec source:
+    ``docs/corti-reverse-engineered/stt-list-recordings.md`` (4,897 bytes).
+    """
+    recordings: List[str] = Field(
+        default_factory=list, description="List of recording UUIDs for the interaction"
+    )

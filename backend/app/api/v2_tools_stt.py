@@ -48,11 +48,13 @@ from app.middleware.auth import get_current_user
 from app.models.user import User
 from app.schemas.v2_tools_stt import (
     CommonTranscriptResponse,
+    CommonUsageInfo,
     TranscriptsData,
     TranscriptsListItem,
     TranscriptsListResponse,
     TranscriptsMetadata,
     TranscriptsParticipant,
+    TranscriptsResponse,
 )
 
 router = APIRouter(prefix="/api/v2/tools", tags=["v2-tools"])
@@ -177,3 +179,134 @@ async def list_v2_tools_interaction_transcripts(
     return TranscriptsListResponse(
         transcripts=_stub_transcripts_for_interaction(interaction_id, full=full),
     )
+
+
+# ─── Stub data (Cycle 7) ─────────────────────────────────────────────
+
+
+def _stub_single_transcript(
+    interaction_id: str, transcript_id: str
+) -> TranscriptsResponse:
+    """Deterministic stub for a single transcript.
+
+    Three transcript states are exercised via transcript_id sentinel:
+    - ``completed`` (or any non-sentinel) → status=completed with full
+      transcripts[] rows.
+    - ``processing-{uuid}`` → status=processing, transcripts=null
+      (exercises the nullable contract while not-yet-finalized).
+    - ``failed-{uuid}`` → status=failed, transcripts=null.
+
+    The path UUIDs are echoed into id/recordingId so SDK callers can
+    verify the contract.
+    """
+    if transcript_id.startswith("processing-"):
+        return TranscriptsResponse(
+            id=transcript_id,
+            metadata=TranscriptsMetadata(
+                participantsRoles=[
+                    TranscriptsParticipant(channel=1, role="patient"),
+                    TranscriptsParticipant(channel=1, role="doctor"),
+                ],
+            ),
+            transcripts=None,
+            usageInfo=CommonUsageInfo(creditsConsumed=0.0),
+            recordingId=f"{interaction_id}-rec-stub",
+            status="processing",
+        )
+    if transcript_id.startswith("failed-"):
+        return TranscriptsResponse(
+            id=transcript_id,
+            metadata=TranscriptsMetadata(participantsRoles=None),
+            transcripts=None,
+            usageInfo=CommonUsageInfo(creditsConsumed=0.0),
+            recordingId=f"{interaction_id}-rec-stub",
+            status="failed",
+        )
+    # default: completed with full transcript payload
+    return TranscriptsResponse(
+        id=transcript_id,
+        metadata=TranscriptsMetadata(
+            participantsRoles=[
+                TranscriptsParticipant(channel=1, role="patient"),
+                TranscriptsParticipant(channel=1, role="doctor"),
+            ],
+        ),
+        transcripts=[
+            CommonTranscriptResponse(
+                channel=1, participant=1, speakerId=1,
+                text="I've been having chest tightness for about three days now.",
+                start=0, end=4200,
+            ),
+            CommonTranscriptResponse(
+                channel=1, participant=2, speakerId=2,
+                text="Can you describe the pain — is it sharp or dull?",
+                start=4500, end=7200,
+            ),
+            CommonTranscriptResponse(
+                channel=1, participant=2, speakerId=2,
+                text="Let's get an EKG and schedule a follow-up in two weeks.",
+                start=15000, end=18500,
+            ),
+        ],
+        usageInfo=CommonUsageInfo(creditsConsumed=0.018),
+        recordingId=f"{interaction_id}-rec-stub",
+        status="completed",
+    )
+
+
+# ─── Endpoint: get-transcript (cycle 7) ──────────────────────────────
+
+
+@router.get(
+    "/interactions/{interaction_id}/transcripts/{transcript_id}",
+    response_model=TranscriptsResponse,
+    status_code=200,
+)
+async def get_v2_tools_interaction_transcript(
+    interaction_id: str,
+    transcript_id: str,
+    current_user: User = Depends(get_current_user),
+) -> TranscriptsResponse:
+    """Corti §13.3 Transcripts — ``GET /interactions/{id}/transcripts/{transcriptId}``.
+
+    Returns the single full transcript envelope (always-full payload,
+    no ``?full=`` toggle — the cycle-6 LIST endpoint is for discovery;
+    cycle-7 get returns the canonical single-transcript body).
+
+    The ``status`` field reflects processing state. ``transcripts`` is
+    ``null`` while status is ``processing`` or ``failed`` per spec.
+    """
+    if not interaction_id or not interaction_id.strip():
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "requestid": str(uuid.uuid4()),
+                "status": 400,
+                "type": "invalid_request",
+                "detail": "interaction_id is required.",
+            },
+        )
+    if not transcript_id or not transcript_id.strip():
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "requestid": str(uuid.uuid4()),
+                "status": 400,
+                "type": "invalid_request",
+                "detail": "transcript_id is required.",
+            },
+        )
+
+    if not os.environ.get("ICODER_CREDENTIAL_LLM", "").strip():
+        if os.environ.get("ICODER_ALLOW_DEGRADED_NO_KEY", "") != "1":
+            raise HTTPException(
+                status_code=503,
+                detail={
+                    "requestid": str(uuid.uuid4()),
+                    "status": 503,
+                    "type": "service_unavailable",
+                    "detail": "ICODER_CREDENTIAL_LLM not set; hospital-pilot gate refuses to serve.",
+                },
+            )
+
+    return _stub_single_transcript(interaction_id, transcript_id)

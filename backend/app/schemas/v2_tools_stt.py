@@ -116,3 +116,35 @@ class TranscriptsListResponse(BaseModel):
     transcripts: Optional[List[TranscriptsListItem]] = Field(
         default=None, description="List of transcripts (nullable per spec)"
     )
+
+
+# ─── CommonUsageInfo (credits, shared with cycle 3) ─────────────────
+
+
+class CommonUsageInfo(BaseModel):
+    """``CommonUsageInfo`` schema — credits consumed for this request."""
+    creditsConsumed: float = Field(..., ge=0.0)
+
+
+# ─── TranscriptsStatusEnum + TranscriptsResponse (cycle 7 get) ──────
+
+
+class TranscriptsResponse(BaseModel):
+    """``TranscriptsResponse`` schema — single-transcript response (get-transcript).
+
+    Required: ``id``, ``metadata``, ``transcripts``, ``usageInfo``,
+    ``recordingId``, ``status``. Per spec, the ``transcripts`` field
+    itself is ``nullable: true`` — a transcript whose processing is
+    still in progress may return ``{transcripts: null}`` (status
+    ``processing``) until it completes.
+    """
+    id: str = Field(..., description="UUID of the transcript")
+    metadata: TranscriptsMetadata
+    transcripts: Optional[List[CommonTranscriptResponse]] = Field(
+        default=None, description="Transcript utterance rows (nullable while processing)"
+    )
+    usageInfo: CommonUsageInfo
+    recordingId: str = Field(..., description="UUID of the associated recording")
+    status: Literal["completed", "processing", "failed"] = Field(
+        ..., description="Transcript processing status"
+    )

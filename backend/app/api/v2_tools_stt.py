@@ -1,0 +1,179 @@
+"""iCoDer ``GET /api/v2/tools/interactions/{id}/transcripts/`` — Corti §13.3 STT LIST.
+
+Cycle 6 (2026-07-01) — wire-shape parity for the §13.3 STT list-transcripts
+endpoint. The STT family has 9 endpoints total (5 transcripts + 4
+recordings); cycle 6 closes only the LIST for transcripts.
+
+Spec source (ground truth, never inferred):
+- ``docs/corti-reverse-engineered/stt-list-transcripts.md`` (7,962 bytes,
+  fetched 2026-07-01 from
+  ``https://docs.corti.ai/api-reference/transcripts/list-transcripts.md``).
+  Path: ``GET /interactions/{id}/transcripts/`` → operationId
+  ``transcripts_list``.
+
+What this endpoint IS
+---------------------
+- A read-only LIST endpoint returning the Corti §13.3 transcripts
+  envelope ``{transcripts: TranscriptsListItem[] | null}`` for a
+  single interaction. Supports ``?full=true`` to include the full
+  transcript payload (channel/participant/text/start/end rows).
+
+What this endpoint is NOT
+--------------------------
+- NOT a real STT surface. Cycle 6 ships stub data only — iCoDer does
+  not have actual STT processing yet (the legacy ``/ws/speech-to-text``
+  WSS surface is unrelated). Real STT integration is a separate Phase
+  1.3 task; until then this LIST is intentionally empty-feeling.
+- NOT a CRUD surface. The other 4 transcript endpoints (create, delete,
+  get, get-status) and 4 recording endpoints land in cycles 7+.
+
+Stub data
+---------
+2 transcript items per interaction, deterministic per-UUID:
+
+- ``transcriptSample`` is always populated (it's required).
+- ``transcript`` (full data) is only populated when ``?full=true``;
+  otherwise it's omitted entirely (caller shouldn't pay for it).
+"""
+
+from __future__ import annotations
+
+import os
+import uuid
+from typing import List, Optional
+
+from fastapi import APIRouter, Depends, HTTPException, Query
+
+from app.middleware.auth import get_current_user
+from app.models.user import User
+from app.schemas.v2_tools_stt import (
+    CommonTranscriptResponse,
+    TranscriptsData,
+    TranscriptsListItem,
+    TranscriptsListResponse,
+    TranscriptsMetadata,
+    TranscriptsParticipant,
+)
+
+router = APIRouter(prefix="/api/v2/tools", tags=["v2-tools"])
+
+
+# ─── Stub data (Cycle 6; replaced by real STT in a later cycle) ────
+
+
+def _stub_transcripts_for_interaction(
+    interaction_id: str, full: bool
+) -> Optional[List[TranscriptsListItem]]:
+    """Deterministic stub data per interaction UUID.
+
+    Returns ``None`` when the interaction_id is the special sentinel
+    ``empty-{uuid}`` so callers can verify the spec's nullable
+    envelope field. Otherwise returns a 2-item list with full data
+    populated iff ``full=True``.
+    """
+    if interaction_id.startswith("empty-"):
+        # Spec says transcripts field is nullable — exercise that path.
+        return None
+
+    items: List[TranscriptsListItem] = [
+        TranscriptsListItem(
+            id=f"{interaction_id}-tr-0001",
+            transcriptSample="Patient reports chest tightness for the past 3 days.",
+            transcript=TranscriptsData(
+                metadata=TranscriptsMetadata(
+                    participantsRoles=[
+                        TranscriptsParticipant(channel=1, role="patient"),
+                        TranscriptsParticipant(channel=1, role="doctor"),
+                    ],
+                ),
+                transcripts=[
+                    CommonTranscriptResponse(
+                        channel=1, participant=1, speakerId=1,
+                        text="I've been having chest tightness for about three days now.",
+                        start=0, end=4200,
+                    ),
+                    CommonTranscriptResponse(
+                        channel=1, participant=2, speakerId=2,
+                        text="Can you describe the pain — is it sharp or dull?",
+                        start=4500, end=7200,
+                    ),
+                ],
+            ) if full else None,
+        ),
+        TranscriptsListItem(
+            id=f"{interaction_id}-tr-0002",
+            transcriptSample="Doctor orders EKG and recommends follow-up.",
+            transcript=TranscriptsData(
+                metadata=TranscriptsMetadata(
+                    participantsRoles=[
+                        TranscriptsParticipant(channel=1, role="patient"),
+                        TranscriptsParticipant(channel=1, role="doctor"),
+                    ],
+                ),
+                transcripts=[
+                    CommonTranscriptResponse(
+                        channel=1, participant=2, speakerId=2,
+                        text="Let's get an EKG and schedule a follow-up in two weeks.",
+                        start=15000, end=18500,
+                    ),
+                ],
+            ) if full else None,
+        ),
+    ]
+    return items
+
+
+# ─── Endpoint ────────────────────────────────────────────────────────
+
+
+@router.get(
+    "/interactions/{interaction_id}/transcripts/",
+    response_model=TranscriptsListResponse,
+    status_code=200,
+)
+@router.get(
+    "/interactions/{interaction_id}/transcripts",
+    response_model=TranscriptsListResponse,
+    status_code=200,
+)
+async def list_v2_tools_interaction_transcripts(
+    interaction_id: str,
+    full: bool = Query(default=False, description="Display full transcripts in listing"),
+    current_user: User = Depends(get_current_user),
+) -> TranscriptsListResponse:
+    """Corti §13.3 Transcripts — ``GET /interactions/{id}/transcripts/``.
+
+    Path-scoped to a single interaction UUID. Supports ``?full=true``
+    to include the full transcript payload (channel/participant/text/
+    start/end rows) alongside the always-present ``transcriptSample``.
+
+    Per spec, ``transcripts`` may be ``null`` (e.g. for an interaction
+    with no transcripts). The walker test verifies this nullable
+    contract.
+    """
+    if not interaction_id or not interaction_id.strip():
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "requestid": str(uuid.uuid4()),
+                "status": 400,
+                "type": "invalid_request",
+                "detail": "interaction_id is required.",
+            },
+        )
+
+    if not os.environ.get("ICODER_CREDENTIAL_LLM", "").strip():
+        if os.environ.get("ICODER_ALLOW_DEGRADED_NO_KEY", "") != "1":
+            raise HTTPException(
+                status_code=503,
+                detail={
+                    "requestid": str(uuid.uuid4()),
+                    "status": 503,
+                    "type": "service_unavailable",
+                    "detail": "ICODER_CREDENTIAL_LLM not set; hospital-pilot gate refuses to serve.",
+                },
+            )
+
+    return TranscriptsListResponse(
+        transcripts=_stub_transcripts_for_interaction(interaction_id, full=full),
+    )

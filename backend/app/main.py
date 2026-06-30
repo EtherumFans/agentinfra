@@ -817,6 +817,7 @@ from app.api.v2_tools_coding import router as v2_tools_coding_router
 from app.api.v2_tools_facts import router as v2_tools_facts_router
 from app.api.v2_tools_streams import router as v2_tools_streams_router
 from app.api.v2_tools_guided_document import router as v2_tools_guided_document_router
+from app.api.v2_tools_sections_templates import router as v2_tools_sections_templates_router
 from app.api.customers import router as customers_router
 from app.api.templates import router as templates_router
 from app.api.tickets import router as tickets_router
@@ -849,6 +850,7 @@ app.include_router(v2_tools_coding_router)         # Phase 1.1 (2026-06-30) /api
 app.include_router(v2_tools_facts_router)          # Phase 1.2 cycle 1 (2026-06-30) /api/v2/tools/extract-facts (Corti §3.2 / §13.4 FactsR™)
 app.include_router(v2_tools_streams_router)        # Phase 1.2 cycle 2 (2026-06-30) /api/v2/tools/streams/{id} (Corti §13.3/§13.4 Streams WSS)
 app.include_router(v2_tools_guided_document_router) # Phase 1.2 cycle 3 (2026-06-30) /api/v2/tools/guided-documents/ (Corti §13.4 Guided Documents, templateRef + ephemeral only)
+app.include_router(v2_tools_sections_templates_router) # Phase 1.2 cycle 4 (2026-07-01) /api/v2/tools/{templates,sections}/ (Corti §13.4 LIST, stub data)
 app.include_router(customers_router)             # /api/customers/* (Corti parity)
 app.include_router(templates_router)             # /api/templates/* (Templates Beta — Corti parity)
 app.include_router(tickets_router)               # /api/tickets/* (Tickets Portal — Corti parity)

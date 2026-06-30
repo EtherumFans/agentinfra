@@ -421,3 +421,75 @@ class FactsUpdateResponse(BaseModel):
     isDiscarded: bool = Field(..., description="Whether the fact is marked as discarded")
     createdAt: str = Field(..., description="ISO 8601 timestamp when the fact was originally created")
     updatedAt: str = Field(..., description="ISO 8601 timestamp when the fact was last updated")
+
+
+# ─── Phase 1.3 cycle 17 — Facts UPDATE-FACTS BATCH (Corti §13.5) ──
+# Spec source: ``docs/corti-reverse-engineered/facts-update-facts.md``
+# (7,424B, fetched 2026-07-01 from
+# ``https://docs.corti.ai/api-reference/facts/update-facts.md``).
+#
+# This is the **fifth endpoint of the §13.5 Facts family** (1 more to
+# follow). Distinct from update-fact (cycle 16):
+# - Path is **trailing-slash collection** ``/interactions/{id}/facts/``
+#   (vs single-resource PATCH ``/interactions/{id}/facts/{factId}``).
+# - Request wraps in ``{facts: [...]}`` (vs bare object for single).
+# - **NO ``source`` field in batch request** (per spec — only factId,
+#   text, group, isDiscarded are updateable via batch). The single
+#   update-fact (cycle 16) does support source updates.
+
+
+class FactsBatchUpdateInput(BaseModel):
+    """One fact in the ``facts[]`` batch update payload.
+
+    Per spec (``FactsBatchUpdateInput``), ``factId`` is **required**;
+    ``text``, ``group``, ``isDiscarded`` are optional. **NO ``source``
+    field** per spec (source is not updateable via batch).
+    """
+    factId: str = Field(..., description="The unique identifier of the fact to be updated (UUID)")
+    text: Optional[str] = Field(default=None, description="The updated text content of the fact")
+    group: Optional[str] = Field(default=None, description="The updated group key for the fact")
+    isDiscarded: Optional[bool] = Field(
+        default=None,
+        description="Set to true to mark the fact as discarded",
+    )
+
+
+class FactsBatchUpdateRequest(BaseModel):
+    """Request shape for ``PATCH /interactions/{id}/facts/``.
+
+    Per spec (``FactsBatchUpdateRequest``), ``facts`` is **required**
+    (array of ``FactsBatchUpdateInput``).
+    """
+    facts: _List[FactsBatchUpdateInput] = Field(
+        default_factory=list,
+        description="A list of facts to be updated",
+    )
+
+
+class FactsBatchUpdateItem(BaseModel):
+    """One fact in the ``facts[]`` batch update response.
+
+    Per spec (``FactsBatchUpdateItem``), all 8 fields are required:
+    id, text, group, groupId, source, isDiscarded, createdAt, updatedAt.
+    Same shape as cycle 16's ``FactsUpdateResponse``.
+    """
+    id: str = Field(..., description="The unique identifier of the updated fact (UUID)")
+    text: str = Field(..., description="The (possibly updated) text content of the fact")
+    group: str = Field(..., description="The (possibly updated) group key")
+    groupId: str = Field(..., description="The unique identifier of the associated group (UUID)")
+    source: str = Field(..., description="The (possibly updated) source")
+    isDiscarded: bool = Field(..., description="Whether the fact is marked as discarded")
+    createdAt: str = Field(..., description="ISO 8601 timestamp when the fact was originally created")
+    updatedAt: str = Field(..., description="ISO 8601 timestamp when the fact was last updated")
+
+
+class FactsBatchUpdateResponse(BaseModel):
+    """Response shape for ``PATCH /interactions/{id}/facts/``.
+
+    Per spec (``FactsBatchUpdateResponse``), ``facts`` is **required**
+    (array of ``FactsBatchUpdateItem``).
+    """
+    facts: _List[FactsBatchUpdateItem] = Field(
+        default_factory=list,
+        description="A list of successfully updated facts",
+    )

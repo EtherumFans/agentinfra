@@ -223,7 +223,7 @@ async def get_current_client(
 ) -> dict:
     """Get current authenticated OAuth client from client_credentials token.
 
-    Returns dict with client_id, scopes, owner_id for M2M auth.
+    Returns dict with client_id, scopes, owner_id, org_id for M2M auth.
     Falls back to user auth if token type is not client_credentials.
     """
     if credentials is None:
@@ -247,11 +247,72 @@ async def get_current_client(
 
     return {
         "client_id": payload.get("sub"),
-        "scopes": payload.get("scopes", "").split(),
+        "scopes": (payload.get("scopes") or "").split(),
         "owner_id": payload.get("owner_id"),
         "org_id": payload.get("org_id", ""),
         "token_type": "client_credentials",
     }
+
+
+def require_scopes(*required_scopes: str):
+    """Dependency factory that enforces token-side scope grants.
+
+    Corti parity (2026-06-30, Phase 1.0): implements the limited-scope
+    credential check documented in
+    ``docs/corti-reverse-engineered/SUMMARY.md`` §13.2 — when an SDK
+    requests a token with ``scope=openid transcribe``, that token must be
+    rejected from any non-transcribe endpoint even if the underlying client
+    has full ``api:read api:write`` grants.
+
+    Usage::
+
+        @router.get("/api/v2/stt/transcripts")
+        async def upload_transcript(
+            client: dict = Depends(require_scopes("transcribe", "api:read")),
+        ):
+            ...
+
+    The token's granted scopes must intersect with the required scopes
+    subset (i.e. every required scope is satisfied). A token carrying
+    only ``transcribe`` will satisfy ``require_scopes("transcribe")``
+    but be rejected by ``require_scopes("api:read", "transcribe")``
+    because ``api:read`` is missing.
+    """
+    async def _checker(client: dict = Depends(get_current_client)) -> dict:
+        granted = set(client.get("scopes") or [])
+        missing = [s for s in required_scopes if s not in granted]
+        if missing:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail={
+                    "error": "insufficient_scope",
+                    "required_scopes": list(required_scopes),
+                    "missing_scopes": missing,
+                    "granted_scopes": sorted(granted),
+                },
+            )
+        return client
+    return _checker
+
+
+# Capability-to-endpoint alias mapping. Lets handlers use friendly names like
+# ``require_corti_capability("transcribe")`` without having to invent
+# scope strings ad hoc. Corresponds to docs §13.2 (limited-scope credentials).
+CAPABILITY_SCOPE_ALIASES: dict[str, tuple[str, ...]] = {
+    "transcribe": ("transcribe",),
+    "streams": ("streams",),
+    "textgen": ("textgen",),
+    "facts": ("facts",),
+}
+
+
+def require_corti_capability(capability: str):
+    """Shorthand for ``require_scopes(*CAPABILITY_SCOPE_ALIASES[capability])``."""
+    try:
+        scopes = CAPABILITY_SCOPE_ALIASES[capability]
+    except KeyError as e:
+        raise ValueError(f"Unknown capability {capability!r}; expected one of {sorted(CAPABILITY_SCOPE_ALIASES)}") from e
+    return require_scopes(*scopes)
 
 
 # Import at bottom to avoid circular

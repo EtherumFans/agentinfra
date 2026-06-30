@@ -42,8 +42,23 @@ class Settings(BaseSettings):
 
     # ── Auth ──────────────────────────────────────────────────────────────────
     JWT_ALGORITHM: str = "HS256"
-    JWT_EXPIRE_MINUTES: int = 480  # 8 hours
+    JWT_EXPIRE_MINUTES: int = 480  # 8 hours (human user sessions — login)
     JWT_REFRESH_EXPIRE_DAYS: int = 7
+
+    # ── OAuth client_credentials ────────────────────────────────────────────────
+    # Corti parity (2026-06-30, Phase 1.0): machine-to-machine tokens are
+    # intentionally SHORT-lived (5 minutes) so a leaked credential has minimal
+    # blast radius. See docs/corti-reverse-engineered/SUMMARY.md §13.2.
+    # Override via OAUTH_CLIENT_EXPIRE_SECONDS env var.
+    OAUTH_CLIENT_EXPIRE_SECONDS: int = 300  # 5 minutes
+    # Whether the OAuth token endpoint MUST receive a Tenant-Name (or X-Tenant)
+    # header. Local dev keeps this off (single-tenant convenience); cloud mode
+    # enforces it (corti auth pattern: header is mandatory on every API call).
+    OAUTH_REQUIRE_TENANT_HEADER: bool = False
+    # Set of capability scopes recognised as Corti-style limited-scope
+    # credentials. Tokens carrying only these scopes are restricted to the
+    # corresponding endpoints (see app/api/oauth.py :: _check_scope_intersection).
+    OAUTH_CAPABILITY_SCOPES: List[str] = ["transcribe", "streams", "textgen", "facts"]
 
     # ── LLM Configuration ─────────────────────────────────────────────────────
     LLM_PROVIDER: str = "deepseek"
@@ -105,3 +120,13 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+
+def icoder_corti_capability_scopes() -> List[str]:
+    """Backwards-compatible accessor (some tests import the function).
+
+    Lives at module scope (not inside ``Settings``) so that callers reading
+    the field at runtime get the current config — useful for tests that
+    monkey-patch settings via env vars.
+    """
+    return list(settings.OAUTH_CAPABILITY_SCOPES or [])

@@ -13,6 +13,13 @@ class OAuthClient(Base, TimestampMixin):
 
     Implements RFC 6749 Client Credentials Grant.
     Used by SDK consumers, CI/CD pipelines, and backend services.
+
+    Corti parity (2026-06-30, Phase 1.0): default ``token_expires_seconds``
+    flipped to 5 minutes to match the Corti short-lived-token blast radius
+    pattern (see docs/corti-reverse-engineered/SUMMARY.md §13.2).
+    Clients may declare ``scopes`` as either iCoDer-style RBAC scopes
+    (``api:read``, ``api:write``) or Corti-style capability scopes
+    (``transcribe``, ``streams``, ``textgen``, ``facts``).
     """
     __tablename__ = "oauth_clients"
 
@@ -25,7 +32,7 @@ class OAuthClient(Base, TimestampMixin):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     owner_id: Mapped[str] = mapped_column(String(12), nullable=False, index=True)  # user who created it
     last_used_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
-    token_expires_seconds: Mapped[int] = mapped_column(default=3600)  # 1 hour default
+    token_expires_seconds: Mapped[int] = mapped_column(default=300)  # 5 minutes default (Corti parity)
 
     @classmethod
     def generate_client_id(cls, prefix: str = "icoder") -> str:
@@ -47,6 +54,21 @@ class OAuthClient(Base, TimestampMixin):
     def has_scope(self, scope: str) -> bool:
         """Check if this client has the requested scope."""
         return scope in (self.scopes or "").split()
+
+    def granted_scopes(self) -> set[str]:
+        """Return the set of scopes this client may request tokens for."""
+        return {s for s in (self.scopes or "").split() if s}
+
+    def is_capability_only(self, capability_scopes: set[str]) -> bool:
+        """True iff every granted scope is a Corti-style capability scope.
+
+        Per docs.corti-reverse-engineered/SUMMARY.md §13.2, capability-only
+        tokens are short-lived credentials scoped to a single streaming or
+        textgen endpoint family, e.g. ``openid transcribe`` for STT dictation
+        or ``openid streams`` for ambient clinical intelligence.
+        """
+        granted = self.granted_scopes()
+        return bool(granted) and granted.issubset(capability_scopes)
 
 
 class OAuthToken(Base, TimestampMixin):

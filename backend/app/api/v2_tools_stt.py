@@ -49,6 +49,7 @@ from app.models.user import User
 from app.schemas.v2_tools_stt import (
     CommonTranscriptResponse,
     CommonUsageInfo,
+    TranscriptsCreateRequest,
     TranscriptsData,
     TranscriptsListItem,
     TranscriptsListResponse,
@@ -310,3 +311,102 @@ async def get_v2_tools_interaction_transcript(
             )
 
     return _stub_single_transcript(interaction_id, transcript_id)
+
+
+# ─── Stub data (Cycle 8 — create-transcript) ────────────────────────
+
+
+def _stub_create_transcript(
+    interaction_id: str, body: TranscriptsCreateRequest
+) -> TranscriptsResponse:
+    """Deterministic stub for create-transcript (sync mode).
+
+    Cycle 8 stub mimics the synchronous path: 201 + populated
+    TranscriptsResponse. Echoes ``recordingId`` from the request body
+    so callers can verify the body→response contract. Generates a fresh
+    transcript id derived from the interaction_id + recordingId so the
+    contract is testable.
+
+    Async mode (``async: true``) is not yet wired — the stub still
+    returns 201 synchronously. The async dispatch path is a separate
+    Phase 1.3 task.
+    """
+    return TranscriptsResponse(
+        id=f"{interaction_id}-tr-{body.recordingId[-12:]}",
+        metadata=TranscriptsMetadata(
+            participantsRoles=body.participants or [
+                TranscriptsParticipant(channel=1, role="doctor"),
+                TranscriptsParticipant(channel=2, role="patient"),
+            ],
+        ),
+        transcripts=[
+            CommonTranscriptResponse(
+                channel=1, participant=1, speakerId=1,
+                text="(stub) Created transcript from recording — replace with real STT in a later cycle.",
+                start=0, end=1500,
+            ),
+        ],
+        usageInfo=CommonUsageInfo(creditsConsumed=0.024),
+        recordingId=body.recordingId,
+        status="completed",
+    )
+
+
+# ─── Endpoint: create-transcript (cycle 8) ──────────────────────────
+
+
+@router.post(
+    "/interactions/{interaction_id}/transcripts/",
+    response_model=TranscriptsResponse,
+    status_code=201,
+)
+@router.post(
+    "/interactions/{interaction_id}/transcripts",
+    response_model=TranscriptsResponse,
+    status_code=201,
+)
+async def create_v2_tools_interaction_transcript(
+    interaction_id: str,
+    body: TranscriptsCreateRequest,
+    current_user: User = Depends(get_current_user),
+) -> TranscriptsResponse:
+    """Corti §13.3 Transcripts — ``POST /interactions/{id}/transcripts/``.
+
+    First STT mutation endpoint. Accepts a JSON body
+    (``TranscriptsCreateRequest``) and returns 201 + the canonical
+    ``TranscriptsResponse`` shape.
+
+    Required body fields: ``recordingId`` (UUID of a recording uploaded
+    via ``/recordings``), ``primaryLanguage`` (e.g. ``"en"``). Optional
+    knobs: ``spokenPunctuation``, ``automaticPunctuation``,
+    ``isDictation`` (deprecated), ``isMultichannel``, ``diarize``,
+    ``participants``, ``async``, ``replacements``, ``keyterms``.
+
+    Per Corti spec, the response echoes ``recordingId`` and synthesizes
+    a fresh transcript id. The stub mimics the **synchronous** path —
+    real async processing is a separate Phase 1.3 task.
+    """
+    if not interaction_id or not interaction_id.strip():
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "requestid": str(uuid.uuid4()),
+                "status": 400,
+                "type": "invalid_request",
+                "detail": "interaction_id is required.",
+            },
+        )
+
+    if not os.environ.get("ICODER_CREDENTIAL_LLM", "").strip():
+        if os.environ.get("ICODER_ALLOW_DEGRADED_NO_KEY", "") != "1":
+            raise HTTPException(
+                status_code=503,
+                detail={
+                    "requestid": str(uuid.uuid4()),
+                    "status": 503,
+                    "type": "service_unavailable",
+                    "detail": "ICODER_CREDENTIAL_LLM not set; hospital-pilot gate refuses to serve.",
+                },
+            )
+
+    return _stub_create_transcript(interaction_id, body)

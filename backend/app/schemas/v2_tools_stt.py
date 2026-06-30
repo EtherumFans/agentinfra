@@ -148,3 +148,85 @@ class TranscriptsResponse(BaseModel):
     status: Literal["completed", "processing", "failed"] = Field(
         ..., description="Transcript processing status"
     )
+
+
+# ─── TranscriptsCreateRequest (cycle 8 create) ──────────────────────
+
+
+class TranscriptsCreateReplacement(BaseModel):
+    """``replacements[].find/replace`` schema — terminology substitution.
+
+    Required: ``find`` (term to replace, e.g. ``"BID"``), ``replace``
+    (preferred form, e.g. ``"twice daily"``).
+    """
+    find: str = Field(..., description="Term to be replaced (case-insensitive)")
+    replace: str = Field(..., description="Preferred replacement text")
+
+
+class TranscriptsCreateKeyterm(BaseModel):
+    """``keyterms.terms[].term`` schema — recognition vocabulary hint.
+
+    Required: ``term`` (the word/phrase, in expected written form).
+    """
+    term: str = Field(..., description="Word/phrase to be recognized")
+
+
+class TranscriptsCreateKeyterms(BaseModel):
+    """``keyterms`` schema — vocabulary hint bundle.
+
+    Required: ``terms`` (ordered list of word/phrase hints).
+    """
+    terms: List[TranscriptsCreateKeyterm]
+
+
+class TranscriptsCreateRequest(BaseModel):
+    """``TranscriptsCreateRequest`` schema — POST body for create-transcript.
+
+    Required: ``recordingId`` (UUID of an existing recording uploaded via
+    ``/recordings``), ``primaryLanguage`` (e.g. ``"en"``).
+
+    Optional knobs:
+    - ``spokenPunctuation``: turn spoken punctuation into symbols (overrides
+      ``automaticPunctuation`` when both true).
+    - ``automaticPunctuation``: auto-punctuate / capitalize (default true).
+    - ``isDictation``: **deprecated** — ignored when new fields provided.
+    - ``isMultichannel``: per-channel transcription.
+    - ``diarize``: separate speakers within a channel.
+    - ``participants``: channel→role mapping (empty when ``diarize=true``).
+    - ``async``: return 202 + Location header immediately, process in
+      background. Polled via get-transcript-status.
+    - ``replacements``: find/replace pairs (max 1,000).
+    - ``keyterms``: vocabulary hints (max 1,000 terms).
+
+    Spec source:
+    ``docs/corti-reverse-engineered/stt-create-transcript.md`` (14,078 bytes).
+    """
+    recordingId: str = Field(..., description="UUID of the source recording (uploaded via /recordings)")
+    primaryLanguage: str = Field(..., description="Primary spoken language, e.g. 'en' or 'zh-CN'")
+    spokenPunctuation: Optional[bool] = Field(
+        default=None, description="Convert spoken punctuation to symbols (overrides automaticPunctuation)"
+    )
+    automaticPunctuation: Optional[bool] = Field(
+        default=None, description="Auto-punctuate/capitalize (default true)"
+    )
+    isDictation: Optional[bool] = Field(
+        default=None, description="Deprecated — use spokenPunctuation or automaticPunctuation"
+    )
+    isMultichannel: Optional[bool] = Field(
+        default=None, description="Transcribe each audio channel separately"
+    )
+    diarize: Optional[bool] = Field(
+        default=None, description="Separate speakers within a channel"
+    )
+    participants: Optional[List[TranscriptsParticipant]] = Field(
+        default=None, description="Per-channel participant role mapping (omit when diarize=true)"
+    )
+    async_: Optional[bool] = Field(
+        default=None, alias="async", description="Process asynchronously (returns 202 + Location)"
+    )
+    replacements: Optional[List[TranscriptsCreateReplacement]] = Field(
+        default=None, description="Find/replace pairs (max 1,000 per stream)"
+    )
+    keyterms: Optional[TranscriptsCreateKeyterms] = Field(
+        default=None, description="Vocabulary hints (max 1,000 terms per stream)"
+    )

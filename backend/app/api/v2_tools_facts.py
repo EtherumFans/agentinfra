@@ -395,3 +395,87 @@ async def post_v2_tools_interaction_facts(
     """
     facts = _stub_create_facts(interaction_id, body)
     return FactsCreateResponse(facts=facts)
+
+
+# ─── Phase 1.3 cycle 15 — Facts LIST-FACT-GROUPS (Corti §13.5) ─────
+# Spec source: ``docs/corti-reverse-engineered/facts-list-fact-groups.md``
+# (4,552B, fetched 2026-07-01 from
+# ``https://docs.corti.ai/api-reference/facts/list-fact-groups.md``).
+#
+# **This is a GLOBAL endpoint, NOT path-scoped to an interaction.**
+# Path: ``GET /factgroups/`` (no ``/interactions/{id}/...`` prefix).
+# In iCoDer: ``GET /api/v2/tools/factgroups/`` (under the existing
+# ``/api/v2/tools`` prefix).
+#
+# Returns the **catalog of fact-group keys** the platform supports
+# (e.g. demographics, chief-complaint, vital-signs, ...). iCoDer
+# reuses the canonical ``CORTI_FACT_GROUPS`` frozenset already defined
+# in ``app.schemas.v2_tools_facts`` — the stub just projects those
+# keys into the ``{data: [...]}`` envelope with deterministic
+# per-group UUIDs (uuid5 from a fixed namespace + key).
+
+from app.schemas.v2_tools_facts import (
+    CORTI_FACT_GROUPS,
+    FactsFactGroupsItem,
+    FactsFactGroupsItemTranslation,
+    FactsFactGroupsListResponse,
+)
+
+
+def _stub_fact_groups() -> List[FactsFactGroupsItem]:
+    """Build a deterministic fact-group catalog from ``CORTI_FACT_GROUPS``.
+
+    Each group gets a stable UUID5 derived from a fixed namespace and
+    the kebab-case key, plus a single en-US translation row with the
+    key as the display name. Stable across calls so SDK callers can
+    cache the response.
+    """
+    import uuid as _uuid
+
+    # Fixed namespace UUID — same across all iCoDer deployments so the
+    # generated group ids are stable and SDKs can cache them.
+    NS = _uuid.UUID("5b3d4f7e-1c2a-4b8d-9e6f-0a1b2c3d4e5f")
+    out: List[FactsFactGroupsItem] = []
+    for key in sorted(CORTI_FACT_GROUPS):
+        out.append(
+            FactsFactGroupsItem(
+                id=str(_uuid.uuid5(NS, f"icoder.factgroup.{key}")),
+                key=key,
+                translations=[
+                    FactsFactGroupsItemTranslation(
+                        id=1,
+                        languages_id="en-US",
+                        name=key,
+                    ),
+                ],
+            )
+        )
+    return out
+
+
+@router.get("/factgroups", response_model=FactsFactGroupsListResponse)
+@router.get("/factgroups/", response_model=FactsFactGroupsListResponse)
+async def get_v2_tools_fact_groups(
+    current_user: User = Depends(get_current_user),
+):
+    """Corti §13.5 facts_fact_groups_list — list the fact-group catalog.
+
+    Spec: ``GET /factgroups/`` (operationId ``facts_fact_groups_list``).
+    Path: ``/api/v2/tools/factgroups/`` (mounted under the existing
+    ``/api/v2/tools`` prefix). **Not path-scoped to an interaction**
+    — the catalog is global to the tenant.
+
+    Response: ``{data: [{id, key, translations: [{id, languages_id, name}]}, ...]}``.
+    The ``data`` field is required; individual item fields are all
+    optional per spec.
+
+    Stub is deterministic — every call returns the same set of group
+    rows derived from ``CORTI_FACT_GROUPS`` (17 keys at last count).
+    Group UUIDs are uuid5 from a fixed namespace + kebab-case key, so
+    SDK callers can cache them across requests.
+
+    Error response per spec is **500** (RFC9457 ``ErrorResponse``) —
+    note this differs from the 504 in list-facts/add-facts.
+    """
+    items = _stub_fact_groups()
+    return FactsFactGroupsListResponse(data=items)

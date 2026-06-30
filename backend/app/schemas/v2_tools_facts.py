@@ -182,3 +182,68 @@ FACTSR_SYSTEM_PROMPT_EN = (
     "must match ``outputLanguage``. Return only valid JSON; do NOT wrap in "
     "markdown fences."
 )
+
+
+# ─── Phase 1.3 cycle 13 — Facts LIST (Corti §13.5) ──────────────────
+# Spec source: ``docs/corti-reverse-engineered/facts-list-facts.md``
+# (6,314B, fetched 2026-07-01 from
+# ``https://docs.corti.ai/api-reference/facts/list-facts.md``).
+#
+# This is the first endpoint of the §13.5 Facts family (5 more to follow:
+# add-facts, list-fact-groups, update-fact, update-facts). Note this is
+# **distinct** from the Phase 1.2 cycle 1 §3.2/§13.4 extract-facts (LLM
+# call) — list-facts is a CRUD-style read of stored facts.
+
+
+from datetime import datetime
+from typing import List as _List
+
+
+class FactsEvidence(BaseModel):
+    """A piece of evidence that supports a fact.
+
+    Mirrors ``FactsEvidence`` in
+    ``docs/corti-reverse-engineered/facts-list-facts.md``.
+    """
+    type: Optional[str] = Field(default=None, description="The category of evidence")
+    reference: Optional[str] = Field(default=None, description="A reference that supports the fact")
+    quote: Optional[str] = Field(
+        default=None,
+        description="A direct excerpt or phrase extracted from the reference source that justifies the fact",
+    )
+
+
+class FactsListItem(BaseModel):
+    """One fact in the ``facts[]`` array.
+
+    All fields are optional in the spec — every fact can be partially
+    populated. iCoDer mirrors the spec exactly (no extra required fields).
+    """
+    id: Optional[str] = Field(default=None, description="The unique identifier of the fact (UUID)")
+    text: Optional[str] = Field(default=None, description="The text content of the fact")
+    group: Optional[str] = Field(default=None, description="The key identifying the group the fact belongs to")
+    groupId: Optional[str] = Field(default=None, description="The unique identifier of the group")
+    isDiscarded: Optional[bool] = Field(
+        default=None,
+        description="Whether the fact has been marked as discarded by an end-user",
+    )
+    source: Optional[str] = Field(
+        default=None,
+        description="Source: 'core' (LLM-generated), 'user' (added by user), 'system' (e.g. EHR)",
+    )
+    createdAt: Optional[str] = Field(default=None, description="ISO 8601 timestamp when the fact was created")
+    updatedAt: Optional[str] = Field(default=None, description="ISO 8601 timestamp when the fact was last updated")
+    evidence: _List[FactsEvidence] = Field(default_factory=list, description="Evidence supporting the fact")
+
+
+class FactsListResponse(BaseModel):
+    """Response shape for ``GET /interactions/{id}/facts/``.
+
+    Mirrors ``FactsListResponse`` in
+    ``docs/corti-reverse-engineered/facts-list-facts.md``. ``facts`` is
+    the **only** required field per spec.
+    """
+    facts: _List[FactsListItem] = Field(
+        default_factory=list,
+        description="A list of facts associated with the interaction",
+    )

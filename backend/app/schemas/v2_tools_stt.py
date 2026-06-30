@@ -268,3 +268,28 @@ class RecordingsCreateResponse(BaseModel):
     This is the first **non-JSON** content-type in iCoDer's v2 surface.
     """
     recordingId: str = Field(..., description="UUID of the newly-created recording")
+
+
+# ─── TranscriptsStatusResponse (cycle 12.1 get-transcript-status) ───
+
+
+# Reuse the same status enum Literal from cycle-7's TranscriptsResponse.
+TranscriptsStatusLiteral = Literal["completed", "processing", "failed"]
+
+
+class TranscriptsStatusResponse(BaseModel):
+    """``TranscriptsStatusResponse`` schema — get-transcript-status response.
+
+    Required: ``status`` (one of ``completed | processing | failed``).
+
+    Designed for polling transcript creation jobs (especially async
+    from cycle-8's create-transcript). Mirrors the ``status`` field
+    of cycle-7's ``TranscriptsResponse`` but is a lighter-weight
+    payload — just the status, no transcript body.
+
+    Spec source:
+    ``docs/corti-reverse-engineered/stt-get-transcript-status.md`` (5,477 bytes).
+    """
+    status: TranscriptsStatusLiteral = Field(
+        ..., description="Current status of the transcript processing"
+    )

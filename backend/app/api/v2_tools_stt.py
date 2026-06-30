@@ -58,6 +58,7 @@ from app.schemas.v2_tools_stt import (
     TranscriptsMetadata,
     TranscriptsParticipant,
     TranscriptsResponse,
+    TranscriptsStatusResponse,
 )
 
 router = APIRouter(prefix="/api/v2/tools", tags=["v2-tools"])
@@ -729,3 +730,80 @@ async def delete_v2_tools_interaction_recording(
 
     # Stub: nothing to delete (no DB). Return 204 No Content.
     return Response(status_code=204)
+
+
+# ─── Endpoint: get-transcript-status (cycle 12.1) ────────────────────
+
+
+@router.get(
+    "/interactions/{interaction_id}/transcripts/{transcript_id}/status",
+    response_model=TranscriptsStatusResponse,
+    status_code=200,
+)
+async def get_v2_tools_interaction_transcript_status(
+    interaction_id: str,
+    transcript_id: str,
+    current_user: User = Depends(get_current_user),
+) -> TranscriptsStatusResponse:
+    """Corti §13.3 Transcripts — ``GET /interactions/{id}/transcripts/{transcriptId}/status``.
+
+    Polls the transcript processing status. Lighter-weight than cycle-7's
+    get-transcript (only returns ``status``, not the full transcript body).
+    Designed for polling async transcription jobs (cycle-8's
+    create-transcript with ``async: true``).
+
+    Sentinel pattern (reuses cycle-7's transcript state sentinels):
+    - ``processing-{uuid}`` → status="processing"
+    - ``failed-{uuid}`` → status="failed"
+    - ``missing-{uuid}`` → 404 (new for cycle 12.1)
+    - default → status="completed"
+    """
+    if not interaction_id or not interaction_id.strip():
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "requestid": str(uuid.uuid4()),
+                "status": 400,
+                "type": "invalid_request",
+                "detail": "interaction_id is required.",
+            },
+        )
+    if not transcript_id or not transcript_id.strip():
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "requestid": str(uuid.uuid4()),
+                "status": 400,
+                "type": "invalid_request",
+                "detail": "transcript_id is required.",
+            },
+        )
+
+    if transcript_id.startswith("missing-"):
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "requestid": str(uuid.uuid4()),
+                "status": 404,
+                "type": "transcript_not_found",
+                "detail": f"Transcript {transcript_id} not found for interaction {interaction_id}.",
+            },
+        )
+
+    if not os.environ.get("ICODER_CREDENTIAL_LLM", "").strip():
+        if os.environ.get("ICODER_ALLOW_DEGRADED_NO_KEY", "") != "1":
+            raise HTTPException(
+                status_code=503,
+                detail={
+                    "requestid": str(uuid.uuid4()),
+                    "status": 503,
+                    "type": "service_unavailable",
+                    "detail": "ICODER_CREDENTIAL_LLM not set; hospital-pilot gate refuses to serve.",
+                },
+            )
+
+    if transcript_id.startswith("processing-"):
+        return TranscriptsStatusResponse(status="processing")
+    if transcript_id.startswith("failed-"):
+        return TranscriptsStatusResponse(status="failed")
+    return TranscriptsStatusResponse(status="completed")

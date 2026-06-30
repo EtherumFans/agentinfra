@@ -316,3 +316,82 @@ async def get_v2_tools_interaction_facts(
     """
     facts = _stub_facts_for_interaction(interaction_id)
     return FactsListResponse(facts=facts)
+
+
+# ─── Phase 1.3 cycle 14 — Facts ADD (Corti §13.5) ──────────────────
+# Spec source: ``docs/corti-reverse-engineered/facts-add-facts.md``
+# (7,143B, fetched 2026-07-01 from
+# ``https://docs.corti.ai/api-reference/facts/add-facts.md``).
+#
+# This is the **second endpoint of the §13.5 Facts family** (4 more to
+# follow). Distinct from Phase 1.2 cycle 1 §3.2/§13.4 extract-facts
+# (LLM call) — add-facts is a CRUD-style create where the caller
+# supplies the fact text+group; iCoDer just echoes back the created
+# facts with deterministic server-assigned ids and timestamps.
+#
+# **Stub strategy** (no DB):
+#   - Echoes each input fact back with server-assigned
+#     ``id``/``groupId``/``updatedAt`` (deterministic per interaction_id).
+#   - ``source`` defaults to ``"user"`` when caller omits it (per spec,
+#     source is optional).
+#   - ``isDiscarded`` defaults to ``False`` on every create.
+
+from app.schemas.v2_tools_facts import (
+    FactsCreateItem,
+    FactsCreateRequest,
+    FactsCreateResponse,
+)
+
+
+def _stub_create_facts(
+    interaction_id: str, body: FactsCreateRequest
+) -> List[FactsCreateItem]:
+    """Echo input facts back with deterministic server-assigned ids.
+
+    Each returned fact mirrors the input ``text``/``group``/``source``
+    and adds server-assigned ``id``/``groupId``/``updatedAt``. Path
+    UUIDs are echoed so SDK callers can verify the contract.
+    """
+    short_tag = interaction_id.replace("-", "")[:12]
+    ts = "2026-07-01T12:00:00Z"
+    out: List[FactsCreateItem] = []
+    for i, fact_in in enumerate(body.facts, start=1):
+        idx = f"{i:02d}"
+        out.append(
+            FactsCreateItem(
+                id=f"{interaction_id}-fact-{short_tag}-{idx}",
+                text=fact_in.text,
+                group=fact_in.group,
+                groupId=f"{interaction_id}-grp-{short_tag}-{idx}",
+                source=fact_in.source or "user",
+                isDiscarded=False,
+                updatedAt=ts,
+            )
+        )
+    return out
+
+
+@router.post("/interactions/{interaction_id}/facts", response_model=FactsCreateResponse)
+@router.post("/interactions/{interaction_id}/facts/", response_model=FactsCreateResponse)
+async def post_v2_tools_interaction_facts(
+    interaction_id: str,
+    body: FactsCreateRequest,
+    current_user: User = Depends(get_current_user),
+):
+    """Corti §13.5 facts_create — add facts to an interaction.
+
+    Spec: ``POST /interactions/{id}/facts/`` (operationId ``facts_create``).
+    Path: ``/api/v2/tools/interactions/{interaction_id}/facts/`` (mounted
+    under the existing ``/api/v2/tools`` prefix).
+
+    Request body: ``{facts: [{text, group, source?}, ...]}``.
+    Response: ``{facts: [{id, text, group, groupId, source, isDiscarded, updatedAt}, ...]}``.
+
+    Stub does NOT persist (no DB). Each input fact is echoed back with
+    deterministic server-assigned ``id``/``groupId``/``updatedAt`` and
+    ``isDiscarded=False``.
+
+    Error response per spec is **504** (RFC9457 ``ErrorResponse``).
+    """
+    facts = _stub_create_facts(interaction_id, body)
+    return FactsCreateResponse(facts=facts)

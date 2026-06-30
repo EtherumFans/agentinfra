@@ -250,3 +250,21 @@ class RecordingsListResponse(BaseModel):
     recordings: List[str] = Field(
         default_factory=list, description="List of recording UUIDs for the interaction"
     )
+
+
+# ─── RecordingsCreateResponse (cycle 10 upload-recording) ───────────
+
+
+class RecordingsCreateResponse(BaseModel):
+    """``RecordingsCreateResponse`` schema — upload-recording response envelope.
+
+    Required: ``recordingId`` (UUID of the newly-created recording).
+
+    Spec source:
+    ``docs/corti-reverse-engineered/stt-upload-recording.md`` (6,386 bytes).
+
+    The companion ``POST /interactions/{id}/recordings/`` endpoint
+    accepts an ``application/octet-stream`` body (raw binary audio).
+    This is the first **non-JSON** content-type in iCoDer's v2 surface.
+    """
+    recordingId: str = Field(..., description="UUID of the newly-created recording")

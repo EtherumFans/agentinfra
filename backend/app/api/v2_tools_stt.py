@@ -42,13 +42,14 @@ import os
 import uuid
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
 from app.middleware.auth import get_current_user
 from app.models.user import User
 from app.schemas.v2_tools_stt import (
     CommonTranscriptResponse,
     CommonUsageInfo,
+    RecordingsCreateResponse,
     RecordingsListResponse,
     TranscriptsCreateRequest,
     TranscriptsData,
@@ -491,4 +492,86 @@ async def list_v2_tools_interaction_recordings(
 
     return RecordingsListResponse(
         recordings=_stub_recordings_for_interaction(interaction_id),
+    )
+
+
+# ─── Endpoint: upload-recording (cycle 10) ──────────────────────────
+
+
+# Corti §13.3 hard cap: 120 minutes audio / 150 MB file size.
+# We accept and document the limit but stub does not enforce it.
+_MAX_RECORDING_BYTES = 150 * 1024 * 1024  # 150 MB
+
+
+@router.post(
+    "/interactions/{interaction_id}/recordings/",
+    response_model=RecordingsCreateResponse,
+    status_code=201,
+)
+@router.post(
+    "/interactions/{interaction_id}/recordings",
+    response_model=RecordingsCreateResponse,
+    status_code=201,
+)
+async def upload_v2_tools_interaction_recording(
+    interaction_id: str,
+    request: Request,
+    current_user: User = Depends(get_current_user),
+) -> RecordingsCreateResponse:
+    """Corti §13.3 Recordings — ``POST /interactions/{id}/recordings/``.
+
+    Accepts an ``application/octet-stream`` body (raw audio binary) and
+    returns 201 + the canonical ``RecordingsCreateResponse {recordingId}``
+    shape.
+
+    Per spec, max 120 minutes of audio / 150 MB file size. The stub does
+    not enforce these limits (real implementation would validate).
+    """
+    if not interaction_id or not interaction_id.strip():
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "requestid": str(uuid.uuid4()),
+                "status": 400,
+                "type": "invalid_request",
+                "detail": "interaction_id is required.",
+            },
+        )
+
+    body = await request.body()
+    if not body:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "requestid": str(uuid.uuid4()),
+                "status": 400,
+                "type": "invalid_request",
+                "detail": "Recording body is required (application/octet-stream).",
+            },
+        )
+    if len(body) > _MAX_RECORDING_BYTES:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "requestid": str(uuid.uuid4()),
+                "status": 400,
+                "type": "invalid_request",
+                "detail": f"Recording exceeds 150 MB cap (got {len(body)} bytes).",
+            },
+        )
+
+    if not os.environ.get("ICODER_CREDENTIAL_LLM", "").strip():
+        if os.environ.get("ICODER_ALLOW_DEGRADED_NO_KEY", "") != "1":
+            raise HTTPException(
+                status_code=503,
+                detail={
+                    "requestid": str(uuid.uuid4()),
+                    "status": 503,
+                    "type": "service_unavailable",
+                    "detail": "ICODER_CREDENTIAL_LLM not set; hospital-pilot gate refuses to serve.",
+                },
+            )
+
+    return RecordingsCreateResponse(
+        recordingId=f"{interaction_id}-rec-stub",
     )

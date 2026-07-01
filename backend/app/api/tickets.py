@@ -22,8 +22,9 @@ from sqlalchemy import select, or_, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
-from app.middleware.auth import get_current_user
+from app.middleware.auth import get_current_user, get_current_organization
 from app.models.ticket import Ticket, TicketStatus, TicketPriority
+from app.models.organization import Organization
 from app.models.user import User
 
 router = APIRouter(prefix="/api/tickets", tags=["tickets"])
@@ -82,9 +83,10 @@ async def list_tickets(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     user: User = Depends(get_current_user),
+    current_org: Organization = Depends(get_current_organization),
     db: AsyncSession = Depends(get_db),
 ) -> TicketListOut:
-    q = select(Ticket).where(Ticket.organization_id == user.organization_id)
+    q = select(Ticket).where(Ticket.organization_id == current_org.id)
     if created_by_me:
         q = q.where(Ticket.created_by_id == user.id)
     if search:
@@ -120,10 +122,11 @@ async def list_tickets(
 async def create_ticket(
     body: TicketCreateIn,
     user: User = Depends(get_current_user),
+    current_org: Organization = Depends(get_current_organization),
     db: AsyncSession = Depends(get_db),
 ) -> TicketOut:
     t = Ticket(
-        organization_id=user.organization_id,
+        organization_id=current_org.id,
         created_by_id=user.id,
         subject=body.subject.strip(),
         description=body.description.strip(),
@@ -140,12 +143,13 @@ async def create_ticket(
 async def get_ticket(
     ticket_id: str,
     user: User = Depends(get_current_user),
+    current_org: Organization = Depends(get_current_organization),
     db: AsyncSession = Depends(get_db),
 ) -> TicketOut:
     t = (await db.execute(
         select(Ticket).where(
             Ticket.id == ticket_id,
-            Ticket.organization_id == user.organization_id,
+            Ticket.organization_id == current_org.id,
         )
     )).scalar_one_or_none()
     if not t:
@@ -161,12 +165,13 @@ async def update_ticket(
     ticket_id: str,
     body: TicketUpdateIn,
     user: User = Depends(get_current_user),
+    current_org: Organization = Depends(get_current_organization),
     db: AsyncSession = Depends(get_db),
 ) -> TicketOut:
     t = (await db.execute(
         select(Ticket).where(
             Ticket.id == ticket_id,
-            Ticket.organization_id == user.organization_id,
+            Ticket.organization_id == current_org.id,
         )
     )).scalar_one_or_none()
     if not t:
@@ -191,12 +196,13 @@ async def update_ticket(
 async def delete_ticket(
     ticket_id: str,
     user: User = Depends(get_current_user),
+    current_org: Organization = Depends(get_current_organization),
     db: AsyncSession = Depends(get_db),
 ):
     t = (await db.execute(
         select(Ticket).where(
             Ticket.id == ticket_id,
-            Ticket.organization_id == user.organization_id,
+            Ticket.organization_id == current_org.id,
         )
     )).scalar_one_or_none()
     if not t:

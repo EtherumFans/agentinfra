@@ -24,10 +24,11 @@ from sqlalchemy import select, or_, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
-from app.middleware.auth import get_current_user
+from app.middleware.auth import get_current_user, get_current_organization
 from app.models.template import (
     Template, TemplateCategory, TemplateLanguage, TemplateScope,
 )
+from app.models.organization import Organization
 from app.models.user import User
 
 router = APIRouter(prefix="/api/templates", tags=["templates"])
@@ -85,9 +86,10 @@ async def list_templates(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     user: User = Depends(get_current_user),
+    current_org: Organization = Depends(get_current_organization),
     db: AsyncSession = Depends(get_db),
 ) -> TemplateListOut:
-    q = select(Template).where(Template.organization_id == user.organization_id)
+    q = select(Template).where(Template.organization_id == current_org.id)
     if search:
         like = f"%{search}%"
         q = q.where(
@@ -121,10 +123,11 @@ async def list_templates(
 async def create_template(
     body: TemplateCreateIn,
     user: User = Depends(get_current_user),
+    current_org: Organization = Depends(get_current_organization),
     db: AsyncSession = Depends(get_db),
 ) -> TemplateOut:
     t = Template(
-        organization_id=user.organization_id,
+        organization_id=current_org.id,
         name=body.name.strip(),
         description=body.description.strip(),
         content=body.content,
@@ -143,12 +146,13 @@ async def create_template(
 async def get_template(
     template_id: str,
     user: User = Depends(get_current_user),
+    current_org: Organization = Depends(get_current_organization),
     db: AsyncSession = Depends(get_db),
 ) -> TemplateOut:
     t = (await db.execute(
         select(Template).where(
             Template.id == template_id,
-            Template.organization_id == user.organization_id,
+            Template.organization_id == current_org.id,
         )
     )).scalar_one_or_none()
     if not t:
@@ -163,12 +167,13 @@ async def get_template(
 async def delete_template(
     template_id: str,
     user: User = Depends(get_current_user),
+    current_org: Organization = Depends(get_current_organization),
     db: AsyncSession = Depends(get_db),
 ):
     t = (await db.execute(
         select(Template).where(
             Template.id == template_id,
-            Template.organization_id == user.organization_id,
+            Template.organization_id == current_org.id,
         )
     )).scalar_one_or_none()
     if not t:

@@ -26,8 +26,9 @@ from sqlalchemy import select, or_, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
-from app.middleware.auth import get_current_user
+from app.middleware.auth import get_current_user, get_current_organization
 from app.models.customer import Customer, CustomerRegion
+from app.models.organization import Organization
 from app.models.user import User
 
 router = APIRouter(prefix="/api/customers", tags=["customers"])
@@ -90,9 +91,10 @@ async def list_customers(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     user: User = Depends(get_current_user),
+    current_org: Organization = Depends(get_current_organization),
     db: AsyncSession = Depends(get_db),
 ) -> CustomerListOut:
-    q = select(Customer).where(Customer.organization_id == user.organization_id)
+    q = select(Customer).where(Customer.organization_id == current_org.id)
     if search:
         like = f"%{search}%"
         q = q.where(
@@ -124,6 +126,7 @@ async def list_customers(
 async def create_customer(
     body: CustomerCreateIn,
     user: User = Depends(get_current_user),
+    current_org: Organization = Depends(get_current_organization),
     db: AsyncSession = Depends(get_db),
 ) -> CustomerOut:
     suffix = body.customer_id_suffix.strip()
@@ -149,7 +152,7 @@ async def create_customer(
             },
         )
     c = Customer(
-        organization_id=user.organization_id,
+        organization_id=current_org.id,
         display_name=body.display_name.strip(),
         customer_id=customer_id,
         region=body.region,
@@ -165,12 +168,13 @@ async def create_customer(
 async def get_customer(
     customer_id: str,
     user: User = Depends(get_current_user),
+    current_org: Organization = Depends(get_current_organization),
     db: AsyncSession = Depends(get_db),
 ) -> CustomerOut:
     c = (await db.execute(
         select(Customer).where(
             Customer.customer_id == customer_id,
-            Customer.organization_id == user.organization_id,
+            Customer.organization_id == current_org.id,
         )
     )).scalar_one_or_none()
     if not c:
@@ -192,12 +196,13 @@ async def get_customer(
 async def delete_customer(
     customer_id: str,
     user: User = Depends(get_current_user),
+    current_org: Organization = Depends(get_current_organization),
     db: AsyncSession = Depends(get_db),
 ) -> Response:
     c = (await db.execute(
         select(Customer).where(
             Customer.customer_id == customer_id,
-            Customer.organization_id == user.organization_id,
+            Customer.organization_id == current_org.id,
         )
     )).scalar_one_or_none()
     if not c:

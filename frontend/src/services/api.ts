@@ -315,17 +315,20 @@ export const agentsApi = {
 };
 
 // A2A Protocol
+// Backend routes (see app/icoder/agent_runtime/a2a/a2a_routes.py):
+//   GET  /.well-known/agent.json              (root, no /api prefix)
+//   GET  /api/icoder/agents                   (list, optional ?capability=)
+//   GET  /api/icoder/agents/{id}/card         (single AgentCard)
+//   GET  /api/icoder/tasks/{id}               (stub, 501)
+//   POST /api/icoder/tasks/{id}/cancel        (stub, 501)
+// chain/coordinate/listTasks/createTask/retryTask have no backend endpoint.
 export const a2aApi = {
-  agentCard: () => api.get('/experts/a2a/.well-known/agent.json'),
-  discoverAgents: (capability = '') => api.get('/experts/a2a/agents', { params: { capability } }),
-  createTask: (description: string, query: string, capabilities: string) =>
-    api.post('/experts/a2a/tasks', null, { params: { description, query, capabilities } }),
-  listTasks: () => api.get('/experts/a2a/tasks'),
-  getTask: (id: string) => api.get(`/experts/a2a/tasks/${id}`),
-  cancelTask: (id: string) => api.post(`/experts/a2a/tasks/${id}/cancel`),
-  retryTask: (id: string) => api.post(`/experts/a2a/tasks/${id}/retry`),
-  chain: (data: any) => api.post('/experts/a2a/chain', data),
-  coordinate: (data: any) => api.post('/experts/a2a/tasks', null, { params: data }),
+  agentCard: () => axios.get('/.well-known/agent.json'),
+  discoverAgents: (capability = '') =>
+    api.get<{ agents: any[] }>('/icoder/agents', { params: { capability } }),
+  getAgentCard: (id: string) => api.get(`/icoder/agents/${id}/card`),
+  getTask: (id: string) => api.get(`/icoder/tasks/${id}`),
+  cancelTask: (id: string) => api.post(`/icoder/tasks/${id}/cancel`),
 };
 
 // Settings / Config

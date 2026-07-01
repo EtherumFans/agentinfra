@@ -1,24 +1,29 @@
-"""iCoDer ``POST /api/v2/tools/coding`` — Corti §3.1 Medical Coding parity endpoint.
+"""iCoDer v2 Medical Coding endpoints — Phase 1.1 + Cycle 18.
 
-Phase 1.1 (2026-06-30): bridge iCoDer's M3-0 medical-coding surface to the
-Corti contract documented in
-``docs/corti-reverse-engineered/SUMMARY.md §3.1``.
+This module hosts two adjacent endpoints under the ``/api/v2/tools`` prefix:
 
-**What this endpoint is**
-- A thin HTTP wrapper around ``HybridCodingAdapter(mode="medcoder").infer_async``
-  that exposes the 5-stage MedCodER pipeline (Extraction + Retrieval +
-  Merge + Re-rank + Compliance) under Corti-shape request / response.
+  - ``POST /api/v2/tools/coding/icoder/``  — Phase 1.1 (2026-06-30) thin HTTP
+    wrapper around ``HybridCodingAdapter(mode="medcoder").infer_async`` that
+    exposes the iCoDer 5-stage MedCodER pipeline (Extraction + Retrieval +
+    Merge + Re-rank + Compliance). Chinese-only system namespace
+    (ICD-10-CN / ICD-9-CM-3). NOT a replacement for M3-0
+    ``/api/icoder/coding-review/*`` (legacy retained by ``5c4e0e3``).
 
-**What this endpoint is NOT**
-- NOT a replacement for ``/api/icoder/coding-review/*`` (M3-0 14-stage
-  hospital pilot review flow). The legacy endpoints are retained by the
-  P1.0 register-compatible cleanup commit (``5c4e0e3``); no behaviour
-  changes there.
-- NOT yet an OAuth client_credentials endpoint (Phase 1.2 will wire
-  ``coding`` capability scope + ``/api/oauth/realms/.../token``).
+  - ``POST /api/v2/tools/coding/``  — Cycle 18 (2026-07-01) align with
+    Corti §13.6 ``codes_predict``: stateless single-shot prediction that
+    accepts all 15 ``CommonCodingSystemEnum`` systems and returns
+    ``{codes, candidates, usageInfo}`` per the Corti OpenAPI spec.
 
-Field mapping (Corti ↔ iCoDer Runtime) is documented in
-``docs/PHASE_1_1_MEDICAL_CODING_PATH_SCHEMA.md``.
+The two endpoints were deliberately split at the path level so the canonical
+Corti path (``/tools/coding/``) is reserved for the Corti-spec multi-system
+predictor, while the iCoDer 5-stage MedCodER pipeline (which only speaks
+Chinese ICD) lives at the ``/icoder/`` sub-resource. The Phase 1.1 endpoint
+was originally registered at the canonical path; the relocation landed in
+cycle 18 to free the canonical path for the Corti-spec endpoint.
+
+Field maps and design rationale:
+  - ``docs/PHASE_1_1_MEDICAL_CODING_PATH_SCHEMA.md`` (Phase 1.1)
+  - ``docs/PHASE_1_3_CYCLE18_CODES_PREDICT.md`` (Cycle 18)
 """
 
 from __future__ import annotations
@@ -33,14 +38,22 @@ from pydantic import ValidationError
 from app.middleware.auth import get_current_user
 from app.models.user import User
 from app.schemas.v2_tools_coding import (
+    CORTI_COMMON_CODING_SYSTEMS,
+    CodesFilter,
+    CodesGeneralPredictRequest,
+    CodesGeneralReadResponse,
+    CodesGeneralResponse,
     CodingAlternative,
     CodingCode,
     CodingContextItem,
     CodingEvidence,
     CodingRequest,
     CodingResponse,
+    CommonAIContext,
+    CommonUsageInfo,
     ICODER_CODING_SYSTEMS,
     default_coding_system,
+    default_corti_coding_system,
 )
 from app.services.code_dictionary import _ICD10_CODES, _ICD9_CODES
 from icoder_runtime.providers.medical_coding import HybridCodingAdapter
@@ -205,12 +218,14 @@ def _build_alternatives(top_k: Iterable[Any]) -> list[CodingAlternative]:
     return alts
 
 
-# ─── Endpoint ────────────────────────────────────────────────────────
+# ─── Phase 1.1 endpoint — iCoDer 5-stage MedCodER (relocated) ────────
+# Originally at ``/api/v2/tools/coding/`` (cycle 18 cycle moves it to
+# ``/api/v2/tools/coding/icoder/`` to free the canonical Corti path).
 
 
-@router.post("/coding", response_model=CodingResponse)
-@router.post("/coding/", response_model=CodingResponse)
-async def post_v2_tools_coding(
+@router.post("/coding/icoder", response_model=CodingResponse)
+@router.post("/coding/icoder/", response_model=CodingResponse)
+async def post_v2_tools_coding_icoder(
     body: CodingRequest,
     mode: str = Query(
         "full",
@@ -222,12 +237,17 @@ async def post_v2_tools_coding(
     ),
     current_user: User = Depends(get_current_user),
 ):
-    """Corti §3.1 Medical Coding parity endpoint.
+    """Phase 1.1 iCoDer 5-stage MedCodER pipeline (Chinese-only).
 
     Returns a list of disease / procedure codes with char-span evidence and
     reranked alternatives. Authentication is via session JWT (consistent
     with M3-0 ``/api/icoder/coding-review/run``); OAuth capability scope
     wiring lands in Phase 1.2.
+
+    NOTE: This endpoint accepts only the iCoDer Chinese-system namespace
+    (``icd10cn-*`` / ``icd9cm3-*``). For the canonical Corti §13.6
+    multi-system predictor (15 systems), use
+    ``POST /api/v2/tools/coding/`` instead.
     """
     # ── 1. Hospital-pilot / M3-0 gate (don't fake-model in production) ──
     if not os.environ.get("ICODER_CREDENTIAL_LLM", "").strip():
@@ -237,7 +257,7 @@ async def post_v2_tools_coding(
                 detail={
                     "reason": "llm_credential_missing",
                     "hint": (
-                        "Set ICODER_CREDENTIAL_LLM (DeepSeek API key) before calling /api/v2/tools/coding. "
+                        "Set ICODER_CREDENTIAL_LLM (DeepSeek API key) before calling /api/v2/tools/coding/icoder. "
                         "Set ICODER_ALLOW_DEGRADED_NO_KEY=1 ONLY for local dev (returns a single mocked code)."
                     ),
                 },
@@ -281,7 +301,7 @@ async def post_v2_tools_coding(
     try:
         result = await adapter.infer_async(messages)
     except Exception as exc:
-        logger.error(f"/api/v2/tools/coding adapter.infer_async failed: {exc!r}")
+        logger.error(f"/api/v2/tools/coding/icoder adapter.infer_async failed: {exc!r}")
         raise HTTPException(status_code=502, detail={"error": "coding_pipeline_failed", "reason": str(exc)[:200]})
 
     # ── 5. Corti-shape projection ──────────────────────────────────────
@@ -337,3 +357,203 @@ async def post_v2_tools_coding(
         )
 
     return CodingResponse(codes=codes)
+
+
+# ─── Cycle 18 endpoint — Corti §13.6 codes_predict (canonical) ───────
+# Aligned with ``docs/corti-reverse-engineered/codes-predict-codes.md``.
+# Accepts all 15 Corti CommonCodingSystemEnum values; no LLM dependency
+# (stateless stub; real data wiring is out of scope for cycle 18).
+
+
+def _resolve_evidence_text(blocks: list[CommonAIContext]) -> tuple[int, str, int, int] | None:
+    """Return (contextIndex, text, start, end) for the first non-empty text
+    context block, or None if all blocks are documentId / empty.
+
+    Used as the single source of stub evidence text in the canonical
+    Corti predictor (no real LLM; deterministic stub).
+    """
+    for idx, ctx in enumerate(blocks):
+        if ctx.type == "text" and ctx.text and ctx.text.strip():
+            text = ctx.text
+            return (idx, text, 0, min(len(text), 256))
+    return None
+
+
+def _stub_corti_coding(
+    body: CodesGeneralPredictRequest,
+) -> CodesGeneralResponse:
+    """Deterministic Corti-spec code prediction stub.
+
+    The iCoDer runtime does not yet have a real LLM-backed predictor for the
+    14 non-Chinese Corti systems (icd10cm, icd10pcs, cpt, icd10int, icd10uk,
+    cim10fr, icd10gm, opcs4, ops, ccam). Per cycle 18 plan, the endpoint
+    projects a deterministic, spec-shaped response so the wire contract is
+    end-to-end green even without a real model behind it. The projection
+    follows these invariants (enforced by the 回环 tests):
+
+      1. ``codes[]`` and ``candidates[]`` are **always present** (per spec
+         — both are required response fields).
+      2. ``codes[].system`` echoes the request's first valid system.
+      3. ``candidates[].system`` echoes the same system (or a related
+         sibling system when filter is present).
+      4. Each code's ``evidences[]`` is the (single) char-span of the
+         first non-empty text context block, with ``contextIndex`` mapping
+         1:1 to the input.
+      5. ``usageInfo.creditsConsumed`` is deterministic from the request
+         shape (1 credit per context block + 1 credit per system).
+    """
+    # Default system (per spec: empty system[] is invalid, but our stub
+    # is more forgiving than the spec to keep green-path tests simple).
+    if body.system:
+        chosen_system = body.system[0]
+    else:
+        chosen_system = default_corti_coding_system()
+
+    blocks = list(body.context or [])
+    evidence = _resolve_evidence_text(blocks)
+
+    # Filter handling: if include is non-empty, derive a "candidate" code
+    # from the first included token (just to honor the surface).
+    candidate_code_token = ""
+    if body.filter and body.filter.include:
+        candidate_code_token = body.filter.include[0]
+
+    # Build the primary code: deterministic, derived from system + first
+    # context block (so the same input always returns the same response).
+    primary_code = "EXAMPLE-" + chosen_system.split("-")[0].upper() + "-001"
+    if evidence is not None:
+        primary_display = f"Stub {chosen_system} code for context block {evidence[0]}"
+    else:
+        primary_display = f"Stub {chosen_system} code (no text context)"
+
+    # Candidate code: distinct from primary, derived from filter or system.
+    if candidate_code_token:
+        cand_code = candidate_code_token
+        cand_display = f"Filter-anchored candidate ({chosen_system})"
+    else:
+        cand_code = "EXAMPLE-" + chosen_system.split("-")[0].upper() + "-002"
+        cand_display = f"Lower-confidence candidate ({chosen_system})"
+
+    # Build evidence list for primary code.
+    evidences: list[CodingEvidence] = []
+    if evidence is not None:
+        ctx_idx, text, start, end = evidence
+        evidences.append(CodingEvidence(
+            contextIndex=ctx_idx,
+            text=text[start:end],
+            start=start,
+            end=end,
+        ))
+
+    # Build primary code.
+    primary = CodesGeneralReadResponse(
+        system=chosen_system,
+        code=primary_code,
+        display=primary_display,
+        evidences=evidences,
+        alternatives=[],
+    )
+
+    # Build candidate(s) (lower-confidence codes the model considered).
+    candidates: list[CodesGeneralReadResponse] = []
+    if evidence is not None:
+        ctx_idx, text, start, end = evidence
+        # Mirror the primary evidence on the candidate so 回环 tests can
+        # verify the char-span invariant on both lists.
+        cand_evidence = CodingEvidence(
+            contextIndex=ctx_idx,
+            text=text[start:end],
+            start=start,
+            end=end,
+        )
+    else:
+        cand_evidence = None
+    candidates.append(CodesGeneralReadResponse(
+        system=chosen_system,
+        code=cand_code,
+        display=cand_display,
+        evidences=[cand_evidence] if cand_evidence is not None else [],
+        alternatives=[],
+    ))
+
+    # Credits consumed: 1 per context block + 1 per system, deterministic.
+    credits = float(len(blocks) + max(1, len(body.system)))
+
+    return CodesGeneralResponse(
+        codes=[primary],
+        candidates=candidates,
+        usageInfo=CommonUsageInfo(creditsConsumed=credits),
+    )
+
+
+@router.post("/coding", response_model=CodesGeneralResponse)
+@router.post("/coding/", response_model=CodesGeneralResponse)
+async def post_v2_tools_coding(
+    body: CodesGeneralPredictRequest,
+    current_user: User = Depends(get_current_user),
+):
+    """Cycle 18 — Corti §13.6 ``codes_predict`` canonical endpoint.
+
+    Stateless single-shot code prediction. Accepts any of the 15
+    ``CommonCodingSystemEnum`` values and returns the spec-defined
+    ``{codes, candidates, usageInfo}`` envelope. No LLM dependency in the
+    stub — the iCoDer runtime does not yet have a real predictor for the
+    14 non-Chinese Corti systems; the deterministic stub keeps the wire
+    contract end-to-end green until cycle 18+ wiring lands.
+    """
+    # ── 1. Hospital-pilot gate (consistent with other v2 endpoints) ───
+    # Cycle 18 stub does NOT need an LLM credential; the gate is removed
+    # for this endpoint to keep the wire contract green in dev. A real
+    # predictor will re-introduce it as 503 when wired.
+    _ = os.environ.get("ICODER_CREDENTIAL_LLM", "")
+
+    # ── 2. Validate request shape (per-spec invariants) ──────────────
+    if not body.context:
+        # Per spec, ``context: []`` is implicitly invalid; the iCoDer
+        # stub surfaces this as 400 ``empty_context`` to match the
+        # Phase 1.1 endpoint's contract.
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": "empty_context",
+                "hint": "context[] must contain at least one item (text or documentId).",
+            },
+        )
+    if not body.system:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": "empty_system",
+                "hint": "system[] must contain at least one CommonCodingSystemEnum value.",
+            },
+        )
+    # Spec invariant: system must be from the 15-value enum.
+    unknown = [s for s in body.system if s not in CORTI_COMMON_CODING_SYSTEMS]
+    if unknown:
+        # Spec lists 400 as one of the error codes; treat unknown systems
+        # as 400 to surface the contract violation.
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": "unsupported_system",
+                "received": unknown,
+                "allowed": sorted(CORTI_COMMON_CODING_SYSTEMS),
+            },
+        )
+    # Spec invariant: at least one text context block (documentId alone
+    # is not yet supported by the iCoDer stub).
+    has_text = any(
+        (c.type == "text" and (c.text or "").strip())
+        for c in body.context
+    )
+    if not has_text:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": "no_text_context",
+                "hint": "iCoDer stub requires at least one text context block (documentId-only is a future cycle).",
+            },
+        )
+
+    # ── 3. Build deterministic stub response ─────────────────────────
+    return _stub_corti_coding(body)

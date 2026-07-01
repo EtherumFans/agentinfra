@@ -57,8 +57,23 @@ class RuntimeRunResult:
     metadata: dict[str, Any] = field(default_factory=dict)
 
     @classmethod
-    def from_runner_output(cls, runner_result: dict, agent_ref: str = "") -> "RuntimeRunResult":
-        """Build from AgentRunner.run() return dict."""
+    def from_runner_output(
+        cls,
+        runner_result: dict,
+        agent_ref: str = "",
+        source: str = "",
+    ) -> "RuntimeRunResult":
+        """Build from AgentRunner.run() return dict.
+
+        Parameters
+        ----------
+        source : str, optional
+            The original user input text. Forwarded to the evidence
+            parser so ``metadata.evidences`` is populated with global
+            char offsets instead of LLM-reported (line, col) tuples.
+            Frontend ``MedicalCodingPage.dataEvidences`` consumes the
+            resulting ``metadata.evidences`` list.
+        """
         output = runner_result.get("output", "")
         structured = None
         try:
@@ -66,6 +81,20 @@ class RuntimeRunResult:
             structured = json.loads(output) if isinstance(output, str) and output.strip().startswith("{") else None
         except Exception:
             pass
+
+        # Parse Stage 1 evidence blocks from MedCodER markdown output.
+        # Stored under ``metadata.evidences`` (the RuntimeRunResult dataclass
+        # has no top-level ``evidences`` field — that's the typed
+        # ``evidences?: any[]`` shape the frontend RuntimeRunResult
+        # interface declares; API consumers read both fields with
+        # ``result.evidences ?? result.metadata.evidences``).
+        evidences: list[dict] = []
+        if output and isinstance(output, str):
+            try:
+                from .evidence_parser import parse_evidences_from_markdown
+                evidences = parse_evidences_from_markdown(output, source or "")
+            except Exception:
+                evidences = []
 
         return cls(
             run_id=runner_result.get("review_id", ""),
@@ -85,6 +114,8 @@ class RuntimeRunResult:
                 "agent_name": runner_result.get("agent_name", ""),
                 "agent_version": runner_result.get("agent_version", ""),
                 "chain_valid": runner_result.get("state_log", {}).get("chain_valid", True) if runner_result.get("state_log") else True,
+                "evidences": evidences,
+                "source_len": len(source or ""),
             },
         )
 
@@ -114,7 +145,15 @@ class RuntimeRunResult:
         return asdict(self)
 
     def to_api_response(self) -> dict[str, Any]:
-        """API-friendly response (excludes internal fields)."""
+        """API-friendly response (excludes internal fields).
+
+        Hoists ``metadata.evidences`` to top-level so the frontend's
+        typed ``RuntimeRunResult.evidences?: any[]`` interface is
+        satisfied without needing to read into ``metadata`` (which is
+        stripped from the API response anyway).
+        """
         d = self.to_dict()
-        d.pop("metadata", None)
+        meta = d.pop("metadata", None) or {}
+        if "evidences" in meta and "evidences" not in d:
+            d["evidences"] = meta["evidences"]
         return d

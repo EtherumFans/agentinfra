@@ -58,7 +58,9 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
+import subprocess
 import sys
 import time
 from pathlib import Path
@@ -80,7 +82,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 CONTRACTS_DIR = REPO_ROOT / "corti_ui_contracts"
 DEFAULT_CYCLE_DIR = REPO_ROOT / "docs" / "phase_cycles"
 
-SCHEMA_VERSION_SUPPORTED = 1
+SCHEMA_VERSION_SUPPORTED = {1, 2}
 
 # Regex used to detect an import line for the ``imported`` check.
 _IMPORT_LINE_RE = re.compile(r"^\s*(?:import|export\s+type|export\s+\*).*?\b(?P<sym>\w+)\b")
@@ -96,10 +98,10 @@ def _load_spec(feature: str, contracts_dir: Path) -> dict[str, Any]:
     if not spec_path.exists():
         raise CheckError(f"spec not found: {spec_path}")
     spec = json.loads(spec_path.read_text(encoding="utf-8"))
-    if spec.get("schema_version") != SCHEMA_VERSION_SUPPORTED:
+    if spec.get("schema_version") not in SCHEMA_VERSION_SUPPORTED:
         raise CheckError(
             f"unsupported schema_version: {spec.get('schema_version')} "
-            f"(this tool supports {SCHEMA_VERSION_SUPPORTED})"
+            f"(this tool supports {sorted(SCHEMA_VERSION_SUPPORTED)})"
         )
     return spec
 
@@ -188,28 +190,324 @@ def _run_static_check(check: dict[str, Any], repo_root: Path) -> tuple[bool, lis
     return (len(failures) == 0), failures
 
 
-def _run_check(check: dict[str, Any], repo_root: Path) -> tuple[bool, list[str]]:
-    """Dispatch a check to its registered runners.
-
-    Today: only ``static`` is supported. ``runtime`` is reserved for
-    future Playwright assertions (cycle 20+).
-    """
+def _run_check(check: dict[str, Any], repo_root: Path, feature: str = "unknown", spec_version: int = 2) -> tuple[bool, list[str]]:
+    """Dispatch a check to its registered runners."""
     static = check.get("static")
     runtime = check.get("runtime")
     if not static and not runtime:
         return False, ["check has neither 'static' nor 'runtime'"]
+
+    # Inject feature/version for the runtime runner to use.
+    check_with_ctx = {**check, "_feature": feature, "_spec_version": spec_version}
 
     failures: list[str] = []
     if static:
         ok, static_failures = _run_static_check(check, repo_root)
         failures.extend(static_failures)
     if runtime:
-        # Reserved for future cycles. Treat as an error so the gap is
-        # visible — silent skip would hide the fact that we have
-        # runtime-only checks with no runner.
-        failures.append("runtime check is reserved for future cycles; no runner implemented yet")
+        # Non-empty runtime: dispatch to the runtime runner. schema_version 2+
+        # is required (v1 specs treat this as a future-cycle error so the gap
+        # is visible).
+        if spec_version < 2:
+            failures.append(
+                "runtime check requires schema_version >= 2 "
+                "(this spec is v{0}); bump the spec to add runtime checks".format(spec_version)
+            )
+        elif runtime.get("_deferred"):
+            # A check can ship a static gate now and a runtime gate later.
+            # Mark the runtime as deferred (NOT a failure) so the cycle can
+            # close on the static side and the gap stays visible in the report.
+            deferred_reason = runtime["_deferred"]
+            print(f"       {Fore.YELLOW}[deferred-runtime]{Style.RESET_ALL} {deferred_reason}")
+        else:
+            ok, runtime_failures = _run_runtime_check(check_with_ctx, repo_root)
+            failures.extend(runtime_failures)
 
     return (len(failures) == 0), failures
+
+
+# ===========================================================================
+# Runtime runner — Playwright (cycle 20+)
+# ===========================================================================
+
+# Step actions supported in cycle 20. Keep this list flat; if a future check
+# needs more verbs, add them here and extend _STEP_DSL below.
+SUPPORTED_STEP_ACTIONS = {"goto", "wait_for", "fill", "click", "expect_text", "expect_count"}
+
+# Generated spec dir — gitignored so generated .spec.ts files don't pollute
+# the repo. Picked up by the existing 'e2e' project's testMatch pattern
+# (playwright.config.ts: testMatch /.*\\.spec\\.ts/).
+GENERATED_SPEC_DIR = REPO_ROOT / "frontend" / "tests" / "e2e" / "_runtime"
+
+# Marker used to find the generated test by title in the JSON reporter.
+# Cycle-20+ should keep this stable so reporters can match tests across runs.
+# Must be regex-safe — passed to playwright --grep which is a regex match.
+RUNTIME_TEST_TITLE_PREFIX = "ui_diff_runtime::"
+
+
+def _step_to_ts(step: dict[str, Any], indent: str = "    ") -> str:
+    """Translate a single runtime.steps[] entry to a Playwright TS expression.
+
+    Returns the expression body (without the leading ``await`` or trailing
+    semicolon). The caller wraps it in ``await`` + ``;``.
+    """
+    action = step.get("action")
+    if action not in SUPPORTED_STEP_ACTIONS:
+        raise CheckError(f"unsupported runtime step action: {action!r}")
+
+    sel = step.get("selector")
+    if action not in ("goto",) and not sel:
+        raise CheckError(f"runtime step {action!r} requires 'selector'")
+
+    if action == "goto":
+        url = step["url"]
+        return f"await page.goto(baseURL + {json.dumps(url)})"
+    if action == "wait_for":
+        timeout = step.get("timeout_ms", 10000)
+        state = step.get("state", "visible")
+        return (
+            f"await page.waitForSelector({json.dumps(sel)}, "
+            f"{{ state: {json.dumps(state)}, timeout: {timeout} }})"
+        )
+    if action == "fill":
+        val = step["value"]
+        return f"await page.fill({json.dumps(sel)}, {json.dumps(val)})"
+    if action == "click":
+        return f"await page.click({json.dumps(sel)})"
+    if action == "expect_text":
+        loc = f"page.locator({json.dumps(sel)})"
+        if "contains" in step:
+            needle = step["contains"]
+            return f"await expect({loc}).toContainText({json.dumps(needle)})"
+        if "equals" in step:
+            needle = step["equals"]
+            return f"await expect({loc}).toHaveText({json.dumps(needle)})"
+        raise CheckError("expect_text requires 'contains' or 'equals'")
+    if action == "expect_count":
+        loc = f"page.locator({json.dumps(sel)})"
+        if "min" in step:
+            n = int(step["min"])
+            # Use expect.poll-style approach via a helper to keep generated code clean.
+            return f"expect((await {loc}.count()) >= {n}).toBeTruthy()"
+        if "max" in step:
+            n = int(step["max"])
+            return f"expect((await {loc}.count()) <= {n}).toBeTruthy()"
+        if "equals" in step:
+            n = int(step["equals"])
+            return f"await expect({loc}).toHaveCount({n})"
+        raise CheckError("expect_count requires 'min', 'max', or 'equals'")
+
+    # Unreachable.
+    raise CheckError(f"unhandled action: {action}")
+
+
+def _generate_spec(check: dict[str, Any], feature: str) -> str:
+    """Build the .spec.ts file body for a runtime check.
+
+    Returns the file contents as a string. Caller writes to disk.
+    """
+    runtime = check["runtime"]
+    cid = check["id"]
+    test_name = runtime.get("test_name", cid)
+    steps = runtime.get("steps", [])
+    if not steps:
+        raise CheckError(f"runtime check {cid!r} has empty steps[]")
+
+    lines: list[str] = []
+    lines.append("/**")
+    lines.append(f" * AUTO-GENERATED by scripts/icoder_ui_diff.py")
+    lines.append(f" * feature: {feature}")
+    lines.append(f" * check:   {cid}")
+    lines.append(f" * source:  corti_ui_contracts/{feature}.json")
+    lines.append(" * DO NOT EDIT — will be overwritten on next toolchain run.")
+    lines.append(" */")
+    lines.append("import { test, expect } from '@playwright/test';")
+    lines.append("")
+    lines.append(f"test.describe('{RUNTIME_TEST_TITLE_PREFIX}{cid}', () => {{")
+    lines.append(f"  test.use({{ storageState: 'tests/e2e/.auth.json' }});")
+    lines.append("")
+    # Optional per-test timeout (ms). Default = playwright.config.ts (60s).
+    # Some checks (e.g. waiting for a real LLM call to finish) need more.
+    test_timeout_ms = runtime.get("test_timeout_ms")
+    if test_timeout_ms:
+        lines.append(f"  test.setTimeout({int(test_timeout_ms)});")
+    lines.append(f"  test({json.dumps(test_name)}, async ({{ page }}, testInfo) => {{")
+    lines.append(f"    const baseURL = testInfo.project.use.baseURL || 'http://localhost:3000';")
+    lines.append("")
+    for i, step in enumerate(steps):
+        try:
+            expr = _step_to_ts(step)
+        except CheckError as e:
+            raise CheckError(f"step[{i}] in check {cid!r}: {e}")
+        lines.append(f"    // step[{i}]: {step.get('action')}")
+        lines.append(f"    {expr};")
+        lines.append("")
+    lines.append("  });")
+    lines.append("});")
+    lines.append("")
+    return "\n".join(lines)
+
+
+def _run_runtime_check(check: dict[str, Any], repo_root: Path) -> tuple[bool, list[str]]:
+    """Execute a Playwright runtime check by generating a spec and shelling
+    ``npx playwright test``. Returns (passed, list_of_failure_lines).
+
+    Prerequisites (out of scope to auto-start in cycle 20):
+      * Backend on :8000 (uvicorn)
+      * Vite dev server on :3000 (``npm run dev``)
+      * ``frontend/tests/e2e/.auth.json`` exists (run ``npx playwright test
+        --project=setup`` once)
+    """
+    runtime = check.get("runtime") or {}
+    if runtime.get("kind") != "playwright":
+        return False, [f"unsupported runtime.kind: {runtime.get('kind')!r} (only 'playwright' is supported)"]
+
+    feature = check.get("_feature", "unknown")
+    cid = check["id"]
+    failures: list[str] = []
+
+    # 1. Generate the spec file
+    GENERATED_SPEC_DIR.mkdir(parents=True, exist_ok=True)
+    spec_file = GENERATED_SPEC_DIR / f"_generated.{cid}.spec.ts"
+    try:
+        spec_body = _generate_spec(check, feature)
+        spec_file.write_text(spec_body, encoding="utf-8")
+    except CheckError as e:
+        return False, [f"spec generation failed: {e}"]
+
+    # 2. Run Playwright with the JSON reporter so we can map failures back
+    #    to test titles (the cycle-19 'print → eyeball' pattern doesn't scale).
+    frontend_dir = repo_root / "frontend"
+    if not (frontend_dir / "node_modules").exists():
+        failures.append(
+            "frontend/node_modules missing — run `npm install` in frontend/ first"
+        )
+        return False, failures
+
+    # On Windows, subprocess.run(['npx', ...]) fails with WinError 2 because
+    # npx is a .cmd shim that needs shell=True. We side-step the issue by
+    # invoking the local node_modules/.bin/playwright binary directly — same
+    # behavior, no shell, no PATH dance.
+    #
+    # We pin `--project=e2e` to skip the auth.setup.ts project: rate-limited
+    # /api/auth/login would 429 after a few rapid cycles, but the storageState
+    # file (tests/e2e/.auth.json) is still valid — the e2e project reuses it.
+    if sys.platform == "win32":
+        playwright_bin = frontend_dir / "node_modules" / ".bin" / "playwright.cmd"
+        # Use as_posix() — on Windows, str(WindowsPath) emits backslashes which
+        # the .cmd shim mangles. Forward slashes work for every Playwright flag.
+        cmd = [
+            str(playwright_bin),
+            "test",
+            "--reporter=json",
+            "--project=e2e",
+            "--grep", f"{RUNTIME_TEST_TITLE_PREFIX}{cid}",
+            spec_file.relative_to(frontend_dir).as_posix(),
+        ]
+        shell = False
+    else:
+        cmd = [
+            "npx", "playwright", "test",
+            "--reporter=json",
+            "--project=e2e",
+            "--grep", f"{RUNTIME_TEST_TITLE_PREFIX}{cid}",
+            spec_file.relative_to(frontend_dir).as_posix(),
+        ]
+        shell = False
+
+    print(f"       {Fore.CYAN}$ {' '.join(cmd)}{Style.RESET_ALL}")
+
+    try:
+        proc = subprocess.run(
+            cmd,
+            cwd=str(frontend_dir),
+            capture_output=True,
+            text=True,
+            timeout=180,
+            env=os.environ.copy(),
+            shell=shell,
+        )
+    except subprocess.TimeoutExpired:
+        failures.append("playwright run timed out after 180s")
+        return False, failures
+    except FileNotFoundError as e:
+        failures.append(f"playwright not runnable: {e}")
+        return False, failures
+    finally:
+        # Best-effort cleanup — even on error, don't leave generated specs lying around.
+        try:
+            spec_file.unlink(missing_ok=True)
+        except Exception:
+            pass
+
+    # 3. Parse JSON reporter. Playwright writes ONE JSON object on stdout when
+    #    --reporter=json is set — but it's pretty-printed across multiple lines,
+    #    not one-object-per-line as the docs imply. json.loads the whole thing.
+    stdout = (proc.stdout or "").strip()
+    if not stdout:
+        tail = "\n".join((proc.stderr or "").splitlines()[-15:])
+        failures.append(
+            f"playwright produced empty stdout (exit={proc.returncode})\n{tail}"
+        )
+        return False, failures
+
+    try:
+        report = json.loads(stdout)
+    except json.JSONDecodeError as e:
+        # Save raw output for debugging
+        debug_path = repo_root / "frontend" / "tests" / "e2e" / "_runtime" / f"_last_report_{cid}.json"
+        try:
+            debug_path.parent.mkdir(parents=True, exist_ok=True)
+            debug_path.write_text(stdout, encoding="utf-8")
+            debug_hint = f"\nraw stdout saved to {debug_path.relative_to(repo_root)}"
+        except Exception:
+            debug_hint = ""
+        failures.append(f"JSON reporter parse error: {e}{debug_hint}")
+        return False, failures
+
+    stats = report.get("stats", {}) or {}
+    expected = stats.get("expected", 0)
+    unexpected = stats.get("unexpected", 0)
+    skipped = stats.get("skipped", 0)
+    failed_count = unexpected
+
+    # expected + skipped counts as "passed" (skipped tests are intentional)
+    if expected >= 1 and failed_count == 0:
+        return True, []
+
+    # Walk the suites tree to find the first error message. Playwright's JSON
+    # reporter uses `specs` as a LIST of spec dicts (each with `tests`), and
+    # `suites` as a LIST of child suite dicts. Be defensive — production JSON
+    # has these as lists, but types are not formally guaranteed.
+    err_msgs: list[str] = []
+    def _walk(node: dict[str, Any]) -> None:
+        for s in (node.get("specs") or []):
+            if not isinstance(s, dict):
+                continue
+            for t in (s.get("tests") or []):
+                for r in (t.get("results") or []):
+                    err = r.get("error") or {}
+                    msg = err.get("message") or ""
+                    if msg:
+                        err_msgs.extend(msg.splitlines())
+        for child in (node.get("suites") or []):
+            if isinstance(child, dict):
+                _walk(child)
+    for suite in (report.get("suites") or []):
+        if isinstance(suite, dict):
+            _walk(suite)
+
+    if expected == 0 and failed_count == 0:
+        # Playwright exited 1 but no tests were collected — likely grep miss or
+        # spec file missing. Show stderr for diagnostics.
+        tail = "\n".join((proc.stderr or "").splitlines()[-20:])
+        failures.append(f"no tests collected (grep miss?). stderr:\n{tail}")
+        return False, failures
+
+    if not err_msgs:
+        err_msgs = [f"playwright exit={proc.returncode}, expected={expected}, failed={failed_count}"]
+    failures.extend(err_msgs[:5])
+    return False, failures
 
 
 def _print_check(check: dict[str, Any], passed: bool, failures: list[str]) -> None:
@@ -305,11 +603,12 @@ def main() -> int:
         print(f"{Fore.YELLOW}[note] {feature}: no checks defined; nothing to do")
         return 0
 
-    print(f"{Fore.CYAN}[ui-diff] feature={feature}  checks={len(checks)}  schema_version={spec.get('schema_version')}")
+    spec_version = int(spec.get("schema_version", 1))
+    print(f"{Fore.CYAN}[ui-diff] feature={feature}  checks={len(checks)}  schema_version={spec_version}")
 
     results: list[tuple[dict[str, Any], bool, list[str]]] = []
     for check in checks:
-        ok, failures = _run_check(check, REPO_ROOT)
+        ok, failures = _run_check(check, REPO_ROOT, feature=feature, spec_version=spec_version)
         _print_check(check, ok, failures)
         results.append((check, ok, failures))
 

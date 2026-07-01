@@ -1,6 +1,6 @@
 {
   "feature": "medical-coding",
-  "schema_version": 1,
+  "schema_version": 2,
   "description": "编码主界面 (Medical Coding page) — Phase 2 cycle 19 first UI target. Two Corti parity gaps: 字符计数 (real-time char/cost counter in input area header) and 分段高亮 (click code row → highlight evidence span in input panel).",
   "source_of_truth": "docs/corti-reverse-engineered/interactions/ai-studio-medical-coding_*.png + _final.html + feature-flows/ai-studio-medical-coding/*.png (Corti portal captures, 2026-07-01)",
   "checks": [
@@ -94,6 +94,52 @@
         "jsx_used": []
       },
       "runtime": {}
+    },
+    {
+      "id": "char_counter_live",
+      "description": "Runtime (Playwright): typing in the input updates [data-testid=char-counter] text per keystroke (not gated on Predict).",
+      "static": {},
+      "runtime": {
+        "kind": "playwright",
+        "auth": "setup",
+        "test_name": "char counter updates per keystroke",
+        "steps": [
+          {"action": "goto", "url": "/ai-studio/medical-coding"},
+          {"action": "wait_for", "selector": "[data-testid=char-counter-input]", "state": "visible", "timeout_ms": 10000},
+          {"action": "fill", "selector": "[data-testid=char-counter-input]", "value": "Patient has heart failures"},
+          {"action": "expect_text", "selector": "[data-testid=char-counter]", "contains": "26"}
+        ]
+      }
+    },
+    {
+      "id": "click_code_highlights_evidence",
+      "description": "Code table row carries data-testid='code-row-{i}' AND the row's onClick calls setFocusedSpanIndex so the focused state flows down to EvidenceHighlighter (bg-green). Static-only because the runtime path is blocked by an env-level bug: the page references v1.0.0 of the agent, but the registry only has v2.0.0 (the runtime runner hits 404). Re-enable runtime after the agent ref mismatch is fixed.",
+      "static": {
+        "tsx_path": "frontend/src/pages/MedicalCodingPage.tsx",
+        "must_contain": [
+          "data-testid={`code-row-",
+          "setFocusedSpanIndex"
+        ],
+        "must_not_contain": [],
+        "imported": [],
+        "jsx_used": []
+      },
+      "runtime": {
+        "_deferred": "agent ref mismatch — page uses 'medical-coding-agent-1.0.0' but registry only has 'icoder/medical-coding-agent@2.0.0'. Fix the ref in MedicalCodingPage.tsx before re-enabling this runtime check.",
+        "kind": "playwright",
+        "auth": "setup",
+        "test_name": "click code row highlights evidence in green",
+        "test_timeout_ms": 120000,
+        "steps": [
+          {"action": "goto", "url": "/ai-studio/medical-coding"},
+          {"action": "wait_for", "selector": "[data-testid=char-counter-input]", "state": "visible", "timeout_ms": 10000},
+          {"action": "fill", "selector": "[data-testid=char-counter-input]", "value": "Patient has chronic heart failure, NYHA class III."},
+          {"action": "click", "selector": "button:has-text('Predict codes')"},
+          {"action": "wait_for", "selector": "[data-testid^=code-row-]", "state": "visible", "timeout_ms": 30000},
+          {"action": "click", "selector": "[data-testid=code-row-0]"},
+          {"action": "expect_count", "selector": "mark[class*='bg-green-200']", "min": 1}
+        ]
+      }
     }
   ]
 }

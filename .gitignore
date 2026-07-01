@@ -20,6 +20,12 @@ sdk/dist/
 # E2E auth state (contains real tokens)
 **/tests/e2e/.auth.json
 
+# Phase 2 cycle 20 — toolchain-generated Playwright specs.
+# scripts/icoder_ui_diff.py writes these into frontend/tests/e2e/_runtime/
+# on every runtime check (one file per check), then deletes them in finally.
+# This entry is a safety net in case cleanup fails (e.g. Ctrl-C).
+frontend/tests/e2e/_runtime/
+
 # Build artifacts
 *.log
 *.db

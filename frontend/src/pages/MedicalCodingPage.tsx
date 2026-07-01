@@ -464,6 +464,7 @@ export default function MedicalCodingPage() {
                       {allCodes.map((c:any, i:number) => (
                         <tr
                           key={i}
+                          data-testid={`code-row-${i}`}
                           onClick={() => setFocusedSpanIndex(focusedSpanIndex === i ? null : i)}
                           className={`border-b border-border/10 cursor-pointer transition-colors ${focusedSpanIndex === i ? 'bg-primary/5' : 'hover:bg-muted/30'}`}
                           title="Click to highlight the evidence span in the input"

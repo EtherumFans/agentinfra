@@ -366,6 +366,7 @@ async def lifespan(app: FastAPI):
         # Sync all Runtime agents to DB (DB is master for CRUD)
         from app.services.agent_registry_sync_service import AgentRegistrySyncService
         from app.models.agent import Agent as AgentModel
+        from app.database import async_session_factory
         try:
             sync_svc = AgentRegistrySyncService(agent_registry)
             async with async_session_factory() as session:

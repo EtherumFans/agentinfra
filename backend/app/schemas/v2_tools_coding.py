@@ -1,35 +1,20 @@
-"""Corti §3.1 Medical Coding request/response schemas.
+"""iCoDer Medical Coding v2 schemas — Phase 1.1 + Cycle 18.
 
-Phase 1.1 (2026-06-30) — align iCoDer Medical Coding HTTP API with the
-documented Corti contract at ``api.eu.corti.app/v2/tools/coding/``.
+Phase 1.1 (2026-06-30) — iCoDer 5-stage MedCodER pipeline at
+``POST /api/v2/tools/coding/icoder/`` (Chinese-only ICD-10-CN / ICD-9-CM-3).
 
-Shape:
+Cycle 18 (2026-07-01) — Corti §13.6 ``codes_predict`` at
+``POST /api/v2/tools/coding/`` (15 coding systems, stateless single-shot
+prediction per Corti OpenAPI spec).
 
-Request:
-    {
-      "context": [{"text": "...", "type": "text"}, ...],
-      "system":  ["icd10cn-outpatient", ...]      # iCoDer-only system names
-    }
+The two endpoints share the *evidence* / *alternative* inner shapes
+(``CodingEvidence``, ``CodingAlternative``) but differ on:
 
-Response:
-    {
-      "codes": [
-        {
-          "system": "icd10cn-outpatient",
-          "code":   "I50.900",
-          "display": "心力衰竭 ...",
-          "evidences": [
-            {"contextIndex": 0, "text": "...", "start": 110, "end": 128}
-          ],
-          "alternatives": [
-            {"code": "I50.907", "display": "..."}
-          ]
-        }
-      ]
-    }
-
-Field maps (Corti ↔ iCoDer Runtime) are documented in
-``docs/PHASE_1_1_MEDICAL_CODING_PATH_SCHEMA.md``.
+  - Request envelope: cycle 18 adds ``filter.include/exclude/expand``.
+  - Response envelope: cycle 18 splits into ``codes[]`` (predicted) +
+    ``candidates[]`` (lower-confidence) + ``usageInfo.creditsConsumed``.
+  - Coding system vocabulary: cycle 18 accepts all 15 Corti
+    ``CommonCodingSystemEnum`` values (no Chinese-only restriction).
 """
 
 from __future__ import annotations
@@ -39,7 +24,7 @@ from typing import List, Optional
 from pydantic import BaseModel, Field, field_validator
 
 
-# ─── Request ──────────────────────────────────────────────────────────
+# ─── Common shapes (shared between Phase 1.1 + Cycle 18) ────────────
 
 
 class CodingContextItem(BaseModel):
@@ -60,8 +45,14 @@ class CodingContextItem(BaseModel):
         return v if v is not None else ""
 
 
+# ─── Phase 1.1 — iCoDer MedCodER pipeline request ────────────────────
+
+
 class CodingRequest(BaseModel):
-    """Corti §3.1 ``POST /v2/tools/coding`` request body."""
+    """Phase 1.1 ``POST /api/v2/tools/coding/icoder/`` request body.
+
+    Chinese-only system names. Corti US-style names are rejected with 400.
+    """
     context: List[CodingContextItem] = Field(
         default_factory=list,
         description="One or more context blocks (text spans, future: audio/image)",
@@ -152,3 +143,174 @@ ICODER_CODING_SYSTEMS: frozenset[str] = frozenset({
 def default_coding_system() -> str:
     """Default system when caller supplies an empty system[] (Phase 1.1 fallback)."""
     return "icd10cn-outpatient"
+
+
+# ─── Cycle 18 — Corti §13.6 codes_predict ────────────────────────────
+# Aligned with ``docs/corti-reverse-engineered/codes-predict-codes.md``.
+
+
+# 15-system enum from the Corti OpenAPI CommonCodingSystemEnum:
+#   - icd10cm-inpatient / icd10cm-outpatient (US)
+#   - icd10pcs (US procedure)
+#   - cpt (US procedure)
+#   - icd10int-inpatient / icd10int-outpatient (international)
+#   - icd10uk-inpatient / icd10uk-outpatient (UK)
+#   - cim10fr-inpatient / cim10fr-outpatient (France)
+#   - icd10gm-inpatient / icd10gm-outpatient (Germany)
+#   - opcs4 (UK procedure)
+#   - ops (Germany procedure)
+#   - ccam (France procedure)
+# Per-spec invariant: the stub does not validate against a system allow-list
+# (unlike Phase 1.1's Chinese-only policy) — the canonical Corti endpoint
+# accepts any of these 15 values verbatim.
+CORTI_COMMON_CODING_SYSTEMS: frozenset[str] = frozenset({
+    "icd10cm-inpatient",
+    "icd10cm-outpatient",
+    "icd10pcs",
+    "cpt",
+    "icd10int-inpatient",
+    "icd10int-outpatient",
+    "icd10uk-inpatient",
+    "icd10uk-outpatient",
+    "cim10fr-inpatient",
+    "cim10fr-outpatient",
+    "icd10gm-inpatient",
+    "icd10gm-outpatient",
+    "opcs4",
+    "ops",
+    "ccam",
+})
+
+
+class CommonTextContext(BaseModel):
+    """One text-based context block (mirrors Corti ``CommonTextContext``)."""
+    type: str = Field(default="text", description="Always ``text`` for text-based context")
+    text: str = Field(default="", description="Source text for this context block", min_length=0)
+
+    @field_validator("type")
+    @classmethod
+    def _type_must_be_text(cls, v: str) -> str:
+        if v != "text":
+            raise ValueError(f"CommonTextContext.type must be 'text', got {v!r}")
+        return v
+
+
+class CommonDocumentIDContext(BaseModel):
+    """One documentId-based context block (mirrors Corti ``CommonDocumentIDContext``)."""
+    type: str = Field(default="documentId", description="Always ``documentId`` for document-based context")
+    documentId: str = Field(default="", description="A referenced document ID")
+
+    @field_validator("type")
+    @classmethod
+    def _type_must_be_documentid(cls, v: str) -> str:
+        if v != "documentId":
+            raise ValueError(f"CommonDocumentIDContext.type must be 'documentId', got {v!r}")
+        return v
+
+
+class CommonAIContext(BaseModel):
+    """Discriminated union: text OR documentId (mirrors Corti ``CommonAIContext``).
+
+    For the iCoDer stub, only ``text`` is meaningfully honored; ``documentId``
+    is accepted (per spec) but produces an empty ``codes[]`` response since
+    the stub does not look up referenced documents.
+    """
+    type: str = Field(default="text", description="Either ``text`` or ``documentId``")
+    text: Optional[str] = Field(default=None, description="Source text (when type=text)")
+    documentId: Optional[str] = Field(default=None, description="Referenced document ID (when type=documentId)")
+
+
+class CodesFilter(BaseModel):
+    """Optional filter to restrict the set of codes the model can predict."""
+    include: List[str] = Field(
+        default_factory=list,
+        description="Codes or categories to include. When empty, the full set of codes for the requested systems is used.",
+    )
+    exclude: List[str] = Field(
+        default_factory=list,
+        description="Codes or categories to subtract from the include set.",
+    )
+    expand: Optional[bool] = Field(
+        default=True,
+        description="When true (default), category codes are expanded to their leaf codes.",
+    )
+
+
+class CodesGeneralPredictRequest(BaseModel):
+    """Cycle 18 — Corti §13.6 ``POST /tools/coding/`` request body.
+
+    Distinct from Phase 1.1's ``CodingRequest``: accepts the 15-system
+    Corti vocabulary, supports ``documentId`` context, and adds optional
+    ``filter.include/exclude/expand``.
+    """
+    system: List[str] = Field(
+        default_factory=list,
+        description=(
+            "List of Corti coding systems. Must be a non-empty list of "
+            "CommonCodingSystemEnum values (max 15). Mirrors the spec's "
+            "``system: array<CommonCodingSystemEnum>`` with minItems=1, "
+            "maxItems=15, uniqueItems=true."
+        ),
+    )
+    context: List[CommonAIContext] = Field(
+        default_factory=list,
+        description=(
+            "List of text or documentId context blocks. Evidence indices in "
+            "the response map to this array."
+        ),
+    )
+    filter: Optional[CodesFilter] = Field(
+        default=None,
+        description="Optional filter to restrict predicted codes.",
+    )
+
+
+class CommonUsageInfo(BaseModel):
+    """Credits consumed for this request (mirrors Corti ``CommonUsageInfo``)."""
+    creditsConsumed: float = Field(
+        default=0.0,
+        description="Number of credits consumed by this request.",
+        ge=0.0,
+    )
+
+
+class CodesGeneralReadResponse(BaseModel):
+    """One predicted or candidate code record (mirrors Corti ``CodesGeneralReadResponse``)."""
+    system: str = Field(default="", description="The Corti coding system used")
+    code: str = Field(default="", description="The medical code")
+    display: str = Field(default="", description="Description of the medical code")
+    evidences: List[CodingEvidence] = Field(
+        default_factory=list,
+        description="The evidence for the prediction (char-span citations)",
+    )
+    alternatives: List[CodingAlternative] = Field(
+        default_factory=list,
+        description="Codes the model also considered for this prediction.",
+    )
+
+
+class CodesGeneralResponse(BaseModel):
+    """Cycle 18 — Corti §13.6 ``POST /tools/coding/`` response body.
+
+    Distinct from Phase 1.1's ``CodingResponse``:
+      - adds ``candidates[]`` (lower-confidence codes the model considered
+        but excluded from the predicted set)
+      - adds ``usageInfo.creditsConsumed``
+    """
+    codes: List[CodesGeneralReadResponse] = Field(
+        default_factory=list,
+        description="Codes predicted by the model.",
+    )
+    candidates: List[CodesGeneralReadResponse] = Field(
+        default_factory=list,
+        description="Lower-confidence codes the model considered but excluded from the predicted set.",
+    )
+    usageInfo: CommonUsageInfo = Field(
+        default_factory=CommonUsageInfo,
+        description="Credits consumed for this request.",
+    )
+
+
+def default_corti_coding_system() -> str:
+    """Default system when caller supplies an empty system[] (Cycle 18 fallback)."""
+    return "icd10cm-outpatient"

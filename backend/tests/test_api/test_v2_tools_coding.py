@@ -1,10 +1,10 @@
-"""Phase 1.1 (2026-06-30) — Corti §3.1 Medical Coding shape parity.
+"""Phase 1.1 (2026-06-30) — Corti §3.1 Medical Coding shape parity (iCoDer 5-stage).
 
 Plan reference: ``docs/PHASE_1_1_MEDICAL_CODING_PATH_SCHEMA.md``
 
-These tests assert the wire-shape contract of ``POST /api/v2/tools/coding``
-relative to the Corti documentation in
-``docs/corti-reverse-engineered/SUMMARY.md §3.1``.
+These tests assert the wire-shape contract of ``POST /api/v2/tools/coding/icoder``
+(Phase 1.1 endpoint, relocated to sub-path in cycle 18 to free the canonical
+Corti path ``/api/v2/tools/coding/`` for the §13.6 ``codes_predict`` endpoint).
 
 Approach
 --------
@@ -208,7 +208,7 @@ def test_v2_coding_shape_minimal(client, stub_adapter):
         ],
         "system": ["icd10cn-outpatient"],
     }
-    r = client.post("/api/v2/tools/coding", json=body)
+    r = client.post("/api/v2/tools/coding/icoder", json=body)
     assert r.status_code == 200, r.text
     j = r.json()
     assert "codes" in j and isinstance(j["codes"], list) and len(j["codes"]) >= 1
@@ -244,7 +244,7 @@ def test_v2_coding_evidence_span_roundtrip(client, stub_adapter):
         }]),
     })
 
-    r = client.post("/api/v2/tools/coding", json={
+    r = client.post("/api/v2/tools/coding/icoder", json={
         "context": [{"text": full, "type": "text"}],
         "system": ["icd10cn-outpatient"],
     })
@@ -280,7 +280,7 @@ def test_v2_coding_alternatives_contains_rerank(client, stub_adapter):
         }]),
     })
 
-    r = client.post("/api/v2/tools/coding", json={
+    r = client.post("/api/v2/tools/coding/icoder", json={
         "context": [{"text": "血压 180/110 mmHg, 既往高血压病史 5 年", "type": "text"}],
         "system": ["icd10cn-outpatient"],
     })
@@ -307,7 +307,7 @@ def test_v2_coding_icoder_system_accepted(client, stub_adapter):
                 "supporting_evidence": [],
             }]),
         })
-        r = client.post("/api/v2/tools/coding", json={
+        r = client.post("/api/v2/tools/coding/icoder", json={
             "context": [{"text": "示例,用于验证 iCoDer system 命名空间。", "type": "text"}],
             "system": [sys_name],
         })
@@ -324,7 +324,7 @@ def test_v2_coding_corti_us_system_rejected(client, stub_adapter):
     is to surface the standard difference, not to silently alias.
     """
     for corti_us_name in ["icd10cm-outpatient", "icd10cm-inpatient", "icd10pcs", "icd9cm", "cpt"]:
-        r = client.post("/api/v2/tools/coding", json={
+        r = client.post("/api/v2/tools/coding/icoder", json={
             "context": [{"text": "示例。", "type": "text"}],
             "system": [corti_us_name],
         })
@@ -375,7 +375,7 @@ def test_v2_coding_multi_context_contextindex(client, stub_adapter):
         ]),
     })
 
-    r = client.post("/api/v2/tools/coding", json={
+    r = client.post("/api/v2/tools/coding/icoder", json={
         "context": [
             {"text": block0, "type": "text"},
             {"text": block1, "type": "text"},
@@ -400,7 +400,7 @@ def test_v2_coding_empty_context_rejected(client, stub_adapter):
     Two flavours of empty: explicit `[]` and array of empty-text blocks.
     """
     # Variant A: explicit empty list
-    r = client.post("/api/v2/tools/coding", json={
+    r = client.post("/api/v2/tools/coding/icoder", json={
         "context": [],
         "system": ["icd10cn-outpatient"],
     })
@@ -408,7 +408,7 @@ def test_v2_coding_empty_context_rejected(client, stub_adapter):
     assert r.json()["detail"].get("error") == "empty_context"
 
     # Variant B: list of items with whitespace-only text
-    r = client.post("/api/v2/tools/coding", json={
+    r = client.post("/api/v2/tools/coding/icoder", json={
         "context": [{"text": "   ", "type": "text"}, {"text": "", "type": "text"}],
         "system": ["icd10cn-outpatient"],
     })
@@ -426,7 +426,7 @@ def test_v2_coding_no_llm_credential_returns_503(client, monkeypatch):
     monkeypatch.delenv("ICODER_ALLOW_DEGRADED_NO_KEY", raising=False)
     monkeypatch.delenv("ICODER_ALLOW_DEGRADED_NO_KEY", raising=False)
 
-    r = client.post("/api/v2/tools/coding", json={
+    r = client.post("/api/v2/tools/coding/icoder", json={
         "context": [{"text": "示例", "type": "text"}],
         "system": ["icd10cn-outpatient"],
     })

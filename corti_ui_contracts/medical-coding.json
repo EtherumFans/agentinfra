@@ -1,0 +1,99 @@
+{
+  "feature": "medical-coding",
+  "schema_version": 1,
+  "description": "编码主界面 (Medical Coding page) — Phase 2 cycle 19 first UI target. Two Corti parity gaps: 字符计数 (real-time char/cost counter in input area header) and 分段高亮 (click code row → highlight evidence span in input panel).",
+  "source_of_truth": "docs/corti-reverse-engineered/interactions/ai-studio-medical-coding_*.png + _final.html + feature-flows/ai-studio-medical-coding/*.png (Corti portal captures, 2026-07-01)",
+  "checks": [
+    {
+      "id": "real_time_char_counter",
+      "description": "Input area header shows a live char + cost estimate that updates on every keystroke (not just after Predict).",
+      "static": {
+        "tsx_path": "frontend/src/pages/MedicalCodingPage.tsx",
+        "must_contain": [
+          "charCount",
+          "input.length",
+          "costEstimate"
+        ],
+        "must_not_contain": [
+          "// TODO: char counter"
+        ],
+        "imported": [],
+        "jsx_used": []
+      },
+      "runtime": {}
+    },
+    {
+      "id": "no_plain_textarea_in_page",
+      "description": "Plain <textarea> in MedicalCodingPage is replaced by HighlightedTextarea component (proves the input panel was migrated to the overlay pattern).",
+      "static": {
+        "tsx_path": "frontend/src/pages/MedicalCodingPage.tsx",
+        "must_contain": [
+          "HighlightedTextarea"
+        ],
+        "must_not_contain": [
+          "<textarea"
+        ],
+        "imported": [
+          "HighlightedTextarea"
+        ],
+        "jsx_used": [
+          "<HighlightedTextarea"
+        ]
+      },
+      "runtime": {}
+    },
+    {
+      "id": "highlighted_textarea_overlay_pattern",
+      "description": "HighlightedTextarea component renders BOTH a textarea (input) AND a <pre> overlay (highlight display), shares INPUT_TEXT_CLASS for font-metric sync, and uses EvidenceHighlighter as JSX (not just imported).",
+      "static": {
+        "tsx_path": "frontend/src/components/medical-coding/HighlightedTextarea.tsx",
+        "must_contain": [
+          "INPUT_TEXT_CLASS",
+          "EvidenceHighlighter",
+          "aria-hidden",
+          "onScroll",
+          "pointer-events"
+        ],
+        "must_not_contain": [],
+        "imported": [
+          "EvidenceHighlighter"
+        ],
+        "jsx_used": [
+          "<EvidenceHighlighter"
+        ]
+      },
+      "runtime": {}
+    },
+    {
+      "id": "evidence_highlighter_focused_state",
+      "description": "EvidenceHighlighter accepts a focusedSpanIndex prop and renders a distinct class (bg-green) for the focused span vs default (bg-yellow) for others — matches Corti screenshot where clicked code's evidence shows in green.",
+      "static": {
+        "tsx_path": "frontend/src/components/medical-coding/EvidenceHighlighter.tsx",
+        "must_contain": [
+          "focusedSpanIndex",
+          "bg-green",
+          "bg-yellow"
+        ],
+        "must_not_contain": [],
+        "imported": [],
+        "jsx_used": []
+      },
+      "runtime": {}
+    },
+    {
+      "id": "i18n_keys_added",
+      "description": "Two new i18n keys (charCount, costEstimate) added to BOTH zh-CN and en-US locale objects in locales.ts. Parity test enforces this automatically.",
+      "static": {
+        "tsx_path": "frontend/src/i18n/locales.ts",
+        "must_contain": [
+          "charCount: '",
+          "costEstimate: '"
+        ],
+        "must_not_contain": [],
+        "imported": [],
+        "jsx_used": []
+      },
+      "runtime": {}
+    }
+  ]
+}

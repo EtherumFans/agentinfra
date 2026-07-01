@@ -202,6 +202,8 @@ export interface LocaleDict {
   predictedCodesWillShow: string;
   eventInspector: string;
   creditsConsumedLabel: string;
+  charCount: string;
+  costEstimate: string;
   viewFullReport: string;
   systemPrompt: string;
   codingSystem: string;
@@ -1035,6 +1037,8 @@ const zhCN: LocaleDict = {
   predictedCodesWillShow: '预测编码结果将在此显示',
   eventInspector: '事件检查器',
   creditsConsumedLabel: '已消耗额度',
+  charCount: '{{n}} 字',
+  costEstimate: '约 ${{n}}',
   viewFullReport: '查看完整报告',
   systemPrompt: '系统提示词',
   codingSystem: '编码体系',
@@ -1886,6 +1890,8 @@ const enUS: LocaleDict = {
   predictedCodesWillShow: 'Predicted codes will show here',
   eventInspector: 'Event Inspector',
   creditsConsumedLabel: 'Credits consumed',
+  charCount: '{{n}} chars',
+  costEstimate: '~${{n}}',
   viewFullReport: 'View full report',
   systemPrompt: 'System Prompt',
   codingSystem: 'Coding System',

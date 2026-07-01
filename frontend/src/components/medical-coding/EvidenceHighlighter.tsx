@@ -4,6 +4,11 @@
  * Used to visualize MedCodER pipeline output: which sentence in the EMR
  * supports which diagnosis. Falls back to fuzzy substring match if the
  * stored char_start/char_end don't match exactly (server-side fuzzy).
+ *
+ * When `focusedSpanIndex` is provided, the matching span is rendered with
+ * a distinct (green) class to indicate user focus — matches Corti
+ * screenshot where clicking a code highlights its evidence in green while
+ * the rest stay yellow.
  */
 import React, { useMemo } from 'react';
 
@@ -20,6 +25,8 @@ interface EvidenceHighlighterProps {
   sourceText: string;
   spans: EvidenceSpanLike[];
   highlightClassName?: string;
+  focusedClassName?: string;
+  focusedSpanIndex?: number | null;
 }
 
 /**
@@ -31,8 +38,13 @@ export const EvidenceHighlighter: React.FC<EvidenceHighlighterProps> = ({
   sourceText,
   spans,
   highlightClassName = 'bg-yellow-200 text-gray-900 px-0.5 rounded',
+  focusedClassName = 'bg-green-200 text-gray-900 px-0.5 rounded',
+  focusedSpanIndex = null,
 }) => {
-  const segments = useMemo(() => buildSegments(sourceText, spans), [sourceText, spans]);
+  const segments = useMemo(
+    () => buildSegments(sourceText, spans, focusedSpanIndex),
+    [sourceText, spans, focusedSpanIndex],
+  );
   if (!spans.length) {
     return <>{sourceText}</>;
   }
@@ -40,7 +52,11 @@ export const EvidenceHighlighter: React.FC<EvidenceHighlighterProps> = ({
     <>
       {segments.map((seg, i) =>
         seg.highlight ? (
-          <mark key={i} className={highlightClassName} title={seg.text}>
+          <mark
+            key={i}
+            className={seg.focused ? focusedClassName : highlightClassName}
+            title={seg.text}
+          >
             {seg.text}
           </mark>
         ) : (
@@ -54,10 +70,15 @@ export const EvidenceHighlighter: React.FC<EvidenceHighlighterProps> = ({
 interface Segment {
   text: string;
   highlight: boolean;
+  focused?: boolean;
   spanIndex?: number;
 }
 
-function buildSegments(source: string, spans: EvidenceSpanLike[]): Segment[] {
+function buildSegments(
+  source: string,
+  spans: EvidenceSpanLike[],
+  focusedSpanIndex: number | null,
+): Segment[] {
   // Validate and sort spans by start
   const valid = spans
     .map((s, i) => ({
@@ -89,7 +110,12 @@ function buildSegments(source: string, spans: EvidenceSpanLike[]): Segment[] {
     if (s.start > pos) {
       out.push({ text: source.slice(pos, s.start), highlight: false });
     }
-    out.push({ text: source.slice(s.start, s.end), highlight: true, spanIndex: s.index });
+    out.push({
+      text: source.slice(s.start, s.end),
+      highlight: true,
+      focused: focusedSpanIndex === s.index,
+      spanIndex: s.index,
+    });
     pos = s.end;
   }
   if (pos < source.length) {

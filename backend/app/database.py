@@ -51,8 +51,17 @@ async_session_factory = AsyncSessionLocal
 async def init_db():
     """Initialize database tables.
 
-    Uses create_all() for development convenience.
-    In production, migrate with: alembic upgrade head
+    Uses ``Base.metadata.create_all`` — idempotent, only creates tables
+    that don't already exist. This is what dev, test, **and prod**
+    actually use: ``app/main.py`` lifespan calls ``init_db()`` on every
+    uvicorn startup, so the schema is rebuilt-from-missing on each boot.
+
+    Alembic (``alembic upgrade head`` via ``python -m app.database
+    migrate``) is a **dev/manual** tool for column-add migrations on an
+    existing DB without wiping data. The chain 001→006 is kept in parity
+    with ``Base.metadata`` (cycle 24 closed the 5-table gap). Don't run
+    alembic in prod unless you've audited the chain against the current
+    model state — see ``docs/dev/BACKEND_RECOVERY.md`` §Prevention.
     """
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

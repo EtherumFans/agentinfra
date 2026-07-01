@@ -202,12 +202,12 @@ conn.close()
   — idempotent, only creates missing tables, **does not** stamp
   `alembic_version`.
 - `alembic upgrade head` (run via `python -m app.database migrate`) runs
-  migration scripts and stamps `alembic_version=005`.
+  migration scripts 001→006 and stamps `alembic_version=006`.
 
 If you run `alembic upgrade head` once and then later modify a model,
 subsequent `init_db()` startups won't apply your model changes (because
 the tables already exist). And `alembic upgrade head` won't re-run
-migrations it thinks are done (because `alembic_version=005` says head).
+migrations it thinks are done (because `alembic_version=006` says head).
 
 **Dev rule of thumb**: use `init_db()` (default) for greenfield
 development. Only run `alembic upgrade head` if you've actually written
@@ -216,9 +216,13 @@ a new migration script and want to apply it.
 ### Production (managed cloud SaaS)
 
 Production uses PostgreSQL on managed cloud, not this SQLite file.
-Migrations there are applied via `alembic upgrade head` in the deploy
-pipeline — out of scope for this runbook. See
-`docs/cloud/CLOUD_DEPLOYMENT.md` §6.
+**Prod actually uses `init_db()` (uvicorn lifespan calls it on every
+boot), not `alembic upgrade head`** — the alembic chain is a
+dev/manual tool, kept in parity with `Base.metadata` so anyone who
+needs a real migration (e.g. zero-downtime column add on PostgreSQL)
+has a correct starting point. Cycle 24 closed a 5-table gap that had
+accumulated between the alembic chain and the model definitions. See
+`docs/cloud/CLOUD_DEPLOYMENT.md` §6 for the prod deploy pipeline.
 
 ## Known recovery scenarios (historical)
 

@@ -9,17 +9,15 @@ from sqlalchemy.ext.asyncio import create_async_engine
 from app.config import settings
 from app.database import Base
 
-# Import all models so Base.metadata is populated
+# Import all models so Base.metadata is populated.
+# Cycle 24: app.models.__init__ now imports Organization too (previously
+# only imported via API routers, so env.py's target_metadata was missing
+# the 3 organization tables). The context_* db_models import was removed
+# — those 5 tables are deprecated (dropped by migration 006) and should
+# NOT be in target_metadata or autogenerate would propose re-creating them.
 from app.models import *  # noqa: F401, F403
 from app.models.runtime_persistence import (  # noqa: F401
     RuntimeSession, RuntimeTransition, RuntimeAuditRecord, DUCDecision,
-)
-from app.icoder.agent_runtime.context.db_models import (  # noqa: F401
-    ContextRow,
-    ContextMessageRow,
-    ContextTaskRefRow,
-    ContextArtifactRefRow,
-    OriginalInputAuditRow,
 )
 
 config = context.config

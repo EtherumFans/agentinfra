@@ -18,6 +18,7 @@ from app.models.runtime_persistence import RuntimeSession, RuntimeTransition, Ru
 from app.models.code_table import CodeTable, CodeMapping
 from app.models.coding_review_run import CodingReviewRun
 from app.models.customer import Customer, CustomerRegion
+from app.models.organization import Organization, OrganizationMember, OrganizationInvite, OrgRole
 from app.models.template import (
     Template, TemplateCategory, TemplateLanguage, TemplateScope,
 )
@@ -43,6 +44,7 @@ __all__ = [
     "CodeTable", "CodeMapping",
     "CodingReviewRun",
     "Customer", "CustomerRegion",
+    "Organization", "OrganizationMember", "OrganizationInvite", "OrgRole",
     "Template", "TemplateCategory", "TemplateLanguage", "TemplateScope",
     "Ticket", "TicketStatus", "TicketPriority",
 ]

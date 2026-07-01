@@ -86,34 +86,72 @@ class RuntimeAgentRegistry:
     # ── CRUD ──
 
     def install(self, pack: dict, publisher_name: str = "", publisher_email: str = "") -> InstalledAgentRecord:
-        """Install an agent pack into the registry. Validates via AgentPackageV1."""
+        """Install an agent pack into the registry. Validates via AgentPackageV1
+        for v1.1 packs; v1.2 packs (validated by BuiltinAgentPackProvider) are
+        passed through with values read directly from the pack dict.
+        """
         from .agent_pack_v1 import AgentPackageV1
 
-        pkg = AgentPackageV1.from_dict(pack)
-        agent_id = f"{pkg.name.lower().replace(' ', '-')}-{pkg.version}"
+        is_v12 = pack.get("format_version", "1.1") != "1.1"
+        if is_v12:
+            manifest = pack.get("manifest", {})
+            name = manifest.get("name", "")
+            version = manifest.get("version", "1.0.0")
+            agent_id = f"{name.lower().replace(' ', '-')}-{version}"
+            # v1.2 packs use `expert_id` (Phase D convention) — Loader is the
+            # canonical reader, but keep the registry tolerant.
+            expert_ids = [
+                e.get("id") or e.get("expert_id") or ""
+                for e in pack.get("experts", [])
+            ]
+            record = InstalledAgentRecord(
+                agent_id=agent_id,
+                name=name,
+                version=version,
+                description=manifest.get("description", ""),
+                category=manifest.get("category", "general"),
+                icon=manifest.get("icon", "Bot"),
+                agent_type=pack.get("agent_type", "certified"),
+                system_prompt=pack.get("system_prompt", ""),
+                expert_ids=expert_ids,
+                experts=pack.get("experts", []),
+                tools=pack.get("tools", []),
+                permissions=pack.get("permissions", {}),
+                publisher_name=publisher_name or pack.get("publisher_name", ""),
+                publisher_email=publisher_email or pack.get("publisher_email", ""),
+                min_runtime_version=pack.get("requirements", {}).get("min_runtime_version", "1.0.0"),
+                llm_capabilities=pack.get("llm_capabilities", {}),
+                integrity=pack.get("integrity", {}),
+                pack_data=pack,
+                status="installed",
+                installed_at=datetime.now(timezone.utc).isoformat(),
+            )
+        else:
+            pkg = AgentPackageV1.from_dict(pack)
+            agent_id = f"{pkg.name.lower().replace(' ', '-')}-{pkg.version}"
 
-        record = InstalledAgentRecord(
-            agent_id=agent_id,
-            name=pkg.name,
-            version=pkg.version,
-            description=pkg.description,
-            category=pkg.category,
-            icon=pkg.icon,
-            agent_type=pkg.agent_type,
-            system_prompt=pkg.system_prompt,
-            expert_ids=[e.get("id") for e in pkg.experts],
-            experts=pkg.experts,
-            tools=pkg.tools,
-            permissions=pkg.permissions,
-            publisher_name=publisher_name or pkg.publisher_name,
-            publisher_email=publisher_email or pkg.publisher_email,
-            min_runtime_version=pkg.requirements.get("min_runtime_version", "1.0.0"),
-            llm_capabilities=pkg.llm_capabilities,
-            integrity=pkg.integrity,
-            pack_data=pack,
-            status="installed",
-            installed_at=datetime.now(timezone.utc).isoformat(),
-        )
+            record = InstalledAgentRecord(
+                agent_id=agent_id,
+                name=pkg.name,
+                version=pkg.version,
+                description=pkg.description,
+                category=pkg.category,
+                icon=pkg.icon,
+                agent_type=pkg.agent_type,
+                system_prompt=pkg.system_prompt,
+                expert_ids=[e.get("id") for e in pkg.experts],
+                experts=pkg.experts,
+                tools=pkg.tools,
+                permissions=pkg.permissions,
+                publisher_name=publisher_name or pkg.publisher_name,
+                publisher_email=publisher_email or pkg.publisher_email,
+                min_runtime_version=pkg.requirements.get("min_runtime_version", "1.0.0"),
+                llm_capabilities=pkg.llm_capabilities,
+                integrity=pkg.integrity,
+                pack_data=pack,
+                status="installed",
+                installed_at=datetime.now(timezone.utc).isoformat(),
+            )
 
         with self._lock:
             self._records[agent_id] = record

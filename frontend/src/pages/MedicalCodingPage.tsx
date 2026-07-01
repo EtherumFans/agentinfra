@@ -20,7 +20,7 @@ import CodeSnippet from '../components/common/CodeSnippet';
 
 type RightTab = 'settings' | 'code';
 
-const MEDICAL_CODING_AGENT_REF = 'medical-coding-agent-1.0.0';
+const MEDICAL_CODING_AGENT_REF = 'medical-coding-agent-2.0.0';
 
 const SAMPLE_TEXTS = {
   admission: `入院记录
@@ -333,7 +333,7 @@ export default function MedicalCodingPage() {
 
       {/* ==================== ACTION BAR (Predict codes) ==================== */}
       <div className="flex items-center justify-end gap-2 px-4 py-2 border-b border-border/20 shrink-0">
-        <button onClick={() => handlePredict()} disabled={!hasText || loading}
+        <button data-testid="predict-codes-btn" onClick={() => handlePredict()} disabled={!hasText || loading}
           className="px-4 py-1.5 rounded-lg border border-border bg-background text-foreground text-sm font-medium hover:bg-accent disabled:opacity-30 transition-all flex items-center gap-1.5">
           {loading ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
           {loading ? t.analyzing : t.predictCodes}

@@ -121,8 +121,20 @@ class PlatformRuntime:
 
         Returns: {"agent_id": str, "name": str, "version": str, "status": "installed"}
         """
-        # Validate via AgentPackageV1 (raises ValidationError on failure)
-        pkg = AgentPackageV1.from_dict(pack)
+        # Validate via AgentPackageV1 (legacy v1.1 strict checks). v1.2 packs
+        # (reference / expert-stub agent_types, MCP-style tools[].ref) are
+        # already validated by BuiltinAgentPackProvider.discover_all() — see
+        # docs/specs/AGENT_PACK_SPEC_V1_2.md §1. Skipping the legacy validator
+        # here unblocks v1.2 packs that were silently dropped at startup with
+        # only a `Failed to register pack` warning.
+        if pack.get("format_version", "1.1") == "1.1":
+            pkg = AgentPackageV1.from_dict(pack)
+            resolved_publisher_name = publisher_name or pkg.publisher_name
+            resolved_publisher_email = publisher_email or pkg.publisher_email
+        else:
+            pkg = None
+            resolved_publisher_name = publisher_name or pack.get("publisher_name", "")
+            resolved_publisher_email = publisher_email or pack.get("publisher_email", "")
 
         # Import into domain objects for runner registration
         agent, experts, tools, permissions = import_pack(pack)
@@ -130,8 +142,8 @@ class PlatformRuntime:
         # Install into persistent registry
         record = self._registry.install(
             pack,
-            publisher_name=publisher_name or pkg.publisher_name,
-            publisher_email=publisher_email or pkg.publisher_email,
+            publisher_name=resolved_publisher_name,
+            publisher_email=resolved_publisher_email,
         )
 
         # Register experts and tools with the runner
@@ -179,7 +191,7 @@ class PlatformRuntime:
         if not self._runner:
             raise LLMProviderNotConfigured()
 
-        from ..types import AgentDefinition, ExpertDefinition
+        from ..types import AgentDefinition, ExpertDefinition, ToolDefinition, ToolTier
         from ..permissions import PermissionPolicy, ToolPermission
 
         # Rebuild AgentDefinition from registry record
@@ -193,16 +205,39 @@ class PlatformRuntime:
             expert_ids=record.expert_ids or [],
         )
 
-        # Register experts/tools (idempotent)
+        # Register experts/tools (idempotent). v1.2 packs (Phase D convention) use
+        # `expert_id` + carry extra fields (role, tools, model, non_goals,
+        # output_contract) that the ExpertDefinition dataclass doesn't know —
+        # normalize to the v1.1 dataclass schema before constructing.
+        _EXPERT_FIELDS = {"id", "name", "description", "system_prompt",
+                         "category", "capabilities", "config"}
         for e in record.experts or []:
-            self._runner.register_expert(ExpertDefinition(**e))
+            if "expert_id" in e and "id" not in e:
+                e_norm = {k: v for k, v in e.items() if k != "expert_id"}
+                e_norm["id"] = e["expert_id"]
+            else:
+                e_norm = e
+            e_norm = {k: v for k, v in e_norm.items() if k in _EXPERT_FIELDS}
+            self._runner.register_expert(ExpertDefinition(**e_norm))
         for t in record.tools or []:
             if isinstance(t, str):
                 self._runner.register_tool(ToolDefinition(id=t, name=t, description=t, tier=ToolTier(1), category="general"))
             else:
+                # v1.2 tools use `name` (not `id`) and `type` (not `tier`). Map.
+                tool_id = t.get("id") or t.get("name", "")
+                tool_name = t.get("name", tool_id)
+                t_type = t.get("type")
+                if "tier" in t:
+                    tier_value = t["tier"]
+                elif t_type in ("mcp", "function", "builtin"):
+                    tier_value = 1
+                elif t_type == "guard":
+                    tier_value = 2
+                else:
+                    tier_value = 2
                 self._runner.register_tool(ToolDefinition(
-                    id=t["id"], name=t["name"], description=t.get("description", ""),
-                    tier=ToolTier(t.get("tier", 2)),
+                    id=tool_id, name=tool_name, description=t.get("description", ""),
+                    tier=ToolTier(tier_value),
                     category=t.get("category", "general"),
                     requires=t.get("requires", []), guarantees=t.get("guarantees", {}),
                     input_schema={"type": "object", "properties": t.get("params", {})} if t.get("params") else None,

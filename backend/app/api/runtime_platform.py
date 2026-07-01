@@ -227,12 +227,27 @@ async def run_agent_by_ref(
     if rec.status == "disabled":
         raise HTTPException(status_code=403, detail=f"Agent is disabled: {agent_ref}")
 
+    # Default permission policy: allow all of this agent's experts.
+    # PreExecutionGuard's permission_scope check creates an empty policy when
+    # none is provided, which denies every expert (severity=error, blocks the
+    # run). For the platform-runtime API surface, "no policy specified" means
+    # "open this agent" — derive an allow-all policy from the agent's own
+    # expert_ids. Tool-level fine-grained checks still happen inside the runner.
+    from icoder_runtime.permissions import PermissionPolicy, ToolPermission
+    perm_policy = PermissionPolicy(permissions={
+        eid: ToolPermission(eid, allowed=True)
+        for eid in (rec.expert_ids or [])
+    })
+
     try:
-        result = await rt.run_agent(rec.agent_id, body.input)
+        result = await rt.run_agent(
+            rec.agent_id, body.input, permission_policy=perm_policy,
+        )
         from icoder_runtime.core.runtime_result import RuntimeRunResult
         return RuntimeRunResult.from_runner_output(result, agent_ref=rec.agent_id).to_api_response()
     except Exception as e:
-        logger.error(f"Agent run failed: {agent_ref}: {e}")
+        import traceback
+        logger.error(f"Agent run failed: {agent_ref}: {e}\n{traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

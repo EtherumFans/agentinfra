@@ -113,7 +113,7 @@
     },
     {
       "id": "click_code_highlights_evidence",
-      "description": "Code table row carries data-testid='code-row-{i}' AND the row's onClick calls setFocusedSpanIndex so the focused state flows down to EvidenceHighlighter (bg-green). Static gate fully passes; runtime gate still deferred: agent ref + v1.2 install + permission policy fixes (cycle 21) are verified end-to-end, but dataEvidences(result) reads result.evidences which the runtime does not populate — evidence lives in LLM markdown output as `第N行，第M-K字符` tables, not as structured spans. Re-enable when the markdown-to-spans parser lands (cycle 22+).",
+      "description": "Code table row carries data-testid='code-row-{i}' AND the row's onClick calls setFocusedSpanIndex so the focused state flows down to EvidenceHighlighter (bg-green). End-to-end: dataEvidences(result) reads result.evidences which is now populated by RuntimeRunResult.from_runner_output via the cycle-22 markdown evidence parser (parse_evidences_from_markdown).",
       "static": {
         "tsx_path": "frontend/src/pages/MedicalCodingPage.tsx",
         "must_contain": [
@@ -125,7 +125,6 @@
         "jsx_used": []
       },
       "runtime": {
-        "_deferred": "dataEvidences reads result.evidences (typed as evidences?: any[] in RuntimeRunResult), but RuntimeRunResult.from_runner_output does not populate it — evidence is in result.output as markdown '第N行，第M-K字符' tables. Cycle 21 unblocks the agent ref + install + permission gates, but the markdown→spans parser is out of scope; re-enable runtime after the parser lands.",
         "kind": "playwright",
         "auth": "setup",
         "test_name": "click code row highlights evidence in green",

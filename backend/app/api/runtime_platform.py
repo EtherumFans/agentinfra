@@ -244,7 +244,9 @@ async def run_agent_by_ref(
             rec.agent_id, body.input, permission_policy=perm_policy,
         )
         from icoder_runtime.core.runtime_result import RuntimeRunResult
-        return RuntimeRunResult.from_runner_output(result, agent_ref=rec.agent_id).to_api_response()
+        return RuntimeRunResult.from_runner_output(
+            result, agent_ref=rec.agent_id, source=body.input,
+        ).to_api_response()
     except Exception as e:
         import traceback
         logger.error(f"Agent run failed: {agent_ref}: {e}\n{traceback.format_exc()}")

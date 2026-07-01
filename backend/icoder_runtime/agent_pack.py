@@ -181,6 +181,11 @@ def import_pack(pack: dict) -> tuple[AgentDefinition, list[ExpertDefinition],
     Validation should be called first — this does NOT validate.
     """
     manifest = pack["manifest"]
+    # v1.1 packs use experts[].id; v1.2 packs (Phase D 2026-06-22+) use
+    # experts[].expert_id. Accept either — Loader is the single point of truth
+    # for which key is canonical per format_version.
+    def _expert_id(e: dict) -> str:
+        return e.get("id") or e.get("expert_id") or ""
     agent = AgentDefinition(
         name=manifest["name"],
         version=manifest.get("version", "1.0.0"),
@@ -188,12 +193,12 @@ def import_pack(pack: dict) -> tuple[AgentDefinition, list[ExpertDefinition],
         category=manifest.get("category", "general"),
         icon=manifest.get("icon", "Bot"),
         system_prompt=pack.get("system_prompt", ""),
-        expert_ids=[e["id"] for e in pack.get("experts", [])],
+        expert_ids=[_expert_id(e) for e in pack.get("experts", [])],
     )
 
     experts = [
         ExpertDefinition(
-            id=e["id"], name=e["name"],
+            id=_expert_id(e), name=e["name"],
             description=e.get("description", ""),
             system_prompt=e.get("system_prompt", ""),
             capabilities=e.get("capabilities", []),
@@ -210,6 +215,22 @@ def import_pack(pack: dict) -> tuple[AgentDefinition, list[ExpertDefinition],
             tool_def = {"id": t, "name": t, "description": t, "tier": 1, "category": "general"}
         else:
             tool_def = t
+        # v1.2 tools use `name` as the canonical id (no separate `id` field),
+        # and `type` (mcp/guard/function/builtin) instead of `tier`. Map to the
+        # v1.1 ToolDefinition shape.
+        tool_id = tool_def.get("id") or tool_def.get("name", "")
+        tool_name = tool_def.get("name", tool_id)
+        # v1.2 `type`: mcp/function/builtin → tier 1 (deterministic),
+        # guard → tier 2 (LLM-backed). v1.1 `tier` overrides if present.
+        t_type = tool_def.get("type")
+        if "tier" in tool_def:
+            tier_value = tool_def["tier"]
+        elif t_type in ("mcp", "function", "builtin"):
+            tier_value = 1
+        elif t_type == "guard":
+            tier_value = 2
+        else:
+            tier_value = 2
         executor = None
         ef = tool_def.get("executor_file")
         if ef and ef in code_files:
@@ -224,9 +245,9 @@ def import_pack(pack: dict) -> tuple[AgentDefinition, list[ExpertDefinition],
             executor = _make_executor(source)
 
         tools.append(ToolDefinition(
-            id=tool_def["id"], name=tool_def["name"],
+            id=tool_id, name=tool_name,
             description=tool_def.get("description", ""),
-            tier=ToolTier(tool_def.get("tier", 2)),
+            tier=ToolTier(tier_value),
             category=tool_def.get("category", "general"),
             icon=tool_def.get("icon", "Wrench"),
             requires=tool_def.get("requires", []),

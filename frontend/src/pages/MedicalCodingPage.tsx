@@ -8,7 +8,8 @@ import { codeTablesApi } from '../services/api';
 import { runtimeApi } from '../services/runtimeApi';
 import type { RuntimeRunResult } from '../types/runtime';
 import type { ExtractedDiagnosis, CandidateCode } from '../types/runtime';
-import { EvidenceHighlighter } from '../components/medical-coding/EvidenceHighlighter';
+import { HighlightedTextarea } from '../components/medical-coding/HighlightedTextarea';
+import type { EvidenceSpanLike } from '../components/medical-coding/EvidenceHighlighter';
 import { DiagnosisCard } from '../components/medical-coding/DiagnosisCard';
 import {
   X, Sparkles, Loader2, Plus, ChevronRight, ChevronLeft,
@@ -116,6 +117,14 @@ export default function MedicalCodingPage() {
   const [input, setInput] = useState('');
   const [result, setResult] = useState<RuntimeRunResult | any>(null);
   const [loading, setLoading] = useState(false);
+
+  // ── Real-time char + cost estimate (live, not gated on Predict) ──
+  // TODO: replace 0.00001 with real pricing once /api/v2/tools/coding/pricing lands.
+  const charCount = input.length;
+  const costEstimate = (charCount * 0.00001).toFixed(6);
+
+  // ── Evidence highlight focus (which code row is currently clicked) ──
+  const [focusedSpanIndex, setFocusedSpanIndex] = useState<number | null>(null);
 
   // ── Sample dropdown (top header "Samples" button) ──
   const [sampleMenuOpen, setSampleMenuOpen] = useState(false);
@@ -368,13 +377,23 @@ export default function MedicalCodingPage() {
               className="px-2 py-1 text-muted-foreground hover:text-foreground disabled:opacity-30" title={t.copyInput}>
               <Copy size={14} />
             </button>
+            {/* Live char + cost counter (updates per keystroke; not gated on Predict) */}
+            <span
+              className="ml-1 text-[11px] text-muted-foreground/70 font-mono tabular-nums"
+              data-testid="char-counter"
+              title="Live char + cost estimate (placeholder rate, see TODO in source)"
+            >
+              {fillTmpl(t.charCount, { n: charCount })} · {fillTmpl(t.costEstimate, { n: costEstimate })}
+            </span>
           </div>
           <div className="flex-1 relative min-h-0">
-            <textarea
+            <HighlightedTextarea
               value={input}
-              onChange={e => setInput(e.target.value)}
+              onChange={setInput}
+              spans={dataEvidences(result)}
+              focusedSpanIndex={focusedSpanIndex}
               placeholder={t.enterClinicalText}
-              className="w-full h-full resize-none bg-background rounded-xl border border-border/30 p-4 text-sm leading-relaxed placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/10 transition-shadow"
+              className="h-full"
             />
           </div>
 
@@ -443,7 +462,12 @@ export default function MedicalCodingPage() {
                     </thead>
                     <tbody>
                       {allCodes.map((c:any, i:number) => (
-                        <tr key={i} className="border-b border-border/10">
+                        <tr
+                          key={i}
+                          onClick={() => setFocusedSpanIndex(focusedSpanIndex === i ? null : i)}
+                          className={`border-b border-border/10 cursor-pointer transition-colors ${focusedSpanIndex === i ? 'bg-primary/5' : 'hover:bg-muted/30'}`}
+                          title="Click to highlight the evidence span in the input"
+                        >
                           <td className="py-1.5 text-muted-foreground">{i + 1}</td>
                           <td className="py-1.5 font-mono font-medium">{c.code || ''}</td>
                           <td className="py-1.5 text-muted-foreground">{c.description || ''}</td>
@@ -459,8 +483,8 @@ export default function MedicalCodingPage() {
                   <div>
                     <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">{t.evidence}</p>
                     <div className="space-y-1">
-                      {dataEvidences(result).map((q, i) => (
-                        <div key={i} className="text-xs text-muted-foreground bg-primary/5 rounded px-2.5 py-1.5">“{q}”</div>
+                      {dataEvidences(result).map((span, i) => (
+                        <div key={i} className="text-xs text-muted-foreground bg-primary/5 rounded px-2.5 py-1.5">“{span.text}”</div>
                       ))}
                     </div>
                   </div>
@@ -721,8 +745,15 @@ export default function MedicalCodingPage() {
   );
 }
 
-function dataEvidences(result: any): string[] {
+function dataEvidences(result: any): EvidenceSpanLike[] {
   const ev = result?.evidences;
   if (!ev || !Array.isArray(ev)) return [];
-  return ev.filter((e:any) => e.text || e.quote).map((e:any) => e.text || e.quote);
+  return ev
+    .filter((e: any) => e && (e.text || e.quote))
+    .map((e: any) => ({
+      text: e.text || e.quote,
+      char_start: typeof e.char_start === 'number' ? e.char_start : 0,
+      char_end: typeof e.char_end === 'number' ? e.char_end : 0,
+      confidence: e.confidence,
+    }));
 }

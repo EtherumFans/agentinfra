@@ -1,4 +1,9 @@
-# iCoDer — Clinical AI Platform
+> **DEPRECATED (Phase 2-F / 2026-07-02 — TD-101)**: 本文档为旧版模块描述, 已被新版替代.
+> 当前主线参考: [docs/product/PRODUCT_DIRECTION.md](product/PRODUCT_DIRECTION.md) + [docs/architecture/CURRENT_ARCHITECTURE.md](architecture/CURRENT_ARCHITECTURE.md)
+> 不再定位为 "Corti-competitive"; 当前定位 = Corti-style 医疗 Agent Runtime 平台 (近 1:1 复刻).
+> 保留仅作历史参考 — 勿据此文档做模块决策.
+
+# iCoDer — Clinical AI Platform (DEPRECATED)
 
 ## 产品定位
 

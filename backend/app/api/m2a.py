@@ -1,3 +1,4 @@
+# DEPRECATED (P1.3 Stage 5, 2026-07-02) — iCoDer 内部概念无 Corti 等价. Phase 2 删. 见 docs/architecture/MAINLINE_VS_LEGACY.md §3.3.
 """M2a API routes — Runtime 技术闭环。
 
 Endpoints:

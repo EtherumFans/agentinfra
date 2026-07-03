@@ -1,3 +1,4 @@
+# DEPRECATED (P1.3 Stage 5, 2026-07-02) — Legacy 单体 expert. Phase 2 切换到 app/icoder/agent_runtime/experts/ 后删. 见 docs/architecture/MAINLINE_VS_LEGACY.md §3.1.
 # iCoDer - ICD Diagnosis Coding Expert
 # Implements iCoDer "Code Like Humans" 4-step methodology:
 # Phase A: Clinical Triage (filter non-codable facts)

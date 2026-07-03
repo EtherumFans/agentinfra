@@ -1,3 +1,4 @@
+# DEPRECATED (P1.3 Stage 5, 2026-07-02) — 非 Corti 方向. Phase 2 删. 见 docs/backlog/PRODUCT_BACKLOG.md §5.
 """ReviewCodingService — routes Reviews/Encounters through the Embedded Runtime.
 
 This is a thin orchestration layer. It does NOT contain:

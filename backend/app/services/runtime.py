@@ -1,3 +1,4 @@
+# DEPRECATED (P1.3 Stage 5, 2026-07-02) — Phase 2 合并到 runtime_platform service. 见 docs/architecture/MAINLINE_VS_LEGACY.md §3.4.
 """Deterministic Runtime — iCoDer-style safety scaffold around AI decisions.
 
 Five-layer safety framework:

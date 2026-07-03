@@ -1,3 +1,4 @@
+# DEPRECATED (P1.3 Stage 5, 2026-07-02) — P1.2 homepage_coding_review 概念已删 (664 LOC). Phase 2 删. 见 docs/architecture/MAINLINE_VS_LEGACY.md §3.1.
 # iCoDer — Medical Record Homepage Expert (v3: LLM-based primary diagnosis selection)
 import time
 import re

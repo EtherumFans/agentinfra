@@ -1,3 +1,4 @@
+# DEPRECATED (P1.3 Stage 5, 2026-07-02) — F1 评估非 Corti 方向. Phase 2 删. 见 docs/backlog/PRODUCT_BACKLOG.md §5.
 # iCoDer - Gold Cases API Router
 import uuid
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Query

@@ -1,3 +1,4 @@
+# DEPRECATED (P1.3 Stage 5, 2026-07-02) — Legacy 单体 expert. Phase 2 切换到 app/icoder/agent_runtime/experts/ 后删. 见 docs/architecture/MAINLINE_VS_LEGACY.md §3.1.
 # iCoDer - Report Generation Expert
 import time
 from datetime import datetime

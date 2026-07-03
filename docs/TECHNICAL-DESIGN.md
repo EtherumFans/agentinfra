@@ -1,4 +1,9 @@
-# iCoDer Agent Runtime — 技术方案
+> **DEPRECATED (Phase 2-F / 2026-07-02 — TD-102)**: 本文档为旧版技术方案, 已被新版替代.
+> 当前主线参考: [docs/architecture/CURRENT_ARCHITECTURE.md](architecture/CURRENT_ARCHITECTURE.md) + [docs/ICODER_V1_AGENT_RUNTIME_ARCHITECTURE_RFC.md](ICODER_V1_AGENT_RUNTIME_ARCHITECTURE_RFC.md)
+> 不再使用 "合同强制型工具系统" / "Deny-First" / "symbolic_state" 等旧概念; 当前主线 = A2A + MCP + Orchestrator.
+> 保留仅作历史参考 — 勿据此文档做技术决策.
+
+# iCoDer Agent Runtime — 技术方案 (DEPRECATED)
 
 ## 一、Agent Runtime 引擎
 

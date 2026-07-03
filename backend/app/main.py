@@ -789,31 +789,23 @@ from app.api.encounters import router as encounters_router
 from app.api.reviews import router as reviews_router
 from app.api.admin import router as admin_router
 from app.api.codes import router as codes_router
-from app.api.gold_cases import router as gold_cases_router
-from app.api.evaluation import router as evaluation_router
 from app.api.billing import router as billing_router
 from app.api.keys import router as keys_router
 from app.api.team import router as team_router
 from app.api.usage import router as usage_router
 from app.api.text_gen import router as text_gen_router
-from app.api.experts import router as experts_router
-from app.api.facts import router as facts_router
 from app.api.oauth import router as oauth_router
 from app.api.agents import router as agents_router
-from app.api.runtime import router as runtime_router
 from app.api.websocket import router as ws_router
-from app.api.code_tables import router as code_tables_router
 from app.api.organizations import router as organizations_router
 from app.api.platform_environments import router as platform_environments_router
 from app.api.platform_api_clients import router as platform_api_clients_router
 from app.api.platform_tenants import router as platform_tenants_router
-from app.api.fhir import router as fhir_router
 from app.api.tools import router as tools_router
 from app.api.runtime_platform import router as runtime_platform_router
 from app.api.runtime_platform import runtime_router as standard_runtime_router
 from app.api.compliance import router as compliance_router
 from app.api.medical_docs import router as medical_docs_router
-from app.api.agent_evaluation import router as agent_eval_router
 from app.api.embedded import router as embedded_router
 from app.api.drg import router as drg_router
 from app.api.m2a import router as m2a_router
@@ -834,25 +826,19 @@ from app.middleware.rate_limit import rate_limit_middleware
 # Rate limiting middleware
 app.middleware("http")(rate_limit_middleware)
 
-app.include_router(runtime_router)
 app.include_router(auth_router)
 app.include_router(encounters_router)
 app.include_router(reviews_router)
 app.include_router(codes_router)
-app.include_router(gold_cases_router)
-app.include_router(evaluation_router)
 app.include_router(billing_router)
 app.include_router(keys_router)
 app.include_router(team_router)
 app.include_router(usage_router)
 app.include_router(text_gen_router)
-app.include_router(experts_router)
-app.include_router(facts_router)
 app.include_router(oauth_router)
 app.include_router(agents_router)
 app.include_router(admin_router)
 app.include_router(ws_router)
-app.include_router(code_tables_router)
 app.include_router(icoder_coding_review_router)  # M3-0 病案首页编码审核 Agent API
 app.include_router(v2_tools_coding_router)         # Phase 1.1 (2026-06-30) /api/v2/tools/coding (Corti §3.1 parity)
 app.include_router(v2_tools_facts_router)          # Phase 1.2 cycle 1 (2026-06-30) /api/v2/tools/extract-facts (Corti §3.2 / §13.4 FactsR™)
@@ -868,14 +854,12 @@ app.include_router(organizations_router)
 app.include_router(platform_environments_router)  # Phase 1 cloud-flip stub (501)
 app.include_router(platform_api_clients_router)    # Phase 1 cloud-flip stub (501)
 app.include_router(platform_tenants_router)         # Phase 1 cloud-flip stub (501)
-app.include_router(fhir_router)
 app.include_router(tools_router)
 app.include_router(runtime_platform_router)  # /api/runtime-platform/* (backward compat)
 app.include_router(standard_runtime_router)   # /api/runtime/* (standard)
 app.include_router(compliance_router)          # /api/compliance/*
 app.include_router(embedded_router)            # /api/embedded/*
 app.include_router(medical_docs_router)        # /api/medical-docs/*
-app.include_router(agent_eval_router)          # /api/agents/{id}/evaluate
 app.include_router(drg_router)                 # /api/drg/*
 app.include_router(m2a_router)                 # /api/m2a/* (M2a 技术闭环)
 app.include_router(icoder_agents_hub_router)    # /api/icoder/agents/* (P1.0-B Agent Hub)

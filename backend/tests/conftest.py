@@ -94,11 +94,44 @@ def reset_rate_limiter():
 
 @pytest_asyncio.fixture(scope="session", autouse=True)
 async def setup_db():
-    """Initialize database once for the test session."""
+    """Initialize database once for the test session.
+
+    Cycle 25 safety: the original teardown ran ``Base.metadata.drop_all`` on the
+    engine imported at module load — but that engine was created with the
+    dev DB URL before the ``settings.DATABASE_URL`` override above took effect.
+    The net effect was that every pytest session dropped all 34 tables from
+    ``data/icoder.db`` on exit. The settings override changes the attribute on
+    the Pydantic Settings instance, but ``app.database.engine`` was already
+    bound to the dev URL.
+
+    Fix: rebuild the engine after the override so init_db() and the teardown
+    both target ``data/test.db``. Tests that hit the FastAPI app via the
+    ``client`` fixture also pick up the rebound engine (get_db dependency
+    resolves at request time).
+    """
+    import app.database as _db_module
+    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+
+    # Dispose the dev engine and rebuild against the test URL
+    await _db_module.engine.dispose()
+    _test_engine = create_async_engine(
+        _test_db_url,
+        echo=False,
+        connect_args={"check_same_thread": False} if "sqlite" in _test_db_url else {},
+    )
+    _db_module.engine = _test_engine
+    _db_module.AsyncSessionLocal = async_sessionmaker(
+        _test_engine,
+        class_=AsyncSession,
+        expire_on_commit=False,
+    )
+
     await init_db()
     yield
-    async with engine.begin() as conn:
+    # Drop tables from the test engine only — dev DB (data/icoder.db) is never touched.
+    async with _test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
+    await _test_engine.dispose()
 
 
 @pytest_asyncio.fixture

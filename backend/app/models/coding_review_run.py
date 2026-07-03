@@ -46,6 +46,7 @@ from sqlalchemy import (
     Text,
     func,
 )
+from sqlalchemy import text as _sa_text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
@@ -88,22 +89,42 @@ class CodingReviewRun(Base):
     agent_ref: Mapped[str] = mapped_column(String(128), nullable=False)
     agent_category: Mapped[str] = mapped_column(
         String(64), nullable=False, default="official_reference_agent",
+        server_default="official_reference_agent",
     )
     prediction_mode: Mapped[str] = mapped_column(
         String(32), nullable=False, default="link_validation",
+        server_default="link_validation",
     )
 
     # Case linkage (free-form string; not a FK — case_id may be a de-id handle)
     case_id: Mapped[Optional[str]] = mapped_column(String(64), nullable=True, index=True)
     trace_id: Mapped[Optional[str]] = mapped_column(String(64), nullable=True, index=True)
-    input_source: Mapped[str] = mapped_column(String(32), nullable=False, default="manual")
+    input_source: Mapped[str] = mapped_column(
+        String(32), nullable=False, default="manual",
+        server_default="manual",
+    )
 
     # Pipeline outcome — mirrors the API response
-    status: Mapped[str] = mapped_column(String(32), nullable=False, default="unavailable")
-    degraded: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    business_result_generated: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    manual_review_required: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    reason: Mapped[str] = mapped_column(String(512), nullable=False, default="")
+    status: Mapped[str] = mapped_column(
+        String(32), nullable=False, default="unavailable",
+        server_default="unavailable",
+    )
+    degraded: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False,
+        server_default=_sa_text("0"),
+    )
+    business_result_generated: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False,
+        server_default=_sa_text("0"),
+    )
+    manual_review_required: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False,
+        server_default=_sa_text("0"),
+    )
+    reason: Mapped[str] = mapped_column(
+        String(512), nullable=False, default="",
+        server_default="",
+    )
 
     # Encoded payloads — JSON for forward-compatible schema evolution
     primary_diagnosis: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)

@@ -56,8 +56,43 @@ class SyncReport:
         }
 
 
+@dataclass
+class SyncState:
+    """Snapshot of the last registry→DB sync run. In-memory only, resets on restart.
+
+    Set by repair_from_registry(), read by /api/runtime/status. Cycle 25 introduced
+    this so that startup sync failures can't be silently swallowed — the status
+    endpoint always reports the latest outcome.
+    """
+    last_sync_at: datetime | None = None
+    last_status: str = "never_run"  # "success" | "failed" | "never_run"
+    last_error: str | None = None
+    agents_created: int = 0
+    agents_failed: int = 0
+    total_in_registry: int = 0
+    total_in_db: int = 0
+    checked_at: str = ""
+
+    def to_dict(self) -> dict:
+        return {
+            "last_sync_at": self.last_sync_at.isoformat() if self.last_sync_at else None,
+            "last_status": self.last_status,
+            "last_error": self.last_error,
+            "agents_created": self.agents_created,
+            "agents_failed": self.agents_failed,
+            "total_in_registry": self.total_in_registry,
+            "total_in_db": self.total_in_db,
+            "checked_at": self.checked_at,
+        }
+
+
 class AgentRegistrySyncService:
     """Checks and repairs consistency between RuntimeAgentRegistry and DB Agent table."""
+
+    # Class-level sync state — set by repair_from_registry(), read by status endpoints.
+    # In-memory only; resets on restart. Acceptable because sync runs at every startup,
+    # so last_state is always fresh post-startup.
+    last_state: SyncState | None = None
 
     def __init__(self, registry=None):
         from icoder_runtime.core.registry import RuntimeAgentRegistry, get_registry
@@ -125,42 +160,64 @@ class AgentRegistrySyncService:
         """Create/update DB Agent records for all agents in the Registry that are missing from DB.
 
         This is the primary repair direction: Registry is authoritative.
+        Sets AgentRegistrySyncService.last_state — never re-raises so that callers
+        (main.py startup) can't silently swallow the failure.
         """
         from app.models.agent import Agent as AgentModel
 
-        report = await self.check_consistency(db)
+        state = SyncState(
+            last_sync_at=datetime.now(timezone.utc),
+            last_status="failed",  # Set to "success" only on full success
+        )
+        AgentRegistrySyncService.last_state = state
+
         repaired: list[str] = []
         failed: list[str] = []
 
-        for inc in report.inconsistencies:
-            if inc.type == "missing_in_db":
-                reg_rec = self._registry.get(inc.agent_ref)
-                try:
-                    existing = await db.execute(
-                        select(AgentModel).where(AgentModel.id == inc.agent_ref)
-                    )
-                    if existing.scalar_one_or_none():
-                        continue  # Already exists (race)
+        try:
+            report = await self.check_consistency(db)
+            state.total_in_registry = report.total_registry
+            state.total_in_db = report.total_db
+            state.checked_at = report.checked_at
 
-                    db_agent = AgentModel(
-                        id=reg_rec.agent_id,
-                        name=reg_rec.name,
-                        description=reg_rec.description,
-                        category=reg_rec.category,
-                        icon=reg_rec.icon,
-                        system_prompt=reg_rec.system_prompt,
-                        expert_ids=reg_rec.expert_ids or [],
-                        status="published",
-                    )
-                    db.add(db_agent)
-                    repaired.append(inc.agent_ref)
-                except Exception as e:
-                    logger.error(f"Failed to repair DB for {inc.agent_ref}: {e}")
-                    failed.append(inc.agent_ref)
+            for inc in report.inconsistencies:
+                if inc.type == "missing_in_db":
+                    reg_rec = self._registry.get(inc.agent_ref)
+                    try:
+                        existing = await db.execute(
+                            select(AgentModel).where(AgentModel.id == inc.agent_ref)
+                        )
+                        if existing.scalar_one_or_none():
+                            continue  # Already exists (race)
 
-        if repaired:
-            await db.commit()
-            logger.info(f"Repaired {len(repaired)} agent(s) from Registry to DB: {repaired}")
+                        db_agent = AgentModel(
+                            id=reg_rec.agent_id,
+                            name=reg_rec.name,
+                            description=reg_rec.description,
+                            category=reg_rec.category,
+                            icon=reg_rec.icon,
+                            system_prompt=reg_rec.system_prompt,
+                            expert_ids=reg_rec.expert_ids or [],
+                            status="published",
+                        )
+                        db.add(db_agent)
+                        repaired.append(inc.agent_ref)
+                    except Exception as e:
+                        logger.error(f"Failed to repair DB for {inc.agent_ref}: {e}")
+                        failed.append(inc.agent_ref)
+
+            if repaired:
+                await db.commit()
+                logger.info(f"Repaired {len(repaired)} agent(s) from Registry to DB: {repaired}")
+
+            state.last_status = "success" if not failed else "failed"
+        except Exception as e:
+            state.last_status = "failed"
+            state.last_error = str(e)
+            logger.exception("Registry→DB sync failed (captured in SyncState)")
+        finally:
+            state.agents_created = len(repaired)
+            state.agents_failed = len(failed)
 
         return {
             "repaired": repaired,

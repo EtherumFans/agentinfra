@@ -1,3 +1,4 @@
+# DEPRECATED (P1.3 Stage 5, 2026-07-02) — Legacy API. Phase 2 migrate 到 /rest/v1/agent_definitions (Corti 风格). 见 docs/architecture/MAINLINE_VS_LEGACY.md §3.3.
 """Agent Hub API — discoverable surface for installed agents.
 
 P1.0-B: 4 endpoints under /api/icoder/agents/* that consolidate the

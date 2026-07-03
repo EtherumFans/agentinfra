@@ -371,8 +371,13 @@ async def lifespan(app: FastAPI):
             sync_svc = AgentRegistrySyncService(agent_registry)
             async with async_session_factory() as session:
                 result = await sync_svc.repair_from_registry(session)
-                logger.info(f"Registry→DB sync: {result.get('created', 0)} created, {result.get('updated', 0)} updated")
+                logger.info(
+                    f"Registry→DB sync: {result['total_repaired']} repaired, "
+                    f"{result['total_failed']} failed"
+                )
         except Exception as e:
+            # repair_from_registry itself doesn't re-raise (state captures failure),
+            # so this only fires for constructor/session-creation failures.
             logger.warning(f"Registry→DB sync skipped (DB may not be ready): {e}")
 
     # --- Mount new A2A v0.3 package (replaces a2a_registry in Commit 3) ---

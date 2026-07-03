@@ -63,6 +63,19 @@ async def platform_runtime_status():
     reg = _get_registry()
     if reg:
         status["registry_safety"] = reg.check_worker_safety()
+    # Surface registry→DB sync state (cycle 25 — was silently swallowed by broad except)
+    from app.services.agent_registry_sync_service import AgentRegistrySyncService
+    sync_state = AgentRegistrySyncService.last_state
+    status["registry_sync"] = sync_state.to_dict() if sync_state else {
+        "last_status": "never_run",
+        "last_sync_at": None,
+        "last_error": None,
+        "agents_created": 0,
+        "agents_failed": 0,
+        "total_in_registry": 0,
+        "total_in_db": 0,
+        "checked_at": "",
+    }
     return status
 
 
@@ -214,43 +227,26 @@ async def run_agent_by_ref(
     body: AgentRunInput,
     user: User = Depends(get_current_user),
 ):
-    """Run an installed agent by canonical reference."""
-    rt = _get_runtime()
-    reg = _get_registry()
-    if not rt or not reg:
-        raise HTTPException(status_code=503, detail="Runtime not available")
+    """Run an installed agent by canonical reference.
 
-    rec = reg.find(agent_ref)
-    if not rec:
-        raise HTTPException(status_code=404, detail=f"Agent not found: {agent_ref}")
+    Phase 2.1-A (2026-07-02): DEPRECATED for execution. ``PlatformRuntime.
+    run_agent`` now raises ``NotImplementedError`` with a redirect to the
+    A2A mainline; this endpoint returns 410 Gone instead of propagating
+    the error as a 500.
 
-    if rec.status == "disabled":
-        raise HTTPException(status_code=403, detail=f"Agent is disabled: {agent_ref}")
-
-    # Default permission policy: allow all of this agent's experts.
-    # PreExecutionGuard's permission_scope check creates an empty policy when
-    # none is provided, which denies every expert (severity=error, blocks the
-    # run). For the platform-runtime API surface, "no policy specified" means
-    # "open this agent" — derive an allow-all policy from the agent's own
-    # expert_ids. Tool-level fine-grained checks still happen inside the runner.
-    from icoder_runtime.permissions import PermissionPolicy, ToolPermission
-    perm_policy = PermissionPolicy(permissions={
-        eid: ToolPermission(eid, allowed=True)
-        for eid in (rec.expert_ids or [])
-    })
-
-    try:
-        result = await rt.run_agent(
-            rec.agent_id, body.input, permission_policy=perm_policy,
-        )
-        from icoder_runtime.core.runtime_result import RuntimeRunResult
-        return RuntimeRunResult.from_runner_output(
-            result, agent_ref=rec.agent_id, source=body.input,
-        ).to_api_response()
-    except Exception as e:
-        import traceback
-        logger.error(f"Agent run failed: {agent_ref}: {e}\n{traceback.format_exc()}")
-        raise HTTPException(status_code=500, detail=str(e))
+    New path: POST to the A2A endpoints exposed via ``mount_a2a`` in
+    ``app/main.py`` (e.g. ``/a2a/v1/...``) — they route through the new
+    ``InboundHandler`` orchestrator (Planner → Delegator → Aggregator).
+    """
+    raise HTTPException(
+        status_code=410,
+        detail=(
+            f"Legacy `/api/runtime-platform/agents/{agent_ref}/run` removed "
+            "in Phase 2.1-A. Use the A2A mainline: POST to /a2a/v1/... "
+            "(exposed via `mount_a2a` in app/main.py) which routes through "
+            "the new InboundHandler orchestrator."
+        ),
+    )
 
 
 # ── Installed Agent List (supports canonical ref) ──
@@ -346,22 +342,19 @@ class EvalRunRequest(BaseModel):
 
 @runtime_router.post("/evaluation/run-single")
 async def evaluation_run_single(body: EvalRunRequest):
-    """Public evaluation endpoint — runs medical-coding-agent via PlatformRuntime without auth."""
-    rt = _get_runtime()
-    reg = _get_registry()
-    if not rt or not reg:
-        raise HTTPException(status_code=503, detail="Runtime not available")
+    """Public evaluation endpoint — DEPRECATED in Phase 2.1-A.
 
-    rec = reg.find(AGENT_REF)
-    if not rec:
-        raise HTTPException(status_code=404, detail=f"Agent not found")
-
-    if rec.status == "disabled":
-        raise HTTPException(status_code=403, detail="Agent is disabled")
-
-    result = await rt.run_agent(rec.agent_id, body.encounter_text)
-    from icoder_runtime.core.runtime_result import RuntimeRunResult
-    return RuntimeRunResult.from_runner_output(result, agent_ref=rec.agent_id).to_api_response()
+    Previously ran medical-coding-agent via PlatformRuntime without auth.
+    Now returns 410 Gone — execution moved to the A2A mainline.
+    """
+    raise HTTPException(
+        status_code=410,
+        detail=(
+            "Legacy `/api/runtime/evaluation/run-single` removed in Phase "
+            "2.1-A. Use the A2A mainline (POST /a2a/v1/...) which routes "
+            "through the new InboundHandler orchestrator."
+        ),
+    )
 
 
 class InstallRequest(BaseModel):

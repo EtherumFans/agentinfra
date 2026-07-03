@@ -1,4 +1,9 @@
-# iCoDer Product Roadmap v2
+> **DEPRECATED (Phase 2-F / 2026-07-02 — TD-100)**: 本文档为旧版路线图, 已被新版替代.
+> 当前主线参考: [docs/corti_parity/CORTI_PARITY_ROADMAP.md](corti_parity/CORTI_PARITY_ROADMAP.md) + [docs/product/PRODUCT_DIRECTION.md](product/PRODUCT_DIRECTION.md)
+> Cloud-Flip 2026-06-27 已逆转为托管云 SaaS; 不再支持私有化 / Marketplace 云端应用商店.
+> 保留仅作历史参考 — 勿据此文档做产品决策.
+
+# iCoDer Product Roadmap v2 (DEPRECATED)
 ## Medical Revenue Compliance AI Runtime Platform
 
 Runtime 是底座，HIS 厂商是分发通道，Agent 包是分发单元。Marketplace 是 ISV 的"Agent 包注册表"，不是云端应用商店。

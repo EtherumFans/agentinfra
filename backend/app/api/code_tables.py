@@ -1,3 +1,4 @@
+# DEPRECATED (P1.3 Stage 5, 2026-07-02) — iCoDer 内部概念无 Corti 等价. Phase 2 删. 见 docs/architecture/MAINLINE_VS_LEGACY.md §3.3.
 # iCoDer — Code Tables API Router
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select, func, delete

@@ -1,4 +1,9 @@
-# Runtime 部署指南
+> **DEPRECATED (Phase 2-F / 2026-07-02 — TD-103)**: 本文档为旧版 Runtime 部署指南, 已被新版替代.
+> 当前主线参考: [docs/cloud/CLOUD_DEPLOYMENT.md](cloud/CLOUD_DEPLOYMENT.md) + [CLAUDE.md](../CLAUDE.md) §部署模型
+> Runtime 不再是独立 pip 包; Runtime = iCoDer Server 内核. 部署模型 = 托管云 SaaS (Env EU/US/CN → Tenant → API Client).
+> 保留仅作历史参考 — 勿据此文档做部署决策.
+
+# Runtime 部署指南 (DEPRECATED)
 
 ## 本地开发部署
 

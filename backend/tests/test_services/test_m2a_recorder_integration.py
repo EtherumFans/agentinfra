@@ -90,45 +90,17 @@ def test_recorder_active_hybrid_records_stages(m2a_dir):
 
 
 def test_recorder_active_agent_records_stages(m2a_dir):
-    """recorder 在 AgentRunner 上 → pre_guard / llm_call / post_guard 都被记录。"""
-    from icoder_runtime.agent_runner import AgentRunner
-    from icoder_runtime.types import AgentDefinition
-    from icoder_runtime.m2a.store import M2aStore
-    from icoder_runtime.m2a.run_trace import RunTraceService
-    from icoder_runtime.m2a.recorder import M2aRecorder
+    """Phase 2.1-A (2026-07-02): SKIPPED — AgentRunner stub deleted.
 
-    store = M2aStore(m2a_dir)
-    rt = RunTraceService(store=store)
-    recorder = M2aRecorder(run_trace=rt, default_agent_ref="agent_test")
-    runner = AgentRunner(recorder=recorder)
-    # Use a stub llm_callable to avoid real LLM
-    runner.llm = lambda x: "Primary diagnosis: I50.900"
-
-    agent = AgentDefinition(
-        id="agent.drg-coder-001",
-        name="DRG Coder",
-        version="1.0",
-        system_prompt="You are a DRG coder.",
-        expert_ids=[],
+    The legacy ``icoder_runtime.agent_runner.AgentRunner`` execution path
+    was removed in Phase 2.1-A. The M2aRecorder integration for the
+    HybridCodingAdapter path is still covered by
+    ``test_recorder_active_hybrid_records_stages``.
+    """
+    pytest.skip(
+        "AgentRunner stub removed in Phase 2.1-A; M2aRecorder on AgentRunner "
+        "is no longer testable. HybridCodingAdapter path is still covered."
     )
-
-    async def go():
-        return await runner.run(agent, "患者因心力衰竭入院")
-
-    res = asyncio.run(go())
-    assert res["primary_diagnosis"]["code"] == "I50.900"
-
-    # Verify production_runs.jsonl was written
-    prod_path = m2a_dir / "production_runs.jsonl"
-    assert prod_path.exists()
-    with open(prod_path, encoding="utf-8") as f:
-        record = json.loads(f.readline())
-    assert record["agent_ref"] == "agent.drg-coder-001"
-    stage_names = [tc["tool_name"] for tc in record["tool_calls"]]
-    assert "pre_execution_guard" in stage_names
-    assert "llm_call" in stage_names
-    assert "post_execution_guard" in stage_names
-    assert "safety_spiral" in stage_names
 
 
 def test_recorder_failure_does_not_block_business_logic(m2a_dir):

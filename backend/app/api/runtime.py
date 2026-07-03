@@ -1,3 +1,4 @@
+# DEPRECATED (P1.3 Stage 5, 2026-07-02) — Phase 2 合并到 runtime_platform.py. 见 docs/architecture/MAINLINE_VS_LEGACY.md §3.3.
 """Runtime API — human-in-the-loop review + audit chain access.
 
 iCoDer equivalent: "Runtime endpoints for deterministic state management,

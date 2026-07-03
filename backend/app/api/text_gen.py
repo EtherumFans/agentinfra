@@ -1,3 +1,4 @@
+# DEPRECATED (P1.3 Stage 5, 2026-07-02) — Phase 2 合并到 v2_tools_guided_document.py. 见 docs/architecture/MAINLINE_VS_LEGACY.md §3.3.
 """Text Generation endpoints using LLM service"""
 from typing import List
 from fastapi import APIRouter, Depends

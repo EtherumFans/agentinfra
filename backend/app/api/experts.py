@@ -1,3 +1,4 @@
+# DEPRECATED (P1.3 Stage 5, 2026-07-02) — Corti 用 Pre-built Agents + MCP. Phase 2 删. 见 docs/architecture/MAINLINE_VS_LEGACY.md §3.3.
 """Expert CRUD API + Expert Library Browser + Run endpoint"""
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field

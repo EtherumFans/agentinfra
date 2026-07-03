@@ -25,4 +25,4 @@ class User(Base, TimestampMixin):
     department: Mapped[str] = mapped_column(String(128), default="")
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False)
-    token_version: Mapped[int] = mapped_column(default=0)  # Incremented on revoke-tokens
+    token_version: Mapped[int] = mapped_column(default=0, server_default="0")  # Incremented on revoke-tokens

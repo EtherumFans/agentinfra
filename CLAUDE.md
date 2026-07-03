@@ -103,6 +103,11 @@ python scripts/e2e_runtime_validation.py --base-url http://localhost:8000
 
 ## MedCodER 管线 (NAACL 2025 Industry Track)
 
+> **Phase 2-F (2026-07-02 — TD-098) 更新**: MedCodER 是 Pre-built Agent #18, 非产品本体.
+> 产品主线 = Corti-style 医疗 Agent Runtime 平台 (A2A + MCP + Orchestrator + Context).
+> 详见 [docs/product/PRODUCT_DIRECTION.md](docs/product/PRODUCT_DIRECTION.md) + [docs/corti_parity/P1_3_CORTI_PARITY_AUDIT_FINAL_REPORT.md](docs/corti_parity/P1_3_CORTI_PARITY_AUDIT_FINAL_REPORT.md).
+> 以下技术细节仍适用于 MedCodER Agent 本身, 但不代表产品主线范围.
+
 `HybridCodingAdapter` 新增 `mode="medcoder"`，实现 5 阶段 ICD 编码管线（参考 Baksi et al., NAACL 2025, p.449-459）：
 
 ```

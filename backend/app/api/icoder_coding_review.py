@@ -1,3 +1,4 @@
+# DEPRECATED (P1.3 Stage 5, 2026-07-02) — Legacy API. Corti 用 /api/v2/tools/coding/. Phase 2 删. 见 docs/architecture/MAINLINE_VS_LEGACY.md §3.3.
 """iCoDer M3-0 — 病案首页编码审核 Agent API.
 
 路由 (M3 任务 §2-3):

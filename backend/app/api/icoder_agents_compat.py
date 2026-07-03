@@ -1,3 +1,4 @@
+# DEPRECATED (P1.3 Stage 5, 2026-07-02) — Legacy compat shim. Phase 2 删. 见 docs/architecture/MAINLINE_VS_LEGACY.md §3.3.
 """Per-agent validation + compatibility endpoints (P1.1-C).
 
 Endpoints

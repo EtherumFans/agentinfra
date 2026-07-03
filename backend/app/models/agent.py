@@ -38,8 +38,8 @@ class Agent(Base, TimestampMixin):
     #  "confidence_threshold": 0.6}
 
     # Versioning
-    version: Mapped[str] = mapped_column(String(20), default="1.0.0")
-    status: Mapped[str] = mapped_column(String(20), default="draft", index=True)  # draft | published | archived
+    version: Mapped[str] = mapped_column(String(20), default="1.0.0", server_default="1.0.0")
+    status: Mapped[str] = mapped_column(String(20), default="draft", server_default="draft", index=True)  # draft | published | archived
 
     # Metadata
     is_prebuilt: Mapped[bool] = mapped_column(Boolean, default=False)

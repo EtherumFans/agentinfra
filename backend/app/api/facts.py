@@ -1,3 +1,4 @@
+# DEPRECATED (P1.3 Stage 5, 2026-07-02) — Phase 2 合并到 v2_tools_facts.py. 见 docs/architecture/MAINLINE_VS_LEGACY.md §3.3.
 """Fact Extraction endpoint — extracts structured clinical facts from text"""
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field

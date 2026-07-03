@@ -12,6 +12,7 @@ import { textGenApi, authApi } from '../services/api';
 import EventInspector from '../components/common/EventInspector';
 import CodeSnippet from '../components/common/CodeSnippet';
 import SettingsCodeTab from '../components/common/SettingsCodeTab';
+import WorkbenchLayout from '../components/layout/WorkbenchLayout';
 
 // Medical document template types from backend
 interface MedDocSection { key: string; label: string; value: string; required: boolean; filled: boolean; }
@@ -336,121 +337,105 @@ print(result.output)`;
     />
   );
 
-  return (
-    <div className="flex flex-col h-full bg-background">
-      {/* ==================== HEADER (breadcrumb — cost/Docs in global header) ==================== */}
-      <div className="flex items-center gap-2 px-4 py-1.5 border-b border-border/20 shrink-0 text-xs">
-        <Link to="/ai-studio/overview" className="text-muted-foreground hover:text-foreground transition-colors">{t.aiStudio}</Link>
-        <ChevronRight size={12} className="text-muted-foreground/50" />
-        <span className="text-foreground font-medium truncate">{t.textGenBreadcrumb}</span>
-      </div>
-
-      <div className="flex h-full">
-      {/* ===== LEFT: Main Content (75%) ===== */}
-      <div className="flex flex-col overflow-hidden bg-muted/20" style={{ flex: '75 1 0px' }}>
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-          <div className="flex h-full flex-col p-4">
-            <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background rounded-xl shadow-sm ring-1 ring-border/20">
-              {/* Input section */}
-              <div className={`flex flex-col min-h-0 transition-all duration-300 ${output ? 'flex-1' : 'flex-[5]'}`}>
-                <div className="flex items-center justify-between px-5 py-3 shrink-0">
-                  <div className="flex items-center gap-2">
-                    <div className="w-1 h-4 rounded-full bg-primary/40" />
-                    <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">输入</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center rounded-lg border border-border p-0.5">
-                      {INPUT_TYPES.map(t => (
-                        <button key={t.key} onClick={() => setInputType(t.key)}
-                          className={`px-2.5 py-1 text-[11px] rounded-md transition-colors ${inputType === t.key ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}>{t.label}</button>
-                      ))}
-                    </div>
-                    <button onClick={handleUseSample} disabled={!activeTemplate}
-                      className="text-xs border border-border rounded px-2 py-1 hover:bg-accent disabled:opacity-30 transition-colors">使用样例</button>
-                  </div>
-                </div>
-                <textarea
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder={inputType === 'transcript' ? '输入对话转录文本...' : inputType === 'facts' ? '输入结构化临床事实...' : '输入临床文本...'}
-                  className="flex-1 w-full resize-none bg-transparent px-5 pb-4 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none min-h-0 leading-relaxed"
-                />
-              </div>
-
-              {/* Divider + Generate button */}
-              <div className="flex items-center justify-between px-5 py-2.5 border-y border-border/20 bg-muted/20 shrink-0">
-                <div className="flex items-center gap-2">
-                  {activeTemplate && currentTemplate && (
-                    <>
-                      <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">模板</span>
-                      <span className="text-xs px-2 py-0.5 rounded bg-primary/10 text-primary">{currentTemplate.name}</span>
-                    </>
-                  )}
-                  {!activeTemplate && (
-                    <span className="text-[11px] text-muted-foreground">请选择模板</span>
-                  )}
-                </div>
-                <button onClick={handleGenerate} disabled={!input.trim() || !activeTemplate || loading}
-                  className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-medium bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-30 transition-all shadow-sm shadow-primary/20">
-                  {loading ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />}
-                  {loading ? '生成中...' : '生成文书'}
-                </button>
-              </div>
-
-              {/* Output section */}
-              <div className="flex-1 overflow-auto min-h-0">
-                {loading ? (
-                  <div className="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground">
-                    <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
-                    <span className="text-sm">生成中...</span>
-                  </div>
-                ) : error ? (
-                  <div className="flex items-center justify-center h-full px-5">
-                    <p className="text-sm text-red-500">{error}</p>
-                  </div>
-                ) : output ? (
-                  <div className="p-5">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-1 h-4 rounded-full bg-primary/40" />
-                        <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">生成结果</span>
-                      </div>
-                      <button onClick={() => { navigator.clipboard.writeText(output); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
-                        className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
-                        {copied ? <Check size={12} /> : <Copy size={12} />}
-                        {copied ? '已复制' : '复制'}
-                      </button>
-                    </div>
-                    <div className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">{output}</div>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground/50">
-                    <Sparkles size={28} />
-                    <p className="text-sm">生成的文书将显示在这里</p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Event Inspector */}
-            <EventInspector events={genEvents} creditsConsumed={genCredits} />
+  const inputSlot = (
+    <div className="flex flex-col h-full">
+      <div className="flex items-center justify-between shrink-0 mb-2">
+        <div className="flex items-center gap-2">
+          <div className="flex items-center rounded-lg border border-border p-0.5">
+            {INPUT_TYPES.map(t => (
+              <button key={t.key} onClick={() => setInputType(t.key)}
+                className={`px-2.5 py-1 text-[11px] rounded-md transition-colors ${inputType === t.key ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}>{t.label}</button>
+            ))}
           </div>
+          <button onClick={handleUseSample} disabled={!activeTemplate}
+            className="text-xs border border-border rounded px-2 py-1 hover:bg-accent disabled:opacity-30 transition-colors">使用样例</button>
         </div>
       </div>
+      <textarea
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        placeholder={inputType === 'transcript' ? '输入对话转录文本...' : inputType === 'facts' ? '输入结构化临床事实...' : '输入临床文本...'}
+        className="flex-1 w-full resize-none bg-transparent text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none min-h-0 leading-relaxed"
+      />
+    </div>
+  );
 
-      {/* ===== Separator ===== */}
-      <div className="h-full w-px bg-border/40" />
-
-      {/* ===== RIGHT: Settings Panel (25%) ===== */}
-      <div className="flex flex-col overflow-hidden bg-muted/10" style={{ flex: '25 1 0px' }}>
-        <div className="flex h-full flex-col overflow-hidden">
-          <SettingsCodeTab
-            labels={{ settings: '设置', code: '代码' }}
-            settings={settingsPanel}
-            code={codePanel}
-          />
+  const outputSlot = (
+    <div className="flex flex-col h-full">
+      <div className="flex items-center justify-between shrink-0 mb-2">
+        <div className="flex items-center gap-2">
+          {activeTemplate && currentTemplate && (
+            <span className="text-xs px-2 py-0.5 rounded bg-primary/10 text-primary">{currentTemplate.name}</span>
+          )}
+          {!activeTemplate && (
+            <span className="text-[11px] text-muted-foreground">请选择模板</span>
+          )}
         </div>
+        <button onClick={handleGenerate} disabled={!input.trim() || !activeTemplate || loading}
+          className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-medium bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-30 transition-all shadow-sm shadow-primary/20">
+          {loading ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />}
+          {loading ? '生成中...' : '生成文书'}
+        </button>
       </div>
+      <div className="flex-1 overflow-y-auto">
+        {loading ? (
+          <div className="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground">
+            <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+            <span className="text-sm">生成中...</span>
+          </div>
+        ) : error ? (
+          <div className="flex items-center justify-center h-full px-5">
+            <p className="text-sm text-red-500">{error}</p>
+          </div>
+        ) : output ? (
+          <div className="p-5">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-1 h-4 rounded-full bg-primary/40" />
+                <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">生成结果</span>
+              </div>
+              <button onClick={() => { navigator.clipboard.writeText(output); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
+                className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
+                {copied ? <Check size={12} /> : <Copy size={12} />}
+                {copied ? '已复制' : '复制'}
+              </button>
+            </div>
+            <div className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">{output}</div>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground/50">
+            <Sparkles size={28} />
+            <p className="text-sm">生成的文书将显示在这里</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  const settingsSlot = (
+    <SettingsCodeTab
+      labels={{ settings: '设置', code: '代码' }}
+      settings={settingsPanel}
+      code={codePanel}
+    />
+  );
+
+  const inspectorSlot = (
+    <EventInspector events={genEvents} creditsConsumed={genCredits} />
+  );
+
+  return (
+    <>
+      <WorkbenchLayout
+        title={t.textGenBreadcrumb}
+        description="基于医疗文书模板快速生成结构化临床文档"
+        inputLabel="输入"
+        outputLabel="输出"
+        input={inputSlot}
+        output={outputSlot}
+        settings={settingsSlot}
+        eventInspector={inspectorSlot}
+      />
 
       {/* Template Editor Modal */}
       {showTemplateEditor && (
@@ -564,7 +549,6 @@ print(result.output)`;
           </div>
         </div>
       )}
-      </div>
-    </div>
+    </>
   );
 }

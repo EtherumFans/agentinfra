@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ChevronDown, ChevronRight, Clock } from 'lucide-react';
 import { useT } from '../../i18n';
-import { runtimeApi } from '../../services/api';
+import { runtimeStatusApi } from '../../services/api';
 
 interface Props {
   caseId: string;
@@ -18,7 +18,7 @@ export default function AuditTrailViewer({ caseId, refreshTrigger }: Props) {
   useEffect(() => {
     if (!caseId || !open) return;
     setLoading(true);
-    runtimeApi.audit(caseId, 100).then(r => {
+    runtimeStatusApi.audit(caseId, 100).then(r => {
       setEvents(r.data.events || []);
       setTotal(r.data.total || 0);
     }).catch(() => {}).finally(() => setLoading(false));

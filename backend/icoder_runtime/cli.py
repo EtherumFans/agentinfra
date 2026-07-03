@@ -128,10 +128,16 @@ def cmd_init(name: str):
 
 
 def cmd_test(dir_path: str):
-    """Run a local agent pack test."""
+    """Run a local agent pack test.
+
+    Phase 2.1-A (2026-07-02): DEPRECATED. The legacy ``AgentRunner`` execution
+    path has been removed; this command now reports the deprecation and exits
+    without executing. Local pack validation still works (``icoder pack``);
+    execution must go through the A2A mainline (``app.icoder.agent_runtime.
+    orchestrator.InboundHandler``) by running the platform backend
+    (``python -m uvicorn app.main:app``) and POSTing to the A2A endpoints.
+    """
     from .agent_pack import load_pack, validate_pack, import_pack
-    from .agent_runner import AgentRunner
-    import asyncio
 
     path = Path(dir_path).resolve()
     if not path.exists():
@@ -165,24 +171,13 @@ def cmd_test(dir_path: str):
     print(f"Loaded: {agent.name} v{agent.version}")
     print(f"  Experts: {len(experts)}")
     print(f"  Tools: {len(tools)}")
-
-    # Run test
-    test_input = "患者女性，65岁。胸痛3小时入院。心电图示ST段抬高。诊断为急性前壁心肌梗死。"
-    print(f"\nTest input: {test_input[:60]}...")
-
-    runner = AgentRunner()
-    for e in experts:
-        runner.register_expert(e)
-    for t in tools:
-        runner.register_tool(t)
-
-    result = asyncio.run(runner.run(agent, test_input))
-    print(f"\nResult:")
-    print(f"  Review ID: {result['review_id']}")
-    print(f"  Processing: {result['processing_time_ms']}ms")
-    print(f"  Audit entries: {result['state_log']['entry_count']}")
-    print(f"  Chain valid: {result['state_log']['chain_valid']}")
-    print(f"\nTest PASSED.")
+    print(
+        "\nDEPRECATED: `icoder test` no longer executes the agent locally. "
+        "The legacy AgentRunner execution path was removed in Phase 2.1-A. "
+        "To run an agent, start the platform backend "
+        "(`python -m uvicorn app.main:app --port 8000`) and POST to the A2A "
+        "endpoints (e.g. /a2a/v1/...) exposed via `mount_a2a`."
+    )
 
 
 def cmd_pack(dir_path: str, output: str | None):

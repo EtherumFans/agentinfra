@@ -9,7 +9,7 @@ import {
   Layers,
 } from 'lucide-react';
 import { billingApi, expertsApi, agentsApi, oauthApi } from '../services/api';
-import { runtimeApi } from '../services/runtimeApi';
+import { runtimeAgentApi } from '../services/runtimeApi';
 import { useToastStore } from '../store';
 import type { InstalledAgent } from '../types/runtime';
 
@@ -94,14 +94,14 @@ export default function AgentsPage() {
   // ── Tab data loading ──
   const loadMyAgents = () => {
     setMyAgentsLoading(true);
-    runtimeApi.listAgents('community')
+    runtimeAgentApi.listAgents('community')
       .then(data => setMyAgents(data.agents || []))
       .catch(() => setMyAgents([]))
       .finally(() => setMyAgentsLoading(false));
   };
   const loadCertifiedAgents = () => {
     setCertifiedLoading(true);
-    runtimeApi.listAgents('certified')
+    runtimeAgentApi.listAgents('certified')
       .then(data => setCertifiedAgents(data.agents || []))
       .catch(() => setCertifiedAgents([]))
       .finally(() => setCertifiedLoading(false));
@@ -130,7 +130,7 @@ export default function AgentsPage() {
 
   // Refresh Runtime agents list.
   const refreshRuntimeAgents = () => {
-    runtimeApi.listAgents().catch(() => {});
+    runtimeAgentApi.listAgents().catch(() => {});
   };
 
   const handleBumpVersion = async (agentId: string) => {
@@ -409,14 +409,14 @@ export default function AgentsPage() {
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
                   {agent.status === 'disabled' || agent.status === 'installed' ? (
-                    <button onClick={async (e) => { e.stopPropagation(); await runtimeApi.agentLifecycle(agent.agent_ref, 'enable'); loadMyAgents(); toast('已启用', 'success'); }}
+                    <button onClick={async (e) => { e.stopPropagation(); await runtimeAgentApi.agentLifecycle(agent.agent_ref, 'enable'); loadMyAgents(); toast('已启用', 'success'); }}
                       className="px-2 py-1 rounded text-[11px] bg-green-100 text-green-700 hover:bg-green-200">启用</button>
                   ) : (
-                    <button onClick={async (e) => { e.stopPropagation(); await runtimeApi.agentLifecycle(agent.agent_ref, 'disable'); loadMyAgents(); toast('已禁用', 'success'); }}
+                    <button onClick={async (e) => { e.stopPropagation(); await runtimeAgentApi.agentLifecycle(agent.agent_ref, 'disable'); loadMyAgents(); toast('已禁用', 'success'); }}
                       className="px-2 py-1 rounded text-[11px] bg-amber-50 text-amber-700 hover:bg-amber-100">禁用</button>
                   )}
                   <button onClick={async (e) => { e.stopPropagation(); if (!confirm('确定要卸载吗？')) return;
-                    try { await runtimeApi.agentLifecycle(agent.agent_ref, 'uninstall'); loadMyAgents(); toast('已卸载', 'success'); } catch { toast('卸载失败', 'error'); }
+                    try { await runtimeAgentApi.agentLifecycle(agent.agent_ref, 'uninstall'); loadMyAgents(); toast('已卸载', 'success'); } catch { toast('卸载失败', 'error'); }
                   }} className="px-2 py-1 rounded text-[11px] bg-red-50 text-red-600 hover:bg-red-100"><Trash2 size={11} />卸载</button>
                 </div>
               </div>

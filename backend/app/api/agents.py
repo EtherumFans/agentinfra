@@ -1,3 +1,4 @@
+# DEPRECATED (P1.3 Stage 5, 2026-07-02) — Legacy API. Phase 2 migrate 到 /rest/v1/agent_definitions (Corti 风格). 见 docs/architecture/MAINLINE_VS_LEGACY.md §3.3.
 """Agent CRUD API — manage Agents as first-class backend entities.
 
 iCoDer Agentic Framework equivalent: "Agent is a backend entity that composes
@@ -16,7 +17,12 @@ from app.middleware.auth import get_current_user, get_current_organization
 from app.models.user import User
 from app.models.agent import Agent
 from app.models.organization import Organization
-from app.services.agent_runner import agent_runner
+# Phase 2.1-A (2026-07-02): legacy agent_runner stub removed.
+# The `_LegacyAgentRunnerStub` symbol (Phase 2-B) is gone — any caller that
+# still hits the legacy `agent_runner.run/stream` path now gets a clear 410
+# Gone redirect to the A2A mainline. The new execution path lives in
+# `app.icoder.agent_runtime.orchestrator.InboundHandler` (mounted via
+# `mount_a2a` in app/main.py).
 from app.services.agent_analytics import agent_analytics
 
 router = APIRouter(prefix="/api/agents", tags=["agents"])
@@ -402,66 +408,26 @@ async def run_agent(
 ):
     """Execute an Agent with multi-Expert orchestration.
 
-    Execution path is controlled by runtime.execution_mode:
-    - legacy: uses app.services.agent_runner (old DB-based path)
-    - platform_runtime: uses PlatformRuntime (new registry-based path)
-    - shadow: returns old path result, runs new path in background
+    Phase 2.1-A (2026-07-02): DEPRECATED for execution. The legacy
+    ``agent_runner.run()`` path is removed; the new PlatformRuntime also
+    no longer wraps an AgentRunner stub. Both paths now raise/redirect.
+
+    New execution path: POST to the A2A endpoints exposed via
+    ``mount_a2a`` in ``app/main.py`` (e.g. ``/a2a/v1/...``) — they route
+    through the new ``InboundHandler`` orchestrator.
+
+    This endpoint is retained for backward path-discovery: it returns
+    410 Gone with a redirect message instead of a silent 500.
     """
-    # Load runtime config from app state
-    from fastapi import Request
-    try:
-        from app.main import app as _app
-        rt = _app.state.platform_runtime if hasattr(_app.state, "platform_runtime") else None
-        config = _app.state.runtime_config if hasattr(_app.state, "runtime_config") else None
-    except Exception:
-        rt = None
-        config = None
-
-    use_new = config and config.should_use_new_path("execution") if config else False
-    is_shadow = config and config.should_shadow_run("execution") if config else False
-
-    # --- New path: PlatformRuntime ---
-    if (use_new or is_shadow) and rt:
-        # Try to find the agent in the registry by ID or partial match
-        from icoder_runtime.core.registry import get_registry
-        reg = getattr(_app.state, "agent_registry", None) or get_registry()
-        record = reg.find(agent_id)
-
-        if record:
-            try:
-                new_result = await rt.run_agent(record.agent_id, body.input)
-                if use_new:
-                    return new_result
-                # Shadow mode: run new, return old — log diff
-                if is_shadow:
-                    logger.info(f"[SHADOW] PlatformRuntime result: review_id={new_result.get('review_id')}")
-            except Exception as e:
-                logger.warning(f"PlatformRuntime run failed (mode={config.execution_mode}): {e}")
-                if use_new and config.fallback_to_legacy:
-                    logger.info("Falling back to legacy agent_runner...")
-                elif use_new:
-                    raise HTTPException(status_code=500, detail=f"PlatformRuntime error: {e}")
-
-    # --- Legacy path (original) ---
-    # DEPRECATED: this path will be removed when execution_mode defaults to platform_runtime.
-    # See MIGRATION_RUNTIME.md for migration timeline.
-    result = await db.execute(select(Agent).where(Agent.id == agent_id))
-    agent = result.scalar_one_or_none()
-    if not agent:
-        raise HTTPException(status_code=404, detail="Agent not found")
-
-    output = await agent_runner.run(
-        agent=agent,
-        user_input=body.input,
-        conversation_history=body.conversation_history,
-        db=db,
+    raise HTTPException(
+        status_code=410,
+        detail=(
+            "Legacy `/api/agents/{id}/run` execution path removed in "
+            "Phase 2.1-A. Use the A2A mainline: POST to /a2a/v1/... "
+            "(exposed via `mount_a2a` in app/main.py) which routes through "
+            "the new InboundHandler orchestrator."
+        ),
     )
-
-    # Increment usage
-    agent.usage_count = (agent.usage_count or 0) + 1
-    await db.commit()
-
-    return output
 
 
 @router.post("/{agent_id}/stream")
@@ -471,27 +437,18 @@ async def stream_agent(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Stream Agent response via Server-Sent Events with multi-Expert orchestration."""
-    result = await db.execute(select(Agent).where(Agent.id == agent_id))
-    agent = result.scalar_one_or_none()
-    if not agent:
-        raise HTTPException(status_code=404, detail="Agent not found")
+    """Stream Agent response via Server-Sent Events.
 
-    async def generate():
-        async for token in agent_runner.stream(
-            agent=agent,
-            user_input=body.input,
-            conversation_history=body.conversation_history,
-            db=db,
-        ):
-            yield f"data: {token}\n\n"
-        yield "data: [DONE]\n\n"
-
-    # Increment usage
-    agent.usage_count = (agent.usage_count or 0) + 1
-    await db.commit()
-
-    return StreamingResponse(generate(), media_type="text/event-stream")
+    Phase 2.1-A (2026-07-02): DEPRECATED. Returns 410 Gone — see
+    ``run_agent`` above for the migration path.
+    """
+    raise HTTPException(
+        status_code=410,
+        detail=(
+            "Legacy `/api/agents/{id}/stream` execution path removed in "
+            "Phase 2.1-A. Use the A2A mainline (POST /a2a/v1/...)."
+        ),
+    )
 
 
 # ---- Analytics ----

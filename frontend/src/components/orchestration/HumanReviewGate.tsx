@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { CheckCircle, XCircle, Send } from 'lucide-react';
 import { useT } from '../../i18n';
-import { runtimeApi } from '../../services/api';
+import { runtimeStatusApi } from '../../services/api';
 
 interface Props {
   caseId: string;
@@ -23,7 +23,7 @@ export default function HumanReviewGate({ caseId, review, onDecisionComplete }: 
   const handleDecision = async (d: 'approve' | 'reject') => {
     setSubmitting(true);
     try {
-      await runtimeApi.review(caseId, 'confirm_decision', rationale, d);
+      await runtimeStatusApi.review(caseId, 'confirm_decision', rationale, d);
       setDecision(d === 'approve' ? 'approved' : 'rejected');
       onDecisionComplete?.();
     } catch { /* silently fail */ }

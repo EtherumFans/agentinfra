@@ -24,8 +24,14 @@ from ..core.llm_gateway import LLMGateway, MockLLMProvider
 from ..core.agent_pack_v1 import AgentPackageV1
 from ..core.registry import RuntimeAgentRegistry, get_registry, InstalledAgentRecord
 from ..core.runtime_config import RuntimeConfig
-from ..agent_runner import AgentRunner
 from ..agent_pack import import_pack
+
+# Phase 2.1-A (2026-07-02): legacy AgentRunner stub dependency cut.
+# PlatformRuntime no longer holds a `_runner` slot and no longer imports
+# AgentRunner. Execution (`run_agent`) now raises NotImplementedError with a
+# redirect to the A2A mainline (`app.icoder.agent_runtime.orchestrator.
+# InboundHandler`). Registry/install/status paths are unaffected — they
+# never depended on `_runner` for anything beyond no-op register_* calls.
 
 logger = logging.getLogger(__name__)
 
@@ -65,7 +71,6 @@ class PlatformRuntime:
         self._registry = registry or get_registry(
             storage_dir or self._config.registry_dir
         )
-        self._runner: AgentRunner | None = None
         self._started = False
         self._started_at: str = ""
         self._data_policy = data_policy
@@ -73,18 +78,17 @@ class PlatformRuntime:
     # ── Lifecycle ──
 
     async def start(self):
-        """Initialize the runtime: create runner, load registry."""
-        self._runner = AgentRunner(gateway=self._gateway)
+        """Initialize the runtime: load registry.
+
+        Phase 2.1-A: no longer creates an AgentRunner — execution is delegated
+        to the A2A mainline (`app.icoder.agent_runtime.orchestrator.
+        InboundHandler`), exposed via `mount_a2a` in `app/main.py`."""
         self._started = True
         self._started_at = datetime.now(timezone.utc).isoformat()
-        # Register existing agents' experts/tools with the runner
-        for rec in self._registry.list_all():
-            for exp_data in rec.experts or []:
-                from ..types import ExpertDefinition
-                self._runner.register_expert(ExpertDefinition(**exp_data))
         logger.info(
             f"PlatformRuntime started (mode={self._config.execution_mode}): "
-            f"{self._registry.count} agent(s) in registry."
+            f"{self._registry.count} agent(s) in registry. "
+            f"Execution path: A2A InboundHandler (legacy _runner slot removed)."
         )
 
     async def stop(self):
@@ -146,12 +150,10 @@ class PlatformRuntime:
             publisher_email=resolved_publisher_email,
         )
 
-        # Register experts and tools with the runner
-        if self._runner:
-            for e in experts:
-                self._runner.register_expert(e)
-            for t in tools:
-                self._runner.register_tool(t)
+        # Phase 2.1-A: no longer register experts/tools with a `_runner` —
+        # the A2A InboundHandler resolves experts/tools at call time via
+        # the registry + MCP tools/list. The previous register_* calls were
+        # no-ops on the stub anyway.
 
         logger.info(f"Agent installed: {record.agent_id}")
         # DB sync is handled in main.py startup (Registry→DB)
@@ -178,74 +180,31 @@ class PlatformRuntime:
     ) -> dict[str, Any]:
         """Run an installed agent against user input.
 
-        delegated_by: {"user_id": "...", "username": "...", "agent_account_id": "..."}
-        When provided, the Agent executes on behalf of this user with a delegation JWT.
+        Phase 2.1-A (2026-07-02): DEPRECATED for execution. The legacy
+        ``_runner.run()`` path is removed; this method now raises
+        ``NotImplementedError`` with a redirect to the A2A mainline.
 
-        Looks up the agent in the persistent RuntimeAgentRegistry.
+        Migration path: use the A2A endpoints exposed by
+        ``app.icoder.agent_runtime.a2a.mount_a2a`` (mounted in
+        ``app/main.py`` lifespan) — they route through the new
+        ``InboundHandler`` orchestrator (Planner → Delegator → Aggregator)
+        which is the only supported execution path.
+
+        This method is retained only so that callers that still call
+        ``rt.run_agent(...)`` get a clear redirect message instead of an
+        ``AttributeError`` on the missing ``_runner`` slot.
 
         Raises:
             AgentNotFoundError: if agent_id is not installed
-            LLMProviderNotConfigured: if no LLM provider
+            NotImplementedError: always — execution moved to A2A mainline
         """
         record = self._registry.get(agent_id)
-        if not self._runner:
-            raise LLMProviderNotConfigured()
-
-        from ..types import AgentDefinition, ExpertDefinition, ToolDefinition, ToolTier
-        from ..permissions import PermissionPolicy, ToolPermission
-
-        # Rebuild AgentDefinition from registry record
-        agent = AgentDefinition(
-            name=record.name,
-            version=record.version,
-            description=record.description,
-            category=record.category,
-            icon=record.icon,
-            system_prompt=record.system_prompt,
-            expert_ids=record.expert_ids or [],
-        )
-
-        # Register experts/tools (idempotent). v1.2 packs (Phase D convention) use
-        # `expert_id` + carry extra fields (role, tools, model, non_goals,
-        # output_contract) that the ExpertDefinition dataclass doesn't know —
-        # normalize to the v1.1 dataclass schema before constructing.
-        _EXPERT_FIELDS = {"id", "name", "description", "system_prompt",
-                         "category", "capabilities", "config"}
-        for e in record.experts or []:
-            if "expert_id" in e and "id" not in e:
-                e_norm = {k: v for k, v in e.items() if k != "expert_id"}
-                e_norm["id"] = e["expert_id"]
-            else:
-                e_norm = e
-            e_norm = {k: v for k, v in e_norm.items() if k in _EXPERT_FIELDS}
-            self._runner.register_expert(ExpertDefinition(**e_norm))
-        for t in record.tools or []:
-            if isinstance(t, str):
-                self._runner.register_tool(ToolDefinition(id=t, name=t, description=t, tier=ToolTier(1), category="general"))
-            else:
-                # v1.2 tools use `name` (not `id`) and `type` (not `tier`). Map.
-                tool_id = t.get("id") or t.get("name", "")
-                tool_name = t.get("name", tool_id)
-                t_type = t.get("type")
-                if "tier" in t:
-                    tier_value = t["tier"]
-                elif t_type in ("mcp", "function", "builtin"):
-                    tier_value = 1
-                elif t_type == "guard":
-                    tier_value = 2
-                else:
-                    tier_value = 2
-                self._runner.register_tool(ToolDefinition(
-                    id=tool_id, name=tool_name, description=t.get("description", ""),
-                    tier=ToolTier(tier_value),
-                    category=t.get("category", "general"),
-                    requires=t.get("requires", []), guarantees=t.get("guarantees", {}),
-                    input_schema={"type": "object", "properties": t.get("params", {})} if t.get("params") else None,
-                ))
-
-        return await self._runner.run(
-            agent, user_input,
-            permission_policy=permission_policy,
-            data_policy=self._data_policy,
-            delegated_by=delegated_by,
+        if not record:
+            raise AgentNotFoundError(f"Agent not installed: {agent_id}")
+        raise NotImplementedError(
+            "PlatformRuntime.run_agent removed in Phase 2.1-A. "
+            "Execution moved to the A2A mainline "
+            "(`app.icoder.agent_runtime.orchestrator.InboundHandler`, mounted "
+            "via `mount_a2a` in app/main.py). Use the A2A endpoints "
+            "(e.g. POST /a2a/v1/...) instead of /api/runtime/agents/{ref}/run."
         )

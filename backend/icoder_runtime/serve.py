@@ -20,10 +20,16 @@ from fastapi.responses import HTMLResponse, FileResponse, Response
 from pydantic import BaseModel
 
 from .types import AgentDefinition, ExpertDefinition, ToolDefinition
-from .agent_runner import AgentRunner
 from .agent_pack import validate_pack, import_pack, export_pack, save_pack, load_pack
 from .evidence_pack import build_evidence_pack
 from . import __version__
+
+# Phase 2.1-A (2026-07-02): legacy AgentRunner import removed.
+# `icoder-runtime serve` is a standalone dev server; its run endpoint
+# (/api/runs POST) now returns 410 Gone with a redirect to the A2A mainline
+# (app.icoder.agent_runtime.orchestrator.InboundHandler). Pack management
+# endpoints (import/list/get/export/delete) remain functional — they only
+# touch the JSONL store, not a runner.
 
 logger = logging.getLogger(__name__)
 
@@ -87,10 +93,15 @@ class RunInfo(BaseModel):
 
 # ── App Factory ──
 
-def create_app(runner: AgentRunner | None = None) -> FastAPI:
-    app = FastAPI(title="iCoDer Runtime", version=__version__)
+def create_app(runner=None) -> FastAPI:
+    """Build the standalone iCoDer Runtime FastAPI app.
 
-    _runner = runner or AgentRunner()
+    Phase 2.1-A (2026-07-02): the ``runner`` parameter is no longer used —
+    the legacy ``AgentRunner`` execution path has been removed. The argument
+    is retained (as ``None`` default) for backward-call compatibility with
+    any caller that still passes ``create_app(runner=...)``.
+    """
+    app = FastAPI(title="iCoDer Runtime", version=__version__)
 
     # Load persisted agents
     agents_store = _load_store(_AGENTS_FILE)
@@ -187,10 +198,9 @@ def create_app(runner: AgentRunner | None = None) -> FastAPI:
         }
         _save_agents()
 
-        for e in experts:
-            _runner.register_expert(e)
-        for t in tools:
-            _runner.register_tool(t)
+        # Phase 2.1-A: no longer register experts/tools with a `_runner` —
+        # the A2A InboundHandler resolves them at call time via the
+        # registry + MCP tools/list.
 
         return {"id": aid, "name": agent.name, "status": "imported"}
 
@@ -235,50 +245,22 @@ def create_app(runner: AgentRunner | None = None) -> FastAPI:
 
     @app.post("/api/runs")
     async def create_run(req: RunRequest):
-        data = agents_store.get(req.agent_id)
-        if not data:
-            raise HTTPException(status_code=404, detail="Agent not found")
+        """Phase 2.1-A (2026-07-02): DEPRECATED.
 
-        agent = AgentDefinition(
-            name=data["name"], version=data.get("version", "1.0.0"),
-            description=data.get("description", ""), category=data.get("category", "general"),
-            system_prompt=data.get("system_prompt", ""),
-            expert_ids=data.get("expert_ids", []),
+        The legacy ``AgentRunner.run()`` path has been removed; this endpoint
+        now returns 410 Gone with a redirect to the A2A mainline. Pack
+        metadata endpoints (list/get/import/export) remain functional.
+        """
+        raise HTTPException(
+            status_code=410,
+            detail=(
+                "Legacy `/api/runs` execution path removed in Phase 2.1-A. "
+                "Use the A2A mainline: start the platform backend "
+                "(`python -m uvicorn app.main:app --port 8000`) and POST to "
+                "the A2A endpoints exposed via `mount_a2a` "
+                "(e.g. POST /a2a/v1/...)."
+            ),
         )
-
-        # Register experts and tools for this run
-        for e in data.get("experts", []):
-            _runner.register_expert(ExpertDefinition(**e))
-        for t in data.get("tools", []):
-            _runner.register_tool(ToolDefinition(
-                id=t["id"], name=t["name"], description=t.get("description",""),
-                tier=__import__("icoder_runtime.types", fromlist=["ToolTier"]).ToolTier(t.get("tier",2)),
-                category=t.get("category","general"),
-                requires=t.get("requires",[]), guarantees=t.get("guarantees",{}),
-                input_schema={"type":"object","properties":t.get("params",{})} if t.get("params") else None,
-            ))
-
-        result = await _runner.run(agent, req.input)
-        run_id = result["review_id"]
-
-        runs_store[run_id] = {
-            "id": run_id,
-            "agent_id": req.agent_id,
-            "agent_name": agent.name,
-            "agent_version": agent.version,
-            "input_preview": req.input[:200],
-            "review_id": run_id,
-            "status": "completed",
-            "processing_time_ms": result.get("processing_time_ms", 0),
-            "audit_entries": result["state_log"]["entry_count"],
-            "chain_valid": result["state_log"]["chain_valid"],
-            "state_log": result["state_log"],
-            "output": result.get("output", ""),
-            "contract_valid": result.get("contract_valid", True),
-            "created_at": datetime.now(timezone.utc).isoformat(),
-        }
-        _save_runs()
-        return runs_store[run_id]
 
     @app.get("/api/runs")
     async def list_runs(limit: int = 50, agent_id: str = ""):

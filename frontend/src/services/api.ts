@@ -148,8 +148,6 @@ export const codesApi = {
   explore: (code: string, codeSystem = 'ICD10_CN') =>
     api.post('/codes/explore', { code, code_system: codeSystem }),
   systems: () => api.get('/codes/systems'),
-  validate: (code: string, codeSystem = 'ICD10_CN') =>
-    api.get('/codes/validate', { params: { code, code_system: codeSystem } }),
   verify: (data: any) => api.post('/codes/verify', data),
 };
 
@@ -322,13 +320,12 @@ export const agentsApi = {
 //   GET  /api/icoder/tasks/{id}               (stub, 501)
 //   POST /api/icoder/tasks/{id}/cancel        (stub, 501)
 // chain/coordinate/listTasks/createTask/retryTask have no backend endpoint.
+// getTask/cancelTask also have no backend endpoint (Phase 5 A2A Task stub, not yet implemented).
 export const a2aApi = {
   agentCard: () => axios.get('/.well-known/agent.json'),
   discoverAgents: (capability = '') =>
     api.get<{ agents: any[] }>('/icoder/agents', { params: { capability } }),
   getAgentCard: (id: string) => api.get(`/icoder/agents/${id}/card`),
-  getTask: (id: string) => api.get(`/icoder/tasks/${id}`),
-  cancelTask: (id: string) => api.post(`/icoder/tasks/${id}/cancel`),
 };
 
 // Settings / Config
@@ -348,7 +345,9 @@ export const sttApi = {
 };
 
 // Runtime — deterministic safety framework state + audit
-export const runtimeApi = {
+// Renamed from runtimeApi (cycle 25) — disambiguate from services/runtimeApi.ts.
+// This is the case-level status/audit/trace API; runtimeApi.ts is the agent-runtime API.
+export const runtimeStatusApi = {
   status: (caseId: string) =>
     api.get<RuntimeStatus>(`/runtime/status/${caseId}`),
   audit: (caseId: string, limit?: number) =>

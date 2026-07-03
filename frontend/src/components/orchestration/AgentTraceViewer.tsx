@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { CheckCircle, XCircle, AlertTriangle, Clock, User, ArrowRight, Hash, Activity } from 'lucide-react';
-import { runtimeApi } from '../../services/api';
+import { runtimeStatusApi } from '../../services/api';
 
 interface TraceEvent {
   type: 'state_transition' | 'audit' | 'human_decision';
@@ -69,7 +69,7 @@ export default function AgentTraceViewer({ pipelineId, compact }: Props) {
   useEffect(() => {
     if (!pipelineId) return;
     setLoading(true);
-    runtimeApi
+    runtimeStatusApi
       .trace(pipelineId)
       .then((r) => setTrace(r.data))
       .catch(() => setError('Trace data unavailable'))

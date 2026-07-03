@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import { useAppStore, useCostStore } from '../store';
 import { useT } from '../i18n';
 import { codeTablesApi } from '../services/api';
-import { runtimeApi } from '../services/runtimeApi';
+import { runtimeAgentApi } from '../services/runtimeApi';
 import type { RuntimeRunResult } from '../types/runtime';
 import type { ExtractedDiagnosis, CandidateCode } from '../types/runtime';
 import { HighlightedTextarea } from '../components/medical-coding/HighlightedTextarea';
@@ -212,7 +212,7 @@ export default function MedicalCodingPage() {
 
     try {
       const startTime = Date.now();
-      const data = await runtimeApi.runAgent(MEDICAL_CODING_AGENT_REF, text);
+      const data = await runtimeAgentApi.runAgent(MEDICAL_CODING_AGENT_REF, text);
       const elapsed = Date.now() - startTime;
       setResult(data);
       if (data.processing_time_ms) addCost((data.processing_time_ms / 1000) * 0.02);

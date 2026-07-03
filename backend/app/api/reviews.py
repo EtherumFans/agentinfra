@@ -1,3 +1,4 @@
+# DEPRECATED (P1.3 Stage 5, 2026-07-02) — Phase 2 降级为 Pre-built Agent (Note Completeness + CDI). 见 docs/backlog/PRODUCT_BACKLOG.md §3.
 # iCoDer - Reviews API Router
 import asyncio
 import json
@@ -23,7 +24,16 @@ from app.schemas.review import (
 from app.middleware.auth import get_current_user, get_current_organization
 from app.middleware.audit import log_action
 from app.models.organization import Organization
-from app.agents.orchestrator import agent_orchestrator
+# Phase 2-B (2026-07-02): legacy orchestrator reference cut.
+# agent_orchestrator moved to app/icoder/agent_runtime/orchestrator/.
+# Stub surfaces any accidental legacy calls during Phase 2-C deletion window.
+class _LegacyOrchestratorStub:
+    async def run_pipeline(self, *a, **kw):
+        raise NotImplementedError(
+            "Legacy agent_orchestrator removed in Phase 2-B. "
+            "Use app.icoder.agent_runtime.orchestrator instead."
+        )
+agent_orchestrator = _LegacyOrchestratorStub()
 from app.services.task_manager import task_manager
 from app.services.runtime import runtime_registry, CaseState, GateOutcome
 

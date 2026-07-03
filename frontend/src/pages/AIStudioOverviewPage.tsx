@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bot, Stethoscope, ArrowRight, Layers, Asterisk, Search, Activity } from 'lucide-react';
-import { runtimeApi } from '../services/runtimeApi';
+import { runtimeAgentApi } from '../services/runtimeApi';
 
 export default function AIStudioOverviewPage() {
   const navigate = useNavigate();
@@ -10,8 +10,8 @@ export default function AIStudioOverviewPage() {
   const [recentRuns, setRecentRuns] = useState<any[]>([]);
 
   useEffect(() => {
-    runtimeApi.listAgents().then(d => setAgents((d.agents||[]).slice(0, 5))).catch(() => {});
-    runtimeApi.listRuns('', 5).then(d => setRecentRuns(d.runs||[])).catch(() => {});
+    runtimeAgentApi.listAgents().then(d => setAgents((d.agents||[]).slice(0, 5))).catch(() => {});
+    runtimeAgentApi.listRuns('', 5).then(d => setRecentRuns(d.runs||[])).catch(() => {});
   }, []);
 
   return (

@@ -9,7 +9,7 @@ import {
   Search, Check, Sparkles, BookOpen, Copy, User, Clock,
 } from 'lucide-react';
 import { agentsApi, expertsApi, memoryApi, billingApi, oauthApi } from '../services/api';
-import { runtimeApi } from '../services/runtimeApi';
+import { runtimeAgentApi } from '../services/runtimeApi';
 import { useToastStore } from '../store';
 import type { RuntimeRunResult } from '../types/runtime';
 import SettingsCodeTab from '../components/common/SettingsCodeTab';
@@ -152,7 +152,7 @@ export default function AgentDetailPage() {
       const cleanName = (a.name || 'agent').toLowerCase().replace(/\s+/g, '-').replace(/\(copy\)/g, '').replace(/-+$/g, '');
       const ref = cleanName + '-' + (a.version || '1.0.0');
       setAgentRef(ref);
-      runtimeApi.listAgents().then(({ agents: installed }) => {
+      runtimeAgentApi.listAgents().then(({ agents: installed }) => {
         const found = installed.find((inst: { agent_ref: string }) =>
           inst.agent_ref.includes(cleanName) || inst.agent_ref === ref
         );
@@ -182,7 +182,7 @@ export default function AgentDetailPage() {
       if (!isActive()) return;
       // Fallback: try Runtime API
       try {
-        const { agents: installed } = await runtimeApi.listAgents();
+        const { agents: installed } = await runtimeAgentApi.listAgents();
         const found = installed.find((a: any) => a.agent_ref === agentId);
         if (found) {
           setAgent({ id: found.agent_ref, name: found.name, description: found.description, version: found.version, category: found.category, system_prompt: '', expert_ids: [], config: {}, is_prebuilt: found.agent_type === 'certified' });
@@ -514,7 +514,7 @@ export default function AgentDetailPage() {
           <button onClick={async () => {
             setInstallLoading(true);
             try {
-              const data = await runtimeApi.installAgent(
+              const data = await runtimeAgentApi.installAgent(
                 agent.name,
                 agent.version || '1.0.0',
                 agent.is_prebuilt ? 'certified' : 'community'
@@ -547,7 +547,7 @@ export default function AgentDetailPage() {
             <button onClick={async () => {
               try {
                 const newAction = runtimeStatus === 'enabled' ? 'disable' : 'enable';
-                await runtimeApi.agentLifecycle(agentRef, newAction);
+                await runtimeAgentApi.agentLifecycle(agentRef, newAction);
                 setRuntimeStatus(runtimeStatus === 'enabled' ? 'disabled' : 'enabled');
                 toast(`Agent ${newAction === 'enable' ? '已启用' : '已禁用'}`, 'success');
               } catch { toast('操作失败，请检查权限', 'error'); }
@@ -576,7 +576,7 @@ export default function AgentDetailPage() {
               setTestLoading(true); setTestResult(null);
               try {
                 const ref = agentRef || (agent?.name?.toLowerCase()?.replace(/\s+/g,'-')||'agent') + '-' + (agent?.version||'1.0.0');
-                const data = await runtimeApi.runAgent(ref, testInput);
+                const data = await runtimeAgentApi.runAgent(ref, testInput);
                 setTestResult(data);
               } catch (e: any) { setTestResult({ error: e?.message || '测试失败' }); }
               finally { setTestLoading(false); }

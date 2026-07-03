@@ -1,8 +1,22 @@
+/// <reference types="vitest" />
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
+  test: {
+    // Phase 2-G (2026-07-02): exclude Playwright e2e specs from vitest.
+    // Both frontend/e2e/*.spec.ts and frontend/tests/e2e/*.spec.ts are
+    // Playwright files (run via `npx playwright test`), not vitest unit
+    // tests. Without this exclude, vitest picks them up and fails on
+    // browser-launch / page-goto calls that only Playwright provides.
+    exclude: [
+      'e2e/**',
+      'tests/e2e/**',
+      '**/node_modules/**',
+      '**/dist/**',
+    ],
+  },
   server: {
     port: 3000,
     proxy: {

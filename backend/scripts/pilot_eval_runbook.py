@@ -145,83 +145,32 @@ def cmd_import_gold(args):
 
 
 def cmd_run_evaluation(args):
-    """运行批量评估."""
-    import asyncio
+    """运行批量评估.
 
+    Phase 2.1-A (2026-07-02): DEPRECATED for execution. The legacy
+    ``app.agents.orchestrator.agent_orchestrator.run_pipeline()`` path was
+    removed when ``backend/app/agents/orchestrator.py`` was deleted; the new
+    execution mainline is the A2A InboundHandler
+    (``app.icoder.agent_runtime.orchestrator.InboundHandler``, mounted via
+    ``mount_a2a`` in ``app/main.py``).
+
+    This subcommand is retained only so callers get a clear redirect message
+    instead of an ImportError on the deleted ``app.agents.orchestrator`` module.
+    """
     print("=" * 60)
-    print("  批量评估运行")
+    print("  批量评估运行 (DEPRECATED)")
     print("=" * 60)
-
-    async def _run():
-        from app.database import async_session_factory
-        from app.models.gold_case import GoldCase
-        from app.agents.orchestrator import agent_orchestrator
-        from sqlalchemy import select
-
-        async with async_session_factory() as db:
-            query = select(GoldCase)
-            result = await db.execute(query)
-            cases = result.scalars().all()
-
-            if not cases:
-                print("❌ 未找到金标病例。请先执行 import-gold。")
-                sys.exit(1)
-
-            print(f"金标病例数: {len(cases)}")
-            per_case = []
-            primary_matches = 0
-            total = 0
-
-            for gc in cases:
-                if not gc.full_case_data:
-                    print(f"  ⏭️ {gc.case_id}: 缺少 full_case_data，跳过")
-                    continue
-
-                print(f"  🔄 {gc.case_id}...")
-                try:
-                    pipeline_result = await agent_orchestrator.run_pipeline(gc.full_case_data)
-                except Exception as e:
-                    print(f"    ❌ Pipeline 失败: {e}")
-                    continue
-
-                agent_pd = pipeline_result.get("primary_diagnosis", {}).get("code", "")
-                match = agent_pd == gc.expected_principal_diagnosis
-                if match:
-                    primary_matches += 1
-                total += 1
-
-                report = pipeline_result.get("case_reasoning_report", {})
-                reasoning_score = sum(1 for s in ("case_overview", "clinical_timeline", "evidence_assessment",
-                                                   "principal_diagnosis", "disagreement_analysis", "confidence_routing")
-                                      if report.get(s)) / 6.0
-
-                per_case.append({
-                    "case_id": gc.case_id,
-                    "primary_diag_match": match,
-                    "agent_pd": agent_pd,
-                    "gold_pd": gc.expected_principal_diagnosis,
-                    "reasoning_score": round(reasoning_score, 2),
-                })
-                icon = "✅" if match else "❌"
-                print(f"    {icon} 主诊断: AI={agent_pd} vs Gold={gc.expected_principal_diagnosis}")
-
-            accuracy = primary_matches / total if total > 0 else 0
-            summary = {
-                "total_evaluated": total,
-                "primary_diag_accuracy": round(accuracy, 2),
-                "per_case": per_case,
-            }
-
-            output = getattr(args, "output", None)
-            if output:
-                Path(output).write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
-                print(f"\n📄 评估结果已保存到: {output}")
-
-            print(f"\n{'=' * 60}")
-            print(f"评估完成: {total} 例, 主诊断准确率 {accuracy:.0%}")
-            print(f"{'=' * 60}")
-
-    asyncio.run(_run())
+    print(
+        "Phase 2.1-A (2026-07-02): `run-evaluation` is deprecated. The legacy\n"
+        "`app.agents.orchestrator.agent_orchestrator.run_pipeline()` path was\n"
+        "removed when `backend/app/agents/orchestrator.py` was deleted.\n\n"
+        "New execution path: POST to the A2A endpoints exposed via\n"
+        "`mount_a2a` in `app/main.py` (e.g. `/a2a/v1/...`) — they route\n"
+        "through the new `app.icoder.agent_runtime.orchestrator.InboundHandler`\n"
+        "which is the only supported execution path.\n\n"
+        "See docs/architecture/MAINLINE_VS_LEGACY.md §3.3 for the migration map."
+    )
+    sys.exit(2)
 
 
 def cmd_export_report(args):

@@ -8,6 +8,7 @@ import { appendWithPunctuation, llmPunctuate } from '../utils/stt-punctuation';
 import EventInspector from '../components/common/EventInspector';
 import CodeSnippet from '../components/common/CodeSnippet';
 import SettingsCodeTab from '../components/common/SettingsCodeTab';
+import WorkbenchLayout from '../components/layout/WorkbenchLayout';
 
 
 const TEMPLATES = ['出院小结', '病程记录', '出院指导', '入院记录', '手术记录', '会诊记录'];
@@ -258,190 +259,229 @@ export default function SpeechToTextPage() {
   // Keep getRecognition ref in sync
   useEffect(() => { getRecognitionRef.current = getRecognition; }, [getRecognition]);
 
-  return (
-    <div className="flex flex-col h-full bg-background">
-      {/* ==================== HEADER (breadcrumb — cost/Docs in global header) ==================== */}
-      <div className="flex items-center gap-2 px-4 py-1.5 border-b border-border/20 shrink-0 text-xs">
-        <Link to="/ai-studio/overview" className="text-muted-foreground hover:text-foreground transition-colors">{t.aiStudio}</Link>
-        <ChevronRight size={12} className="text-muted-foreground/50" />
-        <span className="text-foreground font-medium truncate">{t.speechToTextBreadcrumb}</span>
-      </div>
 
-      <div className="flex h-full">
-      {/* ===== LEFT: Main Content (75%) ===== */}
-      <div className="flex flex-col overflow-hidden bg-muted/20" style={{ flex: '75 1 0px' }}>
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-          <div className="flex h-full flex-col p-4">
-            <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background rounded-xl shadow-sm ring-1 ring-border/20">
-              {/* Header + Engine selector */}
-              <div className="flex items-center justify-between px-5 pt-5 pb-3 shrink-0">
-                <h2 className="text-base font-semibold text-foreground">语音转录</h2>
-                <div className="flex items-center gap-2">
-                  <span className="text-base font-semibold text-foreground">识别引擎</span>
-                  <div className="flex items-center rounded-lg bg-muted p-0.5">
-                    <button onClick={() => { if (isListening) stopServerSTT(); setSttMode('server'); }}
-                      className={`px-3 py-1 text-[11px] rounded-md transition-all font-medium ${sttMode === 'server' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>Medvoice</button>
-                    <button onClick={() => setSttMode('browser')}
-                      className={`px-3 py-1 text-[11px] rounded-md transition-all font-medium ${sttMode === 'browser' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>Web 内置</button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Error banner */}
-              {errorMsg && (
-                <div className="mx-5 mb-2 px-3 py-2 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700 flex items-center justify-between">
-                  <span>{errorMsg}</span>
-                  <button onClick={() => setErrorMsg(null)} className="p-0.5 rounded hover:bg-red-100 shrink-0 ml-2"><X size={12} /></button>
-                </div>
-              )}
-
-              {/* Transcription card */}
-              <div className="flex-1 flex flex-col px-5 min-h-0">
-                <div className="flex items-center gap-2 mb-2 shrink-0">
-                  <AudioWaveform size={14} className="text-muted-foreground" />
-                  <span className="text-xs font-medium text-muted-foreground">转录文本</span>
-                  {(transcript || interim) && (
-                    <div className="flex items-center gap-1 ml-auto">
-                      <button onClick={() => { navigator.clipboard.writeText(transcript); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
-                        className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"><Copy size={13} /></button>
-                      <button onClick={() => { setTranscript(''); setInterim(''); }}
-                        className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"><X size={13} /></button>
-                    </div>
-                  )}
-                </div>
-                <div className="flex-1 overflow-y-auto min-h-0">
-                  <p className="text-lg text-foreground whitespace-pre-wrap leading-relaxed">
-                    {transcript}
-                    {interim && <span className="text-muted-foreground/40"> {interim}</span>}
-                  </p>
-                  {!transcript && !interim && (
-                    <p className="text-muted-foreground/25 text-base">点击麦克风开始录音</p>
-                  )}
-                </div>
-                <div className="flex justify-center py-4 shrink-0">
-                  <button onClick={toggleListening}
-                    className={`p-4 rounded-full transition-all ${
-                      isListening
-                        ? 'bg-red-500 hover:bg-red-600 text-white scale-110 shadow-lg shadow-red-500/20'
-                        : 'bg-primary text-primary-foreground hover:opacity-90 shadow-sm shadow-primary/20'
-                    }`}>
-                    {isListening ? <MicOff size={22} /> : <Mic size={22} />}
-                  </button>
-                </div>
-              </div>
-
-              {/* Commands bar */}
-              <div className="flex items-center gap-1.5 px-5 py-3 border-t border-border/20 shrink-0">
-                <span className="text-xs text-muted-foreground/60 shrink-0 mr-1">识别到指令：</span>
-                {commands.map(cmd => (
-                  <span key={cmd.id}
-                    className={`text-[11px] px-3 py-1 rounded-md transition-colors cursor-default font-medium ${
-                      detectedCmd === cmd.id
-                        ? 'bg-primary/10 text-primary'
-                        : 'text-muted-foreground/70 hover:text-foreground hover:bg-muted'
-                    }`}>
-                    {cmd.name}
-                  </span>
-                ))}
-                <span className="flex-1" />
-                <button onClick={() => { setNewCmdName(''); setNewCmdPhrases(''); setNewCmdAction(''); setNewCmdVars([]); setShowVarForm(false); setShowAddCmd(true); }}
-                  className="p-1 rounded-md text-muted-foreground/40 hover:text-foreground hover:bg-accent transition-colors"><Plus size={14} /></button>
-              </div>
-            </div>
-
-            {/* Event Inspector */}
-            <EventInspector events={sttEvents} creditsConsumed={sttCredits} />
+  // ---- WorkbenchLayout slot content ----
+  const inputSlot = (
+    <div className="flex flex-col h-full">
+      <div className="flex items-center justify-between shrink-0 mb-2">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-medium text-foreground">识别引擎</span>
+          <div className="flex items-center rounded-lg bg-muted p-0.5">
+            <button onClick={() => { if (isListening) stopServerSTT(); setSttMode('server'); }}
+              className={`px-3 py-1 text-[11px] rounded-md transition-all font-medium ${sttMode === 'server' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>Medvoice</button>
+            <button onClick={() => setSttMode('browser')}
+              className={`px-3 py-1 text-[11px] rounded-md transition-all font-medium ${sttMode === 'browser' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>Web 内置</button>
           </div>
         </div>
       </div>
 
-      {/* ===== Separator ===== */}
-      <div className="h-full w-px bg-border/40" />
-
-      {/* ===== RIGHT: Settings Panel (25%) ===== */}
-      <div className="flex flex-col overflow-hidden bg-muted/10" style={{ flex: '25 1 0px' }}>
-        <div className="flex h-full flex-col overflow-hidden">
-          <SettingsCodeTab
-            labels={{ settings: '设置', code: '代码' }}
-            settings={
-              <div className="flex flex-col">
-                <div className="border-b border-border/20">
-                  <div className="flex items-center gap-2 px-4 pt-4 pb-2">
-                    <div className="w-1 h-4 rounded-full bg-primary/40" />
-                    <h3 className="font-medium text-xs uppercase tracking-wider text-muted-foreground">语音设置</h3>
-                  </div>
-                  <div className="flex flex-col gap-3 px-4 pb-4">
-                    <div className="flex items-center justify-between gap-4 min-h-[32px]">
-                      <span className="text-sm text-foreground/80">听写语言</span>
-                      <select value={language} onChange={e => setLanguage(e.target.value)}
-                        className="h-8 text-xs border border-input bg-background rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-ring">
-                        {LANGUAGES.map(l => <option key={l.code} value={l.code}>{l.label}</option>)}
-                      </select>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="border-b border-border/20">
-                  <div className="flex items-center gap-2 px-4 pt-4 pb-2">
-                    <div className="w-1 h-4 rounded-full bg-primary/40" />
-                    <h3 className="font-medium text-xs uppercase tracking-wider text-muted-foreground">标点符号</h3>
-                  </div>
-                  <div className="flex flex-col gap-2 px-4 pb-4">
-                    <label className="flex items-center gap-2 text-sm text-foreground/70">
-                      <input type="radio" name="punctuation" checked={punctuationMode === 'spoken'} onChange={() => setPunctuationMode('spoken')} />
-                      语音标点
-                    </label>
-                    <label className="flex items-center gap-2 text-sm text-foreground/70">
-                      <input type="radio" name="punctuation" checked={punctuationMode === 'auto'} onChange={() => setPunctuationMode('auto')} />
-                      自动标点
-                    </label>
-                  </div>
-                </div>
-
-                <div className="border-b border-border/20">
-                  <div className="flex items-center gap-2 px-4 pt-4 pb-2">
-                    <div className="w-1 h-4 rounded-full bg-primary/40" />
-                    <h3 className="font-medium text-xs uppercase tracking-wider text-muted-foreground">格式化</h3>
-                  </div>
-                  <div className="flex flex-col gap-2 px-4 pb-4">
-                    <label className="flex items-center gap-2 text-sm text-foreground/70">
-                      <input type="checkbox" checked={interimResults} onChange={e => setInterimResults(e.target.checked)} />
-                      显示暂态结果
-                    </label>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex items-center gap-2 px-4 pt-4 pb-2">
-                    <div className="w-1 h-4 rounded-full bg-primary/40" />
-                    <h3 className="font-medium text-xs uppercase tracking-wider text-muted-foreground">语音指令</h3>
-                  </div>
-                  <div className="flex flex-col gap-1.5 px-4 pb-4">
-                    {commands.map(cmd => (
-                      <div key={cmd.id} className="text-xs py-1">
-                        <p className="font-medium text-foreground">{cmd.name}</p>
-                        <p className="text-muted-foreground/60 text-[11px] mt-0.5">{cmd.phrases.slice(0, 3).join('、')}</p>
-                      </div>
-                    ))}
-                    <button onClick={() => { setNewCmdName(''); setNewCmdPhrases(''); setNewCmdAction(''); setNewCmdVars([]); setShowVarForm(false); setShowAddCmd(true); }}
-                      className="text-xs text-primary hover:underline mt-2 flex items-center gap-1">
-                      <Plus size={12} /> 添加指令
-                    </button>
-                  </div>
-                </div>
-              </div>
-            }
-            code={
-              <CodeSnippet
-                javascript={`import { iCoDerClient } from "@icoder/sdk";\n\nconst client = new iCoDerClient({ apiKey: "YOUR_API_KEY" });\n\nconst session = await client.speechToText.startSession({\n  language: "${language}",\n  punctuation: "${punctuationMode}",\n  interimResults: ${interimResults},\n});\n\nsession.onTranscript((text) => {\n  console.log("Transcript:", text);\n});`}
-                python={`from icoder_speech import iCoDerSTTClient\n\nclient = iCoDerSTTClient(api_key="YOUR_API_KEY")\n\nsession = client.create_session(\n    language="${language}",\n    punctuation="${punctuationMode}",\n    interim_results=${interimResults},\n)\n\nsession.start()\nfor transcript in session.transcripts():\n    print(f"Transcript: {transcript}")`}
-                csharp={`using iCoDer.Speech;\n\nvar config = new iCoDerConfig { ApiKey = "YOUR_API_KEY" };\nusing var client = new iCoDerSttClient(config);\n\nvar session = await client.StartSessionAsync(new SttSessionOptions\n{\n    Language = "${language}",\n    Punctuation = PunctuationMode.${punctuationMode === 'auto' ? 'Auto' : 'Spoken'},\n    InterimResults = ${interimResults}\n});\n\nsession.OnTranscript += (sender, text) =>\n{\n    Console.WriteLine($"Transcript: {text}");\n};\n\nawait session.StartAsync();`}
-                json={`{\n  "apiKey": "YOUR_API_KEY",\n  "language": "${language}",\n  "punctuation": "${punctuationMode}",\n  "interimResults": ${interimResults}\n}`}
-              />
-            }
-          />
+      {errorMsg && (
+        <div className="mb-2 px-3 py-2 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700 flex items-center justify-between">
+          <span>{errorMsg}</span>
+          <button onClick={() => setErrorMsg(null)} className="p-0.5 rounded hover:bg-red-100 shrink-0 ml-2"><X size={12} /></button>
         </div>
+      )}
+
+      <div className="flex-1 flex flex-col items-center justify-center">
+        <button onClick={toggleListening}
+          className={`p-4 rounded-full transition-all ${
+            isListening
+              ? 'bg-red-500 hover:bg-red-600 text-white scale-110 shadow-lg shadow-red-500/20'
+              : 'bg-primary text-primary-foreground hover:opacity-90 shadow-sm shadow-primary/20'
+          }`}>
+          {isListening ? <MicOff size={22} /> : <Mic size={22} />}
+        </button>
       </div>
+
+      <div className="flex items-center gap-1.5 mt-2 shrink-0 flex-wrap">
+        <span className="text-xs text-muted-foreground/60 shrink-0 mr-1">识别到指令：</span>
+        {commands.map(cmd => (
+          <span key={cmd.id}
+            className={`text-[11px] px-3 py-1 rounded-md transition-colors cursor-default font-medium ${
+              detectedCmd === cmd.id
+                ? 'bg-primary/10 text-primary'
+                : 'text-muted-foreground/70 hover:text-foreground hover:bg-muted'
+            }`}>
+            {cmd.name}
+          </span>
+        ))}
+        <span className="flex-1" />
+        <button onClick={() => { setNewCmdName(''); setNewCmdPhrases(''); setNewCmdAction(''); setNewCmdVars([]); setShowVarForm(false); setShowAddCmd(true); }}
+          className="p-1 rounded-md text-muted-foreground/40 hover:text-foreground hover:bg-accent transition-colors"><Plus size={14} /></button>
+      </div>
+    </div>
+  );
+
+  const outputSlot = (
+    <div className="flex flex-col h-full">
+      <div className="flex items-center gap-2 shrink-0 mb-2">
+        <AudioWaveform size={14} className="text-muted-foreground" />
+        <span className="text-xs font-medium text-muted-foreground">转录文本</span>
+        {(transcript || interim) && (
+          <div className="flex items-center gap-1 ml-auto">
+            <button onClick={() => { navigator.clipboard.writeText(transcript); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
+              className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"><Copy size={13} /></button>
+            <button onClick={() => { setTranscript(''); setInterim(''); }}
+              className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"><X size={13} /></button>
+          </div>
+        )}
+      </div>
+      <div className="flex-1 overflow-y-auto min-h-0">
+        <p className="text-lg text-foreground whitespace-pre-wrap leading-relaxed">
+          {transcript}
+          {interim && <span className="text-muted-foreground/40"> {interim}</span>}
+        </p>
+        {!transcript && !interim && (
+          <p className="text-muted-foreground/25 text-base">点击麦克风开始录音</p>
+        )}
+      </div>
+    </div>
+  );
+
+  const settingsSlot = (
+    <SettingsCodeTab
+      labels={{ settings: '设置', code: '代码' }}
+      settings={
+        <div className="flex flex-col">
+          <div className="border-b border-border/20">
+            <div className="flex items-center gap-2 px-4 pt-4 pb-2">
+              <div className="w-1 h-4 rounded-full bg-primary/40" />
+              <h3 className="font-medium text-xs uppercase tracking-wider text-muted-foreground">语音设置</h3>
+            </div>
+            <div className="flex flex-col gap-3 px-4 pb-4">
+              <div className="flex items-center justify-between gap-4 min-h-[32px]">
+                <span className="text-sm text-foreground/80">听写语言</span>
+                <select value={language} onChange={e => setLanguage(e.target.value)}
+                  className="h-8 text-xs border border-input bg-background rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-ring">
+                  {LANGUAGES.map(l => <option key={l.code} value={l.code}>{l.label}</option>)}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div className="border-b border-border/20">
+            <div className="flex items-center gap-2 px-4 pt-4 pb-2">
+              <div className="w-1 h-4 rounded-full bg-primary/40" />
+              <h3 className="font-medium text-xs uppercase tracking-wider text-muted-foreground">标点符号</h3>
+            </div>
+            <div className="flex flex-col gap-2 px-4 pb-4">
+              <label className="flex items-center gap-2 text-sm text-foreground/70">
+                <input type="radio" name="punctuation" checked={punctuationMode === 'spoken'} onChange={() => setPunctuationMode('spoken')} />
+                语音标点
+              </label>
+              <label className="flex items-center gap-2 text-sm text-foreground/70">
+                <input type="radio" name="punctuation" checked={punctuationMode === 'auto'} onChange={() => setPunctuationMode('auto')} />
+                自动标点
+              </label>
+            </div>
+          </div>
+
+          <div className="border-b border-border/20">
+            <div className="flex items-center gap-2 px-4 pt-4 pb-2">
+              <div className="w-1 h-4 rounded-full bg-primary/40" />
+              <h3 className="font-medium text-xs uppercase tracking-wider text-muted-foreground">格式化</h3>
+            </div>
+            <div className="flex flex-col gap-2 px-4 pb-4">
+              <label className="flex items-center gap-2 text-sm text-foreground/70">
+                <input type="checkbox" checked={interimResults} onChange={e => setInterimResults(e.target.checked)} />
+                显示暂态结果
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <div className="flex items-center gap-2 px-4 pt-4 pb-2">
+              <div className="w-1 h-4 rounded-full bg-primary/40" />
+              <h3 className="font-medium text-xs uppercase tracking-wider text-muted-foreground">语音指令</h3>
+            </div>
+            <div className="flex flex-col gap-1.5 px-4 pb-4">
+              {commands.map(cmd => (
+                <div key={cmd.id} className="text-xs py-1">
+                  <p className="font-medium text-foreground">{cmd.name}</p>
+                  <p className="text-muted-foreground/60 text-[11px] mt-0.5">{cmd.phrases.slice(0, 3).join('、')}</p>
+                </div>
+              ))}
+              <button onClick={() => { setNewCmdName(''); setNewCmdPhrases(''); setNewCmdAction(''); setNewCmdVars([]); setShowVarForm(false); setShowAddCmd(true); }}
+                className="text-xs text-primary hover:underline mt-2 flex items-center gap-1">
+                <Plus size={12} /> 添加指令
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+      code={
+        <CodeSnippet
+          javascript={`import { iCoDerClient } from "@icoder/sdk";
+
+const client = new iCoDerClient({ apiKey: "YOUR_API_KEY" });
+
+const session = await client.speechToText.startSession({
+  language: "${language}",
+  punctuation: "${punctuationMode}",
+  interimResults: ${interimResults},
+});
+
+session.onTranscript((text) => {
+  console.log("Transcript:", text);
+});`}
+          python={`from icoder_speech import iCoDerSTTClient
+
+client = iCoDerSTTClient(api_key="YOUR_API_KEY")
+
+session = client.create_session(
+    language="${language}",
+    punctuation="${punctuationMode}",
+    interim_results=${interimResults},
+)
+
+session.start()
+for transcript in session.transcripts():
+    print(f"Transcript: {transcript}")`}
+          csharp={`using iCoDer.Speech;
+
+var config = new iCoDerConfig { ApiKey = "YOUR_API_KEY" };
+using var client = new iCoDerSttClient(config);
+
+var session = await client.StartSessionAsync(new SttSessionOptions
+{
+    Language = "${language}",
+    Punctuation = PunctuationMode.${punctuationMode === 'auto' ? 'Auto' : 'Spoken'},
+    InterimResults = ${interimResults}
+});
+
+session.OnTranscript += (sender, text) =>
+{
+    Console.WriteLine($"Transcript: {text}");
+};
+
+await session.StartAsync();`}
+          json={`{
+  "apiKey": "YOUR_API_KEY",
+  "language": "${language}",
+  "punctuation": "${punctuationMode}",
+  "interimResults": ${interimResults}
+}`}
+        />
+      }
+    />
+  );
+
+  const inspectorSlot = (
+    <EventInspector events={sttEvents} creditsConsumed={sttCredits} />
+  );
+
+  return (
+    <>
+      <WorkbenchLayout
+        title={t.speechToTextBreadcrumb}
+        description="将语音实时转录为结构化文本"
+        inputLabel="语音控制"
+        outputLabel="转录文本"
+        input={inputSlot}
+        output={outputSlot}
+        settings={settingsSlot}
+        eventInspector={inspectorSlot}
+      />
 
       {/* Add Command Modal */}
       {showAddCmd && (
@@ -551,7 +591,6 @@ export default function SpeechToTextPage() {
           </div>
         </div>
       )}
-      </div>
-    </div>
+    </>
   );
 }

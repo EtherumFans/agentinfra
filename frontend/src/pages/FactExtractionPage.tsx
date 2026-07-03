@@ -10,6 +10,7 @@ import {
 import { factsApi, billingApi } from '../services/api';
 import SettingsCodeTab from '../components/common/SettingsCodeTab';
 import EventInspector from '../components/common/EventInspector';
+import WorkbenchLayout from '../components/layout/WorkbenchLayout';
 import CodeSnippet from '../components/common/CodeSnippet';
 
 // ---- 示例文本 ----
@@ -327,142 +328,127 @@ export default function FactExtractionPage() {
     ));
   };
 
-  return (
-    <div className="flex flex-col h-full bg-background">
-      {/* ==================== HEADER (breadcrumb — cost/Docs in global header) ==================== */}
-      <div className="flex items-center gap-2 px-4 py-1.5 border-b border-border/20 shrink-0 text-xs">
-        <Link to="/ai-studio/overview" className="text-muted-foreground hover:text-foreground transition-colors">{t.aiStudio}</Link>
-        <ChevronRight size={12} className="text-muted-foreground/50" />
-        <span className="text-foreground font-medium truncate">{t.factExtractionBreadcrumb}</span>
-      </div>
-
-      <div className="flex h-full">
-      {/* ===== LEFT: Main Content (75%) ===== */}
-      <div className="flex flex-col overflow-hidden bg-muted/20" style={{ flex: '75 1 0px' }}>
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-          <div className="flex h-full flex-col p-4">
-            <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background rounded-xl shadow-sm ring-1 ring-border/20">
-              {/* Input section */}
-              <div className={`flex flex-col min-h-0 transition-all duration-300 ${output ? 'flex-1' : 'flex-[5]'}`}>
-                <div className="flex items-center justify-between px-5 py-3 shrink-0">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">输入文本</span>
-                  </div>
-                  <div className="relative">
-                    <button onClick={() => setShowSampleMenu(!showSampleMenu)}
-                      className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-border/50 text-muted-foreground hover:text-foreground hover:border-border hover:bg-accent/50 transition-all">
-                      <FileText size={13} />
-                      <span>使用样例</span>
-                      <ChevronDown size={10} />
-                    </button>
-                    {showSampleMenu && (
-                      <div className="absolute right-0 top-full mt-1 bg-popover border border-border rounded-xl shadow-lg py-1 min-w-[170px] z-20">
-                        {Object.entries(SAMPLES).map(([key, sample]) => (
-                          <button key={key} onClick={() => { setInput(sample.text); setShowSampleMenu(false); }}
-                            className="w-full text-left px-3 py-2 text-xs text-foreground hover:bg-accent transition-colors">
-                            {sample.label}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <textarea
-                  value={input}
-                  onChange={e => setInput(e.target.value)}
-                  placeholder="输入临床文本以提取结构化事实..."
-                  className="flex-1 w-full resize-none bg-transparent px-5 pb-4 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none min-h-0 leading-relaxed"
-                />
-              </div>
-
-              {/* Divider + Extract button */}
-              <div className="flex items-center justify-between px-5 py-2.5 border-y border-border/20 bg-muted/20 shrink-0">
-                <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">提取结果</span>
-                <div className="flex items-center gap-2">
-                  {output && (
-                    <button onClick={() => { navigator.clipboard.writeText(rawOutput); setCopiedRaw(true); setTimeout(() => setCopiedRaw(false), 2000); }}
-                      className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors">
-                      {copiedRaw ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
-                    </button>
-                  )}
-                  <button onClick={handleExtract} disabled={!input.trim() || loading}
-                    className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-medium bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-30 transition-all shadow-sm shadow-primary/20">
-                    {loading ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />}
-                    提取事实
-                  </button>
-                </div>
-              </div>
-
-              {/* Output section */}
-              <div className={`overflow-auto min-h-0 transition-all duration-300 ${output ? 'flex-1' : 'flex-1'}`}>
-                {loading ? (
-                  <div className="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground">
-                    <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
-                    <span className="text-sm">提取中...</span>
-                  </div>
-                ) : error ? (
-                  <div className="flex items-center justify-center h-full px-5">
-                    <p className="text-sm text-red-500">{error}</p>
-                  </div>
-                ) : output ? (
-                  <div className="p-5">
-                    {renderFacts(output)}
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground/50">
-                    <Wand2 size={28} />
-                    <p className="text-sm">生成的事实将显示在这里</p>
-                  </div>
-                )}
-              </div>
+  // ---- WorkbenchLayout slot content ----
+  const inputSlot = (
+    <div className="flex flex-col h-full">
+      <div className="flex items-center justify-between shrink-0 mb-2">
+        <div className="relative">
+          <button onClick={() => setShowSampleMenu(!showSampleMenu)}
+            className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-border/50 text-muted-foreground hover:text-foreground hover:border-border hover:bg-accent/50 transition-all">
+            <FileText size={13} />
+            <span>使用样例</span>
+            <ChevronDown size={10} />
+          </button>
+          {showSampleMenu && (
+            <div className="absolute left-0 top-full mt-1 bg-popover border border-border rounded-xl shadow-lg py-1 min-w-[170px] z-20">
+              {Object.entries(SAMPLES).map(([key, sample]) => (
+                <button key={key} onClick={() => { setInput(sample.text); setShowSampleMenu(false); }}
+                  className="w-full text-left px-3 py-2 text-xs text-foreground hover:bg-accent transition-colors">
+                  {sample.label}
+                </button>
+              ))}
             </div>
+          )}
+        </div>
+      </div>
+      <textarea
+        value={input}
+        onChange={e => setInput(e.target.value)}
+        placeholder="输入临床文本以提取结构化事实..."
+        className="flex-1 w-full resize-none bg-transparent text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none min-h-0 leading-relaxed"
+      />
+    </div>
+  );
 
-            {/* Event Inspector */}
-            <EventInspector events={extractEvents} creditsConsumed={creditsConsumed} />
+  const outputSlot = (
+    <div className="flex flex-col h-full">
+      <div className="flex items-center justify-between shrink-0 mb-2">
+        <div className="flex items-center gap-2">
+          {output && (
+            <button onClick={() => { navigator.clipboard.writeText(rawOutput); setCopiedRaw(true); setTimeout(() => setCopiedRaw(false), 2000); }}
+              className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors">
+              {copiedRaw ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
+            </button>
+          )}
+          <button onClick={handleExtract} disabled={!input.trim() || loading}
+            className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-medium bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-30 transition-all shadow-sm shadow-primary/20">
+            {loading ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />}
+            提取事实
+          </button>
+        </div>
+      </div>
+      <div className="flex-1 overflow-y-auto">
+        {loading ? (
+          <div className="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground">
+            <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+            <span className="text-sm">提取中...</span>
           </div>
-        </div>
-      </div>
-
-      {/* ===== Separator ===== */}
-      <div className="h-full w-px bg-border/40" />
-
-      {/* ===== RIGHT: Settings Panel (25%) ===== */}
-      <div className="flex flex-col overflow-hidden bg-muted/10" style={{ flex: '25 1 0px' }}>
-        <div className="flex h-full flex-col overflow-hidden">
-          <SettingsCodeTab
-            labels={{ settings: '设置', code: '代码' }}
-            settings={
-              <div className="flex flex-col">
-                <div className="border-b border-border/20">
-                  <div className="flex items-center gap-2 px-4 pt-4 pb-2">
-                    <div className="w-1 h-4 rounded-full bg-primary/40" />
-                    <h3 className="font-medium text-xs uppercase tracking-wider text-muted-foreground">提取设置</h3>
-                  </div>
-                  <div className="flex flex-col gap-3 px-4 pb-4">
-                    <div className="flex items-center justify-between gap-4 min-h-[32px]">
-                      <span className="text-sm text-foreground/80">输出语言</span>
-                      <select value={outputLanguage} onChange={e => setOutputLanguage(e.target.value)}
-                        className="h-8 text-xs border border-input bg-background rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-ring">
-                        {Object.entries(LANGUAGES).map(([code, label]) => (
-                          <option key={code} value={code}>{label}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            }
-            code={
-              <CodeSnippet
-                javascript={getSdkCode(outputLanguage, input || '...')}
-                python={`from icoder_sdk import iCoDerClient\n\nclient = iCoDerClient(\n    auth={"access_token": "<access-token>"}\n)\n\ntry:\n    response = client.facts.extract(\n        context={"type": "text", "text": "${(input || '...').slice(0, 80).replace(/"/g, '\\"')}"},\n        output_language="${outputLanguage}",\n    )\n    print("Extracted facts:", response.facts)\nexcept Exception as error:\n    print("Error extracting facts:", error)`}
-                json={`{\n  "context": {\n    "type": "text",\n    "text": "${(input || '临床文本...').slice(0, 60).replace(/"/g, '\\"')}"\n  },\n  "outputLanguage": "${outputLanguage}"\n}`}
-              />
-            }
-          />
-        </div>
-      </div>
+        ) : error ? (
+          <div className="flex items-center justify-center h-full px-5">
+            <p className="text-sm text-red-500">{error}</p>
+          </div>
+        ) : output ? (
+          <div className="p-5">
+            {renderFacts(output)}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground/50">
+            <Wand2 size={28} />
+            <p className="text-sm">生成的事实将显示在这里</p>
+          </div>
+        )}
       </div>
     </div>
+  );
+
+  const settingsSlot = (
+    <SettingsCodeTab
+      labels={{ settings: '设置', code: '代码' }}
+      settings={
+        <div className="flex flex-col">
+          <div className="border-b border-border/20">
+            <div className="flex items-center gap-2 px-4 pt-4 pb-2">
+              <div className="w-1 h-4 rounded-full bg-primary/40" />
+              <h3 className="font-medium text-xs uppercase tracking-wider text-muted-foreground">提取设置</h3>
+            </div>
+            <div className="flex flex-col gap-3 px-4 pb-4">
+              <div className="flex items-center justify-between gap-4 min-h-[32px]">
+                <span className="text-sm text-foreground/80">输出语言</span>
+                <select value={outputLanguage} onChange={e => setOutputLanguage(e.target.value)}
+                  className="h-8 text-xs border border-input bg-background rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-ring">
+                  {Object.entries(LANGUAGES).map(([code, label]) => (
+                    <option key={code} value={code}>{label}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+      code={
+        <CodeSnippet
+          javascript={getSdkCode(outputLanguage, input || '...')}
+          python={`from icoder_sdk import iCoDerClient\n\nclient = iCoDerClient(\n    auth={"access_token": "<access-token>"}\n)\n\ntry:\n    response = client.facts.extract(\n        context={"type": "text", "text": "${(input || '...').slice(0, 80).replace(/"/g, '\\"')}"},\n        output_language="${outputLanguage}",\n    )\n    print("Extracted facts:", response.facts)\nexcept Exception as error:\n    print("Error extracting facts:", error)`}
+          json={`{\n  "context": {\n    "type": "text",\n    "text": "${(input || '临床文本...').slice(0, 60).replace(/"/g, '\\"')}"\n  },\n  "outputLanguage": "${outputLanguage}"\n}`}
+        />
+      }
+    />
+  );
+
+  const inspectorSlot = (
+    <EventInspector events={extractEvents} creditsConsumed={creditsConsumed} />
+  );
+
+  return (
+    <WorkbenchLayout
+      title={t.factExtractionBreadcrumb}
+      description="从临床文本中提取结构化医学事实"
+      inputLabel="输入文本"
+      outputLabel="提取结果"
+      input={inputSlot}
+      output={outputSlot}
+      settings={settingsSlot}
+      eventInspector={inspectorSlot}
+    />
   );
 }

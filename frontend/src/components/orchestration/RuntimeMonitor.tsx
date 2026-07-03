@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Shield, ChevronDown, ChevronRight, CheckCircle, XCircle, AlertTriangle, Eye, Lock, RefreshCw } from 'lucide-react';
-import { runtimeApi } from '../../services/api';
+import { runtimeStatusApi } from '../../services/api';
 
 const STATES = ['INGESTED','CONTEXT_READY','FACTS_EXTRACTED','CANDIDATES_READY','RULES_VALIDATED','RISK_IDENTIFIED','REVIEW_REQUIRED','DECISION_CONFIRMED','DOC_FEEDBACK_READY','WRITEBACK_PENDING','WRITTEN_BACK','ARCHIVED'];
 const STATE_LABELS: Record<string, string> = {
@@ -24,7 +24,7 @@ export default function RuntimeMonitor({ caseId, refreshTrigger, active }: Props
 
   const fetchSummary = () => {
     if (!caseId) return;
-    runtimeApi.summary(caseId).then(r => setSummary(r.data)).catch(() => {});
+    runtimeStatusApi.summary(caseId).then(r => setSummary(r.data)).catch(() => {});
   };
 
   useEffect(() => {

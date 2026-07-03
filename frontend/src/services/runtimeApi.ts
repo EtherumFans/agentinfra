@@ -1,4 +1,8 @@
-/** Runtime API client — /api/runtime/* standard endpoints. */
+/**
+ * Runtime Agent API client — /api/runtime/* standard endpoints (agent lifecycle,
+ * registry, medical-coding, rule-engine). Renamed from runtimeApi (cycle 25)
+ * to disambiguate from services/api.ts:runtimeStatusApi.
+ */
 
 import axios from 'axios';
 import type {
@@ -15,7 +19,7 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-export const runtimeApi = {
+export const runtimeAgentApi = {
   // ── Status ──
   getStatus: () => api.get<RuntimeStatus>('/status').then(r => r.data),
 

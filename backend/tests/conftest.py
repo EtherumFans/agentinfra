@@ -84,6 +84,33 @@ def _make_mock_user(role: str = "admin"):
     return _MockUser(role)
 
 
+def _make_mock_org():
+    """Build an Organization-like object satisfying dependencies.
+
+    TD-001 fix: the mock user's organization_id is "org_default1", but
+    `get_current_organization` (not overridden previously) reads the JWT
+    `org_id` claim, queries the DB, and returns the auto-created org with
+    a UUID id — so any test fixture that seeds rows with organization_id
+    = "org_default1" is invisible to API routes that filter by
+    `current_org.id`. Unify the org context by also overriding
+    `get_current_organization` to return a mock org whose id matches the
+    mock user's organization_id.
+    """
+    from datetime import datetime
+
+    class _MockOrg:
+        id = "org_default1"
+        name = "Test Organization (bypass)"
+        slug = "test-org-bypass"
+        plan = "free"
+        settings = {}
+        is_active = True
+        created_at = datetime(2026, 1, 1)
+        updated_at = datetime(2026, 1, 1)
+
+    return _MockOrg()
+
+
 @pytest.fixture(autouse=True)
 def reset_rate_limiter():
     """Reset login rate limiter between tests to avoid state leakage."""
@@ -125,6 +152,12 @@ async def setup_db():
         class_=AsyncSession,
         expire_on_commit=False,
     )
+    # TD-001 fix: async_session_factory was bound at module-import time to the
+    # OLD AsyncSessionLocal (dev DB). Rebind it so test fixtures that import
+    # `from app.database import async_session_factory` write to the test DB,
+    # not the dev DB. Without this, seeded_templates inserts into dev DB
+    # while the API reads test DB — the rows are invisible.
+    _db_module.async_session_factory = _db_module.AsyncSessionLocal
 
     await init_db()
     yield
@@ -170,19 +203,61 @@ async def auth_client():
 
 @pytest_asyncio.fixture(autouse=True)
 async def _install_auth_bypass():
-    """Install a get_current_user override when ICODER_DISABLE_AUTH_FOR_TESTS=1.
+    """Install get_current_user + get_current_organization overrides when
+    ICODER_DISABLE_AUTH_FOR_TESTS=1.
 
     This keeps the 904 existing tests green (they don't send Authorization
     headers) while letting RBAC-specific tests opt out by setting the env
     var to "0" or unsetting it via monkeypatch.
+
+    TD-001 fix: also override get_current_organization so the mock user's
+    organization_id ("org_default1") matches the org returned to routes
+    that filter by current_org.id. Previously only get_current_user was
+    overridden, so get_current_organization queried the DB via the JWT
+    org_id claim and returned an auto-created org with a UUID id,
+    breaking any fixture that seeded rows with organization_id =
+    "org_default1".
     """
-    from app.middleware.auth import get_current_user
+    from app.middleware.auth import get_current_user, get_current_organization
 
     if os.environ.get("ICODER_DISABLE_AUTH_FOR_TESTS") == "1":
         # Default to admin so /human-review RBAC gate passes for non-RBAC tests.
         app.dependency_overrides[get_current_user] = lambda: _make_mock_user("admin")
+        # TD-001: unify org context — return a mock org whose id matches
+        # the mock user's organization_id.
+        app.dependency_overrides[get_current_organization] = lambda: _make_mock_org()
     try:
         yield
     finally:
         if "get_current_user" in app.dependency_overrides:
             del app.dependency_overrides[get_current_user]
+        if "get_current_organization" in app.dependency_overrides:
+            del app.dependency_overrides[get_current_organization]
+
+
+@pytest_asyncio.fixture
+async def needs_auth():
+    """Opt out of the auth bypass for tests that exercise real 401/403 paths.
+
+    Usage:
+        async def test_protected_route_without_token(client, needs_auth):
+            response = await client.get("/api/encounters")
+            assert response.status_code == 401
+
+    Removes the get_current_user + get_current_organization overrides for
+    the duration of the test, then restores them after.
+    """
+    from app.middleware.auth import get_current_user, get_current_organization
+    saved_user = app.dependency_overrides.get(get_current_user)
+    saved_org = app.dependency_overrides.get(get_current_organization)
+    if get_current_user in app.dependency_overrides:
+        del app.dependency_overrides[get_current_user]
+    if get_current_organization in app.dependency_overrides:
+        del app.dependency_overrides[get_current_organization]
+    try:
+        yield
+    finally:
+        if saved_user is not None:
+            app.dependency_overrides[get_current_user] = saved_user
+        if saved_org is not None:
+            app.dependency_overrides[get_current_organization] = saved_org

@@ -48,7 +48,11 @@ os.environ.setdefault("ICODER_CREDENTIAL_LLM", "test-fake-key")
 @pytest.fixture
 def client():
     from app.main import app
-    return TestClient(app)
+    # TD-004 fix: must enter TestClient as context manager to trigger
+    # lifespan startup, which mounts A2A + MCP routers. Without this,
+    # /api/icoder/agents and /.well-known/agent.json return 404.
+    with TestClient(app) as c:
+        yield c
 
 
 # ─── 1. RBAC — all v2 + A2A endpoints require auth ────────────────

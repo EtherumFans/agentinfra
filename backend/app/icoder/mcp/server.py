@@ -219,7 +219,7 @@ def build_router() -> APIRouter:
     """
     router = APIRouter()
 
-    @router.post("/mcp/v1/tools/list")
+    @router.post("/mcp/v1/tools/list", operation_id="mcp_tools_list_v1")
     async def tools_list(request: Request):
         """Return all registered tool descriptors."""
         # Body is optional for tools/list; some clients send empty POST.
@@ -268,7 +268,7 @@ def build_router() -> APIRouter:
                 f"internal error: {type(e).__name__}: {e}",
             ), status_code=200)
 
-    @router.post("/mcp/v1/tools/call")
+    @router.post("/mcp/v1/tools/call", operation_id="mcp_tools_call_v1")
     async def tools_call(request: Request):
         """Dispatch one tool invocation."""
         body = await request.body()
@@ -461,6 +461,12 @@ def mount_mcp(
     if phi_redactor is not None:
         app.state.phi_redactor = phi_redactor
 
+    # TD-004 fix: idempotent mount — if the MCP router is already mounted
+    # (e.g. lifespan re-ran across TestClient sessions), skip re-mounting
+    # to avoid duplicate operation_id warnings.
+    if getattr(app.state, "_mcp_mounted", False):
+        return
+
     # Install the context_id middleware (idempotent — FastAPI dedupes by
     # function identity, but we wrap in a closure so each mount call gets
     # its own middleware function reference).
@@ -485,6 +491,7 @@ def mount_mcp(
 
     router = build_router()
     app.include_router(router)
+    app.state._mcp_mounted = True
     logger.info(
         "MCP server mounted at /mcp/v1/tools/{list,call} with %d tools",
         len(TOOL_REGISTRY),

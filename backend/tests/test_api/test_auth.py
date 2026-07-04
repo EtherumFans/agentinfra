@@ -75,7 +75,7 @@ async def test_login_failure(client):
 
 
 @pytest.mark.asyncio
-async def test_protected_route_without_token(client):
+async def test_protected_route_without_token(client, needs_auth):
     response = await client.get("/api/encounters")
     assert response.status_code == 401
 

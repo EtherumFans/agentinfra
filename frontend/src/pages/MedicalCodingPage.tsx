@@ -488,12 +488,12 @@ export default function MedicalCodingPage() {
                   </div>
                 )}
 
-                {/* MedCodER per-diagnosis cards (only when mode==='medcoder') */}
+                {/* Medical Coding Agent per-diagnosis cards (only when mode==='medcoder') */}
                 {isMedcoderMode && (
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">
-                        {t.medcoderPipeline}
+                        {t.codingPipeline}
                       </p>
                       <span className="text-[10px] font-mono text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">
                         {t.extractedDiagnosesCount.replace('{{n}}', String(extractedDiagnoses.length))}

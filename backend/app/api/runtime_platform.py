@@ -414,7 +414,7 @@ async def install_agent_to_runtime(body: InstallRequest):
         raise HTTPException(status_code=400, detail=detail)
 
 
-AGENT_REF = "icoder/medical-coding-agent@1.0.0"
+AGENT_REF = "icoder/medical-coding-agent@2.0.0"
 
 # ── Observability ──
 

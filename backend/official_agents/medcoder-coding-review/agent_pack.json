@@ -1,14 +1,19 @@
 {
   "format_version": "1.2",
-  "agent_type": "reference",
+  "agent_type": "internal_engine",
   "agent_ref": "icoder/medcoder-coding-review-agent@1.0.0",
   "manifest": {
-    "name": "MedCodER Coding Review Agent",
+    "name": "Medical Coding Agent — Internal Engine (MedCodER 5-stage)",
     "version": "1.0.0",
-    "description": "iCoDer Runtime 上的标准编码审核 Agent。完全替代 homepage-coding-review 的 14-stage cosmetic pipeline, 直接基于 MedCodER 5 阶段管线 (Extraction → Retrieval → Merge → Re-Rank → Calibration) 编排。输入中文病历, 输出 per-disease ExtractedDiagnosis (含证据 char span、Top-5 candidate、final_confidence、rule_flags), 通过 A2A v0.3 DataPart 返回。AI-assisted coding, 所有低置信度 / 证据不足 / 规则冲突的编码均需人工复核。",
+    "description": "iCoDer Medical Coding Agent 的内部实现引擎。基于 MedCodER 5 阶段管线 (NAACL 2025 Industry Track): Extraction → Retrieval → Merge → Re-Rank → Calibration。此 Agent 不是面向最终用户的产品 Agent, 仅供 icoder/medical-coding-agent@2.0.0 作为 internal_engine 调用。最终用户应使用 Medical Coding Agent (Corti-style 7-step workflow, 8-field output)。AI-assisted coding, 所有低置信度 / 证据不足 / 规则冲突的编码均需人工复核。",
     "category": "medical-coding",
-    "icon": "Microscope",
-    "tags": ["medcoder", "reference-agent", "rag", "rerank", "calibration"]
+    "category_display": "Internal Engine",
+    "icon": "Cog",
+    "tags": ["internal-engine", "medcoder", "5-stage-pipeline", "not-user-facing"],
+    "maturity": "internal",
+    "production_ready": false,
+    "human_review": "required",
+    "hidden_from_hub": true
   },
   "system_prompt": "你是 iCoDer MedCodER 编码审核 Agent。严格按 MedCodER 5 阶段管线处理输入病历:\n\nStage 1 — Extraction (LLM, DeepSeek-v4):\n  从病历识别每个诊断的 disease_text + supporting_evidence (原文 + char span)\n  + llm_initial_code。每条 evidence 必须能在原文中找到对应片段, 不得编造。\n\nStage 2 — Retrieval (BGE-M3 + FAISS, 本地):\n  对每个 disease_text 做 synonym expansion (top-3), embed (BAAI/bge-m3, 1024-dim),\n  FAISS top-20, filter via icd10cn_code_catalog (37,897 码)。\n\nStage 3 — Merge (LLM data plane):\n  candidate_set = (LLM codes) ∪ (retrieved top-20), cap 30 per disease.\n  注入 coding_differentiation_kb P0/P1 hints.\n\nStage 4 — Re-Rank (LLM, DeepSeek-v4):\n  RankGPT-style 重排 top-5 per disease. 输出 per-disease final_confidence\n  + rerank_notes (引用 evidence)。\n\nStage 5 — Compliance + Calibration:\n  MedCodERRetrievalRuleSet (MR-001/002/003): catalog membership,\n  similarity ≥ 0.5, chapter metadata. 每条 diagnosis 的 final_confidence < 0.5\n  触发 manual_review_required。\n\n硬约束:\n- production_writeback_blocked = true (不写回 EMR/HIS/医保)\n- phi_redacted = true (Context 强制 PHI 脱敏)\n- 输出必须是 JSON, 遵循 icoder/MedicalCodingOutputSchema/v1\n- extracted_diagnoses 字段必须非空 (MedCodER 标志性输出)",
   "experts": [

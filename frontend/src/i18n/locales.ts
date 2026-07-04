@@ -235,10 +235,13 @@ export interface LocaleDict {
   outpatientRecord: string;
   consultationRecord: string;
 
-  // MedCodER pipeline UI
-  medcoderPipeline: string;
-  medcoderMode: string;
-  enableMedcoder: string;
+  // Medical Coding pipeline UI (Corti-aligned — was MedCodER pipeline)
+  medcoderPipeline: string;  // deprecated alias, kept for back-compat
+  medcoderMode: string;      // deprecated alias, kept for back-compat
+  enableMedcoder: string;    // deprecated alias, kept for back-compat
+  codingPipeline: string;
+  codingMode: string;
+  enableCoding: string;
   evidenceHighlight: string;
   topKCandidates: string;
   overrideCode: string;
@@ -1070,10 +1073,13 @@ const zhCN: LocaleDict = {
   outpatientRecord: '门诊病历',
   consultationRecord: '会诊记录',
 
-  // MedCodER pipeline UI
-  medcoderPipeline: 'MedCodER 管线',
-  medcoderMode: 'MedCodER 模式 (NAACL 2025)',
-  enableMedcoder: '启用 MedCodER 管线',
+  // Medical Coding pipeline UI (Corti-aligned — was MedCodER pipeline)
+  medcoderPipeline: '编码管线',  // deprecated alias
+  medcoderMode: '编码模式 (Corti-style)',  // deprecated alias
+  enableMedcoder: '启用编码管线',  // deprecated alias
+  codingPipeline: '编码管线',
+  codingMode: '编码模式 (Corti-style)',
+  enableCoding: '启用编码管线',
   evidenceHighlight: '证据高亮',
   topKCandidates: 'Top-K 候选编码',
   overrideCode: '修改编码',
@@ -1923,10 +1929,13 @@ const enUS: LocaleDict = {
   outpatientRecord: 'Outpatient record',
   consultationRecord: 'Consultation record',
 
-  // MedCodER pipeline UI
-  medcoderPipeline: 'MedCodER pipeline',
-  medcoderMode: 'MedCodER mode (NAACL 2025)',
-  enableMedcoder: 'Enable MedCodER pipeline',
+  // Medical Coding pipeline UI (Corti-aligned — was MedCodER pipeline)
+  medcoderPipeline: 'Coding pipeline',  // deprecated alias
+  medcoderMode: 'Coding mode (Corti-style)',  // deprecated alias
+  enableMedcoder: 'Enable coding pipeline',  // deprecated alias
+  codingPipeline: 'Coding pipeline',
+  codingMode: 'Coding mode (Corti-style)',
+  enableCoding: 'Enable coding pipeline',
   evidenceHighlight: 'Evidence highlight',
   topKCandidates: 'Top-K candidates',
   overrideCode: 'Override code',

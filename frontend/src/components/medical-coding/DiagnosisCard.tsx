@@ -1,5 +1,5 @@
 /**
- * DiagnosisCard — one disease extracted by the MedCodER pipeline.
+ * DiagnosisCard — one disease extracted by the Medical Coding Agent.
  *
  * Shows:
  *   - disease_text (the normalized disease name)
@@ -9,6 +9,10 @@
  *   - Per-diagnosis confidence badge
  *
  * Renders inside MedicalCodingPage right panel for mode="medcoder" results.
+ *
+ * Note: the underlying runtime mode is 'medcoder' (the internal engine name);
+ * user-facing UI labels this as "编码管线" / "Coding pipeline" per Corti
+ * alignment (Phase 3-A). The internal_engine name does not surface to users.
  */
 import React, { useState } from 'react';
 import { ExtractedDiagnosis, CandidateCode } from '../../types/runtime';

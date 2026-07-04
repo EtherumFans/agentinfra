@@ -404,6 +404,307 @@ class MedicalCodingOutputSchema:
         )
 
 
+@dataclass
+class TraceRefs:
+    """References to internal run/trace artifacts (Corti-style field 8).
+
+    Lets a reviewer or downstream UI drill from the agent's output back to
+    the run history, stage trace, and rule firings that produced it.
+    """
+    run_id: str = ""
+    stage_trace: list = field(default_factory=list)  # list[StageTraceEntry dict]
+    rule_fired: list = field(default_factory=list)  # list[str] rule codes
+    mode: str = ""  # medcoder | legacy | noop (technical, not user-facing)
+    method_id: str = ""  # medcoder.full | legacy.deepseek | ...
+    provider: str = ""
+    model: str = ""
+
+    def to_dict(self) -> dict:
+        return {
+            "run_id": self.run_id,
+            "stage_trace": list(self.stage_trace),
+            "rule_fired": list(self.rule_fired),
+            "mode": self.mode,
+            "method_id": self.method_id,
+            "provider": self.provider,
+            "model": self.model,
+        }
+
+
+@dataclass
+class EncounterSummary:
+    """Corti-style field 1 — high-level encounter synthesis.
+
+    Pulls the headline facts (主诉 / 诊疗经过 / 关键发现) plus the source
+    document list so the reviewer can see what was fed in.
+    """
+    chief_complaint: str = ""
+    treatment_course: str = ""
+    key_findings: list = field(default_factory=list)  # list[str]
+    document_sources: list = field(default_factory=list)  # list[dict]: {doc_id, doc_type}
+    encounter_date: str = ""
+
+    def to_dict(self) -> dict:
+        return {
+            "chief_complaint": self.chief_complaint,
+            "treatment_course": self.treatment_course,
+            "key_findings": list(self.key_findings),
+            "document_sources": list(self.document_sources),
+            "encounter_date": self.encounter_date,
+        }
+
+
+@dataclass
+class DocumentationAnalysis:
+    """Corti-style field 2 — evidence extracted from the source documents.
+
+    All four buckets must be populated (even if empty) so consumers can
+    trust the shape. Each evidence item is an :class:`EvidenceSpan`.
+    """
+    diagnosis_evidence: list = field(default_factory=list)  # list[EvidenceSpan]
+    procedure_evidence: list = field(default_factory=list)  # list[EvidenceSpan]
+    negated_findings: list = field(default_factory=list)  # list[EvidenceSpan]
+    historical_conditions: list = field(default_factory=list)  # list[EvidenceSpan]
+
+    def to_dict(self) -> dict:
+        def _ser(items):
+            out = []
+            for e in items or []:
+                if isinstance(e, EvidenceSpan):
+                    out.append(e.to_dict())
+                elif isinstance(e, dict):
+                    out.append(e)
+                elif isinstance(e, str):
+                    out.append({"text": e})
+            return out
+        return {
+            "diagnosis_evidence": _ser(self.diagnosis_evidence),
+            "procedure_evidence": _ser(self.procedure_evidence),
+            "negated_findings": _ser(self.negated_findings),
+            "historical_conditions": _ser(self.historical_conditions),
+        }
+
+
+@dataclass
+class CodeAssignment:
+    """Corti-style field 3 — final code assignment with evidence.
+
+    Each code MUST carry an evidence span linking back to the source. No
+    evidence = no code (Corti red line).
+    """
+    primary_diagnosis: DiagnosisEntry = field(default_factory=DiagnosisEntry)
+    secondary_diagnoses: list = field(default_factory=list)  # list[DiagnosisEntry]
+    procedures: list = field(default_factory=list)  # list[ProcedureEntry]
+
+    def to_dict(self) -> dict:
+        return {
+            "primary_diagnosis": self.primary_diagnosis.to_dict(),
+            "secondary_diagnoses": [d.to_dict() if isinstance(d, DiagnosisEntry) else d
+                                    for d in self.secondary_diagnoses],
+            "procedures": [p.to_dict() if isinstance(p, ProcedureEntry) else p
+                           for p in self.procedures],
+        }
+
+
+@dataclass
+class DocumentationGap:
+    """Corti-style field 4a — a single documentation gap.
+
+    Gaps are evidence shortages, candidate conflicts, negated findings
+    that should be coded elsewhere, or historical dx that weren't coded.
+    """
+    gap_type: str = ""  # insufficient_evidence | candidate_conflict | negated_uncoded | historical_uncoded
+    description: str = ""
+    related_code: str = ""
+    suggestion: str = ""
+
+    def to_dict(self) -> dict:
+        return {
+            "gap_type": self.gap_type,
+            "description": self.description,
+            "related_code": self.related_code,
+            "suggestion": self.suggestion,
+        }
+
+
+@dataclass
+class UncodableItem:
+    """Corti-style field 5a — a single uncodable finding.
+
+    Different from DocumentationGap: gaps are 'need more evidence', while
+    uncodable items are 'cannot assign a code at all' (e.g. negated
+    findings, historical conditions, deferred diagnoses).
+    """
+    item_type: str = ""  # negated_finding | historical_condition | deferred_diagnosis | other
+    text: str = ""
+    reason: str = ""  # why this can't be coded
+
+    def to_dict(self) -> dict:
+        return {
+            "item_type": self.item_type,
+            "text": self.text,
+            "reason": self.reason,
+        }
+
+
+@dataclass
+class ValidationSummary:
+    """Corti-style field 6 — rule_set pass/fail + issues.
+
+    Wraps the issues_found list with a top-level pass bool and the
+    manual_review flag derived from issue severity.
+    """
+    passed: bool = True
+    issues_found: list = field(default_factory=list)  # list[CodingIssue]
+    manual_review_required: bool = False
+    rule_set: str = ""  # e.g. "MedCodERRetrievalRuleSet"
+    fired_rules: list = field(default_factory=list)  # list[str]
+
+    def to_dict(self) -> dict:
+        return {
+            "passed": self.passed,
+            "issues_found": [i.to_dict() if isinstance(i, CodingIssue) else i
+                             for i in self.issues_found],
+            "manual_review_required": self.manual_review_required,
+            "rule_set": self.rule_set,
+            "fired_rules": list(self.fired_rules),
+        }
+
+
+@dataclass
+class HumanReview:
+    """Corti-style field 7 — explicit human review requirement.
+
+    Even when validation passes, MVP maturity means human review is always
+    required. The review_focus list highlights the top items the coder
+    should look at first.
+    """
+    review_conclusion: str = "PASS"  # PASS | WARNING | FAIL
+    review_required: bool = True
+    review_focus: list = field(default_factory=list)  # list[str] — top items to check
+    notes: str = ""
+
+    def to_dict(self) -> dict:
+        return {
+            "review_conclusion": self.review_conclusion,
+            "review_required": self.review_required,
+            "review_focus": list(self.review_focus),
+            "notes": self.notes,
+        }
+
+
+@dataclass
+class MedicalCodingAgentOutputV2:
+    """Corti-style 8-field output for the Medical Coding Agent (MVP).
+
+    This is the user-facing contract. The legacy ``MedicalCodingOutputSchema``
+    (v1) carries the MedCodER 5-stage technical fields; this v2 wraps it
+    and projects to the Corti 8 fields. Both can coexist — the runtime
+    produces a v1 internally and the A2A / API layer projects to v2 for
+    external consumers.
+
+    MVP maturity: production_ready=false, human_review=required. Every
+    field must be present in the output, even if empty (no field may be
+    omitted — that's the Corti contract).
+    """
+
+    encounter_summary: EncounterSummary = field(default_factory=EncounterSummary)
+    documentation_analysis: DocumentationAnalysis = field(default_factory=DocumentationAnalysis)
+    code_assignment: CodeAssignment = field(default_factory=CodeAssignment)
+    documentation_gaps: list = field(default_factory=list)  # list[DocumentationGap]
+    uncodable_items: list = field(default_factory=list)  # list[UncodableItem]
+    validation_summary: ValidationSummary = field(default_factory=ValidationSummary)
+    human_review: HumanReview = field(default_factory=HumanReview)
+    trace_refs: TraceRefs = field(default_factory=TraceRefs)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "encounter_summary": self.encounter_summary.to_dict(),
+            "documentation_analysis": self.documentation_analysis.to_dict(),
+            "code_assignment": self.code_assignment.to_dict(),
+            "documentation_gaps": [g.to_dict() if isinstance(g, DocumentationGap) else g
+                                   for g in self.documentation_gaps],
+            "uncodable_items": [i.to_dict() if isinstance(i, UncodableItem) else i
+                                for i in self.uncodable_items],
+            "validation_summary": self.validation_summary.to_dict(),
+            "human_review": self.human_review.to_dict(),
+            "trace_refs": self.trace_refs.to_dict(),
+        }
+
+    @classmethod
+    def from_legacy_v1(
+        cls,
+        legacy: "MedicalCodingOutputSchema",
+        *,
+        run_id: str = "",
+    ) -> "MedicalCodingAgentOutputV2":
+        """Project a v1 ``MedicalCodingOutputSchema`` to the v2 Corti-style 8 fields.
+
+        Used by the A2A / API layer to expose Corti-style output to external
+        consumers. The v1 schema is the runtime's internal representation
+        (carrying MedCodER 5-stage technical fields); the v2 is the user
+        contract.
+        """
+        # documentation_analysis: gather evidence from extracted_diagnoses
+        diag_evidence: list = []
+        proc_evidence: list = []
+        for dx in getattr(legacy, "extracted_diagnoses", []) or []:
+            if isinstance(dx, ExtractedDiagnosis):
+                diag_evidence.extend(dx.evidence_spans())
+            elif isinstance(dx, dict):
+                diag_evidence.extend(_parse_evidence(dx.get("supporting_evidence", [])))
+
+        # validation_summary: project from issues_found + manual_review_required
+        validation = ValidationSummary(
+            passed=not legacy.issues_found,
+            issues_found=list(legacy.issues_found),
+            manual_review_required=legacy.manual_review_required,
+            rule_set="MedCodERRetrievalRuleSet",
+            fired_rules=[i.code for i in legacy.issues_found if i.code],
+        )
+
+        # human_review: always required in MVP
+        review = HumanReview(
+            review_conclusion=legacy.review_conclusion,
+            review_required=True,
+            review_focus=[i.message for i in legacy.issues_found
+                          if i.severity in ("critical", "high")],
+            notes=legacy.notes,
+        )
+
+        # code_assignment: pass-through (codes already carry evidence)
+        assignment = CodeAssignment(
+            primary_diagnosis=legacy.primary_diagnosis,
+            secondary_diagnoses=list(legacy.secondary_diagnoses),
+            procedures=list(legacy.procedures),
+        )
+
+        # trace_refs: runtime metadata
+        trace = TraceRefs(
+            run_id=run_id,
+            stage_trace=list(legacy.method_stage_trace),
+            rule_fired=[i.code for i in legacy.issues_found if i.code],
+            mode=str(legacy.mode),
+            method_id=legacy.method_id,
+            provider=legacy.provider,
+            model=legacy.model,
+        )
+
+        return cls(
+            encounter_summary=EncounterSummary(),
+            documentation_analysis=DocumentationAnalysis(
+                diagnosis_evidence=diag_evidence,
+                procedure_evidence=proc_evidence,
+            ),
+            code_assignment=assignment,
+            documentation_gaps=[],
+            uncodable_items=[],
+            validation_summary=validation,
+            human_review=review,
+            trace_refs=trace,
+        )
+
+
 # ── CodingEngineAdapter — abstract interface for real coding engines ──
 
 

@@ -808,7 +808,6 @@ from app.api.compliance import router as compliance_router
 from app.api.medical_docs import router as medical_docs_router
 from app.api.embedded import router as embedded_router
 from app.api.drg import router as drg_router
-from app.api.m2a import router as m2a_router
 from app.api.icoder_coding_review import router as icoder_coding_review_router
 from app.api.v2_tools_coding import router as v2_tools_coding_router
 from app.api.v2_tools_facts import router as v2_tools_facts_router
@@ -860,7 +859,6 @@ app.include_router(compliance_router)          # /api/compliance/*
 app.include_router(embedded_router)            # /api/embedded/*
 app.include_router(medical_docs_router)        # /api/medical-docs/*
 app.include_router(drg_router)                 # /api/drg/*
-app.include_router(m2a_router)                 # /api/m2a/* (M2a 技术闭环)
 
 
 @app.get("/api/metrics")

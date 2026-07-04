@@ -74,10 +74,10 @@ async def list_all_agents(
     result = await db.execute(q)
     agents = result.scalars().all()
 
-    from app.api.agents import _agent_to_dict
+    from app.services.agent_dict_util import agent_to_dict
     items = []
     for a in agents:
-        items.append(await _agent_to_dict(a))
+        items.append(await agent_to_dict(a))
     return {"agents": items, "total": len(items)}
 
 

@@ -11,10 +11,10 @@ const SDK_CARDS = [
 ];
 
 const API_SECTIONS = [
-  { icon: Mic, title: 'Speech To Text', path: '/api/speech-to-text', desc: '实时语音识别，中英混合，语音指令', method: 'POST / WS' },
-  { icon: FileText, title: 'Fact Extraction', path: '/api/facts/extract', desc: '临床文本→结构化事实', method: 'POST' },
-  { icon: FileText, title: 'Text Generation', path: '/api/text-gen/generate', desc: '13 模板 LLM 文书生成', method: 'POST' },
-  { icon: Stethoscope, title: 'Medical Coding', path: '/api/reviews', desc: 'ICD-10-CN / ICD-9-CM-3 编码', method: 'POST' },
+  { icon: Mic, title: 'Speech To Text', path: '/api/v2/tools/interactions', desc: '实时语音识别，中英混合，语音指令', method: 'POST / WS' },
+  { icon: FileText, title: 'Fact Extraction', path: '/api/v2/tools/extract-facts', desc: '临床文本→结构化事实', method: 'POST' },
+  { icon: FileText, title: 'Guided Documents', path: '/api/v2/tools/guided-documents', desc: 'templateRef + ephemeral 文书生成', method: 'POST' },
+  { icon: Stethoscope, title: 'Medical Coding', path: '/api/v2/tools/coding/icoder/', desc: 'ICD-10-CN / ICD-9-CM-3 编码', method: 'POST' },
   { icon: Sparkles, title: 'Agentic Framework', path: '/api/agents', desc: '智能体创建/管理/流式对话', method: 'POST / GET / SSE' },
   { icon: Key, title: 'Authentication', path: '/api/auth/login', desc: 'JWT + OAuth 2.0 + PKCE', method: 'POST' },
   { icon: Puzzle, title: 'Embedded Assistant', path: '/api/embedded', desc: 'Web Component 嵌入', method: 'GET' },

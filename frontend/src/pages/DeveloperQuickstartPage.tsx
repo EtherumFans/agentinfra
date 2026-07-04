@@ -14,10 +14,9 @@ const AI_TOOLS: { key: AiTool; label: string }[] = [
 ];
 
 const API_ENDPOINTS: { key: string; method: string; path: string; label: string; sampleBody: string | null }[] = [
-  { key: 'facts-extract', method: 'POST', path: '/api/facts/extract', label: 'POST /api/facts/extract', sampleBody: JSON.stringify({ context: { type: 'text', text: '患者因腰痛伴左下肢放射痛3月就诊。查体：腰椎活动受限，左下肢直腿抬高试验阳性。' }, outputLanguage: 'zh-CN' }, null, 2) },
+  { key: 'facts-extract', method: 'POST', path: '/api/v2/tools/extract-facts', label: 'POST /api/v2/tools/extract-facts', sampleBody: JSON.stringify({ context: { type: 'text', text: '患者因腰痛伴左下肢放射痛3月就诊。查体：腰椎活动受限，左下肢直腿抬高试验阳性。' }, outputLanguage: 'zh-CN' }, null, 2) },
   { key: 'agents-run', method: 'POST', path: '/api/agents/{id}/run', label: 'POST /api/agents/{id}/run', sampleBody: JSON.stringify({ agent_id: 'agent-xxx', input: { message: '请根据以下病例提供ICD-10-CN编码建议。' } }, null, 2) },
-  { key: 'text-gen', method: 'POST', path: '/api/text-gen/generate', label: 'POST /api/text-gen/generate', sampleBody: JSON.stringify({ prompt: '将以下临床记录总结为结构化摘要：', max_tokens: 500, temperature: 0.3 }, null, 2) },
-  { key: 'reviews', method: 'POST', path: '/api/reviews', label: 'POST /api/reviews (async)', sampleBody: JSON.stringify({ case_id: 'case-xxx', assignee: 'reviewer-xxx', priority: 'high' }, null, 2) },
+  { key: 'coding', method: 'POST', path: '/api/v2/tools/coding/icoder/', label: 'POST /api/v2/tools/coding/icoder/', sampleBody: JSON.stringify({ input: { case_id: 'case-xxx', text: '主诉：腹痛...' } }, null, 2) },
   { key: 'usage', method: 'GET', path: '/api/usage/summary', label: 'GET /api/usage/summary', sampleBody: null },
 ];
 

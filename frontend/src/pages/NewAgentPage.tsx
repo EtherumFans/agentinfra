@@ -10,7 +10,7 @@ import {
   Pill, FileWarning, GraduationCap, Users, FileCheck,
   Send, FileSearch, ChevronRight, Plus, Lightbulb, ArrowRight,
 } from 'lucide-react';
-import { agentsApi, expertsApi } from '../services/api';
+import { agentsApi } from '../services/api';
 
 const ICON_MAP: Record<string, React.ElementType> = {
   Bot, BookOpenText, Shield, CheckCircle, Stethoscope,
@@ -35,12 +35,7 @@ export default function NewAgentPage() {
     agentsApi.templates().then(r => {
       setTemplates(r.data?.templates || []);
     }).catch(() => {});
-    expertsApi.list('', '', 'all').then(r => {
-      const experts = r.data?.experts || [];
-      const nameMap: Record<string, string> = {};
-      for (const e of experts) nameMap[e.name] = e.id;
-      setExpertNameToId(nameMap);
-    }).catch(() => {});
+    // experts endpoint deleted in Phase 2.1-B Step 1; expertNameToId stays empty
   }, []);
 
   const selected = templates.find((t: any) => t.id === selectedTemplate);

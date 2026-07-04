@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useAppStore, useCostStore } from '../store';
 import { useT } from '../i18n';
-import { codeTablesApi } from '../services/api';
 import { runtimeAgentApi } from '../services/runtimeApi';
 import type { RuntimeRunResult } from '../types/runtime';
 import type { ExtractedDiagnosis, CandidateCode } from '../types/runtime';
@@ -172,15 +171,13 @@ export default function MedicalCodingPage() {
 
   // ── Load coding systems ──
   useEffect(() => {
-    codeTablesApi.list().then((r: any) => {
-      const tables = r.data?.tables || [];
-      const systems = tables.filter((tt:any) => tt.is_active !== false).map((tt:any) => ({
-        code_system: tt.code_system, name: tt.name, is_default: tt.is_default,
-      }));
-      setCodingSystems(systems);
-      const defaults = systems.filter((s:any) => s.is_default).map((s:any) => s.code_system);
-      setSelectedSystems(defaults.length ? defaults : systems.length ? [systems[0].code_system] : []);
-    }).catch(() => {});
+    // code-tables endpoint deleted in Phase 2.1-B Step 1; coding systems now hardcoded
+    const systems = [
+      { code_system: 'icd10cn', name: 'ICD-10-CN', is_default: true },
+      { code_system: 'icd9cm3', name: 'ICD-9-CM-3', is_default: false },
+    ];
+    setCodingSystems(systems);
+    setSelectedSystems([systems[0].code_system]);
   }, []);
 
   // ── Inline templates (Corti-style 4-card layout) ──

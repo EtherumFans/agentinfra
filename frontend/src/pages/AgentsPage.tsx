@@ -8,7 +8,7 @@ import {
   Copy, Check, Wrench, Trash2, Send, Globe, Share2, Rocket,
   Layers,
 } from 'lucide-react';
-import { billingApi, expertsApi, agentsApi, oauthApi } from '../services/api';
+import { billingApi, agentsApi, oauthApi } from '../services/api';
 import { runtimeAgentApi } from '../services/runtimeApi';
 import { useToastStore } from '../store';
 import type { InstalledAgent } from '../types/runtime';
@@ -68,13 +68,6 @@ export default function AgentsPage() {
 
   useEffect(() => {
     billingApi.balance().then(r => setBalance(r.data.balance)).catch(() => {});
-    // Fetch ALL experts for name→id lookup
-    expertsApi.list('', '', 'all').then(r => {
-      const experts = r.data?.experts || [];
-      const nameMap: Record<string, string> = {};
-      for (const e of experts) nameMap[e.name] = e.id;
-      setExpertNameToId(nameMap);
-    }).catch(() => {});
     // Fetch OAuth clients
     oauthApi.list().then(r => {
       const clients = r.data?.clients || [];
@@ -621,10 +614,10 @@ function CreateExpertPicker({ selectedIds, onAdd, onRemove }: {
   useEffect(() => {
     if (!loaded) {
       setLoading(true);
-      expertsApi.list('', '', 'all').then(r => {
-        setExperts(r.data?.experts || []);
-        setLoaded(true);
-      }).catch(() => {}).finally(() => setLoading(false));
+      // experts endpoint deleted in Phase 2.1-B Step 1; expert picker is now empty
+      setExperts([]);
+      setLoaded(true);
+      setLoading(false);
     }
   }, [loaded]);
 

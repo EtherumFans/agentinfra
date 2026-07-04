@@ -8,7 +8,7 @@ import {
   X, Paperclip, FileText, Braces, Trash2, Wrench, Pencil,
   Search, Check, Sparkles, BookOpen, Copy, User, Clock,
 } from 'lucide-react';
-import { agentsApi, expertsApi, memoryApi, billingApi, oauthApi } from '../services/api';
+import { agentsApi, billingApi, oauthApi } from '../services/api';
 import { runtimeAgentApi } from '../services/runtimeApi';
 import { useToastStore } from '../store';
 import type { RuntimeRunResult } from '../types/runtime';
@@ -16,7 +16,6 @@ import SettingsCodeTab from '../components/common/SettingsCodeTab';
 import ToolSelector from '../components/agents/ToolSelector';
 import CodeSnippet from '../components/common/CodeSnippet';
 import EditSystemPromptModal from '../components/EditSystemPromptModal';
-import ExpertLibraryModal from '../components/ExpertLibraryModal';
 import A2ACollaboration from '../components/A2ACollaboration';
 
 export default function AgentDetailPage() {
@@ -130,21 +129,8 @@ export default function AgentDetailPage() {
     }).catch(() => {});
 
     let idToExpert: Record<string, any> = {};
-    expertsApi.list('', '', 'all').then(r => {
+    agentsApi.get(agentId).then(r2 => {
       if (!isActive()) return;
-      const expertsLoaded = r.data?.experts || [];
-      const nameMap: Record<string, string> = {};
-      for (const e of expertsLoaded) {
-        nameMap[e.name] = e.id;
-        idToExpert[e.id] = e;
-      }
-      if (!isActive()) return;
-      setExpertNameToId(nameMap);
-      const codingExperts = expertsLoaded.filter((e: any) => e.category === 'coding');
-      if (codingExperts.length > 0) setExpertDbId(codingExperts[0].id);
-      return agentsApi.get(agentId);
-    }).then(r2 => {
-      if (!isActive() || !r2) return;
       const a = r2.data;
       setAgent(a);
       setAgentName(a.name || '');
@@ -215,14 +201,6 @@ export default function AgentDetailPage() {
   // Load memory context
   useEffect(() => {
     if (agent && !memoryLoaded) {
-      const isActive = () => activeAgentIdRef.current === agentId;
-      memoryApi.context(sessionId).then(r => {
-        if (!isActive()) return;
-        const ctx = r.data?.context;
-        if (ctx) {
-          setChatMessages([{ role: 'assistant', content: `${t.sessionContextRestored}\n${ctx}` }]);
-        }
-      }).catch(() => {});
       setMemoryLoaded(true);
     }
     if (!agent) setMemoryLoaded(false);
@@ -260,8 +238,6 @@ export default function AgentDetailPage() {
       setInputFormat('text');
     }
     setChatLoading(true);
-
-    memoryApi.save(sessionId, 'user', content, expertDbId, agent?.id).catch(() => {});
 
     const assistantIdx = chatMessages.length + 1;
     setChatMessages(prev => [...prev, { role: 'assistant', content: '' }]);
@@ -324,7 +300,7 @@ export default function AgentDetailPage() {
         }
       }
       if (accumulated && isActive()) {
-        memoryApi.save(sessionId, 'assistant', accumulated, expertDbId, agent?.id).catch(() => {});
+        // memory persistence removed — experts.py /memory/* endpoints deleted in Phase 2.1-B Step 1
       }
     } catch (err: any) {
       if (err.name === 'AbortError') return;
@@ -1202,15 +1178,7 @@ Console.WriteLine($"Agent response: {result}");`}
         </div>
       </div>
 
-      {/* Expert Library Modal (iCoDer-style) */}
-      <ExpertLibraryModal
-        open={showExpertBrowser}
-        onClose={() => setShowExpertBrowser(false)}
-        onDone={(experts) => {
-          setAgentExperts(experts.map(e => ({ id: e.id, name: e.name, icon: e.icon || 'Bot' })));
-        }}
-        preSelected={agentExperts}
-      />
+      {/* Expert Library Modal removed — experts.py deleted in Phase 2.1-B Step 1 */}
 
       {/* System Prompt Editor Modal */}
       {showEditPrompt && (

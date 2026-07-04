@@ -244,64 +244,12 @@ export default function AgentDetailPage() {
 
     try {
       const token = localStorage.getItem('access_token') || '';
-      const resp = await fetch(`/api/agents/${agent.id || agentId}/stream`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ input: content, conversation_history: history }),
-        signal: abortController.signal,
-      });
-
-      if (!resp.ok) {
-        throw new Error(`HTTP ${resp.status}`);
-      }
-
-      const reader = resp.body?.getReader();
-      if (!reader) throw new Error('Cannot read response stream');
-
-      const decoder = new TextDecoder();
-      let buffer = '';
-      let accumulated = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        if (!isActive()) { reader.cancel(); break; }
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || '';
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            const data = line.slice(6);
-            if (data === '[DONE]') { if (isActive()) setChatLoading(false); continue; }
-            try {
-              const parsed = JSON.parse(data);
-              if (parsed.type === 'token' && parsed.text) {
-                accumulated += parsed.text;
-                if (isActive()) setChatMessages(prev => prev.map((m, i) =>
-                  i === assistantIdx ? { ...m, content: accumulated } : m
-                ));
-              } else if (parsed.type === 'done') {
-                if (isActive()) setChatLoading(false);
-              } else if (parsed.type === 'error') {
-                if (isActive()) {
-                  setChatMessages(prev => prev.map((m, i) =>
-                    i === assistantIdx ? { ...m, content: `错误：${parsed.message}` } : m
-                  ));
-                  setChatLoading(false);
-                }
-              }
-            } catch {
-              accumulated += data;
-              if (isActive()) setChatMessages(prev => prev.map((m, i) =>
-                i === assistantIdx ? { ...m, content: accumulated } : m
-              ));
-            }
-          }
-        }
-      }
-      if (accumulated && isActive()) {
-        // memory persistence removed — experts.py /memory/* endpoints deleted in Phase 2.1-B Step 1
-      }
+      // /api/agents/{id}/stream was deleted in Phase 2.1-A; A2A message:send
+      // is the new agent invocation path. Surface the migration to the user.
+      // TODO: rewrite to A2A SSE via /api/icoder/agents/{id}/v1/message:send
+      throw new Error('Agent streaming endpoint removed in Phase 2.1-A. Use A2A message:send via /api/icoder/agents/{id}/v1/message:send instead.');
+      // eslint-disable-next-line no-unreachable
+      void token;
     } catch (err: any) {
       if (err.name === 'AbortError') return;
       if (isActive()) {
@@ -348,25 +296,25 @@ export default function AgentDetailPage() {
 
   // Agent Evaluation
   const fetchEvalHistory = async () => {
+    // /api/agents/{id}/evaluation-history was deleted in Phase 2.1-A.
+    // TODO: re-implement via A2A run history (/api/runtime/runs) filtered by agent_ref.
     try {
       const ref = agentRef || (agent?.name?.toLowerCase()?.replace(/\s+/g,'-')||'') + '-' + (agent?.version||'1.0.0');
-      const resp = await fetch(`/api/agents/${encodeURIComponent(ref)}/evaluation-history`);
-      if (resp.ok) { const d = await resp.json(); setEvalHistory(d.evaluations||[]); }
+      // eslint-disable-next-line no-unused-vars
+      const _ = ref; // (kept for future A2A history call)
+      setEvalHistory([]);
     } catch {}
   };
   const runEvaluation = async () => {
+    // /api/agents/{id}/evaluate was deleted in Phase 2.1-A.
+    // TODO: re-implement via A2A message:send + evaluation agent.
     setEvalLoading(true);
     try {
-      const ref = agentRef || (agent?.name?.toLowerCase()?.replace(/\s+/g,'-')||'') + '-' + (agent?.version||'1.0.0');
-      const token = localStorage.getItem('access_token') || '';
-      const resp = await fetch(`/api/agents/${encodeURIComponent(ref)}/evaluate`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      });
-      if (resp.ok) {
-        const d = await resp.json(); setEvalResult(d);
-        setEvalHistory(prev => [{ evaluated_at: d.evaluated_at, primary_dx_accuracy: d.primary_dx_accuracy }, ...prev].slice(0,10));
-      }
-    } catch {} finally { setEvalLoading(false); }
+      throw new Error('Agent evaluation endpoint removed in Phase 2.1-A. Use A2A message:send with an evaluation agent.');
+    } catch (e: any) {
+      // Surface the migration error
+      console.warn(e.message);
+    } finally { setEvalLoading(false); }
   };
 
   // Save settings

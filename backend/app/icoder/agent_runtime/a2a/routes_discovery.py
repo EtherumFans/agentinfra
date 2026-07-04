@@ -47,14 +47,14 @@ def build_discovery_router(
     root = APIRouter(tags=["a2a-discovery"])
     agents = APIRouter(prefix="/api/icoder/agents", tags=["a2a-discovery"])
 
-    @root.get("/.well-known/agent.json")
+    @root.get("/.well-known/agent.json", operation_id="a2a_well_known_agent_json_v0_3")
     async def well_known_agent_json(request: Request):
         """A2A v0.3 standard discovery endpoint."""
         cards = _list_all_cards(agent_provider)
         body = AgentListResponse(agents=cards).model_dump(by_alias=True)
         return _json(body)
 
-    @root.get("/llms.txt")
+    @root.get("/llms.txt", operation_id="a2a_llms_txt_v0_3")
     async def llms_txt(request: Request):
         """LLM-friendly Markdown listing of available agents."""
         cards = _list_all_cards(agent_provider)
@@ -65,7 +65,7 @@ def build_discovery_router(
             headers={A2A_PROTOCOL_HEADER: A2A_PROTOCOL_VERSION},
         )
 
-    @agents.get("")
+    @agents.get("", operation_id="a2a_list_agents_v0_3")
     async def list_agents(
         request: Request,
         capability: str | None = Query(default=None),
@@ -88,7 +88,7 @@ def build_discovery_router(
         ]
         return _json({"agents": simplified})
 
-    @agents.get("/{agent_id}/card")
+    @agents.get("/{agent_id}/card", operation_id="a2a_get_agent_card_v0_3")
     async def get_agent_card(request: Request, agent_id: str):
         """Single agent's full AgentCard (SPEC §7.4.2)."""
         card = _resolve_card(agent_provider, agent_id)

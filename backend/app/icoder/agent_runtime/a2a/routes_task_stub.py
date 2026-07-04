@@ -27,7 +27,7 @@ def build_task_stub_router() -> APIRouter:
     """
     router = APIRouter(prefix="/api/icoder/tasks", tags=["a2a-task-stub"])
 
-    @router.get("/{task_id}")
+    @router.get("/{task_id}", operation_id="a2a_get_task_stub_v0_3")
     async def get_task(request: Request, task_id: str) -> JSONResponse:
         """Phase 1 stub — return 501 UNSUPPORTED_OPERATION."""
         err = unsupported_operation(
@@ -35,7 +35,7 @@ def build_task_stub_router() -> APIRouter:
         )
         return _error(err)
 
-    @router.post("/{task_id}/cancel")
+    @router.post("/{task_id}/cancel", operation_id="a2a_cancel_task_stub_v0_3")
     async def cancel_task(request: Request, task_id: str) -> JSONResponse:
         """Phase 1 stub — return 501 UNSUPPORTED_OPERATION."""
         err = unsupported_operation(

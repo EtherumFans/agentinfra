@@ -64,7 +64,15 @@ def mount_a2a(
 
     Returns the same dict as :func:`build_a2a_routers` for callers
     that want direct router references (e.g., tests).
+
+    TD-004 fix: idempotent — if the A2A routes are already mounted
+    (e.g. lifespan re-ran across TestClient sessions), skip re-mounting
+    to avoid duplicate operation_id warnings.
     """
+    if getattr(app.state, "_a2a_mounted", False):
+        # Already mounted — return the cached routers
+        return app.state._a2a_routers
+
     routers = build_a2a_routers(
         handler=handler,
         agent_provider=agent_provider,
@@ -90,6 +98,10 @@ def mount_a2a(
 
     # Task stub — /api/icoder/tasks (already prefixed)
     app.include_router(routers["task_stub"])
+
+    # Mark as mounted (idempotency guard)
+    app.state._a2a_mounted = True
+    app.state._a2a_routers = routers
 
     return routers
 

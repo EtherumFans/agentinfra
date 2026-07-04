@@ -60,7 +60,7 @@ def build_outbound_router(expert_caller: ExpertCaller) -> APIRouter:
     """
     router = APIRouter(prefix="/internal/experts", tags=["a2a-outbound"])
 
-    @router.post("/{expert_id}/v1/message:send")
+    @router.post("/{expert_id}/v1/message:send", operation_id="a2a_internal_message_send_v0_3")
     async def internal_message_send(expert_id: str, request: Request) -> JSONResponse:
         # ── [1] Version header
         try:

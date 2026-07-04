@@ -68,7 +68,7 @@ def build_inbound_router(handler: InboundHandler) -> APIRouter:
     """
     router = APIRouter(tags=["a2a-inbound"])
 
-    @router.post("/v1/message:send")
+    @router.post("/v1/message:send", operation_id="a2a_message_send_v0_3")
     async def message_send(agent_id: str, request: Request) -> JSONResponse:
         """``POST /v1/message:send`` — A2A v0.3 message/send entry point."""
         return await _dispatch(handler, agent_id, request)

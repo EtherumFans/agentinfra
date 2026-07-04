@@ -33,7 +33,6 @@ const EmbeddedAssistantPage = lazy(() => import('./pages/EmbeddedAssistantPage')
 const SupportPage = lazy(() => import('./pages/SupportPage'));
 const APIClientsPage = lazy(() => import('./pages/APIClientsPage'));
 const TeamPage = lazy(() => import('./pages/TeamPage'));
-const EmbedDemoCodingReviewPage = lazy(() => import('./pages/EmbedDemoCodingReviewPage'));
 
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -92,7 +91,6 @@ function App() {
         <Route path="runtime/agents" element={<AgentsPage />} />
         <Route path="runtime/coding-review" element={<MedicalCodingPage />} />
         <Route path="runtime/coding-review/:runId" element={<MedicalCodingPage />} />
-        <Route path="embed-demo/coding-review" element={<Suspense fallback={<div className="p-4 text-sm text-slate-500">Loading Embed…</div>}><EmbedDemoCodingReviewPage /></Suspense>} />
 
         {/* Manage */}
         <Route path="manage" element={<SettingsPage />} />

@@ -786,14 +786,12 @@ async def health_check():
 # Register API routers
 from app.api.auth import router as auth_router
 from app.api.encounters import router as encounters_router
-from app.api.reviews import router as reviews_router
 from app.api.admin import router as admin_router
 from app.api.codes import router as codes_router
 from app.api.billing import router as billing_router
 from app.api.keys import router as keys_router
 from app.api.team import router as team_router
 from app.api.usage import router as usage_router
-from app.api.text_gen import router as text_gen_router
 from app.api.oauth import router as oauth_router
 from app.api.agents import router as agents_router
 from app.api.websocket import router as ws_router
@@ -808,7 +806,6 @@ from app.api.compliance import router as compliance_router
 from app.api.medical_docs import router as medical_docs_router
 from app.api.embedded import router as embedded_router
 from app.api.drg import router as drg_router
-from app.api.icoder_coding_review import router as icoder_coding_review_router
 from app.api.v2_tools_coding import router as v2_tools_coding_router
 from app.api.v2_tools_facts import router as v2_tools_facts_router
 from app.api.v2_tools_streams import router as v2_tools_streams_router
@@ -826,18 +823,15 @@ app.middleware("http")(rate_limit_middleware)
 
 app.include_router(auth_router)
 app.include_router(encounters_router)
-app.include_router(reviews_router)
 app.include_router(codes_router)
 app.include_router(billing_router)
 app.include_router(keys_router)
 app.include_router(team_router)
 app.include_router(usage_router)
-app.include_router(text_gen_router)
 app.include_router(oauth_router)
 app.include_router(agents_router)
 app.include_router(admin_router)
 app.include_router(ws_router)
-app.include_router(icoder_coding_review_router)  # M3-0 病案首页编码审核 Agent API
 app.include_router(v2_tools_coding_router)         # Phase 1.1 (2026-06-30) /api/v2/tools/coding (Corti §3.1 parity)
 app.include_router(v2_tools_facts_router)          # Phase 1.2 cycle 1 (2026-06-30) /api/v2/tools/extract-facts (Corti §3.2 / §13.4 FactsR™)
 app.include_router(v2_tools_streams_router)        # Phase 1.2 cycle 2 (2026-06-30) /api/v2/tools/streams/{id} (Corti §13.3/§13.4 Streams WSS)

@@ -8,7 +8,7 @@ import {
   Copy, Check,
   X, Plus, Trash2, Pencil, Info, Shield, ChevronRight,
 } from 'lucide-react';
-import { textGenApi, authApi } from '../services/api';
+import { authApi } from '../services/api';
 import EventInspector from '../components/common/EventInspector';
 import CodeSnippet from '../components/common/CodeSnippet';
 import SettingsCodeTab from '../components/common/SettingsCodeTab';
@@ -116,35 +116,11 @@ export default function TextGenerationPage() {
 
   // Fetch templates from API on mount, merging with user customizations
   useEffect(() => {
-    textGenApi.templates().then(r => {
-      const apiTemplates: Template[] = (r.data?.templates || []).map((t: any) => ({
-        key: t.key, name: t.name, desc: t.desc,
-        category: t.category, sample: t.sample,
-      }));
-      if (apiTemplates.length > 0) {
-        setTemplates(prev => {
-          const prevStr = localStorage.getItem('icoder-textgen-templates');
-          if (prevStr) {
-            const userTemplates: Template[] = JSON.parse(prevStr);
-            const apiKeySet = new Set(apiTemplates.map(t => t.key));
-            // Find user-added templates (keys not in API)
-            const userAdded = userTemplates.filter(t => !apiKeySet.has(t.key));
-            // Find user-edited templates (overrides of API base)
-            const userEdited = new Map(
-              userTemplates.filter(t => apiKeySet.has(t.key)).map(t => [t.key, t])
-            );
-            // Merge: API base overridden by user edits + user additions
-            return [
-              ...apiTemplates.map(t => userEdited.get(t.key) || t),
-              ...userAdded,
-            ];
-          }
-          return apiTemplates;
-        });
-      }
-    }).catch(() => {
-      // API unavailable, keep current state (localStorage or DEFAULT_TEMPLATES)
-    });
+    // text-gen router deleted in Phase 2.1-B Step 4 — keep localStorage templates
+    const prevStr = localStorage.getItem('icoder-textgen-templates');
+    if (prevStr) {
+      try { setTemplates(JSON.parse(prevStr)); } catch { /* keep defaults */ }
+    }
   }, []);
 
   // Persist templates to localStorage
@@ -166,11 +142,8 @@ export default function TextGenerationPage() {
     setGenEvents(prev => [...prev.slice(-50), { type: 'generate_start', data: { template: activeTemplate, inputLength: input.length }, timestamp: new Date().toLocaleTimeString(locale, { hour12: false }), credits: 0.000001 }]);
     setGenCredits(c => c + 0.000001);
     try {
-      const res = await textGenApi.generate(input, activeTemplate, 2048, 0.1, !showGuardrails);
-      setOutput(res.data.output);
-      setCost(c => (parseFloat(c) + 0.000001).toFixed(6));
-      setGenEvents(prev => [...prev.slice(-50), { type: 'generate_complete', data: { outputLength: res.data.output.length, template: activeTemplate }, timestamp: new Date().toLocaleTimeString(locale, { hour12: false }), credits: 0.000001 }]);
-      setGenCredits(c => c + 0.000001);
+      // text-gen router deleted in Phase 2.1-B Step 4 — use /api/v2/tools/guided-documents for document generation
+      throw new Error('Text Generation API has been deprecated. Use /api/v2/tools/guided-documents for document generation.');
     } catch (err: any) {
       setError(err?.response?.data?.detail || err.message || '生成失败');
       setGenEvents(prev => [...prev.slice(-50), { type: 'generate_error', data: { error: err?.response?.data?.detail || err.message || '未知错误', template: activeTemplate }, timestamp: new Date().toLocaleTimeString(locale, { hour12: false }) }]);

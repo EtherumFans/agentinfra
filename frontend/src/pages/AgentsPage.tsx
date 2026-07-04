@@ -163,51 +163,17 @@ export default function AgentsPage() {
 
   // AI-assisted system prompt generation
   const generatePrompt = async () => {
+    // /api/text-gen/generate deleted in Phase 2.1-B Step 4 (text_gen.py removed)
+    // Auto-generation disabled; user must write the system prompt manually.
     if (!newAgentName.trim() || generatingPrompt) return;
-    setGeneratingPrompt(true);
-    try {
-      const token = localStorage.getItem('access_token') || '';
-      if (!token) { console.warn('No auth token for prompt generation'); setGeneratingPrompt(false); return; }
-      const resp = await fetch('/api/text-gen/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({
-          template: 'system_prompt',
-          language: 'zh-CN',
-          context: {
-            agent_name: newAgentName.trim(),
-            description: newAgentDesc.trim(),
-            category: newAgentCategory,
-          },
-        }),
-      });
-      if (!resp.ok) {
-        console.error('Prompt generation failed:', resp.status, await resp.text());
-      } else {
-        const data = await resp.json();
-        if (data.output) setNewAgentPrompt(data.output);
-      }
-    } catch (e) { console.error('Prompt generation error:', e); }
     setGeneratingPrompt(false);
   };
 
   // Auto-generate prompt when template is selected (Corti-style AI assist)
   const generatePromptForTemplate = async (name: string, desc: string, category: string) => {
+    // /api/text-gen/generate deleted in Phase 2.1-B Step 4 (text_gen.py removed)
     if (!name || generatingPrompt) return;
-    setGeneratingPrompt(true);
-    try {
-      const token = localStorage.getItem('access_token') || '';
-      if (!token) { setGeneratingPrompt(false); return; }
-      const resp = await fetch('/api/text-gen/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ template: 'system_prompt', language: 'zh-CN', context: { agent_name: name, description: desc, category } }),
-      });
-      if (resp.ok) {
-        const data = await resp.json();
-        if (data.output) setNewAgentPrompt(data.output);
-      }
-    } catch {} finally { setGeneratingPrompt(false); }
+    setGeneratingPrompt(false);
   };
 
   // New Agent Creation

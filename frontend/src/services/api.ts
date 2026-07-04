@@ -119,28 +119,6 @@ export const encountersApi = {
   delete: (id: string) => api.delete(`/encounters/${id}`),
 };
 
-// Reviews
-export const reviewsApi = {
-  create: (encounterId: string) =>
-    api.post<Review>('/reviews', { encounter_id: encounterId }),
-  createAsync: (encounterId: string) =>
-    api.post<{ task_id: string; status: string; review_id: string | null; encounter_id: string }>(
-      '/reviews', { encounter_id: encounterId }, { params: { async: true } }
-    ),
-  taskStatus: (taskId: string) =>
-    api.get<any>(`/reviews/tasks/${taskId}`),
-  list: (page = 1, pageSize = 20, status = '') =>
-    api.get<PaginatedResponse<Review>>('/reviews', { params: { page, page_size: pageSize, status } }),
-  get: (id: string) => api.get<Review>(`/reviews/${id}`),
-  reviewCandidate: (reviewId: string, candidateId: string, data: any) =>
-    api.put<Review>(`/reviews/${reviewId}/candidates/${candidateId}/review`, data),
-  complete: (reviewId: string, data: any) =>
-    api.put<Review>(`/reviews/${reviewId}/complete`, data),
-  getReportMd: (id: string) => api.get<string>(`/reviews/${id}/report/markdown`),
-  getReportHtml: (id: string) => api.get<string>(`/reviews/${id}/report/html`),
-  batch: (encounterIds: string[]) => api.post('/reviews/batch', { encounter_ids: encounterIds }),
-};
-
 // Codes
 export const codesApi = {
   search: (query: string, codeSystem = 'ICD10_CN', topK = 10) =>
@@ -203,15 +181,6 @@ export const usageApi = {
 export const factsApi = {
   extract: (text: string, outputLanguage = 'zh-CN') =>
     api.post<{ facts: any[]; raw_output: string; credits_consumed: number }>('/facts/extract', { text, output_language: outputLanguage }),
-};
-
-// Text Generation
-export const textGenApi = {
-  generate: (text: string, style = 'general', maxTokens = 2048, temperature = 0.1, disableGuardrails = false) =>
-    api.post<{ output: string; model: string }>('/text-gen/generate', {
-      text, style, max_tokens: maxTokens, temperature, disable_guardrails: disableGuardrails,
-    }),
-  templates: () => api.get<{ templates: any[] }>('/text-gen/templates'),
 };
 
 // Customers (Embedded Assistant end-user mgmt — Corti parity)
@@ -287,34 +256,6 @@ export const configApi = {
 // Health
 export const healthApi = {
   check: () => api.get('/health'),
-};
-
-// Runtime — deterministic safety framework state + audit
-// Renamed from runtimeApi (cycle 25) — disambiguate from services/runtimeApi.ts.
-// This is the case-level status/audit/trace API; runtimeApi.ts is the agent-runtime API.
-export const runtimeStatusApi = {
-  status: (caseId: string) =>
-    api.get<RuntimeStatus>(`/runtime/status/${caseId}`),
-  audit: (caseId: string, limit?: number) =>
-    api.get<{ case_id: string; events: AuditEvent[]; total: number }>(
-      `/runtime/audit/${caseId}`, { params: { limit } }
-    ),
-  summary: (reviewId: string) =>
-    api.get<AuditSummary>(`/runtime/summary/${reviewId}`),
-  review: (caseId: string, action: string, rationale: string, decision: string) =>
-    api.post<{ status: string; state: string }>(`/runtime/review/${caseId}`, {
-      case_id: caseId, action, rationale, decision,
-    }),
-  ducActions: () =>
-    api.get<{ duc_actions: string[] }>('/runtime/duc/actions'),
-  stale: (maxAgeHours?: number) =>
-    api.get<{ stale_cases: string[]; count: number }>('/runtime/stale', {
-      params: { max_age_hours: maxAgeHours },
-    }),
-  active: () =>
-    api.get<ActiveCases>('/runtime/active'),
-  states: () =>
-    api.get<{ states: RuntimeStateInfo[] }>('/runtime/states'),
 };
 
 export interface RuntimeStatus {

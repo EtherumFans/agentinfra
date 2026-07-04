@@ -18,27 +18,8 @@ export default function EditSystemPromptModal({ value, onSave, onCancel, agentNa
   const handleGenerate = async () => {
     if (!agentName || generating) return;
     setGenerating(true);
-    try {
-      const token = localStorage.getItem('access_token') || '';
-      if (!token) { setGenerating(false); return; }
-      const resp = await fetch('/api/text-gen/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({
-          template: 'system_prompt',
-          language: 'zh-CN',
-          context: {
-            agent_name: agentName,
-            description: agentDesc || '',
-            category: agentCategory || 'general',
-          },
-        }),
-      });
-      if (resp.ok) {
-        const data = await resp.json();
-        if (data.output) setText(data.output);
-      }
-    } catch { /* silently fail */ }
+    // /api/text-gen/generate deleted in Phase 2.1-B Step 4 (text_gen.py removed)
+    // Auto-generation disabled; user must write the system prompt manually.
     setGenerating(false);
   };
 

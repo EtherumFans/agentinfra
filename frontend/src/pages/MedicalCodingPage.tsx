@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import { useAppStore, useCostStore } from '../store';
 import { useT } from '../i18n';
 import { runtimeAgentApi } from '../services/runtimeApi';
-import type { RuntimeRunResult } from '../types/runtime';
+import type { RuntimeRunResult, CodingIssue } from '../types/runtime';
 import type { ExtractedDiagnosis, CandidateCode } from '../types/runtime';
 import { HighlightedTextarea } from '../components/medical-coding/HighlightedTextarea';
 import type { EvidenceSpanLike } from '../components/medical-coding/EvidenceHighlighter';
@@ -328,6 +328,16 @@ export default function MedicalCodingPage() {
         <span className="text-foreground font-medium truncate">{t.medicalCodingBreadcrumb}</span>
       </div>
 
+      {/* ==================== Phase 3-A Section D — MVP + AI-assisted banners (Corti red lines) ==================== */}
+      <div className="flex items-center gap-2 px-4 py-1.5 border-b border-amber-200/40 bg-amber-50/60 shrink-0 text-[11px]">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium" data-testid="mvp-banner">
+          <Info size={10} /> {t.mvpBanner}
+        </span>
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-medium" data-testid="ai-assisted-banner">
+          <Check size={10} /> {t.aiAssistedBanner}
+        </span>
+      </div>
+
       {/* ==================== ACTION BAR (Predict codes) ==================== */}
       <div className="flex items-center justify-end gap-2 px-4 py-2 border-b border-border/20 shrink-0">
         <button data-testid="predict-codes-btn" onClick={() => handlePredict()} disabled={!hasText || loading}
@@ -528,6 +538,120 @@ export default function MedicalCodingPage() {
                     )}
                   </div>
                 )}
+
+                {/* ==================== Phase 3-A Section D — Corti-style Review Summary (8-field output) ==================== */}
+                {(() => {
+                  const r = result as RuntimeRunResult;
+                  // Project v1 → Corti-style display when v2 fields absent (Section E will populate v2)
+                  const reviewConclusion = r?.review_conclusion
+                    || (r?.human_review?.review_conclusion as string | undefined)
+                    || (r?.issues_found && r.issues_found.length > 0 ? 'WARNING' : 'PASS');
+                  const manualReview = r?.manual_review_required
+                    ?? r?.human_review?.review_required
+                    ?? (r?.issues_found?.some((i: CodingIssue) => i.severity === 'critical' || i.severity === 'high') ?? false);
+                  const issues: CodingIssue[] = r?.corti_validation_summary?.issues_found || r?.issues_found || [];
+                  const gaps = r?.documentation_gaps || [];
+                  const uncodable = r?.uncodable_items || [];
+                  const firedRules: string[] = r?.corti_validation_summary?.fired_rules
+                    || (r?.trace_refs?.rule_fired as string[] | undefined)
+                    || [];
+                  const conclusionLabel = reviewConclusion === 'PASS' ? t.reviewConclusionPass
+                    : reviewConclusion === 'WARNING' ? t.reviewConclusionWarning
+                    : reviewConclusion === 'FAIL' ? t.reviewConclusionFail
+                    : reviewConclusion;
+                  const conclusionColor = reviewConclusion === 'PASS' ? 'bg-emerald-100 text-emerald-700'
+                    : reviewConclusion === 'WARNING' ? 'bg-amber-100 text-amber-700'
+                    : 'bg-rose-100 text-rose-700';
+
+                  return (
+                    <div data-testid="corti-review-summary" className="mt-4 rounded-lg border border-border/40 bg-muted/20 p-3 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">
+                          {t.reviewSummary}
+                        </p>
+                        <div className="flex items-center gap-1.5">
+                          <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${conclusionColor}`} data-testid="review-conclusion-badge">
+                            {t.reviewConclusion}: {conclusionLabel}
+                          </span>
+                          {manualReview && (
+                            <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-rose-100 text-rose-700" data-testid="manual-review-badge">
+                              {t.manualReviewRequired}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Validation summary — issues found list */}
+                      {issues.length > 0 && (
+                        <div>
+                          <p className="text-[10px] font-medium text-muted-foreground mb-1">{t.validationSummary} — {issues.length}</p>
+                          <ul className="space-y-1">
+                            {issues.map((iss: CodingIssue, i: number) => (
+                              <li key={i} className="text-[11px] text-muted-foreground bg-background rounded px-2 py-1 border border-border/30">
+                                <span className={`font-mono text-[10px] mr-1 ${iss.severity === 'critical' ? 'text-rose-600' : iss.severity === 'high' ? 'text-amber-600' : 'text-muted-foreground'}`}>
+                                  [{iss.severity}]
+                                </span>
+                                {iss.code && <span className="font-mono text-[10px] mr-1">{iss.code}</span>}
+                                {iss.message}
+                                {iss.suggestion && <span className="block text-[10px] text-muted-foreground/70 italic mt-0.5">→ {iss.suggestion}</span>}
+                              </li>
+                            ))}
+                          </ul>
+                          {firedRules.length > 0 && (
+                            <p className="text-[10px] text-muted-foreground mt-1">
+                              {t.rulesFired}: <span className="font-mono">{firedRules.join(', ')}</span>
+                            </p>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Documentation gaps */}
+                      <div>
+                        <p className="text-[10px] font-medium text-muted-foreground mb-1">{t.documentationGaps}</p>
+                        {gaps.length === 0 ? (
+                          <p className="text-[11px] text-muted-foreground/60 italic">{t.noDocumentationGaps}</p>
+                        ) : (
+                          <ul className="space-y-1">
+                            {gaps.map((g, i) => (
+                              <li key={i} className="text-[11px] text-muted-foreground bg-background rounded px-2 py-1 border border-border/30">
+                                <span className="font-mono text-[10px] mr-1 text-amber-600">[{g.gap_type}]</span>
+                                {g.description}
+                                {g.related_code && <span className="font-mono text-[10px] ml-1">→ {g.related_code}</span>}
+                                {g.suggestion && <span className="block text-[10px] text-muted-foreground/70 italic mt-0.5">→ {g.suggestion}</span>}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+
+                      {/* Uncodable items */}
+                      <div>
+                        <p className="text-[10px] font-medium text-muted-foreground mb-1">{t.uncodableItems}</p>
+                        {uncodable.length === 0 ? (
+                          <p className="text-[11px] text-muted-foreground/60 italic">{t.noUncodableItems}</p>
+                        ) : (
+                          <ul className="space-y-1">
+                            {uncodable.map((u, i) => (
+                              <li key={i} className="text-[11px] text-muted-foreground bg-background rounded px-2 py-1 border border-border/30">
+                                <span className="font-mono text-[10px] mr-1 text-rose-600">[{u.item_type}]</span>
+                                {u.text}
+                                {u.reason && <span className="block text-[10px] text-muted-foreground/70 italic mt-0.5">→ {u.reason}</span>}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+
+                      {/* Trace refs (collapsed) */}
+                      {r?.trace_refs?.run_id && (
+                        <div className="text-[10px] text-muted-foreground/70 border-t border-border/30 pt-1.5">
+                          {t.runId}: <span className="font-mono">{r.trace_refs.run_id}</span>
+                          {r.trace_refs.method_id && <> · method: <span className="font-mono">{r.trace_refs.method_id}</span></>}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
             )}
           </div>

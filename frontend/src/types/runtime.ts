@@ -24,6 +24,54 @@ export interface RuntimeRunResult {
   // MedCodER pipeline output (mode="medcoder" only)
   mode?: 'deepseek' | 'prompt_llm' | 'hybrid' | 'no_repair' | 'medcoder' | 'code_like_humans';
   extracted_diagnoses?: ExtractedDiagnosis[];
+
+  // Phase 3-A Section D — Corti-style 8-field output (projected from v1 by API layer)
+  // Populated when Section E wires v2 projection in runtime_platform.py.
+  // All fields optional — absent when runtime returns v1-only.
+  // Note: validation_summary already exists above (supported/needs_review counts);
+  // Corti-style validation fields live in human_review + issues_found.
+  review_conclusion?: 'PASS' | 'WARNING' | 'FAIL' | string;
+  manual_review_required?: boolean;
+  encounter_summary?: {
+    chief_complaint?: string;
+    treatment_course?: string;
+    key_findings?: string[];
+    document_sources?: Array<{ doc_id?: string; doc_type?: string }>;
+    encounter_date?: string;
+  };
+  documentation_gaps?: Array<{
+    gap_type?: string;
+    description?: string;
+    related_code?: string;
+    suggestion?: string;
+  }>;
+  uncodable_items?: Array<{
+    item_type?: string;
+    text?: string;
+    reason?: string;
+  }>;
+  corti_validation_summary?: {
+    passed?: boolean;
+    issues_found?: CodingIssue[];
+    manual_review_required?: boolean;
+    rule_set?: string;
+    fired_rules?: string[];
+  };
+  human_review?: {
+    review_conclusion?: string;
+    review_required?: boolean;
+    review_focus?: string[];
+    notes?: string;
+  };
+  trace_refs?: {
+    run_id?: string;
+    stage_trace?: Array<Record<string, unknown>>;
+    rule_fired?: string[];
+    mode?: string;
+    method_id?: string;
+    provider?: string;
+    model?: string;
+  };
 }
 
 export interface DiagnosisEntry {

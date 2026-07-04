@@ -296,6 +296,25 @@ export interface LocaleDict {
   factExtractionBreadcrumb: string;
   embeddedAssistantBreadcrumb: string;
   tabCode: string;
+
+  // Phase 3-A Section D — Corti-style 8-field output + banners
+  mvpBanner: string;
+  aiAssistedBanner: string;
+  reviewSummary: string;
+  reviewConclusion: string;
+  reviewConclusionPass: string;
+  reviewConclusionWarning: string;
+  reviewConclusionFail: string;
+  manualReviewRequired: string;
+  // Note: documentationGaps + validationSummary already declared in Review section above; reused.
+  uncodableItems: string;
+  encounterSummary: string;
+  traceRefs: string;
+  noDocumentationGaps: string;
+  noUncodableItems: string;
+  rulesPassed: string;
+  rulesFired: string;
+  runId: string;
   failedPrefix: string;
   completedPrefix: string;
   preGuardViolations: string;
@@ -1115,6 +1134,25 @@ const zhCN: LocaleDict = {
   ready: '就绪',
   expand: '展开',
   include: '包含',
+
+  // Phase 3-A Section D — Corti-style 8-field output + banners
+  mvpBanner: 'MVP — production_ready=false, human_review=required',
+  aiAssistedBanner: 'AI-assisted coding — 不替代编码员, 所有编码建议需人工复核',
+  reviewSummary: '复核摘要',
+  reviewConclusion: '复核结论',
+  reviewConclusionPass: '通过',
+  reviewConclusionWarning: '警告',
+  reviewConclusionFail: '失败',
+  manualReviewRequired: '需要人工复核',
+  // Note: documentationGaps + validationSummary already declared in Review section above; reused.
+  uncodableItems: '无法编码项',
+  encounterSummary: '就诊摘要',
+  traceRefs: '追踪引用',
+  noDocumentationGaps: '无文档缺口',
+  noUncodableItems: '无无法编码项',
+  rulesPassed: '规则通过',
+  rulesFired: '触发规则',
+  runId: '运行 ID',
   exclude: '排除',
   filterCodes: '筛选编码',
   addCodes: '添加编码',
@@ -1982,6 +2020,25 @@ const enUS: LocaleDict = {
   addExcludeCode: 'Add exclude code',
   enterCodePlaceholder: 'Enter code (e.g. J18.1)',
   tableCode: 'Code',
+
+  // Phase 3-A Section D — Corti-style 8-field output + banners
+  mvpBanner: 'MVP — production_ready=false, human_review=required',
+  aiAssistedBanner: 'AI-assisted coding — does not replace the coder; all code suggestions require human review',
+  reviewSummary: 'Review summary',
+  reviewConclusion: 'Review conclusion',
+  reviewConclusionPass: 'Pass',
+  reviewConclusionWarning: 'Warning',
+  reviewConclusionFail: 'Fail',
+  manualReviewRequired: 'Manual review required',
+  // Note: documentationGaps + validationSummary already declared in Review section above; reused.
+  uncodableItems: 'Uncodable items',
+  encounterSummary: 'Encounter summary',
+  traceRefs: 'Trace refs',
+  noDocumentationGaps: 'No documentation gaps',
+  noUncodableItems: 'No uncodable items',
+  rulesPassed: 'Rules passed',
+  rulesFired: 'Rules fired',
+  runId: 'Run ID',
   tableDescription: 'Description',
   tableConfidence: 'Conf.',
   medicalCodingBreadcrumb: 'Medical coding',

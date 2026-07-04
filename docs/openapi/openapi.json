@@ -1812,14 +1812,14 @@
         }
       }
     },
-    "/api/agents": {
+    "/api/rest/v1/agent_definitions": {
       "get": {
         "tags": [
-          "agents"
+          "agent-definitions"
         ],
         "summary": "List Agents",
         "description": "List agents with optional filter/search.",
-        "operationId": "list_agents_api_agents_get",
+        "operationId": "list_agents_api_rest_v1_agent_definitions_get",
         "security": [
           {
             "HTTPBearer": []
@@ -1885,11 +1885,11 @@
       },
       "post": {
         "tags": [
-          "agents"
+          "agent-definitions"
         ],
         "summary": "Create Agent",
         "description": "Create a custom agent.",
-        "operationId": "create_agent_api_agents_post",
+        "operationId": "create_agent_api_rest_v1_agent_definitions_post",
         "security": [
           {
             "HTTPBearer": []
@@ -1927,14 +1927,14 @@
         }
       }
     },
-    "/api/agents/{agent_id}/clone": {
+    "/api/rest/v1/agent_definitions/{agent_id}/clone": {
       "post": {
         "tags": [
-          "agents"
+          "agent-definitions"
         ],
         "summary": "Clone Agent",
         "description": "Clone a prebuilt agent or template into a user-owned custom agent.",
-        "operationId": "clone_agent_api_agents__agent_id__clone_post",
+        "operationId": "clone_agent_api_rest_v1_agent_definitions__agent_id__clone_post",
         "security": [
           {
             "HTTPBearer": []
@@ -1990,14 +1990,14 @@
         }
       }
     },
-    "/api/agents/categories": {
+    "/api/rest/v1/agent_definitions/categories": {
       "get": {
         "tags": [
-          "agents"
+          "agent-definitions"
         ],
         "summary": "Agent Categories",
         "description": "List distinct agent categories.",
-        "operationId": "agent_categories_api_agents_categories_get",
+        "operationId": "agent_categories_api_rest_v1_agent_definitions_categories_get",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -2010,14 +2010,14 @@
         }
       }
     },
-    "/api/agents/templates": {
+    "/api/rest/v1/agent_definitions/templates": {
       "get": {
         "tags": [
-          "agents"
+          "agent-definitions"
         ],
         "summary": "Get Agent Templates",
         "description": "Get hardcoded list of agent templates (20 iCoDer-style templates).",
-        "operationId": "get_agent_templates_api_agents_templates_get",
+        "operationId": "get_agent_templates_api_rest_v1_agent_definitions_templates_get",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -2030,14 +2030,14 @@
         }
       }
     },
-    "/api/agents/templates/{template_id}/download": {
+    "/api/rest/v1/agent_definitions/templates/{template_id}/download": {
       "get": {
         "tags": [
-          "agents"
+          "agent-definitions"
         ],
         "summary": "Download Template Pack",
         "description": "Download a template as a .icoder-agent package file.",
-        "operationId": "download_template_pack_api_agents_templates__template_id__download_get",
+        "operationId": "download_template_pack_api_rest_v1_agent_definitions_templates__template_id__download_get",
         "parameters": [
           {
             "name": "template_id",
@@ -2071,14 +2071,14 @@
         }
       }
     },
-    "/api/agents/{agent_id}": {
+    "/api/rest/v1/agent_definitions/{agent_id}": {
       "get": {
         "tags": [
-          "agents"
+          "agent-definitions"
         ],
         "summary": "Get Agent",
         "description": "Get agent detail.",
-        "operationId": "get_agent_api_agents__agent_id__get",
+        "operationId": "get_agent_api_rest_v1_agent_definitions__agent_id__get",
         "security": [
           {
             "HTTPBearer": []
@@ -2118,11 +2118,11 @@
       },
       "put": {
         "tags": [
-          "agents"
+          "agent-definitions"
         ],
         "summary": "Update Agent",
         "description": "Update agent.",
-        "operationId": "update_agent_api_agents__agent_id__put",
+        "operationId": "update_agent_api_rest_v1_agent_definitions__agent_id__put",
         "security": [
           {
             "HTTPBearer": []
@@ -2172,11 +2172,11 @@
       },
       "delete": {
         "tags": [
-          "agents"
+          "agent-definitions"
         ],
         "summary": "Delete Agent",
         "description": "Delete agent.",
-        "operationId": "delete_agent_api_agents__agent_id__delete",
+        "operationId": "delete_agent_api_rest_v1_agent_definitions__agent_id__delete",
         "security": [
           {
             "HTTPBearer": []
@@ -2215,14 +2215,14 @@
         }
       }
     },
-    "/api/agents/{agent_id}/share": {
+    "/api/rest/v1/agent_definitions/{agent_id}/share": {
       "get": {
         "tags": [
-          "agents"
+          "agent-definitions"
         ],
         "summary": "Get Agent Share Link",
         "description": "Generate a shareable link for an agent.",
-        "operationId": "get_agent_share_link_api_agents__agent_id__share_get",
+        "operationId": "get_agent_share_link_api_rest_v1_agent_definitions__agent_id__share_get",
         "parameters": [
           {
             "name": "agent_id",
@@ -2256,14 +2256,14 @@
         }
       }
     },
-    "/api/agents/{agent_id}/version": {
+    "/api/rest/v1/agent_definitions/{agent_id}/version": {
       "post": {
         "tags": [
-          "agents"
+          "agent-definitions"
         ],
         "summary": "Bump Agent Version",
         "description": "Bump agent version (patch increment).",
-        "operationId": "bump_agent_version_api_agents__agent_id__version_post",
+        "operationId": "bump_agent_version_api_rest_v1_agent_definitions__agent_id__version_post",
         "security": [
           {
             "HTTPBearer": []
@@ -2302,14 +2302,14 @@
         }
       }
     },
-    "/api/agents/{agent_id}/threads": {
+    "/api/rest/v1/agent_definitions/{agent_id}/threads": {
       "post": {
         "tags": [
-          "agents"
+          "agent-definitions"
         ],
         "summary": "Create Thread",
         "description": "Create a new conversation thread for an agent.",
-        "operationId": "create_thread_api_agents__agent_id__threads_post",
+        "operationId": "create_thread_api_rest_v1_agent_definitions__agent_id__threads_post",
         "security": [
           {
             "HTTPBearer": []
@@ -2349,11 +2349,11 @@
       },
       "get": {
         "tags": [
-          "agents"
+          "agent-definitions"
         ],
         "summary": "List Threads",
         "description": "List all threads for an agent.",
-        "operationId": "list_threads_api_agents__agent_id__threads_get",
+        "operationId": "list_threads_api_rest_v1_agent_definitions__agent_id__threads_get",
         "security": [
           {
             "HTTPBearer": []
@@ -2392,14 +2392,14 @@
         }
       }
     },
-    "/api/agents/threads/{thread_id}": {
+    "/api/rest/v1/agent_definitions/threads/{thread_id}": {
       "get": {
         "tags": [
-          "agents"
+          "agent-definitions"
         ],
         "summary": "Get Thread",
         "description": "Get a thread by ID.",
-        "operationId": "get_thread_api_agents_threads__thread_id__get",
+        "operationId": "get_thread_api_rest_v1_agent_definitions_threads__thread_id__get",
         "parameters": [
           {
             "name": "thread_id",
@@ -2433,14 +2433,14 @@
         }
       }
     },
-    "/api/agents/threads/{thread_id}/snapshot": {
+    "/api/rest/v1/agent_definitions/threads/{thread_id}/snapshot": {
       "post": {
         "tags": [
-          "agents"
+          "agent-definitions"
         ],
         "summary": "Snapshot Thread",
         "description": "Save a snapshot of the current thread state.",
-        "operationId": "snapshot_thread_api_agents_threads__thread_id__snapshot_post",
+        "operationId": "snapshot_thread_api_rest_v1_agent_definitions_threads__thread_id__snapshot_post",
         "parameters": [
           {
             "name": "thread_id",
@@ -2484,14 +2484,14 @@
         }
       }
     },
-    "/api/agents/threads/{thread_id}/restore": {
+    "/api/rest/v1/agent_definitions/threads/{thread_id}/restore": {
       "post": {
         "tags": [
-          "agents"
+          "agent-definitions"
         ],
         "summary": "Restore Thread",
         "description": "Restore thread state from a snapshot.",
-        "operationId": "restore_thread_api_agents_threads__thread_id__restore_post",
+        "operationId": "restore_thread_api_rest_v1_agent_definitions_threads__thread_id__restore_post",
         "parameters": [
           {
             "name": "thread_id",
@@ -2535,14 +2535,14 @@
         }
       }
     },
-    "/api/agents/threads/stats": {
+    "/api/rest/v1/agent_definitions/threads/stats": {
       "get": {
         "tags": [
-          "agents"
+          "agent-definitions"
         ],
         "summary": "Thread Stats",
         "description": "Get thread state manager statistics.",
-        "operationId": "thread_stats_api_agents_threads_stats_get",
+        "operationId": "thread_stats_api_rest_v1_agent_definitions_threads_stats_get",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -2555,14 +2555,14 @@
         }
       }
     },
-    "/api/agents/{agent_id}/run": {
+    "/api/rest/v1/agent_definitions/{agent_id}/run": {
       "post": {
         "tags": [
-          "agents"
+          "agent-definitions"
         ],
         "summary": "Run Agent",
         "description": "Execute an Agent with multi-Expert orchestration.\n\nPhase 2.1-A (2026-07-02): DEPRECATED for execution. The legacy\n``agent_runner.run()`` path is removed; the new PlatformRuntime also\nno longer wraps an AgentRunner stub. Both paths now raise/redirect.\n\nNew execution path: POST to the A2A endpoints exposed via\n``mount_a2a`` in ``app/main.py`` (e.g. ``/a2a/v1/...``) — they route\nthrough the new ``InboundHandler`` orchestrator.\n\nThis endpoint is retained for backward path-discovery: it returns\n410 Gone with a redirect message instead of a silent 500.",
-        "operationId": "run_agent_api_agents__agent_id__run_post",
+        "operationId": "run_agent_api_rest_v1_agent_definitions__agent_id__run_post",
         "security": [
           {
             "HTTPBearer": []
@@ -2611,14 +2611,14 @@
         }
       }
     },
-    "/api/agents/{agent_id}/stream": {
+    "/api/rest/v1/agent_definitions/{agent_id}/stream": {
       "post": {
         "tags": [
-          "agents"
+          "agent-definitions"
         ],
         "summary": "Stream Agent",
         "description": "Stream Agent response via Server-Sent Events.\n\nPhase 2.1-A (2026-07-02): DEPRECATED. Returns 410 Gone — see\n``run_agent`` above for the migration path.",
-        "operationId": "stream_agent_api_agents__agent_id__stream_post",
+        "operationId": "stream_agent_api_rest_v1_agent_definitions__agent_id__stream_post",
         "security": [
           {
             "HTTPBearer": []
@@ -2667,14 +2667,14 @@
         }
       }
     },
-    "/api/agents/stats/overall": {
+    "/api/rest/v1/agent_definitions/stats/overall": {
       "get": {
         "tags": [
-          "agents"
+          "agent-definitions"
         ],
         "summary": "Get Overall Stats",
         "description": "Get aggregate stats across all Agents.",
-        "operationId": "get_overall_stats_api_agents_stats_overall_get",
+        "operationId": "get_overall_stats_api_rest_v1_agent_definitions_stats_overall_get",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -2687,14 +2687,14 @@
         }
       }
     },
-    "/api/agents/{agent_id}/stats": {
+    "/api/rest/v1/agent_definitions/{agent_id}/stats": {
       "get": {
         "tags": [
-          "agents"
+          "agent-definitions"
         ],
         "summary": "Get Agent Stats",
         "description": "Get usage stats for a specific Agent.",
-        "operationId": "get_agent_stats_api_agents__agent_id__stats_get",
+        "operationId": "get_agent_stats_api_rest_v1_agent_definitions__agent_id__stats_get",
         "parameters": [
           {
             "name": "agent_id",

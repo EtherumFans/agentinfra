@@ -1,9 +1,18 @@
-# DEPRECATED (P1.3 Stage 5, 2026-07-02) — Legacy API. Phase 2 migrate 到 /rest/v1/agent_definitions (Corti 风格). 见 docs/architecture/MAINLINE_VS_LEGACY.md §3.3.
+# Phase 2.1-C (2026-07-04) — Migrated from /api/agents to /rest/v1/agent_definitions (Corti 风格).
 """Agent CRUD API — manage Agents as first-class backend entities.
 
 iCoDer Agentic Framework equivalent: "Agent is a backend entity that composes
 multiple Experts. Users create/configure Agents, which then orchestrate
 Experts to complete tasks."
+
+Corti-style REST path: /api/rest/v1/agent_definitions/* (Phase 2.1-C migrated
+from legacy /api/agents/* prefix; the /api namespace is kept per iCoDer
+convention, matching /api/v2/tools/* — Corti's actual path is /rest/v1/
+agent_definitions, but iCoDer namespaces all client-facing routers under
+/api). The 9 management endpoints (list/get/create/update/delete/
+categories/templates/version/clone) are exposed on this prefix; A2A
+discovery (list+card) remains on /api/icoder/agents via the lifespan-
+mounted A2A routes.
 """
 import json
 import uuid
@@ -25,7 +34,7 @@ from app.models.organization import Organization
 # `mount_a2a` in app/main.py).
 from app.services.agent_analytics import agent_analytics
 
-router = APIRouter(prefix="/api/agents", tags=["agents"])
+router = APIRouter(prefix="/api/rest/v1/agent_definitions", tags=["agent-definitions"])
 
 
 # ---- Schemas ----

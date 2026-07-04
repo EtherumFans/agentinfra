@@ -7,27 +7,16 @@ canonicalization; whitelist is for genuine path divergences).
 
 ## Entries
 
-### `/api/runtime/trace/{id}` → `/api/runtime-legacy/trace/{pipeline_id}`
+(empty — `path_whitelist.json` is `{}` as of Phase 2.1-B Step 2)
 
-**Reason**: The `trace` method on `runtimeApi` in `services/api.ts:361` calls
-`/api/runtime/trace/${pipelineId}`, but the backend registers the endpoint
-under the deprecated `/api/runtime-legacy/` prefix (see `app/api/runtime.py:18`
-and `:290`). The `/api/runtime/` prefix has not been re-exposed for this
-endpoint.
+The previous entry mapping `/api/runtime/trace/{id}` → `/api/runtime-legacy/trace/{pipeline_id}`
+was removed in Phase 2.1-B Step 1+2 when:
+- `app/api/runtime.py` was deleted (Step 1, commit 1c6c4c0)
+- The `trace` method on `runtimeStatusApi` in `services/api.ts` was deleted (Step 2, commit 9a2723c)
+- `AgentTraceViewer.tsx` was deleted (Step 2, commit 9a2723c)
 
-**Why whitelisted**: This is a known path-prefix divergence. The trace
-endpoint still works at the legacy path; updating the frontend to call
-`/runtime-legacy/trace/...` would couple it to a deprecated prefix. The right
-fix is to re-expose the trace endpoint under `/api/runtime/` (or move it to
-`/api/runtime-platform/`), but that's a backend routing change that belongs in
-a future cycle, not in Cycle 25 (which is engineering-stability-only, no new
-endpoints).
-
-**Used by**: `AgentTraceViewer.tsx:73` via `runtimeApi.trace(pipelineId)`.
-
-**Remove this entry when**: The backend exposes `GET /api/runtime/trace/{id}`
-(or `/api/runtime-platform/trace/{id}`) and the frontend path is updated to
-match.
+No whitelist entries are currently needed — all surviving frontend API calls
+resolve to paths present in `docs/openapi/openapi.json` directly.
 
 ## Adding a new entry
 

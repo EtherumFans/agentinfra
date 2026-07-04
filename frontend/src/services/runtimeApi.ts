@@ -1,7 +1,6 @@
 /**
  * Runtime Agent API client — /api/runtime/* standard endpoints (agent lifecycle,
- * registry, medical-coding, rule-engine). Renamed from runtimeApi (cycle 25)
- * to disambiguate from services/api.ts:runtimeStatusApi.
+ * registry, medical-coding, rule-engine).
  */
 
 import axios from 'axios';

@@ -10,11 +10,11 @@ Phase 1.0 (`0fd00f0`) 在 OAuth 上补齐 Corti 的 4 个共享原语
 (Tenant header / 5min TTL / capability scope / realm URL)。
 按 §15.5 路线, Phase 1.1 = **Medical Coding 路径 + schema 对齐 §3.1**。
 
-iCoDer 此前的 Medical Coding 入口:
+iCoDer 此前的 Medical Coding 入口 (Phase 2.1-B 已物理删除, 以下为历史背景):
 
-| 维度 | 现状 (M3-0) |
+| 维度 | 历史 (M3-0, deleted in Phase 2.1-B Step 4) |
 |---|---|
-| URL | `POST /api/icoder/coding-review/run` |
+| URL | `POST /api/icoder/coding-review/run` (router deleted, commit accc5be) |
 | Req shape | `{encounter_text, primary_disease_codes, ...}` (扁平, 多字段拼装) |
 | Resp shape | `primary_diagnosis + secondary_diagnoses + procedures + evidence_chain + risk_route + pipeline_stages_observed + ...` |
 | Evidence | 字符串截取 `"span": "..."`, 无 char offset |
@@ -121,7 +121,7 @@ Phase 1.1 在不动 M3-0 legacy 的前提下, 新增一条 Corti-shape HTTP 路�
 
 ## 6. Out of scope (Phase 1.1 显式不做)
 
-- ❌ M3-0 `/api/icoder/coding-review/*` 三端点 (legacy 路径保留, 行为不变)
+- ❌ M3-0 `/api/icoder/coding-review/*` 三端点 (Phase 2.1-B Step 4 已物理删除)
 - ❌ `coding` capability scope 注册 (Phase 1.2 接 OAuth 一起做)
 - ❌ 重写 HybridCodingAdapter / MedCodER 真管线 (复用)
 - ❌ 前端 MedicalCodingPage / MethodComparePage 改造 (Phase 1.1 是后端 HTTP shape 对齐)

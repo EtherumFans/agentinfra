@@ -1,5 +1,12 @@
 """MCP server — FastAPI in-process mount exposing 5 MedCodER tools.
 
+These 5 tools (search_icd, verify_code, get_differentiation_hint,
+rerank_codes, calibrate_confidence) back the Medical Coding Agent
+(icoder/medical-coding-agent@2.0.0, Corti-style). The MedCodER 5-stage
+pipeline is the Agent's internal_engine; users interact with the
+Corti-style 7-step workflow + 8-field output contract, not with the
+5-stage technical surface directly.
+
 Transport:
   - POST /mcp/v1/tools/list  — returns all tool descriptors
   - POST /mcp/v1/tools/call  — dispatches one tool invocation

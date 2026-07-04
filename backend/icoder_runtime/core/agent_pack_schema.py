@@ -31,8 +31,9 @@ LEGAL_AGENT_TYPES_V11: tuple[str, ...] = ("certified", "community")
 LEGAL_AGENT_TYPES_V12: tuple[str, ...] = (
     "certified",
     "community",
-    "reference",       # canonical reference impl (e.g. medcoder-coding-review)
-    "expert-stub",     # atomic expert skeleton (Stage N of a pipeline)
+    "reference",         # canonical reference impl (e.g. medcoder-coding-review pre-Phase-3-A)
+    "expert-stub",       # atomic expert skeleton (Stage N of a pipeline)
+    "internal_engine",   # Phase 3-A: backs a Corti-style product Agent (medcoder-coding-review → Medical Coding Agent)
 )
 LEGAL_AGENT_TYPES: tuple[str, ...] = tuple(
     sorted(set(LEGAL_AGENT_TYPES_V11) | set(LEGAL_AGENT_TYPES_V12))

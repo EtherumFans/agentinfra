@@ -543,7 +543,7 @@ def test_all_16_official_packs_load_via_new_loader():
     by_type = {p.agent_type for p in packs}
     assert "certified" in by_type
     assert "community" not in by_type
-    assert "reference" in by_type
+    assert "internal_engine" in by_type  # was "reference" pre-Phase-3-A
     assert "expert-stub" in by_type
 
     # The 4 Phase D2 expert-stubs must all be METADATA_ONLY
@@ -551,8 +551,10 @@ def test_all_16_official_packs_load_via_new_loader():
     assert len(expert_stubs) == 4
     assert all(p.status == PackStatus.METADATA_ONLY for p in expert_stubs)
 
-    # The reference (MedCodER Coding Review) must be EXECUTABLE
-    refs = [p for p in packs if p.agent_type == "reference"]
+    # The internal_engine (MedCodER Coding Review) must be EXECUTABLE
+    # Phase 3-A: was "reference" pre-productization, now "internal_engine"
+    # backing the Corti-style Medical Coding Agent (icoder/medical-coding-agent@2.0.0).
+    refs = [p for p in packs if p.agent_type == "internal_engine"]
     assert len(refs) == 1
     assert refs[0].status == PackStatus.EXECUTABLE
     assert refs[0].production_ready is True

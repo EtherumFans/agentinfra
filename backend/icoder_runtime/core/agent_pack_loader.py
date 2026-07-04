@@ -388,6 +388,18 @@ def _classify(p: NormalizedPack) -> None:
         p.enabled_by_default = True
         return
 
+    if p.agent_type == "internal_engine":
+        # Phase 3-A: internal engine backing a Corti-style product Agent.
+        # Same execution semantics as reference (real Python impl, real
+        # experts/tools), but flagged as internal-only — not user-facing.
+        # The Medical Coding Agent (icoder/medical-coding-agent@2.0.0)
+        # is the user-facing product; medcoder-coding-review is its engine.
+        p.status = PackStatus.EXECUTABLE
+        p.production_ready = True
+        p.experimental = False
+        p.enabled_by_default = True
+        return
+
     if p.agent_type == "community":
         # community packs need real code to be executable
         if p.code:

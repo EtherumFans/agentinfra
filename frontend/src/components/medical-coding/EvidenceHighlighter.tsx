@@ -1,7 +1,7 @@
 /**
  * EvidenceHighlighter — wraps <mark> around EvidenceSpan char ranges in source text.
  *
- * Used to visualize MedCodER pipeline output: which sentence in the EMR
+ * Used to visualize Medical Coding Agent output: which sentence in the EMR
  * supports which diagnosis. Falls back to fuzzy substring match if the
  * stored char_start/char_end don't match exactly (server-side fuzzy).
  *

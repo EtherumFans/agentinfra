@@ -1,8 +1,8 @@
 // iCoDer - API Client
 import axios, { AxiosError } from 'axios';
 import type {
-  TokenResponse, Encounter, Review, GoldCase, PaginatedResponse,
-  EvaluationSummary, CodeSearchResult, RuleResult,
+  TokenResponse, Encounter, Review, PaginatedResponse,
+  CodeSearchResult, RuleResult,
 } from '../types';
 import { useToastStore } from '../store';
 
@@ -151,22 +151,6 @@ export const codesApi = {
   verify: (data: any) => api.post('/codes/verify', data),
 };
 
-
-// Gold Cases
-export const goldCasesApi = {
-  create: (data: any) => api.post<GoldCase>('/gold-cases', data),
-  list: (page = 1, pageSize = 20) =>
-    api.get<PaginatedResponse<GoldCase>>('/gold-cases', { params: { page, page_size: pageSize } }),
-  get: (id: string) => api.get<GoldCase>(`/gold-cases/${id}`),
-  delete: (id: string) => api.delete(`/gold-cases/${id}`),
-};
-
-// Evaluation
-export const evaluationApi = {
-  run: (goldCaseIds?: string[]) =>
-    api.post<EvaluationSummary>('/evaluation/run', goldCaseIds),
-};
-
 // Billing
 export const billingApi = {
   balance: () => api.get<{ balance: number; currency: string }>('/billing/balance'),
@@ -264,39 +248,6 @@ export const ticketsApi = {
   delete: (id: string) => api.delete(`/tickets/${id}`),
 };
 
-// Experts
-export const expertsApi = {
-  list: (category = '', search = '', type = 'all') =>
-    api.get<{ experts: any[]; total: number }>('/experts', { params: { category, search, type } }),
-  get: (id: string) => api.get(`/experts/${id}`),
-  create: (data: any) => api.post('/experts', data),
-  update: (id: string, data: any) => api.put(`/experts/${id}`, data),
-  delete: (id: string) => api.delete(`/experts/${id}`),
-  run: (id: string, input: string, conversationHistory: any[] = []) =>
-    api.post<{ expert_id: string; output: string; model: string }>(`/experts/${id}/run`, { input, conversation_history: conversationHistory }),
-  categories: () => api.get<{ categories: { name: string; count: number }[] }>('/experts/categories'),
-  addMcpServer: (expertId: string, data: any) => api.post(`/experts/${expertId}/mcp-servers`, data),
-  removeMcpServer: (expertId: string, serverId: string) => api.delete(`/experts/${expertId}/mcp-servers/${serverId}`),
-};
-
-// BYO Expert (MCP wrapping)
-export const byoExpertApi = {
-  discover: (mcpUrl: string) => api.post('/experts/byo/discover', null, { params: { mcp_url: mcpUrl } }),
-  create: (mcpUrl: string, systemPrompt: string, name: string) =>
-    api.post('/experts/byo/create-expert', null, { params: { mcp_url: mcpUrl, system_prompt: systemPrompt, name } }),
-};
-
-// Memory (Conversation Memory)
-export const memoryApi = {
-  save: (sessionId: string, role: string, content: string, expertId?: string, agentId?: string) =>
-    api.post('/experts/memory/save', null, { params: { session_id: sessionId, role, content, expert_id: expertId, agent_id: agentId } }),
-  recall: (query: string, limit = 5, agentId?: string) =>
-    api.get('/experts/memory/recall', { params: { query, limit, agent_id: agentId } }),
-  context: (sessionId: string) =>
-    api.get('/experts/memory/context', { params: { session_id: sessionId } }),
-  profile: () => api.get('/experts/memory/profile'),
-};
-
 // Agents (iCoDer Agentic Framework — backend entities)
 export const agentsApi = {
   list: (category = '', search = '', type = 'all') =>
@@ -338,12 +289,6 @@ export const healthApi = {
   check: () => api.get('/health'),
 };
 
-// STT (Speech-to-Text)
-export const sttApi = {
-  punctuate: (text: string) =>
-    api.post<{ text: string }>('/experts/stt/punctuate', { text }),
-};
-
 // Runtime — deterministic safety framework state + audit
 // Renamed from runtimeApi (cycle 25) — disambiguate from services/runtimeApi.ts.
 // This is the case-level status/audit/trace API; runtimeApi.ts is the agent-runtime API.
@@ -356,8 +301,6 @@ export const runtimeStatusApi = {
     ),
   summary: (reviewId: string) =>
     api.get<AuditSummary>(`/runtime/summary/${reviewId}`),
-  trace: (pipelineId: string) =>
-    api.get(`/runtime/trace/${pipelineId}`),
   review: (caseId: string, action: string, rationale: string, decision: string) =>
     api.post<{ status: string; state: string }>(`/runtime/review/${caseId}`, {
       case_id: caseId, action, rationale, decision,
@@ -440,21 +383,5 @@ export interface RuntimeStateInfo {
   permitted_actions: string[];
   allowed_transitions: string[];
 }
-
-// Code Tables Management
-export const codeTablesApi = {
-  list: () =>
-    api.get<{ tables: any[] }>('/code-tables'),
-  get: (tableId: string) =>
-    api.get(`/code-tables/${tableId}`),
-  create: (data: { name: string; description?: string; code_system?: string; version?: string; source_type?: string; institution?: string }) =>
-    api.post<{ id: string; name: string }>('/code-tables', data),
-  delete: (tableId: string) =>
-    api.delete(`/code-tables/${tableId}`),
-  map: (code: string, codeSystem?: string) =>
-    api.post<{ query_code: string; results: Record<string, { table_id: string; table_name: string; source_type: string; code: string; name: string; valid: boolean; is_default: boolean }> }>(
-      '/code-tables/map', { code, code_system: codeSystem }
-    ),
-};
 
 export default api;

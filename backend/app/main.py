@@ -809,7 +809,6 @@ from app.api.medical_docs import router as medical_docs_router
 from app.api.embedded import router as embedded_router
 from app.api.drg import router as drg_router
 from app.api.m2a import router as m2a_router
-from app.api.icoder_agents_hub import router as icoder_agents_hub_router
 from app.api.icoder_coding_review import router as icoder_coding_review_router
 from app.api.v2_tools_coding import router as v2_tools_coding_router
 from app.api.v2_tools_facts import router as v2_tools_facts_router
@@ -862,11 +861,6 @@ app.include_router(embedded_router)            # /api/embedded/*
 app.include_router(medical_docs_router)        # /api/medical-docs/*
 app.include_router(drg_router)                 # /api/drg/*
 app.include_router(m2a_router)                 # /api/m2a/* (M2a 技术闭环)
-app.include_router(icoder_agents_hub_router)    # /api/icoder/agents/* (P1.0-B Agent Hub)
-from app.api.icoder_registry_compat import router as icoder_registry_compat_router  # P1.1-B
-app.include_router(icoder_registry_compat_router)  # /api/icoder/registry/* (P1.1-B Registry Compat)
-from app.api.icoder_agents_compat import router as icoder_agents_compat_router  # P1.1-C
-app.include_router(icoder_agents_compat_router)  # /api/icoder/agents/{id}/{validation,compatibility} (P1.1-C)
 
 
 @app.get("/api/metrics")

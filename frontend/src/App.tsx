@@ -17,7 +17,6 @@ import MedicalCodingPage from './pages/MedicalCodingPage';
 import FactExtractionPage from './pages/FactExtractionPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import ToastContainer from './components/common/Toast';
-import EvaluationPage from './pages/EvaluationPage';
 import SettingsPage from './pages/SettingsPage';
 import BillingPage from './pages/BillingPage';
 import UsagePage from './pages/UsagePage';
@@ -32,10 +31,8 @@ const DocsPage = lazy(() => import('./pages/DocsPage'));
 const ReleaseNotesPage = lazy(() => import('./pages/ReleaseNotesPage'));
 const EmbeddedAssistantPage = lazy(() => import('./pages/EmbeddedAssistantPage'));
 const SupportPage = lazy(() => import('./pages/SupportPage'));
-const ExpertLibraryPage = lazy(() => import('./pages/ExpertLibraryPage'));
 const APIClientsPage = lazy(() => import('./pages/APIClientsPage'));
 const TeamPage = lazy(() => import('./pages/TeamPage'));
-const GoldCasesPage = lazy(() => import('./pages/GoldCasesPage'));
 const EmbedDemoCodingReviewPage = lazy(() => import('./pages/EmbedDemoCodingReviewPage'));
 
 
@@ -82,7 +79,6 @@ function App() {
         <Route path="studio/medical-coding" element={<MedicalCodingPage />} />
         {/* homepage-coding-review shim: legacy route → medical-coding */}
         <Route path="studio/agents/homepage-coding-review" element={<Navigate to="/runtime/coding-review" replace />} />
-        <Route path="studio/expert-library" element={<ExpertLibraryPage />} />
         <Route path="studio/quickstart" element={<DeveloperQuickstartPage />} />
         <Route path="studio/docs" element={<DocsPage />} />
         <Route path="studio/release-notes" element={<ReleaseNotesPage />} />
@@ -93,8 +89,6 @@ function App() {
         {/* Runtime — only MedicalCoding remains. RuntimeConsole / Runs / Doctor
             are iCoDer-internal concepts with no Corti equivalent; quality +
             shadow-eval pages are pending Corti Mapping (see Task #4). */}
-        <Route path="runtime/quality" element={<EvaluationPage />} />
-        <Route path="runtime/shadow-eval" element={<EvaluationPage />} />
         <Route path="runtime/agents" element={<AgentsPage />} />
         <Route path="runtime/coding-review" element={<MedicalCodingPage />} />
         <Route path="runtime/coding-review/:runId" element={<MedicalCodingPage />} />
@@ -113,8 +107,6 @@ function App() {
         {/* Support */}
         <Route path="support" element={<SupportPage />} />
         <Route path="tickets" element={<TicketsPage />} />
-        <Route path="manage/audit-log" element={<ExpertLibraryPage />} />
-        <Route path="manage/rule-sets" element={<ExpertLibraryPage />} />
         <Route path="api-clients" element={<APIClientsPage />} />
         <Route path="team" element={<TeamPage />} />
         <Route path="billing" element={<BillingPage />} />
@@ -123,9 +115,6 @@ function App() {
         <Route path="templates" element={<TemplatesPage />} />
         <Route path="settings" element={<SettingsPage />} />
 
-        <Route path="gold-cases" element={<GoldCasesPage />} />
-        <Route path="evaluation" element={<EvaluationPage />} />
-        <Route path="expert-library" element={<ExpertLibraryPage />} />
         <Route path="support" element={<SupportPage />} />
       </Route>
       <Route path="/reset-password" element={<ResetPasswordPage />} />

@@ -1,11 +1,10 @@
 /**
  * Chinese STT Punctuation Restoration.
  *
- * Two-tier strategy:
- *   1. LLM via POST /api/experts/stt/punctuate (DeepSeek — semantic accuracy)
- *   2. JS rules (fallback when API unavailable, or for interim text)
+ * JS rule-based restoration (the LLM endpoint /api/experts/stt/punctuate
+ * was removed in Phase 2.1-B Step 1 when experts.py was deleted; the JS
+ * fallback is now the only tier).
  */
-import { sttApi } from '../services/api';
 
 // ── JS fallback (lightweight, for interim text and API failures) ────
 
@@ -71,14 +70,9 @@ export async function llmPunctuate(text: string): Promise<string> {
   if (punctCount > charCount / 12) return text;
 
   try {
-    const res = await sttApi.punctuate(text);
-    const punctuated = res.data?.text || '';
-    if (punctuated && punctuated.length >= text.length * 0.8) {
-      return punctuated.trim();
-    }
-    return text;
+    // LLM endpoint removed — JS rules only
+    return jsRestore(text);
   } catch {
-    // LLM unavailable — apply JS rules to full text
     return jsRestore(text);
   }
 }

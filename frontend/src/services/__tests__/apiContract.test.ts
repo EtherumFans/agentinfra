@@ -7,7 +7,7 @@
  * that never existed on the backend).
  *
  * How it works:
- *   1. Reads each service file (api.ts, runtimeApi.ts, icoderCodingReviewApi.ts, agentHubApi.ts)
+ *   1. Reads each service file (api.ts, runtimeApi.ts, icoderCodingReviewApi.ts)
  *   2. Detects the axios.create({ baseURL: '...' }) for that file
  *   3. Extracts every api.<method>('path') or api.<method>(`template-${literal}`) call
  *   4. Normalizes template literals: ${var} → {var} (OpenAPI param syntax)
@@ -44,7 +44,6 @@ const SERVICE_FILES: Record<string, string> = {
   'api.ts': '/api',
   'runtimeApi.ts': '/api/runtime',
   'icoderCodingReviewApi.ts': '/api',
-  'agentHubApi.ts': '/api/icoder/agents',
 };
 
 function loadWhitelist(): Record<string, string> {

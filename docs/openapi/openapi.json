@@ -9570,570 +9570,6 @@
         }
       }
     },
-    "/api/m2a/runs": {
-      "post": {
-        "tags": [
-          "m2a"
-        ],
-        "summary": "Start Run",
-        "description": "开始一个真实 run，返回 run_id + trace_id。",
-        "operationId": "start_run_api_m2a_runs_post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/StartRunRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/StartRunResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      },
-      "get": {
-        "tags": [
-          "m2a"
-        ],
-        "summary": "List Runs",
-        "description": "列出 production runs（sample 永远排除）。",
-        "operationId": "list_runs_api_m2a_runs_get",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "default": 50,
-              "title": "Limit"
-            }
-          },
-          {
-            "name": "agent_ref",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "default": "",
-              "title": "Agent Ref"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/m2a/runs/{run_id}/tools": {
-      "post": {
-        "tags": [
-          "m2a"
-        ],
-        "summary": "Add Tool Call",
-        "description": "添加一次工具调用，返回 tool_run_id。",
-        "operationId": "add_tool_call_api_m2a_runs__run_id__tools_post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "run_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Run Id"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ToolCallRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/m2a/runs/{run_id}/tools/{tool_run_id}": {
-      "patch": {
-        "tags": [
-          "m2a"
-        ],
-        "summary": "Complete Tool Call",
-        "description": "结束一个工具调用。",
-        "operationId": "complete_tool_call_api_m2a_runs__run_id__tools__tool_run_id__patch",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "run_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Run Id"
-            }
-          },
-          {
-            "name": "tool_run_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Tool Run Id"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CompleteToolRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/m2a/runs/{run_id}/finalize": {
-      "post": {
-        "tags": [
-          "m2a"
-        ],
-        "summary": "Finalize Run",
-        "description": "结束 run，写入 trace。",
-        "operationId": "finalize_run_api_m2a_runs__run_id__finalize_post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "run_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Run Id"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/FinalizeRunRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/m2a/runs/{run_id}": {
-      "get": {
-        "tags": [
-          "m2a"
-        ],
-        "summary": "Get Run",
-        "description": "获取完整 run trace。",
-        "operationId": "get_run_api_m2a_runs__run_id__get",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "run_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Run Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/m2a/safety-gate/evaluate": {
-      "post": {
-        "tags": [
-          "m2a"
-        ],
-        "summary": "Evaluate Safety Gate",
-        "description": "计算医学安全门禁（不入库）。",
-        "operationId": "evaluate_safety_gate_api_m2a_safety_gate_evaluate_post",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SafetyGateRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
-      }
-    },
-    "/api/m2a/risk-route": {
-      "post": {
-        "tags": [
-          "m2a"
-        ],
-        "summary": "Evaluate Risk Route",
-        "description": "计算风险路由（不入库）。",
-        "operationId": "evaluate_risk_route_api_m2a_risk_route_post",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RiskRouteRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
-      }
-    },
-    "/api/m2a/runs/{run_id}/human-review": {
-      "post": {
-        "tags": [
-          "m2a"
-        ],
-        "summary": "Submit Human Review",
-        "description": "提交人工复核写回。",
-        "operationId": "submit_human_review_api_m2a_runs__run_id__human_review_post",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "run_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Run Id"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/HumanReviewRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/m2a/runs/{run_id}/reviews": {
-      "get": {
-        "tags": [
-          "m2a"
-        ],
-        "summary": "List Reviews",
-        "description": "查询某 run 的人工复核记录。",
-        "operationId": "list_reviews_api_m2a_runs__run_id__reviews_get",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "run_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Run Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/m2a/learning-loop": {
-      "get": {
-        "tags": [
-          "m2a"
-        ],
-        "summary": "List Learning Loop",
-        "description": "查询学习闭环条目（仅真实人工修改）。",
-        "operationId": "list_learning_loop_api_m2a_learning_loop_get",
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "default": 100,
-              "title": "Limit"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/metrics": {
       "get": {
         "summary": "Metrics",
@@ -10163,6 +9599,46 @@
                 "schema": {}
               }
             }
+          }
+        }
+      }
+    },
+    "/api/icoder/agents": {
+      "get": {
+        "summary": "A2A agent discovery (lifespan-mounted)",
+        "responses": {
+          "200": {
+            "description": "agent list"
+          }
+        }
+      }
+    },
+    "/api/icoder/agents/{agent_id}/card": {
+      "get": {
+        "summary": "A2A single AgentCard (lifespan-mounted)",
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "agent card"
+          }
+        }
+      }
+    },
+    "/.well-known/agent.json": {
+      "get": {
+        "summary": "A2A root agent card (lifespan-mounted)",
+        "responses": {
+          "200": {
+            "description": "root agent card"
           }
         }
       }
@@ -11735,26 +11211,6 @@
         "title": "CommonTranscriptResponse",
         "description": "``CommonTranscriptResponse`` schema — single transcript utterance row.\n\nRequired: ``channel``, ``participant``, ``speakerId``, ``text``,\n``start``, ``end`` (all server-set; times in milliseconds)."
       },
-      "CompleteToolRequest": {
-        "properties": {
-          "tool_output": {
-            "type": "object",
-            "title": "Tool Output"
-          },
-          "status": {
-            "type": "string",
-            "title": "Status",
-            "default": "ok"
-          },
-          "error": {
-            "type": "string",
-            "title": "Error",
-            "default": ""
-          }
-        },
-        "type": "object",
-        "title": "CompleteToolRequest"
-      },
       "CustomerCreateIn": {
         "properties": {
           "display_name": {
@@ -13181,38 +12637,6 @@
         "title": "FactsUpdateResponse",
         "description": "Response shape for ``PATCH /interactions/{id}/facts/{factId}``.\n\nPer spec (``FactsUpdateResponse``), **all 8 fields are required**:\nid, text, group, groupId, source, isDiscarded, createdAt, updatedAt.\nThis is stricter than add-facts (cycle 14) where the response fields\nwere all optional. iCoDer honors the spec exactly."
       },
-      "FinalizeRunRequest": {
-        "properties": {
-          "final_status": {
-            "type": "string",
-            "title": "Final Status",
-            "default": "success"
-          },
-          "risk_indicators": {
-            "type": "object",
-            "title": "Risk Indicators"
-          },
-          "safety_metrics": {
-            "additionalProperties": {
-              "type": "number"
-            },
-            "type": "object",
-            "title": "Safety Metrics"
-          },
-          "primary_dx_change_attempted": {
-            "type": "boolean",
-            "title": "Primary Dx Change Attempted",
-            "default": false
-          },
-          "evidence_grounded": {
-            "type": "boolean",
-            "title": "Evidence Grounded",
-            "default": true
-          }
-        },
-        "type": "object",
-        "title": "FinalizeRunRequest"
-      },
       "ForgotPasswordRequest": {
         "properties": {
           "email": {
@@ -13829,43 +13253,6 @@
           "reason"
         ],
         "title": "HumanReviewInput"
-      },
-      "HumanReviewRequest": {
-        "properties": {
-          "reviewer": {
-            "type": "string",
-            "title": "Reviewer"
-          },
-          "decision": {
-            "type": "string",
-            "title": "Decision"
-          },
-          "reason_code": {
-            "type": "string",
-            "title": "Reason Code"
-          },
-          "rationale": {
-            "type": "string",
-            "title": "Rationale"
-          },
-          "primary_dx_change": {
-            "type": "boolean",
-            "title": "Primary Dx Change",
-            "default": false
-          },
-          "modifications": {
-            "type": "object",
-            "title": "Modifications"
-          }
-        },
-        "type": "object",
-        "required": [
-          "reviewer",
-          "decision",
-          "reason_code",
-          "rationale"
-        ],
-        "title": "HumanReviewRequest"
       },
       "HumanReviewResponse": {
         "properties": {
@@ -14698,31 +14085,6 @@
         "title": "RevokeTokensRequest",
         "description": "Revoke all tokens for current user (logout all devices)."
       },
-      "RiskRouteRequest": {
-        "properties": {
-          "indicators": {
-            "type": "object",
-            "title": "Indicators"
-          },
-          "is_sample": {
-            "type": "boolean",
-            "title": "Is Sample",
-            "default": false
-          },
-          "data_source": {
-            "type": "string",
-            "title": "Data Source",
-            "default": "real"
-          },
-          "production_allowed": {
-            "type": "boolean",
-            "title": "Production Allowed",
-            "default": true
-          }
-        },
-        "type": "object",
-        "title": "RiskRouteRequest"
-      },
       "RuleValidateRequest": {
         "properties": {
           "rule_set": {
@@ -14745,99 +14107,6 @@
           "structured_output"
         ],
         "title": "RuleValidateRequest"
-      },
-      "SafetyGateRequest": {
-        "properties": {
-          "metrics": {
-            "additionalProperties": {
-              "type": "number"
-            },
-            "type": "object",
-            "title": "Metrics"
-          },
-          "primary_dx_change_attempted": {
-            "type": "boolean",
-            "title": "Primary Dx Change Attempted",
-            "default": false
-          },
-          "evidence_grounded": {
-            "type": "boolean",
-            "title": "Evidence Grounded",
-            "default": true
-          }
-        },
-        "type": "object",
-        "title": "SafetyGateRequest"
-      },
-      "StartRunRequest": {
-        "properties": {
-          "agent_ref": {
-            "type": "string",
-            "title": "Agent Ref"
-          },
-          "data_source": {
-            "type": "string",
-            "title": "Data Source",
-            "default": "real"
-          },
-          "is_sample": {
-            "type": "boolean",
-            "title": "Is Sample",
-            "default": false
-          },
-          "metadata": {
-            "type": "object",
-            "title": "Metadata"
-          }
-        },
-        "type": "object",
-        "required": [
-          "agent_ref"
-        ],
-        "title": "StartRunRequest"
-      },
-      "StartRunResponse": {
-        "properties": {
-          "run_id": {
-            "type": "string",
-            "title": "Run Id"
-          },
-          "trace_id": {
-            "type": "string",
-            "title": "Trace Id"
-          },
-          "agent_ref": {
-            "type": "string",
-            "title": "Agent Ref"
-          },
-          "data_source": {
-            "type": "string",
-            "title": "Data Source"
-          },
-          "is_sample": {
-            "type": "boolean",
-            "title": "Is Sample"
-          },
-          "production_allowed": {
-            "type": "boolean",
-            "title": "Production Allowed"
-          },
-          "started_at": {
-            "type": "string",
-            "title": "Started At"
-          }
-        },
-        "type": "object",
-        "required": [
-          "run_id",
-          "trace_id",
-          "agent_ref",
-          "data_source",
-          "is_sample",
-          "production_allowed",
-          "started_at"
-        ],
-        "title": "StartRunResponse"
       },
       "SwitchOrgRequest": {
         "properties": {
@@ -15307,23 +14576,6 @@
           "user"
         ],
         "title": "TokenResponse"
-      },
-      "ToolCallRequest": {
-        "properties": {
-          "tool_name": {
-            "type": "string",
-            "title": "Tool Name"
-          },
-          "tool_input": {
-            "type": "object",
-            "title": "Tool Input"
-          }
-        },
-        "type": "object",
-        "required": [
-          "tool_name"
-        ],
-        "title": "ToolCallRequest"
       },
       "ToolRegisterRequest": {
         "properties": {

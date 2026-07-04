@@ -181,10 +181,15 @@ echo "Review: $REVIEW_ID"
 
 ### 2. 导出证据包
 
+> Phase 2.1-B Step 4 起 `/api/reviews/{id}/evidence-pack` 已删除。
+> 证据信息现通过 A2A Agent 调用返回的 artifacts 元数据获取。
+
 ```bash
-curl http://localhost:8000/api/reviews/$REVIEW_ID/evidence-pack \
+curl -X POST http://localhost:8000/api/icoder/agents/medcoder-coding-review/v1/message:send \
   -H "Authorization: Bearer $TOKEN" \
-  -o evidence-pack.json
+  -H "A2A-Protocol-Version: 0.3" \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":"ev-1","method":"message/send","params":{"message":{"role":"user","parts":[{"type":"text","text":"..."}]}}}'
 ```
 
 ### 3. 查看证据包结构
@@ -216,8 +221,17 @@ print(f'完整性校验: {pack[\"integrity\"][\"content_hash\"]}')
 
 ### 4. 用 Python SDK 导出
 
+> Phase 2.1-B Step 4 起 `/api/reviews/{id}/evidence-pack` 已删除。
+> 改用 A2A message:send 调用 medcoder-coding-review agent, 从 artifacts 元数据提取证据。
+
 ```python
-resp = client.get(f"/api/reviews/{review_id}/evidence-pack")
+import httpx
+resp = httpx.post(
+    f"{base_url}/api/icoder/agents/medcoder-coding-review/v1/message:send",
+    headers={"Authorization": f"Bearer {token}", "A2A-Protocol-Version": "0.3"},
+    json={"jsonrpc":"2.0","id":"ev-1","method":"message/send",
+          "params":{"message":{"role":"user","parts":[{"type":"text","text":"..."}]}}},
+)
 pack = resp.json()
 
 # 验证完整性

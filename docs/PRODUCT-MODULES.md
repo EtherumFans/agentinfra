@@ -195,11 +195,11 @@ Encounter创建 → 9步编码审核管道 → Review → 人工审核 → ARCHI
 |------|------|
 | `POST /api/encounters` | 创建病历 |
 | `POST /api/encounters/text` | 从自由文本创建病历 |
-| `POST /api/reviews` | 运行编码审核管道（支持async模式） |
-| `GET /api/reviews` | 审核列表 |
-| `GET /api/reviews/{id}` | 审核详情（含报告） |
-| `GET /api/reviews/tasks/{id}` | 轮询异步任务状态 |
-| `PUT /api/reviews/{id}/complete` | 标记人工审核完成 |
+| `POST /api/v2/tools/coding/icoder/` | 运行编码预测 (15-system, no LLM) |
+| `POST /api/icoder/agents/medcoder-coding-review/v1/message:send` | A2A 编码 Agent 调用 |
+| `GET /api/runtime/runs` | 运行历史列表 |
+| `GET /api/runtime/runs/{run_id}` | 单次运行详情 |
+| `GET /api/runtime/status` | Runtime 状态 |
 
 ---
 
@@ -455,7 +455,7 @@ Encounter创建 → 9步编码审核管道 → Review → 人工审核 → ARCHI
 | 66 | Encounter创建 — 结构化+自由文本两种方式 | ✅ |
 | 67 | 9步编码审核管道 — 证据提取→编码→验证→DRG→报告 | ✅ |
 | 68 | async模式 — 后台执行+WebSocket进度推送 | ✅ |
-| 69 | 任务轮询 — GET /api/reviews/tasks/{id} | ✅ |
+| 69 | 任务轮询 — GET /api/runtime/runs/{run_id} (Phase 2.1-B 起 /api/reviews/tasks 删除) | ✅ |
 | 70 | 审核报告 — Markdown+HTML双格式 | ✅ |
 | 71 | 人工审核流程 — pending→in_review→completed→archived | ✅ |
 | 72 | 主诊断推理 (primary_diagnosis_reasoning) | ✅ |
@@ -465,7 +465,7 @@ Encounter创建 → 9步编码审核管道 → Review → 人工审核 → ARCHI
 | 76 | 文档缺口分析 (DocumentationGapExpert) | ✅ |
 | 77 | DRG/DIP支付影响分析 | ✅ |
 | 78 | CDI临床文档改进审查 | ✅ |
-| 79 | 批量审核 — POST /api/reviews/batch | ✅ |
+| 79 | 批量审核 — POST /api/icoder/agents/medcoder-coding-review/v1/message:send (Phase 2.1-B 起 /api/reviews/batch 删除) | ✅ |
 | 80 | 33,304 ICD-10-CN + 23,165 ICD-9-CM-3编码字典 | ✅ |
 | 81 | 模糊匹配编码搜索 (rapidfuzz) | ✅ |
 

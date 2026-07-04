@@ -279,11 +279,10 @@ extract_evidence → search_icd10_index → assign_diagnosis_code
 ```
 
 ```bash
-# 批量处理
-curl -X POST /api/reviews/batch -d '{
-  "encounter_ids": ["ENC-001", "ENC-002", ..., "ENC-10000"],
-  "agent_id": "research-extraction-agent"
-}'
+# 批量处理 (Phase 2.1-B 起 /api/reviews/batch 已删除; 通过 A2A 任务流编排批量)
+curl -X POST /api/icoder/agents/medcoder-coding-review/v1/message:send -d '{
+  "jsonrpc":"2.0","id":"batch-1","method":"message/send",
+  "params": {"message": {"role":"user","parts":[{"type":"text","text":"..."}]}}}'
 
 # 输出: 标准化 CSV
 # encounter_id, primary_diag, secondary_diags, procedures, evidence_binding

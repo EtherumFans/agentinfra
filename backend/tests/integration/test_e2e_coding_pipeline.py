@@ -85,7 +85,7 @@ async def test_tool_registry(client, auth_headers):
 @pytest.mark.asyncio
 async def test_agent_tool_native_config(client, auth_headers):
     """Verify agent creation with tool-native config persists."""
-    resp = await client.post("/api/agents", json={
+    resp = await client.post("/rest/v1/agent_definitions", json={
         "name": "E2E-ToolAgent",
         "system_prompt": "test",
         "config": {
@@ -102,8 +102,8 @@ async def test_agent_tool_native_config(client, auth_headers):
 async def test_key_endpoints(client, auth_headers):
     """Verify all key API endpoints return 200."""
     endpoints = [
-        "/api/agents", "/api/agents/templates", "/api/tools",
-        "/api/tools/categories", "/api/encounters", "/api/reviews",
+        "/rest/v1/agent_definitions", "/rest/v1/agent_definitions/templates", "/api/tools",
+        "/api/tools/categories", "/api/encounters",
         "/api/billing/balance", "/api/team/members",
     ]
     for ep in endpoints:

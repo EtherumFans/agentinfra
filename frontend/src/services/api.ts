@@ -218,18 +218,23 @@ export const ticketsApi = {
 };
 
 // Agents (iCoDer Agentic Framework — backend entities)
+// Agent Definitions (Corti-style /rest/v1/agent_definitions)
+// Phase 2.1-C: migrated from /api/agents to /rest/v1/agent_definitions
+// 9 management endpoints (list/get/create/update/delete/categories/
+// templates/version/clone). A2A discovery (list+card) remains on
+// /api/icoder/agents via a2aApi below.
 export const agentsApi = {
   list: (category = '', search = '', type = 'all') =>
-    api.get<{ agents: any[]; total: number }>('/agents', { params: { category, search, type } }),
-  get: (id: string) => api.get(`/agents/${id}`),
-  create: (data: any) => api.post('/agents', data),
-  update: (id: string, data: any) => api.put(`/agents/${id}`, data),
-  delete: (id: string) => api.delete(`/agents/${id}`),
-  categories: () => api.get<{ categories: { name: string; count: number }[] }>('/agents/categories'),
-  templates: () => api.get<{ templates: any[] }>('/agents/templates'),
-  version: (id: string) => api.post(`/agents/${id}/version`),
+    api.get<{ agents: any[]; total: number }>('/rest/v1/agent_definitions', { params: { category, search, type } }),
+  get: (id: string) => api.get(`/rest/v1/agent_definitions/${id}`),
+  create: (data: any) => api.post('/rest/v1/agent_definitions', data),
+  update: (id: string, data: any) => api.put(`/rest/v1/agent_definitions/${id}`, data),
+  delete: (id: string) => api.delete(`/rest/v1/agent_definitions/${id}`),
+  categories: () => api.get<{ categories: { name: string; count: number }[] }>('/rest/v1/agent_definitions/categories'),
+  templates: () => api.get<{ templates: any[] }>('/rest/v1/agent_definitions/templates'),
+  version: (id: string) => api.post(`/rest/v1/agent_definitions/${id}/version`),
   clone: (id: string, name?: string, description?: string) =>
-    api.post(`/agents/${id}/clone`, { name, description }),
+    api.post(`/rest/v1/agent_definitions/${id}/clone`, { name, description }),
 };
 
 // A2A Protocol

@@ -66,13 +66,17 @@ class EvidenceSpan:
 
 
 def _parse_evidence(raw: list) -> list:
-    """Parse evidence from mixed format (str or dict) → list of EvidenceSpan.
+    """Parse evidence from mixed format (str or dict or EvidenceSpan) → list of EvidenceSpan.
 
     Backward compatible: bare strings become EvidenceSpan with text only.
+    Idempotent: EvidenceSpan inputs are returned as-is (no double-wrap).
     """
     spans = []
     for item in raw or []:
-        spans.append(EvidenceSpan.from_dict(item))
+        if isinstance(item, EvidenceSpan):
+            spans.append(item)
+        else:
+            spans.append(EvidenceSpan.from_dict(item))
     return spans
 
 

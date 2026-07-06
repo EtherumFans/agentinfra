@@ -9,10 +9,20 @@
     "category": "medical-coding",
     "category_display": "Coding and Revenue Cycle / 编码与收入周期",
     "icon": "Stethoscope",
-    "tags": ["icd-10-cn", "icd-9-cm-3", "evidence-first", "no-upcoding", "no-inference", "human-review-required", "corti-style"],
+    "tags": [
+      "icd-10-cn",
+      "icd-9-cm-3",
+      "evidence-first",
+      "no-upcoding",
+      "no-inference",
+      "human-review-required",
+      "corti-style"
+    ],
     "maturity": "mvp",
     "production_ready": false,
-    "human_review": "required"
+    "human_review": "required",
+    "hidden_from_hub": false,
+    "use_case": "coding_revenue_cycle"
   },
   "system_prompt": "你是 iCoDer Medical Coding Agent (Corti-style, MVP)。职责: 基于病历证据生成 ICD-10-CN 诊断编码与 ICD-9-CM-3 手术操作编码建议, 输出 Corti-style 8-field 结构化结果。\n\n核心行为契约 (Corti 7-step workflow):\n1. Synthesize Encounter: 整合入院记录 / 出院小结 / 手术记录 / 病程记录 / 检查报告, 形成 encounter_summary (主诉、诊疗经过、关键发现)。\n2. Extract Clinical Evidence: 抽取诊断证据、手术证据、否定发现、既往病史 — 每条证据必须 char-anchored span (能在原文找到), 不得编造。\n3. Search Coding Candidates: BGE-M3 + FAISS 检索 ICD-10-CN / ICD-9-CM-3 候选编码 top-20, 经 icd10cn_code_catalog 合规过滤。\n4. Assign Codes: RankGPT-style 重排序 top-5 per diagnosis, 编码员可选 final code; 每个最终编码必须附 evidence span + confidence。\n5. Validate Coding: 跑 MedicalCodingRuleSet (R001-R010 + MC-R-M80-001) — catalog membership / chapter metadata / 主诊断冲突 / 手术-诊断一致性; 输出 validation_summary。\n6. Identify Documentation Gaps: 标记证据不足 / 候选编码冲突 / 否定发现未编码 / 历史诊断未编码 — 输出 documentation_gaps + uncodable_items。\n7. Generate Review Summary: 输出 review_conclusion (PASS | WARNING | FAIL) + manual_review_required + 人工复核重点 + trace_refs (run_id / stage_trace / rule_fired)。\n\n硬约束 (Corti 红线):\n- 不替代编码员 (AI-assisted, human_review=required)\n- 不 upcoding (不优先选择高补偿编码)\n- 不推断未记录的诊断 / 手术 (evidence-first, no inference beyond documentation)\n- 每个最终编码必须附 evidence span (no evidence = no code)\n- 不写回 EMR / HIS / 医保结算系统 (production_writeback_blocked=true)\n- 不声称 fully automated coding\n- 不绕过 PHI redaction (Context 强制)\n- 不输出 F1 / 模型效果指标给最终用户\n- documentation_gaps + uncodable_items + human_review 必须显式输出 (即使为空)",
   "experts": [
@@ -29,40 +39,123 @@
       "type": "mcp",
       "stage": "search-candidates",
       "description": "BGE-M3 + FAISS 检索 ICD-10-CN / ICD-9-CM-3 候选编码 (Step 3 Search Coding Candidates)。",
-      "input_schema": {"type": "object", "properties": {"query": {"type": "string"}, "top_k": {"type": "integer", "default": 20}}, "required": ["query"]},
-      "output_schema": {"type": "array", "items": {"$ref": "icoder/CandidateCode/v1"}}
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string"
+          },
+          "top_k": {
+            "type": "integer",
+            "default": 20
+          }
+        },
+        "required": [
+          "query"
+        ]
+      },
+      "output_schema": {
+        "type": "array",
+        "items": {
+          "$ref": "icoder/CandidateCode/v1"
+        }
+      }
     },
     {
       "name": "verify_code",
       "type": "mcp",
       "stage": "validate-coding",
       "description": "校验编码合规 (Step 5 Validate Coding): catalog membership, similarity ≥ 0.5, chapter metadata。",
-      "input_schema": {"type": "object", "properties": {"code": {"type": "string"}, "context": {"type": "object"}}, "required": ["code"]},
-      "output_schema": {"$ref": "icoder/CodeVerificationResult/v1"}
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "context": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "code"
+        ]
+      },
+      "output_schema": {
+        "$ref": "icoder/CodeVerificationResult/v1"
+      }
     },
     {
       "name": "get_differentiation_hint",
       "type": "mcp",
       "stage": "assign-codes",
       "description": "读取 coding_differentiation_kb (2,090 P0/P1 code-pair hints), 在 Step 4 Assign Codes 重排 prompt 中注入区分提示。",
-      "input_schema": {"type": "object", "properties": {"candidate_codes": {"type": "array", "items": {"type": "string"}}}, "required": ["candidate_codes"]},
-      "output_schema": {"type": "array", "items": {"$ref": "icoder/DifferentiationHint/v1"}}
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "candidate_codes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "candidate_codes"
+        ]
+      },
+      "output_schema": {
+        "type": "array",
+        "items": {
+          "$ref": "icoder/DifferentiationHint/v1"
+        }
+      }
     },
     {
       "name": "rerank_codes",
       "type": "mcp",
       "stage": "assign-codes",
       "description": "RankGPT-style 重排序 (Step 4 Assign Codes): 给定一个 diagnosis 的 candidate_set (≤30), 输出 top-5 排序 + per-disease final_confidence + rerank_notes。",
-      "input_schema": {"type": "object", "properties": {"disease_text": {"type": "string"}, "evidence": {"type": "array"}, "candidates": {"type": "array"}}, "required": ["disease_text", "candidates"]},
-      "output_schema": {"$ref": "icoder/RerankResult/v1"}
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "disease_text": {
+            "type": "string"
+          },
+          "evidence": {
+            "type": "array"
+          },
+          "candidates": {
+            "type": "array"
+          }
+        },
+        "required": [
+          "disease_text",
+          "candidates"
+        ]
+      },
+      "output_schema": {
+        "$ref": "icoder/RerankResult/v1"
+      }
     },
     {
       "name": "calibrate_confidence",
       "type": "mcp",
       "stage": "validate-coding",
       "description": "per-disease confidence calibration (Step 5 Validate Coding): 输入 ExtractedDiagnosis.final_confidence, 输出 manual_review_required + risk_tier (auto / review / escalate)。",
-      "input_schema": {"type": "object", "properties": {"diagnosis": {"$ref": "icoder/ExtractedDiagnosis/v1"}}, "required": ["diagnosis"]},
-      "output_schema": {"$ref": "icoder/CalibrationResult/v1"}
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "diagnosis": {
+            "$ref": "icoder/ExtractedDiagnosis/v1"
+          }
+        },
+        "required": [
+          "diagnosis"
+        ]
+      },
+      "output_schema": {
+        "$ref": "icoder/CalibrationResult/v1"
+      }
     }
   ],
   "model": {
@@ -87,7 +180,9 @@
   ],
   "output_contract": {
     "schema_ref": "icoder/MedicalCodingAgentOutputV2/v1",
-    "a2a_parts": ["DataPart"],
+    "a2a_parts": [
+      "DataPart"
+    ],
     "required_fields": [
       "encounter_summary",
       "documentation_analysis",
@@ -154,8 +249,14 @@
   },
   "llm_capabilities": {
     "required_models": [
-      {"name": "deepseek-v4", "purpose": "step2_extract_evidence + step4_assign_codes"},
-      {"name": "BAAI/bge-m3", "purpose": "step3_search_candidates embedding"}
+      {
+        "name": "deepseek-v4",
+        "purpose": "step2_extract_evidence + step4_assign_codes"
+      },
+      {
+        "name": "BAAI/bge-m3",
+        "purpose": "step3_search_candidates embedding"
+      }
     ],
     "supports_tool_calling": true,
     "supports_json_mode": true,
@@ -171,7 +272,13 @@
     "name": "MedCodER 5-stage pipeline (NAACL 2025 Industry Track)",
     "agent_ref": "icoder/medcoder-coding-review-agent@1.0.0",
     "note": "Internal implementation detail. Not user-facing. MedCodER 5-stage (Extraction → Retrieval → Merge → Re-Rank → Calibration) powers the Medical Coding Agent's step 2-5. Users interact with the Corti-style 7-step workflow only.",
-    "stages": ["extraction", "retrieval", "merge", "rerank", "calibration"]
+    "stages": [
+      "extraction",
+      "retrieval",
+      "merge",
+      "rerank",
+      "calibration"
+    ]
   },
   "code": {},
   "integrity": {

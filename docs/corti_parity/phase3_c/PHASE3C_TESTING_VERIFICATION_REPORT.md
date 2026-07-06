@@ -75,7 +75,21 @@
 | 29 | `test_mcp_auth_redaction_doesnt_clobber_symbolic_constants` | `MCP_AUTH_FORBIDDEN` survives redaction |
 | 30 | `test_mcp_auth_error_catalog_complete` | All 7 codes have name + HTTP status |
 
-### 1.3 Total new tests
+### 1.3 Phase 3-C1 follow-up — Server-level auth injection (7 new tests, 2026-07-06)
+
+**`tests/unit/icoder/mcp/test_mcp_server_auth.py`** (7 tests) — closes B5 #8/#9 gap initially deferred to Phase 3-D.
+
+| # | Test | Verifies |
+|---|------|----------|
+| 31 | `test_tools_list_advertises_bearer_auth_redacted` | `tools/list` returns redacted `auth` field for bearer tool; `secret_ref` + raw token never leak |
+| 32 | `test_tools_list_advertises_oauth2_auth_redacted` | `tools/list` returns `token_url`/`scopes`/`audience` for oauth2.0; `client_id_ref`/`client_secret_ref` stripped |
+| 33 | `test_tools_list_omits_auth_when_none` | Tools with `auth_config=None` have no `auth` field (backwards compat) |
+| 34 | `test_tools_call_injects_bearer_auth_header` | `tools/call` resolves bearer via vault → `AuthHeader` on `request.state.auth_header` |
+| 35 | `test_tools_call_injects_oauth2_auth_header` | `tools/call` does oauth2 exchange (single httpx call) → AuthHeader injected |
+| 36 | `test_tools_call_auth_failure_returns_mcp_auth_error` | Unknown `secret_ref` → `MCP_AUTH_MISSING_CREDENTIALS` (-32009); handler never called |
+| 37 | `test_tools_call_no_auth_when_config_none` | `auth_config=None` → `request.state.auth_header` not set (backwards compat) |
+
+### 1.4 Total new tests
 
 | Phase | File | Tests |
 |-------|------|-------|
@@ -84,7 +98,8 @@
 | 3-C0 | `test_e1_real_app_startup.py` (modified) | 2 (existing, re-verified with new timeout) |
 | 3-C0 | `test_runtime_platform_v2_projection.py` | 2 |
 | 3-C1 | `test_mcp_auth.py` | 17 |
-| **Total** | | **30 new + 2 re-verified = 32** |
+| 3-C1 follow-up | `test_mcp_server_auth.py` | 7 |
+| **Total** | | **37 new + 2 re-verified = 39** |
 
 ---
 
@@ -100,10 +115,10 @@ $ pytest tests/unit/icoder/mcp/ \
          tests/integration/icoder/test_e1_real_app_startup.py \
          -q --no-header
 
-68 passed, 41 warnings in 21.85s
+75 passed, 48 warnings in 21.77s
 ```
 
-**0 failures** in the Phase 3-C focused regression.
+**0 failures** in the Phase 3-C focused regression (68 prior + 7 new `test_mcp_server_auth.py` = 75).
 
 ### 2.2 Phase 3-B2 closed-gap regression (no regression check)
 
@@ -128,9 +143,10 @@ $ pytest tests/integration/icoder/test_phase3c0_a2a_mock_smoke.py \
          tests/integration/icoder/test_e1_real_app_startup.py \
          tests/unit/icoder/test_mock_llm_no_external_http.py \
          tests/unit/icoder/mcp/test_mcp_auth.py \
+         tests/unit/icoder/mcp/test_mcp_server_auth.py \
          -v --no-header --timeout=120
 
-29 passed, 13 warnings in 22.58s
+36 passed, 20 warnings in 18.85s
 ```
 
 ### 2.4 Full default sweep (excluding heavy + retrieval + known pre-existing)
@@ -182,7 +198,7 @@ Re-ran `test_mcp_auth.py` after fix → 17/17 still PASS.
 | 7 | inherit auth test | ✅ PASS | tests 17, 25, 26 — happy + fallback + empty |
 | 8 | MCP auth error catalog complete (7 codes) | ✅ PASS | test 30 + `_NAMES` + `HTTP_STATUS` dict |
 | 9 | secret redaction checks pass | ✅ PASS | tests 22, 23, 29 — cache key excludes secret, raw token → `<redacted>`, symbolic constants survive |
-| 10 | default focused regression 0 fail | ✅ PASS | 68/68 Phase 3-C focused + 65/65 Phase 3-B2 regression, 0 fail |
+| 10 | default focused regression 0 fail | ✅ PASS | 75/75 Phase 3-C focused + 65/65 Phase 3-B2 regression, 0 fail |
 | 11 | Phase 3-B2 closed gaps 2.2/2.3/4.3 no regression | ✅ PASS | 65/65 Phase 3-B2 tests still PASS |
 
 **Verdict: 11/11 PASS criteria met.**
@@ -267,8 +283,9 @@ All 4 errors are 502 Bad Gateway on `POST /api/auth/login` because no live uvico
 
 **Phase 3-C Testing PASS.**
 
-- 30 new tests + 2 re-verified = 32 total.
+- 37 new tests + 2 re-verified = 39 total.
 - 11/11 PASS criteria met.
-- 0 regressions in focused sweep (68 + 65 tests, 0 fail).
+- 0 regressions in focused sweep (75 + 65 tests, 0 fail).
 - 0 Phase 3-C-related failures in full default sweep (3 pre-existing failures documented as out of scope).
 - Phase 3-B2 closed gaps 2.2/2.3/4.3 still PASS (65/65).
+- B5 #8/#9 dispatcher wiring closed 2026-07-06 (7 server-level tests, 0 fail).

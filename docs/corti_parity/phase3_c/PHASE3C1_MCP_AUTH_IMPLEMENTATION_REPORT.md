@@ -415,13 +415,31 @@ Verified by:
 | 16 | `test_mcp_auth_redaction_doesnt_clobber_symbolic_constants` | `MCP_AUTH_FORBIDDEN` survives redaction |
 | 17 | `test_mcp_auth_error_catalog_complete` | All 7 codes have name + HTTP status |
 
-### 6.3 Result
+### 6.3 Server-level tests (`tests/unit/icoder/mcp/test_mcp_server_auth.py`) — B5 #8 + #9
+
+Phase 3-C1 follow-up (2026-07-06): closes the B5 #8/#9 gap that was
+initially deferred to Phase 3-D. The MCP dispatcher now invokes
+`resolve_mcp_auth()` and injects `AuthHeader` onto `request.state.auth_header`
+before the handler runs; `tools/list` advertises per-tool auth requirements
+in redacted form.
+
+| # | Test | Asserts |
+|---|------|---------|
+| 18 | `test_tools_list_advertises_bearer_auth_redacted` | `tools/list` returns `auth.type=bearer` + `redacted_view`; `secret_ref` and raw token never leak |
+| 19 | `test_tools_list_advertises_oauth2_auth_redacted` | `tools/list` returns `type=oauth2.0` + `token_url` + `scopes` + `audience`; `client_id_ref` / `client_secret_ref` stripped |
+| 20 | `test_tools_list_omits_auth_when_none` | Tools with `auth_config=None` have no `auth` field (backwards compat) |
+| 21 | `test_tools_call_injects_bearer_auth_header` | `tools/call` resolves bearer via vault → `request.state.auth_header.to_header() == "Bearer <token>"` |
+| 22 | `test_tools_call_injects_oauth2_auth_header` | `tools/call` does oauth2 exchange (single httpx call) → AuthHeader on `request.state` |
+| 23 | `test_tools_call_auth_failure_returns_mcp_auth_error` | Bearer with unknown `secret_ref` → `MCP_AUTH_MISSING_CREDENTIALS` (-32009); handler never called |
+| 24 | `test_tools_call_no_auth_when_config_none` | `auth_config=None` → `request.state.auth_header` not set (backwards compat) |
+
+### 6.4 Result
 
 ```
-17 passed, 1 warning in 2.28s
+17 passed (resolver-level) + 7 passed (server-level) = 24 passed
 ```
 
-### 6.4 Test infrastructure
+### 6.5 Test infrastructure
 
 - `_fake_vault()` — a CredentialVault fake mapping `secret_refs` → raw secrets. Mirrors the real `app.services.credential_vault.vault.resolve` contract (raises `KeyError` for unknown refs).
 - `_CountingTransport` — httpx MockTransport that counts calls + returns a fresh `access_token` each invocation so cache hit vs refresh is assertable.
@@ -459,9 +477,14 @@ Verified by:
 
 ## 9. Outstanding Items (Phase 3-D / Phase 4 — NOT in scope)
 
-- **Per-tool auth config wiring** — `tool_registry.py` 5 tools don't yet carry per-tool auth config. Resolver is wired but not invoked from the dispatcher. Phase 3-D task.
+- **~~Per-tool auth config wiring~~** — ✅ CLOSED 2026-07-06 (B5 #8/#9 follow-up).
+  `ToolDescriptor.auth_config` field added; `mount_mcp` accepts
+  `secret_resolver` / `http_client_factory` / `clock` injectable params;
+  `tools/call` dispatcher invokes `resolve_mcp_auth()` and injects
+  `AuthHeader` onto `request.state.auth_header`; `tools/list` advertises
+  redacted auth. Verified by 7 new tests in `test_mcp_server_auth.py`.
 - **OAuth2.0 refresh token grant** — only `client_credentials` implemented (matches MCP 2025-03-26 spec). Refresh token grant is Phase 4.
-- **MCP server-side scope enforcement** — `MCP_AUTH_FORBIDDEN` code exists + test 11 verifies the envelope, but the dispatcher doesn't yet check scopes against the tool's required scope. Phase 3-D task.
+- **MCP server-side scope enforcement** — `MCP_AUTH_FORBIDDEN` code exists + test 11 verifies the envelope, and the dispatcher now resolves auth + injects AuthHeader, but the dispatcher doesn't yet check the resolved token's scopes against any per-tool `required_scopes`. Phase 3-D task.
 - **`redacted_view` in actual log output** — the resolver returns `redacted_view` correctly; verifying it in real logger output needs a logger capture test. Deferred to Phase 3-D.
 
 ---
@@ -472,9 +495,10 @@ Verified by:
 
 - 4/4 auth types implemented (none / bearer / inherit / oauth2.0).
 - 7/7 auth error codes registered with name + HTTP status mapping.
-- 17/17 tests PASS (11 spec + 6 bonus).
+- 24/24 tests PASS (11 spec + 6 bonus resolver-level + 7 server-level B5 #8/#9).
 - Cache safety invariant holds: `client_secret` NOT in cache key (test 9).
 - Redaction contract holds: raw tokens → `<redacted>`, `redacted_view` + symbolic constants survive (tests 10, 16).
-- 0 regressions in focused sweep (299 + 65 tests, 0 fail).
+- Dispatcher wiring closed: `tools/list` advertises redacted auth, `tools/call` resolves + injects `AuthHeader` (tests 18-24).
+- 0 regressions in focused sweep (72 Phase 3-C tests, 0 fail).
 
-Unblocks Phase 3-D (per-tool auth wiring + scope enforcement + 10 runnable agents).
+Unblocks Phase 3-D (scope enforcement + 10 runnable agents).

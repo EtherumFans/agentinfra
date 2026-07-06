@@ -1,9 +1,9 @@
 # Phase 3-C — Gap Closure Matrix
 
-**Date**: 2026-07-05
-**Scope**: Phase 3-C0 (Runtime Stabilization) + Phase 3-C1 (MCP Auth)
+**Date**: 2026-07-05 (last updated 2026-07-06)
+**Scope**: Phase 3-C0 (Runtime Stabilization) + Phase 3-C1 (MCP Auth) + Phase 3-C1 follow-up (Server-level auth injection)
 **Baseline**: Phase 3-B2 (3 Corti parity gaps closed: 2.2 / 2.3 / 4.3)
-**Verdict**: ✅ PASS — 4 stabilization blockers closed + 2 Corti parity gaps closed (3.4 / 3.7)
+**Verdict**: ✅ PASS — 4 stabilization blockers closed + 3 Corti parity gaps closed (3.1 / 3.4 / 3.7)
 
 ---
 
@@ -44,13 +44,18 @@
 | 2.6 | FHIR context | Medium | Phase 4 | FHIR R4 resources not yet modeled |
 | 2.7 | ICD-10-CN differentiator | Medium | Phase 3-D | Partial — `get_differentiation_hint` tool exists; UI surface pending |
 | 2.8 | RunTracePage | Medium | Phase 3-D | P1.0-E RunTracePage exists; Corti-parity trace viewer pending |
-| 3.1 | Per-tool auth config wiring | Medium | Phase 3-D | Resolver wired but dispatcher doesn't invoke yet |
 | 3.2 | OAuth2.0 refresh token grant | Small | Phase 4 | MCP 2025-03-26 spec only requires `client_credentials` |
 | 3.3 | MCP server-side scope enforcement | Small | Phase 3-D | `MCP_AUTH_FORBIDDEN` code exists; dispatcher check pending |
 | 3.5 | `redacted_view` in actual log output | Small | Phase 3-D | Resolver returns correctly; logger capture test pending |
 | 4.1 | Marketplace | Large | Phase 4 | Out of scope per prompt |
 | 4.2 | SDK | Large | Phase 4 | Out of scope per prompt |
 | 4.4 | 10 runnable agents | Large | Phase 3-D | Out of scope per prompt |
+
+### 2.4 Gap 3.1 closed in Phase 3-C1 follow-up (2026-07-06)
+
+| Gap # | Title | Severity | Before | After | Evidence |
+|-------|-------|----------|--------|-------|----------|
+| 3.1 | Per-tool auth config wiring | Medium | Resolver wired (Phase 3-C1 §9) but dispatcher didn't invoke yet — deferred to Phase 3-D. | `ToolDescriptor.auth_config` field + `tools/list` redacted advertisement + `tools/call` `resolve_mcp_auth()` → `request.state.auth_header` injection. | `app/icoder/mcp/tool_registry.py` + `app/icoder/mcp/server.py` (`_redact_auth_config`, `tools_list`, `tools_call`, `mount_mcp` resolver params) + 7 server-level tests in `test_mcp_server_auth.py` |
 
 ---
 
@@ -67,7 +72,7 @@
 | 7 | inherit auth test | prompt §1 | ✅ PASS | tests 17, 25, 26 — happy + fallback + empty |
 | 8 | MCP auth error catalog complete | prompt §1 | ✅ PASS | 7 codes `-32006..-32012` + `_NAMES` + `HTTP_STATUS` + test 30 |
 | 9 | secret redaction checks pass | prompt §1 | ✅ PASS | tests 22, 23, 29 — cache key excludes secret, raw token → `<redacted>`, symbolic constants survive |
-| 10 | default focused regression 0 fail | prompt §1 | ✅ PASS | 68/68 Phase 3-C focused + 65/65 Phase 3-B2 regression, 0 fail |
+| 10 | default focused regression 0 fail | prompt §1 | ✅ PASS | 75/75 Phase 3-C focused + 65/65 Phase 3-B2 regression, 0 fail |
 | 11 | Phase 3-B2 closed gaps 2.2/2.3/4.3 no regression | prompt §1 | ✅ PASS | 65/65 Phase 3-B2 tests still PASS |
 
 **Verdict: 11/11 PASS criteria met.**
@@ -85,6 +90,8 @@
 | `app/icoder/mcp/auth.py` (NEW) | 3-C1 | 4 config classes + `AuthHeader` + `parse_mcp_auth_config()` factory |
 | `app/icoder/mcp/auth_resolver.py` (NEW) | 3-C1 | `resolve_mcp_auth()` + `_resolve_bearer` / `_resolve_inherit` / `_resolve_oauth2` + cache + clock skew |
 | `app/icoder/mcp/errors.py` | 3-C1 | 7 auth codes + `_NAMES` + `HTTP_STATUS` + `_redact_secret` + `_looks_like_token_blob` + `MCPAuthError` subclass |
+| `app/icoder/mcp/tool_registry.py` | 3-C1 follow-up | `ToolDescriptor.auth_config` field + `from_pydantic()` accepts `auth_config` param |
+| `app/icoder/mcp/server.py` | 3-C1 follow-up | `_redact_auth_config()` for tools/list + `tools_call` resolver dispatch → `request.state.auth_header` + `mount_mcp()` accepts `secret_resolver` / `http_client_factory` / `clock` |
 
 ### 4.2 Test code
 
@@ -96,6 +103,7 @@
 | `tests/integration/icoder/retrieval/test_smoke_recall.py` | 3-C0 | `pytestmark` list with `heavy` + `retrieval` + `skipif` |
 | `tests/unit/app/api/test_runtime_platform_v2_projection.py` (NEW) | 3-C0 | 2 tests — v1→v2 projection wrapper (carry-over from Phase 3-B1) |
 | `tests/unit/icoder/mcp/test_mcp_auth.py` (NEW) | 3-C1 | 17 tests — 11 spec + 6 bonus |
+| `tests/unit/icoder/mcp/test_mcp_server_auth.py` (NEW) | 3-C1 follow-up | 7 tests — B5 #8 (tools/list redacted) + B5 #9 (tools/call AuthHeader injection) |
 | `pytest.ini` (NEW) | 3-C0 | Marker registry + `addopts = -m "not heavy and not retrieval"` |
 
 ### 4.3 Spec docs
@@ -111,9 +119,10 @@
 | Category | Count | Status |
 |----------|-------|--------|
 | Phase 3-C0 new tests | 13 | ✅ all PASS |
-| Phase 3-C1 new tests | 17 | ✅ all PASS |
+| Phase 3-C1 new tests (resolver-level) | 17 | ✅ all PASS |
+| Phase 3-C1 follow-up tests (server-level) | 7 | ✅ all PASS |
 | Phase 3-B2 regression (no regression check) | 65 | ✅ all PASS |
-| Phase 3-C focused sweep | 68 | ✅ all PASS |
+| Phase 3-C focused sweep | 75 | ✅ all PASS |
 | Full default sweep (excl. heavy + retrieval + e2e_product + real-deepseek) | 299 + 1 skipped | ✅ 0 Phase 3-C-related failures |
 | Pre-existing failures (NOT Phase 3-C) | 1 flaky + 4 infra + 8 stale | documented, out of scope |
 
@@ -124,7 +133,6 @@
 ### 6.1 Phase 3-D (next phase)
 
 - 10 runnable agents
-- Per-tool auth config wiring (`tool_registry.py` doesn't yet carry per-tool auth config)
 - MCP server-side scope enforcement (dispatcher doesn't yet check scopes)
 - `redacted_view` in actual log output (logger capture test)
 - ICD-10-CN differentiator UI surface
@@ -149,9 +157,10 @@
 
 - 4/4 carried-in stabilization blockers closed (A1-A4).
 - 2/2 Corti parity gaps closed (3.4, 3.7).
+- 1/1 follow-up gap closed in Phase 3-C1 (3.1 — per-tool auth config wiring, 2026-07-06).
 - 3/3 Phase 3-B2 closed gaps still closed (2.2, 2.3, 4.3) — no regression.
 - 11/11 PASS criteria met.
-- 30 new tests + 2 re-verified, all PASS.
+- 37 new tests + 2 re-verified, all PASS.
 - 0 Phase 3-C-related regressions in default sweep.
 
-Unblocks Phase 3-D (per-tool auth wiring + scope enforcement + 10 runnable agents + Corti parity 2.4/2.5/2.7/2.8/3.1/3.3/3.5).
+Unblocks Phase 3-D (scope enforcement + 10 runnable agents + Corti parity 2.4/2.5/2.7/2.8/3.3/3.5).

@@ -72,7 +72,9 @@ from fastapi import APIRouter, FastAPI, Request
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 
-from .errors import MCPError, MCPErrorCode
+from .auth import MCPAuthConfig
+from .auth_resolver import RunAuthContext, resolve_mcp_auth
+from .errors import MCPAuthError, MCPError, MCPErrorCode
 from .tool_registry import TOOL_REGISTRY, ToolDescriptor, assert_tool_registry_matches_agent_pack
 
 logger = logging.getLogger(__name__)
@@ -158,6 +160,43 @@ def _redact_phi(arguments: dict[str, Any], redactor: Any | None) -> dict[str, An
         return value
 
     return _walk(arguments)
+
+
+# ── Auth config redaction (Phase 3-C1 B5 #8) ────────────────────
+
+
+def _redact_auth_config(auth_config: MCPAuthConfig) -> dict[str, Any]:
+    """Return a display-safe view of a ToolDescriptor's auth_config.
+
+    tools/list advertises each tool's auth requirement so clients know
+    what to send on tools/call. The advertisement MUST NOT include
+    ``secret_ref`` / ``client_id_ref`` / ``client_secret_ref`` / the
+    raw ``token`` — only the ``type`` and (optional) ``redacted_view``.
+
+    For oauth2.0 we surface the ``token_url`` + ``scopes`` + ``audience``
+    because those are public values the client needs to decide whether
+    to ride on the server's oauth exchange or bring its own token.
+    """
+    # Pydantic models expose .model_dump() — but we hand-pick fields
+    # rather than dumping wholesale so we never accidentally leak a
+    # future secret-bearing field.
+    type_ = getattr(auth_config, "type", "unknown")
+    out: dict[str, Any] = {"type": type_}
+    rv = getattr(auth_config, "redacted_view", None)
+    if rv:
+        out["redacted_view"] = rv
+    if type_ == "oauth2.0":
+        oauth = getattr(auth_config, "oauth", None)
+        if oauth is not None:
+            out["token_url"] = oauth.token_url
+            out["scopes"] = list(oauth.scopes)
+            if oauth.audience:
+                out["audience"] = oauth.audience
+    elif type_ == "inherit":
+        inherit_from = getattr(auth_config, "inherit_from", None)
+        if inherit_from:
+            out["inherit_from"] = inherit_from
+    return out
 
 
 # ── Envelope helpers ────────────────────────────────────────────
@@ -256,14 +295,21 @@ def build_router() -> APIRouter:
 
             tools_out: list[dict[str, Any]] = []
             for name, desc in TOOL_REGISTRY.items():
-                tools_out.append({
+                entry: dict[str, Any] = {
                     "name": desc.name,
                     "description": desc.description,
                     "inputSchema": desc.input_schema,
                     "outputSchema": desc.output_schema,
                     "stage": desc.stage,
                     "ref": desc.handler_ref,
-                })
+                }
+                # Phase 3-C1 B5 #8: advertise auth requirement (redacted).
+                # _redact_auth_config strips secret_ref / client_*_ref /
+                # raw token — only type + redacted_view + public oauth
+                # fields survive.
+                if desc.auth_config is not None:
+                    entry["auth"] = _redact_auth_config(desc.auth_config)
+                tools_out.append(entry)
 
             return JSONResponse(_envelope_success(
                 req_id, {"tools": tools_out, "isError": False},
@@ -361,6 +407,41 @@ def build_router() -> APIRouter:
             # entry), fall through and let the handler validate.
             logger.debug("mcp tools/call: pydantic validate skipped: %s", e)
 
+        # ── Auth resolution (Phase 3-C1 B5 #9) ──
+        # If the tool has auth_config, resolve it via resolve_mcp_auth()
+        # and inject the AuthHeader onto request.state.auth_header so
+        # the handler can read it (e.g. for forwarding to a downstream
+        # external MCP server). Failures surface as MCP_AUTH_* errors.
+        # Tools with auth_config=None skip this block (backwards compat).
+        if descriptor.auth_config is not None:
+            # Build RunAuthContext from request.state if the upstream
+            # middleware set one; otherwise default to empty (inherit
+            # auth will fall back through the priority chain).
+            auth_ctx = getattr(request.state, "mcp_run_auth_context", None) or RunAuthContext()
+            # Only pass non-None overrides so resolve_mcp_auth's defaults
+            # (time.time for clock, _default_secret_resolver for secrets)
+            # apply when the app hasn't injected a test double.
+            resolve_kwargs: dict[str, Any] = {"context": auth_ctx}
+            secret_resolver = getattr(request.app.state, "mcp_secret_resolver", None)
+            if secret_resolver is not None:
+                resolve_kwargs["secret_resolver"] = secret_resolver
+            http_client_factory = getattr(request.app.state, "mcp_http_client_factory", None)
+            if http_client_factory is not None:
+                resolve_kwargs["http_client_factory"] = http_client_factory
+            clock = getattr(request.app.state, "mcp_clock", None)
+            if clock is not None:
+                resolve_kwargs["clock"] = clock
+            try:
+                auth_header = await resolve_mcp_auth(
+                    descriptor.auth_config,
+                    **resolve_kwargs,
+                )
+                request.state.auth_header = auth_header
+            except MCPAuthError as e:
+                return JSONResponse(_envelope_error(
+                    req_id, e.code, e.message, data=e.data,
+                ), status_code=200)
+
         # ── Handler dispatch ──
         try:
             handler = resolve_handler(descriptor.handler_ref)
@@ -443,6 +524,9 @@ def mount_mcp(
     strategy: Any,
     phi_redactor: Any | None = None,
     agent_pack_tools: list[dict] | None = None,
+    secret_resolver: Any | None = None,
+    http_client_factory: Any | None = None,
+    clock: Any | None = None,
 ) -> None:
     """Mount the MCP router on a FastAPI app.
 
@@ -458,15 +542,31 @@ def mount_mcp(
         agent_pack_tools: optional ``tools`` array from the Agent Pack
             JSON. When provided, the boot-time assertion runs.
             Skipping it (e.g., in isolated unit tests) is allowed.
+        secret_resolver: optional callable ``secret_ref -> str`` for
+            bearer / oauth2.0 token resolution. When ``None``, the
+            resolver falls back to the real CredentialVault
+            (``app.services.credential_vault.vault.resolve``).
+        http_client_factory: optional ``() -> httpx.AsyncClient`` factory
+            for oauth2.0 token exchange. Tests inject a MockTransport-backed
+            client; production lets the resolver construct a default client.
+        clock: optional ``() -> float`` for oauth2.0 token expiry checks.
+            Tests inject a fake to drive cache hit / miss / refresh.
 
     Returns:
         None. The router is mounted as a side effect.
     """
-    # Store strategy + (optional) redactor on app.state so handlers can
-    # read them via ``request.app.state``. No new lifespan state.
+    # Store strategy + (optional) redactor + (optional) auth resolver
+    # hooks on app.state so handlers can read them via ``request.app.state``.
+    # No new lifespan state.
     app.state.medcoder_strategy = strategy
     if phi_redactor is not None:
         app.state.phi_redactor = phi_redactor
+    if secret_resolver is not None:
+        app.state.mcp_secret_resolver = secret_resolver
+    if http_client_factory is not None:
+        app.state.mcp_http_client_factory = http_client_factory
+    if clock is not None:
+        app.state.mcp_clock = clock
 
     # TD-004 fix: idempotent mount — if the MCP router is already mounted
     # (e.g. lifespan re-ran across TestClient sessions), skip re-mounting

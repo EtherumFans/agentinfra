@@ -19,6 +19,8 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
+from app.icoder.mcp.auth import MCPAuthConfig
+
 
 # ── Input / Output Pydantic schemas (one per tool) ────────────────
 
@@ -147,6 +149,13 @@ class ToolDescriptor:
     :func:`app.icoder.mcp.server.resolve_handler` turns into a callable
     at dispatch time. Lazy resolution keeps the registry importable
     even if a handler's module has heavy dependencies.
+
+    ``auth_config`` (Phase 3-C1) carries per-tool MCP auth configuration
+    (none / bearer / inherit / oauth2.0). ``None`` means "no auth
+    requirement" — backwards compatible with pre-3-C1 tools. When set,
+    the MCP dispatcher resolves it via :func:`app.icoder.mcp.auth_resolver.resolve_mcp_auth`
+    before invoking the handler, and injects the resulting
+    :class:`AuthHeader` onto ``request.state.auth_header``.
     """
 
     name: str
@@ -155,6 +164,7 @@ class ToolDescriptor:
     output_schema: dict[str, Any]
     handler_ref: str
     stage: str = ""
+    auth_config: MCPAuthConfig | None = None
 
     @staticmethod
     def from_pydantic(
@@ -165,6 +175,7 @@ class ToolDescriptor:
         output_model: type[BaseModel],
         handler_ref: str,
         stage: str = "",
+        auth_config: MCPAuthConfig | None = None,
     ) -> "ToolDescriptor":
         return ToolDescriptor(
             name=name,
@@ -173,6 +184,7 @@ class ToolDescriptor:
             output_schema=output_model.model_json_schema(),
             handler_ref=handler_ref,
             stage=stage,
+            auth_config=auth_config,
         )
 
 

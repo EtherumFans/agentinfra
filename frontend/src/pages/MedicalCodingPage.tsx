@@ -19,7 +19,7 @@ import CodeSnippet from '../components/common/CodeSnippet';
 
 type RightTab = 'settings' | 'code';
 
-const MEDICAL_CODING_AGENT_REF = 'medical-coding-agent-2.0.0';
+const MEDICAL_CODING_AGENT_ID = 'medical-coding-agent';
 
 const SAMPLE_TEXTS = {
   admission: `入院记录
@@ -209,7 +209,7 @@ export default function MedicalCodingPage() {
 
     try {
       const startTime = Date.now();
-      const data = await runtimeAgentApi.runAgent(MEDICAL_CODING_AGENT_REF, text);
+      const data = await runtimeAgentApi.runAgentViaA2A(MEDICAL_CODING_AGENT_ID, text);
       const elapsed = Date.now() - startTime;
       setResult(data);
       if (data.processing_time_ms) addCost((data.processing_time_ms / 1000) * 0.02);

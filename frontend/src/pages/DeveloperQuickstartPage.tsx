@@ -189,7 +189,7 @@ const [oauthError, setOauthError] = useState<string | null>(null);
           <div>
             <div className="flex items-center gap-2 mb-3"><div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-xs font-bold text-primary-foreground">3</div><h3 className="text-sm font-semibold text-foreground">{t.devQsReadyTitle}</h3></div>
             <div className="space-y-1.5">
-              {[{ label: t.devQsWalkthrough1, link: '/ai-studio/speech-to-text' }, { label: t.devQsWalkthrough2, link: '/ai-studio/embedded-assistant' }, { label: t.devQsWalkthrough3, link: '/ai-studio/medical-coding' }, { label: t.devQsWalkthrough4, link: '/ai-studio/agents' }].map(item => <Link key={item.label} to={item.link} className="block text-sm text-primary hover:underline">{item.label}</Link>)}
+              {[{ label: t.devQsWalkthrough1, link: '/ai-studio/speech-to-text' }, { label: t.devQsWalkthrough2, link: '/ai-studio/agents' }, { label: t.devQsWalkthrough3, link: '/ai-studio/medical-coding' }, { label: t.devQsWalkthrough4, link: '/ai-studio/agents' }].map(item => <Link key={item.label} to={item.link} className="block text-sm text-primary hover:underline">{item.label}</Link>)}
             </div>
           </div>
         </div>
@@ -220,7 +220,7 @@ const [oauthError, setOauthError] = useState<string | null>(null);
           <div>
             <div className="flex items-center gap-2 mb-3"><div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-xs font-bold text-primary-foreground">3</div><h3 className="text-sm font-semibold text-foreground">{t.devQsReadyTitle}</h3></div>
             <div className="space-y-1.5">
-              {[{ label: t.devQsWalkthrough1, link: '/ai-studio/speech-to-text' }, { label: t.devQsWalkthrough2, link: '/ai-studio/embedded-assistant' }, { label: t.devQsWalkthrough3, link: '/ai-studio/medical-coding' }, { label: t.devQsWalkthrough4, link: '/ai-studio/agents' }].map(item => <Link key={item.label} to={item.link} className="block text-sm text-primary hover:underline">{item.label}</Link>)}
+              {[{ label: t.devQsWalkthrough1, link: '/ai-studio/speech-to-text' }, { label: t.devQsWalkthrough2, link: '/ai-studio/agents' }, { label: t.devQsWalkthrough3, link: '/ai-studio/medical-coding' }, { label: t.devQsWalkthrough4, link: '/ai-studio/agents' }].map(item => <Link key={item.label} to={item.link} className="block text-sm text-primary hover:underline">{item.label}</Link>)}
             </div>
           </div>
         </div>

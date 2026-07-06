@@ -5328,6 +5328,29 @@
         }
       }
     },
+    "/api/icoder/agents/hub": {
+      "get": {
+        "tags": [
+          "agent-hub"
+        ],
+        "summary": "List Hub Agents",
+        "description": "Corti-style Agent Hub card list.\n\nReads ``official_agents/**/agent_pack.json`` as the canonical source.\nFilters:\n\n- ``hidden_from_hub=true`` packs excluded.\n- ``agent_type=expert-stub`` packs excluded.\n- ``agent_type=internal_engine`` packs excluded.\n\nMetadata-only certified packs ARE included with ``runnable=false`` and\n``badge=\"Coming Soon / Metadata only\"``. Medical Coding Agent appears\nwith ``runnable=true`` and ``badge=\"MVP / AI-assisted / Human review required\"``.\n\nNo auth — this is a product browsing endpoint. Execution is gated\nseparately at the run endpoint.",
+        "operationId": "icoder_agents_hub_list_v1",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Icoder Agents Hub List V1"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/customers": {
       "get": {
         "tags": [
@@ -7316,7 +7339,7 @@
           "runtime-platform"
         ],
         "summary": "Run Agent By Ref",
-        "description": "Run an installed agent by canonical reference.\n\nPhase 2.1-A (2026-07-02): DEPRECATED for execution. ``PlatformRuntime.\nrun_agent`` now raises ``NotImplementedError`` with a redirect to the\nA2A mainline; this endpoint returns 410 Gone instead of propagating\nthe error as a 500.\n\nNew path: POST to the A2A endpoints exposed via ``mount_a2a`` in\n``app/main.py`` (e.g. ``/a2a/v1/...``) — they route through the new\n``InboundHandler`` orchestrator (Planner → Delegator → Aggregator).",
+        "description": "Run an installed agent by canonical reference.\n\nPhase 3-A Section E (2026-07-04): RESTORED for the Medical Coding\nAgent (``icoder/medical-coding-agent@2.0.0``) only. Runs the\nHybridCodingAdapter directly (bypassing ``PlatformRuntime.run_agent``,\nwhich still raises ``NotImplementedError`` per Phase 2.1-A), projects\nthe v1 ``MedicalCodingOutputSchema`` → v2\n``MedicalCodingAgentOutputV2`` (Corti-style 8 fields), and returns a\n``RuntimeRunResult``-shaped response with v2 fields hoisted to the\ntop level so the frontend's Corti Review Summary panel renders with\nreal v2 data.\n\nOther agent_refs still get 410 Gone — the A2A mainline\n(``InboundHandler`` orchestrator via ``mount_a2a``) remains the only\nexecution path for non-Medical-Coding agents.",
         "operationId": "run_agent_by_ref_api_runtime_platform_agents__agent_ref__run_post",
         "security": [
           {

@@ -140,8 +140,11 @@ class BaseLLMProvider(ABC):
 class MockLLMProvider(BaseLLMProvider):
     """Deterministic mock for testing. Returns structured JSON from the last user message.
 
-    If the message contains a JSON schema hint, returns a valid instance.
-    Otherwise returns a generic compliance audit result.
+    Detects the call shape:
+    - Planner prompt (system contains "# Plan schema" + user contains
+      "available_experts:") → returns a valid Plan `{"experts": [...], "reason": ...}`
+      picking the first declared available_expert (so `Plan.experts` is never empty).
+    - Otherwise → returns a generic compliance audit result.
     """
 
     name = "mock"
@@ -153,13 +156,45 @@ class MockLLMProvider(BaseLLMProvider):
         response_schema: dict | None = None,
         context: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        # Build a plausible response from the last user message
         last_user = ""
+        system_text = ""
+        for m in messages:
+            if m.get("role") == "system":
+                system_text += m.get("content", "")
         for m in reversed(messages):
             if m.get("role") == "user":
                 last_user = m.get("content", "")
                 break
 
+        # Planner call shape — return a valid Plan with the first declared
+        # available_expert so _validate_plan_dict never trips "experts must
+        # be a non-empty list". Falls back to "coding-expert" if parsing fails.
+        if "# Plan schema" in system_text and "available_experts:" in last_user:
+            expert_id = self._extract_first_expert(last_user) or "coding-expert"
+            subtask = self._extract_subtask_input(last_user) or (
+                "提取病历中的疾病诊断并按 ICD-10-CN 编码"
+            )
+            plan = {
+                "experts": [
+                    {
+                        "expert_id": expert_id,
+                        "priority": 1,
+                        "critical": True,
+                        "subtask_input": subtask,
+                        "tool_constraints": [],
+                    }
+                ],
+                "reason": f"[MockLLM] deterministic plan with {expert_id}",
+            }
+            return {
+                "content": json.dumps(plan, ensure_ascii=False),
+                "model": "mock/1.0",
+                "usage": {"input_tokens": len(last_user) // 3, "output_tokens": 60},
+                "structured": plan,
+            }
+
+        # Generic compliance audit shape (used by medical-coding expert paths
+        # that don't go through the planner).
         reply = {
             "review_conclusion": "PASS",
             "primary_diagnosis": {"code": "I21.0", "description": "急性前壁心肌梗死"},
@@ -174,6 +209,36 @@ class MockLLMProvider(BaseLLMProvider):
             "usage": {"input_tokens": len(last_user) // 3, "output_tokens": 120},
             "structured": reply,
         }
+
+    @staticmethod
+    def _extract_first_expert(user_message: str) -> str:
+        """Pull the first bullet under `available_experts:`."""
+        import re
+
+        m = re.search(
+            r"available_experts:\s*\n(\s*-\s*([^\n]+))",
+            user_message,
+        )
+        if not m:
+            return ""
+        eid = m.group(2).strip()
+        # Strip leading dashes / whitespace just in case
+        eid = eid.lstrip("-").strip()
+        return eid
+
+    @staticmethod
+    def _extract_subtask_input(user_message: str) -> str:
+        """Pull the user input block as the subtask payload."""
+        marker = "# User input (PHI redacted)\n"
+        idx = user_message.find(marker)
+        if idx < 0:
+            return ""
+        rest = user_message[idx + len(marker):]
+        # Cut at the next section header if present
+        next_hdr = rest.find("\n# ")
+        if next_hdr >= 0:
+            rest = rest[:next_hdr]
+        return rest.strip()
 
     def health_check(self) -> dict:
         return {"provider": self.name, "status": "healthy"}

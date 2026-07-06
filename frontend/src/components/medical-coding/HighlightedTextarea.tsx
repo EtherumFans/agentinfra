@@ -104,7 +104,7 @@ export const HighlightedTextarea: React.FC<HighlightedTextareaProps> = ({
         onScroll={handleScroll}
         spellCheck={false}
         data-testid="char-counter-input"
-        className={`${INPUT_TEXT_CLASS} relative caret-foreground resize-none focus:outline-none focus:ring-2 focus:ring-primary/20`}
+        className={`${INPUT_TEXT_CLASS} relative h-full caret-foreground resize-none focus:outline-none focus:ring-2 focus:ring-primary/20`}
       />
     </div>
   );

@@ -123,6 +123,17 @@ async def lifespan(app: FastAPI):
             logger.info("Seed: built-in templates ensured (Templates Beta)")
         except Exception as e:
             logger.warning(f"Seed: built-in templates skipped (non-fatal): {e}")
+        # Phase 3-B2 Loop 0 (2026-07-05): seed agent_definitions DB from
+        # official_agents/**/agent_pack.json. Idempotent upsert by
+        # (name, version, is_prebuilt=True). Prebuilt agents are global
+        # (organization_id=NULL) so the /api/rest/v1/agent_definitions
+        # surface stays consistent with the pack-mastered Hub endpoint.
+        try:
+            from scripts.seed_agents import seed_agents_from_packs as _seed_agents
+            await _seed_agents()
+            logger.info("Seed: agent_definitions synced from official_agents/ packs")
+        except Exception as e:
+            logger.warning(f"Seed: agent_definitions sync skipped (non-fatal): {e}")
     # --- Runtime Recovery: restore active sessions from DB ---
     recovered = await _recover_runtime_sessions()
     logger.info(f"Runtime recovery: {recovered} active session(s) restored")
@@ -164,11 +175,32 @@ async def lifespan(app: FastAPI):
     # ICODER_CREDENTIAL_LLM (matches credential_vault + llm_service).
     # settings.LLM_API_KEY is the legacy alias; fall back to it for
     # backward compatibility with .env-based dev setups.
+    #
+    # Phase 3-C0 A1 (2026-07-05): LLM_PROVIDER=mock strictly suppresses
+    # DeepSeek registration even when ICODER_CREDENTIAL_LLM is set in the
+    # OS env (a persisted dev key leaks through the truthy-key check and
+    # causes real DeepSeek HTTP 401s in tests). Mock mode = no real
+    # external LLM HTTP, period.
+    #
+    # Read LLM_PROVIDER from os.environ directly (NOT settings.LLM_PROVIDER)
+    # because Settings() captures the env snapshot at import time, and
+    # pytest's monkeypatch.setenv() runs after import — settings would
+    # still report the import-time value.
     _deepseek_key = (
         os.environ.get("ICODER_CREDENTIAL_LLM", "").strip()
         or settings.LLM_API_KEY
     )
-    if _deepseek_key or settings.LLM_PROVIDER == "deepseek":
+    _llm_provider_cfg = os.environ.get(
+        "LLM_PROVIDER", settings.LLM_PROVIDER or ""
+    ).lower()
+    if _llm_provider_cfg == "mock":
+        platform_gateway.register(MockLLMProvider(), default=True)
+        logger.info(
+            "LLM_PROVIDER=mock — MockLLMProvider registered as default "
+            "(DeepSeek suppressed, key_present=%s)",
+            bool(_deepseek_key),
+        )
+    elif _deepseek_key or _llm_provider_cfg == "deepseek":
         try:
             platform_gateway.register(
                 DeepSeekProvider(
@@ -392,6 +424,7 @@ async def lifespan(app: FastAPI):
         )
         from app.icoder.agent_runtime.a2a.agent_card import (
             medcoder_coding_review_card,
+            medical_coding_agent_card,
         )
         from app.icoder.agent_runtime.orchestrator import (
             Aggregator,
@@ -553,9 +586,81 @@ async def lifespan(app: FastAPI):
                     f"A2A wiring: failed to enrich agent from official pack, "
                     f"using minimal definition: {_ae}"
                 )
-            return DictAgentProvider({"medcoder-coding-review": _agent})
 
-        phase1_handler = InboundHandler(
+            # Phase 3-B1 (2026-07-04): Medical Coding Agent (user-facing MVP)
+            # Same expert_ids (coding-expert routes to 4 D2 packs via the
+            # build_expert_invoker_for_medcoder wiring), but the output_contract
+            # is v2 (MedicalCodingAgentOutputV2, 8 Corti fields). The v1→v2
+            # projection happens in the response post-processor (see below).
+            _medical_agent = AgentDefinition(
+                id="medical-coding-agent",
+                name="Medical Coding Agent",
+                description="iCoDer 官方医学编码 Agent (Corti-style MVP)",
+                system_prompt=(
+                    "你是 iCoDer Medical Coding Agent (Corti-style, MVP)。"
+                    "基于病历证据生成 ICD-10-CN 诊断编码与 ICD-9-CM-3 手术操作编码建议, "
+                    "输出 Corti-style 8-field 结构化结果。"
+                    "AI-assisted coding — 不替代编码员, 不 upcoding, 不推断未记录的诊断/手术。"
+                ),
+                icon="Stethoscope",
+                category="medical-coding",
+                expert_ids=["coding-expert"],
+                default_expert_id="coding-expert",
+                config={
+                    "non_goals": [
+                        "不替代编码员",
+                        "不 upcoding",
+                        "不推断未记录的诊断/手术",
+                        "不写回 EMR/HIS/医保",
+                        "不声称 fully automated coding",
+                    ],
+                    "output_contract": "MedicalCodingAgentOutputV2",
+                    "agent_ref": "icoder/medical-coding-agent@2.0.0",
+                },
+                is_prebuilt=True,
+                version="2.0.0",
+                status="published",
+            )
+            # Try to enrich from the medical_coding official pack
+            try:
+                from icoder_runtime.agent_pack import import_pack as _import_pack2
+                _mpack_path = (
+                    Path(__file__).parent.parent
+                    / "official_agents"
+                    / "medical_coding"
+                    / "agent_pack.json"
+                )
+                if _mpack_path.exists():
+                    _mpack = json.loads(_mpack_path.read_text(encoding="utf-8"))
+                    _mpack_agent, _, _, _ = _import_pack2(_mpack)
+                    _medical_agent = AgentDefinition(
+                        id="medical-coding-agent",
+                        name=_mpack_agent.name,
+                        description=_mpack_agent.description,
+                        system_prompt=_mpack_agent.system_prompt or _medical_agent.system_prompt,
+                        icon=_mpack_agent.icon,
+                        category=_mpack_agent.category,
+                        expert_ids=_mpack_agent.expert_ids or _medical_agent.expert_ids,
+                        default_expert_id=_medical_agent.default_expert_id,
+                        config=_mpack_agent.config,
+                        is_prebuilt=True,
+                        version=_mpack_agent.version,
+                        status="published",
+                    )
+                    logger.info(
+                        "A2A wiring: medical-coding-agent enriched from official pack "
+                        "(version=%s, experts=%s)",
+                        _mpack_agent.version,
+                        _mpack_agent.expert_ids,
+                    )
+            except Exception as _mae:
+                logger.warning(
+                    f"A2A wiring: failed to enrich medical-coding-agent from pack, "
+                    f"using minimal definition: {_mae}"
+                )
+            return DictAgentProvider({"medcoder-coding-review": _agent, "medical-coding-agent": _medical_agent})
+
+        phase1_handler_raw = InboundHandler(
             phi_redactor=PHIRedactor(),
             planner=Planner(
                 llm_call=_llm_call,
@@ -569,9 +674,124 @@ async def lifespan(app: FastAPI):
             agent_provider=_build_phase1_agent_provider(),
         )
 
+        # Phase 3-B1 (2026-07-04): v1→v2 projection wrapper for
+        # medical-coding-agent. The coding-expert returns v1
+        # MedicalCodingOutputSchema (MedCodER 5-stage technical output).
+        # For medical-coding-agent (user-facing MVP), we project v1 → v2
+        # MedicalCodingAgentOutputV2 (Corti 8-field) in the response parts
+        # so the A2A mainline returns the 8-field contract.
+        # For medcoder-coding-review (internal engine), pass through v1.
+        class _MedicalCodingV2ProjectingHandler:
+            """Wraps InboundHandler; projects v1→v2 for medical-coding-agent."""
+
+            def __init__(self, inner):
+                self._inner = inner
+
+            def handle(self, agent_id: str, request):
+                response = self._inner.handle(agent_id, request)
+                if (
+                    agent_id == "medical-coding-agent"
+                    and response.kind == "message"
+                ):
+                    response = self._project_v1_to_v2(response)
+                return response
+
+            def _project_v1_to_v2(self, response):
+                """Find v1 MedicalCodingOutputSchema in parts → project to v2.
+
+                The Aggregator wraps each expert result as
+                ``part.data = {"expert_id": ..., "result": <v1 schema>, ...}``.
+                We detect v1 by inspecting ``data["result"]`` (preferred) or
+                ``data`` itself (back-compat for flat v1 parts), then replace
+                the whole part with a v2 data Part whose ``data`` is the 8-field
+                ``MedicalCodingAgentOutputV2``. Orchestrator trace fields
+                (expert_id, latency_ms, etc.) move into ``part.metadata``.
+                """
+                try:
+                    from official_agents.medical_coding.schema import (
+                        MedicalCodingOutputSchema,
+                        MedicalCodingAgentOutputV2,
+                    )
+                except Exception:
+                    return response  # schema not available, pass through
+
+                run_id = (response.metadata or {}).get("run_id", "")
+                new_parts = []
+                for part in response.parts or []:
+                    if not isinstance(part, dict) or part.get("kind") != "data":
+                        new_parts.append(part)
+                        continue
+                    data = part.get("data") or {}
+                    if not isinstance(data, dict):
+                        new_parts.append(part)
+                        continue
+                    # Aggregator wraps expert result under data["result"].
+                    inner = data.get("result") if isinstance(data.get("result"), dict) else None
+                    v1_candidate = inner if inner is not None else data
+                    is_v1 = (
+                        "primary_diagnosis" in v1_candidate
+                        or "extracted_diagnoses" in v1_candidate
+                        or "review_conclusion" in v1_candidate
+                    )
+                    if not is_v1:
+                        new_parts.append(part)
+                        continue
+                    try:
+                        v1 = MedicalCodingOutputSchema.from_dict(v1_candidate)
+                        v2 = MedicalCodingAgentOutputV2.from_legacy_v1(
+                            v1, run_id=run_id
+                        )
+                        # Phase 3-B2 Loop 3 (Gap 4.3): pre-render Markdown
+                        # for the chat UI's "Rendered" tab. Fallback-safe —
+                        # if generation fails, we still ship the v2 dict.
+                        v2_dict = v2.to_dict()
+                        try:
+                            from app.icoder.markdown_generator import (
+                                generate_markdown,
+                            )
+                            v2_dict["markdown"] = generate_markdown(v2_dict)
+                        except Exception as _me:
+                            logger.warning(
+                                "Markdown generation failed (non-fatal): %s",
+                                _me,
+                            )
+                        part_meta = dict(part.get("metadata") or {})
+                        # Stash orchestrator trace fields for observability.
+                        for _k in ("expert_id", "priority", "critical", "attempt", "latency_ms", "ok"):
+                            if _k in data:
+                                part_meta[f"orchestrator_{_k}"] = data[_k]
+                        part_meta.update({
+                            "schema_ref": "icoder/MedicalCodingAgentOutputV2/v1",
+                            "projected_from": "MedicalCodingOutputSchema/v1",
+                            "phi_redacted": True,
+                            "production_writeback_blocked": True,
+                        })
+                        new_parts.append({
+                            "kind": "data",
+                            "data": v2_dict,
+                            "metadata": part_meta,
+                        })
+                    except Exception as _pe:
+                        logger.warning(
+                            "A2A v1→v2 projection failed: %s; passing through v1",
+                            _pe,
+                        )
+                        new_parts.append(part)
+                response.parts = new_parts
+                response.metadata = dict(response.metadata or {})
+                response.metadata["output_contract"] = (
+                    "icoder/MedicalCodingAgentOutputV2/v1"
+                )
+                response.metadata["v1_to_v2_projected"] = True
+                return response
+
+        phase1_handler = _MedicalCodingV2ProjectingHandler(phase1_handler_raw)
+
         def _phase1_agent_provider(agent_id: str):
             if agent_id == "medcoder-coding-review":
                 return medcoder_coding_review_card()
+            if agent_id == "medical-coding-agent":
+                return medical_coding_agent_card()
             return None
 
         def _phase1_expert_caller(expert_id: str, body: dict):
@@ -665,7 +885,8 @@ async def lifespan(app: FastAPI):
                             logger.warning(f"Runtime timeout: {case_id} in state {rt.state.value} → {action}")
             except Exception:
                 pass
-    _asyncio.create_task(_check_timeouts())
+    _timeout_task = _asyncio.create_task(_check_timeouts())
+    app.state.runtime_timeout_task = _timeout_task
     logger.info("Runtime timeout checker started")
 
     # ── M2a Run Trace recorder (wired into HybridCodingAdapter + AgentRunner) ──
@@ -701,6 +922,16 @@ async def lifespan(app: FastAPI):
 
     yield
     logger.info("Shutting down")
+    # Phase 3-C0 A2 (2026-07-05): cancel the runtime timeout checker
+    # background task so it doesn't leak as a "Task was destroyed but it
+    # is pending" warning during TestClient / uvicorn shutdown.
+    _timeout_task = getattr(app.state, "runtime_timeout_task", None)
+    if _timeout_task is not None and not _timeout_task.done():
+        _timeout_task.cancel()
+        try:
+            await _timeout_task
+        except _asyncio.CancelledError:
+            pass
 
 
 app = FastAPI(
@@ -813,6 +1044,7 @@ from app.api.v2_tools_guided_document import router as v2_tools_guided_document_
 from app.api.v2_tools_sections_templates import router as v2_tools_sections_templates_router
 from app.api.v2_tools_documents_classic import router as v2_tools_documents_classic_router
 from app.api.v2_tools_stt import router as v2_tools_stt_router
+from app.api.icoder_agents_hub import router as icoder_agents_hub_router
 from app.api.customers import router as customers_router
 from app.api.templates import router as templates_router
 from app.api.tickets import router as tickets_router
@@ -839,6 +1071,7 @@ app.include_router(v2_tools_guided_document_router) # Phase 1.2 cycle 3 (2026-06
 app.include_router(v2_tools_sections_templates_router) # Phase 1.2 cycle 4 (2026-07-01) /api/v2/tools/{templates,sections}/ (Corti §13.4 LIST, stub data)
 app.include_router(v2_tools_documents_classic_router) # Phase 1.2 cycle 5 (2026-07-01) /api/v2/tools/interactions/{id}/documents/ (Corti §13.4 Documents Classic LIST, Planned deprecation, stub data)
 app.include_router(v2_tools_stt_router)              # Phase 1.3 cycle 6 (2026-07-01) /api/v2/tools/interactions/{id}/transcripts/ (Corti §13.3 STT LIST, stub data)
+app.include_router(icoder_agents_hub_router)          # Phase 3-B1 (2026-07-04) /api/icoder/agents/hub (Corti-style Agent Hub, pack-mastered)
 app.include_router(customers_router)             # /api/customers/* (Corti parity)
 app.include_router(templates_router)             # /api/templates/* (Templates Beta — Corti parity)
 app.include_router(tickets_router)               # /api/tickets/* (Tickets Portal — Corti parity)

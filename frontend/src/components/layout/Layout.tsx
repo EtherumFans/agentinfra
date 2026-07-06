@@ -55,8 +55,10 @@ export default function Layout() {
         { to: '/ai-studio', label: t.overview, icon: FlaskConical, end: true },
         { to: '/ai-studio/agents', label: t.agents, icon: Layers },
         { to: '/ai-studio/speech-to-text', label: t.speechToText, icon: Mic },
-        { to: '/ai-studio/text-generation', label: t.textGeneration, icon: AlignLeft },
-        { to: '/ai-studio/embedded-assistant', label: t.embeddedAssistant, icon: Bot },
+        // Phase 3-B2 Loop 0 (2026-07-05): TextGeneration + EmbeddedAssistant
+        // sidebar entries removed (Corti parity). Old deep links redirect to
+        // /ai-studio/agents via App.tsx Navigate rules. TextGen backend
+        // capability (/api/v2/tools/*) is retained for implicit dependencies.
         { to: '/ai-studio/fact-extraction', label: t.factExtraction, icon: ListTree },
         { to: '/ai-studio/medical-coding', label: t.medicalCoding, icon: Asterisk },
       ],

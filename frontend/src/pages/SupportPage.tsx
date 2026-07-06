@@ -41,7 +41,7 @@ export default function SupportPage() {
           </div>
           <h3 className="text-sm font-semibold text-foreground mb-1">在线客服</h3>
           <p className="text-sm text-muted-foreground mb-3">通过在线客服窗口直接与支持团队沟通。</p>
-          <button onClick={() => navigate('/ai-studio/embedded-assistant')} className="bg-primary text-primary-foreground rounded-lg px-4 py-2 text-sm font-medium hover:bg-primary/90 transition-colors">打开客服</button>
+          <button onClick={() => navigate('/tickets')} className="bg-primary text-primary-foreground rounded-lg px-4 py-2 text-sm font-medium hover:bg-primary/90 transition-colors">打开客服</button>
         </div>
 
         <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-5">

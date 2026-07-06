@@ -60,6 +60,14 @@ async def test_e1_real_app_lifespan_creates_real_wiring():
     We drive the lifespan via ``LifespanManager`` (asgi-lifespan) so
     every startup hook runs end-to-end. This is the closest in-process
     approximation of a real uvicorn boot.
+
+    Phase 3-C0 A2 (2026-07-05): bumped ``startup_timeout`` from the
+    default 5s to 60s. The iCoDer lifespan loads PlatformRuntime +
+    16 builtin packs + medcoder retriever + HybridCodingAdapter +
+    MCP server, which routinely takes 10-30s on a cold Windows dev
+    box. The 5s default was too tight and produced spurious
+    ``TimeoutError`` failures on master HEAD (verified pre-existing
+    via ``git stash``).
     """
     pytest.importorskip("asgi_lifespan")
 
@@ -71,7 +79,7 @@ async def test_e1_real_app_lifespan_creates_real_wiring():
 
     from asgi_lifespan import LifespanManager
 
-    async with LifespanManager(app) as manager:
+    async with LifespanManager(app, startup_timeout=60.0) as manager:
         # The lifespan started successfully — that's the headline.
         # Now check the post-startup state.
         async with AsyncClient(
@@ -121,6 +129,9 @@ async def test_e1_real_app_lifespan_creates_real_wiring():
 async def test_e1_real_app_unknown_agent_returns_agent_not_found():
     """E1.1 lockdown: real InboundHandler must return A2A
     ``AGENT_NOT_FOUND`` (HTTP 404) for unknown agent_id.
+
+    Phase 3-C0 A2 (2026-07-05): bumped ``startup_timeout`` to 60s
+    (same rationale as the lifespan test above).
     """
     from app.main import app
     from app.icoder.agent_runtime.a2a import (
@@ -130,7 +141,7 @@ async def test_e1_real_app_unknown_agent_returns_agent_not_found():
 
     from asgi_lifespan import LifespanManager
 
-    async with LifespanManager(app) as manager:
+    async with LifespanManager(app, startup_timeout=60.0) as manager:
         async with AsyncClient(
             transport=ASGITransport(app=manager.app),
             base_url="http://test",

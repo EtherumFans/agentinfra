@@ -21,6 +21,23 @@ and a BGE-M3-loaded retriever, both of which are slow to construct.
 It is NOT run by the default ``tests/unit/`` sweep; CI runs it
 under ``tests/integration/icoder/retrieval/`` only when the index
 is present.
+
+Phase 3-C0 A3 (2026-07-05): this module is now marked ``heavy`` +
+``retrieval`` and excluded from the default pytest run via
+``pytest.ini``'s ``addopts = -m "not heavy and not retrieval"``.
+Resource requirements:
+
+  - BGE-M3 model load (2.3 GB on disk, ~3-4 GB peak RAM in fp32,
+    ~1.5-2 GB in fp16)
+  - FAISS IndexFlatIP for ICD-10-CN (~37,897 vectors, 1024-dim)
+  - sentence-transformers 3.2.1 + torch 2.11.0 CPU on Windows has a
+    1 GB malloc limit OOM (E1.9/E1.10 known issue) — fp16 + MMAP
+    mitigates but does not fully fix on Windows CPU.
+
+Run explicitly with::
+
+    pytest -m heavy tests/integration/icoder/retrieval/test_smoke_recall.py
+    pytest -m retrieval tests/integration/icoder/retrieval/
 """
 
 from __future__ import annotations
@@ -54,15 +71,23 @@ def _index_available() -> bool:
     return h["status"] == "ok"
 
 
-pytestmark = pytest.mark.skipif(
-    not _index_available(),
-    reason=(
-        "FAISS index missing or degraded. "
-        "Run `python scripts/build_medcoder_index.py` first. "
-        "M2.5 governance: this test refuses to run when retrieval is "
-        "unhealthy so it doesn't give a false PASS on a degraded runtime."
+# Phase 3-C0 A3: heavy + retrieval markers exclude this module from the
+# default test run. Explicit opt-in via `pytest -m heavy` or `-m retrieval`
+# is required. The skipif below still applies when the index is missing
+# even if the markers are overridden.
+pytestmark = [
+    pytest.mark.heavy,
+    pytest.mark.retrieval,
+    pytest.mark.skipif(
+        not _index_available(),
+        reason=(
+            "FAISS index missing or degraded. "
+            "Run `python scripts/build_medcoder_index.py` first. "
+            "M2.5 governance: this test refuses to run when retrieval is "
+            "unhealthy so it doesn't give a false PASS on a degraded runtime."
+        ),
     ),
-)
+]
 
 
 @pytest.fixture

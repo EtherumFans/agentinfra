@@ -97,7 +97,9 @@ iCoDer 既有 (从 CLAUDE.md + icoder-next 整理):
 ### 2.2 Non-Goals (本 spec 明确不做)
 
 1. **N1**: 不实现 MCP spec 全集 (Phase 1 子集: 只 Tools, Resources/Prompts 留 Phase 4/5)
-2. **N2**: 不实现 OAuth / API Key auth (MCP 2025-03-26 spec 可选, Phase 4 才接)
+2. **N2 (REMOVED 2026-07-05, Phase 3-C1)**: OAuth / API Key auth 现已实现 —
+   见 §10 "MCP Auth (Phase 3-C1, 2026-07-05)"。支持 4 种 auth 类型:
+   `none` / `bearer` / `inherit` / `oauth2.0` (client_credentials grant)。
 3. **N3**: 不实现 MCP Sampling (LLM-from-MCP, 反向, Phase 6)
 4. **N4**: 不实现 MCP Roots (文件系统访问, Phase 4)
 5. **N5**: 不实现第三方 MCP server 注册 (Phase 4, Phase 1 只内置)
@@ -124,7 +126,7 @@ iCoDer 既有 (从 CLAUDE.md + icoder-next 整理):
 | **`notifications/initialized`** | ✅ 完整实现 | 通知用 |
 | **Tool 声明 (JSON schema)** | ✅ 完整实现 | name / description / inputSchema |
 | **错误码 (MCP spec)** | ✅ 完整实现 | 见 §6 |
-| **`securitySchemes`** | ❌ 端点暴露, 不实现 | Phase 4 留 |
+| **`securitySchemes`** | ✅ Phase 3-C1 实现 | 4 auth types: none / bearer / inherit / oauth2.0 |
 | **Tools 缓存** | ❌ 不实现 | Phase 1 实时查, Phase 5 加缓存 |
 
 ---
@@ -304,6 +306,20 @@ class Tool(BaseModel):
 | `PHI_DETECTED` | tool input 检测到未脱敏 PHI (iCoDer 特有) |
 | `RATE_LIMITED` | 工具调用频次超限 (Phase 6 留) |
 | `TIMEOUT` | 工具调用超时 (默认 30s) |
+
+### 6.3 MCP Auth 错误码 (Phase 3-C1, 2026-07-05 新增 7 个)
+
+| Wire code | MCP 错误码 | HTTP | 触发 |
+|-----------|-----------|------|------|
+| `-32006` | `mcp_auth_duplicate_name` | 400 | `tools/list` 重复 tool name |
+| `-32007` | `mcp_auth_missing_name` | 400 | `tools/call` 缺 `name` 字段 |
+| `-32008` | `mcp_auth_missing_token` | 401 | bearer / inherit 缺 token |
+| `-32009` | `mcp_auth_missing_credentials` | 401 | oauth2.0 缺 client_id / secret |
+| `-32010` | `mcp_auth_invalid_oauth_config` | 400 | oauth2.0 配置字段非法 |
+| `-32011` | `mcp_auth_token_exchange_failed` | 401 | oauth2.0 token exchange 失败 (HTTP non-200) |
+| `-32012` | `mcp_auth_forbidden` | 403 | token 有效但无权调该 tool |
+
+**Redaction 要求**: 任何 auth 错误的 `data.details` 字段都不得包含 raw token / client_secret / bearer 值. 仅可包含 `redacted_view` (e.g., `"Bearer ••••1234"`). 见 §11.6.
 
 ---
 
@@ -746,6 +762,80 @@ class Tool(BaseModel):
 
 - Phase 1: 所有 Expert 可调所有 tools (无 RBAC 限制)
 - Phase 4: 引入 role-based access, 不同角色可调不同 tools (e.g., auditor 可调 compliance tool, 但不调 semantic_search)
+
+### 11.6 MCP Auth (Phase 3-C1, 2026-07-05)
+
+**背景**: MCP 2025-03-26 spec 把 `securitySchemes` 标为可选, iCoDer Phase 1 起步时 (N2) 推迟到 Phase 4. Phase 3-C1 闭坑 — 实装 4 种 auth 类型, 对齐 Corti `corti_deep_scan` 反查出的 auth code 全集.
+
+**4 种 auth 类型** (`MCPAuthConfig.discriminator = type`):
+
+| `type` | 用途 | Header 注入 | 失败码 |
+|--------|------|-------------|--------|
+| `none` | 内部 stub 工具 (search_icd / verify_code 等本地) | 不注入 | n/a |
+| `bearer` | 静态 token 引用 (`secret://mcp/.../bearer_token`) | `Authorization: Bearer <token>` | `mcp_auth_missing_token` |
+| `inherit` | 继承 project / session / studio / runtime context 的 auth | 从 `RunContext.auth_context` 取 | `mcp_auth_missing_token` |
+| `oauth2.0` | OAuth2.0 client_credentials grant, 带 token 缓存 + 过期 + clock skew -60s | `Authorization: Bearer <access_token>` | `mcp_auth_token_exchange_failed` / `mcp_auth_invalid_oauth_config` |
+
+**Config schema** (Pydantic discriminated union):
+
+```python
+class MCPAuthConfig(BaseModel):
+    type: Literal["none", "bearer", "inherit", "oauth2.0"]
+    # bearer
+    secret_ref: str | None = None        # "secret://mcp/{provider}/{key}"
+    # inherit
+    inherit_from: Literal["project", "session", "studio", "runtime"] | None = None
+    # oauth2.0
+    oauth: OAuth2ClientCredentialsConfig | None = None
+    # display
+    redacted_view: str | None = None     # "Bearer ••••1234"
+
+class OAuth2ClientCredentialsConfig(BaseModel):
+    token_url: str
+    client_id_ref: str                   # secret_ref
+    client_secret_ref: str               # secret_ref
+    scopes: list[str] = []
+    audience: str | None = None
+    cache_ttl_seconds: int = 3600
+```
+
+**Token 解析** (`resolve_mcp_auth(auth_config, context) -> AuthHeader`):
+
+1. `none` → return `AuthHeader(kind="none")`.
+2. `bearer` → resolve `secret_ref` via `CredentialVault`; raise `mcp_auth_missing_token` if absent.
+3. `inherit` → 从 `RunContext.auth_context` 拿 (`project` > `session` > `studio` > `runtime` 优先级); raise `mcp_auth_missing_token` if empty.
+4. `oauth2.0` → 检查 token 缓存 (key = `provider_url + client_id + scopes_hash`, **不**含 secret); 若未过期 (含 -60s clock skew) 直接复用; 否则做 client_credentials grant, 缓存 + 返回. Exchange 失败 = `mcp_auth_token_exchange_failed`; 配置缺字段 = `mcp_auth_invalid_oauth_config`.
+
+**缓存安全**:
+- 缓存 key 仅含 `provider_url + client_id + scopes_hash` (公开值), **不**含 `client_secret`.
+- 缓存 value 仅存 `access_token + expires_at`, 内存中, 进程退出即清.
+- `redacted_view` 字段用于日志/UI 显示 (`"Bearer ••••1234"`), 不含完整 token.
+
+**MCP auth 错误码** (与 §6 衔接, 7 个新码):
+
+| Wire code | MCP 错误码 | HTTP | 触发 |
+|-----------|-----------|------|------|
+| -32006 | `mcp_auth_duplicate_name` | 400 | tools/list 重复 tool name (Corti §B-04) |
+| -32007 | `mcp_auth_missing_name` | 400 | tool name 缺失 |
+| -32008 | `mcp_auth_missing_token` | 401 | bearer / inherit 缺 token |
+| -32009 | `mcp_auth_missing_credentials` | 401 | oauth2.0 缺 client_id/secret |
+| -32010 | `mcp_auth_invalid_oauth_config` | 400 | oauth2.0 配置字段非法 |
+| -32011 | `mcp_auth_token_exchange_failed` | 401 | oauth2.0 token exchange 失败 (any HTTP non-200) |
+| -32012 | `mcp_auth_forbidden` | 403 | token 有效但无权调该 tool |
+
+**测试矩阵** (Phase 3-C1 §B5):
+
+1. `test_mcp_auth_none_type_no_header` — none 不注入 Authorization.
+2. `test_mcp_auth_bearer_resolves_secret_ref` — bearer 从 vault 拿到 token, 注入 `Authorization: Bearer <token>`.
+3. `test_mcp_auth_bearer_missing_secret_ref_raises` — 缺 secret_ref → `mcp_auth_missing_token`.
+4. `test_mcp_auth_inherit_from_project_context` — inherit 从 `RunContext.auth_context.project` 取.
+5. `test_mcp_auth_oauth2_exchanges_then_caches` — 首次 exchange, 二次命中缓存 (httpx MockTransport 验证只调一次).
+6. `test_mcp_auth_oauth2_expires_then_refreshes` — expires_in 过期 + clock skew -60s 触发 refresh.
+7. `test_mcp_auth_oauth2_invalid_config_raises` — 缺 token_url → `mcp_auth_invalid_oauth_config`.
+8. `test_mcp_auth_oauth2_exchange_failure_raises` — 4xx/5xx response → `mcp_auth_token_exchange_failed`.
+9. `test_mcp_auth_cache_key_excludes_secret` — 缓存 key 字符串里**不**含 client_secret.
+10. `test_mcp_auth_redacted_view_in_logs` — 日志只输出 `redacted_view`, 不输出 raw token.
+11. `test_mcp_auth_forbidden_on_insufficient_scope` — token 有效但 scope 不匹配 → `mcp_auth_forbidden`.
 
 ---
 

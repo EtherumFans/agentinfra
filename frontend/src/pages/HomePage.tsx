@@ -34,7 +34,10 @@ const TABS: HomeTab[] = [
     labelKey: 'homeTabDocument',
     descKey: 'homeTabDocumentDesc',
     ctaKey: 'homeTabDocumentCta',
-    to: '/ai-studio/text-generation',
+    // Phase 3-B2 Loop 0: TextGeneration deprecated — redirect to Medical Coding
+    // (closest available document workflow). Will be re-pointed to a real
+    // Guided Documents page in Phase 3-C.
+    to: '/ai-studio/medical-coding',
     icon: FileText,
   },
   {
@@ -42,7 +45,9 @@ const TABS: HomeTab[] = [
     labelKey: 'homeTabChat',
     descKey: 'homeTabChatDesc',
     ctaKey: 'homeTabChatCta',
-    to: '/ai-studio/embedded-assistant',
+    // Phase 3-B2 Loop 0: EmbeddedAssistant deprecated — redirect to Agent Hub.
+    // Loop 2 will land a real Chat page at /agents/{id}/chat.
+    to: '/ai-studio/agents',
     icon: MessageSquare,
   },
   {

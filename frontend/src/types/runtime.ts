@@ -72,6 +72,12 @@ export interface RuntimeRunResult {
     provider?: string;
     model?: string;
   };
+  // Phase 3-B2 Loop 3 (Gap 4.3) — pre-rendered Markdown for the chat UI's
+  // "Rendered" tab. Populated by app.icoder.markdown_generator on the
+  // backend, projected through _mapA2AResultToRunResult on the frontend.
+  // When absent, the frontend falls back to auto-generating from the v2
+  // 8-field JSON (Loop 3 §3 降级处理).
+  markdown?: string;
 }
 
 export interface DiagnosisEntry {

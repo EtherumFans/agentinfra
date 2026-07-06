@@ -221,7 +221,7 @@ class AgentRunInput(BaseModel):
     provider: str = ""  # optional: LLM provider to use
 
 
-@router.post("/agents/{agent_ref}/run")
+@router.post("/agents/{agent_ref:path}/run")
 async def run_agent_by_ref(
     agent_ref: str,
     body: AgentRunInput,
@@ -229,24 +229,131 @@ async def run_agent_by_ref(
 ):
     """Run an installed agent by canonical reference.
 
-    Phase 2.1-A (2026-07-02): DEPRECATED for execution. ``PlatformRuntime.
-    run_agent`` now raises ``NotImplementedError`` with a redirect to the
-    A2A mainline; this endpoint returns 410 Gone instead of propagating
-    the error as a 500.
+    Phase 3-A Section E (2026-07-04): RESTORED for the Medical Coding
+    Agent (``icoder/medical-coding-agent@2.0.0``) only. Runs the
+    HybridCodingAdapter directly (bypassing ``PlatformRuntime.run_agent``,
+    which still raises ``NotImplementedError`` per Phase 2.1-A), projects
+    the v1 ``MedicalCodingOutputSchema`` → v2
+    ``MedicalCodingAgentOutputV2`` (Corti-style 8 fields), and returns a
+    ``RuntimeRunResult``-shaped response with v2 fields hoisted to the
+    top level so the frontend's Corti Review Summary panel renders with
+    real v2 data.
 
-    New path: POST to the A2A endpoints exposed via ``mount_a2a`` in
-    ``app/main.py`` (e.g. ``/a2a/v1/...``) — they route through the new
-    ``InboundHandler`` orchestrator (Planner → Delegator → Aggregator).
+    Other agent_refs still get 410 Gone — the A2A mainline
+    (``InboundHandler`` orchestrator via ``mount_a2a``) remains the only
+    execution path for non-Medical-Coding agents.
     """
-    raise HTTPException(
-        status_code=410,
-        detail=(
-            f"Legacy `/api/runtime-platform/agents/{agent_ref}/run` removed "
-            "in Phase 2.1-A. Use the A2A mainline: POST to /a2a/v1/... "
-            "(exposed via `mount_a2a` in app/main.py) which routes through "
-            "the new InboundHandler orchestrator."
-        ),
+    if agent_ref != AGENT_REF:
+        raise HTTPException(
+            status_code=410,
+            detail=(
+                f"Legacy `/api/runtime-platform/agents/{agent_ref}/run` "
+                "removed in Phase 2.1-A. Use the A2A mainline: POST to "
+                "/a2a/v1/... (exposed via `mount_a2a` in app/main.py) "
+                "which routes through the new InboundHandler orchestrator."
+            ),
+        )
+
+    # ── Medical Coding Agent: run + project v1 → v2 ──
+    encounter_text = body.input
+    if not encounter_text or not encounter_text.strip():
+        raise HTTPException(status_code=400, detail="input is required")
+
+    try:
+        from app.main import app as _app
+        gateway = _app.state.platform_gateway if hasattr(_app.state, "platform_gateway") else None
+        data_policy = _app.state.data_policy if hasattr(_app.state, "data_policy") else None
+        m2a_recorder = getattr(_app.state, "m2a_recorder", None)
+    except Exception:
+        gateway = None
+        data_policy = None
+        m2a_recorder = None
+
+    if not gateway:
+        raise HTTPException(status_code=503, detail="LLM Gateway not available")
+
+    if data_policy and not data_policy.allow_external_llm:
+        raise HTTPException(
+            status_code=403,
+            detail="External LLM blocked by data_policy. Set ICODER_ALLOW_EXTERNAL_LLM=true to enable."
+        )
+
+    # PII redaction (HARD requirement, matches /medical-coding/test)
+    messages = [{"role": "user", "content": encounter_text}]
+    redaction_result = None
+    if data_policy and data_policy.pii_redaction_required:
+        from icoder_runtime.core.pii_redaction import PIIRedactor
+        redactor = PIIRedactor(enabled=True)
+        messages, redaction_result = redactor.redact_messages(messages)
+
+    import time
+    start = time.time()
+    from icoder_runtime.providers.medical_coding import HybridCodingAdapter
+    adapter = HybridCodingAdapter(gateway=gateway, mode="hybrid")
+    v1 = await adapter.infer_async(messages)
+    elapsed_ms = int((time.time() - start) * 1000)
+
+    # Project v1 → v2 (Corti-style 8 fields)
+    from official_agents.medical_coding.schema import (
+        MedicalCodingAgentOutputV2,
+        MedicalCodingOutputSchema,
     )
+    # adapter.infer_async returns a MedicalCodingOutputSchema-typed object
+    # (or dict-shaped). Coerce to v1 schema if needed.
+    if isinstance(v1, MedicalCodingOutputSchema):
+        v1_schema = v1
+    elif isinstance(v1, dict):
+        v1_schema = MedicalCodingOutputSchema.from_dict(v1, provider="hybrid_adapter")
+    else:
+        v1_schema = MedicalCodingOutputSchema()
+
+    v2 = MedicalCodingAgentOutputV2.from_legacy_v1(v1_schema)
+
+    # Build RuntimeRunResult-shaped response with v2 fields hoisted
+    run_id = ""
+    if m2a_recorder is not None and m2a_recorder.is_active():
+        last = m2a_recorder._last_finalized
+        if last:
+            run_id = last.get("run_id", "")
+
+    if not run_id:
+        import uuid as _uuid
+        run_id = f"r-{_uuid.uuid4().hex[:12]}"
+
+    v1_dict = v1_schema.to_dict()
+    v2_dict = v2.to_dict()
+
+    response: dict = {
+        "run_id": run_id,
+        "agent_ref": agent_ref,
+        "status": "success",
+        "output": "",
+        "structured": v1_dict,
+        # v1 fields (back-compat with existing frontend)
+        "primary_diagnosis": v1_dict.get("primary_diagnosis", {}),
+        "secondary_diagnoses": v1_dict.get("secondary_diagnoses", []),
+        "procedures": v1_dict.get("procedures", []),
+        "issues_found": v1_dict.get("issues_found", []),
+        "audit_trail": [],
+        "processing_time_ms": elapsed_ms,
+        "token_usage": {"input_tokens": 0, "output_tokens": 0},
+        "errors": [],
+        # v2 Corti-style fields (hoisted to top level)
+        "review_conclusion": v2_dict["human_review"]["review_conclusion"],
+        "manual_review_required": v2_dict["human_review"]["review_required"],
+        "encounter_summary": v2_dict["encounter_summary"],
+        "documentation_gaps": v2_dict["documentation_gaps"],
+        "uncodable_items": v2_dict["uncodable_items"],
+        "corti_validation_summary": v2_dict["validation_summary"],
+        "human_review": v2_dict["human_review"],
+        "trace_refs": {
+            **v2_dict["trace_refs"],
+            "run_id": run_id,
+        },
+    }
+    if redaction_result:
+        response["redaction"] = redaction_result.to_dict()
+    return response
 
 
 # ── Installed Agent List (supports canonical ref) ──
@@ -319,7 +426,7 @@ async def agent_lifecycle_standard(
     return await agent_lifecycle(agent_ref=agent_ref, body=body, user=admin, db=db)
 
 
-@runtime_router.post("/agents/{agent_ref}/run")
+@runtime_router.post("/agents/{agent_ref:path}/run")
 async def run_agent_by_ref_standard(
     agent_ref: str,
     body: AgentRunInput,
@@ -610,6 +717,36 @@ async def medical_coding_test(body: EvalRunRequest):
             response["run_id"] = last["run_id"]
             response["trace_id"] = last["trace_id"]
             response["trace_url"] = f"/api/m2a/runs/{last['run_id']}"
+
+    # Phase 3-A Section E — project v1 → v2 (Corti-style 8 fields) so the
+    # frontend's Corti Review Summary panel renders with real v2 data
+    # even when callers hit /medical-coding/test instead of /agents/{ref}/run.
+    try:
+        from official_agents.medical_coding.schema import (
+            MedicalCodingAgentOutputV2,
+            MedicalCodingOutputSchema,
+        )
+        v1_schema = result if isinstance(result, MedicalCodingOutputSchema) else (
+            MedicalCodingOutputSchema.from_dict(response, provider="hybrid_adapter")
+            if isinstance(response, dict) else MedicalCodingOutputSchema()
+        )
+        run_id_v2 = response.get("run_id", "") or ""
+        v2 = MedicalCodingAgentOutputV2.from_legacy_v1(v1_schema, run_id=run_id_v2)
+        v2_dict = v2.to_dict()
+        response["review_conclusion"] = v2_dict["human_review"]["review_conclusion"]
+        response["manual_review_required"] = v2_dict["human_review"]["review_required"]
+        response["encounter_summary"] = v2_dict["encounter_summary"]
+        response["documentation_gaps"] = v2_dict["documentation_gaps"]
+        response["uncodable_items"] = v2_dict["uncodable_items"]
+        response["corti_validation_summary"] = v2_dict["validation_summary"]
+        response["human_review"] = v2_dict["human_review"]
+        response["trace_refs"] = {
+            **v2_dict["trace_refs"],
+            "run_id": run_id_v2 or response.get("trace_id", ""),
+        }
+    except Exception as e:
+        # v2 projection is best-effort — never break the v1 response
+        logger.warning(f"v1 → v2 projection failed (non-fatal): {e}")
 
     return response
 

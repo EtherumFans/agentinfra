@@ -1,0 +1,106 @@
+"""Phase 3-B2 Loop 4 — Hub `?use_case=` filter contract tests.
+
+Verifies the Corti-style use_case filter on the Hub endpoint
+(`GET /api/icoder/agents/hub?use_case=<key>`):
+
+- No filter → all visible packs returned (11 visible: 10 metadata-only + 1 MVP).
+- `?use_case=coding_revenue_cycle` → all 16 packs have this key (set en masse
+  by the Loop 4 batch script), so all 11 visible packs are returned.
+- `?use_case=clinical_evidence_research` → 0 packs (none declared yet).
+- `?use_case=invalid_key` → 0 packs (unknown key returns empty, not 400).
+- Each Hub card now includes a top-level `use_case` field (Loop 4 §1).
+- Schema version bumped to "1.1" (Loop 4).
+"""
+from __future__ import annotations
+
+import os
+
+import pytest
+from fastapi.testclient import TestClient
+
+os.environ.setdefault("APP_ENV", "development")
+os.environ.setdefault("LLM_PROVIDER", "mock")
+os.environ.setdefault("ICODER_DISABLE_AUTH_FOR_TESTS", "1")
+os.environ.setdefault("ICODER_CREDENTIAL_LLM", "test-fake-key-p11")
+
+
+@pytest.fixture
+def client():
+    """Use context manager to trigger lifespan so PlatformRuntime + seed
+    agents initialize before the test runs."""
+    from app.main import app
+    with TestClient(app, raise_server_exceptions=False) as c:
+        yield c
+
+
+def _get(client: TestClient, path: str):
+    return client.get(path)
+
+
+def test_hub_no_use_case_filter_returns_all_visible(client: TestClient):
+    """No ?use_case= → all visible packs returned (10 metadata-only + 1 MVP)."""
+    response = _get(client, "/api/icoder/agents/hub")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["schema_version"] == "1.1"
+    # All 16 packs declare use_case=coding_revenue_cycle now, but expert-stubs
+    # (4) + internal_engine (1) are excluded → 11 visible.
+    assert body["total"] == 11, f"Expected 11 visible packs, got {body['total']}"
+    use_cases = {c.get("use_case") for c in body["agents"]}
+    assert use_cases == {"coding_revenue_cycle"}, use_cases
+
+
+def test_hub_filter_coding_revenue_cycle_returns_all_11(client: TestClient):
+    """?use_case=coding_revenue_cycle → all 11 visible packs (all packs
+    were set to this key by the Loop 4 batch script)."""
+    response = _get(client, "/api/icoder/agents/hub?use_case=coding_revenue_cycle")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["total"] == 11, f"Expected 11 packs for coding_revenue_cycle, got {body['total']}"
+    # All returned cards should declare this use_case at top level.
+    for card in body["agents"]:
+        assert card["use_case"] == "coding_revenue_cycle"
+    # Medical Coding Agent (the runnable MVP) must be in this set.
+    runnable_cards = [c for c in body["agents"] if c["runnable"]]
+    assert len(runnable_cards) == 1, "Expected 1 runnable card (Medical Coding Agent)"
+    assert runnable_cards[0]["agent_id"] == "medical-coding-agent"
+
+
+def test_hub_filter_clinical_evidence_research_returns_empty(client: TestClient):
+    """?use_case=clinical_evidence_research → 0 packs (no pack declares
+    this use_case yet; Loop 4 only set coding_revenue_cycle on all 16)."""
+    response = _get(client, "/api/icoder/agents/hub?use_case=clinical_evidence_research")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["total"] == 0, f"Expected 0 packs, got {body['total']}"
+    assert body["agents"] == []
+
+
+def test_hub_filter_unknown_key_returns_empty_not_400(client: TestClient):
+    """Unknown use_case key → empty result, NOT a 400 error. Backend
+    treats unknown keys as a non-matching filter (silent empty)."""
+    response = _get(client, "/api/icoder/agents/hub?use_case=invalid_garbage_key")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["total"] == 0
+    assert body["agents"] == []
+
+
+def test_hub_cards_include_use_case_top_level_field(client: TestClient):
+    """Loop 4 §1: each Hub card must include `use_case` as a top-level
+    field (not just inside manifest). Used by the frontend dropdown."""
+    response = _get(client, "/api/icoder/agents/hub")
+    assert response.status_code == 200
+    body = response.json()
+    for card in body["agents"]:
+        assert "use_case" in card, f"Card missing use_case: {card.get('agent_ref')}"
+        assert card["use_case"], f"use_case is empty for {card.get('agent_ref')}"
+
+
+def test_hub_filter_case_sensitive(client: TestClient):
+    """use_case filter is case-sensitive (Corti enum is lowercase
+    snake_case). 'Coding_Revenue_Cycle' should return 0, not 11."""
+    response = _get(client, "/api/icoder/agents/hub?use_case=Coding_Revenue_Cycle")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["total"] == 0, "Filter should be case-sensitive"

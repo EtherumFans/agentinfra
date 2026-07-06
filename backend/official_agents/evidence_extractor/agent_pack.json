@@ -8,7 +8,16 @@
     "description": "Stage 1 of MedCodER 5-stage pipeline. 从病历文本中提取结构化临床事实：诊断事实、手术事实、否定发现、病史条件。输出带证据文本和字符位置的 JSON。LLM 主路径 (DeepSeek json_mode) + 离线 deterministic fallback 兜底。",
     "category": "medical-coding",
     "icon": "FileSearch",
-    "tags": ["medcoder", "stage-1", "extraction", "rag-prerequisite"]
+    "tags": [
+      "medcoder",
+      "stage-1",
+      "extraction",
+      "rag-prerequisite"
+    ],
+    "maturity": "stub",
+    "production_ready": false,
+    "hidden_from_hub": true,
+    "use_case": "coding_revenue_cycle"
   },
   "system_prompt": "你是一个病历证据提取专家。你的任务是：\n1. 从病历中提取所有可编码的诊断事实（含部位、病因、形态）\n2. 提取所有手术/操作事实\n3. 标记否定发现（'否认'、'排除'、'无'等）\n4. 标记既往病史（'X年前'、'既往有'等）\n5. 每个事实必须附带原文引用（evidence_text）和字符位置（char_start, char_end）\n\n输出 JSON:\n{\n  \"diagnosis_facts\": [{\"fact\": \"...\", \"evidence_text\": \"...\", \"char_start\": 0, \"char_end\": 50, \"doc_type\": \"入院记录\"}],\n  \"procedure_facts\": [{\"fact\": \"...\", \"evidence_text\": \"...\", \"char_start\": 0, \"char_end\": 50}],\n  \"negated_findings\": [{\"fact\": \"...\", \"reason\": \"否认\"}],\n  \"historical_conditions\": [{\"fact\": \"...\", \"years_ago\": 5}]\n}",
   "experts": [
@@ -20,8 +29,18 @@
     }
   ],
   "tools": [
-    {"name": "guard_input", "type": "guard", "stage": "pre-extraction", "ref": "app.icoder.guards.input_guard:guard_input"},
-    {"name": "guard_output", "type": "guard", "stage": "post-extraction", "ref": "app.icoder.guards.output_guard:guard_output"}
+    {
+      "name": "guard_input",
+      "type": "guard",
+      "stage": "pre-extraction",
+      "ref": "app.icoder.guards.input_guard:guard_input"
+    },
+    {
+      "name": "guard_output",
+      "type": "guard",
+      "stage": "post-extraction",
+      "ref": "app.icoder.guards.output_guard:guard_output"
+    }
   ],
   "model": {
     "primary": "deepseek-v4",
@@ -33,9 +52,23 @@
   "pipeline": {
     "name": "stage1-extraction",
     "stages": [
-      {"name": "input_guard", "engine": "guard", "purpose": "PHI redaction + length cap"},
-      {"name": "llm_extract", "engine": "llm", "model": "deepseek-v4", "output": "json", "fallback": "offline_deterministic"},
-      {"name": "output_guard", "engine": "guard", "purpose": "schema validation + char_span sanity check"}
+      {
+        "name": "input_guard",
+        "engine": "guard",
+        "purpose": "PHI redaction + length cap"
+      },
+      {
+        "name": "llm_extract",
+        "engine": "llm",
+        "model": "deepseek-v4",
+        "output": "json",
+        "fallback": "offline_deterministic"
+      },
+      {
+        "name": "output_guard",
+        "engine": "guard",
+        "purpose": "schema validation + char_span sanity check"
+      }
     ],
     "upstream_stage": "none (entry point of MedCodER)",
     "downstream_stage": "stage2-retrieval (index_navigator)"
@@ -49,7 +82,9 @@
   ],
   "output_contract": {
     "schema_ref": "icoder/EvidenceFacts/v1",
-    "a2a_parts": ["DataPart"],
+    "a2a_parts": [
+      "DataPart"
+    ],
     "required_fields": [
       "diagnosis_facts",
       "procedure_facts",
@@ -90,7 +125,10 @@
   },
   "llm_capabilities": {
     "required_models": [
-      {"name": "deepseek-v4", "purpose": "stage1_extraction (with json_mode)"}
+      {
+        "name": "deepseek-v4",
+        "purpose": "stage1_extraction (with json_mode)"
+      }
     ],
     "supports_tool_calling": false,
     "supports_json_mode": true,

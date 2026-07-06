@@ -8,7 +8,17 @@
     "description": "Stage 4 of MedCodER 5-stage pipeline (Re-Rank). 协调并最终确定编码集：RankGPT-style 重排 top-K 候选、确定主诊断、排序编码、生成审计就绪输出。LLM 主路径 (DeepSeek V4) + 离线 deterministic 兜底 (按 score 排序选 top-1 primary)。",
     "category": "medical-coding",
     "icon": "GitMerge",
-    "tags": ["medcoder", "stage-4", "rerank", "rankgpt", "code-reconciliation"]
+    "tags": [
+      "medcoder",
+      "stage-4",
+      "rerank",
+      "rankgpt",
+      "code-reconciliation"
+    ],
+    "maturity": "stub",
+    "production_ready": false,
+    "hidden_from_hub": true,
+    "use_case": "coding_revenue_cycle"
   },
   "system_prompt": "你是一个编码协调专家 (Code Reconciler)。你的任务是：\n1. 对每个诊断 / 手术的候选集 (来自 index_navigator) 做 RankGPT-style 重排\n2. 为每个诊断 / 手术选定 top-1 作为主编码 (primary)\n3. 其他 top-K 作为 secondary / procedure\n4. 每个最终编码附纳排依据 (justification) 和证据链接 (evidence)\n5. 触发 manual_review_required: confidence < 0.5 / 无 primary / 规则冲突\n\n输出 JSON:\n{\n  \"review_conclusion\": \"PASS|WARNING|FAIL\",\n  \"primary_diagnosis\": {\"code\": \"\", \"name\": \"\", \"confidence\": 0.0, \"evidence\": [], \"justification\": \"\"},\n  \"secondary_diagnoses\": [...],\n  \"procedures\": [...],\n  \"issues_found\": [...],\n  \"manual_review_required\": false\n}",
   "experts": [
@@ -20,11 +30,36 @@
     }
   ],
   "tools": [
-    {"name": "rerank_codes", "type": "mcp", "stage": "rerank", "ref": "app.icoder.mcp.server:/mcp/v1/tools/call/rerank_codes"},
-    {"name": "calibrate_confidence", "type": "mcp", "stage": "calibration", "ref": "app.icoder.mcp.server:/mcp/v1/tools/call/calibrate_confidence"},
-    {"name": "get_differentiation_hint", "type": "mcp", "stage": "merge", "ref": "app.icoder.mcp.server:/mcp/v1/tools/call/get_differentiation_hint"},
-    {"name": "guard_input", "type": "guard", "stage": "pre-rerank", "ref": "app.icoder.guards.input_guard:guard_input"},
-    {"name": "guard_output", "type": "guard", "stage": "post-rerank", "ref": "app.icoder.guards.output_guard:guard_output"}
+    {
+      "name": "rerank_codes",
+      "type": "mcp",
+      "stage": "rerank",
+      "ref": "app.icoder.mcp.server:/mcp/v1/tools/call/rerank_codes"
+    },
+    {
+      "name": "calibrate_confidence",
+      "type": "mcp",
+      "stage": "calibration",
+      "ref": "app.icoder.mcp.server:/mcp/v1/tools/call/calibrate_confidence"
+    },
+    {
+      "name": "get_differentiation_hint",
+      "type": "mcp",
+      "stage": "merge",
+      "ref": "app.icoder.mcp.server:/mcp/v1/tools/call/get_differentiation_hint"
+    },
+    {
+      "name": "guard_input",
+      "type": "guard",
+      "stage": "pre-rerank",
+      "ref": "app.icoder.guards.input_guard:guard_input"
+    },
+    {
+      "name": "guard_output",
+      "type": "guard",
+      "stage": "post-rerank",
+      "ref": "app.icoder.guards.output_guard:guard_output"
+    }
   ],
   "model": {
     "primary": "deepseek-v4",
@@ -36,11 +71,34 @@
   "pipeline": {
     "name": "stage4-rerank",
     "stages": [
-      {"name": "input_guard", "engine": "guard", "purpose": "candidate set schema validation"},
-      {"name": "llm_rerank", "engine": "llm", "model": "deepseek-v4", "top_k": 5, "few_shot_source": "cot_generation_progress_v2.json", "fallback": "offline_score_rank"},
-      {"name": "primary_assignment", "engine": "code", "policy": "top-1 by score per first disease fact = primary_diagnosis"},
-      {"name": "manual_review_decision", "engine": "code", "policy": "confidence < 0.5 OR no primary → manual_review_required=true"},
-      {"name": "output_guard", "engine": "guard", "purpose": "wire-format validation"}
+      {
+        "name": "input_guard",
+        "engine": "guard",
+        "purpose": "candidate set schema validation"
+      },
+      {
+        "name": "llm_rerank",
+        "engine": "llm",
+        "model": "deepseek-v4",
+        "top_k": 5,
+        "few_shot_source": "cot_generation_progress_v2.json",
+        "fallback": "offline_score_rank"
+      },
+      {
+        "name": "primary_assignment",
+        "engine": "code",
+        "policy": "top-1 by score per first disease fact = primary_diagnosis"
+      },
+      {
+        "name": "manual_review_decision",
+        "engine": "code",
+        "policy": "confidence < 0.5 OR no primary → manual_review_required=true"
+      },
+      {
+        "name": "output_guard",
+        "engine": "guard",
+        "purpose": "wire-format validation"
+      }
     ],
     "upstream_stage": "stage3-merge (medcoder_strategy internal) + stage2-retrieval (index_navigator)",
     "downstream_stage": "stage5-validation (tabular_validator)"
@@ -54,7 +112,9 @@
   ],
   "output_contract": {
     "schema_ref": "icoder/CodeReconciliation/v1",
-    "a2a_parts": ["DataPart"],
+    "a2a_parts": [
+      "DataPart"
+    ],
     "required_fields": [
       "primary_diagnosis",
       "secondary_diagnoses",
@@ -102,7 +162,10 @@
   },
   "llm_capabilities": {
     "required_models": [
-      {"name": "deepseek-v4", "purpose": "stage4_rerank (RankGPT-style + few-shot from cot_generation_progress_v2.json)"}
+      {
+        "name": "deepseek-v4",
+        "purpose": "stage4_rerank (RankGPT-style + few-shot from cot_generation_progress_v2.json)"
+      }
     ],
     "supports_tool_calling": false,
     "supports_json_mode": true,

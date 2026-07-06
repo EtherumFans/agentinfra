@@ -8,7 +8,17 @@
     "description": "Stage 5 of MedCodER 5-stage pipeline (Compliance + Calibration). 对候选编码进行规则验证：编码格式、重复检测、置信度范围、证据要求、DRG/DIP 分组影响。纯确定性规则引擎，零 LLM 参与。",
     "category": "medical-coding",
     "icon": "Shield",
-    "tags": ["medcoder", "stage-5", "compliance", "calibration", "rule-engine"]
+    "tags": [
+      "medcoder",
+      "stage-5",
+      "compliance",
+      "calibration",
+      "rule-engine"
+    ],
+    "maturity": "stub",
+    "production_ready": false,
+    "hidden_from_hub": true,
+    "use_case": "coding_revenue_cycle"
   },
   "system_prompt": "你是一个编码规则验证引擎。你使用确定性规则引擎（MedicalCodingRuleSet）验证候选编码集。\n\n输入：code_reconciler 输出的最终编码列表\n\n验证规则 (R001-R010 + MC-R-M80-001):\n- R001: 主诊断不能为空\n- R002: ICD-10 格式校验\n- R003: 重复编码检测\n- R004: ICD-9-CM-3 格式校验\n- R005: 重复手术编码检测\n- R006: 置信度范围 (0-1)\n- R007: 低置信度触发人工复核\n- R008: 编码证据不能为空\n- R009: 主诊断来自诊断列表\n- R010: 只有一个 primary 诊断\n- R011: 最多一个 primary 手术\n- R012: critical/high 规则失败触发人工复核\n- MC-R-M80-001: MedCodER catalog membership + 高 similarity\n\n输出 JSON:\n{\n  \"passed\": true/false,\n  \"issues\": [{\"severity\": \"critical\", \"code\": \"R001\", \"message\": \"...\", \"suggestion\": \"...\"}],\n  \"manual_review_required\": true/false,\n  \"fired_rules\": [\"R001\", \"R002\", ...],\n  \"quality_flags\": {\"duplicate_codes\": false, \"low_confidence\": false, ...}\n}",
   "experts": [
@@ -20,10 +30,30 @@
     }
   ],
   "tools": [
-    {"name": "verify_code", "type": "mcp", "stage": "validation", "ref": "app.icoder.mcp.server:/mcp/v1/tools/call/verify_code"},
-    {"name": "calibrate_confidence", "type": "mcp", "stage": "calibration", "ref": "app.icoder.mcp.server:/mcp/v1/tools/call/calibrate_confidence"},
-    {"name": "guard_input", "type": "guard", "stage": "pre-validation", "ref": "app.icoder.guards.input_guard:guard_input"},
-    {"name": "guard_output", "type": "guard", "stage": "post-validation", "ref": "app.icoder.guards.output_guard:guard_output"}
+    {
+      "name": "verify_code",
+      "type": "mcp",
+      "stage": "validation",
+      "ref": "app.icoder.mcp.server:/mcp/v1/tools/call/verify_code"
+    },
+    {
+      "name": "calibrate_confidence",
+      "type": "mcp",
+      "stage": "calibration",
+      "ref": "app.icoder.mcp.server:/mcp/v1/tools/call/calibrate_confidence"
+    },
+    {
+      "name": "guard_input",
+      "type": "guard",
+      "stage": "pre-validation",
+      "ref": "app.icoder.guards.input_guard:guard_input"
+    },
+    {
+      "name": "guard_output",
+      "type": "guard",
+      "stage": "post-validation",
+      "ref": "app.icoder.guards.output_guard:guard_output"
+    }
   ],
   "model": {
     "primary": "none",
@@ -33,10 +63,41 @@
   "pipeline": {
     "name": "stage5-validation",
     "stages": [
-      {"name": "input_guard", "engine": "guard", "purpose": "structured output schema sanity check"},
-      {"name": "rule_validate", "engine": "code", "ruleset": "MedicalCodingRuleSet", "rule_ids": ["R001","R002","R003","R004","R005","R006","R007","R008","R009","R010","R011","R012","MC-R-M80-001"]},
-      {"name": "manual_review_decision", "engine": "code", "policy": "any critical|high issue → manual_review_required=true"},
-      {"name": "output_guard", "engine": "guard", "purpose": "wire-format validation"}
+      {
+        "name": "input_guard",
+        "engine": "guard",
+        "purpose": "structured output schema sanity check"
+      },
+      {
+        "name": "rule_validate",
+        "engine": "code",
+        "ruleset": "MedicalCodingRuleSet",
+        "rule_ids": [
+          "R001",
+          "R002",
+          "R003",
+          "R004",
+          "R005",
+          "R006",
+          "R007",
+          "R008",
+          "R009",
+          "R010",
+          "R011",
+          "R012",
+          "MC-R-M80-001"
+        ]
+      },
+      {
+        "name": "manual_review_decision",
+        "engine": "code",
+        "policy": "any critical|high issue → manual_review_required=true"
+      },
+      {
+        "name": "output_guard",
+        "engine": "guard",
+        "purpose": "wire-format validation"
+      }
     ],
     "upstream_stage": "stage4-rerank (code_reconciler)",
     "downstream_stage": "none (terminal stage of MedCodER)"
@@ -50,7 +111,9 @@
   ],
   "output_contract": {
     "schema_ref": "icoder/ValidationResult/v1",
-    "a2a_parts": ["DataPart"],
+    "a2a_parts": [
+      "DataPart"
+    ],
     "required_fields": [
       "passed",
       "issues",

@@ -8,7 +8,17 @@
     "description": "Stage 2 of MedCodER 5-stage pipeline. 对每个提取的临床事实进行 ICD-10/ICD-9-CM-3 向量索引导航，输出候选编码列表及匹配分数。纯确定性算法，零 LLM 参与。BGE-M3 + FAISS (本地 37,897 码索引) + synonym expansion 兜底。",
     "category": "medical-coding",
     "icon": "BookOpenText",
-    "tags": ["medcoder", "stage-2", "retrieval", "bge-m3", "faiss"]
+    "tags": [
+      "medcoder",
+      "stage-2",
+      "retrieval",
+      "bge-m3",
+      "faiss"
+    ],
+    "maturity": "stub",
+    "production_ready": false,
+    "hidden_from_hub": true,
+    "use_case": "coding_revenue_cycle"
   },
   "system_prompt": "你是一个 ICD 索引导航引擎。你使用确定性算法在 ICD-10-CN 和 ICD-9-CM-3 字母索引中查找临床术语对应的编码。\n\n输入：evidence_extractor 输出的 diagnosis_facts 和 procedure_facts\n\n对每个 fact：\n1. 执行 search_icd10_index / search_icd9_index 工具查找候选编码\n2. 返回候选编码列表（code, name, match_score）\n3. 标注匹配类型（vector / synonym / fuzzy）\n\n输出 JSON:\n{\n  \"diagnosis_candidates\": [{\"fact\": \"...\", \"candidates\": [{\"code\": \"M80.900\", \"name\": \"骨质疏松伴病理性骨折\", \"match_score\": 0.95, \"match_type\": \"vector\"}]}],\n  \"procedure_candidates\": [{\"fact\": \"...\", \"candidates\": [{\"code\": \"81.6600x001\", \"name\": \"经皮椎体后凸成形术\", \"match_score\": 0.90}]}]\n}",
   "experts": [
@@ -20,9 +30,24 @@
     }
   ],
   "tools": [
-    {"name": "search_icd", "type": "mcp", "stage": "retrieval", "ref": "app.icoder.mcp.server:/mcp/v1/tools/call/search_icd"},
-    {"name": "guard_input", "type": "guard", "stage": "pre-retrieval", "ref": "app.icoder.guards.input_guard:guard_input"},
-    {"name": "guard_output", "type": "guard", "stage": "post-retrieval", "ref": "app.icoder.guards.output_guard:guard_output"}
+    {
+      "name": "search_icd",
+      "type": "mcp",
+      "stage": "retrieval",
+      "ref": "app.icoder.mcp.server:/mcp/v1/tools/call/search_icd"
+    },
+    {
+      "name": "guard_input",
+      "type": "guard",
+      "stage": "pre-retrieval",
+      "ref": "app.icoder.guards.input_guard:guard_input"
+    },
+    {
+      "name": "guard_output",
+      "type": "guard",
+      "stage": "post-retrieval",
+      "ref": "app.icoder.guards.output_guard:guard_output"
+    }
   ],
   "model": {
     "primary": "none",
@@ -33,9 +58,23 @@
   "pipeline": {
     "name": "stage2-retrieval",
     "stages": [
-      {"name": "input_guard", "engine": "guard", "purpose": "length cap + fact list validation"},
-      {"name": "vector_retrieve", "engine": "bge-m3+faiss", "top_k": 20, "synonym_cap": 3, "catalog_filter": "icd10cn_code_catalog"},
-      {"name": "output_guard", "engine": "guard", "purpose": "catalog membership check"}
+      {
+        "name": "input_guard",
+        "engine": "guard",
+        "purpose": "length cap + fact list validation"
+      },
+      {
+        "name": "vector_retrieve",
+        "engine": "bge-m3+faiss",
+        "top_k": 20,
+        "synonym_cap": 3,
+        "catalog_filter": "icd10cn_code_catalog"
+      },
+      {
+        "name": "output_guard",
+        "engine": "guard",
+        "purpose": "catalog membership check"
+      }
     ],
     "upstream_stage": "stage1-extraction (evidence_extractor)",
     "downstream_stage": "stage3-merge (medcoder_strategy internal)"
@@ -49,7 +88,9 @@
   ],
   "output_contract": {
     "schema_ref": "icoder/CandidateSet/v1",
-    "a2a_parts": ["DataPart"],
+    "a2a_parts": [
+      "DataPart"
+    ],
     "required_fields": [
       "diagnosis_candidates",
       "procedure_candidates",
@@ -91,7 +132,10 @@
   },
   "llm_capabilities": {
     "required_models": [
-      {"name": "BAAI/bge-m3", "purpose": "stage2_retrieval embedding"}
+      {
+        "name": "BAAI/bge-m3",
+        "purpose": "stage2_retrieval embedding"
+      }
     ],
     "supports_tool_calling": false,
     "supports_json_mode": false,

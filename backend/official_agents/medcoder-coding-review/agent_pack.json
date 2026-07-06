@@ -9,11 +9,17 @@
     "category": "medical-coding",
     "category_display": "Internal Engine",
     "icon": "Cog",
-    "tags": ["internal-engine", "medcoder", "5-stage-pipeline", "not-user-facing"],
+    "tags": [
+      "internal-engine",
+      "medcoder",
+      "5-stage-pipeline",
+      "not-user-facing"
+    ],
     "maturity": "internal",
     "production_ready": false,
     "human_review": "required",
-    "hidden_from_hub": true
+    "hidden_from_hub": true,
+    "use_case": "coding_revenue_cycle"
   },
   "system_prompt": "你是 iCoDer MedCodER 编码审核 Agent。严格按 MedCodER 5 阶段管线处理输入病历:\n\nStage 1 — Extraction (LLM, DeepSeek-v4):\n  从病历识别每个诊断的 disease_text + supporting_evidence (原文 + char span)\n  + llm_initial_code。每条 evidence 必须能在原文中找到对应片段, 不得编造。\n\nStage 2 — Retrieval (BGE-M3 + FAISS, 本地):\n  对每个 disease_text 做 synonym expansion (top-3), embed (BAAI/bge-m3, 1024-dim),\n  FAISS top-20, filter via icd10cn_code_catalog (37,897 码)。\n\nStage 3 — Merge (LLM data plane):\n  candidate_set = (LLM codes) ∪ (retrieved top-20), cap 30 per disease.\n  注入 coding_differentiation_kb P0/P1 hints.\n\nStage 4 — Re-Rank (LLM, DeepSeek-v4):\n  RankGPT-style 重排 top-5 per disease. 输出 per-disease final_confidence\n  + rerank_notes (引用 evidence)。\n\nStage 5 — Compliance + Calibration:\n  MedCodERRetrievalRuleSet (MR-001/002/003): catalog membership,\n  similarity ≥ 0.5, chapter metadata. 每条 diagnosis 的 final_confidence < 0.5\n  触发 manual_review_required。\n\n硬约束:\n- production_writeback_blocked = true (不写回 EMR/HIS/医保)\n- phi_redacted = true (Context 强制 PHI 脱敏)\n- 输出必须是 JSON, 遵循 icoder/MedicalCodingOutputSchema/v1\n- extracted_diagnoses 字段必须非空 (MedCodER 标志性输出)",
   "experts": [
@@ -49,7 +55,10 @@
       "role": "stage2_retrieval",
       "description": "Stage 2: BGE-M3 + FAISS 检索 top-20 候选 ICD 编码 (含 synonym expansion). 优雅降级: retriever not loaded = retriever_status=missing + 空 candidate list.",
       "system_prompt": "你是一个 ICD 编码检索专家。对每个 disease_fact / procedure_fact 调用 BGE-M3 + FAISS 检索 top-20 候选编码, 注入 synonym expansion (top-3)。每个 candidate 含 code / name / score / chapter / match_type='vector'。",
-      "tools": ["search_icd", "semantic_search"],
+      "tools": [
+        "search_icd",
+        "semantic_search"
+      ],
       "model": "BAAI/bge-m3",
       "non_goals": [
         "不写回 EMR/HIS",
@@ -73,7 +82,10 @@
       "role": "stage3_merge_stage4_rerank",
       "description": "Stage 3+4: 合并 LLM codes + retrieved top-20 (cap 30/disease), 注入 coding_differentiation_kb P0/P1 hints, RankGPT-style 重排 top-5 per disease, 输出 per-disease final_confidence + review_conclusion.",
       "system_prompt": "你是一个编码协调专家。基于候选编码列表，对每个诊断 / 手术重排成 top-K 并选定主诊断 / 主手术。输出 JSON 包含 primary_diagnosis / secondary_diagnoses / procedures / issues_found 四个字段。每个最终编码必须附 confidence (0-1) 和 evidence (list of strings from original EMR)。",
-      "tools": ["get_differentiation_hint", "rerank_codes"],
+      "tools": [
+        "get_differentiation_hint",
+        "rerank_codes"
+      ],
       "model": "deepseek-v4",
       "non_goals": [
         "不直接做最终诊断决策",
@@ -101,7 +113,10 @@
       "role": "stage5_calibration",
       "description": "Stage 5: 跑 MedicalCodingRuleSet (12 rules: R001-R010 + MC-R-M80-001), 输出 passed / issues / manual_review_required / fired_rules / quality_flags. 纯确定性, no LLM.",
       "system_prompt": "你是一个编码合规校验专家。对 code-reconciler 输出跑 MedicalCodingRuleSet (medical_coding rule_set), 12 条硬规则 (R001-R010 + MC-R-M80-001)。返回 passed (bool) / issues (list of severity/code/message/suggestion) / manual_review_required (any severity critical/high) / fired_rules / quality_flags。",
-      "tools": ["verify_code", "calibrate_confidence"],
+      "tools": [
+        "verify_code",
+        "calibrate_confidence"
+      ],
       "model": "deterministic",
       "non_goals": [
         "不直接做最终诊断决策",
@@ -124,11 +139,36 @@
     }
   ],
   "tools": [
-    {"name": "search_icd", "type": "mcp", "stage": "retrieval", "ref": "app.icoder.mcp.server:/mcp/v1/tools/call/search_icd"},
-    {"name": "verify_code", "type": "mcp", "stage": "compliance", "ref": "app.icoder.mcp.server:/mcp/v1/tools/call/verify_code"},
-    {"name": "get_differentiation_hint", "type": "mcp", "stage": "merge", "ref": "app.icoder.mcp.server:/mcp/v1/tools/call/get_differentiation_hint"},
-    {"name": "rerank_codes", "type": "mcp", "stage": "rerank", "ref": "app.icoder.mcp.server:/mcp/v1/tools/call/rerank_codes"},
-    {"name": "calibrate_confidence", "type": "mcp", "stage": "calibration", "ref": "app.icoder.mcp.server:/mcp/v1/tools/call/calibrate_confidence"}
+    {
+      "name": "search_icd",
+      "type": "mcp",
+      "stage": "retrieval",
+      "ref": "app.icoder.mcp.server:/mcp/v1/tools/call/search_icd"
+    },
+    {
+      "name": "verify_code",
+      "type": "mcp",
+      "stage": "compliance",
+      "ref": "app.icoder.mcp.server:/mcp/v1/tools/call/verify_code"
+    },
+    {
+      "name": "get_differentiation_hint",
+      "type": "mcp",
+      "stage": "merge",
+      "ref": "app.icoder.mcp.server:/mcp/v1/tools/call/get_differentiation_hint"
+    },
+    {
+      "name": "rerank_codes",
+      "type": "mcp",
+      "stage": "rerank",
+      "ref": "app.icoder.mcp.server:/mcp/v1/tools/call/rerank_codes"
+    },
+    {
+      "name": "calibrate_confidence",
+      "type": "mcp",
+      "stage": "calibration",
+      "ref": "app.icoder.mcp.server:/mcp/v1/tools/call/calibrate_confidence"
+    }
   ],
   "model": {
     "primary": "deepseek-v4",
@@ -141,11 +181,39 @@
   "pipeline": {
     "name": "medcoder-5-stage",
     "stages": [
-      {"name": "extraction", "engine": "llm", "model": "deepseek-v4", "input_count_target": "n_diagnoses_in_emr", "output_count_target": "n_diagnoses_in_emr"},
-      {"name": "retrieval", "engine": "bge-m3+faiss", "top_k": 20, "synonym_cap": 3, "catalog_filter": "icd10cn_code_catalog"},
-      {"name": "merge", "engine": "code", "cap_per_disease": 30, "hints_source": "coding_differentiation_kb"},
-      {"name": "rerank", "engine": "llm", "model": "deepseek-v4", "top_k": 5, "few_shot_source": "cot_generation_progress_v2.json (Phase 2 wire)"},
-      {"name": "calibration", "engine": "rule_set", "ruleset": "MedCodERRetrievalRuleSet", "confidence_floor": 0.5}
+      {
+        "name": "extraction",
+        "engine": "llm",
+        "model": "deepseek-v4",
+        "input_count_target": "n_diagnoses_in_emr",
+        "output_count_target": "n_diagnoses_in_emr"
+      },
+      {
+        "name": "retrieval",
+        "engine": "bge-m3+faiss",
+        "top_k": 20,
+        "synonym_cap": 3,
+        "catalog_filter": "icd10cn_code_catalog"
+      },
+      {
+        "name": "merge",
+        "engine": "code",
+        "cap_per_disease": 30,
+        "hints_source": "coding_differentiation_kb"
+      },
+      {
+        "name": "rerank",
+        "engine": "llm",
+        "model": "deepseek-v4",
+        "top_k": 5,
+        "few_shot_source": "cot_generation_progress_v2.json (Phase 2 wire)"
+      },
+      {
+        "name": "calibration",
+        "engine": "rule_set",
+        "ruleset": "MedCodERRetrievalRuleSet",
+        "confidence_floor": 0.5
+      }
     ],
     "replaces": "homepage-coding-review 14-stage cosmetic pipeline (弃用 M2 删除)"
   },
@@ -160,7 +228,9 @@
   ],
   "output_contract": {
     "schema_ref": "icoder/MedicalCodingOutputSchema/v1",
-    "a2a_parts": ["DataPart"],
+    "a2a_parts": [
+      "DataPart"
+    ],
     "extracted_diagnoses_required": true,
     "required_fields": [
       "review_conclusion",
@@ -217,8 +287,14 @@
   },
   "llm_capabilities": {
     "required_models": [
-      {"name": "deepseek-v4", "purpose": "stage1_extraction + stage4_rerank"},
-      {"name": "BAAI/bge-m3", "purpose": "stage2_retrieval embedding"}
+      {
+        "name": "deepseek-v4",
+        "purpose": "stage1_extraction + stage4_rerank"
+      },
+      {
+        "name": "BAAI/bge-m3",
+        "purpose": "stage2_retrieval embedding"
+      }
     ],
     "supports_tool_calling": true,
     "supports_json_mode": true,

@@ -18,7 +18,12 @@ from typing import Any, Callable, Union
 from fastapi import APIRouter, Query, Request
 from fastapi.responses import JSONResponse, PlainTextResponse
 
-from .agent_card import AgentCard, AgentListResponse, medcoder_coding_review_card
+from .agent_card import (
+    AgentCard,
+    AgentListResponse,
+    medcoder_coding_review_card,
+    medical_coding_agent_card,
+)
 from .envelope import make_error_response
 from .errors import A2AError, A2AErrorCode, agent_not_found
 from .version import A2A_PROTOCOL_HEADER, A2A_PROTOCOL_VERSION
@@ -112,18 +117,26 @@ def build_discovery_router(
 def _list_all_cards(provider: AgentProvider) -> list[AgentCard]:
     """List all AgentCards the provider knows about.
 
-    Phase 1: the provider returns either AgentCard objects (preferred)
-    or dicts in AgentCard shape. We normalize to AgentCard.
+    Phase 3-B1 (2026-07-04): enumerate both public runnable agents —
+    ``medcoder-coding-review`` (internal engine, but card exists for
+    orchestrator internal use) AND ``medical-coding-agent`` (the user-facing
+    Corti-style MVP). The provider is consulted first; if it returns None
+    for either, we fall back to the fixture.
+
+    metadata-only packs and expert-stubs do NOT get cards here — they
+    have no run path. They appear in the Hub (``/api/icoder/agents/hub``)
+    with Coming Soon badges instead.
     """
-    # The provider contract: given an agent_id, return its card or None.
-    # Phase 1 has 1 known agent: medcoder-coding-review. The provider
-    # may not know it — fall back to the fixture if the provider returns
-    # None for it (means Registry not yet wired up).
-    card = _resolve_card(provider, "medcoder-coding-review")
-    if card is None:
-        # Provider doesn't have it; emit the Phase 2 fixture.
-        card = medcoder_coding_review_card()
-    return [card]
+    cards: list[AgentCard] = []
+    for agent_id, factory in [
+        ("medcoder-coding-review", medcoder_coding_review_card),
+        ("medical-coding-agent", medical_coding_agent_card),
+    ]:
+        card = _resolve_card(provider, agent_id)
+        if card is None:
+            card = factory()
+        cards.append(card)
+    return cards
 
 
 def _resolve_card(provider: AgentProvider, agent_id: str) -> AgentCard | None:

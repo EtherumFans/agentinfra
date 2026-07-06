@@ -10,11 +10,26 @@ import {
 } from 'lucide-react';
 import { billingApi, agentsApi, oauthApi } from '../services/api';
 import { runtimeAgentApi } from '../services/runtimeApi';
+import { agentHubApi, type HubCard } from '../services/agentHubApi';
 import { useToastStore } from '../store';
 import type { InstalledAgent } from '../types/runtime';
 
 const USE_CASE_KEYS = ['全部', '编码', '医保', '质控', '文书', '急诊', '护理', '药学'];
 const USE_CASES = USE_CASE_KEYS;
+
+// Phase 3-B2 Loop 4 — Corti-style use_case filter dropdown (backend-driven).
+// Maps Corti's 5 use_case enum values to Chinese display labels. The Hub
+// endpoint filters server-side via ?use_case=<key>. Empty key = no filter.
+// Used by the Prebuilt tab dropdown; USE_CASE_KEYS above stays for the
+// New Agent creation category chips (those stay client-side, not Loop 4 scope).
+const USE_CASE_FILTERS: Array<{ key: string; label: string }> = [
+  { key: '', label: '全部' },
+  { key: 'coding_revenue_cycle', label: '编码/收入循环' },
+  { key: 'clinical_evidence_research', label: '临床证据研究' },
+  { key: 'point_of_care', label: '即时诊疗' },
+  { key: 'care_coordination', label: '诊疗协调' },
+  { key: 'china_medical_compliance', label: '中国医疗合规' },
+];
 
 // Agent key → Expert name mapping moved to AgentDetailPage
 
@@ -29,7 +44,9 @@ export default function AgentsPage() {
   const toast = useToastStore((s) => s.addToast);
   const [activeTab, setActiveTab] = useState<TabType>('my');
   const [searchQuery, setSearchQuery] = useState('');
-  const [useCase, setUseCase] = useState('全部');
+  // Phase 3-B2 Loop 4: useCase now stores the Corti use_case key (e.g.
+  // 'coding_revenue_cycle'), not a Chinese label. Empty string = no filter.
+  const [useCase, setUseCase] = useState('');
   const [balance, setBalance] = useState<number | null>(null);
   const [cost, setCost] = useState('0.000000');
   const [createdByFilter, setCreatedByFilter] = useState('');
@@ -50,7 +67,7 @@ export default function AgentsPage() {
   const [showClonePicker, setShowClonePicker] = useState(false);
   // Agents from new Runtime API (per tab)
   const [myAgents, setMyAgents] = useState<InstalledAgent[]>([]);
-  const [certifiedAgents, setCertifiedAgents] = useState<InstalledAgent[]>([]);
+  const [hubCards, setHubCards] = useState<HubCard[]>([]);
   const [myAgentsLoading, setMyAgentsLoading] = useState(true);
   const [certifiedLoading, setCertifiedLoading] = useState(true);
   // Agent templates (from backend)
@@ -65,6 +82,9 @@ export default function AgentsPage() {
   const [deleteConfirmAgent, setDeleteConfirmAgent] = useState<any>(null);
   // DB agents (for clone picker and create flow only)
   const [dbAgents, setDbAgents] = useState<any[]>([]);
+  // Phase 3-B2 Loop 2 — track which Hub card is currently being cloned
+  // (so we can show a spinner on the "Chat / Use Agent" CTA per card).
+  const [cloningAgentId, setCloningAgentId] = useState<string | null>(null);
 
   useEffect(() => {
     billingApi.balance().then(r => setBalance(r.data.balance)).catch(() => {});
@@ -92,15 +112,20 @@ export default function AgentsPage() {
       .catch(() => setMyAgents([]))
       .finally(() => setMyAgentsLoading(false));
   };
-  const loadCertifiedAgents = () => {
+  const loadCertifiedAgents = (useCaseKey: string = '') => {
     setCertifiedLoading(true);
-    runtimeAgentApi.listAgents('certified')
-      .then(data => setCertifiedAgents(data.agents || []))
-      .catch(() => setCertifiedAgents([]))
+    // Phase 3-B1 Section F + Phase 3-B2 Loop 4: Prebuilt tab reads from
+    // Corti-style Hub endpoint with optional ?use_case=<key> filter
+    // (pack-mastered, no auth, returns 11 visible packs by default: 10
+    // metadata-only Coming Soon + Medical Coding Agent MVP). Backend
+    // excludes expert-stubs and internal_engine automatically.
+    agentHubApi.list(useCaseKey || undefined)
+      .then((res: { data?: { agents?: HubCard[] } }) => setHubCards(res.data?.agents || []))
+      .catch(() => setHubCards([]))
       .finally(() => setCertifiedLoading(false));
   };
   useEffect(() => { if (activeTab === 'my') loadMyAgents(); }, [activeTab]);
-  useEffect(() => { if (activeTab === 'prebuilt') loadCertifiedAgents(); }, [activeTab]);
+  useEffect(() => { if (activeTab === 'prebuilt') loadCertifiedAgents(useCase); }, [activeTab, useCase]);
 
   // Load memory context when entering agent detail chat — moved to AgentDetailPage
 
@@ -115,10 +140,11 @@ export default function AgentsPage() {
     const matchCreator = !createdByFilter || (a.publisher_name || '') === createdByFilter;
     return matchSearch && matchCreator;
   });
-  const filteredCertifiedAgents = certifiedAgents.filter(a => {
-    const matchSearch = !searchQuery || a.name.includes(searchQuery) || a.description.includes(searchQuery);
-    const matchUseCase = useCase === '全部' || a.category === useCase;
-    return matchSearch && matchUseCase;
+  const filteredCertifiedAgents = hubCards.filter(a => {
+    const matchSearch = !searchQuery || (a.name || '').includes(searchQuery) || (a.description || '').includes(searchQuery);
+    // Phase 3-B2 Loop 4: use_case filter now happens server-side via
+    // ?use_case=<key> on agentHubApi.list. We only filter by search here.
+    return matchSearch;
   });
 
   // Refresh Runtime agents list.
@@ -159,6 +185,40 @@ export default function AgentsPage() {
       toast('已克隆为草稿', 'success');
       navigate('/ai-studio/agents/' + (cloned.id || cloned.agent_id));
     } catch { toast('克隆失败', 'error'); }
+  };
+
+  // Phase 3-B2 Loop 2 (Gap 2.2) — Click-to-Chat CTA on Hub cards.
+  // Calls Loop 1 clone endpoint (idempotent), then navigates to the
+  // returned chat_url with ?preset={agent_ref}. On 401, redirects to
+  // login (the clone endpoint requires a valid Bearer token).
+  const chatWithHubCard = async (card: HubCard) => {
+    if (!card.runnable || !card.agent_id || cloningAgentId) return;
+    setCloningAgentId(card.agent_id);
+    try {
+      const res = await agentHubApi.clone(card.agent_id);
+      const data = res.data;
+      // data.chat_url is concrete (e.g. /agents/<project_agent_id>/chat).
+      // Append ?preset=<agent_ref> so the chat page can pre-fill context.
+      const url = `${data.chat_url}?preset=${encodeURIComponent(card.agent_ref)}`;
+      if (data.cloned) {
+        toast('已克隆 — 进入对话', 'success');
+      } else {
+        toast('已有克隆 — 进入对话', 'warning');
+      }
+      navigate(url);
+    } catch (err: any) {
+      const status = err?.response?.status;
+      if (status === 401) {
+        toast('请先登录', 'error');
+        navigate('/login');
+      } else if (status === 404) {
+        toast('Agent 不存在', 'error');
+      } else {
+        toast(`克隆失败: ${err?.message || 'unknown'}`, 'error');
+      }
+    } finally {
+      setCloningAgentId(null);
+    }
   };
 
   // AI-assisted system prompt generation
@@ -289,7 +349,10 @@ export default function AgentsPage() {
         )}
       </div>
 
-      {/* Use case 过滤器 (Corti: 单 dropdown ▾) */}
+      {/* Use case 过滤器 (Corti: 单 dropdown ▾) — Phase 3-B2 Loop 4
+          backend-driven via ?use_case=<key>. Dropdown shows Chinese label,
+          stores Corti use_case key (e.g. 'coding_revenue_cycle'). Empty
+          key = 全部 (no filter, all visible packs returned). */}
       {activeTab === 'prebuilt' && (
         <div className="relative flex items-center gap-2 px-6 pb-2">
           <button
@@ -297,18 +360,20 @@ export default function AgentsPage() {
             className="flex items-center gap-1.5 text-sm h-8 px-3 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
           >
             <span>{t.useCaseFilter}</span>
-            <span className="text-foreground font-medium">{useCase === '全部' ? t.all : useCase}</span>
+            <span className="text-foreground font-medium">
+              {USE_CASE_FILTERS.find(uc => uc.key === useCase)?.label || t.all}
+            </span>
             <ChevronDown size={12} />
           </button>
           {showUseCaseFilter && (
             <div className="absolute left-6 top-full mt-1 bg-popover border border-border rounded-lg shadow-lg p-1 min-w-[160px] z-10">
-              {USE_CASES.map(uc => (
+              {USE_CASE_FILTERS.map(uc => (
                 <button
-                  key={uc}
-                  onClick={() => { setUseCase(uc); setShowUseCaseFilter(false); }}
-                  className={`w-full text-left px-3 py-1.5 text-xs rounded-md transition-colors ${useCase === uc ? 'bg-accent text-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'}`}
+                  key={uc.key}
+                  onClick={() => { setUseCase(uc.key); setShowUseCaseFilter(false); }}
+                  className={`w-full text-left px-3 py-1.5 text-xs rounded-md transition-colors ${useCase === uc.key ? 'bg-accent text-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'}`}
                 >
-                  {uc === '全部' ? t.all : uc}
+                  {uc.label}
                 </button>
               ))}
             </div>
@@ -383,7 +448,7 @@ export default function AgentsPage() {
           )
         )}
 
-        {/* Tab: 预置AI智能体 — Runtime certified agents */}
+        {/* Tab: 预置AI智能体 — Corti-style Hub cards (pack-mastered) */}
         {activeTab === 'prebuilt' && (
           certifiedLoading ? (
             <div className="text-center py-12"><Loader2 className="animate-spin h-6 w-6 mx-auto text-muted-foreground" /></div>
@@ -394,36 +459,112 @@ export default function AgentsPage() {
               </div>
               <h3 className="text-base font-semibold text-foreground mb-2">{t.noMatchingAgents}</h3>
               <p className="text-sm text-muted-foreground mb-4">{t.noMatchingAgentsHint}</p>
-              <button onClick={() => { setSearchQuery(''); setUseCase('全部'); }} className="px-4 py-2 rounded-lg border border-border text-sm text-foreground hover:bg-accent transition-colors">{t.clearFilter}</button>
+              <button onClick={() => { setSearchQuery(''); setUseCase(''); }} className="px-4 py-2 rounded-lg border border-border text-sm text-foreground hover:bg-accent transition-colors">{t.clearFilter}</button>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3">
-              {filteredCertifiedAgents.map(agent => (
-              <div key={agent.agent_ref} className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-4 hover:ring-primary/30 hover:shadow-md transition-all cursor-pointer group"
-                onClick={() => navigate('/ai-studio/agents/' + agent.agent_ref)}>
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
-                    <Bot size={15} className="text-primary" />
+              {filteredCertifiedAgents.map(card => {
+                // Phase 3-B1 Section F: render Corti-style Hub card.
+                // metadata-only packs (runnable=false) show Coming Soon + no Run button.
+                // MVP packs (runnable=true, production_ready=false) show Run + Human Review Required.
+                const isMetadataOnly = !card.runnable;
+                const isMvp = card.runnable && !card.production_ready;
+                const isCloningThis = cloningAgentId === card.agent_id;
+                return (
+                  <div key={card.agent_ref}
+                    className={`bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-4 transition-all group ${
+                      isMetadataOnly
+                        ? 'opacity-80'
+                        : 'hover:ring-primary/30 hover:shadow-md'
+                    }`}>
+                    <div className="flex items-start gap-3">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                        isMetadataOnly ? 'bg-muted' : 'bg-primary/10 group-hover:bg-primary/20'
+                      }`}>
+                        <Bot size={15} className={isMetadataOnly ? 'text-muted-foreground' : 'text-primary'} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className={`text-sm font-medium transition-colors ${
+                            isMetadataOnly ? 'text-muted-foreground' : 'text-foreground group-hover:text-primary'
+                          }`}>{card.name}</p>
+                          {/* Badge: MVP / Coming Soon / Production-ready */}
+                          <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-medium ${
+                            isMetadataOnly
+                              ? 'bg-muted text-muted-foreground'
+                              : isMvp
+                                ? 'bg-amber-100 text-amber-700'
+                                : 'bg-green-100 text-green-700'
+                          }`}>{card.badge}</span>
+                          {/* production_ready flag */}
+                          {!card.production_ready && (
+                            <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700" title="This Agent is not yet production-ready">
+                              production_ready=false
+                            </span>
+                          )}
+                          {/* Human review required */}
+                          {card.human_review === 'required' && (
+                            <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-700" title="Human review required before finalizing">
+                              人工审核
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1 leading-relaxed line-clamp-2">{card.description}</p>
+                        <div className="flex items-center gap-2 mt-2 flex-wrap">
+                          {card.category && (
+                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{card.category}</span>
+                          )}
+                          <span className="text-[10px] font-mono text-muted-foreground">v{card.version}</span>
+                          <span className="text-[9px] text-muted-foreground">{card.maturity}</span>
+                        </div>
+                        {/* Red lines (Corti 4 rules) — only show for runnable cards */}
+                        {card.runnable && (card.red_lines?.no_upcoding || card.red_lines?.evidence_required) && (
+                          <div className="flex items-center gap-1 mt-1.5 flex-wrap">
+                            {card.red_lines?.no_upcoding && (
+                              <span className="text-[9px] px-1 py-0.5 rounded bg-red-50 text-red-700" title="No upcoding">no_upcoding</span>
+                            )}
+                            {card.red_lines?.evidence_required && (
+                              <span className="text-[9px] px-1 py-0.5 rounded bg-orange-50 text-orange-700" title="Evidence required">evidence_required</span>
+                            )}
+                            {card.red_lines?.production_writeback_blocked && (
+                              <span className="text-[9px] px-1 py-0.5 rounded bg-gray-100 text-gray-700" title="Does not write back to EMR/HIS">no_writeback</span>
+                            )}
+                          </div>
+                        )}
+                        {/* Workflow (Corti 7-step / pipeline stages) */}
+                        {card.runnable && card.workflow && (
+                          <p className="text-[10px] text-muted-foreground mt-1.5 line-clamp-2">{card.workflow}</p>
+                        )}
+                        {/* Phase 3-B2 Loop 2 — Click-to-Chat CTAs.
+                            Primary = Chat / Use Agent (clone + navigate).
+                            Secondary = Customize (placeholder link to detail page). */}
+                        {card.runnable && (
+                          <div className="flex items-center gap-2 mt-3">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); chatWithHubCard(card); }}
+                              disabled={isCloningThis}
+                              className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-foreground text-background hover:opacity-90 disabled:opacity-50 transition-opacity font-medium"
+                            >
+                              {isCloningThis ? (
+                                <><Loader2 size={12} className="animate-spin" /> 克隆中…</>
+                              ) : (
+                                <><Send size={12} /> Chat / Use Agent</>
+                              )}
+                            </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); navigate(`/ai-studio/agents/${card.agent_ref}`); }}
+                              className="inline-flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                              title="Customize (Phase 3-B2 Loop 4: placeholder, links to detail page)"
+                            >
+                              <Wrench size={12} /> Customize
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">{agent.name}</p>
-                      <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${agent.status === 'enabled' ? 'bg-green-100 text-green-700' : 'bg-muted text-muted-foreground'}`}>{agent.status}</span>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed line-clamp-2">{agent.description}</p>
-                    <div className="flex items-center gap-2 mt-2">
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{agent.category}</span>
-                      <span className={`text-[9px] px-1 py-0.5 rounded-full font-medium ${agent.tier >= 3 ? 'bg-red-100 text-red-700' : agent.tier >= 2 ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>T{agent.tier}</span>
-                      <span className="text-[10px] font-mono text-muted-foreground">v{agent.version}</span>
-                    </div>
-                    <div className="flex items-center gap-2 mt-1">
-                      {agent.expert_count > 0 && <span className="text-[9px] text-muted-foreground">{agent.expert_count} experts</span>}
-                      {agent.tool_count > 0 && <span className="text-[9px] text-muted-foreground">{agent.tool_count} tools</span>}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              ))}
+                );
+              })}
             </div>
           )
         )}

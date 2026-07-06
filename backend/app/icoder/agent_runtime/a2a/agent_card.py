@@ -307,6 +307,148 @@ def medcoder_coding_review_card(base_url: str = "") -> AgentCard:
     )
 
 
+def medical_coding_agent_card(base_url: str = "") -> AgentCard:
+    """Canonical Medical Coding Agent Card (Phase 3-B1, 2026-07-04).
+
+    This is the user-facing Corti-style Medical Coding Agent
+    (``icoder/medical-coding-agent@2.0.0``). It declares the Corti 7-step
+    workflow + 8-field output contract (``MedicalCodingAgentOutputV2``).
+    Internally it delegates to the MedCodER 5-stage pipeline via the
+    ``coding-expert`` expert_id (wired to 4 D2 expert packs).
+
+    Phase 3-B1 Section D: this card factory enables A2A discovery to
+    return Medical Coding Agent (previously only medcoder-coding-review
+    was returned). The run path is A2A message:send → InboundHandler →
+    Planner → Delegator → coding-expert (4 D2 packs) → Aggregator →
+    v1→v2 projection → 8-field response.
+
+    MVP maturity: production_ready=false, human_review=required.
+    """
+    url = (
+        f"{base_url}/api/icoder/agents/medical-coding-agent/v1/message:send"
+        if base_url
+        else "/api/icoder/agents/medical-coding-agent/v1/message:send"
+    )
+    return AgentCard(
+        name="Medical Coding Agent",
+        description=(
+            "iCoDer 官方医学编码 Agent (Corti-style MVP)。基于病历证据生成 "
+            "ICD-10-CN 诊断编码与 ICD-9-CM-3 手术操作编码建议, 输出 Corti-style "
+            "8-field 结构化结果 (encounter_summary / documentation_analysis / "
+            "code_assignment / documentation_gaps / uncodable_items / "
+            "validation_summary / human_review / trace_refs)。AI-assisted coding "
+            "— 不替代编码员, 不自动写回, 不 upcoding, 不推断未记录的诊断/手术。"
+            "MVP maturity: production_ready=false, human_review=required。"
+        ),
+        url=url,
+        version="2.0.0",
+        provider="iCoDer",
+        documentationUrl="/docs/agents/medical-coding-agent",
+        capabilities=AgentCapabilities(
+            streaming=False,
+            pushNotifications=False,
+            stateTransitionHistory=True,
+            extensions=[],
+        ),
+        skills=[
+            AgentSkill(
+                id="corti_7_step_workflow",
+                name="Corti 7-step Medical Coding Workflow",
+                description=(
+                    "Synthesize Encounter → Extract Evidence → Search Candidates → "
+                    "Assign Codes → Validate Coding → Identify Documentation Gaps → "
+                    "Generate Review Summary. Outputs 8-field MedicalCodingAgentOutputV2."
+                ),
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "text": {"type": "string"},
+                        "context_id": {"type": "string"},
+                    },
+                    "required": ["text"],
+                },
+                outputSchema={"$ref": "icoder/MedicalCodingAgentOutputV2/v1"},
+                examples=[],
+            ),
+        ],
+        defaultInputModes=["text"],
+        defaultOutputModes=["application/json"],
+        securitySchemes={
+            "bearer": SecurityScheme(
+                type="apiKey",
+                description="Phase 4 才校验, Phase 2 接受任意 bearer",
+            )
+        },
+        metadata={
+            "icoder": {
+                "agent_ref": "icoder/medical-coding-agent@2.0.0",
+                "rule_sets": ["medical_coding"],
+                "experts": ["coding-expert"],
+                "mcp_tools": [
+                    "search_icd",
+                    "verify_code",
+                    "get_differentiation_hint",
+                    "rerank_codes",
+                    "calibrate_confidence",
+                ],
+                "internal_engine": {
+                    "name": "MedCodER 5-stage pipeline",
+                    "agent_ref": "icoder/medcoder-coding-review-agent@1.0.0",
+                    "stages": [
+                        "extraction",
+                        "retrieval",
+                        "merge",
+                        "rerank",
+                        "calibration",
+                    ],
+                },
+                "non_goals": [
+                    "不替代编码员 — 所有编码建议需经编码员人工确认",
+                    "不 upcoding — 不优先选择高补偿编码",
+                    "不推断未记录的诊断 / 手术 (evidence-first)",
+                    "不写回 EMR / HIS / 医保结算系统",
+                    "不声称 fully automated coding",
+                    "不绕过 PHI redaction",
+                    "不输出 F1 / 模型效果指标给最终用户",
+                ],
+                "production_writeback_blocked": True,
+                "phi_redaction": "required",
+                "context_required": True,
+                "recorder_required": True,
+                "metrics_required": True,
+                "no_upcoding": True,
+                "no_inference": True,
+                "evidence_required": True,
+                "output_contract": {
+                    "schema_ref": "icoder/MedicalCodingAgentOutputV2/v1",
+                    "required_fields": [
+                        "encounter_summary",
+                        "documentation_analysis",
+                        "code_assignment",
+                        "documentation_gaps",
+                        "uncodable_items",
+                        "validation_summary",
+                        "human_review",
+                        "trace_refs",
+                    ],
+                    "human_review_required_when": [
+                        "manual_review_required == true",
+                        "issues_found non-empty",
+                        "primary_diagnosis.code missing",
+                        "documentation_gaps non-empty",
+                        "uncodable_items non-empty",
+                        "review_conclusion == FAIL",
+                    ],
+                },
+                "maturity": "mvp",
+                "production_ready": False,
+                "human_review": "required",
+                "runtime_version": "2.0.0",
+            }
+        },
+    )
+
+
 __all__ = [
     "AgentCapabilities",
     "AgentCard",
@@ -314,4 +456,5 @@ __all__ = [
     "AgentSkill",
     "SecurityScheme",
     "medcoder_coding_review_card",
+    "medical_coding_agent_card",
 ]

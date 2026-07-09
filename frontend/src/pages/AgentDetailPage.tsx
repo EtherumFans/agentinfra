@@ -244,17 +244,52 @@ export default function AgentDetailPage() {
 
     try {
       const token = localStorage.getItem('access_token') || '';
-      // /api/agents/{id}/stream was deleted in Phase 2.1-A; A2A message:send
-      // is the new agent invocation path. Surface the migration to the user.
-      // TODO: rewrite to A2A SSE via /api/icoder/agents/{id}/v1/message:send
-      throw new Error('Agent streaming endpoint removed in Phase 2.1-A. Use A2A message:send via /api/icoder/agents/{id}/v1/message:send instead.');
-      // eslint-disable-next-line no-unreachable
-      void token;
+      void token; // auth handled by axios interceptor in runtimeApi
+
+      // Phase 4-F (2026-07-09): use unified Agent Run API
+      // POST /api/v1/agents/{id}/run — uniform 13-field envelope across
+      // all iCoDer built agents. Routes internally to CodingRuntimeDispatcher
+      // (medical-coding) or ProviderRegistry (others).
+      const { runtimeAgentApi } = await import('../services/runtimeApi');
+      const resp = await runtimeAgentApi.agentRun(agentId || '', content, {
+        runtime_mode: agent?.default_runtime_mode || undefined,
+      });
+
+      if (!isActive()) return;
+
+      if (resp.error) {
+        setChatMessages(prev => prev.map((m, i) =>
+          i === assistantIdx
+            ? { ...m, content: `错误：${resp.summary || resp.error_reason || 'agent run failed'}` }
+            : m
+        ));
+      } else {
+        // Format response: summary + result preview
+        const parts: string[] = [];
+        if (resp.summary) parts.push(resp.summary);
+        if (resp.result && Object.keys(resp.result).length > 0) {
+          parts.push('```json\n' + JSON.stringify(resp.result, null, 2) + '\n```');
+        }
+        if (resp.warnings?.length) {
+          parts.push('⚠️ ' + resp.warnings.join('; '));
+        }
+        if (resp.manual_review_required) {
+          parts.push('🔍 人工复核提示：本次运行结果需经编码员人工确认。');
+        }
+        const assistantContent = parts.join('\n\n') || '(no output)';
+        setChatMessages(prev => prev.map((m, i) =>
+          i === assistantIdx ? { ...m, content: assistantContent } : m
+        ));
+        // Stash raw JSON for Copy JSON button.
+        setJsonData(JSON.stringify(resp, null, 2));
+      }
+      setChatLoading(false);
     } catch (err: any) {
       if (err.name === 'AbortError') return;
       if (isActive()) {
+        const msg = err?.response?.data?.detail || err.message || 'agent run failed';
         setChatMessages(prev => prev.map((m, i) =>
-          i === assistantIdx ? { ...m, content: m.content || `错误：${err.message}` } : m
+          i === assistantIdx ? { ...m, content: m.content || `错误：${msg}` } : m
         ));
         setChatLoading(false);
       }
@@ -672,7 +707,7 @@ export default function AgentDetailPage() {
                 <textarea
                   value={chatInput}
                   onChange={e => setChatInput(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
+                  onKeyDown={e => { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); handleSend(); } }}
                   placeholder={t.askTheAgentPlaceholder}
                   rows={1}
                   className="w-full text-sm bg-transparent focus:outline-none placeholder:text-foreground/70 resize-none py-3 px-4 min-h-[40px] max-h-[120px]"
@@ -712,6 +747,22 @@ export default function AgentDetailPage() {
                   </div>
 
                   <div className="flex-1" />
+
+                  {/* Phase 4-F: API Client dropdown — Corti-style usage attribution selector */}
+                  {apiClients.length > 0 && (
+                    <select
+                      value={selectedApiClient}
+                      onChange={e => setSelectedApiClient(e.target.value)}
+                      className="text-[10px] text-muted-foreground bg-transparent border border-border/40 rounded-md px-1.5 py-1 focus:outline-none focus:ring-1 focus:ring-ring max-w-[120px]"
+                      title={t.apiClient || 'API Client'}
+                    >
+                      {apiClients.map((c: any) => (
+                        <option key={c.client_id} value={c.client_id}>
+                          {c.name || c.client_id}
+                        </option>
+                      ))}
+                    </select>
+                  )}
 
                   <button onClick={() => handleSend()}
                     disabled={(!chatInput.trim() && !jsonData.trim() && !attachedFile) || chatLoading}
@@ -1076,41 +1127,15 @@ result = client.agents.message_send(
 )
 
 print("Agent response:", result)`}
-                csharp={`using iCoDer;
-using iCoDer.Agents;
-
-var client = new iCoDerClient("YOUR_API_KEY");
-
-// Create and configure the agent
-var createRequest = new AgentCreateRequest
-{
-    Name = "${agentTitle}",
-    Description = ${JSON.stringify(agent?.description || '')},
-    Experts = new List<AgentExpertRef>
-    {
-${agentExperts.map(e => `        new AgentExpertRef { Name = "${e.name}", Type = "reference" },`).join('\n')}
-    },
-    SystemPrompt = @${JSON.stringify(systemPrompt || '')},
-};
-
-var agent = await client.Agents.CreateAsync(createRequest);
-var agentId = agent.Id;
-
-// Send a message to the agent
-var message = new AgentMessage
-{
-    Role = "user",
-    Parts = new List<MessagePart>
-    {
-        new MessagePart { Text = "patient case...", Kind = "text" },
-    },
-    MessageId = Guid.NewGuid().ToString(),
-    Kind = "message",
-};
-
-var result = await client.Agents.MessageSendAsync(agentId, message);
-
-Console.WriteLine($"Agent response: {result}");`}
+                curl={`curl -X POST "${window.location.origin}/api/v1/agents/${encodeURIComponent(agentId || '')}/run" \\
+  -H "Authorization: Bearer $ICODER_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "input": {"text": "patient case..."},
+    "runtime_mode": "${agent?.default_runtime_mode || ''}",
+    "include_trace": true,
+    "include_evidence": true
+  }'`}
                 json={JSON.stringify({
                   name: agentTitle,
                   description: agent?.description || '',

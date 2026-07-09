@@ -176,10 +176,11 @@ export default function AgentConfigSidebar({ agent, onAgentUpdated }: AgentConfi
     </div>
   );
 
-  // ── Code slot - SDK tabs (JS / .NET / JSON Config) ──
+  // ── Code slot - SDK tabs (JS / curl / JSON Config) ──
   const sdkCode = useMemo(() => {
     const ref = agentRef || `icoder/${agentId}`;
     const a2aEndpoint = `/api/icoder/agents/${agentId}/v1/message:send`;
+    const unifiedEndpoint = `/api/v1/agents/${agentId}/run`;
     return {
       javascript: `import { CortiClient } from "@corti/sdk";
 
@@ -194,22 +195,18 @@ const response = await client.agents.messageSend({
 });
 
 console.log(response.result.parts[0].data);`,
-      csharp: `using Corti.Sdk;
-
-var client = new CortiClient(new() { ApiKey = Environment.GetEnvironmentVariable("CORTI_API_KEY") });
-
-var response = await client.Agents.MessageSendAsync(new MessageSendRequest {
-  AgentRef = "${ref}",
-  Message = new() {
-    Role = "user",
-    Parts = new() { new() { Kind = "text", Text = "Your input here" } }
-  }
-});
-
-Console.WriteLine(response.Result.Parts[0].Data);`,
+      curl: `curl -X POST "${window.location.origin}${unifiedEndpoint}" \\
+  -H "Authorization: Bearer $ICODER_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "input": {"text": "Your input here"},
+    "include_trace": true,
+    "include_evidence": true
+  }'`,
       json: JSON.stringify({
         agent_ref: ref,
         a2a_endpoint: a2aEndpoint,
+        unified_run_endpoint: unifiedEndpoint,
         protocol: "A2A/0.3",
         method: "message/send",
         envelope: {
@@ -226,7 +223,7 @@ Console.WriteLine(response.Result.Parts[0].Data);`,
     };
   }, [agentRef, agentId]);
 
-  const codeSlot = <SdkCodeBlock javascript={sdkCode.javascript} csharp={sdkCode.csharp} json={sdkCode.json} />;
+  const codeSlot = <SdkCodeBlock javascript={sdkCode.javascript} curl={sdkCode.curl} json={sdkCode.json} />;
 
   return (
     <>
@@ -269,13 +266,13 @@ Console.WriteLine(response.Result.Parts[0].Data);`,
   );
 }
 
-// ── SDK code block with 3 tabs (JS / .NET / JSON Config) + Copy ──
-function SdkCodeBlock({ javascript, csharp, json }: { javascript: string; csharp: string; json: string }) {
+// ── SDK code block with 3 tabs (JS / curl / JSON Config) + Copy ──
+function SdkCodeBlock({ javascript, curl, json }: { javascript: string; curl: string; json: string }) {
   const t = useT();
-  const [format, setFormat] = useState<'javascript' | 'csharp' | 'json'>('javascript');
+  const [format, setFormat] = useState<'javascript' | 'curl' | 'json'>('javascript');
   const [copied, setCopied] = useState(false);
 
-  const code = format === 'javascript' ? javascript : format === 'csharp' ? csharp : json;
+  const code = format === 'javascript' ? javascript : format === 'curl' ? curl : json;
 
   const handleCopy = useCallback(async () => {
     await navigator.clipboard.writeText(code);
@@ -285,7 +282,7 @@ function SdkCodeBlock({ javascript, csharp, json }: { javascript: string; csharp
 
   const tabs = [
     { key: 'javascript' as const, label: t.agentChatSdkJavaScript },
-    { key: 'csharp' as const, label: t.agentChatSdkDotNet },
+    { key: 'curl' as const, label: 'curl' },
     { key: 'json' as const, label: t.agentChatSdkJsonConfig },
   ];
 

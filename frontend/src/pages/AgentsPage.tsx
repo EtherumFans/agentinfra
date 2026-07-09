@@ -532,6 +532,11 @@ export default function AgentsPage() {
                           )}
                           <span className="text-[10px] font-mono text-muted-foreground">v{card.version}</span>
                           <span className="text-[9px] text-muted-foreground">{card.maturity}</span>
+                          {card.default_runtime_mode && (
+                            <span className="text-[9px] px-1.5 py-0.5 rounded-xs bg-primary/10 text-primary font-mono" title="Default runtime mode">
+                              {card.default_runtime_mode}
+                            </span>
+                          )}
                         </div>
                         {/* Red lines (Corti 4 rules) - only show for runnable cards */}
                         {card.runnable && (card.red_lines?.no_upcoding || card.red_lines?.evidence_required) && (

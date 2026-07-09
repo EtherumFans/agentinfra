@@ -1121,6 +1121,7 @@ export interface LocaleDict {
   codeSnippetJSON: string;
   codeSnippetJavaScriptSDK: string;
   codeSnippetPythonSDK: string;
+  codeSnippetCurl: string;
   codeSnippetCSharpSDK: string;
   codeSnippetJSONConfig: string;
   codeSnippetCopyCode: string;
@@ -1401,7 +1402,7 @@ const zhCN: LocaleDict = {
   newAgent: '新建智能体',
   all: '全部',
   myAgents: '我的AI智能体',
-  prebuiltAgents: '预置AI智能体',
+  prebuiltAgents: 'iCoDer built',
   createdBy: '创建者',
   searchAgents: '搜索AI智能体...',
   noAgents: '暂无AI智能体',
@@ -2395,6 +2396,7 @@ const zhCN: LocaleDict = {
   codeSnippetJSON: 'JSON',
   codeSnippetJavaScriptSDK: 'JavaScript (SDK)',
   codeSnippetPythonSDK: 'Python (SDK)',
+  codeSnippetCurl: 'curl',
   codeSnippetCSharpSDK: 'C# (.NET SDK)',
   codeSnippetJSONConfig: 'JSON Config',
   codeSnippetCopyCode: 'Copy code',
@@ -2675,7 +2677,7 @@ const enUS: LocaleDict = {
   newAgent: 'New Agent',
   all: 'All',
   myAgents: 'My agents',
-  prebuiltAgents: 'Pre-built agents',
+  prebuiltAgents: 'iCoDer built',
   createdBy: 'Created by',
   searchAgents: 'Search agents...',
   noAgents: 'No agents found',
@@ -3669,6 +3671,7 @@ const enUS: LocaleDict = {
   codeSnippetJSON: 'JSON',
   codeSnippetJavaScriptSDK: 'JavaScript (SDK)',
   codeSnippetPythonSDK: 'Python (SDK)',
+  codeSnippetCurl: 'curl',
   codeSnippetCSharpSDK: 'C# (.NET SDK)',
   codeSnippetJSONConfig: 'JSON Config',
   codeSnippetCopyCode: 'Copy code',

@@ -35,6 +35,36 @@ a2aApi.interceptors.request.use((config) => {
   return config;
 });
 
+// Phase 4-F (2026-07-09): Unified Agent Run client —
+// POST /api/v1/agents/{agent_id}/run — thin facade that routes to
+// CodingRuntimeDispatcher (medical-coding) or ProviderRegistry (others).
+const unifiedRunApi = axios.create({ baseURL: '/api/v1/agents', timeout: 60000 });
+unifiedRunApi.interceptors.request.use((config) => {
+  const token = localStorage.getItem('access_token');
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  config.headers['Content-Type'] = 'application/json';
+  return config;
+});
+
+/** Phase 4-F: response envelope from POST /api/v1/agents/{id}/run.
+ * Uniform across all iCoDer built agents — 13 fields per prompt §9.1. */
+export interface AgentRunResponse {
+  agent_id: string;
+  run_id: string;
+  trace_id: string;
+  runtime_mode: string;
+  latency_ms: number;
+  cost: Record<string, unknown>;
+  summary: string;
+  result: Record<string, unknown>;
+  evidence: Array<Record<string, unknown>>;
+  warnings: string[];
+  manual_review_required: boolean;
+  trace_events: Array<Record<string, unknown>>;
+  error: boolean;
+  error_reason: string;
+}
+
 /**
  * Map an A2A JSON-RPC success envelope to RuntimeRunResult.
  *
@@ -230,4 +260,30 @@ export const runtimeAgentApi = {
   validateRules: (ruleSet: string, structuredOutput: Record<string, unknown>, context: Record<string, unknown> = {}) =>
     api.post('/rule-engine/validate', { rule_set: ruleSet, structured_output: structuredOutput, context }).then(r => r.data),
   getRules: () => api.get('/rule-engine/rules').then(r => r.data),
+
+  // ── Phase 4-F (2026-07-09): Unified Agent Run API ──
+  // POST /api/v1/agents/{agent_id}/run — thin facade that routes any
+  // iCoDer built agent to its appropriate runtime (CodingRuntimeDispatcher
+  // for medical-coding, ProviderRegistry for everything else). Returns a
+  // uniform 13-field envelope consumed by AgentDetailPage's chat UI.
+  agentRun: (
+    agentId: string,
+    input: string,
+    options: {
+      runtime_mode?: string;
+      extra?: Record<string, unknown>;
+      include_trace?: boolean;
+      include_evidence?: boolean;
+    } = {},
+  ) => {
+    const body = {
+      input: { text: input, extra: options.extra || {} },
+      runtime_mode: options.runtime_mode,
+      include_trace: options.include_trace ?? true,
+      include_evidence: options.include_evidence ?? true,
+    };
+    return unifiedRunApi.post(`/${encodeURIComponent(agentId)}/run`, body).then(
+      r => r.data as AgentRunResponse,
+    );
+  },
 };

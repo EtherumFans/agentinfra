@@ -19,7 +19,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useParams, useSearchParams, useNavigate, Link } from 'react-router-dom';
 import {
   Bot, Send, Loader2, AlertCircle, CheckCircle2, Activity,
-  ChevronRight, Paperclip, X, User,
+  ChevronRight, Paperclip, X, User, Copy, Clipboard,
 } from 'lucide-react';
 import { agentsApi } from '../services/api';
 import { runtimeAgentApi } from '../services/runtimeApi';
@@ -478,6 +478,27 @@ function MessageBubble({
                   {tab.label}
                 </button>
               ))}
+            </div>
+            {/* Phase 4-F: Copy JSON / Copy Markdown buttons (Corti-style §5.3) */}
+            <div className="flex items-center gap-2 mb-2">
+              <button
+                onClick={() => navigator.clipboard?.writeText(
+                  JSON.stringify(result.structured || result, null, 2),
+                )}
+                className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-md border border-border hover:bg-accent transition-colors duration-200 active:scale-[0.98] text-muted-foreground hover:text-foreground"
+                title="Copy JSON output"
+              >
+                <Copy size={10} /> Copy JSON
+              </button>
+              <button
+                onClick={() => navigator.clipboard?.writeText(
+                  `# Agent Run Result\n\nRun ID: ${result.run_id || ''} | Latency: ${result.latency_ms || 0}ms\n\n${result.markdown || generateFallbackMarkdown(result.structured || result)}`,
+                )}
+                className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-md border border-border hover:bg-accent transition-colors duration-200 active:scale-[0.98] text-muted-foreground hover:text-foreground"
+                title="Copy Markdown output"
+              >
+                <Clipboard size={10} /> Copy Markdown
+              </button>
             </div>
             {outputTab === 'rendered' ? (
               <RenderedMarkdown

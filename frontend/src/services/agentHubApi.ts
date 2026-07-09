@@ -77,6 +77,15 @@ export interface HubCard {
   // Phase 4-D (D-6): Corti-style card metadata (DD-Mon-YYYY · Creator).
   created_at?: string;
   creator?: string;
+  // Phase 4-F (2026-07-09): Prebuilt Agent spec v1.3 fields — drive the
+  // Agents list runtime_mode badge + the Agent Detail "Try" demo button +
+  // the Settings panel runtime selector. Empty for legacy packs that
+  // haven't been upgraded to v1.3 spec yet.
+  default_runtime_mode?: string;
+  available_runtime_modes?: string[];
+  example_inputs?: Array<Record<string, unknown>>;
+  example_outputs?: Array<Record<string, unknown>>;
+  built_by?: string;
 }
 
 export interface HubListResponse {

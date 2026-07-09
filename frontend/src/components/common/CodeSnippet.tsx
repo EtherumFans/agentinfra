@@ -1,4 +1,5 @@
-// Code snippet display - JS / Python / JSON three-format SDK code, auto-filled from page config
+// Code snippet display - JS / Python / curl / JSON multi-format SDK code, auto-filled from page config
+// Phase 4-F (2026-07-09): replaced C# with curl per prompt §7.4 (JS / Python / curl).
 import { useState, useCallback } from 'react';
 import { Copy, Check } from 'lucide-react';
 import { useT } from '../../i18n';
@@ -7,18 +8,22 @@ interface CodeSnippetProps {
   javascript: string;
   python?: string;
   json?: string;
-  csharp?: string;
+  curl?: string;
+  csharp?: string;  // Deprecated — back-compat only, prefer `curl`
   compact?: boolean;
 }
 
-export default function CodeSnippet({ javascript, python, json, csharp, compact = false }: CodeSnippetProps) {
+type Format = 'javascript' | 'python' | 'curl' | 'json' | 'csharp';
+
+export default function CodeSnippet({ javascript, python, json, curl, csharp, compact = false }: CodeSnippetProps) {
   const t = useT();
-  const [format, setFormat] = useState<'javascript' | 'python' | 'json' | 'csharp'>('javascript');
+  const [format, setFormat] = useState<Format>('javascript');
   const [copied, setCopied] = useState(false);
 
   const code = format === 'javascript' ? javascript
     : format === 'python' ? (python || javascript)
-    : format === 'csharp' ? (csharp || javascript)
+    : format === 'curl' ? (curl || csharp || javascript)
+    : format === 'csharp' ? (csharp || curl || javascript)
     : (json || JSON.stringify({ method: javascript.split('(')[0] }, null, 2));
 
   const handleCopy = useCallback(async () => {
@@ -35,7 +40,7 @@ export default function CodeSnippet({ javascript, python, json, csharp, compact 
     : [
         { key: 'javascript' as const, label: t.codeSnippetJavaScriptSDK },
         { key: 'python' as const, label: t.codeSnippetPythonSDK },
-        { key: 'csharp' as const, label: t.codeSnippetCSharpSDK },
+        { key: 'curl' as const, label: t.codeSnippetCurl },
         { key: 'json' as const, label: t.codeSnippetJSONConfig },
       ];
 
@@ -71,4 +76,3 @@ export default function CodeSnippet({ javascript, python, json, csharp, compact 
     </div>
   );
 }
-

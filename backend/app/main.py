@@ -1420,6 +1420,7 @@ from app.api.templates import router as templates_router
 from app.api.tickets import router as tickets_router
 from app.api.run_trace import router as run_trace_router
 from app.api.coding_predict import router as coding_predict_router
+from app.api.agent_run import router as agent_run_router
 from app.middleware.rate_limit import rate_limit_middleware
 
 # Rate limiting middleware
@@ -1449,6 +1450,7 @@ app.include_router(templates_router)             # /api/templates/* (Templates B
 app.include_router(tickets_router)               # /api/tickets/* (Tickets Portal — Corti parity)
 app.include_router(run_trace_router)             # /api/runtime/runs/{run_id}/trace (Phase 3-D1 Task 4)
 app.include_router(coding_predict_router)        # /api/v1/coding/predict (G001 refactor 2026-07-09 — Corti-like Fast Coding default)
+app.include_router(agent_run_router)             # /api/v1/agents/{id}/run (Phase 4-F 2026-07-09 — unified Agent Run facade)
 app.include_router(organizations_router)
 app.include_router(platform_environments_router)  # Phase 1 cloud-flip stub (501)
 app.include_router(platform_api_clients_router)    # Phase 1 cloud-flip stub (501)

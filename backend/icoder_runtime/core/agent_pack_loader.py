@@ -71,6 +71,7 @@ def load_pack(
     _populate_tools(normalized)
     _populate_runtime_metadata(normalized)
     _populate_v12_extensions(normalized)
+    _populate_v13_extensions(normalized)
 
     _classify(normalized)
     return normalized
@@ -434,6 +435,90 @@ def _populate_backend_provider(p: NormalizedPack) -> None:
                 p.validation_errors.append(
                     "backend_config.tools: forbidden must not intersect scope"
                 )
+
+
+def _populate_v13_extensions(p: NormalizedPack) -> None:
+    """Phase 4-F (2026-07-09): extract prebuilt-agent spec fields.
+
+    Reads ``default_runtime_mode``, ``available_runtime_modes``,
+    ``example_inputs``, ``example_outputs``, ``built_by`` from the raw
+    pack (top-level or ``agent``-nested). These fields drive the Agents
+    list card badges + the Agent Detail Settings panel + the "Try" demo
+    button. Empty defaults are fine — legacy v1.1/v1.2 packs that
+    haven't been upgraded simply show blank fields in the UI.
+    """
+    raw = p.raw or {}
+    if not isinstance(raw, dict):
+        return
+
+    # Top-level extraction
+    drm = raw.get("default_runtime_mode")
+    if isinstance(drm, str) and drm:
+        p.default_runtime_mode = drm
+    elif drm is not None and not isinstance(drm, str):
+        p.validation_warnings.append(
+            f"default_runtime_mode: expected string, got {type(drm).__name__}"
+        )
+
+    arm = raw.get("available_runtime_modes")
+    if isinstance(arm, list):
+        p.available_runtime_modes = [str(x) for x in arm if isinstance(x, str)]
+    elif arm is not None and not isinstance(arm, list):
+        p.validation_warnings.append(
+            f"available_runtime_modes: expected list, got {type(arm).__name__}"
+        )
+
+    ei = raw.get("example_inputs")
+    if isinstance(ei, list):
+        p.example_inputs = [x for x in ei if isinstance(x, dict)]
+    elif ei is not None and not isinstance(ei, list):
+        p.validation_warnings.append(
+            f"example_inputs: expected list, got {type(ei).__name__}"
+        )
+
+    eo = raw.get("example_outputs")
+    if isinstance(eo, list):
+        p.example_outputs = [x for x in eo if isinstance(x, dict)]
+    elif eo is not None and not isinstance(eo, list):
+        p.validation_warnings.append(
+            f"example_outputs: expected list, got {type(eo).__name__}"
+        )
+
+    bb = raw.get("built_by")
+    if isinstance(bb, str) and bb:
+        p.built_by = bb
+    elif bb is not None and not isinstance(bb, str):
+        p.validation_warnings.append(
+            f"built_by: expected string, got {type(bb).__name__}"
+        )
+
+    # Nested under ``agent`` (alternative placement) — only fill if not
+    # already set at top level, matching _populate_backend_provider's
+    # precedence rule.
+    agent_node = raw.get("agent")
+    if isinstance(agent_node, dict):
+        if not p.default_runtime_mode:
+            nested_drm = agent_node.get("default_runtime_mode")
+            if isinstance(nested_drm, str) and nested_drm:
+                p.default_runtime_mode = nested_drm
+        if not p.available_runtime_modes:
+            nested_arm = agent_node.get("available_runtime_modes")
+            if isinstance(nested_arm, list):
+                p.available_runtime_modes = [
+                    str(x) for x in nested_arm if isinstance(x, str)
+                ]
+        if not p.example_inputs:
+            nested_ei = agent_node.get("example_inputs")
+            if isinstance(nested_ei, list):
+                p.example_inputs = [x for x in nested_ei if isinstance(x, dict)]
+        if not p.example_outputs:
+            nested_eo = agent_node.get("example_outputs")
+            if isinstance(nested_eo, list):
+                p.example_outputs = [x for x in nested_eo if isinstance(x, dict)]
+        if not p.built_by:
+            nested_bb = agent_node.get("built_by")
+            if isinstance(nested_bb, str) and nested_bb:
+                p.built_by = nested_bb
 
 
 # ── Classification ──

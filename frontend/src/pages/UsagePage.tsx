@@ -1,4 +1,4 @@
-// iCoDer Usage Page — connected to real backend
+// iCoDer Usage Page - connected to real backend
 // Corti IA: header + period segmented control + 3 metric cards (with
 // icons + prev-period comparison line) + activity history list
 import { Activity, Loader2, ChevronDown, BarChart3, Zap, Clock } from 'lucide-react';
@@ -130,7 +130,7 @@ export default function UsagePage() {
 
       {/* Summary cards with comparison (Corti-style: icon + label + value + sub) */}
       <div className="grid grid-cols-3 gap-4 max-w-3xl mb-8">
-        <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-5">
+        <div className="bg-background rounded-xl shadow-sm p-5">
           <div className="flex items-center gap-2 mb-2">
             <div className="w-7 h-7 rounded-md bg-primary/10 text-primary flex items-center justify-center">
               <BarChart3 size={14} />
@@ -148,7 +148,7 @@ export default function UsagePage() {
             />
           )}
         </div>
-        <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-5">
+        <div className="bg-background rounded-xl shadow-sm p-5">
           <div className="flex items-center gap-2 mb-2">
             <div className="w-7 h-7 rounded-md bg-amber-500/10 text-amber-600 flex items-center justify-center">
               <Zap size={14} />
@@ -166,7 +166,7 @@ export default function UsagePage() {
             />
           )}
         </div>
-        <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-5">
+        <div className="bg-background rounded-xl shadow-sm p-5">
           <div className="flex items-center gap-2 mb-2">
             <div className="w-7 h-7 rounded-md bg-blue-500/10 text-blue-600 flex items-center justify-center">
               <Clock size={14} />
@@ -189,9 +189,9 @@ export default function UsagePage() {
       </div>
 
       {/* Activity history */}
-      <div className="max-w-2xl">
+      <div className="w-full">
         <h3 className="text-sm font-semibold text-foreground mb-3">{t.recentActivity}</h3>
-        <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 overflow-hidden">
+        <div className="bg-background rounded-xl shadow-sm overflow-hidden">
           {history.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground text-sm">暂无活动</div>
           ) : (

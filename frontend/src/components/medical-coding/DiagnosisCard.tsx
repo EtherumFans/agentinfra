@@ -1,5 +1,5 @@
 /**
- * DiagnosisCard — one disease extracted by the Medical Coding Agent.
+ * DiagnosisCard - one disease extracted by the Medical Coding Agent.
  *
  * Shows:
  *   - disease_text (the normalized disease name)

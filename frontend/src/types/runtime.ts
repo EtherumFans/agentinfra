@@ -318,3 +318,38 @@ export interface RuleEngineStatus {
   loaded_rule_sets: string[];
   total_rule_sets: number;
 }
+
+// ── Phase 3-D1 Task 4: RunTrace Corti-parity Viewer ────────────────
+// Backend: app/api/run_trace.py GET /api/runtime/runs/{run_id}/trace
+// 9-step timeline (Corti parity):
+//   user_message_received / planner_selected_experts / tools_list /
+//   auth_resolved / scope_checked / tools_call / expert_response /
+//   output_generated / completion
+
+export type RunTraceStep =
+  | 'user_message_received'
+  | 'planner_selected_experts'
+  | 'tools_list'
+  | 'auth_resolved'
+  | 'scope_checked'
+  | 'tools_call'
+  | 'expert_response'
+  | 'output_generated'
+  | 'completion';
+
+export type RunTraceStatus = 'ok' | 'failed' | 'skipped' | string;
+
+export interface RunTraceEvent {
+  run_id: string;
+  step: RunTraceStep | string;
+  status?: RunTraceStatus;
+  ts: number;
+  duration_ms?: number;
+  safe_metadata?: Record<string, unknown>;
+}
+
+export interface RunTraceResponse {
+  run_id: string;
+  timeline: RunTraceEvent[];
+  step_count: number;
+}

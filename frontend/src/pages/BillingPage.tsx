@@ -1,4 +1,4 @@
-// iCoDer Billing Page — connected to real backend
+// iCoDer Billing Page - connected to real backend
 import { CreditCard, Plus, ArrowUpRight, Loader2, Shield, Building2, History } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -114,7 +114,7 @@ export default function BillingPage() {
 
       {/* Balance cards */}
       <div className="grid grid-cols-2 gap-6 max-w-2xl mb-8">
-        <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-6">
+        <div className="bg-background rounded-xl shadow-sm p-6">
           <p className="text-xs text-muted-foreground mb-1">{t.availableCredits}</p>
           <p className="text-3xl font-bold font-mono text-foreground">
             ¥{balance !== null ? balance.toFixed(2) : '--'}
@@ -123,7 +123,7 @@ export default function BillingPage() {
             <Plus size={16} /> {t.addCredits}
           </button>
         </div>
-        <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-6">
+        <div className="bg-background rounded-xl shadow-sm p-6">
           <p className="text-xs text-muted-foreground mb-1">{t.creditsConsumed} ({t.last30DaysLabel})</p>
           <p className="text-3xl font-bold font-mono text-foreground">¥{consumed.toFixed(2)}</p>
           <button
@@ -136,7 +136,7 @@ export default function BillingPage() {
       </div>
 
       {/* Tabs */}
-      <div className="max-w-4xl">
+      <div className="w-full">
         <div className="flex items-center gap-1 border-b border-border/20 mb-6">
           {BILLING_TABS.map(tab => (
             <button key={tab.key} onClick={() => setActiveTab(tab.key)}
@@ -153,9 +153,9 @@ export default function BillingPage() {
 
         {/* Plan tab */}
         {activeTab === 'plan' && (
-          <div className="space-y-6 max-w-2xl">
+          <div className="space-y-6 w-full">
             {/* Low balance alerts */}
-            <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-5">
+            <div className="bg-background rounded-xl shadow-sm p-5">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <h4 className="text-sm font-semibold text-foreground">余额不足提醒</h4>
@@ -192,7 +192,7 @@ export default function BillingPage() {
             </div>
 
             {/* Auto top-up */}
-            <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-5">
+            <div className="bg-background rounded-xl shadow-sm p-5">
               <div className="flex items-center justify-between mb-3">
                 <div>
                   <div className="flex items-center gap-2">
@@ -236,7 +236,7 @@ export default function BillingPage() {
             </div>
 
             {/* Payment methods */}
-            <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-5">
+            <div className="bg-background rounded-xl shadow-sm p-5">
               <div className="flex items-center justify-between mb-3">
                 <h4 className="text-sm font-semibold text-foreground">支付方式</h4>
                 <button onClick={() => setShowAddPayment(true)}
@@ -265,9 +265,9 @@ export default function BillingPage() {
 
         {/* Billing History tab */}
         {activeTab === 'history' && (
-          <div className="max-w-2xl">
+          <div className="w-full">
             <h3 className="text-sm font-semibold text-foreground mb-3">{t.transactionHistory}</h3>
-            <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 overflow-hidden">
+            <div className="bg-background rounded-xl shadow-sm overflow-hidden">
               {transactions.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground text-sm">暂无交易记录</div>
               ) : (
@@ -294,8 +294,8 @@ export default function BillingPage() {
 
         {/* Business info tab */}
         {activeTab === 'business' && (
-          <div className="max-w-2xl">
-            <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-5">
+          <div className="w-full">
+            <div className="bg-background rounded-xl shadow-sm p-5">
               <h4 className="text-sm font-semibold text-foreground mb-4">企业信息</h4>
               <div className="space-y-4">
                 <div>
@@ -342,7 +342,7 @@ export default function BillingPage() {
       {/* Add Payment Method Modal */}
       {showAddPayment && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setShowAddPayment(false)}>
-          <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 w-full max-w-md overflow-hidden" onClick={e => e.stopPropagation()}>
+          <div className="bg-background rounded-xl shadow-sm w-full max-w-md overflow-hidden" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between px-5 py-3 border-b border-border/20">
               <h3 className="text-sm font-semibold text-foreground">添加支付方式</h3>
               <button onClick={() => setShowAddPayment(false)} className="p-1 rounded hover:bg-accent"><CreditCard size={14} className="text-muted-foreground" /></button>

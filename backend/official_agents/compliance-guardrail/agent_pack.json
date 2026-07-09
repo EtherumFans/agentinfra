@@ -1,63 +1,135 @@
 {
-  "format_version": "1.1",
+  "format_version": "1.2",
   "agent_type": "certified",
-  "agent_ref": "icoder/compliance-guardrail@1.0.0",
+  "agent_ref": "icoder/compliance-guardrail-agent@1.0.0",
   "manifest": {
-    "name": "合规护栏",
+    "name": "合规护栏智能体",
     "version": "1.0.0",
-    "description": "在提交医保结算清单前，按配置的医保或医院规则集评估编码集的合规性",
-    "category": "医保",
+    "description": "iCoDer 合规护栏 Agent — 在提交医保结算清单前，按 MedicalCodingRuleSet + 合规护栏启发式 (主诊断非空 / no upcoding / 手术-诊断一致 / DRG 就绪) 评估编码集。纯确定性，无 LLM。",
+    "category": "medical-coding",
+    "category_display": "Coding and Revenue Cycle / 编码与收入周期",
     "icon": "Shield",
-    "maturity": "metadata-only",
+    "tags": [
+      "compliance",
+      "guardrail",
+      "deterministic",
+      "no-llm",
+      "drg-readiness",
+      "no-upcoding"
+    ],
+    "maturity": "runnable",
     "production_ready": false,
+    "human_review": "required",
     "hidden_from_hub": false,
     "use_case": "coding_revenue_cycle"
   },
-  "system_prompt": "评估编码集的医保合规性。输出JSON: {\"review_conclusion\":\"PASS|WARNING|FAIL\",\"issues_found\":[],\"manual_review_required\":false,\"drg_suggestion\":\"\"}",
-  "experts": [],
-  "tools": [
-    "guard_input",
-    "guard_output",
-    "rank_evidence",
-    "calibrate_confidence",
-    "analyze_drg_impact"
+  "system_prompt": "你是 iCoDer Compliance Guardrail Agent。职责：\n1. 接收编码集 + 可选 EMR 文本\n2. 跑 MedicalCodingRuleSet (R001-R010 + MC-R-M80-001)\n3. 跑合规护栏检查：\n   - CG-001 主诊断非空\n   - CG-002 no upcoding (骨质疏松+椎体骨折 → 应优先 M80.x 而非 M48.x)\n   - CG-003 手术-诊断一致 (有手术必有诊断)\n   - CG-004 DRG 就绪 (主诊断 + 至少 1 个有效手术 for surgical cases)\n4. 输出 review_conclusion + issues_found + drg_suggestion + compliance_checks\n\n硬约束：\n- 不调用 LLM — 纯规则 + 启发式\n- 不修改编码集 — 只评估\n- 不写回医保结算\n- 所有合规风险必须显式输出，即使 PASS",
+  "experts": [
+    {
+      "expert_id": "rule-engine",
+      "name": "Rule Engine",
+      "role": "primary",
+      "description": "compliance_services.RuleEngine + MedicalCodingRuleSet + 合规护栏启发式"
+    }
   ],
-  "permissions": {
-    "key": "compliance-guardrail",
-    "name": "合规护栏权限",
-    "description": "在提交医保结算清单前，按配置的医保或医院规则集评估编码集的合规性",
-    "tools": {
-      "guard_input": {
-        "allowed": true
+  "tools": [
+    {
+      "name": "evaluate_compliance",
+      "type": "mcp",
+      "stage": "compliance",
+      "description": "运行 MedicalCodingRuleSet + 合规护栏启发式，输出 review_conclusion + issues_found + drg_suggestion + compliance_checks",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "coding_set": {
+            "type": "object"
+          },
+          "encounter_text": {
+            "type": "string"
+          }
+        }
       },
-      "guard_output": {
-        "allowed": true
-      },
-      "rank_evidence": {
-        "allowed": true
-      },
-      "calibrate_confidence": {
-        "allowed": true
-      },
-      "analyze_drg_impact": {
-        "allowed": true
+      "output_schema": {
+        "$ref": "icoder/ComplianceGuardrailOutput/v1"
       }
     }
+  ],
+  "model": {
+    "primary": "none",
+    "fallback": "none",
+    "temperature": 0.0,
+    "max_tokens": 0,
+    "json_mode": true
   },
+  "non_goals": [
+    "不调用 LLM — 纯规则 + 启发式",
+    "不修改编码集 — 只评估合规性",
+    "不写回医保结算 / EMR / HIS",
+    "不分配 DRG 分组 — 仅输出 drg_suggestion 提示",
+    "不输出 F1 / 模型效果指标"
+  ],
+  "output_contract": {
+    "schema_ref": "icoder/ComplianceGuardrailOutput/v1",
+    "a2a_parts": [
+      "DataPart"
+    ],
+    "required_fields": [
+      "review_conclusion",
+      "issues_found",
+      "manual_review_required",
+      "drg_suggestion",
+      "compliance_checks",
+      "rule_set",
+      "trace_refs"
+    ],
+    "field_definitions": {
+      "review_conclusion": "PASS | WARNING | FAIL",
+      "issues_found": "list[RuleIssue] — 规则 + 合规护栏 issues 合并",
+      "manual_review_required": "bool",
+      "drg_suggestion": "str — DRG 就绪提示",
+      "compliance_checks": "{primary_dx_present, no_upcoding_risk, procedure_dx_consistency, drg_readiness}",
+      "rule_set": "str — medical_coding",
+      "trace_refs": "TraceRefs — run_id / agent_ref / rule_set"
+    }
+  },
+  "permissions": {
+    "key": "compliance-guardrail-default",
+    "name": "合规护栏智能体 默认权限",
+    "description": "允许运行规则引擎 + 合规护栏检查。禁止写回，禁止 DRG 自动分组。",
+    "tools": {
+      "evaluate_compliance": "allowed",
+      "writeback": "blocked",
+      "drg_auto_assign": "blocked"
+    },
+    "production_writeback_blocked": true,
+    "no_upcoding": true
+  },
+  "phi_redaction": "required",
+  "context_required": false,
+  "recorder_required": false,
+  "metrics_required": true,
   "requirements": {
-    "min_runtime_version": "1.0.0"
+    "min_runtime_version": "2.0.0",
+    "icoder_runtime_modules": [
+      "compliance_services.rule_engine",
+      "compliance_services.medical_coding_rules",
+      "official_agents.code_validation.agent"
+    ]
   },
   "llm_capabilities": {
-    "required_models": [
-      {
-        "name": "deepseek-v4"
-      }
-    ],
+    "required_models": [],
     "supports_tool_calling": false,
-    "supports_json_mode": true
+    "supports_json_mode": true,
+    "supports_mcp_tools": true
+  },
+  "a2a": {
+    "protocol_version": "0.3",
+    "endpoint": "/api/icoder/agents/compliance-guardrail-agent/v1/message:send",
+    "discovery": "/api/icoder/agents",
+    "agent_card_ref": "icoder/compliance-guardrail-agent@1.0.0"
   },
   "code": {},
   "integrity": {
-    "sha256": "9a90e59246320ac0125ac884ee854c2da1598532978e5109098011ee3ac96a33"
+    "sha256": "PLACEHOLDER_RECOMPUTED_AT_PUBLISH"
   }
 }

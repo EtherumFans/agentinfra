@@ -1,6 +1,6 @@
 import { useLocaleStore } from '../i18n';
 import { useT } from '../i18n';
-// iCoDer Text Generation — Apple Minimalist Design
+// iCoDer Text Generation - Apple Minimalist Design
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
@@ -17,7 +17,7 @@ import WorkbenchLayout from '../components/layout/WorkbenchLayout';
 // Medical document template types from backend
 interface MedDocSection { key: string; label: string; value: string; required: boolean; filled: boolean; }
 
-// 文书模板 — 支持用户编辑
+// 文书模板 - 支持用户编辑
 type Template = { key: string; name: string; desc: string; category: string; sample: string };
 
 const DEFAULT_TEMPLATES: Template[] = [
@@ -50,7 +50,7 @@ const DEFAULT_TEMPLATES: Template[] = [
   { key: 'discharge_education', name: '出院健康宣教', desc: '出院指导：用药、饮食、活动、复查、危险信号', category: '护理',
     sample: '患者：王五，诊断：2型糖尿病，住院号：789012\n一、用药指导\n1. 二甲双胍0.5g 每日2次（早晚餐后口服）\n2. 甘精胰岛素10U 每晚22:00皮下注射\n3. 请勿自行停药或调整剂量\n二、饮食指导\n1. 低糖、低脂、适量优质蛋白饮食；2. 定时定量，少食多餐；3. 每日食盐<6g；4. 戒烟限酒\n三、活动指导\n1. 每日步行30分钟；2. 避免空腹运动；3. 运动前后监测血糖\n四、复查计划\n1. 出院后1周到内分泌科门诊复查；2. 每3个月查糖化血红蛋白；3. 每年查眼底、肾功能\n五、危险信号（出现以下情况立即就医）\n1. 血糖<3.9mmol/L或>16.7mmol/L；2. 意识模糊、恶心呕吐；3. 足部破溃感染' },
   { key: 'medication_reconciliation', name: '用药重整记录', desc: '入院/转科/出院时用药核对与调整，减少用药差错', category: '住院',
-    sample: '重整节点：入院重整\n患者：李四，男，72岁\n入院前用药：\n1. 氨氯地平5mg qd（降压）\n2. 阿司匹林100mg qd（抗血小板）\n3. 二甲双胍0.5g tid（降糖）\n4. 布洛芬200mg tid（关节疼痛，自行购买）\n入院后调整：\n1. 氨氯地平5mg qd —— 继续\n2. 阿司匹林100mg qd —— 继续\n3. 二甲双胍0.5g tid —— 继续，加测HbA1c\n4. 布洛芬 —— 停用（可能影响肾功能，改为对乙酰氨基酚必要时）\n新增：\n5. 胰岛素（根据血糖调整）\n6. 奥美拉唑20mg qd（护胃）\n药师审核：张药师 医师确认：刘主治' },
+    sample: '重整节点：入院重整\n患者：李四，男，72岁\n入院前用药：\n1. 氨氯地平5mg qd（降压）\n2. 阿司匹林100mg qd（抗血小板）\n3. 二甲双胍0.5g tid（降糖）\n4. 布洛芬200mg tid（关节疼痛，自行购买）\n入院后调整：\n1. 氨氯地平5mg qd -- 继续\n2. 阿司匹林100mg qd -- 继续\n3. 二甲双胍0.5g tid -- 继续，加测HbA1c\n4. 布洛芬 -- 停用（可能影响肾功能，改为对乙酰氨基酚必要时）\n新增：\n5. 胰岛素（根据血糖调整）\n6. 奥美拉唑20mg qd（护胃）\n药师审核：张药师 医师确认：刘主治' },
   { key: 'imaging_report', name: '影像检查报告', desc: 'CT/MRI/X光检查所见、影像诊断、建议', category: '检查',
     sample: '检查项目：胸部CT平扫\n检查日期：2026年5月9日\n检查所见：双肺纹理增粗、紊乱，右肺上叶后段见片状高密度影，边界模糊，大小约3.2×2.8cm，其内可见支气管充气征。双肺散在多发小结节影，直径约3-5mm。纵隔居中，纵隔内未见明显肿大淋巴结。双侧胸腔无积液。\n影像诊断：\n1. 右肺上叶后段炎症，考虑感染性病变可能性大，建议治疗后复查\n2. 双肺多发小结节，建议随访观察\n3. 慢性支气管炎改变\n报告医师：赵医生 审核医师：钱主任' },
   { key: 'pathology_report', name: '病理检查报告', desc: '大体所见、镜下所见、病理诊断、免疫组化', category: '检查',
@@ -116,7 +116,7 @@ export default function TextGenerationPage() {
 
   // Fetch templates from API on mount, merging with user customizations
   useEffect(() => {
-    // text-gen router deleted in Phase 2.1-B Step 4 — keep localStorage templates
+    // text-gen router deleted in Phase 2.1-B Step 4 - keep localStorage templates
     const prevStr = localStorage.getItem('icoder-textgen-templates');
     if (prevStr) {
       try { setTemplates(JSON.parse(prevStr)); } catch { /* keep defaults */ }
@@ -142,7 +142,7 @@ export default function TextGenerationPage() {
     setGenEvents(prev => [...prev.slice(-50), { type: 'generate_start', data: { template: activeTemplate, inputLength: input.length }, timestamp: new Date().toLocaleTimeString(locale, { hour12: false }), credits: 0.000001 }]);
     setGenCredits(c => c + 0.000001);
     try {
-      // text-gen router deleted in Phase 2.1-B Step 4 — use /api/v2/tools/guided-documents for document generation
+      // text-gen router deleted in Phase 2.1-B Step 4 - use /api/v2/tools/guided-documents for document generation
       throw new Error('Text Generation API has been deprecated. Use /api/v2/tools/guided-documents for document generation.');
     } catch (err: any) {
       setError(err?.response?.data?.detail || err.message || '生成失败');
@@ -230,7 +230,7 @@ print(result.output)`;
       <div className="border-b border-border/20">
         <div className="flex items-center gap-2 px-4 pt-4 pb-2">
           <div className="w-1 h-4 rounded-full bg-primary/40" />
-          <h3 className="font-medium text-xs uppercase tracking-wider text-muted-foreground">模板</h3>
+          <h3 className="font-medium text-xs text-muted-foreground">模板</h3>
         </div>
         <div className="px-4 pb-4">
           <button onClick={() => setShowTemplateModal(true)}
@@ -247,7 +247,7 @@ print(result.output)`;
       <div className="border-b border-border/20">
         <div className="flex items-center gap-2 px-4 pt-4 pb-2">
           <div className="w-1 h-4 rounded-full bg-primary/40" />
-          <h3 className="font-medium text-xs uppercase tracking-wider text-muted-foreground">文书设置</h3>
+          <h3 className="font-medium text-xs text-muted-foreground">文书设置</h3>
         </div>
         <div className="flex flex-col gap-3 px-4 pb-4 pt-1">
           <div className="flex items-center justify-between gap-4 min-h-[32px]">
@@ -279,7 +279,7 @@ print(result.output)`;
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <div className="w-1 h-4 rounded-full bg-primary/40" />
-            <h3 className="font-medium text-xs uppercase tracking-wider text-muted-foreground">安全护栏</h3>
+            <h3 className="font-medium text-xs text-muted-foreground">安全护栏</h3>
           </div>
           <span className="relative group">
             <Info size={12} className="text-muted-foreground cursor-help" />
@@ -297,7 +297,7 @@ print(result.output)`;
             <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-all ${showGuardrails ? 'left-[18px]' : 'left-0.5'}`} />
           </button>
         </div>
-        <p className="text-[10px] text-muted-foreground mt-2">{showGuardrails ? '护栏已启用 — 请求将经过安全规则检查' : '护栏已禁用 — 请求跳过安全检查'}</p>
+        <p className="text-[10px] text-muted-foreground mt-2">{showGuardrails ? '护栏已启用 - 请求将经过安全规则检查' : '护栏已禁用 - 请求跳过安全检查'}</p>
       </div>
     </div>
   );
@@ -328,7 +328,7 @@ print(result.output)`;
         value={input}
         onChange={(e) => setInput(e.target.value)}
         placeholder={inputType === 'transcript' ? '输入对话转录文本...' : inputType === 'facts' ? '输入结构化临床事实...' : '输入临床文本...'}
-        className="flex-1 w-full resize-none bg-transparent text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none min-h-0 leading-relaxed"
+        className="flex-1 w-full resize-none bg-transparent text-sm text-foreground placeholder:text-foreground/70/40 focus:outline-none min-h-0 leading-relaxed"
       />
     </div>
   );
@@ -365,7 +365,7 @@ print(result.output)`;
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <div className="w-1 h-4 rounded-full bg-primary/40" />
-                <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">生成结果</span>
+                <span className="text-[11px] font-medium text-muted-foreground">生成结果</span>
               </div>
               <button onClick={() => { navigator.clipboard.writeText(output); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
                 className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
@@ -461,7 +461,7 @@ print(result.output)`;
       {/* Template Selection Modal */}
       {showTemplateModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setShowTemplateModal(false)}>
-          <div className="bg-card border border-border rounded-2xl shadow-xl w-[480px] max-h-[600px] flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
+          <div className="bg-card border border-border rounded-xl shadow-xl w-[480px] max-h-[600px] flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between px-5 py-3 border-b border-border">
               <h3 className="text-sm font-semibold text-foreground">选择模板</h3>
               <div className="flex items-center gap-2">

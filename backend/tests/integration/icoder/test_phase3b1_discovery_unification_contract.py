@@ -77,18 +77,22 @@ def test_a2a_discovery_is_pack_mastered(client):
 
 
 def test_a2a_discovery_does_not_include_metadata_only_packs(client):
-    """metadata-only packs (10 certified packs with no experts[]) must
+    """metadata-only packs (7 certified packs with no experts[]) must
     NOT appear in A2A runnable discovery — they have no run path.
     They DO appear in Hub (with Coming Soon badge), but A2A discovery
     is for runnable agents only.
+
+    Phase 3-D1 Task 5 (2026-07-06): code-validation / compliance-guardrail /
+    note-completeness upgraded from metadata-only to runnable, so they
+    ARE in A2A discovery now (as code-validation-agent / etc.).
     """
     r = client.get("/api/icoder/agents")
     body = r.json()
     agent_ids = {a["id"] for a in body["agents"]}
     metadata_only_refs = [
-        "cdi-review", "code-validation", "compliance-guardrail",
+        "cdi-review",
         "denial-appeals", "diagnosis-extractor", "documentation-gap",
-        "drg-analyzer", "evidence-ranker", "note-completeness",
+        "drg-analyzer", "evidence-ranker",
         "procedure-extractor",
     ]
     for ref in metadata_only_refs:
@@ -254,13 +258,16 @@ def test_seed_prebuilt_agents_no_silent_collision_with_packs(client):
     # Hub shows pack-backed agents (file-system canonical)
     r = client.get("/api/icoder/agents/hub")
     pack_refs = {c["agent_ref"] for c in r.json()["agents"]}
-    # The 6 overlapping packs should appear in Hub with their pack-backed agent_ref
+    # The 6 overlapping packs should appear in Hub with their pack-backed agent_ref.
+    # Phase 3-D1 Task 5 (2026-07-06): 3 of these upgraded from metadata-only
+    # to runnable, so their agent_ref gained the -agent suffix (matching
+    # the medical-coding-agent convention).
     expected_pack_refs = [
-        "icoder/code-validation@1.0.0",
-        "icoder/compliance-guardrail@1.0.0",
+        "icoder/code-validation-agent@1.0.0",
+        "icoder/compliance-guardrail-agent@1.0.0",
         "icoder/denial-appeals@1.0.0",
         "icoder/diagnosis-extractor@1.0.0",
-        "icoder/note-completeness@1.0.0",
+        "icoder/note-completeness-agent@1.0.0",
         "icoder/procedure-extractor@1.0.0",
     ]
     for ref in expected_pack_refs:

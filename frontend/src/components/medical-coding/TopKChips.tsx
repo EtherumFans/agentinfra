@@ -1,5 +1,5 @@
 /**
- * TopKChips — clickable list of top-K ICD code candidates for one diagnosis.
+ * TopKChips - clickable list of top-K ICD code candidates for one diagnosis.
  *
  * Each chip shows the code, name, and source (llm/retrieve/rerank). Clicking
  * a chip emits the selected code via `onSelect`. The selected chip is
@@ -7,6 +7,7 @@
  */
 import React from 'react';
 import { CandidateCode } from '../../types/runtime';
+import { useT } from '../../i18n';
 
 interface TopKChipsProps {
   candidates: CandidateCode[];
@@ -33,8 +34,9 @@ export const TopKChips: React.FC<TopKChipsProps> = ({
   selectedCode,
   onSelect,
 }) => {
+  const t = useT();
   if (!candidates.length) {
-    return <div className="text-xs text-gray-400 italic">No candidates</div>;
+    return <div className="text-xs text-gray-400 italic">{t.topKChipsNoCandidates}</div>;
   }
   return (
     <div className="flex flex-wrap gap-1.5">
@@ -68,3 +70,4 @@ export const TopKChips: React.FC<TopKChipsProps> = ({
     </div>
   );
 };
+

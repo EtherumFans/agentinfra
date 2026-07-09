@@ -1,0 +1,114 @@
+# Corti Compliance Guardrail Agent — Probe 1 Network Capture (CONFIRMED)
+
+**Probe ID:** 1_standard_complete
+**Capture date:** 2026-07-07
+**Endpoint:** `POST https://api.console.corti.app/functions/v1/ai/agents/7c12af82-be42-4960-931c-0d5c2d1d3fab`
+  (Note: runtime endpoint uses different UUID `7c12af82-...` than the agent definition URL `8aae0dca-...`. Corti separates "agent definition" from "agent runtime instance" — the runtime UUID is created per-session or per-deployment.)
+**HTTP status:** 200
+**Content-Type:** `text/event-stream` (Server-Sent Events)
+**Latency:** ~3s wall-clock from send to last text-delta (much faster than Code Validation Probe 1's ~15s — because the agent short-circuits when `{{COMPLIANCE_RULESET}}` is empty, no tool calls fired)
+**Cost:** $0.017904 (probe 1 alone, including ~7000-char system prompt read)
+
+## Full SSE response (verbatim)
+
+```
+data: {"data":{"state":"working"},"type":"data-status-update"}
+
+data: {"data":{"state":"working"},"type":"data-status-update"}
+
+data: {"id":"019f3cba-d7d4-7381-9c6c-de7d8cb0e102","type":"text-start"}
+
+data: {"delta":"Compliance ruleset not configured. This agent requires an active {{COMPLIANCE_RULESET}} before evaluation can begin. Please configure the ruleset (e.g., CCI edits, payer policy, LCD, or internal rules) and resubmit this code set for evaluation.","id":"019f3cba-d7d4-7381-9c6c-de7d8cb0e102","type":"text-delta"}
+
+data: {"id":"019f3cba-d7d4-7381-9c6c-de7d8cb0e102","type":"text-end"}
+
+data: {"messageMetadata":{"contextId":"019f3cba-d0f7-7926-8ef5-fb214f03b8f4","taskId":"019f3cba-d0f7-78cc-96fa-ae3021fd0429","credits":0.017904,"state":"input-required"},"type":"message-metadata"}
+
+data: {"finishReason":"stop","messageMetadata":{"credits":0.017904},"type":"finish"}
+
+data: [DONE]
+```
+
+## Critical findings (CONFIRMED)
+
+### 1. NO "Calling expert: coding-expert" message (vs Code Validation Probe 1)
+
+Code Validation Probe 1 SSE contained:
+```
+data: {"data":{"message":"Calling expert: coding-expert","state":"working"},"type":"data-status-update"}
+```
+
+Compliance Guardrail Probe 1 SSE has **NO** such message. The agent recognized the empty `{{COMPLIANCE_RULESET}}` placeholder and refused BEFORE delegating to coding-expert.
+
+**Inference (CONFIRMED):** The LLM orchestrator short-circuits on the ruleset precondition. No tool calls fired. No expert delegation. This is a **LLM-driven control flow decision**, not a rule-engine gate.
+
+### 2. state: "input-required" (NEW — not seen in Code Validation Probe 1)
+
+Code Validation Probe 1 ended with `state: "completed"`.
+Compliance Guardrail Probe 1 ended with `state: "input-required"`.
+
+**Inference (CONFIRMED):** Corti's task state machine has at least 3 terminal states:
+- `completed` — task finished normally with output
+- `input-required` — agent needs user to provide additional input/configuration
+- `failed` (presumed — not yet observed)
+
+**Diff vs iCoDer:** iCoDer's task state machine (`TaskState` in `app/icoder/agent_runtime/orchestrator/inbound_handler.py`) has `received / planning / delegating / aggregating / completed / failed`. **iCoDer has NO `input-required` state** — this is a Phase 3-D2.5 gap (D5 family).
+
+### 3. Refusal message is LLM-generated, NOT a fixed template
+
+System prompt prescribes:
+> "Compliance ruleset not configured. This agent requires an active {{COMPLIANCE_RULESET}} before evaluation can begin. Please configure the ruleset and resubmit."
+
+Actual agent response:
+> "Compliance ruleset not configured. This agent requires an active {{COMPLIANCE_RULESET}} before evaluation can begin. Please configure the ruleset (**e.g., CCI edits, payer policy, LCD, or internal rules**) and resubmit this code set for evaluation."
+
+The LLM added **"e.g., CCI edits, payer policy, LCD, or internal rules"** — pulled from the system prompt's examples list. The LLM also added **"this code set"** before "for evaluation."
+
+**Inference (CONFIRMED):** Compliance Guardrail Agent is LLM-driven, NOT a fixed template rule. The LLM:
+- Read the system prompt
+- Recognized the empty `{{COMPLIANCE_RULESET}}` placeholder
+- Generated a refusal message drawing on context from the prompt's examples
+- Produced slightly varied phrasing across runs (would need Probe 1 re-run to confirm variation, but the addition of "e.g., ..." strongly indicates generation, not lookup)
+
+### 4. Latency: ~3s vs Code Validation's ~15s
+
+Compliance Guardrail Probe 1: ~3s wall-clock (short-circuited, no tool calls)
+Code Validation Probe 1: ~15s wall-clock (verify + guidelines called on every code, 4 codes)
+
+**Inference (LIKELY):** The 3s latency is the LLM reading the ~7000-char system prompt + generating the ~50-word refusal. No tool latency. This is consistent with a single LLM call at temperature ~0.
+
+### 5. UUIDv7 IDs (CONFIRMED — same pattern as Code Validation)
+
+- `contextId`: `019f3cba-d0f7-7926-8ef5-fb214f03b8f4` — UUIDv7 (timestamp `019f3cba` = 2026-07-07 ~13:18 UTC)
+- `taskId`: `019f3cba-d0f7-78cc-96fa-ae3021fd0429` — UUIDv7 (same millisecond timestamp, different random tail)
+- `text-start id`: `019f3cba-d7d4-7381-9c6c-de7d8cb0e102` — UUIDv7 (slightly later, ~5s after)
+
+Same UUIDv7 timestamp-prefixed pattern as Code Validation Agent. Confirms Corti's ID generation is consistent across agents.
+
+### 6. Cost: $0.017904 (slightly higher than Code Validation Probe 1 alone)
+
+- Compliance Guardrail Probe 1: $0.017904 (system prompt ~7000 chars + refusal ~50 words)
+- Code Validation Probe 1 alone: ~$0.016 (system prompt ~5000 chars + per-code validation output ~400 words)
+
+The slightly higher cost is consistent with the longer system prompt (~7000 vs ~5000 chars), even though the output was much shorter.
+
+## Diff vs iCoDer Compliance Guardrail Agent
+
+| Dimension | Corti | iCoDer |
+|-----------|-------|--------|
+| Backend | LLM + tool-calling (verify/guidelines/explore — search FORBIDDEN) | RuleEngine + MedicalCodingRuleSet (CG-001..CG-004) |
+| Ruleset precondition | LLM-checked `{{COMPLIANCE_RULESET}}` placeholder, refuses if empty (CONFIRMED) | No ruleset precondition — always runs CG-001..CG-004 |
+| Refusal message | LLM-generated, slight variation, references examples from prompt | Hardcoded error message (if any) |
+| Task terminal state | `input-required` (separate from `completed`/`failed`) | No such state — iCoDer would just return empty result |
+| Latency (ruleset missing) | ~3s (LLM short-circuit) | N/A (no ruleset concept) |
+| Cost (ruleset missing) | $0.017904 | $0 |
+
+## Conclusion
+
+Compliance Guardrail Agent Probe 1 CONFIRMS:
+1. `{{COMPLIANCE_RULESET}}` is an LLM-evaluated placeholder, not a code-level config check
+2. The LLM orchestrator has control flow authority — it can refuse to delegate to experts when preconditions fail
+3. Corti's task state machine has a `input-required` terminal state distinct from `completed`
+4. The agent is LLM-driven, not rule-based — confirmed by the LLM adding "e.g., CCI edits, ..." examples in the refusal message
+
+This is **the strongest possible evidence** that Corti's Compliance Guardrail Agent is LLM-driven, not rule-based: the agent's refusal varied from the prompt-prescribed text in a way only an LLM would produce.

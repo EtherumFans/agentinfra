@@ -154,7 +154,7 @@ def medcoder_coding_review_card(base_url: str = "") -> AgentCard:
         else "/api/icoder/agents/medcoder-coding-review/v1/message:send"
     )
     return AgentCard(
-        name="MedCodER Coding Review Agent",
+        name="MedCodER 编码审核智能体",
         description=(
             "iCoDer Runtime 标准编码审核 Agent。基于 MedCodER 5 阶段管线 (NAACL 2025) "
             "从中文病历抽取诊断 + 证据, 经 BGE-M3 + FAISS 检索 ICD 候选, "
@@ -330,7 +330,7 @@ def medical_coding_agent_card(base_url: str = "") -> AgentCard:
         else "/api/icoder/agents/medical-coding-agent/v1/message:send"
     )
     return AgentCard(
-        name="Medical Coding Agent",
+        name="医学编码智能体",
         description=(
             "iCoDer 官方医学编码 Agent (Corti-style MVP)。基于病历证据生成 "
             "ICD-10-CN 诊断编码与 ICD-9-CM-3 手术操作编码建议, 输出 Corti-style "
@@ -449,6 +449,280 @@ def medical_coding_agent_card(base_url: str = "") -> AgentCard:
     )
 
 
+# ---------------------------------------------------------------------------
+# Phase 3-D1 Task 5 — 3 simple runnable agents (code-validation /
+# compliance-guardrail / note-completeness). These bypass the orchestrator
+# and call the agent's run() function directly. See app/main.py
+# _SimpleAgentDispatchHandler.
+# ---------------------------------------------------------------------------
+
+
+def code_validation_agent_card(base_url: str = "") -> AgentCard:
+    """Code Validation Agent Card — pure RuleEngine, no LLM.
+
+    Runs MedicalCodingRuleSet (R001-R010 + MC-R-M80-001) on a coding set
+    and returns issues_found + review_conclusion + fired_rules.
+    """
+    url = (
+        f"{base_url}/api/icoder/agents/code-validation-agent/v1/message:send"
+        if base_url
+        else "/api/icoder/agents/code-validation-agent/v1/message:send"
+    )
+    return AgentCard(
+        name="编码校验智能体",
+        description=(
+            "iCoDer 编码校验 Agent — 按官方 ICD-10/ICD-9-CM-3 编码规则 (R001-R010 + "
+            "MC-R-M80-001) 验证编码集，发现格式错误、重复编码、低置信度、证据缺失等问题。"
+            "纯确定性规则引擎，无 LLM。"
+        ),
+        url=url,
+        version="1.0.0",
+        provider="iCoDer",
+        documentationUrl="/docs/agents/code-validation-agent",
+        capabilities=AgentCapabilities(
+            streaming=False,
+            pushNotifications=False,
+            stateTransitionHistory=True,
+            extensions=[],
+        ),
+        skills=[
+            AgentSkill(
+                id="validate_coding_set",
+                name="Validate Coding Set",
+                description=(
+                    "Parse a coding set (JSON or text) and run MedicalCodingRuleSet "
+                    "(R001-R010 + MC-R-M80-001). Returns review_conclusion + "
+                    "issues_found + fired_rules + code_assignment_summary."
+                ),
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "coding_set": {"type": "object"},
+                        "encounter_text": {"type": "string"},
+                    },
+                },
+                outputSchema={"$ref": "icoder/CodeValidationOutput/v1"},
+                examples=[],
+            ),
+        ],
+        defaultInputModes=["text"],
+        defaultOutputModes=["application/json"],
+        securitySchemes={
+            "bearer": SecurityScheme(
+                type="apiKey",
+                description="Phase 4 才校验, Phase 2 接受任意 bearer",
+            )
+        },
+        metadata={
+            "icoder": {
+                "agent_ref": "icoder/code-validation-agent@1.0.0",
+                "rule_sets": ["medical_coding"],
+                "experts": ["rule-engine"],
+                "mcp_tools": ["validate_codes"],
+                "non_goals": [
+                    "不调用 LLM — 纯规则引擎",
+                    "不修改编码集 — 只校验",
+                    "不写回 EMR / HIS / 医保结算",
+                    "不分配编码",
+                ],
+                "production_writeback_blocked": True,
+                "phi_redaction": "required",
+                "maturity": "runnable",
+                "production_ready": False,
+                "human_review": "optional",
+                "output_contract": {
+                    "schema_ref": "icoder/CodeValidationOutput/v1",
+                    "required_fields": [
+                        "review_conclusion",
+                        "issues_found",
+                        "manual_review_required",
+                        "rule_set",
+                        "fired_rules",
+                        "code_assignment_summary",
+                        "trace_refs",
+                    ],
+                },
+                "runtime_version": "2.0.0",
+            }
+        },
+    )
+
+
+def compliance_guardrail_agent_card(base_url: str = "") -> AgentCard:
+    """Compliance Guardrail Agent Card — RuleEngine + guardrail heuristics."""
+    url = (
+        f"{base_url}/api/icoder/agents/compliance-guardrail-agent/v1/message:send"
+        if base_url
+        else "/api/icoder/agents/compliance-guardrail-agent/v1/message:send"
+    )
+    return AgentCard(
+        name="合规护栏智能体",
+        description=(
+            "iCoDer 合规护栏 Agent — 在提交医保结算清单前，按 MedicalCodingRuleSet + "
+            "合规护栏启发式 (主诊断非空 / no upcoding / 手术-诊断一致 / DRG 就绪) 评估编码集。"
+            "纯确定性，无 LLM。"
+        ),
+        url=url,
+        version="1.0.0",
+        provider="iCoDer",
+        documentationUrl="/docs/agents/compliance-guardrail-agent",
+        capabilities=AgentCapabilities(
+            streaming=False,
+            pushNotifications=False,
+            stateTransitionHistory=True,
+            extensions=[],
+        ),
+        skills=[
+            AgentSkill(
+                id="evaluate_compliance",
+                name="Evaluate Compliance",
+                description=(
+                    "Run MedicalCodingRuleSet + compliance guardrail heuristics "
+                    "(CG-001 primary dx present / CG-002 no upcoding / "
+                    "CG-003 procedure-dx consistency / CG-004 DRG readiness). "
+                    "Returns review_conclusion + issues_found + drg_suggestion + "
+                    "compliance_checks."
+                ),
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "coding_set": {"type": "object"},
+                        "encounter_text": {"type": "string"},
+                    },
+                },
+                outputSchema={"$ref": "icoder/ComplianceGuardrailOutput/v1"},
+                examples=[],
+            ),
+        ],
+        defaultInputModes=["text"],
+        defaultOutputModes=["application/json"],
+        securitySchemes={
+            "bearer": SecurityScheme(
+                type="apiKey",
+                description="Phase 4 才校验, Phase 2 接受任意 bearer",
+            )
+        },
+        metadata={
+            "icoder": {
+                "agent_ref": "icoder/compliance-guardrail-agent@1.0.0",
+                "rule_sets": ["medical_coding"],
+                "experts": ["rule-engine"],
+                "mcp_tools": ["evaluate_compliance"],
+                "non_goals": [
+                    "不调用 LLM",
+                    "不修改编码集 — 只评估",
+                    "不写回医保结算",
+                    "不分配 DRG 分组 — 仅输出 drg_suggestion",
+                ],
+                "production_writeback_blocked": True,
+                "no_upcoding": True,
+                "phi_redaction": "required",
+                "maturity": "runnable",
+                "production_ready": False,
+                "human_review": "required",
+                "output_contract": {
+                    "schema_ref": "icoder/ComplianceGuardrailOutput/v1",
+                    "required_fields": [
+                        "review_conclusion",
+                        "issues_found",
+                        "manual_review_required",
+                        "drg_suggestion",
+                        "compliance_checks",
+                        "rule_set",
+                        "trace_refs",
+                    ],
+                },
+                "runtime_version": "2.0.0",
+            }
+        },
+    )
+
+
+def note_completeness_agent_card(base_url: str = "") -> AgentCard:
+    """Note Completeness Agent Card — regex-based section detector."""
+    url = (
+        f"{base_url}/api/icoder/agents/note-completeness-agent/v1/message:send"
+        if base_url
+        else "/api/icoder/agents/note-completeness-agent/v1/message:send"
+    )
+    return AgentCard(
+        name="病历完整性智能体",
+        description=(
+            "iCoDer 病历完整性 Agent — 按《病历书写基本规范》检查入院记录的必填章节 "
+            "(主诉/现病史/既往史/体格检查/辅助检查/诊断/治疗经过 + 手术记录 for surgical cases)。"
+            "输出缺失章节列表 + completeness_score。纯确定性 regex 检测，无 LLM。"
+        ),
+        url=url,
+        version="1.0.0",
+        provider="iCoDer",
+        documentationUrl="/docs/agents/note-completeness-agent",
+        capabilities=AgentCapabilities(
+            streaming=False,
+            pushNotifications=False,
+            stateTransitionHistory=True,
+            extensions=[],
+        ),
+        skills=[
+            AgentSkill(
+                id="check_documentation_gaps",
+                name="Check Documentation Gaps",
+                description=(
+                    "Detect missing required sections in an EMR note per "
+                    "《病历书写基本规范》. Returns documentation_gaps + "
+                    "completeness_score + missing_sections + review_conclusion."
+                ),
+                inputSchema={
+                    "type": "object",
+                    "properties": {"emr_text": {"type": "string"}},
+                    "required": ["emr_text"],
+                },
+                outputSchema={"$ref": "icoder/NoteCompletenessOutput/v1"},
+                examples=[],
+            ),
+        ],
+        defaultInputModes=["text"],
+        defaultOutputModes=["application/json"],
+        securitySchemes={
+            "bearer": SecurityScheme(
+                type="apiKey",
+                description="Phase 4 才校验, Phase 2 接受任意 bearer",
+            )
+        },
+        metadata={
+            "icoder": {
+                "agent_ref": "icoder/note-completeness-agent@1.0.0",
+                "rule_sets": ["documentation_completeness"],
+                "experts": ["section-detector"],
+                "mcp_tools": ["check_documentation_gaps"],
+                "non_goals": [
+                    "不调用 LLM — 纯 regex 检测",
+                    "不修改病历 — 只评估",
+                    "不写回 EMR",
+                    "不评估编码正确性",
+                ],
+                "production_writeback_blocked": True,
+                "phi_redaction": "required",
+                "maturity": "runnable",
+                "production_ready": False,
+                "human_review": "optional",
+                "output_contract": {
+                    "schema_ref": "icoder/NoteCompletenessOutput/v1",
+                    "required_fields": [
+                        "review_conclusion",
+                        "documentation_gaps",
+                        "completeness_score",
+                        "missing_sections",
+                        "present_sections",
+                        "required_sections",
+                        "trace_refs",
+                    ],
+                },
+                "runtime_version": "2.0.0",
+            }
+        },
+    )
+
+
 __all__ = [
     "AgentCapabilities",
     "AgentCard",
@@ -457,4 +731,7 @@ __all__ = [
     "SecurityScheme",
     "medcoder_coding_review_card",
     "medical_coding_agent_card",
+    "code_validation_agent_card",
+    "compliance_guardrail_agent_card",
+    "note_completeness_agent_card",
 ]

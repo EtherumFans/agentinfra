@@ -1,4 +1,4 @@
-// iCoDer New Agent Page — iCoDer Console 1:1
+// iCoDer New Agent Page - iCoDer Console 1:1
 // /ai-studio/agents/new: "Start from scratch" + "Use a template"
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -96,7 +96,7 @@ export default function NewAgentPage() {
   return (
     <div className="flex flex-col h-full bg-muted/20">
       {/* Header */}
-      <div className="mx-6 mt-6 bg-background rounded-xl shadow-sm ring-1 ring-border/20 px-6 py-3 flex items-center gap-2">
+      <div className="mx-6 mt-6 bg-background rounded-xl shadow-sm px-6 py-3 flex items-center gap-2">
         <Bot size={18} className="text-muted-foreground" />
         <span className="text-sm font-medium text-foreground">AI智能体</span>
         <ChevronRight size={14} className="text-muted-foreground" />
@@ -114,7 +114,7 @@ export default function NewAgentPage() {
             {/* Left: Templates */}
             <div className="space-y-6">
               {/* Start from scratch */}
-              <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-5 hover:ring-primary/30 transition-all">
+              <div className="bg-background rounded-xl shadow-sm p-5 hover:ring-primary/30 transition-all">
                 <h2 className="text-sm font-semibold text-foreground mb-1">从零开始创建</h2>
                 <p className="text-xs text-muted-foreground mb-3">
                   从头配置您的AI智能体
@@ -125,7 +125,7 @@ export default function NewAgentPage() {
                       value={scratchName}
                       onChange={e => setScratchName(e.target.value)}
                       placeholder="AI智能体名称"
-                      className="w-full text-sm border border-border rounded-lg px-3 py-2 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/50"
+                      className="w-full text-sm border border-border rounded-lg px-3 py-2 bg-transparent text-foreground placeholder:text-foreground/70 focus:outline-none focus:ring-2 focus:ring-ring/50"
                       autoFocus
                       onKeyDown={e => { if (e.key === 'Enter') handleStartFromScratch(); }}
                     />
@@ -149,7 +149,7 @@ export default function NewAgentPage() {
               </div>
 
               {/* Use a template */}
-              <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 overflow-hidden">
+              <div className="bg-background rounded-xl shadow-sm overflow-hidden">
                 <div className="px-5 py-4 border-b border-border">
                   <h2 className="text-sm font-semibold text-foreground mb-1">使用模板</h2>
                   <p className="text-xs text-muted-foreground">
@@ -233,7 +233,7 @@ export default function NewAgentPage() {
             {/* Right: Preview */}
             <div className="space-y-6">
               {selected ? (
-                <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-6">
+                <div className="bg-background rounded-xl shadow-sm p-6">
                   {/* Title + Customize agent (Corti: same row) */}
                   <div className="flex items-start justify-between gap-3 mb-6">
                     <div className="min-w-0 flex-1">
@@ -260,7 +260,7 @@ export default function NewAgentPage() {
                         <textarea
                           placeholder={t.agentInputPlaceholder}
                           rows={2}
-                          className="w-full resize-none bg-transparent text-sm text-foreground placeholder:text-muted-foreground px-4 pt-3 pb-10 focus:outline-none rounded-2xl"
+                          className="w-full resize-none bg-transparent text-sm text-foreground placeholder:text-foreground/70 px-4 pt-3 pb-10 focus:outline-none rounded-2xl"
                           onKeyDown={e => {
                             if (e.key === 'Enter' && !e.shiftKey) {
                               e.preventDefault();
@@ -308,7 +308,7 @@ export default function NewAgentPage() {
                   </div>
                 </div>
               ) : (
-                <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-6 flex flex-col items-center justify-center min-h-[300px]">
+                <div className="bg-background rounded-xl shadow-sm p-6 flex flex-col items-center justify-center min-h-[300px]">
                   <Bot size={40} className="text-muted-foreground/30 mb-3" />
                   <p className="text-sm text-muted-foreground text-center">
                     选择模板以预览

@@ -31,7 +31,7 @@ export default function DocsPage() {
           <div className="mb-10">
             <h1 className="text-2xl font-bold text-foreground mb-2">iCoDer 开发者文档</h1>
             <p className="text-sm text-muted-foreground max-w-2xl">
-              iCoDer — 可审计的临床AI。预置编码审核、语音转录、文书生成、事实提取和AI智能体。通过SDK、Web Components或REST API嵌入您的HIS/EMR系统。
+              iCoDer - 可审计的临床AI。预置编码审核、语音转录、文书生成、事实提取和AI智能体。通过SDK、Web Components或REST API嵌入您的HIS/EMR系统。
             </p>
             <div className="flex items-center gap-3 mt-4">
               <a href={`${BACKEND_BASE_URL}/docs`} target="_blank" rel="noopener noreferrer"
@@ -61,7 +61,7 @@ export default function DocsPage() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               {SDK_CARDS.map(card => (
-                <div key={card.title} className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-5">
+                <div key={card.title} className="bg-background rounded-xl shadow-sm p-5">
                   <div className="flex items-center gap-2 mb-2">
                     <card.icon size={18} className="text-primary" />
                     <h3 className="text-sm font-semibold text-foreground">{card.title}</h3>
@@ -81,7 +81,7 @@ export default function DocsPage() {
             </div>
             <div className="space-y-2">
               {API_SECTIONS.map(api => (
-                <div key={api.path} className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-4 flex items-center gap-4">
+                <div key={api.path} className="bg-background rounded-xl shadow-sm p-4 flex items-center gap-4">
                   <api.icon size={18} className="text-muted-foreground shrink-0" />
                   <div className="flex-1 min-w-0">
                     <h3 className="text-sm font-medium text-foreground">{api.title}</h3>
@@ -100,7 +100,7 @@ export default function DocsPage() {
               <div className="w-1 h-5 rounded-full bg-primary/40" />
               <h2 className="text-lg font-semibold text-foreground">5 分钟快速开始</h2>
             </div>
-            <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-6">
+            <div className="bg-background rounded-xl shadow-sm p-6">
               <div className="space-y-6">
                 <div>
                   <div className="flex items-center gap-2 mb-2">

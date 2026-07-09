@@ -81,7 +81,9 @@ def test_compute_compatibility_expert_stubs_are_metadata_only():
 def test_compute_compatibility_v11_packs_all_executable():
     report = compute_compatibility(OFFICIAL_AGENTS_DIR)
     v11 = [e for e in report.entries if e.format_version == "1.1"]
-    assert len(v11) == 10
+    # Phase 3-D1 Task 5 (2026-07-06): 3 packs upgraded v1.1 → v1.2, so
+    # v1.1 count went from 10 to 7.
+    assert len(v11) == 7
     for p in v11:
         assert p.status == PackStatus.EXECUTABLE.value
         assert p.production_ready is True
@@ -89,14 +91,19 @@ def test_compute_compatibility_v11_packs_all_executable():
 
 @pytest.mark.skipif(not OFFICIAL_AGENTS_DIR.exists(), reason="official_agents dir missing")
 def test_compute_compatibility_cross_ref_registry():
-    """When a fake registry provides 10 v1.1 refs, those entries should
-    be marked ``registered=True``; the v1.2 packs stay registered=False."""
+    """When a fake registry provides 7 v1.1 refs, those entries should
+    be marked ``registered=True``; the v1.2 packs stay registered=False.
+
+    Phase 3-D1 Task 5 (2026-07-06): v1.1 count went from 10 → 7 after
+    3 packs (code-validation / compliance-guardrail / note-completeness)
+    were upgraded to v1.2 with maturity="runnable".
+    """
     fake_registry = MagicMock()
 
-    # Build fake records mirroring the 10 v1.1 packs
+    # Build fake records mirroring the 7 v1.1 packs
     v11_refs = [e.agent_ref for e in compute_compatibility(OFFICIAL_AGENTS_DIR).entries
                 if e.format_version == "1.1"]
-    assert len(v11_refs) == 10
+    assert len(v11_refs) == 7
 
     def _fake_list_all():
         for i, ref in enumerate(v11_refs):
@@ -108,7 +115,7 @@ def test_compute_compatibility_cross_ref_registry():
     fake_registry.list_all.return_value = list(_fake_list_all())
 
     report = compute_compatibility(OFFICIAL_AGENTS_DIR, registry=fake_registry)
-    assert report.total_registered == 10
+    assert report.total_registered == 7
 
     for entry in report.entries:
         if entry.format_version == "1.1":

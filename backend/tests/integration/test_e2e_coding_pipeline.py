@@ -3,6 +3,10 @@
 Prerequisites:
     python -m uvicorn app.main:app --port 8765
     python -c "from app.seed import seed; import asyncio; asyncio.run(seed())"
+
+Phase 3-D0 Task 3 (2026-07-06): opted-in via ``infra`` marker. Default
+test sweep excludes this file (no live server in CI). Run explicitly:
+``pytest -m infra`` after starting uvicorn on :8765.
 """
 
 import os
@@ -10,6 +14,9 @@ import asyncio
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient
+
+# Opt-in marker — excluded from default sweep via pytest.ini addopts.
+pytestmark = pytest.mark.infra
 
 BASE_URL = os.environ.get("TEST_BASE_URL", "http://localhost:8765")
 

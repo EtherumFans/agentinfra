@@ -189,7 +189,7 @@ export default function SettingsPage() {
       <h2 className="text-2xl font-bold text-foreground mb-6">{t.settingsTitle}</h2>
 
       <div className="grid grid-cols-2 gap-6">
-        <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-5">
+        <div className="bg-background rounded-xl shadow-sm p-5">
           <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
             <User size={18} /> {t.account}
           </h3>
@@ -222,7 +222,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Change Password */}
-        <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-5">
+        <div className="bg-background rounded-xl shadow-sm p-5">
           <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
             <Lock size={18} /> 修改密码
           </h3>
@@ -245,7 +245,7 @@ export default function SettingsPage() {
           </button>
         </div>
 
-        <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-5">
+        <div className="bg-background rounded-xl shadow-sm p-5">
           <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
             <Activity size={18} /> {t.systemInformation}
           </h3>
@@ -272,7 +272,7 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-5">
+        <div className="bg-background rounded-xl shadow-sm p-5">
           <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
             <Shield size={18} /> 安全护栏
           </h3>
@@ -299,7 +299,7 @@ export default function SettingsPage() {
           </p>
         </div>
 
-        <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-5">
+        <div className="bg-background rounded-xl shadow-sm p-5">
           <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
             <ExternalLinkIcon size={18} /> A2A 智能体
           </h3>
@@ -323,7 +323,7 @@ export default function SettingsPage() {
           <button onClick={fetchA2a} className="text-xs text-primary hover:underline mt-2">刷新智能体列表</button>
         </div>
 
-        <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-5">
+        <div className="bg-background rounded-xl shadow-sm p-5">
           <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
             <Database size={18} /> {t.codingSystems || '编码系统'}
           </h3>
@@ -346,7 +346,7 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-5">
+        <div className="bg-background rounded-xl shadow-sm p-5">
           <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
             <Activity size={18} /> API 限流
           </h3>
@@ -365,7 +365,7 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-5">
+        <div className="bg-background rounded-xl shadow-sm p-5">
           <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
             <Database size={18} /> 通知偏好
           </h3>
@@ -388,7 +388,7 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-5">
+        <div className="bg-background rounded-xl shadow-sm p-5">
           <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
             <Database size={18} /> 数据与合规
           </h3>
@@ -407,7 +407,7 @@ export default function SettingsPage() {
           </h3>
           <div className="grid grid-cols-1 gap-6">
             {/* Org Info */}
-            <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-5">
+            <div className="bg-background rounded-xl shadow-sm p-5">
               <h4 className="font-medium text-foreground mb-3">{currentOrg.name}</h4>
               <div className="flex gap-4 text-sm text-muted-foreground">
                 <span>Plan: <strong className="text-foreground capitalize">{currentOrg.plan}</strong></span>
@@ -417,7 +417,7 @@ export default function SettingsPage() {
             </div>
 
             {/* Member List */}
-            <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-5">
+            <div className="bg-background rounded-xl shadow-sm p-5">
               <h4 className="font-medium text-foreground mb-4">{t.orgMembers || 'Members'} ({orgMembers.length})</h4>
               {orgMembersLoading ? (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 size={14} className="animate-spin" /> Loading...</div>
@@ -459,7 +459,7 @@ export default function SettingsPage() {
 
             {/* Invite Form */}
             {isOrgAdmin && (
-              <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-5">
+              <div className="bg-background rounded-xl shadow-sm p-5">
                 <h4 className="font-medium text-foreground mb-3 flex items-center gap-2">
                   <UserPlus size={16} /> {t.orgInvite || 'Invite Member'}
                 </h4>
@@ -467,7 +467,7 @@ export default function SettingsPage() {
                   <input
                     type="email" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)}
                     placeholder={t.orgInviteEmail || 'Email address'}
-                    className="flex-1 min-h-[2.5rem] px-3 py-2 text-sm bg-card border border-input rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/20"
+                    className="flex-1 min-h-[2.5rem] px-3 py-2 text-sm bg-card border border-input rounded-lg text-foreground placeholder:text-foreground/70 focus:outline-none focus:ring-2 focus:ring-ring/20"
                   />
                   <select value={inviteRole} onChange={(e) => setInviteRole(e.target.value)}
                     className="text-sm bg-card border border-input rounded-lg px-3 py-2 text-foreground">

@@ -1,4 +1,4 @@
-// iCoDer — iCoDer Console routing.
+// iCoDer - iCoDer Console routing.
 // Phase 2026-06-29: Doctor / MethodCompare / RunTrace / Marketplace / old
 // AgentHub pages deleted. Routes into /runtime/doctor, /runtime/method-compare,
 // /runtime/runs, /runtime/agent-hub, /marketplace removed. The legacy /studio/
@@ -6,7 +6,7 @@
 // Task #4 rewrites the sidebar to align with Corti's IA.
 //
 // Phase 3-B2 Loop 0 (2026-07-05): TextGeneration and EmbeddedAssistant routes
-// removed (Corti parity — these concepts are replaced by the upcoming Chat
+// removed (Corti parity - these concepts are replaced by the upcoming Chat
 // flow and Agent Hub). Old paths redirect to /ai-studio/agents so deep links
 // don't 404. TextGenerationPage.tsx is kept on disk as an orphan file in case
 // of implicit dependencies; EmbeddedAssistantPage.tsx is physically deleted.
@@ -30,6 +30,7 @@ import UsagePage from './pages/UsagePage';
 import CustomersPage from './pages/CustomersPage';
 import TemplatesPage from './pages/TemplatesPage';
 import TicketsPage from './pages/TicketsPage';
+import RunTracePage from './pages/RunTracePage';
 
 const DeveloperQuickstartPage = lazy(() => import('./pages/DeveloperQuickstartPage'));
 const NewAgentPage = lazy(() => import('./pages/NewAgentPage'));
@@ -68,8 +69,13 @@ function App() {
         <Route path="ai-studio/agents" element={<AgentsPage />} />
         <Route path="ai-studio/agents/new" element={<NewAgentPage />} />
         <Route path="ai-studio/agents/:agentId" element={<AgentDetailPage />} />
-        {/* Phase 3-B2 Loop 2 — Click-to-Chat UX (Gap 2.2). */}
+        {/* Phase 4-D - Corti-style chat URL: /ai-studio/agents/:agentId/chat */}
+        <Route path="ai-studio/agents/:agentId/chat" element={<AgentChatPage />} />
+        {/* Phase 3-B2 Loop 2 - Click-to-Chat UX (Gap 2.2). Legacy route redirects. */}
         <Route path="agents/:project_agent_id/chat" element={<AgentChatPage />} />
+        {/* Phase 3-D1 Task 4 - RunTrace Corti-parity Viewer (9-step timeline).
+            Openable from AgentChatPage via the "View RunTrace" button. */}
+        <Route path="runs/:runId/trace" element={<RunTracePage />} />
         {/* Phase 3-B2 Loop 0: TextGeneration + EmbeddedAssistant routes removed.
             Old paths redirect to /ai-studio/agents (Agent Hub). */}
         <Route path="ai-studio/text-generation" element={<Navigate to="/ai-studio/agents" replace />} />
@@ -77,7 +83,7 @@ function App() {
         <Route path="ai-studio/fact-extraction" element={<FactExtractionPage />} />
         <Route path="ai-studio/medical-coding" element={<MedicalCodingPage />} />
 
-        {/* V3.0 alias — /studio/* */}
+        {/* V3.0 alias - /studio/* */}
         <Route path="studio" element={<AIStudioOverviewPage />} />
         <Route path="studio/agents" element={<AgentsPage />} />
         <Route path="studio/agents/new" element={<NewAgentPage />} />
@@ -94,7 +100,7 @@ function App() {
         <Route path="studio/embedded-assistant" element={<Navigate to="/ai-studio/agents" replace />} />
         <Route path="studio/new-agent" element={<NewAgentPage />} />
 
-        {/* Runtime — only MedicalCoding remains. RuntimeConsole / Runs / Doctor
+        {/* Runtime - only MedicalCoding remains. RuntimeConsole / Runs / Doctor
             are iCoDer-internal concepts with no Corti equivalent; quality +
             shadow-eval pages are pending Corti Mapping (see Task #4). */}
         <Route path="runtime/agents" element={<AgentsPage />} />

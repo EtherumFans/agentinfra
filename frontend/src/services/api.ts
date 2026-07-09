@@ -258,6 +258,56 @@ export const configApi = {
   get: () => api.get('/health'),
 };
 
+// Coding — G001 refactor (2026-07-09): Corti-like Fast Coding Runtime default
+// Replaces the A2A flow as the primary MedicalCodingPage Predict target.
+// Fast mode: target <15s, axios timeout 45s. Deep mode: 30-60s+, axios timeout 120s.
+
+export type CodingMode = 'corti_like_fast' | 'medcoder_deep';
+
+export interface CodingResultCode {
+  code: string;
+  system: string;
+  display: string;
+  type: 'primary_diagnosis' | 'secondary_diagnosis' | 'procedure' | 'external_cause' | 'aftercare' | 'complication' | 'other';
+  confidence: number;
+  evidence: string;
+  rationale: string;
+  warnings: string[];
+  alternatives: Array<{ code: string; name: string; score: number; source: string }>;
+}
+
+export interface CodingPredictResult {
+  codes: CodingResultCode[];
+  summary: string;
+  runtime_mode: CodingMode;
+  latency_ms: number;
+  llm_provider: string;
+  trace_id: string;
+  run_id: string;
+  cost: { amount: number; currency: string };
+  raw_schema: Record<string, unknown>;
+  trace_events: Array<{ step: string; status: string; ts: number; duration_ms: number; metadata: Record<string, unknown> }>;
+  error: boolean;
+  error_reason: string;
+}
+
+export const codingApi = {
+  predict: (text: string, mode: CodingMode = 'corti_like_fast', options?: {
+    coding_system?: string;
+    include_evidence?: boolean;
+    include_trace?: boolean;
+  }) => {
+    const timeout = mode === 'medcoder_deep' ? 120000 : 45000; // Fast 45s, Deep 120s
+    return api.post<CodingPredictResult>('/v1/coding/predict', {
+      text,
+      mode,
+      coding_system: options?.coding_system ?? 'icd10cn',
+      include_evidence: options?.include_evidence ?? true,
+      include_trace: options?.include_trace ?? true,
+    }, { timeout });
+  },
+};
+
 // Health
 export const healthApi = {
   check: () => api.get('/health'),

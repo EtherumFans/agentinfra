@@ -1,4 +1,4 @@
-// iCoDer — Templates (Beta) page (Corti parity)
+// iCoDer - Templates (Beta) page (Corti parity)
 //
 // Corti IA replicated:
 //   Header  Templates · "Manage templates and sections for generating
@@ -145,7 +145,7 @@ export default function TemplatesPage() {
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder={t.searchTemplatesPlaceholder}
-            className="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-border/20 bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+            className="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-border/20 bg-background text-foreground placeholder:text-foreground/70 focus:outline-none focus:ring-1 focus:ring-ring"
           />
         </div>
         <select
@@ -166,7 +166,7 @@ export default function TemplatesPage() {
 
       {/* Sections view stub */}
       {view === 'sections' ? (
-        <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-12 text-center">
+        <div className="bg-background rounded-xl shadow-sm p-12 text-center">
           <FileText size={32} className="mx-auto mb-3 text-muted-foreground opacity-40" />
           <p className="text-sm text-muted-foreground mb-1 font-medium">{t.viewSections}</p>
           <p className="text-xs text-muted-foreground max-w-md mx-auto">
@@ -181,13 +181,13 @@ export default function TemplatesPage() {
               <Loader2 className="animate-spin h-8 w-8 text-muted-foreground" />
             </div>
           ) : error ? (
-            <div className="bg-background rounded-xl p-8 text-center ring-1 ring-border/20">
+            <div className="bg-background rounded-xl p-8 text-center shadow-sm">
               <MessageSquareWarning size={28} className="mx-auto mb-3 text-destructive opacity-60" />
               <p className="text-sm text-destructive mb-4">{error}</p>
               <button onClick={fetchList} className="bg-primary text-primary-foreground rounded-lg px-4 py-2 text-sm font-medium hover:bg-primary/90 transition-colors">重试</button>
             </div>
           ) : items.length === 0 ? (
-            <div className="bg-background rounded-xl p-12 text-center ring-1 ring-border/20">
+            <div className="bg-background rounded-xl p-12 text-center shadow-sm">
               <FileText size={32} className="mx-auto mb-3 text-muted-foreground opacity-40" />
               <p className="text-sm text-muted-foreground mb-4">{t.noTemplates}</p>
               <button
@@ -249,7 +249,7 @@ function TemplateCard({ template, onDeleted }: { template: Template; onDeleted: 
   }
 
   return (
-    <div className="group bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-5 hover:ring-primary/30 transition-all flex flex-col">
+    <div className="group bg-background rounded-xl shadow-sm p-5 hover:ring-primary/30 transition-all flex flex-col">
       <div className="flex items-start justify-between gap-2 mb-3">
         <div className="flex-1 min-w-0">
           <h3 className="text-base font-semibold text-foreground truncate">{template.name}</h3>
@@ -327,7 +327,7 @@ function TemplateBuilderModal({ onClose, onCreated }: { onClose: () => void; onC
 
   return (
     <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-background rounded-xl shadow-2xl ring-1 ring-border/20 w-full max-w-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
+      <div className="bg-background rounded-xl shadow-2xl shadow-sm w-full max-w-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
         <div className="px-5 py-4 border-b border-border/20 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <h3 className="text-base font-semibold text-foreground">{t.templateBuilder}</h3>

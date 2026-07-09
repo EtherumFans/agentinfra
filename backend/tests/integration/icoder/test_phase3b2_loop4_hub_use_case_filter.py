@@ -52,7 +52,13 @@ def test_hub_no_use_case_filter_returns_all_visible(client: TestClient):
 
 def test_hub_filter_coding_revenue_cycle_returns_all_11(client: TestClient):
     """?use_case=coding_revenue_cycle → all 11 visible packs (all packs
-    were set to this key by the Loop 4 batch script)."""
+    were set to this key by the Loop 4 batch script).
+
+    Phase 3-D1 Task 5 (2026-07-06): 3 packs upgraded from metadata-only to
+    runnable (code-validation / compliance-guardrail / note-completeness),
+    so now there are 4 runnable cards (Medical Coding Agent + 3 simple
+    agents), not 1.
+    """
     response = _get(client, "/api/icoder/agents/hub?use_case=coding_revenue_cycle")
     assert response.status_code == 200
     body = response.json()
@@ -60,10 +66,15 @@ def test_hub_filter_coding_revenue_cycle_returns_all_11(client: TestClient):
     # All returned cards should declare this use_case at top level.
     for card in body["agents"]:
         assert card["use_case"] == "coding_revenue_cycle"
-    # Medical Coding Agent (the runnable MVP) must be in this set.
+    # Phase 3-D1: 4 runnable cards — Medical Coding Agent + 3 simple agents.
     runnable_cards = [c for c in body["agents"] if c["runnable"]]
-    assert len(runnable_cards) == 1, "Expected 1 runnable card (Medical Coding Agent)"
-    assert runnable_cards[0]["agent_id"] == "medical-coding-agent"
+    runnable_ids = sorted(c["agent_id"] for c in runnable_cards)
+    assert runnable_ids == [
+        "code-validation-agent",
+        "compliance-guardrail-agent",
+        "medical-coding-agent",
+        "note-completeness-agent",
+    ], f"Expected 4 runnable agents; got {runnable_ids}"
 
 
 def test_hub_filter_clinical_evidence_research_returns_empty(client: TestClient):

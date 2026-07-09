@@ -1,4 +1,4 @@
-// Agent Detail Page — standalone page for /ai-studio/agents/:agentId
+// Agent Detail Page - standalone page for /ai-studio/agents/:agentId
 // Chat area (left) + SettingsCodeTab (right) with Settings/Code tabs
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
@@ -263,15 +263,14 @@ export default function AgentDetailPage() {
 
   // Quick actions
   const handleWhatCanYouDo = () => {
-    const msg = "你能做什么？请描述你的能力、专长以及如何在医疗编码、临床文档及相关医疗任务中提供帮助。";
-    handleSend(msg);
+    handleSend(t.agentDetailCapabilityQuestion);
   };
 
 
   const [editingAttachment, setEditingAttachment] = useState<string | null>(null);
 
   const handleSuggestPrompt = () => {
-    const caseItem = { caseLabel: '腰椎间盘突出症', caseText: '患者，女，65岁。因腰痛伴左下肢放射痛3月就诊。腰椎MRI示L4/5椎间盘突出，压迫左侧神经根。入院诊断：腰椎间盘突出症。建议行PLIF手术。' };
+    const caseItem = { caseLabel: t.agentDetailTestCaseLabel, caseText: t.agentDetailTestCaseText };
 
     setAttachedFile({ name: caseItem.caseLabel, content: caseItem.caseText });
 
@@ -393,7 +392,7 @@ export default function AgentDetailPage() {
     return (
       <div className="flex-1 flex flex-col bg-muted/20">
         <div className="flex-1 p-6 overflow-y-auto">
-          <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 text-center py-16">
+          <div className="bg-background rounded-xl shadow-sm text-center py-16">
           <Bot size={48} className="mx-auto mb-3 text-muted-foreground/30" />
           <p className="text-sm text-muted-foreground">{error || t.agentNotFound}</p>
           <Link to="/ai-studio/agents" className="inline-block mt-4 text-xs px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
@@ -446,9 +445,9 @@ export default function AgentDetailPage() {
               setAgentRef(data.agent_ref || agentRef);
               setRuntimeInstalled(true);
               setRuntimeStatus(data.status || 'enabled');
-              toast('Agent 已安装到 Runtime', 'success');
+              toast(t.agentDetailInstalledToast, 'success');
             } catch (e: any) {
-              const msg = e?.response?.data?.detail || e?.message || '安装失败';
+              const msg = e?.response?.data?.detail || e?.message || t.agentDetailInstallFailed;
               toast(msg, 'error');
             }
             finally { setInstallLoading(false); }
@@ -462,22 +461,22 @@ export default function AgentDetailPage() {
           <div className="flex gap-1 ml-auto">
             <button onClick={() => setShowTestPanel(!showTestPanel)}
               className="px-2 py-0.5 rounded text-[11px] bg-blue-50 text-blue-600 hover:bg-blue-100">
-              测试
+              {t.agentDetailTestTitle}
             </button>
             <button onClick={() => { setShowEval(!showEval); if (!showEval && !evalHistory.length) fetchEvalHistory(); }}
               className="px-2 py-0.5 rounded text-[11px] bg-green-50 text-green-600 hover:bg-green-100">
-              评估
+              {t.agentDetailEvalTitle}
             </button>
             <button onClick={async () => {
               try {
                 const newAction = runtimeStatus === 'enabled' ? 'disable' : 'enable';
                 await runtimeAgentApi.agentLifecycle(agentRef, newAction);
                 setRuntimeStatus(runtimeStatus === 'enabled' ? 'disabled' : 'enabled');
-                toast(`Agent ${newAction === 'enable' ? '已启用' : '已禁用'}`, 'success');
-              } catch { toast('操作失败，请检查权限', 'error'); }
+                toast(newAction === 'enable' ? t.agentEnabledToast : t.agentDisabledToast, 'success');
+              } catch { toast(t.agentDetailOperationFailed, 'error'); }
             }}
               className="px-2 py-0.5 rounded text-[11px] bg-gray-100 hover:bg-gray-200">
-              {runtimeStatus === 'enabled' ? 'Disable' : 'Enable'}
+              {runtimeStatus === 'enabled' ? t.agentDisable : t.agentEnable}
             </button>
           </div>
         )}
@@ -487,13 +486,13 @@ export default function AgentDetailPage() {
       {showTestPanel && (
         <div className="px-6 py-3 bg-blue-50/50 border-b border-blue-100">
           <div className="flex items-center justify-between mb-2">
-            <h4 className="text-xs font-semibold text-foreground">Agent 测试</h4>
+            <h4 className="text-xs font-semibold text-foreground">{t.agentDetailTestTitle}</h4>
             <button onClick={() => { setShowTestPanel(false); setTestResult(null); setTestInput(''); }}
               className="p-0.5 rounded hover:bg-accent"><X size={14} className="text-muted-foreground" /></button>
           </div>
           <div className="flex gap-2">
             <textarea value={testInput} onChange={e => setTestInput(e.target.value)}
-              placeholder="输入测试病历，验证 Agent 编码结果..."
+              placeholder={t.agentDetailTestInputPlaceholder}
               rows={4} className="flex-1 text-xs border border-border rounded-lg px-3 py-2 bg-background resize-none focus:outline-none focus:ring-1 focus:ring-ring" />
             <button onClick={async () => {
               if (!testInput.trim() || testLoading) return;
@@ -502,11 +501,11 @@ export default function AgentDetailPage() {
                 const ref = agentRef || (agent?.name?.toLowerCase()?.replace(/\s+/g,'-')||'agent') + '-' + (agent?.version||'1.0.0');
                 const data = await runtimeAgentApi.runAgent(ref, testInput);
                 setTestResult(data);
-              } catch (e: any) { setTestResult({ error: e?.message || '测试失败' }); }
+              } catch (e: any) { setTestResult({ error: e?.message || t.agentDetailTestFailed }); }
               finally { setTestLoading(false); }
             }} disabled={testLoading || !testInput.trim()}
               className="px-4 py-2 rounded-lg bg-blue-600 text-white text-xs font-medium hover:bg-blue-700 disabled:opacity-40 shrink-0 self-end">
-              {testLoading ? '运行中...' : '运行测试'}
+              {testLoading ? t.agentDetailRunning : t.agentDetailRunTest}
             </button>
           </div>
           {testResult && (
@@ -516,19 +515,19 @@ export default function AgentDetailPage() {
               ) : (
                 <>
                   <div className="flex gap-4">
-                    <span>状态: <b>{testResult.status || '—'}</b></span>
-                    <span>耗时: <b>{testResult.processing_time_ms || 0}ms</b></span>
-                    <span>安全: <b>{testResult.safety ? '已校验' : '—'}</b></span>
+                    <span>{t.agentDetailStatus}: <b>{testResult.status || '-'}</b></span>
+                    <span>{t.agentDetailDuration}: <b>{testResult.processing_time_ms || 0}ms</b></span>
+                    <span>{t.agentDetailSafety}: <b>{testResult.safety ? t.agentDetailVerified : '-'}</b></span>
                   </div>
                   {testResult.primary_diagnosis?.code && (
                     <div>
-                      <p className="text-muted-foreground">主诊断</p>
-                      <p className="font-mono text-sm">{testResult.primary_diagnosis.code} — {testResult.primary_diagnosis.description || ''}</p>
+                      <p className="text-muted-foreground">{t.agentDetailPrimaryDx}</p>
+                      <p className="font-mono text-sm">{testResult.primary_diagnosis.code} - {testResult.primary_diagnosis.description || ''}</p>
                     </div>
                   )}
                   {testResult.secondary_diagnoses?.length > 0 && (
                     <div>
-                      <p className="text-muted-foreground">次要诊断 ({testResult.secondary_diagnoses.length})</p>
+                      <p className="text-muted-foreground">{t.agentDetailSecondaryDx} ({testResult.secondary_diagnoses.length})</p>
                       <div className="flex flex-wrap gap-1">
                         {testResult.secondary_diagnoses.slice(0, 10).map((d: any, i: number) => (
                           <span key={i} className="px-1.5 py-0.5 bg-muted rounded font-mono text-[10px]">{d.code}</span>
@@ -538,7 +537,7 @@ export default function AgentDetailPage() {
                   )}
                   {testResult.procedures?.length > 0 && (
                     <div>
-                      <p className="text-muted-foreground">手术 ({testResult.procedures.length})</p>
+                      <p className="text-muted-foreground">{t.agentDetailProcedures} ({testResult.procedures.length})</p>
                       <div className="flex flex-wrap gap-1">
                         {testResult.procedures.map((p: any, i: number) => (
                           <span key={i} className="px-1.5 py-0.5 bg-muted rounded font-mono text-[10px]">{p.code}</span>
@@ -548,7 +547,7 @@ export default function AgentDetailPage() {
                   )}
                   {testResult.issues_found?.length > 0 && (
                     <div>
-                      <p className="text-muted-foreground">问题 ({testResult.issues_found.length})</p>
+                      <p className="text-muted-foreground">{t.agentDetailIssues} ({testResult.issues_found.length})</p>
                       {testResult.issues_found.slice(0, 5).map((iss: any, i: number) => (
                         <p key={i} className="text-[10px] text-amber-700">[{iss.severity}] {iss.message}</p>
                       ))}
@@ -556,7 +555,7 @@ export default function AgentDetailPage() {
                   )}
                   {testResult.safety?.post_check?.rule_issues?.length > 0 && (
                     <div>
-                      <p className="text-muted-foreground">规则检查</p>
+                      <p className="text-muted-foreground">{t.agentDetailRuleChecks}</p>
                       {testResult.safety.post_check.rule_issues.map((r: any, i: number) => (
                         <p key={i} className="text-[10px] text-red-600">[{r.severity}] {r.message}</p>
                       ))}
@@ -570,16 +569,16 @@ export default function AgentDetailPage() {
       )}
       {/* Main: chat (left) + panel (right) */}
       <div className="flex-1 flex min-h-0">
-        {/* Left: Chat area — bg-muted/20 with card content */}
+        {/* Left: Chat area - bg-muted/20 with card content */}
         <div className="flex-1 flex flex-col min-w-0 min-h-0 bg-muted/20">
           <div className="flex-1 p-4 flex flex-col min-h-0">
-            <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 flex-1 flex flex-col min-h-0 overflow-y-auto">
+            <div className="bg-background rounded-xl shadow-sm flex-1 flex flex-col min-h-0 overflow-y-auto">
             {chatMessages.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center px-6">
                 <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-6">
                   <Bot size={28} className="text-primary" />
                 </div>
-                <h3 className="text-lg font-medium text-foreground mb-2">{t.askTheAgentTitle}</h3>
+                <h3 className="text-lg font-brand text-foreground mb-2">{t.askTheAgentTitle}</h3>
                 <p className="text-sm text-muted-foreground">{t.askTheAgentDesc}</p>
               </div>
             ) : (
@@ -622,9 +621,9 @@ export default function AgentDetailPage() {
           {/* Bottom input */}
           <div className="shrink-0">
             <div className="max-w-3xl mx-auto">
-              {/* Attached case document card — iCoDer-style, above input */}
+              {/* Attached case document card - iCoDer-style, above input */}
               {attachedFile && (
-                <div className="mb-2 bg-background rounded-xl shadow-sm ring-1 ring-border/20 overflow-hidden">
+                <div className="mb-2 bg-background rounded-xl shadow-sm overflow-hidden">
                   <div className="flex items-center justify-between px-3 py-2 border-b border-border/20 bg-muted/30">
                     <div className="flex items-center gap-2">
                       <div className="w-5 h-5 rounded bg-primary/10 flex items-center justify-center">
@@ -633,10 +632,10 @@ export default function AgentDetailPage() {
                       <span className="text-[11px] font-medium text-foreground">{attachedFile.name}</span>
                     </div>
                     <div className="flex items-center gap-0.5">
-                      <button onClick={() => setEditingAttachment(attachedFile.content)} className="p-1 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" title="编辑">
+                      <button onClick={() => setEditingAttachment(attachedFile.content)} className="p-1 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" title={t.agentDetailEdit}>
                         <Pencil size={11} />
                       </button>
-                      <button onClick={() => setAttachedFile(null)} className="p-1 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" title="移除">
+                      <button onClick={() => setAttachedFile(null)} className="p-1 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" title={t.agentDetailRemove}>
                         <X size={12} />
                       </button>
                     </div>
@@ -649,7 +648,7 @@ export default function AgentDetailPage() {
 
               {/* JSON data input */}
               {inputFormat === 'json' && (
-                <div className="mb-2 bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-3">
+                <div className="mb-2 bg-background rounded-xl shadow-sm p-3">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-medium text-foreground flex items-center gap-1.5">
                       <Braces size={12} /> {t.jsonData}
@@ -663,20 +662,20 @@ export default function AgentDetailPage() {
                     onChange={e => setJsonData(e.target.value)}
                     placeholder='{"key": "value"}'
                     rows={3}
-                    className="w-full text-xs font-mono bg-muted/50 border border-border rounded-lg px-3 py-2 text-foreground placeholder:text-muted-foreground resize-none focus:outline-none focus:ring-1 focus:ring-ring"
+                    className="w-full text-xs font-mono bg-muted/50 border border-border rounded-lg px-3 py-2 text-foreground placeholder:text-foreground/70 resize-none focus:outline-none focus:ring-1 focus:ring-ring"
                   />
                 </div>
               )}
 
               {/* Main input */}
-              <div className="bg-background rounded-2xl shadow-sm ring-1 ring-border/20 focus-within:ring-primary/30 focus-within:shadow-md transition-all">
+              <div className="bg-background rounded-2xl shadow-sm focus-within:ring-primary/30 focus-within:shadow-md transition-all">
                 <textarea
                   value={chatInput}
                   onChange={e => setChatInput(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
                   placeholder={t.askTheAgentPlaceholder}
                   rows={1}
-                  className="w-full text-sm bg-transparent focus:outline-none placeholder:text-muted-foreground resize-none py-3 px-4 min-h-[40px] max-h-[120px]"
+                  className="w-full text-sm bg-transparent focus:outline-none placeholder:text-foreground/70 resize-none py-3 px-4 min-h-[40px] max-h-[120px]"
                   onInput={(e) => { const el = e.target as HTMLTextAreaElement; el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 120) + 'px'; }}
                 />
 
@@ -716,7 +715,7 @@ export default function AgentDetailPage() {
 
                   <button onClick={() => handleSend()}
                     disabled={(!chatInput.trim() && !jsonData.trim() && !attachedFile) || chatLoading}
-                    className="w-9 h-9 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-30 transition-all shrink-0 flex items-center justify-center">
+                    className="w-9 h-9 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 active:scale-[0.98] disabled:opacity-30 transition-all shrink-0 flex items-center justify-center">
                     {chatLoading ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
                   </button>
                 </div>
@@ -765,18 +764,18 @@ export default function AgentDetailPage() {
           {showEval ? (
             <div className="p-4 space-y-3">
               <div className="flex items-center justify-between">
-                <h4 className="text-xs font-semibold text-foreground">Agent 评估</h4>
+                <h4 className="text-xs font-semibold text-foreground">{t.agentDetailEvalTitle}</h4>
                 <button onClick={() => setShowEval(false)} className="p-0.5 rounded hover:bg-accent"><X size={14} className="text-muted-foreground" /></button>
               </div>
               <button onClick={runEvaluation} disabled={evalLoading}
                 className="w-full py-2 rounded-lg bg-green-600 text-white text-xs font-medium hover:bg-green-700 disabled:opacity-40">
-                {evalLoading ? '评估中...' : '运行金标准评估'}
+                {evalLoading ? t.agentDetailEvaluating : t.agentDetailRunGoldStandard}
               </button>
               {evalResult && (
                 <div className="bg-white rounded-lg border p-3 space-y-2 text-xs">
                   <div className="grid grid-cols-2 gap-2">
-                    <div className="text-center p-2 bg-muted/50 rounded"><p className="text-lg font-bold text-green-700">{evalResult.primary_dx_accuracy ? (evalResult.primary_dx_accuracy*100).toFixed(0)+'%' : '—'}</p><p className="text-[10px] text-muted-foreground">诊断准确率</p></div>
-                    <div className="text-center p-2 bg-muted/50 rounded"><p className="text-lg font-bold text-blue-700">{evalResult.primary_proc_accuracy ? (evalResult.primary_proc_accuracy*100).toFixed(0)+'%' : '—'}</p><p className="text-[10px] text-muted-foreground">手术准确率</p></div>
+                    <div className="text-center p-2 bg-muted/50 rounded"><p className="text-lg font-bold text-green-700">{evalResult.primary_dx_accuracy ? (evalResult.primary_dx_accuracy*100).toFixed(0)+'%' : '-'}</p><p className="text-[10px] text-muted-foreground">{t.agentDetailDxAccuracy}</p></div>
+                    <div className="text-center p-2 bg-muted/50 rounded"><p className="text-lg font-bold text-blue-700">{evalResult.primary_proc_accuracy ? (evalResult.primary_proc_accuracy*100).toFixed(0)+'%' : '-'}</p><p className="text-[10px] text-muted-foreground">{t.agentDetailProcAccuracy}</p></div>
                   </div>
                   <p className="text-[10px] text-muted-foreground text-center">{evalResult.total_cases} cases in {evalResult.elapsed_seconds}s</p>
                   <button onClick={() => {
@@ -785,7 +784,7 @@ export default function AgentDetailPage() {
                     const csv = rows.map(r => r.join(',')).join('\n');
                     const blob = new Blob(['﻿'+csv], {type:'text/csv;charset=utf-8'});
                     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `eval-${agentRef||'agent'}-${new Date().toISOString().slice(0,10)}.csv`; a.click();
-                  }} className="w-full mt-2 py-1.5 rounded text-[10px] border border-border text-muted-foreground hover:text-foreground">导出 CSV</button>
+                  }} className="w-full mt-2 py-1.5 rounded text-[10px] border border-border text-muted-foreground hover:text-foreground">{t.agentDetailExportCsv}</button>
                   <div className="max-h-48 overflow-y-auto space-y-1">
                     {evalResult.per_case?.map((c: any, i: number) => (
                       <div key={i} className="flex items-center gap-2 py-1 border-b border-muted">
@@ -799,11 +798,11 @@ export default function AgentDetailPage() {
               )}
               {evalHistory.length > 0 && (
                 <div className="bg-white rounded-lg border p-3 text-xs">
-                  <p className="font-medium mb-1">历史趋势</p>
+                  <p className="font-medium mb-1">{t.agentDetailHistoryTrend}</p>
                   {evalHistory.slice(0,5).map((h: any, i: number) => (
                     <div key={i} className="flex justify-between py-0.5 text-[10px]">
                       <span className="text-muted-foreground">{h.evaluated_at?.slice(0,16)||''}</span>
-                      <span className="font-mono text-green-700">{h.primary_dx_accuracy ? (h.primary_dx_accuracy*100).toFixed(0)+'%' : '—'}</span>
+                      <span className="font-mono text-green-700">{h.primary_dx_accuracy ? (h.primary_dx_accuracy*100).toFixed(0)+'%' : '-'}</span>
                     </div>
                   ))}
                 </div>
@@ -811,7 +810,7 @@ export default function AgentDetailPage() {
             </div>
           ) : (
           <SettingsCodeTab
-            labels={{ settings: '设置', code: '代码', tools: '工具' }}
+            labels={{ settings: t.settingsCodeTabSettings, code: t.settingsCodeTabCode, tools: t.settingsCodeTabTools }}
             tools={
               <ToolSelector
                 enabledTools={enabledTools}
@@ -826,7 +825,7 @@ export default function AgentDetailPage() {
                 <div className="border-b border-border/20">
                   <div className="flex items-center gap-2 px-4 pt-4 pb-2">
                     <div className="w-1 h-4 rounded-full bg-primary/40" />
-                    <h3 className="font-medium text-xs uppercase tracking-wider text-muted-foreground">基本信息</h3>
+                    <h3 className="font-medium text-xs text-muted-foreground">{t.agentDetailBasicInfo}</h3>
                   </div>
                   <div className="px-4 pb-4">
                     <label className="text-xs text-foreground/70 block mb-1.5">
@@ -837,7 +836,7 @@ export default function AgentDetailPage() {
                       onChange={e => { setAgentName(e.target.value.slice(0, 50)); setSettingsSaved(false); }}
                       placeholder={t.agentNamePlaceholder}
                       maxLength={50}
-                      className="w-full text-sm border border-border/60 rounded-lg px-3 py-2 bg-background text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-ring/30 transition-all"
+                      className="w-full text-sm border border-border/60 rounded-lg px-3 py-2 bg-background text-foreground placeholder:text-foreground/70/40 focus:outline-none focus:ring-2 focus:ring-ring/30 transition-all"
                     />
                   </div>
                 </div>
@@ -846,7 +845,7 @@ export default function AgentDetailPage() {
                 <div className="border-b border-border/20">
                   <div className="flex items-center gap-2 px-4 pt-4 pb-2">
                     <div className="w-1 h-4 rounded-full bg-primary/40" />
-                    <h3 className="font-medium text-xs uppercase tracking-wider text-muted-foreground">{t.systemPrompt}</h3>
+                    <h3 className="font-medium text-xs text-muted-foreground">{t.systemPrompt}</h3>
                   </div>
                   <div className="px-4 pb-4">
                     <div
@@ -866,9 +865,9 @@ export default function AgentDetailPage() {
                 <div className="border-b border-border/20">
                   <div className="flex items-center gap-2 px-4 pt-4 pb-2">
                     <div className="w-1 h-4 rounded-full bg-primary/40" />
-                    <h3 className="font-medium text-xs uppercase tracking-wider text-muted-foreground">{t.experts}</h3>
+                    <h3 className="font-medium text-xs text-muted-foreground">{t.experts}</h3>
                     {agentExperts.length > 0 && (
-                      <span className="text-[10px] text-muted-foreground/50 ml-auto">{agentExperts.length} 个</span>
+                      <span className="text-[10px] text-muted-foreground/50 ml-auto">{agentExperts.length} {t.agentDetailExpertCountSuffix}</span>
                     )}
                   </div>
                   <div className="px-4 pb-4">
@@ -898,7 +897,7 @@ export default function AgentDetailPage() {
                             }}
                             onDragEnd={() => { setDragIdx(null); }}
                             className={`flex items-center py-2 px-2.5 rounded-lg hover:bg-accent/40 transition-all group border border-transparent hover:border-border/30 cursor-grab active:cursor-grabbing ${dragIdx === idx ? 'opacity-50' : ''}`}>
-                            <span className="text-[9px] text-muted-foreground/40 w-4 shrink-0" title="拖拽排序">⠿</span>
+                            <span className="text-[9px] text-muted-foreground/40 w-4 shrink-0" title={t.agentDetailDragSort}>⠿</span>
                             <div className="flex items-center gap-2.5 min-w-0 flex-1">
                               <div className="w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center shrink-0">
                                 <Wrench size={12} className="text-primary" />
@@ -920,7 +919,7 @@ export default function AgentDetailPage() {
                       <Plus size={12} /> {t.addExpert}
                     </button>
                     {agentExperts.length > 1 && (
-                      <p className="text-[10px] text-muted-foreground/40 mt-1.5 text-center">⠿ 拖拽专家调整调用优先级</p>
+                      <p className="text-[10px] text-muted-foreground/40 mt-1.5 text-center">⠿ {t.agentDetailDragHint}</p>
                     )}
                   </div>
                 </div>
@@ -929,57 +928,57 @@ export default function AgentDetailPage() {
                 <div className="border-b border-border/20">
                   <div className="flex items-center gap-2 px-4 pt-4 pb-2">
                     <div className="w-1 h-4 rounded-full bg-primary/40" />
-                    <h3 className="font-medium text-xs uppercase tracking-wider text-muted-foreground">编排策略</h3>
+                    <h3 className="font-medium text-xs text-muted-foreground">{t.agentDetailOrchestrationStrategy}</h3>
                   </div>
                   <div className="px-4 pb-4 space-y-3">
                     <div>
-                      <label className="text-[10px] text-muted-foreground">路由策略</label>
+                      <label className="text-[10px] text-muted-foreground">{t.agentDetailRoutingStrategy}</label>
                       <select value={routingStrategy} onChange={e => { setRoutingStrategy(e.target.value); setSettingsSaved(false); }}
                         className="w-full text-xs border border-border/60 rounded-lg px-2.5 py-2 bg-background text-foreground mt-0.5 focus:outline-none focus:ring-1 focus:ring-ring">
-                        <option value="llm_plan">LLM 动态规划（推荐）</option>
-                        <option value="tool_native">Tool-Native 合同强制（新）</option>
-                        <option value="fixed_order">固定顺序执行</option>
-                        <option value="parallel">并行调用</option>
-                        <option value="single_expert">单专家直连</option>
+                        <option value="llm_plan">{t.agentDetailRoutingLlmPlan}</option>
+                        <option value="tool_native">{t.agentDetailRoutingToolNative}</option>
+                        <option value="fixed_order">{t.agentDetailRoutingFixedOrder}</option>
+                        <option value="parallel">{t.agentDetailRoutingParallel}</option>
+                        <option value="single_expert">{t.agentDetailRoutingSingleExpert}</option>
                       </select>
                       <p className="text-[9px] text-muted-foreground/50 mt-0.5">
-                        {routingStrategy === 'llm_plan' && '由 AI 分析任务后动态选择专家及调用顺序'}
-                        {routingStrategy === 'tool_native' && 'LLM 自主选择工具，Harness 以合同强制验证每次调用'}
-                        {routingStrategy === 'fixed_order' && '按列表顺序逐个调用绑定的专家'}
-                        {routingStrategy === 'parallel' && '同时调用所有专家，聚合结果'}
-                        {routingStrategy === 'single_expert' && '仅调用默认专家，忽略其他绑定'}
+                        {routingStrategy === 'llm_plan' && t.agentDetailRoutingLlmPlanDesc}
+                        {routingStrategy === 'tool_native' && t.agentDetailRoutingToolNativeDesc}
+                        {routingStrategy === 'fixed_order' && t.agentDetailRoutingFixedOrderDesc}
+                        {routingStrategy === 'parallel' && t.agentDetailRoutingParallelDesc}
+                        {routingStrategy === 'single_expert' && t.agentDetailRoutingSingleExpertDesc}
                       </p>
                     </div>
 
                     {/* Permission Preset */}
                     <div>
-                      <label className="text-[10px] text-muted-foreground">权限策略 (Deny-First)</label>
+                      <label className="text-[10px] text-muted-foreground">{t.agentDetailPermissionPreset}</label>
                       <select value={permissionPreset} onChange={e => { setPermissionPreset(e.target.value); setSettingsSaved(false); }}
                         className="w-full text-xs border border-border/60 rounded-lg px-2.5 py-2 bg-background text-foreground mt-0.5 focus:outline-none focus:ring-1 focus:ring-ring">
-                        <option value="medical_coding">医学编码（推荐）</option>
-                        <option value="cdi_audit">临床文档审核（只读）</option>
-                        <option value="drg_analysis">DRG/DIP 支付分析</option>
-                        <option value="restrictive">严格模式（仅确定性工具）</option>
-                        <option value="full_access">全量访问（开发/管理）</option>
+                        <option value="medical_coding">{t.agentDetailPermissionMedicalCoding}</option>
+                        <option value="cdi_audit">{t.agentDetailPermissionCdiAudit}</option>
+                        <option value="drg_analysis">{t.agentDetailPermissionDrgAnalysis}</option>
+                        <option value="restrictive">{t.agentDetailPermissionRestrictive}</option>
+                        <option value="full_access">{t.agentDetailPermissionFullAccess}</option>
                       </select>
                       <p className="text-[9px] text-muted-foreground/50 mt-0.5">
-                        {permissionPreset === 'medical_coding' && '标准编码管道——确定性工具+LLM工具有限使用'}
-                        {permissionPreset === 'cdi_audit' && '只读分析工具——不允许编码分配'}
-                        {permissionPreset === 'drg_analysis' && '编码+DRG分析——适合医保审核'}
-                        {permissionPreset === 'restrictive' && '仅确定性工具（ICD索引/证据排名等），最大安全性'}
-                        {permissionPreset === 'full_access' && '全部工具可用——仅开发和管理使用'}
+                        {permissionPreset === 'medical_coding' && t.agentDetailPermissionMedicalCodingDesc}
+                        {permissionPreset === 'cdi_audit' && t.agentDetailPermissionCdiAuditDesc}
+                        {permissionPreset === 'drg_analysis' && t.agentDetailPermissionDrgAnalysisDesc}
+                        {permissionPreset === 'restrictive' && t.agentDetailPermissionRestrictiveDesc}
+                        {permissionPreset === 'full_access' && t.agentDetailPermissionFullAccessDesc}
                       </p>
                     </div>
                     <div>
-                      <label className="text-[10px] text-muted-foreground">最大重试次数: {maxRetries}</label>
+                      <label className="text-[10px] text-muted-foreground">{t.agentDetailMaxRetriesLabel.replace('{n}', String(maxRetries))}</label>
                       <input type="range" min="0" max="5" value={maxRetries} onChange={e => { setMaxRetries(Number(e.target.value)); setSettingsSaved(false); }}
                         className="w-full mt-0.5" />
                     </div>
                     <div>
-                      <label className="text-[10px] text-muted-foreground">置信度阈值: {confidenceThreshold.toFixed(1)}</label>
+                      <label className="text-[10px] text-muted-foreground">{t.agentDetailConfidenceThresholdLabel.replace('{n}', confidenceThreshold.toFixed(1))}</label>
                       <input type="range" min="0" max="1" step="0.1" value={confidenceThreshold} onChange={e => { setConfidenceThreshold(Number(e.target.value)); setSettingsSaved(false); }}
                         className="w-full mt-0.5" />
-                      <div className="flex justify-between text-[9px] text-muted-foreground/40"><span>0.0 (宽松)</span><span>1.0 (严格)</span></div>
+                      <div className="flex justify-between text-[9px] text-muted-foreground/40"><span>{t.agentDetailConfidenceLoose}</span><span>{t.agentDetailConfidenceStrict}</span></div>
                     </div>
                   </div>
                 </div>
@@ -1126,7 +1125,7 @@ Console.WriteLine($"Agent response: {result}");`}
         </div>
       </div>
 
-      {/* Expert Library Modal removed — experts.py deleted in Phase 2.1-B Step 1 */}
+      {/* Expert Library Modal removed - experts.py deleted in Phase 2.1-B Step 1 */}
 
       {/* System Prompt Editor Modal */}
       {showEditPrompt && (
@@ -1144,7 +1143,7 @@ Console.WriteLine($"Agent response: {result}");`}
       {showDeleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={() => setShowDeleteConfirm(false)}>
           <div className="absolute inset-0 bg-black/40" />
-          <div className="relative bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-6 max-w-sm w-full mx-4" onClick={e => e.stopPropagation()}>
+          <div className="relative bg-background rounded-xl shadow-sm p-6 max-w-sm w-full mx-4" onClick={e => e.stopPropagation()}>
             <h3 className="text-sm font-semibold text-foreground mb-1">{t.deleteConfirmTitle}</h3>
             <p className="text-xs text-muted-foreground mb-4">{t.deleteConfirmDesc}</p>
             <p className="text-sm text-foreground mb-6">
@@ -1173,7 +1172,7 @@ Console.WriteLine($"Agent response: {result}");`}
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setEditingAttachment(null)}>
           <div className="bg-card rounded-xl border border-border shadow-xl w-full max-w-lg mx-4 overflow-hidden" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between px-5 py-3 border-b border-border">
-              <h3 className="text-sm font-semibold text-foreground">编辑病例内容</h3>
+              <h3 className="text-sm font-semibold text-foreground">{t.agentDetailEditCase}</h3>
               <button onClick={() => setEditingAttachment(null)} className="p-1 rounded hover:bg-accent"><X size={14} className="text-muted-foreground" /></button>
             </div>
             <div className="p-5">
@@ -1186,13 +1185,13 @@ Console.WriteLine($"Agent response: {result}");`}
               />
             </div>
             <div className="flex items-center justify-end gap-2 px-5 py-3 border-t border-border bg-muted/20">
-              <button onClick={() => setEditingAttachment(null)} className="text-xs px-4 py-2 rounded-lg hover:bg-accent transition-colors">取消</button>
+              <button onClick={() => setEditingAttachment(null)} className="text-xs px-4 py-2 rounded-lg hover:bg-accent transition-colors">{t.cancel}</button>
               <button onClick={() => {
                 if (attachedFile && editingAttachment.trim()) {
                   setAttachedFile({ ...attachedFile, content: editingAttachment.trim() });
                 }
                 setEditingAttachment(null);
-              }} className="text-xs px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">保存</button>
+              }} className="text-xs px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">{t.save}</button>
             </div>
           </div>
         </div>

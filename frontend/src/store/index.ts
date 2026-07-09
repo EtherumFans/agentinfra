@@ -93,17 +93,34 @@ export const useAppStore = create<AppState>((set) => ({
   setError: (e) => set({ error: e }),
 }));
 
-// Live cost tracker — iCoDer-style $X.XXXXXX per-session counter
+// Live cost tracker — Corti-style $X.XXXXXX per-session counter.
+// sessionStartBalance = balance at session start (or last reset).
+// After each A2A run, syncFromBalance(currentBalance) computes the delta
+// (sessionStartBalance - currentBalance) and sets liveCost to it.
+// resetCost() sets sessionStartBalance to the latest known balance so liveCost→0.
 interface CostState {
   liveCost: number;
+  sessionStartBalance: number | null;
   addCost: (amount: number) => void;
   resetCost: () => void;
+  setSessionStartBalance: (balance: number) => void;
+  syncFromBalance: (currentBalance: number) => void;
 }
 
 export const useCostStore = create<CostState>((set) => ({
   liveCost: 0,
+  sessionStartBalance: null,
   addCost: (amount) => set((s) => ({ liveCost: s.liveCost + amount })),
-  resetCost: () => set({ liveCost: 0 }),
+  resetCost: () => set({ liveCost: 0, sessionStartBalance: null }),
+  setSessionStartBalance: (balance) => set({ sessionStartBalance: balance, liveCost: 0 }),
+  syncFromBalance: (currentBalance) => set((s) => {
+    if (s.sessionStartBalance === null) {
+      // First sync — establish baseline, no cost yet
+      return { sessionStartBalance: currentBalance, liveCost: 0 };
+    }
+    const delta = s.sessionStartBalance - currentBalance;
+    return { liveCost: delta > 0 ? delta : 0 };
+  }),
 }));
 
 // Dark/light theme

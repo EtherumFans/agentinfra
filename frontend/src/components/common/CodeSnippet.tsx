@@ -1,6 +1,7 @@
-// Code snippet display — JS / Python / JSON three-format SDK code, auto-filled from page config
+// Code snippet display - JS / Python / JSON three-format SDK code, auto-filled from page config
 import { useState, useCallback } from 'react';
 import { Copy, Check } from 'lucide-react';
+import { useT } from '../../i18n';
 
 interface CodeSnippetProps {
   javascript: string;
@@ -11,6 +12,7 @@ interface CodeSnippetProps {
 }
 
 export default function CodeSnippet({ javascript, python, json, csharp, compact = false }: CodeSnippetProps) {
+  const t = useT();
   const [format, setFormat] = useState<'javascript' | 'python' | 'json' | 'csharp'>('javascript');
   const [copied, setCopied] = useState(false);
 
@@ -27,38 +29,38 @@ export default function CodeSnippet({ javascript, python, json, csharp, compact 
 
   const tabs = compact
     ? [
-        { key: 'javascript' as const, label: 'JavaScript' },
-        { key: 'json' as const, label: 'JSON' },
+        { key: 'javascript' as const, label: t.codeSnippetJavaScript },
+        { key: 'json' as const, label: t.codeSnippetJSON },
       ]
     : [
-        { key: 'javascript' as const, label: 'JavaScript (SDK)' },
-        { key: 'python' as const, label: 'Python (SDK)' },
-        { key: 'csharp' as const, label: 'C# (.NET SDK)' },
-        { key: 'json' as const, label: 'JSON Config' },
+        { key: 'javascript' as const, label: t.codeSnippetJavaScriptSDK },
+        { key: 'python' as const, label: t.codeSnippetPythonSDK },
+        { key: 'csharp' as const, label: t.codeSnippetCSharpSDK },
+        { key: 'json' as const, label: t.codeSnippetJSONConfig },
       ];
 
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between px-3 py-2 border-b border-border shrink-0">
         <div className="flex gap-1">
-          {tabs.map((t) => (
+          {tabs.map((tab) => (
             <button
-              key={t.key}
-              onClick={() => setFormat(t.key)}
+              key={tab.key}
+              onClick={() => setFormat(tab.key)}
               className={`text-[10px] px-2.5 py-1 rounded transition-colors ${
-                format === t.key
+                format === tab.key
                   ? 'bg-primary/10 text-primary font-medium'
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              {t.label}
+              {tab.label}
             </button>
           ))}
         </div>
         <button
           onClick={handleCopy}
           className="p-1 rounded hover:bg-accent transition-colors"
-          title="Copy code"
+          title={t.codeSnippetCopyCode}
         >
           {copied ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} className="text-muted-foreground" />}
         </button>
@@ -69,3 +71,4 @@ export default function CodeSnippet({ javascript, python, json, csharp, compact 
     </div>
   );
 }
+

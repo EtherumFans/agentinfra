@@ -74,6 +74,9 @@ export interface HubCard {
   chat_url: string | null; // template: /agents/{project_agent_id}/chat
   customize_url: string | null; // template: /ai-studio/agents/{project_agent_id}
   run_url: string | null; // A2A mainline URL
+  // Phase 4-D (D-6): Corti-style card metadata (DD-Mon-YYYY · Creator).
+  created_at?: string;
+  creator?: string;
 }
 
 export interface HubListResponse {

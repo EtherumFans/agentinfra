@@ -1,5 +1,5 @@
 /**
- * HighlightedTextarea — textarea + absolutely-positioned <pre> overlay
+ * HighlightedTextarea - textarea + absolutely-positioned <pre> overlay
  * that renders evidence highlights behind the editable text.
  *
  * Why not contenteditable?
@@ -11,7 +11,7 @@
  * Font-metric sync:
  *   Both the <textarea> and the <pre> use INPUT_TEXT_CLASS (shared below)
  *   so that the highlight positions match the text glyphs exactly. If you
- *   tweak the class, both sides update together — DO NOT hardcode a
+ *   tweak the class, both sides update together - DO NOT hardcode a
  *   different font on either side.
  *
  * Scroll sync:
@@ -104,7 +104,7 @@ export const HighlightedTextarea: React.FC<HighlightedTextareaProps> = ({
         onScroll={handleScroll}
         spellCheck={false}
         data-testid="char-counter-input"
-        className={`${INPUT_TEXT_CLASS} relative h-full caret-foreground resize-none focus:outline-none focus:ring-2 focus:ring-primary/20`}
+        className={`${INPUT_TEXT_CLASS} relative h-full caret-foreground resize-none bg-transparent focus:outline-none focus:ring-2 focus:ring-primary/20`}
       />
     </div>
   );

@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Loader2, Users } from 'lucide-react';
 import { a2aApi } from '../services/api';
+import { useT } from '../i18n';
 
 interface Props {
   currentAgentId: string;
 }
 
 export default function A2ACollaboration({ currentAgentId }: Props) {
+  const t = useT();
   const [discoveredAgents, setDiscoveredAgents] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -22,16 +24,16 @@ export default function A2ACollaboration({ currentAgentId }: Props) {
     <div className="border-t border-border/20">
       <div className="flex items-center gap-2 px-4 pt-4 pb-2">
         <div className="w-1 h-4 rounded-full bg-primary/40" />
-        <h3 className="font-medium text-xs uppercase tracking-wider text-muted-foreground">A2A Agent 协作</h3>
+        <h3 className="font-medium text-xs text-muted-foreground">{t.a2aCollaborationTitle}</h3>
         {discoveredAgents.length > 0 && (
-          <span className="text-[10px] text-muted-foreground/50 ml-auto">{discoveredAgents.length} 个可用</span>
+          <span className="text-[10px] text-muted-foreground/50 ml-auto">{discoveredAgents.length} {t.a2aCollaborationNAvailable}</span>
         )}
       </div>
       <div className="px-4 pb-4 space-y-3">
         {loading ? (
           <div className="text-center py-4"><Loader2 className="animate-spin h-4 w-4 mx-auto text-muted-foreground" /></div>
         ) : discoveredAgents.length === 0 ? (
-          <p className="text-[11px] text-muted-foreground/40 text-center py-2">未发现其他 Agent（需启用 A2A）</p>
+          <p className="text-[11px] text-muted-foreground/40 text-center py-2">{t.a2aCollaborationEmpty}</p>
         ) : (
           <div className="space-y-1 max-h-32 overflow-y-auto">
             {discoveredAgents.slice(0, 8).map((a: any) => (
@@ -48,3 +50,4 @@ export default function A2ACollaboration({ currentAgentId }: Props) {
     </div>
   );
 }
+

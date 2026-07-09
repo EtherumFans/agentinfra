@@ -66,12 +66,18 @@ from __future__ import annotations
 import importlib
 import json
 import logging
+import time
 from typing import Any, Callable, Awaitable
 
 from fastapi import APIRouter, FastAPI, Request
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 
+from app.icoder.agent_runtime.orchestrator.run_trace import (
+    RunTraceStatus,
+    RunTraceStep,
+    emit_trace_event,
+)
 from .auth import MCPAuthConfig
 from .auth_resolver import RunAuthContext, resolve_mcp_auth
 from .errors import MCPAuthError, MCPError, MCPErrorCode
@@ -176,6 +182,11 @@ def _redact_auth_config(auth_config: MCPAuthConfig) -> dict[str, Any]:
     For oauth2.0 we surface the ``token_url`` + ``scopes`` + ``audience``
     because those are public values the client needs to decide whether
     to ride on the server's oauth exchange or bring its own token.
+
+    ``required_scopes`` (Phase 3-D0 Task 1) is added at the ToolDescriptor
+    level, not on auth_config — but tools/list advertises it alongside
+    the auth block so clients can pick a token that satisfies the
+    requirement. ``required_scopes`` is public (not a secret).
     """
     # Pydantic models expose .model_dump() — but we hand-pick fields
     # rather than dumping wholesale so we never accidentally leak a
@@ -192,11 +203,48 @@ def _redact_auth_config(auth_config: MCPAuthConfig) -> dict[str, Any]:
             out["scopes"] = list(oauth.scopes)
             if oauth.audience:
                 out["audience"] = oauth.audience
+    elif type_ == "bearer":
+        # Bearer scopes are public (they declare what the token can do,
+        # not the token itself). Safe to surface.
+        scopes = getattr(auth_config, "scopes", None)
+        if scopes:
+            out["scopes"] = list(scopes)
     elif type_ == "inherit":
         inherit_from = getattr(auth_config, "inherit_from", None)
         if inherit_from:
             out["inherit_from"] = inherit_from
     return out
+
+
+# ── Scope enforcement (Phase 3-D0 Task 1) ────────────────────────
+
+
+def _check_required_scopes(
+    descriptor: ToolDescriptor,
+    auth_header: Any | None,
+) -> tuple[bool, list[str], list[str]]:
+    """Verify the resolved auth satisfies the tool's required_scopes.
+
+    Returns ``(ok, required, granted)``:
+      - ``ok=True`` when ``required_scopes`` is empty (no requirement)
+        OR every required scope is in ``auth_header.granted_scopes``.
+      - ``ok=False`` when ``required_scopes`` is non-empty AND either
+        ``auth_header`` is ``None`` (auth_config was None) or the
+        resolved auth doesn't carry all required scopes.
+
+    The caller (tools_call dispatcher) raises ``MCP_AUTH_FORBIDDEN``
+    when ``ok`` is False — this function is pure, no side effects, so
+    it can be unit-tested in isolation.
+    """
+    required = list(descriptor.required_scopes)
+    if not required:
+        return True, required, []
+    if auth_header is None:
+        return False, required, []
+    granted = list(getattr(auth_header, "granted_scopes", []) or [])
+    required_set = set(required)
+    granted_set = set(granted)
+    return required_set.issubset(granted_set), required, granted
 
 
 # ── Envelope helpers ────────────────────────────────────────────
@@ -231,6 +279,441 @@ def _parse_body(raw: bytes) -> dict[str, Any] | None:
     if not isinstance(parsed, dict):
         return None
     return parsed
+
+
+# ── Dispatch (single code path for HTTP + in-process callers) ────
+
+
+async def dispatch_tool(
+    tool_name: str,
+    arguments: dict[str, Any],
+    request: Request,
+    *,
+    run_id: str | None = None,
+    round_index: int | None = None,
+    caller: str | None = None,
+) -> dict[str, Any]:
+    """Single code path for MCP tool dispatch.
+
+    Phase 3-D2 Task 3 — extracted from the ``tools/call`` HTTP route so
+    in-process callers (``_SimpleAgentDispatchHandler``) can route through
+    the same scope check + auth resolution + trace emit + handler invoke
+    path with zero HTTP overhead.
+
+    Contract:
+      - Raises :class:`MCPError` (or :class:`MCPAuthError` subclass) on
+        any failure (unknown tool / invalid args / auth fail / scope
+        forbidden / handler raised). The caller serializes the error
+        envelope.
+      - Returns ``{"content": result, "isError": False}`` on success.
+
+    Caller must:
+      - Set ``request.app.state.phi_redactor`` / ``mcp_secret_resolver``
+        etc. (the FastAPI app does this in ``mount_mcp``).
+      - Set ``request.state.context_id`` (the context_id middleware does
+        this for HTTP; in-process callers set it directly).
+      - Set ``request.state.run_id`` OR pass ``run_id=`` (for trace
+        correlation).
+      - Optionally pre-set ``request.state.auth_header`` to bypass
+        auth_config resolution (in-process dev path with no bearer
+        token — used by _SimpleAgentDispatchHandler).
+
+    Trace emits (matching the original route's behavior):
+      - AUTH_RESOLVED (when descriptor.auth_config is set)
+      - SCOPE_CHECKED
+      - TOOLS_CALL (OK or FAILED)
+      - COMPLETION (OK or FAILED)
+    """
+    rid = run_id or getattr(request.state, "run_id", None) or "unknown"
+
+    # Phase 3-D2.5 Part A1 — dispatch_detail accumulator.
+    # Concentrated view of the dispatch lifecycle; emitted under
+    # TOOLS_CALL.safe_metadata.dispatch_detail so the RunTrace UI can
+    # render a single expandable panel per tool dispatch. Carries ONLY
+    # display-safe fields (no raw token / Authorization / client_secret
+    # / secret_ref / PHI). The existing _redact_safe_metadata scan
+    # still runs before DB persist as defense-in-depth.
+    dispatch_detail: dict[str, Any] = {
+        "tool_name": tool_name,
+        "dispatch_mode": "http" if isinstance(request, Request) else "in_process",
+        "round_index": round_index,
+        "caller": caller,
+        "handler_ref": None,
+        "input_schema_validation": "skipped",
+        "phi_redaction": "skipped",
+        "auth_type": None,
+        "auth_resolved": False,
+        "required_scopes": [],
+        "granted_scopes": [],
+        "scope_check": "skipped",
+        "handler_status": "ok",
+        "duration_ms": 0.0,
+        "result_shape": None,
+        "error_code": None,
+        "error_stage": None,
+    }
+    t_dispatch_start = time.time()
+
+    descriptor = TOOL_REGISTRY.get(tool_name)
+    if descriptor is None:
+        raise MCPError(
+            MCPErrorCode.METHOD_NOT_FOUND,
+            f"unknown tool {tool_name!r}",
+            data={"allowed_tools": list(TOOL_REGISTRY)},
+        )
+
+    # ── PHI redaction ──
+    redactor = getattr(request.app.state, "phi_redactor", None)
+    ctx_id = getattr(request.state, "context_id", None)
+    if ctx_id and redactor is None:
+        dispatch_detail["phi_redaction"] = "failed"
+        dispatch_detail["error_stage"] = "phi"
+        dispatch_detail["error_code"] = MCPErrorCode.PHI_REDACTION_FAILED
+        dispatch_detail["duration_ms"] = (time.time() - t_dispatch_start) * 1000
+        emit_trace_event(
+            rid, RunTraceStep.TOOLS_CALL,
+            status=RunTraceStatus.FAILED,
+            duration_ms=(time.time() - t_dispatch_start) * 1000,
+            safe_metadata={
+                "tool_name": tool_name,
+                "dispatch_detail": dict(dispatch_detail),
+            },
+        )
+        raise MCPError(
+            MCPErrorCode.PHI_REDACTION_FAILED,
+            "contextId provided but no PHI redactor is registered",
+            data={"context_id": ctx_id},
+        )
+    arguments = _redact_phi(arguments, redactor)
+    dispatch_detail["phi_redaction"] = "passed" if redactor is not None else "skipped"
+
+    # ── Input validation ──
+    try:
+        input_schema_model = _pydantic_model_from_descriptor(descriptor, "input")
+        validated = input_schema_model.model_validate(arguments)
+        arguments = validated.model_dump()
+        dispatch_detail["input_schema_validation"] = "passed"
+    except ValidationError as ve:
+        dispatch_detail["input_schema_validation"] = "failed"
+        dispatch_detail["error_stage"] = "schema"
+        dispatch_detail["error_code"] = MCPErrorCode.INVALID_PARAMS
+        dispatch_detail["duration_ms"] = (time.time() - t_dispatch_start) * 1000
+        emit_trace_event(
+            rid, RunTraceStep.TOOLS_CALL,
+            status=RunTraceStatus.FAILED,
+            duration_ms=(time.time() - t_dispatch_start) * 1000,
+            safe_metadata={
+                "tool_name": tool_name,
+                "dispatch_detail": dict(dispatch_detail),
+            },
+        )
+        raise MCPError(
+            MCPErrorCode.INVALID_PARAMS,
+            f"params.arguments failed validation: {ve.error_count()} error(s)",
+            data={"errors": ve.errors(include_url=False)},
+        )
+    except Exception as e:
+        logger.debug("mcp dispatch_tool: pydantic validate skipped: %s", e)
+        dispatch_detail["input_schema_validation"] = "skipped"
+
+    # ── Auth resolution ──
+    t0 = time.time()
+    auth_header: Any | None = None
+    if descriptor.auth_config is not None:
+        auth_ctx = getattr(request.state, "mcp_run_auth_context", None) or RunAuthContext()
+        resolve_kwargs: dict[str, Any] = {"context": auth_ctx}
+        secret_resolver = getattr(request.app.state, "mcp_secret_resolver", None)
+        if secret_resolver is not None:
+            resolve_kwargs["secret_resolver"] = secret_resolver
+        http_client_factory = getattr(request.app.state, "mcp_http_client_factory", None)
+        if http_client_factory is not None:
+            resolve_kwargs["http_client_factory"] = http_client_factory
+        clock = getattr(request.app.state, "mcp_clock", None)
+        if clock is not None:
+            resolve_kwargs["clock"] = clock
+        try:
+            auth_header = await resolve_mcp_auth(
+                descriptor.auth_config, **resolve_kwargs,
+            )
+            request.state.auth_header = auth_header
+            dispatch_detail["auth_type"] = getattr(descriptor.auth_config, "type", "unknown")
+            dispatch_detail["auth_resolved"] = True
+            dispatch_detail["required_scopes"] = list(descriptor.required_scopes)
+            dispatch_detail["granted_scopes"] = list(getattr(auth_header, "granted_scopes", []) or [])
+            emit_trace_event(
+                rid, RunTraceStep.AUTH_RESOLVED,
+                status=RunTraceStatus.OK,
+                duration_ms=(time.time() - t0) * 1000,
+                safe_metadata={
+                    "tool_name": tool_name,
+                    "auth_type": getattr(descriptor.auth_config, "type", "unknown"),
+                    "redacted_view": getattr(auth_header, "redacted_view", "") or "",
+                    "granted_scopes": list(getattr(auth_header, "granted_scopes", []) or []),
+                },
+            )
+        except MCPAuthError as e:
+            dispatch_detail["auth_type"] = getattr(descriptor.auth_config, "type", "unknown")
+            dispatch_detail["auth_resolved"] = False
+            dispatch_detail["required_scopes"] = list(descriptor.required_scopes)
+            dispatch_detail["granted_scopes"] = []
+            dispatch_detail["error_stage"] = "auth"
+            dispatch_detail["error_code"] = e.code
+            dispatch_detail["duration_ms"] = (time.time() - t_dispatch_start) * 1000
+            emit_trace_event(
+                rid, RunTraceStep.AUTH_RESOLVED,
+                status=RunTraceStatus.FAILED,
+                duration_ms=(time.time() - t0) * 1000,
+                safe_metadata={
+                    "tool_name": tool_name,
+                    "auth_type": getattr(descriptor.auth_config, "type", "unknown"),
+                    "redacted_view": (e.data or {}).get("redacted_view", ""),
+                    "mcp_error_code": (e.data or {}).get("mcp_error_code", ""),
+                },
+            )
+            emit_trace_event(
+                rid, RunTraceStep.TOOLS_CALL,
+                status=RunTraceStatus.FAILED,
+                duration_ms=(time.time() - t_dispatch_start) * 1000,
+                safe_metadata={
+                    "tool_name": tool_name,
+                    "dispatch_detail": dict(dispatch_detail),
+                },
+            )
+            raise
+    else:
+        # No auth_config on this tool — but the caller may have pre-set
+        # request.state.auth_header (in-process dev path). Read it so the
+        # scope check below can use it. Emit AUTH_RESOLVED with auth_type
+        # "in-process" so the trace shows the bypass explicitly.
+        auth_header = getattr(request.state, "auth_header", None)
+        dispatch_detail["auth_type"] = "in-process"
+        dispatch_detail["auth_resolved"] = True
+        dispatch_detail["required_scopes"] = list(descriptor.required_scopes)
+        dispatch_detail["granted_scopes"] = list(getattr(auth_header, "granted_scopes", []) or [])
+        emit_trace_event(
+            rid, RunTraceStep.AUTH_RESOLVED,
+            status=RunTraceStatus.OK,
+            duration_ms=(time.time() - t0) * 1000,
+            safe_metadata={
+                "tool_name": tool_name,
+                "auth_type": "in-process",
+                "redacted_view": getattr(auth_header, "redacted_view", "") or "",
+                "granted_scopes": list(getattr(auth_header, "granted_scopes", []) or []),
+                "note": "auth_config is None; in-process bypass (A2A route already authenticated)",
+            },
+        )
+
+    # ── Scope check ──
+    t_scope = time.time()
+    scope_ok, scope_required, scope_granted = _check_required_scopes(
+        descriptor, auth_header,
+    )
+    rv_for_log = (
+        getattr(auth_header, "redacted_view", "") or ""
+        if auth_header is not None else ""
+    )
+    logger.info(
+        "mcp scope_check: tool=%s required=%s granted=%s ok=%s redacted_view=%r",
+        tool_name, scope_required, scope_granted, scope_ok, rv_for_log,
+    )
+    dispatch_detail["scope_check"] = "passed" if scope_ok else "failed"
+    emit_trace_event(
+        rid, RunTraceStep.SCOPE_CHECKED,
+        status=RunTraceStatus.OK if scope_ok else RunTraceStatus.FAILED,
+        duration_ms=(time.time() - t_scope) * 1000,
+        safe_metadata={
+            "tool_name": tool_name,
+            "required_scopes": scope_required,
+            "granted_scopes": scope_granted,
+            "redacted_view": rv_for_log,
+        },
+    )
+    if not scope_ok:
+        dispatch_detail["error_stage"] = "scope"
+        dispatch_detail["error_code"] = MCPErrorCode.MCP_AUTH_FORBIDDEN
+        dispatch_detail["duration_ms"] = (time.time() - t_dispatch_start) * 1000
+        emit_trace_event(
+            rid, RunTraceStep.TOOLS_CALL,
+            status=RunTraceStatus.FAILED,
+            duration_ms=(time.time() - t_dispatch_start) * 1000,
+            safe_metadata={
+                "tool_name": tool_name,
+                "dispatch_detail": dict(dispatch_detail),
+            },
+        )
+        raise MCPAuthError(
+            MCPErrorCode.MCP_AUTH_FORBIDDEN,
+            f"tool {tool_name!r} requires scopes {scope_required} "
+            f"but resolved auth carries {scope_granted}",
+            data={
+                "tool_name": tool_name,
+                "required_scopes": scope_required,
+                "granted_scopes": scope_granted,
+            },
+            redacted_view=rv_for_log or None,
+        )
+
+    # ── Handler resolve ──
+    t_dispatch = time.time()
+    dispatch_detail["handler_ref"] = descriptor.handler_ref
+    try:
+        handler = resolve_handler(descriptor.handler_ref)
+    except (ImportError, AttributeError, TypeError) as e:
+        logger.exception("mcp handler resolve failed for %s", tool_name)
+        dispatch_detail["handler_status"] = "failed"
+        dispatch_detail["error_stage"] = "handler_resolve"
+        dispatch_detail["error_code"] = MCPErrorCode.INTERNAL_ERROR
+        dispatch_detail["duration_ms"] = (time.time() - t_dispatch_start) * 1000
+        emit_trace_event(
+            rid, RunTraceStep.TOOLS_CALL,
+            status=RunTraceStatus.FAILED,
+            duration_ms=(time.time() - t_dispatch) * 1000,
+            safe_metadata={
+                "tool_name": tool_name,
+                "dispatch_detail": dict(dispatch_detail),
+                "error": f"handler resolve failed: {type(e).__name__}",
+            },
+        )
+        raise MCPError(
+            MCPErrorCode.INTERNAL_ERROR,
+            f"handler resolve failed: {type(e).__name__}: {e}",
+        )
+
+    # ── Handler invoke ──
+    t_handler = time.time()
+    try:
+        result = await handler(arguments, request)
+    except MCPError as me:
+        dispatch_detail["handler_status"] = "failed"
+        dispatch_detail["error_stage"] = "handler_invoke"
+        dispatch_detail["error_code"] = me.code
+        dispatch_detail["duration_ms"] = (time.time() - t_handler) * 1000
+        emit_trace_event(
+            rid, RunTraceStep.TOOLS_CALL,
+            status=RunTraceStatus.FAILED,
+            duration_ms=(time.time() - t_dispatch_start) * 1000,
+            safe_metadata={
+                "tool_name": tool_name,
+                "dispatch_detail": dict(dispatch_detail),
+            },
+        )
+        emit_trace_event(
+            rid, RunTraceStep.COMPLETION,
+            status=RunTraceStatus.FAILED,
+            duration_ms=(time.time() - t_handler) * 1000,
+            safe_metadata={
+                "tool_name": tool_name,
+                "error_code": me.code,
+                "mcp_error_code": MCPErrorCode.name(me.code),
+                "total_dispatch_ms": (time.time() - t0) * 1000,
+            },
+        )
+        raise
+    except TimeoutError as te:
+        dispatch_detail["handler_status"] = "failed"
+        dispatch_detail["error_stage"] = "handler_invoke"
+        dispatch_detail["error_code"] = MCPErrorCode.LLM_TIMEOUT
+        dispatch_detail["duration_ms"] = (time.time() - t_handler) * 1000
+        emit_trace_event(
+            rid, RunTraceStep.TOOLS_CALL,
+            status=RunTraceStatus.FAILED,
+            duration_ms=(time.time() - t_dispatch_start) * 1000,
+            safe_metadata={
+                "tool_name": tool_name,
+                "dispatch_detail": dict(dispatch_detail),
+            },
+        )
+        emit_trace_event(
+            rid, RunTraceStep.COMPLETION,
+            status=RunTraceStatus.FAILED,
+            duration_ms=(time.time() - t_handler) * 1000,
+            safe_metadata={
+                "tool_name": tool_name,
+                "error": f"timeout: {te}",
+                "total_dispatch_ms": (time.time() - t0) * 1000,
+            },
+        )
+        raise MCPError(
+            MCPErrorCode.LLM_TIMEOUT,
+            f"tool {tool_name} timed out: {te}",
+        )
+    except Exception as e:
+        logger.exception("mcp tool %s raised", tool_name)
+        dispatch_detail["handler_status"] = "failed"
+        dispatch_detail["error_stage"] = "handler_invoke"
+        dispatch_detail["error_code"] = MCPErrorCode.INTERNAL_ERROR
+        dispatch_detail["duration_ms"] = (time.time() - t_handler) * 1000
+        emit_trace_event(
+            rid, RunTraceStep.TOOLS_CALL,
+            status=RunTraceStatus.FAILED,
+            duration_ms=(time.time() - t_dispatch_start) * 1000,
+            safe_metadata={
+                "tool_name": tool_name,
+                "dispatch_detail": dict(dispatch_detail),
+            },
+        )
+        emit_trace_event(
+            rid, RunTraceStep.COMPLETION,
+            status=RunTraceStatus.FAILED,
+            duration_ms=(time.time() - t_handler) * 1000,
+            safe_metadata={
+                "tool_name": tool_name,
+                "error": f"{type(e).__name__}: {e}",
+                "total_dispatch_ms": (time.time() - t0) * 1000,
+            },
+        )
+        raise MCPError(
+            MCPErrorCode.INTERNAL_ERROR,
+            f"tool {tool_name} failed: {type(e).__name__}: {e}",
+        )
+
+    # Result summary: type + top-level keys (if dict) + JSON size.
+    # Full result is NOT emitted — only the shape summary, so the trace
+    # stays compact and PHI-safe (the full result is in the A2A response).
+    result_type = type(result).__name__
+    result_keys: list[str] = []
+    if isinstance(result, dict):
+        result_keys = list(result.keys())[:20]
+    result_size = len(json.dumps(result, ensure_ascii=False, default=str))
+
+    dispatch_detail["handler_status"] = "ok"
+    dispatch_detail["duration_ms"] = (time.time() - t_handler) * 1000
+    keys_str = ", ".join(result_keys[:8])
+    if isinstance(result, dict):
+        if result_keys:
+            dispatch_detail["result_shape"] = (
+                f"{result_type}({{{keys_str}}}, size={result_size}B)"
+            )
+        else:
+            dispatch_detail["result_shape"] = f"{result_type}(size={result_size}B)"
+    else:
+        dispatch_detail["result_shape"] = f"{result_type}(size={result_size}B)"
+
+    emit_trace_event(
+        rid, RunTraceStep.TOOLS_CALL,
+        status=RunTraceStatus.OK,
+        duration_ms=(time.time() - t_dispatch_start) * 1000,
+        safe_metadata={
+            "tool_name": tool_name,
+            "dispatch_detail": dict(dispatch_detail),
+        },
+    )
+
+    emit_trace_event(
+        rid, RunTraceStep.COMPLETION,
+        status=RunTraceStatus.OK,
+        duration_ms=(time.time() - t_handler) * 1000,
+        safe_metadata={
+            "tool_name": tool_name,
+            "is_error": False,
+            "result_type": result_type,
+            "result_keys": result_keys,
+            "result_size": result_size,
+            "total_dispatch_ms": (time.time() - t0) * 1000,
+        },
+    )
+
+    return {"content": result, "isError": False}
 
 
 # ── Middleware ──────────────────────────────────────────────────
@@ -294,6 +777,20 @@ def build_router() -> APIRouter:
                     ), status_code=200)
 
             tools_out: list[dict[str, Any]] = []
+            # Phase 3-D1 Task 4: emit a tools_list trace event so the
+            # RunTrace timeline surfaces the tool inventory the planner
+            # was working with. ``run_id`` comes from request.state
+            # (set by upstream middleware from the A2A envelope _meta).
+            run_id_tl = getattr(request.state, "run_id", None) or "unknown"
+            emit_trace_event(
+                run_id_tl,
+                RunTraceStep.TOOLS_LIST,
+                status=RunTraceStatus.OK,
+                safe_metadata={
+                    "tool_count": len(TOOL_REGISTRY),
+                    "tool_names": list(TOOL_REGISTRY.keys()),
+                },
+            )
             for name, desc in TOOL_REGISTRY.items():
                 entry: dict[str, Any] = {
                     "name": desc.name,
@@ -309,6 +806,11 @@ def build_router() -> APIRouter:
                 # fields survive.
                 if desc.auth_config is not None:
                     entry["auth"] = _redact_auth_config(desc.auth_config)
+                # Phase 3-D0 Task 1: advertise required_scopes (public,
+                # not a secret) so clients know which scopes their token
+                # must carry. Always present (empty list when no
+                # requirement) for client-side branching simplicity.
+                entry["required_scopes"] = list(desc.required_scopes)
                 tools_out.append(entry)
 
             return JSONResponse(_envelope_success(
@@ -369,111 +871,24 @@ def build_router() -> APIRouter:
                 "params.arguments must be an object",
             ), status_code=200)
 
-        descriptor = TOOL_REGISTRY.get(tool_name)
-        if descriptor is None:
-            return JSONResponse(_envelope_error(
-                req_id, MCPErrorCode.METHOD_NOT_FOUND,
-                f"unknown tool {tool_name!r}",
-                data={"allowed_tools": list(TOOL_REGISTRY)},
-            ), status_code=200)
+        run_id_t = getattr(request.state, "run_id", None) or req_id or "unknown"
 
-        # ── PHI redaction (R4) ──
-        # M2 best-effort: if a redactor is registered on app.state, redact
-        # string-typed arguments before dispatch. If context_id is provided
-        # but the redactor is missing, fail closed (-32004) — never leak.
-        redactor = getattr(request.app.state, "phi_redactor", None)
-        ctx_id = getattr(request.state, "context_id", None)
-        if ctx_id and redactor is None:
-            return JSONResponse(_envelope_error(
-                req_id, MCPErrorCode.PHI_REDACTION_FAILED,
-                "contextId provided but no PHI redactor is registered",
-                data={"context_id": ctx_id},
-            ), status_code=200)
-        arguments = _redact_phi(arguments, redactor)
-
-        # ── Input validation against the tool's inputSchema ──
+        # ── Dispatch via the shared code path (Phase 3-D2 Task 3) ──
+        # Both the HTTP tools/call route and the in-process
+        # _SimpleAgentDispatchHandler call dispatch_tool() so scope check
+        # + auth resolution + trace emit + handler invoke share a single
+        # implementation. Errors are raised as MCPError (or the
+        # MCPAuthError subclass); we serialize them into JSON-RPC error
+        # envelopes here.
         try:
-            input_schema_model = _pydantic_model_from_descriptor(descriptor, "input")
-            validated = input_schema_model.model_validate(arguments)
-            arguments = validated.model_dump()
-        except ValidationError as ve:
+            result = await dispatch_tool(
+                tool_name, arguments, request, run_id=run_id_t,
+            )
+            return JSONResponse(_envelope_success(req_id, result))
+        except MCPError as e:
             return JSONResponse(_envelope_error(
-                req_id, MCPErrorCode.INVALID_PARAMS,
-                f"params.arguments failed validation: {ve.error_count()} error(s)",
-                data={"errors": ve.errors(include_url=False)},
+                req_id, e.code, e.message, data=e.data,
             ), status_code=200)
-        except Exception as e:
-            # If we can't resolve the Pydantic model (e.g. legacy registry
-            # entry), fall through and let the handler validate.
-            logger.debug("mcp tools/call: pydantic validate skipped: %s", e)
-
-        # ── Auth resolution (Phase 3-C1 B5 #9) ──
-        # If the tool has auth_config, resolve it via resolve_mcp_auth()
-        # and inject the AuthHeader onto request.state.auth_header so
-        # the handler can read it (e.g. for forwarding to a downstream
-        # external MCP server). Failures surface as MCP_AUTH_* errors.
-        # Tools with auth_config=None skip this block (backwards compat).
-        if descriptor.auth_config is not None:
-            # Build RunAuthContext from request.state if the upstream
-            # middleware set one; otherwise default to empty (inherit
-            # auth will fall back through the priority chain).
-            auth_ctx = getattr(request.state, "mcp_run_auth_context", None) or RunAuthContext()
-            # Only pass non-None overrides so resolve_mcp_auth's defaults
-            # (time.time for clock, _default_secret_resolver for secrets)
-            # apply when the app hasn't injected a test double.
-            resolve_kwargs: dict[str, Any] = {"context": auth_ctx}
-            secret_resolver = getattr(request.app.state, "mcp_secret_resolver", None)
-            if secret_resolver is not None:
-                resolve_kwargs["secret_resolver"] = secret_resolver
-            http_client_factory = getattr(request.app.state, "mcp_http_client_factory", None)
-            if http_client_factory is not None:
-                resolve_kwargs["http_client_factory"] = http_client_factory
-            clock = getattr(request.app.state, "mcp_clock", None)
-            if clock is not None:
-                resolve_kwargs["clock"] = clock
-            try:
-                auth_header = await resolve_mcp_auth(
-                    descriptor.auth_config,
-                    **resolve_kwargs,
-                )
-                request.state.auth_header = auth_header
-            except MCPAuthError as e:
-                return JSONResponse(_envelope_error(
-                    req_id, e.code, e.message, data=e.data,
-                ), status_code=200)
-
-        # ── Handler dispatch ──
-        try:
-            handler = resolve_handler(descriptor.handler_ref)
-        except (ImportError, AttributeError, TypeError) as e:
-            logger.exception("mcp handler resolve failed for %s", tool_name)
-            return JSONResponse(_envelope_error(
-                req_id, MCPErrorCode.INTERNAL_ERROR,
-                f"handler resolve failed: {type(e).__name__}: {e}",
-            ), status_code=200)
-
-        try:
-            result = await handler(arguments, request)
-        except MCPError as me:
-            # Typed application errors (catalog miss / retriever / etc.)
-            return JSONResponse(_envelope_error(
-                req_id, me.code, me.message, data=me.data,
-            ), status_code=200)
-        except TimeoutError as te:
-            return JSONResponse(_envelope_error(
-                req_id, MCPErrorCode.LLM_TIMEOUT,
-                f"tool {tool_name} timed out: {te}",
-            ), status_code=200)
-        except Exception as e:
-            logger.exception("mcp tool %s raised", tool_name)
-            return JSONResponse(_envelope_error(
-                req_id, MCPErrorCode.INTERNAL_ERROR,
-                f"tool {tool_name} failed: {type(e).__name__}: {e}",
-            ), status_code=200)
-
-        return JSONResponse(_envelope_success(
-            req_id, {"content": result, "isError": False},
-        ))
 
     return router
 
@@ -508,6 +923,13 @@ def _pydantic_model_from_descriptor(
         ("rerank_codes", "output"): _reg.RerankCodesOutput,
         ("calibrate_confidence", "input"): _reg.CalibrateConfidenceInput,
         ("calibrate_confidence", "output"): _reg.CalibrateConfidenceOutput,
+        # Phase 3-D2 Task 3 — 3 agent-backed MCP tools
+        ("validate_codes", "input"): _reg.ValidateCodesInput,
+        ("validate_codes", "output"): _reg.ValidateCodesOutput,
+        ("evaluate_compliance", "input"): _reg.EvaluateComplianceInput,
+        ("evaluate_compliance", "output"): _reg.EvaluateComplianceOutput,
+        ("check_documentation_gaps", "input"): _reg.CheckDocumentationGapsInput,
+        ("check_documentation_gaps", "output"): _reg.CheckDocumentationGapsOutput,
     }
     model = table.get((descriptor.name, kind))
     if model is None:
@@ -608,7 +1030,9 @@ def mount_mcp(
 __all__ = [
     "mount_mcp",
     "build_router",
+    "dispatch_tool",
     "resolve_handler",
     "ALLOWED_METHODS",
     "_redact_phi",
+    "_check_required_scopes",
 ]

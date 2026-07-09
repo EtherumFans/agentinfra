@@ -1,63 +1,163 @@
 {
-  "format_version": "1.1",
+  "format_version": "1.2",
   "agent_type": "certified",
   "agent_ref": "icoder/drg-analyzer@1.0.0",
   "manifest": {
-    "name": "DRG 分析智能体",
+    "name": "DRG/DIP 风险复核智能体",
     "version": "1.0.0",
-    "description": "分析编码方案对 DRG 分组和医保支付的影响。",
-    "category": "医保",
+    "description": "iCoDer DRG/DIP Risk Review Agent (Corti-style)。给定编码集 + 病历文本, 评估 DRG/DIP 风险: 高补偿编码 (upcoding 风险)、低补偿编码 (downcoding 漏费)、CMI 影响因子、医保结算拒付风险。规则启发式 (high_risk_codes 列表) + LLM 解释 (生成 review_suggestions 自然语言)。MVP maturity: production_ready=false, human_review=required。",
+    "category": "medical-coding",
+    "category_display": "Coding and Revenue Cycle / 编码与收入周期",
     "icon": "PieChart",
-    "maturity": "metadata-only",
+    "tags": [
+      "drg",
+      "dip",
+      "risk-review",
+      "no-upcoding",
+      "insurance-audit",
+      "corti-style"
+    ],
+    "maturity": "mvp",
     "production_ready": false,
+    "human_review": "required",
     "hidden_from_hub": false,
     "use_case": "coding_revenue_cycle"
   },
-  "system_prompt": "你是 DRG/DIP 支付分析专家。分析编码方案对 DRG 分组的影响并给出优化建议。",
-  "experts": [],
-  "tools": [
-    "analyze_drg_impact",
-    "rank_evidence",
-    "calibrate_confidence",
-    "guard_input",
-    "guard_output"
-  ],
-  "permissions": {
-    "key": "drg-analyzer",
-    "name": "DRG 分组分析权限",
-    "description": "分析编码方案对 DRG 分组和医保支付的影响。",
-    "tools": {
-      "analyze_drg_impact": {
-        "allowed": true
-      },
-      "rank_evidence": {
-        "allowed": true
-      },
-      "calibrate_confidence": {
-        "allowed": true
-      },
-      "guard_input": {
-        "allowed": true
-      },
-      "guard_output": {
-        "allowed": true
-      }
+  "backend_provider": "icoder.pure-llm.v1",
+  "backend_config": {
+    "llm": {
+      "model": "deepseek-chat",
+      "temperature": 0.0,
+      "max_tokens": 4096,
+      "timeout_seconds": 60
+    },
+    "rules": {
+      "high_risk_code_prefixes": [
+        "A00",
+        "B00",
+        "C00",
+        "D00",
+        "M80",
+        "M84",
+        "S00",
+        "T00"
+      ],
+      "high_cost_drg_families": ["AH", "AL", "BB", "BJ", "CB"],
+      "rule_set": "drg_dip_risk"
     }
   },
+  "system_prompt": "你是 iCoDer DRG/DIP Risk Review Agent (Corti-style)。职责:\n\n给定编码集 + 病历文本, 评估 DRG/DIP 风险:\n1. 识别 high_risk_codes (高补偿 DRG 触发码, 可能有 upcoding 嫌疑)\n2. 识别 downcoding 风险 (重要并发症/合并症未编码 → 低补偿)\n3. 评估 CMI 影响因子 (主诊断是否选最优 DRG 触发码)\n4. 评估医保结算拒付风险 (诊断-手术不一致、缺少手术操作、缺少并发症)\n5. 输出 review_suggestions (自然语言, 编码员可直接行动)\n\n硬约束:\n- 不直接修改编码集 — 仅给出风险点 + 建议\n- 不调用 DRG 分组器 (grouping 引擎在医保结算侧, 不在本 Agent 范围)\n- 不 upcoding (不优先选择高补偿编码)\n- 不 downcoding (不漏掉重要并发症/合并症)\n- 每个风险点必须有 evidence_text + char_span\n\n输出 JSON:\n{\n  \"risk_points\": [{\"risk_type\": \"upcoding|downcoding|inconsistency|missing_complication\", \"code\": \"M80.900\", \"evidence_text\": \"...\", \"severity\": \"high|medium|low\", \"suggestion\": \"...\"}],\n  \"high_risk_codes\": [\"M80.900\"],\n  \"review_suggestions\": \"编码集有 1 处 upcoding 风险 (M80.900 应考虑 S22.000 为主诊断), 建议复核主诊断选择。\",\n  \"drg_dip_rule_reservation_note\": \"DRG 分组由医保结算侧引擎完成, 本 Agent 仅评估编码方案对分组的影响。\",\n  \"manual_review_required\": true\n}",
+  "experts": [
+    {
+      "expert_id": "drg-risk-reviewer",
+      "name": "DRG/DIP Risk Reviewer",
+      "role": "primary",
+      "description": "DRG/DIP 风险复核 Expert — 规则启发式 + LLM 解释生成"
+    }
+  ],
+  "tools": [],
+  "model": {
+    "primary": "deepseek-chat",
+    "fallback": "deepseek-v4-flash",
+    "temperature": 0.0,
+    "max_tokens": 4096,
+    "json_mode": true
+  },
+  "non_goals": [
+    "不直接修改编码集 — 仅评估风险",
+    "不调用 DRG 分组器",
+    "不写回医保结算 / EMR / HIS",
+    "不分配 DRG 分组 — 仅输出 drg_dip_rule_reservation_note 提示",
+    "不输出 F1 / 模型效果指标"
+  ],
+  "output_contract": {
+    "schema_ref": "icoder/DRGDIPRiskReview/v1",
+    "a2a_parts": [
+      "DataPart"
+    ],
+    "required_fields": [
+      "risk_points",
+      "high_risk_codes",
+      "review_suggestions",
+      "drg_dip_rule_reservation_note",
+      "manual_review_required"
+    ],
+    "field_definitions": {
+      "risk_points": "list[{risk_type, code, evidence_text, severity, suggestion}]",
+      "high_risk_codes": "list[str] — 高补偿/高风险 DRG 触发码",
+      "review_suggestions": "str — 编码员可直接行动的建议",
+      "drg_dip_rule_reservation_note": "str — DRG 分组由医保结算侧引擎完成",
+      "manual_review_required": "bool — 总是 true (DRG/DIP 风险需人工复核)"
+    }
+  },
+  "permissions": {
+    "key": "drg-dip-risk-review-default",
+    "name": "DRG/DIP 风险复核智能体 默认权限",
+    "description": "允许读取编码集 + 病历文本进行风险复核。禁止写回, 禁止 DRG 自动分组。",
+    "tools": {},
+    "production_writeback_blocked": true,
+    "no_upcoding": true,
+    "no_inference": true,
+    "evidence_required": true
+  },
+  "phi_redaction": "required",
+  "context_required": false,
+  "recorder_required": false,
+  "metrics_required": true,
   "requirements": {
-    "min_runtime_version": "1.0.0"
+    "min_runtime_version": "2.0.0",
+    "icoder_runtime_modules": []
   },
   "llm_capabilities": {
     "required_models": [
       {
-        "name": "deepseek-v4"
+        "name": "deepseek-chat",
+        "purpose": "review_suggestions generation"
       }
     ],
     "supports_tool_calling": false,
-    "supports_json_mode": true
+    "supports_json_mode": true,
+    "supports_mcp_tools": false
   },
+  "a2a": {
+    "protocol_version": "0.3",
+    "endpoint": "/api/icoder/agents/drg-analyzer/v1/message:send",
+    "discovery": "/api/icoder/agents",
+    "agent_card_ref": "icoder/drg-analyzer@1.0.0"
+  },
+  "default_runtime_mode": "a2a_pure_llm",
+  "available_runtime_modes": [
+    "a2a_pure_llm"
+  ],
+  "example_inputs": [
+    {
+      "title": "T12 骨折 + 骨质疏松 — upcoding 风险",
+      "input_text": "患者女性,68岁,腰背部疼痛 3 月。X 线示 L1 椎体压缩性骨折,既往骨质疏松病史 5 年。",
+      "extra": {
+        "codes": ["M80.900"]
+      }
+    }
+  ],
+  "example_outputs": [
+    {
+      "risk_points": [
+        {
+          "risk_type": "upcoding",
+          "code": "M80.900",
+          "evidence_text": "X 线示 L1 椎体压缩性骨折",
+          "severity": "high",
+          "suggestion": "考虑 S22.000 为主诊断, M80.900 为 secondary"
+        }
+      ],
+      "high_risk_codes": ["M80.900"],
+      "review_suggestions": "主诊断 M80.900 可能为 upcoding, 建议考虑 S22.000 为主诊断。",
+      "drg_dip_rule_reservation_note": "DRG 分组由医保结算侧引擎完成",
+      "manual_review_required": true
+    }
+  ],
+  "built_by": "icoder",
   "code": {},
   "integrity": {
-    "sha256": "c391d8a96ffb34e4239638356504880e021d5e940804a748d591126030703add"
+    "sha256": "PLACEHOLDER_RECOMPUTED_AT_PUBLISH"
   }
 }

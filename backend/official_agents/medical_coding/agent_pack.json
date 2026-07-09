@@ -268,6 +268,31 @@
     "discovery": "/api/icoder/agents",
     "agent_card_ref": "icoder/medical-coding-agent@2.0.0"
   },
+  "default_runtime_mode": "corti_like_fast",
+  "available_runtime_modes": [
+    "corti_like_fast",
+    "medcoder_deep"
+  ],
+  "example_inputs": [
+    {
+      "title": "T12 椎体压缩性骨折 (G001 gold case)",
+      "input_text": "患者男性,78岁,MRI 显示 T12 椎体压缩性骨折。"
+    },
+    {
+      "title": "骨质疏松伴病理性骨折",
+      "input_text": "患者女性,68岁,腰背部疼痛 3 月。X 线示 L1 椎体压缩性骨折,既往骨质疏松病史 5 年。"
+    }
+  ],
+  "example_outputs": [
+    {
+      "primary_diagnosis": "S22.000 (T12 椎体压缩性骨折)",
+      "secondary_dx": ["M80.900 (骨质疏松伴病理性骨折)"],
+      "procedures": [],
+      "manual_review_required": true,
+      "runtime_mode": "corti_like_fast"
+    }
+  ],
+  "built_by": "icoder",
   "internal_engine": {
     "name": "MedCodER 5-stage pipeline (NAACL 2025 Industry Track)",
     "agent_ref": "icoder/medcoder-coding-review-agent@1.0.0",

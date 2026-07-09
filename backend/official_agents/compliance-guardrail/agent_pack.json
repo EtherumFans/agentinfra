@@ -5,23 +5,36 @@
   "manifest": {
     "name": "合规护栏智能体",
     "version": "1.0.0",
-    "description": "iCoDer 合规护栏 Agent — 在提交医保结算清单前，按 MedicalCodingRuleSet + 合规护栏启发式 (主诊断非空 / no upcoding / 手术-诊断一致 / DRG 就绪) 评估编码集。纯确定性，无 LLM。",
+    "description": "iCoDer Compliance Guardrail Agent (Corti-style)。在提交医保结算清单前, 按 MedicalCodingRuleSet + 合规护栏启发式 (主诊断非空 / no upcoding / 手术-诊断一致 / DRG 就绪) 评估编码集。规则主路径 (确定性) + LLM 解释路径 (生成自然语言 review_suggestions)。MVP maturity: production_ready=false, human_review=required。",
     "category": "medical-coding",
     "category_display": "Coding and Revenue Cycle / 编码与收入周期",
     "icon": "Shield",
     "tags": [
       "compliance",
       "guardrail",
-      "deterministic",
-      "no-llm",
+      "rule-engine",
+      "llm-explainer",
       "drg-readiness",
-      "no-upcoding"
+      "no-upcoding",
+      "corti-style"
     ],
-    "maturity": "runnable",
+    "maturity": "mvp",
     "production_ready": false,
     "human_review": "required",
     "hidden_from_hub": false,
     "use_case": "coding_revenue_cycle"
+  },
+  "backend_provider": "icoder.rule-engine.v1",
+  "backend_config": {
+    "rules": {
+      "rule_set": "medical_coding",
+      "guardrails": ["CG-001", "CG-002", "CG-003", "CG-004"]
+    },
+    "llm_explainer": {
+      "model": "deepseek-chat",
+      "purpose": "生成 review_suggestions 自然语言",
+      "trigger": "issues_found non-empty 或 review_conclusion == FAIL"
+    }
   },
   "system_prompt": "你是 iCoDer Compliance Guardrail Agent。职责：\n1. 接收编码集 + 可选 EMR 文本\n2. 跑 MedicalCodingRuleSet (R001-R010 + MC-R-M80-001)\n3. 跑合规护栏检查：\n   - CG-001 主诊断非空\n   - CG-002 no upcoding (骨质疏松+椎体骨折 → 应优先 M80.x 而非 M48.x)\n   - CG-003 手术-诊断一致 (有手术必有诊断)\n   - CG-004 DRG 就绪 (主诊断 + 至少 1 个有效手术 for surgical cases)\n4. 输出 review_conclusion + issues_found + drg_suggestion + compliance_checks\n\n硬约束：\n- 不调用 LLM — 纯规则 + 启发式\n- 不修改编码集 — 只评估\n- 不写回医保结算\n- 所有合规风险必须显式输出，即使 PASS",
   "experts": [
@@ -128,6 +141,42 @@
     "discovery": "/api/icoder/agents",
     "agent_card_ref": "icoder/compliance-guardrail-agent@1.0.0"
   },
+  "default_runtime_mode": "rule_engine",
+  "available_runtime_modes": [
+    "rule_engine",
+    "a2a_pure_llm"
+  ],
+  "example_inputs": [
+    {
+      "title": "T12 骨折编码集 — upcoding 风险",
+      "input_text": "患者男性,78岁,MRI 显示 T12 椎体压缩性骨折。既往骨质疏松病史 5 年。",
+      "extra": {
+        "codes": ["M80.900"]
+      }
+    }
+  ],
+  "example_outputs": [
+    {
+      "review_conclusion": "WARNING",
+      "issues_found": [
+        {
+          "rule": "CG-002",
+          "severity": "high",
+          "message": "主诊断 M80.900 可能为 upcoding (骨质疏松伴病理性骨折), 应优先考虑 S22.000 (T12 椎体压缩性骨折) 为主诊断"
+        }
+      ],
+      "manual_review_required": true,
+      "drg_suggestion": "建议主诊断改为 S22.000, M80.900 列为 secondary",
+      "compliance_checks": {
+        "primary_dx_present": true,
+        "no_upcoding_risk": false,
+        "procedure_dx_consistency": true,
+        "drg_readiness": false
+      },
+      "rule_set": "medical_coding"
+    }
+  ],
+  "built_by": "icoder",
   "code": {},
   "integrity": {
     "sha256": "PLACEHOLDER_RECOMPUTED_AT_PUBLISH"

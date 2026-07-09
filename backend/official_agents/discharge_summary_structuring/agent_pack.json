@@ -1,0 +1,156 @@
+{
+  "format_version": "1.2",
+  "agent_type": "certified",
+  "agent_ref": "icoder/discharge-summary-structuring@1.0.0",
+  "manifest": {
+    "name": "出院小结结构化智能体",
+    "version": "1.0.0",
+    "description": "iCoDer Discharge Summary Structuring Agent (Corti-style)。给定非结构化出院小结原文, 输出结构化字段: 诊断列表/手术操作列表/治疗经过/出院医嘱/随访建议。LLM-based via PureLLMProvider。MVP maturity: production_ready=false, human_review=required。",
+    "category": "medical-coding",
+    "category_display": "Coding and Revenue Cycle / 编码与收入周期",
+    "icon": "FileText",
+    "tags": [
+      "discharge-summary",
+      "structuring",
+      "llm-based",
+      "pure-llm",
+      "corti-style"
+    ],
+    "maturity": "mvp",
+    "production_ready": false,
+    "human_review": "required",
+    "hidden_from_hub": false,
+    "use_case": "coding_revenue_cycle"
+  },
+  "backend_provider": "icoder.pure-llm.v1",
+  "backend_config": {
+    "llm": {
+      "model": "deepseek-chat",
+      "temperature": 0.0,
+      "max_tokens": 4096,
+      "timeout_seconds": 60
+    }
+  },
+  "system_prompt": "你是 iCoDer Discharge Summary Structuring Agent (Corti-style)。职责:\n\n给定非结构化出院小结原文, 输出结构化字段:\n1. diagnoses[] — 诊断列表 (含 primary / secondary 标记 + evidence span)\n2. procedures[] — 手术操作列表 (含 code + evidence span)\n3. treatment_summary — 治疗经过 (自然语言, 按时间顺序)\n4. discharge_orders[] — 出院医嘱 (用药/活动/复诊/饮食)\n5. follow_up_recommendations[] — 随访建议 (科室/时间/项目)\n6. discharge_status — 出院状态 (1=治愈/2=好转/3=未愈/4=死亡/5=其他)\n\n硬约束:\n- 不分配 ICD 编码 — 仅结构化抽取 (编码由 Medical Coding Agent 完成)\n- 不修改原文 — 只读取 + 结构化\n- 每个 evidence span 必须能在原文找到 (no fabrication)\n- 不写回 EMR / HIS\n\n输出 JSON:\n{\n  \"diagnoses\": [{\"text\": \"T12 椎体压缩性骨折\", \"primary\": true, \"evidence_text\": \"MRI 显示 T12 椎体压缩性骨折\", \"char_span\": [12, 28]}],\n  \"procedures\": [{\"text\": \"T12 椎体切开复位内固定术\", \"evidence_text\": \"行 T12 椎体切开复位内固定术\", \"char_span\": [120, 138]}],\n  \"treatment_summary\": \"患者入院后行 MRI 检查确诊 T12 骨折, 行切开复位内固定术, 术后恢复良好。\",\n  \"discharge_orders\": [\"腰背支具佩戴 3 个月\", \"避免负重活动 1 个月\", \"抗骨质疏松药物治疗\"],\n  \"follow_up_recommendations\": [{\"department\": \"骨科\", \"time\": \"术后 1 月\", \"items\": [\"X 线复查\"]}],\n  \"discharge_status\": 1,\n  \"manual_review_required\": true\n}",
+  "experts": [
+    {
+      "expert_id": "discharge-structurer",
+      "name": "Discharge Summary Structurer",
+      "role": "primary",
+      "description": "出院小结结构化 Expert — 抽取诊断/手术/治疗经过/出院医嘱/随访建议。LLM-based via PureLLMProvider。"
+    }
+  ],
+  "tools": [],
+  "model": {
+    "primary": "deepseek-chat",
+    "fallback": "deepseek-v4-flash",
+    "temperature": 0.0,
+    "max_tokens": 4096,
+    "json_mode": true
+  },
+  "non_goals": [
+    "不分配 ICD 编码 — 编码由 Medical Coding Agent 完成",
+    "不修改原文",
+    "不写回 EMR / HIS",
+    "不绕过 PHI redaction",
+    "不调用工具 — PureLLMProvider 不支持 tool_calling"
+  ],
+  "output_contract": {
+    "schema_ref": "icoder/DischargeSummaryStructured/v1",
+    "a2a_parts": [
+      "DataPart"
+    ],
+    "required_fields": [
+      "diagnoses",
+      "procedures",
+      "treatment_summary",
+      "discharge_orders",
+      "follow_up_recommendations",
+      "discharge_status",
+      "manual_review_required"
+    ],
+    "field_definitions": {
+      "diagnoses": "list[{text, primary, evidence_text, char_span}]",
+      "procedures": "list[{text, evidence_text, char_span}]",
+      "treatment_summary": "str — 按时间顺序的自然语言摘要",
+      "discharge_orders": "list[str] — 出院医嘱",
+      "follow_up_recommendations": "list[{department, time, items}]",
+      "discharge_status": "int — 1=治愈/2=好转/3=未愈/4=死亡/5=其他",
+      "manual_review_required": "bool — 总是 true"
+    }
+  },
+  "permissions": {
+    "key": "discharge-summary-structuring-default",
+    "name": "出院小结结构化智能体 默认权限",
+    "description": "允许读取出院小结原文进行结构化。禁止写回, 禁止编码分配。",
+    "tools": {},
+    "production_writeback_blocked": true,
+    "no_upcoding": true,
+    "no_inference": true,
+    "evidence_required": true
+  },
+  "phi_redaction": "required",
+  "context_required": false,
+  "recorder_required": false,
+  "metrics_required": true,
+  "requirements": {
+    "min_runtime_version": "2.0.0",
+    "icoder_runtime_modules": []
+  },
+  "llm_capabilities": {
+    "required_models": [
+      {
+        "name": "deepseek-chat",
+        "purpose": "discharge summary structuring (with json_mode)"
+      }
+    ],
+    "supports_tool_calling": false,
+    "supports_json_mode": true,
+    "supports_mcp_tools": false
+  },
+  "a2a": {
+    "protocol_version": "0.3",
+    "endpoint": "/api/icoder/agents/discharge-summary-structuring/v1/message:send",
+    "discovery": "/api/icoder/agents",
+    "agent_card_ref": "icoder/discharge-summary-structuring@1.0.0"
+  },
+  "default_runtime_mode": "a2a_pure_llm",
+  "available_runtime_modes": [
+    "a2a_pure_llm"
+  ],
+  "example_inputs": [
+    {
+      "title": "T12 骨折出院小结",
+      "input_text": "患者男性,78岁,因腰背部疼痛 3 月入院。入院后 MRI 显示 T12 椎体压缩性骨折,既往骨质疏松病史 5 年,原发性高血压 10 年,2 型糖尿病 5 年。行 T12 椎体切开复位内固定术,手术顺利。术后给予抗骨质疏松药物治疗,腰背支具佩戴。术后 7 天出院,切口愈合良好。出院诊断: 1. T12 椎体压缩性骨折; 2. 骨质疏松伴病理性骨折; 3. 原发性高血压; 4. 2 型糖尿病。出院医嘱: 腰背支具佩戴 3 个月, 避免负重活动 1 个月, 抗骨质疏松药物治疗。随访: 术后 1 月骨科门诊 X 线复查。"
+    }
+  ],
+  "example_outputs": [
+    {
+      "diagnoses": [
+        {"text": "T12 椎体压缩性骨折", "primary": true, "evidence_text": "MRI 显示 T12 椎体压缩性骨折"},
+        {"text": "骨质疏松伴病理性骨折", "primary": false, "evidence_text": "既往骨质疏松病史 5 年"},
+        {"text": "原发性高血压", "primary": false, "evidence_text": "原发性高血压 10 年"},
+        {"text": "2 型糖尿病", "primary": false, "evidence_text": "2 型糖尿病 5 年"}
+      ],
+      "procedures": [
+        {"text": "T12 椎体切开复位内固定术", "evidence_text": "行 T12 椎体切开复位内固定术"}
+      ],
+      "treatment_summary": "患者入院后行 MRI 检查确诊 T12 骨折, 行切开复位内固定术, 术后给予抗骨质疏松药物治疗, 腰背支具佩戴。术后 7 天出院, 切口愈合良好。",
+      "discharge_orders": [
+        "腰背支具佩戴 3 个月",
+        "避免负重活动 1 个月",
+        "抗骨质疏松药物治疗"
+      ],
+      "follow_up_recommendations": [
+        {"department": "骨科", "time": "术后 1 月", "items": ["X 线复查"]}
+      ],
+      "discharge_status": 1,
+      "manual_review_required": true
+    }
+  ],
+  "built_by": "icoder",
+  "code": {},
+  "integrity": {
+    "sha256": "PLACEHOLDER_RECOMPUTED_AT_PUBLISH"
+  }
+}

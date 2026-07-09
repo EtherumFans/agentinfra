@@ -1,63 +1,140 @@
 {
-  "format_version": "1.1",
+  "format_version": "1.2",
   "agent_type": "certified",
   "agent_ref": "icoder/procedure-extractor@1.0.0",
   "manifest": {
     "name": "手术提取智能体",
     "version": "1.0.0",
-    "description": "从手术记录中提取手术操作并分配 ICD-9-CM-3 编码。",
-    "category": "编码",
+    "description": "iCoDer Procedure Coding Agent (Corti-style)。从手术记录中提取手术操作并分配 ICD-9-CM-3 编码。LLM-based via PureLLMProvider — 输出手术操作列表 + 编码 + evidence span + confidence。MVP maturity: production_ready=false, human_review=required。",
+    "category": "medical-coding",
+    "category_display": "Coding and Revenue Cycle / 编码与收入周期",
     "icon": "Scalpel",
-    "maturity": "metadata-only",
+    "tags": [
+      "icd-9-cm-3",
+      "procedure-coding",
+      "evidence-first",
+      "no-upcoding",
+      "corti-style"
+    ],
+    "maturity": "mvp",
     "production_ready": false,
+    "human_review": "required",
     "hidden_from_hub": false,
     "use_case": "coding_revenue_cycle"
   },
-  "system_prompt": "从手术记录中提取手术操作并分配ICD-9-CM-3编码。输出JSON: {\"primary_diagnosis\":{},\"procedures\":[{\"code\":\"\",\"description\":\"\",\"confidence\":0.0,\"evidence\":[]}],\"issues_found\":[]}",
-  "experts": [],
-  "tools": [
-    "extract_evidence",
-    "search_icd9_index",
-    "assign_procedure_code",
-    "guard_input",
-    "guard_output"
-  ],
-  "permissions": {
-    "key": "procedure-extractor",
-    "name": "手术提取权限",
-    "description": "从手术记录中提取手术操作并分配 ICD-9-CM-3 编码。",
-    "tools": {
-      "extract_evidence": {
-        "allowed": true
-      },
-      "search_icd9_index": {
-        "allowed": true
-      },
-      "assign_procedure_code": {
-        "allowed": true
-      },
-      "guard_input": {
-        "allowed": true
-      },
-      "guard_output": {
-        "allowed": true
-      }
+  "backend_provider": "icoder.pure-llm.v1",
+  "backend_config": {
+    "llm": {
+      "model": "deepseek-chat",
+      "temperature": 0.0,
+      "max_tokens": 4096,
+      "timeout_seconds": 60
     }
   },
+  "system_prompt": "你是 iCoDer Procedure Coding Agent (Corti-style)。职责:\n\n从手术记录中提取手术操作并分配 ICD-9-CM-3 编码 (中国版 ICD-9-CM-3):\n1. 识别所有手术操作 (主手术 + 其他手术)\n2. 每个手术操作匹配 ICD-9-CM-3 编码 (≤7 码, 含部位/方法/入路细分)\n3. 每个编码附 evidence_text + char_span + confidence\n4. 输出 issues_found (手术-诊断不一致 / 编码冲突 / 缺少手术记录)\n\n硬约束:\n- 不 upcoding — 不优先选择高补偿编码\n- 不推断未记录的手术操作 (evidence-first)\n- 每个最终编码必须附 evidence span\n- 不写回 EMR / HIS\n\n输出 JSON:\n{\n  \"procedures\": [{\n    \"code\": \"81.0100\",\n    \"display\": \"脊椎骨折切开复位内固定术\",\n    \"evidence_text\": \"行 T12 椎体切开复位内固定术\",\n    \"char_span\": [120, 138],\n    \"confidence\": 0.88,\n    \"warnings\": []\n  }],\n  \"issues_found\": [],\n  \"manual_review_required\": true\n}",
+  "experts": [
+    {
+      "expert_id": "procedure-extractor",
+      "name": "Procedure Extractor",
+      "role": "primary",
+      "description": "手术操作提取 + ICD-9-CM-3 编码 Expert。LLM-based via PureLLMProvider。"
+    }
+  ],
+  "tools": [],
+  "model": {
+    "primary": "deepseek-chat",
+    "fallback": "deepseek-v4-flash",
+    "temperature": 0.0,
+    "max_tokens": 4096,
+    "json_mode": true
+  },
+  "non_goals": [
+    "不分配诊断编码 — 诊断由 Medical Coding Agent 完成",
+    "不修改手术记录",
+    "不写回 EMR / HIS",
+    "不绕过 PHI redaction",
+    "不调用工具 — PureLLMProvider 不支持 tool_calling",
+    "不输出未脱敏 PHI"
+  ],
+  "output_contract": {
+    "schema_ref": "icoder/ProcedureCodingOutput/v1",
+    "a2a_parts": [
+      "DataPart"
+    ],
+    "required_fields": [
+      "procedures",
+      "issues_found",
+      "manual_review_required"
+    ],
+    "field_definitions": {
+      "procedures": "list[{code, display, evidence_text, char_span, confidence, warnings}]",
+      "issues_found": "list[{issue_type, message, severity}]",
+      "manual_review_required": "bool — 总是 true (编码需人工复核)"
+    }
+  },
+  "permissions": {
+    "key": "procedure-extractor-default",
+    "name": "手术提取智能体 默认权限",
+    "description": "允许读取手术记录提取 ICD-9-CM-3 编码。禁止写回, 禁止诊断编码。",
+    "tools": {},
+    "production_writeback_blocked": true,
+    "no_upcoding": true,
+    "no_inference": true,
+    "evidence_required": true
+  },
+  "phi_redaction": "required",
+  "context_required": false,
+  "recorder_required": false,
+  "metrics_required": true,
   "requirements": {
-    "min_runtime_version": "1.0.0"
+    "min_runtime_version": "2.0.0",
+    "icoder_runtime_modules": []
   },
   "llm_capabilities": {
     "required_models": [
       {
-        "name": "deepseek-v4"
+        "name": "deepseek-chat",
+        "purpose": "procedure extraction + ICD-9-CM-3 coding (with json_mode)"
       }
     ],
     "supports_tool_calling": false,
-    "supports_json_mode": true
+    "supports_json_mode": true,
+    "supports_mcp_tools": false
   },
+  "a2a": {
+    "protocol_version": "0.3",
+    "endpoint": "/api/icoder/agents/procedure-extractor/v1/message:send",
+    "discovery": "/api/icoder/agents",
+    "agent_card_ref": "icoder/procedure-extractor@1.0.0"
+  },
+  "default_runtime_mode": "a2a_pure_llm",
+  "available_runtime_modes": [
+    "a2a_pure_llm"
+  ],
+  "example_inputs": [
+    {
+      "title": "T12 骨折切开复位内固定术",
+      "input_text": "患者男性,78岁,因 T12 椎体压缩性骨折行 T12 椎体切开复位内固定术,手术顺利,术后恢复良好。"
+    }
+  ],
+  "example_outputs": [
+    {
+      "procedures": [
+        {
+          "code": "81.0100",
+          "display": "脊椎骨折切开复位内固定术",
+          "evidence_text": "行 T12 椎体切开复位内固定术",
+          "confidence": 0.88,
+          "warnings": []
+        }
+      ],
+      "issues_found": [],
+      "manual_review_required": true
+    }
+  ],
+  "built_by": "icoder",
   "code": {},
   "integrity": {
-    "sha256": "fc38489af836b80833e24b894396c2de2ca34abe3e51f5cea9e93206ed56d8f0"
+    "sha256": "PLACEHOLDER_RECOMPUTED_AT_PUBLISH"
   }
 }

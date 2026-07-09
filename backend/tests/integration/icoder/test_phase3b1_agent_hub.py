@@ -69,14 +69,15 @@ def test_hidden_packs_excluded(client):
 def test_expert_stubs_excluded(client):
     """agent_type=expert-stub packs must not appear in Hub.
 
-    The 4 expert-stub packs (evidence-extractor / index-navigator /
-    code-reconciler / tabular-validator) are MedCodER pipeline stages,
-    not user-facing Agents.
+    Phase 4-F (2026-07-09): evidence-extractor was upgraded from expert-stub
+    to certified (it's now one of the 8 iCoDer built agents) — removed from
+    this exclusion list. The remaining 3 expert-stub packs (index-navigator /
+    code-reconciler / tabular-validator) are MedCodER pipeline stages, not
+    user-facing Agents.
     """
     r = client.get("/api/icoder/agents/hub")
     agent_refs = {c["agent_ref"] for c in r.json()["agents"]}
     for stub_ref in [
-        "icoder/evidence-extractor@1.0.0",
         "icoder/index-navigator@1.0.0",
         "icoder/code-reconciler@1.0.0",
         "icoder/tabular-validator@1.0.0",
@@ -98,13 +99,17 @@ def test_internal_engine_excluded(client):
 # --- metadata-only packs visible but not runnable ---
 
 def test_metadata_only_packs_visible_but_not_runnable(client):
-    """The 7 metadata-only certified packs must appear with runnable=false
+    """The 5 metadata-only certified packs must appear with runnable=false
     and a Coming Soon badge (no Run button on frontend).
 
     Phase 3-D1 Task 5 (2026-07-06): code-validation / compliance-guardrail /
     note-completeness upgraded from metadata-only to runnable — removed
     from this list. Their runnability is verified in
     ``test_phase3d1_three_simple_agents_visible_and_runnable`` below.
+
+    Phase 4-F (2026-07-09): drg-analyzer / procedure-extractor upgraded from
+    metadata-only to mvp (now iCoDer built agents) — removed from this list.
+    Their runnability is verified by the v1.3 spec schema test.
     """
     r = client.get("/api/icoder/agents/hub")
     cards_by_ref = {c["agent_ref"]: c for c in r.json()["agents"]}
@@ -114,9 +119,7 @@ def test_metadata_only_packs_visible_but_not_runnable(client):
         "icoder/denial-appeals@1.0.0",
         "icoder/diagnosis-extractor@1.0.0",
         "icoder/documentation-gap@1.0.0",
-        "icoder/drg-analyzer@1.0.0",
         "icoder/evidence-ranker@1.0.0",
-        "icoder/procedure-extractor@1.0.0",
     ]
     for ref in metadata_only_refs:
         assert ref in cards_by_ref, (
@@ -233,22 +236,30 @@ def test_no_production_ready_false_claimed_as_ready(client):
 # --- Hub total count ---
 
 def test_hub_total_count_matches_visibility_filter(client):
-    """Hub must list exactly 12 visible packs:
-    10 metadata-only certified + 1 medical-coding-agent (MVP) + 1 medical-coding
-    certified (note: medical-coding-agent IS the medical-coding certified pack).
+    """Hub must list exactly 14 visible packs after Phase 4-F (2026-07-09):
 
-    Actual breakdown of the 16 packs:
-    - 11 certified user-facing (10 metadata-only + 1 medical-coding-agent MVP)
+    Breakdown of the 18 packs:
+    - 9 certified runnable (MVP) — Phase 4-F iCoDer built 8 + code-validation@2.0.0
+      * medical-coding-agent
+      * evidence-extractor (upgraded from expert-stub in Phase 4-F)
+      * drg-analyzer (upgraded from metadata-only in Phase 4-F)
+      * procedure-extractor (upgraded from metadata-only in Phase 4-F)
+      * note-completeness-agent (Phase 3-D1 → Phase 4-B → Phase 4-F)
+      * compliance-guardrail-agent (Phase 3-D1 → Phase 4-F)
+      * principal-diagnosis-review (NEW in Phase 4-F)
+      * discharge-summary-structuring (NEW in Phase 4-F)
+      * code-validation-agent@2.0.0 (Phase 4-C v2 migration)
+    - 5 metadata-only certified — cdi-review / denial-appeals /
+      diagnosis-extractor / documentation-gap / evidence-ranker
     - 1 internal_engine (medcoder-coding-review) — hidden
-    - 4 expert-stub — hidden
+    - 3 expert-stub (index-navigator / code-reconciler / tabular-validator) — hidden
 
-    So Hub must show 11 visible cards (not 12 — medical-coding-agent is one
-    of the 11 certified).
+    So Hub shows 14 visible cards (9 runnable + 5 metadata-only).
     """
     r = client.get("/api/icoder/agents/hub")
     body = r.json()
-    assert body["total"] == 11, (
-        f"Hub must list 11 visible packs (10 metadata-only + medical-coding-agent MVP); "
+    assert body["total"] == 14, (
+        f"Hub must list 14 visible packs (9 runnable + 5 metadata-only) after Phase 4-F; "
         f"got {body['total']}. Cards: {[c['agent_ref'] for c in body['agents']]}"
     )
 

@@ -1,0 +1,162 @@
+{
+  "format_version": "1.2",
+  "agent_type": "certified",
+  "agent_ref": "icoder/principal-diagnosis-review@1.0.0",
+  "manifest": {
+    "name": "主诊断复核智能体",
+    "version": "1.0.0",
+    "description": "iCoDer Principal Diagnosis Review Agent (Corti-style)。给定多诊断出院小结, 识别主诊断候选 + 冲突 + 风险, 给出主诊断建议。规则启发式 (主诊断选择准则) + LLM 解释 (生成 rationale 自然语言)。MVP maturity: production_ready=false, human_review=required。",
+    "category": "medical-coding",
+    "category_display": "Coding and Revenue Cycle / 编码与收入周期",
+    "icon": "Stethoscope",
+    "tags": [
+      "principal-diagnosis",
+      "review",
+      "no-upcoding",
+      "evidence-first",
+      "corti-style"
+    ],
+    "maturity": "mvp",
+    "production_ready": false,
+    "human_review": "required",
+    "hidden_from_hub": false,
+    "use_case": "coding_revenue_cycle"
+  },
+  "backend_provider": "icoder.pure-llm.v1",
+  "backend_config": {
+    "llm": {
+      "model": "deepseek-chat",
+      "temperature": 0.0,
+      "max_tokens": 4096,
+      "timeout_seconds": 60
+    },
+    "rules": {
+      "principal_dx_selection_criteria": [
+        "对患者健康危害最严重的诊断",
+        "消耗医疗资源最多的诊断",
+        "住院期间主要治疗的诊断",
+        "凡病因住院, 第一诊断 = 病因 (主诊) + 次要并发症"
+      ],
+      "guardrails": ["PDR-001 主诊断非空", "PDR-002 主诊断不与 secondary 重复", "PDR-003 主诊断有 evidence"]
+    }
+  },
+  "system_prompt": "你是 iCoDer Principal Diagnosis Review Agent (Corti-style)。职责:\n\n给定多诊断出院小结 (含 2+ 诊断), 评估主诊断选择:\n1. 识别所有主诊断候选 (candidates[])\n2. 评估每个候选的 evidence (直接证据 / 间接证据 / 否定)\n3. 给出 recommended (推荐主诊断) + not_recommended[] (不推荐 + 原因)\n4. 输出 rationale (自然语言, 编码员可直接行动)\n5. 输出 manual_review_prompt (复核重点)\n\n主诊断选择准则 (按优先级):\n1. 对患者健康危害最严重的诊断\n2. 消耗医疗资源最多的诊断\n3. 住院期间主要治疗的诊断\n4. 凡病因住院, 第一诊断 = 病因\n\n硬约束:\n- 不 upcoding (不优先选择高补偿编码)\n- 不修改编码集 — 仅评估 + 建议\n- 每个候选必须有 evidence_text + char_span\n- 不写回 EMR / HIS\n\n输出 JSON:\n{\n  \"candidates\": [{\n    \"code\": \"S22.000\",\n    \"display\": \"T12 椎体压缩性骨折\",\n    \"evidence_text\": \"MRI 显示 T12 椎体压缩性骨折\",\n    \"severity\": \"high\",\n    \"resource_usage\": \"high\",\n    \"primary_treatment\": true,\n    \"recommended\": true,\n    \"rationale\": \"对患者健康危害最严重, 消耗医疗资源最多, 住院期间主要治疗\"\n  }],\n  \"recommended\": \"S22.000\",\n  \"not_recommended\": [{\"code\": \"M80.900\", \"reason\": \"骨质疏松为慢性合并症, 不应作为主诊断\"}],\n  \"rationale\": \"主诊断应为 S22.000 (T12 骨折), 因为对患者健康危害最严重且为住院期间主要治疗。M80.900 (骨质疏松) 为 secondary 合并症。\",\n  \"manual_review_prompt\": \"请复核主诊断选择, 确认 S22.000 为最优选择。\"\n}",
+  "experts": [
+    {
+      "expert_id": "pdx-reviewer",
+      "name": "Principal Dx Reviewer",
+      "role": "primary",
+      "description": "主诊断复核 Expert — 多诊断冲突识别 + 主诊断选择建议。LLM-based via PureLLMProvider。"
+    }
+  ],
+  "tools": [],
+  "model": {
+    "primary": "deepseek-chat",
+    "fallback": "deepseek-v4-flash",
+    "temperature": 0.0,
+    "max_tokens": 4096,
+    "json_mode": true
+  },
+  "non_goals": [
+    "不分配新编码 — 仅评估已有诊断候选",
+    "不修改编码集",
+    "不写回 EMR / HIS",
+    "不绕过 PHI redaction",
+    "不调用工具 — PureLLMProvider 不支持 tool_calling"
+  ],
+  "output_contract": {
+    "schema_ref": "icoder/PrincipalDxReview/v1",
+    "a2a_parts": [
+      "DataPart"
+    ],
+    "required_fields": [
+      "candidates",
+      "recommended",
+      "not_recommended",
+      "rationale",
+      "manual_review_prompt"
+    ],
+    "field_definitions": {
+      "candidates": "list[{code, display, evidence_text, severity, resource_usage, primary_treatment, recommended, rationale}]",
+      "recommended": "str — 推荐主诊断 code",
+      "not_recommended": "list[{code, reason}]",
+      "rationale": "str — 自然语言主诊断选择理由",
+      "manual_review_prompt": "str — 复核重点"
+    }
+  },
+  "permissions": {
+    "key": "principal-dx-review-default",
+    "name": "主诊断复核智能体 默认权限",
+    "description": "允许读取多诊断出院小结进行主诊断复核。禁止写回, 禁止编码分配。",
+    "tools": {},
+    "production_writeback_blocked": true,
+    "no_upcoding": true,
+    "no_inference": true,
+    "evidence_required": true
+  },
+  "phi_redaction": "required",
+  "context_required": false,
+  "recorder_required": false,
+  "metrics_required": true,
+  "requirements": {
+    "min_runtime_version": "2.0.0",
+    "icoder_runtime_modules": []
+  },
+  "llm_capabilities": {
+    "required_models": [
+      {
+        "name": "deepseek-chat",
+        "purpose": "principal diagnosis selection + rationale generation"
+      }
+    ],
+    "supports_tool_calling": false,
+    "supports_json_mode": true,
+    "supports_mcp_tools": false
+  },
+  "a2a": {
+    "protocol_version": "0.3",
+    "endpoint": "/api/icoder/agents/principal-diagnosis-review/v1/message:send",
+    "discovery": "/api/icoder/agents",
+    "agent_card_ref": "icoder/principal-diagnosis-review@1.0.0"
+  },
+  "default_runtime_mode": "a2a_pure_llm",
+  "available_runtime_modes": [
+    "a2a_pure_llm"
+  ],
+  "example_inputs": [
+    {
+      "title": "多诊断出院小结 — 主诊断冲突",
+      "input_text": "出院诊断: 1. T12 椎体压缩性骨折; 2. 骨质疏松伴病理性骨折; 3. 原发性高血压; 4. 2 型糖尿病。患者男性,78岁,因腰背痛入院, MRI 显示 T12 椎体压缩性骨折, 行切开复位内固定术, 术后恢复良好。"
+    }
+  ],
+  "example_outputs": [
+    {
+      "candidates": [
+        {
+          "code": "S22.000",
+          "display": "T12 椎体压缩性骨折",
+          "evidence_text": "MRI 显示 T12 椎体压缩性骨折",
+          "severity": "high",
+          "resource_usage": "high",
+          "primary_treatment": true,
+          "recommended": true,
+          "rationale": "对患者健康危害最严重, 消耗医疗资源最多, 住院期间主要治疗"
+        }
+      ],
+      "recommended": "S22.000",
+      "not_recommended": [
+        {
+          "code": "M80.900",
+          "reason": "骨质疏松为慢性合并症, 不应作为主诊断"
+        }
+      ],
+      "rationale": "主诊断应为 S22.000 (T12 骨折), 因为对患者健康危害最严重且为住院期间主要治疗。M80.900 为 secondary。",
+      "manual_review_prompt": "请复核主诊断选择, 确认 S22.000 为最优选择。"
+    }
+  ],
+  "built_by": "icoder",
+  "code": {},
+  "integrity": {
+    "sha256": "PLACEHOLDER_RECOMPUTED_AT_PUBLISH"
+  }
+}

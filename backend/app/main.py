@@ -239,6 +239,16 @@ async def lifespan(app: FastAPI):
     app.state.platform_gateway = platform_gateway
     app.state.agent_registry = agent_registry
     app.state.runtime_config = runtime_config
+    # Phase 4-B Step 3: register the platform gateway with the backend
+    # provider registry so ``PureLLMProvider`` can lazy-resolve it on
+    # first ``invoke()``. Lazy — startup doesn't pay for the lookup
+    # until an agent actually runs.
+    from icoder_runtime.backends.registry import set_gateway_lookup
+    set_gateway_lookup(lambda: app.state.platform_gateway)
+    logger.info(
+        "Backend provider gateway lookup registered (PureLLMProvider will "
+        "lazy-resolve platform_gateway on first invoke)"
+    )
     logger.info(f"Data policy: allow_external_llm={data_policy.allow_external_llm}, "
                 f"persist_full_input={data_policy.persist_full_input}")
 
@@ -425,6 +435,9 @@ async def lifespan(app: FastAPI):
         from app.icoder.agent_runtime.a2a.agent_card import (
             medcoder_coding_review_card,
             medical_coding_agent_card,
+            code_validation_agent_card,
+            compliance_guardrail_agent_card,
+            note_completeness_agent_card,
         )
         from app.icoder.agent_runtime.orchestrator import (
             Aggregator,
@@ -594,7 +607,7 @@ async def lifespan(app: FastAPI):
             # projection happens in the response post-processor (see below).
             _medical_agent = AgentDefinition(
                 id="medical-coding-agent",
-                name="Medical Coding Agent",
+                name="医学编码智能体",
                 description="iCoDer 官方医学编码 Agent (Corti-style MVP)",
                 system_prompt=(
                     "你是 iCoDer Medical Coding Agent (Corti-style, MVP)。"
@@ -787,11 +800,368 @@ async def lifespan(app: FastAPI):
 
         phase1_handler = _MedicalCodingV2ProjectingHandler(phase1_handler_raw)
 
+        # Phase 3-D1 Task 5: 3 simple runnable agents (code-validation /
+        # compliance-guardrail / note-completeness). These bypass the
+        # orchestrator (Planner/Delegator/Aggregator) and call the
+        # agent's run() function directly — they're deterministic, no-LLM,
+        # and don't need expert delegation. The dispatch handler:
+        #   1. Generates run_id + context_id (consistent with InboundHandler)
+        #   2. Emits RunTrace events (USER_MESSAGE_RECEIVED + OUTPUT_GENERATED
+        #      + COMPLETION) so /api/runtime/runs/{id}/trace works for them
+        #   3. Calls agent.run(input_text, run_id=run_id)
+        #   4. Wraps the result as a DataPart in an InboundResponse
+        from app.icoder.agent_runtime.orchestrator.run_trace import (
+            RunTraceStep,
+            RunTraceStatus,
+            emit_trace_event,
+        )
+        from app.icoder.agent_runtime.orchestrator.inbound_handler import (
+            InboundResponse,
+            extract_text_from_parts,
+            make_context_id,
+            make_message_id,
+            make_run_id,
+        )
+        # Phase 3-D2 Task 3 — agent_id → MCP tool_name mapping.
+        # The 3 simple agents route through the MCP dispatcher (single code
+        # path for scope check + auth + trace + handler invoke) instead of
+        # bypassing it. The handler functions (app/icoder/mcp/handlers/
+        # {validate_codes,evaluate_compliance,check_documentation_gaps}.py)
+        # wrap the agent.run() SSOT.
+        _SIMPLE_AGENT_TOOLS: dict[str, str] = {
+            "code-validation-agent": "validate_codes",
+            "compliance-guardrail-agent": "evaluate_compliance",
+            "note-completeness-agent": "check_documentation_gaps",
+        }
+
+        class _SimpleAgentDispatchHandler:
+            """Routes 3 simple agent_ids through the MCP dispatcher; falls
+            through to the inner handler for everything else.
+
+            Phase 3-D2 Task 3: previously this called agent.run() directly,
+            bypassing the MCP dispatcher's scope check + trace emit. Now it
+            constructs a lightweight request-like object and calls
+            ``dispatch_tool()`` — single code path with the HTTP route, with
+            zero HTTP overhead. The agent's required_scopes (coding:validate
+            / compliance:evaluate / documentation:check) are pre-granted
+            via the in-process AuthHeader, since the A2A route has already
+            authenticated the caller (Phase 3-C1 wiring).
+            """
+
+            def __init__(self, inner):
+                self._inner = inner
+
+            def handle(self, agent_id: str, request):
+                if agent_id not in _SIMPLE_AGENT_TOOLS:
+                    return self._inner.handle(agent_id, request)
+                return self._handle_simple(agent_id, request)
+
+            def _handle_simple(self, agent_id: str, request) -> InboundResponse:
+                import asyncio as _asyncio
+                from types import SimpleNamespace as _NS
+                from app.icoder.mcp.server import dispatch_tool
+                from app.icoder.mcp.auth import AuthHeader
+
+                run_id = make_run_id()
+                context_id = make_context_id()
+                # Trace step 1: user message received
+                emit_trace_event(
+                    run_id, RunTraceStep.USER_MESSAGE_RECEIVED,
+                    safe_metadata={
+                        "agent_id": agent_id,
+                        "input_parts": len(request.message.parts),
+                    },
+                )
+                # Simple agents bypass the orchestrator, so the planner step
+                # is SKIPPED — emit it so the RunTrace timeline still shows
+                # all 9 steps (Corti parity).
+                emit_trace_event(
+                    run_id, RunTraceStep.PLANNER_SELECTED_EXPERTS,
+                    status=RunTraceStatus.SKIPPED,
+                    safe_metadata={"reason": "simple_agent_no_orchestrator"},
+                )
+                # Extract text from parts
+                input_text = extract_text_from_parts(request.message.parts)
+
+                # Phase 4-D (D-5): code-validation-agent routes to v2
+                # (LLMWithToolsProvider + 4 MCP tools) directly — bypassing
+                # the validate_codes MCP tool which stays v1 (RuleEngine)
+                # for other MCP consumers. Other 2 simple agents still go
+                # through the MCP dispatcher.
+                if agent_id == "code-validation-agent":
+                    return self._handle_code_validation_v2(
+                        agent_id, input_text, run_id, context_id, request,
+                    )
+
+                # Map agent_id → MCP tool_name + build tool arguments.
+                tool_name = _SIMPLE_AGENT_TOOLS[agent_id]
+                if agent_id == "note-completeness-agent":
+                    tool_args: dict = {"encounter_text": input_text}
+                else:
+                    # compliance-guardrail takes a coding_set.
+                    # The agent's _normalize_input parses JSON input_text —
+                    # pass it through as coding_set (dict) so the handler
+                    # can re-serialize. If input_text isn't JSON, fall back
+                    # to an empty coding_set with encounter_text=input_text.
+                    import json as _json
+                    try:
+                        coding_set = _json.loads(input_text) if input_text else {}
+                        if not isinstance(coding_set, dict):
+                            coding_set = {}
+                        tool_args = {"coding_set": coding_set}
+                    except Exception:
+                        tool_args = {"coding_set": {}, "encounter_text": input_text}
+
+                # Build a lightweight request-like object so dispatch_tool
+                # can read app.state (phi_redactor etc.) and state (run_id,
+                # context_id, pre-resolved auth_header). The 3 simple tools
+                # have auth_config=None, so dispatch_tool skips auth
+                # resolution and reads state.auth_header instead — we
+                # pre-set it with all 3 required scopes granted (the A2A
+                # route already authenticated the caller).
+                fake_state = _NS()
+                fake_state.context_id = context_id
+                fake_state.run_id = run_id
+                fake_state.mcp_run_auth_context = None
+                fake_state.auth_header = AuthHeader(
+                    kind="none",
+                    granted_scopes=[
+                        "coding:validate",
+                        "compliance:evaluate",
+                        "documentation:check",
+                    ],
+                    redacted_view="(in-process, all scopes granted)",
+                )
+                fake_request = _NS()
+                fake_request.app = app  # closure: lifespan(app)
+                fake_request.state = fake_state
+
+                try:
+                    dispatch_result = _asyncio.new_event_loop().run_until_complete(
+                        dispatch_tool(
+                            tool_name, tool_args, fake_request,
+                            run_id=run_id,
+                        )
+                    )
+                    # dispatch_tool returns {"content": <handler result>, "isError": False}
+                    result = dispatch_result.get("content") or {}
+                except Exception as e:
+                    # MCPError / MCPAuthError / any other failure — emit
+                    # COMPLETION=FAILED and return an error envelope.
+                    emit_trace_event(
+                        run_id, RunTraceStep.COMPLETION,
+                        status=RunTraceStatus.FAILED,
+                        safe_metadata={
+                            "tool_name": tool_name,
+                            "error": f"{type(e).__name__}: {str(e)[:200]}",
+                        },
+                    )
+                    return InboundResponse(
+                        kind="error",
+                        context_id=context_id,
+                        metadata={
+                            "run_id": run_id,
+                            "agent_id": agent_id,
+                            "phi_redacted": True,
+                            "production_writeback_blocked": True,
+                        },
+                        error={"code": "INTERNAL_ERROR", "message": str(e)},
+                        http_status=500,
+                    )
+                # Trace step: output generated + completion
+                emit_trace_event(
+                    run_id, RunTraceStep.OUTPUT_GENERATED,
+                    safe_metadata={
+                        "review_conclusion": result.get("review_conclusion", ""),
+                        "issues_count": len(result.get("issues_found", []) or []),
+                    },
+                )
+                emit_trace_event(
+                    run_id, RunTraceStep.COMPLETION,
+                    status=RunTraceStatus.OK,
+                    safe_metadata={"agent_id": agent_id},
+                )
+                # Phase 3-D2 Task 4 — pre-render markdown so the
+                # frontend's Rendered tab shows structured tables (not
+                # a JSON dump). The SSOT is generate_markdown_for(); the
+                # frontend falls back to generateFallbackMarkdown() only
+                # when this field is absent (legacy/old pack).
+                from app.icoder.markdown_generator import generate_markdown_for
+                try:
+                    result_markdown = generate_markdown_for(agent_id, result)
+                    # Embed markdown into the result dict so the existing
+                    # DataPart pass-through carries it to the frontend.
+                    result_with_md = dict(result)
+                    result_with_md["markdown"] = result_markdown
+                except Exception as _md_err:
+                    logger.warning(
+                        "markdown generation failed for %s: %s; "
+                        "frontend will fall back to JSON dump",
+                        agent_id, _md_err,
+                    )
+                    result_with_md = result
+                # Build response — single DataPart with the result dict.
+                # Match the projection wrapper's metadata shape so the
+                # frontend's _mapA2AResultToRunResult works uniformly.
+                return InboundResponse(
+                    kind="message",
+                    message_id=make_message_id(),
+                    context_id=context_id,
+                    role="agent",
+                    parts=[{
+                        "kind": "data",
+                        "data": result_with_md,
+                        "metadata": {
+                            "schema_ref": (
+                                "icoder/CodeValidationOutput/v1"
+                                if agent_id == "code-validation-agent"
+                                else "icoder/ComplianceGuardrailOutput/v1"
+                                if agent_id == "compliance-guardrail-agent"
+                                else "icoder/NoteCompletenessOutput/v1"
+                            ),
+                            "phi_redacted": True,
+                            "production_writeback_blocked": True,
+                            "orchestrator_expert_id": agent_id,
+                            "orchestrator_latency_ms": 0,
+                            "orchestrator_ok": True,
+                        },
+                    }],
+                    metadata={
+                        "run_id": run_id,
+                        "agent_id": agent_id,
+                        "interaction_id": request.message.interaction_id,
+                        "phi_redacted": True,
+                        "production_writeback_blocked": True,
+                        "output_contract": (
+                            "icoder/CodeValidationOutput/v1"
+                            if agent_id == "code-validation-agent"
+                            else "icoder/ComplianceGuardrailOutput/v1"
+                            if agent_id == "compliance-guardrail-agent"
+                            else "icoder/NoteCompletenessOutput/v1"
+                        ),
+                    },
+                    http_status=200,
+                )
+
+            def _handle_code_validation_v2(
+                self, agent_id: str, input_text: str,
+                run_id: str, context_id: str, request,
+            ) -> InboundResponse:
+                """Phase 4-D (D-5): invoke code_validation/agent.py v2
+                (LLMWithToolsProvider + 4 MCP tools) directly — bypassing
+                the v1 ``validate_codes`` MCP tool. Other MCP consumers of
+                ``validate_codes`` (if any) stay on v1 (RuleEngine).
+                """
+                import asyncio as _asyncio
+                from official_agents.code_validation.agent import run as _cv_run
+
+                try:
+                    result = _asyncio.new_event_loop().run_until_complete(
+                        _cv_run(input_text, run_id=run_id)
+                    )
+                    if not isinstance(result, dict):
+                        result = {"raw": str(result)}
+                except Exception as e:
+                    emit_trace_event(
+                        run_id, RunTraceStep.COMPLETION,
+                        status=RunTraceStatus.FAILED,
+                        safe_metadata={
+                            "agent_id": agent_id,
+                            "error": f"{type(e).__name__}: {str(e)[:200]}",
+                        },
+                    )
+                    return InboundResponse(
+                        kind="error",
+                        context_id=context_id,
+                        metadata={
+                            "run_id": run_id,
+                            "agent_id": agent_id,
+                            "phi_redacted": True,
+                            "production_writeback_blocked": True,
+                        },
+                        error={"code": "INTERNAL_ERROR", "message": str(e)},
+                        http_status=500,
+                    )
+                # Trace step: output generated + completion
+                emit_trace_event(
+                    run_id, RunTraceStep.OUTPUT_GENERATED,
+                    safe_metadata={
+                        "review_conclusion": result.get("review_conclusion", ""),
+                        "validated_codes_count": len(result.get("validated_codes", []) or []),
+                        "cross_code_issues_count": len(result.get("cross_code_issues", []) or []),
+                    },
+                )
+                emit_trace_event(
+                    run_id, RunTraceStep.COMPLETION,
+                    status=RunTraceStatus.OK,
+                    safe_metadata={
+                        "agent_id": agent_id,
+                        "backend_provider": "icoder.llm-with-tools.v1",
+                    },
+                )
+                # v2 schema already includes a `markdown` field, but wrap
+                # through generate_markdown_for() to ensure consistency for
+                # the frontend's Rendered tab (no-op when markdown exists).
+                from app.icoder.markdown_generator import generate_markdown_for
+                try:
+                    md = generate_markdown_for(agent_id, result) or result.get("markdown", "")
+                except Exception:
+                    md = result.get("markdown", "")
+                result_with_md = dict(result)
+                result_with_md["markdown"] = md
+                # v2 agent_ref — frontend checks @2.0.0 for v2 vs v1.
+                # Override trace_refs.agent_ref too: the legacy fallback
+                # path carries v1's @1.0.0 trace_refs, which would mislead
+                # the frontend into thinking this is a v1 response.
+                result_with_md = dict(result)
+                result_with_md["agent_ref"] = "icoder/code-validation-agent@2.0.0"
+                tr = dict(result_with_md.get("trace_refs") or {})
+                tr["agent_ref"] = "icoder/code-validation-agent@2.0.0"
+                result_with_md["trace_refs"] = tr
+                return InboundResponse(
+                    kind="message",
+                    message_id=make_message_id(),
+                    context_id=context_id,
+                    role="agent",
+                    parts=[{
+                        "kind": "data",
+                        "data": result_with_md,
+                        "metadata": {
+                            "schema_ref": "icoder/CodeValidationOutputV2/1",
+                            "agent_ref": "icoder/code-validation-agent@2.0.0",
+                            "phi_redacted": True,
+                            "production_writeback_blocked": True,
+                            "orchestrator_expert_id": "code-validation-agent",
+                            "orchestrator_latency_ms": 0,
+                            "orchestrator_ok": True,
+                            "backend_provider": "icoder.llm-with-tools.v1",
+                        },
+                    }],
+                    metadata={
+                        "run_id": run_id,
+                        "agent_id": agent_id,
+                        "interaction_id": request.message.interaction_id,
+                        "phi_redacted": True,
+                        "production_writeback_blocked": True,
+                        "output_contract": "icoder/CodeValidationOutputV2/1",
+                        "backend_provider": "icoder.llm-with-tools.v1",
+                    },
+                    http_status=200,
+                )
+
+        phase1_handler = _SimpleAgentDispatchHandler(phase1_handler)
+
         def _phase1_agent_provider(agent_id: str):
             if agent_id == "medcoder-coding-review":
                 return medcoder_coding_review_card()
             if agent_id == "medical-coding-agent":
                 return medical_coding_agent_card()
+            if agent_id == "code-validation-agent":
+                return code_validation_agent_card()
+            if agent_id == "compliance-guardrail-agent":
+                return compliance_guardrail_agent_card()
+            if agent_id == "note-completeness-agent":
+                return note_completeness_agent_card()
             return None
 
         def _phase1_expert_caller(expert_id: str, body: dict):
@@ -1048,6 +1418,8 @@ from app.api.icoder_agents_hub import router as icoder_agents_hub_router
 from app.api.customers import router as customers_router
 from app.api.templates import router as templates_router
 from app.api.tickets import router as tickets_router
+from app.api.run_trace import router as run_trace_router
+from app.api.coding_predict import router as coding_predict_router
 from app.middleware.rate_limit import rate_limit_middleware
 
 # Rate limiting middleware
@@ -1075,6 +1447,8 @@ app.include_router(icoder_agents_hub_router)          # Phase 3-B1 (2026-07-04) 
 app.include_router(customers_router)             # /api/customers/* (Corti parity)
 app.include_router(templates_router)             # /api/templates/* (Templates Beta — Corti parity)
 app.include_router(tickets_router)               # /api/tickets/* (Tickets Portal — Corti parity)
+app.include_router(run_trace_router)             # /api/runtime/runs/{run_id}/trace (Phase 3-D1 Task 4)
+app.include_router(coding_predict_router)        # /api/v1/coding/predict (G001 refactor 2026-07-09 — Corti-like Fast Coding default)
 app.include_router(organizations_router)
 app.include_router(platform_environments_router)  # Phase 1 cloud-flip stub (501)
 app.include_router(platform_api_clients_router)    # Phase 1 cloud-flip stub (501)

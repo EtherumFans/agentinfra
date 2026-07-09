@@ -43,11 +43,18 @@ class BearerAuthConfig(BaseModel):
     resolver fetches the raw token from CredentialVault at runtime.
     The raw token never appears in logs; ``redacted_view`` (e.g.
     ``"Bearer ••••1234"``) is the only thing logged.
+
+    ``scopes`` (Phase 3-D0 Task 1) is the optional list of scope
+    strings associated with this bearer token. The MCP dispatcher
+    checks these against ``ToolDescriptor.required_scopes`` before
+    invoking the handler; insufficient scope →
+    ``MCP_AUTH_FORBIDDEN`` (-32012).
     """
 
     type: Literal["bearer"] = "bearer"
     secret_ref: str
     redacted_view: str | None = None
+    scopes: list[str] = Field(default_factory=list)
 
     @field_validator("secret_ref")
     @classmethod
@@ -152,9 +159,16 @@ class AuthHeader:
     The raw ``token`` is held here ONLY in-memory, in the calling
     thread, for the duration of a single MCP tool call. It is never
     logged, never serialized to JSON, never written to disk.
+
+    ``granted_scopes`` (Phase 3-D0 Task 1) is the list of scope
+    strings associated with the resolved token. The MCP dispatcher
+    compares this against ``ToolDescriptor.required_scopes`` to
+    decide whether to invoke the handler or return
+    ``MCP_AUTH_FORBIDDEN``. Empty list means "no scope claim" —
+    which forbids any tool with non-empty ``required_scopes``.
     """
 
-    __slots__ = ("kind", "token", "redacted_view")
+    __slots__ = ("kind", "token", "redacted_view", "granted_scopes")
 
     def __init__(
         self,
@@ -162,10 +176,12 @@ class AuthHeader:
         kind: Literal["none", "bearer"],
         token: str = "",
         redacted_view: str = "",
+        granted_scopes: list[str] | None = None,
     ) -> None:
         self.kind = kind
         self.token = token
         self.redacted_view = redacted_view
+        self.granted_scopes = list(granted_scopes) if granted_scopes else []
 
     def to_header(self) -> str | None:
         """Return the HTTP Authorization header value, or None for
@@ -176,7 +192,11 @@ class AuthHeader:
         return f"Bearer {self.token}"
 
     def __repr__(self) -> str:
-        return f"AuthHeader(kind={self.kind!r}, redacted_view={self.redacted_view!r})"
+        return (
+            f"AuthHeader(kind={self.kind!r}, "
+            f"redacted_view={self.redacted_view!r}, "
+            f"granted_scopes={self.granted_scopes!r})"
+        )
 
 
 # ── Config factory ──────────────────────────────────────────────────────

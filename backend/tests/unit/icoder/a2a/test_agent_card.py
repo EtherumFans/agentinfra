@@ -177,7 +177,7 @@ def test_card_documentation_url_via_alias():
 
 def test_medcoder_card_basics():
     c = medcoder_coding_review_card()
-    assert c.name == "MedCodER Coding Review Agent"
+    assert c.name == "MedCodER 编码审核智能体"
     assert "编码审核" in c.description or "MedCodER" in c.description
     assert "medcoder-coding-review" in c.url
     assert c.version == "1.0.0"
@@ -268,7 +268,7 @@ def test_medcoder_card_default_input_output_modes():
 def test_agent_list_response_minimal():
     r = AgentListResponse(agents=[medcoder_coding_review_card()])
     assert len(r.agents) == 1
-    assert r.agents[0].name == "MedCodER Coding Review Agent"
+    assert r.agents[0].name == "MedCodER 编码审核智能体"
 
 
 def test_agent_list_response_empty():

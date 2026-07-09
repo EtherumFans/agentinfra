@@ -77,6 +77,13 @@ class Settings(BaseSettings):
     AGENT_CONFIDENCE_THRESHOLD: float = 0.6
     AGENT_FALLBACK_ENABLED: bool = True
 
+    # ── RunTrace Persistence (Phase 3-D2 Task 1) ──────────────────────────────
+    # memory = in-memory store (default, test/dev); db = persistent run_trace_events
+    # table. When "db", emit_trace_event writes via a sync engine to work from
+    # sync contexts (inbound_handler / _SimpleAgentDispatchHandler are sync).
+    # See app/icoder/agent_runtime/orchestrator/run_trace.py.
+    RUNTRACE_STORE: str = "memory"  # memory | db
+
     # ── Data Paths ────────────────────────────────────────────────────────────
     # Local dev uses ./data/ subtree. Cloud loads from region-scoped object
     # storage via ICODER_ASSET_BUCKET (S3-compatible). See docs/cloud/MULTI_REGION.md.

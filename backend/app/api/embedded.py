@@ -52,9 +52,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif
   <div>
     <label>Agent</label>
     <select id="agentRef">
-      <option value="medical-coding-agent-1.0.0">Medical Coding Agent</option>
-      <option value="compliance-guardrail-1.0.0">合规护栏</option>
-      <option value="code-reconciler-1.0.0">Code Reconciler</option>
+      <option value="medical-coding-agent-1.0.0">医学编码智能体</option>
+      <option value="compliance-guardrail-1.0.0">合规护栏智能体</option>
+      <option value="code-reconciler-1.0.0">编码核对智能体</option>
     </select>
   </div>
   <div>

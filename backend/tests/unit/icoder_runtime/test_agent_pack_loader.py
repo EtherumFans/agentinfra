@@ -560,15 +560,19 @@ def test_all_16_official_packs_load_via_new_loader():
     assert refs[0].production_ready is True
     assert refs[0].expert_count == 4  # 4 atomic experts wired
 
-    # The 10 v1.1 certified packs must all load (no INVALID)
+    # The 7 v1.1 certified packs must all load (no INVALID).
+    # Phase 3-D1 Task 5 (2026-07-06): 3 packs (code-validation /
+    # compliance-guardrail / note-completeness) upgraded from v1.1 to v1.2
+    # with maturity="runnable" — so v1.1 went from 10 to 7.
     v11 = [p for p in packs if p.format_version == "1.1"]
-    assert len(v11) == 10
+    assert len(v11) == 7
     assert all(p.status != PackStatus.INVALID for p in v11)
 
-    # The v1.2 certified pack (medical-coding-agent) must be EXECUTABLE
+    # The v1.2 certified packs must all be EXECUTABLE.
+    # Phase 3-D1 Task 5: 1 (medical-coding-agent) + 3 simple agents = 4.
     v12_cert = [p for p in packs if p.format_version == "1.2" and p.agent_type == "certified"]
-    assert len(v12_cert) == 1
-    assert v12_cert[0].status == PackStatus.EXECUTABLE
+    assert len(v12_cert) == 4
+    assert all(p.status == PackStatus.EXECUTABLE for p in v12_cert)
 
 
 @pytest.mark.skipif(not OFFICIAL_AGENTS_DIR.exists(), reason="official_agents dir missing")

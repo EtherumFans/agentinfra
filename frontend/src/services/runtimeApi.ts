@@ -12,6 +12,7 @@ import axios from 'axios';
 import type {
   RuntimeStatus, DataPolicy, RegistryHealth, FallbackStats, ShadowStats,
   InstalledAgent, RuntimeRunResult, MedicalCodingStatus, RuleEngineStatus,
+  RunTraceResponse,
 } from '../types/runtime';
 
 const api = axios.create({ baseURL: '/api/runtime', timeout: 30000 });
@@ -160,9 +161,16 @@ export const runtimeAgentApi = {
     api.post<RuntimeRunResult>(`/agents/${encodeURIComponent(agentRef)}/run`, { input }).then(r => r.data),
   /** A2A mainline: POST /api/icoder/agents/{agentId}/v1/message:send.
    * Sends a JSON-RPC 2.0 message/send envelope and projects the v2 8-field
-   * response back to RuntimeRunResult for compatibility with the existing UI. */
-  runAgentViaA2A: (agentId: string, input: string) =>
-    a2aApi.post(`/${encodeURIComponent(agentId)}/v1/message:send`, {
+   * response back to RuntimeRunResult for compatibility with the existing UI.
+   * Phase 4-D: accepts extra `parts` (DataPart for attached JSON context
+   * files via "Add context"). After each run, syncs liveCost from billing
+   * balance delta. */
+  runAgentViaA2A: (agentId: string, input: string, extraParts: any[] = []) => {
+    const parts: any[] = [
+      { kind: 'text', text: input },
+      ...extraParts,
+    ];
+    const runPromise = a2aApi.post(`/${encodeURIComponent(agentId)}/v1/message:send`, {
       jsonrpc: '2.0',
       id: `icoder-${Date.now()}`,
       method: 'message/send',
@@ -170,17 +178,37 @@ export const runtimeAgentApi = {
         message: {
           role: 'user',
           messageId: `msg-${Date.now()}`,
-          parts: [{ kind: 'text', text: input }],
+          parts,
           metadata: {},
         },
       },
-    }).then(r => _mapA2AResultToRunResult(agentId, r.data)),
+    }).then(r => _mapA2AResultToRunResult(agentId, r.data));
+    // Sync live cost after run completes (non-blocking — don't block UI on balance fetch)
+    runPromise.then(() => {
+      // Dynamic import to avoid circular dependency (store imports from services)
+      import('../store').then(({ useCostStore }) => {
+        import('./api').then(({ billingApi }) => {
+          billingApi.balance().then((r: any) => {
+            const bal = r.data?.balance;
+            if (typeof bal === 'number') {
+              useCostStore.getState().syncFromBalance(bal);
+            }
+          }).catch(() => {});
+        });
+      });
+    }).catch(() => {});
+    return runPromise;
+  },
   agentLifecycle: (agentRef: string, action: string) =>
     api.post(`/agents/${encodeURIComponent(agentRef)}/lifecycle`, { action }).then(r => r.data),
 
-  // ── Runs (recent runs overview; full trace at /api/m2a/runs/{id})
+  // ── Runs (recent runs overview; full trace at /api/runtime/runs/{id}/trace)
   listRuns: (agentRef = '', limit = 50) =>
     api.get<{ runs: RuntimeRunResult[]; total: number }>('/runs', { params: { agent_ref: agentRef, limit } }).then(r => r.data),
+
+  // Phase 3-D1 Task 4: RunTrace Corti-parity Viewer — 9-step timeline
+  getRunTrace: (runId: string) =>
+    api.get<RunTraceResponse>(`/runs/${encodeURIComponent(runId)}/trace`).then(r => r.data),
 
   // ── Observability ──
   getFallbackStats: (hours = 24) =>

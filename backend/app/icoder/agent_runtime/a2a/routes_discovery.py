@@ -23,6 +23,9 @@ from .agent_card import (
     AgentListResponse,
     medcoder_coding_review_card,
     medical_coding_agent_card,
+    code_validation_agent_card,
+    compliance_guardrail_agent_card,
+    note_completeness_agent_card,
 )
 from .envelope import make_error_response
 from .errors import A2AError, A2AErrorCode, agent_not_found
@@ -123,6 +126,10 @@ def _list_all_cards(provider: AgentProvider) -> list[AgentCard]:
     Corti-style MVP). The provider is consulted first; if it returns None
     for either, we fall back to the fixture.
 
+    Phase 3-D1 Task 5 (2026-07-06): added 3 simple runnable agents
+    (code-validation / compliance-guardrail / note-completeness). Same
+    fallback pattern — provider first, fixture second.
+
     metadata-only packs and expert-stubs do NOT get cards here — they
     have no run path. They appear in the Hub (``/api/icoder/agents/hub``)
     with Coming Soon badges instead.
@@ -131,6 +138,9 @@ def _list_all_cards(provider: AgentProvider) -> list[AgentCard]:
     for agent_id, factory in [
         ("medcoder-coding-review", medcoder_coding_review_card),
         ("medical-coding-agent", medical_coding_agent_card),
+        ("code-validation-agent", code_validation_agent_card),
+        ("compliance-guardrail-agent", compliance_guardrail_agent_card),
+        ("note-completeness-agent", note_completeness_agent_card),
     ]:
         card = _resolve_card(provider, agent_id)
         if card is None:

@@ -482,7 +482,7 @@ async def get_agent_stats(
 AGENT_TEMPLATES = [
     {
         "id": "icd10-navigator",
-        "title": "ICD-10 Index Navigator Agent",
+        "title": "ICD-10 索引导航智能体",
         "description": "从临床术语遍历ICD-10字母索引，为编码员审核提供候选编码",
         "category": "编码",
         "icon": "BookOpenText",
@@ -502,7 +502,7 @@ AGENT_TEMPLATES = [
     },
     {
         "id": "compliance-guardrail",
-        "title": "Compliance Guardrail Agent",
+        "title": "合规护栏智能体",
         "description": "在提交医保结算清单前，按配置的医保或医院规则集评估编码集的合规性",
         "category": "医保",
         "icon": "Shield",
@@ -512,7 +512,7 @@ AGENT_TEMPLATES = [
     },
     {
         "id": "code-validation",
-        "title": "Code Validation Agent",
+        "title": "编码校验智能体",
         "description": "按官方编码规则验证编码集，发现错误、冲突和合规风险",
         "category": "编码",
         "icon": "CheckCircle",
@@ -572,7 +572,7 @@ AGENT_TEMPLATES = [
     },
     {
         "id": "note-completeness",
-        "title": "Note Completeness Agent",
+        "title": "病历完整性智能体",
         "description": "实时检查病历完整性、准确性和合规性，确保高质量临床文书",
         "category": "质控",
         "icon": "ClipboardCheck",
@@ -652,7 +652,7 @@ AGENT_TEMPLATES = [
     },
     {
         "id": "medical-coding",
-        "title": "Medical Coding Agent",
+        "title": "医学编码智能体",
         "description": "将非结构化临床文本转化为结构化ICD-10-CN诊断编码与ICD-9-CM-3手术编码",
         "category": "编码",
         "icon": "Stethoscope",

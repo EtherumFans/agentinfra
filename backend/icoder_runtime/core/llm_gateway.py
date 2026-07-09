@@ -344,8 +344,18 @@ class DeepSeekProvider(BaseLLMProvider):
                 return _mock_fallback_response("provider_network_error")
 
         choice = data["choices"][0]
-        return {
-            "content": choice["message"]["content"],
+        message = choice.get("message") or {}
+        content = message.get("content") or ""
+        # Phase 4-C: parse tool_calls (OpenAI/DeepSeek function-calling shape).
+        # The LLM returns ``message.tool_calls`` as a list of
+        # ``{"id": str, "type": "function",
+        #   "function": {"name": str, "arguments": "<json string>"}}``
+        # when it wants to call a tool. We surface this so
+        # ``LLMGatewayAdapter._invoke_gateway`` can populate
+        # ``LLMResponse.tool_calls`` for ``LLMWithToolsProvider``.
+        tool_calls = message.get("tool_calls")
+        result: dict[str, Any] = {
+            "content": content,
             "model": data.get("model", self.model),
             "usage": {
                 "input_tokens": data.get("usage", {}).get("prompt_tokens", 0),
@@ -353,17 +363,9 @@ class DeepSeekProvider(BaseLLMProvider):
             },
             "latency_ms": int((time.time() - t0) * 1000),
         }
-
-        choice = data["choices"][0]
-        return {
-            "content": choice["message"]["content"],
-            "model": data.get("model", self.model),
-            "usage": {
-                "input_tokens": data.get("usage", {}).get("prompt_tokens", 0),
-                "output_tokens": data.get("usage", {}).get("completion_tokens", 0),
-            },
-            "latency_ms": int((time.time() - t0) * 1000),
-        }
+        if tool_calls:
+            result["tool_calls"] = tool_calls
+        return result
 
     def health_check(self) -> dict:
         return {"provider": self.name, "model": self.model, "status": "configured" if self.api_key else "no_api_key"}
@@ -425,8 +427,12 @@ class OpenAICompatibleProvider(BaseLLMProvider):
             raise ProviderError(f"OpenAI-compatible API error: {e}")
 
         choice = data["choices"][0]
-        return {
-            "content": choice["message"]["content"],
+        message = choice.get("message") or {}
+        content = message.get("content") or ""
+        # Phase 4-C: parse tool_calls (OpenAI function-calling shape).
+        tool_calls = message.get("tool_calls")
+        result: dict[str, Any] = {
+            "content": content,
             "model": data.get("model", self.model),
             "usage": {
                 "input_tokens": data.get("usage", {}).get("prompt_tokens", 0),
@@ -434,6 +440,9 @@ class OpenAICompatibleProvider(BaseLLMProvider):
             },
             "latency_ms": int((time.time() - t0) * 1000),
         }
+        if tool_calls:
+            result["tool_calls"] = tool_calls
+        return result
 
     def health_check(self) -> dict:
         return {"provider": self.name, "model": self.model, "status": "configured"}

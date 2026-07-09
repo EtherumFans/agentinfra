@@ -151,6 +151,15 @@ class NormalizedPack:
     human_review_required_when: list[str] = field(default_factory=list)
     a2a: dict[str, Any] = field(default_factory=dict)
 
+    # ── Phase 4-A (2026-07-07): Agent Backend Provider ──
+    # ``backend_provider`` selects the agent's backend form
+    # declaratively (e.g. "icoder.rule-engine.v1"). When absent, the
+    # runtime falls back to ``DEFAULT_FALLBACK_PROVIDER_ID`` (legacy
+    # v1.0/v1.1/v1.2 packs). ``backend_config`` carries provider-specific
+    # options (LLM model, tool scope, placeholder_values, etc.).
+    backend_provider: str = ""
+    backend_config: dict[str, Any] = field(default_factory=dict)
+
     # ── Classification (set by loader, not from raw) ──
     status: PackStatus = PackStatus.INVALID
     production_ready: bool = False
@@ -220,6 +229,8 @@ class NormalizedPack:
             "phi_redaction": self.phi_redaction,
             "context_required": self.context_required,
             "recorder_required": self.recorder_required,
+            "backend_provider": self.backend_provider,
+            "has_backend_config": bool(self.backend_config),
             "validation_errors": list(self.validation_errors),
             "validation_warnings": list(self.validation_warnings),
         }

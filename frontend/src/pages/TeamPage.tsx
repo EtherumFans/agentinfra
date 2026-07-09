@@ -1,4 +1,4 @@
-// iCoDer Team Page — connected to real backend
+// iCoDer Team Page - connected to real backend
 import { Users, UserPlus, Shield, Trash2, Loader2, Mail, Clock } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import { useT } from '../i18n';
@@ -97,7 +97,7 @@ export default function TeamPage() {
       </div>
 
       {showInvite && (
-        <div className="border border-border/20 rounded-xl shadow-sm ring-1 ring-border/20 p-5 mb-6 max-w-lg bg-background">
+        <div className="border border-border/20 rounded-xl shadow-sm p-5 mb-6 max-w-lg bg-background">
           <h3 className="text-sm font-semibold text-foreground mb-3">邀请团队成员</h3>
           <div className="space-y-3">
             <input
@@ -122,7 +122,7 @@ export default function TeamPage() {
       )}
 
       <div className="max-w-2xl">
-        {/* Tab switcher — iCoDer-style */}
+        {/* Tab switcher - iCoDer-style */}
         <div className="flex items-center gap-1 mb-4" role="tablist">
           <button role="tab" aria-selected={activeSection === 'members'} onClick={() => setActiveSection('members')}
             className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${activeSection === 'members' ? 'bg-accent text-foreground' : 'text-muted-foreground hover:text-foreground'}`}>团队成员</button>
@@ -136,7 +136,7 @@ export default function TeamPage() {
         {/* Members list */}
         {activeSection === 'members' && (
           members.length === 0 ? (
-            <div className="text-center py-12 border border-border/20 rounded-xl shadow-sm ring-1 ring-border/20 bg-background">
+            <div className="text-center py-12 border border-border/20 rounded-xl shadow-sm bg-background">
               <Users size={48} className="mx-auto mb-3 text-muted-foreground/30" />
               <p className="text-sm text-muted-foreground">暂无团队成员</p>
             </div>
@@ -167,7 +167,7 @@ export default function TeamPage() {
         {/* Invitations list */}
         {activeSection === 'invitations' && (
           invitations.length === 0 ? (
-            <div className="text-center py-12 border border-border/20 rounded-xl shadow-sm ring-1 ring-border/20 bg-background">
+            <div className="text-center py-12 border border-border/20 rounded-xl shadow-sm bg-background">
               <Mail size={48} className="mx-auto mb-3 text-muted-foreground/30" />
               <p className="text-sm text-muted-foreground">暂无待处理的邀请</p>
             </div>

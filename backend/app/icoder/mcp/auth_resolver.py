@@ -170,6 +170,7 @@ async def resolve_mcp_auth(
         return AuthHeader(
             kind="none",
             redacted_view=auth_config.redacted_view or "none",
+            granted_scopes=[],
         )
 
     if isinstance(auth_config, BearerAuthConfig):
@@ -228,6 +229,7 @@ def _resolve_bearer(
         kind="bearer",
         token=token,
         redacted_view=cfg.redacted_view or _default_bearer_redaction(token),
+        granted_scopes=list(cfg.scopes),
     )
 
 
@@ -264,6 +266,7 @@ def _resolve_inherit(
             kind="bearer",
             token=token,
             redacted_view=cfg.redacted_view or _default_bearer_redaction(token),
+            granted_scopes=[],
         )
     # Fall back through the priority chain.
     for source in _INHERIT_PRIORITY:
@@ -279,6 +282,7 @@ def _resolve_inherit(
                 kind="bearer",
                 token=token,
                 redacted_view=cfg.redacted_view or _default_bearer_redaction(token),
+                granted_scopes=[],
             )
     raise MCPAuthError(
         MCPErrorCode.MCP_AUTH_MISSING_TOKEN,
@@ -359,6 +363,7 @@ async def _resolve_oauth2(
                 kind="bearer",
                 token=cached.access_token,
                 redacted_view=_default_bearer_redaction(cached.access_token),
+                granted_scopes=list(cfg.scopes),
             )
         # else: fall through to refresh.
 
@@ -383,6 +388,7 @@ async def _resolve_oauth2(
         kind="bearer",
         token=token["access_token"],
         redacted_view=_default_bearer_redaction(token["access_token"]),
+        granted_scopes=list(cfg.scopes),
     )
 
 

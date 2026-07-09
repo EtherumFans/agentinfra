@@ -79,7 +79,17 @@ def _post(client: TestClient, payload: dict, path: str = "/mcp/v1/tools/list"):
 
 
 def test_tools_list_returns_5_tools(client: TestClient):
-    """tools/list returns exactly 5 tool descriptors."""
+    """tools/list returns all registered tool descriptors.
+
+    Phase 3-D2 Task 3: bumped from 5 to 8 tools (added validate_codes /
+    evaluate_compliance / check_documentation_gaps to back the 3 simple
+    agents). The test name is kept for git-blame continuity.
+
+    Phase 4-C: bumped from 8 to 11 — added get_guidelines /
+    explore_code / search_codes (Corti Code Validation
+    verify/guidelines/explore/search 1:1 replication). verify_code was
+    extended in-place, not added as a new entry.
+    """
     r = _post(client, _rpc("tools/list"))
     assert r.status_code == 200
     body = r.json()
@@ -90,11 +100,15 @@ def test_tools_list_returns_5_tools(client: TestClient):
     # extra ``content`` nesting — that would have made list/call
     # shapes inconsistent). Tools live directly under ``result``.
     tools = body["result"]["tools"]
-    assert len(tools) == 5
+    assert len(tools) == 11
     names = {t["name"] for t in tools}
     assert names == {
         "search_icd", "verify_code", "get_differentiation_hint",
         "rerank_codes", "calibrate_confidence",
+        # Phase 3-D2 Task 3 — 3 agent-backed tools
+        "validate_codes", "evaluate_compliance", "check_documentation_gaps",
+        # Phase 4-C — 3 new Corti-style tools
+        "get_guidelines", "explore_code", "search_codes",
     }
 
 
@@ -104,7 +118,7 @@ def test_tools_list_accepts_empty_body(client: TestClient):
     assert r.status_code == 200
     body = r.json()
     assert body["result"]["isError"] is False
-    assert len(body["result"]["tools"]) == 5
+    assert len(body["result"]["tools"]) == 11
 
 
 def test_tools_list_rejects_unknown_method(client: TestClient):
@@ -276,10 +290,15 @@ def test_tools_call_unknown_tool_returns_32601(client: TestClient):
     body = r.json()
     assert body["error"]["code"] == -32601
     assert "nonexistent_tool" in body["error"]["message"]
-    assert body["error"]["data"]["allowed_tools"] == [
+    # allowed_tools list is sorted alphabetically by the dispatcher.
+    assert sorted(body["error"]["data"]["allowed_tools"]) == sorted([
         "search_icd", "verify_code", "get_differentiation_hint",
         "rerank_codes", "calibrate_confidence",
-    ]
+        # Phase 3-D2 Task 3 — 3 agent-backed tools
+        "validate_codes", "evaluate_compliance", "check_documentation_gaps",
+        # Phase 4-C — 3 new Corti-style tools
+        "get_guidelines", "explore_code", "search_codes",
+    ])
 
 
 def test_tools_call_missing_tool_name_returns_32602(client: TestClient):

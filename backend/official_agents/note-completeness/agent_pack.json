@@ -1,67 +1,142 @@
 {
-  "format_version": "1.1",
+  "format_version": "1.2",
   "agent_type": "certified",
-  "agent_ref": "icoder/note-completeness@1.0.0",
+  "agent_ref": "icoder/note-completeness-agent@1.0.0",
   "manifest": {
-    "name": "病历完整性",
+    "name": "病历完整性智能体",
     "version": "1.0.0",
-    "description": "实时检查病历完整性、准确性和合规性。",
-    "category": "质控",
+    "description": "iCoDer 病历完整性 Agent — 按《病历书写基本规范》检查入院记录的必填章节 (主诉/现病史/既往史/体格检查/辅助检查/诊断/治疗经过 + 手术记录 for surgical cases)。输出缺失章节列表 + completeness_score。Phase 4-B (2026-07-08): 迁移到 PureLLMProvider (LLM-based)，保留 regex legacy fallback。",
+    "category": "medical-coding",
+    "category_display": "Documentation / 病历完整性",
     "icon": "FileCheck",
-    "maturity": "metadata-only",
+    "tags": [
+      "documentation",
+      "completeness",
+      "llm-based",
+      "pure-llm",
+      "chart-review",
+      "corti-parity"
+    ],
+    "maturity": "runnable",
     "production_ready": false,
+    "human_review": "optional",
     "hidden_from_hub": false,
     "use_case": "coding_revenue_cycle"
   },
-  "system_prompt": "你是病历质量审核专家。对照《病历书写基本规范》检查病历的完整性和准确性。",
-  "experts": [],
-  "tools": [
-    "check_documentation_gaps",
-    "cdi_review",
-    "extract_evidence",
-    "verify_evidence",
-    "guard_input",
-    "guard_output"
-  ],
-  "permissions": {
-    "key": "note-completeness",
-    "name": "病历完整性权限",
-    "description": "实时检查病历完整性、准确性和合规性。",
-    "tools": {
-      "check_documentation_gaps": {
-        "allowed": true
-      },
-      "cdi_review": {
-        "allowed": true
-      },
-      "extract_evidence": {
-        "allowed": true
-      },
-      "verify_evidence": {
-        "allowed": true
-      },
-      "guard_input": {
-        "allowed": true
-      },
-      "guard_output": {
-        "allowed": true
-      }
+  "backend_provider": "icoder.pure-llm.v1",
+  "backend_config": {
+    "llm": {
+      "model": "deepseek-chat",
+      "temperature": 0.0,
+      "max_tokens": 4096,
+      "timeout_seconds": 60
+    },
+    "fallback": {
+      "legacy_implementation": "official_agents.note_completeness.agent_legacy.run",
+      "trigger": "llm_status_fail_or_parse_error"
     }
   },
+  "system_prompt": "你是 iCoDer Note Completeness Agent。职责：\n1. 接收病历文本 (入院记录 / 出院小结 / 病程记录)\n2. 按《病历书写基本规范》检测必填章节：\n   - 主诉\n   - 现病史\n   - 既往史\n   - 体格检查\n   - 辅助检查\n   - 诊断 (初步/入院/出院诊断)\n   - 治疗经过\n   - 手术记录 (仅手术病例)\n3. 输出 completeness_score (present/total) + missing_sections + documentation_gaps + review_conclusion\n\nPhase 4-B (2026-07-08): 完整 system prompt 见 official_agents/note_completeness/agent.py::SYSTEM_PROMPT。LLM-based via PureLLMProvider，regex fallback 保留。\n\n硬约束：\n- 不调用工具 — PureLLMProvider 不支持 tool_calling\n- 不修改病历 — 只评估\n- 不写回 EMR\n- 不评估编码 — 编码由 Medical Coding Agent 完成",
+  "experts": [
+    {
+      "expert_id": "section-detector",
+      "name": "Section Detector",
+      "role": "primary",
+      "description": "Regex-based EMR section detector — 主诉/现病史/既往史/体格检查/辅助检查/诊断/治疗经过/手术记录"
+    }
+  ],
+  "tools": [
+    {
+      "name": "check_documentation_gaps",
+      "type": "mcp",
+      "stage": "documentation",
+      "description": "检测病历必填章节缺失，输出 documentation_gaps + completeness_score + missing_sections",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "emr_text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "emr_text"
+        ]
+      },
+      "output_schema": {
+        "$ref": "icoder/NoteCompletenessOutput/v1"
+      }
+    }
+  ],
+  "model": {
+    "primary": "deepseek-chat",
+    "fallback": "mock",
+    "temperature": 0.0,
+    "max_tokens": 4096,
+    "json_mode": true
+  },
+  "non_goals": [
+    "不调用工具 — PureLLMProvider 不支持 tool_calling (Phase 4-C LLMWithToolsProvider 才支持)",
+    "不修改病历 — 只评估完整性",
+    "不写回 EMR / HIS",
+    "不评估编码正确性 — 编码由 Medical Coding Agent / Code Validation Agent 完成",
+    "不输出 F1 / 模型效果指标"
+  ],
+  "output_contract": {
+    "schema_ref": "icoder/NoteCompletenessOutput/v1",
+    "a2a_parts": [
+      "DataPart"
+    ],
+    "required_fields": [
+      "review_conclusion",
+      "documentation_gaps",
+      "completeness_score",
+      "missing_sections",
+      "present_sections",
+      "required_sections",
+      "trace_refs"
+    ],
+    "field_definitions": {
+      "review_conclusion": "PASS (>=0.85) | WARNING (>=0.5) | FAIL (<0.5)",
+      "documentation_gaps": "list[{gap_type='missing_section', description, section, suggestion}]",
+      "completeness_score": "float 0..1 — present_sections / required_sections",
+      "missing_sections": "list[str]",
+      "present_sections": "list[str]",
+      "required_sections": "list[str] — 主诉/现病史/既往史/体格检查/辅助检查/诊断/治疗经过 (+手术记录 for surgical)",
+      "trace_refs": "TraceRefs — run_id / agent_ref / rule_set='documentation_completeness'"
+    }
+  },
+  "permissions": {
+    "key": "note-completeness-default",
+    "name": "病历完整性智能体 默认权限",
+    "description": "允许读取病历文本进行章节检测。禁止写回，禁止编码分配。",
+    "tools": {
+      "check_documentation_gaps": "allowed",
+      "writeback": "blocked"
+    },
+    "production_writeback_blocked": true
+  },
+  "phi_redaction": "required",
+  "context_required": false,
+  "recorder_required": false,
+  "metrics_required": true,
   "requirements": {
-    "min_runtime_version": "1.0.0"
+    "min_runtime_version": "2.0.0",
+    "icoder_runtime_modules": []
   },
   "llm_capabilities": {
-    "required_models": [
-      {
-        "name": "deepseek-v4"
-      }
-    ],
+    "required_models": [],
     "supports_tool_calling": false,
-    "supports_json_mode": true
+    "supports_json_mode": true,
+    "supports_mcp_tools": true
+  },
+  "a2a": {
+    "protocol_version": "0.3",
+    "endpoint": "/api/icoder/agents/note-completeness-agent/v1/message:send",
+    "discovery": "/api/icoder/agents",
+    "agent_card_ref": "icoder/note-completeness-agent@1.0.0"
   },
   "code": {},
   "integrity": {
-    "sha256": ""
+    "sha256": "PLACEHOLDER_RECOMPUTED_AT_PUBLISH"
   }
 }

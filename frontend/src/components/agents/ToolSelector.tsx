@@ -1,4 +1,4 @@
-/** ToolSelector — browse + select tools for Agent composition.
+/** ToolSelector - browse + select tools for Agent composition.
 
 Displays available tools grouped by category, with Tier 1/Tier 2 badges,
 contract info (requires/guarantees), and accuracy tags.
@@ -12,6 +12,7 @@ import {
   FileWarning, ClipboardList, FileText, MessageSquare, ChevronDown,
   ChevronRight, Info,
 } from 'lucide-react';
+import { useT } from '../../i18n';
 
 interface ToolDef {
   id: string;
@@ -27,15 +28,6 @@ interface ToolDef {
   has_input_schema: boolean;
 }
 
-const CATEGORY_NAMES: Record<string, string> = {
-  safety: '安全护栏',
-  extraction: '信息提取',
-  coding: '编码',
-  verification: '验证',
-  analysis: '分析',
-  report: '报告',
-};
-
 const CATEGORY_ORDER = ['safety', 'extraction', 'coding', 'verification', 'analysis', 'report'];
 
 interface Props {
@@ -46,11 +38,21 @@ interface Props {
 }
 
 export default function ToolSelector({ enabledTools, onChange, tier1Enforce, onTier1EnforceChange }: Props) {
+  const t = useT();
   const [tools, setTools] = useState<ToolDef[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [toolDetail, setToolDetail] = useState<string | null>(null);
+
+  const CATEGORY_NAMES: Record<string, string> = {
+    safety: t.toolSelectorCategorySafety,
+    extraction: t.toolSelectorCategoryExtraction,
+    coding: t.toolSelectorCategoryCoding,
+    verification: t.toolSelectorCategoryVerification,
+    analysis: t.toolSelectorCategoryAnalysis,
+    report: t.toolSelectorCategoryReport,
+  };
 
   useEffect(() => {
     fetch('/api/tools')
@@ -92,7 +94,7 @@ export default function ToolSelector({ enabledTools, onChange, tier1Enforce, onT
     return (
       <div className="p-6 text-center text-gray-500">
         <div className="animate-spin w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full mx-auto mb-2" />
-        Loading tools...
+        {t.toolSelectorLoading}
       </div>
     );
   }
@@ -103,7 +105,7 @@ export default function ToolSelector({ enabledTools, onChange, tier1Enforce, onT
       <div className="p-4 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-            Available Tools ({filtered.length})
+            {t.toolSelectorAvailableTools} ({filtered.length})
           </h3>
         </div>
 
@@ -114,7 +116,7 @@ export default function ToolSelector({ enabledTools, onChange, tier1Enforce, onT
             type="text"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Search tools..."
+            placeholder={t.toolSelectorSearchPlaceholder}
             className="w-full pl-8 pr-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600
                        rounded bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300
                        focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -130,7 +132,7 @@ export default function ToolSelector({ enabledTools, onChange, tier1Enforce, onT
             className="rounded"
           />
           <Shield className="w-3.5 h-3.5 text-green-600" />
-          Auto-inject accuracy guarantee tools (Tier 1)
+          {t.toolSelectorTier1Toggle}
         </label>
       </div>
 
@@ -195,7 +197,7 @@ export default function ToolSelector({ enabledTools, onChange, tier1Enforce, onT
                               </span>
                               {tool.is_injectable && (
                                 <span className="px-1 py-0.5 rounded text-[10px] bg-yellow-100 text-yellow-700">
-                                  Auto
+                                  {t.toolSelectorAuto}
                                 </span>
                               )}
                             </div>
@@ -231,11 +233,11 @@ export default function ToolSelector({ enabledTools, onChange, tier1Enforce, onT
                         {toolDetail === tool.id && (
                           <div className="ml-8 mt-1 p-2 bg-gray-50 dark:bg-gray-800/50 rounded border border-gray-200 dark:border-gray-700 text-xs">
                             <div className="mb-1">
-                              <span className="font-semibold">ID:</span> {tool.id}
+                              <span className="font-semibold">{t.toolSelectorId}:</span> {tool.id}
                             </div>
                             {tool.requires.length > 0 && (
                               <div className="mb-1">
-                                <span className="font-semibold text-amber-600">Preconditions:</span>
+                                <span className="font-semibold text-amber-600">{t.toolSelectorPreconditions}:</span>
                                 <ul className="list-disc list-inside text-gray-600 dark:text-gray-400">
                                   {tool.requires.map(r => <li key={r}>{r}</li>)}
                                 </ul>
@@ -243,7 +245,7 @@ export default function ToolSelector({ enabledTools, onChange, tier1Enforce, onT
                             )}
                             {Object.keys(tool.guarantees).length > 0 && (
                               <div>
-                                <span className="font-semibold text-green-600">Postconditions:</span>
+                                <span className="font-semibold text-green-600">{t.toolSelectorPostconditions}:</span>
                                 <ul className="list-disc list-inside text-gray-600 dark:text-gray-400">
                                   {Object.entries(tool.guarantees).map(([k, v]) => (
                                     <li key={k}>{k}: {v}</li>
@@ -264,17 +266,18 @@ export default function ToolSelector({ enabledTools, onChange, tier1Enforce, onT
 
         {filtered.length === 0 && (
           <div className="text-center text-gray-400 text-xs pt-8">
-            No tools found matching "{search}"
+            {t.toolSelectorNoMatch} "{search}"
           </div>
         )}
       </div>
 
       {/* Footer summary */}
       <div className="p-3 border-t border-gray-200 dark:border-gray-700 text-xs text-gray-500">
-        {enabledTools.length} tools selected
-        ({tools.filter(t => enabledTools.includes(t.id) && t.tier === 1).length} Tier 1,
-        {tools.filter(t => enabledTools.includes(t.id) && t.tier === 2).length} Tier 2)
+        {enabledTools.length} {t.toolSelectorSelected}
+        ({tools.filter(t => enabledTools.includes(t.id) && t.tier === 1).length} {t.toolSelectorTier1},
+        {tools.filter(t => enabledTools.includes(t.id) && t.tier === 2).length} {t.toolSelectorTier2})
       </div>
     </div>
   );
 }
+

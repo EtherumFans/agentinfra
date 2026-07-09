@@ -1,5 +1,18 @@
 # Auth API Integration Tests
+"""Phase 3-D0 Task 3 — fixed test_register isolation flake.
+
+Root cause: tests used fixed emails/usernames ("new@example.com" /
+"newuser") and the session-scoped DB only drops tables at the very
+end. A re-run of test_register hits 400 (user already exists) instead
+of 201 → flake. Fix: per-invocation unique suffix via uuid4.
+"""
+import uuid
+
 import pytest
+
+
+def _short_uid() -> str:
+    return uuid.uuid4().hex[:8]
 
 
 @pytest.mark.asyncio
@@ -13,9 +26,10 @@ async def test_health_check(client):
 
 @pytest.mark.asyncio
 async def test_register(client):
+    uid = _short_uid()
     response = await client.post("/api/auth/register", json={
-        "username": "newuser",
-        "email": "new@example.com",
+        "username": f"newuser-{uid}",
+        "email": f"new-{uid}@example.com",
         "password": "password123",
         "full_name": "New User",
         "role": "coder",
@@ -24,22 +38,24 @@ async def test_register(client):
     assert response.status_code == 201
     data = response.json()
     assert "access_token" in data
-    assert data["user"]["username"] == "newuser"
+    assert data["user"]["username"] == f"newuser-{uid}"
 
 
 @pytest.mark.asyncio
 async def test_register_duplicate(client):
+    uid = _short_uid()
+    username = f"dupuser-{uid}"
     # First registration
     await client.post("/api/auth/register", json={
-        "username": "dupuser",
-        "email": "dup@example.com",
+        "username": username,
+        "email": f"dup-{uid}@example.com",
         "password": "password123",
         "full_name": "Dup User",
     })
-    # Duplicate
+    # Duplicate (same username — must 400)
     response = await client.post("/api/auth/register", json={
-        "username": "dupuser",
-        "email": "dup2@example.com",
+        "username": username,
+        "email": f"dup2-{uid}@example.com",
         "password": "password123",
         "full_name": "Dup User 2",
     })
@@ -48,15 +64,17 @@ async def test_register_duplicate(client):
 
 @pytest.mark.asyncio
 async def test_login_success(client):
+    uid = _short_uid()
+    username = f"loginuser-{uid}"
     # Register first
     await client.post("/api/auth/register", json={
-        "username": "loginuser",
-        "email": "login@example.com",
+        "username": username,
+        "email": f"login-{uid}@example.com",
         "password": "loginpass123",
         "full_name": "Login User",
     })
     response = await client.post("/api/auth/login", json={
-        "username": "loginuser",
+        "username": username,
         "password": "loginpass123",
     })
     assert response.status_code == 200
@@ -67,8 +85,9 @@ async def test_login_success(client):
 
 @pytest.mark.asyncio
 async def test_login_failure(client):
+    uid = _short_uid()
     response = await client.post("/api/auth/login", json={
-        "username": "nonexistent",
+        "username": f"nonexistent-{uid}",
         "password": "wrong",
     })
     assert response.status_code == 401

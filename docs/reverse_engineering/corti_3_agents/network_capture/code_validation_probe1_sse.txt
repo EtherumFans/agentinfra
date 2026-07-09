@@ -1,0 +1,86 @@
+# Corti Code Validation Agent — Probe 1 Network Capture (CONFIRMED)
+
+**Probe ID:** 1_standard_complete
+**Capture date:** 2026-07-07
+**Endpoint:** `POST https://api.console.corti.app/functions/v1/ai/agents/85b2de35-7fd5-4cd3-8e6f-933b6c6c426b`
+**HTTP status:** 200
+**Content-Type:** `text/event-stream` (Server-Sent Events)
+**Latency:** ~15s wall-clock from send to last text-delta
+**Cost:** $0.039884 (cumulative including "What can you do??" call); probe 1 alone ≈ $0.016
+
+## Full SSE response (verbatim)
+
+```
+data: {"data":{"state":"working"},"type":"data-status-update"}
+
+data: {"data":{"state":"working"},"type":"data-status-update"}
+
+data: {"data":{"message":"Calling expert: coding-expert","state":"working"},"type":"data-status-update"}
+
+data: {"data":{"note":"Please validate the following code set for a 65-year-old male patient:\n\nPrimary diagnosis: I20.0 (Unstable angina)\nSecondary diagnoses: I50.9 (Heart failure, unspecified), E78.5 (Hyperlipidemia, unspecified)\nProcedure: CPT 92995 (Percutaneous transluminal coronary angioplasty)\nClinical note: Patient presented with recurrent chest pain at rest, troponin-negative, diagnosed with unstable angina. Cardiac cath showed multi-vessel CAD, underwent PTCA."},"type":"data-json"}
+
+data: {"id":"019f3cb1-6d40-755d-8739-c0ef0a7c9031","type":"text-start"}
+
+data: {"delta":"Code: I20.0 -- Unstable angina\n\nStatus: PASS\nAssignable: Yes\nChecks: Assignability ✓ | Completeness ✓ | 7th char N/A | Laterality N/A | Age/Sex ✓\n\nCode: I50.9 -- Heart failure, unspecified\n\nStatus: WARNING\nAssignable: Yes\nChecks: Assignability ✓ | Completeness ✓ | 7th char N/A | Laterality N/A | Age/Sex ✓\nIssue: Unspecified heart failure; guidelines for Chapter 9 (Diseases of the circulatory system) encourage more specific coding (e.g., systolic vs diastolic vs combined) when documented.\n\nCode: E78.5 -- Hyperlipidemia, unspecified\n\nStatus: PASS\nAssignable: Yes\nChecks: Assignability ✓ | Completeness ✓ | 7th char N/A | Laterality N/A | Age/Sex ✓\n\nCode: 92995 -- Percutaneous transluminal coronary angioplasty\n\nStatus: WARNING\nAssignable: Yes\nChecks: Assignability ✓ | Completeness ✓ | 7th char N/A | Laterality N/A | Age/Sex ✓\nIssue: Review CPT guidance to confirm that this code accurately reflects the specific PTCA service performed (single vs multiple vessels, with or without stent, etc.); potential need for more specific or alternative CPT codes depending on documentation.\n\nCross-code issues\n\nNo cross-code issues identified.\n\nValidation summary\n\nCodes reviewed: 4 | Passed: 2 | Warnings: 2 | Failed: 0 | Cross-code issues: 0","id":"019f3cb1-6d40-755d-8739-c0ef0a7c9031","type":"text-delta"}
+
+data: {"id":"019f3cb1-6d40-755d-8739-c0ef0a7c9031","type":"text-end"}
+
+data: {"messageMetadata":{"contextId":"019f3cb0-0fda-7041-9c2d-4947446de37c","taskId":"019f3cb1-4f53-7240-a109-88f816919469","credits":0.039884,"state":"completed"},"type":"message-metadata"}
+
+data: {"finishReason":"stop","messageMetadata":{"credits":0.039884},"type":"finish"}
+
+data: [DONE]
+```
+
+## SSE event types discovered (CONFIRMED)
+
+| Event type | Purpose | Sample |
+|------------|---------|--------|
+| `data-status-update` | Orchestrator state machine updates | `{"data":{"state":"working"},"type":"data-status-update"}` |
+| `data-status-update` with `message` | **Live "Calling expert: ..." messages** (D5 gap in iCoDer) | `{"data":{"message":"Calling expert: coding-expert","state":"working"},"type":"data-status-update"}` |
+| `data-json` | User message acknowledgment | `{"data":{"note":"<user input>"},"type":"data-json"}` |
+| `text-start` | Start of text stream chunk | `{"id":"<uuid7>","type":"text-start"}` |
+| `text-delta` | Streaming text delta (one big chunk in this case) | `{"delta":"<text>","id":"<uuid7>","type":"text-delta"}` |
+| `text-end` | End of text stream chunk | `{"id":"<uuid7>","type":"text-end"}` |
+| `message-metadata` | Task completion metadata | `{"contextId":"<uuid7>","taskId":"<uuid7>","credits":0.039884,"state":"completed"}` |
+| `finish` | Final finish event with reason | `{"finishReason":"stop","messageMetadata":{"credits":0.039884}}` |
+| `[DONE]` | Stream terminator | (literal sentinel) |
+
+## Key metadata fields (CONFIRMED)
+
+- `contextId`: `019f3cb0-0fda-7041-9c2d-4947446de37c` — UUIDv7 (timestamp-prefixed `019f3cb0`), matches iCoDer's `contextId` pattern
+- `taskId`: `019f3cb1-4f53-7240-a109-88f816919469` — UUIDv7 (1ms after contextId), matches iCoDer's `run_id` pattern
+- `credits`: `0.039884` — running total of credits consumed (D2 gap in iCoDer — no live cost UI)
+- `state`: `completed` — task state machine terminal state
+- `finishReason`: `stop` — LLM finish reason (matches OpenAI/Anthropic finish reason taxonomy)
+
+## Confidence grading (per docx)
+
+| Claim | Grade | Evidence |
+|-------|-------|----------|
+| Corti uses SSE streaming for agent responses | CONFIRMED | Direct network capture shows `text/event-stream` with `text-delta` events |
+| Corti shows live "Calling expert: ..." messages | CONFIRMED | SSE event `data-status-update` with `message: "Calling expert: coding-expert"` |
+| Corti uses contextId + taskId tracking | CONFIRMED | `messageMetadata.contextId` + `messageMetadata.taskId` in finish event |
+| Corti tracks per-message credit consumption | CONFIRMED | `messageMetadata.credits: 0.039884` in finish event |
+| Corti uses UUIDv7 for IDs | CONFIRMED | `019f3cb0-...` and `019f3cb1-...` are UUIDv7 with same timestamp prefix |
+| Corti uses LLM (with tool calling) as orchestrator | CONFIRMED | System prompt + "Calling expert: coding-expert" + finishReason: "stop" |
+| Corti delegates domain logic to `coding-expert` | CONFIRMED | System prompt names coding-expert as the only expert; live "Calling expert: coding-expert" message in SSE |
+| `coding-expert` exposes verify/guidelines/explore/search tools | LIKELY | System prompt references these 4 tools by name; cannot directly observe tool calls inside coding-expert from outside (opaque) |
+| Corti uses multi-stage pipeline (Step 1/2/3) | LIKELY | System prompt describes 3-step pipeline; output structure matches (per-code → cross-code → summary); but cannot directly observe intermediate tool calls |
+| Corti uses parallel tool calling | POSSIBLE | System prompt mentions `multi_tool_use.parallel` in "What can you do?" response; not directly observed in probe 1 |
+
+## Diff vs iCoDer
+
+| Dimension | Corti | iCoDer |
+|-----------|-------|--------|
+| Transport | SSE streaming (text/event-stream) | A2A JSON-RPC over HTTP (blocking) — Phase 1.2 has WSS but not wired to chat UI |
+| Live "Calling expert: ..." messages | Yes (CONFIRMED via SSE `data-status-update` with `message` field) | No (only "运行中..." button state — Phase 3-D2.5 D5 gap) |
+| Per-message credit tracking | Yes (`messageMetadata.credits`) | No (D2 gap — no live cost UI) |
+| contextId/taskId | Both UUIDv7 | run_id is UUIDv4 (no timestamp prefix); contextId implemented but not exposed in chat |
+| Backend | LLM orchestrator + coding-expert (with verify/guidelines/explore/search tools) | RuleEngine + MedicalCodingRuleSet (R001-R010 + MC-R-M80-001) |
+| Tool calling | Mandatory (`verify` on every code, `guidelines` on every code) | None (`model.primary: "none"`, `supports_tool_calling: false`) |
+| Latency | ~15s for 4-code validation | <100ms (Phase 3-D2.5 audit) |
+| Cost | $0.016 per validation | $0 (no LLM tokens) |
+| Output structure | Semi-structured text (LLM-enforced via prompt) | JSON schema (CodeValidationOutputSchema) |
+| Determinism | Non-deterministic (LLM) — output may vary across runs | Fully deterministic |
+| Cross-code check depth | Deep (Excludes1, sequencing, combination codes, duplicates, sign/symptom suppression) | Shallow (R001-R010 covers only basic format/duplicate/primary rules) |

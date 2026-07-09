@@ -1,5 +1,5 @@
-// iCoDer Home — Corti Project Home 4-tab IA replica.
-// Source: /project/<id> on console.corti.app — 4 entry-point tabs:
+// iCoDer Home - Corti Project Home 4-tab IA replica.
+// Source: /project/<id> on console.corti.app - 4 entry-point tabs:
 //   Transcribe / Document / Chat / Code NEW.
 // Each tab is a card with a one-line description + a CTA that links into
 // the matching AI Studio workbench.
@@ -34,7 +34,7 @@ const TABS: HomeTab[] = [
     labelKey: 'homeTabDocument',
     descKey: 'homeTabDocumentDesc',
     ctaKey: 'homeTabDocumentCta',
-    // Phase 3-B2 Loop 0: TextGeneration deprecated — redirect to Medical Coding
+    // Phase 3-B2 Loop 0: TextGeneration deprecated - redirect to Medical Coding
     // (closest available document workflow). Will be re-pointed to a real
     // Guided Documents page in Phase 3-C.
     to: '/ai-studio/medical-coding',
@@ -45,7 +45,7 @@ const TABS: HomeTab[] = [
     labelKey: 'homeTabChat',
     descKey: 'homeTabChatDesc',
     ctaKey: 'homeTabChatCta',
-    // Phase 3-B2 Loop 0: EmbeddedAssistant deprecated — redirect to Agent Hub.
+    // Phase 3-B2 Loop 0: EmbeddedAssistant deprecated - redirect to Agent Hub.
     // Loop 2 will land a real Chat page at /agents/{id}/chat.
     to: '/ai-studio/agents',
     icon: MessageSquare,
@@ -78,7 +78,7 @@ export default function HomePage() {
   return (
     <div className="flex h-full bg-muted/20">
       <div className="flex-1 overflow-y-auto">
-        <div className="max-w-3xl mx-auto px-6 py-8 space-y-6">
+        <div className="mx-auto w-full px-6 py-8 space-y-6">
 
           {/* Hero (Corti: minimal, no big heading) */}
           <div className="mb-2">
@@ -112,7 +112,7 @@ export default function HomePage() {
           </div>
 
           {/* ===== Active tab content panel ===== */}
-          <div id="home-content" className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 overflow-hidden">
+          <div id="home-content" className="bg-background rounded-xl shadow-sm overflow-hidden">
             {/* Header (icon + label + description) */}
             <div className="px-6 py-5 border-b border-border/10">
               <div className="flex items-start gap-3">

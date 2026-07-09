@@ -340,6 +340,101 @@ def _populate_v12_extensions(p: NormalizedPack) -> None:
     if isinstance(a2a, dict):
         p.a2a = a2a
 
+    _populate_backend_provider(p)
+
+
+def _populate_backend_provider(p: NormalizedPack) -> None:
+    """Phase 4-A: extract ``backend_provider`` + ``backend_config``.
+
+    Accepts both top-level and ``agent``-nested placement so pack
+    authors can write either:
+
+      ``{"backend_provider": "icoder.rule-engine.v1", ...}`` (top-level)
+      ``{"agent": {"backend_provider": "icoder.rule-engine.v1", ...}, ...}``
+
+    If neither is present, ``backend_provider`` stays empty and the
+    runtime falls back to ``DEFAULT_FALLBACK_PROVIDER_ID`` (preserves
+    backward compat with the 16 existing official agent packs).
+    """
+    raw = p.raw or {}
+    if not isinstance(raw, dict):
+        return
+
+    # Top-level
+    bp = raw.get("backend_provider")
+    if isinstance(bp, str) and bp:
+        p.backend_provider = bp
+    elif bp is not None and not isinstance(bp, str):
+        p.validation_warnings.append(
+            f"backend_provider: expected string, got {type(bp).__name__}"
+        )
+
+    bc = raw.get("backend_config")
+    if isinstance(bc, dict):
+        p.backend_config = bc
+    elif bc is not None and not isinstance(bc, dict):
+        p.validation_warnings.append(
+            f"backend_config: expected dict, got {type(bc).__name__}"
+        )
+
+    # Nested under ``agent`` (alternative placement)
+    agent_node = raw.get("agent")
+    if isinstance(agent_node, dict):
+        if not p.backend_provider:
+            nested_bp = agent_node.get("backend_provider")
+            if isinstance(nested_bp, str) and nested_bp:
+                p.backend_provider = nested_bp
+            elif nested_bp is not None and not isinstance(nested_bp, str):
+                p.validation_warnings.append(
+                    "agent.backend_provider: expected string, "
+                    f"got {type(nested_bp).__name__}"
+                )
+        if not p.backend_config:
+            nested_bc = agent_node.get("backend_config")
+            if isinstance(nested_bc, dict):
+                p.backend_config = nested_bc
+            elif nested_bc is not None and not isinstance(nested_bc, dict):
+                p.validation_warnings.append(
+                    "agent.backend_config: expected dict, "
+                    f"got {type(nested_bc).__name__}"
+                )
+
+    # Validate tool-scope config if present (mandatory ⊆ scope, forbidden ∩ scope = ∅).
+    if p.backend_config:
+        tools_cfg = p.backend_config.get("tools")
+        if isinstance(tools_cfg, dict):
+            scope = tools_cfg.get("scope")
+            mandatory = tools_cfg.get("mandatory")
+            forbidden = tools_cfg.get("forbidden")
+            if scope is not None and not isinstance(scope, list):
+                p.validation_errors.append(
+                    "backend_config.tools.scope: expected list"
+                )
+            if mandatory is not None and not isinstance(mandatory, list):
+                p.validation_errors.append(
+                    "backend_config.tools.mandatory: expected list"
+                )
+            if forbidden is not None and not isinstance(forbidden, list):
+                p.validation_errors.append(
+                    "backend_config.tools.forbidden: expected list"
+                )
+            if (
+                isinstance(scope, list)
+                and isinstance(mandatory, list)
+                and not set(mandatory).issubset(set(scope))
+            ):
+                p.validation_errors.append(
+                    "backend_config.tools: mandatory must be subset of scope"
+                )
+            if (
+                isinstance(scope, list)
+                and isinstance(forbidden, list)
+                and set(forbidden).intersection(set(scope))
+            ):
+                p.validation_errors.append(
+                    "backend_config.tools: forbidden must not intersect scope"
+                )
+
 
 # ── Classification ──
 

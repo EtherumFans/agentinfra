@@ -4,61 +4,78 @@ export default {
   darkMode: 'class',
   theme: {
     extend: {
+      // Semantic color tokens — reference CSS custom properties defined in index.css
+      // (light values in :root, dark values in .dark). Switching <html class="dark">
+      // cascades the new values through every class below.
       colors: {
-        // Vermillion + Jade + Warm neutral design tokens
-        background: 'hsl(40 14% 98%)',
-        foreground: 'hsl(40 6% 9%)',
-        muted: 'hsl(40 10% 95%)',
-        'muted-foreground': 'hsl(40 4% 43%)',
+        background: 'hsl(var(--background))',
+        foreground: 'hsl(var(--foreground))',
+        muted: 'hsl(var(--muted))',
+        'muted-foreground': 'hsl(var(--muted-foreground))',
 
         // Vermillion primary — Chinese medical seal red
-        primary: 'hsl(9 68% 48%)',
-        'primary-foreground': 'hsl(0 0% 100%)',
+        primary: 'hsl(var(--primary))',
+        'primary-foreground': 'hsl(var(--primary-foreground))',
 
         // Jade secondary — accuracy, confirmed, success
-        secondary: 'hsl(155 33% 38%)',
-        'secondary-foreground': 'hsl(0 0% 100%)',
+        secondary: 'hsl(var(--secondary))',
+        'secondary-foreground': 'hsl(var(--secondary-foreground))',
 
         // Warm gray accents
-        accent: 'hsl(40 12% 94%)',
-        'accent-foreground': 'hsl(40 6% 12%)',
+        accent: 'hsl(var(--accent))',
+        'accent-foreground': 'hsl(var(--accent-foreground))',
 
-        border: 'hsl(40 10% 89%)',
-        input: 'hsl(40 10% 92%)',
-        ring: 'hsl(9 68% 48%)',
+        border: 'hsl(var(--border))',
+        input: 'hsl(var(--input))',
+        ring: 'hsl(var(--ring))',
 
-        destructive: 'hsl(0 72% 48%)',
-        'destructive-foreground': 'hsl(0 0% 100%)',
+        destructive: 'hsl(var(--destructive))',
+        'destructive-foreground': 'hsl(var(--destructive-foreground))',
 
         // Sidebar
-        sidebar: 'hsl(40 10% 96%)',
-        'sidebar-foreground': 'hsl(40 4% 35%)',
-        'sidebar-border': 'hsl(40 8% 85%)',
-        'sidebar-primary': 'hsl(9 68% 48%)',
-        'sidebar-primary-foreground': 'hsl(0 0% 100%)',
-        'sidebar-accent': 'hsl(40 10% 93%)',
-        'sidebar-accent-foreground': 'hsl(40 6% 12%)',
-        'sidebar-ring': 'hsl(9 68% 48%)',
+        sidebar: 'hsl(var(--sidebar-background))',
+        'sidebar-foreground': 'hsl(var(--sidebar-foreground))',
+        'sidebar-border': 'hsl(var(--sidebar-border))',
+        'sidebar-primary': 'hsl(var(--sidebar-primary))',
+        'sidebar-primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
+        'sidebar-accent': 'hsl(var(--sidebar-accent))',
+        'sidebar-accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
+        'sidebar-ring': 'hsl(var(--sidebar-ring))',
 
         // Card / popover
-        card: 'hsl(0 0% 100%)',
-        'card-foreground': 'hsl(40 6% 9%)',
-        popover: 'hsl(0 0% 100%)',
-        'popover-foreground': 'hsl(40 6% 9%)',
+        card: 'hsl(var(--card))',
+        'card-foreground': 'hsl(var(--card-foreground))',
+        popover: 'hsl(var(--popover))',
+        'popover-foreground': 'hsl(var(--popover-foreground))',
+
+        // Chart
+        'chart-1': 'hsl(var(--chart-1))',
+        'chart-2': 'hsl(var(--chart-2))',
+        'chart-3': 'hsl(var(--chart-3))',
+        'chart-4': 'hsl(var(--chart-4))',
+        'chart-5': 'hsl(var(--chart-5))',
       },
       fontFamily: {
         sans: ['"Noto Sans SC"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'sans-serif'],
         mono: ['"JetBrains Mono"', '"IBM Plex Mono"', 'monospace'],
         brand: ['"DM Serif Display"', '"Noto Serif SC"', 'serif'],
       },
+      // Radius tier system — shape consistency lock (§4.4)
+      // Documented rule (follow everywhere):
+      //   rounded-xs  (2px)  → micro-badges (text-[9px] inline status tags)
+      //   rounded-md  (6px)  → buttons, inputs, small chips
+      //   rounded-lg  (8px)  → cards, list items, popover surfaces
+      //   rounded-xl  (12px) → modals, drawers, dialogs
+      //   rounded-2xl (16px) → chat surfaces (message bubbles, composer)
+      //   rounded-full      → pill badges, avatars
+      // Removed: rounded-sm, rounded-3xl (no usages).
       borderRadius: {
-        xs: '0.125rem',
-        sm: 'calc(0.5rem - 4px)',
-        md: 'calc(0.5rem - 2px)',
-        lg: '0.5rem',
-        xl: '0.75rem',
-        '2xl': '1rem',
-        '3xl': '1.5rem',
+        xs: 'var(--radius-xs)',
+        md: 'var(--radius-md)',
+        lg: 'var(--radius-lg)',
+        xl: 'var(--radius-xl)',
+        '2xl': 'var(--radius-2xl)',
+        full: '9999px',
       },
       fontSize: {
         xs: ['0.75rem', { lineHeight: 'calc(1/0.75)' }],
@@ -76,11 +93,6 @@ export default {
         'accordion-up': 'accordion-up 0.2s ease-out',
         in: 'enter 150ms ease-out',
         out: 'exit 150ms ease-in forwards',
-      },
-      // Dark mode semantic color overrides via CSS custom properties
-      // Applied when <html class="dark">
-      backgroundColor: {
-        dark: 'hsl(40 4% 10%)',
       },
     },
   },

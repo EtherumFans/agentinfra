@@ -1,6 +1,6 @@
 import { useLocaleStore } from '../i18n';
 import { useT } from '../i18n';
-// iCoDer Speech To Text — iCoDer Console 1:1 replica
+// iCoDer Speech To Text - iCoDer Console 1:1 replica
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Mic, MicOff, Copy, X, Plus, Settings2, AudioWaveform, Sparkles, ListTree, ChevronRight } from 'lucide-react';
@@ -165,7 +165,7 @@ export default function SpeechToTextPage() {
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
 
-      // Connection timeout — show error if WebSocket doesn't connect in 5s
+      // Connection timeout - show error if WebSocket doesn't connect in 5s
       const connectTimeout = setTimeout(() => {
         if (ws.readyState !== WebSocket.OPEN) {
           ws.close();
@@ -180,7 +180,7 @@ export default function SpeechToTextPage() {
         setIsListening(true);
         setSttEvents(prev => [...prev.slice(-50), { type: 'stt_start', data: { mode: 'server', language }, timestamp: new Date().toLocaleTimeString(locale, { hour12: false }), credits: 0.000001 }]);
         setSttCredits(c => c + 0.000001);
-        // Server pushes interim automatically — no client polling needed
+        // Server pushes interim automatically - no client polling needed
       };
 
       ws.onmessage = (ev) => {
@@ -237,7 +237,7 @@ export default function SpeechToTextPage() {
     setIsListening(false);
   }, []);
 
-  // Main toggle — startServerSTT/stopServerSTT have [] deps (stable), direct ref OK.
+  // Main toggle - startServerSTT/stopServerSTT have [] deps (stable), direct ref OK.
   // getRecognition uses ref to avoid stale closure from language/interimResults changes.
   const toggleListening = useCallback(() => {
     if (isListening) {
@@ -247,7 +247,7 @@ export default function SpeechToTextPage() {
       return;
     }
     if (sttMode === 'server') { setErrorMsg(null); startServerSTT(); return; }
-    // Browser mode — use ref to get latest getRecognition
+    // Browser mode - use ref to get latest getRecognition
     setErrorMsg(null);
     const gn = getRecognitionRef.current;
     const rec = gn ? gn() : null;
@@ -346,7 +346,7 @@ export default function SpeechToTextPage() {
           <div className="border-b border-border/20">
             <div className="flex items-center gap-2 px-4 pt-4 pb-2">
               <div className="w-1 h-4 rounded-full bg-primary/40" />
-              <h3 className="font-medium text-xs uppercase tracking-wider text-muted-foreground">语音设置</h3>
+              <h3 className="font-medium text-xs text-muted-foreground">语音设置</h3>
             </div>
             <div className="flex flex-col gap-3 px-4 pb-4">
               <div className="flex items-center justify-between gap-4 min-h-[32px]">
@@ -362,7 +362,7 @@ export default function SpeechToTextPage() {
           <div className="border-b border-border/20">
             <div className="flex items-center gap-2 px-4 pt-4 pb-2">
               <div className="w-1 h-4 rounded-full bg-primary/40" />
-              <h3 className="font-medium text-xs uppercase tracking-wider text-muted-foreground">标点符号</h3>
+              <h3 className="font-medium text-xs text-muted-foreground">标点符号</h3>
             </div>
             <div className="flex flex-col gap-2 px-4 pb-4">
               <label className="flex items-center gap-2 text-sm text-foreground/70">
@@ -379,7 +379,7 @@ export default function SpeechToTextPage() {
           <div className="border-b border-border/20">
             <div className="flex items-center gap-2 px-4 pt-4 pb-2">
               <div className="w-1 h-4 rounded-full bg-primary/40" />
-              <h3 className="font-medium text-xs uppercase tracking-wider text-muted-foreground">格式化</h3>
+              <h3 className="font-medium text-xs text-muted-foreground">格式化</h3>
             </div>
             <div className="flex flex-col gap-2 px-4 pb-4">
               <label className="flex items-center gap-2 text-sm text-foreground/70">
@@ -392,7 +392,7 @@ export default function SpeechToTextPage() {
           <div>
             <div className="flex items-center gap-2 px-4 pt-4 pb-2">
               <div className="w-1 h-4 rounded-full bg-primary/40" />
-              <h3 className="font-medium text-xs uppercase tracking-wider text-muted-foreground">语音指令</h3>
+              <h3 className="font-medium text-xs text-muted-foreground">语音指令</h3>
             </div>
             <div className="flex flex-col gap-1.5 px-4 pb-4">
               {commands.map(cmd => (

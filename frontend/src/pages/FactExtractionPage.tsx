@@ -249,7 +249,7 @@ export default function FactExtractionPage() {
                 </div>
               )}
 
-              {/* Timing / Overview — 简单 KV */}
+              {/* Timing / Overview - 简单 KV */}
               {!item.diagnosis && !item.procedure && !item.finding && (
                 <div className="space-y-1">
                   {Object.entries(item).map(([k, v]) => (
@@ -355,7 +355,7 @@ export default function FactExtractionPage() {
         value={input}
         onChange={e => setInput(e.target.value)}
         placeholder="输入临床文本以提取结构化事实..."
-        className="flex-1 w-full resize-none bg-transparent text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none min-h-0 leading-relaxed"
+        className="flex-1 w-full resize-none bg-transparent text-sm text-foreground placeholder:text-foreground/70/40 focus:outline-none min-h-0 leading-relaxed"
       />
     </div>
   );
@@ -409,7 +409,7 @@ export default function FactExtractionPage() {
           <div className="border-b border-border/20">
             <div className="flex items-center gap-2 px-4 pt-4 pb-2">
               <div className="w-1 h-4 rounded-full bg-primary/40" />
-              <h3 className="font-medium text-xs uppercase tracking-wider text-muted-foreground">提取设置</h3>
+              <h3 className="font-medium text-xs text-muted-foreground">提取设置</h3>
             </div>
             <div className="flex flex-col gap-3 px-4 pb-4">
               <div className="flex items-center justify-between gap-4 min-h-[32px]">

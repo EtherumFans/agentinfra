@@ -98,22 +98,24 @@ def test_internal_engine_excluded(client):
 # --- metadata-only packs visible but not runnable ---
 
 def test_metadata_only_packs_visible_but_not_runnable(client):
-    """The 10 metadata-only certified packs must appear with runnable=false
+    """The 7 metadata-only certified packs must appear with runnable=false
     and a Coming Soon badge (no Run button on frontend).
+
+    Phase 3-D1 Task 5 (2026-07-06): code-validation / compliance-guardrail /
+    note-completeness upgraded from metadata-only to runnable — removed
+    from this list. Their runnability is verified in
+    ``test_phase3d1_three_simple_agents_visible_and_runnable`` below.
     """
     r = client.get("/api/icoder/agents/hub")
     cards_by_ref = {c["agent_ref"]: c for c in r.json()["agents"]}
 
     metadata_only_refs = [
         "icoder/cdi-review@1.0.0",
-        "icoder/code-validation@1.0.0",
-        "icoder/compliance-guardrail@1.0.0",
         "icoder/denial-appeals@1.0.0",
         "icoder/diagnosis-extractor@1.0.0",
         "icoder/documentation-gap@1.0.0",
         "icoder/drg-analyzer@1.0.0",
         "icoder/evidence-ranker@1.0.0",
-        "icoder/note-completeness@1.0.0",
         "icoder/procedure-extractor@1.0.0",
     ]
     for ref in metadata_only_refs:
@@ -129,6 +131,43 @@ def test_metadata_only_packs_visible_but_not_runnable(client):
         )
         assert "Coming Soon" in card["badge"], (
             f"metadata-only pack {ref} badge must say 'Coming Soon'; got {card['badge']!r}"
+        )
+
+
+def test_phase3d1_three_simple_agents_visible_and_runnable(client):
+    """Phase 3-D1 Task 5 — the 3 simple runnable agents must appear in Hub
+    with runnable=true, an a2a_endpoint, and maturity='runnable'.
+
+    These were metadata-only before Task 5; now they're real, deterministic
+    agents wired through _SimpleAgentDispatchHandler in app/main.py.
+    """
+    r = client.get("/api/icoder/agents/hub")
+    cards_by_ref = {c["agent_ref"]: c for c in r.json()["agents"]}
+
+    runnable_refs = [
+        "icoder/code-validation-agent@1.0.0",
+        "icoder/compliance-guardrail-agent@1.0.0",
+        "icoder/note-completeness-agent@1.0.0",
+    ]
+    for ref in runnable_refs:
+        assert ref in cards_by_ref, (
+            f"runnable agent {ref} must appear in Hub"
+        )
+        card = cards_by_ref[ref]
+        assert card["runnable"] is True, (
+            f"agent {ref} must have runnable=true (Phase 3-D1 Task 5 upgrade)"
+        )
+        assert card["run_endpoint"] is not None, (
+            f"agent {ref} must have an a2a run_endpoint"
+        )
+        assert card["maturity"] == "runnable", (
+            f"agent {ref} maturity must be 'runnable'; got {card['maturity']!r}"
+        )
+        assert card["production_ready"] is False, (
+            f"agent {ref} must declare production_ready=false"
+        )
+        assert "MVP" in card["badge"], (
+            f"agent {ref} badge must include 'MVP'; got {card['badge']!r}"
         )
 
 

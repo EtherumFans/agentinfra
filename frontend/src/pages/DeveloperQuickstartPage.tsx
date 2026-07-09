@@ -1,4 +1,4 @@
-// iCoDer Developer Quickstart — iCoDer-style with i18n
+// iCoDer Developer Quickstart - iCoDer-style with i18n
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Key, BookOpen, Copy, Check, Terminal, ChevronRight, Loader2, Bot, Mic, FileEdit, Stethoscope, Play } from 'lucide-react';
@@ -132,11 +132,11 @@ const [oauthError, setOauthError] = useState<string | null>(null);
       </div>
 
       {mainTab === 'ai-tools' && (
-        <div className="flex flex-col gap-6 max-w-5xl">
+        <div className="flex flex-col gap-6 w-full">
           <p className="text-base text-muted-foreground">{t.devQsAiToolsDesc}</p>
           <div>
             <div className="flex items-center gap-2 mb-3"><div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-xs font-bold text-primary-foreground">1</div><h3 className="text-sm font-semibold text-foreground">{t.devQsStep1Title}</h3></div>
-            <div className="grid grid-cols-4 gap-3">{USE_CASES.map(uc => { const Icon = uc.icon; return <button key={uc.key} onClick={() => setUseCase(uc.key)} className={`flex flex-col items-center gap-2 p-4 rounded-lg transition-all text-left ${useCase === uc.key ? 'ring-2 ring-primary/50 bg-primary/5 shadow-sm' : 'ring-1 ring-border/20 bg-background hover:ring-primary/30 hover:bg-accent/50'}`}><Icon size={20} className={useCase === uc.key ? 'text-primary' : 'text-muted-foreground'} /><span className="text-sm font-medium text-foreground text-center leading-tight">{uc.label}</span></button>; })}</div>
+            <div className="grid grid-cols-4 gap-3">{USE_CASES.map(uc => { const Icon = uc.icon; return <button key={uc.key} onClick={() => setUseCase(uc.key)} className={`flex flex-col items-center gap-2 p-4 rounded-lg transition-all text-left ${useCase === uc.key ? 'ring-2 ring-primary/50 bg-primary/5 shadow-sm' : 'shadow-sm bg-background hover:ring-primary/30 hover:bg-accent/50'}`}><Icon size={20} className={useCase === uc.key ? 'text-primary' : 'text-muted-foreground'} /><span className="text-sm font-medium text-foreground text-center leading-tight">{uc.label}</span></button>; })}</div>
           </div>
           <div>
             <div className="flex items-center gap-2 mb-3"><div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-xs font-bold text-primary-foreground">2</div><h3 className="text-sm font-semibold text-foreground">{t.devQsStep2Title}</h3></div>
@@ -165,7 +165,7 @@ const [oauthError, setOauthError] = useState<string | null>(null);
       )}
 
       {mainTab === 'js-sdk' && (
-        <div className="flex flex-col gap-6 max-w-5xl">
+        <div className="flex flex-col gap-6 w-full">
           <div>
             <div className="flex items-center gap-2 mb-3"><div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-xs font-bold text-primary-foreground">1</div><h3 className="text-sm font-semibold text-foreground">{t.devQsCopyCreds}</h3></div>
             <p className="text-sm text-muted-foreground mb-3">{t.devQsCredsFlow}</p>
@@ -196,7 +196,7 @@ const [oauthError, setOauthError] = useState<string | null>(null);
       )}
 
       {mainTab === 'dotnet-sdk' && (
-        <div className="flex flex-col gap-6 max-w-5xl">
+        <div className="flex flex-col gap-6 w-full">
           <div>
             <div className="flex items-center gap-2 mb-3"><div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-xs font-bold text-primary-foreground">1</div><h3 className="text-sm font-semibold text-foreground">{t.devQsCopyCreds}</h3></div>
             <p className="text-sm text-muted-foreground mb-3">{t.devQsCredsFlowDotnet}</p>
@@ -227,7 +227,7 @@ const [oauthError, setOauthError] = useState<string | null>(null);
       )}
 
       {mainTab === 'api-playground' && (
-        <div className="flex flex-col gap-6 max-w-5xl">
+        <div className="flex flex-col gap-6 w-full">
           <p className="text-base text-muted-foreground">{t.devQsApiPlaygroundDesc}</p>
 
           <div>

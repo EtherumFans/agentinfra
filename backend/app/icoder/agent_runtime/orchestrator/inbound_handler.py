@@ -34,6 +34,7 @@ from .events import OrchestratorEvent
 from .phi_redactor import PHIRedactionError, PHIRedactor
 from .planner import Planner, PlannerError
 from .run_context import RunContext
+from .run_trace import RunTraceStatus, RunTraceStep, emit_trace_event
 from .state_machine import (
     OrchestratorStateMachine,
 )
@@ -195,9 +196,23 @@ class InboundHandler:
         run_id = make_run_id()
         context_id = make_context_id()  # Q4: server-generated
 
+        # ── Trace step 1: user_message_received
+        emit_trace_event(
+            run_id, RunTraceStep.USER_MESSAGE_RECEIVED,
+            safe_metadata={
+                "agent_id": agent_id,
+                "input_parts": len(request.message.parts),
+            },
+        )
+
         # ── Step 0: request shape validation (before any state transition)
         ok, why = is_valid_request(request)
         if not ok:
+            emit_trace_event(
+                run_id, RunTraceStep.COMPLETION,
+                status=RunTraceStatus.FAILED,
+                safe_metadata={"error": f"invalid_request: {why}"},
+            )
             return self._error_response(
                 context_id=context_id,
                 run_id=run_id,
@@ -211,6 +226,11 @@ class InboundHandler:
         try:
             agent = self._agent_provider(agent_id)
         except Exception as e:  # registry blew up
+            emit_trace_event(
+                run_id, RunTraceStep.COMPLETION,
+                status=RunTraceStatus.FAILED,
+                safe_metadata={"error": f"agent provider raised: {e}"},
+            )
             return self._error_response(
                 context_id=context_id,
                 run_id=run_id,
@@ -223,6 +243,11 @@ class InboundHandler:
             # A2A spec §6.2 — unknown agent_id is AGENT_NOT_FOUND (HTTP 404).
             # This is distinct from invalid_request (400) which is reserved
             # for malformed request envelopes (handled in step 0).
+            emit_trace_event(
+                run_id, RunTraceStep.COMPLETION,
+                status=RunTraceStatus.FAILED,
+                safe_metadata={"error": f"AGENT_NOT_FOUND: {agent_id}"},
+            )
             if self._config.fail_fast_on_agent_missing:
                 return self._error_response(
                     context_id=context_id,
@@ -263,6 +288,11 @@ class InboundHandler:
         try:
             phi_result = self._redactor.redact(original_input)
         except PHIRedactionError as e:
+            emit_trace_event(
+                run_id, RunTraceStep.COMPLETION,
+                status=RunTraceStatus.FAILED,
+                safe_metadata={"error": f"phi_redaction_failed: {e}"},
+            )
             # Map PHIRedactionError → OrchestratorError envelope
             return self._wrap_terminal_failure(
                 sm=sm,
@@ -282,6 +312,11 @@ class InboundHandler:
             # Per SPEC §4.2: PLAN_FAILED loops to planning (already there) and
             # PLANNING_TIMEOUT → failed. After exhaustion we send timeout.
             sm = sm.transition(OrchestratorEvent.PLANNING_TIMEOUT)
+            emit_trace_event(
+                run_id, RunTraceStep.COMPLETION,
+                status=RunTraceStatus.FAILED,
+                safe_metadata={"error": f"planning_failed: {e}"},
+            )
             return self._wrap_terminal_failure(
                 sm=sm,
                 run_ctx=run_ctx,
@@ -291,6 +326,16 @@ class InboundHandler:
             )
         run_ctx.plan = plan
         sm = sm.transition(OrchestratorEvent.PLAN_GENERATED)  # planning → delegating
+
+        # ── Trace step 2: planner_selected_experts
+        expert_ids = [step.get("expert_id", "") for step in (plan.steps or [])]
+        emit_trace_event(
+            run_id, RunTraceStep.PLANNER_SELECTED_EXPERTS,
+            safe_metadata={
+                "experts": expert_ids,
+                "plan_reason": plan.reason,
+            },
+        )
 
         # ── Step 6: delegating
         try:
@@ -308,6 +353,16 @@ class InboundHandler:
         except OrchestratorError as e:
             run_ctx.error = e
             sm = sm.transition(OrchestratorEvent.CRITICAL_EXPERT_FAILED)
+            emit_trace_event(
+                run_id, RunTraceStep.EXPERT_RESPONSE,
+                status=RunTraceStatus.FAILED,
+                safe_metadata={"error": f"delegation_failed: {e}"},
+            )
+            emit_trace_event(
+                run_id, RunTraceStep.COMPLETION,
+                status=RunTraceStatus.FAILED,
+                safe_metadata={"error": f"delegation_failed: {e}"},
+            )
             return self._wrap_terminal_failure(
                 sm=sm,
                 run_ctx=run_ctx,
@@ -317,6 +372,17 @@ class InboundHandler:
             )
 
         run_ctx.expert_results = results
+
+        # ── Trace step 7: expert_response (one emit per expert result)
+        for r in results:
+            emit_trace_event(
+                run_id, RunTraceStep.EXPERT_RESPONSE,
+                status=RunTraceStatus.FAILED if r.error else RunTraceStatus.OK,
+                safe_metadata={
+                    "expert_id": r.expert_id,
+                    "error": str(r.error) if r.error else None,
+                },
+            )
 
         # Detect critical expert failure (delegator returns per-step errors,
         # not raises — so we have to look at results here).
@@ -346,6 +412,11 @@ class InboundHandler:
             )
             run_ctx.error = err
             sm = sm.transition(OrchestratorEvent.CRITICAL_EXPERT_FAILED)
+            emit_trace_event(
+                run_id, RunTraceStep.COMPLETION,
+                status=RunTraceStatus.FAILED,
+                safe_metadata={"error": f"expert_failed: {sorted(critical_failed)}"},
+            )
             return self._wrap_terminal_failure(
                 sm=sm,
                 run_ctx=run_ctx,
@@ -365,6 +436,11 @@ class InboundHandler:
         except AggregatorError as e:
             run_ctx.error = e
             sm = sm.transition(OrchestratorEvent.AGGREGATION_FAILED)
+            emit_trace_event(
+                run_id, RunTraceStep.COMPLETION,
+                status=RunTraceStatus.FAILED,
+                safe_metadata={"error": f"aggregation_failed: {e}"},
+            )
             return self._wrap_terminal_failure(
                 sm=sm,
                 run_ctx=run_ctx,
@@ -373,6 +449,15 @@ class InboundHandler:
                 context_id=context_id,
             )
         sm = sm.transition(OrchestratorEvent.AGGREGATED)  # → completed
+
+        # ── Trace step 8: output_generated
+        emit_trace_event(
+            run_id, RunTraceStep.OUTPUT_GENERATED,
+            safe_metadata={
+                "expert_count": len(results),
+                "part_count": len(message.parts or []),
+            },
+        )
 
         # ── Step 8: build response
         run_ctx.final_message = message
@@ -396,6 +481,13 @@ class InboundHandler:
                 "redaction_entity_types": list(phi_result.entity_types),
             },
             http_status=200,
+        )
+
+        # ── Trace step 9: completion (success)
+        emit_trace_event(
+            run_id, RunTraceStep.COMPLETION,
+            status=RunTraceStatus.OK,
+            safe_metadata={"agent_id": agent_id},
         )
         return response
 

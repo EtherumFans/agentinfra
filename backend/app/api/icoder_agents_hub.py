@@ -67,7 +67,18 @@ def _load_packs() -> list[dict[str, Any]]:
     for path in sorted(OFFICIAL_AGENTS_DIR.rglob("agent_pack.json")):
         try:
             with path.open("r", encoding="utf-8") as f:
-                packs.append(json.load(f))
+                pack = json.load(f)
+            # Phase 4-D (D-6): inject file mtime as fallback created_at
+            # for the Corti-style card metadata (DD-Mon-YYYY · Creator).
+            try:
+                import datetime as _dt
+                st = path.stat()
+                pack["_pack_mtime_iso"] = _dt.datetime.fromtimestamp(
+                    st.st_mtime, tz=_dt.timezone.utc,
+                ).strftime("%d-%b-%Y")
+            except Exception:
+                pack["_pack_mtime_iso"] = ""
+            packs.append(pack)
         except Exception:
             # Skip malformed packs silently — Section A.5 audit catches them
             continue
@@ -198,6 +209,17 @@ def _build_card(pack: dict[str, Any]) -> dict[str, Any]:
     non_goals = pack.get("non_goals") or []
     human_review_when = pack.get("human_review_required_when") or []
 
+    # Phase 4-D (D-6): Corti-style card metadata (DD-Mon-YYYY · Creator).
+    # Source: pack's metadata.created_at / metadata.author (if declared);
+    # fallback to file mtime + "iCoDer" default.
+    metadata = pack.get("metadata") or {}
+    created_at = (
+        metadata.get("created_at")
+        or pack.get("_pack_mtime_iso")
+        or ""
+    )
+    creator = metadata.get("author") or metadata.get("creator") or "iCoDer"
+
     return {
         "agent_ref": agent_ref,
         "agent_id": agent_id,
@@ -236,6 +258,9 @@ def _build_card(pack: dict[str, Any]) -> dict[str, Any]:
         "chat_url": chat_url,
         "customize_url": customize_url,
         "run_url": run_url,
+        # Phase 4-D (D-6): Corti-style card metadata.
+        "created_at": created_at,
+        "creator": creator,
     }
 
 

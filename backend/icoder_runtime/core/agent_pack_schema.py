@@ -160,6 +160,25 @@ class NormalizedPack:
     backend_provider: str = ""
     backend_config: dict[str, Any] = field(default_factory=dict)
 
+    # ── Phase 4-F (2026-07-09): Prebuilt Agent System spec fields ──
+    # ``default_runtime_mode`` names the runtime this agent dispatches to
+    # by default (e.g. "corti_like_fast" for medical coding fast path,
+    # "a2a_pure_llm" for single-LLM agents, "rule_engine_with_llm" for
+    # deterministic rule + LLM explainer). Renamed from ``runtime_mode``
+    # to avoid collision with the medical-coding-specific ``RuntimeMode``
+    # enum in ``app/coding_runtime/base.py``.
+    # ``available_runtime_modes`` lists alternate modes the user can
+    # switch to (e.g. ["corti_like_fast", "medcoder_deep"] for Medical
+    # Coding Agent). ``example_inputs`` carries demo cases for the
+    # frontend "Try" button. ``example_outputs`` is optional (can be
+    # derived from ``output_contract``). ``built_by`` is "icoder" for
+    # first-party prebuilt agents, "community" for user-contributed.
+    default_runtime_mode: str = ""
+    available_runtime_modes: list[str] = field(default_factory=list)
+    example_inputs: list[dict[str, Any]] = field(default_factory=list)
+    example_outputs: list[dict[str, Any]] = field(default_factory=list)
+    built_by: str = ""
+
     # ── Classification (set by loader, not from raw) ──
     status: PackStatus = PackStatus.INVALID
     production_ready: bool = False
@@ -231,6 +250,11 @@ class NormalizedPack:
             "recorder_required": self.recorder_required,
             "backend_provider": self.backend_provider,
             "has_backend_config": bool(self.backend_config),
+            "default_runtime_mode": self.default_runtime_mode,
+            "available_runtime_modes": list(self.available_runtime_modes),
+            "example_inputs": list(self.example_inputs),
+            "example_outputs": list(self.example_outputs),
+            "built_by": self.built_by,
             "validation_errors": list(self.validation_errors),
             "validation_warnings": list(self.validation_warnings),
         }

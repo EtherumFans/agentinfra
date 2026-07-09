@@ -261,6 +261,16 @@ def _build_card(pack: dict[str, Any]) -> dict[str, Any]:
         # Phase 4-D (D-6): Corti-style card metadata.
         "created_at": created_at,
         "creator": creator,
+        # Phase 4-F (2026-07-09): Prebuilt Agent spec fields — drive the
+        # Agents list runtime_mode badge + the Agent Detail "Try" demo
+        # button + the Settings panel runtime selector. Empty for legacy
+        # packs that haven't been upgraded to v1.3 spec yet (F2 will
+        # populate them for the 8 iCoDer built agents).
+        "default_runtime_mode": pack.get("default_runtime_mode", ""),
+        "available_runtime_modes": list(pack.get("available_runtime_modes") or []),
+        "example_inputs": list(pack.get("example_inputs") or []),
+        "example_outputs": list(pack.get("example_outputs") or []),
+        "built_by": pack.get("built_by", ""),
     }
 
 

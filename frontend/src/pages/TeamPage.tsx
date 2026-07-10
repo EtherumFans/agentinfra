@@ -78,7 +78,7 @@ export default function TeamPage() {
   );
 
   return (
-    <div className="bg-muted/20 min-h-screen p-6">
+    <div className="bg-muted/20 min-h-dvh p-6">
       {error && (
         <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-sm text-destructive flex items-center justify-between">
           <span>{error}</span>

@@ -265,7 +265,7 @@ export default function AgentsPage() {
   // Agent列表视图
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-muted/20">
-      <div className="flex-1 p-6 overflow-y-auto">
+      <div className="flex-1 p-6 overflow-y-auto mx-auto w-full max-w-5xl">
         <div className="bg-background rounded-xl">
           {/* Section header with accent bar (Corti: "Create an agent" + subtitle + + New Agent) */}
           <div className="flex items-start gap-3 px-6 pt-5 pb-3 border-b border-border/40">

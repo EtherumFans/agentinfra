@@ -66,7 +66,7 @@ export default function LoginPage() {
   const switchMode = (m: Mode) => { resetForm(); setMode(m); };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-background">
+    <div className="min-h-dvh flex flex-col items-center justify-center bg-background">
       <div className="w-full max-w-sm">
         <div className="text-center mb-10">
           <h1 className="text-2xl font-brand font-bold text-foreground tracking-tight">iCoDer Console</h1>

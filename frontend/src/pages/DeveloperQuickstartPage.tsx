@@ -115,7 +115,7 @@ const [oauthError, setOauthError] = useState<string | null>(null);
   if (loading) return <div className="flex items-center justify-center h-64"><Loader2 className="animate-spin h-8 w-8 text-muted-foreground" /></div>;
 
   return (
-    <div className="p-6 bg-muted/20 min-h-full">
+    <div className="p-6 bg-muted/20 min-h-dvh">
       {oauthError && (
         <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-sm text-destructive flex items-center justify-between">
           <span>{oauthError}</span>

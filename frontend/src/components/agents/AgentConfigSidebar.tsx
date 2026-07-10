@@ -6,12 +6,13 @@
 //   Code slot: JavaScript (SDK) / .NET (SDK) / JSON Config tabs + Copy button.
 import { useState, useMemo, useCallback } from 'react';
 import {
-  Copy, Check, Plus, Search, Pin, ChevronDown,
+  Plus, Search, Pin, ChevronDown,
 } from 'lucide-react';
 import { useT } from '../../i18n';
 import { agentsApi } from '../../services/api';
 import { useToastStore } from '../../store';
 import SettingsCodeTab from '../common/SettingsCodeTab';
+import CodeSnippet from '../common/CodeSnippet';
 
 interface AgentConfigSidebarProps {
   agent: any;
@@ -176,25 +177,42 @@ export default function AgentConfigSidebar({ agent, onAgentUpdated }: AgentConfi
     </div>
   );
 
-  // ── Code slot - SDK tabs (JS / curl / JSON Config) ──
+  // ── Code slot - SDK tabs (JS / Python / curl / JSON Config) per prompt §7.4 ──
   const sdkCode = useMemo(() => {
     const ref = agentRef || `icoder/${agentId}`;
     const a2aEndpoint = `/api/icoder/agents/${agentId}/v1/message:send`;
     const unifiedEndpoint = `/api/v1/agents/${agentId}/run`;
     return {
-      javascript: `import { CortiClient } from "@corti/sdk";
+      javascript: `import { iCoDerClient } from "@icoder/sdk";
 
-const client = new CortiClient({ apiKey: process.env.CORTI_API_KEY });
+const client = new iCoDerClient({ apiKey: process.env.ICODER_API_KEY });
 
-const response = await client.agents.messageSend({
-  agent_ref: "${ref}",
-  message: {
-    role: "user",
-    parts: [{ kind: "text", text: "Your input here" }]
-  }
+// Send a message to the agent via the unified run endpoint
+const result = await client.agents.run("${ref}", {
+  input: { text: "Your input here" },
+  include_trace: true,
+  include_evidence: true,
 });
 
-console.log(response.result.parts[0].data);`,
+console.log(result.run_id, result.runtime_mode, result.latency_ms);
+console.log(result.result);`,
+      python: `from icoder import iCoDerClient
+import os
+
+client = iCoDerClient(
+    api_key=os.environ["ICODER_API_KEY"],
+)
+
+# Send a message to the agent via the unified run endpoint
+result = client.agents.run(
+    "${ref}",
+    input={"text": "Your input here"},
+    include_trace=True,
+    include_evidence=True,
+)
+
+print(result.run_id, result.runtime_mode, result.latency_ms)
+print(result.result)`,
       curl: `curl -X POST "${window.location.origin}${unifiedEndpoint}" \\
   -H "Authorization: Bearer $ICODER_API_KEY" \\
   -H "Content-Type: application/json" \\
@@ -223,7 +241,14 @@ console.log(response.result.parts[0].data);`,
     };
   }, [agentRef, agentId]);
 
-  const codeSlot = <SdkCodeBlock javascript={sdkCode.javascript} curl={sdkCode.curl} json={sdkCode.json} />;
+  const codeSlot = (
+    <CodeSnippet
+      javascript={sdkCode.javascript}
+      python={sdkCode.python}
+      curl={sdkCode.curl}
+      json={sdkCode.json}
+    />
+  );;
 
   return (
     <>
@@ -266,56 +291,3 @@ console.log(response.result.parts[0].data);`,
   );
 }
 
-// ── SDK code block with 3 tabs (JS / curl / JSON Config) + Copy ──
-function SdkCodeBlock({ javascript, curl, json }: { javascript: string; curl: string; json: string }) {
-  const t = useT();
-  const [format, setFormat] = useState<'javascript' | 'curl' | 'json'>('javascript');
-  const [copied, setCopied] = useState(false);
-
-  const code = format === 'javascript' ? javascript : format === 'curl' ? curl : json;
-
-  const handleCopy = useCallback(async () => {
-    await navigator.clipboard.writeText(code);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }, [code]);
-
-  const tabs = [
-    { key: 'javascript' as const, label: t.agentChatSdkJavaScript },
-    { key: 'curl' as const, label: 'curl' },
-    { key: 'json' as const, label: t.agentChatSdkJsonConfig },
-  ];
-
-  return (
-    <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between px-3 py-2 border-b border-border shrink-0">
-        <div className="flex gap-1">
-          {tabs.map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => setFormat(tab.key)}
-              className={`text-[10px] px-2.5 py-1 rounded transition-colors duration-200 active:scale-[0.98] ${
-                format === tab.key
-                  ? 'bg-primary/10 text-primary font-medium'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-        <button
-          onClick={handleCopy}
-          className="p-1 rounded hover:bg-accent transition-colors duration-200 active:scale-[0.98]"
-          title={t.agentChatCopy}
-          aria-label={t.agentChatCopy}
-        >
-          {copied ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} className="text-muted-foreground" />}
-        </button>
-      </div>
-      <pre className="flex-1 min-h-0 overflow-auto p-4 text-[11px] leading-relaxed font-mono text-muted-foreground bg-muted/10 whitespace-pre-wrap">
-        <code>{code}</code>
-      </pre>
-    </div>
-  );
-}

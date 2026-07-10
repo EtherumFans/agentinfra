@@ -166,6 +166,100 @@ function _mapA2AResultToRunResult(agentId: string, envelope: any): RuntimeRunRes
   } as RuntimeRunResult;
 }
 
+/**
+ * Phase 4-F1 (2026-07-10): Map the 13-field AgentRunResponse envelope to the
+ * RuntimeRunResult shape so AgentChatPage's MessageBubble (Copy JSON/Markdown,
+ * Event Inspector link, Rendered/JSON tabs, latency badge) continues to work
+ * without touching the rendering layer.
+ *
+ * The unified endpoint returns a uniform envelope across all iCoDer built
+ * agents. Medical Coding Agent runs via the G001 `corti_like_fast` path
+ * (CodingRuntimeDispatcher) and returns ~9-10s on T12. A2A runs route to
+ * InboundHandler + MedCodER 5-stage pipeline and 60s-timeout — we avoid
+ * that path on chat now.
+ */
+function _mapAgentRunResponseToRuntimeRunResult(
+  agentId: string,
+  resp: AgentRunResponse,
+): RuntimeRunResult {
+  const result = (resp.result || {}) as Record<string, unknown>;
+  const evidence = resp.evidence || [];
+  const warnings = resp.warnings || [];
+  const traceEvents = resp.trace_events || [];
+  const traceRefs = (result.trace_refs || {}) as Record<string, unknown>;
+  const codeAssignment = (result.code_assignment || {}) as Record<string, unknown>;
+  const valSummary = (result.validation_summary || {}) as Record<string, unknown>;
+  const humanReview = (result.human_review || {}) as Record<string, unknown>;
+
+  // Audit trail from trace_events (each event has step/latency/expert_id).
+  const audit_trail: any[] = traceEvents.map((ev: any) => ({
+    step: ev.step || ev.event || ev.name || '',
+    result: ev.result || '',
+    payload: ev.payload || ev,
+  }));
+
+  // Evidences — pass through; backend already shapes them per-agent.
+  const evidences: any[] = (evidence as any[]).map((ev: any) => ev);
+
+  return {
+    run_id: resp.run_id || '',
+    agent_ref: `icoder/${agentId}`,
+    status: resp.error ? 'error' : 'success',
+    output: JSON.stringify(result, null, 2),
+    structured: result,
+    primary_diagnosis: (codeAssignment.primary_diagnosis || {
+      code: '',
+      description: '',
+      confidence: 0,
+      category: '',
+      evidence: [],
+    }) as any,
+    secondary_diagnoses: (codeAssignment.secondary_diagnoses || []) as any[],
+    procedures: (codeAssignment.procedures || []) as any[],
+    issues_found: warnings,
+    audit_trail,
+    processing_time_ms: resp.latency_ms || 0,
+    token_usage: { input_tokens: 0, output_tokens: 0 },
+    errors: resp.error ? [resp.error_reason || resp.summary || 'agent run failed'] : [],
+    evidences,
+    mode: resp.runtime_mode,
+    extracted_diagnoses: [],
+    review_conclusion: humanReview.review_conclusion as string | undefined,
+    manual_review_required: resp.manual_review_required,
+    encounter_summary: result.encounter_summary as string | undefined,
+    documentation_gaps: (result.documentation_gaps || []) as any[],
+    uncodable_items: (result.uncodable_items || []) as any[],
+    corti_validation_summary: {
+      passed: valSummary.passed as boolean | undefined,
+      issues_found: warnings,
+      manual_review_required: resp.manual_review_required,
+      rule_set: valSummary.rule_set as string | undefined,
+      fired_rules: (valSummary.fired_rules || []) as any[],
+    },
+    human_review: humanReview as any,
+    trace_refs: { ...traceRefs, trace_id: resp.trace_id } as any,
+    markdown: (result.markdown as string | undefined) || undefined,
+    // Phase 4-F1 additions for chat UI consumption
+    summary: resp.summary,
+    latency_ms: resp.latency_ms,
+    runtime_mode: resp.runtime_mode,
+    cost: resp.cost,
+    trace_id: resp.trace_id,
+    trace_events: traceEvents,
+    error: resp.error,
+    error_reason: resp.error_reason,
+  } as unknown as RuntimeRunResult & {
+    summary: string;
+    latency_ms: number;
+    runtime_mode: string;
+    cost: Record<string, unknown>;
+    trace_id: string;
+    trace_events: Array<Record<string, unknown>>;
+    error: boolean;
+    error_reason: string;
+  };
+}
+
 export const runtimeAgentApi = {
   // ── Status ──
   getStatus: () => api.get<RuntimeStatus>('/status').then(r => r.data),
@@ -286,4 +380,34 @@ export const runtimeAgentApi = {
       r => r.data as AgentRunResponse,
     );
   },
+
+  /** Phase 4-F1 (2026-07-10): Unified run path for AgentChatPage — wraps
+   * `agentRun()` and maps the 13-field AgentRunResponse to RuntimeRunResult
+   * so the existing MessageBubble rendering layer keeps working. On
+   * `resp.error=true`, throws a structured error with `error_reason` so the
+   * caller surfaces a structured error bubble instead of silent fail.
+   *
+   * Medical Coding Agent default: `runtime_mode="corti_like_fast"` (G001,
+   * ~9-10s on T12) — the A2A MedCodER 5-stage path 60s-timeouts.
+   */
+  runAgentUnified: (
+    agentId: string,
+    input: string,
+    options: {
+      runtime_mode?: string;
+      extra?: Record<string, unknown>;
+      include_trace?: boolean;
+      include_evidence?: boolean;
+    } = {},
+  ) =>
+    runtimeAgentApi.agentRun(agentId, input, options).then(resp => {
+      if (resp?.error) {
+        const reason = resp.error_reason || resp.summary || 'agent run failed';
+        throw {
+          response: { data: { detail: reason, error_reason: resp.error_reason } },
+          message: reason,
+        };
+      }
+      return _mapAgentRunResponseToRuntimeRunResult(agentId, resp);
+    }),
 };

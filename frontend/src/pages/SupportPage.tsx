@@ -8,7 +8,7 @@ export default function SupportPage() {
   const navigate = useNavigate();
 
   return (
-    <div className="bg-muted/20 min-h-screen p-6">
+    <div className="bg-muted/20 min-h-dvh p-6">
       <h2 className="text-2xl font-bold text-foreground mb-2">{t.getHelp || '获取帮助'}</h2>
       <p className="text-sm text-muted-foreground mb-8 max-w-xl">需要 iCoDer 帮助？请从以下支持选项中选择。</p>
 

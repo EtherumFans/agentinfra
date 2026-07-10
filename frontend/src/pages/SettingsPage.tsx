@@ -185,7 +185,7 @@ export default function SettingsPage() {
   }, []);
 
   return (
-    <div className="bg-muted/20 min-h-screen p-6">
+    <div className="bg-muted/20 min-h-dvh p-6">
       <h2 className="text-2xl font-bold text-foreground mb-6">{t.settingsTitle}</h2>
 
       <div className="grid grid-cols-2 gap-6">

@@ -33,7 +33,7 @@ export default function ResetPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/30">
+    <div className="min-h-dvh flex items-center justify-center bg-muted/30">
       <div className="w-full max-w-sm bg-background rounded-xl shadow-sm p-6">
         <h1 className="text-lg font-semibold text-foreground mb-1">{t.resetPasswordTitle}</h1>
         <p className="text-xs text-muted-foreground mb-4">{t.resetPasswordSubtitle}</p>

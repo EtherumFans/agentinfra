@@ -78,7 +78,7 @@ export default function HomePage() {
   return (
     <div className="flex h-full bg-muted/20">
       <div className="flex-1 overflow-y-auto">
-        <div className="mx-auto w-full px-6 py-8 space-y-6">
+        <div className="mx-auto w-full max-w-5xl px-6 py-8 space-y-6">
 
           {/* Hero (Corti: minimal, no big heading) */}
           <div className="mb-2">

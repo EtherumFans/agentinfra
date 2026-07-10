@@ -69,14 +69,14 @@ export default function UsagePage() {
   );
 
   if (error) return (
-    <div className="bg-muted/20 min-h-screen p-6 text-center">
+    <div className="bg-muted/20 min-h-dvh p-6 text-center">
       <p className="text-destructive mb-4">{error}</p>
       <button onClick={fetchData} className="bg-primary text-primary-foreground rounded-lg px-4 py-2 text-sm font-medium hover:bg-primary/90 transition-colors">重试</button>
     </div>
   );
 
   return (
-    <div className="bg-muted/20 min-h-screen p-6">
+    <div className="bg-muted/20 min-h-dvh p-6">
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-foreground mb-2">{t.usageTitle}</h2>
         <p className="text-sm text-muted-foreground">{t.usageDesc}</p>

@@ -125,7 +125,7 @@ export default function TicketsPage() {
   useEffect(() => { setPage(1); }, [search, status, priority, scope]);
 
   return (
-    <div className="bg-muted/20 min-h-screen p-6">
+    <div className="bg-muted/20 min-h-dvh p-6">
       {/* Header */}
       <div className="flex items-start justify-between mb-6 gap-4 flex-wrap">
         <div>

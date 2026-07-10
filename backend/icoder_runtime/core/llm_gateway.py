@@ -26,6 +26,34 @@ from icoder_runtime.circuit_breaker import (
     llm_circuit_breaker as gateway_circuit_breaker,
 )
 
+logger = logging.getLogger(__name__)
+
+
+def _compute_cost_usd(usage: dict[str, Any]) -> float:
+    """Phase 4-G #1 — compute cost in USD from token usage + config pricing.
+
+    Reads `LLM_PRICE_INPUT_PER_1M` / `LLM_PRICE_OUTPUT_PER_1M` from settings
+    (with sensible DeepSeek V4 flash defaults if unset). Returns 0.0 when
+    usage is missing/zero so the response still serializes cleanly.
+    """
+    if not isinstance(usage, dict):
+        return 0.0
+    input_tokens = int(usage.get("input_tokens", 0) or 0)
+    output_tokens = int(usage.get("output_tokens", 0) or 0)
+    if input_tokens == 0 and output_tokens == 0:
+        return 0.0
+    # Lazy import to avoid circular: config.py imports plenty; this module
+    # is imported very early in app startup.
+    try:
+        from app.config import settings
+        in_price = float(getattr(settings, "LLM_PRICE_INPUT_PER_1M", 0.14) or 0.14)
+        out_price = float(getattr(settings, "LLM_PRICE_OUTPUT_PER_1M", 0.28) or 0.28)
+    except Exception:
+        in_price, out_price = 0.14, 0.28
+    cost = (input_tokens / 1_000_000.0) * in_price + (output_tokens / 1_000_000.0) * out_price
+    return round(cost, 6)
+
+
 __all__ = [
     "BaseLLMProvider",
     "MockLLMProvider",
@@ -37,6 +65,7 @@ __all__ = [
     "LLMProviderNotConfigured",
     "CircuitBreaker",
     "gateway_circuit_breaker",
+    "_compute_cost_usd",
 ]
 
 
@@ -354,13 +383,15 @@ class DeepSeekProvider(BaseLLMProvider):
         # ``LLMGatewayAdapter._invoke_gateway`` can populate
         # ``LLMResponse.tool_calls`` for ``LLMWithToolsProvider``.
         tool_calls = message.get("tool_calls")
+        usage = {
+            "input_tokens": data.get("usage", {}).get("prompt_tokens", 0),
+            "output_tokens": data.get("usage", {}).get("completion_tokens", 0),
+        }
         result: dict[str, Any] = {
             "content": content,
             "model": data.get("model", self.model),
-            "usage": {
-                "input_tokens": data.get("usage", {}).get("prompt_tokens", 0),
-                "output_tokens": data.get("usage", {}).get("completion_tokens", 0),
-            },
+            "usage": usage,
+            "cost_usd": _compute_cost_usd(usage),
             "latency_ms": int((time.time() - t0) * 1000),
         }
         if tool_calls:
@@ -431,13 +462,15 @@ class OpenAICompatibleProvider(BaseLLMProvider):
         content = message.get("content") or ""
         # Phase 4-C: parse tool_calls (OpenAI function-calling shape).
         tool_calls = message.get("tool_calls")
+        usage = {
+            "input_tokens": data.get("usage", {}).get("prompt_tokens", 0),
+            "output_tokens": data.get("usage", {}).get("completion_tokens", 0),
+        }
         result: dict[str, Any] = {
             "content": content,
             "model": data.get("model", self.model),
-            "usage": {
-                "input_tokens": data.get("usage", {}).get("prompt_tokens", 0),
-                "output_tokens": data.get("usage", {}).get("completion_tokens", 0),
-            },
+            "usage": usage,
+            "cost_usd": _compute_cost_usd(usage),
             "latency_ms": int((time.time() - t0) * 1000),
         }
         if tool_calls:

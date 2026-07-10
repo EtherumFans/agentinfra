@@ -334,6 +334,14 @@ export const runtimeAgentApi = {
   getRunTrace: (runId: string) =>
     api.get<RunTraceResponse>(`/runs/${encodeURIComponent(runId)}/trace`).then(r => r.data),
 
+  // Phase 4-G #3: RunHistory list — recent run summaries for the dropdown.
+  // GET /api/runtime/runs/history?agent_id=X&limit=50 → {items, total}
+  getRunHistory: (agentId = '', limit = 50) =>
+    api.get<{ items: any[]; total: number }>(
+      '/runs/history',
+      { params: agentId ? { agent_id: agentId, limit } : { limit } },
+    ).then(r => r.data),
+
   // ── Observability ──
   getFallbackStats: (hours = 24) =>
     api.get<FallbackStats>('/observability/fallback', { params: { hours } }).then(r => r.data),
@@ -368,6 +376,7 @@ export const runtimeAgentApi = {
       extra?: Record<string, unknown>;
       include_trace?: boolean;
       include_evidence?: boolean;
+      api_client_id?: string;
     } = {},
   ) => {
     const body = {
@@ -375,6 +384,7 @@ export const runtimeAgentApi = {
       runtime_mode: options.runtime_mode,
       include_trace: options.include_trace ?? true,
       include_evidence: options.include_evidence ?? true,
+      api_client_id: options.api_client_id || undefined,
     };
     return unifiedRunApi.post(`/${encodeURIComponent(agentId)}/run`, body).then(
       r => r.data as AgentRunResponse,
@@ -389,6 +399,16 @@ export const runtimeAgentApi = {
    *
    * Medical Coding Agent default: `runtime_mode="corti_like_fast"` (G001,
    * ~9-10s on T12) — the A2A MedCodER 5-stage path 60s-timeouts.
+   *
+   * Phase 4-G #1 (2026-07-10): After a successful run with a populated
+   * `cost.amount`, push that amount into `useCostStore` so the TopBar live
+   * counter updates immediately (no need to wait for the next billing
+   * balance poll).
+   *
+   * Phase 4-G #2 (2026-07-10): Forwards the selected `api_client_id`
+   * through to the backend so the run is attributed to that OAuth client
+   * (logged in trace metadata; future: route through client-scoped
+   * credentials).
    */
   runAgentUnified: (
     agentId: string,
@@ -398,16 +418,33 @@ export const runtimeAgentApi = {
       extra?: Record<string, unknown>;
       include_trace?: boolean;
       include_evidence?: boolean;
+      api_client_id?: string;
     } = {},
-  ) =>
-    runtimeAgentApi.agentRun(agentId, input, options).then(resp => {
-      if (resp?.error) {
-        const reason = resp.error_reason || resp.summary || 'agent run failed';
-        throw {
-          response: { data: { detail: reason, error_reason: resp.error_reason } },
-          message: reason,
-        };
-      }
-      return _mapAgentRunResponseToRuntimeRunResult(agentId, resp);
-    }),
+  ) => {
+    const runPromise = runtimeAgentApi
+      .agentRun(agentId, input, options)
+      .then(resp => {
+        if (resp?.error) {
+          const reason = resp.error_reason || resp.summary || 'agent run failed';
+          throw {
+            response: { data: { detail: reason, error_reason: resp.error_reason } },
+            message: reason,
+          };
+        }
+        // Phase 4-G #1: accumulate live cost from the response envelope so
+        // the TopBar counter updates instantly after each run. The backend
+        // computes `cost.amount` from token usage × pricing; if absent (mock
+        // or zero-token runs), fall through to the existing balance-poll
+        // path in `runAgentViaA2A`.
+        const costAmount = typeof resp?.cost?.amount === 'number' ? resp.cost.amount : 0;
+        if (costAmount > 0) {
+          // Dynamic import to avoid circular dep (store imports from services).
+          import('../store').then(({ useCostStore }) => {
+            useCostStore.getState().addCost(costAmount);
+          }).catch(() => {});
+        }
+        return _mapAgentRunResponseToRuntimeRunResult(agentId, resp);
+      });
+    return runPromise;
+  },
 };

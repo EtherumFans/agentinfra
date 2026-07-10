@@ -94,4 +94,71 @@ async def get_run_trace(
     return await _get_run_trace_impl(run_id, format, request)
 
 
+# ── Phase 4-G #3: RunHistory list endpoint ───────────────────────────────
+
+
+@router.get("/runs/history")
+async def list_run_history(
+    request: Request,
+    agent_id: str = Query("", description="Filter by agent_id (exact match)"),
+    limit: int = Query(50, ge=1, le=200, description="Max items to return"),
+) -> dict[str, Any]:
+    """Return recent run summaries for the current user's org.
+
+    Used by AgentChatPage's history dropdown to hydrate on page load.
+    The endpoint reads from the ``run_history`` table (Phase 4-G #3
+    migration 010) which the unified ``POST /api/v1/agents/{id}/run``
+    endpoint populates after each run.
+
+    Filtering:
+      - ``agent_id`` optional (exact match); omitted = all agents
+      - ``user_id`` / ``organization_id`` derived from request state
+        (set by TenantHeaderMiddleware + auth)
+      - ``limit`` capped at 200 to bound response size
+
+    Returns ``{"items": [...], "total": <int>}`` ordered by created_at desc.
+    """
+    from sqlalchemy import create_engine, select, desc, text as sa_text
+    from sqlalchemy.orm import Session
+    from app.config import settings
+    from app.models.run_history import RunHistoryModel
+
+    org_id = get_request_tenant(request) or None
+    user_attr = getattr(request.state, "user", None)
+    user_id = getattr(user_attr, "id", None) if user_attr else None
+
+    db_url = getattr(settings, "DATABASE_URL", "") or "sqlite+aiosqlite:///./data/icoder.db"
+    sync_url = db_url.replace("+aiosqlite", "").replace("sqlite+aiosqlite", "sqlite")
+    engine = create_engine(sync_url, echo=False)
+    try:
+        with Session(engine) as session:
+            stmt = select(RunHistoryModel).order_by(desc(RunHistoryModel.created_at)).limit(limit)
+            if agent_id:
+                stmt = stmt.where(RunHistoryModel.agent_id == agent_id)
+            if org_id:
+                stmt = stmt.where(RunHistoryModel.organization_id == org_id)
+            if user_id:
+                stmt = stmt.where(RunHistoryModel.user_id == str(user_id))
+            rows = session.execute(stmt).scalars().all()
+            items = [
+                {
+                    "run_id": row.run_id,
+                    "trace_id": row.trace_id,
+                    "agent_id": row.agent_id,
+                    "runtime_mode": row.runtime_mode,
+                    "latency_ms": row.latency_ms,
+                    "cost_usd": row.cost_usd,
+                    "input_preview": (row.input_text or "")[:200],
+                    "output_preview": (row.output_summary or "")[:200],
+                    "error": row.error,
+                    "error_reason": row.error_reason,
+                    "created_at": row.created_at.isoformat() if row.created_at else None,
+                }
+                for row in rows
+            ]
+            return {"items": items, "total": len(items)}
+    finally:
+        engine.dispose()
+
+
 __all__ = ["router"]

@@ -1044,6 +1044,7 @@ export interface LocaleDict {
   agentChatSdkJsonConfig: string;
   agentChatCopy: string;
   agentChatApiClient: string;
+  agentChatRunHistory: string;
   agentChatNewAgent: string;
   agentChatUseAgent: string;
   agentChatCustomize: string;
@@ -2319,6 +2320,7 @@ const zhCN: LocaleDict = {
   agentChatSdkJsonConfig: 'JSON 配置',
   agentChatCopy: '复制',
   agentChatApiClient: 'API 客户端',
+  agentChatRunHistory: '近期运行',
   agentChatNewAgent: '新建智能体',
   agentChatUseAgent: '使用智能体',
   agentChatCustomize: '自定义',
@@ -3594,6 +3596,7 @@ const enUS: LocaleDict = {
   agentChatSdkJsonConfig: 'JSON Config',
   agentChatCopy: 'Copy',
   agentChatApiClient: 'API Client',
+  agentChatRunHistory: 'Recent runs',
   agentChatNewAgent: 'New Agent',
   agentChatUseAgent: 'Use Agent',
   agentChatCustomize: 'Customize',

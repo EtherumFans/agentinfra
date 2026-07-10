@@ -260,7 +260,103 @@ async def run_agent(
             trace_id=response.trace_id or trace_id,
         )
 
+    # ── Phase 4-G #3: persist run summary to run_history table ──────
+    # So AgentChatPage can hydrate a history dropdown on page load.
+    # Failures here are non-fatal — the run already succeeded; we just
+    # log so a broken DB doesn't break the user's chat experience.
+    try:
+        _persist_run_history(
+            response=response,
+            input_text=body.input.text,
+            user_id=user_id,
+            tenant_id=tenant_id,
+        )
+    except Exception as e:
+        logger.warning(
+            "agent_run: run_history persist failed (run_id=%s): %s",
+            response.run_id or run_id, e,
+        )
+
     return response
+
+
+def _persist_run_history(
+    *,
+    response: AgentRunResponse,
+    input_text: str,
+    user_id: str = "",
+    tenant_id: str = "",
+) -> None:
+    """Write one run summary row to the run_history table.
+
+    Synchronous — call sites are already in a sync context (FastAPI handlers
+    that use sync DB engine). The row is small (input_text truncated to 4KB)
+    so the write is sub-millisecond.
+    """
+    from datetime import datetime, timezone
+    from sqlalchemy import create_engine, text
+    from sqlalchemy.orm import Session
+
+    # Truncate input_text to bound row size (Phase 4-G #3 model contract).
+    truncated_input = (input_text or "")[:4096]
+    cost_amount = 0.0
+    if isinstance(response.cost, dict):
+        try:
+            cost_amount = float(response.cost.get("amount") or 0.0)
+        except (TypeError, ValueError):
+            cost_amount = 0.0
+
+    # Python-side timestamp with microsecond precision so runs that land
+    # in the same second still order deterministically by created_at DESC
+    # (SQLite's CURRENT_TIMESTAMP is 1-second resolution).
+    now_iso = datetime.now(timezone.utc).isoformat()
+
+    sql = text("""
+        INSERT INTO run_history
+            (id, organization_id, user_id, agent_id, run_id, trace_id,
+             runtime_mode, latency_ms, cost_usd, input_text,
+             output_summary, error, error_reason, created_at, updated_at)
+        VALUES
+            (:id, :org_id, :user_id, :agent_id, :run_id, :trace_id,
+             :runtime_mode, :latency_ms, :cost_usd, :input_text,
+             :output_summary, :error, :error_reason,
+             :created_at, :created_at)
+    """)
+    params = {
+        "id": _generate_row_id(),
+        "org_id": tenant_id or None,
+        "user_id": user_id or None,
+        "agent_id": response.agent_id,
+        "run_id": response.run_id,
+        "trace_id": response.trace_id,
+        "runtime_mode": response.runtime_mode,
+        "latency_ms": response.latency_ms,
+        "cost_usd": cost_amount,
+        "input_text": truncated_input,
+        "output_summary": (response.summary or "")[:4096],
+        "error": 1 if response.error else 0,
+        "error_reason": response.error_reason or None,
+        "created_at": now_iso,
+    }
+
+    # Use a fresh sync engine bound to the same DB URL so the write lands in
+    # the same database the rest of the app uses. Convert async URL → sync.
+    from app.config import settings
+    db_url = getattr(settings, "DATABASE_URL", "") or "sqlite+aiosqlite:///./data/icoder.db"
+    sync_url = db_url.replace("+aiosqlite", "").replace("sqlite+aiosqlite", "sqlite")
+    engine = create_engine(sync_url, echo=False)
+    try:
+        with Session(engine) as session:
+            session.execute(sql, params)
+            session.commit()
+    finally:
+        engine.dispose()
+
+
+def _generate_row_id() -> str:
+    """12-char ID matching the rest of the iCoDer schema (e.g. run_trace_events.id)."""
+    import secrets
+    return secrets.token_hex(6)
 
 
 # ── Medical coding path ─────────────────────────────────────────────────
@@ -447,6 +543,7 @@ async def _run_via_provider_registry(
             "runtime_mode": body.runtime_mode or "",
             "context_id": context_id,
             "trace_id": trace_id,
+            "api_client_id": body.api_client_id or "",
         },
     )
 
@@ -578,6 +675,7 @@ async def _run_via_provider_registry(
         resp=resp,
         include_trace=body.include_trace,
         include_evidence=body.include_evidence,
+        api_client_id=body.api_client_id or "",
         t0=t0,
     )
 
@@ -591,6 +689,7 @@ def _map_backend_response(
     resp: BackendResponse,
     include_trace: bool,
     include_evidence: bool,
+    api_client_id: str = "",
     t0: float,
 ) -> AgentRunResponse:
     """Project a BackendResponse into the unified AgentRunResponse envelope."""
@@ -646,6 +745,7 @@ def _map_backend_response(
                     "agent_id": agent_id,
                     "input_text_len": 0,
                     "runtime_mode": runtime_mode,
+                    "api_client_id": api_client_id,
                 },
             },
             {

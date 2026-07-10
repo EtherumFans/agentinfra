@@ -21,7 +21,7 @@ import {
   Bot, Send, Loader2, AlertCircle, CheckCircle2, Activity,
   ChevronRight, Paperclip, X, User, Copy, Clipboard,
 } from 'lucide-react';
-import { agentsApi } from '../services/api';
+import { agentsApi, oauthApi } from '../services/api';
 import { runtimeAgentApi } from '../services/runtimeApi';
 import { useToastStore } from '../store';
 import type { RuntimeRunResult } from '../types/runtime';
@@ -72,6 +72,11 @@ export default function AgentChatPage() {
   const [attachedFiles, setAttachedFiles] = useState<{ name: string; content: any }[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [outputTab, setOutputTab] = useState<OutputTab>('rendered');
+  // Phase 4-F3 §5.3: API Client dropdown (placeholder — selection is not
+  // yet wired into the run request; per prompt §10.3 a non-functional
+  // dropdown is acceptable for F3).
+  const [apiClients, setApiClients] = useState<any[]>([]);
+  const [selectedApiClient, setSelectedApiClient] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const historyEndRef = useRef<HTMLDivElement>(null);
 
@@ -103,6 +108,15 @@ export default function AgentChatPage() {
       })
       .finally(() => setAgentLoading(false));
   }, [effectiveAgentId, navigate, toast, t]);
+
+  // Phase 4-F3 §5.3: load API clients for the dropdown (best-effort).
+  useEffect(() => {
+    oauthApi.list().then(r => {
+      const list = r.data?.clients || [];
+      setApiClients(list);
+      if (list.length > 0) setSelectedApiClient(list[0].client_id);
+    }).catch(() => {});
+  }, []);
 
   // Derive the runtime agent_id (short form) from agent.config.agent_ref
   // or fall back to the source_agent_ref if present. Used for the A2A path.
@@ -140,17 +154,53 @@ export default function AgentChatPage() {
     setLoading(true);
     setError(null);
     try {
-      // Build extra parts: JSON files → DataPart.
-      const extraParts = filesForRun.map(f => ({
-        kind: 'data',
-        data: f.content,
-        metadata: { filename: f.name, source: 'add-context' },
-      }));
-      const data = await runtimeAgentApi.runAgentViaA2A(runtimeAgentId, userText, extraParts);
+      // Phase 4-F1 (2026-07-10): Medical Coding Agent uses the unified
+      // Agent Run API (POST /api/v1/agents/{id}/run) with the G001
+      // `corti_like_fast` fast path (~9-10s on T12). The A2A message:send
+      // path routes to MedCodER 5-stage pipeline and 60s-timeouts.
+      const isMedicalCoding =
+        runtimeAgentId === 'medical-coding-agent' ||
+        (agent?.config?.source_agent_ref || '').includes('medical-coding-agent');
+      let data: RuntimeRunResult | any;
+      if (isMedicalCoding) {
+        // Unified path — agentRun returns AgentRunResponse; runAgentUnified
+        // maps it to RuntimeRunResult for MessageBubble compatibility.
+        // Attached JSON files go through `extra` since the unified
+        // endpoint takes a single `input.text` (not A2A parts).
+        const extra: Record<string, unknown> = {};
+        if (filesForRun.length === 1) {
+          extra.context_file = filesForRun[0];
+        } else if (filesForRun.length > 1) {
+          extra.context_files = filesForRun;
+        }
+        data = await runtimeAgentApi.runAgentUnified(runtimeAgentId, userText, {
+          runtime_mode: 'corti_like_fast',
+          include_trace: true,
+          include_evidence: true,
+          extra,
+        });
+      } else {
+        // Phase 4-F3 §2.1: non-Medical-Coding agents also use the unified
+        // Agent Run API. The unified endpoint routes through
+        // ProviderRegistry → PureLLMProvider for these agents.
+        // (Previously this used A2A message:send which doesn't persist
+        // trace_events to RunTraceStore.)
+        const extra: Record<string, unknown> = {};
+        if (filesForRun.length === 1) {
+          extra.context_file = filesForRun[0];
+        } else if (filesForRun.length > 1) {
+          extra.context_files = filesForRun;
+        }
+        data = await runtimeAgentApi.runAgentUnified(runtimeAgentId, userText, {
+          include_trace: true,
+          include_evidence: true,
+          extra,
+        });
+      }
       setMessages(prev => [...prev, {
         id: newMsgId(),
         role: 'agent',
-        text: data?.markdown ? '' : (data?.structured ? '' : (data?.output || '')),
+        text: data?.markdown ? '' : (data?.structured ? '' : (data?.output || data?.summary || '')),
         result: data,
         ts: Date.now(),
       }]);
@@ -170,7 +220,7 @@ export default function AgentChatPage() {
     } finally {
       setLoading(false);
     }
-  }, [input, loading, runtimeAgentId, attachedFiles, toast, t]);
+  }, [input, loading, runtimeAgentId, agent, attachedFiles, toast, t]);
 
   // Corti-style: Ctrl+Enter to submit, plain Enter = newline.
   const onTextareaKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -356,6 +406,22 @@ export default function AgentChatPage() {
               onChange={onFileSelected}
               className="hidden"
             />
+            {/* Phase 4-F3 §5.3: API Client dropdown — placeholder selector */}
+            {apiClients.length > 0 && (
+              <select
+                value={selectedApiClient}
+                onChange={e => setSelectedApiClient(e.target.value)}
+                className="shrink-0 text-[10px] text-muted-foreground bg-transparent border border-border rounded-md px-1.5 py-1 focus:outline-none focus:ring-1 focus:ring-ring max-w-[120px]"
+                title={t.agentChatApiClient || 'API Client'}
+                disabled={loading}
+              >
+                {apiClients.map((c: any) => (
+                  <option key={c.client_id} value={c.client_id}>
+                    {c.name || c.client_id}
+                  </option>
+                ))}
+              </select>
+            )}
             {/* Textarea - Corti placeholder + Ctrl+Enter submit */}
             <textarea
               value={input}
@@ -445,9 +511,18 @@ function MessageBubble({
             <div className="flex items-center gap-2 mb-2">
               <CheckCircle2 size={12} className="text-green-600" />
               <p className="text-xs font-semibold text-foreground">{t.agentChatResult}</p>
+              {result.runtime_mode && (
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-primary/10 text-primary">
+                  {result.runtime_mode}
+                </span>
+              )}
               {result.processing_time_ms ? (
                 <span className="text-[10px] text-muted-foreground ml-auto tabular-nums">
                   {t.agentChatDuration} {result.processing_time_ms}ms
+                </span>
+              ) : result.latency_ms ? (
+                <span className="text-[10px] text-muted-foreground ml-auto tabular-nums">
+                  {t.agentChatDuration} {result.latency_ms}ms
                 </span>
               ) : null}
               {result.run_id && (
@@ -461,6 +536,19 @@ function MessageBubble({
                 </Link>
               )}
             </div>
+            {result.summary && (
+              <p className="text-xs text-foreground mb-2 leading-relaxed">{result.summary}</p>
+            )}
+            {result.manual_review_required && (
+              <div className="text-[10px] text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1 mb-2">
+                🔍 {t.agentChatManualReviewRequired || '人工复核提示：本次运行结果需经编码员人工确认。'}
+              </div>
+            )}
+            {Array.isArray(result.issues_found) && result.issues_found.length > 0 && (
+              <div className="text-[10px] text-amber-700 mb-2">
+                ⚠️ {result.issues_found.join('; ')}
+              </div>
+            )}
             <div className="flex items-center rounded-md border border-border p-0.5 mb-2 w-fit">
               {([
                 { id: 'rendered' as OutputTab, label: t.agentChatRenderedTab },
@@ -483,7 +571,9 @@ function MessageBubble({
             <div className="flex items-center gap-2 mb-2">
               <button
                 onClick={() => navigator.clipboard?.writeText(
-                  JSON.stringify(result.structured || result, null, 2),
+                  JSON.stringify(result.trace_events && result.trace_events.length
+                    ? { ...result.structured, trace_id: result.trace_id, runtime_mode: result.runtime_mode, latency_ms: result.latency_ms, trace_events: result.trace_events, cost: result.cost }
+                    : (result.structured || result), null, 2),
                 )}
                 className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-md border border-border hover:bg-accent transition-colors duration-200 active:scale-[0.98] text-muted-foreground hover:text-foreground"
                 title="Copy JSON output"
@@ -492,7 +582,7 @@ function MessageBubble({
               </button>
               <button
                 onClick={() => navigator.clipboard?.writeText(
-                  `# Agent Run Result\n\nRun ID: ${result.run_id || ''} | Latency: ${result.latency_ms || 0}ms\n\n${result.markdown || generateFallbackMarkdown(result.structured || result)}`,
+                  `# Agent Run Result\n\nRun ID: ${result.run_id || ''} | Trace ID: ${result.trace_id || ''} | Runtime: ${result.runtime_mode || 'a2a'} | Latency: ${result.latency_ms || result.processing_time_ms || 0}ms\n\n${result.summary ? `**Summary:** ${result.summary}\n\n` : ''}${result.markdown || generateFallbackMarkdown(result.structured || result)}`,
                 )}
                 className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-md border border-border hover:bg-accent transition-colors duration-200 active:scale-[0.98] text-muted-foreground hover:text-foreground"
                 title="Copy Markdown output"
@@ -500,6 +590,43 @@ function MessageBubble({
                 <Clipboard size={10} /> Copy Markdown
               </button>
             </div>
+            {/* Phase 4-F1: inline trace_events viewer (Event Inspector) —
+             * unified endpoint returns trace_events inline; dedicated
+             * /runs/{id}/trace viewer doesn't see them because the unified
+             * facade doesn't persist to runtime runs storage (known gap). */}
+            {Array.isArray(result.trace_events) && result.trace_events.length > 0 && (
+              <details className="mb-2 border border-border/40 rounded-md">
+                <summary className="text-[10px] font-medium text-muted-foreground px-2 py-1 cursor-pointer hover:bg-accent/40 transition-colors">
+                  📋 Trace Events ({result.trace_events.length})
+                </summary>
+                <div className="px-2 pb-2 space-y-1">
+                  {result.trace_events.map((ev: any, i: number) => (
+                    <div key={i} className="text-[10px] font-mono leading-relaxed flex gap-2">
+                      <span className="text-muted-foreground tabular-nums shrink-0">
+                        [{i + 1}]
+                      </span>
+                      <span className="text-foreground font-medium">
+                        {ev.step || ev.event || ev.name || '?'}
+                      </span>
+                      {ev.status && (
+                        <span className={`px-1 rounded ${
+                          ev.status === 'ok' ? 'bg-green-100 text-green-700'
+                          : ev.status === 'error' ? 'bg-red-100 text-red-700'
+                          : 'bg-muted text-muted-foreground'
+                        }`}>
+                          {ev.status}
+                        </span>
+                      )}
+                      {typeof ev.duration_ms === 'number' && (
+                        <span className="text-muted-foreground tabular-nums">
+                          {ev.duration_ms}ms
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </details>
+            )}
             {outputTab === 'rendered' ? (
               <RenderedMarkdown
                 markdown={

@@ -98,13 +98,16 @@ describe('Phase 3-B0 — Agent navigation smoke', () => {
     const deletedPages = [
       'DoctorPage',
       'MethodComparePage',
-      'RunTracePage',
       'MarketplacePage',
       'AgentHubPage',
       // Phase 3-B2 Loop 0 (2026-07-05): EmbeddedAssistant physically deleted,
       // TextGeneration route entries removed (file kept as orphan for implicit
       // backend-capability dependencies).
       'EmbeddedAssistantPage',
+      // Phase 4-F2 (2026-07-10): RunTracePage is KEPT — it's the dedicated
+      // trace viewer required by §4.3 ("Dedicated RunTrace page must be
+      // usable"). Previously listed as deleted (P1.2), but F2 restores it
+      // to display trace_events persisted by the unified endpoint.
     ];
     const appContent = fs.readFileSync(APP_TSX, 'utf-8');
     for (const deleted of deletedPages) {

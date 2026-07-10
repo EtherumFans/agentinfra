@@ -27,7 +27,10 @@ describe('Phase 3-B1 Section F — Agent Hub frontend contract', () => {
     const content = fs.readFileSync(HUB_API_PATH, 'utf-8');
     expect(content).toContain("'/icoder/agents/hub'");
     expect(content).toMatch(/agentHubApi\s*=\s*\{/);
-    expect(content).toMatch(/list:\s*\(\)\s*=>/);
+    // Phase 4-F2: list() now accepts an optional useCase param for the
+    // Corti-style use_case dropdown filter (Phase 3-B2 Loop 4). The regex
+    // accepts zero or one parameter.
+    expect(content).toMatch(/list:\s*\([^)]*\)\s*=>/);
   });
 
   it('HubCard interface declares the 13 visible card fields', () => {
@@ -60,7 +63,9 @@ describe('Phase 3-B1 Section F — Agent Hub frontend contract', () => {
     expect(fs.existsSync(AGENTS_PAGE_PATH), 'AgentsPage.tsx must exist').toBe(true);
     const content = fs.readFileSync(AGENTS_PAGE_PATH, 'utf-8');
     expect(content).toMatch(/from ['"]\.\.\/services\/agentHubApi['"]/);
-    expect(content).toMatch(/agentHubApi\.list\(\)/);
+    // Phase 4-F2: list() may be called with an optional useCase arg
+    // (Phase 3-B2 Loop 4 — Corti-style use_case dropdown filter).
+    expect(content).toMatch(/agentHubApi\.list\(/);
     // The Prebuilt tab must NOT call runtimeAgentApi.listAgents('certified')
     // for the certified list — that returns installed runtime registry agents,
     // not Corti-style Hub cards.

@@ -694,13 +694,102 @@ async def lifespan(app: FastAPI):
         # MedicalCodingAgentOutputV2 (Corti 8-field) in the response parts
         # so the A2A mainline returns the 8-field contract.
         # For medcoder-coding-review (internal engine), pass through v1.
+        # Phase 4-F2 (2026-07-10): this handler now ALSO owns the medical-
+        # coding-agent default runtime dispatch. When the A2A message:send
+        # path is called for medical-coding-agent with no runtime_mode (or
+        # runtime_mode="corti_like_fast"), we route directly to
+        # CodingRuntimeDispatcher (G001 fast path, ~6-8s) instead of the
+        # full InboundHandler 5-stage MedCODER pipeline (60s+ timeout).
+        # Only explicit runtime_mode="medcoder_deep" falls through to the
+        # inner InboundHandler (5-stage). Both entry points (unified
+        # endpoint + A2A message:send) now default to corti_like_fast.
         class _MedicalCodingV2ProjectingHandler:
-            """Wraps InboundHandler; projects v1→v2 for medical-coding-agent."""
+            """Wraps InboundHandler; routes medical-coding to fast path
+            by default and projects v1→v2 for medcoder_deep responses."""
 
             def __init__(self, inner):
                 self._inner = inner
 
             def handle(self, agent_id: str, request):
+                import asyncio as _asyncio
+                from app.icoder.agent_runtime.a2a_facade import (
+                    dispatch_medical_coding_fast,
+                    build_medical_coding_inbound_response,
+                    persist_trace_events,
+                )
+                from app.icoder.agent_runtime.orchestrator.inbound_handler import (
+                    InboundResponse,
+                    extract_text_from_parts,
+                )
+
+                # Phase 4-F2 §4.2: medical-coding default runtime dispatch.
+                # A2A message:send defaults to corti_like_fast (bypass 5-stage).
+                if agent_id == "medical-coding-agent":
+                    meta = request.metadata or {}
+                    runtime_mode = meta.get("runtime_mode") or "corti_like_fast"
+                    if runtime_mode != "medcoder_deep":
+                        # Fast path: route to CodingRuntimeDispatcher directly.
+                        input_text = extract_text_from_parts(request.message.parts)
+                        try:
+                            result, out_run_id, out_trace_id = (
+                                _asyncio.new_event_loop().run_until_complete(
+                                    dispatch_medical_coding_fast(
+                                        agent_id=agent_id,
+                                        input_text=input_text,
+                                        extra=None,
+                                        runtime_mode=runtime_mode,
+                                        include_trace=meta.get("include_trace", True),
+                                        include_evidence=meta.get("include_evidence", True),
+                                        run_id=meta.get("run_id") or "",
+                                        trace_id=meta.get("trace_id") or "",
+                                        user_id=meta.get("user_id", ""),
+                                        tenant_id=meta.get("tenant_id", ""),
+                                    )
+                                )
+                            )
+                        except Exception as e:
+                            from app.icoder.agent_runtime.orchestrator.run_trace import (
+                                RunTraceStep, RunTraceStatus, emit_trace_event,
+                            )
+                            emit_trace_event(
+                                meta.get("run_id") or "",
+                                RunTraceStep.COMPLETION,
+                                status=RunTraceStatus.FAILED,
+                                safe_metadata={
+                                    "agent_id": agent_id,
+                                    "error": f"{type(e).__name__}: {str(e)[:200]}",
+                                },
+                            )
+                            return InboundResponse(
+                                kind="error",
+                                context_id=meta.get("context_id", ""),
+                                metadata={
+                                    "run_id": meta.get("run_id", ""),
+                                    "trace_id": meta.get("trace_id", ""),
+                                    "agent_id": agent_id,
+                                    "phi_redacted": True,
+                                },
+                                error={"code": "INTERNAL_ERROR", "message": str(e)},
+                                http_status=500,
+                            )
+                        # Persist trace_events so /runs/{run_id}/trace works.
+                        if result.trace_events and not result.error:
+                            persist_trace_events(
+                                run_id=out_run_id,
+                                trace_events=list(result.trace_events),
+                                agent_id=agent_id,
+                                runtime_mode=result.runtime_mode,
+                                trace_id=out_trace_id,
+                            )
+                        return build_medical_coding_inbound_response(
+                            result=result,
+                            run_id=out_run_id,
+                            trace_id=out_trace_id,
+                            context_id=meta.get("context_id") or "",
+                            interaction_id=request.message.interaction_id,
+                        )
+
+                # medcoder_deep or non-medical-coding: pass through to InboundHandler.
                 response = self._inner.handle(agent_id, request)
                 if (
                     agent_id == "medical-coding-agent"

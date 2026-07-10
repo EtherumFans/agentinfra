@@ -45,6 +45,12 @@ from app.coding_runtime import (
     RuntimeMode,
     get_dispatcher,
 )
+from app.icoder.agent_runtime.a2a_facade import (
+    MEDICAL_CODING_AGENT_IDS as _FACADE_MEDICAL_CODING_AGENT_IDS,
+    construct_envelope,
+    dispatch_medical_coding_fast,
+    persist_trace_events,
+)
 from app.middleware.auth import get_current_user
 from app.models.user import User
 from icoder_runtime.backends.contracts import (
@@ -182,39 +188,79 @@ async def run_agent(
     body: AgentRunRequest,
     current_user: User = Depends(get_current_user),
 ) -> AgentRunResponse:
-    """Unified Agent Run facade.
+    """Unified Agent Run facade (A2A-compatible, Phase 4-F2).
 
-    Routes ``agent_id`` to the appropriate runtime (CodingRuntimeDispatcher
-    for medical coding, ProviderRegistry for everything else) and wraps
-    the response in a uniform envelope.
+    Constructs an A2A-compatible envelope (InboundRequest with TextPart +
+    metadata.runtime_mode), then dispatches through the shared A2A facade
+    to the appropriate runtime (CodingRuntimeDispatcher for medical coding,
+    ProviderRegistry for everything else). After the run, persists
+    trace_events to RunTraceStore so the dedicated RunTrace page works.
 
     On any error, returns HTTP 200 with ``error=True`` so the frontend
     can render a friendly retry UI (rather than catching a 5xx).
     """
     t0 = time.perf_counter()
-    run_id = f"run-{uuid.uuid4()}"
-    trace_id = f"trace-{uuid.uuid4()}"
+    user_id = str(getattr(current_user, "id", "") or "")
+    tenant_id = str(getattr(current_user, "tenant_id", "") or "")
+
+    # ── Phase 4-F2 §4.1: construct A2A-compatible envelope ──────────
+    # The envelope preserves A2A protocol semantics (run_id, trace_id,
+    # context_id, message_id, parts, metadata) even when the dispatch
+    # is a lightweight CodingRuntimeDispatcher call rather than the full
+    # InboundHandler 5-stage state machine (§6.1 lightweight adapter).
+    envelope, run_id, trace_id, context_id, message_id = construct_envelope(
+        agent_id=agent_id,
+        input_text=body.input.text,
+        extra=body.input.extra or None,
+        runtime_mode=body.runtime_mode,
+        include_trace=body.include_trace,
+        include_evidence=body.include_evidence,
+        user_id=user_id,
+        tenant_id=tenant_id,
+    )
+    logger.info(
+        "agent_run: A2A envelope constructed agent_id=%s run_id=%s "
+        "trace_id=%s runtime_mode=%s context_id=%s",
+        agent_id, run_id, trace_id,
+        body.runtime_mode or "(default)", context_id,
+    )
 
     # ── 1. Medical coding fast path (G001) ──────────────────────────
     if agent_id in _MEDICAL_CODING_AGENT_IDS:
-        return await _run_medical_coding(
+        response = await _run_medical_coding(
             agent_id=agent_id,
             body=body,
             run_id=run_id,
             trace_id=trace_id,
+            context_id=context_id,
+            t0=t0,
+            user_id=user_id,
+            tenant_id=tenant_id,
+        )
+    else:
+        # ── 2. Generic provider path ───────────────────────────────
+        response = await _run_via_provider_registry(
+            agent_id=agent_id,
+            body=body,
+            run_id=run_id,
+            trace_id=trace_id,
+            context_id=context_id,
             t0=t0,
             current_user=current_user,
         )
 
-    # ── 2. Generic provider path ────────────────────────────────────
-    return await _run_via_provider_registry(
-        agent_id=agent_id,
-        body=body,
-        run_id=run_id,
-        trace_id=trace_id,
-        t0=t0,
-        current_user=current_user,
-    )
+    # ── Phase 4-F2 §4.3: persist trace_events to RunTraceStore ──────
+    # So GET /api/runtime/runs/{run_id}/trace works for unified runs.
+    if response.trace_events and not response.error:
+        persist_trace_events(
+            run_id=response.run_id or run_id,
+            trace_events=response.trace_events,
+            agent_id=agent_id,
+            runtime_mode=response.runtime_mode,
+            trace_id=response.trace_id or trace_id,
+        )
+
+    return response
 
 
 # ── Medical coding path ─────────────────────────────────────────────────
@@ -226,37 +272,42 @@ async def _run_medical_coding(
     body: AgentRunRequest,
     run_id: str,
     trace_id: str,
+    context_id: str,
     t0: float,
-    current_user: User,
+    user_id: str = "",
+    tenant_id: str = "",
 ) -> AgentRunResponse:
-    """Delegate to CodingRuntimeDispatcher (G001 fast path or medcoder_deep)."""
-    # Build CodingRequest — mode overrides default if provided.
-    mode_str = body.runtime_mode or "corti_like_fast"
-    mode = RuntimeMode.coerce(mode_str)
-    request = CodingRequest(
-        text=body.input.text,
-        mode=mode,
-        coding_system="icd10cn",
-        include_evidence=body.include_evidence,
-        include_trace=body.include_trace,
-        run_id=run_id,
-        user_id=str(getattr(current_user, "id", "") or ""),
-        tenant_id=str(getattr(current_user, "tenant_id", "") or ""),
-    )
+    """Delegate to CodingRuntimeDispatcher via the shared A2A facade.
 
+    Phase 4-F2: uses ``a2a_facade.dispatch_medical_coding_fast()`` so the
+    unified endpoint and the A2A ``message:send`` path share one dispatch
+    code path. Default mode is ``corti_like_fast`` (~6-8s); explicit
+    ``medcoder_deep`` opts into the 5-stage MedCODER pipeline.
+    """
     try:
-        dispatcher = get_dispatcher()
-        result: CodingResult = await dispatcher.dispatch(request)
+        result, out_run_id, out_trace_id = await dispatch_medical_coding_fast(
+            agent_id=agent_id,
+            input_text=body.input.text,
+            extra=body.input.extra or None,
+            runtime_mode=body.runtime_mode,
+            include_trace=body.include_trace,
+            include_evidence=body.include_evidence,
+            run_id=run_id,
+            trace_id=trace_id,
+            user_id=user_id,
+            tenant_id=tenant_id,
+        )
     except Exception as e:
         logger.exception(
-            "agent_run: medical-coding dispatcher failed for agent_id=%s mode=%s",
-            agent_id, mode.value,
+            "agent_run: medical-coding dispatcher failed for agent_id=%s",
+            agent_id,
         )
+        mode_str = body.runtime_mode or "corti_like_fast"
         return _error_response(
             agent_id=agent_id,
             run_id=run_id,
             trace_id=trace_id,
-            runtime_mode=mode.value,
+            runtime_mode=mode_str,
             t0=t0,
             error_reason="runtime_crash",
             summary=f"Medical coding runtime crashed: {type(e).__name__}: {e}",
@@ -264,8 +315,8 @@ async def _run_medical_coding(
 
     return _map_coding_result(
         agent_id=agent_id,
-        run_id=run_id,
-        trace_id=trace_id,
+        run_id=out_run_id,
+        trace_id=out_trace_id,
         result=result,
         include_trace=body.include_trace,
         include_evidence=body.include_evidence,
@@ -376,13 +427,37 @@ async def _run_via_provider_registry(
     body: AgentRunRequest,
     run_id: str,
     trace_id: str,
+    context_id: str,
     t0: float,
     current_user: User,
 ) -> AgentRunResponse:
     """Resolve the agent's backend_provider and call invoke()."""
+    from app.icoder.agent_runtime.orchestrator.run_trace import (
+        RunTraceStep,
+        RunTraceStatus,
+        emit_trace_event,
+    )
+
+    # Emit USER_MESSAGE_RECEIVED so /runs/{run_id}/trace has content.
+    emit_trace_event(
+        run_id, RunTraceStep.USER_MESSAGE_RECEIVED,
+        safe_metadata={
+            "agent_id": agent_id,
+            "input_text_len": len(body.input.text),
+            "runtime_mode": body.runtime_mode or "",
+            "context_id": context_id,
+            "trace_id": trace_id,
+        },
+    )
+
     # Load agent_pack.json by agent_id.
     pack = _load_pack_by_agent_id(agent_id)
     if pack is None:
+        emit_trace_event(
+            run_id, RunTraceStep.COMPLETION,
+            status=RunTraceStatus.FAILED,
+            safe_metadata={"error": f"unknown_agent: {agent_id}"},
+        )
         return _error_response(
             agent_id=agent_id,
             run_id=run_id,
@@ -398,6 +473,11 @@ async def _run_via_provider_registry(
     try:
         provider = registry.resolve_from_agent_pack(pack)
     except ProviderNotRegisteredError as e:
+        emit_trace_event(
+            run_id, RunTraceStep.COMPLETION,
+            status=RunTraceStatus.FAILED,
+            safe_metadata={"error": f"provider_not_registered: {e}"},
+        )
         return _error_response(
             agent_id=agent_id,
             run_id=run_id,
@@ -424,7 +504,7 @@ async def _run_via_provider_registry(
 
     ctx = AgentRunContext(
         run_id=run_id,
-        context_id=str(uuid.uuid4()),
+        context_id=context_id or str(uuid.uuid4()),
         agent_id=agent_id,
         tenant_id=str(getattr(current_user, "tenant_id", "") or "default"),
         redacted_input=body.input.text,  # PHI redaction happens inside provider
@@ -446,6 +526,14 @@ async def _run_via_provider_registry(
             "agent_run: provider.invoke failed for agent_id=%s provider=%s",
             agent_id, getattr(provider, "provider_id", "?"),
         )
+        emit_trace_event(
+            run_id, RunTraceStep.COMPLETION,
+            status=RunTraceStatus.FAILED,
+            safe_metadata={
+                "agent_id": agent_id,
+                "error": f"runtime_crash: {type(e).__name__}: {str(e)[:200]}",
+            },
+        )
         return _error_response(
             agent_id=agent_id,
             run_id=run_id,
@@ -455,6 +543,32 @@ async def _run_via_provider_registry(
             error_reason="runtime_crash",
             summary=f"Provider invoke crashed: {type(e).__name__}: {e}",
         )
+
+    # Emit OUTPUT_GENERATED + COMPLETION so /runs/{run_id}/trace has content.
+    emit_trace_event(
+        run_id, RunTraceStep.OUTPUT_GENERATED,
+        safe_metadata={
+            "agent_id": agent_id,
+            "status": resp.status,
+            "finish_state": resp.finish_state,
+            "issues_count": len(resp.issues),
+            "backend_provider": resp.backend_provider,
+        },
+    )
+    completion_status = (
+        RunTraceStatus.FAILED
+        if (resp.finish_state == "failed" or resp.status == "fail")
+        else RunTraceStatus.OK
+    )
+    emit_trace_event(
+        run_id, RunTraceStep.COMPLETION,
+        status=completion_status,
+        safe_metadata={
+            "agent_id": agent_id,
+            "runtime_mode": runtime_mode_label,
+            "latency_ms": resp.latency_ms or int((time.perf_counter() - t0) * 1000),
+        },
+    )
 
     return _map_backend_response(
         agent_id=agent_id,
@@ -513,8 +627,50 @@ def _map_backend_response(
     }
 
     trace_events: list[dict[str, Any]] = []
-    if include_trace and resp.trace_refs:
-        trace_events = [{"run_id": rid} for rid in resp.trace_refs]
+    if include_trace:
+        # Phase 4-F2: surface the 3 lifecycle trace events that were
+        # emitted to RunTraceStore by _run_via_provider_registry(). These
+        # are the same events GET /api/runtime/runs/{run_id}/trace returns.
+        latency_ms_val = resp.latency_ms or int((time.perf_counter() - t0) * 1000)
+        completion_status = (
+            "failed"
+            if (resp.finish_state == "failed" or resp.status == "fail")
+            else "ok"
+        )
+        trace_events = [
+            {
+                "step": "user_message_received",
+                "status": "ok",
+                "duration_ms": 0,
+                "metadata": {
+                    "agent_id": agent_id,
+                    "input_text_len": 0,
+                    "runtime_mode": runtime_mode,
+                },
+            },
+            {
+                "step": "output_generated",
+                "status": "ok",
+                "duration_ms": latency_ms_val,
+                "metadata": {
+                    "agent_id": agent_id,
+                    "status": resp.status,
+                    "finish_state": resp.finish_state,
+                    "issues_count": len(resp.issues),
+                    "backend_provider": resp.backend_provider,
+                },
+            },
+            {
+                "step": "completion",
+                "status": completion_status,
+                "duration_ms": latency_ms_val,
+                "metadata": {
+                    "agent_id": agent_id,
+                    "runtime_mode": runtime_mode,
+                    "latency_ms": latency_ms_val,
+                },
+            },
+        ]
 
     # manual_review_required: True if status is requires_review / unclear /
     # incomplete, or if any issue severity is warning/error/critical.

@@ -9,6 +9,7 @@ import {
   Search, Check, Sparkles, BookOpen, Copy, User, Clock,
 } from 'lucide-react';
 import { agentsApi, billingApi, oauthApi } from '../services/api';
+import { agentHubApi } from '../services/agentHubApi';
 import { runtimeAgentApi } from '../services/runtimeApi';
 import { useToastStore } from '../store';
 import type { RuntimeRunResult } from '../types/runtime';
@@ -35,6 +36,8 @@ export default function AgentDetailPage() {
   const [runtimeTier, setRuntimeTier] = useState<number | null>(null);
   const [useRuntime, setUseRuntime] = useState(() => localStorage.getItem('icoder-agent-runtime-mode') !== 'legacy');
   const [installLoading, setInstallLoading] = useState(false);
+  // Phase 4-G #4: fork button state (clones iCoDer built agent into user's namespace)
+  const [forkLoading, setForkLoading] = useState(false);
   const toast = useToastStore((s) => s.addToast);
 
   // Agent Test Panel
@@ -494,6 +497,39 @@ export default function AgentDetailPage() {
         )}
         {runtimeInstalled && (
           <div className="flex gap-1 ml-auto">
+            {/* Phase 4-G #4: Fork iCoDer built agent into user's editable namespace */}
+            {agent?.is_prebuilt && (
+              <button
+                onClick={async () => {
+                  if (forkLoading || !agentId) return;
+                  setForkLoading(true);
+                  try {
+                    const res = await agentHubApi.clone(agentId);
+                    const data = res.data;
+                    const forkedId = data.project_agent_id || agentId;
+                    if (data.cloned) {
+                      toast(t.agentClonedToDraftToast || '已复制到我的智能体', 'success');
+                    } else {
+                      toast(t.agentExistingCloneToast || '已有副本,正在打开', 'warning');
+                    }
+                    navigate(`/ai-studio/agents/${encodeURIComponent(forkedId)}`);
+                  } catch (e: any) {
+                    const status = e?.response?.status;
+                    if (status === 401) {
+                      toast(t.agentLoginRequiredToast || '请先登录', 'error');
+                      navigate('/login');
+                    } else {
+                      toast(e?.response?.data?.detail || e?.message || t.agentCloneFailedToast || '复制失败', 'error');
+                    }
+                  } finally { setForkLoading(false); }
+                }}
+                disabled={forkLoading}
+                className="px-2 py-0.5 rounded text-[11px] bg-primary/10 text-primary hover:bg-primary/20 disabled:opacity-50 flex items-center gap-1 transition-colors"
+                title="Clone this iCoDer built agent into your editable namespace"
+              >
+                {forkLoading ? 'Forking...' : '自定义'}
+              </button>
+            )}
             <button onClick={() => setShowTestPanel(!showTestPanel)}
               className="px-2 py-0.5 rounded text-[11px] bg-blue-50 text-blue-600 hover:bg-blue-100">
               {t.agentDetailTestTitle}
@@ -872,6 +908,16 @@ export default function AgentDetailPage() {
             }
             settings={
               <div className="flex flex-col">
+                {/* Phase 4-G #4: Forked-from badge for clones (config.source_agent_ref) */}
+                {agent?.config?.source_agent_ref && (
+                  <div className="px-4 pt-3 pb-2 bg-primary/5 border-b border-primary/10">
+                    <div className="flex items-center gap-1.5 text-[10px] text-primary">
+                      <span className="px-1.5 py-0.5 rounded bg-primary/10 font-medium">Forked</span>
+                      <span className="text-muted-foreground">from</span>
+                      <code className="font-mono text-primary/80 break-all">{agent.config.source_agent_ref}</code>
+                    </div>
+                  </div>
+                )}
                 {/* Name */}
                 <div className="border-b border-border/20">
                   <div className="flex items-center gap-2 px-4 pt-4 pb-2">

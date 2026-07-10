@@ -72,6 +72,13 @@ class Settings(BaseSettings):
     LLM_TEMPERATURE: float = 0.1
     LLM_TIMEOUT: int = 120
 
+    # ── LLM Pricing (Phase 4-G #1 — live cost) ─────────────────────────────────
+    # Per-1M-token prices in USD. Used by DeepSeekProvider/OpenAICompatibleProvider
+    # to compute `cost_usd` from `usage.input_tokens` + `usage.output_tokens`.
+    # Defaults reflect DeepSeek V4 flash public pricing (2026-07). Override via env.
+    LLM_PRICE_INPUT_PER_1M: float = 0.14
+    LLM_PRICE_OUTPUT_PER_1M: float = 0.28
+
     # ── Agent Configuration ───────────────────────────────────────────────────
     AGENT_MAX_RETRIES: int = 2
     AGENT_CONFIDENCE_THRESHOLD: float = 0.6

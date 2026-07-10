@@ -118,6 +118,11 @@ export default function AgentChatPage() {
     }).catch(() => {});
   }, []);
 
+  // Phase 4-G #3: hydrate RunHistory dropdown on page load + refresh after
+  // each run completes so the user sees their recent runs without a page refresh.
+  // Defined after `runtimeAgentId` (below) — keep ordering intact.
+  const [runHistory, setRunHistory] = useState<any[]>([]);
+
   // Derive the runtime agent_id (short form) from agent.config.agent_ref
   // or fall back to the source_agent_ref if present. Used for the A2A path.
   const runtimeAgentId = (() => {
@@ -127,6 +132,20 @@ export default function AgentChatPage() {
     const tail = ref.split('/').pop() || '';
     return tail.split('@')[0];
   })();
+
+  // Phase 4-G #3: hydrate RunHistory dropdown on page load + refresh after
+  // each run completes so the user sees their recent runs without a page refresh.
+  const refreshRunHistory = useCallback(() => {
+    if (!runtimeAgentId) {
+      setRunHistory([]);
+      return;
+    }
+    runtimeAgentApi.getRunHistory(runtimeAgentId, 20).then(r => {
+      setRunHistory(r?.items || []);
+    }).catch(() => {});
+  }, [runtimeAgentId]);
+
+  useEffect(() => { refreshRunHistory(); }, [refreshRunHistory]);
 
   const greeting = useMemo(() => {
     if (preset && PRESET_GREETINGS_BY_REF[preset] === 'medicalCoding') {
@@ -178,6 +197,7 @@ export default function AgentChatPage() {
           include_trace: true,
           include_evidence: true,
           extra,
+          api_client_id: selectedApiClient || undefined,
         });
       } else {
         // Phase 4-F3 §2.1: non-Medical-Coding agents also use the unified
@@ -195,6 +215,7 @@ export default function AgentChatPage() {
           include_trace: true,
           include_evidence: true,
           extra,
+          api_client_id: selectedApiClient || undefined,
         });
       }
       setMessages(prev => [...prev, {
@@ -205,6 +226,8 @@ export default function AgentChatPage() {
         ts: Date.now(),
       }]);
       toast(t.agentChatRunComplete, 'success');
+      // Phase 4-G #3: refresh history dropdown so the just-completed run appears.
+      refreshRunHistory();
     } catch (err: any) {
       const msg = err?.response?.data?.detail || err?.message || t.agentChatRunFailed;
       const errMsg = typeof msg === 'string' ? msg : JSON.stringify(msg);
@@ -366,6 +389,30 @@ export default function AgentChatPage() {
 
         {/* Bottom input bar - Corti-style: Add context + textarea + helper text. Ctrl+Enter to submit. */}
         <div className="border-t border-border/40 bg-background px-6 py-3">
+          {/* Phase 4-G #3: RunHistory dropdown — recent runs for this agent */}
+          {runHistory.length > 0 && (
+            <div className="flex items-center gap-2 mb-2">
+              <Activity size={11} className="text-muted-foreground shrink-0" />
+              <select
+                value=""
+                onChange={e => {
+                  const runId = e.target.value;
+                  if (runId) navigate(`/ai-studio/runs/${encodeURIComponent(runId)}/trace`);
+                }}
+                className="text-[10px] text-muted-foreground bg-transparent border border-border rounded-md px-1.5 py-1 focus:outline-none focus:ring-1 focus:ring-ring max-w-[280px] truncate"
+                title={t.agentChatRunHistory || 'Recent runs'}
+                disabled={loading}
+              >
+                <option value="">{t.agentChatRunHistory || 'Recent runs'} ({runHistory.length})</option>
+                {runHistory.map((r: any) => (
+                  <option key={r.run_id} value={r.run_id}>
+                    {new Date(r.created_at).toLocaleString()} · {r.latency_ms}ms · ${typeof r.cost_usd === 'number' ? r.cost_usd.toFixed(6) : '0.000000'}
+                    {r.error ? ' · error' : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
           {/* Attached files chips */}
           {attachedFiles.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-2">

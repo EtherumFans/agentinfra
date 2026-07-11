@@ -1511,6 +1511,7 @@ from app.api.run_trace import router as run_trace_router
 from app.api.coding_predict import router as coding_predict_router
 from app.api.agent_run import router as agent_run_router
 from app.api.coding_compliance import router as coding_compliance_router
+from app.api.cdi import router as cdi_router
 from app.middleware.rate_limit import rate_limit_middleware
 
 # Rate limiting middleware
@@ -1542,6 +1543,7 @@ app.include_router(run_trace_router)             # /api/runtime/runs/{run_id}/tr
 app.include_router(coding_predict_router)        # /api/v1/coding/predict (G001 refactor 2026-07-09 — Corti-like Fast Coding default)
 app.include_router(agent_run_router)             # /api/v1/agents/{id}/run (Phase 4-F 2026-07-09 — unified Agent Run facade)
 app.include_router(coding_compliance_router)    # /api/v1/coding-compliance/run (Phase 5 Track C Gate 5 — 7-stage mainline)
+app.include_router(cdi_router)                  # /api/v1/cdi/* (Phase 5 Track D Gate 9 — CDI Core Entry Agent)
 app.include_router(organizations_router)
 app.include_router(platform_environments_router)  # Phase 1 cloud-flip stub (501)
 app.include_router(platform_api_clients_router)    # Phase 1 cloud-flip stub (501)

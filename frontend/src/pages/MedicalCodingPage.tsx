@@ -1175,7 +1175,7 @@ export default function MedicalCodingPage() {
         <Activity size={14} className="text-muted-foreground" />
         <span className="text-foreground font-medium">{t.eventInspector}</span>
         <span className="text-xs text-muted-foreground/70 font-mono">
-          {t.creditsConsumed}: {liveCost > 0 ? `$${liveCost.toFixed(6)}` : 'N/A'}
+          {t.creditsConsumed}: {liveCost > 0 ? `¥${liveCost.toFixed(6)}` : 'N/A'}
         </span>
       </button>
       {eventInspectorOpen && (

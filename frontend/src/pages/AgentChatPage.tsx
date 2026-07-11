@@ -122,6 +122,8 @@ export default function AgentChatPage() {
   // each run completes so the user sees their recent runs without a page refresh.
   // Defined after `runtimeAgentId` (below) — keep ordering intact.
   const [runHistory, setRunHistory] = useState<any[]>([]);
+  // Phase 5 A6: date filter for the RunHistory dropdown (0 = all time, 7, 30)
+  const [historyDays, setHistoryDays] = useState<number>(0);
 
   // Derive the runtime agent_id (short form) from agent.config.agent_ref
   // or fall back to the source_agent_ref if present. Used for the A2A path.
@@ -135,15 +137,16 @@ export default function AgentChatPage() {
 
   // Phase 4-G #3: hydrate RunHistory dropdown on page load + refresh after
   // each run completes so the user sees their recent runs without a page refresh.
+  // Phase 5 A6: `historyDays` filters by date (0 = all time, 7/30 = last N days).
   const refreshRunHistory = useCallback(() => {
     if (!runtimeAgentId) {
       setRunHistory([]);
       return;
     }
-    runtimeAgentApi.getRunHistory(runtimeAgentId, 20).then(r => {
+    runtimeAgentApi.getRunHistory(runtimeAgentId, 20, historyDays).then(r => {
       setRunHistory(r?.items || []);
     }).catch(() => {});
-  }, [runtimeAgentId]);
+  }, [runtimeAgentId, historyDays]);
 
   useEffect(() => { refreshRunHistory(); }, [refreshRunHistory]);
 
@@ -406,11 +409,32 @@ export default function AgentChatPage() {
                 <option value="">{t.agentChatRunHistory || 'Recent runs'} ({runHistory.length})</option>
                 {runHistory.map((r: any) => (
                   <option key={r.run_id} value={r.run_id}>
-                    {new Date(r.created_at).toLocaleString()} · {r.latency_ms}ms · ${typeof r.cost_usd === 'number' ? r.cost_usd.toFixed(6) : '0.000000'}
+                    {new Date(r.created_at).toLocaleString()} · {r.latency_ms}ms · ¥{typeof r.cost_usd === 'number' ? r.cost_usd.toFixed(6) : '0.000000'}
                     {r.error ? ' · error' : ''}
                   </option>
                 ))}
               </select>
+              {/* Phase 5 A6: date range filter for run history */}
+              <div className="inline-flex items-center rounded-md border border-border/40 bg-background p-0.5">
+                {[
+                  { key: 0, label: 'All' },
+                  { key: 7, label: '7d' },
+                  { key: 30, label: '30d' },
+                ].map(opt => (
+                  <button
+                    key={opt.key}
+                    onClick={() => setHistoryDays(opt.key)}
+                    className={`px-1.5 py-0.5 text-[10px] font-medium rounded-sm transition-colors ${
+                      historyDays === opt.key
+                        ? 'bg-primary/10 text-primary'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                    title={opt.key === 0 ? 'All time' : `Last ${opt.key} days`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
           {/* Attached files chips */}

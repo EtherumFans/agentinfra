@@ -159,7 +159,7 @@ export default function Layout() {
             {/* Live cost counter + Reset (Corti IA) */}
             {liveCost > 0 && (
               <div className="flex items-center gap-1 px-2 py-1 rounded-md border border-border bg-background">
-                <span className="text-xs font-mono text-muted-foreground tabular-nums">${liveCost.toFixed(6)}</span>
+                <span className="text-xs font-mono text-muted-foreground tabular-nums">¥{liveCost.toFixed(6)}</span>
                 <button onClick={handleResetCost} title={t.resetLiveCost ?? 'Reset live cost'}
                   className="p-0.5 text-muted-foreground hover:text-foreground transition-colors">
                   <RotateCcw size={10} />
@@ -173,7 +173,7 @@ export default function Layout() {
                 className="text-xs px-2 py-1 rounded text-muted-foreground hover:text-foreground hover:bg-accent transition-colors flex items-center gap-1 font-mono"
                 title={t.agentChatAvailableCredits ?? 'Available credits'}
               >
-                <CreditCard size={12} /> <span className="tabular-nums">${balance.toFixed(2)}</span>
+                <CreditCard size={12} /> <span className="tabular-nums">¥{balance.toFixed(2)}</span>
               </Link>
             )}
             {/* Docs link (Corti IA - persistent in header) */}

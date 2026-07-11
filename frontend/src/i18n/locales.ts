@@ -465,6 +465,7 @@ export interface LocaleDict {
   creditsUsed: string;
   avgResponseTime: string;
   recentActivity: string;
+  dailyCostChart: string;
   requests: string;
 
   // Customers (Embedded Assistant end-user mgmt - Corti parity)
@@ -1464,7 +1465,7 @@ const zhCN: LocaleDict = {
   eventInspector: '事件检查器',
   creditsConsumedLabel: '已消耗额度',
   charCount: '{n} 字',
-  costEstimate: '约 ${n}',
+  costEstimate: '约 ¥{n}',
   viewFullReport: '查看完整报告',
   systemPrompt: '系统提示词',
   codingSystem: '编码体系',
@@ -1723,6 +1724,7 @@ const zhCN: LocaleDict = {
   creditsUsed: '已消耗额度',
   avgResponseTime: '平均响应时间',
   recentActivity: '最近活动',
+  dailyCostChart: '每日成本趋势',
   requests: '请求',
 
   // Customers
@@ -2740,7 +2742,7 @@ const enUS: LocaleDict = {
   eventInspector: 'Event Inspector',
   creditsConsumedLabel: 'Credits consumed',
   charCount: '{n} chars',
-  costEstimate: '~${n}',
+  costEstimate: '~¥{n}',
   viewFullReport: 'View full report',
   systemPrompt: 'System Prompt',
   codingSystem: 'Coding System',
@@ -2999,6 +3001,7 @@ const enUS: LocaleDict = {
   creditsUsed: 'Credits Used',
   avgResponseTime: 'Avg Response Time',
   recentActivity: 'Recent Activity',
+  dailyCostChart: 'Daily Cost Trend',
   requests: 'requests',
 
   // Customers

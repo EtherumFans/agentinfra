@@ -152,6 +152,11 @@ class CDIRunResponse(BaseModel):
     documentation_gaps: list[DocumentationGapSchema]
     proposed_provider_queries: list[ProviderQuerySchema]
     chart_excerpt_preview: str
+    patient_ref: str = "DEID"
+    encounter_ref: str = "DEID"
+    encounter_summary: dict[str, Any] | None = None
+    risk_flags: list[dict[str, str]] = []
+    specialist_trace: list[dict[str, Any]] = []
     stage_run_ids: dict[str, str] = {}
     stage_trace_ids: dict[str, str] = {}
     # Phase 5 Track D P0 Gate 2: per-stage provider evidence (PDF §A2).
@@ -355,6 +360,28 @@ async def run_cdi(
         documentation_gaps=gaps,
         proposed_provider_queries=queries,
         chart_excerpt_preview=body.chart_excerpt[:200],
+        patient_ref=case.patient_ref or "DEID",
+        encounter_ref=case.encounter_ref or "DEID",
+        encounter_summary=(
+            {
+                "key_points": list(case.encounter_summary.key_points),
+                "encounter_metadata": dict(case.encounter_summary.encounter_metadata),
+            }
+            if case.encounter_summary is not None
+            else None
+        ),
+        risk_flags=[
+            {"category": r.category, "description": r.description}
+            for r in case.risk_flags
+        ],
+        specialist_trace=[
+            {
+                "expert_id": e.expert_id,
+                "consulted": e.consulted,
+                "rationale": e.rationale,
+            }
+            for e in case.specialist_trace
+        ],
         stage_run_ids=case.stage_run_ids,
         stage_trace_ids=case.stage_trace_ids,
         stage_traces=trace_records,
@@ -398,9 +425,18 @@ async def get_case(
         "completion_state": case_model.completion_state,
         "patient_ref": case_model.patient_ref,
         "encounter_ref": case_model.encounter_ref,
+        "chart_excerpt_preview": f"(persisted case, length={case_model.chart_excerpt_length})",
         "chart_excerpt_length": case_model.chart_excerpt_length,
+        "encounter_summary": case_model.encounter_summary or None,
         "documentation_gaps": gaps,
         "proposed_provider_queries": queries,
+        "risk_flags": list(case_model.risk_flags or []),
+        "specialist_trace": list(case_model.specialist_trace or []),
+        "stage_run_ids": {},
+        "stage_trace_ids": {},
+        "stage_traces": [],
+        "degraded": False,
+        "runtime_mode": "persisted",
         "run_id": case_model.run_id,
         "trace_id": case_model.trace_id,
         "agent_ref": case_model.agent_ref,
@@ -474,14 +510,14 @@ async def transition_query(
             evidence_quote=body.evidence_quote or "",
             topic=body.topic or "",
         )
-        nlq_passed = gate_result.passed
-        if not gate_result.passed:
+        nlq_passed = gate_result.verdict == "PASS"
+        if not nlq_passed:
             return TransitionResponse(
                 query_id=query_id,
                 accepted=False,
                 from_state="DRAFT",
                 to_state=body.to_state,
-                reason=f"NLQ gate failed: {len(gate_result.failed_rules)} rules",
+                reason=f"NLQ gate failed: {len(gate_result.rules_failed)} rules",
                 nlq_gate_passed=False,
                 rbac_allowed=True,
             )

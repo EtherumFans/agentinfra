@@ -60,6 +60,7 @@ export interface LocaleDict {
   embeddedAssistant: string;
   factExtraction: string;
   medicalCoding: string;
+  codingCompliance: string;
   manage: string;
   apiClients: string;
   apiClientsManage: string;
@@ -1335,6 +1336,7 @@ const zhCN: LocaleDict = {
   embeddedAssistant: '嵌入助手',
   factExtraction: '事实提取',
   medicalCoding: '医学编码',
+  codingCompliance: '编码合规',
   manage: '管理',
   apiClients: 'API 客户端',
   apiClientsManage: '管理 API 客户端',
@@ -2612,6 +2614,7 @@ const enUS: LocaleDict = {
   embeddedAssistant: 'Embedded Assistant',
   factExtraction: 'Fact Extraction',
   medicalCoding: 'Medical Coding',
+  codingCompliance: 'Coding Compliance',
   manage: 'Manage',
   apiClients: 'API Clients',
   apiClientsManage: 'Manage API Clients',

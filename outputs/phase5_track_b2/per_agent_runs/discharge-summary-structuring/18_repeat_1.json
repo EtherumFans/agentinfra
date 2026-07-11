@@ -1,0 +1,56 @@
+{
+  "agent_id": "discharge-summary-structuring",
+  "run_id": "run-fde7103f-8ad0-41a3-8870-7fd73ad365ef",
+  "trace_id": "trace-6e2c06dd382c452d",
+  "runtime_mode": "corti_like_fast",
+  "latency_ms": 4051,
+  "cost": {
+    "amount": 0.000187,
+    "currency": "CNY"
+  },
+  "summary": "{",
+  "result": {
+    "status": "complete",
+    "markdown": "{\n  \"diagnoses\": [\n    {\n      \"text\": \"T12 椎体压缩性骨折\",\n      \"primary\": true,\n      \"evidence_text\": \"MRI 显示 T12 椎体压缩性骨折\",\n      \"char_span\": [12, 28]\n    },\n    {\n      \"text\": \"骨质疏松性骨折\",\n      \"primary\": false,\n      \"evidence_text\": \"骨密度 T 值 -3.2(骨质疏松)\",\n      \"char_span\": [29, 44]\n    },\n    {\n      \"text\": \"高血压病 3 级(很高危)\",\n      \"primary\": false,\n      \"evidence_text\": \"既往有高血压病史 10 年\",\n      \"char_span\": [45, 60]\n    }\n  ],\n  \"procedures\": [],\n  \"treatment_summary\": \"患者入院后予卧床休息、镇痛及抗骨质疏松治疗（唑来膦酸），必要时行 PKP/PVP。\",\n  \"discharge_orders\": [\n    \"卧床休息\",\n    \"镇痛治疗\",\n    \"抗骨质疏松治疗（唑来膦酸）\"\n  ],\n  \"follow_up_recommendations\": [\n    {\n      \"department\": \"骨科\",\n      \"time\": \"术后 1 月\",\n      \"items\": [\"X 线复查\"]\n    }\n  ],\n  \"discharge_status\": 5,\n  \"manual_review_required\": true\n}",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.pure-llm.v1",
+    "backend_type": "pure_llm",
+    "raw_provider_response": {
+      "content": "{\n  \"diagnoses\": [\n    {\n      \"text\": \"T12 椎体压缩性骨折\",\n      \"primary\": true,\n      \"evidence_text\": \"MRI 显示 T12 椎体压缩性骨折\",\n      \"char_span\": [12, 28]\n    },\n    {\n      \"text\": \"骨质疏松性骨折\",\n      \"primary\": false,\n      \"evidence_text\": \"骨密度 T 值 -3.2(骨质疏松)\",\n      \"char_span\": [29, 44]\n    },\n    {\n      \"text\": \"高血压病 3 级(很高危)\",\n      \"primary\": false,\n      \"evidence_text\": \"既往有高血压病史 10 年\",\n      \"char_span\": [45, 60]\n    }\n  ],\n  \"procedures\": [],\n  \"treatment_summary\": \"患者入院后予卧床休息、镇痛及抗骨质疏松治疗（唑来膦酸），必要时行 PKP/PVP。\",\n  \"discharge_orders\": [\n    \"卧床休息\",\n    \"镇痛治疗\",\n    \"抗骨质疏松治疗（唑来膦酸）\"\n  ],\n  \"follow_up_recommendations\": [\n    {\n      \"department\": \"骨科\",\n      \"time\": \"术后 1 月\",\n      \"items\": [\"X 线复查\"]\n    }\n  ],\n  \"discharge_status\": 5,\n  \"manual_review_required\": true\n}",
+      "model": "deepseek-v4-flash",
+      "usage": {
+        "input_tokens": 731,
+        "output_tokens": 302
+      },
+      "cost_usd": 0.000187,
+      "latency_ms": 4051
+    }
+  },
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": false,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 4051,
+      "metadata": {
+        "agent_id": "discharge-summary-structuring",
+        "runtime_mode": "corti_like_fast",
+        "latency_ms": 4051
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_client_wall_ms": 4211,
+  "_fixture": "fixtures/phase5_track_b2/01_orthopedics.json",
+  "_agent": "discharge-summary-structuring",
+  "_tag": "18_repeat_1",
+  "_ts": "2026-07-11T14:28:32"
+}

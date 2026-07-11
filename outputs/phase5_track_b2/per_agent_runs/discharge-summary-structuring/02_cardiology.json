@@ -1,0 +1,56 @@
+{
+  "agent_id": "discharge-summary-structuring",
+  "run_id": "run-fc1147a4-37c5-414c-9e5e-5aa3f284cb20",
+  "trace_id": "trace-bf7d54848aa64531",
+  "runtime_mode": "corti_like_fast",
+  "latency_ms": 8946,
+  "cost": {
+    "amount": 0.000237,
+    "currency": "CNY"
+  },
+  "summary": "```json",
+  "result": {
+    "status": "complete",
+    "markdown": "```json\n{\n  \"diagnoses\": [\n    {\n      \"text\": \"急性前壁 ST 段抬高型心肌梗死(Killip II 级)\",\n      \"primary\": true,\n      \"evidence_text\": \"入院诊断:急性前壁 ST 段抬高型心肌梗死(Killip II 级)\",\n      \"char_span\": [218, 260]\n    },\n    {\n      \"text\": \"冠状动脉单支病变(PCI 术后)\",\n      \"primary\": false,\n      \"evidence_text\": \"入院诊断:冠状动脉单支病变(PCI 术后)\",\n      \"char_span\": [262, 290]\n    },\n    {\n      \"text\": \"高脂血症\",\n      \"primary\": false,\n      \"evidence_text\": \"入院诊断:高脂血症\",\n      \"char_span\": [292, 296]\n    },\n    {\n      \"text\": \"吸烟者\",\n      \"primary\": false,\n      \"evidence_text\": \"入院诊断:吸烟者\",\n      \"char_span\": [298, 301]\n    }\n  ],\n  \"procedures\": [\n    {\n      \"text\": \"LAD PCI 术\",\n      \"evidence_text\": \"行 LAD PCI 术,植入药物洗脱支架 1 枚\",\n      \"char_span\": [155, 175]\n    }\n  ],\n  \"treatment_summary\": \"患者因突发胸骨后压榨样疼痛 3 小时急诊入院,急诊心电图示 V1-V4 ST 段弓背向上抬高,肌钙蛋白 I 12.5 ng/mL,急诊冠脉造影示 LAD 近段 100% 闭塞,行 LAD PCI 术并植入药物洗脱支架 1 枚,术后 TIMI 血流 3 级。\",\n  \"discharge_orders\": [\n    \"抗血小板药物治疗\",\n    \"他汀类药物治疗\",\n    \"戒烟\",\n    \"低脂饮食\",\n    \"避免剧烈活动 1 个月\"\n  ],\n  \"follow_up_recommendations\": [\n    {\n      \"department\": \"心内科\",\n      \"time\": \"术后 1 月\",\n      \"items\": [\"心电图复查\", \"心脏超声\", \"血脂检查\"]\n    }\n  ],\n  \"discharge_status\": 2,\n  \"manual_review_required\": true\n}\n```",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.pure-llm.v1",
+    "backend_type": "pure_llm",
+    "raw_provider_response": {
+      "content": "```json\n{\n  \"diagnoses\": [\n    {\n      \"text\": \"急性前壁 ST 段抬高型心肌梗死(Killip II 级)\",\n      \"primary\": true,\n      \"evidence_text\": \"入院诊断:急性前壁 ST 段抬高型心肌梗死(Killip II 级)\",\n      \"char_span\": [218, 260]\n    },\n    {\n      \"text\": \"冠状动脉单支病变(PCI 术后)\",\n      \"primary\": false,\n      \"evidence_text\": \"入院诊断:冠状动脉单支病变(PCI 术后)\",\n      \"char_span\": [262, 290]\n    },\n    {\n      \"text\": \"高脂血症\",\n      \"primary\": false,\n      \"evidence_text\": \"入院诊断:高脂血症\",\n      \"char_span\": [292, 296]\n    },\n    {\n      \"text\": \"吸烟者\",\n      \"primary\": false,\n      \"evidence_text\": \"入院诊断:吸烟者\",\n      \"char_span\": [298, 301]\n    }\n  ],\n  \"procedures\": [\n    {\n      \"text\": \"LAD PCI 术\",\n      \"evidence_text\": \"行 LAD PCI 术,植入药物洗脱支架 1 枚\",\n      \"char_span\": [155, 175]\n    }\n  ],\n  \"treatment_summary\": \"患者因突发胸骨后压榨样疼痛 3 小时急诊入院,急诊心电图示 V1-V4 ST 段弓背向上抬高,肌钙蛋白 I 12.5 ng/mL,急诊冠脉造影示 LAD 近段 100% 闭塞,行 LAD PCI 术并植入药物洗脱支架 1 枚,术后 TIMI 血流 3 级。\",\n  \"discharge_orders\": [\n    \"抗血小板药物治疗\",\n    \"他汀类药物治疗\",\n    \"戒烟\",\n    \"低脂饮食\",\n    \"避免剧烈活动 1 个月\"\n  ],\n  \"follow_up_recommendations\": [\n    {\n      \"department\": \"心内科\",\n      \"time\": \"术后 1 月\",\n      \"items\": [\"心电图复查\", \"心脏超声\", \"血脂检查\"]\n    }\n  ],\n  \"discharge_status\": 2,\n  \"manual_review_required\": true\n}\n```",
+      "model": "deepseek-v4-flash",
+      "usage": {
+        "input_tokens": 716,
+        "output_tokens": 490
+      },
+      "cost_usd": 0.000237,
+      "latency_ms": 8946
+    }
+  },
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": false,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 8946,
+      "metadata": {
+        "agent_id": "discharge-summary-structuring",
+        "runtime_mode": "corti_like_fast",
+        "latency_ms": 8946
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_client_wall_ms": 11442,
+  "_fixture": "fixtures/phase5_track_b2/02_cardiology.json",
+  "_agent": "discharge-summary-structuring",
+  "_tag": "02_cardiology",
+  "_ts": "2026-07-11T14:27:54"
+}

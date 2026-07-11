@@ -101,6 +101,7 @@ async def get_run_trace(
 async def list_run_history(
     request: Request,
     agent_id: str = Query("", description="Filter by agent_id (exact match)"),
+    days: int = Query(0, ge=0, le=365, description="Filter to last N days (0 = no date filter)"),
     limit: int = Query(50, ge=1, le=200, description="Max items to return"),
 ) -> dict[str, Any]:
     """Return recent run summaries for the current user's org.
@@ -112,12 +113,15 @@ async def list_run_history(
 
     Filtering:
       - ``agent_id`` optional (exact match); omitted = all agents
+      - ``days`` optional (Phase 5 A6); 0 = no date filter, otherwise only
+        include rows with ``created_at >= now - days``. Default: 0 (all time)
       - ``user_id`` / ``organization_id`` derived from request state
         (set by TenantHeaderMiddleware + auth)
       - ``limit`` capped at 200 to bound response size
 
     Returns ``{"items": [...], "total": <int>}`` ordered by created_at desc.
     """
+    from datetime import datetime, timedelta, timezone
     from sqlalchemy import create_engine, select, desc, text as sa_text
     from sqlalchemy.orm import Session
     from app.config import settings
@@ -139,6 +143,9 @@ async def list_run_history(
                 stmt = stmt.where(RunHistoryModel.organization_id == org_id)
             if user_id:
                 stmt = stmt.where(RunHistoryModel.user_id == str(user_id))
+            if days > 0:
+                cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+                stmt = stmt.where(RunHistoryModel.created_at >= cutoff)
             rows = session.execute(stmt).scalars().all()
             items = [
                 {

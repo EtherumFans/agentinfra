@@ -68,7 +68,7 @@ def test_g1_cost_field_present_in_unified_response(client: TestClient) -> None:
     assert isinstance(data["cost"], dict), (
         f"cost must be a dict (Phase 4-G #1 wiring), got: {type(data['cost'])}"
     )
-    # When populated, cost has shape {"amount": float, "currency": "USD"}
+    # When populated, cost has shape {"amount": float, "currency": "CNY"}
     if data["cost"]:
         assert "amount" in data["cost"]
         assert "currency" in data["cost"]
@@ -111,20 +111,11 @@ def test_g2_api_client_id_recorded_in_trace_metadata(client: TestClient) -> None
     data = resp.json()
     run_id = data["run_id"]
 
-    # Trace events in response envelope
-    inline_events = data.get("trace_events", [])
-    user_msg_events = [
-        ev for ev in inline_events
-        if ev.get("step") == "user_message_received"
-    ]
-    assert user_msg_events, (
-        "no user_message_received event in trace_events; "
-        f"got: {[ev.get('step') for ev in inline_events]}"
-    )
-    metadata = user_msg_events[0].get("metadata", {})
-    assert metadata.get("api_client_id") == test_client_id, (
-        f"api_client_id missing/wrong in trace metadata: {metadata}"
-    )
+    # Phase 5 A1 fix: user_message_received is no longer in the inline
+    # trace_events (was double-counted — BUG-12-01). It's emitted directly
+    # to RunTraceStore by _run_via_provider_registry() (line 538) and is
+    # retrievable via GET /api/runtime/runs/{run_id}/trace.
+    # The inline trace_events now carries only `completion` (lifecycle).
 
     # Persisted trace retrievable by run_id
     trace_resp = client.get(f"/api/runtime/runs/{run_id}/trace")
@@ -153,7 +144,7 @@ def test_g2_api_client_id_recorded_in_trace_metadata(client: TestClient) -> None
         or {}
     )
     assert persisted_metadata.get("api_client_id") == test_client_id, (
-        f"api_client_id missing in persisted trace: {persisted_metadata}"
+        f"api_client_id missing/wrong in persisted trace: {persisted_metadata}"
     )
 
 
@@ -168,15 +159,33 @@ def test_g2_no_api_client_id_yields_empty_string_in_trace(
     )
     assert resp.status_code == 200
     data = resp.json()
-    inline_events = data.get("trace_events", [])
-    user_msg_events = [
-        ev for ev in inline_events
+    run_id = data["run_id"]
+
+    # Phase 5 A1 fix: check RunTraceStore (not inline) since user_message_received
+    # is no longer in the inline trace_events (BUG-12-01 fix).
+    trace_resp = client.get(f"/api/runtime/runs/{run_id}/trace")
+    assert trace_resp.status_code == 200
+    trace_data = trace_resp.json()
+    persisted_events = (
+        trace_data.get("timeline")
+        or trace_data.get("events")
+        or trace_data.get("trace_events")
+        or []
+    )
+    persisted_user_msg = [
+        ev for ev in persisted_events
         if ev.get("step") == "user_message_received"
     ]
-    assert user_msg_events
-    metadata = user_msg_events[0].get("metadata", {})
-    assert metadata.get("api_client_id") == "", (
-        f"expected empty string for missing api_client_id, got: {metadata.get('api_client_id')!r}"
+    assert persisted_user_msg, (
+        f"no user_message_received in persisted trace for run_id={run_id}"
+    )
+    persisted_metadata = (
+        persisted_user_msg[0].get("safe_metadata")
+        or persisted_user_msg[0].get("metadata")
+        or {}
+    )
+    assert persisted_metadata.get("api_client_id") == "", (
+        f"expected empty string for missing api_client_id, got: {persisted_metadata.get('api_client_id')!r}"
     )
 
 

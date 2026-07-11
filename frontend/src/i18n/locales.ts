@@ -61,6 +61,7 @@ export interface LocaleDict {
   factExtraction: string;
   medicalCoding: string;
   codingCompliance: string;
+  cdiWorkbench: string;
   manage: string;
   apiClients: string;
   apiClientsManage: string;
@@ -1337,6 +1338,7 @@ const zhCN: LocaleDict = {
   factExtraction: '事实提取',
   medicalCoding: '医学编码',
   codingCompliance: '编码合规',
+  cdiWorkbench: 'CDI 工作台',
   manage: '管理',
   apiClients: 'API 客户端',
   apiClientsManage: '管理 API 客户端',
@@ -2615,6 +2617,7 @@ const enUS: LocaleDict = {
   factExtraction: 'Fact Extraction',
   medicalCoding: 'Medical Coding',
   codingCompliance: 'Coding Compliance',
+  cdiWorkbench: 'CDI Workbench',
   manage: 'Manage',
   apiClients: 'API Clients',
   apiClientsManage: 'Manage API Clients',

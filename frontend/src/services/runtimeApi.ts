@@ -369,6 +369,12 @@ export const runtimeAgentApi = {
   // iCoDer built agent to its appropriate runtime (CodingRuntimeDispatcher
   // for medical-coding, ProviderRegistry for everything else). Returns a
   // uniform 13-field envelope consumed by AgentDetailPage's chat UI.
+  //
+  // Phase 5 B-2: accepts both full agent_ref (`icoder/medical-coding-agent@2.0.0`)
+  // and short agent_id (`medical-coding-agent`) — normalizes to short form
+  // since backend `_agent_id_from_ref` expects that. Fixes the 404 when the
+  // URL contains the un-cloned Hub agent_ref (e.g. user clicks "自定义" on a
+  // Hub card rather than "使用智能体" which clones first).
   agentRun: (
     agentId: string,
     input: string,
@@ -380,6 +386,7 @@ export const runtimeAgentApi = {
       api_client_id?: string;
     } = {},
   ) => {
+    const shortId = agentId.split('/').pop()!.split('@')[0];
     const body = {
       input: { text: input, extra: options.extra || {} },
       runtime_mode: options.runtime_mode,
@@ -387,7 +394,7 @@ export const runtimeAgentApi = {
       include_evidence: options.include_evidence ?? true,
       api_client_id: options.api_client_id || undefined,
     };
-    return unifiedRunApi.post(`/${encodeURIComponent(agentId)}/run`, body).then(
+    return unifiedRunApi.post(`/${encodeURIComponent(shortId)}/run`, body).then(
       r => r.data as AgentRunResponse,
     );
   },

@@ -1,0 +1,61 @@
+{
+  "agent_id": "drg-analyzer",
+  "run_id": "run-92ccd263-36de-440d-9035-d34970e4c2b9",
+  "trace_id": "trace-a3d29cf0147d459d",
+  "runtime_mode": "corti_like_fast",
+  "latency_ms": 8306,
+  "cost": {
+    "amount": 0.000295,
+    "currency": "CNY"
+  },
+  "summary": "{",
+  "result": {
+    "status": "complete",
+    "markdown": "{\n  \"risk_points\": [\n    {\n      \"risk_type\": \"upcoding\",\n      \"code\": \"M80.900\",\n      \"evidence_text\": \"病历中明确记录骨密度 T 值 -3.2，诊断为骨质疏松性骨折，但 M80.900 为骨质疏松伴病理性骨折，而患者骨折由明确外伤（摔伤）引起，非病理性骨折。根据编码规则，外伤性骨折应优先编码 S22.000，骨质疏松作为合并症编码，而非主诊断。\",\n      \"char_span\": [0, 200],\n      \"severity\": \"high\",\n      \"suggestion\": \"建议将主诊断从 M80.900 改为 S22.000（T12 椎体压缩性骨折），并将 M80.900 作为合并症编码（骨质疏松伴骨折），以符合编码规则并避免 upcoding 风险。\"\n    },\n    {\n      \"risk_type\": \"downcoding\",\n      \"code\": \"I10.x00\",\n      \"evidence_text\": \"病历中明确记载高血压病史 10 年，入院诊断高血压病 3 级（很高危），但编码 I10.x00 仅为未特指的高血压，未体现严重程度分级。在 DRG 分组中，高血压病 3 级（很高危）可能作为并发症/合并症影响分组权重，若仅编码 I10.x00 可能导致 downcoding。\",\n      \"char_span\": [200, 400],\n      \"severity\": \"medium\",\n      \"suggestion\": \"建议将 I10.x00 细化为 I10.x05（高血压病 3 级）或根据本地编码规范补充严重程度标识，以准确反映病情并避免 downcoding。\"\n    },\n    {\n      \"risk_type\": \"missing_complication\",\n      \"code\": \"N/A\",\n      \"evidence_text\": \"患者为 78 岁高龄，有骨质疏松和高血压，但病历中未提及肾功能、电解质等常见并发症。若存在未编码的并发症（如低钙血症、肾损伤），可能影响 DRG 分组权重。\",\n      \"char_span\": [400, 600],\n      \"severity\": \"low\",\n      \"suggestion\": \"建议复核实验室检查结果（如血钙、肌酐），若存在异常，补充相应并发症编码（如 E83.5 钙代谢紊乱、N18.9 慢性肾病），以完整反映病情。\"\n    }\n  ],\n  \"high_risk_codes\": [\"M80.900\"],\n  \"review_suggestions\": \"编码集存在 1 处 upcoding 风险：M80.900（骨质疏松伴病理性骨折）作为主诊断不恰当，因患者骨折由明确外伤引起，应改为 S22.000（T12 椎体压缩性骨折）为主诊断，M80.900 作为合并症编码。此外，I10.x00 未体现高血压严重程度，建议细化为 I10.x05（高血压病 3 级）。建议复核实验室结果，补充可能遗漏的并发症编码。\",\n  \"drg_dip_rule_reservation_note\": \"DRG 分组由医保结算侧引擎完成，本 Agent 仅评估编码方案对分组的影响。\",\n  \"manual_review_required\": true\n}",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.pure-llm.v1",
+    "backend_type": "pure_llm",
+    "raw_provider_response": {
+      "content": "{\n  \"risk_points\": [\n    {\n      \"risk_type\": \"upcoding\",\n      \"code\": \"M80.900\",\n      \"evidence_text\": \"病历中明确记录骨密度 T 值 -3.2，诊断为骨质疏松性骨折，但 M80.900 为骨质疏松伴病理性骨折，而患者骨折由明确外伤（摔伤）引起，非病理性骨折。根据编码规则，外伤性骨折应优先编码 S22.000，骨质疏松作为合并症编码，而非主诊断。\",\n      \"char_span\": [0, 200],\n      \"severity\": \"high\",\n      \"suggestion\": \"建议将主诊断从 M80.900 改为 S22.000（T12 椎体压缩性骨折），并将 M80.900 作为合并症编码（骨质疏松伴骨折），以符合编码规则并避免 upcoding 风险。\"\n    },\n    {\n      \"risk_type\": \"downcoding\",\n      \"code\": \"I10.x00\",\n      \"evidence_text\": \"病历中明确记载高血压病史 10 年，入院诊断高血压病 3 级（很高危），但编码 I10.x00 仅为未特指的高血压，未体现严重程度分级。在 DRG 分组中，高血压病 3 级（很高危）可能作为并发症/合并症影响分组权重，若仅编码 I10.x00 可能导致 downcoding。\",\n      \"char_span\": [200, 400],\n      \"severity\": \"medium\",\n      \"suggestion\": \"建议将 I10.x00 细化为 I10.x05（高血压病 3 级）或根据本地编码规范补充严重程度标识，以准确反映病情并避免 downcoding。\"\n    },\n    {\n      \"risk_type\": \"missing_complication\",\n      \"code\": \"N/A\",\n      \"evidence_text\": \"患者为 78 岁高龄，有骨质疏松和高血压，但病历中未提及肾功能、电解质等常见并发症。若存在未编码的并发症（如低钙血症、肾损伤），可能影响 DRG 分组权重。\",\n      \"char_span\": [400, 600],\n      \"severity\": \"low\",\n      \"suggestion\": \"建议复核实验室检查结果（如血钙、肌酐），若存在异常，补充相应并发症编码（如 E83.5 钙代谢紊乱、N18.9 慢性肾病），以完整反映病情。\"\n    }\n  ],\n  \"high_risk_codes\": [\"M80.900\"],\n  \"review_suggestions\": \"编码集存在 1 处 upcoding 风险：M80.900（骨质疏松伴病理性骨折）作为主诊断不恰当，因患者骨折由明确外伤引起，应改为 S22.000（T12 椎体压缩性骨折）为主诊断，M80.900 作为合并症编码。此外，I10.x00 未体现高血压严重程度，建议细化为 I10.x05（高血压病 3 级）。建议复核实验室结果，补充可能遗漏的并发症编码。\",\n  \"drg_dip_rule_reservation_note\": \"DRG 分组由医保结算侧引擎完成，本 Agent 仅评估编码方案对分组的影响。\",\n  \"manual_review_required\": true\n}",
+      "model": "deepseek-v4-flash",
+      "usage": {
+        "input_tokens": 714,
+        "output_tokens": 696
+      },
+      "cost_usd": 0.000295,
+      "latency_ms": 8306
+    }
+  },
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": false,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 8306,
+      "metadata": {
+        "agent_id": "drg-analyzer",
+        "runtime_mode": "corti_like_fast",
+        "latency_ms": 8306
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_input_shape": "augmented_text (470 chars) + codes (3)",
+  "_gold_codes": [
+    "S22.000",
+    "M80.900",
+    "I10.x00"
+  ],
+  "_client_wall_ms": 8466,
+  "_fixture": "fixtures/phase5_track_b2/01_orthopedics.json",
+  "_tag": "18_repeat_3",
+  "_ts": "2026-07-11T14:38:10"
+}

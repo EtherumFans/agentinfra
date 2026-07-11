@@ -1,0 +1,65 @@
+{
+  "agent_id": "drg-analyzer",
+  "run_id": "run-4a16efbd-0eec-447f-bf37-4ad690bdd96f",
+  "trace_id": "trace-0537ec1d950b4a07",
+  "runtime_mode": "corti_like_fast",
+  "latency_ms": 15224,
+  "cost": {
+    "amount": 0.000536,
+    "currency": "CNY"
+  },
+  "summary": "{",
+  "result": {
+    "status": "complete",
+    "markdown": "{\n  \"risk_points\": [\n    {\n      \"risk_type\": \"downcoding\",\n      \"code\": \"I50.900\",\n      \"evidence_text\": \"病历明确诊断为慢性心力衰竭急性加重(NYHA IV 级), 且 NT-proBNP 4500 pg/mL, EF 38%, 双肺底湿啰音、双下肢水肿、端坐呼吸等均支持急性失代偿性心力衰竭。I50.900 为未特指的心力衰竭, 应编码 I50.901 急性心力衰竭或 I50.910 慢性心力衰竭急性加重, 以准确反映病情严重程度。\",\n      \"char_span\": \"入院诊断:慢性心力衰竭急性加重(NYHA IV 级)\",\n      \"severity\": \"high\",\n      \"suggestion\": \"将 I50.900 修改为 I50.910 (慢性心力衰竭急性加重) 或 I50.901 (急性心力衰竭), 以匹配临床诊断和严重度。\"\n    },\n    {\n      \"risk_type\": \"downcoding\",\n      \"code\": \"E11.900\",\n      \"evidence_text\": \"患者 2 型糖尿病 20 年, HbA1c 8.2%, 使用胰岛素+二甲双胍, 且合并慢性肾脏病 3 期、高血压、冠心病, 提示存在糖尿病并发症。E11.900 为未特指并发症的 2 型糖尿病, 应编码 E11.200 (2 型糖尿病伴肾脏并发症) 或 E11.700 (2 型糖尿病伴多个并发症), 以反映糖尿病对肾脏的影响。\",\n      \"char_span\": \"既往:2 型糖尿病 20 年(胰岛素 + 二甲双胍,HbA1c 8.2%);慢性肾脏病 3 期(eGFR 45)\",\n      \"severity\": \"high\",\n      \"suggestion\": \"将 E11.900 修改为 E11.200 (2 型糖尿病伴肾脏并发症) 或 E11.700 (2 型糖尿病伴多个并发症), 并确保 N18.300 保留。\"\n    },\n    {\n      \"risk_type\": \"downcoding\",\n      \"code\": \"I10.x00\",\n      \"evidence_text\": \"患者高血压病 25 年, 入院 BP 165/95mmHg, 且合并慢性肾脏病 3 期、心力衰竭、冠心病, 提示高血压已导致靶器官损害。I10.x00 为未特指的高血压, 应编码 I11.000 (高血压心脏病伴心力衰竭) 或 I13.200 (高血压心脏病和肾脏病伴心力衰竭和肾衰竭), 以体现高血压与心肾并发症的关联。\",\n      \"char_span\": \"既往:高血压病 25 年(氨氯地平 + 缬沙坦);查体:BP 165/95mmHg;入院诊断:高血压病 3 级(很高危)\",\n      \"severity\": \"medium\",\n      \"suggestion\": \"将 I10.x00 修改为 I11.000 (高血压心脏病伴心力衰竭) 或 I13.200 (高血压心脏病和肾脏病伴心力衰竭和肾衰竭), 以准确反映高血压的靶器官损害。\"\n    },\n    {\n      \"risk_type\": \"downcoding\",\n      \"code\": \"I69.300\",\n      \"evidence_text\": \"患者有腔隙性脑梗死 3 年, 但 I69.300 为脑梗死后遗症, 而病历中未提及当前有明确的神经功能缺损症状(如偏瘫、失语等), 仅作为既往史列出。若无后遗症表现, 应编码 Z86.700 (脑梗死后遗症个人史) 而非 I69.300, 以避免误编码为活动性后遗症。\",\n      \"char_span\": \"既往:腔隙性脑梗死 3 年;入院诊断:腔隙性脑梗死后遗症\",\n      \"severity\": \"medium\",\n      \"suggestion\": \"若患者无当前神经功能缺损症状, 将 I69.300 修改为 Z86.700 (脑梗死后遗症个人史);若有后遗症, 则保留 I69.300 并补充具体后遗症编码。\"\n    },\n    {\n      \"risk_type\": \"inconsistency\",\n      \"code\": \"I25.100\",\n      \"evidence_text\": \"I25.100 为冠状动脉粥样硬化性心脏病(冠心病), 但患者有 PCI 术后史, 且 Z95.500 已编码(冠状动脉支架植入术后状态)。主诊断 I50.900 与 I25.100 存在逻辑关联, 但 I25.100 作为次要诊断合理。然而, 若主诊断选择 I25.100 可能触发更高权重 DRG, 但当前主诊断为心力衰竭, 需确保一致性。\",\n      \"char_span\": \"入院诊断:冠心病 PCI 术后;编码:Z95.500\",\n      \"severity\": \"low\",\n      \"suggestion\": \"I25.100 与 Z95.500 可同时保留, 但需确认主诊断选择是否最优(见 review_suggestions)。\"\n    },\n    {\n      \"risk_type\": \"missing_complication\",\n      \"code\": \"N18.300\",\n      \"evidence_text\": \"患者慢性肾脏病 3 期(eGFR 45), 已编码 N18.300, 但未编码贫血、电解质紊乱等常见并发症。血钾 5.2 mmol/L 提示高钾血症, 应编码 E87.500 (高钾血症), 以反映急性并发症。\",\n      \"char_span\": \"辅助检查:血钾 5.2 mmol/L;慢性肾脏病 3 期(eGFR 45)\",\n      \"severity\": \"medium\",\n      \"suggestion\": \"补充编码 E87.500 (高钾血症), 以完整反映 CKD 相关并发症。\"\n    }\n  ],\n  \"high_risk_codes\": [],\n  \"review_suggestions\": \"编码集存在多处 downcoding 风险:1) 心力衰竭应使用 I50.910 而非 I50.900;2) 2 型糖尿病应使用 E11.200 或 E11.700 以反映肾脏并发症;3) 高血压应使用 I11.000 或 I13.200 以体现靶器官损害;4) 腔隙性脑梗死后遗症若无症状应改为 Z86.700;5) 补充高钾血症编码 E87.500。主诊断 I50.900 若改为 I50.910 可更准确反映病情, 且可能影响 DRG 分组权重。建议编码员复核所有诊断编码, 确保并发症/合并症完整编码。\",\n  \"drg_dip_rule_reservation_note\": \"DRG 分组由医保结算侧引擎完成, 本 Agent 仅评估编码方案对分组的影响。\",\n  \"manual_review_required\": true\n}",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.pure-llm.v1",
+    "backend_type": "pure_llm",
+    "raw_provider_response": {
+      "content": "{\n  \"risk_points\": [\n    {\n      \"risk_type\": \"downcoding\",\n      \"code\": \"I50.900\",\n      \"evidence_text\": \"病历明确诊断为慢性心力衰竭急性加重(NYHA IV 级), 且 NT-proBNP 4500 pg/mL, EF 38%, 双肺底湿啰音、双下肢水肿、端坐呼吸等均支持急性失代偿性心力衰竭。I50.900 为未特指的心力衰竭, 应编码 I50.901 急性心力衰竭或 I50.910 慢性心力衰竭急性加重, 以准确反映病情严重程度。\",\n      \"char_span\": \"入院诊断:慢性心力衰竭急性加重(NYHA IV 级)\",\n      \"severity\": \"high\",\n      \"suggestion\": \"将 I50.900 修改为 I50.910 (慢性心力衰竭急性加重) 或 I50.901 (急性心力衰竭), 以匹配临床诊断和严重度。\"\n    },\n    {\n      \"risk_type\": \"downcoding\",\n      \"code\": \"E11.900\",\n      \"evidence_text\": \"患者 2 型糖尿病 20 年, HbA1c 8.2%, 使用胰岛素+二甲双胍, 且合并慢性肾脏病 3 期、高血压、冠心病, 提示存在糖尿病并发症。E11.900 为未特指并发症的 2 型糖尿病, 应编码 E11.200 (2 型糖尿病伴肾脏并发症) 或 E11.700 (2 型糖尿病伴多个并发症), 以反映糖尿病对肾脏的影响。\",\n      \"char_span\": \"既往:2 型糖尿病 20 年(胰岛素 + 二甲双胍,HbA1c 8.2%);慢性肾脏病 3 期(eGFR 45)\",\n      \"severity\": \"high\",\n      \"suggestion\": \"将 E11.900 修改为 E11.200 (2 型糖尿病伴肾脏并发症) 或 E11.700 (2 型糖尿病伴多个并发症), 并确保 N18.300 保留。\"\n    },\n    {\n      \"risk_type\": \"downcoding\",\n      \"code\": \"I10.x00\",\n      \"evidence_text\": \"患者高血压病 25 年, 入院 BP 165/95mmHg, 且合并慢性肾脏病 3 期、心力衰竭、冠心病, 提示高血压已导致靶器官损害。I10.x00 为未特指的高血压, 应编码 I11.000 (高血压心脏病伴心力衰竭) 或 I13.200 (高血压心脏病和肾脏病伴心力衰竭和肾衰竭), 以体现高血压与心肾并发症的关联。\",\n      \"char_span\": \"既往:高血压病 25 年(氨氯地平 + 缬沙坦);查体:BP 165/95mmHg;入院诊断:高血压病 3 级(很高危)\",\n      \"severity\": \"medium\",\n      \"suggestion\": \"将 I10.x00 修改为 I11.000 (高血压心脏病伴心力衰竭) 或 I13.200 (高血压心脏病和肾脏病伴心力衰竭和肾衰竭), 以准确反映高血压的靶器官损害。\"\n    },\n    {\n      \"risk_type\": \"downcoding\",\n      \"code\": \"I69.300\",\n      \"evidence_text\": \"患者有腔隙性脑梗死 3 年, 但 I69.300 为脑梗死后遗症, 而病历中未提及当前有明确的神经功能缺损症状(如偏瘫、失语等), 仅作为既往史列出。若无后遗症表现, 应编码 Z86.700 (脑梗死后遗症个人史) 而非 I69.300, 以避免误编码为活动性后遗症。\",\n      \"char_span\": \"既往:腔隙性脑梗死 3 年;入院诊断:腔隙性脑梗死后遗症\",\n      \"severity\": \"medium\",\n      \"suggestion\": \"若患者无当前神经功能缺损症状, 将 I69.300 修改为 Z86.700 (脑梗死后遗症个人史);若有后遗症, 则保留 I69.300 并补充具体后遗症编码。\"\n    },\n    {\n      \"risk_type\": \"inconsistency\",\n      \"code\": \"I25.100\",\n      \"evidence_text\": \"I25.100 为冠状动脉粥样硬化性心脏病(冠心病), 但患者有 PCI 术后史, 且 Z95.500 已编码(冠状动脉支架植入术后状态)。主诊断 I50.900 与 I25.100 存在逻辑关联, 但 I25.100 作为次要诊断合理。然而, 若主诊断选择 I25.100 可能触发更高权重 DRG, 但当前主诊断为心力衰竭, 需确保一致性。\",\n      \"char_span\": \"入院诊断:冠心病 PCI 术后;编码:Z95.500\",\n      \"severity\": \"low\",\n      \"suggestion\": \"I25.100 与 Z95.500 可同时保留, 但需确认主诊断选择是否最优(见 review_suggestions)。\"\n    },\n    {\n      \"risk_type\": \"missing_complication\",\n      \"code\": \"N18.300\",\n      \"evidence_text\": \"患者慢性肾脏病 3 期(eGFR 45), 已编码 N18.300, 但未编码贫血、电解质紊乱等常见并发症。血钾 5.2 mmol/L 提示高钾血症, 应编码 E87.500 (高钾血症), 以反映急性并发症。\",\n      \"char_span\": \"辅助检查:血钾 5.2 mmol/L;慢性肾脏病 3 期(eGFR 45)\",\n      \"severity\": \"medium\",\n      \"suggestion\": \"补充编码 E87.500 (高钾血症), 以完整反映 CKD 相关并发症。\"\n    }\n  ],\n  \"high_risk_codes\": [],\n  \"review_suggestions\": \"编码集存在多处 downcoding 风险:1) 心力衰竭应使用 I50.910 而非 I50.900;2) 2 型糖尿病应使用 E11.200 或 E11.700 以反映肾脏并发症;3) 高血压应使用 I11.000 或 I13.200 以体现靶器官损害;4) 腔隙性脑梗死后遗症若无症状应改为 Z86.700;5) 补充高钾血症编码 E87.500。主诊断 I50.900 若改为 I50.910 可更准确反映病情, 且可能影响 DRG 分组权重。建议编码员复核所有诊断编码, 确保并发症/合并症完整编码。\",\n  \"drg_dip_rule_reservation_note\": \"DRG 分组由医保结算侧引擎完成, 本 Agent 仅评估编码方案对分组的影响。\",\n  \"manual_review_required\": true\n}",
+      "model": "deepseek-v4-flash",
+      "usage": {
+        "input_tokens": 871,
+        "output_tokens": 1480
+      },
+      "cost_usd": 0.000536,
+      "latency_ms": 15224
+    }
+  },
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": false,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 15224,
+      "metadata": {
+        "agent_id": "drg-analyzer",
+        "runtime_mode": "corti_like_fast",
+        "latency_ms": 15224
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_input_shape": "augmented_text (698 chars) + codes (7)",
+  "_gold_codes": [
+    "I50.900",
+    "I25.100",
+    "Z95.500",
+    "E11.900",
+    "I10.x00",
+    "N18.300",
+    "I69.300"
+  ],
+  "_client_wall_ms": 15376,
+  "_fixture": "fixtures/phase5_track_b2/09_complex_comorbidity.json",
+  "_tag": "09_complex_comorbidity",
+  "_ts": "2026-07-11T14:36:09"
+}

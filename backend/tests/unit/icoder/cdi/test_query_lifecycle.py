@@ -98,7 +98,7 @@ def test_validate_transition_returns_human_readable_reason() -> None:
 def test_gate_draft_to_pending_review_passes_compliant_query() -> None:
     result = gate_draft_to_pending_review(**COMPLIANT_QUERY)
     assert result.verdict == "PASS"
-    assert result.rules_passed == 10  # NLQ-001..010 (NLQ-010 added in Gate 4)
+    assert result.rules_passed == 11  # NLQ-001..011 (NLQ-011 added in P0.5 Gate 3)
 
 
 def test_gate_draft_to_pending_review_blocks_leading_query() -> None:

@@ -54,7 +54,8 @@ STAGES: tuple[str, ...] = (
     "gap_identification",
     "expert_consultation",
     "query_generation",
-    "query_necessity_gate",      # Phase 5 Track D P0.5 Gate 2
+    "query_necessity_gate",          # Phase 5 Track D P0.5 Gate 2
+    "query_single_dimension_gate",   # Phase 5 Track D P0.5 Gate 3
     "query_compliance_gate",
     "specialist_trace_emit",
 )
@@ -134,6 +135,8 @@ class CDIOrchestrator:
             self._stage_query_generation(case)
         elif stage == "query_necessity_gate":
             self._stage_query_necessity_gate(case)
+        elif stage == "query_single_dimension_gate":
+            self._stage_query_single_dimension_gate(case)
         elif stage == "query_compliance_gate":
             self._stage_query_compliance_gate(case)
         elif stage == "specialist_trace_emit":
@@ -192,6 +195,25 @@ class CDIOrchestrator:
             f"final_count={len(case.proposed_provider_queries)}"
         )
         case.stage_trace_ids["query_necessity_gate"] = ""
+
+    def _stage_query_single_dimension_gate(self, case: CDICase) -> None:
+        """Phase 5 Track D P0.5 Gate 3 — drop queries that mix ≥2 orthogonal axes.
+
+        Runs the single-dimension gate (PDF §3.2 R6) on every query.
+        Hard-failures (SD-001 topic_multi_axis, SD-002 text_multi_axis)
+        drop the query. Cluster tag SD-003 records if ≥3 queries touch
+        the same axis (no block).
+        """
+        from .single_dimension_gate import apply_single_dimension_to_case
+        result = apply_single_dimension_to_case(case)
+        case.stage_run_ids["query_single_dimension_gate"] = (
+            f"single_dim={sum(1 for v in result.per_query.values() if v.verdict == 'SINGLE_DIM')};"
+            f"multi_dim={sum(1 for v in result.per_query.values() if v.verdict == 'MULTI_DIM')};"
+            f"axis_cluster_triggered={result.axis_cluster_triggered};"
+            f"axis_cluster_axis={result.axis_cluster_axis};"
+            f"final_count={len(case.proposed_provider_queries)}"
+        )
+        case.stage_trace_ids["query_single_dimension_gate"] = ""
 
     def _stage_query_compliance_gate(self, case: CDICase) -> None:
         """Run NLQ-001..009 on every generated query. Mutates each query's

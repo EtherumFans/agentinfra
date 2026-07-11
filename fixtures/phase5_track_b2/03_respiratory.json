@@ -1,0 +1,55 @@
+{
+  "fixture_id": "03_respiratory",
+  "tag": "SYNTHETIC_FIXTURE",
+  "department": "呼吸内科",
+  "intended_agents": [
+    "medical-coding-agent",
+    "code-validation-agent",
+    "compliance-guardrail-agent",
+    "note-completeness-agent",
+    "procedure-extractor",
+    "evidence-extractor",
+    "principal-diagnosis-review",
+    "discharge-summary-structuring",
+    "drg-analyzer"
+  ],
+  "input_text": "患者女性,72岁,因「反复咳嗽、咳痰 20 年,加重伴发热、气促 5 天」入院。20 年来反复咳嗽、咳白粘痰,冬春季节好发,曾诊断「慢性阻塞性肺疾病」。5 天前受凉后症状加重,咳黄脓痰,量多,伴发热(T 38.5℃),活动后气促明显,夜间不能平卧。3 天前开始使用家庭无创呼吸机辅助通气。既往:高血压史 15 年。否认结核、哮喘、糖尿病史。吸烟 30 年,每日 15 支,已戒 5 年。查体:T 38.2℃,P 102 次/分,R 26 次/分,BP 145/80mmHg,SpO2 88%(室内空气)。神清,口唇轻度紫绀,桶状胸,双肺呼吸音低,双下肺可闻及湿啰音及哮鸣音。血常规:WBC 13.2×10^9/L,N 85%,CRP 86 mg/L。胸部 CT:双肺弥漫性肺气肿,右下肺斑片状渗出影,双侧少量胸腔积液。痰培养:铜绿假单胞菌 2+。肺功能:FEV1/FVC 56%,FEV1 占预计值 48%。入院诊断:慢性阻塞性肺疾病急性加重期(II 级);社区获得性肺炎(重症);呼吸衰竭(II 型);高血压病 2 级。",
+  "structured_context": {
+    "age": 72,
+    "sex": "女",
+    "encounter_type": "inpatient",
+    "admission_type": "急诊",
+    "primary_complaint": "咳嗽咳痰加重伴发热气促 5 天",
+    "los_days": 10
+  },
+  "known_facts": [
+    "COPD 急性加重",
+    "社区获得性肺炎",
+    "铜绿假单胞菌感染",
+    "II 型呼吸衰竭",
+    "肺气肿"
+  ],
+  "negated_facts": [
+    "否认结核",
+    "否认哮喘",
+    "否认糖尿病"
+  ],
+  "historical_facts": [
+    "高血压史 15 年",
+    "吸烟 30 年(已戒 5 年)"
+  ],
+  "missing_information": [],
+  "expected_risks": [
+    "respiratory_failure_progression",
+    "pseudomonas_antibiotic_resistance",
+    "non_invasive_ventilation_failure"
+  ],
+  "gold_codes": [
+    "J44.100",
+    "J18.900",
+    "J96.000",
+    "I10.x00"
+  ],
+  "not_for_quality_scoring": false,
+  "notes": "COPD + CAP dual diagnosis; primary J44.100 (COPD acute exacerbation)."
+}

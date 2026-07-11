@@ -1,0 +1,61 @@
+{
+  "fixture_id": "10_negation_and_history",
+  "tag": "SYNTHETIC_FIXTURE",
+  "department": "呼吸内科",
+  "intended_agents": [
+    "medical-coding-agent",
+    "code-validation-agent",
+    "compliance-guardrail-agent",
+    "note-completeness-agent",
+    "procedure-extractor",
+    "evidence-extractor",
+    "principal-diagnosis-review",
+    "discharge-summary-structuring",
+    "drg-analyzer"
+  ],
+  "input_text": "患者男性,68岁,因「咳嗽 2 周」入院。2 周前无明显诱因出现干咳,无痰,无咯血,无胸痛、胸闷。患者否认发热,否认盗汗,否认消瘦,否认结核病史,否认恶性肿瘤家族史。既往史:高血压 10 年(氨氯地平控制可)。曾患肺结核,30 年前已治愈。否认糖尿病、冠心病。个人史:吸烟 40 年,每日 20 支。否认饮酒。家族史:父亲 70 岁诊断肺癌(已去世),母亲糖尿病。查体:T 36.4℃,P 80 次/分,BP 138/85mmHg。双肺呼吸音清,未闻及干湿性啰音。胸部 CT:右肺上叶见一枚 8mm 混合磨玻璃结节,边界清楚,可见分叶征。患者及家属拒绝 PET-CT,要求 3 月后复查。疑诊肺恶性肿瘤,待排肺结核复发。入院诊断:右肺上叶结节(疑肺癌,待排结核复发);高血压病 2 级。",
+  "structured_context": {
+    "age": 68,
+    "sex": "男",
+    "encounter_type": "inpatient",
+    "admission_type": "择期",
+    "primary_complaint": "咳嗽 2 周",
+    "los_days": 3
+  },
+  "known_facts": [
+    "右肺上叶 8mm 混合磨玻璃结节",
+    "高血压 10 年",
+    "吸烟 40 年",
+    "父亲肺癌家族史"
+  ],
+  "negated_facts": [
+    "否认发热",
+    "否认盗汗",
+    "否认消瘦",
+    "否认结核病史(注意:与既往史「曾患肺结核」冲突,以既往史为准)",
+    "否认恶性肿瘤家族史(注意:与家族史「父亲肺癌」冲突,以家族史为准)",
+    "否认糖尿病",
+    "否认冠心病",
+    "否认饮酒",
+    "无咯血",
+    "无胸痛胸闷"
+  ],
+  "historical_facts": [
+    "30 年前曾患肺结核(已治愈)",
+    "高血压 10 年",
+    "父亲 70 岁诊断肺癌"
+  ],
+  "missing_information": [],
+  "expected_risks": [
+    "lung_cancer_suspicion",
+    "tuberculosis_reactivation",
+    "false_negative_due_to_negation_complexity"
+  ],
+  "gold_codes": [
+    "R91.x00",
+    "D49.100",
+    "I10.x00"
+  ],
+  "not_for_quality_scoring": true,
+  "notes": "Negation/history stress test: 12+ negation/historical terms. Agent must distinguish CURRENT dx (right lung nodule) from HISTORICAL (TB 30yr cured) from FAMILY (father lung cancer) from RULED-OUT (denies fever, weight loss). Set not_for_quality_scoring=true because gold codes are uncertain (8mm GGO not biopsy-proven)."
+}

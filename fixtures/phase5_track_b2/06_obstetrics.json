@@ -1,0 +1,54 @@
+{
+  "fixture_id": "06_obstetrics",
+  "tag": "SYNTHETIC_FIXTURE",
+  "department": "产科",
+  "intended_agents": [
+    "medical-coding-agent",
+    "code-validation-agent",
+    "compliance-guardrail-agent",
+    "note-completeness-agent",
+    "procedure-extractor",
+    "evidence-extractor",
+    "principal-diagnosis-review",
+    "discharge-summary-structuring",
+    "drg-analyzer"
+  ],
+  "input_text": "患者女性,29岁,G2P0,因「停经 39 周,规律下腹痛 6 小时」入院。孕期定期产检,无妊娠期糖尿病、妊娠期高血压疾病。既往:2018 年人工流产 1 次。否认慢性病史。查体:T 36.8℃,P 88 次/分,BP 115/70mmHg。宫高 35cm,腹围 102cm,胎位 LOA,胎心 142 次/分,规律宫缩 30''/3-4'。肛查:宫口开大 3cm,S-1。骨盆外测量正常。产程进展:活跃期停滞(宫口开大 6cm 后 4 小时无进展),疑头盆不称,急诊行子宫下段剖宫产术。术中见羊水清,娩出一活女婴,体重 3650g,Apgar 10-10-10 分。胎盘娩出后子宫收缩乏力,出血约 800mL,给予缩宫素、卡前列素氨丁三醇,B-Lynch 缝合,宫腔球囊压迫,出血逐渐停止,总出血约 1200mL。术中输红细胞悬液 2U,血浆 400mL。术后 BP 100/60mmHg,HR 96 次/分。入院诊断:G2P0 孕 39 周临产;活跃期停滞;产后出血(中度);剖宫产术后;单活产。",
+  "structured_context": {
+    "age": 29,
+    "sex": "女",
+    "encounter_type": "inpatient",
+    "admission_type": "急诊",
+    "primary_complaint": "停经 39 周,规律下腹痛 6 小时",
+    "procedure": "子宫下段剖宫产术 + B-Lynch 缝合 + 宫腔球囊",
+    "los_days": 6
+  },
+  "known_facts": [
+    "G2P0 孕 39 周",
+    "活跃期停滞",
+    "产后出血(约 1200mL)",
+    "剖宫产术",
+    "子宫收缩乏力"
+  ],
+  "negated_facts": [
+    "否认妊娠期糖尿病",
+    "否认妊娠期高血压"
+  ],
+  "historical_facts": [
+    "2018 年人工流产 1 次"
+  ],
+  "missing_information": [],
+  "expected_risks": [
+    "postpartum_hemorrhage_recurrence",
+    "sheehan_syndrome_risk",
+    "subsequent_uterine_rupture"
+  ],
+  "gold_codes": [
+    "O82.000",
+    "O72.000",
+    "O62.100",
+    "Z37.000"
+  ],
+  "not_for_quality_scoring": false,
+  "notes": "Cesarean + PPH; primary O82.000 (cesarean) or O72.000 (PPH)."
+}

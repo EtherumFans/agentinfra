@@ -1,0 +1,139 @@
+{
+  "status_code": 200,
+  "body": {
+    "agent_id": "medical-coding-agent",
+    "run_id": "run-3017eb4c-9e62-4b14-8c4f-0a443d1cd2aa",
+    "trace_id": "trace-15c4e5ceebab4a39",
+    "runtime_mode": "corti_like_fast",
+    "latency_ms": 398,
+    "cost": {
+      "amount": 0.0,
+      "currency": "internal_credit"
+    },
+    "summary": "[MockLLM] Processed input (28 chars).",
+    "result": {
+      "codes": [
+        {
+          "code": "I21.0",
+          "system": "ICD-10-CN",
+          "display": "急性前壁心肌梗死",
+          "type": "primary_diagnosis",
+          "confidence": 0.0,
+          "evidence": "",
+          "rationale": "主要诊断 — 基于病历证据的优先编码候选,需结合 ICD-10-CN 本地目录复核具体亚目。",
+          "warnings": [
+            "需结合国家医保版 ICD-10-CN 目录进一步校验具体亚目"
+          ],
+          "alternatives": []
+        }
+      ],
+      "raw_schema": {
+        "review_conclusion": "PASS",
+        "primary_diagnosis": {
+          "code": "I21.0",
+          "description": "急性前壁心肌梗死",
+          "confidence": 0.0,
+          "category": "principal",
+          "evidence": []
+        },
+        "secondary_diagnoses": [],
+        "procedures": [],
+        "issues_found": [],
+        "drg_suggestion": "",
+        "dip_suggestion": "",
+        "manual_review_required": false,
+        "confidence": 0.95,
+        "notes": "[MockLLM] Processed input (28 chars).",
+        "provider": "deepseek_coding_adapter",
+        "model": "",
+        "is_mock": false,
+        "repair_attempted": false,
+        "repair_success": false,
+        "repair_rounds": 0,
+        "mode": "",
+        "extracted_diagnoses": [],
+        "method_id": "",
+        "method_name": "",
+        "method_family": "",
+        "method_stage_trace": []
+      },
+      "llm_provider": "deepseek"
+    },
+    "evidence": [],
+    "warnings": [
+      "需结合国家医保版 ICD-10-CN 目录进一步校验具体亚目"
+    ],
+    "manual_review_required": true,
+    "trace_events": [
+      {
+        "step": "input_received",
+        "status": "ok",
+        "ts": 1783729449.988228,
+        "duration_ms": 0,
+        "metadata": {
+          "text_len": 28,
+          "mode": "corti_like_fast"
+        }
+      },
+      {
+        "step": "language_detect",
+        "status": "ok",
+        "ts": 1783729449.988228,
+        "duration_ms": 0,
+        "metadata": {
+          "language": "zh"
+        }
+      },
+      {
+        "step": "build_prompt",
+        "status": "ok",
+        "ts": 1783729449.988228,
+        "duration_ms": 0,
+        "metadata": {
+          "provider": "deepseek",
+          "language": "zh",
+          "system": "icd-10-cn"
+        }
+      },
+      {
+        "step": "llm_call",
+        "status": "ok",
+        "ts": 1783729450.3864114,
+        "duration_ms": 398,
+        "metadata": {
+          "provider": "deepseek",
+          "model": "deepseek-chat",
+          "is_mock": false
+        }
+      },
+      {
+        "step": "parse_json",
+        "status": "ok",
+        "ts": 1783729450.3864114,
+        "duration_ms": 398,
+        "metadata": {}
+      },
+      {
+        "step": "project_result",
+        "status": "ok",
+        "ts": 1783729450.3864114,
+        "duration_ms": 398,
+        "metadata": {
+          "code_count": 1
+        }
+      },
+      {
+        "step": "return",
+        "status": "ok",
+        "ts": 1783729450.3864114,
+        "duration_ms": 398,
+        "metadata": {
+          "latency_ms": 398,
+          "code_count": 1
+        }
+      }
+    ],
+    "error": false,
+    "error_reason": ""
+  }
+}

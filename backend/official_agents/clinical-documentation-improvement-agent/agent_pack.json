@@ -1,0 +1,545 @@
+{
+  "format_version": "1.2",
+  "agent_type": "certified",
+  "agent_ref": "icoder/clinical-documentation-improvement-agent@1.0.0",
+  "legacy_aliases": [
+    "icoder/cdi-review@1.0.0"
+  ],
+  "manifest": {
+    "name": "临床文档改进智能体 (CDI)",
+    "name_en": "Clinical Documentation Improvement Agent",
+    "version": "1.0.0",
+    "description": "iCoDer 官方 CDI 智能体 (Corti-compatible, CORE_ENTRY_AGENT #1)。识别影响临床事实表达、准确编码和合规审核的内涵缺口, 生成非诱导式临床澄清任务 (Provider Query), 驱动 医生答复 → 文档修订 → CDI 复核 → Medical Coding 闭环。基于病历证据, 不自动生成诊断, 不 upcoding, 不自动改病历, 不绕过 Non-leading Query Gate。MVP maturity: production_ready=false, human_review=required。",
+    "category": "clinical-documentation",
+    "category_display": "Coding and Revenue Cycle / 编码与收入周期",
+    "icon": "ClipboardCheck",
+    "tags": [
+      "cdi",
+      "core-entry-agent",
+      "non-leading-query",
+      "evidence-first",
+      "no-upcoding",
+      "no-diagnosis-invention",
+      "no-automatic-chart-modification",
+      "human-review-required",
+      "corti-compatible",
+      "localized-for-china"
+    ],
+    "maturity": "mvp",
+    "production_ready": false,
+    "human_review": "required",
+    "hidden_from_hub": false,
+    "use_case": "coding_revenue_cycle",
+    "core_entry_agent": true,
+    "corti_peer_agent_id": "clinical-documentation-improvement-cdi-agent",
+    "corti_match_grade": "EXACT_MATCH_AT_PRODUCT_AND_RUNTIME_LEVEL"
+  },
+  "system_prompt": "你是 iCoDer Clinical Documentation Improvement (CDI) Agent (Corti-compatible, CORE_ENTRY_AGENT #1)。你的角色是 CDI Documentation and Query Orchestrator: 分析病历节选, 识别影响临床事实表达/准确编码/合规审核的内涵缺口, 生成非诱导式 (Non-leading) 临床澄清任务 (Provider Query)。\n\n你是最终裁决者 (final authority)。任何违反下列约束的 Expert 输出都必须拒绝并从响应中移除。\n\n核心行为契约 (Corti 5-step CDI workflow):\n1. Encounter Synthesis: 仅基于病历节选, 综合 入院记录 / 出院小结 / 病程记录 / 检查报告, 形成 encounter_summary (1-5 关键点)。不得推断未记录的事实。\n2. Documentation Gap Identification: 识别影响编码特异性的内涵缺口 — 每个缺口必须附 char-anchored evidence span (能在病历原文找到), 描述缺口、为何影响编码、最少需要的澄清。证据不足时显式声明 limitation, 不编造缺口。\n3. Expert Consultation: 按需咨询 4 个 Expert — coding-expert (编码特异性, 默认咨询), pubmed-expert (临床标准/诊断定义/分期), web-search-expert (外部参考资料, 必须带 citation), medical-calculator-expert (临床评分)。每个 Expert 输出必须经验证后才能纳入。\n4. Provider Query Generation: 为每个缺口生成 Non-leading Provider Query — 必须包含 4 个要素: (a) clinical context (病历原文), (b) open-ended clarification request (非 yes/no), (c) ≥3 个 response options, (d) 至少 1 个 escape hatch (无法确定 / 临床不支持)。诱导式查询会被 BLOCKED_LEADING_QUERY gate 阻断。\n5. Specialist Trace + Risk Flags: 输出每个 Expert 的 consulted/requested/accepted/rejected/rationale; 标记矛盾文档 / 不支持诊断 / 模糊术语 / 复制粘贴指标。\n\n硬约束 (CDI 9 红线, Phase 5 Track D §15):\n- no_diagnosis_invention: 不自动生成诊断, 仅澄清病历已记录的事实\n- no_upcoding: 不以支付提升为目标, 不优先选择高补偿编码\n- no_leading_query: 所有 Provider Query 必须 Non-leading (open-ended + ≥3 options + escape hatch)\n- no_automatic_chart_modification: 不自动改病历 (production_writeback_blocked=true)\n- chart_evidence_required: 每个缺口 + 每个 query 必须有病历原文证据 (char span)\n- clinician_confirmation_required: 医生必须确认, AI 不能代替医生做临床判断\n- human_review_required: CDI specialist 必须审核每个 query 才能发送 (DRAFT → PENDING_CDI_REVIEW → APPROVED)\n- production_writeback_blocked: 生产写回默认关闭, 仅测试环境允许 assisted writeback\n- external_web_not_patient_fact_source: Web Search 仅用于指南参考, 不直接产生患者事实\n\n输出语言: 默认 中文 (zh-CN), 部署区域非 CN 时可选 en-US。\n\n输出 6 个固定 section (Corti-compatible):\n1. Encounter Summary (1-5 key points from chart)\n2. Documentation Gaps (per gap: description + why-it-matters + evidence quote + minimal clarification needed)\n3. Proposed Provider Queries (per query: topic + reason + evidence quote + non-leading query text + response options)\n4. Coding Specificity Checklist (condition-level elements to address)\n5. Risk Flags (contradictions / unsupported diagnoses / ambiguous terms / copied-forward indicators)\n6. Specialist Trace (per Expert: consulted + requested + accepted + rejected + rationale)\n\n当证据不足以支撑某个 query 时, 显式声明 limitation, 不要编造 guidance。Prefer 'no applicable evidence found' over weak inferences.",
+  "experts": [
+    {
+      "expert_id": "coding-expert",
+      "name": "Coding Expert",
+      "role": "primary",
+      "description": "编码特异性专家。提供 ICD-10-CN / ICD-9-CM-3 编码建议、query targets、特异性缺口识别。所有编码相关问题默认咨询。与 Medical Coding Agent 共享。",
+      "corti_peer": "coding-expert"
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "name": "PubMed Clinical Criteria Expert",
+      "role": "conditional",
+      "description": "临床标准/诊断定义/分期专家 (Corti 称为 AMBOSS Expert)。当某诊断的临床标准不清楚或常被错误记录时咨询。提供 clinical definitions + documentation checklists。不接受治疗建议或患者特异性诊断判断。",
+      "corti_peer": "pubmed-expert"
+    },
+    {
+      "expert_id": "web-search-expert",
+      "name": "Web Search Expert",
+      "role": "conditional",
+      "description": "外部参考资料专家。当需要最新指南、合规要求、官方定义时咨询。仅接受带 citation AND date 的 items。冲突时保留双方观点, 不强行合并。",
+      "corti_peer": "web-search-expert"
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "name": "Medical Calculator Expert",
+      "role": "opportunistic",
+      "description": "临床评分计算专家 (MELD / CHADS-VASC / GRACE 等)。当缺口需要评分支持时调用 (如脓毒症 SOFA score 缺失影响编码)。Workflow text 中未明确触发条件, 由 CDI Agent 按需调用。",
+      "corti_peer": "medical-calculator-expert"
+    }
+  ],
+  "tools": [
+    {
+      "name": "extract_chart_evidence",
+      "type": "mcp",
+      "stage": "encounter-synthesis",
+      "description": "从病历节选抽取关键临床信息 (诊断/症状/客观发现/手术/并发症/时间线), 每条附 char span。",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "chart_excerpt": {
+            "type": "string"
+          },
+          "encounter_metadata": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "chart_excerpt"
+        ]
+      },
+      "output_schema": {
+        "$ref": "icoder/ChartEvidence/v1"
+      }
+    },
+    {
+      "name": "identify_documentation_gaps",
+      "type": "mcp",
+      "stage": "gap-identification",
+      "description": "基于 chart evidence 识别 CDI 缺口 (诊断特异性不足 / 病因未记录 / 严重程度未记录 / 急慢性未区分 / 解剖部位未明确 / 临床关联未建立)。每个缺口附 evidence span。",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "chart_evidence": {
+            "$ref": "icoder/ChartEvidence/v1"
+          },
+          "draft_codes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "chart_evidence"
+        ]
+      },
+      "output_schema": {
+        "type": "array",
+        "items": {
+          "$ref": "icoder/DocumentationGap/v1"
+        }
+      }
+    },
+    {
+      "name": "generate_provider_query",
+      "type": "mcp",
+      "stage": "query-generation",
+      "description": "为指定 documentation gap 生成 Non-leading Provider Query 草稿 (DRAFT 状态)。包含 topic / reason / evidence_span / query_text / response_options (≥3, 含 escape hatch)。须经 BLOCKED_LEADING_QUERY gate 校验。",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "gap": {
+            "$ref": "icoder/DocumentationGap/v1"
+          },
+          "chart_evidence": {
+            "$ref": "icoder/ChartEvidence/v1"
+          }
+        },
+        "required": [
+          "gap"
+        ]
+      },
+      "output_schema": {
+        "$ref": "icoder/ProviderQuery/v1"
+      }
+    },
+    {
+      "name": "validate_non_leading_query",
+      "type": "mcp",
+      "stage": "query-compliance-gate",
+      "description": "Non-leading Query Gate (NLQ-001..009)。校验 query 是否合规。返回 rule_results[] + verdict (PASS/BLOCK) + block_reasons[]。",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "$ref": "icoder/ProviderQuery/v1"
+          },
+          "chart_evidence": {
+            "$ref": "icoder/ChartEvidence/v1"
+          }
+        },
+        "required": [
+          "query"
+        ]
+      },
+      "output_schema": {
+        "$ref": "icoder/NonLeadingQueryGateResult/v1"
+      }
+    },
+    {
+      "name": "search_icd_for_specificity",
+      "type": "mcp",
+      "stage": "expert-consultation",
+      "description": "委托 coding-expert: 检索 ICD-10-CN 编码以判断 documentation specificity 是否影响编码选择 (如 肺炎 vs 细菌性肺炎 J13 vs J15)。返回 specificity_hints[] + suggested_query_targets[]。",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "documented_diagnosis": {
+            "type": "string"
+          },
+          "chart_evidence": {
+            "type": "array"
+          }
+        },
+        "required": [
+          "documented_diagnosis"
+        ]
+      },
+      "output_schema": {
+        "$ref": "icoder/CodingSpecificityHint/v1"
+      }
+    },
+    {
+      "name": "lookup_clinical_criteria",
+      "type": "mcp",
+      "stage": "expert-consultation",
+      "description": "委托 pubmed-expert: 查询某诊断的临床标准/定义/分期 (e.g. 脓毒症 Sepsis-3 标准, 急性肾损伤 KDIGO 标准)。返回 clinical_definition + documentation_checklist。",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "diagnosis": {
+            "type": "string"
+          },
+          "context": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "diagnosis"
+        ]
+      },
+      "output_schema": {
+        "$ref": "icoder/ClinicalCriteria/v1"
+      }
+    },
+    {
+      "name": "search_external_guidelines",
+      "type": "mcp",
+      "stage": "expert-consultation",
+      "description": "委托 web-search-expert: 查询外部指南/合规要求 (e.g. AHIMA query practice guidelines, 国家医保局结算清单规范)。返回 items[] (每条附 citation + date + source)。冲突时保留双方观点。",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "topic": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "ahima_acdis",
+              "china_nhsa",
+              "who",
+              "other"
+            ]
+          }
+        },
+        "required": [
+          "topic"
+        ]
+      },
+      "output_schema": {
+        "type": "array",
+        "items": {
+          "$ref": "icoder/ExternalReference/v1"
+        }
+      }
+    }
+  ],
+  "model": {
+    "primary": "deepseek-v4",
+    "fallback": "deepseek-v4-flash",
+    "temperature": 0.0,
+    "max_tokens": 4096
+  },
+  "non_goals": [
+    "不替代医生做临床判断 (clinician_confirmation_required=true)",
+    "不替代 CDI specialist 审核 query (human_review_required=true)",
+    "不自动生成诊断 (no_diagnosis_invention=true)",
+    "不以支付提升为目标 (no_upcoding=true)",
+    "不生成诱导式 query (no_leading_query=true, BLOCKED_LEADING_QUERY gate 强制)",
+    "不自动改病历 (no_automatic_chart_modification=true, production_writeback_blocked=true)",
+    "不在缺证据时编造缺口 (chart_evidence_required=true)",
+    "不绕过 Non-leading Query Gate",
+    "不将 Web Search 结果作为患者事实来源 (external_web_not_patient_fact_source=true)",
+    "不输出 F1 / 模型效果指标给最终用户",
+    "documentation_gaps / proposed_provider_queries / specialist_trace 必须显式输出, 即使为空"
+  ],
+  "output_contract": {
+    "schema_ref": "icoder/CDIAgentOutputV1/v1",
+    "a2a_parts": [
+      "DataPart"
+    ],
+    "required_fields": [
+      "encounter_summary",
+      "documentation_gaps",
+      "proposed_provider_queries",
+      "coding_specificity_checklist",
+      "risk_flags",
+      "specialist_trace",
+      "human_review",
+      "trace_refs"
+    ],
+    "field_definitions": {
+      "encounter_summary": "EncounterSummary — 1-5 key points from chart excerpt (chart-explicit only, no inference)",
+      "documentation_gaps": "list[DocumentationGap] — 每个 gap 附 description + why_it_matters + evidence_span (char-anchored) + minimal_clarification_needed",
+      "proposed_provider_queries": "list[ProviderQuery] — 每个 query 附 topic + reason + evidence_span + query_text + response_options (≥3, 含 escape hatch) + nlq_gate_result",
+      "coding_specificity_checklist": "list[CodingSpecificityItem] — condition-level documentation elements to address",
+      "risk_flags": "list[RiskFlag] — contradictions / unsupported diagnoses / ambiguous terms / copied-forward indicators",
+      "specialist_trace": "list[SpecialistTraceEntry] — per Expert: consulted + requested + accepted + rejected + rationale",
+      "human_review": "HumanReview — cdi_specialist_review_required (always true), clinician_response_required (always true), review_priority (routine | urgent)",
+      "trace_refs": "TraceRefs — run_id, stage_trace, experts_consulted, gate_results"
+    },
+    "phase_d_extras": {
+      "clarification_lifecycle_state": "string — always 'DRAFT' on initial generation",
+      "phi_redacted": "bool — 强制 true",
+      "production_writeback_blocked": "bool — 强制 true",
+      "non_leading_query_gate_version": "string — 'NLQ-001..009'",
+      "chart_evidence_binding_required": "bool — 强制 true"
+    }
+  },
+  "permissions": {
+    "key": "cdi-core-agent",
+    "name": "CDI 核心智能体权限",
+    "description": "CDI 分析、缺口识别、Non-leading Provider Query 生成、Expert 咨询。禁止编码分配 (cdi ≠ medical-coding), 禁止自动写回。",
+    "tools": {
+      "extract_chart_evidence": "allowed",
+      "identify_documentation_gaps": "allowed",
+      "generate_provider_query": "allowed",
+      "validate_non_leading_query": "allowed",
+      "search_icd_for_specificity": "allowed",
+      "lookup_clinical_criteria": "allowed",
+      "search_external_guidelines": "allowed",
+      "search_icd10_index": "blocked",
+      "assign_diagnosis_code": "blocked",
+      "assign_procedure_code": "blocked",
+      "finalize_primary_diagnosis": "blocked",
+      "writeback": "blocked"
+    },
+    "production_writeback_blocked": true,
+    "no_diagnosis_invention": true,
+    "no_upcoding": true,
+    "no_leading_query": true,
+    "no_automatic_chart_modification": true,
+    "chart_evidence_required": true,
+    "clinician_confirmation_required": true,
+    "human_review_required": true,
+    "external_web_not_patient_fact_source": true
+  },
+  "phi_redaction": "required",
+  "context_required": true,
+  "recorder_required": true,
+  "metrics_required": true,
+  "human_review_required_when": [
+    "always — every Provider Query requires CDI specialist review before sending (DRAFT → PENDING_CDI_REVIEW)",
+    "always — every Provider Query requires clinician response before chart modification (RESPONDED → DOCUMENTATION_UPDATED)",
+    "documentation_gaps non-empty",
+    "risk_flags contains contradictions or copied_forward_indicators",
+    "nlq_gate_result.verdict == BLOCK",
+    "specialist_trace contains rejected items with high-severity rationale"
+  ],
+  "requirements": {
+    "min_runtime_version": "2.0.0",
+    "icoder_runtime_modules": [
+      "icoder_runtime.providers.cdi.cdi_orchestrator",
+      "icoder_runtime.providers.cdi.nlq_gate",
+      "compliance_services.cdi_query_compliance"
+    ]
+  },
+  "llm_capabilities": {
+    "required_models": [
+      {
+        "name": "deepseek-v4",
+        "purpose": "encounter_synthesis + gap_identification + query_generation + specialist_trace"
+      }
+    ],
+    "supports_tool_calling": true,
+    "supports_json_mode": true,
+    "supports_mcp_tools": true
+  },
+  "a2a": {
+    "protocol_version": "0.3",
+    "endpoint": "/api/icoder/agents/clinical-documentation-improvement-agent/v1/message:send",
+    "discovery": "/api/icoder/agents",
+    "agent_card_ref": "icoder/clinical-documentation-improvement-agent@1.0.0"
+  },
+  "default_runtime_mode": "cdi_review",
+  "available_runtime_modes": [
+    "cdi_review",
+    "cdi_with_clinical_validation"
+  ],
+  "clarification_lifecycle": {
+    "states": [
+      "DRAFT",
+      "PENDING_CDI_REVIEW",
+      "APPROVED",
+      "SENT_TO_CLINICIAN",
+      "VIEWED",
+      "RESPONDED",
+      "DOCUMENTATION_UPDATED",
+      "REVALIDATED",
+      "CLOSED"
+    ],
+    "side_states": [
+      "CANCELLED",
+      "ESCALATED",
+      "EXPIRED"
+    ],
+    "initial_state": "DRAFT",
+    "terminal_states": [
+      "CLOSED",
+      "CANCELLED",
+      "EXPIRED"
+    ],
+    "sla_hours": {
+      "routine": 72,
+      "urgent": 24
+    }
+  },
+  "non_leading_query_gate": {
+    "version": "NLQ-001..009",
+    "rules": [
+      {
+        "rule_id": "NLQ-001",
+        "name": "no_yes_no_opening",
+        "description": "Query 不得以 yes/no 触发词开头 (是不是 / 是否 / Would you agree / Is it / Are they)",
+        "action": "BLOCK"
+      },
+      {
+        "rule_id": "NLQ-002",
+        "name": "no_diagnosis_presumption",
+        "description": "Query 不得在问题正文中假设具体诊断 (除非该诊断已 verbatim 出现在病历中)",
+        "action": "BLOCK"
+      },
+      {
+        "rule_id": "NLQ-003",
+        "name": "response_options_required",
+        "description": "Query 必须包含 response_options 数组",
+        "action": "BLOCK"
+      },
+      {
+        "rule_id": "NLQ-004",
+        "name": "min_three_response_options",
+        "description": "Query 必须包含至少 3 个 response options",
+        "action": "BLOCK"
+      },
+      {
+        "rule_id": "NLQ-005",
+        "name": "escape_hatch_required",
+        "description": "Query 必须包含 escape hatch (无法确定 / 临床不支持 / clinically undetermined / unable to determine)",
+        "action": "BLOCK"
+      },
+      {
+        "rule_id": "NLQ-006",
+        "name": "no_treatment_advice",
+        "description": "Query 不得包含治疗建议",
+        "action": "BLOCK"
+      },
+      {
+        "rule_id": "NLQ-007",
+        "name": "no_undiagnosed_condition_in_query",
+        "description": "Query 引用的诊断必须有病历证据支持 (chart_evidence_required 红线)",
+        "action": "BLOCK"
+      },
+      {
+        "rule_id": "NLQ-008",
+        "name": "no_single_diagnosis_suggested",
+        "description": "Query 不得在 response options 中暗示单一诊断为正确答案",
+        "action": "BLOCK"
+      },
+      {
+        "rule_id": "NLQ-009",
+        "name": "no_payment_terms",
+        "description": "Query 不得提及 payment / DRG weight / CMI / reimbursement",
+        "action": "BLOCK"
+      }
+    ]
+  },
+  "example_inputs": [
+    {
+      "title": "肺炎病原体特异性不足 (Track D §8.3 示例)",
+      "input_text": "入院记录: 诊断: 肺炎。痰培养: 肺炎链球菌 (3+)。"
+    },
+    {
+      "title": "急性肾损伤病因未记录 (Corti 示例 zh-CN 改编)",
+      "input_text": "入院记录: 急性肾损伤。肌酐 210μmol/L (基线 90μmol/L)。"
+    }
+  ],
+  "example_outputs": [
+    {
+      "encounter_summary": [
+        "患者因肺炎入院",
+        "痰培养示肺炎链球菌 3+"
+      ],
+      "documentation_gaps": [
+        {
+          "gap_id": "gap_diagnostic_specificity_pneumonia",
+          "description": "肺炎诊断未记录病原体",
+          "why_it_matters": "J18.9 (肺炎, 未特指) vs J13 (肺炎链球菌性肺炎) 编码特异性差异",
+          "evidence_span": {
+            "document_id": "入院记录",
+            "char_start": 234,
+            "char_end": 240,
+            "quote": "诊断: 肺炎"
+          },
+          "minimal_clarification_needed": "病原体是否为肺炎链球菌"
+        }
+      ],
+      "proposed_provider_queries": [
+        {
+          "query_id": "q_cdi_a3c5",
+          "gap_id": "gap_diagnostic_specificity_pneumonia",
+          "topic": "肺炎病原体",
+          "reason": "痰培养结果阳性但诊断未记录病原体, 影响编码特异性",
+          "evidence_span": {
+            "document_id": "入院记录",
+            "char_start": 234,
+            "char_end": 240,
+            "quote": "诊断: 肺炎"
+          },
+          "query_text": "入院记录诊断为'肺炎', 痰培养结果为'肺炎链球菌'. 请根据您的临床判断回答:",
+          "response_options": [
+            "A. 肺炎病原体为肺炎链球菌 (J13)",
+            "B. 肺炎病原体为其他已知病原体 (请在自由文本中说明)",
+            "C. 痰培养结果为定植菌, 不作为病原体",
+            "D. 无法确定 (unable to determine)",
+            "E. 临床不支持 (痰培养结果与临床表现不符)"
+          ],
+          "nlq_gate_result": {
+            "verdict": "PASS",
+            "rules_evaluated": 9,
+            "rules_passed": 9,
+            "rules_failed": []
+          }
+        }
+      ],
+      "specialist_trace": [
+        {
+          "expert_id": "coding-expert",
+          "consulted": true,
+          "requested": "J18.9 vs J13 specificity gap",
+          "accepted": [
+            "建议生成病原体澄清 query"
+          ],
+          "rejected": [],
+          "rationale": "Encoding specificity gap confirmed"
+        }
+      ]
+    }
+  ],
+  "built_by": "icoder",
+  "internal_engine": {
+    "name": "CDI Orchestrator (Track D Gate 6)",
+    "agent_ref": "icoder/cdi-orchestrator@1.0.0",
+    "note": "Internal implementation detail. CDI Orchestrator runs encounter_synthesis → gap_identification → expert_consultation → query_generation → nlq_gate → specialist_trace. Users interact with the Corti-compatible 6-section output only.",
+    "stages": [
+      "encounter_synthesis",
+      "gap_identification",
+      "expert_consultation",
+      "query_generation",
+      "nlq_gate",
+      "specialist_trace"
+    ]
+  },
+  "code": {},
+  "integrity": {
+    "sha256": "PLACEHOLDER_RECOMPUTED_AT_PUBLISH"
+  }
+}

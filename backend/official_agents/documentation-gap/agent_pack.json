@@ -1,64 +1,39 @@
 {
-  "format_version": "1.1",
+  "format_version": "1.2",
   "agent_type": "certified",
   "agent_ref": "icoder/documentation-gap@1.0.0",
+  "deprecated": true,
+  "deprecated_reason": "Replaced by icoder/clinical-documentation-improvement-agent@1.0.0 as a CDI internal capability (Phase 5 Track D Gate 3, 2026-07-11). Per PDF §4.3 boundary: documentation-gap is NOT a top-level agent — it is a CDI result type. This pack is kept as a legacy alias for migration only.",
+  "deprecated_replacement": "icoder/clinical-documentation-improvement-agent@1.0.0",
+  "deprecated_at": "2026-07-11",
   "manifest": {
-    "name": "病历缺口智能体",
+    "name": "[DEPRECATED] 病历缺口智能体 (folded into CDI)",
     "version": "1.0.0",
-    "description": "识别缺失或不完整的临床文档，生成补充建议。",
+    "description": "[DEPRECATED Phase 5 Track D Gate 3] Folded into CDI Agent as internal capability. Per PDF §4.3, documentation-gap is a CDI result type, not a top-level agent.",
     "category": "质控",
     "icon": "FileWarning",
     "maturity": "metadata-only",
     "production_ready": false,
-    "hidden_from_hub": false,
-    "use_case": "coding_revenue_cycle"
+    "hidden_from_hub": true,
+    "use_case": "coding_revenue_cycle",
+    "legacy_alias_for": "icoder/clinical-documentation-improvement-agent@1.0.0"
   },
-  "system_prompt": "你是临床文档完整性审核专家。检查病历文档完整性并按严重程度排列缺口。",
+  "system_prompt": "[DEPRECATED] See icoder/clinical-documentation-improvement-agent@1.0.0 system_prompt. Documentation gap detection is an internal CDI capability.",
   "experts": [],
-  "tools": [
-    "check_documentation_gaps",
-    "cdi_review",
-    "generate_cdi_query",
-    "extract_evidence",
-    "guard_input",
-    "guard_output"
-  ],
+  "tools": [],
   "permissions": {
-    "key": "documentation-gap",
-    "name": "文档缺口检测权限",
-    "description": "识别缺失或不完整的临床文档，生成补充建议。",
-    "tools": {
-      "check_documentation_gaps": {
-        "allowed": true
-      },
-      "cdi_review": {
-        "allowed": true
-      },
-      "generate_cdi_query": {
-        "allowed": true
-      },
-      "extract_evidence": {
-        "allowed": true
-      },
-      "guard_input": {
-        "allowed": true
-      },
-      "guard_output": {
-        "allowed": true
-      }
-    }
+    "key": "documentation-gap-legacy",
+    "name": "[DEPRECATED] 文档缺口检测权限 (legacy)",
+    "description": "Legacy alias. Use cdi-core-agent permission preset on the new agent.",
+    "tools": {}
   },
   "requirements": {
     "min_runtime_version": "1.0.0"
   },
   "llm_capabilities": {
-    "required_models": [
-      {
-        "name": "deepseek-v4"
-      }
-    ],
+    "required_models": [],
     "supports_tool_calling": false,
-    "supports_json_mode": true
+    "supports_json_mode": false
   },
   "code": {},
   "integrity": {

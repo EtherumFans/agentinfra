@@ -1,64 +1,39 @@
 {
-  "format_version": "1.1",
+  "format_version": "1.2",
   "agent_type": "certified",
   "agent_ref": "icoder/cdi-review@1.0.0",
+  "deprecated": true,
+  "deprecated_reason": "Replaced by icoder/clinical-documentation-improvement-agent@1.0.0 (Phase 5 Track D Gate 3, 2026-07-11). CDI promoted to CORE_ENTRY_AGENT. This pack is kept as a legacy alias for migration only — DO NOT install or invoke. All new CDI runs must use the new agent_ref.",
+  "deprecated_replacement": "icoder/clinical-documentation-improvement-agent@1.0.0",
+  "deprecated_at": "2026-07-11",
   "manifest": {
-    "name": "CDI 审核智能体",
+    "name": "[DEPRECATED] CDI 审核智能体 (legacy alias)",
     "version": "1.0.0",
-    "description": "审查临床文书质量，识别编码特异性和文档完整性改进机会。",
+    "description": "[DEPRECATED Phase 5 Track D Gate 3] Replaced by clinical-documentation-improvement-agent. Kept for migration only.",
     "category": "质控",
     "icon": "ClipboardList",
     "maturity": "metadata-only",
     "production_ready": false,
-    "hidden_from_hub": false,
-    "use_case": "coding_revenue_cycle"
+    "hidden_from_hub": true,
+    "use_case": "coding_revenue_cycle",
+    "legacy_alias_for": "icoder/clinical-documentation-improvement-agent@1.0.0"
   },
-  "system_prompt": "你是临床文档改进专家。审查病历文档质量并给出改进建议。",
+  "system_prompt": "[DEPRECATED] See icoder/clinical-documentation-improvement-agent@1.0.0 system_prompt.",
   "experts": [],
-  "tools": [
-    "cdi_review",
-    "check_documentation_gaps",
-    "generate_cdi_query",
-    "extract_evidence",
-    "guard_input",
-    "guard_output"
-  ],
+  "tools": [],
   "permissions": {
-    "key": "cdi-review",
-    "name": "临床文书改进权限",
-    "description": "审查临床文书质量，识别编码特异性和文档完整性改进机会。",
-    "tools": {
-      "cdi_review": {
-        "allowed": true
-      },
-      "check_documentation_gaps": {
-        "allowed": true
-      },
-      "generate_cdi_query": {
-        "allowed": true
-      },
-      "extract_evidence": {
-        "allowed": true
-      },
-      "guard_input": {
-        "allowed": true
-      },
-      "guard_output": {
-        "allowed": true
-      }
-    }
+    "key": "cdi-review-legacy",
+    "name": "[DEPRECATED] CDI 审核权限 (legacy)",
+    "description": "Legacy alias. Use cdi-core-agent permission preset on the new agent.",
+    "tools": {}
   },
   "requirements": {
     "min_runtime_version": "1.0.0"
   },
   "llm_capabilities": {
-    "required_models": [
-      {
-        "name": "deepseek-v4"
-      }
-    ],
+    "required_models": [],
     "supports_tool_calling": false,
-    "supports_json_mode": true
+    "supports_json_mode": false
   },
   "code": {},
   "integrity": {

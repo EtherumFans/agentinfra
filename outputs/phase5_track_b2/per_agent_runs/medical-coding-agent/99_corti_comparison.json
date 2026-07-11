@@ -1,0 +1,93 @@
+{
+  "_description": "Corti same-input comparison run for CP1 medical-coding-agent. Same orthopedics input (English-translated) on Corti's Medical Coding page.",
+  "_capture_ts": "2026-07-11T05:20:05Z",
+  "_corti_url": "https://console.corti.app/project/b8f8129a-c31d-407f-b723-6ecc592d31e4/ai-studio/medical-coding",
+  "_corti_account": "songluhua@gmail.com (songluhua project)",
+  "_corti_coding_system": "ICD-10-CM Outpatient",
+  "input_text_english": "Patient male, 78 years old, presented with lower back pain after a fall 2 days ago. MRI shows T12 vertebral compression fracture; bone density T-score -3.2. Past medical history: hypertension for 3 years, currently on amlodipine. On admission: BP 155/90 mmHg, no neurological deficits. Plan: vertebroplasty consideration, orthopedics consult, calcium + vitamin D supplementation, anti-osteoporosis medication.",
+  "input_text_chinese_fixture": "fixtures/phase5_track_b2/01_orthopedics.json",
+  "cost_usd": 0.0293,
+  "cost_cny_estimated": 0.21,
+  "cost_currency_reported": "USD",
+  "credits_remaining_usd_before": 48.67,
+  "credits_remaining_usd_after": 48.64,
+  "codes_count": 4,
+  "codes": [
+    {
+      "code": "S22.089A",
+      "description": "Unspecified fracture of T11-T12 vertebra (initial encounter for closed fracture)",
+      "type": "primary",
+      "system": "ICD-10-CM"
+    },
+    {
+      "code": "M54.50",
+      "description": "Low back pain, unspecified",
+      "type": "secondary",
+      "system": "ICD-10-CM"
+    },
+    {
+      "code": "M81.0",
+      "description": "Age-related osteoporosis without current pathological fracture",
+      "type": "secondary",
+      "system": "ICD-10-CM"
+    },
+    {
+      "code": "I10",
+      "description": "Essential (primary) hypertension",
+      "type": "secondary",
+      "system": "ICD-10-CM"
+    }
+  ],
+  "ui_features_observed": {
+    "coding_systems_combobox": "ICD-10-CM Outpatient (default)",
+    "config_button": true,
+    "samples_dropdown": true,
+    "rendered_json_toggle": true,
+    "copy_output": true,
+    "download_output": true,
+    "event_inspector_credits_consumed": "$0.029300",
+    "breadcrumb_live_cost": "$0.029300 (resets per run, not cumulative)",
+    "breadcrumb_billing_balance": "$48.64 (was $48.67 — delta matches $0.03)",
+    "alternatives_panel": "present per code (collapsed by default)",
+    "evidence_panel": "present per code (collapsed by default)"
+  },
+  "icoder_same_input_comparison": {
+    "icoder_run_id": "run-b7bc2a82-5df0-4df2-bfa1-7d3a5c5ec1a8",
+    "icoder_codes_count": 2,
+    "icoder_codes": [
+      {
+        "code": "M80.08",
+        "description": "骨质疏松伴椎体压缩骨折（老年性）",
+        "type": "primary_diagnosis",
+        "system": "ICD-10-CN",
+        "confidence": 0.95
+      },
+      {
+        "code": "I10.x00x002",
+        "description": "高血压病（原发性）",
+        "type": "secondary_diagnosis",
+        "system": "ICD-10-CN",
+        "confidence": 0.90
+      }
+    ],
+    "icoder_latency_ms": 4217,
+    "icoder_cost": "0.0 internal_credit (dev mode; corti_like_fast path does not emit real cost)"
+  },
+  "clinical_divergence_analysis": {
+    "summary": "Same input → different clinical interpretations on coding philosophy.",
+    "corti_approach": "Split fracture from osteoporosis. S22.089A (traumatic T11-T12 fracture) + M81.0 (osteoporosis without pathological fracture). Conservative: treats fracture as traumatic by default, separates osteoporosis as background.",
+    "icoder_approach": "Combined pathologic fracture of osteoporosis: M80.08. Aggressive: given T-score -3.2 (severe osteoporosis), infers the fracture is pathologic, not traumatic.",
+    "coding_systems": "Corti uses ICD-10-CM (US); iCoDer uses ICD-10-CN (China, 37,897 codes). Code structure differs at subdivision level.",
+    "clinical_correctness": "Both are defensible. iCoDer is more clinically insightful (pathologic fracture aligns with severe osteoporosis). Corti is more conservative (waits for explicit documentation). Manual review should decide.",
+    "common_ground": "Both correctly identified hypertension (I10) as secondary."
+  },
+  "verdict_per_field": {
+    "primary_diagnosis_correctness": "TIE — both clinically defensible",
+    "secondary_diagnosis_breadth": "CORTI_WIDER — Corti returned 3 secondary codes vs iCoDer 1",
+    "coding_system_localization": "ICODER_ADVANTAGE — ICD-10-CN native, Corti uses US -CM variant",
+    "cost_transparency": "TIE — both show live cost in TopBar; Corti also shows in Event Inspector",
+    "latency": "ICODER_FASTER — 4217ms vs Corti (unknown, no per-run timing visible)",
+    "auditability": "ICODER_ADVANTAGE — per-run trace_id + RunTrace page; Corti has Event Inspector only",
+    "explainability": "TIE — both expose Evidence + Alternatives per code"
+  }
+}

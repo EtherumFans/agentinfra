@@ -199,9 +199,15 @@ export default function AgentDetailPage() {
             red_lines: card.red_lines,
             workflow: card.workflow,
             badge: card.badge,
+            // Phase 5 Track D P0 Gate 1: preserve internal fields for
+            // engineering views, but downstream rendering uses
+            // display_status + display_badges.
             maturity: card.maturity,
             production_ready: card.production_ready,
             human_review: card.human_review,
+            display_status: card.display_status,
+            display_badges: card.display_badges,
+            usage_boundaries: card.usage_boundaries,
           } as any);
           setAgentName(card.name); setAgentRef(card.agent_ref);
           return;

@@ -1142,6 +1142,17 @@ export interface LocaleDict {
   agentCardProductionReadyFalse: string;
   agentCardExpertsSuffix: string;
   agentCardToolsSuffix: string;
+  // Phase 5 Track D P0 Gate 1 (2026-07-11) — user-visible display status
+  // labels (PDF §B3). Replaces legacy MVP/AI-assisted/production_ready=false.
+  displayStatusPreview: string;
+  displayStatusAvailable: string;
+  displayStatusControlledUse: string;
+  displayStatusComingSoon: string;
+  displayStatusDeprecated: string;
+  displayBadgeApprovalRequired: string;
+  displayBadgeAnomalyConfirmationRequired: string;
+  displayBadgeClinicalDecisionConfirmationRequired: string;
+  displayBadgeInternalOnly: string;
   agentEnable: string;
   agentDisable: string;
   agentUninstall: string;
@@ -2421,6 +2432,16 @@ const zhCN: LocaleDict = {
   agentCardProductionReadyFalse: 'production_ready=false',
   agentCardExpertsSuffix: '专家',
   agentCardToolsSuffix: '工具',
+  // Phase 5 Track D P0 Gate 1 — user-visible display status labels (PDF §B3).
+  displayStatusPreview: '预览版',
+  displayStatusAvailable: '可用',
+  displayStatusControlledUse: '受控使用',
+  displayStatusComingSoon: '即将推出',
+  displayStatusDeprecated: '已停用',
+  displayBadgeApprovalRequired: '发送前需审批',
+  displayBadgeAnomalyConfirmationRequired: '异常项需确认',
+  displayBadgeClinicalDecisionConfirmationRequired: '用于临床决策时需确认',
+  displayBadgeInternalOnly: '仅用于内部审核',
   agentEnable: '启用',
   agentDisable: '禁用',
   agentUninstall: '卸载',
@@ -3700,6 +3721,16 @@ const enUS: LocaleDict = {
   agentCardProductionReadyFalse: 'production_ready=false',
   agentCardExpertsSuffix: 'experts',
   agentCardToolsSuffix: 'tools',
+  // Phase 5 Track D P0 Gate 1 — user-visible display status labels (PDF §B3).
+  displayStatusPreview: 'Preview',
+  displayStatusAvailable: 'Available',
+  displayStatusControlledUse: 'Controlled use',
+  displayStatusComingSoon: 'Coming soon',
+  displayStatusDeprecated: 'Deprecated',
+  displayBadgeApprovalRequired: 'Approval required before send',
+  displayBadgeAnomalyConfirmationRequired: 'Anomalies require confirmation',
+  displayBadgeClinicalDecisionConfirmationRequired: 'Confirmation required for clinical decisions',
+  displayBadgeInternalOnly: 'Internal review only',
   agentEnable: 'Enable',
   agentDisable: 'Disable',
   agentUninstall: 'Uninstall',

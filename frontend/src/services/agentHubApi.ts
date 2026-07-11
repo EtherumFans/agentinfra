@@ -36,6 +36,33 @@ export interface HubOutputContract {
   required_fields: string[];
 }
 
+// Phase 5 Track D P0 Gate 1 (2026-07-11) — user-visible display status.
+// PDF §B3 taxonomy: 5 statuses, max 2 badges per card. Frontend MUST
+// render these instead of raw maturity/production_ready/human_review.
+export type DisplayStatus =
+  | 'preview'
+  | 'available'
+  | 'controlled_use'
+  | 'coming_soon'
+  | 'deprecated';
+
+export type BadgeType =
+  | 'preview'
+  | 'available'
+  | 'controlled_use'
+  | 'coming_soon'
+  | 'deprecated'
+  | 'approval_required'
+  | 'anomaly_confirmation_required'
+  | 'clinical_decision_confirmation_required'
+  | 'internal_only';
+
+export interface DisplayBadge {
+  type: BadgeType;
+  label_zh: string;
+  label_en: string;
+}
+
 export interface HubCard {
   agent_ref: string;
   agent_id: string; // short form (e.g. 'medical-coding-agent'), used in URL paths
@@ -50,12 +77,22 @@ export interface HubCard {
   icon?: string;
   version: string;
   description: string;
+  /**
+   * Engineering-internal fields. PDF §B1: MUST NOT be rendered directly on
+   * user-facing cards. Retained for engineering dashboards / debug views.
+   * Use ``display_status`` + ``display_badges`` instead.
+   */
   maturity: string; // 'metadata-only' | 'stub' | 'mvp' | 'runnable' | 'production-ready'
   production_ready: boolean;
   human_review: string; // 'required' | 'optional' | 'not_required'
   hidden_from_hub: boolean;
   runnable: boolean;
-  badge: string;
+  badge: string; // legacy engineering badge string (deprecated, kept for compat)
+  // Phase 5 Track D P0 Gate 1: user-visible status (PDF §B3).
+  display_status: DisplayStatus;
+  display_badges: DisplayBadge[]; // ≤ 2 entries
+  usage_boundaries: string[]; // zh + en boundary copy
+  display_status_internal?: Record<string, unknown>; // engineering view (not for users)
   tags: string[];
   workflow: string;
   red_lines: HubRedLines;

@@ -122,10 +122,17 @@ class LLMWithToolsProvider:
     ) -> BackendResponse:
         """LLM completion with at most ``max_tool_rounds`` tool-call rounds.
 
-        Phase 4-C: real LLM tool-calling loop. If no ``llm_client`` is
-        wired, runs the ``_skeleton_pipeline`` (one simulated tool
-        call + placeholder markdown) so the contract is still
-        verifiable in unit tests without an LLM.
+        Phase 5 Track C Gate 1 (2026-07-11): lazy-resolve ``llm_client``
+        via ``registry.get_gateway()`` (same pattern as
+        ``PureLLMProvider._resolve_client``). Fixes the B-2 P0 SKELETON
+        blocker where ``registry.py:397`` instantiated
+        ``LLMWithToolsProvider()`` with no args, so code-validation-agent
+        always fell through to ``_skeleton_pipeline`` even when the
+        LLMGateway was registered.
+
+        Phase 4-C: real LLM tool-calling loop. If after lazy-resolve
+        ``llm_client`` is still None, runs the ``_skeleton_pipeline``
+        so the contract is still verifiable in unit tests without an LLM.
 
         ``request`` is the FastAPI ``Request`` (or stand-in) needed by
         ``dispatch_tool`` to read ``app.state``. In-process callers
@@ -148,7 +155,9 @@ class LLMWithToolsProvider:
                 t0, ctx,
             )
 
-        if self._llm_client is None:
+        # Track C Gate 1: lazy-resolve llm_client if not explicitly wired.
+        client = self._resolve_client()
+        if client is None:
             return await self._skeleton_pipeline(
                 req=req, ctx=ctx, system_prompt=system_prompt,
                 user_input=user_input, request=request, t0=t0,
@@ -612,6 +621,33 @@ class LLMWithToolsProvider:
             )
 
     # ── Internal helpers ──────────────────────────────────────────
+
+    def _resolve_client(self) -> LLMClient | None:
+        """Return the LLMClient to use, lazy-resolving via registry gateway.
+
+        Phase 5 Track C Gate 1 (2026-07-11): mirrors
+        ``PureLLMProvider._resolve_client``. Priority:
+          1. ``self._llm_client`` set at construction time.
+          2. Lazy-resolve via ``registry.get_gateway()`` (registered by
+             ``app/main.py`` at startup). Wrap in ``LLMGatewayAdapter``.
+          3. None — caller falls back to ``_skeleton_pipeline``.
+
+        Caches into ``self._llm_client`` so subsequent invokes (and
+        ``_call_llm`` downstream) skip the lookup.
+        """
+        if self._llm_client is not None:
+            return self._llm_client
+        try:
+            from .registry import get_gateway
+            gateway = get_gateway()
+        except Exception:
+            return None
+        if gateway is None:
+            return None
+        from .llm_gateway_adapter import LLMGatewayAdapter
+        client = LLMGatewayAdapter(gateway)
+        self._llm_client = client
+        return client
 
     def _fail(self, message: str, t0: float, ctx: AgentRunContext) -> BackendResponse:
         latency_ms = int((time.perf_counter() - t0) * 1000)

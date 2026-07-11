@@ -641,31 +641,14 @@ async def _run_via_provider_registry(
             summary=f"Provider invoke crashed: {type(e).__name__}: {e}",
         )
 
-    # Emit OUTPUT_GENERATED + COMPLETION so /runs/{run_id}/trace has content.
-    emit_trace_event(
-        run_id, RunTraceStep.OUTPUT_GENERATED,
-        safe_metadata={
-            "agent_id": agent_id,
-            "status": resp.status,
-            "finish_state": resp.finish_state,
-            "issues_count": len(resp.issues),
-            "backend_provider": resp.backend_provider,
-        },
-    )
-    completion_status = (
-        RunTraceStatus.FAILED
-        if (resp.finish_state == "failed" or resp.status == "fail")
-        else RunTraceStatus.OK
-    )
-    emit_trace_event(
-        run_id, RunTraceStep.COMPLETION,
-        status=completion_status,
-        safe_metadata={
-            "agent_id": agent_id,
-            "runtime_mode": runtime_mode_label,
-            "latency_ms": resp.latency_ms or int((time.perf_counter() - t0) * 1000),
-        },
-    )
+    # Trace events for the success path are emitted by persist_trace_events()
+    # at the unified-endpoint handler (line ~255), which re-emits the inline
+    # trace_events built by _map_backend_response(). We deliberately do NOT
+    # emit OUTPUT_GENERATED/COMPLETION directly here — that would double-count
+    # (BUG-12-01). The USER_MESSAGE_RECEIVED emit above (line 538) is the
+    # only direct emit on the success path because it happens before invoke()
+    # and is not re-emitted by persist_trace_events (the inline trace_events
+    # in _map_backend_response omits user_message_received for this reason).
 
     return _map_backend_response(
         agent_id=agent_id,
@@ -727,9 +710,16 @@ def _map_backend_response(
 
     trace_events: list[dict[str, Any]] = []
     if include_trace:
-        # Phase 4-F2: surface the 3 lifecycle trace events that were
-        # emitted to RunTraceStore by _run_via_provider_registry(). These
-        # are the same events GET /api/runtime/runs/{run_id}/trace returns.
+        # Phase 4-F2 + Phase 5 A1 fix: inline trace_events carry only
+        # COMPLETION. USER_MESSAGE_RECEIVED is emitted directly by
+        # _run_via_provider_registry() (line 538). OUTPUT_GENERATED is
+        # emitted by the provider's emit_backend_metadata_event() (with
+        # rich backend metadata: provider_id, backend_type, latency,
+        # tool_rounds, etc.). Re-emitting either here would double-count
+        # (BUG-12-01). persist_trace_events() at the unified-endpoint
+        # handler re-emits this single COMPLETION event to RunTraceStore.
+        # Total for a success-path run: 3 events (USER_MESSAGE_RECEIVED
+        # + OUTPUT_GENERATED + COMPLETION), each appearing exactly once.
         latency_ms_val = resp.latency_ms or int((time.perf_counter() - t0) * 1000)
         completion_status = (
             "failed"
@@ -737,29 +727,6 @@ def _map_backend_response(
             else "ok"
         )
         trace_events = [
-            {
-                "step": "user_message_received",
-                "status": "ok",
-                "duration_ms": 0,
-                "metadata": {
-                    "agent_id": agent_id,
-                    "input_text_len": 0,
-                    "runtime_mode": runtime_mode,
-                    "api_client_id": api_client_id,
-                },
-            },
-            {
-                "step": "output_generated",
-                "status": "ok",
-                "duration_ms": latency_ms_val,
-                "metadata": {
-                    "agent_id": agent_id,
-                    "status": resp.status,
-                    "finish_state": resp.finish_state,
-                    "issues_count": len(resp.issues),
-                    "backend_provider": resp.backend_provider,
-                },
-            },
             {
                 "step": "completion",
                 "status": completion_status,
@@ -790,7 +757,7 @@ def _map_backend_response(
         trace_id=trace_id,
         runtime_mode=runtime_mode,
         latency_ms=resp.latency_ms or int((time.perf_counter() - t0) * 1000),
-        cost={"amount": resp.cost_usd or 0.0, "currency": "USD"} if resp.cost_usd else {},
+        cost={"amount": resp.cost_usd or 0.0, "currency": "CNY"} if resp.cost_usd else {},
         summary=resp.summary,
         result=result_payload,
         evidence=evidence,

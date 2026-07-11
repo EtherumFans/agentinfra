@@ -194,3 +194,15 @@ python scripts/e2e_medcoder_validation.py --cases tests/fixtures/icoder_201.json
 - 数据: iCoDerA 资产(只读;本地开发 / CI/eval 用 `E:\iCoDerA\`;托管云 region-shared object storage,`ICODER_ASSET_BUCKET=icoder-assets-{region}`)
 - 前端: React + TypeScript + Vite + Tailwind CSS
 - 测试: pytest (752 tests, 80 baseline + 672 MedCodER/规则/修复)
+
+## 货币约定 (Phase 5 A2 — 2026-07-10)
+
+**统一使用 CNY (人民币 ¥)**,不用 USD ($). 原因:
+
+- iCoDer 是面向中国医院场景的平台 (CLAUDE.md §产品定位).
+- DeepSeek 公开定价以 RMB 计价,LLM_PRICE_INPUT_PER_1M / LLM_PRICE_OUTPUT_PER_1M 反映 RMB 价格.
+- 后端 billing endpoint 已经返回 `{"currency": "CNY"}` 且交易流水用 `¥` 前缀格式化.
+- 后端 agent_run endpoint 的 `cost.currency` 字段也用 `"CNY"`.
+- 前端 TopBar / BillingPage / UsagePage / MedicalCodingPage / AgentChatPage / EventInspector / i18n locales 全部统一为 `¥` 前缀.
+
+**注意:** `run_history.cost_usd` DB 列名 (alembic 010) 保留不变 — 列名是历史遗留,实际值为 CNY. 重命名 DB 列涉及迁移风险,不在 Phase 5 范围.

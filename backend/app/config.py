@@ -72,10 +72,11 @@ class Settings(BaseSettings):
     LLM_TEMPERATURE: float = 0.1
     LLM_TIMEOUT: int = 120
 
-    # ── LLM Pricing (Phase 4-G #1 — live cost) ─────────────────────────────────
-    # Per-1M-token prices in USD. Used by DeepSeekProvider/OpenAICompatibleProvider
-    # to compute `cost_usd` from `usage.input_tokens` + `usage.output_tokens`.
-    # Defaults reflect DeepSeek V4 flash public pricing (2026-07). Override via env.
+    # ── LLM Pricing (Phase 4-G #1 — live cost; Phase 5 A2 — currency unified to CNY) ───
+    # Per-1M-token prices in CNY (yuan). Used by DeepSeekProvider/OpenAICompatibleProvider
+    # to compute `cost_usd` (DB column name kept for backward compat; the value is CNY)
+    # from `usage.input_tokens` + `usage.output_tokens`.
+    # Defaults reflect DeepSeek V4 flash public pricing (2026-07, RMB). Override via env.
     LLM_PRICE_INPUT_PER_1M: float = 0.14
     LLM_PRICE_OUTPUT_PER_1M: float = 0.28
 

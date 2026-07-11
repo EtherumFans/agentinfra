@@ -85,6 +85,35 @@ ResponseOptionCategory = Literal[
 A compliant query must include ≥1 escape_hatch (NLQ-005)."""
 
 
+# Phase 5 Track D P0.5 Gate 4 — Claim-Evidence alignment taxonomy
+SupportType = Literal["direct", "contextual", "inferred", "unsupported"]
+"""Per Master Task §5.3. How a Claim's evidence relates to chart reality.
+
+direct       — chart verbatim supports the claim
+contextual   — context required, no new clinical conclusion
+inferred     — reasonable inference, NOT a determinate fact
+unsupported  — no chart evidence
+"""
+
+ClaimCriticality = Literal["critical", "supporting"]
+"""critical — load-bearing for the query's existence (must have evidence)
+supporting — auxiliary context (gap may still survive without)
+"""
+
+ClaimValidationStatus = Literal[
+    "unchecked",
+    "valid",
+    "invalid_quote",
+    "invalid_span",
+    "negation_as_support",
+    "pmh_as_current",
+    "inferred_as_direct",
+    "no_evidence",
+    "cross_case_evidence",
+]
+"""Deterministic validation outcome for a Claim-Evidence pair (CEA-001..009)."""
+
+
 # ---------------------------------------------------------------------------
 # Response option helper
 # ---------------------------------------------------------------------------
@@ -319,6 +348,62 @@ class ProviderQuery:
     ] = "DRAFT"
     nlq_gate_verdict: str = ""
     nlq_gate_block_reasons: list[str] = field(default_factory=list)
+    # Phase 5 Track D P0.5 Gate 4 — Claim-Evidence alignment
+    claims: list["Claim"] = field(default_factory=list)
+    claim_evidence_alignments: list["ClaimEvidenceAlignment"] = field(default_factory=list)
+    # Phase 5 Track D P0.5 Gate 4 — Semantic necessity verdict
+    semantic_necessity_verdict: str = ""  # "PASS" | "REVIEW_REQUIRED" | "BLOCK" | "DEGRADED"
+    semantic_necessity_reason_codes: list[str] = field(default_factory=list)
+    semantic_necessity_degraded: bool = False
+
+
+# ---------------------------------------------------------------------------
+# Phase 5 Track D P0.5 Gate 4 — Claim + Claim-Evidence alignment primitives
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class Claim:
+    """One clinical claim asserted by a Provider Query.
+
+    Per Master Task §5.2 — every query decomposes into ≥1 atomic claim.
+    The query is BLOCKED if a critical claim has no chart evidence.
+
+    The LLM extraction stage (``claim_evidence_gate.extract_claims``) is
+    responsible for splitting a query like::
+
+        "患者入院前发病3天，痰培养检出肺炎链球菌，当前诊断为肺炎"
+
+    into 3 claims:
+      - claim_1: "患者入院前发病3天"           (critical=False)
+      - claim_2: "痰培养检出肺炎链球菌"         (critical=True)
+      - claim_3: "当前诊断为肺炎"              (critical=True)
+    """
+
+    claim_id: str
+    text: str
+    criticality: ClaimCriticality = "supporting"
+
+
+@dataclass
+class ClaimEvidenceAlignment:
+    """Mapping between one Claim and one EvidenceSpan, with deterministic
+    validation outcome.
+
+    Per Master Task §5.3. ``support_type`` is the semantic axis (how the
+    evidence relates to the claim). ``validation_status`` is the
+    deterministic validation outcome (CEA-001..009 rules).
+    """
+
+    claim_id: str
+    evidence_span_id: str  # references EvidenceSpan.quote hash (or "gap:{gap_id}:default")
+    document_id: str
+    quote: str
+    char_start: int = -1
+    char_end: int = -1
+    support_type: SupportType = "unsupported"
+    confidence: float = 0.0
+    validation_status: ClaimValidationStatus = "unchecked"
 
 
 # ---------------------------------------------------------------------------
@@ -410,4 +495,10 @@ __all__ = [
     "CDICase",
     "claim_evidence_alignment_score",
     "classify_gap_type_with_confidence",
+    # Phase 5 Track D P0.5 Gate 4
+    "SupportType",
+    "ClaimCriticality",
+    "ClaimValidationStatus",
+    "Claim",
+    "ClaimEvidenceAlignment",
 ]

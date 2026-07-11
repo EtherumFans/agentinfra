@@ -8,8 +8,12 @@ Stages (Corti-compatible 5-step CDI workflow, see agent_pack.json):
     2. gap_identification
     3. expert_consultation
     4. query_generation
-    5. query_compliance_gate   (NLQ-001..009)
-    6. specialist_trace_emit
+    5. query_necessity_gate         (Phase 5 Track D P0.5 Gate 2)
+    6. query_single_dimension_gate  (Phase 5 Track D P0.5 Gate 3)
+    7. claim_evidence_alignment_gate (Phase 5 Track D P0.5 Gate 4)
+    8. semantic_necessity_gate       (Phase 5 Track D P0.5 Gate 4)
+    9. query_compliance_gate         (NLQ-001..011)
+   10. specialist_trace_emit
 
 Gate 3 ships a runnable skeleton. The runner is a callable — for now
 the skeleton uses a no-op runner that produces empty stage outputs,
@@ -19,12 +23,17 @@ with a real DeepSeek-backed implementation.
 
 from __future__ import annotations
 
+import asyncio
+import concurrent.futures
+import logging
 import uuid
 from dataclasses import dataclass, field
 from typing import Any, Callable, Literal
 
 from .domain import CDICase, DocumentationGap, EvidenceSpan, ProviderQuery
 from .nlq_gate import ProviderQueryForGate, evaluate as evaluate_nlq
+
+logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
@@ -45,6 +54,29 @@ a real DeepSeek-backed runner.
 
 
 # ---------------------------------------------------------------------------
+# Async-from-sync helper (for gate-internal LLM calls)
+# ---------------------------------------------------------------------------
+
+
+def _run_async(coro: Any) -> Any:
+    """Run a coroutine from sync code, handling nested event loops.
+
+    Mirrors the pattern in ``real_runner.py`` — safe because FastAPI
+    runs orchestrator stages inside ``asyncio.to_thread`` (a worker
+    thread without a running loop). Tests that drive the orchestrator
+    directly inside an async function fall through to the
+    ``ThreadPoolExecutor`` path.
+    """
+    try:
+        return asyncio.run(coro)
+    except RuntimeError as exc:
+        if "asyncio.run() cannot be called from a running event loop" in str(exc):
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+                return pool.submit(asyncio.run, coro).result()
+        raise
+
+
+# ---------------------------------------------------------------------------
 # Stage list (Corti-compatible, PDF §6)
 # ---------------------------------------------------------------------------
 
@@ -54,8 +86,10 @@ STAGES: tuple[str, ...] = (
     "gap_identification",
     "expert_consultation",
     "query_generation",
-    "query_necessity_gate",          # Phase 5 Track D P0.5 Gate 2
-    "query_single_dimension_gate",   # Phase 5 Track D P0.5 Gate 3
+    "query_necessity_gate",           # Phase 5 Track D P0.5 Gate 2
+    "query_single_dimension_gate",    # Phase 5 Track D P0.5 Gate 3
+    "claim_evidence_alignment_gate",  # Phase 5 Track D P0.5 Gate 4
+    "semantic_necessity_gate",        # Phase 5 Track D P0.5 Gate 4
     "query_compliance_gate",
     "specialist_trace_emit",
 )
@@ -105,6 +139,12 @@ class CDIOrchestrator:
     """Pure-logic orchestrator. Holds no mutable state between runs."""
 
     runner: StageRunner
+    # Optional LLM override for gate-internal calls (extract_claims,
+    # review_necessity). When None, _get_llm() resolves in order:
+    #   1. self.llm (if explicitly set)
+    #   2. self.runner.llm (test fixtures using RealCDIRunner(llm=mock))
+    #   3. app.services.llm_service.llm_service (production singleton)
+    llm: Any = None
 
     # ------------------------------------------------------------------ run
 
@@ -137,6 +177,10 @@ class CDIOrchestrator:
             self._stage_query_necessity_gate(case)
         elif stage == "query_single_dimension_gate":
             self._stage_query_single_dimension_gate(case)
+        elif stage == "claim_evidence_alignment_gate":
+            self._stage_claim_evidence_alignment_gate(case)
+        elif stage == "semantic_necessity_gate":
+            self._stage_semantic_necessity_gate(case)
         elif stage == "query_compliance_gate":
             self._stage_query_compliance_gate(case)
         elif stage == "specialist_trace_emit":
@@ -214,6 +258,154 @@ class CDIOrchestrator:
             f"final_count={len(case.proposed_provider_queries)}"
         )
         case.stage_trace_ids["query_single_dimension_gate"] = ""
+
+    def _stage_claim_evidence_alignment_gate(self, case: CDICase) -> None:
+        """Phase 5 Track D P0.5 Gate 4 — every claim must be chart-evidenced.
+
+        Per Master Task §五: for each Provider Query, extract atomic
+        clinical claims (LLM-backed), map each to a chart-verbatim
+        EvidenceSpan, and run 9 deterministic CEA-XXX rules. Critical
+        claims with no chart support are diagnosis-invention → BLOCK.
+
+        On LLM extraction failure, the gate returns DEGRADED per query
+        (no claims to validate) — those queries are kept; the
+        semantic_necessity_gate downstream is the second line of defense.
+        """
+        from .claim_evidence_gate import extract_claims, apply_claim_evidence_to_case
+
+        run_id = f"run-{uuid.uuid4().hex[:12]}"
+        trace_id = f"trace-{uuid.uuid4().hex[:12]}"
+
+        # Skip LLM extraction entirely if there are no queries to check
+        queries_snapshot = list(case.proposed_provider_queries)
+        if queries_snapshot and case.chart_excerpt:
+            try:
+                llm = self._resolve_llm()
+                coro = self._extract_claims_bulk(queries_snapshot, case.chart_excerpt, llm)
+                per_query_results = _run_async(coro)
+                for q, (claims, aligns) in zip(queries_snapshot, per_query_results):
+                    q.claims = claims
+                    q.claim_evidence_alignments = aligns
+            except Exception as exc:  # DEGRADED — do not crash orchestrator
+                logger.warning("claim_evidence_alignment_gate LLM bulk failed: %s", exc)
+                for q in queries_snapshot:
+                    q.claims = []
+                    q.claim_evidence_alignments = []
+
+        result = apply_claim_evidence_to_case(case)
+        claims_extracted = sum(len(q.claims) for q in queries_snapshot)
+        case.stage_run_ids["claim_evidence_alignment_gate"] = (
+            f"claims_extracted={claims_extracted};"
+            f"blocked={len(result.blocked_query_ids)};"
+            f"flagged={len(result.flagged_query_ids)};"
+            f"final_count={len(case.proposed_provider_queries)}"
+        )
+        case.stage_trace_ids["claim_evidence_alignment_gate"] = trace_id
+        # Stash run_id in the parallel dict for downstream visibility
+        case.stage_run_ids["claim_evidence_alignment_gate::run_id"] = run_id
+
+    def _stage_semantic_necessity_gate(self, case: CDICase) -> None:
+        """Phase 5 Track D P0.5 Gate 4 — LLM semantic necessity reviewer.
+
+        Per Master Task §5.6: catches empty-chart diagnosis-invention
+        (C09 pathology), symptom-only-no-evidence, no-imaging-no-site,
+        no-severity-indicator-no-grade, lab-positive-not-equals-diagnosis,
+        and complete-chart redundancy. BLOCK verdicts drop the query.
+
+        On LLM failure per query, ``degraded=True`` and verdict="PASS"
+        — the query survives so downstream NLQ gate can still run.
+        """
+        from .necessity_semantic import review_necessity
+
+        run_id = f"run-{uuid.uuid4().hex[:12]}"
+        trace_id = f"trace-{uuid.uuid4().hex[:12]}"
+
+        queries_snapshot = list(case.proposed_provider_queries)
+        blocked_count = 0
+        flagged_count = 0
+        degraded_count = 0
+
+        if queries_snapshot and case.chart_excerpt:
+            try:
+                llm = self._resolve_llm()
+                coro = self._review_necessity_bulk(queries_snapshot, case.chart_excerpt, llm)
+                per_query_results = _run_async(coro)
+            except Exception as exc:  # DEGRADED — keep all queries
+                logger.warning("semantic_necessity_gate LLM bulk failed: %s", exc)
+                per_query_results = [None] * len(queries_snapshot)
+
+            survivors: list[ProviderQuery] = []
+            for q, res in zip(queries_snapshot, per_query_results):
+                if res is None:
+                    q.semantic_necessity_verdict = "DEGRADED"
+                    q.semantic_necessity_degraded = True
+                    degraded_count += 1
+                    survivors.append(q)
+                    continue
+                q.semantic_necessity_verdict = res.verdict
+                q.semantic_necessity_reason_codes = list(res.reason_codes)
+                q.semantic_necessity_degraded = res.degraded
+                if res.degraded:
+                    degraded_count += 1
+                if res.verdict == "BLOCK" and not res.degraded:
+                    blocked_count += 1
+                    continue  # drop
+                if res.verdict == "REVIEW_REQUIRED":
+                    flagged_count += 1
+                survivors.append(q)
+            case.proposed_provider_queries = survivors
+
+        case.stage_run_ids["semantic_necessity_gate"] = (
+            f"blocked={blocked_count};flagged={flagged_count};degraded={degraded_count};"
+            f"final_count={len(case.proposed_provider_queries)}"
+        )
+        case.stage_trace_ids["semantic_necessity_gate"] = trace_id
+        case.stage_run_ids["semantic_necessity_gate::run_id"] = run_id
+
+    # ------------------------------------------------------------------ LLM helpers
+
+    @staticmethod
+    def _get_llm() -> Any:
+        """Lazy-import the singleton LLM service."""
+        from app.services.llm_service import llm_service
+        return llm_service
+
+    def _resolve_llm(self) -> Any:
+        """Resolve the LLM to use for gate-internal calls.
+
+        Order of precedence:
+          1. ``self.llm`` if explicitly injected
+          2. ``self.runner.llm`` if the runner exposes one (test fixtures
+             using ``RealCDIRunner(llm=mock)`` propagate it through)
+          3. Production singleton ``llm_service``
+        """
+        if self.llm is not None:
+            return self.llm
+        runner_llm = getattr(self.runner, "llm", None)
+        if runner_llm is not None:
+            return runner_llm
+        from app.services.llm_service import llm_service
+        return llm_service
+
+    @staticmethod
+    async def _extract_claims_bulk(
+        queries: list[ProviderQuery], chart: str, llm: Any
+    ) -> list[tuple[list, list]]:
+        """Run extract_claims concurrently across all queries."""
+        from .claim_evidence_gate import extract_claims
+        return await asyncio.gather(
+            *(extract_claims(q, chart=chart, llm=llm) for q in queries)
+        )
+
+    @staticmethod
+    async def _review_necessity_bulk(
+        queries: list[ProviderQuery], chart: str, llm: Any
+    ) -> list[Any]:
+        """Run review_necessity concurrently across all queries."""
+        from .necessity_semantic import review_necessity
+        return await asyncio.gather(
+            *(review_necessity(q, chart=chart, llm=llm) for q in queries)
+        )
 
     def _stage_query_compliance_gate(self, case: CDICase) -> None:
         """Run NLQ-001..009 on every generated query. Mutates each query's

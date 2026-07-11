@@ -1,0 +1,51 @@
+{
+  "agent_id": "principal-diagnosis-review",
+  "run_id": "run-b270c990-195a-426c-8960-f743784d4a71",
+  "trace_id": "trace-9500360f0fd84339",
+  "runtime_mode": "corti_like_fast",
+  "latency_ms": 12811,
+  "cost": {
+    "amount": 0.000382,
+    "currency": "CNY"
+  },
+  "summary": "好的，收到。作为 iCoDer Principal Diagnosis Review Agent，我将对您提供的“患者男”这一信息进行评估。由于信息不完整，我将基于一个假设的、包含多个诊断的出院小结场景来演示我的分析流程和输出格式。",
+  "result": {
+    "status": "complete",
+    "markdown": "好的，收到。作为 iCoDer Principal Diagnosis Review Agent，我将对您提供的“患者男”这一信息进行评估。由于信息不完整，我将基于一个假设的、包含多个诊断的出院小结场景来演示我的分析流程和输出格式。\n\n**假设场景：** 一份出院小结包含以下诊断：\n1. 急性心肌梗死 (I21.9)\n2. 2型糖尿病 (E11.9)\n3. 高血压病 (I10.x)\n\n**分析过程：**\n\n1.  **识别候选主诊断：**\n    *   `I21.9` (急性心肌梗死)\n    *   `E11.9` (2型糖尿病)\n    *   `I10.x` (高血压病)\n\n2.  **评估每个候选的证据：**\n    *   **I21.9 (急性心肌梗死):**\n        *   **直接证据:** 出院小结中明确记录“急性心肌梗死”。\n        *   **间接证据:** 住院期间进行了冠脉造影和支架植入术，消耗了大量医疗资源（如导管室、支架、抗凝药物）。\n        *   **否定:** 无。\n        *   **评估:** 对患者健康危害最严重，消耗医疗资源最多，是住院期间主要治疗对象。\n    *   **E11.9 (2型糖尿病):**\n        *   **直接证据:** 出院小结中记录“2型糖尿病”。\n        *   **间接证据:** 住院期间监测血糖，使用胰岛素或口服降糖药。\n        *   **否定:** 糖尿病是慢性病，本次住院的主要治疗是处理急性心梗，而非糖尿病本身。\n        *   **评估:** 为合并症，不应作为主诊断。\n    *   **I10.x (高血压病):**\n        *   **直接证据:** 出院小结中记录“高血压病”。\n        *   **间接证据:** 住院期间使用降压药物。\n        *   **否定:** 高血压是慢性病，本次住院的主要治疗是处理急性心梗，而非高血压本身。\n        *   **评估:** 为合并症，不应作为主诊断。\n\n3.  **推荐与不推荐：**\n    *   **推荐:** `I21.9` (急性心肌梗死)\n    *   **不推荐:**\n        *   `E11.9` (2型糖尿病) - 原因：慢性合并症，非本次住院主要治疗。\n        *   `I10.x` (高血压病) - 原因：慢性合并症，非本次住院主要治疗。\n\n4.  **生成输出：**\n\n```json\n{\n  \"candidates\": [\n    {\n      \"code\": \"I21.9\",\n      \"display\": \"急性心肌梗死\",\n      \"evidence_text\": \"出院小结中明确记录“急性心肌梗死”，住院期间进行了冠脉造影和支架植入术。\",\n      \"severity\": \"high\",\n      \"resource_usage\": \"high\",\n      \"primary_treatment\": true,\n      \"recommended\": true,\n      \"rationale\": \"对患者健康危害最严重，消耗医疗资源最多，住院期间主要治疗\"\n    },\n    {\n      \"code\": \"E11.9\",\n      \"display\": \"2型糖尿病\",\n      \"evidence_text\": \"出院小结中记录“2型糖尿病”，住院期间监测血糖。\",\n      \"severity\": \"low\",\n      \"resource_usage\": \"low\",\n      \"primary_treatment\": false,\n      \"recommended\": false,\n      \"rationale\": \"慢性合并症，非本次住院主要治疗\"\n    },\n    {\n      \"code\": \"I10.x\",\n      \"display\": \"高血压病\",\n      \"evidence_text\": \"出院小结中记录“高血压病”，住院期间使用降压药物。\",\n      \"severity\": \"low\",\n      \"resource_usage\": \"low\",\n      \"primary_treatment\": false,\n      \"recommended\": false,\n      \"rationale\": \"慢性合并症，非本次住院主要治疗\"\n    }\n  ],\n  \"recommended\": \"I21.9\",\n  \"not_recommended\": [\n    {\n      \"code\": \"E11.9\",\n      \"reason\": \"慢性合并症，非本次住院主要治疗，不应作为主诊断。\"\n    },\n    {\n      \"code\": \"I10.x\",\n      \"reason\": \"慢性合并症，非本次住院主要治疗，不应作为主诊断。\"\n    }\n  ],\n  \"rationale\": \"主诊断应为 I21.9 (急性心肌梗死)，因为对患者健康危害最严重，消耗医疗资源最多，且为住院期间主要治疗。E11.9 (2型糖尿病) 和 I10.x (高血压病) 为慢性合并症，应作为次要诊断。\",\n  \"manual_review_prompt\": \"请复核主诊断选择，确认 I21.9 (急性心肌梗死) 为最优选择。重点确认：1) 是否有其他更严重的诊断（如心源性休克）被遗漏？2) 糖尿病或高血压是否在本次住院中得到了主要治疗（如糖尿病酮症酸中毒）？3) 编码员是否准确区分了急性心梗的类型（如STEMI vs NSTEMI）？\"\n}\n```\n\n**请注意：** 以上分析基于一个假设场景。如果您能提供真实的出院小结文本，我将能够进行更精确的分析并输出包含 `char_span` 的 JSON。",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.pure-llm.v1",
+    "backend_type": "pure_llm",
+    "raw_provider_response": {
+      "content": "好的，收到。作为 iCoDer Principal Diagnosis Review Agent，我将对您提供的“患者男”这一信息进行评估。由于信息不完整，我将基于一个假设的、包含多个诊断的出院小结场景来演示我的分析流程和输出格式。\n\n**假设场景：** 一份出院小结包含以下诊断：\n1. 急性心肌梗死 (I21.9)\n2. 2型糖尿病 (E11.9)\n3. 高血压病 (I10.x)\n\n**分析过程：**\n\n1.  **识别候选主诊断：**\n    *   `I21.9` (急性心肌梗死)\n    *   `E11.9` (2型糖尿病)\n    *   `I10.x` (高血压病)\n\n2.  **评估每个候选的证据：**\n    *   **I21.9 (急性心肌梗死):**\n        *   **直接证据:** 出院小结中明确记录“急性心肌梗死”。\n        *   **间接证据:** 住院期间进行了冠脉造影和支架植入术，消耗了大量医疗资源（如导管室、支架、抗凝药物）。\n        *   **否定:** 无。\n        *   **评估:** 对患者健康危害最严重，消耗医疗资源最多，是住院期间主要治疗对象。\n    *   **E11.9 (2型糖尿病):**\n        *   **直接证据:** 出院小结中记录“2型糖尿病”。\n        *   **间接证据:** 住院期间监测血糖，使用胰岛素或口服降糖药。\n        *   **否定:** 糖尿病是慢性病，本次住院的主要治疗是处理急性心梗，而非糖尿病本身。\n        *   **评估:** 为合并症，不应作为主诊断。\n    *   **I10.x (高血压病):**\n        *   **直接证据:** 出院小结中记录“高血压病”。\n        *   **间接证据:** 住院期间使用降压药物。\n        *   **否定:** 高血压是慢性病，本次住院的主要治疗是处理急性心梗，而非高血压本身。\n        *   **评估:** 为合并症，不应作为主诊断。\n\n3.  **推荐与不推荐：**\n    *   **推荐:** `I21.9` (急性心肌梗死)\n    *   **不推荐:**\n        *   `E11.9` (2型糖尿病) - 原因：慢性合并症，非本次住院主要治疗。\n        *   `I10.x` (高血压病) - 原因：慢性合并症，非本次住院主要治疗。\n\n4.  **生成输出：**\n\n```json\n{\n  \"candidates\": [\n    {\n      \"code\": \"I21.9\",\n      \"display\": \"急性心肌梗死\",\n      \"evidence_text\": \"出院小结中明确记录“急性心肌梗死”，住院期间进行了冠脉造影和支架植入术。\",\n      \"severity\": \"high\",\n      \"resource_usage\": \"high\",\n      \"primary_treatment\": true,\n      \"recommended\": true,\n      \"rationale\": \"对患者健康危害最严重，消耗医疗资源最多，住院期间主要治疗\"\n    },\n    {\n      \"code\": \"E11.9\",\n      \"display\": \"2型糖尿病\",\n      \"evidence_text\": \"出院小结中记录“2型糖尿病”，住院期间监测血糖。\",\n      \"severity\": \"low\",\n      \"resource_usage\": \"low\",\n      \"primary_treatment\": false,\n      \"recommended\": false,\n      \"rationale\": \"慢性合并症，非本次住院主要治疗\"\n    },\n    {\n      \"code\": \"I10.x\",\n      \"display\": \"高血压病\",\n      \"evidence_text\": \"出院小结中记录“高血压病”，住院期间使用降压药物。\",\n      \"severity\": \"low\",\n      \"resource_usage\": \"low\",\n      \"primary_treatment\": false,\n      \"recommended\": false,\n      \"rationale\": \"慢性合并症，非本次住院主要治疗\"\n    }\n  ],\n  \"recommended\": \"I21.9\",\n  \"not_recommended\": [\n    {\n      \"code\": \"E11.9\",\n      \"reason\": \"慢性合并症，非本次住院主要治疗，不应作为主诊断。\"\n    },\n    {\n      \"code\": \"I10.x\",\n      \"reason\": \"慢性合并症，非本次住院主要治疗，不应作为主诊断。\"\n    }\n  ],\n  \"rationale\": \"主诊断应为 I21.9 (急性心肌梗死)，因为对患者健康危害最严重，消耗医疗资源最多，且为住院期间主要治疗。E11.9 (2型糖尿病) 和 I10.x (高血压病) 为慢性合并症，应作为次要诊断。\",\n  \"manual_review_prompt\": \"请复核主诊断选择，确认 I21.9 (急性心肌梗死) 为最优选择。重点确认：1) 是否有其他更严重的诊断（如心源性休克）被遗漏？2) 糖尿病或高血压是否在本次住院中得到了主要治疗（如糖尿病酮症酸中毒）？3) 编码员是否准确区分了急性心梗的类型（如STEMI vs NSTEMI）？\"\n}\n```\n\n**请注意：** 以上分析基于一个假设场景。如果您能提供真实的出院小结文本，我将能够进行更精确的分析并输出包含 `char_span` 的 JSON。",
+      "model": "deepseek-v4-flash",
+      "usage": {
+        "input_tokens": 462,
+        "output_tokens": 1135
+      },
+      "cost_usd": 0.000382,
+      "latency_ms": 12811
+    }
+  },
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": false,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 12811,
+      "metadata": {
+        "agent_id": "principal-diagnosis-review",
+        "runtime_mode": "corti_like_fast",
+        "latency_ms": 12811
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": ""
+}

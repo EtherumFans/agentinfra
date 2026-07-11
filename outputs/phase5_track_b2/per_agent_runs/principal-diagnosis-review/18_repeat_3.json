@@ -1,0 +1,56 @@
+{
+  "agent_id": "principal-diagnosis-review",
+  "run_id": "run-94205956-809d-469b-bf9f-830b9b04defe",
+  "trace_id": "trace-da439dd815074f7a",
+  "runtime_mode": "corti_like_fast",
+  "latency_ms": 9739,
+  "cost": {
+    "amount": 0.000315,
+    "currency": "CNY"
+  },
+  "summary": "{",
+  "result": {
+    "status": "complete",
+    "markdown": "{\n  \"candidates\": [\n    {\n      \"code\": \"S22.000\",\n      \"display\": \"T12 椎体压缩性骨折\",\n      \"evidence_text\": \"MRI 显示 T12 椎体压缩性骨折\",\n      \"severity\": \"high\",\n      \"resource_usage\": \"high\",\n      \"primary_treatment\": true,\n      \"recommended\": true,\n      \"rationale\": \"对患者健康危害最严重（急性骨折导致剧痛、活动受限），消耗医疗资源最多（MRI、CT、镇痛、抗骨质疏松治疗、可能 PKP/PVP），住院期间主要治疗（卧床、镇痛、抗骨质疏松）。\"\n    },\n    {\n      \"code\": \"M80.900\",\n      \"display\": \"骨质疏松性骨折\",\n      \"evidence_text\": \"骨密度 T 值 -3.2（骨质疏松）\",\n      \"severity\": \"medium\",\n      \"resource_usage\": \"medium\",\n      \"primary_treatment\": false,\n      \"recommended\": false,\n      \"rationale\": \"骨质疏松为慢性合并症，骨折为急性事件；根据主诊断准则，病因（骨质疏松）不应优先于急性骨折作为主诊断，除非住院主要针对骨质疏松治疗。\"\n    },\n    {\n      \"code\": \"I10\",\n      \"display\": \"高血压病 3 级（很高危）\",\n      \"evidence_text\": \"既往有高血压病史 10 年，长期口服氨氯地平 5mg qd，血压控制可\",\n      \"severity\": \"low\",\n      \"resource_usage\": \"low\",\n      \"primary_treatment\": false,\n      \"recommended\": false,\n      \"rationale\": \"高血压为慢性合并症，住院期间未针对高血压进行主要治疗（仅维持原有用药），不消耗主要医疗资源，不应作为主诊断。\"\n    }\n  ],\n  \"recommended\": \"S22.000\",\n  \"not_recommended\": [\n    {\n      \"code\": \"M80.900\",\n      \"reason\": \"骨质疏松为慢性合并症，骨折为急性事件；住院主要治疗针对骨折（镇痛、抗骨质疏松、可能 PKP/PVP），而非骨质疏松本身。根据主诊断准则，急性骨折应优先于慢性病因。\"\n    },\n    {\n      \"code\": \"I10\",\n      \"reason\": \"高血压为慢性合并症，住院期间未进行主要治疗或调整方案，不消耗主要医疗资源，不应作为主诊断。\"\n    }\n  ],\n  \"rationale\": \"主诊断应为 S22.000（T12 椎体压缩性骨折）。理由：该诊断对患者健康危害最严重（急性骨折导致剧痛、活动受限），消耗医疗资源最多（MRI、CT、镇痛、抗骨质疏松治疗、可能 PKP/PVP），住院期间主要治疗（卧床、镇痛、抗骨质疏松）。M80.900（骨质疏松性骨折）和 I10（高血压）均为慢性合并症，不应作为主诊断。\",\n  \"manual_review_prompt\": \"请复核主诊断选择，确认 S22.000（T12 椎体压缩性骨折）为最优选择。注意：骨质疏松性骨折（M80.900）是否应作为主诊断？根据 ICD-10 编码规则，若住院主要针对骨质疏松治疗（如静脉输注唑来膦酸），则 M80.900 可能更合适。但本病例中，住院主要针对骨折（镇痛、卧床、可能 PKP/PVP），抗骨质疏松治疗为辅助措施，故 S22.000 更合理。请结合临床记录确认主要治疗焦点。\"\n}",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.pure-llm.v1",
+    "backend_type": "pure_llm",
+    "raw_provider_response": {
+      "content": "{\n  \"candidates\": [\n    {\n      \"code\": \"S22.000\",\n      \"display\": \"T12 椎体压缩性骨折\",\n      \"evidence_text\": \"MRI 显示 T12 椎体压缩性骨折\",\n      \"severity\": \"high\",\n      \"resource_usage\": \"high\",\n      \"primary_treatment\": true,\n      \"recommended\": true,\n      \"rationale\": \"对患者健康危害最严重（急性骨折导致剧痛、活动受限），消耗医疗资源最多（MRI、CT、镇痛、抗骨质疏松治疗、可能 PKP/PVP），住院期间主要治疗（卧床、镇痛、抗骨质疏松）。\"\n    },\n    {\n      \"code\": \"M80.900\",\n      \"display\": \"骨质疏松性骨折\",\n      \"evidence_text\": \"骨密度 T 值 -3.2（骨质疏松）\",\n      \"severity\": \"medium\",\n      \"resource_usage\": \"medium\",\n      \"primary_treatment\": false,\n      \"recommended\": false,\n      \"rationale\": \"骨质疏松为慢性合并症，骨折为急性事件；根据主诊断准则，病因（骨质疏松）不应优先于急性骨折作为主诊断，除非住院主要针对骨质疏松治疗。\"\n    },\n    {\n      \"code\": \"I10\",\n      \"display\": \"高血压病 3 级（很高危）\",\n      \"evidence_text\": \"既往有高血压病史 10 年，长期口服氨氯地平 5mg qd，血压控制可\",\n      \"severity\": \"low\",\n      \"resource_usage\": \"low\",\n      \"primary_treatment\": false,\n      \"recommended\": false,\n      \"rationale\": \"高血压为慢性合并症，住院期间未针对高血压进行主要治疗（仅维持原有用药），不消耗主要医疗资源，不应作为主诊断。\"\n    }\n  ],\n  \"recommended\": \"S22.000\",\n  \"not_recommended\": [\n    {\n      \"code\": \"M80.900\",\n      \"reason\": \"骨质疏松为慢性合并症，骨折为急性事件；住院主要治疗针对骨折（镇痛、抗骨质疏松、可能 PKP/PVP），而非骨质疏松本身。根据主诊断准则，急性骨折应优先于慢性病因。\"\n    },\n    {\n      \"code\": \"I10\",\n      \"reason\": \"高血压为慢性合并症，住院期间未进行主要治疗或调整方案，不消耗主要医疗资源，不应作为主诊断。\"\n    }\n  ],\n  \"rationale\": \"主诊断应为 S22.000（T12 椎体压缩性骨折）。理由：该诊断对患者健康危害最严重（急性骨折导致剧痛、活动受限），消耗医疗资源最多（MRI、CT、镇痛、抗骨质疏松治疗、可能 PKP/PVP），住院期间主要治疗（卧床、镇痛、抗骨质疏松）。M80.900（骨质疏松性骨折）和 I10（高血压）均为慢性合并症，不应作为主诊断。\",\n  \"manual_review_prompt\": \"请复核主诊断选择，确认 S22.000（T12 椎体压缩性骨折）为最优选择。注意：骨质疏松性骨折（M80.900）是否应作为主诊断？根据 ICD-10 编码规则，若住院主要针对骨质疏松治疗（如静脉输注唑来膦酸），则 M80.900 可能更合适。但本病例中，住院主要针对骨折（镇痛、卧床、可能 PKP/PVP），抗骨质疏松治疗为辅助措施，故 S22.000 更合理。请结合临床记录确认主要治疗焦点。\"\n}",
+      "model": "deepseek-v4-flash",
+      "usage": {
+        "input_tokens": 741,
+        "output_tokens": 754
+      },
+      "cost_usd": 0.000315,
+      "latency_ms": 9739
+    }
+  },
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": false,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 9739,
+      "metadata": {
+        "agent_id": "principal-diagnosis-review",
+        "runtime_mode": "corti_like_fast",
+        "latency_ms": 9739
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_client_wall_ms": 10142,
+  "_fixture": "fixtures/phase5_track_b2/01_orthopedics.json",
+  "_agent": "principal-diagnosis-review",
+  "_tag": "18_repeat_3",
+  "_ts": "2026-07-11T14:22:19"
+}

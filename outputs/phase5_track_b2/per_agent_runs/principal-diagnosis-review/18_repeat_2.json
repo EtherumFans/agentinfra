@@ -1,0 +1,56 @@
+{
+  "agent_id": "principal-diagnosis-review",
+  "run_id": "run-a12aca3f-90c0-46b9-a1a3-a4959a9d2c8c",
+  "trace_id": "trace-60f68dee30ec4d91",
+  "runtime_mode": "corti_like_fast",
+  "latency_ms": 8724,
+  "cost": {
+    "amount": 0.000286,
+    "currency": "CNY"
+  },
+  "summary": "{",
+  "result": {
+    "status": "complete",
+    "markdown": "{\n  \"candidates\": [\n    {\n      \"code\": \"S22.000\",\n      \"display\": \"T12 椎体压缩性骨折\",\n      \"evidence_text\": \"MRI 显示 T12 椎体压缩性骨折\",\n      \"severity\": \"high\",\n      \"resource_usage\": \"high\",\n      \"primary_treatment\": true,\n      \"recommended\": true,\n      \"rationale\": \"对患者健康危害最严重（急性骨折导致剧痛、活动受限），消耗医疗资源最多（住院、MRI、镇痛、抗骨质疏松治疗、可能 PKP/PVP），住院期间主要治疗（卧床、镇痛、抗骨质疏松）。\"\n    },\n    {\n      \"code\": \"M80.900\",\n      \"display\": \"骨质疏松性骨折\",\n      \"evidence_text\": \"骨密度 T 值 -3.2（骨质疏松）\",\n      \"severity\": \"medium\",\n      \"resource_usage\": \"medium\",\n      \"primary_treatment\": false,\n      \"recommended\": false,\n      \"rationale\": \"骨质疏松为慢性合并症，骨折为急性事件；根据主诊断准则，病因（骨质疏松）不应作为主诊断，因为住院主要治疗针对骨折本身。\"\n    },\n    {\n      \"code\": \"I10\",\n      \"display\": \"高血压病 3 级（很高危）\",\n      \"evidence_text\": \"既往有高血压病史 10 年，长期口服氨氯地平 5mg qd，血压控制可\",\n      \"severity\": \"low\",\n      \"resource_usage\": \"low\",\n      \"primary_treatment\": false,\n      \"recommended\": false,\n      \"rationale\": \"高血压为慢性合并症，住院期间未作为主要治疗目标，资源消耗低，不应作为主诊断。\"\n    }\n  ],\n  \"recommended\": \"S22.000\",\n  \"not_recommended\": [\n    {\n      \"code\": \"M80.900\",\n      \"reason\": \"骨质疏松为慢性合并症，骨折为急性事件；住院主要治疗针对骨折，而非骨质疏松本身。\"\n    },\n    {\n      \"code\": \"I10\",\n      \"reason\": \"高血压为慢性合并症，住院期间未作为主要治疗目标，资源消耗低。\"\n    }\n  ],\n  \"rationale\": \"主诊断应为 S22.000（T12 椎体压缩性骨折），因为该诊断对患者健康危害最严重（急性骨折导致剧痛、活动受限），消耗医疗资源最多（住院、MRI、镇痛、抗骨质疏松治疗、可能 PKP/PVP），且为住院期间主要治疗（卧床、镇痛、抗骨质疏松）。M80.900（骨质疏松性骨折）和 I10（高血压）均为慢性合并症，不应作为主诊断。\",\n  \"manual_review_prompt\": \"请复核主诊断选择，确认 S22.000（T12 椎体压缩性骨折）为最优选择。注意：骨质疏松性骨折（M80.900）可作为附加诊断，但不应作为主诊断；高血压（I10）为慢性合并症，应列为次要诊断。\"\n}",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.pure-llm.v1",
+    "backend_type": "pure_llm",
+    "raw_provider_response": {
+      "content": "{\n  \"candidates\": [\n    {\n      \"code\": \"S22.000\",\n      \"display\": \"T12 椎体压缩性骨折\",\n      \"evidence_text\": \"MRI 显示 T12 椎体压缩性骨折\",\n      \"severity\": \"high\",\n      \"resource_usage\": \"high\",\n      \"primary_treatment\": true,\n      \"recommended\": true,\n      \"rationale\": \"对患者健康危害最严重（急性骨折导致剧痛、活动受限），消耗医疗资源最多（住院、MRI、镇痛、抗骨质疏松治疗、可能 PKP/PVP），住院期间主要治疗（卧床、镇痛、抗骨质疏松）。\"\n    },\n    {\n      \"code\": \"M80.900\",\n      \"display\": \"骨质疏松性骨折\",\n      \"evidence_text\": \"骨密度 T 值 -3.2（骨质疏松）\",\n      \"severity\": \"medium\",\n      \"resource_usage\": \"medium\",\n      \"primary_treatment\": false,\n      \"recommended\": false,\n      \"rationale\": \"骨质疏松为慢性合并症，骨折为急性事件；根据主诊断准则，病因（骨质疏松）不应作为主诊断，因为住院主要治疗针对骨折本身。\"\n    },\n    {\n      \"code\": \"I10\",\n      \"display\": \"高血压病 3 级（很高危）\",\n      \"evidence_text\": \"既往有高血压病史 10 年，长期口服氨氯地平 5mg qd，血压控制可\",\n      \"severity\": \"low\",\n      \"resource_usage\": \"low\",\n      \"primary_treatment\": false,\n      \"recommended\": false,\n      \"rationale\": \"高血压为慢性合并症，住院期间未作为主要治疗目标，资源消耗低，不应作为主诊断。\"\n    }\n  ],\n  \"recommended\": \"S22.000\",\n  \"not_recommended\": [\n    {\n      \"code\": \"M80.900\",\n      \"reason\": \"骨质疏松为慢性合并症，骨折为急性事件；住院主要治疗针对骨折，而非骨质疏松本身。\"\n    },\n    {\n      \"code\": \"I10\",\n      \"reason\": \"高血压为慢性合并症，住院期间未作为主要治疗目标，资源消耗低。\"\n    }\n  ],\n  \"rationale\": \"主诊断应为 S22.000（T12 椎体压缩性骨折），因为该诊断对患者健康危害最严重（急性骨折导致剧痛、活动受限），消耗医疗资源最多（住院、MRI、镇痛、抗骨质疏松治疗、可能 PKP/PVP），且为住院期间主要治疗（卧床、镇痛、抗骨质疏松）。M80.900（骨质疏松性骨折）和 I10（高血压）均为慢性合并症，不应作为主诊断。\",\n  \"manual_review_prompt\": \"请复核主诊断选择，确认 S22.000（T12 椎体压缩性骨折）为最优选择。注意：骨质疏松性骨折（M80.900）可作为附加诊断，但不应作为主诊断；高血压（I10）为慢性合并症，应列为次要诊断。\"\n}",
+      "model": "deepseek-v4-flash",
+      "usage": {
+        "input_tokens": 741,
+        "output_tokens": 650
+      },
+      "cost_usd": 0.000286,
+      "latency_ms": 8724
+    }
+  },
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": false,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 8724,
+      "metadata": {
+        "agent_id": "principal-diagnosis-review",
+        "runtime_mode": "corti_like_fast",
+        "latency_ms": 8724
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_client_wall_ms": 8990,
+  "_fixture": "fixtures/phase5_track_b2/01_orthopedics.json",
+  "_agent": "principal-diagnosis-review",
+  "_tag": "18_repeat_2",
+  "_ts": "2026-07-11T14:22:09"
+}

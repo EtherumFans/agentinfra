@@ -115,6 +115,11 @@ class CaseState:
     stage_errors: dict[str, str] = field(default_factory=dict)
     # Per-stage latency in ms.
     stage_latencies_ms: dict[str, int] = field(default_factory=dict)
+    # Per-stage run_id (Gate 6: parent-child run tree linkage). Empty if the
+    # runner didn't return one.
+    stage_run_ids: dict[str, str] = field(default_factory=dict)
+    # Per-stage trace_id (Gate 6: trace linkage for /runs/{id}/trace).
+    stage_trace_ids: dict[str, str] = field(default_factory=dict)
 
     # Normalized views (filled in by _post_process).
     normalized: dict[str, NormalizedExpertResult] = field(default_factory=dict)
@@ -256,6 +261,18 @@ class CodingComplianceOrchestrator:
             case.stage_outputs[stage] = result
             case.stage_latencies_ms[stage] = int((_time.monotonic() - t0) * 1000)
             case.stage_errors[stage] = ""
+            # Gate 6: capture run_id + trace_id so each StageCard can link
+            # to /runs/{run_id}/trace. Both fields are optional — runners
+            # that don't return them just leave the link hidden.
+            run_id = ""
+            trace_id = ""
+            if isinstance(result, dict):
+                run_id = str(result.get("run_id") or "")
+                trace_id = str(result.get("trace_id") or "")
+            if run_id:
+                case.stage_run_ids[stage] = run_id
+            if trace_id:
+                case.stage_trace_ids[stage] = trace_id
         except Exception as e:
             logger.warning(
                 "coding_compliance.stage_failed case=%s stage=%s error=%s",

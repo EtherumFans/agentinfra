@@ -158,6 +158,9 @@ def _serialize_case(case: CaseState, total_ms: int) -> dict[str, Any]:
                 "output": case.stage_outputs.get(stage, {}),
                 "error": case.stage_errors.get(stage, ""),
                 "latency_ms": case.stage_latencies_ms.get(stage, 0),
+                "run_id": case.stage_run_ids.get(stage, ""),
+                "trace_id": case.stage_trace_ids.get(stage, ""),
+                "trace_url": f"/runs/{case.stage_run_ids[stage]}/trace" if stage in case.stage_run_ids else "",
                 "normalized": case.normalized.get(stage, {}).to_dict() if stage in case.normalized else None,
             }
             for i, stage in enumerate(STAGE_ORDER)
@@ -198,6 +201,147 @@ def _stage_display_name(stage_id: str) -> str:
         "note-completeness": "病历完整度",
         "drg-analyzer": "DRG/DIP 风险",
     }.get(stage_id, stage_id)
+
+
+# ── A2A v0.3 Card wrapper (Gate 6 §11.3) ────────────────────────────────
+
+
+@router.post(
+    "/a2a",
+    operation_id="coding_compliance_a2a_v1",
+)
+async def coding_compliance_a2a(
+    body: CodingComplianceRunRequest,
+    request: Request,
+    current_user: User = Depends(get_current_user),
+) -> dict[str, Any]:
+    """Run coding compliance mainline + wrap response as A2A v0.3 Task.
+
+    Returns an A2A-compatible envelope with:
+      - ``task.id`` = case_id
+      - ``task.state`` = review_gate_status (mapped to A2A states)
+      - ``task.parts[]`` = DataPart(CaseState) + TextPart(gate_decision)
+      - ``task.metadata.run_url`` = trace_url of the slowest stage
+      - ``task.artifacts[]`` = one Artifact per stage
+
+    Per PDF §11.3 this enables interop with any A2A v0.3 compliant client
+    (Corti orchestrator, third-party EHR agents, etc.) without leaking
+    internal CaseState fields into the message body.
+    """
+    runner = _build_in_process_runner(current_user, request=request)
+    orch = CodingComplianceOrchestrator(runner)
+
+    try:
+        case: CaseState = await asyncio.to_thread(
+            orch.run,
+            input_text=body.input_text,
+            case_id=body.case_id,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+    except Exception as e:
+        logger.exception("coding_compliance.a2a failed")
+        raise HTTPException(status_code=500, detail=f"orchestrator crashed: {e}") from e
+
+    return _wrap_case_as_a2a_task(case)
+
+
+# A2A state mapping (review_gate_status → A2A Task.state)
+_A2A_STATE_MAP: dict[str, str] = {
+    "AUTO_PASS": "completed",
+    "REVIEW_RECOMMENDED": "input-required",
+    "REVIEW_REQUIRED": "input-required",
+    "BLOCKED": "failed",
+}
+
+
+def _wrap_case_as_a2a_task(case: CaseState) -> dict[str, Any]:
+    """Project CaseState into an A2A v0.3 Task envelope."""
+    a2a_state = _A2A_STATE_MAP.get(case.review_gate_status, "input-required")
+    # Find slowest stage for metadata.run_url (or first stage with a run_id).
+    slowest_stage = ""
+    slowest_ms = -1
+    run_url = ""
+    for stage in STAGE_ORDER:
+        ms = case.stage_latencies_ms.get(stage, 0)
+        if ms > slowest_ms:
+            slowest_ms = ms
+            slowest_stage = stage
+        if not run_url and stage in case.stage_run_ids:
+            run_url = f"/runs/{case.stage_run_ids[stage]}/trace"
+
+    parts: list[dict[str, Any]] = [
+        {
+            "type": "data",
+            "data": {
+                "case_id": case.case_id,
+                "review_gate_status": case.review_gate_status,
+                "review_gate_blocker": case.review_gate_blocker,
+                "review_gate_reasons": case.review_gate_reasons,
+                "stage_count": len(STAGE_ORDER),
+                "successful_stages": sum(
+                    1 for s in STAGE_ORDER if not case.stage_errors.get(s)
+                ),
+            },
+        },
+        {
+            "type": "text",
+            "text": (
+                f"编码合规 7 阶段主流程: {case.review_gate_status}"
+                + (f" ({case.review_gate_blocker})" if case.review_gate_blocker else "")
+            ),
+        },
+    ]
+
+    artifacts = [
+        {
+            "name": stage,
+            "parts": [
+                {
+                    "type": "data",
+                    "data": {
+                        "stage_id": stage,
+                        "stage_index": i,
+                        "stage_name": _stage_display_name(stage),
+                        "output": case.stage_outputs.get(stage, {}),
+                        "error": case.stage_errors.get(stage, ""),
+                        "latency_ms": case.stage_latencies_ms.get(stage, 0),
+                        "run_id": case.stage_run_ids.get(stage, ""),
+                        "trace_id": case.stage_trace_ids.get(stage, ""),
+                        "trace_url": (
+                            f"/runs/{case.stage_run_ids[stage]}/trace"
+                            if stage in case.stage_run_ids else ""
+                        ),
+                        "normalized": (
+                            case.normalized.get(stage, {}).to_dict()
+                            if stage in case.normalized else None
+                        ),
+                    },
+                }
+            ],
+        }
+        for i, stage in enumerate(STAGE_ORDER)
+    ]
+
+    return {
+        "task": {
+            "id": case.case_id,
+            "context_id": case.case_id,
+            "state": a2a_state,
+            "parts": parts,
+            "artifacts": artifacts,
+            "metadata": {
+                "agent_id": case.agent_id,
+                "kind": "coding-compliance-mainline",
+                "run_url": run_url,
+                "slowest_stage": slowest_stage,
+                "slowest_stage_ms": slowest_ms,
+                "blocker": case.review_gate_blocker,
+                "completion_status": case.completion.status if case.completion else "UNKNOWN",
+            },
+        },
+        "jsonrpc": "2.0",
+    }
 
 
 __all__ = ["router", "CodingComplianceRunRequest"]

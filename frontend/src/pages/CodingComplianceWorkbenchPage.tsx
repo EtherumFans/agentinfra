@@ -29,6 +29,9 @@ type StageResult = {
   output: any;
   error: string;
   latency_ms: number;
+  run_id: string;
+  trace_id: string;
+  trace_url: string;
   normalized: {
     codes_emitted?: string[];
     procedures_emitted?: string[];
@@ -220,6 +223,7 @@ export default function CodingComplianceWorkbenchPage() {
 }
 
 function StageCard({ stage }: { stage: StageResult }) {
+  const navigate = useNavigate();
   const hasError = !!stage.error;
   const codes = stage.normalized?.codes_emitted || [];
   const procs = stage.normalized?.procedures_emitted || [];
@@ -248,6 +252,16 @@ function StageCard({ stage }: { stage: StageResult }) {
             <span className="text-rose-600">✗ 失败</span>
           ) : (
             <span className="text-emerald-600">✓ 成功</span>
+          )}
+          {stage.trace_url && (
+            <a
+              href={stage.trace_url}
+              className="text-slate-500 hover:text-slate-900 underline-offset-2 hover:underline"
+              title={`查看 Trace (${stage.run_id.slice(0, 8)})`}
+              onClick={(e) => { e.preventDefault(); navigate(stage.trace_url); }}
+            >
+              查看 Trace →
+            </a>
           )}
         </div>
       </div>

@@ -20,7 +20,9 @@ Boundary: this router does NOT call medical-coding tools. CDI ≠ coding.
 
 from __future__ import annotations
 
+import asyncio
 import logging
+import os
 import uuid
 from datetime import datetime, timezone
 from typing import Any
@@ -32,6 +34,7 @@ from app.icoder.agent_runtime.cdi import (
     CDICase,
     CDIOrchestrator,
     EvidenceSpan,
+    RealCDIRunner,
     stub_runner,
 )
 from app.middleware.auth import get_current_user
@@ -111,6 +114,27 @@ class ProviderQuerySchema(BaseModel):
     priority: str = "routine"
 
 
+class StageTraceSchema(BaseModel):
+    """Per-stage provider/model/latency/token evidence (PDF §A2).
+
+    Surfaced on every CDI run so the audit log and Specialist Trace
+    panel can prove the LLM was actually invoked — not stubbed.
+    """
+
+    stage: str
+    provider: str = ""
+    model: str = ""
+    latency_ms: int = 0
+    prompt_tokens: int = 0
+    completion_tokens: int = 0
+    total_tokens: int = 0
+    run_id: str = ""
+    trace_id: str = ""
+    degraded: bool = False
+    error_reason: str = ""
+    expert_id: str = ""
+
+
 class CDIRunResponse(BaseModel):
     """Response for POST /api/v1/cdi/runs."""
 
@@ -121,6 +145,12 @@ class CDIRunResponse(BaseModel):
     chart_excerpt_preview: str
     stage_run_ids: dict[str, str] = {}
     stage_trace_ids: dict[str, str] = {}
+    # Phase 5 Track D P0 Gate 2: per-stage provider evidence (PDF §A2).
+    stage_traces: list[StageTraceSchema] = []
+    # True when any stage had to fall back to empty outputs due to LLM
+    # provider failure. Front-end surfaces a warning banner.
+    degraded: bool = False
+    runtime_mode: str = "real"
     generated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
@@ -186,6 +216,11 @@ async def run_cdi(
     Returns the case state including documentation_gaps and
     proposed_provider_queries. Each query starts in DRAFT state.
 
+    Phase 5 Track D P0 Gate 2 (2026-07-11): wires the real DeepSeek-backed
+    runner. ``stub_runner`` is retained ONLY for unit tests. Each stage's
+    run_id / trace_id / provider / model / latency / tokens are surfaced
+    via ``stage_traces`` for audit evidence (PDF §A1 + §A2).
+
     Boundary: this endpoint does NOT call medical-coding tools.
     CDI produces clarification queries; coding happens in a separate
     Medical Coding Agent run AFTER documentation is clarified.
@@ -200,8 +235,25 @@ async def run_cdi(
         encounter_ref=body.encounter_ref,
     )
 
-    orchestrator = CDIOrchestrator(runner=stub_runner)
-    case = orchestrator.run(case)
+    # Gate 2: real DeepSeek-backed runner. Falls back to stub_runner ONLY
+    # in unit-test mode (env-driven) to keep the 18 Gate 3 tests intact.
+    use_stub = os.environ.get("ICODER_CDI_FORCE_STUB_FOR_TESTS") == "1"
+    if use_stub:
+        runner = stub_runner
+        stage_traces_dict: dict[str, Any] = {}
+        expert_traces_list: list[Any] = []
+    else:
+        runner_instance = RealCDIRunner()
+        runner = runner_instance
+        stage_traces_dict = runner_instance.stage_traces
+        expert_traces_list = runner_instance.expert_traces
+
+    orchestrator = CDIOrchestrator(runner=runner)
+    # Run the sync orchestrator in a worker thread so the runner's
+    # internal ``asyncio.run()`` does not collide with FastAPI's event
+    # loop. The runner is sync-by-contract (keeps the 18 Gate 3 unit
+    # tests stable) but wraps async LLM calls via asyncio.run().
+    case = await asyncio.to_thread(orchestrator.run, case)
 
     gaps = [
         DocumentationGapSchema(
@@ -236,6 +288,27 @@ async def run_cdi(
         for q in case.proposed_provider_queries
     ]
 
+    # Flatten stage_traces + expert_traces for the response payload.
+    trace_records: list[StageTraceSchema] = []
+    degraded = False
+    for st in list(stage_traces_dict.values()) + list(expert_traces_list):
+        trace_records.append(StageTraceSchema(
+            stage=st.stage,
+            provider=st.provider,
+            model=st.model,
+            latency_ms=st.latency_ms,
+            prompt_tokens=st.prompt_tokens,
+            completion_tokens=st.completion_tokens,
+            total_tokens=st.total_tokens,
+            run_id=st.run_id,
+            trace_id=st.trace_id,
+            degraded=st.degraded,
+            error_reason=st.error_reason,
+            expert_id=st.expert_id,
+        ))
+        if st.degraded:
+            degraded = True
+
     return CDIRunResponse(
         case_id=case.case_id,
         completion_state=case.completion_state,
@@ -244,6 +317,9 @@ async def run_cdi(
         chart_excerpt_preview=body.chart_excerpt[:200],
         stage_run_ids=case.stage_run_ids,
         stage_trace_ids=case.stage_trace_ids,
+        stage_traces=trace_records,
+        degraded=degraded,
+        runtime_mode="stub" if use_stub else "real",
     )
 
 

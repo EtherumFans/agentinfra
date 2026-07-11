@@ -40,6 +40,10 @@ from .orchestrator import (  # noqa: F401
     StageRunner,
     stub_runner,
 )
+from .real_runner import (  # noqa: F401
+    RealCDIRunner,
+    StageTrace,
+)
 from .clinician_response import (  # noqa: F401
     ClinicianResponseValue,
     DocumentDiff,
@@ -77,6 +81,9 @@ __all__ = [
     "STAGES",
     "StageRunner",
     "stub_runner",
+    # real runner (Phase 5 Track D P0 Gate 2)
+    "RealCDIRunner",
+    "StageTrace",
     # clinician response workflow
     "ClinicianResponseValue",
     "DocumentDiff",

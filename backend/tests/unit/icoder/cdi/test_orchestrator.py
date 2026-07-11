@@ -126,12 +126,13 @@ def _runner_with_leading_query(stage: str, case: CDICase, kwargs: dict[str, Any]
 # ---------------------------------------------------------------------------
 
 
-def test_stages_tuple_is_corti_compatible_6_steps() -> None:
+def test_stages_tuple_is_corti_compatible_7_steps() -> None:
     assert STAGES == (
         "encounter_synthesis",
         "gap_identification",
         "expert_consultation",
         "query_generation",
+        "query_necessity_gate",
         "query_compliance_gate",
         "specialist_trace_emit",
     )
@@ -142,12 +143,14 @@ def test_orchestrator_runs_all_stages_with_stub_runner() -> None:
     orch = CDIOrchestrator(runner=stub_runner)
     out = orch.run(case)
     assert out.case_id == "c1"
-    # all 6 stages recorded (compliance_gate doesn't call runner but still registers key)
+    # all 7 stages recorded (necessity_gate + compliance_gate don't call runner
+    # but still register keys)
     expected_keys = {
         "encounter_synthesis",
         "gap_identification",
         "expert_consultation",
         "query_generation",
+        "query_necessity_gate",
         "query_compliance_gate",
         "specialist_trace_emit",
     }

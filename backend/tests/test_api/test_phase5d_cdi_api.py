@@ -127,16 +127,73 @@ def test_post_cdi_runs_rejects_too_long_input(client: TestClient) -> None:
 
 
 # ---------------------------------------------------------------------------
-# GET /runs/{case_id} — stub (returns 501)
+# GET /runs/{case_id} — Gate 3 real read (404 for unknown)
 # ---------------------------------------------------------------------------
 
 
-def test_get_cdi_case_stub_returns_501(client: TestClient) -> None:
-    """Gate 9 stub: GET /runs/{case_id} not yet implemented."""
+def test_get_cdi_unknown_case_returns_404(client: TestClient) -> None:
+    """Gate 3: GET /runs/{unknown_id} now reads from DB. Unknown → 404
+    (no longer 501 not_implemented; that was the Gate 9 stub)."""
 
-    r = client.get("/api/v1/cdi/runs/CASE-123")
-    assert r.status_code == 501
-    assert r.json()["detail"]["error"] == "not_implemented"
+    r = client.get("/api/v1/cdi/runs/CASE-DOES-NOT-EXIST-123")
+    assert r.status_code == 404
+    assert r.json()["detail"]["error"] == "case_not_found"
+
+
+def test_get_cdi_case_round_trips_after_post(client: TestClient) -> None:
+    """Gate 3 closed loop: POST /runs persists, GET /runs/{id} reads it back."""
+
+    # 1. POST to create + persist the case
+    post_resp = client.post(
+        "/api/v1/cdi/runs",
+        json={
+            "chart_excerpt": "患者男性,58岁,因咳嗽咳痰伴发热3天入院。诊断:肺炎。",
+            "case_id": "CASE-ROUNDTRIP-001",
+            "patient_ref": "MRN-001",
+            "encounter_ref": "ENC-001",
+        },
+    )
+    assert post_resp.status_code == 200
+    post_data = post_resp.json()
+    assert post_data["case_id"] == "CASE-ROUNDTRIP-001"
+
+    # 2. GET to read back
+    get_resp = client.get("/api/v1/cdi/runs/CASE-ROUNDTRIP-001")
+    assert get_resp.status_code == 200
+    get_data = get_resp.json()
+    assert get_data["case_id"] == "CASE-ROUNDTRIP-001"
+    assert get_data["patient_ref"] == "MRN-001"
+    assert get_data["encounter_ref"] == "ENC-001"
+    # Gaps + queries count must match what POST returned
+    assert len(get_data["documentation_gaps"]) == len(post_data["documentation_gaps"])
+    assert len(get_data["proposed_provider_queries"]) == len(
+        post_data["proposed_provider_queries"]
+    )
+
+
+def test_get_cdi_case_post_is_idempotent(client: TestClient) -> None:
+    """Re-POSTing the same case_id does not duplicate rows."""
+
+    # First POST creates
+    r1 = client.post(
+        "/api/v1/cdi/runs",
+        json={
+            "chart_excerpt": "Idempotency test chart.",
+            "case_id": "CASE-IDEM-001",
+        },
+    )
+    assert r1.status_code == 200
+
+    # Second POST with same case_id returns same case (idempotent)
+    r2 = client.post(
+        "/api/v1/cdi/runs",
+        json={
+            "chart_excerpt": "Idempotency test chart.",
+            "case_id": "CASE-IDEM-001",
+        },
+    )
+    assert r2.status_code == 200
+    assert r1.json()["case_id"] == r2.json()["case_id"]
 
 
 # ---------------------------------------------------------------------------

@@ -29,6 +29,7 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.icoder.agent_runtime.cdi import (
     CDICase,
@@ -39,6 +40,14 @@ from app.icoder.agent_runtime.cdi import (
 )
 from app.middleware.auth import get_current_user
 from app.models.user import User
+from app.database import get_db
+from app.services.cdi_persistence import (
+    load_case as load_case_persisted,
+    orm_to_gap_dict,
+    orm_to_query_dict,
+    persist_case as persist_case_to_db,
+    update_query_lifecycle,
+)
 from app.services.cdi_query_lifecycle import (
     LifecycleState,
     compute_sla_due_at,
@@ -210,6 +219,7 @@ class SubscriptionResponse(BaseModel):
 async def run_cdi(
     body: CDIRunRequest,
     current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
 ) -> CDIRunResponse:
     """Run the CDI orchestrator against chart_excerpt.
 
@@ -220,6 +230,10 @@ async def run_cdi(
     runner. ``stub_runner`` is retained ONLY for unit tests. Each stage's
     run_id / trace_id / provider / model / latency / tokens are surfaced
     via ``stage_traces`` for audit evidence (PDF §A1 + §A2).
+
+    Phase 5 Track D P0 Gate 3 (2026-07-11): persists case + gaps + queries
+    atomically (PDF §A3). Idempotent on case_id. GET /runs/{case_id} now
+    reads back the persisted state instead of returning 501.
 
     Boundary: this endpoint does NOT call medical-coding tools.
     CDI produces clarification queries; coding happens in a separate
@@ -254,6 +268,32 @@ async def run_cdi(
     # loop. The runner is sync-by-contract (keeps the 18 Gate 3 unit
     # tests stable) but wraps async LLM calls via asyncio.run().
     case = await asyncio.to_thread(orchestrator.run, case)
+
+    # Gate 3: persist case + gaps + queries atomically (PDF §A3).
+    # Idempotent on case_id — existing rows short-circuit.
+    run_id_for_persist = (
+        case.stage_run_ids.get("specialist_trace_emit")
+        or case.stage_run_ids.get("encounter_synthesis")
+        or ""
+    )
+    trace_id_for_persist = (
+        case.stage_trace_ids.get("specialist_trace_emit")
+        or case.stage_trace_ids.get("encounter_synthesis")
+        or ""
+    )
+    try:
+        await persist_case_to_db(
+            db,
+            case,
+            organization_id=getattr(current_user, "organization_id", None),
+            created_by_user_id=current_user.id,
+            run_id=run_id_for_persist,
+            trace_id=trace_id_for_persist,
+        )
+    except Exception as e:
+        # Persistence failure is non-fatal — the run still produced
+        # results. Log + continue so the user sees their answer.
+        logger.warning("CDI case persistence failed (non-fatal): %s", e)
 
     gaps = [
         DocumentationGapSchema(
@@ -324,30 +364,49 @@ async def run_cdi(
 
 
 # ---------------------------------------------------------------------------
-# GET /runs/{case_id} — fetch case state (stub until DB wired)
+# GET /runs/{case_id} — fetch persisted case state (Gate 3 real read)
 # ---------------------------------------------------------------------------
 
 
 @router.get("/runs/{case_id}")
-async def get_case(case_id: str, current_user: User = Depends(get_current_user)) -> dict:
+async def get_case(
+    case_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
     """Fetch a CDI case by ID.
 
-    Gate 9 stub: returns 404 until DB persistence is wired in production.
-    Real implementation stores CDICaseModel rows per Gate 4 migration 011.
+    Phase 5 Track D P0 Gate 3 (2026-07-11): real read-back from the
+    ``cdi_cases`` table (PDF §A3 — closed loop). Returns 404 if the case
+    has never been persisted (e.g. an in-memory-only run from before
+    Gate 3, or a typo'd case_id).
     """
-
-    raise HTTPException(
-        status_code=501,
-        detail={
-            "error": "not_implemented",
-            "message": (
-                "GET /runs/{case_id} requires DB persistence wiring. "
-                "Gate 9 wires REST scaffolding; production DB persistence is "
-                "deferred to Gate 11+."
-            ),
-            "case_id": case_id,
-        },
-    )
+    case_model = await load_case_persisted(db, case_id)
+    if case_model is None:
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "error": "case_not_found",
+                "message": f"No persisted CDI case with id='{case_id}'",
+                "case_id": case_id,
+            },
+        )
+    gaps = [orm_to_gap_dict(g) for g in getattr(case_model, "gaps_", [])]
+    queries = [orm_to_query_dict(q) for q in getattr(case_model, "queries_", [])]
+    return {
+        "case_id": case_model.id,
+        "completion_state": case_model.completion_state,
+        "patient_ref": case_model.patient_ref,
+        "encounter_ref": case_model.encounter_ref,
+        "chart_excerpt_length": case_model.chart_excerpt_length,
+        "documentation_gaps": gaps,
+        "proposed_provider_queries": queries,
+        "run_id": case_model.run_id,
+        "trace_id": case_model.trace_id,
+        "agent_ref": case_model.agent_ref,
+        "created_at": case_model.created_at.isoformat() if case_model.created_at else None,
+        "closed_at": case_model.closed_at.isoformat() if case_model.closed_at else None,
+    }
 
 
 # ---------------------------------------------------------------------------

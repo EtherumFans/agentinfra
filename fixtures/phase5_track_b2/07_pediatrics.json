@@ -1,0 +1,52 @@
+{
+  "fixture_id": "07_pediatrics",
+  "tag": "SYNTHETIC_FIXTURE",
+  "department": "儿科",
+  "intended_agents": [
+    "medical-coding-agent",
+    "code-validation-agent",
+    "compliance-guardrail-agent",
+    "note-completeness-agent",
+    "procedure-extractor",
+    "evidence-extractor",
+    "principal-diagnosis-review",
+    "discharge-summary-structuring",
+    "drg-analyzer"
+  ],
+  "input_text": "患儿,男,5 岁,因「发热、咳嗽 5 天,气促 2 天」入院。5 天前受凉后出现发热,体温最高 39.2℃,伴阵发性连声咳嗽,咳黄粘痰,不易咳出。2 天前出现气促,呼吸 50 次/分,伴鼻翼煽动、三凹征阳性。在外院静脉点滴「头孢呋辛」3 天效果不佳。既往:足月剖宫产,出生体重 3200g。否认反复喘息史,否认先天性心脏病。按时接种疫苗。父母体健。查体:T 38.8℃,P 130 次/分,R 52 次/分,BP 90/60mmHg,SpO2 92%(室内空气)。神清,精神稍差,口周轻度发绀。咽充血,双肺呼吸音粗,双下肺可闻及固定中细湿啰音。血常规:WBC 15.6×10^9/L,N 75%,CRP 65 mg/L。胸片:双下肺斑片状渗出影。肺炎支原体抗体 IgM 1:160(阳性)。入院诊断:重症支原体肺炎;低氧血症。治疗计划:阿奇霉素抗感染;雾化吸入;对症支持。",
+  "structured_context": {
+    "age": 5,
+    "sex": "男",
+    "encounter_type": "inpatient",
+    "admission_type": "急诊",
+    "primary_complaint": "发热咳嗽 5 天,气促 2 天",
+    "los_days": 7
+  },
+  "known_facts": [
+    "支原体肺炎",
+    "肺炎支原体抗体 IgM 阳性",
+    "双下肺斑片状渗出",
+    "重症肺炎",
+    "低氧血症"
+  ],
+  "negated_facts": [
+    "否认反复喘息",
+    "否认先天性心脏病"
+  ],
+  "historical_facts": [
+    "足月剖宫产",
+    "按时接种疫苗"
+  ],
+  "missing_information": [],
+  "expected_risks": [
+    "mycoplasma_resistance_to_macrolide",
+    "pleural_effusion_progression",
+    "acute_respiratory_distress"
+  ],
+  "gold_codes": [
+    "J15.700",
+    "J18.900"
+  ],
+  "not_for_quality_scoring": false,
+  "notes": "Pediatric mycoplasma pneumonia; primary J15.700 (Mycoplasma pneumoniae pneumonia)."
+}

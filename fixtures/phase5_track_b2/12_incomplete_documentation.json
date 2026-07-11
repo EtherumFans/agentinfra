@@ -1,0 +1,51 @@
+{
+  "fixture_id": "12_incomplete_documentation",
+  "tag": "SYNTHETIC_FIXTURE",
+  "department": "内科",
+  "intended_agents": [
+    "medical-coding-agent",
+    "code-validation-agent",
+    "compliance-guardrail-agent",
+    "note-completeness-agent",
+    "procedure-extractor",
+    "evidence-extractor",
+    "principal-diagnosis-review",
+    "discharge-summary-structuring",
+    "drg-analyzer"
+  ],
+  "input_text": "患者,性别不详,年龄不详。因「腹部不适」入院。病程不详。查体未记录。辅助检查:腹部超声示「肝区回声增粗」。诊断:腹痛待查。治疗:对症处理。",
+  "structured_context": {
+    "age": null,
+    "sex": null,
+    "encounter_type": "inpatient",
+    "admission_type": "未知",
+    "primary_complaint": "腹部不适",
+    "los_days": null
+  },
+  "known_facts": [
+    "腹痛待查",
+    "腹部超声肝区回声增粗"
+  ],
+  "negated_facts": [],
+  "historical_facts": [],
+  "missing_information": [
+    "无主诉详细描述",
+    "无现病史",
+    "无体格检查记录",
+    "无生命体征",
+    "无既往史",
+    "无个人史",
+    "无家族史",
+    "无辅助检查完整结果",
+    "无最终诊断",
+    "无治疗计划细节"
+  ],
+  "expected_risks": [
+    "incomplete_documentation_blocks_coding",
+    "missing_age_sex_blocks_drg_grouping",
+    "missing_pe_blocks_clinical_validation"
+  ],
+  "gold_codes": [],
+  "not_for_quality_scoring": true,
+  "notes": "Missing-data stress test: 10+ critical fields missing. Agent should REJECT inference (not guess codes) and emit a documentation gap warning. Set not_for_quality_scoring=true because there are no gold codes to score against."
+}

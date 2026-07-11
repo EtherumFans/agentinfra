@@ -117,39 +117,61 @@ def _extract_json_dict(md: str, warnings: list[str]) -> dict | None:
 
 
 def _extract_note_completeness(md: str) -> tuple[dict, list[str]]:
-    """Note completeness: extract missing_fields + completeness_score."""
+    """Note completeness §7.6: required/present/missing/incomplete/conflicts."""
     warnings: list[str] = []
     result: dict[str, Any] = {}
 
     parsed = _extract_json_dict(md, warnings)
     if isinstance(parsed, dict):
-        for key in ("missing_fields", "completeness_score", "issues",
-                    "recommendations", "category_scores"):
+        # Preferred §7.6 contract keys.
+        for key in (
+            "required_sections", "present_sections", "missing_sections",
+            "incomplete_sections", "conflicts", "completeness_score",
+            "review_conclusion", "corrected_draft",
+        ):
             if key in parsed:
                 result[key] = parsed[key]
+        # Back-compat: older prompts emitted missing_fields/issues.
+        if "missing_fields" in parsed and "missing_sections" not in result:
+            result["missing_sections"] = parsed["missing_fields"]
+        if "issues" in parsed and "conflicts" not in result:
+            result["conflicts"] = parsed["issues"]
+        if "category_scores" in parsed:
+            result.setdefault("category_scores", parsed["category_scores"])
         if result:
             return result, warnings
 
     # Fallback 1: parse markdown tables. Match rows where status column
     # contains 缺失/missing. Row shape: `| **主诉** | **缺失** | ... |`.
     # Tolerates emoji prefixes like `❌ **缺失**` and `⚠️ **部分缺失**`.
+    # Note: incomplete_keywords checked FIRST because `部分缺失` contains `缺失`.
     missing_from_table: list[str] = []
-    missing_keywords = ("缺失", "missing", "未提供", "部分缺失")
+    incomplete_from_table: list[dict[str, str]] = []
+    incomplete_keywords = ("部分缺失", "部分存在", "不完整", "incomplete")
+    missing_keywords = ("缺失", "missing", "未提供")
     for row in re.findall(r"^\s*\|(.+)\|\s*$", md, re.MULTILINE):
         cells = [c.strip() for c in row.split("|")]
         if len(cells) < 2:
             continue
         status = cells[1].strip("* ").lower()
-        if any(kw.lower() in status for kw in missing_keywords):
-            label = cells[0].strip("* ").strip()
-            if label and label not in missing_from_table:
+        label = cells[0].strip("* ").strip()
+        if not label:
+            continue
+        if any(kw.lower() in status for kw in incomplete_keywords):
+            incomplete_from_table.append({
+                "section": label,
+                "deficit_note": cells[2].strip("* ").strip() if len(cells) > 2 else "",
+            })
+        elif any(kw.lower() in status for kw in missing_keywords):
+            if label not in missing_from_table:
                 missing_from_table.append(label)
     if missing_from_table:
-        result["missing_fields"] = missing_from_table
+        result["missing_sections"] = missing_from_table
+    if incomplete_from_table:
+        result["incomplete_sections"] = incomplete_from_table
 
     # Fallback 1b: dedicated "Missing Sections" row shape
-    # `| **Missing Sections** | 主诉, 现病史, ... |`
-    if "missing_fields" not in result:
+    if "missing_sections" not in result:
         m = re.search(
             r"\|\s*\*{0,2}\s*(?:Missing\s+Sections|缺失[章节字段]+)\s*\*{0,2}\s*\|([^|]+)\|",
             md, re.IGNORECASE,
@@ -158,17 +180,17 @@ def _extract_note_completeness(md: str) -> tuple[dict, list[str]]:
             items = [s.strip().strip("*").strip() for s in m.group(1).split(",")]
             items = [s for s in items if s]
             if items:
-                result["missing_fields"] = items
+                result["missing_sections"] = items
 
     # Fallback 2: bullet list under a Missing/缺失 section header.
-    if "missing_fields" not in result:
+    if "missing_sections" not in result:
         missing = re.findall(
             r"^\s*[-*]\s+(.+)$",
             _extract_section(md, ["Missing", "缺失", "缺失字段", "缺少"]) or "",
             re.MULTILINE,
         )
         if missing:
-            result["missing_fields"] = [m.strip() for m in missing if m.strip()]
+            result["missing_sections"] = [m.strip() for m in missing if m.strip()]
 
     # Score: try numeric patterns including `**2 / 8**` and `(completeness_score)`.
     score = _extract_score(
@@ -215,15 +237,41 @@ def _extract_compliance_guardrail(md: str) -> tuple[dict, list[str]]:
 
 
 def _extract_procedure_extractor(md: str) -> tuple[dict, list[str]]:
-    """Procedure: extract procedures[] + total_count."""
+    """Procedure: extract procedures[] + non_billable_mentions[] (Phase 5 Track C §7.3)."""
     warnings: list[str] = []
     result: dict[str, Any] = {}
 
     parsed = _extract_json_dict(md, warnings)
     if isinstance(parsed, dict):
-        for key in ("procedures", "total_count", "coded_procedures"):
+        for key in (
+            "procedures", "total_count", "coded_procedures",
+            "non_billable_mentions", "issues_found", "manual_review_required",
+        ):
             if key in parsed:
                 result[key] = parsed[key]
+        # Gate 2 §7.3 enforcement: filter procedures[] to status=performed only.
+        if "procedures" in result and isinstance(result["procedures"], list):
+            performed = []
+            moved: list[dict[str, Any]] = []
+            for proc in result["procedures"]:
+                if not isinstance(proc, dict):
+                    continue
+                status = proc.get("status", "performed")  # default performed (back-compat)
+                if status == "performed":
+                    performed.append(proc)
+                else:
+                    moved.append({
+                        "text": proc.get("display") or proc.get("text") or "",
+                        "status": status,
+                        "evidence_text": proc.get("evidence_text", ""),
+                        "char_span": proc.get("char_span"),
+                    })
+            result["procedures"] = performed
+            result.setdefault("non_billable_mentions", [])
+            result["non_billable_mentions"] = (
+                (result["non_billable_mentions"] or []) + moved
+            )
+            result["total_count"] = len(performed)
         if result:
             return result, warnings
 
@@ -241,14 +289,17 @@ def _extract_procedure_extractor(md: str) -> tuple[dict, list[str]]:
 
 
 def _extract_evidence_extractor(md: str) -> tuple[dict, list[str]]:
-    """Evidence: extract coded_evidence[] + overall_strength."""
+    """Evidence: extract supported/uncertain/rejected tiers (§7.1 + §7.4)."""
     warnings: list[str] = []
     result: dict[str, Any] = {}
 
     parsed = _extract_json_dict(md, warnings)
     if isinstance(parsed, dict):
-        for key in ("coded_evidence", "overall_strength", "evidence_items",
-                    "supported_codes", "unsupported_codes"):
+        for key in (
+            "supported_codes", "uncertain_candidates", "rejected_candidates",
+            "coded_evidence", "overall_strength", "evidence_items",
+            "uncoded_findings", "review_summary",
+        ):
             if key in parsed:
                 result[key] = parsed[key]
         if result:
@@ -261,14 +312,19 @@ def _extract_evidence_extractor(md: str) -> tuple[dict, list[str]]:
 
 
 def _extract_principal_dx(md: str) -> tuple[dict, list[str]]:
-    """Principal diagnosis: extract principal_dx + conflict + rationale."""
+    """Principal diagnosis: extract recommended + conflict + rationale (§7.5)."""
     warnings: list[str] = []
     result: dict[str, Any] = {}
 
     parsed = _extract_json_dict(md, warnings)
     if isinstance(parsed, dict):
-        for key in ("principal_dx", "principal_diagnosis", "conflict",
-                    "conflict_detected", "rationale", "alternatives"):
+        for key in (
+            "candidates", "recommended", "not_recommended",
+            "principal_dx", "principal_diagnosis",
+            "coding_draft_consistent", "conflict_reason", "conflict",
+            "conflict_detected", "manual_review_required",
+            "rationale", "alternatives", "manual_review_prompt",
+        ):
             if key in parsed:
                 result[key] = parsed[key]
         if result:

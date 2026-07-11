@@ -24,6 +24,7 @@ import AgentDetailPage from './pages/AgentDetailPage';
 import AgentChatPage from './pages/AgentChatPage';
 import MedicalCodingPage from './pages/MedicalCodingPage';
 import CodingComplianceWorkbenchPage from './pages/CodingComplianceWorkbenchPage';
+import CDIWorkbenchPage from './pages/CDIWorkbenchPage';
 import FactExtractionPage from './pages/FactExtractionPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import ToastContainer from './components/common/Toast';
@@ -87,6 +88,8 @@ function App() {
         <Route path="ai-studio/medical-coding" element={<MedicalCodingPage />} />
         {/* Phase 5 Track C Gate 5 — 7-stage coding compliance mainline workbench */}
         <Route path="ai-studio/coding-compliance" element={<CodingComplianceWorkbenchPage />} />
+        {/* Phase 5 Track D Gate 7 — CDI 3-pane workbench + Physician Response Panel */}
+        <Route path="ai-studio/cdi" element={<CDIWorkbenchPage />} />
 
         {/* V3.0 alias - /studio/* */}
         <Route path="studio" element={<AIStudioOverviewPage />} />

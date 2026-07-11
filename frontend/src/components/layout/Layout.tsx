@@ -14,7 +14,7 @@ import {
   KeyRound, Users, CreditCard, ChartNoAxesColumn, Settings,
   ArrowUpRight, Bell, BookOpen, RotateCcw,
   ChevronDown, Rocket, Layers, Folder, ChevronsUpDown, Database,
-  Bot, Users2, FileText, MessageSquare, ShieldCheck,
+  Bot, Users2, FileText, MessageSquare, ShieldCheck, ClipboardCheck,
 } from 'lucide-react';
 
 const PROJECT_SLUG = 'icoder-medical-coding';
@@ -63,6 +63,8 @@ export default function Layout() {
         { to: '/ai-studio/medical-coding', label: t.medicalCoding, icon: Asterisk },
         // Phase 5 Track C Gate 5 — 7-stage coding compliance mainline
         { to: '/ai-studio/coding-compliance', label: t.codingCompliance, icon: ShieldCheck },
+        // Phase 5 Track D Gate 7 — CDI Core Entry Agent workbench
+        { to: '/ai-studio/cdi', label: t.cdiWorkbench, icon: ClipboardCheck },
       ],
     },
     {

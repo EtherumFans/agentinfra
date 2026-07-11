@@ -111,6 +111,8 @@ class RuleEngineProvider:
 
     async def invoke(
         self, req: BackendRequest, ctx: AgentRunContext,
+        *,
+        request: Any = None,
     ) -> BackendResponse:
         """Run rule-based validation against ``req.input``.
 

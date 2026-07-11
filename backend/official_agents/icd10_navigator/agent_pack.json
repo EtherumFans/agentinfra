@@ -1,0 +1,52 @@
+{
+  "format_version": "1.2",
+  "agent_type": "certified",
+  "agent_ref": "icoder/icd10-navigator@1.0.0",
+  "manifest": {
+    "name": "ICD-10 索引导航智能体",
+    "version": "1.0.0",
+    "description": "从临床术语遍历 ICD-10 字母索引，为编码员审核提供候选编码。Corti ICD-10 Index Navigator Agent 的 iCoDer 对照版本。",
+    "category": "medical-coding",
+    "category_display": "Coding and Revenue Cycle / 编码与收入周期",
+    "icon": "Compass",
+    "tags": [
+      "corti-parity",
+      "metadata-only"
+    ],
+    "maturity": "metadata-only",
+    "production_ready": false,
+    "hidden_from_hub": false,
+    "use_case": "coding_revenue_cycle",
+    "human_review": "required"
+  },
+  "system_prompt": "",
+  "experts": [],
+  "tools": [],
+  "permissions": {
+    "key": "icd10-navigator",
+    "name": "ICD-10 索引导航智能体 权限",
+    "description": "从临床术语遍历 ICD-10 字母索引，为编码员审核提供候选编码。Corti ICD-10 Index Navigator Agent 的 iCoDer 对照版本。",
+    "no_upcoding": true,
+    "no_inference": true,
+    "evidence_required": true,
+    "production_writeback_blocked": true
+  },
+  "requirements": {
+    "min_runtime_version": "1.0.0",
+    "icoder_runtime_modules": []
+  },
+  "non_goals": [
+    "不替代编码员 / 临床医生最终决策",
+    "不自动写回 EMR/HIS"
+  ],
+  "human_review_required_when": [
+    "All outputs require human review (metadata-only pack, no executable wiring yet)"
+  ],
+  "metadata": {
+    "created_at": "2026-07-11",
+    "author": "iCoDer",
+    "corti_match": "icd-10-index-navigator-agent",
+    "audit_note": "Created during Phase 5 Track B GAP-13-02 fix (2026-07-11). Metadata-only stub for Corti parity inventory. Wiring deferred to Phase 5 Track B-2."
+  },
+  "built_by": "icoder"
+}

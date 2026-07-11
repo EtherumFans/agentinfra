@@ -25,6 +25,13 @@ from app.models.template import (
     Template, TemplateCategory, TemplateLanguage, TemplateScope,
 )
 from app.models.ticket import Ticket, TicketStatus, TicketPriority
+from app.models.cdi_case import (
+    CDICaseModel,
+    DocumentationGapModel,
+    ProviderQueryModel,
+    ClinicianResponseModel,
+    DocumentVersionModel,
+)
 
 __all__ = [
     "TimestampMixin",
@@ -51,4 +58,6 @@ __all__ = [
     "RunHistoryModel",
     "Template", "TemplateCategory", "TemplateLanguage", "TemplateScope",
     "Ticket", "TicketStatus", "TicketPriority",
+    "CDICaseModel", "DocumentationGapModel", "ProviderQueryModel",
+    "ClinicianResponseModel", "DocumentVersionModel",
 ]

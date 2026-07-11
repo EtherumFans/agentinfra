@@ -83,6 +83,15 @@ from .necessity_semantic import (  # noqa: F401
     SemanticNecessityResult,
     review_necessity,
 )
+from .cdi_expert_router import (  # noqa: F401
+    ExpertExecutionMode,
+    ExpertId,
+    ExpertRouteDecision,
+    ExpertRouteResult,
+    RouteReason,
+    route_experts,
+    should_invoke,
+)
 
 __all__ = [
     # domain
@@ -148,4 +157,12 @@ __all__ = [
     # semantic necessity reviewer (Phase 5 Track D P0.5 Gate 4)
     "SemanticNecessityResult",
     "review_necessity",
+    # expert router (Phase 5 Track D P0.5 Gate 5)
+    "ExpertExecutionMode",
+    "ExpertId",
+    "ExpertRouteDecision",
+    "ExpertRouteResult",
+    "RouteReason",
+    "route_experts",
+    "should_invoke",
 ]

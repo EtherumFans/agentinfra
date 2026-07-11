@@ -52,7 +52,7 @@ import uuid
 from dataclasses import dataclass, field
 from typing import Any
 
-from .domain import CDICase
+from .domain import CDICase, SpecialistTraceEntry
 
 logger = logging.getLogger(__name__)
 
@@ -234,6 +234,13 @@ class RealCDIRunner:
     invoke_experts: bool = True
     # Captured per-stage trace metadata
     stage_traces: dict[str, StageTrace] = field(default_factory=dict)
+    # Captured per-expert trace metadata (within expert_consultation)
+    expert_traces: list[StageTrace] = field(default_factory=list)
+    # Phase 5 Track D P0.5 Gate 5 — per-case Expert route decisions
+    # captured by the most recent expert_consultation stage call. The
+    # orchestrator reads this after stage 3 finishes so specialist_trace
+    # entries include route_decision/route_reason/execution_mode.
+    last_route_result: Any = None
     # Captured per-expert trace metadata (inside expert_consultation)
     expert_traces: list[StageTrace] = field(default_factory=list)
 
@@ -323,19 +330,27 @@ class RealCDIRunner:
         )
 
     async def _stage_expert_consultation(self, case: CDICase) -> dict[str, Any]:
-        """Invoke the 4 CDI Experts and aggregate their responses.
+        """Invoke the 4 CDI Experts conditionally per Master Task §6.
 
-        Each Expert is called via the LLM (systemPrompt + chart context).
-        We use ``llm_service.chat()`` directly here rather than
-        ``ExpertRunner`` to avoid the DB dependency on the Expert model —
-        the CDI Experts are declared in the agent pack, not the DB.
+        Phase 5 Track D P0.5 Gate 5 — the router (``route_experts``)
+        decides per-Expert whether to invoke, skip, or mark unavailable.
+        Only ``REAL_TOOL`` and ``LLM_KNOWLEDGE_ONLY`` modes trigger an
+        actual LLM call; the others are recorded in the trace without
+        spending tokens.
 
-        The aggregation becomes the ``specialist_trace`` payload: each
-        Expert is recorded as a SpecialistTraceEntry with accepted /
-        rejected / rationale fields populated from the LLM response.
+        The aggregation populates ``case.specialist_trace`` (in addition
+        to the existing ``expert_responses`` payload) so the API layer
+        can show route_decision / execution_mode / latency per Expert.
         """
+        from .cdi_expert_router import route_experts, should_invoke
+
         if not self.invoke_experts:
             return {"expert_responses": [], "run_id": "", "trace_id": ""}
+
+        # Route first — pure logic, no LLM. Stash for the orchestrator's
+        # specialist_trace_emit stage to read.
+        route_result = route_experts(case)
+        self.last_route_result = route_result
 
         experts = [
             ("coding-expert",
@@ -345,7 +360,9 @@ class RealCDIRunner:
             ("pubmed-expert",
              "You are a PubMed literature Expert. Given the chart and "
              "gaps, advise whether literature evidence supports a "
-             "specific clinical correlation. Cite PMID when relevant."),
+             "specific clinical correlation. Cite PMID when relevant. "
+             "If you do not have real PubMed search access, say so "
+             "explicitly rather than fabricating citations."),
             ("web-search-expert",
              "You are a clinical web-search Expert. Flag whether external "
              "clinical guidance is needed. Do NOT assert patient facts "
@@ -353,8 +370,10 @@ class RealCDIRunner:
             ("medical-calculator-expert",
              "You are a medical-calculator Expert. Identify whether any "
              "clinical scores or calculations are needed (e.g. BMI, "
-             "creatinine clearance). Do NOT compute without parameters."),
+             "creatinine clearance). Do NOT compute without parameters "
+             "and do NOT estimate scores via general LLM knowledge."),
         ]
+        expert_dict = dict(experts)
 
         gap_summary = ""
         if case.documentation_gaps:
@@ -364,11 +383,12 @@ class RealCDIRunner:
             gap_summary += "\n"
 
         expert_responses: list[dict[str, Any]] = []
-        for expert_id, system_prompt in experts:
-            user_prompt = (
-                f"{gap_summary}Chart:\n{case.chart_excerpt[:1500]}\n\n"
-                f"Respond in 2-3 sentences with your specialist advice."
-            )
+        # Clear stale entries from any prior run on this runner instance.
+        case.specialist_trace = []
+
+        for decision in route_result.decisions:
+            expert_id = decision.expert_id
+            system_prompt = expert_dict[expert_id]
             trace = StageTrace(
                 stage="expert_consultation",
                 provider=_PROVIDER_NAME,
@@ -377,40 +397,84 @@ class RealCDIRunner:
                 trace_id=f"trace-{uuid.uuid4().hex[:12]}",
                 expert_id=expert_id,
             )
+
+            invoked = should_invoke(decision)
+            content = ""
+            error_reason = ""
             t0 = time.perf_counter()
-            try:
-                response = await self.llm.chat(
-                    messages=[{"role": "user", "content": user_prompt}],
-                    system_prompt=system_prompt,
-                    temperature=0.1,
+
+            if invoked:
+                user_prompt = (
+                    f"{gap_summary}Chart:\n{case.chart_excerpt[:1500]}\n\n"
+                    f"Respond in 2-3 sentences with your specialist advice."
                 )
-                content = response.get("content", "") if isinstance(response, dict) else ""
-                usage = response.get("usage", {}) if isinstance(response, dict) else {}
-                trace.prompt_tokens = int(usage.get("prompt_tokens", 0))
-                trace.completion_tokens = int(usage.get("completion_tokens", 0))
-                trace.total_tokens = int(usage.get("total_tokens", 0))
-                expert_responses.append({
-                    "expert_id": expert_id,
-                    "consulted": True,
-                    "response": content,
-                })
-            except Exception as e:
-                trace.degraded = True
-                trace.error_reason = str(e)[:200]
-                logger.warning(
-                    "CDI expert_consultation %s failed (degraded): %s",
-                    expert_id, e,
-                )
-                expert_responses.append({
-                    "expert_id": expert_id,
-                    "consulted": False,
-                    "error": str(e)[:200],
-                })
+                try:
+                    response = await self.llm.chat(
+                        messages=[{"role": "user", "content": user_prompt}],
+                        system_prompt=system_prompt,
+                        temperature=0.1,
+                    )
+                    content = response.get("content", "") if isinstance(response, dict) else ""
+                    usage = response.get("usage", {}) if isinstance(response, dict) else {}
+                    trace.prompt_tokens = int(usage.get("prompt_tokens", 0))
+                    trace.completion_tokens = int(usage.get("completion_tokens", 0))
+                    trace.total_tokens = int(usage.get("total_tokens", 0))
+                except Exception as e:
+                    trace.degraded = True
+                    trace.error_reason = str(e)[:200]
+                    error_reason = str(e)[:200]
+                    # On LLM failure we mark this Expert DEGRADED (not
+                    # the original execution_mode) so the audit trail
+                    # reflects the actual outcome.
+                    decision.execution_mode = "DEGRADED"
+                    logger.warning(
+                        "CDI expert_consultation %s failed (degraded): %s",
+                        expert_id, e,
+                    )
+            else:
+                # SKIPPED_NOT_NEEDED / SKIPPED_MISSING_INPUTS / TOOL_UNAVAILABLE
+                # No LLM call — leave tokens/latency at 0.
+                pass
+
             trace.latency_ms = int((time.perf_counter() - t0) * 1000)
             self.expert_traces.append(trace)
 
+            # Per Master Task §6.5 Specialist Trace schema.
+            entry = SpecialistTraceEntry(
+                expert_id=expert_id,
+                consulted=invoked and not trace.degraded,
+                requested=system_prompt.split(". ")[0][:120],
+                rationale=content or error_reason or decision.expected_value,
+                route_decision=_route_decision_label(decision),
+                route_reason=decision.reason,
+                execution_mode=decision.execution_mode,
+                latency_ms=trace.latency_ms,
+                tokens=trace.total_tokens,
+                run_id=trace.run_id,
+                trace_id=trace.trace_id,
+            )
+            case.specialist_trace.append(entry)
+
+            expert_responses.append({
+                "expert_id": expert_id,
+                "consulted": invoked and not trace.degraded,
+                "execution_mode": decision.execution_mode,
+                "route_reason": decision.reason,
+                "response": content,
+                "error": error_reason,
+            })
+
         return {
             "expert_responses": expert_responses,
+            "route_decisions": [
+                {
+                    "expert_id": d.expert_id,
+                    "needed": d.needed,
+                    "reason": d.reason,
+                    "execution_mode": d.execution_mode,
+                }
+                for d in route_result.decisions
+            ],
             "run_id": f"run-{uuid.uuid4().hex[:12]}",
             "trace_id": f"trace-{uuid.uuid4().hex[:12]}",
         }
@@ -507,6 +571,22 @@ class RealCDIRunner:
                 "degraded": True,
                 "error_reason": trace.error_reason,
             }
+
+
+def _route_decision_label(decision: Any) -> str:
+    """Compress ``ExpertRouteDecision`` into a short front-end label."""
+    mode = decision.execution_mode
+    if mode == "SKIPPED_NOT_NEEDED":
+        return "not_needed"
+    if mode == "SKIPPED_MISSING_INPUTS":
+        return "missing_inputs"
+    if mode == "TOOL_UNAVAILABLE":
+        return "tool_unavailable"
+    if mode == "DEGRADED":
+        return "degraded"
+    if not decision.needed:
+        return "not_needed"
+    return "needed"
 
 
 __all__ = ["RealCDIRunner", "StageTrace"]

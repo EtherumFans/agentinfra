@@ -320,12 +320,12 @@ def test_nlq_001_mid_sentence_can_confirm_now_blocks() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_compliant_query_passes_all_10_rules() -> None:
+def test_compliant_query_passes_all_11_rules() -> None:
     result = evaluate_nlq(COMPLIANT_QUERY)
     assert isinstance(result, NLQGateResult)
     assert result.verdict == "PASS"
-    assert result.rules_evaluated == 10
-    assert result.rules_passed == 10
+    assert result.rules_evaluated == 11
+    assert result.rules_passed == 11
     assert len(result.rules_failed) == 0
     assert result.block_reasons == []
 

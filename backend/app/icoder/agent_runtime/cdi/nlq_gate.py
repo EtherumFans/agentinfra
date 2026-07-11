@@ -15,7 +15,7 @@ The gate is invoked by the CDI Orchestrator after a Provider Query is
 generated. If any rule returns ``action='BLOCK'``, the query cannot
 leave ``DRAFT`` state.
 
-Rule list (PDF §8.3 + Phase 5 Track D P0 Gate 4):
+Rule list (PDF §8.3 + Phase 5 Track D P0 Gate 4 + P0.5 Gate 3):
     NLQ-001  no_yes_no_opening          (lexical, regex — anchor removed)
     NLQ-002  no_diagnosis_presumption   (semantic, see nlq_semantic.py)
     NLQ-003  response_options_required  (structural)
@@ -26,6 +26,7 @@ Rule list (PDF §8.3 + Phase 5 Track D P0 Gate 4):
     NLQ-008  no_single_diagnosis_suggested       (semantic)
     NLQ-009  no_payment_terms           (lexical, keyword list)
     NLQ-010  no_coding_codes_in_options (structural, ICD/DRG/CMI patterns)
+    NLQ-011  max_five_response_options  (structural, PDF §3.2 R7 ceiling)
 
 This module is dependency-free (only stdlib + dataclasses) so it can be
 unit-tested without a running runtime.
@@ -335,6 +336,30 @@ def _rule_nlq_010(query: ProviderQueryForGate) -> RuleResult:
     )
 
 
+# Phase 5 Track D P0.5 Gate 3: structural rule for option count upper bound.
+_MAX_RESPONSE_OPTIONS = 5
+
+
+def _rule_nlq_011(query: ProviderQueryForGate) -> RuleResult:
+    """PDF §3.2 R7: response_options must be ≤ 5 (option taxonomy ceiling).
+
+    The lower bound (NLQ-004 ≥3) already exists. This rule caps the
+    upper bound to prevent option-list bloat. A 6+ option query forces
+    the clinician to scan too many choices, defeating the response_options
+    taxonomy's purpose (fast single-axis selection).
+    """
+    n = len(query.response_options) if query.response_options else 0
+    passed = n <= _MAX_RESPONSE_OPTIONS
+    return RuleResult(
+        rule_id="NLQ-011",
+        name="max_five_response_options",
+        description=f"response_options 不得超过 {_MAX_RESPONSE_OPTIONS} 个 (PDF §3.2 R7)",
+        passed=passed,
+        evidence=f"response_options count={n} (cap={_MAX_RESPONSE_OPTIONS})",
+        action="PASS" if passed else "BLOCK",
+    )
+
+
 _RULES = [
     _rule_nlq_001,
     _rule_nlq_002,
@@ -346,6 +371,7 @@ _RULES = [
     _rule_nlq_008,
     _rule_nlq_009,
     _rule_nlq_010,
+    _rule_nlq_011,
 ]
 
 
@@ -355,7 +381,7 @@ _RULES = [
 
 
 def evaluate(query: ProviderQueryForGate) -> NLQGateResult:
-    """Run all 9 NLQ rules on ``query`` and return the aggregate verdict."""
+    """Run all 11 NLQ rules on ``query`` and return the aggregate verdict."""
 
     results = [rule(query) for rule in _RULES]
     failed = [r for r in results if r.action == "BLOCK"]

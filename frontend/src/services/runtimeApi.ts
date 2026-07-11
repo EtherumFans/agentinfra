@@ -335,11 +335,12 @@ export const runtimeAgentApi = {
     api.get<RunTraceResponse>(`/runs/${encodeURIComponent(runId)}/trace`).then(r => r.data),
 
   // Phase 4-G #3: RunHistory list — recent run summaries for the dropdown.
-  // GET /api/runtime/runs/history?agent_id=X&limit=50 → {items, total}
-  getRunHistory: (agentId = '', limit = 50) =>
+  // Phase 5 A6: optional `days` param filters by created_at >= now - days.
+  // GET /api/runtime/runs/history?agent_id=X&limit=50&days=30 → {items, total}
+  getRunHistory: (agentId = '', limit = 50, days = 0) =>
     api.get<{ items: any[]; total: number }>(
       '/runs/history',
-      { params: agentId ? { agent_id: agentId, limit } : { limit } },
+      { params: { agent_id: agentId, limit, ...(days > 0 ? { days } : {}) } },
     ).then(r => r.data),
 
   // ── Observability ──

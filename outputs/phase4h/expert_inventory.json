@@ -1,0 +1,178 @@
+{
+  "audit": {
+    "captured_at": "2026-07-10T07:12:00Z",
+    "source_url": "https://api.eu.corti.app/agents/registry/experts",
+    "method": "GET (observed via Playwright network_requests)",
+    "auth_required": true (Bearer token from Supabase session),
+    "endpoint_type": "runtime API (api.eu.corti.app, region-prefixed)",
+    "content_type": "application/json",
+    "total_experts": 13
+  },
+  "experts": [
+    {
+      "name": "coding-expert-icd-10-cm",
+      "displayName": "Medical Coding Expert (ICD-10-CM)",
+      "displayDescription": "Assign ICD-10-CM diagnosis codes (US standard) from clinical notes.",
+      "description": "Identify diagnosis codes relevant to the admission even from incomplete data",
+      "mcpServers": [],
+      "configSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "verify": {"type":"object","properties":{"code_system":{"default":"icd-10-cm","description":"Code system to use for verification","type":"string"}}},
+          "guidelines": {"type":"object","properties":{"code_system":{"default":"icd-10-cm","description":"Code system to use for guidelines","type":"string"}}},
+          "predict": {"type":"object","properties":{"code_system":{"default":"icd-10-cm","description":"Code system to use for predictions","type":"string"}}},
+          "search": {"type":"object","properties":{"code_system":{"default":"icd-10-cm","description":"Code system to use for search","type":"string"}}},
+          "explore": {"type":"object","properties":{"code_system":{"default":"icd-10-cm","description":"Code system to use for exploration","type":"string"}}}
+        }
+      },
+      "capabilities": ["verify","guidelines","predict","search","explore"],
+      "default_code_system": "icd-10-cm",
+      "public_doc_url": "https://www.corti.ai/experts/coding-expert-icd-10-cm"
+    },
+    {
+      "name": "coding-expert-icd-10-pcs",
+      "displayName": "Medical Coding Expert (ICD-10-PCS)",
+      "displayDescription": "Assign ICD-10-PCS inpatient procedure codes (US standard) from clinical notes.",
+      "description": "Identify diagnosis codes relevant to the admission even from incomplete data",
+      "mcpServers": [],
+      "configSchema": "same shape as ICD-10-CM, default code_system=icd-10-pcs",
+      "capabilities": ["verify","guidelines","predict","search","explore"],
+      "default_code_system": "icd-10-pcs",
+      "public_doc_url": "https://www.corti.ai/experts/coding-expert-icd-10-pcs"
+    },
+    {
+      "name": "coding-expert-icd-10-int",
+      "displayName": "Medical Coding Expert (ICD-10 WHO)",
+      "displayDescription": "Assign ICD-10-WHO international diagnosis codes from clinical notes.",
+      "description": "Identify diagnosis codes relevant to the admission even from incomplete data",
+      "mcpServers": [],
+      "configSchema": "same shape, default code_system=icd-10-who (predict uses icd-10-int)",
+      "default_code_system": "icd-10-who",
+      "public_doc_url": "https://www.corti.ai/experts/coding-expert-icd-10-int"
+    },
+    {
+      "name": "coding-expert-icd-10-uk",
+      "displayName": "Medical Coding Expert (ICD-10 UK)",
+      "displayDescription": "Assign ICD-10-UK diagnosis codes (UK standard) from clinical notes.",
+      "description": "Identify diagnosis codes relevant to the admission even from incomplete data",
+      "mcpServers": [],
+      "configSchema": "same shape, default code_system=icd-10-uk",
+      "default_code_system": "icd-10-uk",
+      "public_doc_url": "https://www.corti.ai/experts/coding-expert-icd-10-uk"
+    },
+    {
+      "name": "memory-expert",
+      "displayName": "Memory",
+      "displayDescription": "Recall facts, preferences, and context from previous conversations.",
+      "description": "Searches stored conversational memory (previously memorized facts, preferences, and earlier context) and returns the relevant excerpts. This is the ONLY way to access stored memory: nothing from memory is pre-loaded into your context, so you must call this expert whenever stored memory could matter. Send the user's question and high-level objective as the 'text' parameter.\n\n1. Call this expert when the user's request is likely to depend on prior conversation context, stored facts, preferences, or earlier decisions — for example when the user refers to something said before, or asks you to remember or recall information. For clearly independent questions that do not rely on prior context or stored data, answer directly without it.\n2. Do not provide new raw facts. Only provide high-level objectives and the user's question, so it can retrieve and validate relevant facts itself.\n3. Prefer this expert over searching data parts directly when the information would live in stored memory rather than in the data parts attached to the current turn.",
+      "mcpServers": [],
+      "configSchema": null,
+      "public_doc_url": "https://www.corti.ai/experts/memory-expert"
+    },
+    {
+      "name": "posos-expert",
+      "displayName": "POSOS",
+      "displayDescription": "Get medication guidance including dosing, interactions, contraindications, and prescribing considerations from POSOS.",
+      "description": "Primary source of truth for medication intelligence and prescription decision support, backed by POSOS (medication database + clinical decision platform). This expert should be invoked early and frequently to ground synthesis in structured, patient-contextualized medication guidance (e.g., indication, patient profile, current meds, and alert prioritization) and to reduce alert fatigue by focusing on clinically relevant signals.\n\nThis expert is not limited to direct medication questions. It should also be used to fact-check, validate, or anchor broader reasoning, explanations, comparisons, or summaries that rely on pharmacology, dosing, contraindications, interactions, organ impairment considerations, pregnancy/lactation considerations, or patient-safety-critical prescribing assumptions. When in doubt, prefer invoking this expert to ensure outputs are grounded in POSOS-backed structured content rather than inferred knowledge.\n\nThe expert retrieves structured medication and CDSS content including medication database entities, interaction/contraindication signals, patient-specific prescribing considerations, and interoperability-friendly structured outputs (e.g., SNOMED/FHIR-aligned concepts where available), with clear traceability to POSOS entities suitable for clinician-facing and EHR-embedded decision support use.",
+      "mcpServers": [{"name":"posos","authorizationType":"oauth2.0"}],
+      "configSchema": null,
+      "public_doc_url": "https://www.corti.ai/experts/posos-expert"
+    },
+    {
+      "name": "clinical-trials-expert",
+      "displayName": "Clinical Trials",
+      "displayDescription": "Search for clinical trials, study protocols, eligibility criteria, and recruitment status.",
+      "description": "Use this agent when you need to search for clinical trials, find relevant studies for specific medical conditions, or retrieve detailed information about clinical trial protocols including eligibility criteria and recruitment status.",
+      "mcpServers": [],
+      "configSchema": null,
+      "public_doc_url": "https://www.corti.ai/experts/clinical-trials-expert"
+    },
+    {
+      "name": "drugbank-expert",
+      "displayName": "DrugBank",
+      "displayDescription": "Look up detailed drug information, medication profiles, and drug-drug interactions from DrugBank.",
+      "description": "Use this expert to retrieve structured drug information from the DrugBank API. It is suited for product concepts, product details, drug profiles, and interaction lookups. The expert returns source-grounded results without speculation.",
+      "mcpServers": [{"name":"drugbank","authorizationType":"bearer"}],
+      "configSchema": null,
+      "public_doc_url": "https://www.corti.ai/experts/drugbank-expert"
+    },
+    {
+      "name": "pubmed-expert",
+      "displayName": "PubMed",
+      "displayDescription": "Search PubMed for scientific articles, abstracts, and citations from biomedical literature.",
+      "description": "Use this expert to retrieve PubMed citations, abstracts, and related-article results via NCBI Entrez E-utilities. It is suited for literature searches, author searches, and fetching abstracts with formatted summaries. The expert returns source-grounded results without speculation.",
+      "mcpServers": [],
+      "configSchema": null,
+      "public_doc_url": "https://www.corti.ai/experts/pubmed-expert"
+    },
+    {
+      "name": "web-search-expert",
+      "displayName": "Web Search",
+      "displayDescription": "Search the web and retrieve up-to-date information from online sources.",
+      "description": "Use this agent when you need to search the web, read specific URLs, or gather up-to-date external information. It finds relevant online sources, extracts their content, and returns concise, evidence-based summaries.",
+      "mcpServers": [],
+      "configSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "search": {
+            "type": "object",
+            "properties": {
+              "include_domains": {"type":"array","items":{"type":"string"},"default":[],"description":"Only return results from these domains"},
+              "exclude_domains": {"type":"array","items":{"type":"string"},"default":[],"description":"Exclude results from these domains"},
+              "max_results": {"type":"integer","default":10,"description":"Maximum number of search results"},
+              "search_depth": {"type":"string","enum":["basic","advanced"],"default":"basic","description":"Search depth: basic is faster, advanced is more thorough"}
+            }
+          }
+        }
+      },
+      "public_doc_url": "https://www.corti.ai/experts/web-search-expert"
+    },
+    {
+      "name": "medical-calculator-expert",
+      "displayName": "Medical Calculator",
+      "displayDescription": "Perform clinical calculations such as BMI, HbA1c, glucose conversions, and other medical formulas.",
+      "description": "Performs clinical and physiological calculations such as BMI, HbA1c conversions, glucose conversions, and related metrics. Use this expert whenever medical formula computations are required. It performs the requested calculations and returns clear, concise results for display or further reasoning.",
+      "mcpServers": [],
+      "configSchema": null,
+      "public_doc_url": "https://www.corti.ai/experts/medical-calculator-expert"
+    },
+    {
+      "name": "coding-expert",
+      "displayName": "Medical Coding Expert (General)",
+      "displayDescription": "Assign medical diagnosis and procedure codes from clinical notes using AI-assisted coding.",
+      "description": "Identify diagnosis codes relevant to the admission even from incomplete data",
+      "mcpServers": [],
+      "configSchema": null,
+      "public_doc_url": "https://www.corti.ai/experts/coding-expert"
+    },
+    {
+      "name": "interviewing-expert",
+      "displayName": "Interviewing",
+      "displayDescription": "Guide users through structured questionnaires and clinical interviews step by step.",
+      "description": "Manages questionnaire-style interviews with the user. Use this expert whenever the user is answering or progressing through a questionnaire. Always pass the questionnaire data_part (and its ID) when available, so it can follow the correct structure and logic. When calling this tool, set the \"text\" argument to the raw content of what the user just said or answered, with no extra commentary, prompts, or instructions.",
+      "mcpServers": [],
+      "configSchema": null,
+      "public_doc_url": "https://www.corti.ai/experts/interviewing-expert"
+    }
+  ],
+  "agent_run_observed": {
+    "agent_id": "c731e909-d55a-4b86-bbbe-30f3c9e984f0",
+    "agent_name": "PHASE4H-AUDIT-MC",
+    "preset_source": "medical-coding-icd-10-cpt-agent",
+    "experts_attached": [
+      {"name":"pubmed-expert","type":"reference"},
+      {"name":"web-search-expert","type":"reference"},
+      {"name":"medical-calculator-expert","type":"reference"},
+      {"name":"coding-expert","type":"reference"}
+    ],
+    "test_prompt": "Code this: \"Patient diagnosed with acute appendicitis, underwent laparoscopic appendectomy.\"",
+    "completion_latency_observed": "~10 seconds",
+    "credits_consumed": "$0.020060",
+    "output_summary": "K35.80 (Acute appendicitis without perforation or gangrene) + 44970 (Laparoscopy, surgical, appendectomy); 1 ICD-10-CM + 1 CPT/HCPCS; Documentation quality: Insufficient; Compliance confidence: Medium",
+    "experts_visible_in_chat_ui": [],
+    "trace_visible_in_agent_detail_page": false,
+    "trace_endpoint_observed": "api.eu.corti.app/agents/registry/experts (registry only; no per-run trace endpoint observed in agent detail page UI)"
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "agent_id": "procedure-extractor",
+  "run_id": "run-123786c8-8c96-447a-9779-5dfade9f6c07",
+  "trace_id": "trace-65cb2c60e7dd4438",
+  "runtime_mode": "corti_like_fast",
+  "latency_ms": 7803,
+  "cost": {
+    "amount": 0.000228,
+    "currency": "CNY"
+  },
+  "summary": "```json",
+  "result": {
+    "status": "warning",
+    "markdown": "```json\n{\n  \"procedures\": [\n    {\n      \"code\": \"74.1x00\",\n      \"display\": \"子宫下段剖宫产术\",\n      \"evidence_text\": \"急诊行子宫下段剖宫产术\",\n      \"char_span\": [130, 143],\n      \"confidence\": 0.95,\n      \"warnings\": []\n    },\n    {\n      \"code\": \"75.6900\",\n      \"display\": \"子宫缝合术（B-Lynch缝合）\",\n      \"evidence_text\": \"B-Lynch 缝合\",\n      \"char_span\": [215, 226],\n      \"confidence\": 0.90,\n      \"warnings\": [\"B-Lynch缝合为子宫压迫缝合术，编码75.6900为子宫缝合术，需确认是否更精确匹配\"]\n    },\n    {\n      \"code\": \"75.8x00\",\n      \"display\": \"子宫填塞（宫腔球囊压迫）\",\n      \"evidence_text\": \"宫腔球囊压迫\",\n      \"char_span\": [228, 234],\n      \"confidence\": 0.85,\n      \"warnings\": [\"宫腔球囊压迫止血，编码75.8x00为子宫填塞，需确认是否更精确\"]\n    },\n    {\n      \"code\": \"99.0400\",\n      \"display\": \"输红细胞悬液\",\n      \"evidence_text\": \"输红细胞悬液 2U\",\n      \"char_span\": [262, 271],\n      \"confidence\": 0.92,\n      \"warnings\": []\n    },\n    {\n      \"code\": \"99.0700\",\n      \"display\": \"输血浆\",\n      \"evidence_text\": \"血浆 400mL\",\n      \"char_span\": [277, 285],\n      \"confidence\": 0.92,\n      \"warnings\": []\n    }\n  ],\n  \"issues_found\": [\n    \"手术记录中未明确描述缩宫素、卡前列素氨丁三醇的给药方式（静脉/肌注），但作为药物治疗，通常不单独编码手术操作\",\n    \"B-Lynch缝合与宫腔球囊压迫均为止血操作，可能存在编码重复或主次不清，需确认主手术为剖宫产，其余为附加操作\",\n    \"产后出血诊断与手术操作一致，无冲突\"\n  ],\n  \"manual_review_required\": true\n}\n```",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.pure-llm.v1",
+    "backend_type": "pure_llm",
+    "raw_provider_response": {
+      "content": "```json\n{\n  \"procedures\": [\n    {\n      \"code\": \"74.1x00\",\n      \"display\": \"子宫下段剖宫产术\",\n      \"evidence_text\": \"急诊行子宫下段剖宫产术\",\n      \"char_span\": [130, 143],\n      \"confidence\": 0.95,\n      \"warnings\": []\n    },\n    {\n      \"code\": \"75.6900\",\n      \"display\": \"子宫缝合术（B-Lynch缝合）\",\n      \"evidence_text\": \"B-Lynch 缝合\",\n      \"char_span\": [215, 226],\n      \"confidence\": 0.90,\n      \"warnings\": [\"B-Lynch缝合为子宫压迫缝合术，编码75.6900为子宫缝合术，需确认是否更精确匹配\"]\n    },\n    {\n      \"code\": \"75.8x00\",\n      \"display\": \"子宫填塞（宫腔球囊压迫）\",\n      \"evidence_text\": \"宫腔球囊压迫\",\n      \"char_span\": [228, 234],\n      \"confidence\": 0.85,\n      \"warnings\": [\"宫腔球囊压迫止血，编码75.8x00为子宫填塞，需确认是否更精确\"]\n    },\n    {\n      \"code\": \"99.0400\",\n      \"display\": \"输红细胞悬液\",\n      \"evidence_text\": \"输红细胞悬液 2U\",\n      \"char_span\": [262, 271],\n      \"confidence\": 0.92,\n      \"warnings\": []\n    },\n    {\n      \"code\": \"99.0700\",\n      \"display\": \"输血浆\",\n      \"evidence_text\": \"血浆 400mL\",\n      \"char_span\": [277, 285],\n      \"confidence\": 0.92,\n      \"warnings\": []\n    }\n  ],\n  \"issues_found\": [\n    \"手术记录中未明确描述缩宫素、卡前列素氨丁三醇的给药方式（静脉/肌注），但作为药物治疗，通常不单独编码手术操作\",\n    \"B-Lynch缝合与宫腔球囊压迫均为止血操作，可能存在编码重复或主次不清，需确认主手术为剖宫产，其余为附加操作\",\n    \"产后出血诊断与手术操作一致，无冲突\"\n  ],\n  \"manual_review_required\": true\n}\n```",
+      "model": "deepseek-v4-flash",
+      "usage": {
+        "input_tokens": 606,
+        "output_tokens": 510
+      },
+      "cost_usd": 0.000228,
+      "latency_ms": 7803
+    }
+  },
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": false,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 7803,
+      "metadata": {
+        "agent_id": "procedure-extractor",
+        "runtime_mode": "corti_like_fast",
+        "latency_ms": 7803
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_client_wall_ms": 17931,
+  "_fixture": "fixtures/phase5_track_b2/06_obstetrics.json",
+  "_agent": "procedure-extractor",
+  "_tag": "06_obstetrics",
+  "_ts": "2026-07-11T14:11:13"
+}

@@ -159,7 +159,14 @@ def test_real_runner_captures_stage_traces() -> None:
 
 
 def test_real_runner_captures_expert_traces() -> None:
-    """Expert consultation must produce 4 expert_traces (PDF §A2)."""
+    """Expert consultation must produce 4 expert_traces (PDF §A2).
+
+    Phase 5 Track D P0.5 Gate 5 update: the router now decides per-Expert
+    whether to invoke. All 4 Experts still appear in the trace (audit
+    trail records the route decision) but only the needed ones consume
+    tokens. For this fixture (chart=诊断肺炎, gap=病原体未明确) the
+    coding-expert is needed; pubmed/web/calculator are SKIPPED_NOT_NEEDED.
+    """
     mock = _MockLLM()
     runner = RealCDIRunner(llm=mock)
     case = CDICase(case_id="c1", chart_excerpt="患者男性,58岁,诊断肺炎。")
@@ -167,7 +174,7 @@ def test_real_runner_captures_expert_traces() -> None:
     orch = CDIOrchestrator(runner=runner)
     orch.run(case)
 
-    # 4 experts each consulted
+    # All 4 Experts are ROUTED — trace has one entry per Expert.
     assert len(runner.expert_traces) == 4
     expert_ids = {t.expert_id for t in runner.expert_traces}
     assert expert_ids == {
@@ -179,8 +186,29 @@ def test_real_runner_captures_expert_traces() -> None:
     for trace in runner.expert_traces:
         assert trace.stage == "expert_consultation"
         assert trace.provider == "deepseek"
-        assert trace.total_tokens > 0
         assert not trace.degraded
+
+    # Only the needed Expert actually called the LLM → tokens > 0.
+    coding_trace = next(t for t in runner.expert_traces if t.expert_id == "coding-expert")
+    assert coding_trace.total_tokens > 0
+
+    # The other three are SKIPPED_NOT_NEEDED → no LLM call → tokens = 0.
+    for eid in ("pubmed-expert", "web-search-expert", "medical-calculator-expert"):
+        skipped = next(t for t in runner.expert_traces if t.expert_id == eid)
+        assert skipped.total_tokens == 0
+        assert skipped.latency_ms == 0
+
+    # case.specialist_trace is populated with route metadata for audit.
+    assert len(case.specialist_trace) == 4
+    coding_entry = next(e for e in case.specialist_trace if e.expert_id == "coding-expert")
+    assert coding_entry.consulted is True
+    assert coding_entry.execution_mode == "LLM_KNOWLEDGE_ONLY"
+    assert coding_entry.route_decision == "needed"
+    for eid in ("pubmed-expert", "web-search-expert", "medical-calculator-expert"):
+        skipped_entry = next(e for e in case.specialist_trace if e.expert_id == eid)
+        assert skipped_entry.consulted is False
+        assert skipped_entry.execution_mode == "SKIPPED_NOT_NEEDED"
+        assert skipped_entry.route_decision == "not_needed"
 
 
 # ---------------------------------------------------------------------------
@@ -275,10 +303,19 @@ def test_real_runner_marks_degraded_on_llm_failure() -> None:
 
 def test_real_runner_marks_degraded_on_expert_failure() -> None:
     """If one Expert fails, others should still succeed and the failed one
-    is marked degraded (not raising)."""
+    is marked degraded (not raising).
+
+    Phase 5 Track D P0.5 Gate 5 update: chart must contain a pubmed-marker
+    (诊断标准 / 定义 etc.) so the router routes pubmed-expert to LLM.
+    Without the marker, the router SKIPS pubmed and the failure is
+    never triggered.
+    """
     mock = _MockLLM(fail_stages={"pubmed-expert"})
     runner = RealCDIRunner(llm=mock)
-    case = CDICase(case_id="c1", chart_excerpt="患者男性,58岁,诊断肺炎。")
+    case = CDICase(
+        case_id="c1",
+        chart_excerpt="患者男性,58岁,诊断肺炎。需要明确诊断标准。",
+    )
 
     CDIOrchestrator(runner=runner).run(case)
 

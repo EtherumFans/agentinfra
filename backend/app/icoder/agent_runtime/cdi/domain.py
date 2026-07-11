@@ -447,6 +447,16 @@ class SpecialistTraceEntry:
     accepted: list[str] = field(default_factory=list)
     rejected: list[str] = field(default_factory=list)
     rationale: str = ""
+    # Phase 5 Track D P0.5 Gate 5 — Conditional Expert Routing
+    # Per Master Task §6.5. Front-end shows route_reason; audit mode
+    # adds tokens/trace_id.
+    route_decision: str = ""  # "needed" | "not_needed" | "missing_inputs" | "tool_unavailable"
+    route_reason: str = ""    # human-readable rationale
+    execution_mode: str = ""  # one of ExpertExecutionMode
+    latency_ms: int = 0
+    tokens: int = 0
+    run_id: str = ""
+    trace_id: str = ""
 
 
 # ---------------------------------------------------------------------------

@@ -388,6 +388,16 @@ async def run_cdi(
                 "expert_id": e.expert_id,
                 "consulted": e.consulted,
                 "rationale": e.rationale,
+                # Phase 5 Track D P0.5 Gate 5 — Conditional Expert Routing.
+                # route_decision is the front-end label ("needed" /
+                # "not_needed" / "missing_inputs" / "tool_unavailable").
+                # execution_mode is the audit-grade enum. route_reason
+                # is the human-readable rationale.
+                "route_decision": getattr(e, "route_decision", ""),
+                "route_reason": getattr(e, "route_reason", ""),
+                "execution_mode": getattr(e, "execution_mode", ""),
+                "latency_ms": getattr(e, "latency_ms", 0),
+                "tokens": getattr(e, "tokens", 0),
             }
             for e in case.specialist_trace
         ],

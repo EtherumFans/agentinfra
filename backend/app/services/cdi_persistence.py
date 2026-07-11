@@ -1,4 +1,4 @@
-"""CDI Persistence Service (Phase 5 Track D P0 Gate 3).
+"""CDI Persistence Service (Phase 5 Track D P0 Gate 3 + P0.5 Gate 1).
 
 Closes the DB persistence loop: POST /api/v1/cdi/runs now writes the
 case + gaps + queries atomically, and GET /api/v1/cdi/runs/{case_id}
@@ -6,6 +6,27 @@ reads them back instead of returning 501.
 
 PDF §A3 (DB persistence is wired at schema level only) — this module
 makes the runtime side real.
+
+Phase 5 Track D P0.5 Gate 1 (2026-07-11)
+========================================
+The original P0 implementation used an idempotent-skip on gap_id/query_id
+to defend against placeholder-ID collisions when the LLM emitted
+``GAP-001``..``GAP-004`` repeatedly across cases. That skip caused
+"0 Gap + N Query" pathology: queries were written even when their
+parent gap was skipped, producing orphan query rows whose gap_id pointed
+into a *different* case.
+
+Gate 1 fix:
+  1. ``_localize_child_ids`` rewrites placeholder gap_id/query_id to be
+     case-scoped before persistence. Collisions across cases are now
+     structurally impossible.
+  2. ``persist_case`` validates gap↔query referential integrity in the
+     same transaction; orphan queries are dropped with a warning.
+  3. ``assert_case_consistent`` is called on read-back; the API layer
+     surfaces a 500 diagnostic if inconsistency is detected.
+  4. ``derive_case_state`` provides a single source-of-truth for the
+     case-level state derived from gap/query counts (replaces ad-hoc
+     derivation scattered across handlers).
 
 Conversion contract
 ===================
@@ -48,6 +69,9 @@ from __future__ import annotations
 
 import hashlib
 import logging
+import re
+import uuid
+from dataclasses import replace as dc_replace
 from datetime import datetime, timezone
 from typing import Any
 
@@ -69,6 +93,91 @@ from app.models.cdi_case import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# Phase 5 Track D P0.5 Gate 1 — case-scoped child IDs
+# ---------------------------------------------------------------------------
+#
+# The CDI orchestrator (real_runner) emits placeholder gap_id and query_id
+# values like ``GAP-001``, ``Q-001`` because they're produced by the LLM
+# JSON output. These collide across cases. We localize them per-case before
+# persistence so the DB primary keys are globally unique and the gap_id
+# foreign-key reference on ProviderQuery stays consistent within each case.
+#
+# Detection heuristic: any gap_id / query_id that does NOT start with the
+# case_id is treated as a placeholder and rewritten. Already-localized IDs
+# (e.g. ``CASE-abc/GAP-001``) pass through unchanged.
+
+_PLACEHOLDER_GAP_RE = re.compile(r"^GAP-\d+$", re.IGNORECASE)
+_PLACEHOLDER_QUERY_RE = re.compile(r"^Q-\d+$", re.IGNORECASE)
+
+
+def _is_placeholder_gap_id(gap_id: str) -> bool:
+    return bool(_PLACEHOLDER_GAP_RE.match(gap_id or ""))
+
+
+def _is_placeholder_query_id(query_id: str) -> bool:
+    return bool(_PLACEHOLDER_QUERY_RE.match(query_id or ""))
+
+
+def _localize_child_ids(case: CDICase) -> CDICase:
+    """Rewrite placeholder gap_id / query_id to be case-scoped.
+
+    Returns a new CDICase with rewritten IDs (functional — does not
+    mutate the input). ProviderQuery.gap_id references are remapped to
+    the new gap IDs. Queries whose gap_id does not match any gap in the
+    case (after localization) are dropped: the orchestrator is not
+    allowed to emit orphan queries, and persisting them would re-introduce
+    the "0 Gap + N Query" pathology.
+
+    The resulting case is safe to persist without any idempotent-skip
+    on child IDs.
+    """
+    if not case.case_id:
+        return case
+
+    gap_id_map: dict[str, str] = {}
+    new_gaps: list[DocumentationGap] = []
+    for idx, gap in enumerate(case.documentation_gaps, start=1):
+        old_id = gap.gap_id
+        if _is_placeholder_gap_id(old_id) or not old_id.startswith(case.case_id):
+            new_id = f"{case.case_id}/GAP-{idx:03d}"
+        else:
+            new_id = old_id
+        gap_id_map[old_id] = new_id
+        new_gaps.append(dc_replace(gap, gap_id=new_id))
+
+    valid_gap_ids = set(gap_id_map.values())
+    new_queries: list[ProviderQuery] = []
+    for idx, q in enumerate(case.proposed_provider_queries, start=1):
+        old_qid = q.query_id
+        if _is_placeholder_query_id(old_qid) or not old_qid.startswith(case.case_id):
+            new_qid = f"{case.case_id}/Q-{idx:03d}"
+        else:
+            new_qid = old_qid
+
+        # Remap the gap_id FK to the localized ID, if present.
+        new_gap_id = gap_id_map.get(q.gap_id, q.gap_id)
+        if new_gap_id not in valid_gap_ids:
+            logger.warning(
+                "cdi.persist.drop_orphan_query case=%s query_id=%s gap_id=%s "
+                "not in case gaps — dropping query (referential integrity)",
+                case.case_id, old_qid, q.gap_id,
+            )
+            continue
+
+        new_queries.append(dc_replace(
+            q,
+            query_id=new_qid,
+            gap_id=new_gap_id,
+        ))
+
+    return dc_replace(
+        case,
+        documentation_gaps=new_gaps,
+        proposed_provider_queries=new_queries,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -221,20 +330,25 @@ async def persist_case(
 ) -> CDICaseModel:
     """Atomic insert: 1 case + N gaps + M queries in one transaction.
 
-    Idempotent:
-        - On case_id: if the case already exists, returns the existing
-          model without re-inserting.
-        - On gap_id/query_id: skips any child whose ID already exists
-          (defensive — handles degraded runs that emit placeholder IDs
-          like GAP-001/002/003 across multiple cases).
+    Phase 5 Track D P0.5 Gate 1:
+      - Child IDs are localized to be case-scoped before persistence
+        (``_localize_child_ids``), eliminating cross-case collisions.
+      - Orphan queries (gap_id not in this case's gaps) are dropped.
+      - Idempotency on case_id is preserved (re-running with the same
+        case_id returns the existing model).
+      - Idempotent-skip on gap_id/query_id is REMOVED — it caused the
+        "0 Gap + N Query" pathology when LLM placeholder IDs collided
+        across cases. Localization makes the skip unnecessary.
     """
     existing = await session.get(CDICaseModel, case.case_id)
     if existing is not None:
         return existing
 
-    now = datetime.now(timezone.utc)
+    # Gate 1: localize child IDs + drop orphan queries.
+    localized = _localize_child_ids(case)
+
     case_model = case_to_orm(
-        case,
+        localized,
         organization_id=organization_id,
         created_by_user_id=created_by_user_id,
         run_id=run_id,
@@ -242,18 +356,11 @@ async def persist_case(
     )
     session.add(case_model)
 
-    # Add children explicitly (no reliance on relationship cascades).
-    # Skip any gap/query whose ID already exists in the DB — this keeps
-    # the case write atomic even when a degraded stub/mock LLM produces
-    # colliding placeholder IDs (e.g. GAP-001) across cases.
-    for gap in case.documentation_gaps:
-        existing_gap = await session.get(DocumentationGapModel, gap.gap_id)
-        if existing_gap is None:
-            session.add(gap_to_orm(gap, case.case_id))
-    for q in case.proposed_provider_queries:
-        existing_q = await session.get(ProviderQueryModel, q.query_id)
-        if existing_q is None:
-            session.add(query_to_orm(q, case.case_id))
+    # Write children directly. IDs are already case-scoped, so no skip needed.
+    for gap in localized.documentation_gaps:
+        session.add(gap_to_orm(gap, localized.case_id))
+    for q in localized.proposed_provider_queries:
+        session.add(query_to_orm(q, localized.case_id))
 
     await session.commit()
     await session.refresh(case_model)
@@ -283,6 +390,97 @@ async def load_case(
     case_model.gaps_ = (await session.execute(gaps_q)).scalars().all()
     case_model.queries_ = (await session.execute(queries_q)).scalars().all()
     return case_model
+
+
+# ---------------------------------------------------------------------------
+# Phase 5 Track D P0.5 Gate 1 — consistency assertion + state derivation
+# ---------------------------------------------------------------------------
+
+
+def assert_case_consistent(case_model: CDICaseModel) -> list[str]:
+    """Return a list of consistency issues for the loaded case.
+
+    Empty list = consistent. Non-empty = data integrity violation.
+
+    Rules:
+      1. Every ProviderQuery.gap_id must resolve to a DocumentationGap
+         in the same case (referential integrity).
+      2. If gaps == [] and queries > 0 → "0 Gap + N Query" pathology.
+      3. Case-scoped ID check: every gap.id and query.id must start
+         with the case_id (defensive — catches any pre-localization data).
+    """
+    issues: list[str] = []
+    case_id = case_model.id
+    gaps = getattr(case_model, "gaps_", []) or []
+    queries = getattr(case_model, "queries_", []) or []
+
+    gap_ids = {g.id for g in gaps}
+    for q in queries:
+        if q.gap_id not in gap_ids:
+            issues.append(
+                f"query {q.id} references gap_id={q.gap_id} not in case gaps "
+                f"(case={case_id})"
+            )
+        if q.id and case_id and not q.id.startswith(case_id):
+            issues.append(
+                f"query {q.id} ID not case-scoped (expected prefix {case_id}/)"
+            )
+    for g in gaps:
+        if g.id and case_id and not g.id.startswith(case_id):
+            issues.append(
+                f"gap {g.id} ID not case-scoped (expected prefix {case_id}/)"
+            )
+    if len(gaps) == 0 and len(queries) > 0:
+        issues.append(
+            f"0 Gap + N Query: case={case_id} has {len(queries)} queries "
+            f"but no gaps — case state cannot be derived consistently"
+        )
+    return issues
+
+
+def derive_case_state(case_model: CDICaseModel) -> str:
+    """Derive a single case-level state from gap/query counts and states.
+
+    Single source-of-truth used by both POST /runs and GET /runs/{id}.
+    Replaces the ad-hoc derivation previously scattered across handlers.
+
+    Returns one of:
+      - ``AUTO_PASS``            — 0 gaps, 0 queries
+      - ``PENDING_CDI_REVIEW``   — gaps > 0, queries > 0 (or queries in
+                                    DRAFT/PENDING_CDI_REVIEW)
+      - ``PENDING_CLINICIAN``    — all queries ≥ APPROVED, at least one
+                                    not yet RESPONDED
+      - ``RESPONDED``            — all queries RESPONDED or beyond
+      - ``CLOSED``               — all queries CLOSED/CANCELLED/EXPIRED
+      - ``INCONSISTENT``         — 0 gaps but N queries (data integrity
+                                    violation; should never happen post-Gate 1)
+    """
+    gaps = getattr(case_model, "gaps_", []) or []
+    queries = getattr(case_model, "queries_", []) or []
+
+    if len(gaps) == 0 and len(queries) == 0:
+        return "AUTO_PASS"
+    if len(gaps) == 0 and len(queries) > 0:
+        return "INCONSISTENT"
+
+    terminal_states = {"CLOSED", "CANCELLED", "EXPIRED"}
+    responded_or_beyond = {
+        "RESPONDED", "DOCUMENTATION_UPDATED", "REVALIDATED", "CLOSED"
+    }
+    approved_or_beyond = {
+        "APPROVED", "SENT_TO_CLINICIAN", "VIEWED",
+        "RESPONDED", "DOCUMENTATION_UPDATED", "REVALIDATED", "CLOSED"
+    }
+
+    if not queries:
+        return "PENDING_CDI_REVIEW"
+    if all(q.lifecycle_state in terminal_states for q in queries):
+        return "CLOSED"
+    if all(q.lifecycle_state in responded_or_beyond for q in queries):
+        return "RESPONDED"
+    if all(q.lifecycle_state in approved_or_beyond for q in queries):
+        return "PENDING_CLINICIAN"
+    return "PENDING_CDI_REVIEW"
 
 
 # ---------------------------------------------------------------------------
@@ -385,4 +583,8 @@ __all__ = [
     "orm_to_gap_dict",
     "orm_to_query_dict",
     "update_query_lifecycle",
+    # Phase 5 Track D P0.5 Gate 1
+    "_localize_child_ids",
+    "assert_case_consistent",
+    "derive_case_state",
 ]

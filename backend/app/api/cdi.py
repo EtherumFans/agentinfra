@@ -42,6 +42,8 @@ from app.middleware.auth import get_current_user
 from app.models.user import User
 from app.database import get_db
 from app.services.cdi_persistence import (
+    assert_case_consistent,
+    derive_case_state,
     load_case as load_case_persisted,
     orm_to_gap_dict,
     orm_to_query_dict,
@@ -286,6 +288,13 @@ async def run_cdi(
         or case.stage_trace_ids.get("encounter_synthesis")
         or ""
     )
+
+    # Phase 5 Track D P0.5 Gate 1 — localize child IDs BEFORE persistence
+    # AND before building the response, so the in-memory case, the DB
+    # rows, and the API response all use the same case-scoped IDs.
+    from app.services.cdi_persistence import _localize_child_ids
+    case = _localize_child_ids(case)
+
     try:
         await persist_case_to_db(
             db,
@@ -418,11 +427,22 @@ async def get_case(
                 "case_id": case_id,
             },
         )
+    # Phase 5 Track D P0.5 Gate 1 — consistency assertion on read-back.
+    consistency_issues = assert_case_consistent(case_model)
+    if consistency_issues:
+        # Surface the diagnostic but do not 500 — the API contract returns
+        # the case as persisted. Frontend will show the inconsistent state
+        # and the diagnostic so the operator can run the repair script.
+        logger.warning("cdi.get_case.consistency case=%s issues=%s", case_id, consistency_issues)
+
     gaps = [orm_to_gap_dict(g) for g in getattr(case_model, "gaps_", [])]
     queries = [orm_to_query_dict(q) for q in getattr(case_model, "queries_", [])]
+    derived_state = derive_case_state(case_model)
     return {
         "case_id": case_model.id,
-        "completion_state": case_model.completion_state,
+        "completion_state": derived_state if derived_state != "INCONSISTENT" else case_model.completion_state,
+        "derived_case_state": derived_state,
+        "consistency_issues": consistency_issues,
         "patient_ref": case_model.patient_ref,
         "encounter_ref": case_model.encounter_ref,
         "chart_excerpt_preview": f"(persisted case, length={case_model.chart_excerpt_length})",

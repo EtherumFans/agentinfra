@@ -14,7 +14,7 @@ import {
   KeyRound, Users, CreditCard, ChartNoAxesColumn, Settings,
   ArrowUpRight, Bell, BookOpen, RotateCcw,
   ChevronDown, Rocket, Layers, Folder, ChevronsUpDown, Database,
-  Bot, Users2, FileText, MessageSquare,
+  Bot, Users2, FileText, MessageSquare, ShieldCheck,
 } from 'lucide-react';
 
 const PROJECT_SLUG = 'icoder-medical-coding';
@@ -61,6 +61,8 @@ export default function Layout() {
         // capability (/api/v2/tools/*) is retained for implicit dependencies.
         { to: '/ai-studio/fact-extraction', label: t.factExtraction, icon: ListTree },
         { to: '/ai-studio/medical-coding', label: t.medicalCoding, icon: Asterisk },
+        // Phase 5 Track C Gate 5 — 7-stage coding compliance mainline
+        { to: '/ai-studio/coding-compliance', label: t.codingCompliance, icon: ShieldCheck },
       ],
     },
     {

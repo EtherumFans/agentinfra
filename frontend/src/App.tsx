@@ -23,6 +23,7 @@ import AgentsPage from './pages/AgentsPage';
 import AgentDetailPage from './pages/AgentDetailPage';
 import AgentChatPage from './pages/AgentChatPage';
 import MedicalCodingPage from './pages/MedicalCodingPage';
+import CodingComplianceWorkbenchPage from './pages/CodingComplianceWorkbenchPage';
 import FactExtractionPage from './pages/FactExtractionPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import ToastContainer from './components/common/Toast';
@@ -84,6 +85,8 @@ function App() {
         <Route path="ai-studio/embedded-assistant" element={<Navigate to="/ai-studio/agents" replace />} />
         <Route path="ai-studio/fact-extraction" element={<FactExtractionPage />} />
         <Route path="ai-studio/medical-coding" element={<MedicalCodingPage />} />
+        {/* Phase 5 Track C Gate 5 — 7-stage coding compliance mainline workbench */}
+        <Route path="ai-studio/coding-compliance" element={<CodingComplianceWorkbenchPage />} />
 
         {/* V3.0 alias - /studio/* */}
         <Route path="studio" element={<AIStudioOverviewPage />} />

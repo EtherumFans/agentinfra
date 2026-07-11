@@ -1,0 +1,57 @@
+"""CDI Core Agent runtime (Phase 5 Track D).
+
+Public modules:
+    nlq_gate       — Non-leading Query gate (NLQ-001..009)
+    orchestrator   — CDI Orchestrator (encounter_synthesis → ... → specialist_trace)
+    domain         — Domain models (DocumentationGap, ProviderQuery, CDICase, etc.)
+
+Imported by:
+    backend/app/icoder/agent_runtime/a2a_facade.py (CDI A2A dispatch)
+    backend/app/api/cdi.py (REST API, Track D Gate 9)
+    backend/tests/unit/icoder/test_phase5_track_d_*.py
+"""
+
+from .domain import (  # noqa: F401
+    CDICase,
+    CodingSpecificityItem,
+    DocumentationGap,
+    EncounterSummary,
+    EvidenceSpan,
+    ProviderQuery,
+    RiskFlag,
+    SpecialistTraceEntry,
+)
+from .nlq_gate import (  # noqa: F401
+    NLQGateResult,
+    ProviderQueryForGate,
+    RuleResult,
+    evaluate as evaluate_nlq,
+)
+from .orchestrator import (  # noqa: F401
+    STAGES,
+    CDIOrchestrator,
+    StageRunner,
+    stub_runner,
+)
+
+__all__ = [
+    # domain
+    "CDICase",
+    "CodingSpecificityItem",
+    "DocumentationGap",
+    "EncounterSummary",
+    "EvidenceSpan",
+    "ProviderQuery",
+    "RiskFlag",
+    "SpecialistTraceEntry",
+    # nlq gate
+    "NLQGateResult",
+    "ProviderQueryForGate",
+    "RuleResult",
+    "evaluate_nlq",
+    # orchestrator
+    "CDIOrchestrator",
+    "STAGES",
+    "StageRunner",
+    "stub_runner",
+]

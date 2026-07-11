@@ -1,0 +1,79 @@
+{"obs_id":"corti_cdi_001","category":"identity","field":"agent_id","value":"clinical-documentation-improvement-cdi-agent","source":"corti_agent_registry","notes":"Track B CORTI_AGENT_DEEP_INVENTORY.md row 10"}
+{"obs_id":"corti_cdi_002","category":"identity","field":"use_case","value":"coding_and_revenue_cycle","source":"corti_agent_registry","notes":"peer to medical-coding-icd-10-cpt-agent"}
+{"obs_id":"corti_cdi_003","category":"identity","field":"internal_role_name","value":"CDI Documentation and Query Orchestrator","source":"system_prompt_line_5","notes":"prompt-internal name"}
+{"obs_id":"corti_cdi_004","category":"identity","field":"system_prompt_length","value":6238,"source":"system_prompt","notes":"chars, 78 lines"}
+{"obs_id":"corti_cdi_005","category":"experts","field":"bound_experts","value":["pubmed-expert","web-search-expert","medical-calculator-expert","coding-expert"],"source":"corti_agent_metadata","notes":"4 Experts"}
+{"obs_id":"corti_cdi_006","category":"experts","field":"workflow_text_mentions","value":["coding-expert","pubmed-expert-as-AMBOSS","web-search-expert"],"source":"system_prompt_workflow_block","notes":"3 of 4 Experts in workflow text; medical-calculator-expert not mentioned"}
+{"obs_id":"corti_cdi_007","category":"experts","field":"amboss_pubmed_rebrand","value":"prompt refers to AMBOSS Expert; metadata names it pubmed-expert","source":"prompt_vs_metadata_diff","notes":"Corti rebranded AMBOSS to pubmed-expert in public metadata"}
+{"obs_id":"corti_cdi_008","category":"experts","field":"medical_calculator_expert_status","value":"metadata-only; not in workflow text","source":"prompt_vs_metadata_diff","notes":"opportunistic or vestigial"}
+{"obs_id":"corti_cdi_009","category":"constraints","field":"source_of_truth","value":"chart-explicit only; no inference","source":"system_prompt_constraints_block","notes":"constraint #1"}
+{"obs_id":"corti_cdi_010","category":"constraints","field":"no_treatment_advice","value":"under any circumstances","source":"system_prompt_constraints_block","notes":"constraint #2"}
+{"obs_id":"corti_cdi_011","category":"constraints","field":"non_leading_queries","value":"open-ended, evidence-grounded, multiple response options including clinically undetermined; never designed to upcode","source":"system_prompt_constraints_block","notes":"constraint #3"}
+{"obs_id":"corti_cdi_012","category":"constraints","field":"evidence_binding","value":"every gap and query must cite exact chart quote","source":"system_prompt_constraints_block","notes":"constraint #4"}
+{"obs_id":"corti_cdi_013","category":"output","field":"sections","value":["Encounter Summary","Documentation Gaps","Proposed Provider Queries","Coding Specificity Checklist","Risk Flags","Specialist Trace"],"source":"system_prompt_output_format","notes":"6 fixed sections"}
+{"obs_id":"corti_cdi_014","category":"output","field":"encounter_summary_size","value":"1-5 key points","source":"system_prompt_output_format","notes":"size constraint"}
+{"obs_id":"corti_cdi_015","category":"output","field":"gap_required_fields","value":["description","why_it_matters","exact_evidence_quote","minimal_clarification_needed"],"source":"system_prompt_output_format","notes":"per-gap shape"}
+{"obs_id":"corti_cdi_016","category":"output","field":"query_required_fields","value":["topic","reason","evidence_quote","non_leading_query_text","response_options"],"source":"system_prompt_output_format","notes":"per-query shape"}
+{"obs_id":"corti_cdi_017","category":"output","field":"risk_flag_categories","value":["contradictions","unsupported_diagnoses","ambiguous_terms","copied_forward_indicators"],"source":"system_prompt_output_format","notes":"4 categories"}
+{"obs_id":"corti_cdi_018","category":"output","field":"specialist_trace_required_fields","value":["expert","consulted","requested","accepted","rejected","rationale"],"source":"system_prompt_output_format","notes":"per-Expert audit trail"}
+{"obs_id":"corti_cdi_019","category":"query_compliance","field":"compliant_example","value":"Based on the documented elevated creatinine of 2.1 and baseline of 0.9, please clarify the etiology of the acute kidney injury if clinically applicable. Options include: prerenal azotemia, acute tubular necrosis, other etiology, or clinically undetermined at this time.","source":"system_prompt_query_guidelines","notes":"Corti-compliant reference"}
+{"obs_id":"corti_cdi_020","category":"query_compliance","field":"non_compliant_example","value":"Would you agree the patient has acute kidney injury due to sepsis?","source":"system_prompt_query_guidelines","notes":"must be avoided"}
+{"obs_id":"corti_cdi_021","category":"query_compliance","field":"compliant_anatomy_clinical_context","value":"anchors query in chart evidence the clinician recognizes","source":"derived_from_compliant_example","notes":"e.g. creatinine values"}
+{"obs_id":"corti_cdi_022","category":"query_compliance","field":"compliant_anatomy_open_ended","value":"clarification request not yes/no","source":"derived_from_compliant_example","notes":"e.g. please clarify the etiology"}
+{"obs_id":"corti_cdi_023","category":"query_compliance","field":"compliant_anatomy_conditional","value":"if clinically applicable phrasing","source":"derived_from_compliant_example","notes":"clinician can defer"}
+{"obs_id":"corti_cdi_024","category":"query_compliance","field":"compliant_anatomy_escape_hatch","value":"clinically undetermined option always present","source":"derived_from_compliant_example","notes":"NLQ-005 rule basis"}
+{"obs_id":"corti_cdi_025","category":"query_compliance","field":"non_compliant_failure_yes_no","value":"starts with would you agree","source":"derived_from_non_compliant_example","notes":"NLQ-001 rule basis"}
+{"obs_id":"corti_cdi_026","category":"query_compliance","field":"non_compliant_failure_diagnosis_presumption","value":"presumes AKI due to sepsis","source":"derived_from_non_compliant_example","notes":"NLQ-002 rule basis"}
+{"obs_id":"corti_cdi_027","category":"query_compliance","field":"non_compliant_failure_single_answer","value":"no response options","source":"derived_from_non_compliant_example","notes":"NLQ-003/004 rule basis"}
+{"obs_id":"corti_cdi_028","category":"expert_policy","field":"coding_expert_consult_policy","value":"always for coding specificity","source":"system_prompt_workflow_block","notes":"mandatory consultation"}
+{"obs_id":"corti_cdi_029","category":"expert_policy","field":"pubmed_expert_consult_policy","value":"when clinical criteria unclear or commonly misdocumented","source":"system_prompt_workflow_block","notes":"conditional"}
+{"obs_id":"corti_cdi_030","category":"expert_policy","field":"web_search_expert_consult_policy","value":"when current guidelines or official definitions required","source":"system_prompt_workflow_block","notes":"conditional"}
+{"obs_id":"corti_cdi_031","category":"expert_policy","field":"medical_calculator_expert_consult_policy","value":"unspecified","source":"system_prompt_silent","notes":"workflow text does not mention"}
+{"obs_id":"corti_cdi_032","category":"expert_policy","field":"coding_expert_accept","value":"gaps and queries with chart evidence quotes","source":"system_prompt_workflow_block","notes":""}
+{"obs_id":"corti_cdi_033","category":"expert_policy","field":"coding_expert_reject","value":"leading queries, diagnoses unsupported by excerpt","source":"system_prompt_workflow_block","notes":""}
+{"obs_id":"corti_cdi_034","category":"expert_policy","field":"pubmed_expert_accept","value":"clinical definitions, documentation checklists","source":"system_prompt_workflow_block","notes":""}
+{"obs_id":"corti_cdi_035","category":"expert_policy","field":"pubmed_expert_reject","value":"treatment guidance, patient-specific diagnostic judgments","source":"system_prompt_workflow_block","notes":""}
+{"obs_id":"corti_cdi_036","category":"expert_policy","field":"web_search_expert_accept","value":"items with citations AND dates","source":"system_prompt_workflow_block","notes":""}
+{"obs_id":"corti_cdi_037","category":"expert_policy","field":"web_search_expert_reject","value":"items without citations; single-viewpoint when conflicting","source":"system_prompt_workflow_block","notes":"preserve both viewpoints on conflict"}
+{"obs_id":"corti_cdi_038","category":"expert_policy","field":"cdi_agent_is_final_authority","value":true,"source":"system_prompt_line_14","notes":"Any Expert output that violates constraints must be rejected"}
+{"obs_id":"corti_cdi_039","category":"runtime","field":"agent_is_orchestrator","value":true,"source":"system_prompt_role_statement","notes":"CDI Documentation and Query Orchestrator"}
+{"obs_id":"corti_cdi_040","category":"runtime","field":"orchestration_pattern","value":"LLM-driven conditional routing (not declarative DAG)","source":"derived_from_workflow_block","notes":"prompt describes decision logic, not graph"}
+{"obs_id":"corti_cdi_041","category":"runtime","field":"tool_invocation_layer","value":"agent invokes Expert; Expert invokes MCP tool","source":"derived_from_corti_framework","notes":"2-hop indirection"}
+{"obs_id":"corti_cdi_042","category":"runtime","field":"live_run_observed","value":false,"source":"track_b2_permission_audit","notes":"CORTI_RUNTIME_BLOCKED_BY_PERMISSION"}
+{"obs_id":"corti_cdi_043","category":"runtime","field":"latency_observed","value":null,"source":"no_live_run","notes":"inferred 10-30s based on analogous medical-coding agent ~8s"}
+{"obs_id":"corti_cdi_044","category":"runtime","field":"token_cost_observed","value":null,"source":"no_live_run","notes":""}
+{"obs_id":"corti_cdi_045","category":"api","field":"sdk_endpoint","value":"cortiClient.agents.messageSend(agentId, message)","source":"corti_sdk_docs","notes":"A2A v0.3 message"}
+{"obs_id":"corti_cdi_046","category":"api","field":"polling_required","value":true,"source":"corti_sdk_docs","notes":"cortiClient.tasks.get until state=completed"}
+{"obs_id":"corti_cdi_047","category":"api","field":"sse_streaming","value":false,"source":"corti_agent_capabilities","notes":"streaming=false"}
+{"obs_id":"corti_cdi_048","category":"api","field":"webhook","value":false,"source":"corti_agent_capabilities","notes":"pushNotifications=false"}
+{"obs_id":"corti_cdi_049","category":"api","field":"state_transition_history","value":true,"source":"corti_agent_capabilities","notes":"available but not exposed in agent UI"}
+{"obs_id":"corti_cdi_050","category":"ui","field":"hub_card_use_case_badge","value":"Coding and Revenue Cycle","source":"corti_console_observation","notes":"shared with medical-coding"}
+{"obs_id":"corti_cdi_051","category":"ui","field":"detail_tabs","value":["Overview","Settings","Experts","Tools","Code"],"source":"corti_console_observation","notes":"5 tabs standard"}
+{"obs_id":"corti_cdi_052","category":"ui","field":"chat_layout","value":"single-pane chat","source":"corti_console_observation","notes":"no workbench"}
+{"obs_id":"corti_cdi_053","category":"ui","field":"pending_queries_queue","value":false,"source":"corti_console_observation","notes":"Corti gap"}
+{"obs_id":"corti_cdi_054","category":"ui","field":"physician_response_panel","value":false,"source":"corti_console_observation","notes":"Corti gap; handled externally"}
+{"obs_id":"corti_cdi_055","category":"ui","field":"documentation_diff_view","value":false,"source":"corti_console_observation","notes":"Corti gap"}
+{"obs_id":"corti_cdi_056","category":"ui","field":"sla_tracker","value":false,"source":"corti_console_observation","notes":"Corti gap"}
+{"obs_id":"corti_cdi_057","category":"ui","field":"audit_dashboard","value":false,"source":"corti_console_observation","notes":"Corti gap"}
+{"obs_id":"corti_cdi_058","category":"localization","field":"language","value":"en-US only","source":"system_prompt_principles","notes":"Use English only"}
+{"obs_id":"corti_cdi_059","category":"localization","field":"coding_standard","value":"ICD-10-CM","source":"derived_from_use_case","notes":"US coding system"}
+{"obs_id":"corti_cdi_060","category":"localization","field":"clinical_kb","value":"AMBOSS","source":"system_prompt","notes":"US/EU clinical reference"}
+{"obs_id":"corti_cdi_061","category":"embedded","field":"web_component_support","value":true,"source":"corti_sdk_docs","notes":"iframe embed in EHR"}
+{"obs_id":"corti_cdi_062","category":"embedded","field":"mobile_optimized","value":false,"source":"corti_console_observation","notes":"desktop-first"}
+{"obs_id":"corti_cdi_063","category":"positioning","field":"corti_positioning","value":"quality-control agent not reimbursement","source":"system_prompt_principles","notes":"prioritize accuracy over reimbursement"}
+{"obs_id":"corti_cdi_064","category":"positioning","field":"upstream_of_medical_coding","value":true,"source":"derived_from_input_contract","notes":"CDI receives chart not codes"}
+{"obs_id":"corti_cdi_065","category":"positioning","field":"peer_to_medical_coding","value":true,"source":"corti_console_observation","notes":"siblings in coding_and_revenue_cycle use case"}
+{"obs_id":"corti_cdi_066","category":"limitation_handling","field":"insufficient_evidence","value":"explicitly state limitation","source":"system_prompt_workflow_block","notes":"emit fewer gaps not more"}
+{"obs_id":"corti_cdi_067","category":"limitation_handling","field":"no_invented_guidance","value":true,"source":"system_prompt_workflow_block","notes":"do not fabricate external references"}
+{"obs_id":"corti_cdi_068","category":"limitation_handling","field":"prefer_no_evidence_over_weak_inference","value":true,"source":"system_prompt_principles","notes":"conservative default"}
+{"obs_id":"corti_cdi_069","category":"mapping","field":"icoder_target_agent_id","value":"clinical-documentation-improvement-agent","source":"phase5_track_d_pdf_sec_4_4","notes":"CORE_AGENT EXACT_MATCH_AT_PRODUCT_AND_RUNTIME_LEVEL"}
+{"obs_id":"corti_cdi_070","category":"mapping","field":"icoder_legacy_alias","value":"cdi-review","source":"phase5_track_d_baseline_audit","notes":"kept for migration only"}
+{"obs_id":"corti_cdi_071","category":"mapping","field":"icoder_classification","value":"CORE_ENTRY_AGENT","source":"phase5_track_d_pdf_sec_4_1","notes":"#1 of 2"}
+{"obs_id":"corti_cdi_072","category":"icoder_productization","field":"3pane_workbench","value":"planned_gate_7","source":"phase5_track_d_pdf_sec_11","notes":"beyond Corti"}
+{"obs_id":"corti_cdi_073","category":"icoder_productization","field":"query_state_machine","value":"9 states + 3 side states","source":"phase5_track_d_pdf_sec_7","notes":"beyond Corti"}
+{"obs_id":"corti_cdi_074","category":"icoder_productization","field":"non_leading_gate","value":"9 rules NLQ-001..009","source":"corti_cdi_provider_query_audit","notes":"runtime compliance gate"}
+{"obs_id":"corti_cdi_075","category":"icoder_productization","field":"zh_cn_localization","value":"primary","source":"phase5_track_d_pdf_sec_4_1","notes":"LOCALIZED_FOR_CHINA"}
+{"obs_id":"corti_cdi_076","category":"icoder_productization","field":"webhook_subscription","value":"planned_gate_8","source":"phase5_track_d_pdf_sec_10","notes":"beyond Corti"}
+{"obs_id":"corti_cdi_077","category":"icoder_productization","field":"sla_tracking","value":"planned_gate_8","source":"phase5_track_d_pdf_sec_10","notes":"beyond Corti"}
+{"obs_id":"corti_cdi_078","category":"icoder_productization","field":"china_clinical_kb_pluggable","value":true,"source":"corti_cdi_expert_tool_trace_audit","notes":"avoid AMBOSS lock-in"}
+{"obs_id":"corti_cdi_079","category":"verdict","field":"audit_status","value":"CORTI_CDI_AUDIT_COMPLETE_WITH_STATIC_EVIDENCE_ONLY","source":"gate_2_consolidation","notes":"live run blocked by account permission; static prompt fully captured"}

@@ -47,6 +47,7 @@ from app.middleware.auth import get_current_user, get_current_organization
 from app.models.agent import Agent
 from app.models.user import User
 from app.models.organization import Organization
+from app.services.agent_display_status import project_pack_to_display_status
 
 router = APIRouter(prefix="/api/icoder/agents", tags=["agent-hub"])
 
@@ -220,6 +221,14 @@ def _build_card(pack: dict[str, Any]) -> dict[str, Any]:
     )
     creator = metadata.get("author") or metadata.get("creator") or "iCoDer"
 
+    # Phase 5 Track D P0 Gate 1 (2026-07-11): Unified display status from
+    # ``app.services.agent_display_status``. PDF §B3 invariants — only 5
+    # user-visible statuses (preview/available/controlled_use/coming_soon/
+    # deprecated), max 2 badges per card. Internal fields preserved in
+    # ``display_status_internal`` for engineering dashboards (NOT rendered
+    # on user cards).
+    display = project_pack_to_display_status(pack).to_dict()
+
     return {
         "agent_ref": agent_ref,
         "agent_id": agent_id,
@@ -240,6 +249,13 @@ def _build_card(pack: dict[str, Any]) -> dict[str, Any]:
         "hidden_from_hub": manifest.get("hidden_from_hub", False),
         "runnable": runnable,
         "badge": _badge(pack, runnable),
+        # Phase 5 Track D P0 Gate 1: user-visible display status (PDF §B3).
+        # Frontend MUST render ``display_status`` + ``display_badges`` (≤2)
+        # instead of raw maturity/production_ready/human_review.
+        "display_status": display["display_status"],
+        "display_badges": display["display_badges"],
+        "usage_boundaries": display["usage_boundaries"],
+        "display_status_internal": display["internal"],
         "tags": manifest.get("tags", []),
         "workflow": _workflow_summary(pack),
         "red_lines": red_lines,

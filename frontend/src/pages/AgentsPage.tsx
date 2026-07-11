@@ -404,50 +404,71 @@ export default function AgentsPage() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3">
               {filteredCertifiedAgents.map(card => {
-                // Phase 3-B1 Section F: render Corti-style Hub card.
-                // metadata-only packs (runnable=false) show Coming Soon + no Run button.
-                // MVP packs (runnable=true, production_ready=false) show Run + Human Review Required.
-                const isMetadataOnly = !card.runnable;
-                const isMvp = card.runnable && !card.production_ready;
+                // Phase 5 Track D P0 Gate 1 (2026-07-11): card uses unified
+                // display_status + display_badges (≤2). PDF §B3 max badges.
+                // Internal fields (maturity/production_ready/human_review)
+                // remain accessible for engineering dashboards but are NOT
+                // rendered on user-facing cards.
+                const isComingSoon = card.display_status === 'coming_soon';
+                const isDeprecated = card.display_status === 'deprecated';
+                const dimCard = isComingSoon || isDeprecated;
                 const isCloningThis = cloningAgentId === card.agent_id;
+                const displayBadgeClass = (b: typeof card.display_badges[number]): string => {
+                  switch (b.type) {
+                    case 'preview':
+                      return 'bg-amber-100 text-amber-700';
+                    case 'available':
+                      return 'bg-green-100 text-green-700';
+                    case 'controlled_use':
+                      return 'bg-blue-100 text-blue-700';
+                    case 'coming_soon':
+                      return 'bg-muted text-muted-foreground';
+                    case 'deprecated':
+                    case 'internal_only':
+                      return 'bg-gray-200 text-gray-700';
+                    case 'approval_required':
+                      return 'bg-orange-50 text-orange-700';
+                    case 'anomaly_confirmation_required':
+                      return 'bg-yellow-50 text-yellow-700';
+                    case 'clinical_decision_confirmation_required':
+                      return 'bg-purple-50 text-purple-700';
+                    default:
+                      return 'bg-muted text-muted-foreground';
+                  }
+                };
+                const displayBadgeLabel = (b: typeof card.display_badges[number]): string => {
+                  // Use the user-locale label that the backend already attaches.
+                  // Backend ``label_zh`` / ``label_en`` is authoritative — no
+                  // client-side catalog drift.
+                  return (locale === 'zh-CN' ? b.label_zh : b.label_en) || b.label_en;
+                };
                 return (
                   <div key={card.agent_ref}
                     className={`bg-background rounded-xl p-4 transition-all group ${
-                      isMetadataOnly
+                      dimCard
                         ? 'opacity-80'
                         : 'hover:ring-1 hover:ring-primary/30 hover:shadow-md'
                     }`}>
                     <div className="flex items-start gap-3">
                       <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
-                        isMetadataOnly ? 'bg-muted' : 'bg-primary/10 group-hover:bg-primary/20'
+                        dimCard ? 'bg-muted' : 'bg-primary/10 group-hover:bg-primary/20'
                       }`}>
-                        <Bot size={15} className={isMetadataOnly ? 'text-muted-foreground' : 'text-primary'} />
+                        <Bot size={15} className={dimCard ? 'text-muted-foreground' : 'text-primary'} />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <p className={`text-sm font-medium transition-colors ${
-                            isMetadataOnly ? 'text-muted-foreground' : 'text-foreground group-hover:text-primary'
+                            dimCard ? 'text-muted-foreground' : 'text-foreground group-hover:text-primary'
                           }`}>{card.name}</p>
-                          {/* Badge: MVP / Coming Soon / Production-ready */}
-                          <span className={`text-[9px] px-1.5 py-0.5 rounded-xs font-medium ${
-                            isMetadataOnly
-                              ? 'bg-muted text-muted-foreground'
-                              : isMvp
-                                ? 'bg-amber-100 text-amber-700'
-                                : 'bg-green-100 text-green-700'
-                          }`}>{card.badge}</span>
-                          {/* production_ready flag */}
-                          {!card.production_ready && (
-                            <span className="text-[9px] px-1.5 py-0.5 rounded-xs bg-amber-50 text-amber-700" title="This Agent is not yet production-ready">
-                              {t.agentCardProductionReadyFalse}
+                          {/* Phase 5 Track D P0 Gate 1: display_status + ≤2 badges.
+                              PDF §B3 forbids rendering raw maturity/production_ready. */}
+                          {card.display_badges?.map((b, i) => (
+                            <span key={`${card.agent_ref}-badge-${i}`}
+                              className={`text-[9px] px-1.5 py-0.5 rounded-xs font-medium ${displayBadgeClass(b)}`}
+                              title={displayBadgeLabel(b)}>
+                              {displayBadgeLabel(b)}
                             </span>
-                          )}
-                          {/* Human review required */}
-                          {card.human_review === 'required' && (
-                            <span className="text-[9px] px-1.5 py-0.5 rounded-xs bg-blue-50 text-blue-700" title={t.humanReviewLabel}>
-                              {t.humanReviewLabel}
-                            </span>
-                          )}
+                          ))}
                         </div>
                         <p className="text-xs text-muted-foreground mt-1 leading-relaxed line-clamp-2">{card.description}</p>
                         {/* Phase 4-D (D-6): Corti-style card metadata (DD-Mon-YYYY · Creator) */}
@@ -463,7 +484,6 @@ export default function AgentsPage() {
                             <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{card.category}</span>
                           )}
                           <span className="text-[10px] font-mono text-muted-foreground">v{card.version}</span>
-                          <span className="text-[9px] text-muted-foreground">{card.maturity}</span>
                           {card.default_runtime_mode && (
                             <span className="text-[9px] px-1.5 py-0.5 rounded-xs bg-primary/10 text-primary font-mono" title="Default runtime mode">
                               {card.default_runtime_mode}

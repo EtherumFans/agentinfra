@@ -54,6 +54,7 @@ STAGES: tuple[str, ...] = (
     "gap_identification",
     "expert_consultation",
     "query_generation",
+    "query_necessity_gate",      # Phase 5 Track D P0.5 Gate 2
     "query_compliance_gate",
     "specialist_trace_emit",
 )
@@ -131,6 +132,8 @@ class CDIOrchestrator:
             self._stage_expert_consultation(case)
         elif stage == "query_generation":
             self._stage_query_generation(case)
+        elif stage == "query_necessity_gate":
+            self._stage_query_necessity_gate(case)
         elif stage == "query_compliance_gate":
             self._stage_query_compliance_gate(case)
         elif stage == "specialist_trace_emit":
@@ -168,6 +171,27 @@ class CDIOrchestrator:
         case.stage_trace_ids["query_generation"] = str(result.get("trace_id", ""))
         for q_dict in result.get("queries", []):
             case.proposed_provider_queries.append(self._hydrate_query(q_dict))
+
+    def _stage_query_necessity_gate(self, case: CDICase) -> None:
+        """Phase 5 Track D P0.5 Gate 2 — drop queries that fail NQ-001..NQ-005.
+
+        Runs the necessity gate (PDF §3.2) on every query in the case.
+        Hard-failures (NQ-001 evidence_sufficiency, NQ-004 documentation_impact,
+        NQ-005 redundancy_risk) drop the query. Soft-failures (NQ-002, NQ-003)
+        are recorded in the trace but do not drop.
+
+        Over-query guard NQ-006 tags the case (does not block).
+        """
+        from .necessity_gate import apply_necessity_to_case
+        result = apply_necessity_to_case(case)
+        # Stash summary in stage_run_ids for traceability
+        case.stage_run_ids["query_necessity_gate"] = (
+            f"necessary={sum(1 for v in result.per_query.values() if v.verdict == 'NECESSARY')};"
+            f"unnecessary={sum(1 for v in result.per_query.values() if v.verdict == 'UNNECESSARY')};"
+            f"overquery_triggered={result.overquery_triggered};"
+            f"final_count={len(case.proposed_provider_queries)}"
+        )
+        case.stage_trace_ids["query_necessity_gate"] = ""
 
     def _stage_query_compliance_gate(self, case: CDICase) -> None:
         """Run NLQ-001..009 on every generated query. Mutates each query's

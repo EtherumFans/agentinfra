@@ -180,6 +180,33 @@ export default function AgentDetailPage() {
           return;
         }
       } catch {}
+      // Fallback: try Hub (prebuilt agents like icoder/medical-coding-agent@2.0.0)
+      try {
+        const hubRes = await agentHubApi.list();
+        if (!isActive()) return;
+        const card = (hubRes.data?.agents || []).find(c => c.agent_ref === agentId || c.agent_id === agentId);
+        if (card) {
+          setAgent({
+            id: card.agent_ref,
+            name: card.name,
+            description: card.description,
+            version: card.version,
+            category: card.category,
+            system_prompt: '',
+            expert_ids: [],
+            config: { default_runtime_mode: card.default_runtime_mode },
+            is_prebuilt: true,
+            red_lines: card.red_lines,
+            workflow: card.workflow,
+            badge: card.badge,
+            maturity: card.maturity,
+            production_ready: card.production_ready,
+            human_review: card.human_review,
+          } as any);
+          setAgentName(card.name); setAgentRef(card.agent_ref);
+          return;
+        }
+      } catch {}
       // Fallback: try templates
       try {
         const templatesRes = await agentsApi.templates();

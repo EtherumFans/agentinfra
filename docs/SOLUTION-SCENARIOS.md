@@ -60,44 +60,89 @@ curl -X POST /api/agents -d '{
 
 ---
 
-## 场景二：临床文档改进 (CDI) Agent
+## 场景二：临床文档改进 (CDI) Agent — CORE_ENTRY_AGENT #1
+
+> **Phase 5 Track D (2026-07-11)**: CDI 升级为 CORE_ENTRY_AGENT, 与 Medical Coding 并列.
+> 详见 [reports/phase5_track_d/](../reports/phase5_track_d/) + [docs/product/PRODUCT_DIRECTION.md](product/PRODUCT_DIRECTION.md).
 
 ### 客户痛点
 
-医保飞行检查发现大量病历存在"诊断特异性不足"问题——如仅写"肺炎"而非"细菌性肺炎（左下叶）"。这直接影响 DRG 权重和医院收入。临床医生没有时间逐份检查文档质量。
+医保飞行检查发现大量病历存在"诊断特异性不足"问题——如仅写"肺炎"而非"细菌性肺炎（左下叶）"。这直接影响编码准确性和临床事实还原。临床医生没有时间逐份检查文档质量。
+
+**注意 (Phase 5 Track D §4.3 边界)**: CDI 不是为了提升 CMI/支付/权重. CDI 是为了让临床事实被准确写清楚.
 
 ### iCoDer 方案
 
-构建 CDI Agent，只读分析病历文档，自动生成符合规范的医师查询：
+构建 CDI Agent (CORE_ENTRY_AGENT)，识别影响事实表达、准确编码和合规审核的内涵缺口，生成中立、非诱导、基于证据的临床澄清任务 (Provider Query)，形成医生答复 → 文档修订 → CDI 复核 → Medical Coding 闭环。
 
 ```
-extract_evidence → check_documentation_gaps → cdi_review → generate_cdi_query
+病历输入
+  → 文档结构化 (discharge-summary-structuring, SPECIALIZED_AGENT)
+  → 基础完整性检查 (note-completeness, SPECIALIZED_AGENT)
+  → 临床内涵缺口识别 (CDI 核心)
+  → 必要时调用受控 Expert / Tool
+  → 生成 Documentation Gaps (结构化 Schema)
+  → 生成 Provider Query Draft
+  → Non-leading Query 检查 (BLOCKED_LEADING_QUERY gate)
+  → 人工审核 (status: DRAFT → PENDING_CDI_REVIEW → APPROVED)
+  → 发送医生 (SENT_TO_CLINICIAN → VIEWED → RESPONDED)
+  → 文档修订 (DOCUMENTATION_UPDATED → REVALIDATED → CLOSED)
 ```
 
 **权限策略**：`cdi_audit` 预置——只读分析，不允许编码分配。`search_icd10_index` 等编码工具被 Deny-First 拦截。
 
-### 生成的 CDI 查询示例
+**红线 (Phase 5 Track D §15)**:
+- ❌ no_diagnosis_invention (不自动生成诊断)
+- ❌ no_upcoding (不以支付提升为目标)
+- ❌ no_leading_query (Non-leading Query gate)
+- ❌ no_automatic_chart_modification (不自动改病历)
+- ❌ chart_evidence_required (必须有病历证据)
+- ❌ clinician_confirmation_required (医生必须确认)
+- ❌ human_review_required (人工审核必须)
+- ❌ production_writeback_blocked (生产写回默认关闭)
+- ❌ external_web_not_patient_fact_source (Web Search 不直接产生患者事实)
+
+### Non-leading Provider Query 示例
+
+> ⚠️ 注意: 旧版本中 "建议: 请在病程记录中明确：肺炎病原体是否为肺炎链球菌？" 是诱导式查询 (leading query).
+> Phase 5 Track D §8.3 Non-leading Query Gate 会阻断此类查询. 改为中立的多选题:
 
 ```markdown
-## 文档缺口查询
+## 临床澄清任务 (Provider Query)
 
-**患者**: 张三 (ENC-20260529-001)
-**主治医师**: 李医生
-**日期**: 2026-05-29
+**query_id**: q_cdi_2026_0711_a3c5
+**gap_id**: gap_diagnostic_specificity_pneumonia
+**priority**: routine
+**status**: DRAFT  ← AI 生成后默认 DRAFT, 必须人工审核才能发送
 
-### 查询 1: 肺炎诊断特异性
-**依据**: 入院记录诊断"肺炎"，但痰培养结果为"肺炎链球菌"
-**影响**: 当前编码 J18.9（未特指肺炎）→ 可升级为 J13（肺炎链球菌肺炎）
-**DRG 影响**: ES21 → ES22，权重增加 0.35
-**建议**: 请在病程记录中明确：肺炎病原体是否为肺炎链球菌？
+### 临床问题
+入院记录诊断为"肺炎", 痰培养结果为"肺炎链球菌". 请根据您的临床判断回答:
+
+### 答复选项 (单选, 也允自由文本 / 无法确定 / 临床不支持)
+- [ ] A. 肺炎病原体为肺炎链球菌 (J13)
+- [ ] B. 肺炎病原体为其他已知病原体 (请在自由文本中说明)
+- [ ] C. 痰培养结果为定植菌, 不作为病原体
+- [ ] D. 无法确定 (unable to determine)
+- [ ] E. 临床不支持 (痰培养结果与临床表现不符)
+
+### 证据 (基于病历原文)
+- source_document: 入院记录 (2026-07-11 14:23)
+  evidence_text: "诊断: 肺炎"
+  char_start: 234, char_end: 240
+- source_document: 微生物检验报告 (2026-07-11 16:00)
+  evidence_text: "痰培养: 肺炎链球菌 (3+)"
+  char_start: 12, char_end: 32
 ```
 
 ### 部署方式
 
 ```bash
-curl -X POST /api/agents -d '{
-  "name": "CDI文档改进Agent",
-  "config": {"permission_preset": "cdi_audit", "routing_strategy": "tool_native"}
+# CDI run with chart context
+curl -X POST /api/cdi/runs -d '{
+  "patient_ref": "p_001",
+  "encounter_ref": "e_2026_0711_001",
+  "documents": [...],
+  "draft_codes": ["J18.9"]
 }'
 ```
 

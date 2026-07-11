@@ -1,15 +1,46 @@
 {
   "name": "@icoder/embedded",
-  "version": "1.0.0",
-  "description": "iCoDer Embedded Assistant — embeddable AI coding assistant for HIS/EMR systems",
+  "version": "2.0.0",
+  "description": "iCoDer Embedded Assistant — embeddable AI coding assistant Web Component (Corti-compatible method-based API)",
+  "type": "module",
   "main": "dist/icoder-assistant.js",
-  "module": "dist/icoder-assistant.mjs",
+  "module": "dist/icoder-assistant.js",
   "types": "dist/index.d.ts",
-  "files": ["dist/"],
-  "scripts": {
-    "build": "tsc && cp src/icoder-assistant.css dist/",
-    "dev": "tsc --watch"
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/icoder-assistant.js"
+    }
   },
-  "keywords": ["icoder", "medical-coding", "web-component", "ehr", "his"],
-  "license": "Apache-2.0"
+  "files": [
+    "dist/",
+    "README.md",
+    "MIGRATION-2.0.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "icoder",
+    "medical-coding",
+    "web-component",
+    "ehr",
+    "his",
+    "corti"
+  ],
+  "license": "Apache-2.0",
+  "author": "iCoDer Team",
+  "homepage": "https://github.com/icoder/icoder-embedded#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/icoder/icoder-embedded.git"
+  },
+  "bugs": {
+    "url": "https://github.com/icoder/icoder-embedded/issues"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
 }

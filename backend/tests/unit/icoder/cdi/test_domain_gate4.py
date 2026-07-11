@@ -40,6 +40,9 @@ from app.icoder.agent_runtime.cdi.domain import GapType, ResponseOptionCategory
         ("痰培养与临床表现关联未建立", "clinical correlation unestablished", "clinical_correlation_unestablished"),
         ("术后发热时间关系未记录", "temporal relationship not documented", "temporal_unspecified"),
         ("入院诊断与出院诊断冲突", "conflicting documentation", "conflicting_documentation"),
+        # Phase 5 Track D P0 Gate 4: unknown bucket
+        ("this gap description has no classifier keywords", "", "unknown"),
+        ("", "", "unknown"),
     ],
 )
 def test_classify_gap_type_covers_all_8_types(
@@ -48,12 +51,14 @@ def test_classify_gap_type_covers_all_8_types(
     assert classify_gap_type(description, why) == expected
 
 
-def test_classify_gap_type_defaults_to_diagnostic_specificity() -> None:
-    """Empty input or no-keyword input defaults to diagnostic_specificity
-    (the most common CDI gap type, per Track D PDF §6.2)."""
+def test_classify_gap_type_defaults_to_unknown_bucket() -> None:
+    """Phase 5 Track D P0 Gate 4: empty or no-keyword input now falls back
+    to ``unknown`` (was diagnostic_specificity). The unknown bucket surfaces
+    LLM uncertainty to the audit trail instead of silently mis-tagging gaps
+    that the classifier cannot confidently place."""
 
-    assert classify_gap_type("", "") == "diagnostic_specificity"
-    assert classify_gap_type("no relevant keywords here", "none here either") == "diagnostic_specificity"
+    assert classify_gap_type("", "") == "unknown"
+    assert classify_gap_type("no relevant keywords here", "none here either") == "unknown"
 
 
 def test_classify_gap_type_is_case_insensitive() -> None:
@@ -140,7 +145,7 @@ def test_documentation_gap_includes_gap_type_field() -> None:
 
 
 def test_documentation_gap_accepts_all_8_gap_types() -> None:
-    """All 8 GapType values must be assignable."""
+    """All 9 GapType values (incl. unknown) must be assignable."""
 
     ev = EvidenceSpan(document_id="d", quote="q")
     valid_types = [
@@ -152,6 +157,7 @@ def test_documentation_gap_accepts_all_8_gap_types() -> None:
         "clinical_correlation_unestablished",
         "temporal_unspecified",
         "conflicting_documentation",
+        "unknown",
     ]
     for gap_type in valid_types:
         g = DocumentationGap(
@@ -162,6 +168,63 @@ def test_documentation_gap_accepts_all_8_gap_types() -> None:
             gap_type=gap_type,  # type: ignore[arg-type]
         )
         assert g.gap_type == gap_type
+
+
+# ---------------------------------------------------------------------------
+# Phase 5 Track D P0 Gate 4: multi-evidence + unknown bucket
+# ---------------------------------------------------------------------------
+
+
+def test_documentation_gap_supports_multi_evidence() -> None:
+    """PDF §A5: gaps may cite multiple evidence spans, each tagged with
+    supports_claim (True=aligned, False=contradicting, None=unchecked)."""
+
+    from app.icoder.agent_runtime.cdi import claim_evidence_alignment_score
+
+    spans = [
+        EvidenceSpan(document_id="d1", quote="诊断: 肺炎", supports_claim=True),
+        EvidenceSpan(document_id="d2", quote="痰培养: 肺炎链球菌", supports_claim=True),
+        EvidenceSpan(document_id="d3", quote="胸片: 未见明显浸润", supports_claim=False),
+    ]
+    g = DocumentationGap(
+        gap_id="g1",
+        description="肺炎病原体未明确",
+        why_it_matters="影响特异性编码",
+        evidence_span=spans[0],  # legacy single-span field kept
+        evidence_spans=spans,
+    )
+    assert len(g.evidence_spans) == 3
+    # 2/3 aligned → score 0.667
+    assert abs(claim_evidence_alignment_score(g) - 2.0 / 3.0) < 1e-6
+
+
+def test_documentation_gap_alignment_score_uses_legacy_span_when_no_list() -> None:
+    """If evidence_spans is empty but evidence_span has a quote, fall back to it."""
+
+    from app.icoder.agent_runtime.cdi import claim_evidence_alignment_score
+
+    g = DocumentationGap(
+        gap_id="g1",
+        description="test",
+        why_it_matters="",
+        evidence_span=EvidenceSpan(document_id="d", quote="肺炎"),
+    )
+    # No spans checked → defaults to 1.0 (deferred)
+    assert claim_evidence_alignment_score(g) == 1.0
+
+
+def test_classify_gap_type_with_confidence_returns_tuple() -> None:
+    """classify_gap_type_with_confidence returns (GapType, float confidence)."""
+
+    from app.icoder.agent_runtime.cdi import classify_gap_type_with_confidence
+
+    gt, conf = classify_gap_type_with_confidence("肺炎诊断特异性不足", "")
+    assert gt == "diagnostic_specificity"
+    assert 0.0 < conf <= 1.0
+
+    gt, conf = classify_gap_type_with_confidence("no keywords", "")
+    assert gt == "unknown"
+    assert conf == 0.0
 
 
 # ---------------------------------------------------------------------------

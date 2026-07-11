@@ -1,7 +1,11 @@
 """Unit tests for CDI Non-leading Query Gate (Phase 5 Track D Gate 5).
 
-Tests NLQ-001..009 rules from
+Tests NLQ-001..010 rules from
 ``reports/phase5_track_d/CORTI_CDI_PROVIDER_QUERY_AUDIT.md``.
+
+Phase 5 Track D P0 Gate 4 (2026-07-11) additions:
+    - NLQ-001 anchor removed; mid-sentence 是否 / 能否 now blocks
+    - NLQ-010 added — response_options must NOT contain ICD/DRG/CMI codes
 
 Each rule is exercised with both a PASS and a BLOCK fixture, then a
 full Corti-compliant query is run as an integration smoke test.
@@ -32,7 +36,8 @@ COMPLIANT_QUERY = ProviderQueryForGate(
         "请根据您的临床判断回答:"
     ),
     response_options=[
-        "A. 肺炎病原体为肺炎链球菌 (J13)",
+        # Phase 5 Track D P0 Gate 4 / PDF §A6: no ICD/DRG/CMI codes visible to clinicians.
+        "A. 肺炎病原体为肺炎链球菌",
         "B. 肺炎病原体为其他已知病原体 (请在自由文本中说明)",
         "C. 痰培养结果为定植菌, 不作为病原体",
         "D. 无法确定 (unable to determine)",
@@ -209,16 +214,118 @@ def test_nlq_009_block_on_payment_terms(bad_text: str) -> None:
 
 
 # ---------------------------------------------------------------------------
+# NLQ-010 no_coding_codes_in_options (Phase 5 Track D P0 Gate 4 / PDF §A6)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "bad_option",
+    [
+        # ICD-10-CM: letter + 2 digits + optional .subdivision
+        "A. 肺炎病原体为肺炎链球菌 (J13)",
+        "A. 病因为甲型流感 (J10.1)",
+        # ICD-9-CM-3: 2-3 digits + .subdivision
+        "A. 行腹腔镜胆囊切除术 (51.23)",
+        # CN-DRG code-like
+        "A. 对应 AH1 分组",
+        # Explicit code-system references
+        "A. 编码到 ICD-10",
+        "A. 进入 DRG 一组",
+        "A. DIP 病种分值 100",
+        "A. 提升 CMI",
+    ],
+)
+def test_nlq_010_blocks_coding_codes_in_options(bad_option: str) -> None:
+    """PDF §A6: response_options must NOT contain ICD/DRG/CMI codes."""
+    q = ProviderQueryForGate(
+        query_text="请澄清病原体",
+        response_options=[bad_option, "B. 其他", "C. 无法确定"],
+        evidence_quote="肺炎",
+    )
+    result = evaluate_nlq(q)
+    assert "NLQ-010" in [r.rule_id for r in result.rules_failed]
+
+
+def test_nlq_010_passes_when_options_have_no_codes() -> None:
+    """Compliant options (clinical-language only) must pass NLQ-010."""
+    q = ProviderQueryForGate(
+        query_text="请澄清病原体",
+        response_options=[
+            "A. 肺炎链球菌",
+            "B. 其他已知病原体",
+            "C. 痰培养为定植菌",
+            "D. 无法确定",
+        ],
+        evidence_quote="肺炎",
+    )
+    result = evaluate_nlq(q)
+    nlq010 = next(r for r in result.rules_passed_detail if r.rule_id == "NLQ-010")
+    assert nlq010.passed is True
+
+
+def test_nlq_010_deferred_when_no_options() -> None:
+    """If response_options is empty, NLQ-010 defers (NLQ-003 handles it)."""
+    q = ProviderQueryForGate(
+        query_text="请澄清病原体",
+        response_options=[],
+        evidence_quote="肺炎",
+    )
+    result = evaluate_nlq(q)
+    nlq010 = next(r for r in result.rules_passed_detail if r.rule_id == "NLQ-010")
+    assert nlq010.passed is True
+    assert "deferred" in nlq010.evidence
+
+
+# ---------------------------------------------------------------------------
+# NLQ-001 mid-sentence 是否 / 能否 (Phase 5 Track D P0 Gate 4 / PDF §A4)
+# ---------------------------------------------------------------------------
+
+
+def test_nlq_001_mid_sentence_yes_no_now_blocks() -> None:
+    """PDF A4: '根据痰培养结果，该患者肺炎是否可以明确为肺炎链球菌性肺炎？'
+    previously passed (false negative). With anchor removed, must now BLOCK.
+    """
+    q = ProviderQueryForGate(
+        query_text="根据痰培养结果, 该患者肺炎是否可以明确为肺炎链球菌性肺炎?",
+        response_options=[
+            "A. 是肺炎链球菌性肺炎",
+            "B. 其他",
+            "C. 无法确定",
+        ],
+        evidence_quote="肺炎",
+    )
+    result = evaluate_nlq(q)
+    assert result.verdict == "BLOCK"
+    assert "NLQ-001" in [r.rule_id for r in result.rules_failed]
+
+
+def test_nlq_001_mid_sentence_can_confirm_now_blocks() -> None:
+    """English mid-sentence 'Can you confirm' must also block now."""
+    q = ProviderQueryForGate(
+        query_text="Based on sputum culture, can you confirm this is pneumococcal pneumonia?",
+        response_options=[
+            "A. pneumococcal",
+            "B. other",
+            "C. unable to determine",
+        ],
+        evidence_quote="pneumonia",
+    )
+    result = evaluate_nlq(q)
+    assert result.verdict == "BLOCK"
+    assert "NLQ-001" in [r.rule_id for r in result.rules_failed]
+
+
+# ---------------------------------------------------------------------------
 # Full compliant query integration
 # ---------------------------------------------------------------------------
 
 
-def test_compliant_query_passes_all_9_rules() -> None:
+def test_compliant_query_passes_all_10_rules() -> None:
     result = evaluate_nlq(COMPLIANT_QUERY)
     assert isinstance(result, NLQGateResult)
     assert result.verdict == "PASS"
-    assert result.rules_evaluated == 9
-    assert result.rules_passed == 9
+    assert result.rules_evaluated == 10
+    assert result.rules_passed == 10
     assert len(result.rules_failed) == 0
     assert result.block_reasons == []
 

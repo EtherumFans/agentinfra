@@ -83,7 +83,8 @@ def _runner_with_compliant_query(stage: str, case: CDICase, kwargs: dict[str, An
                     },
                     "query_text": "入院记录诊断为肺炎, 痰培养为肺炎链球菌. 请根据您的临床判断回答:",
                     "response_options": [
-                        "A. 肺炎病原体为肺炎链球菌 (J13)",
+                        # Phase 5 Track D P0 Gate 4 / PDF §A6: no ICD codes in options
+                        "A. 肺炎病原体为肺炎链球菌",
                         "B. 其他病原体",
                         "C. 痰培养为定植菌",
                         "D. 无法确定",

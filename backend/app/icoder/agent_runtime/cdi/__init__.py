@@ -40,6 +40,15 @@ from .orchestrator import (  # noqa: F401
     StageRunner,
     stub_runner,
 )
+from .clinician_response import (  # noqa: F401
+    ClinicianResponseValue,
+    DocumentDiff,
+    RevalidationOutcome,
+    RevalidationResult,
+    compute_document_diff,
+    process_clinician_response,
+    revalidate_gap,
+)
 
 __all__ = [
     # domain
@@ -68,4 +77,12 @@ __all__ = [
     "STAGES",
     "StageRunner",
     "stub_runner",
+    # clinician response workflow
+    "ClinicianResponseValue",
+    "DocumentDiff",
+    "RevalidationOutcome",
+    "RevalidationResult",
+    "compute_document_diff",
+    "process_clinician_response",
+    "revalidate_gap",
 ]

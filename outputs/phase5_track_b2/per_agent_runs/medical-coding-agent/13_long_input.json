@@ -1,0 +1,377 @@
+{
+  "agent_id": "medical-coding-agent",
+  "run_id": "run-ba08c31f-5a75-4d42-8f41-f19d21b70943",
+  "trace_id": "trace-a74db567ce484e2c",
+  "runtime_mode": "corti_like_fast",
+  "latency_ms": 7881,
+  "cost": {
+    "amount": 0.0,
+    "currency": "internal_credit"
+  },
+  "summary": "主要诊断选择急性前壁ST段抬高型心肌梗死（I21.0），符合病历证据。手术编码包括PCI和支架置入。高脂血症和吸烟者作为次要诊断。Killip II级未单独编码，因已作为心肌梗死严重程度描述。",
+  "result": {
+    "codes": [
+      {
+        "code": "I21.0",
+        "system": "ICD-10-CN",
+        "display": "急性前壁ST段抬高型心肌梗死",
+        "type": "primary_diagnosis",
+        "confidence": 0.95,
+        "evidence": "急诊心电图示:V1-V4 ST 段弓背向上抬高 0.3-0.5mV; 肌钙蛋白 I 12.5 ng/mL; 入院诊断:急性前壁 ST 段抬高型心肌梗死(Killip II 级)",
+        "rationale": "主要诊断 — 基于病历证据的优先编码候选,需结合 ICD-10-CN 本地目录复核具体亚目。",
+        "warnings": [
+          "需结合国家医保版 ICD-10-CN 目录进一步校验具体亚目"
+        ],
+        "alternatives": []
+      },
+      {
+        "code": "I25.103",
+        "system": "ICD-10-CN",
+        "display": "冠状动脉单支病变",
+        "type": "secondary_diagnosis",
+        "confidence": 0.9,
+        "evidence": "急诊冠脉造影:LAD 近段 100% 闭塞,RCA 中段 80% 狭窄,LCX 30% 狭窄; 入院诊断:冠状动脉单支病变(PCI 术后)",
+        "rationale": "次要诊断 (comorbidity) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。",
+        "warnings": [
+          "需结合 ICD-10-CN 本地目录进一步校验具体亚目"
+        ],
+        "alternatives": []
+      },
+      {
+        "code": "E78.500",
+        "system": "ICD-10-CN",
+        "display": "高脂血症",
+        "type": "secondary_diagnosis",
+        "confidence": 0.85,
+        "evidence": "入院诊断:高脂血症",
+        "rationale": "次要诊断 (comorbidity) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。",
+        "warnings": [
+          "需结合 ICD-10-CN 本地目录进一步校验具体亚目"
+        ],
+        "alternatives": []
+      },
+      {
+        "code": "Z72.000",
+        "system": "ICD-10-CN",
+        "display": "吸烟者",
+        "type": "secondary_diagnosis",
+        "confidence": 0.8,
+        "evidence": "既往:吸烟 40 年,每日 20 支; 入院诊断:吸烟者",
+        "rationale": "次要诊断 (secondary) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。",
+        "warnings": [
+          "需结合 ICD-10-CN 本地目录进一步校验具体亚目"
+        ],
+        "alternatives": []
+      },
+      {
+        "code": "00.66",
+        "system": "ICD-9-CM-3-CN",
+        "display": "经皮冠状动脉球囊扩张成形术（PTCA）",
+        "type": "procedure",
+        "confidence": 0.95,
+        "evidence": "行 LAD PCI 术,植入药物洗脱支架 1 枚",
+        "rationale": "手术/操作 (principal) — 基于 ICD-9-CM-3-CN 编码候选,需结合本地手术目录复核。",
+        "warnings": [
+          "需结合 ICD-9-CM-3-CN 本地目录进一步校验具体亚目"
+        ],
+        "alternatives": []
+      },
+      {
+        "code": "36.07",
+        "system": "ICD-9-CM-3-CN",
+        "display": "药物洗脱冠状动脉支架置入术",
+        "type": "procedure",
+        "confidence": 0.95,
+        "evidence": "植入药物洗脱支架 1 枚",
+        "rationale": "手术/操作 (therapeutic) — 基于 ICD-9-CM-3-CN 编码候选,需结合本地手术目录复核。",
+        "warnings": [
+          "需结合 ICD-9-CM-3-CN 本地目录进一步校验具体亚目"
+        ],
+        "alternatives": []
+      },
+      {
+        "code": "88.56",
+        "system": "ICD-9-CM-3-CN",
+        "display": "冠状动脉造影",
+        "type": "procedure",
+        "confidence": 0.95,
+        "evidence": "急诊冠脉造影:LAD 近段 100% 闭塞,RCA 中段 80% 狭窄,LCX 30% 狭窄",
+        "rationale": "手术/操作 (diagnostic) — 基于 ICD-9-CM-3-CN 编码候选,需结合本地手术目录复核。",
+        "warnings": [
+          "需结合 ICD-9-CM-3-CN 本地目录进一步校验具体亚目"
+        ],
+        "alternatives": []
+      }
+    ],
+    "raw_schema": {
+      "review_conclusion": "PASS",
+      "primary_diagnosis": {
+        "code": "I21.0",
+        "description": "急性前壁ST段抬高型心肌梗死",
+        "confidence": 0.95,
+        "category": "principal",
+        "evidence": [
+          {
+            "text": "急诊心电图示:V1-V4 ST 段弓背向上抬高 0.3-0.5mV",
+            "kind": "auto_bootstrap"
+          },
+          {
+            "text": "肌钙蛋白 I 12.5 ng/mL",
+            "kind": "auto_bootstrap"
+          },
+          {
+            "text": "入院诊断:急性前壁 ST 段抬高型心肌梗死(Killip II 级)",
+            "kind": "auto_bootstrap"
+          }
+        ]
+      },
+      "secondary_diagnoses": [
+        {
+          "code": "I25.103",
+          "description": "冠状动脉单支病变",
+          "confidence": 0.9,
+          "category": "comorbidity",
+          "evidence": [
+            {
+              "text": "急诊冠脉造影:LAD 近段 100% 闭塞,RCA 中段 80% 狭窄,LCX 30% 狭窄",
+              "kind": "auto_bootstrap"
+            },
+            {
+              "text": "入院诊断:冠状动脉单支病变(PCI 术后)",
+              "kind": "auto_bootstrap"
+            }
+          ]
+        },
+        {
+          "code": "E78.500",
+          "description": "高脂血症",
+          "confidence": 0.85,
+          "category": "comorbidity",
+          "evidence": [
+            {
+              "text": "入院诊断:高脂血症",
+              "kind": "auto_bootstrap"
+            }
+          ]
+        },
+        {
+          "code": "Z72.000",
+          "description": "吸烟者",
+          "confidence": 0.8,
+          "category": "secondary",
+          "evidence": [
+            {
+              "text": "既往:吸烟 40 年,每日 20 支",
+              "kind": "auto_bootstrap"
+            },
+            {
+              "text": "入院诊断:吸烟者",
+              "kind": "auto_bootstrap"
+            }
+          ]
+        }
+      ],
+      "procedures": [
+        {
+          "code": "00.66",
+          "description": "经皮冠状动脉球囊扩张成形术（PTCA）",
+          "confidence": 0.95,
+          "category": "principal",
+          "evidence": [
+            {
+              "text": "行 LAD PCI 术,植入药物洗脱支架 1 枚",
+              "kind": "auto_bootstrap"
+            }
+          ]
+        },
+        {
+          "code": "36.07",
+          "description": "药物洗脱冠状动脉支架置入术",
+          "confidence": 0.95,
+          "category": "therapeutic",
+          "evidence": [
+            {
+              "text": "植入药物洗脱支架 1 枚",
+              "kind": "auto_bootstrap"
+            }
+          ]
+        },
+        {
+          "code": "88.56",
+          "description": "冠状动脉造影",
+          "confidence": 0.95,
+          "category": "diagnostic",
+          "evidence": [
+            {
+              "text": "急诊冠脉造影:LAD 近段 100% 闭塞,RCA 中段 80% 狭窄,LCX 30% 狭窄",
+              "kind": "auto_bootstrap"
+            }
+          ]
+        }
+      ],
+      "issues_found": [
+        {
+          "severity": "medium",
+          "code": "RULE-001",
+          "message": "Killip II级未单独编码，但已包含在主要诊断描述中",
+          "suggestion": "若需单独编码Killip II级，可考虑I50.9，但通常作为心肌梗死严重程度描述，不强制单独编码"
+        }
+      ],
+      "drg_suggestion": "FM19（经皮冠状动脉介入治疗，伴心肌梗死）",
+      "dip_suggestion": "急性心肌梗死伴PCI，高脂血症，吸烟史",
+      "manual_review_required": false,
+      "confidence": 0.92,
+      "notes": "主要诊断选择急性前壁ST段抬高型心肌梗死（I21.0），符合病历证据。手术编码包括PCI和支架置入。高脂血症和吸烟者作为次要诊断。Killip II级未单独编码，因已作为心肌梗死严重程度描述。",
+      "provider": "deepseek_coding_adapter",
+      "model": "",
+      "is_mock": false,
+      "repair_attempted": false,
+      "repair_success": false,
+      "repair_rounds": 0,
+      "mode": "",
+      "extracted_diagnoses": [],
+      "method_id": "",
+      "method_name": "",
+      "method_family": "",
+      "method_stage_trace": []
+    },
+    "llm_provider": "deepseek"
+  },
+  "evidence": [
+    {
+      "code": "I21.0",
+      "system": "ICD-10-CN",
+      "type": "primary_diagnosis",
+      "text": "急诊心电图示:V1-V4 ST 段弓背向上抬高 0.3-0.5mV; 肌钙蛋白 I 12.5 ng/mL; 入院诊断:急性前壁 ST 段抬高型心肌梗死(Killip II 级)",
+      "rationale": "主要诊断 — 基于病历证据的优先编码候选,需结合 ICD-10-CN 本地目录复核具体亚目。"
+    },
+    {
+      "code": "I25.103",
+      "system": "ICD-10-CN",
+      "type": "secondary_diagnosis",
+      "text": "急诊冠脉造影:LAD 近段 100% 闭塞,RCA 中段 80% 狭窄,LCX 30% 狭窄; 入院诊断:冠状动脉单支病变(PCI 术后)",
+      "rationale": "次要诊断 (comorbidity) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。"
+    },
+    {
+      "code": "E78.500",
+      "system": "ICD-10-CN",
+      "type": "secondary_diagnosis",
+      "text": "入院诊断:高脂血症",
+      "rationale": "次要诊断 (comorbidity) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。"
+    },
+    {
+      "code": "Z72.000",
+      "system": "ICD-10-CN",
+      "type": "secondary_diagnosis",
+      "text": "既往:吸烟 40 年,每日 20 支; 入院诊断:吸烟者",
+      "rationale": "次要诊断 (secondary) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。"
+    },
+    {
+      "code": "00.66",
+      "system": "ICD-9-CM-3-CN",
+      "type": "procedure",
+      "text": "行 LAD PCI 术,植入药物洗脱支架 1 枚",
+      "rationale": "手术/操作 (principal) — 基于 ICD-9-CM-3-CN 编码候选,需结合本地手术目录复核。"
+    },
+    {
+      "code": "36.07",
+      "system": "ICD-9-CM-3-CN",
+      "type": "procedure",
+      "text": "植入药物洗脱支架 1 枚",
+      "rationale": "手术/操作 (therapeutic) — 基于 ICD-9-CM-3-CN 编码候选,需结合本地手术目录复核。"
+    },
+    {
+      "code": "88.56",
+      "system": "ICD-9-CM-3-CN",
+      "type": "procedure",
+      "text": "急诊冠脉造影:LAD 近段 100% 闭塞,RCA 中段 80% 狭窄,LCX 30% 狭窄",
+      "rationale": "手术/操作 (diagnostic) — 基于 ICD-9-CM-3-CN 编码候选,需结合本地手术目录复核。"
+    }
+  ],
+  "warnings": [
+    "需结合国家医保版 ICD-10-CN 目录进一步校验具体亚目",
+    "需结合 ICD-10-CN 本地目录进一步校验具体亚目",
+    "需结合 ICD-10-CN 本地目录进一步校验具体亚目",
+    "需结合 ICD-10-CN 本地目录进一步校验具体亚目",
+    "需结合 ICD-9-CM-3-CN 本地目录进一步校验具体亚目",
+    "需结合 ICD-9-CM-3-CN 本地目录进一步校验具体亚目",
+    "需结合 ICD-9-CM-3-CN 本地目录进一步校验具体亚目"
+  ],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "input_received",
+      "status": "ok",
+      "ts": 1783746288.8159332,
+      "duration_ms": 0,
+      "metadata": {
+        "text_len": 393,
+        "mode": "corti_like_fast"
+      }
+    },
+    {
+      "step": "language_detect",
+      "status": "ok",
+      "ts": 1783746288.8159332,
+      "duration_ms": 0,
+      "metadata": {
+        "language": "zh"
+      }
+    },
+    {
+      "step": "build_prompt",
+      "status": "ok",
+      "ts": 1783746288.8159332,
+      "duration_ms": 0,
+      "metadata": {
+        "provider": "deepseek",
+        "language": "zh",
+        "system": "icd-10-cn"
+      }
+    },
+    {
+      "step": "llm_call",
+      "status": "ok",
+      "ts": 1783746296.6976235,
+      "duration_ms": 7881,
+      "metadata": {
+        "provider": "deepseek",
+        "model": "deepseek-chat",
+        "is_mock": false
+      }
+    },
+    {
+      "step": "parse_json",
+      "status": "ok",
+      "ts": 1783746296.6976235,
+      "duration_ms": 7881,
+      "metadata": {}
+    },
+    {
+      "step": "project_result",
+      "status": "ok",
+      "ts": 1783746296.6976235,
+      "duration_ms": 7881,
+      "metadata": {
+        "code_count": 7
+      }
+    },
+    {
+      "step": "return",
+      "status": "ok",
+      "ts": 1783746296.6976235,
+      "duration_ms": 7881,
+      "metadata": {
+        "latency_ms": 7881,
+        "code_count": 7
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_client_wall_ms": 7905,
+  "_fixture": "fixtures/phase5_track_b2/02_cardiology.json",
+  "_agent": "medical-coding-agent",
+  "_tag": "13_long_input",
+  "_ts": "2026-07-11T13:04:56"
+}

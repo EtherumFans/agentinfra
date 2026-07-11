@@ -1,0 +1,211 @@
+{
+  "agent_id": "medical-coding-agent",
+  "run_id": "run-2581acbd-4db0-44f1-b1dc-83435a16f9d8",
+  "trace_id": "trace-09e6552926ae4556",
+  "runtime_mode": "corti_like_fast",
+  "latency_ms": 4623,
+  "cost": {
+    "amount": 0.0,
+    "currency": "internal_credit"
+  },
+  "summary": "主要诊断选择骨质疏松性椎体压缩性骨折(M80.08)而非单纯骨折，因骨密度T值-3.2明确骨质疏松，且入院诊断明确为骨质疏松性骨折。高血压作为合并症编码。",
+  "result": {
+    "codes": [
+      {
+        "code": "M80.08",
+        "system": "ICD-10-CN",
+        "display": "骨质疏松性椎体压缩性骨折",
+        "type": "primary_diagnosis",
+        "confidence": 0.95,
+        "evidence": "MRI 显示 T12 椎体压缩性骨折; 骨密度 T 值 -3.2(骨质疏松); 入院诊断:骨质疏松性骨折",
+        "rationale": "主要诊断 — 基于病历证据的优先编码候选,需结合 ICD-10-CN 本地目录复核具体亚目。",
+        "warnings": [
+          "需结合国家医保版 ICD-10-CN 目录进一步校验具体亚目"
+        ],
+        "alternatives": []
+      },
+      {
+        "code": "I10.x00x002",
+        "system": "ICD-10-CN",
+        "display": "高血压病",
+        "type": "secondary_diagnosis",
+        "confidence": 0.9,
+        "evidence": "既往有高血压病史 10 年; 长期口服氨氯地平 5mg qd; 入院诊断:高血压病 3 级(很高危)",
+        "rationale": "次要诊断 (comorbidity) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。",
+        "warnings": [
+          "需结合 ICD-10-CN 本地目录进一步校验具体亚目"
+        ],
+        "alternatives": []
+      }
+    ],
+    "raw_schema": {
+      "review_conclusion": "PASS",
+      "primary_diagnosis": {
+        "code": "M80.08",
+        "description": "骨质疏松性椎体压缩性骨折",
+        "confidence": 0.95,
+        "category": "principal",
+        "evidence": [
+          {
+            "text": "MRI 显示 T12 椎体压缩性骨折",
+            "kind": "auto_bootstrap"
+          },
+          {
+            "text": "骨密度 T 值 -3.2(骨质疏松)",
+            "kind": "auto_bootstrap"
+          },
+          {
+            "text": "入院诊断:骨质疏松性骨折",
+            "kind": "auto_bootstrap"
+          }
+        ]
+      },
+      "secondary_diagnoses": [
+        {
+          "code": "I10.x00x002",
+          "description": "高血压病",
+          "confidence": 0.9,
+          "category": "comorbidity",
+          "evidence": [
+            {
+              "text": "既往有高血压病史 10 年",
+              "kind": "auto_bootstrap"
+            },
+            {
+              "text": "长期口服氨氯地平 5mg qd",
+              "kind": "auto_bootstrap"
+            },
+            {
+              "text": "入院诊断:高血压病 3 级(很高危)",
+              "kind": "auto_bootstrap"
+            }
+          ]
+        }
+      ],
+      "procedures": [],
+      "issues_found": [
+        {
+          "severity": "low",
+          "code": "RULE-001",
+          "message": "主要诊断编码 M80.08 为骨质疏松伴病理性骨折，需确认骨折与骨质疏松的直接因果关系",
+          "suggestion": "病历已明确骨质疏松性骨折，证据充分，无需修改"
+        }
+      ],
+      "drg_suggestion": "IF2 骨质疏松伴病理性骨折",
+      "dip_suggestion": "骨质疏松性椎体骨折",
+      "manual_review_required": false,
+      "confidence": 0.95,
+      "notes": "主要诊断选择骨质疏松性椎体压缩性骨折(M80.08)而非单纯骨折，因骨密度T值-3.2明确骨质疏松，且入院诊断明确为骨质疏松性骨折。高血压作为合并症编码。",
+      "provider": "deepseek_coding_adapter",
+      "model": "",
+      "is_mock": false,
+      "repair_attempted": false,
+      "repair_success": false,
+      "repair_rounds": 0,
+      "mode": "",
+      "extracted_diagnoses": [],
+      "method_id": "",
+      "method_name": "",
+      "method_family": "",
+      "method_stage_trace": []
+    },
+    "llm_provider": "deepseek"
+  },
+  "evidence": [
+    {
+      "code": "M80.08",
+      "system": "ICD-10-CN",
+      "type": "primary_diagnosis",
+      "text": "MRI 显示 T12 椎体压缩性骨折; 骨密度 T 值 -3.2(骨质疏松); 入院诊断:骨质疏松性骨折",
+      "rationale": "主要诊断 — 基于病历证据的优先编码候选,需结合 ICD-10-CN 本地目录复核具体亚目。"
+    },
+    {
+      "code": "I10.x00x002",
+      "system": "ICD-10-CN",
+      "type": "secondary_diagnosis",
+      "text": "既往有高血压病史 10 年; 长期口服氨氯地平 5mg qd; 入院诊断:高血压病 3 级(很高危)",
+      "rationale": "次要诊断 (comorbidity) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。"
+    }
+  ],
+  "warnings": [
+    "需结合国家医保版 ICD-10-CN 目录进一步校验具体亚目",
+    "需结合 ICD-10-CN 本地目录进一步校验具体亚目"
+  ],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "input_received",
+      "status": "ok",
+      "ts": 1783746337.2703257,
+      "duration_ms": 0,
+      "metadata": {
+        "text_len": 412,
+        "mode": "corti_like_fast"
+      }
+    },
+    {
+      "step": "language_detect",
+      "status": "ok",
+      "ts": 1783746337.2703257,
+      "duration_ms": 0,
+      "metadata": {
+        "language": "zh"
+      }
+    },
+    {
+      "step": "build_prompt",
+      "status": "ok",
+      "ts": 1783746337.2703257,
+      "duration_ms": 0,
+      "metadata": {
+        "provider": "deepseek",
+        "language": "zh",
+        "system": "icd-10-cn"
+      }
+    },
+    {
+      "step": "llm_call",
+      "status": "ok",
+      "ts": 1783746341.8935657,
+      "duration_ms": 4623,
+      "metadata": {
+        "provider": "deepseek",
+        "model": "deepseek-chat",
+        "is_mock": false
+      }
+    },
+    {
+      "step": "parse_json",
+      "status": "ok",
+      "ts": 1783746341.8935657,
+      "duration_ms": 4623,
+      "metadata": {}
+    },
+    {
+      "step": "project_result",
+      "status": "ok",
+      "ts": 1783746341.8935657,
+      "duration_ms": 4623,
+      "metadata": {
+        "code_count": 2
+      }
+    },
+    {
+      "step": "return",
+      "status": "ok",
+      "ts": 1783746341.8935657,
+      "duration_ms": 4623,
+      "metadata": {
+        "latency_ms": 4623,
+        "code_count": 2
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_client_wall_ms": 4680,
+  "_fixture": "fixtures/phase5_track_b2/01_orthopedics.json",
+  "_agent": "medical-coding-agent",
+  "_tag": "18_repeat_3",
+  "_ts": "2026-07-11T13:05:41"
+}

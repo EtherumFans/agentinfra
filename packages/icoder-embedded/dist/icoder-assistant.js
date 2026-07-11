@@ -441,7 +441,14 @@ class iCoDerEmbedded extends HTMLElement {
             if (this._patientContext.name || this._patientContext.patientId) {
                 enrichedInput = `[患者: ${this._patientContext.name || ''} ID:${this._patientContext.patientId || ''}]\n${input}`;
             }
-            const agentId = this._sessionConfig.defaultTemplateKey || 'medical-coding-agent';
+            // Phase 5 B-2 AUDIT_BLOCKER_FIX #3: normalize full agent_ref
+            // (e.g. `icoder/medical-coding-agent@2.0.0`) to the short agent_id
+            // (`medical-coding-agent`) the backend route expects. Backend's route
+            // pattern /api/v1/agents/{agent_id}/run treats %2F as a path separator
+            // and 404s on the full ref. Mirrors the frontend normalize in
+            // frontend/src/services/runtimeApi.ts:agentRun().
+            const rawAgentId = this._sessionConfig.defaultTemplateKey || 'medical-coding-agent';
+            const agentId = rawAgentId.split('/').pop().split('@')[0];
             const url = `${this._baseUrl}/api/v1/agents/${encodeURIComponent(agentId)}/run`;
             const resp = await fetch(url, {
                 method: 'POST',

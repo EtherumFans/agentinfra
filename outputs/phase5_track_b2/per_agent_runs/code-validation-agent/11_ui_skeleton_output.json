@@ -1,0 +1,69 @@
+{
+  "_description": "UI-driven code-validation-agent run captured via browser DevTools. Shows runtime_mode=llm_with_tools (different from API call's a2a_pure_llm).",
+  "_capture_ts": "2026-07-11T05:30:13Z",
+  "_source": "Browser network capture (Playwright browser_network_request #98)",
+  "_url": "POST /api/v1/agents/code-validation-agent/run",
+  "agent_id": "code-validation-agent",
+  "run_id": "run-f8658afe-1b5a-4f47-9336-c38b910ae756",
+  "trace_id": "trace-ed73ce4675db428f",
+  "runtime_mode": "llm_with_tools",
+  "latency_ms": 3,
+  "summary": "LLMWithToolsProvider skeleton: placeholder response (no llm_client wired).",
+  "result": {
+    "status": "complete",
+    "markdown_first_line": "# LLMWithToolsProvider — Skeleton Response",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [
+      {
+        "tool_name": "verify_code",
+        "arguments": {},
+        "result": null,
+        "duration_ms": 0,
+        "error": "ToolMCPCompatLayer.call requires `request` — pass it via invoke(..., request=...)",
+        "scope_granted": []
+      }
+    ],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.llm-with-tools.v1",
+    "backend_type": "llm_with_tools",
+    "raw_provider_response": {
+      "skeleton": true,
+      "tool_rounds": 1,
+      "system_prompt_chars": 310,
+      "user_input_chars": 99
+    }
+  },
+  "evidence": [
+    {
+      "text": "verify_code",
+      "_note": "Evidence is just the tool name — no real clinical evidence since the tool call errored"
+    }
+  ],
+  "warnings": [],
+  "manual_review_required": false,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 3,
+      "metadata": {
+        "agent_id": "code-validation-agent",
+        "runtime_mode": "llm_with_tools",
+        "latency_ms": 3
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_key_findings": {
+    "is_skeleton": true,
+    "llm_client_wired": false,
+    "real_tool_invocation": false,
+    "tool_call_error": "ToolMCPCompatLayer.call requires `request` — pass it via invoke(..., request=...)",
+    "skeleton_pipeline_only": true,
+    "deferred_since": "Phase 4-A Task 6 (2026-07-07)"
+  }
+}

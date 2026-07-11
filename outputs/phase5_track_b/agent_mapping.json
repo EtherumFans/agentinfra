@@ -1,0 +1,242 @@
+{
+  "audit": {
+    "captured_at": "2026-07-11",
+    "corti_agents_total": 20,
+    "icoder_agents_total": 14,
+    "corti_source": "outputs/phase5_track_b/corti_raw/external_agents_experts.json",
+    "icoder_source": "outputs/phase5_track_b/icoder_agents_hub.json"
+  },
+  "summary": {
+    "EXACT_MATCH": 5,
+    "PARTIAL_MATCH": 3,
+    "COMPOSITE_MATCH": 0,
+    "CORTI_ONLY": 11,
+    "ICODER_ONLY": 5,
+    "NO_VALID_MAPPING": 0
+  },
+  "mappings": [
+    {
+      "corti_id": "compliance-guardrail-agent",
+      "icoder_id": "compliance-guardrail-agent",
+      "class": "EXACT_MATCH",
+      "confidence": "high",
+      "evidence": "Same name+purpose; both runnable; both coding-rule validation",
+      "corti_experts": [
+        "coding-expert"
+      ],
+      "icoder_experts": 1,
+      "icoder_tools": 1
+    },
+    {
+      "corti_id": "code-validation-agent",
+      "icoder_id": "code-validation-agent",
+      "class": "EXACT_MATCH",
+      "confidence": "high",
+      "evidence": "Same name+purpose; both runnable; both LLMWithTools style",
+      "corti_experts": [
+        "coding-expert"
+      ],
+      "icoder_experts": 2,
+      "icoder_tools": 4
+    },
+    {
+      "corti_id": "procedure-entity-extractor-agent",
+      "icoder_id": "procedure-extractor",
+      "class": "EXACT_MATCH",
+      "confidence": "high",
+      "evidence": "Same purpose (手术/操作 ICD-9-CM-3 / ICD-10-PCS extraction); both runnable",
+      "corti_experts": [
+        "coding-expert"
+      ],
+      "icoder_experts": 1,
+      "icoder_tools": 0
+    },
+    {
+      "corti_id": "note-completeness-agent",
+      "icoder_id": "note-completeness-agent",
+      "class": "EXACT_MATCH",
+      "confidence": "high",
+      "evidence": "Same name+purpose; both runnable; iCoDer maturity=runnable (higher)",
+      "corti_experts": [
+        "coding-expert"
+      ],
+      "icoder_experts": 1,
+      "icoder_tools": 1
+    },
+    {
+      "corti_id": "medical-coding-icd-10-cpt-agent",
+      "icoder_id": "medical-coding-agent",
+      "class": "EXACT_MATCH",
+      "confidence": "high",
+      "evidence": "Both are main coding agent; iCoDer has dual mode (corti_like_fast + medcoder_deep); iCoDer uses ICD-10-CN, Corti uses ICD-10-CM/CPT",
+      "corti_experts": [
+        "coding-expert",
+        "pubmed-expert",
+        "web-search-expert",
+        "medical-calculator-expert"
+      ],
+      "icoder_experts": 1,
+      "icoder_tools": 5
+    },
+    {
+      "corti_id": "diagnostic-entity-extractor-agent",
+      "icoder_id": "diagnosis-extractor",
+      "class": "PARTIAL_MATCH",
+      "confidence": "high",
+      "evidence": "Same purpose but iCoDer is metadata-only (no run path); Corti is runnable",
+      "corti_experts": [
+        "coding-expert"
+      ],
+      "icoder_experts": "?",
+      "icoder_tools": "?"
+    },
+    {
+      "corti_id": "denial-appeals-agent",
+      "icoder_id": "denial-appeals",
+      "class": "PARTIAL_MATCH",
+      "confidence": "high",
+      "evidence": "Same purpose but iCoDer is metadata-only; Corti is runnable with 3 experts",
+      "corti_experts": [
+        "coding-expert",
+        "pubmed-expert",
+        "web-search-expert"
+      ],
+      "icoder_experts": 0,
+      "icoder_tools": 6
+    },
+    {
+      "corti_id": "clinical-documentation-improvement-cdi-agent",
+      "icoder_id": "cdi-review",
+      "class": "PARTIAL_MATCH",
+      "confidence": "medium",
+      "evidence": "Similar purpose (CDI / documentation quality) but iCoDer is metadata-only; Corti is runnable with 4 experts",
+      "corti_experts": [
+        "pubmed-expert",
+        "web-search-expert",
+        "medical-calculator-expert",
+        "coding-expert"
+      ],
+      "icoder_experts": 0,
+      "icoder_tools": 6
+    },
+    {
+      "corti_id": "icd-10-index-navigator-agent",
+      "icoder_id": null,
+      "class": "CORTI_ONLY",
+      "confidence": "high",
+      "evidence": "iCoDer seed.py declares icd10-navigator but NOT in runtime hub (404 on /card)"
+    },
+    {
+      "corti_id": "rule-explainer-agent",
+      "icoder_id": null,
+      "class": "CORTI_ONLY",
+      "confidence": "high",
+      "evidence": "iCoDer seed.py declares rule-explainer but NOT in runtime hub"
+    },
+    {
+      "corti_id": "surgical-registry-intelligence-agent",
+      "icoder_id": null,
+      "class": "CORTI_ONLY",
+      "confidence": "high",
+      "evidence": "iCoDer seed.py declares surgical-registry but NOT in runtime hub"
+    },
+    {
+      "corti_id": "icu-admission-summary-agent",
+      "icoder_id": null,
+      "class": "CORTI_ONLY",
+      "confidence": "high",
+      "evidence": "iCoDer seed.py declares icu-summary but NOT in runtime hub"
+    },
+    {
+      "corti_id": "triage-and-initial-assessment-agent",
+      "icoder_id": null,
+      "class": "CORTI_ONLY",
+      "confidence": "high",
+      "evidence": "iCoDer seed.py declares triage but NOT in runtime hub"
+    },
+    {
+      "corti_id": "medication-reconciliation-agent",
+      "icoder_id": null,
+      "class": "CORTI_ONLY",
+      "confidence": "high",
+      "evidence": "iCoDer seed.py declares med-reconciliation but NOT in runtime hub"
+    },
+    {
+      "corti_id": "patient-discharge-education-agent",
+      "icoder_id": null,
+      "class": "CORTI_ONLY",
+      "confidence": "high",
+      "evidence": "iCoDer seed.py declares discharge-edu but NOT in runtime hub"
+    },
+    {
+      "corti_id": "nursing-shift-handoff-agent",
+      "icoder_id": null,
+      "class": "CORTI_ONLY",
+      "confidence": "high",
+      "evidence": "iCoDer seed.py declares nursing-handoff but NOT in runtime hub"
+    },
+    {
+      "corti_id": "prior-authorization-agent",
+      "icoder_id": null,
+      "class": "CORTI_ONLY",
+      "confidence": "high",
+      "evidence": "iCoDer seed.py declares prior-auth but NOT in runtime hub"
+    },
+    {
+      "corti_id": "referral-generator-agent",
+      "icoder_id": null,
+      "class": "CORTI_ONLY",
+      "confidence": "high",
+      "evidence": "iCoDer seed.py declares referral-gen but NOT in runtime hub"
+    },
+    {
+      "corti_id": "clinical-education-agent",
+      "icoder_id": null,
+      "class": "CORTI_ONLY",
+      "confidence": "high",
+      "evidence": "iCoDer has no clinical-education equivalent at all"
+    },
+    {
+      "corti_id": "clinical-guidelines-agent",
+      "icoder_id": null,
+      "class": "CORTI_ONLY",
+      "confidence": "high",
+      "evidence": "iCoDer has no clinical-guidelines equivalent at all"
+    },
+    {
+      "corti_id": null,
+      "icoder_id": "drg-analyzer",
+      "class": "ICODER_ONLY",
+      "confidence": "high",
+      "evidence": "iCoDer DRG/DIP Risk Review Agent — Corti has no DRG/DIP (US-focused ICD-10-CM/PCS)"
+    },
+    {
+      "corti_id": null,
+      "icoder_id": "principal-diagnosis-review",
+      "class": "ICODER_ONLY",
+      "confidence": "high",
+      "evidence": "iCoDer Principal Diagnosis Review — Corti bundles this into Medical Coding Agent"
+    },
+    {
+      "corti_id": null,
+      "icoder_id": "discharge-summary-structuring",
+      "class": "ICODER_ONLY",
+      "confidence": "medium",
+      "evidence": "iCoDer Discharge Summary Structuring — Corti CDI is closest but different scope"
+    },
+    {
+      "corti_id": null,
+      "icoder_id": "evidence-extractor",
+      "class": "ICODER_ONLY",
+      "confidence": "high",
+      "evidence": "iCoDer Coding Evidence Agent — Corti bundles evidence into coding-expert"
+    },
+    {
+      "corti_id": null,
+      "icoder_id": "evidence-ranker",
+      "class": "ICODER_ONLY",
+      "confidence": "high",
+      "evidence": "iCoDer-specific (metadata-only); Corti has no standalone evidence ranker"
+    }
+  ]
+}

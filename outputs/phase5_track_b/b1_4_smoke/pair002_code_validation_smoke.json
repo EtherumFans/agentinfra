@@ -1,0 +1,60 @@
+{
+  "status_code": 200,
+  "body": {
+    "agent_id": "code-validation-agent",
+    "run_id": "run-8535cfc4-505c-4c10-8007-63a9c78decf7",
+    "trace_id": "trace-db806aafe607440b",
+    "runtime_mode": "llm_with_tools",
+    "latency_ms": 11,
+    "cost": {},
+    "summary": "LLMWithToolsProvider skeleton: placeholder response (no llm_client wired).",
+    "result": {
+      "status": "complete",
+      "markdown": "# LLMWithToolsProvider — Skeleton Response\n\n## User Input (truncated)\n\n> 校验: primary=S22.000 (T12 椎体压缩性骨折), secondary=[M80.900]\n\n## System Prompt (truncated)\n\n> 你是 iCoDer Code Validation Agent (编码校验智能体)。角色: 接收编码集,按 ICD-10-CN/ICD-9-CM-3 编码规则校验。工具: verify_code+get_guidelines (每码必调),explore_code (非 assignable 时),search_codes (替代建议)。硬约束: 不发明规则 (引用工具结果),不修改编码集,不写回\n\n## Tool Calls\n\n- verify_code (0ms, error=ToolMCPCompatLayer.call requires `request` — pass it via invoke(..., request=...))\n\n## Status\n\ncomplete (skeleton — no real LLM call)\n\n## Note\n\nPhase 4-A skeleton. Wire `llm_client` to enable real LLM calls.\n",
+      "issues": [],
+      "corrected_draft": null,
+      "risk_flags": [],
+      "tool_calls": [
+        {
+          "tool_name": "verify_code",
+          "arguments": {},
+          "result": null,
+          "duration_ms": 0,
+          "error": "ToolMCPCompatLayer.call requires `request` — pass it via invoke(..., request=...)",
+          "scope_granted": []
+        }
+      ],
+      "finish_state": "completed",
+      "finish_reason": null,
+      "backend_provider": "icoder.llm-with-tools.v1",
+      "backend_type": "llm_with_tools",
+      "raw_provider_response": {
+        "skeleton": true,
+        "tool_rounds": 1,
+        "system_prompt_chars": 310,
+        "user_input_chars": 54
+      }
+    },
+    "evidence": [
+      {
+        "text": "verify_code"
+      }
+    ],
+    "warnings": [],
+    "manual_review_required": false,
+    "trace_events": [
+      {
+        "step": "completion",
+        "status": "ok",
+        "duration_ms": 11,
+        "metadata": {
+          "agent_id": "code-validation-agent",
+          "runtime_mode": "llm_with_tools",
+          "latency_ms": 11
+        }
+      }
+    ],
+    "error": false,
+    "error_reason": ""
+  }
+}

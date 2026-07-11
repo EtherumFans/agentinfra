@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 from app.icoder.agent_runtime.cdi import (
     DocumentationGap,
@@ -24,10 +24,9 @@ from app.icoder.agent_runtime.cdi import (
     ProviderQuery,
     classify_response_option,
 )
-from app.services.cdi_query_lifecycle import (
-    TransitionResult,
-    attempt_transition,
-)
+
+if TYPE_CHECKING:
+    from app.services.cdi_query_lifecycle import TransitionResult
 
 
 # ---------------------------------------------------------------------------
@@ -91,7 +90,7 @@ def process_clinician_response(
     response: ClinicianResponseValue,
     *,
     now: datetime | None = None,
-) -> tuple[TransitionResult, TransitionResult | None]:
+) -> "tuple[TransitionResult, TransitionResult | None]":
     """Process a clinician's response and drive the lifecycle forward.
 
     Sequence:
@@ -105,6 +104,10 @@ def process_clinician_response(
     Returns ``(viewed_to_responded_result, responded_to_next_result_or_None)``.
     Caller persists the transitions + the ClinicianResponseModel row.
     """
+
+    # Lazy import to avoid circular dependency:
+    # cdi_query_lifecycle -> cdi/__init__ -> clinician_response -> cdi_query_lifecycle
+    from app.services.cdi_query_lifecycle import attempt_transition
 
     if now is None:
         now = datetime.now(timezone.utc)

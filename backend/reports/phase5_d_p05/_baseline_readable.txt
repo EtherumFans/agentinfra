@@ -1,0 +1,57 @@
+Total tokens: 31082
+
+[C01_pneumonia_simple] note=Simple pneumonia — should not generate 4+ queries
+  Q1: 根据患者临床表现和痰培养结果（肺炎链球菌），请明确肺炎的类型和部位：
+  Q2: 根据患者体温38.5℃及临床表现，请评估肺炎的严重程度：
+  Q3: 根据患者咳嗽咳痰伴发热3天，请明确咳嗽咳痰的病程分类：
+
+[C02_cholecystitis] note=Surgical case — single dx, expect 0-1 queries
+  Q1: 根据患者临床表现及影像学检查，请描述胆囊炎的严重程度：
+  Q2: 根据影像学或术中所见，请明确胆囊结石的类型：
+  Q3: 根据影像学测量，请描述胆囊壁增厚的程度：
+  Q4: 根据临床表现及影像学，请明确胆囊炎的类型：
+
+[C03_hypertension_workup] note=Hypertension — should NOT query severity without end-organ evidence
+  Q1: 根据患者血压160/95mmHg及现有检查结果，请明确高血压病的分级或分期。
+  Q2: 请说明头晕乏力症状的可能病因及其与高血压病的临床相关性。
+  Q3: 请明确该血压值160/95mmHg的测量方式（诊室测量或动态监测）以及患者是否已确诊高血压。
+
+[C04_diabetes_negation] note=Negation — must NOT claim patient has CHD
+  Q1: 根据患者多饮多尿1周、否认糖尿病史、父亲糖尿病家族史，以及入院诊断中2型糖尿病标注问号，请明确患者目前糖尿病诊断及分型情况：
+  Q2: 患者主诉多饮多尿1周，请描述该症状的具体起病时间、每日饮水量及尿量变化、症状是否持续存在或呈进行性加重：
+  Q3: 患者高血压病史5年，请补充血压控制水平、目前降压药物方案及有无高血压相关并发症（如心、脑、肾等靶器官损害）：
+  Q4: 患者父亲有糖尿病史，请明确其父亲所患糖尿病的具体类型：
+
+[C05_fracture_conflict] note=Laterality conflict — must surface left vs right
+  Q1: 患者入院诊断为左侧肋骨骨折，出院诊断为右侧肋骨骨折，且手术为右侧第5肋骨折固定术。请描述骨折侧别的演变过程及原因。
+  Q2: 患者初步诊断为左胸外伤，但出院诊断为右侧肋骨骨折，手术为右侧第5肋骨折固定术。请明确具体损伤结构及侧别。
+  Q3: 患者右侧肋骨骨折，请明确骨折为急性还是陈旧性，以及是否伴有血气胸等并发症。
+
+[C06_appendicitis] note=Clean surgical case — should mostly pass
+  Q1: 根据手术所见及病理结果，该例急性阑尾炎的病理分型属于以下哪种？
+  Q2: 根据术中探查所见，阑尾肿胀的具体部位是？
+  Q3: 根据手术所见，该例阑尾炎是否伴有以下并发症？
+  Q4: 患者疼痛从起始部位转移至右下腹的具体时间点是？
+
+[C07_copd_exacerbation] note=COPD with explicit historical — must not elevate
+  Q1: 根据患者临床表现和检查结果，本次慢性阻塞性肺疾病急性加重的严重程度如何？
+  Q2: 根据动脉血气结果（pH 7.35, PaCO2 60mmHg），请描述是否存在代谢性酸碱失衡以及氧合状态（如PaO2/FiO2）？
+  Q3: 根据患者病史和临床表现，本次慢性阻塞性肺疾病急性加重最可能的病因是什么？
+  Q4: 患者既往慢性阻塞性肺疾病的严重程度或GOLD分级如何？
+
+[C08_stemi_pci] note=STEMI PCI — clean explicit dx
+  Q1: 根据心电图前壁ST段抬高，请明确心肌梗死的具体部位：
+  Q2: 根据冠脉造影记录，请明确植入支架的具体类型：
+  Q3: 根据实验室检查结果，请提供肌钙蛋白I的具体数值及参考范围：
+  Q4: 根据入院记录，请补充胸痛的详细特征：
+
+[C09_minimal_info] note=Minimal info — should NOT invent diagnoses
+  Q1: 根据患者腹痛表现，请评估最可能的病因：
+  Q2: 根据患者临床表现，腹痛的严重程度属于：
+  Q3: 根据患者病史，腹痛的起病方式和病程特点为：
+  Q4: 根据患者体征，腹痛的主要部位是：
+
+[C10_peds_pneumonia] note=Pediatric pneumonia — should be clean
+  Q1: 根据临床表现和检查结果，支气管肺炎的可能病原体是什么？
+  Q2: 请明确咳嗽和发热的具体持续时间（例如：咳嗽几天，发热几天，最高体温多少）？
+  Q3: 请描述双肺湿啰音的具体部位（例如：左肺/右肺，上/中/下叶，是否对称）？

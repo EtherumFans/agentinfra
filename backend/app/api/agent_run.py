@@ -36,7 +36,7 @@ import uuid
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from app.coding_runtime import (
@@ -209,6 +209,7 @@ _MEDICAL_CODING_AGENT_IDS: frozenset[str] = frozenset({
 async def run_agent(
     agent_id: str,
     body: AgentRunRequest,
+    request: Request,
     current_user: User = Depends(get_current_user),
 ) -> AgentRunResponse:
     """Unified Agent Run facade (A2A-compatible, Phase 4-F2).
@@ -270,6 +271,7 @@ async def run_agent(
             context_id=context_id,
             t0=t0,
             current_user=current_user,
+            request=request,
         )
 
     # ── Phase 4-F2 §4.3: persist trace_events to RunTraceStore ──────
@@ -549,6 +551,7 @@ async def _run_via_provider_registry(
     context_id: str,
     t0: float,
     current_user: User,
+    request: Request | None = None,
 ) -> AgentRunResponse:
     """Resolve the agent's backend_provider and call invoke()."""
     from app.icoder.agent_runtime.orchestrator.run_trace import (
@@ -640,7 +643,7 @@ async def _run_via_provider_registry(
     )
 
     try:
-        resp: BackendResponse = await provider.invoke(req, ctx)
+        resp: BackendResponse = await provider.invoke(req, ctx, request=request)
     except Exception as e:
         logger.exception(
             "agent_run: provider.invoke failed for agent_id=%s provider=%s",

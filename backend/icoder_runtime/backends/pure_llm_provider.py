@@ -195,6 +195,8 @@ class PureLLMProvider:
 
     async def invoke(
         self, req: BackendRequest, ctx: AgentRunContext,
+        *,
+        request: Any = None,
     ) -> BackendResponse:
         """Single-shot LLM completion.
 

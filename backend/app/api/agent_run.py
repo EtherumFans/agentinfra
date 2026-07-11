@@ -105,6 +105,29 @@ def _agent_id_from_ref(agent_ref: str) -> str:
     return tail.split("@")[0]
 
 
+# Phase 5 Track C Gate 1: contract derivation for StructuredOutputProjector.
+_AGENT_CONTRACT_MAP: dict[str, str] = {
+    "note-completeness-agent": "icoder/NoteCompleteness/v1",
+    "compliance-guardrail-agent": "icoder/ComplianceGuardrail/v1",
+    "procedure-extractor": "icoder/ProcedureExtractor/v1",
+    "evidence-extractor": "icoder/EvidenceExtractor/v1",
+    "principal-diagnosis-review": "icoder/PrincipalDxReview/v1",
+    "discharge-summary-structuring": "icoder/DischargeSummary/v1",
+    "drg-analyzer": "icoder/DrgAnalyzer/v1",
+    "code-validation-agent": "icoder/CodeValidation/v1",
+}
+
+
+def _derive_contract(agent_id: str, backend_provider: str) -> str:
+    """Derive the StructuredOutputProjector contract name.
+
+    Medical-coding-agent uses HybridCodingAdapter (not PureLLM), so it
+    returns "" and skips projection (its structured output is already
+    populated by HybridCodingAdapter's MedicalCodingOutputSchema).
+    """
+    return _AGENT_CONTRACT_MAP.get(agent_id, "")
+
+
 # ── Request / Response models ───────────────────────────────────────────
 
 
@@ -707,6 +730,47 @@ def _map_backend_response(
         "backend_type": resp.backend_type,
         "raw_provider_response": dict(resp.raw_provider_response),
     }
+
+    # Phase 5 Track C Gate 1: StructuredOutputProjector.
+    # Closes B-2 P1 gap "unified API 不解析 JSON-in-markdown" for the 8
+    # PureLLM agents (note-completeness, compliance-guardrail, procedure,
+    # evidence, principal-dx, discharge, drg, code-validation). When the
+    # provider emitted markdown only, project structured fields from the
+    # markdown so the unified /api/v1/agents/{id}/run response is
+    # directly consumable (no client-side JSON-in-markdown parsing).
+    try:
+        from icoder_runtime.backends.structured_output_projector import (
+            project as _project_structured,
+        )
+        # Normalize agent_id — _map_backend_response may receive either
+        # short id ("drg-analyzer") or full ref ("icoder/drg-analyzer@1.0.0").
+        short_agent_id = _agent_id_from_ref(agent_id)
+        contract = _derive_contract(short_agent_id, resp.backend_provider)
+        logger.info(
+            "StructuredOutputProjector: agent_id=%s short=%s contract=%s md_len=%d",
+            agent_id, short_agent_id, contract, len(resp.markdown or ""),
+        )
+        if contract and resp.markdown:
+            projection = _project_structured(
+                markdown=resp.markdown,
+                contract=contract,
+                agent_id=short_agent_id,
+            )
+            logger.info(
+                "StructuredOutputProjector: result_keys=%s method=%s warnings=%s",
+                list(projection.result.keys()), projection.extraction_method,
+                projection.parse_warnings,
+            )
+            if projection.result:
+                for key, value in projection.result.items():
+                    result_payload.setdefault(key, value)
+                result_payload["structured_extraction"] = {
+                    "contract": contract,
+                    "method": projection.extraction_method,
+                    "warnings": projection.parse_warnings,
+                }
+    except Exception as e:
+        logger.warning("StructuredOutputProjector failed for %s: %s", agent_id, e)
 
     trace_events: list[dict[str, Any]] = []
     if include_trace:

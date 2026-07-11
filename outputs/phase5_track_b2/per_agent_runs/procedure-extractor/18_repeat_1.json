@@ -1,0 +1,51 @@
+{
+  "agent_id": "procedure-extractor",
+  "run_id": "run-6e858610-9b9d-4190-a7df-1af977f21107",
+  "trace_id": "trace-257f9091a1d14a67",
+  "runtime_mode": "corti_like_fast",
+  "latency_ms": 6143,
+  "cost": {
+    "amount": 0.000121,
+    "currency": "CNY"
+  },
+  "summary": "```json",
+  "result": {
+    "status": "warning",
+    "markdown": "```json\n{\n  \"procedures\": [\n    {\n      \"code\": \"81.6600\",\n      \"display\": \"经皮椎体成形术\",\n      \"evidence_text\": \"必要时行 PKP/PVP\",\n      \"char_span\": [280, 296],\n      \"confidence\": 0.65,\n      \"warnings\": [\"手术尚未执行，仅作为计划提及\"]\n    }\n  ],\n  \"issues_found\": [\n    \"手术记录缺失：当前文本为入院记录，未包含实际执行的手术操作记录\",\n    \"计划性操作：PKP/PVP 仅作为治疗计划列出，未确认是否执行\"\n  ],\n  \"manual_review_required\": true\n}\n```",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.pure-llm.v1",
+    "backend_type": "pure_llm",
+    "raw_provider_response": {
+      "content": "```json\n{\n  \"procedures\": [\n    {\n      \"code\": \"81.6600\",\n      \"display\": \"经皮椎体成形术\",\n      \"evidence_text\": \"必要时行 PKP/PVP\",\n      \"char_span\": [280, 296],\n      \"confidence\": 0.65,\n      \"warnings\": [\"手术尚未执行，仅作为计划提及\"]\n    }\n  ],\n  \"issues_found\": [\n    \"手术记录缺失：当前文本为入院记录，未包含实际执行的手术操作记录\",\n    \"计划性操作：PKP/PVP 仅作为治疗计划列出，未确认是否执行\"\n  ],\n  \"manual_review_required\": true\n}\n```",
+      "model": "deepseek-v4-flash",
+      "usage": {
+        "input_tokens": 564,
+        "output_tokens": 151
+      },
+      "cost_usd": 0.000121,
+      "latency_ms": 6143
+    }
+  },
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": false,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 6143,
+      "metadata": {
+        "agent_id": "procedure-extractor",
+        "runtime_mode": "corti_like_fast",
+        "latency_ms": 6143
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": ""
+}

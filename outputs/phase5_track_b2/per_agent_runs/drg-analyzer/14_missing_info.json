@@ -1,0 +1,57 @@
+{
+  "agent_id": "drg-analyzer",
+  "run_id": "run-a727fffa-83a4-4033-9231-5979d8c971f6",
+  "trace_id": "trace-150e62bea4f24fdd",
+  "runtime_mode": "corti_like_fast",
+  "latency_ms": 7507,
+  "cost": {
+    "amount": 0.000225,
+    "currency": "CNY"
+  },
+  "summary": "```json",
+  "result": {
+    "status": "complete",
+    "markdown": "```json\n{\n  \"risk_points\": [\n    {\n      \"risk_type\": \"downcoding\",\n      \"code\": \"R10.900\",\n      \"evidence_text\": \"主诊断编码为腹痛待查，但病历中未记录具体腹痛部位、性质或相关检查结果，且腹部超声提示肝区回声增粗，可能遗漏肝病相关诊断（如K76.900肝病，未特指）或并发症。\",\n      \"char_span\": [0, 100],\n      \"severity\": \"medium\",\n      \"suggestion\": \"建议补充肝病相关检查（如肝功能、病毒性肝炎标志物），并考虑编码K76.900或其他具体肝病诊断，避免因遗漏并发症导致DRG分组偏低。\"\n    },\n    {\n      \"risk_type\": \"inconsistency\",\n      \"code\": \"R10.900\",\n      \"evidence_text\": \"主诊断腹痛待查与腹部超声结果（肝区回声增粗）不一致，超声提示肝实质异常，但诊断未体现肝病，可能导致诊断-检查不一致，增加医保拒付风险。\",\n      \"char_span\": [50, 150],\n      \"severity\": \"high\",\n      \"suggestion\": \"需明确肝区回声增粗的临床意义，若为肝病，应修改主诊断或添加次要诊断，确保诊断与辅助检查结果一致。\"\n    },\n    {\n      \"risk_type\": \"missing_complication\",\n      \"code\": \"K76.900\",\n      \"evidence_text\": \"腹部超声示肝区回声增粗，提示可能存在肝病（如脂肪肝、肝炎或肝硬化），但病历未编码任何肝病相关诊断，遗漏重要并发症/合并症，可能导致CMI低估。\",\n      \"char_span\": [100, 200],\n      \"severity\": \"high\",\n      \"suggestion\": \"建议根据超声结果和临床评估，添加肝病诊断（如K76.900肝病，未特指），并完善相关检查以明确具体病因。\"\n    }\n  ],\n  \"high_risk_codes\": [],\n  \"review_suggestions\": \"编码集存在2处高风险点：1）主诊断腹痛待查与腹部超声结果不一致，需复核诊断与检查的匹配性；2）遗漏肝病相关并发症（肝区回声增粗），建议补充K76.900或其他具体肝病诊断。同时，病历信息严重不足（性别、年龄、病程、查体均缺失），需完善病历记录以支持编码准确性。\",\n  \"drg_dip_rule_reservation_note\": \"DRG分组由医保结算侧引擎完成，本Agent仅评估编码方案对分组的影响。\",\n  \"manual_review_required\": true\n}\n```",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.pure-llm.v1",
+    "backend_type": "pure_llm",
+    "raw_provider_response": {
+      "content": "```json\n{\n  \"risk_points\": [\n    {\n      \"risk_type\": \"downcoding\",\n      \"code\": \"R10.900\",\n      \"evidence_text\": \"主诊断编码为腹痛待查，但病历中未记录具体腹痛部位、性质或相关检查结果，且腹部超声提示肝区回声增粗，可能遗漏肝病相关诊断（如K76.900肝病，未特指）或并发症。\",\n      \"char_span\": [0, 100],\n      \"severity\": \"medium\",\n      \"suggestion\": \"建议补充肝病相关检查（如肝功能、病毒性肝炎标志物），并考虑编码K76.900或其他具体肝病诊断，避免因遗漏并发症导致DRG分组偏低。\"\n    },\n    {\n      \"risk_type\": \"inconsistency\",\n      \"code\": \"R10.900\",\n      \"evidence_text\": \"主诊断腹痛待查与腹部超声结果（肝区回声增粗）不一致，超声提示肝实质异常，但诊断未体现肝病，可能导致诊断-检查不一致，增加医保拒付风险。\",\n      \"char_span\": [50, 150],\n      \"severity\": \"high\",\n      \"suggestion\": \"需明确肝区回声增粗的临床意义，若为肝病，应修改主诊断或添加次要诊断，确保诊断与辅助检查结果一致。\"\n    },\n    {\n      \"risk_type\": \"missing_complication\",\n      \"code\": \"K76.900\",\n      \"evidence_text\": \"腹部超声示肝区回声增粗，提示可能存在肝病（如脂肪肝、肝炎或肝硬化），但病历未编码任何肝病相关诊断，遗漏重要并发症/合并症，可能导致CMI低估。\",\n      \"char_span\": [100, 200],\n      \"severity\": \"high\",\n      \"suggestion\": \"建议根据超声结果和临床评估，添加肝病诊断（如K76.900肝病，未特指），并完善相关检查以明确具体病因。\"\n    }\n  ],\n  \"high_risk_codes\": [],\n  \"review_suggestions\": \"编码集存在2处高风险点：1）主诊断腹痛待查与腹部超声结果不一致，需复核诊断与检查的匹配性；2）遗漏肝病相关并发症（肝区回声增粗），建议补充K76.900或其他具体肝病诊断。同时，病历信息严重不足（性别、年龄、病程、查体均缺失），需完善病历记录以支持编码准确性。\",\n  \"drg_dip_rule_reservation_note\": \"DRG分组由医保结算侧引擎完成，本Agent仅评估编码方案对分组的影响。\",\n  \"manual_review_required\": true\n}\n```",
+      "model": "deepseek-v4-flash",
+      "usage": {
+        "input_tokens": 448,
+        "output_tokens": 581
+      },
+      "cost_usd": 0.000225,
+      "latency_ms": 7507
+    }
+  },
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": false,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 7507,
+      "metadata": {
+        "agent_id": "drg-analyzer",
+        "runtime_mode": "corti_like_fast",
+        "latency_ms": 7507
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_input_shape": "augmented_text (69 chars) + codes (0)",
+  "_gold_codes": [],
+  "_client_wall_ms": 7671,
+  "_fixture": "fixtures/phase5_track_b2/12_incomplete_documentation.json",
+  "_tag": "14_missing_info",
+  "_ts": "2026-07-11T14:37:04"
+}

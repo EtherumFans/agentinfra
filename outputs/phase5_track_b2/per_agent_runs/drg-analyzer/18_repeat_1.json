@@ -1,0 +1,61 @@
+{
+  "agent_id": "drg-analyzer",
+  "run_id": "run-c47958e5-50b3-4b3b-8864-0d0135dc34d1",
+  "trace_id": "trace-3b5a08fabcf5443a",
+  "runtime_mode": "corti_like_fast",
+  "latency_ms": 11546,
+  "cost": {
+    "amount": 0.000385,
+    "currency": "CNY"
+  },
+  "summary": "{",
+  "result": {
+    "status": "complete",
+    "markdown": "{\n  \"risk_points\": [\n    {\n      \"risk_type\": \"upcoding\",\n      \"code\": \"M80.900\",\n      \"evidence_text\": \"病历中明确记录骨密度 T 值 -3.2，诊断为骨质疏松性骨折，但 M80.900 为骨质疏松伴病理性骨折，而患者骨折由明确外伤（摔伤）引起，非病理性骨折。根据编码规则，外伤性骨折应优先编码 S22.000，骨质疏松作为合并症编码于 M81.900 或 M80.900 需谨慎，此处使用 M80.900 可能被判定为 upcoding，因为外伤性骨折不应归入病理性骨折分类。\",\n      \"char_span\": \"骨密度 T 值 -3.2(骨质疏松)\",\n      \"severity\": \"high\",\n      \"suggestion\": \"建议将 M80.900 替换为 M81.900（骨质疏松不伴病理性骨折），主诊断保留 S22.000，以准确反映外伤性骨折合并骨质疏松。\"\n    },\n    {\n      \"risk_type\": \"downcoding\",\n      \"code\": \"I10.x00\",\n      \"evidence_text\": \"病历中高血压病史 10 年，入院诊断高血压病 3 级（很高危），但编码 I10.x00 仅为未特指的高血压，未体现分级和危险分层。在 DRG/DIP 分组中，高血压的严重程度可能影响并发症/合并症权重，使用 I10.x00 可能导致 downcoding，遗漏重要合并症信息。\",\n      \"char_span\": \"既往有高血压病史 10 年，长期口服氨氯地平 5mg qd，血压控制可。入院诊断:高血压病 3 级(很高危)\",\n      \"severity\": \"medium\",\n      \"suggestion\": \"建议将 I10.x00 细化为 I10.x03（高血压病 3 级）或使用更具体的编码，以反映高血压的严重程度，避免 downcoding。\"\n    },\n    {\n      \"risk_type\": \"inconsistency\",\n      \"code\": \"S22.000\",\n      \"evidence_text\": \"主诊断 S22.000（胸椎骨折）与入院诊断 T12 椎体压缩性骨折一致，但病历中提及治疗计划包括 PKP/PVP（经皮椎体成形术），而编码集中未包含任何手术操作编码。在 DRG/DIP 分组中，手术操作是分组关键要素，缺少手术编码可能导致分组不一致，影响结算。\",\n      \"char_span\": \"治疗计划:卧床休息;镇痛;抗骨质疏松治疗(唑来膦酸);必要时行 PKP/PVP。\",\n      \"severity\": \"high\",\n      \"suggestion\": \"建议补充手术操作编码，如 03.53（经皮椎体成形术）或 03.55（经皮椎体后凸成形术），以反映实际治疗计划，避免因缺少手术编码导致分组错误或拒付。\"\n    },\n    {\n      \"risk_type\": \"missing_complication\",\n      \"code\": \"M80.900\",\n      \"evidence_text\": \"病历中明确诊断骨质疏松性骨折，但编码 M80.900 未区分急性期或陈旧性，且未编码骨质疏松的严重程度（如 T 值 -3.2 提示重度骨质疏松）。在 DRG/DIP 中，骨质疏松作为合并症可能影响 CMI，但当前编码未充分体现其严重性。\",\n      \"char_span\": \"骨密度 T 值 -3.2(骨质疏松)\",\n      \"severity\": \"low\",\n      \"suggestion\": \"考虑使用 M80.800（骨质疏松伴病理性骨折，其他）或 M81.900 并附加 Z79.890（长期使用药物）以更准确描述骨质疏松状态，但需注意与 upcoding 风险平衡。\"\n    }\n  ],\n  \"high_risk_codes\": [\"M80.900\"],\n  \"review_suggestions\": \"编码集存在 1 处 upcoding 风险（M80.900 可能被判定为病理性骨折，但患者为外伤性骨折，应优先使用 S22.000 为主诊断，骨质疏松编码为 M81.900）；1 处 downcoding 风险（I10.x00 未体现高血压 3 级，建议细化）；1 处不一致风险（缺少手术操作编码，如 PKP/PVP 相关编码）；1 处遗漏并发症风险（骨质疏松严重程度未充分编码）。建议复核主诊断选择，补充手术编码，并细化高血压编码。\",\n  \"drg_dip_rule_reservation_note\": \"DRG 分组由医保结算侧引擎完成，本 Agent 仅评估编码方案对分组的影响。\",\n  \"manual_review_required\": true\n}",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.pure-llm.v1",
+    "backend_type": "pure_llm",
+    "raw_provider_response": {
+      "content": "{\n  \"risk_points\": [\n    {\n      \"risk_type\": \"upcoding\",\n      \"code\": \"M80.900\",\n      \"evidence_text\": \"病历中明确记录骨密度 T 值 -3.2，诊断为骨质疏松性骨折，但 M80.900 为骨质疏松伴病理性骨折，而患者骨折由明确外伤（摔伤）引起，非病理性骨折。根据编码规则，外伤性骨折应优先编码 S22.000，骨质疏松作为合并症编码于 M81.900 或 M80.900 需谨慎，此处使用 M80.900 可能被判定为 upcoding，因为外伤性骨折不应归入病理性骨折分类。\",\n      \"char_span\": \"骨密度 T 值 -3.2(骨质疏松)\",\n      \"severity\": \"high\",\n      \"suggestion\": \"建议将 M80.900 替换为 M81.900（骨质疏松不伴病理性骨折），主诊断保留 S22.000，以准确反映外伤性骨折合并骨质疏松。\"\n    },\n    {\n      \"risk_type\": \"downcoding\",\n      \"code\": \"I10.x00\",\n      \"evidence_text\": \"病历中高血压病史 10 年，入院诊断高血压病 3 级（很高危），但编码 I10.x00 仅为未特指的高血压，未体现分级和危险分层。在 DRG/DIP 分组中，高血压的严重程度可能影响并发症/合并症权重，使用 I10.x00 可能导致 downcoding，遗漏重要合并症信息。\",\n      \"char_span\": \"既往有高血压病史 10 年，长期口服氨氯地平 5mg qd，血压控制可。入院诊断:高血压病 3 级(很高危)\",\n      \"severity\": \"medium\",\n      \"suggestion\": \"建议将 I10.x00 细化为 I10.x03（高血压病 3 级）或使用更具体的编码，以反映高血压的严重程度，避免 downcoding。\"\n    },\n    {\n      \"risk_type\": \"inconsistency\",\n      \"code\": \"S22.000\",\n      \"evidence_text\": \"主诊断 S22.000（胸椎骨折）与入院诊断 T12 椎体压缩性骨折一致，但病历中提及治疗计划包括 PKP/PVP（经皮椎体成形术），而编码集中未包含任何手术操作编码。在 DRG/DIP 分组中，手术操作是分组关键要素，缺少手术编码可能导致分组不一致，影响结算。\",\n      \"char_span\": \"治疗计划:卧床休息;镇痛;抗骨质疏松治疗(唑来膦酸);必要时行 PKP/PVP。\",\n      \"severity\": \"high\",\n      \"suggestion\": \"建议补充手术操作编码，如 03.53（经皮椎体成形术）或 03.55（经皮椎体后凸成形术），以反映实际治疗计划，避免因缺少手术编码导致分组错误或拒付。\"\n    },\n    {\n      \"risk_type\": \"missing_complication\",\n      \"code\": \"M80.900\",\n      \"evidence_text\": \"病历中明确诊断骨质疏松性骨折，但编码 M80.900 未区分急性期或陈旧性，且未编码骨质疏松的严重程度（如 T 值 -3.2 提示重度骨质疏松）。在 DRG/DIP 中，骨质疏松作为合并症可能影响 CMI，但当前编码未充分体现其严重性。\",\n      \"char_span\": \"骨密度 T 值 -3.2(骨质疏松)\",\n      \"severity\": \"low\",\n      \"suggestion\": \"考虑使用 M80.800（骨质疏松伴病理性骨折，其他）或 M81.900 并附加 Z79.890（长期使用药物）以更准确描述骨质疏松状态，但需注意与 upcoding 风险平衡。\"\n    }\n  ],\n  \"high_risk_codes\": [\"M80.900\"],\n  \"review_suggestions\": \"编码集存在 1 处 upcoding 风险（M80.900 可能被判定为病理性骨折，但患者为外伤性骨折，应优先使用 S22.000 为主诊断，骨质疏松编码为 M81.900）；1 处 downcoding 风险（I10.x00 未体现高血压 3 级，建议细化）；1 处不一致风险（缺少手术操作编码，如 PKP/PVP 相关编码）；1 处遗漏并发症风险（骨质疏松严重程度未充分编码）。建议复核主诊断选择，补充手术编码，并细化高血压编码。\",\n  \"drg_dip_rule_reservation_note\": \"DRG 分组由医保结算侧引擎完成，本 Agent 仅评估编码方案对分组的影响。\",\n  \"manual_review_required\": true\n}",
+      "model": "deepseek-v4-flash",
+      "usage": {
+        "input_tokens": 714,
+        "output_tokens": 1017
+      },
+      "cost_usd": 0.000385,
+      "latency_ms": 11546
+    }
+  },
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": false,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 11546,
+      "metadata": {
+        "agent_id": "drg-analyzer",
+        "runtime_mode": "corti_like_fast",
+        "latency_ms": 11546
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_input_shape": "augmented_text (470 chars) + codes (3)",
+  "_gold_codes": [
+    "S22.000",
+    "M80.900",
+    "I10.x00"
+  ],
+  "_client_wall_ms": 11717,
+  "_fixture": "fixtures/phase5_track_b2/01_orthopedics.json",
+  "_tag": "18_repeat_1",
+  "_ts": "2026-07-11T14:37:50"
+}

@@ -1,0 +1,62 @@
+{
+  "agent_id": "drg-analyzer",
+  "run_id": "run-6a4ebe72-6bd3-4c5d-821a-c44e5684650f",
+  "trace_id": "trace-c62be6154abc48b6",
+  "runtime_mode": "corti_like_fast",
+  "latency_ms": 10667,
+  "cost": {
+    "amount": 0.000341,
+    "currency": "CNY"
+  },
+  "summary": "{",
+  "result": {
+    "status": "complete",
+    "markdown": "{\n  \"risk_points\": [\n    {\n      \"risk_type\": \"downcoding\",\n      \"code\": \"I21.001\",\n      \"evidence_text\": \"病历中明确记录 Killip II 级（双肺底未闻及啰音，但 Killip II 级通常指轻度心衰，如肺部啰音<50%肺野，此处可能为记录不一致或遗漏心衰编码），且肌钙蛋白显著升高、心电图典型 STEMI，但编码 I21.001 未体现 Killip 分级或心衰并发症。\",\n      \"char_span\": \"入院诊断:急性前壁 ST 段抬高型心肌梗死(Killip II 级)\",\n      \"severity\": \"medium\",\n      \"suggestion\": \"建议补充心衰编码（如 I50.900 或 I50.1xx）以反映 Killip II 级，避免因遗漏并发症导致 DRG 分组偏低（如从高权重 DRG 降为低权重）。\"\n    },\n    {\n      \"risk_type\": \"inconsistency\",\n      \"code\": \"I25.100\",\n      \"evidence_text\": \"I25.100 为动脉硬化性心脏病，但患者本次入院主诊断为急性心肌梗死（I21.001），且冠脉造影显示 LAD 100% 闭塞、RCA 80% 狭窄，I25.100 更适合作为既往或合并症编码，但此处可能重复或混淆主诊断与合并症。\",\n      \"char_span\": \"I25.100\",\n      \"severity\": \"low\",\n      \"suggestion\": \"确认 I25.100 是否作为合并症编码，若为既往史，建议使用 Z86.7（个人冠心病史）替代，避免与急性心梗编码冲突。\"\n    },\n    {\n      \"risk_type\": \"missing_complication\",\n      \"code\": \"E78.500\",\n      \"evidence_text\": \"病历中提及高脂血症，但未提供具体血脂数值或诊断依据，且 E78.500 为高脂血症未特指，可能遗漏更具体的亚型（如 E78.0 纯高胆固醇血症）。\",\n      \"char_span\": \"高脂血症\",\n      \"severity\": \"low\",\n      \"suggestion\": \"若病历有血脂检查结果，建议细化编码（如 E78.0 或 E78.2），否则保留 E78.500 但需注明依据。\"\n    },\n    {\n      \"risk_type\": \"downcoding\",\n      \"code\": \"Z95.500\",\n      \"evidence_text\": \"Z95.500 为冠状动脉支架植入术后状态，但患者本次入院行 PCI 并植入支架，该编码应作为术后状态编码，但若未同时编码手术操作（如 00.66 经皮冠状动脉支架植入术），可能导致 DRG 分组中缺少手术操作权重。\",\n      \"char_span\": \"Z95.500\",\n      \"severity\": \"high\",\n      \"suggestion\": \"建议补充手术操作编码（如 00.66 经皮冠状动脉支架植入术），并确认 Z95.500 作为合并症编码，避免因缺少手术操作导致 DRG 分组偏低或拒付。\"\n    }\n  ],\n  \"high_risk_codes\": [],\n  \"review_suggestions\": \"编码集存在 1 处高严重度 downcoding 风险：Z95.500 缺少对应手术操作编码（PCI 支架植入术），可能导致 DRG 分组权重降低或医保拒付；另 1 处中严重度 downcoding 风险：I21.001 未编码 Killip II 级相关心衰，可能遗漏并发症。建议补充手术操作编码（00.66）和心衰编码（I50.900），并复核 I25.100 是否需替换为 Z86.7。\",\n  \"drg_dip_rule_reservation_note\": \"DRG 分组由医保结算侧引擎完成，本 Agent 仅评估编码方案对分组的影响。\",\n  \"manual_review_required\": true\n}",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.pure-llm.v1",
+    "backend_type": "pure_llm",
+    "raw_provider_response": {
+      "content": "{\n  \"risk_points\": [\n    {\n      \"risk_type\": \"downcoding\",\n      \"code\": \"I21.001\",\n      \"evidence_text\": \"病历中明确记录 Killip II 级（双肺底未闻及啰音，但 Killip II 级通常指轻度心衰，如肺部啰音<50%肺野，此处可能为记录不一致或遗漏心衰编码），且肌钙蛋白显著升高、心电图典型 STEMI，但编码 I21.001 未体现 Killip 分级或心衰并发症。\",\n      \"char_span\": \"入院诊断:急性前壁 ST 段抬高型心肌梗死(Killip II 级)\",\n      \"severity\": \"medium\",\n      \"suggestion\": \"建议补充心衰编码（如 I50.900 或 I50.1xx）以反映 Killip II 级，避免因遗漏并发症导致 DRG 分组偏低（如从高权重 DRG 降为低权重）。\"\n    },\n    {\n      \"risk_type\": \"inconsistency\",\n      \"code\": \"I25.100\",\n      \"evidence_text\": \"I25.100 为动脉硬化性心脏病，但患者本次入院主诊断为急性心肌梗死（I21.001），且冠脉造影显示 LAD 100% 闭塞、RCA 80% 狭窄，I25.100 更适合作为既往或合并症编码，但此处可能重复或混淆主诊断与合并症。\",\n      \"char_span\": \"I25.100\",\n      \"severity\": \"low\",\n      \"suggestion\": \"确认 I25.100 是否作为合并症编码，若为既往史，建议使用 Z86.7（个人冠心病史）替代，避免与急性心梗编码冲突。\"\n    },\n    {\n      \"risk_type\": \"missing_complication\",\n      \"code\": \"E78.500\",\n      \"evidence_text\": \"病历中提及高脂血症，但未提供具体血脂数值或诊断依据，且 E78.500 为高脂血症未特指，可能遗漏更具体的亚型（如 E78.0 纯高胆固醇血症）。\",\n      \"char_span\": \"高脂血症\",\n      \"severity\": \"low\",\n      \"suggestion\": \"若病历有血脂检查结果，建议细化编码（如 E78.0 或 E78.2），否则保留 E78.500 但需注明依据。\"\n    },\n    {\n      \"risk_type\": \"downcoding\",\n      \"code\": \"Z95.500\",\n      \"evidence_text\": \"Z95.500 为冠状动脉支架植入术后状态，但患者本次入院行 PCI 并植入支架，该编码应作为术后状态编码，但若未同时编码手术操作（如 00.66 经皮冠状动脉支架植入术），可能导致 DRG 分组中缺少手术操作权重。\",\n      \"char_span\": \"Z95.500\",\n      \"severity\": \"high\",\n      \"suggestion\": \"建议补充手术操作编码（如 00.66 经皮冠状动脉支架植入术），并确认 Z95.500 作为合并症编码，避免因缺少手术操作导致 DRG 分组偏低或拒付。\"\n    }\n  ],\n  \"high_risk_codes\": [],\n  \"review_suggestions\": \"编码集存在 1 处高严重度 downcoding 风险：Z95.500 缺少对应手术操作编码（PCI 支架植入术），可能导致 DRG 分组权重降低或医保拒付；另 1 处中严重度 downcoding 风险：I21.001 未编码 Killip II 级相关心衰，可能遗漏并发症。建议补充手术操作编码（00.66）和心衰编码（I50.900），并复核 I25.100 是否需替换为 Z86.7。\",\n  \"drg_dip_rule_reservation_note\": \"DRG 分组由医保结算侧引擎完成，本 Agent 仅评估编码方案对分组的影响。\",\n  \"manual_review_required\": true\n}",
+      "model": "deepseek-v4-flash",
+      "usage": {
+        "input_tokens": 705,
+        "output_tokens": 867
+      },
+      "cost_usd": 0.000341,
+      "latency_ms": 10667
+    }
+  },
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": false,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 10667,
+      "metadata": {
+        "agent_id": "drg-analyzer",
+        "runtime_mode": "corti_like_fast",
+        "latency_ms": 10667
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_input_shape": "augmented_text (461 chars) + codes (4)",
+  "_gold_codes": [
+    "I21.001",
+    "I25.100",
+    "Z95.500",
+    "E78.500"
+  ],
+  "_client_wall_ms": 10826,
+  "_fixture": "fixtures/phase5_track_b2/02_cardiology.json",
+  "_tag": "02_cardiology",
+  "_ts": "2026-07-11T14:35:54"
+}

@@ -1,0 +1,89 @@
+{
+  "agent_id": "compliance-guardrail-agent",
+  "run_id": "run-a4c2f751-45e6-4b36-b0c3-991da35062b9",
+  "trace_id": "trace-b382a2d7e4d24677",
+  "runtime_mode": "corti_like_fast",
+  "latency_ms": 6,
+  "cost": {},
+  "summary": "Rule engine: 15 rules evaluated, 1 issues found.",
+  "result": {
+    "status": "warning",
+    "markdown": "Rule engine: 15 rules evaluated, 1 issues found.",
+    "issues": [
+      {
+        "code": "R002",
+        "severity": "error",
+        "message": "诊断编码格式无效: I10.x00x002",
+        "evidence": [
+          "I10.x00x002 不符合 ICD-10 格式（字母+2位数字+可选.1-4位数字）"
+        ],
+        "recommended_action": "I10.x00x002 不符合 ICD-10 格式（字母+2位数字+可选.1-4位数字）"
+      }
+    ],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.rule-engine.v1",
+    "backend_type": "rule_engine",
+    "raw_provider_response": {
+      "fired_rules": [
+        "R001",
+        "R002",
+        "R003",
+        "R004",
+        "R005",
+        "R006",
+        "R007",
+        "R008",
+        "R009",
+        "R010",
+        "R011",
+        "R012",
+        "DRG001",
+        "DRG002",
+        "DIP001"
+      ],
+      "quality_flags": {
+        "invalid_code_format": true,
+        "duplicate_codes": false,
+        "low_confidence": false,
+        "missing_evidence": false,
+        "primary_diagnosis_missing": false,
+        "manual_review_required": true
+      },
+      "passed": false
+    }
+  },
+  "evidence": [
+    {
+      "text": "R002"
+    },
+    {
+      "code": "R002",
+      "severity": "error",
+      "text": "I10.x00x002 不符合 ICD-10 格式（字母+2位数字+可选.1-4位数字）"
+    }
+  ],
+  "warnings": [
+    "[R002] 诊断编码格式无效: I10.x00x002"
+  ],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 6,
+      "metadata": {
+        "agent_id": "compliance-guardrail-agent",
+        "runtime_mode": "corti_like_fast",
+        "latency_ms": 6
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_input_shape": "coding_output (chained from medical-coding-agent)",
+  "_medical_coding_run_id": "run-0caae513-1e82-46b8-86cc-e890fe263665"
+}

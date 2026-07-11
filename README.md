@@ -8,14 +8,27 @@ Corti-competitive 临床 AI 平台。Agent Runtime + 编码审核 + 语音转录
 
 iCoDer is a production-grade clinical AI platform competing with Corti. Core capabilities:
 
+- **Clinical Documentation Improvement (CDI)**: Core entry agent #1 — identifies clinical documentation gaps, generates non-leading Provider Queries, drives clinician response → documentation revision → re-coding loop. NOT the same as note-completeness or discharge structuring.
+- **Medical Coding**: Core entry agent #2 — evidence-based ICD-10-CN / ICD-9-CM-3 coding with full audit trail (Phase 5 Track C: 7-stage mainline complete).
 - **Agent Runtime**: Multi-tenant, contract-enforced tool system, Deny-First security, Marketplace
-- **Medical Coding**: Evidence-based ICD-10-CN / ICD-9-CM-3 coding with full audit trail
 - **Speech-to-Text**: Real-time clinical dictation with speaker diarization
 - **Text Generation**: Template-driven clinical document generation
 - **Fact Extraction**: Structured clinical entity extraction from unstructured text
 - **Embedded Assistant**: Web Component for EHR/EMR integration
 - **SDK/API**: Python & JavaScript SDKs for HIS vendor integration
 - **Auditable**: Every code traces to source evidence, every decision chain is SHA-256 verifiable
+
+## Two Core Entry Agents (Phase 5 Track D)
+
+```
+Clinical Documentation Improvement (CDI)
+  让临床事实被写清楚
+       ↓
+Medical Coding
+  将已经写清楚的事实准确编码
+```
+
+CDI and Medical Coding are the two `CORE_ENTRY_AGENT`s. All other agents (note-completeness, discharge-summary-structuring, evidence-extractor, principal-diagnosis-review, code-validation, compliance-guardrail, drg-analyzer, procedure-extractor) are `SPECIALIZED_AGENT` or `ORCHESTRATED_CAPABILITY` supporting the two entries.
 
 ## Architecture
 

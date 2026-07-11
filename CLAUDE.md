@@ -13,13 +13,47 @@ Runtime 是 iCoDer Server 的内核执行引擎(不是独立的便携 Runtime)�
 
 ```
 医疗收入合规体系
-├── 编码合规 (Medical Coding)      ← 第一个官方样板 Agent, 已完成闭环
+├── 临床文档改进 (CDI)            ← Core Entry Agent #1 (Phase 5 Track D)
+├── 编码合规 (Medical Coding)      ← Core Entry Agent #2, 已完成闭环
 ├── 分组合规 (DRG/DIP)            ← 规则结构已预留
 ├── 结算合规 (Insurance Audit)    ← 规则结构已预留
 ├── 收费合规 (Charge Compliance)  ← 规则结构已预留
 ├── 病历合规 (Document Evidence)  ← 规则结构已预留
 └── 审计合规 (Audit)              ← AuditLog/RunHistory 已完整
 ```
+
+## 两个核心业务入口 (Phase 5 Track D — 2026-07-11)
+
+iCoDer 体系下两个 CORE_ENTRY_AGENT:
+
+1. **Clinical Documentation Improvement Agent (CDI)** — 让临床事实被写清楚
+   - 识别影响事实表达、准确编码、合规审核的内涵缺口
+   - 生成中立、非诱导、基于证据的临床澄清任务 (Provider Query)
+   - 形成医生答复 → 文档修订 → CDI 复核 → Medical Coding 闭环
+   - **红线**: 不自动修改病历; 不自动生成诊断; 不以 CMI/支付提升为目标
+
+2. **Medical Coding Agent** — 将已经写清楚的事实准确编码
+   - ICD-10-CN / ICD-9-CM-3 编码 + 证据 + 校验 + 合规
+   - 详见 Phase 5 Track C 已完成的 7-stage 编码合规主线
+
+**两者关系**:
+```
+病历文档
+  → CDI 内涵分析
+  → 临床澄清任务
+  → 医生答复
+  → 文档补充或修订
+  → CDI 复核
+  → Medical Coding
+  → Evidence / Validation / Compliance / DRG-DIP Risk
+  → 发现新歧义时回到 CDI
+```
+
+**边界** (Phase 5 Track D §4.3 强制要求):
+- `discharge-summary-structuring` ≠ CDI (是出院小结结构化抽取)
+- `note-completeness` ≠ CDI (是形式完整性检查)
+- `medical-coding` ≠ CDI (是编码而非临床澄清)
+- `documentation-gap` 属于 CDI 内部能力或 CDI 结果类型, 不是独立顶层 Agent
 
 ## 架构层次
 

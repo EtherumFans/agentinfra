@@ -1,15 +1,23 @@
-"""CDI Non-leading Query Gate (Phase 5 Track D Gate 5).
+"""CDI Non-leading Query Gate (Phase 5 Track D Gate 5 + P0 Gate 4).
 
-Pure-logic rule engine implementing NLQ-001..009 from
-``reports/phase5_track_d/CORTI_CDI_PROVIDER_QUERY_AUDIT.md``.
+Pure-logic rule engine implementing NLQ-001..010.
+
+Phase 5 Track D P0 Gate 4 (2026-07-11) improvements:
+    - NLQ-001 anchor removed — mid-sentence 是否 / 能否 / Can you confirm
+      now block. PDF A4 example "根据痰培养结果，该患者肺炎是否可以明确为…"
+      now correctly fails (was passing — false negative).
+    - NLQ-010 added — response_options must NOT contain ICD/DRG/CMI codes
+      (PDF §A6 clinician de-coding requirement).
+    - NLQ-002 retains its stub for pure-logic mode; a real LLM-backed
+      semantic reviewer is in ``nlq_semantic.py`` (Gate 4 Step 5).
 
 The gate is invoked by the CDI Orchestrator after a Provider Query is
 generated. If any rule returns ``action='BLOCK'``, the query cannot
 leave ``DRAFT`` state.
 
-Rule list (PDF §8.3):
-    NLQ-001  no_yes_no_opening          (lexical, regex)
-    NLQ-002  no_diagnosis_presumption   (semantic, requires chart_evidence)
+Rule list (PDF §8.3 + Phase 5 Track D P0 Gate 4):
+    NLQ-001  no_yes_no_opening          (lexical, regex — anchor removed)
+    NLQ-002  no_diagnosis_presumption   (semantic, see nlq_semantic.py)
     NLQ-003  response_options_required  (structural)
     NLQ-004  min_three_response_options (structural)
     NLQ-005  escape_hatch_required      (structural)
@@ -17,6 +25,7 @@ Rule list (PDF §8.3):
     NLQ-007  no_undiagnosed_condition_in_query  (semantic)
     NLQ-008  no_single_diagnosis_suggested       (semantic)
     NLQ-009  no_payment_terms           (lexical, keyword list)
+    NLQ-010  no_coding_codes_in_options (structural, ICD/DRG/CMI patterns)
 
 This module is dependency-free (only stdlib + dataclasses) so it can be
 unit-tested without a running runtime.
@@ -34,9 +43,13 @@ from typing import Any, Iterable
 # ---------------------------------------------------------------------------
 
 _YES_NO_OPENING_PATTERNS = [
-    r"^\s*(是不是|是否|是否为|能否|能不能|是不是说)",
-    r"^\s*(Would you agree|Is it|Are they|Do you agree|Isn't it|Aren't they)",
-    r"^\s*(Could this be|Can we say|Should we code)",
+    # Phase 5 Track D P0 Gate 4 (2026-07-11): removed ^\s* anchor.
+    # PDF A4 example "根据痰培养结果，该患者肺炎是否可以明确为肺炎链球菌性肺炎？"
+    # contains 是否 mid-sentence; the old anchor let it through (false negative).
+    # Now any 是否 / 能否 / 是不是 anywhere triggers a block.
+    r"(是不是|是否|是否为|能否|能不能|是不是说|是不是要|能否认为|是否可以)",
+    r"(Would you agree|Is it|Are they|Do you agree|Isn't it|Aren't they|Can you confirm)",
+    r"(Could this be|Can we say|Should we code|Do you consider)",
 ]
 
 _TREATMENT_ADVICE_KEYWORDS = [
@@ -48,6 +61,20 @@ _PAYMENT_KEYWORDS = [
     "DRG", "DIP", "CMI", "支付", "报销", "医保结算", "权重",
     "reimbursement", "upcode", "upcoding", "payment optimization",
     "billing impact", "DRG weight", "case mix index",
+]
+
+# Phase 5 Track D P0 Gate 4: structural rule NLQ-010.
+# Detects ICD-10 / ICD-9-CM-3 / CN-DRG / DIP codes embedded in
+# response_options. PDF A6: clinicians must not see coding info.
+_ICD_CODE_PATTERNS = [
+    # ICD-10-CM: letter + 2 digits + optional .subdivision (e.g. J18.9, S72.001A)
+    r"\b[A-Z]\d{2}(\.\d{1,4})?[A-Z]?\b",
+    # ICD-9-CM-3: 2-3 digits + .subdivision (e.g. 81.01, 00.50)
+    r"\b\d{2,3}\.\d{1,2}\b",
+    # CN-DRG: 3 letters + digits (e.g. AH1, BJ1)
+    r"\b[A-Z]{2}\d[A-Z]?\b",
+    # Explicit coding-language hints
+    r"\bICD[- ]?10\b", r"\bICD[- ]?9\b", r"\bDRG\b", r"\bDIP\b", r"\bCMI\b",
 ]
 
 _ESCAPE_HATCH_PHRASES = [
@@ -274,6 +301,40 @@ def _rule_nlq_009(query: ProviderQueryForGate) -> RuleResult:
     )
 
 
+# Phase 5 Track D P0 Gate 4: structural rule for ICD/DRG codes in options.
+def _rule_nlq_010(query: ProviderQueryForGate) -> RuleResult:
+    """PDF A6: response_options must NOT contain ICD/DRG/CMI codes.
+
+    Clinician-facing UI must never see coding information; a coding-leaking
+    option is a hard block. Patterns cover ICD-10-CM, ICD-9-CM-3, CN-DRG,
+    DIP, and explicit code-system references.
+    """
+    if not query.response_options:
+        return RuleResult(
+            rule_id="NLQ-010",
+            name="no_coding_codes_in_options",
+            description="response_options 不得包含 ICD/DRG/CMI 编码",
+            passed=True,
+            evidence="no response_options (deferred to NLQ-003)",
+        )
+    offending: list[str] = []
+    for opt in query.response_options:
+        for pat in _ICD_CODE_PATTERNS:
+            m = re.search(pat, opt, flags=re.IGNORECASE)
+            if m:
+                offending.append(f"option '{opt}' matched /{pat}/ : '{m.group(0)}'")
+                break
+    passed = not offending
+    return RuleResult(
+        rule_id="NLQ-010",
+        name="no_coding_codes_in_options",
+        description="response_options 不得包含 ICD/DRG/CMI 编码 (PDF §A6)",
+        passed=passed,
+        evidence="; ".join(offending) if offending else "no ICD/DRG codes detected",
+        action="PASS" if passed else "BLOCK",
+    )
+
+
 _RULES = [
     _rule_nlq_001,
     _rule_nlq_002,
@@ -284,6 +345,7 @@ _RULES = [
     _rule_nlq_007,
     _rule_nlq_008,
     _rule_nlq_009,
+    _rule_nlq_010,
 ]
 
 

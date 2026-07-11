@@ -221,8 +221,12 @@ async def persist_case(
 ) -> CDICaseModel:
     """Atomic insert: 1 case + N gaps + M queries in one transaction.
 
-    Idempotent: if the case_id already exists, returns the existing
-    model without re-inserting (callers may then refresh).
+    Idempotent:
+        - On case_id: if the case already exists, returns the existing
+          model without re-inserting.
+        - On gap_id/query_id: skips any child whose ID already exists
+          (defensive — handles degraded runs that emit placeholder IDs
+          like GAP-001/002/003 across multiple cases).
     """
     existing = await session.get(CDICaseModel, case.case_id)
     if existing is not None:
@@ -238,11 +242,18 @@ async def persist_case(
     )
     session.add(case_model)
 
-    # Add children explicitly (no reliance on relationship cascades)
+    # Add children explicitly (no reliance on relationship cascades).
+    # Skip any gap/query whose ID already exists in the DB — this keeps
+    # the case write atomic even when a degraded stub/mock LLM produces
+    # colliding placeholder IDs (e.g. GAP-001) across cases.
     for gap in case.documentation_gaps:
-        session.add(gap_to_orm(gap, case.case_id))
+        existing_gap = await session.get(DocumentationGapModel, gap.gap_id)
+        if existing_gap is None:
+            session.add(gap_to_orm(gap, case.case_id))
     for q in case.proposed_provider_queries:
-        session.add(query_to_orm(q, case.case_id))
+        existing_q = await session.get(ProviderQueryModel, q.query_id)
+        if existing_q is None:
+            session.add(query_to_orm(q, case.case_id))
 
     await session.commit()
     await session.refresh(case_model)

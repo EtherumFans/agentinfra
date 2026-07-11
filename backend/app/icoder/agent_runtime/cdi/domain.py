@@ -34,8 +34,14 @@ GapType = Literal[
     "clinical_correlation_unestablished",
     "temporal_unspecified",
     "conflicting_documentation",
+    "unknown",
 ]
-"""8 CDI gap types per PDF §6.2.
+"""9 CDI gap types per PDF §6.2 + Phase 5 Track D P0 Gate 4 'unknown' bucket.
+
+The 'unknown' bucket catches gap descriptions the LLM cannot confidently
+classify. ``classify_gap_type`` returns 'unknown' when
+``classification_confidence`` falls below the threshold (no keyword hits
+AND no LLM-provided gap_type).
 
 diagnostic_specificity         — 肺炎 vs 细菌性肺炎 (J18.9 vs J13)
 etiology_unspecified           — 急性肾损伤 病因未记录
@@ -45,6 +51,7 @@ anatomical_site_unspecified    — 部位未明确 (left vs right, T12 vs L1)
 clinical_correlation_unestablished — 痰培养 vs 临床表现 关联未建立
 temporal_unspecified           — 时间关系未明确 (术后第几天发热)
 conflicting_documentation      — 入院诊断 vs 出院诊断 不一致
+unknown                        — Phase 5 Track D P0 Gate 4: classifier fallback
 """
 
 
@@ -150,25 +157,49 @@ _GAP_TYPE_KEYWORDS: dict[GapType, tuple[str, ...]] = {
 }
 
 
-def classify_gap_type(description: str, why_it_matters: str = "") -> GapType:
-    """Classify a free-text gap description into one of 8 GapTypes.
+def classify_gap_type(
+    description: str,
+    why_it_matters: str = "",
+) -> GapType:
+    """Classify a free-text gap description into one of 9 GapTypes.
 
-    The orchestrator uses this when the LLM doesn't tag gap_type itself.
+    Phase 5 Track D P0 Gate 4: fallback is now ``unknown`` (was
+    ``diagnostic_specificity``). The ``unknown`` bucket surfaces LLM
+    uncertainty to the audit trail instead of silently mis-tagging gaps
+    that the classifier cannot confidently place.
+
     Picks the GapType whose keywords appear most frequently in
-    description+why_it_matters. Defaults to ``diagnostic_specificity``
-    (the most common CDI gap type) on ties or empty input.
+    description+why_it_matters. On ties or empty input → ``unknown``.
+
+    For confidence scores, see ``classify_gap_type_with_confidence``.
+    """
+
+    gap_type, _ = classify_gap_type_with_confidence(description, why_it_matters)
+    return gap_type
+
+
+def classify_gap_type_with_confidence(
+    description: str,
+    why_it_matters: str = "",
+) -> tuple[GapType, float]:
+    """Classify a gap and return ``(gap_type, confidence)``.
+
+    Confidence = best_score / max(1, total_keyword_hits) in [0.0, 1.0].
+    Returns ``("unknown", 0.0)`` when no keywords match.
     """
 
     if not description and not why_it_matters:
-        return "diagnostic_specificity"
+        return "unknown", 0.0
     text = (description + " " + why_it_matters).lower()
     scores: dict[str, int] = {}
     for gap_type, keywords in _GAP_TYPE_KEYWORDS.items():
         scores[gap_type] = sum(1 for kw in keywords if kw.lower() in text)
-    best = max(scores.items(), key=lambda kv: kv[1])
-    if best[1] == 0:
-        return "diagnostic_specificity"
-    return best[0]  # type: ignore[return-value]
+    best_gap_type, best_score = max(scores.items(), key=lambda kv: kv[1])
+    if best_score == 0:
+        return "unknown", 0.0
+    total_hits = sum(scores.values())
+    confidence = float(best_score) / float(max(1, total_hits))
+    return best_gap_type, confidence  # type: ignore[return-value]
 
 
 # ---------------------------------------------------------------------------
@@ -182,6 +213,11 @@ class EvidenceSpan:
 
     Required by red line ``chart_evidence_required`` — every gap and every
     query must cite one.
+
+    Phase 5 Track D P0 Gate 4 — multi-evidence Claim-Evidence alignment:
+        ``supports_claim`` is set by the alignment checker to indicate
+        whether this span actually substantiates the gap's claim. A gap
+        with 0 supporting spans is downgraded to ``unknown`` bucket.
     """
 
     document_id: str
@@ -189,6 +225,7 @@ class EvidenceSpan:
     char_start: int = 0
     char_end: int = 0
     documented_at: str = ""
+    supports_claim: bool | None = None  # None = unchecked; True = aligned; False = contradicting
 
 
 # ---------------------------------------------------------------------------
@@ -221,6 +258,32 @@ class DocumentationGap:
     minimal_clarification_needed: str = ""
     priority: Literal["routine", "urgent"] = "routine"
     linked_query_id: str = ""
+    # Phase 5 Track D P0 Gate 4: multi-evidence + unknown bucket
+    evidence_spans: list[EvidenceSpan] = field(default_factory=list)
+    classification_confidence: float = 1.0  # 0.0 = no signal, 1.0 = LLM-tagged
+
+
+def claim_evidence_alignment_score(gap: DocumentationGap) -> float:
+    """Return the fraction of evidence_spans that support the gap's claim.
+
+    Phase 5 Track D P0 Gate 4 / PDF §A5 (multi-evidence alignment).
+
+    Returns 1.0 when ``evidence_spans`` is empty (deferred to legacy
+    single-span ``evidence_span``). Otherwise computes:
+        aligned_spans / total_checked_spans
+
+    Spans with ``supports_claim=None`` (unchecked) are excluded from the
+    denominator. If no span has been checked, returns 1.0.
+    """
+
+    spans = gap.evidence_spans or ([gap.evidence_span] if gap.evidence_span.quote else [])
+    if not spans:
+        return 0.0
+    checked = [s for s in spans if s.supports_claim is not None]
+    if not checked:
+        return 1.0
+    aligned = sum(1 for s in checked if s.supports_claim is True)
+    return aligned / len(checked)
 
 
 # ---------------------------------------------------------------------------
@@ -345,4 +408,6 @@ __all__ = [
     "RiskFlag",
     "SpecialistTraceEntry",
     "CDICase",
+    "claim_evidence_alignment_score",
+    "classify_gap_type_with_confidence",
 ]

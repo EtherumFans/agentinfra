@@ -31,7 +31,8 @@ from app.services.cdi_query_lifecycle import (
 COMPLIANT_QUERY = {
     "query_text": "入院记录诊断为'肺炎', 痰培养为'肺炎链球菌'. 请根据您的临床判断回答:",
     "response_options": [
-        "A. 肺炎病原体为肺炎链球菌 (J13)",
+        # Phase 5 Track D P0 Gate 4 / PDF §A6: no ICD codes in options
+        "A. 肺炎病原体为肺炎链球菌",
         "B. 其他病原体",
         "C. 痰培养为定植菌",
         "D. 无法确定",
@@ -97,7 +98,7 @@ def test_validate_transition_returns_human_readable_reason() -> None:
 def test_gate_draft_to_pending_review_passes_compliant_query() -> None:
     result = gate_draft_to_pending_review(**COMPLIANT_QUERY)
     assert result.verdict == "PASS"
-    assert result.rules_passed == 9
+    assert result.rules_passed == 10  # NLQ-001..010 (NLQ-010 added in Gate 4)
 
 
 def test_gate_draft_to_pending_review_blocks_leading_query() -> None:

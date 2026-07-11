@@ -25,7 +25,9 @@ from .domain import (  # noqa: F401
     RiskFlag,
     RiskFlagCategory,
     SpecialistTraceEntry,
+    claim_evidence_alignment_score,
     classify_gap_type,
+    classify_gap_type_with_confidence,
     classify_response_option,
 )
 from .nlq_gate import (  # noqa: F401
@@ -53,6 +55,15 @@ from .clinician_response import (  # noqa: F401
     process_clinician_response,
     revalidate_gap,
 )
+from .nlq_semantic import (  # noqa: F401
+    SemanticReviewResult,
+    review_query as review_query_semantic,
+)
+from .clinician_view import (  # noqa: F401
+    is_safe_for_clinician,
+    strip_codes_from_text,
+    to_clinician_view,
+)
 
 __all__ = [
     # domain
@@ -69,7 +80,9 @@ __all__ = [
     "RiskFlag",
     "RiskFlagCategory",
     "SpecialistTraceEntry",
+    "claim_evidence_alignment_score",
     "classify_gap_type",
+    "classify_gap_type_with_confidence",
     "classify_response_option",
     # nlq gate
     "NLQGateResult",
@@ -92,4 +105,11 @@ __all__ = [
     "compute_document_diff",
     "process_clinician_response",
     "revalidate_gap",
+    # nlq semantic reviewer (Phase 5 Track D P0 Gate 4 Step 5)
+    "SemanticReviewResult",
+    "review_query_semantic",
+    # clinician view de-coding transform (Phase 5 Track D P0 Gate 4 / PDF §A6)
+    "is_safe_for_clinician",
+    "strip_codes_from_text",
+    "to_clinician_view",
 ]

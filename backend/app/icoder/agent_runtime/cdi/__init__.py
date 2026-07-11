@@ -13,6 +13,10 @@ Imported by:
 
 from .domain import (  # noqa: F401
     CDICase,
+    Claim,
+    ClaimCriticality,
+    ClaimEvidenceAlignment,
+    ClaimValidationStatus,
     CodingSpecificityItem,
     DocumentType,
     DocumentationGap,
@@ -25,6 +29,7 @@ from .domain import (  # noqa: F401
     RiskFlag,
     RiskFlagCategory,
     SpecialistTraceEntry,
+    SupportType,
     claim_evidence_alignment_score,
     classify_gap_type,
     classify_gap_type_with_confidence,
@@ -64,10 +69,28 @@ from .clinician_view import (  # noqa: F401
     strip_codes_from_text,
     to_clinician_view,
 )
+from .claim_evidence_gate import (  # noqa: F401
+    CaseClaimEvidenceResult,
+    ClaimEvidenceGateResult,
+    ClaimEvidenceRuleResult,
+    ClaimOutcome,
+    apply_claim_evidence_to_case,
+    evaluate_case_claim_evidence,
+    evaluate_claim_evidence,
+    extract_claims,
+)
+from .necessity_semantic import (  # noqa: F401
+    SemanticNecessityResult,
+    review_necessity,
+)
 
 __all__ = [
     # domain
     "CDICase",
+    "Claim",
+    "ClaimCriticality",
+    "ClaimEvidenceAlignment",
+    "ClaimValidationStatus",
     "CodingSpecificityItem",
     "DocumentType",
     "DocumentationGap",
@@ -80,6 +103,7 @@ __all__ = [
     "RiskFlag",
     "RiskFlagCategory",
     "SpecialistTraceEntry",
+    "SupportType",
     "claim_evidence_alignment_score",
     "classify_gap_type",
     "classify_gap_type_with_confidence",
@@ -112,4 +136,16 @@ __all__ = [
     "is_safe_for_clinician",
     "strip_codes_from_text",
     "to_clinician_view",
+    # claim-evidence gate (Phase 5 Track D P0.5 Gate 4)
+    "CaseClaimEvidenceResult",
+    "ClaimEvidenceGateResult",
+    "ClaimEvidenceRuleResult",
+    "ClaimOutcome",
+    "apply_claim_evidence_to_case",
+    "evaluate_case_claim_evidence",
+    "evaluate_claim_evidence",
+    "extract_claims",
+    # semantic necessity reviewer (Phase 5 Track D P0.5 Gate 4)
+    "SemanticNecessityResult",
+    "review_necessity",
 ]

@@ -1,0 +1,233 @@
+{
+  "checkpoint_a": {
+    "c09_final_queries": 0,
+    "target_c09_final_queries": 0,
+    "invalid_evidence_quote_count": 0,
+    "target_invalid_evidence_quote_count": 0,
+    "pmh_leak_query_count": 0,
+    "target_pmh_leak_query_count": 0,
+    "claim_evidence_blocked_total": 10,
+    "semantic_necessity_blocked_total": 0,
+    "verdict": "PASS"
+  },
+  "cases": [
+    {
+      "case_id": "G4_T01_c09_empty_chart",
+      "note": "Empty chart — MUST end with 0 queries (semantic necessity BLOCK)",
+      "checkpoint": "INSUFFICIENT_CLINICAL_SUBSTRATE",
+      "status": 200,
+      "elapsed_s": 21.3,
+      "completion_state": "REVIEW_REQUIRED",
+      "n_gaps": 4,
+      "n_queries_final": 0,
+      "n_queries_expected": 0,
+      "stage_query_necessity": {
+        "necessary": "4",
+        "unnecessary": "0",
+        "overquery_triggered": "False",
+        "final_count": "4"
+      },
+      "stage_single_dimension": {
+        "single_dim": "4",
+        "multi_dim": "0",
+        "axis_cluster_triggered": "False",
+        "axis_cluster_axis": "etiology",
+        "final_count": "4"
+      },
+      "stage_claim_evidence": {
+        "claims_extracted": "9",
+        "blocked": "4",
+        "flagged": "0",
+        "final_count": "0"
+      },
+      "stage_semantic_necessity": {
+        "blocked": "0",
+        "flagged": "0",
+        "degraded": "0",
+        "final_count": "0"
+      },
+      "evidence_quote_validity_rate": 1.0,
+      "invalid_evidence_gaps": [],
+      "queries": [],
+      "queries_with_pmh_evidence": [],
+      "tokens_total": 2787,
+      "degraded": false
+    },
+    {
+      "case_id": "G4_T02_pneumonia_with_culture",
+      "note": "Pneumonia + sputum culture — pathogen clarification is the legitimate query",
+      "checkpoint": "CRITICAL_CLAIMS_CHART_BACKED",
+      "status": 200,
+      "elapsed_s": 16.9,
+      "completion_state": "REVIEW_REQUIRED",
+      "n_gaps": 1,
+      "n_queries_final": 0,
+      "n_queries_expected": "≤2",
+      "stage_query_necessity": {
+        "necessary": "1",
+        "unnecessary": "0",
+        "overquery_triggered": "False",
+        "final_count": "1"
+      },
+      "stage_single_dimension": {
+        "single_dim": "0",
+        "multi_dim": "1",
+        "axis_cluster_triggered": "False",
+        "axis_cluster_axis": "severity",
+        "final_count": "0"
+      },
+      "stage_claim_evidence": {
+        "claims_extracted": "0",
+        "blocked": "0",
+        "flagged": "0",
+        "final_count": "0"
+      },
+      "stage_semantic_necessity": {
+        "blocked": "0",
+        "flagged": "0",
+        "degraded": "0",
+        "final_count": "0"
+      },
+      "evidence_quote_validity_rate": 1.0,
+      "invalid_evidence_gaps": [],
+      "queries": [],
+      "queries_with_pmh_evidence": [],
+      "tokens_total": 1701,
+      "degraded": true
+    },
+    {
+      "case_id": "G4_T03_fracture_laterality_conflict",
+      "note": "L-R conflict — must surface laterality without inventing new fractures",
+      "checkpoint": "NO_DIAGNOSIS_INVENTION",
+      "status": 200,
+      "elapsed_s": 28.8,
+      "completion_state": "REVIEW_REQUIRED",
+      "n_gaps": 4,
+      "n_queries_final": 0,
+      "n_queries_expected": "1-2",
+      "stage_query_necessity": {
+        "necessary": "4",
+        "unnecessary": "0",
+        "overquery_triggered": "False",
+        "final_count": "4"
+      },
+      "stage_single_dimension": {
+        "single_dim": "1",
+        "multi_dim": "3",
+        "axis_cluster_triggered": "True",
+        "axis_cluster_axis": "site",
+        "final_count": "1"
+      },
+      "stage_claim_evidence": {
+        "claims_extracted": "4",
+        "blocked": "1",
+        "flagged": "0",
+        "final_count": "0"
+      },
+      "stage_semantic_necessity": {
+        "blocked": "0",
+        "flagged": "0",
+        "degraded": "0",
+        "final_count": "0"
+      },
+      "evidence_quote_validity_rate": 1.0,
+      "invalid_evidence_gaps": [],
+      "queries": [],
+      "queries_with_pmh_evidence": [],
+      "tokens_total": 3678,
+      "degraded": false
+    },
+    {
+      "case_id": "G4_T04_complete_chart_stemi",
+      "note": "Complete chart — should NOT generate queries (everything documented)",
+      "checkpoint": "NO_REDUNDANT_QUERIES",
+      "status": 200,
+      "elapsed_s": 29.1,
+      "completion_state": "REVIEW_REQUIRED",
+      "n_gaps": 4,
+      "n_queries_final": 1,
+      "n_queries_expected": "0-1",
+      "stage_query_necessity": {
+        "necessary": "2",
+        "unnecessary": "2",
+        "overquery_triggered": "False",
+        "final_count": "2"
+      },
+      "stage_single_dimension": {
+        "single_dim": "2",
+        "multi_dim": "0",
+        "axis_cluster_triggered": "False",
+        "axis_cluster_axis": "",
+        "final_count": "2"
+      },
+      "stage_claim_evidence": {
+        "claims_extracted": "4",
+        "blocked": "1",
+        "flagged": "0",
+        "final_count": "1"
+      },
+      "stage_semantic_necessity": {
+        "blocked": "0",
+        "flagged": "0",
+        "degraded": "0",
+        "final_count": "1"
+      },
+      "evidence_quote_validity_rate": 1.0,
+      "invalid_evidence_gaps": [],
+      "queries": [
+        {
+          "query_id": "CASE-a03c0f28959b/Q-001",
+          "topic": "前降支闭塞节段",
+          "query_text": "根据冠脉造影结果，前降支闭塞的具体节段是？",
+          "evidence_quote": "冠脉造影:前降支近段100%闭塞",
+          "evidence_quote_in_chart": true
+        }
+      ],
+      "queries_with_pmh_evidence": [],
+      "tokens_total": 3502,
+      "degraded": false
+    },
+    {
+      "case_id": "G4_T05_negation_pmh",
+      "note": "Negation + PMH — must NOT treat family history as patient's current condition",
+      "checkpoint": "NO_PMH_AS_CURRENT",
+      "status": 200,
+      "elapsed_s": 26.4,
+      "completion_state": "REVIEW_REQUIRED",
+      "n_gaps": 4,
+      "n_queries_final": 0,
+      "n_queries_expected": "1-2",
+      "stage_query_necessity": {
+        "necessary": "4",
+        "unnecessary": "0",
+        "overquery_triggered": "False",
+        "final_count": "4"
+      },
+      "stage_single_dimension": {
+        "single_dim": "4",
+        "multi_dim": "0",
+        "axis_cluster_triggered": "False",
+        "axis_cluster_axis": "type",
+        "final_count": "4"
+      },
+      "stage_claim_evidence": {
+        "claims_extracted": "13",
+        "blocked": "4",
+        "flagged": "0",
+        "final_count": "0"
+      },
+      "stage_semantic_necessity": {
+        "blocked": "0",
+        "flagged": "0",
+        "degraded": "0",
+        "final_count": "0"
+      },
+      "evidence_quote_validity_rate": 1.0,
+      "invalid_evidence_gaps": [],
+      "queries": [],
+      "queries_with_pmh_evidence": [],
+      "tokens_total": 3515,
+      "degraded": false
+    }
+  ]
+}

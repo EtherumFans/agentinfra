@@ -1,0 +1,51 @@
+{
+  "agent_id": "note-completeness-agent",
+  "run_id": "run-a37232af-04ed-49f4-8900-c4f3bb20094d",
+  "trace_id": "trace-0cef92f8ff8d4c12",
+  "runtime_mode": "corti_like_fast",
+  "latency_ms": 10929,
+  "cost": {
+    "amount": 0.000351,
+    "currency": "CNY"
+  },
+  "summary": "好的，我将作为 iCoDer Note Completeness Agent 对您提供的病历进行评估。",
+  "result": {
+    "status": "complete",
+    "markdown": "好的，我将作为 iCoDer Note Completeness Agent 对您提供的病历进行评估。\n\n---\n\n### **iCoDer Note Completeness Report**\n\n**Patient ID:** (未提供)\n**Document Type:** 入院记录 (Admission Note)\n**Review Date:** 2026-07-08\n\n---\n\n#### **1. 必填章节完整性评估 (Phase 4-B)**\n\n| 必填章节 | 状态 | 备注 |\n| :--- | :--- | :--- |\n| **主诉** | ✅ **Present** | “摔伤后腰背部疼痛伴活动受限 1 天” - 格式规范，症状+时间。 |\n| **现病史** | ✅ **Present** | 详细描述了受伤原因、过程、伴随症状及阴性症状。 |\n| **既往史** | ✅ **Present** | 包含高血压病史、用药史、否认糖尿病/冠心病/手术/过敏史。 |\n| **体格检查** | ✅ **Present** | 包含生命体征、专科查体（脊柱压痛、叩击痛）、神经系统检查。 |\n| **辅助检查** | ✅ **Present** | 包含MRI、CT、骨密度结果。 |\n| **诊断 (入院诊断)** | ✅ **Present** | 包含三个诊断：T12椎体压缩性骨折、骨质疏松性骨折、高血压病。 |\n| **治疗经过** | ✅ **Present** | 描述了初步治疗计划：卧床、镇痛、抗骨质疏松、必要时手术。 |\n| **手术记录** | ❌ **Not Applicable** | 此为入院记录，尚未进行手术。 |\n\n**小结：** 所有适用于入院记录的必填章节均已存在。**completeness_score = 7/7**\n\n---\n\n#### **2. 病案首页质控 (Phase 4-F)**\n\n由于未提供病案首页，以下评估基于病历文本推断。\n\n| 质控项目 | 状态 | 备注 |\n| :--- | :--- | :--- |\n| **字段完整性** | | |\n| - 主诊断 | ✅ **Present (推断)** | 入院诊断第一项“T12椎体压缩性骨折”应为主诊断。 |\n| - 其他诊断 | ✅ **Present (推断)** | “骨质疏松性骨折”、“高血压病 3 级(很高危)”可作为其他诊断。 |\n| - 手术/操作 | ⚠️ **Partially Present** | 治疗计划提及“必要时行PKP/PVP”，但未明确是否已执行。若未执行，则手术字段为空是合理的。 |\n| - 出院状态码 | ❌ **Missing** | 病历中未提及出院状态。 |\n| **主诊断-手术逻辑一致性** | ⚠️ **Not Evaluable** | 主诊断“T12椎体压缩性骨折”与计划中的“PKP/PVP”手术逻辑一致。但手术尚未执行，无法评估最终一致性。 |\n| **出院状态码有效性** | ❌ **Missing** | 未提供，无法验证。 |\n\n**小结：** 病案首页关键字段“出院状态码”缺失。主诊断与计划手术逻辑一致，但手术尚未执行。\n\n---\n\n#### **3. 文档缺陷与建议 (Documentation Gaps)**\n\n1.  **出院状态码缺失 (Critical):** 病历中未记录患者出院时的状态（治愈/好转/未愈/死亡/其他）。这是病案首页的必填项，必须在出院小结中明确。\n2.  **手术记录缺失 (Conditional):** 如果患者最终接受了PKP/PVP手术，则必须补充一份完整的手术记录。\n3.  **体格检查细节 (Minor):** 体格检查中未描述脊柱活动度、步态（因患者卧床无法评估，可注明“因疼痛无法配合”），以及直肠指检（对于脊柱骨折患者，评估神经功能时有时需要，但非强制）。\n\n---\n\n#### **4. 最终结论 (Review Conclusion)**\n\n**总体评价：** 该入院记录书写规范，核心章节完整，诊断明确，治疗计划清晰。主要缺陷在于病案首页的关键信息（出院状态码）缺失，这需要在出院时补充完整。\n\n**评分：**\n- **Completeness Score (章节):** **7/7 (100%)**\n- **Documentation Gaps:** **1 项关键缺陷 (出院状态码缺失)**\n- **Overall Assessment:** **合格 (Pass) - 需在出院时补充病案首页信息。**",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.pure-llm.v1",
+    "backend_type": "pure_llm",
+    "raw_provider_response": {
+      "content": "好的，我将作为 iCoDer Note Completeness Agent 对您提供的病历进行评估。\n\n---\n\n### **iCoDer Note Completeness Report**\n\n**Patient ID:** (未提供)\n**Document Type:** 入院记录 (Admission Note)\n**Review Date:** 2026-07-08\n\n---\n\n#### **1. 必填章节完整性评估 (Phase 4-B)**\n\n| 必填章节 | 状态 | 备注 |\n| :--- | :--- | :--- |\n| **主诉** | ✅ **Present** | “摔伤后腰背部疼痛伴活动受限 1 天” - 格式规范，症状+时间。 |\n| **现病史** | ✅ **Present** | 详细描述了受伤原因、过程、伴随症状及阴性症状。 |\n| **既往史** | ✅ **Present** | 包含高血压病史、用药史、否认糖尿病/冠心病/手术/过敏史。 |\n| **体格检查** | ✅ **Present** | 包含生命体征、专科查体（脊柱压痛、叩击痛）、神经系统检查。 |\n| **辅助检查** | ✅ **Present** | 包含MRI、CT、骨密度结果。 |\n| **诊断 (入院诊断)** | ✅ **Present** | 包含三个诊断：T12椎体压缩性骨折、骨质疏松性骨折、高血压病。 |\n| **治疗经过** | ✅ **Present** | 描述了初步治疗计划：卧床、镇痛、抗骨质疏松、必要时手术。 |\n| **手术记录** | ❌ **Not Applicable** | 此为入院记录，尚未进行手术。 |\n\n**小结：** 所有适用于入院记录的必填章节均已存在。**completeness_score = 7/7**\n\n---\n\n#### **2. 病案首页质控 (Phase 4-F)**\n\n由于未提供病案首页，以下评估基于病历文本推断。\n\n| 质控项目 | 状态 | 备注 |\n| :--- | :--- | :--- |\n| **字段完整性** | | |\n| - 主诊断 | ✅ **Present (推断)** | 入院诊断第一项“T12椎体压缩性骨折”应为主诊断。 |\n| - 其他诊断 | ✅ **Present (推断)** | “骨质疏松性骨折”、“高血压病 3 级(很高危)”可作为其他诊断。 |\n| - 手术/操作 | ⚠️ **Partially Present** | 治疗计划提及“必要时行PKP/PVP”，但未明确是否已执行。若未执行，则手术字段为空是合理的。 |\n| - 出院状态码 | ❌ **Missing** | 病历中未提及出院状态。 |\n| **主诊断-手术逻辑一致性** | ⚠️ **Not Evaluable** | 主诊断“T12椎体压缩性骨折”与计划中的“PKP/PVP”手术逻辑一致。但手术尚未执行，无法评估最终一致性。 |\n| **出院状态码有效性** | ❌ **Missing** | 未提供，无法验证。 |\n\n**小结：** 病案首页关键字段“出院状态码”缺失。主诊断与计划手术逻辑一致，但手术尚未执行。\n\n---\n\n#### **3. 文档缺陷与建议 (Documentation Gaps)**\n\n1.  **出院状态码缺失 (Critical):** 病历中未记录患者出院时的状态（治愈/好转/未愈/死亡/其他）。这是病案首页的必填项，必须在出院小结中明确。\n2.  **手术记录缺失 (Conditional):** 如果患者最终接受了PKP/PVP手术，则必须补充一份完整的手术记录。\n3.  **体格检查细节 (Minor):** 体格检查中未描述脊柱活动度、步态（因患者卧床无法评估，可注明“因疼痛无法配合”），以及直肠指检（对于脊柱骨折患者，评估神经功能时有时需要，但非强制）。\n\n---\n\n#### **4. 最终结论 (Review Conclusion)**\n\n**总体评价：** 该入院记录书写规范，核心章节完整，诊断明确，治疗计划清晰。主要缺陷在于病案首页的关键信息（出院状态码）缺失，这需要在出院时补充完整。\n\n**评分：**\n- **Completeness Score (章节):** **7/7 (100%)**\n- **Documentation Gaps:** **1 项关键缺陷 (出院状态码缺失)**\n- **Overall Assessment:** **合格 (Pass) - 需在出院时补充病案首页信息。**",
+      "model": "deepseek-v4-flash",
+      "usage": {
+        "input_tokens": 632,
+        "output_tokens": 938
+      },
+      "cost_usd": 0.000351,
+      "latency_ms": 10929
+    }
+  },
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": false,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 10929,
+      "metadata": {
+        "agent_id": "note-completeness-agent",
+        "runtime_mode": "corti_like_fast",
+        "latency_ms": 10929
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": ""
+}

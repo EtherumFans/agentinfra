@@ -1,0 +1,263 @@
+{
+  "case_id": "CASE-e2a4c5ccfd9b",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-e2a4c5ccfd9b/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "CA-125升高但未明确临床相关性，未说明是否与妇科或其他疾病相关",
+      "why_it_matters": "CA-125升高可见于多种良恶性疾病，缺乏临床解释可能导致编码不准确或遗漏重要诊断",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "肿瘤标志物 CA-125 65 U/mL(参考值 < 35)"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-e2a4c5ccfd9b/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "盆腔超声结果正常，但未描述具体检查所见，如卵巢大小、形态等",
+      "why_it_matters": "缺乏具体描述可能影响对CA-125升高的评估，且编码时无法确认是否排除了卵巢病变",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "盆腔超声:子宫附件正常"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-e2a4c5ccfd9b/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "绝经状态未明确具体年限，仅写'绝经5年'，但未说明是否自然绝经或手术绝经",
+      "why_it_matters": "绝经类型影响CA-125参考范围及疾病风险评估，编码时需明确绝经状态",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "既往:绝经5年"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-e2a4c5ccfd9b/GAP-004",
+      "gap_type": "diagnostic_specificity",
+      "description": "无症状但CA-125升高，未记录是否有其他相关症状如腹胀、腹痛等",
+      "why_it_matters": "症状记录缺失可能影响对CA-125升高原因的判断，且编码时无法准确反映临床表现",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "无症状"
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-e2a4c5ccfd9b/Q-001",
+      "gap_id": "CASE-e2a4c5ccfd9b/GAP-003",
+      "topic": "绝经状态具体类型",
+      "reason": "绝经状态未明确具体年限，仅写'绝经5年'，但未说明是否自然绝经或手术绝经",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "绝经5年"
+      },
+      "query_text": "患者绝经5年，请明确绝经类型：",
+      "response_options": [
+        "A. 自然绝经",
+        "B. 手术绝经（如子宫切除、卵巢切除等）",
+        "C. 其他原因（如放疗、化疗等）",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine"
+    }
+  ],
+  "chart_excerpt_preview": "患者女性, 60岁, 体检。无症状。肿瘤标志物 CA-125 65 U/mL(参考值 < 35)。盆腔超声:子宫附件正常。既往:绝经5年。建议:随访 CA-125, 妇科会诊。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者女性，60岁",
+      "体检，无症状",
+      "肿瘤标志物CA-125 65 U/mL（参考值<35）",
+      "盆腔超声：子宫附件正常",
+      "既往：绝经5年",
+      "建议：随访CA-125，妇科会诊"
+    ],
+    "encounter_metadata": {
+      "patient_age": "60岁",
+      "patient_sex": "女",
+      "encounter_type": "体检"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "建议明确CA-125升高的临床相关性，例如是否与妇科或非妇科疾病相关，并记录具体盆腔超声所见（如卵巢大小、形态及内膜厚度）。同时需明确绝经类型（自然或手术）及具体年限，并补充有无腹胀、腹痛等隐匿症状，以支持临床决策和后续随访。",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3102,
+      "tokens": 272
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-3146dec12e80",
+    "gap_identification": "run-79677db4c858",
+    "expert_consultation": "run-76c69202cb51",
+    "query_generation": "run-38cd44e8817f",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=4",
+    "query_necessity_gate": "necessary=4;unnecessary=0;overquery_triggered=False;final_count=4",
+    "query_single_dimension_gate": "single_dim=4;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=correlation;final_count=4",
+    "claim_evidence_alignment_gate": "claims_extracted=11;blocked=3;flagged=0;final_count=1",
+    "claim_evidence_alignment_gate::run_id": "run-67b074eb38fc",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=1;final_count=1",
+    "semantic_necessity_gate::run_id": "run-2acf51d3cf25",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "run-375840259be2"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-122456f5a4e5",
+    "gap_identification": "trace-4a4a21795624",
+    "expert_consultation": "trace-9597fde63927",
+    "query_generation": "trace-9d40794e3862",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-6a6d4cc45826",
+    "semantic_necessity_gate": "trace-97faf72a615e",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-62fdaa980100"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 4746,
+      "prompt_tokens": 226,
+      "completion_tokens": 111,
+      "total_tokens": 337,
+      "run_id": "run-3146dec12e80",
+      "trace_id": "trace-122456f5a4e5",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6085,
+      "prompt_tokens": 346,
+      "completion_tokens": 511,
+      "total_tokens": 857,
+      "run_id": "run-79677db4c858",
+      "trace_id": "trace-4a4a21795624",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6992,
+      "prompt_tokens": 741,
+      "completion_tokens": 714,
+      "total_tokens": 1455,
+      "run_id": "run-38cd44e8817f",
+      "trace_id": "trace-9d40794e3862",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3102,
+      "prompt_tokens": 203,
+      "completion_tokens": 69,
+      "total_tokens": 272,
+      "run_id": "run-f6ccae76aad9",
+      "trace_id": "trace-4e860386e1d9",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-6e93e7065355",
+      "trace_id": "trace-291e4b81d31a",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-cb2c4918ce48",
+      "trace_id": "trace-58dba50bd4ec",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-766df937287f",
+      "trace_id": "trace-32e5db35d5c3",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-07-12T13:33:49.293532Z"
+}

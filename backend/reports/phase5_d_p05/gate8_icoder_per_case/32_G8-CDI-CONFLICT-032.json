@@ -1,100 +1,60 @@
 {
-  "case_id": "CASE-28c4d2a78636",
+  "case_id": "CASE-74cd7693fa29",
   "completion_state": "REVIEW_REQUIRED",
   "documentation_gaps": [
     {
-      "gap_id": "CASE-28c4d2a78636/GAP-001",
+      "gap_id": "CASE-74cd7693fa29/GAP-001",
       "gap_type": "diagnostic_specificity",
-      "description": "Conflicting documentation regarding duration of diabetes: admission states '初次发现' (newly diagnosed) while discharge summary states '糖尿病史10年' (10-year history).",
-      "why_it_matters": "This discrepancy affects the accuracy of the diagnosis code for diabetes (e.g., new onset vs. long-standing) and may impact severity, treatment, and risk adjustment.",
+      "description": "糖尿病病程描述不一致：入院记录为初次发现，出院小结为病史10年，门诊病历为新发糖尿病。",
+      "why_it_matters": "影响糖尿病分型、治疗方案及编码准确性，可能导致编码错误或临床决策失误。",
       "evidence_span": {
-        "document_id": "admission_record",
+        "document_id": "入院记录",
         "quote": "既往无糖尿病史, 本次为初次发现"
       },
       "minimal_clarification_needed": ""
     },
     {
-      "gap_id": "CASE-28c4d2a78636/GAP-002",
+      "gap_id": "CASE-74cd7693fa29/GAP-002",
       "gap_type": "diagnostic_specificity",
-      "description": "Conflicting documentation: discharge summary states '糖尿病史10年' while admission and outpatient records indicate new onset.",
-      "why_it_matters": "Same as above; requires clarification to ensure correct coding and clinical accuracy.",
+      "description": "出院小结中糖尿病史10年与入院记录矛盾，且未明确糖尿病类型（1型或2型）及并发症。",
+      "why_it_matters": "影响疾病严重程度评估、治疗及编码，需明确糖尿病类型及并发症以准确编码。",
       "evidence_span": {
-        "document_id": "discharge_summary",
+        "document_id": "出院小结",
         "quote": "糖尿病史10年, 平素血糖控制不佳"
       },
       "minimal_clarification_needed": ""
     },
     {
-      "gap_id": "CASE-28c4d2a78636/GAP-003",
+      "gap_id": "CASE-74cd7693fa29/GAP-003",
       "gap_type": "diagnostic_specificity",
-      "description": "Lack of specificity for diabetes type: only '2型糖尿病' is documented, but no mention of complications, insulin use, or glycemic control metrics (e.g., HbA1c).",
-      "why_it_matters": "Coding requires specificity for diabetes with or without complications, and control status. Missing details may lead to unspecified codes and affect severity.",
+      "description": "门诊病历中“新发糖尿病”与入院记录“初次发现”一致，但与出院小结“病史10年”矛盾，且未提供血糖控制水平或并发症信息。",
+      "why_it_matters": "缺乏血糖控制及并发症信息，影响编码和临床管理。",
       "evidence_span": {
-        "document_id": "admission_record",
-        "quote": "入院诊断:2型糖尿病"
-      },
-      "minimal_clarification_needed": ""
-    },
-    {
-      "gap_id": "CASE-28c4d2a78636/GAP-004",
-      "gap_type": "diagnostic_specificity",
-      "description": "Temporal ambiguity: '血糖控制不佳' is stated but without timeframe or supporting lab values.",
-      "why_it_matters": "Without temporal context, it is unclear if this refers to current or historical control, affecting coding for long-term or current management.",
-      "evidence_span": {
-        "document_id": "discharge_summary",
-        "quote": "平素血糖控制不佳"
+        "document_id": "门诊病历",
+        "quote": "新发糖尿病"
       },
       "minimal_clarification_needed": ""
     }
   ],
-  "proposed_provider_queries": [
-    {
-      "query_id": "CASE-28c4d2a78636/Q-001",
-      "gap_id": "CASE-28c4d2a78636/GAP-004",
-      "topic": "血糖控制情况",
-      "reason": "血糖控制不佳的描述缺乏时间范围和具体数值",
-      "evidence_span": {
-        "document_id": "chart",
-        "quote": "血糖控制不佳"
-      },
-      "query_text": "出院小结提及血糖控制不佳，请明确具体时间范围及支持该结论的血糖或HbA1c数值。",
-      "response_options": [
-        "A. 近3个月内HbA1c>7%",
-        "B. 近1个月内多次空腹血糖>10mmol/L",
-        "C. 其他（请注明具体指标）",
-        "D. 无法确定"
-      ],
-      "lifecycle_state": "DRAFT",
-      "priority": "routine"
-    }
-  ],
+  "proposed_provider_queries": [],
   "chart_excerpt_preview": "患者女性, 65岁, 入院诊断:2型糖尿病。入院记录:既往无糖尿病史, 本次为初次发现。出院小结:糖尿病史10年, 平素血糖控制不佳。门诊病历:新发糖尿病。",
   "patient_ref": "DEID",
   "encounter_ref": "DEID",
   "encounter_summary": {
-    "key_points": [
-      "2型糖尿病",
-      "初次发现",
-      "糖尿病史10年",
-      "血糖控制不佳"
-    ],
-    "encounter_metadata": {
-      "patient_age": "65",
-      "patient_sex": "女",
-      "encounter_type": "入院"
-    }
+    "key_points": [],
+    "encounter_metadata": {}
   },
   "risk_flags": [],
   "specialist_trace": [
     {
       "expert_id": "coding-expert",
       "consulted": true,
-      "rationale": "The documentation contains critical contradictions regarding the duration of diabetes, which must be resolved by the provider to establish whether this is a new-onset or long-standing condition. Additionally, the lack of specificity for diabetes type, absence of documented complications, and vague statement of \"poor glycemic control\" without supporting lab values or timeframe require clarification to ensure accurate clinical characterization. Please reconcile the conflicting histories and specify the presence or absence of any diabetic complications, current insulin use, and recent HbA1c results.",
+      "rationale": "The clinical record must reconcile the conflicting duration of diabetes (newly diagnosed vs. 10-year history) by documenting the actual onset or diagnosis date, and explicitly state the type of diabetes (e.g., type 2) along with any chronic complications or their absence. Additionally, specify the patient's current glycemic control status (e.g., HbA1c level) and whether any acute or chronic complications are present to ensure accurate clinical specificity.",
       "route_decision": "needed",
       "route_reason": "coding_relevant_gap",
       "execution_mode": "LLM_KNOWLEDGE_ONLY",
-      "latency_ms": 3585,
-      "tokens": 319
+      "latency_ms": 3708,
+      "tokens": 289
     },
     {
       "expert_id": "pubmed-expert",
@@ -128,58 +88,58 @@
     }
   ],
   "stage_run_ids": {
-    "encounter_synthesis": "run-0677d63d5d5f",
-    "gap_identification": "run-bb9f9de21cce",
-    "expert_consultation": "run-360911981dab",
-    "query_generation": "run-e448faba45b8",
-    "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=Y;dropped=0;final_count=4",
-    "query_necessity_gate": "necessary=3;unnecessary=1;overquery_triggered=False;final_count=3",
+    "encounter_synthesis": "run-34212fcddd76",
+    "gap_identification": "run-f7041de0ddd8",
+    "expert_consultation": "run-dea1cb64b247",
+    "query_generation": "run-e4be0c488a91",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=Y;dropped=0;final_count=3",
+    "query_necessity_gate": "necessary=3;unnecessary=0;overquery_triggered=False;final_count=3",
     "query_single_dimension_gate": "single_dim=2;multi_dim=1;axis_cluster_triggered=False;axis_cluster_axis=course;final_count=2",
-    "claim_evidence_alignment_gate": "claims_extracted=6;blocked=1;flagged=0;final_count=1",
-    "claim_evidence_alignment_gate::run_id": "run-4411975d9577",
-    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=1",
-    "semantic_necessity_gate::run_id": "run-52189fc78f09",
+    "claim_evidence_alignment_gate": "claims_extracted=9;blocked=2;flagged=0;final_count=0",
+    "claim_evidence_alignment_gate::run_id": "run-48fe4d1c69f7",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+    "semantic_necessity_gate::run_id": "run-8077494d06b4",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "run-a1577184b0f7"
+    "specialist_trace_emit": "run-9de1db7469b7"
   },
   "stage_trace_ids": {
-    "encounter_synthesis": "trace-c4f94296383a",
-    "gap_identification": "trace-b8c030479d3c",
-    "expert_consultation": "trace-b9c5ea6997bc",
-    "query_generation": "trace-ed2589d98b61",
+    "encounter_synthesis": "trace-32ea0497e60f",
+    "gap_identification": "trace-d20114781a3f",
+    "expert_consultation": "trace-398864471d79",
+    "query_generation": "trace-965777143772",
     "query_eligibility_gate": "",
     "query_necessity_gate": "",
     "query_single_dimension_gate": "",
-    "claim_evidence_alignment_gate": "trace-afb7b7f46b96",
-    "semantic_necessity_gate": "trace-7b09bdd97e57",
+    "claim_evidence_alignment_gate": "trace-f18b9ccc2321",
+    "semantic_necessity_gate": "trace-47c5bc0a2566",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "trace-cd0f5a2d0591"
+    "specialist_trace_emit": "trace-f2d6a6b5d210"
   },
   "stage_traces": [
     {
       "stage": "encounter_synthesis",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 4771,
-      "prompt_tokens": 222,
-      "completion_tokens": 70,
-      "total_tokens": 292,
-      "run_id": "run-0677d63d5d5f",
-      "trace_id": "trace-c4f94296383a",
-      "degraded": false,
-      "error_reason": "",
+      "latency_ms": 3294,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-34212fcddd76",
+      "trace_id": "trace-32ea0497e60f",
+      "degraded": true,
+      "error_reason": "LLM call failed after 3 attempts: Connection error.",
       "expert_id": ""
     },
     {
       "stage": "gap_identification",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 7291,
-      "prompt_tokens": 303,
-      "completion_tokens": 564,
-      "total_tokens": 867,
-      "run_id": "run-bb9f9de21cce",
-      "trace_id": "trace-b8c030479d3c",
+      "latency_ms": 4710,
+      "prompt_tokens": 273,
+      "completion_tokens": 407,
+      "total_tokens": 680,
+      "run_id": "run-f7041de0ddd8",
+      "trace_id": "trace-d20114781a3f",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -188,12 +148,12 @@
       "stage": "query_generation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 6954,
-      "prompt_tokens": 777,
-      "completion_tokens": 705,
-      "total_tokens": 1482,
-      "run_id": "run-e448faba45b8",
-      "trace_id": "trace-ed2589d98b61",
+      "latency_ms": 6114,
+      "prompt_tokens": 946,
+      "completion_tokens": 525,
+      "total_tokens": 1471,
+      "run_id": "run-e4be0c488a91",
+      "trace_id": "trace-965777143772",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -202,12 +162,12 @@
       "stage": "expert_consultation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 3585,
-      "prompt_tokens": 222,
-      "completion_tokens": 97,
-      "total_tokens": 319,
-      "run_id": "run-f74bb4b502ad",
-      "trace_id": "trace-1f61b4d581ae",
+      "latency_ms": 3708,
+      "prompt_tokens": 200,
+      "completion_tokens": 89,
+      "total_tokens": 289,
+      "run_id": "run-b8e547e66ee1",
+      "trace_id": "trace-0ea4e381fe60",
       "degraded": false,
       "error_reason": "",
       "expert_id": "coding-expert"
@@ -220,8 +180,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-d1a03f82628a",
-      "trace_id": "trace-450b74c10d6b",
+      "run_id": "run-df5c8c40c634",
+      "trace_id": "trace-9312467d3807",
       "degraded": false,
       "error_reason": "",
       "expert_id": "pubmed-expert"
@@ -234,8 +194,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-1df05de57bac",
-      "trace_id": "trace-08f811610fac",
+      "run_id": "run-317342d24138",
+      "trace_id": "trace-1b7d7813acf2",
       "degraded": false,
       "error_reason": "",
       "expert_id": "web-search-expert"
@@ -248,14 +208,14 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-495543eb03d3",
-      "trace_id": "trace-7f38a2aa3048",
+      "run_id": "run-d3a4e10d8467",
+      "trace_id": "trace-7cfeef50a807",
       "degraded": false,
       "error_reason": "",
       "expert_id": "medical-calculator-expert"
     }
   ],
-  "degraded": false,
+  "degraded": true,
   "runtime_mode": "real",
-  "generated_at": "2026-07-12T13:31:42.532678Z"
+  "generated_at": "2026-07-12T13:58:12.727935Z"
 }

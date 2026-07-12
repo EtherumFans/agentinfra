@@ -1,26 +1,37 @@
 {
-  "case_id": "CASE-abced2826864",
+  "case_id": "CASE-af526517e13c",
   "completion_state": "REVIEW_REQUIRED",
   "documentation_gaps": [
     {
-      "gap_id": "CASE-abced2826864/GAP-001",
+      "gap_id": "CASE-af526517e13c/GAP-001",
       "gap_type": "diagnostic_specificity",
-      "description": "糖尿病控制良好但未明确是否使用胰岛素或其他降糖药物，二甲双胍剂量未提及",
-      "why_it_matters": "影响糖尿病治疗方案的完整记录和编码准确性",
+      "description": "糖尿病控制状态未明确为血糖控制良好还是总体控制良好，且缺乏对控制状态的量化描述（如达标、未达标）。",
+      "why_it_matters": "影响编码中糖尿病控制状态的分类，可能影响疾病严重程度和并发症风险的评估。",
       "evidence_span": {
         "document_id": "encounter_summary",
-        "quote": "二甲双胍治疗"
+        "quote": "诊断:2型糖尿病, 控制良好, 无并发症"
       },
       "minimal_clarification_needed": ""
     },
     {
-      "gap_id": "CASE-abced2826864/GAP-002",
+      "gap_id": "CASE-af526517e13c/GAP-002",
       "gap_type": "diagnostic_specificity",
-      "description": "糖尿病并发症的评估未明确时间范围，如视网膜检查、微量白蛋白尿、神经传导检查的具体日期",
-      "why_it_matters": "缺乏时间信息可能影响并发症的时序判断和临床决策",
+      "description": "未明确糖尿病并发症的排除是否全面，如未提及心血管、脑血管、外周血管等并发症的评估。",
+      "why_it_matters": "编码要求明确有无并发症及具体类型，遗漏可能导致编码不准确。",
       "evidence_span": {
         "document_id": "encounter_summary",
-        "quote": "视网膜检查正常, 微量白蛋白尿阴性, 神经传导正常"
+        "quote": "无糖尿病并发症。视网膜检查正常, 微量白蛋白尿阴性, 神经传导正常。"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-af526517e13c/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "未记录糖尿病病程（5年）是否伴有任何慢性并发症的筛查或排除，如心血管疾病、肾病、神经病变等。",
+      "why_it_matters": "病程长但无并发症需有充分证据支持，否则可能影响编码的准确性。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "2型糖尿病5年"
       },
       "minimal_clarification_needed": ""
     }
@@ -41,7 +52,7 @@
       "视网膜检查正常",
       "微量白蛋白尿阴性",
       "神经传导正常",
-      "诊断:2型糖尿病,控制良好,无并发症"
+      "诊断:2型糖尿病, 控制良好, 无并发症"
     ],
     "encounter_metadata": {
       "patient_age": "50岁",
@@ -54,22 +65,22 @@
     {
       "expert_id": "coding-expert",
       "consulted": true,
-      "rationale": "建议明确记录当前降糖方案的具体药物名称、剂量及给药途径（如二甲双胍500mg每日两次口服），并补充各项并发症筛查（视网膜检查、微量白蛋白尿、神经传导检查）的具体完成日期，以支持“无并发症”的临床判断。同时需注明患者是否使用胰岛素或其他降糖药物，以及HbA1c和FPG的检测日期，确保糖尿病控制状态的评估具有明确的时间依据。",
+      "rationale": "建议明确“控制良好”的具体标准，例如是否基于HbA1c<7.0%且FPG达标，并补充说明血糖控制是否稳定、有无低血糖事件。同时，需系统记录糖尿病并发症的排除依据，包括心血管、脑血管、外周血管等系统的评估结果，以及病程5年内是否完成肾病、神经病变等慢性并发症的常规筛查。",
       "route_decision": "needed",
       "route_reason": "coding_relevant_gap",
       "execution_mode": "LLM_KNOWLEDGE_ONLY",
-      "latency_ms": 3451,
-      "tokens": 281
+      "latency_ms": 3182,
+      "tokens": 302
     },
     {
       "expert_id": "pubmed-expert",
-      "consulted": false,
-      "rationale": "",
-      "route_decision": "not_needed",
-      "route_reason": "no_relevant_gap",
-      "execution_mode": "SKIPPED_NOT_NEEDED",
-      "latency_ms": 0,
-      "tokens": 0
+      "consulted": true,
+      "rationale": "The chart indicates well-controlled diabetes (HbA1c 6.8%, FPG 6.5 mmol/L) with no complications, supported by normal retinal exam, negative microalbuminuria, and normal nerve conduction studies. However, the gaps you identified are valid: the chart lacks explicit quantification of \"good control\" (e.g., HbA1c <7% is standard) and does not document screening for cardiovascular or cerebrovascular disease, which is recommended even in asymptomatic patients (PMID: 36507638). For comprehensive assessment, consider adding a formal cardiovascular risk calculation and peripheral vascular exam to fully exclude complications.",
+      "route_decision": "needed",
+      "route_reason": "criteria_marker_present",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3015,
+      "tokens": 364
     },
     {
       "expert_id": "web-search-expert",
@@ -93,44 +104,44 @@
     }
   ],
   "stage_run_ids": {
-    "encounter_synthesis": "run-5d03764f577b",
-    "gap_identification": "run-a9e7deabcf6d",
-    "expert_consultation": "run-7180dc2a9805",
-    "query_generation": "run-4f86e4d04916",
-    "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=Y,D8_course=N;dropped=0;final_count=2",
-    "query_necessity_gate": "necessary=2;unnecessary=0;overquery_triggered=False;final_count=2",
-    "query_single_dimension_gate": "single_dim=2;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=complication;final_count=2",
+    "encounter_synthesis": "run-18802d727695",
+    "gap_identification": "run-d2f5a36f7df7",
+    "expert_consultation": "run-c7236acecc91",
+    "query_generation": "run-e5441274fac6",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=Y,D8_course=N;dropped=0;final_count=3",
+    "query_necessity_gate": "necessary=3;unnecessary=0;overquery_triggered=False;final_count=3",
+    "query_single_dimension_gate": "single_dim=2;multi_dim=1;axis_cluster_triggered=False;axis_cluster_axis=complication;final_count=2",
     "claim_evidence_alignment_gate": "claims_extracted=6;blocked=2;flagged=0;final_count=0",
-    "claim_evidence_alignment_gate::run_id": "run-244dd95ade58",
+    "claim_evidence_alignment_gate::run_id": "run-504eef29e15e",
     "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
-    "semantic_necessity_gate::run_id": "run-070fcf0f2851",
+    "semantic_necessity_gate::run_id": "run-01e2e42a984b",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "run-992337d83c00"
+    "specialist_trace_emit": "run-b733027bb910"
   },
   "stage_trace_ids": {
-    "encounter_synthesis": "trace-7a3c08f905fb",
-    "gap_identification": "trace-bfe0aa9cb50b",
-    "expert_consultation": "trace-69c39acc1c4f",
-    "query_generation": "trace-2c4eb2833846",
+    "encounter_synthesis": "trace-f760460aad90",
+    "gap_identification": "trace-d13ebef35429",
+    "expert_consultation": "trace-776eaa3ea68f",
+    "query_generation": "trace-4e7591eaf298",
     "query_eligibility_gate": "",
     "query_necessity_gate": "",
     "query_single_dimension_gate": "",
-    "claim_evidence_alignment_gate": "trace-6ab5168b4167",
-    "semantic_necessity_gate": "trace-114f97f9d33d",
+    "claim_evidence_alignment_gate": "trace-5ffeb4838806",
+    "semantic_necessity_gate": "trace-c430ebfdb53a",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "trace-cc02bad6eee3"
+    "specialist_trace_emit": "trace-6da8a983acfd"
   },
   "stage_traces": [
     {
       "stage": "encounter_synthesis",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 3569,
+      "latency_ms": 3049,
       "prompt_tokens": 254,
-      "completion_tokens": 138,
-      "total_tokens": 392,
-      "run_id": "run-5d03764f577b",
-      "trace_id": "trace-7a3c08f905fb",
+      "completion_tokens": 140,
+      "total_tokens": 394,
+      "run_id": "run-18802d727695",
+      "trace_id": "trace-f760460aad90",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -139,12 +150,12 @@
       "stage": "gap_identification",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 4156,
-      "prompt_tokens": 397,
-      "completion_tokens": 247,
-      "total_tokens": 644,
-      "run_id": "run-a9e7deabcf6d",
-      "trace_id": "trace-bfe0aa9cb50b",
+      "latency_ms": 6520,
+      "prompt_tokens": 399,
+      "completion_tokens": 406,
+      "total_tokens": 805,
+      "run_id": "run-d2f5a36f7df7",
+      "trace_id": "trace-d13ebef35429",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -153,12 +164,12 @@
       "stage": "query_generation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 4760,
-      "prompt_tokens": 707,
-      "completion_tokens": 395,
-      "total_tokens": 1102,
-      "run_id": "run-4f86e4d04916",
-      "trace_id": "trace-2c4eb2833846",
+      "latency_ms": 7438,
+      "prompt_tokens": 971,
+      "completion_tokens": 678,
+      "total_tokens": 1649,
+      "run_id": "run-e5441274fac6",
+      "trace_id": "trace-4e7591eaf298",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -167,12 +178,12 @@
       "stage": "expert_consultation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 3451,
-      "prompt_tokens": 188,
-      "completion_tokens": 93,
-      "total_tokens": 281,
-      "run_id": "run-5f461ac638c5",
-      "trace_id": "trace-f9b9bfa20d4b",
+      "latency_ms": 3182,
+      "prompt_tokens": 223,
+      "completion_tokens": 79,
+      "total_tokens": 302,
+      "run_id": "run-d6d3cbf9f48a",
+      "trace_id": "trace-1609ad419aad",
       "degraded": false,
       "error_reason": "",
       "expert_id": "coding-expert"
@@ -181,12 +192,12 @@
       "stage": "expert_consultation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 0,
-      "prompt_tokens": 0,
-      "completion_tokens": 0,
-      "total_tokens": 0,
-      "run_id": "run-4e083ea5dfb3",
-      "trace_id": "trace-7c3a95d93e15",
+      "latency_ms": 3015,
+      "prompt_tokens": 237,
+      "completion_tokens": 127,
+      "total_tokens": 364,
+      "run_id": "run-6418ba438624",
+      "trace_id": "trace-d5bc034be585",
       "degraded": false,
       "error_reason": "",
       "expert_id": "pubmed-expert"
@@ -199,8 +210,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-e0015c0cc855",
-      "trace_id": "trace-ee36ec73854e",
+      "run_id": "run-b6ae554f1e36",
+      "trace_id": "trace-29ee265adadb",
       "degraded": false,
       "error_reason": "",
       "expert_id": "web-search-expert"
@@ -213,8 +224,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-c6d9b2974ef2",
-      "trace_id": "trace-81d62d0bb212",
+      "run_id": "run-51a3b3b8a3dd",
+      "trace_id": "trace-bb5e84351dc9",
       "degraded": false,
       "error_reason": "",
       "expert_id": "medical-calculator-expert"
@@ -222,5 +233,5 @@
   ],
   "degraded": false,
   "runtime_mode": "real",
-  "generated_at": "2026-07-12T13:25:44.196786Z"
+  "generated_at": "2026-07-12T13:51:54.095494Z"
 }

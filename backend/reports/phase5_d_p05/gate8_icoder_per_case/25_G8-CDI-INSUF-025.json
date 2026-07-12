@@ -1,12 +1,12 @@
 {
-  "case_id": "CASE-d6908523c245",
+  "case_id": "CASE-8b0574368c35",
   "completion_state": "BLOCKED",
   "documentation_gaps": [
     {
-      "gap_id": "CASE-d6908523c245/GAP-001",
+      "gap_id": "CASE-8b0574368c35/GAP-001",
       "gap_type": "diagnostic_specificity",
-      "description": "Diagnostic specificity: '间断胸闷' lacks specific diagnosis or etiology.",
-      "why_it_matters": "Without a specific diagnosis, coding may default to unspecified symptom codes, which may not accurately reflect the patient's condition and could affect reimbursement and quality measures.",
+      "description": "Diagnostic specificity: '间断胸闷' lacks specific etiology or associated symptoms.",
+      "why_it_matters": "Without further characterization, the underlying cause (e.g., cardiac, respiratory, anxiety) is unclear, affecting accurate coding and treatment.",
       "evidence_span": {
         "document_id": "chart",
         "quote": "间断胸闷"
@@ -14,10 +14,21 @@
       "minimal_clarification_needed": ""
     },
     {
-      "gap_id": "CASE-d6908523c245/GAP-002",
+      "gap_id": "CASE-8b0574368c35/GAP-002",
       "gap_type": "diagnostic_specificity",
-      "description": "Clinical correlation unestablished: '查体正常' does not correlate with the symptom of chest tightness.",
-      "why_it_matters": "Lack of correlation between symptom and physical exam may indicate incomplete workup or missing documentation of relevant findings, potentially leading to inaccurate coding and clinical ambiguity.",
+      "description": "Acuity unspecified: '间断胸闷' does not indicate whether symptoms are acute, subacute, or chronic.",
+      "why_it_matters": "Acuity impacts coding (e.g., acute vs. chronic conditions) and clinical urgency.",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "间断胸闷"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-8b0574368c35/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "Clinical correlation unestablished: '查体正常' does not correlate with the symptom '胸闷'.",
+      "why_it_matters": "A normal exam without further testing or explanation leaves a diagnostic gap, potentially leading to missed diagnoses or inappropriate coding.",
       "evidence_span": {
         "document_id": "chart",
         "quote": "查体正常"
@@ -25,10 +36,10 @@
       "minimal_clarification_needed": ""
     },
     {
-      "gap_id": "CASE-d6908523c245/GAP-003",
+      "gap_id": "CASE-8b0574368c35/GAP-004",
       "gap_type": "diagnostic_specificity",
-      "description": "Temporal unspecified: '间断胸闷' does not specify duration, frequency, or onset.",
-      "why_it_matters": "Temporal details are important for coding chronic vs. acute conditions and for clinical decision-making; absence may lead to unspecified codes and affect severity assignment.",
+      "description": "Temporal unspecified: '间断胸闷' lacks frequency, duration, or pattern.",
+      "why_it_matters": "Temporal details are essential for coding chronicity and guiding follow-up.",
       "evidence_span": {
         "document_id": "chart",
         "quote": "间断胸闷"
@@ -38,23 +49,42 @@
   ],
   "proposed_provider_queries": [
     {
-      "query_id": "CASE-d6908523c245/Q-001",
-      "gap_id": "CASE-d6908523c245/GAP-002",
-      "topic": "Clinical correlation",
-      "reason": "查体正常 does not correlate with the symptom of chest tightness.",
+      "query_id": "CASE-8b0574368c35/Q-001",
+      "gap_id": "CASE-8b0574368c35/GAP-002",
+      "topic": "胸闷的病程",
+      "reason": "间断胸闷未明确是急性、亚急性还是慢性",
       "evidence_span": {
         "document_id": "chart",
-        "quote": "查体正常"
+        "quote": "间断胸闷"
       },
-      "query_text": "患者查体正常，但主诉间断胸闷，请解释查体结果与症状之间是否存在关联，或是否需要进一步检查。",
+      "query_text": "请明确胸闷症状的起病时间及病程：是急性起病（数小时至数天）、亚急性（数周）还是慢性（数月以上）？",
       "response_options": [
-        "A. 查体正常不能排除心源性胸闷，建议行心电图或动态心电图检查",
-        "B. 查体正常提示胸闷可能为非器质性，如焦虑或神经官能症",
-        "C. 查体正常但症状持续，建议行胸部影像学检查",
+        "A. 急性起病，病程<1周",
+        "B. 亚急性起病，病程1周至1个月",
+        "C. 慢性起病，病程>1个月",
         "D. 无法确定"
       ],
       "lifecycle_state": "DRAFT",
       "priority": "routine"
+    },
+    {
+      "query_id": "CASE-8b0574368c35/Q-002",
+      "gap_id": "CASE-8b0574368c35/GAP-003",
+      "topic": "查体与症状的关联",
+      "reason": "查体正常与胸闷症状缺乏临床关联",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "查体正常"
+      },
+      "query_text": "患者主诉胸闷，但查体未见异常。请补充解释：胸闷发作时是否有相关体征（如心率、血压变化、肺部啰音等）？或是否需要进一步检查（如心电图、心肌酶、胸部影像等）以明确病因？",
+      "response_options": [
+        "A. 胸闷发作时查体有阳性体征（如心动过速、血压升高），建议进一步检查",
+        "B. 胸闷发作时查体无阳性体征，但考虑功能性胸闷",
+        "C. 胸闷与查体正常相符，考虑非器质性原因",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "urgent"
     }
   ],
   "chart_excerpt_preview": "患者女性, 35岁, 间断胸闷。查体正常。建议随访。",
@@ -77,12 +107,12 @@
     {
       "expert_id": "coding-expert",
       "consulted": true,
-      "rationale": "To ensure accurate coding, the clinical documentation should specify the underlying etiology of the intermittent chest tightness, such as whether it is cardiac, respiratory, or musculoskeletal in origin. Additionally, clarify the temporal pattern (e.g., duration, frequency, and any precipitating or relieving factors) and establish a clinical correlation between the symptom and any objective findings, even if the physical exam is normal.",
+      "rationale": "To ensure accurate coding, the clinician should specify the etiology of the intermittent chest tightness (e.g., cardiac, respiratory, or musculoskeletal origin) and document associated symptoms such as dyspnea, palpitations, or precipitating factors. Additionally, clarify the acuity (acute, subacute, or chronic) and provide temporal details like frequency, duration, and pattern of episodes. Finally, correlate the normal physical exam findings with the symptom by noting any relevant diagnostic test results or clinical reasoning for the discrepancy.",
       "route_decision": "needed",
       "route_reason": "coding_relevant_gap",
       "execution_mode": "LLM_KNOWLEDGE_ONLY",
-      "latency_ms": 2609,
-      "tokens": 204
+      "latency_ms": 3027,
+      "tokens": 247
     },
     {
       "expert_id": "pubmed-expert",
@@ -116,44 +146,44 @@
     }
   ],
   "stage_run_ids": {
-    "encounter_synthesis": "run-f5b02b0f1c72",
-    "gap_identification": "run-d44e6d7e252c",
-    "expert_consultation": "run-e11667931450",
-    "query_generation": "run-d0f64460141d",
-    "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=;dropped=0;final_count=3",
-    "query_necessity_gate": "necessary=3;unnecessary=0;overquery_triggered=False;final_count=3",
-    "query_single_dimension_gate": "single_dim=2;multi_dim=1;axis_cluster_triggered=False;axis_cluster_axis=type;final_count=2",
-    "claim_evidence_alignment_gate": "claims_extracted=7;blocked=1;flagged=0;final_count=1",
-    "claim_evidence_alignment_gate::run_id": "run-d277907bbd8f",
-    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=1",
-    "semantic_necessity_gate::run_id": "run-9a1d80bc024b",
+    "encounter_synthesis": "run-02d02deb5933",
+    "gap_identification": "run-31071a4fa942",
+    "expert_consultation": "run-a5ce96c74c15",
+    "query_generation": "run-fa2b5fc7423b",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=;dropped=0;final_count=4",
+    "query_necessity_gate": "necessary=4;unnecessary=0;overquery_triggered=False;final_count=4",
+    "query_single_dimension_gate": "single_dim=3;multi_dim=1;axis_cluster_triggered=False;axis_cluster_axis=etiology;final_count=3",
+    "claim_evidence_alignment_gate": "claims_extracted=10;blocked=1;flagged=0;final_count=2",
+    "claim_evidence_alignment_gate::run_id": "run-0a8a92858852",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=2",
+    "semantic_necessity_gate::run_id": "run-ef60537b5340",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "run-685991f5e39a"
+    "specialist_trace_emit": "run-70a299ef69b5"
   },
   "stage_trace_ids": {
-    "encounter_synthesis": "trace-b3758844e432",
-    "gap_identification": "trace-e22dc04eaa0b",
-    "expert_consultation": "trace-21dfd88505c8",
-    "query_generation": "trace-04e60b4cd8ab",
+    "encounter_synthesis": "trace-b03d20112479",
+    "gap_identification": "trace-a32b9ff39fcd",
+    "expert_consultation": "trace-9c446dd67e46",
+    "query_generation": "trace-5672984a5ba3",
     "query_eligibility_gate": "",
     "query_necessity_gate": "",
     "query_single_dimension_gate": "",
-    "claim_evidence_alignment_gate": "trace-efa4a279d306",
-    "semantic_necessity_gate": "trace-313f3cf61e90",
+    "claim_evidence_alignment_gate": "trace-666e19f39f93",
+    "semantic_necessity_gate": "trace-52a345589b42",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "trace-870078646c99"
+    "specialist_trace_emit": "trace-74ce2e3ac68b"
   },
   "stage_traces": [
     {
       "stage": "encounter_synthesis",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 4431,
+      "latency_ms": 4819,
       "prompt_tokens": 189,
       "completion_tokens": 57,
       "total_tokens": 246,
-      "run_id": "run-f5b02b0f1c72",
-      "trace_id": "trace-b3758844e432",
+      "run_id": "run-02d02deb5933",
+      "trace_id": "trace-b03d20112479",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -162,12 +192,12 @@
       "stage": "gap_identification",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 4699,
+      "latency_ms": 6018,
       "prompt_tokens": 262,
-      "completion_tokens": 352,
-      "total_tokens": 614,
-      "run_id": "run-d44e6d7e252c",
-      "trace_id": "trace-e22dc04eaa0b",
+      "completion_tokens": 458,
+      "total_tokens": 720,
+      "run_id": "run-31071a4fa942",
+      "trace_id": "trace-a32b9ff39fcd",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -176,12 +206,12 @@
       "stage": "query_generation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 5944,
-      "prompt_tokens": 659,
-      "completion_tokens": 549,
-      "total_tokens": 1208,
-      "run_id": "run-d0f64460141d",
-      "trace_id": "trace-04e60b4cd8ab",
+      "latency_ms": 8780,
+      "prompt_tokens": 894,
+      "completion_tokens": 797,
+      "total_tokens": 1691,
+      "run_id": "run-fa2b5fc7423b",
+      "trace_id": "trace-5672984a5ba3",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -190,12 +220,12 @@
       "stage": "expert_consultation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 2609,
-      "prompt_tokens": 127,
-      "completion_tokens": 77,
-      "total_tokens": 204,
-      "run_id": "run-59f927e802f9",
-      "trace_id": "trace-31e97ca80ecf",
+      "latency_ms": 3027,
+      "prompt_tokens": 147,
+      "completion_tokens": 100,
+      "total_tokens": 247,
+      "run_id": "run-10c55430a999",
+      "trace_id": "trace-7c0da8d9924d",
       "degraded": false,
       "error_reason": "",
       "expert_id": "coding-expert"
@@ -208,8 +238,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-15a934121194",
-      "trace_id": "trace-6bfcf66151e5",
+      "run_id": "run-dc0fb9ba7241",
+      "trace_id": "trace-39dfbb341069",
       "degraded": false,
       "error_reason": "",
       "expert_id": "pubmed-expert"
@@ -222,8 +252,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-b389af1c4283",
-      "trace_id": "trace-854cda09ddce",
+      "run_id": "run-0a9d9c703910",
+      "trace_id": "trace-246de66bc5d7",
       "degraded": false,
       "error_reason": "",
       "expert_id": "web-search-expert"
@@ -236,8 +266,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-ff8ff7195ea1",
-      "trace_id": "trace-367af6d90827",
+      "run_id": "run-45a8c218daa2",
+      "trace_id": "trace-4c8a3a427a18",
       "degraded": false,
       "error_reason": "",
       "expert_id": "medical-calculator-expert"
@@ -245,5 +275,5 @@
   ],
   "degraded": false,
   "runtime_mode": "real",
-  "generated_at": "2026-07-12T13:28:56.069445Z"
+  "generated_at": "2026-07-12T13:55:13.294079Z"
 }

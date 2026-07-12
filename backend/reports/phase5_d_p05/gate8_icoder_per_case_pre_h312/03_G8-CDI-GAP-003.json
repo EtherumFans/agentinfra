@@ -1,0 +1,271 @@
+{
+  "case_id": "CASE-70aa3c35a821",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-70aa3c35a821/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "急性心肌梗死的类型未明确（STEMI vs NSTEMI）",
+      "why_it_matters": "影响编码准确性及治疗策略记录",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "入院诊断:急性心肌梗死"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-70aa3c35a821/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "心肌梗死的部位未明确（如前壁、前间壁等）",
+      "why_it_matters": "影响编码特异性及临床相关性",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "心电图:前壁导联ST段抬高"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-70aa3c35a821/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "冠脉造影结果未明确是否为急性闭塞或慢性闭塞",
+      "why_it_matters": "影响编码及治疗决策记录",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "冠脉造影:前降支近段100%闭塞"
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-70aa3c35a821/Q-001",
+      "gap_id": "CASE-70aa3c35a821/GAP-002",
+      "topic": "心肌梗死部位",
+      "reason": "心电图提示前壁导联ST段抬高，但未明确具体部位",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "前壁导联ST段抬高"
+      },
+      "query_text": "根据心电图前壁导联ST段抬高及冠脉造影前降支闭塞，请明确心肌梗死的具体部位：",
+      "response_options": [
+        "A. 前壁",
+        "B. 前间壁",
+        "C. 广泛前壁",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine"
+    },
+    {
+      "query_id": "CASE-70aa3c35a821/Q-002",
+      "gap_id": "CASE-70aa3c35a821/GAP-003",
+      "topic": "冠脉闭塞性质",
+      "reason": "冠脉造影示前降支100%闭塞，但未明确为急性或慢性闭塞",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "前降支近段100%闭塞"
+      },
+      "query_text": "根据冠脉造影结果，请明确前降支闭塞的性质：",
+      "response_options": [
+        "A. 急性闭塞",
+        "B. 慢性闭塞",
+        "C. 不确定",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine"
+    }
+  ],
+  "chart_excerpt_preview": "患者男性, 58岁, 持续胸痛2小时。心电图:前壁导联ST段抬高。肌钙蛋白I升高。冠脉造影:前降支近段100%闭塞。行PCI。入院诊断:急性心肌梗死。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "持续胸痛2小时",
+      "心电图:前壁导联ST段抬高",
+      "肌钙蛋白I升高",
+      "冠脉造影:前降支近段100%闭塞",
+      "行PCI",
+      "入院诊断:急性心肌梗死"
+    ],
+    "encounter_metadata": {
+      "patient_age": "58岁",
+      "patient_sex": "男性",
+      "encounter_type": "住院"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "根据病历，心电图显示前壁导联ST段抬高，肌钙蛋白升高，冠脉造影提示前降支近段100%闭塞，临床应明确诊断为急性ST段抬高型心肌梗死（STEMI），并具体描述梗死部位为前壁。同时需在记录中明确冠脉造影结果为急性闭塞，以支持急性心肌梗死的诊断。",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3127,
+      "tokens": 233
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-14c33b639ea0",
+    "gap_identification": "run-2393787eb0d7",
+    "expert_consultation": "run-86e0776973dd",
+    "query_generation": "run-c16eb3a9c687",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.25;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=Y,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=3",
+    "query_necessity_gate": "necessary=2;unnecessary=1;overquery_triggered=False;final_count=2",
+    "query_single_dimension_gate": "single_dim=2;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=site;final_count=2",
+    "claim_evidence_alignment_gate": "claims_extracted=5;blocked=0;flagged=1;final_count=2",
+    "claim_evidence_alignment_gate::run_id": "run-af367eb9be78",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=2",
+    "semantic_necessity_gate::run_id": "run-1c9ce4fd5f98",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "run-18b331ed4ee6"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-49fc25045709",
+    "gap_identification": "trace-1088a52b4b46",
+    "expert_consultation": "trace-453cd2e24c9b",
+    "query_generation": "trace-c1b98b43eacf",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-393528c374bd",
+    "semantic_necessity_gate": "trace-d08b72a34a9b",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-1bd165ea0ce3"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 4865,
+      "prompt_tokens": 224,
+      "completion_tokens": 104,
+      "total_tokens": 328,
+      "run_id": "run-14c33b639ea0",
+      "trace_id": "trace-49fc25045709",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 4483,
+      "prompt_tokens": 338,
+      "completion_tokens": 327,
+      "total_tokens": 665,
+      "run_id": "run-2393787eb0d7",
+      "trace_id": "trace-1088a52b4b46",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 4588,
+      "prompt_tokens": 688,
+      "completion_tokens": 468,
+      "total_tokens": 1156,
+      "run_id": "run-c16eb3a9c687",
+      "trace_id": "trace-c1b98b43eacf",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3127,
+      "prompt_tokens": 157,
+      "completion_tokens": 76,
+      "total_tokens": 233,
+      "run_id": "run-6822f6087861",
+      "trace_id": "trace-c2f1c6d70345",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-b7fba3c85a41",
+      "trace_id": "trace-f72807e31e58",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-8e0f7a472bd8",
+      "trace_id": "trace-b1ccfd9ed808",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-1f7698044165",
+      "trace_id": "trace-ec4a230b854e",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-07-12T13:20:56.614530Z"
+}

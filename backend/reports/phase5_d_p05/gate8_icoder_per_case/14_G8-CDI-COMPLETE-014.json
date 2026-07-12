@@ -1,23 +1,23 @@
 {
-  "case_id": "CASE-d6ffaa9b8c42",
-  "completion_state": "REVIEW_REQUIRED",
+  "case_id": "CASE-83af89ebaa87",
+  "completion_state": "BLOCKED",
   "documentation_gaps": [
     {
-      "gap_id": "CASE-d6ffaa9b8c42/GAP-001",
+      "gap_id": "CASE-83af89ebaa87/GAP-001",
       "gap_type": "diagnostic_specificity",
-      "description": "诊断名称不一致：主诉为'急性中耳炎'，但最终诊断为'急性化脓性中耳炎'，未明确是否为同一诊断或存在分型差异。",
-      "why_it_matters": "影响编码准确性，化脓性与非化脓性中耳炎编码不同，可能导致治疗和统计偏差。",
+      "description": "诊断急性化脓性中耳炎，但未明确是急性还是慢性，且未描述脓性分泌物的证据（如鼓膜穿孔流脓或耳漏），仅描述鼓膜充血膨隆无穿孔，与化脓性中耳炎的典型表现不完全一致。",
+      "why_it_matters": "化脓性中耳炎通常需要鼓膜穿孔或脓性分泌物证据，否则可能影响编码准确性及抗生素使用的合理性。",
       "evidence_span": {
         "document_id": "encounter_summary",
-        "quote": "急性中耳炎"
+        "quote": "诊断:急性化脓性中耳炎(右)"
       },
       "minimal_clarification_needed": ""
     },
     {
-      "gap_id": "CASE-d6ffaa9b8c42/GAP-002",
+      "gap_id": "CASE-83af89ebaa87/GAP-002",
       "gap_type": "diagnostic_specificity",
-      "description": "耳痛持续时间未明确具体天数，仅写'2天'，但未说明是否持续或间歇。",
-      "why_it_matters": "影响病情严重程度评估和编码选择，急性中耳炎通常要求明确症状持续时间。",
+      "description": "未明确耳痛的严重程度（如轻度、中度、重度）及是否影响日常生活。",
+      "why_it_matters": "严重程度影响治疗决策和编码，例如是否需要镇痛药。",
       "evidence_span": {
         "document_id": "encounter_summary",
         "quote": "耳痛2天"
@@ -25,10 +25,10 @@
       "minimal_clarification_needed": ""
     },
     {
-      "gap_id": "CASE-d6ffaa9b8c42/GAP-003",
+      "gap_id": "CASE-83af89ebaa87/GAP-003",
       "gap_type": "diagnostic_specificity",
-      "description": "体温记录为38.0℃，但未说明测量部位（如腋下、口腔等），影响发热判断。",
-      "why_it_matters": "不同部位体温正常值不同，缺乏部位信息可能导致发热评估不准确。",
+      "description": "未明确体温38.0℃是耳温、腋温还是口温，以及是否持续发热。",
+      "why_it_matters": "不同测量部位正常值不同，影响发热评估和编码。",
       "evidence_span": {
         "document_id": "encounter_summary",
         "quote": "T 38.0℃"
@@ -36,43 +36,21 @@
       "minimal_clarification_needed": ""
     },
     {
-      "gap_id": "CASE-d6ffaa9b8c42/GAP-004",
+      "gap_id": "CASE-83af89ebaa87/GAP-004",
       "gap_type": "diagnostic_specificity",
-      "description": "未记录听力检查结果或主诉，缺少听力受损情况。",
-      "why_it_matters": "中耳炎常伴听力下降，未记录可能遗漏重要并发症，影响编码和随访。",
+      "description": "未描述右耳鼓膜充血膨隆的具体范围（如全鼓膜或部分）及有无其他体征如光锥消失。",
+      "why_it_matters": "解剖部位不明确可能影响诊断准确性和编码。",
       "evidence_span": {
         "document_id": "encounter_summary",
-        "quote": "耳镜:右耳鼓膜充血膨隆, 无穿孔"
+        "quote": "右耳鼓膜充血膨隆"
       },
       "minimal_clarification_needed": ""
     },
     {
-      "gap_id": "CASE-d6ffaa9b8c42/GAP-005",
+      "gap_id": "CASE-83af89ebaa87/GAP-005",
       "gap_type": "diagnostic_specificity",
-      "description": "未记录既往中耳炎病史或复发情况。",
-      "why_it_matters": "复发性中耳炎编码不同，且影响治疗决策（如预防性抗生素）。",
-      "evidence_span": {
-        "document_id": "encounter_summary",
-        "quote": "因急性中耳炎就诊"
-      },
-      "minimal_clarification_needed": ""
-    },
-    {
-      "gap_id": "CASE-d6ffaa9b8c42/GAP-006",
-      "gap_type": "diagnostic_specificity",
-      "description": "未记录药物过敏史，尤其是青霉素类。",
-      "why_it_matters": "阿莫西林克拉维酸钾为青霉素类，未记录过敏史存在用药风险。",
-      "evidence_span": {
-        "document_id": "encounter_summary",
-        "quote": "予阿莫西林克拉维酸钾口服7天"
-      },
-      "minimal_clarification_needed": ""
-    },
-    {
-      "gap_id": "CASE-d6ffaa9b8c42/GAP-007",
-      "gap_type": "diagnostic_specificity",
-      "description": "复诊记录'症状缓解'过于笼统，未具体说明哪些症状缓解及程度。",
-      "why_it_matters": "影响疗效评估和后续治疗决策，缺乏客观指标。",
+      "description": "未明确3天后复诊时症状缓解的具体情况，如耳痛、发热是否完全消退，鼓膜表现如何。",
+      "why_it_matters": "缺乏随访结果无法评估治疗效果，影响临床准确性和后续编码。",
       "evidence_span": {
         "document_id": "encounter_summary",
         "quote": "3天后复诊症状缓解"
@@ -80,7 +58,27 @@
       "minimal_clarification_needed": ""
     }
   ],
-  "proposed_provider_queries": [],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-83af89ebaa87/Q-001",
+      "gap_id": "CASE-83af89ebaa87/GAP-004",
+      "topic": "鼓膜充血膨隆范围及体征",
+      "reason": "未描述鼓膜充血膨隆的具体范围及其他体征",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "右耳鼓膜充血膨隆"
+      },
+      "query_text": "请描述右耳鼓膜充血膨隆的具体范围（全鼓膜/部分）以及是否伴有光锥消失或标志不清？",
+      "response_options": [
+        "A. 全鼓膜充血膨隆，光锥消失",
+        "B. 部分鼓膜充血膨隆，光锥存在",
+        "C. 全鼓膜充血膨隆，标志不清",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine"
+    }
+  ],
   "chart_excerpt_preview": "患者男性, 5岁, 因急性中耳炎就诊。耳痛2天, T 38.0℃。耳镜:右耳鼓膜充血膨隆, 无穿孔。诊断:急性化脓性中耳炎(右)。予阿莫西林克拉维酸钾口服7天。3天后复诊症状缓解。",
   "patient_ref": "DEID",
   "encounter_ref": "DEID",
@@ -106,12 +104,12 @@
     {
       "expert_id": "coding-expert",
       "consulted": true,
-      "rationale": "建议明确记录耳痛的具体性质（持续或间歇）及精确持续时间，并标注体温测量部位以准确评估发热程度。同时，需补充听力检查结果（如声导抗或纯音测听）及既往中耳炎病史，以区分初发或复发，并确认“急性中耳炎”与“急性化脓性中耳炎”是否为同一诊断的分型细化。",
+      "rationale": "建议明确耳痛程度（如是否影响睡眠或进食）及体温测量方式（如耳温或腋温），并补充鼓膜充血膨隆的具体范围（如全鼓膜或象限性）及光锥是否消失。同时需记录复诊时症状缓解的具体细节，包括耳痛和发热是否完全消退、鼓膜表现是否恢复正常，以支持急性化脓性中耳炎的诊断依据。",
       "route_decision": "needed",
       "route_reason": "coding_relevant_gap",
       "execution_mode": "LLM_KNOWLEDGE_ONLY",
-      "latency_ms": 2707,
-      "tokens": 329
+      "latency_ms": 3520,
+      "tokens": 374
     },
     {
       "expert_id": "pubmed-expert",
@@ -145,44 +143,44 @@
     }
   ],
   "stage_run_ids": {
-    "encounter_synthesis": "run-36672347acca",
-    "gap_identification": "run-81bb1cdf6522",
-    "expert_consultation": "run-7e19f4c18691",
-    "query_generation": "run-aebbcf25b70a",
-    "query_eligibility_gate": "chart_complete=False;completeness_score=0.25;dimensions=D1_type=Y,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=Y;dropped=0;final_count=7",
-    "query_necessity_gate": "necessary=7;unnecessary=0;overquery_triggered=True;final_count=7",
-    "query_single_dimension_gate": "single_dim=7;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=type;final_count=7",
-    "claim_evidence_alignment_gate": "claims_extracted=17;blocked=7;flagged=0;final_count=0",
-    "claim_evidence_alignment_gate::run_id": "run-0f3b6ecd41a2",
-    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
-    "semantic_necessity_gate::run_id": "run-591abaf6732b",
+    "encounter_synthesis": "run-633051b594f7",
+    "gap_identification": "run-ffe2d900da06",
+    "expert_consultation": "run-0c875c8f275b",
+    "query_generation": "run-8baa22af103e",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.25;dimensions=D1_type=Y,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=Y;dropped=0;final_count=5",
+    "query_necessity_gate": "necessary=5;unnecessary=0;overquery_triggered=True;final_count=5",
+    "query_single_dimension_gate": "single_dim=5;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=type;final_count=5",
+    "claim_evidence_alignment_gate": "claims_extracted=17;blocked=4;flagged=0;final_count=1",
+    "claim_evidence_alignment_gate::run_id": "run-a36297749d1b",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=1;final_count=1",
+    "semantic_necessity_gate::run_id": "run-cf38ed13e14d",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "run-04728af43a9e"
+    "specialist_trace_emit": "run-d4202f00b39f"
   },
   "stage_trace_ids": {
-    "encounter_synthesis": "trace-41f1cc882d8f",
-    "gap_identification": "trace-f209367b5b7f",
-    "expert_consultation": "trace-b612d0ad368d",
-    "query_generation": "trace-d9ef68dae499",
+    "encounter_synthesis": "trace-6bc740784199",
+    "gap_identification": "trace-3f4ea3bdcf77",
+    "expert_consultation": "trace-779573cc0cbd",
+    "query_generation": "trace-917eb7ea4efc",
     "query_eligibility_gate": "",
     "query_necessity_gate": "",
     "query_single_dimension_gate": "",
-    "claim_evidence_alignment_gate": "trace-b96293fae059",
-    "semantic_necessity_gate": "trace-312856a8c267",
+    "claim_evidence_alignment_gate": "trace-aa87d564cc2e",
+    "semantic_necessity_gate": "trace-3657a17fbefd",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "trace-c6b59631a3b5"
+    "specialist_trace_emit": "trace-6000144138b9"
   },
   "stage_traces": [
     {
       "stage": "encounter_synthesis",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 2635,
+      "latency_ms": 2883,
       "prompt_tokens": 243,
       "completion_tokens": 118,
       "total_tokens": 361,
-      "run_id": "run-36672347acca",
-      "trace_id": "trace-41f1cc882d8f",
+      "run_id": "run-633051b594f7",
+      "trace_id": "trace-6bc740784199",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -191,12 +189,12 @@
       "stage": "gap_identification",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 8231,
+      "latency_ms": 8611,
       "prompt_tokens": 370,
-      "completion_tokens": 859,
-      "total_tokens": 1229,
-      "run_id": "run-81bb1cdf6522",
-      "trace_id": "trace-f209367b5b7f",
+      "completion_tokens": 652,
+      "total_tokens": 1022,
+      "run_id": "run-ffe2d900da06",
+      "trace_id": "trace-3f4ea3bdcf77",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -205,12 +203,12 @@
       "stage": "query_generation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 9506,
-      "prompt_tokens": 853,
-      "completion_tokens": 1171,
-      "total_tokens": 2024,
-      "run_id": "run-aebbcf25b70a",
-      "trace_id": "trace-d9ef68dae499",
+      "latency_ms": 10411,
+      "prompt_tokens": 1085,
+      "completion_tokens": 984,
+      "total_tokens": 2069,
+      "run_id": "run-8baa22af103e",
+      "trace_id": "trace-917eb7ea4efc",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -219,12 +217,12 @@
       "stage": "expert_consultation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 2707,
-      "prompt_tokens": 246,
-      "completion_tokens": 83,
-      "total_tokens": 329,
-      "run_id": "run-9469402e4f28",
-      "trace_id": "trace-9b8cc9504465",
+      "latency_ms": 3520,
+      "prompt_tokens": 288,
+      "completion_tokens": 86,
+      "total_tokens": 374,
+      "run_id": "run-d71e000431f3",
+      "trace_id": "trace-4218ff5ab118",
       "degraded": false,
       "error_reason": "",
       "expert_id": "coding-expert"
@@ -237,8 +235,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-86d03453a585",
-      "trace_id": "trace-4635598bbe66",
+      "run_id": "run-ff9914ee980a",
+      "trace_id": "trace-ca05fe2ff527",
       "degraded": false,
       "error_reason": "",
       "expert_id": "pubmed-expert"
@@ -251,8 +249,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-fca6f7070657",
-      "trace_id": "trace-eac34662f0ae",
+      "run_id": "run-11d6abeb9a28",
+      "trace_id": "trace-bd6ccd190ab1",
       "degraded": false,
       "error_reason": "",
       "expert_id": "web-search-expert"
@@ -265,8 +263,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-89bb0947b4b1",
-      "trace_id": "trace-b8482a370f4e",
+      "run_id": "run-8c1738b1a1fd",
+      "trace_id": "trace-da868c3de25b",
       "degraded": false,
       "error_reason": "",
       "expert_id": "medical-calculator-expert"
@@ -274,5 +272,5 @@
   ],
   "degraded": false,
   "runtime_mode": "real",
-  "generated_at": "2026-07-12T13:25:14.294062Z"
+  "generated_at": "2026-07-12T13:50:52.870455Z"
 }

@@ -1,15 +1,26 @@
 {
-  "case_id": "CASE-a54a1ae13157",
+  "case_id": "CASE-abced2826864",
   "completion_state": "REVIEW_REQUIRED",
   "documentation_gaps": [
     {
-      "gap_id": "CASE-a54a1ae13157/GAP-001",
+      "gap_id": "CASE-abced2826864/GAP-001",
       "gap_type": "diagnostic_specificity",
-      "description": "糖尿病类型未明确为2型，但诊断已写2型糖尿病，无其他类型可能，故无实质缺口。但需注意：诊断中未提及是否使用胰岛素或其他药物，但二甲双胍治疗已暗示。",
-      "why_it_matters": "确保诊断准确，避免编码错误。",
+      "description": "糖尿病控制良好但未明确是否使用胰岛素或其他降糖药物，二甲双胍剂量未提及",
+      "why_it_matters": "影响糖尿病治疗方案的完整记录和编码准确性",
       "evidence_span": {
         "document_id": "encounter_summary",
-        "quote": "诊断:2型糖尿病, 控制良好, 无并发症"
+        "quote": "二甲双胍治疗"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-abced2826864/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "糖尿病并发症的评估未明确时间范围，如视网膜检查、微量白蛋白尿、神经传导检查的具体日期",
+      "why_it_matters": "缺乏时间信息可能影响并发症的时序判断和临床决策",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "视网膜检查正常, 微量白蛋白尿阴性, 神经传导正常"
       },
       "minimal_clarification_needed": ""
     }
@@ -35,7 +46,7 @@
     "encounter_metadata": {
       "patient_age": "50岁",
       "patient_sex": "男性",
-      "encounter_type": "门诊"
+      "encounter_type": "门诊复查"
     }
   },
   "risk_flags": [],
@@ -43,12 +54,12 @@
     {
       "expert_id": "coding-expert",
       "consulted": true,
-      "rationale": "根据现有记录，诊断已明确为2型糖尿病且无并发症，临床信息充分，无需额外补充。二甲双胍治疗与血糖控制良好的描述已足够支持编码，无需进一步明确胰岛素使用情况。建议保持当前记录的完整性，无需修改。",
+      "rationale": "建议明确记录当前降糖方案的具体药物名称、剂量及给药途径（如二甲双胍500mg每日两次口服），并补充各项并发症筛查（视网膜检查、微量白蛋白尿、神经传导检查）的具体完成日期，以支持“无并发症”的临床判断。同时需注明患者是否使用胰岛素或其他降糖药物，以及HbA1c和FPG的检测日期，确保糖尿病控制状态的评估具有明确的时间依据。",
       "route_decision": "needed",
       "route_reason": "coding_relevant_gap",
       "execution_mode": "LLM_KNOWLEDGE_ONLY",
-      "latency_ms": 2852,
-      "tokens": 243
+      "latency_ms": 3451,
+      "tokens": 281
     },
     {
       "expert_id": "pubmed-expert",
@@ -82,44 +93,44 @@
     }
   ],
   "stage_run_ids": {
-    "encounter_synthesis": "run-f8b9c30d0f85",
-    "gap_identification": "run-2c1be75ff825",
-    "expert_consultation": "run-27e88b16aa43",
-    "query_generation": "run-e76080aed389",
-    "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=Y,D8_course=N;dropped=0;final_count=1",
-    "query_necessity_gate": "necessary=1;unnecessary=0;overquery_triggered=False;final_count=1",
-    "query_single_dimension_gate": "single_dim=1;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=type;final_count=1",
-    "claim_evidence_alignment_gate": "claims_extracted=2;blocked=1;flagged=0;final_count=0",
-    "claim_evidence_alignment_gate::run_id": "run-9cb72e568309",
+    "encounter_synthesis": "run-5d03764f577b",
+    "gap_identification": "run-a9e7deabcf6d",
+    "expert_consultation": "run-7180dc2a9805",
+    "query_generation": "run-4f86e4d04916",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=Y,D8_course=N;dropped=0;final_count=2",
+    "query_necessity_gate": "necessary=2;unnecessary=0;overquery_triggered=False;final_count=2",
+    "query_single_dimension_gate": "single_dim=2;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=complication;final_count=2",
+    "claim_evidence_alignment_gate": "claims_extracted=6;blocked=2;flagged=0;final_count=0",
+    "claim_evidence_alignment_gate::run_id": "run-244dd95ade58",
     "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
-    "semantic_necessity_gate::run_id": "run-31b78275b8dc",
+    "semantic_necessity_gate::run_id": "run-070fcf0f2851",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "run-b20e5dbf17bf"
+    "specialist_trace_emit": "run-992337d83c00"
   },
   "stage_trace_ids": {
-    "encounter_synthesis": "trace-759e342a9bca",
-    "gap_identification": "trace-d8a2f2c3d612",
-    "expert_consultation": "trace-c50f42b757e2",
-    "query_generation": "trace-6ba5ca3621ef",
+    "encounter_synthesis": "trace-7a3c08f905fb",
+    "gap_identification": "trace-bfe0aa9cb50b",
+    "expert_consultation": "trace-69c39acc1c4f",
+    "query_generation": "trace-2c4eb2833846",
     "query_eligibility_gate": "",
     "query_necessity_gate": "",
     "query_single_dimension_gate": "",
-    "claim_evidence_alignment_gate": "trace-73035f8e2bfc",
-    "semantic_necessity_gate": "trace-5fb3278ef2fd",
+    "claim_evidence_alignment_gate": "trace-6ab5168b4167",
+    "semantic_necessity_gate": "trace-114f97f9d33d",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "trace-ea75cff28f70"
+    "specialist_trace_emit": "trace-cc02bad6eee3"
   },
   "stage_traces": [
     {
       "stage": "encounter_synthesis",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 1444,
+      "latency_ms": 3569,
       "prompt_tokens": 254,
-      "completion_tokens": 137,
-      "total_tokens": 391,
-      "run_id": "run-f8b9c30d0f85",
-      "trace_id": "trace-759e342a9bca",
+      "completion_tokens": 138,
+      "total_tokens": 392,
+      "run_id": "run-5d03764f577b",
+      "trace_id": "trace-7a3c08f905fb",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -128,12 +139,12 @@
       "stage": "gap_identification",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 4505,
+      "latency_ms": 4156,
       "prompt_tokens": 397,
-      "completion_tokens": 156,
-      "total_tokens": 553,
-      "run_id": "run-2c1be75ff825",
-      "trace_id": "trace-d8a2f2c3d612",
+      "completion_tokens": 247,
+      "total_tokens": 644,
+      "run_id": "run-a9e7deabcf6d",
+      "trace_id": "trace-bfe0aa9cb50b",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -142,12 +153,12 @@
       "stage": "query_generation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 3349,
-      "prompt_tokens": 435,
-      "completion_tokens": 179,
-      "total_tokens": 614,
-      "run_id": "run-e76080aed389",
-      "trace_id": "trace-6ba5ca3621ef",
+      "latency_ms": 4760,
+      "prompt_tokens": 707,
+      "completion_tokens": 395,
+      "total_tokens": 1102,
+      "run_id": "run-4f86e4d04916",
+      "trace_id": "trace-2c4eb2833846",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -156,12 +167,12 @@
       "stage": "expert_consultation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 2852,
-      "prompt_tokens": 189,
-      "completion_tokens": 54,
-      "total_tokens": 243,
-      "run_id": "run-74f77387e1ff",
-      "trace_id": "trace-bed02ee92df7",
+      "latency_ms": 3451,
+      "prompt_tokens": 188,
+      "completion_tokens": 93,
+      "total_tokens": 281,
+      "run_id": "run-5f461ac638c5",
+      "trace_id": "trace-f9b9bfa20d4b",
       "degraded": false,
       "error_reason": "",
       "expert_id": "coding-expert"
@@ -174,8 +185,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-a56ed1785172",
-      "trace_id": "trace-816521133d84",
+      "run_id": "run-4e083ea5dfb3",
+      "trace_id": "trace-7c3a95d93e15",
       "degraded": false,
       "error_reason": "",
       "expert_id": "pubmed-expert"
@@ -188,8 +199,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-7bbcf0b01587",
-      "trace_id": "trace-f4d78f5030f0",
+      "run_id": "run-e0015c0cc855",
+      "trace_id": "trace-ee36ec73854e",
       "degraded": false,
       "error_reason": "",
       "expert_id": "web-search-expert"
@@ -202,8 +213,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-f247a9f011a0",
-      "trace_id": "trace-f641dbebf532",
+      "run_id": "run-c6d9b2974ef2",
+      "trace_id": "trace-81d62d0bb212",
       "degraded": false,
       "error_reason": "",
       "expert_id": "medical-calculator-expert"
@@ -211,5 +222,5 @@
   ],
   "degraded": false,
   "runtime_mode": "real",
-  "generated_at": "2026-07-12T12:11:12.291417Z"
+  "generated_at": "2026-07-12T13:25:44.196786Z"
 }

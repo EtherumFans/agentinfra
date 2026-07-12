@@ -1,0 +1,223 @@
+{
+  "case_id": "CASE-4e21dd26b948",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-4e21dd26b948/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "便潜血阳性但未说明是否排除饮食或药物干扰，也未明确是否重复检测确认",
+      "why_it_matters": "便潜血阳性可能由非病理性因素引起，缺乏确认可能导致不必要的检查或漏诊",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "便潜血免疫法阳性"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-4e21dd26b948/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "未明确便潜血阳性的临床意义或是否需要进一步评估，如结肠镜的时机",
+      "why_it_matters": "缺乏临床解释和随访计划可能影响后续诊疗决策和编码准确性",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "建议:复查便潜血, 必要时肠镜"
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [],
+  "chart_excerpt_preview": "患者男性, 45岁, 体检。无消化道症状。便潜血免疫法阳性。Hb 145, MCV 88。无贫血。既往:无。建议:复查便潜血, 必要时肠镜。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者男性，45岁",
+      "体检",
+      "无消化道症状",
+      "便潜血免疫法阳性",
+      "Hb 145，MCV 88",
+      "无贫血",
+      "既往无特殊",
+      "建议复查便潜血，必要时肠镜"
+    ],
+    "encounter_metadata": {
+      "patient_age": "45",
+      "patient_sex": "男",
+      "encounter_type": "体检"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": false,
+      "rationale": "empty chart — no coding substrate",
+      "route_decision": "not_needed",
+      "route_reason": "empty_chart",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "empty_chart",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "empty_chart",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "empty_chart",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-805c0e66920f",
+    "gap_identification": "run-ae9a4c4f44dc",
+    "expert_consultation": "run-ed6f1df97f79",
+    "query_generation": "run-f230edae11b5",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=2",
+    "query_necessity_gate": "necessary=2;unnecessary=0;overquery_triggered=False;final_count=2",
+    "query_single_dimension_gate": "single_dim=2;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;final_count=2",
+    "claim_evidence_alignment_gate": "claims_extracted=8;blocked=2;flagged=0;final_count=0",
+    "claim_evidence_alignment_gate::run_id": "run-e119f70a75da",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+    "semantic_necessity_gate::run_id": "run-3cadd5eadcc7",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "run-d1af1935f964"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-f8e165abed16",
+    "gap_identification": "trace-096b3375c6c8",
+    "expert_consultation": "trace-207254788d86",
+    "query_generation": "trace-10987d4ca697",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-e0d2fa5ba1ec",
+    "semantic_necessity_gate": "trace-b9632eeb8655",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-530805f15b68"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5074,
+      "prompt_tokens": 220,
+      "completion_tokens": 107,
+      "total_tokens": 327,
+      "run_id": "run-805c0e66920f",
+      "trace_id": "trace-f8e165abed16",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 4298,
+      "prompt_tokens": 337,
+      "completion_tokens": 252,
+      "total_tokens": 589,
+      "run_id": "run-ae9a4c4f44dc",
+      "trace_id": "trace-096b3375c6c8",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5006,
+      "prompt_tokens": 403,
+      "completion_tokens": 414,
+      "total_tokens": 817,
+      "run_id": "run-f230edae11b5",
+      "trace_id": "trace-10987d4ca697",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-f704f6384bec",
+      "trace_id": "trace-52fd927cca54",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-d521cdb929a8",
+      "trace_id": "trace-e5b7293bad44",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-79fd82ba27f2",
+      "trace_id": "trace-c1b95fcc4369",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-80709fa5f105",
+      "trace_id": "trace-5d025ba184b2",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-07-12T12:18:32.263301Z"
+}

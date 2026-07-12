@@ -184,7 +184,16 @@ _QUERY_GENERATION_PROMPT = (
     "reference ICD codes, DRG, CMI, or reimbursement. Each query MUST "
     "include ≥4 response_options including ≥1 escape hatch ('D. 无法确定' "
     "or equivalent). Be specific to the clinical situation. Output ONLY "
-    "valid JSON."
+    "valid JSON.\n\n"
+    "EVIDENCE-VERBATIM REQUIREMENT (Track H3.9 — strict): "
+    "evidence_span.quote MUST be a VERBATIM substring of the chart text. "
+    "Copy-paste 5-30 characters of chart text directly into the quote "
+    "field. Do NOT paraphrase. Do NOT summarize. Do NOT translate. Do "
+    "NOT add particles, punctuation, or whitespace that is not in the "
+    "chart. If you cannot find a verbatim chart span that supports the "
+    "gap, SKIP that gap (return an empty queries array) — a query with "
+    "no verbatim evidence will be blocked downstream. Quote-first: scan "
+    "the chart for a usable span BEFORE drafting the query text."
 )
 
 
@@ -489,7 +498,17 @@ class RealCDIRunner:
         )
         prompt = (
             f"For each gap below, draft a NON-LEADING provider query. "
-            f"Each query MUST cite evidence_span from the chart and have "
+            f"QUOTE-FIRST PROCEDURE (mandatory):\n"
+            f"  Step 1. Read the chart carefully.\n"
+            f"  Step 2. For each gap, find a 5-30 character span of chart "
+            f"text that supports the gap. Copy it VERBATIM (same characters, "
+            f"same punctuation, same whitespace — no paraphrasing).\n"
+            f"  Step 3. If no verbatim span exists, SKIP that gap.\n"
+            f"  Step 4. Only after finding a verbatim span, draft the "
+            f"query_text + response_options.\n\n"
+            f"Each query MUST cite evidence_span.quote = verbatim chart "
+            f"span (will be re-checked downstream — paraphrased quotes "
+            f"will cause the query to be silently dropped). Include "
             f"≥4 response_options including an escape hatch. "
             f"Respond as JSON matching this schema:\n{_QUERY_GENERATION_SCHEMA}\n\n"
             f"Gaps:\n{gap_list}\n\n"

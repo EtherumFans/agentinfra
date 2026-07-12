@@ -1,0 +1,263 @@
+{
+  "case_id": "CASE-faa695bf16f0",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-faa695bf16f0/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "急性心肌梗死未明确分型（STEMI vs NSTEMI）",
+      "why_it_matters": "影响编码准确性及治疗策略记录",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "入院诊断:急性心肌梗死"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-faa695bf16f0/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "未明确心肌梗死的部位（如前壁、下壁等）",
+      "why_it_matters": "影响编码特异性及临床相关性",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "心电图:前壁导联ST段抬高"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-faa695bf16f0/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "未明确肌钙蛋白I的具体数值或参考范围",
+      "why_it_matters": "影响心肌梗死诊断的量化证据",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "肌钙蛋白I升高"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-faa695bf16f0/GAP-004",
+      "gap_type": "diagnostic_specificity",
+      "description": "未明确PCI的具体类型（如支架植入、球囊扩张等）",
+      "why_it_matters": "影响手术编码的准确性",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "行PCI"
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-faa695bf16f0/Q-001",
+      "gap_id": "CASE-faa695bf16f0/GAP-002",
+      "topic": "心肌梗死部位",
+      "reason": "心电图提示前壁导联ST段抬高，但诊断未明确心肌梗死的具体部位。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "心电图:前壁导联ST段抬高。冠脉造影:前降支近段100%闭塞。"
+      },
+      "query_text": "根据心电图前壁导联ST段抬高及冠脉造影前降支闭塞，请明确心肌梗死的部位：",
+      "response_options": [
+        "A. 前壁心肌梗死",
+        "B. 下壁心肌梗死",
+        "C. 其他部位心肌梗死",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine"
+    }
+  ],
+  "chart_excerpt_preview": "患者男性, 58岁, 持续胸痛2小时。心电图:前壁导联ST段抬高。肌钙蛋白I升高。冠脉造影:前降支近段100%闭塞。行PCI。入院诊断:急性心肌梗死。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "持续胸痛2小时",
+      "心电图:前壁导联ST段抬高",
+      "肌钙蛋白I升高",
+      "冠脉造影:前降支近段100%闭塞",
+      "行PCI",
+      "入院诊断:急性心肌梗死"
+    ],
+    "encounter_metadata": {
+      "patient_age": "58岁",
+      "patient_sex": "男性",
+      "encounter_type": "住院"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "根据心电图提示前壁导联ST段抬高及冠脉造影显示前降支近段100%闭塞，临床应明确诊断为急性ST段抬高型心肌梗死（STEMI），并具体描述梗死部位为前壁。同时需记录肌钙蛋白I的峰值数值及参考范围，并明确PCI的具体操作类型（如药物洗脱支架植入或单纯球囊扩张），以确保编码的准确性和完整性。",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3195,
+      "tokens": 260
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-e9a1c0fd160b",
+    "gap_identification": "run-3a84685f5905",
+    "expert_consultation": "run-0cae4cc02edd",
+    "query_generation": "run-345143beb52f",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.25;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=Y,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=4",
+    "query_necessity_gate": "necessary=3;unnecessary=1;overquery_triggered=False;final_count=3",
+    "query_single_dimension_gate": "single_dim=3;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=type;final_count=3",
+    "claim_evidence_alignment_gate": "claims_extracted=9;blocked=2;flagged=1;final_count=1",
+    "claim_evidence_alignment_gate::run_id": "run-6ebb8bcd548e",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=1;final_count=1",
+    "semantic_necessity_gate::run_id": "run-d4a38b5a4350",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "run-a9e8eba6efb7"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-a7e0f799064d",
+    "gap_identification": "trace-f50bc40acbcf",
+    "expert_consultation": "trace-19883c235cb2",
+    "query_generation": "trace-8940a8b2cbef",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-ab3983d38629",
+    "semantic_necessity_gate": "trace-97c00c84d2cc",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-509b8b056787"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5307,
+      "prompt_tokens": 224,
+      "completion_tokens": 104,
+      "total_tokens": 328,
+      "run_id": "run-e9a1c0fd160b",
+      "trace_id": "trace-a7e0f799064d",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5824,
+      "prompt_tokens": 338,
+      "completion_tokens": 425,
+      "total_tokens": 763,
+      "run_id": "run-3a84685f5905",
+      "trace_id": "trace-f50bc40acbcf",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6841,
+      "prompt_tokens": 456,
+      "completion_tokens": 716,
+      "total_tokens": 1172,
+      "run_id": "run-345143beb52f",
+      "trace_id": "trace-8940a8b2cbef",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3195,
+      "prompt_tokens": 172,
+      "completion_tokens": 88,
+      "total_tokens": 260,
+      "run_id": "run-c062ffb2666a",
+      "trace_id": "trace-21ed91040c1e",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-634c9f9a8c9e",
+      "trace_id": "trace-93b18db6b9f6",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-35634f215377",
+      "trace_id": "trace-f2e75a8feedd",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-8da87044b72e",
+      "trace_id": "trace-6a2b98fd8f15",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-07-12T12:05:54.687670Z"
+}

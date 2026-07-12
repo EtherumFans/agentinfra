@@ -228,6 +228,20 @@ def detect_chart_completeness(chart: str) -> tuple[float, dict[str, bool], bool]
     return (score, dims, chart_complete)
 
 
+def _case_has_contradiction(case: CDICase) -> bool:
+    """Track H3.10 — detect document_conflict via risk_flags.
+
+    When the case carries a ``contradiction`` risk_flag, the chart has
+    an internal conflict that needs clarification — even if all 8
+    dimensions are explicit. The eligibility gate must NOT mark such
+    charts as complete.
+    """
+    for flag in case.risk_flags or []:
+        if flag.category == "contradiction":
+            return True
+    return False
+
+
 # ---------------------------------------------------------------------------
 # Per-query topic-gap relevance
 # ---------------------------------------------------------------------------
@@ -345,6 +359,12 @@ def evaluate_query_eligibility(
 def evaluate_case_eligibility(case: CDICase) -> CaseEligibilityResult:
     """Side-effect-free evaluation across all queries in the case."""
     score, dims, complete = detect_chart_completeness(case.chart_excerpt)
+    # Track H3.10 — if the case has a contradiction risk_flag, the chart
+    # is NOT complete regardless of dimension count: a conflict needs
+    # clarification. Override chart_complete to False so queries survive.
+    has_contradiction = _case_has_contradiction(case)
+    if has_contradiction and complete:
+        complete = False
     result = CaseEligibilityResult(
         chart_complete=complete,
         chart_completeness_score=score,

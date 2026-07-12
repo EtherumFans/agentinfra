@@ -1,26 +1,74 @@
 {
-  "case_id": "CASE-60fb502ef8ac",
-  "completion_state": "AUTO_PASS",
-  "documentation_gaps": [],
+  "case_id": "CASE-5756b1924011",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-5756b1924011/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "未明确急性阑尾炎的病因（如粪石、淋巴增生、肿瘤等）",
+      "why_it_matters": "病因特异性影响编码准确性，如粪石嵌顿需额外编码，肿瘤可能改变主要诊断。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "CT:阑尾肿胀, 周围渗出"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-5756b1924011/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "未记录阑尾炎的具体解剖部位（如尖端、体部、根部）",
+      "why_it_matters": "解剖部位影响手术编码和并发症风险，如根部炎症可能需更复杂操作。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "行腹腔镜阑尾切除术"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-5756b1924011/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "未明确术前诊断与术后病理的一致性（如是否完全符合）",
+      "why_it_matters": "不一致可能影响编码选择，需临床确认。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "术前诊断:急性阑尾炎(单纯性, 无穿孔); 术后病理:急性单纯性阑尾炎"
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
   "proposed_provider_queries": [],
   "chart_excerpt_preview": "患者男性, 45岁, 转移性右下腹痛1天, mcburney点压痛反跳痛阳性。WBC 13.2, 中性 85%。CT:阑尾肿胀, 周围渗出。术前诊断:急性阑尾炎(单纯性, 无穿孔)。行腹腔镜阑尾切除术。术后病理:急性单纯性阑尾炎。无并发症。术后恢复良好, 第3天出院。",
   "patient_ref": "DEID",
   "encounter_ref": "DEID",
   "encounter_summary": {
-    "key_points": [],
-    "encounter_metadata": {}
+    "key_points": [
+      "转移性右下腹痛1天",
+      "McBurney点压痛反跳痛阳性",
+      "WBC 13.2, 中性85%",
+      "CT:阑尾肿胀, 周围渗出",
+      "术前诊断:急性阑尾炎(单纯性, 无穿孔)",
+      "行腹腔镜阑尾切除术",
+      "术后病理:急性单纯性阑尾炎",
+      "无并发症",
+      "术后恢复良好, 第3天出院"
+    ],
+    "encounter_metadata": {
+      "patient_age": "45岁",
+      "patient_sex": "男性",
+      "encounter_type": "住院"
+    }
   },
   "risk_flags": [],
   "specialist_trace": [
     {
       "expert_id": "coding-expert",
-      "consulted": false,
-      "rationale": "no coding-relevant gaps survived earlier gates",
-      "route_decision": "not_needed",
-      "route_reason": "no_relevant_gap",
-      "execution_mode": "SKIPPED_NOT_NEEDED",
-      "latency_ms": 0,
-      "tokens": 0
+      "consulted": true,
+      "rationale": "根据病历，术前诊断与术后病理一致，均为急性单纯性阑尾炎，但未明确病因（如粪石、淋巴增生等）及具体解剖部位（如尖端、体部或根部）。建议补充阑尾炎的病因描述（如是否存在粪石嵌顿）和受累部位，以支持更精确的临床记录和编码依据。",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 2304,
+      "tokens": 276
     },
     {
       "expert_id": "pubmed-expert",
@@ -54,58 +102,72 @@
     }
   ],
   "stage_run_ids": {
-    "encounter_synthesis": "run-ced3395a430c",
-    "gap_identification": "run-9a1dbcdc4565",
-    "expert_consultation": "run-9de1761e516e",
-    "query_generation": "",
-    "query_eligibility_gate": "chart_complete=True;completeness_score=0.75;dimensions=D1_type=Y,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=Y,D6_pathology=Y,D7_complications=Y,D8_course=Y;dropped=0;final_count=0",
+    "encounter_synthesis": "run-c40af91cb7c0",
+    "gap_identification": "run-ef4036c1de50",
+    "expert_consultation": "run-736b0b7d3bdd",
+    "query_generation": "run-fd77e1f0cb6f",
+    "query_eligibility_gate": "chart_complete=True;completeness_score=0.75;dimensions=D1_type=Y,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=Y,D6_pathology=Y,D7_complications=Y,D8_course=Y;dropped=3;final_count=0",
     "query_necessity_gate": "necessary=0;unnecessary=0;overquery_triggered=False;final_count=0",
     "query_single_dimension_gate": "single_dim=0;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;final_count=0",
     "claim_evidence_alignment_gate": "claims_extracted=0;blocked=0;flagged=0;final_count=0",
-    "claim_evidence_alignment_gate::run_id": "run-00fdda47ecc2",
+    "claim_evidence_alignment_gate::run_id": "run-97dc26d8e9a9",
     "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
-    "semantic_necessity_gate::run_id": "run-73354c45cc00",
+    "semantic_necessity_gate::run_id": "run-dcb778ca19a6",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "run-8e0678909c19"
+    "specialist_trace_emit": "run-348d74f52137"
   },
   "stage_trace_ids": {
-    "encounter_synthesis": "trace-c184f3823cfa",
-    "gap_identification": "trace-ec50d4f4579d",
-    "expert_consultation": "trace-5e4c7e90ab93",
-    "query_generation": "",
+    "encounter_synthesis": "trace-b949cca65e00",
+    "gap_identification": "trace-3da9993999bc",
+    "expert_consultation": "trace-11d6758ed5ef",
+    "query_generation": "trace-e0ad8635528d",
     "query_eligibility_gate": "",
     "query_necessity_gate": "",
     "query_single_dimension_gate": "",
-    "claim_evidence_alignment_gate": "trace-3ea4ba33510b",
-    "semantic_necessity_gate": "trace-55ab2f302e6b",
+    "claim_evidence_alignment_gate": "trace-4f2d763b02bb",
+    "semantic_necessity_gate": "trace-bbbdab8f43fa",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "trace-531363187758"
+    "specialist_trace_emit": "trace-61d2ec799b56"
   },
   "stage_traces": [
     {
       "stage": "encounter_synthesis",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 3107,
-      "prompt_tokens": 0,
-      "completion_tokens": 0,
-      "total_tokens": 0,
-      "run_id": "run-ced3395a430c",
-      "trace_id": "trace-c184f3823cfa",
-      "degraded": true,
-      "error_reason": "LLM call failed after 3 attempts: Connection error.",
+      "latency_ms": 4581,
+      "prompt_tokens": 263,
+      "completion_tokens": 149,
+      "total_tokens": 412,
+      "run_id": "run-c40af91cb7c0",
+      "trace_id": "trace-b949cca65e00",
+      "degraded": false,
+      "error_reason": "",
       "expert_id": ""
     },
     {
       "stage": "gap_identification",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 903,
-      "prompt_tokens": 314,
-      "completion_tokens": 8,
-      "total_tokens": 322,
-      "run_id": "run-9a1dbcdc4565",
-      "trace_id": "trace-ec50d4f4579d",
+      "latency_ms": 4946,
+      "prompt_tokens": 418,
+      "completion_tokens": 385,
+      "total_tokens": 803,
+      "run_id": "run-ef4036c1de50",
+      "trace_id": "trace-3da9993999bc",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 4749,
+      "prompt_tokens": 742,
+      "completion_tokens": 444,
+      "total_tokens": 1186,
+      "run_id": "run-fd77e1f0cb6f",
+      "trace_id": "trace-e0ad8635528d",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -114,12 +176,12 @@
       "stage": "expert_consultation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 0,
-      "prompt_tokens": 0,
-      "completion_tokens": 0,
-      "total_tokens": 0,
-      "run_id": "run-bf6f49e2d525",
-      "trace_id": "trace-3c431842a182",
+      "latency_ms": 2304,
+      "prompt_tokens": 202,
+      "completion_tokens": 74,
+      "total_tokens": 276,
+      "run_id": "run-1e4fc1c575d4",
+      "trace_id": "trace-4eb54dc05635",
       "degraded": false,
       "error_reason": "",
       "expert_id": "coding-expert"
@@ -132,8 +194,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-28b96707afe4",
-      "trace_id": "trace-7f188a9957a1",
+      "run_id": "run-1feb90b59006",
+      "trace_id": "trace-4365aad1aec5",
       "degraded": false,
       "error_reason": "",
       "expert_id": "pubmed-expert"
@@ -146,8 +208,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-904ac9c20b84",
-      "trace_id": "trace-90b4237c57bd",
+      "run_id": "run-81789eea1540",
+      "trace_id": "trace-b9fcedd8fd44",
       "degraded": false,
       "error_reason": "",
       "expert_id": "web-search-expert"
@@ -160,14 +222,14 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-e68b83d53aca",
-      "trace_id": "trace-8bde275ec24f",
+      "run_id": "run-c8e544935ff9",
+      "trace_id": "trace-f849a8a6e187",
       "degraded": false,
       "error_reason": "",
       "expert_id": "medical-calculator-expert"
     }
   ],
-  "degraded": true,
+  "degraded": false,
   "runtime_mode": "real",
-  "generated_at": "2026-07-12T12:09:16.684300Z"
+  "generated_at": "2026-07-12T13:24:11.725818Z"
 }

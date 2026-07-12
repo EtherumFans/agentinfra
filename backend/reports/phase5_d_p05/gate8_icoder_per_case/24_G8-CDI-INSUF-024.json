@@ -1,15 +1,37 @@
 {
-  "case_id": "CASE-1daf283b8c17",
+  "case_id": "CASE-59621c28f895",
   "completion_state": "REVIEW_REQUIRED",
   "documentation_gaps": [
     {
-      "gap_id": "CASE-1daf283b8c17/GAP-001",
+      "gap_id": "CASE-59621c28f895/GAP-001",
       "gap_type": "diagnostic_specificity",
       "description": "食欲下降和体重减轻的病因未明确，需要进一步检查以确定诊断。",
-      "why_it_matters": "缺乏病因诊断会影响编码的准确性，可能导致无法分配特异性诊断代码，影响疾病严重程度和资源利用的反映。",
+      "why_it_matters": "食欲下降和体重减轻可能由多种原因引起，如恶性肿瘤、内分泌疾病、消化系统疾病等，缺乏明确诊断会影响编码准确性和治疗方向。",
       "evidence_span": {
-        "document_id": "chart_001",
-        "quote": "食欲下降1月, 体重减轻5kg。查体无明显异常。建议进一步检查。"
+        "document_id": "encounter_summary",
+        "quote": "食欲下降1月, 体重减轻5kg"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-59621c28f895/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "查体无明显异常，但未描述具体检查项目，缺乏临床相关性。",
+      "why_it_matters": "查体结果描述过于笼统，无法确认是否进行了必要的系统检查，可能遗漏重要体征，影响临床判断和编码。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "查体无明显异常"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-59621c28f895/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "建议进一步检查，但未明确具体检查项目或方向。",
+      "why_it_matters": "缺乏具体检查建议可能导致后续诊疗不明确，影响医疗质量和编码完整性。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "建议进一步检查"
       },
       "minimal_clarification_needed": ""
     }
@@ -36,12 +58,12 @@
     {
       "expert_id": "coding-expert",
       "consulted": true,
-      "rationale": "The chart lacks documentation of the underlying cause for the anorexia and weight loss, such as malignancy, gastrointestinal disorders, or endocrine conditions. To support accurate coding, the clinician should specify the etiology after completing diagnostic workup, including imaging, endoscopy, or laboratory tests. Without a confirmed diagnosis, the clinical specificity remains insufficient for precise code assignment.",
+      "rationale": "The documentation lacks specificity regarding the underlying cause of the anorexia and weight loss, such as whether gastrointestinal, endocrine, or neoplastic etiologies are suspected. Additionally, the physical exam findings are insufficiently detailed—specific systems examined (e.g., abdominal, neurological) and any targeted assessments (e.g., lymph node palpation, oral mucosa inspection) should be explicitly stated. To support accurate coding, the provider must clarify the clinical context, including any differential diagnoses considered and the rationale for proposed diagnostic tests.",
       "route_decision": "needed",
       "route_reason": "coding_relevant_gap",
       "execution_mode": "LLM_KNOWLEDGE_ONLY",
-      "latency_ms": 3175,
-      "tokens": 170
+      "latency_ms": 3379,
+      "tokens": 236
     },
     {
       "expert_id": "pubmed-expert",
@@ -75,44 +97,44 @@
     }
   ],
   "stage_run_ids": {
-    "encounter_synthesis": "run-afad19211e25",
-    "gap_identification": "run-99591605a1f8",
-    "expert_consultation": "run-5df311b870d1",
-    "query_generation": "run-b0b4dfa7825b",
-    "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=;dropped=0;final_count=1",
-    "query_necessity_gate": "necessary=1;unnecessary=0;overquery_triggered=False;final_count=1",
-    "query_single_dimension_gate": "single_dim=1;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=etiology;final_count=1",
-    "claim_evidence_alignment_gate": "claims_extracted=4;blocked=1;flagged=0;final_count=0",
-    "claim_evidence_alignment_gate::run_id": "run-6c42316b7fb8",
+    "encounter_synthesis": "run-2f5a0166e49e",
+    "gap_identification": "run-3b96361c6009",
+    "expert_consultation": "run-c6699a9c2f4a",
+    "query_generation": "run-e0adc0eee2b6",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=;dropped=0;final_count=3",
+    "query_necessity_gate": "necessary=3;unnecessary=0;overquery_triggered=False;final_count=3",
+    "query_single_dimension_gate": "single_dim=3;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=etiology;final_count=3",
+    "claim_evidence_alignment_gate": "claims_extracted=9;blocked=3;flagged=0;final_count=0",
+    "claim_evidence_alignment_gate::run_id": "run-e990e32b925c",
     "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
-    "semantic_necessity_gate::run_id": "run-1ce81cc8dfa9",
+    "semantic_necessity_gate::run_id": "run-f9518dd30090",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "run-7f0353634a48"
+    "specialist_trace_emit": "run-a13d1c61db29"
   },
   "stage_trace_ids": {
-    "encounter_synthesis": "trace-4978f70775d9",
-    "gap_identification": "trace-9541da6850b0",
-    "expert_consultation": "trace-99e3cffc30cd",
-    "query_generation": "trace-9b31a48c5c23",
+    "encounter_synthesis": "trace-aac7be5b5d1c",
+    "gap_identification": "trace-3e82cb404fa8",
+    "expert_consultation": "trace-b9fc5b022b78",
+    "query_generation": "trace-de17d2359466",
     "query_eligibility_gate": "",
     "query_necessity_gate": "",
     "query_single_dimension_gate": "",
-    "claim_evidence_alignment_gate": "trace-a354091e8983",
-    "semantic_necessity_gate": "trace-998a58dd162d",
+    "claim_evidence_alignment_gate": "trace-8df0f549fb3e",
+    "semantic_necessity_gate": "trace-069e7f138f7f",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "trace-1ee7abaf527b"
+    "specialist_trace_emit": "trace-76cdb2a13dc2"
   },
   "stage_traces": [
     {
       "stage": "encounter_synthesis",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 4569,
+      "latency_ms": 2224,
       "prompt_tokens": 199,
       "completion_tokens": 67,
       "total_tokens": 266,
-      "run_id": "run-afad19211e25",
-      "trace_id": "trace-4978f70775d9",
+      "run_id": "run-2f5a0166e49e",
+      "trace_id": "trace-aac7be5b5d1c",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -121,12 +143,12 @@
       "stage": "gap_identification",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 3551,
+      "latency_ms": 4677,
       "prompt_tokens": 283,
-      "completion_tokens": 150,
-      "total_tokens": 433,
-      "run_id": "run-99591605a1f8",
-      "trace_id": "trace-9541da6850b0",
+      "completion_tokens": 383,
+      "total_tokens": 666,
+      "run_id": "run-3b96361c6009",
+      "trace_id": "trace-3e82cb404fa8",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -135,12 +157,12 @@
       "stage": "query_generation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 3475,
-      "prompt_tokens": 351,
-      "completion_tokens": 231,
-      "total_tokens": 582,
-      "run_id": "run-b0b4dfa7825b",
-      "trace_id": "trace-9b31a48c5c23",
+      "latency_ms": 5209,
+      "prompt_tokens": 673,
+      "completion_tokens": 560,
+      "total_tokens": 1233,
+      "run_id": "run-e0adc0eee2b6",
+      "trace_id": "trace-de17d2359466",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -149,12 +171,12 @@
       "stage": "expert_consultation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 3175,
-      "prompt_tokens": 102,
-      "completion_tokens": 68,
-      "total_tokens": 170,
-      "run_id": "run-e1cef0b9670a",
-      "trace_id": "trace-12bbe44d901e",
+      "latency_ms": 3379,
+      "prompt_tokens": 135,
+      "completion_tokens": 101,
+      "total_tokens": 236,
+      "run_id": "run-9764ad5b1fa5",
+      "trace_id": "trace-c5411531eca7",
       "degraded": false,
       "error_reason": "",
       "expert_id": "coding-expert"
@@ -167,8 +189,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-be31aa524312",
-      "trace_id": "trace-042c212c433d",
+      "run_id": "run-1fafb428cd66",
+      "trace_id": "trace-dffdb3867382",
       "degraded": false,
       "error_reason": "",
       "expert_id": "pubmed-expert"
@@ -181,8 +203,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-8b227cee4c9e",
-      "trace_id": "trace-580c7a3a8440",
+      "run_id": "run-c6a97268b2bc",
+      "trace_id": "trace-417bbf5a1b15",
       "degraded": false,
       "error_reason": "",
       "expert_id": "web-search-expert"
@@ -195,8 +217,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-dc1677c30f9d",
-      "trace_id": "trace-392c6547e506",
+      "run_id": "run-f717b8b69fbb",
+      "trace_id": "trace-a8109436b2f2",
       "degraded": false,
       "error_reason": "",
       "expert_id": "medical-calculator-expert"
@@ -204,5 +226,5 @@
   ],
   "degraded": false,
   "runtime_mode": "real",
-  "generated_at": "2026-07-12T12:13:33.555055Z"
+  "generated_at": "2026-07-12T13:28:27.178330Z"
 }

@@ -109,10 +109,17 @@ _SEMANTIC_NECESSITY_PROMPT = """你是 CDI Provider Query 的"语义必要性"�
    - 病历已写"急性胆囊炎" 还问 "是否急性" → true
    - 既往史已写"糖尿病" 还问 "是否有糖尿病史" → true
 
+7. chart_fully_documented (true/false)  [Track H3.11]
+   chart 是否已记录该 Query 所需的全部维度 (类型/部位/严重程度/病因/手术/病理/并发症/病程)?
+   - 病历已写"急性化脓性阑尾炎(局限性),腹腔镜切除,病理确诊,无并发症,3天出院" → true
+   - 病历只有"肺炎"(未说病原体/严重程度) → false
+   - 注意: 如果存在矛盾 (如术后体温上升但WBC下降), 设为 false — 矛盾本身需要澄清.
+
 判定规则:
 - 如果 clinical_substrate_present=false AND query_requests_new_diagnosis=true → verdict="BLOCK", reason="INSUFFICIENT_CLINICAL_SUBSTRATE"
 - 如果 query_answerable=false → verdict="BLOCK", reason="NOT_ANSWERABLE"
 - 如果 query_is_redundant=true → verdict="BLOCK", reason="REDUNDANT_WITH_CHART"
+- 如果 chart_fully_documented=true AND query_changes_documentation=false → verdict="BLOCK", reason="CHART_ALREADY_COMPLETE"
 - 如果 existing_documentation_ambiguous=false AND query_changes_documentation=false → verdict="BLOCK", reason="NO_DOCUMENTATION_IMPACT"
 - 如果 query_requests_new_diagnosis=true (但 substrate 存在) → verdict="REVIEW_REQUIRED", reason="POSSIBLE_DIAGNOSIS_INVENTION"
 - 否则 → verdict="PASS"
@@ -126,6 +133,7 @@ _SEMANTIC_NECESSITY_PROMPT = """你是 CDI Provider Query 的"语义必要性"�
   "query_requests_new_diagnosis": true|false,
   "query_is_redundant": true|false,
   "query_is_overly_detailed": true|false,
+  "chart_fully_documented": true|false,
   "verdict": "PASS" | "REVIEW_REQUIRED" | "BLOCK",
   "reason_codes": ["..."]
 }}
@@ -150,6 +158,7 @@ class SemanticNecessityResult:
     query_requests_new_diagnosis: bool = False
     query_is_redundant: bool = False
     query_is_overly_detailed: bool = False
+    chart_fully_documented: bool = False  # Track H3.11
     degraded: bool = False
     error_reason: str = ""
     provider: str = "deepseek"
@@ -243,6 +252,7 @@ async def review_necessity(
         query_requests_new_diagnosis=bool(data.get("query_requests_new_diagnosis", False)),
         query_is_redundant=bool(data.get("query_is_redundant", False)),
         query_is_overly_detailed=bool(data.get("query_is_overly_detailed", False)),
+        chart_fully_documented=bool(data.get("chart_fully_documented", False)),
         degraded=False,
         provider=getattr(llm, "provider", "deepseek"),
         model=getattr(llm, "model", ""),

@@ -1,26 +1,72 @@
 {
-  "case_id": "CASE-be98e2d34ceb",
-  "completion_state": "AUTO_PASS",
-  "documentation_gaps": [],
+  "case_id": "CASE-0f973ac87493",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-0f973ac87493/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "胆囊结石的急性或慢性状态未明确",
+      "why_it_matters": "影响编码中胆囊炎急性/慢性区分，以及是否伴有梗阻或感染等并发症的判定",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "胆囊结石史2年, 间断右上腹隐痛"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-0f973ac87493/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "右上腹隐痛与胆囊结石的临床相关性未明确",
+      "why_it_matters": "需要明确疼痛是否由胆囊结石引起，以支持诊断关联和医疗必要性",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "间断右上腹隐痛"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-0f973ac87493/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "慢性胆囊炎的严重程度未描述（如是否伴有急性发作、化脓、坏疽等）",
+      "why_it_matters": "影响编码中胆囊炎的严重程度和并发症的区分",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "术后病理:慢性胆囊炎伴胆固醇结石"
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
   "proposed_provider_queries": [],
   "chart_excerpt_preview": "患者女性, 40岁, 胆囊结石史2年, 间断右上腹隐痛。择期行腹腔镜胆囊切除术。术中见:胆囊大小正常, 内含1枚 1.5cm 胆固醇性结石, 无粘连。手术顺利, 出血 50ml。术后病理:慢性胆囊炎伴胆固醇结石。术后第2天出院。",
   "patient_ref": "DEID",
   "encounter_ref": "DEID",
   "encounter_summary": {
-    "key_points": [],
-    "encounter_metadata": {}
+    "key_points": [
+      "胆囊结石史2年",
+      "间断右上腹隐痛",
+      "择期行腹腔镜胆囊切除术",
+      "术中见胆囊大小正常，内含1枚1.5cm胆固醇性结石，无粘连",
+      "手术顺利，出血50ml",
+      "术后病理：慢性胆囊炎伴胆固醇结石",
+      "术后第2天出院"
+    ],
+    "encounter_metadata": {
+      "patient_age": "40岁",
+      "patient_sex": "女性",
+      "encounter_type": "择期手术住院"
+    }
   },
   "risk_flags": [],
   "specialist_trace": [
     {
       "expert_id": "coding-expert",
-      "consulted": false,
-      "rationale": "no coding-relevant gaps survived earlier gates",
-      "route_decision": "not_needed",
-      "route_reason": "no_relevant_gap",
-      "execution_mode": "SKIPPED_NOT_NEEDED",
-      "latency_ms": 0,
-      "tokens": 0
+      "consulted": true,
+      "rationale": "根据病历，需明确胆囊结石的急性或慢性状态，以及右上腹隐痛与胆囊结石的临床相关性。同时，应描述慢性胆囊炎的严重程度，例如是否伴有急性发作、化脓或坏疽等特征，以确保编码的准确性。",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3148,
+      "tokens": 236
     },
     {
       "expert_id": "pubmed-expert",
@@ -54,70 +100,84 @@
     }
   ],
   "stage_run_ids": {
-    "encounter_synthesis": "run-289c7475ddee",
-    "gap_identification": "run-b928b6c13e63",
-    "expert_consultation": "run-e045fa762b5b",
-    "query_generation": "",
-    "query_necessity_gate": "necessary=0;unnecessary=0;overquery_triggered=False;final_count=0",
-    "query_single_dimension_gate": "single_dim=0;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;final_count=0",
-    "claim_evidence_alignment_gate": "claims_extracted=0;blocked=0;flagged=0;final_count=0",
-    "claim_evidence_alignment_gate::run_id": "run-3dd8a1b7e7bd",
+    "encounter_synthesis": "run-817ff2d3cdfe",
+    "gap_identification": "run-ce5b5681ace7",
+    "expert_consultation": "run-7040c2faac48",
+    "query_generation": "run-acecf68f2837",
+    "query_necessity_gate": "necessary=3;unnecessary=0;overquery_triggered=False;final_count=3",
+    "query_single_dimension_gate": "single_dim=3;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=acuity;final_count=3",
+    "claim_evidence_alignment_gate": "claims_extracted=8;blocked=3;flagged=0;final_count=0",
+    "claim_evidence_alignment_gate::run_id": "run-0c10d7163b5d",
     "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
-    "semantic_necessity_gate::run_id": "run-2eda2cf089c2",
+    "semantic_necessity_gate::run_id": "run-ea8b5c06ce40",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "run-32602c086aa0"
+    "specialist_trace_emit": "run-65934c50a117"
   },
   "stage_trace_ids": {
-    "encounter_synthesis": "trace-b527c11ee5f4",
-    "gap_identification": "trace-3e61929b0ac1",
-    "expert_consultation": "trace-73bd269dead8",
-    "query_generation": "",
+    "encounter_synthesis": "trace-11660b24e769",
+    "gap_identification": "trace-fae68425f939",
+    "expert_consultation": "trace-892f83ec4d01",
+    "query_generation": "trace-7e48559f66a6",
     "query_necessity_gate": "",
     "query_single_dimension_gate": "",
-    "claim_evidence_alignment_gate": "trace-7e5678c77e63",
-    "semantic_necessity_gate": "trace-08b9849fef71",
+    "claim_evidence_alignment_gate": "trace-e4fd85f210ce",
+    "semantic_necessity_gate": "trace-016209f2904b",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "trace-b859d6b43ef1"
+    "specialist_trace_emit": "trace-03619ba67ffd"
   },
   "stage_traces": [
     {
       "stage": "encounter_synthesis",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 0,
-      "prompt_tokens": 0,
-      "completion_tokens": 0,
-      "total_tokens": 0,
-      "run_id": "run-289c7475ddee",
-      "trace_id": "trace-b527c11ee5f4",
-      "degraded": true,
-      "error_reason": "LLM circuit breaker is OPEN — provider appears unhealthy",
+      "latency_ms": 1853,
+      "prompt_tokens": 250,
+      "completion_tokens": 127,
+      "total_tokens": 377,
+      "run_id": "run-817ff2d3cdfe",
+      "trace_id": "trace-11660b24e769",
+      "degraded": false,
+      "error_reason": "",
       "expert_id": ""
     },
     {
       "stage": "gap_identification",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 0,
-      "prompt_tokens": 0,
-      "completion_tokens": 0,
-      "total_tokens": 0,
-      "run_id": "run-b928b6c13e63",
-      "trace_id": "trace-3e61929b0ac1",
-      "degraded": true,
-      "error_reason": "LLM circuit breaker is OPEN — provider appears unhealthy",
+      "latency_ms": 4936,
+      "prompt_tokens": 384,
+      "completion_tokens": 361,
+      "total_tokens": 745,
+      "run_id": "run-ce5b5681ace7",
+      "trace_id": "trace-fae68425f939",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6233,
+      "prompt_tokens": 456,
+      "completion_tokens": 578,
+      "total_tokens": 1034,
+      "run_id": "run-acecf68f2837",
+      "trace_id": "trace-7e48559f66a6",
+      "degraded": false,
+      "error_reason": "",
       "expert_id": ""
     },
     {
       "stage": "expert_consultation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 0,
-      "prompt_tokens": 0,
-      "completion_tokens": 0,
-      "total_tokens": 0,
-      "run_id": "run-39af96cb85de",
-      "trace_id": "trace-8aec2d9682e0",
+      "latency_ms": 3148,
+      "prompt_tokens": 183,
+      "completion_tokens": 53,
+      "total_tokens": 236,
+      "run_id": "run-35c07cb609f7",
+      "trace_id": "trace-98852043a778",
       "degraded": false,
       "error_reason": "",
       "expert_id": "coding-expert"
@@ -130,8 +190,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-6de5f305eb49",
-      "trace_id": "trace-0dc9f2b499dc",
+      "run_id": "run-a3448c47a783",
+      "trace_id": "trace-25208b1e64b1",
       "degraded": false,
       "error_reason": "",
       "expert_id": "pubmed-expert"
@@ -144,8 +204,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-7f9137d3067f",
-      "trace_id": "trace-4b3b7bfe0607",
+      "run_id": "run-bb8b0d6f92ba",
+      "trace_id": "trace-275218559353",
       "degraded": false,
       "error_reason": "",
       "expert_id": "web-search-expert"
@@ -158,14 +218,14 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-7f65ab3b57a2",
-      "trace_id": "trace-8cc5893f1bd1",
+      "run_id": "run-8b86f4569097",
+      "trace_id": "trace-7df767a4e13b",
       "degraded": false,
       "error_reason": "",
       "expert_id": "medical-calculator-expert"
     }
   ],
-  "degraded": true,
+  "degraded": false,
   "runtime_mode": "real",
-  "generated_at": "2026-07-12T03:21:58.243433Z"
+  "generated_at": "2026-07-12T11:27:34.623298Z"
 }

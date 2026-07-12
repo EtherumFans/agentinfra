@@ -1,0 +1,200 @@
+{
+  "case_id": "G8-CDI-COMPLETE-020",
+  "group": "complete_chart",
+  "variant": "",
+  "session_id": "7c6c0aeb-bbdd-45ab-b258-f2a7fb2e6bb2",
+  "attempt": 1,
+  "outcome": "SUCCESS",
+  "elapsed_s": 24.97,
+  "expected": {
+    "query_count_min": 0,
+    "query_count_max": 0,
+    "expected_no_query": true,
+    "expected_query_topics": [],
+    "notes": "Resolved acute self-limited illness — nothing to query"
+  },
+  "text_length": 2817,
+  "first_token_at_s": 4.42,
+  "last_token_at_s": 24.97,
+  "event_count": 12,
+  "raw_events_preview": [
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"code_system\":\"icd-10-cm\",\"count\":3,\"next_steps\":[{\"reason\":\"Browse related codes and alternatives in the same category\",\"tool\":\"explore\"},{\"reason\":\"Read coding conventions relevant to these",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"K52.9\",\"code_system\":\"icd-10-cm\",\"description\":\"Noninfective gastroenteritis and colitis, unspecified\",\"next_steps\":[{\"reason\":\"Read coding conventions for this code",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"K52.9\",\"description\":\"Noninfective gastroenteritis and colitis, unspecified\",\"next_steps\":[{\"reason\":\"Compare with related codes if this isn't the best fit\",\"tool\":\"",
+    "message|{\"id\":\"baa71a05-4254-4122-b299-3ed1acb47f93\",\"type\":\"text-start\"}",
+    "message|{\"delta\":\"Encounter Summary:\\n- Follow-up visit after acute gastroenteritis.\\n- Symptoms are documented as fully resolved: \\\"no abdominal pain, diarrhea, or vomiting.\\\"\\n- Exam and stool studies are d",
+    "message|{\"id\":\"baa71a05-4254-4122-b299-3ed1acb47f93\",\"type\":\"text-end\"}",
+    "message|{\"messageMetadata\":{\"contextId\":\"019f55d3-470c-7b2a-ad8c-e63b92e3628f\",\"taskId\":\"019f55d3-470c-7ab7-a2e1-7547a89a8d7b\",\"credits\":0.063972,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+    "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.063972},\"type\":\"finish\"}",
+    "message|[DONE]"
+  ],
+  "expert_events": [
+    {
+      "code_system": "icd-10-cm",
+      "count": 3,
+      "next_steps": [
+        {
+          "reason": "Browse related codes and alternatives in the same category",
+          "tool": "explore"
+        },
+        {
+          "reason": "Read coding conventions relevant to these codes",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "To assign the codes for a clinical note, use predict (optionally with include/exclude filters)",
+          "tool": "predict"
+        }
+      ],
+      "query": "acute gastroenteritis",
+      "results": [
+        {
+          "code": "A08.39",
+          "description": "Other viral enteritis",
+          "match_path": "Gastroenteritis, viral, other specified, acute infectious",
+          "related_codes": {
+            "category": "A08.3",
+            "category_description": "Other viral enteritis",
+            "count": 3
+          }
+        },
+        {
+          "code": "K52.9",
+          "description": "Noninfective gastroenteritis and colitis, unspecified",
+          "match_path": "Gastroenteritis",
+          "related_codes": {
+            "category": "K52",
+            "category_description": "Other and unspecified noninfective gastroenteritis and colitis",
+            "count": 6
+          }
+        },
+        {
+          "code": "K29.00",
+          "description": "Acute gastritis without bleeding",
+          "match_path": "Gastritis, acute",
+          "related_codes": {
+            "category": "K29.0",
+            "category_description": "Acute gastritis",
+            "count": 2
+          }
+        }
+      ]
+    },
+    {
+      "assignable": true,
+      "code": "K52.9",
+      "code_system": "icd-10-cm",
+      "description": "Noninfective gastroenteritis and colitis, unspecified",
+      "next_steps": [
+        {
+          "reason": "Read coding conventions for this code area",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "Check whether a specific code is assignable",
+          "tool": "verify"
+        },
+        {
+          "reason": "Explore a related or more specific code",
+          "tool": "explore"
+        }
+      ],
+      "parent": {
+        "code": "K52",
+        "description": "Other and unspecified noninfective gastroenteritis and colitis"
+      },
+      "related_codes": [
+        {
+          "assignable": true,
+          "code": "K52.0",
+          "description": "Gastroenteritis and colitis due to radiation"
+        },
+        {
+          "assignable": true,
+          "code": "K52.1",
+          "description": "Toxic gastroenteritis and colitis"
+        },
+        {
+          "assignable": false,
+          "code": "K52.2",
+          "description": "Allergic and dietetic gastroenteritis and colitis"
+        },
+        {
+          "assignable": true,
+          "code": "K52.3",
+          "description": "Indeterminate colitis"
+        },
+        {
+          "assignable": false,
+          "code": "K52.8",
+          "description": "Other specified noninfective gastroenteritis and colitis"
+        }
+      ],
+      "total_related": 5
+    },
+    {
+      "assignable": true,
+      "code": "K52.9",
+      "description": "Noninfective gastroenteritis and colitis, unspecified",
+      "next_steps": [
+        {
+          "reason": "Compare with related codes if this isn't the best fit",
+          "tool": "explore"
+        },
+        {
+          "reason": "Check chapter-level coding conventions for this code area",
+          "tool": "guidelines"
+        }
+      ],
+      "parents": [
+        {
+          "code": "K52",
+          "description": "Other and unspecified noninfective gastroenteritis and colitis"
+        },
+        {
+          "code": "K50-K52",
+          "description": "Noninfective enteritis and colitis (K50-K52)"
+        },
+        {
+          "code": "11",
+          "description": "Diseases of the digestive system (K00-K95)"
+        }
+      ]
+    }
+  ],
+  "status_events": [
+    {
+      "state": "working"
+    },
+    {
+      "state": "working"
+    },
+    {
+      "message": "Calling expert: coding-expert",
+      "state": "working"
+    }
+  ],
+  "finish_metadata": {
+    "contextId": "019f55d3-470c-7b2a-ad8c-e63b92e3628f",
+    "taskId": "019f55d3-470c-7ab7-a2e1-7547a89a8d7b",
+    "credits": 0.063972,
+    "state": "completed"
+  },
+  "parsed": {
+    "encounter_summary": "- Follow-up visit after acute gastroenteritis.\n- Symptoms are documented as fully resolved: \"no abdominal pain, diarrhea, or vomiting.\"\n- Exam and stool studies are documented as normal.\n- Assessment states: \"acute gastroenteritis recovery, cured.\"",
+    "gaps": [],
+    "gap_count": 0,
+    "queries": [],
+    "query_count": 0,
+    "specialists_contacted": [
+      "Coding Expert"
+    ],
+    "specialist_trace_text": "- Coding Expert: Consulted for coding specificity and CDI query need. Accepted the high-level takeaway that etiologic specificity affects coding options and that no clear CDI query is indicated from a resolved follow-up note. Rejected any code assignment as unsupported for this task because the request was CDI-focused and the excerpt does not establish a need to code an active condition.",
+    "has_specialist_trace": true
+  },
+  "error": "",
+  "text": "Encounter Summary:\n- Follow-up visit after acute gastroenteritis.\n- Symptoms are documented as fully resolved: \"no abdominal pain, diarrhea, or vomiting.\"\n- Exam and stool studies are documented as normal.\n- Assessment states: \"acute gastroenteritis recovery, cured.\"\n\nDocumentation Gaps:\n- No clear CDI query indicated from the excerpt.\n  - Why it matters: The condition is documented as resolved/cured, with no ongoing symptoms or complications described.\n  - Evidence: \"Symptoms fully resolved\"; \"Normal physical exam\"; \"Normal stool studies\"; \"Diagnosis: acute gastroenteritis recovery, cured.\"\n  - Minimal clarification needed: None for CDI query purposes based on the provided text.\n- Etiology/specification of gastroenteritis is not documented.\n  - Why it matters: Coding specificity depends on cause/type when clinically relevant. The coding reference shows broad alternatives for \"acute gastroenteritis,\" including infectious and noninfective groupings, and unspecified documentation limits specificity.\n  - Evidence: \"acute gastroenteritis\" without documented infectious organism, viral/bacterial cause, or noninfective etiology.\n  - Minimal clarification needed: Only if the provider intends the condition to remain an active/reportable diagnosis rather than a resolved follow-up history/recovery statement.\n\nProposed Provider Queries:\n- No compliant provider query is recommended from this excerpt.\n  - Reason: The note supports recovery/resolution and does not show an active unresolved diagnostic ambiguity requiring clarification.\n  - Evidence: \"Symptoms fully resolved\" and \"cured.\"\n\nCoding Specificity Checklist:\n- If gastroenteritis is meant to be coded as an active condition, document:\n  - infectious vs noninfective etiology\n  - specific cause/organism if known\n  - whether the condition is still active vs resolved/recovered\n  - any associated dehydration, complications, or ongoing symptoms if present\n- If the purpose is follow-up after a resolved illness, ensure status is clearly documented as resolved, which this note already does.\n\nRisk Flags:\n- Ambiguity for coding status: The term \"acute gastroenteritis recovery, cured\" suggests resolved illness, but if a diagnosis code is still being considered, the excerpt does not specify etiology.\n- No contradiction identified within the excerpt.\n- No unsupported diagnosis identified beyond the general lack of etiologic specificity.\n\nSpecialist Trace:\n- Coding Expert: Consulted for coding specificity and CDI query need. Accepted the high-level takeaway that etiologic specificity affects coding options and that no clear CDI query is indicated from a resolved follow-up note. Rejected any code assignment as unsupported for this task because the request was CDI-focused and the excerpt does not establish a need to code an active condition."
+}

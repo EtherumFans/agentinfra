@@ -1,0 +1,110 @@
+{
+  "case_id": "G8-CDI-NEG-030",
+  "group": "negation_history",
+  "variant": "",
+  "session_id": "7c0e045b-f8c9-41b3-8377-96b3ce51a897",
+  "attempt": 1,
+  "outcome": "SUCCESS",
+  "elapsed_s": 17.12,
+  "expected": {
+    "query_count_min": 0,
+    "query_count_max": 1,
+    "expected_no_query": true,
+    "expected_query_topics": [],
+    "notes": "All red flags denied — agent should not generate migraine or intracranial lesion query"
+  },
+  "text_length": 3083,
+  "first_token_at_s": 3.92,
+  "last_token_at_s": 17.12,
+  "event_count": 10,
+  "raw_events_preview": [
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"systems\":[{\"id\":\"icd-10-cm\",\"label\":\"US diagnosis codes\"},{\"id\":\"icd-10-pcs\",\"label\":\"US procedure codes\"},{\"id\":\"icd-10-int\",\"label\":\"WHO international diagnosis codes\"},{\"id\":\"icd-10-uk\",\"",
+    "message|{\"id\":\"8d547064-8ca9-415c-a2a6-ba9cb40d8b0a\",\"type\":\"text-start\"}",
+    "message|{\"delta\":\"Encounter Summary:\\n- 40-year-old male with intermittent headache.\\n- Associated neurologic and migraine-type symptoms are denied: “Denies nausea, vomiting, photophobia, phonophobia, visual ",
+    "message|{\"id\":\"8d547064-8ca9-415c-a2a6-ba9cb40d8b0a\",\"type\":\"text-end\"}",
+    "message|{\"messageMetadata\":{\"contextId\":\"019f55e1-5b37-73f2-9b75-33820a6eb33a\",\"taskId\":\"019f55e1-5b37-7376-9d2e-e2621b77667c\",\"credits\":0.041867999999999995,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+    "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.041867999999999995},\"type\":\"finish\"}",
+    "message|[DONE]"
+  ],
+  "expert_events": [
+    {
+      "systems": [
+        {
+          "id": "icd-10-cm",
+          "label": "US diagnosis codes"
+        },
+        {
+          "id": "icd-10-pcs",
+          "label": "US procedure codes"
+        },
+        {
+          "id": "icd-10-int",
+          "label": "WHO international diagnosis codes"
+        },
+        {
+          "id": "icd-10-uk",
+          "label": "UK diagnosis codes"
+        },
+        {
+          "id": "icd-10-gm",
+          "label": "German diagnosis codes"
+        },
+        {
+          "id": "cim-10-fr",
+          "label": "French diagnosis codes"
+        },
+        {
+          "id": "opcs-4",
+          "label": "UK procedure codes"
+        },
+        {
+          "id": "ops",
+          "label": "German procedure codes"
+        },
+        {
+          "id": "ccam",
+          "label": "French procedure codes"
+        },
+        {
+          "id": "snomed-ct-int",
+          "label": "SNOMED CT International clinical terms"
+        }
+      ]
+    }
+  ],
+  "status_events": [
+    {
+      "state": "working"
+    },
+    {
+      "state": "working"
+    },
+    {
+      "message": "Calling expert: coding-expert",
+      "state": "working"
+    }
+  ],
+  "finish_metadata": {
+    "contextId": "019f55e1-5b37-73f2-9b75-33820a6eb33a",
+    "taskId": "019f55e1-5b37-7376-9d2e-e2621b77667c",
+    "credits": 0.041867999999999995,
+    "state": "completed"
+  },
+  "parsed": {
+    "encounter_summary": "- 40-year-old male with intermittent headache.\n- Associated neurologic and migraine-type symptoms are denied: “Denies nausea, vomiting, photophobia, phonophobia, visual aura, limb weakness.”\n- Relevant history documented as negative for “migraine history,” “head trauma,” and “family history of CNS tumors.”\n- Physical exam is documented as “Normal exam.”",
+    "gaps": [],
+    "gap_count": 0,
+    "queries": [],
+    "query_count": 0,
+    "specialists_contacted": [
+      "Coding Expert"
+    ],
+    "specialist_trace_text": "- Coding Expert: Consulted for coding specificity and CDI query opportunities.\n  - Requested: review for CDI gaps and compliant non-leading query targets.\n  - Accepted: only the high-level implication that no concrete coding/query output was returned.\n  - Rejected/Omitted: no diagnosis-specific coding advice was usable because the expert output did not provide chart-grounded gaps, codes, or compliant query language.\n- AMBOSS Expert: Not consulted.\n  - Reason: No unclear documented diagnosis requiring clinical criteria clarification.\n- CDI/Web Search Expert: Not consulted.\n  - Reason: No external guideline lookup was necessary to determine that the excerpt lacks a clear compliant query target.",
+    "has_specialist_trace": true
+  },
+  "error": "",
+  "text": "Encounter Summary:\n- 40-year-old male with intermittent headache.\n- Associated neurologic and migraine-type symptoms are denied: “Denies nausea, vomiting, photophobia, phonophobia, visual aura, limb weakness.”\n- Relevant history documented as negative for “migraine history,” “head trauma,” and “family history of CNS tumors.”\n- Physical exam is documented as “Normal exam.”\n\nDocumentation Gaps:\n- No clearly queryable CDI gap identified from the excerpt alone.\n  - Why it matters: Headache is documented only as a symptom, and there is no conflicting, ambiguous, or incomplete diagnosis statement requiring provider clarification for compliant CDI purposes.\n  - Evidence quote: “intermittent headache.”\n  - Minimal clarification needed: None clearly supported based on the current excerpt.\n- Limited symptom characterization for coding specificity.\n  - Why it matters: If the provider intends to document a headache diagnosis rather than only a presenting symptom, coding specificity may depend on the documented type/site when clinically known.\n  - Evidence quote: “intermittent headache.”\n  - Minimal clarification needed: Headache type or site only if already clinically assessed and relevant in the source record; current excerpt does not support a formal provider query.\n\nProposed Provider Queries:\n- None recommended.\n  - Reason: The excerpt does not show a conflicting diagnosis, ambiguous terminology, unsupported condition, or other compliant CDI query opportunity.\n  - Evidence quote: “intermittent headache” with “Normal exam.”\n\nCoding Specificity Checklist:\n- If clinically established elsewhere in the record, document the headache as specifically as known:\n  - Type (for example, unspecified headache vs other defined headache syndrome if documented by the provider)\n  - Location/site\n  - Temporal pattern or acuity if clinically relevant\n  - Underlying cause, if established and documented\n- If no further specificity is clinically established, symptom documentation as headache may remain appropriate.\n\nRisk Flags:\n- No contradictions identified in the provided excerpt.\n- No unsupported diagnoses identified.\n- No copied-forward risk indicators apparent from the excerpt.\n- Avoid querying for migraine, intracranial process, trauma-related headache, or neurologic deficit because the excerpt documents negatives rather than supportive evidence.\n\nSpecialist Trace:\n- Coding Expert: Consulted for coding specificity and CDI query opportunities.\n  - Requested: review for CDI gaps and compliant non-leading query targets.\n  - Accepted: only the high-level implication that no concrete coding/query output was returned.\n  - Rejected/Omitted: no diagnosis-specific coding advice was usable because the expert output did not provide chart-grounded gaps, codes, or compliant query language.\n- AMBOSS Expert: Not consulted.\n  - Reason: No unclear documented diagnosis requiring clinical criteria clarification.\n- CDI/Web Search Expert: Not consulted.\n  - Reason: No external guideline lookup was necessary to determine that the excerpt lacks a clear compliant query target."
+}

@@ -1,0 +1,279 @@
+{
+  "case_id": "G8-CDI-COMPLETE-019",
+  "group": "complete_chart",
+  "variant": "",
+  "session_id": "fa6ce718-292d-4456-b8e8-632bfed876c8",
+  "attempt": 1,
+  "outcome": "SUCCESS",
+  "elapsed_s": 17.76,
+  "expected": {
+    "query_count_min": 0,
+    "query_count_max": 0,
+    "expected_no_query": true,
+    "expected_query_topics": [],
+    "notes": "HTN with grade, control status, and end-organ assessment all explicit"
+  },
+  "text_length": 2584,
+  "first_token_at_s": 3.35,
+  "last_token_at_s": 17.76,
+  "event_count": 12,
+  "raw_events_preview": [
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"I10\",\"code_system\":\"icd-10-cm\",\"description\":\"Essential (primary) hypertension\",\"next_steps\":[{\"reason\":\"Read coding conventions for this code area\",\"tool\":\"guidelin",
+    "message|{\"data\":{\"chapter_guidelines\":[{\"codes\":[\"I16\",\"I10\",\"I15\"],\"content\":\"Assign a code from category I16, Hypertensive crisis, for documented \\nhypertensive urgency, hypertensive emergency or unspecifie",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"I10\",\"description\":\"Essential (primary) hypertension\",\"next_steps\":[{\"reason\":\"Compare with related codes if this isn't the best fit\",\"tool\":\"explore\"},{\"reason\":\"Ch",
+    "message|{\"id\":\"217ed286-b5d7-420e-89ad-d0a14164b523\",\"type\":\"text-start\"}",
+    "message|{\"delta\":\"Encounter Summary:\\n- 65-year-old male with a 10-year history of hypertension treated with valsartan 80 mg daily.\\n- Current blood pressure is documented as 132/82.\\n- Cardiac evaluation not",
+    "message|{\"id\":\"217ed286-b5d7-420e-89ad-d0a14164b523\",\"type\":\"text-end\"}",
+    "message|{\"messageMetadata\":{\"contextId\":\"019f55d2-e116-730f-9852-45682ffe64bf\",\"taskId\":\"019f55d2-e116-727a-b30b-481b4dbd8b88\",\"credits\":0.06002,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+    "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.06002},\"type\":\"finish\"}",
+    "message|[DONE]"
+  ],
+  "expert_events": [
+    {
+      "assignable": true,
+      "code": "I10",
+      "code_system": "icd-10-cm",
+      "description": "Essential (primary) hypertension",
+      "next_steps": [
+        {
+          "reason": "Read coding conventions for this code area",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "Check whether a specific code is assignable",
+          "tool": "verify"
+        },
+        {
+          "reason": "Explore a related or more specific code",
+          "tool": "explore"
+        }
+      ],
+      "parent": {
+        "code": "I10-I1A",
+        "description": "Hypertensive diseases (I10-I1A)"
+      },
+      "related_codes": [
+        {
+          "assignable": false,
+          "code": "I11",
+          "description": "Hypertensive heart disease"
+        },
+        {
+          "assignable": false,
+          "code": "I12",
+          "description": "Hypertensive chronic kidney disease"
+        },
+        {
+          "assignable": false,
+          "code": "I13",
+          "description": "Hypertensive heart and chronic kidney disease"
+        },
+        {
+          "assignable": false,
+          "code": "I15",
+          "description": "Secondary hypertension"
+        },
+        {
+          "assignable": false,
+          "code": "I16",
+          "description": "Hypertensive crisis"
+        },
+        {
+          "assignable": false,
+          "code": "I1A",
+          "description": "Other hypertension"
+        }
+      ],
+      "total_related": 6
+    },
+    {
+      "chapter_guidelines": [
+        {
+          "codes": [
+            "I16",
+            "I10",
+            "I15"
+          ],
+          "content": "Assign a code from category I16, Hypertensive crisis, for documented \nhypertensive urgency, hypertensive emergency or unspecified \nhypertensive crisis. Code also any identified hypertensive disease (I10-\nI15). The sequencing is based on the reason for the encounter.",
+          "id": "icd-10-cm_section_I_C_9_a_10",
+          "kind": "guideline",
+          "number": "IC9a10",
+          "path": [
+            "I",
+            "C",
+            "9",
+            "a",
+            "10"
+          ],
+          "scope": "chapter",
+          "sections": [],
+          "title": "Hypertensive Crisis"
+        },
+        {
+          "codes": [
+            "I10",
+            "I15"
+          ],
+          "content": "Uncontrolled hypertension may refer to untreated hypertension or \nhypertension not responding to current therapeutic regimen. In either \ncase, assign the appropriate code from categories I10-I15, Hypertensive \ndiseases.",
+          "id": "icd-10-cm_section_I_C_9_a_9",
+          "kind": "guideline",
+          "number": "IC9a9",
+          "path": [
+            "I",
+            "C",
+            "9",
+            "a",
+            "9"
+          ],
+          "scope": "chapter",
+          "sections": [],
+          "title": "Hypertension, Uncontrolled"
+        },
+        {
+          "codes": [
+            "I10",
+            "I15"
+          ],
+          "content": "This diagnostic statement usually refers to an existing state of \nhypertension under control by therapy. Assign the appropriate code from \ncategories I10-I15, Hypertensive diseases.",
+          "id": "icd-10-cm_section_I_C_9_a_8",
+          "kind": "guideline",
+          "number": "IC9a8",
+          "path": [
+            "I",
+            "C",
+            "9",
+            "a",
+            "8"
+          ],
+          "scope": "chapter",
+          "sections": [],
+          "title": "Hypertension, Controlled"
+        },
+        {
+          "codes": [
+            "H35.0",
+            "I10",
+            "I15"
+          ],
+          "content": "Subcategory H35.0, Background retinopathy and retinal vascular \nchanges, should be used along with a code from categories I10 – I15, in \nthe Hypertensive diseases section, to include the systemic hypertension. \nThe sequencing is based on the reason for the encounter.",
+          "id": "icd-10-cm_section_I_C_9_a_5",
+          "kind": "guideline",
+          "number": "IC9a5",
+          "path": [
+            "I",
+            "C",
+            "9",
+            "a",
+            "5"
+          ],
+          "scope": "chapter",
+          "sections": [],
+          "title": "Hypertensive Retinopathy"
+        },
+        {
+          "codes": [
+            "I51.4",
+            "I51.89",
+            "I51.9",
+            "I11",
+            "I50",
+            "I51",
+            "I51.5",
+            "I51.7",
+            "I10",
+            "I15"
+          ],
+          "content": "Hypertension with heart conditions classified to I50.-, Heart failure, \nI51.4, Myocarditis, unspecified, I51.89, Other ill-defined heart \ndiseases, and I51.9, Heart disease, unspecified, is assigned to a code \nfrom category I11, Hypertensive heart disease. Use additional \ncode(s) from category I50, Heart failure, or I51, Complications and \nill-defined descriptions of heart disease, to identify the heart \ncondition.  \n \nHypertension with heart conditions classified to I51.5, Myocardial \ndegeneration, or I51.7, Cardiomegaly, is assigned to a code from \ncategory I11, Hypertensive heart disease. No additional code is \nassigned to identify the specific heart condition.  \n \nThe same heart conditions (I50.-, I51.4-I51.7, I51.89, I51.9) with \nhypertension are coded separately if the provider has documented they \nare unrelated to the hypertension. The applicable hypertension code \nI10, Essential (primary) hypertension, or a code from category I15, \nSecondary hypertension, should be assigned. Sequence according to \nthe circumstances of the admission/encounter.",
+          "id": "icd-10-cm_section_I_C_9_a_1",
+          "kind": "guideline",
+          "number": "IC9a1",
+          "path": [
+            "I",
+            "C",
+            "9",
+            "a",
+            "1"
+          ],
+          "scope": "chapter",
+          "sections": [],
+          "title": "Hypertension with Heart Disease"
+        }
+      ],
+      "next_steps": [
+        {
+          "reason": "Check whether a specific code is assignable",
+          "tool": "verify"
+        },
+        {
+          "reason": "Browse the codes a guideline refers to",
+          "tool": "explore"
+        },
+        {
+          "reason": "To assign the codes for a clinical note, use predict (optionally with include/exclude filters)",
+          "tool": "predict"
+        }
+      ]
+    },
+    {
+      "assignable": true,
+      "code": "I10",
+      "description": "Essential (primary) hypertension",
+      "next_steps": [
+        {
+          "reason": "Compare with related codes if this isn't the best fit",
+          "tool": "explore"
+        },
+        {
+          "reason": "Check chapter-level coding conventions for this code area",
+          "tool": "guidelines"
+        }
+      ],
+      "parents": [
+        {
+          "code": "I10-I1A",
+          "description": "Hypertensive diseases (I10-I1A)"
+        },
+        {
+          "code": "9",
+          "description": "Diseases of the circulatory system (I00-I99)"
+        }
+      ]
+    }
+  ],
+  "status_events": [
+    {
+      "state": "working"
+    },
+    {
+      "state": "working"
+    },
+    {
+      "message": "Calling expert: coding-expert",
+      "state": "working"
+    }
+  ],
+  "finish_metadata": {
+    "contextId": "019f55d2-e116-730f-9852-45682ffe64bf",
+    "taskId": "019f55d2-e116-727a-b30b-481b4dbd8b88",
+    "credits": 0.06002,
+    "state": "completed"
+  },
+  "parsed": {
+    "encounter_summary": "- 65-year-old male with a 10-year history of hypertension treated with valsartan 80 mg daily.\n- Current blood pressure is documented as 132/82.\n- Cardiac evaluation notes: \"Echocardiogram: LVEF 65%, normal wall motion, no LVH. ECG: sinus rhythm.\"\n- Documented diagnosis: \"essential hypertension grade 1 (well controlled), no target organ damage.\"",
+    "gaps": [],
+    "gap_count": 0,
+    "queries": [],
+    "query_count": 0,
+    "specialists_contacted": [
+      "Medical Coding Expert",
+      "Coding Expert"
+    ],
+    "specialist_trace_text": "- Medical Coding Expert: Consulted.\n  - Requested: Review for coding specificity, CDI gaps, and compliant query opportunities.\n  - Accepted: Essential (primary) hypertension corresponds to ICD-10-CM I10; chapter guidelines indicate controlled hypertension is still coded from I10-I15, and no evidence supports hypertensive heart disease/CKD/crisis categories here.\n  - Rejected/unused: No unsupported expansion to other hypertensive diagnoses because the chart excerpt does not document them.",
+    "has_specialist_trace": true
+  },
+  "error": "",
+  "text": "Encounter Summary:\n- 65-year-old male with a 10-year history of hypertension treated with valsartan 80 mg daily.\n- Current blood pressure is documented as 132/82.\n- Cardiac evaluation notes: \"Echocardiogram: LVEF 65%, normal wall motion, no LVH. ECG: sinus rhythm.\"\n- Documented diagnosis: \"essential hypertension grade 1 (well controlled), no target organ damage.\"\n\nDocumentation Gaps:\n- No clear CDI query opportunity identified from the excerpt.\n  - Why it matters: The diagnosis is already documented with adequate specificity for ICD-10-CM hypertension coding in this excerpt.\n  - Evidence quote: \"Diagnosis: essential hypertension grade 1 (well controlled), no target organ damage.\"\n  - Minimal clarification needed: None required for the documented condition based on the available text.\n\nProposed Provider Queries:\n- None recommended.\n  - Reason: The excerpt already supports essential (primary) hypertension, and there is no documented heart disease, CKD, hypertensive crisis, or secondary cause requiring clarification.\n  - Supporting evidence:\n    - \"Diagnosis: essential hypertension grade 1 (well controlled), no target organ damage.\"\n    - \"Echocardiogram: LVEF 65%, normal wall motion, no LVH. ECG: sinus rhythm.\"\n\nCoding Specificity Checklist:\n- Hypertension type documented: essential/primary.\n- Control status documented: well controlled.\n- No target organ damage documented.\n- No evidence in excerpt of hypertensive heart disease, hypertensive CKD, hypertensive heart/CKD combination, secondary hypertension, or hypertensive crisis.\n- ICD-10-CM alignment: essential (primary) hypertension maps to I10.\n- Note: \"grade 1\" is clinically descriptive here but does not create a more specific ICD-10-CM hypertension code in the provided coding references.\n\nRisk Flags:\n- No direct contradictions identified in the excerpt.\n- \"Grade 1\" may be terminology used in clinical classification, but for ICD-10-CM the available coding references support I10 for essential (primary) hypertension.\n- No unsupported additional diagnoses should be added from this excerpt.\n\nSpecialist Trace:\n- Medical Coding Expert: Consulted.\n  - Requested: Review for coding specificity, CDI gaps, and compliant query opportunities.\n  - Accepted: Essential (primary) hypertension corresponds to ICD-10-CM I10; chapter guidelines indicate controlled hypertension is still coded from I10-I15, and no evidence supports hypertensive heart disease/CKD/crisis categories here.\n  - Rejected/unused: No unsupported expansion to other hypertensive diagnoses because the chart excerpt does not document them."
+}

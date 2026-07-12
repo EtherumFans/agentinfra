@@ -1,0 +1,100 @@
+{
+  "case_id": "G8-CDI-GAP-009",
+  "group": "clear_gap",
+  "variant": "",
+  "session_id": "3b209eb1-97f5-4616-aa34-5ff3b79a4b28",
+  "attempt": 1,
+  "outcome": "SUCCESS",
+  "elapsed_s": 39.93,
+  "expected": {
+    "query_count_min": 1,
+    "query_count_max": 2,
+    "expected_no_query": false,
+    "expected_query_topics": [
+      "胆总管结石",
+      "choledocholithiasis",
+      "胆管炎",
+      "cholangitis"
+    ],
+    "notes": "CBD dilated + biliary obstruction labs suggest choledocholithiasis not documented"
+  },
+  "text_length": 6278,
+  "first_token_at_s": 3.75,
+  "last_token_at_s": 39.92,
+  "event_count": 9,
+  "raw_events_preview": [
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"id\":\"1a177352-8593-4242-a8da-e1e1b5264961\",\"type\":\"text-start\"}",
+    "message|{\"delta\":\"Encounter Summary:\\n- 50-year-old female admitted with documented \\\"acute cholecystitis.\\\"\\n- Symptoms/signs documented: \\\"right upper quadrant pain for 2 days\\\" and \\\"Murphy sign positive.\\",
+    "message|{\"id\":\"1a177352-8593-4242-a8da-e1e1b5264961\",\"type\":\"text-end\"}",
+    "message|{\"messageMetadata\":{\"contextId\":\"019f55c5-d037-77c3-8799-3063db85bcd4\",\"taskId\":\"019f55c5-d037-774f-b61e-a9780e87df92\",\"credits\":0.07020799999999999,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+    "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.07020799999999999},\"type\":\"finish\"}",
+    "message|[DONE]"
+  ],
+  "expert_events": [],
+  "status_events": [
+    {
+      "state": "working"
+    },
+    {
+      "state": "working"
+    },
+    {
+      "message": "Calling expert: coding-expert",
+      "state": "working"
+    }
+  ],
+  "finish_metadata": {
+    "contextId": "019f55c5-d037-77c3-8799-3063db85bcd4",
+    "taskId": "019f55c5-d037-774f-b61e-a9780e87df92",
+    "credits": 0.07020799999999999,
+    "state": "completed"
+  },
+  "parsed": {
+    "encounter_summary": "- 50-year-old female admitted with documented \"acute cholecystitis.\"\n- Symptoms/signs documented: \"right upper quadrant pain for 2 days\" and \"Murphy sign positive.\"\n- Ultrasound documents \"gallbladder wall thickening, multiple gallstones, common bile duct diameter 9mm.\"\n- Liver tests are abnormal: \"ALT 120, AST 95, ALP 280, TBIL 45.\"",
+    "gaps": [
+      {
+        "idx": 1,
+        "text": "Gap: Etiology/type of acute cholecystitis is not specified.\n- Why it matters: Coding specificity often depends on whether the cholecystitis is calculous versus acalculous and whether obstruction is present.\n- Evidence quote: \"Ultrasound: gallbladder wall thickening, multiple gallstones\" and \"Admission diagnosis: acute cholecystitis.\"\n- Minimal clarification needed: Whether the acute cholecystitis is associated with gallstones and whether any biliary obstruction is present."
+      },
+      {
+        "idx": 2,
+        "text": "Gap: Possible biliary obstruction/choledochal involvement is not clarified.\n- Why it matters: The excerpt shows possible obstructive features, but no diagnosis is documented to explain them. Clarification may affect diagnosis capture and code selection.\n- Evidence quote: \"common bile duct diameter 9mm\" and \"ALP 280, TBIL 45.\"\n- Minimal clarification needed: Whether the abnormal imaging/labs reflect biliary obstruction, another hepatobiliary process, or no clinically significant additional diagno"
+      },
+      {
+        "idx": 3,
+        "text": "Gap: Abnormal liver tests are present without documented clinical interpretation.\n- Why it matters: Abnormal LFTs alone are not equivalent to a diagnosis; provider interpretation is needed if clinically significant.\n- Evidence quote: \"ALT 120, AST 95, ALP 280, TBIL 45.\"\n- Minimal clarification needed: Whether these abnormalities are due to the gallbladder process, obstruction, another hepatic/biliary condition, or are nonspecific."
+      },
+      {
+        "idx": 4,
+        "text": "Gap: Severity/complication status of cholecystitis is not described.\n- Why it matters: If complications such as gangrene, perforation, abscess/empyema, or acute-on-chronic disease are present, they require explicit documentation. The current excerpt does not document any.\n- Evidence quote: \"Admission diagnosis: acute cholecystitis\" with no further descriptors.\n- Minimal clarification needed: Whether any complication or additional specificity is present; if not, no further clarification may be ne"
+      }
+    ],
+    "gap_count": 4,
+    "queries": [
+      {
+        "idx": 1,
+        "text": "Specific type of acute cholecystitis"
+      },
+      {
+        "idx": 2,
+        "text": "Clinical significance of possible biliary obstruction"
+      },
+      {
+        "idx": 3,
+        "text": "Interpretation of abnormal liver tests"
+      }
+    ],
+    "query_count": 3,
+    "specialists_contacted": [
+      "Medical Coding Expert",
+      "Coding Expert"
+    ],
+    "specialist_trace_text": "- Medical Coding Expert: Consulted for coding specificity and query targets. Output could not be validated because the expert reported internal tool failure and did not provide usable coding analysis. Rejected due to lack of substantive, chart-grounded content.\n- AMBOSS Expert: Not consulted. The excerpt provides enough documented indicators to identify CDI clarification opportunities without needing external clinical criteria.\n- CDI Web Search Expert: Not consulted. No current external guideline citation was required to produce conservative, chart-grounded clarification queries.",
+    "has_specialist_trace": true
+  },
+  "error": "",
+  "text": "Encounter Summary:\n- 50-year-old female admitted with documented \"acute cholecystitis.\"\n- Symptoms/signs documented: \"right upper quadrant pain for 2 days\" and \"Murphy sign positive.\"\n- Ultrasound documents \"gallbladder wall thickening, multiple gallstones, common bile duct diameter 9mm.\"\n- Liver tests are abnormal: \"ALT 120, AST 95, ALP 280, TBIL 45.\"\n\nDocumentation Gaps:\n1. Gap: Etiology/type of acute cholecystitis is not specified.\n- Why it matters: Coding specificity often depends on whether the cholecystitis is calculous versus acalculous and whether obstruction is present.\n- Evidence quote: \"Ultrasound: gallbladder wall thickening, multiple gallstones\" and \"Admission diagnosis: acute cholecystitis.\"\n- Minimal clarification needed: Whether the acute cholecystitis is associated with gallstones and whether any biliary obstruction is present.\n\n2. Gap: Possible biliary obstruction/choledochal involvement is not clarified.\n- Why it matters: The excerpt shows possible obstructive features, but no diagnosis is documented to explain them. Clarification may affect diagnosis capture and code selection.\n- Evidence quote: \"common bile duct diameter 9mm\" and \"ALP 280, TBIL 45.\"\n- Minimal clarification needed: Whether the abnormal imaging/labs reflect biliary obstruction, another hepatobiliary process, or no clinically significant additional diagnosis.\n\n3. Gap: Abnormal liver tests are present without documented clinical interpretation.\n- Why it matters: Abnormal LFTs alone are not equivalent to a diagnosis; provider interpretation is needed if clinically significant.\n- Evidence quote: \"ALT 120, AST 95, ALP 280, TBIL 45.\"\n- Minimal clarification needed: Whether these abnormalities are due to the gallbladder process, obstruction, another hepatic/biliary condition, or are nonspecific.\n\n4. Gap: Severity/complication status of cholecystitis is not described.\n- Why it matters: If complications such as gangrene, perforation, abscess/empyema, or acute-on-chronic disease are present, they require explicit documentation. The current excerpt does not document any.\n- Evidence quote: \"Admission diagnosis: acute cholecystitis\" with no further descriptors.\n- Minimal clarification needed: Whether any complication or additional specificity is present; if not, no further clarification may be needed.\n\nProposed Provider Queries:\n1. Topic: Specific type of acute cholecystitis\n- Reason query is needed: The diagnosis is documented only as acute cholecystitis, while ultrasound also shows gallstones.\n- Evidence quote: \"Ultrasound: gallbladder wall thickening, multiple gallstones\" and \"Admission diagnosis: acute cholecystitis.\"\n- Non-leading query text: \"Based on the documented admission diagnosis of acute cholecystitis and ultrasound findings of gallbladder wall thickening with multiple gallstones, please clarify the specific type of cholecystitis for this encounter, if known.\"\n- Suggested response options:\n  - Acute calculous cholecystitis\n  - Acute acalculous cholecystitis\n  - Acute cholecystitis, type unable to determine\n  - Other specified diagnosis: ____\n\n2. Topic: Clinical significance of possible biliary obstruction\n- Reason query is needed: Imaging and laboratory abnormalities may indicate an additional hepatobiliary diagnosis, but none is explicitly documented.\n- Evidence quote: \"common bile duct diameter 9mm\"; \"ALP 280, TBIL 45\"; \"Admission diagnosis: acute cholecystitis.\"\n- Non-leading query text: \"In the setting of acute cholecystitis with ultrasound showing common bile duct diameter 9 mm and elevated ALP/bilirubin, please clarify whether there is an additional clinically significant hepatobiliary condition or explanation for these findings during this encounter.\"\n- Suggested response options:\n  - Biliary obstruction\n  - Choledocholithiasis\n  - Abnormal liver tests related to acute cholecystitis without additional diagnosis\n  - Other specified condition: ____\n  - Clinically undetermined\n\n3. Topic: Interpretation of abnormal liver tests\n- Reason query is needed: The record includes abnormal liver tests without provider interpretation.\n- Evidence quote: \"ALT 120, AST 95, ALP 280, TBIL 45.\"\n- Non-leading query text: \"Please clarify the clinical significance of the documented abnormal liver tests (ALT 120, AST 95, ALP 280, TBIL 45) for this encounter, if any.\"\n- Suggested response options:\n  - Due to biliary process/cholecystitis\n  - Due to biliary obstruction\n  - Due to another hepatic/biliary condition: ____\n  - Not clinically significant / no additional diagnosis\n  - Clinically undetermined\n\nCoding Specificity Checklist:\n- Whether cholecystitis is calculous or acalculous\n- Whether obstruction is present\n- Any additional biliary diagnosis such as choledocholithiasis, if supported and clinically determined by the provider\n- Any complication of cholecystitis, such as gangrene, perforation, abscess/empyema, if present\n- Relationship of abnormal liver tests/hyperbilirubinemia to the documented condition\n\nRisk Flags:\n- Possible underdocumentation: gallstones are documented on ultrasound, but the admission diagnosis does not specify calculous cholecystitis.\n- Possible additional undocumented condition: \"common bile duct diameter 9mm\" with elevated cholestatic markers may indicate another biliary process, but this is not explicitly diagnosed in the excerpt.\n- Insufficient evidence to query complications such as cholangitis, pancreatitis, sepsis, gangrene, perforation, or abscess because none are documented in the excerpt.\n- The query option set for obstruction/choledocholithiasis should be used carefully; these are not established diagnoses in the excerpt and must remain clarifying, not leading.\n\nSpecialist Trace:\n- Medical Coding Expert: Consulted for coding specificity and query targets. Output could not be validated because the expert reported internal tool failure and did not provide usable coding analysis. Rejected due to lack of substantive, chart-grounded content.\n- AMBOSS Expert: Not consulted. The excerpt provides enough documented indicators to identify CDI clarification opportunities without needing external clinical criteria.\n- CDI Web Search Expert: Not consulted. No current external guideline citation was required to produce conservative, chart-grounded clarification queries."
+}

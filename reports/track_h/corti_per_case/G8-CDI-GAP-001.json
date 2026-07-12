@@ -1,0 +1,368 @@
+{
+  "case_id": "G8-CDI-GAP-001",
+  "group": "clear_gap",
+  "variant": "",
+  "session_id": "743824bb-2a76-4220-b116-df13281bb91c",
+  "attempt": 1,
+  "outcome": "SUCCESS",
+  "elapsed_s": 35.44,
+  "expected": {
+    "query_count_min": 1,
+    "query_count_max": 3,
+    "expected_no_query": false,
+    "expected_query_topics": [
+      "肺炎严重程度",
+      "pneumonia severity",
+      "CAP vs HAP",
+      "社区获得性 vs 医院获得性"
+    ],
+    "notes": "Severity (CURB-65 / PSI) not documented; type of pneumonia (CAP/HAP) ambiguous"
+  },
+  "text_length": 6006,
+  "first_token_at_s": 3.88,
+  "last_token_at_s": 35.44,
+  "event_count": 13,
+  "raw_events_preview": [
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"codes\":[{\"alternatives\":[{\"code\":\"J18.9\",\"display\":\"Pneumonia, unspecified organism\"},{\"code\":\"J98.4\",\"display\":\"Other disorders of lung\"}],\"code\":\"J18.8\",\"display\":\"Other pneumonia, unspeci",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"J18.8\",\"code_system\":\"icd-10-cm\",\"description\":\"Other pneumonia, unspecified organism\",\"next_steps\":[{\"reason\":\"Read coding conventions for this code area\",\"tool\":\"g",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"E11.9\",\"code_system\":\"icd-10-cm\",\"description\":\"Type 2 diabetes mellitus without complications\",\"next_steps\":[{\"reason\":\"Read coding conventions for this code area\",",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"I10\",\"code_system\":\"icd-10-cm\",\"description\":\"Essential (primary) hypertension\",\"next_steps\":[{\"reason\":\"Read coding conventions for this code area\",\"tool\":\"guidelin",
+    "message|{\"id\":\"a7d45c03-aa63-46b5-bd11-570a562a0154\",\"type\":\"text-start\"}",
+    "message|{\"delta\":\"Encounter Summary:\\n- 64-year-old male admitted with \\\"productive cough and fever for 3 days.\\\"\\n- Objective findings supporting pulmonary infection include \\\"Chest X-ray shows right lower l",
+    "message|{\"id\":\"a7d45c03-aa63-46b5-bd11-570a562a0154\",\"type\":\"text-end\"}",
+    "message|{\"messageMetadata\":{\"contextId\":\"019f55b6-435b-7532-8623-c5eedb0d6b00\",\"taskId\":\"019f55b6-435b-74b7-8c97-2acefdb03182\",\"credits\":0.096236,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+    "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.096236},\"type\":\"finish\"}",
+    "message|[DONE]"
+  ],
+  "expert_events": [
+    {
+      "codes": [
+        {
+          "alternatives": [
+            {
+              "code": "J18.9",
+              "display": "Pneumonia, unspecified organism"
+            },
+            {
+              "code": "J98.4",
+              "display": "Other disorders of lung"
+            }
+          ],
+          "code": "J18.8",
+          "display": "Other pneumonia, unspecified organism",
+          "evidences": [
+            {
+              "contextIndex": 0,
+              "end": 116,
+              "start": 70,
+              "text": "Chest X-ray shows right lower lobe infiltrate."
+            },
+            {
+              "contextIndex": 0,
+              "end": 167,
+              "start": 136,
+              "text": "Admission diagnosis: pneumonia."
+            }
+          ],
+          "system": "icd10cm-inpatient"
+        },
+        {
+          "alternatives": [
+            {
+              "code": "E10.9",
+              "display": "Type 1 diabetes mellitus without complications"
+            },
+            {
+              "code": "E11.65",
+              "display": "Type 2 diabetes mellitus with hyperglycemia"
+            }
+          ],
+          "code": "E11.9",
+          "display": "Type 2 diabetes mellitus without complications",
+          "evidences": [
+            {
+              "contextIndex": 0,
+              "end": 248,
+              "start": 209,
+              "text": "History: type 2 diabetes, hypertension."
+            }
+          ],
+          "system": "icd10cm-inpatient"
+        },
+        {
+          "alternatives": [
+            {
+              "code": "I13.10",
+              "display": "Hypertensive heart and chronic kidney disease without heart failure, with stage 1 through stage 4 chronic kidney disease, or unspecified chronic kidney disease"
+            }
+          ],
+          "code": "I10",
+          "display": "Essential (primary) hypertension",
+          "evidences": [
+            {
+              "contextIndex": 0,
+              "end": 248,
+              "start": 209,
+              "text": "History: type 2 diabetes, hypertension."
+            }
+          ],
+          "system": "icd10cm-inpatient"
+        }
+      ],
+      "next_steps": [
+        {
+          "reason": "See related codes and alternatives around each predicted code",
+          "tool": "explore"
+        },
+        {
+          "reason": "Check chapter-level coding conventions and rules",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "Confirm each code is assignable and check instructional notes",
+          "tool": "verify"
+        }
+      ],
+      "potential_codes": [],
+      "usage": null
+    },
+    {
+      "assignable": true,
+      "code": "J18.8",
+      "code_system": "icd-10-cm",
+      "description": "Other pneumonia, unspecified organism",
+      "next_steps": [
+        {
+          "reason": "Read coding conventions for this code area",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "Check whether a specific code is assignable",
+          "tool": "verify"
+        },
+        {
+          "reason": "Explore a related or more specific code",
+          "tool": "explore"
+        }
+      ],
+      "parent": {
+        "code": "J18",
+        "description": "Pneumonia, unspecified organism"
+      },
+      "related_codes": [
+        {
+          "assignable": true,
+          "code": "J18.0",
+          "description": "Bronchopneumonia, unspecified organism"
+        },
+        {
+          "assignable": true,
+          "code": "J18.1",
+          "description": "Lobar pneumonia, unspecified organism"
+        },
+        {
+          "assignable": true,
+          "code": "J18.2",
+          "description": "Hypostatic pneumonia, unspecified organism"
+        },
+        {
+          "assignable": true,
+          "code": "J18.9",
+          "description": "Pneumonia, unspecified organism"
+        }
+      ],
+      "total_related": 4
+    },
+    {
+      "assignable": true,
+      "code": "E11.9",
+      "code_system": "icd-10-cm",
+      "description": "Type 2 diabetes mellitus without complications",
+      "next_steps": [
+        {
+          "reason": "Read coding conventions for this code area",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "Check whether a specific code is assignable",
+          "tool": "verify"
+        },
+        {
+          "reason": "Explore a related or more specific code",
+          "tool": "explore"
+        }
+      ],
+      "parent": {
+        "code": "E11",
+        "description": "Type 2 diabetes mellitus"
+      },
+      "related_codes": [
+        {
+          "assignable": false,
+          "code": "E11.0",
+          "description": "Type 2 diabetes mellitus with hyperosmolarity"
+        },
+        {
+          "assignable": false,
+          "code": "E11.1",
+          "description": "Type 2 diabetes mellitus with ketoacidosis"
+        },
+        {
+          "assignable": false,
+          "code": "E11.2",
+          "description": "Type 2 diabetes mellitus with kidney complications"
+        },
+        {
+          "assignable": false,
+          "code": "E11.3",
+          "description": "Type 2 diabetes mellitus with ophthalmic complications"
+        },
+        {
+          "assignable": false,
+          "code": "E11.4",
+          "description": "Type 2 diabetes mellitus with neurological complications"
+        },
+        {
+          "assignable": false,
+          "code": "E11.5",
+          "description": "Type 2 diabetes mellitus with circulatory complications"
+        },
+        {
+          "assignable": false,
+          "code": "E11.6",
+          "description": "Type 2 diabetes mellitus with other specified complications"
+        },
+        {
+          "assignable": true,
+          "code": "E11.8",
+          "description": "Type 2 diabetes mellitus with unspecified complications"
+        },
+        {
+          "assignable": true,
+          "code": "E11.A",
+          "description": "Type 2 diabetes mellitus without complications in remission"
+        }
+      ],
+      "total_related": 9
+    },
+    {
+      "assignable": true,
+      "code": "I10",
+      "code_system": "icd-10-cm",
+      "description": "Essential (primary) hypertension",
+      "next_steps": [
+        {
+          "reason": "Read coding conventions for this code area",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "Check whether a specific code is assignable",
+          "tool": "verify"
+        },
+        {
+          "reason": "Explore a related or more specific code",
+          "tool": "explore"
+        }
+      ],
+      "parent": {
+        "code": "I10-I1A",
+        "description": "Hypertensive diseases (I10-I1A)"
+      },
+      "related_codes": [
+        {
+          "assignable": false,
+          "code": "I11",
+          "description": "Hypertensive heart disease"
+        },
+        {
+          "assignable": false,
+          "code": "I12",
+          "description": "Hypertensive chronic kidney disease"
+        },
+        {
+          "assignable": false,
+          "code": "I13",
+          "description": "Hypertensive heart and chronic kidney disease"
+        },
+        {
+          "assignable": false,
+          "code": "I15",
+          "description": "Secondary hypertension"
+        },
+        {
+          "assignable": false,
+          "code": "I16",
+          "description": "Hypertensive crisis"
+        },
+        {
+          "assignable": false,
+          "code": "I1A",
+          "description": "Other hypertension"
+        }
+      ],
+      "total_related": 6
+    }
+  ],
+  "status_events": [
+    {
+      "state": "working"
+    },
+    {
+      "state": "working"
+    },
+    {
+      "message": "Calling expert: coding-expert",
+      "state": "working"
+    }
+  ],
+  "finish_metadata": {
+    "contextId": "019f55b6-435b-7532-8623-c5eedb0d6b00",
+    "taskId": "019f55b6-435b-74b7-8c97-2acefdb03182",
+    "credits": 0.096236,
+    "state": "completed"
+  },
+  "parsed": {
+    "encounter_summary": "- 64-year-old male admitted with \"productive cough and fever for 3 days.\"\n- Objective findings supporting pulmonary infection include \"Chest X-ray shows right lower lobe infiltrate,\" \"WBC 14.5,\" and \"T 38.3C.\"\n- Admission diagnosis documented as \"pneumonia.\"\n- Treatment started with \"ceftriaxone and azithromycin.\"\n- Past history includes \"type 2 diabetes, hypertension.\"",
+    "gaps": [
+      {
+        "idx": 1,
+        "text": "Pneumonia lacks organism/type specificity\n- Why it matters: The documented diagnosis supports pneumonia, but the organism and more specific pneumonia type are not documented. Coding options vary from unspecified pneumonia to more specific pneumonia descriptions.\n- Evidence quote(s): \"Admission diagnosis: pneumonia.\" and \"Chest X-ray shows right lower lobe infiltrate.\"\n- Minimal clarification needed: Clarify the pneumonia type/etiology if known (for example, organism or more specific descriptive "
+      },
+      {
+        "idx": 2,
+        "text": "Type 2 diabetes lacks complication/status specificity\n- Why it matters: The excerpt documents diabetes history, but does not state whether there are any associated complications or whether it is uncomplicated in this encounter.\n- Evidence quote(s): \"History: type 2 diabetes, hypertension.\"\n- Minimal clarification needed: Clarify whether type 2 diabetes is with complications, without complications, or not clinically relevant to this encounter."
+      },
+      {
+        "idx": 3,
+        "text": "Hypertension lacks specificity beyond history\n- Why it matters: Hypertension is listed in history only, without whether it is an active monitored comorbidity for this admission or whether there are associated hypertensive diseases documented elsewhere.\n- Evidence quote(s): \"History: type 2 diabetes, hypertension.\"\n- Minimal clarification needed: Clarify whether hypertension is an active coexisting condition addressed/monitored during the admission, and document any linked hypertensive disease on"
+      }
+    ],
+    "gap_count": 3,
+    "queries": [
+      {
+        "idx": 1,
+        "text": "Pneumonia specificity"
+      },
+      {
+        "idx": 2,
+        "text": "Type 2 diabetes status/specificity"
+      },
+      {
+        "idx": 3,
+        "text": "Hypertension status/relevance to encounter"
+      }
+    ],
+    "query_count": 3,
+    "specialists_contacted": [
+      "Medical Coding Expert",
+      "Coding Expert"
+    ],
+    "specialist_trace_text": "- Medical Coding Expert: Consulted for coding specificity and compliant query targets. Accepted: need for greater specificity around pneumonia, diabetes, and hypertension based on documented terms and available code families. Rejected/limited: any implication of undocumented complications, organism, or linked hypertensive disease because the excerpt does not support them.\n- AMBOSS Expert: Not consulted. Clinical criteria clarification was not necessary to identify the conservative CDI gaps supported by this excerpt.\n- CDI Web Search Expert: Not consulted. No current external policy reference was required to produce evidence-based, chart-supported clarification queries.\n\nCoding context from expert output:\n- Supported code families suggested by the coding expert include pneumonia in the unspecified/other pneumonia range (including J18.8/J18.9 alternatives depending final provider wording), type 2 diabetes mellitus without complications as a default documented option (E11.9 absent further specificity), and essential hypertension (I10) absent further specificity.",
+    "has_specialist_trace": true
+  },
+  "error": "",
+  "text": "Encounter Summary:\n- 64-year-old male admitted with \"productive cough and fever for 3 days.\"\n- Objective findings supporting pulmonary infection include \"Chest X-ray shows right lower lobe infiltrate,\" \"WBC 14.5,\" and \"T 38.3C.\"\n- Admission diagnosis documented as \"pneumonia.\"\n- Treatment started with \"ceftriaxone and azithromycin.\"\n- Past history includes \"type 2 diabetes, hypertension.\"\n\nDocumentation Gaps:\n1. Pneumonia lacks organism/type specificity\n- Why it matters: The documented diagnosis supports pneumonia, but the organism and more specific pneumonia type are not documented. Coding options vary from unspecified pneumonia to more specific pneumonia descriptions.\n- Evidence quote(s): \"Admission diagnosis: pneumonia.\" and \"Chest X-ray shows right lower lobe infiltrate.\"\n- Minimal clarification needed: Clarify the pneumonia type/etiology if known (for example, organism or more specific descriptive type) or document if clinically undetermined.\n\n2. Type 2 diabetes lacks complication/status specificity\n- Why it matters: The excerpt documents diabetes history, but does not state whether there are any associated complications or whether it is uncomplicated in this encounter.\n- Evidence quote(s): \"History: type 2 diabetes, hypertension.\"\n- Minimal clarification needed: Clarify whether type 2 diabetes is with complications, without complications, or not clinically relevant to this encounter.\n\n3. Hypertension lacks specificity beyond history\n- Why it matters: Hypertension is listed in history only, without whether it is an active monitored comorbidity for this admission or whether there are associated hypertensive diseases documented elsewhere.\n- Evidence quote(s): \"History: type 2 diabetes, hypertension.\"\n- Minimal clarification needed: Clarify whether hypertension is an active coexisting condition addressed/monitored during the admission, and document any linked hypertensive disease only if clinically present and supported elsewhere.\n\nProposed Provider Queries:\n1. Topic: Pneumonia specificity\n- Reason query is needed: Pneumonia is documented, but the documentation does not identify a more specific type or etiology.\n- Evidence quote(s): \"Admission diagnosis: pneumonia.\"; \"Chest X-ray shows right lower lobe infiltrate.\"; \"Started on ceftriaxone and azithromycin.\"\n- Non-leading query text: \"For this admission with documented pneumonia, please clarify the most specific diagnosis for the pneumonia, if known.\"\n- Suggested response options:\n  - Pneumonia, organism unspecified\n  - Lobar pneumonia\n  - Bronchopneumonia\n  - Pneumonia due to a specified organism (please specify)\n  - Other type of pneumonia (please specify)\n  - Clinically undetermined\n\n2. Topic: Type 2 diabetes status/specificity\n- Reason query is needed: Diabetes is documented in past history, but complication/status specificity is not provided in the excerpt.\n- Evidence quote(s): \"History: type 2 diabetes, hypertension.\"\n- Non-leading query text: \"Please clarify the status of the documented type 2 diabetes mellitus for this admission, if clinically relevant.\"\n- Suggested response options:\n  - Type 2 diabetes mellitus without complications\n  - Type 2 diabetes mellitus with complications (please specify)\n  - Historical condition not affecting this admission\n  - Other (please specify)\n  - Clinically undetermined\n\n3. Topic: Hypertension status/relevance to encounter\n- Reason query is needed: Hypertension is documented in history, but its active relevance to this admission is not clear from the excerpt.\n- Evidence quote(s): \"History: type 2 diabetes, hypertension.\"\n- Non-leading query text: \"Please clarify the status of the documented hypertension for this admission, if clinically relevant.\"\n- Suggested response options:\n  - Essential (primary) hypertension\n  - Hypertension with associated condition (please specify if documented and clinically supported)\n  - Historical condition not affecting this admission\n  - Other (please specify)\n  - Clinically undetermined\n\nCoding Specificity Checklist:\n- Pneumonia: specify organism if known; specify type/pattern if documented more specifically than generic pneumonia; document if clinically undetermined when appropriate.\n- Type 2 diabetes: document whether with or without complications; specify any linked manifestations if present.\n- Hypertension: document whether active and monitored during admission; specify associated hypertensive disease only when clinically documented.\n\nRisk Flags:\n- No explicit causative organism for pneumonia is documented.\n- \"Pneumonia\" is broad and may default to unspecified coding if not clarified.\n- Diabetes and hypertension appear only under history in the excerpt; active inpatient relevance is not explicit.\n- Insufficient evidence in the excerpt to query sepsis, respiratory failure, aspiration pneumonia, or diabetic complications. Those topics should not be queried from the current documentation alone.\n\nSpecialist Trace:\n- Medical Coding Expert: Consulted for coding specificity and compliant query targets. Accepted: need for greater specificity around pneumonia, diabetes, and hypertension based on documented terms and available code families. Rejected/limited: any implication of undocumented complications, organism, or linked hypertensive disease because the excerpt does not support them.\n- AMBOSS Expert: Not consulted. Clinical criteria clarification was not necessary to identify the conservative CDI gaps supported by this excerpt.\n- CDI Web Search Expert: Not consulted. No current external policy reference was required to produce evidence-based, chart-supported clarification queries.\n\nCoding context from expert output:\n- Supported code families suggested by the coding expert include pneumonia in the unspecified/other pneumonia range (including J18.8/J18.9 alternatives depending final provider wording), type 2 diabetes mellitus without complications as a default documented option (E11.9 absent further specificity), and essential hypertension (I10) absent further specificity."
+}

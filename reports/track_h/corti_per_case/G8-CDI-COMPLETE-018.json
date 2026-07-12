@@ -1,0 +1,669 @@
+{
+  "case_id": "G8-CDI-COMPLETE-018",
+  "group": "complete_chart",
+  "variant": "",
+  "session_id": "fcf52c8c-0eb7-43cd-a1b8-35a957b6028f",
+  "attempt": 1,
+  "outcome": "SUCCESS",
+  "elapsed_s": 36.03,
+  "expected": {
+    "query_count_min": 0,
+    "query_count_max": 0,
+    "expected_no_query": true,
+    "expected_query_topics": [],
+    "notes": "Normal first-trimester prenatal visit — fully documented"
+  },
+  "text_length": 4054,
+  "first_token_at_s": 3.23,
+  "last_token_at_s": 36.03,
+  "event_count": 14,
+  "raw_events_preview": [
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"code_system\":\"icd-10-cm\",\"count\":1,\"next_steps\":[{\"reason\":\"Browse related codes and alternatives in the same category\",\"tool\":\"explore\"},{\"reason\":\"Read coding conventions relevant to these",
+    "message|{\"data\":{\"codes\":[{\"alternatives\":[{\"code\":\"F45.8\",\"display\":\"Other somatoform disorders\"},{\"code\":\"O09.3\",\"display\":\"Supervision of pregnancy with insufficient antenatal care\"},{\"code\":\"O80\",\"display",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"Z34.91\",\"code_system\":\"icd-10-cm\",\"description\":\"Encounter for supervision of normal pregnancy, unspecified, first trimester\",\"next_steps\":[{\"reason\":\"Read coding co",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"Z3A.12\",\"code_system\":\"icd-10-cm\",\"description\":\"12 weeks gestation of pregnancy\",\"next_steps\":[{\"reason\":\"Read coding conventions for this code area\",\"tool\":\"guidel",
+    "message|{\"data\":{\"codes\":[\"ICD\"],\"content\":\"Guidelines for \\nOutpatient Services \\nThese coding guidelines for outpatient diagnoses have been approved for use by hospitals/ providers in \\ncoding and reporting",
+    "message|{\"id\":\"c1d47e38-af83-4136-ac3d-2f4534eeb32e\",\"type\":\"text-start\"}",
+    "message|{\"delta\":\"Encounter Summary:\\n- First prenatal outpatient visit for a 28-year-old female at 12 weeks gestation.\\n- Documentation describes a normal pregnancy evaluation: “Normal blood pressure, no ede",
+    "message|{\"id\":\"c1d47e38-af83-4136-ac3d-2f4534eeb32e\",\"type\":\"text-end\"}",
+    "message|{\"messageMetadata\":{\"contextId\":\"019f55d2-3672-7702-bb37-559f5311d5c6\",\"taskId\":\"019f55d2-3672-7686-882c-b71c2148c4a5\",\"credits\":0.10289999999999999,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+    "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.10289999999999999},\"type\":\"finish\"}",
+    "message|[DONE]"
+  ],
+  "expert_events": [
+    {
+      "code_system": "icd-10-cm",
+      "count": 1,
+      "next_steps": [
+        {
+          "reason": "Browse related codes and alternatives in the same category",
+          "tool": "explore"
+        },
+        {
+          "reason": "Read coding conventions relevant to these codes",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "To assign the codes for a clinical note, use predict (optionally with include/exclude filters)",
+          "tool": "predict"
+        }
+      ],
+      "query": "supervision normal first pregnancy 12 weeks gestation",
+      "results": [
+        {
+          "code": "Z3A.12",
+          "description": "12 weeks gestation of pregnancy",
+          "match_path": "Pregnancy, weeks of gestation, 12 weeks",
+          "related_codes": {
+            "category": "Z3A.1",
+            "category_description": "Weeks of gestation of pregnancy, weeks 10-19",
+            "count": 10
+          }
+        }
+      ]
+    },
+    {
+      "codes": [
+        {
+          "alternatives": [
+            {
+              "code": "F45.8",
+              "display": "Other somatoform disorders"
+            },
+            {
+              "code": "O09.3",
+              "display": "Supervision of pregnancy with insufficient antenatal care"
+            },
+            {
+              "code": "O80",
+              "display": "Encounter for full-term uncomplicated delivery"
+            },
+            {
+              "code": "Z33.1",
+              "display": "Pregnant state, incidental"
+            },
+            {
+              "code": "Z34.0",
+              "display": "Encounter for supervision of normal first pregnancy"
+            },
+            {
+              "code": "Z34.8",
+              "display": "Encounter for supervision of other normal pregnancy"
+            },
+            {
+              "code": "Z34.9",
+              "display": "Encounter for supervision of normal pregnancy, unspecified"
+            },
+            {
+              "code": "Z3A.11",
+              "display": "11 weeks gestation of pregnancy"
+            },
+            {
+              "code": "Z3A.13",
+              "display": "13 weeks gestation of pregnancy"
+            },
+            {
+              "code": "Z3A.14",
+              "display": "14 weeks gestation of pregnancy"
+            }
+          ],
+          "code": "Z3A.12",
+          "display": "12 weeks gestation of pregnancy",
+          "evidences": [
+            {
+              "contextIndex": 0,
+              "end": 62,
+              "start": 20,
+              "text": "first prenatal visit at 12 weeks gestation"
+            },
+            {
+              "contextIndex": 0,
+              "end": 335,
+              "start": 267,
+              "text": "Diagnosis: intrauterine pregnancy 12 weeks, singleton, viable fetus."
+            }
+          ],
+          "system": "icd10cm-outpatient"
+        },
+        {
+          "alternatives": [
+            {
+              "code": "Z34.90",
+              "display": "Encounter for supervision of normal pregnancy, unspecified, unspecified trimester"
+            },
+            {
+              "code": "Z34.92",
+              "display": "Encounter for supervision of normal pregnancy, unspecified, second trimester"
+            },
+            {
+              "code": "Z34.93",
+              "display": "Encounter for supervision of normal pregnancy, unspecified, third trimester"
+            },
+            {
+              "code": "O00.81",
+              "display": "Other ectopic pregnancy with intrauterine pregnancy"
+            },
+            {
+              "code": "O36.7",
+              "display": "Maternal care for viable fetus in abdominal pregnancy"
+            },
+            {
+              "code": "Z34.0",
+              "display": "Encounter for supervision of normal first pregnancy"
+            },
+            {
+              "code": "Z34.8",
+              "display": "Encounter for supervision of other normal pregnancy"
+            },
+            {
+              "code": "Z34.9",
+              "display": "Encounter for supervision of normal pregnancy, unspecified"
+            }
+          ],
+          "code": "Z34.91",
+          "display": "Encounter for supervision of normal pregnancy, unspecified, first trimester",
+          "evidences": [
+            {
+              "contextIndex": 0,
+              "end": 233,
+              "start": 182,
+              "text": "Fetal ultrasound: intrauterine pregnancy, singleton"
+            },
+            {
+              "contextIndex": 0,
+              "end": 335,
+              "start": 267,
+              "text": "Diagnosis: intrauterine pregnancy 12 weeks, singleton, viable fetus."
+            }
+          ],
+          "system": "icd10cm-outpatient"
+        }
+      ],
+      "next_steps": [
+        {
+          "reason": "See related codes and alternatives around each predicted code",
+          "tool": "explore"
+        },
+        {
+          "reason": "Check chapter-level coding conventions and rules",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "Confirm each code is assignable and check instructional notes",
+          "tool": "verify"
+        }
+      ],
+      "potential_codes": [],
+      "usage": null
+    },
+    {
+      "assignable": true,
+      "code": "Z34.91",
+      "code_system": "icd-10-cm",
+      "description": "Encounter for supervision of normal pregnancy, unspecified, first trimester",
+      "next_steps": [
+        {
+          "reason": "Read coding conventions for this code area",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "Check whether a specific code is assignable",
+          "tool": "verify"
+        },
+        {
+          "reason": "Explore a related or more specific code",
+          "tool": "explore"
+        }
+      ],
+      "parent": {
+        "code": "Z34.9",
+        "description": "Encounter for supervision of normal pregnancy, unspecified"
+      },
+      "related_codes": [
+        {
+          "assignable": true,
+          "code": "Z34.90",
+          "description": "Encounter for supervision of normal pregnancy, unspecified, unspecified trimester"
+        },
+        {
+          "assignable": true,
+          "code": "Z34.92",
+          "description": "Encounter for supervision of normal pregnancy, unspecified, second trimester"
+        },
+        {
+          "assignable": true,
+          "code": "Z34.93",
+          "description": "Encounter for supervision of normal pregnancy, unspecified, third trimester"
+        }
+      ],
+      "total_related": 3
+    },
+    {
+      "assignable": true,
+      "code": "Z3A.12",
+      "code_system": "icd-10-cm",
+      "description": "12 weeks gestation of pregnancy",
+      "next_steps": [
+        {
+          "reason": "Read coding conventions for this code area",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "Check whether a specific code is assignable",
+          "tool": "verify"
+        },
+        {
+          "reason": "Explore a related or more specific code",
+          "tool": "explore"
+        }
+      ],
+      "parent": {
+        "code": "Z3A.1",
+        "description": "Weeks of gestation of pregnancy, weeks 10-19"
+      },
+      "related_codes": [
+        {
+          "assignable": true,
+          "code": "Z3A.10",
+          "description": "10 weeks gestation of pregnancy"
+        },
+        {
+          "assignable": true,
+          "code": "Z3A.11",
+          "description": "11 weeks gestation of pregnancy"
+        },
+        {
+          "assignable": true,
+          "code": "Z3A.13",
+          "description": "13 weeks gestation of pregnancy"
+        },
+        {
+          "assignable": true,
+          "code": "Z3A.14",
+          "description": "14 weeks gestation of pregnancy"
+        },
+        {
+          "assignable": true,
+          "code": "Z3A.15",
+          "description": "15 weeks gestation of pregnancy"
+        },
+        {
+          "assignable": true,
+          "code": "Z3A.16",
+          "description": "16 weeks gestation of pregnancy"
+        },
+        {
+          "assignable": true,
+          "code": "Z3A.17",
+          "description": "17 weeks gestation of pregnancy"
+        },
+        {
+          "assignable": true,
+          "code": "Z3A.18",
+          "description": "18 weeks gestation of pregnancy"
+        },
+        {
+          "assignable": true,
+          "code": "Z3A.19",
+          "description": "19 weeks gestation of pregnancy"
+        }
+      ],
+      "total_related": 9
+    },
+    {
+      "codes": [
+        "ICD"
+      ],
+      "content": "Guidelines for \nOutpatient Services \nThese coding guidelines for outpatient diagnoses have been approved for use by hospitals/ providers in \ncoding and reporting hospital-based outpatient services and provider-based office visits. Guidelines in \nSection I, Conventions, general coding guidelines and chapter-specific guidelines, should also be applied \nfor outpatient services and office visits. \n \nInformation about the use of certain abbreviations, punctuation, symbols, and other conventions used in \nthe ICD-10-CM Tabular List (code numbers and titles), can be found in Section IA of these guidelines, \nunder “Conventions Used in the Tabular List.” Section I.B. contains general guidelines that apply to the \nentire classification. Section I.C. contains chapter-specific guidelines that correspond to the chapters as \nthey are arranged in the classification. Information about the correct sequence to use in finding a code is \nalso described in Section I. \n \nThe terms encounter and visit are often used interchangeably in describing outpatient service contacts and, \ntherefore, appear together in these guidelines without distinguishing one from the other. \n \nThough the conventions and general guidelines apply to all settings, coding guidelines for outpatient and \nprovider reporting of diagnoses will vary in a number of instances from those for inpatient diagnoses, \nrecognizing that: \n \nThe Uniform Hospital Discharge Data Set (UHDDS) definition of principal diagnosis does not \napply to hospital-based outpatient services and provider-based office visits. \n \nCoding guidelines for inconclusive diagnoses (probable, suspected, rule out, etc.) were developed \nfor inpatient reporting and do not apply to outpatients.",
+      "id": "icd-10-cm_section_IV",
+      "kind": "rule",
+      "next_steps": [
+        {
+          "reason": "Check whether a specific code is assignable",
+          "tool": "verify"
+        },
+        {
+          "reason": "Browse the codes a guideline refers to",
+          "tool": "explore"
+        },
+        {
+          "reason": "To assign the codes for a clinical note, use predict (optionally with include/exclude filters)",
+          "tool": "predict"
+        }
+      ],
+      "number": "IV",
+      "path": [],
+      "scope": "universal",
+      "sections": [
+        {
+          "codes": [
+            "ICD"
+          ],
+          "content": "In the outpatient setting, the term first-listed diagnosis is used in lieu of principal diagnosis. \n \nIn determining the first-listed diagnosis the coding conventions of ICD-10-CM, as well as the \ngeneral and disease specific guidelines take precedence over the outpatient guidelines. \n \nDiagnoses often are not established at the time of the initial encounter/visit. It may take two or \nmore visits before the diagnosis is confirmed. \n \nThe most critical rule involves beginning the search for the correct code assignment through the \nAlphabetic Index. Never begin searching initially in the Tabular List as this will lead to coding \nerrors.",
+          "id": "icd-10-cm_section_IV_A",
+          "kind": "rule",
+          "number": "IVA",
+          "path": [],
+          "scope": "universal",
+          "sections": [
+            {
+              "codes": [],
+              "content": "When a patient presents for outpatient surgery (same day surgery), code the reason for \nthe surgery as the first-listed diagnosis (reason for the encounter), even if the surgery is \nnot performed due to a contraindication.",
+              "id": "icd-10-cm_section_IV_A_1",
+              "kind": "rule",
+              "number": "IVA1",
+              "path": [],
+              "scope": "universal",
+              "sections": [],
+              "title": "Outpatient Surgery"
+            },
+            {
+              "codes": [],
+              "content": "When a patient is admitted for observation for a medical condition, assign a code for the \nmedical condition as the first-listed diagnosis. \n \nWhen a patient presents for outpatient surgery and develops complications requiring \nadmission to observation, code the reason for the surgery as the first reported diagnosis \n(reason for the encounter), followed by codes for the complications as secondary \ndiagnoses.",
+              "id": "icd-10-cm_section_IV_A_2",
+              "kind": "rule",
+              "number": "IVA2",
+              "path": [],
+              "scope": "universal",
+              "sections": [],
+              "title": "Observation Stay"
+            }
+          ],
+          "title": "Selection of first-listed condition"
+        },
+        {
+          "codes": [
+            "Z00",
+            "Z99",
+            "U00",
+            "U85",
+            "A00.0",
+            "T88.9"
+          ],
+          "content": "Z00-Z99, U00-U85 \nThe appropriate code(s) from A00.0 through T88.9, Z00-Z99 and U00-U85 must be used to \nidentify diagnoses, symptoms, conditions, problems, complaints, or other reason(s) for the \nencounter/visit.",
+          "id": "icd-10-cm_section_IV_B",
+          "kind": "rule",
+          "number": "IVB",
+          "path": [],
+          "scope": "universal",
+          "sections": [],
+          "title": "Codes from A00.0 through T88.9, Z00-Z99, U00-U85"
+        },
+        {
+          "codes": [
+            "ICD"
+          ],
+          "content": "-CM diagnosis codes \nFor accurate reporting of ICD-10-CM diagnosis codes, the documentation should describe the \npatient’s condition, using terminology which includes specific diagnoses as well as symptoms, \nproblems, or reasons for the encounter. There are ICD-10-CM codes to describe all of these.",
+          "id": "icd-10-cm_section_IV_C",
+          "kind": "rule",
+          "number": "IVC",
+          "path": [],
+          "scope": "universal",
+          "sections": [],
+          "title": "Accurate reporting of ICD-10-CM diagnosis codes"
+        },
+        {
+          "codes": [
+            "ICD",
+            "R00",
+            "R99"
+          ],
+          "content": "signs \nCodes that describe symptoms and signs, as opposed to diagnoses, are acceptable for reporting \npurposes when a diagnosis has not been established (confirmed) by the provider. Chapter 18 of \nICD-10-CM, Symptoms, Signs, and Abnormal Clinical and Laboratory Findings Not Elsewhere \nClassified (codes R00-R99) contain many, but not all codes for symptoms.",
+          "id": "icd-10-cm_section_IV_D",
+          "kind": "rule",
+          "number": "IVD",
+          "path": [],
+          "scope": "universal",
+          "sections": [],
+          "title": "Codes that describe symptoms and signs"
+        },
+        {
+          "codes": [
+            "ICD",
+            "Z00",
+            "Z99"
+          ],
+          "content": "a disease or injury \nICD-10-CM provides codes to deal with encounters for circumstances other than a disease or \ninjury. The Factors Influencing Health Status and Contact with Health Services codes (Z00-\nZ99) are provided to deal with occasions when circumstances other than a disease or injury are \nrecorded as diagnosis or problems. \nSee Section I.C.21. Factors influencing health status and contact with health services.",
+          "id": "icd-10-cm_section_IV_E",
+          "kind": "rule",
+          "number": "IVE",
+          "path": [],
+          "scope": "universal",
+          "sections": [],
+          "title": "Encounters for circumstances other than a disease or injury"
+        },
+        {
+          "codes": [],
+          "content": "",
+          "id": "icd-10-cm_section_IV_F",
+          "kind": "rule",
+          "number": "IVF",
+          "path": [],
+          "scope": "universal",
+          "sections": [
+            {
+              "codes": [
+                "ICD"
+              ],
+              "content": "3, 4, 5, 6 or 7 characters \nICD-10-CM is composed of codes with 3, 4, 5, 6 or 7 characters. Codes with three \ncharacters are included in ICD-10-CM as the heading of a category of codes that may be \nfurther subdivided by the use of fourth, fifth, sixth or seventh characters to provide \ngreater specificity.",
+              "id": "icd-10-cm_section_IV_F_1",
+              "kind": "rule",
+              "number": "IVF1",
+              "path": [],
+              "scope": "universal",
+              "sections": [],
+              "title": "ICD-10-CM codes with 3, 4, 5, 6 or 7 characters"
+            },
+            {
+              "codes": [],
+              "content": "characters required for a code \nA three-character code is to be used only if it is not further subdivided. A code is invalid \nif it has not been coded to the full number of characters required for that code, including \nthe 7th character, if applicable.",
+              "id": "icd-10-cm_section_IV_F_2",
+              "kind": "rule",
+              "number": "IVF2",
+              "path": [],
+              "scope": "universal",
+              "sections": [],
+              "title": "Use of full number of characters required for a code"
+            },
+            {
+              "codes": [],
+              "content": "Code to the highest level of specificity when supported by the medical record \ndocumentation.",
+              "id": "icd-10-cm_section_IV_F_3",
+              "kind": "rule",
+              "number": "IVF3",
+              "path": [],
+              "scope": "universal",
+              "sections": [],
+              "title": "Highest level of specificity"
+            }
+          ],
+          "title": "Level of Detail in Coding"
+        },
+        {
+          "codes": [
+            "ICD"
+          ],
+          "content": "the diagnosis, condition, problem, or other \nreason for encounter/visit \nList first the ICD-10-CM code for the diagnosis, condition, problem, or other reason for \nencounter/visit shown in the medical record to be chiefly responsible for the services provided. \nList additional codes that describe any coexisting conditions. In some cases, the first-listed \ndiagnosis may be a symptom when a diagnosis has not been established (confirmed) by the \nprovider.",
+          "id": "icd-10-cm_section_IV_G",
+          "kind": "rule",
+          "number": "IVG",
+          "path": [],
+          "scope": "universal",
+          "sections": [],
+          "title": "ICD-10-CM code for the diagnosis, condition, problem, or other reason for encounter/visit"
+        },
+        {
+          "codes": [],
+          "content": "Do not code diagnoses documented as “probable”, “suspected,” “questionable,” “rule out,” \n“compatible with,” “consistent with,” or “working diagnosis” or other similar terms indicating \nuncertainty. Rather, code the condition(s) to the highest degree of certainty for that \nencounter/visit, such as symptoms, signs, abnormal test results, or other reason for the visit. \n \nPlease note: This differs from the coding practices used by short-term, acute care, long-term \ncare and psychiatric hospitals.",
+          "id": "icd-10-cm_section_IV_H",
+          "kind": "rule",
+          "number": "IVH",
+          "path": [],
+          "scope": "universal",
+          "sections": [],
+          "title": "Uncertain diagnosis"
+        },
+        {
+          "codes": [],
+          "content": "Chronic diseases treated on an ongoing basis may be coded and reported as many times as the \npatient receives treatment and care for the condition(s).",
+          "id": "icd-10-cm_section_IV_I",
+          "kind": "rule",
+          "number": "IVI",
+          "path": [],
+          "scope": "universal",
+          "sections": [],
+          "title": "Chronic diseases"
+        },
+        {
+          "codes": [
+            "Z80",
+            "Z87"
+          ],
+          "content": "coexist \nCode all documented conditions that coexist at the time of the encounter/visit and that require \nor affect patient care, treatment or management. Do not code conditions that were previously \ntreated and no longer exist. However, history codes (categories Z80-Z87) may be used as \nsecondary codes if the historical condition or family history has an impact on current care or \ninfluences treatment.",
+          "id": "icd-10-cm_section_IV_J",
+          "kind": "rule",
+          "number": "IVJ",
+          "path": [],
+          "scope": "universal",
+          "sections": [],
+          "title": "Code all documented conditions that coexist"
+        },
+        {
+          "codes": [
+            "Z01.89"
+          ],
+          "content": "For patients receiving diagnostic services only during an encounter/visit, sequence first the \ndiagnosis, condition, problem, or other reason for encounter/visit shown in the medical record \nto be chiefly responsible for the outpatient services provided during the encounter/visit. Codes \nfor other diagnoses (e.g., chronic conditions) may be sequenced as additional diagnoses. \n \nFor encounters for routine laboratory/radiology testing in the absence of any signs, symptoms, \nor associated diagnosis, assign Z01.89, Encounter for other specified special examinations. If \nroutine testing is performed during the same encounter as a test to evaluate a sign, symptom, or \ndiagnosis, it is appropriate to assign both the Z code and the code describing the reason for the \nnon-routine test. \n \nFor outpatient encounters for diagnostic tests that have been interpreted by a physician, and the \nfinal report is available at the time of coding, code any confirmed or definitive diagnosis(es) \ndocumented in the interpretation. Do not code related signs and symptoms as additional \ndiagnoses. \n \nPlease note: This differs from the coding practice in the hospital inpatient setting regarding \nabnormal findings on test results.",
+          "id": "icd-10-cm_section_IV_K",
+          "kind": "rule",
+          "number": "IVK",
+          "path": [],
+          "scope": "universal",
+          "sections": [],
+          "title": "Patients receiving diagnostic services only"
+        },
+        {
+          "codes": [],
+          "content": "For patients receiving therapeutic services only during an encounter/visit, sequence first the \ndiagnosis, condition, problem, or other reason for encounter/visit shown in the medical record \nto be chiefly responsible for the outpatient services provided during the encounter/visit. Codes \nfor other diagnoses (e.g., chronic conditions) may be sequenced as additional diagnoses. \n \nThe only exception to this rule is that when the primary reason for the admission/encounter is \nchemotherapy or radiation therapy, the appropriate Z code for the service is listed first, and the \ndiagnosis or problem for which the service is being performed listed second.",
+          "id": "icd-10-cm_section_IV_L",
+          "kind": "rule",
+          "number": "IVL",
+          "path": [],
+          "scope": "universal",
+          "sections": [],
+          "title": "Patients receiving therapeutic services only"
+        },
+        {
+          "codes": [
+            "Z01.81"
+          ],
+          "content": "For patients receiving preoperative evaluations only, sequence first a code from subcategory \nZ01.81, Encounter for pre-procedural examinations, to describe the pre-op consultations. \nAssign a code for the condition to describe the reason for the surgery as an additional diagnosis. \nCode also any findings related to the pre-op evaluation.",
+          "id": "icd-10-cm_section_IV_M",
+          "kind": "rule",
+          "number": "IVM",
+          "path": [],
+          "scope": "universal",
+          "sections": [],
+          "title": "Patients receiving preoperative evaluations only"
+        },
+        {
+          "codes": [],
+          "content": "For ambulatory surgery, code the diagnosis for which the surgery was performed. If the \npostoperative diagnosis is known to be different from the preoperative diagnosis at the time the \ndiagnosis is confirmed, select the postoperative diagnosis for coding, since it is the most \ndefinitive.",
+          "id": "icd-10-cm_section_IV_N",
+          "kind": "rule",
+          "number": "IVN",
+          "path": [],
+          "scope": "universal",
+          "sections": [],
+          "title": "Ambulatory surgery"
+        },
+        {
+          "codes": [],
+          "content": "See Section I.C.15. Routine outpatient prenatal visits.",
+          "id": "icd-10-cm_section_IV_O",
+          "kind": "rule",
+          "number": "IVO",
+          "path": [],
+          "scope": "universal",
+          "sections": [],
+          "title": "Routine outpatient prenatal visits"
+        },
+        {
+          "codes": [
+            "Z00.0",
+            "Z00.12"
+          ],
+          "content": "with abnormal findings \nThe subcategories for encounters for general medical examinations, Z00.0- and encounter for \nroutine child health examination, Z00.12-, provide codes for with and without abnormal \nfindings. Should a general medical examination result in an abnormal finding, the code for \ngeneral medical examination with abnormal finding should be assigned as the first-listed \ndiagnosis. An examination with abnormal findings refers to a condition/diagnosis that is newly \nidentified or a change in severity of a chronic condition (such as uncontrolled hypertension, or \nan acute exacerbation of chronic obstructive pulmonary disease) during a routine physical \nexamination. A secondary code for the abnormal finding should also be coded.",
+          "id": "icd-10-cm_section_IV_P",
+          "kind": "rule",
+          "number": "IVP",
+          "path": [],
+          "scope": "universal",
+          "sections": [],
+          "title": "Encounters for general medical examinations with abnormal findings"
+        },
+        {
+          "codes": [],
+          "content": "See Section I.C.21. Factors influencing health status and contact with health services, \nScreening",
+          "id": "icd-10-cm_section_IV_Q",
+          "kind": "rule",
+          "number": "IVQ",
+          "path": [],
+          "scope": "universal",
+          "sections": [],
+          "title": "Encounters for routine health screenings"
+        }
+      ],
+      "title": "Diagnostic Coding and Reporting Guidelines for Outpatient Services"
+    }
+  ],
+  "status_events": [
+    {
+      "state": "working"
+    },
+    {
+      "state": "working"
+    },
+    {
+      "message": "Calling expert: coding-expert",
+      "state": "working"
+    }
+  ],
+  "finish_metadata": {
+    "contextId": "019f55d2-3672-7702-bb37-559f5311d5c6",
+    "taskId": "019f55d2-3672-7686-882c-b71c2148c4a5",
+    "credits": 0.10289999999999999,
+    "state": "completed"
+  },
+  "parsed": {
+    "encounter_summary": "- First prenatal outpatient visit for a 28-year-old female at 12 weeks gestation.\n- Documentation describes a normal pregnancy evaluation: “Normal blood pressure, no edema, no proteinuria.”\n- Reported testing is normal: “CBC, urinalysis, liver/renal function, glucose tolerance all normal.”\n- Ultrasound documents “intrauterine pregnancy, singleton, CRL 58mm, fetal heart rate 160.”\n- Diagnosis states: “intrauterine pregnancy 12 weeks, singleton, viable fetus.”",
+    "gaps": [
+      {
+        "idx": 1,
+        "text": "Gravidity/parity not documented\n- Why it matters: Coding specificity for routine prenatal supervision may depend on whether this is a first pregnancy versus other normal pregnancy.\n- Evidence quote: “first prenatal visit at 12 weeks gestation.”\n- Clarification needed: Whether this is the patient’s first pregnancy / obstetric history (G/P)."
+      },
+      {
+        "idx": 2,
+        "text": "Normal pregnancy supervision not explicitly linked to obstetric history specificity\n- Why it matters: The chart supports a normal first-trimester prenatal encounter, but current wording does not specify whether coding should reflect first pregnancy or other normal pregnancy.\n- Evidence quote: “Diagnosis: intrauterine pregnancy 12 weeks, singleton, viable fetus.”\n- Clarification needed: Whether this encounter is for supervision of normal first pregnancy or supervision of other normal pregnancy, i"
+      }
+    ],
+    "gap_count": 2,
+    "queries": [
+      {
+        "idx": 1,
+        "text": "Obstetric history / pregnancy supervision specificity"
+      }
+    ],
+    "query_count": 1,
+    "specialists_contacted": [
+      "Medical Coding Expert",
+      "Coding Expert"
+    ],
+    "specialist_trace_text": "- Medical Coding Expert: Consulted for coding specificity and compliant query opportunities. Accepted: need to capture pregnancy supervision specificity and 12-week gestation support. Accepted code-related support: Z3A.12 is supported by “12 weeks gestation”; routine prenatal supervision in first trimester is supported generally, but first vs other normal pregnancy remains ambiguous.\n- AMBOSS Expert: Not consulted; no clinical diagnostic criteria issue required clarification.\n- CDI Web Search Expert: Not consulted; current external guidance was not necessary to answer conservatively from the excerpt.\n\nConstrained coding note:\n- Supported from the excerpt: Z3A.12 (12 weeks gestation of pregnancy).\n- Possible but not fully specific without clarification: routine normal pregnancy supervision code in the first trimester. The coding expert returned Z34.91 as a possible fit, but the excerpt does not establish whether this is first pregnancy versus other normal pregnancy, so more specific supervision coding should be clarified before final assignment.",
+    "has_specialist_trace": true
+  },
+  "error": "",
+  "text": "Encounter Summary:\n- First prenatal outpatient visit for a 28-year-old female at 12 weeks gestation.\n- Documentation describes a normal pregnancy evaluation: “Normal blood pressure, no edema, no proteinuria.”\n- Reported testing is normal: “CBC, urinalysis, liver/renal function, glucose tolerance all normal.”\n- Ultrasound documents “intrauterine pregnancy, singleton, CRL 58mm, fetal heart rate 160.”\n- Diagnosis states: “intrauterine pregnancy 12 weeks, singleton, viable fetus.”\n\nDocumentation Gaps:\n1. Gravidity/parity not documented\n- Why it matters: Coding specificity for routine prenatal supervision may depend on whether this is a first pregnancy versus other normal pregnancy.\n- Evidence quote: “first prenatal visit at 12 weeks gestation.”\n- Clarification needed: Whether this is the patient’s first pregnancy / obstetric history (G/P).\n\n2. Normal pregnancy supervision not explicitly linked to obstetric history specificity\n- Why it matters: The chart supports a normal first-trimester prenatal encounter, but current wording does not specify whether coding should reflect first pregnancy or other normal pregnancy.\n- Evidence quote: “Diagnosis: intrauterine pregnancy 12 weeks, singleton, viable fetus.”\n- Clarification needed: Whether this encounter is for supervision of normal first pregnancy or supervision of other normal pregnancy, if known.\n\nProposed Provider Queries:\n1. Topic: Obstetric history / pregnancy supervision specificity\n- Reason query is needed: The encounter appears to be a routine first-trimester prenatal visit, but documentation does not state whether this is the patient’s first pregnancy or another pregnancy.\n- Evidence quote: “first prenatal visit at 12 weeks gestation” and “Diagnosis: intrauterine pregnancy 12 weeks, singleton, viable fetus.”\n- Non-leading query text: “For this 12-week prenatal encounter, please clarify the patient’s obstetric history as it relates to this pregnancy supervision visit.”\n- Suggested response options:\n  - Supervision of normal first pregnancy, first trimester\n  - Supervision of other normal pregnancy, first trimester\n  - Pregnancy is not considered routine/normal; specify if clinically applicable\n  - Clinically undetermined\n  - Other: _____\n\nCoding Specificity Checklist:\n- Trimester documented: first trimester supported.\n- Weeks gestation documented: 12 weeks supported.\n- Singleton intrauterine pregnancy documented.\n- Viability documented.\n- Clarify gravidity/parity or whether this is first pregnancy vs other pregnancy.\n- If payer/facility coding requires it, ensure the encounter is clearly documented as routine prenatal supervision when clinically intended.\n\nRisk Flags:\n- No conflicting clinical data identified in the excerpt.\n- No supported evidence of complications, hypertension, proteinuria, edema, abnormal labs, or fetal abnormality; do not query for these topics.\n- “first prenatal visit” does not prove “first pregnancy”; this remains ambiguous and should not be assumed.\n\nSpecialist Trace:\n- Medical Coding Expert: Consulted for coding specificity and compliant query opportunities. Accepted: need to capture pregnancy supervision specificity and 12-week gestation support. Accepted code-related support: Z3A.12 is supported by “12 weeks gestation”; routine prenatal supervision in first trimester is supported generally, but first vs other normal pregnancy remains ambiguous.\n- AMBOSS Expert: Not consulted; no clinical diagnostic criteria issue required clarification.\n- CDI Web Search Expert: Not consulted; current external guidance was not necessary to answer conservatively from the excerpt.\n\nConstrained coding note:\n- Supported from the excerpt: Z3A.12 (12 weeks gestation of pregnancy).\n- Possible but not fully specific without clarification: routine normal pregnancy supervision code in the first trimester. The coding expert returned Z34.91 as a possible fit, but the excerpt does not establish whether this is first pregnancy versus other normal pregnancy, so more specific supervision coding should be clarified before final assignment."
+}

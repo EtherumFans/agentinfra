@@ -1,0 +1,243 @@
+{
+  "case_id": "G8-CDI-CONFLICT-032",
+  "group": "document_conflict",
+  "variant": "",
+  "session_id": "19fb7e43-a5e2-4c4b-92c4-601021ad10b2",
+  "attempt": 1,
+  "outcome": "SUCCESS",
+  "elapsed_s": 23.53,
+  "expected": {
+    "query_count_min": 1,
+    "query_count_max": 2,
+    "expected_no_query": false,
+    "expected_query_topics": [
+      "糖尿病病程",
+      "duration of diabetes",
+      "新发 vs 慢性"
+    ],
+    "notes": "Duration conflict — new-onset vs 10-year history"
+  },
+  "text_length": 5252,
+  "first_token_at_s": 4.2,
+  "last_token_at_s": 23.53,
+  "event_count": 12,
+  "raw_events_preview": [
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"code_system\":\"icd-10-cm\",\"count\":3,\"next_steps\":[{\"reason\":\"Browse related codes and alternatives in the same category\",\"tool\":\"explore\"},{\"reason\":\"Read coding conventions relevant to these",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"E11.9\",\"code_system\":\"icd-10-cm\",\"description\":\"Type 2 diabetes mellitus without complications\",\"next_steps\":[{\"reason\":\"Read coding conventions for this code area\",",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"E11.9\",\"description\":\"Type 2 diabetes mellitus without complications\",\"next_steps\":[{\"reason\":\"Compare with related codes if this isn't the best fit\",\"tool\":\"explore",
+    "message|{\"id\":\"6185092d-ac53-4edf-a54b-c0f99cf9c6fd\",\"type\":\"text-start\"}",
+    "message|{\"delta\":\"Encounter Summary:\\n- 65-year-old female with documented admission diagnosis of type 2 diabetes.\\n- The chart contains conflicting statements about diabetes duration/onset.\\n- No complicatio",
+    "message|{\"id\":\"6185092d-ac53-4edf-a54b-c0f99cf9c6fd\",\"type\":\"text-end\"}",
+    "message|{\"messageMetadata\":{\"contextId\":\"019f55e2-5069-759e-aa80-c6e315eba5b6\",\"taskId\":\"019f55e2-5069-752e-8025-53e566ff4969\",\"credits\":0.06633599999999999,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+    "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.06633599999999999},\"type\":\"finish\"}",
+    "message|[DONE]"
+  ],
+  "expert_events": [
+    {
+      "code_system": "icd-10-cm",
+      "count": 3,
+      "next_steps": [
+        {
+          "reason": "Browse related codes and alternatives in the same category",
+          "tool": "explore"
+        },
+        {
+          "reason": "Read coding conventions relevant to these codes",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "To assign the codes for a clinical note, use predict (optionally with include/exclude filters)",
+          "tool": "predict"
+        }
+      ],
+      "query": "type 2 diabetes mellitus",
+      "results": [
+        {
+          "code": "E11.9",
+          "description": "Type 2 diabetes mellitus without complications",
+          "match_path": "Diabetes, diabetic, type 2",
+          "related_codes": {
+            "category": "E11",
+            "category_description": "Type 2 diabetes mellitus",
+            "count": 10
+          }
+        },
+        {
+          "code": "E11.65",
+          "description": "Type 2 diabetes mellitus with hyperglycemia",
+          "match_path": "Diabetes, diabetic, type 2, with, hyperglycemia",
+          "related_codes": {
+            "category": "E11.6",
+            "category_description": "Type 2 diabetes mellitus with other specified complications",
+            "count": 6
+          }
+        },
+        {
+          "code": "E10.9",
+          "description": "Type 1 diabetes mellitus without complications",
+          "match_path": "Diabetes, diabetic, type 1",
+          "related_codes": {
+            "category": "E10",
+            "category_description": "Type 1 diabetes mellitus",
+            "count": 9
+          }
+        }
+      ]
+    },
+    {
+      "assignable": true,
+      "code": "E11.9",
+      "code_system": "icd-10-cm",
+      "description": "Type 2 diabetes mellitus without complications",
+      "next_steps": [
+        {
+          "reason": "Read coding conventions for this code area",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "Check whether a specific code is assignable",
+          "tool": "verify"
+        },
+        {
+          "reason": "Explore a related or more specific code",
+          "tool": "explore"
+        }
+      ],
+      "parent": {
+        "code": "E11",
+        "description": "Type 2 diabetes mellitus"
+      },
+      "related_codes": [
+        {
+          "assignable": false,
+          "code": "E11.0",
+          "description": "Type 2 diabetes mellitus with hyperosmolarity"
+        },
+        {
+          "assignable": false,
+          "code": "E11.1",
+          "description": "Type 2 diabetes mellitus with ketoacidosis"
+        },
+        {
+          "assignable": false,
+          "code": "E11.2",
+          "description": "Type 2 diabetes mellitus with kidney complications"
+        },
+        {
+          "assignable": false,
+          "code": "E11.3",
+          "description": "Type 2 diabetes mellitus with ophthalmic complications"
+        },
+        {
+          "assignable": false,
+          "code": "E11.4",
+          "description": "Type 2 diabetes mellitus with neurological complications"
+        },
+        {
+          "assignable": false,
+          "code": "E11.5",
+          "description": "Type 2 diabetes mellitus with circulatory complications"
+        },
+        {
+          "assignable": false,
+          "code": "E11.6",
+          "description": "Type 2 diabetes mellitus with other specified complications"
+        },
+        {
+          "assignable": true,
+          "code": "E11.8",
+          "description": "Type 2 diabetes mellitus with unspecified complications"
+        },
+        {
+          "assignable": true,
+          "code": "E11.A",
+          "description": "Type 2 diabetes mellitus without complications in remission"
+        }
+      ],
+      "total_related": 9
+    },
+    {
+      "assignable": true,
+      "code": "E11.9",
+      "description": "Type 2 diabetes mellitus without complications",
+      "next_steps": [
+        {
+          "reason": "Compare with related codes if this isn't the best fit",
+          "tool": "explore"
+        },
+        {
+          "reason": "Check chapter-level coding conventions for this code area",
+          "tool": "guidelines"
+        }
+      ],
+      "parents": [
+        {
+          "code": "E11",
+          "description": "Type 2 diabetes mellitus"
+        },
+        {
+          "code": "E08-E13",
+          "description": "Diabetes mellitus (E08-E13)"
+        },
+        {
+          "code": "4",
+          "description": "Endocrine, nutritional and metabolic diseases (E00-E89)"
+        }
+      ]
+    }
+  ],
+  "status_events": [
+    {
+      "state": "working"
+    },
+    {
+      "state": "working"
+    },
+    {
+      "message": "Calling expert: coding-expert",
+      "state": "working"
+    }
+  ],
+  "finish_metadata": {
+    "contextId": "019f55e2-5069-759e-aa80-c6e315eba5b6",
+    "taskId": "019f55e2-5069-752e-8025-53e566ff4969",
+    "credits": 0.06633599999999999,
+    "state": "completed"
+  },
+  "parsed": {
+    "encounter_summary": "- 65-year-old female with documented admission diagnosis of type 2 diabetes.\n- The chart contains conflicting statements about diabetes duration/onset.\n- No complications, treatment details, or abnormal glucose/A1c values are provided in the excerpt.",
+    "gaps": [
+      {
+        "idx": 1,
+        "text": "Contradictory diabetes history/onset\n- Why it matters: The record conflicts on whether this is a new diagnosis versus longstanding diabetes, which affects accuracy and internal consistency of the medical record.\n- Evidence quotes:\n  - \"Admission record: no prior diabetes history, this is initial diagnosis.\"\n  - \"Discharge summary: diabetes for 10 years, historically poor glycemic control.\"\n  - \"Outpatient note: new-onset diabetes.\"\n- Minimal clarification needed: Please clarify whether the patie"
+      },
+      {
+        "idx": 2,
+        "text": "Diabetes specificity not fully supported beyond uncomplicated type 2 diabetes\n- Why it matters: The excerpt supports type 2 diabetes, but does not document any complication or hyperglycemia criteria clearly enough to support a more specific diabetes code from the excerpt alone.\n- Evidence quote:\n  - \"admission diagnosis: type 2 diabetes.\"\n  - \"historically poor glycemic control\"\n- Minimal clarification needed: If clinically applicable, document whether the patient has any diabetes-related compli"
+      }
+    ],
+    "gap_count": 2,
+    "queries": [
+      {
+        "idx": 1,
+        "text": "Diabetes onset/duration clarification"
+      },
+      {
+        "idx": 2,
+        "text": "Diabetes complication/current status clarification"
+      }
+    ],
+    "query_count": 2,
+    "specialists_contacted": [
+      "Medical Coding Expert",
+      "Coding Expert"
+    ],
+    "specialist_trace_text": "- Medical Coding Expert: Consulted for coding specificity and compliant query targets.\n  - Accepted: Type 2 diabetes without documented complications is the only diagnosis-specific coding level clearly supported by the excerpt alone; ICD-10-CM options referenced included E11.9 and more specific E11 subcategories only if supported by documentation.\n  - Rejected/Not used: Any implication of a specific complication or hyperglycemia as established fact, because the excerpt does not provide sufficient supporting clinical evidence.\n- AMBOSS Expert: Not consulted. No clinical criteria determination was necessary to identify the primary documentation contradiction.\n- CDI Web Search Expert: Not consulted. No current external guideline lookup was necessary for this chart-based clarification.\n\nBest constrained coding note:\n- From the excerpt alone, type 2 diabetes mellitus without complications is the only clearly supportable diagnosis-level specificity (e.g., E11.9) unless the provider clarifies otherwise.",
+    "has_specialist_trace": true
+  },
+  "error": "",
+  "text": "Encounter Summary:\n- 65-year-old female with documented admission diagnosis of type 2 diabetes.\n- The chart contains conflicting statements about diabetes duration/onset.\n- No complications, treatment details, or abnormal glucose/A1c values are provided in the excerpt.\n\nDocumentation Gaps:\n1. Contradictory diabetes history/onset\n- Why it matters: The record conflicts on whether this is a new diagnosis versus longstanding diabetes, which affects accuracy and internal consistency of the medical record.\n- Evidence quotes:\n  - \"Admission record: no prior diabetes history, this is initial diagnosis.\"\n  - \"Discharge summary: diabetes for 10 years, historically poor glycemic control.\"\n  - \"Outpatient note: new-onset diabetes.\"\n- Minimal clarification needed: Please clarify whether the patient’s type 2 diabetes is newly diagnosed during this encounter or pre-existing/longstanding, and if pre-existing, the documented duration if known.\n\n2. Diabetes specificity not fully supported beyond uncomplicated type 2 diabetes\n- Why it matters: The excerpt supports type 2 diabetes, but does not document any complication or hyperglycemia criteria clearly enough to support a more specific diabetes code from the excerpt alone.\n- Evidence quote:\n  - \"admission diagnosis: type 2 diabetes.\"\n  - \"historically poor glycemic control\"\n- Minimal clarification needed: If clinically applicable, document whether the patient has any diabetes-related complication(s) or current hyperglycemia; if none, document uncomplicated type 2 diabetes.\n- Limitation: \"historically poor glycemic control\" alone does not clearly establish a specific current complication from the excerpt provided.\n\nProposed Provider Queries:\n1. Topic: Diabetes onset/duration clarification\n- Reason query is needed: The chart contains direct contradictions about whether diabetes is new-onset or longstanding.\n- Evidence quote:\n  - \"no prior diabetes history, this is initial diagnosis\"\n  - \"diabetes for 10 years, historically poor glycemic control\"\n  - \"new-onset diabetes\"\n- Non-leading query text:\n  - The documentation contains conflicting information regarding the patient’s type 2 diabetes history. Please clarify the status of the patient’s diabetes for this encounter.\n- Suggested response options:\n  - Type 2 diabetes, newly diagnosed during this encounter\n  - Type 2 diabetes, pre-existing prior to this encounter\n  - Type 2 diabetes, pre-existing with duration of ______ years if known\n  - History unclear/clinically unable to determine from available information\n  - Other: ______\n\n2. Topic: Diabetes complication/current status clarification\n- Reason query is needed: Type 2 diabetes is documented, but no specific complication status is clearly documented in the excerpt.\n- Evidence quote:\n  - \"admission diagnosis: type 2 diabetes\"\n  - \"historically poor glycemic control\"\n- Non-leading query text:\n  - For this encounter, please clarify the documented status of the patient’s type 2 diabetes, based on your clinical assessment.\n- Suggested response options:\n  - Type 2 diabetes mellitus without complications\n  - Type 2 diabetes mellitus with complication(s): ______\n  - Type 2 diabetes mellitus with hyperglycemia\n  - Unable to determine\n  - Other: ______\n- Limitation: This query should only be used if the provider can support the clarification from the clinical record; the excerpt itself does not supply specific complication evidence.\n\nCoding Specificity Checklist:\n- Confirm diabetes type: type 2 already documented.\n- Clarify whether diabetes is newly diagnosed or longstanding/pre-existing.\n- If longstanding, document duration if known.\n- Clarify whether any current diabetes-related complications are present.\n- Clarify whether current hyperglycemia is present, if clinically supported.\n- If no complications are present, document diabetes without complications.\n\nRisk Flags:\n- Major contradiction: \"initial diagnosis\" / \"new-onset diabetes\" versus \"diabetes for 10 years.\"\n- Unsupported specificity risk: \"historically poor glycemic control\" does not by itself establish a codeable current complication from this excerpt alone.\n- Potential copied-forward or inaccurate history risk due to internally inconsistent duration statements.\n\nSpecialist Trace:\n- Medical Coding Expert: Consulted for coding specificity and compliant query targets.\n  - Accepted: Type 2 diabetes without documented complications is the only diagnosis-specific coding level clearly supported by the excerpt alone; ICD-10-CM options referenced included E11.9 and more specific E11 subcategories only if supported by documentation.\n  - Rejected/Not used: Any implication of a specific complication or hyperglycemia as established fact, because the excerpt does not provide sufficient supporting clinical evidence.\n- AMBOSS Expert: Not consulted. No clinical criteria determination was necessary to identify the primary documentation contradiction.\n- CDI Web Search Expert: Not consulted. No current external guideline lookup was necessary for this chart-based clarification.\n\nBest constrained coding note:\n- From the excerpt alone, type 2 diabetes mellitus without complications is the only clearly supportable diagnosis-level specificity (e.g., E11.9) unless the provider clarifies otherwise."
+}

@@ -1,0 +1,65 @@
+{
+  "case_id": "G8-CDI-COMPLETE-017",
+  "group": "complete_chart",
+  "variant": "",
+  "session_id": "d54d49e6-0632-471a-b460-872b370c884f",
+  "attempt": 1,
+  "outcome": "SUCCESS",
+  "elapsed_s": 24.86,
+  "expected": {
+    "query_count_min": 0,
+    "query_count_max": 0,
+    "expected_no_query": true,
+    "expected_query_topics": [],
+    "notes": "Minor surgery post-op follow-up — fully documented"
+  },
+  "text_length": 3315,
+  "first_token_at_s": 4.53,
+  "last_token_at_s": 24.86,
+  "event_count": 9,
+  "raw_events_preview": [
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"id\":\"9cddfcac-1553-4f4b-be7f-fd572e8b44bd\",\"type\":\"text-start\"}",
+    "message|{\"delta\":\"Encounter Summary:\\n- Post-op day 7 follow-up after right middle finger ganglion cyst excision.\\n- Wound is healing well without documented complications.\\n- Finger exam is normal for range ",
+    "message|{\"id\":\"9cddfcac-1553-4f4b-be7f-fd572e8b44bd\",\"type\":\"text-end\"}",
+    "message|{\"messageMetadata\":{\"contextId\":\"019f55d1-be75-7666-82bb-2b6295d8a925\",\"taskId\":\"019f55d1-be75-75e8-a9ee-07e52574a36c\",\"credits\":0.064088,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+    "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.064088},\"type\":\"finish\"}",
+    "message|[DONE]"
+  ],
+  "expert_events": [],
+  "status_events": [
+    {
+      "state": "working"
+    },
+    {
+      "state": "working"
+    },
+    {
+      "message": "Calling expert: coding-expert",
+      "state": "working"
+    }
+  ],
+  "finish_metadata": {
+    "contextId": "019f55d1-be75-7666-82bb-2b6295d8a925",
+    "taskId": "019f55d1-be75-75e8-a9ee-07e52574a36c",
+    "credits": 0.064088,
+    "state": "completed"
+  },
+  "parsed": {
+    "encounter_summary": "- Post-op day 7 follow-up after right middle finger ganglion cyst excision.\n- Wound is healing well without documented complications.\n- Finger exam is normal for range of motion and sensation.\n- Pathology documents ganglion cyst.\n- Assessment documents status post right middle finger ganglion cyst excision with primary healing.",
+    "gaps": [],
+    "gap_count": 0,
+    "queries": [],
+    "query_count": 0,
+    "specialists_contacted": [
+      "Medical Coding Expert",
+      "Coding Expert"
+    ],
+    "specialist_trace_text": "- Medical Coding Expert: Consulted for coding specificity review. Accepted conclusion that no clear CDI/coding query is required from this excerpt alone. Accepted the caution that exact anatomic site may be a minor specificity limitation but is not clearly query-worthy without a code-set or payer-specific need.\n- AMBOSS Expert: Not consulted because no unclear clinical criteria or staging issue is present.\n- CDI Web Search Expert: Not consulted because no current guideline or official external definition was necessary to answer conservatively.",
+    "has_specialist_trace": true
+  },
+  "error": "",
+  "text": "Encounter Summary:\n- Post-op day 7 follow-up after right middle finger ganglion cyst excision.\n- Wound is healing well without documented complications.\n- Finger exam is normal for range of motion and sensation.\n- Pathology documents ganglion cyst.\n- Assessment documents status post right middle finger ganglion cyst excision with primary healing.\n\nDocumentation Gaps:\n- No clear CDI-significant documentation gap is supported by this excerpt alone.\n  - Why it matters: A provider query should only be issued when clarification is necessary and supported by the record.\n  - Evidence quote: \"post-op day 7 follow-up after right middle finger ganglion cyst excision,\" \"Wound healing well, no erythema or discharge,\" \"Normal finger range of motion and sensation,\" \"Pathology: ganglion cyst,\" and \"Diagnosis: status post right middle finger ganglion cyst excision, primary healing.\"\n  - Minimal clarification needed: None based on the excerpt provided.\n- Possible minor specificity limitation, but not clearly query-worthy from this excerpt alone:\n  - Gap: Exact anatomic origin/site of the ganglion cyst is not described beyond \"right middle finger.\"\n  - Why it matters: Some coding scenarios may require more precise anatomic site detail.\n  - Evidence quote: \"right middle finger ganglion cyst excision\"\n  - Minimal clarification needed: Specific anatomic origin/site of the cyst only if required by the intended code set or payer rule.\n\nProposed Provider Queries:\n- None recommended based on the current excerpt.\n- Optional only if code-set or payer-specific requirements demand finer site detail:\n  - Topic: Anatomic origin/site of the ganglion cyst\n  - Reason query is needed: The lesion is documented as involving the \"right middle finger,\" but the exact origin/site is not further specified.\n  - Evidence quote: \"right middle finger ganglion cyst excision\"\n  - Non-leading query text: \"If clinically known and documented, please clarify the specific anatomic origin/site of the excised ganglion cyst of the right middle finger.\"\n  - Suggested response options: joint-related, tendon sheath-related, soft tissue/other structure, other, clinically undetermined.\n\nCoding Specificity Checklist:\n- Laterality: right\n- Digit involved: middle finger\n- Postoperative status/follow-up documented\n- Healing status/complication status documented\n- Final pathology documented as ganglion cyst\n- If needed for coding specificity: exact anatomic origin/site of the cyst\n\nRisk Flags:\n- No contradictions identified in the excerpt.\n- No unsupported diagnoses identified.\n- No copied-forward risk indicators apparent from the excerpt.\n- Uncertainty: whether more granular anatomic site detail is actually required cannot be determined from this excerpt alone.\n\nSpecialist Trace:\n- Medical Coding Expert: Consulted for coding specificity review. Accepted conclusion that no clear CDI/coding query is required from this excerpt alone. Accepted the caution that exact anatomic site may be a minor specificity limitation but is not clearly query-worthy without a code-set or payer-specific need.\n- AMBOSS Expert: Not consulted because no unclear clinical criteria or staging issue is present.\n- CDI Web Search Expert: Not consulted because no current guideline or official external definition was necessary to answer conservatively."
+}

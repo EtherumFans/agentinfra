@@ -1,7 +1,41 @@
 {
-  "case_id": "CASE-cd9c8bf15fd8",
-  "completion_state": "AUTO_PASS",
-  "documentation_gaps": [],
+  "case_id": "CASE-da73d5c200de",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-da73d5c200de/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "糖尿病病程描述不一致：入院记录为初次发现，出院小结为病史10年，门诊病历为新发糖尿病。",
+      "why_it_matters": "病程长短影响糖尿病分型、治疗方案及并发症风险评估，不一致可能导致编码错误和临床决策失误。",
+      "evidence_span": {
+        "document_id": "入院记录",
+        "quote": "既往无糖尿病史, 本次为初次发现"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-da73d5c200de/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "出院小结中糖尿病病史10年与入院记录矛盾，且未说明血糖控制不佳的具体指标。",
+      "why_it_matters": "病史10年提示慢性并发症风险高，控制不佳需明确HbA1c等指标以评估严重程度，否则影响编码和后续治疗。",
+      "evidence_span": {
+        "document_id": "出院小结",
+        "quote": "糖尿病史10年, 平素血糖控制不佳"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-da73d5c200de/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "门诊病历诊断'新发糖尿病'与入院记录'初次发现'一致，但与出院小结'病史10年'冲突。",
+      "why_it_matters": "诊断不一致导致疾病分类困难，影响编码准确性和医疗质量评估。",
+      "evidence_span": {
+        "document_id": "门诊病历",
+        "quote": "新发糖尿病"
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
   "proposed_provider_queries": [],
   "chart_excerpt_preview": "患者女性, 65岁, 入院诊断:2型糖尿病。入院记录:既往无糖尿病史, 本次为初次发现。出院小结:糖尿病史10年, 平素血糖控制不佳。门诊病历:新发糖尿病。",
   "patient_ref": "DEID",
@@ -14,23 +48,23 @@
   "specialist_trace": [
     {
       "expert_id": "coding-expert",
-      "consulted": false,
-      "rationale": "no coding-relevant gaps survived earlier gates",
-      "route_decision": "not_needed",
-      "route_reason": "no_relevant_gap",
-      "execution_mode": "SKIPPED_NOT_NEEDED",
-      "latency_ms": 0,
-      "tokens": 0
+      "consulted": true,
+      "rationale": "The clinical record must reconcile the conflicting diabetes duration descriptions by specifying whether this is a new diagnosis or a long-standing condition, including objective evidence such as prior HbA1c levels, medication history, or documented complications. Additionally, clarify the specific glycemic parameters defining \"poor control\" (e.g., HbA1c values, fasting/postprandial glucose ranges) to support the severity and chronicity of the condition. Without this specificity, the coding cannot accurately reflect the patient’s true clinical status.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3293,
+      "tokens": 285
     },
     {
       "expert_id": "pubmed-expert",
-      "consulted": false,
-      "rationale": "",
-      "route_decision": "not_needed",
-      "route_reason": "no_relevant_gap",
-      "execution_mode": "SKIPPED_NOT_NEEDED",
-      "latency_ms": 0,
-      "tokens": 0
+      "consulted": true,
+      "rationale": "The documented discrepancies in diabetes duration—ranging from \"newly diagnosed\" to \"10-year history\"—represent a critical inconsistency that undermines clinical decision-making and patient safety. Literature emphasizes that accurate diabetes duration is essential for assessing complication risk, treatment intensity, and prognosis (PMID: 30229690). I recommend reconciling these records by verifying with the patient or prior medical data, as fabricated or conflicting histories can lead to inappropriate management.",
+      "route_decision": "needed",
+      "route_reason": "criteria_marker_present",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 1830,
+      "tokens": 286
     },
     {
       "expert_id": "web-search-expert",
@@ -54,70 +88,84 @@
     }
   ],
   "stage_run_ids": {
-    "encounter_synthesis": "run-c491dbd4ec29",
-    "gap_identification": "run-4ffcfee094ef",
-    "expert_consultation": "run-f7395f6290fb",
-    "query_generation": "",
-    "query_necessity_gate": "necessary=0;unnecessary=0;overquery_triggered=False;final_count=0",
-    "query_single_dimension_gate": "single_dim=0;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;final_count=0",
-    "claim_evidence_alignment_gate": "claims_extracted=0;blocked=0;flagged=0;final_count=0",
-    "claim_evidence_alignment_gate::run_id": "run-cf2df58cf958",
+    "encounter_synthesis": "run-5baf5faacc85",
+    "gap_identification": "run-103a06921a2b",
+    "expert_consultation": "run-27effa0019c8",
+    "query_generation": "run-225c5d977880",
+    "query_necessity_gate": "necessary=3;unnecessary=0;overquery_triggered=False;final_count=3",
+    "query_single_dimension_gate": "single_dim=3;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=course;final_count=3",
+    "claim_evidence_alignment_gate": "claims_extracted=9;blocked=3;flagged=0;final_count=0",
+    "claim_evidence_alignment_gate::run_id": "run-f2f60c70613a",
     "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
-    "semantic_necessity_gate::run_id": "run-1d475b0fe9f7",
+    "semantic_necessity_gate::run_id": "run-ff8388e34528",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "run-eb7100ccf59e"
+    "specialist_trace_emit": "run-e4a0dd891dcc"
   },
   "stage_trace_ids": {
-    "encounter_synthesis": "trace-5803f7bea34e",
-    "gap_identification": "trace-881e6a7eab66",
-    "expert_consultation": "trace-18a5b81efaec",
-    "query_generation": "",
+    "encounter_synthesis": "trace-1a4a8d574165",
+    "gap_identification": "trace-16221f83b01f",
+    "expert_consultation": "trace-734acf27b7b8",
+    "query_generation": "trace-578f5b947018",
     "query_necessity_gate": "",
     "query_single_dimension_gate": "",
-    "claim_evidence_alignment_gate": "trace-d35605d2e843",
-    "semantic_necessity_gate": "trace-d2518f3956bc",
+    "claim_evidence_alignment_gate": "trace-65dddc280bf9",
+    "semantic_necessity_gate": "trace-da779ea21ec3",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "trace-686d6aeb0408"
+    "specialist_trace_emit": "trace-2f7ffbfebd0c"
   },
   "stage_traces": [
     {
       "stage": "encounter_synthesis",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 0,
+      "latency_ms": 3703,
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-c491dbd4ec29",
-      "trace_id": "trace-5803f7bea34e",
+      "run_id": "run-5baf5faacc85",
+      "trace_id": "trace-1a4a8d574165",
       "degraded": true,
-      "error_reason": "LLM circuit breaker is OPEN — provider appears unhealthy",
+      "error_reason": "LLM call failed after 3 attempts: Connection error.",
       "expert_id": ""
     },
     {
       "stage": "gap_identification",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 0,
-      "prompt_tokens": 0,
-      "completion_tokens": 0,
-      "total_tokens": 0,
-      "run_id": "run-4ffcfee094ef",
-      "trace_id": "trace-881e6a7eab66",
-      "degraded": true,
-      "error_reason": "LLM circuit breaker is OPEN — provider appears unhealthy",
+      "latency_ms": 4116,
+      "prompt_tokens": 273,
+      "completion_tokens": 407,
+      "total_tokens": 680,
+      "run_id": "run-103a06921a2b",
+      "trace_id": "trace-16221f83b01f",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6985,
+      "prompt_tokens": 462,
+      "completion_tokens": 608,
+      "total_tokens": 1070,
+      "run_id": "run-225c5d977880",
+      "trace_id": "trace-578f5b947018",
+      "degraded": false,
+      "error_reason": "",
       "expert_id": ""
     },
     {
       "stage": "expert_consultation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 0,
-      "prompt_tokens": 0,
-      "completion_tokens": 0,
-      "total_tokens": 0,
-      "run_id": "run-7ede29c19bb8",
-      "trace_id": "trace-c252048a6864",
+      "latency_ms": 3293,
+      "prompt_tokens": 184,
+      "completion_tokens": 101,
+      "total_tokens": 285,
+      "run_id": "run-909fb757ad38",
+      "trace_id": "trace-c6f6a7cb5ffc",
       "degraded": false,
       "error_reason": "",
       "expert_id": "coding-expert"
@@ -126,12 +174,12 @@
       "stage": "expert_consultation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 0,
-      "prompt_tokens": 0,
-      "completion_tokens": 0,
-      "total_tokens": 0,
-      "run_id": "run-d820655e631a",
-      "trace_id": "trace-5e4f43e0621d",
+      "latency_ms": 1830,
+      "prompt_tokens": 198,
+      "completion_tokens": 88,
+      "total_tokens": 286,
+      "run_id": "run-ed9a06bbebf7",
+      "trace_id": "trace-a960c85a893e",
       "degraded": false,
       "error_reason": "",
       "expert_id": "pubmed-expert"
@@ -144,8 +192,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-1248815f0e0d",
-      "trace_id": "trace-3d15d45bb8e9",
+      "run_id": "run-44ba1ba46498",
+      "trace_id": "trace-515481a421a8",
       "degraded": false,
       "error_reason": "",
       "expert_id": "web-search-expert"
@@ -158,8 +206,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-a42df12920ae",
-      "trace_id": "trace-85b4c085950f",
+      "run_id": "run-c14d52be6f1f",
+      "trace_id": "trace-dc97a3979374",
       "degraded": false,
       "error_reason": "",
       "expert_id": "medical-calculator-expert"
@@ -167,5 +215,5 @@
   ],
   "degraded": true,
   "runtime_mode": "real",
-  "generated_at": "2026-07-12T03:21:59.370931Z"
+  "generated_at": "2026-07-12T11:33:53.665949Z"
 }

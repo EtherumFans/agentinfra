@@ -1,0 +1,264 @@
+{
+  "case_id": "CASE-9ec3b4157a70",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-9ec3b4157a70/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "胆囊结石的急性或慢性状态未明确，仅提及'胆囊结石史2年'和'间断右上腹隐痛'，但未明确本次入院是否为急性发作或慢性状态。",
+      "why_it_matters": "影响编码中急性/慢性胆囊炎的区分，以及是否伴有梗阻、感染等并发症的编码。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "胆囊结石史2年, 间断右上腹隐痛"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-9ec3b4157a70/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "未明确胆囊炎的具体类型（如急性、慢性、急性发作等），病理仅报告'慢性胆囊炎'，但临床描述未提及慢性。",
+      "why_it_matters": "影响胆囊炎编码的准确性，慢性胆囊炎与急性胆囊炎编码不同。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "术后病理:慢性胆囊炎伴胆固醇结石"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-9ec3b4157a70/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "未描述右上腹隐痛与进食的关系，以及是否伴有其他症状如恶心、呕吐、发热等，影响临床相关性判断。",
+      "why_it_matters": "缺乏症状细节可能影响胆囊炎严重程度和并发症的编码。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "间断右上腹隐痛"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-9ec3b4157a70/GAP-004",
+      "gap_type": "diagnostic_specificity",
+      "description": "未提及术前是否进行过影像学检查（如超声、CT）及其结果，仅凭病史和症状。",
+      "why_it_matters": "影像学结果可支持诊断和编码，缺少可能影响编码的完整性。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "胆囊结石史2年, 间断右上腹隐痛。择期行腹腔镜胆囊切除术。"
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-9ec3b4157a70/Q-001",
+      "gap_id": "CASE-9ec3b4157a70/GAP-003",
+      "topic": "右上腹隐痛的相关特征",
+      "reason": "未描述疼痛与进食的关系及伴随症状。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "间断右上腹隐痛"
+      },
+      "query_text": "请补充右上腹隐痛的特点：",
+      "response_options": [
+        "A. 与进食有关，伴恶心、呕吐",
+        "B. 与进食无关，无恶心、呕吐",
+        "C. 与进食有关，无恶心、呕吐",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine"
+    }
+  ],
+  "chart_excerpt_preview": "患者女性, 40岁, 胆囊结石史2年, 间断右上腹隐痛。择期行腹腔镜胆囊切除术。术中见:胆囊大小正常, 内含1枚 1.5cm 胆固醇性结石, 无粘连。手术顺利, 出血 50ml。术后病理:慢性胆囊炎伴胆固醇结石。术后第2天出院。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "胆囊结石史2年",
+      "间断右上腹隐痛",
+      "择期行腹腔镜胆囊切除术",
+      "术中见胆囊大小正常，内含1枚1.5cm胆固醇性结石，无粘连",
+      "手术顺利，出血50ml",
+      "术后病理：慢性胆囊炎伴胆固醇结石",
+      "术后第2天出院"
+    ],
+    "encounter_metadata": {
+      "patient_age": "40岁",
+      "patient_sex": "女性",
+      "encounter_type": "择期手术住院"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "根据病历，需明确本次入院是否为胆囊结石的急性发作或慢性状态，并补充右上腹隐痛与进食的关系及是否伴有恶心、呕吐、发热等症状，以区分急性或慢性胆囊炎。同时，应记录术前影像学检查（如超声或CT）结果，以支持临床诊断与病理报告的一致性。",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 2907,
+      "tokens": 335
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-62b6ff893a43",
+    "gap_identification": "run-94323d3ea3b9",
+    "expert_consultation": "run-a470338e5547",
+    "query_generation": "run-b1817b82b07d",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.62;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=Y,D6_pathology=Y,D7_complications=Y,D8_course=Y;dropped=0;final_count=4",
+    "query_necessity_gate": "necessary=4;unnecessary=0;overquery_triggered=False;final_count=4",
+    "query_single_dimension_gate": "single_dim=4;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=acuity;final_count=4",
+    "claim_evidence_alignment_gate": "claims_extracted=11;blocked=3;flagged=0;final_count=1",
+    "claim_evidence_alignment_gate::run_id": "run-7c6b84b89dc9",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=1;final_count=1",
+    "semantic_necessity_gate::run_id": "run-d9e8afd21712",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "run-69e0f1052a88"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-a15ba164ce3f",
+    "gap_identification": "trace-59603d477bb9",
+    "expert_consultation": "trace-fc2d65ddc5e5",
+    "query_generation": "trace-bca46c4d3704",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-2ac8debbd67f",
+    "semantic_necessity_gate": "trace-62087261c83f",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-e106284430b4"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2968,
+      "prompt_tokens": 250,
+      "completion_tokens": 127,
+      "total_tokens": 377,
+      "run_id": "run-62b6ff893a43",
+      "trace_id": "trace-a15ba164ce3f",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 7892,
+      "prompt_tokens": 384,
+      "completion_tokens": 567,
+      "total_tokens": 951,
+      "run_id": "run-94323d3ea3b9",
+      "trace_id": "trace-59603d477bb9",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 7260,
+      "prompt_tokens": 1063,
+      "completion_tokens": 703,
+      "total_tokens": 1766,
+      "run_id": "run-b1817b82b07d",
+      "trace_id": "trace-bca46c4d3704",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2907,
+      "prompt_tokens": 266,
+      "completion_tokens": 69,
+      "total_tokens": 335,
+      "run_id": "run-85d79ea38d1e",
+      "trace_id": "trace-a6d1f17a46fd",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-b7f6c445c88a",
+      "trace_id": "trace-71dcc6ec398d",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-9af04845ec3e",
+      "trace_id": "trace-a0b76ee7624a",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-576ed162cebc",
+      "trace_id": "trace-d5f5b5695b16",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-07-12T13:51:24.245447Z"
+}

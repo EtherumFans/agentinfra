@@ -1,0 +1,251 @@
+{
+  "case_id": "CASE-84aa354a119f",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-84aa354a119f/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "未明确腱鞘囊肿的具体解剖位置（如指屈肌腱鞘或伸肌腱鞘）",
+      "why_it_matters": "影响编码精确性，不同部位的腱鞘囊肿可能对应不同编码",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "右手中指腱鞘囊肿切除术后第7天"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-84aa354a119f/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "未明确囊肿的大小或是否完全切除",
+      "why_it_matters": "影响临床严重程度评估及后续随访计划",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "术后病理:腱鞘囊肿"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-84aa354a119f/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "未描述伤口愈合的具体情况（如是否一期愈合、有无感染迹象）",
+      "why_it_matters": "影响术后并发症的编码和临床管理",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "伤口愈合良好, 无红肿渗液"
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-84aa354a119f/Q-001",
+      "gap_id": "CASE-84aa354a119f/GAP-003",
+      "topic": "伤口愈合具体情况",
+      "reason": "未描述伤口愈合的具体情况（如是否一期愈合、有无感染迹象）",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "伤口愈合良好, 无红肿渗液"
+      },
+      "query_text": "请明确伤口愈合的具体情况：",
+      "response_options": [
+        "A. 一期愈合，无感染迹象",
+        "B. 一期愈合，有感染迹象（请注明）",
+        "C. 非一期愈合（请注明愈合方式）",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine"
+    }
+  ],
+  "chart_excerpt_preview": "患者男性, 35岁, 右手中指腱鞘囊肿切除术后第7天复诊。伤口愈合良好, 无红肿渗液。手指活动正常, 感觉正常。术后病理:腱鞘囊肿。诊断:右手中指腱鞘囊肿术后, 一期愈合。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "右手中指腱鞘囊肿切除术后第7天",
+      "伤口愈合良好，无红肿渗液",
+      "手指活动正常，感觉正常",
+      "术后病理：腱鞘囊肿",
+      "诊断：右手中指腱鞘囊肿术后，一期愈合"
+    ],
+    "encounter_metadata": {
+      "patient_age": "35岁",
+      "patient_sex": "男性",
+      "encounter_type": "复诊"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "根据病历，需明确腱鞘囊肿的具体解剖位置（如指屈肌腱鞘或伸肌腱鞘），并补充囊肿的完整切除状态（如是否完全切除）。同时，应记录伤口愈合的具体类型（如一期愈合）及有无感染迹象，以支持术后恢复的临床描述。",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 2954,
+      "tokens": 227
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-d81f82d24317",
+    "gap_identification": "run-fb6a48b0e814",
+    "expert_consultation": "run-4162073d7fd2",
+    "query_generation": "run-092d7042969a",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=Y,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=3",
+    "query_necessity_gate": "necessary=3;unnecessary=0;overquery_triggered=False;final_count=3",
+    "query_single_dimension_gate": "single_dim=3;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=site;final_count=3",
+    "claim_evidence_alignment_gate": "claims_extracted=9;blocked=2;flagged=0;final_count=1",
+    "claim_evidence_alignment_gate::run_id": "run-f2a1ce82cf2e",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=1;final_count=1",
+    "semantic_necessity_gate::run_id": "run-0a48c8057957",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "run-160525587814"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-cfe2fd4c7d31",
+    "gap_identification": "trace-9a4d2446a2d5",
+    "expert_consultation": "trace-588631260d07",
+    "query_generation": "trace-afd85673dd12",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-4c23e415e211",
+    "semantic_necessity_gate": "trace-68828a2f38eb",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-57c1cfcb7c30"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 4913,
+      "prompt_tokens": 232,
+      "completion_tokens": 106,
+      "total_tokens": 338,
+      "run_id": "run-d81f82d24317",
+      "trace_id": "trace-cfe2fd4c7d31",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 4964,
+      "prompt_tokens": 347,
+      "completion_tokens": 338,
+      "total_tokens": 685,
+      "run_id": "run-fb6a48b0e814",
+      "trace_id": "trace-9a4d2446a2d5",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5491,
+      "prompt_tokens": 901,
+      "completion_tokens": 498,
+      "total_tokens": 1399,
+      "run_id": "run-092d7042969a",
+      "trace_id": "trace-afd85673dd12",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2954,
+      "prompt_tokens": 166,
+      "completion_tokens": 61,
+      "total_tokens": 227,
+      "run_id": "run-34be27d88fd7",
+      "trace_id": "trace-b1a736dd802f",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-73e1d86ded91",
+      "trace_id": "trace-91716bad32f7",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-351b5bccadc6",
+      "trace_id": "trace-19f9952399ff",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-724c2548747f",
+      "trace_id": "trace-8cbff0c93b17",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-07-12T13:52:22.470185Z"
+}

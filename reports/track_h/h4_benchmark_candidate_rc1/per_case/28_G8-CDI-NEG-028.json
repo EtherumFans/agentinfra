@@ -1,0 +1,220 @@
+{
+  "case_id": "CASE-2e7bace6ca5f",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-2e7bace6ca5f/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "阑尾切除术后状态缺乏具体病理类型或手术方式的描述",
+      "why_it_matters": "影响编码准确性，无法区分是单纯阑尾切除还是伴有其他并发症或手术方式",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "急性阑尾炎切除术后10年"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-2e7bace6ca5f/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "未明确阑尾切除术后是否有任何并发症或后遗症",
+      "why_it_matters": "可能遗漏需要编码的并发症或后遗症，影响DRG分组",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "目前无症状。否认腹痛、发热、恶心、呕吐。查体正常。"
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [],
+  "chart_excerpt_preview": "患者男性, 50岁, 急性阑尾炎切除术后10年。目前无症状。否认腹痛、发热、恶心、呕吐。查体正常。诊断:阑尾切除术后状态。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "急性阑尾炎切除术后10年",
+      "目前无症状",
+      "否认腹痛、发热、恶心、呕吐",
+      "查体正常",
+      "诊断:阑尾切除术后状态"
+    ],
+    "encounter_metadata": {
+      "patient_age": "50岁",
+      "patient_sex": "男性",
+      "encounter_type": "门诊"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "建议明确阑尾切除的具体手术方式（如腹腔镜或开腹）及病理类型（如急性单纯性、化脓性或坏疽性阑尾炎），并确认术后有无任何并发症或后遗症（如肠粘连、切口疝等），以确保编码的临床特异性。",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3068,
+      "tokens": 185
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-1f668eb407e4",
+    "gap_identification": "run-f0ff9b21e3a1",
+    "expert_consultation": "run-7da837c0395b",
+    "query_generation": "run-930ddf6d765f",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.25;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=Y,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=2",
+    "query_necessity_gate": "necessary=1;unnecessary=1;overquery_triggered=False;final_count=1",
+    "query_single_dimension_gate": "single_dim=1;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=complication;final_count=1",
+    "claim_evidence_alignment_gate": "claims_extracted=3;blocked=1;flagged=0;final_count=0",
+    "claim_evidence_alignment_gate::run_id": "run-929d3a2d8de9",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+    "semantic_necessity_gate::run_id": "run-7bb256840ed8",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "run-9de90849272d"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-0ea32154fa17",
+    "gap_identification": "trace-23976390ef99",
+    "expert_consultation": "trace-2cbe7ad53204",
+    "query_generation": "trace-f2ecd0b2d0ca",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-86993e2e274a",
+    "semantic_necessity_gate": "trace-11b6bf0ae002",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-4552a3cc8fbc"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3035,
+      "prompt_tokens": 212,
+      "completion_tokens": 90,
+      "total_tokens": 302,
+      "run_id": "run-1f668eb407e4",
+      "trace_id": "trace-0ea32154fa17",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 4073,
+      "prompt_tokens": 312,
+      "completion_tokens": 223,
+      "total_tokens": 535,
+      "run_id": "run-f0ff9b21e3a1",
+      "trace_id": "trace-23976390ef99",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 4538,
+      "prompt_tokens": 833,
+      "completion_tokens": 382,
+      "total_tokens": 1215,
+      "run_id": "run-930ddf6d765f",
+      "trace_id": "trace-f2ecd0b2d0ca",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3068,
+      "prompt_tokens": 127,
+      "completion_tokens": 58,
+      "total_tokens": 185,
+      "run_id": "run-a834b7b0eca1",
+      "trace_id": "trace-d7fe78eef11c",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-93ac6d448a80",
+      "trace_id": "trace-ad44a86a7073",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-604f3b124b43",
+      "trace_id": "trace-df7cdadb3b18",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-a516f4e98feb",
+      "trace_id": "trace-b46396f4f117",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-07-12T13:56:09.552714Z"
+}

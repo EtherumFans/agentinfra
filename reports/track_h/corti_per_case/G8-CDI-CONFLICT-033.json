@@ -1,0 +1,202 @@
+{
+  "case_id": "G8-CDI-CONFLICT-033",
+  "group": "document_conflict",
+  "variant": "",
+  "session_id": "6942357c-5fea-41bd-b501-57d3b7549699",
+  "attempt": 1,
+  "outcome": "SUCCESS",
+  "elapsed_s": 25.59,
+  "expected": {
+    "query_count_min": 1,
+    "query_count_max": 2,
+    "expected_no_query": false,
+    "expected_query_topics": [
+      "加重严重程度",
+      "exacerbation severity"
+    ],
+    "notes": "Three different severity levels across documents"
+  },
+  "text_length": 5520,
+  "first_token_at_s": 3.34,
+  "last_token_at_s": 25.59,
+  "event_count": 12,
+  "raw_events_preview": [
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"code_system\":\"icd-10-cm\",\"count\":2,\"next_steps\":[{\"reason\":\"Browse related codes and alternatives in the same category\",\"tool\":\"explore\"},{\"reason\":\"Read coding conventions relevant to these",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"J44.1\",\"code_system\":\"icd-10-cm\",\"description\":\"Chronic obstructive pulmonary disease with (acute) exacerbation\",\"next_steps\":[{\"reason\":\"Read coding conventions for",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"J44.1\",\"description\":\"Chronic obstructive pulmonary disease with (acute) exacerbation\",\"next_steps\":[{\"reason\":\"Compare with related codes if this isn't the best fit",
+    "message|{\"id\":\"828035ea-d504-461a-9483-6c9353195933\",\"type\":\"text-start\"}",
+    "message|{\"delta\":\"Encounter Summary:\\n- 70-year-old male with documented COPD history.\\n- COPD acute exacerbation is documented across the stay, but severity is inconsistent.\\n- Severity terms vary by note: a",
+    "message|{\"id\":\"828035ea-d504-461a-9483-6c9353195933\",\"type\":\"text-end\"}",
+    "message|{\"messageMetadata\":{\"contextId\":\"019f55e2-c7cb-7521-b161-d8e42c35d537\",\"taskId\":\"019f55e2-c7cb-74bc-9e54-4649980b07e8\",\"credits\":0.078012,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+    "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.078012},\"type\":\"finish\"}",
+    "message|[DONE]"
+  ],
+  "expert_events": [
+    {
+      "code_system": "icd-10-cm",
+      "count": 2,
+      "next_steps": [
+        {
+          "reason": "Browse related codes and alternatives in the same category",
+          "tool": "explore"
+        },
+        {
+          "reason": "Read coding conventions relevant to these codes",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "To assign the codes for a clinical note, use predict (optionally with include/exclude filters)",
+          "tool": "predict"
+        }
+      ],
+      "query": "COPD with acute exacerbation",
+      "results": [
+        {
+          "code": "J44.1",
+          "description": "Chronic obstructive pulmonary disease with (acute) exacerbation",
+          "match_path": "Decompensated COPD\nDecompensated COPD with (acute) exacerbation",
+          "related_codes": {
+            "category": "J44",
+            "category_description": "Other chronic obstructive pulmonary disease",
+            "count": 4
+          }
+        },
+        {
+          "code": "J45.901",
+          "description": "Unspecified asthma with (acute) exacerbation",
+          "match_path": "Dyspnea, asthmatic, with, exacerbation",
+          "related_codes": {
+            "category": "J45.90",
+            "category_description": "Unspecified asthma",
+            "count": 3
+          }
+        }
+      ]
+    },
+    {
+      "assignable": true,
+      "code": "J44.1",
+      "code_system": "icd-10-cm",
+      "description": "Chronic obstructive pulmonary disease with (acute) exacerbation",
+      "next_steps": [
+        {
+          "reason": "Read coding conventions for this code area",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "Check whether a specific code is assignable",
+          "tool": "verify"
+        },
+        {
+          "reason": "Explore a related or more specific code",
+          "tool": "explore"
+        }
+      ],
+      "parent": {
+        "code": "J44",
+        "description": "Other chronic obstructive pulmonary disease"
+      },
+      "related_codes": [
+        {
+          "assignable": true,
+          "code": "J44.0",
+          "description": "Chronic obstructive pulmonary disease with (acute) lower respiratory infection"
+        },
+        {
+          "assignable": false,
+          "code": "J44.8",
+          "description": "Other specified chronic obstructive pulmonary disease"
+        },
+        {
+          "assignable": true,
+          "code": "J44.9",
+          "description": "Chronic obstructive pulmonary disease, unspecified"
+        }
+      ],
+      "total_related": 3
+    },
+    {
+      "assignable": true,
+      "code": "J44.1",
+      "description": "Chronic obstructive pulmonary disease with (acute) exacerbation",
+      "next_steps": [
+        {
+          "reason": "Compare with related codes if this isn't the best fit",
+          "tool": "explore"
+        },
+        {
+          "reason": "Check chapter-level coding conventions for this code area",
+          "tool": "guidelines"
+        }
+      ],
+      "parents": [
+        {
+          "code": "J44",
+          "description": "Other chronic obstructive pulmonary disease"
+        },
+        {
+          "code": "J40-J4A",
+          "description": "Chronic lower respiratory diseases (J40-J4A)"
+        },
+        {
+          "code": "10",
+          "description": "Diseases of the respiratory system (J00-J99)"
+        }
+      ]
+    }
+  ],
+  "status_events": [
+    {
+      "state": "working"
+    },
+    {
+      "state": "working"
+    },
+    {
+      "message": "Calling expert: coding-expert",
+      "state": "working"
+    }
+  ],
+  "finish_metadata": {
+    "contextId": "019f55e2-c7cb-7521-b161-d8e42c35d537",
+    "taskId": "019f55e2-c7cb-74bc-9e54-4649980b07e8",
+    "credits": 0.078012,
+    "state": "completed"
+  },
+  "parsed": {
+    "encounter_summary": "- 70-year-old male with documented COPD history.\n- COPD acute exacerbation is documented across the stay, but severity is inconsistent.\n- Severity terms vary by note: admission \"severe,\" progress note \"mild,\" and discharge \"moderate.\"\n- ABG documented as: \"pH 7.38, PaCO2 56, PaO2 70.\"",
+    "gaps": [
+      {
+        "idx": 1,
+        "text": "Inconsistent severity of COPD exacerbation across the record\n- Why it matters: Conflicting severity language creates ambiguity in the final coded diagnosis and weakens the discharge summary as the source of truth for the hospitalization.\n- Evidence quotes:\n  - \"Admission diagnosis: COPD acute exacerbation, severe.\"\n  - \"Progress note: COPD acute exacerbation, mild.\"\n  - \"Discharge diagnosis: COPD acute exacerbation, moderate.\"\n- Minimal clarification needed: Please clarify the final severity of "
+      },
+      {
+        "idx": 2,
+        "text": "Clinical significance of abnormal ABG values is not linked to a documented diagnosis\n- Why it matters: The record includes objective respiratory findings, but no explicit provider statement connects these findings to an additional reportable condition or states whether they are expected in the setting of COPD exacerbation alone. A query is only appropriate for clarification of clinical significance, not to suggest a diagnosis.\n- Evidence quotes:\n  - \"ABG: pH 7.38, PaCO2 56, PaO2 70.\"\n  - \"Admiss"
+      }
+    ],
+    "gap_count": 2,
+    "queries": [
+      {
+        "idx": 1,
+        "text": "Final severity of COPD acute exacerbation"
+      },
+      {
+        "idx": 2,
+        "text": "Clinical significance of documented ABG abnormalities"
+      }
+    ],
+    "query_count": 2,
+    "specialists_contacted": [
+      "Medical Coding Expert",
+      "Coding Expert"
+    ],
+    "specialist_trace_text": "- Medical Coding Expert: Consulted for coding specificity and CDI query opportunities.\n  - Accepted: Identification of COPD with acute exacerbation as generally aligning with ICD-10-CM J44.1 and confirmation that no more specific severity-based ICD-10-CM option was shown in the provided coding results.\n  - Rejected/limited: No unsupported diagnosis suggestions were used. No additional conditions were treated as established because the excerpt does not document them explicitly.\n- AMBOSS Expert: Not consulted.\n  - Rationale: The main issue is documentation inconsistency rather than need for diagnostic criteria review.\n- CDI Web Search Expert: Not consulted.\n  - Rationale: Current external guidance was not necessary to identify the chart-based inconsistency and conservative clarification opportunities.",
+    "has_specialist_trace": true
+  },
+  "error": "",
+  "text": "Encounter Summary:\n- 70-year-old male with documented COPD history.\n- COPD acute exacerbation is documented across the stay, but severity is inconsistent.\n- Severity terms vary by note: admission \"severe,\" progress note \"mild,\" and discharge \"moderate.\"\n- ABG documented as: \"pH 7.38, PaCO2 56, PaO2 70.\"\n\nDocumentation Gaps:\n1. Inconsistent severity of COPD exacerbation across the record\n- Why it matters: Conflicting severity language creates ambiguity in the final coded diagnosis and weakens the discharge summary as the source of truth for the hospitalization.\n- Evidence quotes:\n  - \"Admission diagnosis: COPD acute exacerbation, severe.\"\n  - \"Progress note: COPD acute exacerbation, mild.\"\n  - \"Discharge diagnosis: COPD acute exacerbation, moderate.\"\n- Minimal clarification needed: Please clarify the final severity of the COPD acute exacerbation for this encounter, if a severity descriptor is intended.\n\n2. Clinical significance of abnormal ABG values is not linked to a documented diagnosis\n- Why it matters: The record includes objective respiratory findings, but no explicit provider statement connects these findings to an additional reportable condition or states whether they are expected in the setting of COPD exacerbation alone. A query is only appropriate for clarification of clinical significance, not to suggest a diagnosis.\n- Evidence quotes:\n  - \"ABG: pH 7.38, PaCO2 56, PaO2 70.\"\n  - \"Admission diagnosis: COPD acute exacerbation, severe.\"\n- Minimal clarification needed: If clinically significant, clarify whether the ABG abnormalities represent an additional respiratory condition that should be documented, or whether no additional diagnosis is present.\n- Limitation: The excerpt does not document oxygen device, baseline blood gases, respiratory distress, altered mental status, ventilatory support, or an explicit diagnosis such as respiratory failure. Because of that, any query on this topic must remain very conservative and non-leading.\n\nProposed Provider Queries:\n1. Topic: Final severity of COPD acute exacerbation\n- Reason query is needed: Severity is documented inconsistently across admission, progress, and discharge documentation.\n- Evidence quote:\n  - \"Admission diagnosis: COPD acute exacerbation, severe.\"\n  - \"Progress note: COPD acute exacerbation, mild.\"\n  - \"Discharge diagnosis: COPD acute exacerbation, moderate.\"\n- Non-leading query text:\n  - \"For this hospitalization, please clarify the severity of the patient’s COPD acute exacerbation, given differing documentation in the record.\"\n- Suggested response options:\n  - Mild COPD acute exacerbation\n  - Moderate COPD acute exacerbation\n  - Severe COPD acute exacerbation\n  - Other severity/description: _______\n  - Unable to determine\n\n2. Topic: Clinical significance of documented ABG abnormalities\n- Reason query is needed: ABG values are documented, but the excerpt does not state whether they reflect an additional clinically significant respiratory condition.\n- Evidence quote:\n  - \"ABG: pH 7.38, PaCO2 56, PaO2 70.\"\n- Non-leading query text:\n  - \"The record includes ABG results of pH 7.38, PaCO2 56, and PaO2 70. Please clarify whether these findings were clinically significant for this encounter and whether they correspond to any additional respiratory diagnosis that should be documented, if applicable.\"\n- Suggested response options:\n  - ABG abnormalities were clinically significant and reflect an additional respiratory diagnosis: _______\n  - ABG abnormalities were present but are attributable to COPD exacerbation only, with no additional diagnosis\n  - ABG abnormalities were not clinically significant\n  - Other: _______\n  - Unable to determine\n\nCoding Specificity Checklist:\n- Final severity of the COPD acute exacerbation, if severity terminology is being used.\n- Whether any documented abnormal gas-exchange finding is clinically significant and separately diagnosable.\n- Whether there is any associated lower respiratory infection; no such infection is documented in this excerpt.\n- Whether any chronic baseline respiratory abnormality versus acute change is being described; not specified in this excerpt.\n\nRisk Flags:\n- Clear contradiction in severity terminology across the chart: severe vs mild vs moderate.\n- No explicit final reconciliation of the differing severity descriptors.\n- ABG abnormalities are present, but there is insufficient documented evidence in this excerpt alone to support a more specific diagnosis without provider clarification.\n- COPD with acute exacerbation maps generally to ICD-10-CM J44.1 based on the documented diagnosis, but the severity adjectives themselves do not create a more specific ICD-10-CM code within the provided data.\n\nSpecialist Trace:\n- Medical Coding Expert: Consulted for coding specificity and CDI query opportunities.\n  - Accepted: Identification of COPD with acute exacerbation as generally aligning with ICD-10-CM J44.1 and confirmation that no more specific severity-based ICD-10-CM option was shown in the provided coding results.\n  - Rejected/limited: No unsupported diagnosis suggestions were used. No additional conditions were treated as established because the excerpt does not document them explicitly.\n- AMBOSS Expert: Not consulted.\n  - Rationale: The main issue is documentation inconsistency rather than need for diagnostic criteria review.\n- CDI Web Search Expert: Not consulted.\n  - Rationale: Current external guidance was not necessary to identify the chart-based inconsistency and conservative clarification opportunities."
+}

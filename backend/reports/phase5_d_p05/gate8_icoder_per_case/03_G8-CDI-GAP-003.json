@@ -1,26 +1,110 @@
 {
-  "case_id": "CASE-dca7f00501cd",
-  "completion_state": "AUTO_PASS",
-  "documentation_gaps": [],
-  "proposed_provider_queries": [],
+  "case_id": "CASE-c2cfd8094545",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-c2cfd8094545/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "急性心肌梗死未明确分型（STEMI vs NSTEMI）",
+      "why_it_matters": "影响编码准确性及治疗策略评估",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "入院诊断:急性心肌梗死"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-c2cfd8094545/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "未明确心肌梗死的部位（如前壁、下壁等）",
+      "why_it_matters": "影响编码及临床严重程度判断",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "心电图:前壁导联ST段抬高"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-c2cfd8094545/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "未明确ST段抬高心肌梗死的急性期或后续阶段",
+      "why_it_matters": "影响编码及治疗阶段判断",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "持续胸痛2小时"
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-c2cfd8094545/Q-001",
+      "gap_id": "CASE-c2cfd8094545/GAP-002",
+      "topic": "心肌梗死部位",
+      "reason": "心电图提示前壁导联ST段抬高，但未明确梗死部位",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "心电图:前壁导联ST段抬高。冠脉造影:前降支近段100%闭塞。"
+      },
+      "query_text": "根据心电图前壁导联ST段抬高及冠脉造影前降支闭塞，请明确心肌梗死的具体部位：",
+      "response_options": [
+        "A. 前壁心肌梗死",
+        "B. 下壁心肌梗死",
+        "C. 其他部位心肌梗死",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine"
+    },
+    {
+      "query_id": "CASE-c2cfd8094545/Q-002",
+      "gap_id": "CASE-c2cfd8094545/GAP-003",
+      "topic": "ST段抬高心肌梗死的阶段",
+      "reason": "患者行PCI，但未明确是急性期还是后续阶段",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "持续胸痛2小时。行PCI。入院诊断:急性心肌梗死。"
+      },
+      "query_text": "根据患者胸痛2小时及行PCI治疗，请明确ST段抬高心肌梗死的阶段：",
+      "response_options": [
+        "A. 急性期（发病≤7天）",
+        "B. 亚急性期（发病8-28天）",
+        "C. 陈旧期（发病>28天）",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine"
+    }
+  ],
   "chart_excerpt_preview": "患者男性, 58岁, 持续胸痛2小时。心电图:前壁导联ST段抬高。肌钙蛋白I升高。冠脉造影:前降支近段100%闭塞。行PCI。入院诊断:急性心肌梗死。",
   "patient_ref": "DEID",
   "encounter_ref": "DEID",
   "encounter_summary": {
-    "key_points": [],
-    "encounter_metadata": {}
+    "key_points": [
+      "持续胸痛2小时",
+      "心电图:前壁导联ST段抬高",
+      "肌钙蛋白I升高",
+      "冠脉造影:前降支近段100%闭塞",
+      "行PCI",
+      "入院诊断:急性心肌梗死"
+    ],
+    "encounter_metadata": {
+      "patient_age": "58岁",
+      "patient_sex": "男性",
+      "encounter_type": "住院"
+    }
   },
   "risk_flags": [],
   "specialist_trace": [
     {
       "expert_id": "coding-expert",
-      "consulted": false,
-      "rationale": "no coding-relevant gaps survived earlier gates",
-      "route_decision": "not_needed",
-      "route_reason": "no_relevant_gap",
-      "execution_mode": "SKIPPED_NOT_NEEDED",
-      "latency_ms": 0,
-      "tokens": 0
+      "consulted": true,
+      "rationale": "根据病历，患者心电图显示前壁导联ST段抬高，肌钙蛋白升高，冠脉造影证实前降支闭塞，临床应明确诊断为急性ST段抬高型心肌梗死（STEMI），并注明梗死部位为前壁。同时需明确当前为急性期（发病2小时），以区分后续阶段。",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3475,
+      "tokens": 225
     },
     {
       "expert_id": "pubmed-expert",
@@ -54,70 +138,84 @@
     }
   ],
   "stage_run_ids": {
-    "encounter_synthesis": "run-f2f3a1aaf1a1",
-    "gap_identification": "run-c33f3f20cb73",
-    "expert_consultation": "run-2e26d372749d",
-    "query_generation": "",
-    "query_necessity_gate": "necessary=0;unnecessary=0;overquery_triggered=False;final_count=0",
-    "query_single_dimension_gate": "single_dim=0;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;final_count=0",
-    "claim_evidence_alignment_gate": "claims_extracted=0;blocked=0;flagged=0;final_count=0",
-    "claim_evidence_alignment_gate::run_id": "run-1fbc7be9d5ca",
-    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
-    "semantic_necessity_gate::run_id": "run-63f073b53187",
+    "encounter_synthesis": "run-f12547aa477f",
+    "gap_identification": "run-246aa0e26281",
+    "expert_consultation": "run-828a242851f9",
+    "query_generation": "run-d33eb9dd2911",
+    "query_necessity_gate": "necessary=3;unnecessary=0;overquery_triggered=False;final_count=3",
+    "query_single_dimension_gate": "single_dim=3;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=type;final_count=3",
+    "claim_evidence_alignment_gate": "claims_extracted=10;blocked=1;flagged=0;final_count=2",
+    "claim_evidence_alignment_gate::run_id": "run-4d257c5ed9f2",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=2",
+    "semantic_necessity_gate::run_id": "run-b88fee161bc4",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "run-163a71ae224b"
+    "specialist_trace_emit": "run-7cbda4403b19"
   },
   "stage_trace_ids": {
-    "encounter_synthesis": "trace-bae819657b54",
-    "gap_identification": "trace-ce15deffa2da",
-    "expert_consultation": "trace-0c8455a0034f",
-    "query_generation": "",
+    "encounter_synthesis": "trace-ee93fed7cf2a",
+    "gap_identification": "trace-bde0d476bea5",
+    "expert_consultation": "trace-7e55bc7e3958",
+    "query_generation": "trace-dbb1be92d276",
     "query_necessity_gate": "",
     "query_single_dimension_gate": "",
-    "claim_evidence_alignment_gate": "trace-41844a55210b",
-    "semantic_necessity_gate": "trace-2125623cbfea",
+    "claim_evidence_alignment_gate": "trace-0c557fecac30",
+    "semantic_necessity_gate": "trace-281f5439169c",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "trace-df087ac45736"
+    "specialist_trace_emit": "trace-208af280c7bd"
   },
   "stage_traces": [
     {
       "stage": "encounter_synthesis",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 0,
-      "prompt_tokens": 0,
-      "completion_tokens": 0,
-      "total_tokens": 0,
-      "run_id": "run-f2f3a1aaf1a1",
-      "trace_id": "trace-bae819657b54",
-      "degraded": true,
-      "error_reason": "LLM circuit breaker is OPEN — provider appears unhealthy",
+      "latency_ms": 1709,
+      "prompt_tokens": 224,
+      "completion_tokens": 104,
+      "total_tokens": 328,
+      "run_id": "run-f12547aa477f",
+      "trace_id": "trace-ee93fed7cf2a",
+      "degraded": false,
+      "error_reason": "",
       "expert_id": ""
     },
     {
       "stage": "gap_identification",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 0,
-      "prompt_tokens": 0,
-      "completion_tokens": 0,
-      "total_tokens": 0,
-      "run_id": "run-c33f3f20cb73",
-      "trace_id": "trace-ce15deffa2da",
-      "degraded": true,
-      "error_reason": "LLM circuit breaker is OPEN — provider appears unhealthy",
+      "latency_ms": 4832,
+      "prompt_tokens": 338,
+      "completion_tokens": 321,
+      "total_tokens": 659,
+      "run_id": "run-246aa0e26281",
+      "trace_id": "trace-bde0d476bea5",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5554,
+      "prompt_tokens": 423,
+      "completion_tokens": 581,
+      "total_tokens": 1004,
+      "run_id": "run-d33eb9dd2911",
+      "trace_id": "trace-dbb1be92d276",
+      "degraded": false,
+      "error_reason": "",
       "expert_id": ""
     },
     {
       "stage": "expert_consultation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 0,
-      "prompt_tokens": 0,
-      "completion_tokens": 0,
-      "total_tokens": 0,
-      "run_id": "run-1e46a4cda1f6",
-      "trace_id": "trace-79b18c2983be",
+      "latency_ms": 3475,
+      "prompt_tokens": 157,
+      "completion_tokens": 68,
+      "total_tokens": 225,
+      "run_id": "run-acb001a08127",
+      "trace_id": "trace-a99b7f899e66",
       "degraded": false,
       "error_reason": "",
       "expert_id": "coding-expert"
@@ -130,8 +228,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-965055db44e9",
-      "trace_id": "trace-c5dc5aa48073",
+      "run_id": "run-460c56f2d7ef",
+      "trace_id": "trace-bb85295673ea",
       "degraded": false,
       "error_reason": "",
       "expert_id": "pubmed-expert"
@@ -144,8 +242,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-9add24546c15",
-      "trace_id": "trace-bf232a24327a",
+      "run_id": "run-a0be31e82bde",
+      "trace_id": "trace-0674a9128d91",
       "degraded": false,
       "error_reason": "",
       "expert_id": "web-search-expert"
@@ -158,14 +256,14 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-f3c3cfa095cc",
-      "trace_id": "trace-01ac9200fbc6",
+      "run_id": "run-3ea046eba264",
+      "trace_id": "trace-52b9d9462d78",
       "degraded": false,
       "error_reason": "",
       "expert_id": "medical-calculator-expert"
     }
   ],
-  "degraded": true,
+  "degraded": false,
   "runtime_mode": "real",
-  "generated_at": "2026-07-12T03:30:15.272037Z"
+  "generated_at": "2026-07-12T11:22:09.647896Z"
 }

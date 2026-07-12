@@ -1,0 +1,279 @@
+{
+  "case_id": "G8-CDI-LAB-036",
+  "group": "lab_positive_uncertain",
+  "variant": "",
+  "session_id": "0544fcaf-3edd-4b14-aa5f-bcb4a6875f0f",
+  "attempt": 1,
+  "outcome": "SUCCESS",
+  "elapsed_s": 31.81,
+  "expected": {
+    "query_count_min": 0,
+    "query_count_max": 1,
+    "expected_no_query": false,
+    "expected_query_topics": [],
+    "notes": "Single positive lab without supporting evidence — must not assume GI malignancy"
+  },
+  "text_length": 6605,
+  "first_token_at_s": 4.22,
+  "last_token_at_s": 31.81,
+  "event_count": 13,
+  "raw_events_preview": [
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"code_system\":\"icd-10-cm\",\"count\":3,\"next_steps\":[{\"reason\":\"Browse related codes and alternatives in the same category\",\"tool\":\"explore\"},{\"reason\":\"Read coding conventions relevant to these",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"R19.5\",\"code_system\":\"icd-10-cm\",\"description\":\"Other fecal abnormalities\",\"next_steps\":[{\"reason\":\"Read coding conventions for this code area\",\"tool\":\"guidelines\"},",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"Z00.00\",\"code_system\":\"icd-10-cm\",\"description\":\"Encounter for general adult medical examination without abnormal findings\",\"next_steps\":[{\"reason\":\"Read coding conv",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"Z00.00\",\"description\":\"Encounter for general adult medical examination without abnormal findings\",\"next_steps\":[{\"reason\":\"Compare with related codes if this isn't t",
+    "message|{\"id\":\"93977ad1-b9f6-4199-b2ab-974a91829c45\",\"type\":\"text-start\"}",
+    "message|{\"delta\":\"Encounter Summary:\\n- 45-year-old male seen for a health examination.\\n- He is documented as having \\\"No GI symptoms.\\\"\\n- Screening stool test is abnormal: \\\"Fecal immunochemical test posit",
+    "message|{\"id\":\"93977ad1-b9f6-4199-b2ab-974a91829c45\",\"type\":\"text-end\"}",
+    "message|{\"messageMetadata\":{\"contextId\":\"019f55e5-9a3e-7b56-8fe2-1b9e916601f3\",\"taskId\":\"019f55e5-9a3e-7ae5-a988-e9fa0f1c3daf\",\"credits\":0.078996,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+    "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.078996},\"type\":\"finish\"}",
+    "message|[DONE]"
+  ],
+  "expert_events": [
+    {
+      "code_system": "icd-10-cm",
+      "count": 3,
+      "next_steps": [
+        {
+          "reason": "Browse related codes and alternatives in the same category",
+          "tool": "explore"
+        },
+        {
+          "reason": "Read coding conventions relevant to these codes",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "To assign the codes for a clinical note, use predict (optionally with include/exclude filters)",
+          "tool": "predict"
+        }
+      ],
+      "query": "positive fecal immunochemical test",
+      "results": [
+        {
+          "code": "K52.9",
+          "description": "Noninfective gastroenteritis and colitis, unspecified",
+          "match_path": "Ileocolitis",
+          "related_codes": {
+            "category": "K52",
+            "category_description": "Other and unspecified noninfective gastroenteritis and colitis",
+            "count": 6
+          }
+        },
+        {
+          "code": "K52.29",
+          "description": "Other allergic and dietetic gastroenteritis and colitis",
+          "match_path": "Diarrhea, diarrheal, allergic",
+          "related_codes": {
+            "category": "K52.2",
+            "category_description": "Allergic and dietetic gastroenteritis and colitis",
+            "count": 3
+          }
+        },
+        {
+          "code": "R19.5",
+          "description": "Other fecal abnormalities",
+          "match_path": "Mucus, in stool",
+          "related_codes": {
+            "category": "R19",
+            "category_description": "Other symptoms and signs involving the digestive system and abdomen",
+            "count": 9
+          }
+        }
+      ]
+    },
+    {
+      "assignable": true,
+      "code": "R19.5",
+      "code_system": "icd-10-cm",
+      "description": "Other fecal abnormalities",
+      "next_steps": [
+        {
+          "reason": "Read coding conventions for this code area",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "Check whether a specific code is assignable",
+          "tool": "verify"
+        },
+        {
+          "reason": "Explore a related or more specific code",
+          "tool": "explore"
+        }
+      ],
+      "parent": {
+        "code": "R19",
+        "description": "Other symptoms and signs involving the digestive system and abdomen"
+      },
+      "related_codes": [
+        {
+          "assignable": false,
+          "code": "R19.0",
+          "description": "Intra-abdominal and pelvic swelling, mass and lump"
+        },
+        {
+          "assignable": false,
+          "code": "R19.1",
+          "description": "Abnormal bowel sounds"
+        },
+        {
+          "assignable": true,
+          "code": "R19.2",
+          "description": "Visible peristalsis"
+        },
+        {
+          "assignable": false,
+          "code": "R19.3",
+          "description": "Abdominal rigidity"
+        },
+        {
+          "assignable": true,
+          "code": "R19.4",
+          "description": "Change in bowel habit"
+        },
+        {
+          "assignable": true,
+          "code": "R19.6",
+          "description": "Halitosis"
+        },
+        {
+          "assignable": true,
+          "code": "R19.7",
+          "description": "Diarrhea, unspecified"
+        },
+        {
+          "assignable": true,
+          "code": "R19.8",
+          "description": "Other specified symptoms and signs involving the digestive system and abdomen"
+        }
+      ],
+      "total_related": 8
+    },
+    {
+      "assignable": true,
+      "code": "Z00.00",
+      "code_system": "icd-10-cm",
+      "description": "Encounter for general adult medical examination without abnormal findings",
+      "next_steps": [
+        {
+          "reason": "Read coding conventions for this code area",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "Check whether a specific code is assignable",
+          "tool": "verify"
+        },
+        {
+          "reason": "Explore a related or more specific code",
+          "tool": "explore"
+        }
+      ],
+      "parent": {
+        "code": "Z00.0",
+        "description": "Encounter for general adult medical examination"
+      },
+      "related_codes": [
+        {
+          "assignable": true,
+          "code": "Z00.01",
+          "description": "Encounter for general adult medical examination with abnormal findings"
+        }
+      ],
+      "total_related": 1
+    },
+    {
+      "assignable": true,
+      "code": "Z00.00",
+      "description": "Encounter for general adult medical examination without abnormal findings",
+      "next_steps": [
+        {
+          "reason": "Compare with related codes if this isn't the best fit",
+          "tool": "explore"
+        },
+        {
+          "reason": "Check chapter-level coding conventions for this code area",
+          "tool": "guidelines"
+        }
+      ],
+      "parents": [
+        {
+          "code": "Z00.0",
+          "description": "Encounter for general adult medical examination"
+        },
+        {
+          "code": "Z00",
+          "description": "Encounter for general examination without complaint, suspected or reported diagnosis"
+        },
+        {
+          "code": "Z00-Z13",
+          "description": "Persons encountering health services for examinations (Z00-Z13)"
+        },
+        {
+          "code": "21",
+          "description": "Factors influencing health status and contact with health services (Z00-Z99)"
+        }
+      ]
+    }
+  ],
+  "status_events": [
+    {
+      "state": "working"
+    },
+    {
+      "state": "working"
+    },
+    {
+      "message": "Calling expert: coding-expert",
+      "state": "working"
+    }
+  ],
+  "finish_metadata": {
+    "contextId": "019f55e5-9a3e-7b56-8fe2-1b9e916601f3",
+    "taskId": "019f55e5-9a3e-7ae5-a988-e9fa0f1c3daf",
+    "credits": 0.078996,
+    "state": "completed"
+  },
+  "parsed": {
+    "encounter_summary": "- 45-year-old male seen for a health examination.\n- He is documented as having \"No GI symptoms.\"\n- Screening stool test is abnormal: \"Fecal immunochemical test positive.\"\n- CBC indices are normal in the excerpt: \"Hb 145, MCV 88. No anemia.\"\n- Plan documented: \"Recommendation: repeat FIT, consider colonoscopy.\"",
+    "gaps": [
+      {
+        "idx": 1,
+        "text": "Principal encounter characterization is ambiguous\n- Why it matters: The note describes a preventive visit but also documents an abnormal finding. For coding specificity, the record should clearly indicate whether this was a routine adult exam with abnormal findings versus follow-up/evaluation of a positive screening test.\n- Evidence quote: \"45-year-old male, health examination\" and \"Fecal immunochemical test positive.\"\n- Minimal clarification needed: Clarify the encounter type/purpose for this v"
+      },
+      {
+        "idx": 2,
+        "text": "Abnormal stool finding is not described with diagnostic specificity beyond the test result\n- Why it matters: The record supports an abnormal fecal finding, but the documentation does not state a corresponding assessed condition/problem beyond the positive FIT result.\n- Evidence quote: \"Fecal immunochemical test positive.\"\n- Minimal clarification needed: Clarify whether the positive FIT should be documented as an abnormal fecal finding being evaluated, screening abnormality, or simply as a test r"
+      },
+      {
+        "idx": 3,
+        "text": "Follow-up plan lacks documented clinical linkage to the abnormal result\n- Why it matters: The plan includes additional testing/procedure consideration, but the documentation does not explicitly connect the plan to the abnormal screening result in assessment terms.\n- Evidence quote: \"Recommendation: repeat FIT, consider colonoscopy.\"\n- Minimal clarification needed: Clarify the indication for repeat FIT/colonoscopy consideration and whether this is follow-up of the positive FIT screening result."
+      }
+    ],
+    "gap_count": 3,
+    "queries": [
+      {
+        "idx": 1,
+        "text": "Encounter type/purpose clarification"
+      },
+      {
+        "idx": 2,
+        "text": "Positive FIT result clarification"
+      },
+      {
+        "idx": 3,
+        "text": "Indication for recommended follow-up"
+      }
+    ],
+    "query_count": 3,
+    "specialists_contacted": [
+      "Medical Coding Expert",
+      "Coding Expert"
+    ],
+    "specialist_trace_text": "- Medical Coding Expert: Consulted for coding/documentation specificity and compliant query targets. Accepted: the need to distinguish abnormal fecal finding documentation and preventive exam characterization, supported by the excerpt. Also accepted related coding direction showing possible relevance of R19.5 for abnormal fecal finding and Z00.00/Z00.01 distinction at the encounter level. Rejected: any implication of a more specific GI diagnosis, because the excerpt does not support one.\n- AMBOSS Expert: Not consulted. Reason: no unclear clinical criteria for a documented diagnosis needed clarification in this excerpt.\n- CDI Web Search Expert: Not consulted. Reason: no current external guidance was required to produce conservative, chart-supported CDI queries.\n\nNotes on coding uncertainty:\n- The excerpt supports a preventive exam and a positive FIT result, but final code assignment depends on provider clarification of whether the encounter should be considered with abnormal findings versus follow-up of an abnormal screening result.\n- A positive FIT alone does not support assigning a definitive GI disease diagnosis from this excerpt.",
+    "has_specialist_trace": true
+  },
+  "error": "",
+  "text": "Encounter Summary:\n- 45-year-old male seen for a health examination.\n- He is documented as having \"No GI symptoms.\"\n- Screening stool test is abnormal: \"Fecal immunochemical test positive.\"\n- CBC indices are normal in the excerpt: \"Hb 145, MCV 88. No anemia.\"\n- Plan documented: \"Recommendation: repeat FIT, consider colonoscopy.\"\n\nDocumentation Gaps:\n1. Principal encounter characterization is ambiguous\n- Why it matters: The note describes a preventive visit but also documents an abnormal finding. For coding specificity, the record should clearly indicate whether this was a routine adult exam with abnormal findings versus follow-up/evaluation of a positive screening test.\n- Evidence quote: \"45-year-old male, health examination\" and \"Fecal immunochemical test positive.\"\n- Minimal clarification needed: Clarify the encounter type/purpose for this visit and whether the positive FIT represents an abnormal finding addressed during the exam.\n\n2. Abnormal stool finding is not described with diagnostic specificity beyond the test result\n- Why it matters: The record supports an abnormal fecal finding, but the documentation does not state a corresponding assessed condition/problem beyond the positive FIT result.\n- Evidence quote: \"Fecal immunochemical test positive.\"\n- Minimal clarification needed: Clarify whether the positive FIT should be documented as an abnormal fecal finding being evaluated, screening abnormality, or simply as a test result prompting follow-up.\n\n3. Follow-up plan lacks documented clinical linkage to the abnormal result\n- Why it matters: The plan includes additional testing/procedure consideration, but the documentation does not explicitly connect the plan to the abnormal screening result in assessment terms.\n- Evidence quote: \"Recommendation: repeat FIT, consider colonoscopy.\"\n- Minimal clarification needed: Clarify the indication for repeat FIT/colonoscopy consideration and whether this is follow-up of the positive FIT screening result.\n\nProposed Provider Queries:\n1. Topic: Encounter type/purpose clarification\n- Reason query is needed: The documentation contains both a general preventive visit and an abnormal screening result, which affects visit characterization.\n- Evidence quote: \"45-year-old male, health examination\"; \"Fecal immunochemical test positive.\"\n- Non-leading query text: \"For this encounter, please clarify the primary purpose/status of the visit as clinically appropriate based on your assessment and documentation.\"\n- Suggested response options:\n  - General adult health examination with abnormal finding(s)\n  - General adult health examination without abnormal finding(s)\n  - Follow-up/evaluation of previously identified abnormal screening test\n  - Other clinically appropriate purpose/status (please specify)\n  - Clinically undetermined\n\n2. Topic: Positive FIT result clarification\n- Reason query is needed: The note documents a positive fecal immunochemical test but does not clearly state how this result is being characterized in the assessment.\n- Evidence quote: \"Fecal immunochemical test positive.\"\n- Non-leading query text: \"Please clarify how the positive fecal immunochemical test should be characterized for this encounter, if applicable.\"\n- Suggested response options:\n  - Abnormal fecal finding/result under evaluation\n  - Positive colorectal cancer screening test requiring follow-up\n  - Test result noted without current associated diagnosis/condition\n  - Other clinically appropriate characterization (please specify)\n  - Clinically undetermined\n\n3. Topic: Indication for recommended follow-up\n- Reason query is needed: The plan includes repeat FIT and possible colonoscopy, but the indication is not explicitly linked in the assessment.\n- Evidence quote: \"Recommendation: repeat FIT, consider colonoscopy.\"\n- Non-leading query text: \"Please clarify the clinical indication for the documented recommendation to repeat FIT and consider colonoscopy.\"\n- Suggested response options:\n  - Follow-up of positive FIT result\n  - Routine screening follow-up\n  - Evaluation of another concern (please specify)\n  - Other clinically appropriate indication (please specify)\n  - Clinically undetermined\n\nCoding Specificity Checklist:\n- Specify whether the visit is a routine adult health examination with or without abnormal findings.\n- State whether the positive FIT is being assessed as an abnormal fecal finding/screening abnormality for this encounter.\n- Link the follow-up recommendation explicitly to the abnormal screening result if that is the intent.\n- If this is purely a screening/follow-up discussion, document that purpose clearly.\n- Continue to document absence of symptoms when relevant: \"No GI symptoms.\"\n- Continue to document pertinent negatives affecting significance, such as \"No anemia.\"\n\nRisk Flags:\n- Potential coding conflict: a general exam documented as \"health examination\" may not align with a code for exam without abnormal findings if \"Fecal immunochemical test positive\" is considered an abnormal finding.\n- The excerpt does not document GI bleeding, colorectal neoplasm, anemia, or another definitive GI diagnosis; querying for such diagnoses would be unsupported.\n- \"Recommendation: repeat FIT, consider colonoscopy\" is a plan, not a diagnosis.\n- Insufficient evidence to query topics such as occult GI bleeding, iron deficiency, malignancy, or other GI disease because the excerpt explicitly states \"No GI symptoms\" and \"No anemia.\"\n\nSpecialist Trace:\n- Medical Coding Expert: Consulted for coding/documentation specificity and compliant query targets. Accepted: the need to distinguish abnormal fecal finding documentation and preventive exam characterization, supported by the excerpt. Also accepted related coding direction showing possible relevance of R19.5 for abnormal fecal finding and Z00.00/Z00.01 distinction at the encounter level. Rejected: any implication of a more specific GI diagnosis, because the excerpt does not support one.\n- AMBOSS Expert: Not consulted. Reason: no unclear clinical criteria for a documented diagnosis needed clarification in this excerpt.\n- CDI Web Search Expert: Not consulted. Reason: no current external guidance was required to produce conservative, chart-supported CDI queries.\n\nNotes on coding uncertainty:\n- The excerpt supports a preventive exam and a positive FIT result, but final code assignment depends on provider clarification of whether the encounter should be considered with abnormal findings versus follow-up of an abnormal screening result.\n- A positive FIT alone does not support assigning a definitive GI disease diagnosis from this excerpt."
+}

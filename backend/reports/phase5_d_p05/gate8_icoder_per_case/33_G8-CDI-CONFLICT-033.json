@@ -1,8 +1,40 @@
 {
-  "case_id": "CASE-8bf9aea95b17",
-  "completion_state": "AUTO_PASS",
-  "documentation_gaps": [],
-  "proposed_provider_queries": [],
+  "case_id": "CASE-bf450aa6e647",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-bf450aa6e647/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "COPD急性加重的严重程度在入院诊断、病程记录和出院诊断中不一致（重度、轻度、中度），需要明确统一的严重程度分级。",
+      "why_it_matters": "严重程度影响治疗决策、预后评估和编码准确性，不一致可能导致编码错误和合规风险。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "入院诊断:COPD急性加重, 重度。病程记录:COPD急性加重, 轻度。出院诊断:COPD急性加重, 中度。"
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-bf450aa6e647/Q-001",
+      "gap_id": "CASE-bf450aa6e647/GAP-001",
+      "topic": "COPD急性加重严重程度分级",
+      "reason": "入院诊断、病程记录和出院诊断中COPD急性加重严重程度不一致（重度、轻度、中度），需明确统一的分级。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "入院诊断:COPD急性加重, 重度。病程记录:COPD急性加重, 轻度。出院诊断:COPD急性加重, 中度。"
+      },
+      "query_text": "患者COPD急性加重，目前血气分析示pH 7.38, PaCO2 56, PaO2 70。根据临床表现和检查结果，请明确本次COPD急性加重的严重程度分级。",
+      "response_options": [
+        "A. 轻度（无呼吸衰竭，无意识改变）",
+        "B. 中度（需无创通气或出现呼吸性酸中毒）",
+        "C. 重度（需有创通气或出现意识障碍）",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "urgent"
+    }
+  ],
   "chart_excerpt_preview": "患者男性, 70岁, COPD史。入院诊断:COPD急性加重, 重度。血气分析:pH 7.38, PaCO2 56, PaO2 70。病程记录:COPD急性加重, 轻度。出院诊断:COPD急性加重, 中度。",
   "patient_ref": "DEID",
   "encounter_ref": "DEID",
@@ -14,13 +46,13 @@
   "specialist_trace": [
     {
       "expert_id": "coding-expert",
-      "consulted": false,
-      "rationale": "no coding-relevant gaps survived earlier gates",
-      "route_decision": "not_needed",
-      "route_reason": "no_relevant_gap",
-      "execution_mode": "SKIPPED_NOT_NEEDED",
-      "latency_ms": 0,
-      "tokens": 0
+      "consulted": true,
+      "rationale": "根据临床指南，COPD急性加重的严重程度应基于症状、体征及血气分析结果（如pH、PaCO₂、PaO₂）进行客观分级。该患者血气显示PaCO₂升高（56 mmHg）且pH正常，符合II型呼吸衰竭代偿期，通常对应中度至重度加重，建议统一采用客观指标（如血气、呼吸频率、意识状态）作为分级依据。",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3184,
+      "tokens": 238
     },
     {
       "expert_id": "pubmed-expert",
@@ -45,79 +77,93 @@
     {
       "expert_id": "medical-calculator-expert",
       "consulted": false,
-      "rationale": "",
-      "route_decision": "not_needed",
-      "route_reason": "no_relevant_gap",
-      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "rationale": "'分级' score — parameters absent from chart",
+      "route_decision": "missing_inputs",
+      "route_reason": "calculator_params_missing",
+      "execution_mode": "SKIPPED_MISSING_INPUTS",
       "latency_ms": 0,
       "tokens": 0
     }
   ],
   "stage_run_ids": {
-    "encounter_synthesis": "run-30b102c8ab9a",
-    "gap_identification": "run-afe2e46156c6",
-    "expert_consultation": "run-bb85a7494c12",
-    "query_generation": "",
-    "query_necessity_gate": "necessary=0;unnecessary=0;overquery_triggered=False;final_count=0",
-    "query_single_dimension_gate": "single_dim=0;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;final_count=0",
-    "claim_evidence_alignment_gate": "claims_extracted=0;blocked=0;flagged=0;final_count=0",
-    "claim_evidence_alignment_gate::run_id": "run-16692372c855",
-    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
-    "semantic_necessity_gate::run_id": "run-908506a480c4",
+    "encounter_synthesis": "run-ccffc9a1f032",
+    "gap_identification": "run-9c5a86db7583",
+    "expert_consultation": "run-f0f8e7fc358e",
+    "query_generation": "run-8ed19d18a5cc",
+    "query_necessity_gate": "necessary=1;unnecessary=0;overquery_triggered=False;final_count=1",
+    "query_single_dimension_gate": "single_dim=1;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=severity;final_count=1",
+    "claim_evidence_alignment_gate": "claims_extracted=4;blocked=0;flagged=0;final_count=1",
+    "claim_evidence_alignment_gate::run_id": "run-4e139724ddbb",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=1",
+    "semantic_necessity_gate::run_id": "run-d39b7e9870f7",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "run-d3c98054cbe9"
+    "specialist_trace_emit": "run-64962b566b3f"
   },
   "stage_trace_ids": {
-    "encounter_synthesis": "trace-31121765a030",
-    "gap_identification": "trace-8774cd0283a3",
-    "expert_consultation": "trace-766d3d78ae9e",
-    "query_generation": "",
+    "encounter_synthesis": "trace-061b2c3fbe88",
+    "gap_identification": "trace-23e5bb974232",
+    "expert_consultation": "trace-2eadbc57a9ed",
+    "query_generation": "trace-9e543dd6f08f",
     "query_necessity_gate": "",
     "query_single_dimension_gate": "",
-    "claim_evidence_alignment_gate": "trace-48262e9316bb",
-    "semantic_necessity_gate": "trace-37413a89988e",
+    "claim_evidence_alignment_gate": "trace-37debbb86813",
+    "semantic_necessity_gate": "trace-0783f7e5f1b1",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "trace-b536226c5788"
+    "specialist_trace_emit": "trace-5e87fb02a26c"
   },
   "stage_traces": [
     {
       "stage": "encounter_synthesis",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 0,
+      "latency_ms": 3378,
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-30b102c8ab9a",
-      "trace_id": "trace-31121765a030",
+      "run_id": "run-ccffc9a1f032",
+      "trace_id": "trace-061b2c3fbe88",
       "degraded": true,
-      "error_reason": "LLM circuit breaker is OPEN — provider appears unhealthy",
+      "error_reason": "LLM call failed after 3 attempts: Connection error.",
       "expert_id": ""
     },
     {
       "stage": "gap_identification",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 0,
-      "prompt_tokens": 0,
-      "completion_tokens": 0,
-      "total_tokens": 0,
-      "run_id": "run-afe2e46156c6",
-      "trace_id": "trace-8774cd0283a3",
-      "degraded": true,
-      "error_reason": "LLM circuit breaker is OPEN — provider appears unhealthy",
+      "latency_ms": 2296,
+      "prompt_tokens": 286,
+      "completion_tokens": 171,
+      "total_tokens": 457,
+      "run_id": "run-9c5a86db7583",
+      "trace_id": "trace-23e5bb974232",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 4031,
+      "prompt_tokens": 400,
+      "completion_tokens": 267,
+      "total_tokens": 667,
+      "run_id": "run-8ed19d18a5cc",
+      "trace_id": "trace-9e543dd6f08f",
+      "degraded": false,
+      "error_reason": "",
       "expert_id": ""
     },
     {
       "stage": "expert_consultation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 0,
-      "prompt_tokens": 0,
-      "completion_tokens": 0,
-      "total_tokens": 0,
-      "run_id": "run-8fb5bbd1d686",
-      "trace_id": "trace-e43cab8a2dc9",
+      "latency_ms": 3184,
+      "prompt_tokens": 151,
+      "completion_tokens": 87,
+      "total_tokens": 238,
+      "run_id": "run-a197cdc9b800",
+      "trace_id": "trace-65d0b3a39c15",
       "degraded": false,
       "error_reason": "",
       "expert_id": "coding-expert"
@@ -130,8 +176,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-a5e679022a05",
-      "trace_id": "trace-bfc0bbd129f3",
+      "run_id": "run-b21fe1b49e72",
+      "trace_id": "trace-5467b747cf98",
       "degraded": false,
       "error_reason": "",
       "expert_id": "pubmed-expert"
@@ -144,8 +190,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-6811d617d63d",
-      "trace_id": "trace-29f6cc93ccaa",
+      "run_id": "run-c42428ff0590",
+      "trace_id": "trace-0cfbebbabada",
       "degraded": false,
       "error_reason": "",
       "expert_id": "web-search-expert"
@@ -158,8 +204,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-e8c07a26032c",
-      "trace_id": "trace-b45f304f8804",
+      "run_id": "run-2dd9db4ea9cc",
+      "trace_id": "trace-90fdcb5a8f2d",
       "degraded": false,
       "error_reason": "",
       "expert_id": "medical-calculator-expert"
@@ -167,5 +213,5 @@
   ],
   "degraded": true,
   "runtime_mode": "real",
-  "generated_at": "2026-07-12T03:21:59.424748Z"
+  "generated_at": "2026-07-12T11:34:16.883736Z"
 }

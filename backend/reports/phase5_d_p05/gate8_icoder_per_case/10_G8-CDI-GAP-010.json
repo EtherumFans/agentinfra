@@ -1,8 +1,90 @@
 {
-  "case_id": "CASE-b8544b89522d",
-  "completion_state": "AUTO_PASS",
-  "documentation_gaps": [],
-  "proposed_provider_queries": [],
+  "case_id": "CASE-ad243d2fe6b7",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-ad243d2fe6b7/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "上消化道出血的病因未明确为食管静脉曲张破裂出血",
+      "why_it_matters": "胃镜已明确食管静脉曲张出血，但入院诊断仍为笼统的'上消化道出血'，影响编码准确性和治疗针对性。",
+      "evidence_span": {
+        "document_id": "入院记录",
+        "quote": "入院诊断:上消化道出血"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-ad243d2fe6b7/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "乙肝肝硬化未明确代偿期或失代偿期",
+      "why_it_matters": "肝硬化分期影响并发症风险评估和编码，失代偿期有腹水、肝性脑病等需记录。",
+      "evidence_span": {
+        "document_id": "入院记录",
+        "quote": "乙肝肝硬化史"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-ad243d2fe6b7/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "贫血未明确急性或慢性",
+      "why_it_matters": "Hb 75提示贫血，但未说明是急性失血所致还是慢性贫血，影响编码和病情评估。",
+      "evidence_span": {
+        "document_id": "实验室检查",
+        "quote": "Hb 75"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-ad243d2fe6b7/GAP-004",
+      "gap_type": "diagnostic_specificity",
+      "description": "低血压未明确是否休克",
+      "why_it_matters": "BP 95/60, HR 110提示可能失血性休克，但未明确诊断，影响严重程度编码和临床处理。",
+      "evidence_span": {
+        "document_id": "生命体征",
+        "quote": "BP 95/60, HR 110"
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-ad243d2fe6b7/Q-001",
+      "gap_id": "CASE-ad243d2fe6b7/GAP-002",
+      "topic": "乙肝肝硬化的分期",
+      "reason": "乙肝肝硬化未明确代偿期或失代偿期",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "乙肝肝硬化史"
+      },
+      "query_text": "根据患者目前情况，乙肝肝硬化属于哪一期？",
+      "response_options": [
+        "A. 代偿期",
+        "B. 失代偿期",
+        "C. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine"
+    },
+    {
+      "query_id": "CASE-ad243d2fe6b7/Q-002",
+      "gap_id": "CASE-ad243d2fe6b7/GAP-003",
+      "topic": "贫血的病程",
+      "reason": "贫血未明确急性或慢性",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "Hb 75"
+      },
+      "query_text": "根据患者病史和检查结果，贫血的病程是？",
+      "response_options": [
+        "A. 急性贫血",
+        "B. 慢性贫血",
+        "C. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine"
+    }
+  ],
   "chart_excerpt_preview": "患者男性, 62岁, 乙肝肝硬化史, 呕血1天。Hb 75, BP 95/60, HR 110。胃镜:食管静脉曲张出血, 已套扎。入院诊断:上消化道出血。",
   "patient_ref": "DEID",
   "encounter_ref": "DEID",
@@ -14,13 +96,13 @@
   "specialist_trace": [
     {
       "expert_id": "coding-expert",
-      "consulted": false,
-      "rationale": "no coding-relevant gaps survived earlier gates",
-      "route_decision": "not_needed",
-      "route_reason": "no_relevant_gap",
-      "execution_mode": "SKIPPED_NOT_NEEDED",
-      "latency_ms": 0,
-      "tokens": 0
+      "consulted": true,
+      "rationale": "For accurate coding, the documentation should specify that the upper gastrointestinal bleeding is due to esophageal variceal rupture, as confirmed by endoscopy. The cirrhosis should be classified as decompensated given the presence of variceal bleeding, and the anemia should be documented as acute due to the acute blood loss. Additionally, the hypotension should be clarified as either a transient state or indicative of hypovolemic shock to reflect the severity of the presentation.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3739,
+      "tokens": 247
     },
     {
       "expert_id": "pubmed-expert",
@@ -54,70 +136,84 @@
     }
   ],
   "stage_run_ids": {
-    "encounter_synthesis": "run-1334b2718a43",
-    "gap_identification": "run-fc9da1aff811",
-    "expert_consultation": "run-ab18ffce94b8",
-    "query_generation": "",
-    "query_necessity_gate": "necessary=0;unnecessary=0;overquery_triggered=False;final_count=0",
-    "query_single_dimension_gate": "single_dim=0;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;final_count=0",
-    "claim_evidence_alignment_gate": "claims_extracted=0;blocked=0;flagged=0;final_count=0",
-    "claim_evidence_alignment_gate::run_id": "run-ebfdd3058dde",
-    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
-    "semantic_necessity_gate::run_id": "run-9a21ab5557cd",
+    "encounter_synthesis": "run-5f4eea9132f4",
+    "gap_identification": "run-bacdd64e4d53",
+    "expert_consultation": "run-2aa8689ed881",
+    "query_generation": "run-1c32b4cf9a14",
+    "query_necessity_gate": "necessary=4;unnecessary=0;overquery_triggered=False;final_count=4",
+    "query_single_dimension_gate": "single_dim=4;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=etiology;final_count=4",
+    "claim_evidence_alignment_gate": "claims_extracted=12;blocked=1;flagged=1;final_count=3",
+    "claim_evidence_alignment_gate::run_id": "run-0b894ab4d930",
+    "semantic_necessity_gate": "blocked=1;flagged=0;degraded=0;final_count=2",
+    "semantic_necessity_gate::run_id": "run-f933dda14ff7",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "run-1e558d6a5727"
+    "specialist_trace_emit": "run-1e27b5d2d852"
   },
   "stage_trace_ids": {
-    "encounter_synthesis": "trace-1f6cbd3247af",
-    "gap_identification": "trace-d76cbf2923be",
-    "expert_consultation": "trace-41bfa7a78b42",
-    "query_generation": "",
+    "encounter_synthesis": "trace-5bc8c8bce6b8",
+    "gap_identification": "trace-1174cdb098cb",
+    "expert_consultation": "trace-5388f2e8781b",
+    "query_generation": "trace-19c25cd2df71",
     "query_necessity_gate": "",
     "query_single_dimension_gate": "",
-    "claim_evidence_alignment_gate": "trace-c8ab6cccda96",
-    "semantic_necessity_gate": "trace-e8a2d9a7aba9",
+    "claim_evidence_alignment_gate": "trace-966e0b69ec6f",
+    "semantic_necessity_gate": "trace-963f17b89884",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "trace-f15b02cf14c9"
+    "specialist_trace_emit": "trace-40249861e08b"
   },
   "stage_traces": [
     {
       "stage": "encounter_synthesis",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 0,
+      "latency_ms": 3505,
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-1334b2718a43",
-      "trace_id": "trace-1f6cbd3247af",
+      "run_id": "run-5f4eea9132f4",
+      "trace_id": "trace-5bc8c8bce6b8",
       "degraded": true,
-      "error_reason": "LLM circuit breaker is OPEN — provider appears unhealthy",
+      "error_reason": "LLM call failed after 3 attempts: Connection error.",
       "expert_id": ""
     },
     {
       "stage": "gap_identification",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 0,
-      "prompt_tokens": 0,
-      "completion_tokens": 0,
-      "total_tokens": 0,
-      "run_id": "run-fc9da1aff811",
-      "trace_id": "trace-d76cbf2923be",
-      "degraded": true,
-      "error_reason": "LLM circuit breaker is OPEN — provider appears unhealthy",
+      "latency_ms": 5080,
+      "prompt_tokens": 275,
+      "completion_tokens": 486,
+      "total_tokens": 761,
+      "run_id": "run-bacdd64e4d53",
+      "trace_id": "trace-1174cdb098cb",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6141,
+      "prompt_tokens": 444,
+      "completion_tokens": 579,
+      "total_tokens": 1023,
+      "run_id": "run-1c32b4cf9a14",
+      "trace_id": "trace-19c25cd2df71",
+      "degraded": false,
+      "error_reason": "",
       "expert_id": ""
     },
     {
       "stage": "expert_consultation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 0,
-      "prompt_tokens": 0,
-      "completion_tokens": 0,
-      "total_tokens": 0,
-      "run_id": "run-6ab75dcbc67d",
-      "trace_id": "trace-b3142ccc0b9d",
+      "latency_ms": 3739,
+      "prompt_tokens": 158,
+      "completion_tokens": 89,
+      "total_tokens": 247,
+      "run_id": "run-aae9c8f2f882",
+      "trace_id": "trace-7ef23154e29d",
       "degraded": false,
       "error_reason": "",
       "expert_id": "coding-expert"
@@ -130,8 +226,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-1a8ba6a0953c",
-      "trace_id": "trace-959c9881b9cc",
+      "run_id": "run-fd8d97071db7",
+      "trace_id": "trace-4744d60568d2",
       "degraded": false,
       "error_reason": "",
       "expert_id": "pubmed-expert"
@@ -144,8 +240,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-60eedfaf0305",
-      "trace_id": "trace-3dbba742ced1",
+      "run_id": "run-dd7eb588a603",
+      "trace_id": "trace-62d8d1419571",
       "degraded": false,
       "error_reason": "",
       "expert_id": "web-search-expert"
@@ -158,8 +254,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-923ce21cfc8b",
-      "trace_id": "trace-0fab856759c6",
+      "run_id": "run-94c9ec08466a",
+      "trace_id": "trace-e9dbcb7656e4",
       "degraded": false,
       "error_reason": "",
       "expert_id": "medical-calculator-expert"
@@ -167,5 +263,5 @@
   ],
   "degraded": true,
   "runtime_mode": "real",
-  "generated_at": "2026-07-12T03:21:57.960917Z"
+  "generated_at": "2026-07-12T11:25:33.251982Z"
 }

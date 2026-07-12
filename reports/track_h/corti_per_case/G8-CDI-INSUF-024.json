@@ -1,0 +1,87 @@
+{
+  "case_id": "G8-CDI-INSUF-024",
+  "group": "insufficient_evidence",
+  "variant": "",
+  "session_id": "f1d99389-9753-4509-82d2-2ddf5870f7f8",
+  "attempt": 1,
+  "outcome": "SUCCESS",
+  "elapsed_s": 23.37,
+  "expected": {
+    "query_count_min": 0,
+    "query_count_max": 1,
+    "expected_no_query": false,
+    "expected_query_topics": [],
+    "notes": "Concerning constitutional symptoms but no documented diagnosis to clarify"
+  },
+  "text_length": 5081,
+  "first_token_at_s": 3.4,
+  "last_token_at_s": 23.37,
+  "event_count": 9,
+  "raw_events_preview": [
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"id\":\"251990b2-420b-478e-a7c0-fddb689ffaf9\",\"type\":\"text-start\"}",
+    "message|{\"delta\":\"Encounter Summary:\\n- 70-year-old male with \\\"decreased appetite for 1 month\\\" and \\\"5kg weight loss.\\\"\\n- \\\"No significant findings on exam.\\\"\\n- The note states: \\\"Recommend further workup",
+    "message|{\"id\":\"251990b2-420b-478e-a7c0-fddb689ffaf9\",\"type\":\"text-end\"}",
+    "message|{\"messageMetadata\":{\"contextId\":\"019f55dc-2bee-7445-a86e-cae4a4172a3b\",\"taskId\":\"019f55dc-2bee-73bd-8e07-c3f1f1727e44\",\"credits\":0.066856,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+    "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.066856},\"type\":\"finish\"}",
+    "message|[DONE]"
+  ],
+  "expert_events": [],
+  "status_events": [
+    {
+      "state": "working"
+    },
+    {
+      "state": "working"
+    },
+    {
+      "message": "Calling expert: coding-expert",
+      "state": "working"
+    }
+  ],
+  "finish_metadata": {
+    "contextId": "019f55dc-2bee-7445-a86e-cae4a4172a3b",
+    "taskId": "019f55dc-2bee-73bd-8e07-c3f1f1727e44",
+    "credits": 0.066856,
+    "state": "completed"
+  },
+  "parsed": {
+    "encounter_summary": "- 70-year-old male with \"decreased appetite for 1 month\" and \"5kg weight loss.\"\n- \"No significant findings on exam.\"\n- The note states: \"Recommend further workup.\"",
+    "gaps": [
+      {
+        "idx": 1,
+        "text": "Symptom specificity and clinical significance are not documented.\n- Why it matters: Reduced appetite and weight loss are symptoms/signs, but the record does not describe severity, associated symptoms, suspected cause, or whether the weight loss is considered clinically significant/abnormal.\n- Evidence quote: \"decreased appetite for 1 month, 5kg weight loss\"\n- Minimal clarification needed: Please document the clinical significance of the weight loss/appetite change, relevant associated symptoms, "
+      },
+      {
+        "idx": 2,
+        "text": "Nutritional status is unclear.\n- Why it matters: Weight loss and decreased appetite may prompt need for clearer documentation of nutritional status, but the excerpt does not document malnutrition, cachexia, frailty, or any assessment supporting those conditions.\n- Evidence quote: \"decreased appetite for 1 month, 5kg weight loss\"\n- Minimal clarification needed: If clinically assessed, document whether there is any nutritional diagnosis or whether only symptoms are present.\n- Limitation: There is "
+      },
+      {
+        "idx": 3,
+        "text": "Workup plan lacks specificity.\n- Why it matters: The note indicates additional evaluation is planned, but does not specify the concern being evaluated or the diagnostic context.\n- Evidence quote: \"Recommend further workup.\"\n- Minimal clarification needed: Clarify the indication for workup and the suspected problem being evaluated, if known."
+      }
+    ],
+    "gap_count": 3,
+    "queries": [
+      {
+        "idx": 1,
+        "text": "Clinical significance/etiology of weight loss and decreased appetite"
+      },
+      {
+        "idx": 2,
+        "text": "Nutritional status"
+      }
+    ],
+    "query_count": 2,
+    "specialists_contacted": [
+      "Medical Coding Expert",
+      "Coding Expert"
+    ],
+    "specialist_trace_text": "- Medical Coding Expert: Consulted for coding specificity and CDI gap identification. Accepted the general need to clarify symptom significance, possible underlying condition, and nutritional status, because these are supported by the quote \"decreased appetite for 1 month, 5kg weight loss.\" Rejected any implication of specific diagnoses not documented in the excerpt.\n- AMBOSS Expert: Not consulted. Clinical diagnostic criteria for a specific documented diagnosis were not needed because no diagnosis is documented.\n- CDI Web Search Expert: Not consulted. Current external guidance was not required to identify basic documentation gaps from the excerpt alone.",
+    "has_specialist_trace": true
+  },
+  "error": "",
+  "text": "Encounter Summary:\n- 70-year-old male with \"decreased appetite for 1 month\" and \"5kg weight loss.\"\n- \"No significant findings on exam.\"\n- The note states: \"Recommend further workup.\"\n\nDocumentation Gaps:\n1. Symptom specificity and clinical significance are not documented.\n- Why it matters: Reduced appetite and weight loss are symptoms/signs, but the record does not describe severity, associated symptoms, suspected cause, or whether the weight loss is considered clinically significant/abnormal.\n- Evidence quote: \"decreased appetite for 1 month, 5kg weight loss\"\n- Minimal clarification needed: Please document the clinical significance of the weight loss/appetite change, relevant associated symptoms, and any suspected etiology if known.\n\n2. Nutritional status is unclear.\n- Why it matters: Weight loss and decreased appetite may prompt need for clearer documentation of nutritional status, but the excerpt does not document malnutrition, cachexia, frailty, or any assessment supporting those conditions.\n- Evidence quote: \"decreased appetite for 1 month, 5kg weight loss\"\n- Minimal clarification needed: If clinically assessed, document whether there is any nutritional diagnosis or whether only symptoms are present.\n- Limitation: There is insufficient evidence in the excerpt to query for malnutrition, cachexia, or frailty specifically.\n\n3. Workup plan lacks specificity.\n- Why it matters: The note indicates additional evaluation is planned, but does not specify the concern being evaluated or the diagnostic context.\n- Evidence quote: \"Recommend further workup.\"\n- Minimal clarification needed: Clarify the indication for workup and the suspected problem being evaluated, if known.\n\nProposed Provider Queries:\n1. Topic: Clinical significance/etiology of weight loss and decreased appetite\n- Reason query is needed: The documentation records symptoms but not whether there is an identified underlying condition or whether these remain unexplained symptoms.\n- Evidence quote: \"decreased appetite for 1 month, 5kg weight loss\"\n- Non-leading query text: \"The note documents decreased appetite for 1 month and 5 kg weight loss. For this encounter, can you clarify whether these findings are being documented as unexplained symptoms or as due to an underlying condition? Please document the diagnosis or clinical status most appropriate for this encounter.\"\n- Suggested response options:\n  - Unexplained decreased appetite and weight loss\n  - Symptoms due to an underlying condition (please specify)\n  - Intentional weight loss\n  - History only/not clinically significant this encounter\n  - Clinically undetermined\n  - Other (please specify)\n\n2. Topic: Nutritional status\n- Reason query is needed: The note documents appetite decrease and weight loss, but no nutritional assessment diagnosis is documented.\n- Evidence quote: \"decreased appetite for 1 month, 5kg weight loss\"\n- Non-leading query text: \"Based on the documented decreased appetite for 1 month and 5 kg weight loss, please clarify whether there is a nutritional diagnosis or other clinical condition that should be documented for this encounter, if any.\"\n- Suggested response options:\n  - No nutritional diagnosis; symptoms only\n  - Nutritional disorder/condition present (please specify)\n  - Other condition present explaining findings (please specify)\n  - Clinically undetermined\n  - Other (please specify)\n- Limitation: Because no BMI, intake assessment, laboratory data, or formal nutrition assessment is provided, more specific nutritional queries would be unsupported.\n\nCoding Specificity Checklist:\n- Whether weight loss is intentional or unintentional\n- Amount and timeframe of weight loss\n- Whether decreased appetite is a symptom only or attributable to an underlying condition\n- Any associated symptoms documented in the encounter\n- Any confirmed diagnosis explaining the symptoms\n- Whether there is a documented nutritional diagnosis, if clinically supported\n- Clinical indication for the planned \"further workup\"\n\nRisk Flags:\n- The excerpt contains symptoms only; no underlying diagnosis is documented.\n- \"Recommend further workup\" is nonspecific and does not identify the concern being evaluated.\n- There is insufficient evidence to support querying for specific diagnoses such as malignancy, malnutrition, cachexia, or depression.\n- No contradiction is evident within the excerpt, but documentation is very limited.\n\nSpecialist Trace:\n- Medical Coding Expert: Consulted for coding specificity and CDI gap identification. Accepted the general need to clarify symptom significance, possible underlying condition, and nutritional status, because these are supported by the quote \"decreased appetite for 1 month, 5kg weight loss.\" Rejected any implication of specific diagnoses not documented in the excerpt.\n- AMBOSS Expert: Not consulted. Clinical diagnostic criteria for a specific documented diagnosis were not needed because no diagnosis is documented.\n- CDI Web Search Expert: Not consulted. Current external guidance was not required to identify basic documentation gaps from the excerpt alone."
+}

@@ -23,7 +23,7 @@ class CircuitBreaker:
     """
 
     def __init__(self, name: str = "llm",
-                 failure_threshold: int = 5,
+                 failure_threshold: int = 20,
                  recovery_timeout: float = 30.0):
         self.name = name
         self.failure_threshold = failure_threshold

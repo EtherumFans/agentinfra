@@ -1,0 +1,195 @@
+{
+  "case_id": "G8-CDI-COMPLETE-013",
+  "group": "complete_chart",
+  "variant": "",
+  "session_id": "a3edf922-ed4c-412b-a0b2-fa638d0d5daf",
+  "attempt": 1,
+  "outcome": "SUCCESS",
+  "elapsed_s": 17.16,
+  "expected": {
+    "query_count_min": 0,
+    "query_count_max": 0,
+    "expected_no_query": true,
+    "expected_query_topics": [],
+    "notes": "Healthy adult exam — nothing to query"
+  },
+  "text_length": 2033,
+  "first_token_at_s": 4.02,
+  "last_token_at_s": 17.16,
+  "event_count": 12,
+  "raw_events_preview": [
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"code_system\":\"icd-10-cm\",\"count\":4,\"next_steps\":[{\"reason\":\"Browse related codes and alternatives in the same category\",\"tool\":\"explore\"},{\"reason\":\"Read coding conventions relevant to these",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"Z00.00\",\"code_system\":\"icd-10-cm\",\"description\":\"Encounter for general adult medical examination without abnormal findings\",\"next_steps\":[{\"reason\":\"Read coding conv",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"Z00.00\",\"description\":\"Encounter for general adult medical examination without abnormal findings\",\"next_steps\":[{\"reason\":\"Compare with related codes if this isn't t",
+    "message|{\"id\":\"9801a02b-4430-4711-b80d-027a05f65397\",\"type\":\"text-start\"}",
+    "message|{\"delta\":\"Encounter Summary:\\n- Routine preventive visit for a \\\"28-year-old male, routine health examination.\\\"\\n- Vitals and BMI documented as normal: \\\"BMI 23, BP 118/76.\\\"\\n- Social history negati",
+    "message|{\"id\":\"9801a02b-4430-4711-b80d-027a05f65397\",\"type\":\"text-end\"}",
+    "message|{\"messageMetadata\":{\"contextId\":\"019f55cb-fed4-706a-8fcc-86a7056116fe\",\"taskId\":\"019f55cb-fed3-7f16-aed3-28e5626eef43\",\"credits\":0.057184,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+    "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.057184},\"type\":\"finish\"}",
+    "message|[DONE]"
+  ],
+  "expert_events": [
+    {
+      "code_system": "icd-10-cm",
+      "count": 4,
+      "next_steps": [
+        {
+          "reason": "Browse related codes and alternatives in the same category",
+          "tool": "explore"
+        },
+        {
+          "reason": "Read coding conventions relevant to these codes",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "To assign the codes for a clinical note, use predict (optionally with include/exclude filters)",
+          "tool": "predict"
+        }
+      ],
+      "query": "routine health examination no abnormal findings",
+      "results": [
+        {
+          "code": "Z00.129",
+          "description": "Encounter for routine child health examination without abnormal findings",
+          "match_path": "Encounter for routine child health examination NOS",
+          "related_codes": {
+            "category": "Z00.12",
+            "category_description": "Encounter for routine child health examination",
+            "count": 2
+          }
+        },
+        {
+          "code": "Z00.00",
+          "description": "Encounter for general adult medical examination without abnormal findings",
+          "match_path": "Examination, annual",
+          "related_codes": {
+            "category": "Z00.0",
+            "category_description": "Encounter for general adult medical examination",
+            "count": 2
+          }
+        },
+        {
+          "code": "Z02.9",
+          "description": "Encounter for administrative examinations, unspecified",
+          "match_path": "Examination, medical, administrative purpose only",
+          "related_codes": {
+            "category": "Z02",
+            "category_description": "Encounter for administrative examination",
+            "count": 10
+          }
+        },
+        {
+          "code": "Z00.6",
+          "description": "Encounter for examination for normal comparison and control in clinical research program",
+          "match_path": "Examination, medical, clinical research, normal subject",
+          "related_codes": {
+            "category": "Z00",
+            "category_description": "Encounter for general examination without complaint, suspected or reported diagnosis",
+            "count": 8
+          }
+        }
+      ]
+    },
+    {
+      "assignable": true,
+      "code": "Z00.00",
+      "code_system": "icd-10-cm",
+      "description": "Encounter for general adult medical examination without abnormal findings",
+      "next_steps": [
+        {
+          "reason": "Read coding conventions for this code area",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "Check whether a specific code is assignable",
+          "tool": "verify"
+        },
+        {
+          "reason": "Explore a related or more specific code",
+          "tool": "explore"
+        }
+      ],
+      "parent": {
+        "code": "Z00.0",
+        "description": "Encounter for general adult medical examination"
+      },
+      "related_codes": [
+        {
+          "assignable": true,
+          "code": "Z00.01",
+          "description": "Encounter for general adult medical examination with abnormal findings"
+        }
+      ],
+      "total_related": 1
+    },
+    {
+      "assignable": true,
+      "code": "Z00.00",
+      "description": "Encounter for general adult medical examination without abnormal findings",
+      "next_steps": [
+        {
+          "reason": "Compare with related codes if this isn't the best fit",
+          "tool": "explore"
+        },
+        {
+          "reason": "Check chapter-level coding conventions for this code area",
+          "tool": "guidelines"
+        }
+      ],
+      "parents": [
+        {
+          "code": "Z00.0",
+          "description": "Encounter for general adult medical examination"
+        },
+        {
+          "code": "Z00",
+          "description": "Encounter for general examination without complaint, suspected or reported diagnosis"
+        },
+        {
+          "code": "Z00-Z13",
+          "description": "Persons encountering health services for examinations (Z00-Z13)"
+        },
+        {
+          "code": "21",
+          "description": "Factors influencing health status and contact with health services (Z00-Z99)"
+        }
+      ]
+    }
+  ],
+  "status_events": [
+    {
+      "state": "working"
+    },
+    {
+      "state": "working"
+    },
+    {
+      "message": "Calling expert: coding-expert",
+      "state": "working"
+    }
+  ],
+  "finish_metadata": {
+    "contextId": "019f55cb-fed4-706a-8fcc-86a7056116fe",
+    "taskId": "019f55cb-fed3-7f16-aed3-28e5626eef43",
+    "credits": 0.057184,
+    "state": "completed"
+  },
+  "parsed": {
+    "encounter_summary": "- Routine preventive visit for a \"28-year-old male, routine health examination.\"\n- Vitals and BMI documented as normal: \"BMI 23, BP 118/76.\"\n- Social history negative for \"smoking or alcohol use.\"\n- Exam and basic labs documented as normal: \"Normal physical examination. Lipids, glucose, liver and renal function all normal.\"\n- Assessment/plan states: \"Diagnosis: health examination, no abnormal findings. Recommendation: routine follow-up.\"",
+    "gaps": [],
+    "gap_count": 0,
+    "queries": [],
+    "query_count": 0,
+    "specialists_contacted": [
+      "Medical Coding Expert",
+      "Coding Expert"
+    ],
+    "specialist_trace_text": "- Medical Coding Expert: Consulted for coding specificity and likely ICD-10-CM assignment. Accepted output identifying Z00.00 as the supported code because it aligns with the chart wording: \"routine health examination\" and \"no abnormal findings.\"\n- AMBOSS Expert: Not consulted; no unclear clinical criteria or staging issue present.\n- CDI Web Search Expert: Not consulted; no current external guidance was required to assess this straightforward preventive note.",
+    "has_specialist_trace": true
+  },
+  "error": "",
+  "text": "Encounter Summary:\n- Routine preventive visit for a \"28-year-old male, routine health examination.\"\n- Vitals and BMI documented as normal: \"BMI 23, BP 118/76.\"\n- Social history negative for \"smoking or alcohol use.\"\n- Exam and basic labs documented as normal: \"Normal physical examination. Lipids, glucose, liver and renal function all normal.\"\n- Assessment/plan states: \"Diagnosis: health examination, no abnormal findings. Recommendation: routine follow-up.\"\n\nDocumentation Gaps:\n- No significant CDI gap identified from the excerpt.\n  - Why it matters: The documentation already supports a normal preventive encounter without abnormal findings.\n  - Evidence quote: \"Diagnosis: health examination, no abnormal findings.\"\n  - Minimal clarification needed: None based on the excerpt.\n\nProposed Provider Queries:\n- No compliant provider query recommended.\n  - Reason: The note is internally consistent and already specifies a normal routine exam without abnormal findings.\n  - Evidence quote: \"Diagnosis: health examination, no abnormal findings.\"\n\nCoding Specificity Checklist:\n- Encounter type documented as routine/general adult exam.\n- Abnormal findings status documented as none.\n- Basic exam/lab context documented as normal.\n- Adult age documented.\n- Coding expert-supported code option: ICD-10-CM Z00.00, \"Encounter for general adult medical examination without abnormal findings.\"\n\nRisk Flags:\n- No contradictions identified in the excerpt.\n- No unsupported diagnoses identified.\n- No ambiguous terms requiring clarification for CDI purposes.\n\nSpecialist Trace:\n- Medical Coding Expert: Consulted for coding specificity and likely ICD-10-CM assignment. Accepted output identifying Z00.00 as the supported code because it aligns with the chart wording: \"routine health examination\" and \"no abnormal findings.\"\n- AMBOSS Expert: Not consulted; no unclear clinical criteria or staging issue present.\n- CDI Web Search Expert: Not consulted; no current external guidance was required to assess this straightforward preventive note."
+}

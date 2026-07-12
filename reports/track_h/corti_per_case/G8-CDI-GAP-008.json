@@ -1,0 +1,86 @@
+{
+  "case_id": "G8-CDI-GAP-008",
+  "group": "clear_gap",
+  "variant": "",
+  "session_id": "b58eb7de-32ec-45cd-92ec-7a74709768ca",
+  "attempt": 1,
+  "outcome": "SUCCESS",
+  "elapsed_s": 24.31,
+  "expected": {
+    "query_count_min": 1,
+    "query_count_max": 2,
+    "expected_no_query": false,
+    "expected_query_topics": [
+      "DKA",
+      "diabetic ketoacidosis"
+    ],
+    "notes": "DKA clearly present from labs but not documented as a separate diagnosis"
+  },
+  "text_length": 4149,
+  "first_token_at_s": 4.38,
+  "last_token_at_s": 24.31,
+  "event_count": 9,
+  "raw_events_preview": [
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"id\":\"3ab6a506-cff6-448a-a44f-55ba052b49ca\",\"type\":\"text-start\"}",
+    "message|{\"delta\":\"Encounter Summary:\\n- 45-year-old male with 1 month of \\\"polyuria and polydipsia.\\\"\\n- Objective findings documented: \\\"FPG 12.5, HbA1c 11.2, pH 7.30, HCO3 16, ketones positive.\\\"\\n- Admissi",
+    "message|{\"id\":\"3ab6a506-cff6-448a-a44f-55ba052b49ca\",\"type\":\"text-end\"}",
+    "message|{\"messageMetadata\":{\"contextId\":\"019f55c5-5872-7209-bc43-95a2e8502aa3\",\"taskId\":\"019f55c5-5872-7190-bd02-71f6b5990958\",\"credits\":0.066224,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+    "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.066224},\"type\":\"finish\"}",
+    "message|[DONE]"
+  ],
+  "expert_events": [],
+  "status_events": [
+    {
+      "state": "working"
+    },
+    {
+      "state": "working"
+    },
+    {
+      "message": "Calling expert: coding-expert",
+      "state": "working"
+    }
+  ],
+  "finish_metadata": {
+    "contextId": "019f55c5-5872-7209-bc43-95a2e8502aa3",
+    "taskId": "019f55c5-5872-7190-bd02-71f6b5990958",
+    "credits": 0.066224,
+    "state": "completed"
+  },
+  "parsed": {
+    "encounter_summary": "- 45-year-old male with 1 month of \"polyuria and polydipsia.\"\n- Objective findings documented: \"FPG 12.5, HbA1c 11.2, pH 7.30, HCO3 16, ketones positive.\"\n- Admission diagnosis is documented only as \"type 2 diabetes.\"",
+    "gaps": [
+      {
+        "idx": 1,
+        "text": "Gap: Hyperglycemic state/acidosis specificity is not documented.\n- Why it matters: The excerpt includes abnormal acid-base and ketone findings, but the admission diagnosis does not clarify whether a diabetes-related acute metabolic complication is present.\n- Evidence quote: \"pH 7.30, HCO3 16, ketones positive\" and \"Admission diagnosis: type 2 diabetes.\"\n- Minimal clarification needed: Whether these findings represent a diabetes-related acute metabolic complication, another cause, or are not clin"
+      },
+      {
+        "idx": 2,
+        "text": "Gap: Diabetes type/status lacks specificity.\n- Why it matters: The note states only \"type 2 diabetes\" despite this appearing to be initial presentation information; the record does not clarify whether this is newly diagnosed versus previously known, and whether there is hyperglycemia with complication.\n- Evidence quote: \"Admission diagnosis: type 2 diabetes\" with supporting glycemic data \"FPG 12.5, HbA1c 11.2.\"\n- Minimal clarification needed: Whether the diabetes is newly diagnosed or previously"
+      }
+    ],
+    "gap_count": 2,
+    "queries": [
+      {
+        "idx": 1,
+        "text": "Clarification of the documented diabetic condition and associated acute metabolic findings."
+      },
+      {
+        "idx": 2,
+        "text": "Clarification of diabetes status."
+      }
+    ],
+    "query_count": 2,
+    "specialists_contacted": [
+      "Medical Coding Expert",
+      "Coding Expert"
+    ],
+    "specialist_trace_text": "- Medical Coding Expert: consulted for coding specificity/gap identification. Accepted the general need to clarify diabetes specificity and any associated acute metabolic complication. No unsupported diagnosis was adopted.\n- AMBOSS Expert: not consulted; no external clinical criteria were required to identify the documentation ambiguity from the excerpt alone.\n- CDI Web Search Expert: not consulted; no current external guideline was necessary for this chart-limited clarification.",
+    "has_specialist_trace": true
+  },
+  "error": "",
+  "text": "Encounter Summary:\n- 45-year-old male with 1 month of \"polyuria and polydipsia.\"\n- Objective findings documented: \"FPG 12.5, HbA1c 11.2, pH 7.30, HCO3 16, ketones positive.\"\n- Admission diagnosis is documented only as \"type 2 diabetes.\"\n\nDocumentation Gaps:\n1. Gap: Hyperglycemic state/acidosis specificity is not documented.\n- Why it matters: The excerpt includes abnormal acid-base and ketone findings, but the admission diagnosis does not clarify whether a diabetes-related acute metabolic complication is present.\n- Evidence quote: \"pH 7.30, HCO3 16, ketones positive\" and \"Admission diagnosis: type 2 diabetes.\"\n- Minimal clarification needed: Whether these findings represent a diabetes-related acute metabolic complication, another cause, or are not clinically significant.\n\n2. Gap: Diabetes type/status lacks specificity.\n- Why it matters: The note states only \"type 2 diabetes\" despite this appearing to be initial presentation information; the record does not clarify whether this is newly diagnosed versus previously known, and whether there is hyperglycemia with complication.\n- Evidence quote: \"Admission diagnosis: type 2 diabetes\" with supporting glycemic data \"FPG 12.5, HbA1c 11.2.\"\n- Minimal clarification needed: Whether the diabetes is newly diagnosed or previously established, and whether any associated acute complication is present.\n\nProposed Provider Queries:\n1. Topic: Clarification of the documented diabetic condition and associated acute metabolic findings.\n- Reason query is needed: The chart documents \"type 2 diabetes\" along with \"pH 7.30, HCO3 16, ketones positive,\" but does not state the clinical significance of these findings.\n- Evidence quote: \"FPG 12.5, HbA1c 11.2, pH 7.30, HCO3 16, ketones positive. Admission diagnosis: type 2 diabetes.\"\n- Non-leading query text: \"Based on the documented admission findings of FPG 12.5, HbA1c 11.2, pH 7.30, HCO3 16, and positive ketones, please clarify the diabetic condition being evaluated/treated during this admission, if known.\"\n- Suggested response options:\n  - Type 2 diabetes mellitus without acute metabolic complication\n  - Type 2 diabetes mellitus with an acute metabolic complication (please specify)\n  - Diabetes mellitus type clinically unable to be determined from current information\n  - Other diagnosis/condition explaining these findings (please specify)\n  - Clinically undetermined\n\n2. Topic: Clarification of diabetes status.\n- Reason query is needed: The documentation does not indicate whether the diabetes is newly diagnosed or previously known.\n- Evidence quote: \"45-year-old male with polyuria and polydipsia for 1 month\" and \"Admission diagnosis: type 2 diabetes.\"\n- Non-leading query text: \"Please clarify the status of the documented type 2 diabetes for this encounter.\"\n- Suggested response options:\n  - Newly diagnosed during this encounter\n  - Previously established type 2 diabetes\n  - Unable to determine\n  - Other (please specify)\n\nCoding Specificity Checklist:\n- Diabetes type\n- Newly diagnosed vs previously established\n- Presence or absence of acute metabolic complication\n- If a complication is present, its specific diagnosis/etiology as documented by the provider\n- Relationship of abnormal pH/bicarbonate/ketones to the diabetic condition, if clinically applicable\n\nRisk Flags:\n- Potential underdocumentation: only \"type 2 diabetes\" is documented despite \"pH 7.30, HCO3 16, ketones positive.\"\n- Ambiguity: no explicit diagnosis is attached to the acidosis/ketone findings.\n- Insufficient evidence to query additional topics such as dehydration, acute kidney injury, or infection because these are not documented in the excerpt.\n\nSpecialist Trace:\n- Medical Coding Expert: consulted for coding specificity/gap identification. Accepted the general need to clarify diabetes specificity and any associated acute metabolic complication. No unsupported diagnosis was adopted.\n- AMBOSS Expert: not consulted; no external clinical criteria were required to identify the documentation ambiguity from the excerpt alone.\n- CDI Web Search Expert: not consulted; no current external guideline was necessary for this chart-limited clarification."
+}

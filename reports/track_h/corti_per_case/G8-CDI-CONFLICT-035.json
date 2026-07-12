@@ -1,0 +1,95 @@
+{
+  "case_id": "G8-CDI-CONFLICT-035",
+  "group": "document_conflict",
+  "variant": "",
+  "session_id": "19dea44e-6989-471f-8760-5205f44751b5",
+  "attempt": 1,
+  "outcome": "SUCCESS",
+  "elapsed_s": 29.32,
+  "expected": {
+    "query_count_min": 1,
+    "query_count_max": 2,
+    "expected_no_query": false,
+    "expected_query_topics": [
+      "诊断数量",
+      "comorbidity count",
+      "CKD documentation"
+    ],
+    "notes": "Progress note mentions CKD + hyperlipidemia not in admission/discharge — insulin suggests more severe diabetes"
+  },
+  "text_length": 6579,
+  "first_token_at_s": 3.97,
+  "last_token_at_s": 29.32,
+  "event_count": 9,
+  "raw_events_preview": [
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"id\":\"034eed72-4507-416b-ad81-2b58af2dfcaf\",\"type\":\"text-start\"}",
+    "message|{\"delta\":\"Encounter Summary:\\n- 58-year-old male.\\n- Admission diagnoses documented as \\\"essential hypertension, type 2 diabetes.\\\"\\n- Medication list includes \\\"metformin, valsartan, insulin.\\\"\\n- Pr",
+    "message|{\"id\":\"034eed72-4507-416b-ad81-2b58af2dfcaf\",\"type\":\"text-end\"}",
+    "message|{\"messageMetadata\":{\"contextId\":\"019f55e5-0b73-768c-b884-c5fcd25adf58\",\"taskId\":\"019f55e5-0b73-75f5-9500-bf8ab8073afb\",\"credits\":0.078064,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+    "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.078064},\"type\":\"finish\"}",
+    "message|[DONE]"
+  ],
+  "expert_events": [],
+  "status_events": [
+    {
+      "state": "working"
+    },
+    {
+      "state": "working"
+    },
+    {
+      "message": "Calling expert: coding-expert",
+      "state": "working"
+    }
+  ],
+  "finish_metadata": {
+    "contextId": "019f55e5-0b73-768c-b884-c5fcd25adf58",
+    "taskId": "019f55e5-0b73-75f5-9500-bf8ab8073afb",
+    "credits": 0.078064,
+    "state": "completed"
+  },
+  "parsed": {
+    "encounter_summary": "- 58-year-old male.\n- Admission diagnoses documented as \"essential hypertension, type 2 diabetes.\"\n- Medication list includes \"metformin, valsartan, insulin.\"\n- Progress note lists \"hypertension, diabetes, chronic kidney disease, hyperlipidemia.\"\n- Discharge diagnoses documented as \"hypertension, diabetes.\"",
+    "gaps": [
+      {
+        "idx": 1,
+        "text": "CKD documented in progress note but not reflected in final diagnoses\n- Why it matters: A condition documented during the stay but omitted from discharge diagnoses may need clarification as to whether it was clinically evaluated/monitored and should be included in the final diagnostic list.\n- Evidence quote: \"Progress note: hypertension, diabetes, chronic kidney disease, hyperlipidemia.\"\n- Additional conflicting context: \"Discharge diagnosis: hypertension, diabetes.\"\n- Minimal clarification neede"
+      },
+      {
+        "idx": 2,
+        "text": "Hyperlipidemia documented in progress note but not reflected in final diagnoses\n- Why it matters: Same final-diagnosis reconciliation issue as above.\n- Evidence quote: \"Progress note: hypertension, diabetes, chronic kidney disease, hyperlipidemia.\"\n- Additional conflicting context: \"Discharge diagnosis: hypertension, diabetes.\"\n- Minimal clarification needed: Whether hyperlipidemia was an active condition evaluated/treated/monitored during the encounter and whether it should be included in the f"
+      },
+      {
+        "idx": 3,
+        "text": "Diabetes type specificity is partially inconsistent across the record\n- Why it matters: Admission documentation specifies type; discharge documentation is less specific.\n- Evidence quotes: \"admission diagnosis: essential hypertension, type 2 diabetes\" and \"Discharge diagnosis: hypertension, diabetes.\"\n- Minimal clarification needed: Confirm whether the final diagnosis should retain the documented specificity of type 2 diabetes.\n- Limitation: The excerpt does not support querying for diabetic com"
+      }
+    ],
+    "gap_count": 3,
+    "queries": [
+      {
+        "idx": 1,
+        "text": "Chronic kidney disease diagnosis status"
+      },
+      {
+        "idx": 2,
+        "text": "Hyperlipidemia diagnosis status"
+      },
+      {
+        "idx": 3,
+        "text": "Diabetes type specificity in final diagnosis"
+      }
+    ],
+    "query_count": 3,
+    "specialists_contacted": [
+      "Medical Coding Expert",
+      "Coding Expert"
+    ],
+    "specialist_trace_text": "- Medical Coding Expert: Consulted for coding specificity and compliant query targets. Accepted guidance that CKD and hyperlipidemia are valid reconciliation query targets because they are documented in the progress note but absent from admission/discharge diagnoses. Accepted limitation that insulin use alone does not support querying for diabetic complications, control status, long-term insulin use, or insulin-dependent status from this excerpt. Rejected any inference beyond the explicit chart text.\n- AMBOSS Expert: Not consulted; no clinical criteria determination was necessary for this limited excerpt.\n- CDI Web Search Expert: Not consulted; no current external guideline lookup was necessary for this chart-based reconciliation task.",
+    "has_specialist_trace": true
+  },
+  "error": "",
+  "text": "Encounter Summary:\n- 58-year-old male.\n- Admission diagnoses documented as \"essential hypertension, type 2 diabetes.\"\n- Medication list includes \"metformin, valsartan, insulin.\"\n- Progress note lists \"hypertension, diabetes, chronic kidney disease, hyperlipidemia.\"\n- Discharge diagnoses documented as \"hypertension, diabetes.\"\n\nDocumentation Gaps:\n1. CKD documented in progress note but not reflected in final diagnoses\n- Why it matters: A condition documented during the stay but omitted from discharge diagnoses may need clarification as to whether it was clinically evaluated/monitored and should be included in the final diagnostic list.\n- Evidence quote: \"Progress note: hypertension, diabetes, chronic kidney disease, hyperlipidemia.\"\n- Additional conflicting context: \"Discharge diagnosis: hypertension, diabetes.\"\n- Minimal clarification needed: Whether chronic kidney disease was an active condition relevant to this encounter and, if so, whether it should be documented in the final diagnoses; include stage only if supported elsewhere in the chart.\n\n2. Hyperlipidemia documented in progress note but not reflected in final diagnoses\n- Why it matters: Same final-diagnosis reconciliation issue as above.\n- Evidence quote: \"Progress note: hypertension, diabetes, chronic kidney disease, hyperlipidemia.\"\n- Additional conflicting context: \"Discharge diagnosis: hypertension, diabetes.\"\n- Minimal clarification needed: Whether hyperlipidemia was an active condition evaluated/treated/monitored during the encounter and whether it should be included in the final diagnoses.\n\n3. Diabetes type specificity is partially inconsistent across the record\n- Why it matters: Admission documentation specifies type; discharge documentation is less specific.\n- Evidence quotes: \"admission diagnosis: essential hypertension, type 2 diabetes\" and \"Discharge diagnosis: hypertension, diabetes.\"\n- Minimal clarification needed: Confirm whether the final diagnosis should retain the documented specificity of type 2 diabetes.\n- Limitation: The excerpt does not support querying for diabetic complications, control status, or linkage to CKD.\n\nProposed Provider Queries:\n1. Topic: Chronic kidney disease diagnosis status\n- Reason query is needed: CKD appears in the progress note but not in the discharge diagnoses.\n- Evidence quote: \"Progress note: hypertension, diabetes, chronic kidney disease, hyperlipidemia.\" and \"Discharge diagnosis: hypertension, diabetes.\"\n- Non-leading query text: \"For this encounter, please clarify the status of chronic kidney disease documented in the progress note. Was chronic kidney disease a current condition that was evaluated, monitored, or otherwise clinically relevant during this admission, and should it be included in the final diagnoses? Please document the most accurate diagnosis, if any.\"\n- Suggested response options:\n  - Chronic kidney disease was clinically relevant this encounter and should be included in final diagnoses\n  - Chronic kidney disease was present but not clinically relevant to this encounter\n  - Chronic kidney disease was ruled out / not a current diagnosis\n  - Other\n  - Clinically undetermined\n\n2. Topic: Hyperlipidemia diagnosis status\n- Reason query is needed: Hyperlipidemia appears in the progress note but not in the discharge diagnoses.\n- Evidence quote: \"Progress note: hypertension, diabetes, chronic kidney disease, hyperlipidemia.\" and \"Discharge diagnosis: hypertension, diabetes.\"\n- Non-leading query text: \"For this encounter, please clarify the status of hyperlipidemia documented in the progress note. Was hyperlipidemia an active condition that was evaluated, monitored, treated, or otherwise clinically relevant during this admission, and should it be included in the final diagnoses? Please document the most accurate diagnosis, if any.\"\n- Suggested response options:\n  - Hyperlipidemia was clinically relevant this encounter and should be included in final diagnoses\n  - Hyperlipidemia was present but not clinically relevant to this encounter\n  - Hyperlipidemia was ruled out / not a current diagnosis\n  - Other\n  - Clinically undetermined\n\n3. Topic: Diabetes type specificity in final diagnosis\n- Reason query is needed: Admission note specifies type 2 diabetes, while discharge diagnosis states only diabetes.\n- Evidence quote: \"admission diagnosis: essential hypertension, type 2 diabetes\" and \"Discharge diagnosis: hypertension, diabetes.\"\n- Non-leading query text: \"For final diagnosis documentation, please clarify the diabetes diagnosis documented for this encounter. Can the diabetes type be specified more precisely in the discharge diagnoses?\"\n- Suggested response options:\n  - Type 2 diabetes mellitus\n  - Other specified diabetes diagnosis\n  - Unable to determine\n\nCoding Specificity Checklist:\n- Hypertension: confirm whether essential hypertension is the final diagnosis wording intended, since discharge lists only \"hypertension.\"\n- Diabetes: retain type specificity if known in the final diagnosis.\n- CKD: if confirmed, document whether it should appear in final diagnoses; include stage only if documented elsewhere.\n- Hyperlipidemia: if clinically relevant, document it in final diagnoses with the most accurate terminology available in the record.\n\nRisk Flags:\n- Diagnosis reconciliation issue: \"chronic kidney disease\" and \"hyperlipidemia\" appear only in the progress note and are absent from discharge diagnoses.\n- Specificity inconsistency: admission documents \"type 2 diabetes,\" while discharge documents only \"diabetes.\"\n- Unsupported topics from this excerpt: no support to query CKD stage, diabetic CKD linkage, diabetes complications, glycemic control status, or hyperlipidemia subtype.\n- Medication list alone (\"metformin, valsartan, insulin\") is insufficient to infer additional diagnoses or complications.\n\nSpecialist Trace:\n- Medical Coding Expert: Consulted for coding specificity and compliant query targets. Accepted guidance that CKD and hyperlipidemia are valid reconciliation query targets because they are documented in the progress note but absent from admission/discharge diagnoses. Accepted limitation that insulin use alone does not support querying for diabetic complications, control status, long-term insulin use, or insulin-dependent status from this excerpt. Rejected any inference beyond the explicit chart text.\n- AMBOSS Expert: Not consulted; no clinical criteria determination was necessary for this limited excerpt.\n- CDI Web Search Expert: Not consulted; no current external guideline lookup was necessary for this chart-based reconciliation task."
+}

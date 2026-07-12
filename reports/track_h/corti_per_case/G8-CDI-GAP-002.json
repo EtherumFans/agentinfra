@@ -1,0 +1,364 @@
+{
+  "case_id": "G8-CDI-GAP-002",
+  "group": "clear_gap",
+  "variant": "",
+  "session_id": "c14e83bc-73b4-401c-aaad-d5b6537ac91b",
+  "attempt": 1,
+  "outcome": "SUCCESS",
+  "elapsed_s": 32.32,
+  "expected": {
+    "query_count_min": 1,
+    "query_count_max": 3,
+    "expected_no_query": false,
+    "expected_query_topics": [
+      "脓毒症休克",
+      "septic shock",
+      "感染源",
+      "source of infection"
+    ],
+    "notes": "Septic shock vs sepsis without shock ambiguous; infection source not specified"
+  },
+  "text_length": 6955,
+  "first_token_at_s": 3.87,
+  "last_token_at_s": 32.32,
+  "event_count": 13,
+  "raw_events_preview": [
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"code_system\":\"icd-10-cm\",\"count\":1,\"next_steps\":[{\"reason\":\"Browse related codes and alternatives in the same category\",\"tool\":\"explore\"},{\"reason\":\"Read coding conventions relevant to these",
+    "message|{\"data\":{\"chapter_guidelines\":[{\"codes\":[\"R65.2\",\"A41.9\"],\"content\":\"The coding of severe sepsis requires a minimum of 2 codes: first \\na code for the underlying systemic infection, followed by a code",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"A41.9\",\"code_system\":\"icd-10-cm\",\"description\":\"Sepsis, unspecified organism\",\"next_steps\":[{\"reason\":\"Read coding conventions for this code area\",\"tool\":\"guidelines",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"A41.9\",\"description\":\"Sepsis, unspecified organism\",\"next_steps\":[{\"reason\":\"Compare with related codes if this isn't the best fit\",\"tool\":\"explore\"},{\"reason\":\"Chec",
+    "message|{\"id\":\"6fd06340-9420-45a9-ba38-5a2c558be6f1\",\"type\":\"text-start\"}",
+    "message|{\"delta\":\"Encounter Summary:\\n- 72-year-old female presented to the ED with altered mental status for 1 day.\\n- Documented abnormal findings include hypotension, tachycardia, fever, and elevated lacta",
+    "message|{\"id\":\"6fd06340-9420-45a9-ba38-5a2c558be6f1\",\"type\":\"text-end\"}",
+    "message|{\"messageMetadata\":{\"contextId\":\"019f55be-0246-7914-a19d-606b653186f1\",\"taskId\":\"019f55be-0246-789e-b61b-1d4cbbbef699\",\"credits\":0.09895999999999999,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+    "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.09895999999999999},\"type\":\"finish\"}",
+    "message|[DONE]"
+  ],
+  "expert_events": [
+    {
+      "code_system": "icd-10-cm",
+      "count": 1,
+      "next_steps": [
+        {
+          "reason": "Browse related codes and alternatives in the same category",
+          "tool": "explore"
+        },
+        {
+          "reason": "Read coding conventions relevant to these codes",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "To assign the codes for a clinical note, use predict (optionally with include/exclude filters)",
+          "tool": "predict"
+        }
+      ],
+      "query": "sepsis",
+      "results": [
+        {
+          "code": "A41.9",
+          "description": "Sepsis, unspecified organism",
+          "match_path": "Sepsis",
+          "related_codes": {
+            "category": "A41",
+            "category_description": "Other sepsis",
+            "count": 8
+          }
+        }
+      ]
+    },
+    {
+      "chapter_guidelines": [
+        {
+          "codes": [
+            "R65.2",
+            "A41.9"
+          ],
+          "content": "The coding of severe sepsis requires a minimum of 2 codes: first \na code for the underlying systemic infection, followed by a code \nfrom subcategory R65.2, Severe sepsis. If the causal organism is \nnot documented, assign code A41.9, Sepsis, unspecified \norganism, for the infection. Additional code(s) for the associated \nacute organ dysfunction are also required. \n \nDue to the complex nature of severe sepsis, some cases may \nrequire querying the provider prior to assignment of the codes.",
+          "id": "icd-10-cm_section_I_C_1_d_1_b",
+          "kind": "guideline",
+          "number": "IC1d1b",
+          "path": [
+            "I",
+            "C",
+            "1",
+            "d",
+            "1",
+            "b"
+          ],
+          "scope": "chapter",
+          "sections": [],
+          "title": "Severe sepsis"
+        },
+        {
+          "codes": [
+            "A41.9",
+            "R65.2"
+          ],
+          "content": "For a diagnosis of sepsis, assign the appropriate code for the \nunderlying systemic infection. If the type of infection or causal \norganism is not further specified, assign code A41.9, Sepsis, \nunspecified organism. \n \nA code from subcategory R65.2, Severe sepsis, should not be \nassigned unless severe sepsis or an associated acute organ \ndysfunction is documented.",
+          "id": "icd-10-cm_section_I_C_1_d_1_a",
+          "kind": "guideline",
+          "number": "IC1d1a",
+          "path": [
+            "I",
+            "C",
+            "1",
+            "d",
+            "1",
+            "a"
+          ],
+          "scope": "chapter",
+          "sections": [
+            {
+              "codes": [],
+              "content": "and sepsis \nNegative or inconclusive blood cultures do not preclude \na diagnosis of sepsis in patients with clinical evidence of \nthe condition; however, the provider should be queried.",
+              "id": "icd-10-cm_section_I_C_1_d_1_a_i",
+              "kind": "guideline",
+              "number": "IC1d1ai",
+              "path": [
+                "I",
+                "C",
+                "1",
+                "d",
+                "1",
+                "a",
+                "i"
+              ],
+              "scope": "chapter",
+              "sections": [],
+              "title": "Negative or inconclusive blood cultures and sepsis"
+            },
+            {
+              "codes": [],
+              "content": "The term urosepsis is a nonspecific term. It is not to be \nconsidered synonymous with sepsis. It has no default \ncode in the Alphabetic Index. Should a provider use this \nterm, he/she must be queried for clarification.",
+              "id": "icd-10-cm_section_I_C_1_d_1_a_ii",
+              "kind": "guideline",
+              "number": "IC1d1aii",
+              "path": [
+                "I",
+                "C",
+                "1",
+                "d",
+                "1",
+                "a",
+                "ii"
+              ],
+              "scope": "chapter",
+              "sections": [],
+              "title": "Urosepsis"
+            },
+            {
+              "codes": [
+                "MOD"
+              ],
+              "content": "If a patient has sepsis and associated acute organ \ndysfunction or multiple organ dysfunction (MOD), \nfollow the instructions for coding severe sepsis.",
+              "id": "icd-10-cm_section_I_C_1_d_1_a_iii",
+              "kind": "guideline",
+              "number": "IC1d1aiii",
+              "path": [
+                "I",
+                "C",
+                "1",
+                "d",
+                "1",
+                "a",
+                "iii"
+              ],
+              "scope": "chapter",
+              "sections": [],
+              "title": "Sepsis with organ dysfunction"
+            },
+            {
+              "codes": [
+                "R65.2"
+              ],
+              "content": "not clearly associated \nwith the sepsis \n \nIf a patient has sepsis and an acute organ dysfunction, \nbut the medical record documentation indicates that the \nacute organ dysfunction is related to a medical condition \nother than the sepsis, do not assign a code from \nsubcategory R65.2, Severe sepsis. An acute organ \ndysfunction must be associated with the sepsis in order to \nassign the severe sepsis code. If the documentation is not \nclear as to whether an acute organ dysfunction is related \nto the sepsis or another medical condition, query the \nprovider.",
+              "id": "icd-10-cm_section_I_C_1_d_1_a_iv",
+              "kind": "guideline",
+              "number": "IC1d1aiv",
+              "path": [
+                "I",
+                "C",
+                "1",
+                "d",
+                "1",
+                "a",
+                "iv"
+              ],
+              "scope": "chapter",
+              "sections": [],
+              "title": "Acute organ dysfunction that is not clearly associated with the sepsis"
+            }
+          ],
+          "title": "Sepsis"
+        }
+      ],
+      "next_steps": [
+        {
+          "reason": "Check whether a specific code is assignable",
+          "tool": "verify"
+        },
+        {
+          "reason": "Browse the codes a guideline refers to",
+          "tool": "explore"
+        },
+        {
+          "reason": "To assign the codes for a clinical note, use predict (optionally with include/exclude filters)",
+          "tool": "predict"
+        }
+      ]
+    },
+    {
+      "assignable": true,
+      "code": "A41.9",
+      "code_system": "icd-10-cm",
+      "description": "Sepsis, unspecified organism",
+      "next_steps": [
+        {
+          "reason": "Read coding conventions for this code area",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "Check whether a specific code is assignable",
+          "tool": "verify"
+        },
+        {
+          "reason": "Explore a related or more specific code",
+          "tool": "explore"
+        }
+      ],
+      "parent": {
+        "code": "A41",
+        "description": "Other sepsis"
+      },
+      "related_codes": [
+        {
+          "assignable": false,
+          "code": "A41.0",
+          "description": "Sepsis due to Staphylococcus aureus"
+        },
+        {
+          "assignable": true,
+          "code": "A41.1",
+          "description": "Sepsis due to other specified staphylococcus"
+        },
+        {
+          "assignable": true,
+          "code": "A41.2",
+          "description": "Sepsis due to unspecified staphylococcus"
+        },
+        {
+          "assignable": true,
+          "code": "A41.3",
+          "description": "Sepsis due to Hemophilus influenzae"
+        },
+        {
+          "assignable": true,
+          "code": "A41.4",
+          "description": "Sepsis due to anaerobes"
+        },
+        {
+          "assignable": false,
+          "code": "A41.5",
+          "description": "Sepsis due to other Gram-negative organisms"
+        },
+        {
+          "assignable": false,
+          "code": "A41.8",
+          "description": "Other specified sepsis"
+        }
+      ],
+      "total_related": 7
+    },
+    {
+      "assignable": true,
+      "code": "A41.9",
+      "description": "Sepsis, unspecified organism",
+      "next_steps": [
+        {
+          "reason": "Compare with related codes if this isn't the best fit",
+          "tool": "explore"
+        },
+        {
+          "reason": "Check chapter-level coding conventions for this code area",
+          "tool": "guidelines"
+        }
+      ],
+      "parents": [
+        {
+          "code": "A41",
+          "description": "Other sepsis"
+        },
+        {
+          "code": "A30-A49",
+          "description": "Other bacterial diseases (A30-A49)"
+        },
+        {
+          "code": "1",
+          "description": "Certain infectious and parasitic diseases (A00-B99)"
+        }
+      ]
+    }
+  ],
+  "status_events": [
+    {
+      "state": "working"
+    },
+    {
+      "state": "working"
+    },
+    {
+      "message": "Calling expert: coding-expert",
+      "state": "working"
+    }
+  ],
+  "finish_metadata": {
+    "contextId": "019f55be-0246-7914-a19d-606b653186f1",
+    "taskId": "019f55be-0246-789e-b61b-1d4cbbbef699",
+    "credits": 0.09895999999999999,
+    "state": "completed"
+  },
+  "parsed": {
+    "encounter_summary": "- 72-year-old female presented to the ED with altered mental status for 1 day.\n- Documented abnormal findings include hypotension, tachycardia, fever, and elevated lactate.\n- Admission diagnosis is documented as sepsis, with blood cultures drawn and empiric antibiotics started.",
+    "gaps": [
+      {
+        "idx": 1,
+        "text": "Gap: Sepsis organism/source specificity is not documented.\n- Why it matters: The excerpt supports sepsis, but coding specificity improves if the responsible organism or infection source is documented when known. Current coding support is only for unspecified sepsis when no further specificity is documented.\n- Evidence quote: “Admission diagnosis: sepsis.”\n- Additional supporting quote: “Blood cultures drawn.”\n- Minimal clarification needed: Identify the infectious source and/or organism if clini"
+      },
+      {
+        "idx": 2,
+        "text": "Gap: Possible acute organ dysfunction is suggested, but the record does not clarify whether altered mental status is an acute organ dysfunction related to sepsis.\n- Why it matters: ICD-10-CM severe sepsis coding requires documented acute organ dysfunction associated with sepsis; if not clearly associated, provider clarification is needed.\n- Evidence quote: “altered mental status for 1 day.”\n- Additional supporting quote: “Admission diagnosis: sepsis.”\n- Guideline basis: Severe sepsis should not "
+      },
+      {
+        "idx": 3,
+        "text": "Gap: Hemodynamic significance is clinically concerning, but shock/hypoperfusion is not documented.\n- Why it matters: The excerpt shows marked hypotension and elevated lactate, but no provider-documented diagnosis clarifies whether these findings reflect sepsis alone, circulatory failure, or another condition. This should only be queried as clarification, not presumed.\n- Evidence quote: “BP 86/52”\n- Additional supporting quote: “Lactate 4.2.”\n- Minimal clarification needed: Whether the hypotensio"
+      }
+    ],
+    "gap_count": 3,
+    "queries": [
+      {
+        "idx": 1,
+        "text": "Sepsis specificity (source/organism)"
+      },
+      {
+        "idx": 2,
+        "text": "Altered mental status clarification in the setting of sepsis"
+      },
+      {
+        "idx": 3,
+        "text": "Clinical significance of hypotension/elevated lactate"
+      }
+    ],
+    "query_count": 3,
+    "specialists_contacted": [
+      "Medical Coding Expert",
+      "Coding Expert"
+    ],
+    "specialist_trace_text": "- Medical Coding Expert: Consulted for coding specificity and compliant query targets. Accepted: sepsis specificity gap; need to clarify organ dysfunction relationship before considering severe sepsis coding; caution against assuming severe sepsis/shock without documentation. Rejected/limited: any inference beyond the excerpt, because the provided coding output did not establish patient-specific diagnoses beyond unspecified sepsis.\n- AMBOSS Expert: Not consulted. Rationale: The chart excerpt supports CDI clarification needs without requiring external clinical diagnostic criteria.\n- CDI Web Search Expert: Not consulted. Rationale: ICD-10-CM guidance from coding tool output was sufficient for this task.\n\nCoding-grounded note:\n- Based on current documentation alone, unspecified sepsis is the supported level of specificity (A41.9) if no further organism/source is documented.\n- ICD-10-CM guidance indicates severe sepsis requires the underlying infection code plus R65.2 and additional code(s) for associated acute organ dysfunction, but this excerpt does not contain sufficient provider documentation to support that assignment without clarification.",
+    "has_specialist_trace": true
+  },
+  "error": "",
+  "text": "Encounter Summary:\n- 72-year-old female presented to the ED with altered mental status for 1 day.\n- Documented abnormal findings include hypotension, tachycardia, fever, and elevated lactate.\n- Admission diagnosis is documented as sepsis, with blood cultures drawn and empiric antibiotics started.\n\nDocumentation Gaps:\n1. Gap: Sepsis organism/source specificity is not documented.\n- Why it matters: The excerpt supports sepsis, but coding specificity improves if the responsible organism or infection source is documented when known. Current coding support is only for unspecified sepsis when no further specificity is documented.\n- Evidence quote: “Admission diagnosis: sepsis.”\n- Additional supporting quote: “Blood cultures drawn.”\n- Minimal clarification needed: Identify the infectious source and/or organism if clinically known, or state that it is unspecified/unknown.\n\n2. Gap: Possible acute organ dysfunction is suggested, but the record does not clarify whether altered mental status is an acute organ dysfunction related to sepsis.\n- Why it matters: ICD-10-CM severe sepsis coding requires documented acute organ dysfunction associated with sepsis; if not clearly associated, provider clarification is needed.\n- Evidence quote: “altered mental status for 1 day.”\n- Additional supporting quote: “Admission diagnosis: sepsis.”\n- Guideline basis: Severe sepsis should not be assigned unless severe sepsis or associated acute organ dysfunction is documented, and if the relationship is unclear, the provider should be queried.\n- Minimal clarification needed: Whether altered mental status represents an acute condition, its diagnosis if known, and whether it is related to sepsis.\n\n3. Gap: Hemodynamic significance is clinically concerning, but shock/hypoperfusion is not documented.\n- Why it matters: The excerpt shows marked hypotension and elevated lactate, but no provider-documented diagnosis clarifies whether these findings reflect sepsis alone, circulatory failure, or another condition. This should only be queried as clarification, not presumed.\n- Evidence quote: “BP 86/52”\n- Additional supporting quote: “Lactate 4.2.”\n- Minimal clarification needed: Whether the hypotension/elevated lactate reflect any additional clinically diagnosed condition, or no additional diagnosis.\n- Limitation: The excerpt alone is insufficient to assign or assert septic shock or severe sepsis without provider documentation/clarification.\n\nProposed Provider Queries:\n1. Topic: Sepsis specificity (source/organism)\n- Reason query is needed: Sepsis is documented, but no organism or source is identified in the excerpt.\n- Evidence quote: “Admission diagnosis: sepsis.”\n- Additional evidence quote: “Blood cultures drawn.”\n- Non-leading query text: “For this admission with documented sepsis, can you clarify the underlying infectious source and/or causal organism if known at this time?”\n- Suggested response options:\n  - Sepsis due to specified organism (please specify)\n  - Sepsis due to specified infection source (please specify)\n  - Sepsis, organism/source not yet identified\n  - Other explanation (please specify)\n  - Clinically undetermined\n\n2. Topic: Altered mental status clarification in the setting of sepsis\n- Reason query is needed: Altered mental status is documented, but the diagnosis and relationship to sepsis are not clarified.\n- Evidence quote: “altered mental status for 1 day.”\n- Additional evidence quote: “Admission diagnosis: sepsis.”\n- Non-leading query text: “The record documents altered mental status in a patient admitted with sepsis. Please clarify the diagnosis associated with the altered mental status, if any, and whether it is related to the sepsis.”\n- Suggested response options:\n  - Acute encephalopathy related to sepsis\n  - Acute encephalopathy due to another cause (please specify)\n  - Altered mental status without a more specific diagnosis\n  - Not related to sepsis\n  - Other (please specify)\n  - Clinically undetermined\n- Compliance note: This query is supported as a clarification of a documented symptom; final diagnosis should come from the provider.\n\n3. Topic: Clinical significance of hypotension/elevated lactate\n- Reason query is needed: The excerpt documents hypotension and elevated lactate, but no diagnosis explains their significance.\n- Evidence quote: “BP 86/52, HR 124, T 38.1C.”\n- Additional evidence quote: “Lactate 4.2.”\n- Non-leading query text: “The record documents hypotension and elevated lactate in the setting of sepsis. Please clarify whether these findings are clinically significant for an additional diagnosis or represent sepsis without further specification.”\n- Suggested response options:\n  - Sepsis without additional hemodynamic diagnosis\n  - Additional diagnosis present (please specify)\n  - Findings due to another condition (please specify)\n  - Clinically undetermined\n- Limitation: Do not presume septic shock from the excerpt alone.\n\nCoding Specificity Checklist:\n- Infectious source\n- Causal organism, if known\n- Whether any acute organ dysfunction is present\n- If acute organ dysfunction is present, whether it is associated with sepsis\n- More specific diagnosis for altered mental status, if known\n- Whether hypotension/lactate elevation reflects an additional documented condition\n\nRisk Flags:\n- Unsupported specificity: Sepsis is documented, but no organism or source is documented.\n- Ambiguity: “altered mental status” is a symptom, not a definitive diagnosis.\n- Ambiguity: Hypotension and elevated lactate are concerning but do not, by themselves in this excerpt, establish severe sepsis or septic shock.\n- Coding caution: Per ICD-10-CM guidance, severe sepsis requires documentation of associated acute organ dysfunction, and if the relationship is unclear, the provider should be queried.\n\nSpecialist Trace:\n- Medical Coding Expert: Consulted for coding specificity and compliant query targets. Accepted: sepsis specificity gap; need to clarify organ dysfunction relationship before considering severe sepsis coding; caution against assuming severe sepsis/shock without documentation. Rejected/limited: any inference beyond the excerpt, because the provided coding output did not establish patient-specific diagnoses beyond unspecified sepsis.\n- AMBOSS Expert: Not consulted. Rationale: The chart excerpt supports CDI clarification needs without requiring external clinical diagnostic criteria.\n- CDI Web Search Expert: Not consulted. Rationale: ICD-10-CM guidance from coding tool output was sufficient for this task.\n\nCoding-grounded note:\n- Based on current documentation alone, unspecified sepsis is the supported level of specificity (A41.9) if no further organism/source is documented.\n- ICD-10-CM guidance indicates severe sepsis requires the underlying infection code plus R65.2 and additional code(s) for associated acute organ dysfunction, but this excerpt does not contain sufficient provider documentation to support that assignment without clarification."
+}

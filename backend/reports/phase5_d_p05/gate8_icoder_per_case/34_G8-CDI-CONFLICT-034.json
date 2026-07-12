@@ -1,26 +1,90 @@
 {
-  "case_id": "CASE-e0ff9dc75d31",
-  "completion_state": "AUTO_PASS",
-  "documentation_gaps": [],
-  "proposed_provider_queries": [],
+  "case_id": "CASE-99e09fff9874",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-99e09fff9874/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "出院诊断与入院诊断不一致：入院诊断为胆源性胰腺炎，出院诊断为特发性胰腺炎，但未明确解释为何排除胆源性病因，且饮酒史提示酒精性可能，需明确病因特异性。",
+      "why_it_matters": "影响胰腺炎病因编码的准确性，可能导致DRG分组错误或医疗质量指标偏差。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "入院诊断:胆源性胰腺炎。出院诊断:特发性胰腺炎。"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-99e09fff9874/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "饮酒史（每日白酒100ml×10年）未在诊断中体现为酒精性胰腺炎，需明确是否考虑酒精性病因。",
+      "why_it_matters": "酒精性胰腺炎与特发性胰腺炎的治疗和预后不同，且影响编码准确性。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "饮酒史:每日白酒 100ml × 10年"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-99e09fff9874/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "MRI显示胰腺肿胀渗出，但未描述渗出范围、有无坏死或假性囊肿等并发症，缺乏严重程度特异性。",
+      "why_it_matters": "影响胰腺炎严重程度分级（如Ranson评分、CT严重指数），进而影响编码和资源消耗。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "MRI:未见胆总管结石, 胰腺肿胀渗出"
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-99e09fff9874/Q-001",
+      "gap_id": "CASE-99e09fff9874/GAP-001",
+      "topic": "出院诊断与入院诊断不一致",
+      "reason": "入院诊断为胆源性胰腺炎，出院诊断为特发性胰腺炎，但未明确解释为何排除胆源性病因，且饮酒史提示酒精性可能，需明确病因特异性。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "入院诊断:胆源性胰腺炎。出院诊断:特发性胰腺炎。"
+      },
+      "query_text": "患者入院诊断为胆源性胰腺炎，出院诊断为特发性胰腺炎。请明确该患者急性胰腺炎的具体病因。",
+      "response_options": [
+        "A. 胆源性胰腺炎（如胆结石、胆泥等）",
+        "B. 酒精性胰腺炎",
+        "C. 特发性胰腺炎（排除胆源性和酒精性后）",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "urgent"
+    }
+  ],
   "chart_excerpt_preview": "患者女性, 50岁, 急性胰腺炎。入院诊断:胆源性胰腺炎。MRI:未见胆总管结石, 胰腺肿胀渗出。饮酒史:每日白酒 100ml × 10年。出院诊断:特发性胰腺炎。",
   "patient_ref": "DEID",
   "encounter_ref": "DEID",
   "encounter_summary": {
-    "key_points": [],
-    "encounter_metadata": {}
+    "key_points": [
+      "急性胰腺炎",
+      "胆源性胰腺炎（入院诊断）",
+      "MRI: 未见胆总管结石, 胰腺肿胀渗出",
+      "饮酒史: 每日白酒 100ml × 10年",
+      "特发性胰腺炎（出院诊断）"
+    ],
+    "encounter_metadata": {
+      "patient_age": "50岁",
+      "patient_sex": "女性",
+      "encounter_type": "住院"
+    }
   },
   "risk_flags": [],
   "specialist_trace": [
     {
       "expert_id": "coding-expert",
-      "consulted": false,
-      "rationale": "no coding-relevant gaps survived earlier gates",
-      "route_decision": "not_needed",
-      "route_reason": "no_relevant_gap",
-      "execution_mode": "SKIPPED_NOT_NEEDED",
-      "latency_ms": 0,
-      "tokens": 0
+      "consulted": true,
+      "rationale": "The chart lacks a clear rationale for excluding biliary and alcoholic etiologies, so specify whether imaging or labs ruled out gallstones, and document if alcohol history was considered but deemed non-causal. For severity, describe the extent of pancreatic edema, presence of necrosis, or pseudocysts to differentiate mild from severe acute pancreatitis. This specificity ensures the diagnosis reflects the true underlying cause and clinical course.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3621,
+      "tokens": 292
     },
     {
       "expert_id": "pubmed-expert",
@@ -45,79 +109,93 @@
     {
       "expert_id": "medical-calculator-expert",
       "consulted": false,
-      "rationale": "",
-      "route_decision": "not_needed",
-      "route_reason": "no_relevant_gap",
-      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "rationale": "'评分' score — parameters absent from chart",
+      "route_decision": "missing_inputs",
+      "route_reason": "calculator_params_missing",
+      "execution_mode": "SKIPPED_MISSING_INPUTS",
       "latency_ms": 0,
       "tokens": 0
     }
   ],
   "stage_run_ids": {
-    "encounter_synthesis": "run-17c3189316d1",
-    "gap_identification": "run-8ef62c34a792",
-    "expert_consultation": "run-3bb37f0c745d",
-    "query_generation": "",
-    "query_necessity_gate": "necessary=0;unnecessary=0;overquery_triggered=False;final_count=0",
-    "query_single_dimension_gate": "single_dim=0;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;final_count=0",
-    "claim_evidence_alignment_gate": "claims_extracted=0;blocked=0;flagged=0;final_count=0",
-    "claim_evidence_alignment_gate::run_id": "run-ec1ecb1609c0",
-    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
-    "semantic_necessity_gate::run_id": "run-b49cdcb3af86",
+    "encounter_synthesis": "run-83e20c99fbec",
+    "gap_identification": "run-54840ae1f175",
+    "expert_consultation": "run-d6cbebceb24e",
+    "query_generation": "run-bd84a988a5e8",
+    "query_necessity_gate": "necessary=2;unnecessary=1;overquery_triggered=False;final_count=2",
+    "query_single_dimension_gate": "single_dim=2;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=etiology;final_count=2",
+    "claim_evidence_alignment_gate": "claims_extracted=7;blocked=1;flagged=0;final_count=1",
+    "claim_evidence_alignment_gate::run_id": "run-704c64b27c91",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=1",
+    "semantic_necessity_gate::run_id": "run-609e39a90d80",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "run-fa4e88aa8b2d"
+    "specialist_trace_emit": "run-bc9da5b61200"
   },
   "stage_trace_ids": {
-    "encounter_synthesis": "trace-d53c08f2f8a8",
-    "gap_identification": "trace-918e544608db",
-    "expert_consultation": "trace-fd4b36bdd57d",
-    "query_generation": "",
+    "encounter_synthesis": "trace-ea2df3d137d7",
+    "gap_identification": "trace-149b60828352",
+    "expert_consultation": "trace-db724c48bba1",
+    "query_generation": "trace-5d7bbc487b8e",
     "query_necessity_gate": "",
     "query_single_dimension_gate": "",
-    "claim_evidence_alignment_gate": "trace-46d723ac388c",
-    "semantic_necessity_gate": "trace-c7ffb0764162",
+    "claim_evidence_alignment_gate": "trace-4578801df332",
+    "semantic_necessity_gate": "trace-0888f0eea838",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "trace-7308e459475a"
+    "specialist_trace_emit": "trace-e64ea9b079d7"
   },
   "stage_traces": [
     {
       "stage": "encounter_synthesis",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 0,
-      "prompt_tokens": 0,
-      "completion_tokens": 0,
-      "total_tokens": 0,
-      "run_id": "run-17c3189316d1",
-      "trace_id": "trace-d53c08f2f8a8",
-      "degraded": true,
-      "error_reason": "LLM circuit breaker is OPEN — provider appears unhealthy",
+      "latency_ms": 2905,
+      "prompt_tokens": 224,
+      "completion_tokens": 106,
+      "total_tokens": 330,
+      "run_id": "run-83e20c99fbec",
+      "trace_id": "trace-ea2df3d137d7",
+      "degraded": false,
+      "error_reason": "",
       "expert_id": ""
     },
     {
       "stage": "gap_identification",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 0,
-      "prompt_tokens": 0,
-      "completion_tokens": 0,
-      "total_tokens": 0,
-      "run_id": "run-8ef62c34a792",
-      "trace_id": "trace-918e544608db",
-      "degraded": true,
-      "error_reason": "LLM circuit breaker is OPEN — provider appears unhealthy",
+      "latency_ms": 5795,
+      "prompt_tokens": 337,
+      "completion_tokens": 449,
+      "total_tokens": 786,
+      "run_id": "run-54840ae1f175",
+      "trace_id": "trace-149b60828352",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6041,
+      "prompt_tokens": 490,
+      "completion_tokens": 641,
+      "total_tokens": 1131,
+      "run_id": "run-bd84a988a5e8",
+      "trace_id": "trace-5d7bbc487b8e",
+      "degraded": false,
+      "error_reason": "",
       "expert_id": ""
     },
     {
       "stage": "expert_consultation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 0,
-      "prompt_tokens": 0,
-      "completion_tokens": 0,
-      "total_tokens": 0,
-      "run_id": "run-dce5952d003e",
-      "trace_id": "trace-0ae11cde0c25",
+      "latency_ms": 3621,
+      "prompt_tokens": 213,
+      "completion_tokens": 79,
+      "total_tokens": 292,
+      "run_id": "run-d01d3308ded6",
+      "trace_id": "trace-f1f6d99d1c2a",
       "degraded": false,
       "error_reason": "",
       "expert_id": "coding-expert"
@@ -130,8 +208,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-54abb56f7667",
-      "trace_id": "trace-0a9597b5e290",
+      "run_id": "run-0d60042ee126",
+      "trace_id": "trace-f2f25839e39a",
       "degraded": false,
       "error_reason": "",
       "expert_id": "pubmed-expert"
@@ -144,8 +222,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-5b8b96d56a00",
-      "trace_id": "trace-e4cbe8c630a2",
+      "run_id": "run-2f4c6a06bf27",
+      "trace_id": "trace-09c6e7531ff2",
       "degraded": false,
       "error_reason": "",
       "expert_id": "web-search-expert"
@@ -158,14 +236,14 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-8209a56b8e78",
-      "trace_id": "trace-a29fcd3d72b4",
+      "run_id": "run-f56b72258458",
+      "trace_id": "trace-ba9d206cf6a3",
       "degraded": false,
       "error_reason": "",
       "expert_id": "medical-calculator-expert"
     }
   ],
-  "degraded": true,
+  "degraded": false,
   "runtime_mode": "real",
-  "generated_at": "2026-07-12T03:21:59.487417Z"
+  "generated_at": "2026-07-12T11:34:47.950801Z"
 }

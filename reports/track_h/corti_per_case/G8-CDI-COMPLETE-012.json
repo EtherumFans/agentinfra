@@ -1,0 +1,561 @@
+{
+  "case_id": "G8-CDI-COMPLETE-012",
+  "group": "complete_chart",
+  "variant": "",
+  "session_id": "e7f1cad5-a6fe-4b70-ad26-2a02334ae499",
+  "attempt": 1,
+  "outcome": "SUCCESS",
+  "elapsed_s": 33.12,
+  "expected": {
+    "query_count_min": 0,
+    "query_count_max": 0,
+    "expected_no_query": true,
+    "expected_query_topics": [],
+    "notes": "Normal delivery — nothing to query"
+  },
+  "text_length": 3877,
+  "first_token_at_s": 3.45,
+  "last_token_at_s": 33.12,
+  "event_count": 15,
+  "raw_events_preview": [
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"code_system\":\"icd-10-cm\",\"count\":6,\"next_steps\":[{\"reason\":\"Browse related codes and alternatives in the same category\",\"tool\":\"explore\"},{\"reason\":\"Read coding conventions relevant to these",
+    "message|{\"data\":{\"codes\":[{\"alternatives\":[{\"code\":\"Z37.9\",\"display\":\"Outcome of delivery, unspecified\"}],\"code\":\"O80\",\"display\":\"Encounter for full-term uncomplicated delivery\",\"evidences\":[{\"contextIndex\":0",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"O80\",\"code_system\":\"icd-10-cm\",\"description\":\"Encounter for full-term uncomplicated delivery\",\"next_steps\":[{\"reason\":\"Read coding conventions for this code area\",\"t",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"Z37.0\",\"code_system\":\"icd-10-cm\",\"description\":\"Single live birth\",\"next_steps\":[{\"reason\":\"Read coding conventions for this code area\",\"tool\":\"guidelines\"},{\"reason",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"Z3A.39\",\"code_system\":\"icd-10-cm\",\"description\":\"39 weeks gestation of pregnancy\",\"next_steps\":[{\"reason\":\"Read coding conventions for this code area\",\"tool\":\"guidel",
+    "message|{\"data\":{\"chapter_guidelines\":[{\"codes\":[\"Z37.0\"],\"content\":\"Z37.0, Single live birth, is the only outcome of delivery code appropriate \\nfor use with O80.\",\"id\":\"icd-10-cm_section_I_C_15_n_3\",\"kind\":",
+    "message|{\"id\":\"ebb35681-b301-42e1-bf2e-de37e64a275a\",\"type\":\"text-start\"}",
+    "message|{\"delta\":\"Encounter Summary:\\n- 32-year-old G2 at 39 weeks gestation had a spontaneous vaginal delivery of a live male infant weighing 3350 g.\\n- Documentation states the labor was uneventful with blo",
+    "message|{\"id\":\"ebb35681-b301-42e1-bf2e-de37e64a275a\",\"type\":\"text-end\"}",
+    "message|{\"messageMetadata\":{\"contextId\":\"019f55cb-5eb4-78a3-82b3-2ace1323a36c\",\"taskId\":\"019f55cb-5eb4-7828-8f2e-7c39f1756c2c\",\"credits\":0.09573599999999999,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+    "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.09573599999999999},\"type\":\"finish\"}",
+    "message|[DONE]"
+  ],
+  "expert_events": [
+    {
+      "code_system": "icd-10-cm",
+      "count": 6,
+      "next_steps": [
+        {
+          "reason": "Browse related codes and alternatives in the same category",
+          "tool": "explore"
+        },
+        {
+          "reason": "Read coding conventions relevant to these codes",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "To assign the codes for a clinical note, use predict (optionally with include/exclude filters)",
+          "tool": "predict"
+        }
+      ],
+      "query": "single liveborn vaginal delivery outcome of delivery 39 weeks gestation",
+      "results": [
+        {
+          "code": "Z38.2",
+          "description": "Single liveborn infant, unspecified as to place of birth",
+          "match_path": "Single liveborn infant NOS",
+          "related_codes": {
+            "category": "Z38",
+            "category_description": "Liveborn infants according to place of birth and type of delivery",
+            "count": 9
+          }
+        },
+        {
+          "code": "Z37.0",
+          "description": "Single live birth",
+          "match_path": "Outcome of delivery, single, other specified, liveborn",
+          "related_codes": {
+            "category": "Z37",
+            "category_description": "Outcome of delivery",
+            "count": 9
+          }
+        },
+        {
+          "code": "O80",
+          "description": "Encounter for full-term uncomplicated delivery",
+          "match_path": "Delivery requiring minimal or no assistance, with or without episiotomy, without fetal manipulation [e.g., rotation version] or instrumentation [forceps] of a spontaneous, cephalic, vaginal, full-term, single, live-born infant. This code is for use as a single diagnosis code and is not to be used with any other code from chapter 15.",
+          "related_codes": {
+            "category": "O80-O82",
+            "category_description": "Encounter for delivery (O80-O82)",
+            "count": 2
+          }
+        },
+        {
+          "code": "Z38.1",
+          "description": "Single liveborn infant, born outside hospital",
+          "match_path": "Infant, liveborn, born outside hospital",
+          "related_codes": {
+            "category": "Z38",
+            "category_description": "Liveborn infants according to place of birth and type of delivery",
+            "count": 9
+          }
+        },
+        {
+          "code": "Z37.9",
+          "description": "Outcome of delivery, unspecified",
+          "match_path": "Outcome of delivery, single, other specified",
+          "related_codes": {
+            "category": "Z37",
+            "category_description": "Outcome of delivery",
+            "count": 9
+          }
+        },
+        {
+          "code": "Z3A.39",
+          "description": "39 weeks gestation of pregnancy",
+          "match_path": "Pregnancy, weeks of gestation, 39 weeks",
+          "related_codes": {
+            "category": "Z3A.3",
+            "category_description": "Weeks of gestation of pregnancy, weeks 30-39",
+            "count": 10
+          }
+        }
+      ]
+    },
+    {
+      "codes": [
+        {
+          "alternatives": [
+            {
+              "code": "Z37.9",
+              "display": "Outcome of delivery, unspecified"
+            }
+          ],
+          "code": "O80",
+          "display": "Encounter for full-term uncomplicated delivery",
+          "evidences": [
+            {
+              "contextIndex": 0,
+              "end": 42,
+              "start": 24,
+              "text": "39 weeks gestation"
+            },
+            {
+              "contextIndex": 0,
+              "end": 310,
+              "start": 241,
+              "text": "Diagnosis: term spontaneous vaginal delivery, singleton, live infant."
+            }
+          ],
+          "system": "icd10cm-inpatient"
+        },
+        {
+          "alternatives": [
+            {
+              "code": "Z37.9",
+              "display": "Outcome of delivery, unspecified"
+            }
+          ],
+          "code": "Z37.0",
+          "display": "Single live birth",
+          "evidences": [
+            {
+              "contextIndex": 0,
+              "end": 42,
+              "start": 24,
+              "text": "39 weeks gestation"
+            },
+            {
+              "contextIndex": 0,
+              "end": 310,
+              "start": 241,
+              "text": "Diagnosis: term spontaneous vaginal delivery, singleton, live infant."
+            }
+          ],
+          "system": "icd10cm-inpatient"
+        }
+      ],
+      "next_steps": [
+        {
+          "reason": "See related codes and alternatives around each predicted code",
+          "tool": "explore"
+        },
+        {
+          "reason": "Check chapter-level coding conventions and rules",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "Confirm each code is assignable and check instructional notes",
+          "tool": "verify"
+        }
+      ],
+      "potential_codes": [],
+      "usage": null
+    },
+    {
+      "assignable": true,
+      "code": "O80",
+      "code_system": "icd-10-cm",
+      "description": "Encounter for full-term uncomplicated delivery",
+      "next_steps": [
+        {
+          "reason": "Read coding conventions for this code area",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "Check whether a specific code is assignable",
+          "tool": "verify"
+        },
+        {
+          "reason": "Explore a related or more specific code",
+          "tool": "explore"
+        }
+      ],
+      "parent": {
+        "code": "O80-O82",
+        "description": "Encounter for delivery (O80-O82)"
+      },
+      "related_codes": [
+        {
+          "assignable": true,
+          "code": "O82",
+          "description": "Encounter for cesarean delivery without indication"
+        }
+      ],
+      "total_related": 1
+    },
+    {
+      "assignable": true,
+      "code": "Z37.0",
+      "code_system": "icd-10-cm",
+      "description": "Single live birth",
+      "next_steps": [
+        {
+          "reason": "Read coding conventions for this code area",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "Check whether a specific code is assignable",
+          "tool": "verify"
+        },
+        {
+          "reason": "Explore a related or more specific code",
+          "tool": "explore"
+        }
+      ],
+      "parent": {
+        "code": "Z37",
+        "description": "Outcome of delivery"
+      },
+      "related_codes": [
+        {
+          "assignable": true,
+          "code": "Z37.1",
+          "description": "Single stillbirth"
+        },
+        {
+          "assignable": true,
+          "code": "Z37.2",
+          "description": "Twins, both liveborn"
+        },
+        {
+          "assignable": true,
+          "code": "Z37.3",
+          "description": "Twins, one liveborn and one stillborn"
+        },
+        {
+          "assignable": true,
+          "code": "Z37.4",
+          "description": "Twins, both stillborn"
+        },
+        {
+          "assignable": false,
+          "code": "Z37.5",
+          "description": "Other multiple births, all liveborn"
+        },
+        {
+          "assignable": false,
+          "code": "Z37.6",
+          "description": "Other multiple births, some liveborn"
+        },
+        {
+          "assignable": true,
+          "code": "Z37.7",
+          "description": "Other multiple births, all stillborn"
+        },
+        {
+          "assignable": true,
+          "code": "Z37.9",
+          "description": "Outcome of delivery, unspecified"
+        }
+      ],
+      "total_related": 8
+    },
+    {
+      "assignable": true,
+      "code": "Z3A.39",
+      "code_system": "icd-10-cm",
+      "description": "39 weeks gestation of pregnancy",
+      "next_steps": [
+        {
+          "reason": "Read coding conventions for this code area",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "Check whether a specific code is assignable",
+          "tool": "verify"
+        },
+        {
+          "reason": "Explore a related or more specific code",
+          "tool": "explore"
+        }
+      ],
+      "parent": {
+        "code": "Z3A.3",
+        "description": "Weeks of gestation of pregnancy, weeks 30-39"
+      },
+      "related_codes": [
+        {
+          "assignable": true,
+          "code": "Z3A.30",
+          "description": "30 weeks gestation of pregnancy"
+        },
+        {
+          "assignable": true,
+          "code": "Z3A.31",
+          "description": "31 weeks gestation of pregnancy"
+        },
+        {
+          "assignable": true,
+          "code": "Z3A.32",
+          "description": "32 weeks gestation of pregnancy"
+        },
+        {
+          "assignable": true,
+          "code": "Z3A.33",
+          "description": "33 weeks gestation of pregnancy"
+        },
+        {
+          "assignable": true,
+          "code": "Z3A.34",
+          "description": "34 weeks gestation of pregnancy"
+        },
+        {
+          "assignable": true,
+          "code": "Z3A.35",
+          "description": "35 weeks gestation of pregnancy"
+        },
+        {
+          "assignable": true,
+          "code": "Z3A.36",
+          "description": "36 weeks gestation of pregnancy"
+        },
+        {
+          "assignable": true,
+          "code": "Z3A.37",
+          "description": "37 weeks gestation of pregnancy"
+        },
+        {
+          "assignable": true,
+          "code": "Z3A.38",
+          "description": "38 weeks gestation of pregnancy"
+        }
+      ],
+      "total_related": 9
+    },
+    {
+      "chapter_guidelines": [
+        {
+          "codes": [
+            "Z37.0"
+          ],
+          "content": "Z37.0, Single live birth, is the only outcome of delivery code appropriate \nfor use with O80.",
+          "id": "icd-10-cm_section_I_C_15_n_3",
+          "kind": "guideline",
+          "number": "IC15n3",
+          "path": [
+            "I",
+            "C",
+            "15",
+            "n",
+            "3"
+          ],
+          "scope": "chapter",
+          "sections": [],
+          "title": "Outcome of delivery for O80"
+        },
+        {
+          "codes": [
+            "O80"
+          ],
+          "content": "complication \nCode O80 may be used if the patient had a complication at some point \nduring the pregnancy, but the complication is not present at the time of \nthe admission for delivery.",
+          "id": "icd-10-cm_section_I_C_15_n_2",
+          "kind": "guideline",
+          "number": "IC15n2",
+          "path": [
+            "I",
+            "C",
+            "15",
+            "n",
+            "2"
+          ],
+          "scope": "chapter",
+          "sections": [],
+          "title": "Uncomplicated delivery with resolved antepartum complication"
+        },
+        {
+          "codes": [
+            "O80"
+          ],
+          "content": "delivery \nCode O80 should be assigned when a patient is admitted for a full-term \nnormal delivery and delivers a single, healthy infant without any \ncomplications antepartum, during the delivery, or postpartum during the \ndelivery episode. Code O80 is always a principal diagnosis. It is not to be \nused if any other code from chapter 15 is needed to describe a current \ncomplication of the antenatal, delivery, or postnatal period. Additional \ncodes from other chapters may be used with code O80 if they are not \nrelated to or are in any way complicating the pregnancy.",
+          "id": "icd-10-cm_section_I_C_15_n_1",
+          "kind": "guideline",
+          "number": "IC15n1",
+          "path": [
+            "I",
+            "C",
+            "15",
+            "n",
+            "1"
+          ],
+          "scope": "chapter",
+          "sections": [],
+          "title": "Encounter for full term uncomplicated delivery"
+        },
+        {
+          "codes": [
+            "O09",
+            "O80"
+          ],
+          "content": "Codes from category O09, Supervision of high-risk pregnancy, are \nintended for use only during the prenatal period. For complications \nduring the labor or delivery episode as a result of a high-risk pregnancy, \nassign the applicable complication codes from Chapter 15. If there are no \ncomplications during the labor or delivery episode, assign code O80, \nEncounter for full-term uncomplicated delivery. \n \nFor routine prenatal outpatient visits for patients with high-risk \npregnancies, a code from category O09, Supervision of high-risk \npregnancy, should be used as the first-listed diagnosis. Secondary \nchapter 15 codes may be used in conjunction with these codes if \nappropriate.",
+          "id": "icd-10-cm_section_I_C_15_b_2",
+          "kind": "guideline",
+          "number": "IC15b2",
+          "path": [
+            "I",
+            "C",
+            "15",
+            "b",
+            "2"
+          ],
+          "scope": "chapter",
+          "sections": [],
+          "title": "Supervision of High-Risk Pregnancy"
+        },
+        {
+          "codes": [
+            "CMS",
+            "ICD",
+            "WHO",
+            "AHA",
+            "III",
+            "A00.0",
+            "T88.9",
+            "Z00",
+            "Z99.8",
+            "U00",
+            "U85",
+            "A00",
+            "B99",
+            "U07.1",
+            "U09.9",
+            "HIV",
+            "C00",
+            "D49",
+            "D50",
+            "D89",
+            "E00",
+            "E89",
+            "F01",
+            "F99",
+            "G00",
+            "G99",
+            "H00",
+            "H59",
+            "H60",
+            "H95",
+            "I00",
+            "I99",
+            "AMI",
+            "J00",
+            "J99",
+            "U07.0",
+            "K00",
+            "K95",
+            "L00",
+            "L99",
+            "M00",
+            "M99",
+            "N00",
+            "N99",
+            "O00",
+            "O9A",
+            "O80",
+            "O94",
+            "P00",
+            "P96",
+            "Q00",
+            "QA1",
+            "R00",
+            "R99",
+            "NOS",
+            "S00",
+            "T88",
+            "V00",
+            "Y99",
+            "Z99"
+          ],
+          "content": "Coding and Reporting \nFY 2026 -- UPDATED October 1, 2025 \n(October 1, 2025 - September 30, 2026) \n \nNarrative changes appear in bold text \nItems underlined have been moved within the guidelines since the April 2025, FY 2025 version \nItalics are used to indicate revisions to heading changes \n \nThe Centers for Medicare and Medicaid Services (CMS) and the National Center for Health \nStatistics (NCHS), two departments within the U.S. Federal Government’s Department of Health \nand Human Services (DHHS) provide the following guidelines for coding and reporting using the \nInternational Classification of Diseases, 10th Revision, Clinical Modification (ICD-10-CM). These \nguidelines should be used as a companion document to the official version of the ICD-10-CM as \npublished on the NCHS website. The ICD-10-CM is a morbidity classification published by the \nUnited States for classifying diagnoses and reason for visits in all health care settings. The ICD-\n10-CM is based on the ICD-10, the statistical classification of disease published by the World \nHealth Organization (WHO). \n \nThese guidelines have been approved by the four organizations that make up the Cooperating \nParties for the ICD-10-CM: the American Hospital Association (AHA), the American Health \nInformation Management Association (AHIMA), CMS, and NCHS. \n \nThese guidelines are a set of rules that have been developed to accompany and complement the \nofficial conventions and instructions provided within the ICD-10-CM itself. The instructions and \nconventions of the classification take precedence over guidelines. These guidelines are based on \nthe coding and sequencing instructions in the Tabular List and Alphabetic Index of ICD-10-CM, \nbut provide additional instruction. Adherence to these guidelines when assigning ICD-10-CM \ndiagnosis codes is required under the Health Insurance Portability and Accountability Act \n(HIPAA). The diagnosis codes (Tabular List and Alphabetic Index) have been adopted under \nHIPAA for all healthcare settings. A joint effort between the healthcare provider and the coder is \nessential to achieve complete and accurate documentation, code assignment, and reporting of \ndiagnoses and procedures. These guidelines have been developed to assist both the healthcare \nprovider and the coder in identifying those diagnoses that are to be reported. The importance of \nconsistent, complete documentation in the medical record cannot be overemphasized. Without \nsuch documentation accurate coding cannot be achieved. The entire record should be reviewed to \ndetermine the specific reason for the encounter and the conditions treated. \n \nThe term encounter is used for all settings, including hospital admissions. In the context of these \nguidelines, the term provider is used throughout the guidelines to mean physician or any qualified \nhealth care practitioner who is legally accountable for establishing the patient’s diagnosis. Only \nthis set of guidelines, approved by the Cooperating Parties, is official. \n \nThe guidelines are organized into sections. Section I includes the structure and conventions of the \nclassification and general guidelines that apply to the entire classification, and chapter-specific \nguidelines that correspond to the chapters as they are arranged in the classification. Section II \nincludes guidelines for selection of principal diagnosis for non-outpatient settings. Section III \nincludes guidelines for reporting additional diagnoses in non-outpatient settings. Section IV is for \noutpatient coding and reporting. It is necessary to review all sections of the guidelines to fully \nunderstand all of the rules and instructions needed to code properly.  \nICD-10-CM Official Guidelines for Coding and Reporting ........................................................................1 \nSection I. \nConventions, general coding guidelines and chapter specific guidelines ...............................7 \nA. \nConventions for the ICD-10-CM .................................................................................................... 7 \n1. \nThe Alphabetic Index and Tabular List .................................................................................... 7 \n2. \nFormat and Structure: ............................................................................................................... 7 \n3. \nUse of codes for reporting purposes ......................................................................................... 7 \n4. \nPlaceholder character ................................................................................................................ 7 \n5. \n7th Characters ............................................................................................................................ 8 \n6. \nAbbreviations ............................................................................................................................ 8 \na. \nAlphabetic Index abbreviations .............................................................................................. 8 \nb. \nTabular List abbreviations ...................................................................................................... 8 \n7. \nPunctuation ............................................................................................................................... 8 \n8. \nUse of “and”. ............................................................................................................................. 9 \n9. \nOther and Unspecified codes .................................................................................................... 9 \na. \n“Other” codes .......................................................................................................................... 9 \nb. \n“Unspecified” codes................................................................................................................ 9 \n10. \nIncludes Notes ........................................................................................................................... 9 \n11. \nInclusion terms .......................................................................................................................... 9 \n12. \nExcludes Notes.......................................................................................................................... 9 \na. \nExcludes1 ................................................................................................................................ 9 \nb. \nExcludes2 .............................................................................................................................. 10 \n13. \nEtiology/manifestation convention (“code first”, “use additional code” and “in diseases \nclassified elsewhere” notes) .................................................................................................... 10 \n14. \n“And” ...................................................................................................................................... 11 \n15. \n“With” ..................................................................................................................................... 11 \n16. \n“See” and “See Also”.............................................................................................................. 11 \n17. \n“Code also” note ..................................................................................................................... 12 \n18. \nDefault codes .......................................................................................................................... 12 \n19. \nCode assignment and Clinical Criteria ................................................................................... 12 \nB. \nGeneral Coding Guidelines ........................................................................................................... 12 \n1. \nLocating a code in the ICD-10-CM ........................................................................................ 12 \n2. \nLevel of Detail in Coding ....................................................................................................... 12 \n3. \nCode or codes from A00.0 through T88.9, Z00-Z99.8, U00-U85 .......................................... 13 \n4. \nSigns and symptoms ............................................................................................................... 13 \n5. \nConditions that are an integral part of a disease process ........................................................ 13 \n6. \nConditions that are not an integral part of a disease process .................................................. 13 \n7. \nMultiple coding for a single condition .................................................................................... 13 \n8. \nAcute and Chronic Conditions ................................................................................................ 14 \n9. \nCombination Code .................................................................................................................. 14 \n10. \nSequela (Late Effects) ............................................................................................................. 14 \n11. \nImpending or Threatened Condition ....................................................................................... 15 \n12. \nReporting Same Diagnosis Code More than Once ................................................................. 15 \n13. \nLaterality ................................................................................................................................. 15 \n14. \nDocumentation by Clinicians Other than the Patient's Provider ............................................. 15 \n15. \nSyndromes............................................................................................................................... 16 \n16. \nDocumentation of Complications of Care .............................................................................. 16 \n17. \nBorderline Diagnosis .............................................................................................................. 17 \n18. \nUse of Sign/Symptom/Unspecified Codes.............................................................................. 17 \n19. \nCoding for Healthcare Encounters in Hurricane Aftermath ................................................... 17 \na. \nUse of External Cause of Morbidity Codes .......................................................................... 17 \nb. \nSequencing of External Causes of Morbidity Codes ............................................................ 18 \nc. \nOther External Causes of Morbidity Code Issues ................................................................. 18 \nd. \nUse of Z codes ...................................................................................................................... 18 \nC. \nChapter-Specific Coding Guidelines ............................................................................................ 19 \n1. \nChapter 1: Certain Infectious and Parasitic Diseases (A00-B99), U07.1, U09.9 ................... 19 \na. \nHuman Immunodeficiency Virus (HIV) Infections .............................................................. 19 \nb. \nInfectious agents as the cause of diseases classified to other chapters ................................. 22 \nc. \nInfections resistant to antibiotics .......................................................................................... 22 \nd. \nSepsis, Severe Sepsis, and Septic Shock Infections resistant to antibiotics ......................... 23 \ne. \nMethicillin Resistant Staphylococcus aureus (MRSA) Conditions ...................................... 27 \nf. \nZika virus infections ............................................................................................................. 28 \ng. \nCoronavirus infections .......................................................................................................... 28 \n2. \nChapter 2: Neoplasms (C00-D49) .......................................................................................... 32 \na. \nAdmission/Encounter for treatment of primary site ............................................................. 33 \nb. \nAdmission/Encounter for treatment of secondary site .......................................................... 33 \nc. \nCoding and sequencing of complications ............................................................................. 34 \nd. \nPrimary malignancy previously excised ............................................................................... 34 \ne. \nAdmissions/Encounters involving chemotherapy, immunotherapy and radiation therapy .. 35 \nf. \nAdmission/encounter to determine extent of malignancy .................................................... 36 \ng. \nSymptoms, signs, and abnormal findings listed in Chapter 18 associated with neoplasms . 36 \nh. \nAdmission/encounter for pain control/management ............................................................. 36 \ni. \nMalignancy in two or more noncontiguous sites .................................................................. 36 \nj. \nDisseminated malignant neoplasm, unspecified ................................................................... 36 \nk. \nMalignant neoplasm without specification of site ................................................................ 36 \nl. \nSequencing of neoplasm codes ............................................................................................. 37 \nm. Current malignancy versus personal history of malignancy ................................................. 38 \nn. \nLeukemia, Multiple Myeloma, and Malignant Plasma Cell Neoplasms in remission versus \npersonal history .................................................................................................................... 38 \no. \nAftercare following surgery for neoplasm ............................................................................ 38 \np. \nFollow-up care for completed treatment of a malignancy .................................................... 38 \nq. \nProphylactic organ removal for prevention of malignancy .................................................. 38 \nr. \nMalignant neoplasm associated with transplanted organ...................................................... 38 \ns. \nBreast Implant Associated Anaplastic Large Cell Lymphoma ............................................. 39 \nt. Secondary malignant neoplasm of lymphoid tissue .................................................................. 39 \n3. \nChapter 3: Disease of the blood and blood-forming organs and certain disorders involving the \nimmune mechanism (D50-D89) ............................................................................................. 39 \nReserved for future guideline expansion ...................................................................................... 39 \n4. \nChapter 4: Endocrine, Nutritional, and Metabolic Diseases (E00-E89) ................................. 39 \na. \nDiabetes mellitus ................................................................................................................... 39 \nb. \nObesity .................................................................................................................................. 42 \n5. \nChapter 5: Mental, Behavioral and Neurodevelopmental disorders (F01 – F99) ................... 43 \na. \nPain disorders related to psychological factors ..................................................................... 43 \nb. \nMental and behavioral disorders due to psychoactive substance use ................................... 43 \nc. \nFactitious Disorder ................................................................................................................ 44 \n6. \nChapter 6: Diseases of the Nervous System (G00-G99) ........................................................ 45 \na. \nDominant/nondominant side ................................................................................................. 45 \nb. \nPain - Category G89.............................................................................................................. 45 \n7. \nChapter 7: Diseases of the Eye and Adnexa (H00-H59) ........................................................ 48 \na. \nGlaucoma .............................................................................................................................. 48 \nb. \nBlindness ............................................................................................................................... 49 \n8. \nChapter 8: Diseases of the Ear and Mastoid Process (H60-H95) ........................................... 49 \nReserved for future guideline expansion ...................................................................................... 49 \n9. \nChapter 9: Diseases of the Circulatory System (I00-I99) ....................................................... 50 \na. \nHypertension ......................................................................................................................... 50 \nb. \nAtherosclerotic Coronary Artery Disease and Angina ......................................................... 52 \nc. \nIntraoperative and Postprocedural Cerebrovascular Accident .............................................. 53 \nd. \nSequelae of Cerebrovascular Disease ................................................................................... 53 \ne. \nAcute myocardial infarction (AMI) ...................................................................................... 54 \n10. \nChapter 10: Diseases of the Respiratory System (J00-J99), U07.0 ........................................ 56 \na. \nChronic Obstructive Pulmonary Disease [COPD] and Asthma ........................................... 56 \nb. \nAcute Respiratory Failure ..................................................................................................... 56 \nc. \nInfluenza due to certain identified influenza viruses ............................................................ 57 \nd. \nVentilator associated Pneumonia .......................................................................................... 57 \ne. \nVaping-related disorders ....................................................................................................... 58 \n11. \nChapter 11: Diseases of the Digestive System (K00-K95) ..................................................... 58 \nReserved for future guideline expansion ...................................................................................... 58 \n12. \nChapter 12: Diseases of the Skin and Subcutaneous Tissue (L00-L99) ................................. 58 \na. \nPressure ulcer stage codes ..................................................................................................... 58 \nb. \nNon-Pressure Chronic Ulcers ............................................................................................... 60 \n13. \nChapter 13: Diseases of the Musculoskeletal System and Connective Tissue (M00-M99) ... 60 \na. \nSite and laterality .................................................................................................................. 60 \nb. \nAcute traumatic versus chronic or recurrent musculoskeletal conditions ............................ 61 \nc. \nCoding of Pathologic Fractures ............................................................................................ 61 \nd. \nOsteoporosis .......................................................................................................................... 61 \ne. \nMultisystem Inflammatory Syndrome .................................................................................. 62 \n14. \nChapter 14: Diseases of Genitourinary System (N00-N99) ................................................... 62 \na. \nChronic kidney disease ......................................................................................................... 62 \n15. \nChapter 15: Pregnancy, Childbirth, and the Puerperium  (O00-O9A) ................................... 63 \na. \nGeneral Rules for Obstetric Cases ........................................................................................ 63 \nb. \nSelection of OB Principal or First-listed Diagnosis .............................................................. 64 \nc. \nPre-existing conditions versus conditions due to the pregnancy .......................................... 65 \nd. \nPre-existing hypertension in pregnancy ................................................................................ 66 \ne. \nFetal Conditions Affecting the Management of the Mother ................................................. 66 \nf. \nHIV Infection in Pregnancy, Childbirth and the Puerperium ............................................... 66 \ng. \nDiabetes mellitus in pregnancy ............................................................................................. 66 \nh. \nLong term use of insulin and oral hypoglycemics ................................................................ 67 \ni. \nGestational (pregnancy induced) diabetes ............................................................................ 67 \nj. \nSepsis and septic shock complicating abortion, pregnancy, childbirth and the puerperium 67 \nk. \nPuerperal sepsis ..................................................................................................................... 67 \nl. \nAlcohol, tobacco and drug use during pregnancy, childbirth and the puerperium ............... 68 \nm. Poisoning, toxic effects, adverse effects and underdosing in a pregnant patient .................. 68 \nn. \nNormal Delivery, Code O80 ................................................................................................. 68 \no. \nThe Peripartum and Postpartum Periods............................................................................... 69 \np. \nCode O94, Sequelae of complication of pregnancy, childbirth, and the puerperium ........... 70 \nq. \nTermination of Pregnancy and Spontaneous abortions ........................................................ 70 \nr. \nAbuse in a pregnant patient................................................................................................... 71 \ns. \nCOVID-19 infection in pregnancy, childbirth, and the puerperium ..................................... 71 \n16. \nChapter 16: Certain Conditions Originating in the Perinatal Period (P00-P96) ..................... 71 \na. \nGeneral Perinatal Rules......................................................................................................... 71 \nb. \nObservation and Evaluation of Newborns for Suspected Conditions not Found ................. 73 \nc. \nCoding Additional Perinatal Diagnoses ................................................................................ 73 \nd. \nPrematurity and Fetal Growth Retardation ........................................................................... 73 \ne. \nLow birth weight and immaturity status ............................................................................... 74 \nf. \nBacterial Sepsis of Newborn ................................................................................................. 74 \ng. \nStillbirth ................................................................................................................................ 74 \nh. \nCOVID-19 Infection in Newborn ......................................................................................... 74 \n17. \nChapter 17: Congenital malformations, deformations, and chromosomal abnormalities (Q00-\nQA1) ....................................................................................................................................... 74 \n18. \nChapter 18: Symptoms, signs, and abnormal clinical and laboratory findings, not elsewhere \nclassified (R00-R99) ............................................................................................................... 75 \na. \nUse of symptom codes .......................................................................................................... 75 \nb. \nUse of a symptom code with a definitive diagnosis code ..................................................... 75 \nc. \nCombination codes that include symptoms .......................................................................... 75 \nd. \nRepeated falls ........................................................................................................................ 76 \ne. \nComa ..................................................................................................................................... 76 \nf. \nFunctional quadriplegia ........................................................................................................ 76 \ng. \nSIRS due to Non-Infectious Process ..................................................................................... 77 \nh. \nDeath NOS ............................................................................................................................ 77 \ni. \nNIHSS Stroke Scale .............................................................................................................. 77 \n19. \nChapter 19: Injury, poisoning, and certain other consequences of external causes (S00-T88)\n 77 \na. \nApplication of 7th Characters in Chapter 19 ......................................................................... 77 \nb. \nCoding of Injuries ................................................................................................................. 78 \nc. \nCoding of Traumatic Fractures ............................................................................................. 79 \nd. \nCoding of Burns and Corrosions........................................................................................... 80 \ne. \nAdverse Effects, Poisoning, Underdosing and Toxic Effects ............................................... 82 \nf. \nAdult and child abuse, neglect and other maltreatment ........................................................ 85 \ng. \nComplications of care ........................................................................................................... 85 \n20. \nChapter 20: External Causes of Morbidity (V00-Y99) ........................................................... 87 \na. \nGeneral External Cause Coding Guidelines ......................................................................... 88 \nb. \nPlace of Occurrence Guideline ............................................................................................. 89 \nc. \nActivity Code ........................................................................................................................ 89 \nd. \nPlace of Occurrence, Activity, and Status Codes Used with other External Cause Code .... 89 \ne. \nIf the Reporting Format Limits the Number of External Cause Codes ................................ 90 \nf. \nMultiple External Cause Coding Guidelines ........................................................................ 90 \ng. \nChild and Adult Abuse Guideline ......................................................................................... 90 \nh. \nUnknown or Undetermined Intent Guideline ....................................................................... 91 \ni. \nSequelae (Late Effects) of External Cause Guidelines ......................................................... 91 \nj. \nTerrorism Guidelines ............................................................................................................ 91 \nk. \nExternal Cause Status ........................................................................................................... 92 \n21. \nChapter 21: Factors influencing health status and contact with health services (Z00-Z99) ... 92 \na. \nUse of Z Codes in Any Healthcare Setting ........................................................................... 92 \nb. \nZ Codes Indicate a Reason for an Encounter or Provide Additional Information about a \nPatient Encounter ................................................................................................................. 93 \nc. \nCategories of Z Codes ........................................................................................................... 93 \n22. \nChapter 22: Codes for Special Purposes (U00-U85) ............................................................ 107 \nSection II. \nSelection of Principal Diagnosis .........................................................................................107 \nA. \nCodes for symptoms, signs, and ill-defined conditions .............................................................. 108 \nB. \nTwo or more interrelated conditions, each potentially meeting the definition for principal \ndiagnosis. .................................................................................................................................... 108 \nC. \nTwo or more diagnoses that equally meet the definition for principal diagnosis ....................... 108 \nD. \nTwo or more comparative or contrasting conditions .................................................................. 108 \nE. \nA symptom(s) followed by contrasting/comparative diagnoses ................................................. 108 \nF. \nOriginal treatment plan not carried out ....................................................................................... 109 \nG. \nComplications of surgery and other medical care....................................................................... 109 \nH. \nUncertain Diagnosis .................................................................................................................... 109 \nI. \nAdmission from Observation Unit .............................................................................................. 109 \n1. \nAdmission Following Medical Observation ......................................................................... 109 \n2. \nAdmission Following Post-Operative Observation .............................................................. 109 \nJ. \nAdmission from Outpatient Surgery ........................................................................................... 109 \nK. \nAdmissions/Encounters for Rehabilitation ................................................................................. 110 \nSection III. Reporting Additional Diagnoses .........................................................................................110 \nA. \nPrevious conditions ..................................................................................................................... 111 \nB. \nAbnormal findings ...................................................................................................................... 111 \nC. \nUncertain Diagnosis .................................................................................................................... 111 \nSection IV. Diagnostic Coding and Reporting Guidelines for Outpatient Services ..............................111 \nA. \nSelection of first-listed condition ................................................................................................ 112 \n1. \nOutpatient Surgery ................................................................................................................ 112 \n2. \nObservation Stay ................................................................................................................... 112 \nB. \nCodes from A00.0 through T88.9, Z00-Z99, U00-U85 .............................................................. 113 \nC. \nAccurate reporting of ICD-10-CM diagnosis codes ................................................................... 113 \nD. \nCodes that describe symptoms and signs .................................................................................... 113 \nE. \nEncounters for circumstances other than a disease or injury ...................................................... 113 \nF. \nLevel of Detail in Coding ........................................................................................................... 113 \n1. \nICD-10-CM codes with 3, 4, 5, 6 or 7 characters ................................................................. 113 \n2. \nUse of full number of characters required for a code ........................................................... 113 \n3. \nHighest level of specificity ................................................................................................... 113 \nG. \nICD-10-CM code for the diagnosis, condition, problem, or other reason for encounter/visit .... 113 \nH. \nUncertain diagnosis ..................................................................................................................... 114 \nI. \nChronic diseases.......................................................................................................................... 114 \nJ. \nCode all documented conditions that coexist.............................................................................. 114 \nK. \nPatients receiving diagnostic services only................................................................................. 114 \nL. \nPatients receiving therapeutic services only ............................................................................... 114 \nM. Patients receiving preoperative evaluations only ........................................................................ 115 \nN. \nAmbulatory surgery .................................................................................................................... 115 \nO. \nRoutine outpatient prenatal visits ................................................................................................ 115 \nP. \nEncounters for general medical examinations with abnormal findings ...................................... 115 \nQ. \nEncounters for routine health screenings .................................................................................... 115 \nAppendix I 116 \nPresent on Admission Reporting Guidelines ...........................................................................................116",
+          "id": "icd-10-cm_section_0",
+          "kind": null,
+          "number": null,
+          "path": [],
+          "scope": null,
+          "sections": [],
+          "title": "ICD-10-CM Official Guidelines for Coding and Reporting"
+        }
+      ],
+      "next_steps": [
+        {
+          "reason": "Check whether a specific code is assignable",
+          "tool": "verify"
+        },
+        {
+          "reason": "Browse the codes a guideline refers to",
+          "tool": "explore"
+        },
+        {
+          "reason": "To assign the codes for a clinical note, use predict (optionally with include/exclude filters)",
+          "tool": "predict"
+        }
+      ]
+    }
+  ],
+  "status_events": [
+    {
+      "state": "working"
+    },
+    {
+      "state": "working"
+    },
+    {
+      "message": "Calling expert: coding-expert",
+      "state": "working"
+    }
+  ],
+  "finish_metadata": {
+    "contextId": "019f55cb-5eb4-78a3-82b3-2ace1323a36c",
+    "taskId": "019f55cb-5eb4-7828-8f2e-7c39f1756c2c",
+    "credits": 0.09573599999999999,
+    "state": "completed"
+  },
+  "parsed": {
+    "encounter_summary": "- 32-year-old G2 at 39 weeks gestation had a spontaneous vaginal delivery of a live male infant weighing 3350 g.\n- Documentation states the labor was uneventful with blood loss 200 mL.\n- Apgar scores were 10 at 1, 5, and 10 minutes.\n- Postpartum recovery was good, breastfeeding was documented, and discharge occurred on day 3.\n- Diagnosis documented: “term spontaneous vaginal delivery, singleton, live infant.”",
+    "gaps": [],
+    "gap_count": 0,
+    "queries": [],
+    "query_count": 0,
+    "specialists_contacted": [
+      "Medical Coding Expert",
+      "Coding Expert"
+    ],
+    "specialist_trace_text": "- Medical Coding Expert: Consulted for coding specificity gaps and query opportunities.\n  - Requested: conservative review of the excerpt for CDI/coding gaps using only chart evidence.\n  - Accepted: support for O80 (Encounter for full-term uncomplicated delivery), Z37.0 (Single live birth), and recognition that 39 weeks gestation is documented.\n  - Accepted evidence from expert: documentation supports uncomplicated full-term vaginal delivery and single live birth.\n  - Rejected/limited: no patient-specific query suggestions were adopted because the excerpt does not show unresolved ambiguity needing clarification.\n- AMBOSS Expert: Not consulted; no clinical criteria clarification was needed.\n- CDI Web Search Expert: Not consulted; no up-to-date external guidance was necessary to answer conservatively.\n\nConservative coding-oriented takeaways from the excerpt:\n- The documentation appears sufficient to support O80, with Z37.0 as the delivery outcome code per coding guidance surfaced by the coding expert.\n- No compliant provider query is clearly supported or necessary based on the available excerpt.",
+    "has_specialist_trace": true
+  },
+  "error": "",
+  "text": "Encounter Summary:\n- 32-year-old G2 at 39 weeks gestation had a spontaneous vaginal delivery of a live male infant weighing 3350 g.\n- Documentation states the labor was uneventful with blood loss 200 mL.\n- Apgar scores were 10 at 1, 5, and 10 minutes.\n- Postpartum recovery was good, breastfeeding was documented, and discharge occurred on day 3.\n- Diagnosis documented: “term spontaneous vaginal delivery, singleton, live infant.”\n\nDocumentation Gaps:\n- No significant CDI query opportunities identified from the excerpt.\n  - Why it matters: The documentation already supports an uncomplicated term singleton liveborn vaginal delivery.\n  - Evidence: “39 weeks gestation,” “spontaneous vaginal delivery,” “Labor uneventful,” and “Diagnosis: term spontaneous vaginal delivery, singleton, live infant.”\n  - Minimal clarification needed: None clearly required based on the excerpt alone.\n- Coding note rather than provider gap: outcome of delivery is supported and should be captured.\n  - Why it matters: Outcome of delivery coding is required with O80 per coding guidance.\n  - Evidence: “live male infant” and “singleton, live infant.”\n  - Minimal clarification needed: None; single live birth is already documented.\n- Coding note: gestational age is documented.\n  - Why it matters: Specific weeks of gestation are available in the note.\n  - Evidence: “39 weeks gestation.”\n  - Minimal clarification needed: None.\n\nProposed Provider Queries:\n- None recommended.\n  - Reason: The excerpt supports an uncomplicated full-term spontaneous vaginal delivery with singleton live birth, and there is no clear ambiguity requiring provider clarification.\n  - Supporting evidence: “Labor uneventful,” “blood loss 200ml,” and “Diagnosis: term spontaneous vaginal delivery, singleton, live infant.”\n\nCoding Specificity Checklist:\n- Delivery type documented: spontaneous vaginal delivery.\n- Term status documented: 39 weeks gestation / term.\n- Fetal count documented: singleton.\n- Outcome documented: live infant / single live birth.\n- Complication status documented: uneventful labor, good postpartum recovery.\n- Neonatal details present but generally infant-focused: male infant, 3350 g, Apgars 10/10/10.\n\nRisk Flags:\n- No contradictions identified within the excerpt.\n- No unsupported maternal complications documented.\n- Avoid querying for obstetric complications, anemia, postpartum hemorrhage, perineal laceration, fetal distress, or other conditions because the excerpt does not provide supporting evidence.\n- Coding caution: coding-expert output surfaced Z3A.39, but the same output also identified O80 and the O80 chapter guidance. Use of additional codes should follow official coding rules; no provider query is needed from this excerpt to resolve that.\n\nSpecialist Trace:\n- Medical Coding Expert: Consulted for coding specificity gaps and query opportunities.\n  - Requested: conservative review of the excerpt for CDI/coding gaps using only chart evidence.\n  - Accepted: support for O80 (Encounter for full-term uncomplicated delivery), Z37.0 (Single live birth), and recognition that 39 weeks gestation is documented.\n  - Accepted evidence from expert: documentation supports uncomplicated full-term vaginal delivery and single live birth.\n  - Rejected/limited: no patient-specific query suggestions were adopted because the excerpt does not show unresolved ambiguity needing clarification.\n- AMBOSS Expert: Not consulted; no clinical criteria clarification was needed.\n- CDI Web Search Expert: Not consulted; no up-to-date external guidance was necessary to answer conservatively.\n\nConservative coding-oriented takeaways from the excerpt:\n- The documentation appears sufficient to support O80, with Z37.0 as the delivery outcome code per coding guidance surfaced by the coding expert.\n- No compliant provider query is clearly supported or necessary based on the available excerpt."
+}

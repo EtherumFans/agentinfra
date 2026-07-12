@@ -1,0 +1,229 @@
+{
+  "case_id": "G8-CDI-LAB-037",
+  "group": "lab_positive_uncertain",
+  "variant": "",
+  "session_id": "d0f7a897-3304-42a0-b468-579e2ef056a5",
+  "attempt": 1,
+  "outcome": "SUCCESS",
+  "elapsed_s": 28.79,
+  "expected": {
+    "query_count_min": 0,
+    "query_count_max": 1,
+    "expected_no_query": false,
+    "expected_query_topics": [],
+    "notes": "Mildly elevated tumor marker without imaging correlate — must not assume ovarian cancer"
+  },
+  "text_length": 6155,
+  "first_token_at_s": 3.97,
+  "last_token_at_s": 28.79,
+  "event_count": 12,
+  "raw_events_preview": [
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"code_system\":\"icd-10-cm\",\"count\":4,\"next_steps\":[{\"reason\":\"Browse related codes and alternatives in the same category\",\"tool\":\"explore\"},{\"reason\":\"Read coding conventions relevant to these",
+    "message|{\"data\":{\"code_system\":\"icd-10-cm\",\"count\":2,\"next_steps\":[{\"reason\":\"Browse related codes and alternatives in the same category\",\"tool\":\"explore\"},{\"reason\":\"Read coding conventions relevant to these",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"Z00.00\",\"code_system\":\"icd-10-cm\",\"description\":\"Encounter for general adult medical examination without abnormal findings\",\"next_steps\":[{\"reason\":\"Read coding conv",
+    "message|{\"id\":\"b299d430-a5bc-4a7e-9c43-a8e3fbe2000b\",\"type\":\"text-start\"}",
+    "message|{\"delta\":\"Encounter Summary:\\n- 60-year-old female seen for a health examination.\\n- She is documented as asymptomatic and postmenopausal for 5 years.\\n- CA-125 is elevated at 65 U/mL with reference <",
+    "message|{\"id\":\"b299d430-a5bc-4a7e-9c43-a8e3fbe2000b\",\"type\":\"text-end\"}",
+    "message|{\"messageMetadata\":{\"contextId\":\"019f55e6-32f5-7463-9766-14f2821925a2\",\"taskId\":\"019f55e6-32f5-73db-99f7-d30bedd08356\",\"credits\":0.098524,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+    "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.098524},\"type\":\"finish\"}",
+    "message|[DONE]"
+  ],
+  "expert_events": [
+    {
+      "code_system": "icd-10-cm",
+      "count": 4,
+      "next_steps": [
+        {
+          "reason": "Browse related codes and alternatives in the same category",
+          "tool": "explore"
+        },
+        {
+          "reason": "Read coding conventions relevant to these codes",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "To assign the codes for a clinical note, use predict (optionally with include/exclude filters)",
+          "tool": "predict"
+        }
+      ],
+      "query": "elevated CA-125",
+      "results": [
+        {
+          "code": "R97.1",
+          "description": "Elevated cancer antigen 125 [CA 125]",
+          "match_path": "Elevated, elevation, cancer antigen 125 [CA 125]",
+          "related_codes": {
+            "category": "R97",
+            "category_description": "Abnormal tumor markers",
+            "count": 4
+          }
+        },
+        {
+          "code": "R74.01",
+          "description": "Elevation of levels of liver transaminase levels",
+          "match_path": "Elevated, elevation, SGOT",
+          "related_codes": {
+            "category": "R74.0",
+            "category_description": "Nonspecific elevation of levels of transaminase and lactic acid dehydrogenase [LDH]",
+            "count": 2
+          }
+        },
+        {
+          "code": "E78.00",
+          "description": "Pure hypercholesterolemia, unspecified",
+          "match_path": "Elevated, elevation, cholesterol",
+          "related_codes": {
+            "category": "E78.0",
+            "category_description": "Pure hypercholesterolemia",
+            "count": 2
+          }
+        },
+        {
+          "code": "E78.41",
+          "description": "Elevated Lipoprotein(a)",
+          "match_path": "Elevated, elevation, lipoprotein a) level",
+          "related_codes": {
+            "category": "E78.4",
+            "category_description": "Other hyperlipidemia",
+            "count": 2
+          }
+        }
+      ]
+    },
+    {
+      "code_system": "icd-10-cm",
+      "count": 2,
+      "next_steps": [
+        {
+          "reason": "Browse related codes and alternatives in the same category",
+          "tool": "explore"
+        },
+        {
+          "reason": "Read coding conventions relevant to these codes",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "To assign the codes for a clinical note, use predict (optionally with include/exclude filters)",
+          "tool": "predict"
+        }
+      ],
+      "query": "postmenopausal state",
+      "results": [
+        {
+          "code": "Z78.0",
+          "description": "Asymptomatic menopausal state",
+          "match_path": "Menopausal state NOS\nPostmenopausal status NOS",
+          "related_codes": {
+            "category": "Z78",
+            "category_description": "Other specified health status",
+            "count": 3
+          }
+        },
+        {
+          "code": "N95.9",
+          "description": "Unspecified menopausal and perimenopausal disorder",
+          "match_path": "Disorder, postmenopausal",
+          "related_codes": {
+            "category": "N95",
+            "category_description": "Menopausal and other perimenopausal disorders",
+            "count": 5
+          }
+        }
+      ]
+    },
+    {
+      "assignable": true,
+      "code": "Z00.00",
+      "code_system": "icd-10-cm",
+      "description": "Encounter for general adult medical examination without abnormal findings",
+      "next_steps": [
+        {
+          "reason": "Read coding conventions for this code area",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "Check whether a specific code is assignable",
+          "tool": "verify"
+        },
+        {
+          "reason": "Explore a related or more specific code",
+          "tool": "explore"
+        }
+      ],
+      "parent": {
+        "code": "Z00.0",
+        "description": "Encounter for general adult medical examination"
+      },
+      "related_codes": [
+        {
+          "assignable": true,
+          "code": "Z00.01",
+          "description": "Encounter for general adult medical examination with abnormal findings"
+        }
+      ],
+      "total_related": 1
+    }
+  ],
+  "status_events": [
+    {
+      "state": "working"
+    },
+    {
+      "state": "working"
+    },
+    {
+      "message": "Calling expert: coding-expert",
+      "state": "working"
+    }
+  ],
+  "finish_metadata": {
+    "contextId": "019f55e6-32f5-7463-9766-14f2821925a2",
+    "taskId": "019f55e6-32f5-73db-99f7-d30bedd08356",
+    "credits": 0.098524,
+    "state": "completed"
+  },
+  "parsed": {
+    "encounter_summary": "- 60-year-old female seen for a health examination.\n- She is documented as asymptomatic and postmenopausal for 5 years.\n- CA-125 is elevated at 65 U/mL with reference < 35.\n- Pelvic ultrasound documents normal uterus and adnexa.\n- Plan/recommendation is follow-up CA-125 and gynecology consult.",
+    "gaps": [
+      {
+        "idx": 1,
+        "text": "Principal encounter status is inconsistent with the documented abnormal finding.\n- Why it matters: The note states a routine health exam, but also includes an abnormal tumor marker. For coding specificity, a general exam with abnormal findings may need to be distinguished from one without abnormal findings.\n- Evidence quote: “health examination” and “Tumor marker CA-125 65 U/mL (reference < 35).”\n- Minimal clarification needed: Whether the health examination should be documented as with abnormal"
+      },
+      {
+        "idx": 2,
+        "text": "Abnormal CA-125 is present, but the clinical significance/assessment is not explicitly stated.\n- Why it matters: The abnormal result itself may be codeable, but documentation should clearly link that the elevated marker was reviewed/assessed and whether any suspected cause is identified or if no etiology is known at this time.\n- Evidence quote: “Tumor marker CA-125 65 U/mL (reference < 35).” and “Recommendation: follow-up CA-125, gynecology consult.”\n- Minimal clarification needed: Whether the p"
+      },
+      {
+        "idx": 3,
+        "text": "Menopausal status could be documented more explicitly as asymptomatic menopausal state if clinically intended.\n- Why it matters: The note documents menopause history but does not state whether this is simply history/status versus a menopausal disorder.\n- Evidence quote: “History: postmenopausal for 5 years.” and “Asymptomatic.”\n- Minimal clarification needed: Whether the provider intends to document asymptomatic menopausal state/status only."
+      }
+    ],
+    "gap_count": 3,
+    "queries": [
+      {
+        "idx": 1,
+        "text": "Health examination with or without abnormal findings"
+      },
+      {
+        "idx": 2,
+        "text": "Elevated CA-125 documentation"
+      },
+      {
+        "idx": 3,
+        "text": "Menopausal status"
+      }
+    ],
+    "query_count": 3,
+    "specialists_contacted": [
+      "Medical Coding Expert",
+      "Coding Expert"
+    ],
+    "specialist_trace_text": "- Medical Coding Expert: Consulted for coding-specific gaps and possible diagnosis-status clarification. Accepted: relevance of elevated CA-125 (R97.1), asymptomatic menopausal state/status (Z78.0), and the exam code distinction issue because the excerpt includes a routine exam plus an abnormal finding. Rejected: any implication of malignancy or other underlying diagnosis because the excerpt does not support it.\n- AMBOSS Expert: Not consulted. Clinical diagnostic criteria were not necessary to identify conservative CDI gaps from this excerpt.\n- CDI Web Search Expert: Not consulted. No current external policy/guideline lookup was required to produce a conservative, evidence-grounded CDI review.",
+    "has_specialist_trace": true
+  },
+  "error": "",
+  "text": "Encounter Summary:\n- 60-year-old female seen for a health examination.\n- She is documented as asymptomatic and postmenopausal for 5 years.\n- CA-125 is elevated at 65 U/mL with reference < 35.\n- Pelvic ultrasound documents normal uterus and adnexa.\n- Plan/recommendation is follow-up CA-125 and gynecology consult.\n\nDocumentation Gaps:\n1. Principal encounter status is inconsistent with the documented abnormal finding.\n- Why it matters: The note states a routine health exam, but also includes an abnormal tumor marker. For coding specificity, a general exam with abnormal findings may need to be distinguished from one without abnormal findings.\n- Evidence quote: “health examination” and “Tumor marker CA-125 65 U/mL (reference < 35).”\n- Minimal clarification needed: Whether the health examination should be documented as with abnormal findings, and whether the elevated CA-125 is a reportable assessed finding for this encounter.\n\n2. Abnormal CA-125 is present, but the clinical significance/assessment is not explicitly stated.\n- Why it matters: The abnormal result itself may be codeable, but documentation should clearly link that the elevated marker was reviewed/assessed and whether any suspected cause is identified or if no etiology is known at this time.\n- Evidence quote: “Tumor marker CA-125 65 U/mL (reference < 35).” and “Recommendation: follow-up CA-125, gynecology consult.”\n- Minimal clarification needed: Whether the provider is documenting elevated CA-125 as an abnormal tumor marker being evaluated, and whether any associated condition, if known, should be documented.\n\n3. Menopausal status could be documented more explicitly as asymptomatic menopausal state if clinically intended.\n- Why it matters: The note documents menopause history but does not state whether this is simply history/status versus a menopausal disorder.\n- Evidence quote: “History: postmenopausal for 5 years.” and “Asymptomatic.”\n- Minimal clarification needed: Whether the provider intends to document asymptomatic menopausal state/status only.\n\nProposed Provider Queries:\n1. Topic: Health examination with or without abnormal findings\n- Reason query is needed: The encounter is described as a health examination, but there is also a documented abnormal CA-125 result.\n- Evidence quote: “health examination” and “Tumor marker CA-125 65 U/mL (reference < 35).”\n- Non-leading query text: “For this encounter documented as a health examination, please clarify whether the abnormal CA-125 result was an assessed finding for this visit and whether the examination should be considered with abnormal findings or without abnormal findings.”\n- Suggested response options:\n  - General adult health examination with abnormal findings\n  - General adult health examination without abnormal findings\n  - Abnormal CA-125 was noted but not assessed/managed as part of this encounter\n  - Other\n  - Unable to determine\n\n2. Topic: Elevated CA-125 documentation\n- Reason query is needed: The note contains an abnormal tumor marker result and follow-up plan, but the assessment does not explicitly name the finding.\n- Evidence quote: “Tumor marker CA-125 65 U/mL (reference < 35).” and “Recommendation: follow-up CA-125, gynecology consult.”\n- Non-leading query text: “Based on the documented CA-125 level of 65 U/mL (reference < 35) and recommendation for follow-up CA-125/gynecology consult, please clarify how this finding should be documented for this encounter.”\n- Suggested response options:\n  - Elevated CA-125 / abnormal tumor marker\n  - Abnormal test result of uncertain clinical significance\n  - Finding not clinically significant for this encounter\n  - Other\n  - Clinically undetermined\n\n3. Topic: Menopausal status\n- Reason query is needed: The note documents postmenopausal status and asymptomatic status, but does not explicitly state whether this is asymptomatic menopausal state versus another menopausal condition.\n- Evidence quote: “History: postmenopausal for 5 years.” and “Asymptomatic.”\n- Non-leading query text: “Please clarify the patient’s menopausal documentation for this encounter.”\n- Suggested response options:\n  - Asymptomatic menopausal state/status\n  - Menopausal or perimenopausal disorder (please specify)\n  - History only, not clinically relevant to this encounter\n  - Other\n  - Unable to determine\n\nCoding Specificity Checklist:\n- Specify whether the health examination is with abnormal findings or without abnormal findings.\n- If clinically relevant, explicitly document the abnormal CA-125/elevated tumor marker as an assessed finding.\n- If a cause or associated condition for the elevated CA-125 is known and supported, document it clearly; if not known, state that it is of uncertain significance or under evaluation.\n- Clarify menopausal documentation as asymptomatic status versus disorder, if relevant to the encounter.\n\nRisk Flags:\n- Potential documentation conflict: the note supports a “health examination,” but the presence of “CA-125 65 U/mL” may conflict with coding as “without abnormal findings” if it was assessed as part of the visit.\n- No evidence in the excerpt supports querying for malignancy, ovarian mass, or gynecologic disorder; pelvic ultrasound is documented as “normal uterus and adnexa.”\n- No evidence supports any symptomatic menopausal disorder; the patient is documented as “Asymptomatic.”\n- Elevated CA-125 is nonspecific; the excerpt does not support inferring an underlying diagnosis.\n\nSpecialist Trace:\n- Medical Coding Expert: Consulted for coding-specific gaps and possible diagnosis-status clarification. Accepted: relevance of elevated CA-125 (R97.1), asymptomatic menopausal state/status (Z78.0), and the exam code distinction issue because the excerpt includes a routine exam plus an abnormal finding. Rejected: any implication of malignancy or other underlying diagnosis because the excerpt does not support it.\n- AMBOSS Expert: Not consulted. Clinical diagnostic criteria were not necessary to identify conservative CDI gaps from this excerpt.\n- CDI Web Search Expert: Not consulted. No current external policy/guideline lookup was required to produce a conservative, evidence-grounded CDI review."
+}

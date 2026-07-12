@@ -1,26 +1,90 @@
 {
-  "case_id": "CASE-5b0f6478da51",
-  "completion_state": "AUTO_PASS",
-  "documentation_gaps": [],
-  "proposed_provider_queries": [],
+  "case_id": "CASE-1d7ba5c9f815",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-1d7ba5c9f815/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "未明确腱鞘囊肿的具体解剖部位（如指屈肌腱鞘或指伸肌腱鞘）",
+      "why_it_matters": "影响编码精确性，不同部位的腱鞘囊肿可能对应不同编码",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "右手中指腱鞘囊肿切除术后第7天"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-1d7ba5c9f815/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "未明确囊肿的侧别（如掌侧或背侧）",
+      "why_it_matters": "影响手术描述和编码的精确性",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "右手中指腱鞘囊肿切除术后第7天"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-1d7ba5c9f815/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "未描述伤口愈合的具体情况（如一期愈合的确认依据）",
+      "why_it_matters": "影响并发症编码和临床准确性",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "伤口愈合良好, 无红肿渗液"
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-1d7ba5c9f815/Q-001",
+      "gap_id": "CASE-1d7ba5c9f815/GAP-003",
+      "topic": "伤口愈合情况",
+      "reason": "病历中未描述伤口愈合的具体情况（如一期愈合的确认依据）",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "伤口愈合良好, 无红肿渗液"
+      },
+      "query_text": "请描述该患者伤口愈合的具体情况：",
+      "response_options": [
+        "A. 一期愈合（伤口边缘对合良好，无感染，无裂开）",
+        "B. 二期愈合（有肉芽组织生长，需换药等处理）",
+        "C. 其他（请注明）",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine"
+    }
+  ],
   "chart_excerpt_preview": "患者男性, 35岁, 右手中指腱鞘囊肿切除术后第7天复诊。伤口愈合良好, 无红肿渗液。手指活动正常, 感觉正常。术后病理:腱鞘囊肿。诊断:右手中指腱鞘囊肿术后, 一期愈合。",
   "patient_ref": "DEID",
   "encounter_ref": "DEID",
   "encounter_summary": {
-    "key_points": [],
-    "encounter_metadata": {}
+    "key_points": [
+      "右手中指腱鞘囊肿切除术后第7天",
+      "伤口愈合良好，无红肿渗液",
+      "手指活动正常，感觉正常",
+      "术后病理：腱鞘囊肿",
+      "诊断：右手中指腱鞘囊肿术后，一期愈合"
+    ],
+    "encounter_metadata": {
+      "patient_age": "35岁",
+      "patient_sex": "男性",
+      "encounter_type": "复诊"
+    }
   },
   "risk_flags": [],
   "specialist_trace": [
     {
       "expert_id": "coding-expert",
-      "consulted": false,
-      "rationale": "no coding-relevant gaps survived earlier gates",
-      "route_decision": "not_needed",
-      "route_reason": "no_relevant_gap",
-      "execution_mode": "SKIPPED_NOT_NEEDED",
-      "latency_ms": 0,
-      "tokens": 0
+      "consulted": true,
+      "rationale": "根据病历记录，需明确腱鞘囊肿的具体解剖部位（如指屈肌腱鞘或指伸肌腱鞘）及囊肿的侧别（掌侧或背侧），以支持精确的解剖定位编码。同时，应补充伤口一期愈合的客观确认依据（如无感染征象、缝线反应或裂开的具体描述），以完整反映术后恢复状态。",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3320,
+      "tokens": 248
     },
     {
       "expert_id": "pubmed-expert",
@@ -54,70 +118,84 @@
     }
   ],
   "stage_run_ids": {
-    "encounter_synthesis": "run-a2d2af60af9e",
-    "gap_identification": "run-2971b7526463",
-    "expert_consultation": "run-8368ff89bce3",
-    "query_generation": "",
-    "query_necessity_gate": "necessary=0;unnecessary=0;overquery_triggered=False;final_count=0",
-    "query_single_dimension_gate": "single_dim=0;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;final_count=0",
-    "claim_evidence_alignment_gate": "claims_extracted=0;blocked=0;flagged=0;final_count=0",
-    "claim_evidence_alignment_gate::run_id": "run-c5294189da50",
-    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
-    "semantic_necessity_gate::run_id": "run-7c9054b8c66e",
+    "encounter_synthesis": "run-71fd04bd48b6",
+    "gap_identification": "run-607942cdae36",
+    "expert_consultation": "run-658620d3577a",
+    "query_generation": "run-caa4b7c12c89",
+    "query_necessity_gate": "necessary=3;unnecessary=0;overquery_triggered=False;final_count=3",
+    "query_single_dimension_gate": "single_dim=3;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=site;final_count=3",
+    "claim_evidence_alignment_gate": "claims_extracted=8;blocked=2;flagged=0;final_count=1",
+    "claim_evidence_alignment_gate::run_id": "run-1a009ffd2aa8",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=1;final_count=1",
+    "semantic_necessity_gate::run_id": "run-a65d2e817553",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "run-ac26de3d9e13"
+    "specialist_trace_emit": "run-b3a638194b92"
   },
   "stage_trace_ids": {
-    "encounter_synthesis": "trace-54bd24e07c1d",
-    "gap_identification": "trace-cfbd8db1f673",
-    "expert_consultation": "trace-0fd3857d661b",
-    "query_generation": "",
+    "encounter_synthesis": "trace-fb21eaa1f8bb",
+    "gap_identification": "trace-98aa028f7064",
+    "expert_consultation": "trace-6df75c16d059",
+    "query_generation": "trace-c6482acf8172",
     "query_necessity_gate": "",
     "query_single_dimension_gate": "",
-    "claim_evidence_alignment_gate": "trace-b776539740ce",
-    "semantic_necessity_gate": "trace-82a6bc0f0316",
+    "claim_evidence_alignment_gate": "trace-b7b73cf53798",
+    "semantic_necessity_gate": "trace-957455a21d99",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "trace-ee415a69366e"
+    "specialist_trace_emit": "trace-1fcf3a6a269a"
   },
   "stage_traces": [
     {
       "stage": "encounter_synthesis",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 0,
-      "prompt_tokens": 0,
-      "completion_tokens": 0,
-      "total_tokens": 0,
-      "run_id": "run-a2d2af60af9e",
-      "trace_id": "trace-54bd24e07c1d",
-      "degraded": true,
-      "error_reason": "LLM circuit breaker is OPEN — provider appears unhealthy",
+      "latency_ms": 3041,
+      "prompt_tokens": 232,
+      "completion_tokens": 106,
+      "total_tokens": 338,
+      "run_id": "run-71fd04bd48b6",
+      "trace_id": "trace-fb21eaa1f8bb",
+      "degraded": false,
+      "error_reason": "",
       "expert_id": ""
     },
     {
       "stage": "gap_identification",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 0,
-      "prompt_tokens": 0,
-      "completion_tokens": 0,
-      "total_tokens": 0,
-      "run_id": "run-2971b7526463",
-      "trace_id": "trace-cfbd8db1f673",
-      "degraded": true,
-      "error_reason": "LLM circuit breaker is OPEN — provider appears unhealthy",
+      "latency_ms": 5436,
+      "prompt_tokens": 347,
+      "completion_tokens": 354,
+      "total_tokens": 701,
+      "run_id": "run-607942cdae36",
+      "trace_id": "trace-98aa028f7064",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5757,
+      "prompt_tokens": 445,
+      "completion_tokens": 530,
+      "total_tokens": 975,
+      "run_id": "run-caa4b7c12c89",
+      "trace_id": "trace-c6482acf8172",
+      "degraded": false,
+      "error_reason": "",
       "expert_id": ""
     },
     {
       "stage": "expert_consultation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 0,
-      "prompt_tokens": 0,
-      "completion_tokens": 0,
-      "total_tokens": 0,
-      "run_id": "run-60a280fbb72b",
-      "trace_id": "trace-c926be3df163",
+      "latency_ms": 3320,
+      "prompt_tokens": 170,
+      "completion_tokens": 78,
+      "total_tokens": 248,
+      "run_id": "run-5e06b52feedd",
+      "trace_id": "trace-003172c4ec70",
       "degraded": false,
       "error_reason": "",
       "expert_id": "coding-expert"
@@ -130,8 +208,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-060721f279e2",
-      "trace_id": "trace-25708854cec9",
+      "run_id": "run-52e1cf62b12f",
+      "trace_id": "trace-9abf146f20d2",
       "degraded": false,
       "error_reason": "",
       "expert_id": "pubmed-expert"
@@ -144,8 +222,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-b13999a65bc9",
-      "trace_id": "trace-338bb5159cd2",
+      "run_id": "run-dc297aec0174",
+      "trace_id": "trace-0cec7b0bfa27",
       "degraded": false,
       "error_reason": "",
       "expert_id": "web-search-expert"
@@ -158,14 +236,14 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-7ccd52a6ac70",
-      "trace_id": "trace-6b4ee08ec41d",
+      "run_id": "run-cc4b2efc59ef",
+      "trace_id": "trace-626d0b793973",
       "degraded": false,
       "error_reason": "",
       "expert_id": "medical-calculator-expert"
     }
   ],
-  "degraded": true,
+  "degraded": false,
   "runtime_mode": "real",
-  "generated_at": "2026-07-12T03:21:58.363662Z"
+  "generated_at": "2026-07-12T11:28:09.000370Z"
 }

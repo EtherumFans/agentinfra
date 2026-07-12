@@ -1,0 +1,241 @@
+{
+  "case_id": "CASE-4ee2a0fd1a5a",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-4ee2a0fd1a5a/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "入院诊断与出院诊断不一致：左侧肋骨骨折 vs 右侧肋骨骨折，且未说明原因或演变过程。",
+      "why_it_matters": "影响编码准确性，可能导致主要诊断选择错误，影响DRG分组和报销。",
+      "evidence_span": {
+        "document_id": "入院记录",
+        "quote": "入院诊断:左侧肋骨骨折"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-4ee2a0fd1a5a/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "初步诊断与出院诊断不一致：左胸外伤 vs 右侧肋骨骨折，且未明确关联。",
+      "why_it_matters": "临床逻辑不连贯，可能影响诊断编码的准确性。",
+      "evidence_span": {
+        "document_id": "初步诊断",
+        "quote": "初步诊断:左胸外伤"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-4ee2a0fd1a5a/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "CT报告仅提及右侧肋骨骨折，但入院诊断为左侧，未解释左侧骨折是否被排除或误诊。",
+      "why_it_matters": "缺乏对左侧骨折的确认或排除，可能导致编码遗漏或错误。",
+      "evidence_span": {
+        "document_id": "CT报告",
+        "quote": "CT报告:右侧肋骨骨折"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-4ee2a0fd1a5a/GAP-004",
+      "gap_type": "diagnostic_specificity",
+      "description": "手术记录为右胸第5肋骨折固定术，但未明确骨折的具体部位（如肋骨编号、侧别、是否多发）。",
+      "why_it_matters": "影响手术编码的精确性，可能遗漏具体肋骨骨折的编码。",
+      "evidence_span": {
+        "document_id": "手术记录",
+        "quote": "右胸第5肋骨折固定术"
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [],
+  "chart_excerpt_preview": "患者男性, 42岁, 外伤入院。入院诊断:左侧肋骨骨折。出院诊断:右侧肋骨骨折。手术记录:右胸第5肋骨折固定术。初步诊断:左胸外伤。CT报告:右侧肋骨骨折。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "外伤入院",
+      "左侧肋骨骨折（入院诊断）",
+      "右侧肋骨骨折（出院诊断）",
+      "右胸第5肋骨折固定术",
+      "左胸外伤（初步诊断）",
+      "CT报告：右侧肋骨骨折"
+    ],
+    "encounter_metadata": {
+      "patient_age": "42",
+      "patient_sex": "男",
+      "encounter_type": "住院"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "The chart lacks a clear clinical narrative reconciling the shift from left-sided to right-sided rib fractures, which is critical for accurate coding. The documentation must specify whether the left-sided findings were ruled out, misdiagnosed, or resolved, and confirm the exact laterality, rib number, and fracture characteristics (e.g., single vs. multiple) for the surgically treated fracture. Without this specificity, the clinical picture remains ambiguous, preventing precise code assignment.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3649,
+      "tokens": 302
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-2f855d127981",
+    "gap_identification": "run-31c3546f8d42",
+    "expert_consultation": "run-4156987f728f",
+    "query_generation": "run-6a82de517058",
+    "query_necessity_gate": "necessary=4;unnecessary=0;overquery_triggered=False;final_count=4",
+    "query_single_dimension_gate": "single_dim=3;multi_dim=1;axis_cluster_triggered=True;axis_cluster_axis=site;final_count=3",
+    "claim_evidence_alignment_gate": "claims_extracted=11;blocked=3;flagged=0;final_count=0",
+    "claim_evidence_alignment_gate::run_id": "run-e3f1f5643876",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+    "semantic_necessity_gate::run_id": "run-10c1cfecf4e5",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "run-bde140991b89"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-09fbcba317dd",
+    "gap_identification": "trace-e8a3911ee7eb",
+    "expert_consultation": "trace-b34e27f40e99",
+    "query_generation": "trace-ea4c45630544",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-52b03b60dc46",
+    "semantic_necessity_gate": "trace-3d71fb8eda84",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-5ff20a061f4d"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 1412,
+      "prompt_tokens": 222,
+      "completion_tokens": 101,
+      "total_tokens": 323,
+      "run_id": "run-2f855d127981",
+      "trace_id": "trace-09fbcba317dd",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6334,
+      "prompt_tokens": 330,
+      "completion_tokens": 500,
+      "total_tokens": 830,
+      "run_id": "run-31c3546f8d42",
+      "trace_id": "trace-e8a3911ee7eb",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 9683,
+      "prompt_tokens": 498,
+      "completion_tokens": 850,
+      "total_tokens": 1348,
+      "run_id": "run-6a82de517058",
+      "trace_id": "trace-ea4c45630544",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3649,
+      "prompt_tokens": 211,
+      "completion_tokens": 91,
+      "total_tokens": 302,
+      "run_id": "run-f520baae135e",
+      "trace_id": "trace-8004b56a9513",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-a30a172c378c",
+      "trace_id": "trace-6e7261958d91",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-ac98dd712cf6",
+      "trace_id": "trace-51f6f07acb92",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-299d0e0b0b91",
+      "trace_id": "trace-876a9966be47",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-07-12T04:01:32.478097Z"
+}

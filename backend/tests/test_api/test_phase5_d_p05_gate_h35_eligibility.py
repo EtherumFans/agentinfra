@@ -243,3 +243,61 @@ def test_evaluate_case_eligibility_does_not_mutate():
     original_count = len(case.proposed_provider_queries)
     _ = evaluate_case_eligibility(case)
     assert len(case.proposed_provider_queries) == original_count
+
+
+# ---------------------------------------------------------------------------
+# Track H3.10 — contradiction override
+# ---------------------------------------------------------------------------
+
+
+def test_h310_contradiction_risk_flag_overrides_chart_complete():
+    """A complete chart with a contradiction risk_flag is NOT marked complete.
+
+    The document_conflict fixture category has charts that often have
+    ≥6 dimensions explicit PLUS an internal contradiction. Pre-H3.10
+    the eligibility gate dropped all queries; post-H3.10 the contradiction
+    override keeps them alive for downstream gates.
+    """
+    from app.icoder.agent_runtime.cdi.domain import RiskFlag
+
+    chart = (
+        "中年男性,45岁,转移性右下腹痛1天,McBurney点压痛。WBC 13.2,中性85%。"
+        "CT:阑尾肿胀。术前诊断:急性化脓性阑尾炎(局限性)。"
+        "腹腔镜阑尾切除术。术后病理:急性化脓性阑尾炎。无并发症。3天出院。"
+        "术后第2天体温38.5°C,但白细胞降至6.5(矛盾:症状与检验不一致)。"
+    )
+    q = _mk_query("Q-1", "症状与检验矛盾", gap_id="GAP-1")
+    gap = DocumentationGap(
+        gap_id="GAP-1",
+        description="症状与检验矛盾未澄清",
+        why_it_matters="w",
+        evidence_span=EvidenceSpan(document_id="D", quote="x"),
+    )
+    case = _mk_case([q], chart=chart, gaps=[gap])
+    case.risk_flags = [
+        RiskFlag(
+            category="contradiction",
+            description="WBC下降但体温上升,症状与检验不一致",
+        )
+    ]
+
+    result = apply_eligibility_to_case(case)
+    assert result.chart_complete is False, "contradiction must override completeness"
+    assert len(case.proposed_provider_queries) == 1, "query must survive"
+
+
+def test_h310_no_contradiction_keeps_complete_behavior():
+    """Sanity: a complete chart with NO contradiction still drops queries."""
+    chart = (
+        "中年男性,45岁,转移性右下腹痛1天,McBurney点压痛。WBC 13.2,中性85%。"
+        "CT:阑尾肿胀。术前诊断:急性化脓性阑尾炎(局限性)。"
+        "腹腔镜阑尾切除术。术后病理:急性化脓性阑尾炎。无并发症。3天出院。"
+    )
+    q1 = _mk_query("Q-1", "类型")
+    q2 = _mk_query("Q-2", "严重程度")
+    case = _mk_case([q1, q2], chart=chart)
+    # No risk_flags → no contradiction override
+
+    result = apply_eligibility_to_case(case)
+    assert result.chart_complete is True
+    assert len(case.proposed_provider_queries) == 0

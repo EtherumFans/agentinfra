@@ -1,12 +1,12 @@
 {
-  "case_id": "CASE-36bcb57a5996",
+  "case_id": "CASE-aed314e739d8",
   "completion_state": "REVIEW_REQUIRED",
   "documentation_gaps": [
     {
-      "gap_id": "CASE-36bcb57a5996/GAP-001",
+      "gap_id": "CASE-aed314e739d8/GAP-001",
       "gap_type": "diagnostic_specificity",
-      "description": "腹痛的病因未明确（如胃炎、胰腺炎、阑尾炎等）",
-      "why_it_matters": "缺乏病因特异性会导致编码不准确，影响DRG分组和医疗质量评估",
+      "description": "腹痛的病因未明确（如感染、炎症、梗阻等）",
+      "why_it_matters": "缺乏病因特异性会影响诊断编码的准确性，可能导致DRG分组错误或医疗必要性不足",
       "evidence_span": {
         "document_id": "encounter_summary",
         "quote": "腹痛"
@@ -14,10 +14,10 @@
       "minimal_clarification_needed": ""
     },
     {
-      "gap_id": "CASE-36bcb57a5996/GAP-002",
+      "gap_id": "CASE-aed314e739d8/GAP-002",
       "gap_type": "diagnostic_specificity",
       "description": "腹痛的严重程度未描述（如轻度、中度、重度）",
-      "why_it_matters": "严重程度影响治疗决策和编码，例如是否需紧急干预",
+      "why_it_matters": "严重程度影响治疗决策和编码，如急性腹痛与慢性腹痛的区分",
       "evidence_span": {
         "document_id": "encounter_summary",
         "quote": "腹痛"
@@ -25,10 +25,10 @@
       "minimal_clarification_needed": ""
     },
     {
-      "gap_id": "CASE-36bcb57a5996/GAP-003",
+      "gap_id": "CASE-aed314e739d8/GAP-003",
       "gap_type": "diagnostic_specificity",
-      "description": "腹痛的起病时间或病程未描述（如急性、慢性、持续性、间歇性）",
-      "why_it_matters": "急性与慢性腹痛的编码不同，影响临床判断和编码准确性",
+      "description": "腹痛的解剖部位未明确（如上腹、下腹、脐周等）",
+      "why_it_matters": "解剖部位是鉴别诊断的关键，影响编码和后续检查方向",
       "evidence_span": {
         "document_id": "encounter_summary",
         "quote": "腹痛"
@@ -36,10 +36,10 @@
       "minimal_clarification_needed": ""
     },
     {
-      "gap_id": "CASE-36bcb57a5996/GAP-004",
+      "gap_id": "CASE-aed314e739d8/GAP-004",
       "gap_type": "diagnostic_specificity",
-      "description": "腹痛的具体解剖部位未描述（如上腹、下腹、脐周等）",
-      "why_it_matters": "部位特异性有助于鉴别诊断和精确编码",
+      "description": "腹痛的起病时间或病程未描述（如急性、慢性、间歇性）",
+      "why_it_matters": "病程性质影响诊断和编码，如急性腹痛与慢性腹痛的编码不同",
       "evidence_span": {
         "document_id": "encounter_summary",
         "quote": "腹痛"
@@ -47,28 +47,7 @@
       "minimal_clarification_needed": ""
     }
   ],
-  "proposed_provider_queries": [
-    {
-      "query_id": "CASE-36bcb57a5996/Q-001",
-      "gap_id": "CASE-36bcb57a5996/GAP-001",
-      "topic": "腹痛病因",
-      "reason": "腹痛的病因未明确",
-      "evidence_span": {
-        "document_id": "chart",
-        "quote": "患者主诉腹痛。建议进一步检查。"
-      },
-      "query_text": "根据患者腹痛表现，请评估可能的病因：",
-      "response_options": [
-        "A. 胃炎/消化性溃疡",
-        "B. 急性胰腺炎",
-        "C. 急性阑尾炎",
-        "D. 其他病因（请注明）",
-        "E. 无法确定"
-      ],
-      "lifecycle_state": "DRAFT",
-      "priority": "urgent"
-    }
-  ],
+  "proposed_provider_queries": [],
   "chart_excerpt_preview": "患者主诉腹痛。建议进一步检查。",
   "patient_ref": "DEID",
   "encounter_ref": "DEID",
@@ -126,44 +105,44 @@
     }
   ],
   "stage_run_ids": {
-    "encounter_synthesis": "run-4270a20aae42",
-    "gap_identification": "run-c7d2315535c0",
-    "expert_consultation": "run-440f777216ad",
-    "query_generation": "run-df28b76cc51c",
+    "encounter_synthesis": "run-092e18cb4954",
+    "gap_identification": "run-a317e30a6c73",
+    "expert_consultation": "run-f1096f03c7c1",
+    "query_generation": "run-9741066c3137",
     "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=;dropped=0;final_count=4",
     "query_necessity_gate": "necessary=4;unnecessary=0;overquery_triggered=False;final_count=4",
     "query_single_dimension_gate": "single_dim=4;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=etiology;final_count=4",
-    "claim_evidence_alignment_gate": "claims_extracted=8;blocked=3;flagged=0;final_count=1",
-    "claim_evidence_alignment_gate::run_id": "run-f6b30836312c",
-    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=1;final_count=1",
-    "semantic_necessity_gate::run_id": "run-fe5c1a17be25",
+    "claim_evidence_alignment_gate": "claims_extracted=9;blocked=4;flagged=0;final_count=0",
+    "claim_evidence_alignment_gate::run_id": "run-a9b77f4fd5e5",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+    "semantic_necessity_gate::run_id": "run-8db03cda6dc9",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "run-5c6de1fcc5e1"
+    "specialist_trace_emit": "run-1b37f94246c2"
   },
   "stage_trace_ids": {
-    "encounter_synthesis": "trace-2da21c7a9a11",
-    "gap_identification": "trace-7a20781607e2",
-    "expert_consultation": "trace-89ac84fdda43",
-    "query_generation": "trace-421733ff1bbd",
+    "encounter_synthesis": "trace-8df16ada6239",
+    "gap_identification": "trace-900ac84c4675",
+    "expert_consultation": "trace-eb78a66462ef",
+    "query_generation": "trace-30cab7d6d089",
     "query_eligibility_gate": "",
     "query_necessity_gate": "",
     "query_single_dimension_gate": "",
-    "claim_evidence_alignment_gate": "trace-9050f7891dca",
-    "semantic_necessity_gate": "trace-1dd2dda56067",
+    "claim_evidence_alignment_gate": "trace-70f97dd3c2a5",
+    "semantic_necessity_gate": "trace-5fe800b66ee9",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "trace-6976ce707144"
+    "specialist_trace_emit": "trace-3a891895a61a"
   },
   "stage_traces": [
     {
       "stage": "encounter_synthesis",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 2412,
+      "latency_ms": 2217,
       "prompt_tokens": 180,
-      "completion_tokens": 40,
-      "total_tokens": 220,
-      "run_id": "run-4270a20aae42",
-      "trace_id": "trace-2da21c7a9a11",
+      "completion_tokens": 46,
+      "total_tokens": 226,
+      "run_id": "run-092e18cb4954",
+      "trace_id": "trace-8df16ada6239",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -172,12 +151,12 @@
       "stage": "gap_identification",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 6128,
+      "latency_ms": 4685,
       "prompt_tokens": 241,
-      "completion_tokens": 450,
-      "total_tokens": 691,
-      "run_id": "run-c7d2315535c0",
-      "trace_id": "trace-7a20781607e2",
+      "completion_tokens": 459,
+      "total_tokens": 700,
+      "run_id": "run-a317e30a6c73",
+      "trace_id": "trace-900ac84c4675",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -186,12 +165,12 @@
       "stage": "query_generation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 6742,
-      "prompt_tokens": 429,
-      "completion_tokens": 631,
-      "total_tokens": 1060,
-      "run_id": "run-df28b76cc51c",
-      "trace_id": "trace-421733ff1bbd",
+      "latency_ms": 4939,
+      "prompt_tokens": 691,
+      "completion_tokens": 553,
+      "total_tokens": 1244,
+      "run_id": "run-9741066c3137",
+      "trace_id": "trace-30cab7d6d089",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -204,8 +183,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-a5da64147b9c",
-      "trace_id": "trace-e2fac450f244",
+      "run_id": "run-e70bfc906bcb",
+      "trace_id": "trace-a1be0be1a450",
       "degraded": false,
       "error_reason": "",
       "expert_id": "coding-expert"
@@ -218,8 +197,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-c9839837e18b",
-      "trace_id": "trace-5fd4f3c8b7f4",
+      "run_id": "run-0ee76c53e145",
+      "trace_id": "trace-776b740cfb83",
       "degraded": false,
       "error_reason": "",
       "expert_id": "pubmed-expert"
@@ -232,8 +211,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-b6f9697518d4",
-      "trace_id": "trace-e00430b50c2f",
+      "run_id": "run-c3c3f221032f",
+      "trace_id": "trace-cec1a05198c4",
       "degraded": false,
       "error_reason": "",
       "expert_id": "web-search-expert"
@@ -246,8 +225,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-ec0713d7aa4e",
-      "trace_id": "trace-88e1abc3fbac",
+      "run_id": "run-7e9356d2d013",
+      "trace_id": "trace-29e505f964de",
       "degraded": false,
       "error_reason": "",
       "expert_id": "medical-calculator-expert"
@@ -255,5 +234,5 @@
   ],
   "degraded": false,
   "runtime_mode": "real",
-  "generated_at": "2026-07-12T12:12:28.693398Z"
+  "generated_at": "2026-07-12T13:27:21.188466Z"
 }

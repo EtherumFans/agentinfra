@@ -1,0 +1,252 @@
+{
+  "case_id": "CASE-c5ab82d084aa",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-c5ab82d084aa/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "诊断妊娠糖尿病但未明确是A1级（饮食控制）还是A2级（需药物治疗），影响编码准确性。",
+      "why_it_matters": "妊娠糖尿病分级影响治疗和编码，A1级为饮食控制，A2级需药物，未明确可能导致编码不准确。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "诊断:妊娠糖尿病(单项异常)"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-c5ab82d084aa/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "OGTT结果中1小时血糖9.2 mmol/L，但未明确诊断标准（如WHO或IADPSG），影响诊断一致性。",
+      "why_it_matters": "不同标准对妊娠糖尿病诊断阈值不同，未明确标准可能导致诊断争议或编码错误。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "75g OGTT: 0h 4.5, 1h 9.2, 2h 7.8"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-c5ab82d084aa/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "未记录患者既往是否有妊娠糖尿病史或糖尿病家族史，影响风险评估。",
+      "why_it_matters": "既往史和家族史是妊娠糖尿病风险因素，缺失可能影响临床决策和编码完整性。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "患者女性, 35岁, 孕28周产检。无糖路症状。"
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-c5ab82d084aa/Q-001",
+      "gap_id": "CASE-c5ab82d084aa/GAP-001",
+      "topic": "妊娠糖尿病分级",
+      "reason": "诊断妊娠糖尿病但未明确是A1级（饮食控制）还是A2级（需药物治疗），影响编码准确性。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "诊断:妊娠糖尿病(单项异常)。饮食运动控制。"
+      },
+      "query_text": "根据现有记录，患者诊断为妊娠糖尿病，目前采用饮食运动控制。请明确该患者妊娠糖尿病的分级：",
+      "response_options": [
+        "A. A1级（仅需饮食控制即可达标）",
+        "B. A2级（需要药物治疗才能达标）",
+        "C. 尚未明确分级",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine"
+    }
+  ],
+  "chart_excerpt_preview": "患者女性, 35岁, 孕28周产检。无糖路症状。75g OGTT: 0h 4.5, 1h 9.2, 2h 7.8。诊断:妊娠糖尿病(单项异常)。饮食运动控制。建议监测血糖。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者女性，35岁，孕28周产检",
+      "无糖路症状",
+      "75g OGTT: 0h 4.5, 1h 9.2, 2h 7.8",
+      "诊断:妊娠糖尿病(单项异常)",
+      "饮食运动控制",
+      "建议监测血糖"
+    ],
+    "encounter_metadata": {
+      "patient_age": "35",
+      "patient_sex": "女",
+      "encounter_type": "产检"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "根据病历，诊断“妊娠糖尿病（单项异常）”需明确是否为A1级（饮食控制有效），因已记录“饮食运动控制”，建议补充说明血糖控制达标情况以确认A1级。同时，OGTT结果需明确采用WHO或IADPSG诊断标准，并记录既往妊娠糖尿病史及家族史，以完善风险评估和编码依据。",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3168,
+      "tokens": 274
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": true,
+      "rationale": "Based on the chart, the diagnosis of gestational diabetes mellitus (GDM) is supported by the 1-hour OGTT value of 9.2 mmol/L, which exceeds the IADPSG/WHO threshold of 10.0 mmol/L? No, 9.2 is below 10.0; however, the 2-hour value of 7.8 mmol/L meets the IADPSG/WHO criterion of ≥7.8 mmol/L, confirming GDM as a single abnormal value. The literature supports that GDM diagnosed by a single abnormal OGTT value (per IADPSG criteria) is associated with adverse outcomes, and management with diet and exercise (A1GDM) is appropriate when glucose levels are controlled without medication (PMID: 20624960, 28046163). To improve coding accuracy, the record should explicitly state the GDM subtype (A1 vs. A2) and the diagnostic criteria used, as this impacts risk stratification and follow-up.",
+      "route_decision": "needed",
+      "route_reason": "criteria_marker_present",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3432,
+      "tokens": 414
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "'分级' score — parameters absent from chart",
+      "route_decision": "missing_inputs",
+      "route_reason": "calculator_params_missing",
+      "execution_mode": "SKIPPED_MISSING_INPUTS",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-98b8665ade2f",
+    "gap_identification": "run-26c3ac3e15f6",
+    "expert_consultation": "run-f54d2e7df3d7",
+    "query_generation": "run-2c2358949ee6",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=3",
+    "query_necessity_gate": "necessary=3;unnecessary=0;overquery_triggered=False;final_count=3",
+    "query_single_dimension_gate": "single_dim=3;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=severity;final_count=3",
+    "claim_evidence_alignment_gate": "claims_extracted=8;blocked=2;flagged=0;final_count=1",
+    "claim_evidence_alignment_gate::run_id": "run-ec0a3ceb4258",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=1;final_count=1",
+    "semantic_necessity_gate::run_id": "run-4bc2aaf84596",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "run-cc887acc463a"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-711a1d2cb64a",
+    "gap_identification": "trace-0e7d816808bc",
+    "expert_consultation": "trace-1a2ecb764b4c",
+    "query_generation": "trace-1acd56e3cdd2",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-3ef8503a47d2",
+    "semantic_necessity_gate": "trace-028b9ea7ab31",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-6ec2b9c9b37d"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2783,
+      "prompt_tokens": 235,
+      "completion_tokens": 121,
+      "total_tokens": 356,
+      "run_id": "run-98b8665ade2f",
+      "trace_id": "trace-711a1d2cb64a",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5641,
+      "prompt_tokens": 366,
+      "completion_tokens": 432,
+      "total_tokens": 798,
+      "run_id": "run-26c3ac3e15f6",
+      "trace_id": "trace-0e7d816808bc",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6543,
+      "prompt_tokens": 463,
+      "completion_tokens": 651,
+      "total_tokens": 1114,
+      "run_id": "run-2c2358949ee6",
+      "trace_id": "trace-1acd56e3cdd2",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3168,
+      "prompt_tokens": 197,
+      "completion_tokens": 77,
+      "total_tokens": 274,
+      "run_id": "run-031206ef0742",
+      "trace_id": "trace-dbb11767ba35",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3432,
+      "prompt_tokens": 211,
+      "completion_tokens": 203,
+      "total_tokens": 414,
+      "run_id": "run-21526b5ac102",
+      "trace_id": "trace-102187da1505",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-e7a661234dfd",
+      "trace_id": "trace-5f38651829c6",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-cb6489d4abbf",
+      "trace_id": "trace-8141f3e16dfa",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-07-12T12:19:59.160774Z"
+}

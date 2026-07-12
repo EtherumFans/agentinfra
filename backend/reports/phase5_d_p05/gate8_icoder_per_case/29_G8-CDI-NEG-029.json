@@ -1,12 +1,12 @@
 {
-  "case_id": "CASE-082a1cfb256c",
+  "case_id": "CASE-4437cfdc0fa0",
   "completion_state": "REVIEW_REQUIRED",
   "documentation_gaps": [
     {
-      "gap_id": "CASE-082a1cfb256c/GAP-001",
+      "gap_id": "CASE-4437cfdc0fa0/GAP-001",
       "gap_type": "diagnostic_specificity",
-      "description": "糖尿病并发症筛查不完整：未提及视网膜病变、肾病、神经病变等并发症的评估结果。",
-      "why_it_matters": "糖尿病并发症的明确诊断和分期对编码、治疗和预后评估至关重要。缺乏这些信息可能导致编码不准确，遗漏重要并发症。",
+      "description": "糖尿病并发症评估不完整：未提及视网膜病变、肾病、神经病变等慢性并发症的筛查或状态。",
+      "why_it_matters": "糖尿病并发症的明确记录影响疾病严重程度编码和后续管理。",
       "evidence_span": {
         "document_id": "encounter_summary",
         "quote": "否认多饮多尿加重、视物模糊、肢体麻木、水肿、间歇性跛行。查体:无糖尿病足, 触觉正常。"
@@ -14,10 +14,10 @@
       "minimal_clarification_needed": ""
     },
     {
-      "gap_id": "CASE-082a1cfb256c/GAP-002",
+      "gap_id": "CASE-4437cfdc0fa0/GAP-002",
       "gap_type": "diagnostic_specificity",
-      "description": "糖尿病治疗药物未提及：未记录当前使用的降糖药物或胰岛素方案。",
-      "why_it_matters": "治疗药物是糖尿病管理的关键信息，影响编码（如胰岛素使用）和临床决策。缺失可能导致编码不完整。",
+      "description": "糖尿病治疗药物未记录：未提及当前使用的降糖药物或胰岛素。",
+      "why_it_matters": "药物信息是编码糖尿病控制状态和并发症风险的必要条件。",
       "evidence_span": {
         "document_id": "encounter_summary",
         "quote": "2型糖尿病20年。近期失访。"
@@ -25,10 +25,10 @@
       "minimal_clarification_needed": ""
     },
     {
-      "gap_id": "CASE-082a1cfb256c/GAP-003",
+      "gap_id": "CASE-4437cfdc0fa0/GAP-003",
       "gap_type": "diagnostic_specificity",
-      "description": "HbA1c 7.2%未明确控制状态：未说明该值是否代表血糖控制良好或需要调整治疗。",
-      "why_it_matters": "HbA1c值需要结合患者年龄、并发症等解释，明确控制状态有助于编码糖尿病伴控制不佳或良好。",
+      "description": "HbA1c 7.2%未明确是否达标或控制不佳，缺乏临床解释。",
+      "why_it_matters": "HbA1c值需结合患者年龄、并发症等解释，否则影响糖尿病控制状态的编码。",
       "evidence_span": {
         "document_id": "encounter_summary",
         "quote": "HbA1c 7.2"
@@ -36,7 +36,27 @@
       "minimal_clarification_needed": ""
     }
   ],
-  "proposed_provider_queries": [],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-4437cfdc0fa0/Q-001",
+      "gap_id": "CASE-4437cfdc0fa0/GAP-001",
+      "topic": "糖尿病并发症评估",
+      "reason": "未提及视网膜病变、肾病、神经病变等慢性并发症的筛查或状态。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "否认多饮多尿加重、视物模糊、肢体麻木、水肿、间歇性跛行。查体:无糖尿病足, 触觉正常。"
+      },
+      "query_text": "请描述患者糖尿病慢性并发症的评估结果，包括视网膜病变、肾病、神经病变等筛查情况。",
+      "response_options": [
+        "A. 已进行相关筛查，结果正常",
+        "B. 已进行相关筛查，存在异常（请注明具体并发症）",
+        "C. 未进行相关筛查",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "urgent"
+    }
+  ],
   "chart_excerpt_preview": "患者女性, 75岁, 2型糖尿病20年。近期失访。否认多饮多尿加重、视物模糊、肢体麻木、水肿、间歇性跛行。查体:无糖尿病足, 触觉正常。HbA1c 7.2。",
   "patient_ref": "DEID",
   "encounter_ref": "DEID",
@@ -60,12 +80,12 @@
     {
       "expert_id": "coding-expert",
       "consulted": true,
-      "rationale": "根据病历，需明确糖尿病并发症的筛查结果（如眼底检查、尿微量白蛋白、神经病变评估）及当前降糖治疗方案（药物名称、剂量或胰岛素类型），以判断HbA1c 7.2%是否达标或需调整治疗。同时应记录患者是否合并其他血管并发症（如冠心病、脑血管病史），以完整反映糖尿病管理的临床状态。",
+      "rationale": "根据病历，需明确HbA1c 7.2%是否达到个体化控制目标，并补充近1年内是否完成眼底检查、尿微量白蛋白及神经病变筛查，以评估慢性并发症状态。同时需记录当前降糖治疗方案（如口服药或胰岛素种类及剂量），以判断血糖控制与治疗是否匹配。",
       "route_decision": "needed",
       "route_reason": "coding_relevant_gap",
       "execution_mode": "LLM_KNOWLEDGE_ONLY",
-      "latency_ms": 3551,
-      "tokens": 267
+      "latency_ms": 3351,
+      "tokens": 253
     },
     {
       "expert_id": "pubmed-expert",
@@ -99,44 +119,44 @@
     }
   ],
   "stage_run_ids": {
-    "encounter_synthesis": "run-41e5f9d5a8e6",
-    "gap_identification": "run-c2b3b1c51c81",
-    "expert_consultation": "run-cea4a412755c",
-    "query_generation": "run-255c56a2cbc0",
+    "encounter_synthesis": "run-4bf03e88a1f7",
+    "gap_identification": "run-545671c519e7",
+    "expert_consultation": "run-bc927fae32a0",
+    "query_generation": "run-d88daebf3ab2",
     "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=3",
     "query_necessity_gate": "necessary=3;unnecessary=0;overquery_triggered=False;final_count=3",
     "query_single_dimension_gate": "single_dim=3;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=complication;final_count=3",
-    "claim_evidence_alignment_gate": "claims_extracted=12;blocked=3;flagged=0;final_count=0",
-    "claim_evidence_alignment_gate::run_id": "run-ecb5ecdfd68e",
-    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
-    "semantic_necessity_gate::run_id": "run-ea7ae330f1e0",
+    "claim_evidence_alignment_gate": "claims_extracted=9;blocked=2;flagged=0;final_count=1",
+    "claim_evidence_alignment_gate::run_id": "run-ed28c7d9b7a8",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=1;final_count=1",
+    "semantic_necessity_gate::run_id": "run-ed1f915df667",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "run-38e3ff98f47d"
+    "specialist_trace_emit": "run-5b697a9fcad8"
   },
   "stage_trace_ids": {
-    "encounter_synthesis": "trace-7a80c14b0f17",
-    "gap_identification": "trace-9beba37a2962",
-    "expert_consultation": "trace-37a6287ef6a7",
-    "query_generation": "trace-c323958e9202",
+    "encounter_synthesis": "trace-518a3abdfb9c",
+    "gap_identification": "trace-413891c07135",
+    "expert_consultation": "trace-9123dbd1c911",
+    "query_generation": "trace-de9400cf3aba",
     "query_eligibility_gate": "",
     "query_necessity_gate": "",
     "query_single_dimension_gate": "",
-    "claim_evidence_alignment_gate": "trace-8281e4f9a834",
-    "semantic_necessity_gate": "trace-54075a1a67c8",
+    "claim_evidence_alignment_gate": "trace-461250200782",
+    "semantic_necessity_gate": "trace-97bec535f7d4",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "trace-0aa06dacb771"
+    "specialist_trace_emit": "trace-fcde86f927c6"
   },
   "stage_traces": [
     {
       "stage": "encounter_synthesis",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 2503,
+      "latency_ms": 2977,
       "prompt_tokens": 232,
       "completion_tokens": 107,
       "total_tokens": 339,
-      "run_id": "run-41e5f9d5a8e6",
-      "trace_id": "trace-7a80c14b0f17",
+      "run_id": "run-4bf03e88a1f7",
+      "trace_id": "trace-518a3abdfb9c",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -145,12 +165,12 @@
       "stage": "gap_identification",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 5640,
+      "latency_ms": 5916,
       "prompt_tokens": 349,
-      "completion_tokens": 445,
-      "total_tokens": 794,
-      "run_id": "run-c2b3b1c51c81",
-      "trace_id": "trace-9beba37a2962",
+      "completion_tokens": 409,
+      "total_tokens": 758,
+      "run_id": "run-545671c519e7",
+      "trace_id": "trace-413891c07135",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -159,12 +179,12 @@
       "stage": "query_generation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 6269,
-      "prompt_tokens": 728,
-      "completion_tokens": 617,
-      "total_tokens": 1345,
-      "run_id": "run-255c56a2cbc0",
-      "trace_id": "trace-c323958e9202",
+      "latency_ms": 6203,
+      "prompt_tokens": 954,
+      "completion_tokens": 590,
+      "total_tokens": 1544,
+      "run_id": "run-d88daebf3ab2",
+      "trace_id": "trace-de9400cf3aba",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -173,12 +193,12 @@
       "stage": "expert_consultation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 3551,
-      "prompt_tokens": 187,
-      "completion_tokens": 80,
-      "total_tokens": 267,
-      "run_id": "run-91112c36f1f1",
-      "trace_id": "trace-802762e5be3b",
+      "latency_ms": 3351,
+      "prompt_tokens": 181,
+      "completion_tokens": 72,
+      "total_tokens": 253,
+      "run_id": "run-934e4b6d4da3",
+      "trace_id": "trace-2db896b69a08",
       "degraded": false,
       "error_reason": "",
       "expert_id": "coding-expert"
@@ -191,8 +211,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-0cb9ef816209",
-      "trace_id": "trace-1a6d1421f724",
+      "run_id": "run-2a5969cb5355",
+      "trace_id": "trace-79f6f8e82d32",
       "degraded": false,
       "error_reason": "",
       "expert_id": "pubmed-expert"
@@ -205,8 +225,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-1d7c2fc54ea6",
-      "trace_id": "trace-8d5427f0f5a6",
+      "run_id": "run-9812bdc8f195",
+      "trace_id": "trace-427291628213",
       "degraded": false,
       "error_reason": "",
       "expert_id": "web-search-expert"
@@ -219,8 +239,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-e639384a158e",
-      "trace_id": "trace-17aa07063f01",
+      "run_id": "run-2c71b617afd4",
+      "trace_id": "trace-ec1b79ab9cbe",
       "degraded": false,
       "error_reason": "",
       "expert_id": "medical-calculator-expert"
@@ -228,5 +248,5 @@
   ],
   "degraded": false,
   "runtime_mode": "real",
-  "generated_at": "2026-07-12T13:30:09.865005Z"
+  "generated_at": "2026-07-12T13:56:39.712227Z"
 }

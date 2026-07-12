@@ -1,70 +1,70 @@
 {
-  "case_id": "CASE-8328ffd3335a",
+  "case_id": "CASE-ba60e5e8b7d3",
   "completion_state": "REVIEW_REQUIRED",
   "documentation_gaps": [
     {
-      "gap_id": "CASE-8328ffd3335a/GAP-001",
+      "gap_id": "CASE-ba60e5e8b7d3/GAP-001",
       "gap_type": "diagnostic_specificity",
-      "description": "Acute pancreatitis severity not specified (e.g., mild, moderate, severe).",
-      "why_it_matters": "Severity affects coding, treatment, and prognosis.",
+      "description": "Acute pancreatitis etiology unspecified: no documentation linking to gallstones or other cause.",
+      "why_it_matters": "Etiology affects treatment and coding; biliary pancreatitis requires cholecystectomy timing.",
       "evidence_span": {
-        "document_id": "encounter_summary",
-        "quote": "入院诊断:急性胰腺炎"
+        "document_id": "chart",
+        "quote": "入院诊断:急性胰腺炎。既往:胆石症。"
       },
       "minimal_clarification_needed": ""
     },
     {
-      "gap_id": "CASE-8328ffd3335a/GAP-002",
+      "gap_id": "CASE-ba60e5e8b7d3/GAP-002",
       "gap_type": "diagnostic_specificity",
-      "description": "Etiology of acute pancreatitis not specified (e.g., biliary, alcoholic, idiopathic).",
-      "why_it_matters": "Etiology is needed for accurate coding and management.",
+      "description": "Severity of acute pancreatitis not specified (e.g., mild vs severe, organ failure, local complications).",
+      "why_it_matters": "Severity determines coding (e.g., necrosis, abscess) and clinical management.",
       "evidence_span": {
-        "document_id": "encounter_summary",
-        "quote": "入院诊断:急性胰腺炎"
-      },
-      "minimal_clarification_needed": ""
-    },
-    {
-      "gap_id": "CASE-8328ffd3335a/GAP-003",
-      "gap_type": "diagnostic_specificity",
-      "description": "Clinical correlation between cholelithiasis and acute pancreatitis not established.",
-      "why_it_matters": "If biliary etiology is confirmed, it affects coding and treatment.",
-      "evidence_span": {
-        "document_id": "encounter_summary",
-        "quote": "既往:胆石症"
+        "document_id": "chart",
+        "quote": "CT:胰腺肿胀伴渗出。"
       },
       "minimal_clarification_needed": ""
     }
   ],
-  "proposed_provider_queries": [],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-ba60e5e8b7d3/Q-001",
+      "gap_id": "CASE-ba60e5e8b7d3/GAP-001",
+      "topic": "急性胰腺炎病因",
+      "reason": "急性胰腺炎病因未明确，需明确是否与胆石症相关。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "入院诊断:急性胰腺炎。既往:胆石症。"
+      },
+      "query_text": "请明确急性胰腺炎的病因：",
+      "response_options": [
+        "A. 胆源性胰腺炎",
+        "B. 高脂血症性胰腺炎",
+        "C. 酒精性胰腺炎",
+        "D. 其他原因",
+        "E. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "urgent"
+    }
+  ],
   "chart_excerpt_preview": "患者女性, 55岁, 上腹痛2天, 淀粉酶 580。CT:胰腺肿胀伴渗出。入院诊断:急性胰腺炎。既往:胆石症。",
   "patient_ref": "DEID",
   "encounter_ref": "DEID",
   "encounter_summary": {
-    "key_points": [
-      "上腹痛2天",
-      "淀粉酶 580",
-      "CT:胰腺肿胀伴渗出",
-      "入院诊断:急性胰腺炎",
-      "既往:胆石症"
-    ],
-    "encounter_metadata": {
-      "patient_age": "55岁",
-      "patient_sex": "女性",
-      "encounter_type": "入院"
-    }
+    "key_points": [],
+    "encounter_metadata": {}
   },
   "risk_flags": [],
   "specialist_trace": [
     {
       "expert_id": "coding-expert",
       "consulted": true,
-      "rationale": "The documentation must specify the severity of acute pancreatitis (e.g., mild, moderate, or severe) and its etiology (e.g., biliary, alcoholic, or idiopathic). Additionally, a clear clinical correlation between the patient's known cholelithiasis and the acute pancreatitis should be explicitly stated to support a biliary etiology.",
+      "rationale": "The documentation should clarify whether the acute pancreatitis is directly linked to the patient's known gallstones, as this determines the underlying etiology. Additionally, specify the severity by documenting the presence or absence of organ failure (e.g., respiratory, renal) and local complications (e.g., necrosis, pseudocyst) to differentiate mild from severe acute pancreatitis.",
       "route_decision": "needed",
       "route_reason": "coding_relevant_gap",
       "execution_mode": "LLM_KNOWLEDGE_ONLY",
-      "latency_ms": 2873,
-      "tokens": 208
+      "latency_ms": 3092,
+      "tokens": 200
     },
     {
       "expert_id": "pubmed-expert",
@@ -98,58 +98,58 @@
     }
   ],
   "stage_run_ids": {
-    "encounter_synthesis": "run-e155aaea9688",
-    "gap_identification": "run-ea3128d3f424",
-    "expert_consultation": "run-d4f935f11a64",
-    "query_generation": "run-689cfea97a6b",
-    "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=3",
-    "query_necessity_gate": "necessary=2;unnecessary=1;overquery_triggered=False;final_count=2",
-    "query_single_dimension_gate": "single_dim=2;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=etiology;final_count=2",
-    "claim_evidence_alignment_gate": "claims_extracted=6;blocked=2;flagged=0;final_count=0",
-    "claim_evidence_alignment_gate::run_id": "run-1b69c0c97b42",
-    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
-    "semantic_necessity_gate::run_id": "run-c7e30985b3cb",
+    "encounter_synthesis": "run-174a2c20f19d",
+    "gap_identification": "run-86822cd6fb23",
+    "expert_consultation": "run-0bc16cffcd35",
+    "query_generation": "run-b790f52a0de2",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=2",
+    "query_necessity_gate": "necessary=1;unnecessary=1;overquery_triggered=False;final_count=1",
+    "query_single_dimension_gate": "single_dim=1;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=etiology;final_count=1",
+    "claim_evidence_alignment_gate": "claims_extracted=2;blocked=0;flagged=0;final_count=1",
+    "claim_evidence_alignment_gate::run_id": "run-77728c8fb064",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=1",
+    "semantic_necessity_gate::run_id": "run-83f217e6759e",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "run-0afeb2f5aa59"
+    "specialist_trace_emit": "run-8f4da9425b66"
   },
   "stage_trace_ids": {
-    "encounter_synthesis": "trace-995486a9e957",
-    "gap_identification": "trace-53c69c307155",
-    "expert_consultation": "trace-1a3a46138b9d",
-    "query_generation": "trace-36967051701f",
+    "encounter_synthesis": "trace-ea7eabd73d3e",
+    "gap_identification": "trace-92efd1975d28",
+    "expert_consultation": "trace-fa02f9bd78d1",
+    "query_generation": "trace-2dce7fc795b8",
     "query_eligibility_gate": "",
     "query_necessity_gate": "",
     "query_single_dimension_gate": "",
-    "claim_evidence_alignment_gate": "trace-69eb69d3675d",
-    "semantic_necessity_gate": "trace-6336ab8cda75",
+    "claim_evidence_alignment_gate": "trace-8c020d9ea356",
+    "semantic_necessity_gate": "trace-41ac07cb8d20",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "trace-4b29e78989fe"
+    "specialist_trace_emit": "trace-eaef2e66829f"
   },
   "stage_traces": [
     {
       "stage": "encounter_synthesis",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 4691,
-      "prompt_tokens": 210,
-      "completion_tokens": 87,
-      "total_tokens": 297,
-      "run_id": "run-e155aaea9688",
-      "trace_id": "trace-995486a9e957",
-      "degraded": false,
-      "error_reason": "",
+      "latency_ms": 3873,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-174a2c20f19d",
+      "trace_id": "trace-ea7eabd73d3e",
+      "degraded": true,
+      "error_reason": "LLM call failed after 3 attempts: Connection error.",
       "expert_id": ""
     },
     {
       "stage": "gap_identification",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 3750,
-      "prompt_tokens": 306,
-      "completion_tokens": 340,
-      "total_tokens": 646,
-      "run_id": "run-ea3128d3f424",
-      "trace_id": "trace-53c69c307155",
+      "latency_ms": 3354,
+      "prompt_tokens": 261,
+      "completion_tokens": 251,
+      "total_tokens": 512,
+      "run_id": "run-86822cd6fb23",
+      "trace_id": "trace-92efd1975d28",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -158,12 +158,12 @@
       "stage": "query_generation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 5104,
-      "prompt_tokens": 683,
-      "completion_tokens": 482,
-      "total_tokens": 1165,
-      "run_id": "run-689cfea97a6b",
-      "trace_id": "trace-36967051701f",
+      "latency_ms": 5397,
+      "prompt_tokens": 844,
+      "completion_tokens": 357,
+      "total_tokens": 1201,
+      "run_id": "run-b790f52a0de2",
+      "trace_id": "trace-2dce7fc795b8",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -172,12 +172,12 @@
       "stage": "expert_consultation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 2873,
-      "prompt_tokens": 144,
-      "completion_tokens": 64,
-      "total_tokens": 208,
-      "run_id": "run-88fa0259a298",
-      "trace_id": "trace-916b9a85f9f6",
+      "latency_ms": 3092,
+      "prompt_tokens": 132,
+      "completion_tokens": 68,
+      "total_tokens": 200,
+      "run_id": "run-b3d00864407b",
+      "trace_id": "trace-eb700b147234",
       "degraded": false,
       "error_reason": "",
       "expert_id": "coding-expert"
@@ -190,8 +190,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-654cd288648f",
-      "trace_id": "trace-1c1771ab195c",
+      "run_id": "run-cdf4e3f063bf",
+      "trace_id": "trace-7b766108f738",
       "degraded": false,
       "error_reason": "",
       "expert_id": "pubmed-expert"
@@ -204,8 +204,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-92a97178ec64",
-      "trace_id": "trace-1df052a3041b",
+      "run_id": "run-38659f06036e",
+      "trace_id": "trace-65bcca2910c9",
       "degraded": false,
       "error_reason": "",
       "expert_id": "web-search-expert"
@@ -218,14 +218,14 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-bec704622e37",
-      "trace_id": "trace-d4ff29013eca",
+      "run_id": "run-40eb77d7d24e",
+      "trace_id": "trace-6779548d83d0",
       "degraded": false,
       "error_reason": "",
       "expert_id": "medical-calculator-expert"
     }
   ],
-  "degraded": false,
+  "degraded": true,
   "runtime_mode": "real",
-  "generated_at": "2026-07-12T13:21:19.151431Z"
+  "generated_at": "2026-07-12T13:46:09.918843Z"
 }

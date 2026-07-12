@@ -1,48 +1,15 @@
 {
-  "case_id": "CASE-118325f661b4",
+  "case_id": "CASE-868d975d8cd8",
   "completion_state": "REVIEW_REQUIRED",
   "documentation_gaps": [
     {
-      "gap_id": "CASE-118325f661b4/GAP-001",
+      "gap_id": "CASE-868d975d8cd8/GAP-001",
       "gap_type": "diagnostic_specificity",
       "description": "血脂异常未指定类型（如高胆固醇血症、高甘油三酯血症或混合型）",
       "why_it_matters": "不同类型血脂异常的治疗和编码不同，缺乏特异性影响临床决策和编码准确性",
       "evidence_span": {
         "document_id": "encounter_summary",
         "quote": "诊断:血脂异常"
-      },
-      "minimal_clarification_needed": ""
-    },
-    {
-      "gap_id": "CASE-118325f661b4/GAP-002",
-      "gap_type": "diagnostic_specificity",
-      "description": "血脂异常未指定是原发性还是继发性",
-      "why_it_matters": "继发性血脂异常需明确病因，影响治疗和编码",
-      "evidence_span": {
-        "document_id": "encounter_summary",
-        "quote": "诊断:血脂异常"
-      },
-      "minimal_clarification_needed": ""
-    },
-    {
-      "gap_id": "CASE-118325f661b4/GAP-003",
-      "gap_type": "diagnostic_specificity",
-      "description": "血压130/85未明确是否为高血压或正常高值",
-      "why_it_matters": "血压分类影响诊断和编码，需明确是否为高血压",
-      "evidence_span": {
-        "document_id": "encounter_summary",
-        "quote": "血压 130/85"
-      },
-      "minimal_clarification_needed": ""
-    },
-    {
-      "gap_id": "CASE-118325f661b4/GAP-004",
-      "gap_type": "diagnostic_specificity",
-      "description": "BMI 25未明确是否为超重或肥胖",
-      "why_it_matters": "BMI分类影响诊断和编码，需明确超重或肥胖的诊断",
-      "evidence_span": {
-        "document_id": "encounter_summary",
-        "quote": "BMI 25"
       },
       "minimal_clarification_needed": ""
     }
@@ -54,9 +21,7 @@
   "encounter_summary": {
     "key_points": [
       "患者男性，55岁",
-      "体检",
-      "无症状",
-      "无慢性病史",
+      "体检，无症状，无慢性病史",
       "血脂：TC 5.8, LDL-C 3.6, HDL-C 1.0, TG 2.2",
       "血压 130/85",
       "BMI 25",
@@ -75,22 +40,22 @@
     {
       "expert_id": "coding-expert",
       "consulted": true,
-      "rationale": "根据血脂结果（TC 5.8, LDL-C 3.6, HDL-C 1.0, TG 2.2），需明确血脂异常的具体类型（如混合型高脂血症），并区分是原发性还是继发性（如排除甲状腺功能减退等继发因素）。血压130/85需结合患者整体心血管风险（10年风险5%）明确是否为正常高值或1级高血压，BMI 25需根据亚洲标准明确为超重而非肥胖。这些临床细节的明确将直接影响编码的准确性和后续管理策略。",
+      "rationale": "The chart documents elevated total cholesterol, LDL-C, and triglycerides with low HDL-C, but the diagnosis lacks specification of the lipid abnormality type. For accurate coding, the clinician should specify whether this is isolated hypercholesterolemia, hypertriglyceridemia, or a mixed dyslipidemia based on the pattern of lipid elevations. Additionally, documenting the 10-year cardiovascular risk level and any treatment plan would support precise code assignment.",
       "route_decision": "needed",
       "route_reason": "coding_relevant_gap",
       "execution_mode": "LLM_KNOWLEDGE_ONLY",
-      "latency_ms": 3638,
-      "tokens": 311
+      "latency_ms": 3261,
+      "tokens": 242
     },
     {
       "expert_id": "pubmed-expert",
-      "consulted": true,
-      "rationale": "根据现有文献，该患者的血脂异常（LDL-C 3.6 mmol/L，TG 2.2 mmol/L）符合混合型高脂血症特征，且血压130/85 mmHg属于正常高值（非高血压），BMI 25为超重（非肥胖）。10年心血管风险5%属于中低危，指南支持以生活方式干预（饮食+运动）作为一线措施，无需立即启动药物治疗（PMID: 36007113）。建议3个月后复查血脂，若LDL-C仍≥3.0 mmol/L或TG持续升高，可考虑他汀或贝特类药物。",
-      "route_decision": "needed",
-      "route_reason": "criteria_marker_present",
-      "execution_mode": "LLM_KNOWLEDGE_ONLY",
-      "latency_ms": 2307,
-      "tokens": 336
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
     },
     {
       "expert_id": "web-search-expert",
@@ -114,44 +79,44 @@
     }
   ],
   "stage_run_ids": {
-    "encounter_synthesis": "run-1c0e622375e4",
-    "gap_identification": "run-cb8e69b9c5df",
-    "expert_consultation": "run-3cf7e3d62224",
-    "query_generation": "run-9c6d435930f3",
-    "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=4",
-    "query_necessity_gate": "necessary=4;unnecessary=0;overquery_triggered=False;final_count=4",
-    "query_single_dimension_gate": "single_dim=4;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=type;final_count=4",
-    "claim_evidence_alignment_gate": "claims_extracted=9;blocked=4;flagged=0;final_count=0",
-    "claim_evidence_alignment_gate::run_id": "run-ab85a51b9f3e",
+    "encounter_synthesis": "run-973f274f6335",
+    "gap_identification": "run-319913e5a05a",
+    "expert_consultation": "run-1e3d726c7312",
+    "query_generation": "run-2f34ffbb3b76",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=1",
+    "query_necessity_gate": "necessary=1;unnecessary=0;overquery_triggered=False;final_count=1",
+    "query_single_dimension_gate": "single_dim=1;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=type;final_count=1",
+    "claim_evidence_alignment_gate": "claims_extracted=1;blocked=1;flagged=0;final_count=0",
+    "claim_evidence_alignment_gate::run_id": "run-adfa0473d97c",
     "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
-    "semantic_necessity_gate::run_id": "run-44295f3667d1",
+    "semantic_necessity_gate::run_id": "run-21a4caf2575e",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "run-6d4dad47624e"
+    "specialist_trace_emit": "run-a255d5af7a9b"
   },
   "stage_trace_ids": {
-    "encounter_synthesis": "trace-aa06fea250ad",
-    "gap_identification": "trace-50fdcc9248a6",
-    "expert_consultation": "trace-48146f9217ca",
-    "query_generation": "trace-2ea93dc80704",
+    "encounter_synthesis": "trace-2992229842ad",
+    "gap_identification": "trace-917b40bbe919",
+    "expert_consultation": "trace-1c7835d2aabf",
+    "query_generation": "trace-dc6b5d6b0af6",
     "query_eligibility_gate": "",
     "query_necessity_gate": "",
     "query_single_dimension_gate": "",
-    "claim_evidence_alignment_gate": "trace-e4c6bcdeedea",
-    "semantic_necessity_gate": "trace-68aae1a4aa36",
+    "claim_evidence_alignment_gate": "trace-f3dc36c77bb7",
+    "semantic_necessity_gate": "trace-828eddd887b4",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "trace-80e5cee63c29"
+    "specialist_trace_emit": "trace-0d6078fa57b7"
   },
   "stage_traces": [
     {
       "stage": "encounter_synthesis",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 2742,
+      "latency_ms": 1788,
       "prompt_tokens": 249,
-      "completion_tokens": 141,
-      "total_tokens": 390,
-      "run_id": "run-1c0e622375e4",
-      "trace_id": "trace-aa06fea250ad",
+      "completion_tokens": 137,
+      "total_tokens": 386,
+      "run_id": "run-973f274f6335",
+      "trace_id": "trace-2992229842ad",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -160,12 +125,12 @@
       "stage": "gap_identification",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 5140,
-      "prompt_tokens": 399,
-      "completion_tokens": 434,
-      "total_tokens": 833,
-      "run_id": "run-cb8e69b9c5df",
-      "trace_id": "trace-50fdcc9248a6",
+      "latency_ms": 3693,
+      "prompt_tokens": 395,
+      "completion_tokens": 126,
+      "total_tokens": 521,
+      "run_id": "run-319913e5a05a",
+      "trace_id": "trace-917b40bbe919",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -174,12 +139,12 @@
       "stage": "query_generation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 5487,
-      "prompt_tokens": 732,
-      "completion_tokens": 574,
-      "total_tokens": 1306,
-      "run_id": "run-9c6d435930f3",
-      "trace_id": "trace-2ea93dc80704",
+      "latency_ms": 3847,
+      "prompt_tokens": 817,
+      "completion_tokens": 218,
+      "total_tokens": 1035,
+      "run_id": "run-2f34ffbb3b76",
+      "trace_id": "trace-dc6b5d6b0af6",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -188,12 +153,12 @@
       "stage": "expert_consultation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 3638,
-      "prompt_tokens": 194,
-      "completion_tokens": 117,
-      "total_tokens": 311,
-      "run_id": "run-7f5f0eee178b",
-      "trace_id": "trace-01bab5648969",
+      "latency_ms": 3261,
+      "prompt_tokens": 155,
+      "completion_tokens": 87,
+      "total_tokens": 242,
+      "run_id": "run-f5457da7f3e3",
+      "trace_id": "trace-5a08623561d5",
       "degraded": false,
       "error_reason": "",
       "expert_id": "coding-expert"
@@ -202,12 +167,12 @@
       "stage": "expert_consultation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 2307,
-      "prompt_tokens": 208,
-      "completion_tokens": 128,
-      "total_tokens": 336,
-      "run_id": "run-5a6edc7e285a",
-      "trace_id": "trace-ab38ae855675",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-f1a81735ff79",
+      "trace_id": "trace-54345805cfb6",
       "degraded": false,
       "error_reason": "",
       "expert_id": "pubmed-expert"
@@ -220,8 +185,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-8ee24549da64",
-      "trace_id": "trace-eee4778e6b66",
+      "run_id": "run-3ee058ac2943",
+      "trace_id": "trace-ffde5791c738",
       "degraded": false,
       "error_reason": "",
       "expert_id": "web-search-expert"
@@ -234,8 +199,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-5abc1e252a18",
-      "trace_id": "trace-dfbadcaa5f31",
+      "run_id": "run-0354c6245794",
+      "trace_id": "trace-ecb48214d401",
       "degraded": false,
       "error_reason": "",
       "expert_id": "medical-calculator-expert"
@@ -243,5 +208,5 @@
   ],
   "degraded": false,
   "runtime_mode": "real",
-  "generated_at": "2026-07-12T13:35:11.049811Z"
+  "generated_at": "2026-07-12T14:01:50.524315Z"
 }

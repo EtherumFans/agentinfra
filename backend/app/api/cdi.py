@@ -414,7 +414,7 @@ async def run_cdi(
 # ---------------------------------------------------------------------------
 
 
-@router.get("/runs/{case_id}")
+@router.get("/runs/{case_id:path}")
 async def get_case(
     case_id: str,
     current_user: User = Depends(get_current_user),
@@ -480,50 +480,72 @@ async def get_case(
 # ---------------------------------------------------------------------------
 
 
-@router.post("/queries/{query_id}/transition", response_model=TransitionResponse)
+@router.post("/queries/{query_id:path}/transition", response_model=TransitionResponse)
 async def transition_query(
     query_id: str,
     body: TransitionRequest,
     current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
 ) -> TransitionResponse:
     """Drive a lifecycle transition on a Provider Query.
 
-    Enforces:
-      1. RBAC: CDI role must be allowed to drive this transition.
-      2. NLQ gate: DRAFT → PENDING_CDI_REVIEW requires query to pass
-         non-leading query rules (NLQ-001..009).
+    Enforces (Phase 5 Track D P0.5 Gate 7):
+      1. Query exists (404 if not).
+      2. RBAC: CDI role must be allowed to drive this (from_state, to_state).
+      3. NLQ gate: DRAFT → PENDING_CDI_REVIEW requires query to pass
+         non-leading query rules (NLQ-001..011).
+      4. Optimistic-lock DB write via ``update_query_lifecycle`` (409 on conflict).
 
-    Returns the transition result. Caller (Gate 11) persists to DB.
+    Returns the transition result. State is persisted before return —
+    GET /runs/{case_id} will reflect the new lifecycle_state immediately.
     """
 
-    from app.services.cdi_query_lifecycle import attempt_transition
+    from app.models.cdi_case import ProviderQueryModel
 
-    # 1. RBAC check
-    platform_role = current_user.role.value if hasattr(current_user.role, "value") else str(current_user.role)
+    # 0. Fetch current row to get real from_state
+    q_model = await db.get(ProviderQueryModel, query_id)
+    if q_model is None:
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "error": "query_not_found",
+                "query_id": query_id,
+            },
+        )
+    real_from_state: str = q_model.lifecycle_state
+
+    # 1. RBAC check — CDI role derived from platform role (or role_hint override)
+    platform_role = (
+        current_user.role.value
+        if hasattr(current_user.role, "value")
+        else str(current_user.role)
+    )
     cdi_role: CdiRole = (
         body.role_hint  # type: ignore[assignment]
         if body.role_hint in ("cdi_specialist", "clinician", "auditor", "admin")
         else platform_role_to_cdi_role(platform_role)
     )
 
-    rbac = can_drive_transition(cdi_role, body.to_state, body.to_state)  # placeholder
-    # For state-aware RBAC, we use the (from_state, to_state) pair.
-    # Since we don't fetch from DB, the client must include from_state in
-    # the request. For now, infer from to_state's typical predecessor.
-    # Production (Gate 11) fetches current state from DB before transition.
-    from app.services.cdi_roles_notifications import _ALLOWED_TRANSITIONS
+    rbac = can_drive_transition(cdi_role, real_from_state, body.to_state)
+    if not rbac.allowed:
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "error": "forbidden",
+                "cdi_role": cdi_role,
+                "from_state": real_from_state,
+                "to_state": body.to_state,
+                "reason": rbac.reason,
+            },
+        )
 
-    # Find any from_state that allows this transition for this role
-    # (best-effort RBAC without DB fetch; production uses real from_state)
-    possible_from_states = [
-        fs for (fs, ts) in _ALLOWED_TRANSITIONS.get(cdi_role, set())
-        if ts == body.to_state
-    ]
-
-    # 2. NLQ gate (if DRAFT → PENDING_CDI_REVIEW)
+    # 2. NLQ gate (DRAFT → PENDING_CDI_REVIEW only)
     nlq_passed: bool | None = None
+    nlq_block_reasons: list[str] = []
     if body.to_state == "PENDING_CDI_REVIEW":
-        if not all([body.query_text, body.response_options, body.evidence_quote, body.topic]):
+        if not all(
+            [body.query_text, body.response_options, body.evidence_quote, body.topic]
+        ):
             raise HTTPException(
                 status_code=422,
                 detail={
@@ -541,35 +563,65 @@ async def transition_query(
             topic=body.topic or "",
         )
         nlq_passed = gate_result.verdict == "PASS"
+        nlq_block_reasons = list(gate_result.rules_failed)
         if not nlq_passed:
+            # Persist the BLOCK verdict so audit dashboard sees it
+            await update_query_lifecycle(
+                db,
+                query_id,
+                from_state=real_from_state,
+                to_state=real_from_state,  # no state change
+                nlq_gate_verdict="BLOCK",
+                nlq_gate_block_reasons=nlq_block_reasons,
+            )
             return TransitionResponse(
                 query_id=query_id,
                 accepted=False,
-                from_state="DRAFT",
+                from_state=real_from_state,
                 to_state=body.to_state,
-                reason=f"NLQ gate failed: {len(gate_result.rules_failed)} rules",
+                reason=f"NLQ gate failed: {len(nlq_block_reasons)} rules",
                 nlq_gate_passed=False,
                 rbac_allowed=True,
             )
 
-    # 3. Drive transition (use first possible from_state as placeholder)
-    from_state = possible_from_states[0] if possible_from_states else body.to_state
-    result = attempt_transition(
-        from_state=from_state,  # type: ignore[arg-type]
-        to_state=body.to_state,  # type: ignore[arg-type]
+    # 3. SLA computation on APPROVED
+    sla_due_at: datetime | None = None
+    if body.to_state == "APPROVED":
+        sla_due_at = compute_sla_due_at(
+            datetime.now(timezone.utc), body.priority  # type: ignore[arg-type]
+        )
+
+    # 4. Optimistic-lock DB write
+    nlq_verdict_str = "PASS" if nlq_passed else None
+    updated_model, success = await update_query_lifecycle(
+        db,
+        query_id,
+        from_state=real_from_state,
+        to_state=body.to_state,
+        nlq_gate_verdict=nlq_verdict_str,
+        nlq_gate_block_reasons=nlq_block_reasons or None,
+        sla_due_at=sla_due_at,
     )
 
-    # 4. SLA computation on APPROVED
-    sla_due_at: datetime | None = None
-    if body.to_state == "APPROVED" and result.accepted:
-        sla_due_at = compute_sla_due_at(datetime.now(timezone.utc), body.priority)  # type: ignore[arg-type]
+    if not success:
+        # Optimistic lock miss — another writer moved state first
+        current_state = updated_model.lifecycle_state if updated_model else real_from_state
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "error": "concurrent_transition",
+                "query_id": query_id,
+                "expected_from": real_from_state,
+                "current_state": current_state,
+            },
+        )
 
     return TransitionResponse(
         query_id=query_id,
-        accepted=result.accepted,
-        from_state=result.from_state,
-        to_state=result.to_state,
-        reason=result.reason,
+        accepted=True,
+        from_state=real_from_state,
+        to_state=body.to_state,
+        reason="ok",
         sla_due_at=sla_due_at,
         nlq_gate_passed=nlq_passed,
         rbac_allowed=True,

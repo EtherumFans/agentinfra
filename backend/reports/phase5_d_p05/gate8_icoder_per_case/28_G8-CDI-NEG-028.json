@@ -1,15 +1,26 @@
 {
-  "case_id": "CASE-7601438fb102",
+  "case_id": "CASE-f78a68d6bcc4",
   "completion_state": "REVIEW_REQUIRED",
   "documentation_gaps": [
     {
-      "gap_id": "CASE-7601438fb102/GAP-001",
+      "gap_id": "CASE-f78a68d6bcc4/GAP-001",
       "gap_type": "diagnostic_specificity",
-      "description": "阑尾切除术后状态缺乏具体病理类型或手术方式",
-      "why_it_matters": "影响编码准确性，无法区分是单纯性还是化脓性阑尾炎，以及手术方式（开腹或腹腔镜）",
+      "description": "阑尾切除术后状态缺乏具体病理类型或手术原因（如急性阑尾炎、慢性阑尾炎等）的明确说明。",
+      "why_it_matters": "影响编码准确性，不同病理类型可能对应不同编码，且可能影响并发症风险评估。",
       "evidence_span": {
-        "document_id": "chart",
+        "document_id": "encounter_summary",
         "quote": "急性阑尾炎切除术后10年"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-f78a68d6bcc4/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "未明确阑尾切除术后是否有任何并发症或后遗症（如肠粘连、切口疝等）。",
+      "why_it_matters": "遗漏并发症或后遗症可能导致编码不完整，影响疾病严重程度和医疗资源分配。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "目前无症状。否认腹痛、发热、恶心、呕吐。查体正常。"
       },
       "minimal_clarification_needed": ""
     }
@@ -37,12 +48,12 @@
     {
       "expert_id": "coding-expert",
       "consulted": true,
-      "rationale": "建议明确阑尾切除的具体手术方式（如开腹或腹腔镜）以及术后病理类型（如急性单纯性、化脓性或坏疽性阑尾炎），以支持更精确的编码。同时需确认是否存在任何术后并发症或残留症状。",
+      "rationale": "需要明确阑尾切除术的具体病理类型（如急性阑尾炎、慢性阑尾炎或未特指），并说明术后是否存在任何并发症或后遗症（如肠粘连、切口疝等）。若患者目前无症状且无并发症，应明确记录“无并发症或后遗症”。",
       "route_decision": "needed",
       "route_reason": "coding_relevant_gap",
       "execution_mode": "LLM_KNOWLEDGE_ONLY",
-      "latency_ms": 2865,
-      "tokens": 164
+      "latency_ms": 2670,
+      "tokens": 210
     },
     {
       "expert_id": "pubmed-expert",
@@ -76,42 +87,44 @@
     }
   ],
   "stage_run_ids": {
-    "encounter_synthesis": "run-766b814551bd",
-    "gap_identification": "run-68d81b83e669",
-    "expert_consultation": "run-8d5e3e7c6df9",
-    "query_generation": "run-2b7740d5ae49",
-    "query_necessity_gate": "necessary=0;unnecessary=1;overquery_triggered=False;final_count=0",
-    "query_single_dimension_gate": "single_dim=0;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;final_count=0",
-    "claim_evidence_alignment_gate": "claims_extracted=0;blocked=0;flagged=0;final_count=0",
-    "claim_evidence_alignment_gate::run_id": "run-4ce8fecb5857",
+    "encounter_synthesis": "run-df219a520e71",
+    "gap_identification": "run-ef146e5a0666",
+    "expert_consultation": "run-6070fd3d0a3a",
+    "query_generation": "run-5a022b94eee5",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.25;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=Y,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=2",
+    "query_necessity_gate": "necessary=1;unnecessary=1;overquery_triggered=False;final_count=1",
+    "query_single_dimension_gate": "single_dim=1;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=complication;final_count=1",
+    "claim_evidence_alignment_gate": "claims_extracted=3;blocked=1;flagged=0;final_count=0",
+    "claim_evidence_alignment_gate::run_id": "run-661d5b451fdc",
     "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
-    "semantic_necessity_gate::run_id": "run-e89fdf3afa6b",
+    "semantic_necessity_gate::run_id": "run-20ae9edd703d",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "run-6e2ffa71799f"
+    "specialist_trace_emit": "run-feba87a7fae5"
   },
   "stage_trace_ids": {
-    "encounter_synthesis": "trace-d7360a44fe8a",
-    "gap_identification": "trace-8b977b546edf",
-    "expert_consultation": "trace-a3d20d021051",
-    "query_generation": "trace-deb42d31f137",
+    "encounter_synthesis": "trace-76a62bb0e596",
+    "gap_identification": "trace-70d7e6ea62e0",
+    "expert_consultation": "trace-b6ddcd62e34d",
+    "query_generation": "trace-a969019c5b52",
+    "query_eligibility_gate": "",
     "query_necessity_gate": "",
     "query_single_dimension_gate": "",
-    "claim_evidence_alignment_gate": "trace-98c94c977a4b",
-    "semantic_necessity_gate": "trace-cfe03f74695c",
+    "claim_evidence_alignment_gate": "trace-161dc9036167",
+    "semantic_necessity_gate": "trace-a260121c55c1",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "trace-800060178a78"
+    "specialist_trace_emit": "trace-5406b47f89f4"
   },
   "stage_traces": [
     {
       "stage": "encounter_synthesis",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 3035,
+      "latency_ms": 2266,
       "prompt_tokens": 212,
-      "completion_tokens": 76,
-      "total_tokens": 288,
-      "run_id": "run-766b814551bd",
-      "trace_id": "trace-d7360a44fe8a",
+      "completion_tokens": 82,
+      "total_tokens": 294,
+      "run_id": "run-df219a520e71",
+      "trace_id": "trace-76a62bb0e596",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -120,12 +133,12 @@
       "stage": "gap_identification",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 3329,
+      "latency_ms": 4772,
       "prompt_tokens": 312,
-      "completion_tokens": 125,
-      "total_tokens": 437,
-      "run_id": "run-68d81b83e669",
-      "trace_id": "trace-8b977b546edf",
+      "completion_tokens": 279,
+      "total_tokens": 591,
+      "run_id": "run-ef146e5a0666",
+      "trace_id": "trace-70d7e6ea62e0",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -134,12 +147,12 @@
       "stage": "query_generation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 4049,
-      "prompt_tokens": 359,
-      "completion_tokens": 276,
-      "total_tokens": 635,
-      "run_id": "run-2b7740d5ae49",
-      "trace_id": "trace-deb42d31f137",
+      "latency_ms": 5415,
+      "prompt_tokens": 412,
+      "completion_tokens": 434,
+      "total_tokens": 846,
+      "run_id": "run-5a022b94eee5",
+      "trace_id": "trace-a969019c5b52",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -148,12 +161,12 @@
       "stage": "expert_consultation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 2865,
-      "prompt_tokens": 111,
-      "completion_tokens": 53,
-      "total_tokens": 164,
-      "run_id": "run-d74616d1e68e",
-      "trace_id": "trace-2706203e5911",
+      "latency_ms": 2670,
+      "prompt_tokens": 150,
+      "completion_tokens": 60,
+      "total_tokens": 210,
+      "run_id": "run-14ba6f6152f7",
+      "trace_id": "trace-bb87883f2efc",
       "degraded": false,
       "error_reason": "",
       "expert_id": "coding-expert"
@@ -166,8 +179,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-2f210a250db8",
-      "trace_id": "trace-058085b6890e",
+      "run_id": "run-93b819517bee",
+      "trace_id": "trace-47325343551d",
       "degraded": false,
       "error_reason": "",
       "expert_id": "pubmed-expert"
@@ -180,8 +193,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-85e6ad50c7ff",
-      "trace_id": "trace-0a60c041caf7",
+      "run_id": "run-08d0b96aaff1",
+      "trace_id": "trace-50469adce829",
       "degraded": false,
       "error_reason": "",
       "expert_id": "web-search-expert"
@@ -194,8 +207,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-68632d66cc9e",
-      "trace_id": "trace-7040f349638e",
+      "run_id": "run-86b721ff0185",
+      "trace_id": "trace-4ced84a03ff1",
       "degraded": false,
       "error_reason": "",
       "expert_id": "medical-calculator-expert"
@@ -203,5 +216,5 @@
   ],
   "degraded": false,
   "runtime_mode": "real",
-  "generated_at": "2026-07-12T11:31:59.606054Z"
+  "generated_at": "2026-07-12T12:14:55.515340Z"
 }

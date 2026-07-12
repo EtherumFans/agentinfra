@@ -1,26 +1,54 @@
 {
-  "case_id": "CASE-4f11d6b1c532",
-  "completion_state": "AUTO_PASS",
-  "documentation_gaps": [],
+  "case_id": "CASE-a54a1ae13157",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-a54a1ae13157/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "糖尿病类型未明确为2型，但诊断已写2型糖尿病，无其他类型可能，故无实质缺口。但需注意：诊断中未提及是否使用胰岛素或其他药物，但二甲双胍治疗已暗示。",
+      "why_it_matters": "确保诊断准确，避免编码错误。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "诊断:2型糖尿病, 控制良好, 无并发症"
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
   "proposed_provider_queries": [],
   "chart_excerpt_preview": "患者男性, 50岁, 2型糖尿病5年, 二甲双胍治疗。复查:HbA1c 6.8, FPG 6.5。BP 125/78, BMI 24。无糖尿病并发症。视网膜检查正常, 微量白蛋白尿阴性, 神经传导正常。诊断:2型糖尿病, 控制良好, 无并发症。",
   "patient_ref": "DEID",
   "encounter_ref": "DEID",
   "encounter_summary": {
-    "key_points": [],
-    "encounter_metadata": {}
+    "key_points": [
+      "2型糖尿病5年",
+      "二甲双胍治疗",
+      "HbA1c 6.8",
+      "FPG 6.5",
+      "BP 125/78",
+      "BMI 24",
+      "无糖尿病并发症",
+      "视网膜检查正常",
+      "微量白蛋白尿阴性",
+      "神经传导正常",
+      "诊断:2型糖尿病,控制良好,无并发症"
+    ],
+    "encounter_metadata": {
+      "patient_age": "50岁",
+      "patient_sex": "男性",
+      "encounter_type": "门诊"
+    }
   },
   "risk_flags": [],
   "specialist_trace": [
     {
       "expert_id": "coding-expert",
-      "consulted": false,
-      "rationale": "no coding-relevant gaps survived earlier gates",
-      "route_decision": "not_needed",
-      "route_reason": "no_relevant_gap",
-      "execution_mode": "SKIPPED_NOT_NEEDED",
-      "latency_ms": 0,
-      "tokens": 0
+      "consulted": true,
+      "rationale": "根据现有记录，诊断已明确为2型糖尿病且无并发症，临床信息充分，无需额外补充。二甲双胍治疗与血糖控制良好的描述已足够支持编码，无需进一步明确胰岛素使用情况。建议保持当前记录的完整性，无需修改。",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 2852,
+      "tokens": 243
     },
     {
       "expert_id": "pubmed-expert",
@@ -54,56 +82,72 @@
     }
   ],
   "stage_run_ids": {
-    "encounter_synthesis": "run-b5614e004212",
-    "gap_identification": "run-85fa69c98d8a",
-    "expert_consultation": "run-f519271cae48",
-    "query_generation": "",
-    "query_necessity_gate": "necessary=0;unnecessary=0;overquery_triggered=False;final_count=0",
-    "query_single_dimension_gate": "single_dim=0;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;final_count=0",
-    "claim_evidence_alignment_gate": "claims_extracted=0;blocked=0;flagged=0;final_count=0",
-    "claim_evidence_alignment_gate::run_id": "run-979d3ded6297",
+    "encounter_synthesis": "run-f8b9c30d0f85",
+    "gap_identification": "run-2c1be75ff825",
+    "expert_consultation": "run-27e88b16aa43",
+    "query_generation": "run-e76080aed389",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=Y,D8_course=N;dropped=0;final_count=1",
+    "query_necessity_gate": "necessary=1;unnecessary=0;overquery_triggered=False;final_count=1",
+    "query_single_dimension_gate": "single_dim=1;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=type;final_count=1",
+    "claim_evidence_alignment_gate": "claims_extracted=2;blocked=1;flagged=0;final_count=0",
+    "claim_evidence_alignment_gate::run_id": "run-9cb72e568309",
     "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
-    "semantic_necessity_gate::run_id": "run-7a327ac5fc7f",
+    "semantic_necessity_gate::run_id": "run-31b78275b8dc",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "run-9b93a54d2349"
+    "specialist_trace_emit": "run-b20e5dbf17bf"
   },
   "stage_trace_ids": {
-    "encounter_synthesis": "trace-bb8303840047",
-    "gap_identification": "trace-e567d2bb016f",
-    "expert_consultation": "trace-f2e15f879090",
-    "query_generation": "",
+    "encounter_synthesis": "trace-759e342a9bca",
+    "gap_identification": "trace-d8a2f2c3d612",
+    "expert_consultation": "trace-c50f42b757e2",
+    "query_generation": "trace-6ba5ca3621ef",
+    "query_eligibility_gate": "",
     "query_necessity_gate": "",
     "query_single_dimension_gate": "",
-    "claim_evidence_alignment_gate": "trace-8ac2bf6aa4f8",
-    "semantic_necessity_gate": "trace-51bd30a17e8c",
+    "claim_evidence_alignment_gate": "trace-73035f8e2bfc",
+    "semantic_necessity_gate": "trace-5fb3278ef2fd",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "trace-a0aa5faacaf4"
+    "specialist_trace_emit": "trace-ea75cff28f70"
   },
   "stage_traces": [
     {
       "stage": "encounter_synthesis",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 3202,
-      "prompt_tokens": 0,
-      "completion_tokens": 0,
-      "total_tokens": 0,
-      "run_id": "run-b5614e004212",
-      "trace_id": "trace-bb8303840047",
-      "degraded": true,
-      "error_reason": "LLM call failed after 3 attempts: Connection error.",
+      "latency_ms": 1444,
+      "prompt_tokens": 254,
+      "completion_tokens": 137,
+      "total_tokens": 391,
+      "run_id": "run-f8b9c30d0f85",
+      "trace_id": "trace-759e342a9bca",
+      "degraded": false,
+      "error_reason": "",
       "expert_id": ""
     },
     {
       "stage": "gap_identification",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 1074,
-      "prompt_tokens": 305,
-      "completion_tokens": 8,
-      "total_tokens": 313,
-      "run_id": "run-85fa69c98d8a",
-      "trace_id": "trace-e567d2bb016f",
+      "latency_ms": 4505,
+      "prompt_tokens": 397,
+      "completion_tokens": 156,
+      "total_tokens": 553,
+      "run_id": "run-2c1be75ff825",
+      "trace_id": "trace-d8a2f2c3d612",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3349,
+      "prompt_tokens": 435,
+      "completion_tokens": 179,
+      "total_tokens": 614,
+      "run_id": "run-e76080aed389",
+      "trace_id": "trace-6ba5ca3621ef",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -112,12 +156,12 @@
       "stage": "expert_consultation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 0,
-      "prompt_tokens": 0,
-      "completion_tokens": 0,
-      "total_tokens": 0,
-      "run_id": "run-6a10b16e3616",
-      "trace_id": "trace-16c5df7346af",
+      "latency_ms": 2852,
+      "prompt_tokens": 189,
+      "completion_tokens": 54,
+      "total_tokens": 243,
+      "run_id": "run-74f77387e1ff",
+      "trace_id": "trace-bed02ee92df7",
       "degraded": false,
       "error_reason": "",
       "expert_id": "coding-expert"
@@ -130,8 +174,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-4adb97976fbb",
-      "trace_id": "trace-177c3804eae3",
+      "run_id": "run-a56ed1785172",
+      "trace_id": "trace-816521133d84",
       "degraded": false,
       "error_reason": "",
       "expert_id": "pubmed-expert"
@@ -144,8 +188,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-86122fbef798",
-      "trace_id": "trace-f80448316699",
+      "run_id": "run-7bbcf0b01587",
+      "trace_id": "trace-f4d78f5030f0",
       "degraded": false,
       "error_reason": "",
       "expert_id": "web-search-expert"
@@ -158,14 +202,14 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-7ed5ab0bab97",
-      "trace_id": "trace-62e464cd397c",
+      "run_id": "run-f247a9f011a0",
+      "trace_id": "trace-f641dbebf532",
       "degraded": false,
       "error_reason": "",
       "expert_id": "medical-calculator-expert"
     }
   ],
-  "degraded": true,
+  "degraded": false,
   "runtime_mode": "real",
-  "generated_at": "2026-07-12T11:27:42.013592Z"
+  "generated_at": "2026-07-12T12:11:12.291417Z"
 }

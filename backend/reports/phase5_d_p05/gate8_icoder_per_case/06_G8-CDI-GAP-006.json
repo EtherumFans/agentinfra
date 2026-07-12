@@ -1,23 +1,12 @@
 {
-  "case_id": "CASE-50e715716500",
+  "case_id": "CASE-937d89329992",
   "completion_state": "REVIEW_REQUIRED",
   "documentation_gaps": [
     {
-      "gap_id": "CASE-50e715716500/GAP-001",
+      "gap_id": "CASE-937d89329992/GAP-001",
       "gap_type": "diagnostic_specificity",
-      "description": "贫血的病因未明确，需要进一步区分缺铁性贫血、慢性病贫血或其他类型。",
-      "why_it_matters": "贫血的病因不同，治疗和编码不同。缺铁性贫血需明确病因（如消化道出血），而慢性病贫血则需处理原发病。",
-      "evidence_span": {
-        "document_id": "encounter_summary",
-        "quote": "入院诊断:贫血"
-      },
-      "minimal_clarification_needed": ""
-    },
-    {
-      "gap_id": "CASE-50e715716500/GAP-002",
-      "gap_type": "diagnostic_specificity",
-      "description": "便潜血阳性提示消化道出血可能，但未明确出血部位或原因。",
-      "why_it_matters": "消化道出血的定位和病因（如溃疡、肿瘤）对治疗和编码至关重要。",
+      "description": "贫血的病因未明确，便潜血阳性提示消化道出血可能，但未明确出血部位或病因。",
+      "why_it_matters": "影响编码准确性，贫血的病因（如慢性失血、缺铁性贫血）需要明确，否则无法区分具体类型。",
       "evidence_span": {
         "document_id": "encounter_summary",
         "quote": "便潜血阳性"
@@ -25,10 +14,10 @@
       "minimal_clarification_needed": ""
     },
     {
-      "gap_id": "CASE-50e715716500/GAP-003",
+      "gap_id": "CASE-937d89329992/GAP-002",
       "gap_type": "diagnostic_specificity",
       "description": "贫血的严重程度未明确（如轻度、中度、重度）。",
-      "why_it_matters": "严重程度影响编码和临床管理。",
+      "why_it_matters": "严重程度影响编码和临床管理，Hb 65属于中度贫血，但未明确标注。",
       "evidence_span": {
         "document_id": "encounter_summary",
         "quote": "Hb 65"
@@ -36,7 +25,7 @@
       "minimal_clarification_needed": ""
     },
     {
-      "gap_id": "CASE-50e715716500/GAP-004",
+      "gap_id": "CASE-937d89329992/GAP-003",
       "gap_type": "diagnostic_specificity",
       "description": "贫血的急性或慢性未明确。",
       "why_it_matters": "急性与慢性贫血的编码不同，且影响治疗决策。",
@@ -49,24 +38,23 @@
   ],
   "proposed_provider_queries": [
     {
-      "query_id": "CASE-50e715716500/Q-001",
-      "gap_id": "CASE-50e715716500/GAP-001",
-      "topic": "贫血病因",
-      "reason": "贫血的病因未明确，需要进一步区分缺铁性贫血、慢性病贫血或其他类型。",
+      "query_id": "CASE-937d89329992/Q-001",
+      "gap_id": "CASE-937d89329992/GAP-002",
+      "topic": "贫血严重程度",
+      "reason": "贫血的严重程度未明确",
       "evidence_span": {
         "document_id": "chart",
-        "quote": "Hb 65, MCV 72。血清铁 4.5, 铁蛋白 8。便潜血阳性。"
+        "quote": "Hb 65"
       },
-      "query_text": "根据患者Hb 65, MCV 72, 血清铁4.5, 铁蛋白8, 便潜血阳性，贫血的可能病因是什么？",
+      "query_text": "根据血红蛋白65g/L，请明确贫血的严重程度分级。",
       "response_options": [
-        "A. 缺铁性贫血",
-        "B. 慢性病贫血",
-        "C. 混合性贫血（缺铁合并慢性病）",
-        "D. 其他类型贫血",
-        "E. 无法确定"
+        "A. 轻度贫血（Hb >90g/L）",
+        "B. 中度贫血（Hb 60-90g/L）",
+        "C. 重度贫血（Hb 30-60g/L）",
+        "D. 无法确定"
       ],
       "lifecycle_state": "DRAFT",
-      "priority": "urgent"
+      "priority": "routine"
     }
   ],
   "chart_excerpt_preview": "患者男性, 60岁, 乏力1月。Hb 65, MCV 72。血清铁 4.5, 铁蛋白 8。便潜血阳性。入院诊断:贫血。",
@@ -93,12 +81,12 @@
     {
       "expert_id": "coding-expert",
       "consulted": true,
-      "rationale": "根据化验结果（Hb 65、MCV 72、血清铁和铁蛋白降低），贫血类型已明确为缺铁性贫血，但需进一步明确便潜血阳性的具体出血部位和原因（如消化道溃疡、肿瘤等），并记录贫血的严重程度（重度）及病程（慢性）。建议补充胃肠镜检查结果及出血病因的临床描述。",
+      "rationale": "根据临床记录，贫血的病因高度怀疑为缺铁性贫血，但便潜血阳性提示需明确消化道出血的具体部位和病因（如胃溃疡、结肠肿瘤等）。同时，应明确贫血的严重程度（如重度贫血）及病程（如慢性失血性贫血），以支持准确编码。",
       "route_decision": "needed",
       "route_reason": "coding_relevant_gap",
       "execution_mode": "LLM_KNOWLEDGE_ONLY",
-      "latency_ms": 3268,
-      "tokens": 242
+      "latency_ms": 3472,
+      "tokens": 214
     },
     {
       "expert_id": "pubmed-expert",
@@ -132,42 +120,44 @@
     }
   ],
   "stage_run_ids": {
-    "encounter_synthesis": "run-5b441149acc7",
-    "gap_identification": "run-5c95f6905eb2",
-    "expert_consultation": "run-6fae285ede85",
-    "query_generation": "run-d15cecf936cb",
-    "query_necessity_gate": "necessary=4;unnecessary=0;overquery_triggered=False;final_count=4",
-    "query_single_dimension_gate": "single_dim=3;multi_dim=1;axis_cluster_triggered=False;axis_cluster_axis=etiology;final_count=3",
-    "claim_evidence_alignment_gate": "claims_extracted=9;blocked=2;flagged=0;final_count=1",
-    "claim_evidence_alignment_gate::run_id": "run-000129ce591e",
-    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=1;final_count=1",
-    "semantic_necessity_gate::run_id": "run-7f56a1a08426",
+    "encounter_synthesis": "run-707a345ba794",
+    "gap_identification": "run-b2333df665e9",
+    "expert_consultation": "run-8afa907a5a7e",
+    "query_generation": "run-d61a6fb1f83b",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=3",
+    "query_necessity_gate": "necessary=3;unnecessary=0;overquery_triggered=False;final_count=3",
+    "query_single_dimension_gate": "single_dim=1;multi_dim=2;axis_cluster_triggered=False;axis_cluster_axis=site;final_count=1",
+    "claim_evidence_alignment_gate": "claims_extracted=1;blocked=0;flagged=0;final_count=1",
+    "claim_evidence_alignment_gate::run_id": "run-fe685e7c4554",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=1",
+    "semantic_necessity_gate::run_id": "run-c7a7f5828c6a",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "run-d1e3c82b1a73"
+    "specialist_trace_emit": "run-24df5d91e6b3"
   },
   "stage_trace_ids": {
-    "encounter_synthesis": "trace-22209d6052be",
-    "gap_identification": "trace-8a7c361bc141",
-    "expert_consultation": "trace-eb4d92f5e9dd",
-    "query_generation": "trace-00682c7b2c96",
+    "encounter_synthesis": "trace-82abfbb961e5",
+    "gap_identification": "trace-919d94eb544d",
+    "expert_consultation": "trace-dcc0dbe24766",
+    "query_generation": "trace-4209dd3d6feb",
+    "query_eligibility_gate": "",
     "query_necessity_gate": "",
     "query_single_dimension_gate": "",
-    "claim_evidence_alignment_gate": "trace-eafa30186c19",
-    "semantic_necessity_gate": "trace-28e87b987715",
+    "claim_evidence_alignment_gate": "trace-a7770f085ca6",
+    "semantic_necessity_gate": "trace-aef5002c3cf3",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "trace-0000baf7c87d"
+    "specialist_trace_emit": "trace-320c12faba8c"
   },
   "stage_traces": [
     {
       "stage": "encounter_synthesis",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 2731,
+      "latency_ms": 2262,
       "prompt_tokens": 215,
       "completion_tokens": 95,
       "total_tokens": 310,
-      "run_id": "run-5b441149acc7",
-      "trace_id": "trace-22209d6052be",
+      "run_id": "run-707a345ba794",
+      "trace_id": "trace-82abfbb961e5",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -176,12 +166,12 @@
       "stage": "gap_identification",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 5490,
+      "latency_ms": 4920,
       "prompt_tokens": 319,
-      "completion_tokens": 458,
-      "total_tokens": 777,
-      "run_id": "run-5c95f6905eb2",
-      "trace_id": "trace-8a7c361bc141",
+      "completion_tokens": 353,
+      "total_tokens": 672,
+      "run_id": "run-b2333df665e9",
+      "trace_id": "trace-919d94eb544d",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -190,12 +180,12 @@
       "stage": "query_generation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 6195,
-      "prompt_tokens": 443,
-      "completion_tokens": 670,
-      "total_tokens": 1113,
-      "run_id": "run-d15cecf936cb",
-      "trace_id": "trace-00682c7b2c96",
+      "latency_ms": 5728,
+      "prompt_tokens": 417,
+      "completion_tokens": 497,
+      "total_tokens": 914,
+      "run_id": "run-d61a6fb1f83b",
+      "trace_id": "trace-4209dd3d6feb",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -204,12 +194,12 @@
       "stage": "expert_consultation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 3268,
-      "prompt_tokens": 165,
-      "completion_tokens": 77,
-      "total_tokens": 242,
-      "run_id": "run-ed08d1d9378c",
-      "trace_id": "trace-c1fa287bfadf",
+      "latency_ms": 3472,
+      "prompt_tokens": 150,
+      "completion_tokens": 64,
+      "total_tokens": 214,
+      "run_id": "run-7c1bc4dd25e2",
+      "trace_id": "trace-9b2e702647d3",
       "degraded": false,
       "error_reason": "",
       "expert_id": "coding-expert"
@@ -222,8 +212,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-f1f7fa7be7a8",
-      "trace_id": "trace-23f1080361c0",
+      "run_id": "run-d8fc002a119f",
+      "trace_id": "trace-fd8b33247bcf",
       "degraded": false,
       "error_reason": "",
       "expert_id": "pubmed-expert"
@@ -236,8 +226,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-a355a42250ad",
-      "trace_id": "trace-986af1fc8fbf",
+      "run_id": "run-51579ff90539",
+      "trace_id": "trace-d9c5d448aa22",
       "degraded": false,
       "error_reason": "",
       "expert_id": "web-search-expert"
@@ -250,8 +240,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-eecaf0714171",
-      "trace_id": "trace-12d8a740564e",
+      "run_id": "run-7b985d71f10c",
+      "trace_id": "trace-93e54412d914",
       "degraded": false,
       "error_reason": "",
       "expert_id": "medical-calculator-expert"
@@ -259,5 +249,5 @@
   ],
   "degraded": false,
   "runtime_mode": "real",
-  "generated_at": "2026-07-12T11:23:31.371671Z"
+  "generated_at": "2026-07-12T12:07:15.210999Z"
 }

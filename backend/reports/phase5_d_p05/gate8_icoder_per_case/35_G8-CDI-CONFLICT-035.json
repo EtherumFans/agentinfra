@@ -1,9 +1,9 @@
 {
-  "case_id": "CASE-7d6c51c897d5",
+  "case_id": "CASE-1221332361fe",
   "completion_state": "BLOCKED",
   "documentation_gaps": [
     {
-      "gap_id": "CASE-7d6c51c897d5/GAP-001",
+      "gap_id": "CASE-1221332361fe/GAP-001",
       "gap_type": "diagnostic_specificity",
       "description": "慢性肾病缺乏分期或严重程度描述",
       "why_it_matters": "慢性肾病的分期（如CKD 3期）直接影响编码和疾病严重程度评估，缺少分期可能导致编码不准确。",
@@ -14,10 +14,10 @@
       "minimal_clarification_needed": ""
     },
     {
-      "gap_id": "CASE-7d6c51c897d5/GAP-002",
+      "gap_id": "CASE-1221332361fe/GAP-002",
       "gap_type": "diagnostic_specificity",
       "description": "高脂血症缺乏类型或严重程度描述",
-      "why_it_matters": "高脂血症需明确类型（如纯高胆固醇血症、混合型高脂血症）以准确编码，缺少描述可能导致编码不精确。",
+      "why_it_matters": "高脂血症需明确类型（如纯高胆固醇血症、混合型高脂血症）以准确编码，否则影响临床准确性。",
       "evidence_span": {
         "document_id": "chart",
         "quote": "高脂血症"
@@ -25,10 +25,10 @@
       "minimal_clarification_needed": ""
     },
     {
-      "gap_id": "CASE-7d6c51c897d5/GAP-003",
+      "gap_id": "CASE-1221332361fe/GAP-003",
       "gap_type": "diagnostic_specificity",
       "description": "出院诊断与入院诊断及病程记录不一致：出院诊断仅列出高血压和糖尿病，缺少慢性肾病和高脂血症",
-      "why_it_matters": "出院诊断遗漏慢性肾病和高脂血症，可能导致编码不完整，影响DRG分组和医疗质量评估。",
+      "why_it_matters": "出院诊断遗漏慢性肾病和高脂血症，可能导致编码不完整，影响DRG分组和合规性。",
       "evidence_span": {
         "document_id": "chart",
         "quote": "出院诊断:高血压, 糖尿病"
@@ -36,7 +36,7 @@
       "minimal_clarification_needed": ""
     },
     {
-      "gap_id": "CASE-7d6c51c897d5/GAP-004",
+      "gap_id": "CASE-1221332361fe/GAP-004",
       "gap_type": "diagnostic_specificity",
       "description": "高血压缺乏分级或靶器官损害描述",
       "why_it_matters": "高血压需明确分级（如1级、2级、3级）及是否伴有靶器官损害，以准确编码和评估风险。",
@@ -47,10 +47,10 @@
       "minimal_clarification_needed": ""
     },
     {
-      "gap_id": "CASE-7d6c51c897d5/GAP-005",
+      "gap_id": "CASE-1221332361fe/GAP-005",
       "gap_type": "diagnostic_specificity",
       "description": "糖尿病缺乏并发症或控制情况描述",
-      "why_it_matters": "2型糖尿病需明确是否伴有并发症（如肾病、视网膜病变）及血糖控制情况，以准确编码和指导治疗。",
+      "why_it_matters": "2型糖尿病需明确有无并发症（如肾病、视网膜病变）及控制情况（如血糖控制不佳），以准确编码。",
       "evidence_span": {
         "document_id": "chart",
         "quote": "2型糖尿病"
@@ -60,24 +60,42 @@
   ],
   "proposed_provider_queries": [
     {
-      "query_id": "CASE-7d6c51c897d5/Q-001",
-      "gap_id": "CASE-7d6c51c897d5/GAP-003",
+      "query_id": "CASE-1221332361fe/Q-001",
+      "gap_id": "CASE-1221332361fe/GAP-003",
       "topic": "出院诊断与病程记录不一致",
-      "reason": "出院诊断仅列出高血压和糖尿病，但病程记录提及慢性肾病和高脂血症",
+      "reason": "出院诊断仅列出高血压和糖尿病，缺少慢性肾病和高脂血症，而病程记录中提及",
       "evidence_span": {
-        "document_id": "出院诊断",
-        "quote": "高血压, 糖尿病"
+        "document_id": "chart",
+        "quote": "出院诊断:高血压, 糖尿病"
       },
-      "query_text": "出院诊断为高血压和糖尿病，但病程记录中提及慢性肾病和高脂血症。请确认出院诊断是否应包含慢性肾病和高脂血症？",
+      "query_text": "出院诊断未包括慢性肾病和高脂血症，请确认是否应纳入？",
       "response_options": [
-        "A. 是，应包含慢性肾病和高脂血症",
-        "B. 否，仅高血压和糖尿病即可",
-        "C. 仅需添加慢性肾病",
-        "D. 仅需添加高脂血症",
-        "E. 无法确定"
+        "A. 应纳入慢性肾病和高脂血症",
+        "B. 仅纳入慢性肾病",
+        "C. 仅纳入高脂血症",
+        "D. 无法确定"
       ],
       "lifecycle_state": "DRAFT",
       "priority": "urgent"
+    },
+    {
+      "query_id": "CASE-1221332361fe/Q-002",
+      "gap_id": "CASE-1221332361fe/GAP-005",
+      "topic": "糖尿病并发症或控制情况",
+      "reason": "入院诊断和出院诊断均为2型糖尿病，但未明确并发症或控制情况",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "入院诊断:2型糖尿病"
+      },
+      "query_text": "患者糖尿病的并发症或血糖控制情况如何？",
+      "response_options": [
+        "A. 有并发症（如肾病、视网膜病变等）",
+        "B. 无并发症，控制良好",
+        "C. 无并发症，控制不佳",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine"
     }
   ],
   "chart_excerpt_preview": "患者男性, 58岁, 入院诊断:原发性高血压, 2型糖尿病。用药记录:二甲双胍, 缬沙坦, 胰岛素。病程记录:高血压, 糖尿病, 慢性肾病, 高脂血症。出院诊断:高血压, 糖尿病。",
@@ -96,7 +114,7 @@
     "encounter_metadata": {
       "patient_age": "58",
       "patient_sex": "男",
-      "encounter_type": "住院"
+      "encounter_type": "入院"
     }
   },
   "risk_flags": [],
@@ -104,12 +122,12 @@
     {
       "expert_id": "coding-expert",
       "consulted": true,
-      "rationale": "根据病程记录和用药情况，慢性肾病需明确分期（如CKD 3期）及是否合并蛋白尿；高脂血症需区分类型（如高胆固醇血症或混合型高脂血症）及严重程度；高血压应补充分级（如3级）及靶器官损害证据（如左心室肥厚）；糖尿病需注明并发症（如肾病）及血糖控制状态（如血糖控制不佳）。出院诊断应完整纳入慢性肾病和高脂血症，并与病程记录保持一致。",
+      "rationale": "根据病程记录和用药情况，慢性肾病需明确分期（如CKD 3期）及是否合并蛋白尿；高脂血症需区分类型（如混合型高脂血症）及严重程度（如重度高胆固醇血症）。高血压应补充分级（如3级）及靶器官损害证据（如左心室肥厚）；糖尿病需注明并发症（如糖尿病肾病）及血糖控制状态（如血糖控制不佳）。出院诊断应完整纳入所有已确认的慢性病诊断，确保与病程记录一致。",
       "route_decision": "needed",
       "route_reason": "coding_relevant_gap",
       "execution_mode": "LLM_KNOWLEDGE_ONLY",
-      "latency_ms": 2970,
-      "tokens": 291
+      "latency_ms": 3423,
+      "tokens": 297
     },
     {
       "expert_id": "pubmed-expert",
@@ -143,42 +161,44 @@
     }
   ],
   "stage_run_ids": {
-    "encounter_synthesis": "run-e1ebee35bf1e",
-    "gap_identification": "run-ee35827f2d91",
-    "expert_consultation": "run-364653bed18d",
-    "query_generation": "run-56c74d715c77",
+    "encounter_synthesis": "run-c254439f9583",
+    "gap_identification": "run-6d82c391632d",
+    "expert_consultation": "run-c95109ca37a8",
+    "query_generation": "run-5ae4c61cea1a",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.25;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=Y;dropped=0;final_count=5",
     "query_necessity_gate": "necessary=5;unnecessary=0;overquery_triggered=True;final_count=5",
-    "query_single_dimension_gate": "single_dim=3;multi_dim=2;axis_cluster_triggered=True;axis_cluster_axis=severity;final_count=3",
-    "claim_evidence_alignment_gate": "claims_extracted=13;blocked=2;flagged=0;final_count=1",
-    "claim_evidence_alignment_gate::run_id": "run-e0138f635a22",
-    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=1;final_count=1",
-    "semantic_necessity_gate::run_id": "run-0d7c03e255b3",
+    "query_single_dimension_gate": "single_dim=4;multi_dim=1;axis_cluster_triggered=True;axis_cluster_axis=severity;final_count=4",
+    "claim_evidence_alignment_gate": "claims_extracted=11;blocked=2;flagged=0;final_count=2",
+    "claim_evidence_alignment_gate::run_id": "run-778bcf55296e",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=2",
+    "semantic_necessity_gate::run_id": "run-d8c8db80816f",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "run-cb9ec7aeb6c5"
+    "specialist_trace_emit": "run-d053da3e9fb6"
   },
   "stage_trace_ids": {
-    "encounter_synthesis": "trace-d31108e92b60",
-    "gap_identification": "trace-836a7227b220",
-    "expert_consultation": "trace-316a0b0748da",
-    "query_generation": "trace-40e69bee72ba",
+    "encounter_synthesis": "trace-473736380f5d",
+    "gap_identification": "trace-5084cf8dc81a",
+    "expert_consultation": "trace-0f43e8937f8c",
+    "query_generation": "trace-f258eac51348",
+    "query_eligibility_gate": "",
     "query_necessity_gate": "",
     "query_single_dimension_gate": "",
-    "claim_evidence_alignment_gate": "trace-dc50196d82e5",
-    "semantic_necessity_gate": "trace-622623cfc3bb",
+    "claim_evidence_alignment_gate": "trace-ff2f741e0e9e",
+    "semantic_necessity_gate": "trace-9de731f64446",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "trace-7bd69f8f487a"
+    "specialist_trace_emit": "trace-161742cab716"
   },
   "stage_traces": [
     {
       "stage": "encounter_synthesis",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 2403,
+      "latency_ms": 4544,
       "prompt_tokens": 232,
       "completion_tokens": 70,
       "total_tokens": 302,
-      "run_id": "run-e1ebee35bf1e",
-      "trace_id": "trace-d31108e92b60",
+      "run_id": "run-c254439f9583",
+      "trace_id": "trace-473736380f5d",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -187,12 +207,12 @@
       "stage": "gap_identification",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 6090,
+      "latency_ms": 6535,
       "prompt_tokens": 329,
-      "completion_tokens": 601,
-      "total_tokens": 930,
-      "run_id": "run-ee35827f2d91",
-      "trace_id": "trace-836a7227b220",
+      "completion_tokens": 598,
+      "total_tokens": 927,
+      "run_id": "run-6d82c391632d",
+      "trace_id": "trace-5084cf8dc81a",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -201,12 +221,12 @@
       "stage": "query_generation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 8560,
+      "latency_ms": 7200,
       "prompt_tokens": 485,
-      "completion_tokens": 1049,
-      "total_tokens": 1534,
-      "run_id": "run-56c74d715c77",
-      "trace_id": "trace-40e69bee72ba",
+      "completion_tokens": 836,
+      "total_tokens": 1321,
+      "run_id": "run-5ae4c61cea1a",
+      "trace_id": "trace-f258eac51348",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -215,12 +235,12 @@
       "stage": "expert_consultation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 2970,
+      "latency_ms": 3423,
       "prompt_tokens": 187,
-      "completion_tokens": 104,
-      "total_tokens": 291,
-      "run_id": "run-63eaae6d87c5",
-      "trace_id": "trace-8361cbfe6579",
+      "completion_tokens": 110,
+      "total_tokens": 297,
+      "run_id": "run-5a523580afb6",
+      "trace_id": "trace-0af04e2a22c3",
       "degraded": false,
       "error_reason": "",
       "expert_id": "coding-expert"
@@ -233,8 +253,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-2e01a0ac7cbd",
-      "trace_id": "trace-1f8bd1d57473",
+      "run_id": "run-4f5e3104c8ea",
+      "trace_id": "trace-871090e93c5e",
       "degraded": false,
       "error_reason": "",
       "expert_id": "pubmed-expert"
@@ -247,8 +267,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-8d36d93cbcd3",
-      "trace_id": "trace-6ac836a9ec79",
+      "run_id": "run-f36d0b6354a1",
+      "trace_id": "trace-8f6b121ad32d",
       "degraded": false,
       "error_reason": "",
       "expert_id": "web-search-expert"
@@ -261,8 +281,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-be0acd701e10",
-      "trace_id": "trace-fcc944d2e0b7",
+      "run_id": "run-295326ede5fc",
+      "trace_id": "trace-93487958fac6",
       "degraded": false,
       "error_reason": "",
       "expert_id": "medical-calculator-expert"
@@ -270,5 +290,5 @@
   ],
   "degraded": false,
   "runtime_mode": "real",
-  "generated_at": "2026-07-12T11:35:18.631418Z"
+  "generated_at": "2026-07-12T12:18:11.033415Z"
 }

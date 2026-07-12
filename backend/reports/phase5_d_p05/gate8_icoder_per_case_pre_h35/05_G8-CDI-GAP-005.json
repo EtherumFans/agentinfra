@@ -1,0 +1,239 @@
+{
+  "case_id": "CASE-52fd0ed50ed4",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-52fd0ed50ed4/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "Acute exacerbation of COPD is documented but severity (e.g., mild, moderate, severe) is not specified.",
+      "why_it_matters": "Severity of exacerbation affects treatment intensity and coding specificity; without it, the clinical picture is incomplete.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "入院诊断:慢阻肺急性加重"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-52fd0ed50ed4/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "Blood gas shows respiratory acidosis (pH 7.34, PaCO2 62) but the type of respiratory failure (acute vs. acute-on-chronic) is not documented.",
+      "why_it_matters": "Differentiating acute from chronic respiratory failure impacts coding and management; acute-on-chronic may require different treatment.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "血气:pH 7.34, PaCO2 62, PaO2 55"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-52fd0ed50ed4/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "Hypoxemia (PaO2 55) is present but the need for supplemental oxygen or its level is not documented.",
+      "why_it_matters": "Documenting oxygen requirements is important for severity assessment and coding of respiratory failure.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "PaO2 55"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-52fd0ed50ed4/GAP-004",
+      "gap_type": "diagnostic_specificity",
+      "description": "The chronicity of the COPD (10 years) is noted but the baseline severity (e.g., GOLD stage, FEV1) is not documented.",
+      "why_it_matters": "Baseline severity helps determine the significance of the exacerbation and guides coding for chronic disease.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "慢性阻塞性肺疾病10年"
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [],
+  "chart_excerpt_preview": "患者男性, 68岁, 慢性阻塞性肺疾病10年, 咳嗽气促加重3天。血气:pH 7.34, PaCO2 62, PaO2 55。入院诊断:慢阻肺急性加重。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "慢性阻塞性肺疾病10年",
+      "咳嗽气促加重3天",
+      "血气: pH 7.34, PaCO2 62, PaO2 55",
+      "入院诊断: 慢阻肺急性加重"
+    ],
+    "encounter_metadata": {
+      "patient_age": "68",
+      "patient_sex": "男",
+      "encounter_type": "入院"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "The chart lacks documentation of COPD severity (e.g., GOLD stage or FEV1) and the specific type of respiratory failure (acute vs. acute-on-chronic), which are critical for accurate coding. Additionally, the need for supplemental oxygen and its level should be specified to reflect the hypoxemia management. Clarify whether the exacerbation is mild, moderate, or severe, and document the baseline lung function to establish chronicity and severity.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3474,
+      "tokens": 319
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-37c8e18cd2b0",
+    "gap_identification": "run-d1a2b061f32b",
+    "expert_consultation": "run-fd7193178e48",
+    "query_generation": "run-8f6ca0034e9e",
+    "query_necessity_gate": "necessary=1;unnecessary=3;overquery_triggered=False;final_count=1",
+    "query_single_dimension_gate": "single_dim=1;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;final_count=1",
+    "claim_evidence_alignment_gate": "claims_extracted=3;blocked=1;flagged=0;final_count=0",
+    "claim_evidence_alignment_gate::run_id": "run-36d4a924e496",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+    "semantic_necessity_gate::run_id": "run-5cb4e1f46614",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "run-994273a97556"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-b00c69a5afb3",
+    "gap_identification": "trace-b5db733db358",
+    "expert_consultation": "trace-37dac59792cf",
+    "query_generation": "trace-dcdc92d38be7",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-46e8573adda9",
+    "semantic_necessity_gate": "trace-0d1acecad0f2",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-8685059d9d02"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5109,
+      "prompt_tokens": 224,
+      "completion_tokens": 99,
+      "total_tokens": 323,
+      "run_id": "run-37c8e18cd2b0",
+      "trace_id": "trace-b00c69a5afb3",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6553,
+      "prompt_tokens": 334,
+      "completion_tokens": 552,
+      "total_tokens": 886,
+      "run_id": "run-d1a2b061f32b",
+      "trace_id": "trace-b5db733db358",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 7015,
+      "prompt_tokens": 519,
+      "completion_tokens": 740,
+      "total_tokens": 1259,
+      "run_id": "run-8f6ca0034e9e",
+      "trace_id": "trace-dcdc92d38be7",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3474,
+      "prompt_tokens": 229,
+      "completion_tokens": 90,
+      "total_tokens": 319,
+      "run_id": "run-55d7a4220683",
+      "trace_id": "trace-8c31c0bb16e7",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-9c1d63b587f4",
+      "trace_id": "trace-cd6098235d50",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-31ddb2580371",
+      "trace_id": "trace-6f0eeaea6b68",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-1b996a6f5cba",
+      "trace_id": "trace-814862ab9954",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-07-12T11:23:02.934335Z"
+}

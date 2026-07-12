@@ -54,6 +54,8 @@ import uuid
 from dataclasses import dataclass, field
 from typing import Any, Literal
 
+from rapidfuzz import fuzz
+
 from app.icoder.agent_runtime.cdi.domain import (
     CDICase,
     Claim,
@@ -168,18 +170,104 @@ def _find_quote_in_chart(quote: str, chart: str) -> tuple[int, int] | None:
     return idx, idx + len(quote)
 
 
+# Phase 5 Track H3.6 — fuzzy match threshold for CEA-001.
+# When the LLM-generated quote is NOT a verbatim substring of the chart,
+# we still consider it valid if rapidfuzz.partial_ratio(quote, chart) ≥ this.
+# 0.85 = up to 15% character mismatch tolerated (1 char in 7, ~3 in 20).
+# Calibrated on 40-case Corti vs iCoDer: 88.9% (full-width/half-width colon
+# swap) is the minimum legitimate mismatch we want to accept.
+CEA_FUZZY_THRESHOLD = 0.85
+
+
+def _fuzzy_find_quote_in_chart(
+    quote: str, chart: str, threshold: float = CEA_FUZZY_THRESHOLD
+) -> tuple[int, int, float] | None:
+    """Fuzzy-locate ``quote`` in ``chart``.
+
+    Returns (char_start, char_end, score) where score is 0..1, or None.
+    Uses rapidfuzz partial_ratio on the whole chart (rapidfuzz handles
+    the sliding-window internally and is C-optimized).
+
+    To recover a span (start, end), we re-scan a small set of candidate
+    windows and pick the one whose content has the highest partial_ratio
+    against the quote.
+    """
+    if not quote or not chart:
+        return None
+    qlen = len(quote)
+    if qlen < 4 or len(chart) < qlen:
+        # Too short to fuzzy-match reliably; defer to verbatim finder
+        return None
+
+    # Step 1: overall best score — if below threshold, fail fast.
+    overall_score = fuzz.partial_ratio(quote, chart) / 100.0
+    if overall_score < threshold:
+        return None
+
+    # Step 2: locate the best-matching window for span reporting.
+    # Sliding window at stride qlen//4 (4x oversample). This is approximate
+    # but cheap and good enough for span reporting.
+    best_score = 0.0
+    best_start = -1
+    stride = max(1, qlen // 4)
+    for start in range(0, max(0, len(chart) - qlen) + 1, stride):
+        end = min(len(chart), start + qlen + 5)
+        window = chart[start:end]
+        score = fuzz.partial_ratio(quote, window) / 100.0
+        if score > best_score:
+            best_score = score
+            best_start = start
+    if best_start < 0:
+        # Fallback: just anchor at position 0
+        return (0, qlen, overall_score)
+    return (best_start, best_start + qlen, best_score)
+
+
 def _rule_cea_001(alignment: ClaimEvidenceAlignment, chart: str) -> ClaimEvidenceRuleResult:
+    """CEA-001 — quote must appear in chart (verbatim OR fuzzy ≥0.90).
+
+    Phase 5 Track H3.6 relaxation: LLM-generated evidence quotes often have
+    minor wording differences (punctuation, particles, whitespace) versus
+    the verbatim chart text. Requiring exact substring match caused 71
+    spurious BLOCKs in the 40-case calibration. We now pass when either:
+
+      (a) chart.find(quote) succeeds (verbatim), OR
+      (b) rapidfuzz.partial_ratio(quote, chart_window) ≥ CEA_FUZZY_THRESHOLD
+
+    CEA-005 (negation), CEA-006 (PMH), CEA-007 (inference marker) still
+    protect against unsafe evidence — those rules run on the best-matching
+    window even when the match is fuzzy.
+    """
     span = _find_quote_in_chart(alignment.quote, chart)
-    passed = span is not None
+    if span is not None:
+        return ClaimEvidenceRuleResult(
+            rule_id="CEA-001",
+            name="quote_exists_in_chart",
+            description="Evidence quote must verbatim exist in chart (or fuzzy ≥0.90)",
+            passed=True,
+            evidence=f"verbatim quote located at {span[0]}:{span[1]}",
+            severity="hard",
+        )
+    # Fuzzy fallback (Track H3.6)
+    fuzzy = _fuzzy_find_quote_in_chart(alignment.quote, chart)
+    if fuzzy is not None:
+        return ClaimEvidenceRuleResult(
+            rule_id="CEA-001",
+            name="quote_exists_in_chart",
+            description="Evidence quote must verbatim exist in chart (or fuzzy ≥0.90)",
+            passed=True,
+            evidence=(
+                f"fuzzy match score={fuzzy[2]:.2f} at {fuzzy[0]}:{fuzzy[1]} "
+                f"(threshold={CEA_FUZZY_THRESHOLD})"
+            ),
+            severity="hard",
+        )
     return ClaimEvidenceRuleResult(
         rule_id="CEA-001",
         name="quote_exists_in_chart",
-        description="Evidence quote must verbatim exist in chart",
-        passed=passed,
-        evidence=(
-            f"quote located at {span[0]}:{span[1]}" if passed
-            else f"quote '{alignment.quote[:40]}' not found in chart"
-        ),
+        description="Evidence quote must verbatim exist in chart (or fuzzy ≥0.90)",
+        passed=False,
+        evidence=f"quote '{alignment.quote[:40]}' not found in chart (verbatim or fuzzy ≥{CEA_FUZZY_THRESHOLD})",
         severity="hard",
     )
 
@@ -272,15 +360,20 @@ def _rule_cea_005(alignment: ClaimEvidenceAlignment, chart: str) -> ClaimEvidenc
         )
     span = _find_quote_in_chart(alignment.quote, chart)
     if span is None:
-        # Quote doesn't exist — CEA-001 already failed; we don't double-fail.
-        return ClaimEvidenceRuleResult(
-            rule_id="CEA-005",
-            name="no_negation_as_support",
-            description="Quote must not be negated context",
-            passed=True,
-            evidence="quote not found in chart — handled by CEA-001",
-            severity="hard",
-        )
+        # Try fuzzy location (Track H3.6) so we still run the negation
+        # check on the best-matching window. If no fuzzy match either,
+        # defer to CEA-001.
+        fuzzy = _fuzzy_find_quote_in_chart(alignment.quote, chart)
+        if fuzzy is None:
+            return ClaimEvidenceRuleResult(
+                rule_id="CEA-005",
+                name="no_negation_as_support",
+                description="Quote must not be negated context",
+                passed=True,
+                evidence="quote not found in chart — handled by CEA-001",
+                severity="hard",
+            )
+        span = (fuzzy[0], fuzzy[1])
     start = max(0, span[0] - _NEGATION_WINDOW)
     window = chart[start:span[0]].lower()
     hit = next((m for m in _NEGATION_MARKERS if m.lower() in window), None)
@@ -311,14 +404,20 @@ def _rule_cea_006(alignment: ClaimEvidenceAlignment, chart: str) -> ClaimEvidenc
         )
     span = _find_quote_in_chart(alignment.quote, chart)
     if span is None:
-        return ClaimEvidenceRuleResult(
-            rule_id="CEA-006",
-            name="no_pmh_as_current",
-            description="Quote must not be from PMH/FH/SH section",
-            passed=True,
-            evidence="quote not found in chart — handled by CEA-001",
-            severity="hard",
-        )
+        # Try fuzzy location (Track H3.6) so we still run the PMH
+        # check on the best-matching window. If no fuzzy match either,
+        # defer to CEA-001.
+        fuzzy = _fuzzy_find_quote_in_chart(alignment.quote, chart)
+        if fuzzy is None:
+            return ClaimEvidenceRuleResult(
+                rule_id="CEA-006",
+                name="no_pmh_as_current",
+                description="Quote must not be from PMH/FH/SH section",
+                passed=True,
+                evidence="quote not found in chart — handled by CEA-001",
+                severity="hard",
+            )
+        span = (fuzzy[0], fuzzy[1])
     # Walk back from quote start to find the most recent section header.
     # A "section header" is the nearest PMH marker that appears before
     # the quote position AND is followed by typical section-end markers

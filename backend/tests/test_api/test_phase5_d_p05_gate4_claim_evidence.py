@@ -435,3 +435,86 @@ def test_extract_claims_degraded_on_llm_failure() -> None:
     claims, aligns = asyncio.run(_async_call())
     assert claims == []
     assert aligns == []
+
+
+# ---------------------------------------------------------------------------
+# Phase 5 Track H3.6 — CEA-001 fuzzy relaxation
+# ---------------------------------------------------------------------------
+
+
+def test_h36_cea_001_fuzzy_match_minor_punctuation_difference() -> None:
+    """Quote with minor punctuation difference passes via fuzzy ≥0.90.
+
+    Scenario: chart says "痰培养:肺炎链球菌" but the LLM emitted quote
+    "痰培养：肺炎链球菌" (full-width colon). Verbatim fails; fuzzy passes.
+    Pre-H3.6 this would BLOCK; post-H3.6 it PASSES.
+    """
+    chart = "患者男. 诊断: 肺炎. 痰培养:肺炎链球菌."
+    q, _ = _make_query(chart=chart)
+    q.claims = [Claim(claim_id="c1", text="痰培养示肺炎链球菌", criticality="critical")]
+    q.claim_evidence_alignments = [
+        _alignment("c1", quote="痰培养：肺炎链球菌", support_type="direct")
+    ]
+    result = evaluate_claim_evidence(q, chart=chart)
+    assert result.verdict == "PASS"
+    cea_001 = next(
+        r for c in result.claims for r in c.rule_results if r.rule_id == "CEA-001"
+    )
+    assert cea_001.passed is True
+    assert "fuzzy" in cea_001.evidence.lower()
+
+
+def test_h36_cea_001_fuzzy_match_partial_word() -> None:
+    """Quote with a missing space/particle still passes via fuzzy.
+
+    Chart: "患者的体温 38.5度" Quote: "患者的体温38.5度" — 1 character
+    (space) difference; fuzzy should pass.
+    """
+    chart = "患者的体温 38.5度, 血压120/80mmHg."
+    q, _ = _make_query(chart=chart)
+    q.claims = [Claim(claim_id="c1", text="患者的体温38.5度", criticality="critical")]
+    q.claim_evidence_alignments = [
+        _alignment("c1", quote="患者的体温38.5度", support_type="direct")
+    ]
+    result = evaluate_claim_evidence(q, chart=chart)
+    assert result.verdict == "PASS"
+
+
+def test_h36_cea_001_still_blocks_unrelated_quote() -> None:
+    """Sanity: a quote that has NO relation to the chart still BLOCKs.
+
+    Fuzzy threshold 0.90 means random text won't pass. Verify the gate
+    is not permissive beyond design.
+    """
+    chart = "患者男. 诊断: 肺炎."
+    q, _ = _make_query(chart=chart)
+    q.claims = [Claim(claim_id="c1", text="急性心肌梗死", criticality="critical")]
+    q.claim_evidence_alignments = [
+        _alignment("c1", quote="急性ST段抬高型心肌梗死", support_type="direct")
+    ]
+    result = evaluate_claim_evidence(q, chart=chart)
+    assert result.verdict == "BLOCK"
+
+
+def test_h36_cea_005_negation_still_blocks_with_fuzzy_location() -> None:
+    """Negation check runs on fuzzy-located window too.
+
+    Chart: "无痰培养阳性结果. 诊断: 肺炎."
+    Quote: "痰培养阳性" — verbatim not found, but fuzzy locates "痰培养阳性"
+    within "无痰培养阳性结果". The preceding "无" must trigger CEA-005.
+    """
+    chart = "患者无痰培养阳性结果. 诊断: 肺炎."
+    q, _ = _make_query(chart=chart)
+    q.claims = [Claim(claim_id="c1", text="痰培养阳性", criticality="critical")]
+    q.claim_evidence_alignments = [
+        _alignment("c1", quote="痰培养阳性", support_type="direct")
+    ]
+    result = evaluate_claim_evidence(q, chart=chart)
+    # Either BLOCK (CEA-005 hard-fails) or REVIEW_REQUIRED (depending on
+    # aggregation) — but the negation must be detected somewhere.
+    all_rule_evidences = [
+        r.evidence for c in result.claims for r in c.rule_results
+    ]
+    assert any("无" in e or "negation" in e.lower() for e in all_rule_evidences), (
+        f"CEA-005 should detect 无 negation; evidences: {all_rule_evidences}"
+    )

@@ -1,0 +1,60 @@
+{
+  "_meta": {
+    "source": "cdi_gap8_smoke10.json",
+    "subset": "corti3"
+  },
+  "cases": [
+    {
+      "case_id": "G8-CDI-GAP-001",
+      "category": "clear_gap",
+      "gap_dimensions": [
+        "severity",
+        "type"
+      ],
+      "chart_zh": "患者男性, 64岁, 因咳嗽咳痰伴发热3天入院。胸片示右下肺浸润影。WBC 14.5, T 38.3℃。入院诊断:肺炎。予头孢曲松+阿奇霉素治疗。既往:2型糖尿病、高血压。",
+      "chart_en": "64-year-old male admitted with productive cough and fever for 3 days. Chest X-ray shows right lower lobe infiltrate. WBC 14.5, T 38.3C. Admission diagnosis: pneumonia. Started on ceftriaxone and azithromycin. History: type 2 diabetes, hypertension.",
+      "expected": {
+        "query_count_min": 1,
+        "query_count_max": 3,
+        "expected_no_query": false,
+        "expected_query_topics": [
+          "肺炎严重程度",
+          "pneumonia severity",
+          "CAP vs HAP",
+          "社区获得性 vs 医院获得性"
+        ],
+        "notes": "Severity (CURB-65 / PSI) not documented; type of pneumonia (CAP/HAP) ambiguous"
+      }
+    },
+    {
+      "case_id": "G8-CDI-COMPLETE-011",
+      "category": "complete_chart",
+      "gap_dimensions": [],
+      "chart_zh": "患者男性, 45岁, 转移性右下腹痛1天, mcburney点压痛反跳痛阳性。WBC 13.2, 中性 85%。CT:阑尾肿胀, 周围渗出。术前诊断:急性阑尾炎(单纯性, 无穿孔)。行腹腔镜阑尾切除术。术后病理:急性单纯性阑尾炎。无并发症。术后恢复良好, 第3天出院。",
+      "chart_en": "45-year-old male with migrating right lower quadrant pain for 1 day, McBurney point tenderness and rebound positive. WBC 13.2, neutrophils 85%. CT: swollen appendix with surrounding exudate. Pre-op diagnosis: acute appendicitis (simple, no perforation). Underwent laparoscopic appendectomy. Pathology: acute simple appendicitis. No complications. Recovered well, discharged on day 3.",
+      "expected": {
+        "query_count_min": 0,
+        "query_count_max": 0,
+        "expected_no_query": true,
+        "expected_query_topics": [],
+        "notes": "Complete documentation: type, severity, etiology, procedure, pathology, complications, course all explicit"
+      }
+    },
+    {
+      "case_id": "G8-CDI-NEG-030",
+      "category": "negation_history",
+      "gap_dimensions": [
+        "etiology"
+      ],
+      "chart_zh": "患者男性, 40岁, 间断头痛。否认恶心、呕吐、畏光、畏声、视觉先兆、肢体无力。既往:无偏头痛史, 无颅脑外伤史, 无中枢神经系统肿瘤家族史。查体正常。",
+      "chart_en": "40-year-old male with intermittent headache. Denies nausea, vomiting, photophobia, phonophobia, visual aura, limb weakness. History: no migraine history, no head trauma, no family history of CNS tumors. Normal exam.",
+      "expected": {
+        "query_count_min": 0,
+        "query_count_max": 1,
+        "expected_no_query": true,
+        "expected_query_topics": [],
+        "notes": "All red flags denied — agent should not generate migraine or intracranial lesion query"
+      }
+    }
+  ]
+}

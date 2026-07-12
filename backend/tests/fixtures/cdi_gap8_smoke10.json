@@ -1,0 +1,183 @@
+{
+  "_meta": {
+    "source": "cdi_gate8_40cases.json",
+    "subset": "smoke10"
+  },
+  "cases": [
+    {
+      "case_id": "G8-CDI-GAP-001",
+      "category": "clear_gap",
+      "gap_dimensions": [
+        "severity",
+        "type"
+      ],
+      "chart_zh": "患者男性, 64岁, 因咳嗽咳痰伴发热3天入院。胸片示右下肺浸润影。WBC 14.5, T 38.3℃。入院诊断:肺炎。予头孢曲松+阿奇霉素治疗。既往:2型糖尿病、高血压。",
+      "chart_en": "64-year-old male admitted with productive cough and fever for 3 days. Chest X-ray shows right lower lobe infiltrate. WBC 14.5, T 38.3C. Admission diagnosis: pneumonia. Started on ceftriaxone and azithromycin. History: type 2 diabetes, hypertension.",
+      "expected": {
+        "query_count_min": 1,
+        "query_count_max": 3,
+        "expected_no_query": false,
+        "expected_query_topics": [
+          "肺炎严重程度",
+          "pneumonia severity",
+          "CAP vs HAP",
+          "社区获得性 vs 医院获得性"
+        ],
+        "notes": "Severity (CURB-65 / PSI) not documented; type of pneumonia (CAP/HAP) ambiguous"
+      }
+    },
+    {
+      "case_id": "G8-CDI-GAP-005",
+      "category": "clear_gap",
+      "gap_dimensions": [
+        "course",
+        "complication"
+      ],
+      "chart_zh": "患者男性, 68岁, 慢性阻塞性肺疾病10年, 咳嗽气促加重3天。血气:pH 7.34, PaCO2 62, PaO2 55。入院诊断:慢阻肺急性加重。",
+      "chart_en": "68-year-old male, COPD for 10 years, increased cough and dyspnea for 3 days. ABG: pH 7.34, PaCO2 62, PaO2 55. Admission diagnosis: COPD acute exacerbation.",
+      "expected": {
+        "query_count_min": 1,
+        "query_count_max": 2,
+        "expected_no_query": false,
+        "expected_query_topics": [
+          "II型呼吸衰竭",
+          "Type 2 respiratory failure",
+          "acute vs chronic respiratory failure"
+        ],
+        "notes": "Type 2 respiratory failure evident from ABG but not documented as diagnosis"
+      }
+    },
+    {
+      "case_id": "G8-CDI-COMPLETE-011",
+      "category": "complete_chart",
+      "gap_dimensions": [],
+      "chart_zh": "患者男性, 45岁, 转移性右下腹痛1天, mcburney点压痛反跳痛阳性。WBC 13.2, 中性 85%。CT:阑尾肿胀, 周围渗出。术前诊断:急性阑尾炎(单纯性, 无穿孔)。行腹腔镜阑尾切除术。术后病理:急性单纯性阑尾炎。无并发症。术后恢复良好, 第3天出院。",
+      "chart_en": "45-year-old male with migrating right lower quadrant pain for 1 day, McBurney point tenderness and rebound positive. WBC 13.2, neutrophils 85%. CT: swollen appendix with surrounding exudate. Pre-op diagnosis: acute appendicitis (simple, no perforation). Underwent laparoscopic appendectomy. Pathology: acute simple appendicitis. No complications. Recovered well, discharged on day 3.",
+      "expected": {
+        "query_count_min": 0,
+        "query_count_max": 0,
+        "expected_no_query": true,
+        "expected_query_topics": [],
+        "notes": "Complete documentation: type, severity, etiology, procedure, pathology, complications, course all explicit"
+      }
+    },
+    {
+      "case_id": "G8-CDI-COMPLETE-013",
+      "category": "complete_chart",
+      "gap_dimensions": [],
+      "chart_zh": "患者男性, 28岁, 健康体检。BMI 23, BP 118/76。无吸烟饮酒史。既往无特殊。查体正常。血脂、血糖、肝肾功能均正常。诊断:健康体检, 无异常发现。建议:定期随访。",
+      "chart_en": "28-year-old male, routine health examination. BMI 23, BP 118/76. No smoking or alcohol use. Unremarkable history. Normal physical examination. Lipids, glucose, liver and renal function all normal. Diagnosis: health examination, no abnormal findings. Recommendation: routine follow-up.",
+      "expected": {
+        "query_count_min": 0,
+        "query_count_max": 0,
+        "expected_no_query": true,
+        "expected_query_topics": [],
+        "notes": "Healthy adult exam — nothing to query"
+      }
+    },
+    {
+      "case_id": "G8-CDI-INSUF-021",
+      "category": "insufficient_evidence",
+      "gap_dimensions": [
+        "unknown"
+      ],
+      "chart_zh": "患者主诉腹痛。建议进一步检查。",
+      "chart_en": "Patient complains of abdominal pain. Recommend further workup.",
+      "expected": {
+        "query_count_min": 0,
+        "query_count_max": 1,
+        "expected_no_query": false,
+        "expected_query_topics": [],
+        "notes": "Minimal info — agent should NOT invent a diagnosis or generate specific-topic query"
+      }
+    },
+    {
+      "case_id": "G8-CDI-NEG-026",
+      "category": "negation_history",
+      "gap_dimensions": [
+        "etiology"
+      ],
+      "chart_zh": "患者男性, 55岁, 多饮多尿1周。既往:高血压5年。否认糖尿病、冠心病、慢性肾病。家族史:父亲糖尿病。入院诊断:2型糖尿病?",
+      "chart_en": "55-year-old male with polyuria and polydipsia for 1 week. History: hypertension for 5 years. Denies diabetes, coronary artery disease, chronic kidney disease. Family history: father with diabetes. Admission diagnosis: type 2 diabetes?",
+      "expected": {
+        "query_count_min": 0,
+        "query_count_max": 1,
+        "expected_no_query": false,
+        "expected_query_topics": [
+          "diabetes type confirmation"
+        ],
+        "notes": "Diagnosis marked uncertain (?); must not assume T2DM without workup"
+      }
+    },
+    {
+      "case_id": "G8-CDI-NEG-030",
+      "category": "negation_history",
+      "gap_dimensions": [
+        "etiology"
+      ],
+      "chart_zh": "患者男性, 40岁, 间断头痛。否认恶心、呕吐、畏光、畏声、视觉先兆、肢体无力。既往:无偏头痛史, 无颅脑外伤史, 无中枢神经系统肿瘤家族史。查体正常。",
+      "chart_en": "40-year-old male with intermittent headache. Denies nausea, vomiting, photophobia, phonophobia, visual aura, limb weakness. History: no migraine history, no head trauma, no family history of CNS tumors. Normal exam.",
+      "expected": {
+        "query_count_min": 0,
+        "query_count_max": 1,
+        "expected_no_query": true,
+        "expected_query_topics": [],
+        "notes": "All red flags denied — agent should not generate migraine or intracranial lesion query"
+      }
+    },
+    {
+      "case_id": "G8-CDI-CONFLICT-031",
+      "category": "document_conflict",
+      "gap_dimensions": [
+        "site"
+      ],
+      "chart_zh": "患者男性, 42岁, 外伤入院。入院诊断:左侧肋骨骨折。出院诊断:右侧肋骨骨折。手术记录:右胸第5肋骨折固定术。初步诊断:左胸外伤。CT报告:右侧肋骨骨折。",
+      "chart_en": "42-year-old male admitted for trauma. Admission diagnosis: left rib fracture. Discharge diagnosis: right rib fracture. Operative record: right chest 5th rib fracture fixation. Initial diagnosis: left chest trauma. CT report: right rib fracture.",
+      "expected": {
+        "query_count_min": 1,
+        "query_count_max": 2,
+        "expected_no_query": false,
+        "expected_query_topics": [
+          "骨折侧别",
+          "laterality of fracture"
+        ],
+        "notes": "Left vs right inconsistency across documents"
+      }
+    },
+    {
+      "case_id": "G8-CDI-CONFLICT-033",
+      "category": "document_conflict",
+      "gap_dimensions": [
+        "severity"
+      ],
+      "chart_zh": "患者男性, 70岁, COPD史。入院诊断:COPD急性加重, 重度。血气分析:pH 7.38, PaCO2 56, PaO2 70。病程记录:COPD急性加重, 轻度。出院诊断:COPD急性加重, 中度。",
+      "chart_en": "70-year-old male with COPD history. Admission diagnosis: COPD acute exacerbation, severe. ABG: pH 7.38, PaCO2 56, PaO2 70. Progress note: COPD acute exacerbation, mild. Discharge diagnosis: COPD acute exacerbation, moderate.",
+      "expected": {
+        "query_count_min": 1,
+        "query_count_max": 2,
+        "expected_no_query": false,
+        "expected_query_topics": [
+          "加重严重程度",
+          "exacerbation severity"
+        ],
+        "notes": "Three different severity levels across documents"
+      }
+    },
+    {
+      "case_id": "G8-CDI-LAB-036",
+      "category": "lab_positive_uncertain",
+      "gap_dimensions": [
+        "correlation"
+      ],
+      "chart_zh": "患者男性, 45岁, 体检。无消化道症状。便潜血免疫法阳性。Hb 145, MCV 88。无贫血。既往:无。建议:复查便潜血, 必要时肠镜。",
+      "chart_en": "45-year-old male, health examination. No GI symptoms. Fecal immunochemical test positive. Hb 145, MCV 88. No anemia. History: unremarkable. Recommendation: repeat FIT, consider colonoscopy.",
+      "expected": {
+        "query_count_min": 0,
+        "query_count_max": 1,
+        "expected_no_query": false,
+        "expected_query_topics": [],
+        "notes": "Single positive lab without supporting evidence — must not assume GI malignancy"
+      }
+    }
+  ]
+}

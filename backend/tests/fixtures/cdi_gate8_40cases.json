@@ -1,0 +1,586 @@
+{
+  "_meta": {
+    "version": "1.0",
+    "created": "2026-07-12",
+    "purpose": "Phase 5 Track D P0.5 Gate 8 — 40-case Corti Teacher Calibration",
+    "spec": "Master Task §9.4",
+    "categories": {
+      "clear_gap": 10,
+      "complete_chart": 10,
+      "insufficient_evidence": 5,
+      "negation_history": 5,
+      "document_conflict": 5,
+      "lab_positive_uncertain": 5
+    },
+    "dimensions_covered": ["type", "etiology", "severity", "acuity", "site", "course", "complication", "count", "correlation", "unknown"],
+    "language_constraint": "Bilingual — chart_zh for iCoDer, chart_en for Corti (English-only per principles)",
+    "deidentification": "Per §9.3 — no names, IDs, phones, addresses"
+  },
+  "cases": [
+    {
+      "case_id": "G8-CDI-GAP-001",
+      "category": "clear_gap",
+      "gap_dimensions": ["severity", "type"],
+      "chart_zh": "患者男性, 64岁, 因咳嗽咳痰伴发热3天入院。胸片示右下肺浸润影。WBC 14.5, T 38.3℃。入院诊断:肺炎。予头孢曲松+阿奇霉素治疗。既往:2型糖尿病、高血压。",
+      "chart_en": "64-year-old male admitted with productive cough and fever for 3 days. Chest X-ray shows right lower lobe infiltrate. WBC 14.5, T 38.3C. Admission diagnosis: pneumonia. Started on ceftriaxone and azithromycin. History: type 2 diabetes, hypertension.",
+      "expected": {
+        "query_count_min": 1,
+        "query_count_max": 3,
+        "expected_no_query": false,
+        "expected_query_topics": ["肺炎严重程度", "pneumonia severity", "CAP vs HAP", "社区获得性 vs 医院获得性"],
+        "notes": "Severity (CURB-65 / PSI) not documented; type of pneumonia (CAP/HAP) ambiguous"
+      }
+    },
+    {
+      "case_id": "G8-CDI-GAP-002",
+      "category": "clear_gap",
+      "gap_dimensions": ["acuity", "etiology"],
+      "chart_zh": "患者女性, 72岁, 因意识模糊1天入急诊。BP 86/52, HR 124, T 38.1℃。血培养已抽。乳酸 4.2。入院诊断:脓毒症。予经验性抗生素治疗。",
+      "chart_en": "72-year-old female presents to ED with altered mental status for 1 day. BP 86/52, HR 124, T 38.1C. Blood cultures drawn. Lactate 4.2. Admission diagnosis: sepsis. Empiric antibiotics started.",
+      "expected": {
+        "query_count_min": 1,
+        "query_count_max": 3,
+        "expected_no_query": false,
+        "expected_query_topics": ["脓毒症休克", "septic shock", "感染源", "source of infection"],
+        "notes": "Septic shock vs sepsis without shock ambiguous; infection source not specified"
+      }
+    },
+    {
+      "case_id": "G8-CDI-GAP-003",
+      "category": "clear_gap",
+      "gap_dimensions": ["type", "site"],
+      "chart_zh": "患者男性, 58岁, 持续胸痛2小时。心电图:前壁导联ST段抬高。肌钙蛋白I升高。冠脉造影:前降支近段100%闭塞。行PCI。入院诊断:急性心肌梗死。",
+      "chart_en": "58-year-old male with persistent chest pain for 2 hours. ECG: anterior leads ST elevation. Troponin I elevated. Angiography: 100% proximal LAD occlusion. PCI performed. Admission diagnosis: acute myocardial infarction.",
+      "expected": {
+        "query_count_min": 1,
+        "query_count_max": 3,
+        "expected_no_query": false,
+        "expected_query_topics": ["STEMI vs NSTEMI", "心梗类型"],
+        "notes": "STEMI subtype (anterior/inferior) not explicit in diagnosis despite ECG evidence"
+      }
+    },
+    {
+      "case_id": "G8-CDI-GAP-004",
+      "category": "clear_gap",
+      "gap_dimensions": ["etiology", "severity"],
+      "chart_zh": "患者女性, 55岁, 上腹痛2天, 淀粉酶 580。CT:胰腺肿胀伴渗出。入院诊断:急性胰腺炎。既往:胆石症。",
+      "chart_en": "55-year-old female with epigastric pain for 2 days, lipase 580. CT: pancreatic swelling with exudate. Admission diagnosis: acute pancreatitis. History: cholelithiasis.",
+      "expected": {
+        "query_count_min": 1,
+        "query_count_max": 2,
+        "expected_no_query": false,
+        "expected_query_topics": ["胆源性 vs 酒精性", "biliary vs alcoholic", "Ranson / APACHE severity"],
+        "notes": "Etiology (biliary vs other) implicit but not documented as diagnosis"
+      }
+    },
+    {
+      "case_id": "G8-CDI-GAP-005",
+      "category": "clear_gap",
+      "gap_dimensions": ["course", "complication"],
+      "chart_zh": "患者男性, 68岁, 慢性阻塞性肺疾病10年, 咳嗽气促加重3天。血气:pH 7.34, PaCO2 62, PaO2 55。入院诊断:慢阻肺急性加重。",
+      "chart_en": "68-year-old male, COPD for 10 years, increased cough and dyspnea for 3 days. ABG: pH 7.34, PaCO2 62, PaO2 55. Admission diagnosis: COPD acute exacerbation.",
+      "expected": {
+        "query_count_min": 1,
+        "query_count_max": 2,
+        "expected_no_query": false,
+        "expected_query_topics": ["II型呼吸衰竭", "Type 2 respiratory failure", "acute vs chronic respiratory failure"],
+        "notes": "Type 2 respiratory failure evident from ABG but not documented as diagnosis"
+      }
+    },
+    {
+      "case_id": "G8-CDI-GAP-006",
+      "category": "clear_gap",
+      "gap_dimensions": ["severity", "complication"],
+      "chart_zh": "患者男性, 60岁, 乏力1月。Hb 65, MCV 72。血清铁 4.5, 铁蛋白 8。便潜血阳性。入院诊断:贫血。",
+      "chart_en": "60-year-old male with fatigue for 1 month. Hb 65, MCV 72. Serum iron 4.5, ferritin 8. Fecal occult blood positive. Admission diagnosis: anemia.",
+      "expected": {
+        "query_count_min": 1,
+        "query_count_max": 3,
+        "expected_no_query": false,
+        "expected_query_topics": ["缺铁性贫血", "iron deficiency anemia", "慢性失血", "chronic blood loss", "GI malignancy workup"],
+        "notes": "Iron deficiency anemia implied by labs but not in diagnosis; GI source unworked up"
+      }
+    },
+    {
+      "case_id": "G8-CDI-GAP-007",
+      "category": "clear_gap",
+      "gap_dimensions": ["type", "acuity"],
+      "chart_zh": "患者女性, 70岁, 突发左侧肢体无力2小时。头颅CT:未见出血。NIHSS 8。入院诊断:脑梗死。",
+      "chart_en": "70-year-old female with sudden left-sided weakness for 2 hours. Head CT: no hemorrhage. NIHSS 8. Admission diagnosis: cerebral infarction.",
+      "expected": {
+        "query_count_min": 1,
+        "query_count_max": 2,
+        "expected_no_query": false,
+        "expected_query_topics": ["急性缺血性卒中", "acute ischemic stroke", "前循环 vs 后循环", "anterior vs posterior circulation"],
+        "notes": "Acute ischemic stroke eligible for tPA but subtype and territory unspecified"
+      }
+    },
+    {
+      "case_id": "G8-CDI-GAP-008",
+      "category": "clear_gap",
+      "gap_dimensions": ["count", "complication"],
+      "chart_zh": "患者男性, 45岁, 多饮多尿1月。FPG 12.5, HbA1c 11.2, pH 7.30, HCO3 16, 酮体阳性。入院诊断:2型糖尿病。",
+      "chart_en": "45-year-old male with polyuria and polydipsia for 1 month. FPG 12.5, HbA1c 11.2, pH 7.30, HCO3 16, ketones positive. Admission diagnosis: type 2 diabetes.",
+      "expected": {
+        "query_count_min": 1,
+        "query_count_max": 2,
+        "expected_no_query": false,
+        "expected_query_topics": ["DKA", "diabetic ketoacidosis"],
+        "notes": "DKA clearly present from labs but not documented as a separate diagnosis"
+      }
+    },
+    {
+      "case_id": "G8-CDI-GAP-009",
+      "category": "clear_gap",
+      "gap_dimensions": ["etiology", "site"],
+      "chart_zh": "患者女性, 50岁, 右上腹痛2天。Murphy征阳性。B超:胆囊壁增厚, 胆囊多发结石, 胆总管直径 9mm。肝功能:ALT 120, AST 95, ALP 280, TBIL 45。入院诊断:急性胆囊炎。",
+      "chart_en": "50-year-old female with right upper quadrant pain for 2 days. Murphy sign positive. Ultrasound: gallbladder wall thickening, multiple gallstones, common bile duct diameter 9mm. LFTs: ALT 120, AST 95, ALP 280, TBIL 45. Admission diagnosis: acute cholecystitis.",
+      "expected": {
+        "query_count_min": 1,
+        "query_count_max": 2,
+        "expected_no_query": false,
+        "expected_query_topics": ["胆总管结石", "choledocholithiasis", "胆管炎", "cholangitis"],
+        "notes": "CBD dilated + biliary obstruction labs suggest choledocholithiasis not documented"
+      }
+    },
+    {
+      "case_id": "G8-CDI-GAP-010",
+      "category": "clear_gap",
+      "gap_dimensions": ["severity", "course"],
+      "chart_zh": "患者男性, 62岁, 乙肝肝硬化史, 呕血1天。Hb 75, BP 95/60, HR 110。胃镜:食管静脉曲张出血, 已套扎。入院诊断:上消化道出血。",
+      "chart_en": "62-year-old male with hepatitis B cirrhosis history, hematemesis for 1 day. Hb 75, BP 95/60, HR 110. Endoscopy: esophageal variceal bleeding, banded. Admission diagnosis: upper GI bleed.",
+      "expected": {
+        "query_count_min": 1,
+        "query_count_max": 2,
+        "expected_no_query": false,
+        "expected_query_topics": ["食管静脉曲张破裂出血", "esophageal variceal hemorrhage"],
+        "notes": "Variceal bleed specific cause not in admission diagnosis despite endoscopy"
+      }
+    },
+
+    {
+      "case_id": "G8-CDI-COMPLETE-011",
+      "category": "complete_chart",
+      "gap_dimensions": [],
+      "chart_zh": "患者男性, 45岁, 转移性右下腹痛1天, mcburney点压痛反跳痛阳性。WBC 13.2, 中性 85%。CT:阑尾肿胀, 周围渗出。术前诊断:急性阑尾炎(单纯性, 无穿孔)。行腹腔镜阑尾切除术。术后病理:急性单纯性阑尾炎。无并发症。术后恢复良好, 第3天出院。",
+      "chart_en": "45-year-old male with migrating right lower quadrant pain for 1 day, McBurney point tenderness and rebound positive. WBC 13.2, neutrophils 85%. CT: swollen appendix with surrounding exudate. Pre-op diagnosis: acute appendicitis (simple, no perforation). Underwent laparoscopic appendectomy. Pathology: acute simple appendicitis. No complications. Recovered well, discharged on day 3.",
+      "expected": {
+        "query_count_min": 0,
+        "query_count_max": 0,
+        "expected_no_query": true,
+        "expected_query_topics": [],
+        "notes": "Complete documentation: type, severity, etiology, procedure, pathology, complications, course all explicit"
+      }
+    },
+    {
+      "case_id": "G8-CDI-COMPLETE-012",
+      "category": "complete_chart",
+      "gap_dimensions": [],
+      "chart_zh": "患者女性, 32岁, 第2胎, 孕39周, 自然分娩, 男活婴, 体重 3350g。产程顺利, 出血 200ml。Apgar 评分 1/5/10分钟均 10分。产后恢复好, 母乳喂养。第3天出院。诊断:足月顺产, 单胎, 活婴。",
+      "chart_en": "32-year-old female, G2, 39 weeks gestation, spontaneous vaginal delivery, live male infant, weight 3350g. Labor uneventful, blood loss 200ml. Apgar scores 10 at 1, 5, 10 minutes. Postpartum recovery good, breastfeeding. Discharged on day 3. Diagnosis: term spontaneous vaginal delivery, singleton, live infant.",
+      "expected": {
+        "query_count_min": 0,
+        "query_count_max": 0,
+        "expected_no_query": true,
+        "expected_query_topics": [],
+        "notes": "Normal delivery — nothing to query"
+      }
+    },
+    {
+      "case_id": "G8-CDI-COMPLETE-013",
+      "category": "complete_chart",
+      "gap_dimensions": [],
+      "chart_zh": "患者男性, 28岁, 健康体检。BMI 23, BP 118/76。无吸烟饮酒史。既往无特殊。查体正常。血脂、血糖、肝肾功能均正常。诊断:健康体检, 无异常发现。建议:定期随访。",
+      "chart_en": "28-year-old male, routine health examination. BMI 23, BP 118/76. No smoking or alcohol use. Unremarkable history. Normal physical examination. Lipids, glucose, liver and renal function all normal. Diagnosis: health examination, no abnormal findings. Recommendation: routine follow-up.",
+      "expected": {
+        "query_count_min": 0,
+        "query_count_max": 0,
+        "expected_no_query": true,
+        "expected_query_topics": [],
+        "notes": "Healthy adult exam — nothing to query"
+      }
+    },
+    {
+      "case_id": "G8-CDI-COMPLETE-014",
+      "category": "complete_chart",
+      "gap_dimensions": [],
+      "chart_zh": "患者男性, 5岁, 因急性中耳炎就诊。耳痛2天, T 38.0℃。耳镜:右耳鼓膜充血膨隆, 无穿孔。诊断:急性化脓性中耳炎(右)。予阿莫西林克拉维酸钾口服7天。3天后复诊症状缓解。",
+      "chart_en": "5-year-old male, presents with acute otitis media. Ear pain 2 days, T 38.0C. Otoscopy: right tympanic membrane erythematous and bulging, no perforation. Diagnosis: acute purulent otitis media (right). Prescribed amoxicillin-clavulanate orally for 7 days. Follow-up at 3 days showed symptom improvement.",
+      "expected": {
+        "query_count_min": 0,
+        "query_count_max": 0,
+        "expected_no_query": true,
+        "expected_query_topics": [],
+        "notes": "Pediatric AOM with laterality, severity, etiology all explicit"
+      }
+    },
+    {
+      "case_id": "G8-CDI-COMPLETE-015",
+      "category": "complete_chart",
+      "gap_dimensions": [],
+      "chart_zh": "患者女性, 40岁, 胆囊结石史2年, 间断右上腹隐痛。择期行腹腔镜胆囊切除术。术中见:胆囊大小正常, 内含1枚 1.5cm 胆固醇性结石, 无粘连。手术顺利, 出血 50ml。术后病理:慢性胆囊炎伴胆固醇结石。术后第2天出院。",
+      "chart_en": "40-year-old female, cholelithiasis for 2 years, intermittent right upper quadrant discomfort. Elective laparoscopic cholecystectomy. Intraoperative findings: normal-sized gallbladder with single 1.5cm cholesterol stone, no adhesions. Procedure uneventful, blood loss 50ml. Pathology: chronic cholecystitis with cholesterol stone. Discharged post-op day 2.",
+      "expected": {
+        "query_count_min": 0,
+        "query_count_max": 0,
+        "expected_no_query": true,
+        "expected_query_topics": [],
+        "notes": "Elective uncomplicated cholecystectomy with full documentation"
+      }
+    },
+    {
+      "case_id": "G8-CDI-COMPLETE-016",
+      "category": "complete_chart",
+      "gap_dimensions": [],
+      "chart_zh": "患者男性, 50岁, 2型糖尿病5年, 二甲双胍治疗。复查:HbA1c 6.8, FPG 6.5。BP 125/78, BMI 24。无糖尿病并发症。视网膜检查正常, 微量白蛋白尿阴性, 神经传导正常。诊断:2型糖尿病, 控制良好, 无并发症。",
+      "chart_en": "50-year-old male, type 2 diabetes for 5 years, on metformin. Follow-up: HbA1c 6.8, FPG 6.5. BP 125/78, BMI 24. No diabetic complications. Normal retinal exam, negative microalbuminuria, normal nerve conduction. Diagnosis: type 2 diabetes, well controlled, no complications.",
+      "expected": {
+        "query_count_min": 0,
+        "query_count_max": 0,
+        "expected_no_query": true,
+        "expected_query_topics": [],
+        "notes": "T2DM well-controlled with full complication screening — nothing missing"
+      }
+    },
+    {
+      "case_id": "G8-CDI-COMPLETE-017",
+      "category": "complete_chart",
+      "gap_dimensions": [],
+      "chart_zh": "患者男性, 35岁, 右手中指腱鞘囊肿切除术后第7天复诊。伤口愈合良好, 无红肿渗液。手指活动正常, 感觉正常。术后病理:腱鞘囊肿。诊断:右手中指腱鞘囊肿术后, 一期愈合。",
+      "chart_en": "35-year-old male, post-op day 7 follow-up after right middle finger ganglion cyst excision. Wound healing well, no erythema or discharge. Normal finger range of motion and sensation. Pathology: ganglion cyst. Diagnosis: status post right middle finger ganglion cyst excision, primary healing.",
+      "expected": {
+        "query_count_min": 0,
+        "query_count_max": 0,
+        "expected_no_query": true,
+        "expected_query_topics": [],
+        "notes": "Minor surgery post-op follow-up — fully documented"
+      }
+    },
+    {
+      "case_id": "G8-CDI-COMPLETE-018",
+      "category": "complete_chart",
+      "gap_dimensions": [],
+      "chart_zh": "患者女性, 28岁, 孕12周首次产检。血压正常, 无水肿, 无蛋白尿。血常规、尿常规、肝肾功能、糖耐量均正常。胎儿超声:宫内孕, 单胎, CRL 58mm, 胎心 160次/分。诊断:宫内孕12周, 单胎, 活胎。",
+      "chart_en": "28-year-old female, first prenatal visit at 12 weeks gestation. Normal blood pressure, no edema, no proteinuria. CBC, urinalysis, liver/renal function, glucose tolerance all normal. Fetal ultrasound: intrauterine pregnancy, singleton, CRL 58mm, fetal heart rate 160. Diagnosis: intrauterine pregnancy 12 weeks, singleton, viable fetus.",
+      "expected": {
+        "query_count_min": 0,
+        "query_count_max": 0,
+        "expected_no_query": true,
+        "expected_query_topics": [],
+        "notes": "Normal first-trimester prenatal visit — fully documented"
+      }
+    },
+    {
+      "case_id": "G8-CDI-COMPLETE-019",
+      "category": "complete_chart",
+      "gap_dimensions": [],
+      "chart_zh": "患者男性, 65岁, 高血压10年, 缬沙坦 80mg qd 治疗。BP 132/82。心超:左室射血分数 65%, 室壁运动正常, 无左室肥厚。心电图:窦性心律。诊断:原发性高血压1级(控制良好), 无靶器官损害。",
+      "chart_en": "65-year-old male, hypertension for 10 years, on valsartan 80mg daily. BP 132/82. Echocardiogram: LVEF 65%, normal wall motion, no LVH. ECG: sinus rhythm. Diagnosis: essential hypertension grade 1 (well controlled), no target organ damage.",
+      "expected": {
+        "query_count_min": 0,
+        "query_count_max": 0,
+        "expected_no_query": true,
+        "expected_query_topics": [],
+        "notes": "HTN with grade, control status, and end-organ assessment all explicit"
+      }
+    },
+    {
+      "case_id": "G8-CDI-COMPLETE-020",
+      "category": "complete_chart",
+      "gap_dimensions": [],
+      "chart_zh": "患者女性, 30岁, 急性胃肠炎1天后复诊。症状完全缓解, 无腹痛腹泻呕吐。查体正常。大便常规正常。诊断:急性胃肠炎恢复期, 已治愈。建议:正常饮食。",
+      "chart_en": "30-year-old female, follow-up after acute gastroenteritis. Symptoms fully resolved, no abdominal pain, diarrhea, or vomiting. Normal physical exam. Normal stool studies. Diagnosis: acute gastroenteritis recovery, cured. Recommendation: resume normal diet.",
+      "expected": {
+        "query_count_min": 0,
+        "query_count_max": 0,
+        "expected_no_query": true,
+        "expected_query_topics": [],
+        "notes": "Resolved acute self-limited illness — nothing to query"
+      }
+    },
+
+    {
+      "case_id": "G8-CDI-INSUF-021",
+      "category": "insufficient_evidence",
+      "gap_dimensions": ["unknown"],
+      "chart_zh": "患者主诉腹痛。建议进一步检查。",
+      "chart_en": "Patient complains of abdominal pain. Recommend further workup.",
+      "expected": {
+        "query_count_min": 0,
+        "query_count_max": 1,
+        "expected_no_query": false,
+        "expected_query_topics": [],
+        "notes": "Minimal info — agent should NOT invent a diagnosis or generate specific-topic query"
+      }
+    },
+    {
+      "case_id": "G8-CDI-INSUF-022",
+      "category": "insufficient_evidence",
+      "gap_dimensions": ["unknown"],
+      "chart_zh": "患者男性, 50岁, 乏力。建议进一步检查。",
+      "chart_en": "50-year-old male with fatigue. Recommend further workup.",
+      "expected": {
+        "query_count_min": 0,
+        "query_count_max": 1,
+        "expected_no_query": false,
+        "expected_query_topics": [],
+        "notes": "Single non-specific symptom without workup — no diagnosis to clarify"
+      }
+    },
+    {
+      "case_id": "G8-CDI-INSUF-023",
+      "category": "insufficient_evidence",
+      "gap_dimensions": ["unknown"],
+      "chart_zh": "患者女性, 45岁, 头晕。既往史不详。建议完善相关检查。",
+      "chart_en": "45-year-old female with dizziness. Past history unknown. Recommend complete relevant workup.",
+      "expected": {
+        "query_count_min": 0,
+        "query_count_max": 1,
+        "expected_no_query": false,
+        "expected_query_topics": [],
+        "notes": "Vague symptom, no workup, no diagnosis — should not generate specific query"
+      }
+    },
+    {
+      "case_id": "G8-CDI-INSUF-024",
+      "category": "insufficient_evidence",
+      "gap_dimensions": ["unknown"],
+      "chart_zh": "患者男性, 70岁, 食欲下降1月, 体重减轻5kg。查体无明显异常。建议进一步检查。",
+      "chart_en": "70-year-old male with decreased appetite for 1 month, 5kg weight loss. No significant findings on exam. Recommend further workup.",
+      "expected": {
+        "query_count_min": 0,
+        "query_count_max": 1,
+        "expected_no_query": false,
+        "expected_query_topics": [],
+        "notes": "Concerning constitutional symptoms but no documented diagnosis to clarify"
+      }
+    },
+    {
+      "case_id": "G8-CDI-INSUF-025",
+      "category": "insufficient_evidence",
+      "gap_dimensions": ["unknown"],
+      "chart_zh": "患者女性, 35岁, 间断胸闷。查体正常。建议随访。",
+      "chart_en": "35-year-old female with intermittent chest tightness. Normal exam. Recommend follow-up.",
+      "expected": {
+        "query_count_min": 0,
+        "query_count_max": 1,
+        "expected_no_query": false,
+        "expected_query_topics": [],
+        "notes": "Symptom only, no workup, no diagnosis — agent should not propose cardiac query without evidence"
+      }
+    },
+
+    {
+      "case_id": "G8-CDI-NEG-026",
+      "category": "negation_history",
+      "gap_dimensions": ["etiology"],
+      "chart_zh": "患者男性, 55岁, 多饮多尿1周。既往:高血压5年。否认糖尿病、冠心病、慢性肾病。家族史:父亲糖尿病。入院诊断:2型糖尿病?",
+      "chart_en": "55-year-old male with polyuria and polydipsia for 1 week. History: hypertension for 5 years. Denies diabetes, coronary artery disease, chronic kidney disease. Family history: father with diabetes. Admission diagnosis: type 2 diabetes?",
+      "expected": {
+        "query_count_min": 0,
+        "query_count_max": 1,
+        "expected_no_query": false,
+        "expected_query_topics": ["diabetes type confirmation"],
+        "notes": "Diagnosis marked uncertain (?); must not assume T2DM without workup"
+      }
+    },
+    {
+      "case_id": "G8-CDI-NEG-027",
+      "category": "negation_history",
+      "gap_dimensions": ["etiology"],
+      "chart_zh": "患者女性, 60岁, 咳嗽1周。否认发热、咳脓痰、咯血、胸痛。既往:高血压。查体:双肺清晰。胸片:未见活动性病变。",
+      "chart_en": "60-year-old female with cough for 1 week. Denies fever, purulent sputum, hemoptysis, chest pain. History: hypertension. Exam: clear lungs bilaterally. Chest X-ray: no active lesions.",
+      "expected": {
+        "query_count_min": 0,
+        "query_count_max": 1,
+        "expected_no_query": false,
+        "expected_query_topics": [],
+        "notes": "All infection signs explicitly denied; agent should not generate CAP query"
+      }
+    },
+    {
+      "case_id": "G8-CDI-NEG-028",
+      "category": "negation_history",
+      "gap_dimensions": ["course"],
+      "chart_zh": "患者男性, 50岁, 急性阑尾炎切除术后10年。目前无症状。否认腹痛、发热、恶心、呕吐。查体正常。诊断:阑尾切除术后状态。",
+      "chart_en": "50-year-old male, status post appendectomy for acute appendicitis 10 years ago. Currently asymptomatic. Denies abdominal pain, fever, nausea, vomiting. Normal exam. Diagnosis: status post appendectomy.",
+      "expected": {
+        "query_count_min": 0,
+        "query_count_max": 1,
+        "expected_no_query": true,
+        "expected_query_topics": [],
+        "notes": "Historical condition only — should not query appendicitis complications"
+      }
+    },
+    {
+      "case_id": "G8-CDI-NEG-029",
+      "category": "negation_history",
+      "gap_dimensions": ["complication"],
+      "chart_zh": "患者女性, 75岁, 2型糖尿病20年。近期失访。否认多饮多尿加重、视物模糊、肢体麻木、水肿、间歇性跛行。查体:无糖尿病足, 触觉正常。HbA1c 7.2。",
+      "chart_en": "75-year-old female, type 2 diabetes for 20 years. Recently lost to follow-up. Denies increased polyuria/polydipsia, blurred vision, limb numbness, edema, intermittent claudication. Exam: no diabetic foot, normal touch sensation. HbA1c 7.2.",
+      "expected": {
+        "query_count_min": 0,
+        "query_count_max": 1,
+        "expected_no_query": false,
+        "expected_query_topics": [],
+        "notes": "All chronic complications explicitly denied — agent should not generate complication queries without evidence"
+      }
+    },
+    {
+      "case_id": "G8-CDI-NEG-030",
+      "category": "negation_history",
+      "gap_dimensions": ["etiology"],
+      "chart_zh": "患者男性, 40岁, 间断头痛。否认恶心、呕吐、畏光、畏声、视觉先兆、肢体无力。既往:无偏头痛史, 无颅脑外伤史, 无中枢神经系统肿瘤家族史。查体正常。",
+      "chart_en": "40-year-old male with intermittent headache. Denies nausea, vomiting, photophobia, phonophobia, visual aura, limb weakness. History: no migraine history, no head trauma, no family history of CNS tumors. Normal exam.",
+      "expected": {
+        "query_count_min": 0,
+        "query_count_max": 1,
+        "expected_no_query": true,
+        "expected_query_topics": [],
+        "notes": "All red flags denied — agent should not generate migraine or intracranial lesion query"
+      }
+    },
+
+    {
+      "case_id": "G8-CDI-CONFLICT-031",
+      "category": "document_conflict",
+      "gap_dimensions": ["site"],
+      "chart_zh": "患者男性, 42岁, 外伤入院。入院诊断:左侧肋骨骨折。出院诊断:右侧肋骨骨折。手术记录:右胸第5肋骨折固定术。初步诊断:左胸外伤。CT报告:右侧肋骨骨折。",
+      "chart_en": "42-year-old male admitted for trauma. Admission diagnosis: left rib fracture. Discharge diagnosis: right rib fracture. Operative record: right chest 5th rib fracture fixation. Initial diagnosis: left chest trauma. CT report: right rib fracture.",
+      "expected": {
+        "query_count_min": 1,
+        "query_count_max": 2,
+        "expected_no_query": false,
+        "expected_query_topics": ["骨折侧别", "laterality of fracture"],
+        "notes": "Left vs right inconsistency across documents"
+      }
+    },
+    {
+      "case_id": "G8-CDI-CONFLICT-032",
+      "category": "document_conflict",
+      "gap_dimensions": ["type"],
+      "chart_zh": "患者女性, 65岁, 入院诊断:2型糖尿病。入院记录:既往无糖尿病史, 本次为初次发现。出院小结:糖尿病史10年, 平素血糖控制不佳。门诊病历:新发糖尿病。",
+      "chart_en": "65-year-old female, admission diagnosis: type 2 diabetes. Admission record: no prior diabetes history, this is initial diagnosis. Discharge summary: diabetes for 10 years, historically poor glycemic control. Outpatient note: new-onset diabetes.",
+      "expected": {
+        "query_count_min": 1,
+        "query_count_max": 2,
+        "expected_no_query": false,
+        "expected_query_topics": ["糖尿病病程", "duration of diabetes", "新发 vs 慢性"],
+        "notes": "Duration conflict — new-onset vs 10-year history"
+      }
+    },
+    {
+      "case_id": "G8-CDI-CONFLICT-033",
+      "category": "document_conflict",
+      "gap_dimensions": ["severity"],
+      "chart_zh": "患者男性, 70岁, COPD史。入院诊断:COPD急性加重, 重度。血气分析:pH 7.38, PaCO2 56, PaO2 70。病程记录:COPD急性加重, 轻度。出院诊断:COPD急性加重, 中度。",
+      "chart_en": "70-year-old male with COPD history. Admission diagnosis: COPD acute exacerbation, severe. ABG: pH 7.38, PaCO2 56, PaO2 70. Progress note: COPD acute exacerbation, mild. Discharge diagnosis: COPD acute exacerbation, moderate.",
+      "expected": {
+        "query_count_min": 1,
+        "query_count_max": 2,
+        "expected_no_query": false,
+        "expected_query_topics": ["加重严重程度", "exacerbation severity"],
+        "notes": "Three different severity levels across documents"
+      }
+    },
+    {
+      "case_id": "G8-CDI-CONFLICT-034",
+      "category": "document_conflict",
+      "gap_dimensions": ["etiology"],
+      "chart_zh": "患者女性, 50岁, 急性胰腺炎。入院诊断:胆源性胰腺炎。MRI:未见胆总管结石, 胰腺肿胀渗出。饮酒史:每日白酒 100ml × 10年。出院诊断:特发性胰腺炎。",
+      "chart_en": "50-year-old female with acute pancreatitis. Admission diagnosis: biliary pancreatitis. MRI: no choledocholithiasis, pancreatic swelling with exudate. Alcohol history: 100ml liquor daily for 10 years. Discharge diagnosis: idiopathic pancreatitis.",
+      "expected": {
+        "query_count_min": 1,
+        "query_count_max": 2,
+        "expected_no_query": false,
+        "expected_query_topics": ["胰腺炎病因", "etiology of pancreatitis", "酒精性 vs 胆源性 vs 特发性"],
+        "notes": "Three different etiologies across documents — significant alcohol use ignored"
+      }
+    },
+    {
+      "case_id": "G8-CDI-CONFLICT-035",
+      "category": "document_conflict",
+      "gap_dimensions": ["count"],
+      "chart_zh": "患者男性, 58岁, 入院诊断:原发性高血压, 2型糖尿病。用药记录:二甲双胍, 缬沙坦, 胰岛素。病程记录:高血压, 糖尿病, 慢性肾病, 高脂血症。出院诊断:高血压, 糖尿病。",
+      "chart_en": "58-year-old male, admission diagnosis: essential hypertension, type 2 diabetes. Medication list: metformin, valsartan, insulin. Progress note: hypertension, diabetes, chronic kidney disease, hyperlipidemia. Discharge diagnosis: hypertension, diabetes.",
+      "expected": {
+        "query_count_min": 1,
+        "query_count_max": 2,
+        "expected_no_query": false,
+        "expected_query_topics": ["诊断数量", "comorbidity count", "CKD documentation"],
+        "notes": "Progress note mentions CKD + hyperlipidemia not in admission/discharge — insulin suggests more severe diabetes"
+      }
+    },
+
+    {
+      "case_id": "G8-CDI-LAB-036",
+      "category": "lab_positive_uncertain",
+      "gap_dimensions": ["correlation"],
+      "chart_zh": "患者男性, 45岁, 体检。无消化道症状。便潜血免疫法阳性。Hb 145, MCV 88。无贫血。既往:无。建议:复查便潜血, 必要时肠镜。",
+      "chart_en": "45-year-old male, health examination. No GI symptoms. Fecal immunochemical test positive. Hb 145, MCV 88. No anemia. History: unremarkable. Recommendation: repeat FIT, consider colonoscopy.",
+      "expected": {
+        "query_count_min": 0,
+        "query_count_max": 1,
+        "expected_no_query": false,
+        "expected_query_topics": [],
+        "notes": "Single positive lab without supporting evidence — must not assume GI malignancy"
+      }
+    },
+    {
+      "case_id": "G8-CDI-LAB-037",
+      "category": "lab_positive_uncertain",
+      "gap_dimensions": ["correlation"],
+      "chart_zh": "患者女性, 60岁, 体检。无症状。肿瘤标志物 CA-125 65 U/mL(参考值 < 35)。盆腔超声:子宫附件正常。既往:绝经5年。建议:随访 CA-125, 妇科会诊。",
+      "chart_en": "60-year-old female, health examination. Asymptomatic. Tumor marker CA-125 65 U/mL (reference < 35). Pelvic ultrasound: normal uterus and adnexa. History: postmenopausal for 5 years. Recommendation: follow-up CA-125, gynecology consult.",
+      "expected": {
+        "query_count_min": 0,
+        "query_count_max": 1,
+        "expected_no_query": false,
+        "expected_query_topics": [],
+        "notes": "Mildly elevated tumor marker without imaging correlate — must not assume ovarian cancer"
+      }
+    },
+    {
+      "case_id": "G8-CDI-LAB-038",
+      "category": "lab_positive_uncertain",
+      "gap_dimensions": ["correlation"],
+      "chart_zh": "患者男性, 50岁, 体检。无症状。HBsAg 阳性, Anti-HBs 阴性, HBeAg 阴性, Anti-HBe 阳性, HBV-DNA < 500。肝功能正常。腹部B超:肝脏回声均匀, 无肝硬化征象。既往:无。",
+      "chart_en": "50-year-old male, health examination. Asymptomatic. HBsAg positive, Anti-HBs negative, HBeAg negative, Anti-HBe positive, HBV-DNA < 500. Liver function normal. Abdominal ultrasound: homogeneous liver echo, no cirrhosis signs. History: unremarkable.",
+      "expected": {
+        "query_count_min": 0,
+        "query_count_max": 1,
+        "expected_no_query": false,
+        "expected_query_topics": [],
+        "notes": "Chronic HBsAg carrier, low viral load, no liver damage — must not query for active hepatitis"
+      }
+    },
+    {
+      "case_id": "G8-CDI-LAB-039",
+      "category": "lab_positive_uncertain",
+      "gap_dimensions": ["correlation"],
+      "chart_zh": "患者女性, 35岁, 孕28周产检。无糖路症状。75g OGTT: 0h 4.5, 1h 9.2, 2h 7.8。诊断:妊娠糖尿病(单项异常)。饮食运动控制。建议监测血糖。",
+      "chart_en": "35-year-old female, prenatal visit at 28 weeks. No urinary symptoms. 75g OGTT: 0h 4.5, 1h 9.2, 2h 7.8. Diagnosis: gestational diabetes mellitus (single abnormal value). Diet and exercise management. Recommendation: glucose monitoring.",
+      "expected": {
+        "query_count_min": 0,
+        "query_count_max": 1,
+        "expected_no_query": false,
+        "expected_query_topics": [],
+        "notes": "Borderline GDM with single abnormal OGTT value — already managed; agent should not propose insulin query"
+      }
+    },
+    {
+      "case_id": "G8-CDI-LAB-040",
+      "category": "lab_positive_uncertain",
+      "gap_dimensions": ["correlation"],
+      "chart_zh": "患者男性, 55岁, 体检。无症状, 无慢性病史。血脂:TC 5.8, LDL-C 3.6, HDL-C 1.0, TG 2.2。血压 130/85。BMI 25。10年心血管风险:5%。诊断:血脂异常。建议:饮食运动, 3月后复查。",
+      "chart_en": "55-year-old male, health examination. Asymptomatic, no chronic disease history. Lipids: TC 5.8, LDL-C 3.6, HDL-C 1.0, TG 2.2. BP 130/85. BMI 25. 10-year cardiovascular risk: 5%. Diagnosis: dyslipidemia. Recommendation: diet and exercise, repeat in 3 months.",
+      "expected": {
+        "query_count_min": 0,
+        "query_count_max": 1,
+        "expected_no_query": false,
+        "expected_query_topics": [],
+        "notes": "Mild dyslipidemia in low-risk patient — already managed; agent should not generate statin-query"
+      }
+    }
+  ]
+}

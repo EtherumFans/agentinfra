@@ -1,0 +1,228 @@
+{
+  "case_id": "CASE-bc80608ff12c",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-bc80608ff12c/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "慢性阻塞性肺疾病急性加重的严重程度未明确（如是否伴有呼吸衰竭）",
+      "why_it_matters": "影响编码对急性加重严重程度及合并症的区分，可能遗漏呼吸衰竭的诊断",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "入院诊断:慢阻肺急性加重"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-bc80608ff12c/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "血气分析结果提示II型呼吸衰竭，但未明确诊断呼吸衰竭",
+      "why_it_matters": "呼吸衰竭是重要的合并症，需明确诊断以准确编码",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "血气:pH 7.34, PaCO2 62, PaO2 55"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-bc80608ff12c/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "慢性阻塞性肺疾病的严重程度分级未明确（如GOLD分级）",
+      "why_it_matters": "影响慢性病管理的编码和风险调整",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "慢性阻塞性肺疾病10年"
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [],
+  "chart_excerpt_preview": "患者男性, 68岁, 慢性阻塞性肺疾病10年, 咳嗽气促加重3天。血气:pH 7.34, PaCO2 62, PaO2 55。入院诊断:慢阻肺急性加重。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "慢性阻塞性肺疾病10年",
+      "咳嗽气促加重3天",
+      "血气:pH 7.34, PaCO2 62, PaO2 55",
+      "入院诊断:慢阻肺急性加重"
+    ],
+    "encounter_metadata": {
+      "patient_age": "68",
+      "patient_sex": "男",
+      "encounter_type": "入院"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "根据病历记录，患者血气分析显示PaCO2 62 mmHg、PaO2 55 mmHg，已符合II型呼吸衰竭诊断标准，但入院诊断未明确标注“呼吸衰竭”。建议在诊断中明确“慢性阻塞性肺疾病急性加重伴II型呼吸衰竭”，并补充慢性阻塞性肺疾病的GOLD分级（如GOLD 3级或4级），以完整反映病情严重程度。",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 2701,
+      "tokens": 253
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "'分级' score — parameters absent from chart",
+      "route_decision": "missing_inputs",
+      "route_reason": "calculator_params_missing",
+      "execution_mode": "SKIPPED_MISSING_INPUTS",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-c0207313d21d",
+    "gap_identification": "run-f74c5dbd1157",
+    "expert_consultation": "run-32491a50b36b",
+    "query_generation": "run-fe85ca79e1a8",
+    "query_necessity_gate": "necessary=1;unnecessary=2;overquery_triggered=False;final_count=1",
+    "query_single_dimension_gate": "single_dim=1;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;final_count=1",
+    "claim_evidence_alignment_gate": "claims_extracted=4;blocked=1;flagged=0;final_count=0",
+    "claim_evidence_alignment_gate::run_id": "run-c4e8bf1c2a7a",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+    "semantic_necessity_gate::run_id": "run-a84afb1e010e",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "run-59c197c6fdcb"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-be3aa27ac149",
+    "gap_identification": "trace-21ee4709e1ac",
+    "expert_consultation": "trace-8dbf14062b16",
+    "query_generation": "trace-f1126a84b29d",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-f54a8d0c41db",
+    "semantic_necessity_gate": "trace-a1d77967246a",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-d518510aa8a8"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2093,
+      "prompt_tokens": 224,
+      "completion_tokens": 98,
+      "total_tokens": 322,
+      "run_id": "run-c0207313d21d",
+      "trace_id": "trace-be3aa27ac149",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 4812,
+      "prompt_tokens": 333,
+      "completion_tokens": 371,
+      "total_tokens": 704,
+      "run_id": "run-f74c5dbd1157",
+      "trace_id": "trace-21ee4709e1ac",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 4872,
+      "prompt_tokens": 441,
+      "completion_tokens": 572,
+      "total_tokens": 1013,
+      "run_id": "run-fe85ca79e1a8",
+      "trace_id": "trace-f1126a84b29d",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2701,
+      "prompt_tokens": 165,
+      "completion_tokens": 88,
+      "total_tokens": 253,
+      "run_id": "run-701df1cbc26f",
+      "trace_id": "trace-c522120e4a2d",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-f8f5c0f81bd9",
+      "trace_id": "trace-80838b829f55",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-0894294aae20",
+      "trace_id": "trace-a57073feeeba",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-114074787c0e",
+      "trace_id": "trace-82be4a08348c",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-07-12T03:55:41.613688Z"
+}

@@ -91,16 +91,34 @@ export interface CDIRunResponse {
   documentation_gaps: DocumentationGapDTO[];
   proposed_provider_queries: ProviderQueryDTO[];
   risk_flags: { category: string; description: string }[];
-  specialist_trace: {
-    expert_id: string;
-    consulted: boolean;
-    rationale: string;
-  }[];
+  specialist_trace: SpecialistTraceEntry[];
   stage_run_ids?: Record<string, string>;
   stage_trace_ids?: Record<string, string>;
   stage_traces: StageTrace[];
   degraded: boolean;
   runtime_mode: string;
+}
+
+/**
+ * Specialist Trace entry — Phase 5 Track D P0.5 Gate 5 extension.
+ *
+ * Each Expert (coding/pubmed/web/calculator) appears once per case with
+ * its routing decision, execution mode, and audit metadata.
+ */
+export interface SpecialistTraceEntry {
+  expert_id: string;
+  consulted: boolean;
+  rationale: string;
+  /** "needed" | "not_needed" | "missing_inputs" | "tool_unavailable" | "degraded" */
+  route_decision?: string;
+  /** Machine-readable route reason code, e.g. "coding_relevant_gap". */
+  route_reason?: string;
+  /** One of ExpertExecutionMode (REAL_TOOL / LLM_KNOWLEDGE_ONLY / SKIPPED_* / TOOL_UNAVAILABLE / DEGRADED). */
+  execution_mode?: string;
+  latency_ms?: number;
+  tokens?: number;
+  run_id?: string;
+  trace_id?: string;
 }
 
 export interface CDIHealthResponse {

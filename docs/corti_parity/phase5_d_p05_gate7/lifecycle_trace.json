@@ -1,0 +1,88 @@
+{
+  "case_id": "CASE-G7-ADMIN-001",
+  "query_id": "CASE-G7-ADMIN-001/Q-001",
+  "executed_at": "2026-07-12T02:15:01Z",
+  "executed_by": "g7admin (CDI role=admin) + g7clinician (CDI role=clinician)",
+  "9_step_lifecycle": [
+    {
+      "step": 1,
+      "transition": "DRAFT -> PENDING_CDI_REVIEW",
+      "driven_by": "admin (role_hint=cdi_specialist)",
+      "http_status": 200,
+      "nlq_gate_passed": true,
+      "nlq_inputs": {
+        "query_text": "请问该患者的肺炎严重程度如何?",
+        "response_options": ["轻度", "中度", "重度", "无法确定"],
+        "evidence_quote": "入院诊断:肺炎",
+        "topic": "肺炎严重程度"
+      }
+    },
+    {
+      "step": 2,
+      "transition": "PENDING_CDI_REVIEW -> APPROVED",
+      "driven_by": "admin",
+      "http_status": 200,
+      "priority": "urgent",
+      "sla_due_at": "2026-07-13T02:15:01.487376Z"
+    },
+    {
+      "step": 3,
+      "transition": "APPROVED -> SENT_TO_CLINICIAN",
+      "driven_by": "admin",
+      "http_status": 200,
+      "sent_at_persisted": true
+    },
+    {
+      "step": 4,
+      "transition": "SENT_TO_CLINICIAN -> VIEWED",
+      "driven_by": "clinician",
+      "http_status": 200,
+      "viewed_at_persisted": true
+    },
+    {
+      "step": 5,
+      "transition": "VIEWED -> RESPONDED",
+      "driven_by": "clinician",
+      "http_status": 200,
+      "responded_at_persisted": true
+    },
+    {
+      "step": 6,
+      "transition": "RESPONDED -> DOCUMENTATION_UPDATED",
+      "driven_by": "admin",
+      "http_status": 200
+    },
+    {
+      "step": 7,
+      "transition": "DOCUMENTATION_UPDATED -> REVALIDATED",
+      "driven_by": "admin",
+      "http_status": 200
+    },
+    {
+      "step": 8,
+      "transition": "REVALIDATED -> CLOSED",
+      "driven_by": "admin",
+      "http_status": 200,
+      "closed_at_persisted": true
+    }
+  ],
+  "rbac_summary": {
+    "admin_can_drive": "all 8 transitions (authored step 1 as cdi_specialist hint, drove 2-3 + 6-8 as admin)",
+    "clinician_can_drive": "steps 4-5 only (SENT_TO_CLINICIAN->VIEWED, VIEWED->RESPONDED)",
+    "auditor_can_drive": "nothing (read-only)",
+    "cdi_specialist_can_drive": "steps 1-3 + 6-7 (no clinician-side actions)"
+  },
+  "persistence_verified": {
+    "GET_runs_CASE-G7-ADMIN-001_after_step_8": {
+      "Q-001_lifecycle_state": "CLOSED",
+      "Q-001_chip_label": "已关闭",
+      "Q-002_lifecycle_state": "DRAFT (unchanged)"
+    }
+  },
+  "forbidden_items_respected": {
+    "no_production_ready_claim": true,
+    "no_icd_codes_visible_to_clinician": true,
+    "no_raw_run_id_or_trace_id_outside_tech_details": true,
+    "auditor_no_action_buttons": true
+  }
+}

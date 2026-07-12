@@ -20,6 +20,10 @@ os.environ.setdefault("LLM_PROVIDER", "mock")
 os.environ.setdefault("ICODER_DISABLE_AUTH_FOR_TESTS", "1")
 os.environ.setdefault("ICODER_CREDENTIAL_LLM", "test-fake-key")
 os.environ.setdefault("ICODER_ALLOW_DEGRADED_NO_KEY", "1")
+# Force the stub CDI runner in tests. The real runner needs DeepSeek to produce
+# ≥1 final query; in mock-LLM mode CEA blocks most candidates, leaving 0 queries
+# and breaking every transition test. Stub runner always emits 1+ query.
+os.environ.setdefault("ICODER_CDI_FORCE_STUB_FOR_TESTS", "1")
 
 
 @pytest.fixture(scope="module")
@@ -201,12 +205,110 @@ def test_get_cdi_case_post_is_idempotent(client: TestClient) -> None:
 # ---------------------------------------------------------------------------
 
 
+def _seed_case_with_query(
+    client: TestClient,
+    *,
+    chart: str = "test chart",
+    lifecycle_state: str = "DRAFT",
+) -> str:
+    """Insert a CDI case + 1 query directly into the test DB at the given state.
+
+    Phase 5 Track D P0.5 Gate 7: transition endpoint now fetches real
+    from_state from the DB, so we must seed a persisted query before
+    driving any transition.
+
+    Going via the API (POST /runs) is unreliable here because the stub
+    runner emits 0 queries, and the real runner with mock LLM also
+    produces 0 (CEA blocks everything). Direct DB insert is deterministic
+    and exercises exactly the persistence path the endpoint reads.
+    """
+    import asyncio
+    import uuid
+
+    from app.database import async_session_factory
+    from app.models.cdi_case import CDICaseModel, DocumentationGapModel, ProviderQueryModel
+
+    case_id = f"CASE-SEED-{uuid.uuid4().hex[:8]}"
+    gap_id = f"GAP-SEED-{uuid.uuid4().hex[:8]}"
+    query_id = f"Q-SEED-{uuid.uuid4().hex[:8]}"
+
+    async def _seed() -> None:
+        async with async_session_factory() as s:
+            s.add(CDICaseModel(
+                id=case_id,
+                organization_id="org_default1",
+                patient_ref="DEID",
+                encounter_ref="DEID",
+                chart_excerpt_hash="seed-hash",
+                chart_excerpt_length=len(chart),
+                encounter_metadata={},
+                draft_codes=[],
+                run_id="",
+                trace_id="",
+                agent_ref="icoder/clinical-documentation-improvement-agent@1.0.0",
+                encounter_summary={"key_points": [], "encounter_metadata": {}},
+                coding_specificity_checklist=[],
+                risk_flags=[],
+                specialist_trace=[],
+                completion_state="REVIEW_RECOMMENDED",
+                created_by_user_id=None,
+            ))
+            s.add(DocumentationGapModel(
+                id=gap_id,
+                case_id=case_id,
+                gap_type="UNSPECIFIED_CLINICAL_DETAIL",
+                description="seed gap for transition test",
+                evidence_document_id="doc-1",
+                evidence_quote="seed quote",
+                evidence_char_start=0,
+                evidence_char_end=10,
+                priority="routine",
+                status="OPEN",
+            ))
+            s.add(ProviderQueryModel(
+                id=query_id,
+                case_id=case_id,
+                gap_id=gap_id,
+                topic="seed topic",
+                reason="seed reason",
+                query_text="seed query text",
+                response_options=["选项 A", "选项 B"],
+                evidence_document_id="doc-1",
+                evidence_quote="seed quote",
+                evidence_char_start=0,
+                evidence_char_end=10,
+                nlq_gate_verdict="PENDING",
+                nlq_gate_rules_evaluated=0,
+                nlq_gate_rules_passed=0,
+                nlq_gate_block_reasons=[],
+                nlq_gate_version="NLQ-001..009",
+                lifecycle_state=lifecycle_state,
+                priority="routine",
+            ))
+            await s.commit()
+
+    asyncio.run(_seed())
+    return query_id
+
+
+def test_transition_unknown_query_returns_404(client: TestClient) -> None:
+    """Gate 7: unknown query_id → 404 query_not_found (was 200 stub before)."""
+
+    r = client.post(
+        "/api/v1/cdi/queries/q-does-not-exist/transition",
+        json={"to_state": "APPROVED"},
+    )
+    assert r.status_code == 404
+    assert r.json()["detail"]["error"] == "query_not_found"
+
+
 def test_transition_to_pending_review_requires_nlq_inputs(client: TestClient) -> None:
     """DRAFT → PENDING_CDI_REVIEW needs query_text + response_options +
     evidence_quote + topic for NLQ gate evaluation."""
 
+    qid = _seed_case_with_query(client)
     r = client.post(
-        "/api/v1/cdi/queries/q1/transition",
+        f"/api/v1/cdi/queries/{qid}/transition",
         json={"to_state": "PENDING_CDI_REVIEW"},
     )
     assert r.status_code == 422
@@ -214,10 +316,15 @@ def test_transition_to_pending_review_requires_nlq_inputs(client: TestClient) ->
 
 
 def test_transition_to_approved_returns_sla(client: TestClient) -> None:
-    """APPROVED transition computes SLA due_at."""
+    """APPROVED transition computes SLA due_at and persists it.
 
+    Must seed at PENDING_CDI_REVIEW — that's the only state from which
+    APPROVED is reachable (per _ALLOWED_TRANSITIONS).
+    """
+
+    qid = _seed_case_with_query(client, lifecycle_state="PENDING_CDI_REVIEW")
     r = client.post(
-        "/api/v1/cdi/queries/q1/transition",
+        f"/api/v1/cdi/queries/{qid}/transition",
         json={"to_state": "APPROVED", "priority": "urgent"},
     )
     assert r.status_code == 200, r.text
@@ -227,8 +334,9 @@ def test_transition_to_approved_returns_sla(client: TestClient) -> None:
 
 
 def test_transition_to_approved_routine_priority(client: TestClient) -> None:
+    qid = _seed_case_with_query(client, lifecycle_state="PENDING_CDI_REVIEW")
     r = client.post(
-        "/api/v1/cdi/queries/q1/transition",
+        f"/api/v1/cdi/queries/{qid}/transition",
         json={"to_state": "APPROVED", "priority": "routine"},
     )
     assert r.status_code == 200

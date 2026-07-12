@@ -1,47 +1,69 @@
 {
-  "case_id": "CASE-7b30e01957e8",
+  "case_id": "CASE-6a6c0adf4a78",
   "completion_state": "REVIEW_REQUIRED",
   "documentation_gaps": [
     {
-      "gap_id": "CASE-7b30e01957e8/GAP-001",
+      "gap_id": "CASE-6a6c0adf4a78/GAP-001",
       "gap_type": "diagnostic_specificity",
-      "description": "头痛的诊断缺乏特异性，未明确头痛类型（如偏头痛、紧张型头痛、丛集性头痛等）。",
-      "why_it_matters": "头痛类型不明确会影响编码准确性，可能导致无法选择最具体的诊断代码，影响疾病分类和统计。",
+      "description": "头痛的病因未明确，缺乏诊断特异性。",
+      "why_it_matters": "头痛的病因多样（如紧张型头痛、丛集性头痛、继发性头痛等），未明确病因会影响编码准确性及后续治疗。",
       "evidence_span": {
-        "document_id": "chart",
+        "document_id": "encounter_summary",
         "quote": "间断头痛"
       },
       "minimal_clarification_needed": ""
     },
     {
-      "gap_id": "CASE-7b30e01957e8/GAP-002",
+      "gap_id": "CASE-6a6c0adf4a78/GAP-002",
       "gap_type": "diagnostic_specificity",
-      "description": "头痛的病程和发作频率未描述，如持续时间、发作次数、缓解因素等。",
-      "why_it_matters": "缺乏时间信息（如急性、慢性、发作性）会影响诊断的完整性和编码的准确性。",
+      "description": "头痛的严重程度未描述。",
+      "why_it_matters": "严重程度（如轻度、中度、重度）是头痛分类和编码的重要依据，缺失可能导致编码不准确。",
       "evidence_span": {
-        "document_id": "chart",
+        "document_id": "encounter_summary",
         "quote": "间断头痛"
       },
       "minimal_clarification_needed": ""
     },
     {
-      "gap_id": "CASE-7b30e01957e8/GAP-003",
+      "gap_id": "CASE-6a6c0adf4a78/GAP-003",
       "gap_type": "diagnostic_specificity",
-      "description": "头痛的严重程度未描述（如轻度、中度、重度或视觉模拟评分）。",
-      "why_it_matters": "严重程度是头痛分类的重要依据，缺失可能导致诊断不完整，影响治疗和编码。",
+      "description": "头痛的持续时间未描述。",
+      "why_it_matters": "持续时间（如数分钟、数小时、数天）是鉴别头痛类型的关键信息，缺失影响诊断和编码。",
       "evidence_span": {
-        "document_id": "chart",
+        "document_id": "encounter_summary",
         "quote": "间断头痛"
       },
       "minimal_clarification_needed": ""
     },
     {
-      "gap_id": "CASE-7b30e01957e8/GAP-004",
+      "gap_id": "CASE-6a6c0adf4a78/GAP-004",
       "gap_type": "diagnostic_specificity",
-      "description": "头痛的解剖部位未明确（如单侧、双侧、前额、枕部等）。",
-      "why_it_matters": "部位信息有助于鉴别头痛类型，缺失可能影响诊断准确性。",
+      "description": "头痛的发作频率未描述。",
+      "why_it_matters": "频率（如每日、每周、每月）有助于区分慢性或急性头痛，影响编码和临床决策。",
       "evidence_span": {
-        "document_id": "chart",
+        "document_id": "encounter_summary",
+        "quote": "间断头痛"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-6a6c0adf4a78/GAP-005",
+      "gap_type": "diagnostic_specificity",
+      "description": "头痛的解剖部位未明确。",
+      "why_it_matters": "头痛部位（如双侧、单侧、前额、枕部）是诊断的重要依据，缺失可能导致诊断不准确。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "间断头痛"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-6a6c0adf4a78/GAP-006",
+      "gap_type": "diagnostic_specificity",
+      "description": "头痛的性质未描述。",
+      "why_it_matters": "性质（如搏动性、压迫性、刺痛）有助于鉴别头痛类型，缺失影响编码准确性。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
         "quote": "间断头痛"
       },
       "minimal_clarification_needed": ""
@@ -49,19 +71,57 @@
   ],
   "proposed_provider_queries": [
     {
-      "query_id": "CASE-7b30e01957e8/Q-001",
-      "gap_id": "CASE-7b30e01957e8/GAP-002",
-      "topic": "头痛病程与发作频率",
-      "reason": "头痛的病程和发作频率未描述，需明确以评估病情。",
+      "query_id": "CASE-6a6c0adf4a78/Q-001",
+      "gap_id": "CASE-6a6c0adf4a78/GAP-001",
+      "topic": "头痛病因",
+      "reason": "头痛的病因未明确，缺乏诊断特异性。",
       "evidence_span": {
         "document_id": "chart",
         "quote": "患者男性, 40岁, 间断头痛。"
       },
-      "query_text": "关于该患者的头痛病程和发作频率，请补充以下信息：",
+      "query_text": "根据患者间断头痛的表现，请描述头痛的可能病因或诊断考虑。",
       "response_options": [
-        "A. 每次发作持续数小时，每月发作1-2次",
-        "B. 每次发作持续数天，每周发作多次",
-        "C. 发作无规律，持续时间不定",
+        "A. 紧张型头痛",
+        "B. 偏头痛",
+        "C. 丛集性头痛",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "urgent"
+    },
+    {
+      "query_id": "CASE-6a6c0adf4a78/Q-002",
+      "gap_id": "CASE-6a6c0adf4a78/GAP-004",
+      "topic": "头痛发作频率",
+      "reason": "头痛的发作频率未描述。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "患者男性, 40岁, 间断头痛。"
+      },
+      "query_text": "请描述患者头痛的发作频率。",
+      "response_options": [
+        "A. 每月少于1次",
+        "B. 每月1-4次",
+        "C. 每月超过4次",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine"
+    },
+    {
+      "query_id": "CASE-6a6c0adf4a78/Q-003",
+      "gap_id": "CASE-6a6c0adf4a78/GAP-006",
+      "topic": "头痛性质",
+      "reason": "头痛的性质未描述。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "患者男性, 40岁, 间断头痛。"
+      },
+      "query_text": "请描述患者头痛的性质。",
+      "response_options": [
+        "A. 搏动性",
+        "B. 压迫性或紧缩性",
+        "C. 刺痛或锐痛",
         "D. 无法确定"
       ],
       "lifecycle_state": "DRAFT",
@@ -72,30 +132,41 @@
   "patient_ref": "DEID",
   "encounter_ref": "DEID",
   "encounter_summary": {
-    "key_points": [],
-    "encounter_metadata": {}
+    "key_points": [
+      "间断头痛",
+      "否认恶心、呕吐、畏光、畏声、视觉先兆、肢体无力",
+      "既往无偏头痛史",
+      "无颅脑外伤史",
+      "无中枢神经系统肿瘤家族史",
+      "查体正常"
+    ],
+    "encounter_metadata": {
+      "patient_age": "40岁",
+      "patient_sex": "男性",
+      "encounter_type": "门诊"
+    }
   },
   "risk_flags": [],
   "specialist_trace": [
     {
       "expert_id": "coding-expert",
       "consulted": true,
-      "rationale": "The chart lacks critical details to differentiate headache types, such as whether the pain is unilateral or bilateral, its quality (e.g., pulsating, pressing), and any associated autonomic features (e.g., tearing, nasal congestion). Additionally, the duration, frequency, and severity of episodes are missing, which are essential for distinguishing conditions like tension-type headache from migraine or cluster headache. Please document the specific location, character, timing, and intensity of the headache, along with any aggravating or relieving factors.",
+      "rationale": "建议明确头痛的具体病因（如是否为紧张型、丛集性或继发性头痛），并补充头痛的严重程度（如轻度、中度或重度）、持续时间（如数小时或数天）、发作频率（如每周几次）以及解剖部位（如双侧额部或单侧颞部），以确保诊断的临床特异性。",
       "route_decision": "needed",
       "route_reason": "coding_relevant_gap",
       "execution_mode": "LLM_KNOWLEDGE_ONLY",
-      "latency_ms": 3867,
-      "tokens": 299
+      "latency_ms": 2627,
+      "tokens": 226
     },
     {
       "expert_id": "pubmed-expert",
       "consulted": true,
-      "rationale": "Based on the chart, the headache lacks specific features (e.g., no nausea, photophobia, or aura) and the gaps you identified (type, duration, severity, location) are critical for diagnosis. The literature strongly supports that without these details, distinguishing between primary headaches (e.g., tension-type vs. migraine without aura) is not possible, as per ICHD-3 criteria (PMID: 29368949). I recommend clarifying the headache's location, frequency, and severity to guide appropriate management.",
+      "rationale": "根据您提供的病历信息，目前文献证据不支持对头痛进行特定临床病因的明确关联，因为缺乏关键特征（如严重程度、持续时间、频率和部位）的描述。例如，原发性头痛（如偏头痛或紧张型头痛）的诊断需依赖这些特征（PMID: 33328658），而继发性头痛（如颅内病变）需结合影像学等检查。建议补充头痛的详细特征（如搏动性、压迫性、单侧/双侧、发作规律等），以缩小鉴别诊断范围。",
       "route_decision": "needed",
       "route_reason": "criteria_marker_present",
       "execution_mode": "LLM_KNOWLEDGE_ONLY",
-      "latency_ms": 2119,
-      "tokens": 317
+      "latency_ms": 2576,
+      "tokens": 280
     },
     {
       "expert_id": "web-search-expert",
@@ -110,65 +181,67 @@
     {
       "expert_id": "medical-calculator-expert",
       "consulted": false,
-      "rationale": "'评分' score — parameters absent from chart",
-      "route_decision": "missing_inputs",
-      "route_reason": "calculator_params_missing",
-      "execution_mode": "SKIPPED_MISSING_INPUTS",
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
       "latency_ms": 0,
       "tokens": 0
     }
   ],
   "stage_run_ids": {
-    "encounter_synthesis": "run-2b8dbfdfcd1f",
-    "gap_identification": "run-d567ff5f877a",
-    "expert_consultation": "run-37f20f7b9859",
-    "query_generation": "run-a1ad526513d6",
-    "query_necessity_gate": "necessary=4;unnecessary=0;overquery_triggered=False;final_count=4",
-    "query_single_dimension_gate": "single_dim=4;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=type;final_count=4",
-    "claim_evidence_alignment_gate": "claims_extracted=8;blocked=3;flagged=0;final_count=1",
-    "claim_evidence_alignment_gate::run_id": "run-2efcecffde18",
-    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=1;final_count=1",
-    "semantic_necessity_gate::run_id": "run-5be95983e202",
+    "encounter_synthesis": "run-9b8958189bb1",
+    "gap_identification": "run-970288b4f453",
+    "expert_consultation": "run-87779724fc7c",
+    "query_generation": "run-c74891fd30ec",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=6",
+    "query_necessity_gate": "necessary=6;unnecessary=0;overquery_triggered=True;final_count=6",
+    "query_single_dimension_gate": "single_dim=6;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=etiology;final_count=6",
+    "claim_evidence_alignment_gate": "claims_extracted=14;blocked=3;flagged=0;final_count=3",
+    "claim_evidence_alignment_gate::run_id": "run-2690c2b90358",
+    "semantic_necessity_gate": "blocked=0;flagged=1;degraded=0;final_count=3",
+    "semantic_necessity_gate::run_id": "run-259ece54a1c2",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "run-44f747864dc1"
+    "specialist_trace_emit": "run-08da0262159f"
   },
   "stage_trace_ids": {
-    "encounter_synthesis": "trace-fc0e4d444b75",
-    "gap_identification": "trace-930149437e9c",
-    "expert_consultation": "trace-df05f74006bb",
-    "query_generation": "trace-675c9b43028e",
+    "encounter_synthesis": "trace-cb8d2de213a7",
+    "gap_identification": "trace-9ec9ae1c588a",
+    "expert_consultation": "trace-db8acc257395",
+    "query_generation": "trace-8d0a8a95d1c9",
+    "query_eligibility_gate": "",
     "query_necessity_gate": "",
     "query_single_dimension_gate": "",
-    "claim_evidence_alignment_gate": "trace-b5abd699fcfb",
-    "semantic_necessity_gate": "trace-2a4fde14763e",
+    "claim_evidence_alignment_gate": "trace-0412fe774cbf",
+    "semantic_necessity_gate": "trace-83b6490225d2",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "trace-03b956ee3f1e"
+    "specialist_trace_emit": "trace-da341a7221a8"
   },
   "stage_traces": [
     {
       "stage": "encounter_synthesis",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 3479,
-      "prompt_tokens": 0,
-      "completion_tokens": 0,
-      "total_tokens": 0,
-      "run_id": "run-2b8dbfdfcd1f",
-      "trace_id": "trace-fc0e4d444b75",
-      "degraded": true,
-      "error_reason": "LLM call failed after 3 attempts: Connection error.",
+      "latency_ms": 5174,
+      "prompt_tokens": 226,
+      "completion_tokens": 103,
+      "total_tokens": 329,
+      "run_id": "run-9b8958189bb1",
+      "trace_id": "trace-cb8d2de213a7",
+      "degraded": false,
+      "error_reason": "",
       "expert_id": ""
     },
     {
       "stage": "gap_identification",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 4450,
-      "prompt_tokens": 277,
-      "completion_tokens": 478,
-      "total_tokens": 755,
-      "run_id": "run-d567ff5f877a",
-      "trace_id": "trace-930149437e9c",
+      "latency_ms": 7422,
+      "prompt_tokens": 339,
+      "completion_tokens": 670,
+      "total_tokens": 1009,
+      "run_id": "run-970288b4f453",
+      "trace_id": "trace-9ec9ae1c588a",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -177,12 +250,12 @@
       "stage": "query_generation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 6617,
-      "prompt_tokens": 487,
-      "completion_tokens": 679,
-      "total_tokens": 1166,
-      "run_id": "run-a1ad526513d6",
-      "trace_id": "trace-675c9b43028e",
+      "latency_ms": 7838,
+      "prompt_tokens": 461,
+      "completion_tokens": 903,
+      "total_tokens": 1364,
+      "run_id": "run-c74891fd30ec",
+      "trace_id": "trace-8d0a8a95d1c9",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -191,12 +264,12 @@
       "stage": "expert_consultation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 3867,
-      "prompt_tokens": 199,
-      "completion_tokens": 100,
-      "total_tokens": 299,
-      "run_id": "run-5a17ce18dffa",
-      "trace_id": "trace-fa5e1687af60",
+      "latency_ms": 2627,
+      "prompt_tokens": 157,
+      "completion_tokens": 69,
+      "total_tokens": 226,
+      "run_id": "run-2ebb4101505e",
+      "trace_id": "trace-c827dd275099",
       "degraded": false,
       "error_reason": "",
       "expert_id": "coding-expert"
@@ -205,12 +278,12 @@
       "stage": "expert_consultation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 2119,
-      "prompt_tokens": 213,
-      "completion_tokens": 104,
-      "total_tokens": 317,
-      "run_id": "run-73def8e3bc90",
-      "trace_id": "trace-98018c29000d",
+      "latency_ms": 2576,
+      "prompt_tokens": 171,
+      "completion_tokens": 109,
+      "total_tokens": 280,
+      "run_id": "run-5416ed3a4464",
+      "trace_id": "trace-c7c4b9838946",
       "degraded": false,
       "error_reason": "",
       "expert_id": "pubmed-expert"
@@ -223,8 +296,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-6b083aedfa81",
-      "trace_id": "trace-c9ee72198780",
+      "run_id": "run-accf8a52188a",
+      "trace_id": "trace-de43050831ce",
       "degraded": false,
       "error_reason": "",
       "expert_id": "web-search-expert"
@@ -237,14 +310,14 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-ae1de4edad2e",
-      "trace_id": "trace-67aeea58ce4c",
+      "run_id": "run-b161f3e95c47",
+      "trace_id": "trace-2dec8b269bb7",
       "degraded": false,
       "error_reason": "",
       "expert_id": "medical-calculator-expert"
     }
   ],
-  "degraded": true,
+  "degraded": false,
   "runtime_mode": "real",
-  "generated_at": "2026-07-12T11:32:57.291498Z"
+  "generated_at": "2026-07-12T12:15:58.609283Z"
 }

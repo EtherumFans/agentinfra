@@ -1,59 +1,26 @@
 {
-  "case_id": "CASE-4e4642c4adec",
+  "case_id": "CASE-a904e2022560",
   "completion_state": "REVIEW_REQUIRED",
   "documentation_gaps": [
     {
-      "gap_id": "CASE-4e4642c4adec/GAP-001",
+      "gap_id": "CASE-a904e2022560/GAP-001",
       "gap_type": "diagnostic_specificity",
-      "description": "入院诊断与出院诊断不一致：入院诊断为左侧肋骨骨折，出院诊断为右侧肋骨骨折，且手术记录和CT报告均支持右侧骨折，但未明确解释左侧骨折的诊断变化或为何未处理左侧骨折。",
-      "why_it_matters": "诊断不一致可能导致编码错误，影响DRG分组和报销，且临床逻辑不清晰，可能遗漏左侧骨折的处理或误诊。",
+      "description": "入院诊断与出院诊断、手术记录、CT报告不一致：入院诊断为左侧肋骨骨折，但出院诊断、手术记录和CT报告均为右侧肋骨骨折。",
+      "why_it_matters": "诊断不一致可能导致编码错误、医疗记录不准确，影响医疗质量和法律合规性。",
       "evidence_span": {
         "document_id": "入院记录",
-        "quote": "入院诊断:左侧肋骨骨折"
+        "quote": "入院诊断:左侧肋骨骨折。"
       },
       "minimal_clarification_needed": ""
     },
     {
-      "gap_id": "CASE-4e4642c4adec/GAP-002",
+      "gap_id": "CASE-a904e2022560/GAP-002",
       "gap_type": "diagnostic_specificity",
-      "description": "初步诊断与最终诊断不一致：初步诊断为左胸外伤，但出院诊断和手术均为右侧肋骨骨折，未明确左胸外伤的具体性质或是否已排除。",
-      "why_it_matters": "初步诊断与最终诊断矛盾，影响编码准确性，且可能反映临床评估不完整，需明确左胸外伤是否已解决或为误诊。",
-      "evidence_span": {
-        "document_id": "初步诊断",
-        "quote": "初步诊断:左胸外伤"
-      },
-      "minimal_clarification_needed": ""
-    },
-    {
-      "gap_id": "CASE-4e4642c4adec/GAP-003",
-      "gap_type": "diagnostic_specificity",
-      "description": "左侧肋骨骨折的诊断缺乏支持证据：入院诊断为左侧肋骨骨折，但CT报告仅提及右侧肋骨骨折，手术记录也为右侧，未提供左侧骨折的影像学或临床证据。",
-      "why_it_matters": "缺乏左侧骨折的客观证据，可能导致编码错误（如误编码左侧骨折），且临床管理不明确，需澄清左侧骨折是否存在或为笔误。",
-      "evidence_span": {
-        "document_id": "CT报告",
-        "quote": "CT报告:右侧肋骨骨折"
-      },
-      "minimal_clarification_needed": ""
-    },
-    {
-      "gap_id": "CASE-4e4642c4adec/GAP-004",
-      "gap_type": "diagnostic_specificity",
-      "description": "右侧肋骨骨折的解剖部位不明确：手术记录提及右胸第5肋骨折固定术，但未明确骨折的具体部位（如腋前线、腋中线等），且未描述骨折类型（如单纯、粉碎性）。",
-      "why_it_matters": "解剖部位和骨折类型不明确可能影响编码的精确性，尤其是对于肋骨骨折的细分编码，且可能影响治疗决策的完整性。",
-      "evidence_span": {
-        "document_id": "手术记录",
-        "quote": "右胸第5肋骨折固定术"
-      },
-      "minimal_clarification_needed": ""
-    },
-    {
-      "gap_id": "CASE-4e4642c4adec/GAP-005",
-      "gap_type": "diagnostic_specificity",
-      "description": "外伤的病因和机制未明确：仅提及外伤入院，但未说明外伤的具体原因（如跌倒、车祸等），也未描述受伤机制。",
-      "why_it_matters": "病因和机制不明确可能影响外部原因编码（如V、W、X、Y编码），且对临床评估和预防指导不足。",
+      "description": "初步诊断与最终诊断不一致：初步诊断为左胸外伤，但最终诊断为右侧肋骨骨折。",
+      "why_it_matters": "初步诊断与最终诊断不一致可能反映病情变化或记录错误，需明确原因以确保临床准确性。",
       "evidence_span": {
         "document_id": "入院记录",
-        "quote": "外伤入院"
+        "quote": "初步诊断:左胸外伤。"
       },
       "minimal_clarification_needed": ""
     }
@@ -63,31 +30,20 @@
   "patient_ref": "DEID",
   "encounter_ref": "DEID",
   "encounter_summary": {
-    "key_points": [
-      "外伤入院",
-      "左侧肋骨骨折（入院诊断）",
-      "右侧肋骨骨折（出院诊断）",
-      "右胸第5肋骨折固定术",
-      "左胸外伤（初步诊断）",
-      "右侧肋骨骨折（CT报告）"
-    ],
-    "encounter_metadata": {
-      "patient_age": "42",
-      "patient_sex": "男",
-      "encounter_type": "住院"
-    }
+    "key_points": [],
+    "encounter_metadata": {}
   },
   "risk_flags": [],
   "specialist_trace": [
     {
       "expert_id": "coding-expert",
       "consulted": true,
-      "rationale": "The chart lacks clarity on why the left-sided rib fracture was initially diagnosed without supporting evidence, and whether it was ruled out or resolved. For accurate coding, the clinical record must explicitly document the nature and resolution of the left chest trauma, as well as the precise anatomical location and type of the right fifth rib fracture. Additionally, the external cause and mechanism of injury should be clearly stated to ensure complete and specific clinical documentation.",
+      "rationale": "The primary gap is a clear documentation error regarding the laterality of the fracture. To ensure accurate coding, the provider must reconcile and explicitly document whether the correct diagnosis is a left or right rib fracture, resolving the contradiction between the admission diagnosis and all subsequent records. A single, consistent, and final diagnosis for the encounter is essential.",
       "route_decision": "needed",
       "route_reason": "coding_relevant_gap",
       "execution_mode": "LLM_KNOWLEDGE_ONLY",
-      "latency_ms": 3385,
-      "tokens": 398
+      "latency_ms": 3384,
+      "tokens": 229
     },
     {
       "expert_id": "pubmed-expert",
@@ -121,56 +77,58 @@
     }
   ],
   "stage_run_ids": {
-    "encounter_synthesis": "run-f80d9c1097cf",
-    "gap_identification": "run-b0c1b09292da",
-    "expert_consultation": "run-1733d50337d6",
-    "query_generation": "run-53bd51897b6a",
-    "query_necessity_gate": "necessary=5;unnecessary=0;overquery_triggered=True;final_count=5",
-    "query_single_dimension_gate": "single_dim=4;multi_dim=1;axis_cluster_triggered=False;axis_cluster_axis=etiology;final_count=4",
-    "claim_evidence_alignment_gate": "claims_extracted=15;blocked=4;flagged=0;final_count=0",
-    "claim_evidence_alignment_gate::run_id": "run-c4633c3015c4",
+    "encounter_synthesis": "run-6939f3c785ab",
+    "gap_identification": "run-475d1f9e7cc4",
+    "expert_consultation": "run-1c34393ac09f",
+    "query_generation": "run-0f9b21a9c5a6",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=Y;dropped=0;final_count=2",
+    "query_necessity_gate": "necessary=2;unnecessary=0;overquery_triggered=False;final_count=2",
+    "query_single_dimension_gate": "single_dim=0;multi_dim=2;axis_cluster_triggered=False;axis_cluster_axis=site;final_count=0",
+    "claim_evidence_alignment_gate": "claims_extracted=0;blocked=0;flagged=0;final_count=0",
+    "claim_evidence_alignment_gate::run_id": "run-520bd5b0777f",
     "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
-    "semantic_necessity_gate::run_id": "run-6bc0048807ff",
+    "semantic_necessity_gate::run_id": "run-f5902740d3c8",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "run-40853709b442"
+    "specialist_trace_emit": "run-27bac7a766f8"
   },
   "stage_trace_ids": {
-    "encounter_synthesis": "trace-f90af7f04987",
-    "gap_identification": "trace-886191f9bb53",
-    "expert_consultation": "trace-9e86cb29a766",
-    "query_generation": "trace-5cfe1f7c6a7c",
+    "encounter_synthesis": "trace-4c818202681b",
+    "gap_identification": "trace-e24f576424eb",
+    "expert_consultation": "trace-cf0dce30f378",
+    "query_generation": "trace-828f2d376502",
+    "query_eligibility_gate": "",
     "query_necessity_gate": "",
     "query_single_dimension_gate": "",
-    "claim_evidence_alignment_gate": "trace-dbe5d7ea908a",
-    "semantic_necessity_gate": "trace-8bdc45945ded",
+    "claim_evidence_alignment_gate": "trace-eb8b37f2b036",
+    "semantic_necessity_gate": "trace-3f4375214d1f",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "trace-e733b1ff39bb"
+    "specialist_trace_emit": "trace-9ac4ef879f2a"
   },
   "stage_traces": [
     {
       "stage": "encounter_synthesis",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 2118,
-      "prompt_tokens": 222,
-      "completion_tokens": 102,
-      "total_tokens": 324,
-      "run_id": "run-f80d9c1097cf",
-      "trace_id": "trace-f90af7f04987",
-      "degraded": false,
-      "error_reason": "",
+      "latency_ms": 3513,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-6939f3c785ab",
+      "trace_id": "trace-4c818202681b",
+      "degraded": true,
+      "error_reason": "LLM call failed after 3 attempts: Connection error.",
       "expert_id": ""
     },
     {
       "stage": "gap_identification",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 8863,
-      "prompt_tokens": 331,
-      "completion_tokens": 777,
-      "total_tokens": 1108,
-      "run_id": "run-b0c1b09292da",
-      "trace_id": "trace-886191f9bb53",
+      "latency_ms": 2873,
+      "prompt_tokens": 273,
+      "completion_tokens": 272,
+      "total_tokens": 545,
+      "run_id": "run-475d1f9e7cc4",
+      "trace_id": "trace-e24f576424eb",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -179,12 +137,12 @@
       "stage": "query_generation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 8512,
-      "prompt_tokens": 618,
-      "completion_tokens": 1033,
-      "total_tokens": 1651,
-      "run_id": "run-53bd51897b6a",
-      "trace_id": "trace-5cfe1f7c6a7c",
+      "latency_ms": 4771,
+      "prompt_tokens": 427,
+      "completion_tokens": 411,
+      "total_tokens": 838,
+      "run_id": "run-0f9b21a9c5a6",
+      "trace_id": "trace-828f2d376502",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -193,12 +151,12 @@
       "stage": "expert_consultation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 3385,
-      "prompt_tokens": 314,
-      "completion_tokens": 84,
-      "total_tokens": 398,
-      "run_id": "run-7d8ae435cdda",
-      "trace_id": "trace-ebfcca9dc269",
+      "latency_ms": 3384,
+      "prompt_tokens": 163,
+      "completion_tokens": 66,
+      "total_tokens": 229,
+      "run_id": "run-d84dbe12eef0",
+      "trace_id": "trace-b6502f2c1d4d",
       "degraded": false,
       "error_reason": "",
       "expert_id": "coding-expert"
@@ -211,8 +169,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-e3c6bb27e94c",
-      "trace_id": "trace-f62b66f2e482",
+      "run_id": "run-68d28f358a32",
+      "trace_id": "trace-36e0c304939d",
       "degraded": false,
       "error_reason": "",
       "expert_id": "pubmed-expert"
@@ -225,8 +183,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-0a828f170b35",
-      "trace_id": "trace-93c6ba5b233a",
+      "run_id": "run-42dff387fe47",
+      "trace_id": "trace-eac23557756a",
       "degraded": false,
       "error_reason": "",
       "expert_id": "web-search-expert"
@@ -239,14 +197,14 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-a4c3b6c0928f",
-      "trace_id": "trace-1cc64089d92a",
+      "run_id": "run-1b4900c6041d",
+      "trace_id": "trace-16db840e94bc",
       "degraded": false,
       "error_reason": "",
       "expert_id": "medical-calculator-expert"
     }
   ],
-  "degraded": false,
+  "degraded": true,
   "runtime_mode": "real",
-  "generated_at": "2026-07-12T11:33:27.201660Z"
+  "generated_at": "2026-07-12T12:16:16.228197Z"
 }

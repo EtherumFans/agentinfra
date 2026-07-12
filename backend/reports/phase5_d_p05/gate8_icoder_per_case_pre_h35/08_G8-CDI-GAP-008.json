@@ -1,0 +1,251 @@
+{
+  "case_id": "CASE-876c18336c03",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-876c18336c03/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "糖尿病酮症酸中毒（DKA）未明确诊断，尽管存在代谢性酸中毒（pH 7.30, HCO3 16）和酮体阳性，但诊断仅写为2型糖尿病，未提及DKA。",
+      "why_it_matters": "DKA是糖尿病急性并发症，需要明确诊断以指导治疗和编码，遗漏可能导致治疗不足和编码不准确。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "pH 7.30, HCO3 16, 酮体阳性。入院诊断:2型糖尿病。"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-876c18336c03/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "糖尿病类型与临床表现矛盾：患者表现为酮症酸中毒，但诊断仅为2型糖尿病，未排除1型糖尿病或酮症倾向的2型糖尿病。",
+      "why_it_matters": "糖尿病分型影响治疗和长期管理，错误分型可能导致不适当的治疗和并发症风险。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "入院诊断:2型糖尿病"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-876c18336c03/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "多饮多尿症状的病因未明确与糖尿病关联，但未描述是否已排除其他原因（如尿崩症）。",
+      "why_it_matters": "多饮多尿是糖尿病典型症状，但若未明确关联，可能遗漏其他诊断，影响编码准确性。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "多饮多尿1月"
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-876c18336c03/Q-001",
+      "gap_id": "CASE-876c18336c03/GAP-003",
+      "topic": "多饮多尿症状的病因",
+      "reason": "多饮多尿症状的病因未明确与糖尿病关联，但未描述是否已排除其他原因（如尿崩症）。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "患者男性, 45岁, 多饮多尿1月。"
+      },
+      "query_text": "患者多饮多尿症状持续1月，请评估其最可能的病因？",
+      "response_options": [
+        "A. 糖尿病所致",
+        "B. 尿崩症所致",
+        "C. 其他原因（如精神性多饮）",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine"
+    }
+  ],
+  "chart_excerpt_preview": "患者男性, 45岁, 多饮多尿1月。FPG 12.5, HbA1c 11.2, pH 7.30, HCO3 16, 酮体阳性。入院诊断:2型糖尿病。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "多饮多尿1月",
+      "FPG 12.5",
+      "HbA1c 11.2",
+      "pH 7.30",
+      "HCO3 16",
+      "酮体阳性",
+      "2型糖尿病"
+    ],
+    "encounter_metadata": {
+      "patient_age": "45岁",
+      "patient_sex": "男性",
+      "encounter_type": "入院"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "根据临床记录，患者存在代谢性酸中毒（pH 7.30, HCO3 16）和酮体阳性，符合糖尿病酮症酸中毒（DKA）的诊断标准，但诊断仅写为2型糖尿病，需明确是否合并DKA。同时，患者表现为酮症酸中毒，应进一步明确糖尿病类型（如1型糖尿病或酮症倾向的2型糖尿病），并记录多饮多尿症状与糖尿病的直接关联，排除其他病因（如尿崩症）。建议补充DKA的明确诊断、糖尿病分型的依据（如C肽、自身抗体检测结果），以及症状与糖尿病的因果关系描述。",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3530,
+      "tokens": 365
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-d83a348083aa",
+    "gap_identification": "run-d17c0f351588",
+    "expert_consultation": "run-75cc8793a37e",
+    "query_generation": "run-4aaff7461339",
+    "query_necessity_gate": "necessary=3;unnecessary=0;overquery_triggered=False;final_count=3",
+    "query_single_dimension_gate": "single_dim=2;multi_dim=1;axis_cluster_triggered=False;axis_cluster_axis=type;final_count=2",
+    "claim_evidence_alignment_gate": "claims_extracted=9;blocked=1;flagged=0;final_count=1",
+    "claim_evidence_alignment_gate::run_id": "run-c1921c7e06db",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=1",
+    "semantic_necessity_gate::run_id": "run-e58370c7431b",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "run-a7523075cc3d"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-053812f19b01",
+    "gap_identification": "trace-c3307d449bce",
+    "expert_consultation": "trace-13d476c4e04b",
+    "query_generation": "trace-3bb37b9e1e27",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-7849a8f99b2e",
+    "semantic_necessity_gate": "trace-7c231f20edb4",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-cf14dc668c7b"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5501,
+      "prompt_tokens": 226,
+      "completion_tokens": 103,
+      "total_tokens": 329,
+      "run_id": "run-d83a348083aa",
+      "trace_id": "trace-053812f19b01",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6017,
+      "prompt_tokens": 336,
+      "completion_tokens": 466,
+      "total_tokens": 802,
+      "run_id": "run-d17c0f351588",
+      "trace_id": "trace-c3307d449bce",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6449,
+      "prompt_tokens": 505,
+      "completion_tokens": 650,
+      "total_tokens": 1155,
+      "run_id": "run-4aaff7461339",
+      "trace_id": "trace-3bb37b9e1e27",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3530,
+      "prompt_tokens": 228,
+      "completion_tokens": 137,
+      "total_tokens": 365,
+      "run_id": "run-0deb9d5c9f72",
+      "trace_id": "trace-cadf9e8a7a3b",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-59a536541f93",
+      "trace_id": "trace-8a9f217e4592",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-dc447dd2d16c",
+      "trace_id": "trace-26c344197ba1",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-caef0fba79fd",
+      "trace_id": "trace-c5cc3f413656",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-07-12T11:24:33.557702Z"
+}

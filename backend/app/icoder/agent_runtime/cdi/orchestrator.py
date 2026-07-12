@@ -86,6 +86,7 @@ STAGES: tuple[str, ...] = (
     "gap_identification",
     "expert_consultation",
     "query_generation",
+    "query_eligibility_gate",         # Phase 5 Track H3.5 — chart-completeness + topic-gap relevance
     "query_necessity_gate",           # Phase 5 Track D P0.5 Gate 2
     "query_single_dimension_gate",    # Phase 5 Track D P0.5 Gate 3
     "claim_evidence_alignment_gate",  # Phase 5 Track D P0.5 Gate 4
@@ -173,6 +174,8 @@ class CDIOrchestrator:
             self._stage_expert_consultation(case)
         elif stage == "query_generation":
             self._stage_query_generation(case)
+        elif stage == "query_eligibility_gate":
+            self._stage_query_eligibility_gate(case)
         elif stage == "query_necessity_gate":
             self._stage_query_necessity_gate(case)
         elif stage == "query_single_dimension_gate":
@@ -218,6 +221,32 @@ class CDIOrchestrator:
         case.stage_trace_ids["query_generation"] = str(result.get("trace_id", ""))
         for q_dict in result.get("queries", []):
             case.proposed_provider_queries.append(self._hydrate_query(q_dict))
+
+    def _stage_query_eligibility_gate(self, case: CDICase) -> None:
+        """Phase 5 Track H3.5 — drop queries that have no eligible gap.
+
+        Two checks per PDF §3.2 + Track H3.5:
+          QE-001  chart_completeness_drops_all  — if chart documents
+                  ≥6/8 dimensions (type/site/severity/etiology/procedure/
+                  pathology/complications/course) AND no ambiguity markers,
+                  all candidate queries are spurious → drop.
+          QE-002  query_topic_has_matching_gap  — each query's topic must
+                  intersect an identified documentation_gap; off-topic
+                  queries are dropped.
+        """
+        from .query_eligibility_gate import apply_eligibility_to_case
+        result = apply_eligibility_to_case(case)
+        dims_summary = ",".join(
+            f"{dim}={'Y' if hit else 'N'}" for dim, hit in result.dimensions_detected.items()
+        )
+        case.stage_run_ids["query_eligibility_gate"] = (
+            f"chart_complete={result.chart_complete};"
+            f"completeness_score={result.chart_completeness_score:.2f};"
+            f"dimensions={dims_summary};"
+            f"dropped={result.dropped_count};"
+            f"final_count={len(case.proposed_provider_queries)}"
+        )
+        case.stage_trace_ids["query_eligibility_gate"] = ""
 
     def _stage_query_necessity_gate(self, case: CDICase) -> None:
         """Phase 5 Track D P0.5 Gate 2 — drop queries that fail NQ-001..NQ-005.

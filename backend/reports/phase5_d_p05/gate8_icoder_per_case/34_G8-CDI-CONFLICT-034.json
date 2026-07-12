@@ -1,12 +1,12 @@
 {
-  "case_id": "CASE-99e09fff9874",
+  "case_id": "CASE-29ca95779884",
   "completion_state": "REVIEW_REQUIRED",
   "documentation_gaps": [
     {
-      "gap_id": "CASE-99e09fff9874/GAP-001",
+      "gap_id": "CASE-29ca95779884/GAP-001",
       "gap_type": "diagnostic_specificity",
-      "description": "出院诊断与入院诊断不一致：入院诊断为胆源性胰腺炎，出院诊断为特发性胰腺炎，但未明确解释为何排除胆源性病因，且饮酒史提示酒精性可能，需明确病因特异性。",
-      "why_it_matters": "影响胰腺炎病因编码的准确性，可能导致DRG分组错误或医疗质量指标偏差。",
+      "description": "出院诊断与入院诊断不一致：入院诊断为胆源性胰腺炎，出院诊断为特发性胰腺炎，但未明确解释为何排除胆源性病因或确定特发性病因。",
+      "why_it_matters": "影响编码准确性，可能导致DRG分组错误或医疗必要性争议。",
       "evidence_span": {
         "document_id": "encounter_summary",
         "quote": "入院诊断:胆源性胰腺炎。出院诊断:特发性胰腺炎。"
@@ -14,10 +14,10 @@
       "minimal_clarification_needed": ""
     },
     {
-      "gap_id": "CASE-99e09fff9874/GAP-002",
+      "gap_id": "CASE-29ca95779884/GAP-002",
       "gap_type": "diagnostic_specificity",
-      "description": "饮酒史（每日白酒100ml×10年）未在诊断中体现为酒精性胰腺炎，需明确是否考虑酒精性病因。",
-      "why_it_matters": "酒精性胰腺炎与特发性胰腺炎的治疗和预后不同，且影响编码准确性。",
+      "description": "饮酒史未明确是否与胰腺炎相关：每日白酒100ml×10年，但未说明是否近期饮酒或与本次发作的时间关系。",
+      "why_it_matters": "酒精性胰腺炎是常见病因，缺乏明确关联性描述可能导致诊断不准确或编码遗漏。",
       "evidence_span": {
         "document_id": "encounter_summary",
         "quote": "饮酒史:每日白酒 100ml × 10年"
@@ -25,38 +25,29 @@
       "minimal_clarification_needed": ""
     },
     {
-      "gap_id": "CASE-99e09fff9874/GAP-003",
+      "gap_id": "CASE-29ca95779884/GAP-003",
       "gap_type": "diagnostic_specificity",
-      "description": "MRI显示胰腺肿胀渗出，但未描述渗出范围、有无坏死或假性囊肿等并发症，缺乏严重程度特异性。",
-      "why_it_matters": "影响胰腺炎严重程度分级（如Ranson评分、CT严重指数），进而影响编码和资源消耗。",
+      "description": "MRI结果与诊断矛盾：MRI未见胆总管结石，但入院诊断为胆源性胰腺炎，未解释为何仍考虑胆源性。",
+      "why_it_matters": "临床相关性未建立，影响诊断逻辑和编码选择。",
       "evidence_span": {
         "document_id": "encounter_summary",
-        "quote": "MRI:未见胆总管结石, 胰腺肿胀渗出"
+        "quote": "MRI:未见胆总管结石, 胰腺肿胀渗出。入院诊断:胆源性胰腺炎。"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-29ca95779884/GAP-004",
+      "gap_type": "diagnostic_specificity",
+      "description": "胰腺炎严重程度未明确：仅描述胰腺肿胀渗出，未提及是否伴有器官衰竭、局部并发症或评分（如Ranson、APACHE II）。",
+      "why_it_matters": "严重程度影响编码（如急性胰腺炎伴坏死、感染等）和资源消耗。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "胰腺肿胀渗出"
       },
       "minimal_clarification_needed": ""
     }
   ],
-  "proposed_provider_queries": [
-    {
-      "query_id": "CASE-99e09fff9874/Q-001",
-      "gap_id": "CASE-99e09fff9874/GAP-001",
-      "topic": "出院诊断与入院诊断不一致",
-      "reason": "入院诊断为胆源性胰腺炎，出院诊断为特发性胰腺炎，但未明确解释为何排除胆源性病因，且饮酒史提示酒精性可能，需明确病因特异性。",
-      "evidence_span": {
-        "document_id": "chart",
-        "quote": "入院诊断:胆源性胰腺炎。出院诊断:特发性胰腺炎。"
-      },
-      "query_text": "患者入院诊断为胆源性胰腺炎，出院诊断为特发性胰腺炎。请明确该患者急性胰腺炎的具体病因。",
-      "response_options": [
-        "A. 胆源性胰腺炎（如胆结石、胆泥等）",
-        "B. 酒精性胰腺炎",
-        "C. 特发性胰腺炎（排除胆源性和酒精性后）",
-        "D. 无法确定"
-      ],
-      "lifecycle_state": "DRAFT",
-      "priority": "urgent"
-    }
-  ],
+  "proposed_provider_queries": [],
   "chart_excerpt_preview": "患者女性, 50岁, 急性胰腺炎。入院诊断:胆源性胰腺炎。MRI:未见胆总管结石, 胰腺肿胀渗出。饮酒史:每日白酒 100ml × 10年。出院诊断:特发性胰腺炎。",
   "patient_ref": "DEID",
   "encounter_ref": "DEID",
@@ -79,12 +70,12 @@
     {
       "expert_id": "coding-expert",
       "consulted": true,
-      "rationale": "The chart lacks a clear rationale for excluding biliary and alcoholic etiologies, so specify whether imaging or labs ruled out gallstones, and document if alcohol history was considered but deemed non-causal. For severity, describe the extent of pancreatic edema, presence of necrosis, or pseudocysts to differentiate mild from severe acute pancreatitis. This specificity ensures the diagnosis reflects the true underlying cause and clinical course.",
+      "rationale": "The chart lacks a clear clinical rationale for excluding biliary etiology despite the initial diagnosis, especially given the negative MRI for choledocholithiasis. Additionally, the relationship between the patient's chronic alcohol use and the acute pancreatitis episode is not temporally defined, and the severity of pancreatitis (e.g., organ failure, local complications, or scoring systems) is not documented. To support accurate coding, the clinician must explicitly document the diagnostic reasoning for the change from biliary to idiopathic pancreatitis, the timing and relevance of alcohol consumption to the current episode, and the severity classification of the pancreatitis.",
       "route_decision": "needed",
       "route_reason": "coding_relevant_gap",
       "execution_mode": "LLM_KNOWLEDGE_ONLY",
-      "latency_ms": 3621,
-      "tokens": 292
+      "latency_ms": 3623,
+      "tokens": 358
     },
     {
       "expert_id": "pubmed-expert",
@@ -118,42 +109,44 @@
     }
   ],
   "stage_run_ids": {
-    "encounter_synthesis": "run-83e20c99fbec",
-    "gap_identification": "run-54840ae1f175",
-    "expert_consultation": "run-d6cbebceb24e",
-    "query_generation": "run-bd84a988a5e8",
-    "query_necessity_gate": "necessary=2;unnecessary=1;overquery_triggered=False;final_count=2",
-    "query_single_dimension_gate": "single_dim=2;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=etiology;final_count=2",
-    "claim_evidence_alignment_gate": "claims_extracted=7;blocked=1;flagged=0;final_count=1",
-    "claim_evidence_alignment_gate::run_id": "run-704c64b27c91",
-    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=1",
-    "semantic_necessity_gate::run_id": "run-609e39a90d80",
+    "encounter_synthesis": "run-e1635e80979e",
+    "gap_identification": "run-21d43e26d024",
+    "expert_consultation": "run-065448c2a004",
+    "query_generation": "run-76e313c73376",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.25;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=Y;dropped=0;final_count=4",
+    "query_necessity_gate": "necessary=3;unnecessary=1;overquery_triggered=False;final_count=3",
+    "query_single_dimension_gate": "single_dim=3;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=etiology;final_count=3",
+    "claim_evidence_alignment_gate": "claims_extracted=12;blocked=3;flagged=0;final_count=0",
+    "claim_evidence_alignment_gate::run_id": "run-1abb357316f8",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+    "semantic_necessity_gate::run_id": "run-f8c849399717",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "run-bc9da5b61200"
+    "specialist_trace_emit": "run-d446c5484470"
   },
   "stage_trace_ids": {
-    "encounter_synthesis": "trace-ea2df3d137d7",
-    "gap_identification": "trace-149b60828352",
-    "expert_consultation": "trace-db724c48bba1",
-    "query_generation": "trace-5d7bbc487b8e",
+    "encounter_synthesis": "trace-81c63f20587a",
+    "gap_identification": "trace-ab1acb4e3028",
+    "expert_consultation": "trace-18dc109dbe52",
+    "query_generation": "trace-846c92528c7a",
+    "query_eligibility_gate": "",
     "query_necessity_gate": "",
     "query_single_dimension_gate": "",
-    "claim_evidence_alignment_gate": "trace-4578801df332",
-    "semantic_necessity_gate": "trace-0888f0eea838",
+    "claim_evidence_alignment_gate": "trace-e6a4ac794b90",
+    "semantic_necessity_gate": "trace-b563a628ef5b",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "trace-e64ea9b079d7"
+    "specialist_trace_emit": "trace-910842e80d33"
   },
   "stage_traces": [
     {
       "stage": "encounter_synthesis",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 2905,
+      "latency_ms": 2916,
       "prompt_tokens": 224,
       "completion_tokens": 106,
       "total_tokens": 330,
-      "run_id": "run-83e20c99fbec",
-      "trace_id": "trace-ea2df3d137d7",
+      "run_id": "run-e1635e80979e",
+      "trace_id": "trace-81c63f20587a",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -162,12 +155,12 @@
       "stage": "gap_identification",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 5795,
+      "latency_ms": 6660,
       "prompt_tokens": 337,
-      "completion_tokens": 449,
-      "total_tokens": 786,
-      "run_id": "run-54840ae1f175",
-      "trace_id": "trace-149b60828352",
+      "completion_tokens": 561,
+      "total_tokens": 898,
+      "run_id": "run-21d43e26d024",
+      "trace_id": "trace-ab1acb4e3028",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -176,12 +169,12 @@
       "stage": "query_generation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 6041,
-      "prompt_tokens": 490,
-      "completion_tokens": 641,
-      "total_tokens": 1131,
-      "run_id": "run-bd84a988a5e8",
-      "trace_id": "trace-5d7bbc487b8e",
+      "latency_ms": 11804,
+      "prompt_tokens": 521,
+      "completion_tokens": 1122,
+      "total_tokens": 1643,
+      "run_id": "run-76e313c73376",
+      "trace_id": "trace-846c92528c7a",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -190,12 +183,12 @@
       "stage": "expert_consultation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 3621,
-      "prompt_tokens": 213,
-      "completion_tokens": 79,
-      "total_tokens": 292,
-      "run_id": "run-d01d3308ded6",
-      "trace_id": "trace-f1f6d99d1c2a",
+      "latency_ms": 3623,
+      "prompt_tokens": 243,
+      "completion_tokens": 115,
+      "total_tokens": 358,
+      "run_id": "run-fc5df4a0db2e",
+      "trace_id": "trace-9d06d6b13559",
       "degraded": false,
       "error_reason": "",
       "expert_id": "coding-expert"
@@ -208,8 +201,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-0d60042ee126",
-      "trace_id": "trace-f2f25839e39a",
+      "run_id": "run-3b01f59f1775",
+      "trace_id": "trace-f7a4038c2ae1",
       "degraded": false,
       "error_reason": "",
       "expert_id": "pubmed-expert"
@@ -222,8 +215,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-2f4c6a06bf27",
-      "trace_id": "trace-09c6e7531ff2",
+      "run_id": "run-b3bf747be26b",
+      "trace_id": "trace-158c33ec8f09",
       "degraded": false,
       "error_reason": "",
       "expert_id": "web-search-expert"
@@ -236,8 +229,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-f56b72258458",
-      "trace_id": "trace-ba9d206cf6a3",
+      "run_id": "run-beb9bacc4503",
+      "trace_id": "trace-cf057cf35f7f",
       "degraded": false,
       "error_reason": "",
       "expert_id": "medical-calculator-expert"
@@ -245,5 +238,5 @@
   ],
   "degraded": false,
   "runtime_mode": "real",
-  "generated_at": "2026-07-12T11:34:47.950801Z"
+  "generated_at": "2026-07-12T12:17:37.888097Z"
 }

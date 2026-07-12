@@ -1,12 +1,12 @@
 {
-  "case_id": "CASE-1fb3c67b38ce",
+  "case_id": "CASE-4e21dd26b948",
   "completion_state": "REVIEW_REQUIRED",
   "documentation_gaps": [
     {
-      "gap_id": "CASE-1fb3c67b38ce/GAP-001",
+      "gap_id": "CASE-4e21dd26b948/GAP-001",
       "gap_type": "diagnostic_specificity",
-      "description": "便潜血阳性但未明确是单次还是多次检测结果，也未说明是否在适当饮食限制下进行。",
-      "why_it_matters": "便潜血阳性可能因饮食或药物干扰，需明确检测条件以评估假阳性可能，影响后续决策。",
+      "description": "便潜血阳性但未说明是否排除饮食或药物干扰，也未明确是否重复检测确认",
+      "why_it_matters": "便潜血阳性可能由非病理性因素引起，缺乏确认可能导致不必要的检查或漏诊",
       "evidence_span": {
         "document_id": "encounter_summary",
         "quote": "便潜血免疫法阳性"
@@ -14,24 +14,13 @@
       "minimal_clarification_needed": ""
     },
     {
-      "gap_id": "CASE-1fb3c67b38ce/GAP-002",
+      "gap_id": "CASE-4e21dd26b948/GAP-002",
       "gap_type": "diagnostic_specificity",
-      "description": "未记录患者是否有结直肠癌或息肉家族史。",
-      "why_it_matters": "家族史是结直肠癌风险评估的重要因素，缺失可能影响筛查建议的紧迫性和肠镜指征。",
+      "description": "未明确便潜血阳性的临床意义或是否需要进一步评估，如结肠镜的时机",
+      "why_it_matters": "缺乏临床解释和随访计划可能影响后续诊疗决策和编码准确性",
       "evidence_span": {
         "document_id": "encounter_summary",
-        "quote": "既往:无"
-      },
-      "minimal_clarification_needed": ""
-    },
-    {
-      "gap_id": "CASE-1fb3c67b38ce/GAP-003",
-      "gap_type": "diagnostic_specificity",
-      "description": "未说明便潜血阳性是否已排除上消化道出血（如胃溃疡）或药物影响（如阿司匹林）。",
-      "why_it_matters": "便潜血阳性可能源于上消化道病变，需临床关联以确定进一步检查方向（胃镜 vs 肠镜）。",
-      "evidence_span": {
-        "document_id": "encounter_summary",
-        "quote": "便潜血免疫法阳性"
+        "quote": "建议:复查便潜血, 必要时肠镜"
       },
       "minimal_clarification_needed": ""
     }
@@ -101,42 +90,44 @@
     }
   ],
   "stage_run_ids": {
-    "encounter_synthesis": "run-02b4962cf83d",
-    "gap_identification": "run-e7bfae7ef29e",
-    "expert_consultation": "run-d434dbec51eb",
-    "query_generation": "run-c220f9613ace",
-    "query_necessity_gate": "necessary=3;unnecessary=0;overquery_triggered=False;final_count=3",
-    "query_single_dimension_gate": "single_dim=3;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=etiology;final_count=3",
-    "claim_evidence_alignment_gate": "claims_extracted=10;blocked=3;flagged=0;final_count=0",
-    "claim_evidence_alignment_gate::run_id": "run-307682c2ce41",
+    "encounter_synthesis": "run-805c0e66920f",
+    "gap_identification": "run-ae9a4c4f44dc",
+    "expert_consultation": "run-ed6f1df97f79",
+    "query_generation": "run-f230edae11b5",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=2",
+    "query_necessity_gate": "necessary=2;unnecessary=0;overquery_triggered=False;final_count=2",
+    "query_single_dimension_gate": "single_dim=2;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;final_count=2",
+    "claim_evidence_alignment_gate": "claims_extracted=8;blocked=2;flagged=0;final_count=0",
+    "claim_evidence_alignment_gate::run_id": "run-e119f70a75da",
     "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
-    "semantic_necessity_gate::run_id": "run-cf630b807763",
+    "semantic_necessity_gate::run_id": "run-3cadd5eadcc7",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "run-cf0ba9d11dfa"
+    "specialist_trace_emit": "run-d1af1935f964"
   },
   "stage_trace_ids": {
-    "encounter_synthesis": "trace-8f9125b5c024",
-    "gap_identification": "trace-b775df6c6ffe",
-    "expert_consultation": "trace-5b41886f0c9b",
-    "query_generation": "trace-7f0b3586f329",
+    "encounter_synthesis": "trace-f8e165abed16",
+    "gap_identification": "trace-096b3375c6c8",
+    "expert_consultation": "trace-207254788d86",
+    "query_generation": "trace-10987d4ca697",
+    "query_eligibility_gate": "",
     "query_necessity_gate": "",
     "query_single_dimension_gate": "",
-    "claim_evidence_alignment_gate": "trace-ae4a15e411af",
-    "semantic_necessity_gate": "trace-f7fe904096c6",
+    "claim_evidence_alignment_gate": "trace-e0d2fa5ba1ec",
+    "semantic_necessity_gate": "trace-b9632eeb8655",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "trace-48541b9abb5e"
+    "specialist_trace_emit": "trace-530805f15b68"
   },
   "stage_traces": [
     {
       "stage": "encounter_synthesis",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 1660,
+      "latency_ms": 5074,
       "prompt_tokens": 220,
       "completion_tokens": 107,
       "total_tokens": 327,
-      "run_id": "run-02b4962cf83d",
-      "trace_id": "trace-8f9125b5c024",
+      "run_id": "run-805c0e66920f",
+      "trace_id": "trace-f8e165abed16",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -145,12 +136,12 @@
       "stage": "gap_identification",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 4914,
+      "latency_ms": 4298,
       "prompt_tokens": 337,
-      "completion_tokens": 399,
-      "total_tokens": 736,
-      "run_id": "run-e7bfae7ef29e",
-      "trace_id": "trace-b775df6c6ffe",
+      "completion_tokens": 252,
+      "total_tokens": 589,
+      "run_id": "run-ae9a4c4f44dc",
+      "trace_id": "trace-096b3375c6c8",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -159,12 +150,12 @@
       "stage": "query_generation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 6481,
-      "prompt_tokens": 449,
-      "completion_tokens": 647,
-      "total_tokens": 1096,
-      "run_id": "run-c220f9613ace",
-      "trace_id": "trace-7f0b3586f329",
+      "latency_ms": 5006,
+      "prompt_tokens": 403,
+      "completion_tokens": 414,
+      "total_tokens": 817,
+      "run_id": "run-f230edae11b5",
+      "trace_id": "trace-10987d4ca697",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -177,8 +168,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-6319ee6eb5ca",
-      "trace_id": "trace-55300ece7982",
+      "run_id": "run-f704f6384bec",
+      "trace_id": "trace-52fd927cca54",
       "degraded": false,
       "error_reason": "",
       "expert_id": "coding-expert"
@@ -191,8 +182,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-708a8f3775fe",
-      "trace_id": "trace-5b91b00e5894",
+      "run_id": "run-d521cdb929a8",
+      "trace_id": "trace-e5b7293bad44",
       "degraded": false,
       "error_reason": "",
       "expert_id": "pubmed-expert"
@@ -205,8 +196,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-8bebba1712c5",
-      "trace_id": "trace-f8108cd8068b",
+      "run_id": "run-79fd82ba27f2",
+      "trace_id": "trace-c1b95fcc4369",
       "degraded": false,
       "error_reason": "",
       "expert_id": "web-search-expert"
@@ -219,8 +210,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-7ddfab48ef64",
-      "trace_id": "trace-ee908f72d9b4",
+      "run_id": "run-80709fa5f105",
+      "trace_id": "trace-5d025ba184b2",
       "degraded": false,
       "error_reason": "",
       "expert_id": "medical-calculator-expert"
@@ -228,5 +219,5 @@
   ],
   "degraded": false,
   "runtime_mode": "real",
-  "generated_at": "2026-07-12T11:35:38.616767Z"
+  "generated_at": "2026-07-12T12:18:32.263301Z"
 }

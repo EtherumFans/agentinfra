@@ -126,12 +126,13 @@ def _runner_with_leading_query(stage: str, case: CDICase, kwargs: dict[str, Any]
 # ---------------------------------------------------------------------------
 
 
-def test_stages_tuple_is_corti_compatible_10_steps() -> None:
+def test_stages_tuple_is_corti_compatible_11_steps() -> None:
     assert STAGES == (
         "encounter_synthesis",
         "gap_identification",
         "expert_consultation",
         "query_generation",
+        "query_eligibility_gate",         # Phase 5 Track H3.5
         "query_necessity_gate",
         "query_single_dimension_gate",
         "claim_evidence_alignment_gate",

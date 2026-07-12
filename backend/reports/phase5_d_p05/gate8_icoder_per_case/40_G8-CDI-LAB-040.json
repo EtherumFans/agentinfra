@@ -1,48 +1,15 @@
 {
-  "case_id": "CASE-c9384250a4b9",
+  "case_id": "CASE-ac163bdeda69",
   "completion_state": "REVIEW_REQUIRED",
   "documentation_gaps": [
     {
-      "gap_id": "CASE-c9384250a4b9/GAP-001",
+      "gap_id": "CASE-ac163bdeda69/GAP-001",
       "gap_type": "diagnostic_specificity",
-      "description": "血脂异常诊断缺乏具体类型（如高胆固醇血症、高甘油三酯血症或混合型高脂血症）",
-      "why_it_matters": "影响编码准确性和治疗方案的针对性",
+      "description": "血脂异常未指定类型（如高胆固醇血症、高甘油三酯血症或混合型）",
+      "why_it_matters": "不同血脂异常类型的治疗和编码不同，缺乏特异性影响临床决策和编码准确性",
       "evidence_span": {
         "document_id": "encounter_summary",
         "quote": "诊断:血脂异常"
-      },
-      "minimal_clarification_needed": ""
-    },
-    {
-      "gap_id": "CASE-c9384250a4b9/GAP-002",
-      "gap_type": "diagnostic_specificity",
-      "description": "血脂异常未明确是原发性还是继发性",
-      "why_it_matters": "影响病因判断和后续管理",
-      "evidence_span": {
-        "document_id": "encounter_summary",
-        "quote": "诊断:血脂异常"
-      },
-      "minimal_clarification_needed": ""
-    },
-    {
-      "gap_id": "CASE-c9384250a4b9/GAP-003",
-      "gap_type": "diagnostic_specificity",
-      "description": "血压130/85未明确是否为高血压诊断或正常高值",
-      "why_it_matters": "影响高血压的编码和随访建议",
-      "evidence_span": {
-        "document_id": "encounter_summary",
-        "quote": "血压 130/85"
-      },
-      "minimal_clarification_needed": ""
-    },
-    {
-      "gap_id": "CASE-c9384250a4b9/GAP-004",
-      "gap_type": "diagnostic_specificity",
-      "description": "BMI 25未明确是否为超重或肥胖诊断",
-      "why_it_matters": "影响肥胖相关编码和健康管理建议",
-      "evidence_span": {
-        "document_id": "encounter_summary",
-        "quote": "BMI 25"
       },
       "minimal_clarification_needed": ""
     }
@@ -75,12 +42,12 @@
     {
       "expert_id": "coding-expert",
       "consulted": true,
-      "rationale": "For accurate coding, the diagnosis of dyslipidemia requires specification of the exact type (e.g., hypercholesterolemia, hypertriglyceridemia, or mixed hyperlipidemia) and whether it is primary or secondary. The blood pressure of 130/85 should be clarified as either hypertension or normal high value, and the BMI of 25 needs a definitive diagnosis of overweight or obesity. Additionally, the 10-year cardiovascular risk of 5% should be documented as a formal risk assessment to support the clinical context.",
+      "rationale": "The chart documents elevated total cholesterol, LDL-C, and triglycerides with low HDL-C, but the diagnosis lacks specificity regarding the predominant lipid abnormality. To ensure accurate coding, the clinician should specify whether this is primarily hypercholesterolemia, hypertriglyceridemia, or a mixed dyslipidemia based on the pattern of lipid elevations.",
       "route_decision": "needed",
       "route_reason": "coding_relevant_gap",
       "execution_mode": "LLM_KNOWLEDGE_ONLY",
-      "latency_ms": 3672,
-      "tokens": 307
+      "latency_ms": 2966,
+      "tokens": 223
     },
     {
       "expert_id": "pubmed-expert",
@@ -114,42 +81,44 @@
     }
   ],
   "stage_run_ids": {
-    "encounter_synthesis": "run-96ec19ad973e",
-    "gap_identification": "run-b6d37f75ccc8",
-    "expert_consultation": "run-c7fc512eaee0",
-    "query_generation": "run-01a79a461ff2",
-    "query_necessity_gate": "necessary=4;unnecessary=0;overquery_triggered=False;final_count=4",
-    "query_single_dimension_gate": "single_dim=4;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=type;final_count=4",
-    "claim_evidence_alignment_gate": "claims_extracted=13;blocked=4;flagged=0;final_count=0",
-    "claim_evidence_alignment_gate::run_id": "run-139ae9768fa9",
+    "encounter_synthesis": "run-18b07db29cf6",
+    "gap_identification": "run-9947ab238998",
+    "expert_consultation": "run-2c71c5eb8016",
+    "query_generation": "run-6f8741a46f27",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=1",
+    "query_necessity_gate": "necessary=1;unnecessary=0;overquery_triggered=False;final_count=1",
+    "query_single_dimension_gate": "single_dim=1;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=type;final_count=1",
+    "claim_evidence_alignment_gate": "claims_extracted=5;blocked=1;flagged=0;final_count=0",
+    "claim_evidence_alignment_gate::run_id": "run-851edcdd1325",
     "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
-    "semantic_necessity_gate::run_id": "run-4cba403226b8",
+    "semantic_necessity_gate::run_id": "run-9fa8e031dbee",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "run-1735ed335b79"
+    "specialist_trace_emit": "run-ec38e001d921"
   },
   "stage_trace_ids": {
-    "encounter_synthesis": "trace-d878f5884e97",
-    "gap_identification": "trace-7e2b169ed37d",
-    "expert_consultation": "trace-1e84b57d226c",
-    "query_generation": "trace-5c7b4c5078c7",
+    "encounter_synthesis": "trace-e3919c22b0be",
+    "gap_identification": "trace-ef47a245f854",
+    "expert_consultation": "trace-886ba2e89a7d",
+    "query_generation": "trace-4605826d6dc9",
+    "query_eligibility_gate": "",
     "query_necessity_gate": "",
     "query_single_dimension_gate": "",
-    "claim_evidence_alignment_gate": "trace-7a4e5d365c50",
-    "semantic_necessity_gate": "trace-94ad2ce530b3",
+    "claim_evidence_alignment_gate": "trace-6067f1d1b188",
+    "semantic_necessity_gate": "trace-9811d831a84d",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "trace-b1ea9608798b"
+    "specialist_trace_emit": "trace-23fef6a08786"
   },
   "stage_traces": [
     {
       "stage": "encounter_synthesis",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 2796,
+      "latency_ms": 1731,
       "prompt_tokens": 249,
       "completion_tokens": 141,
       "total_tokens": 390,
-      "run_id": "run-96ec19ad973e",
-      "trace_id": "trace-d878f5884e97",
+      "run_id": "run-18b07db29cf6",
+      "trace_id": "trace-e3919c22b0be",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -158,12 +127,12 @@
       "stage": "gap_identification",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 4759,
+      "latency_ms": 3711,
       "prompt_tokens": 399,
-      "completion_tokens": 415,
-      "total_tokens": 814,
-      "run_id": "run-b6d37f75ccc8",
-      "trace_id": "trace-7e2b169ed37d",
+      "completion_tokens": 127,
+      "total_tokens": 526,
+      "run_id": "run-9947ab238998",
+      "trace_id": "trace-ef47a245f854",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -172,12 +141,12 @@
       "stage": "query_generation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 7118,
-      "prompt_tokens": 473,
-      "completion_tokens": 824,
-      "total_tokens": 1297,
-      "run_id": "run-01a79a461ff2",
-      "trace_id": "trace-5c7b4c5078c7",
+      "latency_ms": 4326,
+      "prompt_tokens": 401,
+      "completion_tokens": 244,
+      "total_tokens": 645,
+      "run_id": "run-6f8741a46f27",
+      "trace_id": "trace-4605826d6dc9",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -186,12 +155,12 @@
       "stage": "expert_consultation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 3672,
-      "prompt_tokens": 200,
-      "completion_tokens": 107,
-      "total_tokens": 307,
-      "run_id": "run-f6e814e7764b",
-      "trace_id": "trace-b9ef9c1428e6",
+      "latency_ms": 2966,
+      "prompt_tokens": 155,
+      "completion_tokens": 68,
+      "total_tokens": 223,
+      "run_id": "run-a56f3d2f47a1",
+      "trace_id": "trace-b5e8846a96cc",
       "degraded": false,
       "error_reason": "",
       "expert_id": "coding-expert"
@@ -204,8 +173,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-559cbe53b8f2",
-      "trace_id": "trace-2b660328dc37",
+      "run_id": "run-585d9346be54",
+      "trace_id": "trace-32777d423a37",
       "degraded": false,
       "error_reason": "",
       "expert_id": "pubmed-expert"
@@ -218,8 +187,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-add500935ff2",
-      "trace_id": "trace-7150528f5f50",
+      "run_id": "run-f10f14e46176",
+      "trace_id": "trace-6e43f867a1b2",
       "degraded": false,
       "error_reason": "",
       "expert_id": "web-search-expert"
@@ -232,8 +201,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-c26986bc88e2",
-      "trace_id": "trace-416039f707e9",
+      "run_id": "run-c3073a2704cf",
+      "trace_id": "trace-3ead36001fc5",
       "degraded": false,
       "error_reason": "",
       "expert_id": "medical-calculator-expert"
@@ -241,5 +210,5 @@
   ],
   "degraded": false,
   "runtime_mode": "real",
-  "generated_at": "2026-07-12T11:37:16.427264Z"
+  "generated_at": "2026-07-12T12:20:19.494972Z"
 }

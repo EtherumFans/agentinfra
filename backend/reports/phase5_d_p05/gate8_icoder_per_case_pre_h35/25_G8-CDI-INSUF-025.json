@@ -1,0 +1,247 @@
+{
+  "case_id": "CASE-7f8bd629c7a0",
+  "completion_state": "BLOCKED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-7f8bd629c7a0/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "Diagnostic specificity: '间断胸闷' lacks specific diagnosis or etiology.",
+      "why_it_matters": "Without a specific diagnosis, coding may default to unspecified symptoms, affecting accuracy and reimbursement.",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "间断胸闷"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-7f8bd629c7a0/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "Clinical correlation unestablished: No correlation between symptom and exam findings.",
+      "why_it_matters": "Missing clinical correlation may lead to incomplete documentation and potential missed diagnoses.",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "查体正常"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-7f8bd629c7a0/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "Temporal unspecified: No duration or frequency of '间断胸闷'.",
+      "why_it_matters": "Lack of temporal details may affect severity assessment and coding for chronic vs acute conditions.",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "间断胸闷"
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-7f8bd629c7a0/Q-001",
+      "gap_id": "CASE-7f8bd629c7a0/GAP-002",
+      "topic": "Clinical correlation",
+      "reason": "No correlation between symptom and exam findings",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "患者女性, 35岁, 间断胸闷。查体正常。建议随访。"
+      },
+      "query_text": "患者查体正常，但主诉间断胸闷。请结合临床判断，胸闷与查体结果之间是否存在关联？可能的解释是什么？",
+      "response_options": [
+        "A. 胸闷可能与心脏神经官能症有关，查体正常符合该诊断",
+        "B. 胸闷可能与胃食管反流病有关，建议进一步检查",
+        "C. 胸闷可能与焦虑状态有关，建议心理评估",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine"
+    }
+  ],
+  "chart_excerpt_preview": "患者女性, 35岁, 间断胸闷。查体正常。建议随访。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "间断胸闷",
+      "查体正常",
+      "建议随访"
+    ],
+    "encounter_metadata": {
+      "patient_age": "35",
+      "patient_sex": "女",
+      "encounter_type": "门诊"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "The documentation should specify the underlying cause or etiology of the intermittent chest tightness, such as whether it is cardiac, respiratory, or musculoskeletal in origin. Additionally, include the duration, frequency, and any associated factors (e.g., exertion, rest, or emotional triggers) to establish clinical correlation with the normal exam findings. This specificity is essential to support accurate code assignment and medical necessity for follow-up.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3417,
+      "tokens": 194
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-ed76f6f01976",
+    "gap_identification": "run-e33c79cda7e7",
+    "expert_consultation": "run-bd662dd56204",
+    "query_generation": "run-0315a229297a",
+    "query_necessity_gate": "necessary=3;unnecessary=0;overquery_triggered=False;final_count=3",
+    "query_single_dimension_gate": "single_dim=3;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=type;final_count=3",
+    "claim_evidence_alignment_gate": "claims_extracted=11;blocked=2;flagged=0;final_count=1",
+    "claim_evidence_alignment_gate::run_id": "run-8f97a6e96555",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=1;final_count=1",
+    "semantic_necessity_gate::run_id": "run-799712320bd1",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "run-6f3d34e6b0ee"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-650ff45567ea",
+    "gap_identification": "trace-14b238ab7608",
+    "expert_consultation": "trace-65ff3a876b98",
+    "query_generation": "trace-6a2f639fe872",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-cc00242cfb4a",
+    "semantic_necessity_gate": "trace-1ca0f1ce6bb3",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-c046ddae3bb5"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2575,
+      "prompt_tokens": 189,
+      "completion_tokens": 50,
+      "total_tokens": 239,
+      "run_id": "run-ed76f6f01976",
+      "trace_id": "trace-650ff45567ea",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 4881,
+      "prompt_tokens": 262,
+      "completion_tokens": 319,
+      "total_tokens": 581,
+      "run_id": "run-e33c79cda7e7",
+      "trace_id": "trace-14b238ab7608",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 7274,
+      "prompt_tokens": 381,
+      "completion_tokens": 646,
+      "total_tokens": 1027,
+      "run_id": "run-0315a229297a",
+      "trace_id": "trace-6a2f639fe872",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3417,
+      "prompt_tokens": 114,
+      "completion_tokens": 80,
+      "total_tokens": 194,
+      "run_id": "run-01274818ddbe",
+      "trace_id": "trace-3ec27fbaa9fb",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-79c0e6acf710",
+      "trace_id": "trace-c8ab5d518a05",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-3e6b2b1d9e71",
+      "trace_id": "trace-c4d5d59aef30",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-132a99a74fbf",
+      "trace_id": "trace-bd76442d5c1b",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-07-12T11:31:12.516923Z"
+}

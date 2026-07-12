@@ -25,7 +25,7 @@
 // result summary) instead of raw JSON. The agent→dispatcher→tool chain
 // is now visually explicit.
 import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Loader2, AlertCircle, CheckCircle2, XCircle,
   ChevronDown, ChevronRight, Activity, Wrench, Shield, Key, Search, Cpu,
@@ -681,6 +681,7 @@ function TimelineRow({
 
 export default function RunTracePage() {
   const { runId = '' } = useParams<{ runId: string }>();
+  const navigate = useNavigate();
   const toast = useToastStore((s) => s.addToast);
   const t = useT();
 
@@ -733,12 +734,12 @@ export default function RunTracePage() {
         <p className="text-xs text-muted-foreground max-w-md text-center">
           {error || t.runTraceNotFoundHint}
         </p>
-        <Link
-          to="/ai-studio/agents"
+        <button
+          onClick={() => navigate(-1)}
           className="mt-2 text-xs text-primary hover:underline"
         >
           {t.runTraceBackToHub}
-        </Link>
+        </button>
       </div>
     );
   }
@@ -794,13 +795,13 @@ export default function RunTracePage() {
     <div className="flex-1 flex flex-col min-h-0 bg-muted/20">
       {/* Header */}
       <div className="px-6 py-4 border-b border-border/40 bg-background flex items-center gap-3">
-        <Link
-          to="/ai-studio/agents"
+        <button
+          onClick={() => navigate(-1)}
           className="p-1.5 rounded-lg hover:bg-accent transition-colors text-muted-foreground"
           title={t.runTraceBack}
         >
           <ArrowLeft size={16} />
-        </Link>
+        </button>
         <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
           <Activity size={15} className="text-primary" />
         </div>

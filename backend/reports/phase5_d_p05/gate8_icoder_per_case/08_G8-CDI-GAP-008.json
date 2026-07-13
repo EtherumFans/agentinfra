@@ -1,12 +1,12 @@
 {
-  "case_id": "CASE-b83a872c15cf",
+  "case_id": "CASE-4d28d7e64d4e",
   "completion_state": "BLOCKED",
   "documentation_gaps": [
     {
-      "gap_id": "CASE-b83a872c15cf/GAP-001",
+      "gap_id": "CASE-4d28d7e64d4e/GAP-001",
       "gap_type": "diagnostic_specificity",
-      "description": "糖尿病酮症酸中毒未明确诊断",
-      "why_it_matters": "患者存在代谢性酸中毒（pH 7.30, HCO3 16）和酮体阳性，符合糖尿病酮症酸中毒（DKA）的诊断标准，但入院诊断仅写2型糖尿病，未提及DKA，影响编码准确性。",
+      "description": "糖尿病酮症酸中毒（DKA）未明确诊断",
+      "why_it_matters": "患者存在代谢性酸中毒（pH 7.30, HCO3 16）和酮体阳性，符合DKA诊断标准，但入院诊断仅为2型糖尿病，未明确DKA，影响编码准确性。",
       "evidence_span": {
         "document_id": "encounter_summary",
         "quote": "pH 7.30, HCO3 16, 酮体阳性"
@@ -14,85 +14,55 @@
       "minimal_clarification_needed": ""
     },
     {
-      "gap_id": "CASE-b83a872c15cf/GAP-002",
+      "gap_id": "CASE-4d28d7e64d4e/GAP-002",
       "gap_type": "diagnostic_specificity",
-      "description": "糖尿病类型与临床表现不一致",
-      "why_it_matters": "患者45岁，以酮症酸中毒起病，需鉴别1型糖尿病或成人隐匿性自身免疫性糖尿病（LADA），但诊断直接写2型糖尿病，缺乏分型依据（如C肽、自身抗体），影响治疗和编码。",
+      "description": "糖尿病类型与临床表现矛盾",
+      "why_it_matters": "患者45岁，以DKA起病，但诊断为2型糖尿病，需明确是否为1型糖尿病或成人隐匿性自身免疫性糖尿病（LADA），影响治疗和编码。",
       "evidence_span": {
         "document_id": "encounter_summary",
         "quote": "入院诊断:2型糖尿病"
-      },
-      "minimal_clarification_needed": ""
-    },
-    {
-      "gap_id": "CASE-b83a872c15cf/GAP-003",
-      "gap_type": "diagnostic_specificity",
-      "description": "酮症酸中毒严重程度未分级",
-      "why_it_matters": "DKA严重程度（轻度、中度、重度）影响治疗和编码，但未描述意识状态、血钾、阴离子间隙等指标。",
-      "evidence_span": {
-        "document_id": "encounter_summary",
-        "quote": "pH 7.30, HCO3 16, 酮体阳性"
       },
       "minimal_clarification_needed": ""
     }
   ],
   "proposed_provider_queries": [
     {
-      "query_id": "CASE-b83a872c15cf/Q-001",
-      "gap_id": "CASE-b83a872c15cf/GAP-001",
+      "query_id": "CASE-4d28d7e64d4e/Q-001",
+      "gap_id": "CASE-4d28d7e64d4e/GAP-001",
       "topic": "糖尿病酮症酸中毒诊断",
-      "reason": "患者存在代谢性酸中毒（pH 7.30, HCO3 16）和酮体阳性，但未明确诊断糖尿病酮症酸中毒。",
+      "reason": "患者存在代谢性酸中毒（pH 7.30, HCO3 16）及酮体阳性，但未明确诊断DKA。",
       "evidence_span": {
         "document_id": "chart",
         "quote": "pH 7.30, HCO3 16, 酮体阳性"
       },
-      "query_text": "请描述患者目前是否存在糖尿病酮症酸中毒？",
+      "query_text": "请描述患者是否存在糖尿病酮症酸中毒（DKA）？如存在，请提供诊断依据。",
       "response_options": [
-        "A. 是，明确诊断为糖尿病酮症酸中毒",
+        "A. 是，符合DKA诊断标准",
         "B. 否，考虑其他原因导致的酸中毒",
-        "C. 存在酮症，但酸中毒程度未达酮症酸中毒标准",
+        "C. 存在酮症但无酸中毒，为单纯酮症",
         "D. 无法确定"
       ],
       "lifecycle_state": "DRAFT",
       "priority": "urgent"
     },
     {
-      "query_id": "CASE-b83a872c15cf/Q-002",
-      "gap_id": "CASE-b83a872c15cf/GAP-002",
+      "query_id": "CASE-4d28d7e64d4e/Q-002",
+      "gap_id": "CASE-4d28d7e64d4e/GAP-002",
       "topic": "糖尿病类型确认",
-      "reason": "患者入院诊断为2型糖尿病，但临床表现（多饮多尿1月，FPG 12.5, HbA1c 11.2）和酮症酸中毒可能提示1型糖尿病或成人隐匿性自身免疫性糖尿病。",
+      "reason": "患者入院诊断为2型糖尿病，但临床表现（45岁、多饮多尿1月、HbA1c 11.2）及DKA可能提示1型糖尿病或成人隐匿性自身免疫糖尿病（LADA）。",
       "evidence_span": {
         "document_id": "chart",
         "quote": "入院诊断:2型糖尿病"
       },
-      "query_text": "请明确患者糖尿病类型。",
+      "query_text": "请明确患者的糖尿病类型。",
       "response_options": [
         "A. 2型糖尿病",
         "B. 1型糖尿病",
-        "C. 成人隐匿性自身免疫性糖尿病（LADA）",
+        "C. 成人隐匿性自身免疫糖尿病（LADA）",
         "D. 无法确定"
       ],
       "lifecycle_state": "DRAFT",
       "priority": "urgent"
-    },
-    {
-      "query_id": "CASE-b83a872c15cf/Q-003",
-      "gap_id": "CASE-b83a872c15cf/GAP-003",
-      "topic": "酮症酸中毒严重程度分级",
-      "reason": "患者存在酮症酸中毒，但未记录严重程度分级。",
-      "evidence_span": {
-        "document_id": "chart",
-        "quote": "pH 7.30, HCO3 16, 酮体阳性"
-      },
-      "query_text": "请描述糖尿病酮症酸中毒的严重程度分级。",
-      "response_options": [
-        "A. 轻度（pH 7.25-7.30, HCO3 15-18）",
-        "B. 中度（pH 7.00-7.24, HCO3 10-14）",
-        "C. 重度（pH <7.00, HCO3 <10）",
-        "D. 无法确定"
-      ],
-      "lifecycle_state": "DRAFT",
-      "priority": "routine"
     }
   ],
   "chart_excerpt_preview": "患者男性, 45岁, 多饮多尿1月。FPG 12.5, HbA1c 11.2, pH 7.30, HCO3 16, 酮体阳性。入院诊断:2型糖尿病。",
@@ -109,37 +79,37 @@
       "2型糖尿病"
     ],
     "encounter_metadata": {
-      "patient_age": "45岁",
-      "patient_sex": "男性",
+      "patient_age": "45",
+      "patient_sex": "男",
       "encounter_type": "入院"
     }
   },
   "risk_flags": [
     {
       "category": "contradiction",
-      "description": "诊断2型糖尿病与酮症酸中毒表现矛盾，2型糖尿病通常不轻易发生DKA，除非严重应激或胰岛素缺乏，需进一步分型。"
+      "description": "DKA临床表现与2型糖尿病诊断矛盾"
     }
   ],
   "specialist_trace": [
     {
       "expert_id": "coding-expert",
       "consulted": true,
-      "rationale": "根据病历，患者存在糖尿病酮症酸中毒（pH 7.30、HCO3 16、酮体阳性），但入院诊断仅写“2型糖尿病”，需明确诊断酮症酸中毒。同时，糖尿病类型（2型）与临床表现（急性酮症酸中毒）不一致，应补充分型依据（如胰岛功能、自身抗体等）。此外，需根据pH和HCO3水平对酮症酸中毒严重程度进行分级（如轻度、中度、重度），以支持精准治疗和编码。",
+      "rationale": "根据病历记录，患者存在代谢性酸中毒（pH 7.30、HCO3 16）和酮体阳性，符合糖尿病酮症酸中毒（DKA）的诊断标准，但入院诊断仅列为2型糖尿病，需明确是否合并DKA。同时，患者45岁、急性起病且血糖及糖化血红蛋白显著升高，需进一步评估胰岛功能及自身抗体以明确糖尿病类型（如1型或2型），避免诊断矛盾。",
       "route_decision": "needed",
       "route_reason": "coding_relevant_gap",
       "execution_mode": "LLM_KNOWLEDGE_ONLY",
-      "latency_ms": 2812,
-      "tokens": 250
+      "latency_ms": 3271,
+      "tokens": 231
     },
     {
       "expert_id": "pubmed-expert",
       "consulted": true,
-      "rationale": "Based on the chart, the patient's presentation (pH 7.30, HCO3 16, positive ketones) meets the diagnostic criteria for mild-to-moderate diabetic ketoacidosis (DKA), yet the diagnosis of DKA is missing from the admission record. The literature strongly supports that DKA can occur in type 2 diabetes, particularly under stress (e.g., infection, surgery), so the diagnosis of type 2 diabetes alone does not exclude DKA (PMID: 17065327). I recommend formally documenting DKA severity (mild/moderate/severe) and initiating DKA-specific management, as the current gap in diagnosis and severity grading could delay appropriate treatment.",
+      "rationale": "根据您提供的图表和缺口，患者存在代谢性酸中毒（pH 7.30，HCO3 16）和酮体阳性，符合糖尿病酮症酸中毒（DKA）的诊断标准，但入院仅诊断为2型糖尿病，这存在矛盾。文献支持DKA通常与1型糖尿病相关，但2型糖尿病在应激状态下也可发生DKA（PMID: 30229683）。建议明确DKA诊断并评估糖尿病类型，因临床表现（45岁、多饮多尿1月）与典型1型或2型糖尿病均不完全吻合，需检测胰岛自身抗体和C肽水平以区分。",
       "route_decision": "needed",
       "route_reason": "criteria_marker_present",
       "execution_mode": "LLM_KNOWLEDGE_ONLY",
-      "latency_ms": 2109,
-      "tokens": 296
+      "latency_ms": 2304,
+      "tokens": 279
     },
     {
       "expert_id": "web-search-expert",
@@ -154,55 +124,55 @@
     {
       "expert_id": "medical-calculator-expert",
       "consulted": false,
-      "rationale": "'分级' score — parameters absent from chart",
-      "route_decision": "missing_inputs",
-      "route_reason": "calculator_params_missing",
-      "execution_mode": "SKIPPED_MISSING_INPUTS",
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
       "latency_ms": 0,
       "tokens": 0
     }
   ],
   "stage_run_ids": {
-    "encounter_synthesis": "run-ee5656fa53b3",
-    "gap_identification": "run-5c58b432d8e4",
+    "encounter_synthesis": "run-e62d0c1d5365",
+    "gap_identification": "run-be1b9b7b387e",
     "gap_identification_risk_flags": "emitted=1;quote_snapped=0",
-    "expert_consultation": "run-17e79d5c6ee7",
-    "query_generation": "run-a23b96e90692",
+    "expert_consultation": "run-65b705ff3d4a",
+    "query_generation": "run-9f1e4dcdb2b6",
     "query_generation::quote_snapped": "0",
-    "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=3;llm_complete=False;llm_reasoning=图表未明确诊断糖尿病酮症酸中毒，且糖尿病分型缺乏依据，严重程度未评估，无法满足编码所需的特异性。",
-    "query_necessity_gate": "necessary=3;unnecessary=0;overquery_triggered=False;final_count=3",
-    "query_single_dimension_gate": "single_dim=3;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=type;final_count=3",
-    "claim_evidence_alignment_gate": "claims_extracted=5;blocked=0;flagged=0;final_count=3",
-    "claim_evidence_alignment_gate::run_id": "run-66fe148f03a1",
-    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=3",
-    "semantic_necessity_gate::run_id": "run-7f332a289018",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=2;llm_complete=False;llm_reasoning=患者存在DKA证据但未明确诊断，且糖尿病分型不明确，缺乏严重程度和并发症描述，无法直接编码。",
+    "query_necessity_gate": "necessary=2;unnecessary=0;overquery_triggered=False;final_count=2",
+    "query_single_dimension_gate": "single_dim=2;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=type;final_count=2",
+    "claim_evidence_alignment_gate": "claims_extracted=3;blocked=0;flagged=0;final_count=2",
+    "claim_evidence_alignment_gate::run_id": "run-c1da80e18e1a",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=2",
+    "semantic_necessity_gate::run_id": "run-6651e694bdfd",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "run-6a4c17ff34f4"
+    "specialist_trace_emit": "run-3bdd8a090c0d"
   },
   "stage_trace_ids": {
-    "encounter_synthesis": "trace-6006f54e6842",
-    "gap_identification": "trace-50d7ac382403",
-    "expert_consultation": "trace-99ea2fcbec8d",
-    "query_generation": "trace-18a9a99eb7a4",
+    "encounter_synthesis": "trace-bdef715ca0fa",
+    "gap_identification": "trace-3d5bc235e5fa",
+    "expert_consultation": "trace-2d16eb22b896",
+    "query_generation": "trace-91bb085e5e30",
     "query_eligibility_gate": "",
     "query_necessity_gate": "",
     "query_single_dimension_gate": "",
-    "claim_evidence_alignment_gate": "trace-7db7438cc49a",
-    "semantic_necessity_gate": "trace-86794d23d95c",
+    "claim_evidence_alignment_gate": "trace-89cfb77dd3ff",
+    "semantic_necessity_gate": "trace-c55b7b216f25",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "trace-9f141d1c2406"
+    "specialist_trace_emit": "trace-e6d1c3991b95"
   },
   "stage_traces": [
     {
       "stage": "encounter_synthesis",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 4605,
+      "latency_ms": 5114,
       "prompt_tokens": 226,
-      "completion_tokens": 103,
-      "total_tokens": 329,
-      "run_id": "run-ee5656fa53b3",
-      "trace_id": "trace-6006f54e6842",
+      "completion_tokens": 102,
+      "total_tokens": 328,
+      "run_id": "run-e62d0c1d5365",
+      "trace_id": "trace-bdef715ca0fa",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -211,12 +181,12 @@
       "stage": "gap_identification",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 6364,
-      "prompt_tokens": 859,
-      "completion_tokens": 629,
-      "total_tokens": 1488,
-      "run_id": "run-5c58b432d8e4",
-      "trace_id": "trace-50d7ac382403",
+      "latency_ms": 5418,
+      "prompt_tokens": 1051,
+      "completion_tokens": 461,
+      "total_tokens": 1512,
+      "run_id": "run-be1b9b7b387e",
+      "trace_id": "trace-3d5bc235e5fa",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -225,12 +195,12 @@
       "stage": "query_generation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 5513,
-      "prompt_tokens": 1009,
-      "completion_tokens": 622,
-      "total_tokens": 1631,
-      "run_id": "run-a23b96e90692",
-      "trace_id": "trace-18a9a99eb7a4",
+      "latency_ms": 5067,
+      "prompt_tokens": 958,
+      "completion_tokens": 409,
+      "total_tokens": 1367,
+      "run_id": "run-9f1e4dcdb2b6",
+      "trace_id": "trace-91bb085e5e30",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -239,12 +209,12 @@
       "stage": "expert_consultation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 2812,
-      "prompt_tokens": 140,
-      "completion_tokens": 110,
-      "total_tokens": 250,
-      "run_id": "run-784cd1bf5d04",
-      "trace_id": "trace-b26b883a6b57",
+      "latency_ms": 3271,
+      "prompt_tokens": 133,
+      "completion_tokens": 98,
+      "total_tokens": 231,
+      "run_id": "run-5e99ab5abfea",
+      "trace_id": "trace-151e3dd3f664",
       "degraded": false,
       "error_reason": "",
       "expert_id": "coding-expert"
@@ -253,12 +223,12 @@
       "stage": "expert_consultation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 2109,
-      "prompt_tokens": 154,
-      "completion_tokens": 142,
-      "total_tokens": 296,
-      "run_id": "run-b5ad0492c469",
-      "trace_id": "trace-d1b862b6d6c0",
+      "latency_ms": 2304,
+      "prompt_tokens": 147,
+      "completion_tokens": 132,
+      "total_tokens": 279,
+      "run_id": "run-b3968d3ca970",
+      "trace_id": "trace-b9f1c5c39d9f",
       "degraded": false,
       "error_reason": "",
       "expert_id": "pubmed-expert"
@@ -271,8 +241,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-0e79f7a74443",
-      "trace_id": "trace-28600417a60e",
+      "run_id": "run-a4512cff1c2e",
+      "trace_id": "trace-ee6fdab86a2e",
       "degraded": false,
       "error_reason": "",
       "expert_id": "web-search-expert"
@@ -285,8 +255,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-f268627ecd9a",
-      "trace_id": "trace-9cce4c509148",
+      "run_id": "run-abd66ee80c58",
+      "trace_id": "trace-ebd0be3f6eac",
       "degraded": false,
       "error_reason": "",
       "expert_id": "medical-calculator-expert"
@@ -294,5 +264,5 @@
   ],
   "degraded": false,
   "runtime_mode": "real",
-  "generated_at": "2026-07-13T02:54:32.046178Z"
+  "generated_at": "2026-07-13T06:13:20.193512Z"
 }

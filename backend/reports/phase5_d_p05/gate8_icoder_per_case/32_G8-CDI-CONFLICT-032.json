@@ -1,12 +1,12 @@
 {
-  "case_id": "CASE-7e87905d72c4",
+  "case_id": "CASE-481cdd29a77f",
   "completion_state": "REVIEW_REQUIRED",
   "documentation_gaps": [
     {
-      "gap_id": "CASE-7e87905d72c4/GAP-001",
+      "gap_id": "CASE-481cdd29a77f/GAP-001",
       "gap_type": "diagnostic_specificity",
-      "description": "糖尿病病史不一致：入院记录称既往无糖尿病史、初次发现，但出院小结称糖尿病史10年，需明确实际病程。",
-      "why_it_matters": "病史矛盾影响糖尿病分型、治疗方案及编码准确性，需澄清以确定是否为长期糖尿病或新发。",
+      "description": "糖尿病病程描述不一致：入院记录称初次发现，出院小结称病史10年，门诊病历称新发糖尿病。需明确实际病程。",
+      "why_it_matters": "病程长短影响糖尿病分型、治疗方案及并发症风险评估，不明确可能导致编码错误。",
       "evidence_span": {
         "document_id": "入院记录",
         "quote": "既往无糖尿病史, 本次为初次发现"
@@ -14,24 +14,24 @@
       "minimal_clarification_needed": ""
     },
     {
-      "gap_id": "CASE-7e87905d72c4/GAP-002",
+      "gap_id": "CASE-481cdd29a77f/GAP-002",
       "gap_type": "diagnostic_specificity",
-      "description": "血糖控制不佳未具体说明：出院小结提及血糖控制不佳，但未描述具体血糖值、糖化血红蛋白或并发症。",
-      "why_it_matters": "缺乏量化指标影响糖尿病严重程度评估和编码，需明确控制不佳的程度。",
+      "description": "糖尿病类型未明确：入院诊断仅写'2型糖尿病'，但病程描述矛盾，需确认是否为2型糖尿病。",
+      "why_it_matters": "糖尿病类型（1型、2型、特殊类型）直接影响治疗和编码。",
       "evidence_span": {
-        "document_id": "出院小结",
-        "quote": "平素血糖控制不佳"
+        "document_id": "入院记录",
+        "quote": "入院诊断:2型糖尿病"
       },
       "minimal_clarification_needed": ""
     },
     {
-      "gap_id": "CASE-7e87905d72c4/GAP-003",
+      "gap_id": "CASE-481cdd29a77f/GAP-003",
       "gap_type": "diagnostic_specificity",
-      "description": "糖尿病类型未明确：仅写2型糖尿病，但病史矛盾（新发 vs 10年）可能提示需排除其他类型。",
-      "why_it_matters": "类型不明确影响治疗和编码，需确认是否为典型2型。",
+      "description": "血糖控制情况未具体描述：出院小结称'平素血糖控制不佳'，但未提供具体血糖值或糖化血红蛋白水平。",
+      "why_it_matters": "控制不佳的程度（如未达标、高血糖危象）影响并发症编码和严重程度。",
       "evidence_span": {
-        "document_id": "入院诊断",
-        "quote": "2型糖尿病"
+        "document_id": "出院小结",
+        "quote": "平素血糖控制不佳"
       },
       "minimal_clarification_needed": ""
     }
@@ -41,37 +41,24 @@
   "patient_ref": "DEID",
   "encounter_ref": "DEID",
   "encounter_summary": {
-    "key_points": [
-      "2型糖尿病",
-      "初次发现",
-      "糖尿病史10年",
-      "血糖控制不佳"
-    ],
-    "encounter_metadata": {
-      "patient_age": "65",
-      "patient_sex": "女",
-      "encounter_type": "入院"
-    }
+    "key_points": [],
+    "encounter_metadata": {}
   },
   "risk_flags": [
     {
       "category": "contradiction",
-      "description": "入院记录与出院小结关于糖尿病病史的描述直接矛盾：入院记录称无糖尿病史、初次发现，出院小结称糖尿病史10年。"
-    },
-    {
-      "category": "ambiguous_term",
-      "description": "门诊病历使用'新发糖尿病'，但未明确是新诊断还是新发类型，与出院小结的10年病史冲突。"
+      "description": "糖尿病病程在不同文档中矛盾：入院记录为初次发现，出院小结为10年病史，门诊病历为新发。"
     }
   ],
   "specialist_trace": [
     {
       "expert_id": "coding-expert",
       "consulted": true,
-      "rationale": "根据病历矛盾，需明确患者实际糖尿病病程（新发或10年），并补充具体血糖监测值（如空腹/餐后血糖）及糖化血红蛋白结果以量化控制不佳的程度。同时，应结合临床表现和实验室检查（如胰岛功能、自身抗体）排除1型糖尿病或特殊类型糖尿病，确保诊断准确性。",
+      "rationale": "The clinical record must resolve the conflicting duration of diabetes (new onset vs. 10-year history) to establish the true disease timeline. Additionally, specify the type of diabetes with supporting evidence (e.g., autoantibody or C-peptide results) and provide recent hemoglobin A1c or blood glucose values to quantify the degree of glycemic control.",
       "route_decision": "needed",
       "route_reason": "coding_relevant_gap",
       "execution_mode": "LLM_KNOWLEDGE_ONLY",
-      "latency_ms": 3023,
+      "latency_ms": 2854,
       "tokens": 268
     },
     {
@@ -106,60 +93,60 @@
     }
   ],
   "stage_run_ids": {
-    "encounter_synthesis": "run-288df41ac58b",
-    "gap_identification": "run-39178e951088",
-    "gap_identification_risk_flags": "emitted=2;quote_snapped=0",
-    "expert_consultation": "run-1981d58b95f0",
-    "query_generation": "run-a86d52165f58",
+    "encounter_synthesis": "run-d2b006ce0124",
+    "gap_identification": "run-12a9e2e09c0a",
+    "gap_identification_risk_flags": "emitted=1;quote_snapped=0",
+    "expert_consultation": "run-2e54246114e3",
+    "query_generation": "run-e81b86ed2412",
     "query_generation::quote_snapped": "0",
-    "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=Y;dropped=0;final_count=3;llm_complete=False;llm_reasoning=糖尿病病史存在严重矛盾（无病史 vs 10年史），且血糖控制不佳缺乏量化指标，无法确定糖尿病的实际病程和严重程度，需澄清后才能准确编码。",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=Y;dropped=0;final_count=3;llm_complete=False;llm_reasoning=糖尿病病程存在严重矛盾，且血糖控制情况缺乏具体量化指标，无法确定糖尿病类型和严重程度，需澄清后方可编码。",
     "query_necessity_gate": "necessary=3;unnecessary=0;overquery_triggered=False;final_count=3",
     "query_single_dimension_gate": "single_dim=2;multi_dim=1;axis_cluster_triggered=False;axis_cluster_axis=course;final_count=2",
     "claim_evidence_alignment_gate": "claims_extracted=6;blocked=2;flagged=0;final_count=0",
-    "claim_evidence_alignment_gate::run_id": "run-5f33f4f142ae",
+    "claim_evidence_alignment_gate::run_id": "run-e4c7ec042876",
     "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
-    "semantic_necessity_gate::run_id": "run-3b40244895a6",
+    "semantic_necessity_gate::run_id": "run-01786942ca05",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "run-7c40854d0a3d"
+    "specialist_trace_emit": "run-17e872feaa56"
   },
   "stage_trace_ids": {
-    "encounter_synthesis": "trace-4ffb70e168d4",
-    "gap_identification": "trace-22eac8859ba2",
-    "expert_consultation": "trace-9469d3e8f251",
-    "query_generation": "trace-b01d9c0f3cf6",
+    "encounter_synthesis": "trace-429a1a12d0c4",
+    "gap_identification": "trace-15a4a061993f",
+    "expert_consultation": "trace-82030c00003e",
+    "query_generation": "trace-edbf3c9019a0",
     "query_eligibility_gate": "",
     "query_necessity_gate": "",
     "query_single_dimension_gate": "",
-    "claim_evidence_alignment_gate": "trace-62e9ac6cc5ca",
-    "semantic_necessity_gate": "trace-7842e9ef33ec",
+    "claim_evidence_alignment_gate": "trace-e474b2db940e",
+    "semantic_necessity_gate": "trace-7b5536585f87",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "trace-5ca94f47c47d"
+    "specialist_trace_emit": "trace-172098414d3e"
   },
   "stage_traces": [
     {
       "stage": "encounter_synthesis",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 4773,
-      "prompt_tokens": 222,
-      "completion_tokens": 70,
-      "total_tokens": 292,
-      "run_id": "run-288df41ac58b",
-      "trace_id": "trace-4ffb70e168d4",
-      "degraded": false,
-      "error_reason": "",
+      "latency_ms": 3720,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-d2b006ce0124",
+      "trace_id": "trace-429a1a12d0c4",
+      "degraded": true,
+      "error_reason": "LLM call failed after 3 attempts: Connection error.",
       "expert_id": ""
     },
     {
       "stage": "gap_identification",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 8192,
-      "prompt_tokens": 826,
-      "completion_tokens": 645,
-      "total_tokens": 1471,
-      "run_id": "run-39178e951088",
-      "trace_id": "trace-22eac8859ba2",
+      "latency_ms": 4979,
+      "prompt_tokens": 988,
+      "completion_tokens": 564,
+      "total_tokens": 1552,
+      "run_id": "run-12a9e2e09c0a",
+      "trace_id": "trace-15a4a061993f",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -168,12 +155,12 @@
       "stage": "query_generation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 6750,
-      "prompt_tokens": 1051,
-      "completion_tokens": 599,
-      "total_tokens": 1650,
-      "run_id": "run-a86d52165f58",
-      "trace_id": "trace-b01d9c0f3cf6",
+      "latency_ms": 5996,
+      "prompt_tokens": 1054,
+      "completion_tokens": 570,
+      "total_tokens": 1624,
+      "run_id": "run-e81b86ed2412",
+      "trace_id": "trace-edbf3c9019a0",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -182,12 +169,12 @@
       "stage": "expert_consultation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 3023,
-      "prompt_tokens": 197,
-      "completion_tokens": 71,
+      "latency_ms": 2854,
+      "prompt_tokens": 199,
+      "completion_tokens": 69,
       "total_tokens": 268,
-      "run_id": "run-05c5c0e2b861",
-      "trace_id": "trace-c0502478d6e4",
+      "run_id": "run-af3a0ffbcdcb",
+      "trace_id": "trace-4cd724dfd52a",
       "degraded": false,
       "error_reason": "",
       "expert_id": "coding-expert"
@@ -200,8 +187,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-8cbb34fe8c55",
-      "trace_id": "trace-45a0b02ab871",
+      "run_id": "run-b0e7bf9ea21f",
+      "trace_id": "trace-240af74c1e47",
       "degraded": false,
       "error_reason": "",
       "expert_id": "pubmed-expert"
@@ -214,8 +201,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-0cb1c9a58f50",
-      "trace_id": "trace-b4b28d3ddc1a",
+      "run_id": "run-165e9d3c0519",
+      "trace_id": "trace-4cf0a598421a",
       "degraded": false,
       "error_reason": "",
       "expert_id": "web-search-expert"
@@ -228,14 +215,14 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-8c39c8d79749",
-      "trace_id": "trace-abdc7bc95e70",
+      "run_id": "run-bfff42b48725",
+      "trace_id": "trace-8f7bdf4890b7",
       "degraded": false,
       "error_reason": "",
       "expert_id": "medical-calculator-expert"
     }
   ],
-  "degraded": false,
+  "degraded": true,
   "runtime_mode": "real",
-  "generated_at": "2026-07-13T03:00:52.561342Z"
+  "generated_at": "2026-07-13T06:20:06.818031Z"
 }

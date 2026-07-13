@@ -192,6 +192,24 @@ def test_cea_004_blocks_when_document_id_not_in_case() -> None:
     )
 
 
+def test_cea_004_accepts_generic_chart_document_id() -> None:
+    """Track H3.16 — extract_claims emits document_id='chart' by default.
+
+    Without this fix, every LLM-extracted alignment would fail CEA-004
+    because 'chart' ∉ case_documents, cascading to CEA-008 BLOCK.
+    """
+    q, chart = _make_query()
+    q.claims = [Claim(claim_id="c1", text="肺炎", criticality="critical")]
+    q.claim_evidence_alignments = [
+        _alignment("c1", quote="诊断: 肺炎", document_id="chart", support_type="direct")
+    ]
+    result = evaluate_claim_evidence(q, chart=chart, case_documents=["DOC-001"])
+    assert result.verdict == "PASS"
+    assert all(
+        r.passed for c in result.claims for r in c.rule_results if r.rule_id == "CEA-004"
+    )
+
+
 # ---------------------------------------------------------------------------
 # CEA-005 no_negation_as_support
 # ---------------------------------------------------------------------------

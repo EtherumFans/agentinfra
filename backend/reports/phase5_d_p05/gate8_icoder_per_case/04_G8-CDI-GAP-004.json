@@ -1,12 +1,12 @@
 {
-  "case_id": "CASE-d53040ca3526",
+  "case_id": "CASE-e4d53c90d983",
   "completion_state": "REVIEW_REQUIRED",
   "documentation_gaps": [
     {
-      "gap_id": "CASE-d53040ca3526/GAP-001",
+      "gap_id": "CASE-e4d53c90d983/GAP-001",
       "gap_type": "diagnostic_specificity",
       "description": "急性胰腺炎的严重程度未明确（如轻症、重症、有无器官衰竭）",
-      "why_it_matters": "严重程度影响编码和临床管理，重症胰腺炎需额外编码并发症。",
+      "why_it_matters": "严重程度影响编码和临床管理，重症胰腺炎需要更详细的并发症记录。",
       "evidence_span": {
         "document_id": "encounter_summary",
         "quote": "入院诊断:急性胰腺炎"
@@ -14,10 +14,10 @@
       "minimal_clarification_needed": ""
     },
     {
-      "gap_id": "CASE-d53040ca3526/GAP-002",
+      "gap_id": "CASE-e4d53c90d983/GAP-002",
       "gap_type": "diagnostic_specificity",
       "description": "胆石症与急性胰腺炎的病因关联未明确（是否胆源性胰腺炎）",
-      "why_it_matters": "胆源性胰腺炎需编码胆石症并关联，影响DRG分组。",
+      "why_it_matters": "病因特异性影响编码和后续治疗（如胆囊切除）。",
       "evidence_span": {
         "document_id": "encounter_summary",
         "quote": "既往:胆石症"
@@ -48,12 +48,12 @@
     {
       "expert_id": "coding-expert",
       "consulted": true,
-      "rationale": "根据病历，需明确急性胰腺炎的严重程度（如是否伴有器官衰竭或局部并发症），并确认胆石症是否为本次胰腺炎的病因（即是否胆源性胰腺炎），以支持准确编码。",
+      "rationale": "根据病历，需明确急性胰腺炎的严重程度（如是否伴有器官衰竭或局部并发症）以及胆石症是否为本次胰腺炎的病因（即是否为胆源性胰腺炎），以支持准确编码。建议在病程记录中补充器官功能评估结果（如呼吸、循环、肾功能）及胆道影像学检查（如超声或MRCP）对胆道梗阻或结石的明确描述。",
       "route_decision": "needed",
       "route_reason": "coding_relevant_gap",
       "execution_mode": "LLM_KNOWLEDGE_ONLY",
-      "latency_ms": 2199,
-      "tokens": 177
+      "latency_ms": 3249,
+      "tokens": 217
     },
     {
       "expert_id": "pubmed-expert",
@@ -87,46 +87,46 @@
     }
   ],
   "stage_run_ids": {
-    "encounter_synthesis": "run-ad0ed60e49a6",
-    "gap_identification": "run-f46d2a9a942f",
+    "encounter_synthesis": "run-0d63efc407b2",
+    "gap_identification": "run-335ba2c11c23",
     "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
-    "expert_consultation": "run-0d8a815a54aa",
-    "query_generation": "run-cf59d2f2e2e1",
+    "expert_consultation": "run-9eaad6df73c2",
+    "query_generation": "run-5fd6ba8a08e5",
     "query_generation::quote_snapped": "0",
-    "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=2;llm_complete=False;llm_reasoning=急性胰腺炎的严重程度（轻症/重症）和病因（是否胆源性）未明确，影响编码准确性和临床管理。",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=2;llm_complete=False;llm_reasoning=急性胰腺炎的严重程度（轻症/重症）和病因（是否胆源性）未明确，影响编码准确性。",
     "query_necessity_gate": "necessary=1;unnecessary=1;overquery_triggered=False;final_count=1",
     "query_single_dimension_gate": "single_dim=0;multi_dim=1;axis_cluster_triggered=False;axis_cluster_axis=correlation;final_count=0",
     "claim_evidence_alignment_gate": "claims_extracted=0;blocked=0;flagged=0;final_count=0",
-    "claim_evidence_alignment_gate::run_id": "run-11e74f5ca746",
+    "claim_evidence_alignment_gate::run_id": "run-cf624b112565",
     "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
-    "semantic_necessity_gate::run_id": "run-915df83305cb",
+    "semantic_necessity_gate::run_id": "run-ccc677f2e96f",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "run-db1ad039caa4"
+    "specialist_trace_emit": "run-d9ed2b0fa6ac"
   },
   "stage_trace_ids": {
-    "encounter_synthesis": "trace-4e97ef134124",
-    "gap_identification": "trace-7cd94eb95175",
-    "expert_consultation": "trace-63b8dc3b393c",
-    "query_generation": "trace-83b76977b066",
+    "encounter_synthesis": "trace-39444e57259c",
+    "gap_identification": "trace-f39845ad0983",
+    "expert_consultation": "trace-8bc32fd05514",
+    "query_generation": "trace-e0207c761949",
     "query_eligibility_gate": "",
     "query_necessity_gate": "",
     "query_single_dimension_gate": "",
-    "claim_evidence_alignment_gate": "trace-9d99a27a4c23",
-    "semantic_necessity_gate": "trace-ed5b4a9d39c2",
+    "claim_evidence_alignment_gate": "trace-b17f60c831a9",
+    "semantic_necessity_gate": "trace-7b3879280f68",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "trace-b3056182d361"
+    "specialist_trace_emit": "trace-9a48b17ee9ae"
   },
   "stage_traces": [
     {
       "stage": "encounter_synthesis",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 2349,
+      "latency_ms": 4331,
       "prompt_tokens": 210,
       "completion_tokens": 87,
       "total_tokens": 297,
-      "run_id": "run-ad0ed60e49a6",
-      "trace_id": "trace-4e97ef134124",
+      "run_id": "run-0d63efc407b2",
+      "trace_id": "trace-39444e57259c",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -135,12 +135,12 @@
       "stage": "gap_identification",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 4314,
-      "prompt_tokens": 829,
-      "completion_tokens": 323,
-      "total_tokens": 1152,
-      "run_id": "run-f46d2a9a942f",
-      "trace_id": "trace-7cd94eb95175",
+      "latency_ms": 4290,
+      "prompt_tokens": 1021,
+      "completion_tokens": 316,
+      "total_tokens": 1337,
+      "run_id": "run-335ba2c11c23",
+      "trace_id": "trace-f39845ad0983",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -149,12 +149,12 @@
       "stage": "query_generation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 4194,
+      "latency_ms": 4425,
       "prompt_tokens": 836,
-      "completion_tokens": 382,
-      "total_tokens": 1218,
-      "run_id": "run-cf59d2f2e2e1",
-      "trace_id": "trace-83b76977b066",
+      "completion_tokens": 354,
+      "total_tokens": 1190,
+      "run_id": "run-5fd6ba8a08e5",
+      "trace_id": "trace-e0207c761949",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -163,12 +163,12 @@
       "stage": "expert_consultation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 2199,
+      "latency_ms": 3249,
       "prompt_tokens": 134,
-      "completion_tokens": 43,
-      "total_tokens": 177,
-      "run_id": "run-329e36c80ff0",
-      "trace_id": "trace-ea1e45c78f66",
+      "completion_tokens": 83,
+      "total_tokens": 217,
+      "run_id": "run-cf9437ba8275",
+      "trace_id": "trace-e805b03a056c",
       "degraded": false,
       "error_reason": "",
       "expert_id": "coding-expert"
@@ -181,8 +181,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-af32d7a39aff",
-      "trace_id": "trace-24bb1cc78a71",
+      "run_id": "run-f400a2e0091f",
+      "trace_id": "trace-b0ddbbd203ab",
       "degraded": false,
       "error_reason": "",
       "expert_id": "pubmed-expert"
@@ -195,8 +195,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-31b2653692e0",
-      "trace_id": "trace-4ccef210f23f",
+      "run_id": "run-3ed78276cd90",
+      "trace_id": "trace-6e4d6e63adf0",
       "degraded": false,
       "error_reason": "",
       "expert_id": "web-search-expert"
@@ -209,8 +209,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-dc442bf33651",
-      "trace_id": "trace-93c7362995b1",
+      "run_id": "run-1c610c78a8e4",
+      "trace_id": "trace-f5d313a5c110",
       "degraded": false,
       "error_reason": "",
       "expert_id": "medical-calculator-expert"
@@ -218,5 +218,5 @@
   ],
   "degraded": false,
   "runtime_mode": "real",
-  "generated_at": "2026-07-13T02:52:58.577783Z"
+  "generated_at": "2026-07-13T06:11:33.299150Z"
 }

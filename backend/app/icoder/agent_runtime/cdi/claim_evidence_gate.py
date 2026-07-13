@@ -817,16 +817,29 @@ _CLAIM_EXTRACTION_PROMPT = """你是 CDI Claim 提取器. 你的任务是把一�
   chart_excerpt (节选):
   {chart_excerpt}
 
+CRITICAL vs SUPPORTING (Track H3.15 修订):
+  - critical = chart 中已经记录的临床事实, 是 query 的基础. 移除会让 query 失去意义.
+  - supporting = query 想要澄清但 chart 中可能没有的内容.
+  - 关键规则: critical claim 必须是 chart 中已有的临床事实. 如果一个 claim 在 chart 里找不到证据, 它必须标为 supporting, 不能标为 critical.
+
+response_options 不是 claim (Track H3.15 修订):
+  - query 的 response_options (例如"重症肺炎"、"呼吸衰竭"、"2型糖尿病"等) 是 query 想要澄清的可能性, 不是 critical claim.
+  - 不要把 response_options 中的某个选项作为独立的 critical claim 提取.
+  - 例如 query "请明确肺炎的严重程度(重症肺炎/呼吸衰竭/普通肺炎)" 的 critical claim 应该是 chart 中已有的"肺炎" 本身, 而不是"重症肺炎"或"呼吸衰竭".
+
+ABSENCE GAP 处理:
+  如果 query 询问某个未在 chart 中记录的临床细节 (例如"严重程度未明确"), critical claim 应该是 chart 中已经记录的相关临床事实 (例如"肺炎"本身), 而不是 query 想要补充的细节.
+
 要求:
-1. 把 query_text 分解成 1~5 个原子 Claim. 每个 Claim 是一个独立的临床断言.
-2. 区分 critical (核心, 移除会让 query 失去意义) 和 supporting (辅助).
+1. 把 query_text 分解成 1~3 个原子 Claim. 通常只需要 1 个 critical claim + 0~2 个 supporting claim.
+2. 区分 critical 和 supporting (按上述规则).
 3. 为每个 Claim 在 chart_excerpt 中找一条最匹配的 evidence quote (必须 verbatim 出现在 chart 中).
 4. 判断 support_type:
    - direct: chart 原文直接支持该 Claim
    - contextual: 需要结合上下文, 不增加新的临床结论
    - inferred: 合理推断, 不是确定性事实
-   - unsupported: chart 中找不到任何支持
-5. 如果找不到任何 quote, 设置 quote="" 和 support_type="unsupported".
+   - unsupported: chart 中找不到任何支持 (只有 supporting claim 可以是 unsupported; critical claim 必须有 chart 证据)
+5. 如果一个 candidate claim 在 chart 里找不到 quote, 把它标为 supporting + quote="" + support_type="unsupported", 或者直接不提取.
 
 严格按以下 JSON 输出 (无其他文本):
 {{
@@ -844,7 +857,7 @@ _CLAIM_EXTRACTION_PROMPT = """你是 CDI Claim 提取器. 你的任务是把一�
   ]
 }}
 
-红线: 不要发明 chart 中没有的 quote. 如果 query 提到的内容 chart 里没有, 必须诚实标 unsupported.
+红线: 不要发明 chart 中没有的 quote. critical claim 必须有 chart 证据, 否则降级为 supporting 或不提取.
 """
 
 

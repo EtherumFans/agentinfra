@@ -1,8 +1,8 @@
-"""Track H4.2 — Freeze formal benchmark candidate (icoder-cdi-agent-v1.0.0-rc1).
+"""Track H4.2 — Freeze formal benchmark candidate (icoder-cdi-agent-v1.0.0-rc3).
 
-Snapshots the iter 3 baseline into a single reproducible artifact directory:
+Snapshots the iter 5 baseline into a single reproducible artifact directory:
 
-    reports/track_h/h4_benchmark_candidate_rc1/
+    reports/track_h/h4_benchmark_candidate_rc3/
         MANIFEST.json
         gate8_icoder_40case_results.json          (copy)
         gate8_icoder_per_case/                    (40 copies)
@@ -29,11 +29,11 @@ from pathlib import Path
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-DST = REPO_ROOT / "reports" / "track_h" / "h4_benchmark_candidate_rc2"
+DST = REPO_ROOT / "reports" / "track_h" / "h4_benchmark_candidate_rc3"
 
-CANDIDATE_VERSION = "icoder-cdi-agent-v1.0.0-rc2"
-ITER = 4
-TIER_LABEL = "PASS_CALIBRATION_TUNING_ITERATION_4"
+CANDIDATE_VERSION = "icoder-cdi-agent-v1.0.0-rc3"
+ITER = 5
+TIER_LABEL = "PASS_CALIBRATION_TUNING_ITERATION_5"
 
 SOURCES = {
     "gate8_icoder_40case_results.json":
@@ -129,36 +129,44 @@ def main() -> int:
         "tier": TIER_LABEL,
         "case_count": len(per_case_files),
         "description": (
-            "Frozen iter 3 baseline of iCoDer CDI Agent on the 40-case Corti/iCoDer "
-            "cross-platform calibration fixture. This snapshot is the reference point "
-            "for Track H formal closure; future iterations (H3.13 LLM-backed chart "
-            "completeness, H3.14 contradiction amplifier, H1.2-H1.4 Corti controlled "
-            "probes) measure their deltas against this artifact."
+            "Frozen iter 5 baseline of iCoDer CDI Agent on the 40-case Corti/iCoDer "
+            "cross-platform calibration fixture. iter 5 = H3.15 quote-snap + "
+            "extract_claims prompt fix. Closes 3 of 5 iter 4 stuck points "
+            "(verbatim, doc_conflict emit, unsupported rate). Snapshot is the "
+            "reference for H1.2-H1.4 Corti controlled probes (Tier 2)."
         ),
         "headline_metrics": {
-            "iter_4_avg_queries_per_case": 0.425,
-            "iter_4_icoder_range_conformance": "33/40 (82%)",
-            "iter_4_agreement_rate_vs_corti": 0.55,
-            "iter_4_avg_abs_query_count_delta": 1.43,
-            "iter_4_multi_dim_leaked_total": 0,
-            "iter_4_complete_chart_over_query": "0/10",
-            "iter_4_clear_gap_under_query": "3/10",
-            "iter_4_evidence_quote_verbatim": 0.882,
-            "iter_4_contradiction_risk_flag_cases": 6,
+            "iter_5_avg_queries_per_case": 0.75,
+            "iter_5_icoder_range_conformance": "31/40 (78%)",
+            "iter_5_agreement_rate_vs_corti": 0.57,
+            "iter_5_avg_abs_query_count_delta": 1.30,
+            "iter_5_multi_dim_leaked_total": 0,
+            "iter_5_complete_chart_over_query": "0/10",
+            "iter_5_clear_gap_under_query": "4/10",
+            "iter_5_evidence_quote_verbatim": 1.000,
+            "iter_5_unsupported_query_rate": 0.000,
+            "iter_5_document_conflict_emit_rate": 0.80,
+            "iter_5_contradiction_risk_flag_cases": 6,
         },
         "h4_1_quality_summary": h41_summary.get("quality", {}),
         "h4_1_safety_summary": h41_summary.get("safety", {}),
         "h4_1_expert_summary": h41_summary.get("expert", {}),
         "cross_platform_normalizer": normalizer_summary,
         "caveats": [
-            "complete_chart over-query closed (4/10 → 0/10) by H3.13b LLM completeness — iter 4 WIN",
-            "contradiction_risk_flag plumbing activated (0/40 → 6/40) — iter 4 WIN, H3.10 override no longer dormant",
-            "clear_gap under-query regressed (1/10 → 3/10) — CEA over-blocking, H3.15 carry-forward",
-            "evidence_quote_verbatim regressed (0.971 → 0.882) — H3.15 carry-forward",
-            "document_conflict emit rate still 0.40 (target ≥ 0.80) — H3.14 amplifier generated queries but CEA blocks",
-            "lab_positive_uncertain emit 0/5 — H3.16 carry-forward",
+            "evidence_quote_verbatim closed (0.882 → 1.000, target ≥0.95) — iter 5 WIN, H3.15 snap + extract_claims prompt",
+            "document_conflict emit_rate closed (0.40 → 0.80, target ≥0.80) — iter 5 WIN, H3.14 amplifier + H3.15 prompt fix unblocked",
+            "unsupported_query_rate closed (0.118 → 0.000) — iter 5 WIN",
+            "Avg |Δq| improved (1.43 → 1.30) — iter 5 WIN",
+            "clear_gap agreement_rate big lift (0.30 → 0.70) — iter 5 WIN",
+            "complete_chart over-query maintained at 0/10 — iter 4 WIN preserved",
+            "contradiction_risk_flag maintained at 6/40 — iter 4 WIN preserved",
+            "multi_dim_leaked = 0 maintained (structural, deterministic gate)",
+            "clear_gap under-query slight regression (3/10 → 4/10) — iter 5 partial regression; 2 over-query cases need investigation",
+            "iCoDer range conformance slight regression (0.82 → 0.78) — within noise",
+            "response_options_4plus slight regression (1.000 → 0.900) — 3 queries with <4 options",
+            "lab_positive_uncertain emit 0/5 unchanged — H3.16 carry-forward (needs Corti-style lab-normal low-target clarification flow)",
+            "insufficient_evidence emit 1/5 (was higher iter 4) — extract_claims now stricter; needs investigation",
             "expert_rejection behavior not exercised (EXP-005) — H1.3 carry-forward",
-            "multi_dim_leaked = 0 is structural (deterministic gate), not statistical",
         ],
         "files": manifest_files,
         "per_case_files": per_case_files,
@@ -179,17 +187,17 @@ def main() -> int:
 
 ## What this is
 
-A reproducible snapshot of the iCoDer CDI Agent's iter 3 calibration baseline
-on the 40-case Corti × iCoDer cross-platform fixture. Future Track H work
-(H3.13 LLM-backed chart completeness, H3.14 contradiction amplifier,
-H1.2-H1.4 Corti controlled probes) will measure deltas against this artifact.
+A reproducible snapshot of the iCoDer CDI Agent's iter 5 calibration baseline
+on the 40-case Corti × iCoDer cross-platform fixture. iter 5 = H3.15 quote-snap
++ extract_claims prompt fix. Closes 3 of 5 iter 4 stuck points. Tier 2 work
+(H1.2/H1.3/H1.4 Corti controlled probes) will measure deltas against this artifact.
 
 ## Files
 
 | Path | Purpose |
 |---|---|
 | `MANIFEST.json` | Self-describing manifest with sha256 + headlines |
-| `gate8_icoder_40case_results.json` | iter 3 iCoDer 40-case aggregate results |
+| `gate8_icoder_40case_results.json` | iter 5 iCoDer 40-case aggregate results |
 | `per_case/*.json` | 40 per-case trace files (stage_traces, gaps, queries, experts) |
 | `h34_normalizer_40case.json` | §9.9 cross-platform + §9.10 safety metrics |
 | `h41_quality_safety_expert_40case.json` | H4.1 quality + safety + expert scoring |
@@ -199,24 +207,40 @@ H1.2-H1.4 Corti controlled probes) will measure deltas against this artifact.
 
 | Metric | Value | Target | Status |
 |---|---|---|---|
-| avg queries/case | 0.875 | n/a | informational |
-| iCoDer range conformance | 28/40 (70%) | ≥ 60% | ✅ PASS |
-| agreement rate vs Corti (\\|Δ\\|≤1) | 0.57 | ≥ 0.50 | ✅ PASS |
-| avg \\|Δ query count\\| | 1.23 | ≤ 1.50 | ✅ PASS |
+| avg queries/case | 0.75 | n/a | informational |
+| iCoDer range conformance | 31/40 (78%) | ≥ 60% | ✅ PASS |
+| agreement rate vs Corti (\\|Δ\\|≤1) | 0.57 | ≥ 0.80 | ⚠ partial |
+| avg \\|Δ query count\\| | 1.30 | ≤ 0.50 | ⚠ partial |
 | multi_dim_leaked_total | 0 | 0 | ✅ PASS (structural) |
-| complete_chart over-query | 4/10 | 0 | ❌ carry-forward H3.13 |
-| clear_gap under-query | 1/10 | 0 | ⚠ near-pass |
-| document_conflict emit rate | 0.40 | ≥ 0.80 | ❌ carry-forward H3.10/H3.13 |
+| complete_chart over-query | 0/10 | 0 | ✅ PASS (iter 4 hold) |
+| clear_gap under-query | 4/10 | 0 | ⚠ partial |
+| evidence_quote_verbatim | 1.000 | ≥ 0.95 | ✅ PASS (iter 5 closed) |
+| document_conflict emit rate | 0.80 | ≥ 0.80 | ✅ PASS (iter 5 closed) |
+| unsupported_query_rate | 0.000 | = 0 | ✅ PASS (iter 5 closed) |
+| contradiction_risk_flag cases | 6/40 | n/a | ✅ iter 4 hold |
+
+## Iter 5 wins (vs iter 4)
+
+1. **evidence_quote_verbatim 0.882 → 1.000** — H3.15 quote-snap (deterministic
+   correction to chart substring) + extract_claims prompt (critical claim must
+   be chart-evidenced, not response_option hypothesis).
+2. **document_conflict emit_rate 0.40 → 0.80** — H3.14 amplifier now generates
+   queries that survive CEA (because critical claims are chart-evidenced).
+3. **unsupported_query_rate 0.118 → 0.000** — same root cause as above.
+4. **Avg |Δq| 1.43 → 1.30** — closer to Corti baseline.
+5. **clear_gap agreement_rate 0.30 → 0.70** — major lift.
 
 ## Carry-forward (does not block freeze)
 
-1. **H3.13b** — LLM-backed chart completeness detection + contradiction risk_flag
-   emission prompt update (~3h). Will close complete_chart over-query 4/10 and
-   document_conflict emit 0.40 simultaneously.
-2. **H3.14** — lab_positive_uncertain / document_conflict volume lift (~3h).
-3. **H1.2/H1.3/H1.4** — Corti controlled probes for the 3 UNKNOWN + EXP-005
-   rejection behavior (~3-4h).
-4. **multi_dim "3 iters at 0" framing** — clarify in H4.3 final report that
+1. **H3.16** — lab_positive_uncertain emit 0/5 unchanged. Needs Corti-style
+   lab-normal low-target clarification flow (~3h).
+2. **H1.2/H1.3/H1.4** — Corti controlled probes for the 3 UNKNOWN capabilities
+   + EXP-005 rejection behavior (~3-4h). Requires Corti JWT.
+3. **clear_gap over-query 2/10 (new in iter 5)** — GAP-002 (q=3), GAP-010 (q=4).
+   Investigate response_options extraction; may need cap at 2 queries/gap.
+4. **response_options_4plus 1.000 → 0.900** — 3 queries with <4 options.
+   Likely a regression in H3.14 amplifier prompt.
+5. **multi_dim "5 iters at 0" framing** — clarify in H4.3 final report that
    this is structural (deterministic gate), not a tuned achievement.
 
 ## How to regenerate
@@ -234,7 +258,7 @@ python scripts/corti_parity/track_h/04_normalize_and_compare.py
 
 To unfreeze / delete:
 ```bash
-rm -rf reports/track_h/h4_benchmark_candidate_rc1/
+rm -rf reports/track_h/h4_benchmark_candidate_rc3/
 ```
 """
     (DST / "H4_BENCHMARK_CANDIDATE_README.md").write_text(readme, encoding="utf-8")

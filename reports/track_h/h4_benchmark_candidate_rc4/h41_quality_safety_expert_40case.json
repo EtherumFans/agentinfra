@@ -1,0 +1,2461 @@
+{
+  "_meta": {
+    "source": "Track H4.1 — Quality + Safety + Expert scoring on iter 3 baseline",
+    "case_count": 40,
+    "candidate": "icoder-cdi-agent-v1.0.0-rc1",
+    "iter": 3,
+    "per_case_dir": "backend\\reports\\phase5_d_p05\\gate8_icoder_per_case"
+  },
+  "summary": {
+    "quality": {
+      "total_queries": 37,
+      "evidence_quote_present_rate": 1.0,
+      "evidence_quote_verbatim_rate": 0.973,
+      "avg_evidence_quote_fuzz_score": 0.992,
+      "response_options_4plus_rate": 1.0,
+      "response_options_escape_hatch_rate": 1.0,
+      "non_leading_query_rate": 1.0,
+      "leading_query_count": 0
+    },
+    "safety": {
+      "multi_dim_input_per_case": 0.2,
+      "multi_dim_input_total": 8,
+      "multi_dim_leaked_total": 0,
+      "multi_dim_leaked_rate": 0.0,
+      "cases_with_multi_dim_input": 7,
+      "unsupported_query_rate": 0.027,
+      "leading_query_rate": 0.0,
+      "document_conflict_cases_total": 5,
+      "document_conflict_emit_cases": 5,
+      "contradiction_risk_flag_cases": 6,
+      "document_conflict_emit_rate": 1.0
+    },
+    "expert": {
+      "coding-expert": {
+        "route_needed_count": 25,
+        "consulted_count": 25,
+        "invoke_rate": 0.625,
+        "avg_latency_ms_when_consulted": 2910.8,
+        "avg_tokens_when_consulted": 233.1,
+        "rejection_count": 0,
+        "rejection_rate": 0.0
+      },
+      "medical-calculator-expert": {
+        "route_needed_count": 0,
+        "consulted_count": 0,
+        "invoke_rate": 0.0,
+        "avg_latency_ms_when_consulted": 0.0,
+        "avg_tokens_when_consulted": 0.0,
+        "rejection_count": 0,
+        "rejection_rate": 0.0
+      },
+      "pubmed-expert": {
+        "route_needed_count": 4,
+        "consulted_count": 4,
+        "invoke_rate": 0.1,
+        "avg_latency_ms_when_consulted": 2260.2,
+        "avg_tokens_when_consulted": 308.8,
+        "rejection_count": 0,
+        "rejection_rate": 0.0
+      },
+      "web-search-expert": {
+        "route_needed_count": 0,
+        "consulted_count": 0,
+        "invoke_rate": 0.0,
+        "avg_latency_ms_when_consulted": 0.0,
+        "avg_tokens_when_consulted": 0.0,
+        "rejection_count": 0,
+        "rejection_rate": 0.0
+      }
+    }
+  },
+  "by_category": {
+    "clear_gap": {
+      "cases": 10,
+      "queries": 20,
+      "multi_dim_input": 3,
+      "multi_dim_leaked": 0,
+      "cea_blocked": 1,
+      "sem_degraded": 0,
+      "leading": 0,
+      "verbatim_pass": 20,
+      "options_4plus": 20,
+      "escape_hatch": 20,
+      "emit_cases": 9
+    },
+    "complete_chart": {
+      "cases": 10,
+      "queries": 0,
+      "multi_dim_input": 0,
+      "multi_dim_leaked": 0,
+      "cea_blocked": 0,
+      "sem_degraded": 0,
+      "leading": 0,
+      "verbatim_pass": 0,
+      "options_4plus": 0,
+      "escape_hatch": 0,
+      "emit_cases": 0
+    },
+    "insufficient_evidence": {
+      "cases": 5,
+      "queries": 3,
+      "multi_dim_input": 1,
+      "multi_dim_leaked": 0,
+      "cea_blocked": 0,
+      "sem_degraded": 0,
+      "leading": 0,
+      "verbatim_pass": 3,
+      "options_4plus": 3,
+      "escape_hatch": 3,
+      "emit_cases": 2
+    },
+    "negation_history": {
+      "cases": 5,
+      "queries": 2,
+      "multi_dim_input": 0,
+      "multi_dim_leaked": 0,
+      "cea_blocked": 3,
+      "sem_degraded": 0,
+      "leading": 0,
+      "verbatim_pass": 2,
+      "options_4plus": 2,
+      "escape_hatch": 2,
+      "emit_cases": 2
+    },
+    "document_conflict": {
+      "cases": 5,
+      "queries": 9,
+      "multi_dim_input": 3,
+      "multi_dim_leaked": 0,
+      "cea_blocked": 1,
+      "sem_degraded": 0,
+      "leading": 0,
+      "verbatim_pass": 8,
+      "options_4plus": 9,
+      "escape_hatch": 9,
+      "emit_cases": 5
+    },
+    "lab_positive_uncertain": {
+      "cases": 5,
+      "queries": 3,
+      "multi_dim_input": 1,
+      "multi_dim_leaked": 0,
+      "cea_blocked": 3,
+      "sem_degraded": 0,
+      "leading": 0,
+      "verbatim_pass": 3,
+      "options_4plus": 3,
+      "escape_hatch": 3,
+      "emit_cases": 2
+    }
+  },
+  "per_case": [
+    {
+      "case_id": "CASE-25d5f4e2c833",
+      "fixture_case_id": "G8-CDI-GAP-001",
+      "category": "clear_gap",
+      "chart_length": 86,
+      "query_count": 3,
+      "scored_queries": [
+        {
+          "query_id": "CASE-25d5f4e2c833/Q-001",
+          "evidence_quote_present": true,
+          "evidence_quote_verbatim": true,
+          "evidence_quote_fuzz_score": 1.0,
+          "response_options_count": 4,
+          "response_options_has_escape": true,
+          "query_text_non_leading": true,
+          "leading_flags": [],
+          "query_text_length": 14
+        },
+        {
+          "query_id": "CASE-25d5f4e2c833/Q-002",
+          "evidence_quote_present": true,
+          "evidence_quote_verbatim": true,
+          "evidence_quote_fuzz_score": 1.0,
+          "response_options_count": 4,
+          "response_options_has_escape": true,
+          "query_text_non_leading": true,
+          "leading_flags": [],
+          "query_text_length": 12
+        },
+        {
+          "query_id": "CASE-25d5f4e2c833/Q-003",
+          "evidence_quote_present": true,
+          "evidence_quote_verbatim": true,
+          "evidence_quote_fuzz_score": 1.0,
+          "response_options_count": 4,
+          "response_options_has_escape": true,
+          "query_text_non_leading": true,
+          "leading_flags": [],
+          "query_text_length": 23
+        }
+      ],
+      "multi_dim_input_count": 0,
+      "single_dim_gate_final_count": 3,
+      "multi_dim_leaked_count": 0,
+      "cea_blocked": 0,
+      "semantic_degraded": 0,
+      "expert_summary": {
+        "coding-expert": {
+          "route_decision": "needed",
+          "consulted": true,
+          "execution_mode": "LLM_KNOWLEDGE_ONLY",
+          "latency_ms": 2969,
+          "tokens": 223
+        },
+        "pubmed-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "web-search-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "medical-calculator-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        }
+      },
+      "has_contradiction_risk_flag": false,
+      "contradiction_preserved_query_emitted": null,
+      "completion_state": "REVIEW_REQUIRED",
+      "degraded": false
+    },
+    {
+      "case_id": "CASE-b300194e83c8",
+      "fixture_case_id": "G8-CDI-GAP-002",
+      "category": "clear_gap",
+      "chart_length": 80,
+      "query_count": 2,
+      "scored_queries": [
+        {
+          "query_id": "CASE-b300194e83c8/Q-001",
+          "evidence_quote_present": true,
+          "evidence_quote_verbatim": true,
+          "evidence_quote_fuzz_score": 1.0,
+          "response_options_count": 4,
+          "response_options_has_escape": true,
+          "query_text_non_leading": true,
+          "leading_flags": [],
+          "query_text_length": 16
+        },
+        {
+          "query_id": "CASE-b300194e83c8/Q-002",
+          "evidence_quote_present": true,
+          "evidence_quote_verbatim": true,
+          "evidence_quote_fuzz_score": 1.0,
+          "response_options_count": 4,
+          "response_options_has_escape": true,
+          "query_text_non_leading": true,
+          "leading_flags": [],
+          "query_text_length": 25
+        }
+      ],
+      "multi_dim_input_count": 0,
+      "single_dim_gate_final_count": 2,
+      "multi_dim_leaked_count": 0,
+      "cea_blocked": 0,
+      "semantic_degraded": 0,
+      "expert_summary": {
+        "coding-expert": {
+          "route_decision": "needed",
+          "consulted": true,
+          "execution_mode": "LLM_KNOWLEDGE_ONLY",
+          "latency_ms": 3026,
+          "tokens": 184
+        },
+        "pubmed-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "web-search-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "medical-calculator-expert": {
+          "route_decision": "tool_unavailable",
+          "consulted": false,
+          "execution_mode": "TOOL_UNAVAILABLE",
+          "latency_ms": 0,
+          "tokens": 0
+        }
+      },
+      "has_contradiction_risk_flag": false,
+      "contradiction_preserved_query_emitted": null,
+      "completion_state": "REVIEW_REQUIRED",
+      "degraded": true
+    },
+    {
+      "case_id": "CASE-f8825aa46cde",
+      "fixture_case_id": "G8-CDI-GAP-003",
+      "category": "clear_gap",
+      "chart_length": 75,
+      "query_count": 2,
+      "scored_queries": [
+        {
+          "query_id": "CASE-f8825aa46cde/Q-001",
+          "evidence_quote_present": true,
+          "evidence_quote_verbatim": true,
+          "evidence_quote_fuzz_score": 1.0,
+          "response_options_count": 4,
+          "response_options_has_escape": true,
+          "query_text_non_leading": true,
+          "leading_flags": [],
+          "query_text_length": 31
+        },
+        {
+          "query_id": "CASE-f8825aa46cde/Q-002",
+          "evidence_quote_present": true,
+          "evidence_quote_verbatim": true,
+          "evidence_quote_fuzz_score": 1.0,
+          "response_options_count": 4,
+          "response_options_has_escape": true,
+          "query_text_non_leading": true,
+          "leading_flags": [],
+          "query_text_length": 26
+        }
+      ],
+      "multi_dim_input_count": 0,
+      "single_dim_gate_final_count": 2,
+      "multi_dim_leaked_count": 0,
+      "cea_blocked": 0,
+      "semantic_degraded": 0,
+      "expert_summary": {
+        "coding-expert": {
+          "route_decision": "needed",
+          "consulted": true,
+          "execution_mode": "LLM_KNOWLEDGE_ONLY",
+          "latency_ms": 2690,
+          "tokens": 219
+        },
+        "pubmed-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "web-search-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "medical-calculator-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        }
+      },
+      "has_contradiction_risk_flag": false,
+      "contradiction_preserved_query_emitted": null,
+      "completion_state": "REVIEW_REQUIRED",
+      "degraded": false
+    },
+    {
+      "case_id": "CASE-362cc6e8afb2",
+      "fixture_case_id": "G8-CDI-GAP-004",
+      "category": "clear_gap",
+      "chart_length": 55,
+      "query_count": 0,
+      "scored_queries": [],
+      "multi_dim_input_count": 1,
+      "single_dim_gate_final_count": 0,
+      "multi_dim_leaked_count": 0,
+      "cea_blocked": 0,
+      "semantic_degraded": 0,
+      "expert_summary": {
+        "coding-expert": {
+          "route_decision": "needed",
+          "consulted": true,
+          "execution_mode": "LLM_KNOWLEDGE_ONLY",
+          "latency_ms": 2452,
+          "tokens": 177
+        },
+        "pubmed-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "web-search-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "medical-calculator-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        }
+      },
+      "has_contradiction_risk_flag": false,
+      "contradiction_preserved_query_emitted": null,
+      "completion_state": "REVIEW_REQUIRED",
+      "degraded": false
+    },
+    {
+      "case_id": "CASE-89c2062c359e",
+      "fixture_case_id": "G8-CDI-GAP-005",
+      "category": "clear_gap",
+      "chart_length": 76,
+      "query_count": 2,
+      "scored_queries": [
+        {
+          "query_id": "CASE-89c2062c359e/Q-001",
+          "evidence_quote_present": true,
+          "evidence_quote_verbatim": true,
+          "evidence_quote_fuzz_score": 1.0,
+          "response_options_count": 4,
+          "response_options_has_escape": true,
+          "query_text_non_leading": true,
+          "leading_flags": [],
+          "query_text_length": 18
+        },
+        {
+          "query_id": "CASE-89c2062c359e/Q-002",
+          "evidence_quote_present": true,
+          "evidence_quote_verbatim": true,
+          "evidence_quote_fuzz_score": 1.0,
+          "response_options_count": 4,
+          "response_options_has_escape": true,
+          "query_text_non_leading": true,
+          "leading_flags": [],
+          "query_text_length": 52
+        }
+      ],
+      "multi_dim_input_count": 0,
+      "single_dim_gate_final_count": 2,
+      "multi_dim_leaked_count": 0,
+      "cea_blocked": 0,
+      "semantic_degraded": 0,
+      "expert_summary": {
+        "coding-expert": {
+          "route_decision": "needed",
+          "consulted": true,
+          "execution_mode": "LLM_KNOWLEDGE_ONLY",
+          "latency_ms": 2621,
+          "tokens": 241
+        },
+        "pubmed-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "web-search-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "medical-calculator-expert": {
+          "route_decision": "missing_inputs",
+          "consulted": false,
+          "execution_mode": "SKIPPED_MISSING_INPUTS",
+          "latency_ms": 0,
+          "tokens": 0
+        }
+      },
+      "has_contradiction_risk_flag": false,
+      "contradiction_preserved_query_emitted": null,
+      "completion_state": "BLOCKED",
+      "degraded": false
+    },
+    {
+      "case_id": "CASE-056fb255e13b",
+      "fixture_case_id": "G8-CDI-GAP-006",
+      "category": "clear_gap",
+      "chart_length": 59,
+      "query_count": 3,
+      "scored_queries": [
+        {
+          "query_id": "CASE-056fb255e13b/Q-001",
+          "evidence_quote_present": true,
+          "evidence_quote_verbatim": true,
+          "evidence_quote_fuzz_score": 1.0,
+          "response_options_count": 4,
+          "response_options_has_escape": true,
+          "query_text_non_leading": true,
+          "leading_flags": [],
+          "query_text_length": 28
+        },
+        {
+          "query_id": "CASE-056fb255e13b/Q-002",
+          "evidence_quote_present": true,
+          "evidence_quote_verbatim": true,
+          "evidence_quote_fuzz_score": 1.0,
+          "response_options_count": 4,
+          "response_options_has_escape": true,
+          "query_text_non_leading": true,
+          "leading_flags": [],
+          "query_text_length": 27
+        },
+        {
+          "query_id": "CASE-056fb255e13b/Q-003",
+          "evidence_quote_present": true,
+          "evidence_quote_verbatim": true,
+          "evidence_quote_fuzz_score": 1.0,
+          "response_options_count": 4,
+          "response_options_has_escape": true,
+          "query_text_non_leading": true,
+          "leading_flags": [],
+          "query_text_length": 28
+        }
+      ],
+      "multi_dim_input_count": 1,
+      "single_dim_gate_final_count": 3,
+      "multi_dim_leaked_count": 0,
+      "cea_blocked": 0,
+      "semantic_degraded": 0,
+      "expert_summary": {
+        "coding-expert": {
+          "route_decision": "needed",
+          "consulted": true,
+          "execution_mode": "LLM_KNOWLEDGE_ONLY",
+          "latency_ms": 2856,
+          "tokens": 275
+        },
+        "pubmed-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "web-search-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "medical-calculator-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        }
+      },
+      "has_contradiction_risk_flag": false,
+      "contradiction_preserved_query_emitted": null,
+      "completion_state": "BLOCKED",
+      "degraded": false
+    },
+    {
+      "case_id": "CASE-115b3d0e8a21",
+      "fixture_case_id": "G8-CDI-GAP-007",
+      "category": "clear_gap",
+      "chart_length": 50,
+      "query_count": 1,
+      "scored_queries": [
+        {
+          "query_id": "CASE-115b3d0e8a21/Q-001",
+          "evidence_quote_present": true,
+          "evidence_quote_verbatim": true,
+          "evidence_quote_fuzz_score": 1.0,
+          "response_options_count": 5,
+          "response_options_has_escape": true,
+          "query_text_non_leading": true,
+          "leading_flags": [],
+          "query_text_length": 13
+        }
+      ],
+      "multi_dim_input_count": 1,
+      "single_dim_gate_final_count": 2,
+      "multi_dim_leaked_count": 0,
+      "cea_blocked": 1,
+      "semantic_degraded": 0,
+      "expert_summary": {
+        "coding-expert": {
+          "route_decision": "needed",
+          "consulted": true,
+          "execution_mode": "LLM_KNOWLEDGE_ONLY",
+          "latency_ms": 2698,
+          "tokens": 215
+        },
+        "pubmed-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "web-search-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "medical-calculator-expert": {
+          "route_decision": "missing_inputs",
+          "consulted": false,
+          "execution_mode": "SKIPPED_MISSING_INPUTS",
+          "latency_ms": 0,
+          "tokens": 0
+        }
+      },
+      "has_contradiction_risk_flag": false,
+      "contradiction_preserved_query_emitted": null,
+      "completion_state": "REVIEW_REQUIRED",
+      "degraded": true
+    },
+    {
+      "case_id": "CASE-c460989cb029",
+      "fixture_case_id": "G8-CDI-GAP-008",
+      "category": "clear_gap",
+      "chart_length": 74,
+      "query_count": 2,
+      "scored_queries": [
+        {
+          "query_id": "CASE-c460989cb029/Q-001",
+          "evidence_quote_present": true,
+          "evidence_quote_verbatim": true,
+          "evidence_quote_fuzz_score": 1.0,
+          "response_options_count": 4,
+          "response_options_has_escape": true,
+          "query_text_non_leading": true,
+          "leading_flags": [],
+          "query_text_length": 20
+        },
+        {
+          "query_id": "CASE-c460989cb029/Q-002",
+          "evidence_quote_present": true,
+          "evidence_quote_verbatim": true,
+          "evidence_quote_fuzz_score": 1.0,
+          "response_options_count": 4,
+          "response_options_has_escape": true,
+          "query_text_non_leading": true,
+          "leading_flags": [],
+          "query_text_length": 11
+        }
+      ],
+      "multi_dim_input_count": 0,
+      "single_dim_gate_final_count": 2,
+      "multi_dim_leaked_count": 0,
+      "cea_blocked": 0,
+      "semantic_degraded": 0,
+      "expert_summary": {
+        "coding-expert": {
+          "route_decision": "needed",
+          "consulted": true,
+          "execution_mode": "LLM_KNOWLEDGE_ONLY",
+          "latency_ms": 3313,
+          "tokens": 226
+        },
+        "pubmed-expert": {
+          "route_decision": "needed",
+          "consulted": true,
+          "execution_mode": "LLM_KNOWLEDGE_ONLY",
+          "latency_ms": 2477,
+          "tokens": 291
+        },
+        "web-search-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "medical-calculator-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        }
+      },
+      "has_contradiction_risk_flag": true,
+      "contradiction_preserved_query_emitted": true,
+      "completion_state": "BLOCKED",
+      "degraded": false
+    },
+    {
+      "case_id": "CASE-53679adfa8dd",
+      "fixture_case_id": "G8-CDI-GAP-009",
+      "category": "clear_gap",
+      "chart_length": 105,
+      "query_count": 2,
+      "scored_queries": [
+        {
+          "query_id": "CASE-53679adfa8dd/Q-001",
+          "evidence_quote_present": true,
+          "evidence_quote_verbatim": true,
+          "evidence_quote_fuzz_score": 1.0,
+          "response_options_count": 4,
+          "response_options_has_escape": true,
+          "query_text_non_leading": true,
+          "leading_flags": [],
+          "query_text_length": 19
+        },
+        {
+          "query_id": "CASE-53679adfa8dd/Q-002",
+          "evidence_quote_present": true,
+          "evidence_quote_verbatim": true,
+          "evidence_quote_fuzz_score": 1.0,
+          "response_options_count": 4,
+          "response_options_has_escape": true,
+          "query_text_non_leading": true,
+          "leading_flags": [],
+          "query_text_length": 49
+        }
+      ],
+      "multi_dim_input_count": 0,
+      "single_dim_gate_final_count": 2,
+      "multi_dim_leaked_count": 0,
+      "cea_blocked": 0,
+      "semantic_degraded": 0,
+      "expert_summary": {
+        "coding-expert": {
+          "route_decision": "needed",
+          "consulted": true,
+          "execution_mode": "LLM_KNOWLEDGE_ONLY",
+          "latency_ms": 3062,
+          "tokens": 279
+        },
+        "pubmed-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "web-search-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "medical-calculator-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        }
+      },
+      "has_contradiction_risk_flag": false,
+      "contradiction_preserved_query_emitted": null,
+      "completion_state": "REVIEW_REQUIRED",
+      "degraded": false
+    },
+    {
+      "case_id": "CASE-791459a11b19",
+      "fixture_case_id": "G8-CDI-GAP-010",
+      "category": "clear_gap",
+      "chart_length": 77,
+      "query_count": 3,
+      "scored_queries": [
+        {
+          "query_id": "CASE-791459a11b19/Q-001",
+          "evidence_quote_present": true,
+          "evidence_quote_verbatim": true,
+          "evidence_quote_fuzz_score": 1.0,
+          "response_options_count": 4,
+          "response_options_has_escape": true,
+          "query_text_non_leading": true,
+          "leading_flags": [],
+          "query_text_length": 28
+        },
+        {
+          "query_id": "CASE-791459a11b19/Q-002",
+          "evidence_quote_present": true,
+          "evidence_quote_verbatim": true,
+          "evidence_quote_fuzz_score": 1.0,
+          "response_options_count": 4,
+          "response_options_has_escape": true,
+          "query_text_non_leading": true,
+          "leading_flags": [],
+          "query_text_length": 29
+        },
+        {
+          "query_id": "CASE-791459a11b19/Q-003",
+          "evidence_quote_present": true,
+          "evidence_quote_verbatim": true,
+          "evidence_quote_fuzz_score": 1.0,
+          "response_options_count": 4,
+          "response_options_has_escape": true,
+          "query_text_non_leading": true,
+          "leading_flags": [],
+          "query_text_length": 11
+        }
+      ],
+      "multi_dim_input_count": 0,
+      "single_dim_gate_final_count": 3,
+      "multi_dim_leaked_count": 0,
+      "cea_blocked": 0,
+      "semantic_degraded": 0,
+      "expert_summary": {
+        "coding-expert": {
+          "route_decision": "needed",
+          "consulted": true,
+          "execution_mode": "LLM_KNOWLEDGE_ONLY",
+          "latency_ms": 2808,
+          "tokens": 236
+        },
+        "pubmed-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "web-search-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "medical-calculator-expert": {
+          "route_decision": "missing_inputs",
+          "consulted": false,
+          "execution_mode": "SKIPPED_MISSING_INPUTS",
+          "latency_ms": 0,
+          "tokens": 0
+        }
+      },
+      "has_contradiction_risk_flag": false,
+      "contradiction_preserved_query_emitted": null,
+      "completion_state": "BLOCKED",
+      "degraded": false
+    },
+    {
+      "case_id": "CASE-7022d19d6587",
+      "fixture_case_id": "G8-CDI-COMPLETE-011",
+      "category": "complete_chart",
+      "chart_length": 134,
+      "query_count": 0,
+      "scored_queries": [],
+      "multi_dim_input_count": 0,
+      "single_dim_gate_final_count": 0,
+      "multi_dim_leaked_count": 0,
+      "cea_blocked": 0,
+      "semantic_degraded": 0,
+      "expert_summary": {
+        "coding-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "pubmed-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "web-search-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "medical-calculator-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        }
+      },
+      "has_contradiction_risk_flag": false,
+      "contradiction_preserved_query_emitted": null,
+      "completion_state": "AUTO_PASS",
+      "degraded": true
+    },
+    {
+      "case_id": "CASE-286a07eda5db",
+      "fixture_case_id": "G8-CDI-COMPLETE-012",
+      "category": "complete_chart",
+      "chart_length": 114,
+      "query_count": 0,
+      "scored_queries": [],
+      "multi_dim_input_count": 0,
+      "single_dim_gate_final_count": 0,
+      "multi_dim_leaked_count": 0,
+      "cea_blocked": 0,
+      "semantic_degraded": 0,
+      "expert_summary": {
+        "coding-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "pubmed-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "web-search-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "medical-calculator-expert": {
+          "route_decision": "tool_unavailable",
+          "consulted": false,
+          "execution_mode": "TOOL_UNAVAILABLE",
+          "latency_ms": 0,
+          "tokens": 0
+        }
+      },
+      "has_contradiction_risk_flag": false,
+      "contradiction_preserved_query_emitted": null,
+      "completion_state": "AUTO_PASS",
+      "degraded": false
+    },
+    {
+      "case_id": "CASE-72e03b7d0c03",
+      "fixture_case_id": "G8-CDI-COMPLETE-013",
+      "category": "complete_chart",
+      "chart_length": 89,
+      "query_count": 0,
+      "scored_queries": [],
+      "multi_dim_input_count": 0,
+      "single_dim_gate_final_count": 0,
+      "multi_dim_leaked_count": 0,
+      "cea_blocked": 0,
+      "semantic_degraded": 0,
+      "expert_summary": {
+        "coding-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "pubmed-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "web-search-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "medical-calculator-expert": {
+          "route_decision": "missing_inputs",
+          "consulted": false,
+          "execution_mode": "SKIPPED_MISSING_INPUTS",
+          "latency_ms": 0,
+          "tokens": 0
+        }
+      },
+      "has_contradiction_risk_flag": false,
+      "contradiction_preserved_query_emitted": null,
+      "completion_state": "AUTO_PASS",
+      "degraded": false
+    },
+    {
+      "case_id": "CASE-e9552b276cda",
+      "fixture_case_id": "G8-CDI-COMPLETE-014",
+      "category": "complete_chart",
+      "chart_length": 90,
+      "query_count": 0,
+      "scored_queries": [],
+      "multi_dim_input_count": 0,
+      "single_dim_gate_final_count": 0,
+      "multi_dim_leaked_count": 0,
+      "cea_blocked": 0,
+      "semantic_degraded": 0,
+      "expert_summary": {
+        "coding-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "pubmed-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "web-search-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "medical-calculator-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        }
+      },
+      "has_contradiction_risk_flag": false,
+      "contradiction_preserved_query_emitted": null,
+      "completion_state": "AUTO_PASS",
+      "degraded": false
+    },
+    {
+      "case_id": "CASE-aec8656f2911",
+      "fixture_case_id": "G8-CDI-COMPLETE-015",
+      "category": "complete_chart",
+      "chart_length": 114,
+      "query_count": 0,
+      "scored_queries": [],
+      "multi_dim_input_count": 0,
+      "single_dim_gate_final_count": 0,
+      "multi_dim_leaked_count": 0,
+      "cea_blocked": 0,
+      "semantic_degraded": 0,
+      "expert_summary": {
+        "coding-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "pubmed-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "web-search-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "medical-calculator-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        }
+      },
+      "has_contradiction_risk_flag": false,
+      "contradiction_preserved_query_emitted": null,
+      "completion_state": "AUTO_PASS",
+      "degraded": false
+    },
+    {
+      "case_id": "CASE-b97261609664",
+      "fixture_case_id": "G8-CDI-COMPLETE-016",
+      "category": "complete_chart",
+      "chart_length": 122,
+      "query_count": 0,
+      "scored_queries": [],
+      "multi_dim_input_count": 0,
+      "single_dim_gate_final_count": 0,
+      "multi_dim_leaked_count": 0,
+      "cea_blocked": 0,
+      "semantic_degraded": 0,
+      "expert_summary": {
+        "coding-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "pubmed-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "web-search-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "medical-calculator-expert": {
+          "route_decision": "tool_unavailable",
+          "consulted": false,
+          "execution_mode": "TOOL_UNAVAILABLE",
+          "latency_ms": 0,
+          "tokens": 0
+        }
+      },
+      "has_contradiction_risk_flag": false,
+      "contradiction_preserved_query_emitted": null,
+      "completion_state": "AUTO_PASS",
+      "degraded": false
+    },
+    {
+      "case_id": "CASE-80a14c8a3a61",
+      "fixture_case_id": "G8-CDI-COMPLETE-017",
+      "category": "complete_chart",
+      "chart_length": 86,
+      "query_count": 0,
+      "scored_queries": [],
+      "multi_dim_input_count": 0,
+      "single_dim_gate_final_count": 0,
+      "multi_dim_leaked_count": 0,
+      "cea_blocked": 0,
+      "semantic_degraded": 0,
+      "expert_summary": {
+        "coding-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "pubmed-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "web-search-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "medical-calculator-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        }
+      },
+      "has_contradiction_risk_flag": false,
+      "contradiction_preserved_query_emitted": null,
+      "completion_state": "AUTO_PASS",
+      "degraded": false
+    },
+    {
+      "case_id": "CASE-8b086d02e689",
+      "fixture_case_id": "G8-CDI-COMPLETE-018",
+      "category": "complete_chart",
+      "chart_length": 108,
+      "query_count": 0,
+      "scored_queries": [],
+      "multi_dim_input_count": 0,
+      "single_dim_gate_final_count": 0,
+      "multi_dim_leaked_count": 0,
+      "cea_blocked": 0,
+      "semantic_degraded": 0,
+      "expert_summary": {
+        "coding-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "pubmed-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "web-search-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "medical-calculator-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        }
+      },
+      "has_contradiction_risk_flag": false,
+      "contradiction_preserved_query_emitted": null,
+      "completion_state": "AUTO_PASS",
+      "degraded": false
+    },
+    {
+      "case_id": "CASE-25637e90319f",
+      "fixture_case_id": "G8-CDI-COMPLETE-019",
+      "category": "complete_chart",
+      "chart_length": 108,
+      "query_count": 0,
+      "scored_queries": [],
+      "multi_dim_input_count": 0,
+      "single_dim_gate_final_count": 0,
+      "multi_dim_leaked_count": 0,
+      "cea_blocked": 0,
+      "semantic_degraded": 0,
+      "expert_summary": {
+        "coding-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "pubmed-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "web-search-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "medical-calculator-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        }
+      },
+      "has_contradiction_risk_flag": false,
+      "contradiction_preserved_query_emitted": null,
+      "completion_state": "AUTO_PASS",
+      "degraded": false
+    },
+    {
+      "case_id": "CASE-3954eb0261e1",
+      "fixture_case_id": "G8-CDI-COMPLETE-020",
+      "category": "complete_chart",
+      "chart_length": 75,
+      "query_count": 0,
+      "scored_queries": [],
+      "multi_dim_input_count": 0,
+      "single_dim_gate_final_count": 0,
+      "multi_dim_leaked_count": 0,
+      "cea_blocked": 0,
+      "semantic_degraded": 0,
+      "expert_summary": {
+        "coding-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "pubmed-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "web-search-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "medical-calculator-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        }
+      },
+      "has_contradiction_risk_flag": false,
+      "contradiction_preserved_query_emitted": null,
+      "completion_state": "AUTO_PASS",
+      "degraded": false
+    },
+    {
+      "case_id": "CASE-b77acc80fc43",
+      "fixture_case_id": "G8-CDI-INSUF-021",
+      "category": "insufficient_evidence",
+      "chart_length": 15,
+      "query_count": 0,
+      "scored_queries": [],
+      "multi_dim_input_count": 0,
+      "single_dim_gate_final_count": 4,
+      "multi_dim_leaked_count": 0,
+      "cea_blocked": 0,
+      "semantic_degraded": 0,
+      "expert_summary": {
+        "coding-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "pubmed-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "web-search-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "medical-calculator-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        }
+      },
+      "has_contradiction_risk_flag": false,
+      "contradiction_preserved_query_emitted": null,
+      "completion_state": "REVIEW_REQUIRED",
+      "degraded": false
+    },
+    {
+      "case_id": "CASE-2593f85f4e33",
+      "fixture_case_id": "G8-CDI-INSUF-022",
+      "category": "insufficient_evidence",
+      "chart_length": 22,
+      "query_count": 0,
+      "scored_queries": [],
+      "multi_dim_input_count": 0,
+      "single_dim_gate_final_count": 1,
+      "multi_dim_leaked_count": 0,
+      "cea_blocked": 0,
+      "semantic_degraded": 0,
+      "expert_summary": {
+        "coding-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "pubmed-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "web-search-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "medical-calculator-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        }
+      },
+      "has_contradiction_risk_flag": false,
+      "contradiction_preserved_query_emitted": null,
+      "completion_state": "REVIEW_REQUIRED",
+      "degraded": true
+    },
+    {
+      "case_id": "CASE-d3ac41aac4e3",
+      "fixture_case_id": "G8-CDI-INSUF-023",
+      "category": "insufficient_evidence",
+      "chart_length": 29,
+      "query_count": 0,
+      "scored_queries": [],
+      "multi_dim_input_count": 1,
+      "single_dim_gate_final_count": 2,
+      "multi_dim_leaked_count": 0,
+      "cea_blocked": 0,
+      "semantic_degraded": 0,
+      "expert_summary": {
+        "coding-expert": {
+          "route_decision": "needed",
+          "consulted": true,
+          "execution_mode": "LLM_KNOWLEDGE_ONLY",
+          "latency_ms": 3212,
+          "tokens": 209
+        },
+        "pubmed-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "web-search-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "medical-calculator-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        }
+      },
+      "has_contradiction_risk_flag": false,
+      "contradiction_preserved_query_emitted": null,
+      "completion_state": "REVIEW_REQUIRED",
+      "degraded": false
+    },
+    {
+      "case_id": "CASE-6835468a7437",
+      "fixture_case_id": "G8-CDI-INSUF-024",
+      "category": "insufficient_evidence",
+      "chart_length": 43,
+      "query_count": 1,
+      "scored_queries": [
+        {
+          "query_id": "CASE-6835468a7437/Q-001",
+          "evidence_quote_present": true,
+          "evidence_quote_verbatim": true,
+          "evidence_quote_fuzz_score": 1.0,
+          "response_options_count": 4,
+          "response_options_has_escape": true,
+          "query_text_non_leading": true,
+          "leading_flags": [],
+          "query_text_length": 34
+        }
+      ],
+      "multi_dim_input_count": 0,
+      "single_dim_gate_final_count": 1,
+      "multi_dim_leaked_count": 0,
+      "cea_blocked": 0,
+      "semantic_degraded": 0,
+      "expert_summary": {
+        "coding-expert": {
+          "route_decision": "needed",
+          "consulted": true,
+          "execution_mode": "LLM_KNOWLEDGE_ONLY",
+          "latency_ms": 3049,
+          "tokens": 199
+        },
+        "pubmed-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "web-search-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "medical-calculator-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        }
+      },
+      "has_contradiction_risk_flag": false,
+      "contradiction_preserved_query_emitted": null,
+      "completion_state": "REVIEW_REQUIRED",
+      "degraded": false
+    },
+    {
+      "case_id": "CASE-84fee1dc91ab",
+      "fixture_case_id": "G8-CDI-INSUF-025",
+      "category": "insufficient_evidence",
+      "chart_length": 26,
+      "query_count": 2,
+      "scored_queries": [
+        {
+          "query_id": "CASE-84fee1dc91ab/Q-001",
+          "evidence_quote_present": true,
+          "evidence_quote_verbatim": true,
+          "evidence_quote_fuzz_score": 1.0,
+          "response_options_count": 4,
+          "response_options_has_escape": true,
+          "query_text_non_leading": true,
+          "leading_flags": [],
+          "query_text_length": 18
+        },
+        {
+          "query_id": "CASE-84fee1dc91ab/Q-002",
+          "evidence_quote_present": true,
+          "evidence_quote_verbatim": true,
+          "evidence_quote_fuzz_score": 1.0,
+          "response_options_count": 4,
+          "response_options_has_escape": true,
+          "query_text_non_leading": true,
+          "leading_flags": [],
+          "query_text_length": 23
+        }
+      ],
+      "multi_dim_input_count": 0,
+      "single_dim_gate_final_count": 3,
+      "multi_dim_leaked_count": 0,
+      "cea_blocked": 0,
+      "semantic_degraded": 0,
+      "expert_summary": {
+        "coding-expert": {
+          "route_decision": "needed",
+          "consulted": true,
+          "execution_mode": "LLM_KNOWLEDGE_ONLY",
+          "latency_ms": 2627,
+          "tokens": 179
+        },
+        "pubmed-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "web-search-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "medical-calculator-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        }
+      },
+      "has_contradiction_risk_flag": false,
+      "contradiction_preserved_query_emitted": null,
+      "completion_state": "REVIEW_REQUIRED",
+      "degraded": false
+    },
+    {
+      "case_id": "CASE-f349b08e9c82",
+      "fixture_case_id": "G8-CDI-NEG-026",
+      "category": "negation_history",
+      "chart_length": 63,
+      "query_count": 0,
+      "scored_queries": [],
+      "multi_dim_input_count": 0,
+      "single_dim_gate_final_count": 2,
+      "multi_dim_leaked_count": 0,
+      "cea_blocked": 2,
+      "semantic_degraded": 0,
+      "expert_summary": {
+        "coding-expert": {
+          "route_decision": "needed",
+          "consulted": true,
+          "execution_mode": "LLM_KNOWLEDGE_ONLY",
+          "latency_ms": 2539,
+          "tokens": 222
+        },
+        "pubmed-expert": {
+          "route_decision": "needed",
+          "consulted": true,
+          "execution_mode": "LLM_KNOWLEDGE_ONLY",
+          "latency_ms": 2142,
+          "tokens": 269
+        },
+        "web-search-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "medical-calculator-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        }
+      },
+      "has_contradiction_risk_flag": false,
+      "contradiction_preserved_query_emitted": null,
+      "completion_state": "REVIEW_REQUIRED",
+      "degraded": true
+    },
+    {
+      "case_id": "CASE-8104da12f55b",
+      "fixture_case_id": "G8-CDI-NEG-027",
+      "category": "negation_history",
+      "chart_length": 57,
+      "query_count": 0,
+      "scored_queries": [],
+      "multi_dim_input_count": 0,
+      "single_dim_gate_final_count": 0,
+      "multi_dim_leaked_count": 0,
+      "cea_blocked": 0,
+      "semantic_degraded": 0,
+      "expert_summary": {
+        "coding-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "pubmed-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "web-search-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "medical-calculator-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        }
+      },
+      "has_contradiction_risk_flag": false,
+      "contradiction_preserved_query_emitted": null,
+      "completion_state": "AUTO_PASS",
+      "degraded": false
+    },
+    {
+      "case_id": "CASE-99ec3384fac8",
+      "fixture_case_id": "G8-CDI-NEG-028",
+      "category": "negation_history",
+      "chart_length": 61,
+      "query_count": 0,
+      "scored_queries": [],
+      "multi_dim_input_count": 0,
+      "single_dim_gate_final_count": 0,
+      "multi_dim_leaked_count": 0,
+      "cea_blocked": 0,
+      "semantic_degraded": 0,
+      "expert_summary": {
+        "coding-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "pubmed-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "web-search-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "medical-calculator-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        }
+      },
+      "has_contradiction_risk_flag": false,
+      "contradiction_preserved_query_emitted": null,
+      "completion_state": "AUTO_PASS",
+      "degraded": false
+    },
+    {
+      "case_id": "CASE-2c3b37cf34c7",
+      "fixture_case_id": "G8-CDI-NEG-029",
+      "category": "negation_history",
+      "chart_length": 78,
+      "query_count": 1,
+      "scored_queries": [
+        {
+          "query_id": "CASE-2c3b37cf34c7/Q-001",
+          "evidence_quote_present": true,
+          "evidence_quote_verbatim": true,
+          "evidence_quote_fuzz_score": 1.0,
+          "response_options_count": 4,
+          "response_options_has_escape": true,
+          "query_text_non_leading": true,
+          "leading_flags": [],
+          "query_text_length": 32
+        }
+      ],
+      "multi_dim_input_count": 0,
+      "single_dim_gate_final_count": 2,
+      "multi_dim_leaked_count": 0,
+      "cea_blocked": 1,
+      "semantic_degraded": 0,
+      "expert_summary": {
+        "coding-expert": {
+          "route_decision": "needed",
+          "consulted": true,
+          "execution_mode": "LLM_KNOWLEDGE_ONLY",
+          "latency_ms": 3253,
+          "tokens": 242
+        },
+        "pubmed-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "web-search-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "medical-calculator-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        }
+      },
+      "has_contradiction_risk_flag": false,
+      "contradiction_preserved_query_emitted": null,
+      "completion_state": "REVIEW_REQUIRED",
+      "degraded": false
+    },
+    {
+      "case_id": "CASE-328ac950c1e7",
+      "fixture_case_id": "G8-CDI-NEG-030",
+      "category": "negation_history",
+      "chart_length": 76,
+      "query_count": 1,
+      "scored_queries": [
+        {
+          "query_id": "CASE-328ac950c1e7/Q-001",
+          "evidence_quote_present": true,
+          "evidence_quote_verbatim": true,
+          "evidence_quote_fuzz_score": 1.0,
+          "response_options_count": 4,
+          "response_options_has_escape": true,
+          "query_text_non_leading": true,
+          "leading_flags": [],
+          "query_text_length": 11
+        }
+      ],
+      "multi_dim_input_count": 0,
+      "single_dim_gate_final_count": 1,
+      "multi_dim_leaked_count": 0,
+      "cea_blocked": 0,
+      "semantic_degraded": 0,
+      "expert_summary": {
+        "coding-expert": {
+          "route_decision": "needed",
+          "consulted": true,
+          "execution_mode": "LLM_KNOWLEDGE_ONLY",
+          "latency_ms": 2976,
+          "tokens": 200
+        },
+        "pubmed-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "web-search-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "medical-calculator-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        }
+      },
+      "has_contradiction_risk_flag": false,
+      "contradiction_preserved_query_emitted": null,
+      "completion_state": "REVIEW_REQUIRED",
+      "degraded": false
+    },
+    {
+      "case_id": "CASE-914e81ea9d83",
+      "fixture_case_id": "G8-CDI-CONFLICT-031",
+      "category": "document_conflict",
+      "chart_length": 78,
+      "query_count": 3,
+      "scored_queries": [
+        {
+          "query_id": "CASE-914e81ea9d83/Q-001",
+          "evidence_quote_present": true,
+          "evidence_quote_verbatim": true,
+          "evidence_quote_fuzz_score": 1.0,
+          "response_options_count": 4,
+          "response_options_has_escape": true,
+          "query_text_non_leading": true,
+          "leading_flags": [],
+          "query_text_length": 64
+        },
+        {
+          "query_id": "CASE-914e81ea9d83/Q-002",
+          "evidence_quote_present": true,
+          "evidence_quote_verbatim": true,
+          "evidence_quote_fuzz_score": 1.0,
+          "response_options_count": 4,
+          "response_options_has_escape": true,
+          "query_text_non_leading": true,
+          "leading_flags": [],
+          "query_text_length": 67
+        },
+        {
+          "query_id": "CASE-914e81ea9d83/Q-003",
+          "evidence_quote_present": true,
+          "evidence_quote_verbatim": true,
+          "evidence_quote_fuzz_score": 1.0,
+          "response_options_count": 4,
+          "response_options_has_escape": true,
+          "query_text_non_leading": true,
+          "leading_flags": [],
+          "query_text_length": 63
+        }
+      ],
+      "multi_dim_input_count": 0,
+      "single_dim_gate_final_count": 3,
+      "multi_dim_leaked_count": 0,
+      "cea_blocked": 0,
+      "semantic_degraded": 0,
+      "expert_summary": {
+        "coding-expert": {
+          "route_decision": "needed",
+          "consulted": true,
+          "execution_mode": "LLM_KNOWLEDGE_ONLY",
+          "latency_ms": 2979,
+          "tokens": 304
+        },
+        "pubmed-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "web-search-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "medical-calculator-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        }
+      },
+      "has_contradiction_risk_flag": true,
+      "contradiction_preserved_query_emitted": true,
+      "completion_state": "BLOCKED",
+      "degraded": false
+    },
+    {
+      "case_id": "CASE-b40265d4944e",
+      "fixture_case_id": "G8-CDI-CONFLICT-032",
+      "category": "document_conflict",
+      "chart_length": 78,
+      "query_count": 3,
+      "scored_queries": [
+        {
+          "query_id": "CASE-b40265d4944e/Q-001",
+          "evidence_quote_present": true,
+          "evidence_quote_verbatim": true,
+          "evidence_quote_fuzz_score": 1.0,
+          "response_options_count": 4,
+          "response_options_has_escape": true,
+          "query_text_non_leading": true,
+          "leading_flags": [],
+          "query_text_length": 14
+        },
+        {
+          "query_id": "CASE-b40265d4944e/Q-002",
+          "evidence_quote_present": true,
+          "evidence_quote_verbatim": true,
+          "evidence_quote_fuzz_score": 1.0,
+          "response_options_count": 4,
+          "response_options_has_escape": true,
+          "query_text_non_leading": true,
+          "leading_flags": [],
+          "query_text_length": 12
+        },
+        {
+          "query_id": "CASE-b40265d4944e/Q-003",
+          "evidence_quote_present": true,
+          "evidence_quote_verbatim": true,
+          "evidence_quote_fuzz_score": 1.0,
+          "response_options_count": 4,
+          "response_options_has_escape": true,
+          "query_text_non_leading": true,
+          "leading_flags": [],
+          "query_text_length": 19
+        }
+      ],
+      "multi_dim_input_count": 0,
+      "single_dim_gate_final_count": 3,
+      "multi_dim_leaked_count": 0,
+      "cea_blocked": 0,
+      "semantic_degraded": 0,
+      "expert_summary": {
+        "coding-expert": {
+          "route_decision": "needed",
+          "consulted": true,
+          "execution_mode": "LLM_KNOWLEDGE_ONLY",
+          "latency_ms": 3086,
+          "tokens": 277
+        },
+        "pubmed-expert": {
+          "route_decision": "needed",
+          "consulted": true,
+          "execution_mode": "LLM_KNOWLEDGE_ONLY",
+          "latency_ms": 2179,
+          "tokens": 313
+        },
+        "web-search-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "medical-calculator-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        }
+      },
+      "has_contradiction_risk_flag": true,
+      "contradiction_preserved_query_emitted": true,
+      "completion_state": "REVIEW_RECOMMENDED",
+      "degraded": true
+    },
+    {
+      "case_id": "CASE-c852251d34f9",
+      "fixture_case_id": "G8-CDI-CONFLICT-033",
+      "category": "document_conflict",
+      "chart_length": 103,
+      "query_count": 1,
+      "scored_queries": [
+        {
+          "query_id": "CASE-c852251d34f9/Q-001",
+          "evidence_quote_present": true,
+          "evidence_quote_verbatim": true,
+          "evidence_quote_fuzz_score": 1.0,
+          "response_options_count": 4,
+          "response_options_has_escape": true,
+          "query_text_non_leading": true,
+          "leading_flags": [],
+          "query_text_length": 78
+        }
+      ],
+      "multi_dim_input_count": 1,
+      "single_dim_gate_final_count": 1,
+      "multi_dim_leaked_count": 0,
+      "cea_blocked": 0,
+      "semantic_degraded": 0,
+      "expert_summary": {
+        "coding-expert": {
+          "route_decision": "needed",
+          "consulted": true,
+          "execution_mode": "LLM_KNOWLEDGE_ONLY",
+          "latency_ms": 3210,
+          "tokens": 279
+        },
+        "pubmed-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "web-search-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "medical-calculator-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        }
+      },
+      "has_contradiction_risk_flag": true,
+      "contradiction_preserved_query_emitted": true,
+      "completion_state": "BLOCKED",
+      "degraded": true
+    },
+    {
+      "case_id": "CASE-ac940486d2f8",
+      "fixture_case_id": "G8-CDI-CONFLICT-034",
+      "category": "document_conflict",
+      "chart_length": 82,
+      "query_count": 1,
+      "scored_queries": [
+        {
+          "query_id": "CASE-ac940486d2f8/Q-001",
+          "evidence_quote_present": true,
+          "evidence_quote_verbatim": false,
+          "evidence_quote_fuzz_score": 0.703,
+          "response_options_count": 4,
+          "response_options_has_escape": true,
+          "query_text_non_leading": true,
+          "leading_flags": [],
+          "query_text_length": 66
+        }
+      ],
+      "multi_dim_input_count": 0,
+      "single_dim_gate_final_count": 2,
+      "multi_dim_leaked_count": 0,
+      "cea_blocked": 1,
+      "semantic_degraded": 0,
+      "expert_summary": {
+        "coding-expert": {
+          "route_decision": "needed",
+          "consulted": true,
+          "execution_mode": "LLM_KNOWLEDGE_ONLY",
+          "latency_ms": 2968,
+          "tokens": 258
+        },
+        "pubmed-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "web-search-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "medical-calculator-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        }
+      },
+      "has_contradiction_risk_flag": true,
+      "contradiction_preserved_query_emitted": true,
+      "completion_state": "BLOCKED",
+      "degraded": false
+    },
+    {
+      "case_id": "CASE-3e77e6cd9c55",
+      "fixture_case_id": "G8-CDI-CONFLICT-035",
+      "category": "document_conflict",
+      "chart_length": 90,
+      "query_count": 1,
+      "scored_queries": [
+        {
+          "query_id": "CASE-3e77e6cd9c55/Q-001",
+          "evidence_quote_present": true,
+          "evidence_quote_verbatim": true,
+          "evidence_quote_fuzz_score": 1.0,
+          "response_options_count": 4,
+          "response_options_has_escape": true,
+          "query_text_non_leading": true,
+          "leading_flags": [],
+          "query_text_length": 31
+        }
+      ],
+      "multi_dim_input_count": 2,
+      "single_dim_gate_final_count": 1,
+      "multi_dim_leaked_count": 0,
+      "cea_blocked": 0,
+      "semantic_degraded": 0,
+      "expert_summary": {
+        "coding-expert": {
+          "route_decision": "needed",
+          "consulted": true,
+          "execution_mode": "LLM_KNOWLEDGE_ONLY",
+          "latency_ms": 3025,
+          "tokens": 221
+        },
+        "pubmed-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "web-search-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "medical-calculator-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        }
+      },
+      "has_contradiction_risk_flag": true,
+      "contradiction_preserved_query_emitted": true,
+      "completion_state": "BLOCKED",
+      "degraded": false
+    },
+    {
+      "case_id": "CASE-40a6c2d0187a",
+      "fixture_case_id": "G8-CDI-LAB-036",
+      "category": "lab_positive_uncertain",
+      "chart_length": 70,
+      "query_count": 0,
+      "scored_queries": [],
+      "multi_dim_input_count": 0,
+      "single_dim_gate_final_count": 1,
+      "multi_dim_leaked_count": 0,
+      "cea_blocked": 1,
+      "semantic_degraded": 0,
+      "expert_summary": {
+        "coding-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "pubmed-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "web-search-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "medical-calculator-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        }
+      },
+      "has_contradiction_risk_flag": false,
+      "contradiction_preserved_query_emitted": null,
+      "completion_state": "REVIEW_REQUIRED",
+      "degraded": false
+    },
+    {
+      "case_id": "CASE-ead4d1b44c4e",
+      "fixture_case_id": "G8-CDI-LAB-037",
+      "category": "lab_positive_uncertain",
+      "chart_length": 88,
+      "query_count": 0,
+      "scored_queries": [],
+      "multi_dim_input_count": 1,
+      "single_dim_gate_final_count": 0,
+      "multi_dim_leaked_count": 0,
+      "cea_blocked": 0,
+      "semantic_degraded": 0,
+      "expert_summary": {
+        "coding-expert": {
+          "route_decision": "needed",
+          "consulted": true,
+          "execution_mode": "LLM_KNOWLEDGE_ONLY",
+          "latency_ms": 2661,
+          "tokens": 196
+        },
+        "pubmed-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "web-search-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "medical-calculator-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        }
+      },
+      "has_contradiction_risk_flag": false,
+      "contradiction_preserved_query_emitted": null,
+      "completion_state": "REVIEW_REQUIRED",
+      "degraded": false
+    },
+    {
+      "case_id": "CASE-26d523010d42",
+      "fixture_case_id": "G8-CDI-LAB-038",
+      "category": "lab_positive_uncertain",
+      "chart_length": 109,
+      "query_count": 0,
+      "scored_queries": [],
+      "multi_dim_input_count": 0,
+      "single_dim_gate_final_count": 1,
+      "multi_dim_leaked_count": 0,
+      "cea_blocked": 1,
+      "semantic_degraded": 0,
+      "expert_summary": {
+        "coding-expert": {
+          "route_decision": "needed",
+          "consulted": true,
+          "execution_mode": "LLM_KNOWLEDGE_ONLY",
+          "latency_ms": 2779,
+          "tokens": 206
+        },
+        "pubmed-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "web-search-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "medical-calculator-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        }
+      },
+      "has_contradiction_risk_flag": false,
+      "contradiction_preserved_query_emitted": null,
+      "completion_state": "REVIEW_REQUIRED",
+      "degraded": false
+    },
+    {
+      "case_id": "CASE-d85fa1443bdd",
+      "fixture_case_id": "G8-CDI-LAB-039",
+      "category": "lab_positive_uncertain",
+      "chart_length": 86,
+      "query_count": 1,
+      "scored_queries": [
+        {
+          "query_id": "CASE-d85fa1443bdd/Q-001",
+          "evidence_quote_present": true,
+          "evidence_quote_verbatim": true,
+          "evidence_quote_fuzz_score": 1.0,
+          "response_options_count": 4,
+          "response_options_has_escape": true,
+          "query_text_non_leading": true,
+          "leading_flags": [],
+          "query_text_length": 27
+        }
+      ],
+      "multi_dim_input_count": 0,
+      "single_dim_gate_final_count": 2,
+      "multi_dim_leaked_count": 0,
+      "cea_blocked": 1,
+      "semantic_degraded": 0,
+      "expert_summary": {
+        "coding-expert": {
+          "route_decision": "needed",
+          "consulted": true,
+          "execution_mode": "LLM_KNOWLEDGE_ONLY",
+          "latency_ms": 3005,
+          "tokens": 320
+        },
+        "pubmed-expert": {
+          "route_decision": "needed",
+          "consulted": true,
+          "execution_mode": "LLM_KNOWLEDGE_ONLY",
+          "latency_ms": 2243,
+          "tokens": 362
+        },
+        "web-search-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "medical-calculator-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        }
+      },
+      "has_contradiction_risk_flag": false,
+      "contradiction_preserved_query_emitted": null,
+      "completion_state": "REVIEW_REQUIRED",
+      "degraded": false
+    },
+    {
+      "case_id": "CASE-5d694057dfcd",
+      "fixture_case_id": "G8-CDI-LAB-040",
+      "category": "lab_positive_uncertain",
+      "chart_length": 117,
+      "query_count": 2,
+      "scored_queries": [
+        {
+          "query_id": "CASE-5d694057dfcd/Q-001",
+          "evidence_quote_present": true,
+          "evidence_quote_verbatim": true,
+          "evidence_quote_fuzz_score": 1.0,
+          "response_options_count": 4,
+          "response_options_has_escape": true,
+          "query_text_non_leading": true,
+          "leading_flags": [],
+          "query_text_length": 13
+        },
+        {
+          "query_id": "CASE-5d694057dfcd/Q-002",
+          "evidence_quote_present": true,
+          "evidence_quote_verbatim": true,
+          "evidence_quote_fuzz_score": 1.0,
+          "response_options_count": 4,
+          "response_options_has_escape": true,
+          "query_text_non_leading": true,
+          "leading_flags": [],
+          "query_text_length": 22
+        }
+      ],
+      "multi_dim_input_count": 0,
+      "single_dim_gate_final_count": 2,
+      "multi_dim_leaked_count": 0,
+      "cea_blocked": 0,
+      "semantic_degraded": 0,
+      "expert_summary": {
+        "coding-expert": {
+          "route_decision": "needed",
+          "consulted": true,
+          "execution_mode": "LLM_KNOWLEDGE_ONLY",
+          "latency_ms": 2905,
+          "tokens": 240
+        },
+        "pubmed-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "web-search-expert": {
+          "route_decision": "not_needed",
+          "consulted": false,
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0
+        },
+        "medical-calculator-expert": {
+          "route_decision": "tool_unavailable",
+          "consulted": false,
+          "execution_mode": "TOOL_UNAVAILABLE",
+          "latency_ms": 0,
+          "tokens": 0
+        }
+      },
+      "has_contradiction_risk_flag": false,
+      "contradiction_preserved_query_emitted": null,
+      "completion_state": "REVIEW_REQUIRED",
+      "degraded": false
+    }
+  ]
+}

@@ -1,75 +1,45 @@
 {
-  "case_id": "CASE-bb04b41bb33c",
+  "case_id": "CASE-d85fa1443bdd",
   "completion_state": "REVIEW_REQUIRED",
   "documentation_gaps": [
     {
-      "gap_id": "CASE-bb04b41bb33c/GAP-001",
+      "gap_id": "CASE-d85fa1443bdd/GAP-001",
       "gap_type": "diagnostic_specificity",
-      "description": "OGTT 1小时值9.2 mmol/L高于诊断阈值，但未明确诊断标准（如IADPSG标准）及是否为单项异常",
-      "why_it_matters": "妊娠糖尿病的诊断需明确血糖异常类型（如空腹、1小时、2小时），单项异常可能影响分型及管理方案",
+      "description": "OGTT结果中1小时血糖9.2 mmol/L高于正常，但未明确诊断标准（如IADPSG标准）及具体异常项，且诊断写为'单项异常'，但OGTT有三个时间点，需明确是哪个时间点异常。",
+      "why_it_matters": "妊娠糖尿病的诊断需要明确异常的时间点（空腹、1小时、2小时），以确定分型（如A1或A2）及管理策略，影响编码准确性。",
       "evidence_span": {
         "document_id": "encounter_summary",
-        "quote": "75g OGTT: 0h 4.5, 1h 9.2, 2h 7.8"
+        "quote": "75g OGTT: 0h 4.5, 1h 9.2, 2h 7.8。诊断:妊娠糖尿病(单项异常)"
       },
       "minimal_clarification_needed": ""
     },
     {
-      "gap_id": "CASE-bb04b41bb33c/GAP-002",
+      "gap_id": "CASE-d85fa1443bdd/GAP-002",
       "gap_type": "diagnostic_specificity",
-      "description": "诊断'妊娠糖尿病(单项异常)'中'单项异常'未明确具体是哪一项异常",
-      "why_it_matters": "不同时间点异常（空腹、1小时、2小时）对应不同诊断阈值，影响编码准确性",
+      "description": "未记录血糖控制目标或监测计划的具体细节（如频率、目标值），仅写'建议监测血糖'，缺乏具体性。",
+      "why_it_matters": "缺乏具体的血糖监测计划可能影响治疗依从性和随访，且编码时需体现管理细节。",
       "evidence_span": {
         "document_id": "encounter_summary",
-        "quote": "诊断:妊娠糖尿病(单项异常)"
-      },
-      "minimal_clarification_needed": ""
-    },
-    {
-      "gap_id": "CASE-bb04b41bb33c/GAP-003",
-      "gap_type": "diagnostic_specificity",
-      "description": "未记录血糖控制目标及监测频率",
-      "why_it_matters": "缺乏具体管理计划可能影响治疗依从性及后续评估",
-      "evidence_span": {
-        "document_id": "encounter_summary",
-        "quote": "饮食运动控制。建议监测血糖"
+        "quote": "建议监测血糖"
       },
       "minimal_clarification_needed": ""
     }
   ],
   "proposed_provider_queries": [
     {
-      "query_id": "CASE-bb04b41bb33c/Q-001",
-      "gap_id": "CASE-bb04b41bb33c/GAP-002",
-      "topic": "妊娠糖尿病单项异常的具体项目",
-      "reason": "诊断'妊娠糖尿病(单项异常)'中'单项异常'未明确具体是哪一项异常",
+      "query_id": "CASE-d85fa1443bdd/Q-001",
+      "gap_id": "CASE-d85fa1443bdd/GAP-002",
+      "topic": "血糖监测计划具体化",
+      "reason": "仅记录'建议监测血糖'，缺乏血糖控制目标及监测频率等具体细节。",
       "evidence_span": {
-        "document_id": "chart-001",
-        "quote": "诊断:妊娠糖尿病(单项异常)"
+        "document_id": "chart",
+        "quote": "建议监测血糖"
       },
-      "query_text": "请明确'单项异常'具体指哪一项OGTT时间点异常？",
+      "query_text": "请明确血糖监测的具体计划，包括监测频率和目标血糖范围。",
       "response_options": [
-        "A. 空腹血糖异常",
-        "B. 1小时血糖异常",
-        "C. 2小时血糖异常",
-        "D. 无法确定"
-      ],
-      "lifecycle_state": "DRAFT",
-      "priority": "routine"
-    },
-    {
-      "query_id": "CASE-bb04b41bb33c/Q-002",
-      "gap_id": "CASE-bb04b41bb33c/GAP-003",
-      "topic": "血糖控制目标及监测频率",
-      "reason": "未记录血糖控制目标及监测频率",
-      "evidence_span": {
-        "document_id": "chart-001",
-        "quote": "饮食运动控制。建议监测血糖"
-      },
-      "query_text": "请明确血糖控制目标及监测频率？",
-      "response_options": [
-        "A. 空腹血糖<5.3 mmol/L，餐后1小时<7.8 mmol/L，餐后2小时<6.7 mmol/L；每日监测4次（空腹及三餐后）",
-        "B. 空腹血糖<5.1 mmol/L，餐后2小时<6.7 mmol/L；每日监测4次",
-        "C. 其他目标及频率，请注明",
+        "A. 每日监测空腹及餐后2小时血糖，目标空腹<5.3 mmol/L，餐后2h<6.7 mmol/L",
+        "B. 每周监测1-2天血糖，目标空腹<5.3 mmol/L，餐后2h<6.7 mmol/L",
+        "C. 每日监测空腹血糖，目标<5.3 mmol/L",
         "D. 无法确定"
       ],
       "lifecycle_state": "DRAFT",
@@ -81,16 +51,15 @@
   "encounter_ref": "DEID",
   "encounter_summary": {
     "key_points": [
-      "患者女性，35岁，孕28周产检",
-      "无糖路症状",
+      "患者女性, 35岁, 孕28周",
       "75g OGTT: 0h 4.5, 1h 9.2, 2h 7.8",
       "诊断:妊娠糖尿病(单项异常)",
       "饮食运动控制",
       "建议监测血糖"
     ],
     "encounter_metadata": {
-      "patient_age": "35",
-      "patient_sex": "女",
+      "patient_age": "35岁",
+      "patient_sex": "女性",
       "encounter_type": "产检"
     }
   },
@@ -99,22 +68,22 @@
     {
       "expert_id": "coding-expert",
       "consulted": true,
-      "rationale": "The documentation should specify which OGTT value is abnormal (e.g., \"1-hour value 9.2 mmol/L\") and explicitly state the diagnostic criteria used (e.g., IADPSG threshold of ≥10.0 mmol/L for 1-hour). Additionally, clarify whether the diagnosis is based on a single elevated value or multiple, and include the target glucose ranges and monitoring schedule (e.g., fasting <5.3 mmol/L, 1-hour postprandial <7.8 mmol/L, with 4 times daily checks).",
+      "rationale": "根据OGTT结果，需明确诊断依据：1小时血糖9.2 mmol/L是否采用IADPSG标准（1小时≥10.0 mmol/L为异常），若未达标准则不应诊断为妊娠期糖尿病，需注明具体异常时间点及诊断标准。同时，应记录血糖控制目标（如空腹<5.3 mmol/L、餐后1小时<7.8 mmol/L）及监测频率（如每日4次），以支持“饮食运动控制”和“建议监测血糖”的临床决策。",
       "route_decision": "needed",
       "route_reason": "coding_relevant_gap",
       "execution_mode": "LLM_KNOWLEDGE_ONLY",
-      "latency_ms": 3212,
-      "tokens": 297
+      "latency_ms": 3005,
+      "tokens": 320
     },
     {
       "expert_id": "pubmed-expert",
       "consulted": true,
-      "rationale": "根据IADPSG标准，OGTT 1小时值≥10.0 mmol/L才诊断妊娠期糖尿病，而本例9.2 mmol/L未达阈值，但若采用更严格的WHO标准（1h≥8.5 mmol/L）则可诊断，需明确所用标准（PMID: 20634420）。建议补充空腹及餐后血糖控制目标（如空腹<5.3 mmol/L，1h<7.8 mmol/L）及每日4次血糖监测频率，以评估饮食运动疗效（PMID: 27845683）。",
+      "rationale": "根据现有文献，1小时血糖9.2 mmol/L已超过IADPSG标准（1h≥10.0 mmol/L）及多数指南（如WHO 2013）的GDM诊断阈值，但2小时7.8 mmol/L未达异常（≥8.5 mmol/L），因此“单项异常”可能指1小时值，但需明确诊断标准（PMID: 20634420）。建议补充具体血糖监测频率（如每日4次）及控制目标（如空腹<5.3 mmol/L，餐后1h<7.8 mmol/L），以符合ACOG或ADA管理指南（PMID: 30575775）。",
       "route_decision": "needed",
       "route_reason": "criteria_marker_present",
       "execution_mode": "LLM_KNOWLEDGE_ONLY",
-      "latency_ms": 2503,
-      "tokens": 317
+      "latency_ms": 2243,
+      "tokens": 362
     },
     {
       "expert_id": "web-search-expert",
@@ -138,46 +107,46 @@
     }
   ],
   "stage_run_ids": {
-    "encounter_synthesis": "run-ab593a4765e6",
-    "gap_identification": "run-38d7d9e5d346",
+    "encounter_synthesis": "run-9619b08d30f7",
+    "gap_identification": "run-7a2bc5ae2d8d",
     "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
-    "expert_consultation": "run-e9fe943b74c7",
-    "query_generation": "run-a8fb7019e0d0",
+    "expert_consultation": "run-54114ae350ec",
+    "query_generation": "run-27fd842f8e1a",
     "query_generation::quote_snapped": "0",
-    "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=3;llm_complete=False;llm_reasoning=妊娠糖尿病诊断需明确异常类型（空腹、1小时或2小时），且需记录血糖控制目标及监测计划，当前记录缺乏这些细节",
-    "query_necessity_gate": "necessary=3;unnecessary=0;overquery_triggered=False;final_count=3",
-    "query_single_dimension_gate": "single_dim=3;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;final_count=3",
-    "claim_evidence_alignment_gate": "claims_extracted=7;blocked=1;flagged=0;final_count=2",
-    "claim_evidence_alignment_gate::run_id": "run-cb06e5b9ba77",
-    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=2",
-    "semantic_necessity_gate::run_id": "run-72bddc6963ba",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=2;llm_complete=False;llm_reasoning=OGTT结果异常但未明确诊断标准及具体异常项，且缺乏血糖控制目标和监测计划细节，对于妊娠糖尿病这一诊断，需要更具体的分型和治疗计划才能满足编码要求。",
+    "query_necessity_gate": "necessary=2;unnecessary=0;overquery_triggered=False;final_count=2",
+    "query_single_dimension_gate": "single_dim=2;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;final_count=2",
+    "claim_evidence_alignment_gate": "claims_extracted=5;blocked=1;flagged=0;final_count=1",
+    "claim_evidence_alignment_gate::run_id": "run-33d0b3b73645",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=1",
+    "semantic_necessity_gate::run_id": "run-d5e9f4f6a283",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "run-5a9194092a1c"
+    "specialist_trace_emit": "run-922912688f74"
   },
   "stage_trace_ids": {
-    "encounter_synthesis": "trace-8584bfd60101",
-    "gap_identification": "trace-1d99940f2db7",
-    "expert_consultation": "trace-3222cb3a85ea",
-    "query_generation": "trace-58dd3590dfb1",
+    "encounter_synthesis": "trace-6c28bbdf23cb",
+    "gap_identification": "trace-80b17d56b9fc",
+    "expert_consultation": "trace-23e7e82ad9d7",
+    "query_generation": "trace-cf4ca491b70f",
     "query_eligibility_gate": "",
     "query_necessity_gate": "",
     "query_single_dimension_gate": "",
-    "claim_evidence_alignment_gate": "trace-efc16285bb6f",
-    "semantic_necessity_gate": "trace-5db5a298bbe6",
+    "claim_evidence_alignment_gate": "trace-a0a955e70245",
+    "semantic_necessity_gate": "trace-9134652585cf",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "trace-3642eb511d78"
+    "specialist_trace_emit": "trace-35da58207b7e"
   },
   "stage_traces": [
     {
       "stage": "encounter_synthesis",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 2726,
+      "latency_ms": 2982,
       "prompt_tokens": 235,
-      "completion_tokens": 121,
-      "total_tokens": 356,
-      "run_id": "run-ab593a4765e6",
-      "trace_id": "trace-8584bfd60101",
+      "completion_tokens": 115,
+      "total_tokens": 350,
+      "run_id": "run-9619b08d30f7",
+      "trace_id": "trace-6c28bbdf23cb",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -186,12 +155,12 @@
       "stage": "gap_identification",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 6787,
-      "prompt_tokens": 1081,
-      "completion_tokens": 486,
-      "total_tokens": 1567,
-      "run_id": "run-38d7d9e5d346",
-      "trace_id": "trace-1d99940f2db7",
+      "latency_ms": 5566,
+      "prompt_tokens": 1074,
+      "completion_tokens": 438,
+      "total_tokens": 1512,
+      "run_id": "run-7a2bc5ae2d8d",
+      "trace_id": "trace-80b17d56b9fc",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -200,12 +169,12 @@
       "stage": "query_generation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 6758,
-      "prompt_tokens": 945,
-      "completion_tokens": 632,
-      "total_tokens": 1577,
-      "run_id": "run-a8fb7019e0d0",
-      "trace_id": "trace-58dd3590dfb1",
+      "latency_ms": 5098,
+      "prompt_tokens": 938,
+      "completion_tokens": 471,
+      "total_tokens": 1409,
+      "run_id": "run-27fd842f8e1a",
+      "trace_id": "trace-cf4ca491b70f",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -214,12 +183,12 @@
       "stage": "expert_consultation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 3212,
-      "prompt_tokens": 186,
-      "completion_tokens": 111,
-      "total_tokens": 297,
-      "run_id": "run-01be8a745493",
-      "trace_id": "trace-6021045f4d72",
+      "latency_ms": 3005,
+      "prompt_tokens": 208,
+      "completion_tokens": 112,
+      "total_tokens": 320,
+      "run_id": "run-a4efbd385597",
+      "trace_id": "trace-ea92cb01f19f",
       "degraded": false,
       "error_reason": "",
       "expert_id": "coding-expert"
@@ -228,12 +197,12 @@
       "stage": "expert_consultation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 2503,
-      "prompt_tokens": 200,
-      "completion_tokens": 117,
-      "total_tokens": 317,
-      "run_id": "run-447b37821d0d",
-      "trace_id": "trace-e48b61d93c4c",
+      "latency_ms": 2243,
+      "prompt_tokens": 222,
+      "completion_tokens": 140,
+      "total_tokens": 362,
+      "run_id": "run-5976806a669a",
+      "trace_id": "trace-2f9c0e66f1b1",
       "degraded": false,
       "error_reason": "",
       "expert_id": "pubmed-expert"
@@ -246,8 +215,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-c3053df86fe0",
-      "trace_id": "trace-fdb7793c8a31",
+      "run_id": "run-b2475bafdd03",
+      "trace_id": "trace-7a4cb085e65a",
       "degraded": false,
       "error_reason": "",
       "expert_id": "web-search-expert"
@@ -260,8 +229,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-ed40ff32ebdc",
-      "trace_id": "trace-454fe85a66a8",
+      "run_id": "run-537ce6f2020d",
+      "trace_id": "trace-e917a73c8433",
       "degraded": false,
       "error_reason": "",
       "expert_id": "medical-calculator-expert"
@@ -269,5 +238,5 @@
   ],
   "degraded": false,
   "runtime_mode": "real",
-  "generated_at": "2026-07-13T06:23:06.628827Z"
+  "generated_at": "2026-07-13T06:52:22.157454Z"
 }

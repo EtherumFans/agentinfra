@@ -1,9 +1,9 @@
 {
-  "case_id": "CASE-7f582c4d2347",
+  "case_id": "CASE-25d5f4e2c833",
   "completion_state": "REVIEW_REQUIRED",
   "documentation_gaps": [
     {
-      "gap_id": "CASE-7f582c4d2347/GAP-001",
+      "gap_id": "CASE-25d5f4e2c833/GAP-001",
       "gap_type": "diagnostic_specificity",
       "description": "肺炎的病原体未明确",
       "why_it_matters": "病原体特异性影响抗生素选择和编码准确性",
@@ -14,7 +14,7 @@
       "minimal_clarification_needed": ""
     },
     {
-      "gap_id": "CASE-7f582c4d2347/GAP-002",
+      "gap_id": "CASE-25d5f4e2c833/GAP-002",
       "gap_type": "diagnostic_specificity",
       "description": "肺炎的严重程度未明确",
       "why_it_matters": "严重程度影响编码和DRG分组",
@@ -25,7 +25,7 @@
       "minimal_clarification_needed": ""
     },
     {
-      "gap_id": "CASE-7f582c4d2347/GAP-003",
+      "gap_id": "CASE-25d5f4e2c833/GAP-003",
       "gap_type": "diagnostic_specificity",
       "description": "2型糖尿病和高血压的并发症或控制情况未明确",
       "why_it_matters": "影响合并症编码和风险调整",
@@ -38,38 +38,57 @@
   ],
   "proposed_provider_queries": [
     {
-      "query_id": "CASE-7f582c4d2347/Q-001",
-      "gap_id": "CASE-7f582c4d2347/GAP-002",
-      "topic": "肺炎严重程度",
-      "reason": "严重程度未明确",
+      "query_id": "CASE-25d5f4e2c833/Q-001",
+      "gap_id": "CASE-25d5f4e2c833/GAP-001",
+      "topic": "肺炎病原体",
+      "reason": "肺炎的病原体未明确，需进一步明确以指导治疗。",
       "evidence_span": {
         "document_id": "chart",
         "quote": "入院诊断:肺炎"
       },
-      "query_text": "请评估肺炎的严重程度（如轻度、中度、重度或危重），并说明依据（如CURB-65评分、PSI评分等）。",
+      "query_text": "患者肺炎的病原体可能是什么？",
       "response_options": [
-        "A. 轻度肺炎（CURB-65 0-1分）",
-        "B. 中度肺炎（CURB-65 2分）",
-        "C. 重度肺炎（CURB-65 ≥3分）",
+        "A. 细菌性肺炎",
+        "B. 病毒性肺炎",
+        "C. 支原体/衣原体肺炎",
         "D. 无法确定"
       ],
       "lifecycle_state": "DRAFT",
       "priority": "urgent"
     },
     {
-      "query_id": "CASE-7f582c4d2347/Q-002",
-      "gap_id": "CASE-7f582c4d2347/GAP-003",
-      "topic": "糖尿病和高血压并发症",
-      "reason": "并发症或控制情况未明确",
+      "query_id": "CASE-25d5f4e2c833/Q-002",
+      "gap_id": "CASE-25d5f4e2c833/GAP-002",
+      "topic": "肺炎严重程度",
+      "reason": "肺炎的严重程度未明确，需评估病情严重性。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "入院诊断:肺炎"
+      },
+      "query_text": "患者肺炎的严重程度如何？",
+      "response_options": [
+        "A. 轻度",
+        "B. 中度",
+        "C. 重度",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "urgent"
+    },
+    {
+      "query_id": "CASE-25d5f4e2c833/Q-003",
+      "gap_id": "CASE-25d5f4e2c833/GAP-003",
+      "topic": "糖尿病和高血压并发症或控制情况",
+      "reason": "2型糖尿病和高血压的并发症或控制情况未明确，需明确以完善诊断。",
       "evidence_span": {
         "document_id": "chart",
         "quote": "既往:2型糖尿病、高血压"
       },
-      "query_text": "请描述2型糖尿病和高血压的并发症情况（如糖尿病肾病、视网膜病变、高血压心脏病等）及控制水平（如血糖、血压控制范围）。",
+      "query_text": "患者2型糖尿病和高血压的并发症或控制情况如何？",
       "response_options": [
-        "A. 2型糖尿病无并发症，血糖控制良好；高血压无并发症，血压控制良好",
-        "B. 2型糖尿病伴并发症（如肾病），血糖控制不佳；高血压伴并发症（如心脏病），血压控制不佳",
-        "C. 2型糖尿病和高血压均无并发症，但控制情况不详",
+        "A. 糖尿病伴有并发症",
+        "B. 糖尿病控制良好",
+        "C. 高血压伴有并发症",
         "D. 无法确定"
       ],
       "lifecycle_state": "DRAFT",
@@ -100,12 +119,12 @@
     {
       "expert_id": "coding-expert",
       "consulted": true,
-      "rationale": "建议明确肺炎的病原体（如细菌、病毒或真菌）及严重程度（如是否伴有呼吸衰竭或脓毒症），同时需明确2型糖尿病和高血压的并发症（如肾病、视网膜病变）或控制情况（如血糖、血压水平）。这些信息对准确反映病情复杂性和治疗需求至关重要。",
+      "rationale": "建议明确肺炎的病原体类型（如细菌、病毒或真菌）及严重程度（如是否伴有呼吸衰竭或脓毒症），同时需明确2型糖尿病和高血压的并发症状态（如糖尿病肾病、高血压性心脏病）或控制情况（如血糖、血压水平）。这些信息对准确反映疾病复杂性和治疗需求至关重要。",
       "route_decision": "needed",
       "route_reason": "coding_relevant_gap",
       "execution_mode": "LLM_KNOWLEDGE_ONLY",
-      "latency_ms": 2630,
-      "tokens": 219
+      "latency_ms": 2969,
+      "tokens": 223
     },
     {
       "expert_id": "pubmed-expert",
@@ -139,46 +158,46 @@
     }
   ],
   "stage_run_ids": {
-    "encounter_synthesis": "run-4ff441104ed6",
-    "gap_identification": "run-d5c0142d3ed4",
+    "encounter_synthesis": "run-42162c9ec741",
+    "gap_identification": "run-003df6fc84ea",
     "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
-    "expert_consultation": "run-90edf2564f19",
-    "query_generation": "run-c1407aa75b17",
+    "expert_consultation": "run-8d7660438f50",
+    "query_generation": "run-ed0643b78984",
     "query_generation::quote_snapped": "0",
-    "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=3;llm_complete=False;llm_reasoning=肺炎的诊断缺乏病原体和严重程度信息，且慢性病缺乏并发症或控制情况描述，无法满足编码所需的特异性。",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=3;llm_complete=False;llm_reasoning=肺炎缺乏病原体和严重程度信息，糖尿病和高血压缺乏并发症或控制情况，无法满足编码所需的特异性。",
     "query_necessity_gate": "necessary=3;unnecessary=0;overquery_triggered=False;final_count=3",
-    "query_single_dimension_gate": "single_dim=2;multi_dim=1;axis_cluster_triggered=False;axis_cluster_axis=type;final_count=2",
-    "claim_evidence_alignment_gate": "claims_extracted=5;blocked=0;flagged=0;final_count=2",
-    "claim_evidence_alignment_gate::run_id": "run-8b871694e2d6",
-    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=2",
-    "semantic_necessity_gate::run_id": "run-c3005e78a948",
+    "query_single_dimension_gate": "single_dim=3;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=etiology;final_count=3",
+    "claim_evidence_alignment_gate": "claims_extracted=6;blocked=0;flagged=0;final_count=3",
+    "claim_evidence_alignment_gate::run_id": "run-78a6ed5d2067",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=3",
+    "semantic_necessity_gate::run_id": "run-095667913402",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "run-57a043f7dbc4"
+    "specialist_trace_emit": "run-782530d209fd"
   },
   "stage_trace_ids": {
-    "encounter_synthesis": "trace-029feaddee68",
-    "gap_identification": "trace-9f57214b3627",
-    "expert_consultation": "trace-b0bbddff0705",
-    "query_generation": "trace-540903e608c8",
+    "encounter_synthesis": "trace-dc01ae923bb2",
+    "gap_identification": "trace-e346df764130",
+    "expert_consultation": "trace-c1f4f316ef2f",
+    "query_generation": "trace-355327117795",
     "query_eligibility_gate": "",
     "query_necessity_gate": "",
     "query_single_dimension_gate": "",
-    "claim_evidence_alignment_gate": "trace-5fd9fcbd4455",
-    "semantic_necessity_gate": "trace-caa42e5ba593",
+    "claim_evidence_alignment_gate": "trace-ca0bd40107d4",
+    "semantic_necessity_gate": "trace-226d028298b7",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "trace-f15860ddf207"
+    "specialist_trace_emit": "trace-42491933fdef"
   },
   "stage_traces": [
     {
       "stage": "encounter_synthesis",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 1925,
+      "latency_ms": 1516,
       "prompt_tokens": 235,
       "completion_tokens": 115,
       "total_tokens": 350,
-      "run_id": "run-4ff441104ed6",
-      "trace_id": "trace-029feaddee68",
+      "run_id": "run-42162c9ec741",
+      "trace_id": "trace-dc01ae923bb2",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -187,12 +206,12 @@
       "stage": "gap_identification",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 4465,
+      "latency_ms": 4508,
       "prompt_tokens": 1073,
-      "completion_tokens": 386,
-      "total_tokens": 1459,
-      "run_id": "run-d5c0142d3ed4",
-      "trace_id": "trace-9f57214b3627",
+      "completion_tokens": 384,
+      "total_tokens": 1457,
+      "run_id": "run-003df6fc84ea",
+      "trace_id": "trace-e346df764130",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -201,12 +220,12 @@
       "stage": "query_generation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 5689,
+      "latency_ms": 4520,
       "prompt_tokens": 885,
-      "completion_tokens": 592,
-      "total_tokens": 1477,
-      "run_id": "run-c1407aa75b17",
-      "trace_id": "trace-540903e608c8",
+      "completion_tokens": 464,
+      "total_tokens": 1349,
+      "run_id": "run-ed0643b78984",
+      "trace_id": "trace-355327117795",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -215,12 +234,12 @@
       "stage": "expert_consultation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 2630,
+      "latency_ms": 2969,
       "prompt_tokens": 152,
-      "completion_tokens": 67,
-      "total_tokens": 219,
-      "run_id": "run-524c6ebe5e83",
-      "trace_id": "trace-c058772bcf7a",
+      "completion_tokens": 71,
+      "total_tokens": 223,
+      "run_id": "run-ff8f84ed2091",
+      "trace_id": "trace-1c6179a7f4c3",
       "degraded": false,
       "error_reason": "",
       "expert_id": "coding-expert"
@@ -233,8 +252,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-2d69245db9d0",
-      "trace_id": "trace-3bd83def5b06",
+      "run_id": "run-f392e7aeeaac",
+      "trace_id": "trace-85a72bd95e93",
       "degraded": false,
       "error_reason": "",
       "expert_id": "pubmed-expert"
@@ -247,8 +266,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-01c2a68bb2f0",
-      "trace_id": "trace-3644bda7babd",
+      "run_id": "run-22f975424f7d",
+      "trace_id": "trace-51243406c60f",
       "degraded": false,
       "error_reason": "",
       "expert_id": "web-search-expert"
@@ -261,8 +280,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-23420a04a43f",
-      "trace_id": "trace-a82393b5f8cd",
+      "run_id": "run-8b2560ab2c81",
+      "trace_id": "trace-acd96632d05a",
       "degraded": false,
       "error_reason": "",
       "expert_id": "medical-calculator-expert"
@@ -270,5 +289,5 @@
   ],
   "degraded": false,
   "runtime_mode": "real",
-  "generated_at": "2026-07-13T06:10:22.808615Z"
+  "generated_at": "2026-07-13T06:39:57.364875Z"
 }

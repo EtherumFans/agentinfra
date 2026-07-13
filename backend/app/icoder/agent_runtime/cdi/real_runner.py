@@ -214,7 +214,20 @@ _GAP_IDENTIFICATION_PROMPT = (
     "case without pathogen or severity is NOT complete). Provide concise "
     "``reasoning`` and list any ``missing_dimensions``. When "
     "is_complete=true, the downstream eligibility gate will drop all "
-    "candidate queries as spurious — so be conservative but accurate."
+    "candidate queries as spurious — so be conservative but accurate.\n\n"
+    "Track H3.16 — LAB-POSITIVE UNCERTAIN (mandatory): A chart with an "
+    "ABNORMAL lab value (e.g. \"便隐血阳性\", \"CA-125 升高\", \"HBsAg 阳性\", "
+    "\"OGTT 异常\", \"血脂升高\") is NOT clinically complete solely because "
+    "the lab is documented — the chart must also state the etiology / "
+    "clinical correlation / planned workup. If the chart records an "
+    "abnormal lab WITHOUT a corresponding etiology statement or explicit "
+    "clinical-correlation, emit a ``clinical_correlation`` gap (category = "
+    "\"clinical correlation unestablished\") asking the provider to clarify "
+    "the clinical significance. Do NOT mark the chart is_complete=true in "
+    "this scenario. The gap's evidence_span.quote should anchor on the "
+    "abnormal lab value itself (e.g. \"CA-125 65 U/mL\"), and the "
+    "minimal_clarification_needed should ask for clinical correlation, "
+    "NOT for a specific diagnosis."
 )
 
 

@@ -1,31 +1,51 @@
 {
-  "case_id": "CASE-20c2b9ee2321",
+  "case_id": "CASE-bf424ce919c4",
   "completion_state": "REVIEW_REQUIRED",
   "documentation_gaps": [
     {
-      "gap_id": "CASE-20c2b9ee2321/GAP-001",
+      "gap_id": "CASE-bf424ce919c4/GAP-001",
       "gap_type": "diagnostic_specificity",
-      "description": "Acute exacerbation of COPD lacks severity specification (e.g., mild, moderate, severe) and etiology (e.g., infectious, environmental).",
-      "why_it_matters": "Severity and etiology are required for accurate coding and treatment planning; without them, the case may be undercoded or lack clinical clarity.",
+      "description": "Acute exacerbation of COPD lacks severity classification (e.g., mild, moderate, severe) and etiology (e.g., infectious, environmental).",
+      "why_it_matters": "Severity and etiology are required for accurate coding and treatment planning.",
       "evidence_span": {
-        "document_id": "encounter_summary",
+        "document_id": "DOC-001",
         "quote": "入院诊断:慢阻肺急性加重"
       },
       "minimal_clarification_needed": ""
     },
     {
-      "gap_id": "CASE-20c2b9ee2321/GAP-002",
+      "gap_id": "CASE-bf424ce919c4/GAP-002",
       "gap_type": "diagnostic_specificity",
-      "description": "Blood gas results show respiratory acidosis (pH 7.34, PaCO2 62) and hypoxemia (PaO2 55), but the type of respiratory failure (acute vs. acute-on-chronic) is not specified.",
-      "why_it_matters": "Specifying acute vs. acute-on-chronic respiratory failure affects coding and reflects clinical severity.",
+      "description": "Abnormal blood gas values (pH 7.34, PaCO2 62, PaO2 55) indicate respiratory acidosis and hypoxemia, but clinical correlation is not documented.",
+      "why_it_matters": "Clinical correlation is needed to confirm the significance of the lab findings and guide management.",
       "evidence_span": {
-        "document_id": "encounter_summary",
+        "document_id": "DOC-001",
         "quote": "血气:pH 7.34, PaCO2 62, PaO2 55"
       },
       "minimal_clarification_needed": ""
     }
   ],
-  "proposed_provider_queries": [],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-bf424ce919c4/Q-001",
+      "gap_id": "CASE-bf424ce919c4/GAP-002",
+      "topic": "血气分析结果临床解读",
+      "reason": "血气分析提示呼吸性酸中毒和低氧血症，但缺乏临床相关性描述。",
+      "evidence_span": {
+        "document_id": "chart-001",
+        "quote": "血气:pH 7.34, PaCO2 62, PaO2 55"
+      },
+      "query_text": "请结合临床情况，对血气分析结果（pH 7.34, PaCO2 62, PaO2 55）进行解读，说明其与患者病情的相关性。",
+      "response_options": [
+        "A. 符合慢阻肺急性加重导致的呼吸性酸中毒和低氧血症",
+        "B. 考虑合并其他原因导致的呼吸性酸中毒",
+        "C. 考虑合并其他原因导致的低氧血症",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "urgent"
+    }
+  ],
   "chart_excerpt_preview": "患者男性, 68岁, 慢性阻塞性肺疾病10年, 咳嗽气促加重3天。血气:pH 7.34, PaCO2 62, PaO2 55。入院诊断:慢阻肺急性加重。",
   "patient_ref": "DEID",
   "encounter_ref": "DEID",
@@ -33,8 +53,8 @@
     "key_points": [
       "慢性阻塞性肺疾病10年",
       "咳嗽气促加重3天",
-      "血气: pH 7.34, PaCO2 62, PaO2 55",
-      "入院诊断: 慢阻肺急性加重"
+      "血气:pH 7.34, PaCO2 62, PaO2 55",
+      "入院诊断:慢阻肺急性加重"
     ],
     "encounter_metadata": {
       "patient_age": "68",
@@ -47,22 +67,22 @@
     {
       "expert_id": "coding-expert",
       "consulted": true,
-      "rationale": "The documentation should specify the severity of the acute exacerbation (e.g., mild, moderate, or severe) and identify the underlying cause, such as an infectious trigger. Additionally, clarify whether the respiratory acidosis and hypoxemia represent acute respiratory failure or acute-on-chronic respiratory failure, as this distinction is critical for accurate coding.",
+      "rationale": "The documentation must specify the severity of the acute exacerbation (mild, moderate, or severe) and its underlying cause, such as infection or environmental trigger. Additionally, the abnormal blood gas findings (respiratory acidosis and hypoxemia) require explicit clinical correlation to confirm whether they represent acute-on-chronic respiratory failure. Without this specificity, the clinical picture remains incomplete for accurate coding.",
       "route_decision": "needed",
       "route_reason": "coding_relevant_gap",
       "execution_mode": "LLM_KNOWLEDGE_ONLY",
-      "latency_ms": 2507,
+      "latency_ms": 2889,
       "tokens": 253
     },
     {
       "expert_id": "pubmed-expert",
-      "consulted": false,
-      "rationale": "",
-      "route_decision": "not_needed",
-      "route_reason": "no_relevant_gap",
-      "execution_mode": "SKIPPED_NOT_NEEDED",
-      "latency_ms": 0,
-      "tokens": 0
+      "consulted": true,
+      "rationale": "The charted blood gas values (pH 7.34, PaCO2 62, PaO2 55) confirm acute-on-chronic respiratory acidosis with hypoxemia, which literature supports as a marker of severe exacerbation requiring prompt intervention (PMID: 34658320). However, the documentation lacks a formal severity classification (e.g., GOLD grade) and etiology (infectious vs. environmental), which are critical for guiding therapy such as antibiotics or corticosteroids (PMID: 37198495). I recommend explicitly linking the blood gas findings to a severity grade and documenting the suspected trigger to align with evidence-based management guidelines.",
+      "route_decision": "needed",
+      "route_reason": "criteria_marker_present",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 1994,
+      "tokens": 318
     },
     {
       "expert_id": "web-search-expert",
@@ -86,46 +106,46 @@
     }
   ],
   "stage_run_ids": {
-    "encounter_synthesis": "run-6d873c9a7a41",
-    "gap_identification": "run-731346625d56",
+    "encounter_synthesis": "run-dadbf38dde6e",
+    "gap_identification": "run-0d6cb50dcee7",
     "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
-    "expert_consultation": "run-1a1302275034",
-    "query_generation": "run-333f070322da",
+    "expert_consultation": "run-0ffc8f4455d4",
+    "query_generation": "run-43caef9d9423",
     "query_generation::quote_snapped": "0",
-    "query_eligibility_gate": "chart_complete=False;completeness_score=0.25;dimensions=D1_type=Y,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=2;llm_complete=False;llm_reasoning=The chart lacks severity and etiology of the COPD exacerbation, and does not spe",
-    "query_necessity_gate": "necessary=0;unnecessary=2;overquery_triggered=False;final_count=0",
-    "query_single_dimension_gate": "single_dim=0;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;final_count=0",
-    "claim_evidence_alignment_gate": "claims_extracted=0;blocked=0;flagged=0;final_count=0",
-    "claim_evidence_alignment_gate::run_id": "run-87ba52714d0c",
-    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
-    "semantic_necessity_gate::run_id": "run-2551a7bc305f",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.25;dimensions=D1_type=Y,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=2;llm_complete=False;llm_reasoning=The chart lacks severity and etiology for the acute exacerbation of COPD, and th",
+    "query_necessity_gate": "necessary=1;unnecessary=1;overquery_triggered=False;final_count=1",
+    "query_single_dimension_gate": "single_dim=1;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=correlation;final_count=1",
+    "claim_evidence_alignment_gate": "claims_extracted=3;blocked=0;flagged=0;final_count=1",
+    "claim_evidence_alignment_gate::run_id": "run-1972faf385b7",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=1",
+    "semantic_necessity_gate::run_id": "run-32c860b6e80e",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "run-c57c122a491a"
+    "specialist_trace_emit": "run-035dc9faee54"
   },
   "stage_trace_ids": {
-    "encounter_synthesis": "trace-a3801d5f66f1",
-    "gap_identification": "trace-19f1c65082fe",
-    "expert_consultation": "trace-82d6d8db0004",
-    "query_generation": "trace-88a9391daf25",
+    "encounter_synthesis": "trace-e40204b7aa68",
+    "gap_identification": "trace-57bdf17df3a7",
+    "expert_consultation": "trace-63f060923886",
+    "query_generation": "trace-7e65b4d5266b",
     "query_eligibility_gate": "",
     "query_necessity_gate": "",
     "query_single_dimension_gate": "",
-    "claim_evidence_alignment_gate": "trace-d443b600088c",
-    "semantic_necessity_gate": "trace-52f808db6281",
+    "claim_evidence_alignment_gate": "trace-50fe106f2d0d",
+    "semantic_necessity_gate": "trace-96d0df07569f",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "trace-4b78b51e1ee1"
+    "specialist_trace_emit": "trace-9792304f49d6"
   },
   "stage_traces": [
     {
       "stage": "encounter_synthesis",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 2444,
+      "latency_ms": 2314,
       "prompt_tokens": 224,
-      "completion_tokens": 99,
-      "total_tokens": 323,
-      "run_id": "run-6d873c9a7a41",
-      "trace_id": "trace-a3801d5f66f1",
+      "completion_tokens": 98,
+      "total_tokens": 322,
+      "run_id": "run-dadbf38dde6e",
+      "trace_id": "trace-e40204b7aa68",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -134,12 +154,12 @@
       "stage": "gap_identification",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 4835,
-      "prompt_tokens": 857,
-      "completion_tokens": 399,
-      "total_tokens": 1256,
-      "run_id": "run-731346625d56",
-      "trace_id": "trace-19f1c65082fe",
+      "latency_ms": 4624,
+      "prompt_tokens": 1048,
+      "completion_tokens": 370,
+      "total_tokens": 1418,
+      "run_id": "run-0d6cb50dcee7",
+      "trace_id": "trace-57bdf17df3a7",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -148,12 +168,12 @@
       "stage": "query_generation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 4399,
-      "prompt_tokens": 906,
-      "completion_tokens": 401,
-      "total_tokens": 1307,
-      "run_id": "run-333f070322da",
-      "trace_id": "trace-88a9391daf25",
+      "latency_ms": 5011,
+      "prompt_tokens": 895,
+      "completion_tokens": 432,
+      "total_tokens": 1327,
+      "run_id": "run-43caef9d9423",
+      "trace_id": "trace-7e65b4d5266b",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -162,12 +182,12 @@
       "stage": "expert_consultation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 2507,
-      "prompt_tokens": 187,
-      "completion_tokens": 66,
+      "latency_ms": 2889,
+      "prompt_tokens": 176,
+      "completion_tokens": 77,
       "total_tokens": 253,
-      "run_id": "run-b1d3ae38eb0c",
-      "trace_id": "trace-b47324df9b8c",
+      "run_id": "run-6d9e591f7680",
+      "trace_id": "trace-977f0c600ffa",
       "degraded": false,
       "error_reason": "",
       "expert_id": "coding-expert"
@@ -176,12 +196,12 @@
       "stage": "expert_consultation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 0,
-      "prompt_tokens": 0,
-      "completion_tokens": 0,
-      "total_tokens": 0,
-      "run_id": "run-eb89a6d32d64",
-      "trace_id": "trace-abe645a0ed8c",
+      "latency_ms": 1994,
+      "prompt_tokens": 190,
+      "completion_tokens": 128,
+      "total_tokens": 318,
+      "run_id": "run-43a98a12b7ae",
+      "trace_id": "trace-2e453e6f3052",
       "degraded": false,
       "error_reason": "",
       "expert_id": "pubmed-expert"
@@ -194,8 +214,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-360c6f79ee21",
-      "trace_id": "trace-519917123b55",
+      "run_id": "run-8efb96787cdf",
+      "trace_id": "trace-04d0c96a2929",
       "degraded": false,
       "error_reason": "",
       "expert_id": "web-search-expert"
@@ -208,8 +228,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-b1b37165497b",
-      "trace_id": "trace-613a74deb6d1",
+      "run_id": "run-bb65cdb3286b",
+      "trace_id": "trace-b21c0111c7ec",
       "degraded": false,
       "error_reason": "",
       "expert_id": "medical-calculator-expert"
@@ -217,5 +237,5 @@
   ],
   "degraded": false,
   "runtime_mode": "real",
-  "generated_at": "2026-07-13T02:53:15.831681Z"
+  "generated_at": "2026-07-13T06:11:59.373951Z"
 }

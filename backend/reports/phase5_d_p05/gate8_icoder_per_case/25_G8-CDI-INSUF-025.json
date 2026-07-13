@@ -1,36 +1,25 @@
 {
-  "case_id": "CASE-aca632f0eb0b",
+  "case_id": "CASE-acd91a7fa7ef",
   "completion_state": "REVIEW_REQUIRED",
   "documentation_gaps": [
     {
-      "gap_id": "CASE-aca632f0eb0b/GAP-001",
+      "gap_id": "CASE-acd91a7fa7ef/GAP-001",
       "gap_type": "diagnostic_specificity",
       "description": "胸闷的病因未明确",
-      "why_it_matters": "胸闷可能由多种原因引起（如心脏、肺部、心理等），缺乏病因描述会影响编码准确性和后续治疗决策。",
+      "why_it_matters": "胸闷可能由多种原因引起（如心脏、肺部、心理等），缺乏病因描述会影响诊断编码的准确性。",
       "evidence_span": {
-        "document_id": "doc-001",
+        "document_id": "DOC-001",
         "quote": "间断胸闷"
       },
       "minimal_clarification_needed": ""
     },
     {
-      "gap_id": "CASE-aca632f0eb0b/GAP-002",
+      "gap_id": "CASE-acd91a7fa7ef/GAP-002",
       "gap_type": "diagnostic_specificity",
-      "description": "胸闷的严重程度未描述",
-      "why_it_matters": "严重程度（如轻度、中度、重度）是编码和评估病情的重要维度，缺失可能导致编码不精确。",
+      "description": "胸闷的严重程度和持续时间未描述",
+      "why_it_matters": "缺乏严重程度和持续时间会影响病情评估和编码。",
       "evidence_span": {
-        "document_id": "doc-001",
-        "quote": "间断胸闷"
-      },
-      "minimal_clarification_needed": ""
-    },
-    {
-      "gap_id": "CASE-aca632f0eb0b/GAP-003",
-      "gap_type": "diagnostic_specificity",
-      "description": "胸闷的持续时间或频率未描述",
-      "why_it_matters": "间断性胸闷缺乏具体时间或频率描述，影响对病情急慢性的判断和编码。",
-      "evidence_span": {
-        "document_id": "doc-001",
+        "document_id": "DOC-001",
         "quote": "间断胸闷"
       },
       "minimal_clarification_needed": ""
@@ -57,12 +46,12 @@
     {
       "expert_id": "coding-expert",
       "consulted": true,
-      "rationale": "The chart lacks documentation of the underlying cause of the chest tightness, such as whether it is cardiac, respiratory, or stress-related. Additionally, the severity (e.g., mild, moderate, severe) and pattern (e.g., duration in minutes, frequency per day/week) are not specified, which are essential for accurate clinical assessment and coding. Clarifying these details will support precise diagnosis and appropriate follow-up planning.",
+      "rationale": "The documentation lacks specificity regarding the etiology of the chest tightness, such as whether it is cardiac, respiratory, or musculoskeletal in origin. Additionally, the severity (e.g., mild, moderate, severe) and duration (e.g., minutes, hours, episodic) of the symptom are not described, which is essential for accurate clinical characterization. Clarifying these details will support precise coding and appropriate clinical management.",
       "route_decision": "needed",
       "route_reason": "coding_relevant_gap",
       "execution_mode": "LLM_KNOWLEDGE_ONLY",
-      "latency_ms": 2570,
-      "tokens": 184
+      "latency_ms": 2776,
+      "tokens": 173
     },
     {
       "expert_id": "pubmed-expert",
@@ -96,46 +85,46 @@
     }
   ],
   "stage_run_ids": {
-    "encounter_synthesis": "run-e431eb655181",
-    "gap_identification": "run-94f35562d3f9",
+    "encounter_synthesis": "run-c14995a1c292",
+    "gap_identification": "run-93393e808e46",
     "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
-    "expert_consultation": "run-fefd86c42a22",
-    "query_generation": "run-57ee61efa7c2",
+    "expert_consultation": "run-d117b028236e",
+    "query_generation": "run-85accd1a7fb7",
     "query_generation::quote_snapped": "0",
-    "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=;dropped=0;final_count=3;llm_complete=False;llm_reasoning=胸闷症状缺乏病因、严重程度和频率等关键信息，无法满足编码所需的特异性要求。",
-    "query_necessity_gate": "necessary=3;unnecessary=0;overquery_triggered=False;final_count=3",
-    "query_single_dimension_gate": "single_dim=3;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=etiology;final_count=3",
-    "claim_evidence_alignment_gate": "claims_extracted=6;blocked=3;flagged=0;final_count=0",
-    "claim_evidence_alignment_gate::run_id": "run-77242f2b98dc",
-    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
-    "semantic_necessity_gate::run_id": "run-bd3e539df528",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=;dropped=0;final_count=2;llm_complete=False;llm_reasoning=胸闷症状缺乏病因、严重程度和持续时间等关键信息，无法满足编码所需的特异性。",
+    "query_necessity_gate": "necessary=2;unnecessary=0;overquery_triggered=False;final_count=2",
+    "query_single_dimension_gate": "single_dim=1;multi_dim=1;axis_cluster_triggered=False;axis_cluster_axis=etiology;final_count=1",
+    "claim_evidence_alignment_gate": "claims_extracted=2;blocked=0;flagged=0;final_count=1",
+    "claim_evidence_alignment_gate::run_id": "run-6ccb603f68e6",
+    "semantic_necessity_gate": "blocked=1;flagged=0;degraded=0;final_count=0",
+    "semantic_necessity_gate::run_id": "run-4ab3bc2a46df",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "run-59806edf9804"
+    "specialist_trace_emit": "run-0c104dcb8d0a"
   },
   "stage_trace_ids": {
-    "encounter_synthesis": "trace-b35fc12f9552",
-    "gap_identification": "trace-de13d4f3ced3",
-    "expert_consultation": "trace-b00539d71e4f",
-    "query_generation": "trace-2a13aaabc966",
+    "encounter_synthesis": "trace-0cbf4e74e8d2",
+    "gap_identification": "trace-a191ea96f58d",
+    "expert_consultation": "trace-bbfff95a832e",
+    "query_generation": "trace-4d058214681e",
     "query_eligibility_gate": "",
     "query_necessity_gate": "",
     "query_single_dimension_gate": "",
-    "claim_evidence_alignment_gate": "trace-cc9fa2a1fc17",
-    "semantic_necessity_gate": "trace-4b9ea580e784",
+    "claim_evidence_alignment_gate": "trace-fc6af38aba39",
+    "semantic_necessity_gate": "trace-42b974900209",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "trace-5d858e5ea231"
+    "specialist_trace_emit": "trace-4a79f38ddc7f"
   },
   "stage_traces": [
     {
       "stage": "encounter_synthesis",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 4258,
+      "latency_ms": 2324,
       "prompt_tokens": 189,
-      "completion_tokens": 51,
-      "total_tokens": 240,
-      "run_id": "run-e431eb655181",
-      "trace_id": "trace-b35fc12f9552",
+      "completion_tokens": 57,
+      "total_tokens": 246,
+      "run_id": "run-c14995a1c292",
+      "trace_id": "trace-0cbf4e74e8d2",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -144,12 +133,12 @@
       "stage": "gap_identification",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 4951,
-      "prompt_tokens": 785,
-      "completion_tokens": 408,
-      "total_tokens": 1193,
-      "run_id": "run-94f35562d3f9",
-      "trace_id": "trace-de13d4f3ced3",
+      "latency_ms": 4059,
+      "prompt_tokens": 977,
+      "completion_tokens": 286,
+      "total_tokens": 1263,
+      "run_id": "run-93393e808e46",
+      "trace_id": "trace-a191ea96f58d",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -158,12 +147,12 @@
       "stage": "query_generation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 5274,
-      "prompt_tokens": 823,
-      "completion_tokens": 516,
-      "total_tokens": 1339,
-      "run_id": "run-57ee61efa7c2",
-      "trace_id": "trace-2a13aaabc966",
+      "latency_ms": 4260,
+      "prompt_tokens": 784,
+      "completion_tokens": 314,
+      "total_tokens": 1098,
+      "run_id": "run-85accd1a7fb7",
+      "trace_id": "trace-4d058214681e",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -172,12 +161,12 @@
       "stage": "expert_consultation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 2570,
-      "prompt_tokens": 100,
-      "completion_tokens": 84,
-      "total_tokens": 184,
-      "run_id": "run-73b567aba156",
-      "trace_id": "trace-986831f15472",
+      "latency_ms": 2776,
+      "prompt_tokens": 92,
+      "completion_tokens": 81,
+      "total_tokens": 173,
+      "run_id": "run-d16f0b8c3be2",
+      "trace_id": "trace-11d1ef30294a",
       "degraded": false,
       "error_reason": "",
       "expert_id": "coding-expert"
@@ -190,8 +179,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-14119b9ab80e",
-      "trace_id": "trace-527b2acec608",
+      "run_id": "run-16da44427572",
+      "trace_id": "trace-d737d10b7f2c",
       "degraded": false,
       "error_reason": "",
       "expert_id": "pubmed-expert"
@@ -204,8 +193,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-f129e9b34fc8",
-      "trace_id": "trace-069c717b9821",
+      "run_id": "run-a0a83182c96d",
+      "trace_id": "trace-c7a616310f52",
       "degraded": false,
       "error_reason": "",
       "expert_id": "web-search-expert"
@@ -218,8 +207,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-2d16f986ceb3",
-      "trace_id": "trace-5036774998d9",
+      "run_id": "run-100733deecb7",
+      "trace_id": "trace-b33815faa3c8",
       "degraded": false,
       "error_reason": "",
       "expert_id": "medical-calculator-expert"
@@ -227,5 +216,5 @@
   ],
   "degraded": false,
   "runtime_mode": "real",
-  "generated_at": "2026-07-13T02:58:28.511145Z"
+  "generated_at": "2026-07-13T06:17:30.108019Z"
 }

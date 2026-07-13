@@ -1,31 +1,51 @@
 {
-  "case_id": "CASE-e0c30f423cea",
+  "case_id": "CASE-e69dbfd0176d",
   "completion_state": "REVIEW_REQUIRED",
   "documentation_gaps": [
     {
-      "gap_id": "CASE-e0c30f423cea/GAP-001",
+      "gap_id": "CASE-e69dbfd0176d/GAP-001",
       "gap_type": "diagnostic_specificity",
-      "description": "糖尿病并发症筛查不完整：未提及眼底检查、肾功能、尿微量白蛋白、神经病变评估（如单丝试验）等结果。",
-      "why_it_matters": "糖尿病长期管理需定期评估微血管和大血管并发症，缺少这些信息影响并发症编码的准确性。",
+      "description": "糖尿病并发症筛查不完整：缺乏眼底检查、肾功能、神经病变评估等结果",
+      "why_it_matters": "糖尿病长期管理需定期筛查并发症，缺失影响疾病严重程度评估和编码",
       "evidence_span": {
         "document_id": "encounter_summary",
-        "quote": "2型糖尿病20年。近期失访。否认多饮多尿加重、视物模糊、肢体麻木、水肿、间歇性跛行。查体:无糖尿病足, 触觉正常。HbA1c 7.2。"
+        "quote": "2型糖尿病20年。近期失访。否认多饮多尿加重、视物模糊、肢体麻木、水肿、间歇性跛行。查体:无糖尿病足, 触觉正常。HbA1c 7.2"
       },
       "minimal_clarification_needed": ""
     },
     {
-      "gap_id": "CASE-e0c30f423cea/GAP-002",
+      "gap_id": "CASE-e69dbfd0176d/GAP-002",
       "gap_type": "diagnostic_specificity",
-      "description": "糖尿病类型未明确：虽然提及2型糖尿病，但未说明是否有并发症或控制情况。",
-      "why_it_matters": "糖尿病编码需要明确有无并发症及控制状态，缺少此信息可能导致编码不完整。",
+      "description": "HbA1c 7.2% 未说明临床意义或治疗调整计划",
+      "why_it_matters": "HbA1c 7.2% 提示血糖控制一般，需明确是否达标或需调整方案，影响糖尿病控制状态编码",
       "evidence_span": {
         "document_id": "encounter_summary",
-        "quote": "2型糖尿病20年"
+        "quote": "HbA1c 7.2"
       },
       "minimal_clarification_needed": ""
     }
   ],
-  "proposed_provider_queries": [],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-e69dbfd0176d/Q-001",
+      "gap_id": "CASE-e69dbfd0176d/GAP-001",
+      "topic": "糖尿病并发症筛查",
+      "reason": "缺乏眼底检查、肾功能、神经病变评估等结果",
+      "evidence_span": {
+        "document_id": "chart-001",
+        "quote": "2型糖尿病20年。近期失访。否认多饮多尿加重、视物模糊、肢体麻木、水肿、间歇性跛行。查体:无糖尿病足, 触觉正常。HbA1c 7.2"
+      },
+      "query_text": "患者2型糖尿病20年，近期失访。请补充糖尿病相关并发症筛查结果，包括眼底检查、肾功能、神经病变评估等。",
+      "response_options": [
+        "A. 已完善眼底检查、肾功能、神经病变评估，结果正常",
+        "B. 已完善部分检查，具体为：",
+        "C. 未进行相关筛查，计划安排",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine"
+    }
+  ],
   "chart_excerpt_preview": "患者女性, 75岁, 2型糖尿病20年。近期失访。否认多饮多尿加重、视物模糊、肢体麻木、水肿、间歇性跛行。查体:无糖尿病足, 触觉正常。HbA1c 7.2。",
   "patient_ref": "DEID",
   "encounter_ref": "DEID",
@@ -34,12 +54,13 @@
       "2型糖尿病20年",
       "近期失访",
       "否认多饮多尿加重、视物模糊、肢体麻木、水肿、间歇性跛行",
-      "查体:无糖尿病足, 触觉正常",
+      "无糖尿病足",
+      "触觉正常",
       "HbA1c 7.2"
     ],
     "encounter_metadata": {
-      "patient_age": "75岁",
-      "patient_sex": "女性",
+      "patient_age": "75",
+      "patient_sex": "女",
       "encounter_type": "门诊"
     }
   },
@@ -48,12 +69,12 @@
     {
       "expert_id": "coding-expert",
       "consulted": true,
-      "rationale": "建议补充糖尿病并发症的专项筛查结果，包括眼底检查、肾功能（血肌酐、eGFR）、尿微量白蛋白/肌酐比值及神经病变评估（如10克单丝试验）。同时需明确糖尿病控制情况（如血糖波动范围、低血糖事件）及是否存在慢性并发症（如肾病、视网膜病变、周围神经病变）。这些信息对准确评估病情严重程度和制定管理方案至关重要。",
+      "rationale": "建议补充眼底检查、尿微量白蛋白/肌酐比值及神经病变筛查的具体结果，以明确糖尿病并发症的严重程度。同时需记录HbA1c 7.2%是否为目标范围内，以及是否因该结果调整了降糖治疗方案（如药物增减或生活方式干预）。",
       "route_decision": "needed",
       "route_reason": "coding_relevant_gap",
       "execution_mode": "LLM_KNOWLEDGE_ONLY",
-      "latency_ms": 3178,
-      "tokens": 257
+      "latency_ms": 2641,
+      "tokens": 218
     },
     {
       "expert_id": "pubmed-expert",
@@ -87,46 +108,46 @@
     }
   ],
   "stage_run_ids": {
-    "encounter_synthesis": "run-2faec1ff0122",
-    "gap_identification": "run-2ed7d89f48c2",
+    "encounter_synthesis": "run-6f5d658a475d",
+    "gap_identification": "run-cf2d323e73b9",
     "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
-    "expert_consultation": "run-5585fed297b0",
-    "query_generation": "run-69de741811e7",
+    "expert_consultation": "run-873c243e4586",
+    "query_generation": "run-fece7db95605",
     "query_generation::quote_snapped": "0",
-    "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=2;llm_complete=False;llm_reasoning=糖尿病长期管理缺少并发症筛查结果（如眼底、肾功能、神经病变），无法确定有无并发症，影响编码完整性。",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=2;llm_complete=False;llm_reasoning=糖尿病病程长且近期失访，但缺乏并发症筛查（如眼底、肾功能、神经病变）和HbA1c的临床解读，无法确定糖尿病控制状态及并发症情况，影响编码准确性。",
     "query_necessity_gate": "necessary=2;unnecessary=0;overquery_triggered=False;final_count=2",
-    "query_single_dimension_gate": "single_dim=1;multi_dim=1;axis_cluster_triggered=False;axis_cluster_axis=complication;final_count=1",
-    "claim_evidence_alignment_gate": "claims_extracted=3;blocked=1;flagged=0;final_count=0",
-    "claim_evidence_alignment_gate::run_id": "run-5f45b97f07ad",
-    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
-    "semantic_necessity_gate::run_id": "run-f020987e4e54",
+    "query_single_dimension_gate": "single_dim=2;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=complication;final_count=2",
+    "claim_evidence_alignment_gate": "claims_extracted=6;blocked=1;flagged=0;final_count=1",
+    "claim_evidence_alignment_gate::run_id": "run-d1403a0a5cd4",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=1",
+    "semantic_necessity_gate::run_id": "run-ae6fdee8b84c",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "run-fa50fcd81ea9"
+    "specialist_trace_emit": "run-87d0ac807e8e"
   },
   "stage_trace_ids": {
-    "encounter_synthesis": "trace-a3a3f6f0d9b7",
-    "gap_identification": "trace-12a19510762e",
-    "expert_consultation": "trace-f2fd241d981d",
-    "query_generation": "trace-2bb02268dfea",
+    "encounter_synthesis": "trace-ec2a366a6c70",
+    "gap_identification": "trace-e046e7afe8d1",
+    "expert_consultation": "trace-201fccf725ce",
+    "query_generation": "trace-252b75a54736",
     "query_eligibility_gate": "",
     "query_necessity_gate": "",
     "query_single_dimension_gate": "",
-    "claim_evidence_alignment_gate": "trace-6def14d04582",
-    "semantic_necessity_gate": "trace-06db8b4d5f4c",
+    "claim_evidence_alignment_gate": "trace-d1cf8785458d",
+    "semantic_necessity_gate": "trace-cfdd2c4d890e",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "trace-601cb9849d73"
+    "specialist_trace_emit": "trace-6fd7d6b00615"
   },
   "stage_traces": [
     {
       "stage": "encounter_synthesis",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 2620,
+      "latency_ms": 2333,
       "prompt_tokens": 232,
-      "completion_tokens": 110,
-      "total_tokens": 342,
-      "run_id": "run-2faec1ff0122",
-      "trace_id": "trace-a3a3f6f0d9b7",
+      "completion_tokens": 107,
+      "total_tokens": 339,
+      "run_id": "run-6f5d658a475d",
+      "trace_id": "trace-ec2a366a6c70",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -135,12 +156,12 @@
       "stage": "gap_identification",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 5072,
-      "prompt_tokens": 874,
-      "completion_tokens": 383,
-      "total_tokens": 1257,
-      "run_id": "run-2ed7d89f48c2",
-      "trace_id": "trace-12a19510762e",
+      "latency_ms": 5306,
+      "prompt_tokens": 1064,
+      "completion_tokens": 400,
+      "total_tokens": 1464,
+      "run_id": "run-cf2d323e73b9",
+      "trace_id": "trace-e046e7afe8d1",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -149,12 +170,12 @@
       "stage": "query_generation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 4554,
-      "prompt_tokens": 919,
-      "completion_tokens": 416,
-      "total_tokens": 1335,
-      "run_id": "run-69de741811e7",
-      "trace_id": "trace-2bb02268dfea",
+      "latency_ms": 4675,
+      "prompt_tokens": 904,
+      "completion_tokens": 445,
+      "total_tokens": 1349,
+      "run_id": "run-fece7db95605",
+      "trace_id": "trace-252b75a54736",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -163,12 +184,12 @@
       "stage": "expert_consultation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 3178,
-      "prompt_tokens": 170,
-      "completion_tokens": 87,
-      "total_tokens": 257,
-      "run_id": "run-e1782ed02d0a",
-      "trace_id": "trace-e49b7f2da7f7",
+      "latency_ms": 2641,
+      "prompt_tokens": 156,
+      "completion_tokens": 62,
+      "total_tokens": 218,
+      "run_id": "run-39627edeb806",
+      "trace_id": "trace-d57b32769ecf",
       "degraded": false,
       "error_reason": "",
       "expert_id": "coding-expert"
@@ -181,8 +202,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-d1fd16cc78f7",
-      "trace_id": "trace-5dccf5dd81e8",
+      "run_id": "run-cc0c8ebd8dde",
+      "trace_id": "trace-e2de087fab82",
       "degraded": false,
       "error_reason": "",
       "expert_id": "pubmed-expert"
@@ -195,8 +216,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-06f189f3a17d",
-      "trace_id": "trace-151ecdc69695",
+      "run_id": "run-0afb32a55c43",
+      "trace_id": "trace-c43415cd7a67",
       "degraded": false,
       "error_reason": "",
       "expert_id": "web-search-expert"
@@ -209,8 +230,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-2c521ae2b0c3",
-      "trace_id": "trace-e970d5faa99d",
+      "run_id": "run-2ef13fa1187a",
+      "trace_id": "trace-3a821c3f839f",
       "degraded": false,
       "error_reason": "",
       "expert_id": "medical-calculator-expert"
@@ -218,5 +239,5 @@
   ],
   "degraded": false,
   "runtime_mode": "real",
-  "generated_at": "2026-07-13T02:59:29.760580Z"
+  "generated_at": "2026-07-13T06:18:52.966342Z"
 }

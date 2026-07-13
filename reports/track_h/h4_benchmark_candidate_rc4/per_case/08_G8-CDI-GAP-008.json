@@ -1,0 +1,268 @@
+{
+  "case_id": "CASE-c460989cb029",
+  "completion_state": "BLOCKED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-c460989cb029/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "糖尿病酮症酸中毒未明确诊断",
+      "why_it_matters": "患者存在代谢性酸中毒（pH 7.30, HCO3 16）和酮体阳性，符合糖尿病酮症酸中毒（DKA）的诊断标准，但入院诊断仅为2型糖尿病，未提及DKA，影响编码准确性。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "pH 7.30, HCO3 16, 酮体阳性"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-c460989cb029/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "糖尿病类型与临床表现不一致",
+      "why_it_matters": "患者45岁，急性起病（多饮多尿1月），血糖显著升高（FPG 12.5, HbA1c 11.2），伴酮症酸中毒，需排除1型糖尿病或成人隐匿性自身免疫性糖尿病（LADA），但诊断直接定为2型糖尿病，缺乏分型依据。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "入院诊断:2型糖尿病"
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-c460989cb029/Q-001",
+      "gap_id": "CASE-c460989cb029/GAP-001",
+      "topic": "糖尿病酮症酸中毒诊断",
+      "reason": "患者存在代谢性酸中毒（pH 7.30, HCO3 16）及酮体阳性，但未明确诊断糖尿病酮症酸中毒。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "pH 7.30, HCO3 16, 酮体阳性"
+      },
+      "query_text": "请描述患者目前是否存在糖尿病酮症酸中毒？",
+      "response_options": [
+        "A. 是，符合糖尿病酮症酸中毒诊断",
+        "B. 否，考虑其他原因导致的酸中毒",
+        "C. 存在酮症，但酸中毒程度未达酮症酸中毒标准",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "urgent"
+    },
+    {
+      "query_id": "CASE-c460989cb029/Q-002",
+      "gap_id": "CASE-c460989cb029/GAP-002",
+      "topic": "糖尿病类型确认",
+      "reason": "患者入院诊断为2型糖尿病，但临床表现（多饮多尿1月，FPG 12.5, HbA1c 11.2）及酮症酸中毒倾向提示可能为1型糖尿病或成人隐匿性自身免疫性糖尿病。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "入院诊断:2型糖尿病"
+      },
+      "query_text": "请明确患者糖尿病类型。",
+      "response_options": [
+        "A. 2型糖尿病",
+        "B. 1型糖尿病",
+        "C. 成人隐匿性自身免疫性糖尿病（LADA）",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "urgent"
+    }
+  ],
+  "chart_excerpt_preview": "患者男性, 45岁, 多饮多尿1月。FPG 12.5, HbA1c 11.2, pH 7.30, HCO3 16, 酮体阳性。入院诊断:2型糖尿病。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "多饮多尿1月",
+      "FPG 12.5",
+      "HbA1c 11.2",
+      "pH 7.30",
+      "HCO3 16",
+      "酮体阳性",
+      "2型糖尿病"
+    ],
+    "encounter_metadata": {
+      "patient_age": "45岁",
+      "patient_sex": "男性",
+      "encounter_type": "入院"
+    }
+  },
+  "risk_flags": [
+    {
+      "category": "contradiction",
+      "description": "诊断2型糖尿病与酮症酸中毒表现矛盾，2型糖尿病通常不典型发生DKA，需明确分型。"
+    }
+  ],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "The chart lacks documentation of diabetic ketoacidosis (DKA) as a distinct diagnosis despite clear metabolic evidence (pH 7.30, HCO3 16, positive ketones). Additionally, the clinical presentation of DKA in a 45-year-old with severe hyperglycemia and high HbA1c is more consistent with type 1 diabetes or latent autoimmune diabetes, not type 2 diabetes. Please clarify the diabetes type and explicitly document DKA as a confirmed diagnosis.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3313,
+      "tokens": 226
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": true,
+      "rationale": "The chart shows clear evidence of diabetic ketoacidosis (DKA) with pH 7.30, HCO3 16, and positive ketones, yet the diagnosis of type 2 diabetes is inconsistent with this presentation, as DKA is more typical of type 1 diabetes or ketosis-prone type 2 diabetes. Literature supports that DKA can occur in type 2 diabetes under severe stress, but the HbA1c of 11.2% suggests prolonged hyperglycemia, making latent autoimmune diabetes in adults (LADA) a strong consideration (PMID: 23589527). I recommend testing for islet autoantibodies (e.g., GAD65) to clarify diabetes type and ensure appropriate insulin therapy.",
+      "route_decision": "needed",
+      "route_reason": "criteria_marker_present",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 2477,
+      "tokens": 291
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-003b18f17aaf",
+    "gap_identification": "run-c1b9edc7cc70",
+    "gap_identification_risk_flags": "emitted=1;quote_snapped=0",
+    "expert_consultation": "run-c3d836aecdea",
+    "query_generation": "run-e7477141dbe0",
+    "query_generation::quote_snapped": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=2;llm_complete=False;llm_reasoning=图表未明确诊断糖尿病酮症酸中毒，且糖尿病分型缺乏依据，影响编码和临床准确性。",
+    "query_necessity_gate": "necessary=2;unnecessary=0;overquery_triggered=False;final_count=2",
+    "query_single_dimension_gate": "single_dim=2;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=type;final_count=2",
+    "claim_evidence_alignment_gate": "claims_extracted=3;blocked=0;flagged=0;final_count=2",
+    "claim_evidence_alignment_gate::run_id": "run-ca811be14cf7",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=2",
+    "semantic_necessity_gate::run_id": "run-bc2c87898622",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "run-b621e1102b57"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-9aed5db0fd8b",
+    "gap_identification": "trace-a206652d6f3e",
+    "expert_consultation": "trace-01fbc881b565",
+    "query_generation": "trace-7abfa77b9faa",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-0f1a96cd7780",
+    "semantic_necessity_gate": "trace-19d30d8541fc",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-6e746f4aad4b"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2645,
+      "prompt_tokens": 226,
+      "completion_tokens": 103,
+      "total_tokens": 329,
+      "run_id": "run-003b18f17aaf",
+      "trace_id": "trace-9aed5db0fd8b",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5400,
+      "prompt_tokens": 1051,
+      "completion_tokens": 495,
+      "total_tokens": 1546,
+      "run_id": "run-c1b9edc7cc70",
+      "trace_id": "trace-a206652d6f3e",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5103,
+      "prompt_tokens": 954,
+      "completion_tokens": 413,
+      "total_tokens": 1367,
+      "run_id": "run-e7477141dbe0",
+      "trace_id": "trace-7abfa77b9faa",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3313,
+      "prompt_tokens": 129,
+      "completion_tokens": 97,
+      "total_tokens": 226,
+      "run_id": "run-af1d0dc1f5ba",
+      "trace_id": "trace-a90292a40f9a",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2477,
+      "prompt_tokens": 143,
+      "completion_tokens": 148,
+      "total_tokens": 291,
+      "run_id": "run-377f7bddb35a",
+      "trace_id": "trace-0befc9a39c17",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-bc67aead04f6",
+      "trace_id": "trace-c851f7db7925",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-f1183440e209",
+      "trace_id": "trace-f6facdee521f",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-07-13T06:42:54.814419Z"
+}

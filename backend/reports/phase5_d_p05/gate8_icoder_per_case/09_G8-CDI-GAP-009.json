@@ -1,36 +1,36 @@
 {
-  "case_id": "CASE-53679adfa8dd",
+  "case_id": "CASE-c303d3daf169",
   "completion_state": "REVIEW_REQUIRED",
   "documentation_gaps": [
     {
-      "gap_id": "CASE-53679adfa8dd/GAP-001",
+      "gap_id": "CASE-c303d3daf169/GAP-001",
       "gap_type": "diagnostic_specificity",
-      "description": "胆总管扩张（9mm）的病因未明确，需鉴别是否存在胆总管结石或梗阻",
-      "why_it_matters": "胆总管扩张可能提示胆总管结石或梗阻，影响治疗方案（如ERCP）及编码准确性",
+      "description": "胆总管扩张（9mm）的病因未明确，需鉴别胆总管结石、肿瘤或炎症等。",
+      "why_it_matters": "胆总管扩张可能提示胆总管结石或梗阻，影响治疗方案（如是否需要ERCP）及编码准确性。",
       "evidence_span": {
-        "document_id": "DOC-001",
+        "document_id": "doc-1",
         "quote": "胆总管直径 9mm"
       },
       "minimal_clarification_needed": ""
     },
     {
-      "gap_id": "CASE-53679adfa8dd/GAP-002",
+      "gap_id": "CASE-c303d3daf169/GAP-002",
       "gap_type": "diagnostic_specificity",
-      "description": "急性胆囊炎的严重程度未明确（如是否伴有坏疽、穿孔、脓肿等）",
-      "why_it_matters": "严重程度影响治疗决策（如急诊手术 vs 保守治疗）及编码",
+      "description": "急性胆囊炎的严重程度未明确（如是否伴有坏疽、穿孔、脓肿等）。",
+      "why_it_matters": "严重程度影响治疗决策（如急诊手术 vs 保守治疗）及编码（如K81.0急性胆囊炎 vs K81.1慢性胆囊炎）。",
       "evidence_span": {
-        "document_id": "DOC-001",
-        "quote": "入院诊断:急性胆囊炎"
+        "document_id": "doc-1",
+        "quote": "急性胆囊炎"
       },
       "minimal_clarification_needed": ""
     },
     {
-      "gap_id": "CASE-53679adfa8dd/GAP-003",
+      "gap_id": "CASE-c303d3daf169/GAP-003",
       "gap_type": "diagnostic_specificity",
-      "description": "肝功能异常（ALT 120, AST 95, ALP 280, TBIL 45）的临床意义未明确，需与胆总管扩张关联",
-      "why_it_matters": "肝功能异常可能提示胆道梗阻或肝损伤，需明确病因以指导治疗和编码",
+      "description": "肝功能异常（ALT 120, AST 95, ALP 280, TBIL 45）的病因未明确，需临床关联。",
+      "why_it_matters": "肝功能异常可能由胆道梗阻、肝炎或其他原因引起，影响诊断和编码。",
       "evidence_span": {
-        "document_id": "DOC-001",
+        "document_id": "doc-1",
         "quote": "ALT 120, AST 95, ALP 280, TBIL 45"
       },
       "minimal_clarification_needed": ""
@@ -38,18 +38,18 @@
   ],
   "proposed_provider_queries": [
     {
-      "query_id": "CASE-53679adfa8dd/Q-001",
-      "gap_id": "CASE-53679adfa8dd/GAP-001",
+      "query_id": "CASE-c303d3daf169/Q-001",
+      "gap_id": "CASE-c303d3daf169/GAP-001",
       "topic": "胆总管扩张病因",
-      "reason": "胆总管扩张（9mm）的病因未明确，需鉴别是否存在胆总管结石或梗阻",
+      "reason": "胆总管扩张（9mm）的病因未明确，需鉴别胆总管结石、肿瘤或炎症等。",
       "evidence_span": {
         "document_id": "chart",
         "quote": "胆总管直径 9mm"
       },
-      "query_text": "胆总管扩张（9mm）的可能病因是什么？",
+      "query_text": "患者胆总管扩张（9mm），请评估可能的病因。",
       "response_options": [
         "A. 胆总管结石",
-        "B. 胆总管或壶腹部肿瘤",
+        "B. 胆总管肿瘤",
         "C. 炎症性狭窄",
         "D. 无法确定"
       ],
@@ -57,19 +57,19 @@
       "priority": "urgent"
     },
     {
-      "query_id": "CASE-53679adfa8dd/Q-002",
-      "gap_id": "CASE-53679adfa8dd/GAP-003",
-      "topic": "肝功能异常临床意义",
-      "reason": "肝功能异常（ALT 120, AST 95, ALP 280, TBIL 45）的临床意义未明确，需与胆总管扩张关联",
+      "query_id": "CASE-c303d3daf169/Q-002",
+      "gap_id": "CASE-c303d3daf169/GAP-003",
+      "topic": "肝功能异常病因",
+      "reason": "肝功能异常（ALT 120, AST 95, ALP 280, TBIL 45）的病因未明确，需临床关联。",
       "evidence_span": {
         "document_id": "chart",
         "quote": "ALT 120, AST 95, ALP 280, TBIL 45"
       },
-      "query_text": "肝功能异常（ALT 120, AST 95, ALP 280, TBIL 45）的临床意义是什么？",
+      "query_text": "患者肝功能异常，请评估可能的病因。",
       "response_options": [
-        "A. 梗阻性黄疸（如胆总管结石或肿瘤）",
-        "B. 肝细胞损伤（如病毒性肝炎或药物性）",
-        "C. 混合性（梗阻合并肝细胞损伤）",
+        "A. 胆道梗阻所致",
+        "B. 肝细胞损伤所致",
+        "C. 混合性因素",
         "D. 无法确定"
       ],
       "lifecycle_state": "DRAFT",
@@ -80,30 +80,20 @@
   "patient_ref": "DEID",
   "encounter_ref": "DEID",
   "encounter_summary": {
-    "key_points": [
-      "右上腹痛2天",
-      "Murphy征阳性",
-      "B超:胆囊壁增厚, 胆囊多发结石, 胆总管直径9mm",
-      "肝功能:ALT 120, AST 95, ALP 280, TBIL 45",
-      "入院诊断:急性胆囊炎"
-    ],
-    "encounter_metadata": {
-      "patient_age": "50岁",
-      "patient_sex": "女性",
-      "encounter_type": "入院"
-    }
+    "key_points": [],
+    "encounter_metadata": {}
   },
   "risk_flags": [],
   "specialist_trace": [
     {
       "expert_id": "coding-expert",
       "consulted": true,
-      "rationale": "针对胆总管扩张（9mm），需明确是否存在胆总管结石、狭窄或肿瘤等梗阻性病因，并描述其与肝功能异常（ALT 120, AST 95, ALP 280, TBIL 45）的直接关联。同时，应明确急性胆囊炎的严重程度，包括是否伴有坏疽、穿孔、脓肿或气肿性改变等并发症。",
+      "rationale": "根据临床记录，需明确胆总管扩张（9mm）的具体病因，如是否存在胆总管结石、肿瘤或炎症，并描述急性胆囊炎的严重程度（如是否伴有坏疽、穿孔或脓肿）。同时，需关联肝功能异常（ALT 120, AST 95, ALP 280, TBIL 45）与胆道梗阻或肝细胞损伤的具体机制，以支持准确编码。",
       "route_decision": "needed",
       "route_reason": "coding_relevant_gap",
       "execution_mode": "LLM_KNOWLEDGE_ONLY",
-      "latency_ms": 3062,
-      "tokens": 279
+      "latency_ms": 3143,
+      "tokens": 284
     },
     {
       "expert_id": "pubmed-expert",
@@ -137,60 +127,60 @@
     }
   ],
   "stage_run_ids": {
-    "encounter_synthesis": "run-cae3b078e58f",
-    "gap_identification": "run-2c0329ef1f2d",
+    "encounter_synthesis": "run-9fb31c9c7b08",
+    "gap_identification": "run-5507a4a40e7b",
     "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
-    "expert_consultation": "run-e16d2f968dfa",
-    "query_generation": "run-b46802befbe1",
+    "expert_consultation": "run-50cb36c5d252",
+    "query_generation": "run-3f4695023922",
     "query_generation::quote_snapped": "0",
-    "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=3;llm_complete=False;llm_reasoning=急性胆囊炎的诊断明确，但缺少严重程度、胆总管扩张的病因以及肝功能异常的临床关联，这些信息对编码和治疗至关重要。",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=3;llm_complete=False;llm_reasoning=急性胆囊炎的诊断明确，但缺乏严重程度、胆总管扩张的病因以及肝功能异常的临床关联，这些信息对编码和治疗决策至关重要。",
     "query_necessity_gate": "necessary=2;unnecessary=1;overquery_triggered=False;final_count=2",
     "query_single_dimension_gate": "single_dim=2;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=etiology;final_count=2",
-    "claim_evidence_alignment_gate": "claims_extracted=4;blocked=0;flagged=0;final_count=2",
-    "claim_evidence_alignment_gate::run_id": "run-e16f2ad164c7",
+    "claim_evidence_alignment_gate": "claims_extracted=5;blocked=0;flagged=0;final_count=2",
+    "claim_evidence_alignment_gate::run_id": "run-1fc04b3aa28f",
     "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=2",
-    "semantic_necessity_gate::run_id": "run-17314eab1bd3",
+    "semantic_necessity_gate::run_id": "run-657aa44d14c3",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "run-5c2c2ede0b93"
+    "specialist_trace_emit": "run-00394912e50f"
   },
   "stage_trace_ids": {
-    "encounter_synthesis": "trace-3d84f17bfebc",
-    "gap_identification": "trace-3d385092346c",
-    "expert_consultation": "trace-11a032739432",
-    "query_generation": "trace-8a05862f385a",
+    "encounter_synthesis": "trace-5c05d81fbd86",
+    "gap_identification": "trace-e393624b61f6",
+    "expert_consultation": "trace-8f2f156792e3",
+    "query_generation": "trace-ef739175e59e",
     "query_eligibility_gate": "",
     "query_necessity_gate": "",
     "query_single_dimension_gate": "",
-    "claim_evidence_alignment_gate": "trace-5782e6f34ca6",
-    "semantic_necessity_gate": "trace-0529343521db",
+    "claim_evidence_alignment_gate": "trace-5d3ca9e4cb27",
+    "semantic_necessity_gate": "trace-ddd7b5292bb3",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "trace-5221fffff356"
+    "specialist_trace_emit": "trace-8bc9c7620592"
   },
   "stage_traces": [
     {
       "stage": "encounter_synthesis",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 5049,
-      "prompt_tokens": 237,
-      "completion_tokens": 114,
-      "total_tokens": 351,
-      "run_id": "run-cae3b078e58f",
-      "trace_id": "trace-3d84f17bfebc",
-      "degraded": false,
-      "error_reason": "",
+      "latency_ms": 3649,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-9fb31c9c7b08",
+      "trace_id": "trace-5c05d81fbd86",
+      "degraded": true,
+      "error_reason": "LLM call failed after 3 attempts: Connection error.",
       "expert_id": ""
     },
     {
       "stage": "gap_identification",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 5375,
-      "prompt_tokens": 1073,
-      "completion_tokens": 482,
-      "total_tokens": 1555,
-      "run_id": "run-2c0329ef1f2d",
-      "trace_id": "trace-3d385092346c",
+      "latency_ms": 5094,
+      "prompt_tokens": 1003,
+      "completion_tokens": 500,
+      "total_tokens": 1503,
+      "run_id": "run-5507a4a40e7b",
+      "trace_id": "trace-e393624b61f6",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -199,12 +189,12 @@
       "stage": "query_generation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 5104,
-      "prompt_tokens": 949,
-      "completion_tokens": 553,
-      "total_tokens": 1502,
-      "run_id": "run-b46802befbe1",
-      "trace_id": "trace-8a05862f385a",
+      "latency_ms": 5962,
+      "prompt_tokens": 947,
+      "completion_tokens": 516,
+      "total_tokens": 1463,
+      "run_id": "run-3f4695023922",
+      "trace_id": "trace-ef739175e59e",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -213,12 +203,12 @@
       "stage": "expert_consultation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 3062,
-      "prompt_tokens": 201,
-      "completion_tokens": 78,
-      "total_tokens": 279,
-      "run_id": "run-1308f2b21851",
-      "trace_id": "trace-1cc6173b1301",
+      "latency_ms": 3143,
+      "prompt_tokens": 199,
+      "completion_tokens": 85,
+      "total_tokens": 284,
+      "run_id": "run-cb4f79bb1e56",
+      "trace_id": "trace-32745001194a",
       "degraded": false,
       "error_reason": "",
       "expert_id": "coding-expert"
@@ -231,8 +221,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-647cb67b0e56",
-      "trace_id": "trace-a61c17d0fd7f",
+      "run_id": "run-435f8627bb37",
+      "trace_id": "trace-f308b3ad2b70",
       "degraded": false,
       "error_reason": "",
       "expert_id": "pubmed-expert"
@@ -245,8 +235,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-96a7e5043e59",
-      "trace_id": "trace-c72882a80636",
+      "run_id": "run-ec7c407e3d3f",
+      "trace_id": "trace-1789792605ea",
       "degraded": false,
       "error_reason": "",
       "expert_id": "web-search-expert"
@@ -259,14 +249,14 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-7646bffed792",
-      "trace_id": "trace-c04709fe540f",
+      "run_id": "run-95e6217042c8",
+      "trace_id": "trace-adae9e43eb6d",
       "degraded": false,
       "error_reason": "",
       "expert_id": "medical-calculator-expert"
     }
   ],
-  "degraded": false,
+  "degraded": true,
   "runtime_mode": "real",
-  "generated_at": "2026-07-13T06:43:22.688261Z"
+  "generated_at": "2026-07-13T12:18:46.713597Z"
 }

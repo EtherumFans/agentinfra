@@ -1,12 +1,12 @@
 {
-  "case_id": "CASE-2593f85f4e33",
+  "case_id": "CASE-a5fbf56aaac3",
   "completion_state": "REVIEW_REQUIRED",
   "documentation_gaps": [
     {
-      "gap_id": "CASE-2593f85f4e33/GAP-001",
+      "gap_id": "CASE-a5fbf56aaac3/GAP-001",
       "gap_type": "diagnostic_specificity",
       "description": "乏力症状缺乏病因或临床关联说明",
-      "why_it_matters": "乏力是非特异性症状，未明确病因或相关检查结果，影响诊断编码的准确性和临床完整性。",
+      "why_it_matters": "乏力是非特异性症状，需明确病因或相关检查结果以支持诊断和编码",
       "evidence_span": {
         "document_id": "doc-001",
         "quote": "患者男性, 50岁, 乏力。建议进一步检查。"
@@ -66,46 +66,46 @@
     }
   ],
   "stage_run_ids": {
-    "encounter_synthesis": "run-d87bea4c0962",
-    "gap_identification": "run-f546cd043ff7",
+    "encounter_synthesis": "run-7efb961d8e3a",
+    "gap_identification": "run-5209c970c38d",
     "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
-    "expert_consultation": "run-01ed2df70755",
-    "query_generation": "run-8bb48b4e1c36",
+    "expert_consultation": "run-96a856c2a8a1",
+    "query_generation": "run-1bcc3e8aa37b",
     "query_generation::quote_snapped": "0",
-    "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=;dropped=0;final_count=1;llm_complete=False;llm_reasoning=病历仅记录乏力症状，未提供任何病因、检查结果或临床关联，无法满足编码所需的特异性要求。",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=;dropped=0;final_count=1;llm_complete=False;llm_reasoning=仅记录乏力症状，无任何检查结果、诊断或病因说明，无法满足编码所需的特异性要求。",
     "query_necessity_gate": "necessary=1;unnecessary=0;overquery_triggered=False;final_count=1",
     "query_single_dimension_gate": "single_dim=1;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=etiology;final_count=1",
     "claim_evidence_alignment_gate": "claims_extracted=1;blocked=0;flagged=0;final_count=1",
-    "claim_evidence_alignment_gate::run_id": "run-dedf0388fe0d",
+    "claim_evidence_alignment_gate::run_id": "run-818b811b48f5",
     "semantic_necessity_gate": "blocked=1;flagged=0;degraded=0;final_count=0",
-    "semantic_necessity_gate::run_id": "run-5b9ea154c6ec",
+    "semantic_necessity_gate::run_id": "run-48e42a0fa75c",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "run-32f81a173a19"
+    "specialist_trace_emit": "run-eec5a71cccc4"
   },
   "stage_trace_ids": {
-    "encounter_synthesis": "trace-01cef03c5323",
-    "gap_identification": "trace-f81c6ffe207a",
-    "expert_consultation": "trace-07aa27c36b1e",
-    "query_generation": "trace-600927820c8a",
+    "encounter_synthesis": "trace-6124f16c1a3f",
+    "gap_identification": "trace-e3fbebe91794",
+    "expert_consultation": "trace-69eca0c4fee5",
+    "query_generation": "trace-26e7182d261c",
     "query_eligibility_gate": "",
     "query_necessity_gate": "",
     "query_single_dimension_gate": "",
-    "claim_evidence_alignment_gate": "trace-54c08ee39a32",
-    "semantic_necessity_gate": "trace-7f8d48f0b75c",
+    "claim_evidence_alignment_gate": "trace-9b415559fb38",
+    "semantic_necessity_gate": "trace-80e294a574d7",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "trace-0b5384cd9d31"
+    "specialist_trace_emit": "trace-f8d7761db104"
   },
   "stage_traces": [
     {
       "stage": "encounter_synthesis",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 3425,
+      "latency_ms": 3132,
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-d87bea4c0962",
-      "trace_id": "trace-01cef03c5323",
+      "run_id": "run-7efb961d8e3a",
+      "trace_id": "trace-6124f16c1a3f",
       "degraded": true,
       "error_reason": "LLM call failed after 3 attempts: Connection error.",
       "expert_id": ""
@@ -114,12 +114,12 @@
       "stage": "gap_identification",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 2305,
+      "latency_ms": 2351,
       "prompt_tokens": 951,
-      "completion_tokens": 202,
-      "total_tokens": 1153,
-      "run_id": "run-f546cd043ff7",
-      "trace_id": "trace-f81c6ffe207a",
+      "completion_tokens": 199,
+      "total_tokens": 1150,
+      "run_id": "run-5209c970c38d",
+      "trace_id": "trace-e3fbebe91794",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -128,12 +128,12 @@
       "stage": "query_generation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 3184,
+      "latency_ms": 3504,
       "prompt_tokens": 754,
-      "completion_tokens": 173,
-      "total_tokens": 927,
-      "run_id": "run-8bb48b4e1c36",
-      "trace_id": "trace-600927820c8a",
+      "completion_tokens": 175,
+      "total_tokens": 929,
+      "run_id": "run-1bcc3e8aa37b",
+      "trace_id": "trace-26e7182d261c",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -146,8 +146,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-e76e6b6abd6a",
-      "trace_id": "trace-486f18f9c602",
+      "run_id": "run-7171792c943e",
+      "trace_id": "trace-c4db98004197",
       "degraded": false,
       "error_reason": "",
       "expert_id": "coding-expert"
@@ -160,8 +160,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-e4594f2c2561",
-      "trace_id": "trace-e214767ce1ff",
+      "run_id": "run-d4c1ec23a92f",
+      "trace_id": "trace-29dcc47697c1",
       "degraded": false,
       "error_reason": "",
       "expert_id": "pubmed-expert"
@@ -174,8 +174,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-37894527b8a8",
-      "trace_id": "trace-d06cf0b611bb",
+      "run_id": "run-6bcff08b3d1e",
+      "trace_id": "trace-31e2d6ddc59e",
       "degraded": false,
       "error_reason": "",
       "expert_id": "web-search-expert"
@@ -188,8 +188,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-a76cdaa00518",
-      "trace_id": "trace-e4af9f285530",
+      "run_id": "run-e5cd2b57b75c",
+      "trace_id": "trace-c9d08290cd71",
       "degraded": false,
       "error_reason": "",
       "expert_id": "medical-calculator-expert"
@@ -197,5 +197,5 @@
   ],
   "degraded": true,
   "runtime_mode": "real",
-  "generated_at": "2026-07-13T06:45:52.661699Z"
+  "generated_at": "2026-07-13T12:21:43.846741Z"
 }

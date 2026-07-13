@@ -1,12 +1,12 @@
 {
-  "case_id": "CASE-328ac950c1e7",
+  "case_id": "CASE-6f91b80d595a",
   "completion_state": "REVIEW_REQUIRED",
   "documentation_gaps": [
     {
-      "gap_id": "CASE-328ac950c1e7/GAP-001",
+      "gap_id": "CASE-6f91b80d595a/GAP-001",
       "gap_type": "diagnostic_specificity",
-      "description": "头痛的病因未明确，需要进一步描述头痛的性质、部位、持续时间、诱发因素等以明确诊断。",
-      "why_it_matters": "头痛的病因多样，缺乏特异性描述可能导致诊断不准确，影响编码和后续治疗。",
+      "description": "头痛的病因未明确，需要进一步描述头痛的性质、部位、持续时间、诱发因素等以确定具体诊断。",
+      "why_it_matters": "头痛的病因多样（如偏头痛、紧张型头痛、丛集性头痛等），缺乏特异性描述会影响准确编码和后续治疗。",
       "evidence_span": {
         "document_id": "DOC-001",
         "quote": "间断头痛"
@@ -14,27 +14,7 @@
       "minimal_clarification_needed": ""
     }
   ],
-  "proposed_provider_queries": [
-    {
-      "query_id": "CASE-328ac950c1e7/Q-001",
-      "gap_id": "CASE-328ac950c1e7/GAP-001",
-      "topic": "头痛的病因未明确",
-      "reason": "头痛的病因未明确，需要进一步描述头痛的性质、部位、持续时间、诱发因素等以明确诊断。",
-      "evidence_span": {
-        "document_id": "chart-001",
-        "quote": "间断头痛"
-      },
-      "query_text": "请描述头痛的详细特征：",
-      "response_options": [
-        "A. 搏动性头痛，单侧，持续4-72小时，伴恶心/呕吐/畏光/畏声，符合偏头痛",
-        "B. 双侧压迫性或紧箍样头痛，持续30分钟至7天，符合紧张型头痛",
-        "C. 单侧剧烈头痛，伴同侧自主神经症状（流泪、鼻塞、瞳孔缩小等），符合丛集性头痛",
-        "D. 无法确定"
-      ],
-      "lifecycle_state": "DRAFT",
-      "priority": "routine"
-    }
-  ],
+  "proposed_provider_queries": [],
   "chart_excerpt_preview": "患者男性, 40岁, 间断头痛。否认恶心、呕吐、畏光、畏声、视觉先兆、肢体无力。既往:无偏头痛史, 无颅脑外伤史, 无中枢神经系统肿瘤家族史。查体正常。",
   "patient_ref": "DEID",
   "encounter_ref": "DEID",
@@ -58,12 +38,12 @@
     {
       "expert_id": "coding-expert",
       "consulted": true,
-      "rationale": "建议补充头痛的具体性质（如搏动性、胀痛、刺痛）、部位（如单侧、双侧、前额、枕部）、持续时间（如数小时至数天）及诱发因素（如劳累、情绪波动、特定食物），以区分偏头痛、紧张型头痛或其他继发性头痛。",
+      "rationale": "建议补充头痛的具体性质（如搏动性、胀痛或刺痛）、部位（如单侧或双侧、前额或枕部）、持续时间（如数小时或数天）以及诱发或缓解因素（如活动、睡眠或药物），以明确是偏头痛、紧张型头痛或其他类型，从而支持更精确的临床诊断。",
       "route_decision": "needed",
       "route_reason": "coding_relevant_gap",
       "execution_mode": "LLM_KNOWLEDGE_ONLY",
-      "latency_ms": 2976,
-      "tokens": 200
+      "latency_ms": 2833,
+      "tokens": 208
     },
     {
       "expert_id": "pubmed-expert",
@@ -97,46 +77,46 @@
     }
   ],
   "stage_run_ids": {
-    "encounter_synthesis": "run-fdc55abebb82",
-    "gap_identification": "run-5de9e67f6c5f",
+    "encounter_synthesis": "run-7bf1fb382569",
+    "gap_identification": "run-532631af278a",
     "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
-    "expert_consultation": "run-cfc138d638c1",
-    "query_generation": "run-e1940c1ce7d5",
+    "expert_consultation": "run-01556dc48c40",
+    "query_generation": "run-f245cc0452e2",
     "query_generation::quote_snapped": "0",
-    "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=1;llm_complete=False;llm_reasoning=头痛的病因、性质、部位等关键信息缺失，无法确定具体诊断，需要进一步明确。",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=1;llm_complete=False;llm_reasoning=头痛的诊断缺乏特异性（如类型、病因、严重程度等），无法满足编码所需的临床细节。",
     "query_necessity_gate": "necessary=1;unnecessary=0;overquery_triggered=False;final_count=1",
-    "query_single_dimension_gate": "single_dim=1;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=etiology;final_count=1",
-    "claim_evidence_alignment_gate": "claims_extracted=2;blocked=0;flagged=0;final_count=1",
-    "claim_evidence_alignment_gate::run_id": "run-84a881400690",
-    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=1",
-    "semantic_necessity_gate::run_id": "run-21a7ad4a9b00",
+    "query_single_dimension_gate": "single_dim=0;multi_dim=1;axis_cluster_triggered=False;axis_cluster_axis=site;final_count=0",
+    "claim_evidence_alignment_gate": "claims_extracted=0;blocked=0;flagged=0;final_count=0",
+    "claim_evidence_alignment_gate::run_id": "run-0bc8d6bfe89a",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+    "semantic_necessity_gate::run_id": "run-c5af9abc5a59",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "run-fb5df182b009"
+    "specialist_trace_emit": "run-d63b73f247b2"
   },
   "stage_trace_ids": {
-    "encounter_synthesis": "trace-632ff6e9205a",
-    "gap_identification": "trace-f04986b0c875",
-    "expert_consultation": "trace-4ddc5e11e90b",
-    "query_generation": "trace-75f95f54284c",
+    "encounter_synthesis": "trace-2222c6fa75e0",
+    "gap_identification": "trace-300b0b1557cd",
+    "expert_consultation": "trace-80a6466c4f4f",
+    "query_generation": "trace-26ffdf0d7941",
     "query_eligibility_gate": "",
     "query_necessity_gate": "",
     "query_single_dimension_gate": "",
-    "claim_evidence_alignment_gate": "trace-bc04f0ffab0b",
-    "semantic_necessity_gate": "trace-6b6c4c239e59",
+    "claim_evidence_alignment_gate": "trace-660cc621f3c0",
+    "semantic_necessity_gate": "trace-fb1cbd2fb5f4",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "trace-d76a761a4233"
+    "specialist_trace_emit": "trace-66a245b785a8"
   },
   "stage_traces": [
     {
       "stage": "encounter_synthesis",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 2497,
+      "latency_ms": 2959,
       "prompt_tokens": 226,
       "completion_tokens": 102,
       "total_tokens": 328,
-      "run_id": "run-fdc55abebb82",
-      "trace_id": "trace-632ff6e9205a",
+      "run_id": "run-7bf1fb382569",
+      "trace_id": "trace-2222c6fa75e0",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -145,12 +125,12 @@
       "stage": "gap_identification",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 3499,
+      "latency_ms": 3702,
       "prompt_tokens": 1053,
-      "completion_tokens": 201,
-      "total_tokens": 1254,
-      "run_id": "run-5de9e67f6c5f",
-      "trace_id": "trace-f04986b0c875",
+      "completion_tokens": 213,
+      "total_tokens": 1266,
+      "run_id": "run-532631af278a",
+      "trace_id": "trace-300b0b1557cd",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -159,12 +139,12 @@
       "stage": "query_generation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 4286,
-      "prompt_tokens": 798,
-      "completion_tokens": 230,
-      "total_tokens": 1028,
-      "run_id": "run-e1940c1ce7d5",
-      "trace_id": "trace-75f95f54284c",
+      "latency_ms": 4390,
+      "prompt_tokens": 799,
+      "completion_tokens": 267,
+      "total_tokens": 1066,
+      "run_id": "run-f245cc0452e2",
+      "trace_id": "trace-26ffdf0d7941",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -173,12 +153,12 @@
       "stage": "expert_consultation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 2976,
-      "prompt_tokens": 135,
-      "completion_tokens": 65,
-      "total_tokens": 200,
-      "run_id": "run-0b68127e7f09",
-      "trace_id": "trace-6bcb039509ff",
+      "latency_ms": 2833,
+      "prompt_tokens": 136,
+      "completion_tokens": 72,
+      "total_tokens": 208,
+      "run_id": "run-326fc7c8d650",
+      "trace_id": "trace-20cee0a6deaa",
       "degraded": false,
       "error_reason": "",
       "expert_id": "coding-expert"
@@ -191,8 +171,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-a8de9db2eb54",
-      "trace_id": "trace-bf0c40bca66b",
+      "run_id": "run-937469a1334a",
+      "trace_id": "trace-5cf95d4a2c66",
       "degraded": false,
       "error_reason": "",
       "expert_id": "pubmed-expert"
@@ -205,8 +185,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-dbd79c26a095",
-      "trace_id": "trace-5cb7c198cb19",
+      "run_id": "run-17500d7b9623",
+      "trace_id": "trace-4e32f611adfa",
       "degraded": false,
       "error_reason": "",
       "expert_id": "web-search-expert"
@@ -219,8 +199,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-d11b8b6e99fe",
-      "trace_id": "trace-37ec00ca23e7",
+      "run_id": "run-12d98a02322d",
+      "trace_id": "trace-e47462e57e03",
       "degraded": false,
       "error_reason": "",
       "expert_id": "medical-calculator-expert"
@@ -228,5 +208,5 @@
   ],
   "degraded": false,
   "runtime_mode": "real",
-  "generated_at": "2026-07-13T06:48:40.016743Z"
+  "generated_at": "2026-07-13T12:24:30.872612Z"
 }

@@ -155,6 +155,48 @@ _INFERENCE_MARKERS = (
 _NEGATION_WINDOW = 25
 
 
+# Phase 5 Track H3.19 — sentence-ending punctuation for CEA-005 / CEA-006
+# look-back bounding. When scanning backwards from a quote position, the
+# look-back MUST stop at the most recent sentence ender; otherwise negation
+# markers in PRIOR sentences (e.g. "否认糖尿病。入院诊断:2型糖尿病?") would
+# falsely trigger CEA-005 → cascade to CEA-008 → BLOCK the very query that
+# was supposed to clarify the chart's ambiguity.
+# Both full-width (。！？；) and half-width (.!?;) forms are included because
+# real Chinese clinical charts mix them (esp. half-width ? for uncertain
+# diagnoses like "2型糖尿病?").
+_SENTENCE_ENDERS = ("。", "！", "？", ";", ";", ".", "!", "?")
+
+
+def _sentence_start_before(chart: str, pos: int) -> int:
+    """Return the char index where the sentence containing ``pos`` begins.
+
+    Sentence delimiters: 。！？；; . ! ? (Chinese + English forms). Returns 0
+    if no delimiter precedes ``pos`` (the quote sits in the first sentence).
+    """
+    best = -1
+    for ender in _SENTENCE_ENDERS:
+        idx = chart.rfind(ender, 0, pos)
+        if idx > best:
+            best = idx
+    return max(0, best + 1)
+
+
+def _sentence_end_after(chart: str, pos: int) -> int:
+    """Return the char index immediately AFTER the sentence containing ``pos`` ends.
+
+    Mirror of ``_sentence_start_before`` for forward look-ahead (used by
+    inline-PMH scan in CEA-006 to stay within the same sentence as the quote).
+    """
+    best = -1
+    for ender in _SENTENCE_ENDERS:
+        idx = chart.find(ender, pos)
+        if 0 <= idx > best:
+            best = idx
+    if best < 0:
+        return len(chart)
+    return min(len(chart), best + 1)
+
+
 # ---------------------------------------------------------------------------
 # CEA-XXX rule implementations
 # ---------------------------------------------------------------------------
@@ -446,7 +488,16 @@ def _rule_cea_005(alignment: ClaimEvidenceAlignment, chart: str) -> ClaimEvidenc
                 severity="hard",
             )
         span = (fuzzy[0], fuzzy[1])
-    start = max(0, span[0] - _NEGATION_WINDOW)
+    # Track H3.19 — bound the negation look-back to the same sentence as
+    # the quote. Without this, negation markers in PRIOR sentences (e.g.
+    # "否认糖尿病。入院诊断:2型糖尿病?") would false-trigger CEA-005 and
+    # cascade to CEA-008 BLOCK. The sentence bound is the primary bound;
+    # _NEGATION_WINDOW (25 chars) is the secondary cap for very long
+    # sentences where a far-away negation in the same sentence shouldn't
+    # reasonably apply.
+    sent_start = _sentence_start_before(chart, span[0])
+    start = max(sent_start, span[0] - _NEGATION_WINDOW)
+    start = max(0, start)
     window = chart[start:span[0]].lower()
     hit = next((m for m in _NEGATION_MARKERS if m.lower() in window), None)
     return ClaimEvidenceRuleResult(
@@ -500,9 +551,20 @@ def _rule_cea_006(alignment: ClaimEvidenceAlignment, chart: str) -> ClaimEvidenc
         "现病史", "主诉", "体格检查", "辅助检查", "入院诊断", "出院诊断",
         "诊疗经过", "手术记录", "HPI", "physical exam",
     )
+    # Track H3.19 — bound the PMH look-back to the same sentence as the
+    # quote. Without this, a PMH marker in a PRIOR sentence (e.g.
+    # "家族史:父亲糖尿病。入院诊断:2型糖尿病?") would false-trigger CEA-006
+    # and cascade to CEA-008 BLOCK. The sentence boundary established by
+    # 。！？；; closes the prior section just as a section_end_marker would.
+    sent_start = _sentence_start_before(chart, span[0])
+    text_before_in_sentence = chart[sent_start:span[0]]
     for marker in _PMH_SECTION_MARKERS:
         idx = text_before.rfind(marker)
         if idx < 0:
+            continue
+        # H3.19 — skip PMH markers that fall in a PRIOR sentence.
+        # The marker only matters if it's in the SAME sentence as the quote.
+        if idx < sent_start:
             continue
         # Confirm this section is "still open" at the quote position —
         # i.e. no section_end_marker between idx and span[0].
@@ -517,17 +579,26 @@ def _rule_cea_006(alignment: ClaimEvidenceAlignment, chart: str) -> ClaimEvidenc
             name="no_pmh_as_current",
             description="Quote must not be from PMH/FH/SH section",
             passed=False,
-            evidence=f"quote under section '{marker}' (char {idx}) — past, not current",
+            evidence=(
+                f"quote under section '{marker}' (char {idx}, "
+                f"same-sentence window start={sent_start}) — past, not current"
+            ),
             severity="hard",
         )
     # Also defensively check after position for family-history tag on the
     # same line (some charts inline "父亲有糖尿病" without a section header).
+    # Track H3.19 — bound this scan to the same sentence as the quote.
+    # Without this bound, a "家族史" marker in a FOLLOWING sentence (e.g.
+    # "CA-125 65 U/mL (正常 <35)。否认卵巢癌家族史。") would false-trigger
+    # CEA-006 and block the lab-positive query.
     inline_pmh_patterns = (
         re.compile(r"父亲.{0,10}(?:糖尿病|高血压|冠心病)"),
         re.compile(r"母亲.{0,10}(?:糖尿病|高血压|冠心病)"),
         re.compile(r"(?:家族|家庭).{0,10}(?:阳性|史|病史)"),
     )
-    line = chart[span[0]:min(len(chart), span[1] + 40)]
+    sent_end = _sentence_end_after(chart, span[1])
+    line_end = min(sent_end, span[1] + 40)
+    line = chart[span[0]:line_end]
     for pat in inline_pmh_patterns:
         if pat.search(line):
             return ClaimEvidenceRuleResult(

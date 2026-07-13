@@ -1,25 +1,25 @@
 {
-  "case_id": "CASE-305297b66cd8",
+  "case_id": "CASE-b300194e83c8",
   "completion_state": "REVIEW_REQUIRED",
   "documentation_gaps": [
     {
-      "gap_id": "CASE-305297b66cd8/GAP-001",
+      "gap_id": "CASE-b300194e83c8/GAP-001",
       "gap_type": "diagnostic_specificity",
       "description": "脓毒症未明确感染源",
-      "why_it_matters": "脓毒症编码需要明确感染部位（如肺部、尿路、腹腔等），否则影响DRG分组和严重程度分级。",
+      "why_it_matters": "脓毒症的编码需要明确感染部位（如肺部、尿路、腹腔等），否则影响DRG分组和严重程度分级。",
       "evidence_span": {
-        "document_id": "encounter_summary",
+        "document_id": "chart-001",
         "quote": "入院诊断:脓毒症"
       },
       "minimal_clarification_needed": ""
     },
     {
-      "gap_id": "CASE-305297b66cd8/GAP-002",
+      "gap_id": "CASE-b300194e83c8/GAP-002",
       "gap_type": "diagnostic_specificity",
       "description": "乳酸升高未明确临床意义",
       "why_it_matters": "乳酸4.2提示组织低灌注或脓毒症相关乳酸酸中毒，但未说明是否与脓毒症直接相关或需进一步鉴别。",
       "evidence_span": {
-        "document_id": "encounter_summary",
+        "document_id": "chart-001",
         "quote": "乳酸 4.2"
       },
       "minimal_clarification_needed": ""
@@ -27,15 +27,15 @@
   ],
   "proposed_provider_queries": [
     {
-      "query_id": "CASE-305297b66cd8/Q-001",
-      "gap_id": "CASE-305297b66cd8/GAP-001",
+      "query_id": "CASE-b300194e83c8/Q-001",
+      "gap_id": "CASE-b300194e83c8/GAP-001",
       "topic": "脓毒症感染源",
-      "reason": "脓毒症诊断已明确，但感染源未记录，需明确感染源以指导治疗。",
+      "reason": "脓毒症诊断已明确，但感染源未记录，需进一步明确以指导治疗。",
       "evidence_span": {
         "document_id": "chart",
         "quote": "入院诊断:脓毒症"
       },
-      "query_text": "患者诊断为脓毒症，请明确感染源。",
+      "query_text": "患者诊断为脓毒症，请明确感染源：",
       "response_options": [
         "A. 肺部感染",
         "B. 泌尿系感染",
@@ -46,19 +46,19 @@
       "priority": "urgent"
     },
     {
-      "query_id": "CASE-305297b66cd8/Q-002",
-      "gap_id": "CASE-305297b66cd8/GAP-002",
+      "query_id": "CASE-b300194e83c8/Q-002",
+      "gap_id": "CASE-b300194e83c8/GAP-002",
       "topic": "乳酸升高临床意义",
-      "reason": "乳酸4.2升高，但未明确是否与脓毒症相关或存在其他原因。",
+      "reason": "乳酸水平升高，但未明确其临床意义，需澄清是否与组织低灌注相关。",
       "evidence_span": {
         "document_id": "chart",
         "quote": "乳酸 4.2"
       },
-      "query_text": "乳酸4.2升高，请明确其临床意义。",
+      "query_text": "患者乳酸 4.2 mmol/L，请评估其临床意义：",
       "response_options": [
-        "A. 与脓毒症相关",
-        "B. 与组织低灌注相关",
-        "C. 其他原因",
+        "A. 组织低灌注/休克相关",
+        "B. 肝功能异常相关",
+        "C. 其他原因（如癫痫、药物等）",
         "D. 无法确定"
       ],
       "lifecycle_state": "DRAFT",
@@ -69,33 +69,20 @@
   "patient_ref": "DEID",
   "encounter_ref": "DEID",
   "encounter_summary": {
-    "key_points": [
-      "意识模糊1天",
-      "血压86/52",
-      "心率124",
-      "体温38.1℃",
-      "血培养已抽",
-      "乳酸4.2",
-      "脓毒症",
-      "经验性抗生素治疗"
-    ],
-    "encounter_metadata": {
-      "patient_age": "72",
-      "patient_sex": "女",
-      "encounter_type": "急诊"
-    }
+    "key_points": [],
+    "encounter_metadata": {}
   },
   "risk_flags": [],
   "specialist_trace": [
     {
       "expert_id": "coding-expert",
       "consulted": true,
-      "rationale": "脓毒症的诊断需明确感染源，建议补充感染部位（如肺部、泌尿道等）的临床证据。乳酸升高需结合组织灌注状态和动态监测结果，明确是否与脓毒症相关休克或组织缺氧有关。",
+      "rationale": "脓毒症的诊断需明确感染源，建议补充感染部位（如肺部、泌尿道等）的临床证据。乳酸升高需结合临床判断是否与组织低灌注相关，建议明确是否归因于脓毒症引起的休克或代谢异常。",
       "route_decision": "needed",
       "route_reason": "coding_relevant_gap",
       "execution_mode": "LLM_KNOWLEDGE_ONLY",
-      "latency_ms": 2627,
-      "tokens": 181
+      "latency_ms": 3026,
+      "tokens": 184
     },
     {
       "expert_id": "pubmed-expert",
@@ -129,60 +116,60 @@
     }
   ],
   "stage_run_ids": {
-    "encounter_synthesis": "run-f62b19262ff3",
-    "gap_identification": "run-8f2d9f378005",
+    "encounter_synthesis": "run-2f8ba76c62f9",
+    "gap_identification": "run-73d61785b3e8",
     "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
-    "expert_consultation": "run-822d2d798d4b",
-    "query_generation": "run-dcfd075c3904",
+    "expert_consultation": "run-6f42e3e7be7a",
+    "query_generation": "run-15114179420a",
     "query_generation::quote_snapped": "0",
-    "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=2;llm_complete=False;llm_reasoning=脓毒症诊断缺乏感染源特异性（如肺炎、尿路感染等），且乳酸升高未做临床关联，无法满足编码对病因和严重程度的要求。",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=2;llm_complete=False;llm_reasoning=脓毒症诊断缺乏感染源特异性，且乳酸升高未做临床关联，无法满足编码对病因和严重程度的要求。",
     "query_necessity_gate": "necessary=2;unnecessary=0;overquery_triggered=False;final_count=2",
     "query_single_dimension_gate": "single_dim=2;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;final_count=2",
     "claim_evidence_alignment_gate": "claims_extracted=5;blocked=0;flagged=0;final_count=2",
-    "claim_evidence_alignment_gate::run_id": "run-24d776fa07e2",
+    "claim_evidence_alignment_gate::run_id": "run-dc1d6d6532af",
     "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=2",
-    "semantic_necessity_gate::run_id": "run-ba5a5b6f21c8",
+    "semantic_necessity_gate::run_id": "run-2c3383617498",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "run-db48ba954315"
+    "specialist_trace_emit": "run-9f459bbdd409"
   },
   "stage_trace_ids": {
-    "encounter_synthesis": "trace-10d544577cc3",
-    "gap_identification": "trace-b635ce5e7db0",
-    "expert_consultation": "trace-4352c2e86f0e",
-    "query_generation": "trace-89d6340d897d",
+    "encounter_synthesis": "trace-2c3534cedf52",
+    "gap_identification": "trace-98e158b3f157",
+    "expert_consultation": "trace-a89dd5d57149",
+    "query_generation": "trace-67d5ae940de6",
     "query_eligibility_gate": "",
     "query_necessity_gate": "",
     "query_single_dimension_gate": "",
-    "claim_evidence_alignment_gate": "trace-3c57a25b70f9",
-    "semantic_necessity_gate": "trace-7ba1e24fed75",
+    "claim_evidence_alignment_gate": "trace-95e89295ca92",
+    "semantic_necessity_gate": "trace-78fca3d8543b",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "trace-0dff5aeee514"
+    "specialist_trace_emit": "trace-0b9a613fc9bd"
   },
   "stage_traces": [
     {
       "stage": "encounter_synthesis",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 5004,
-      "prompt_tokens": 228,
-      "completion_tokens": 100,
-      "total_tokens": 328,
-      "run_id": "run-f62b19262ff3",
-      "trace_id": "trace-10d544577cc3",
-      "degraded": false,
-      "error_reason": "",
+      "latency_ms": 3124,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-2f8ba76c62f9",
+      "trace_id": "trace-2c3534cedf52",
+      "degraded": true,
+      "error_reason": "LLM call failed after 3 attempts: Connection error.",
       "expert_id": ""
     },
     {
       "stage": "gap_identification",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 4243,
-      "prompt_tokens": 1054,
-      "completion_tokens": 334,
-      "total_tokens": 1388,
-      "run_id": "run-8f2d9f378005",
-      "trace_id": "trace-b635ce5e7db0",
+      "latency_ms": 3158,
+      "prompt_tokens": 994,
+      "completion_tokens": 324,
+      "total_tokens": 1318,
+      "run_id": "run-73d61785b3e8",
+      "trace_id": "trace-98e158b3f157",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -191,12 +178,12 @@
       "stage": "query_generation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 3889,
+      "latency_ms": 4455,
       "prompt_tokens": 831,
-      "completion_tokens": 330,
-      "total_tokens": 1161,
-      "run_id": "run-dcfd075c3904",
-      "trace_id": "trace-89d6340d897d",
+      "completion_tokens": 338,
+      "total_tokens": 1169,
+      "run_id": "run-15114179420a",
+      "trace_id": "trace-67d5ae940de6",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -205,12 +192,12 @@
       "stage": "expert_consultation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 2627,
+      "latency_ms": 3026,
       "prompt_tokens": 131,
-      "completion_tokens": 50,
-      "total_tokens": 181,
-      "run_id": "run-10b0098eee57",
-      "trace_id": "trace-0659ceff7ffa",
+      "completion_tokens": 53,
+      "total_tokens": 184,
+      "run_id": "run-6486e1658bf2",
+      "trace_id": "trace-3edde7d61fdd",
       "degraded": false,
       "error_reason": "",
       "expert_id": "coding-expert"
@@ -223,8 +210,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-ceb1e5663f95",
-      "trace_id": "trace-d150817b02aa",
+      "run_id": "run-b381ed859d67",
+      "trace_id": "trace-a988d5111c98",
       "degraded": false,
       "error_reason": "",
       "expert_id": "pubmed-expert"
@@ -237,8 +224,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-51775c09a2c9",
-      "trace_id": "trace-51ec93c3b722",
+      "run_id": "run-b95edeb085fc",
+      "trace_id": "trace-5e9254361808",
       "degraded": false,
       "error_reason": "",
       "expert_id": "web-search-expert"
@@ -251,14 +238,14 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-b8d950456bba",
-      "trace_id": "trace-c90a7b7714d1",
+      "run_id": "run-8ea5e22cd91f",
+      "trace_id": "trace-052a314433a7",
       "degraded": false,
       "error_reason": "",
       "expert_id": "medical-calculator-expert"
     }
   ],
-  "degraded": false,
+  "degraded": true,
   "runtime_mode": "real",
-  "generated_at": "2026-07-13T06:10:47.590191Z"
+  "generated_at": "2026-07-13T06:40:19.886478Z"
 }

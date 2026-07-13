@@ -1,5 +1,5 @@
 {
-  "case_id": "CASE-e8f219a4331c",
+  "case_id": "CASE-72e03b7d0c03",
   "completion_state": "AUTO_PASS",
   "documentation_gaps": [],
   "proposed_provider_queries": [],
@@ -10,11 +10,17 @@
     "key_points": [
       "健康体检",
       "无异常发现",
-      "定期随访"
+      "BMI 23",
+      "BP 118/76",
+      "无吸烟饮酒史",
+      "既往无特殊",
+      "查体正常",
+      "血脂、血糖、肝肾功能均正常",
+      "建议定期随访"
     ],
     "encounter_metadata": {
-      "patient_age": "28",
-      "patient_sex": "男",
+      "patient_age": "28岁",
+      "patient_sex": "男性",
       "encounter_type": "健康体检"
     }
   },
@@ -62,46 +68,46 @@
     }
   ],
   "stage_run_ids": {
-    "encounter_synthesis": "run-1265d5e51254",
-    "gap_identification": "run-02a7dcf6667a",
+    "encounter_synthesis": "run-425d4a6f440f",
+    "gap_identification": "run-f50111a80be3",
     "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
-    "expert_consultation": "run-1fd52c1500c4",
+    "expert_consultation": "run-fdc0f640fb7a",
     "query_generation": "",
     "query_generation::quote_snapped": "0",
-    "query_eligibility_gate": "chart_complete=True;completeness_score=0.12;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=0;llm_complete=True;llm_reasoning=The chart documents a routine health check-up with normal findings and no abnorm",
+    "query_eligibility_gate": "chart_complete=True;completeness_score=0.12;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=0;llm_complete=True;llm_reasoning=The chart documents a routine health check-up with no abnormal findings, normal ",
     "query_necessity_gate": "necessary=0;unnecessary=0;overquery_triggered=False;final_count=0",
     "query_single_dimension_gate": "single_dim=0;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;final_count=0",
     "claim_evidence_alignment_gate": "claims_extracted=0;blocked=0;flagged=0;final_count=0",
-    "claim_evidence_alignment_gate::run_id": "run-a7f0ebe60c06",
+    "claim_evidence_alignment_gate::run_id": "run-d6cb1209d300",
     "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
-    "semantic_necessity_gate::run_id": "run-0c37f095ef23",
+    "semantic_necessity_gate::run_id": "run-622454c40d71",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "run-85631a057349"
+    "specialist_trace_emit": "run-7dd81a9b3e2f"
   },
   "stage_trace_ids": {
-    "encounter_synthesis": "trace-6566dd619e7f",
-    "gap_identification": "trace-48a1e9601fbc",
-    "expert_consultation": "trace-eb6be92f927d",
+    "encounter_synthesis": "trace-45faddf78248",
+    "gap_identification": "trace-643b24053fa1",
+    "expert_consultation": "trace-e815e9c14c74",
     "query_generation": "",
     "query_eligibility_gate": "",
     "query_necessity_gate": "",
     "query_single_dimension_gate": "",
-    "claim_evidence_alignment_gate": "trace-ffc75ba41ae1",
-    "semantic_necessity_gate": "trace-3615981d2467",
+    "claim_evidence_alignment_gate": "trace-6643a7aa5245",
+    "semantic_necessity_gate": "trace-517ad212ba33",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "trace-8acc64dd7ba7"
+    "specialist_trace_emit": "trace-8b215102f969"
   },
   "stage_traces": [
     {
       "stage": "encounter_synthesis",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 2041,
+      "latency_ms": 2501,
       "prompt_tokens": 229,
-      "completion_tokens": 57,
-      "total_tokens": 286,
-      "run_id": "run-1265d5e51254",
-      "trace_id": "trace-6566dd619e7f",
+      "completion_tokens": 91,
+      "total_tokens": 320,
+      "run_id": "run-425d4a6f440f",
+      "trace_id": "trace-45faddf78248",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -110,12 +116,12 @@
       "stage": "gap_identification",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 2538,
-      "prompt_tokens": 1017,
-      "completion_tokens": 75,
-      "total_tokens": 1092,
-      "run_id": "run-02a7dcf6667a",
-      "trace_id": "trace-48a1e9601fbc",
+      "latency_ms": 3015,
+      "prompt_tokens": 1060,
+      "completion_tokens": 81,
+      "total_tokens": 1141,
+      "run_id": "run-f50111a80be3",
+      "trace_id": "trace-643b24053fa1",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -128,8 +134,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-bf3e61b6bd69",
-      "trace_id": "trace-98272ba4c3a9",
+      "run_id": "run-cbb371e624d9",
+      "trace_id": "trace-a3dd14234f82",
       "degraded": false,
       "error_reason": "",
       "expert_id": "coding-expert"
@@ -142,8 +148,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-2e95afe0130c",
-      "trace_id": "trace-324cebf30706",
+      "run_id": "run-32bb6a3ad1a1",
+      "trace_id": "trace-d17f39832f93",
       "degraded": false,
       "error_reason": "",
       "expert_id": "pubmed-expert"
@@ -156,8 +162,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-367eb9e06387",
-      "trace_id": "trace-b25bfe52c625",
+      "run_id": "run-f099cbb5bc31",
+      "trace_id": "trace-7a158b7585d8",
       "degraded": false,
       "error_reason": "",
       "expert_id": "web-search-expert"
@@ -170,8 +176,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-3a1cf931bdda",
-      "trace_id": "trace-bc3e81ea70aa",
+      "run_id": "run-d213021e6de8",
+      "trace_id": "trace-09cc40ced285",
       "degraded": false,
       "error_reason": "",
       "expert_id": "medical-calculator-expert"
@@ -179,5 +185,5 @@
   ],
   "degraded": false,
   "runtime_mode": "real",
-  "generated_at": "2026-07-13T06:14:42.288203Z"
+  "generated_at": "2026-07-13T06:44:14.880483Z"
 }

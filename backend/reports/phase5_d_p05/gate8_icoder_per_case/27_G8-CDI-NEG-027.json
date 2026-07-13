@@ -1,51 +1,8 @@
 {
-  "case_id": "CASE-fbc3492e4bf9",
-  "completion_state": "REVIEW_REQUIRED",
-  "documentation_gaps": [
-    {
-      "gap_id": "CASE-fbc3492e4bf9/GAP-001",
-      "gap_type": "diagnostic_specificity",
-      "description": "咳嗽的病因未明确",
-      "why_it_matters": "咳嗽的病因（如感染性、过敏性、药物性等）影响治疗和编码准确性",
-      "evidence_span": {
-        "document_id": "DOC-001",
-        "quote": "咳嗽1周"
-      },
-      "minimal_clarification_needed": ""
-    },
-    {
-      "gap_id": "CASE-fbc3492e4bf9/GAP-002",
-      "gap_type": "diagnostic_specificity",
-      "description": "高血压的严重程度或控制情况未描述",
-      "why_it_matters": "高血压的分级和靶器官损害影响编码和风险分层",
-      "evidence_span": {
-        "document_id": "DOC-001",
-        "quote": "既往:高血压"
-      },
-      "minimal_clarification_needed": ""
-    }
-  ],
-  "proposed_provider_queries": [
-    {
-      "query_id": "CASE-fbc3492e4bf9/Q-001",
-      "gap_id": "CASE-fbc3492e4bf9/GAP-001",
-      "topic": "咳嗽病因",
-      "reason": "咳嗽病因未明确，需进一步明确诊断。",
-      "evidence_span": {
-        "document_id": "chart",
-        "quote": "咳嗽1周"
-      },
-      "query_text": "患者咳嗽1周，胸片未见活动性病变。请问咳嗽的可能病因是什么？",
-      "response_options": [
-        "A. 急性上呼吸道感染",
-        "B. 咳嗽变异性哮喘",
-        "C. 胃食管反流性咳嗽",
-        "D. 无法确定"
-      ],
-      "lifecycle_state": "DRAFT",
-      "priority": "routine"
-    }
-  ],
+  "case_id": "CASE-8104da12f55b",
+  "completion_state": "AUTO_PASS",
+  "documentation_gaps": [],
+  "proposed_provider_queries": [],
   "chart_excerpt_preview": "患者女性, 60岁, 咳嗽1周。否认发热、咳脓痰、咯血、胸痛。既往:高血压。查体:双肺清晰。胸片:未见活动性病变。",
   "patient_ref": "DEID",
   "encounter_ref": "DEID",
@@ -67,13 +24,13 @@
   "specialist_trace": [
     {
       "expert_id": "coding-expert",
-      "consulted": true,
-      "rationale": "For the cough, specify the underlying cause (e.g., postnasal drip, asthma, or medication-related) and whether it is acute or chronic. For hypertension, document the current blood pressure readings, severity (e.g., stage 1 or 2), and whether it is controlled or uncontrolled.",
-      "route_decision": "needed",
-      "route_reason": "coding_relevant_gap",
-      "execution_mode": "LLM_KNOWLEDGE_ONLY",
-      "latency_ms": 2766,
-      "tokens": 180
+      "consulted": false,
+      "rationale": "no coding-relevant gaps survived earlier gates",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
     },
     {
       "expert_id": "pubmed-expert",
@@ -98,55 +55,55 @@
     {
       "expert_id": "medical-calculator-expert",
       "consulted": false,
-      "rationale": "'分级' score — no deterministic calculator wired",
-      "route_decision": "tool_unavailable",
-      "route_reason": "no_real_tool_wired",
-      "execution_mode": "TOOL_UNAVAILABLE",
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
       "latency_ms": 0,
       "tokens": 0
     }
   ],
   "stage_run_ids": {
-    "encounter_synthesis": "run-27ae1fb622ad",
-    "gap_identification": "run-6954371d99c7",
+    "encounter_synthesis": "run-b792f977ad4b",
+    "gap_identification": "run-97ae53cf079c",
     "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
-    "expert_consultation": "run-f316909cac83",
-    "query_generation": "run-33cdac5eacb8",
+    "expert_consultation": "run-74de226617b1",
+    "query_generation": "",
     "query_generation::quote_snapped": "0",
-    "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=2;llm_complete=False;llm_reasoning=咳嗽病因未明确，高血压缺乏严重程度描述，胸片正常但未排除其他病因，需要进一步明确诊断。",
-    "query_necessity_gate": "necessary=2;unnecessary=0;overquery_triggered=False;final_count=2",
-    "query_single_dimension_gate": "single_dim=2;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=etiology;final_count=2",
-    "claim_evidence_alignment_gate": "claims_extracted=5;blocked=1;flagged=0;final_count=1",
-    "claim_evidence_alignment_gate::run_id": "run-b20087e8616b",
-    "semantic_necessity_gate": "blocked=0;flagged=1;degraded=0;final_count=1",
-    "semantic_necessity_gate::run_id": "run-f76eb118f4ff",
+    "query_eligibility_gate": "chart_complete=True;completeness_score=0.12;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=0;llm_complete=True;llm_reasoning=The chart documents a cough without alarming features, normal exam and chest X-r",
+    "query_necessity_gate": "necessary=0;unnecessary=0;overquery_triggered=False;final_count=0",
+    "query_single_dimension_gate": "single_dim=0;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;final_count=0",
+    "claim_evidence_alignment_gate": "claims_extracted=0;blocked=0;flagged=0;final_count=0",
+    "claim_evidence_alignment_gate::run_id": "run-dd4b6d240bee",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+    "semantic_necessity_gate::run_id": "run-004aeb7803bf",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "run-c3ddfbf05bb1"
+    "specialist_trace_emit": "run-e3ccbae205fa"
   },
   "stage_trace_ids": {
-    "encounter_synthesis": "trace-06e27bebce15",
-    "gap_identification": "trace-21a06a205b67",
-    "expert_consultation": "trace-66b177a826d1",
-    "query_generation": "trace-0a3adf41b9c8",
+    "encounter_synthesis": "trace-89f807265156",
+    "gap_identification": "trace-88760b0a5b1b",
+    "expert_consultation": "trace-e31459cdd6ca",
+    "query_generation": "",
     "query_eligibility_gate": "",
     "query_necessity_gate": "",
     "query_single_dimension_gate": "",
-    "claim_evidence_alignment_gate": "trace-87e6fd5e0317",
-    "semantic_necessity_gate": "trace-8b7202943385",
+    "claim_evidence_alignment_gate": "trace-6adc57c82813",
+    "semantic_necessity_gate": "trace-4bdcb08bdcc0",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "trace-a17fa0580019"
+    "specialist_trace_emit": "trace-88527d9ef863"
   },
   "stage_traces": [
     {
       "stage": "encounter_synthesis",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 4763,
+      "latency_ms": 4985,
       "prompt_tokens": 215,
-      "completion_tokens": 88,
-      "total_tokens": 303,
-      "run_id": "run-27ae1fb622ad",
-      "trace_id": "trace-06e27bebce15",
+      "completion_tokens": 80,
+      "total_tokens": 295,
+      "run_id": "run-b792f977ad4b",
+      "trace_id": "trace-89f807265156",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -155,26 +112,12 @@
       "stage": "gap_identification",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 3944,
+      "latency_ms": 2775,
       "prompt_tokens": 1028,
-      "completion_tokens": 288,
-      "total_tokens": 1316,
-      "run_id": "run-6954371d99c7",
-      "trace_id": "trace-21a06a205b67",
-      "degraded": false,
-      "error_reason": "",
-      "expert_id": ""
-    },
-    {
-      "stage": "query_generation",
-      "provider": "deepseek",
-      "model": "deepseek-chat",
-      "latency_ms": 4042,
-      "prompt_tokens": 813,
-      "completion_tokens": 331,
-      "total_tokens": 1144,
-      "run_id": "run-33cdac5eacb8",
-      "trace_id": "trace-0a3adf41b9c8",
+      "completion_tokens": 77,
+      "total_tokens": 1105,
+      "run_id": "run-97ae53cf079c",
+      "trace_id": "trace-88760b0a5b1b",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -183,12 +126,12 @@
       "stage": "expert_consultation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 2766,
-      "prompt_tokens": 119,
-      "completion_tokens": 61,
-      "total_tokens": 180,
-      "run_id": "run-77f69bc1b5a5",
-      "trace_id": "trace-1e97c449ca0c",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-b1c700bbe952",
+      "trace_id": "trace-6c9325385f06",
       "degraded": false,
       "error_reason": "",
       "expert_id": "coding-expert"
@@ -201,8 +144,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-ab9145e30426",
-      "trace_id": "trace-8adebb29d6af",
+      "run_id": "run-0f45c0233e03",
+      "trace_id": "trace-eec4393ea091",
       "degraded": false,
       "error_reason": "",
       "expert_id": "pubmed-expert"
@@ -215,8 +158,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-48dd41018ec8",
-      "trace_id": "trace-b07232fc1cb5",
+      "run_id": "run-850bf0481510",
+      "trace_id": "trace-fa59d9e9496c",
       "degraded": false,
       "error_reason": "",
       "expert_id": "web-search-expert"
@@ -229,8 +172,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-fa2cd76d02e7",
-      "trace_id": "trace-5ac665242682",
+      "run_id": "run-d18248d186c3",
+      "trace_id": "trace-f038cc0f46ef",
       "degraded": false,
       "error_reason": "",
       "expert_id": "medical-calculator-expert"
@@ -238,5 +181,5 @@
   ],
   "degraded": false,
   "runtime_mode": "real",
-  "generated_at": "2026-07-13T06:18:17.850547Z"
+  "generated_at": "2026-07-13T06:47:41.261790Z"
 }

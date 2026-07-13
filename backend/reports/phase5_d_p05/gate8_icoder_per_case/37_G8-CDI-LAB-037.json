@@ -1,12 +1,12 @@
 {
-  "case_id": "CASE-de1bfa8998ef",
+  "case_id": "CASE-ead4d1b44c4e",
   "completion_state": "REVIEW_REQUIRED",
   "documentation_gaps": [
     {
-      "gap_id": "CASE-de1bfa8998ef/GAP-001",
+      "gap_id": "CASE-ead4d1b44c4e/GAP-001",
       "gap_type": "diagnostic_specificity",
-      "description": "CA-125 升高但未明确临床相关性",
-      "why_it_matters": "CA-125 升高可见于多种良恶性疾病，需临床解释以指导后续诊疗和编码。",
+      "description": "CA-125升高，但未明确临床相关性或病因",
+      "why_it_matters": "CA-125升高可见于多种良恶性疾病，需临床解释以确定是否需要进一步检查或诊断，影响编码准确性。",
       "evidence_span": {
         "document_id": "DOC-001",
         "quote": "肿瘤标志物 CA-125 65 U/mL(参考值 < 35)"
@@ -28,7 +28,7 @@
       "建议：随访CA-125，妇科会诊"
     ],
     "encounter_metadata": {
-      "patient_age": "60",
+      "patient_age": "60岁",
       "patient_sex": "女",
       "encounter_type": "体检"
     }
@@ -38,12 +38,12 @@
     {
       "expert_id": "coding-expert",
       "consulted": true,
-      "rationale": "建议明确CA-125升高的临床背景，如是否与妇科良性病变（如子宫内膜异位症、盆腔炎）或非妇科因素（如肝病、胸腹水）相关。需结合影像学及妇科检查结果，排除卵巢恶性肿瘤可能，并记录随访计划及患者症状变化。",
+      "rationale": "建议明确CA-125升高的临床相关性，需排除妇科良性病变（如子宫内膜异位症、盆腔炎）或非妇科原因（如肝病、胸腹水），并记录是否与绝经后状态相关。若随访后持续升高或动态变化，需进一步描述症状、体征及影像学结果以支持病因判断。",
       "route_decision": "needed",
       "route_reason": "coding_relevant_gap",
       "execution_mode": "LLM_KNOWLEDGE_ONLY",
-      "latency_ms": 2885,
-      "tokens": 186
+      "latency_ms": 2661,
+      "tokens": 196
     },
     {
       "expert_id": "pubmed-expert",
@@ -77,46 +77,46 @@
     }
   ],
   "stage_run_ids": {
-    "encounter_synthesis": "run-f6e462d3cbb0",
-    "gap_identification": "run-8a6e890cff08",
+    "encounter_synthesis": "run-b0e6a6ffe60c",
+    "gap_identification": "run-00f6f3aa126f",
     "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
-    "expert_consultation": "run-33c79b0f7dbd",
-    "query_generation": "run-6239c9fde790",
+    "expert_consultation": "run-5ae4b657d686",
+    "query_generation": "run-6fc6c103368c",
     "query_generation::quote_snapped": "0",
-    "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=1;llm_complete=False;llm_reasoning=CA-125 升高但未提供临床相关性解释，无法确定是否为病理性改变，影响编码准确性。",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=1;llm_complete=False;llm_reasoning=CA-125升高但未提供临床相关性解释，盆腔超声正常但未排除其他病因，需进一步明确。",
     "query_necessity_gate": "necessary=1;unnecessary=0;overquery_triggered=False;final_count=1",
-    "query_single_dimension_gate": "single_dim=1;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=correlation;final_count=1",
-    "claim_evidence_alignment_gate": "claims_extracted=3;blocked=1;flagged=0;final_count=0",
-    "claim_evidence_alignment_gate::run_id": "run-ffdb9121bd30",
+    "query_single_dimension_gate": "single_dim=0;multi_dim=1;axis_cluster_triggered=False;axis_cluster_axis=etiology;final_count=0",
+    "claim_evidence_alignment_gate": "claims_extracted=0;blocked=0;flagged=0;final_count=0",
+    "claim_evidence_alignment_gate::run_id": "run-e50254c765c9",
     "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
-    "semantic_necessity_gate::run_id": "run-c213dec30308",
+    "semantic_necessity_gate::run_id": "run-95d777340207",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "run-81e1bd511771"
+    "specialist_trace_emit": "run-cf7f8a785dfc"
   },
   "stage_trace_ids": {
-    "encounter_synthesis": "trace-636d253e416d",
-    "gap_identification": "trace-e69e0edc5c6e",
-    "expert_consultation": "trace-ff4c1b63e0a7",
-    "query_generation": "trace-709c9627e31e",
+    "encounter_synthesis": "trace-e6256684db9a",
+    "gap_identification": "trace-2987dc487f08",
+    "expert_consultation": "trace-45009be3bbba",
+    "query_generation": "trace-a6042aa67cd7",
     "query_eligibility_gate": "",
     "query_necessity_gate": "",
     "query_single_dimension_gate": "",
-    "claim_evidence_alignment_gate": "trace-7c7b2e65ed2a",
-    "semantic_necessity_gate": "trace-fa46414eab73",
+    "claim_evidence_alignment_gate": "trace-716586d80f76",
+    "semantic_necessity_gate": "trace-88416611f4fa",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "trace-9c57504ad071"
+    "specialist_trace_emit": "trace-6905c9622fcc"
   },
   "stage_traces": [
     {
       "stage": "encounter_synthesis",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 2933,
+      "latency_ms": 2743,
       "prompt_tokens": 226,
-      "completion_tokens": 110,
-      "total_tokens": 336,
-      "run_id": "run-f6e462d3cbb0",
-      "trace_id": "trace-636d253e416d",
+      "completion_tokens": 111,
+      "total_tokens": 337,
+      "run_id": "run-b0e6a6ffe60c",
+      "trace_id": "trace-e6256684db9a",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -125,12 +125,12 @@
       "stage": "gap_identification",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 4114,
+      "latency_ms": 4038,
       "prompt_tokens": 1061,
-      "completion_tokens": 201,
-      "total_tokens": 1262,
-      "run_id": "run-8a6e890cff08",
-      "trace_id": "trace-e69e0edc5c6e",
+      "completion_tokens": 213,
+      "total_tokens": 1274,
+      "run_id": "run-00f6f3aa126f",
+      "trace_id": "trace-2987dc487f08",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -139,12 +139,12 @@
       "stage": "query_generation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 4067,
-      "prompt_tokens": 799,
-      "completion_tokens": 223,
-      "total_tokens": 1022,
-      "run_id": "run-6239c9fde790",
-      "trace_id": "trace-709c9627e31e",
+      "latency_ms": 4034,
+      "prompt_tokens": 802,
+      "completion_tokens": 219,
+      "total_tokens": 1021,
+      "run_id": "run-6fc6c103368c",
+      "trace_id": "trace-a6042aa67cd7",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -153,12 +153,12 @@
       "stage": "expert_consultation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 2885,
-      "prompt_tokens": 122,
-      "completion_tokens": 64,
-      "total_tokens": 186,
-      "run_id": "run-ba3c90a9b35a",
-      "trace_id": "trace-04956b67e6aa",
+      "latency_ms": 2661,
+      "prompt_tokens": 124,
+      "completion_tokens": 72,
+      "total_tokens": 196,
+      "run_id": "run-6eee38b47ba4",
+      "trace_id": "trace-14e7c753eb21",
       "degraded": false,
       "error_reason": "",
       "expert_id": "coding-expert"
@@ -171,8 +171,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-61c19fc642ce",
-      "trace_id": "trace-6fac032de960",
+      "run_id": "run-dde65a1247da",
+      "trace_id": "trace-1210f0855ee3",
       "degraded": false,
       "error_reason": "",
       "expert_id": "pubmed-expert"
@@ -185,8 +185,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-e41a84bbd2d4",
-      "trace_id": "trace-c9d4f0e3bc3d",
+      "run_id": "run-e89da3252981",
+      "trace_id": "trace-d605b27597f6",
       "degraded": false,
       "error_reason": "",
       "expert_id": "web-search-expert"
@@ -199,8 +199,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-4860defa50e7",
-      "trace_id": "trace-f969518bd6fb",
+      "run_id": "run-7334acbacf9c",
+      "trace_id": "trace-38e15fc31ea9",
       "degraded": false,
       "error_reason": "",
       "expert_id": "medical-calculator-expert"
@@ -208,5 +208,5 @@
   ],
   "degraded": false,
   "runtime_mode": "real",
-  "generated_at": "2026-07-13T06:22:11.493194Z"
+  "generated_at": "2026-07-13T06:51:33.841091Z"
 }

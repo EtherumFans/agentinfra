@@ -1,69 +1,81 @@
 {
-  "case_id": "CASE-c50062e770b7",
+  "case_id": "CASE-115b3d0e8a21",
   "completion_state": "REVIEW_REQUIRED",
   "documentation_gaps": [
     {
-      "gap_id": "CASE-c50062e770b7/GAP-001",
+      "gap_id": "CASE-115b3d0e8a21/GAP-001",
       "gap_type": "diagnostic_specificity",
       "description": "脑梗死的病因未明确（如大动脉粥样硬化、心源性栓塞、小血管闭塞等）",
-      "why_it_matters": "病因分型影响治疗策略和预后评估，且是编码中重要的特异性信息",
+      "why_it_matters": "病因影响治疗方案（如抗凝、抗血小板、他汀等）及二级预防策略，且是DRG分组的重要依据",
       "evidence_span": {
-        "document_id": "encounter_summary",
+        "document_id": "chart-001",
         "quote": "入院诊断:脑梗死"
       },
       "minimal_clarification_needed": ""
     },
     {
-      "gap_id": "CASE-c50062e770b7/GAP-002",
+      "gap_id": "CASE-115b3d0e8a21/GAP-002",
       "gap_type": "diagnostic_specificity",
-      "description": "脑梗死的具体解剖部位未明确（如大脑中动脉、基底节、脑干等）",
-      "why_it_matters": "部位影响神经功能缺损表现和预后，且是编码必需信息",
+      "description": "脑梗死的梗死部位未明确（如大脑中动脉、基底节、脑干等）",
+      "why_it_matters": "部位影响神经功能缺损评估、预后判断及编码特异性",
       "evidence_span": {
-        "document_id": "encounter_summary",
-        "quote": "突发左侧肢体无力2小时"
+        "document_id": "chart-001",
+        "quote": "头颅CT:未见出血"
       },
       "minimal_clarification_needed": ""
     },
     {
-      "gap_id": "CASE-c50062e770b7/GAP-003",
+      "gap_id": "CASE-115b3d0e8a21/GAP-003",
       "gap_type": "diagnostic_specificity",
-      "description": "脑梗死的严重程度未明确（如是否为大面积梗死、有无占位效应等）",
-      "why_it_matters": "严重程度影响治疗决策和并发症风险，且是编码重要维度",
+      "description": "左侧肢体无力的严重程度未明确（如肌力分级）",
+      "why_it_matters": "严重程度影响NIHSS评分准确性及后续康复评估",
       "evidence_span": {
-        "document_id": "encounter_summary",
-        "quote": "NIHSS 8"
+        "document_id": "chart-001",
+        "quote": "突发左侧肢体无力2小时"
       },
       "minimal_clarification_needed": ""
     }
   ],
-  "proposed_provider_queries": [],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-115b3d0e8a21/Q-001",
+      "gap_id": "CASE-115b3d0e8a21/GAP-003",
+      "topic": "左侧肢体无力严重程度",
+      "reason": "左侧肢体无力的严重程度未明确，需要肌力分级。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "突发左侧肢体无力2小时"
+      },
+      "query_text": "左侧肢体无力的肌力分级是？",
+      "response_options": [
+        "A. 0级（完全瘫痪）",
+        "B. 1-2级（重度无力）",
+        "C. 3级（中度无力）",
+        "D. 4级（轻度无力）",
+        "E. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine"
+    }
+  ],
   "chart_excerpt_preview": "患者女性, 70岁, 突发左侧肢体无力2小时。头颅CT:未见出血。NIHSS 8。入院诊断:脑梗死。",
   "patient_ref": "DEID",
   "encounter_ref": "DEID",
   "encounter_summary": {
-    "key_points": [
-      "突发左侧肢体无力2小时",
-      "头颅CT:未见出血",
-      "NIHSS 8",
-      "入院诊断:脑梗死"
-    ],
-    "encounter_metadata": {
-      "patient_age": "70岁",
-      "patient_sex": "女性",
-      "encounter_type": "入院"
-    }
+    "key_points": [],
+    "encounter_metadata": {}
   },
   "risk_flags": [],
   "specialist_trace": [
     {
       "expert_id": "coding-expert",
       "consulted": true,
-      "rationale": "建议明确脑梗死的病因分型（如大动脉粥样硬化、心源性栓塞或小血管闭塞），并描述具体解剖部位（如基底节、大脑中动脉供血区）及严重程度（如是否为大面积梗死或伴占位效应），以支持精准编码。",
+      "rationale": "根据病历，需明确脑梗死的病因分型（如大动脉粥样硬化、心源性栓塞或小血管闭塞）及具体梗死部位（如大脑中动脉、基底节或脑干），同时应记录左侧肢体无力的肌力分级（如0-5级），以支持精准编码。",
       "route_decision": "needed",
       "route_reason": "coding_relevant_gap",
       "execution_mode": "LLM_KNOWLEDGE_ONLY",
-      "latency_ms": 2445,
-      "tokens": 218
+      "latency_ms": 2698,
+      "tokens": 215
     },
     {
       "expert_id": "pubmed-expert",
@@ -88,7 +100,7 @@
     {
       "expert_id": "medical-calculator-expert",
       "consulted": false,
-      "rationale": "'NIHSS' score — parameters absent from chart",
+      "rationale": "'评分' score — parameters absent from chart",
       "route_decision": "missing_inputs",
       "route_reason": "calculator_params_missing",
       "execution_mode": "SKIPPED_MISSING_INPUTS",
@@ -97,60 +109,60 @@
     }
   ],
   "stage_run_ids": {
-    "encounter_synthesis": "run-50d7c65bbd20",
-    "gap_identification": "run-de7868aad833",
+    "encounter_synthesis": "run-55ee0222057d",
+    "gap_identification": "run-088a3d800559",
     "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
-    "expert_consultation": "run-1a9db5b400cd",
-    "query_generation": "run-6367413733a5",
+    "expert_consultation": "run-fdba52c9d93b",
+    "query_generation": "run-3a52ad6c4928",
     "query_generation::quote_snapped": "0",
-    "query_eligibility_gate": "chart_complete=False;completeness_score=0.25;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=Y,D8_course=N;dropped=0;final_count=3;llm_complete=False;llm_reasoning=脑梗死诊断缺乏病因、部位和严重程度等关键特异性信息，无法满足编码对急性脑梗死完整描述的要求。",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.25;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=Y,D8_course=N;dropped=0;final_count=3;llm_complete=False;llm_reasoning=脑梗死诊断缺乏病因、梗死部位及严重程度等关键信息，无法满足编码对特异性的要求，需进一步明确。",
     "query_necessity_gate": "necessary=3;unnecessary=0;overquery_triggered=False;final_count=3",
-    "query_single_dimension_gate": "single_dim=2;multi_dim=1;axis_cluster_triggered=False;axis_cluster_axis=type;final_count=2",
-    "claim_evidence_alignment_gate": "claims_extracted=3;blocked=2;flagged=0;final_count=0",
-    "claim_evidence_alignment_gate::run_id": "run-94d685ece954",
-    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
-    "semantic_necessity_gate::run_id": "run-796af81ef704",
+    "query_single_dimension_gate": "single_dim=2;multi_dim=1;axis_cluster_triggered=False;axis_cluster_axis=etiology;final_count=2",
+    "claim_evidence_alignment_gate": "claims_extracted=3;blocked=1;flagged=0;final_count=1",
+    "claim_evidence_alignment_gate::run_id": "run-3669c856452e",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=1",
+    "semantic_necessity_gate::run_id": "run-6e1cdfbcebe0",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "run-155cbf4a944f"
+    "specialist_trace_emit": "run-c8891842d752"
   },
   "stage_trace_ids": {
-    "encounter_synthesis": "trace-996edea809b8",
-    "gap_identification": "trace-7588a3f0872f",
-    "expert_consultation": "trace-c0d1aa4396f0",
-    "query_generation": "trace-0481b2a715ad",
+    "encounter_synthesis": "trace-8a7b058b1c6d",
+    "gap_identification": "trace-4c6add1ca8dd",
+    "expert_consultation": "trace-de3c11c7772f",
+    "query_generation": "trace-0d8cbfdfb735",
     "query_eligibility_gate": "",
     "query_necessity_gate": "",
     "query_single_dimension_gate": "",
-    "claim_evidence_alignment_gate": "trace-1bbc109e8e24",
-    "semantic_necessity_gate": "trace-48c865d0d36f",
+    "claim_evidence_alignment_gate": "trace-444881e5e36d",
+    "semantic_necessity_gate": "trace-970f46bc11b2",
     "query_compliance_gate": "",
-    "specialist_trace_emit": "trace-9cf7026a9bf3"
+    "specialist_trace_emit": "trace-027c030e305e"
   },
   "stage_traces": [
     {
       "stage": "encounter_synthesis",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 4608,
-      "prompt_tokens": 203,
-      "completion_tokens": 79,
-      "total_tokens": 282,
-      "run_id": "run-50d7c65bbd20",
-      "trace_id": "trace-996edea809b8",
-      "degraded": false,
-      "error_reason": "",
+      "latency_ms": 3569,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-55ee0222057d",
+      "trace_id": "trace-8a7b058b1c6d",
+      "degraded": true,
+      "error_reason": "LLM call failed after 3 attempts: Connection error.",
       "expert_id": ""
     },
     {
       "stage": "gap_identification",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 5329,
-      "prompt_tokens": 1006,
-      "completion_tokens": 448,
-      "total_tokens": 1454,
-      "run_id": "run-de7868aad833",
-      "trace_id": "trace-7588a3f0872f",
+      "latency_ms": 4247,
+      "prompt_tokens": 969,
+      "completion_tokens": 444,
+      "total_tokens": 1413,
+      "run_id": "run-088a3d800559",
+      "trace_id": "trace-4c6add1ca8dd",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -159,12 +171,12 @@
       "stage": "query_generation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 5014,
-      "prompt_tokens": 893,
-      "completion_tokens": 498,
-      "total_tokens": 1391,
-      "run_id": "run-6367413733a5",
-      "trace_id": "trace-0481b2a715ad",
+      "latency_ms": 5277,
+      "prompt_tokens": 886,
+      "completion_tokens": 513,
+      "total_tokens": 1399,
+      "run_id": "run-3a52ad6c4928",
+      "trace_id": "trace-0d8cbfdfb735",
       "degraded": false,
       "error_reason": "",
       "expert_id": ""
@@ -173,12 +185,12 @@
       "stage": "expert_consultation",
       "provider": "deepseek",
       "model": "deepseek-chat",
-      "latency_ms": 2445,
-      "prompt_tokens": 157,
-      "completion_tokens": 61,
-      "total_tokens": 218,
-      "run_id": "run-b6f82ccef36f",
-      "trace_id": "trace-79a9ebf87046",
+      "latency_ms": 2698,
+      "prompt_tokens": 150,
+      "completion_tokens": 65,
+      "total_tokens": 215,
+      "run_id": "run-6d87ddcd6db1",
+      "trace_id": "trace-9f787f544a81",
       "degraded": false,
       "error_reason": "",
       "expert_id": "coding-expert"
@@ -191,8 +203,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-9156b8ef260e",
-      "trace_id": "trace-d886edeb3202",
+      "run_id": "run-f51eacb776f2",
+      "trace_id": "trace-a682ff9e4cb9",
       "degraded": false,
       "error_reason": "",
       "expert_id": "pubmed-expert"
@@ -205,8 +217,8 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-6916fe36f198",
-      "trace_id": "trace-d58327b86b5d",
+      "run_id": "run-3f40579f2a07",
+      "trace_id": "trace-2fb1cb765f7a",
       "degraded": false,
       "error_reason": "",
       "expert_id": "web-search-expert"
@@ -219,14 +231,14 @@
       "prompt_tokens": 0,
       "completion_tokens": 0,
       "total_tokens": 0,
-      "run_id": "run-0dd791f173d0",
-      "trace_id": "trace-f272b678d0ee",
+      "run_id": "run-fbfe51aca7d4",
+      "trace_id": "trace-737aea831d13",
       "degraded": false,
       "error_reason": "",
       "expert_id": "medical-calculator-expert"
     }
   ],
-  "degraded": false,
+  "degraded": true,
   "runtime_mode": "real",
-  "generated_at": "2026-07-13T06:12:50.573165Z"
+  "generated_at": "2026-07-13T06:42:27.207637Z"
 }

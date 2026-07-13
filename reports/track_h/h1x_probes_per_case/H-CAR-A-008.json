@@ -1,0 +1,98 @@
+{
+  "case_id": "H-CAR-A-008",
+  "group": "QUERY_CARDINALITY",
+  "variant": "A",
+  "session_id": "598cb10b-3660-4aee-9f21-c4cd0f980ebd",
+  "attempt": 1,
+  "outcome": "SUCCESS",
+  "elapsed_s": 27.19,
+  "expected": {
+    "query_count_min": 1,
+    "query_count_max": 2,
+    "expected_query_topics": [
+      "pneumonia severity (CURB-65/PSI)",
+      "CAP vs HAP"
+    ],
+    "forbidden_query_topics": [],
+    "no_query_expected": false
+  },
+  "text_length": 5779,
+  "first_token_at_s": 3.5,
+  "last_token_at_s": 27.19,
+  "event_count": 9,
+  "raw_events_preview": [
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"id\":\"b415f0e7-1038-4c52-9a56-efde46e02666\",\"type\":\"text-start\"}",
+    "message|{\"delta\":\"Encounter Summary:\\n- The excerpt documents \\\"Patient with Community-acquired pneumonia.\\\"\\n- The excerpt also states: \\\"CURB-65 not documented.\\\"\\n- It further states: \\\"CAP vs HAP not spec",
+    "message|{\"id\":\"b415f0e7-1038-4c52-9a56-efde46e02666\",\"type\":\"text-end\"}",
+    "message|{\"messageMetadata\":{\"contextId\":\"019f5bc8-9aac-7260-bb5d-b982562c3bbd\",\"taskId\":\"019f5bc8-9aac-71e6-bbea-eefab2adc280\",\"credits\":0.059468,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+    "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.059468},\"type\":\"finish\"}",
+    "message|[DONE]"
+  ],
+  "expert_events": [],
+  "status_events": [
+    {
+      "state": "working"
+    },
+    {
+      "state": "working"
+    },
+    {
+      "message": "Calling expert: coding-expert",
+      "state": "working"
+    }
+  ],
+  "finish_metadata": {
+    "contextId": "019f5bc8-9aac-7260-bb5d-b982562c3bbd",
+    "taskId": "019f5bc8-9aac-71e6-bbea-eefab2adc280",
+    "credits": 0.059468,
+    "state": "completed"
+  },
+  "parsed": {
+    "encounter_summary": "- The excerpt documents \"Patient with Community-acquired pneumonia.\"\n- The excerpt also states: \"CURB-65 not documented.\"\n- It further states: \"CAP vs HAP not specified. Severity not classified. No culture results documented.\"",
+    "gaps": [
+      {
+        "idx": 1,
+        "text": "Pneumonia type/setting is internally inconsistent and requires clarification.\n   - Why it matters: Pneumonia documentation should clearly identify the type/setting when clinically supported. Here, the note simultaneously states \"Community-acquired pneumonia\" and \"CAP vs HAP not specified,\" which is contradictory.\n   - Evidence quote: \"Patient with Community-acquired pneumonia.\" and \"CAP vs HAP not specified.\"\n   - Minimal clarification needed: Confirm the pneumonia type/setting being documented "
+      },
+      {
+        "idx": 2,
+        "text": "Severity classification lacks supporting clinical detail in the excerpt, so a compliant severity query is not supported from this text alone.\n   - Why it matters: Severity may affect documentation specificity, but a query must be supported by clinical indicators.\n   - Evidence quote: \"Severity not classified.\"\n   - Minimal clarification needed: Additional documented clinical indicators would be needed before querying severity in a compliant, non-leading way."
+      },
+      {
+        "idx": 3,
+        "text": "CURB-65 is not documented, but absence of a CURB-65 score alone does not support a provider query from this excerpt.\n   - Why it matters: CURB-65 is a severity/risk tool, but CDI queries should target unclear provider documentation, not simply the absence of a scoring tool unless organizational policy specifically requires it.\n   - Evidence quote: \"CURB-65 not documented.\"\n   - Minimal clarification needed: None for CDI query purposes based on this excerpt alone; if the operational goal is quali"
+      },
+      {
+        "idx": 4,
+        "text": "No culture results are documented, but this excerpt does not support a compliant query based solely on missing cultures.\n   - Why it matters: Missing test results do not, by themselves, justify a diagnostic clarification query.\n   - Evidence quote: \"No culture results documented.\"\n   - Minimal clarification needed: Actual microbiology data or conflicting organism documentation would be needed before querying etiology."
+      }
+    ],
+    "gap_count": 4,
+    "queries": [
+      {
+        "idx": 1,
+        "text": "Pneumonia type/setting clarification"
+      },
+      {
+        "idx": 2,
+        "text": "Severity classification of pneumonia"
+      },
+      {
+        "idx": 3,
+        "text": "Etiology/pathogen based on culture results"
+      }
+    ],
+    "query_count": 3,
+    "specialists_contacted": [
+      "Medical Coding Expert",
+      "Coding Expert"
+    ],
+    "specialist_trace_text": "- Medical Coding Expert: Consulted.\n  - Requested: Evaluate compliant CDI gaps and query opportunities related to CAP vs HAP specificity, severity classification, CURB-65, and absent cultures using only the provided excerpt.\n  - Accepted: The need to clarify the internally inconsistent pneumonia type/setting; the conclusion that severity and culture-based queries are not supported by this excerpt alone; the caution that missing CURB-65 alone does not support a CDI query.\n  - Rejected: None, because the expert did not provide unsupported patient-specific inferences.\n- AMBOSS Expert: Not consulted.\n  - Rationale: No clinical criteria assessment was necessary because the excerpt lacks clinical findings to evaluate.\n- CDI Web Search Expert: Not consulted.\n  - Rationale: No current external compliance guidance was necessary to answer conservatively from the excerpt itself.",
+    "has_specialist_trace": true
+  },
+  "error": "",
+  "text": "Encounter Summary:\n- The excerpt documents \"Patient with Community-acquired pneumonia.\"\n- The excerpt also states: \"CURB-65 not documented.\"\n- It further states: \"CAP vs HAP not specified. Severity not classified. No culture results documented.\"\n\nDocumentation Gaps:\n1. Pneumonia type/setting is internally inconsistent and requires clarification.\n   - Why it matters: Pneumonia documentation should clearly identify the type/setting when clinically supported. Here, the note simultaneously states \"Community-acquired pneumonia\" and \"CAP vs HAP not specified,\" which is contradictory.\n   - Evidence quote: \"Patient with Community-acquired pneumonia.\" and \"CAP vs HAP not specified.\"\n   - Minimal clarification needed: Confirm the pneumonia type/setting being documented and reconcile the contradiction.\n\n2. Severity classification lacks supporting clinical detail in the excerpt, so a compliant severity query is not supported from this text alone.\n   - Why it matters: Severity may affect documentation specificity, but a query must be supported by clinical indicators.\n   - Evidence quote: \"Severity not classified.\"\n   - Minimal clarification needed: Additional documented clinical indicators would be needed before querying severity in a compliant, non-leading way.\n\n3. CURB-65 is not documented, but absence of a CURB-65 score alone does not support a provider query from this excerpt.\n   - Why it matters: CURB-65 is a severity/risk tool, but CDI queries should target unclear provider documentation, not simply the absence of a scoring tool unless organizational policy specifically requires it.\n   - Evidence quote: \"CURB-65 not documented.\"\n   - Minimal clarification needed: None for CDI query purposes based on this excerpt alone; if the operational goal is quality documentation, this may be a workflow reminder rather than a provider query target.\n\n4. No culture results are documented, but this excerpt does not support a compliant query based solely on missing cultures.\n   - Why it matters: Missing test results do not, by themselves, justify a diagnostic clarification query.\n   - Evidence quote: \"No culture results documented.\"\n   - Minimal clarification needed: Actual microbiology data or conflicting organism documentation would be needed before querying etiology.\n\nProposed Provider Queries:\n1. Topic: Pneumonia type/setting clarification\n   - Reason query is needed: The excerpt contains conflicting documentation regarding whether the pneumonia is community-acquired versus unspecified type/setting.\n   - Evidence quote: \"Patient with Community-acquired pneumonia.\" and \"CAP vs HAP not specified.\"\n   - Non-leading query text: \"The documentation includes 'Community-acquired pneumonia' and also states 'CAP vs HAP not specified.' For documentation consistency, please clarify the type/setting of pneumonia being treated during this encounter.\"\n   - Suggested response options for the provider:\n     - Community-acquired pneumonia\n     - Hospital-acquired pneumonia\n     - Another specified pneumonia type/setting\n     - Unable to determine from the current information\n\n2. Topic: Severity classification of pneumonia\n   - Reason query is needed: Not recommended from this excerpt alone.\n   - Evidence quote: \"Severity not classified.\"\n   - Non-leading query text: No compliant query can be drafted from this excerpt alone because no supporting clinical indicators for severity are provided.\n   - Suggested response options for the provider: Not applicable.\n\n3. Topic: Etiology/pathogen based on culture results\n   - Reason query is needed: Not recommended from this excerpt alone.\n   - Evidence quote: \"No culture results documented.\"\n   - Non-leading query text: No compliant query can be drafted from this excerpt alone because absence of culture documentation does not establish a supported clarification opportunity.\n   - Suggested response options for the provider: Not applicable.\n\nCoding Specificity Checklist:\n- Pneumonia type/setting clearly stated and internally consistent\n- If known and documented elsewhere, whether pneumonia is community-acquired, hospital-acquired, or another specified type\n- Severity only if supported by documented clinical indicators in the record\n- Etiology/pathogen only if supported by documented test results or explicit provider documentation\n- Any associated complications or manifestations only if explicitly documented\n\nRisk Flags:\n- Contradiction: \"Patient with Community-acquired pneumonia\" conflicts with \"CAP vs HAP not specified.\"\n- Unsupported query risk: \"Severity not classified\" without supporting indicators is insufficient for a compliant severity query.\n- Unsupported query risk: \"No culture results documented\" is insufficient to query organism/etiology.\n- Process vs CDI issue: \"CURB-65 not documented\" appears more like a quality/workflow gap than a CDI query target based on this excerpt alone.\n\nSpecialist Trace:\n- Medical Coding Expert: Consulted.\n  - Requested: Evaluate compliant CDI gaps and query opportunities related to CAP vs HAP specificity, severity classification, CURB-65, and absent cultures using only the provided excerpt.\n  - Accepted: The need to clarify the internally inconsistent pneumonia type/setting; the conclusion that severity and culture-based queries are not supported by this excerpt alone; the caution that missing CURB-65 alone does not support a CDI query.\n  - Rejected: None, because the expert did not provide unsupported patient-specific inferences.\n- AMBOSS Expert: Not consulted.\n  - Rationale: No clinical criteria assessment was necessary because the excerpt lacks clinical findings to evaluate.\n- CDI Web Search Expert: Not consulted.\n  - Rationale: No current external compliance guidance was necessary to answer conservatively from the excerpt itself."
+}

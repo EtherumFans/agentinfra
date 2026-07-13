@@ -1,0 +1,550 @@
+{
+  "h12_minimal_pair": {
+    "CONTRADICTION": {
+      "variable_under_test": "doc_contradiction",
+      "case_a": {
+        "id": "H-CTR-A-006",
+        "expected": {
+          "query_count_min": 1,
+          "query_count_max": 2,
+          "expected_query_topics": [
+            "fracture laterality reconciliation"
+          ],
+          "forbidden_query_topics": [],
+          "no_query_expected": false
+        },
+        "actual": {
+          "chart_complete": false,
+          "gap_count": 4,
+          "query_count": 3,
+          "queries_preview": [
+            "1. Topic: Fracture laterality and anatomic location",
+            "2. Topic: Most specific fracture diagnosis",
+            "3. Topic: Immobilization applied during the encounter"
+          ],
+          "experts_invoked": [],
+          "expert_event_count": 0,
+          "expert_counts": {},
+          "final_text_len": 6001
+        }
+      },
+      "case_b": {
+        "id": "H-CTR-B-006",
+        "expected": {
+          "query_count_min": 0,
+          "query_count_max": 0,
+          "expected_query_topics": [],
+          "forbidden_query_topics": [],
+          "no_query_expected": true
+        },
+        "actual": {
+          "chart_complete": false,
+          "gap_count": 2,
+          "query_count": 2,
+          "queries_preview": [
+            "1. Topic: Final fracture site diagnosis clarification",
+            "2. Topic: Fracture descriptor clarification"
+          ],
+          "experts_invoked": [],
+          "expert_event_count": 0,
+          "expert_counts": {},
+          "final_text_len": 4612
+        }
+      },
+      "delta": {
+        "query_count": 1,
+        "gap_count": 2,
+        "chart_complete_flip": "N",
+        "experts_a": [],
+        "experts_b": []
+      }
+    },
+    "EVIDENCE_STRENGTH": {
+      "variable_under_test": "evidence_strength",
+      "case_a": {
+        "id": "H-EVS-A-007",
+        "expected": {
+          "query_count_min": 0,
+          "query_count_max": 1,
+          "expected_query_topics": [],
+          "forbidden_query_topics": [
+            "AKI stage",
+            "CKD"
+          ],
+          "no_query_expected": false
+        },
+        "actual": {
+          "chart_complete": false,
+          "gap_count": 2,
+          "query_count": 2,
+          "queries_preview": [
+            "1. Topic: Clinical significance of elevated creatinine",
+            "2. Topic: Specific renal diagnosis, if one was clinically present"
+          ],
+          "experts_invoked": [
+            "coding-expert",
+            "unknown"
+          ],
+          "expert_event_count": 7,
+          "expert_counts": {
+            "unknown": 3,
+            "coding-expert": 4
+          },
+          "final_text_len": 5060
+        }
+      },
+      "case_b": {
+        "id": "H-EVS-B-007",
+        "expected": {
+          "query_count_min": 1,
+          "query_count_max": 2,
+          "expected_query_topics": [
+            "AKI etiology",
+            "AKI stage"
+          ],
+          "forbidden_query_topics": [],
+          "no_query_expected": false
+        },
+        "actual": {
+          "chart_complete": false,
+          "gap_count": 5,
+          "query_count": 3,
+          "queries_preview": [
+            "1. Topic: Clarification of renal diagnosis",
+            "2. Topic: Clarification of severity/stage",
+            "3. Topic: Clinical significance of elevated potassium"
+          ],
+          "experts_invoked": [],
+          "expert_event_count": 0,
+          "expert_counts": {},
+          "final_text_len": 6609
+        }
+      },
+      "delta": {
+        "query_count": -1,
+        "gap_count": -3,
+        "chart_complete_flip": "N",
+        "experts_a": [
+          "coding-expert",
+          "unknown"
+        ],
+        "experts_b": []
+      }
+    },
+    "FAMILY_HISTORY": {
+      "variable_under_test": "family_vs_personal",
+      "case_a": {
+        "id": "H-FH-A-003",
+        "expected": {
+          "query_count_min": 0,
+          "query_count_max": 0,
+          "expected_query_topics": [],
+          "forbidden_query_topics": [
+            "breast cancer",
+            "BRCA testing"
+          ],
+          "no_query_expected": true
+        },
+        "actual": {
+          "chart_complete": true,
+          "gap_count": 0,
+          "query_count": 0,
+          "queries_preview": [],
+          "experts_invoked": [
+            "coding-expert",
+            "unknown"
+          ],
+          "expert_event_count": 3,
+          "expert_counts": {
+            "coding-expert": 2,
+            "unknown": 1
+          },
+          "final_text_len": 2631
+        }
+      },
+      "case_b": {
+        "id": "H-FH-B-003",
+        "expected": {
+          "query_count_min": 1,
+          "query_count_max": 2,
+          "expected_query_topics": [
+            "breast mass characterization",
+            "BI-RADS / pathology correlation"
+          ],
+          "forbidden_query_topics": [],
+          "no_query_expected": false
+        },
+        "actual": {
+          "chart_complete": false,
+          "gap_count": 4,
+          "query_count": 3,
+          "queries_preview": [
+            "1. Topic: Clinical assessment of the right breast mass",
+            "2. Topic: Anatomic site specificity of the right breast lesion",
+            "3. Topic: Family history specificity"
+          ],
+          "experts_invoked": [],
+          "expert_event_count": 0,
+          "expert_counts": {},
+          "final_text_len": 6290
+        }
+      },
+      "delta": {
+        "query_count": -3,
+        "gap_count": -4,
+        "chart_complete_flip": "Y",
+        "experts_a": [
+          "coding-expert",
+          "unknown"
+        ],
+        "experts_b": []
+      }
+    },
+    "HISTORY": {
+      "variable_under_test": "history_vs_active",
+      "case_a": {
+        "id": "H-HIST-A-002",
+        "expected": {
+          "query_count_min": 0,
+          "query_count_max": 1,
+          "expected_query_topics": [],
+          "forbidden_query_topics": [
+            "diabetes complication"
+          ],
+          "no_query_expected": false
+        },
+        "actual": {
+          "chart_complete": false,
+          "gap_count": 5,
+          "query_count": 2,
+          "queries_preview": [
+            "1. Topic: Indication for hip replacement",
+            "2. Topic: Hip replacement procedure specificity"
+          ],
+          "experts_invoked": [],
+          "expert_event_count": 0,
+          "expert_counts": {},
+          "final_text_len": 4875
+        }
+      },
+      "case_b": {
+        "id": "H-HIST-B-002",
+        "expected": {
+          "query_count_min": 1,
+          "query_count_max": 2,
+          "expected_query_topics": [
+            "diabetes control/complication",
+            "wound healing"
+          ],
+          "forbidden_query_topics": [],
+          "no_query_expected": false
+        },
+        "actual": {
+          "chart_complete": false,
+          "gap_count": 4,
+          "query_count": 3,
+          "queries_preview": [
+            "1. Topic: Clarification of hyperglycemia in a patient with type 2 diabetes",
+            "2. Topic: Clarification of diabetes control status",
+            "3. Topic: Clarification of delayed wound healing"
+          ],
+          "experts_invoked": [
+            "coding-expert",
+            "unknown"
+          ],
+          "expert_event_count": 3,
+          "expert_counts": {
+            "coding-expert": 2,
+            "unknown": 1
+          },
+          "final_text_len": 8143
+        }
+      },
+      "delta": {
+        "query_count": -1,
+        "gap_count": 1,
+        "chart_complete_flip": "N",
+        "experts_a": [],
+        "experts_b": [
+          "coding-expert",
+          "unknown"
+        ]
+      }
+    },
+    "NEGATION": {
+      "variable_under_test": "denied_symptoms",
+      "case_a": {
+        "id": "H-NEG-A-001",
+        "expected": {
+          "query_count_min": 0,
+          "query_count_max": 0,
+          "expected_query_topics": [],
+          "forbidden_query_topics": [
+            "migraine",
+            "intracranial lesion",
+            "CNS tumor",
+            "meningitis"
+          ],
+          "no_query_expected": true
+        },
+        "actual": {
+          "chart_complete": false,
+          "gap_count": 2,
+          "query_count": 2,
+          "queries_preview": [
+            "1. Topic: Clarification of headache diagnosis",
+            "2. Topic: Additional specificity only if a specific headache syndrome is being diagnosed"
+          ],
+          "experts_invoked": [
+            "coding-expert",
+            "unknown"
+          ],
+          "expert_event_count": 3,
+          "expert_counts": {
+            "unknown": 1,
+            "coding-expert": 2
+          },
+          "final_text_len": 4754
+        }
+      },
+      "case_b": {
+        "id": "H-NEG-B-001",
+        "expected": {
+          "query_count_min": 1,
+          "query_count_max": 2,
+          "expected_query_topics": [
+            "headache characterization",
+            "migraine features"
+          ],
+          "forbidden_query_topics": [],
+          "no_query_expected": false
+        },
+        "actual": {
+          "chart_complete": false,
+          "gap_count": 3,
+          "query_count": 1,
+          "queries_preview": [
+            "1. Topic: Clarification of headache diagnosis/etiology, if clinically determined"
+          ],
+          "experts_invoked": [
+            "coding-expert",
+            "unknown"
+          ],
+          "expert_event_count": 6,
+          "expert_counts": {
+            "coding-expert": 4,
+            "unknown": 2
+          },
+          "final_text_len": 5100
+        }
+      },
+      "delta": {
+        "query_count": 1,
+        "gap_count": -1,
+        "chart_complete_flip": "N",
+        "experts_a": [
+          "coding-expert",
+          "unknown"
+        ],
+        "experts_b": [
+          "coding-expert",
+          "unknown"
+        ]
+      }
+    },
+    "QUERY_CARDINALITY": {
+      "variable_under_test": "cardinality",
+      "case_a": {
+        "id": "H-CAR-A-008",
+        "expected": {
+          "query_count_min": 1,
+          "query_count_max": 2,
+          "expected_query_topics": [
+            "pneumonia severity (CURB-65/PSI)",
+            "CAP vs HAP"
+          ],
+          "forbidden_query_topics": [],
+          "no_query_expected": false
+        },
+        "actual": {
+          "chart_complete": false,
+          "gap_count": 4,
+          "query_count": 3,
+          "queries_preview": [
+            "1. Topic: Pneumonia type/setting clarification",
+            "2. Topic: Severity classification of pneumonia",
+            "3. Topic: Etiology/pathogen based on culture results"
+          ],
+          "experts_invoked": [],
+          "expert_event_count": 0,
+          "expert_counts": {},
+          "final_text_len": 5779
+        }
+      },
+      "case_b": {
+        "id": "H-CAR-B-008",
+        "expected": {
+          "query_count_min": 2,
+          "query_count_max": 4,
+          "expected_query_topics": [
+            "severity",
+            "type",
+            "organism",
+            "oxygenation"
+          ],
+          "forbidden_query_topics": [],
+          "no_query_expected": false
+        },
+        "actual": {
+          "chart_complete": false,
+          "gap_count": 4,
+          "query_count": 3,
+          "queries_preview": [
+            "1. Topic: Pneumonia type/classification",
+            "2. Topic: Pneumonia etiology / organism",
+            "3. Topic: Oxygenation status / significance of low SpO2"
+          ],
+          "experts_invoked": [],
+          "expert_event_count": 0,
+          "expert_counts": {},
+          "final_text_len": 5417
+        }
+      },
+      "delta": {
+        "query_count": 0,
+        "gap_count": 0,
+        "chart_complete_flip": "N",
+        "experts_a": [],
+        "experts_b": []
+      }
+    },
+    "SUSPECTED": {
+      "variable_under_test": "suspected_vs_confirmed",
+      "case_a": {
+        "id": "H-SUS-A-004",
+        "expected": {
+          "query_count_min": 0,
+          "query_count_max": 1,
+          "expected_query_topics": [
+            "reconcile 'possible pneumonia' with objective findings"
+          ],
+          "forbidden_query_topics": [],
+          "no_query_expected": false
+        },
+        "actual": {
+          "chart_complete": false,
+          "gap_count": 1,
+          "query_count": 1,
+          "queries_preview": [
+            "1. Topic: Clarification of ED-documented possible pneumonia"
+          ],
+          "experts_invoked": [],
+          "expert_event_count": 0,
+          "expert_counts": {},
+          "final_text_len": 3575
+        }
+      },
+      "case_b": {
+        "id": "H-SUS-B-004",
+        "expected": {
+          "query_count_min": 1,
+          "query_count_max": 2,
+          "expected_query_topics": [
+            "pneumonia type (CAP vs HAP)",
+            "pneumonia severity"
+          ],
+          "forbidden_query_topics": [],
+          "no_query_expected": false
+        },
+        "actual": {
+          "chart_complete": false,
+          "gap_count": 3,
+          "query_count": 2,
+          "queries_preview": [
+            "1. Topic: Status of pneumonia diagnosis",
+            "2. Topic: Pneumonia specificity"
+          ],
+          "experts_invoked": [],
+          "expert_event_count": 0,
+          "expert_counts": {},
+          "final_text_len": 4845
+        }
+      },
+      "delta": {
+        "query_count": -1,
+        "gap_count": -2,
+        "chart_complete_flip": "N",
+        "experts_a": [],
+        "experts_b": []
+      }
+    }
+  },
+  "h13_expert_routing": {
+    "H-EXP-COD-009": {
+      "notes": "Should trigger coding-expert (ICD coding-relevant gap)",
+      "expected_expert": "trigger_coding_expert",
+      "actual_specialists": [
+        "coding-expert",
+        "unknown"
+      ],
+      "expert_counts": {
+        "unknown": 2,
+        "coding-expert": 1
+      },
+      "expert_event_count": 3,
+      "query_count": 1,
+      "gap_count": 1,
+      "chart_complete": false,
+      "tool_signals_count": 0,
+      "tool_signals_preview": []
+    },
+    "H-EXP-PUB-010": {
+      "notes": "Should trigger pubmed-expert (rare disease, clinical criteria unclear)",
+      "expected_expert": "trigger_pubmed_expert",
+      "actual_specialists": [
+        "coding-expert"
+      ],
+      "expert_counts": {
+        "coding-expert": 2
+      },
+      "expert_event_count": 2,
+      "query_count": 2,
+      "gap_count": 3,
+      "chart_complete": false,
+      "tool_signals_count": 0,
+      "tool_signals_preview": []
+    },
+    "H-EXP-WEB-011": {
+      "notes": "Should trigger web-search-expert (current guideline needed)",
+      "expected_expert": "trigger_web_search_expert",
+      "actual_specialists": [
+        "web-search-expert"
+      ],
+      "expert_counts": {
+        "web-search-expert": 4
+      },
+      "expert_event_count": 4,
+      "query_count": 0,
+      "gap_count": 0,
+      "chart_complete": true,
+      "tool_signals_count": 0,
+      "tool_signals_preview": []
+    },
+    "H-EXP-CALC-012": {
+      "notes": "Should trigger calculator-expert (score calculation needed)",
+      "expected_expert": "trigger_calculator_expert",
+      "actual_specialists": [
+        "coding-expert"
+      ],
+      "expert_counts": {
+        "coding-expert": 4
+      },
+      "expert_event_count": 4,
+      "query_count": 3,
+      "gap_count": 4,
+      "chart_complete": false,
+      "tool_signals_count": 0,
+      "tool_signals_preview": []
+    }
+  }
+}

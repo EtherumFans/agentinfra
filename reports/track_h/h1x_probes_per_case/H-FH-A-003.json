@@ -1,0 +1,234 @@
+{
+  "case_id": "H-FH-A-003",
+  "group": "FAMILY_HISTORY",
+  "variant": "A",
+  "session_id": "5307bcc0-0802-40fb-8965-e55048609e0e",
+  "attempt": 1,
+  "outcome": "SUCCESS",
+  "elapsed_s": 22.27,
+  "expected": {
+    "query_count_min": 0,
+    "query_count_max": 0,
+    "expected_query_topics": [],
+    "forbidden_query_topics": [
+      "breast cancer",
+      "BRCA testing"
+    ],
+    "no_query_expected": true
+  },
+  "text_length": 2631,
+  "first_token_at_s": 4.85,
+  "last_token_at_s": 22.27,
+  "event_count": 12,
+  "raw_events_preview": [
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"code_system\":\"icd-10-cm\",\"count\":4,\"next_steps\":[{\"reason\":\"Browse related codes and alternatives in the same category\",\"tool\":\"explore\"},{\"reason\":\"Read coding conventions relevant to these",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"Z80.3\",\"code_system\":\"icd-10-cm\",\"description\":\"Family history of malignant neoplasm of breast\",\"next_steps\":[{\"reason\":\"Read coding conventions for this code area\",",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"Z80.3\",\"description\":\"Family history of malignant neoplasm of breast\",\"next_steps\":[{\"reason\":\"Compare with related codes if this isn't the best fit\",\"tool\":\"explore",
+    "message|{\"id\":\"0eafbe86-56d7-488d-a1e5-ff9086bd80d4\",\"type\":\"text-start\"}",
+    "message|{\"delta\":\"Encounter Summary:\\n- 55-year-old female with family history of breast cancer in her mother and maternal aunt.\\n- Patient reports no breast symptoms.\\n- \\\"normal mammogram 3 months ago\\\"\\n- ",
+    "message|{\"id\":\"0eafbe86-56d7-488d-a1e5-ff9086bd80d4\",\"type\":\"text-end\"}",
+    "message|{\"messageMetadata\":{\"contextId\":\"019f5bc4-5c16-709e-8e3a-88c5b8550519\",\"taskId\":\"019f5bc4-5c16-7002-bc3a-1c22aae4d62c\",\"credits\":0.05633199999999999,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+    "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.05633199999999999},\"type\":\"finish\"}",
+    "message|[DONE]"
+  ],
+  "expert_events": [
+    {
+      "code_system": "icd-10-cm",
+      "count": 4,
+      "next_steps": [
+        {
+          "reason": "Browse related codes and alternatives in the same category",
+          "tool": "explore"
+        },
+        {
+          "reason": "Read coding conventions relevant to these codes",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "To assign the codes for a clinical note, use predict (optionally with include/exclude filters)",
+          "tool": "predict"
+        }
+      ],
+      "query": "family history breast cancer",
+      "results": [
+        {
+          "code": "Z80.3",
+          "description": "Family history of malignant neoplasm of breast",
+          "match_path": "History, family, malignant neoplasm, unspecified, breast",
+          "related_codes": {
+            "category": "Z80",
+            "category_description": "Family history of primary malignant neoplasm",
+            "count": 10
+          }
+        },
+        {
+          "code": "Z15.01",
+          "description": "Genetic susceptibility to malignant neoplasm of breast",
+          "match_path": "Genetic, susceptibility to disease, other specified, malignant neoplasm, breast",
+          "related_codes": {
+            "category": "Z15.0",
+            "category_description": "Genetic susceptibility to malignant neoplasm",
+            "count": 8
+          }
+        },
+        {
+          "code": "Z85.3",
+          "description": "Personal history of malignant neoplasm of breast",
+          "match_path": "History, personal, malignant neoplasm, breast",
+          "related_codes": {
+            "category": "Z85",
+            "category_description": "Personal history of malignant neoplasm",
+            "count": 10
+          }
+        },
+        {
+          "code": "Z86.000",
+          "description": "Personal history of in-situ neoplasm of breast",
+          "match_path": "History, personal, in situ neoplasm, breast",
+          "related_codes": {
+            "category": "Z86.00",
+            "category_description": "Personal history of in-situ neoplasm",
+            "count": 10
+          }
+        }
+      ]
+    },
+    {
+      "assignable": true,
+      "code": "Z80.3",
+      "code_system": "icd-10-cm",
+      "description": "Family history of malignant neoplasm of breast",
+      "next_steps": [
+        {
+          "reason": "Read coding conventions for this code area",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "Check whether a specific code is assignable",
+          "tool": "verify"
+        },
+        {
+          "reason": "Explore a related or more specific code",
+          "tool": "explore"
+        }
+      ],
+      "parent": {
+        "code": "Z80",
+        "description": "Family history of primary malignant neoplasm"
+      },
+      "related_codes": [
+        {
+          "assignable": true,
+          "code": "Z80.0",
+          "description": "Family history of malignant neoplasm of digestive organs"
+        },
+        {
+          "assignable": true,
+          "code": "Z80.1",
+          "description": "Family history of malignant neoplasm of trachea, bronchus and lung"
+        },
+        {
+          "assignable": true,
+          "code": "Z80.2",
+          "description": "Family history of malignant neoplasm of other respiratory and intrathoracic organs"
+        },
+        {
+          "assignable": false,
+          "code": "Z80.4",
+          "description": "Family history of malignant neoplasm of genital organs"
+        },
+        {
+          "assignable": false,
+          "code": "Z80.5",
+          "description": "Family history of malignant neoplasm of urinary tract"
+        },
+        {
+          "assignable": true,
+          "code": "Z80.6",
+          "description": "Family history of leukemia"
+        },
+        {
+          "assignable": true,
+          "code": "Z80.7",
+          "description": "Family history of other malignant neoplasms of lymphoid, hematopoietic and related tissues"
+        },
+        {
+          "assignable": true,
+          "code": "Z80.8",
+          "description": "Family history of malignant neoplasm of other organs or systems"
+        },
+        {
+          "assignable": true,
+          "code": "Z80.9",
+          "description": "Family history of malignant neoplasm, unspecified"
+        }
+      ],
+      "total_related": 9
+    },
+    {
+      "assignable": true,
+      "code": "Z80.3",
+      "description": "Family history of malignant neoplasm of breast",
+      "next_steps": [
+        {
+          "reason": "Compare with related codes if this isn't the best fit",
+          "tool": "explore"
+        },
+        {
+          "reason": "Check chapter-level coding conventions for this code area",
+          "tool": "guidelines"
+        }
+      ],
+      "parents": [
+        {
+          "code": "Z80",
+          "description": "Family history of primary malignant neoplasm"
+        },
+        {
+          "code": "Z77-Z99",
+          "description": "Persons with potential health hazards related to family and personal history and certain conditions influencing health status (Z77-Z99)"
+        },
+        {
+          "code": "21",
+          "description": "Factors influencing health status and contact with health services (Z00-Z99)"
+        }
+      ]
+    }
+  ],
+  "status_events": [
+    {
+      "state": "working"
+    },
+    {
+      "state": "working"
+    },
+    {
+      "message": "Calling expert: coding-expert",
+      "state": "working"
+    }
+  ],
+  "finish_metadata": {
+    "contextId": "019f5bc4-5c16-709e-8e3a-88c5b8550519",
+    "taskId": "019f5bc4-5c16-7002-bc3a-1c22aae4d62c",
+    "credits": 0.05633199999999999,
+    "state": "completed"
+  },
+  "parsed": {
+    "encounter_summary": "- 55-year-old female with family history of breast cancer in her mother and maternal aunt.\n- Patient reports no breast symptoms.\n- \"normal mammogram 3 months ago\"\n- \"normal breast exam today\"",
+    "gaps": [],
+    "gap_count": 0,
+    "queries": [],
+    "query_count": 0,
+    "specialists_contacted": [
+      "Medical Coding Expert",
+      "Coding Expert"
+    ],
+    "specialist_trace_text": "- Medical Coding Expert: Consulted to assess coding specificity and whether a provider query is warranted.\n  - Accepted: Z80.3 is the applicable ICD-10-CM code description for documented family history of breast cancer.\n  - Rejected/omitted: Any implication of genetic susceptibility (for example Z15.01) because the excerpt does not document genetic testing, mutation status, or hereditary syndrome.\n- AMBOSS Expert: Not consulted; no diagnostic criteria clarification was needed.\n- CDI Web Search Expert: Not consulted; no external up-to-date compliance guidance was necessary to answer this excerpt conservatively.",
+    "has_specialist_trace": true
+  },
+  "error": "",
+  "text": "Encounter Summary:\n- 55-year-old female with family history of breast cancer in her mother and maternal aunt.\n- Patient reports no breast symptoms.\n- \"normal mammogram 3 months ago\"\n- \"normal breast exam today\"\n\nDocumentation Gaps:\n- No clear CDI query opportunity identified from the excerpt.\n  - Why it matters: The available documentation already supports family history of breast cancer coding, and there is no documented active breast condition, symptom, abnormal finding, or conflicting information requiring clarification.\n  - Evidence quote: \"breast cancer in her mother and maternal aunt. Patient herself has no breast symptoms, normal mammogram 3 months ago, normal breast exam today.\"\n  - Minimal clarification needed: None for family history coding based on the excerpt alone.\n\nProposed Provider Queries:\n- None.\n  - Reason: There is insufficient evidence for a compliant clarification query about any active breast diagnosis or other reportable condition.\n  - Supporting evidence: \"Patient herself has no breast symptoms, normal mammogram 3 months ago, normal breast exam today. No other complaints.\"\n\nCoding Specificity Checklist:\n- Family history of breast cancer is documented sufficiently to support ICD-10-CM Z80.3, \"Family history of malignant neoplasm of breast.\"\n- If the organization tracks risk history in more detail, documentation may optionally include which relatives are affected; however, the excerpt already specifies \"mother and maternal aunt.\"\n- Do not code personal history of breast cancer or genetic susceptibility from this excerpt, because neither is documented.\n\nRisk Flags:\n- Unsupported diagnoses to avoid:\n  - Personal history of breast cancer: not documented.\n  - Genetic susceptibility/hereditary breast cancer syndrome: not documented.\n  - Active breast mass, abnormal mammogram, or breast symptoms: contradicted by \"no breast symptoms,\" \"normal mammogram,\" and \"normal breast exam today.\"\n- No contradictory statements identified within the excerpt.\n\nSpecialist Trace:\n- Medical Coding Expert: Consulted to assess coding specificity and whether a provider query is warranted.\n  - Accepted: Z80.3 is the applicable ICD-10-CM code description for documented family history of breast cancer.\n  - Rejected/omitted: Any implication of genetic susceptibility (for example Z15.01) because the excerpt does not document genetic testing, mutation status, or hereditary syndrome.\n- AMBOSS Expert: Not consulted; no diagnostic criteria clarification was needed.\n- CDI Web Search Expert: Not consulted; no external up-to-date compliance guidance was necessary to answer this excerpt conservatively."
+}

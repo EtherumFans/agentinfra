@@ -556,6 +556,15 @@ async def main_inner(args: argparse.Namespace) -> int:
         consecutive_auth_failures = 0
         for i, case in enumerate(cases, 1):
             print(f"[{i}/{len(cases)}] {case['case_id']} ({case.get('group', '')})")
+            # Tier 2: re-read creds from file each case so a background
+            # refresh daemon can keep tokens valid during long runs.
+            if args.creds and Path(args.creds).exists():
+                try:
+                    fresh = json.loads(Path(args.creds).read_text(encoding="utf-8"))
+                    supabase_jwt = fresh["supabase_jwt"]
+                    corti_jwt = fresh["corti_jwt"]
+                except Exception:
+                    pass
             r = await run_case_with_retries(client, case, supabase_jwt, corti_jwt, config)
             results.append(r)
             # Fast-fail: 3 consecutive CREATE_SESSION_FAILED with 401 → abort
@@ -597,6 +606,7 @@ async def main_inner(args: argparse.Namespace) -> int:
 
 
 def main() -> None:
+    global OUT_DIR, SUMMARY_OUT
     ap = argparse.ArgumentParser()
     ap.add_argument("--creds", default="scripts/corti_parity/track_h/.corti_creds.json",
                     help="JSON file with {supabase_jwt, corti_jwt}")
@@ -604,7 +614,14 @@ def main() -> None:
     ap.add_argument("--smoke", action="store_true", help="Run 3-case smoke instead of 40-case")
     ap.add_argument("--limit", type=int, default=None, help="Limit N cases (debugging)")
     ap.add_argument("--force", action="store_true", help="Re-run even if per-case JSON exists")
+    ap.add_argument("--out-dir", default=None, help="Override per-case output dir (default: reports/track_h/corti_per_case)")
+    ap.add_argument("--summary-out", default=None, help="Override summary output JSON path")
     args = ap.parse_args()
+    if args.out_dir:
+        OUT_DIR = Path(args.out_dir)
+        OUT_DIR.mkdir(parents=True, exist_ok=True)
+    if args.summary_out:
+        SUMMARY_OUT = Path(args.summary_out)
     sys.exit(asyncio.run(main_inner(args)))
 
 

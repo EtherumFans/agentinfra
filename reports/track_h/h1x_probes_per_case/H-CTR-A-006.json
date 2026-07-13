@@ -1,0 +1,97 @@
+{
+  "case_id": "H-CTR-A-006",
+  "group": "CONTRADICTION",
+  "variant": "A",
+  "session_id": "da92ac96-a2f6-4182-99df-71f2fa3e2a34",
+  "attempt": 1,
+  "outcome": "SUCCESS",
+  "elapsed_s": 32.58,
+  "expected": {
+    "query_count_min": 1,
+    "query_count_max": 2,
+    "expected_query_topics": [
+      "fracture laterality reconciliation"
+    ],
+    "forbidden_query_topics": [],
+    "no_query_expected": false
+  },
+  "text_length": 6001,
+  "first_token_at_s": 4.2,
+  "last_token_at_s": 32.58,
+  "event_count": 9,
+  "raw_events_preview": [
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"id\":\"accf363d-952c-4d55-b9ea-80e9ea499dcf\",\"type\":\"text-start\"}",
+    "message|{\"delta\":\"Encounter Summary:\\n- Same-day documentation describes a wrist fracture after a fall, but the side is inconsistent across sources.\\n- ED note documents: “Patient with left wrist fracture aft",
+    "message|{\"id\":\"accf363d-952c-4d55-b9ea-80e9ea499dcf\",\"type\":\"text-end\"}",
+    "message|{\"messageMetadata\":{\"contextId\":\"019f5bc6-22f7-7811-a7c2-c6ce70a315bf\",\"taskId\":\"019f5bc6-22f7-779e-b643-928438122f62\",\"credits\":0.06967199999999998,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+    "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.06967199999999998},\"type\":\"finish\"}",
+    "message|[DONE]"
+  ],
+  "expert_events": [],
+  "status_events": [
+    {
+      "state": "working"
+    },
+    {
+      "state": "working"
+    },
+    {
+      "message": "Calling expert: coding-expert",
+      "state": "working"
+    }
+  ],
+  "finish_metadata": {
+    "contextId": "019f5bc6-22f7-7811-a7c2-c6ce70a315bf",
+    "taskId": "019f5bc6-22f7-779e-b643-928438122f62",
+    "credits": 0.06967199999999998,
+    "state": "completed"
+  },
+  "parsed": {
+    "encounter_summary": "- Same-day documentation describes a wrist fracture after a fall, but the side is inconsistent across sources.\n- ED note documents: “Patient with left wrist fracture after fall, splint applied.”\n- Orthopedic note documents: “Right wrist fracture, cast applied.”\n- Radiology documents: “Linear fracture distal radius, side not specified.” Patient also reports “pain on right wrist.”",
+    "gaps": [
+      {
+        "idx": 1,
+        "text": "Laterality conflict for the fracture\n- Why it matters: Laterality is required for accurate diagnosis specificity and code assignment; conflicting documentation should not be assumed resolved.\n- Evidence quotes:\n  - “Patient with left wrist fracture after fall, splint applied.”\n  - “Right wrist fracture, cast applied.”\n  - “Patient reports pain on right wrist.”\n  - “Linear fracture distal radius, side not specified.”\n- Minimal clarification needed: Confirm the correct side of the fracture and whe"
+      },
+      {
+        "idx": 2,
+        "text": "Fracture site specificity gap\n- Why it matters: “Wrist fracture” is less specific than the radiology wording “distal radius,” and the final documented diagnosis should match the most specific confirmed site.\n- Evidence quotes:\n  - “Patient with left wrist fracture after fall, splint applied.”\n  - “Right wrist fracture, cast applied.”\n  - “Linear fracture distal radius, side not specified.”\n- Minimal clarification needed: Clarify the most specific fracture diagnosis being treated or evaluated in "
+      },
+      {
+        "idx": 3,
+        "text": "Immobilization/final treatment documentation inconsistency\n- Why it matters: Same-day record integrity is affected when the immobilization method differs without explanation.\n- Evidence quotes:\n  - “splint applied.”\n  - “cast applied.”\n- Minimal clarification needed: Clarify whether the patient had a splint, a cast, or both at different times during the encounter."
+      },
+      {
+        "idx": 4,
+        "text": "External cause detail is limited\n- Why it matters: The mechanism is only documented as “after fall.” If external cause coding is needed, the circumstances of the fall are not specified in this excerpt.\n- Evidence quote:\n  - “after fall”\n- Minimal clarification needed: None unless your workflow requires external cause detail; this excerpt alone does not support a more specific query topic."
+      }
+    ],
+    "gap_count": 4,
+    "queries": [
+      {
+        "idx": 1,
+        "text": "Fracture laterality and anatomic location"
+      },
+      {
+        "idx": 2,
+        "text": "Most specific fracture diagnosis"
+      },
+      {
+        "idx": 3,
+        "text": "Immobilization applied during the encounter"
+      }
+    ],
+    "query_count": 3,
+    "specialists_contacted": [
+      "Medical Coding Expert",
+      "Coding Expert"
+    ],
+    "specialist_trace_text": "- Medical Coding Expert: Consulted for coding specificity issues, contradiction review, and compliant query topics. Accepted output regarding laterality conflict, site specificity gap, treatment inconsistency, and non-leading query framing because all were supported by exact quotes from the excerpt.\n- AMBOSS Expert: Not consulted. Clinical diagnostic criteria were not needed to identify the primary CDI issue, which is conflicting documentation.\n- CDI Web Search Expert: Not consulted. Current external guidance was not necessary to answer this excerpt-based query conservatively.\n\nUncertainty note:\n- This analysis is limited to the provided excerpt only. The record supports querying laterality, specific fracture site, and immobilization status, but it does not support assuming the final diagnosis without provider clarification.",
+    "has_specialist_trace": true
+  },
+  "error": "",
+  "text": "Encounter Summary:\n- Same-day documentation describes a wrist fracture after a fall, but the side is inconsistent across sources.\n- ED note documents: “Patient with left wrist fracture after fall, splint applied.”\n- Orthopedic note documents: “Right wrist fracture, cast applied.”\n- Radiology documents: “Linear fracture distal radius, side not specified.” Patient also reports “pain on right wrist.”\n\nDocumentation Gaps:\n1. Laterality conflict for the fracture\n- Why it matters: Laterality is required for accurate diagnosis specificity and code assignment; conflicting documentation should not be assumed resolved.\n- Evidence quotes:\n  - “Patient with left wrist fracture after fall, splint applied.”\n  - “Right wrist fracture, cast applied.”\n  - “Patient reports pain on right wrist.”\n  - “Linear fracture distal radius, side not specified.”\n- Minimal clarification needed: Confirm the correct side of the fracture and whether the fracture is at the wrist generally or specifically the distal radius.\n\n2. Fracture site specificity gap\n- Why it matters: “Wrist fracture” is less specific than the radiology wording “distal radius,” and the final documented diagnosis should match the most specific confirmed site.\n- Evidence quotes:\n  - “Patient with left wrist fracture after fall, splint applied.”\n  - “Right wrist fracture, cast applied.”\n  - “Linear fracture distal radius, side not specified.”\n- Minimal clarification needed: Clarify the most specific fracture diagnosis being treated or evaluated in this encounter.\n\n3. Immobilization/final treatment documentation inconsistency\n- Why it matters: Same-day record integrity is affected when the immobilization method differs without explanation.\n- Evidence quotes:\n  - “splint applied.”\n  - “cast applied.”\n- Minimal clarification needed: Clarify whether the patient had a splint, a cast, or both at different times during the encounter.\n\n4. External cause detail is limited\n- Why it matters: The mechanism is only documented as “after fall.” If external cause coding is needed, the circumstances of the fall are not specified in this excerpt.\n- Evidence quote:\n  - “after fall”\n- Minimal clarification needed: None unless your workflow requires external cause detail; this excerpt alone does not support a more specific query topic.\n\nProposed Provider Queries:\n1. Topic: Fracture laterality and anatomic location\n- Reason query is needed: The record conflicts on left versus right, and radiology does not specify side.\n- Evidence quote:\n  - “Patient with left wrist fracture after fall, splint applied.”\n  - “Right wrist fracture, cast applied.”\n  - “Linear fracture distal radius, side not specified.”\n  - “Patient reports pain on right wrist.”\n- Non-leading query text:\n  - “For this encounter, please clarify the correct anatomic location and laterality of the fracture documented in the record.”\n- Suggested response options:\n  - Right distal radius fracture\n  - Left distal radius fracture\n  - Right wrist fracture, not further specified\n  - Left wrist fracture, not further specified\n  - Other, please specify\n  - Clinically undetermined / unable to determine from current information\n\n2. Topic: Most specific fracture diagnosis\n- Reason query is needed: Clinical notes say “wrist fracture,” while radiology states “Linear fracture distal radius.”\n- Evidence quote:\n  - “Patient with left wrist fracture after fall, splint applied.”\n  - “Right wrist fracture, cast applied.”\n  - “Linear fracture distal radius, side not specified.”\n- Non-leading query text:\n  - “Based on the documentation for this encounter, please clarify the most specific fracture diagnosis being evaluated/treated.”\n- Suggested response options:\n  - Distal radius fracture\n  - Wrist fracture, not otherwise specified\n  - Other specified fracture, please specify\n  - No fracture confirmed\n  - Clinically undetermined / unable to determine\n\n3. Topic: Immobilization applied during the encounter\n- Reason query is needed: Same-day notes differ between splint and cast.\n- Evidence quote:\n  - “splint applied.”\n  - “cast applied.”\n- Non-leading query text:\n  - “Please clarify the immobilization/device applied during this encounter for the documented fracture.”\n- Suggested response options:\n  - Splint only\n  - Cast only\n  - Splint initially, then cast\n  - Other, please specify\n  - Clinically undetermined / unable to determine\n\nCoding Specificity Checklist:\n- Correct laterality: right vs left\n- Exact fracture site: wrist unspecified vs distal radius\n- Whether fracture was confirmed versus suspected, if relevant to final documentation\n- Type of immobilization applied during the encounter\n- If required by local workflow: circumstances of the fall\n\nRisk Flags:\n- Direct contradiction in laterality: “left wrist fracture” vs “Right wrist fracture”\n- Radiology lacks side: “Linear fracture distal radius, side not specified.”\n- Clinical symptom supports right side but does not fully resolve the contradiction: “Patient reports pain on right wrist.”\n- Same-day treatment discrepancy: “splint applied” vs “cast applied”\n- Do not assume the correct side from one note alone; provider clarification is warranted.\n\nSpecialist Trace:\n- Medical Coding Expert: Consulted for coding specificity issues, contradiction review, and compliant query topics. Accepted output regarding laterality conflict, site specificity gap, treatment inconsistency, and non-leading query framing because all were supported by exact quotes from the excerpt.\n- AMBOSS Expert: Not consulted. Clinical diagnostic criteria were not needed to identify the primary CDI issue, which is conflicting documentation.\n- CDI Web Search Expert: Not consulted. Current external guidance was not necessary to answer this excerpt-based query conservatively.\n\nUncertainty note:\n- This analysis is limited to the provided excerpt only. The record supports querying laterality, specific fracture site, and immobilization status, but it does not support assuming the final diagnosis without provider clarification."
+}

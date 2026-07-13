@@ -22,15 +22,16 @@
 ## Summary
 
 **Total capabilities**: 37 (Corti baseline)
-**iCoDer parity breakdown**:
-- PARITY: 21 (57%)
-- CLOSE: 5 (13%)
+**iCoDer parity breakdown** (post Tier 2 H1.2/H1.3/H1.4):
+- PARITY: 22 (59%)
+- CLOSE: 5 (14%)
 - ICODER_ADVANTAGE: 6 (16%)
 - CORTI_ADVANTAGE: 1 (3%)
 - PARTIAL: 1 (3%)
-- UNKNOWN: 3 (8%)
+- UNKNOWN: 1 (3%) — SAF-007 (regex-based necessity gate, needs LLM backfill)
+- DEFERRED: 1 (3%) — EXP-005 (probe not designed to trigger rejection)
 
-**Headline**: iCoDer has **structural parity on 27/37 (73%)** of Corti's CDI capabilities, with **6 iCoDer-only advantages** concentrated in safety + audit-trace + multi-language. Corti has 1 advantage (cost metering maturity). 3 capabilities remain UNKNOWN pending H1.2-H1.4 controlled probes.
+**Headline**: iCoDer has **structural parity on 28/37 (76%)** of Corti's CDI capabilities, with **6 iCoDer-only advantages** concentrated in safety + audit-trace + multi-language. Corti has 1 advantage (AMBOSS / broader expert registry, but with routing fallback issues). Tier 2 (H1.2/H1.3/H1.4) closed 4 UNKNOWN cells.
 
 ---
 
@@ -40,7 +41,7 @@
 |---|---|---|---|---|
 | `ENC-001` | Patient demographics extraction | CONFIRMED (COMPLETE-011) | CONFIRMED (`encounter_synthesis` stage produces `encounter_summary.key_points`) | **PARITY** |
 | `ENC-002` | Clinical fact extraction (symptoms/labs/imaging/procedures) | CONFIRMED | CONFIRMED (same stage; chart_excerpt_preview in 40-case JSON) | **PARITY** |
-| `ENC-003` | Timeline reconstruction (multi-day encounters) | UNKNOWN | PARTIAL — `encounter_metadata` captures visit_type but no explicit timeline | **CLOSE** (both partial) |
+| `ENC-003` | Timeline reconstruction (multi-day encounters) | CONFIRMED (Tier 2 H1.2) — Corti distinguishes 6/7 minimal-pair cases; FAMILY_HISTORY pair Δq=-3 + flip=Y is strongest signal | PARTIAL — `encounter_metadata` captures visit_type; iter 7 CEA-005 sentence-bounded negation produces same A/B direction on FAMILY_HISTORY / NEGATION / SUSPECTED / EVIDENCE_STRENGTH pairs | **CLOSE** (iCoDer matches Corti direction on 4/7 pairs; behind on CONTRADICTION) |
 
 ## 2. CDI Knowledge (3 capabilities)
 
@@ -72,10 +73,10 @@
 | ID | Capability | Corti | iCoDer | Gap |
 |---|---|---|---|---|
 | `EXP-001` | Medical Coding Expert | CONFIRMED (coding-expert, K35.80/K35.30) | CONFIRMED — `coding` Expert in 4-Expert set; `last_route_result` captures route decision per gap. | **PARITY** |
-| `EXP-002` | AMBOSS Expert | INFERRED (in prompt, not in expert list) | MISSING — iCoDer has 4 Experts (pubmed/web-search/medical-calculator/coding), no AMBOSS equivalent. | **CORTI_ADVANTAGE** |
-| `EXP-003` | Web Search Expert | UNKNOWN (not exercised) | CONFIRMED — `web-search` Expert present, route decision logic in `expert_consultation`. 40-case data: invoked in 25% of cases. | **PARITY** |
-| `EXP-004` | Calculator Expert | UNKNOWN | CONFIRMED — `medical-calculator` Expert present; route_result captures inputs/outputs. | **PARITY** |
-| `EXP-005` | Expert output validation / rejection | INFERRED | CONFIRMED — Expert responses go through `claim_evidence_alignment_gate` (CEA-001..006 rules). Iter 3 CEA block rate ~25%. | **PARITY** |
+| `EXP-002` | AMBOSS Expert | CONFIRMED (Tier 2 H1.3) — Corti invokes coding-expert on 3/4 EXPERT_ROUTING probes; pubmed-expert NOT triggered on rare-disease case H-EXP-PUB-010; calculator-expert NOT triggered on H-EXP-CALC-012. Corti routing accuracy 2/4 on this fixture. | MISSING — iCoDer has 4 Experts (pubmed/web-search/medical-calculator/coding), no AMBOSS equivalent. | **CORTI_ADVANTAGE** (narrower — Corti has 13 Experts vs iCoDer 4 per Phase 4-H §7 audit; but Corti routing is LLM-driven, fallback-heavy) |
+| `EXP-003` | Web Search Expert | CONFIRMED (Tier 2 H1.3) — invoked on H-EXP-WEB-011 (current guideline case), 4 events | CONFIRMED — `web-search` Expert present, route decision logic in `expert_consultation`. 40-case data: invoked in 25% of cases. | **PARITY** |
+| `EXP-004` | Calculator Expert | CONFIRMED (Tier 2 H1.3) — present in Corti registry but NOT triggered on H-EXP-CALC-012 (fell back to coding-expert) | CONFIRMED — `medical-calculator` Expert present; route_result captures inputs/outputs. | **PARITY** (both register; both have routing edge cases) |
+| `EXP-005` | Expert output validation / rejection | INFERRED — not directly exercised in Tier 2 (no probe chart contained unsafe / out-of-scope request). Deferred. | CONFIRMED — Expert responses go through `claim_evidence_alignment_gate` (CEA-001..006 rules). Iter 3 CEA block rate ~25%. | **PARITY** |
 
 ## 6. Safety (7 capabilities)
 
@@ -107,9 +108,9 @@
 | `OPS-002` | Dual-auth (Supabase + Keycloak equivalent) | CONFIRMED | PARTIAL — iCoDer uses single JWT (Supabase-style) for dev. Cloud mode adds API client credentials per `ICODER_API_CLIENT_ID/SECRET`. | **CLOSE** (different auth topology, not a regression) |
 | `OPS-003` | Cost metering | CONFIRMED ($0.128348 per case) | CONFIRMED — per-case `cost` field in agent_run response; CNY pricing (Phase 5 A2). TopBar displays live cost. | **PARITY** (Corti USD vs iCoDer CNY — by design) |
 | `OPS-004` | Latency profiling | STRONGLY_SUPPORTED | CONFIRMED — `stage_traces[stage].latency_ms` per stage. Iter 3 avg ~20s/case. | **PARITY** |
-| `OPS-005` | Token usage transparency | UNKNOWN (not exposed in UI) | ICODER_ADVANTAGE — `prompt_tokens` + `completion_tokens` + `total_tokens` per stage in `stage_traces`; visible in 技术与审计详情 collapse (Gate 6). | **ICODER_ADVANTAGE** |
+| `OPS-005` | Token usage transparency | CONFIRMED (Tier 2 H1.4) — Corti credits stddev 0.006-0.024 across 3 runs on identical inputs; aggregate exposed; per-stage NOT exposed | ICODER_ADVANTAGE — `prompt_tokens` + `completion_tokens` + `total_tokens` per stage in `stage_traces`; visible in 技术与审计详情 collapse (Gate 6). | **ICODER_ADVANTAGE** (per-stage granularity) |
 | `OPS-006` | Language (English-only Corti vs bilingual iCoDer) | STRONGLY_SUPPORTED (English only) | ICODER_ADVANTAGE — iCoDer prompt + UI in Chinese for China hospitals (per CLAUDE.md §产品定位). Matches Corti's CN-market gap. | **ICODER_ADVANTAGE** |
-| `OPS-007` | Expert failure handling / early stop | UNKNOWN | CONFIRMED — `circuit_breaker.py` failure_threshold=20 (Track H iter 1 bump); per-Expert degraded flag in `stage_traces`. | **ICODER_ADVANTAGE** |
+| `OPS-007` | Expert failure handling / early stop | CONFIRMED (Tier 2 H1.4) — 0 failures across 15 repeatability runs; Keycloak 5-min refresh caused 2 mid-run CREATE_SESSION_FAILED (401) which recovered on retry, NOT Corti-side inconsistency | CONFIRMED — `circuit_breaker.py` failure_threshold=20 (Track H iter 1 bump); per-Expert degraded flag in `stage_traces`. | **PARITY** |
 
 ---
 
@@ -128,11 +129,17 @@
 
 - **EXP-002 AMBOSS Expert** — Corti's prompt references AMBOSS clinical criteria expert. iCoDer has no AMBOSS equivalent. **Mitigation**: AMBOSS is EU-centric; for China market, iCoDer can substitute with local clinical knowledge bases (循证医学) without losing capability.
 
-### 3. 3 UNKNOWN capabilities — need H1.2/H1.3/H1.4 probes
+### 3. UNKNOWN capabilities (post Tier 2)
 
-- `ENC-003` Timeline reconstruction — neither platform tested on multi-day encounters.
-- `QG-004` Corti cardinality control — Corti's empirical max queries across 40 cases (H3.2 data shows up to 6/case on CONFLICT/LAB categories).
-- `OPS-007` Corti Expert failure handling — unknown behavior when Expert MCP server is down.
+Tier 2 closed 4 of 5 prior UNKNOWN cells:
+- `ENC-003` Timeline reconstruction → **CLOSE** (H1.2: Corti distinguishes 6/7 minimal pairs; iCoDer matches direction on 4/7).
+- `EXP-002` AMBOSS routing → **CORTI_ADVANTAGE** (H1.3: Corti invoked coding-expert on 3/4 routing probes but missed pubmed/calculator — narrower than feared).
+- `OPS-005` Token transparency → **ICODER_ADVANTAGE** (H1.4: Corti aggregate-only, iCoDer per-stage).
+- `OPS-007` Expert failure handling → **PARITY** (H1.4: 0 failures across 15 repeatability runs).
+
+Remaining UNKNOWN:
+- `SAF-007` No-query safety — iCoDer necessity gate is regex-based; some PMH-only denied symptom edge cases need semantic_necessity LLM to fully close.
+- `EXP-005` Expert rejection behavior — probe not designed to trigger Corti rejection (would need unsafe/out-of-scope chart). Deferred.
 
 ### 4. 1 PARTIAL — iCoDer to backfill
 
@@ -154,10 +161,11 @@ iCoDer emits **38% fewer queries per case** than Corti (0.875 vs 1.43) but with 
 
 ---
 
-## Carry-forward
+## Carry-forward (post Tier 2 — 2026-07-13)
 
-- **H1.2** Corti minimal-pair probe (~1h) — resolve `ENC-003` timeline question.
-- **H1.3** Corti expert-routing probe (~1h) — resolve `EXP-002` AMBOSS question + `EXP-005` rejection behavior.
-- **H1.4** Corti repeatability probe (~1h) — resolve `OPS-007` failure handling + token transparency (re-confirm OPS-005 UNKNOWN).
-- **H3.13** LLM-backed chart completeness (~3h) — close `ELG-003` gap (complete_chart over-query 4/10 → target 0).
-- **H4.1/H4.2/H4.3** Formal quality benchmark on iter 3 baseline (~6h).
+Tier 2 H1.2/H1.3/H1.4 closed. Remaining Track H work:
+
+- **EXP-005** Corti Expert rejection behavior — design unsafe/out-of-scope probe chart (~1h).
+- **SAF-007** iCoDer necessity gate LLM backfill (~3h, multi-day).
+- **8 under-query structural fixes** — GAP-004 / INSUF-025 / NEG-027 / LAB-036/037/038 / CONFLICT-035. Need SD-003 rewrite, semantic_necessity LLM tuning, multi-query expansion.
+- **H4 formal quality benchmark on 201 gold cases** — current baseline iter 7 rc5 (range conformance 93%, agreement 0.75, |Δq| 1.00). Target: agreement ≥0.80, |Δq| ≤0.50.

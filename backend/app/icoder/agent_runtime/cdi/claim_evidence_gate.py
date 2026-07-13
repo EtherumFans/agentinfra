@@ -179,6 +179,16 @@ def _find_quote_in_chart(quote: str, chart: str) -> tuple[int, int] | None:
 CEA_FUZZY_THRESHOLD = 0.85
 
 
+# Phase 5 Track H3.15 — quote snap threshold.
+# Lower than CEA_FUZZY_THRESHOLD because snapping is a corrective action:
+# the LLM quote is the LLM's best guess at the anchor, and we accept a wider
+# match tolerance when locating the corresponding chart substring. Below
+# this threshold the LLM quote is considered too divergent to snap safely
+# (likely a hallucination), and we leave the original quote intact so the
+# downstream CEA-001 / semantic_necessity gates can still flag it.
+QUOTE_SNAP_THRESHOLD = 0.75
+
+
 def _fuzzy_find_quote_in_chart(
     quote: str, chart: str, threshold: float = CEA_FUZZY_THRESHOLD
 ) -> tuple[int, int, float] | None:
@@ -221,6 +231,62 @@ def _fuzzy_find_quote_in_chart(
         # Fallback: just anchor at position 0
         return (0, qlen, overall_score)
     return (best_start, best_start + qlen, best_score)
+
+
+def snap_quote_to_chart(
+    quote: str, chart: str, threshold: float = QUOTE_SNAP_THRESHOLD
+) -> str:
+    """Track H3.15 — snap an LLM-proposed evidence quote to the actual chart
+    substring with the highest rapidfuzz partial_ratio.
+
+    Returns the verbatim chart substring when the best fuzzy score ≥
+    ``threshold``; otherwise returns ``quote`` unchanged. The snap is a
+    deterministic correction for the paraphrasing that the H3.14 amplifier
+    introduced: the LLM is told to copy verbatim but tends to "tidy" Chinese
+    text, dropping particles or swapping punctuation. Without this snap:
+
+      1. CEA-001 quote_exists_in_chart over-blocks legitimate queries whose
+         only sin is minor wording drift — this caused the iter 4 regression
+         on clear_gap under-query (1/10 → 3/10).
+      2. H4.1 evidence_quote_verbatim_rate (rapidfuzz ≥0.85) drops from
+         0.971 (iter 3) to 0.882 (iter 4).
+
+    The snap is conservative:
+      - If the quote is already a verbatim substring, return as-is.
+      - If the best fuzzy score < threshold, return the original quote so
+        the downstream CEA / semantic gates still see the LLM's proposal
+        and can flag hallucinations.
+      - Quotes shorter than 4 chars or longer than the chart are skipped.
+
+    The returned substring is always ``chart[start:start+len(quote)]``, so
+    by construction it is a verbatim substring of ``chart``.
+    """
+    if not quote or not chart:
+        return quote
+    qlen = len(quote)
+    if qlen < 4 or len(chart) < qlen:
+        return quote
+    # Fast path: already verbatim
+    if quote in chart:
+        return quote
+    # Overall best score first — fail fast if too divergent
+    overall = fuzz.partial_ratio(quote, chart) / 100.0
+    if overall < threshold:
+        return quote
+    # Locate the best window (sliding at stride qlen//4)
+    best_score = 0.0
+    best_start = -1
+    stride = max(1, qlen // 4)
+    for start in range(0, max(0, len(chart) - qlen) + 1, stride):
+        end = min(len(chart), start + qlen + 5)
+        window = chart[start:end]
+        score = fuzz.partial_ratio(quote, window) / 100.0
+        if score > best_score:
+            best_score = score
+            best_start = start
+    if best_start < 0:
+        return quote
+    return chart[best_start:best_start + qlen]
 
 
 def _rule_cea_001(alignment: ClaimEvidenceAlignment, chart: str) -> ClaimEvidenceRuleResult:
@@ -875,4 +941,6 @@ __all__ = [
     "evaluate_case_claim_evidence",
     "apply_claim_evidence_to_case",
     "extract_claims",
+    "snap_quote_to_chart",
+    "QUOTE_SNAP_THRESHOLD",
 ]

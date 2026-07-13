@@ -207,8 +207,22 @@ class CDIOrchestrator:
         result = self.runner("gap_identification", case, {})
         case.stage_run_ids["gap_identification"] = str(result.get("run_id", ""))
         case.stage_trace_ids["gap_identification"] = str(result.get("trace_id", ""))
+
+        # Track H3.15 — snap each gap's evidence_span.quote to the actual
+        # chart substring. Gap quotes become anchor_hints for query_generation
+        # ("If the gap's anchor_hint is non-empty, prefer reusing it"), so a
+        # verbatim gap quote begets verbatim query quotes — closes the iter 4
+        # paraphrasing loop without changing the prompt.
+        from .claim_evidence_gate import snap_quote_to_chart
+        gap_snapped = 0
         for gap_dict in result.get("gaps", []):
-            case.documentation_gaps.append(self._hydrate_gap(gap_dict))
+            gap = self._hydrate_gap(gap_dict)
+            original = gap.evidence_span.quote
+            snapped = snap_quote_to_chart(original, case.chart_excerpt)
+            if snapped and snapped != original:
+                gap.evidence_span.quote = snapped
+                gap_snapped += 1
+            case.documentation_gaps.append(gap)
 
         # Track H3.13 — hydrate risk_flags emitted by the LLM. Without
         # this, H3.10 contradiction override in query_eligibility_gate is
@@ -245,7 +259,7 @@ class CDIOrchestrator:
             }
 
         case.stage_run_ids["gap_identification_risk_flags"] = (
-            f"emitted={rf_count}"
+            f"emitted={rf_count};quote_snapped={gap_snapped}"
         )
 
     def _stage_expert_consultation(self, case: CDICase) -> None:
@@ -257,8 +271,24 @@ class CDIOrchestrator:
         result = self.runner("query_generation", case, {})
         case.stage_run_ids["query_generation"] = str(result.get("run_id", ""))
         case.stage_trace_ids["query_generation"] = str(result.get("trace_id", ""))
+
+        # Track H3.15 — snap each query's evidence_span.quote to the actual
+        # chart substring. Even with the H3.12 QUOTE-ANCHOR prompt procedure,
+        # the LLM tends to paraphrase (especially under the H3.14 amplifier's
+        # longer prompt context). Snapping is the deterministic safety net:
+        #   - lifts CEA-001 verbatim pass → reduces clear_gap under-query
+        #   - lifts H4.1 evidence_quote_verbatim_rate back toward ≥0.95
+        from .claim_evidence_gate import snap_quote_to_chart
+        query_snapped = 0
         for q_dict in result.get("queries", []):
-            case.proposed_provider_queries.append(self._hydrate_query(q_dict))
+            query = self._hydrate_query(q_dict)
+            original = query.evidence_span.quote
+            snapped = snap_quote_to_chart(original, case.chart_excerpt)
+            if snapped and snapped != original:
+                query.evidence_span.quote = snapped
+                query_snapped += 1
+            case.proposed_provider_queries.append(query)
+        case.stage_run_ids["query_generation::quote_snapped"] = str(query_snapped)
 
     def _stage_query_eligibility_gate(self, case: CDICase) -> None:
         """Phase 5 Track H3.5 — drop queries that have no eligible gap.

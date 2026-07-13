@@ -1,0 +1,93 @@
+{
+  "case_id": "H-CTR-A-006_R3",
+  "group": "CONTRADICTION",
+  "variant": "A",
+  "session_id": "d6aba0fa-c9c2-4ee9-b3f0-1759f37da6f0",
+  "attempt": 1,
+  "outcome": "SUCCESS",
+  "elapsed_s": 28.01,
+  "expected": {
+    "query_count_min": 1,
+    "query_count_max": 2,
+    "expected_query_topics": [
+      "fracture laterality reconciliation"
+    ],
+    "forbidden_query_topics": [],
+    "no_query_expected": false
+  },
+  "text_length": 6241,
+  "first_token_at_s": 3.75,
+  "last_token_at_s": 28.0,
+  "event_count": 9,
+  "raw_events_preview": [
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"id\":\"f35a19d2-5782-4f8c-b8da-d1687e090ff7\",\"type\":\"text-start\"}",
+    "message|{\"delta\":\"Encounter Summary:\\n- Same-day documentation describes a distal radius/wrist fracture after a fall.\\n- Laterality is conflicting across notes.\\n- ED note documents: “Patient with left wrist ",
+    "message|{\"id\":\"f35a19d2-5782-4f8c-b8da-d1687e090ff7\",\"type\":\"text-end\"}",
+    "message|{\"messageMetadata\":{\"contextId\":\"019f5bd3-470e-756b-a270-0f41c9d3d5ec\",\"taskId\":\"019f5bd3-470e-74b8-a56c-7c087be18f4e\",\"credits\":0.07136,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+    "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.07136},\"type\":\"finish\"}",
+    "message|[DONE]"
+  ],
+  "expert_events": [],
+  "status_events": [
+    {
+      "state": "working"
+    },
+    {
+      "state": "working"
+    },
+    {
+      "message": "Calling expert: coding-expert",
+      "state": "working"
+    }
+  ],
+  "finish_metadata": {
+    "contextId": "019f5bd3-470e-756b-a270-0f41c9d3d5ec",
+    "taskId": "019f5bd3-470e-74b8-a56c-7c087be18f4e",
+    "credits": 0.07136,
+    "state": "completed"
+  },
+  "parsed": {
+    "encounter_summary": "- Same-day documentation describes a distal radius/wrist fracture after a fall.\n- Laterality is conflicting across notes.\n- ED note documents: “Patient with left wrist fracture after fall, splint applied.”\n- Orthopedic note documents: “Right wrist fracture, cast applied.”\n- Radiology documents: “Linear fracture distal radius, side not specified.”\n- Patient-reported symptom supports right-sided pain: “Patient reports pain on right wrist.”",
+    "gaps": [
+      {
+        "idx": 1,
+        "text": "Laterality conflict for the fracture\n- Why it matters: Laterality is required for accurate diagnosis coding and to ensure the record consistently reflects the injured side.\n- Evidence quotes:\n  - ED note: “left wrist fracture after fall, splint applied.”\n  - Orthopedic note: “Right wrist fracture, cast applied.”\n  - Radiology: “Linear fracture distal radius, side not specified.”\n  - Symptom: “Patient reports pain on right wrist.”\n- Minimal clarification needed: Confirm the correct side of the di"
+      },
+      {
+        "idx": 2,
+        "text": "Fracture anatomic specificity is incomplete/inconsistent across documentation\n- Why it matters: The record alternates between “wrist fracture” and “distal radius” fracture. Greater anatomic specificity supports more accurate coding.\n- Evidence quotes:\n  - ED note: “left wrist fracture”\n  - Orthopedic note: “Right wrist fracture”\n  - Radiology: “Linear fracture distal radius”\n- Minimal clarification needed: Clarify whether the documented injury should be recorded specifically as a distal radius f"
+      },
+      {
+        "idx": 3,
+        "text": "Encounter-level treatment documentation may reflect the wrong side if laterality is incorrect\n- Why it matters: Procedure/device documentation should match the confirmed injured side for record integrity and coding alignment.\n- Evidence quotes:\n  - ED note: “splint applied” in the note documenting a left wrist fracture\n  - Orthopedic note: “cast applied” in the note documenting a right wrist fracture\n- Minimal clarification needed: Confirm which side received immobilization and whether splint/ca"
+      }
+    ],
+    "gap_count": 3,
+    "queries": [
+      {
+        "idx": 1,
+        "text": "Fracture laterality clarification"
+      },
+      {
+        "idx": 2,
+        "text": "Fracture site specificity clarification"
+      },
+      {
+        "idx": 3,
+        "text": "Immobilization/procedure side reconciliation"
+      }
+    ],
+    "query_count": 3,
+    "specialists_contacted": [
+      "Medical Coding Expert",
+      "Coding Expert"
+    ],
+    "specialist_trace_text": "- Medical Coding Expert: Consulted for coding/documentation specificity review. Accepted the general focus on laterality and fracture-site specificity. No unsupported diagnosis was added.\n- AMBOSS Expert: Not consulted; no clinical criteria question required to identify the documentation conflict in this excerpt.\n- CDI Web Search Expert: Not consulted; current external guidance was not necessary to identify the chart-based clarification need.",
+    "has_specialist_trace": true
+  },
+  "error": "",
+  "text": "Encounter Summary:\n- Same-day documentation describes a distal radius/wrist fracture after a fall.\n- Laterality is conflicting across notes.\n- ED note documents: “Patient with left wrist fracture after fall, splint applied.”\n- Orthopedic note documents: “Right wrist fracture, cast applied.”\n- Radiology documents: “Linear fracture distal radius, side not specified.”\n- Patient-reported symptom supports right-sided pain: “Patient reports pain on right wrist.”\n\nDocumentation Gaps:\n1. Laterality conflict for the fracture\n- Why it matters: Laterality is required for accurate diagnosis coding and to ensure the record consistently reflects the injured side.\n- Evidence quotes:\n  - ED note: “left wrist fracture after fall, splint applied.”\n  - Orthopedic note: “Right wrist fracture, cast applied.”\n  - Radiology: “Linear fracture distal radius, side not specified.”\n  - Symptom: “Patient reports pain on right wrist.”\n- Minimal clarification needed: Confirm the correct side of the distal radius/wrist fracture and reconcile the conflicting documentation.\n\n2. Fracture anatomic specificity is incomplete/inconsistent across documentation\n- Why it matters: The record alternates between “wrist fracture” and “distal radius” fracture. Greater anatomic specificity supports more accurate coding.\n- Evidence quotes:\n  - ED note: “left wrist fracture”\n  - Orthopedic note: “Right wrist fracture”\n  - Radiology: “Linear fracture distal radius”\n- Minimal clarification needed: Clarify whether the documented injury should be recorded specifically as a distal radius fracture versus a more general wrist fracture description.\n\n3. Encounter-level treatment documentation may reflect the wrong side if laterality is incorrect\n- Why it matters: Procedure/device documentation should match the confirmed injured side for record integrity and coding alignment.\n- Evidence quotes:\n  - ED note: “splint applied” in the note documenting a left wrist fracture\n  - Orthopedic note: “cast applied” in the note documenting a right wrist fracture\n- Minimal clarification needed: Confirm which side received immobilization and whether splint/cast documentation reflects the same injury episode.\n\nProposed Provider Queries:\n1. Topic: Fracture laterality clarification\n- Reason query is needed: The chart contains conflicting laterality documentation for the wrist/distal radius fracture.\n- Evidence quote:\n  - “left wrist fracture after fall, splint applied.”\n  - “Right wrist fracture, cast applied.”\n  - “Linear fracture distal radius, side not specified.”\n  - “Patient reports pain on right wrist.”\n- Non-leading query text:\n  - “The record contains conflicting documentation regarding the side of the wrist/distal radius fracture. ED documentation states ‘left wrist fracture after fall, splint applied,’ while the orthopedic note states ‘Right wrist fracture, cast applied.’ The radiology report describes ‘Linear fracture distal radius’ without specifying side, and the patient reports right wrist pain. Please clarify the correct laterality of the fracture for this encounter.”\n- Suggested response options:\n  - Right distal radius/wrist fracture\n  - Left distal radius/wrist fracture\n  - Bilateral wrist injuries/fractures\n  - Unable to determine from current information\n  - Other: ________\n\n2. Topic: Fracture site specificity clarification\n- Reason query is needed: The documentation uses both general (“wrist fracture”) and more specific (“distal radius”) terminology.\n- Evidence quote:\n  - “left wrist fracture”\n  - “Right wrist fracture”\n  - “Linear fracture distal radius”\n- Non-leading query text:\n  - “Documentation for this encounter describes a ‘wrist fracture,’ while radiology reports a ‘Linear fracture distal radius.’ Please clarify the most specific fracture site being treated/documented for this encounter.”\n- Suggested response options:\n  - Distal radius fracture\n  - Other wrist fracture site: ________\n  - More than one fracture site: ________\n  - Clinically undetermined\n  - Other: ________\n\n3. Topic: Immobilization/procedure side reconciliation\n- Reason query is needed: Immobilization documentation should correspond to the confirmed injured side.\n- Evidence quote:\n  - “left wrist fracture after fall, splint applied.”\n  - “Right wrist fracture, cast applied.”\n- Non-leading query text:\n  - “The encounter documentation includes a splint in the ED note and a cast in the orthopedic note, but the fracture laterality is inconsistent. Please clarify which side was treated with immobilization during this encounter and reconcile the procedure documentation as applicable.”\n- Suggested response options:\n  - Right wrist/distal radius immobilized\n  - Left wrist/distal radius immobilized\n  - Both upper extremities immobilized\n  - Unable to determine\n  - Other: ________\n\nCoding Specificity Checklist:\n- Confirm fracture laterality: right, left, bilateral, or unable to determine\n- Confirm specific anatomic site: distal radius vs other wrist location\n- Ensure all notes and radiology are reconciled to the same injury side/site\n- Ensure immobilization/device documentation matches the confirmed side\n- If the provider amends the diagnosis, ensure final documentation uses one consistent term throughout the encounter\n\nRisk Flags:\n- Direct contradiction in laterality between ED and orthopedic documentation\n- Radiology lacks side specification\n- Patient-reported right wrist pain aligns with one note but does not by itself resolve the contradiction\n- Potential copied-forward or documentation-entry error cannot be determined from the excerpt alone\n- Insufficient evidence to query any additional fracture characteristics beyond side/site because displacement, open/closed status, intra-articular involvement, and encounter details are not documented in the excerpt\n\nSpecialist Trace:\n- Medical Coding Expert: Consulted for coding/documentation specificity review. Accepted the general focus on laterality and fracture-site specificity. No unsupported diagnosis was added.\n- AMBOSS Expert: Not consulted; no clinical criteria question required to identify the documentation conflict in this excerpt.\n- CDI Web Search Expert: Not consulted; current external guidance was not necessary to identify the chart-based clarification need."
+}

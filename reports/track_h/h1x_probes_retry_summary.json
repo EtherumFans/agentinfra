@@ -1,0 +1,401 @@
+{
+  "executed_at": "2026-07-13T14:07:19Z",
+  "agent_def_id": "fa3be93e-d1b3-45ef-ae8c-3a07c8d19ef2",
+  "case_count": 2,
+  "success_count": 2,
+  "by_outcome": {
+    "SUCCESS": 2
+  },
+  "results": [
+    {
+      "case_id": "H-SUS-B-004",
+      "group": "SUSPECTED",
+      "variant": "B",
+      "session_id": "8512d193-7e51-49cc-a3af-d955c798f5f1",
+      "attempt": 1,
+      "outcome": "SUCCESS",
+      "elapsed_s": 25.82,
+      "expected": {
+        "query_count_min": 1,
+        "query_count_max": 2,
+        "expected_query_topics": [
+          "pneumonia type (CAP vs HAP)",
+          "pneumonia severity"
+        ],
+        "forbidden_query_topics": [],
+        "no_query_expected": false
+      },
+      "text_length": 4845,
+      "first_token_at_s": 4.27,
+      "last_token_at_s": 25.82,
+      "event_count": 9,
+      "raw_events_preview": [
+        "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+        "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+        "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+        "message|{\"id\":\"0f2595db-6f6c-40ce-a9d6-1caf888b9361\",\"type\":\"text-start\"}",
+        "message|{\"delta\":\"Encounter Summary:\\n- Admission documentation states \\\"possible pneumonia.\\\"\\n- Clinical indicators documented: \\\"febrile 38.8°C,\\\" \\\"crackles in right lower lobe,\\\" \\\"productive cough with ",
+        "message|{\"id\":\"0f2595db-6f6c-40ce-a9d6-1caf888b9361\",\"type\":\"text-end\"}",
+        "message|{\"messageMetadata\":{\"contextId\":\"019f5bcc-dc7c-7aef-b358-46268c199984\",\"taskId\":\"019f5bcc-dc7c-7a4a-b523-f98a0432f930\",\"credits\":0.057344,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+        "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.057344},\"type\":\"finish\"}",
+        "message|[DONE]"
+      ],
+      "expert_events": [],
+      "status_events": [
+        {
+          "state": "working"
+        },
+        {
+          "state": "working"
+        },
+        {
+          "message": "Calling expert: coding-expert",
+          "state": "working"
+        }
+      ],
+      "finish_metadata": {
+        "contextId": "019f5bcc-dc7c-7aef-b358-46268c199984",
+        "taskId": "019f5bcc-dc7c-7a4a-b523-f98a0432f930",
+        "credits": 0.057344,
+        "state": "completed"
+      },
+      "parsed": {
+        "encounter_summary": "- Admission documentation states \"possible pneumonia.\"\n- Clinical indicators documented: \"febrile 38.8°C,\" \"crackles in right lower lobe,\" \"productive cough with yellow sputum,\" \"WBC 16.5 with left shift,\" and \"chest X-ray shows RLL infiltrate.\"\n- Treatment initiated: \"Started on ceftriaxone + azithromycin.\"",
+        "gaps": [
+          {
+            "idx": 1,
+            "text": "Gap: The principal condition is documented only as uncertain.\n   - Why it matters: \"Possible pneumonia\" may not provide final diagnostic specificity for accurate coding/reporting if the diagnosis is being treated as confirmed at discharge or after study.\n   - Evidence quote: \"Patient admitted with 'possible pneumonia'.\"\n   - Minimal clarification needed: Whether pneumonia was confirmed, ruled out, still suspected, or remained clinically undetermined after evaluation."
+          },
+          {
+            "idx": 2,
+            "text": "Gap: Pneumonia type/etiology is not specified.\n   - Why it matters: Coding specificity improves when the provider documents the pneumonia type/etiology if known (for example, organism-specific or other clinically established type). If not known, that should be stated.\n   - Evidence quote: \"productive cough with yellow sputum,\" \"WBC 16.5 with left shift,\" \"chest X-ray shows RLL infiltrate,\" and \"Started on ceftriaxone + azithromycin.\"\n   - Minimal clarification needed: The pneumonia type/etiology"
+          },
+          {
+            "idx": 3,
+            "text": "Gap: Anatomical specificity is present in findings but not clearly linked in the diagnosis statement.\n   - Why it matters: The chart contains laterality/lobar detail that may support a more precise diagnosis statement.\n   - Evidence quote: \"crackles in right lower lobe\" and \"chest X-ray shows RLL infiltrate.\"\n   - Minimal clarification needed: Whether the diagnosis should be documented as right lower lobe pneumonia, if clinically appropriate."
+          }
+        ],
+        "gap_count": 3,
+        "queries": [
+          {
+            "idx": 1,
+            "text": "Status of pneumonia diagnosis"
+          },
+          {
+            "idx": 2,
+            "text": "Pneumonia specificity"
+          }
+        ],
+        "query_count": 2,
+        "specialists_contacted": [
+          "Coding Expert"
+        ],
+        "specialist_trace_text": "- Coding Expert: Consulted for coding specificity gaps and compliant query targets. Output was not substantively usable because it did not return the requested analysis; therefore no expert content was accepted.\n- AMBOSS Expert: Not consulted. Clinical criteria clarification was not required to identify the main CDI gap from this excerpt.\n- CDI/Web Search Expert: Not consulted. No external guideline lookup was necessary for this limited chart-based clarification.",
+        "has_specialist_trace": true
+      },
+      "error": ""
+    },
+    {
+      "case_id": "H-CMP-A-005",
+      "group": "COMPLETE_CHART",
+      "variant": "A",
+      "session_id": "89b9cb55-b31c-4c94-a94f-84ccf8e3ebcb",
+      "attempt": 1,
+      "outcome": "SUCCESS",
+      "elapsed_s": 27.84,
+      "expected": {
+        "query_count_min": 0,
+        "query_count_max": 0,
+        "expected_query_topics": [],
+        "forbidden_query_topics": [
+          "peritoneal involvement",
+          "gangrene",
+          "pain duration"
+        ],
+        "no_query_expected": true
+      },
+      "text_length": 4803,
+      "first_token_at_s": 3.87,
+      "last_token_at_s": 27.84,
+      "event_count": 12,
+      "raw_events_preview": [
+        "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+        "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+        "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+        "message|{\"data\":{\"code_system\":\"icd-10-cm\",\"count\":4,\"next_steps\":[{\"reason\":\"Browse related codes and alternatives in the same category\",\"tool\":\"explore\"},{\"reason\":\"Read coding conventions relevant to these",
+        "message|{\"data\":{\"assignable\":true,\"code\":\"K35.80\",\"code_system\":\"icd-10-cm\",\"description\":\"Unspecified acute appendicitis\",\"next_steps\":[{\"reason\":\"Read coding conventions for this code area\",\"tool\":\"guideli",
+        "message|{\"data\":{\"assignable\":true,\"code\":\"0DTJ4ZZ\",\"code_system\":\"icd-10-pcs\",\"description\":\"Medical and Surgical, Gastrointestinal System, Resection, Appendix, Percutaneous Endoscopic, No Device, No Qualifi",
+        "message|{\"id\":\"406d17a9-c9c9-4eba-a8de-53cc839bbfb2\",\"type\":\"text-start\"}",
+        "message|{\"delta\":\"Encounter Summary:\\n- 45-year-old male with 1 day of migrating right lower quadrant pain.\\n- Exam and labs support appendiceal inflammation: “McBurney point tenderness and rebound positive,”",
+        "message|{\"id\":\"406d17a9-c9c9-4eba-a8de-53cc839bbfb2\",\"type\":\"text-end\"}",
+        "message|{\"messageMetadata\":{\"contextId\":\"019f5bcd-5d68-7370-a699-281146a3b945\",\"taskId\":\"019f5bcd-5d68-72f0-87cf-0712f9865f9d\",\"credits\":0.07836399999999999,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+        "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.07836399999999999},\"type\":\"finish\"}",
+        "message|[DONE]"
+      ],
+      "expert_events": [
+        {
+          "code_system": "icd-10-cm",
+          "count": 4,
+          "next_steps": [
+            {
+              "reason": "Browse related codes and alternatives in the same category",
+              "tool": "explore"
+            },
+            {
+              "reason": "Read coding conventions relevant to these codes",
+              "tool": "guidelines"
+            },
+            {
+              "reason": "To assign the codes for a clinical note, use predict (optionally with include/exclude filters)",
+              "tool": "predict"
+            }
+          ],
+          "query": "acute simple appendicitis no perforation",
+          "results": [
+            {
+              "code": "K35.80",
+              "description": "Unspecified acute appendicitis",
+              "match_path": "Acute appendicitis NOS\nAcute appendicitis without (localized) (generalized) peritonitis",
+              "related_codes": {
+                "category": "K35.8",
+                "category_description": "Other and unspecified acute appendicitis",
+                "count": 2
+              }
+            },
+            {
+              "code": "K35.200",
+              "description": "Acute appendicitis with generalized peritonitis, without perforation or abscess",
+              "match_path": "(Acute) appendicitis with generalized peritonitis without rupture or perforation of appendix NOS",
+              "related_codes": {
+                "category": "K35.20",
+                "category_description": "Acute appendicitis with generalized peritonitis, without abscess",
+                "count": 3
+              }
+            },
+            {
+              "code": "K35.30",
+              "description": "Acute appendicitis with localized peritonitis, without perforation or gangrene",
+              "match_path": "Acute appendicitis with localized peritonitis NOS",
+              "related_codes": {
+                "category": "K35.3",
+                "category_description": "Acute appendicitis with localized peritonitis",
+                "count": 4
+              }
+            },
+            {
+              "code": "K35.210",
+              "description": "Acute appendicitis with generalized peritonitis, without perforation, with abscess",
+              "match_path": "(Acute) appendicitis with generalized peritonitis without rupture or perforation of appendix, with abscess",
+              "related_codes": {
+                "category": "K35.21",
+                "category_description": "Acute appendicitis with generalized peritonitis, with abscess",
+                "count": 3
+              }
+            }
+          ]
+        },
+        {
+          "assignable": true,
+          "code": "K35.80",
+          "code_system": "icd-10-cm",
+          "description": "Unspecified acute appendicitis",
+          "next_steps": [
+            {
+              "reason": "Read coding conventions for this code area",
+              "tool": "guidelines"
+            },
+            {
+              "reason": "Check whether a specific code is assignable",
+              "tool": "verify"
+            },
+            {
+              "reason": "Explore a related or more specific code",
+              "tool": "explore"
+            }
+          ],
+          "parent": {
+            "code": "K35.8",
+            "description": "Other and unspecified acute appendicitis"
+          },
+          "related_codes": [
+            {
+              "assignable": false,
+              "code": "K35.89",
+              "description": "Other acute appendicitis"
+            }
+          ],
+          "total_related": 1
+        },
+        {
+          "assignable": true,
+          "code": "0DTJ4ZZ",
+          "code_system": "icd-10-pcs",
+          "description": "Medical and Surgical, Gastrointestinal System, Resection, Appendix, Percutaneous Endoscopic, No Device, No Qualifier",
+          "next_steps": [
+            {
+              "reason": "Read coding conventions for this code area",
+              "tool": "guidelines"
+            },
+            {
+              "reason": "Check whether a specific code is assignable",
+              "tool": "verify"
+            },
+            {
+              "reason": "Explore a related or more specific code",
+              "tool": "explore"
+            }
+          ],
+          "parent": {
+            "code": "0DT",
+            "description": "Medical and Surgical, Gastrointestinal System, Resection"
+          },
+          "related_codes": [
+            {
+              "assignable": true,
+              "code": "0DT10ZZ",
+              "description": "Medical and Surgical, Gastrointestinal System, Resection, Esophagus, Upper, Open, No Device, No Qualifier"
+            },
+            {
+              "assignable": true,
+              "code": "0DT14ZZ",
+              "description": "Medical and Surgical, Gastrointestinal System, Resection, Esophagus, Upper, Percutaneous Endoscopic, No Device, No Qualifier"
+            },
+            {
+              "assignable": true,
+              "code": "0DT17ZZ",
+              "description": "Medical and Surgical, Gastrointestinal System, Resection, Esophagus, Upper, Via Natural or Artificial Opening, No Device, No Qualifier"
+            },
+            {
+              "assignable": true,
+              "code": "0DT18ZZ",
+              "description": "Medical and Surgical, Gastrointestinal System, Resection, Esophagus, Upper, Via Natural or Artificial Opening Endoscopic, No Device, No Qualifier"
+            },
+            {
+              "assignable": true,
+              "code": "0DT20ZZ",
+              "description": "Medical and Surgical, Gastrointestinal System, Resection, Esophagus, Middle, Open, No Device, No Qualifier"
+            },
+            {
+              "assignable": true,
+              "code": "0DT24ZZ",
+              "description": "Medical and Surgical, Gastrointestinal System, Resection, Esophagus, Middle, Percutaneous Endoscopic, No Device, No Qualifier"
+            },
+            {
+              "assignable": true,
+              "code": "0DT27ZZ",
+              "description": "Medical and Surgical, Gastrointestinal System, Resection, Esophagus, Middle, Via Natural or Artificial Opening, No Device, No Qualifier"
+            },
+            {
+              "assignable": true,
+              "code": "0DT28ZZ",
+              "description": "Medical and Surgical, Gastrointestinal System, Resection, Esophagus, Middle, Via Natural or Artificial Opening Endoscopic, No Device, No Qualifier"
+            },
+            {
+              "assignable": true,
+              "code": "0DT30ZZ",
+              "description": "Medical and Surgical, Gastrointestinal System, Resection, Esophagus, Lower, Open, No Device, No Qualifier"
+            },
+            {
+              "assignable": true,
+              "code": "0DT34ZZ",
+              "description": "Medical and Surgical, Gastrointestinal System, Resection, Esophagus, Lower, Percutaneous Endoscopic, No Device, No Qualifier"
+            },
+            {
+              "assignable": true,
+              "code": "0DT37ZZ",
+              "description": "Medical and Surgical, Gastrointestinal System, Resection, Esophagus, Lower, Via Natural or Artificial Opening, No Device, No Qualifier"
+            },
+            {
+              "assignable": true,
+              "code": "0DT38ZZ",
+              "description": "Medical and Surgical, Gastrointestinal System, Resection, Esophagus, Lower, Via Natural or Artificial Opening Endoscopic, No Device, No Qualifier"
+            },
+            {
+              "assignable": true,
+              "code": "0DT40ZZ",
+              "description": "Medical and Surgical, Gastrointestinal System, Resection, Esophagogastric Junction, Open, No Device, No Qualifier"
+            },
+            {
+              "assignable": true,
+              "code": "0DT44ZZ",
+              "description": "Medical and Surgical, Gastrointestinal System, Resection, Esophagogastric Junction, Percutaneous Endoscopic, No Device, No Qualifier"
+            },
+            {
+              "assignable": true,
+              "code": "0DT47ZZ",
+              "description": "Medical and Surgical, Gastrointestinal System, Resection, Esophagogastric Junction, Via Natural or Artificial Opening, No Device, No Qualifier"
+            },
+            {
+              "assignable": true,
+              "code": "0DT48ZZ",
+              "description": "Medical and Surgical, Gastrointestinal System, Resection, Esophagogastric Junction, Via Natural or Artificial Opening Endoscopic, No Device, No Qualifier"
+            },
+            {
+              "assignable": true,
+              "code": "0DT50ZZ",
+              "description": "Medical and Surgical, Gastrointestinal System, Resection, Esophagus, Open, No Device, No Qualifier"
+            },
+            {
+              "assignable": true,
+              "code": "0DT54ZZ",
+              "description": "Medical and Surgical, Gastrointestinal System, Resection, Esophagus, Percutaneous Endoscopic, No Device, No Qualifier"
+            },
+            {
+              "assignable": true,
+              "code": "0DT57ZZ",
+              "description": "Medical and Surgical, Gastrointestinal System, Resection, Esophagus, Via Natural or Artificial Opening, No Device, No Qualifier"
+            },
+            {
+              "assignable": true,
+              "code": "0DT58ZZ",
+              "description": "Medical and Surgical, Gastrointestinal System, Resection, Esophagus, Via Natural or Artificial Opening Endoscopic, No Device, No Qualifier"
+            }
+          ],
+          "total_related": 105
+        }
+      ],
+      "status_events": [
+        {
+          "state": "working"
+        },
+        {
+          "state": "working"
+        },
+        {
+          "message": "Calling expert: coding-expert",
+          "state": "working"
+        }
+      ],
+      "finish_metadata": {
+        "contextId": "019f5bcd-5d68-7370-a699-281146a3b945",
+        "taskId": "019f5bcd-5d68-72f0-87cf-0712f9865f9d",
+        "credits": 0.07836399999999999,
+        "state": "completed"
+      },
+      "parsed": {
+        "encounter_summary": "- 45-year-old male with 1 day of migrating right lower quadrant pain.\n- Exam and labs support appendiceal inflammation: “McBurney point tenderness and rebound positive,” “WBC 13.2, neutrophils 85%.”\n- CT documented “swollen appendix with surrounding exudate, no perforation.”\n- Pre-op and pathology both document “acute appendicitis (simple, no perforation)” / “acute simple appendicitis.”\n- Patient underwent laparoscopic appendectomy, had “No complications,” recovered well, and was discharged on day 3.",
+        "gaps": [
+          {
+            "idx": 1,
+            "text": "Gap: Peritoneal involvement is not explicitly characterized.\n   - Why it matters: Coding specificity for acute appendicitis may depend on whether peritonitis/localized peritoneal inflammation is clinically documented versus absent. The excerpt contains inflammatory findings but does not explicitly state localized peritonitis.\n   - Evidence quote: “McBurney point tenderness and rebound positive.”; “CT: swollen appendix with surrounding exudate, no perforation.”\n   - Minimal clarification needed: "
+          }
+        ],
+        "gap_count": 1,
+        "queries": [
+          {
+            "idx": 1,
+            "text": "Associated peritoneal involvement, if any"
+          }
+        ],
+        "query_count": 1,
+        "specialists_contacted": [
+          "Medical Coding Expert",
+          "Coding Expert"
+        ],
+        "specialist_trace_text": "- Medical Coding Expert: Consulted for coding specificity opportunities and compliant query targets. Accepted: need to consider diagnosis specificity for appendicitis and procedure specificity; candidate diagnosis coding included unspecified acute appendicitis when no further specificity is documented, and laparoscopic appendectomy procedure coding support. Rejected/limited: no unsupported diagnosis additions were accepted; no coding recommendation beyond chart-supported specificity.\n- AMBOSS Expert: Not consulted. Rationale: no additional clinical criteria review was necessary to identify a conservative CDI clarification opportunity.\n- CDI Web Search Expert: Not consulted. Rationale: no current external compliance guidance was necessary for this chart-limited query assessment.\n\nConservative coding note:\n- Based on the excerpt alone, acute appendicitis without perforation is clearly documented.\n- The coding expert outputs indicate unspecified acute appendicitis (K35.80) as a supportable diagnosis code when no more specific reportable appendicitis subtype is explicitly documented, and laparoscopic appendectomy is consistent with ICD-10-PCS 0DTJ4ZZ.\n- If the provider confirms additional peritoneal involvement, specificity may change; do not infer it from the excerpt alone.",
+        "has_specialist_trace": true
+      },
+      "error": ""
+    }
+  ]
+}

@@ -1,0 +1,248 @@
+{
+  "case_id": "H-HIST-B-002",
+  "group": "HISTORY",
+  "variant": "B",
+  "session_id": "443951e9-a17a-47f1-9b66-d96c28127d77",
+  "attempt": 1,
+  "outcome": "SUCCESS",
+  "elapsed_s": 38.36,
+  "expected": {
+    "query_count_min": 1,
+    "query_count_max": 2,
+    "expected_query_topics": [
+      "diabetes control/complication",
+      "wound healing"
+    ],
+    "forbidden_query_topics": [],
+    "no_query_expected": false
+  },
+  "text_length": 8143,
+  "first_token_at_s": 4.26,
+  "last_token_at_s": 38.36,
+  "event_count": 12,
+  "raw_events_preview": [
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"code_system\":\"icd-10-cm\",\"count\":4,\"next_steps\":[{\"reason\":\"Browse related codes and alternatives in the same category\",\"tool\":\"explore\"},{\"reason\":\"Read coding conventions relevant to these",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"E11.65\",\"code_system\":\"icd-10-cm\",\"description\":\"Type 2 diabetes mellitus with hyperglycemia\",\"next_steps\":[{\"reason\":\"Read coding conventions for this code area\",\"t",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"E11.65\",\"description\":\"Type 2 diabetes mellitus with hyperglycemia\",\"next_steps\":[{\"reason\":\"Compare with related codes if this isn't the best fit\",\"tool\":\"explore\"}",
+    "message|{\"id\":\"aa626a04-10ba-45bf-b7be-e63431d2cbff\",\"type\":\"text-start\"}",
+    "message|{\"delta\":\"Encounter Summary:\\n- 68-year-old male admitted for elective hip replacement.\\n- History documented as “type 2 diabetes on metformin.”\\n- On post-op day 2, glucose is documented at “285 mg/d",
+    "message|{\"id\":\"aa626a04-10ba-45bf-b7be-e63431d2cbff\",\"type\":\"text-end\"}",
+    "message|{\"messageMetadata\":{\"contextId\":\"019f5bc3-a585-79cb-9b47-dd065690a13a\",\"taskId\":\"019f5bc3-a585-794e-9571-d44e90c54359\",\"credits\":0.096452,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+    "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.096452},\"type\":\"finish\"}",
+    "message|[DONE]"
+  ],
+  "expert_events": [
+    {
+      "code_system": "icd-10-cm",
+      "count": 4,
+      "next_steps": [
+        {
+          "reason": "Browse related codes and alternatives in the same category",
+          "tool": "explore"
+        },
+        {
+          "reason": "Read coding conventions relevant to these codes",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "To assign the codes for a clinical note, use predict (optionally with include/exclude filters)",
+          "tool": "predict"
+        }
+      ],
+      "query": "type 2 diabetes hyperglycemia",
+      "results": [
+        {
+          "code": "E11.65",
+          "description": "Type 2 diabetes mellitus with hyperglycemia",
+          "match_path": "Diabetes, diabetic, type 2, with, hyperglycemia",
+          "related_codes": {
+            "category": "E11.6",
+            "category_description": "Type 2 diabetes mellitus with other specified complications",
+            "count": 6
+          }
+        },
+        {
+          "code": "R73.9",
+          "description": "Hyperglycemia, unspecified",
+          "match_path": "Hyperglycemia, hyperglycemic",
+          "related_codes": {
+            "category": "R73",
+            "category_description": "Elevated blood glucose level",
+            "count": 2
+          }
+        },
+        {
+          "code": "E11.649",
+          "description": "Type 2 diabetes mellitus with hypoglycemia without coma",
+          "match_path": "Diabetes, diabetic, type 2, with, hypoglycemia",
+          "related_codes": {
+            "category": "E11.64",
+            "category_description": "Type 2 diabetes mellitus with hypoglycemia",
+            "count": 2
+          }
+        },
+        {
+          "code": "R73.01",
+          "description": "Impaired fasting glucose",
+          "match_path": "Elevated fasting glucose",
+          "related_codes": {
+            "category": "R73.0",
+            "category_description": "Abnormal glucose",
+            "count": 4
+          }
+        }
+      ]
+    },
+    {
+      "assignable": true,
+      "code": "E11.65",
+      "code_system": "icd-10-cm",
+      "description": "Type 2 diabetes mellitus with hyperglycemia",
+      "next_steps": [
+        {
+          "reason": "Read coding conventions for this code area",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "Check whether a specific code is assignable",
+          "tool": "verify"
+        },
+        {
+          "reason": "Explore a related or more specific code",
+          "tool": "explore"
+        }
+      ],
+      "parent": {
+        "code": "E11.6",
+        "description": "Type 2 diabetes mellitus with other specified complications"
+      },
+      "related_codes": [
+        {
+          "assignable": false,
+          "code": "E11.61",
+          "description": "Type 2 diabetes mellitus with diabetic arthropathy"
+        },
+        {
+          "assignable": false,
+          "code": "E11.62",
+          "description": "Type 2 diabetes mellitus with skin complications"
+        },
+        {
+          "assignable": false,
+          "code": "E11.63",
+          "description": "Type 2 diabetes mellitus with oral complications"
+        },
+        {
+          "assignable": false,
+          "code": "E11.64",
+          "description": "Type 2 diabetes mellitus with hypoglycemia"
+        },
+        {
+          "assignable": true,
+          "code": "E11.69",
+          "description": "Type 2 diabetes mellitus with other specified complication"
+        }
+      ],
+      "total_related": 5
+    },
+    {
+      "assignable": true,
+      "code": "E11.65",
+      "description": "Type 2 diabetes mellitus with hyperglycemia",
+      "next_steps": [
+        {
+          "reason": "Compare with related codes if this isn't the best fit",
+          "tool": "explore"
+        },
+        {
+          "reason": "Check chapter-level coding conventions for this code area",
+          "tool": "guidelines"
+        }
+      ],
+      "parents": [
+        {
+          "code": "E11.6",
+          "description": "Type 2 diabetes mellitus with other specified complications"
+        },
+        {
+          "code": "E11",
+          "description": "Type 2 diabetes mellitus"
+        },
+        {
+          "code": "E08-E13",
+          "description": "Diabetes mellitus (E08-E13)"
+        },
+        {
+          "code": "4",
+          "description": "Endocrine, nutritional and metabolic diseases (E00-E89)"
+        }
+      ]
+    }
+  ],
+  "status_events": [
+    {
+      "state": "working"
+    },
+    {
+      "state": "working"
+    },
+    {
+      "message": "Calling expert: coding-expert",
+      "state": "working"
+    }
+  ],
+  "finish_metadata": {
+    "contextId": "019f5bc3-a585-79cb-9b47-dd065690a13a",
+    "taskId": "019f5bc3-a585-794e-9571-d44e90c54359",
+    "credits": 0.096452,
+    "state": "completed"
+  },
+  "parsed": {
+    "encounter_summary": "- 68-year-old male admitted for elective hip replacement.\n- History documented as “type 2 diabetes on metformin.”\n- On post-op day 2, glucose is documented at “285 mg/dL” and the patient “requires insulin sliding scale.”\n- HbA1c is “9.8%.”\n- “Wound site shows delayed healing.”",
+    "gaps": [
+      {
+        "idx": 1,
+        "text": "Diabetes control status / hyperglycemia not explicitly linked to diabetes\n- Why it matters: The chart documents type 2 diabetes plus significant postoperative hyperglycemia, but does not clearly state whether the hyperglycemia is part of the patient’s diabetes or another transient postoperative issue. Coding specificity differs if the provider documents diabetes with hyperglycemia rather than isolated elevated glucose. Coding expert output identified ICD-10-CM E11.65 as the relevant specific cat"
+      },
+      {
+        "idx": 2,
+        "text": "Diabetes treatment status/severity may be incompletely described\n- Why it matters: The excerpt shows outpatient metformin use and inpatient insulin sliding scale requirement, with HbA1c 9.8%, suggesting poor glycemic control, but the provider has not explicitly characterized diabetes control status. CDI value is in clarifying whether the diabetes is poorly controlled/uncontrolled with hyperglycemia if clinically appropriate, rather than relying only on glucose values.\n- Evidence quote: “History "
+      },
+      {
+        "idx": 3,
+        "text": "Delayed wound healing lacks etiologic clarification\n- Why it matters: “Delayed healing” is documented, but the cause/clinical significance is not. For CDI, clarification may be needed whether this is an expected postoperative finding, a wound complication, related to diabetes, or another cause. However, evidence is limited, so any query must remain very conservative and non-leading.\n- Evidence quote: “Wound site shows delayed healing.”\n- Minimal clarification needed: Whether delayed healing repr"
+      },
+      {
+        "idx": 4,
+        "text": "Postoperative hyperglycemia context is ambiguous\n- Why it matters: The timeline places the elevated glucose on post-op day 2. CDI may need clarification whether this represents postoperative stress response versus manifestation of chronic diabetes with hyperglycemia. Without provider linkage, this should not be assumed.\n- Evidence quote: “Post-op day 2: blood glucose 285 mg/dL.”\n- Minimal clarification needed: Etiology/context of the hyperglycemia during the postoperative period."
+      }
+    ],
+    "gap_count": 4,
+    "queries": [
+      {
+        "idx": 1,
+        "text": "Clarification of hyperglycemia in a patient with type 2 diabetes"
+      },
+      {
+        "idx": 2,
+        "text": "Clarification of diabetes control status"
+      },
+      {
+        "idx": 3,
+        "text": "Clarification of delayed wound healing"
+      }
+    ],
+    "query_count": 3,
+    "specialists_contacted": [
+      "Medical Coding Expert",
+      "Coding Expert"
+    ],
+    "specialist_trace_text": "- Medical Coding Expert: Consulted for coding specificity gaps and query targets related to diabetes/hyperglycemia. Accepted: that type 2 diabetes with hyperglycemia maps to a more specific ICD-10-CM concept (E11.65) when provider-documented, supporting a clarification query. Rejected/omitted: any unsupported diagnosis assignment beyond what the excerpt documents.\n- AMBOSS Expert: Not consulted. Reason: the key need here was coding/documentation specificity rather than diagnostic criteria adjudication.\n- CDI Web Search Expert: Not consulted. Reason: no current external policy citation was required to produce conservative, chart-supported CDI queries for this excerpt.\n\nEvidence-based coding note:\n- If the provider documents type 2 diabetes mellitus with hyperglycemia, the coding expert identified ICD-10-CM E11.65 as the relevant specific code concept. This should not be assigned from labs alone without provider documentation.",
+    "has_specialist_trace": true
+  },
+  "error": "",
+  "text": "Encounter Summary:\n- 68-year-old male admitted for elective hip replacement.\n- History documented as “type 2 diabetes on metformin.”\n- On post-op day 2, glucose is documented at “285 mg/dL” and the patient “requires insulin sliding scale.”\n- HbA1c is “9.8%.”\n- “Wound site shows delayed healing.”\n\nDocumentation Gaps:\n1. Diabetes control status / hyperglycemia not explicitly linked to diabetes\n- Why it matters: The chart documents type 2 diabetes plus significant postoperative hyperglycemia, but does not clearly state whether the hyperglycemia is part of the patient’s diabetes or another transient postoperative issue. Coding specificity differs if the provider documents diabetes with hyperglycemia rather than isolated elevated glucose. Coding expert output identified ICD-10-CM E11.65 as the relevant specific category when supported by provider documentation.\n- Evidence quote: “History of type 2 diabetes on metformin. Post-op day 2: blood glucose 285 mg/dL, requires insulin sliding scale. HbA1c 9.8%.”\n- Minimal clarification needed: Whether the elevated glucose is clinically being treated/documented as type 2 diabetes with hyperglycemia, postoperative stress hyperglycemia, another cause, or clinically undetermined.\n\n2. Diabetes treatment status/severity may be incompletely described\n- Why it matters: The excerpt shows outpatient metformin use and inpatient insulin sliding scale requirement, with HbA1c 9.8%, suggesting poor glycemic control, but the provider has not explicitly characterized diabetes control status. CDI value is in clarifying whether the diabetes is poorly controlled/uncontrolled with hyperglycemia if clinically appropriate, rather than relying only on glucose values.\n- Evidence quote: “History of type 2 diabetes on metformin… requires insulin sliding scale. HbA1c 9.8%.”\n- Minimal clarification needed: Provider statement of diabetes control status during this admission, if clinically relevant.\n\n3. Delayed wound healing lacks etiologic clarification\n- Why it matters: “Delayed healing” is documented, but the cause/clinical significance is not. For CDI, clarification may be needed whether this is an expected postoperative finding, a wound complication, related to diabetes, or another cause. However, evidence is limited, so any query must remain very conservative and non-leading.\n- Evidence quote: “Wound site shows delayed healing.”\n- Minimal clarification needed: Whether delayed healing represents a clinically significant postoperative condition/complication, an expected postoperative finding, is related to an underlying condition such as diabetes, or is clinically undetermined.\n\n4. Postoperative hyperglycemia context is ambiguous\n- Why it matters: The timeline places the elevated glucose on post-op day 2. CDI may need clarification whether this represents postoperative stress response versus manifestation of chronic diabetes with hyperglycemia. Without provider linkage, this should not be assumed.\n- Evidence quote: “Post-op day 2: blood glucose 285 mg/dL.”\n- Minimal clarification needed: Etiology/context of the hyperglycemia during the postoperative period.\n\nProposed Provider Queries:\n1. Topic: Clarification of hyperglycemia in a patient with type 2 diabetes\n- Reason query is needed: The note documents type 2 diabetes, glucose 285 mg/dL, insulin sliding scale use, and HbA1c 9.8%, but does not specify whether the hyperglycemia is attributable to diabetes or another postoperative cause.\n- Evidence quote: “History of type 2 diabetes on metformin. Post-op day 2: blood glucose 285 mg/dL, requires insulin sliding scale. HbA1c 9.8%.”\n- Non-leading query text: “For this postoperative admission, please clarify the clinical significance and etiology of the documented blood glucose 285 mg/dL in a patient with type 2 diabetes on metformin who required insulin sliding scale and had HbA1c 9.8%. Is this best characterized as:”\n- Suggested response options:\n  - Type 2 diabetes mellitus with hyperglycemia\n  - Postoperative/stress hyperglycemia\n  - Both type 2 diabetes with hyperglycemia and postoperative/stress hyperglycemia\n  - Elevated glucose without a reportable diagnosis\n  - Other, please specify\n  - Clinically undetermined\n\n2. Topic: Clarification of diabetes control status\n- Reason query is needed: Elevated HbA1c and inpatient insulin requirement suggest the need for provider documentation of diabetes control status if clinically relevant, but this is not explicitly stated.\n- Evidence quote: “History of type 2 diabetes on metformin… requires insulin sliding scale. HbA1c 9.8%.”\n- Non-leading query text: “Please clarify the status of the patient’s type 2 diabetes during this admission, based on the documented HbA1c 9.8%, glucose 285 mg/dL, and insulin sliding scale requirement.”\n- Suggested response options:\n  - Type 2 diabetes mellitus with hyperglycemia\n  - Type 2 diabetes mellitus without hyperglycemia\n  - Poorly controlled type 2 diabetes mellitus\n  - Unable to determine from current information\n  - Other, please specify\n- Note: If your organization avoids the term ‘poorly controlled’ in favor of codable terminology, the preferred clarifying option is whether diabetes with hyperglycemia is present.\n\n3. Topic: Clarification of delayed wound healing\n- Reason query is needed: The note states delayed wound healing but does not define whether this is a complication, expected postoperative course, or related to an underlying condition.\n- Evidence quote: “Wound site shows delayed healing.”\n- Non-leading query text: “Please clarify the clinical significance of the documented delayed wound healing at the postoperative hip surgical site.”\n- Suggested response options:\n  - Clinically significant postoperative wound healing delay\n  - Expected postoperative healing course / not clinically significant\n  - Related to an underlying condition, please specify\n  - Other, please specify\n  - Clinically undetermined\n\nCoding Specificity Checklist:\n- Type of diabetes: already documented as type 2.\n- Whether hyperglycemia is present and linked to diabetes.\n- Whether elevated postoperative glucose is due to stress/postoperative state, diabetes, both, or another cause.\n- Current diabetes control status during admission, using codable terminology when applicable.\n- Whether insulin use is temporary inpatient management versus part of long-term therapy, if relevant elsewhere in the chart.\n- Whether delayed wound healing is a postoperative complication, expected finding, manifestation of diabetes, or other condition.\n- Any provider linkage between diabetes and wound healing impairment, only if clinically supported.\n\nRisk Flags:\n- Ambiguity: Hyperglycemia is documented numerically, but no explicit diagnosis states whether this is “type 2 diabetes with hyperglycemia” versus isolated/postoperative hyperglycemia.\n- Ambiguity: “Delayed healing” is nonspecific and may be interpreted variably without provider clarification.\n- Limited evidence: There is not enough documentation in the excerpt to query infection, wound dehiscence, or other surgical complication more specifically.\n- Limited evidence: Do not assume long-term insulin use; only inpatient sliding scale insulin is documented.\n\nSpecialist Trace:\n- Medical Coding Expert: Consulted for coding specificity gaps and query targets related to diabetes/hyperglycemia. Accepted: that type 2 diabetes with hyperglycemia maps to a more specific ICD-10-CM concept (E11.65) when provider-documented, supporting a clarification query. Rejected/omitted: any unsupported diagnosis assignment beyond what the excerpt documents.\n- AMBOSS Expert: Not consulted. Reason: the key need here was coding/documentation specificity rather than diagnostic criteria adjudication.\n- CDI Web Search Expert: Not consulted. Reason: no current external policy citation was required to produce conservative, chart-supported CDI queries for this excerpt.\n\nEvidence-based coding note:\n- If the provider documents type 2 diabetes mellitus with hyperglycemia, the coding expert identified ICD-10-CM E11.65 as the relevant specific code concept. This should not be assigned from labs alone without provider documentation."
+}

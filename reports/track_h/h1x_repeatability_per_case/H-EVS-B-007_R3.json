@@ -1,0 +1,160 @@
+{
+  "case_id": "H-EVS-B-007_R3",
+  "group": "EVIDENCE_STRENGTH",
+  "variant": "B",
+  "session_id": "c3a6c76e-d9b9-49bc-a5eb-bd7b7ab4cb17",
+  "attempt": 1,
+  "outcome": "SUCCESS",
+  "elapsed_s": 33.17,
+  "expected": {
+    "query_count_min": 1,
+    "query_count_max": 2,
+    "expected_query_topics": [
+      "AKI etiology",
+      "AKI stage"
+    ],
+    "forbidden_query_topics": [],
+    "no_query_expected": false
+  },
+  "text_length": 8702,
+  "first_token_at_s": 3.73,
+  "last_token_at_s": 33.17,
+  "event_count": 10,
+  "raw_events_preview": [
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"systems\":[{\"id\":\"icd-10-cm\",\"label\":\"US diagnosis codes\"},{\"id\":\"icd-10-pcs\",\"label\":\"US procedure codes\"},{\"id\":\"icd-10-int\",\"label\":\"WHO international diagnosis codes\"},{\"id\":\"icd-10-uk\",\"",
+    "message|{\"id\":\"6515e59b-ac23-4904-9d53-1765b9346564\",\"type\":\"text-start\"}",
+    "message|{\"delta\":\"Encounter Summary:\\n- Chart excerpt documents acute worsening of renal function with creatinine \\\"2.8 mg/dL (baseline 0.9)\\\" and CKD-EPI eGFR \\\"22.\\\"\\n- Additional renal-related objective fi",
+    "message|{\"id\":\"6515e59b-ac23-4904-9d53-1765b9346564\",\"type\":\"text-end\"}",
+    "message|{\"messageMetadata\":{\"contextId\":\"019f5bd6-ea57-708d-96f6-9ffac2091ac0\",\"taskId\":\"019f5bd6-ea56-7f35-b567-0bda2c87b71b\",\"credits\":0.060528,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+    "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.060528},\"type\":\"finish\"}",
+    "message|[DONE]"
+  ],
+  "expert_events": [
+    {
+      "systems": [
+        {
+          "id": "icd-10-cm",
+          "label": "US diagnosis codes"
+        },
+        {
+          "id": "icd-10-pcs",
+          "label": "US procedure codes"
+        },
+        {
+          "id": "icd-10-int",
+          "label": "WHO international diagnosis codes"
+        },
+        {
+          "id": "icd-10-uk",
+          "label": "UK diagnosis codes"
+        },
+        {
+          "id": "icd-10-gm",
+          "label": "German diagnosis codes"
+        },
+        {
+          "id": "cim-10-fr",
+          "label": "French diagnosis codes"
+        },
+        {
+          "id": "opcs-4",
+          "label": "UK procedure codes"
+        },
+        {
+          "id": "ops",
+          "label": "German procedure codes"
+        },
+        {
+          "id": "ccam",
+          "label": "French procedure codes"
+        },
+        {
+          "id": "snomed-ct-int",
+          "label": "SNOMED CT International clinical terms"
+        }
+      ]
+    }
+  ],
+  "status_events": [
+    {
+      "state": "working"
+    },
+    {
+      "state": "working"
+    },
+    {
+      "message": "Calling expert: coding-expert",
+      "state": "working"
+    }
+  ],
+  "finish_metadata": {
+    "contextId": "019f5bd6-ea57-708d-96f6-9ffac2091ac0",
+    "taskId": "019f5bd6-ea56-7f35-b567-0bda2c87b71b",
+    "credits": 0.060528,
+    "state": "completed"
+  },
+  "parsed": {
+    "encounter_summary": "- Chart excerpt documents acute worsening of renal function with creatinine \"2.8 mg/dL (baseline 0.9)\" and CKD-EPI eGFR \"22.\"\n- Additional renal-related objective findings include \"BUN 65,\" \"K+ 5.6,\" and urine output \"0.3 mL/kg/h × 8 hours.\"\n- \"Renal consult placed.\"\n- \"No dialysis yet.\"",
+    "gaps": [
+      {
+        "idx": 1,
+        "text": "Gap: Kidney condition is not explicitly named or characterized.\n- Why it matters: The excerpt shows significant renal dysfunction, but the provider-documented diagnosis, etiology, and whether this represents an acute process, chronic process, or acute-on-chronic condition are not stated. This limits accurate coding specificity.\n- Evidence quote: \"creatinine 2.8 mg/dL (baseline 0.9)\"; \"CKD-EPI eGFR 22\"; \"urine output 0.3 mL/kg/h × 8 hours\"\n- Minimal clarification needed: Please document the renal"
+      },
+      {
+        "idx": 2,
+        "text": "Gap: Cause/etiology of the renal dysfunction is not documented.\n- Why it matters: If a kidney condition is present, coding specificity depends on the documented cause when known.\n- Evidence quote: \"creatinine 2.8 mg/dL (baseline 0.9)\"; \"BUN 65\"; \"Renal consult placed\"\n- Minimal clarification needed: Document the underlying cause/etiology of the renal dysfunction, if known, or state if clinically undetermined."
+      },
+      {
+        "idx": 3,
+        "text": "Gap: Severity/staging of any kidney disease is not documented.\n- Why it matters: The excerpt includes \"CKD-EPI eGFR 22,\" but no provider-documented stage of chronic kidney disease or severity descriptor is present. eGFR alone should not be converted into a diagnosis without provider clarification.\n- Evidence quote: \"CKD-EPI eGFR 22\"\n- Minimal clarification needed: If chronic kidney disease is present and clinically applicable, document the CKD stage; otherwise clarify that CKD is not present or "
+      },
+      {
+        "idx": 4,
+        "text": "Gap: Clinical significance of hyperkalemia is not explicitly documented.\n- Why it matters: The lab abnormality may be clinically relevant, but coding requires provider documentation of the condition when clinically significant.\n- Evidence quote: \"K+ 5.6\"\n- Minimal clarification needed: Clarify whether hyperkalemia is a reportable clinical condition being monitored/treated/evaluated."
+      },
+      {
+        "idx": 5,
+        "text": "Gap: Oliguria is present as an objective finding but not explicitly documented as a condition/significant manifestation.\n- Why it matters: Urine output may support the renal picture, but the documentation does not clearly state whether oliguria is being diagnosed or tracked as a significant clinical finding.\n- Evidence quote: \"urine output 0.3 mL/kg/h × 8 hours\"\n- Minimal clarification needed: Clarify whether oliguria is a clinically significant finding/manifestation for this encounter."
+      },
+      {
+        "idx": 6,
+        "text": "Gap: Dialysis status/failure terminology is not documented beyond current nonperformance.\n- Why it matters: \"No dialysis yet\" and renal consultation suggest active evaluation, but there is no provider statement regarding whether renal replacement therapy is being considered, whether kidney failure is present, or whether this is simply monitoring. This should not be inferred.\n- Evidence quote: \"no dialysis yet\"; \"Renal consult placed\"\n- Minimal clarification needed: If clinically relevant, clarif"
+      }
+    ],
+    "gap_count": 6,
+    "queries": [
+      {
+        "idx": 1,
+        "text": "Clarification of renal diagnosis"
+      },
+      {
+        "idx": 2,
+        "text": "Etiology of documented/clarified kidney condition"
+      },
+      {
+        "idx": 3,
+        "text": "CKD staging clarification, if applicable"
+      },
+      {
+        "idx": 4,
+        "text": "Hyperkalemia significance"
+      },
+      {
+        "idx": 5,
+        "text": "Oliguria significance"
+      }
+    ],
+    "query_count": 5,
+    "specialists_contacted": [
+      "Medical Coding Expert",
+      "Coding Expert"
+    ],
+    "specialist_trace_text": "- Medical Coding Expert: Consulted for coding-specific documentation gaps and compliant query opportunities. Accepted only high-level coding specificity themes consistent with the excerpt. Rejected any unsupported code assignment because the expert output did not provide chart-grounded, diagnosis-specific coding detail beyond system metadata.\n- AMBOSS Expert: Not consulted. The excerpt supports CDI clarification opportunities without needing external clinical criteria to form compliant, conservative queries.\n- CDI Web Search Expert: Not consulted. No current external guideline citation was necessary to identify the chart-grounded documentation gaps above.",
+    "has_specialist_trace": true
+  },
+  "error": "",
+  "text": "Encounter Summary:\n- Chart excerpt documents acute worsening of renal function with creatinine \"2.8 mg/dL (baseline 0.9)\" and CKD-EPI eGFR \"22.\"\n- Additional renal-related objective findings include \"BUN 65,\" \"K+ 5.6,\" and urine output \"0.3 mL/kg/h × 8 hours.\"\n- \"Renal consult placed.\"\n- \"No dialysis yet.\"\n\nDocumentation Gaps:\n1. Gap: Kidney condition is not explicitly named or characterized.\n- Why it matters: The excerpt shows significant renal dysfunction, but the provider-documented diagnosis, etiology, and whether this represents an acute process, chronic process, or acute-on-chronic condition are not stated. This limits accurate coding specificity.\n- Evidence quote: \"creatinine 2.8 mg/dL (baseline 0.9)\"; \"CKD-EPI eGFR 22\"; \"urine output 0.3 mL/kg/h × 8 hours\"\n- Minimal clarification needed: Please document the renal diagnosis/condition being evaluated and whether it is acute, chronic, acute-on-chronic, or another renal abnormality.\n\n2. Gap: Cause/etiology of the renal dysfunction is not documented.\n- Why it matters: If a kidney condition is present, coding specificity depends on the documented cause when known.\n- Evidence quote: \"creatinine 2.8 mg/dL (baseline 0.9)\"; \"BUN 65\"; \"Renal consult placed\"\n- Minimal clarification needed: Document the underlying cause/etiology of the renal dysfunction, if known, or state if clinically undetermined.\n\n3. Gap: Severity/staging of any kidney disease is not documented.\n- Why it matters: The excerpt includes \"CKD-EPI eGFR 22,\" but no provider-documented stage of chronic kidney disease or severity descriptor is present. eGFR alone should not be converted into a diagnosis without provider clarification.\n- Evidence quote: \"CKD-EPI eGFR 22\"\n- Minimal clarification needed: If chronic kidney disease is present and clinically applicable, document the CKD stage; otherwise clarify that CKD is not present or is undetermined.\n\n4. Gap: Clinical significance of hyperkalemia is not explicitly documented.\n- Why it matters: The lab abnormality may be clinically relevant, but coding requires provider documentation of the condition when clinically significant.\n- Evidence quote: \"K+ 5.6\"\n- Minimal clarification needed: Clarify whether hyperkalemia is a reportable clinical condition being monitored/treated/evaluated.\n\n5. Gap: Oliguria is present as an objective finding but not explicitly documented as a condition/significant manifestation.\n- Why it matters: Urine output may support the renal picture, but the documentation does not clearly state whether oliguria is being diagnosed or tracked as a significant clinical finding.\n- Evidence quote: \"urine output 0.3 mL/kg/h × 8 hours\"\n- Minimal clarification needed: Clarify whether oliguria is a clinically significant finding/manifestation for this encounter.\n\n6. Gap: Dialysis status/failure terminology is not documented beyond current nonperformance.\n- Why it matters: \"No dialysis yet\" and renal consultation suggest active evaluation, but there is no provider statement regarding whether renal replacement therapy is being considered, whether kidney failure is present, or whether this is simply monitoring. This should not be inferred.\n- Evidence quote: \"no dialysis yet\"; \"Renal consult placed\"\n- Minimal clarification needed: If clinically relevant, clarify the renal condition severity and whether renal replacement therapy is indicated, not indicated, or undetermined. If not clinically relevant, no query should be pursued.\n\nProposed Provider Queries:\n1. Topic: Clarification of renal diagnosis\n- Reason query is needed: Objective findings show worsening renal function compared with baseline, but no explicit renal diagnosis is documented.\n- Evidence quote: \"creatinine 2.8 mg/dL (baseline 0.9)\"; \"BUN 65\"; \"urine output 0.3 mL/kg/h × 8 hours\"; \"CKD-EPI eGFR 22\"\n- Non-leading query text: \"Based on the documented renal-related findings, including creatinine 2.8 mg/dL with baseline 0.9, BUN 65, urine output 0.3 mL/kg/h for 8 hours, and CKD-EPI eGFR 22, please clarify the kidney condition being evaluated/managed during this encounter, if any.\"\n- Suggested response options:\n  - Acute kidney condition/injury\n  - Chronic kidney disease\n  - Acute kidney condition superimposed on chronic kidney disease\n  - Other kidney condition (please specify)\n  - Abnormal renal labs/findings only, no definitive diagnosis\n  - Clinically undetermined\n\n2. Topic: Etiology of documented/clarified kidney condition\n- Reason query is needed: If a renal diagnosis is present, the underlying cause is not stated in the excerpt.\n- Evidence quote: \"creatinine 2.8 mg/dL (baseline 0.9)\"; \"Renal consult placed\"\n- Non-leading query text: \"If a kidney condition is present for this encounter, please clarify the etiology/cause, if known.\"\n- Suggested response options:\n  - Due to volume depletion/hemodynamic cause\n  - Due to obstructive/urologic cause\n  - Due to medication/toxin-related cause\n  - Due to intrinsic renal process\n  - Other etiology (please specify)\n  - Etiology clinically undetermined\n  - No kidney condition present\n\n3. Topic: CKD staging clarification, if applicable\n- Reason query is needed: eGFR is documented, but no provider-documented CKD stage is present.\n- Evidence quote: \"CKD-EPI eGFR 22\"\n- Non-leading query text: \"The record includes CKD-EPI eGFR 22. If chronic kidney disease is clinically present for this encounter, please clarify whether CKD is present and document the stage, if known.\"\n- Suggested response options:\n  - CKD present, stage 1\n  - CKD present, stage 2\n  - CKD present, stage 3a\n  - CKD present, stage 3b\n  - CKD present, stage 4\n  - CKD present, stage 5\n  - End-stage renal disease\n  - CKD not present\n  - Clinically undetermined\n\n4. Topic: Hyperkalemia significance\n- Reason query is needed: Elevated potassium is documented, but the condition itself is not explicitly stated.\n- Evidence quote: \"K+ 5.6\"\n- Non-leading query text: \"Potassium is documented at 5.6. Please clarify whether this represents a clinically significant condition requiring evaluation/monitoring/treatment during this encounter.\"\n- Suggested response options:\n  - Hyperkalemia\n  - Potassium elevation not clinically significant\n  - Other electrolyte abnormality (please specify)\n  - Clinically undetermined\n\n5. Topic: Oliguria significance\n- Reason query is needed: Low urine output is documented, but its clinical significance is not explicitly stated.\n- Evidence quote: \"urine output 0.3 mL/kg/h × 8 hours\"\n- Non-leading query text: \"Urine output is documented at 0.3 mL/kg/h for 8 hours. Please clarify whether this represents a clinically significant finding or condition for this encounter.\"\n- Suggested response options:\n  - Oliguria\n  - Low urine output not clinically significant\n  - Other urinary/renal finding (please specify)\n  - Clinically undetermined\n\nCoding Specificity Checklist:\n- Explicit provider-documented renal diagnosis/condition\n- Whether the renal process is acute, chronic, or acute-on-chronic\n- Etiology/cause of the renal condition, if known\n- Whether chronic kidney disease is present\n- CKD stage, if CKD is present\n- Whether oliguria is clinically significant\n- Whether hyperkalemia is clinically significant\n- Whether dialysis dependence, ESRD, or need for renal replacement therapy is present only if explicitly documented by the provider\n\nRisk Flags:\n- Unsupported diagnosis risk: The excerpt supports renal dysfunction but does not by itself justify assigning a specific diagnosis without provider clarification.\n- Ambiguity risk: \"CKD-EPI eGFR 22\" may reflect acute dysfunction, chronic dysfunction, or both; CKD stage should not be assumed from this excerpt alone.\n- Ambiguity risk: \"no dialysis yet\" should not be interpreted as dialysis dependence, ESRD, or established renal failure without explicit provider documentation.\n- Query scope caution: There is insufficient evidence in the excerpt alone to query more specific etiologies such as acute tubular necrosis, prerenal azotemia, obstruction, or ESRD unless additional chart evidence is available.\n\nSpecialist Trace:\n- Medical Coding Expert: Consulted for coding-specific documentation gaps and compliant query opportunities. Accepted only high-level coding specificity themes consistent with the excerpt. Rejected any unsupported code assignment because the expert output did not provide chart-grounded, diagnosis-specific coding detail beyond system metadata.\n- AMBOSS Expert: Not consulted. The excerpt supports CDI clarification opportunities without needing external clinical criteria to form compliant, conservative queries.\n- CDI Web Search Expert: Not consulted. No current external guideline citation was necessary to identify the chart-grounded documentation gaps above."
+}

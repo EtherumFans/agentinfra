@@ -1,0 +1,202 @@
+{
+  "case_id": "H-NEG-A-001_R3",
+  "group": "NEGATION",
+  "variant": "A",
+  "session_id": "3c4a3c2a-4766-4d85-929f-439ba6f976d9",
+  "attempt": 1,
+  "outcome": "SUCCESS",
+  "elapsed_s": 28.09,
+  "expected": {
+    "query_count_min": 0,
+    "query_count_max": 0,
+    "expected_query_topics": [],
+    "forbidden_query_topics": [
+      "migraine",
+      "intracranial lesion",
+      "CNS tumor",
+      "meningitis"
+    ],
+    "no_query_expected": true
+  },
+  "text_length": 4897,
+  "first_token_at_s": 3.52,
+  "last_token_at_s": 28.09,
+  "event_count": 12,
+  "raw_events_preview": [
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"code_system\":\"icd-10-cm\",\"count\":2,\"next_steps\":[{\"reason\":\"Browse related codes and alternatives in the same category\",\"tool\":\"explore\"},{\"reason\":\"Read coding conventions relevant to these",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"R51.9\",\"code_system\":\"icd-10-cm\",\"description\":\"Headache, unspecified\",\"next_steps\":[{\"reason\":\"Read coding conventions for this code area\",\"tool\":\"guidelines\"},{\"re",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"G44.209\",\"description\":\"Tension-type headache, unspecified, not intractable\",\"next_steps\":[{\"reason\":\"Compare with related codes if this isn't the best fit\",\"tool\":\"",
+    "message|{\"id\":\"384dd2b5-41c6-4b9e-a525-08219638032a\",\"type\":\"text-start\"}",
+    "message|{\"delta\":\"Encounter Summary:\\n- 42-year-old female with intermittent headache for 2 weeks.\\n- Associated red-flag/feature negatives documented: denies nausea, vomiting, photophobia, phonophobia, visua",
+    "message|{\"id\":\"384dd2b5-41c6-4b9e-a525-08219638032a\",\"type\":\"text-end\"}",
+    "message|{\"messageMetadata\":{\"contextId\":\"019f5bcf-7ad7-74c7-9fcb-9ed7f8d93d5c\",\"taskId\":\"019f5bcf-7ad7-7450-bb14-aff77978e35e\",\"credits\":0.070728,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+    "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.070728},\"type\":\"finish\"}",
+    "message|[DONE]"
+  ],
+  "expert_events": [
+    {
+      "code_system": "icd-10-cm",
+      "count": 2,
+      "next_steps": [
+        {
+          "reason": "Browse related codes and alternatives in the same category",
+          "tool": "explore"
+        },
+        {
+          "reason": "Read coding conventions relevant to these codes",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "To assign the codes for a clinical note, use predict (optionally with include/exclude filters)",
+          "tool": "predict"
+        }
+      ],
+      "query": "headache",
+      "results": [
+        {
+          "code": "R51.9",
+          "description": "Headache, unspecified",
+          "match_path": "Headache",
+          "related_codes": {
+            "category": "R51",
+            "category_description": "Headache",
+            "count": 2
+          }
+        },
+        {
+          "code": "G44.209",
+          "description": "Tension-type headache, unspecified, not intractable",
+          "match_path": "Headache, tension",
+          "related_codes": {
+            "category": "G44.20",
+            "category_description": "Tension-type headache, unspecified",
+            "count": 2
+          }
+        }
+      ]
+    },
+    {
+      "assignable": true,
+      "code": "R51.9",
+      "code_system": "icd-10-cm",
+      "description": "Headache, unspecified",
+      "next_steps": [
+        {
+          "reason": "Read coding conventions for this code area",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "Check whether a specific code is assignable",
+          "tool": "verify"
+        },
+        {
+          "reason": "Explore a related or more specific code",
+          "tool": "explore"
+        }
+      ],
+      "parent": {
+        "code": "R51",
+        "description": "Headache"
+      },
+      "related_codes": [
+        {
+          "assignable": true,
+          "code": "R51.0",
+          "description": "Headache with orthostatic component, not elsewhere classified"
+        }
+      ],
+      "total_related": 1
+    },
+    {
+      "assignable": true,
+      "code": "G44.209",
+      "description": "Tension-type headache, unspecified, not intractable",
+      "next_steps": [
+        {
+          "reason": "Compare with related codes if this isn't the best fit",
+          "tool": "explore"
+        },
+        {
+          "reason": "Check chapter-level coding conventions for this code area",
+          "tool": "guidelines"
+        }
+      ],
+      "parents": [
+        {
+          "code": "G44.20",
+          "description": "Tension-type headache, unspecified"
+        },
+        {
+          "code": "G44.2",
+          "description": "Tension-type headache"
+        },
+        {
+          "code": "G44",
+          "description": "Other headache syndromes"
+        },
+        {
+          "code": "G40-G47",
+          "description": "Episodic and paroxysmal disorders (G40-G47)"
+        },
+        {
+          "code": "6",
+          "description": "Diseases of the nervous system (G00-G99)"
+        }
+      ]
+    }
+  ],
+  "status_events": [
+    {
+      "state": "working"
+    },
+    {
+      "state": "working"
+    },
+    {
+      "message": "Calling expert: coding-expert",
+      "state": "working"
+    }
+  ],
+  "finish_metadata": {
+    "contextId": "019f5bcf-7ad7-74c7-9fcb-9ed7f8d93d5c",
+    "taskId": "019f5bcf-7ad7-7450-bb14-aff77978e35e",
+    "credits": 0.070728,
+    "state": "completed"
+  },
+  "parsed": {
+    "encounter_summary": "- 42-year-old female with intermittent headache for 2 weeks.\n- Associated red-flag/feature negatives documented: denies nausea, vomiting, photophobia, phonophobia, visual aura, limb weakness, and neck stiffness.\n- No history of migraine and no family history of CNS disease documented.\n- Neurological exam and vital signs are documented as normal.",
+    "gaps": [
+      {
+        "idx": 1,
+        "text": "Headache type/etiology not specified beyond symptom-level documentation.\n- Why it matters: The current excerpt supports only symptom coding unless the provider documents a more specific headache diagnosis/type. Coding options differ between unspecified headache and a defined headache syndrome.\n- Evidence quote: “42-year-old female with intermittent headache for 2 weeks.”\n- Minimal clarification needed: Whether the headache is being diagnosed as a specific headache disorder/type or remains an uns"
+      },
+      {
+        "idx": 2,
+        "text": "If a headache diagnosis is established, key diagnostic descriptors are missing.\n- Why it matters: Some headache codes require specificity such as type and intractability/status features.\n- Evidence quote: “42-year-old female with intermittent headache for 2 weeks.”\n- Minimal clarification needed: Headache category/type and, if applicable, whether it is intractable/refractory or not."
+      }
+    ],
+    "gap_count": 2,
+    "queries": [
+      {
+        "idx": 1,
+        "text": "Clarification of headache diagnosis/type"
+      },
+      {
+        "idx": 2,
+        "text": "Additional specificity if a defined headache syndrome is diagnosed"
+      }
+    ],
+    "query_count": 2,
+    "specialists_contacted": [
+      "Medical Coding Expert",
+      "Coding Expert"
+    ],
+    "specialist_trace_text": "- Medical Coding Expert: Consulted for coding specificity and supportable query targets. Accepted the coding-relevant conclusion that the excerpt supports unspecified headache at minimum, with more specific headache coding dependent on provider documentation. Accepted related code-level specificity concept from returned results showing unspecified headache (R51.9) and a more specific alternative such as tension-type headache, unspecified, not intractable (G44.209) as examples of why clarification matters. Rejected using any specific diagnosis as patient-specific because the excerpt does not document one.\n- AMBOSS Expert: Not consulted. Clinical diagnostic criteria clarification was not necessary because the excerpt lacks sufficient evidence to support querying a specific headache syndrome.\n- CDI Web Search Expert: Not consulted. No current external guideline was necessary to determine that only symptom-level documentation is present and that any query must remain non-leading.",
+    "has_specialist_trace": true
+  },
+  "error": "",
+  "text": "Encounter Summary:\n- 42-year-old female with intermittent headache for 2 weeks.\n- Associated red-flag/feature negatives documented: denies nausea, vomiting, photophobia, phonophobia, visual aura, limb weakness, and neck stiffness.\n- No history of migraine and no family history of CNS disease documented.\n- Neurological exam and vital signs are documented as normal.\n\nDocumentation Gaps:\n1. Headache type/etiology not specified beyond symptom-level documentation.\n- Why it matters: The current excerpt supports only symptom coding unless the provider documents a more specific headache diagnosis/type. Coding options differ between unspecified headache and a defined headache syndrome.\n- Evidence quote: “42-year-old female with intermittent headache for 2 weeks.”\n- Minimal clarification needed: Whether the headache is being diagnosed as a specific headache disorder/type or remains an unspecified headache symptom.\n\n2. If a headache diagnosis is established, key diagnostic descriptors are missing.\n- Why it matters: Some headache codes require specificity such as type and intractability/status features.\n- Evidence quote: “42-year-old female with intermittent headache for 2 weeks.”\n- Minimal clarification needed: Headache category/type and, if applicable, whether it is intractable/refractory or not.\n\nProposed Provider Queries:\n1. Topic: Clarification of headache diagnosis/type\n- Reason query is needed: The note documents headache symptoms but does not state whether the provider is diagnosing a specific headache disorder versus documenting headache as a symptom only.\n- Evidence quote: “42-year-old female with intermittent headache for 2 weeks.”\n- Non-leading query text: “The documentation notes ‘intermittent headache for 2 weeks’ with normal neurological exam and vital signs, and denial of nausea, vomiting, photophobia, phonophobia, visual aura, limb weakness, and neck stiffness. For this encounter, can you clarify the most appropriate diagnostic description of the headache, if known?”\n- Suggested response options:\n  - Headache, unspecified\n  - Specific headache disorder/type (please specify)\n  - Headache symptom only; no more specific diagnosis established\n  - Other diagnosis/description (please specify)\n  - Clinically undetermined\n\n2. Topic: Additional specificity if a defined headache syndrome is diagnosed\n- Reason query is needed: If the provider intends a defined headache diagnosis, the note does not include the diagnostic subtype details needed for optimal specificity.\n- Evidence quote: “42-year-old female with intermittent headache for 2 weeks.”\n- Non-leading query text: “If a specific headache disorder is being diagnosed for this encounter, please clarify the type and any relevant descriptors documented or clinically established at this visit.”\n- Suggested response options:\n  - Type/subtype (please specify)\n  - Intractable/refractory\n  - Not intractable\n  - Other relevant descriptor (please specify)\n  - Clinically undetermined\n  - Not applicable; symptom only\n\nCoding Specificity Checklist:\n- Is the condition documented only as headache, or as a specific headache disorder?\n- If specific, what type/subtype is diagnosed?\n- If applicable to the diagnosed headache disorder, is it intractable/refractory or not?\n- Is the headache acute, subacute, chronic, recurrent, or intermittent, if clinically relevant and documented?\n- Is there an identified underlying cause or is it unspecified/symptomatic only?\n\nRisk Flags:\n- No obvious contradictions within the excerpt.\n- Evidence is limited to symptom documentation; there is insufficient support in the excerpt to query for migraine, meningitis, intracranial process, hypertensive headache, or other secondary causes.\n- The normal neurological exam and vital signs, plus multiple pertinent negatives, reduce support for querying a more specific secondary diagnosis based on this excerpt alone.\n\nSpecialist Trace:\n- Medical Coding Expert: Consulted for coding specificity and supportable query targets. Accepted the coding-relevant conclusion that the excerpt supports unspecified headache at minimum, with more specific headache coding dependent on provider documentation. Accepted related code-level specificity concept from returned results showing unspecified headache (R51.9) and a more specific alternative such as tension-type headache, unspecified, not intractable (G44.209) as examples of why clarification matters. Rejected using any specific diagnosis as patient-specific because the excerpt does not document one.\n- AMBOSS Expert: Not consulted. Clinical diagnostic criteria clarification was not necessary because the excerpt lacks sufficient evidence to support querying a specific headache syndrome.\n- CDI Web Search Expert: Not consulted. No current external guideline was necessary to determine that only symptom-level documentation is present and that any query must remain non-leading."
+}

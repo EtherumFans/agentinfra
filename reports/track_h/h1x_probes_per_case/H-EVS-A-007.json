@@ -1,0 +1,367 @@
+{
+  "case_id": "H-EVS-A-007",
+  "group": "EVIDENCE_STRENGTH",
+  "variant": "A",
+  "session_id": "337420be-ec89-4c45-a25c-9ee575cf999d",
+  "attempt": 1,
+  "outcome": "SUCCESS",
+  "elapsed_s": 33.93,
+  "expected": {
+    "query_count_min": 0,
+    "query_count_max": 1,
+    "expected_query_topics": [],
+    "forbidden_query_topics": [
+      "AKI stage",
+      "CKD"
+    ],
+    "no_query_expected": false
+  },
+  "text_length": 5060,
+  "first_token_at_s": 4.17,
+  "last_token_at_s": 33.93,
+  "event_count": 16,
+  "raw_events_preview": [
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"codes\":[],\"next_steps\":[{\"reason\":\"See related codes and alternatives around each predicted code\",\"tool\":\"explore\"},{\"reason\":\"Check chapter-level coding conventions and rules\",\"tool\":\"guide",
+    "message|{\"data\":{\"code_system\":\"icd-10-cm\",\"count\":2,\"next_steps\":[{\"reason\":\"Browse related codes and alternatives in the same category\",\"tool\":\"explore\"},{\"reason\":\"Read coding conventions relevant to these",
+    "message|{\"data\":{\"code_system\":\"icd-10-cm\",\"count\":2,\"next_steps\":[{\"reason\":\"Browse related codes and alternatives in the same category\",\"tool\":\"explore\"},{\"reason\":\"Read coding conventions relevant to these",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"N17.9\",\"code_system\":\"icd-10-cm\",\"description\":\"Acute kidney failure, unspecified\",\"next_steps\":[{\"reason\":\"Read coding conventions for this code area\",\"tool\":\"guide",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"R94.4\",\"code_system\":\"icd-10-cm\",\"description\":\"Abnormal results of kidney function studies\",\"next_steps\":[{\"reason\":\"Read coding conventions for this code area\",\"to",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"N17.9\",\"description\":\"Acute kidney failure, unspecified\",\"next_steps\":[{\"reason\":\"Compare with related codes if this isn't the best fit\",\"tool\":\"explore\"},{\"reason\":",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"R94.4\",\"description\":\"Abnormal results of kidney function studies\",\"next_steps\":[{\"reason\":\"Compare with related codes if this isn't the best fit\",\"tool\":\"explore\"},",
+    "message|{\"id\":\"1ac93c15-df5c-48d8-9df1-f9856aa83c5e\",\"type\":\"text-start\"}",
+    "message|{\"delta\":\"Encounter Summary:\\n- Chart excerpt documents a single mild creatinine rise: “single creatinine of 1.4 mg/dL (baseline 1.0).”\\n- The excerpt also states: “No urine output records. No other r",
+    "message|{\"id\":\"1ac93c15-df5c-48d8-9df1-f9856aa83c5e\",\"type\":\"text-end\"}",
+    "message|{\"messageMetadata\":{\"contextId\":\"019f5bc7-514b-7db3-a71f-f11785e730ea\",\"taskId\":\"019f5bc7-514b-7d29-ad95-658bbb70b2bc\",\"credits\":0.08344399999999999,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+    "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.08344399999999999},\"type\":\"finish\"}",
+    "message|[DONE]"
+  ],
+  "expert_events": [
+    {
+      "codes": [],
+      "next_steps": [
+        {
+          "reason": "See related codes and alternatives around each predicted code",
+          "tool": "explore"
+        },
+        {
+          "reason": "Check chapter-level coding conventions and rules",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "Confirm each code is assignable and check instructional notes",
+          "tool": "verify"
+        }
+      ],
+      "potential_codes": [],
+      "usage": null
+    },
+    {
+      "code_system": "icd-10-cm",
+      "count": 2,
+      "next_steps": [
+        {
+          "reason": "Browse related codes and alternatives in the same category",
+          "tool": "explore"
+        },
+        {
+          "reason": "Read coding conventions relevant to these codes",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "To assign the codes for a clinical note, use predict (optionally with include/exclude filters)",
+          "tool": "predict"
+        }
+      ],
+      "query": "acute kidney injury",
+      "results": [
+        {
+          "code": "N17.9",
+          "description": "Acute kidney failure, unspecified",
+          "match_path": "Injury, kidney, acute",
+          "related_codes": {
+            "category": "N17",
+            "category_description": "Acute kidney failure",
+            "count": 5
+          }
+        },
+        {
+          "code": "N17.0",
+          "description": "Acute kidney failure with tubular necrosis",
+          "match_path": "Shock, kidney",
+          "related_codes": {
+            "category": "N17",
+            "category_description": "Acute kidney failure",
+            "count": 5
+          }
+        }
+      ]
+    },
+    {
+      "code_system": "icd-10-cm",
+      "count": 2,
+      "next_steps": [
+        {
+          "reason": "Browse related codes and alternatives in the same category",
+          "tool": "explore"
+        },
+        {
+          "reason": "Read coding conventions relevant to these codes",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "To assign the codes for a clinical note, use predict (optionally with include/exclude filters)",
+          "tool": "predict"
+        }
+      ],
+      "query": "elevated creatinine",
+      "results": [
+        {
+          "code": "R94.4",
+          "description": "Abnormal results of kidney function studies",
+          "match_path": "Abnormal, abnormality, abnormalities, creatinine clearance",
+          "related_codes": {
+            "category": "R94",
+            "category_description": "Abnormal results of function studies",
+            "count": 9
+          }
+        },
+        {
+          "code": "N28.89",
+          "description": "Other specified disorders of kidney and ureter",
+          "match_path": "Hyperemia, kidney",
+          "related_codes": {
+            "category": "N28.8",
+            "category_description": "Other specified disorders of kidney and ureter",
+            "count": 7
+          }
+        }
+      ]
+    },
+    {
+      "assignable": true,
+      "code": "N17.9",
+      "code_system": "icd-10-cm",
+      "description": "Acute kidney failure, unspecified",
+      "next_steps": [
+        {
+          "reason": "Read coding conventions for this code area",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "Check whether a specific code is assignable",
+          "tool": "verify"
+        },
+        {
+          "reason": "Explore a related or more specific code",
+          "tool": "explore"
+        }
+      ],
+      "parent": {
+        "code": "N17",
+        "description": "Acute kidney failure"
+      },
+      "related_codes": [
+        {
+          "assignable": true,
+          "code": "N17.0",
+          "description": "Acute kidney failure with tubular necrosis"
+        },
+        {
+          "assignable": true,
+          "code": "N17.1",
+          "description": "Acute kidney failure with acute cortical necrosis"
+        },
+        {
+          "assignable": true,
+          "code": "N17.2",
+          "description": "Acute kidney failure with medullary necrosis"
+        },
+        {
+          "assignable": true,
+          "code": "N17.8",
+          "description": "Other acute kidney failure"
+        }
+      ],
+      "total_related": 4
+    },
+    {
+      "assignable": true,
+      "code": "R94.4",
+      "code_system": "icd-10-cm",
+      "description": "Abnormal results of kidney function studies",
+      "next_steps": [
+        {
+          "reason": "Read coding conventions for this code area",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "Check whether a specific code is assignable",
+          "tool": "verify"
+        },
+        {
+          "reason": "Explore a related or more specific code",
+          "tool": "explore"
+        }
+      ],
+      "parent": {
+        "code": "R94",
+        "description": "Abnormal results of function studies"
+      },
+      "related_codes": [
+        {
+          "assignable": false,
+          "code": "R94.0",
+          "description": "Abnormal results of function studies of central nervous system"
+        },
+        {
+          "assignable": false,
+          "code": "R94.1",
+          "description": "Abnormal results of function studies of peripheral nervous system and special senses"
+        },
+        {
+          "assignable": true,
+          "code": "R94.2",
+          "description": "Abnormal results of pulmonary function studies"
+        },
+        {
+          "assignable": false,
+          "code": "R94.3",
+          "description": "Abnormal results of cardiovascular function studies"
+        },
+        {
+          "assignable": true,
+          "code": "R94.5",
+          "description": "Abnormal results of liver function studies"
+        },
+        {
+          "assignable": true,
+          "code": "R94.6",
+          "description": "Abnormal results of thyroid function studies"
+        },
+        {
+          "assignable": true,
+          "code": "R94.7",
+          "description": "Abnormal results of other endocrine function studies"
+        },
+        {
+          "assignable": true,
+          "code": "R94.8",
+          "description": "Abnormal results of function studies of other organs and systems"
+        }
+      ],
+      "total_related": 8
+    },
+    {
+      "assignable": true,
+      "code": "N17.9",
+      "description": "Acute kidney failure, unspecified",
+      "next_steps": [
+        {
+          "reason": "Compare with related codes if this isn't the best fit",
+          "tool": "explore"
+        },
+        {
+          "reason": "Check chapter-level coding conventions for this code area",
+          "tool": "guidelines"
+        }
+      ],
+      "parents": [
+        {
+          "code": "N17",
+          "description": "Acute kidney failure"
+        },
+        {
+          "code": "N17-N19",
+          "description": "Acute kidney failure and chronic kidney disease (N17-N19)"
+        },
+        {
+          "code": "14",
+          "description": "Diseases of the genitourinary system (N00-N99)"
+        }
+      ]
+    },
+    {
+      "assignable": true,
+      "code": "R94.4",
+      "description": "Abnormal results of kidney function studies",
+      "next_steps": [
+        {
+          "reason": "Compare with related codes if this isn't the best fit",
+          "tool": "explore"
+        },
+        {
+          "reason": "Check chapter-level coding conventions for this code area",
+          "tool": "guidelines"
+        }
+      ],
+      "parents": [
+        {
+          "code": "R94",
+          "description": "Abnormal results of function studies"
+        },
+        {
+          "code": "R90-R94",
+          "description": "Abnormal findings on diagnostic imaging and in function studies, without diagnosis (R90-R94)"
+        },
+        {
+          "code": "18",
+          "description": "Symptoms, signs and abnormal clinical and laboratory findings, not elsewhere classified (R00-R99)"
+        }
+      ]
+    }
+  ],
+  "status_events": [
+    {
+      "state": "working"
+    },
+    {
+      "state": "working"
+    },
+    {
+      "message": "Calling expert: coding-expert",
+      "state": "working"
+    }
+  ],
+  "finish_metadata": {
+    "contextId": "019f5bc7-514b-7db3-a71f-f11785e730ea",
+    "taskId": "019f5bc7-514b-7d29-ad95-658bbb70b2bc",
+    "credits": 0.08344399999999999,
+    "state": "completed"
+  },
+  "parsed": {
+    "encounter_summary": "- Chart excerpt documents a single mild creatinine rise: “single creatinine of 1.4 mg/dL (baseline 1.0).”\n- The excerpt also states: “No urine output records. No other renal markers.”\n- Additional context provided: “Normal CBC. No comorbidities suggesting CKD.”",
+    "gaps": [
+      {
+        "idx": 1,
+        "text": "Gap: Renal significance of the creatinine rise is not clinically characterized.\n- Why it matters: Coding cannot reliably distinguish a reportable renal diagnosis from an isolated abnormal lab without provider documentation.\n- Evidence quote: “single creatinine of 1.4 mg/dL (baseline 1.0)” and “No urine output records. No other renal markers.”\n- Minimal clarification needed: Whether this represents a clinically significant renal condition, an isolated abnormal kidney function study, or no diagnos"
+      },
+      {
+        "idx": 2,
+        "text": "Gap: If a renal condition is present, acuity/etiology/specificity are not documented.\n- Why it matters: A documented diagnosis such as acute kidney failure would require provider attribution and specificity for accurate coding. Coding expert results show possible code pathways differ between acute kidney failure (N17.9) and abnormal kidney function study (R94.4).\n- Evidence quote: “single creatinine of 1.4 mg/dL (baseline 1.0)” with “No urine output records. No other renal markers.”\n- Minimal cl"
+      }
+    ],
+    "gap_count": 2,
+    "queries": [
+      {
+        "idx": 1,
+        "text": "Clinical significance of elevated creatinine"
+      },
+      {
+        "idx": 2,
+        "text": "Specific renal diagnosis, if one was clinically present"
+      }
+    ],
+    "query_count": 2,
+    "specialists_contacted": [
+      "Medical Coding Expert",
+      "Coding Expert"
+    ],
+    "specialist_trace_text": "- Medical Coding Expert: Consulted for coding specificity and possible renal coding pathways. Accepted conservative takeaway that current excerpt does not support assigning a specific renal diagnosis without provider clarification; noted possible code families only as context: acute kidney failure unspecified (N17.9) versus abnormal results of kidney function studies (R94.4). Rejected any implication that a diagnosis can be assigned from this excerpt alone.\n- AMBOSS Expert: Not consulted, because the excerpt is too limited and the key issue is documentation sufficiency rather than applying diagnostic criteria.\n- CDI Web Search Expert: Not consulted, because no current external compliance question was necessary to answer this conservatively.\n\nBottom line:\n- A compliant CDI query can ask the provider to clarify whether the creatinine rise reflects a clinically significant renal condition or only an abnormal kidney function study.\n- There is not enough evidence in the excerpt to support a more specific renal query, such as CKD or a definitive acute kidney failure subtype, without additional clinical documentation.",
+    "has_specialist_trace": true
+  },
+  "error": "",
+  "text": "Encounter Summary:\n- Chart excerpt documents a single mild creatinine rise: “single creatinine of 1.4 mg/dL (baseline 1.0).”\n- The excerpt also states: “No urine output records. No other renal markers.”\n- Additional context provided: “Normal CBC. No comorbidities suggesting CKD.”\n\nDocumentation Gaps:\n1. Gap: Renal significance of the creatinine rise is not clinically characterized.\n- Why it matters: Coding cannot reliably distinguish a reportable renal diagnosis from an isolated abnormal lab without provider documentation.\n- Evidence quote: “single creatinine of 1.4 mg/dL (baseline 1.0)” and “No urine output records. No other renal markers.”\n- Minimal clarification needed: Whether this represents a clinically significant renal condition, an isolated abnormal kidney function study, or no diagnosable renal disorder.\n\n2. Gap: If a renal condition is present, acuity/etiology/specificity are not documented.\n- Why it matters: A documented diagnosis such as acute kidney failure would require provider attribution and specificity for accurate coding. Coding expert results show possible code pathways differ between acute kidney failure (N17.9) and abnormal kidney function study (R94.4).\n- Evidence quote: “single creatinine of 1.4 mg/dL (baseline 1.0)” with “No urine output records. No other renal markers.”\n- Minimal clarification needed: Provider statement of the condition, if any, and its specificity.\n\nProposed Provider Queries:\n1. Topic: Clinical significance of elevated creatinine\n- Reason query is needed: The excerpt supports an abnormal kidney-related lab value but does not support assigning a specific renal diagnosis from available documentation alone.\n- Evidence quote: “single creatinine of 1.4 mg/dL (baseline 1.0). No urine output records. No other renal markers.”\n- Non-leading query text: “The record notes a creatinine of 1.4 mg/dL with reported baseline 1.0 mg/dL. No urine output records or other renal markers are documented in the excerpt. Please clarify the clinical significance of this finding, if any.”\n- Suggested response options:\n  - Clinically significant renal condition present (please specify)\n  - Isolated abnormal kidney function study/elevated creatinine only\n  - Not clinically significant\n  - Unable to determine\n  - Other\n\n2. Topic: Specific renal diagnosis, if one was clinically present\n- Reason query is needed: If the provider intended a renal diagnosis, the current excerpt lacks sufficient specificity to support coding beyond an abnormal finding.\n- Evidence quote: “single creatinine of 1.4 mg/dL (baseline 1.0)” and “No urine output records. No other renal markers.”\n- Non-leading query text: “If the elevated creatinine represented a diagnosed renal condition during this encounter, please specify the condition and its acuity/etiology as clinically appropriate.”\n- Suggested response options:\n  - Acute kidney failure/injury (please specify type/etiology if known)\n  - Other renal condition (please specify)\n  - Abnormal kidney function study only\n  - Unable to determine\n  - Other\n\nCoding Specificity Checklist:\n- Whether there is a true diagnosed renal condition versus abnormal lab finding only\n- If a renal diagnosis is present: acute vs chronic vs other\n- If acute renal condition is present: etiology/type if known\n- Clinical significance of the creatinine rise in the context of the encounter\n- Whether the finding was monitored/evaluated/treated or simply incidental\n\nRisk Flags:\n- Insufficient evidence to independently support a query for CKD: the excerpt explicitly says, “No comorbidities suggesting CKD.”\n- Insufficient evidence to independently support a specific AKI/acute kidney failure diagnosis from the excerpt alone: only one creatinine value is provided, with “No urine output records” and “No other renal markers.”\n- Avoid using ambiguous terms such as “renal insufficiency” unless the provider explicitly defines the condition.\n\nSpecialist Trace:\n- Medical Coding Expert: Consulted for coding specificity and possible renal coding pathways. Accepted conservative takeaway that current excerpt does not support assigning a specific renal diagnosis without provider clarification; noted possible code families only as context: acute kidney failure unspecified (N17.9) versus abnormal results of kidney function studies (R94.4). Rejected any implication that a diagnosis can be assigned from this excerpt alone.\n- AMBOSS Expert: Not consulted, because the excerpt is too limited and the key issue is documentation sufficiency rather than applying diagnostic criteria.\n- CDI Web Search Expert: Not consulted, because no current external compliance question was necessary to answer this conservatively.\n\nBottom line:\n- A compliant CDI query can ask the provider to clarify whether the creatinine rise reflects a clinically significant renal condition or only an abnormal kidney function study.\n- There is not enough evidence in the excerpt to support a more specific renal query, such as CKD or a definitive acute kidney failure subtype, without additional clinical documentation."
+}

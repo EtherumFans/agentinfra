@@ -81,6 +81,10 @@ class CaseEligibilityResult:
     chart_completeness_score: float = 0.0
     dimensions_detected: dict[str, bool] = field(default_factory=dict)
     dropped_count: int = 0
+    # Track H3.13 — LLM-backed chart_completeness verdict (None when the
+    # gap_identification stage did not emit one).
+    llm_chart_completeness_verdict: bool | None = None
+    llm_chart_completeness_reasoning: str = ""
 
 
 # ---------------------------------------------------------------------------
@@ -359,9 +363,30 @@ def evaluate_query_eligibility(
 def evaluate_case_eligibility(case: CDICase) -> CaseEligibilityResult:
     """Side-effect-free evaluation across all queries in the case."""
     score, dims, complete = detect_chart_completeness(case.chart_excerpt)
+
+    # Track H3.13 — LLM-backed chart_completeness override.
+    #
+    # When the gap_identification stage emitted a ``chart_completeness``
+    # verdict, prefer it over the regex detector. The LLM sees the full
+    # clinical context and can recognize that, e.g., an obstetric
+    # delivery note doesn't need severity/etiology dimensions to be
+    # complete. The regex detector over-marks such cases as incomplete,
+    # which causes the 4/10 complete_chart over-query observed on iter 3.
+    #
+    # The LLM verdict is stored on case.encounter_metadata by the
+    # orchestrator's _stage_gap_identification step.
+    llm_verdict = (case.encounter_metadata or {}).get("chart_completeness_llm")
+    llm_complete: bool | None = None
+    llm_reasoning = ""
+    if isinstance(llm_verdict, dict) and "is_complete" in llm_verdict:
+        llm_complete = bool(llm_verdict.get("is_complete"))
+        llm_reasoning = str(llm_verdict.get("reasoning", ""))[:200]
+        complete = llm_complete
+
     # Track H3.10 — if the case has a contradiction risk_flag, the chart
-    # is NOT complete regardless of dimension count: a conflict needs
-    # clarification. Override chart_complete to False so queries survive.
+    # is NOT complete regardless of dimension count or LLM verdict: a
+    # conflict needs clarification. Override chart_complete to False so
+    # queries survive.
     has_contradiction = _case_has_contradiction(case)
     if has_contradiction and complete:
         complete = False
@@ -369,6 +394,8 @@ def evaluate_case_eligibility(case: CDICase) -> CaseEligibilityResult:
         chart_complete=complete,
         chart_completeness_score=score,
         dimensions_detected=dims,
+        llm_chart_completeness_verdict=llm_complete,
+        llm_chart_completeness_reasoning=llm_reasoning,
     )
     for q in case.proposed_provider_queries:
         result.per_query[q.query_id] = evaluate_query_eligibility(

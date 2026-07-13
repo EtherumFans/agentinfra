@@ -1,0 +1,279 @@
+{
+  "case_id": "CASE-845b893ed2db",
+  "completion_state": "BLOCKED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-845b893ed2db/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "糖尿病酮症酸中毒（DKA）未明确诊断，仅诊断为2型糖尿病，但实验室检查提示代谢性酸中毒（pH 7.30, HCO3 16）和酮体阳性，符合DKA诊断标准。",
+      "why_it_matters": "DKA是糖尿病急性并发症，需明确诊断以指导紧急治疗和编码，遗漏可能导致治疗延误和编码不准确。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "pH 7.30, HCO3 16, 酮体阳性"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-845b893ed2db/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "糖尿病类型与临床表现不符：患者45岁，多饮多尿1月，血糖和HbA1c显著升高，酮症酸中毒，更符合1型糖尿病或成人隐匿性自身免疫性糖尿病（LADA），但诊断为2型糖尿病。",
+      "why_it_matters": "糖尿病分型影响治疗方案（如胰岛素依赖）和长期管理，错误分型可能导致治疗不当和编码错误。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "入院诊断:2型糖尿病"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-845b893ed2db/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "酮症酸中毒的严重程度未明确：未描述意识状态、血钾、阴离子间隙等，无法判断DKA严重程度。",
+      "why_it_matters": "严重程度影响治疗强度（如补液速度、胰岛素剂量）和编码（如DKA伴昏迷或不伴昏迷）。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "pH 7.30, HCO3 16, 酮体阳性"
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-845b893ed2db/Q-001",
+      "gap_id": "CASE-845b893ed2db/GAP-001",
+      "topic": "糖尿病酮症酸中毒诊断",
+      "reason": "实验室检查提示代谢性酸中毒和酮体阳性，但未明确诊断DKA",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "pH 7.30, HCO3 16, 酮体阳性"
+      },
+      "query_text": "患者实验室检查显示pH 7.30, HCO3 16, 酮体阳性，请明确是否存在糖尿病酮症酸中毒（DKA）？",
+      "response_options": [
+        "A. 是，存在DKA",
+        "B. 否，不存在DKA",
+        "C. 存在其他原因导致的代谢性酸中毒",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "urgent"
+    },
+    {
+      "query_id": "CASE-845b893ed2db/Q-002",
+      "gap_id": "CASE-845b893ed2db/GAP-002",
+      "topic": "糖尿病类型",
+      "reason": "患者45岁，多饮多尿1月，血糖和HbA1c显著升高，酮症酸中毒，更符合1型糖尿病或LADA，但诊断为2型糖尿病",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "入院诊断:2型糖尿病"
+      },
+      "query_text": "患者45岁，多饮多尿1月，血糖和HbA1c显著升高，酮症酸中毒，请明确糖尿病类型？",
+      "response_options": [
+        "A. 1型糖尿病",
+        "B. 2型糖尿病",
+        "C. 成人隐匿性自身免疫性糖尿病（LADA）",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "urgent"
+    },
+    {
+      "query_id": "CASE-845b893ed2db/Q-003",
+      "gap_id": "CASE-845b893ed2db/GAP-003",
+      "topic": "DKA严重程度",
+      "reason": "未描述意识状态、血钾、阴离子间隙等，无法判断DKA严重程度",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "pH 7.30, HCO3 16, 酮体阳性"
+      },
+      "query_text": "患者存在酮症酸中毒，请明确其严重程度？",
+      "response_options": [
+        "A. 轻度",
+        "B. 中度",
+        "C. 重度",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "urgent"
+    }
+  ],
+  "chart_excerpt_preview": "患者男性, 45岁, 多饮多尿1月。FPG 12.5, HbA1c 11.2, pH 7.30, HCO3 16, 酮体阳性。入院诊断:2型糖尿病。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [],
+    "encounter_metadata": {}
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "根据临床记录，患者存在明确的DKA证据（pH 7.30、HCO3 16、酮体阳性），需明确诊断“糖尿病酮症酸中毒”而非仅2型糖尿病。同时，患者年龄、急性起病及严重高血糖更符合1型糖尿病或LADA，建议补充胰岛自身抗体（如GAD抗体）及C肽水平以明确糖尿病分型。此外，需记录DKA严重程度相关指标（如意识状态、阴离子间隙、血钾水平），以支持准确编码。",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3739,
+      "tokens": 363
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": true,
+      "rationale": "根据您提供的实验室数据（pH 7.30、HCO3 16、酮体阳性），该患者完全符合糖尿病酮症酸中毒（DKA）的诊断标准（pH<7.3或HCO3<18，伴酮症），因此应明确诊断DKA而非单纯2型糖尿病。此外，45岁患者出现显著高血糖、HbA1c 11.2%及酮症酸中毒，更符合1型糖尿病或成人隐匿性自身免疫性糖尿病（LADA）的临床表现，建议检测胰岛自身抗体（如GAD抗体）以明确分型（PMID: 29874513）。同时，需补充意识状态、血钾及阴离子间隙等指标以评估DKA严重程度，指导补液和胰岛素治疗（PMID: 31152180）。",
+      "route_decision": "needed",
+      "route_reason": "criteria_marker_present",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 2560,
+      "tokens": 433
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-e9e86aa907cf",
+    "gap_identification": "run-405a79353cef",
+    "expert_consultation": "run-1dec11ed3cef",
+    "query_generation": "run-de9d33f33f50",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=3",
+    "query_necessity_gate": "necessary=3;unnecessary=0;overquery_triggered=False;final_count=3",
+    "query_single_dimension_gate": "single_dim=3;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=type;final_count=3",
+    "claim_evidence_alignment_gate": "claims_extracted=10;blocked=0;flagged=0;final_count=3",
+    "claim_evidence_alignment_gate::run_id": "run-3b4ac978ddbe",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=3",
+    "semantic_necessity_gate::run_id": "run-5d9684a921c9",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "run-04c1851a66e6"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-f9cddc8c7aeb",
+    "gap_identification": "trace-dee15c9c5a2f",
+    "expert_consultation": "trace-bd2ada64a5d7",
+    "query_generation": "trace-62b9b7e84729",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-3c733f3a62dd",
+    "semantic_necessity_gate": "trace-d7684564e74a",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-f23ec6736c20"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3240,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-e9e86aa907cf",
+      "trace_id": "trace-f9cddc8c7aeb",
+      "degraded": true,
+      "error_reason": "LLM call failed after 3 attempts: Connection error.",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5730,
+      "prompt_tokens": 277,
+      "completion_tokens": 490,
+      "total_tokens": 767,
+      "run_id": "run-405a79353cef",
+      "trace_id": "trace-dee15c9c5a2f",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6110,
+      "prompt_tokens": 1011,
+      "completion_tokens": 578,
+      "total_tokens": 1589,
+      "run_id": "run-de9d33f33f50",
+      "trace_id": "trace-62b9b7e84729",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3739,
+      "prompt_tokens": 251,
+      "completion_tokens": 112,
+      "total_tokens": 363,
+      "run_id": "run-010e9e47afc1",
+      "trace_id": "trace-d49e58a95b1d",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2560,
+      "prompt_tokens": 265,
+      "completion_tokens": 168,
+      "total_tokens": 433,
+      "run_id": "run-d163bf4da09a",
+      "trace_id": "trace-44fbb435e62e",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-8d9fbddd362a",
+      "trace_id": "trace-2b3d852c4474",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-1c9b7dfb63f7",
+      "trace_id": "trace-ee82b9f4428a",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": true,
+  "runtime_mode": "real",
+  "generated_at": "2026-07-12T13:48:11.105923Z"
+}

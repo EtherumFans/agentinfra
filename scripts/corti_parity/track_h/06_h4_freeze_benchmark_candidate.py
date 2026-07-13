@@ -29,11 +29,11 @@ from pathlib import Path
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-DST = REPO_ROOT / "reports" / "track_h" / "h4_benchmark_candidate_rc1"
+DST = REPO_ROOT / "reports" / "track_h" / "h4_benchmark_candidate_rc2"
 
-CANDIDATE_VERSION = "icoder-cdi-agent-v1.0.0-rc1"
-ITER = 3
-TIER_LABEL = "PASS_CALIBRATION_TUNING_ITERATION_3"
+CANDIDATE_VERSION = "icoder-cdi-agent-v1.0.0-rc2"
+ITER = 4
+TIER_LABEL = "PASS_CALIBRATION_TUNING_ITERATION_4"
 
 SOURCES = {
     "gate8_icoder_40case_results.json":
@@ -136,22 +136,27 @@ def main() -> int:
             "probes) measure their deltas against this artifact."
         ),
         "headline_metrics": {
-            "iter_3_avg_queries_per_case": 0.875,
-            "iter_3_icoder_range_conformance": "28/40 (70%)",
-            "iter_3_agreement_rate_vs_corti": 0.57,
-            "iter_3_avg_abs_query_count_delta": 1.23,
-            "iter_3_multi_dim_leaked_total": 0,
-            "iter_3_complete_chart_over_query": "4/10",
-            "iter_3_clear_gap_under_query": "1/10",
+            "iter_4_avg_queries_per_case": 0.425,
+            "iter_4_icoder_range_conformance": "33/40 (82%)",
+            "iter_4_agreement_rate_vs_corti": 0.55,
+            "iter_4_avg_abs_query_count_delta": 1.43,
+            "iter_4_multi_dim_leaked_total": 0,
+            "iter_4_complete_chart_over_query": "0/10",
+            "iter_4_clear_gap_under_query": "3/10",
+            "iter_4_evidence_quote_verbatim": 0.882,
+            "iter_4_contradiction_risk_flag_cases": 6,
         },
         "h4_1_quality_summary": h41_summary.get("quality", {}),
         "h4_1_safety_summary": h41_summary.get("safety", {}),
         "h4_1_expert_summary": h41_summary.get("expert", {}),
         "cross_platform_normalizer": normalizer_summary,
         "caveats": [
-            "complete_chart over-query 4/10 (target 0) — H3.13 carry-forward",
-            "document_conflict emit rate 0.40 (target ≥ 0.80) — H3.10 override dormant on iter 3",
-            "lab_positive_uncertain under-query — H3.14 carry-forward",
+            "complete_chart over-query closed (4/10 → 0/10) by H3.13b LLM completeness — iter 4 WIN",
+            "contradiction_risk_flag plumbing activated (0/40 → 6/40) — iter 4 WIN, H3.10 override no longer dormant",
+            "clear_gap under-query regressed (1/10 → 3/10) — CEA over-blocking, H3.15 carry-forward",
+            "evidence_quote_verbatim regressed (0.971 → 0.882) — H3.15 carry-forward",
+            "document_conflict emit rate still 0.40 (target ≥ 0.80) — H3.14 amplifier generated queries but CEA blocks",
+            "lab_positive_uncertain emit 0/5 — H3.16 carry-forward",
             "expert_rejection behavior not exercised (EXP-005) — H1.3 carry-forward",
             "multi_dim_leaked = 0 is structural (deterministic gate), not statistical",
         ],

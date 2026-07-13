@@ -210,6 +210,44 @@ class CDIOrchestrator:
         for gap_dict in result.get("gaps", []):
             case.documentation_gaps.append(self._hydrate_gap(gap_dict))
 
+        # Track H3.13 — hydrate risk_flags emitted by the LLM. Without
+        # this, H3.10 contradiction override in query_eligibility_gate is
+        # dead code (0 risk_flags observed on iter 3 baseline).
+        from .domain import RiskFlag
+        rf_count = 0
+        for rf_dict in result.get("risk_flags", []):
+            category = rf_dict.get("category", "")
+            if category not in (
+                "contradiction", "unsupported_diagnosis",
+                "ambiguous_term", "copied_forward_indicator",
+            ):
+                continue
+            ev = rf_dict.get("evidence_span") or {}
+            case.risk_flags.append(RiskFlag(
+                category=category,
+                description=rf_dict.get("description", ""),
+                evidence_span=EvidenceSpan(
+                    document_id=ev.get("document_id", ""),
+                    quote=ev.get("quote", ""),
+                ) if ev.get("quote") else None,
+            ))
+            rf_count += 1
+
+        # Track H3.13 — LLM-backed chart_completeness verdict. Stored on
+        # case.encounter_metadata so query_eligibility_gate can read it
+        # without changing the CDICase dataclass shape.
+        cc = result.get("chart_completeness") or {}
+        if isinstance(cc, dict) and "is_complete" in cc:
+            case.encounter_metadata["chart_completeness_llm"] = {
+                "is_complete": bool(cc.get("is_complete")),
+                "reasoning": str(cc.get("reasoning", ""))[:300],
+                "missing_dimensions": list(cc.get("missing_dimensions", [])),
+            }
+
+        case.stage_run_ids["gap_identification_risk_flags"] = (
+            f"emitted={rf_count}"
+        )
+
     def _stage_expert_consultation(self, case: CDICase) -> None:
         result = self.runner("expert_consultation", case, {})
         case.stage_run_ids["expert_consultation"] = str(result.get("run_id", ""))
@@ -233,18 +271,32 @@ class CDIOrchestrator:
           QE-002  query_topic_has_matching_gap  — each query's topic must
                   intersect an identified documentation_gap; off-topic
                   queries are dropped.
+
+        Track H3.13 — chart_completeness now prefers the LLM verdict
+        emitted by gap_identification (stored on
+        ``case.encounter_metadata["chart_completeness_llm"]``) over the
+        regex detector. The regex detector over-marks clinically-complete
+        charts (e.g. obstetric delivery) that don't fit the 8-dimension
+        template, causing the 4/10 complete_chart over-query on iter 3.
         """
         from .query_eligibility_gate import apply_eligibility_to_case
         result = apply_eligibility_to_case(case)
         dims_summary = ",".join(
             f"{dim}={'Y' if hit else 'N'}" for dim, hit in result.dimensions_detected.items()
         )
+        llm_verdict_str = ""
+        if result.llm_chart_completeness_verdict is not None:
+            llm_verdict_str = (
+                f";llm_complete={result.llm_chart_completeness_verdict}"
+                f";llm_reasoning={result.llm_chart_completeness_reasoning[:80]}"
+            )
         case.stage_run_ids["query_eligibility_gate"] = (
             f"chart_complete={result.chart_complete};"
             f"completeness_score={result.chart_completeness_score:.2f};"
             f"dimensions={dims_summary};"
             f"dropped={result.dropped_count};"
             f"final_count={len(case.proposed_provider_queries)}"
+            f"{llm_verdict_str}"
         )
         case.stage_trace_ids["query_eligibility_gate"] = ""
 

@@ -126,7 +126,19 @@ _GAP_IDENTIFICATION_SCHEMA = """
       "evidence_span": {"document_id": "string", "quote": "string", "char_start": 0, "char_end": 0},
       "priority": "routine | urgent"
     }
-  ]
+  ],
+  "risk_flags": [
+    {
+      "category": "contradiction | unsupported_diagnosis | ambiguous_term | copied_forward_indicator",
+      "description": "string",
+      "evidence_span": {"document_id": "string", "quote": "string"}
+    }
+  ],
+  "chart_completeness": {
+    "is_complete": true,
+    "reasoning": "string (1-2 sentences explaining why the chart is or isn't clinically complete for CDI purposes)",
+    "missing_dimensions": ["type | site | severity | etiology | procedure | pathology | complications | course"]
+  }
 }
 """
 
@@ -173,7 +185,36 @@ _GAP_IDENTIFICATION_PROMPT = (
     "acuity unspecified, anatomical site unspecified, clinical "
     "correlation unestablished, temporal unspecified, conflicting "
     "documentation. Do NOT invent diagnoses. Do NOT include ICD codes. "
-    "Output ONLY valid JSON."
+    "Output ONLY valid JSON.\n\n"
+    "Track H3.13 — RISK_FLAGS EMISSION (mandatory): In addition to gaps, "
+    "you MUST scan the chart for the following risk signals and emit them "
+    "in the ``risk_flags`` array:\n"
+    "  - contradiction: the chart contains INTERNAL CONFLICT — e.g. "
+    "diagnosis A stated in one place but contradicted elsewhere; "
+    "lab/treatment inconsistent with documented diagnosis; conflicting "
+    "descriptions of the same finding.\n"
+    "  - unsupported_diagnosis: a diagnosis is asserted with NO clinical "
+    "evidence in the chart (no symptoms, labs, imaging, or pathology).\n"
+    "  - ambiguous_term: hedging language ('疑似', '可能', '待排除', "
+    "'不排除') used in a way that obscures the final clinical conclusion.\n"
+    "  - copied_forward_indicator: text suggesting copy-forward from "
+    "prior encounter without update (e.g. identical phrasing across "
+    "multiple days, stale timestamps).\n"
+    "For each risk_flag, provide a verbatim evidence_span.quote from the "
+    "chart. If the chart has no risk signals, emit an empty risk_flags "
+    "array. Most clean charts will have 0 risk_flags.\n\n"
+    "Track H3.13 — CHART_COMPLETENESS VERDICT (mandatory): In the "
+    "``chart_completeness`` object, judge whether the chart is clinically "
+    "complete FOR CDI PURPOSES — meaning it documents enough specificity "
+    "(type, site, severity, etiology, procedure, pathology, complications, "
+    "course) that NO clarification query would be needed before coding. "
+    "Set ``is_complete=true`` ONLY when the chart's clinical scenario is "
+    "fully specified for its category (e.g. a normal-delivery obstetric "
+    "case doesn't need severity/etiology — it IS complete; a pneumonia "
+    "case without pathogen or severity is NOT complete). Provide concise "
+    "``reasoning`` and list any ``missing_dimensions``. When "
+    "is_complete=true, the downstream eligibility gate will drop all "
+    "candidate queries as spurious — so be conservative but accurate."
 )
 
 
@@ -501,6 +542,44 @@ class RealCDIRunner:
             f"[anchor_hint={g.evidence_span.quote!r}]"
             for g in case.documentation_gaps[:8]  # cap prompt size
         )
+
+        # Track H3.14 — Contradiction / uncertainty amplifier.
+        #
+        # When the case carries a contradiction or ambiguous_term risk_flag,
+        # the chart has internal conflict or hedged conclusions that need
+        # disambiguation. A single consolidated query typically picks one
+        # side and drops the other. The amplifier instructs the LLM to
+        # emit TWO queries per conflict — one for each side — so the
+        # clinician can clarify both branches.
+        #
+        # This lifts the document_conflict and lab_positive_uncertain
+        # categories from ~0.6 avg queries/case toward the Corti baseline
+        # (2.4 / 2.2).
+        rf_categories = {rf.category for rf in (case.risk_flags or [])}
+        has_contradiction = "contradiction" in rf_categories
+        has_ambiguity = "ambiguous_term" in rf_categories
+        amplifier_hint = ""
+        if has_contradiction or has_ambiguity:
+            signal_label = []
+            if has_contradiction:
+                signal_label.append("contradiction")
+            if has_ambiguity:
+                signal_label.append("ambiguity")
+            amplifier_hint = (
+                f"\n\n"
+                f"AMPLIFIER (Track H3.14 — mandatory when risk_flags "
+                f"present): This case carries risk_flag category="
+                f"{'+'.join(signal_label)}. For each gap that touches the "
+                f"conflicting/ambiguous clinical fact, emit TWO queries — "
+                f"one exploring each branch of the conflict. Example: if "
+                f"the chart says both '肺炎' and '肺部感染待查', emit one "
+                f"query asking whether bacterial pneumonia is confirmed "
+                f"and a second query asking whether alternative diagnoses "
+                f"were considered. Do NOT consolidate conflicting branches "
+                f"into a single multi-axis query — single-dimension "
+                f"queries are required by the downstream gate.\n"
+            )
+
         prompt = (
             f"For each gap below, draft a NON-LEADING provider query. "
             f"QUOTE-ANCHOR PROCEDURE (Track H3.12 — mandatory):\n"
@@ -518,7 +597,8 @@ class RealCDIRunner:
             f"  Step 4. Draft the query_text + ≥4 response_options "
             f"(including an escape hatch).\n"
             f"  Step 5. Only skip a gap if the chart has NO surrounding "
-            f"context for it at all (very rare).\n\n"
+            f"context for it at all (very rare)."
+            f"{amplifier_hint}\n\n"
             f"Each query MUST cite evidence_span.quote = verbatim anchor "
             f"span. Paraphrased quotes will fail downstream CEA-001. "
             f"Respond as JSON matching this schema:\n{_QUERY_GENERATION_SCHEMA}\n\n"

@@ -1,0 +1,283 @@
+{
+  "case_id": "CASE-99ee50d2a9e4",
+  "completion_state": "BLOCKED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-99ee50d2a9e4/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "诊断中未明确分娩方式（如自然分娩）与产程细节（如是否使用催产素、会阴切开等）",
+      "why_it_matters": "影响分娩方式编码的准确性，可能遗漏操作编码",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "诊断:足月顺产, 单胎, 活婴"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-99ee50d2a9e4/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "未记录胎盘娩出情况（如是否完整、有无残留）",
+      "why_it_matters": "胎盘残留可导致产后出血或感染，需编码相关并发症",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "产程顺利, 出血 200ml"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-99ee50d2a9e4/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "未记录会阴情况（如是否完整、有无裂伤或切开）",
+      "why_it_matters": "会阴裂伤或切开需编码，影响分娩并发症的统计",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "自然分娩"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-99ee50d2a9e4/GAP-004",
+      "gap_type": "diagnostic_specificity",
+      "description": "未记录新生儿性别（虽提及男活婴，但诊断中未明确）",
+      "why_it_matters": "诊断应包含新生儿性别，确保编码准确性",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "男活婴"
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-99ee50d2a9e4/Q-001",
+      "gap_id": "CASE-99ee50d2a9e4/GAP-001",
+      "topic": "分娩方式与产程细节",
+      "reason": "诊断中未明确分娩方式（如自然分娩）与产程细节（如是否使用催产素、会阴切开等）",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "诊断:足月顺产, 单胎, 活婴"
+      },
+      "query_text": "请明确分娩方式及产程细节，包括是否使用催产素、是否行会阴切开等。",
+      "response_options": [
+        "A. 自然分娩，未使用催产素，未行会阴切开",
+        "B. 自然分娩，使用催产素，未行会阴切开",
+        "C. 自然分娩，未使用催产素，行会阴切开",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine"
+    },
+    {
+      "query_id": "CASE-99ee50d2a9e4/Q-002",
+      "gap_id": "CASE-99ee50d2a9e4/GAP-004",
+      "topic": "新生儿性别",
+      "reason": "未记录新生儿性别（虽提及男活婴，但诊断中未明确）",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "男活婴"
+      },
+      "query_text": "请明确新生儿性别。",
+      "response_options": [
+        "A. 男性",
+        "B. 女性",
+        "C. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine"
+    }
+  ],
+  "chart_excerpt_preview": "患者女性, 32岁, 第2胎, 孕39周, 自然分娩, 男活婴, 体重 3350g。产程顺利, 出血 200ml。Apgar 评分 1/5/10分钟均 10分。产后恢复好, 母乳喂养。第3天出院。诊断:足月顺产, 单胎, 活婴。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者女性, 32岁",
+      "第2胎, 孕39周",
+      "自然分娩, 男活婴, 体重3350g",
+      "产程顺利, 出血200ml",
+      "Apgar评分1/5/10分钟均10分",
+      "产后恢复好, 母乳喂养",
+      "第3天出院",
+      "诊断:足月顺产, 单胎, 活婴"
+    ],
+    "encounter_metadata": {
+      "patient_age": "32岁",
+      "patient_sex": "女性",
+      "encounter_type": "分娩"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "根据病历记录，诊断中需补充分娩方式为“自然分娩”的具体描述，并明确产程细节如是否使用催产素、会阴切开或裂伤情况。同时应记录胎盘娩出是否完整、有无残留，以及会阴完整性（如完整、裂伤或切开）。新生儿性别虽在病史中提及，但诊断中应明确标注“男活婴”以符合编码规范。",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3652,
+      "tokens": 313
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "'评分' score — no deterministic calculator wired",
+      "route_decision": "tool_unavailable",
+      "route_reason": "no_real_tool_wired",
+      "execution_mode": "TOOL_UNAVAILABLE",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-39c2afbe4bbe",
+    "gap_identification": "run-87b1b7d86383",
+    "expert_consultation": "run-eff8e940e5d0",
+    "query_generation": "run-2fcdcb37edd4",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.25;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=Y,D8_course=Y;dropped=0;final_count=4",
+    "query_necessity_gate": "necessary=4;unnecessary=0;overquery_triggered=False;final_count=4",
+    "query_single_dimension_gate": "single_dim=4;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;final_count=4",
+    "claim_evidence_alignment_gate": "claims_extracted=10;blocked=2;flagged=0;final_count=2",
+    "claim_evidence_alignment_gate::run_id": "run-b62a633541fb",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=2",
+    "semantic_necessity_gate::run_id": "run-f309d6e80cf7",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "run-96b8fc21588f"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-9f965dbbb5e8",
+    "gap_identification": "trace-c2ef9f62b976",
+    "expert_consultation": "trace-ec5f3e09edd4",
+    "query_generation": "trace-105a447908a8",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-bfb3c06000f3",
+    "semantic_necessity_gate": "trace-1d6e217e9f6b",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-447389372ebe"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2691,
+      "prompt_tokens": 258,
+      "completion_tokens": 143,
+      "total_tokens": 401,
+      "run_id": "run-39c2afbe4bbe",
+      "trace_id": "trace-9f965dbbb5e8",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6504,
+      "prompt_tokens": 410,
+      "completion_tokens": 464,
+      "total_tokens": 874,
+      "run_id": "run-87b1b7d86383",
+      "trace_id": "trace-c2ef9f62b976",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 7022,
+      "prompt_tokens": 989,
+      "completion_tokens": 684,
+      "total_tokens": 1673,
+      "run_id": "run-2fcdcb37edd4",
+      "trace_id": "trace-105a447908a8",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3652,
+      "prompt_tokens": 225,
+      "completion_tokens": 88,
+      "total_tokens": 313,
+      "run_id": "run-22c03f260994",
+      "trace_id": "trace-a44283b5f8c7",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-86647d555de2",
+      "trace_id": "trace-cf6341da7bf4",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-f1ee787e6a77",
+      "trace_id": "trace-8446bdf50023",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-8276f91ed61d",
+      "trace_id": "trace-0c346d4a2c99",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-07-12T13:50:09.314878Z"
+}

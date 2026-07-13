@@ -1,0 +1,298 @@
+{
+  "case_id": "CASE-88ad55ad55f6",
+  "completion_state": "BLOCKED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-88ad55ad55f6/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "糖尿病酮症酸中毒未明确诊断",
+      "why_it_matters": "患者存在代谢性酸中毒（pH 7.30, HCO3 16）和酮体阳性，符合糖尿病酮症酸中毒（DKA）的诊断标准，但入院诊断仅写2型糖尿病，未明确DKA，影响编码准确性。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "pH 7.30, HCO3 16, 酮体阳性"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-88ad55ad55f6/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "糖尿病类型与临床表现不一致",
+      "why_it_matters": "患者45岁，以酮症酸中毒起病，需鉴别1型糖尿病或成人隐匿性自身免疫性糖尿病（LADA），但诊断直接写2型糖尿病，缺乏分型依据（如胰岛自身抗体、C肽等），影响治疗和编码。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "入院诊断:2型糖尿病"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-88ad55ad55f6/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "酮症酸中毒严重程度未分级",
+      "why_it_matters": "DKA严重程度（轻度、中度、重度）影响治疗和编码，但未描述意识状态、阴离子间隙、血酮水平等。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "pH 7.30, HCO3 16, 酮体阳性"
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-88ad55ad55f6/Q-001",
+      "gap_id": "CASE-88ad55ad55f6/GAP-001",
+      "topic": "糖尿病酮症酸中毒诊断",
+      "reason": "患者存在代谢性酸中毒（pH 7.30, HCO3 16）和酮体阳性，但未明确诊断糖尿病酮症酸中毒。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "pH 7.30, HCO3 16, 酮体阳性"
+      },
+      "query_text": "请描述患者目前是否存在糖尿病酮症酸中毒？",
+      "response_options": [
+        "A. 是，明确诊断为糖尿病酮症酸中毒",
+        "B. 否，考虑其他原因导致的酸中毒",
+        "C. 存在酮症但无酸中毒",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "urgent"
+    },
+    {
+      "query_id": "CASE-88ad55ad55f6/Q-002",
+      "gap_id": "CASE-88ad55ad55f6/GAP-002",
+      "topic": "糖尿病类型确认",
+      "reason": "入院诊断为2型糖尿病，但患者45岁、多饮多尿1月、HbA1c 11.2，需排除1型糖尿病或成人隐匿性自身免疫性糖尿病。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "入院诊断:2型糖尿病"
+      },
+      "query_text": "请明确患者糖尿病的具体类型？",
+      "response_options": [
+        "A. 2型糖尿病",
+        "B. 1型糖尿病",
+        "C. 成人隐匿性自身免疫性糖尿病（LADA）",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "urgent"
+    },
+    {
+      "query_id": "CASE-88ad55ad55f6/Q-003",
+      "gap_id": "CASE-88ad55ad55f6/GAP-003",
+      "topic": "酮症酸中毒严重程度分级",
+      "reason": "患者pH 7.30, HCO3 16, 酮体阳性，但未对酮症酸中毒严重程度进行分级。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "pH 7.30, HCO3 16, 酮体阳性"
+      },
+      "query_text": "请评估患者糖尿病酮症酸中毒的严重程度？",
+      "response_options": [
+        "A. 轻度（pH 7.25-7.30, HCO3 15-18）",
+        "B. 中度（pH 7.00-7.24, HCO3 10-14）",
+        "C. 重度（pH <7.00, HCO3 <10）",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "urgent"
+    }
+  ],
+  "chart_excerpt_preview": "患者男性, 45岁, 多饮多尿1月。FPG 12.5, HbA1c 11.2, pH 7.30, HCO3 16, 酮体阳性。入院诊断:2型糖尿病。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "多饮多尿1月",
+      "FPG 12.5",
+      "HbA1c 11.2",
+      "pH 7.30",
+      "HCO3 16",
+      "酮体阳性",
+      "2型糖尿病"
+    ],
+    "encounter_metadata": {
+      "patient_age": "45",
+      "patient_sex": "男",
+      "encounter_type": "入院"
+    }
+  },
+  "risk_flags": [
+    {
+      "category": "contradiction",
+      "description": "临床表现（酮症酸中毒）与诊断（2型糖尿病）矛盾，2型糖尿病通常不轻易发生DKA，需进一步分型。"
+    }
+  ],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "根据病历，患者存在糖尿病酮症酸中毒（pH 7.30、HCO3 16、酮体阳性），但入院诊断仅写“2型糖尿病”，需明确诊断“糖尿病酮症酸中毒”。同时，糖尿病类型（2型）与临床表现（急性酮症酸中毒）可能存在不一致，需结合胰岛功能等检查明确分型。此外，酮症酸中毒的严重程度（如轻度、中度或重度）未分级，需根据pH、HCO3及意识状态等指标进行分级记录。",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3518,
+      "tokens": 251
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": true,
+      "rationale": "Based on the chart, the patient's presentation (pH 7.30, HCO3 16, positive ketones) meets the diagnostic criteria for mild-to-moderate diabetic ketoacidosis (DKA), which contradicts the diagnosis of uncomplicated type 2 diabetes. The literature supports that DKA can occur in type 2 diabetes under stress (ketosis-prone type 2 diabetes), but the severity should be graded (e.g., mild, moderate, severe) for appropriate management (PMID: 19336624, 31003980). I recommend reclassifying the diagnosis to include DKA with severity grading and reassessing the diabetes type based on clinical context and autoantibody testing if available.",
+      "route_decision": "needed",
+      "route_reason": "criteria_marker_present",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 2576,
+      "tokens": 298
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "'分级' score — parameters absent from chart",
+      "route_decision": "missing_inputs",
+      "route_reason": "calculator_params_missing",
+      "execution_mode": "SKIPPED_MISSING_INPUTS",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-63141d57aa69",
+    "gap_identification": "run-0c3b51c2d37b",
+    "gap_identification_risk_flags": "emitted=1;quote_snapped=0",
+    "expert_consultation": "run-2894d0664cbf",
+    "query_generation": "run-dd9c73969f32",
+    "query_generation::quote_snapped": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=3;llm_complete=False;llm_reasoning=患者存在糖尿病酮症酸中毒的明确证据，但未诊断DKA，且糖尿病分型不明确，缺乏严重程度分级，无法满足编码要求。",
+    "query_necessity_gate": "necessary=3;unnecessary=0;overquery_triggered=False;final_count=3",
+    "query_single_dimension_gate": "single_dim=3;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=type;final_count=3",
+    "claim_evidence_alignment_gate": "claims_extracted=5;blocked=0;flagged=0;final_count=3",
+    "claim_evidence_alignment_gate::run_id": "run-4811310ef038",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=3",
+    "semantic_necessity_gate::run_id": "run-c25807a068dd",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "run-898b6a5aedb2"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-ff2a2ede949a",
+    "gap_identification": "trace-970c86b810ed",
+    "expert_consultation": "trace-a9f74ab27dca",
+    "query_generation": "trace-6fe600811209",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-d0c4a004d704",
+    "semantic_necessity_gate": "trace-f512e4af89a1",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-9fb2d97a2abb"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5443,
+      "prompt_tokens": 226,
+      "completion_tokens": 102,
+      "total_tokens": 328,
+      "run_id": "run-63141d57aa69",
+      "trace_id": "trace-ff2a2ede949a",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 7693,
+      "prompt_tokens": 1051,
+      "completion_tokens": 652,
+      "total_tokens": 1703,
+      "run_id": "run-0c3b51c2d37b",
+      "trace_id": "trace-970c86b810ed",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6965,
+      "prompt_tokens": 1010,
+      "completion_tokens": 622,
+      "total_tokens": 1632,
+      "run_id": "run-dd9c73969f32",
+      "trace_id": "trace-6fe600811209",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3518,
+      "prompt_tokens": 140,
+      "completion_tokens": 111,
+      "total_tokens": 251,
+      "run_id": "run-addd42f14844",
+      "trace_id": "trace-79487c04388d",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2576,
+      "prompt_tokens": 154,
+      "completion_tokens": 144,
+      "total_tokens": 298,
+      "run_id": "run-0a2e56431570",
+      "trace_id": "trace-9cfa1e026732",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-feb83f229c25",
+      "trace_id": "trace-ae654be715b9",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-f528ab740106",
+      "trace_id": "trace-aa897e1e8f14",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-07-13T12:18:18.989783Z"
+}

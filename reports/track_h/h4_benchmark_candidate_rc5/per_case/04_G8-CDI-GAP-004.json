@@ -1,0 +1,212 @@
+{
+  "case_id": "CASE-3a40422446eb",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-3a40422446eb/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "急性胰腺炎的严重程度未明确（如轻症、重症、有无器官衰竭）",
+      "why_it_matters": "严重程度影响治疗和预后，且是编码区分急性胰腺炎亚型的依据",
+      "evidence_span": {
+        "document_id": "chart-001",
+        "quote": "入院诊断:急性胰腺炎"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-3a40422446eb/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "胆石症与急性胰腺炎的病因关联未明确（是否胆源性胰腺炎）",
+      "why_it_matters": "病因特异性影响治疗决策和编码准确性",
+      "evidence_span": {
+        "document_id": "chart-001",
+        "quote": "既往:胆石症"
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [],
+  "chart_excerpt_preview": "患者女性, 55岁, 上腹痛2天, 淀粉酶 580。CT:胰腺肿胀伴渗出。入院诊断:急性胰腺炎。既往:胆石症。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [],
+    "encounter_metadata": {}
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "根据病历，需明确急性胰腺炎的严重程度（如是否伴有器官衰竭或局部并发症），并确认胆石症是否为本次胰腺炎的病因（即是否属于胆源性胰腺炎），以支持准确编码。",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3011,
+      "tokens": 178
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": true,
+      "rationale": "Based on the chart, the patient’s CT findings (pancreatic swelling with exudation) and markedly elevated amylase (580) confirm acute pancreatitis, but the severity (e.g., organ failure, necrosis) is not documented, which is critical for prognosis. The history of cholelithiasis strongly suggests a biliary etiology (gallstone pancreatitis), as supported by literature showing that gallstones are the most common cause of acute pancreatitis (PMID: 32644514). To clarify the correlation, I recommend assessing for organ failure (e.g., using the Revised Atlanta Classification) and confirming biliary origin via ultrasound or MRCP.",
+      "route_decision": "needed",
+      "route_reason": "criteria_marker_present",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3012,
+      "tokens": 276
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-f79fbc9bb5bf",
+    "gap_identification": "run-c9ca370fc953",
+    "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
+    "expert_consultation": "run-5ac70b4019d0",
+    "query_generation": "run-6437a332d45e",
+    "query_generation::quote_snapped": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=2;llm_complete=False;llm_reasoning=急性胰腺炎的严重程度和病因（是否胆源性）未明确，影响编码和临床管理",
+    "query_necessity_gate": "necessary=1;unnecessary=1;overquery_triggered=False;final_count=1",
+    "query_single_dimension_gate": "single_dim=0;multi_dim=1;axis_cluster_triggered=False;axis_cluster_axis=correlation;final_count=0",
+    "claim_evidence_alignment_gate": "claims_extracted=0;blocked=0;flagged=0;final_count=0",
+    "claim_evidence_alignment_gate::run_id": "run-1d2437cbf535",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+    "semantic_necessity_gate::run_id": "run-234294b4b4bb",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "run-607206036167"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-4364c352c879",
+    "gap_identification": "trace-fb7240eb6b53",
+    "expert_consultation": "trace-d4155849b603",
+    "query_generation": "trace-4c84810bfc3d",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-55683f9b7ba9",
+    "semantic_necessity_gate": "trace-8eef6a7b6a79",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-b9f0f6f91b23"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3332,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-f79fbc9bb5bf",
+      "trace_id": "trace-4364c352c879",
+      "degraded": true,
+      "error_reason": "LLM call failed after 3 attempts: Connection error.",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 4816,
+      "prompt_tokens": 976,
+      "completion_tokens": 306,
+      "total_tokens": 1282,
+      "run_id": "run-c9ca370fc953",
+      "trace_id": "trace-fb7240eb6b53",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 4528,
+      "prompt_tokens": 837,
+      "completion_tokens": 368,
+      "total_tokens": 1205,
+      "run_id": "run-6437a332d45e",
+      "trace_id": "trace-4c84810bfc3d",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3011,
+      "prompt_tokens": 134,
+      "completion_tokens": 44,
+      "total_tokens": 178,
+      "run_id": "run-8c3c6f1ee97e",
+      "trace_id": "trace-1d5a41771b5f",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3012,
+      "prompt_tokens": 148,
+      "completion_tokens": 128,
+      "total_tokens": 276,
+      "run_id": "run-83f7f362bf07",
+      "trace_id": "trace-3a631b047994",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-6bcfe9dae997",
+      "trace_id": "trace-9d402f526a6e",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-06d16dff5f04",
+      "trace_id": "trace-eb5b43e53b36",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": true,
+  "runtime_mode": "real",
+  "generated_at": "2026-07-13T12:16:16.015519Z"
+}

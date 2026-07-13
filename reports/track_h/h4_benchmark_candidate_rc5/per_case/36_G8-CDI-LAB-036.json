@@ -1,0 +1,234 @@
+{
+  "case_id": "CASE-0463ae09fda8",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-0463ae09fda8/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "便潜血免疫法阳性但未明确临床相关性",
+      "why_it_matters": "便潜血阳性可能提示消化道病变，但患者无消化道症状且无贫血，需明确临床意义以决定是否需要进一步检查或诊断。",
+      "evidence_span": {
+        "document_id": "DOC-001",
+        "quote": "便潜血免疫法阳性"
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-0463ae09fda8/Q-001",
+      "gap_id": "CASE-0463ae09fda8/GAP-001",
+      "topic": "便潜血免疫法阳性的临床相关性",
+      "reason": "便潜血免疫法阳性，但患者无消化道症状，无贫血，临床意义不明确。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "便潜血免疫法阳性"
+      },
+      "query_text": "患者便潜血免疫法阳性，但无消化道症状，无贫血。请问该阳性结果的临床相关性如何？",
+      "response_options": [
+        "A. 考虑消化道出血，建议进一步检查",
+        "B. 考虑假阳性，建议复查",
+        "C. 考虑其他原因，请说明",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine"
+    }
+  ],
+  "chart_excerpt_preview": "患者男性, 45岁, 体检。无消化道症状。便潜血免疫法阳性。Hb 145, MCV 88。无贫血。既往:无。建议:复查便潜血, 必要时肠镜。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者男性，45岁",
+      "体检",
+      "无消化道症状",
+      "便潜血免疫法阳性",
+      "Hb 145，MCV 88",
+      "无贫血",
+      "既往无特殊",
+      "建议复查便潜血，必要时肠镜"
+    ],
+    "encounter_metadata": {
+      "patient_age": "45",
+      "patient_sex": "男",
+      "encounter_type": "体检"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": false,
+      "rationale": "empty chart — no coding substrate",
+      "route_decision": "not_needed",
+      "route_reason": "empty_chart",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "empty_chart",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "empty_chart",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "empty_chart",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-2b0ecbafb324",
+    "gap_identification": "run-0bb823c5643a",
+    "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
+    "expert_consultation": "run-096d0c972566",
+    "query_generation": "run-6f7ad300f482",
+    "query_generation::quote_snapped": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=1;llm_complete=False;llm_reasoning=便潜血阳性是异常实验室结果，但未提供临床相关性解释或明确诊断，需要进一步澄清。",
+    "query_necessity_gate": "necessary=1;unnecessary=0;overquery_triggered=False;final_count=1",
+    "query_single_dimension_gate": "single_dim=1;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=correlation;final_count=1",
+    "claim_evidence_alignment_gate": "claims_extracted=3;blocked=0;flagged=0;final_count=1",
+    "claim_evidence_alignment_gate::run_id": "run-8fa4040835f8",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=1",
+    "semantic_necessity_gate::run_id": "run-ac573bd9c667",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "run-c0c33f11b14e"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-cef46f9ff001",
+    "gap_identification": "trace-df2e5d66ed84",
+    "expert_consultation": "trace-b4cd43b56589",
+    "query_generation": "trace-f337bbf54647",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-df7df2f3ad2f",
+    "semantic_necessity_gate": "trace-adcde07854c9",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-c33d3d3e90d8"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2923,
+      "prompt_tokens": 220,
+      "completion_tokens": 107,
+      "total_tokens": 327,
+      "run_id": "run-2b0ecbafb324",
+      "trace_id": "trace-cef46f9ff001",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 4052,
+      "prompt_tokens": 1052,
+      "completion_tokens": 204,
+      "total_tokens": 1256,
+      "run_id": "run-0bb823c5643a",
+      "trace_id": "trace-df2e5d66ed84",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3558,
+      "prompt_tokens": 784,
+      "completion_tokens": 197,
+      "total_tokens": 981,
+      "run_id": "run-6f7ad300f482",
+      "trace_id": "trace-f337bbf54647",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-ec9b589ebfb0",
+      "trace_id": "trace-d2f91f821133",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-18ef5fd8cbb8",
+      "trace_id": "trace-345f07944636",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-28218a3fcd9a",
+      "trace_id": "trace-55a0e13e437f",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-17e2edcd835c",
+      "trace_id": "trace-90e28c9b422b",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-07-13T12:27:18.201849Z"
+}

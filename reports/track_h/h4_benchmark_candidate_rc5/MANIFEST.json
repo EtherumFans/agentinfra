@@ -1,0 +1,367 @@
+{
+  "candidate_version": "icoder-cdi-agent-v1.0.0-rc5",
+  "frozen_at_utc": "2026-07-13T12:36:58Z",
+  "git_commit": "0d759e5533223594941ceb0c46c8a4df7c244f40",
+  "iter": 7,
+  "tier": "PASS_CALIBRATION_TUNING_ITERATION_7",
+  "case_count": 40,
+  "description": "Frozen iter 7 baseline of iCoDer CDI Agent on the 40-case Corti/iCoDer cross-platform calibration fixture. iter 7 = H3.19 sentence-bounded CEA-005/CEA-006 negation look-back (closes negation_history agreement regression 0.60 → 0.80). Preserves all iter 6 wins (complete_chart over-query 0/10 7 iters, multi_dim_leaked 0, leading 0, document_conflict emit 1.000). iCoDer range conformance lifted 85% → 93% (37/40). Agreement rate lifted 0.70 → 0.75. Snapshot is the reference for H1.2-H1.4 Corti controlled probes (Tier 2).",
+  "headline_metrics": {
+    "iter_7_avg_queries_per_case": 1.0,
+    "iter_7_icoder_range_conformance": "37/40 (93%)",
+    "iter_7_agreement_rate_vs_corti": 0.75,
+    "iter_7_avg_abs_query_count_delta": 1.0,
+    "iter_7_multi_dim_leaked_total": 0,
+    "iter_7_complete_chart_over_query": "0/10",
+    "iter_7_clear_gap_under_query": "1/10",
+    "iter_7_evidence_quote_verbatim": 0.975,
+    "iter_7_unsupported_query_rate": 0.025,
+    "iter_7_document_conflict_emit_rate": 1.0,
+    "iter_7_contradiction_risk_flag_cases": 6,
+    "iter_7_response_options_4plus": 1.0,
+    "iter_7_non_leading_query_rate": 1.0
+  },
+  "h4_1_quality_summary": {
+    "total_queries": 40,
+    "evidence_quote_present_rate": 1.0,
+    "evidence_quote_verbatim_rate": 0.975,
+    "avg_evidence_quote_fuzz_score": 0.9926,
+    "response_options_4plus_rate": 1.0,
+    "response_options_escape_hatch_rate": 1.0,
+    "non_leading_query_rate": 1.0,
+    "leading_query_count": 0
+  },
+  "h4_1_safety_summary": {
+    "multi_dim_input_per_case": 0.225,
+    "multi_dim_input_total": 9,
+    "multi_dim_leaked_total": 0,
+    "multi_dim_leaked_rate": 0.0,
+    "cases_with_multi_dim_input": 8,
+    "unsupported_query_rate": 0.025,
+    "leading_query_rate": 0.0,
+    "document_conflict_cases_total": 5,
+    "document_conflict_emit_cases": 5,
+    "contradiction_risk_flag_cases": 6,
+    "document_conflict_emit_rate": 1.0
+  },
+  "h4_1_expert_summary": {
+    "coding-expert": {
+      "route_needed_count": 25,
+      "consulted_count": 25,
+      "invoke_rate": 0.625,
+      "avg_latency_ms_when_consulted": 3287.1,
+      "avg_tokens_when_consulted": 232.1,
+      "rejection_count": 0,
+      "rejection_rate": 0.0
+    },
+    "medical-calculator-expert": {
+      "route_needed_count": 0,
+      "consulted_count": 0,
+      "invoke_rate": 0.0,
+      "avg_latency_ms_when_consulted": 0.0,
+      "avg_tokens_when_consulted": 0.0,
+      "rejection_count": 0,
+      "rejection_rate": 0.0
+    },
+    "pubmed-expert": {
+      "route_needed_count": 3,
+      "consulted_count": 3,
+      "invoke_rate": 0.075,
+      "avg_latency_ms_when_consulted": 2720.7,
+      "avg_tokens_when_consulted": 304.3,
+      "rejection_count": 0,
+      "rejection_rate": 0.0
+    },
+    "web-search-expert": {
+      "route_needed_count": 0,
+      "consulted_count": 0,
+      "invoke_rate": 0.0,
+      "avg_latency_ms_when_consulted": 0.0,
+      "avg_tokens_when_consulted": 0.0,
+      "rejection_count": 0,
+      "rejection_rate": 0.0
+    }
+  },
+  "cross_platform_normalizer": {
+    "section_9_9_cross_platform": {
+      "avg_abs_query_count_delta": 1.0,
+      "agreement_rate_delta_le_1": 0.75,
+      "icoder_range_conformance": {
+        "conformant": 37,
+        "total": 40,
+        "rate": 0.93
+      },
+      "corti_range_conformance": {
+        "conformant": 20,
+        "total": 40,
+        "rate": 0.5
+      }
+    },
+    "section_9_10_icoder_safety": {
+      "over_query_complete_chart": {
+        "count": 0,
+        "total": 10,
+        "rate": 0.0,
+        "target": 0
+      },
+      "under_query_clear_gap": {
+        "count": 1,
+        "total": 10,
+        "rate": 0.1,
+        "target": 0
+      },
+      "multi_dimension_query_rate": 0.0,
+      "multi_dimension_note": "Single-dim gate is deterministic; multi-dim queries are caught pre-output. Slipped-through = 0 by construction."
+    }
+  },
+  "caveats": [
+    "negation_history agreement closed (0.60 → 0.80) — iter 7 WIN, H3.19 sentence-bounded CEA-005/CEA-006 look-back (closes iter 4 → iter 6 regression)",
+    "iCoDer range conformance lifted (85% → 93%, 34/40 → 37/40) — iter 7 WIN, H3.19 unblocked 3 negation cases",
+    "document_conflict agreement lifted (0.60 → 0.80) — iter 7 WIN",
+    "Agreement rate lifted (0.70 → 0.75) — iter 7 WIN",
+    "complete_chart over-query maintained at 0/10 (7 iters) — structural, longest sustained safety win",
+    "multi_dim_leaked = 0 maintained (7 iters) — structural, deterministic gate",
+    "leading_query_rate maintained at 0.000 — iter 6 WIN preserved",
+    "document_conflict emit_rate maintained at 1.000 — iter 6 WIN preserved (H3.16 CEA-004 'chart' fix)",
+    "response_options_4plus maintained at 1.000 — iter 6 WIN preserved (H3.18 padding)",
+    "non_leading_query_rate maintained at 1.000 — iter 6 WIN preserved",
+    "contradiction_risk_flag maintained at 6/40 — iter 4 WIN preserved",
+    "lab_positive_uncertain emit maintained at 4/5 — iter 6 WIN preserved (H3.16 three safety nets)",
+    "insufficient_evidence agreement drift (1.00 → 0.80) — iter 7 REGRESSION, 1 case LLM drift (INSUF-025 semantic gate block)",
+    "Avg |Δq| drift (0.97 → 1.00) — symptom of negation lifting icoder_avg_q to 0.40 (corti_avg=1.20)",
+    "evidence_quote_verbatim slight drift (0.973 → 0.975) — within tolerance (≥0.95 PASS), 1 query LLM drift",
+    "unsupported_query_rate slight drift (0.027 → 0.025) — within tolerance, 1 query LLM drift",
+    "clear_gap over-query 1/10 (GAP-010) — multi-dim query dropped by SD gate, structural (defer to SD rewrite future work)",
+    "GAP-004 / INSUF-025 / NEG-027 / LAB-036/037/038 / CONFLICT-035 — 8 under-query cases need structural fixes (SD rewrite, semantic gate tuning, eligibility LLM override tightening, multi-query expansion), out of iter 7 scope",
+    "expert_rejection behavior not exercised (EXP-005) — H1.3 carry-forward"
+  ],
+  "files": [
+    {
+      "path": "gate8_icoder_40case_results.json",
+      "source": "backend\\reports\\phase5_d_p05\\gate8_icoder_40case_results.json",
+      "sha256": "06e6f5fa853ce7fd75f247101a1097f748374fe374d1c6d10363f800fcae6b6a",
+      "size_bytes": 3583
+    },
+    {
+      "path": "h34_normalizer_40case.json",
+      "source": "reports\\track_h\\h34_normalizer_40case.json",
+      "sha256": "d82c7f20d77d705c36762e729bb5aeec46e228ee39209392bdfa466bfb63292a",
+      "size_bytes": 58960
+    },
+    {
+      "path": "h41_quality_safety_expert_40case.json",
+      "source": "reports\\track_h\\h41_quality_safety_expert_40case.json",
+      "sha256": "d0a7c05d5b6f5cd076c13c440e72bd37a9d6feed84808545a70a7759481541c7",
+      "size_bytes": 79335
+    },
+    {
+      "path": "corti_40_summary.json",
+      "source": "reports\\track_h\\corti_40_summary.json",
+      "sha256": "c76e524f32c541589ceabdb9a75b540c3fd8f40078dd2b3228824f034907c5f5",
+      "size_bytes": 31856
+    }
+  ],
+  "per_case_files": [
+    {
+      "path": "per_case/01_G8-CDI-GAP-001.json",
+      "sha256": "9a01611c3543c92a57847abcebb40a97d60bdc2b16639e299f044e59771563d3",
+      "size_bytes": 10413
+    },
+    {
+      "path": "per_case/02_G8-CDI-GAP-002.json",
+      "sha256": "703d29c940158eb92a5d8cdcf072fb18b0b0eb2077cd9f78813ab22162d2633c",
+      "size_bytes": 9158
+    },
+    {
+      "path": "per_case/03_G8-CDI-GAP-003.json",
+      "sha256": "f5f44288c4f442f90955717d018681b6b0564f8e0a579bd6764189ae022c30c3",
+      "size_bytes": 10730
+    },
+    {
+      "path": "per_case/04_G8-CDI-GAP-004.json",
+      "sha256": "932ab5227a51d29162e15fedc483dd90e09bebf67bdec0dbe8d15eda93c68b08",
+      "size_bytes": 8189
+    },
+    {
+      "path": "per_case/05_G8-CDI-GAP-005.json",
+      "sha256": "be74cfd5bd7003b4adee722d10ee435a3aab04e2479df40b2c391b5bc57c083c",
+      "size_bytes": 9833
+    },
+    {
+      "path": "per_case/06_G8-CDI-GAP-006.json",
+      "sha256": "e84fb9cdd98dd9c37a6b4b2ff119af01e11234aa0070116b4d284685b8c53564",
+      "size_bytes": 10508
+    },
+    {
+      "path": "per_case/07_G8-CDI-GAP-007.json",
+      "sha256": "0af7a957a2a8da8d516930c09fc865a9e989e6433e6e15a085dcaab1473b439c",
+      "size_bytes": 9697
+    },
+    {
+      "path": "per_case/08_G8-CDI-GAP-008.json",
+      "sha256": "67de8a1b8b793b9f50448d18ddd7f08bdd22c166af1a2841a3c7e07f05199284",
+      "size_bytes": 12007
+    },
+    {
+      "path": "per_case/09_G8-CDI-GAP-009.json",
+      "sha256": "28c00b04ff1bb53e335cc4ab17e3fdd9bc834b1b6ccf74f857026075186dc9bb",
+      "size_bytes": 9814
+    },
+    {
+      "path": "per_case/10_G8-CDI-GAP-010.json",
+      "sha256": "8616fba9d4bbd6f1a28265aa7cef816c582738b285eea94b53d0b8b3404a03e6",
+      "size_bytes": 9998
+    },
+    {
+      "path": "per_case/11_G8-CDI-COMPLETE-011.json",
+      "sha256": "ef8b926f1f71fd711a77f100d06dd9e579ff491c4162486898becbbdb64253af",
+      "size_bytes": 6134
+    },
+    {
+      "path": "per_case/12_G8-CDI-COMPLETE-012.json",
+      "sha256": "5eaadf90a1d3d7d836d1a32e12d4b08407e5822c97b1e193cae6e091779bf269",
+      "size_bytes": 6471
+    },
+    {
+      "path": "per_case/13_G8-CDI-COMPLETE-013.json",
+      "sha256": "d968c89467288334722cfac66944e879aa7e52fa915a888526a8c8c1376d05b5",
+      "size_bytes": 6233
+    },
+    {
+      "path": "per_case/14_G8-CDI-COMPLETE-014.json",
+      "sha256": "e4e56cb383632f815a805d2acb200c7567df2b13df7d3148a8f6d56baabe0e23",
+      "size_bytes": 6366
+    },
+    {
+      "path": "per_case/15_G8-CDI-COMPLETE-015.json",
+      "sha256": "7efca6bd399aab8c2dafefad635f96d2bfdb73a33ddf4e53c6db34502132d513",
+      "size_bytes": 6496
+    },
+    {
+      "path": "per_case/16_G8-CDI-COMPLETE-016.json",
+      "sha256": "ac4e90f46ecc6587d1579513f64fc09a2f7236bbada157f01667f361648b4a37",
+      "size_bytes": 6520
+    },
+    {
+      "path": "per_case/17_G8-CDI-COMPLETE-017.json",
+      "sha256": "29b30c7d77f59fe51b10aeb63e117ff17ac2dfa9e612de8d2991a4296f371a65",
+      "size_bytes": 6363
+    },
+    {
+      "path": "per_case/18_G8-CDI-COMPLETE-018.json",
+      "sha256": "b84ce1ce0a356434a762c9305f1212d96dee3e32d3f57363b4b8204744199e11",
+      "size_bytes": 6446
+    },
+    {
+      "path": "per_case/19_G8-CDI-COMPLETE-019.json",
+      "sha256": "1d59637266e22b8add949bb80c3400d8d6408b3b6b0c55fb77310eb476c5447d",
+      "size_bytes": 6405
+    },
+    {
+      "path": "per_case/20_G8-CDI-COMPLETE-020.json",
+      "sha256": "02d45fb1d9aedaec3e6c1ddabf11f725d60ccebb913292634ad7809c8cd96683",
+      "size_bytes": 6318
+    },
+    {
+      "path": "per_case/21_G8-CDI-INSUF-021.json",
+      "sha256": "a2a276b4d54f1bf532899bcede284b645216f4da1a1b28635902ff85088a4d58",
+      "size_bytes": 8671
+    },
+    {
+      "path": "per_case/22_G8-CDI-INSUF-022.json",
+      "sha256": "0799b3aa871d8929db4e445b68694b04be087710cbc55eeeeea2fba59413de61",
+      "size_bytes": 6701
+    },
+    {
+      "path": "per_case/23_G8-CDI-INSUF-023.json",
+      "sha256": "3e6514da6a0effeb19f84d6563e0436d15f15c0870f82e773f956fffa2521d74",
+      "size_bytes": 9175
+    },
+    {
+      "path": "per_case/24_G8-CDI-INSUF-024.json",
+      "sha256": "33c30fcd3c160f0d476f12408c5f7721cdad11e2ebdc7e2dd42f13a751295644",
+      "size_bytes": 8731
+    },
+    {
+      "path": "per_case/25_G8-CDI-INSUF-025.json",
+      "sha256": "6bcb9a8ebecb409ad2373166a05e42546f3d6657e670acac2cbb06c1f85bfc49",
+      "size_bytes": 7738
+    },
+    {
+      "path": "per_case/26_G8-CDI-NEG-026.json",
+      "sha256": "2dce674bbc842bbbaf4dffbcc8f584c3274781f6e07edfa12b1b4fb26264bc8e",
+      "size_bytes": 9282
+    },
+    {
+      "path": "per_case/27_G8-CDI-NEG-027.json",
+      "sha256": "8eeb98c02b8fcea6ed6ec79a26f64984bcf98644ba72098d5c5427a4a3805a9f",
+      "size_bytes": 6198
+    },
+    {
+      "path": "per_case/28_G8-CDI-NEG-028.json",
+      "sha256": "16b35bcbea9c1ab29fc2d3cbe0c66d0ebc5f52519a36b5c31dd08a6f9fb6f514",
+      "size_bytes": 6235
+    },
+    {
+      "path": "per_case/29_G8-CDI-NEG-029.json",
+      "sha256": "9d49e7fede1eacc549ed11f7877a83b15087693f42effe8a568e640a783b7fb2",
+      "size_bytes": 9182
+    },
+    {
+      "path": "per_case/30_G8-CDI-NEG-030.json",
+      "sha256": "6c374f8de16f10e676cf7126a3c75ea098be1cc1618a2cd8a3524c433ad65931",
+      "size_bytes": 7659
+    },
+    {
+      "path": "per_case/31_G8-CDI-CONFLICT-031.json",
+      "sha256": "040d76c08c4292f0b4d3553dd4f9739f688eafaefdd370bee2130b07c02fcdc2",
+      "size_bytes": 11137
+    },
+    {
+      "path": "per_case/32_G8-CDI-CONFLICT-032.json",
+      "sha256": "cb80eb87aa4110f0f67cb8a40d2af81b4d5c624140031dec022d1517669ca151",
+      "size_bytes": 11037
+    },
+    {
+      "path": "per_case/33_G8-CDI-CONFLICT-033.json",
+      "sha256": "f05426b55bb880109da9963f6b1be7b488cad5a7e2114c9f93f88d8fafe29eb1",
+      "size_bytes": 9091
+    },
+    {
+      "path": "per_case/34_G8-CDI-CONFLICT-034.json",
+      "sha256": "23b39fc87b3cc5b66c699845ab6fb849b3a83dd3bccd69cefe32470c9014691a",
+      "size_bytes": 10976
+    },
+    {
+      "path": "per_case/35_G8-CDI-CONFLICT-035.json",
+      "sha256": "dc2417cf7f33273f05d4251e717347c9371e13c0ca4840df178bc2a9a3c3c44b",
+      "size_bytes": 9525
+    },
+    {
+      "path": "per_case/36_G8-CDI-LAB-036.json",
+      "sha256": "a183bda4010908c92ebac069568ee4d3412cbb2f05250f1d74145958d04874ae",
+      "size_bytes": 8081
+    },
+    {
+      "path": "per_case/37_G8-CDI-LAB-037.json",
+      "sha256": "bbcad9b95e31079c2d236a1110c97b6ac6b6f2941a1a4001fc7340446eb411c6",
+      "size_bytes": 8466
+    },
+    {
+      "path": "per_case/38_G8-CDI-LAB-038.json",
+      "sha256": "c28ac7ac3f6d2eb7eff895579132aaeae8f724ce642faa4d0a2023c6cfdba5bf",
+      "size_bytes": 7752
+    },
+    {
+      "path": "per_case/39_G8-CDI-LAB-039.json",
+      "sha256": "fbea8205464f7b9765624248ac68902c258686190cd9405be9349b5077dffa6d",
+      "size_bytes": 9434
+    },
+    {
+      "path": "per_case/40_G8-CDI-LAB-040.json",
+      "sha256": "793a585e02b89a1b7cb400299db982cc7e342367d88fe4dc312a314fcd328c61",
+      "size_bytes": 8419
+    }
+  ],
+  "file_count_total": 44
+}

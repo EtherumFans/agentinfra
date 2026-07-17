@@ -26,6 +26,7 @@ import MedicalCodingPage from './pages/MedicalCodingPage';
 import CodingComplianceWorkbenchPage from './pages/CodingComplianceWorkbenchPage';
 import CDIWorkbenchPage from './pages/CDIWorkbenchPage';
 import FactExtractionPage from './pages/FactExtractionPage';
+import EmbeddedAssistantPage from './pages/EmbeddedAssistantPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import ToastContainer from './components/common/Toast';
 import SettingsPage from './pages/SettingsPage';
@@ -83,7 +84,7 @@ function App() {
         {/* Phase 3-B2 Loop 0: TextGeneration + EmbeddedAssistant routes removed.
             Old paths redirect to /ai-studio/agents (Agent Hub). */}
         <Route path="ai-studio/text-generation" element={<Navigate to="/ai-studio/agents" replace />} />
-        <Route path="ai-studio/embedded-assistant" element={<Navigate to="/ai-studio/agents" replace />} />
+        <Route path="ai-studio/embedded-assistant" element={<EmbeddedAssistantPage />} />
         <Route path="ai-studio/fact-extraction" element={<FactExtractionPage />} />
         <Route path="ai-studio/medical-coding" element={<MedicalCodingPage />} />
         {/* Phase 5 Track C Gate 5 — 7-stage coding compliance mainline workbench */}
@@ -105,7 +106,7 @@ function App() {
         <Route path="studio/docs" element={<DocsPage />} />
         <Route path="studio/release-notes" element={<ReleaseNotesPage />} />
         <Route path="studio/speech-to-text" element={<Navigate to="/ai-studio/agents" replace />} />
-        <Route path="studio/embedded-assistant" element={<Navigate to="/ai-studio/agents" replace />} />
+        <Route path="studio/embedded-assistant" element={<EmbeddedAssistantPage />} />
         <Route path="studio/new-agent" element={<NewAgentPage />} />
 
         {/* Runtime - only MedicalCoding remains. RuntimeConsole / Runs / Doctor

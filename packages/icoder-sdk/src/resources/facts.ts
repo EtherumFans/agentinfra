@@ -1,6 +1,6 @@
 // Facts resource
 import type { AxiosInstance } from 'axios';
-import type { FactExtractResponse } from '../types';
+import type { FactExtractResponse } from '../types.js';
 
 export class FactsResource {
   constructor(private http: AxiosInstance) {}

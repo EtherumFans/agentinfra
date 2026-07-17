@@ -1,6 +1,6 @@
 // Agents resource
 import type { AxiosInstance } from 'axios';
-import type { AgentTemplate, Expert } from '../types';
+import type { AgentTemplate, Expert } from '../types.js';
 
 export class AgentsResource {
   constructor(private http: AxiosInstance) {}

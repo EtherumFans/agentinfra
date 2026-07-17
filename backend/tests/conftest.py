@@ -218,14 +218,23 @@ async def _install_auth_bypass():
     breaking any fixture that seeded rows with organization_id =
     "org_default1".
     """
-    from app.middleware.auth import get_current_user, get_current_organization
+    from app.middleware.auth import (
+        get_current_user,
+        get_current_organization,
+        get_current_user_or_oauth_client,
+    )
 
     if os.environ.get("ICODER_DISABLE_AUTH_FOR_TESTS") == "1":
         # Default to admin so /human-review RBAC gate passes for non-RBAC tests.
-        app.dependency_overrides[get_current_user] = lambda: _make_mock_user("admin")
+        mock_user = _make_mock_user("admin")
+        app.dependency_overrides[get_current_user] = lambda: mock_user
         # TD-001: unify org context — return a mock org whose id matches
         # the mock user's organization_id.
         app.dependency_overrides[get_current_organization] = lambda: _make_mock_org()
+        # Phase 7 Gate 12 — hybrid auth bypass. Routes using
+        # get_current_user_or_oauth_client see the same mock user as
+        # get_current_user, with no OAuth client (user path).
+        app.dependency_overrides[get_current_user_or_oauth_client] = lambda: (mock_user, None)
     try:
         yield
     finally:
@@ -233,6 +242,8 @@ async def _install_auth_bypass():
             del app.dependency_overrides[get_current_user]
         if "get_current_organization" in app.dependency_overrides:
             del app.dependency_overrides[get_current_organization]
+        if "get_current_user_or_oauth_client" in app.dependency_overrides:
+            del app.dependency_overrides[get_current_user_or_oauth_client]
 
 
 @pytest_asyncio.fixture

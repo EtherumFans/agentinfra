@@ -1400,7 +1400,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS
+# CORS (static allowlist for the Console SPA — see settings.CORS_ORIGINS)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
@@ -1408,6 +1408,19 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Phase 7 Gate 6 §11.1 — Partner CORS enforcement (per-client allowed_origins).
+# Layered AFTER CORSMiddleware so it runs BEFORE the static layer on partner
+# routes (/api/v1/agents/, /api/v1/runs/, /api/embedded/, /examples/).
+# For an Origin matching any OAuthClient.allowed_origins, this middleware
+# echoes the Origin and lets the request through; otherwise 403.
+try:
+    from app.middleware.partner_cors import PartnerCORSMiddleware
+    app.add_middleware(PartnerCORSMiddleware)
+    app.state._partner_cors_middleware_installed = True
+    logger.info("PartnerCORSMiddleware installed at module load time")
+except Exception as _partner_cors_e:
+    logger.warning(f"PartnerCORSMiddleware install skipped: {_partner_cors_e}")
 
 # E1.1 (2026-06-26): MCP context_id middleware must be added at module
 # load time, BEFORE the lifespan runs. Starlette eagerly builds
@@ -1495,7 +1508,10 @@ from app.api.runtime_platform import runtime_router as standard_runtime_router
 from app.api.compliance import router as compliance_router
 from app.api.medical_docs import router as medical_docs_router
 from app.api.embedded import router as embedded_router
+from app.api.preview_sessions import router as preview_sessions_router
 from app.api.drg import router as drg_router
+from app.api.examples import router as examples_router
+from app.api.runs import router as runs_router
 from app.api.v2_tools_coding import router as v2_tools_coding_router
 from app.api.v2_tools_facts import router as v2_tools_facts_router
 from app.api.v2_tools_streams import router as v2_tools_streams_router
@@ -1553,6 +1569,9 @@ app.include_router(runtime_platform_router)  # /api/runtime-platform/* (backward
 app.include_router(standard_runtime_router)   # /api/runtime/* (standard)
 app.include_router(compliance_router)          # /api/compliance/*
 app.include_router(embedded_router)            # /api/embedded/*
+app.include_router(preview_sessions_router)   # /api/embedded/preview-sessions/* (Phase 7 Gate 13A-1)
+app.include_router(examples_router)            # /examples/* (Phase 7 Gate 1 partner demos)
+app.include_router(runs_router)                # /api/v1/runs/{id}{,/cancel} (Phase 7 Gate 4)
 app.include_router(medical_docs_router)        # /api/medical-docs/*
 app.include_router(drg_router)                 # /api/drg/*
 

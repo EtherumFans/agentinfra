@@ -49,6 +49,8 @@ test.describe('Phase 5 A4 — Web Component 2.0 API', () => {
         configure: typeof proto.configure,
         show: typeof proto.show,
         setPatientContext: typeof proto.setPatientContext,  // iCoDer ADVANTAGE
+        clearPatientContext: typeof proto.clearPatientContext,  // Phase 6 Gate 2
+        clearSession: typeof proto.clearSession,  // Phase 6 Gate 2
         ask: typeof proto.ask,  // iCoDer ADVANTAGE
       };
     });
@@ -57,6 +59,8 @@ test.describe('Phase 5 A4 — Web Component 2.0 API', () => {
     expect(methods.configure).toBe('function');
     expect(methods.show).toBe('function');
     expect(methods.setPatientContext).toBe('function');
+    expect(methods.clearPatientContext).toBe('function');
+    expect(methods.clearSession).toBe('function');
     expect(methods.ask).toBe('function');
   });
 
@@ -142,6 +146,140 @@ test.describe('Phase 5 A4 — Web Component 2.0 API', () => {
     });
     expect(patientText.name).toBe('张三');
     expect(patientText.id).toBe('#P-2026-001');
+  });
+
+  test('Phase 6 Gate 2 — clearPatientContext() flushes PHI + emits event', async ({ page }) => {
+    await page.goto(EXAMPLE_URL);
+    await page.waitForFunction(() => customElements.get('icoder-embedded') !== undefined);
+
+    await page.click('#btn-init');
+    // Wait for patient bar to be visible (proves PHI is in widget memory)
+    await page.waitForFunction(() => {
+      const el = document.getElementById('icoder-assistant') as any;
+      const bar = el.shadowRoot.querySelector('[data-patient-bar]');
+      return bar && bar.classList.contains('visible');
+    }, undefined, { timeout: 2000 });
+
+    // Hook the event listener BEFORE clearPatientContext()
+    await page.evaluate(() => {
+      (window as any).__events = [];
+      const el = document.getElementById('icoder-assistant')!;
+      el.addEventListener('embedded-event', (e: any) => {
+        (window as any).__events.push({
+          name: e.detail.name,
+          payload: e.detail.payload,
+          meta: e.detail.meta,
+        });
+      });
+    });
+
+    // Call clearPatientContext() — should flush PHI + emit patient.context.cleared
+    await page.evaluate(() => {
+      const el = document.getElementById('icoder-assistant') as any;
+      el.clearPatientContext();
+    });
+
+    // The patient bar should now be hidden (no patientId, no name)
+    const phiAfterClear = await page.evaluate(() => {
+      const el = document.getElementById('icoder-assistant') as any;
+      const bar = el.shadowRoot.querySelector('[data-patient-bar]');
+      return {
+        barVisible: bar?.classList.contains('visible') || false,
+        ctx: el._patientContext,  // not exposed, but the test runner reads the private field for white-box verification
+      };
+    });
+    expect(phiAfterClear.barVisible).toBe(false);
+
+    // Event must have fired
+    const events = await page.evaluate(() => (window as any).__events);
+    const cleared = events.find((e: any) => e.name === 'patient.context.cleared');
+    expect(cleared).toBeTruthy();
+    // Phase 6 Gate 3 — meta envelope with version/eventId/sessionId
+    expect(cleared.meta).toBeTruthy();
+    expect(cleared.meta.version).toBe('1.0');
+    expect(cleared.meta.eventId).toMatch(/^[a-f0-9-]{8,}|^evt-/);
+    expect(cleared.meta.sessionId).toMatch(/^[a-f0-9-]{8,}|^sid-/);
+    expect(cleared.meta.contextId).toBe('');  // cleared
+    expect(cleared.meta.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+  });
+
+  test('Phase 6 Gate 2 — clearSession() flushes PHI + auth + messages', async ({ page }) => {
+    await page.goto(EXAMPLE_URL);
+    await page.waitForFunction(() => customElements.get('icoder-embedded') !== undefined);
+
+    await page.click('#btn-init');
+    await page.waitForFunction(() => {
+      const el = document.getElementById('icoder-assistant') as any;
+      return el.shadowRoot.querySelector('[data-patient-bar]')?.classList.contains('visible');
+    }, undefined, { timeout: 2000 });
+
+    await page.evaluate(() => {
+      (window as any).__events = [];
+      document.getElementById('icoder-assistant')!
+        .addEventListener('embedded-event', (e: any) => {
+          (window as any).__events.push({
+            name: e.detail.name,
+            payload: e.detail.payload,
+            meta: e.detail.meta,
+          });
+        });
+    });
+
+    await page.evaluate(() => {
+      (document.getElementById('icoder-assistant') as any).clearSession();
+    });
+
+    // Bar hidden + event fired
+    const barVisible = await page.evaluate(() => {
+      const el = document.getElementById('icoder-assistant') as any;
+      return el.shadowRoot.querySelector('[data-patient-bar]')?.classList.contains('visible') || false;
+    });
+    expect(barVisible).toBe(false);
+
+    const events = await page.evaluate(() => (window as any).__events);
+    const cleared = events.find((e: any) => e.name === 'session.cleared');
+    expect(cleared).toBeTruthy();
+    expect(cleared.meta.version).toBe('1.0');
+    expect(cleared.meta.sessionId).toMatch(/^[a-f0-9-]{8,}|^sid-/);
+  });
+
+  test('Phase 6 Gate 3 — meta.sessionId stable across multiple events; eventId unique', async ({ page }) => {
+    await page.goto(EXAMPLE_URL);
+    await page.waitForFunction(() => customElements.get('icoder-embedded') !== undefined);
+
+    await page.evaluate(() => {
+      (window as any).__events = [];
+      document.getElementById('icoder-assistant')!
+        .addEventListener('embedded-event', (e: any) => {
+          (window as any).__events.push({
+            name: e.detail.name,
+            meta: e.detail.meta,
+          });
+        });
+    });
+
+    await page.click('#btn-init');  // emits ready via separate dispatch, not embedded-event
+
+    // Trigger 2 events: setPatientContext + clearPatientContext
+    await page.evaluate(() => {
+      const el = document.getElementById('icoder-assistant') as any;
+      el.setPatientContext({ patientId: 'P-001', name: '甲' });
+      el.clearPatientContext();
+    });
+
+    const events = await page.evaluate(() => (window as any).__events);
+    expect(events.length).toBeGreaterThanOrEqual(2);
+
+    // All events from same widget instance MUST share sessionId
+    const sessionIds = new Set(events.map((e: any) => e.meta.sessionId));
+    expect(sessionIds.size).toBe(1);
+
+    // All eventIds MUST be unique
+    const eventIds = events.map((e: any) => e.meta.eventId);
+    expect(new Set(eventIds).size).toBe(eventIds.length);
+
+    // All meta.version MUST be '1.0'
+    expect(events.every((e: any) => e.meta.version === '1.0')).toBe(true);
   });
 
   test('legacy <icoder-assistant> tag still registers (deprecated alias)', async ({ page }) => {

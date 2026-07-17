@@ -1,6 +1,6 @@
 // iCoDerClient — main SDK entry point
 import axios, { AxiosInstance } from 'axios';
-import type { TokenResponse, ClientCredentials } from './types';
+import type { TokenResponse, ClientCredentials } from './types.js';
 
 export interface iCoDerConfig {
   baseURL: string;

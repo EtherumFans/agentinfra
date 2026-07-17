@@ -14,7 +14,7 @@ import {
   KeyRound, Users, CreditCard, ChartNoAxesColumn, Settings,
   ArrowUpRight, Bell, BookOpen, RotateCcw,
   ChevronDown, Rocket, Layers, Folder, ChevronsUpDown, Database,
-  Bot, Users2, FileText, MessageSquare, ShieldCheck, ClipboardCheck,
+  Bot, Users2, FileText, MessageSquare, ShieldCheck, ClipboardCheck, Code2,
 } from 'lucide-react';
 
 const PROJECT_SLUG = 'icoder-medical-coding';
@@ -65,6 +65,8 @@ export default function Layout() {
         { to: '/ai-studio/coding-compliance', label: t.codingCompliance, icon: ShieldCheck },
         // Phase 5 Track D Gate 7 — CDI Core Entry Agent workbench
         { to: '/ai-studio/cdi', label: t.cdiWorkbench, icon: ClipboardCheck },
+        // Phase 7 Gate 13 — Corti-style embedded assistant parity page
+        { to: '/ai-studio/embedded-assistant', label: t.embeddedAssistant, icon: Code2 },
       ],
     },
     {

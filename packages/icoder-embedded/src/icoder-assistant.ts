@@ -39,6 +39,8 @@
  *         case 'account.creditsConsumed': console.log('Cost:', payload); break;
  *         case 'run.completed': console.log('Run done:', payload); break;  // iCoDer-specific
  *         case 'error.triggered': console.error('Error:', payload); break;
+ *         case 'patient.context.cleared': console.log('PHI flushed'); break;  // Phase 6 Gate 2
+ *         case 'session.cleared': console.log('Full reset'); break;          // Phase 6 Gate 2
  *         default: console.log(name, payload);
  *       }
  *     });
@@ -46,6 +48,8 @@
  *
  * iCoDer ADVANTAGE methods kept (Corti does not have these):
  *   - setPatientContext({ patientId, name, encounterId })
+ *   - clearPatientContext()              // Phase 6 Gate 2 — flush PHI on patient switch
+ *   - clearSession()                     // Phase 6 Gate 2 — full reset (auth + messages + PHI)
  *   - ask(question)
  * See memory `feedback_corti_alignment.md` ("勿为像 Corti 删 iCoDer 差异化能力").
  *
@@ -205,8 +209,25 @@ export interface ConfigureOptions {
 }
 
 export interface EmbeddedEvent {
-  name: string;       // 'account.creditsConsumed' | 'error.triggered' | 'run.completed' | 'message.received' | 'ready'
+  name: string;       // 'account.creditsConsumed' | 'error.triggered' | 'run.completed' | 'message.received' | 'ready' | 'patient.context.cleared' | 'session.cleared'
   payload: any;
+}
+
+// Phase 6 Gate 3 — unified event envelope meta. Every embedded-event now
+// carries `meta` with version + eventId (UUID) + timestamp (ISO) + sessionId
+// (stable per widget instance) + contextId (the current patient contextId,
+// or '' if cleared). Embedders can rely on meta.eventId for deduplication
+// and meta.contextId for PHI-scoped event correlation.
+export interface EmbeddedEventMeta {
+  version: '1.0';
+  eventId: string;        // crypto.randomUUID() per event
+  timestamp: string;      // new Date().toISOString()
+  sessionId: string;      // stable per widget instance (random UUID on construct)
+  contextId: string;      // current patientContext id, or '' if cleared
+}
+
+export interface EmbeddedEventDetail extends EmbeddedEvent {
+  meta: EmbeddedEventMeta;
 }
 
 // ── Web Component ───────────────────────────────────────────────────────
@@ -222,6 +243,11 @@ class iCoDerEmbedded extends HTMLElement {
 
   // Connection config
   private _baseUrl = '';
+
+  // Phase 6 Gate 3 — sessionId is stable per widget instance; contextId is
+  // the current patient context (or '' when cleared). meta is built per-event.
+  private _sessionId: string;
+  private _contextId: string = '';
 
   // Visibility (hidden until show() is called, matching Corti pattern)
   private _visible = false;
@@ -240,6 +266,12 @@ class iCoDerEmbedded extends HTMLElement {
     super();
     this._shadow = this.attachShadow({ mode: 'open' });
     this._shadow.innerHTML = TEMPLATE;
+    // Phase 6 Gate 3 — sessionId stable per widget instance. contextId
+    // starts empty (no patient set yet) and is updated by
+    // configureSession/setPatientContext/clearPatientContext/clearSession.
+    this._sessionId = (typeof crypto !== 'undefined' && crypto.randomUUID)
+      ? crypto.randomUUID()
+      : `sid-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
     // Note: per custom element spec, constructor() must not set attributes
     // (including style). The initial visibility:hidden is set via
     // connectedCallback() instead.
@@ -324,11 +356,21 @@ class iCoDerEmbedded extends HTMLElement {
   async configureSession(opts: SessionConfig): Promise<void> {
     this._sessionConfig = { ...this._sessionConfig, ...opts };
     if (opts.patientId || opts.name || opts.encounterId) {
+      if (this._patientContext.patientId && opts.patientId && this._patientContext.patientId !== opts.patientId) {
+        console.warn(
+          `[icoder-embedded] configureSession() called with a different patientId ` +
+          `(${opts.patientId}) without first calling clearPatientContext(). ` +
+          `Cross-patient PHI bleed risk — call clearPatientContext() on patient switch.`
+        );
+      }
       this._patientContext = {
         patientId: opts.patientId,
         name: opts.name,
         encounterId: opts.encounterId,
       };
+      // Phase 6 Gate 3 — contextId follows the current patient. Stable
+      // within one patient session, changes on switch, cleared on clear().
+      this._contextId = opts.encounterId || opts.patientId || '';
       this._renderPatientBar();
     }
     this._renderBadge();
@@ -376,10 +418,65 @@ class iCoDerEmbedded extends HTMLElement {
   /**
    * Set patient context explicitly. iCoDer-specific — Corti uses
    * configureSession({defaultTemplateKey}) instead.
+   *
+   * Phase 6 Gate 2 — PHI safety: patient context is held in-memory only.
+   * It is NEVER written to localStorage, sessionStorage, or cookies.
+   * When the host HIS/EMR switches patients, it MUST call
+   * ``clearPatientContext()`` to flush the in-memory PHI. Otherwise the
+   * previous patient's name/ID will leak into the next run's enriched
+   * input prefix.
    */
   setPatientContext(ctx: { patientId?: string; name?: string; encounterId?: string }) {
+    if (this._patientContext.patientId && ctx.patientId && this._patientContext.patientId !== ctx.patientId) {
+      console.warn(
+        `[icoder-embedded] setPatientContext() called with a different patientId ` +
+        `(${ctx.patientId}) without first calling clearPatientContext(). ` +
+        `Previous context (${this._patientContext.patientId}) is being overwritten. ` +
+        `HIS/EMR hosts should call clearPatientContext() on patient switch ` +
+        `to prevent cross-patient PHI bleed.`
+      );
+    }
     this._patientContext = ctx;
+    this._contextId = ctx.encounterId || ctx.patientId || '';
     this._renderPatientBar();
+  }
+
+  /**
+   * Clear patient context (PHI). MUST be called by HIS/EMR hosts when:
+   *
+   * 1. The user navigates to a different patient chart.
+   * 2. The user logs out.
+   * 3. The widget is being torn down (e.g. via ``element.remove()``).
+   *
+   * After this call, the widget's in-memory PHI (``patientId``, ``name``,
+   * ``encounterId``) is set to ``{}`` and the patient bar is hidden.
+   * Messages history is preserved (per Corti pattern); call
+   * ``clearSession()`` to also clear messages + auth.
+   */
+  clearPatientContext(): void {
+    this._patientContext = { patientId: undefined, name: undefined, encounterId: undefined };
+    this._contextId = '';
+    this._renderPatientBar();
+    this._emitEmbeddedEvent('patient.context.cleared', { reason: 'host_invoked_clear' });
+  }
+
+  /**
+   * Clear the full session: patient context + auth + agent config + message
+   * history. Use this on logout or when reusing the widget for a different
+   * user/agent pair. After this call, the widget returns to the
+   * pre-``auth()`` state and ``show()`` must be called again to use it.
+   */
+  clearSession(): void {
+    this._patientContext = { patientId: undefined, name: undefined, encounterId: undefined };
+    this._contextId = '';
+    this._auth = null;
+    this._sessionConfig = {};
+    this._config = {};
+    this._renderPatientBar();
+    this._renderBadge();
+    const messages = this._shadow.querySelector('[data-messages]') as HTMLElement | null;
+    if (messages) messages.innerHTML = '';
+    this._emitEmbeddedEvent('session.cleared', { reason: 'host_invoked_clear' });
   }
 
   /**
@@ -396,9 +493,24 @@ class iCoDerEmbedded extends HTMLElement {
   private _readyEmitted = false;
 
   private _emitEmbeddedEvent(name: string, payload: any): void {
+    // Phase 6 Gate 3 — unified envelope with meta. Embedders use:
+    //   meta.eventId   — dedup (idempotency)
+    //   meta.timestamp — ordering across multiple widgets
+    //   meta.sessionId — correlate events from one widget instance
+    //   meta.contextId — PHI-scoped correlation (current patient)
+    //   meta.version   — envelope schema version (currently '1.0')
+    const meta = {
+      version: '1.0' as const,
+      eventId: (typeof crypto !== 'undefined' && crypto.randomUUID)
+        ? crypto.randomUUID()
+        : `evt-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+      timestamp: new Date().toISOString(),
+      sessionId: this._sessionId,
+      contextId: this._contextId,
+    };
     this.dispatchEvent(new CustomEvent('embedded-event', {
       bubbles: true, composed: true,
-      detail: { name, payload } as EmbeddedEvent,
+      detail: { name, payload, meta } as EmbeddedEventDetail,
     }));
   }
 
@@ -499,6 +611,13 @@ class iCoDerEmbedded extends HTMLElement {
     loading.style.display = 'flex';
     sendBtn.disabled = true;
 
+    // Phase 6 Gate 3 — per-call AbortController. Default timeout 90s
+    // (backend medical-coding corti_like_fast ~9s, medcoder_deep 30-60s+).
+    // Embedders may override by setting the `request-timeout-ms` attribute.
+    const timeoutMs = parseInt(this.getAttribute('request-timeout-ms') || '90000', 10);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
     try {
       if (!this._auth) {
         throw new Error('Not authenticated — call assistant.auth({access_token, ...}) before sending messages.');
@@ -519,14 +638,46 @@ class iCoDerEmbedded extends HTMLElement {
       const rawAgentId = this._sessionConfig.defaultTemplateKey || 'medical-coding-agent';
       const agentId = rawAgentId.split('/').pop()!.split('@')[0];
       const url = `${this._baseUrl}/api/v1/agents/${encodeURIComponent(agentId)}/run`;
-      const resp = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `${this._auth.token_type || 'Bearer'} ${this._auth.access_token}`,
-        },
-        body: JSON.stringify({ input: { text: enrichedInput } }),
-      });
+
+      // Phase 6 Gate 3 — idempotency-key + 1 retry on transient errors.
+      // Embedders can use the idempotency-key to safely retry a request
+      // without re-charging (server-side dedup is Phase 7).
+      const idempotencyKey = (typeof crypto !== 'undefined' && crypto.randomUUID)
+        ? crypto.randomUUID()
+        : `idem-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+
+      const doFetch = async (attempt: 1 | 2): Promise<Response> => {
+        return fetch(url, {
+          method: 'POST',
+          signal: controller.signal,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `${this._auth!.token_type || 'Bearer'} ${this._auth!.access_token}`,
+            'Idempotency-Key': idempotencyKey,
+            'X-Attempt': String(attempt),
+          },
+          body: JSON.stringify({ input: { text: enrichedInput } }),
+        });
+      };
+
+      let resp: Response;
+      try {
+        resp = await doFetch(1);
+      } catch (networkErr: any) {
+        // Phase 6 Gate 3 — 1 automatic retry on network error (transient).
+        // Only retried forAbortError-name!=='AbortError' (timeout) and
+        // TypeError (most likely DNS/connection reset). 4xx/5xx HTTP responses
+        // are NOT retried (they indicate server-side rejection that won't
+        // change with a retry).
+        if (controller.signal.aborted) throw networkErr;
+        try {
+          resp = await doFetch(2);
+        } catch (retryErr: any) {
+          throw new Error(`Network error after retry: ${retryErr.message}`);
+        }
+      }
+
+      clearTimeout(timeoutId);
 
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({}));
@@ -539,9 +690,16 @@ class iCoDerEmbedded extends HTMLElement {
 
       // Emit unified embedded-event with run.completed + account.creditsConsumed
       // (Corti-compatible envelope: {name, payload})
+      // Phase 6 Gate 5: include trace_id + trace_url so embedders can deep-link
+      // to the iCoDer RunTrace viewer (frontend route, opened in a new tab).
+      const traceUrl = data.trace_url
+        ? `${this._baseUrl}${data.trace_url}`
+        : '';
       this._emitEmbeddedEvent('run.completed', {
         run_id: data.run_id,
         agent_id: data.agent_id,
+        trace_id: data.trace_id || '',
+        trace_url: traceUrl,
         latency_ms: data.latency_ms,
         output,
         cost: data.cost,
@@ -556,10 +714,19 @@ class iCoDerEmbedded extends HTMLElement {
 
       return data;
     } catch (e: any) {
-      this._addMessage('agent', `错误: ${e.message}`);
-      this._emitEmbeddedEvent('error.triggered', { message: e.message });
+      const isAbort = e.name === 'AbortError';
+      const msg = isAbort
+        ? `请求超时 (>${timeoutMs}ms)。请在 backend config 检查 agent runtime 模式或增加 request-timeout-ms 属性。`
+        : e.message;
+      this._addMessage('agent', `错误: ${msg}`);
+      this._emitEmbeddedEvent('error.triggered', {
+        message: msg,
+        kind: isAbort ? 'timeout' : 'runtime',
+        retriable: !isAbort,
+      });
       throw e;
     } finally {
+      clearTimeout(timeoutId);
       loading.style.display = 'none';
       sendBtn.disabled = false;
     }

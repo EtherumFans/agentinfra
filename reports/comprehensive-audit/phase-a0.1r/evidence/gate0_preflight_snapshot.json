@@ -1,0 +1,122 @@
+{
+  "$schema": "https://icoder.audit/phase-a0.1r/gate0-preflight.schema.json",
+  "schema_version": "1.0.0",
+  "generated_at": "2026-07-17T10:03:00Z",
+  "generated_by": "Phase A0.1R Gate 0 (read-only preflight)",
+  "phase": "A0.1R",
+  "gate": 0,
+  "verdict": "PHASE_A0_1_R_GATE_0_PREFLIGHT_AND_DEFECT_REPRODUCTION_COMPLETE",
+  "trusted_head": "c147d015455017bc1d8420cbdbd813b3b8ec23ce",
+  "branch": "master",
+  "remote": "https://github.com/EtherumFans/agentinfra.git",
+  "inherited_verdict": "REFUTED",
+  "commits_existing": {
+    "commit_a_bucket_a": false,
+    "commit_b_audit_package": false,
+    "commit_c_freeze_receipt": false
+  },
+  "tags_existing": {
+    "audit/phase-a0.1-baseline": false,
+    "audit/phase-a0.1r-baseline": false
+  },
+  "compromised_credential": {
+    "redaction_token": "[REDACTED_COMPROMISED_API_CLIENT_SECRET]",
+    "sha256_of_secret": "7a3b25efb0a901a66ce5df775a74911c75808e9fed93e9421157c666d3b436a4",
+    "in_git_history": false,
+    "git_history_hit_count": 0,
+    "working_tree_files_at_gate0": [
+      "examples/partner-reference-app/.env",
+      "reports/comprehensive-audit/phase-a0.1/A0_1_01_AUDITED_FILESET_AND_BASELINE_SNAPSHOT.md",
+      "reports/comprehensive-audit/phase-a0.1/A0_1_09_SAFE_COMMIT_AND_IMMUTABLE_FREEZE.md"
+    ],
+    "client_id_at_gate0": "partner-ref-07ef23d306cf",
+    "database_path": "backend/data/icoder.db",
+    "database_table": "oauth_clients",
+    "pre_invalidation_is_active": 1,
+    "pre_invalidation_hash_matched_secret": true
+  },
+  "browser_profile": {
+    "gitignored": true,
+    "gitignore_line": 127,
+    "entries_on_disk": 42
+  },
+  "bucket_d": {
+    "tarballs": [
+      "packages/icoder-sdk/icoder-sdk-1.0.0-beta.2.tgz",
+      "packages/icoder-embedded/icoder-embedded-2.0.0.tgz"
+    ],
+    "dist_directories": [
+      "packages/icoder-sdk/dist/",
+      "packages/icoder-embedded/dist/",
+      "phase7-external-consumer/dist/"
+    ],
+    "root_png_count": 35,
+    "deletions": [
+      "packages/icoder-sdk/package-lock.json"
+    ]
+  },
+  "ledger_defects": {
+    "p0_aggregate_open_claim": 23,
+    "p0_aggregate_open_actual_strict_open": 22,
+    "p0_aggregate_open_actual_open_plus_mitigated": 24,
+    "p0_s_open_claim": 11,
+    "p0_s_open_actual": 10,
+    "primary_phase_mapping_explicit_ids_incomplete": ["A0-P0-021"],
+    "workstream_misplacements": [
+      {"id": "A0-P0-001", "current": "A1_security_first", "correct": "A1_legal_compliance"},
+      {"id": "A0-P0-002", "current": "A1_security_first", "correct": "A1_legal_compliance"},
+      {"id": "A0-P0-008", "current": "A2_commercial_deferred", "correct": "A1_security_first"},
+      {"id": "A0-P0-023", "current": "A1_security_first", "correct": "A1_deployment_ops"},
+      {"id": "A0-P0-024", "current": "A1_security_first", "correct": "A1_deployment_ops"}
+    ]
+  },
+  "parity_defects": {
+    "illegal_status_dimensions": [{"id": "D-05", "status": "ICODER_TECH_DEBT"}],
+    "corti_advantage_threshold_failures": [
+      {"id": "F-03", "name": "HIPAA", "corti_grade": "E1", "threshold": "E7"},
+      {"id": "F-04", "name": "ISO 27001", "corti_grade": "E1", "threshold": "E7"},
+      {"id": "F-07", "name": "Multi-region failover", "corti_grade": "E1", "threshold": "E7"},
+      {"id": "F-08", "name": "Edge-node PHI redaction", "corti_grade": "E1", "threshold": "E7"}
+    ]
+  },
+  "maturity_defects": {
+    "required_axes": 7,
+    "actual_axes": 5,
+    "missing_axes": ["security", "delivery"],
+    "scenarios_missing_security_axis": "16/16",
+    "scenarios_missing_delivery_axis": "16/16"
+  },
+  "manifest_defects": {
+    "empty_dir_semantics_errors": [
+      "phase7/gate13a/test-results/",
+      "phase7/gate13a/screenshots/",
+      "phase7/gate13a/playwright-traces/",
+      "phase7/gate13a/sanitized-har/",
+      "phase7/gate13a/network-audit/",
+      "phase7/gate13a/storage-audit/",
+      "evidence/architecture/"
+    ],
+    "missing_storage_mode_field": true
+  },
+  "validator_v2": {
+    "current_checks": 55,
+    "current_passes": 55,
+    "misses_defect_classes": 10
+  },
+  "hard_checkpoints": {
+    "A": "NOT_CLOSED",
+    "B": "NOT_CLOSED",
+    "C": "NOT_CLOSED",
+    "D": "NOT_CLOSED",
+    "E": "NOT_CLOSED",
+    "F": "NOT_CLOSED",
+    "G": "NOT_CLOSED",
+    "H": "NOT_CLOSED",
+    "I": "NOT_CLOSED",
+    "J": "NOT_CLOSED"
+  },
+  "forbidden_actions_register_size": 15,
+  "gate0_is_read_only": true,
+  "gate0_mutations_performed": 0,
+  "gate0_outputs_produced": 27
+}

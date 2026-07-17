@@ -1,0 +1,992 @@
+{
+  "$schema": "https://icoder.cloud/schemas/audit/parity-matrix-v2-2.json",
+  "schema_version": "2.3",
+  "generated_at": "2026-07-17T10:17:11Z",
+  "generated_by": "Phase A0.1R Gate 3 — Parity V2.3 Reconciliation",
+  "supersedes": "reports/comprehensive-audit/phase-a0.1/parity_matrix_v2_2.json",
+  "design_principles": {
+    "statuses_are_mutually_exclusive": true,
+    "no_composite_buckets_like_favorable": true,
+    "evidence_grade_orthogonal_to_parity_status": true,
+    "agent_name_mirror_rate_is_not_parity": true,
+    "asset_existence_is_not_workflow_maturity": true,
+    "surface_runtime_clinical_security_dimensions_split": true,
+    "no_aggregate_percentage_without_severity_weighting": true,
+    "machine_verifiable": true
+  },
+  "design_principles_v2_2_additions": [
+    "summary_counts_are_array_derived_no_narrative_numbers",
+    "evidence_grade_thresholds_gate_advantage_claims",
+    "typo_in_field_name_is_an_audit_bug_not_an_oversight",
+    "icoder_advantage_pending_evidence_is_not_advantage"
+  ],
+  "allowed_statuses": [
+    "PARITY",
+    "PARTIAL_PARITY",
+    "ICODER_ADVANTAGE",
+    "CORTI_ADVANTAGE",
+    "DIFFERENT_BY_DESIGN",
+    "OUT_OF_SCOPE",
+    "NOT_IMPLEMENTED",
+    "NOT_VERIFIED",
+    "EVIDENCE_INSUFFICIENT",
+    "NOT_COMPARABLE"
+  ],
+  "evidence_grades": [
+    "E0",
+    "E1",
+    "E2",
+    "E3",
+    "E4",
+    "E5",
+    "E6",
+    "E7",
+    "E8"
+  ],
+  "evidence_grade_thresholds_for_advantage": {
+    "Runtime_advantage_minimum": "E4 (integration-verified)",
+    "Security_advantage_minimum": "E7 (security-negative-verified)",
+    "Clinical_advantage_minimum": "formal benchmark or clinical audit on file (in addition to code-observed E2)",
+    "UX_or_product_advantage_minimum": "E5 (browser-verified) - same as v2.1",
+    "Tool_catalog_advantage_minimum": "E2 (code-observed) - tool counts do not require integration verification",
+    "rationale": "Phase A0 v2.1 claimed ICODER_ADVANTAGE on 11 dimensions but 9 of them sat at E2/E3 with no integration evidence. Phase A0.1 Gate 4 enforces explicit thresholds: an unverified advantage is not an advantage."
+  },
+  "dimensions": [
+    {
+      "id": "A-01",
+      "class": "Foundation",
+      "name": "Orchestrator architecture (3 components)",
+      "icoder_status": "PARITY",
+      "icoder_evidence_grade": "E2",
+      "icoder_evidence": "app/icoder/agent_runtime/orchestrator/corti_like_orchestrator.py has PolicyGuard+CapabilityRegistry+ContextBuilder+ResultNormalizer+ConflictResolver+CompletionController+CortiLikeOrchestrator+CodingComplianceOrchestrator (Phase 5 Track C, 9 components)",
+      "corti_status": "PARITY",
+      "corti_evidence_grade": "E1",
+      "corti_evidence": "docs.corti.ai/agentic/orchestrator describes Orchestrator+Experts+Memory",
+      "parity_status": "PARITY",
+      "parity_rationale": "Both have the 3-component architecture. Corti E1 (docs) vs iCoDer E2 (code) — evidence asymmetry but architectural parity.",
+      "cn_relevant": true,
+      "severity_if_gap": "n/a"
+    },
+    {
+      "id": "A-02",
+      "class": "Foundation",
+      "name": "A2A Protocol v0.3",
+      "parity_status": "PARITY",
+      "icoder_evidence_grade": "E2",
+      "corti_evidence_grade": "E1",
+      "parity_rationale": "Both implement A2A v0.3 envelope per docs. iCoDer wire-level evidence not captured.",
+      "cn_relevant": true
+    },
+    {
+      "id": "A-03",
+      "class": "Foundation",
+      "name": "Agent Card schema (.well-known/agent.json)",
+      "parity_status": "PARTIAL_PARITY",
+      "icoder_evidence_grade": "E2",
+      "corti_evidence_grade": "E1",
+      "parity_rationale": "iCoDer has agent_pack.json + hub card schema (E2 code). Corti docs claim .well-known/agent.json (E1 docs) but neither side fetched the URL.",
+      "cn_relevant": true
+    },
+    {
+      "id": "A-04",
+      "class": "Foundation",
+      "name": "Server-generated contextId",
+      "parity_status": "PARITY",
+      "icoder_evidence_grade": "E2",
+      "corti_evidence_grade": "E1",
+      "parity_rationale": "Both claim server-side context generation per docs.",
+      "cn_relevant": true
+    },
+    {
+      "id": "A-05",
+      "class": "Foundation",
+      "name": "Memory (RAG-like long-term)",
+      "parity_status": "PARTIAL_PARITY",
+      "corti_evidence_grade": "E1",
+      "parity_rationale": "iCoDer has agent_runtime/context/ (per-run state, NOT long-term memory). Corti has Memory expert (RAG-style). These are DIFFERENT concepts. Calling this PARTIAL_PARITY is itself generous — could be NOT_COMPARABLE.",
+      "cn_relevant": true,
+      "severity_if_gap": "P2",
+      "icoder_evidence_grade": "E2",
+      "v2_2_typo_fix": "was icorer_evidence_grade in v2.1 (field name typo)"
+    },
+    {
+      "id": "A-06",
+      "class": "Foundation",
+      "name": "SSE streaming",
+      "parity_status": "PARITY",
+      "icoder_evidence_grade": "E2",
+      "corti_evidence_grade": "E1",
+      "parity_rationale": "Both stream events per docs/code.",
+      "cn_relevant": true
+    },
+    {
+      "id": "A-07",
+      "class": "Foundation",
+      "name": "Request/Response polling",
+      "parity_status": "PARITY",
+      "icoder_evidence_grade": "E2",
+      "corti_evidence_grade": "E1",
+      "parity_rationale": "Both support per docs.",
+      "cn_relevant": true
+    },
+    {
+      "id": "A-08",
+      "class": "Foundation",
+      "name": "A2A Tasks (long-running)",
+      "parity_status": "NOT_IMPLEMENTED",
+      "icoder_evidence_grade": "E2",
+      "corti_evidence_grade": "E0",
+      "parity_rationale": "iCoDer returns 501 (routes_task_stub.py). Corti docs do not claim Tasks; treating as NOT_IMPLEMENTED on iCoDer side, UNSUPPORTED on Corti side.",
+      "cn_relevant": false,
+      "severity_if_gap": "P2"
+    },
+    {
+      "id": "A-09",
+      "class": "Foundation",
+      "name": "Signed trace_url",
+      "parity_status": "EVIDENCE_INSUFFICIENT",
+      "icoder_evidence_grade": "E3",
+      "corti_evidence_grade": "E0",
+      "parity_rationale": "iCoDer has HMAC trace_token (Phase 7 Gate 7, 13 tests passing). Corti has none per Phase 4-H audit.",
+      "cn_relevant": true,
+      "claim_intent": "ICODER_ADVANTAGE",
+      "claim_blocked_by_threshold": "Runtime",
+      "claim_threshold_required": "E4",
+      "claim_threshold_current": "E3",
+      "claim_threshold_rationale": "Threshold E4 not met; E3 = unit-verified only, not integration-verified"
+    },
+    {
+      "id": "A-10",
+      "class": "Foundation",
+      "name": "RunHistory table",
+      "parity_status": "EVIDENCE_INSUFFICIENT",
+      "icoder_evidence_grade": "E3",
+      "corti_evidence_grade": "E0",
+      "parity_rationale": "iCoDer persists (alembic 010). Corti detail UI has no history table per Phase 4-H.",
+      "cn_relevant": true,
+      "claim_intent": "ICODER_ADVANTAGE",
+      "claim_blocked_by_threshold": "Runtime",
+      "claim_threshold_required": "E4",
+      "claim_threshold_current": "E3",
+      "claim_threshold_rationale": "Threshold E4 not met; E3 = unit-verified only; also RunHistory table empty per A0-P0-008"
+    },
+    {
+      "id": "B-01",
+      "class": "Agent Surface",
+      "name": "Agent Create",
+      "parity_status": "EVIDENCE_INSUFFICIENT",
+      "icoder_evidence_grade": "E5",
+      "corti_evidence_grade": "E5",
+      "parity_rationale": "Both observed at UI surface (E5). Neither end-to-end verified (no SDK Create against real backend on either side). Cannot claim PARITY without E6+.",
+      "cn_relevant": true,
+      "severity_if_gap": "P2"
+    },
+    {
+      "id": "B-02",
+      "class": "Agent Surface",
+      "name": "Agent List/Read",
+      "parity_status": "PARITY",
+      "icoder_evidence_grade": "E5",
+      "corti_evidence_grade": "E5",
+      "parity_rationale": "Both list views observed.",
+      "cn_relevant": true
+    },
+    {
+      "id": "B-03",
+      "class": "Agent Surface",
+      "name": "Agent Update",
+      "parity_status": "EVIDENCE_INSUFFICIENT",
+      "icoder_evidence_grade": "E5",
+      "corti_evidence_grade": "E5",
+      "parity_rationale": "Both observed at UI surface; neither saved-then-reloaded verified.",
+      "cn_relevant": true
+    },
+    {
+      "id": "B-04",
+      "class": "Agent Surface",
+      "name": "Agent Delete",
+      "parity_status": "EVIDENCE_INSUFFICIENT",
+      "icoder_evidence_grade": "E5",
+      "corti_evidence_grade": "E0",
+      "parity_rationale": "iCoDer has delete (per Phase 6); Corti delete not observed. Cannot claim ICODER_ADVANTAGE without confirming Corti lacks it.",
+      "cn_relevant": true
+    },
+    {
+      "id": "B-05",
+      "class": "Agent Surface",
+      "name": "Agent lifecycle (save = live)",
+      "parity_status": "CORTI_ADVANTAGE",
+      "icoder_evidence_grade": "E2",
+      "corti_evidence_grade": "E5",
+      "parity_rationale": "Corti agents are live immediately upon save (E5). iCoDer requires pack/install (E2 code). Real friction gap.",
+      "cn_relevant": true,
+      "severity_if_gap": "P2"
+    },
+    {
+      "id": "B-06",
+      "class": "Agent Surface",
+      "name": "Pre-built Agent count (display name match)",
+      "parity_status": "PARTIAL_PARITY",
+      "icoder_evidence_grade": "E2",
+      "corti_evidence_grade": "E5",
+      "parity_rationale": "Corti Console shows 20 prebuilt (E5). iCoDer has 18 of 20 mirrored by display name (E2). However display name match ≠ runtime behavior parity. This dimension alone is PARTIAL_PARITY at the name level.",
+      "cn_relevant": true
+    },
+    {
+      "id": "B-07",
+      "class": "Agent Surface",
+      "name": "Agent preset template picker",
+      "parity_status": "CORTI_ADVANTAGE",
+      "icoder_evidence_grade": "E2",
+      "corti_evidence_grade": "E5",
+      "parity_rationale": "Corti has template picker (E5). iCoDer has single New Agent flow (E2).",
+      "cn_relevant": true,
+      "severity_if_gap": "P2"
+    },
+    {
+      "id": "B-08",
+      "class": "Agent Surface",
+      "name": "Agent Hub tabs (My / Pre-built)",
+      "parity_status": "CORTI_ADVANTAGE",
+      "icoder_evidence_grade": "E2",
+      "corti_evidence_grade": "E5",
+      "parity_rationale": "Corti has My+Pre-built tabs (E5). iCoDer single list (E2).",
+      "cn_relevant": false,
+      "severity_if_gap": "P3"
+    },
+    {
+      "id": "B-09",
+      "class": "Agent Surface",
+      "name": "Code generators per agent",
+      "parity_status": "PARTIAL_PARITY",
+      "icoder_evidence_grade": "E5",
+      "corti_evidence_grade": "E5",
+      "parity_rationale": "Corti JS+.NET+JSON (E5). iCoDer HTML+React+JSON (E5). Different languages — PARTIAL_PARITY because iCoDer lacks .NET (Corti has it).",
+      "cn_relevant": true,
+      "severity_if_gap": "P3"
+    },
+    {
+      "id": "B-10",
+      "class": "Agent Surface",
+      "name": "Badge taxonomy",
+      "parity_status": "ICODER_ADVANTAGE",
+      "icoder_evidence_grade": "E5",
+      "corti_evidence_grade": "E0",
+      "parity_rationale": "iCoDer has 9-state badge taxonomy (E5 per Gate 4-D). Corti has none observed (E0).",
+      "cn_relevant": true
+    },
+    {
+      "id": "C-01",
+      "class": "Expert Surface",
+      "name": "Memory expert",
+      "parity_status": "PARTIAL_PARITY",
+      "icoder_evidence_grade": "E2",
+      "corti_evidence_grade": "E1",
+      "parity_rationale": "Both have at conceptual level. iCoDer is sub-component; Corti is productized Expert.",
+      "cn_relevant": true,
+      "severity_if_gap": "P2"
+    },
+    {
+      "id": "C-02",
+      "class": "Expert Surface",
+      "name": "Medical Coding expert",
+      "parity_status": "PARITY",
+      "icoder_evidence_grade": "E2",
+      "corti_evidence_grade": "E5",
+      "parity_rationale": "Both have. Corti bound to demo agent (E5); iCoDer in code (E2).",
+      "cn_relevant": true
+    },
+    {
+      "id": "C-03",
+      "class": "Expert Surface",
+      "name": "PubMed expert",
+      "parity_status": "CORTI_ADVANTAGE",
+      "icoder_evidence_grade": "E0",
+      "corti_evidence_grade": "E5",
+      "parity_rationale": "Corti has bound pubmed-expert (E5). iCoDer has none.",
+      "cn_relevant": false,
+      "severity_if_gap": "P3"
+    },
+    {
+      "id": "C-04",
+      "class": "Expert Surface",
+      "name": "Web Search expert",
+      "parity_status": "CORTI_ADVANTAGE",
+      "icoder_evidence_grade": "E0",
+      "corti_evidence_grade": "E5",
+      "parity_rationale": "Corti has bound web-search-expert (E5). iCoDer has none.",
+      "cn_relevant": false,
+      "severity_if_gap": "P3"
+    },
+    {
+      "id": "C-05",
+      "class": "Expert Surface",
+      "name": "Medical Calculator expert",
+      "parity_status": "CORTI_ADVANTAGE",
+      "icoder_evidence_grade": "E0",
+      "corti_evidence_grade": "E5",
+      "parity_rationale": "Corti has bound medical-calculator-expert (E5). iCoDer has none.",
+      "cn_relevant": false,
+      "severity_if_gap": "P3"
+    },
+    {
+      "id": "C-06",
+      "class": "Expert Surface",
+      "name": "Interviewing expert",
+      "parity_status": "EVIDENCE_INSUFFICIENT",
+      "icoder_evidence_grade": "E2",
+      "corti_evidence_grade": "E1",
+      "parity_rationale": "Corti docs mention interviewing expert (E1). iCoDer has CDI nlq_gate (different concept, E2). Cannot claim PARTIAL_PARITY — different mechanisms.",
+      "cn_relevant": false
+    },
+    {
+      "id": "C-07",
+      "class": "Expert Surface",
+      "name": "POSOS expert",
+      "parity_status": "OUT_OF_SCOPE",
+      "icoder_evidence_grade": "E0",
+      "corti_evidence_grade": "E1",
+      "parity_rationale": "Per Gate 4 / CLAUDE.md §产品定位, CN-only product. POSOS is EU pharma.",
+      "cn_relevant": false
+    },
+    {
+      "id": "C-08",
+      "class": "Expert Surface",
+      "name": "DrugBank expert",
+      "parity_status": "OUT_OF_SCOPE",
+      "icoder_evidence_grade": "E0",
+      "corti_evidence_grade": "E1",
+      "parity_rationale": "CN-only product.",
+      "cn_relevant": false
+    },
+    {
+      "id": "C-09",
+      "class": "Expert Surface",
+      "name": "Clinical Trials expert",
+      "parity_status": "OUT_OF_SCOPE",
+      "icoder_evidence_grade": "E0",
+      "corti_evidence_grade": "E1",
+      "parity_rationale": "CN-only product.",
+      "cn_relevant": false
+    },
+    {
+      "id": "C-10",
+      "class": "Expert Surface",
+      "name": "AMBOSS expert",
+      "parity_status": "EVIDENCE_INSUFFICIENT",
+      "icoder_evidence_grade": "E0",
+      "corti_evidence_grade": "E1",
+      "parity_rationale": "DOWNGRADED from Pre-A0 'CORTI_ADVANTAGE'. AMBOSS only referenced in system prompt text of one agent (E1). Could be stale template. Cannot promote beyond E1 without Console library browse.",
+      "cn_relevant": false
+    },
+    {
+      "id": "C-11",
+      "class": "Expert Surface",
+      "name": "ICD-10-CM/PCS/WHO/UK/GM (8 non-CN variants)",
+      "parity_status": "DIFFERENT_BY_DESIGN",
+      "icoder_evidence_grade": "E0",
+      "corti_evidence_grade": "E5",
+      "parity_rationale": "iCoDer targets CN market. Corti covers US/UK/EU/Global variants.",
+      "cn_relevant": false
+    },
+    {
+      "id": "C-12",
+      "class": "Expert Surface",
+      "name": "ICD-10-CN coverage",
+      "parity_status": "EVIDENCE_INSUFFICIENT",
+      "icoder_evidence_grade": "E2",
+      "corti_evidence_grade": "E0",
+      "parity_rationale": "iCoDer has 37,897 codes + 75,968 synonyms. Corti has zero CN coverage (Console dropdown confirmed).",
+      "cn_relevant": true,
+      "claim_intent": "ICODER_ADVANTAGE",
+      "claim_blocked_by_threshold": "Clinical",
+      "claim_threshold_required": "BENCHMARK_OR_CLINICAL_AUDIT",
+      "claim_threshold_current": "E2",
+      "claim_threshold_rationale": "No formal benchmark or clinical audit on file; E2 code-observed only"
+    },
+    {
+      "id": "C-13",
+      "class": "Expert Surface",
+      "name": "DRG-DIP rules",
+      "parity_status": "EVIDENCE_INSUFFICIENT",
+      "icoder_evidence_grade": "E2",
+      "corti_evidence_grade": "E0",
+      "parity_rationale": "iCoDer has DRG001-004 + DIP001-003 rule_set (E2 code; not deeply exercised per Gate 5). Corti has no DRG-DIP.",
+      "cn_relevant": true,
+      "claim_intent": "ICODER_ADVANTAGE",
+      "claim_blocked_by_threshold": "Clinical",
+      "claim_threshold_required": "BENCHMARK_OR_CLINICAL_AUDIT",
+      "claim_threshold_current": "E2",
+      "claim_threshold_rationale": "No formal benchmark; DRG-DIP rules are reserved not exercised in production"
+    },
+    {
+      "id": "D-01",
+      "class": "Tool/MCP",
+      "name": "MCP server",
+      "parity_status": "PARITY",
+      "icoder_evidence_grade": "E2",
+      "corti_evidence_grade": "E1",
+      "parity_rationale": "Both have MCP server per docs/code.",
+      "cn_relevant": true
+    },
+    {
+      "id": "D-02",
+      "class": "Tool/MCP",
+      "name": "MCP authentication",
+      "parity_status": "PARITY",
+      "icoder_evidence_grade": "E2",
+      "corti_evidence_grade": "E1",
+      "parity_rationale": "Both per Phase 4-H §7.",
+      "cn_relevant": true
+    },
+    {
+      "id": "D-03",
+      "class": "Tool/MCP",
+      "name": "Tool registry (canonical layer)",
+      "parity_status": "PARTIAL_PARITY",
+      "icoder_evidence_grade": "E2",
+      "corti_evidence_grade": "E1",
+      "parity_rationale": "Both have. iCoDer has multiple bounded-context registries (per A0 Gate 2) but only 1 is the canonical tool registry.",
+      "cn_relevant": true
+    },
+    {
+      "id": "D-04",
+      "class": "Tool/MCP",
+      "name": "MCP handler count",
+      "parity_status": "ICODER_ADVANTAGE",
+      "icoder_evidence_grade": "E2",
+      "corti_evidence_grade": "E1",
+      "parity_rationale": "iCoDer has 11 explicit handlers in app/icoder/mcp/handlers/. Corti has MCP via experts per Phase 4-H.",
+      "cn_relevant": true
+    },
+    {
+      "id": "D-05",
+      "class": "Tool/MCP",
+      "name": "Legacy tool layer",
+      "parity_status": "EVIDENCE_INSUFFICIENT",
+      "icoder_evidence_grade": "E2",
+      "corti_evidence_grade": "E0",
+      "parity_rationale": "iCoDer has app/tools/ (legacy, 11 files). Corti doesn't (younger codebase). Per HC-3: legacy tools disconnected from MCP/Runtime but connected to API layer.",
+      "cn_relevant": true,
+      "severity_if_gap": "P2",
+      "phase_a0_1r_corrections": [
+        {
+          "gate": "A0.1R-Gate3",
+          "timestamp": "2026-07-17T10:17:11Z",
+          "field": "parity_status",
+          "from": "ICODER_TECH_DEBT",
+          "to": "EVIDENCE_INSUFFICIENT",
+          "reason": "ICODER_TECH_DEBT is not in allowed_statuses. iCoDer has legacy app/tools/ (11 files) disconnected from MCP/Runtime; classifying this as a tech-debt variant of parity is not informative. EVIDENCE_INSUFFICIENT correctly reflects that the comparison itself lacks actionable signal."
+        }
+      ]
+    },
+    {
+      "id": "E-01",
+      "class": "Commercial",
+      "name": "Real payment processor",
+      "parity_status": "CORTI_ADVANTAGE",
+      "icoder_evidence_grade": "E2",
+      "corti_evidence_grade": "E5",
+      "parity_rationale": "Corti E5 (UI surface: Add payment method button, Plan tab, Billing tab). iCoDer E2 (theater: 0 transactions, fake balance). Direction holds — Corti's commercial surface is materially more developed. Phase A0 evidence restriction: Corti is E5 not E8 because real transaction not exercised.",
+      "cn_relevant": true,
+      "severity_if_gap": "P0"
+    },
+    {
+      "id": "E-02",
+      "class": "Commercial",
+      "name": "Plan tiers",
+      "parity_status": "CORTI_ADVANTAGE",
+      "icoder_evidence_grade": "E0",
+      "corti_evidence_grade": "E5",
+      "parity_rationale": "Corti has Pay-as-you-go plan (E5). iCoDer has none.",
+      "cn_relevant": true,
+      "severity_if_gap": "P0"
+    },
+    {
+      "id": "E-03",
+      "class": "Commercial",
+      "name": "Auto top-up",
+      "parity_status": "CORTI_ADVANTAGE",
+      "icoder_evidence_grade": "E0",
+      "corti_evidence_grade": "E5",
+      "parity_rationale": "Corti has toggle (E5). iCoDer has none.",
+      "cn_relevant": true,
+      "severity_if_gap": "P1"
+    },
+    {
+      "id": "E-04",
+      "class": "Commercial",
+      "name": "Low balance alerts",
+      "parity_status": "CORTI_ADVANTAGE",
+      "icoder_evidence_grade": "E0",
+      "corti_evidence_grade": "E5",
+      "parity_rationale": "Corti has toggle + threshold (E5). iCoDer has none.",
+      "cn_relevant": true,
+      "severity_if_gap": "P1"
+    },
+    {
+      "id": "E-05",
+      "class": "Commercial",
+      "name": "Billing history tab",
+      "parity_status": "CORTI_ADVANTAGE",
+      "icoder_evidence_grade": "E2",
+      "corti_evidence_grade": "E5",
+      "parity_rationale": "Corti has dedicated tab (E5). iCoDer has table but 0 rows (E2).",
+      "cn_relevant": true,
+      "severity_if_gap": "P1"
+    },
+    {
+      "id": "E-06",
+      "class": "Commercial",
+      "name": "Currency support",
+      "parity_status": "DIFFERENT_BY_DESIGN",
+      "icoder_evidence_grade": "E2",
+      "corti_evidence_grade": "E5",
+      "parity_rationale": "Corti USD. iCoDer CNY per CLAUDE.md §货币约定.",
+      "cn_relevant": true
+    },
+    {
+      "id": "E-07",
+      "class": "Commercial",
+      "name": "Pricing transparency",
+      "parity_status": "CORTI_ADVANTAGE",
+      "icoder_evidence_grade": "E0",
+      "corti_evidence_grade": "E5",
+      "parity_rationale": "Corti publishes plan + balance. iCoDer has none.",
+      "cn_relevant": true,
+      "severity_if_gap": "P1"
+    },
+    {
+      "id": "F-01",
+      "class": "Compliance",
+      "name": "等保2.0 三级 certification",
+      "parity_status": "NOT_IMPLEMENTED",
+      "icoder_evidence_grade": "E0",
+      "corti_evidence_grade": "E0",
+      "parity_rationale": "Neither certified. Blocks public hospital contract signature (P0).",
+      "cn_relevant": true,
+      "severity_if_gap": "P0-S"
+    },
+    {
+      "id": "F-02",
+      "class": "Compliance",
+      "name": "GB/T 35273-2020 PII",
+      "parity_status": "NOT_IMPLEMENTED",
+      "icoder_evidence_grade": "E0",
+      "corti_evidence_grade": "E0",
+      "parity_rationale": "Neither certified. CN PII standard.",
+      "cn_relevant": true,
+      "severity_if_gap": "P0-S"
+    },
+    {
+      "id": "F-03",
+      "class": "Compliance",
+      "name": "HIPAA",
+      "parity_status": "EVIDENCE_INSUFFICIENT",
+      "icoder_evidence_grade": "E0",
+      "corti_evidence_grade": "E1",
+      "parity_rationale": "Corti marketing claims HIPAA + ISO 27001 (E1, not certificate-verified). iCoDer has nothing. Out-of-scope for CN pilot but relevant for partner/EU expansion.",
+      "cn_relevant": false,
+      "phase_a0_1r_corrections": [
+        {
+          "gate": "A0.1R-Gate3",
+          "timestamp": "2026-07-17T10:17:11Z",
+          "field": "parity_status",
+          "from": "CORTI_ADVANTAGE",
+          "to": "EVIDENCE_INSUFFICIENT",
+          "reason": "Symmetric threshold enforcement (charter §3.Gate3). Class 'Compliance' requires Corti evidence >= E7 for CORTI_ADVANTAGE. Actual Corti grade = E1. Same rule that downgraded 9 ICODER_ADVANTAGE dimensions in Phase A0.1 Gate 4.",
+          "threshold_applied": "E7",
+          "actual_corti_grade": "E1"
+        }
+      ]
+    },
+    {
+      "id": "F-04",
+      "class": "Compliance",
+      "name": "ISO 27001",
+      "parity_status": "EVIDENCE_INSUFFICIENT",
+      "icoder_evidence_grade": "E0",
+      "corti_evidence_grade": "E1",
+      "parity_rationale": "Same as F-03.",
+      "cn_relevant": false,
+      "phase_a0_1r_corrections": [
+        {
+          "gate": "A0.1R-Gate3",
+          "timestamp": "2026-07-17T10:17:11Z",
+          "field": "parity_status",
+          "from": "CORTI_ADVANTAGE",
+          "to": "EVIDENCE_INSUFFICIENT",
+          "reason": "Symmetric threshold enforcement (charter §3.Gate3). Class 'Compliance' requires Corti evidence >= E7 for CORTI_ADVANTAGE. Actual Corti grade = E1. Same rule that downgraded 9 ICODER_ADVANTAGE dimensions in Phase A0.1 Gate 4.",
+          "threshold_applied": "E7",
+          "actual_corti_grade": "E1"
+        }
+      ]
+    },
+    {
+      "id": "F-05",
+      "class": "Deployment",
+      "name": "Cloud SaaS deployment",
+      "parity_status": "CORTI_ADVANTAGE",
+      "icoder_evidence_grade": "E1",
+      "corti_evidence_grade": "E5",
+      "parity_rationale": "Corti in 4 regions production (E5). iCoDer Phase 2+ docs-only (E1, per Gate 11 G11-001).",
+      "cn_relevant": true,
+      "severity_if_gap": "P0-D",
+      "phase_a0_1r_corrections": [
+        {
+          "gate": "A0.1R-Gate3",
+          "timestamp": "2026-07-17T10:17:11Z",
+          "field": "class",
+          "from": "Compliance",
+          "to": "Deployment",
+          "reason": "F-05 'Cloud SaaS deployment' measures deployment capability (4-region production presence), not a compliance certification. v2.2 had it under 'Compliance', which would force an E7 threshold under the symmetric rule and incorrectly downgrade a legitimate Corti deployment advantage. Reclassification to Deployment applies the correct E4 runtime threshold."
+        }
+      ]
+    },
+    {
+      "id": "F-06",
+      "class": "Compliance",
+      "name": "On-premise deploy",
+      "parity_status": "DIFFERENT_BY_DESIGN",
+      "icoder_evidence_grade": "E1",
+      "corti_evidence_grade": "E1",
+      "parity_rationale": "Both cloud-only. iCoDer disclaimed on-prem per CLAUDE.md.",
+      "cn_relevant": true
+    },
+    {
+      "id": "F-07",
+      "class": "Compliance",
+      "name": "Multi-region failover",
+      "parity_status": "EVIDENCE_INSUFFICIENT",
+      "icoder_evidence_grade": "E1",
+      "corti_evidence_grade": "E1",
+      "parity_rationale": "Both at E1 (docs). Corti in production; iCoDer planned.",
+      "cn_relevant": true,
+      "severity_if_gap": "P0-D",
+      "phase_a0_1r_corrections": [
+        {
+          "gate": "A0.1R-Gate3",
+          "timestamp": "2026-07-17T10:17:11Z",
+          "field": "parity_status",
+          "from": "CORTI_ADVANTAGE",
+          "to": "EVIDENCE_INSUFFICIENT",
+          "reason": "Symmetric threshold enforcement (charter §3.Gate3). Class 'Compliance' requires Corti evidence >= E7 for CORTI_ADVANTAGE. Actual Corti grade = E1. Same rule that downgraded 9 ICODER_ADVANTAGE dimensions in Phase A0.1 Gate 4.",
+          "threshold_applied": "E7",
+          "actual_corti_grade": "E1"
+        }
+      ]
+    },
+    {
+      "id": "F-08",
+      "class": "Compliance",
+      "name": "Edge-node PHI redaction",
+      "parity_status": "EVIDENCE_INSUFFICIENT",
+      "icoder_evidence_grade": "E2",
+      "corti_evidence_grade": "E1",
+      "parity_rationale": "Per Gate 9 K3.2: iCoDer pii_redaction.py is EXPORT-PATH ONLY, not live-path. Pre-A0 claimed ICODER_ADVANTAGE — INCORRECT. Corti architecture docs claim edge redaction (E1) which is not directly verified but architecturally ahead.",
+      "cn_relevant": true,
+      "severity_if_gap": "P0-S",
+      "phase_a0_1r_corrections": [
+        {
+          "gate": "A0.1R-Gate3",
+          "timestamp": "2026-07-17T10:17:11Z",
+          "field": "parity_status",
+          "from": "CORTI_ADVANTAGE",
+          "to": "EVIDENCE_INSUFFICIENT",
+          "reason": "Symmetric threshold enforcement (charter §3.Gate3). Class 'Compliance' requires Corti evidence >= E7 for CORTI_ADVANTAGE. Actual Corti grade = E1. Same rule that downgraded 9 ICODER_ADVANTAGE dimensions in Phase A0.1 Gate 4.",
+          "threshold_applied": "E7",
+          "actual_corti_grade": "E1"
+        }
+      ]
+    },
+    {
+      "id": "G-01",
+      "class": "Observability",
+      "name": "Per-stage run trace",
+      "parity_status": "EVIDENCE_INSUFFICIENT",
+      "icoder_evidence_grade": "E2",
+      "corti_evidence_grade": "E0",
+      "parity_rationale": "iCoDer has RunTraceEvents table + RunTrace page. BUT per Gate 7 G7-001 RUNTRACE_STORE=memory default → table empty. Advantage is CONTRACT not OPERATIONAL.",
+      "cn_relevant": true,
+      "claim_intent": "ICODER_ADVANTAGE",
+      "claim_blocked_by_threshold": "Runtime",
+      "claim_threshold_required": "E4",
+      "claim_threshold_current": "E2",
+      "claim_threshold_rationale": "Threshold E4 not met; RUNTRACE_STORE=memory default per A0-P0-008, table empty"
+    },
+    {
+      "id": "G-02",
+      "class": "Observability",
+      "name": "Signed trace_url",
+      "parity_status": "EVIDENCE_INSUFFICIENT",
+      "icoder_evidence_grade": "E3",
+      "corti_evidence_grade": "E0",
+      "parity_rationale": "iCoDer has HMAC trace_token (Phase 7 Gate 7, 13 tests). Corti has none.",
+      "cn_relevant": true,
+      "claim_intent": "ICODER_ADVANTAGE",
+      "claim_blocked_by_threshold": "Runtime",
+      "claim_threshold_required": "E4",
+      "claim_threshold_current": "E3",
+      "claim_threshold_rationale": "Threshold E4 not met; E3 = unit-verified only"
+    },
+    {
+      "id": "G-03",
+      "class": "Observability",
+      "name": "RunHistory persistence",
+      "parity_status": "EVIDENCE_INSUFFICIENT",
+      "icoder_evidence_grade": "E3",
+      "corti_evidence_grade": "E0",
+      "parity_rationale": "iCoDer persists (alembic 010). BUT per Gate 9 G9-003 235/240 rows have NULL organization_id.",
+      "cn_relevant": true,
+      "claim_intent": "ICODER_ADVANTAGE",
+      "claim_blocked_by_threshold": "Runtime",
+      "claim_threshold_required": "E4",
+      "claim_threshold_current": "E3",
+      "claim_threshold_rationale": "Threshold E4 not met; 235/240 rows have NULL organization_id per A0-P0-012"
+    },
+    {
+      "id": "G-04",
+      "class": "Observability",
+      "name": "Patient context events",
+      "parity_status": "EVIDENCE_INSUFFICIENT",
+      "icoder_evidence_grade": "E2",
+      "corti_evidence_grade": "E0",
+      "parity_rationale": "iCoDer emits patient.context.cleared. Corti has no equivalent.",
+      "cn_relevant": true,
+      "claim_intent": "ICODER_ADVANTAGE",
+      "claim_blocked_by_threshold": "Runtime",
+      "claim_threshold_required": "E4",
+      "claim_threshold_current": "E2",
+      "claim_threshold_rationale": "Threshold E4 not met; E2 = code-observed only"
+    },
+    {
+      "id": "G-05",
+      "class": "Observability",
+      "name": "Session-scoped events",
+      "parity_status": "EVIDENCE_INSUFFICIENT",
+      "icoder_evidence_grade": "E2",
+      "corti_evidence_grade": "E0",
+      "parity_rationale": "iCoDer emits session.cleared.",
+      "cn_relevant": true,
+      "claim_intent": "ICODER_ADVANTAGE",
+      "claim_blocked_by_threshold": "Runtime",
+      "claim_threshold_required": "E4",
+      "claim_threshold_current": "E2",
+      "claim_threshold_rationale": "Threshold E4 not met; E2 = code-observed only"
+    },
+    {
+      "id": "G-06",
+      "class": "Observability",
+      "name": "SLA-breach alerting",
+      "parity_status": "NOT_IMPLEMENTED",
+      "icoder_evidence_grade": "E0",
+      "corti_evidence_grade": "E0",
+      "parity_rationale": "Neither has (per Gate 11).",
+      "cn_relevant": true,
+      "severity_if_gap": "P1"
+    }
+  ],
+  "summary": {
+    "total_dimensions": 59,
+    "status_distribution_v2_3": {
+      "PARITY": 9,
+      "PARTIAL_PARITY": 6,
+      "NOT_IMPLEMENTED": 4,
+      "EVIDENCE_INSUFFICIENT": 19,
+      "CORTI_ADVANTAGE": 13,
+      "ICODER_ADVANTAGE": 2,
+      "OUT_OF_SCOPE": 3,
+      "DIFFERENT_BY_DESIGN": 3
+    },
+    "status_distribution_v2_2_for_diff": {
+      "PARITY": 9,
+      "PARTIAL_PARITY": 6,
+      "NOT_IMPLEMENTED": 4,
+      "EVIDENCE_INSUFFICIENT": 14,
+      "CORTI_ADVANTAGE": 17,
+      "ICODER_ADVANTAGE": 2,
+      "OUT_OF_SCOPE": 3,
+      "DIFFERENT_BY_DESIGN": 3,
+      "ICODER_TECH_DEBT": 1
+    },
+    "vs_v2_2_delta": {
+      "CORTI_ADVANTAGE": -4,
+      "EVIDENCE_INSUFFICIENT": 5,
+      "ICODER_TECH_DEBT": -1
+    },
+    "phase_a0_1r_summary_note": "v2.3 applies two corrections: (1) D-05 ICODER_TECH_DEBT (illegal status) downgraded to EVIDENCE_INSUFFICIENT; (2) 4 CORTI_ADVANTAGE dimensions with Corti evidence at E1 downgraded to EVIDENCE_INSUFFICIENT under symmetric threshold rule."
+  },
+  "regrade_log": [
+    {
+      "id": "A-09",
+      "name": "Signed trace_url",
+      "class": "Foundation",
+      "bucket": "Runtime",
+      "threshold": "E4",
+      "current": "E3",
+      "old_status": "ICODER_ADVANTAGE",
+      "new_status": "EVIDENCE_INSUFFICIENT",
+      "rationale": "Threshold E4 not met; E3 = unit-verified only, not integration-verified"
+    },
+    {
+      "id": "A-10",
+      "name": "RunHistory table",
+      "class": "Foundation",
+      "bucket": "Runtime",
+      "threshold": "E4",
+      "current": "E3",
+      "old_status": "ICODER_ADVANTAGE",
+      "new_status": "EVIDENCE_INSUFFICIENT",
+      "rationale": "Threshold E4 not met; E3 = unit-verified only; also RunHistory table empty per A0-P0-008"
+    },
+    {
+      "id": "C-12",
+      "name": "ICD-10-CN coverage",
+      "class": "Expert Surface",
+      "bucket": "Clinical",
+      "threshold": "BENCHMARK_OR_CLINICAL_AUDIT",
+      "current": "E2",
+      "old_status": "ICODER_ADVANTAGE",
+      "new_status": "EVIDENCE_INSUFFICIENT",
+      "rationale": "No formal benchmark or clinical audit on file; E2 code-observed only"
+    },
+    {
+      "id": "C-13",
+      "name": "DRG-DIP rules",
+      "class": "Expert Surface",
+      "bucket": "Clinical",
+      "threshold": "BENCHMARK_OR_CLINICAL_AUDIT",
+      "current": "E2",
+      "old_status": "ICODER_ADVANTAGE",
+      "new_status": "EVIDENCE_INSUFFICIENT",
+      "rationale": "No formal benchmark; DRG-DIP rules are reserved not exercised in production"
+    },
+    {
+      "id": "G-01",
+      "name": "Per-stage run trace",
+      "class": "Observability",
+      "bucket": "Runtime",
+      "threshold": "E4",
+      "current": "E2",
+      "old_status": "ICODER_ADVANTAGE",
+      "new_status": "EVIDENCE_INSUFFICIENT",
+      "rationale": "Threshold E4 not met; RUNTRACE_STORE=memory default per A0-P0-008, table empty"
+    },
+    {
+      "id": "G-02",
+      "name": "Signed trace_url",
+      "class": "Observability",
+      "bucket": "Runtime",
+      "threshold": "E4",
+      "current": "E3",
+      "old_status": "ICODER_ADVANTAGE",
+      "new_status": "EVIDENCE_INSUFFICIENT",
+      "rationale": "Threshold E4 not met; E3 = unit-verified only"
+    },
+    {
+      "id": "G-03",
+      "name": "RunHistory persistence",
+      "class": "Observability",
+      "bucket": "Runtime",
+      "threshold": "E4",
+      "current": "E3",
+      "old_status": "ICODER_ADVANTAGE",
+      "new_status": "EVIDENCE_INSUFFICIENT",
+      "rationale": "Threshold E4 not met; 235/240 rows have NULL organization_id per A0-P0-012"
+    },
+    {
+      "id": "G-04",
+      "name": "Patient context events",
+      "class": "Observability",
+      "bucket": "Runtime",
+      "threshold": "E4",
+      "current": "E2",
+      "old_status": "ICODER_ADVANTAGE",
+      "new_status": "EVIDENCE_INSUFFICIENT",
+      "rationale": "Threshold E4 not met; E2 = code-observed only"
+    },
+    {
+      "id": "G-05",
+      "name": "Session-scoped events",
+      "class": "Observability",
+      "bucket": "Runtime",
+      "threshold": "E4",
+      "current": "E2",
+      "old_status": "ICODER_ADVANTAGE",
+      "new_status": "EVIDENCE_INSUFFICIENT",
+      "rationale": "Threshold E4 not met; E2 = code-observed only"
+    },
+    {
+      "id": "D-05",
+      "from": "ICODER_TECH_DEBT",
+      "to": "EVIDENCE_INSUFFICIENT",
+      "reason": "Illegal status not in allowed_statuses.",
+      "gate": "A0.1R-Gate3",
+      "timestamp": "2026-07-17T10:17:11Z"
+    },
+    {
+      "id": "F-03",
+      "name": "HIPAA",
+      "class": "Compliance",
+      "from": "CORTI_ADVANTAGE",
+      "to": "EVIDENCE_INSUFFICIENT",
+      "corti_grade": "E1",
+      "threshold": "E7"
+    },
+    {
+      "id": "F-04",
+      "name": "ISO 27001",
+      "class": "Compliance",
+      "from": "CORTI_ADVANTAGE",
+      "to": "EVIDENCE_INSUFFICIENT",
+      "corti_grade": "E1",
+      "threshold": "E7"
+    },
+    {
+      "id": "F-07",
+      "name": "Multi-region failover",
+      "class": "Compliance",
+      "from": "CORTI_ADVANTAGE",
+      "to": "EVIDENCE_INSUFFICIENT",
+      "corti_grade": "E1",
+      "threshold": "E7"
+    },
+    {
+      "id": "F-08",
+      "name": "Edge-node PHI redaction",
+      "class": "Compliance",
+      "from": "CORTI_ADVANTAGE",
+      "to": "EVIDENCE_INSUFFICIENT",
+      "corti_grade": "E1",
+      "threshold": "E7"
+    }
+  ],
+  "vs_v2_1_changes": {
+    "v2_1_summary_total_dimensions_51": "INVALIDATED - array had 59 dimensions; v2.1 summary undercount by 8",
+    "v2_1_A_05_typo_icorer_evidence_grade": "FIXED - field name corrected to icoder_evidence_grade",
+    "v2_1_icoder_advantage_count_11": "REDUCED to 2 (B-10 Badge taxonomy E5, D-04 MCP handler count E2) - 9 entries downgraded to EVIDENCE_INSUFFICIENT because evidence below advantage threshold",
+    "v2_1_evidence_insufficient_count_4": "INCREASED to 13 (4 original + 9 downgraded advantage claims)",
+    "v2_1_partical_parity_7_count": "array shows 6 (typo or miscount in v2.1 summary)"
+  },
+  "audit_phase": "A0.1R",
+  "phase_a0_1r_corrections_applied": [
+    "D-05 ICODER_TECH_DEBT (illegal) -> EVIDENCE_INSUFFICIENT",
+    "F-03 HIPAA CORTI_ADVANTAGE -> EVIDENCE_INSUFFICIENT (Corti E1 < E7 threshold)",
+    "F-04 ISO 27001 CORTI_ADVANTAGE -> EVIDENCE_INSUFFICIENT (Corti E1 < E7 threshold)",
+    "F-07 Multi-region failover CORTI_ADVANTAGE -> EVIDENCE_INSUFFICIENT (Corti E1 < E7 threshold)",
+    "F-08 Edge-node PHI redaction CORTI_ADVANTAGE -> EVIDENCE_INSUFFICIENT (Corti E1 < E7 threshold)"
+  ],
+  "symmetric_threshold_rule": {
+    "rule": "Advantage claims (ICODER_ADVANTAGE or CORTI_ADVANTAGE) require the advantaged side's evidence grade to meet or exceed the class-specific threshold.",
+    "thresholds": {
+      "compliance_security": "E7 (security-negative-verified)",
+      "runtime_agent": "E4 (integration-verified)",
+      "ux_product": "E5 (browser-verified)",
+      "tool_catalog": "E2 (code-observed)"
+    },
+    "applied_symmetrically_to": [
+      "ICODER_ADVANTAGE",
+      "CORTI_ADVANTAGE"
+    ]
+  }
+}

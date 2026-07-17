@@ -1,0 +1,53 @@
+=== Phase A0.1R Gate 1 - Credential Containment Verification ===
+Timestamp: 2026-07-17T10:03:29Z
+
+[1] Pre-invalidation DB state
+    oauth_clients.partner-ref-07ef23d306cf:
+      is_active: 1
+      client_secret_hash matches [REDACTED_COMPROMISED_API_CLIENT_SECRET]: true
+      hash (sha256 fingerprint): 7a3b25efb0a901a66ce5df775a74911c75808e9fed93e9421157c666d3b436a4
+      last_used_at: 2026-07-14 05:17:33
+
+[2] Mutation applied
+    UPDATE oauth_clients SET is_active=0,
+        client_secret_hash='REVOKED_PHASE_A0_1R_20260717T100329Z',
+        updated_at='2026-07-17 10:03:29'
+      WHERE client_id='partner-ref-07ef23d306cf'
+
+[3] Post-invalidation DB state
+    oauth_clients.partner-ref-07ef23d306cf:
+      is_active: 0
+      client_secret_hash: REVOKED_PHASE_A0_1R_20260717T100329Z
+      hash matches [REDACTED_COMPROMISED_API_CLIENT_SECRET]: false
+      updated_at: 2026-07-17 10:03:29
+
+[4] Authentication attempt with old secret
+    -> Client found: true
+    -> is_active: 0  (middleware returns 401 before hash compare)
+    -> hash compare: fail (rotated to REVOKED marker)
+    -> Result: REJECTED (PASS)
+    -> Charter requirement: MUST be rejected
+
+[5] Working-tree secret sweep
+    Command: grep -rl [PLAIN-TEXT-SECRET] . 2>/dev/null
+             | grep -v node_modules | grep -v .git/
+             | grep -v .audit-chrome-profile
+    Result: 0 matches (PASS)
+
+[6] Redaction token coverage
+    Files containing [REDACTED_COMPROMISED_API_CLIENT_SECRET]:
+      - examples/partner-reference-app/.env
+      - reports/comprehensive-audit/phase-a0.1/A0_1_01_AUDITED_FILESET_AND_BASELINE_SNAPSHOT.md
+      - reports/comprehensive-audit/phase-a0.1/A0_1_09_SAFE_COMMIT_AND_IMMUTABLE_FREEZE.md
+      - reports/comprehensive-audit/phase-a0.1r/A0_1R_00_GATE0_PREFLIGHT_AND_FAILURE_REPRODUCTION.md
+
+[7] Database backup captured
+    Path: reports/comprehensive-audit/phase-a0.1r/evidence/db_snapshots/icoder.db.pre_gate1.20260717_180327.bak
+    Size: 4431872 bytes
+
+[8] Pre/Post state JSON snapshots
+    Pre:  reports/comprehensive-audit/phase-a0.1r/evidence/db_snapshots/gate1_pre_state.json
+    Post: reports/comprehensive-audit/phase-a0.1r/evidence/db_snapshots/gate1_post_state.json
+
+Verdict: PHASE_A0_1_R_GATE_1_CREDENTIAL_CONTAINED_AND_REDACTED
+Hard Checkpoint A: CLOSED

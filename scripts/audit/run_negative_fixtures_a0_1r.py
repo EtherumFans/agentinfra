@@ -134,6 +134,27 @@ def main():
     manifest["evidence_index"]["git"][0]["storage_mode"] = "SECRET_LEAKED"
     all_pass &= expect_fail("NF11", check_manifest_storage_mode(manifest), "SECRET_LEAKED")
 
+    # --- NF12: worktree.no_secret — inject a leak marker into a tracked file ---
+    # Patches SECRET_FINGERPRINT_SUBSTRING in-memory to a benign test marker, appends
+    # the marker to an existing tracked file (README.md, not in path exclusions),
+    # and verifies check_no_secret_in_worktree catches it. File is restored in finally.
+    print("\n[NF12] worktree.no_secret — inject leak marker into tracked README.md")
+    import validate_phase_a0_1r as _v_mod
+    benign_marker = "A1A_GATE0_ADDENDUM_NF12_BENIGN_LEAK_MARKER_x9k2q4z7"
+    original_fingerprint = _v_mod.SECRET_FINGERPRINT_SUBSTRING
+    target = REPO_ROOT / "README.md"
+    backup_bytes = target.read_bytes() if target.exists() else None
+    try:
+        _v_mod.SECRET_FINGERPRINT_SUBSTRING = benign_marker
+        with open(target, "a", encoding="utf-8") as fh:
+            fh.write("\n" + benign_marker + "\n")
+        result_nf12 = _v_mod.check_no_secret_in_worktree()
+        all_pass &= expect_fail("NF12", result_nf12, "secret found")
+    finally:
+        if backup_bytes is not None:
+            target.write_bytes(backup_bytes)
+        _v_mod.SECRET_FINGERPRINT_SUBSTRING = original_fingerprint
+
     print(f"\n=== Negative fixture summary ===")
     print(f"  All fixtures passed: {all_pass}")
     sys.exit(0 if all_pass else 1)

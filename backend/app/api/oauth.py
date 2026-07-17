@@ -12,9 +12,15 @@ documented in ``docs/corti-reverse-engineered/SUMMARY.md`` §13.2:
    client's granted scopes (uniform across both endpoints below).
 4. **Realm-based URL** — ``POST /api/oauth/realms/{realm}/token`` mirrors
    the ``https://auth.{env}.corti.app/realms/{tenant}/protocol/...`` pattern.
+
+A1A Gate 1 Step 5 (2026-07-17): every 401 ``invalid_client`` is now
+preceded by an ``api_client.authentication_rejected`` audit log entry
+containing ``client_id``, ``reason``, source IP, and user-agent. Audit
+failure is swallowed (never blocks the rejection).
 """
 import hashlib
 import base64
+import logging
 import secrets
 from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException, Form, Request
@@ -24,11 +30,65 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
 from app.database import get_db
+from app.middleware.audit import log_action
 from app.middleware.auth import get_current_user
 from app.models.oauth import OAuthClient, OAuthToken
 from app.models.user import User
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter(prefix="/api/oauth", tags=["oauth"])
+
+
+async def _emit_auth_rejection(
+    db: AsyncSession,
+    *,
+    client_id: str,
+    reason: str,
+    request: Request | None = None,
+    realm: str | None = None,
+) -> None:
+    """A1A Gate 1 Step 5 — record api_client.authentication_rejected audit event.
+
+    Best-effort: if DB write fails, log the error and continue (the 401
+    response MUST still be returned). Commits immediately so the audit row
+    survives the HTTPException that the caller is about to raise.
+    """
+    try:
+        ip = None
+        ua = None
+        if request is not None:
+            ip = request.client.host if request.client else None
+            ua = request.headers.get("user-agent")
+        await log_action(
+            db,
+            user_id=None,
+            username=None,
+            action="api_client.authentication_rejected",
+            resource_type="api_client",
+            resource_id=client_id or None,
+            details={
+                "client_id": client_id or None,
+                "reason": reason,
+                "realm": realm,
+                "endpoint": "token_endpoint" if realm is None else "realm_token_endpoint",
+            },
+            ip_address=ip,
+            user_agent=ua,
+            status="failure",
+            error_message=reason,
+        )
+        await db.commit()
+    except Exception as e:
+        logger.error(
+            "audit emit failed for api_client.authentication_rejected "
+            "(client_id=%s reason=%s): %s",
+            client_id, reason, e,
+        )
+        try:
+            await db.rollback()
+        except Exception:
+            pass
 
 # In-memory authorization code store (production: use DB)
 _auth_codes: dict[str, dict] = {}
@@ -105,6 +165,7 @@ def _default_oauth_ttl() -> int:
 
 @router.post("/token")
 async def token_endpoint(
+    request: Request,
     grant_type: str = Form(...),
     client_id: str = Form(...),
     client_secret: str = Form(""),
@@ -131,11 +192,17 @@ async def token_endpoint(
     )
     client = result.scalar_one_or_none()
     if not client:
+        await _emit_auth_rejection(
+            db, client_id=client_id, reason="client_not_found_or_inactive", request=request,
+        )
         raise HTTPException(status_code=401, detail="invalid_client")
 
     if grant_type == "client_credentials":
         # RFC 6749 §4.4 — Client Credentials
         if not client_secret or not OAuthClient.verify_secret(client_secret, client.client_secret_hash):
+            await _emit_auth_rejection(
+                db, client_id=client_id, reason="secret_mismatch_or_empty", request=request,
+            )
             raise HTTPException(status_code=401, detail="invalid_client")
         return await _handle_client_credentials(client, scope, db, realm="")
 
@@ -186,6 +253,7 @@ async def token_endpoint(
 @router.post("/realms/{realm}/token")
 async def realm_token_endpoint(
     realm: str,
+    request: Request,
     grant_type: str = Form(...),
     client_id: str = Form(...),
     client_secret: str = Form(""),
@@ -207,12 +275,20 @@ async def realm_token_endpoint(
     )
     client = result.scalar_one_or_none()
     if not client:
+        await _emit_auth_rejection(
+            db, client_id=client_id, reason="client_not_found_or_inactive",
+            request=request, realm=realm,
+        )
         raise HTTPException(status_code=401, detail="invalid_client")
 
     if grant_type != "client_credentials":
         raise HTTPException(status_code=400, detail="realm_token_supports_client_credentials_only")
 
     if not client_secret or not OAuthClient.verify_secret(client_secret, client.client_secret_hash):
+        await _emit_auth_rejection(
+            db, client_id=client_id, reason="secret_mismatch_or_empty",
+            request=request, realm=realm,
+        )
         raise HTTPException(status_code=401, detail="invalid_client")
 
     return await _handle_client_credentials(client, scope, db, realm=realm)

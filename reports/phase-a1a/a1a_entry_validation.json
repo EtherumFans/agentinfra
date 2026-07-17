@@ -1,0 +1,72 @@
+{
+  "generated_at": "2026-07-17T12:40:00Z",
+  "spec": "Phase A1A Gate 0 §3 + §6.8",
+  "charter_required_outputs_count": 15,
+  "outputs_delivered": {
+    "1_tag_type": "tag (annotated)",
+    "2_tag_object_hash": "3cd1bece14a7f4564d14d630568697c48cfd8385",
+    "3_tag_target_commit": "64590fa262b0fa9d56a47b1ec714be287f8e63e2",
+    "4_commit_abc_hashes": {
+      "A": "87754abd1f8dd351731bac495518fd9e05ed2a72",
+      "B": "606dc5d733139070884a6016aab3993936bb3b2a",
+      "C": "64590fa262b0fa9d56a47b1ec714be287f8e63e2"
+    },
+    "5_lineage_a_to_b_to_c": {
+      "A_parent": "c147d015455017bc1d8420cbdbd813b3b8ec23ce",
+      "B_parent": "87754abd1f8dd351731bac495518fd9e05ed2a72",
+      "C_parent": "606dc5d733139070884a6016aab3993936bb3b2a"
+    },
+    "6_master_current_hash": "c147d015455017bc1d8420cbdbd813b3b8ec23ce",
+    "7_tagged_validator_result": "15/15 PASS, exit 0",
+    "8_negative_fixture_coverage_table": "11/11 PASS (charter mentioned 12; discrepancy disclosed in negative_fixture_coverage.json)",
+    "9_old_credential_auth_rejection": "REJECTED at 2 layers (is_active=0 + hash=REVOKED marker)",
+    "10_git_object_secret_scan": "FULL SECRET NOT FOUND in any git object; chars 9-16 found only in validator blob (design choice); chars 17-48 NOT FOUND in any git object",
+    "11_final_verdict_canonical_alias": {
+      "canonical_verdict": "PASS_PHASE_A0_1_R_SECURE_FREEZE_RECONCILED_AND_BASELINE_IMMUTABLE",
+      "legacy_aliases": [
+        "PASS_PHASE_A0_1R_SECURE_FREEZE_RECONCILED_AND_BASELINE_IMMUTABLE",
+        "PASS_PHASE_A0_1_AUDIT_REPAIR_AND_BASELINE_FROZEN_READY_FOR_A1"
+      ],
+      "canonical_alias_mapping_note": "Phase A0.1R charter used 'A0_1_R' (with underscores between 0, 1, R). Some earlier text used 'A0_1R' (no underscore between 1 and R). The canonical form is the one used in the actual tag annotation, which is 'A0_1_R'. Tag is NOT modified; only alias mapping is documented."
+    },
+    "12_bundle_backup_hash": "5b851a55fd0f8722936696390496087763403ab456f71e87154bcdcef4627a45",
+    "13_new_a1a_branch": "phase-a1a/emergency-containment (anchored on tag target 64590fa = Commit C)",
+    "14_worktree_state": "60 untracked items (pre-existing reports + .audit-chrome-profile gitignored); no modifications to tracked files; no staged changes",
+    "15_interim_verdict": "PASS_A1A_GATE0_FROZEN_BASELINE_ENTRY_VERIFIED"
+  },
+  "hard_checks": {
+    "tag_exists_and_is_annotated": true,
+    "tag_target_equals_commit_c": true,
+    "lineage_c147d01_to_87754ab_to_606dc5d_to_64590fa_verified": true,
+    "master_unchanged_at_c147d01": true,
+    "tagged_validator_15_of_15_pass": true,
+    "all_11_negative_fixtures_pass": true,
+    "compromised_credential_db_invalidated": true,
+    "compromised_credential_auth_rejected": true,
+    "full_secret_not_in_any_git_object": true,
+    "chars_17_to_48_not_in_any_git_object": true,
+    "bundle_backup_created_outside_repo": true,
+    "a1a_branch_created_from_tag": true,
+    "no_master_modifications": true,
+    "no_a0_1r_tag_modifications": true,
+    "no_commit_a_b_c_amendments": true
+  },
+  "disclosed_findings": [
+    {
+      "id": "A1A-G0-D01",
+      "severity": "P2",
+      "title": "Chars 9-16 of compromised secret present in validator blob (Phase A0.1R design choice)",
+      "detail": "scripts/audit/validate_phase_a0_1r.py @ Commit B (606dc5d, blob 4573c81) defines SECRET_FINGERPRINT_SUBSTRING = '862b7cf5b001b5b7' (16 chars). Chars 1-8 are public fingerprint; chars 9-16 are NOT declared public. Validator needs the substring for git-grep to catch real leaks; 8 chars is too short (audit reports publish chars 1-8 legitimately).",
+      "residual_risk": "MINIMAL. Credential is DB-invalidated (is_active=0, hash=REVOKED). Chars 17-48 (32 chars) are NOT in any git object. Even with chars 1-16, attacker cannot authenticate.",
+      "a1a_gate1_proposed_mitigation": "Migrate validator to use last-N-chars fingerprint (e.g., chars 41-48 'fc2cdc2b') or a SHA-256 hash of the full secret as the anchor. Either approach removes chars 9-16 from git."
+    },
+    {
+      "id": "A1A-G0-D02",
+      "severity": "P3",
+      "title": "Negative fixture count discrepancy (charter mentioned 12, actual 11)",
+      "detail": "Phase A0.1R Gate 7 produced 11 fixtures (NF01-NF11). A1A charter text mentioned '12-item coverage table'. Likely a charter-text typo. A1A does not fabricate a 12th fixture; if validator expands in A1A Gate 1, a 12th fixture may be added."
+    }
+  ],
+  "verdict": "PASS_A1A_GATE0_FROZEN_BASELINE_ENTRY_VERIFIED",
+  "partial_block_status": "NOT_TRIGGERED — full secret NOT in any git object; PARTIAL_BLOCKED rule per charter §6 only triggers for full secret presence"
+}

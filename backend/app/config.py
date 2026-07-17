@@ -1,8 +1,17 @@
 # iCoDer Backend Configuration (Phase 1 cloud-flip 2026-06-27)
 import os
 from pathlib import Path
-from typing import Optional, List
+from typing import ClassVar, Optional, List
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# A1A Gate 1 Step 4 — known-weak SECRET_KEY literals that must NEVER boot
+# in cloud mode. Matched case-insensitively after strip(). Kept at module
+# level so it is accessible without pydantic's private-attr handling.
+_WEAK_SECRET_KEY_LITERALS: frozenset[str] = frozenset({
+    "", "change-me", "change-me-in-production", "changeme",
+    "secret", "test", "dev", "development",
+})
+
 
 class Settings(BaseSettings):
     # ── Deployment Mode ───────────────────────────────────────────────────────
@@ -24,9 +33,63 @@ class Settings(BaseSettings):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        # A1A Gate 1 Step 4 — env var takes precedence over .env file value
+        # so cloud KMS injection (ICODER_SECRET_KEY env) always wins.
+        env_sk = os.environ.get("ICODER_SECRET_KEY")
+        if env_sk:
+            self.SECRET_KEY = env_sk
         if not self.SECRET_KEY:
-            import os, secrets as _secrets
-            self.SECRET_KEY = os.environ.get("ICODER_SECRET_KEY", _secrets.token_urlsafe(48))
+            import secrets as _secrets
+            self.SECRET_KEY = _secrets.token_urlsafe(48)
+        # A1A Gate 1 Step 4 — fail-closed env policy (2026-07-17).
+        # Cloud mode MUST refuse to boot if any required secret is missing or
+        # carries a known-weak default. Local mode auto-generates a random
+        # SECRET_KEY (preserves single-developer workflow).
+        self._validate_fail_closed_policy()
+
+    def _validate_fail_closed_policy(self) -> None:
+        """Refuse to boot if cloud mode + weak/missing required secrets.
+
+        Raises RuntimeError at startup so uvicorn exits non-zero before
+        binding the socket. Local mode is permissive.
+        """
+        if self.ICODER_DEPLOYMENT_MODE != "cloud":
+            return
+        failures: list[str] = []
+        sk = (self.SECRET_KEY or "").strip()
+        if sk.lower() in _WEAK_SECRET_KEY_LITERALS:
+            failures.append(
+                "SECRET_KEY is empty or a known-weak literal "
+                f"({sk!r}); set ICODER_SECRET_KEY env var to a strong value "
+                "(generate: python -c \"import secrets; print(secrets.token_urlsafe(48))\")"
+            )
+        if not self.ICODER_HOSTED_URL:
+            failures.append("ICODER_HOSTED_URL is empty; required in cloud mode")
+        if self.ICODER_ENVIRONMENT not in {"eu", "us", "cn"}:
+            failures.append(
+                f"ICODER_ENVIRONMENT={self.ICODER_ENVIRONMENT!r}; must be one of eu/us/cn"
+            )
+        if not self.ICODER_REGION:
+            failures.append("ICODER_REGION is empty; required in cloud mode")
+        if not self.ICODER_TENANT_ID:
+            failures.append("ICODER_TENANT_ID is empty; required in cloud mode")
+        if not self.ICODER_API_CLIENT_ID:
+            failures.append("ICODER_API_CLIENT_ID is empty; required in cloud mode")
+        if not self.ICODER_API_CLIENT_SECRET:
+            failures.append("ICODER_API_CLIENT_SECRET is empty; required in cloud mode")
+        if self.SEED_ON_STARTUP:
+            failures.append(
+                "SEED_ON_STARTUP=true is forbidden in cloud mode "
+                "(would auto-create admin/admin123)"
+            )
+        if self.DEBUG:
+            failures.append("DEBUG=true is forbidden in cloud mode")
+        if failures:
+            joined = "\n  - ".join(failures)
+            raise RuntimeError(
+                f"[A1A Gate 1 fail-closed] ICODER_DEPLOYMENT_MODE=cloud but:\n  - {joined}\n"
+                "Refusing to boot. Fix the above env vars and restart."
+            )
 
     # ── Server ────────────────────────────────────────────────────────────────
     HOST: str = "0.0.0.0"

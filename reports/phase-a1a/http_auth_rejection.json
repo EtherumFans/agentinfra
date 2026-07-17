@@ -1,0 +1,39 @@
+{
+  "generated_at": "2026-07-17T13:30:00Z",
+  "spec": "Phase A1A Gate 0 Addendum — Sub-gate 0B (Compromised Credential HTTP Rejection)",
+  "client_id": "partner-ref-07ef23d306cf",
+  "endpoint": "http://127.0.0.1:18000/api/oauth/token",
+  "grant_type": "client_credentials",
+  "http_method": "POST",
+  "auth_code_path": "REAL uvicorn FastAPI app.main:app (NOT TestClient, NOT monkey-patch)",
+  "http_status": 401,
+  "http_status_meaning": "invalid_client — both is_active=0 and hash=REVOKED marker reject the request",
+  "secret_sha256_prefix": "7a3b25efb0a901a66ce5df775a74911c",
+  "secret_matches_phase_a0_1r_fingerprint": true,
+  "secret_handling": {
+    "source": "temp file at C:/Users/huawei/.icoder-a1a-gate0b/compromised_secret.txt (outside repo)",
+    "deleted_immediately_after_read": true,
+    "never_printed": true,
+    "scrubbed_from_memory_after_use": true
+  },
+  "rejection_criteria": {
+    "http_status_is_401_or_403": true,
+    "response_has_no_access_token": true,
+    "response_has_no_refresh_token": true,
+    "response_has_no_client_secret_echo": true,
+    "disabled_client_cannot_authenticate": true
+  },
+  "all_criteria_pass": true,
+  "response_body_excerpt_redacted": "{\"detail\":\"invalid_client\"}",
+  "response_has_access_token": false,
+  "response_has_refresh_token": false,
+  "response_echoes_client_secret": false,
+  "audit_event_gap": {
+    "detected": true,
+    "description": "POST /api/oauth/token at backend/app/api/oauth.py raises HTTPException(401, invalid_client) but does NOT emit any audit_log event (no api_client.authentication_rejected). audit_logs table has zero rows for this authentication attempt.",
+    "charter_scenario_match": "Phase A1A charter §6.3 — 'http_authentication_rejection = PASS / audit_event = MISSING' is an acceptable Gate 0 state and is recorded as a Gate 1 mandatory item.",
+    "a1a_gate1_mandatory_action": "Add audit log emission in OAuth token endpoint for all authentication failures (invalid_client, is_active=0, hash mismatch, rate-limited). Event type: api_client.authentication_rejected with payload {client_id, reason, source_ip, timestamp}."
+  },
+  "verdict": "HTTP_AUTH_REJECTION_PROVEN",
+  "gate_0_addendum_status": "SUB-GATE 0B CLOSED (HTTP rejection proven; audit_event gap deferred to Gate 1 as mandatory item)"
+}

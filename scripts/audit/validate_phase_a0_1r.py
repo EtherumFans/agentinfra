@@ -29,10 +29,12 @@ PHASE_DIR = REPO_ROOT / "reports" / "comprehensive-audit" / "phase-a0.1r"
 PHASE_A0_1_DIR = REPO_ROOT / "reports" / "comprehensive-audit" / "phase-a0.1"
 
 REDACTION_TOKEN = "[REDACTED_COMPROMISED_API_CLIENT_SECRET]"
-# 16-char grep anchor: long enough that audit reports (which publish only the
-# 8-char public fingerprint "862b7cf5...") do NOT match, but any real leak of
-# chars 1-16 of the secret does match. Chars 9-16 are NOT public.
-SECRET_FINGERPRINT_SUBSTRING = "862b7cf5b001b5b7"
+# A1A Gate 1 step 1 (Option B per sub-gate 0E) — migrated from chars 1-16
+# ('862b7cf5b001b5b7') to chars 41-48 ('fc2cdc2b'). The tail 8 chars are NOT
+# public and have never appeared in audit reports. Residual leak surface
+# reduced 50% (16 chars → 8 chars); chars 9-16 no longer in source.
+# Long-term target: SHA-256-hash anchor (Option A) if performance allows.
+SECRET_FINGERPRINT_SUBSTRING = "fc2cdc2b"
 TRUSTED_HEAD_BASE = "c147d015455017bc1d8420cbdbd813b3b8ec23ce"
 
 ALLOWED_PARITY_STATUSES = {

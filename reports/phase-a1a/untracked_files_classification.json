@@ -1,0 +1,150 @@
+{
+  "generated_at": "2026-07-17T13:50:00Z",
+  "spec": "Phase A1A Gate 0 Addendum — Sub-gate 0C (Untracked Files Classification)",
+  "working_tree_state_at_classification": {
+    "current_branch": "phase-a1a/emergency-containment",
+    "master_hash": "c147d015455017bc1d8420cbdbd813b3b8ec23ce",
+    "tag_target": "64590fa262b0fa9d56a47b1ec714be287f8e63e2 (Commit C)",
+    "git_status_porcelain_untracked_count": 60,
+    "git_ls_files_untracked_count": 2151,
+    "note": "The 60 count comes from `git status --porcelain | grep '^??'` which collapses directories. The 2151 count comes from `git ls-files --others --exclude-standard` which lists individual files."
+  },
+  "categories": {
+    "A_WILL_NOT_COMMIT_TRANSIENT_LOCAL_STATE": {
+      "description": "Transient local state from browser automation. Not evidence. Must be added to .gitignore in Gate 1 to prevent accidental commit.",
+      "action": "ADD_TO_GITIGNORE_IN_GATE_1",
+      "items": [
+        {
+          "path": ".audit-chrome-profile/",
+          "file_count": 2010,
+          "provenance": "Playwright MCP / Chrome user-data-dir created during Phase A1A Gate 0 browser-driven audit walkthroughs and earlier Phase 7 Gate 10/11/12/13 Playwright E2E runs.",
+          "contents_examples": [
+            "Default/ (Chrome profile data)",
+            "ActorSafetyLists/, Safe Browsing/, OptimizationHints/ (Chrome anti-malware lists)",
+            "ShaderCache/, GPUPersistentCache/, GrShaderCache/ (GPU shader caches)",
+            "Default/Extensions/efaidnbmnnnibpcajpcglclefindmkaj/ (Adobe Acrobat extension)"
+          ],
+          "risk": "Contains browser state that may include session cookies, cached auth tokens, browsing history. MUST NOT be committed.",
+          "recommended_gitignore_rule": ".audit-chrome-profile/"
+        }
+      ]
+    },
+    "B_PRE_EXISTING_PHASE_REPORT_LEAVE_AS_IS": {
+      "description": "Pre-existing audit reports and docs from earlier phases (Phase A0, A0.1, A0.1R pre-freeze drafts, Phase 6, Phase 7). Phase A0.1R Bucket B specifically scoped which files to track; these remained untracked by design. A1A Gate 0 Addendum does NOT modify them and does NOT commit them. They will be triaged in a later phase if needed.",
+      "action": "LEAVE_UNTRACKED",
+      "items": [
+        {"path": "docs/audit/icoder_comprehensive_product_audit.txt", "provenance": "Phase A0 era raw audit notes (2026-07-15)"},
+        {"path": "docs/corti_parity/phase7_gate13a/e2e_widget_interactive.png", "provenance": "Phase 7 Gate 13A screenshot (2026-07-15)"},
+        {"path": "reports/comprehensive-audit/01_AUDIT_SCOPE_AND_METHOD.md", "provenance": "Phase A0 Gate 1-14 main audit (pre-A0.1R)"},
+        {"path": "reports/comprehensive-audit/02_GIT_REPOSITORY_BASELINE.md", "provenance": "Phase A0 Gate 1-14 main audit"},
+        {"path": "reports/comprehensive-audit/GATE1_REPOSITORY_STRUCTURE_AND_STARTUP.md", "provenance": "Phase A0 main audit (tracked line 2026-07-15)"},
+        {"path": "reports/comprehensive-audit/GATE2_PRODUCT_SURFACE_AND_ROUTE_INVENTORY.md", "provenance": "Phase A0 main audit"},
+        {"path": "reports/comprehensive-audit/GATE3_BROWSER_WALKTHROUGH.md", "provenance": "Phase A0 main audit"},
+        {"path": "reports/comprehensive-audit/GATE4_AGENT_CAPABILITY_AUDIT.md", "provenance": "Phase A0 main audit"},
+        {"path": "reports/comprehensive-audit/GATE5_MEDICAL_CODING_CDI_DRG_DIP_DEEP_AUDIT.md", "provenance": "Phase A0 main audit"},
+        {"path": "reports/comprehensive-audit/GATE6_A2A_RUNTIME_EXPERT_TOOL_ARCHITECTURE.md", "provenance": "Phase A0 main audit"},
+        {"path": "reports/comprehensive-audit/GATE7_RUN_TRACE_EVENT_USAGE_AUDIT.md", "provenance": "Phase A0 main audit"},
+        {"path": "reports/comprehensive-audit/GATE8_EMBEDDED_SDK_API_CLIENT_PARTNER_APP.md", "provenance": "Phase A0 main audit"},
+        {"path": "reports/comprehensive-audit/GATE9_AUTH_SECURITY_PHI_MULTI_TENANT.md", "provenance": "Phase A0 main audit"},
+        {"path": "reports/comprehensive-audit/GATE10_MODEL_DATA_EVALUATION_ASSETS.md", "provenance": "Phase A0 main audit"},
+        {"path": "reports/comprehensive-audit/GATE11_TEST_PERFORMANCE_DEPLOYMENT_DOCS.md", "provenance": "Phase A0 main audit"},
+        {"path": "reports/comprehensive-audit/GATE12_CORTI_BENCHMARK_STRATEGIC_FIT.md", "provenance": "Phase A0 main audit"},
+        {"path": "reports/comprehensive-audit/GATE13_COMMERCIAL_HOSPITAL_PILOT_READINESS.md", "provenance": "Phase A0 main audit"},
+        {"path": "reports/comprehensive-audit/GATE14_ISSUE_GRADING_ROADMAP_FINAL_VERDICT.md", "provenance": "Phase A0 main audit"},
+        {"path": "reports/comprehensive-audit/26A_CORTI_OFFICIAL_EVIDENCE_CATALOG.md", "provenance": "Phase A0 sub-report"},
+        {"path": "reports/comprehensive-audit/26B_ICODER_AGENT_EXPERT_TOOL_RUNTIME_INVENTORY.md", "provenance": "Phase A0 sub-report"},
+        {"path": "reports/comprehensive-audit/26C_GATE3_HISTORICAL_CLAIMS_REVERIFICATION.md", "provenance": "Phase A0 sub-report"},
+        {"path": "reports/comprehensive-audit/26D_GATE4_PREBUILT_EXPERT_BUSINESS_RELEVANCE.md", "provenance": "Phase A0 sub-report"},
+        {"path": "reports/comprehensive-audit/26E_GATE5_CHINA_MEDICAL_SCENARIO_MAPPING.md", "provenance": "Phase A0 sub-report"},
+        {"path": "reports/comprehensive-audit/26F_GATE6_AGENT_HUB_CONVERGENCE_REVIEW.md", "provenance": "Phase A0 sub-report"},
+        {"path": "reports/comprehensive-audit/26G_GATE7_PARITY_MATRIX_V2_DELTA.md", "provenance": "Phase A0 sub-report"},
+        {"path": "reports/comprehensive-audit/26H_GATE8_ISSUE_LEDGER_DEDUP.md", "provenance": "Phase A0 sub-report"},
+        {"path": "reports/comprehensive-audit/26I_GATE9_CANONICAL_ARCHITECTURE_DECISION_MATRIX.md", "provenance": "Phase A0 sub-report"},
+        {"path": "reports/comprehensive-audit/PRE_A0_FINAL_DECISION.md", "provenance": "Phase A0 pre-final"},
+        {"path": "reports/comprehensive-audit/PRE_A0_GATE0_BASELINE.md", "provenance": "Phase A0 pre-Gate 0"},
+        {"path": "reports/comprehensive-audit/evidence_manifest.json", "provenance": "Phase A0 evidence manifest (superseded by v2_2)"},
+        {"path": "reports/comprehensive-audit/evidence/corti-foundation/", "provenance": "Phase A0 Corti reference evidence"},
+        {"path": "reports/comprehensive-audit/evidence/git/", "provenance": "Phase A0 git baseline evidence"},
+        {"path": "reports/comprehensive-audit/phase-a0/", "provenance": "Phase A0 (superseded by phase-a0.1 and phase-a0.1r)"},
+        {"path": "reports/comprehensive-audit/phase-a0.1/A0_1_00_GATE0_REPRODUCE_CURRENT_SEMANTIC_FAILURES.md", "provenance": "Phase A0.1 (REFUTED, superseded by phase-a0.1r)"},
+        {"path": "reports/comprehensive-audit/phase-a0.1/A0_1_02_CANONICAL_MANIFEST_REPAIR.md", "provenance": "Phase A0.1 (REFUTED)"},
+        {"path": "reports/comprehensive-audit/phase-a0.1/A0_1_03_CANONICAL_ISSUE_LEDGER_NORMALIZATION.md", "provenance": "Phase A0.1 (REFUTED)"},
+        {"path": "reports/comprehensive-audit/phase-a0.1/A0_1_04_PARITY_MATRIX_V2_2.md", "provenance": "Phase A0.1 (REFUTED)"},
+        {"path": "reports/comprehensive-audit/phase-a0.1/A0_1_05_PRODUCT_MATURITY_V2.md", "provenance": "Phase A0.1 (REFUTED)"},
+        {"path": "reports/comprehensive-audit/phase-a0.1/A0_1_06_GATE13A_SECURITY_EVIDENCE_REGRADING.md", "provenance": "Phase A0.1 (REFUTED)"},
+        {"path": "reports/comprehensive-audit/phase-a0.1/A0_1_07_REMEDIATION_ROADMAP_V2.md", "provenance": "Phase A0.1 (REFUTED)"},
+        {"path": "reports/comprehensive-audit/phase-a0.1/A0_1_08_SEMANTIC_VALIDATOR_V2.md", "provenance": "Phase A0.1 (REFUTED)"},
+        {"path": "reports/comprehensive-audit/phase-a0.1/A0_1_09_BUCKET_D_DEFERRED.md", "provenance": "Phase A0.1 (REFUTED)"},
+        {"path": "reports/comprehensive-audit/phase-a0.1/A0_1_FINAL_SUMMARY.md", "provenance": "Phase A0.1 (REFUTED)"},
+        {"path": "reports/comprehensive-audit/phase-a0.1/evidence_manifest.public.json", "provenance": "Phase A0.1 (REFUTED)"},
+        {"path": "reports/comprehensive-audit/phase-a0.1/evidence_manifest.v2_1.json", "provenance": "Phase A0.1 (REFUTED)"},
+        {"path": "reports/comprehensive-audit/phase-a0.1/gate0_findings.json", "provenance": "Phase A0.1 (REFUTED)"},
+        {"path": "reports/comprehensive-audit/phase-a0.1/issue_ledger.v2.json", "provenance": "Phase A0.1 (REFUTED, superseded by v2_1)"},
+        {"path": "reports/comprehensive-audit/phase-a0.1/parity_matrix_v2_2.json", "provenance": "Phase A0.1 (REFUTED, superseded by v2_3)"},
+        {"path": "reports/comprehensive-audit/phase-a0.1/product_maturity_v2.json", "provenance": "Phase A0.1 (REFUTED, superseded by v3)"},
+        {"path": "reports/comprehensive-audit/phase-a0.1r/evidence/post_tag_validation_report.json", "provenance": "Phase A0.1R Gate 9 post-tag validator re-run output (transient, regenerated by validator)"},
+        {"path": "reports/phase6/", "provenance": "Phase 6 final reports (2026-07-13), 9 items"},
+        {"path": "reports/phase7/", "provenance": "Phase 7 final reports (2026-07-14), 24 items including gate13a/ subdir"},
+        {"path": "scripts/audit/validate_phase_a0.py", "provenance": "Phase A0 validator (superseded by validate_phase_a0_1r.py tracked in Commit B)"},
+        {"path": "scripts/audit/validate_phase_a0_1.py", "provenance": "Phase A0.1 validator (REFUTED, superseded by validate_phase_a0_1r.py)"},
+        {"path": "scripts/audit/build_maturity_v2.py", "provenance": "Phase A0.1 builder (superseded by build_maturity_v3.py tracked in Commit B)"},
+        {"path": "scripts/audit/build_parity_v2_2.py", "provenance": "Phase A0.1 builder (superseded by build_parity_matrix_v2_3.py tracked in Commit B)"},
+        {"path": "scripts/audit/stage_phase_a0_1_commit.sh", "provenance": "Phase A0.1 staging helper (superseded by Phase A0.1R Gate 8 commit flow)"},
+        {"path": "scripts/audit/__pycache__/", "provenance": "Python bytecode cache (transient)"}
+      ]
+    },
+    "C_CURRENT_A1A_GATE0_OUTPUTS_WILL_COMMIT_ON_A1A_BRANCH": {
+      "description": "A1A Gate 0 / Gate 0 Addendum artifacts produced today. These are the actual deliverables of this phase and SHOULD be committed on the phase-a1a/emergency-containment branch when Gate 1 starts (not before — Gate 0 Addendum is read-only relative to product code, but A1A branch is the active work branch).",
+      "action": "COMMIT_ON_A1A_BRANCH_AT_GATE_1_START",
+      "items": [
+        {"path": "reports/phase-a1a/A1A_GATE0_FROZEN_BASELINE_ENTRY.md", "provenance": "Phase A1A Gate 0 main report"},
+        {"path": "reports/phase-a1a/tag_lineage_verification.json", "provenance": "Gate 0 output 1-7"},
+        {"path": "reports/phase-a1a/negative_fixture_coverage.json", "provenance": "Gate 0 output 8 v1 (11 fixtures; superseded by v2)"},
+        {"path": "reports/phase-a1a/negative_fixture_coverage_v2.json", "provenance": "Gate 0 Addendum output (12 fixtures)"},
+        {"path": "reports/phase-a1a/credential_invalidation_verification.json", "provenance": "Gate 0 output 9"},
+        {"path": "reports/phase-a1a/git_object_secret_scan.json", "provenance": "Gate 0 output 10"},
+        {"path": "reports/phase-a1a/baseline_bundle_receipt.json", "provenance": "Gate 0 output 12"},
+        {"path": "reports/phase-a1a/a1a_entry_validation.json", "provenance": "Gate 0 output 15 + hard_checks"},
+        {"path": "reports/phase-a1a/A1A_GATE0B_HTTP_AUTH_REJECTION.md", "provenance": "Gate 0 Addendum sub-gate 0B"},
+        {"path": "reports/phase-a1a/http_auth_rejection.json", "provenance": "Gate 0 Addendum sub-gate 0B (machine-readable)"},
+        {"path": "reports/phase-a1a/untracked_files_classification.json", "provenance": "Gate 0 Addendum sub-gate 0C (this file)"},
+        {"path": "reports/phase-a1a/A1A_GATE0C_UNTRACKED_FILES_CLASSIFICATION.md", "provenance": "Gate 0 Addendum sub-gate 0C (markdown report)"}
+      ]
+    },
+    "D_NEEDS_A1A_GATE1_TRIAGE": {
+      "description": "Modified tracked files and new scripts from A1A Gate 0. Will be staged and committed as part of A1A Gate 1's first commit (separate from any product-code changes).",
+      "action": "STAGE_AND_COMMIT_AT_GATE_1_KICKOFF",
+      "items": [
+        {
+          "path": "scripts/audit/a1a_gate0_scan_git_objects.py",
+          "status": "untracked (new)",
+          "provenance": "A1A Gate 0 — scanner that produced git_object_secret_scan.json",
+          "contains_secret_substrings": false,
+          "triage_decision": "Commit on A1A branch alongside Gate 0 reports"
+        },
+        {
+          "path": "scripts/audit/run_negative_fixtures_a0_1r.py",
+          "status": "modified (tracked in Commit B 606dc5d)",
+          "modification_summary": "Added NF12 fixture (worktree.no_secret injection test). Validator fingerprint is patched in-memory; README.md modified+restored in try/finally. No persistent secret or product-code change.",
+          "diff_lines_added": 21,
+          "diff_lines_removed": 0,
+          "triage_decision": "Commit on A1A branch — extends Commit B's audit package with the 12th negative fixture mandated by A1A charter §6.4"
+        }
+      ]
+    }
+  },
+  "summary": {
+    "total_untracked_entries": 60,
+    "category_A_will_not_commit": 1,
+    "category_B_pre_existing_phase_report": 46,
+    "category_C_current_a1a_gate0_outputs": 12,
+    "category_D_needs_a1a_gate1_triage": 2,
+    "category_A_file_count_collapsed": 2010,
+    "category_C_file_count_collapsed": 12,
+    "category_D_file_count_collapsed": 2,
+    "no_untracked_item_blocks_gate_0_addendum": true,
+    "no_untracked_item_violates_charter_no_unauthorized_files": true,
+    "audit_chrome_profile_should_be_gitignored_in_gate_1": true
+  },
+  "verdict": "SUB-GATE 0C CLOSED — 60 untracked items classified into 4 categories; no item blocks Gate 0 Addendum closure; .audit-chrome-profile/ gitignore addition recorded as Gate 1 mandatory action"
+}

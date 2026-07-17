@@ -40,6 +40,10 @@ from typing import Optional
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.middleware.tenancy_guard import (
+    assert_tenancy_for_write,
+    classify_modern_write,
+)
 from app.models.run_history import RunHistoryModel
 
 logger = logging.getLogger(__name__)
@@ -141,6 +145,8 @@ async def record_run_start(
     The agent_run endpoint will update this row to RUNNING once the
     envelope is built, then to COMPLETED/FAILED/CANCELLED at the end.
     """
+    # Phase A1A Gate 2 §3: cloud-mode fail-closed tenancy guard.
+    assert_tenancy_for_write(organization_id, "run_history")
     row = RunHistoryModel(
         run_id=run_id,
         agent_id=agent_id,
@@ -149,6 +155,7 @@ async def record_run_start(
         input_text=(input_text or "")[:4096],
         runtime_mode=runtime_mode or "",
         trace_id=trace_id or "",
+        tenancy_classification=classify_modern_write(organization_id),
         status=RunStatus.PENDING,
         latency_ms=0,
         cost_usd=0.0,

@@ -36,6 +36,10 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.middleware.tenancy_guard import (
+    assert_tenancy_for_write,
+    classify_modern_write,
+)
 from app.models.idempotency_record import IdempotencyRecord
 
 logger = logging.getLogger(__name__)
@@ -143,6 +147,11 @@ async def acquire_or_replay(
     if not idempotency_key:
         # Empty key — caller should bypass dedup entirely (not call us).
         raise ValueError("idempotency_key must be non-empty")
+
+    # Phase A1A Gate 2 §3: cloud-mode fail-closed tenancy guard.
+    # In cloud mode, every partner request MUST have a resolved org
+    # identity — otherwise dedup keys aren't tenant-scoped.
+    assert_tenancy_for_write(organization_id, "idempotency_records")
 
     # Normalize NULL → "" so the UNIQUE constraint matches rows that
     # belong to "no org / no API client" partners. SQLite AND PostgreSQL

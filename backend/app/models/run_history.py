@@ -89,6 +89,14 @@ class RunHistoryModel(Base, TimestampMixin):
         String(64), nullable=True,
     )
 
+    # ── Phase A1A Gate 2 §2: tenancy classification ──────────────────
+    # MODERN | LEGACY_TENANT_KNOWN | LEGACY_TENANT_UNKNOWN | QUARANTINED
+    # See alembic 016. NULL on rows written before Gate 2; MODERN on
+    # all rows written after (enforced at the service layer).
+    tenancy_classification: Mapped[Optional[str]] = mapped_column(
+        String(32), nullable=True, index=True,
+    )
+
     # Timestamp for ordering (created_at comes from TimestampMixin)
 
 

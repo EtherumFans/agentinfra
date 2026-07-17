@@ -32,3 +32,10 @@ class AuditLog(Base, TimestampMixin):
     model_version: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
     tool_calls_made: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
     tokens_used: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+
+    # ── Phase A1A Gate 2 §2: tenancy classification ──────────────────
+    # MODERN | LEGACY_TENANT_KNOWN | LEGACY_TENANT_UNKNOWN | QUARANTINED
+    # See alembic 016.
+    tenancy_classification: Mapped[Optional[str]] = mapped_column(
+        String(32), nullable=True, index=True,
+    )

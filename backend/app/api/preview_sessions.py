@@ -29,6 +29,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
 from app.middleware.auth import get_current_user, get_current_organization
 from app.middleware.audit import log_action
+from app.middleware.tenancy_guard import assert_tenancy_for_write
 from app.models.preview_session import PreviewSession
 from app.models.user import User
 from app.models.organization import Organization
@@ -159,6 +160,11 @@ async def create_preview_session(
     expires_at = now + timedelta(seconds=body.ttl_seconds)
 
     scopes = body.allowed_scopes if body.allowed_scopes is not None else _DEFAULT_SCOPES
+
+    # Phase A1A Gate 2 §3: defense-in-depth — get_current_organization
+    # already raised if org_id is missing, but the guard survives any
+    # future change to the auth dependency.
+    assert_tenancy_for_write(org.id, "preview_sessions")
 
     # Persist DB row FIRST (jti is UNIQUE — guarantees no collision).
     session_row = PreviewSession(

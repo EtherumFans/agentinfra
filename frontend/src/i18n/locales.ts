@@ -615,6 +615,31 @@ export interface LocaleDict {
   ehrMatrix: string;
   copy: string;
   copied: string;
+  // Embedded Assistant Console page (Phase 7 Gate 13)
+  embeddedPageSubtitle: string;
+  embeddedPreview: string;
+  embeddedDesktop: string;
+  embeddedMobile: string;
+  embeddedRestart: string;
+  embeddedSessionDefaults: string;
+  embeddedAgent: string;
+  embeddedPatientId: string;
+  embeddedPatientName: string;
+  embeddedEncounterId: string;
+  embeddedFeatures: string;
+  embeddedFeatureAiChat: string;
+  embeddedFeatureDocFeedback: string;
+  embeddedFeatureVirtualMode: string;
+  embeddedFeatureShowNav: string;
+  embeddedInterfaceLanguage: string;
+  embeddedPrimaryColor: string;
+  embeddedHtmlTab: string;
+  embeddedReactTab: string;
+  embeddedJsonConfigTab: string;
+  embeddedCopySnippetCopied: string;
+  embeddedCopyFailed: string;
+  embeddedLangZhCN: string;
+  embeddedLangEnUS: string;
 
   // ── Product Hub Homepage tabs ──
   productHubTranscribe: string;
@@ -1887,6 +1912,31 @@ const zhCN: LocaleDict = {
   ehrMatrix: 'HIS/EMR 兼容性矩阵',
   copy: '复制',
   copied: '已复制',
+  // Embedded Assistant Console page (Phase 7 Gate 13)
+  embeddedPageSubtitle: 'Corti 风格对齐 · 一次配置，随处复制',
+  embeddedPreview: '预览',
+  embeddedDesktop: '桌面端',
+  embeddedMobile: '移动端',
+  embeddedRestart: '重启',
+  embeddedSessionDefaults: '会话默认值',
+  embeddedAgent: '智能体',
+  embeddedPatientId: '患者 ID',
+  embeddedPatientName: '患者姓名',
+  embeddedEncounterId: '就诊 ID',
+  embeddedFeatures: '功能',
+  embeddedFeatureAiChat: '启用 AI 对话',
+  embeddedFeatureDocFeedback: '显示文档反馈',
+  embeddedFeatureVirtualMode: '允许虚拟模式',
+  embeddedFeatureShowNav: '显示导航',
+  embeddedInterfaceLanguage: '界面语言',
+  embeddedPrimaryColor: '主题色',
+  embeddedHtmlTab: 'html',
+  embeddedReactTab: 'react',
+  embeddedJsonConfigTab: 'JSON 配置',
+  embeddedCopySnippetCopied: '代码片段已复制到剪贴板',
+  embeddedCopyFailed: '复制失败',
+  embeddedLangZhCN: '中文 (zh-CN)',
+  embeddedLangEnUS: 'English (en-US)',
 
   // ── Product Hub Homepage tabs ──
   productHubTranscribe: '语音转录',
@@ -3176,6 +3226,31 @@ const enUS: LocaleDict = {
   ehrMatrix: 'EHR compatibility matrix',
   copy: 'Copy',
   copied: 'Copied',
+  // Embedded Assistant Console page (Phase 7 Gate 13)
+  embeddedPageSubtitle: 'Corti-style parity · Configure once, copy anywhere',
+  embeddedPreview: 'Preview',
+  embeddedDesktop: 'Desktop',
+  embeddedMobile: 'Mobile',
+  embeddedRestart: 'Restart',
+  embeddedSessionDefaults: 'Session defaults',
+  embeddedAgent: 'Agent',
+  embeddedPatientId: 'Patient ID',
+  embeddedPatientName: 'Patient Name',
+  embeddedEncounterId: 'Encounter ID',
+  embeddedFeatures: 'Features',
+  embeddedFeatureAiChat: 'Enable AI chat',
+  embeddedFeatureDocFeedback: 'Show document feedback',
+  embeddedFeatureVirtualMode: 'Allow virtual mode',
+  embeddedFeatureShowNav: 'Show navigation',
+  embeddedInterfaceLanguage: 'Interface language',
+  embeddedPrimaryColor: 'Primary color',
+  embeddedHtmlTab: 'html',
+  embeddedReactTab: 'react',
+  embeddedJsonConfigTab: 'JSON Config',
+  embeddedCopySnippetCopied: 'snippet copied to clipboard',
+  embeddedCopyFailed: 'Copy failed',
+  embeddedLangZhCN: '中文 (zh-CN)',
+  embeddedLangEnUS: 'English (en-US)',
 
   // ── Product Hub Homepage tabs ──
   productHubTranscribe: 'Transcribe',

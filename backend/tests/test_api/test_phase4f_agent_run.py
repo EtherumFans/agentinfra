@@ -51,18 +51,18 @@ def test_unknown_agent_id_returns_structured_error(client: TestClient) -> None:
     assert data["trace_id"].startswith("trace-")
 
 
-# ── 2. Response envelope has all 13 required fields ─────────────────────
+# ── 2. Response envelope has all 14 required fields ─────────────────────
 
 
 _REQUIRED_FIELDS = (
-    "agent_id", "run_id", "trace_id", "runtime_mode", "latency_ms",
+    "agent_id", "run_id", "trace_id", "trace_url", "runtime_mode", "latency_ms",
     "cost", "summary", "result", "evidence", "warnings",
     "manual_review_required", "trace_events", "error", "error_reason",
 )
 
 
 def test_error_response_has_all_required_fields(client: TestClient) -> None:
-    """All 13 AgentRunResponse fields present even on error path."""
+    """All 14 AgentRunResponse fields present even on error path."""
     resp = client.post(
         "/api/v1/agents/nonexistent-agent/run",
         json={"input": {"text": "anything"}},
@@ -70,6 +70,24 @@ def test_error_response_has_all_required_fields(client: TestClient) -> None:
     data = resp.json()
     for field in _REQUIRED_FIELDS:
         assert field in data, f"missing field {field!r} in response"
+
+
+def test_error_response_trace_url_is_deep_link(client: TestClient) -> None:
+    """Phase 6 Gate 5: trace_url is a frontend deep-link to RunTrace viewer.
+
+    Even on the error path, the response must populate trace_url so
+    embedded widgets can deep-link. Format: /ai-studio/runs/{run_id}/trace.
+    """
+    resp = client.post(
+        "/api/v1/agents/nonexistent-agent/run",
+        json={"input": {"text": "anything"}},
+    )
+    data = resp.json()
+    run_id = data["run_id"]
+    assert run_id, "run_id must be non-empty even on error path"
+    assert data["trace_url"] == f"/ai-studio/runs/{run_id}/trace", (
+        f"trace_url malformed: {data['trace_url']!r}"
+    )
 
 
 # ── 3. Hub endpoint surfaces v1.3 spec fields ────────────────────────────

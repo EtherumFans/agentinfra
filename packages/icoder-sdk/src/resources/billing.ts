@@ -1,6 +1,6 @@
 // Billing & Usage resource
 import type { AxiosInstance } from 'axios';
-import type { UsageSummary } from '../types';
+import type { UsageSummary } from '../types.js';
 
 export class BillingResource {
   constructor(private http: AxiosInstance) {}

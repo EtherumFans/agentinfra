@@ -254,6 +254,52 @@ async def get_current_client(
     }
 
 
+async def get_current_user_or_oauth_client(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
+    db: AsyncSession = Depends(get_db),
+) -> tuple[Optional[User], Optional[dict]]:
+    """Phase 7 Gate 12 — hybrid auth for partner-invoke routes.
+
+    Partner HIS/EMR backends exchange ``client_credentials`` for a token
+    and pass it to the browser widget. The widget then calls
+    ``POST /api/v1/agents/{id}/run`` with that token. This dependency
+    accepts BOTH user JWTs (Console flow) and client_credentials tokens
+    (partner flow), returning ``(user, client)`` — exactly one will be
+    non-None.
+
+    Routes using this dependency must read identity from whichever value
+    is set. ``get_current_organization_compat`` below resolves org_id
+    from either side.
+    """
+    if credentials is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated. Please provide a valid Bearer token.",
+        )
+    payload = decode_token(credentials.credentials)
+    token_type = payload.get("type")
+
+    if token_type == "client_credentials":
+        # Reuse the existing client auth path (checks revocation, returns dict).
+        client = await get_current_client(credentials, db)
+        return None, client
+
+    # User JWT path — same logic as get_current_user.
+    user_id = payload.get("sub")
+    if user_id is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token payload")
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
+    if not user.is_active:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User account is deactivated")
+    token_version = payload.get("token_version", 0)
+    if user.token_version > token_version:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token revoked. Please re-authenticate.")
+    return user, None
+
+
 def require_scopes(*required_scopes: str):
     """Dependency factory that enforces token-side scope grants.
 

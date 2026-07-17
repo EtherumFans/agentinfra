@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>iCoDer Partner Reference App — HIS/EMR Integration Example</title>
+  <meta name="description" content="Phase 7 Gate 12 — canonical partner integration pattern">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; background: #f5f5f7; color: #1d1d1f; padding: 24px; }
+    h1 { font-size: 22px; margin-bottom: 4px; }
+    .subtitle { font-size: 13px; color: #86868b; margin-bottom: 20px; }
+    .layout { display: flex; gap: 24px; max-width: 1280px; }
+    .sidebar { width: 320px; background: #fff; border-radius: 12px; padding: 16px; font-size: 13px; line-height: 1.6; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+    .sidebar h3 { font-size: 13px; margin-bottom: 8px; }
+    .sidebar label { display: block; font-size: 11px; color: #86868b; margin-top: 10px; }
+    .sidebar input, .sidebar select { width: 100%; padding: 6px 10px; border: 1px solid #e5e5ea; border-radius: 6px; font-size: 12px; }
+    .sidebar button { padding: 8px 16px; background: #007aff; color: #fff; border: none; border-radius: 8px; font-size: 13px; cursor: pointer; margin-top: 12px; width: 100%; }
+    .sidebar button:hover { opacity: 0.85; }
+    .sidebar button:disabled { opacity: 0.4; cursor: default; }
+    .sidebar button.danger { background: #ff453a; }
+    .sidebar button.secondary { background: #8e8e93; }
+    .hint { font-size: 11px; color: #86868b; margin-top: 8px; }
+    .hint.warn { color: #ff9500; }
+    .widget-wrap { flex: 1; max-width: 520px; }
+    .info { flex: 1; background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); font-size: 12px; line-height: 1.7; max-height: 640px; overflow-y: auto; }
+    .info h3 { font-size: 13px; margin-bottom: 8px; }
+    .info pre { white-space: pre-wrap; font-family: SFMono-Regular, Menlo, monospace; font-size: 11px; color: #1d1d1f; background: #f5f5f7; padding: 8px; border-radius: 6px; }
+    .info code { background: #f2f2f7; padding: 2px 6px; border-radius: 4px; font-size: 11px; }
+    .event-log { position: fixed; bottom: 12px; right: 12px; width: 380px; max-height: 240px; overflow-y: auto; background: rgba(28,28,32,0.94); color: #f5f5f7; font-family: SFMono-Regular, Menlo, monospace; font-size: 11px; padding: 10px; border-radius: 8px; }
+    .event-log .line { padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .event-log .name { color: #64d2ff; }
+    .event-log .cost { color: #ffd60a; }
+    .event-log .err { color: #ff453a; }
+    .event-log .ok { color: #30d158; }
+    .meta { color: #86868b; font-size: 10px; }
+  </style>
+</head>
+<body>
+  <h1>iCoDer Partner Reference App</h1>
+  <p class="subtitle">Phase 7 Gate 12 · canonical HIS/EMR integration pattern · token exchange server-side · widget in browser</p>
+
+  <div class="layout">
+    <div class="sidebar">
+      <h3>HIS/EMR 视图</h3>
+      <label>Backend URL (read-only)</label>
+      <input id="baseUrl" readonly>
+      <label>Agent</label>
+      <select id="agentRef">
+        <option value="medical-coding-agent">medical-coding-agent</option>
+        <option value="cdi">cdi</option>
+        <option value="drg-analyzer">drg-analyzer</option>
+      </select>
+
+      <label>Patient Name</label>
+      <input id="patientName" value="张三">
+      <label>Patient ID</label>
+      <input id="patientId" value="P-2026-001">
+      <label>Encounter ID</label>
+      <input id="encounterId" value="E-20260713-001">
+
+      <button id="init">初始化 widget (服务端 token 交换)</button>
+      <button id="switchPatient" class="secondary" disabled>切换患者 (clearPatientContext → 新患者)</button>
+      <button id="clearSession" class="danger" disabled>清除整个 session</button>
+
+      <p class="hint">初始化: <code>GET /token</code> 服务端交换 → 浏览器收到 access_token → 配置 widget</p>
+      <p class="hint warn">切换患者前必须 <code>clearPatientContext()</code> — 否则触发 cross-patient warn (Phase 6 Gate 2)</p>
+    </div>
+
+    <div class="widget-wrap">
+      <icoder-embedded id="assistant"></icoder-embedded>
+    </div>
+
+    <div class="info">
+      <h3>参考应用结构</h3>
+      <pre>partner-reference-app/
+├── .env.example
+├── package.json
+├── README.md
+├── server/
+│   └── index.mjs      ← express: /token + static
+└── public/
+    ├── index.html     ← this file
+    └── app.js         ← widget bootstrap</pre>
+
+      <h3 style="margin-top:16px;">安全保证 (Phase 7)</h3>
+      <p>• <code>ICODER_API_CLIENT_SECRET</code> 永远不离开 server 进程</p>
+      <p>• 浏览器只看到短期 access_token (默认 1h)</p>
+      <p>• Widget PHI 只在内存; reload 清空 (Phase 6 Gate 2)</p>
+      <p>• CORS allowlist 拒绝未知 Origin (Phase 7 Gate 6)</p>
+      <p>• trace_url HMAC 签名 (Phase 7 Gate 7) — 无需 Console cookie</p>
+      <p>• patient context 切换必须先 clearPatientContext (Phase 7 Gate 11)</p>
+
+      <h3 style="margin-top:16px;">已验证项</h3>
+      <p id="verifiedList" style="color:#86868b;font-size:11px;">等待初始化…</p>
+    </div>
+  </div>
+
+  <div class="event-log" id="log">
+    <div class="line">Event log (Phase 6 unified envelope):</div>
+  </div>
+
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

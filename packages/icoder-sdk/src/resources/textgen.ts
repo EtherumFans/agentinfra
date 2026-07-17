@@ -1,6 +1,6 @@
 // Text Generation resource
 import type { AxiosInstance } from 'axios';
-import type { TextGenTemplate, TextGenResponse } from '../types';
+import type { TextGenTemplate, TextGenResponse } from '../types.js';
 
 export class TextGenResource {
   constructor(private http: AxiosInstance) {}

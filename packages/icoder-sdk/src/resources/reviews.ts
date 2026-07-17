@@ -1,6 +1,6 @@
 // Reviews resource — medical coding pipeline
 import type { AxiosInstance } from 'axios';
-import type { Review } from '../types';
+import type { Review } from '../types.js';
 
 export class ReviewsResource {
   constructor(private http: AxiosInstance) {}

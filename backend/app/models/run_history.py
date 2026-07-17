@@ -39,6 +39,27 @@ class RunHistoryModel(Base, TimestampMixin):
     user_id: Mapped[Optional[str]] = mapped_column(String(64), nullable=True, index=True)
     agent_id: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
 
+    # ── Phase 7 Gate 5 §10.1: partner attribution ───────────────────
+    # api_client_id is the OAuthClient.client_id of the partner that
+    # initiated the run. NULL for Console JWT users; NON-NULL for
+    # partner SDK / embedded widget runs.
+    api_client_id: Mapped[Optional[str]] = mapped_column(
+        String(128), nullable=True, index=True,
+    )
+    embedded_app_id: Mapped[Optional[str]] = mapped_column(
+        String(128), nullable=True,
+    )
+    session_id: Mapped[Optional[str]] = mapped_column(
+        String(64), nullable=True, index=True,
+    )
+    context_id: Mapped[Optional[str]] = mapped_column(
+        String(64), nullable=True, index=True,
+    )
+    request_id: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    idempotency_key: Mapped[Optional[str]] = mapped_column(
+        String(255), nullable=True, index=True,
+    )
+
     # Run envelope fields (from AgentRunResponse)
     run_id: Mapped[str] = mapped_column(String(64), nullable=False, unique=True, index=True)
     trace_id: Mapped[str] = mapped_column(String(64), default="", server_default="")
@@ -53,6 +74,20 @@ class RunHistoryModel(Base, TimestampMixin):
     # Error tracking (so failed runs can surface in history list)
     error: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
     error_reason: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
+
+    # ── Phase 7 Gate 4 §9.1: run lifecycle status ───────────────────
+    # See app.services.run_lifecycle.RunStatus for the enum constants.
+    status: Mapped[str] = mapped_column(
+        String(48), nullable=False, default="COMPLETED", server_default="COMPLETED",
+        index=True,
+    )
+    cancel_reason: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    cancelled_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True,
+    )
+    cancelled_by_user_id: Mapped[Optional[str]] = mapped_column(
+        String(64), nullable=True,
+    )
 
     # Timestamp for ordering (created_at comes from TimestampMixin)
 

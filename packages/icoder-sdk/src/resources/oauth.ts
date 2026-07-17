@@ -1,6 +1,6 @@
 // OAuth resource
 import type { AxiosInstance } from 'axios';
-import type { TokenResponse } from '../types';
+import type { TokenResponse } from '../types.js';
 
 export class OAuthResource {
   constructor(private http: AxiosInstance) {}

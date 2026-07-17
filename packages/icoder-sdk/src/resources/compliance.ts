@@ -3,7 +3,7 @@
 import type { AxiosInstance } from 'axios';
 
 export class ComplianceResource {
-  constructor(private client: iCoDerClient) {}
+  constructor(private http: AxiosInstance) {}
 
   ruleEngineStatus() {
     return this.http.get('/api/compliance/rule-engine/status');

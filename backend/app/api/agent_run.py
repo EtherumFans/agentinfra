@@ -34,10 +34,11 @@ import logging
 import time
 import uuid
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.coding_runtime import (
     CodingRequest,
@@ -45,14 +46,24 @@ from app.coding_runtime import (
     RuntimeMode,
     get_dispatcher,
 )
+from app.database import get_db
 from app.icoder.agent_runtime.a2a_facade import (
     MEDICAL_CODING_AGENT_IDS as _FACADE_MEDICAL_CODING_AGENT_IDS,
     construct_envelope,
     dispatch_medical_coding_fast,
     persist_trace_events,
 )
-from app.middleware.auth import get_current_user
+from app.middleware.auth import get_current_user, get_current_organization, get_current_user_or_oauth_client
+from app.models.organization import Organization
 from app.models.user import User
+from app.services.idempotency_service import (
+    IdempotencyKeyReusedError,
+    acquire_or_replay,
+    compute_request_hash,
+    mark_completed,
+    mark_failed,
+    mark_in_progress,
+)
 from icoder_runtime.backends.contracts import (
     AgentRunContext,
     BackendRequest,
@@ -179,6 +190,15 @@ class AgentRunResponse(BaseModel):
     agent_id: str
     run_id: str
     trace_id: str = ""
+    trace_url: str = Field(
+        default="",
+        description=(
+            "Phase 6 Gate 5: frontend deep-link to the RunTrace viewer "
+            "(/ai-studio/runs/{run_id}/trace). Embedded widgets surface this "
+            "in the run.completed event payload so consumers can open the "
+            "trace in a new tab. Empty when run_id is empty."
+        ),
+    )
     runtime_mode: str = ""
     latency_ms: int = 0
     cost: dict[str, Any] = Field(default_factory=dict)
@@ -190,6 +210,46 @@ class AgentRunResponse(BaseModel):
     trace_events: list[dict[str, Any]] = Field(default_factory=list)
     error: bool = False
     error_reason: str = ""
+
+
+def _trace_url_for(
+    run_id: str,
+    *,
+    organization_id: Optional[str] = None,
+    api_client_id: Optional[str] = None,
+    base_url: Optional[str] = None,
+) -> str:
+    """Phase 6 Gate 5 / Phase 7 Gate 7 — RunTrace deep-link.
+
+    Two modes:
+
+    - **Console mode** (no ``organization_id`` / ``api_client_id``):
+      Returns the frontend route ``/ai-studio/runs/{run_id}/trace``
+      relative to baseURL. The Console SPA authenticates via JWT.
+
+    - **Partner mode** (``organization_id`` or ``api_client_id`` set):
+      Returns a full signed URL of the form::
+
+          {base_url}/api/v1/runs/{run_id}/trace?token=<signed>
+
+      The token is HMAC-signed (24h TTL) and bound to run_id +
+      organization_id. Partners can deep-link without a Console JWT.
+
+    Phase 7 §12: the signed partner URL is required so partners
+    receive a clickable trace link they can share with their clinical
+    reviewers without requiring those reviewers to log into iCoDer.
+    """
+    if not run_id:
+        return ""
+    if organization_id or api_client_id:
+        from app.services.trace_token import build_trace_url
+        return build_trace_url(
+            base_url or "",
+            run_id=run_id,
+            organization_id=organization_id,
+            api_client_id=api_client_id,
+        )
+    return f"/ai-studio/runs/{run_id}/trace"
 
 
 # ── Endpoint ────────────────────────────────────────────────────────────
@@ -210,7 +270,9 @@ async def run_agent(
     agent_id: str,
     body: AgentRunRequest,
     request: Request,
-    current_user: User = Depends(get_current_user),
+    principal: tuple = Depends(get_current_user_or_oauth_client),
+    current_org: Organization = Depends(get_current_organization),
+    db: AsyncSession = Depends(get_db),
 ) -> AgentRunResponse:
     """Unified Agent Run facade (A2A-compatible, Phase 4-F2).
 
@@ -220,12 +282,69 @@ async def run_agent(
     ProviderRegistry for everything else). After the run, persists
     trace_events to RunTraceStore so the dedicated RunTrace page works.
 
+    Phase 7 Gate 3 §8: server-side Idempotency-Key dedup. If the client
+    sends an `Idempotency-Key` header, the server checks the
+    `idempotency_records` table:
+    - First request → run normally, save snapshot on completion.
+    - Replay (same key + same hash + COMPLETED) → return saved snapshot.
+    - Replay (same key + same hash + IN_PROGRESS) → return run_id + 200.
+    - Mismatch (same key + different hash) → 409.
+
     On any error, returns HTTP 200 with ``error=True`` so the frontend
     can render a friendly retry UI (rather than catching a 5xx).
     """
     t0 = time.perf_counter()
-    user_id = str(getattr(current_user, "id", "") or "")
-    tenant_id = str(getattr(current_user, "tenant_id", "") or "")
+    # Phase 7 Gate 12 — hybrid auth: principal is (user, client), exactly one set.
+    current_user, current_client = principal
+    api_client_id: Optional[str] = None
+    if current_client is not None:
+        # Partner client_credentials flow — synthesize identity from the client.
+        user_id = current_client.get("client_id") or ""
+        tenant_id = ""
+        org_id = current_client.get("org_id") or ""
+        api_client_id = current_client.get("client_id")
+    else:
+        user_id = str(getattr(current_user, "id", "") or "")
+        tenant_id = str(getattr(current_user, "tenant_id", "") or "")
+        org_id = str(getattr(current_org, "id", "") or "") or tenant_id
+
+    # ── Phase 7 Gate 3: server-side idempotency check ───────────────
+    idempotency_key = (request.headers.get("Idempotency-Key") or "").strip()
+    dedup_record = None
+    if idempotency_key:
+        request_hash = compute_request_hash(
+            agent_id=agent_id,
+            input_text=body.input.text,
+            runtime_mode=body.runtime_mode or "",
+            extra=body.input.extra,
+        )
+        dedup_result = await acquire_or_replay(
+            db,
+            idempotency_key=idempotency_key,
+            request_hash=request_hash,
+            agent_ref=agent_id,
+            organization_id=org_id or None,
+            api_client_id=api_client_id,
+        )
+        if not dedup_result.should_run:
+            if dedup_result.in_progress:
+                # Same key still running — return run_id + 200 status.
+                # Per §8.2: "返回相同 run_id, status = IN_PROGRESS"
+                return AgentRunResponse(
+                    agent_id=agent_id,
+                    run_id=dedup_result.record.run_id or "",
+                    trace_id="",
+                    trace_url=_trace_url_for(dedup_result.record.run_id or ""),
+                    runtime_mode=body.runtime_mode or "",
+                    summary="(in progress)",
+                    error=False,
+                    error_reason="",
+                )
+            # COMPLETED — return the saved snapshot verbatim.
+            snapshot = dedup_result.response_snapshot or {}
+            await db.commit()
+            return AgentRunResponse(**snapshot)
+        dedup_record = dedup_result.record
 
     # ── Phase 4-F2 §4.1: construct A2A-compatible envelope ──────────
     # The envelope preserves A2A protocol semantics (run_id, trace_id,
@@ -248,6 +367,57 @@ async def run_agent(
         agent_id, run_id, trace_id,
         body.runtime_mode or "(default)", context_id,
     )
+
+    # ── Phase 7 Gate 3: bind run_id to the dedup record ─────────────
+    if dedup_record is not None:
+        try:
+            await mark_in_progress(db, dedup_record, run_id=run_id)
+            await db.commit()
+        except Exception as e:
+            logger.warning(
+                "agent_run: idempotency mark_in_progress failed (run_id=%s): %s",
+                run_id, e,
+            )
+
+    # ── Phase 7 Gate 4 §9.3: write a PENDING row so partners can poll ─
+    # POST /api/v1/runs/{run_id}/cancel and GET /api/v1/runs/{run_id}
+    # work mid-run. The row is finalized to COMPLETED/FAILED at the end.
+    #
+    # Phase 7 Gate 5 §10.1: capture partner attribution (api_client_id,
+    # session_id, context_id, request_id, idempotency_key) so every
+    # Embedded Run can be attributed to a partner + patient context.
+    try:
+        from app.services.run_lifecycle import record_run_start, RunStatus, set_status
+        # request_id: prefer X-Request-Id header, fall back to trace_id.
+        request_id_hdr = (request.headers.get("X-Request-Id") or "").strip() or None
+        # session_id: read from body.input.extra (set by Phase 6 widget).
+        extra = body.input.extra or {}
+        session_id = (extra.get("sessionId") or extra.get("session_id") or "") or None
+        await record_run_start(
+            db,
+            run_id=run_id,
+            agent_id=agent_id,
+            user_id=user_id,
+            organization_id=org_id or None,
+            input_text=body.input.text,
+            runtime_mode=body.runtime_mode or "",
+            trace_id=trace_id,
+            # §10.1 attribution
+            api_client_id=(body.api_client_id or "") or None,
+            embedded_app_id=(extra.get("embeddedAppId") or extra.get("embedded_app_id") or "") or None,
+            session_id=session_id,
+            context_id=context_id,
+            request_id=request_id_hdr,
+            idempotency_key=idempotency_key or None,
+        )
+        # Promote PENDING → RUNNING now that the run is about to start.
+        await set_status(db, run_id=run_id, status=RunStatus.RUNNING)
+        await db.commit()
+    except Exception as e:
+        logger.warning(
+            "agent_run: run_lifecycle record_run_start failed (run_id=%s): %s",
+            run_id, e,
+        )
 
     # ── 1. Medical coding fast path (G001) ──────────────────────────
     if agent_id in _MEDICAL_CODING_AGENT_IDS:
@@ -290,11 +460,13 @@ async def run_agent(
     # Failures here are non-fatal — the run already succeeded; we just
     # log so a broken DB doesn't break the user's chat experience.
     try:
-        _persist_run_history(
+        await _persist_run_history(
+            db,
             response=response,
             input_text=body.input.text,
             user_id=user_id,
             tenant_id=tenant_id,
+            organization_id=org_id or None,
         )
     except Exception as e:
         logger.warning(
@@ -302,28 +474,86 @@ async def run_agent(
             response.run_id or run_id, e,
         )
 
+    # ── Phase 7 Gate 3: persist completed/failed snapshot ───────────
+    # COMPLETED → mark_completed so the next replay returns this snapshot
+    #   verbatim (Phase 7 §8.2). FAILED → mark_failed so the next replay
+    #   re-runs rather than replaying a stale error. Non-fatal: if the
+    #   snapshot write fails, the partner just loses dedup-replay — the
+    #   run itself already succeeded.
+    if dedup_record is not None:
+        try:
+            if getattr(response, "error", False):
+                await mark_failed(db, dedup_record)
+            else:
+                await mark_completed(
+                    db,
+                    dedup_record,
+                    response_snapshot=response.model_dump(),
+                )
+            await db.commit()
+        except Exception as e:
+            logger.warning(
+                "agent_run: idempotency mark_completed/failed failed (run_id=%s): %s",
+                response.run_id or run_id, e,
+            )
+
+    # ── Phase 7 Gate 7 §12: upgrade trace_url to a signed partner URL ──
+    # The internal helpers (_run_medical_coding / _run_via_provider_registry)
+    # return a relative Console trace_url. For partner runs (invoked via
+    # client_credentials token), we replace it with a signed URL that grants
+    # read-only access without a Console JWT.
+    #
+    # Phase 7 Gate 12 narrowing: previously this fired whenever org_id was
+    # truthy, but Console users also carry an org_id — so every Console-
+    # mode request got a partner URL. Now we fire only when the request
+    # actually came through the partner auth path (api_client_id set on
+    # the principal or explicitly in the body).
+    is_partner_run = current_client is not None or bool(body.api_client_id)
+    if response.run_id and is_partner_run:
+        try:
+            signed = _trace_url_for(
+                response.run_id,
+                organization_id=org_id or None,
+                api_client_id=(body.api_client_id or (current_client or {}).get("client_id") or "") or None,
+                base_url=str(request.base_url),
+            )
+            if signed:
+                response.trace_url = signed
+        except Exception as e:
+            logger.warning(
+                "agent_run: trace_url sign failed (run_id=%s): %s",
+                response.run_id, e,
+            )
+
     return response
 
 
-def _persist_run_history(
+async def _persist_run_history(
+    db: AsyncSession,
     *,
     response: AgentRunResponse,
     input_text: str,
     user_id: str = "",
     tenant_id: str = "",
+    organization_id: Optional[str] = None,
 ) -> None:
-    """Write one run summary row to the run_history table.
+    """Upsert the run_history row for this run_id.
 
-    Synchronous — call sites are already in a sync context (FastAPI handlers
-    that use sync DB engine). The row is small (input_text truncated to 4KB)
-    so the write is sub-millisecond.
+    Phase 7 Gate 4: switched from INSERT to UPDATE-or-INSERT so the
+    lifecycle (PENDING → RUNNING → COMPLETED/FAILED) works. The
+    PENDING row was written by ``record_run_start`` at envelope
+    construction time; this call finalizes it.
+
+    Writes status = COMPLETED or FAILED depending on response.error.
+    Other terminal states (CANCELLED, CLIENT_ABORTED, etc.) are set
+    by ``run_lifecycle`` helpers and are NOT overwritten here —
+    once a row is terminal, the final persist becomes a no-op for
+    the status column.
     """
-    from datetime import datetime, timezone
-    from sqlalchemy import create_engine, text
-    from sqlalchemy.orm import Session
+    from sqlalchemy import select
+    from app.models.run_history import RunHistoryModel
+    from app.services.run_lifecycle import RunStatus
 
-    # Truncate input_text to bound row size (Phase 4-G #3 model contract).
-    truncated_input = (input_text or "")[:4096]
     cost_amount = 0.0
     if isinstance(response.cost, dict):
         try:
@@ -331,51 +561,53 @@ def _persist_run_history(
         except (TypeError, ValueError):
             cost_amount = 0.0
 
-    # Python-side timestamp with microsecond precision so runs that land
-    # in the same second still order deterministically by created_at DESC
-    # (SQLite's CURRENT_TIMESTAMP is 1-second resolution).
-    now_iso = datetime.now(timezone.utc).isoformat()
+    final_status = RunStatus.FAILED if response.error else RunStatus.COMPLETED
 
-    sql = text("""
-        INSERT INTO run_history
-            (id, organization_id, user_id, agent_id, run_id, trace_id,
-             runtime_mode, latency_ms, cost_usd, input_text,
-             output_summary, error, error_reason, created_at, updated_at)
-        VALUES
-            (:id, :org_id, :user_id, :agent_id, :run_id, :trace_id,
-             :runtime_mode, :latency_ms, :cost_usd, :input_text,
-             :output_summary, :error, :error_reason,
-             :created_at, :created_at)
-    """)
-    params = {
-        "id": _generate_row_id(),
-        "org_id": tenant_id or None,
-        "user_id": user_id or None,
-        "agent_id": response.agent_id,
-        "run_id": response.run_id,
-        "trace_id": response.trace_id,
-        "runtime_mode": response.runtime_mode,
-        "latency_ms": response.latency_ms,
-        "cost_usd": cost_amount,
-        "input_text": truncated_input,
-        "output_summary": (response.summary or "")[:4096],
-        "error": 1 if response.error else 0,
-        "error_reason": response.error_reason or None,
-        "created_at": now_iso,
-    }
+    # Look up the existing row (PENDING / RUNNING from record_run_start).
+    stmt = select(RunHistoryModel).where(RunHistoryModel.run_id == response.run_id)
+    result = await db.execute(stmt)
+    row = result.scalars().one_or_none()
 
-    # Use a fresh sync engine bound to the same DB URL so the write lands in
-    # the same database the rest of the app uses. Convert async URL → sync.
-    from app.config import settings
-    db_url = getattr(settings, "DATABASE_URL", "") or "sqlite+aiosqlite:///./data/icoder.db"
-    sync_url = db_url.replace("+aiosqlite", "").replace("sqlite+aiosqlite", "sqlite")
-    engine = create_engine(sync_url, echo=False)
-    try:
-        with Session(engine) as session:
-            session.execute(sql, params)
-            session.commit()
-    finally:
-        engine.dispose()
+    if row is None:
+        # No PENDING row was written (legacy path or row was deleted).
+        # INSERT with all fields. Use COMPLETED/FAILED directly.
+        row = RunHistoryModel(
+            id=_generate_row_id(),
+            organization_id=organization_id or tenant_id or None,
+            user_id=user_id or None,
+            agent_id=response.agent_id,
+            run_id=response.run_id,
+            trace_id=response.trace_id,
+            runtime_mode=response.runtime_mode,
+            latency_ms=response.latency_ms,
+            cost_usd=cost_amount,
+            input_text=(input_text or "")[:4096],
+            output_summary=(response.summary or "")[:4096],
+            error=bool(response.error),
+            error_reason=response.error_reason or None,
+            status=final_status,
+        )
+        db.add(row)
+    else:
+        # Don't downgrade a terminal cancel-state to COMPLETED — if
+        # the row is already CANCELLED / CLIENT_ABORTED, keep it.
+        from app.services.run_lifecycle import RunStatus as _RS
+        if _RS.is_terminal(row.status) and row.status not in (
+            _RS.COMPLETED, _RS.FAILED, _RS.COMPLETED_AFTER_CLIENT_ABORT,
+        ):
+            # Cancel-kind terminal: keep status, just fill in cost/latency.
+            pass
+        else:
+            row.status = final_status
+        row.trace_id = row.trace_id or response.trace_id
+        row.runtime_mode = row.runtime_mode or response.runtime_mode
+        row.latency_ms = response.latency_ms
+        row.cost_usd = cost_amount
+        row.input_text = row.input_text or (input_text or "")[:4096]
+        row.output_summary = (response.summary or "")[:4096]
+        row.error = bool(response.error)
+        row.error_reason = response.error_reason or None
+    await db.flush()
 
 
 def _generate_row_id() -> str:
@@ -508,6 +740,7 @@ def _map_coding_result(
             agent_id=agent_id,
             run_id=out_run_id,
             trace_id=out_trace_id,
+            trace_url=_trace_url_for(out_run_id),
             runtime_mode=result.runtime_mode,
             latency_ms=result.latency_ms or int((time.perf_counter() - t0) * 1000),
             cost=dict(result.cost),
@@ -525,6 +758,7 @@ def _map_coding_result(
         agent_id=agent_id,
         run_id=out_run_id,
         trace_id=out_trace_id,
+        trace_url=_trace_url_for(out_run_id),
         runtime_mode=result.runtime_mode,
         latency_ms=result.latency_ms or int((time.perf_counter() - t0) * 1000),
         cost=dict(result.cost),
@@ -550,7 +784,7 @@ async def _run_via_provider_registry(
     trace_id: str,
     context_id: str,
     t0: float,
-    current_user: User,
+    current_user: Optional[User],
     request: Request | None = None,
 ) -> AgentRunResponse:
     """Resolve the agent's backend_provider and call invoke()."""
@@ -822,6 +1056,7 @@ def _map_backend_response(
         agent_id=agent_id,
         run_id=run_id,
         trace_id=trace_id,
+        trace_url=_trace_url_for(run_id),
         runtime_mode=runtime_mode,
         latency_ms=resp.latency_ms or int((time.perf_counter() - t0) * 1000),
         cost={"amount": resp.cost_usd or 0.0, "currency": "CNY"} if resp.cost_usd else {},
@@ -854,6 +1089,7 @@ def _error_response(
         agent_id=agent_id,
         run_id=run_id,
         trace_id=trace_id,
+        trace_url=_trace_url_for(run_id),
         runtime_mode=runtime_mode,
         latency_ms=int((time.perf_counter() - t0) * 1000),
         cost={},

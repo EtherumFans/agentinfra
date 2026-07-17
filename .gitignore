@@ -132,3 +132,18 @@ outputs/phase5_track_b2/.dev_token
 # Phase 5 Track H — exclude Corti credentials (sensitive JWTs)
 scripts/corti_parity/track_h/.corti_creds.json
 .corti_creds.json
+
+# Phase A0.1R Gate 6 - Bucket D closure
+# Specific tarball exclusions (NOT global *.tgz, to avoid breaking test fixtures)
+packages/icoder-sdk/*.tgz
+packages/icoder-embedded/*.tgz
+# Built TypeScript output not historically tracked
+packages/icoder-sdk/dist/
+# External consumer build output
+phase7-external-consumer/dist/
+# Stray screenshots now relocated under reports/comprehensive-audit/evidence/screenshots/
+# (the relocation happens in Phase A0.1R Gate 6; this guards against future strays)
+
+# Phase A0.1R Gate 6 - allow evidence screenshots under audit path
+!reports/comprehensive-audit/evidence/screenshots/
+!reports/comprehensive-audit/evidence/screenshots/**

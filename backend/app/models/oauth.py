@@ -2,7 +2,8 @@
 import hashlib
 import secrets
 from datetime import datetime, timedelta
-from sqlalchemy import String, Boolean, DateTime, Text, ForeignKey
+from typing import Optional
+from sqlalchemy import String, Boolean, DateTime, Text, ForeignKey, JSON
 from sqlalchemy.orm import Mapped, mapped_column
 from app.database import Base
 from app.models.base import TimestampMixin
@@ -20,6 +21,12 @@ class OAuthClient(Base, TimestampMixin):
     Clients may declare ``scopes`` as either iCoDer-style RBAC scopes
     (``api:read``, ``api:write``) or Corti-style capability scopes
     (``transcribe``, ``streams``, ``textgen``, ``facts``).
+
+    Phase 7 Gate 5 §10 additions:
+      - ``allowed_origins`` — JSON array of exact Origin strings permitted
+        to embed this client's widget (Phase 7 §11.1). NULL = no embed.
+      - ``embedded_app_id`` — public app identifier sent to the browser
+        so partners can correlate runs to a specific app registration.
     """
     __tablename__ = "oauth_clients"
 
@@ -33,6 +40,10 @@ class OAuthClient(Base, TimestampMixin):
     owner_id: Mapped[str] = mapped_column(String(12), nullable=False, index=True)  # user who created it
     last_used_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     token_expires_seconds: Mapped[int] = mapped_column(default=300)  # 5 minutes default (Corti parity)
+
+    # Phase 7 Gate 5 §10: partner embed attribution
+    allowed_origins: Mapped[Optional[list]] = mapped_column(JSON, nullable=True)
+    embedded_app_id: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
 
     @classmethod
     def generate_client_id(cls, prefix: str = "icoder") -> str:
@@ -69,6 +80,20 @@ class OAuthClient(Base, TimestampMixin):
         """
         granted = self.granted_scopes()
         return bool(granted) and granted.issubset(capability_scopes)
+
+    def origin_allowed(self, origin: Optional[str]) -> bool:
+        """Phase 7 §11.1: exact Origin match against allowed_origins.
+
+        - Empty/None ``allowed_origins`` → no embed permitted (deny).
+        - Empty/None ``origin`` → deny (browser always sends Origin on
+          cross-origin requests).
+        - Exact string match (case-sensitive) → allow.
+        - No wildcard support (§11.1 explicitly forbids ``*``).
+        """
+        if not origin:
+            return False
+        origins = self.allowed_origins or []
+        return origin in origins
 
 
 class OAuthToken(Base, TimestampMixin):

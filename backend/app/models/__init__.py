@@ -32,6 +32,8 @@ from app.models.cdi_case import (
     ClinicianResponseModel,
     DocumentVersionModel,
 )
+from app.models.idempotency_record import IdempotencyRecord
+from app.models.preview_session import PreviewSession
 
 __all__ = [
     "TimestampMixin",
@@ -60,4 +62,6 @@ __all__ = [
     "Ticket", "TicketStatus", "TicketPriority",
     "CDICaseModel", "DocumentationGapModel", "ProviderQueryModel",
     "ClinicianResponseModel", "DocumentVersionModel",
+    "IdempotencyRecord",
+    "PreviewSession",
 ]

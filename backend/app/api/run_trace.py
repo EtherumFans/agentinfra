@@ -95,8 +95,15 @@ async def _get_run_trace_impl(
     #      Console trace reads are tenant reads.
     #
     # Both paths return the same 404 shape as "no events" so no
-    # existence leaks. Denials are logged; Gate 3.6 will route them
-    # to system_audit.
+    # existence leaks. Denials route through the system_audit sink
+    # (Gate 3.6).
+    #
+    # ── Phase A1A Gate 3R.1 — orphan-run guard ──
+    # If ``console_row is None`` there is no authoritative RunHistory
+    # row. Trace events may exist in the store (e.g. in-memory writes
+    # before the run record was committed) but without an
+    # authoritative row the run has no tenant ownership. Deny
+    # (charter §3R.1).
     import logging as _logging
     _log = _logging.getLogger("app.api.run_trace.console")
     from app.database import AsyncSessionLocal
@@ -105,44 +112,60 @@ async def _get_run_trace_impl(
 
     async with AsyncSessionLocal() as db:
         console_row = await get_run_status(db, run_id=run_id)
-    if console_row is not None:
-        if (
-            console_row.organization_id is not None
-            and org_id is not None
-            and console_row.organization_id != org_id
-        ):
-            _log.warning(
-                "console.trace.denied org_mismatch run_id=%s request_org=%s row_org=%s",
-                run_id, org_id, console_row.organization_id,
-            )
-            await _emit_console_system_audit(
-                action="trace.read.denied.org_mismatch",
-                run_id=run_id,
-                details={"request_org": org_id, "row_org": console_row.organization_id},
-            )
-            raise HTTPException(
-                status_code=404,
-                detail=f"no trace events for run_id {run_id!r}",
-            )
-        if not is_tenant_visible(
-            getattr(console_row, "tenancy_classification", None)
-        ):
-            _log.warning(
-                "console.trace.denied invisible_classification run_id=%s classification=%s",
-                run_id, getattr(console_row, "tenancy_classification", None),
-            )
-            await _emit_console_system_audit(
-                action="trace.read.denied.invisible_classification",
-                run_id=run_id,
-                details={
-                    "classification": getattr(console_row, "tenancy_classification", None),
-                    "path": "console",
-                },
-            )
-            raise HTTPException(
-                status_code=404,
-                detail=f"no trace events for run_id {run_id!r}",
-            )
+    if console_row is None:
+        # Phase A1A Gate 3R.1 — orphan-run denial. No authoritative
+        # RunHistory row means no tenant-owned run; refuse even if
+        # trace events exist in the store.
+        _log.warning(
+            "console.trace.denied orphan_run run_id=%s request_org=%s",
+            run_id, org_id,
+        )
+        await _emit_console_system_audit(
+            action="trace.read.denied.orphan_run",
+            run_id=run_id,
+            details={"request_org": org_id, "path": "console"},
+        )
+        raise HTTPException(
+            status_code=404,
+            detail=f"no trace events for run_id {run_id!r}",
+        )
+    if (
+        console_row.organization_id is not None
+        and org_id is not None
+        and console_row.organization_id != org_id
+    ):
+        _log.warning(
+            "console.trace.denied org_mismatch run_id=%s request_org=%s row_org=%s",
+            run_id, org_id, console_row.organization_id,
+        )
+        await _emit_console_system_audit(
+            action="trace.read.denied.org_mismatch",
+            run_id=run_id,
+            details={"request_org": org_id, "row_org": console_row.organization_id},
+        )
+        raise HTTPException(
+            status_code=404,
+            detail=f"no trace events for run_id {run_id!r}",
+        )
+    if not is_tenant_visible(
+        getattr(console_row, "tenancy_classification", None)
+    ):
+        _log.warning(
+            "console.trace.denied invisible_classification run_id=%s classification=%s",
+            run_id, getattr(console_row, "tenancy_classification", None),
+        )
+        await _emit_console_system_audit(
+            action="trace.read.denied.invisible_classification",
+            run_id=run_id,
+            details={
+                "classification": getattr(console_row, "tenancy_classification", None),
+                "path": "console",
+            },
+        )
+        raise HTTPException(
+            status_code=404,
+            detail=f"no trace events for run_id {run_id!r}",
+        )
 
     # DB store may block the event loop briefly; run in threadpool.
     if hasattr(store, "get_run_scoped"):

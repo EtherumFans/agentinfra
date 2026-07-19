@@ -348,6 +348,7 @@ async def enable_client(
 )
 async def rotate_secret(
     client_id: str,
+    current_user: User = Depends(get_current_user),
     current_org: Organization = Depends(get_current_organization),
     db: AsyncSession = Depends(get_db),
 ) -> ClientCreateResponse:
@@ -363,6 +364,31 @@ async def rotate_secret(
     await db.commit()
     await db.refresh(c)
     logger.info("phase7: API Client secret rotated client_id=%s", client_id)
+
+    # Phase A1A Gate 3R.2 — emit ``api_client.rotate`` audit row.
+    # Tenants can correlate secret rotations from their dashboard.
+    try:
+        from app.middleware.audit import log_action
+        await log_action(
+            db,
+            user_id=getattr(current_user, "id", None) if current_user else None,
+            username=getattr(current_user, "username", None) if current_user else None,
+            action="api_client.rotate",
+            resource_type="oauth_client",
+            resource_id=client_id,
+            details={
+                "client_id": client_id,
+                "name": c.name,
+            },
+            organization_id=current_org.id,
+        )
+        await db.commit()
+    except Exception as audit_err:  # pragma: no cover — defensive
+        logger.warning(
+            "phase7: api_client.rotate audit emit failed: %s (client_id=%s)",
+            audit_err, client_id,
+        )
+
     base = _to_summary(c)
     return ClientCreateResponse(
         **base.model_dump(),

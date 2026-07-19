@@ -214,6 +214,32 @@ async def acquire_or_replay(
                 existing.request_hash[:8], request_hash[:8],
             )
             raise IdempotencyKeyReusedError(idempotency_key, agent_ref)
+        # Phase A1A Gate 3R.2 — emit ``idempotency.dedup`` audit row so
+        # the tenant audit dashboard has a record of every replay. The
+        # emit is best-effort; an audit failure must not block the
+        # replay (the caller is waiting on a response).
+        try:
+            from app.middleware.audit import log_action
+            await log_action(
+                db,
+                user_id=None,  # service-layer; original actor tracked on run_history
+                username=None,
+                action="idempotency.dedup",
+                resource_type="idempotency_record",
+                resource_id=str(existing.id),
+                details={
+                    "idempotency_key": idempotency_key[:8],
+                    "agent_ref": agent_ref,
+                    "status": existing.status,
+                    "run_id": existing.run_id,
+                },
+                organization_id=organization_id,
+            )
+        except Exception as audit_err:  # pragma: no cover — defensive
+            logger.warning(
+                "idempotency: dedup audit emit failed (key=%s): %s",
+                idempotency_key[:8], audit_err,
+            )
         # Same key + same hash — replay path.
         if existing.status == STATUS_COMPLETED and existing.response_snapshot:
             logger.info(

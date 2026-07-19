@@ -42,10 +42,50 @@ def client():
 
 
 def _seed_events(run_id: str, *, count: int = 3) -> None:
-    """Append N synthetic RunTraceEvents for the given run_id."""
+    """Append N synthetic RunTraceEvents for the given run_id.
+
+    Phase A1A Gate 3R.1 — also seed an authoritative run_history row
+    so the orphan-run guard doesn't refuse the trace read. Before
+    Gate 3R.1, the SSE / trace endpoints would fall through to the
+    trace store when no run_history row existed; that's now a 404.
+    """
+    import asyncio
+    import secrets as _secrets
+    from datetime import datetime, UTC
+    from sqlalchemy import text
+    from app.database import AsyncSessionLocal
+    from app.models.run_history import RunHistoryModel
     from app.icoder.agent_runtime.orchestrator.run_trace import (
         RunTraceEvent, get_default_store,
     )
+
+    # Seed the run_history row first.
+    async def _seed_row():
+        async with AsyncSessionLocal() as db:
+            await db.execute(text(
+                "DELETE FROM run_history WHERE run_id = :rid"
+            ), {"rid": run_id})
+            now = datetime.now(UTC)
+            db.add(RunHistoryModel(
+                id=_secrets.token_hex(6),
+                run_id=run_id,
+                agent_id="medical-coding-agent",
+                user_id="u-test-bypass",
+                organization_id="org_default1",
+                tenancy_classification="MODERN",
+                status="COMPLETED",
+                latency_ms=0,
+                cost_usd=0.0,
+                input_text="",
+                output_summary="",
+                error=False,
+                created_at=now,
+                updated_at=now,
+            ))
+            await db.commit()
+    asyncio.run(_seed_row())
+
+    # Then append the trace events.
     store = get_default_store()
     store.clear()
     steps = ["ingest", "extract", "validate"][:count]
@@ -61,8 +101,20 @@ def _seed_events(run_id: str, *, count: int = 3) -> None:
 
 
 def _clear_events() -> None:
+    """Clear trace events + run_history rows for known test run_ids."""
+    import asyncio
+    from sqlalchemy import text
+    from app.database import AsyncSessionLocal
     from app.icoder.agent_runtime.orchestrator.run_trace import get_default_store
     get_default_store().clear()
+    async def _clear_rows():
+        async with AsyncSessionLocal() as db:
+            # Match run_ids this test fixture uses (run-sse-1..run-sse-7).
+            await db.execute(text(
+                "DELETE FROM run_history WHERE run_id LIKE 'run-sse-%'"
+            ))
+            await db.commit()
+    asyncio.run(_clear_rows())
 
 
 # ────────────────────────────────────────────────────────────────────

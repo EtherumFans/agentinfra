@@ -147,6 +147,19 @@ async def record_run_start(
     """
     # Phase A1A Gate 2 §3: cloud-mode fail-closed tenancy guard.
     assert_tenancy_for_write(organization_id, "run_history")
+
+    # Phase A1A Gate 3R.3 — stamp CAPTURE_PENDING on INSERT so future
+    # readers can distinguish "row written, awaiting first trace emit"
+    # from "pre-Gate-3.3 historical row" (NULL). The DB CHECK widening
+    # that allows this literal lands in Migration 020 (Gate 3R.4); until
+    # then, the value is best-effort — SQLite CHECK rejects it with a
+    # warning and the row stays NULL, which is the pre-3R.3 behaviour.
+    from app.services.trace_capture_state import TraceCaptureState
+    try:
+        trace_capture_status_init = TraceCaptureState.CAPTURE_PENDING
+    except Exception:  # pragma: no cover — defensive
+        trace_capture_status_init = None
+
     row = RunHistoryModel(
         run_id=run_id,
         agent_id=agent_id,
@@ -168,6 +181,9 @@ async def record_run_start(
         context_id=context_id,
         request_id=request_id,
         idempotency_key=idempotency_key,
+        # Phase A1A Gate 3R.3 — disambiguate "row exists, no trace yet"
+        # from "pre-Gate-3.3 historical row" (NULL).
+        trace_capture_status=trace_capture_status_init,
         # Python-side timestamp with microsecond precision so two runs
         # landing in the same second still order deterministically by
         # created_at DESC (SQLite's CURRENT_TIMESTAMP is 1-second res).
@@ -175,7 +191,22 @@ async def record_run_start(
         updated_at=datetime.now(timezone.utc),
     )
     db.add(row)
-    await db.flush()
+    try:
+        await db.flush()
+    except Exception as flush_err:
+        # SQLite CHECK constraint pre-Migration-020 doesn't know about
+        # CAPTURE_PENDING. Retry once with NULL so the INSERT succeeds
+        # — the row existing with NULL trace_capture_status is the
+        # pre-3R.3 fallback (Migration 020 will backfill to
+        # NEVER_CAPTURED_LEGACY for old rows; new rows will succeed
+        # post-migration).
+        logger.debug(
+            "record_run_start: CAPTURE_PENDING flush rejected (%s); "
+            "retrying with NULL (pre-Migration-020 fallback)",
+            flush_err,
+        )
+        row.trace_capture_status = None
+        await db.flush()
     return row
 
 

@@ -133,10 +133,43 @@ def test_get_trace_with_valid_token_returns_timeline(
     client: TestClient, tmp_path
 ) -> None:
     """Seed an in-memory RunTraceStore, issue a token, verify the timeline."""
+    import asyncio
+    import secrets as _secrets
+    from datetime import datetime, UTC
+    from sqlalchemy import text
+    from app.database import AsyncSessionLocal
+    from app.models.run_history import RunHistoryModel
     from app.icoder.agent_runtime.orchestrator.run_trace import (
         RunTraceEvent, get_default_store,
     )
     from app.services.trace_token import issue_trace_token
+
+    # Phase A1A Gate 3R.1 — seed an authoritative run_history row so
+    # the partner trace endpoint doesn't refuse on orphan-run grounds.
+    async def _seed_row():
+        async with AsyncSessionLocal() as db:
+            await db.execute(text(
+                "DELETE FROM run_history WHERE run_id = 'run-abc'"
+            ))
+            now = datetime.now(UTC)
+            db.add(RunHistoryModel(
+                id=_secrets.token_hex(6),
+                run_id="run-abc",
+                agent_id="medical-coding-agent",
+                user_id="u-test-bypass",
+                organization_id="org_default1",
+                tenancy_classification="MODERN",
+                status="COMPLETED",
+                latency_ms=0,
+                cost_usd=0.0,
+                input_text="",
+                output_summary="",
+                error=False,
+                created_at=now,
+                updated_at=now,
+            ))
+            await db.commit()
+    asyncio.run(_seed_row())
 
     # Use the process-default store (in-memory in test mode). Clear
     # first so we don't pick up events from earlier tests.
@@ -147,15 +180,24 @@ def test_get_trace_with_valid_token_returns_timeline(
         ts=time.time(), duration_ms=10,
     ))
 
-    token = issue_trace_token(run_id="run-abc")
-    resp = client.get(f"/api/v1/runs/run-abc/trace?token={token}")
-    assert resp.status_code == 200, resp.text
-    body = resp.json()
-    assert body["run_id"] == "run-abc"
-    assert body["step_count"] == 1
-    assert body["timeline"][0]["step"] == "ingest"
-    assert body["trace_token"]["exp"] > int(time.time())
-    store.clear()  # don't leak to other tests
+    try:
+        token = issue_trace_token(run_id="run-abc")
+        resp = client.get(f"/api/v1/runs/run-abc/trace?token={token}")
+        assert resp.status_code == 200, resp.text
+        body = resp.json()
+        assert body["run_id"] == "run-abc"
+        assert body["step_count"] == 1
+        assert body["timeline"][0]["step"] == "ingest"
+        assert body["trace_token"]["exp"] > int(time.time())
+    finally:
+        store.clear()  # don't leak to other tests
+        async def _clear_row():
+            async with AsyncSessionLocal() as db:
+                await db.execute(text(
+                    "DELETE FROM run_history WHERE run_id = 'run-abc'"
+                ))
+                await db.commit()
+        asyncio.run(_clear_row())
 
 
 def test_get_trace_with_invalid_signature_returns_401(client: TestClient) -> None:

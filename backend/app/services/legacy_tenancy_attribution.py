@@ -77,6 +77,9 @@ SYSTEM_AUDIT_ACTIONS: frozenset[str] = frozenset({
     "sse.denied.invisible_classification",
     "trace.read.denied.org_mismatch",
     "trace.read.denied.invisible_classification",
+    # Phase A1A Gate 3R.1 — orphan-run denials (no authoritative RunHistory).
+    "sse.denied.orphan_run",
+    "trace.read.denied.orphan_run",
     "run.cancel",
     "run.timeout",
     "run.complete",

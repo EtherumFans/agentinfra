@@ -22,7 +22,7 @@ Index strategy:
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import DateTime, Float, ForeignKey, JSON, String, func
+from sqlalchemy import DateTime, Float, ForeignKey, Integer, JSON, String, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
@@ -45,6 +45,18 @@ class RunTraceEventModel(Base, TimestampMixin):
     duration_ms: Mapped[float] = mapped_column(Float, default=0.0)
     ts: Mapped[float] = mapped_column(Float, default=0.0)  # epoch seconds
     safe_metadata_json: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
+
+    # ── Phase A1A Gate 3R.4 — stable event identity ──────────────
+    # event_id is a UUID string (canonical identity, stable across
+    # process restarts). sequence_number is per-trace_id monotonic
+    # ordering. trace_id groups events across multi-trace runs.
+    # identity_source records how the identity was assigned so audits
+    # can distinguish 3R.4-era events (``"uuid_v4"``) from legacy
+    # events (NULL — pre-Migration-020 rows).
+    event_id: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    sequence_number: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    trace_id: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    identity_source: Mapped[Optional[str]] = mapped_column(String(32), nullable=True)
     # created_at comes from TimestampMixin; we add a server_default
     # explicitly here so raw SQL inserts (without ORM) still get a value.
 

@@ -327,6 +327,9 @@ async def run_agent(
             api_client_id=api_client_id,
         )
         if not dedup_result.should_run:
+            # Phase A1A Gate 3R.2 — the idempotency.dedup audit emit
+            # lives in app.services.idempotency_service.acquire_or_replay
+            # so all callers (HTTP / A2A / programmatic) get it.
             if dedup_result.in_progress:
                 # Same key still running — return run_id + 200 status.
                 # Per §8.2: "返回相同 run_id, status = IN_PROGRESS"
@@ -472,6 +475,34 @@ async def run_agent(
         logger.warning(
             "agent_run: run_history persist failed (run_id=%s): %s",
             response.run_id or run_id, e,
+        )
+
+    # ── Phase A1A Gate 3R.2 — emit run.complete / run.failed audit ──
+    # The tenant audit dashboard surfaces terminal run state; before
+    # Gate 3R.2 the run_history row existed but no audit row did.
+    try:
+        from app.middleware.audit import log_action
+        is_error = bool(getattr(response, "error", False))
+        await log_action(
+            db,
+            user_id=user_id or None,
+            username=None,
+            action="run.failed" if is_error else "run.complete",
+            resource_type="run_history",
+            resource_id=response.run_id or run_id,
+            details={
+                "agent_id": response.agent_id,
+                "runtime_mode": response.runtime_mode,
+                "latency_ms": response.latency_ms,
+                "error_reason": (response.error_reason or "") or None,
+            },
+            organization_id=org_id or None,
+        )
+        await db.commit()
+    except Exception as audit_err:  # pragma: no cover — defensive
+        logger.warning(
+            "agent_run: run.complete/failed audit emit failed (run_id=%s): %s",
+            response.run_id or run_id, audit_err,
         )
 
     # ── Phase 7 Gate 3: persist completed/failed snapshot ───────────

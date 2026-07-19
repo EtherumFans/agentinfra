@@ -197,8 +197,13 @@ class RunTraceStore:
         # process RAM" (which vanish on restart). In cloud mode this is
         # a fail-closed signal: the row should never have been written
         # with memory store to begin with (see Settings validation).
+        #
+        # Phase A1A Gate 3R.3 — use the canonical state name from
+        # TraceCaptureState. The literal value is unchanged
+        # ("FALLBACK_MEMORY"); the import is for single-source-of-truth.
         try:
-            _mark_trace_capture_status(event.run_id, "FALLBACK_MEMORY")
+            from app.services.trace_capture_state import TraceCaptureState
+            _mark_trace_capture_status(event.run_id, TraceCaptureState.FALLBACK_MEMORY)
         except Exception as mark_err:  # pragma: no cover — defensive
             logger.debug(
                 "run_trace FALLBACK_MEMORY mark skipped: %s (run_id=%s)",
@@ -264,6 +269,16 @@ class DbRunTraceStore:
         user_id = scrubbed.pop("_user_id", None)
         actor_id = scrubbed.pop("_actor_id", None)
         agent_id = scrubbed.get("agent_id")
+        # Phase A1A Gate 3R.4 — propagate trace_id from safe_metadata
+        # if the emit site stashed it there. Fall back to None.
+        trace_id = scrubbed.pop("_trace_id", None)
+
+        # Phase A1A Gate 3R.4 — stable event identity.
+        # event_id is a UUID v4 string. sequence_number is per-trace
+        # monotonic ordering (1-indexed within trace_id).
+        event_id, sequence_number = _assign_event_identity(
+            event.run_id, trace_id
+        )
 
         record = RunTraceEventModel(
             run_id=event.run_id,
@@ -277,6 +292,10 @@ class DbRunTraceStore:
             duration_ms=event.duration_ms,
             ts=event.ts,
             safe_metadata_json=scrubbed if scrubbed else None,
+            event_id=event_id,
+            sequence_number=sequence_number,
+            trace_id=trace_id,
+            identity_source="uuid_v4" if event_id else None,
         )
 
         try:
@@ -293,32 +312,48 @@ class DbRunTraceStore:
             # via mark_trace_capture_failed, and (c) — when
             # settings.RUNTRACE_FAIL_CLOSED=True — re-raised so the
             # caller can decide whether to fail the run.
+            #
+            # Phase A1A Gate 3R.3 — fail-closed is now decided by the
+            # deployment profile (REQUIRED_DB) instead of the raw
+            # RUNTRACE_FAIL_CLOSED flag. The two stay in sync via
+            # DeploymentProfileResolver; the profile is the canonical
+            # source so future additions (e.g. PARTIAL_DB) don't
+            # require touching this call site.
             logger.error(
                 "run_trace DB write failed: %s (run_id=%s step=%s)",
                 e, event.run_id, event.step,
             )
+            from app.services.trace_capture_state import TraceCaptureState
             try:
                 _mark_trace_capture_status(
-                    event.run_id, "FAILED", reason=str(e)[:250],
+                    event.run_id, TraceCaptureState.FAILED, reason=str(e)[:250],
                 )
             except Exception as mark_err:  # pragma: no cover — defensive
                 logger.error(
                     "run_trace status mark also failed: %s (run_id=%s)",
                     mark_err, event.run_id,
                 )
-            if getattr(settings, "RUNTRACE_FAIL_CLOSED", False):
+            if _should_fail_closed():
                 raise
             return
 
-        # Success: stamp PERSISTED on the run_history row. Best-effort
+        # Success: stamp CAPTURED on the run_history row. Best-effort
         # — if the row doesn't exist yet (record_run_start hasn't
         # fired) the UPDATE is a no-op. Once record_run_start writes
         # the row, subsequent trace events will find it.
+        #
+        # Phase A1A Gate 3R.3 — canonical state name is CAPTURED (the
+        # Gate 3.3-era literal "PERSISTED" is kept as a deprecated
+        # alias for backwards compat with rows written before 3R.3).
+        # Migration 020 will rewrite existing PERSISTED rows; until
+        # then, readers use TraceCaptureState.normalize to treat both
+        # literals identically.
         try:
-            _mark_trace_capture_status(event.run_id, "PERSISTED")
+            from app.services.trace_capture_state import TraceCaptureState
+            _mark_trace_capture_status(event.run_id, TraceCaptureState.CAPTURED)
         except Exception as mark_err:  # pragma: no cover — defensive
             logger.debug(
-                "run_trace PERSISTED mark skipped: %s (run_id=%s)",
+                "run_trace CAPTURED mark skipped: %s (run_id=%s)",
                 mark_err, event.run_id,
             )
 
@@ -381,6 +416,78 @@ class DbRunTraceStore:
 # Module-level singletons — one per backend type.
 _DEFAULT_IN_MEMORY_STORE = RunTraceStore()
 _DEFAULT_DB_STORE: Optional[DbRunTraceStore] = None
+
+
+# Phase A1A Gate 3R.4 — per-process trace sequence counters.
+# Keyed by trace_id (or run_id when trace_id is None). Incremented
+# atomically on each emit so events carry a monotonic 1-indexed
+# sequence number within the trace. Counters are process-local;
+# cross-worker ordering relies on DB-side sort by created_at when
+# sequence_number is ambiguous (rare in practice — within a single
+# run, events are emitted by one orchestrator process).
+_TRACE_SEQUENCE_COUNTERS: dict[str, int] = {}
+
+
+def _assign_event_identity(
+    run_id: str,
+    trace_id: Optional[str],
+) -> tuple[Optional[str], Optional[int]]:
+    """Phase A1A Gate 3R.4 — generate (event_id, sequence_number).
+
+    Returns (None, None) if UUID generation fails (extremely unlikely
+    with uuid4). The caller treats None as "identity not assigned";
+    the row still writes successfully with NULL identity columns,
+    falling back to the legacy (run_id, step, ts) identity.
+
+    ``sequence_number`` is 1-indexed within (trace_id or run_id).
+    """
+    try:
+        import uuid
+        event_id = str(uuid.uuid4())
+    except Exception as uuid_err:  # pragma: no cover — defensive
+        logger.debug("uuid4 generation failed: %s", uuid_err)
+        return (None, None)
+
+    counter_key = trace_id or run_id
+    try:
+        _TRACE_SEQUENCE_COUNTERS[counter_key] = (
+            _TRACE_SEQUENCE_COUNTERS.get(counter_key, 0) + 1
+        )
+        sequence_number = _TRACE_SEQUENCE_COUNTERS[counter_key]
+    except Exception:  # pragma: no cover — defensive
+        sequence_number = None
+
+    return (event_id, sequence_number)
+
+
+def _reset_trace_sequence_counter(key: str) -> None:
+    """Test hook — reset the per-trace sequence counter for ``key``.
+
+    Production callers don't need this; tests use it so emit order
+    is deterministic across runs of the same test.
+    """
+    _TRACE_SEQUENCE_COUNTERS.pop(key, None)
+
+
+def _should_fail_closed() -> bool:
+    """Phase A1A Gate 3R.3 — consult the deployment profile, not the raw flag.
+
+    Returns True iff the resolved profile is REQUIRED_DB. This routes
+    any DB write failure through the caller as a raised exception so
+    compliance environments get strict "no trace left behind" semantics.
+
+    Best-effort: if the profile can't be resolved (e.g. settings not
+    yet initialized at import time), fall back to the legacy
+    ``RUNTRACE_FAIL_CLOSED`` flag so the Gate 3.3 behaviour is
+    preserved exactly.
+    """
+    try:
+        from app.services.deployment_profile import get_current_profile
+        profile = get_current_profile()
+        from app.services.deployment_profile import DeploymentProfile
+        return DeploymentProfile.is_fail_closed(profile)
+    except Exception:  # pragma: no cover — defensive
+        return bool(getattr(settings, "RUNTRACE_FAIL_CLOSED", False))
 
 
 def get_default_store() -> RunTraceStore | DbRunTraceStore:

@@ -88,10 +88,33 @@ class Settings(BaseSettings):
         # cloud mode. Memory store loses all events on process restart,
         # which violates the "trace survives the run" guarantee the
         # Console RunTrace page relies on for audit.
-        if self.RUNTRACE_STORE != "db":
+        #
+        # Phase A1A Gate 3R.3 — verify via the deployment profile. The
+        # profile is resolved by app.services.deployment_profile and
+        # MUST be one of {BEST_EFFORT_DB, REQUIRED_DB} in cloud mode.
+        # MEMORY_DEV is refused because it routes through the in-memory
+        # store.
+        try:
+            from app.services.deployment_profile import (
+                DeploymentProfile,
+                resolve_profile,
+            )
+            profile = resolve_profile(
+                deployment_mode=self.ICODER_DEPLOYMENT_MODE,
+                runtrace_store=self.RUNTRACE_STORE,
+                runtrace_fail_closed=self.RUNTRACE_FAIL_CLOSED,
+                explicit_profile=self.RUNTRACE_DEPLOYMENT_PROFILE or None,
+            )
+            self._resolved_runtrace_profile = profile
+            if not DeploymentProfile.is_cloud_allowed(profile):
+                failures.append(
+                    f"RUNTRACE_DEPLOYMENT_PROFILE resolved to {profile!r}; "
+                    "cloud mode requires BEST_EFFORT_DB or REQUIRED_DB "
+                    "(memory store loses trace events on restart)"
+                )
+        except ValueError as ve:
             failures.append(
-                f"RUNTRACE_STORE={self.RUNTRACE_STORE!r}; must be 'db' in "
-                "cloud mode (memory store loses trace events on restart)"
+                f"RUNTRACE_DEPLOYMENT_PROFILE invalid: {ve}"
             )
         if failures:
             joined = "\n  - ".join(failures)
@@ -176,6 +199,22 @@ class Settings(BaseSettings):
     # would propagate the exception to the caller instead — useful for
     # compliance environments that demand strict "no trace left behind".
     RUNTRACE_FAIL_CLOSED: bool = False
+
+    # ── Phase A1A Gate 3R.3 — named deployment profile ───────────────────
+    # Optional explicit override that pins the trace-capture deployment
+    # policy without forcing the operator to set three separate vars
+    # (RUNTRACE_STORE + RUNTRACE_FAIL_CLOSED + ICODER_DEPLOYMENT_MODE).
+    #
+    # Values (see app/services/deployment_profile.py):
+    #   MEMORY_DEV      — local dev (memory store, no fail-closed)
+    #   BEST_EFFORT_DB  — cloud default (DB store, transient failures
+    #                     logged but don't fail the run)
+    #   REQUIRED_DB     — compliance envs (DB store, strict fail-closed)
+    #
+    # When empty (default), the profile is derived from the triple
+    # (ICODER_DEPLOYMENT_MODE, RUNTRACE_STORE, RUNTRACE_FAIL_CLOSED)
+    # so existing Gate 3.3 deployments continue to work unchanged.
+    RUNTRACE_DEPLOYMENT_PROFILE: str = ""
 
     # ── Data Paths ────────────────────────────────────────────────────────────
     # Local dev uses ./data/ subtree. Cloud loads from region-scoped object

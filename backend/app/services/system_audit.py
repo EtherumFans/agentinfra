@@ -74,6 +74,9 @@ _SYSTEM_AUDIT_ACTIONS_EXTRA: frozenset[str] = frozenset({
     # Gate 3.5 — Console / partner trace denials
     "trace.read.denied.org_mismatch",
     "trace.read.denied.invisible_classification",
+    # Gate 3R.1 — orphan-run denials (no authoritative RunHistory row)
+    "sse.denied.orphan_run",
+    "trace.read.denied.orphan_run",
     # Gate 3.6 — explicit run lifecycle events
     "run.cancel",
     "run.timeout",

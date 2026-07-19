@@ -93,8 +93,66 @@ class RunHistoryModel(Base, TimestampMixin):
     # MODERN | LEGACY_TENANT_KNOWN | LEGACY_TENANT_UNKNOWN | QUARANTINED
     # See alembic 016. NULL on rows written before Gate 2; MODERN on
     # all rows written after (enforced at the service layer).
+    #
+    # ── Phase A1A Gate 3.1 §3 — extended taxonomy ──
+    # Gate 3.1 splits LEGACY_TENANT_KNOWN into:
+    #   LEGACY_TENANT_VERIFIED | LEGACY_TENANT_INFERRED | LEGACY_TENANT_AMBIGUOUS
+    # so the same column now carries one of seven values. See
+    # alembic 017 + app.services.legacy_tenancy_attribution.
     tenancy_classification: Mapped[Optional[str]] = mapped_column(
         String(32), nullable=True, index=True,
+    )
+
+    # ── Phase A1A Gate 3.1 §4 — attribution provenance ──────────────
+    # How this row's organization_id was resolved. Nullable because
+    # MODERN rows don't need attribution (the write path supplied the
+    # org directly). For legacy rows, this is the evidence trail.
+    tenancy_attribution_source: Mapped[Optional[str]] = mapped_column(
+        String(64), nullable=True,
+        comment=(
+            "modern_write_path | api_client_binding | session_binding | "
+            "context_binding | request_correlation | user_membership_latest "
+            "| user_membership_at_time | user_single_membership_history | "
+            "security_event | no_user_id_no_candidate | user_id_no_membership"
+        ),
+    )
+    tenancy_attribution_confidence: Mapped[Optional[str]] = mapped_column(
+        String(16), nullable=True,
+        comment="verified | inferred | ambiguous | none",
+    )
+    tenancy_attribution_migration: Mapped[Optional[str]] = mapped_column(
+        String(8), nullable=True,
+        comment="Which migration last touched this row's attribution (016 or 017).",
+    )
+    tenancy_attributed_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True,
+        comment="When the attribution was last computed.",
+    )
+    tenancy_original_org_id: Mapped[Optional[str]] = mapped_column(
+        String(12), nullable=True,
+        comment="Original organization_id before backfill; NULL means it was always NULL.",
+    )
+    tenancy_candidate_count: Mapped[Optional[int]] = mapped_column(
+        Integer, nullable=True,
+        comment="How many candidate orgs were considered; 0 means no candidate, 1 means unambiguous, >1 means ambiguous.",
+    )
+
+    # ── Phase A1A Gate 3.3 — trace capture audit ─────────────────────
+    # Did this run's trace events actually reach the persistent
+    # run_trace_events table?
+    #   PERSISTED       — DbRunTraceStore.append succeeded for all events
+    #   FAILED          — at least one DB write raised; events may be lost
+    #   FALLBACK_MEMORY — store was InMemoryRunTraceStore (dev/test only)
+    #   NULL            — row written before Gate 3.3 (backwards compat)
+    # When RUNTRACE_FAIL_CLOSED=True, a FAILED run surfaces the error
+    # to the caller instead of continuing silently.
+    trace_capture_status: Mapped[Optional[str]] = mapped_column(
+        String(16), nullable=True, index=True,
+        comment="PERSISTED | FAILED | FALLBACK_MEMORY",
+    )
+    trace_capture_failure_reason: Mapped[Optional[str]] = mapped_column(
+        String(255), nullable=True,
+        comment="Short error string when trace_capture_status=FAILED.",
     )
 
     # Timestamp for ordering (created_at comes from TimestampMixin)

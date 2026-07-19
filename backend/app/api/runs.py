@@ -49,6 +49,47 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1/runs", tags=["phase7-runs"])
 
 
+# ── Phase A1A Gate 3.6 — system-scope audit helper ────────────────
+
+
+async def _emit_system_audit(
+    *,
+    action: str,
+    resource_type: str,
+    resource_id: Optional[str] = None,
+    details: Optional[dict] = None,
+) -> None:
+    """Best-effort MODERN_SYSTEM audit row for denials.
+
+    Used by SSE / trace URL / Console denial paths so Security Admin
+    can audit "who tried to read what" without the tenant themselves
+    seeing the denial record (the row carries organization_id=NULL +
+    classification=MODERN_SYSTEM, so tenant reads exclude it per
+    Gate 3.2).
+
+    Failures are logged but do not bubble up — a denial must never
+    be downgraded to a 500 because the audit sink had a transient
+    error.
+    """
+    try:
+        from app.database import AsyncSessionLocal
+        from app.services.system_audit import system_audit
+        async with AsyncSessionLocal() as db:
+            await system_audit(
+                db,
+                action=action,
+                resource_type=resource_type,
+                resource_id=resource_id,
+                details=details,
+            )
+            await db.commit()
+    except Exception as audit_err:  # pragma: no cover — defensive
+        logger.error(
+            "system_audit emit failed: %s (action=%s resource=%s/%s)",
+            audit_err, action, resource_type, resource_id,
+        )
+
+
 # ── Response models ────────────────────────────────────────────────
 
 
@@ -146,6 +187,16 @@ async def get_run(
             "code": "RUN_NOT_FOUND",
             "message": f"Run {run_id} not found.",
         })
+    # Phase A1A Gate 3.2 §2 — point-read visibility guard. If the row
+    # is QUARANTINED / LEGACY_TENANT_UNKNOWN / LEGACY_TENANT_AMBIGUOUS
+    # / MODERN_SYSTEM, return the same 404 as if it didn't exist.
+    # No existence leak.
+    from app.services.tenant_read_policy import enforce_tenant_visible_or_404
+    enforce_tenant_visible_or_404(
+        classification=getattr(row, "tenancy_classification", None),
+        run_id=run_id,
+        resource="run",
+    )
     return RunStatusResponse(
         run_id=row.run_id,
         status=row.status,
@@ -334,6 +385,33 @@ async def get_run_trace_partner(
                     "code": "TRACE_TOKEN_ORG_MISMATCH",
                     "message": "Trace token not valid for this run.",
                 })
+            # Phase A1A Gate 3.5 — visibility classification guard.
+            # Token is valid + org matches, but if the run was
+            # retroactively quarantined, deny. Return 404 (not 403)
+            # to avoid leaking that the run exists at all.
+            from app.services.tenant_read_policy import is_tenant_visible
+            if row is not None and not is_tenant_visible(
+                getattr(row, "tenancy_classification", None)
+            ):
+                import logging as _logging
+                _log = _logging.getLogger("app.api.runs.trace_url")
+                _log.warning(
+                    "trace_url.denied invisible_classification run_id=%s classification=%s",
+                    run_id, getattr(row, "tenancy_classification", None),
+                )
+                await _emit_system_audit(
+                    action="trace.read.denied.invisible_classification",
+                    resource_type="run_history",
+                    resource_id=run_id,
+                    details={
+                        "classification": getattr(row, "tenancy_classification", None),
+                        "path": "partner_trace_url",
+                    },
+                )
+                raise HTTPException(status_code=404, detail={
+                    "code": "TRACE_NOT_FOUND",
+                    "message": f"no trace events for run_id {run_id!r}",
+                })
 
     # Issue the trace read using the token's org scope.
     from app.icoder.agent_runtime.orchestrator.run_trace import get_default_store
@@ -445,6 +523,73 @@ async def stream_run_events(
     from app.icoder.agent_runtime.orchestrator.run_trace import get_default_store
     store = get_default_store()
     org_id = claims.organization_id or None
+
+    # ── Phase A1A Gate 3.4 (F04 carry-over) — defence-in-depth ──
+    # The signed trace token already pins (run_id, org_id). But we
+    # ALSO cross-check RunHistory.organization_id and the row's
+    # visibility classification. Two scenarios this catches:
+    #
+    #   1. Token was issued for a run that has since been
+    #      re-attributed to a different org (operator action). The
+    #      stale token would otherwise still stream events.
+    #   2. Run was retroactively classified QUARANTINED / UNKNOWN /
+    #      AMBIGUOUS / MODERN_SYSTEM. Per charter §3.2 these rows are
+    #      invisible to tenant reads, and SSE is a tenant read.
+    #
+    # Both paths return the same 404 TRACE_NOT_FOUND shape (no
+    # existence leak). Denials are audited via logger.warning now;
+    # Gate 3.6 will route them through the system_audit sink.
+    from app.database import AsyncSessionLocal
+    from app.services.run_lifecycle import get_run_status
+    from app.services.tenant_read_policy import enforce_tenant_visible_or_404, is_tenant_visible
+    import logging as _logging
+    _log = _logging.getLogger("app.api.runs.sse")
+
+    async with AsyncSessionLocal() as db:
+        sse_row = await get_run_status(db, run_id=run_id)
+    if sse_row is not None:
+        # Org cross-check — if both orgs are known and differ, deny.
+        if (
+            sse_row.organization_id is not None
+            and org_id is not None
+            and sse_row.organization_id != org_id
+        ):
+            _log.warning(
+                "sse.denied org_mismatch run_id=%s token_org=%s row_org=%s",
+                run_id, org_id, sse_row.organization_id,
+            )
+            await _emit_system_audit(
+                action="sse.denied.org_mismatch",
+                resource_type="run_history",
+                resource_id=run_id,
+                details={
+                    "token_org": org_id,
+                    "row_org": sse_row.organization_id,
+                },
+            )
+            raise HTTPException(status_code=404, detail={
+                "code": "TRACE_NOT_FOUND",
+                "message": f"no trace events for run_id {run_id!r}",
+            })
+        # Visibility classification guard.
+        if not is_tenant_visible(getattr(sse_row, "tenancy_classification", None)):
+            _log.warning(
+                "sse.denied invisible_classification run_id=%s classification=%s",
+                run_id, getattr(sse_row, "tenancy_classification", None),
+            )
+            await _emit_system_audit(
+                action="sse.denied.invisible_classification",
+                resource_type="run_history",
+                resource_id=run_id,
+                details={
+                    "classification": getattr(sse_row, "tenancy_classification", None),
+                },
+            )
+            raise HTTPException(status_code=404, detail={
+                "code": "TRACE_NOT_FOUND",
+                "message": f"no trace events for run_id {run_id!r}",
+            })
+
     if hasattr(store, "get_run_scoped"):
         events = await asyncio.to_thread(store.get_run_scoped, run_id, org_id)
     else:

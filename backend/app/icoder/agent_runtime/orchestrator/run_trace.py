@@ -192,6 +192,18 @@ class RunTraceStore:
 
     def append(self, event: RunTraceEvent) -> None:
         self._events.setdefault(event.run_id, []).append(event)
+        # Phase A1A Gate 3.3 §3 — record FALLBACK_MEMORY on run_history
+        # so audits can distinguish "events in DB" from "events only in
+        # process RAM" (which vanish on restart). In cloud mode this is
+        # a fail-closed signal: the row should never have been written
+        # with memory store to begin with (see Settings validation).
+        try:
+            _mark_trace_capture_status(event.run_id, "FALLBACK_MEMORY")
+        except Exception as mark_err:  # pragma: no cover — defensive
+            logger.debug(
+                "run_trace FALLBACK_MEMORY mark skipped: %s (run_id=%s)",
+                mark_err, event.run_id,
+            )
 
     def get_run(self, run_id: str) -> list[RunTraceEvent]:
         return list(self._events.get(run_id, []))
@@ -272,8 +284,43 @@ class DbRunTraceStore:
                 session.add(record)
                 session.commit()
         except Exception as e:
-            # Don't let trace persistence failures break the agent run.
-            logger.error("run_trace DB write failed: %s (run_id=%s step=%s)", e, event.run_id, event.step)
+            # Phase A1A Gate 3.3 — record the failure on the run_history
+            # row so audits can see which runs lost trace events. The
+            # caller's run is allowed to continue (a trace gap should
+            # not abort a successful agent run), but the failure is no
+            # longer silent: it is (a) logged at ERROR level with the
+            # full error + run_id + step, (b) recorded on run_history
+            # via mark_trace_capture_failed, and (c) — when
+            # settings.RUNTRACE_FAIL_CLOSED=True — re-raised so the
+            # caller can decide whether to fail the run.
+            logger.error(
+                "run_trace DB write failed: %s (run_id=%s step=%s)",
+                e, event.run_id, event.step,
+            )
+            try:
+                _mark_trace_capture_status(
+                    event.run_id, "FAILED", reason=str(e)[:250],
+                )
+            except Exception as mark_err:  # pragma: no cover — defensive
+                logger.error(
+                    "run_trace status mark also failed: %s (run_id=%s)",
+                    mark_err, event.run_id,
+                )
+            if getattr(settings, "RUNTRACE_FAIL_CLOSED", False):
+                raise
+            return
+
+        # Success: stamp PERSISTED on the run_history row. Best-effort
+        # — if the row doesn't exist yet (record_run_start hasn't
+        # fired) the UPDATE is a no-op. Once record_run_start writes
+        # the row, subsequent trace events will find it.
+        try:
+            _mark_trace_capture_status(event.run_id, "PERSISTED")
+        except Exception as mark_err:  # pragma: no cover — defensive
+            logger.debug(
+                "run_trace PERSISTED mark skipped: %s (run_id=%s)",
+                mark_err, event.run_id,
+            )
 
     def _rows_to_events(self, rows) -> list[RunTraceEvent]:
         events: list[RunTraceEvent] = []
@@ -352,6 +399,57 @@ def get_default_store() -> RunTraceStore | DbRunTraceStore:
             _DEFAULT_DB_STORE = DbRunTraceStore()
         return _DEFAULT_DB_STORE
     return _DEFAULT_IN_MEMORY_STORE
+
+
+# ── Phase A1A Gate 3.3 §2 — run_history trace_capture_status marker ──────
+
+
+def _mark_trace_capture_status(
+    run_id: str,
+    status: str,
+    *,
+    reason: Optional[str] = None,
+) -> None:
+    """Best-effort UPDATE run_history.trace_capture_status for one run.
+
+    Called from ``DbRunTraceStore.append`` on both success (PERSISTED)
+    and failure (FAILED). Called from ``RunTraceStore.append`` with
+    FALLBACK_MEMORY so audits can tell memory-mode runs from
+    DB-persisted runs.
+
+    Why "best-effort"? Because ``record_run_start`` may not have fired
+    yet when the first trace event is emitted — the run_history row
+    doesn't exist. In that case the UPDATE matches zero rows, which is
+    fine: the next event that fires after record_run_start will land
+    its UPDATE on the now-existing row.
+
+    Uses a fresh sync session so it can be called from sync emit
+    contexts (the inbound handler / dispatcher are sync). The session
+    is disposed each call — this is acceptable because the call rate
+    is bounded (9 events per run, not thousands).
+    """
+    from sqlalchemy import create_engine, update
+    from sqlalchemy.orm import sessionmaker
+
+    url = settings.DATABASE_URL
+    for async_driver in ("+aiosqlite", "+asyncpg", "+psycopg"):
+        url = url.replace(async_driver, "")
+    connect_args = {"check_same_thread": False} if "sqlite" in url else {}
+    engine = create_engine(url, connect_args=connect_args, echo=False)
+    Session = sessionmaker(bind=engine, expire_on_commit=False)
+    try:
+        from app.models.run_history import RunHistoryModel
+        with Session() as session:
+            stmt = update(RunHistoryModel).where(
+                RunHistoryModel.run_id == run_id
+            ).values(
+                trace_capture_status=status,
+                trace_capture_failure_reason=reason,
+            )
+            session.execute(stmt)
+            session.commit()
+    finally:
+        engine.dispose()
 
 
 def emit_trace_event(

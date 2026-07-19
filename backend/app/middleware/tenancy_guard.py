@@ -42,6 +42,50 @@ from typing import Optional
 # "intentional system row" from "pre-Gate-2 historical row".
 CLASS_MODERN_SYSTEM = "MODERN_SYSTEM"
 
+# ── Phase A1A Gate 3.1 §3 — extended legacy taxonomy ───────────────
+# Migration 016 wrote four classes; Gate 3.1 splits LEGACY_TENANT_KNOWN
+# into three sub-classes so operator queries can distinguish "verified
+# by request-level evidence" from "inferred via user-membership
+# heuristic" from "ambiguous across multiple candidate orgs". All
+# three sub-classes still resolve to a non-NULL organization_id at
+# the DB level (so tenant-scoped queries continue to work), but the
+# classification column tells future auditors how confident we were.
+#
+# Charter §3.1 §3 — required taxonomy:
+#   MODERN                    — modern write path, non-NULL org at write
+#   MODERN_SYSTEM             — intentional system-scope row
+#   LEGACY_TENANT_VERIFIED    — historical row with strong request-level
+#                               evidence (api_client / session / context
+#                               / request correlation id) that pins it
+#                               to exactly one org
+#   LEGACY_TENANT_INFERRED    — historical row with exactly one
+#                               candidate org derived from user
+#                               membership, but no request-level
+#                               evidence to confirm
+#   LEGACY_TENANT_AMBIGUOUS   — historical row where multiple candidate
+#                               orgs are plausible and we cannot pick
+#                               one with confidence (e.g. user is a
+#                               member of several orgs and the row has
+#                               no api_client_id)
+#   LEGACY_TENANT_UNKNOWN     — historical row with no candidate org
+#                               at all (NULL user_id, no api_client,
+#                               no session). Stays NULL organization_id;
+#                               excluded from tenant-scoped reads.
+#   QUARANTINED               — row flagged for manual operator review.
+#                               Not set automatically by Gate 3.1; the
+#                               Security Admin path can later promote
+#                               an AMBIGUOUS or UNKNOWN row here.
+CLASS_LEGACY_VERIFIED = "LEGACY_TENANT_VERIFIED"
+CLASS_LEGACY_INFERRED = "LEGACY_TENANT_INFERRED"
+CLASS_LEGACY_AMBIGUOUS = "LEGACY_TENANT_AMBIGUOUS"
+
+# Legacy alias kept for backwards compatibility with pre-Gate-3 callers
+# and tests. New Gate 3 code MUST use the more specific VERIFIED /
+# INFERRED / AMBIGUOUS constants above. Migration 017 rewrites all
+# historical LEGACY_TENANT_KNOWN rows; this constant is retained only
+# so the Migration 016 file (which we do NOT modify) keeps parsing.
+CLASS_LEGACY_KNOWN = "LEGACY_TENANT_KNOWN"
+
 
 def _is_cloud_mode() -> bool:
     """Read deployment mode directly from env (test-safe).
@@ -151,6 +195,10 @@ def classify_modern_write(
 
 __all__ = [
     "CLASS_MODERN_SYSTEM",
+    "CLASS_LEGACY_VERIFIED",
+    "CLASS_LEGACY_INFERRED",
+    "CLASS_LEGACY_AMBIGUOUS",
+    "CLASS_LEGACY_KNOWN",
     "TenancyViolationError",
     "assert_tenancy_for_write",
     "classify_modern_write",

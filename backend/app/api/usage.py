@@ -92,10 +92,18 @@ async def get_usage_summary(
     # even when run_history had rows with non-zero cost_usd. Aggregate the
     # actual LLM cost here. (Column name says "usd" for legacy reasons; per
     # Phase 5 A2 the value is CNY. See CLAUDE.md §货币约定.)
+    # Phase A1A Gate 3.2 §1 — exclude non-tenant-visible rows from every
+    # aggregate. Without this filter, costs from QUARANTINED / UNKNOWN
+    # rows would leak into the tenant's usage summary.
+    from app.services.tenant_read_policy import apply_tenant_visibility_filter
+
     cost_query = (
         select(func.coalesce(func.sum(RunHistoryModel.cost_usd), 0.0))
         .where(RunHistoryModel.user_id == str(user.id))
         .where(RunHistoryModel.created_at >= since)
+    )
+    cost_query = apply_tenant_visibility_filter(
+        cost_query, RunHistoryModel.tenancy_classification,
     )
     if agent_id:
         cost_query = cost_query.where(RunHistoryModel.agent_id == agent_id)
@@ -122,6 +130,9 @@ async def get_usage_summary(
         .where(RunHistoryModel.created_at >= since)
         .group_by(func.date(RunHistoryModel.created_at))
         .order_by(func.date(RunHistoryModel.created_at).asc())
+    )
+    daily_query = apply_tenant_visibility_filter(
+        daily_query, RunHistoryModel.tenancy_classification,
     )
     if agent_id:
         daily_query = daily_query.where(RunHistoryModel.agent_id == agent_id)
@@ -208,6 +219,11 @@ async def get_usage_by_agent(
         .group_by(RunHistoryModel.agent_id)
         .order_by(func.coalesce(func.sum(RunHistoryModel.cost_usd), 0.0).desc())
     )
+    # Phase A1A Gate 3.2 §1 — exclude non-tenant-visible rows.
+    from app.services.tenant_read_policy import apply_tenant_visibility_filter
+    stmt = apply_tenant_visibility_filter(
+        stmt, RunHistoryModel.tenancy_classification,
+    )
     if api_client_id:
         if api_client_id.lower() == "console":
             stmt = stmt.where(RunHistoryModel.api_client_id.is_(None))
@@ -267,6 +283,8 @@ async def get_usage_by_client(
     # We compute two GROUP BY queries: one for partner-attributed runs and
     # one for Console-only (api_client_id IS NULL). The Console bucket is
     # labeled "console" in the response so the UI can render it consistently.
+    # Phase A1A Gate 3.2 §1 — exclude non-tenant-visible rows from both.
+    from app.services.tenant_read_policy import apply_tenant_visibility_filter
     partner_stmt = (
         select(
             RunHistoryModel.api_client_id.label("api_client_id"),
@@ -280,6 +298,9 @@ async def get_usage_by_client(
         .group_by(RunHistoryModel.api_client_id)
         .order_by(func.coalesce(func.sum(RunHistoryModel.cost_usd), 0.0).desc())
     )
+    partner_stmt = apply_tenant_visibility_filter(
+        partner_stmt, RunHistoryModel.tenancy_classification,
+    )
     partner_rows = (await db.execute(partner_stmt)).all()
 
     console_stmt = (
@@ -291,6 +312,9 @@ async def get_usage_by_client(
         .where(RunHistoryModel.user_id == str(user.id))
         .where(RunHistoryModel.created_at >= since)
         .where(RunHistoryModel.api_client_id.is_(None))
+    )
+    console_stmt = apply_tenant_visibility_filter(
+        console_stmt, RunHistoryModel.tenancy_classification,
     )
     console_row = (await db.execute(console_stmt)).one_or_none()
 
@@ -326,12 +350,18 @@ async def get_usage_history(
     db: AsyncSession = Depends(get_db),
 ):
     """Get usage history from audit logs"""
-    result = await db.execute(
+    # Phase A1A Gate 3.2 §1 — exclude non-tenant-visible rows.
+    from app.services.tenant_read_policy import apply_tenant_visibility_filter
+    stmt = (
         select(AuditLog)
         .where(AuditLog.user_id == user.id)
         .order_by(AuditLog.created_at.desc())
         .limit(100)
     )
+    stmt = apply_tenant_visibility_filter(
+        stmt, AuditLog.tenancy_classification, also_exclude_null=True,
+    )
+    result = await db.execute(stmt)
     logs = result.scalars().all()
 
     return {

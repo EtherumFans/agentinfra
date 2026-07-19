@@ -18,6 +18,15 @@ Phase 3-D2 Task 1 changes:
     (don't leak cross-org run existence).
   - The endpoint never redacts — the store is ALREADY display-safe
     (DbRunTraceStore.append runs a defensive scan before insert).
+
+Phase A1A Gate 3.2 changes:
+  - ``list_run_history`` now applies ``apply_tenant_visibility_filter``
+    so ``LEGACY_TENANT_UNKNOWN`` / ``LEGACY_TENANT_AMBIGUOUS`` /
+    ``QUARANTINED`` / ``MODERN_SYSTEM`` rows are excluded from the
+    list response. They remain in the DB for forensics but are
+    invisible to normal tenant reads (charter §3.2).
+  - ``_get_run_trace_impl`` (Gate 3.5) will add a point-read visibility
+    guard + RunHistory.organization_id cross-check.
 """
 
 from __future__ import annotations
@@ -34,6 +43,36 @@ from app.middleware.tenant_extractor import get_request_tenant
 router = APIRouter(prefix="/api/runtime", tags=["run-trace"])
 
 
+# ── Phase A1A Gate 3.6 — system-scope audit helper ────────────────
+
+
+async def _emit_console_system_audit(
+    *,
+    action: str,
+    run_id: str,
+    details: dict[str, Any] | None = None,
+) -> None:
+    """Best-effort MODERN_SYSTEM audit row for Console trace denials."""
+    try:
+        from app.services.system_audit import system_audit
+        from app.database import AsyncSessionLocal
+        async with AsyncSessionLocal() as db:
+            await system_audit(
+                db,
+                action=action,
+                resource_type="run_history",
+                resource_id=run_id,
+                details=details,
+            )
+            await db.commit()
+    except Exception as audit_err:  # pragma: no cover — defensive
+        import logging as _logging
+        _logging.getLogger("app.api.run_trace.console").error(
+            "system_audit emit failed: %s (action=%s run_id=%s)",
+            audit_err, action, run_id,
+        )
+
+
 async def _get_run_trace_impl(
     run_id: str,
     format: str,
@@ -41,6 +80,69 @@ async def _get_run_trace_impl(
 ) -> dict[str, Any]:
     store = get_default_store()
     org_id: Optional[str] = get_request_tenant(request)
+
+    # ── Phase A1A Gate 3.5 (F05 carry-over) — defence-in-depth ──
+    # Before reading any trace events, cross-check RunHistory's
+    # organization_id and tenancy_classification. Two scenarios:
+    #
+    #   1. Run belongs to a different org than the requesting tenant.
+    #      Even though trace events are filtered by get_run_scoped
+    #      with org_id, the run_history row carries the authoritative
+    #      org. Stale trace events with NULL org_id on the event row
+    #      could otherwise sneak through.
+    #   2. Run is QUARANTINED / UNKNOWN / AMBIGUOUS / MODERN_SYSTEM.
+    #      Per charter §3.2 these are invisible to tenant reads;
+    #      Console trace reads are tenant reads.
+    #
+    # Both paths return the same 404 shape as "no events" so no
+    # existence leaks. Denials are logged; Gate 3.6 will route them
+    # to system_audit.
+    import logging as _logging
+    _log = _logging.getLogger("app.api.run_trace.console")
+    from app.database import AsyncSessionLocal
+    from app.services.run_lifecycle import get_run_status
+    from app.services.tenant_read_policy import is_tenant_visible
+
+    async with AsyncSessionLocal() as db:
+        console_row = await get_run_status(db, run_id=run_id)
+    if console_row is not None:
+        if (
+            console_row.organization_id is not None
+            and org_id is not None
+            and console_row.organization_id != org_id
+        ):
+            _log.warning(
+                "console.trace.denied org_mismatch run_id=%s request_org=%s row_org=%s",
+                run_id, org_id, console_row.organization_id,
+            )
+            await _emit_console_system_audit(
+                action="trace.read.denied.org_mismatch",
+                run_id=run_id,
+                details={"request_org": org_id, "row_org": console_row.organization_id},
+            )
+            raise HTTPException(
+                status_code=404,
+                detail=f"no trace events for run_id {run_id!r}",
+            )
+        if not is_tenant_visible(
+            getattr(console_row, "tenancy_classification", None)
+        ):
+            _log.warning(
+                "console.trace.denied invisible_classification run_id=%s classification=%s",
+                run_id, getattr(console_row, "tenancy_classification", None),
+            )
+            await _emit_console_system_audit(
+                action="trace.read.denied.invisible_classification",
+                run_id=run_id,
+                details={
+                    "classification": getattr(console_row, "tenancy_classification", None),
+                    "path": "console",
+                },
+            )
+            raise HTTPException(
+                status_code=404,
+                detail=f"no trace events for run_id {run_id!r}",
+            )
 
     # DB store may block the event loop briefly; run in threadpool.
     if hasattr(store, "get_run_scoped"):
@@ -146,6 +248,15 @@ async def list_run_history(
             if days > 0:
                 cutoff = datetime.now(timezone.utc) - timedelta(days=days)
                 stmt = stmt.where(RunHistoryModel.created_at >= cutoff)
+            # Phase A1A Gate 3.2 §1 — exclude non-tenant-visible rows
+            # (LEGACY_TENANT_UNKNOWN / AMBIGUOUS / QUARANTINED /
+            # MODERN_SYSTEM / NULL classification). They remain in the
+            # DB for forensics but never appear in normal tenant reads.
+            from app.services.tenant_read_policy import apply_tenant_visibility_filter
+            stmt = apply_tenant_visibility_filter(
+                stmt, RunHistoryModel.tenancy_classification,
+                also_exclude_null=True,
+            )
             rows = session.execute(stmt).scalars().all()
             items = [
                 {

@@ -88,6 +88,7 @@ def seeded_db(client: TestClient):
                     runtime_mode="corti_like_fast",
                     status="COMPLETED",
                     created_at=now,
+                    tenancy_classification="MODERN",
                 )
                 db.add(row)
             await db.commit()
@@ -321,6 +322,7 @@ def test_by_client_omits_console_bucket_when_no_console_runs(
                         runtime_mode="corti_like_fast",
                         status="COMPLETED",
                         created_at=datetime.now(UTC),
+                        tenancy_classification="MODERN",
                     ))
                 await db.commit()
         asyncio.run(_restore())

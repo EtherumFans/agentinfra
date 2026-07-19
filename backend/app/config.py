@@ -84,6 +84,15 @@ class Settings(BaseSettings):
             )
         if self.DEBUG:
             failures.append("DEBUG=true is forbidden in cloud mode")
+        # Phase A1A Gate 3.3 §3 — trace persistence must be DB-backed in
+        # cloud mode. Memory store loses all events on process restart,
+        # which violates the "trace survives the run" guarantee the
+        # Console RunTrace page relies on for audit.
+        if self.RUNTRACE_STORE != "db":
+            failures.append(
+                f"RUNTRACE_STORE={self.RUNTRACE_STORE!r}; must be 'db' in "
+                "cloud mode (memory store loses trace events on restart)"
+            )
         if failures:
             joined = "\n  - ".join(failures)
             raise RuntimeError(
@@ -154,6 +163,19 @@ class Settings(BaseSettings):
     # sync contexts (inbound_handler / _SimpleAgentDispatchHandler are sync).
     # See app/icoder/agent_runtime/orchestrator/run_trace.py.
     RUNTRACE_STORE: str = "memory"  # memory | db
+
+    # ── Phase A1A Gate 3.3 — fail-closed trace persistence ─────────────────
+    # When True: cloud-mode deployment MUST use RUNTRACE_STORE=db. If a
+    # process boots with memory store in cloud mode, Settings validation
+    # raises and the process refuses to start. Local dev keeps memory
+    # store as the default for tests that don't touch DB.
+    #
+    # When a DB write fails inside DbRunTraceStore.append, the failure
+    # is recorded on the run_history row (trace_capture_status=FAILED)
+    # and the run itself is allowed to continue. Setting this to True
+    # would propagate the exception to the caller instead — useful for
+    # compliance environments that demand strict "no trace left behind".
+    RUNTRACE_FAIL_CLOSED: bool = False
 
     # ── Data Paths ────────────────────────────────────────────────────────────
     # Local dev uses ./data/ subtree. Cloud loads from region-scoped object

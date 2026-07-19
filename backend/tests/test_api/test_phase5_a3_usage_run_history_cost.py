@@ -67,12 +67,14 @@ def _insert_run_history_row(
                     INSERT INTO run_history
                         (id, organization_id, user_id, agent_id, run_id, trace_id,
                          runtime_mode, latency_ms, cost_usd, input_text,
-                         output_summary, error, error_reason, created_at, updated_at)
+                         output_summary, error, error_reason, created_at, updated_at,
+                         tenancy_classification)
                     VALUES
                         (:id, :org_id, :user_id, :agent_id, :run_id, :trace_id,
                          :runtime_mode, :latency_ms, :cost_usd, :input_text,
                          :output_summary, :error, :error_reason,
-                         :created_at, :created_at)
+                         :created_at, :created_at,
+                         'MODERN')
                 """),
                 {
                     "id": secrets.token_hex(6),

@@ -98,12 +98,16 @@ def _count_trace_capture_status(db_path: str, status: str) -> int:
 
 
 def test_fresh_sqlite_applies_all_migrations_to_head(tmp_path) -> None:
-    """On a brand-new DB, ``alembic upgrade head`` applies all 20
-    migrations and lands at version 020.
+    """On a brand-new DB, ``alembic upgrade head`` applies all 21
+    migrations and lands at version 021.
 
-    This catches ordering bugs (e.g. Migration 020 references a
-    column that Migration 019 didn't add) that wouldn't surface
+    This catches ordering bugs (e.g. Migration 021 references a
+    column that Migration 020 didn't add) that wouldn't surface
     on a partially-migrated DB.
+
+    Phase A1A Gate 4.2 advanced head from 020 → 021 by adding
+    NOT NULL + CHECK on encounters/documents/cdi_cases.organization_id
+    (closes GATE3_015).
     """
     db_path = str(tmp_path / "fresh.db")
     result = _run_alembic(db_path, "upgrade", "head")
@@ -111,7 +115,7 @@ def test_fresh_sqlite_applies_all_migrations_to_head(tmp_path) -> None:
         f"alembic upgrade head failed on fresh DB:\n"
         f"stdout: {result.stdout}\nstderr: {result.stderr}"
     )
-    assert _alembic_version(db_path) == "020"
+    assert _alembic_version(db_path) == "021"
     # Verify the new columns landed
     assert _column_exists(db_path, "run_trace_events", "event_id")
     assert _column_exists(db_path, "run_trace_events", "sequence_number")
@@ -130,14 +134,14 @@ def test_migration_020_idempotent_rerun(tmp_path) -> None:
     db_path = str(tmp_path / "existing.db")
     first = _run_alembic(db_path, "upgrade", "head")
     assert first.returncode == 0
-    assert _alembic_version(db_path) == "020"
+    assert _alembic_version(db_path) == "021"
 
     # Re-run — alembic should succeed silently (no-op when already at head)
     second = _run_alembic(db_path, "upgrade", "head")
     assert second.returncode == 0, (
         f"second upgrade should be no-op; stderr: {second.stderr}"
     )
-    assert _alembic_version(db_path) == "020"
+    assert _alembic_version(db_path) == "021"
 
 
 # ────────────────────────────────────────────────────────────────────
@@ -146,34 +150,29 @@ def test_migration_020_idempotent_rerun(tmp_path) -> None:
 
 
 def test_downgrade_upgrade_roundtrip(tmp_path) -> None:
-    """020 → 019 → 020 lands at the same schema state.
+    """021 → 020 → 021 lands at the same schema state.
 
-    Downgrade drops the 4 new columns + narrows the CHECK; upgrade
-    re-adds them. The backfill (NULL → NEVER_CAPTURED_LEGACY) is
-    NOT round-trip-preserving on the dev DB because the downgrade
-    reverts backfilled rows to NULL. We verify column presence +
-    alembic version only, not row state.
+    Phase A1A Gate 4.2: head is now 021 (Migration 021 added NOT
+    NULL + CHECK on clinical tables). Downgrade -1 returns to 020
+    (Gate 3R.4 state) and upgrade head re-applies Migration 021.
     """
     db_path = str(tmp_path / "roundtrip.db")
     up1 = _run_alembic(db_path, "upgrade", "head")
     assert up1.returncode == 0
-    assert _alembic_version(db_path) == "020"
+    assert _alembic_version(db_path) == "021"
     assert _column_exists(db_path, "run_trace_events", "event_id")
 
-    # Downgrade one step → 019
+    # Downgrade one step → 020 (Migration 021 reversed)
     down = _run_alembic(db_path, "downgrade", "-1")
     assert down.returncode == 0, (
         f"downgrade -1 failed:\nstdout: {down.stdout}\nstderr: {down.stderr}"
     )
-    assert _alembic_version(db_path) == "019"
-    # Columns should be gone
-    assert not _column_exists(db_path, "run_trace_events", "event_id")
-    assert not _column_exists(db_path, "run_trace_events", "sequence_number")
+    assert _alembic_version(db_path) == "020"
 
-    # Upgrade back to head → 020
+    # Upgrade back to head → 021
     up2 = _run_alembic(db_path, "upgrade", "head")
     assert up2.returncode == 0
-    assert _alembic_version(db_path) == "020"
+    assert _alembic_version(db_path) == "021"
     assert _column_exists(db_path, "run_trace_events", "event_id")
 
 
@@ -225,7 +224,7 @@ def test_interrupted_recovery_completes_on_retry(tmp_path) -> None:
         f"recovery upgrade failed:\nstdout: {recovery.stdout}\n"
         f"stderr: {recovery.stderr}"
     )
-    assert _alembic_version(db_path) == "020"
+    assert _alembic_version(db_path) == "021"
     assert _column_exists(db_path, "run_trace_events", "event_id")
 
 
@@ -301,7 +300,7 @@ def test_all_migrations_have_unique_revisions() -> None:
 
 def test_migration_chain_is_contiguous() -> None:
     """The down_revision chain forms a single linear sequence
-    001 → 002 → ... → 020."""
+    001 → 002 → ... → 021."""
     import re
     chain = {}  # revision → down_revision
     for path in sorted(_VERSIONS_DIR.glob("*.py")):
@@ -315,8 +314,8 @@ def test_migration_chain_is_contiguous() -> None:
         down = down_m.group(1) if down_m else None
         chain[rev_m.group(1)] = down
 
-    # Walk back from 020 to the root
-    head = "020"
+    # Walk back from 021 to the root
+    head = "021"
     visited = []
     current = head
     while current is not None:
@@ -325,9 +324,9 @@ def test_migration_chain_is_contiguous() -> None:
         current = chain[current]
         # Safety: don't loop forever
         assert len(visited) <= 30, "chain too long — possible cycle"
-    # We should have walked through all 21 migrations (including the
+    # We should have walked through all 22 migrations (including the
     # initial afeb04d02665_001_initial_all_tables.py)
-    assert len(visited) >= 20, (
+    assert len(visited) >= 21, (
         f"chain too short — only walked {len(visited)} steps: {visited}"
     )
     # Head should be in the visited set

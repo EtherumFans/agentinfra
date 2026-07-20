@@ -58,61 +58,104 @@ def _is_tenant_exempt(path: str) -> bool:
 class TenantHeaderMiddleware(BaseHTTPMiddleware):
     """Parse and validate the ``Tenant-Name`` header.
 
-    Behaviour matrix:
+    Behaviour matrix (Phase A1A Gate 4.2 — authoritative source = JWT):
 
-    * **Local mode + no header + no JWT** — pass-through (single-tenant dev).
-    * **Local mode + header + JWT** — header must match JWT ``org_id`` else
-      400 ``tenant_header_mismatch``.
-    * **Local mode + header + no JWT** — header is recorded on ``request.state``
-      so the handler can use it for log scoping; no error.
-    * **Cloud mode + missing header (authed call)** — 400 ``tenant_header_required``.
-    * **Cloud mode + header mismatch with JWT ``org_id``** — 400 ``tenant_header_mismatch``.
+    The authoritative tenant derivation is now ALWAYS the JWT ``org_id``
+    claim, never the header. The header is a non-authoritative hint
+    used only for log scoping. This closes GATE3R_011 (frontend did
+    not send Tenant-Name) and removes the local-dev silent-bypass risk.
+
+    * **JWT present** — ``request.state.tenant_name`` is set to the JWT
+      ``org_id`` claim. Header value, if sent, is recorded separately
+      on ``request.state.tenant_header_hint`` for audit log scoping.
+      If the header disagrees with the JWT → 400 ``tenant_header_mismatch``.
+    * **JWT absent + cloud mode** — 400 ``tenant_header_required`` (cloud
+      requires authentication, and authentication carries the org claim).
+    * **JWT absent + local mode + ``ICODER_SINGLE_TENANT_ORG_ID`` set** —
+      ``request.state.tenant_name`` is set to the configured single-tenant
+      org. Header is ignored if present (with a warning logged if it
+      disagrees).
+    * **JWT absent + local mode + no single-tenant config** — 400
+      ``tenant_context_required``. Silent pass-through is no longer
+      permitted (was the GATE3R_011 leak vector).
+    * **Tenant-exempt paths** (``/api/health``, ``/docs``, ``/api/oauth/``)
+      — pass-through as before; no org derivation.
+
+    The ``get_request_tenant`` accessor still returns
+    ``request.state.tenant_name``. Existing call sites (e.g. the console
+    trace path) now read the JWT-derived value, not a missing header.
     """
 
     async def dispatch(self, request: Request, call_next):
-        request.state.tenant_name = _read_tenant_header(request)
+        header_hint = _read_tenant_header(request)
+        request.state.tenant_header_hint = header_hint
 
         if _is_tenant_exempt(request.url.path):
+            request.state.tenant_name = header_hint
             return await call_next(request)
 
-        tenant_state = request.state.tenant_name
-
-        # If a bearer token is attached, peek at its ``org_id`` claim so we
-        # can cross-check without forcing every middleware consumer to also
-        # decode the JWT.
+        # ── Authoritative org derivation ──────────────────────────
+        # JWT org_id wins. Header is hint-only.
         auth_header = request.headers.get("authorization", "")
         jwt_org_id: Optional[str] = None
         if auth_header.lower().startswith("bearer "):
             token = auth_header.split(" ", 1)[1].strip()
             jwt_org_id = _peek_jwt_org_id(token)
 
-        # Cross-check when both pieces are present.
-        if tenant_state and jwt_org_id and tenant_state != jwt_org_id:
+        authoritative_org: Optional[str] = None
+        rejection: Optional[tuple[str, str]] = None
+
+        if jwt_org_id:
+            # Header (if present) must agree with JWT.
+            if header_hint and header_hint != jwt_org_id:
+                rejection = (
+                    "tenant_header_mismatch",
+                    (
+                        f"X-Tenant/Tenant-Name header ({header_hint!r}) does not "
+                        f"match the tenant claim in the bearer JWT ({jwt_org_id!r}). "
+                        "The JWT org_id is authoritative; the header is a hint."
+                    ),
+                )
+            authoritative_org = jwt_org_id
+        else:
+            # No JWT. Cloud mode requires authentication — reject.
+            if settings.ICODER_DEPLOYMENT_MODE == "cloud":
+                rejection = (
+                    "tenant_header_required",
+                    (
+                        "Cloud mode requires an authenticated bearer token; the "
+                        "tenant context is derived from the token's org_id claim."
+                    ),
+                )
+            else:
+                # Local mode: fall back to explicit single-tenant config.
+                single_tenant_org = _single_tenant_org_id()
+                if single_tenant_org:
+                    authoritative_org = single_tenant_org
+                    if header_hint and header_hint != single_tenant_org:
+                        logger.warning(
+                            "Tenant-Name hint %r disagrees with "
+                            "ICODER_SINGLE_TENANT_ORG_ID=%r; using the latter.",
+                            header_hint, single_tenant_org,
+                        )
+                else:
+                    rejection = (
+                        "tenant_context_required",
+                        (
+                            "No authenticated tenant context. Set "
+                            "ICODER_SINGLE_TENANT_ORG_ID for local single-tenant "
+                            "mode, or supply a bearer token with an org_id claim."
+                        ),
+                    )
+
+        if rejection is not None:
+            detail, message = rejection
             return JSONResponse(
                 status_code=400,
-                content={
-                    "detail": "tenant_header_mismatch",
-                    "message": (
-                        f"X-Tenant/Tenant-Name header ({tenant_state!r}) does not match "
-                        f"the tenant claim in the bearer JWT ({jwt_org_id!r})."
-                    ),
-                },
+                content={"detail": detail, "message": message},
             )
 
-        # Cloud mode: require a tenant header for any authenticated path.
-        if settings.ICODER_DEPLOYMENT_MODE == "cloud":
-            if not tenant_state:
-                return JSONResponse(
-                    status_code=400,
-                    content={
-                        "detail": "tenant_header_required",
-                        "message": (
-                            "Cloud mode requires Tenant-Name (or X-Tenant) header "
-                            "on all authenticated API calls."
-                        ),
-                    },
-                )
-
+        request.state.tenant_name = authoritative_org
         return await call_next(request)
 
 
@@ -131,6 +174,23 @@ def _read_tenant_header(request: Request) -> Optional[str]:
         if value:
             return value.strip()
     return None
+
+
+def _single_tenant_org_id() -> Optional[str]:
+    """Local-dev fallback org for unauthenticated requests.
+
+    Returns ``settings.ICODER_SINGLE_TENANT_ORG_ID`` stripped of
+    whitespace. Empty string → ``None`` (treated as unset). This is
+    ONLY consulted when no bearer JWT is present, and ONLY in local
+    deployment mode — cloud mode rejects unauthenticated requests
+    earlier in the dispatch matrix.
+
+    Reading from Settings (not os.environ directly) means tests can
+    monkey-patch the value via the ``ICODER_SINGLE_TENANT_ORG_ID`` env
+    var or by overriding the field on the singleton.
+    """
+    value = (settings.ICODER_SINGLE_TENANT_ORG_ID or "").strip()
+    return value or None
 
 
 def _peek_jwt_org_id(token: str) -> Optional[str]:

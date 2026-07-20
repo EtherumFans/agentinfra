@@ -57,8 +57,8 @@ class CDICaseModel(Base, TimestampMixin):
 
     # Identifiers
     id: Mapped[str] = mapped_column(String(64), primary_key=True)
-    organization_id: Mapped[Optional[str]] = mapped_column(
-        String(12), ForeignKey("organizations.id"), nullable=True, index=True,
+    organization_id: Mapped[str] = mapped_column(
+        String(12), ForeignKey("organizations.id"), nullable=False, index=True,
     )
     patient_ref: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
     encounter_ref: Mapped[str] = mapped_column(String(128), nullable=False, index=True)

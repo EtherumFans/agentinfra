@@ -911,6 +911,7 @@ Maintain a professional, empathetic tone. Do not diagnose — present screening 
             )
             if not enc_result.scalar_one_or_none():
                 encounter = Encounter(
+                    organization_id=default_org.id,
                     encounter_id=dc["encounter_id"],
                     patient_id=f"PT-{dc['encounter_id']}",
                     department=dc["department"],
@@ -925,6 +926,7 @@ Maintain a professional, empathetic tone. Do not diagnose — present screening 
                 # Add documents
                 for i, doc_data in enumerate(dc["documents"]):
                     doc = Document(
+                        organization_id=default_org.id,
                         encounter_id=encounter.id,
                         doc_type=doc_data["doc_type"],
                         title=doc_data["title"],

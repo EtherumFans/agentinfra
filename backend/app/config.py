@@ -84,6 +84,22 @@ class Settings(BaseSettings):
             )
         if self.DEBUG:
             failures.append("DEBUG=true is forbidden in cloud mode")
+        # Phase A1A Gate 4.4 — cloud mode requires at-rest PHI encryption.
+        # Without it, a stolen DB file (backup mishandling, snapshot leak,
+        # dev-laptop theft) yields all PHI columns in plaintext.
+        from app.services.phi_encryption import is_encryption_enabled
+        if not is_encryption_enabled():
+            failures.append(
+                "ICODER_PHI_ENCRYPTION_KEY is empty; required in cloud mode "
+                "(generate: python -c \"from cryptography.fernet import Fernet; "
+                "print(Fernet.generate_key().decode())\")"
+            )
+        # Phase A1A Gate 4.3 escape hatch must NOT be set in cloud mode.
+        if os.environ.get("ICODER_PHI_REDACTION_BYPASS", "0") in ("1", "true", "True"):
+            failures.append(
+                "ICODER_PHI_REDACTION_BYPASS is set; forbidden in cloud mode "
+                "(would disable fail-closed PHI redaction)"
+            )
         # Phase A1A Gate 3.3 §3 — trace persistence must be DB-backed in
         # cloud mode. Memory store loses all events on process restart,
         # which violates the "trace survives the run" guarantee the
@@ -240,6 +256,20 @@ class Settings(BaseSettings):
     # dev override via docker-compose.local-dev.yml to `disabled`.
     ICODER_PHI_REDACTION_MODE: str = "edge"   # edge | disabled
     ICODER_AUDIT_SINK: str = "cloud_audit"   # cloud_audit | local
+
+    # ── Phase A1A Gate 4.2 — single-tenant org binding (local mode) ───────────
+    # When ICODER_DEPLOYMENT_MODE=local and a request arrives without a bearer
+    # JWT (e.g. console test traffic), the tenant middleware derives the org
+    # from this setting rather than silently passing through. Empty = refuse
+    # the request with tenant_context_required. Closes GATE3R_011 leak vector
+    # where a missing Tenant-Name header caused the console trace path to
+    # skip the org filter and return rows across all tenants.
+    #
+    # Default is the canonical dev/test org ``org_default1`` so the local
+    # docker-compose workflow keeps working without extra env config.
+    # Production (cloud mode) MUST leave this empty — the JWT org_id claim
+    # is the only authoritative source in cloud mode.
+    ICODER_SINGLE_TENANT_ORG_ID: str = "org_default1"
 
     # ── STT (Speech-to-Text) Configuration ────────────────────────────────────
     # Cloud uses server-side STT service, not bundled Whisper. Local dev can

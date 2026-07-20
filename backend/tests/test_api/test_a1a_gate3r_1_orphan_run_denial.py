@@ -328,16 +328,22 @@ def _seed_modern_row(run_id: str, org_id: str) -> None:
 
 def test_console_trace_modern_row_still_served(client: TestClient) -> None:
     """Regression: Console trace path still serves an authoritative
-    MODERN row (orphan-run guard is precise)."""
+    MODERN row (orphan-run guard is precise).
+
+    Phase A1A Gate 4.2: tenant_name resolves from
+    ICODER_SINGLE_TENANT_ORG_ID (``org_default1`` in local mode);
+    Tenant-Name header is hint-only. Seed under org_default1 so the
+    row matches the resolved tenant.
+    """
     run_id = f"run-3r1-modern-console-{secrets.token_hex(4)}"
     _clear_trace()
     _clear_run_history(run_id)
-    _seed_modern_row(run_id, "org-A")
-    _seed_trace_events(run_id, org_id="org-A")
+    _seed_modern_row(run_id, "org_default1")
+    _seed_trace_events(run_id, org_id="org_default1")
     try:
         resp = client.get(
             f"/api/runtime/runs/{run_id}/trace",
-            headers={"Tenant-Name": "org-A"},
+            headers={"Tenant-Name": "org_default1"},
         )
         assert resp.status_code == 200
         body = resp.json()

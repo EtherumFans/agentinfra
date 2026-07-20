@@ -3,6 +3,43 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { User, Review, Encounter } from '../types';
 
+// ── Phase A1A Gate 4.6 — browser storage PHI boundary ─────────────
+//
+// Canonical list of every localStorage key the frontend writes.
+// ``clearAllIcoderBrowserStorage`` wipes all of them on logout so a
+// shared machine does not retain the previous user's templates /
+// preferences / auth state.
+//
+// NOTE: add new keys here when introducing new localStorage writes.
+// The unit test in tests/browser/storage-audit.test.ts (TODO) gates
+// this list against the source-of-truth grep.
+const ICODER_LOCALSTORAGE_KEYS = [
+  'access_token',
+  'refresh_token',
+  'icoder-auth',
+  'icoder-textgen-templates',
+  'icoder-project-name',
+  'icoder-billing-alerts',
+  'icoder-billing-autotopup',
+  'icoder-settings',
+  'icoder-agent-runtime-mode',
+  'icoder-theme',
+];
+
+export function clearAllIcoderBrowserStorage(): void {
+  if (typeof window === 'undefined' || !window.localStorage) return;
+  for (const key of ICODER_LOCALSTORAGE_KEYS) {
+    try { window.localStorage.removeItem(key); } catch { /* ignore */ }
+  }
+}
+
+export function listIcoderBrowserStorageKeys(): string[] {
+  if (typeof window === 'undefined' || !window.localStorage) return [];
+  return ICODER_LOCALSTORAGE_KEYS.filter(k => {
+    try { return window.localStorage.getItem(k) !== null; } catch { return false; }
+  });
+}
+
 export interface OrgInfo {
   id: string;
   name: string;
@@ -42,8 +79,13 @@ export const useAuthStore = create<AuthState>()(
       setOrganizations: (orgs, orgId) => set({ organizations: orgs, currentOrgId: orgId }),
       setCurrentOrgId: (orgId) => set({ currentOrgId: orgId }),
       logout: () => {
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
+        // Phase A1A Gate 4.6 — clear ALL icoder-* localStorage + auth tokens.
+        // Pre-Gate-4.6 only access_token + refresh_token were removed, leaving
+        // icoder-textgen-templates (user-saved templates that may carry pasted
+        // PHI), icoder-billing-*, icoder-settings, and the zustand icoder-auth
+        // blob on disk. On a shared machine a subsequent different user could
+        // inherit the previous user's templates + UI preferences.
+        clearAllIcoderBrowserStorage();
         set({ user: null, accessToken: null, refreshToken: null, isAuthenticated: false, organizations: [], currentOrgId: null });
       },
     }),

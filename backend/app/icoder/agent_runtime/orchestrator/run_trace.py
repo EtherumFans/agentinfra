@@ -95,15 +95,29 @@ class RunTraceEvent:
 
 
 # Known-secret keys that must NEVER appear in safe_metadata.
+# Phase A1A Gate 4.3 — kept for backwards-compatible log messages, but
+# the primary defence is now the ``_SAFE_KEYS`` allowlist below. Any
+# key not on the allowlist is redacted regardless of whether its
+# name matches a known-secret pattern.
 _KNOWN_SECRET_KEYS: frozenset[str] = frozenset({
     "token", "secret", "client_secret", "authorization",
     "password", "refresh_token", "access_token", "api_key",
     "bearer_token", "raw_token",
 })
 
-# Keys that are display-safe by contract — even if their value looks like a
-# token blob (e.g. ``redacted_view = "Bearer ••••12"``), they are the canonical
-# redacted form, NOT a raw credential. Skip the token-blob scan for these.
+# Phase A1A Gate 4.3 — TRUE ALLOWLIST (not blacklist-with-heuristics).
+#
+# Every key the emit sites legitimately write to safe_metadata is
+# listed here. Any key NOT on this list is replaced with
+# ``[REDACTED]`` before the DB persist, regardless of value shape.
+# This closes the ``T-CC-1`` live-path leak vector flagged in the
+# Gate 4.1 threat model: an emit site that accidentally writes a
+# new PHI-carrying field will be caught at the chokepoint.
+#
+# To add a new key: (1) confirm the value is display-safe (no PHI,
+# no credentials, no free-form user input); (2) add the key here;
+# (3) add a test in ``test_a1a_gate4_3_live_path_redaction.py``
+# that exercises the new emit path.
 _SAFE_KEYS: frozenset[str] = frozenset({
     "redacted_view", "auth_type", "granted_scopes", "required_scopes",
     "tool_name", "tool_count", "tool_names", "handler_ref", "error",
@@ -111,18 +125,26 @@ _SAFE_KEYS: frozenset[str] = frozenset({
     "input_len", "review_conclusion", "issues_count", "experts",
     "expert_id", "reason", "stage",
     # ── Phase 4-A (2026-07-07): Agent Backend Provider metadata ──
-    # These keys are emitted by AgentBackendProvider.invoke() into the
-    # TOOLS_CALL / EXPERT_RESPONSE / OUTPUT_GENERATED safe_metadata so
-    # RunTracePage can render a "Backend Provider" summary panel.
     "backend_provider", "backend_type", "provider_latency_ms",
     "provider_status", "provider_deterministic",
     "supports_tool_calling", "fallback_used", "output_contract",
     "tool_rounds",
+    # ── Phase A1A Gate 3R.4 — trace identity context (underscore-prefixed) ──
+    # These are popped before persist (used for row attribution, not
+    # stored in safe_metadata_json). Listed here so the redactor does
+    # not log a spurious warning when the emit site stashes them.
+    "_organization_id", "_project_id", "_user_id", "_actor_id",
+    "_trace_id",
 })
 
 
 def _is_token_blob(value: Any) -> bool:
-    """Heuristic: does this string value look like a raw token?"""
+    """Heuristic: does this string value look like a raw token?
+
+    Retained for the ``_KNOWN_SECRET_KEYS`` log message and for any
+    future diagnostic. The primary Gate 4.3 defence is the
+    allowlist; this helper only informs the log severity.
+    """
     if not isinstance(value, str):
         return False
     if value.startswith("Bearer "):
@@ -137,15 +159,19 @@ def _is_token_blob(value: Any) -> bool:
 
 
 def _redact_safe_metadata(safe_metadata: dict[str, Any]) -> dict[str, Any]:
-    """Defensive last-mile redaction before DB persist.
+    """Allowlist-based last-mile redaction before DB persist.
 
-    The emit sites are supposed to write only display-safe fields,
-    but if a future caller accidentally writes a raw token, this
-    scan blanks the offending field + logs a warning.
+    Phase A1A Gate 4.3 closes the ``blacklist-with-heuristics`` gap
+    flagged in the Gate 4.1 threat model (T-CC-1). The previous
+    implementation only blanked a key when (a) its name matched a
+    known-secret pattern OR (b) its value looked like a token blob.
+    A new emit site that wrote e.g. ``{"patient_name": "张三"}`` would
+    pass through unchallenged because the name does not match the
+    known-secret list and the value does not look like a token.
 
-    Skips the token-blob scan for keys in ``_SAFE_KEYS`` (e.g.
-    ``redacted_view`` is allowed to be ``"Bearer ••••12"`` — that's
-    the canonical redacted form, not a raw credential).
+    The new model is strict: only keys in ``_SAFE_KEYS`` survive.
+    Every other key is replaced with ``[REDACTED]`` and a warning
+    is logged so an operator notices the emit-site bug.
 
     Does NOT mutate the input dict; returns a scrubbed copy.
     """
@@ -153,22 +179,22 @@ def _redact_safe_metadata(safe_metadata: dict[str, Any]) -> dict[str, Any]:
         return {}
     scrubbed: dict[str, Any] = {}
     for key, value in safe_metadata.items():
-        key_lower = key.lower()
-        if any(secret in key_lower for secret in _KNOWN_SECRET_KEYS):
-            logger.warning(
-                "run_trace redaction: blanking secret key %r in safe_metadata",
-                key,
-            )
-            scrubbed[key] = "[REDACTED]"
+        if key in _SAFE_KEYS:
+            scrubbed[key] = value
             continue
-        if key not in _SAFE_KEYS and _is_token_blob(value):
-            logger.warning(
-                "run_trace redaction: blanking token-blob value for key %r",
-                key,
-            )
-            scrubbed[key] = "[REDACTED]"
-            continue
-        scrubbed[key] = value
+        # Anything not on the allowlist is redacted. Log the key name
+        # (not the value) so an operator can trace the emit-site bug
+        # without us leaking the offending value through the log.
+        severity = "warning" if _is_token_blob(value) else "info"
+        log_msg = (
+            "run_trace redaction (Gate 4.3 allowlist): "
+            "redacting key %r not in _SAFE_KEYS"
+        )
+        if severity == "warning":
+            logger.warning(log_msg, key)
+        else:
+            logger.info(log_msg, key)
+        scrubbed[key] = "[REDACTED]"
     return scrubbed
 
 

@@ -44,6 +44,18 @@ async def log_action(
         organization_id, "audit_logs",
         allow_null_org=allow_null_org,
     )
+    # Phase A1A Gate 4.3 — minimum-necessary-data chokepoint.
+    # Regardless of what the caller passes, the audit row is scrubbed
+    # before persist. This closes the live-path leak where an emit
+    # site writes e.g. details={"patient_name": "张三"} and the
+    # patient name lands in the audit_log.details JSON column.
+    # See app/services/audit_detail_redactor.py for the policy.
+    from app.services.audit_detail_redactor import (
+        redact_audit_details, redact_audit_summary,
+    )
+    safe_details = redact_audit_details(details)
+    safe_input_summary = redact_audit_summary(model_input_summary)
+    safe_output_summary = redact_audit_summary(model_output_summary)
     try:
         log_entry = AuditLog(
             organization_id=organization_id,
@@ -52,13 +64,13 @@ async def log_action(
             action=action,
             resource_type=resource_type,
             resource_id=resource_id,
-            details=details,
+            details=safe_details,
             ip_address=ip_address,
             user_agent=user_agent,
             status=status,
             error_message=error_message,
-            model_input_summary=model_input_summary,
-            model_output_summary=model_output_summary,
+            model_input_summary=safe_input_summary,
+            model_output_summary=safe_output_summary,
             model_version=model_version,
             tool_calls_made=tool_calls_made,
             tokens_used=tokens_used,

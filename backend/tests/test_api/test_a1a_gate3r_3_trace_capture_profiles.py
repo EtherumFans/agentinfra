@@ -397,6 +397,9 @@ def test_cloud_mode_required_db_profile_accepted(monkeypatch) -> None:
     monkeypatch.setenv("ICODER_API_CLIENT_ID", "c1")
     monkeypatch.setenv("ICODER_API_CLIENT_SECRET", "s1")
     monkeypatch.setenv("ICODER_SECRET_KEY", "x" * 48)
+    # Phase A1A Gate 4.4 — cloud mode also requires PHI encryption key.
+    from cryptography.fernet import Fernet
+    monkeypatch.setenv("ICODER_PHI_ENCRYPTION_KEY", Fernet.generate_key().decode())
     monkeypatch.setenv("RUNTRACE_STORE", "db")
     monkeypatch.setenv("RUNTRACE_FAIL_CLOSED", "false")
     monkeypatch.setenv("RUNTRACE_DEPLOYMENT_PROFILE", "REQUIRED_DB")

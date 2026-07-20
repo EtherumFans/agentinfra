@@ -87,6 +87,8 @@ SYSTEM_AUDIT_ACTIONS: frozenset[str] = frozenset({
     "idempotency.dedup",
     "context.clear",
     "api_client.rotate",
+    # Phase A1A Gate 4.7 — retention purge events (per-tenant + system-scope).
+    "retention.purge",
 })
 
 # Source string values, mirrored in model column comments.

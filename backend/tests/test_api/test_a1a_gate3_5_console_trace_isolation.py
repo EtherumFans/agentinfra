@@ -172,14 +172,20 @@ def test_console_trace_denied_on_null_classification(
 
 
 def test_console_trace_passes_for_visible_modern(client: TestClient) -> None:
-    """MODERN row + matching tenant → 200 + timeline."""
+    """MODERN row + matching tenant → 200 + timeline.
+
+    Phase A1A Gate 4.2: tenant_name now resolves from
+    ICODER_SINGLE_TENANT_ORG_ID (= ``org_default1`` in local mode)
+    rather than the Tenant-Name header (which is now hint-only).
+    The row must therefore be seeded under ``org_default1`` to match.
+    """
     run_id = f"run-g35-modern-{secrets.token_hex(4)}"
-    _seed_run_row(run_id=run_id, org_id="org-A", classification="MODERN")
-    _seed_trace_events(run_id, org_id="org-A")
+    _seed_run_row(run_id=run_id, org_id="org_default1", classification="MODERN")
+    _seed_trace_events(run_id, org_id="org_default1")
     try:
         resp = client.get(
             f"/api/runtime/runs/{run_id}/trace",
-            headers={"Tenant-Name": "org-A"},
+            headers={"Tenant-Name": "org_default1"},
         )
         assert resp.status_code == 200
         body = resp.json()

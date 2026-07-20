@@ -4,7 +4,7 @@ import type {
   TokenResponse, Encounter, Review, PaginatedResponse,
   CodeSearchResult, RuleResult,
 } from '../types';
-import { useToastStore } from '../store';
+import { useToastStore, useAuthStore } from '../store';
 
 const toast = (msg: string, type: 'error' | 'warning' | 'success') => {
   try { useToastStore.getState().addToast(msg, type); } catch {}
@@ -15,11 +15,28 @@ const api = axios.create({
   timeout: 120000, // 2 min for long-running reviews
 });
 
-// Auto-attach token
+// Auto-attach token + tenant hint.
+//
+// Phase A1A Gate 4.2 — closes GATE3R_011 (frontend did not send
+// Tenant-Name). The backend now treats the header as a non-authoritative
+// hint: the JWT ``org_id`` claim is the source of truth. We still
+// send the header for two reasons:
+//   1. Audit log scoping — backend logs the hint alongside the JWT
+//      value so cross-claim mismatches are visible in forensics.
+//   2. Local-dev single-tenant mode — when no JWT is present (e.g.
+//      unauthenticated health pings), the backend uses the header
+//      to record which tenant the caller *thought* they were hitting.
+// A mismatch between header and JWT now produces 400
+// ``tenant_header_mismatch`` (authoritative source = JWT), so a
+// stale frontend value cannot accidentally widen access.
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('access_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+  }
+  const orgId = useAuthStore.getState().currentOrgId;
+  if (orgId) {
+    config.headers['Tenant-Name'] = orgId;
   }
   return config;
 });

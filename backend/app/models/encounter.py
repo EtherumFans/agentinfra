@@ -9,7 +9,7 @@ from app.models.base import TimestampMixin
 class Encounter(Base, TimestampMixin):
     __tablename__ = "encounters"
 
-    organization_id: Mapped[str] = mapped_column(String(12), ForeignKey("organizations.id"), nullable=True, index=True)
+    organization_id: Mapped[str] = mapped_column(String(12), ForeignKey("organizations.id"), nullable=False, index=True)
     encounter_id: Mapped[str] = mapped_column(String(64), unique=True, index=True, nullable=False)
     patient_id: Mapped[str] = mapped_column(String(64), nullable=False)  # 脱敏
     department: Mapped[str] = mapped_column(String(128), nullable=False)
@@ -33,7 +33,7 @@ class Encounter(Base, TimestampMixin):
 class Document(Base, TimestampMixin):
     __tablename__ = "documents"
 
-    organization_id: Mapped[str] = mapped_column(String(12), ForeignKey("organizations.id"), nullable=True, index=True)
+    organization_id: Mapped[str] = mapped_column(String(12), ForeignKey("organizations.id"), nullable=False, index=True)
     encounter_id: Mapped[str] = mapped_column(
         String(12), ForeignKey("encounters.id"), nullable=False, index=True
     )

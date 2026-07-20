@@ -88,6 +88,8 @@ _SYSTEM_AUDIT_ACTIONS_EXTRA: frozenset[str] = frozenset({
     "context.clear",
     # Gate 3.6 — API client secret rotation (Phase 7 Gate 5)
     "api_client.rotate",
+    # Gate 4.7 — retention purge events (per-tenant and system-scope)
+    "retention.purge",
 })
 
 ALL_SYSTEM_AUDIT_ACTIONS: frozenset[str] = SYSTEM_AUDIT_ACTIONS | _SYSTEM_AUDIT_ACTIONS_EXTRA
@@ -187,7 +189,113 @@ async def system_audit(
     return log_entry
 
 
+# ── Phase A1A Gate 4.7 — tenant-owned system audit ──────────────────
+#
+# Some system-scope audit events are emitted BY the platform but
+# ABOUT a specific tenant — e.g. a per-tenant scheduled job
+# (``tenant_cron.fired``), a per-tenant rate-limit hit
+# (``tenant_ratelimit.exceeded``), a per-tenant key-rotation event
+# (``phi_key.rotated``), or a per-tenant audit-log purge
+# (``retention.purge``). Pre-Gate-4.7 these calls had two bad options:
+#
+#   1. ``system_audit(...)`` — loses tenant attribution; the row
+#      becomes MODERN_SYSTEM with NULL org_id and cannot be surfaced
+#      in per-tenant compliance reports.
+#   2. ``log_action(..., allow_null_org=False)`` — attaches org_id
+#      but loses the MODERN_SYSTEM tag and the action-allowlist
+#      guard. Any new action name could slip through without review.
+#
+# The new ``tenant_owned_system_audit`` helper closes the gap:
+# validates the action is in ``ALL_SYSTEM_AUDIT_ACTIONS``, attaches
+# the supplied ``organization_id``, and stamps both
+# ``tenancy_classification = MODERN_SYSTEM`` (so operator console
+# queries can filter by "system events for this tenant") and
+# ``tenancy_attribution_source = security_event`` (so future audits
+# know this was an intentional system emit, not a retroactive
+# classification).
+async def tenant_owned_system_audit(
+    db: AsyncSession,
+    *,
+    organization_id: str,
+    action: str,
+    resource_type: str,
+    resource_id: Optional[str] = None,
+    details: Optional[dict[str, Any]] = None,
+    status: str = "success",
+    error_message: Optional[str] = None,
+    user_id: Optional[str] = None,
+    username: Optional[str] = None,
+    ip_address: Optional[str] = None,
+    user_agent: Optional[str] = None,
+) -> AuditLog:
+    """Record a system-scope audit event attributed to a specific tenant.
+
+    Use this instead of ``system_audit`` when the event is emitted BY
+    the platform (so it needs the MODERN_SYSTEM tag and the action
+    allowlist) but ABOUT a specific tenant (so it needs an org_id
+    for per-tenant compliance reporting).
+
+    ``organization_id`` MUST be a non-empty string — callers that
+    genuinely have no tenant context should call ``system_audit``
+    instead.
+
+    Raises ``ValueError`` if:
+      - ``organization_id`` is empty/None.
+      - ``action`` is not in ``ALL_SYSTEM_AUDIT_ACTIONS``.
+    """
+    if not organization_id or not isinstance(organization_id, str):
+        raise ValueError(
+            "tenant_owned_system_audit requires a non-empty organization_id; "
+            "use system_audit() for genuine system-scope events"
+        )
+    if not _is_allowed_system_action(action):
+        raise ValueError(
+            f"tenant_owned_system_audit action {action!r} is not in the "
+            f"allowlist. Add it to ALL_SYSTEM_AUDIT_ACTIONS in "
+            f"app.services.system_audit AND to SYSTEM_AUDIT_ACTIONS in "
+            f"legacy_tenancy_attribution (so the classifier recognises "
+            f"it as MODERN_SYSTEM)."
+        )
+
+    log_entry = AuditLog(
+        organization_id=organization_id,  # tenant-attributed system event
+        user_id=user_id,
+        username=username,
+        action=action,
+        resource_type=resource_type,
+        resource_id=resource_id,
+        details=details,
+        ip_address=ip_address,
+        user_agent=user_agent,
+        status=status,
+        error_message=error_message,
+        tenancy_classification=CLASS_MODERN_SYSTEM,
+    )
+    # Stamp the same attribution provenance as system_audit, but
+    # record the tenant attribution explicitly via candidate_count=1
+    # and original_org_id=organization_id (the row is intentionally
+    # tenant-owned from inception).
+    log_entry.tenancy_attribution_source = "security_event"
+    log_entry.tenancy_attribution_confidence = "verified"
+    log_entry.tenancy_attribution_migration = "021"  # Gate 4.7
+    log_entry.tenancy_attributed_at = datetime.now(UTC)
+    log_entry.tenancy_candidate_count = 1
+    log_entry.tenancy_original_org_id = organization_id
+    db.add(log_entry)
+    try:
+        await db.flush()
+    except Exception as e:
+        logger.error(
+            "tenant_owned_system_audit write failed: %s (action=%s "
+            "org=%s resource=%s/%s)",
+            e, action, organization_id, resource_type, resource_id,
+        )
+        raise
+    return log_entry
+
+
 __all__ = [
     "ALL_SYSTEM_AUDIT_ACTIONS",
     "system_audit",
+    "tenant_owned_system_audit",
 ]

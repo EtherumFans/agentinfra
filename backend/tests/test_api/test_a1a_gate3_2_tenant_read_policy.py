@@ -76,6 +76,7 @@ def seeded_invisible_rows(client: TestClient):
                     run_id=run_id,
                     agent_id="evidence-extractor",
                     user_id=user_id,
+                    organization_id="org_default1",
                     cost_usd=cost,
                     latency_ms=1000,
                     runtime_mode="a2a_pure_llm",
@@ -86,6 +87,7 @@ def seeded_invisible_rows(client: TestClient):
             for audit_id, cls in audit_rows:
                 db.add(AuditLogModel(
                     user_id=user_id,
+                    organization_id="org_default1",
                     action=audit_id,
                     resource_type="test",
                     status="success",

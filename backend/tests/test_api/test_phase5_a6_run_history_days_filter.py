@@ -68,7 +68,7 @@ def _insert_run_history_row(
                 """),
                 {
                     "id": secrets.token_hex(6),
-                    "org_id": None,
+                    "org_id": "org_default1",
                     "user_id": user_id,
                     "agent_id": agent_id,
                     "run_id": run_id,

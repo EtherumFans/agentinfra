@@ -113,9 +113,24 @@ def _make_mock_org():
 
 @pytest.fixture(autouse=True)
 def reset_rate_limiter():
-    """Reset login rate limiter between tests to avoid state leakage."""
+    """Reset login rate limiter AND HTTP rate-limit middleware between tests.
+
+    Phase A1A Gate 4R.2: the HTTP middleware at app/middleware/rate_limit.py
+    moved its per-IP counter dict off the module global and onto
+    app.state.rate_limiter_counts. Without a per-test reset, the sliding
+    window accumulates across tests and trips the 30/min limit partway
+    through the suite — which was the dominant cause of the 77 pass->fail
+    regressions catalogued in Gate 4R.1.
+    """
     from app.api.auth import login_limiter
     login_limiter._attempts.clear()
+    # Wipe the HTTP rate-limiter counters bound to the session-scoped app.
+    if hasattr(app.state, "rate_limiter_counts"):
+        app.state.rate_limiter_counts.clear()
+    # Force lazy re-init of Redis client on next request (tests don't use
+    # Redis, but resetting keeps the fixture hermetic if REDIS_URL is set).
+    if hasattr(app.state, "rate_limiter_redis"):
+        app.state.rate_limiter_redis = False
     yield
 
 

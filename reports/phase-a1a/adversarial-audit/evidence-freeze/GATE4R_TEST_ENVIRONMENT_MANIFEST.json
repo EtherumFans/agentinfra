@@ -1,0 +1,127 @@
+{
+  "schema_version": "1.0",
+  "gate": "A1A_GATE4R_0",
+  "purpose": "Pin the test environment under which the Gate 4R regression-reconciliation evidence was collected, so that any future re-run can be compared apples-to-apples.",
+  "captured_at_utc": "2026-07-20T14:44:30Z",
+  "captured_by_branch": "phase-a1a/gate4r-regression-reconciliation",
+  "captured_by_commit": "b3ea064b650b61fc52bfd6a6f9c546c1d6152b9c",
+  "repository": {
+    "worktree_path": "E:/Corti4C-gate4r-remediation",
+    "main_worktree_path": "E:/Corti4C",
+    "baseline_worktree_path": "E:/Corti4C-audit-baseline",
+    "gate4_worktree_path": "E:/Corti4C-audit-gate4",
+    "worktrees": [
+      {"path": "E:/Corti4C", "head": "b3ea064", "branch": "phase-a1a/emergency-containment"},
+      {"path": "E:/Corti4C-audit-baseline", "head": "b737eab", "branch": "(detached HEAD)"},
+      {"path": "E:/Corti4C-audit-gate4", "head": "880f49c", "branch": "(detached HEAD)"},
+      {"path": "E:/Corti4C-gate4r-remediation", "head": "b3ea064", "branch": "phase-a1a/gate4r-regression-reconciliation"}
+    ]
+  },
+  "git_refs": {
+    "b737eab": {
+      "full_sha": "b737eabb344a270e5bbabe89a8331657be21a03d",
+      "role": "Phase A1A Gate 3R baseline (pre-Gate-4 parent)",
+      "subject": "audit/phase-a1a: Gate 3R — Trace, audit, tenant-read reconciliation"
+    },
+    "880f49c": {
+      "full_sha": "880f49c9e2b64de0549c5605f3c259c8be7b9fe3",
+      "role": "Phase A1A Gate 4 main commit (charter §4 closure)",
+      "subject": "audit/phase-a1a: Gate 4 — PHI boundary, live-path redaction, at-rest encryption, regional residency, browser storage, retention",
+      "parent": "b737eabb344a270e5bbabe89a8331657be21a03d"
+    },
+    "b3ea064": {
+      "full_sha": "b3ea064b650b61fc52bfd6a6f9c546c1d6152b9c",
+      "role": "Phase A1A Gate 4.9 closure report (880f49c verdict artefact)",
+      "subject": "audit/phase-a1a: Gate 4.9 closure report (final verdict artefact for 880f49c)",
+      "parent": "880f49c9e2b64de0549c5605f3c259c8be7b9fe3"
+    }
+  },
+  "host": {
+    "os": "Windows 10 家庭中文版 (10.0.19045)",
+    "shell": "bash (Git Bash, MSYS)",
+    "platform": "win32",
+    "processor_architecture": "x64"
+  },
+  "python": {
+    "version": "3.12.3",
+    "prefix": "C:\\Program Files\\Python312",
+    "implementation": "CPython"
+  },
+  "node": {
+    "version": "v22.20.0",
+    "npm": "10.9.3"
+  },
+  "python_packages": {
+    "fastapi": "0.115.0",
+    "starlette": "0.38.0",
+    "uvicorn": "0.30.6",
+    "sqlalchemy": "2.0.35",
+    "alembic": "1.13.2",
+    "pydantic": "2.9.2",
+    "pydantic_core": "2.23.4",
+    "pydantic-settings": "2.5.2",
+    "cryptography": "43.0.3",
+    "PyJWT": "2.12.1",
+    "httpx": "0.27.2",
+    "httpx-sse": "0.4.3",
+    "pytest": "8.3.3",
+    "pytest-asyncio": "0.24.0",
+    "pytest-cov": "5.0.0",
+    "pytest-timeout": "2.4.0"
+  },
+  "environment_variables_visible_to_shell": {
+    "note": "Only ICODER_CREDENTIAL_LLM was present in the shell env. The redacted prefix is recorded solely so that future readers can verify the test was not run with ICODER_DEPLOYMENT_MODE=cloud active (which would have been a serious hermeticity breach for a Phase A1A test run).",
+    "ICODER_DEPLOYMENT_MODE": "unset (implicit local-dev mode)",
+    "ICODER_PHI_ENCRYPTION_KEY": "unset",
+    "ICODER_PHI_REDACTION_BYPASS": "unset",
+    "ICODER_CREDENTIAL_LLM": "sk-37b4c9e9...REDACTED (first 12 chars only; LLM credential used by some non-hermetic tests that attempt a real DeepSeek call)"
+  },
+  "evidence_files": {
+    "audit_baseline_full.xml": {
+      "sha256": "5572105b29843e63510210b4154813626ed327c8f9f55103201746ef6c3a7ee7",
+      "size_bytes": 3604116,
+      "description": "pytest --junit-xml output for full suite at b737eab (Phase A1A Gate 3R baseline, pre-Gate-4)",
+      "result_summary": {"passed": 3237, "failed": 249, "errors": 81, "skipped": 12, "deselected": 10, "xfailed": 3}
+    },
+    "audit_baseline_full.log": {
+      "sha256": "ba00d202750d6a2117b78d82008a22ec888eda4b697edd97345a044cefdd1a52",
+      "size_bytes": 51471,
+      "description": "pytest stdout/stderr tail for the b737eab full-suite run"
+    },
+    "audit_gate4_full.log": {
+      "sha256": "eeea222ca2e2e605d24ddcf18f6d52e2b37bba2940758667093c190840b817ed",
+      "size_bytes": 2615,
+      "description": "pytest stdout/stderr tail for the 880f49c full-suite run",
+      "result_summary": {"passed": 3270, "failed": 292, "errors": 81, "skipped": 12, "deselected": 10, "xfailed": 3}
+    },
+    "audit_gate4_summary.txt": {
+      "sha256": "c0c54c8e50530a5651830834d9a662b22f219b604ce321920da2f77ba16ee9c5",
+      "size_bytes": 304,
+      "description": "End-of-suite summary lines (2 ERROR lines + final totals line) extracted from the 880f49c full-suite run"
+    }
+  },
+  "observed_deltas": {
+    "b737eab_to_880f49c": {
+      "passed_delta": 3270 - 3237,
+      "failed_delta": 292 - 249,
+      "errors_delta": 81 - 81,
+      "skipped_delta": 0,
+      "xfailed_delta": 0,
+      "computed_net_fail_delta": "292 - 249 = +43 net FAIL",
+      "interpretation_constraint": "Cannot yet assert that exactly 43 baseline-PASS nodes flipped to FAIL — that requires pytest node-ID set comparison (Gate 4R.1 deliverable). The +43 net figure is the floor of the regression surface, not its ceiling."
+    }
+  },
+  "open_contradictions_vs_gate48_report": [
+    "Gate 4.8 §1.2 reports b737eab baseline failures = 49, but observed b737eab full-suite failures = 249 (5.08× larger).",
+    "Gate 4.8 §1 reports total FAILED=50, but observed 880f49c FAILED=292 (5.84× larger).",
+    "Gate 4.8 §2 reports 85 Gate-4 test nodes, but only 77 exist in the 6 Gate-4.x test files actually added by 880f49c; the remaining 8 are attributed to a file test_a1a_gate4_1_*.py that does not exist in git index, worktree, or disk.",
+    "Gate 4.8 §1.2 claims the 'pre-existing' baseline failures were verified via git stash on a worktree that still contained Gate 4.0–4.5 work; that stash state is NOT b737eab."
+  ],
+  "forbidden_state_for_this_gate": {
+    "GATE4_8_NO_NEW_REGRESSION_CLAIM": "CONTRADICTED",
+    "GATE4_9_FINAL_PASS": "SUPERSEDED",
+    "GATE4_ACCEPTANCE_STATUS": "REOPENED",
+    "CORTI_PARITY_VERDICT": "NOT_DEMONSTRATED",
+    "PRODUCTION_READINESS": "NOT_VERIFIED"
+  }
+}

@@ -31,6 +31,10 @@ frontend/tests/e2e/_runtime/
 *.db
 backend/data/*.db
 
+# Evidence freeze: Gate 4R regression evidence must be preserved in-tree
+# (pytest stdout/stderr tails are first-class evidence, not build logs)
+!reports/phase-a1a/adversarial-audit/evidence-freeze/*.log
+
 # Test artifacts
 frontend/playwright-report/
 frontend/test-results/

@@ -100,10 +100,10 @@ describe('Phase 3-B0 — Agent navigation smoke', () => {
       'MethodComparePage',
       'MarketplacePage',
       'AgentHubPage',
-      // Phase 3-B2 Loop 0 (2026-07-05): EmbeddedAssistant physically deleted,
-      // TextGeneration route entries removed (file kept as orphan for implicit
-      // backend-capability dependencies).
-      'EmbeddedAssistantPage',
+      // Phase 3-B2 Loop 0 (2026-07-05): TextGeneration route entries removed
+      // (file kept as orphan for implicit backend-capability dependencies).
+      // Phase 7 Gate 13 (2026-07-14): EmbeddedAssistantPage restored for
+      // Corti parity at /ai-studio/embedded-assistant.
       // Phase 4-F2 (2026-07-10): RunTracePage is KEPT — it's the dedicated
       // trace viewer required by §4.3 ("Dedicated RunTrace page must be
       // usable"). Previously listed as deleted (P1.2), but F2 restores it
@@ -138,22 +138,16 @@ describe('Phase 3-B0 — Agent navigation smoke', () => {
     }
   });
 
-  it('TextGeneration and EmbeddedAssistant routes are deprecated (Phase 3-B2 Loop 0)', () => {
+  it('TextGeneration routes removed; EmbeddedAssistant restored (Phase 7 Gate 13)', () => {
     // Phase 3-B2 Loop 0 (2026-07-05): TextGeneration route entries removed
-    // (file kept as orphan), EmbeddedAssistantPage physically deleted.
-    // Old paths now redirect to /ai-studio/agents via <Navigate> rules.
+    // (file kept as orphan). Phase 7 Gate 13 (2026-07-14): EmbeddedAssistant
+    // restored at /ai-studio/embedded-assistant for Corti parity.
     const textGenRoutes = routes.filter((r) => r.element.includes('TextGeneration'));
-    const embeddedRoutes = routes.filter((r) => r.element.includes('EmbeddedAssistant'));
     expect(textGenRoutes.length, 'TextGeneration routes must be removed').toBe(0);
-    expect(embeddedRoutes.length, 'EmbeddedAssistant routes must be removed').toBe(0);
 
-    // Verify old paths redirect to Agent Hub.
     const appContent = fs.readFileSync(APP_TSX, 'utf-8');
     expect(appContent).toContain('ai-studio/text-generation');
-    expect(appContent).toContain('ai-studio/embedded-assistant');
     const textGenRedirect = /path="ai-studio\/text-generation"[^>]*element=\{<Navigate[^>]+to="\/ai-studio\/agents"/;
-    const embeddedRedirect = /path="ai-studio\/embedded-assistant"[^>]*element=\{<Navigate[^>]+to="\/ai-studio\/agents"/;
     expect(textGenRedirect.test(appContent), 'ai-studio/text-generation must redirect to /ai-studio/agents').toBe(true);
-    expect(embeddedRedirect.test(appContent), 'ai-studio/embedded-assistant must redirect to /ai-studio/agents').toBe(true);
   });
 });

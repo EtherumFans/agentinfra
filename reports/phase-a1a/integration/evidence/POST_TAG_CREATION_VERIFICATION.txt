@@ -1,0 +1,28 @@
+=== POST_TAG_CREATION_VERIFICATION.txt ===
+Frozen: 2026-07-21 (after pre-merge annotated tags created)
+
+--- git tag --list audit/* -n1 ---
+audit/phase-a0.1r-baseline Phase A0.1R — Secure Freeze Reconciliation baseline.
+audit/phase-a1a-gate4-pre4r-b3ea064 Immutable Gate 4.9 pre-4R snapshot. Phase A1A Gate 4R-I Charter anchor (local-only, never pushed). All 4R integration work is bounded by this snapshot and its successor 24967da.
+audit/phase-a1a-gate4r-closure-24967da Immutable Gate 4R P0-5 closure snapshot. Phase A1A Gate 4R-I Charter anchor (local-only, never pushed). Carries the 5-commit 4R chain a2613b7..24967da.
+
+--- git show-ref --tags (audit/*) ---
+3cd1bece14a7f4564d14d630568697c48cfd8385 refs/tags/audit/phase-a0.1r-baseline
+fa0d46163e6e447e6837099d1875486e88275134 refs/tags/audit/phase-a1a-gate4-pre4r-b3ea064
+43c2395e09612150a6fc5f26601c90f8fecc93e6 refs/tags/audit/phase-a1a-gate4r-closure-24967da
+
+--- git cat-file -p audit/phase-a1a-gate4-pre4r-b3ea064 ---
+object b3ea064b650b61fc52bfd6a6f9c546c1d6152b9c
+type commit
+tag audit/phase-a1a-gate4-pre4r-b3ea064
+tagger SONG Luhua <30805278@qq.com> 1784630885 +0800
+
+Immutable Gate 4.9 pre-4R snapshot. Phase A1A Gate 4R-I Charter anchor (local-only, never pushed). All 4R integration work is bounded by this snapshot and its successor 24967da.
+
+--- git cat-file -p audit/phase-a1a-gate4r-closure-24967da ---
+object 24967daf6e52b06b984f2196e5db1ae2e5a6aac1
+type commit
+tag audit/phase-a1a-gate4r-closure-24967da
+tagger SONG Luhua <30805278@qq.com> 1784630885 +0800
+
+Immutable Gate 4R P0-5 closure snapshot. Phase A1A Gate 4R-I Charter anchor (local-only, never pushed). Carries the 5-commit 4R chain a2613b7..24967da.

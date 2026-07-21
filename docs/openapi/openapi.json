@@ -2,7 +2,6 @@
   "openapi": "3.1.0",
   "info": {
     "title": "iCoDer Medical Coding Agent",
-    "description": "面向中国医院病案首页与医保结算清单场景的编码审核智能体",
     "version": "1.0.0"
   },
   "paths": {
@@ -1332,8 +1331,178 @@
           "usage"
         ],
         "summary": "Get Usage Summary",
-        "description": "Get usage summary from real audit logs and transaction records.",
+        "description": "Get usage summary from real audit logs, run_history, and transaction records.\n\nPhase 6 Gate 8: ``agent_id`` and ``runtime_mode`` filters apply to the\nrun_history aggregation only (audit_log.total_requests is unfiltered\nbecause audit events don't carry runtime_mode).\n\nPhase 7 Gate 8: ``api_client_id`` filter applies to run_history only.\nThe sentinel value ``\"console\"`` filters to api_client_id IS NULL\n(runs initiated via Console JWT, not by a partner SDK).",
         "operationId": "get_usage_summary_api_usage_summary_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 365,
+              "minimum": 1,
+              "default": 30,
+              "title": "Days"
+            }
+          },
+          {
+            "name": "agent_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Phase 6 Gate 8: filter by agent_id (e.g. 'medical-coding-agent'). If omitted, aggregates across all agents.",
+              "title": "Agent Id"
+            },
+            "description": "Phase 6 Gate 8: filter by agent_id (e.g. 'medical-coding-agent'). If omitted, aggregates across all agents."
+          },
+          {
+            "name": "runtime_mode",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Phase 6 Gate 8: filter by runtime_mode ('corti_like_fast' / 'medcoder_deep'). If omitted, aggregates across all modes.",
+              "title": "Runtime Mode"
+            },
+            "description": "Phase 6 Gate 8: filter by runtime_mode ('corti_like_fast' / 'medcoder_deep'). If omitted, aggregates across all modes."
+          },
+          {
+            "name": "api_client_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Phase 7 Gate 8: filter by api_client_id (the OAuth client_id of the partner that initiated the run). Use 'console' (case-insensitive sentinel) to filter to Console-only runs (api_client_id IS NULL). If omitted, aggregates across all clients.",
+              "title": "Api Client Id"
+            },
+            "description": "Phase 7 Gate 8: filter by api_client_id (the OAuth client_id of the partner that initiated the run). Use 'console' (case-insensitive sentinel) to filter to Console-only runs (api_client_id IS NULL). If omitted, aggregates across all clients."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/usage/by-agent": {
+      "get": {
+        "tags": [
+          "usage"
+        ],
+        "summary": "Get Usage By Agent",
+        "description": "Phase 6 Gate 8 — per-agent cost breakdown.\n\nReturns one row per agent_id with cost, run_count, avg_latency_ms.\nUseful for a \"which agent is most expensive?\" chart on the Usage page.\n\nPhase 7 Gate 8: optional ``api_client_id`` filter to scope to a single\npartner (or to Console-only runs via the ``\"console\"`` sentinel).",
+        "operationId": "get_usage_by_agent_api_usage_by_agent_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 365,
+              "minimum": 1,
+              "default": 30,
+              "title": "Days"
+            }
+          },
+          {
+            "name": "api_client_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Phase 7 Gate 8: filter by api_client_id. Sentinel 'console' filters to api_client_id IS NULL.",
+              "title": "Api Client Id"
+            },
+            "description": "Phase 7 Gate 8: filter by api_client_id. Sentinel 'console' filters to api_client_id IS NULL."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/usage/by-client": {
+      "get": {
+        "tags": [
+          "usage"
+        ],
+        "summary": "Get Usage By Client",
+        "description": "Phase 7 Gate 8 — per-API-client cost breakdown.\n\nReturns one row per ``api_client_id`` with cost, run_count, avg_latency_ms.\nThe synthetic row ``\"console\"`` (api_client_id IS NULL) represents runs\ninitiated via the Console SPA (JWT auth, no partner attribution).\n\nUseful for a \"which partner is spending what?\" chart on the Usage page.\nThe chart helps admins decide pricing tiers, spot anomalous spend, and\nreconcile partner invoices against actual consumption.\n\nResponse shape::\n\n    {\n      \"items\": [\n        {\"api_client_id\": \"partner-a\", \"cost\": 1.23, \"run_count\": 45, \"avg_latency_ms\": 3200},\n        {\"api_client_id\": \"console\",   \"cost\": 0.42, \"run_count\": 18, \"avg_latency_ms\": 2100},\n        ...\n      ],\n      \"total_cost\": 1.65,\n      \"currency\": \"CNY\",\n      \"period_days\": 30\n    }",
+        "operationId": "get_usage_by_client_api_usage_by_client_get",
         "security": [
           {
             "HTTPBearer": []
@@ -2584,7 +2753,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AgentRunRequest"
+                "$ref": "#/components/schemas/app__api__agents__AgentRunRequest"
               }
             }
           }
@@ -2640,7 +2809,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AgentRunRequest"
+                "$ref": "#/components/schemas/app__api__agents__AgentRunRequest"
               }
             }
           }
@@ -5334,8 +5503,28 @@
           "agent-hub"
         ],
         "summary": "List Hub Agents",
-        "description": "Corti-style Agent Hub card list.\n\nReads ``official_agents/**/agent_pack.json`` as the canonical source.\nFilters:\n\n- ``hidden_from_hub=true`` packs excluded.\n- ``agent_type=expert-stub`` packs excluded.\n- ``agent_type=internal_engine`` packs excluded.\n\nMetadata-only certified packs ARE included with ``runnable=false`` and\n``badge=\"Coming Soon / Metadata only\"``. Medical Coding Agent appears\nwith ``runnable=true`` and ``badge=\"MVP / AI-assisted / Human review required\"``.\n\nNo auth — this is a product browsing endpoint. Execution is gated\nseparately at the run endpoint.",
+        "description": "Corti-style Agent Hub card list.\n\nReads ``official_agents/**/agent_pack.json`` as the canonical source.\nFilters:\n\n- ``hidden_from_hub=true`` packs excluded.\n- ``agent_type=expert-stub`` packs excluded.\n- ``agent_type=internal_engine`` packs excluded.\n- ``use_case`` query param filters by ``manifest.use_case`` (Phase 3-B2 Loop 4).\n\nMetadata-only certified packs ARE included with ``runnable=false`` and\n``badge=\"Coming Soon / Metadata only\"``. Medical Coding Agent appears\nwith ``runnable=true`` and ``badge=\"MVP / AI-assisted / Human review required\"``.\n\nNo auth — this is a product browsing endpoint. Execution is gated\nseparately at the run endpoint.",
         "operationId": "icoder_agents_hub_list_v1",
+        "parameters": [
+          {
+            "name": "use_case",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by manifest.use_case (Phase 3-B2 Loop 4).",
+              "title": "Use Case"
+            },
+            "description": "Filter by manifest.use_case (Phase 3-B2 Loop 4)."
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -5344,6 +5533,82 @@
                 "schema": {
                   "type": "object",
                   "title": "Response Icoder Agents Hub List V1"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/icoder/agents/{agent_id}/clone": {
+      "post": {
+        "tags": [
+          "agent-hub"
+        ],
+        "summary": "Clone Agent",
+        "description": "Clone a prebuilt Agent into the caller's organization.\n\nPhase 3-B2 Loop 1 (Gap 2.3). The source Agent is identified by\n``agent_id`` (short form, e.g. ``medical-coding-agent``). The clone\ncreates a new ``Agent`` row with ``is_prebuilt=False``,\n``organization_id=<caller's org>``, ``status=published``, and\n``config.source_agent_ref=<original agent_ref>``.\n\nConflict strategy (idempotent): if a clone already exists for\n``(org, source_agent_ref)``, return **200 OK** with the existing\nrecord's URLs (no duplicate created). First clone returns 201 Created.\n\nErrors:\n- 404: agent_id not found among prebuilt agents.\n- 403: auth failure (no valid token).\n- 400: malformed request body.",
+        "operationId": "icoder_agents_clone_v1",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Agent Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/CloneRequest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Icoder Agents Clone V1"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -6084,6 +6349,590 @@
         }
       }
     },
+    "/api/runtime/runs/{run_id}/trace": {
+      "get": {
+        "tags": [
+          "run-trace"
+        ],
+        "summary": "Get Run Trace",
+        "description": "Return the ordered trace events for one run.\n\nArgs:\n    run_id: The run identifier (from the A2A envelope or\n        orchestrator run context).\n    format: ``timeline`` (default) returns events sorted by ts\n        with display-safe field names. ``raw`` returns the\n        internal store dump (for debugging).\n\nReturns:\n    200 ``{\"run_id\": ..., \"events\": [...]}`` or\n    ``{\"run_id\": ..., \"timeline\": [...]}`` depending on format.\n\nRaises:\n    404 if run_id has no trace events OR if the run belongs to\n    a different organization (don't leak cross-org existence).",
+        "operationId": "get_run_trace_api_runtime_runs__run_id__trace_get",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "timeline | raw",
+              "default": "timeline",
+              "title": "Format"
+            },
+            "description": "timeline | raw"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Get Run Trace Api Runtime Runs  Run Id  Trace Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/runtime/runs/history": {
+      "get": {
+        "tags": [
+          "run-trace"
+        ],
+        "summary": "List Run History",
+        "description": "Return recent run summaries for the current user's org.\n\nUsed by AgentChatPage's history dropdown to hydrate on page load.\nThe endpoint reads from the ``run_history`` table (Phase 4-G #3\nmigration 010) which the unified ``POST /api/v1/agents/{id}/run``\nendpoint populates after each run.\n\nFiltering:\n  - ``agent_id`` optional (exact match); omitted = all agents\n  - ``days`` optional (Phase 5 A6); 0 = no date filter, otherwise only\n    include rows with ``created_at >= now - days``. Default: 0 (all time)\n  - ``user_id`` / ``organization_id`` derived from request state\n    (set by TenantHeaderMiddleware + auth)\n  - ``limit`` capped at 200 to bound response size\n\nReturns ``{\"items\": [...], \"total\": <int>}`` ordered by created_at desc.",
+        "operationId": "list_run_history_api_runtime_runs_history_get",
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Filter by agent_id (exact match)",
+              "default": "",
+              "title": "Agent Id"
+            },
+            "description": "Filter by agent_id (exact match)"
+          },
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 365,
+              "minimum": 0,
+              "description": "Filter to last N days (0 = no date filter)",
+              "default": 0,
+              "title": "Days"
+            },
+            "description": "Filter to last N days (0 = no date filter)"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "description": "Max items to return",
+              "default": 50,
+              "title": "Limit"
+            },
+            "description": "Max items to return"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response List Run History Api Runtime Runs History Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/coding/predict": {
+      "post": {
+        "tags": [
+          "coding-predict"
+        ],
+        "summary": "Post Coding Predict",
+        "description": "Unified medical coding prediction entry.\n\nDefault mode is ``corti_like_fast`` (single LLM call, target <15s).\nSet ``mode=medcoder_deep`` for the 5-stage MedCodER pipeline (advanced).\n\nNever silently times out. On error, returns a :class:`CodingPredictResponse`\nwith ``error=True`` + ``summary`` containing a user-visible message and\na hint to retry or switch modes.",
+        "operationId": "post_coding_predict_api_v1_coding_predict_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CodingPredictRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CodingPredictResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/agents/{agent_id}/run": {
+      "post": {
+        "tags": [
+          "agent-run"
+        ],
+        "summary": "Run Agent",
+        "description": "Unified Agent Run facade (A2A-compatible, Phase 4-F2).\n\nConstructs an A2A-compatible envelope (InboundRequest with TextPart +\nmetadata.runtime_mode), then dispatches through the shared A2A facade\nto the appropriate runtime (CodingRuntimeDispatcher for medical coding,\nProviderRegistry for everything else). After the run, persists\ntrace_events to RunTraceStore so the dedicated RunTrace page works.\n\nPhase 7 Gate 3 §8: server-side Idempotency-Key dedup. If the client\nsends an `Idempotency-Key` header, the server checks the\n`idempotency_records` table:\n- First request → run normally, save snapshot on completion.\n- Replay (same key + same hash + COMPLETED) → return saved snapshot.\n- Replay (same key + same hash + IN_PROGRESS) → return run_id + 200.\n- Mismatch (same key + different hash) → 409.\n\nOn any error, returns HTTP 200 with ``error=True`` so the frontend\ncan render a friendly retry UI (rather than catching a 5xx).",
+        "operationId": "agent_run_v1",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Agent Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/app__api__agent_run__AgentRunRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentRunResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/coding-compliance/run": {
+      "post": {
+        "tags": [
+          "coding-compliance"
+        ],
+        "summary": "Coding Compliance Run",
+        "description": "Run the 7-stage coding compliance mainline. Returns CaseState dict.",
+        "operationId": "coding_compliance_run_v1",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CodingComplianceRunRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Coding Compliance Run V1"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/coding-compliance/a2a": {
+      "post": {
+        "tags": [
+          "coding-compliance"
+        ],
+        "summary": "Coding Compliance A2A",
+        "description": "Run coding compliance mainline + wrap response as A2A v0.3 Task.\n\nReturns an A2A-compatible envelope with:\n  - ``task.id`` = case_id\n  - ``task.state`` = review_gate_status (mapped to A2A states)\n  - ``task.parts[]`` = DataPart(CaseState) + TextPart(gate_decision)\n  - ``task.metadata.run_url`` = trace_url of the slowest stage\n  - ``task.artifacts[]`` = one Artifact per stage\n\nPer PDF §11.3 this enables interop with any A2A v0.3 compliant client\n(Corti orchestrator, third-party EHR agents, etc.) without leaking\ninternal CaseState fields into the message body.",
+        "operationId": "coding_compliance_a2a_v1",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CodingComplianceRunRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Coding Compliance A2A V1"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/cdi/runs": {
+      "post": {
+        "tags": [
+          "cdi"
+        ],
+        "summary": "Run Cdi",
+        "description": "Run the CDI orchestrator against chart_excerpt.\n\nReturns the case state including documentation_gaps and\nproposed_provider_queries. Each query starts in DRAFT state.\n\nPhase 5 Track D P0 Gate 2 (2026-07-11): wires the real DeepSeek-backed\nrunner. ``stub_runner`` is retained ONLY for unit tests. Each stage's\nrun_id / trace_id / provider / model / latency / tokens are surfaced\nvia ``stage_traces`` for audit evidence (PDF §A1 + §A2).\n\nPhase 5 Track D P0 Gate 3 (2026-07-11): persists case + gaps + queries\natomically (PDF §A3). Idempotent on case_id. GET /runs/{case_id} now\nreads back the persisted state instead of returning 501.\n\nBoundary: this endpoint does NOT call medical-coding tools.\nCDI produces clarification queries; coding happens in a separate\nMedical Coding Agent run AFTER documentation is clarified.",
+        "operationId": "run_cdi_api_v1_cdi_runs_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CDIRunRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CDIRunResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/cdi/runs/{case_id}": {
+      "get": {
+        "tags": [
+          "cdi"
+        ],
+        "summary": "Get Case",
+        "description": "Fetch a CDI case by ID.\n\nPhase 5 Track D P0 Gate 3 (2026-07-11): real read-back from the\n``cdi_cases`` table (PDF §A3 — closed loop). Returns 404 if the case\nhas never been persisted (e.g. an in-memory-only run from before\nGate 3, or a typo'd case_id).",
+        "operationId": "get_case_api_v1_cdi_runs__case_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Case Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Get Case Api V1 Cdi Runs  Case Id  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cdi/queries/{query_id}/transition": {
+      "post": {
+        "tags": [
+          "cdi"
+        ],
+        "summary": "Transition Query",
+        "description": "Drive a lifecycle transition on a Provider Query.\n\nEnforces (Phase 5 Track D P0.5 Gate 7):\n  1. Query exists (404 if not).\n  2. RBAC: CDI role must be allowed to drive this (from_state, to_state).\n  3. NLQ gate: DRAFT → PENDING_CDI_REVIEW requires query to pass\n     non-leading query rules (NLQ-001..011).\n  4. Optimistic-lock DB write via ``update_query_lifecycle`` (409 on conflict).\n\nReturns the transition result. State is persisted before return —\nGET /runs/{case_id} will reflect the new lifecycle_state immediately.",
+        "operationId": "transition_query_api_v1_cdi_queries__query_id__transition_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "query_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Query Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransitionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransitionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cdi/audit/dashboard": {
+      "get": {
+        "tags": [
+          "cdi"
+        ],
+        "summary": "Get Audit Dashboard",
+        "description": "Build the audit dashboard snapshot.\n\nGate 9 stub: returns empty dashboard until DB queries are wired.\nProduction (Gate 11) fetches real cases/queries/responses from DB\nand passes them to build_audit_dashboard().",
+        "operationId": "get_audit_dashboard_api_v1_cdi_audit_dashboard_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Get Audit Dashboard Api V1 Cdi Audit Dashboard Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/cdi/subscriptions": {
+      "post": {
+        "tags": [
+          "cdi"
+        ],
+        "summary": "Create Subscription",
+        "description": "Register a notification subscription.\n\nGate 9 stub: validates input and returns the subscription ID.\nPersistence (DB row) deferred to Gate 11.",
+        "operationId": "create_subscription_api_v1_cdi_subscriptions_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubscriptionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/cdi/health": {
+      "get": {
+        "tags": [
+          "cdi"
+        ],
+        "summary": "Cdi Health",
+        "description": "CDI router health check.",
+        "operationId": "cdi_health_api_v1_cdi_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Cdi Health Api V1 Cdi Health Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/organizations": {
       "get": {
         "tags": [
@@ -6614,35 +7463,265 @@
     "/api/clients": {
       "get": {
         "tags": [
-          "platform-api-clients"
+          "phase7-api-clients"
         ],
-        "summary": "List API Clients (Phase 1 stub)",
-        "description": "列出当前 Tenant 的所有 API Clients。\n\nPhase 1 stub: 返 501。",
-        "operationId": "list_clients_api_clients_get",
+        "summary": "List Clients",
+        "description": "List all API Clients in the current organization (§10.2).",
+        "operationId": "phase7_list_api_clients",
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ClientSummary"
+                  },
+                  "type": "array",
+                  "title": "Response Phase7 List Api Clients"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "phase7-api-clients"
+        ],
+        "summary": "Create Client",
+        "description": "Create an API Client (§10.2). Returns the plaintext secret ONCE.\n\n§10.3: the secret is shown only here. The DB stores sha256(secret).\nFront-end MUST NOT save it to localStorage (Phase 7 §11.3).",
+        "operationId": "phase7_create_api_client",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClientCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClientCreateResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/clients/{client_id}": {
+      "get": {
+        "tags": [
+          "phase7-api-clients"
+        ],
+        "summary": "Get Client",
+        "description": "View one API Client (§10.2). Never returns the secret.",
+        "operationId": "phase7_get_api_client",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "client_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Client Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClientSummary"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
               }
             }
           }
         }
-      },
+      }
+    },
+    "/api/clients/{client_id}/disable": {
       "post": {
         "tags": [
-          "platform-api-clients"
+          "phase7-api-clients"
         ],
-        "summary": "Create API Client (Phase 1 stub)",
-        "description": "创建新 API Client (backend-service 或 ROPC embedded)。\n\nPhase 1 stub: 返 501。Phase 2 实装会生成 client_secret\n(一次性显示,需 Tenant admin 立即存入 secret manager)。",
-        "operationId": "create_client_api_clients_post",
+        "summary": "Disable Client",
+        "description": "Disable a client (§10.2 + §10.3 immediate-revoke rule).\n\nFlips ``is_active=False``; the /token endpoint will reject future\ntoken requests. Issued tokens remain valid until their 5-min TTL\nexpires (RFC 6749 doesn't auto-revoke).",
+        "operationId": "phase7_disable_api_client",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "client_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Client Id"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/ClientSummary"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/clients/{client_id}/enable": {
+      "post": {
+        "tags": [
+          "phase7-api-clients"
+        ],
+        "summary": "Enable Client",
+        "description": "Re-enable a disabled client (§10.2).",
+        "operationId": "phase7_enable_api_client",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "client_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Client Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClientSummary"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/clients/{client_id}/rotate": {
+      "post": {
+        "tags": [
+          "phase7-api-clients"
+        ],
+        "summary": "Rotate Secret",
+        "description": "Rotate the client secret (§10.3). Returns the new plaintext ONCE.\n\nThe previous hash is replaced. Old tokens remain valid until their\nshort TTL expires; partners using the old secret will get 401 on\ntheir next /token refresh. Recommended rotation cadence: 90 days.",
+        "operationId": "phase7_rotate_api_client_secret",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "client_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Client Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClientCreateResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
               }
             }
           }
@@ -6650,13 +7729,18 @@
       }
     },
     "/api/clients/{client_id}/scopes": {
-      "get": {
+      "patch": {
         "tags": [
-          "platform-api-clients"
+          "phase7-api-clients"
         ],
-        "summary": "Get Client Scopes (Phase 1 stub)",
-        "description": "查指定 Client 的 scope 集合。\n\nPhase 1 stub: 返 501。",
-        "operationId": "get_client_scopes_api_clients__client_id__scopes_get",
+        "summary": "Update Scopes",
+        "description": "Update granted scopes (§10.2 + §10.4 — actually enforced).",
+        "operationId": "phase7_update_api_client_scopes",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "client_id",
@@ -6668,51 +7752,24 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClientUpdateScopes"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/ClientSummary"
                 }
-              }
-            }
-          }
-        }
-      },
-      "patch": {
-        "tags": [
-          "platform-api-clients"
-        ],
-        "summary": "Update Client Scopes (Phase 1 stub)",
-        "description": "更新 Client 的 scope 集合 (最小权限原则)。\n\nPhase 1 stub: 返 501。",
-        "operationId": "update_client_scopes_api_clients__client_id__scopes_patch",
-        "parameters": [
-          {
-            "name": "client_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Client Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
               }
             }
           },
@@ -6729,14 +7786,77 @@
         }
       }
     },
-    "/api/clients/{client_id}": {
-      "delete": {
+    "/api/clients/{client_id}/allowed-origins": {
+      "patch": {
         "tags": [
-          "platform-api-clients"
+          "phase7-api-clients"
         ],
-        "summary": "Revoke API Client (Phase 1 stub)",
-        "description": "撤销 Client (立即吊销所有 active token)。\n\nPhase 1 stub: 返 501。",
-        "operationId": "revoke_client_api_clients__client_id__delete",
+        "summary": "Update Origins",
+        "description": "Update allowed Origins for embedded widget embedding (§11.1).",
+        "operationId": "phase7_update_api_client_origins",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "client_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Client Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClientUpdateOrigins"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClientSummary"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/clients/{client_id}/test": {
+      "post": {
+        "tags": [
+          "phase7-api-clients"
+        ],
+        "summary": "Test Connection",
+        "description": "Test connection (§10.2). Returns ok=True iff the client exists,\nis active, and has at least one granted scope.\n\nThis does NOT mint a token (that would require the secret). It's a\nquick \"is this client configured correctly\" probe for the UI.",
+        "operationId": "phase7_test_api_client",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "client_id",
@@ -6753,7 +7873,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/ClientTestResponse"
+                }
               }
             }
           },
@@ -8282,7 +9404,7 @@
           "embedded"
         ],
         "summary": "Embedded Assistant Js",
-        "description": "Serve the iCoDer Assistant Web Component JS bundle.",
+        "description": "Serve the @icoder/embedded v2.0 Web Component bundle.\n\nReturns the compiled ES module from `packages/icoder-embedded/dist/`.\nIf the dist hasn't been built, returns a stub that prints a build hint.",
         "operationId": "embedded_assistant_js_api_embedded_assistant_js_get",
         "responses": {
           "200": {
@@ -8302,7 +9424,7 @@
           "embedded"
         ],
         "summary": "Embedded Assistant Preview",
-        "description": "Preview page for the iCoDer Assistant Web Component.",
+        "description": "2.0 Preview page using Corti-compatible method-based API.\n\nPhase 6 (interactive sidebar) — kept for development convenience.\nFor the Console-embedded iframe use /api/embedded/preview.html (Gate 13A).",
         "operationId": "embedded_assistant_preview_api_embedded_preview_get",
         "responses": {
           "200": {
@@ -8310,6 +9432,574 @@
             "content": {
               "application/json": {
                 "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/embedded/preview.html": {
+      "get": {
+        "tags": [
+          "embedded"
+        ],
+        "summary": "Embedded Preview Html",
+        "description": "Phase 7 Gate 13A — secure preview iframe.\n\nOnly accepts ``?psid=<opaque-id>``. No token, no PHI in URL. The\nConsole parent sends the bootstrap ticket + patient context via\nMessageChannel after a strict origin+source+nonce handshake.\n\nPer Gate 13A-5, response ships:\n  - Content-Security-Policy with per-request nonce\n  - sandbox + frame-ancestors (Console origin allowlist)\n  - Cache-Control: no-store, Pragma: no-cache\n  - Referrer-Policy: no-referrer\n\nPer Gate 13A-6, all dynamic interpolation is HTML-escaped.",
+        "operationId": "embedded_preview_html_api_embedded_preview_html_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/embedded/preview-sessions": {
+      "post": {
+        "tags": [
+          "embedded-preview"
+        ],
+        "summary": "Create a Preview Session and mint a 60s bootstrap ticket",
+        "description": "Console calls this with its JWT to mint a single-use ticket.\n\nThe ticket is bound to (org, user, parent_origin, iframe_origin,\nnonce, agent_allowlist, scopes). TTL is 60s per PDF §3.",
+        "operationId": "create_preview_session_api_embedded_preview_sessions_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreviewSessionCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreviewSessionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/embedded/preview-sessions/exchange": {
+      "post": {
+        "tags": [
+          "embedded-preview"
+        ],
+        "summary": "Exchange a bootstrap ticket for a scoped Runtime Token",
+        "description": "iframe POSTs the ticket here. We verify signature, expiry, origin,\nand nonce; check the DB row is still PENDING; atomically transition\nto EXCHANGED; return a scoped 10-minute Runtime Token.\n\nSingle-use is enforced by the status transition: a second call with\nthe same ticket sees status=EXCHANGED and gets 410 TICKET_ALREADY_USED.",
+        "operationId": "exchange_ticket_api_embedded_preview_sessions_exchange_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TicketExchangeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketExchangeResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/embedded/preview-sessions/{preview_session_id}": {
+      "get": {
+        "tags": [
+          "embedded-preview"
+        ],
+        "summary": "Get the status of a Preview Session (no ticket, no auth)",
+        "description": "Status lookup by opaque preview_session_id (NOT the jti).\n\nReturns no secrets — used by the Console to check whether the iframe\nexchanged the ticket yet. Statuses: PENDING, EXCHANGED, REVOKED,\nEXPIRED.",
+        "operationId": "get_preview_session_status_api_embedded_preview_sessions__preview_session_id__get",
+        "parameters": [
+          {
+            "name": "preview_session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Preview Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreviewSessionStatus"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/embedded/preview-sessions/{preview_session_id}/revoke": {
+      "post": {
+        "tags": [
+          "embedded-preview"
+        ],
+        "summary": "Revoke a pending Preview Session (admin/user kill-switch)",
+        "description": "Console user revokes a session (e.g. they closed the page).\n\nOnly the session owner or an org admin can revoke. Pending sessions\ntransition to REVOKED; already-EXCHANGED sessions also get revoked\n(the Runtime Token's HMAC signature can't be unissued, but the row\nis marked and future code can refuse tokens whose DB row is REVOKED).",
+        "operationId": "revoke_preview_session_api_embedded_preview_sessions__preview_session_id__revoke_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "preview_session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Preview Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreviewSessionStatus"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/examples/": {
+      "get": {
+        "tags": [
+          "examples"
+        ],
+        "summary": "Examples Index",
+        "description": "Phase 7 Gate 1 demo index — lists all 3 partner demos.",
+        "operationId": "examples_index_examples__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/examples/medical-coding/": {
+      "get": {
+        "tags": [
+          "examples"
+        ],
+        "summary": "Example Medical Coding",
+        "operationId": "example_medical_coding_examples_medical_coding__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/examples/cdi/": {
+      "get": {
+        "tags": [
+          "examples"
+        ],
+        "summary": "Example Cdi",
+        "operationId": "example_cdi_examples_cdi__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/examples/drg-dip/": {
+      "get": {
+        "tags": [
+          "examples"
+        ],
+        "summary": "Example Drg Dip",
+        "operationId": "example_drg_dip_examples_drg_dip__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/examples/config.js": {
+      "get": {
+        "tags": [
+          "examples"
+        ],
+        "summary": "Example Config Js",
+        "description": "Partner-app config — env-driven, no secrets.\n\nPartners copy `.env.example` → `.env`, set their client_id / agent_ref,\nand the backend injects those values into this JS module. The demo HTML\nloads `/examples/config.js` before init and reads `window.icoderConfig`.\n\nPer Phase 7 §6.3, secrets (ICODER_API_CLIENT_SECRET) are NEVER shipped\nto the browser. Partners obtain tokens via their own backend using\nclient_credentials against /api/oauth/realms/{realm}/token (Gate 5).",
+        "operationId": "example_config_js_examples_config_js_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/examples/{path}": {
+      "get": {
+        "tags": [
+          "examples"
+        ],
+        "summary": "Example Catchall",
+        "description": "Strict deny-by-default — only the 3 whitelisted demos + config.js resolve.\n\nThis catches directory traversal attempts (e.g. /examples/../../etc/passwd)\nand any path not in the whitelist. Per Phase 7 §6.1: 不允许目录遍历.",
+        "operationId": "example_catchall_examples__path__get",
+        "parameters": [
+          {
+            "name": "path",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Path"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/runs/{run_id}": {
+      "get": {
+        "tags": [
+          "phase7-runs"
+        ],
+        "summary": "Get Run",
+        "description": "Read the current status of a Run (§9.3 polling endpoint).\n\nReturns 404 if the run doesn't exist OR belongs to a different\norg (don't leak cross-org run existence).",
+        "operationId": "phase7_get_run_status",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunStatusResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/runs/{run_id}/cancel": {
+      "post": {
+        "tags": [
+          "phase7-runs"
+        ],
+        "summary": "Cancel Run",
+        "description": "Request cancellation of a Run (§9.2).\n\nNever lies about cancellation. If the Provider doesn't support\nmid-stream cancel (DeepSeek doesn't), returns 202 RECORDED_ONLY\nand the run continues. Partners should poll GET for the real\nfinal status.\n\nStatus code mapping (HTTPException for the error cases):\n- 200 + ALREADY_COMPLETE — run already terminal\n- 200 + CANCELLED        — pre-Provider-call PENDING run was dropped\n- 202 + RECORDED_ONLY    — Provider mid-call, cancel not supported\n- 404 + NOT_FOUND        — run_id unknown (or other org)",
+        "operationId": "phase7_cancel_run",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CancelResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/runs/{run_id}/trace": {
+      "get": {
+        "tags": [
+          "phase7-runs"
+        ],
+        "summary": "Get Run Trace Partner",
+        "description": "Partner-accessible trace view (§12.1).\n\nPartners can deep-link to a Run's trace without a Console JWT. The\n``?token=`` query param is an HMAC-signed token issued by\n``app.services.trace_token.issue_trace_token`` and embedded in the\n``trace_url`` returned by POST /api/v1/agents/{id}/run.\n\nToken verification:\n- Signature must match (HMAC-SHA256 of payload, constant-time compare)\n- Token must not be past ``exp``\n- Token's ``run_id`` must equal the URL's ``{run_id}``\n- Token's ``organization_id`` (if set) must match the run's org\n  (we read the run_history row to verify)\n\nOn success, returns the same JSON the internal RunTrace endpoint\nreturns (timeline format) — the data is already display-safe.\n\nAuth path precedence:\n1. ``?token=`` signed trace token (partner path) — this endpoint\n2. Console JWT via Authorization header (internal path) —\n   ``/api/runtime/runs/{run_id}/trace`` (separate router)",
+        "operationId": "phase7_get_run_trace_partner",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          },
+          {
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/runs/{run_id}/events": {
+      "get": {
+        "tags": [
+          "phase7-runs"
+        ],
+        "summary": "Stream Run Events",
+        "description": "Partner-accessible SSE stream of run-state events (§14.1).\n\nEmits the run's lifecycle events as ``text/event-stream`` using the\nPhase 6 unified envelope ``{name, payload, meta}``. Each event in the\nstream corresponds to one ``RunTraceEvent`` row, normalized as:\n\n    data: {\"name\": \"run.<step>\", \"payload\": {...}, \"meta\": {...}}\n\n\n\nAfter all events have been emitted, sends a terminal\n``stream.completed`` event and closes the connection. For an\nin-progress run, the stream stays open with periodic heartbeats\n(``: keepalive\\n\\n``) and emits new events as they land.\n\nAuth path is the same signed trace token from Gate 7 — partners\ndon't need a Console JWT to subscribe.\n\nContract (§14.2):\n  - 200 + text/event-stream on success\n  - 401 TRACE_TOKEN_REQUIRED — missing ?token=\n  - 401 TRACE_TOKEN_INVALID  — bad signature\n  - 401 TRACE_TOKEN_EXPIRED  — past exp\n  - 401 TRACE_TOKEN_RUN_MISMATCH — token bound to a different run_id\n  - 404 TRACE_NOT_FOUND      — no events for run_id\n\nHeartbeat (§14.3): every 15s while waiting for new events, emits a\nSSE comment line ``: keepalive\\n\\n`` so intermediaries don't close\nthe connection.",
+        "operationId": "phase9_stream_run_events",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          },
+          {
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
               }
             }
           }
@@ -8708,46 +10398,6 @@
           }
         }
       }
-    },
-    "/api/icoder/agents": {
-      "get": {
-        "summary": "A2A agent discovery (lifespan-mounted)",
-        "responses": {
-          "200": {
-            "description": "agent list"
-          }
-        }
-      }
-    },
-    "/api/icoder/agents/{agent_id}/card": {
-      "get": {
-        "summary": "A2A single AgentCard (lifespan-mounted)",
-        "parameters": [
-          {
-            "name": "agent_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "agent card"
-          }
-        }
-      }
-    },
-    "/.well-known/agent.json": {
-      "get": {
-        "summary": "A2A root agent card (lifespan-mounted)",
-        "responses": {
-          "200": {
-            "description": "root agent card"
-          }
-        }
-      }
     }
   },
   "components": {
@@ -8880,27 +10530,116 @@
         ],
         "title": "AgentRunInput"
       },
-      "AgentRunRequest": {
+      "AgentRunRequestInput": {
         "properties": {
-          "input": {
+          "text": {
             "type": "string",
+            "maxLength": 32000,
             "minLength": 1,
-            "title": "Input"
+            "title": "Text",
+            "description": "Clinical encounter text (Chinese or English)."
           },
-          "conversation_history": {
-            "items": {
-              "type": "object"
-            },
-            "type": "array",
-            "title": "Conversation History",
-            "default": []
+          "extra": {
+            "type": "object",
+            "title": "Extra",
+            "description": "Agent-specific extra input fields (codes, context, etc.)."
           }
         },
         "type": "object",
         "required": [
-          "input"
+          "text"
         ],
-        "title": "AgentRunRequest"
+        "title": "AgentRunRequestInput",
+        "description": "Agent run input — ``text`` is the universal field.\n\nOther agent-specific input fields can be passed via the dict-like\nshape (e.g. ``{\"text\": \"...\", \"codes\": [\"I50.9\"]}`` for Coding\nEvidence agent)."
+      },
+      "AgentRunResponse": {
+        "properties": {
+          "agent_id": {
+            "type": "string",
+            "title": "Agent Id"
+          },
+          "run_id": {
+            "type": "string",
+            "title": "Run Id"
+          },
+          "trace_id": {
+            "type": "string",
+            "title": "Trace Id",
+            "default": ""
+          },
+          "trace_url": {
+            "type": "string",
+            "title": "Trace Url",
+            "description": "Phase 6 Gate 5: frontend deep-link to the RunTrace viewer (/ai-studio/runs/{run_id}/trace). Embedded widgets surface this in the run.completed event payload so consumers can open the trace in a new tab. Empty when run_id is empty.",
+            "default": ""
+          },
+          "runtime_mode": {
+            "type": "string",
+            "title": "Runtime Mode",
+            "default": ""
+          },
+          "latency_ms": {
+            "type": "integer",
+            "title": "Latency Ms",
+            "default": 0
+          },
+          "cost": {
+            "type": "object",
+            "title": "Cost"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary",
+            "default": ""
+          },
+          "result": {
+            "type": "object",
+            "title": "Result"
+          },
+          "evidence": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Evidence"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          },
+          "manual_review_required": {
+            "type": "boolean",
+            "title": "Manual Review Required",
+            "default": false
+          },
+          "trace_events": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Trace Events"
+          },
+          "error": {
+            "type": "boolean",
+            "title": "Error",
+            "default": false
+          },
+          "error_reason": {
+            "type": "string",
+            "title": "Error Reason",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "agent_id",
+          "run_id"
+        ],
+        "title": "AgentRunResponse",
+        "description": "POST /api/v1/agents/{agent_id}/run response body (prompt §9.1)."
       },
       "AgentUpdate": {
         "properties": {
@@ -9192,6 +10931,236 @@
         ],
         "title": "Body_token_endpoint_api_oauth_token_post"
       },
+      "CDIRunRequest": {
+        "properties": {
+          "chart_excerpt": {
+            "type": "string",
+            "maxLength": 32000,
+            "minLength": 1,
+            "title": "Chart Excerpt",
+            "description": "Raw chart text (admission note, progress note, etc)."
+          },
+          "case_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Case Id",
+            "description": "Optional case ID. Auto-generated UUID if omitted."
+          },
+          "patient_ref": {
+            "type": "string",
+            "title": "Patient Ref",
+            "description": "Patient reference (MRN or deidentified ID)",
+            "default": ""
+          },
+          "encounter_ref": {
+            "type": "string",
+            "title": "Encounter Ref",
+            "description": "Encounter reference (visit ID)",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "chart_excerpt"
+        ],
+        "title": "CDIRunRequest",
+        "description": "Request body for POST /api/v1/cdi/runs.",
+        "example": {
+          "case_id": "CASE-2026-07-11-001",
+          "chart_excerpt": "患者男性,58岁,因'咳嗽咳痰伴发热 3 天'入院。查体:T 38.5℃...",
+          "encounter_ref": "ENC-001",
+          "patient_ref": "MRN-DEID-001"
+        }
+      },
+      "CDIRunResponse": {
+        "properties": {
+          "case_id": {
+            "type": "string",
+            "title": "Case Id"
+          },
+          "completion_state": {
+            "type": "string",
+            "title": "Completion State"
+          },
+          "documentation_gaps": {
+            "items": {
+              "$ref": "#/components/schemas/DocumentationGapSchema"
+            },
+            "type": "array",
+            "title": "Documentation Gaps"
+          },
+          "proposed_provider_queries": {
+            "items": {
+              "$ref": "#/components/schemas/ProviderQuerySchema"
+            },
+            "type": "array",
+            "title": "Proposed Provider Queries"
+          },
+          "chart_excerpt_preview": {
+            "type": "string",
+            "title": "Chart Excerpt Preview"
+          },
+          "patient_ref": {
+            "type": "string",
+            "title": "Patient Ref",
+            "default": "DEID"
+          },
+          "encounter_ref": {
+            "type": "string",
+            "title": "Encounter Ref",
+            "default": "DEID"
+          },
+          "encounter_summary": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Encounter Summary"
+          },
+          "risk_flags": {
+            "items": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Risk Flags",
+            "default": []
+          },
+          "specialist_trace": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Specialist Trace",
+            "default": []
+          },
+          "stage_run_ids": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Stage Run Ids",
+            "default": {}
+          },
+          "stage_trace_ids": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Stage Trace Ids",
+            "default": {}
+          },
+          "stage_traces": {
+            "items": {
+              "$ref": "#/components/schemas/StageTraceSchema"
+            },
+            "type": "array",
+            "title": "Stage Traces",
+            "default": []
+          },
+          "degraded": {
+            "type": "boolean",
+            "title": "Degraded",
+            "default": false
+          },
+          "runtime_mode": {
+            "type": "string",
+            "title": "Runtime Mode",
+            "default": "real"
+          },
+          "generated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Generated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "case_id",
+          "completion_state",
+          "documentation_gaps",
+          "proposed_provider_queries",
+          "chart_excerpt_preview"
+        ],
+        "title": "CDIRunResponse",
+        "description": "Response for POST /api/v1/cdi/runs."
+      },
+      "CancelRequest": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "title": "Reason",
+            "description": "Free-form reason; recorded for audit (§9.2).",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "CancelRequest",
+        "description": "Body for POST /api/v1/runs/{run_id}/cancel."
+      },
+      "CancelResponse": {
+        "properties": {
+          "run_id": {
+            "type": "string",
+            "title": "Run Id"
+          },
+          "outcome": {
+            "type": "string",
+            "title": "Outcome"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "cancel_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cancel Reason"
+          },
+          "cancelled_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cancelled At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "run_id",
+          "outcome",
+          "status",
+          "message"
+        ],
+        "title": "CancelResponse",
+        "description": "Outcome of a cancel request (§9.1)."
+      },
       "ChangePasswordRequest": {
         "properties": {
           "current_password": {
@@ -9211,6 +11180,388 @@
           "new_password"
         ],
         "title": "ChangePasswordRequest"
+      },
+      "ClientCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description",
+            "default": ""
+          },
+          "scopes": {
+            "type": "string",
+            "title": "Scopes",
+            "default": "agents:run runs:read traces:read usage:read"
+          },
+          "allowed_origins": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Allowed Origins",
+            "description": "Exact Origin strings permitted to embed this client's widget. No wildcards (Phase 7 §11.1)."
+          },
+          "embedded_app_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Embedded App Id"
+          },
+          "token_expires_seconds": {
+            "type": "integer",
+            "maximum": 3600.0,
+            "minimum": 60.0,
+            "title": "Token Expires Seconds",
+            "default": 300
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "ClientCreate"
+      },
+      "ClientCreateResponse": {
+        "properties": {
+          "client_id": {
+            "type": "string",
+            "title": "Client Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "scopes": {
+            "type": "string",
+            "title": "Scopes"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          },
+          "organization_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Organization Id"
+          },
+          "owner_id": {
+            "type": "string",
+            "title": "Owner Id"
+          },
+          "last_used_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Used At"
+          },
+          "allowed_origins": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Allowed Origins"
+          },
+          "embedded_app_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Embedded App Id"
+          },
+          "token_expires_seconds": {
+            "type": "integer",
+            "title": "Token Expires Seconds"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "client_secret": {
+            "type": "string",
+            "title": "Client Secret",
+            "description": "Plaintext secret — shown ONCE. Store in a secret manager."
+          },
+          "secret_shown_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Secret Shown At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "client_id",
+          "name",
+          "description",
+          "scopes",
+          "is_active",
+          "organization_id",
+          "owner_id",
+          "last_used_at",
+          "allowed_origins",
+          "embedded_app_id",
+          "token_expires_seconds",
+          "created_at",
+          "updated_at",
+          "client_secret",
+          "secret_shown_at"
+        ],
+        "title": "ClientCreateResponse",
+        "description": "Create + Rotate responses carry the plaintext secret ONCE.\n\n§10.3: the partner MUST capture this immediately — it is never\nretrievable again. Front-end MUST NOT save it to localStorage\n(Phase 7 §11.3 / §10.3)."
+      },
+      "ClientSummary": {
+        "properties": {
+          "client_id": {
+            "type": "string",
+            "title": "Client Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "scopes": {
+            "type": "string",
+            "title": "Scopes"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          },
+          "organization_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Organization Id"
+          },
+          "owner_id": {
+            "type": "string",
+            "title": "Owner Id"
+          },
+          "last_used_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Used At"
+          },
+          "allowed_origins": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Allowed Origins"
+          },
+          "embedded_app_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Embedded App Id"
+          },
+          "token_expires_seconds": {
+            "type": "integer",
+            "title": "Token Expires Seconds"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "client_id",
+          "name",
+          "description",
+          "scopes",
+          "is_active",
+          "organization_id",
+          "owner_id",
+          "last_used_at",
+          "allowed_origins",
+          "embedded_app_id",
+          "token_expires_seconds",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "ClientSummary",
+        "description": "Public view of an OAuthClient. Never includes the secret hash."
+      },
+      "ClientTestResponse": {
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "title": "Ok"
+          },
+          "client_id": {
+            "type": "string",
+            "title": "Client Id"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          },
+          "granted_scopes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Granted Scopes"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ok",
+          "client_id",
+          "is_active",
+          "granted_scopes",
+          "message"
+        ],
+        "title": "ClientTestResponse",
+        "description": "POST /api/clients/{id}/test result."
+      },
+      "ClientUpdateOrigins": {
+        "properties": {
+          "allowed_origins": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Allowed Origins",
+            "description": "Exact Origin strings. Empty list = deny all embeds."
+          }
+        },
+        "type": "object",
+        "required": [
+          "allowed_origins"
+        ],
+        "title": "ClientUpdateOrigins"
+      },
+      "ClientUpdateScopes": {
+        "properties": {
+          "scopes": {
+            "type": "string",
+            "title": "Scopes",
+            "description": "Space-separated scope list."
+          }
+        },
+        "type": "object",
+        "required": [
+          "scopes"
+        ],
+        "title": "ClientUpdateScopes"
+      },
+      "CloneRequest": {
+        "properties": {
+          "project_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Project Id",
+            "description": "Corti-style project_id. Maps to org_id in iCoDer."
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name",
+            "description": "Override the cloned agent's name."
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description",
+            "description": "Override description."
+          },
+          "open_after_clone": {
+            "type": "boolean",
+            "title": "Open After Clone",
+            "description": "If true, response includes ready-to-navigate URLs.",
+            "default": true
+          }
+        },
+        "type": "object",
+        "title": "CloneRequest",
+        "description": "Request body for POST /api/icoder/agents/{agent_id}/clone.\n\nAll fields optional — the caller can simply POST {} to clone with\ndefaults. ``project_id`` is accepted for Corti API parity but maps\nto the caller's organization (iCoDer is org-scoped, not project-scoped)."
       },
       "CodeExploreRequest": {
         "properties": {
@@ -9752,6 +12103,39 @@
         "title": "CodingCode",
         "description": "One final coding result for a single disease/procedure mention.\n\nMirrors Corti's ``codes[]`` element. ``system`` echoes whatever the caller\npassed in (iCoDer Chinese system), so a SDK caller can correlate the\noutput back to their request without consulting docs.corti.ai again."
       },
+      "CodingComplianceRunRequest": {
+        "properties": {
+          "input_text": {
+            "type": "string",
+            "maxLength": 32000,
+            "minLength": 1,
+            "title": "Input Text",
+            "description": "Raw discharge summary text (Chinese or English)."
+          },
+          "case_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Case Id",
+            "description": "Optional case ID. Auto-generated UUID if omitted."
+          }
+        },
+        "type": "object",
+        "required": [
+          "input_text"
+        ],
+        "title": "CodingComplianceRunRequest",
+        "description": "Request body for the 7-stage mainline endpoint.",
+        "example": {
+          "case_id": "CASE-2026-07-11-001",
+          "input_text": "患者男性,78岁,T12椎体压缩性骨折,行后路椎体成形术..."
+        }
+      },
       "CodingContextItem": {
         "properties": {
           "text": {
@@ -9804,6 +12188,175 @@
         "type": "object",
         "title": "CodingEvidence",
         "description": "One char-offset citation inside ``context[contextIndex].text``.\n\nMirrors Corti's ``evidences[]`` element. ``start`` / ``end`` are\ninclusive-exclusive offsets into the *concatenated* context block\n(i.e. ``context[contextIndex].text[start:end] == text``)."
+      },
+      "CodingPredictCode": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "system": {
+            "type": "string",
+            "title": "System",
+            "default": "ICD-10-CN"
+          },
+          "display": {
+            "type": "string",
+            "title": "Display",
+            "default": ""
+          },
+          "type": {
+            "type": "string",
+            "title": "Type",
+            "default": "primary_diagnosis"
+          },
+          "confidence": {
+            "type": "number",
+            "title": "Confidence",
+            "default": 0.0
+          },
+          "evidence": {
+            "type": "string",
+            "title": "Evidence",
+            "default": ""
+          },
+          "rationale": {
+            "type": "string",
+            "title": "Rationale",
+            "default": ""
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          },
+          "alternatives": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Alternatives"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code"
+        ],
+        "title": "CodingPredictCode"
+      },
+      "CodingPredictRequest": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 16000,
+            "minLength": 1,
+            "title": "Text",
+            "description": "Clinical encounter text (Chinese or English)."
+          },
+          "mode": {
+            "type": "string",
+            "title": "Mode",
+            "description": "Coding runtime mode. ``corti_like_fast`` (default) = single-stage LLM call (~7-12s). ``medcoder_deep`` = 5-stage MedCodER pipeline (30-60s+, advanced/research use).",
+            "default": "corti_like_fast"
+          },
+          "coding_system": {
+            "type": "string",
+            "title": "Coding System",
+            "description": "Coding system namespace. Default icd10cn (China ICD-10).",
+            "default": "icd10cn"
+          },
+          "include_evidence": {
+            "type": "boolean",
+            "title": "Include Evidence",
+            "description": "Whether to include evidence spans in the response.",
+            "default": true
+          },
+          "include_trace": {
+            "type": "boolean",
+            "title": "Include Trace",
+            "description": "Whether to include trace events in the response.",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "title": "CodingPredictRequest",
+        "description": "POST /api/v1/coding/predict request body."
+      },
+      "CodingPredictResponse": {
+        "properties": {
+          "codes": {
+            "items": {
+              "$ref": "#/components/schemas/CodingPredictCode"
+            },
+            "type": "array",
+            "title": "Codes"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary",
+            "default": ""
+          },
+          "runtime_mode": {
+            "type": "string",
+            "title": "Runtime Mode",
+            "default": "corti_like_fast"
+          },
+          "latency_ms": {
+            "type": "integer",
+            "title": "Latency Ms",
+            "default": 0
+          },
+          "llm_provider": {
+            "type": "string",
+            "title": "Llm Provider",
+            "default": "deepseek"
+          },
+          "trace_id": {
+            "type": "string",
+            "title": "Trace Id",
+            "default": ""
+          },
+          "run_id": {
+            "type": "string",
+            "title": "Run Id",
+            "default": ""
+          },
+          "cost": {
+            "type": "object",
+            "title": "Cost"
+          },
+          "raw_schema": {
+            "type": "object",
+            "title": "Raw Schema"
+          },
+          "trace_events": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Trace Events"
+          },
+          "error": {
+            "type": "boolean",
+            "title": "Error",
+            "default": false
+          },
+          "error_reason": {
+            "type": "string",
+            "title": "Error Reason",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "codes"
+        ],
+        "title": "CodingPredictResponse"
       },
       "CodingRequest": {
         "properties": {
@@ -10113,6 +12666,49 @@
           "content"
         ],
         "title": "DocumentInput"
+      },
+      "DocumentationGapSchema": {
+        "properties": {
+          "gap_id": {
+            "type": "string",
+            "title": "Gap Id"
+          },
+          "gap_type": {
+            "type": "string",
+            "title": "Gap Type"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "why_it_matters": {
+            "type": "string",
+            "title": "Why It Matters",
+            "default": ""
+          },
+          "evidence_span": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvidenceSpanSchema"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "minimal_clarification_needed": {
+            "type": "string",
+            "title": "Minimal Clarification Needed",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "gap_id",
+          "gap_type",
+          "description"
+        ],
+        "title": "DocumentationGapSchema"
       },
       "DocumentsGetResponse": {
         "properties": {
@@ -10514,6 +13110,22 @@
         },
         "type": "object",
         "title": "EvalRunRequest"
+      },
+      "EvidenceSpanSchema": {
+        "properties": {
+          "document_id": {
+            "type": "string",
+            "title": "Document Id",
+            "default": ""
+          },
+          "quote": {
+            "type": "string",
+            "title": "Quote",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "EvidenceSpanSchema"
       },
       "ExistingCode": {
         "properties": {
@@ -12137,6 +14749,146 @@
         ],
         "title": "PresetCreateRequest"
       },
+      "PreviewSessionCreate": {
+        "properties": {
+          "expected_parent_origin": {
+            "type": "string",
+            "title": "Expected Parent Origin",
+            "description": "Console origin, e.g. http://localhost:3000"
+          },
+          "allowed_agent_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Allowed Agent Ids",
+            "description": "Agent refs to allow; empty/None = all"
+          },
+          "allowed_scopes": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Allowed Scopes",
+            "description": "Scopes for the Runtime Token"
+          },
+          "ttl_seconds": {
+            "type": "integer",
+            "maximum": 300.0,
+            "minimum": 5.0,
+            "title": "Ttl Seconds",
+            "description": "Ticket TTL (5–300s). Default 60s per PDF §3.",
+            "default": 60
+          }
+        },
+        "type": "object",
+        "required": [
+          "expected_parent_origin"
+        ],
+        "title": "PreviewSessionCreate",
+        "description": "Body of POST /api/embedded/preview-sessions.\n\nThe Console sends the parent origin (its own origin) so we can bind\nthe ticket to it. Patient context is NOT included — that flows via\nMessageChannel after the handshake."
+      },
+      "PreviewSessionResponse": {
+        "properties": {
+          "preview_session_id": {
+            "type": "string",
+            "title": "Preview Session Id"
+          },
+          "ticket": {
+            "type": "string",
+            "title": "Ticket"
+          },
+          "nonce": {
+            "type": "string",
+            "title": "Nonce"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expires At"
+          },
+          "iframe_url": {
+            "type": "string",
+            "title": "Iframe Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "preview_session_id",
+          "ticket",
+          "nonce",
+          "expires_at",
+          "iframe_url"
+        ],
+        "title": "PreviewSessionResponse"
+      },
+      "PreviewSessionStatus": {
+        "properties": {
+          "preview_session_id": {
+            "type": "string",
+            "title": "Preview Session Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "issued_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Issued At"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expires At"
+          },
+          "exchanged_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exchanged At"
+          },
+          "exchanged_from_ip": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exchanged From Ip"
+          }
+        },
+        "type": "object",
+        "required": [
+          "preview_session_id",
+          "status",
+          "issued_at",
+          "expires_at"
+        ],
+        "title": "PreviewSessionStatus"
+      },
       "ProcedureCode": {
         "properties": {
           "code": {
@@ -12164,6 +14916,67 @@
           "code"
         ],
         "title": "ProcedureCode"
+      },
+      "ProviderQuerySchema": {
+        "properties": {
+          "query_id": {
+            "type": "string",
+            "title": "Query Id"
+          },
+          "gap_id": {
+            "type": "string",
+            "title": "Gap Id"
+          },
+          "topic": {
+            "type": "string",
+            "title": "Topic"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason",
+            "default": ""
+          },
+          "evidence_span": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvidenceSpanSchema"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "query_text": {
+            "type": "string",
+            "title": "Query Text"
+          },
+          "response_options": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Response Options",
+            "default": []
+          },
+          "lifecycle_state": {
+            "type": "string",
+            "title": "Lifecycle State",
+            "default": "DRAFT"
+          },
+          "priority": {
+            "type": "string",
+            "title": "Priority",
+            "default": "routine"
+          }
+        },
+        "type": "object",
+        "required": [
+          "query_id",
+          "gap_id",
+          "topic",
+          "query_text"
+        ],
+        "title": "ProviderQuerySchema"
       },
       "RecordingsCreateResponse": {
         "properties": {
@@ -12260,6 +15073,267 @@
           "structured_output"
         ],
         "title": "RuleValidateRequest"
+      },
+      "RunStatusResponse": {
+        "properties": {
+          "run_id": {
+            "type": "string",
+            "title": "Run Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "terminal": {
+            "type": "boolean",
+            "title": "Terminal"
+          },
+          "agent_id": {
+            "type": "string",
+            "title": "Agent Id",
+            "default": ""
+          },
+          "trace_id": {
+            "type": "string",
+            "title": "Trace Id",
+            "default": ""
+          },
+          "runtime_mode": {
+            "type": "string",
+            "title": "Runtime Mode",
+            "default": ""
+          },
+          "latency_ms": {
+            "type": "integer",
+            "title": "Latency Ms",
+            "default": 0
+          },
+          "cost_amount": {
+            "type": "number",
+            "title": "Cost Amount",
+            "default": 0.0
+          },
+          "cost_currency": {
+            "type": "string",
+            "title": "Cost Currency",
+            "default": "CNY"
+          },
+          "error": {
+            "type": "boolean",
+            "title": "Error",
+            "default": false
+          },
+          "error_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Reason"
+          },
+          "cancel_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cancel Reason"
+          },
+          "cancelled_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cancelled At"
+          },
+          "cancelled_by_user_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cancelled By User Id"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "run_id",
+          "status",
+          "terminal"
+        ],
+        "title": "RunStatusResponse",
+        "description": "Shape returned by GET /api/v1/runs/{run_id}.\n\nPartners poll this after an SDK 90s timeout (§9.3). The\n``terminal`` flag tells them when to stop polling."
+      },
+      "StageTraceSchema": {
+        "properties": {
+          "stage": {
+            "type": "string",
+            "title": "Stage"
+          },
+          "provider": {
+            "type": "string",
+            "title": "Provider",
+            "default": ""
+          },
+          "model": {
+            "type": "string",
+            "title": "Model",
+            "default": ""
+          },
+          "latency_ms": {
+            "type": "integer",
+            "title": "Latency Ms",
+            "default": 0
+          },
+          "prompt_tokens": {
+            "type": "integer",
+            "title": "Prompt Tokens",
+            "default": 0
+          },
+          "completion_tokens": {
+            "type": "integer",
+            "title": "Completion Tokens",
+            "default": 0
+          },
+          "total_tokens": {
+            "type": "integer",
+            "title": "Total Tokens",
+            "default": 0
+          },
+          "run_id": {
+            "type": "string",
+            "title": "Run Id",
+            "default": ""
+          },
+          "trace_id": {
+            "type": "string",
+            "title": "Trace Id",
+            "default": ""
+          },
+          "degraded": {
+            "type": "boolean",
+            "title": "Degraded",
+            "default": false
+          },
+          "error_reason": {
+            "type": "string",
+            "title": "Error Reason",
+            "default": ""
+          },
+          "expert_id": {
+            "type": "string",
+            "title": "Expert Id",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "stage"
+        ],
+        "title": "StageTraceSchema",
+        "description": "Per-stage provider/model/latency/token evidence (PDF §A2).\n\nSurfaced on every CDI run so the audit log and Specialist Trace\npanel can prove the LLM was actually invoked — not stubbed."
+      },
+      "SubscriptionRequest": {
+        "properties": {
+          "user_role": {
+            "type": "string",
+            "title": "User Role"
+          },
+          "events": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Events"
+          },
+          "channel": {
+            "type": "string",
+            "title": "Channel",
+            "default": "in_app"
+          },
+          "target_url": {
+            "type": "string",
+            "title": "Target Url",
+            "default": ""
+          },
+          "secret": {
+            "type": "string",
+            "title": "Secret",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_role",
+          "events"
+        ],
+        "title": "SubscriptionRequest",
+        "description": "Register a notification subscription."
+      },
+      "SubscriptionResponse": {
+        "properties": {
+          "subscription_id": {
+            "type": "string",
+            "title": "Subscription Id"
+          },
+          "user_role": {
+            "type": "string",
+            "title": "User Role"
+          },
+          "events": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Events"
+          },
+          "channel": {
+            "type": "string",
+            "title": "Channel"
+          },
+          "target_url": {
+            "type": "string",
+            "title": "Target Url",
+            "default": ""
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "subscription_id",
+          "user_role",
+          "events",
+          "channel"
+        ],
+        "title": "SubscriptionResponse"
       },
       "SwitchOrgRequest": {
         "properties": {
@@ -12466,6 +15540,57 @@
           "subject"
         ],
         "title": "TicketCreateIn"
+      },
+      "TicketExchangeRequest": {
+        "properties": {
+          "ticket": {
+            "type": "string",
+            "title": "Ticket",
+            "description": "The HMAC-signed bootstrap ticket"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ticket"
+        ],
+        "title": "TicketExchangeRequest"
+      },
+      "TicketExchangeResponse": {
+        "properties": {
+          "runtime_token": {
+            "type": "string",
+            "title": "Runtime Token"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expires At"
+          },
+          "preview_session_id": {
+            "type": "string",
+            "title": "Preview Session Id"
+          },
+          "scopes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Scopes"
+          },
+          "token_type": {
+            "type": "string",
+            "title": "Token Type",
+            "default": "bearer"
+          }
+        },
+        "type": "object",
+        "required": [
+          "runtime_token",
+          "expires_at",
+          "preview_session_id",
+          "scopes"
+        ],
+        "title": "TicketExchangeResponse"
       },
       "TicketListOut": {
         "properties": {
@@ -13134,6 +16259,151 @@
         "title": "TranscriptsStatusResponse",
         "description": "``TranscriptsStatusResponse`` schema — get-transcript-status response.\n\nRequired: ``status`` (one of ``completed | processing | failed``).\n\nDesigned for polling transcript creation jobs (especially async\nfrom cycle-8's create-transcript). Mirrors the ``status`` field\nof cycle-7's ``TranscriptsResponse`` but is a lighter-weight\npayload — just the status, no transcript body.\n\nSpec source:\n``docs/corti-reverse-engineered/stt-get-transcript-status.md`` (5,477 bytes)."
       },
+      "TransitionRequest": {
+        "properties": {
+          "to_state": {
+            "type": "string",
+            "title": "To State",
+            "description": "Target lifecycle state"
+          },
+          "role_hint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role Hint",
+            "description": "Override CDI role (default: derive from user role)."
+          },
+          "query_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Query Text"
+          },
+          "response_options": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Response Options"
+          },
+          "evidence_quote": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence Quote"
+          },
+          "topic": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic"
+          },
+          "priority": {
+            "type": "string",
+            "title": "Priority",
+            "default": "routine"
+          }
+        },
+        "type": "object",
+        "required": [
+          "to_state"
+        ],
+        "title": "TransitionRequest",
+        "description": "Drive a lifecycle transition on a Provider Query."
+      },
+      "TransitionResponse": {
+        "properties": {
+          "query_id": {
+            "type": "string",
+            "title": "Query Id"
+          },
+          "accepted": {
+            "type": "boolean",
+            "title": "Accepted"
+          },
+          "from_state": {
+            "type": "string",
+            "title": "From State"
+          },
+          "to_state": {
+            "type": "string",
+            "title": "To State"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason",
+            "default": ""
+          },
+          "sla_due_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sla Due At"
+          },
+          "nlq_gate_passed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nlq Gate Passed"
+          },
+          "rbac_allowed": {
+            "type": "boolean",
+            "title": "Rbac Allowed",
+            "default": true
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Timestamp"
+          }
+        },
+        "type": "object",
+        "required": [
+          "query_id",
+          "accepted",
+          "from_state",
+          "to_state"
+        ],
+        "title": "TransitionResponse"
+      },
       "UpdateMemberRoleRequest": {
         "properties": {
           "role": {
@@ -13393,6 +16663,77 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "app__api__agent_run__AgentRunRequest": {
+        "properties": {
+          "input": {
+            "$ref": "#/components/schemas/AgentRunRequestInput"
+          },
+          "runtime_mode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Runtime Mode",
+            "description": "Override the agent's default_runtime_mode. For medical-coding-agent: 'corti_like_fast' (default, ~9s) or 'medcoder_deep' (5-stage, 30-60s+). Other agents ignore this field (their backend_provider determines runtime)."
+          },
+          "api_client_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Api Client Id",
+            "description": "Optional API Client ID for usage attribution (placeholder)."
+          },
+          "include_trace": {
+            "type": "boolean",
+            "title": "Include Trace",
+            "description": "Whether to include trace_events in the response.",
+            "default": true
+          },
+          "include_evidence": {
+            "type": "boolean",
+            "title": "Include Evidence",
+            "description": "Whether to include evidence[] in the response.",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "input"
+        ],
+        "title": "AgentRunRequest",
+        "description": "POST /api/v1/agents/{agent_id}/run request body (prompt §9.1)."
+      },
+      "app__api__agents__AgentRunRequest": {
+        "properties": {
+          "input": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Input"
+          },
+          "conversation_history": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Conversation History",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "input"
+        ],
+        "title": "AgentRunRequest"
       },
       "app__schemas__v2_tools_coding__CommonUsageInfo": {
         "properties": {

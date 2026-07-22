@@ -213,7 +213,11 @@ async def test_add_task_to_unknown_context_raises(session):
     with pytest.raises(ContextNotFoundError):
         await repo.add_task(
             generate_context_id(),
-            ContextTaskRef(task_id="t-x", state="x", started_at=_now()),
+            ContextTaskRef(
+                task_id="t-x",
+                state="submitted",  # A1B-AE-R.1.a — must satisfy CHECK constraint
+                started_at=_now(),
+            ),
         )
 
 
@@ -260,7 +264,11 @@ async def test_delete_context_cascades_children(session):
     )
     await repo.add_task(
         ctx.id,
-        ContextTaskRef(task_id="t-1", state="x", started_at=_now()),
+        ContextTaskRef(
+            task_id="t-1",
+            state="submitted",  # A1B-AE-R.1.a — must satisfy CHECK constraint
+            started_at=_now(),
+        ),
     )
 
     await repo.delete_context(ctx.id)

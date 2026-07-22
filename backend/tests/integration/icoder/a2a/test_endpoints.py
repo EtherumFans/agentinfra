@@ -162,6 +162,18 @@ def client(handler, agent_provider, expert_caller) -> TestClient:
         agent_provider=agent_provider,
         expert_caller=expert_caller,
     )
+    # A1B-AE-R.1.b — Task + Context routes now require get_current_organization.
+    # The conftest bypass is wired to ``app.main.app``, not this standalone
+    # app, so we install the same mock-org override locally.
+    from app.middleware.auth import get_current_organization
+
+    class _MockOrg:
+        id = "org_default1"
+        name = "Test Org (bypass)"
+        slug = "test-org-bypass"
+        is_active = True
+
+    app.dependency_overrides[get_current_organization] = lambda: _MockOrg()
     return TestClient(app)
 
 
@@ -543,7 +555,7 @@ def test_all_a2a_routes_set_protocol_header(client, handler, agent_provider, exp
 
 
 def test_build_a2a_routers_returns_separate_routers(handler, agent_provider, expert_caller):
-    """Sanity: build_a2a_routers returns 5 distinct routers without mounting."""
+    """Sanity: build_a2a_routers returns 6 distinct routers without mounting."""
     routers = build_a2a_routers(
         handler=handler,
         agent_provider=agent_provider,
@@ -555,6 +567,7 @@ def test_build_a2a_routers_returns_separate_routers(handler, agent_provider, exp
         "discovery_root",
         "discovery_agents",
         "task",
+        "context",
     }
     # None are mounted on any app
     for r in routers.values():

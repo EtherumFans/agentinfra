@@ -27,6 +27,12 @@ class ContextRow(Base):
     updated_at: Mapped[DateTime] = mapped_column(DateTime, nullable=False)
     expires_at: Mapped[DateTime] = mapped_column(DateTime, nullable=False)
     agent_id: Mapped[str] = mapped_column(String(128), nullable=False)
+    organization_id: Mapped[str] = mapped_column(
+        String(12),
+        nullable=False,
+        default="org_default1",
+        server_default="org_default1",
+    )
     status: Mapped[str] = mapped_column(String(16), nullable=False)
     metadata_json: Mapped[str] = mapped_column(Text, nullable=False)
     redacted_input_hash: Mapped[str] = mapped_column(
@@ -56,6 +62,7 @@ class ContextRow(Base):
         Index("idx_contexts_expires_at", "expires_at"),
         Index("idx_contexts_agent_id", "agent_id"),
         Index("idx_contexts_status", "status"),
+        Index("idx_contexts_organization_id", "organization_id"),
     )
 
 

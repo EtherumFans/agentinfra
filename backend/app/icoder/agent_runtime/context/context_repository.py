@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 from datetime import datetime, timezone
 
+from sqlalchemy import delete as sa_delete
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -21,6 +22,7 @@ from .db_models import (
     ContextMessageRow,
     ContextRow,
     ContextTaskRefRow,
+    OriginalInputAuditRow,
 )
 
 
@@ -60,6 +62,7 @@ class ContextRepository:
             updated_at=_as_utc(row.updated_at),
             expires_at=_as_utc(row.expires_at),
             agent_id=row.agent_id,
+            organization_id=row.organization_id,
             status=ContextStatus(row.status),
             metadata=metadata,
             redacted_input_hash=row.redacted_input_hash,
@@ -74,6 +77,7 @@ class ContextRepository:
             updated_at=ctx.updated_at,
             expires_at=ctx.expires_at,
             agent_id=ctx.agent_id,
+            organization_id=ctx.organization_id or "org_default1",
             status=ctx.status.value,
             metadata_json=ctx.metadata.model_dump_json(),
             redacted_input_hash=ctx.redacted_input_hash,
@@ -107,6 +111,70 @@ class ContextRepository:
 
     async def delete_context(self, context_id: str) -> None:
         await self._require_context_exists(context_id)
+        row = await self._session.get(ContextRow, context_id)
+        assert row is not None
+        await self._session.delete(row)
+        await self._session.commit()
+
+    async def get_for_org(
+        self, context_id: str, organization_id: str
+    ) -> ContextRow | None:
+        """Tenant-scoped row lookup.
+
+        Returns the ContextRow if ``context_id`` exists AND belongs to
+        ``organization_id``; otherwise None. Callers should return 404
+        on None — never distinguish "wrong tenant" from "does not exist"
+        in user-facing responses (no tenant leakage).
+        """
+        await self._require_valid_id(context_id)
+        stmt = select(ContextRow).where(
+            ContextRow.id == context_id,
+            ContextRow.organization_id == organization_id,
+        )
+        result = await self._session.execute(stmt)
+        return result.scalar_one_or_none()
+
+    async def hard_delete_context(self, context_id: str) -> None:
+        """A1B-AE-R.1.b — physical scrub.
+
+        Deletes (in dependency order):
+
+        * ``original_input_audit`` — no FK declared, manual delete
+        * ``context_artifact_refs`` — FK CASCADE declared but SQLite
+          runs with ``PRAGMA foreign_keys=OFF`` by default; we delete
+          explicitly so the scrub is correct regardless of PRAGMA state
+        * ``context_task_refs`` — same
+        * ``context_messages`` — same
+        * ``contexts`` — parent row last
+
+        Use this for the user-facing ``DELETE /api/icoder/contexts/{id}``
+        endpoint. The GC path (``destroy_expired``) continues to use
+        ``delete_context`` because it operates on already-expired rows
+        whose audit retention is still in force. ``delete_context``
+        will gain the same child-scrub logic in a follow-up once a
+        global SQLite ``PRAGMA foreign_keys=ON`` listener is wired.
+        """
+        await self._require_context_exists(context_id)
+        await self._session.execute(
+            sa_delete(OriginalInputAuditRow).where(
+                OriginalInputAuditRow.context_id == context_id
+            )
+        )
+        await self._session.execute(
+            sa_delete(ContextArtifactRefRow).where(
+                ContextArtifactRefRow.context_id == context_id
+            )
+        )
+        await self._session.execute(
+            sa_delete(ContextTaskRefRow).where(
+                ContextTaskRefRow.context_id == context_id
+            )
+        )
+        await self._session.execute(
+            sa_delete(ContextMessageRow).where(
+                ContextMessageRow.context_id == context_id
+            )
+        )
         row = await self._session.get(ContextRow, context_id)
         assert row is not None
         await self._session.delete(row)

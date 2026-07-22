@@ -1529,6 +1529,7 @@ from app.api.agent_run import router as agent_run_router
 from app.api.coding_compliance import router as coding_compliance_router
 from app.api.cdi import router as cdi_router
 from app.api.experts import router as experts_router
+from app.api.agent_cards import router as agent_cards_router
 from app.middleware.rate_limit import rate_limit_middleware
 
 # Rate limiting middleware
@@ -1562,6 +1563,7 @@ app.include_router(agent_run_router)             # /api/v1/agents/{id}/run (Phas
 app.include_router(coding_compliance_router)    # /api/v1/coding-compliance/run (Phase 5 Track C Gate 5 — 7-stage mainline)
 app.include_router(cdi_router)                  # /api/v1/cdi/* (Phase 5 Track D Gate 9 — CDI Core Entry Agent)
 app.include_router(experts_router)              # /api/v1/experts/* (A1B-AE.3 Expert Registry provenance)
+app.include_router(agent_cards_router)          # /api/v1/agents/{quick|resolve|card} (A1B-AE.4 Corti-compatible surfaces)
 app.include_router(organizations_router)
 app.include_router(platform_environments_router)  # Phase 1 cloud-flip stub (501)
 app.include_router(platform_api_clients_router)    # Phase 1 cloud-flip stub (501)

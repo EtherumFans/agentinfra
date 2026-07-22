@@ -167,6 +167,12 @@ Respond with a JSON plan:
             "tags": expert.tags or [],
             "is_prebuilt": expert.is_prebuilt,
             "usage_count": expert.usage_count,
+            # A1B-AE.3 — Charter Amendment 1 §7 provenance fields
+            "canonical_key": getattr(expert, "canonical_key", None),
+            "origin": getattr(expert, "origin", "ICODER_INTERNAL"),
+            "corti_alignment": getattr(expert, "corti_alignment", "UNKNOWN"),
+            "pack_dir": getattr(expert, "pack_dir", None),
+            "provenance": getattr(expert, "provenance", None),
         }
 
 

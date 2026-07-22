@@ -1,0 +1,50 @@
+{
+  "_summary": {
+    "charter": "A1B-AE.2",
+    "generated_by": "scripts/a1b_ae_2_build_catalogs.py",
+    "clean_room_attested": true,
+    "counts": {
+      "pack_total": 32,
+      "pack_runnable": 2,
+      "pack_metadata_only": 27,
+      "pack_legacy_orphan": 3,
+      "pack_empty": 0,
+      "dual_named_pairs": 3,
+      "agent_total_canonical": 29,
+      "expert_total": 40,
+      "expert_corti_public_9key": 9,
+      "expert_icoder_internal": 11,
+      "expert_pack_declared": 20,
+      "seed_prebuilt_agents": 16
+    },
+    "classification_legend": {
+      "RUNNABLE_PACK": "dir has both __init__.py (Python code) and agent_pack.json",
+      "METADATA_ONLY_PACK": "dir has only agent_pack.json; no runnable Python",
+      "LEGACY_CODE_ORPHAN": "dir has only __init__.py; missing Pack manifest",
+      "EMPTY": "dir is empty (no __init__.py, no agent_pack.json)"
+    },
+    "expert_origin_legend": {
+      "CORTI_PUBLIC": "clean-room copy of Corti public 9-key registry (A1B-AE.1 §3.2)",
+      "ICODER_INTERNAL": "Python module under backend/app/agents/experts/",
+      "PACK_DECLARED": "referenced inside an agent_pack.json `experts[]` list"
+    },
+    "canonical_name_rule": "For dual-named pairs, the dash-form is canonical (matches Corti public convention and Pack metadata). Legacy underscore-form is aliased."
+  },
+  "entries": [
+    {
+      "alias": "code_validation",
+      "canonical": "code-validation",
+      "reason": "LEGACY_DUAL_NAME: legacy code dir used underscores; canonical Pack name uses dashes (Corti public convention)."
+    },
+    {
+      "alias": "compliance_guardrail",
+      "canonical": "compliance-guardrail",
+      "reason": "LEGACY_DUAL_NAME: legacy code dir used underscores; canonical Pack name uses dashes (Corti public convention)."
+    },
+    {
+      "alias": "note_completeness",
+      "canonical": "note-completeness",
+      "reason": "LEGACY_DUAL_NAME: legacy code dir used underscores; canonical Pack name uses dashes (Corti public convention)."
+    }
+  ]
+}

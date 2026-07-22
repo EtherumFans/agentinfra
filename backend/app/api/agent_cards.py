@@ -150,6 +150,7 @@ def _agent_to_card(
 @router.post("/quick", response_model=AgentQuickCreateResponse)
 async def quick_create_agent(
     body: AgentQuickCreate,
+    from_preset: str | None = None,
     user: User = Depends(get_current_user),
     org: Organization = Depends(get_current_organization),
     db: AsyncSession = Depends(get_db),
@@ -160,25 +161,71 @@ async def quick_create_agent(
     Caller is expected to follow up with PUT /api/v1/agents/{id} to
     set description, systemPrompt, expert_ids, etc.
 
+    A1B-AE-R.2 (2026-07-23): optional ``from_preset`` query parameter
+    pre-populates the Agent from a Preset Agent Card in
+    ``icoder_preset_agents.json``. When ``from_preset`` is set:
+
+    - ``name`` defaults to the preset's name_zh if body.name is empty
+    - ``description``, ``system_prompt``, ``agent_type``, ``canonical_key``,
+      and the preset's expert keys are copied onto the new Agent
+    - ``delegates_to_pack`` from the preset is stored in config for the
+      runtime to resolve
+
     Provenance: ICODER_INTERNAL (matches Corti Console observed
     behaviour but does not copy any Corti-private material).
     """
+    # A1B-AE-R.2 — preset materialization path
+    preset = None
+    if from_preset:
+        from app.services.preset_agents import get_preset
+        preset = get_preset(from_preset)
+        if preset is None:
+            raise HTTPException(
+                status_code=404,
+                detail=(
+                    f"Preset not found for from_preset={from_preset!r}"
+                ),
+            )
+
     name = (body.name or "").strip()
     if not name:
-        raise HTTPException(status_code=422, detail="name must not be empty")
+        if preset is not None:
+            name = preset.name
+        else:
+            raise HTTPException(status_code=422, detail="name must not be empty")
 
     canonical = _slugify(name)
+    description = ""
+    system_prompt = ""
+    agent_type = AGENT_TYPE_DEFAULT
+    expert_ids: list[str] = []
+    config: dict = {}
+    if preset is not None:
+        description = preset.description
+        system_prompt = preset.system_prompt
+        agent_type = preset.agent_type or AGENT_TYPE_DEFAULT
+        expert_ids = [e.canonical_key for e in preset.experts]
+        canonical = preset.canonical_key
+        config = {
+            "delegates_to_pack": preset.delegates_to_pack,
+            "corti_alignment": preset.corti_alignment,
+            "default_runtime_mode": preset.default_runtime_mode,
+            "available_runtime_modes": list(preset.available_runtime_modes),
+            "red_lines": dict(preset.red_lines),
+            "source_preset": preset.canonical_key,
+        }
+
     agent = Agent(
         organization_id=org.id,
         name=name,
-        description="",
-        system_prompt="",
+        description=description,
+        system_prompt=system_prompt,
         icon="Bot",
         category="general",
-        expert_ids=[],
-        default_expert_id="",
+        expert_ids=expert_ids,
+        default_expert_id=expert_ids[0] if expert_ids else "",
         a2a_enabled=False,
-        config={},
+        config=config,
         version="1.0.0",
         status="draft",
         is_prebuilt=False,
@@ -186,7 +233,7 @@ async def quick_create_agent(
         created_by=user.id,
         usage_count=0,
         canonical_key=canonical,
-        agent_type=AGENT_TYPE_DEFAULT,
+        agent_type=agent_type,
         aliases=[],
     )
     db.add(agent)

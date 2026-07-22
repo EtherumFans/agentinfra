@@ -1,37 +1,47 @@
-# DEPRECATED — `note_completeness/` (legacy underscore-form Pack)
+# `note_completeness/` — Python implementation module (retained)
 
-**Status**: LEGACY_CODE_ORPHAN per A1B-AE.2 §3 (architecture reconciliation).
-**Filed**: A1B-AE.9 (2026-07-22).
-**Superseded by**: `note-completeness/` (dash-form canonical Pack).
+**Status**: RETAINED_AS_PYTHON_IMPLEMENTATION per A1B-AE-R.2 §2 (2026-07-23).
+**Former status**: LEGACY_CODE_ORPHAN per A1B-AE.9 (2026-07-22) — **refrained**.
+**Pack metadata**: `note-completeness/agent_pack.json` (dash-form canonical).
 
-## Why this is deprecated
+## What this dir is
 
-A1B-AE.2 §3 identified three dual-named Pack pairs where the legacy
-underscore-form had only Python code and no `agent_pack.json` manifest.
-`note_completeness/` is one of the three (alongside `code_validation/`
-and `compliance_guardrail/`).
+This dir (`note_completeness/`, underscore) is the **Python implementation
+module** that backs the `icoder/note-completeness-agent@1.0.0` Pack whose
+metadata lives in the dash-form sibling `note-completeness/agent_pack.json`.
 
-The dash-form counterpart (`note-completeness/`) is the canonical name.
-A1B-AE.4 Migration 023 + AliasResolver handle alias resolution so
-existing callers that reference `note_completeness` continue to work.
+It is NOT a duplicate Pack directory. The Python / Pack split is forced
+by Python's identifier rule (module names cannot contain `-`), so the
+canonical Corti-style Pack name `note-completeness-agent` maps to:
 
-## Why this dir is not deleted in A1B-AE.9
+- `note-completeness/agent_pack.json` — Corti §6 manifest (dash-form, canonical)
+- `note_completeness/agent.py` — Python entry point imported by app + tests
 
-One call site still imports from this dir as of A1B-AE.9:
+## Why the dir is NOT deleted in A1B-AE-R.2
 
-- `app/icoder/mcp/handlers/check_documentation_gaps.py` — `from
-  official_agents.note_completeness.agent import run as _run`
+A1B-AE-R.2 §2 verified by grep that deletion is not possible without
+breaking active app importers + test files:
 
-Deleting the dir would break this call site. A safe deletion requires
-migrating the call site to the dash-form path first — out-of-scope for
-A1B-AE.9. The dir is marked DEPRECATED here so future readers know it
-is on the deletion roadmap.
+**App importers**:
 
-## Deletion roadmap
+- `app/icoder/mcp/handlers/check_documentation_gaps.py:30` — `from official_agents.note_completeness.agent import run as _run`
+- `app/icoder/markdown_generator.py:455` — `generate_note_completeness_markdown()`
+- `app/icoder/mcp/tool_registry.py:466` — wraps `agent.py::run()` as MCP tool
+- `app/icoder/agent_runtime/orchestrator/coding_compliance_orchestrator.py:389` — references `note_completeness:score` label
 
-Target: a future A1B phase that explicitly migrates the
-`check_documentation_gaps` call site. The roadmap item is recorded in
-the A1B-AE.11 final reconciliation report.
+**Test files**:
+
+- `tests/unit/icoder/agent_runtime/test_three_runnable_agents.py`
+- `tests/integration/icoder/test_phase3d1_three_agents_a2a_smoke.py`
+- `tests/test_api/test_a1b_ae_9_tech_debt_liquidation.py`
+
+## What R.2 DID do instead
+
+See `../code_validation/DEPRECATED.md` for the full list.
+
+## Future migration path
+
+Same as `../code_validation/DEPRECATED.md` §Future migration path.
 
 ## Charter §7 provenance
 

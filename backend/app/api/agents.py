@@ -162,15 +162,35 @@ async def clone_agent(
     db: AsyncSession = Depends(get_db),
     body: AgentCloneRequest | None = None,
 ):
-    """Clone a prebuilt agent or template into a user-owned custom agent."""
+    """Clone a prebuilt agent or template into a user-owned custom agent.
+
+    A1B-AE.4: agent_id is now alias-aware. Legacy underscore-form
+    keys (e.g. ``code_validation``) are resolved to canonical dash-form
+    (``code-validation``) before lookup. This closes the clone-404
+    root cause identified in A1B-AE.2 §9.
+    """
     name_override = body.name if body else None
     description_override = body.description if body else None
 
+    # A1B-AE.4 — alias-aware lookup. The resolver is a no-op if the
+    # input is already canonical, so this is safe to call unconditionally.
+    from app.services.alias_resolver import alias_resolver
+    resolved_id = alias_resolver.resolve_agent_key(agent_id)
+
     # 1. Try cloning from a DB Agent (prebuilt or custom)
     result = await db.execute(
-        select(Agent).where(Agent.id == agent_id)
+        select(Agent).where(
+            (Agent.id == agent_id) | (Agent.id == resolved_id),
+        )
     )
     source = result.scalar_one_or_none()
+
+    # Fallback: try by canonical_key if the ID lookup missed
+    if source is None and resolved_id != agent_id:
+        result = await db.execute(
+            select(Agent).where(Agent.canonical_key == resolved_id)
+        )
+        source = result.scalar_one_or_none()
     if source:
         cloned = Agent(
             organization_id=org.id,

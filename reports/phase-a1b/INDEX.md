@@ -4,7 +4,7 @@
 **Worktree**: `E:/Corti4C-agent-expert`
 **Baseline HEAD**: `3d50b11` (verified full SHA: `3d50b116597c992ac92de189fad70def11349dcb`)
 **Inherited from**: `phase-a1a/emergency-containment` Gate 4R-I.11 (3d50b11)
-**Charter**: [A1B_AE_0_CHARTER_AND_BASELINE.md](A1B_AE_0_CHARTER_AND_BASELINE.md) (v1.0, 2026-07-22)
+**Charter**: [A1B_AE_0_CHARTER_AND_BASELINE.md](A1B_AE_0_CHARTER_AND_BASELINE.md) — v1.0 (2026-07-22) → **v1.1 (2026-07-22 mid-phase)**; see [Charter Amendment 1](A1B_AE_0_CHARTER_AMENDMENT_1_REVERSE_ENGINEERING_PERMITTED.md)
 
 ## Inherited state (NOT mutated by this phase)
 
@@ -49,7 +49,8 @@ CORTI_AGENTIC_FRAMEWORK_FULLY_REPLICATED.
 
 | Document | Purpose |
 |---|---|
-| [A1B_AE_0_CHARTER_AND_BASELINE.md](A1B_AE_0_CHARTER_AND_BASELINE.md) | Charter v1.0, scope, forbidden verdicts, acceptance conditions, baseline state |
+| [A1B_AE_0_CHARTER_AND_BASELINE.md](A1B_AE_0_CHARTER_AND_BASELINE.md) | Charter v1.0 → v1.1, scope, forbidden verdicts, acceptance conditions, baseline state |
+| [A1B_AE_0_CHARTER_AMENDMENT_1_REVERSE_ENGINEERING_PERMITTED.md](A1B_AE_0_CHARTER_AMENDMENT_1_REVERSE_ENGINEERING_PERMITTED.md) | **v1.1 Amendment** — adds `REVERSE_ENGINEERED` provenance tier (Corti Console observation + behavioural RE permitted under developer account). CLEAN_ROOM_PUBLIC tier unchanged. Forbidden verdicts unchanged. |
 | [A1B_AE_0_HUMAN_OPERATION_PROTOCOL.md](A1B_AE_0_HUMAN_OPERATION_PROTOCOL.md) | Headed-browser protocol, evidence archive layout, 11 conditions for HUMAN_WORKFLOW_VERIFIED |
 | [A1B_AE_0_ENVIRONMENT_MANIFEST.json](A1B_AE_0_ENVIRONMENT_MANIFEST.json) | Host, git, baseline counts, pack classification, clean-room sources |
 | [A1B_AE_0_PRE_CHANGE_SHA256SUMS.txt](A1B_AE_0_PRE_CHANGE_SHA256SUMS.txt) | SHA-256 sums for 15 key Agent/Expert files at baseline |

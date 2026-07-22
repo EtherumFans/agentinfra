@@ -37,10 +37,8 @@ CORTI_AGENTIC_FRAMEWORK_FULLY_REPLICATED.
 | 3 | `A1B-AE.2` | Agent / Expert taxonomy + canonical catalogs | **COMPLETED (filed, not verified)** | `b23c69a` |
 | 4 | `A1B-AE.3` | Expert Registry (model + alembic + API) | **COMPLETED (filed, not verified)** | `f5839ca` |
 | 5 | `A1B-AE.4` | Agent CRUD + Agent Card + alias / version resolution | **COMPLETED (filed, not verified)** | `154484b` |
-| 6 | `A1B-AE.5` | Message → Task → Context + Memory Expert | **COMPLETED (filed, not verified)** | _(this commit)_ |
-| 7 | `A1B-AE.6` | Calculator + PubMed + Clinical Trials Experts | pending | — |
-| 6 | `A1B-AE.5` | Message → Task → Context + Memory Expert | pending | — |
-| 7 | `A1B-AE.6` | Calculator + PubMed + Clinical Trials Experts | pending | — |
+| 6 | `A1B-AE.5` | Message → Task → Context + Memory Expert | **COMPLETED (filed, not verified)** | `b253388` |
+| 7 | `A1B-AE.6` | Calculator + PubMed + Clinical Trials Experts | **COMPLETED (filed, not verified)** | _(this commit)_ |
 | 8 | `A1B-AE.7` | Interviewing Expert + Coding wrapper + external-Expert gates | pending | — |
 | 9 | `A1B-AE.8` | iCoder Preset Agents (5 clean-room agents) | pending | — |
 | 10 | `A1B-AE.9` | Agent/Expert tech-debt liquidation | pending | — |
@@ -63,6 +61,7 @@ CORTI_AGENTIC_FRAMEWORK_FULLY_REPLICATED.
 | [A1B_AE_3_EXPERT_REGISTRY.md](A1B_AE_3_EXPERT_REGISTRY.md) | A1B-AE.3 Expert Registry provenance layer — Migration 022 schema, `/api/v1/experts` REST surface, charter Amendment 1 §7 provenance discipline, evidence sources from both CLEAN_ROOM_PUBLIC + REVERSE_ENGINEERED tiers |
 | [A1B_AE_4_AGENT_CRUD.md](A1B_AE_4_AGENT_CRUD.md) | A1B-AE.4 Agent canonical_key + agent_type + aliases (Migration 023), Corti §6 Agent Card surface, Corti Console create-then-customize `/api/v1/agents/quick`, AliasResolver service, clone-404 fix |
 | [A1B_AE_5_MESSAGE_TASK_CONTEXT.md](A1B_AE_5_MESSAGE_TASK_CONTEXT.md) | A1B-AE.5 4 mcp_auth_* error codes + auth DataPart extractor + thread-first-message registration rule + Memory Expert stub (Corti §3.2 key 1/9, lexical-only, no parity claim) |
+| [A1B_AE_6_EXTERNAL_EXPERTS.md](A1B_AE_6_EXTERNAL_EXPERTS.md) | A1B-AE.6 Medical Calculator Expert (BMI + Cockcroft-Gault, CORTI_ADAPTED) + PubMed stub (CORTI_REFERENCE) + Clinical Trials stub (CORTI_REFERENCE); Corti §3.2 keys 3/7/8 of 9; 17 tests PASS |
 | [evidence/](evidence/) | Per-page Corti observation + per-journey iCoDer browser evidence + sanitized HAR + SHA-256 manifest (populated from A1B-AE.1 onwards) |
 
 ## Audit anchors preserved

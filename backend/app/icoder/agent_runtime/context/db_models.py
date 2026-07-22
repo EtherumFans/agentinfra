@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from sqlalchemy import (
     Boolean,
+    CheckConstraint,
     DateTime,
     ForeignKey,
     Index,
@@ -88,6 +89,12 @@ class ContextMessageRow(Base):
 
 class ContextTaskRefRow(Base):
     __tablename__ = "context_task_refs"
+    __table_args__ = (
+        CheckConstraint(
+            "state IN ('submitted', 'working', 'completed', 'failed', 'canceled')",
+            name="ck_context_task_refs_state",
+        ),
+    )
 
     context_id: Mapped[str] = mapped_column(
         String(36),

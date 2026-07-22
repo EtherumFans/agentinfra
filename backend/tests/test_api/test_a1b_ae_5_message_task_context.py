@@ -198,43 +198,23 @@ def test_extractor_text_and_non_auth_data_parts_preserved():
 
 
 # ─────────────────────────────────────────────────────────────────────
-# §3 Thread-first-message registration rule
+# §3 Thread-first-message registration rule — A1B-AE-R.1.a DB-backed
 # ─────────────────────────────────────────────────────────────────────
+# A1B-AE-R.1.a swaps ThreadAuthRegistry from an in-memory dict to a
+# DB-derived check (``context_messages`` row count for context_id == 0
+# ⇒ first message). The 3 original A1B-AE.5 tests asserted in-memory
+# semantics that no longer exist; they are migrated to async DB-backed
+# tests in ``test_a1b_ae_r_1_thread_auth_db_backed.py``.
 
-def test_thread_registry_first_message_check():
+
+def test_thread_auth_registry_moved_to_test_a1b_ae_r_1():
+    """A1B-AE.5 §3 thread-auth tests superseded by A1B-AE-R.1.a."""
     from app.icoder.agent_runtime.a2a.thread_auth import ThreadAuthRegistry
-    reg = ThreadAuthRegistry()
-    assert reg.is_first_message("ctx-a") is True
-    reg.ack_message("ctx-a")
-    assert reg.is_first_message("ctx-a") is False
-
-
-def test_thread_registry_register_first_message_records_mcp_names():
-    from app.icoder.agent_runtime.a2a.thread_auth import ThreadAuthRegistry
-    from app.icoder.agent_runtime.a2a.mcp_auth_extractor import ExtractedMcpAuth
-    reg = ThreadAuthRegistry()
-    entries = [
-        ExtractedMcpAuth(mcp_name="m1", auth_type="token", token="t"),
-        ExtractedMcpAuth(mcp_name="m2", auth_type="credentials", client_id="a", client_secret="b"),
-    ]
-    reg.register_first_message("ctx-b", entries)
-    state = reg.get_state("ctx-b")
-    assert state["has_registered"] is True
-    assert set(state["registered_mcp_names"]) == {"m1", "m2"}
-
-
-def test_thread_registry_subsequent_message_does_not_re_register():
-    """Corti §9 rule 6: only first message registers MCP tools."""
-    from app.icoder.agent_runtime.a2a.thread_auth import ThreadAuthRegistry
-    from app.icoder.agent_runtime.a2a.mcp_auth_extractor import ExtractedMcpAuth
-    reg = ThreadAuthRegistry()
-    reg.register_first_message("ctx-c", [ExtractedMcpAuth(mcp_name="m1", auth_type="token", token="t")])
-
-    # Try to register again with different names — must be ignored
-    reg.register_first_message("ctx-c", [ExtractedMcpAuth(mcp_name="m2", auth_type="token", token="t")])
-    state = reg.get_state("ctx-c")
-    assert "m2" not in state["registered_mcp_names"]
-    assert "m1" in state["registered_mcp_names"]
+    import inspect
+    sig = inspect.signature(ThreadAuthRegistry.__init__)
+    assert "session" in sig.parameters, (
+        "ThreadAuthRegistry.__init__ must require a DB session after A1B-AE-R.1.a"
+    )
 
 
 # ─────────────────────────────────────────────────────────────────────

@@ -1,0 +1,83 @@
+{
+  "page_slug": "06_agentic_core_concepts",
+  "url": "https://docs.corti.ai/agentic/core-concepts",
+  "page_title": "Core Concepts - Corti API Documentation",
+  "captured_at": "2026-07-22T05:16:28Z",
+  "headings": [
+    "H1: Core Concepts",
+    "H2: Core Actors",
+    "H2: Fundamental Communication Elements",
+    "H2: Agent Cards in Corti",
+    "H2: Messages and Parts in Corti",
+    "H2: Artifacts in Corti",
+    "H2: Agent response: Task or Message"
+  ],
+  "clean_room_contracts_extracted": {
+    "authoritative_source_per_corti": "A2A Core Concepts and Components documentation at a2a-protocol.org (Corti adds Corti-specific detail on top)",
+    "core_actors": [
+      {"name": "User", "role": "clinician / contact-center agent / knowledge worker / automated service; initiates request"},
+      {"name": "A2A Client (Client Agent)", "role": "the application calling Corti; initiates A2A communication; orchestrates results"},
+      {"name": "A2A Server (Remote Agent)", "role": "Corti agent or agentic system exposing HTTP endpoint implementing A2A Protocol; receives requests, processes tasks, returns results/updates"}
+    ],
+    "fundamental_communication_elements_6": [
+      "Agent Card",
+      "Task",
+      "Message",
+      "Part",
+      "Artifact",
+      "Context"
+    ],
+    "agent_card_contract": {
+      "format": "JSON document (digital business card)",
+      "purpose_verbatim": "initial discovery and interaction setup",
+      "key_fields_corti_lists": [
+        "identity",
+        "service endpoint (URL)",
+        "A2A capabilities",
+        "authentication requirements",
+        "list of skills"
+      ],
+      "uses_in_corti": [
+        "discover first-party Corti agents",
+        "register and describe your own remote agents",
+        "declare authentication and compliance requirements before PHI/sensitive data exchange"
+      ]
+    },
+    "message_contract": {
+      "fields": [
+        "role ('user' or 'agent')",
+        "messageId (unique)",
+        "parts (one or more Part objects)"
+      ],
+      "design_rationale": "modality independent; lets Corti mix clinical text, transcripts, and structured data in single exchange"
+    },
+    "part_kinds_3": [
+      {"kind": "TextPart", "content": "plain textual content (instructions, questions, generated notes)"},
+      {"kind": "DataPart", "content": "structured JSON data (clinical facts, workflow params, EHR IDs, machine-readable info)"},
+      {"kind": "FilePart", "content": "file (PDF discharge letter, audio recording); inline Base64 OR URI; has name + mimeType", "corti_support_status": "NOT YET FULLY SUPPORTED"}
+    ],
+    "artifact_contract": {
+      "fields": ["artifactId (unique)", "name (human-readable)", "parts (one or more)"],
+      "lifecycle": "tied to task lifecycle; can be streamed incrementally",
+      "examples_corti_lists": [
+        "clinical notes (SOAP notes, discharge summaries)",
+        "extracted clinical facts or coding suggestions",
+        "generated documents, checklists, workflow-specific artifacts"
+      ]
+    },
+    "task_vs_message_response": {
+      "task": "long-running operation (full clinical document, multi-tool coordination, downstream system wait)",
+      "message": "immediate response (short completion, classification)",
+      "implication": "iCoDer A1B-AE.5 must support BOTH response modes; agent chooses based on expected duration"
+    },
+    "icoder_mapping": {
+      "agent_card": "ICODER_V1_AGENT_CARD_SPEC.md already exists; A1B-AE.4 must verify alignment with this Corti public contract",
+      "message_part": "iCoDer Phase 6 Gate 3 unified envelope {name, payload, meta} supports TextPart + DataPart; FilePart is a clean-room addition",
+      "task_state_machine": "matches iCoDer Charter §6 (submitted/working/input_required/completed/failed/canceled)",
+      "context": "matches iCoDer Context model (A1B-AE.5)",
+      "artifact": "iCoDer RunHistory.artifacts (Phase 7) + A1B-AE.5 Artifact index"
+    }
+  },
+  "access_control": {"page_public": true, "login_required": false},
+  "status": "PASS"
+}

@@ -30,20 +30,20 @@ CORTI_AGENTIC_FRAMEWORK_FULLY_REPLICATED.
 
 ## Commit sequence
 
-| # | Sub-gate | Title | Status |
-|---|---|---|---|
-| 1 | `A1B-AE.0` | Charter + baseline + human-operation protocol | in_progress |
-| 2 | `A1B-AE.1` | Corti official Agentic manual observation + clean-room contracts | pending |
-| 3 | `A1B-AE.2` | Agent / Expert taxonomy + canonical catalogs | pending |
-| 4 | `A1B-AE.3` | Expert Registry (model + alembic + API) | pending |
-| 5 | `A1B-AE.4` | Agent CRUD + Agent Card + alias / version resolution | pending |
-| 6 | `A1B-AE.5` | Message → Task → Context + Memory Expert | pending |
-| 7 | `A1B-AE.6` | Calculator + PubMed + Clinical Trials Experts | pending |
-| 8 | `A1B-AE.7` | Interviewing Expert + Coding wrapper + external-Expert gates | pending |
-| 9 | `A1B-AE.8` | iCoder Preset Agents (5 clean-room agents) | pending |
-| 10 | `A1B-AE.9` | Agent/Expert tech-debt liquidation | pending |
-| 11 | `A1B-AE.10` | 10 headed-browser journeys + evidence | pending |
-| 12 | `A1B-AE.11` | Final reconciliation report + verdict | pending |
+| # | Sub-gate | Title | Status | Commit |
+|---|---|---|---|---|
+| 1 | `A1B-AE.0` | Charter + baseline + human-operation protocol | **COMPLETED** | `37e4848` |
+| 2 | `A1B-AE.1` | Corti official Agentic manual observation + clean-room contracts | **COMPLETED (partial reconstruction)** | _(this commit)_ |
+| 3 | `A1B-AE.2` | Agent / Expert taxonomy + canonical catalogs | pending | — |
+| 4 | `A1B-AE.3` | Expert Registry (model + alembic + API) | pending | — |
+| 5 | `A1B-AE.4` | Agent CRUD + Agent Card + alias / version resolution | pending | — |
+| 6 | `A1B-AE.5` | Message → Task → Context + Memory Expert | pending | — |
+| 7 | `A1B-AE.6` | Calculator + PubMed + Clinical Trials Experts | pending | — |
+| 8 | `A1B-AE.7` | Interviewing Expert + Coding wrapper + external-Expert gates | pending | — |
+| 9 | `A1B-AE.8` | iCoder Preset Agents (5 clean-room agents) | pending | — |
+| 10 | `A1B-AE.9` | Agent/Expert tech-debt liquidation | pending | — |
+| 11 | `A1B-AE.10` | 10 headed-browser journeys + evidence | pending | — |
+| 12 | `A1B-AE.11` | Final reconciliation report + verdict | pending | — |
 
 ## Documents
 
@@ -54,6 +54,7 @@ CORTI_AGENTIC_FRAMEWORK_FULLY_REPLICATED.
 | [A1B_AE_0_ENVIRONMENT_MANIFEST.json](A1B_AE_0_ENVIRONMENT_MANIFEST.json) | Host, git, baseline counts, pack classification, clean-room sources |
 | [A1B_AE_0_PRE_CHANGE_SHA256SUMS.txt](A1B_AE_0_PRE_CHANGE_SHA256SUMS.txt) | SHA-256 sums for 15 key Agent/Expert files at baseline |
 | [A1B_AE_0_BASELINE_STATE_5_TUPLE.json](A1B_AE_0_BASELINE_STATE_5_TUPLE.json) | Inherited 5-tuple with provenance; mutated_by_a1b_ae=false |
+| [A1B_AE_1_CORTI_PUBLIC_CONTRACTS_CLEAN_ROOM_RECONSTRUCTION.md](A1B_AE_1_CORTI_PUBLIC_CONTRACTS_CLEAN_ROOM_RECONSTRUCTION.md) | 8 Corti public pages observed via headed browser; clean-room Agent/Expert/MCP/Task/Context/Memory contracts; UNKNOWN list |
 | [evidence/](evidence/) | Per-page Corti observation + per-journey iCoDer browser evidence + sanitized HAR + SHA-256 manifest (populated from A1B-AE.1 onwards) |
 
 ## Audit anchors preserved

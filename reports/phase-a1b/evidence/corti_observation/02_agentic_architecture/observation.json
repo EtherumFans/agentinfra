@@ -1,0 +1,54 @@
+{
+  "page_slug": "02_agentic_architecture",
+  "url": "https://docs.corti.ai/agentic/architecture",
+  "page_title": "System Architecture - Corti API Documentation",
+  "captured_at": "2026-07-22T05:13:18Z",
+  "headings": [
+    "H1: System Architecture",
+    "H2: Architecture Components",
+    "H2: Interaction mechanisms in Corti"
+  ],
+  "clean_room_contracts_extracted": {
+    "three_core_components": [
+      {
+        "name": "Orchestrator",
+        "role": "central coordinator; receives user requests; delegates tasks to specialized Experts via A2A protocol"
+      },
+      {
+        "name": "Experts",
+        "role": "specialized sub-agents that perform domain-specific work; may call external services through MCP"
+      },
+      {
+        "name": "Memory",
+        "role": "maintains persistent context and state; enables Orchestrator to make informed decisions; ensures continuity across conversations"
+      }
+    ],
+    "composition_model": "protocol-based composition (A2A)",
+    "data_isolation": "strict",
+    "reasoning_agent_state": "stateless",
+    "interaction_patterns": [
+      {
+        "id": "IP-1",
+        "name": "Request/Response (Polling)",
+        "use": "synchronous APIs; client sends input, waits for single response; for long-running tasks, client polls the task endpoint for status and results"
+      },
+      {
+        "id": "IP-2",
+        "name": "Streaming with Server-Sent Events (SSE)",
+        "use": "real-time experiences (ambient notes, live guidance); client opens SSE stream; receives incremental tokens, events, status over open HTTP"
+      }
+    ],
+    "icoder_mapping_notes": {
+      "orchestrator": "maps to iCoDer CortiLikeOrchestrator / CodingComplianceOrchestrator (Phase 5 Track C)",
+      "experts": "maps to iCoDer Expert Registry (A1B-AE.3) — but note Corti calls Experts 'sub-agents' not 'capabilities'. iCoDer charter uses 'discrete capability' definition; this is a clean-room reframing, not a contradiction.",
+      "memory": "maps to iCoDer Memory Expert + Context (A1B-AE.5)",
+      "a2a_protocol": "iCoDer already supports A2A v0.3 wrapper (Phase 5 Track C); this architecture confirms the protocol's centrality",
+      "sse_streaming": "iCoDer already has SSE at /api/v1/runs/{id}/events (Phase 7 Gate 9)"
+    }
+  },
+  "access_control": {
+    "page_public": true,
+    "login_required": false
+  },
+  "status": "PASS"
+}

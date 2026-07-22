@@ -38,7 +38,7 @@ CORTI_AGENTIC_FRAMEWORK_FULLY_REPLICATED.
 | 4 | `A1B-AE.3` | Expert Registry (model + alembic + API) | **COMPLETED (filed, not verified)** | `f5839ca` |
 | 5 | `A1B-AE.4` | Agent CRUD + Agent Card + alias / version resolution | **COMPLETED (filed, not verified)** | `154484b` |
 | 6 | `A1B-AE.5` | Message → Task → Context + Memory Expert | **COMPLETED (filed, not verified)** | `b253388` |
-| 7 | `A1B-AE.6` | Calculator + PubMed + Clinical Trials Experts | **COMPLETED (filed, not verified)** | _(this commit)_ |
+| 7 | `A1B-AE.6` | Calculator + PubMed + Clinical Trials Experts | **COMPLETED (filed, not verified)** | `cb6be91` |
 | 8 | `A1B-AE.7` | Interviewing Expert + Coding wrapper + external-Expert gates | pending | — |
 | 9 | `A1B-AE.8` | iCoder Preset Agents (5 clean-room agents) | pending | — |
 | 10 | `A1B-AE.9` | Agent/Expert tech-debt liquidation | pending | — |

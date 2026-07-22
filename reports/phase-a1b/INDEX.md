@@ -41,7 +41,7 @@ CORTI_AGENTIC_FRAMEWORK_FULLY_REPLICATED.
 | 7 | `A1B-AE.6` | Calculator + PubMed + Clinical Trials Experts | **COMPLETED (filed, not verified)** | `cb6be91` |
 | 8 | `A1B-AE.7` | Interviewing Expert + Coding wrapper + external-Expert gates | **COMPLETED (filed, not verified)** | `53af9ab` |
 | 9 | `A1B-AE.8` | iCoder Preset Agents (5 clean-room agents) | **COMPLETED (filed, not verified)** | `4aae842` |
-| 10 | `A1B-AE.9` | Agent/Expert tech-debt liquidation | pending | — |
+| 10 | `A1B-AE.9` | Agent/Expert tech-debt liquidation | **COMPLETED (filed, not verified)** | _(this commit)_ |
 | 11 | `A1B-AE.10` | 10 headed-browser journeys + evidence | pending | — |
 | 12 | `A1B-AE.11` | Final reconciliation report + verdict | pending | — |
 
@@ -64,6 +64,7 @@ CORTI_AGENTIC_FRAMEWORK_FULLY_REPLICATED.
 | [A1B_AE_6_EXTERNAL_EXPERTS.md](A1B_AE_6_EXTERNAL_EXPERTS.md) | A1B-AE.6 Medical Calculator Expert (BMI + Cockcroft-Gault, CORTI_ADAPTED) + PubMed stub (CORTI_REFERENCE) + Clinical Trials stub (CORTI_REFERENCE); Corti §3.2 keys 3/7/8 of 9; 17 tests PASS |
 | [A1B_AE_7_INTERVIEWING_CODING_EXTERNAL_GATES.md](A1B_AE_7_INTERVIEWING_CODING_EXTERNAL_GATES.md) | A1B-AE.7 Coding wrapper (CORTI_ALIGNED, delegates to medical-coding-agent) + DrugBank/POSOS/Web-Search stubs + Interviewing Expert (schema-driven, CORTI_ALIGNED) + central External-Expert Gate (5 reasons); completes all 9 Corti §3.2 keys; 36 tests PASS |
 | [A1B_AE_8_ICODER_PRESET_AGENTS.md](A1B_AE_8_ICODER_PRESET_AGENTS.md) | A1B-AE.8 5 iCoDer Preset Agent Cards (medical-coding / cdi / drg-dip / intake-interview / claim-check) with Corti §6 camelCase surface + icoder_ext block (red_lines + runtime modes); 43 tests PASS |
+| [A1B_AE_9_TECH_DEBT_LIQUIDATION.md](A1B_AE_9_TECH_DEBT_LIQUIDATION.md) | A1B-AE.9 External-Expert Gate REST endpoint (/api/v1/experts/external-gate/evaluate) + Presets REST router (/api/v1/presets) + 3 DEPRECATED.md notices for legacy orphans (dirs NOT deleted; call-site migration deferred); 15 tests PASS |
 | [evidence/](evidence/) | Per-page Corti observation + per-journey iCoDer browser evidence + sanitized HAR + SHA-256 manifest (populated from A1B-AE.1 onwards) |
 
 ## Audit anchors preserved

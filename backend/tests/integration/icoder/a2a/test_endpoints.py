@@ -6,7 +6,7 @@ Covers the 4 endpoint groups exposed by ``mount_a2a``:
 - Outbound ``POST /api/icoder/internal/experts/{id}/v1/message:send`` — 1 case
 - Discovery: ``/.well-known/agent.json``, ``/llms.txt``,
              ``/api/icoder/agents``, ``/api/icoder/agents/{id}/card`` — 4 cases
-- Task stub: ``GET /api/icoder/tasks/{id}``, ``POST /tasks/{id}/cancel`` — 2 cases
+- Task: ``GET /api/icoder/tasks/{id}``, ``POST /tasks/{id}/cancel`` — 2 negative cases (positive state-machine tests in test_api/test_a1b_ae_r_1_*)
 
 Total: 14 cases. Matches the test matrix in SPEC §11.2 + §11.4.
 """
@@ -474,38 +474,37 @@ def test_agents_list_capability_filter(client):
 
 
 # ---------------------------------------------------------------------------
-# Task stub — 2 cases
+# Task state machine — A1B-AE-R.1.a
 # ---------------------------------------------------------------------------
+# The 2 A1B-AE §11.2.13/14 stub tests (501 UNSUPPORTED_OPERATION) were
+# removed: A1B-AE-R.1.a replaces the stub with a real state machine
+# backed by ``context_task_refs``. Positive state-machine tests live in
+# ``backend/tests/test_api/test_a1b_ae_r_1_task_state_machine.py``
+# because they need the full-app fixture with DB access.
 
 
-def test_tasks_get_returns_501_unsupported(client):
-    """§11.2.13 — GET /api/icoder/tasks/{id} → 501 UNSUPPORTED_OPERATION.
-
-    Per the A2A error mapping table, UNSUPPORTED_OPERATION reuses the
-    JSON-RPC METHOD_NOT_FOUND code (-32601) but keeps the HTTP 501
-    + business code. The wire-level signal is the ``a2a_error_code``
-    in the data payload.
-    """
+def test_tasks_get_unknown_returns_404_task_not_found(client):
+    """A1B-AE-R.1.a — GET /tasks/{unknown} → 404 TASK_NOT_FOUND."""
     r = client.get(
         "/api/icoder/tasks/00000000-0000-4000-8000-000000000000",
         headers=_version_header(),
     )
-    assert r.status_code == 501, r.text
+    assert r.status_code == 404, r.text
     body = r.json()
-    assert body["error"]["data"]["a2a_error_code"] == "UNSUPPORTED_OPERATION"
+    assert body["error"]["data"]["a2a_error_code"] == "TASK_NOT_FOUND"
     assert A2A_PROTOCOL_HEADER in r.headers
 
 
-def test_tasks_cancel_returns_501_unsupported(client):
-    """§11.2.14 — POST /api/icoder/tasks/{id}/cancel → 501 UNSUPPORTED_OPERATION."""
+def test_tasks_cancel_unknown_returns_404_task_not_found(client):
+    """A1B-AE-R.1.a — POST /tasks/{unknown}/cancel → 404 TASK_NOT_FOUND."""
     r = client.post(
         "/api/icoder/tasks/00000000-0000-4000-8000-000000000000/cancel",
         headers=_version_header(),
         json={"reason": "user requested"},
     )
-    assert r.status_code == 501, r.text
+    assert r.status_code == 404, r.text
     body = r.json()
-    assert body["error"]["data"]["a2a_error_code"] == "UNSUPPORTED_OPERATION"
+    assert body["error"]["data"]["a2a_error_code"] == "TASK_NOT_FOUND"
 
 
 # ---------------------------------------------------------------------------
@@ -555,7 +554,7 @@ def test_build_a2a_routers_returns_separate_routers(handler, agent_provider, exp
         "outbound",
         "discovery_root",
         "discovery_agents",
-        "task_stub",
+        "task",
     }
     # None are mounted on any app
     for r in routers.values():

@@ -104,7 +104,7 @@ from .a2a_routes import build_a2a_routers, mount_a2a
 from .routes_discovery import AgentProvider, build_discovery_router
 from .routes_inbound import build_inbound_router
 from .routes_outbound import ExpertCaller, build_outbound_router
-from .routes_task_stub import build_task_stub_router
+from .routes_task import build_task_router
 
 __all__ = [
     # Errors
@@ -188,6 +188,6 @@ __all__ = [
     "build_discovery_router",
     "build_inbound_router",
     "build_outbound_router",
-    "build_task_stub_router",
+    "build_task_router",
     "mount_a2a",
 ]

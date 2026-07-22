@@ -1,4 +1,4 @@
-"""Thread auth registration — A1B-AE.5.
+"""Thread auth registration — A1B-AE-R.1.a DB-backed rewrite.
 
 Corti public §9 rule 6:
 
@@ -8,96 +8,76 @@ Corti public §9 rule 6:
     auth DataParts are ignored for MCP registration on subsequent
     messages.
 
-This module tracks the per-thread registration state. It is a thin
-in-memory tracker keyed by context_id; production deployments should
-replace it with a Redis/DB-backed store. For A1B-AE.5 the in-memory
-tracker is sufficient — the message:send path uses it to decide
-whether to call ``extract_mcp_auth`` (first message) or skip
-extraction (subsequent messages).
+A1B-AE.5 shipped an in-memory tracker; A1B-AE-R.1.a swaps it for a
+DB-derived source of truth: a thread is "first message" iff the
+``context_messages`` row count for that ``context_id`` is 0. This
+survives process restart, works across replicas, and needs no
+auxiliary state column.
+
+The registry is now async + session-aware. The previous module-level
+``thread_auth_registry`` singleton is removed; callers construct a
+registry per unit-of-work with an ``AsyncSession`` they already hold.
 """
+
 from __future__ import annotations
 
-import threading
-from dataclasses import dataclass, field
 from typing import Any
 
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from ..context.db_models import ContextMessageRow
 from .mcp_auth_extractor import ExtractedMcpAuth
 
 
-@dataclass
-class _ThreadState:
-    """In-memory state for one thread."""
-
-    has_registered: bool = False
-    registered_mcp_names: set[str] = field(default_factory=set)
-    message_count: int = 0
-
-
 class ThreadAuthRegistry:
-    """In-memory tracker for thread-first-message auth registration.
+    """DB-backed per-thread registration state.
 
-    Thread-safe via a single coarse-grained lock. Production deployments
-    should swap for Redis/DB-backed; the interface stays stable.
+    Construct with the caller's existing ``AsyncSession``; the registry
+    does not open its own session. All methods are coroutines.
     """
 
-    def __init__(self) -> None:
-        self._lock = threading.Lock()
-        self._threads: dict[str, _ThreadState] = {}
+    def __init__(self, session: AsyncSession) -> None:
+        self._session = session
 
-    def is_first_message(self, context_id: str) -> bool:
-        """True iff no message has been registered for this thread yet."""
-        with self._lock:
-            state = self._threads.get(context_id)
-            return state is None or state.message_count == 0
+    async def is_first_message(self, context_id: str) -> bool:
+        """True iff no message row exists for ``context_id`` yet."""
+        stmt = (
+            select(ContextMessageRow.message_id)
+            .where(ContextMessageRow.context_id == context_id)
+            .limit(1)
+        )
+        result = await self._session.execute(stmt)
+        return result.first() is None
 
-    def register_first_message(
+    async def register_first_message(
         self,
         context_id: str,
         auth_entries: list[ExtractedMcpAuth],
     ) -> None:
-        """Record that the first message has been processed + which MCP
-        names it registered tools for.
+        """Record MCP tool registrations for ``context_id``.
 
-        Idempotent within the same context — calling twice for the
-        same context_id is a no-op after the first call. Subsequent
-        auth DataParts on the same thread are silently ignored per
-        Corti public §9 rule 6.
+        Per Corti §9 rule 6 this is a per-context-idempotent operation:
+        if a row already exists for ``context_id``, this is a no-op.
+        The actual persistence is the ``ContextMessageRow`` written by
+        the caller; this method exists only so legacy callers compile.
         """
-        with self._lock:
-            state = self._threads.setdefault(context_id, _ThreadState())
-            if state.has_registered:
-                return
-            state.has_registered = True
-            for entry in auth_entries:
-                state.registered_mcp_names.add(entry.mcp_name)
-            state.message_count = 1
+        if not await self.is_first_message(context_id):
+            return
+        _ = auth_entries
 
-    def ack_message(self, context_id: str) -> None:
-        """Increment the message counter for a thread (any message)."""
-        with self._lock:
-            state = self._threads.setdefault(context_id, _ThreadState())
-            state.message_count += 1
-
-    def get_state(self, context_id: str) -> dict[str, Any]:
-        """Read-only snapshot of the thread's registration state."""
-        with self._lock:
-            state = self._threads.get(context_id)
-            if state is None:
-                return {"has_registered": False, "registered_mcp_names": [], "message_count": 0}
-            return {
-                "has_registered": state.has_registered,
-                "registered_mcp_names": sorted(state.registered_mcp_names),
-                "message_count": state.message_count,
-            }
-
-    def clear(self) -> None:
-        """Drop all state (test helper)."""
-        with self._lock:
-            self._threads.clear()
+    async def get_state(self, context_id: str) -> dict[str, Any]:
+        """Snapshot of the thread's registration state (DB-derived)."""
+        stmt = select(ContextMessageRow.message_id).where(
+            ContextMessageRow.context_id == context_id
+        )
+        rows = (await self._session.execute(stmt)).all()
+        message_count = len(rows)
+        return {
+            "has_registered": message_count > 0,
+            "registered_mcp_names": [],
+            "message_count": message_count,
+        }
 
 
-# Module-level singleton
-thread_auth_registry = ThreadAuthRegistry()
-
-
-__all__ = ["ThreadAuthRegistry", "thread_auth_registry"]
+__all__ = ["ThreadAuthRegistry"]

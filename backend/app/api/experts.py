@@ -330,3 +330,64 @@ async def list_expert_mcp_servers(
     result = await db.execute(stmt)
     rows = result.scalars().all()
     return [_mcp_to_response(m) for m in rows]
+
+
+# ─────────────────────────────────────────────────────────────────────
+# A1B-AE.9 — External-Expert Gate endpoint
+# ─────────────────────────────────────────────────────────────────────
+
+@router.get("/external-gate/evaluate")
+async def evaluate_external_expert_gate(
+    expert_key: str = Query(..., description="The canonical_key of the Expert to evaluate."),
+    region: Optional[str] = Query(
+        None, description="Tenant region (CN/EU/US). If omitted, region check is skipped."
+    ),
+    egress_enabled: bool = Query(
+        False,
+        description="Whether external egress is enabled for this tenant (Charter §6 default: False).",
+    ),
+    provider_opt_in: bool = Query(
+        False, description="Provider-level opt-in for web-search."
+    ),
+    tenant_opt_in: bool = Query(
+        False, description="Tenant-level opt-in for web-search."
+    ),
+    licence_token_count: int = Query(
+        0,
+        description=(
+            "Number of licence tokens supplied (for drugbank/posos). "
+            "A1B-AE.9 does NOT accept the tokens themselves via query "
+            "string — that would leak credentials. Callers POST tokens "
+            "out-of-band; the gate evaluation just needs the count."
+        ),
+    ),
+    current_user: User = Depends(get_current_user),
+    current_org: Organization = Depends(get_current_organization),
+):
+    """Evaluate the External-Expert Gate (A1B-AE.7) for a given Expert.
+
+    Returns the gate's decision: ``permitted`` (bool), ``reason`` (one
+    of OK / LICENCE_REQUIRED / EGRESS_DISABLED / REGION_BLOCKED /
+    PROVIDER_OPT_IN_MISSING), and a human-readable ``notes`` field.
+
+    The gate does NOT perform any live call. It only rules on what
+    *would* be allowed under the supplied context. The caller MUST still
+    consult each Expert's own ``live_*_performed`` flag.
+    """
+    from app.agents.experts.external_expert_gate import evaluate as gate_evaluate
+
+    licence_tokens = ["_"] * max(0, licence_token_count)  # opaque stand-ins
+    decision = gate_evaluate(
+        expert_key,
+        licence_tokens=licence_tokens,
+        region=region,
+        egress_enabled=egress_enabled,
+        provider_opt_in=provider_opt_in,
+        tenant_opt_in=tenant_opt_in,
+    )
+    return {
+        "expert_key": decision.expert_key,
+        "permitted": decision.permitted,
+        "reason": decision.reason,
+        "notes": decision.notes,
+    }

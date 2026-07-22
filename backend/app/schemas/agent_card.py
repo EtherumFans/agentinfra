@@ -109,8 +109,11 @@ class AgentQuickCreate(BaseModel):
     All other fields (description, systemPrompt, agentType, experts[],
     mcpServers[]) are configured AFTER creation on the Agent detail
     page. This endpoint mirrors that flow.
+
+    A1B-AE-R.2 (2026-07-23): when ``from_preset`` query parameter is
+    provided, ``name`` becomes optional (defaults to the preset's name).
     """
-    name: str
+    name: str | None = None
 
 
 class AgentQuickCreateResponse(BaseModel):

@@ -2,6 +2,7 @@
 
 **Date**: 2026-07-22
 **Phase**: A1B-AE (Agent & Expert Clean-Room Replication + Human-Operation Simulation + Agent-Platform Technical-Debt Liquidation)
+**Charter version**: v1.0 (2026-07-22) → **v1.1 (2026-07-22, mid-phase; see [A1B_AE_0_CHARTER_AMENDMENT_1_REVERSE_ENGINEERING_PERMITTED.md](A1B_AE_0_CHARTER_AMENDMENT_1_REVERSE_ENGINEERING_PERMITTED.md))**
 **Worktree**: `E:/Corti4C-agent-expert`
 **Branch (new, local-only)**: `phase-a1b/agent-expert-clean-room`
 **Branch source**: verified HEAD `3d50b116597c992ac92de189fad70def11349dcb` on `phase-a1a/emergency-containment`
@@ -11,6 +12,15 @@
 - `audit/phase-a1a-gate4r-closure-24967da` (annotated tag `43c2395`) on `24967da`
 - `3d50b11` — Phase A1A Gate 4R-I.11 final verdict (current HEAD of `phase-a1a/emergency-containment`)
 - `a0b56da` — Phase A1A Gate 4R-I.10 development backlog (HEAD~1, NOT final — user-flagged ambiguity resolved)
+
+> **v1.1 notice (effective 2026-07-22 mid-phase)**: §7 now defines two
+> provenance tiers (`CLEAN_ROOM_PUBLIC` unchanged, plus new
+> `REVERSE_ENGINEERED` permitting Corti Console observation and
+> behavioural reverse engineering under an authorised developer
+> account). All previously filed evidence retains its CLEAN_ROOM_PUBLIC
+> classification. Forbidden verdicts unchanged. See
+> [Charter Amendment 1](A1B_AE_0_CHARTER_AMENDMENT_1_REVERSE_ENGINEERING_PERMITTED.md)
+> for binding details.
 
 ---
 
@@ -226,6 +236,12 @@ defect class flagged in §9.4 of the originating brief:
 This is a known Phase A1B-AE.9 debt to liquidate; baseline captured here.
 
 ## §7. Clean-room authorship discipline
+
+> **v1.1 in force** — see [Charter Amendment 1](A1B_AE_0_CHARTER_AMENDMENT_1_REVERSE_ENGINEERING_PERMITTED.md).
+> §7 now defines two provenance tiers: `CLEAN_ROOM_PUBLIC` (the original
+> v1.0 regime, unchanged below as §7.1) and `REVERSE_ENGINEERED` (new,
+> see Amendment §A1.2 §7.2). The text below is the v1.0 §7.1 text,
+> retained as the CLEAN_ROOM_PUBLIC tier definition.
 
 Every prompt, schema, contract, or design artefact produced under this
 Charter MUST declare (in its file header or sidecar metadata):

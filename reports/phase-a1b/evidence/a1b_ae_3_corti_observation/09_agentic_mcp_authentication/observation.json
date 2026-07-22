@@ -1,0 +1,116 @@
+{
+  "page_slug": "09_agentic_mcp_authentication",
+  "url": "https://docs.corti.ai/agentic/mcp-authentication",
+  "page_title": "MCP Authentication - Corti API Documentation",
+  "captured_at": "2026-07-22T07:13:00Z",
+  "provenance": "CLEAN_ROOM_PUBLIC",
+  "clean_room_authored": true,
+  "access_control": {"page_public": true, "login_required": false},
+  "capture_method": "Playwright MCP browser_evaluate with structured DOM walker.",
+  "purpose": "Capture the full authorizationType enum (4 values) and MCP auth DataPart processing rules — deferred from A1B-AE.1 §1.2.",
+  "sections_captured": [
+    "MCP server registration",
+    "authorizationType = none",
+    "authorizationType = inherit",
+    "authorizationType = bearer",
+    "authorizationType = oauth2.0",
+    "Authorization via message DataParts",
+    "Token example (for authorizationType=bearer or inherit override)",
+    "Credentials example (for authorizationType=oauth2.0)",
+    "Processing rules and errors",
+    "When DataParts are used"
+  ],
+  "mcp_server_registration_schema_PUBLIC": {
+    "fields": [
+      {"name": "name", "type": "string", "required": true},
+      {"name": "transportType", "type": "enum<string>", "observed_values": ["streamable_http"], "note": "full enum likely sse+stdio per MCP spec; not confirmed on this page; REVERSE_ENGINEERED tier observation in A1B-AE.7 will confirm"},
+      {"name": "authorizationType", "type": "enum<string>", "required": true, "enum_values_PUBLIC_exhaustive": ["none", "inherit", "bearer", "oauth2.0"]},
+      {"name": "url", "type": "string", "required": true}
+    ],
+    "discrepancy_with_A1B_AE_1_section_4_1": "A1B-AE.1 §4.1 captured the Agent-create MCP schema with fields {name, url, description, authorizationScope, redirectUrl, token}. The mcp-authentication page schema is {name, transportType, authorizationType, url}. These appear to be TWO DIFFERENT MCP registration paths: (a) Agent-create inline MCP registration (OAuth2 redirect flow with token write-only), (b) Expert-config MCP registration (direct transport with transportType+authorizationType). iCoDer A1B-AE.3+ MUST support BOTH shapes."
+  },
+  "authorization_type_enum_PUBLIC_4_values_exhaustive": {
+    "none": {
+      "semantics": "No authentication; MCP server is fully public.",
+      "example_VERBATIM": {
+        "name": "medical-calculator",
+        "transportType": "streamable_http",
+        "authorizationType": "none",
+        "url": "http://mcp-server-medical-calculator.agents:80/mcp"
+      }
+    },
+    "inherit": {
+      "semantics": "MCP server inherits the calling agent's authorization (typically the user's session token).",
+      "example_VERBATIM": {
+        "name": "medical-coding",
+        "transportType": "streamable_http",
+        "authorizationType": "inherit",
+        "url": "http://mcp-server-medical-coding.agents/mcp"
+      }
+    },
+    "bearer": {
+      "semantics": "Static bearer token provided via DataPart at thread creation (NOT stored at MCP registration time).",
+      "example_VERBATIM": {
+        "name": "medical-coding",
+        "transportType": "streamable_http",
+        "authorizationType": "bearer",
+        "url": "http://mcp-server-medical-coding.agents/mcp"
+      }
+    },
+    "oauth2.0": {
+      "semantics": "OAuth2 client_credentials flow; client_id+client_secret provided via DataPart at thread creation.",
+      "example_VERBATIM": {
+        "name": "medical-coding",
+        "transportType": "streamable_http",
+        "authorizationType": "oauth2.0",
+        "url": "http://mcp-server-medical-coding.agents/mcp"
+      }
+    }
+  },
+  "auth_datapart_schema_PUBLIC": {
+    "fields": [
+      {"name": "kind", "literal": "data"},
+      {"name": "data.type", "enum_PUBLIC": ["token", "credentials"], "normalisation": "case-insensitive; normalized to lowercase"},
+      {"name": "data.mcp_name", "type": "string", "note": "MCP server name as registered; case-SENSITIVE; trimmed"},
+      {"name": "data.token", "required_when": "type=token", "forbidden_when": "type=credentials"},
+      {"name": "data.client_id", "required_when": "type=credentials"},
+      {"name": "data.client_secret", "required_when": "type=credentials"}
+    ],
+    "token_example_VERBATIM": {
+      "kind": "data",
+      "data": {"type": "token", "mcp_name": "crm-mcp", "token": "eyJhbGciOi..."}
+    },
+    "credentials_example_VERBATIM": {
+      "kind": "data",
+      "data": {"type": "credentials", "mcp_name": "crm-mcp", "client_id": "abc", "client_secret": "def"}
+    }
+  },
+  "processing_rules_PUBLIC": [
+    "type is normalized to lowercase; only token and credentials are extracted",
+    "DataParts do NOT change the MCP server authorizationType — the DataPart type MUST match the server configuration",
+    "Unknown or invalid auth DataParts are LEFT IN the message as normal parts (not silently dropped; not fatal)",
+    "mcp_name MUST be unique per message; duplicates return error code mcp_auth_duplicate_name",
+    "Missing fields return: mcp_auth_missing_name | mcp_auth_missing_token | mcp_auth_missing_credentials",
+    "If mcp_name does not match any configured server, the DataPart is ignored"
+  ],
+  "auth_error_codes_PUBLIC_exhaustive": [
+    "mcp_auth_duplicate_name",
+    "mcp_auth_missing_name",
+    "mcp_auth_missing_token",
+    "mcp_auth_missing_credentials"
+  ],
+  "datapart_lifecycle_rules_PUBLIC": [
+    "MCP tools are registered when a new thread is created (the first message). Auth DataParts MUST be on that first message.",
+    "Later messages on the same thread do NOT re-register tools; auth DataParts are ignored for MCP registration on subsequent messages.",
+    "In the API flow, extracted auth DataParts are REMOVED from the message before it is stored or sent to reasoning."
+  ],
+  "implications_for_icoder_a1b_ae_3": [
+    "iCoDer Expert model MUST store authorization_type ∈ {none, inherit, bearer, oauth2.0} on its mcp_server[] entries.",
+    "iCoDer Expert model SHOULD store transport_type ∈ {streamable_http, sse, stdio} (TBD via RE observation).",
+    "iCoDer MUST implement the mcp_auth_* error code family on the message:send path (A1B-AE.5).",
+    "iCoDer MUST implement the thread-first-message auth DataPart extraction + subsequent-message-ignore rule (A1B-AE.5).",
+    "iCoDer MUST strip auth DataParts before persisting the message (defensive; prevents accidental token logging).",
+    "iCoDer MCP server registration API MUST accept BOTH the Agent-create schema (token write-only) AND the Expert-config schema (transportType + authorizationType) — these are two legitimate Corti public contract shapes."
+  ],
+  "status": "PASS"
+}

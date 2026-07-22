@@ -34,8 +34,8 @@ CORTI_AGENTIC_FRAMEWORK_FULLY_REPLICATED.
 |---|---|---|---|---|
 | 1 | `A1B-AE.0` | Charter + baseline + human-operation protocol | **COMPLETED** | `37e4848` |
 | 2 | `A1B-AE.1` | Corti official Agentic manual observation + clean-room contracts | **COMPLETED (partial reconstruction)** | `558cfce` |
-| 3 | `A1B-AE.2` | Agent / Expert taxonomy + canonical catalogs | **COMPLETED (filed, not verified)** | _(this commit)_ |
-| 4 | `A1B-AE.3` | Expert Registry (model + alembic + API) | pending | — |
+| 3 | `A1B-AE.2` | Agent / Expert taxonomy + canonical catalogs | **COMPLETED (filed, not verified)** | `b23c69a` |
+| 4 | `A1B-AE.3` | Expert Registry (model + alembic + API) | **COMPLETED (filed, not verified)** | _(this commit)_ |
 | 5 | `A1B-AE.4` | Agent CRUD + Agent Card + alias / version resolution | pending | — |
 | 6 | `A1B-AE.5` | Message → Task → Context + Memory Expert | pending | — |
 | 7 | `A1B-AE.6` | Calculator + PubMed + Clinical Trials Experts | pending | — |
@@ -58,6 +58,7 @@ CORTI_AGENTIC_FRAMEWORK_FULLY_REPLICATED.
 | [A1B_AE_1_CORTI_PUBLIC_CONTRACTS_CLEAN_ROOM_RECONSTRUCTION.md](A1B_AE_1_CORTI_PUBLIC_CONTRACTS_CLEAN_ROOM_RECONSTRUCTION.md) | 8 Corti public pages observed via headed browser; clean-room Agent/Expert/MCP/Task/Context/Memory contracts; UNKNOWN list |
 | [A1B_AE_2_TAXONOMY.md](A1B_AE_2_TAXONOMY.md) | A1B-AE.2 unified 8-kind taxonomy (Agent / Expert / Pack / Preset Agent / Tool / MCP Server / Agent Card / Runtime elements); 4-value Pack classification; 3-value Agent classification; 3-value Expert classification; source-of-truth hierarchy |
 | [A1B_AE_2_AGENT_ARCHITECTURE_RECONCILIATION.md](A1B_AE_2_AGENT_ARCHITECTURE_RECONCILIATION.md) | A1B-AE.2 answers the 10 §9 architecture questions (source of truth, dual-naming, version shadowing, clone-404 root cause, seed-vs-Pack drift, Agent Card field drift, metadata-only mislabeling, expert-stub vestige); machine-derived counts (29 canonical Agents, 40 Experts, 32 Packs); carry-forward table to A1B-AE.3..A1B-AE.9 |
+| [A1B_AE_3_EXPERT_REGISTRY.md](A1B_AE_3_EXPERT_REGISTRY.md) | A1B-AE.3 Expert Registry provenance layer — Migration 022 schema, `/api/v1/experts` REST surface, charter Amendment 1 §7 provenance discipline, evidence sources from both CLEAN_ROOM_PUBLIC + REVERSE_ENGINEERED tiers |
 | [evidence/](evidence/) | Per-page Corti observation + per-journey iCoDer browser evidence + sanitized HAR + SHA-256 manifest (populated from A1B-AE.1 onwards) |
 
 ## Audit anchors preserved

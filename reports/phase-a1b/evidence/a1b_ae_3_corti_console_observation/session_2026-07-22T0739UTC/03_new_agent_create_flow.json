@@ -1,0 +1,70 @@
+{
+  "observation_session_id": "2026-07-22T0739-UTC-tab1-step03",
+  "observation_url": "https://console.corti.app/project/4c4193c7-c6bb-4a71-a275-0ed6c53172d0/ai-studio/agents/new",
+  "captured_at": "2026-07-22T07:48:00Z",
+  "provenance": "REVERSE_ENGINEERED",
+  "reverse_engineering_method": ["headed_browser_observation", "form_structure_extraction"],
+  "clean_room_authored": false,
+  "contains_corti_private_material": false,
+  "contains_corti_source_code": false,
+  "contains_corti_trademark": false,
+  "data_classification": ["developer_account_owned"],
+  "forbidden_behaviour_invoked": "none",
+  "page_title": "AI Studio: Agents | Corti Console",
+  "page_url": "https://console.corti.app/project/<id>/ai-studio/agents/new",
+  "new_agent_flow_top_level_structure": {
+    "left_panel_H2s": ["Start from scratch", "Use a template"],
+    "start_from_scratch_description": "Configure your agent from the ground up",
+    "start_from_scratch_action_button": "Create agent (opens name-only modal)",
+    "use_a_template_description": "Start with a pre-configured agent",
+    "use_a_template_choices": "Same 20 Pre-built Agents from step 01 (offered as templates)",
+    "right_panel_H1": "Ask the agent...",
+    "right_panel_textarea_placeholder": "What can I help you with?",
+    "right_panel_buttons": ["Customize agent", "Add context", "What can you do?", "Suggest prompt"],
+    "right_panel_search_input_placeholder": "Search templates"
+  },
+  "create_agent_modal_opened_on_click": {
+    "trigger": "button[type=submit] text='Create agent'",
+    "modal_H2": "Name your agent",
+    "modal_required_label": "Agent Name *",
+    "modal_input_name": "agent_name",
+    "modal_input_type": "text",
+    "modal_submit_button_text": "Create Agent",
+    "modal_submit_button_disabled_when_empty": true,
+    "modal_close_button_text": "Close",
+    "modal_fields_count": 1,
+    "critical_behavioural_observation": "Corti Console Agent create flow accepts ONLY the name on first step. All other fields (description, systemPrompt, agentType, experts[], mcpServers[]) are configured AFTER creation on the Agent detail page. This is the 'create-then-customize' UX pattern.",
+    "contrast_with_public_api_docs": "Public docs §2.2 (A1B-AE.1) describes POST /agents with full body {name, description, agentType, systemPrompt, experts[], mcpServers[]}. Console UX does NOT expose this full form. The underlying API call the Console makes still POSTs the full body — but the Console drives a specific UX workflow (name first → customize later) rather than a single big form.",
+    "icoder_implication": "iCoDer A1B-AE.4 Agent CRUD can implement EITHER pattern. Recommendation: keep the existing full-form POST /api/v1/agents (matches public API contract); ADD a Console-style 'quick create' endpoint that accepts name-only and returns an ID for subsequent customization. Both patterns are Corti-compatible."
+  },
+  "ai_assisted_generator_panel": {
+    "h1": "Ask the agent...",
+    "purpose": "Natural-language prompt → AI generates draft Agent definition (name, system prompt, suggested experts, suggested MCP servers).",
+    "textarea_placeholder": "What can I help you with?",
+    "buttons": [
+      {"text": "Customize agent", "purpose_inferred": "Open full customization form after AI generates a draft"},
+      {"text": "Add context", "purpose_inferred": "Attach context (DataPart) to the prompt — files, examples, etc."},
+      {"text": "What can you do?", "purpose_inferred": "Surface Agent capabilities (discoverability prompt)"},
+      {"text": "Suggest prompt", "purpose_inferred": "AI suggests a refined prompt based on current input"}
+    ],
+    "icoder_implication": "iCoDer currently has NO equivalent AI-assisted generator. This is a CORTI_ADVANTAGE (UX tier). iCoDer A1B-AE.8 / A1B-AE.11 may scope a follow-on phase for an equivalent generator. NOT in A1B-AE.3 scope."
+  },
+  "use_a_template_panel": {
+    "description": "Pre-configured agent templates — same 20 Pre-built Agents from step 01, also offered as templates.",
+    "icoder_implication": "iCoDer's Pack filesystem (29 canonical Packs) is the analogue. The 'Use a template' flow = iCoDer's existing 'Clone Preset' flow (POST /api/icoder/agents/{id}/clone per A1B-AE.1 §3 of icoder_agents_hub.py)."
+  },
+  "implications_for_icoder_a1b_ae_3": [
+    "iCoDer Expert Registry model design: CONFIRMED that Experts are NOT managed via a top-level Console UI. They are managed INSIDE the Agent detail page. iCoDer's existing `experts` table + `/api/v1/experts` endpoints is therefore STRICTLY MORE NORMALISED than Corti. Keep the iCoDer pattern.",
+    "iCoDer Expert model fields to add (A1B-AE.3 scope): canonical_key (snake_case), origin (CLEAN_ROOM_PUBLIC | REVERSE_ENGINEERED | ICODER_INTERNAL | PACK_DECLARED), corti_alignment (per A1B-AE.2 §3.3), pack_dir (link back to A1B-AE.2 catalog), provenance metadata per Charter Amendment 1 §7.",
+    "iCoDer Expert API: keep existing list/get/create endpoints; ADD a `provenance` field on responses so consumers can tell which tier each Expert came from.",
+    "iCoDer A1B-AE.4 should add a 'quick-create' endpoint POST /api/v1/agents/quick {name} returning an ID, matching Corti Console's pattern. Out of A1B-AE.3 scope."
+  ],
+  "observations_NOT_made_this_session": [
+    "Did not actually fill the modal and click 'Create Agent' — would consume user's Corti quota and pollute their workspace. Observation-only mode per Amendment 1 §A1.2 'data_classification: synthetic_only' principle.",
+    "Did not click into an existing Agent detail page — would reveal system prompt + experts[] + mcpServers[] configuration UI. Deferred to A1B-AE.4 Agent CRUD scope.",
+    "Did not run an Expert via 'Try it' flow — would reveal message:send request body + response + SSE events. Deferred to A1B-AE.5 Message→Task→Context scope.",
+    "Did not observe MCP authentication end-to-end — deferred to A1B-AE.7."
+  ],
+  "status": "PASS",
+  "next_step": "Implement A1B-AE.3 Expert Registry model + alembic migration + API extensions, with REVERSE_ENGINEERED tier declarations per Charter Amendment 1."
+}

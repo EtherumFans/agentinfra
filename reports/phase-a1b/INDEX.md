@@ -41,7 +41,7 @@ CORTI_AGENTIC_FRAMEWORK_FULLY_REPLICATED.
 | 7 | `A1B-AE.6` | Calculator + PubMed + Clinical Trials Experts | **COMPLETED (filed, not verified)** | `cb6be91` |
 | 8 | `A1B-AE.7` | Interviewing Expert + Coding wrapper + external-Expert gates | **COMPLETED (filed, not verified)** | `53af9ab` |
 | 9 | `A1B-AE.8` | iCoder Preset Agents (5 clean-room agents) | **COMPLETED (filed, not verified)** | `4aae842` |
-| 10 | `A1B-AE.9` | Agent/Expert tech-debt liquidation | **COMPLETED (filed, not verified)** | _(this commit)_ |
+| 10 | `A1B-AE.9` | Agent/Expert tech-debt liquidation | **COMPLETED (filed, not verified)** | `7da9b17` |
 | 11 | `A1B-AE.10` | 10 headed-browser journeys + evidence | pending | — |
 | 12 | `A1B-AE.11` | Final reconciliation report + verdict | pending | — |
 

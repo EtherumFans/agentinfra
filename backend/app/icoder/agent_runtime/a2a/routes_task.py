@@ -1,4 +1,5 @@
-"""Task endpoints (SPEC §7.5) — A1B-AE-R.1.a real implementation.
+"""Task endpoints (SPEC §7.5) — A1B-AE-R.1.a real implementation,
+hardened by A1B-AE-R.1.b cross-tenant scoping.
 
 Replaces the A1B-AE ``routes_task_stub.py`` 501 placeholder with real
 ``GET /api/icoder/tasks/{task_id}`` and ``POST /api/icoder/tasks/{task_id}/cancel``
@@ -10,13 +11,12 @@ State machine (per ``task_state.py``):
 
 ``POST /tasks/{id}/cancel`` is only valid from ``submitted`` or
 ``working``. Calling it on a terminal state returns ``409
-TASK_NOT_CANCELABLE``. Looking up an unknown ``task_id`` returns
-``404 TASK_NOT_FOUND``.
+TASK_NOT_CANCELABLE``.
 
-A1B-AE-R.1.a does NOT yet filter by ``org_id`` — cross-tenant
-hardening is R.1.b. The route signature already takes ``org_id``
-in preparation, but the column does not yet exist on
-``context_task_refs``; R.1.b adds the column + the filter.
+A1B-AE-R.1.b cross-tenant: every query joins
+``context_task_refs.context_id → contexts.id`` and filters by
+``contexts.organization_id == current_org.id``. A task that exists
+under a different tenant returns ``404 TASK_NOT_FOUND`` — never leak.
 """
 
 from __future__ import annotations
@@ -30,8 +30,10 @@ from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
+from app.middleware.auth import get_current_organization
+from app.models.organization import Organization
 
-from ..context.db_models import ContextTaskRefRow
+from ..context.db_models import ContextRow, ContextTaskRefRow
 from .envelope import make_error_response, make_success_response
 from .errors import A2AError, task_not_cancelable, task_not_found
 from .task_state import InvalidTaskTransition, TaskState, next_state
@@ -45,9 +47,10 @@ def build_task_router() -> APIRouter:
     @router.get("/{task_id}", operation_id="a2a_get_task_v0_3")
     async def get_task(
         task_id: str,
+        current_org: Organization = Depends(get_current_organization),
         db: AsyncSession = Depends(get_db),
     ) -> JSONResponse:
-        row = await _load_task(db, task_id)
+        row = await _load_task_for_org(db, task_id, current_org.id)
         if row is None:
             return _task_not_found_response(task_id)
         return _task_response(row)
@@ -56,10 +59,11 @@ def build_task_router() -> APIRouter:
     async def cancel_task(
         task_id: str,
         request: Request,
+        current_org: Organization = Depends(get_current_organization),
         db: AsyncSession = Depends(get_db),
     ) -> JSONResponse:
         body = await _safe_body(request)
-        row = await _load_task(db, task_id)
+        row = await _load_task_for_org(db, task_id, current_org.id)
         if row is None:
             return _task_not_found_response(task_id)
         current = TaskState(row.state)
@@ -76,14 +80,29 @@ def build_task_router() -> APIRouter:
             .values(state=new_state.value, completed_at=now)
         )
         await db.commit()
-        row = await _load_task(db, task_id)
+        row = await _load_task_for_org(db, task_id, current_org.id)
         return _task_response(row, cancelled_reason=body.get("reason", ""))
 
     return router
 
 
-async def _load_task(db: AsyncSession, task_id: str) -> ContextTaskRefRow | None:
-    stmt = select(ContextTaskRefRow).where(ContextTaskRefRow.task_id == task_id)
+async def _load_task_for_org(
+    db: AsyncSession, task_id: str, organization_id: str
+) -> ContextTaskRefRow | None:
+    """Tenant-scoped task lookup.
+
+    Joins ``context_task_refs → contexts`` and filters by org. Returns
+    None if the task doesn't exist OR belongs to a different tenant —
+    callers translate both to 404 TASK_NOT_FOUND.
+    """
+    stmt = (
+        select(ContextTaskRefRow)
+        .join(ContextRow, ContextRow.id == ContextTaskRefRow.context_id)
+        .where(
+            ContextTaskRefRow.task_id == task_id,
+            ContextRow.organization_id == organization_id,
+        )
+    )
     result = await db.execute(stmt)
     return result.scalar_one_or_none()
 

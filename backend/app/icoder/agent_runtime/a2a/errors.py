@@ -46,6 +46,7 @@ class A2AErrorCode:
     INTERNAL_ERROR = "INTERNAL_ERROR"
     AGENT_NOT_FOUND = "AGENT_NOT_FOUND"
     CONTEXT_INVALID = "CONTEXT_INVALID"
+    CONTEXT_NOT_FOUND = "CONTEXT_NOT_FOUND"
     TASK_NOT_FOUND = "TASK_NOT_FOUND"
     TASK_NOT_CANCELABLE = "TASK_NOT_CANCELABLE"
     UNSUPPORTED_OPERATION = "UNSUPPORTED_OPERATION"
@@ -71,6 +72,7 @@ ALL_A2A_ERROR_CODES: Final[tuple[str, ...]] = (
     A2AErrorCode.INTERNAL_ERROR,
     A2AErrorCode.AGENT_NOT_FOUND,
     A2AErrorCode.CONTEXT_INVALID,
+    A2AErrorCode.CONTEXT_NOT_FOUND,
     A2AErrorCode.TASK_NOT_FOUND,
     A2AErrorCode.TASK_NOT_CANCELABLE,
     A2AErrorCode.UNSUPPORTED_OPERATION,
@@ -104,6 +106,7 @@ _HTTP_STATUS_BY_CODE: Final[dict[str, int]] = {
     A2AErrorCode.INTERNAL_ERROR: 500,
     A2AErrorCode.AGENT_NOT_FOUND: 404,
     A2AErrorCode.CONTEXT_INVALID: 400,
+    A2AErrorCode.CONTEXT_NOT_FOUND: 404,
     A2AErrorCode.TASK_NOT_FOUND: 404,
     A2AErrorCode.TASK_NOT_CANCELABLE: 409,
     A2AErrorCode.UNSUPPORTED_OPERATION: 501,
@@ -129,6 +132,7 @@ _JSONRPC_CODE_BY_A2A: Final[dict[str, int]] = {
     A2AErrorCode.INTERNAL_ERROR: JSON_RPC_INTERNAL_ERROR,
     A2AErrorCode.AGENT_NOT_FOUND: JSON_RPC_METHOD_NOT_FOUND,
     A2AErrorCode.CONTEXT_INVALID: JSON_RPC_INVALID_REQUEST,
+    A2AErrorCode.CONTEXT_NOT_FOUND: JSON_RPC_METHOD_NOT_FOUND,
     A2AErrorCode.TASK_NOT_FOUND: JSON_RPC_METHOD_NOT_FOUND,
     A2AErrorCode.TASK_NOT_CANCELABLE: JSON_RPC_INVALID_REQUEST,
     A2AErrorCode.UNSUPPORTED_OPERATION: JSON_RPC_METHOD_NOT_FOUND,
@@ -154,6 +158,7 @@ _MESSAGE_BY_CODE: Final[dict[str, str]] = {
     A2AErrorCode.INTERNAL_ERROR: "Internal error",
     A2AErrorCode.AGENT_NOT_FOUND: "Agent not found",
     A2AErrorCode.CONTEXT_INVALID: "Context invalid",
+    A2AErrorCode.CONTEXT_NOT_FOUND: "Context not found",
     A2AErrorCode.TASK_NOT_FOUND: "Task not found",
     A2AErrorCode.TASK_NOT_CANCELABLE: "Task not cancelable",
     A2AErrorCode.UNSUPPORTED_OPERATION: "Unsupported operation",
@@ -277,6 +282,11 @@ def agent_not_found(agent_id: str, **kw: Any) -> A2AError:
 
 def context_invalid(details: str = "", **kw: Any) -> A2AError:
     return A2AError(code=A2AErrorCode.CONTEXT_INVALID, details=details, **kw)
+
+
+def context_not_found(context_id: str = "", **kw: Any) -> A2AError:
+    details = f"context {context_id!r} not found" if context_id else ""
+    return A2AError(code=A2AErrorCode.CONTEXT_NOT_FOUND, details=details, **kw)
 
 
 def task_not_found(task_id: str = "", **kw: Any) -> A2AError:

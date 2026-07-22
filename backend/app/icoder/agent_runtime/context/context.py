@@ -67,6 +67,14 @@ class Context(BaseModel):
     updated_at: datetime
     expires_at: datetime
     agent_id: str
+    organization_id: str = Field(
+        default="org_default1",
+        description=(
+            "A1B-AE-R.1.b — tenant scope. Cross-tenant reads return "
+            "404 (no leak). Default 'org_default1' matches the test-"
+            "bypass mock org id and the dev DB default tenant."
+        ),
+    )
     status: ContextStatus
     messages: list[ContextMessage] = Field(default_factory=list)
     tasks: list[ContextTaskRef] = Field(default_factory=list)

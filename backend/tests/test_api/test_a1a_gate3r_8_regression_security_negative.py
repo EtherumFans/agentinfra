@@ -332,13 +332,14 @@ def _run_alembic(target_db: str, *args: str) -> subprocess.CompletedProcess:
 
 
 def test_L11_migration_head_is_020_on_fresh_db(tmp_path) -> None:
-    """Layer 11 / Gate 3R.5 — fresh DB lands at alembic_version=024.
+    """Layer 11 / Gate 3R.5 — fresh DB lands at alembic_version=025.
 
     Updated by Phase A1A Gate 4.2 — Migration 021 added NOT NULL + CHECK
     on encounters/documents/cdi_cases.organization_id (closes GATE3_015).
     A1B-AE.3 → 022 (expert_registry_provenance).
     A1B-AE.4 → 023 (agent_canonical_key_and_alias).
     A1B-AE-R.1.a → 024 (context_task_refs.state CHECK).
+    A1B-AE-R.1.b → 025 (contexts.organization_id for cross-tenant).
     """
     db_path = str(tmp_path / "L11_fresh.db")
     r = _run_alembic(db_path, "upgrade", "head")
@@ -351,7 +352,7 @@ def test_L11_migration_head_is_020_on_fresh_db(tmp_path) -> None:
         cols = {row[1] for row in conn.execute("PRAGMA table_info(run_trace_events)")}
     finally:
         conn.close()
-    assert v == "024"
+    assert v == "025"
     assert "event_id" in cols
     assert "sequence_number" in cols
     assert "trace_id" in cols

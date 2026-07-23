@@ -252,6 +252,30 @@ export const agentsApi = {
   version: (id: string) => api.post(`/rest/v1/agent_definitions/${id}/version`),
   clone: (id: string, name?: string, description?: string) =>
     api.post(`/rest/v1/agent_definitions/${id}/clone`, { name, description }),
+  // A1B-AE-R.2.c — POST /api/v1/agents/quick?from_preset=...
+  // Creates an Agent definition cloned from a preset catalog entry.
+  // Note: agentsApi uses Corti-style /rest/v1/agent_definitions; this is
+  // the iCoDer A1B-AE-R.2.c preset-clone endpoint under /api/v1/agents/quick.
+  quickFromPreset: (from_preset: string, overrides: Record<string, any> = {}) =>
+    api.post('/v1/agents/quick', overrides, { params: { from_preset } }),
+};
+
+// Experts (A1B-AE-R.5) — GET /api/v1/experts + GET /api/v1/presets + External-Expert Gate
+// baseURL is '/api' so we use '/v1/experts' here.
+export const expertsApi = {
+  list: () => api.get<{ experts: any[] }>('/v1/experts'),
+  presets: () => api.get<{ presets: any[] }>('/v1/presets'),
+  evaluateExternalGate: (params: {
+    expert_key: string;
+    egress_enabled?: boolean;
+    region?: string;
+    provider_opt_in?: boolean;
+    tenant_opt_in?: boolean;
+  }) =>
+    api.get<{ permitted: boolean; reason: string; expert_key: string }>(
+      '/v1/experts/external-gate/evaluate',
+      { params }
+    ),
 };
 
 // A2A Protocol

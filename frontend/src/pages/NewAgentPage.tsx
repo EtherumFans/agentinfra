@@ -1,7 +1,8 @@
 // iCoDer New Agent Page - iCoDer Console 1:1
 // /ai-studio/agents/new: "Start from scratch" + "Use a template"
+// A1B-AE-R.5: also supports ?from_preset=<key> (Preset clone flow).
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useT } from '../i18n';
 import {
   Bot, Search, BookOpen, Sparkles,
@@ -10,7 +11,7 @@ import {
   Pill, FileWarning, GraduationCap, Users, FileCheck,
   Send, FileSearch, ChevronRight, Plus, Lightbulb, ArrowRight,
 } from 'lucide-react';
-import { agentsApi } from '../services/api';
+import { agentsApi, expertsApi } from '../services/api';
 
 const ICON_MAP: Record<string, React.ElementType> = {
   Bot, BookOpenText, Shield, CheckCircle, Stethoscope,
@@ -23,6 +24,8 @@ const ICON_MAP: Record<string, React.ElementType> = {
 export default function NewAgentPage() {
   const navigate = useNavigate();
   const t = useT();
+  const [searchParams] = useSearchParams();
+  const fromPreset = searchParams.get('from_preset') || '';
   const [templates, setTemplates] = useState<any[]>([]);
   const [expertNameToId, setExpertNameToId] = useState<Record<string, string>>({});
   const [selectedTemplate, setSelectedTemplate] = useState<string>('');
@@ -30,6 +33,8 @@ export default function NewAgentPage() {
   const [creating, setCreating] = useState(false);
   const [scratchName, setScratchName] = useState('');
   const [showScratchInput, setShowScratchInput] = useState(false);
+  const [presetInfo, setPresetInfo] = useState<any | null>(null);
+  const [presetError, setPresetError] = useState<string | null>(null);
 
   useEffect(() => {
     agentsApi.templates().then(r => {
@@ -37,6 +42,43 @@ export default function NewAgentPage() {
     }).catch(() => {});
     // experts endpoint deleted in Phase 2.1-B Step 1; expertNameToId stays empty
   }, []);
+
+  // A1B-AE-R.5 — when ?from_preset=... is supplied, load preset info
+  useEffect(() => {
+    if (!fromPreset) {
+      setPresetInfo(null);
+      return;
+    }
+    expertsApi
+      .presets()
+      .then((r) => {
+        const list = r.data?.presets || [];
+        const found =
+          list.find((p: any) => (p.preset_key || p.id) === fromPreset) || null;
+        if (!found) {
+          setPresetError(`未找到 Preset: ${fromPreset}`);
+        } else {
+          setPresetInfo(found);
+        }
+      })
+      .catch(() => setPresetError('加载 Preset 列表失败'));
+  }, [fromPreset]);
+
+  const handleCreateFromPreset = async () => {
+    if (!fromPreset) return;
+    setCreating(true);
+    try {
+      const res = await agentsApi.quickFromPreset(fromPreset, {
+        name: presetInfo?.name,
+      });
+      const agent = res.data?.agent || res.data;
+      navigate(`/ai-studio/agents/${agent.id}`, { state: { newAgent: true } });
+    } catch (err: any) {
+      console.error('Failed to create agent from preset', err);
+      setPresetError(err?.response?.data?.detail || '从 Preset 创建失败');
+      setCreating(false);
+    }
+  };
 
   const selected = templates.find((t: any) => t.id === selectedTemplate);
   const filteredTemplates = templates.filter((t: any) => {
@@ -109,6 +151,43 @@ export default function NewAgentPage() {
           <p className="text-xs text-muted-foreground mb-6">
             构建医疗AI智能体，在您的业务系统中执行任务
           </p>
+
+          {/* A1B-AE-R.5 — Preset clone banner */}
+          {fromPreset && (
+            <div className="mb-6 bg-primary/5 border border-primary/30 rounded-xl p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-foreground mb-1">
+                    从 Preset 克隆: {fromPreset}
+                  </p>
+                  {presetError && (
+                    <p className="text-xs text-destructive">{presetError}</p>
+                  )}
+                  {presetInfo && (
+                    <div className="text-xs text-muted-foreground space-y-1">
+                      <p>
+                        <strong className="text-foreground">{presetInfo.name}</strong> —{' '}
+                        {presetInfo.description}
+                      </p>
+                      <p>
+                        delegates_to_pack:{' '}
+                        <code className="text-[10px] bg-accent px-1 py-0.5 rounded">
+                          {presetInfo.delegates_to_pack || '(null)'}
+                        </code>
+                      </p>
+                    </div>
+                  )}
+                </div>
+                <button
+                  onClick={handleCreateFromPreset}
+                  disabled={creating || !presetInfo}
+                  className="shrink-0 text-xs px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium disabled:opacity-50"
+                >
+                  {creating ? '克隆中...' : '克隆到我的 Agent'}
+                </button>
+              </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-8">
             {/* Left: Templates */}

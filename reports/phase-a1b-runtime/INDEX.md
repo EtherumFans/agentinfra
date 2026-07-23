@@ -36,8 +36,8 @@ Forbidden (8 — unchanged from A1B-AE): `PRODUCTION_READY` / `FULLY_VERIFIED` /
 | 3 | `A1B-AE-R.2` | Preset Agent materialization (cdi/drg-dip/claim-check Packs + Journey 7 fix) | 1 | **COMPLETED** (`8eb7d60`) |
 | 4 | `A1B-AE-R.3` | Public Expert + MCP (PubMed + ClinicalTrials + VCR + SSRF) | 1 | **COMPLETED** (`3a06543`) |
 | 5 | `A1B-AE-R.4` | Local Expert completion (Calculator / Memory / Interviewing) | 1 | **COMPLETED** (`48cae71`) |
-| 6 | `A1B-AE-R.5` | Frontend + 10 browser journeys (ExpertsPage + NewAgentPage extend + 10 Playwright headed) | 2-3 | **COMPLETED (this commit)** |
-| 7 | `A1B-AE-R.6` | Regression + final verdict | 1 | pending |
+| 6 | `A1B-AE-R.5` | Frontend + 10 browser journeys (ExpertsPage + NewAgentPage extend + 10 Playwright headed) | 2-3 | **COMPLETED** (`cb0dab4`) |
+| 7 | `A1B-AE-R.6` | Regression + final verdict | 1 | **COMPLETED (this commit)** |
 
 ## Documents (R.0)
 

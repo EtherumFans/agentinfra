@@ -34,8 +34,8 @@ Forbidden (8 — unchanged from A1B-AE): `PRODUCTION_READY` / `FULLY_VERIFIED` /
 | 1 | `A1B-AE-R.0` | Charter + baseline + Journey 7 evidence correction | 1 | **COMPLETED** |
 | 2 | `A1B-AE-R.1` | Agent Runtime closure (Task state machine + ThreadAuth DB + Context scrub) | 2 | **COMPLETED** (R.1.a `1b7c750` + R.1.b `5332cc3`) |
 | 3 | `A1B-AE-R.2` | Preset Agent materialization (cdi/drg-dip/claim-check Packs + Journey 7 fix) | 1 | **COMPLETED** (`8eb7d60`) |
-| 4 | `A1B-AE-R.3` | Public Expert + MCP (PubMed + ClinicalTrials + VCR + SSRF) | 1 | **COMPLETED (this commit)** |
-| 5 | `A1B-AE-R.4` | Local Expert completion (Calculator / Memory / Interviewing) | 1-2 | pending |
+| 4 | `A1B-AE-R.3` | Public Expert + MCP (PubMed + ClinicalTrials + VCR + SSRF) | 1 | **COMPLETED** (`3a06543`) |
+| 5 | `A1B-AE-R.4` | Local Expert completion (Calculator / Memory / Interviewing) | 1 | **COMPLETED (this commit)** |
 | 6 | `A1B-AE-R.5` | Frontend + 10 browser journeys (ExpertsPage + NewAgentPage extend + 10 Playwright headed) | 2-3 | pending |
 | 7 | `A1B-AE-R.6` | Regression + final verdict | 1 | pending |
 

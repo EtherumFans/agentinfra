@@ -91,8 +91,10 @@ def test_calculator_cockcroft_gault_age_warning():
 
 def test_calculator_unknown_raises_not_implemented():
     from app.agents.experts.medical_calculator_expert import calculate
+    # A1B-AE-R.4.a — CHA2DS2-VASc is now implemented; CURB-65 is the
+    # canonical "not yet implemented" key per A1B-AE.6 docstring.
     with pytest.raises(NotImplementedError):
-        calculate("CHA2DS2-VASc")
+        calculate("CURB-65")
 
 
 def test_calculator_invalid_sex():

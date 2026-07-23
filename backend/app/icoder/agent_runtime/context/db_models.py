@@ -30,8 +30,6 @@ class ContextRow(Base):
     organization_id: Mapped[str] = mapped_column(
         String(12),
         nullable=False,
-        default="org_default1",
-        server_default="org_default1",
     )
     status: Mapped[str] = mapped_column(String(16), nullable=False)
     metadata_json: Mapped[str] = mapped_column(Text, nullable=False)

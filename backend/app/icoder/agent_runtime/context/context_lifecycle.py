@@ -88,16 +88,21 @@ class ContextLifecycle:
         self,
         *,
         agent_id: str,
+        organization_id: str,
         initial_message: ContextMessage | None = None,
-        organization_id: str = "org_default1",
     ) -> Context:
         """Create active context with server-generated contextId.
 
-        ``organization_id`` is the tenant scope (A1B-AE-R.1.b). Defaults
-        to ``org_default1`` to match the test-bypass mock org and the
-        dev DB default. Production callers should always pass the JWT's
-        ``current_org.id`` explicitly.
+        ``organization_id`` is the tenant scope (A1B-AE-RV.2 fail-closed).
+        No default — caller MUST pass the JWT's ``current_org.id``
+        explicitly. Empty/None values raise ValueError so the request
+        fails closed instead of silently bucketing under org_default1.
         """
+        if not organization_id:
+            raise ValueError(
+                "organization_id is required (A1B-AE-RV.2 fail-closed). "
+                "Pass current_org.id from the JWT explicitly."
+            )
         now = self._now()
         ctx = Context(
             id=generate_context_id(),
@@ -105,7 +110,7 @@ class ContextLifecycle:
             updated_at=now,
             expires_at=now + self._ttl,
             agent_id=agent_id,
-            organization_id=organization_id or "org_default1",
+            organization_id=organization_id,
             status=ContextStatus.ACTIVE,
         )
         await self._repo.create_context(ctx)

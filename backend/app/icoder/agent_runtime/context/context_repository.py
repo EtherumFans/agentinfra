@@ -77,7 +77,7 @@ class ContextRepository:
             updated_at=ctx.updated_at,
             expires_at=ctx.expires_at,
             agent_id=ctx.agent_id,
-            organization_id=ctx.organization_id or "org_default1",
+            organization_id=ctx.organization_id,
             status=ctx.status.value,
             metadata_json=ctx.metadata.model_dump_json(),
             redacted_input_hash=ctx.redacted_input_hash,

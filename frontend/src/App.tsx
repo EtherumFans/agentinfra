@@ -44,6 +44,7 @@ const ReleaseNotesPage = lazy(() => import('./pages/ReleaseNotesPage'));
 const SupportPage = lazy(() => import('./pages/SupportPage'));
 const APIClientsPage = lazy(() => import('./pages/APIClientsPage'));
 const TeamPage = lazy(() => import('./pages/TeamPage'));
+const ExpertsPage = lazy(() => import('./pages/ExpertsPage'));
 
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -73,6 +74,7 @@ function App() {
         <Route path="ai-studio" element={<AIStudioOverviewPage />} />
         <Route path="ai-studio/agents" element={<AgentsPage />} />
         <Route path="ai-studio/agents/new" element={<NewAgentPage />} />
+        <Route path="ai-studio/experts" element={<ExpertsPage />} />
         <Route path="ai-studio/agents/:agentId" element={<AgentDetailPage />} />
         {/* Phase 4-D - Corti-style chat URL: /ai-studio/agents/:agentId/chat */}
         <Route path="ai-studio/agents/:agentId/chat" element={<AgentChatPage />} />

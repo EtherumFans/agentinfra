@@ -188,9 +188,9 @@ def _seed_task(task_id: str, state: str) -> str:
             await db.execute(
                 text(
                     "INSERT INTO contexts "
-                    "(id, created_at, updated_at, expires_at, agent_id, status, "
+                    "(id, created_at, updated_at, expires_at, agent_id, organization_id, status, "
                     " metadata_json, redacted_input_hash, original_input_ref) "
-                    "VALUES (:c, :n, :n, :n, :a, 'active', '{}', '', '')"
+                    "VALUES (:c, :n, :n, :n, :a, 'org_default1', 'active', '{}', '', '')"
                 ),
                 {
                     "c": context_id,
@@ -327,9 +327,9 @@ def _seed_context_with_message(context_id: str, message_id: str) -> None:
                 await db.execute(
                     text(
                         "INSERT INTO contexts "
-                        "(id, created_at, updated_at, expires_at, agent_id, status, "
+                        "(id, created_at, updated_at, expires_at, agent_id, organization_id, status, "
                         " metadata_json, redacted_input_hash, original_input_ref) "
-                        "VALUES (:c, :n, :n, :n, :a, 'active', '{}', '', '')"
+                        "VALUES (:c, :n, :n, :n, :a, 'org_default1', 'active', '{}', '', '')"
                     ),
                     {"c": context_id, "n": datetime.now(timezone.utc), "a": "test-agent"},
                 )

@@ -68,11 +68,11 @@ class Context(BaseModel):
     expires_at: datetime
     agent_id: str
     organization_id: str = Field(
-        default="org_default1",
         description=(
-            "A1B-AE-R.1.b — tenant scope. Cross-tenant reads return "
-            "404 (no leak). Default 'org_default1' matches the test-"
-            "bypass mock org id and the dev DB default tenant."
+            "A1B-AE-RV.2 — tenant scope. Cross-tenant reads return "
+            "404 (no leak). No default: callers MUST pass the JWT's "
+            "current_org.id explicitly. Test-bypass paths inject "
+            "'org_default1' via the mock user."
         ),
     )
     status: ContextStatus

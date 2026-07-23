@@ -278,8 +278,12 @@ def test_migration_025_organization_id_column_present():
     assert "organization_id" in cols, "contexts.organization_id missing — Migration 025 not applied"
     notnull, dflt = cols["organization_id"]
     assert notnull == 1, "contexts.organization_id must be NOT NULL"
-    assert dflt == "'org_default1'", (
-        f"contexts.organization_id default must be 'org_default1', got {dflt!r}"
+    # A1B-AE-RV.2 fail-closed: Migration 026 dropped the permanent
+    # server_default. New writes must supply organization_id explicitly
+    # (DB NOT NULL + no default = fail-closed at the DB layer).
+    assert dflt is None, (
+        f"A1B-AE-RV.2: contexts.organization_id must have NO server_default "
+        f"(fail-closed), got {dflt!r}"
     )
 
 

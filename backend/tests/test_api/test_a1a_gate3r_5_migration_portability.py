@@ -112,6 +112,7 @@ def test_fresh_sqlite_applies_all_migrations_to_head(tmp_path) -> None:
     A1B-AE.4 → 023 (agent_canonical_key_and_alias).
     A1B-AE-R.1.a → 024 (context_task_refs.state CHECK).
     A1B-AE-R.1.b → 025 (contexts.organization_id for cross-tenant).
+    A1B-AE-RV.2 → 026 (contexts.organization_id fail-closed, default dropped).
     """
     db_path = str(tmp_path / "fresh.db")
     result = _run_alembic(db_path, "upgrade", "head")
@@ -119,7 +120,7 @@ def test_fresh_sqlite_applies_all_migrations_to_head(tmp_path) -> None:
         f"alembic upgrade head failed on fresh DB:\n"
         f"stdout: {result.stdout}\nstderr: {result.stderr}"
     )
-    assert _alembic_version(db_path) == "025"
+    assert _alembic_version(db_path) == "026"
     # Verify the new columns landed
     assert _column_exists(db_path, "run_trace_events", "event_id")
     assert _column_exists(db_path, "run_trace_events", "sequence_number")
@@ -138,14 +139,14 @@ def test_migration_020_idempotent_rerun(tmp_path) -> None:
     db_path = str(tmp_path / "existing.db")
     first = _run_alembic(db_path, "upgrade", "head")
     assert first.returncode == 0
-    assert _alembic_version(db_path) == "025"
+    assert _alembic_version(db_path) == "026"
 
     # Re-run — alembic should succeed silently (no-op when already at head)
     second = _run_alembic(db_path, "upgrade", "head")
     assert second.returncode == 0, (
         f"second upgrade should be no-op; stderr: {second.stderr}"
     )
-    assert _alembic_version(db_path) == "025"
+    assert _alembic_version(db_path) == "026"
 
 
 # ────────────────────────────────────────────────────────────────────
@@ -154,30 +155,31 @@ def test_migration_020_idempotent_rerun(tmp_path) -> None:
 
 
 def test_downgrade_upgrade_roundtrip(tmp_path) -> None:
-    """025 → 024 → 025 lands at the same schema state.
+    """026 → 025 → 026 lands at the same schema state.
 
-    A1B-AE-R.1.b: head is now 025 (Migration 025 added
-    contexts.organization_id NOT NULL with default 'org_default1').
-    Downgrade -1 returns to 024 (R.1.a state — column absent) and
-    upgrade head re-applies Migration 025.
+    A1B-AE-RV.2: head is now 026 (Migration 026 dropped the permanent
+    default on contexts.organization_id, making the fail-closed policy
+    explicit at the DB layer).
+    Downgrade -1 returns to 025 (R.1.b state — column present with
+    default 'org_default1') and upgrade head re-applies Migration 026.
     """
     db_path = str(tmp_path / "roundtrip.db")
     up1 = _run_alembic(db_path, "upgrade", "head")
     assert up1.returncode == 0
-    assert _alembic_version(db_path) == "025"
+    assert _alembic_version(db_path) == "026"
     assert _column_exists(db_path, "run_trace_events", "event_id")
 
-    # Downgrade one step → 024 (Migration 025 reversed — column dropped)
+    # Downgrade one step → 025 (Migration 026 reversed — default restored)
     down = _run_alembic(db_path, "downgrade", "-1")
     assert down.returncode == 0, (
         f"downgrade -1 failed:\nstdout: {down.stdout}\nstderr: {down.stderr}"
     )
-    assert _alembic_version(db_path) == "024"
+    assert _alembic_version(db_path) == "025"
 
-    # Upgrade back to head → 025
+    # Upgrade back to head → 026
     up2 = _run_alembic(db_path, "upgrade", "head")
     assert up2.returncode == 0
-    assert _alembic_version(db_path) == "025"
+    assert _alembic_version(db_path) == "026"
     assert _column_exists(db_path, "run_trace_events", "event_id")
 
 
@@ -229,7 +231,7 @@ def test_interrupted_recovery_completes_on_retry(tmp_path) -> None:
         f"recovery upgrade failed:\nstdout: {recovery.stdout}\n"
         f"stderr: {recovery.stderr}"
     )
-    assert _alembic_version(db_path) == "025"
+    assert _alembic_version(db_path) == "026"
     assert _column_exists(db_path, "run_trace_events", "event_id")
 
 

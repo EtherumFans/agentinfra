@@ -1,7 +1,8 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "iCoDer Medical Coding Agent",
+    "title": "iCoDer Clinical AI Platform",
+    "description": "面向中国医院病案首页与医保结算清单场景的编码审核智能体",
     "version": "1.0.0"
   },
   "paths": {
@@ -2102,7 +2103,7 @@
           "agent-definitions"
         ],
         "summary": "Clone Agent",
-        "description": "Clone a prebuilt agent or template into a user-owned custom agent.",
+        "description": "Clone a prebuilt agent or template into a user-owned custom agent.\n\nA1B-AE.4: agent_id is now alias-aware. Legacy underscore-form\nkeys (e.g. ``code_validation``) are resolved to canonical dash-form\n(``code-validation``) before lookup. This closes the clone-404\nroot cause identified in A1B-AE.2 §9.",
         "operationId": "clone_agent_api_rest_v1_agent_definitions__agent_id__clone_post",
         "security": [
           {
@@ -6933,6 +6934,670 @@
         }
       }
     },
+    "/api/v1/experts": {
+      "get": {
+        "tags": [
+          "expert-registry"
+        ],
+        "summary": "List Experts",
+        "description": "List Experts with optional provenance filters.\n\nDefault (no filter): returns ALL Experts visible to this\norganization. Caller can filter by any provenance dimension.",
+        "operationId": "list_experts_api_v1_experts_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "origin",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by origin. One of ('CLEAN_ROOM_PUBLIC', 'REVERSE_ENGINEERED', 'ICODER_INTERNAL', 'PACK_DECLARED').",
+              "title": "Origin"
+            },
+            "description": "Filter by origin. One of ('CLEAN_ROOM_PUBLIC', 'REVERSE_ENGINEERED', 'ICODER_INTERNAL', 'PACK_DECLARED')."
+          },
+          {
+            "name": "corti_alignment",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by corti_alignment. One of ('CORTI_REFERENCE', 'CORTI_ALIGNED', 'CORTI_ADAPTED', 'ICODER_ONLY', 'UNKNOWN').",
+              "title": "Corti Alignment"
+            },
+            "description": "Filter by corti_alignment. One of ('CORTI_REFERENCE', 'CORTI_ALIGNED', 'CORTI_ADAPTED', 'ICODER_ONLY', 'UNKNOWN')."
+          },
+          {
+            "name": "pack_dir",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by Pack directory.",
+              "title": "Pack Dir"
+            },
+            "description": "Filter by Pack directory."
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by category.",
+              "title": "Category"
+            },
+            "description": "Filter by category."
+          },
+          {
+            "name": "is_prebuilt",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by is_prebuilt flag.",
+              "title": "Is Prebuilt"
+            },
+            "description": "Filter by is_prebuilt flag."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExpertListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/experts/registry/reconcile": {
+      "get": {
+        "tags": [
+          "expert-registry"
+        ],
+        "summary": "Reconcile Expert Registry",
+        "description": "Audit: cross-check DB rows vs A1B-AE.2 expert_catalog.json.\n\nReturns a per-entry comparison. ``db_status`` is one of:\n\n- ``PRESENT`` — DB row exists with a matching canonical_key.\n- ``MISSING`` — catalog entry has no DB row (expected for\n  CORTI_REFERENCE entries not yet implemented).\n- ``DIVERGENT`` — DB row exists but origin / corti_alignment /\n  pack_dir differ from the catalog.",
+        "operationId": "reconcile_expert_registry_api_v1_experts_registry_reconcile_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExpertRegistryReconcileResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/experts/{expert_id}": {
+      "get": {
+        "tags": [
+          "expert-registry"
+        ],
+        "summary": "Get Expert",
+        "description": "Get a single Expert by ID, including the full provenance block.",
+        "operationId": "get_expert_api_v1_experts__expert_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "expert_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Expert Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExpertResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/experts/{expert_id}/mcp_servers": {
+      "get": {
+        "tags": [
+          "expert-registry"
+        ],
+        "summary": "List Expert Mcp Servers",
+        "description": "List MCP servers attached to an Expert.\n\nExposes the A1B-AE.3 ``authorization_type`` enum so consumers can\nsee at a glance which auth mode each MCP server requires.",
+        "operationId": "list_expert_mcp_servers_api_v1_experts__expert_id__mcp_servers_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "expert_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Expert Id"
+            }
+          },
+          {
+            "name": "authorization_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by authorization_type. One of ('none', 'inherit', 'bearer', 'oauth2.0').",
+              "title": "Authorization Type"
+            },
+            "description": "Filter by authorization_type. One of ('none', 'inherit', 'bearer', 'oauth2.0')."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/McpServerResponse"
+                  },
+                  "title": "Response List Expert Mcp Servers Api V1 Experts  Expert Id  Mcp Servers Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/experts/external-gate/evaluate": {
+      "get": {
+        "tags": [
+          "expert-registry"
+        ],
+        "summary": "Evaluate External Expert Gate",
+        "description": "Evaluate the External-Expert Gate (A1B-AE.7) for a given Expert.\n\nReturns the gate's decision: ``permitted`` (bool), ``reason`` (one\nof OK / LICENCE_REQUIRED / EGRESS_DISABLED / REGION_BLOCKED /\nPROVIDER_OPT_IN_MISSING), and a human-readable ``notes`` field.\n\nThe gate does NOT perform any live call. It only rules on what\n*would* be allowed under the supplied context. The caller MUST still\nconsult each Expert's own ``live_*_performed`` flag.",
+        "operationId": "evaluate_external_expert_gate_api_v1_experts_external_gate_evaluate_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "expert_key",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "The canonical_key of the Expert to evaluate.",
+              "title": "Expert Key"
+            },
+            "description": "The canonical_key of the Expert to evaluate."
+          },
+          {
+            "name": "region",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Tenant region (CN/EU/US). If omitted, region check is skipped.",
+              "title": "Region"
+            },
+            "description": "Tenant region (CN/EU/US). If omitted, region check is skipped."
+          },
+          {
+            "name": "egress_enabled",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Whether external egress is enabled for this tenant (Charter §6 default: False).",
+              "default": false,
+              "title": "Egress Enabled"
+            },
+            "description": "Whether external egress is enabled for this tenant (Charter §6 default: False)."
+          },
+          {
+            "name": "provider_opt_in",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Provider-level opt-in for web-search.",
+              "default": false,
+              "title": "Provider Opt In"
+            },
+            "description": "Provider-level opt-in for web-search."
+          },
+          {
+            "name": "tenant_opt_in",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Tenant-level opt-in for web-search.",
+              "default": false,
+              "title": "Tenant Opt In"
+            },
+            "description": "Tenant-level opt-in for web-search."
+          },
+          {
+            "name": "licence_token_count",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "Number of licence tokens supplied (for drugbank/posos). A1B-AE.9 does NOT accept the tokens themselves via query string — that would leak credentials. Callers POST tokens out-of-band; the gate evaluation just needs the count.",
+              "default": 0,
+              "title": "Licence Token Count"
+            },
+            "description": "Number of licence tokens supplied (for drugbank/posos). A1B-AE.9 does NOT accept the tokens themselves via query string — that would leak credentials. Callers POST tokens out-of-band; the gate evaluation just needs the count."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/agents/quick": {
+      "post": {
+        "tags": [
+          "agent-card-a1b-ae-4"
+        ],
+        "summary": "Quick Create Agent",
+        "description": "Corti Console create-then-customize UX — name-only first step.\n\nCreates a draft Agent with the given name and returns its ID.\nCaller is expected to follow up with PUT /api/v1/agents/{id} to\nset description, systemPrompt, expert_ids, etc.\n\nA1B-AE-R.2 (2026-07-23): optional ``from_preset`` query parameter\npre-populates the Agent from a Preset Agent Card in\n``icoder_preset_agents.json``. When ``from_preset`` is set:\n\n- ``name`` defaults to the preset's name_zh if body.name is empty\n- ``description``, ``system_prompt``, ``agent_type``, ``canonical_key``,\n  and the preset's expert keys are copied onto the new Agent\n- ``delegates_to_pack`` from the preset is stored in config for the\n  runtime to resolve\n\nProvenance: ICODER_INTERNAL (matches Corti Console observed\nbehaviour but does not copy any Corti-private material).",
+        "operationId": "quick_create_agent_api_v1_agents_quick_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "from_preset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "From Preset"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentQuickCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentQuickCreateResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/agents/resolve/{key}": {
+      "get": {
+        "tags": [
+          "agent-card-a1b-ae-4"
+        ],
+        "summary": "Resolve Agent By Key",
+        "description": "Alias-aware Agent lookup by canonical_key OR alias.\n\nReturns 200 with the Agent body on hit, 404 on miss. The lookup\norder is:\n\n1. DB row where canonical_key == key (after alias resolution)\n2. DB row where canonical_key == alias_resolver(key)\n3. DB row where key appears in aliases JSON (legacy form)\n\nThis endpoint is the application-layer half of the clone-404 fix.",
+        "operationId": "resolve_agent_by_key_api_v1_agents_resolve__key__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Key"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/agents/{agent_id}/card": {
+      "get": {
+        "tags": [
+          "agent-card-a1b-ae-4"
+        ],
+        "summary": "Get Agent Card",
+        "description": "Corti public §6 Agent Card — A2A discovery projection.\n\nInline-experts expert_ids[] to full Expert records with their MCP\nservers so consumers get a single-round-trip view of the Agent's\ncapabilities.",
+        "operationId": "get_agent_card_api_v1_agents__agent_id__card_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Agent Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentCard"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/presets": {
+      "get": {
+        "tags": [
+          "A1B-AE.9 Preset Agents"
+        ],
+        "summary": "List Presets",
+        "description": "List all 5 iCoDer Preset Agents (summary view).",
+        "operationId": "list_presets_api_v1_presets_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/presets/{canonical_key}": {
+      "get": {
+        "tags": [
+          "A1B-AE.9 Preset Agents"
+        ],
+        "summary": "Get Preset Detail",
+        "description": "Full PresetAgent detail.",
+        "operationId": "get_preset_detail_api_v1_presets__canonical_key__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "canonical_key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Canonical Key"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/presets/{canonical_key}/card": {
+      "get": {
+        "tags": [
+          "A1B-AE.9 Preset Agents"
+        ],
+        "summary": "Get Preset Card",
+        "description": "Corti §6 Agent Card (camelCase) + icoder_ext block.",
+        "operationId": "get_preset_card_api_v1_presets__canonical_key__card_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "canonical_key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Canonical Key"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/organizations": {
       "get": {
         "tags": [
@@ -10398,6 +11063,46 @@
           }
         }
       }
+    },
+    "/api/icoder/agents": {
+      "get": {
+        "summary": "A2A agent discovery (lifespan-mounted)",
+        "responses": {
+          "200": {
+            "description": "agent list"
+          }
+        }
+      }
+    },
+    "/api/icoder/agents/{agent_id}/card": {
+      "get": {
+        "summary": "A2A single AgentCard (lifespan-mounted)",
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "agent card"
+          }
+        }
+      }
+    },
+    "/.well-known/agent.json": {
+      "get": {
+        "summary": "A2A root agent card (lifespan-mounted)",
+        "responses": {
+          "200": {
+            "description": "root agent card"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -10419,6 +11124,198 @@
           "action"
         ],
         "title": "AgentAction"
+      },
+      "AgentCard": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description",
+            "default": ""
+          },
+          "systemPrompt": {
+            "type": "string",
+            "title": "Systemprompt",
+            "default": ""
+          },
+          "agentType": {
+            "type": "string",
+            "title": "Agenttype",
+            "default": "orchestrator"
+          },
+          "experts": {
+            "items": {
+              "$ref": "#/components/schemas/AgentCardExpert"
+            },
+            "type": "array",
+            "title": "Experts"
+          },
+          "mcpServers": {
+            "items": {
+              "$ref": "#/components/schemas/AgentCardMcpServer"
+            },
+            "type": "array",
+            "title": "Mcpservers"
+          },
+          "canonical_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Canonical Key"
+          },
+          "aliases": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Aliases"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version",
+            "default": "1.0.0"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "default": "draft"
+          },
+          "organization_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Organization Id"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "AgentCard",
+        "description": "Corti §6 Agent Card — READ-ONLY A2A discovery projection."
+      },
+      "AgentCardExpert": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "canonical_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Canonical Key"
+          },
+          "origin": {
+            "type": "string",
+            "title": "Origin",
+            "default": "ICODER_INTERNAL"
+          },
+          "corti_alignment": {
+            "type": "string",
+            "title": "Corti Alignment",
+            "default": "UNKNOWN"
+          },
+          "mcpServers": {
+            "items": {
+              "$ref": "#/components/schemas/AgentCardMcpServer"
+            },
+            "type": "array",
+            "title": "Mcpservers"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "AgentCardExpert",
+        "description": "Corti §6 Expert shape (inline-expandable from expert_ids[])."
+      },
+      "AgentCardMcpServer": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "transportType": {
+            "type": "string",
+            "title": "Transporttype",
+            "default": "streamable_http"
+          },
+          "authorizationType": {
+            "type": "string",
+            "title": "Authorizationtype",
+            "default": "none"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "url"
+        ],
+        "title": "AgentCardMcpServer",
+        "description": "Corti §6 McpServer shape (Expert-config schema)."
       },
       "AgentCloneRequest": {
         "properties": {
@@ -10511,6 +11408,74 @@
           "name"
         ],
         "title": "AgentCreate"
+      },
+      "AgentQuickCreate": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "title": "AgentQuickCreate",
+        "description": "Corti Console 'Create agent' modal — name-only first step.\n\nA1B-AE.3 Console observation (session 2026-07-22T0739-UTC step 03)\nconfirmed Corti Console's Create-then-Customize UX:\n\n    modal \"Name your agent\"\n      ↳ Agent Name * (required)\n      ↳ Create Agent button (disabled when input empty)\n\nAll other fields (description, systemPrompt, agentType, experts[],\nmcpServers[]) are configured AFTER creation on the Agent detail\npage. This endpoint mirrors that flow.\n\nA1B-AE-R.2 (2026-07-23): when ``from_preset`` query parameter is\nprovided, ``name`` becomes optional (defaults to the preset's name)."
+      },
+      "AgentQuickCreateResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "canonical_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Canonical Key"
+          },
+          "agent_type": {
+            "type": "string",
+            "title": "Agent Type",
+            "default": "orchestrator"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "default": "draft"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version",
+            "default": "1.0.0"
+          },
+          "next_step": {
+            "type": "string",
+            "title": "Next Step",
+            "default": "customize"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "AgentQuickCreateResponse",
+        "description": "Response for POST /api/v1/agents/quick — minimal, ID-first."
       },
       "AgentRunInput": {
         "properties": {
@@ -13145,6 +14110,273 @@
         ],
         "title": "ExistingCode"
       },
+      "ExpertListResponse": {
+        "properties": {
+          "experts": {
+            "items": {
+              "$ref": "#/components/schemas/ExpertResponse"
+            },
+            "type": "array",
+            "title": "Experts"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "experts",
+          "total"
+        ],
+        "title": "ExpertListResponse"
+      },
+      "ExpertRegistryReconcileEntry": {
+        "properties": {
+          "db_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Db Id"
+          },
+          "db_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Db Name"
+          },
+          "catalog_key": {
+            "type": "string",
+            "title": "Catalog Key"
+          },
+          "catalog_origin": {
+            "type": "string",
+            "title": "Catalog Origin"
+          },
+          "catalog_corti_alignment": {
+            "type": "string",
+            "title": "Catalog Corti Alignment"
+          },
+          "catalog_pack_dir": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Catalog Pack Dir"
+          },
+          "catalog_source_file": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Catalog Source File"
+          },
+          "db_status": {
+            "type": "string",
+            "title": "Db Status"
+          },
+          "divergences": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Divergences"
+          }
+        },
+        "type": "object",
+        "required": [
+          "catalog_key",
+          "catalog_origin",
+          "catalog_corti_alignment",
+          "db_status"
+        ],
+        "title": "ExpertRegistryReconcileEntry"
+      },
+      "ExpertRegistryReconcileResponse": {
+        "properties": {
+          "charter": {
+            "type": "string",
+            "title": "Charter",
+            "default": "A1B-AE.3"
+          },
+          "catalog_path": {
+            "type": "string",
+            "title": "Catalog Path"
+          },
+          "catalog_count": {
+            "type": "integer",
+            "title": "Catalog Count"
+          },
+          "db_count_total": {
+            "type": "integer",
+            "title": "Db Count Total"
+          },
+          "db_count_canonical_keyed": {
+            "type": "integer",
+            "title": "Db Count Canonical Keyed"
+          },
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/ExpertRegistryReconcileEntry"
+            },
+            "type": "array",
+            "title": "Entries"
+          },
+          "summary": {
+            "type": "object",
+            "title": "Summary"
+          }
+        },
+        "type": "object",
+        "required": [
+          "catalog_path",
+          "catalog_count",
+          "db_count_total",
+          "db_count_canonical_keyed",
+          "entries",
+          "summary"
+        ],
+        "title": "ExpertRegistryReconcileResponse"
+      },
+      "ExpertResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description",
+            "default": ""
+          },
+          "category": {
+            "type": "string",
+            "title": "Category",
+            "default": ""
+          },
+          "icon": {
+            "type": "string",
+            "title": "Icon",
+            "default": "Bot"
+          },
+          "system_prompt": {
+            "type": "string",
+            "title": "System Prompt",
+            "default": ""
+          },
+          "tools": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Tools"
+          },
+          "config": {
+            "type": "object",
+            "title": "Config"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active",
+            "default": true
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          },
+          "canonical_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Canonical Key"
+          },
+          "origin": {
+            "type": "string",
+            "title": "Origin",
+            "default": "ICODER_INTERNAL"
+          },
+          "corti_alignment": {
+            "type": "string",
+            "title": "Corti Alignment",
+            "default": "UNKNOWN"
+          },
+          "pack_dir": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pack Dir"
+          },
+          "provenance": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provenance"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "ExpertResponse"
+      },
       "FactExtractResponse": {
         "properties": {
           "facts": {
@@ -14528,6 +15760,59 @@
           "email"
         ],
         "title": "InviteMemberRequest"
+      },
+      "McpServerResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "expert_id": {
+            "type": "string",
+            "title": "Expert Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "transport_type": {
+            "type": "string",
+            "title": "Transport Type",
+            "default": "streamable_http"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description",
+            "default": ""
+          },
+          "authorization_type": {
+            "type": "string",
+            "title": "Authorization Type",
+            "default": "none"
+          },
+          "auth_type": {
+            "type": "string",
+            "title": "Auth Type",
+            "default": "none"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "expert_id",
+          "name",
+          "url"
+        ],
+        "title": "McpServerResponse"
       },
       "OrgInfo": {
         "properties": {

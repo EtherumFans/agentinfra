@@ -115,7 +115,47 @@
       "id": "RV.6",
       "title": "Full regression + OpenAPI + SDK + Migration",
       "estimated_commits": 1,
-      "status": "pending"
+      "status": "completed",
+      "verdict": "PASS_A1B_AE_RV_6_FULL_REGRESSION_OPENAPI_SDK_MIGRATION_VERIFIED_WITH_ONE_DEV_DB_GUARD_ATTRIBUTION_NOISE_ERROR",
+      "commit": "PENDING_RV6_COMMIT",
+      "backend_pytest_pre_fix": {
+        "baseline_8546184": "62 failed / 3822 passed / 27 errors",
+        "head_af6aacf": "102 failed / 3819 passed / 28 errors",
+        "new_failures_vs_baseline": 42
+      },
+      "backend_pytest_post_fix": {
+        "head_af6aacf": "61 failed / 3860 passed / 28 errors",
+        "new_failures_vs_baseline": 1,
+        "new_failure_classification": "DEV_DB_GUARD_ATTRIBUTION_NOISE (test body PASSES; teardown error from RV.2 DevDbSessionGuard firing on expanded RV.3 test suite)"
+      },
+      "engineering_debt_liquidated": {
+        "context_tests_org_id_tightening": "37 tests across 5 files (organization_id kwarg added)",
+        "stale_migration_assertion_025_to_026": "4 tests in test_a1a_gate3r_5_migration_portability.py",
+        "test_pollution_subprocess_isolation": "1 test in test_schema_drift.py"
+      },
+      "frontend": {
+        "typecheck": "PASS (exit 0)",
+        "build": "PASS (19.95s, dist emitted)",
+        "vitest": "78/78 PASS (after OpenAPI refresh fixed 2 contract drift failures)",
+        "eslint": "BLOCKED_BY_MISSING_DEV_DEPENDENCY (pre-existing project gap)"
+      },
+      "openapi": {
+        "regenerated_paths": 208,
+        "prior_paths": 162,
+        "delta": "+46 paths (stale snapshot pre-RV)"
+      },
+      "sdk": {
+        "package": "@icoder/sdk@1.0.0-beta.2",
+        "dist_files": 29,
+        "build_exit": 0
+      },
+      "migration_sqlite": {
+        "roundtrip": "PASS (up→down→up idempotent)",
+        "head_chain": "001..026 (026 = RV.2 fail-closed)"
+      },
+      "migration_postgresql": {
+        "verdict": "BLOCKED_BY_ENVIRONMENT (charter §20 permitted)"
+      }
     },
     {
       "id": "RV.7",

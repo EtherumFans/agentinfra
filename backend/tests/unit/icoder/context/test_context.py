@@ -30,6 +30,7 @@ def _ctx(**overrides) -> Context:
         updated_at=now,
         expires_at=now + timedelta(hours=24),
         agent_id="homepage-coding-review",
+        organization_id="test-org",
         status=ContextStatus.ACTIVE,
     )
     defaults.update(overrides)

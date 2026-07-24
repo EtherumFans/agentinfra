@@ -64,6 +64,7 @@ async def _make_ctx(repo: ContextRepository, agent_id: str = "a") -> Context:
         updated_at=now,
         expires_at=now + timedelta(hours=24),
         agent_id=agent_id,
+        organization_id="test-org",
         status=ContextStatus.ACTIVE,
     )
     await repo.create_context(ctx)

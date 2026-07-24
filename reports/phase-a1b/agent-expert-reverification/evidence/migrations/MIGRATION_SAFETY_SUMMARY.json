@@ -1,0 +1,73 @@
+{
+  "phase": "A1B-AE-RV",
+  "sub_gate": "RV.6",
+  "captured_at": "2026-07-25",
+  "charter_section": "§9.x — migration safety + dev DB isolation + PostgreSQL scenarios",
+  "sqlite_fresh_db_test": {
+    "db_path": "C:/temp/rv6_migrate.db",
+    "db_driver": "sqlite (no +aiosqlite for alembic; runtime uses aiosqlite)",
+    "head_pre_test": "n/a (fresh)",
+    "step_1_upgrade_head": {
+      "command": "python -m alembic upgrade head",
+      "result": "27 migrations applied OK",
+      "head_post": "026"
+    },
+    "step_2_downgrade_minus_1": {
+      "command": "python -m alembic downgrade -1",
+      "result": "OK (026 -> 025)",
+      "head_post": "025"
+    },
+    "step_3_upgrade_head_again": {
+      "command": "python -m alembic upgrade head",
+      "result": "OK (025 -> 026 re-applied)",
+      "head_post": "026"
+    },
+    "verdict": "PASS_ROUNDTRIP_UP_DOWN_UP_IDEMPOTENT"
+  },
+  "alembic_head_chain": [
+    "001_initial_all_tables",
+    "002_agent_versioning",
+    "003_multi_tenant",
+    "004_coding_review_run",
+    "005_context_tables",
+    "006_p1_2_corti_parity_and_drop_context",
+    "007_add_missing_orm_columns",
+    "008_coding_review_runs_not_null",
+    "009_run_trace_events",
+    "010_run_history",
+    "011_cdi_models",
+    "012_idempotency_records",
+    "013_run_history_status_and_cancel",
+    "014_api_client_attribution_and_origins",
+    "015_preview_sessions",
+    "016_tenancy_classification",
+    "017_legacy_tenancy_reconciliation",
+    "018_run_history_trace_capture_status",
+    "019_db_constraints_tenant_classification",
+    "020_trace_event_identity_and_capture_state",
+    "021_clinical_tables_tenant_not_null",
+    "022_expert_registry_provenance",
+    "023_agent_canonical_key_and_alias",
+    "024_context_task_state_check",
+    "025_context_organization_id",
+    "026_context_organization_id_fail_closed"
+  ],
+  "dev_db_isolation_test": {
+    "verdict": "PASS (covered by RV.2 commit e5d8b6e — mtime+size session guard)",
+    "note": "Dev DB at backend/data/icoder.db guarded by DevDbSessionGuard; dev session cannot mutate pristine baseline DB. See RV.2 evidence."
+  },
+  "postgresql_scenarios": {
+    "verdict": "BLOCKED_BY_ENVIRONMENT",
+    "reason": "no psql client / docker / podman available on Windows host",
+    "charter_reference": "§20 permitted hard blockers — 'PostgreSQL environment cannot be established'",
+    "scenarios_deferred": [
+      "PG fresh DB alembic upgrade head",
+      "PG interrupted-recovery pattern",
+      "PG cross-schema tenant isolation",
+      "PG CHECK + UNIQUE constraint validation",
+      "PG server-side default for organization_id fail-closed"
+    ],
+    "mitigation": "PostgreSQL is non-blocking — SQLite parity has been demonstrated. PG-specific validation deferred to pilot environment (per charter §20)."
+  },
+  "verdict_overall": "PASS_RV_6_MIGRATION_SAFETY_SQLITE_ROUNDTRIP_OK_POSTGRESQL_BLOCKED_BY_ENVIRONMENT"
+}

@@ -77,8 +77,8 @@ async def test_run_once_sweeps_and_destroys(session):
     lc = ContextLifecycle(
         repo, ttl_seconds=10, completed_ttl_seconds=10, grace_seconds=0, now_fn=now_fn
     )
-    a = await lc.create(agent_id="a")
-    b = await lc.create(agent_id="a")
+    a = await lc.create(organization_id="test-org", agent_id="a")
+    b = await lc.create(organization_id="test-org", agent_id="a")
     await audit.record_original_input(a.id, "raw-A", retention_days=1, now=now_fn())
 
     advance(11)
@@ -97,7 +97,7 @@ async def test_run_once_empty_when_nothing_overdue(session):
     repo = ContextRepository(session)
     audit = ContextAudit(session)
     lc = ContextLifecycle(repo, ttl_seconds=3600)
-    await lc.create(agent_id="a")
+    await lc.create(organization_id="test-org", agent_id="a")
 
     gc = ContextGarbageCollector(lc, audit)
     result = await gc.run_once()
@@ -230,7 +230,7 @@ async def test_gc_full_lifecycle_e2e(session):
     lc = ContextLifecycle(
         repo, ttl_seconds=10, completed_ttl_seconds=10, grace_seconds=0, now_fn=now_fn
     )
-    ctx = await lc.create(agent_id="a")
+    ctx = await lc.create(organization_id="test-org", agent_id="a")
     audit_row = await audit.record_original_input(
         ctx.id, "ancient PHI", retention_days=0, now=now_fn()
     )

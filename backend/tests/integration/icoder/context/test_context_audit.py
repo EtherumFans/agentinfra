@@ -173,6 +173,7 @@ async def test_audit_survives_context_deletion(session):
         updated_at=now,
         expires_at=now + timedelta(hours=24),
         agent_id="a",
+        organization_id="test-org",
         status=ContextStatus.ACTIVE,
     )
     await repo.create_context(ctx)

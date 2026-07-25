@@ -1,0 +1,98 @@
+{
+  "page_slug": "07_agentic_agents_create",
+  "url": "https://docs.corti.ai/agentic/agents/create-agent",
+  "page_title": "Create Agent - Corti API Documentation",
+  "captured_at": "2026-07-22T05:17:06Z",
+  "headings": ["H1: Create Agent", "H4: Authorizations", "H4: Headers", "H4: Query Parameters", "H4: Body", "H4: Response"],
+  "clean_room_contracts_extracted": {
+    "endpoint_PUBLIC": {
+      "method": "POST",
+      "path_pattern": "/agents",
+      "full_url_template": "https://api.{environment}.corti.app/agents",
+      "consumed_by": "POST /agents/{id}/v1/message:send (the A2A message endpoint)"
+    },
+    "authentication": {
+      "scheme": "Bearer token in Authorization header",
+      "tenant_header": "Tenant-Name (string, required) — multi-tenant routing",
+      "example_tenant_name": "base"
+    },
+    "query_parameters": {
+      "ephemeral": {
+        "type": "boolean",
+        "default": false,
+        "semantics": "if true, agent is NOT listed in agents_list, but CAN be fetched by ID; deleted periodically"
+      }
+    },
+    "request_body_schema_PUBLIC": {
+      "type": "object",
+      "required": ["name", "description"],
+      "fields": [
+        {"name": "name", "type": "string", "required": true},
+        {"name": "description", "type": "string", "required": true},
+        {"name": "agentType", "type": "enum<string>", "required": false, "enum_values_PUBLIC": ["expert", "orchestrator", "interviewing-expert"]},
+        {"name": "systemPrompt", "type": "string", "required": false, "note": "default system orchestrator exists when omitted"},
+        {"name": "experts", "type": "array<object>", "required": false},
+        {"name": "mcpServers", "type": "array<object>", "required": false, "note": "if omitted, agent cannot call any MCP servers"}
+      ]
+    },
+    "expert_payload_variant_NEW_EXPERT_inline_create": {
+      "fields": ["type=new", "name", "description", "systemPrompt", "mcpServers[]"]
+    },
+    "mcp_server_request_schema_PUBLIC": {
+      "fields": [
+        {"name": "name", "type": "string"},
+        {"name": "url", "type": "string"},
+        {"name": "description", "type": "string"},
+        {"name": "authorizationScope", "type": "string"},
+        {"name": "redirectUrl", "type": "string"},
+        {"name": "token", "type": "string", "write_only": true, "never_returned_in_response": true}
+      ]
+    },
+    "response_201_schema_PUBLIC": {
+      "type": "object",
+      "required": ["id", "name", "description", "systemPrompt"],
+      "fields": [
+        {"name": "id", "type": "string", "server_generated": true},
+        {"name": "name", "type": "string"},
+        {"name": "description", "type": "string"},
+        {"name": "systemPrompt", "type": "string"},
+        {"name": "experts", "type": "array<object>"},
+        {"name": "mcpServers", "type": "array<object>"}
+      ],
+      "expert_response_shape": {
+        "type": "expert",
+        "id": "string",
+        "name": "string",
+        "description": "string",
+        "systemPrompt": "string",
+        "mcpServers": [{"id": "...", "name": "...", "url": "...", "authorizationScope": "...", "redirectUrl": "..."}]
+      },
+      "mcp_server_response_shape_NO_TOKEN": {
+        "id": "string",
+        "name": "string",
+        "url": "string",
+        "authorizationScope": "string",
+        "redirectUrl": "string"
+      },
+      "security_note": "Token is write-only. iCoDer MUST follow the same pattern — token accepted on write, never returned on read. Maps to Charter §6.4 'no plaintext secret in registry'."
+    },
+    "error_responses": [
+      {"code": "400", "meaning": "bad request"},
+      {"code": "401", "meaning": "auth failed"},
+      {"code": "422", "meaning": "validation failed (includes field-level errors)"}
+    ],
+    "error_envelope_PUBLIC": {
+      "fields": ["code", "description", "howToFix", "details", "cause"],
+      "validation_error_extended": {
+        "extra_fields": ["detail"],
+        "detail_item_shape": {"msg": "...", "type": "...", "reason": "...", "howToFix": "...", "errors": [{"location": "...", "reason": "..."}]}
+      }
+    },
+    "agent_type_enum_3_values_PUBLIC": ["expert", "orchestrator", "interviewing-expert"],
+    "agent_type_implication": "Corti publicly enumerates exactly 3 agent types. iCoDer Preset Agents (Charter §17) MUST map to one of these 3 types or be marked ICODER_CLEAN_ROOM_PRESET with a non-Corti type (with explicit justification).",
+    "sibling_endpoints_visible": ["List Agents", "Get Agent by ID"],
+    "message_send_endpoint": "POST /agents/{id}/v1/message:send"
+  },
+  "access_control": {"page_public": true, "login_required": false},
+  "status": "PASS"
+}

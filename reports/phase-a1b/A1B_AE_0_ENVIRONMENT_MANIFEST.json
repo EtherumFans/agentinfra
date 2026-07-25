@@ -1,0 +1,142 @@
+{
+  "charter": "A1B-AE.0",
+  "captured_at": "2026-07-22T00:00:00Z",
+  "git": {
+    "verified_head_sha": "3d50b116597c992ac92de189fad70def11349dcb",
+    "verified_head_short": "3d50b11",
+    "verified_head_subject": "audit/phase-a1a: Gate 4R-I.11 — final verdict + closure notice",
+    "branch": "phase-a1b/agent-expert-clean-room",
+    "worktree_path": "E:/Corti4C-agent-expert",
+    "worktree_git_version": "2.50.1.windows.1",
+    "remote_tracking": "none (local-only branch)",
+    "tags_preexisting": [
+      "audit/phase-a0.1r-baseline",
+      "audit/phase-a1a-gate4-pre4r-b3ea064",
+      "audit/phase-a1a-gate4r-closure-24967da"
+    ]
+  },
+  "host": {
+    "os": "Windows 10 Home China 10.0.19045",
+    "shell": "bash (Git for Windows)",
+    "python": "3.12.3",
+    "node": "v22.20.0",
+    "package_manager_python": "pip",
+    "package_manager_node": "npm"
+  },
+  "baseline_counts": {
+    "pack_dirs_official_agents": 32,
+    "pack_dirs_dual_named": {
+      "code_validation_AND_code-validation": true,
+      "compliance_guardrail_AND_compliance-guardrail": true,
+      "note_completeness_AND_note-completeness": true,
+      "implication": "version-shadowing / clone-404 / Agent-Card mismatch risk (A1B-AE.9 debt)"
+    },
+    "api_route_files": 41,
+    "internal_expert_files": 12,
+    "service_files": 67,
+    "model_files": 29,
+    "frontend_ts_tsx": 70,
+    "total_source_config_files_pruned": 2422,
+    "notes": [
+      "Counts captured by `find`/`ls | wc -l` at worktree creation.",
+      "Dual-named Pack dirs will be reconciled in A1B-AE.2 catalog and A1B-AE.9 debt liquidation.",
+      "api_route_files count includes __init__.py."
+    ]
+  },
+  "pack_classification_baseline": {
+    "runnable_packs_with_python": [
+      "code_validation",
+      "compliance_guardrail",
+      "drg-analyzer",
+      "medical_coding",
+      "note_completeness"
+    ],
+    "metadata_only_packs": [
+      "cdi-review",
+      "clinical-documentation-improvement-agent",
+      "code_reconciler",
+      "code-validation",
+      "compliance-guardrail",
+      "denial-appeals",
+      "diagnosis-extractor",
+      "discharge_edu",
+      "discharge_summary_structuring",
+      "documentation-gap",
+      "evidence_extractor",
+      "evidence-ranker",
+      "icd10_navigator",
+      "icu_summary",
+      "index_navigator",
+      "med_reconciliation",
+      "medcoder-coding-review",
+      "note-completeness",
+      "nursing_handoff",
+      "principal_diagnosis_review",
+      "prior_auth",
+      "procedure-extractor",
+      "referral_gen",
+      "rule_explainer",
+      "surgical_registry",
+      "tabular_validator",
+      "triage"
+    ],
+    "classification_method": "presence of __init__.py or *.py sibling to agent_pack.json",
+    "caveat": "Method is a heuristic baseline only. Canonical classification will be computed from agent_catalog.json in A1B-AE.2."
+  },
+  "inherited_state_5_tuple": {
+    "GATE4_8_NO_NEW_REGRESSION_CLAIM": "CONTRADICTED",
+    "GATE4_9_FINAL_PASS": "SUPERSEDED",
+    "GATE4_ACCEPTANCE_STATUS": "REOPENED",
+    "CORTI_PARITY_VERDICT": "NOT_DEMONSTRATED",
+    "PRODUCTION_READINESS": "NOT_VERIFIED",
+    "mutated_by_a1b_ae": false,
+    "full_detail_file": "A1B_AE_0_BASELINE_STATE_5_TUPLE.json"
+  },
+  "execution_mode": {
+    "CLAUDE_CODE_EXECUTION_MODE": "HUMAN_OPERATION_SIMULATION_REQUIRED",
+    "protocol_file": "A1B_AE_0_HUMAN_OPERATION_PROTOCOL.md",
+    "primary_evidence": "headed-browser observation + sanitized HAR + visible-text snapshots + SHA-256",
+    "forbidden_primary_evidence": [
+      "headless crawler",
+      "static source-code inspection",
+      "direct DB writes to fake user operations",
+      "batch curl loop",
+      "marketing-copy inference"
+    ]
+  },
+  "clean_room": {
+    "allowed_sources": [
+      "Corti public docs (https://docs.corti.ai/)",
+      "Corti public examples",
+      "Corti public SDK type definitions",
+      "A2A public spec (v0.3)",
+      "MCP public spec",
+      "iCoDer current self code",
+      "public research or government APIs (PubMed E-utilities, ClinicalTrials.gov)",
+      "clean-room-authored prompts",
+      "synthetic test data"
+    ],
+    "forbidden_sources": [
+      "Corti private source code",
+      "Corti internal prompts",
+      "Corti non-public APIs",
+      "Corti login-gated content not authorised for this engagement",
+      "packet captures of real Corti customer traffic",
+      "Corti UI / logos / trademarks / product copy",
+      "real patient data",
+      "DrugBank / POSOS scraped content without licence"
+    ],
+    "prompt_declaration_required": {
+      "clean_room_authored": true,
+      "author": "<name>",
+      "date": "2026-07-22",
+      "design_source": [],
+      "contains_corti_private_material": false,
+      "version": "0.1.0",
+      "sha256": "<at freeze>",
+      "allowed_data_types": [],
+      "forbidden_behaviours": [],
+      "rollback_version": null
+    }
+  }
+}

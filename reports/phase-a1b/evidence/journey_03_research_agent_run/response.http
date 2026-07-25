@@ -1,0 +1,18 @@
+HTTP/1.1 200
+Content-Type: application/json
+
+{
+  "delegation": {
+    "input_text": "患者男性,78岁,MRI 显示 T12 椎体压缩性骨折。",
+    "delegates_to": "icoder/medical-coding-agent@2.0.0",
+    "runtime_mode": "corti_like_fast",
+    "output_contract": "icoder/MedicalCodingAgentOutputV2/v1",
+    "human_review_required": true,
+    "phi_redacted": true,
+    "production_writeback_blocked": true,
+    "notes": "Delegates to icoder/medical-coding-agent@2.0.0 via the Agent Runner. Corti §3.2 coding-expert contract surface matches iCoDer Pack output_contract icoder/MedicalCodingAgentOutputV2/v1."
+  },
+  "pack_output": {},
+  "extracted_from_pack": false,
+  "notes": "Wrapper only — Pack execution is the caller's responsibility (invoke AgentRunner with icoder/medical-coding-agent@2.0.0)."
+}

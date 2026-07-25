@@ -1,0 +1,72 @@
+{
+  "page_slug": "08_agentic_experts_deep",
+  "url": "https://docs.corti.ai/agentic/experts",
+  "page_title": "Experts - Corti API Documentation",
+  "captured_at": "2026-07-22T07:12:00Z",
+  "purpose": "Re-capture of /agentic/experts with section-level deep extraction; A1B-AE.1 page 03 captured the 9-key table but missed the Expert Configuration JSON block + Multi-Agent/Direct-Expert coming-soon confirmation.",
+  "capture_method": "Playwright MCP browser_evaluate with structured DOM walker (headings + lists + code blocks + tables). No screenshot this round; text-only suffices for contract reconstruction.",
+  "access_control": {"page_public": true, "login_required": false},
+  "clean_room_attested": true,
+  "sections_captured": [
+    {"heading": "Experts (H1)", "summary": "Top-level page lede."},
+    {"heading": "Expert Registry (H2)", "summary": "Categorical list of Expert categories: Clinical reference lookups / Medical coding / Document generation / Data extraction / And more."},
+    {"heading": "Common registry experts (H3)", "summary": "9-key table (memory / coding / medical-calculator / drugbank / posos / pubmed / clinical-trials / web-search / interviewing). Identical to A1B-AE.1 §3.2."},
+    {"heading": "Bring Your Own Expert (H2)", "summary": "4 listed properties: (1) integrate your own tools/data; (2) create domain-specific experts; (3) maintain control via custom system prompts; (4) leverage Corti orchestration + memory."},
+    {"heading": "Expert Configuration (H3)", "summary": "CRITICAL — full Expert JSON schema example; see expert_configuration_schema_PUBLIC below."},
+    {"heading": "MCP Server Requirements (H3)", "summary": "3 requirements: implement MCP spec; expose tools/list + tools/call; handle authentication."},
+    {"heading": "Multi-Agent Composition (H2)", "summary": "Coming soon: direct A2A agent-to-agent + complex workflow composition + fine-grained control."},
+    {"heading": "Direct Expert Calls (H2)", "summary": "Coming soon: direct API access to individual experts + custom workflow integration + composition patterns beyond agent orchestration."}
+  ],
+  "expert_configuration_schema_PUBLIC": {
+    "note": "This is the canonical Expert JSON shape — distinct from the Agent-create inline Expert payload captured in A1B-AE.1 §3.3. The Agent-create payload uses type=new + nested fields. This Expert-config payload is the post-create / registry-listed shape with mcpServers[] embedded.",
+    "example_VERBATIM_from_page": {
+      "type": "expert",
+      "id": "ecg_interpreter",
+      "name": "ECG Interpreter",
+      "description": "Interprets 12 lead ECGs.",
+      "systemPrompt": "You are an expert ECG interpreter.",
+      "mcpServers": [
+        {
+          "id": "srv1",
+          "name": "ECG API Svc",
+          "transportType": "streamable_http",
+          "authorizationType": "none",
+          "url": "https://api.ecg.com/x"
+        }
+      ]
+    },
+    "field_definitions": [
+      {"name": "type", "type": "literal", "value": "expert", "required": true},
+      {"name": "id", "type": "string", "required": true, "server_generated": false, "note": "client-provided snake_case identifier (e.g. ecg_interpreter); distinct from Agent-create server-generated ID"},
+      {"name": "name", "type": "string", "required": true},
+      {"name": "description", "type": "string", "required": true},
+      {"name": "systemPrompt", "type": "string", "required": true, "note": "controls LLM reasoning behavior"},
+      {"name": "mcpServers", "type": "array<McpServer>", "required": true, "note": "non-empty; at least 1 MCP server backing the Expert"}
+    ],
+    "mcp_server_schema_PUBLIC_in_expert_context": {
+      "fields": [
+        {"name": "id", "type": "string", "note": "client-provided per-Expert MCP ID (e.g. srv1)"},
+        {"name": "name", "type": "string"},
+        {"name": "transportType", "type": "enum<string>", "observed_values": ["streamable_http"], "note": "full enum likely includes sse + stdio per MCP spec; not confirmed on this page"},
+        {"name": "authorizationType", "type": "enum<string>", "observed_values": ["none"], "full_enum_PUBLIC_per_mcp_authentication_page": ["none", "inherit", "bearer", "oauth2.0"]},
+        {"name": "url", "type": "string"}
+      ],
+      "discrepancy_with_agent_create_MCP_schema": "A1B-AE.1 §4.1 captured a DIFFERENT MCP schema from /agentic/agents/create-agent with fields {name, url, description, authorizationScope, redirectUrl, token}. The two schemas likely correspond to different lifecycle phases: create-agent accepts OAuth2-style config (authorizationScope + redirectUrl + token), while Expert-config accepts transport-level config (transportType + authorizationType + url). iCoDer A1B-AE.3+ must support BOTH shapes depending on context."
+    }
+  },
+  "bring_your_own_expert_privileges_PUBLIC": [
+    "Integrate your own tools and data sources",
+    "Create domain-specific experts tailored to your workflows",
+    "Maintain control over the expert's behavior through custom system prompts",
+    "Leverage Corti's orchestration and memory management while using your own tools"
+  ],
+  "multi_agent_composition_status_PUBLIC": "COMING_SOON (not yet shipped). Listed capabilities: (1) direct agent-to-agent communication using A2A; (2) composition of complex workflows across multiple agents; (3) fine-grained control over agent interactions and data flow.",
+  "direct_expert_calls_status_PUBLIC": "COMING_SOON (not yet shipped). Listed capabilities: (1) direct API access to individual experts; (2) integration of experts into custom workflows; (3) more flexible composition patterns beyond agent-based orchestration.",
+  "implications_for_icoder_a1b_ae_3": [
+    "Expert model MUST include: id (canonical snake_case), name, description, system_prompt, mcp_servers[] (non-empty after A1B-AE.7).",
+    "Expert model SHOULD include: transport_type, authorization_type per MCP server.",
+    "Expert model MUST distinguish: client-provided 'id' vs server-generated 'id' (Corti uses client-provided for Experts, server-generated for Agents — A1B-AE.1 §2.1).",
+    "iCoDer A1B-AE.3 may ship Experts without mcp_servers[] populated (deferred to A1B-AE.7); but the model field MUST exist."
+  ],
+  "status": "PASS"
+}

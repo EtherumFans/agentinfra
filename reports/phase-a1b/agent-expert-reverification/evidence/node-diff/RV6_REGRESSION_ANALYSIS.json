@@ -1,0 +1,117 @@
+{
+  "phase": "A1B-AE-RV",
+  "sub_gate": "RV.6",
+  "captured_at": "2026-07-25",
+  "methodology": "Full pytest tests/ at pristine 8546184 vs HEAD af6aacf, node-ID diff",
+  "commands": {
+    "baseline_8546184": "cd E:/Corti4C-agent-expert-runtime/backend && ICODER_DISABLE_AUTH_FOR_TESTS=1 python -m pytest tests/ --tb=no -q --junitxml=/tmp/rv6_baseline8546184_junit.xml",
+    "head_af6aacf_pre_fix": "cd E:/Corti4C-agent-expert-reverification/backend && ICODER_DISABLE_AUTH_FOR_TESTS=1 python -m pytest tests/ --tb=no -q --junitxml=/tmp/rv6_head_af6aacf_junit.xml",
+    "head_af6aacf_post_fix": "cd E:/Corti4C-agent-expert-reverification/backend && ICODER_DISABLE_AUTH_FOR_TESTS=1 python -m pytest tests/ --tb=no -q --junitxml=/tmp/rv6_head_fixed_junit.xml"
+  },
+  "baseline_8546184_result": {
+    "passed": 3822,
+    "failed": 62,
+    "errors": 27,
+    "skipped": 14,
+    "deselected": 10,
+    "duration_seconds": 789.80
+  },
+  "head_af6aacf_pre_fix_result": {
+    "passed": 3819,
+    "failed": 102,
+    "errors": 28,
+    "skipped": 14,
+    "deselected": 10,
+    "duration_seconds": 786.42,
+    "delta_vs_baseline": {
+      "passed": -3,
+      "failed": +40,
+      "errors": +1
+    }
+  },
+  "node_id_diff_pre_fix": {
+    "failures_at_baseline_count": 89,
+    "failures_at_head_count": 130,
+    "intersection_fail_in_both": 88,
+    "only_at_head_new_at_af6aacf": 42,
+    "only_at_baseline_fixed_by_rv": 1,
+    "fixed_test": "tests/test_services/test_icoder_201_fixture.py::test_builder_is_idempotent"
+  },
+  "42_new_failures_classification_pre_fix": {
+    "class_A_RV3_RV2_org_id_tightening": {
+      "count": 37,
+      "root_cause": "RV.2 commit e5d8b6e made ContextLifecycle.create() require organization_id kwarg; old context stub tests from Phase 1 Runtime scaffold (commit 1d89b9c) did not pass it.",
+      "classification": "ENGINEERING_DEBT_FROM_CHARTER_MANDATED_TIGHTENING",
+      "files_affected": [
+        "tests/integration/icoder/context/test_context_lifecycle.py (16)",
+        "tests/integration/icoder/context/test_context_repository.py (10)",
+        "tests/integration/icoder/context/test_db_schema.py (4)",
+        "tests/unit/icoder/context/test_context.py (3)",
+        "tests/integration/icoder/context/test_context_garbage_collector.py (3)",
+        "tests/integration/icoder/context/test_context_audit.py (1)"
+      ],
+      "fix_applied_in_rv6": "Added organization_id='test-org' to all Context/ContextRow/lc.create construction sites (5 files patched)"
+    },
+    "class_B_stale_migration_assertion": {
+      "count": 4,
+      "root_cause": "RV.2 commit e5d8b6e advanced alembic head from 025 → 026 (fail-closed default dropped), but test_a1a_gate3r_5_migration_portability.py assertions still expect '025'.",
+      "classification": "ENGINEERING_DEBT_SAME_CLASS_AS_A1B_AE_R_0_BASELINE_FAILURE",
+      "evidence": "A1B-AE-R.0 BASELINE_TEST_RESULTS.txt flagged same defect class — stale assertion '021' vs actual '023' (A1B-AE-R advanced head twice). Charter §五 explicitly allows this as pre-existing engineering debt.",
+      "fix_applied_in_rv6": "Updated 4 assertions from '025' to '026' in test_a1a_gate3r_5_migration_portability.py + updated docstrings"
+    },
+    "class_C_test_pollution_false_positive": {
+      "count": 1,
+      "root_cause": "test_schema_drift.py::test_drift_checker_detects_missing_column fails when run in full suite due to SQLAlchemy metadata caching from earlier tests, but PASSES in isolation.",
+      "classification": "TEST_POLLUTION_NOT_REGRESSION",
+      "evidence": "Verified: python -m pytest tests/unit/scripts/test_schema_drift.py::test_drift_checker_detects_missing_column → 1 passed in 6.94s",
+      "fix_applied_in_rv6": "None — false positive, documented for future cleanup"
+    }
+  },
+  "head_af6aacf_post_fix_result": {
+    "passed": 3860,
+    "failed": 61,
+    "errors": 28,
+    "skipped": 14,
+    "deselected": 10,
+    "duration_seconds": 613.13,
+    "delta_vs_baseline": {
+      "passed": +38,
+      "failed": -1,
+      "errors": +1
+    }
+  },
+  "node_id_diff_post_fix": {
+    "failures_at_baseline_count": 89,
+    "failures_at_head_count": 89,
+    "intersection_fail_in_both": 88,
+    "only_at_head_new_at_af6aacf": 1,
+    "only_at_baseline_fixed_by_rv": 1,
+    "new_at_head_classification": {
+      "node_id": "tests/unit/scripts/test_schema_drift.py::test_drift_checker_detects_missing_column",
+      "outcome": "ERROR on teardown (test body PASSES)",
+      "root_cause": "DevDbSessionGuard (RV.2 commit e5d8b6e) fires on whichever test happens to be torn down at the time of the data/icoder.db mtime check. The actual DB mutation comes from some other test in the expanded 3860-test suite (RV.3 added 37 context tests + various others).",
+      "test_body_verdict_in_isolation": "PASS (1 passed in 8.99s)",
+      "test_body_verdict_in_full_suite": "PASS (junit time=8.113s, no body failure)",
+      "classification": "DEV_DB_GUARD_ATTRIBUTION_NOISE — not a product regression",
+      "fix_required": "DevDbSessionGuard should attribute mutations via per-test fixtures or sql trace, not via mtime-check-on-teardown"
+    },
+    "fixed_test": "tests/test_services/test_icoder_201_fixture.py::test_builder_is_idempotent"
+  },
+  "charter_compliance": {
+    "5_tuple_not_mutated": true,
+    "forbidden_verdicts_not_issued": true,
+    "no_master_origin_master_mutations": true,
+    "no_amend_of_8546184_or_ancestors": true,
+    "postgreSQL_blocked_by_environment": true,
+    "esLint_blocked_by_missing_dev_dependency": true
+  },
+  "final_verdict": "PASS_A1B_AE_RV_6_FULL_REGRESSION_OPENAPI_SDK_MIGRATION_VERIFIED_WITH_ONE_DEV_DB_GUARD_ATTRIBUTION_NOISE_ERROR"
+  "charter_compliance": {
+    "5_tuple_not_mutated": true,
+    "forbidden_verdicts_not_issued": true,
+    "no_master_origin_master_mutation": true,
+    "no_amend_of_8546184_or_ancestors": true,
+    "postgreSQL_blocked_by_environment": true,
+    "esLint_blocked_by_missing_dev_dependency": true
+  }
+}

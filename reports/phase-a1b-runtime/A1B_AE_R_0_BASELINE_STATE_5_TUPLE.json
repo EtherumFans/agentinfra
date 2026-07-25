@@ -1,0 +1,86 @@
+{
+  "charter": "A1B-AE-R.0",
+  "charter_version": "1.0",
+  "captured_at": "2026-07-22T12:55:56Z",
+  "worktree_path": "E:/Corti4C-agent-expert-runtime",
+  "branch": "phase-a1b/agent-expert-runtime-verification",
+  "verified_head_sha_before_phase": "85a5c9abc40fd85648e45343de6d3e1924cdd5a2",
+  "verified_head_short": "85a5c9a",
+  "verified_head_subject": "audit/phase-a1b: A1B-AE.11 — phase terminal reconciliation (PARTIAL_A1B_AE_AGENT_EXPERT_CAPABILITY_AND_TECH_DEBT_RECONCILIATION_FILED)",
+  "inherited_from": "phase-a1b/agent-expert-clean-room @ 85a5c9a (A1B-AE phase terminal)",
+  "predecessor_phase_verdict": "PARTIAL_A1B_AE_AGENT_EXPERT_CAPABILITY_AND_TECH_DEBT_RECONCILIATION_FILED",
+  "state_5_tuple": {
+    "GATE4_8_NO_NEW_REGRESSION_CLAIM": {
+      "value": "CONTRADICTED",
+      "set_by": "phase-a1a/gate4r-regression-reconciliation Gate 4R.0 (a2613b7)",
+      "carried_through": "Gate 4R-I.0 (777d96d) → Gate 4R-I.11 (3d50b11) → A1B-AE.11 (85a5c9a)",
+      "mutated_by_a1b_ae_r": false,
+      "reason": "Charter §3 out-of-scope: Gate 4 regression state is A1A-owned. R.0 baseline_test_results.txt records 1 pre-existing failure (stale Migration head assertion in Gate 3R.8) carried forward unchanged."
+    },
+    "GATE4_9_FINAL_PASS": {
+      "value": "SUPERSEDED",
+      "set_by": "phase-a1a/gate4r-regression-reconciliation Gate 4R.0 (a2613b7)",
+      "carried_through": "Gate 4R-I.0 (777d96d) → Gate 4R-I.11 (3d50b11) → A1B-AE.11 (85a5c9a)",
+      "mutated_by_a1b_ae_r": false,
+      "reason": "Charter §3 out-of-scope."
+    },
+    "GATE4_ACCEPTANCE_STATUS": {
+      "value": "REOPENED",
+      "set_by": "Gate 4R-I.0 integration charter (777d96d)",
+      "carried_through": "Gate 4R-I.11 (3d50b11) → A1B-AE.11 (85a5c9a)",
+      "mutated_by_a1b_ae_r": false,
+      "reason": "Charter §3 out-of-scope. A1B-AE-R closes only its own sub-domain."
+    },
+    "CORTI_PARITY_VERDICT": {
+      "value": "NOT_DEMONSTRATED",
+      "set_by": "Gate 4R-I.7 clean-room parity matrix (1a9cbe7) — weighted 52.6%",
+      "carried_through": "Gate 4R-I.11 (3d50b11) → A1B-AE.11 (85a5c9a — partial capability surface only)",
+      "mutated_by_a1b_ae_r": false,
+      "reason": "Charter §11: only PASS_A1B_AE_R_..._VERIFIED or PARTIAL_A1B_AE_R_..._FILED verdicts permitted. Corti-parity verdict remains A1A-owned; A1B-AE-R may advance specific capability cells but does not re-issue the global parity verdict."
+    },
+    "PRODUCTION_READINESS": {
+      "value": "NOT_VERIFIED",
+      "set_by": "Gate 4R-I.11 final (3d50b11)",
+      "carried_through": "Gate 4R-I.11 (3d50b11) → A1B-AE.11 (85a5c9a)",
+      "mutated_by_a1b_ae_r": false,
+      "reason": "Charter §3 out-of-scope. Hospital deployment forbidden."
+    }
+  },
+  "forbidden_verdicts_in_a1b_ae_r": [
+    "PRODUCTION_READY",
+    "FULLY_VERIFIED",
+    "PHI_BOUNDED",
+    "CORTI_PARITY_VERIFIED",
+    "PASS_A1A_GATE4_FINAL",
+    "READY_FOR_HOSPITAL_DEPLOYMENT",
+    "CLINICAL_GRADE_VERIFIED",
+    "CORTI_AGENTIC_FRAMEWORK_FULLY_REPLICATED"
+  ],
+  "only_permitted_final_verdicts": [
+    "PASS_A1B_AE_R_AGENT_RUNTIME_PRESET_MATERIALIZATION_PUBLIC_EXPERT_MCP_AND_HUMAN_WORKFLOWS_VERIFIED",
+    "PARTIAL_A1B_AE_R_RUNTIME_AND_HUMAN_WORKFLOW_RECONCILIATION_FILED"
+  ],
+  "audit_anchors_preserved": [
+    {"type": "annotated_tag", "name": "audit/phase-a0.1r-baseline", "sha": "3cd1bec", "on_commit": "64590fa"},
+    {"type": "annotated_tag", "name": "audit/phase-a1a-gate4-pre4r-b3ea064", "sha": "fa0d461", "on_commit": "b3ea064"},
+    {"type": "annotated_tag", "name": "audit/phase-a1a-gate4r-closure-24967da", "sha": "43c2395", "on_commit": "24967da"}
+  ],
+  "predecessor_phase_terminal_sha": "85a5c9abc40fd85648e45343de6d3e1924cdd5a2",
+  "baseline_test_inventory": {
+    "combined_suite_pass_count": 258,
+    "combined_suite_fail_count": 1,
+    "combined_suite_skip_count": 2,
+    "combined_suite_wall_clock_seconds": 76.21,
+    "pre_existing_failures": [
+      {
+        "test_id": "tests/test_api/test_a1a_gate3r_8_regression_security_negative.py::test_L11_migration_head_is_020_on_fresh_db",
+        "expected": "alembic_version == 021",
+        "actual": "alembic_version == 023",
+        "root_cause": "A1B-AE.3 (f5839ca) advanced head 021→022; A1B-AE.4 (154484b) advanced 022→023; Gate 3R.8 assertion string not advanced in lockstep.",
+        "classification": "stale-test-assertion (pre-existing on A1B-AE terminal; not introduced by A1B-AE-R)",
+        "treatment": "Recorded as baseline failure; R.6 final regression diff is against this baseline (NEW_FAIL=0 required, the 1 pre-existing failure stays until A1A-owned Gate 3R.8 cleanup)."
+      }
+    ],
+    "evidence_file": "A1B_AE_R_0_BASELINE_TEST_RESULTS.txt"
+  }
+}

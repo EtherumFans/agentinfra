@@ -1,0 +1,44 @@
+# Phase A1B-AE-R pre_change SHA-256 sums (charter A1B-AE-R.0 baseline)
+# captured_at: 2026-07-22T12:55:56Z
+# verified_head: 85a5c9abc40fd85648e45343de6d3e1924cdd5a2 (A1B-AE.11 phase terminal)
+# branch: phase-a1b/agent-expert-runtime-verification
+# worktree: E:/Corti4C-agent-expert-runtime
+#
+# These sums establish the immutability baseline for key Agent/Expert
+# files likely to be touched by A1B-AE-R.1..R.6. Drift will be
+# reported in A1B-AE-R.6 final reconciliation.
+#
+# Files NOT in this list are not protected by charter baseline (they
+# may be created/modified/deleted by A1B-AE-R).
+#
+# Legend:
+#   R.1 = Agent Runtime closure   (Task stub, ThreadAuth, Context scrub)
+#   R.2 = Preset materialization  (Pack wiring, alias clone-404 fix)
+#   R.3 = Public Expert + MCP     (PubMed, ClinicalTrials, SSRF)
+#   R.4 = Local Expert completion (Calculator, Memory, Interviewing)
+#   R.5 = Frontend + journeys     (ExpertsPage, NewAgentPage extension)
+
+# ── R.1 — Agent Runtime closure ─────────────────────────────────────────
+6fdf4c9e7dc4c7e4a7ae808c2ac0188217667a82235d7da5ac97a1d69f3b187c  backend/app/icoder/agent_runtime/a2a/routes_task_stub.py
+65b1879ef2457060347f63ddafa396347abe3882ad6d7e103d8deab57e8415c1  backend/app/icoder/agent_runtime/a2a/thread_auth.py
+72f25ea2b12ad2d11435b09b8c97551385910adf593242773a8970f9ee748abb  backend/app/icoder/agent_runtime/context/context_lifecycle.py
+a1d4556454f668f35cad40d0b1c6f808c1fdb3fed566943c0587347f9abb2219  backend/app/icoder/agent_runtime/context/context_garbage_collector.py
+
+# ── R.2 — Preset Agent materialization ──────────────────────────────────
+9b7abdc4c868a10a2fe9e42c9f63c6dce86f4c8e3bd93dc79349d4f81e1d1190  backend/app/services/preset_agents.py
+4b5f3d00cb2133415b6c0974992aa0363a462e16de5cfba4cf85b441b5713d6a  backend/agent_catalog/icoder_preset_agents.json
+02596fcdd63245c9f5639ea023daadd8306af41587bf35b449a9052520e88632  backend/app/services/alias_resolver.py
+
+# ── R.3 — Public Expert + MCP ───────────────────────────────────────────
+fd6199d5127bf32ba84de56cced6496e04cd1efff427de6b3733eef78def383e  backend/app/services/mcp_wrapper.py
+418c2e319e964171fbfc4d92a47011668079b66612179aec8e2876651b8dcbaf  backend/app/services/expert_runner.py
+
+# ── R.4 — Local Expert completion ───────────────────────────────────────
+ec11230688715ed3c6c8f99f9edce8372999895a167711c7ebe69864ac30dd60  backend/app/services/memory_expert.py
+0cf4db24eca964ddd07bbf591b64e36c4bb352f031d29687bfe21ee667c52eea  backend/app/icoder/agent_runtime/experts/coding_expert.py
+
+# ── R.0 evidence correction target (Journey 7) ──────────────────────────
+26e82582170122a77dc7d265f0fa495f25b2e2b56c54d26ad23605896b804b9e  reports/phase-a1b/evidence/journey_07_clone_preset/inspection.md
+c03dfd1789138fc7a7d985ff331b2eb9d60d9048d6012188d1465eba6111e001  reports/phase-a1b/evidence/journey_07_clone_preset/response.http
+557f16e8da5dfe88f6000f0b63dfaff053b581bf2b89650ba9a4888537dcf5ed  reports/phase-a1b/evidence/journey_07_clone_preset/request.http
+24c76a844520730b8d140fe715b2f4362aef6fd5e09609d5b49980707b421445  reports/phase-a1b/evidence/journey_manifest.json

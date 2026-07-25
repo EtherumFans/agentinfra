@@ -1,0 +1,161 @@
+{
+  "observation_session_id": "2026-07-22T0739-UTC-tab1-step02",
+  "observation_url": "https://console.corti.app/project/4c4193c7-c6bb-4a71-a275-0ed6c53172d0/ai-studio/agents/pre-built-agents",
+  "captured_at": "2026-07-22T07:41:00Z",
+  "provenance": "REVERSE_ENGINEERED",
+  "reverse_engineering_method": ["network_trace_analysis", "request_url_pattern_inference"],
+  "clean_room_authored": false,
+  "contains_corti_private_material": false,
+  "contains_corti_source_code": false,
+  "contains_corti_trademark": false,
+  "data_classification": ["developer_account_owned"],
+  "forbidden_behaviour_invoked": "none",
+  "sanitisation_note": "User IDs, email addresses, project UUIDs, and bearer tokens observed in the network trace have been REDACTED in this evidence file. Original full HAR is NOT persisted to the repo. Only URL patterns + method + status code are captured.",
+  "backend_architecture_inference": {
+    "primary": "Supabase (PostgREST REST surface + GoTrue auth + Edge Functions + Storage). Confirmed by URL patterns /auth/v1/* (GoTrue), /rest/v1/* (PostgREST), /functions/v1/* (Edge Functions), /storage/v1/* (not observed this session but pattern is Supabase-standard).",
+    "implications": [
+      "Corti Console SPA makes direct browser-to-Supabase calls with an apikey header (Supabase anon or user JWT).",
+      "Row-Level Security (RLS) on Postgres tables enforces tenant isolation, NOT application-layer middleware.",
+      "PostgREST query syntax is exposed in URL (e.g. select=*, filter=eq., order=.desc, offset=, limit=).",
+      "Edge Functions (/functions/v1/...) handle business logic that cannot live in pure REST (RPC, external aggregations, token minting)."
+    ]
+  },
+  "api_endpoints_observed": [
+    {
+      "method": "GET",
+      "path_pattern": "/auth/v1/user",
+      "purpose": "GoTrue current-user lookup",
+      "auth": "user JWT bearer",
+      "icoder_analogue": "GET /api/v1/auth/me"
+    },
+    {
+      "method": "GET",
+      "path_pattern": "/rest/v1/projects?id=eq.{project_id}",
+      "purpose": "Project (iCoDer 'organization') lookup; select projection includes id, deleted",
+      "auth": "user JWT + apikey",
+      "icoder_analogue": "GET /api/v1/organizations/{id}"
+    },
+    {
+      "method": "GET",
+      "path_pattern": "/rest/v1/project_memberships?project_id=eq.{id}&user_id=eq.{user_id}",
+      "purpose": "RBAC membership check (user's role within project)",
+      "icoder_analogue": "GET /api/v1/organizations/{id}/members/{user_id}"
+    },
+    {
+      "method": "POST",
+      "path_pattern": "/rest/v1/rpc/is_limited_admin_user",
+      "purpose": "PostgREST RPC: admin-tier check (limited scope)",
+      "icoder_analogue": "permission helper (server-side function)"
+    },
+    {
+      "method": "POST",
+      "path_pattern": "/rest/v1/rpc/is_admin_user",
+      "purpose": "PostgREST RPC: admin-tier check (full scope)",
+      "icoder_analogue": "permission helper (server-side function)"
+    },
+    {
+      "method": "GET",
+      "path_pattern": "/rest/v1/profiles?id=eq.{user_id}",
+      "purpose": "User display_name lookup",
+      "icoder_analogue": "GET /api/v1/users/{id}"
+    },
+    {
+      "method": "GET",
+      "path_pattern": "/rest/v1/projects?select=*,project_memberships(role)&project_memberships.user_id=eq.{user_id}",
+      "purpose": "Project + role compound select (PostgREST resource embedding)",
+      "note": "PostgREST allows nested resource embedding via table relation. iCoDer uses SQLAlchemy with manual joins — different pattern but equivalent capability."
+    },
+    {
+      "method": "POST",
+      "path_pattern": "/functions/v1/intercom-hmac",
+      "purpose": "Edge Function: generate HMAC for Intercom widget identity verification",
+      "icoder_analogue": "not in scope (Intercom integration is Corti-specific)"
+    },
+    {
+      "method": "GET",
+      "path_pattern": "/functions/v1/projects/{project_id}/billing/balance",
+      "purpose": "Project-scoped billing balance fetch (Edge Function aggregates from ledger)",
+      "icoder_analogue": "GET /api/v1/billing/summary"
+    },
+    {
+      "method": "GET",
+      "path_pattern": "/functions/v1/projects/{project_id}/onboarding",
+      "purpose": "Project onboarding state (checklist / tour progress)",
+      "icoder_analogue": "not yet shipped (deferred onboarding)"
+    },
+    {
+      "method": "GET",
+      "path_pattern": "/rest/v1/team_invitations?user_id=eq.{user_id}&accepted_at=is.null",
+      "purpose": "Pending team invitations for current user",
+      "icoder_analogue": "GET /api/v1/team/invitations"
+    },
+    {
+      "method": "GET",
+      "path_pattern": "/rest/v1/api_clients?project_id=eq.{id}&auth_method=eq.client_credentials&region=neq.us",
+      "purpose": "API clients (machine credentials) for project; CRITICAL region filter `region=neq.us` confirms multi-region routing",
+      "icoder_analogue": "GET /api/clients?org_id={id}&region={region}",
+      "region_routing_observation": "Corti stores a `region` column on api_clients. The Console explicitly filters `region=neq.us` to exclude US-region clients from non-US views. iCoDer must implement equivalent region routing per Charter §6 cloud-deployment tier."
+    },
+    {
+      "method": "POST",
+      "path_pattern": "/functions/v1/projects/{project_id}/api_clients/{client_id}/access_token",
+      "purpose": "Mint a transient OAuth2 client_credentials access_token for a given API client",
+      "icoder_analogue": "POST /api/clients/{id}/access-token (server-side secret vaulting; transient token returned once)",
+      "security_note": "This is the server-side equivalent of Corti's MCP token write-only pattern (A1B-AE.1 §4.1-4.2). iCoDer MUST follow the same transient pattern."
+    },
+    {
+      "method": "GET",
+      "path_pattern": "/rest/v1/agent_definitions?select=*,profiles:created_by(email,display_name,id)&project_id=eq.{id}&offset=0&limit=10&order=created_at.desc",
+      "purpose": "Paginated 'My agents' list (user-created Agent definitions in this project). Resource embedding: profiles (created_by relation).",
+      "icoder_analogue": "GET /api/v1/agents?org_id={id}&offset=0&limit=10",
+      "table_name_inferred": "agent_definitions",
+      "columns_inferred_from_select": ["*", "created_by (FK to profiles.id)"],
+      "pagination_pattern": "PostgREST offset/limit; iCoDer uses cursor-based pagination for agents (better for large datasets)"
+    },
+    {
+      "method": "GET",
+      "path_pattern": "/rest/v1/agent_definitions?select=profiles!inner(email,id)&project_id=eq.{id}",
+      "purpose": "Inner-join variant for 'which users have created agents in this project' (used by filter dropdown)",
+      "note": "PostgREST !inner forces inner join. iCoDer uses SQLAlchemy join() explicitly."
+    },
+    {
+      "method": "GET",
+      "path_pattern": "/functions/v1/external/agents",
+      "purpose": "Corti-curated PRE-BUILT AGENTS catalog (Edge Function returns the 20-item list observed in step 01)",
+      "icoder_analogue": "GET /api/icoder/agents/hub (already shipped)",
+      "key_insight": "Corti models Pre-built Agents as EXTERNAL (Edge Function call, not PostgREST table). This is consistent with Pre-built Agents being a curated read-only catalog vs. user-owned agent_definitions being a read/write Postgres table. iCoDer's Hub endpoint matches this pattern cleanly."
+    }
+  ],
+  "region_routing_observation_CRITICAL": {
+    "evidence": "GET /rest/v1/api_clients?...&region=neq.us appears 4 times in the trace. The Console explicitly EXCLUDES US-region clients from this view.",
+    "interpretation": "Corti Console has multi-region deployment (at least US + non-US). The api_clients table has a `region` column. Console UI filters based on the project's home region.",
+    "implication_for_icoder": "iCoDer Charter §6 multi-region tier (EU/US/CN) must include an equivalent region column on api_clients + equivalent filter logic at the data layer. This was previously assumed from architecture diagrams; now confirmed from runtime observation."
+  },
+  "pagination_observation": {
+    "corti_pattern": "PostgREST offset/limit (offset=0&limit=10)",
+    "icoder_existing_pattern": "Cursor-based pagination in /api/v1/agents (Phase 4 or earlier)",
+    "verdict": "DIFFERENT but BOTH VALID. iCoDer does NOT need to change its pagination pattern for parity — cursor pagination is strictly better for large datasets. Document the divergence in A1B-AE.4."
+  },
+  "table_name_inferences": [
+    {"inferred_table": "agent_definitions", "evidence": "PostgREST URL /rest/v1/agent_definitions?select=... returns Agent rows", "icoder_equivalent": "agents"},
+    {"inferred_table": "api_clients", "evidence": "PostgREST URL /rest/v1/api_clients?select=*", "icoder_equivalent": "api_clients"},
+    {"inferred_table": "projects", "evidence": "PostgREST URL /rest/v1/projects?select=*", "icoder_equivalent": "organizations"},
+    {"inferred_table": "project_memberships", "evidence": "PostgREST URL /rest/v1/project_memberships?select=*", "icoder_equivalent": "organization_memberships"},
+    {"inferred_table": "profiles", "evidence": "PostgREST URL /rest/v1/profiles?select=display_name", "icoder_equivalent": "users"},
+    {"inferred_table": "team_invitations", "evidence": "PostgREST URL /rest/v1/team_invitations?select=*", "icoder_equivalent": "team_invitations"}
+  ],
+  "what_is_NOT_yet_observed": [
+    "Experts table / endpoint — no /rest/v1/experts or /functions/v1/experts observed this session. Likely Experts are embedded inside agent_definitions JSON (consistent with public docs §3.3 inline-create pattern).",
+    "MCP server registration endpoint — no /rest/v1/mcp_servers or /functions/v1/mcp observed this session. Likely MCP servers are also embedded inside agent_definitions.experts[].mcpServers[].",
+    "Message send endpoint — no /rest/v1/messages or /agents/{id}/v1/message:send observed this session. Will be captured when clicking into an Agent detail and running it.",
+    "Task / Context / Artifact endpoints — not observed this session; will be captured during runtime observation.",
+    "MCP authentication request flow — only the docs page was observed; runtime observation will be in A1B-AE.7 scope."
+  ],
+  "implications_for_icoder_a1b_ae_3": [
+    "iCoDer Expert model design: CONFIRMED that Corti stores Experts inside Agent definitions (no standalone Experts table on the Console side). iCoDer's existing `experts` table (backend/app/models/expert.py) is therefore STRICTLY MORE NORMALISED than Corti. Keep it.",
+    "iCoDer Expert Registry API: design is in line with Corti's pattern. List endpoint = `/api/v1/experts` (existing). Create endpoint = inline inside Agent create OR standalone (both are Corti-compatible).",
+    "iCoDer MCP model: store as embedded JSON inside Expert (matches Corti), NOT as a separate top-level table.",
+    "iCoDer region routing: add `region` column to api_clients table in A1B-AE.9 tech-debt liquidation (already partially shipped per Phase 7)."
+  ],
+  "status": "PASS"
+}

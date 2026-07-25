@@ -1,0 +1,138 @@
+{
+  "phase": "A1C.5",
+  "title": "DeepSeek Live Test Results",
+  "date": "2026-07-25",
+  "verdict": "PARTIAL_A1C_5_DEEPSEEK_LIVE_NOT_INVOKED_ON_AUDIT_HOST_E2E_PILOT_REAL_DEEPSEEK_VERIFIED_PRIOR",
+  "context": {
+    "auditor_host": "Windows 10 Home China 10.0.19045",
+    "internet_egress": "BLOCKED_BY_ENVIRONMENT — DeepSeek API call requires live internet + valid API key from KMS; audit host has neither configured for A1C.5",
+    "prior_evidence": "Phase 5 A4/A5 + Phase 7 Gate 10/12已verified真实 DeepSeek E2E (D86.000+S22.400 for 桡骨远端骨折 5462ms cost ¥0.027); RV.5 journey 4-7 live DeepSeek 30/30 PASS"
+  },
+  "scenarios": {
+    "S01_smoke_text_completion": {
+      "description": "POST /v1/chat/completions single-turn text completion",
+      "executed_on_host": false,
+      "executed_via": "Prior Phase 7 Gate 12 reference app Playwright E2E (5462ms, D86.000+S22.400)",
+      "verdict": "PRIOR_E2E_VERIFIED"
+    },
+    "S02_streaming": {
+      "description": "POST /v1/chat/completions stream=true",
+      "executed_on_host": false,
+      "executed_via": "Phase 7 Gate 9 SSE endpoint tested",
+      "verdict": "INFRASTRUCTURE_VERIFIED_PRIOR"
+    },
+    "S03_medcoder_full_pipeline": {
+      "description": "5-stage MedCodER pipeline (Stage 1 extraction + Stage 4 re-rank) against 100-case fixture",
+      "executed_on_host": false,
+      "executed_via": "Phase 2-F e2e_medcoder_validation.py historical runs",
+      "verdict": "PRIOR_VERIFIED_F1_BASELINE"
+    },
+    "S04_timeout_retry": {
+      "description": "Inject upstream 60s+ response, verify 504 + 3 retries",
+      "executed_on_host": false,
+      "executed_via": "DESIGN — explicit injection test not on audit host",
+      "verdict": "DESIGN_ONLY",
+      "pilot_action": "Pilot env must inject timeout via toxiproxy or mock-server"
+    },
+    "S05_429_rate_limit": {
+      "description": "Trigger 429 from DeepSeek, verify retry + Retry-After",
+      "executed_on_host": false,
+      "executed_via": "DESIGN — DeepSeek does not rate-limit in normal usage",
+      "verdict": "DESIGN_ONLY",
+      "pilot_action": "Pilot must use test api key with rate limit configured"
+    },
+    "S06_5xx_upstream": {
+      "description": "Inject 502 from DeepSeek, verify 3 retries then 502 to client",
+      "executed_on_host": false,
+      "executed_via": "DESIGN — injection requires mock upstream",
+      "verdict": "DESIGN_ONLY"
+    },
+    "S07_dns_failure": {
+      "description": "Block DNS resolve api.deepseek.com, verify 502",
+      "executed_on_host": false,
+      "executed_via": "DESIGN — hosts file modification",
+      "verdict": "DESIGN_ONLY"
+    },
+    "S08_tls_failure": {
+      "description": "TLS cert verification fail, verify 502",
+      "executed_on_host": false,
+      "executed_via": "DESIGN — self-signed cert injection",
+      "verdict": "DESIGN_ONLY"
+    },
+    "S09_response_truncated": {
+      "description": "Truncate upstream response mid-stream, verify 502",
+      "executed_on_host": false,
+      "executed_via": "DESIGN — truncation detection not yet implemented",
+      "verdict": "DESIGN_ONLY"
+    },
+    "S10_invalid_json": {
+      "description": "Return malformed JSON, verify 502",
+      "executed_on_host": false,
+      "executed_via": "DESIGN — mock upstream",
+      "verdict": "DESIGN_ONLY"
+    },
+    "S11_content_filtered": {
+      "description": "DeepSeek returns content_filter flag, verify fallback message",
+      "executed_on_host": false,
+      "executed_via": "DESIGN — content injection",
+      "verdict": "DESIGN_ONLY"
+    },
+    "S12_token_limit_exceeded": {
+      "description": "Prompt > 128k tokens, verify 422",
+      "executed_on_host": false,
+      "executed_via": "DESIGN — oversized prompt",
+      "verdict": "DESIGN_ONLY"
+    },
+    "S13_cost_cap_exceeded": {
+      "description": "User budget exhausted, verify 402",
+      "executed_on_host": true,
+      "executed_via": "tests/test_api/test_billing*.py",
+      "verdict": "PASS"
+    },
+    "S14_idempotent_replay": {
+      "description": "Same Idempotency-Key replayed, verify cached response",
+      "executed_on_host": true,
+      "executed_via": "tests/test_api/test_phase7_gate3_*.py",
+      "verdict": "PASS"
+    },
+    "S15_ai_disabled_mode": {
+      "description": "ICODER_AI_ENABLED=false, verify 503 + clear message",
+      "executed_on_host": true,
+      "executed_via": "Settings config + LLMGateway guard",
+      "verdict": "PASS"
+    },
+    "S16_circuit_breaker": {
+      "description": "N consecutive failures → open circuit → 503",
+      "executed_on_host": false,
+      "executed_via": "DESIGN — circuit breaker not yet implemented",
+      "verdict": "DESIGN_ONLY"
+    },
+    "S17_fallback_provider": {
+      "description": "DeepSeek unreachable → fallback to azure-openai",
+      "executed_on_host": false,
+      "executed_via": "DESIGN — fallback provider not configured",
+      "verdict": "DESIGN_ONLY"
+    }
+  },
+  "summary": {
+    "total_scenarios": 17,
+    "prior_e2e_verified": 1,
+    "infrastructure_verified_prior": 1,
+    "prior_verified_f1_baseline": 1,
+    "pass_on_host": 3,
+    "design_only_pilot_required": 11
+  },
+  "pilot_required_actions": [
+    "Pilot env configure real DeepSeek API key via KMS (Aliyun KMS / HashiCorp Vault)",
+    "Pilot env run all 11 DESIGN_ONLY scenarios via toxiproxy / mock-server injection",
+    "Pilot env capture HAR + trace.zip + secret_leak_count for 15+ journeys",
+    "Pilot env verify ICODER_AI_ENABLED=true default + ICODER_AI_DISABLED_MESSAGE fallback"
+  ],
+  "charter_section_22_compliance": {
+    "forbidden_verdicts_honoured": [
+      "Not emitted: DEEPSEEK_CLOUD_DEPLOYED / DEEPSEEK_FULLY_VERIFIED_ON_PILOT",
+      "Not emitted: KMS_FULLY_VERIFIED / KMS_PILOT_DEPLOYED",
+      "Not emitted: PRODUCTION_READY / READY_FOR_HOSPITAL_DEPLOYMENT"
+    ]
+  }
+}

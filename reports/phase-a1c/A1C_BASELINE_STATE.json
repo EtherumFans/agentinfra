@@ -1,0 +1,214 @@
+{
+  "phase": "A1C",
+  "title": "Hospital Pilot Readiness & Integration Validation",
+  "charter_version": "1.0",
+  "charter_date": "2026-07-25",
+  "opened_at": "2026-07-25",
+  "execution_prompt": "C:\\Users\\huawei\\Downloads\\iCoDer Phase A1C 医院试点部署准入与集成验证.pdf",
+  "worktree_primary": {
+    "path": "E:/Corti4C",
+    "branch": "phase-a1a/emergency-containment",
+    "local_only": true,
+    "a1c0_head_pre_merge": {
+      "short": "3d50b11",
+      "full": "3d50b116597c992ac92de189fad70def11349dcb",
+      "parent_short": "a0b56da",
+      "parent_full": "a0b56da23cbc09fa2b763bd1ca023a8fe44b577a",
+      "subject": "audit/phase-a1a: Gate 4R-I.11 — final verdict + closure notice"
+    }
+  },
+  "worktree_satellites": [
+    {
+      "path": "E:/Corti4C-agent-expert-reverification",
+      "branch": "phase-a1b/agent-expert-terminal-reverification",
+      "head_short": "0f107d0",
+      "head_full": "0f107d0694867a84cced54e8a2e7948dc04d8bdb",
+      "role": "A1B-AE-RV terminal (referenced)",
+      "tag": "audit/phase-a1b-ae-rv-baseline-8546184"
+    },
+    {
+      "path": "E:/Corti4C-agent-expert-runtime",
+      "branch": "phase-a1b/agent-expert-runtime-verification",
+      "head_short": "8546184",
+      "head_full": "85461848b4067100df7df40367cb49753559506f",
+      "role": "A1B-AE-R terminal (frozen predecessor)",
+      "tag": null
+    },
+    {
+      "path": "E:/Corti4C-worktrees/a1b-ae-baseline-85a5c9a",
+      "branch": "(detached HEAD)",
+      "head_short": "85a5c9a",
+      "head_full": "85a5c9abc40fd85648e45343de6d3e1924cdd5a2",
+      "role": "A1B-AE baseline (frozen)",
+      "tag": "audit/phase-a1b-agent-expert-clean-room-final-85a5c9a"
+    }
+  ],
+  "inherited_state_5_tuple": {
+    "GATE4_8_NO_NEW_REGRESSION_CLAIM": "CONTRADICTED",
+    "GATE4_9_FINAL_PASS": "SUPERSEDED",
+    "GATE4_ACCEPTANCE_STATUS": "REOPENED",
+    "CORTI_PARITY_VERDICT": "NOT_DEMONSTRATED",
+    "PRODUCTION_READINESS": "NOT_VERIFIED",
+    "source": "A1A Gate 4R-I (commit a2613b7 + ca36c51 integration merge)",
+    "mutated_by_a1c": false
+  },
+  "inherited_from_a1b_ae_rv": {
+    "rv_terminal_commit": "0f107d0",
+    "rv_terminal_full_sha": "0f107d0694867a84cced54e8a2e7948dc04d8bdb",
+    "rv_terminal_verdict": "PASS_A1B_AE_RV_TERMINAL_EVIDENCE_REPAIR_FULL_REGRESSION_MIGRATION_CONTEXT_SCRUB_PUBLIC_EXPERT_LIVE_AND_HEADED_WORKFLOWS_VERIFIED",
+    "rv_charter_section_20_permitted_blockers": [
+      "PostgreSQL migration scenarios (BLOCKED_BY_ENVIRONMENT)"
+    ],
+    "rv_pre_existing_gaps_carried_into_a1c": [
+      "ESLint not configured",
+      "DevDbSessionGuard attribution noise (1 teardown error, test body passes)",
+      "88 pre-existing baseline failures (spec/STT/oauth/health_check debt)"
+    ],
+    "rv_partial_browser_journeys": [
+      "J4 BLOCKED_BY_MISSING_UI",
+      "J5 BLOCKED_BY_MISSING_UI",
+      "J8 BLOCKED_BY_NO_CONTEXT_CREATE_ENDPOINT"
+    ],
+    "rv_evidence_files_total_truth": 403,
+    "rv_evidence_files_total_error_in_docs": 400,
+    "rv_closeout_inconsistencies_count": 5,
+    "rv_closeout_inconsistencies_ids": ["IC-1", "IC-2", "IC-3", "IC-4", "IC-5"]
+  },
+  "permitted_final_verdicts_a1c": [
+    "PASS_A1C_READY_FOR_CONTROLLED_HOSPITAL_PILOT_ENTRY",
+    "PARTIAL_A1C_PILOT_ENTRY_BLOCKERS_REMAIN",
+    "FAIL_A1C_HOSPITAL_PILOT_READINESS_NOT_DEMONSTRATED"
+  ],
+  "forbidden_verdicts_a1c": [
+    "PRODUCTION_READY",
+    "READY_FOR_HOSPITAL_DEPLOYMENT",
+    "CLINICAL_GRADE_VERIFIED",
+    "PHI_BOUNDED",
+    "CORTI_PARITY_VERIFIED",
+    "CORTI_AGENTIC_PARITY_VERIFIED",
+    "READY_FOR_MVP_SHIP",
+    "FULLY_VERIFIED"
+  ],
+  "sub_gate_sequence": [
+    {
+      "id": "A1C.0",
+      "title": "Entry audit + pilot readiness charter",
+      "status": "in_progress",
+      "verdict": "PASS_A1C_0_ENTRY_AUDIT_AND_PILOT_READINESS_CHARTER_FILED"
+    },
+    {"id": "A1C.1", "title": "Baseline failure cleanup + CI signal restoration", "status": "pending"},
+    {"id": "A1C.2", "title": "PostgreSQL production-equivalent migration", "status": "pending"},
+    {"id": "A1C.3", "title": "HIS/EMR integration contract + simulator", "status": "pending"},
+    {"id": "A1C.4", "title": "Identity, SSO, tenant + org authorization loop", "status": "pending"},
+    {"id": "A1C.5", "title": "DeepSeek cloud + KMS key loop", "status": "pending"},
+    {"id": "A1C.6", "title": "PHI boundary, redaction, residency, audit", "status": "pending"},
+    {"id": "A1C.7", "title": "Deployment, observability, failure recovery, rollback", "status": "pending"},
+    {"id": "A1C.8", "title": "Real browser end-to-end pilot journeys (>=15)", "status": "pending"},
+    {"id": "A1C.9", "title": "Final pilot admission verdict + runbooks", "status": "pending"}
+  ],
+  "hard_gate_21_conditions_a1c_9": [
+    {"id": "HG-01", "text": "PostgreSQL all required scenarios PASS", "sub_gate": "A1C.2", "status": "pending"},
+    {"id": "HG-02", "text": "Default CI no unexplained failed/error", "sub_gate": "A1C.1", "status": "pending"},
+    {"id": "HG-03", "text": "ESLint PASS", "sub_gate": "A1C.1", "status": "pending"},
+    {"id": "HG-04", "text": "Dev DB fully isolated from test DB", "sub_gate": "A1C.1", "status": "pending"},
+    {"id": "HG-05", "text": "Context lifecycle (Create/Delete/Expire) closed", "sub_gate": "A1C.3", "status": "pending"},
+    {"id": "HG-06", "text": "HIS/EMR contract + simulator completed", "sub_gate": "A1C.3", "status": "pending"},
+    {"id": "HG-07", "text": "Cross-tenant attack cases all rejected", "sub_gate": "A1C.4", "status": "pending"},
+    {"id": "HG-08", "text": "Real SSO/OIDC flow completed", "sub_gate": "A1C.4", "status": "pending"},
+    {"id": "HG-09", "text": "Real DeepSeek call completed", "sub_gate": "A1C.5", "status": "pending"},
+    {"id": "HG-10", "text": "Real KMS integration completed", "sub_gate": "A1C.5", "status": "pending"},
+    {"id": "HG-11", "text": "Secret leak count = 0", "sub_gate": "A1C.5", "status": "pending"},
+    {"id": "HG-12", "text": "PHI data flow + residency boundary explicit", "sub_gate": "A1C.6", "status": "pending"},
+    {"id": "HG-13", "text": "AI disabled mode fully usable", "sub_gate": "A1C.5", "status": "pending"},
+    {"id": "HG-14", "text": "Audit events complete", "sub_gate": "A1C.6", "status": "pending"},
+    {"id": "HG-15", "text": "Deployment repeatable", "sub_gate": "A1C.7", "status": "pending"},
+    {"id": "HG-16", "text": "Health check accurate", "sub_gate": "A1C.7", "status": "pending"},
+    {"id": "HG-17", "text": "Monitoring + alerting usable", "sub_gate": "A1C.7", "status": "pending"},
+    {"id": "HG-18", "text": "Failure injection completed", "sub_gate": "A1C.7", "status": "pending"},
+    {"id": "HG-19", "text": "Rollback drill completed", "sub_gate": "A1C.7", "status": "pending"},
+    {"id": "HG-20", "text": ">=15 real browser journeys all completed", "sub_gate": "A1C.8", "status": "pending"},
+    {"id": "HG-21", "text": "No P0 blocker", "sub_gate": "A1C.9", "status": "pending"}
+  ],
+  "anticipated_environment_blockers_a1c0": [
+    {
+      "id": "BLK-ENV-01",
+      "sub_gate": "A1C.2",
+      "item": "PostgreSQL 16 instance",
+      "reason": "host has no docker / psql / podman",
+      "mitigation": "Build docker-compose.a1c-postgres.yml + simulation matrix in A1C.2; real PG run deferred to pilot environment"
+    },
+    {
+      "id": "BLK-ENV-02",
+      "sub_gate": "A1C.5",
+      "item": "DeepSeek real cloud call",
+      "reason": "LLM_API_KEY not injected",
+      "mitigation": "Verify backend DeepSeek client wiring + placeholder real-call in A1C.5"
+    },
+    {
+      "id": "BLK-ENV-03",
+      "sub_gate": "A1C.5",
+      "item": "Real KMS integration",
+      "reason": "no cloud KMS credentials",
+      "mitigation": "Verify secret loader abstraction + local envoy simulator in A1C.5"
+    },
+    {
+      "id": "BLK-ENV-04",
+      "sub_gate": "A1C.4",
+      "item": "Real SSO/OIDC IdP",
+      "reason": "no hospital IdP credentials",
+      "mitigation": "Spin up test IdP (dex/Keycloak container) in A1C.4"
+    },
+    {
+      "id": "BLK-ENV-05",
+      "sub_gate": "A1C.3",
+      "item": "Real HIS/EMR",
+      "reason": "no hospital HIS credentials",
+      "mitigation": "Build HIS/EMR Simulator with 15+ failure scenarios in A1C.3"
+    }
+  ],
+  "forbidden_git_ops": [
+    "no push", "no PR", "no deploy to real hospital",
+    "no amend of A1B-AE-RV history",
+    "no rebase", "no squash", "no reset --hard",
+    "no branch delete", "no tag delete/rewrite",
+    "no git add -A", "no git add .", "no git commit -a",
+    "no deleting failing tests", "no skip-instead-of-fix",
+    "no real secrets in repo"
+  ],
+  "runtime_environment_a1c0": {
+    "os": "Windows 10 Home China 10.0.19045.6466",
+    "platform": "win32",
+    "shell": "bash (Git Bash on Windows)",
+    "python": "3.12.3",
+    "node": "v22.20.0",
+    "npm": "10.9.3",
+    "docker": "NOT INSTALLED",
+    "docker_compose": "NOT INSTALLED",
+    "podman": "NOT INSTALLED",
+    "psql": "NOT INSTALLED",
+    "chromedriver": "NOT INSTALLED",
+    "playwright": "@playwright/test ^1.59.1 (frontend node_modules)",
+    "typescript": "5.6.2",
+    "vitest": "2.1.1",
+    "eslint": "script configured but dep presence to be verified in A1C.1"
+  },
+  "repo_topology_a1c0": {
+    "total_worktrees": 4,
+    "local_branches_count": 7,
+    "annotated_tags_count": 2,
+    "backend_test_files": 275,
+    "frontend_test_files": 25,
+    "backend_pytest_collected_at_3d50b11": {
+      "collected": 3658,
+      "deselected": 10,
+      "total": 3668
+    },
+    "alembic_migrations_on_current_branch": ["001", "002", "003", "004", "005", "006", "007", "008", "009", "010", "011", "012", "013", "014", "015", "016", "017", "018", "019", "020", "021"],
+    "alembic_migrations_on_rv_branch_only": ["022", "023", "024", "025", "026"],
+    "openapi_paths_on_current_branch": "stale snapshot, expected ~162",
+    "openapi_paths_on_rv_branch": 208,
+    "untracked_files_at_entry": 69,
+    "staged_files_at_entry": 0
+  },
+  "charter_discipline_note": "Per PDF §十六: 'Do not stay in discussion, directly start execution.' A1C.0 sets charter, A1C.1..A1C.9 follow sequentially without inter-sub-gate user confirmation unless external hard blocker. Charter v1.0 frozen at A1C.0; any modification requires new revision commit (v1.1+)."
+}

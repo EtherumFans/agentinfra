@@ -1,0 +1,168 @@
+{
+  "phase": "A1C",
+  "title": "Hospital Pilot Readiness & Integration Validation — Final State",
+  "date": "2026-07-25",
+  "charter_version": "1.0",
+  "charter_commit": "(see A1C_CHARTER.md git blame)",
+  "predecessor_phase": "A1B-AE-RV",
+  "predecessor_terminal_commit": "0f107d0",
+  "predecessor_terminal_verdict": "PASS_A1B_AE_RV_TERMINAL_EVIDENCE_REPAIR_FULL_REGRESSION_MIGRATION_CONTEXT_SCRUB_PUBLIC_EXPERT_LIVE_AND_HEADED_WORKFLOWS_VERIFIED",
+  "head_branch": "phase-a1a/emergency-containment",
+  "head_commit": "(populated at commit time — see A1C_FINAL_COMMIT_MANIFEST.json)",
+  "final_verdict": "PARTIAL_A1C_PILOT_ENTRY_BLOCKERS_REMAIN",
+
+  "subgate_verdicts": {
+    "A1C.0": {
+      "verdict": "PASS_A1C_0_CHARTER_AND_ENTRY_AUDIT_FILED",
+      "commit": "(carried forward — pre-existing)",
+      "deliverables_authored": 5
+    },
+    "A1C.1": {
+      "verdict": "PASS_A1C_1_BASELINE_FAILURE_TRIAGE_AND_CI_SIGNAL_RESTORED",
+      "commit": "(carried forward — pre-existing)",
+      "deliverables_authored": 6
+    },
+    "A1C.2": {
+      "verdict": "PARTIAL_A1C_2_POSTGRESQL_MIGRATION_DELIVERABLES_AUTHORED_SQLITE_PARITY_VERIFIED_PG_ACTUAL_RUN_DEFERRED_TO_PILOT_ENV",
+      "commit": "(carried forward — pre-existing)",
+      "deliverables_authored": 6
+    },
+    "A1C.3": {
+      "verdict": "PASS_A1C_3_HIS_EMR_INTEGRATION_CONTRACT_AND_SIMULATOR_FILED",
+      "commit": "(carried forward — pre-existing)",
+      "deliverables_authored": 10
+    },
+    "A1C.4": {
+      "verdict": "PARTIAL_A1C_4_IDENTITY_AND_AUTHORIZATION_MODEL_FILED_5_OF_7_PRINCIPALS_CLOSED_2_DEFERRED_TO_PILOT",
+      "commit": "(carried forward — pre-existing)",
+      "deliverables_authored": 6
+    },
+    "A1C.5": {
+      "verdict": "PARTIAL_A1C_5_DEEPSEEK_PRIOR_E2E_VERIFIED_KMS_ABSTRACTION_DESIGN_CLOUD_KMS_ADAPTER_DEFERRED_TO_PILOT",
+      "commit": "(carried forward — pre-existing)",
+      "deliverables_authored": 6
+    },
+    "A1C.6": {
+      "verdict": "PARTIAL_A1C_6_PHI_BOUNDARY_DEMONSTRATED_STATICALLY_HAR_RUNTIME_INJECTION_DEFERRED_TO_PILOT",
+      "commit": "0864b77",
+      "deliverables_authored": 7
+    },
+    "A1C.7": {
+      "verdict": "PARTIAL_A1C_7_DEPLOYMENT_OBSERVABILITY_FAILURE_RECOVERY_ROLLBACK_AUTHORED_STATIC_VERIFIED_LIVE_DRILL_DEFERRED_TO_PILOT",
+      "commit": "495ad64",
+      "deliverables_authored": 6
+    },
+    "A1C.8": {
+      "verdict": "PARTIAL_A1C_8_PILOT_JOURNEY_MATRIX_AND_EVIDENCE_TEMPLATE_AUTHORED_LIVE_REPLAY_BLOCKED_BY_PILOT_ENVIRONMENT",
+      "commit": "af03cdc",
+      "deliverables_authored": 4
+    },
+    "A1C.9": {
+      "verdict": "PARTIAL_A1C_PILOT_ENTRY_BLOCKERS_REMAIN",
+      "commit": "(this commit)",
+      "deliverables_authored": 8
+    }
+  },
+
+  "hard_gate_verdicts": {
+    "1_postgresql_pass": "BLOCKED_BY_ENVIRONMENT",
+    "2_ci_clean": "PARTIAL",
+    "3_eslint_pass": "BLOCKED_BY_MISSING_DEV_DEPENDENCY",
+    "4_dev_db_isolated": "PASS",
+    "5_context_lifecycle": "PASS",
+    "6_his_emr_contract": "PASS",
+    "7_cross_tenant_rejected": "PASS",
+    "8_real_sso_oidc": "BLOCKED_BY_HOSPITAL_IDP",
+    "9_real_deepseek": "PRIOR_PASS",
+    "10_real_kms": "BLOCKED_BY_CLOUD_KMS",
+    "11_secret_leak_zero": "PARTIAL",
+    "12_phi_boundary_clear": "PARTIAL",
+    "13_ai_disabled_complete": "PASS",
+    "14_audit_complete": "PARTIAL",
+    "15_deploy_repeatable": "PARTIAL",
+    "16_health_check_accurate": "PASS",
+    "17_monitoring_alerting": "PARTIAL",
+    "18_failure_injection_done": "PARTIAL",
+    "19_rollback_drill_done": "PARTIAL",
+    "20_15plus_browser_journeys": "BLOCKED_BY_PILOT_ENVIRONMENT",
+    "21_no_p0_blockers": "FAIL_SELF_TEST"
+  },
+
+  "hard_gate_aggregate": {
+    "pass": 6,
+    "prior_pass": 1,
+    "partial": 8,
+    "blocked": 6,
+    "total": 21
+  },
+
+  "forbidden_verdicts_check": {
+    "verdicts_not_emitted": [
+      "PRODUCTION_READY",
+      "READY_FOR_HOSPITAL_DEPLOYMENT",
+      "CLINICAL_GRADE_VERIFIED",
+      "PHI_BOUNDED",
+      "CORTI_PARITY_VERIFIED",
+      "CORTI_AGENTIC_PARITY_VERIFIED",
+      "READY_FOR_MVP_SHIP",
+      "FULLY_VERIFIED"
+    ],
+    "verified_via_git_grep": "empty (no A1C commit contains any forbidden verdict)",
+    "honoured": true
+  },
+
+  "forbidden_git_ops_check": {
+    "ops_not_performed": [
+      "git push",
+      "gh pr create",
+      "deploy to real hospital",
+      "amend A1B-AE-RV history",
+      "rebase A1B-AE-RV history",
+      "squash A1B-AE-RV history",
+      "delete any annotated tag",
+      "real secrets to repo",
+      "git add -A / git add .",
+      "git commit -a",
+      "pytest.mark.skip newly introduced",
+      "--no-verify bypass"
+    ],
+    "honoured": true
+  },
+
+  "inherited_5_tuple_unchanged": {
+    "GATE4_8_NO_NEW_REGRESSION_CLAIM": "CONTRADICTED",
+    "GATE4_9_FINAL_PASS": "SUPERSEDED",
+    "GATE4_ACCEPTANCE_STATUS": "REOPENED",
+    "CORTI_PARITY_VERDICT": "NOT_DEMONSTRATED",
+    "PRODUCTION_READINESS": "NOT_VERIFIED",
+    "note": "All 5 fields retained from A1A Gate 4R-I (a2613b7) per Charter §二"
+  },
+
+  "a1c_state_5_tuple_delta": {
+    "A1C_0_CHARTER": "AUTHORED_v1.0",
+    "A1C_1_BASELINE_FAILURES": "TRIAGED",
+    "A1C_2_POSTGRES_PARITY": "SQLITE_VERIFIED_PG_DEFERRED",
+    "A1C_3_HIS_EMR_CONTRACT": "AUTHORED_AND_SIMULATED",
+    "A1C_4_IDENTITY": "AUTHORED_5_OF_7_PRINCIPALS_CLOSED",
+    "A1C_5_DEEPSEEK_KMS": "PRIOR_E2E_VERIFIED_KMS_DESIGN",
+    "A1C_6_PHI_BOUNDARY": "STATIC_DEMONSTRATED_HAR_DEFERRED",
+    "A1C_7_DEPLOYMENT_OBSERVABILITY": "AUTHORED_LIVE_DRILL_DEFERRED",
+    "A1C_8_BROWSER_JOURNEYS": "MATRIX_AUTHORIZED_LIVE_DEFERRED",
+    "A1C_9_FINAL_VERDICT": "PARTIAL_A1C_PILOT_ENTRY_BLOCKERS_REMAIN"
+  },
+
+  "open_blockers_count": 12,
+  "open_blockers_severity_breakdown": {
+    "P0": 0,
+    "P1": 6,
+    "P2": 6
+  },
+
+  "deliverables_total_count": 64,
+  "evidence_files_count": "(see A1C_EVIDENCE_INDEX.md)",
+  "evidence_sha256_manifest": "A1C_EVIDENCE_SHA256SUMS.detached.txt",
+  "evidence_sha256_manifest_self_excluded": true,
+
+  "next_phase_boundary": "Pilot deployment (outside this repo)",
+  "next_phase_required_to_resolve_blockers": "Pilot env provisioning + 12 blocker resolutions per A1C_OPEN_BLOCKERS.csv"
+}

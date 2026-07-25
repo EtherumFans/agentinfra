@@ -1,0 +1,22 @@
+hard_gate_id,pdf_section,gate_title,verdict,blocking_subgate,primary_evidence,open_blocker_ids,target_resolution
+HG-01,§十四 1,PostgreSQL 全部要求场景 PASS,BLOCKED_BY_ENVIRONMENT,A1C.2,reports/phase-a1c/A1C.2/POSTGRES_MIGRATION_RESULTS.json,A1C-B-001,Pilot env
+HG-02,§十四 2,默认 CI 无未解释 failed/error,PARTIAL,A1C.1,reports/phase-a1c/A1C.1/BASELINE_FAILURE_LEDGER.csv,A1C-B-002,A1D or Pilot prep
+HG-03,§十四 3,ESLint PASS,BLOCKED_BY_MISSING_DEV_DEPENDENCY,A1C.1,reports/phase-a1c/A1C.1/ESLINT_INTRODUCTION_REPORT.md,A1C-B-003,A1D
+HG-04,§十四 4,Dev DB 与测试 DB 完全隔离,PASS,A1C.1,reports/phase-a1c/A1C.1/DEV_DB_ISOLATION_REPORT.md,—,—
+HG-05,§十四 5,Context 生命周期闭环 (Create/Delete/Expire),PASS,A1C.3,reports/phase-a1c/A1C.3/HIS_EMR_INTEGRATION_CONTRACT.md + Migration 029,—,—
+HG-06,§十四 6,HIS/EMR 标准契约和模拟器完成,PASS,A1C.3,reports/phase-a1c/A1C.3/HIS_EMR_SCENARIO_MATRIX.csv (16/16 PASS DRY),—,—
+HG-07,§十四 7,跨租户攻击用例全部拒绝,PASS,A1C.4+A1A Gate 3R,reports/phase-a1c/A1C.4/CROSS_TENANT_ATTACK_MATRIX.csv (15/15 PASS) + 234 prior tests,—,—
+HG-08,§十四 8,真实 SSO/OIDC 流程完成,BLOCKED_BY_HOSPITAL_IDP,A1C.4,reports/phase-a1c/A1C.4/SSO_INTEGRATION_TEST_RESULTS.json (16 scenarios DESIGN),A1C-B-004,Pilot env
+HG-09,§十四 9,DeepSeek 真实调用完成,PRIOR_PASS,A1C.5,Phase 7 Gate 12 (5462ms E2E) + A1C.5 DEEPSEEK_LIVE_TEST_RESULTS.json,—,—
+HG-10,§十四 10,KMS 真实接入完成,BLOCKED_BY_CLOUD_KMS,A1C.5,reports/phase-a1c/A1C.5/KMS_INTEGRATION_REPORT.md (CredentialVault abstraction verified),A1C-B-005 + A1C-B-008,Pilot env
+HG-11,§十四 11,Secret leak count = 0,PARTIAL,A1C.5+A1C.6,reports/phase-a1c/A1C.5/SECRET_LEAK_SCAN_RESULTS.json (6 PASS_NO_LEAK + 2 BY_DESIGN) + A1C.6 REDACTION_TEST_RESULTS.json,A1C-B-009,Pilot env (HAR)
+HG-12,§十四 12,PHI 数据流和驻留边界明确,PARTIAL,A1C.6,reports/phase-a1c/A1C.6/PHI_DATA_FLOW_DIAGRAM.md (13 nodes) + DATA_RESIDENCY_MATRIX.csv (18 fields),A1C-B-009 + A1C-B-012,Pilot env + A1D
+HG-13,§十四 13,AI 关闭模式完整可用,PASS,A1C.5,reports/phase-a1c/A1C.5/AI_DISABLED_MODE_REPORT.md (6/6 PDF §九 behaviors),—,—
+HG-14,§十四 14,审计事件完整,PARTIAL,A1C.6,reports/phase-a1c/A1C.6/AUDIT_COMPLETENESS_REPORT.md (7/12 PASS),A1C-B-010 + A1C-B-011,A1D
+HG-15,§十四 15,部署可重复,PARTIAL,A1C.7,reports/phase-a1c/A1C.7/PILOT_DEPLOYMENT_ARCHITECTURE.md + DEPLOYMENT_RUNBOOK.md,A1C-B-013 + A1C-B-015,Pilot env
+HG-16,§十四 16,健康检查准确,PASS,A1C.7,backend/app/main.py:1474 /api/health,—,—
+HG-17,§十四 17,监控和告警可用,PARTIAL,A1C.7,reports/phase-a1c/A1C.7/OBSERVABILITY_SPEC.md (14 metrics + 10 alerts authored),A1C-B-014,Pilot env
+HG-18,§十四 18,故障注入完成,PARTIAL,A1C.7,reports/phase-a1c/A1C.7/FAILURE_INJECTION_RESULTS.json (17 scenarios; 12 PASS/DESIGN_VERIFIED),A1C-B-016,Pilot env
+HG-19,§十四 19,回滚演练完成,PARTIAL,A1C.7,reports/phase-a1c/A1C.7/ROLLBACK_DRILL_REPORT.md (5 scenarios static),A1C-B-017 + A1C-B-018,Pilot env + A1D
+HG-20,§十四 20,≥15 条真实浏览器旅程全部完成,BLOCKED_BY_PILOT_ENVIRONMENT,A1C.8,reports/phase-a1c/A1C.8/PILOT_JOURNEY_MATRIX.csv (20 authored; PDF ≥15),A1C-B-019,Pilot env
+HG-21,§十四 21,不存在 P0 blocker,FAIL_SELF_TEST,A1C.9,reports/phase-a1c/A1C.9/A1C_OPEN_BLOCKERS.csv (12 open; 0 P0),—,Pilot env + A1D

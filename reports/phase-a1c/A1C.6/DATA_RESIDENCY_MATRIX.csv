@@ -1,0 +1,20 @@
+data_field,storage_location,region_allowed,egress_policy,redaction_before_egress,encryption_in_transit,encryption_at_rest,retention,deletion_mechanism,pilot_action
+patient_id,patient_contexts.patient_id,cn-hangzhou ( hospitals in China ),allow within cn region,否 (区域内必需),TLS,Fernet envelope (PHI),24h (patient_context) + 6 年 (encounter 持久化),patient_context 24h TTL cron; encounter 6 年 cron,Pilot 配 cn-hangzhou region + 6 年 cron
+patient_name (PHI),documents.encrypted_content (encrypted),cn-hangzhou,deny to LLM; allow within region storage,是 (audit),TLS,Fernet envelope,6 年,cron 6 年,Pilot Fernet key rotation
+encounter_id,patient_contexts.encounter_id + encounters.encounter_id,cn-hangzhou,allow within region,否 (低敏 ID),TLS,Fernet,6 年,cron,—
+department_id,patient_contexts.department_id,cn-hangzhou,allow within region,否 (operational),TLS,plain text (low sensitivity),6 年,cron,—
+clinician_id,patient_contexts.clinician_id,cn-hangzhou,allow within region,否 (operational staff code),TLS,plain text,6 年,cron,—
+document_content (PHI),documents.content,cn-hangzhou,allow to LLM in region; deny to object storage,否 (LLM prompt 必需),TLS,Fernet envelope,6 年,cron,—
+diagnosis_codes,coding_reviews.diagnosis_codes,cn-hangzhou,allow within region,否 (codes non-PHI),TLS,plain text,6 年,cron,—
+procedure_codes,coding_reviews.procedure_codes,cn-hangzhou,allow within region,否 (codes non-PHI),TLS,plain text,6 年,cron,—
+trace_id,run_trace.trace_id,cn-hangzhou,allow within region,否 (operational),TLS,plain text,90 天,Phase 7 cron,—
+run_id,run_history.id,cn-hangzhou,allow within region,否 (operational),TLS,plain text,6 年,cron,—
+audit_metadata,audit_logs.metadata_,cn-hangzhou,allow within region,是 (audit_detail_redactor pre-INSERT),TLS,plain text,6 年,cron,—
+ip_address,audit_logs.ip_address,cn-hangzhou,allow within region,否 (PII 但非 PHI),TLS,plain text,90 天 (DESIGN),cron,—
+llm_prompt (transient),LLMGateway in-memory,cn-hangzhou → api.deepseek.com,allow explicit to DeepSeek region,否 (LLM 必需),TLS,n/a (transient),无 (transient),—,Pilot 验证 region routing EXPLICIT
+llm_response,run_history.result_payload,cn-hangzhou,allow within region,部分 (evidence 可能 PHI),TLS,Fernet envelope (DESIGN),6 年,cron,—
+preview_ticket (HMAC),preview_sessions table,cn-hangzhou,allow within region,否 (HMAC token),TLS,plain text,60s,Pilot cron,—
+session_jwt,in-memory + sessionStorage (browser),n/a,allow within region,否 (JWT not PHI),TLS,n/a (transient),1h,token_version revocation,—
+backup_pg_dump,object storage backup bucket,cn-hangzhou,allow within region,n/a,TLS + KMS envelope,KMS-managed,30 天,cron,Pilot pg_dumpJob
+backup_snapshot,cloud volume snapshot,cn-hangzhou,allow within region,n/a,cloud-managed,cloud-managed,30 天,cron,Pilot
+monitoring_metrics,Prometheus / Sentry,cn-hangzhou,allow within region (NOT Sentry global),n/a,TLS,plain text,30 天,cron,Pilot Sentry region scrub

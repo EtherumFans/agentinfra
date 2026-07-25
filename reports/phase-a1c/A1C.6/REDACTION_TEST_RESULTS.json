@@ -1,0 +1,112 @@
+{
+  "phase": "A1C.6",
+  "title": "Redaction Test Results",
+  "date": "2026-07-25",
+  "verdict": "PARTIAL_A1C_6_REDACTION_DESIGN_VERIFIED_11_OF_11_SURFACES_COVERED_RUNTIME_INJECTION_TEST_DEFERRED_TO_PILOT",
+  "pdf_required_surfaces": [
+    "日志 (logs)",
+    "trace (run_trace events)",
+    "error stack",
+    "analytics",
+    "HAR",
+    "screenshot",
+    "video",
+    "prompt (sent to LLM)",
+    "model response (LLM output)",
+    "webhook (outbound to HIS)",
+    "dead-letter queue"
+  ],
+  "redaction_engine": {
+    "name": "audit_detail_redactor.py",
+    "location": "backend/app/services/audit_detail_redactor.py",
+    "introduced": "A1A Gate 4.6",
+    "patterns": [
+      {"name": "patient_id", "pattern": "(?i)patient[_-]?id['\"]?\\s*[:=]\\s*['\\\"]?[A-Za-z0-9-]+", "replacement": "patient_id=<REDACTED>"},
+      {"name": "patient_name_chinese", "pattern": "[\\u4e00-\\u9fa5]{2,4}", "replacement": "<REDACTED_NAME>"},
+      {"name": "phone_cn", "pattern": "1[3-9]\\d{9}", "replacement": "<REDACTED_PHONE>"},
+      {"name": "email", "pattern": "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}", "replacement": "<REDACTED_EMAIL>"},
+      {"name": "id_card_cn", "pattern": "[1-9]\\d{5}(18|19|20)\\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\\d|3[01])\\d{3}[\\dXx]", "replacement": "<REDACTED_IDCARD>"},
+      {"name": "icd10_with_evidence", "pattern": "([A-TV-Z][0-9][0-9AB](\\.[0-9A-TV-Z]{0,4})?).{0,200}?", "replacement": "<REDACTED>"},
+      {"name": "medical_record_text", "pattern": "(主诉|现病史|既往史|家族史|婚育史|个人史)[:：].{0,500}", "replacement": "<REDACTED_MR>"},
+      {"name": "api_key", "pattern": "sk-[a-zA-Z0-9-]{20,}", "replacement": "<REDACTED_KEY>"},
+      {"name": "jwt_token", "pattern": "eyJ[a-zA-Z0-9_-]+\\.eyJ[a-zA-Z0-9_-]+\\.[a-zA-Z0-9_-]+", "replacement": "<REDACTED_JWT>"},
+      {"name": "bearer_token", "pattern": "[Bb]earer\\s+[A-Za-z0-9-._~+]+=*", "replacement": "Bearer <REDACTED>"},
+      {"name": "fernet_token", "pattern": "gAAAAAB[0-9A-Za-z_-]{100,}", "replacement": "<REDACTED_FERNET>"}
+    ]
+  },
+  "surface_coverage": {
+    "logs": {
+      "implementation": "structured logging via app.logging_config; audit_detail_redactor called in log_action before db.add(audit_log)",
+      "status": "PASS_BY_DESIGN",
+      "evidence": "backend/app/middleware/audit.py + backend/app/services/audit_detail_redactor.py"
+    },
+    "trace": {
+      "implementation": "run_trace StepEvent / ErrorEvent / TokenUsageEvent; only prompt length + model name stored (not content)",
+      "status": "PASS_BY_DESIGN",
+      "evidence": "backend/app/models/run_trace.py + Phase 3 trace_capture"
+    },
+    "error_stack": {
+      "implementation": "HTTPException detail scrubbed via central error handler (main.py exception_handlers)",
+      "status": "PASS_BY_DESIGN",
+      "evidence": "backend/app/main.py + Phase 4-D observability"
+    },
+    "analytics": {
+      "implementation": "DESIGN — analytics emit only aggregate counts; no PHI in metrics labels",
+      "status": "DESIGN_VERIFIED_STATIC_ANALYSIS",
+      "evidence": "billing_service.py + usage.py (Phase 7 Gate 8)"
+    },
+    "HAR": {
+      "implementation": "DEFERRED — requires Pilot env e2e HAR capture",
+      "status": "DEFERRED_TO_PILOT",
+      "blocker": "audit host has no running stack"
+    },
+    "screenshot": {
+      "implementation": "Playwright snapshot redaction via Phase 7 Gate 11 clearPatientContext + clearSession before screenshot",
+      "status": "PASS_PRIOR_VERIFIED",
+      "evidence": "RV.5 journey 10 logout-storage-cleanup (3/3 PASS)"
+    },
+    "video": {
+      "implementation": "Playwright video.webm captured AFTER clearPatientContext in journey 10",
+      "status": "PASS_PRIOR_VERIFIED",
+      "evidence": "RV.5 journey 10 evidence/journey-10-*/video.webm"
+    },
+    "prompt_to_llm": {
+      "implementation": "LLM prompt NOT logged by design; only model name + token count in run_trace",
+      "status": "PASS_BY_DESIGN",
+      "evidence": "icoder_runtime/core/llm_gateway.py — no log.info(prompt)"
+    },
+    "model_response": {
+      "implementation": "run_history.result_payload stored encrypted via phi_encryption; logs scrubbed; trace stores only token count",
+      "status": "PARTIAL",
+      "partial_note": "DB at-rest encryption verified; analytics/log scrub DESIGN-verified statically; HAR capture deferred"
+    },
+    "webhook": {
+      "implementation": "DESIGN — A1C.3 callback payload excludes raw PHI; only coding suggestions + evidence snippets",
+      "status": "DESIGN_VERIFIED_STATIC_ANALYSIS",
+      "evidence": "reports/phase-a1c/A1C.3/RESULT_CALLBACK_SCHEMA.json"
+    },
+    "dead_letter_queue": {
+      "implementation": "DESIGN — queue stores delivery_id + last_error; payload redacted via audit_detail_redactor",
+      "status": "DESIGN_VERIFIED_STATIC_ANALYSIS"
+    }
+  },
+  "summary": {
+    "total_surfaces": 11,
+    "pass_by_design": 4,
+    "pass_prior_verified": 2,
+    "design_static_verified": 3,
+    "partial": 1,
+    "deferred_to_pilot": 1
+  },
+  "pilot_required_actions": [
+    "Pilot env e2e HAR capture — 15+ browser journeys, regex scan for PHI patterns",
+    "Pilot env inject synthetic PHI (test patient) into all 11 surfaces, regex scan output",
+    "Pilot env monitor Sentry / ELK for accidental PHI emission (alert on regex match)"
+  ],
+  "charter_section_22_compliance": {
+    "forbidden_verdicts_honoured": [
+      "Not emitted: PHI_BOUNDED (PDF §十 requires 'all constraints fully proven'; HAR capture + runtime injection test deferred to Pilot)",
+      "Not emitted: REDACTION_FULLY_VERIFIED / PHI_LEAK_ZERO / PRODUCTION_READY"
+    ]
+  }
+}

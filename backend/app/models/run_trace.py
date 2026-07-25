@@ -22,7 +22,7 @@ Index strategy:
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import DateTime, Float, ForeignKey, Integer, JSON, String, func
+from sqlalchemy import DateTime, Float, ForeignKey, Integer, JSON, String, func, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
@@ -41,9 +41,9 @@ class RunTraceEventModel(Base, TimestampMixin):
     actor_id: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
     agent_id: Mapped[Optional[str]] = mapped_column(String(128), nullable=True, index=True)
     step: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
-    status: Mapped[str] = mapped_column(String(16), nullable=False, default="ok")
-    duration_ms: Mapped[float] = mapped_column(Float, default=0.0)
-    ts: Mapped[float] = mapped_column(Float, default=0.0)  # epoch seconds
+    status: Mapped[str] = mapped_column(String(16), nullable=False, default="ok", server_default=text("ok"))
+    duration_ms: Mapped[float] = mapped_column(Float, default=0.0, server_default=text("0"))
+    ts: Mapped[float] = mapped_column(Float, default=0.0, server_default=text("0"))  # epoch seconds
     safe_metadata_json: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
 
     # ── Phase A1A Gate 3R.4 — stable event identity ──────────────

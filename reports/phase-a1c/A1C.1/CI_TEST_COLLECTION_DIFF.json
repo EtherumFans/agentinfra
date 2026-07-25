@@ -1,0 +1,35 @@
+{
+  "run_id": "a1c1_collection_diff",
+  "generated_at": "2026-07-25",
+  "head": "926536f",
+  "purpose": "PDF A1C.1 requires 'test collection count change must be audited'. Compare pre-merge collection (HEAD=3d50b11, A1C.0 charter) vs post-merge collection (HEAD=926536f, A1C.0 merge).",
+  "pre_merge": {
+    "head": "3d50b11",
+    "label": "A1A Gate 4R-I.11 closure (pre-A1C)",
+    "collected": 3658,
+    "deselected": 10,
+    "total": 3668,
+    "command": "cd backend && python -m pytest --collect-only -q"
+  },
+  "post_merge": {
+    "head": "926536f",
+    "label": "A1C.0 merge (integrate RV terminal 0f107d0)",
+    "collected": 3962,
+    "deselected": 10,
+    "total": 3972,
+    "command": "cd backend && python -m pytest --collect-only -q"
+  },
+  "delta": {
+    "collected_delta": 304,
+    "deselected_delta": 0,
+    "total_delta": 304,
+    "interpretation": "RV merge added 304 net tests (R.* + AE.* + RV.* sub-gates shipped new test files: rv-specific gate4_2..4_7, public-expert-live, journey coverage, organization_id fail-closed tightening, DevDbSessionGuard, etc.)"
+  },
+  "audit": {
+    "collection_count_increased": true,
+    "deselected_count_changed": false,
+    "expected_pattern": "Test count monotonically increases through audit phases. A decrease would indicate test deletion (forbidden by Charter §六/6.1 'no deleting failing tests')."
+  },
+  "action_required": false,
+  "verdict": "COLLECTION_DIFF_AUDITED_NO_ANOMALY"
+}

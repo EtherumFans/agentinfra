@@ -1,0 +1,124 @@
+node_id,file,line,failure_type,message_excerpt
+tests.integration.icoder.a2a.test_endpoints::test_well_known_agent_json_lists_cards,,,,"AssertionError: assert 'MedCodER 编码审核智能体' == 'MedCodER Coding Review Agent'
+  
+  - MedCodER Coding Review Agent
+  + MedCodER 编码审核智能体"
+tests.integration.icoder.a2a.test_endpoints::test_llms_txt_renders_markdown,,,,AssertionError: assert 'MedCodER Coding Review Agent' in '# iCoDer v1 Agent Runtime\n\niCoDer is an AI platform for hospital revenue compliance (China).\n\n## Available Agents...Skills**: check_docume
+tests.integration.icoder.a2a.test_endpoints::test_agents_list_returns_simplified_cards,,,,"AssertionError: assert 'MedCodER 编码审核智能体' == 'MedCodER Coding Review Agent'
+  
+  - MedCodER Coding Review Agent
+  + MedCodER 编码审核智能体"
+tests.integration.icoder.a2a.test_endpoints::test_agent_card_returns_full_card,,,,"AssertionError: assert 'MedCodER 编码审核智能体' == 'MedCodER Coding Review Agent'
+  
+  - MedCodER Coding Review Agent
+  + MedCodER 编码审核智能体"
+tests.integration.icoder.test_mcp_agent_tools_lifecycle::test_dispatch_tool_validate_codes_with_scopes_succeeds,,,,"AssertionError: assert ['R001', 'R00..., 'R006', ...] == ['R001']
+  
+  Left contains 10 more items, first extra item: 'R002'
+  Use -v to get more diff"
+tests.integration.icoder.test_phase3b1_agent_hub::test_metadata_only_packs_visible_but_not_runnable,,,,"AssertionError: metadata-only pack icoder/cdi-review@1.0.0 must appear in Hub (visible with Coming Soon badge)
+assert 'icoder/cdi-review@1.0.0' in {'icoder/claim-check@1.0.0': {'a2a_endpoint': None, '"
+tests.integration.icoder.test_phase3b1_agent_hub::test_phase3d1_three_simple_agents_visible_and_runnable,,,,"AssertionError: runnable agent icoder/code-validation-agent@1.0.0 must appear in Hub
+assert 'icoder/code-validation-agent@1.0.0' in {'icoder/claim-check@1.0.0': {'a2a_endpoint': None, 'agent_id': 'cla"
+tests.integration.icoder.test_phase3b1_agent_hub::test_hub_total_count_matches_visibility_filter,,,,"AssertionError: Hub must list 14 visible packs (9 runnable + 5 metadata-only) after Phase 4-F; got 24. Cards: ['icoder/clinical-documentation-improvement-agent@1.0.0', 'icoder/drg-analyzer@1.0.0', 'ic"
+tests.integration.icoder.test_phase3b1_discovery_unification_contract::test_hub_is_pack_mastered_and_no_auth,,,,assert 24 == 11
+tests.integration.icoder.test_phase3b1_discovery_unification_contract::test_hub_and_a2a_discovery_are_both_pack_mastered,,,,assert 24 == 11
+tests.integration.icoder.test_phase3b1_discovery_unification_contract::test_seed_prebuilt_agents_no_silent_collision_with_packs,,,,"AssertionError: Pack-backed icoder/code-validation-agent@1.0.0 should appear in Hub (canonical Corti-aligned version). If missing, the seed.py DB row may have shadowed it.
+assert 'icoder/code-validati"
+tests.integration.icoder.test_phase3b1_medical_coding_a2a_migration::test_a2a_medical_coding_agent_state_history_in_metadata,,,,"AssertionError: state_history must have ≥4 transitions (planning→delegating→aggregating→completed); got: []
+assert 0 >= 4
+ +  where 0 = len([])"
+tests.integration.icoder.test_phase3b2_loop4_hub_use_case_filter::test_hub_no_use_case_filter_returns_all_visible,,,,"AssertionError: Expected 11 visible packs, got 24
+assert 24 == 11"
+tests.integration.icoder.test_phase3b2_loop4_hub_use_case_filter::test_hub_filter_coding_revenue_cycle_returns_all_11,,,,"AssertionError: Expected 11 packs for coding_revenue_cycle, got 17
+assert 17 == 11"
+tests.integration.icoder.test_phase3d1_three_agents_a2a_smoke::test_run_trace_page_works_for_simple_agent,,,,"assert 404 == 200
+ +  where 404 = <Response [404 Not Found]>.status_code"
+tests.test_api.test_a1b_ae_3_expert_registry::test_migration_022_origin_backfill_for_prebuilts,,,,"AssertionError: Prebuilt experts not backfilled to PACK_DECLARED: {'ICODER_INTERNAL': 30}
+assert 30 == 0"
+tests.test_api.test_oauth_audit_rejection::test_token_endpoint_invalid_client_emits_audit,,,,"AssertionError: assert '[REDACTED]' == 'unknown-client-a1a-test'
+  
+  - unknown-client-a1a-test
+  + [REDACTED]"
+tests.test_api.test_oauth_audit_rejection::test_token_endpoint_secret_mismatch_emits_audit,,,,"AssertionError: assert '[REDACTED]' == 'icoder-f2b1b...4be5f72820cbd'
+  
+  - icoder-f2b1bf96a004be5f72820cbd
+  + [REDACTED]"
+tests.test_api.test_oauth_audit_rejection::test_realm_token_endpoint_invalid_client_emits_audit,,,,"AssertionError: assert '[REDACTED]' == 'base'
+  
+  - base
+  + [REDACTED]"
+tests.test_services.test_mcp::test_mcp_wrapper_discover_tools_invalid_url,,,,app.services.mcp_wrapper.McpSSRFBlocked: SSRF blocked: url='http://localhost:99999/nonexistent' reason=localhost resolves to ::1 in blocked network ::1/128
+tests.unit.app.test_config_fail_closed::test_cloud_mode_boots_with_all_required_vars,,,,"RuntimeError: [A1A Gate 1 fail-closed] ICODER_DEPLOYMENT_MODE=cloud but:
+  - ICODER_PHI_ENCRYPTION_KEY is empty; required in cloud mode (generate: python -c ""from cryptography.fernet import Fernet; pr"
+tests.unit.app.test_run_trace_persistence::test_db_store_append_persists_event,,,,"assert 0 == 1
+ +  where 0 = len([])"
+tests.unit.app.test_run_trace_persistence::test_db_store_append_stamps_persisted_on_run_history,,,,"AssertionError: expected PERSISTED, got None
+assert None == 'PERSISTED'"
+tests.unit.app.test_run_trace_persistence::test_db_store_append_failure_stamps_failed,,,,"AssertionError: assert 'CAPTURED' == 'FAILED'
+  
+  - FAILED
+  + CAPTURED"
+tests.unit.app.test_run_trace_persistence::test_db_store_append_failure_raises_when_fail_closed,,,,Failed: DID NOT RAISE <class 'Exception'>
+tests.unit.app.test_run_trace_persistence::test_memory_store_append_stamps_fallback_memory,,,,"AssertionError: assert None == 'FALLBACK_MEMORY'
+ +  where None = _read_trace_status('C:\\Users\\huawei\\AppData\\Local\\Temp\\pytest-of-DoM2020016\\pytest-148\\test_memory_store_append_stamp0\\trace_"
+tests.unit.icoder.agent_runtime.test_run_trace_db_store::test_api_returns_200_for_same_org_run,,,,"assert 404 == 200
+ +  where 404 = <Response [404 Not Found]>.status_code"
+tests.unit.icoder.agent_runtime.test_run_trace_store::test_get_run_trace_returns_timeline,,,,"assert 404 == 200
+ +  where 404 = <Response [404 Not Found]>.status_code"
+tests.unit.icoder.agent_runtime.test_run_trace_store::test_get_run_trace_raw_format,,,,"assert 404 == 200
+ +  where 404 = <Response [404 Not Found]>.status_code"
+tests.unit.icoder.agent_runtime.test_three_runnable_agents::test_compliance_guardrail_passes_complete_case,,,,"AssertionError: assert 'WARNING' == 'PASS'
+  
+  - PASS
+  + WARNING"
+tests.unit.icoder.backends.test_agent_pack_backend_schema::test_old_pack_defaults_backend_provider_to_empty,,,,"AssertionError: assert 'icoder.rule-engine.v1' == ''
+  
+  + icoder.rule-engine.v1"
+tests.unit.icoder.backends.test_agent_pack_backend_schema::test_to_summary_for_legacy_pack_shows_empty_backend,,,,"AssertionError: assert 'icoder.rule-engine.v1' == ''
+  
+  + icoder.rule-engine.v1"
+tests.unit.icoder.backends.test_llm_with_tools_provider::test_invoke_skeleton_calls_one_tool_through_mcp,,,,"assert 0 == 1
+ +  where 0 = len([])
+ +    where [] = BackendResponse(status='pass', summary='{""review_conclusion"": ""PASS"", ""primary_diagnosis"": {""code"": ""I21.0"", ""descript..."": 0.95, ""notes"": ""[MockLL"
+tests.unit.icoder.backends.test_llm_with_tools_provider::test_invoke_skeleton_without_request_records_error_in_tool_call,,,,"assert 0 == 1
+ +  where 0 = len([])
+ +    where [] = BackendResponse(status='pass', summary='{""review_conclusion"": ""PASS"", ""primary_diagnosis"": {""code"": ""I21.0"", ""descript..."": 0.95, ""notes"": ""[MockLL"
+tests.unit.icoder.backends.test_llm_with_tools_provider::test_invoke_skeleton_markdown_contains_tool_call_summary,,,,"assert 'Tool Calls' in '{""review_conclusion"": ""PASS"", ""primary_diagnosis"": {""code"": ""I21.0"", ""description"": ""急性前壁心肌梗死""}, ""issues_found"": [], ""confidence"": 0.95, ""notes"": ""[MockLLM] Processed input (5 "
+tests.unit.icoder.backends.test_llm_with_tools_provider::test_stream_skeleton_yields_four_event_kinds,,,,"AssertionError: assert 'tool_calls' in ['backend_invoked', 'output_chunk', 'finished']"
+tests.unit.icoder.backends.test_pure_llm_provider::test_health_degraded_without_llm_client,,,,"AssertionError: assert 'ok' == 'degraded'
+  
+  - degraded
+  + ok"
+tests.unit.icoder.backends.test_pure_llm_provider::test_invoke_skeleton_returns_placeholder_markdown,,,,"assert 'Skeleton Response' in '{""review_conclusion"": ""PASS"", ""primary_diagnosis"": {""code"": ""I21.0"", ""description"": ""急性前壁心肌梗死""}, ""issues_found"": [], ""confidence"": 0.95, ""notes"": ""[MockLLM] Processed in"
+tests.unit.icoder.backends.test_pure_llm_provider::test_invoke_uses_redacted_input_when_user_input_empty,,,,"assert 'patient with severe COPD' in '{""review_conclusion"": ""PASS"", ""primary_diagnosis"": {""code"": ""I21.0"", ""description"": ""急性前壁心肌梗死""}, ""issues_found"": [], ""confidence"": 0.95, ""notes"": ""[MockLLM] Proce"
+tests.unit.icoder.backends.test_pure_llm_provider::test_invoke_uses_agent_pack_system_prompt_when_empty,,,,"assert 'Note Completeness Agent' in '{""review_conclusion"": ""PASS"", ""primary_diagnosis"": {""code"": ""I21.0"", ""description"": ""急性前壁心肌梗死""}, ""issues_found"": [], ""confidence"": 0.95, ""notes"": ""[MockLLM] Proces"
+tests.unit.icoder.mcp.test_dispatch_detail::test_run_trace_api_returns_dispatch_detail,,,,"assert 404 == 200
+ +  where 404 = <Response [404 Not Found]>.status_code"
+tests.unit.icoder_runtime.test_agent_pack_loader::test_discover_v1_files_finds_16_packs,,,,"AssertionError: assert 30 == 16
+ +  where 30 = len({'cdi-review': [WindowsPath('E:/Corti4C/backend/official_agents/cdi-review/agent_pack.json')], 'claim-check': [Windows...k.json')], 'code-validation'"
+tests.unit.icoder_runtime.test_agent_pack_loader::test_load_packs_from_dir_loads_all_16,,,,"AssertionError: assert 30 == 16
+ +  where 30 = len([NormalizedPack(raw={'format_version': '1.2', 'agent_type': 'certified', 'agent_ref': 'icoder/cdi-review@1.0.0', 'depr...production_ready=True, exper"
+tests.unit.icoder_runtime.test_agent_pack_loader::test_all_16_official_packs_load_via_new_loader,,,,"AssertionError: assert 30 == 16
+ +  where 30 = len([NormalizedPack(raw={'format_version': '1.2', 'agent_type': 'certified', 'agent_ref': 'icoder/cdi-review@1.0.0', 'depr...production_ready=True, exper"
+tests.unit.icoder_runtime.test_registry_status::test_compute_compatibility_returns_16_packs,,,,"AssertionError: assert 30 == 16
+ +  where 30 = RegistryCompatibilityReport(entries=[AgentCompatibilityEntry(agent_ref='icoder/cdi-review@1.0.0', name='[DEPRECATED] C...format={'1.2': 26, '1.1': 4}, to"
+tests.unit.icoder_runtime.test_registry_status::test_compute_compatibility_status_distribution,,,,assert 3 == 4
+tests.unit.icoder_runtime.test_registry_status::test_compute_compatibility_expert_stubs_are_metadata_only,,,,"AssertionError: assert 3 == 4
+ +  where 3 = len([AgentCompatibilityEntry(agent_ref='icoder/code-reconciler@1.0.0', name='编码核对智能体', version='1.0.0', agent_type='expert...utable=['expert-stub pack: skel"
+tests.unit.icoder_runtime.test_registry_status::test_compute_compatibility_v11_packs_all_executable,,,,"AssertionError: assert 4 == 7
+ +  where 4 = len([AgentCompatibilityEntry(agent_ref='icoder/claim-check@1.0.0', name='结算合规核查智能体', version='1.0.0', agent_type='certifie....json', registered=False, regis"
+tests.unit.icoder_runtime.test_registry_status::test_compute_compatibility_cross_ref_registry,,,,"AssertionError: assert 4 == 7
+ +  where 4 = len(['icoder/claim-check@1.0.0', 'icoder/denial-appeals@1.0.0', 'icoder/diagnosis-extractor@1.0.0', 'icoder/evidence-ranker@1.0.0'])"
+tests.unit.icoder_runtime.test_registry_status::test_builtin_pack_provider_discover_all_returns_16,,,,"AssertionError: assert 30 == 16
+ +  where 30 = len([NormalizedPack(raw={'format_version': '1.2', 'agent_type': 'certified', 'agent_ref': 'icoder/cdi-review@1.0.0', 'depr...production_ready=True, exper"
+tests.unit.icoder_runtime.test_registry_status::test_builtin_pack_provider_compatibility_report,,,,"AssertionError: assert 30 == 16
+ +  where 30 = RegistryCompatibilityReport(entries=[AgentCompatibilityEntry(agent_ref='icoder/cdi-review@1.0.0', name='[DEPRECATED] C...format={'1.2': 26, '1.1': 4}, to"
+tests.unit.icoder_runtime.test_registry_status::test_builtin_pack_provider_register_all_skips_metadata_only,,,,"AssertionError: assert 16 == 12
+ +  where 16 = <MagicMock name='mock.install_agent' id='1849890441936'>.call_count
+ +    where <MagicMock name='mock.install_agent' id='1849890441936'> = <MagicMock id="
+tests.unit.scripts.test_schema_drift::test_no_schema_drift_against_fresh_alembic_db,,,,"Failed: schema drift check failed (exit 1):
+stdout: DRIFT_COUNT: 15
+DRIFT [server_default_mismatch] experts.origin  ORM=None  DB=icoder_internal
+DRIFT [server_default_mismatch] experts.corti_alignment"
+tests.unit.scripts.test_schema_drift::test_drift_checker_detects_missing_column,,,,"ERROR: failed on teardown with ""RuntimeError: A1B-AE-RV.2 dev DB guard: data/icoder.db was MODIFIED during the test session. Before=(1784961006100371800, 5894144) After=(1784962064556288200, 5894144). Tests "

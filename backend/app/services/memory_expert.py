@@ -230,6 +230,103 @@ class MemoryExpert:
 
         return "\n".join(lines)
 
+    async def ingest_context_messages(
+        self,
+        context_id: str,
+        user_id: str,
+        db: AsyncSession,
+        agent_id: str | None = None,
+    ) -> int:
+        """Bridge real Context messages into long-term ConversationMemory rows.
+
+        Called by A1B-AE-R.4.b — wires the persistent memory store to the
+        A2A Context. Reads every ContextMessageRow for the given context,
+        extracts plain-text content from parts_json, and saves one
+        ConversationMemory row per message (de-duplicated by session_id
+        = context_id + message_id).
+
+        Returns the number of memories saved. Skips messages already
+        ingested (idempotent per session_id+content hash).
+        """
+        from app.icoder.agent_runtime.context.db_models import ContextMessageRow
+
+        result = await db.execute(
+            select(ContextMessageRow)
+            .where(ContextMessageRow.context_id == context_id)
+            .order_by(ContextMessageRow.timestamp)
+        )
+        messages = result.scalars().all()
+        if not messages:
+            return 0
+
+        saved = 0
+        for m in messages:
+            session_key = f"{context_id}:{m.message_id}"
+            try:
+                parts = json.loads(m.parts_json) if m.parts_json else []
+                parse_failed = False
+            except (json.JSONDecodeError, TypeError):
+                parts = []
+                parse_failed = True
+
+            text_parts = []
+            if isinstance(parts, list):
+                for p in parts:
+                    if isinstance(p, dict):
+                        text_parts.append(str(p.get("text", "") or p.get("content", "")))
+                    elif isinstance(p, str):
+                        text_parts.append(p)
+            elif isinstance(parts, str):
+                text_parts.append(parts)
+
+            # A1B-AE-R.4.b: when parts_json is a plain string (not JSON),
+            # fall back to using it verbatim. A2A MessagePart is a dict in
+            # the canonical schema, but legacy callers may store raw text.
+            if parse_failed and m.parts_json:
+                text_parts.append(str(m.parts_json))
+
+            content = " ".join(text_parts).strip()
+            if not content:
+                continue
+
+            existing = await db.execute(
+                select(ConversationMemory)
+                .where(
+                    ConversationMemory.user_id == user_id,
+                    ConversationMemory.session_id == session_key,
+                )
+                .limit(1)
+            )
+            if existing.scalars().first() is not None:
+                continue
+
+            mem = ConversationMemory(
+                user_id=user_id,
+                agent_id=agent_id,
+                session_id=session_key,
+                role=(m.role or "user").lower(),
+                content=content[:2000],
+            )
+            emb = _embed(content[:500])
+            mem.key_facts = json.dumps(
+                {
+                    "facts": [],
+                    "_embedding": emb if emb is not None else [],
+                    "source": "context",
+                    "context_id": context_id,
+                    "message_id": m.message_id,
+                    "redacted": m.redacted,
+                },
+                ensure_ascii=False,
+            )
+            mem.importance = 0.4
+            db.add(mem)
+            saved += 1
+
+        if saved > 0:
+            await db.commit()
+        return saved
+
     async def get_user_profile(self, user_id: str, db: AsyncSession | None = None) -> dict:
         """Build a user profile from accumulated memories."""
         if not db:

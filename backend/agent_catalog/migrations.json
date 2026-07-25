@@ -1,0 +1,53 @@
+{
+  "_summary": {
+    "charter": "A1B-AE.2",
+    "generated_by": "scripts/a1b_ae_2_build_catalogs.py",
+    "clean_room_attested": true,
+    "counts": {
+      "pack_total": 32,
+      "pack_runnable": 2,
+      "pack_metadata_only": 27,
+      "pack_legacy_orphan": 3,
+      "pack_empty": 0,
+      "dual_named_pairs": 3,
+      "agent_total_canonical": 29,
+      "expert_total": 40,
+      "expert_corti_public_9key": 9,
+      "expert_icoder_internal": 11,
+      "expert_pack_declared": 20,
+      "seed_prebuilt_agents": 16
+    },
+    "classification_legend": {
+      "RUNNABLE_PACK": "dir has both __init__.py (Python code) and agent_pack.json",
+      "METADATA_ONLY_PACK": "dir has only agent_pack.json; no runnable Python",
+      "LEGACY_CODE_ORPHAN": "dir has only __init__.py; missing Pack manifest",
+      "EMPTY": "dir is empty (no __init__.py, no agent_pack.json)"
+    },
+    "expert_origin_legend": {
+      "CORTI_PUBLIC": "clean-room copy of Corti public 9-key registry (A1B-AE.1 §3.2)",
+      "ICODER_INTERNAL": "Python module under backend/app/agents/experts/",
+      "PACK_DECLARED": "referenced inside an agent_pack.json `experts[]` list"
+    },
+    "canonical_name_rule": "For dual-named pairs, the dash-form is canonical (matches Corti public convention and Pack metadata). Legacy underscore-form is aliased."
+  },
+  "entries": [
+    {
+      "legacy": "code_validation",
+      "canonical": "code-validation",
+      "action": "RENAME_LEGACY_DIR_OR_DELETE_AFTER_ALIAS_RESOLVER_LANDED",
+      "rationale": "Legacy code_validation __init__.py claims @1.0.0; canonical code-validation/agent_pack.json claims @2.0.0. Resolve in A1B-AE.4 (alias resolver) and A1B-AE.9 (deprecate legacy)."
+    },
+    {
+      "legacy": "compliance_guardrail",
+      "canonical": "compliance-guardrail",
+      "action": "RENAME_LEGACY_DIR_OR_DELETE_AFTER_ALIAS_RESOLVER_LANDED",
+      "rationale": "Legacy compliance_guardrail __init__.py claims @1.0.0; canonical compliance-guardrail/agent_pack.json claims @1.0.0. Resolve in A1B-AE.4 (alias resolver) and A1B-AE.9 (deprecate legacy)."
+    },
+    {
+      "legacy": "note_completeness",
+      "canonical": "note-completeness",
+      "action": "RENAME_LEGACY_DIR_OR_DELETE_AFTER_ALIAS_RESOLVER_LANDED",
+      "rationale": "Legacy note_completeness __init__.py claims @1.0.0; canonical note-completeness/agent_pack.json claims @1.0.0. Resolve in A1B-AE.4 (alias resolver) and A1B-AE.9 (deprecate legacy)."
+    }
+  ]
+}

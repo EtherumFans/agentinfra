@@ -5,13 +5,37 @@ server and iCoDer wraps it in a custom LLM agent with a system prompt."
 
 Difficulty: HIGH — implements MCP protocol (tools/list, tools/call), auto-discovers
 tool schemas, converts JSON Schema to OpenAI function format, wraps as full Expert.
+
+A1B-AE-R.3.b (2026-07-23): every outbound HTTP call is now wrapped by
+app.services.ssrf_guard.assert_url_safe(). SSRF attacks against
+loopback / RFC1918 / cloud-metadata hosts are blocked BEFORE any
+TCP connect.
 """
 import json
 import logging
 import httpx
 from typing import Optional
 
+from app.services.ssrf_guard import SSRFError, assert_url_safe
+
 logger = logging.getLogger(__name__)
+
+
+class McpSSRFBlocked(Exception):
+    """Raised when an MCP URL is blocked by the SSRF guard."""
+
+    def __init__(self, url: str, reason: str) -> None:
+        self.url = url
+        self.reason = reason
+        super().__init__(f"SSRF blocked: url={url!r} reason={reason}")
+
+
+def _preflight(url: str) -> None:
+    """SSRF pre-flight. Raises McpSSRFBlocked on rejection."""
+    try:
+        assert_url_safe(url)
+    except SSRFError as e:
+        raise McpSSRFBlocked(url=url, reason=e.reason) from e
 
 
 class McpWrapper:
@@ -36,7 +60,10 @@ class McpWrapper:
         """Discover available tools from an MCP server.
 
         Calls the MCP tools/list endpoint to get available tools with their schemas.
+
+        A1B-AE-R.3.b: raises McpSSRFBlocked if mcp_url fails the SSRF guard.
         """
+        _preflight(mcp_url)
         client = await self._get_client()
         headers = {"Content-Type": "application/json"}
         if auth_header:
@@ -104,7 +131,10 @@ class McpWrapper:
         """Call a tool on an MCP server.
 
         Uses MCP JSON-RPC tools/call endpoint.
+
+        A1B-AE-R.3.b: raises McpSSRFBlocked if mcp_url fails the SSRF guard.
         """
+        _preflight(mcp_url)
         client = await self._get_client()
         headers = {"Content-Type": "application/json"}
         if auth_header:
@@ -146,7 +176,10 @@ class McpWrapper:
 
         Discovers tools, converts schemas, and returns a full expert config
         ready to be saved and used like any other Expert.
+
+        A1B-AE-R.3.b: raises McpSSRFBlocked if mcp_url fails SSRF guard.
         """
+        _preflight(mcp_url)
         tools = await self.discover_tools(mcp_url)
         openai_tools = self.tools_to_openai_format(tools)
 

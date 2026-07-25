@@ -77,7 +77,7 @@ async def test_create_emits_event_and_returns_active_context(repo):
         events.append((stage, payload))
 
     lc = ContextLifecycle(repo, event_sink=sink)
-    ctx = await lc.create(agent_id="homepage-coding-review")
+    ctx = await lc.create(organization_id="test-org", agent_id="homepage-coding-review")
 
     assert ctx.status == ContextStatus.ACTIVE
     assert ctx.agent_id == "homepage-coding-review"
@@ -99,7 +99,7 @@ async def test_create_with_initial_message_appends(repo):
         parts=[{"type": "text", "text": "hi"}],
         timestamp=_now(),
     )
-    ctx = await lc.create(agent_id="a", initial_message=msg)
+    ctx = await lc.create(organization_id="test-org", agent_id="a", initial_message=msg)
 
     msgs = await repo.get_messages(ctx.id)
     assert len(msgs) == 1
@@ -112,7 +112,7 @@ async def test_complete_transitions_active_to_completed(repo):
         repo,
         completed_ttl_seconds=3600,
     )
-    ctx = await lc.create(agent_id="a")
+    ctx = await lc.create(organization_id="test-org", agent_id="a")
 
     completed = await lc.complete(ctx.id)
 
@@ -129,7 +129,7 @@ async def test_complete_emits_event_with_counts(repo):
         events.append((stage, payload))
 
     lc = ContextLifecycle(repo, event_sink=sink)
-    ctx = await lc.create(agent_id="a")
+    ctx = await lc.create(organization_id="test-org", agent_id="a")
     await repo.add_message(
         ctx.id,
         ContextMessage(
@@ -146,7 +146,7 @@ async def test_complete_emits_event_with_counts(repo):
 
 async def test_complete_on_completed_raises(repo):
     lc = ContextLifecycle(repo)
-    ctx = await lc.create(agent_id="a")
+    ctx = await lc.create(organization_id="test-org", agent_id="a")
     await lc.complete(ctx.id)
     with pytest.raises(ContextLifecycleError):
         await lc.complete(ctx.id)
@@ -154,7 +154,7 @@ async def test_complete_on_completed_raises(repo):
 
 async def test_fail_transitions_active_to_failed(repo):
     lc = ContextLifecycle(repo)
-    ctx = await lc.create(agent_id="a")
+    ctx = await lc.create(organization_id="test-org", agent_id="a")
 
     failed = await lc.fail(ctx.id, error_code="E1", error_stage="planning")
 
@@ -170,7 +170,7 @@ async def test_fail_emits_event_with_error_codes(repo):
         events.append((stage, payload))
 
     lc = ContextLifecycle(repo, event_sink=sink)
-    ctx = await lc.create(agent_id="a")
+    ctx = await lc.create(organization_id="test-org", agent_id="a")
 
     await lc.fail(ctx.id, error_code="E_PLAN", error_stage="planner")
 
@@ -181,7 +181,7 @@ async def test_fail_emits_event_with_error_codes(repo):
 
 async def test_fail_on_failed_raises(repo):
     lc = ContextLifecycle(repo)
-    ctx = await lc.create(agent_id="a")
+    ctx = await lc.create(organization_id="test-org", agent_id="a")
     await lc.fail(ctx.id, error_code="x", error_stage="y")
     with pytest.raises(ContextLifecycleError):
         await lc.fail(ctx.id, error_code="x", error_stage="y")
@@ -189,7 +189,7 @@ async def test_fail_on_failed_raises(repo):
 
 async def test_assert_can_mutate_blocks_terminal_states(repo):
     lc = ContextLifecycle(repo)
-    ctx = await lc.create(agent_id="a")
+    ctx = await lc.create(organization_id="test-org", agent_id="a")
     await lc.complete(ctx.id)
 
     with pytest.raises(ContextLifecycleError):
@@ -209,7 +209,7 @@ async def test_assert_can_mutate_blocks_unknown_context(repo):
 async def test_expire_if_overdue_marks_active_expired(repo):
     now_fn, advance = _clock()
     lc = ContextLifecycle(repo, ttl_seconds=10, now_fn=now_fn)
-    ctx = await lc.create(agent_id="a")
+    ctx = await lc.create(organization_id="test-org", agent_id="a")
     advance(11)
 
     expired = await lc.expire_if_overdue(ctx.id)
@@ -220,7 +220,7 @@ async def test_expire_if_overdue_marks_active_expired(repo):
 
 async def test_expire_if_overdue_no_op_for_active_not_yet_overdue(repo):
     lc = ContextLifecycle(repo, ttl_seconds=3600)
-    ctx = await lc.create(agent_id="a")
+    ctx = await lc.create(organization_id="test-org", agent_id="a")
     result = await lc.expire_if_overdue(ctx.id)
     assert result is not None
     assert result.status == ContextStatus.ACTIVE
@@ -236,8 +236,8 @@ async def test_sweep_expired_marks_multiple_overdue(repo):
     lc = ContextLifecycle(
         repo, ttl_seconds=10, completed_ttl_seconds=10, now_fn=now_fn
     )
-    a = await lc.create(agent_id="a")
-    b = await lc.create(agent_id="a")
+    a = await lc.create(organization_id="test-org", agent_id="a")
+    b = await lc.create(organization_id="test-org", agent_id="a")
     await lc.complete(b.id)
     advance(11)
 
@@ -252,7 +252,7 @@ async def test_sweep_expired_marks_multiple_overdue(repo):
 async def test_sweep_expired_skips_fresh_contexts(repo):
     now_fn, advance = _clock()
     lc = ContextLifecycle(repo, ttl_seconds=3600, now_fn=now_fn)
-    fresh = await lc.create(agent_id="a")
+    fresh = await lc.create(organization_id="test-org", agent_id="a")
     advance(0)
 
     expired_ids = await lc.sweep_expired()
@@ -265,7 +265,7 @@ async def test_sweep_expired_skips_fresh_contexts(repo):
 async def test_destroy_expired_deletes_after_grace(repo):
     now_fn, advance = _clock()
     lc = ContextLifecycle(repo, ttl_seconds=10, grace_seconds=60, now_fn=now_fn)
-    a = await lc.create(agent_id="a")
+    a = await lc.create(organization_id="test-org", agent_id="a")
     advance(11)
     await lc.expire_if_overdue(a.id)
 
@@ -283,7 +283,7 @@ async def test_destroy_expired_deletes_after_grace(repo):
 async def test_destroy_expired_cascades_children_but_keeps_audit(repo):
     now_fn, advance = _clock()
     lc = ContextLifecycle(repo, ttl_seconds=10, grace_seconds=10, now_fn=now_fn)
-    ctx = await lc.create(agent_id="a")
+    ctx = await lc.create(organization_id="test-org", agent_id="a")
     await repo.add_message(
         ctx.id,
         ContextMessage(
@@ -328,7 +328,7 @@ async def test_destroy_expired_emits_event(repo):
     lc = ContextLifecycle(
         repo, ttl_seconds=10, grace_seconds=10, now_fn=now_fn, event_sink=sink
     )
-    a = await lc.create(agent_id="a")
+    a = await lc.create(organization_id="test-org", agent_id="a")
     advance(11)
     await lc.expire_if_overdue(a.id)
     advance(11)

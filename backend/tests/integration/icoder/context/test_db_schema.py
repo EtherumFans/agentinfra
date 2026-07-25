@@ -74,6 +74,7 @@ async def test_context_round_trip(session):
         updated_at=now,
         expires_at=now + timedelta(hours=24),
         agent_id="homepage-coding-review",
+        organization_id="test-org",
         status="active",
         metadata_json='{"production_writeback_blocked": true, "phi_redacted": true}',
         redacted_input_hash="abc123",
@@ -97,6 +98,7 @@ async def test_redacted_default_is_true(session):
         updated_at=now,
         expires_at=now + timedelta(hours=24),
         agent_id="a",
+        organization_id="test-org",
         status="active",
         metadata_json="{}",
     )
@@ -127,6 +129,7 @@ async def test_cascade_delete_removes_child_rows(session):
         updated_at=now,
         expires_at=now + timedelta(hours=24),
         agent_id="a",
+        organization_id="test-org",
         status="active",
         metadata_json="{}",
     )
@@ -185,6 +188,7 @@ async def test_original_input_audit_does_not_cascade(session):
         updated_at=now,
         expires_at=now + timedelta(hours=24),
         agent_id="a",
+        organization_id="test-org",
         status="active",
         metadata_json="{}",
     )

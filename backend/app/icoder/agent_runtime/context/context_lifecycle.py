@@ -88,9 +88,21 @@ class ContextLifecycle:
         self,
         *,
         agent_id: str,
+        organization_id: str,
         initial_message: ContextMessage | None = None,
     ) -> Context:
-        """Create active context with server-generated contextId."""
+        """Create active context with server-generated contextId.
+
+        ``organization_id`` is the tenant scope (A1B-AE-RV.2 fail-closed).
+        No default — caller MUST pass the JWT's ``current_org.id``
+        explicitly. Empty/None values raise ValueError so the request
+        fails closed instead of silently bucketing under org_default1.
+        """
+        if not organization_id:
+            raise ValueError(
+                "organization_id is required (A1B-AE-RV.2 fail-closed). "
+                "Pass current_org.id from the JWT explicitly."
+            )
         now = self._now()
         ctx = Context(
             id=generate_context_id(),
@@ -98,6 +110,7 @@ class ContextLifecycle:
             updated_at=now,
             expires_at=now + self._ttl,
             agent_id=agent_id,
+            organization_id=organization_id,
             status=ContextStatus.ACTIVE,
         )
         await self._repo.create_context(ctx)
@@ -250,3 +263,44 @@ class ContextLifecycle:
                 )
                 destroyed.append(ctx.id)
         return destroyed
+
+    async def destroy_now(
+        self,
+        context_id: str,
+        *,
+        organization_id: str | None = None,
+        reason: str = "user_requested",
+    ) -> None:
+        """A1B-AE-R.1.b — physical scrub, no grace period.
+
+        Differs from ``destroy_expired`` in two ways:
+
+        * No EXPIRED precondition — any context state can be scrubbed
+          on explicit user request (DELETE endpoint).
+        * ``original_input_audit`` rows are also scrubbed. Retention
+          policies that require the audit trail to survive user-initiated
+          delete must be enforced at a higher layer (e.g. deny DELETE
+          while a compliance hold is active).
+
+        If ``organization_id`` is supplied and the context does not
+        belong to that org, ``ContextNotFoundError`` is raised — the
+        caller MUST translate this to a 404 (never leak tenant
+        existence).
+        """
+        if organization_id is not None:
+            row = await self._repo.get_for_org(context_id, organization_id)
+            if row is None:
+                raise ContextIsolationError(
+                    f"context {context_id!r} not found for "
+                    f"organization {organization_id!r}",
+                    context_id=context_id,
+                )
+        await self._repo.hard_delete_context(context_id)
+        await self._emit(
+            "context_destroyed",
+            {
+                "contextId": context_id,
+                "reason": reason,
+                "initiated_by": "user",
+            },
+        )

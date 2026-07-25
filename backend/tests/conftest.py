@@ -150,8 +150,19 @@ async def setup_db():
     both target ``data/test.db``. Tests that hit the FastAPI app via the
     ``client`` fixture also pick up the rebound engine (get_db dependency
     resolves at request time).
+
+    A1B-AE-RV.2 dev DB guard: snapshot mtime+size of ``data/icoder.db``
+    before tests start and assert unchanged on teardown. Any test that
+    mutates the dev DB during the session fails the session loudly.
     """
     import app.database as _db_module
+    from pathlib import Path
+
+    _dev_db = Path("data/icoder.db")
+    _dev_db_before = (
+        (_dev_db.stat().st_mtime_ns, _dev_db.stat().st_size)
+        if _dev_db.exists() else None
+    )
     from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 
     # Dispose the dev engine and rebuild against the test URL
@@ -180,6 +191,21 @@ async def setup_db():
     async with _test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
     await _test_engine.dispose()
+
+    # A1B-AE-RV.2 dev DB guard: assert dev DB untouched.
+    if _dev_db_before is not None:
+        if not _dev_db.exists():
+            raise RuntimeError(
+                "A1B-AE-RV.2 dev DB guard: data/icoder.db was DELETED during "
+                "the test session. Tests must not mutate the dev DB."
+            )
+        _dev_db_after = (_dev_db.stat().st_mtime_ns, _dev_db.stat().st_size)
+        if _dev_db_after != _dev_db_before:
+            raise RuntimeError(
+                "A1B-AE-RV.2 dev DB guard: data/icoder.db was MODIFIED during "
+                f"the test session. Before={_dev_db_before} After={_dev_db_after}. "
+                "Tests must use data/test.db (settings.DATABASE_URL override)."
+            )
 
 
 @pytest_asyncio.fixture

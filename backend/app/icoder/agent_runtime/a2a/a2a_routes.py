@@ -11,8 +11,8 @@ Mounting layout:
 - ``/api/icoder/agents/{id}/card`` — single AgentCard
 - ``/api/icoder/agents/{id}/v1/message:send`` — inbound message/send
 - ``/api/icoder/internal/experts/{id}/v1/message:send`` — outbound
-- ``/api/icoder/tasks/{id}``       — Phase 1 stub (501)
-- ``/api/icoder/tasks/{id}/cancel`` — Phase 1 stub (501)
+- ``/api/icoder/tasks/{id}``       — A1B-AE-R.1.a real Task state machine
+- ``/api/icoder/tasks/{id}/cancel`` — A1B-AE-R.1.a real Task cancel
 """
 
 from __future__ import annotations
@@ -22,10 +22,11 @@ from typing import Any
 from fastapi import APIRouter, FastAPI
 
 from ..orchestrator.inbound_handler import InboundHandler
+from .routes_context import build_context_router
 from .routes_discovery import AgentProvider, build_discovery_router
 from .routes_inbound import build_inbound_router
 from .routes_outbound import ExpertCaller, build_outbound_router
-from .routes_task_stub import build_task_stub_router
+from .routes_task import build_task_router
 
 
 def build_a2a_routers(
@@ -34,7 +35,7 @@ def build_a2a_routers(
     agent_provider: AgentProvider,
     expert_caller: ExpertCaller,
 ) -> dict[str, Any]:
-    """Build all four A2A routers without mounting.
+    """Build all A2A routers without mounting.
 
     Returns a dict keyed by mount-point category:
 
@@ -42,14 +43,16 @@ def build_a2a_routers(
     - ``"outbound"`` — APIRouter for ``/api/icoder/internal/experts``
     - ``"discovery_root"`` — APIRouter for root-level (well-known, llms.txt)
     - ``"discovery_agents"`` — APIRouter for ``/api/icoder/agents``
-    - ``"task_stub"`` — APIRouter for ``/api/icoder/tasks``
+    - ``"task"`` — APIRouter for ``/api/icoder/tasks``
+    - ``"context"`` — APIRouter for ``/api/icoder/contexts`` (R.1.b)
     """
     return {
         "inbound": build_inbound_router(handler),
         "outbound": build_outbound_router(expert_caller),
         "discovery_root": build_discovery_router(agent_provider)[0],
         "discovery_agents": build_discovery_router(agent_provider)[1],
-        "task_stub": build_task_stub_router(),
+        "task": build_task_router(),
+        "context": build_context_router(),
     }
 
 
@@ -96,8 +99,11 @@ def mount_a2a(
     # Discovery agents — /api/icoder/agents (already prefixed)
     app.include_router(routers["discovery_agents"])
 
-    # Task stub — /api/icoder/tasks (already prefixed)
-    app.include_router(routers["task_stub"])
+    # Task — /api/icoder/tasks (already prefixed)
+    app.include_router(routers["task"])
+
+    # Context — /api/icoder/contexts (already prefixed, R.1.b)
+    app.include_router(routers["context"])
 
     # Mark as mounted (idempotency guard)
     app.state._a2a_mounted = True

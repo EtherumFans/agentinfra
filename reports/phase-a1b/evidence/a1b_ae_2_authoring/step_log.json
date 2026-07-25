@@ -1,0 +1,154 @@
+{
+  "charter": "A1B-AE.2",
+  "commit_position": 3,
+  "title": "Agent / Expert taxonomy + canonical catalogs",
+  "execution_mode": "HUMAN_OPERATION_SIMULATION_REQUIRED",
+  "human_operation_simulation_attested": true,
+  "steps": [
+    {
+      "n": 1,
+      "ts": "2026-07-22T05:30:00Z",
+      "op": "filesystem_inventory",
+      "cmd": "ls backend/official_agents/ | sort",
+      "result": "32 dirs + __init__.py listed; 3 dual-name pairs visible (code_validation/code-validation, compliance_guardrail/compliance-guardrail, note_completeness/note-completeness)",
+      "evidence_ref": "reports/phase-a1b/evidence/a1b_ae_2_authoring/step_log.json (this file)"
+    },
+    {
+      "n": 2,
+      "ts": "2026-07-22T05:32:00Z",
+      "op": "per_dir_classification",
+      "cmd": "for d in backend/official_agents/*/; do has_init/has_pack/has_agent_py checks; py_count=$(ls *.py | wc -l); done",
+      "result": "2 RUNNABLE_PACK (medical_coding, drg-analyzer); 27 METADATA_ONLY_PACK; 3 LEGACY_CODE_ORPHAN (code_validation, compliance_guardrail, note_completeness); 0 EMPTY"
+    },
+    {
+      "n": 3,
+      "ts": "2026-07-22T05:34:00Z",
+      "op": "seed_py_parse",
+      "cmd": "python AST-based parse of backend/app/seed.py#PREBUILT_AGENTS",
+      "result": "16 entries extracted via regex over the dict-list literal (no exec of seed.py)",
+      "file_ref": "scripts/a1b_ae_2_build_catalogs.py::_seed_prebuilt_keys"
+    },
+    {
+      "n": 4,
+      "ts": "2026-07-22T05:36:00Z",
+      "op": "internal_experts_inventory",
+      "cmd": "ls backend/app/agents/experts/*.py | sort",
+      "result": "11 expert modules: audit/cdi/denial/diagnosis/drg/evidence/hcc/homepage/procedure/report/timeline"
+    },
+    {
+      "n": 5,
+      "ts": "2026-07-22T05:38:00Z",
+      "op": "hub_endpoint_read",
+      "file_ref": "backend/app/api/icoder_agents_hub.py:1-516",
+      "result": "_load_packs() reads filesystem; _is_visible filters expert-stub/internal_engine/hidden_from_hub; _find_prebuilt_by_agent_id queries DB; clone returns 404 if DB has no matching prebuilt row"
+    },
+    {
+      "n": 6,
+      "ts": "2026-07-22T05:40:00Z",
+      "op": "agents_api_inventory",
+      "file_ref": "backend/app/api/agents.py",
+      "result": "23 route handlers (CRUD + threads + run + stream + stats + version bump + clone)"
+    },
+    {
+      "n": 7,
+      "ts": "2026-07-22T05:42:00Z",
+      "op": "agent_model_read",
+      "file_ref": "backend/app/models/agent.py",
+      "result": "Agent fields: organization_id, name, description, system_prompt, icon, category, expert_ids (JSON), default_expert_id, a2a_enabled, config (JSON), version, status (draft|published|archived), is_prebuilt, is_published, created_by, usage_count"
+    },
+    {
+      "n": 8,
+      "ts": "2026-07-22T05:44:00Z",
+      "op": "expert_model_read",
+      "file_ref": "backend/app/models/expert.py",
+      "result": "Expert fields: organization_id, name, description, system_prompt, icon, category, is_prebuilt, is_published, created_by, usage_count, capabilities (JSON), input_schema, output_schema, tags"
+    },
+    {
+      "n": 9,
+      "ts": "2026-07-22T05:46:00Z",
+      "op": "catalog_generator_script_authored",
+      "file_ref": "scripts/a1b_ae_2_build_catalogs.py",
+      "result": "Single hermetic Python script (no DB / no network / no env var); emits 5 catalog JSON files + BUILD_INFO.json; deterministic (sorted lists, no timestamps in payload)"
+    },
+    {
+      "n": 10,
+      "ts": "2026-07-22T05:48:00Z",
+      "op": "catalog_generator_first_run",
+      "cmd": "python scripts/a1b_ae_2_build_catalogs.py",
+      "result": "First run had typo 'declared_expers' (missing 't') in sorted(set(...)) call; fixed via Python str.replace on source"
+    },
+    {
+      "n": 11,
+      "ts": "2026-07-22T05:50:00Z",
+      "op": "catalog_generator_second_run",
+      "cmd": "python scripts/a1b_ae_2_build_catalogs.py",
+      "result": "PASS. Emitted: pack_catalog.json (19434 bytes), agent_catalog.json (15341 bytes), expert_catalog.json (12832 bytes), aliases.json (2052 bytes), migrations.json (2504 bytes), BUILD_INFO.json (663 bytes)"
+    },
+    {
+      "n": 12,
+      "ts": "2026-07-22T05:52:00Z",
+      "op": "catalog_byte_stability_check",
+      "cmd": "run builder twice; diff -r the two outputs",
+      "result": "BYTE_STABLE_OK — no differences across two independent runs"
+    },
+    {
+      "n": 13,
+      "ts": "2026-07-22T05:54:00Z",
+      "op": "openapi_endpoint_inventory",
+      "cmd": "python -c 'load docs/openapi/openapi.json; filter paths containing /agents'",
+      "result": "194 total paths; 11 agent-related paths (/api/admin/agents, /api/icoder/agents/hub, /api/icoder/agents/{id}/clone, /api/v1/agents/{id}/run, /api/runtime-platform/agents[/{ref}/run|/lifecycle], /api/runtime/agents[/{ref}/run|/lifecycle|/install])"
+    },
+    {
+      "n": 14,
+      "ts": "2026-07-22T05:56:00Z",
+      "op": "taxonomy_doc_authored",
+      "file_ref": "reports/phase-a1b/A1B_AE_2_TAXONOMY.md",
+      "result": "9 sections; 8-kind taxonomy (Agent/Expert/Pack/Preset/Tool/MCP Server/Agent Card/Runtime elements); 4-value Pack classification; 3-value Agent classification; 3-value Expert classification; source-of-truth hierarchy; maintenance contract"
+    },
+    {
+      "n": 15,
+      "ts": "2026-07-22T05:58:00Z",
+      "op": "architecture_reconciliation_doc_authored",
+      "file_ref": "reports/phase-a1b/A1B_AE_2_AGENT_ARCHITECTURE_RECONCILIATION.md",
+      "result": "16 sections; answers the 10 §9 architecture questions with file:line evidence; documents version shadowing (code_validation@1.0.0 vs code-validation@2.0.0); documents the clone-404 root cause (Pack-DB sync gap); documents the 13 Pack-no-seed rows; documents the 6 maturity-drift Packs; carry-forward table to A1B-AE.3..A1B-AE.9"
+    },
+    {
+      "n": 16,
+      "ts": "2026-07-22T06:00:00Z",
+      "op": "index_md_updated",
+      "file_ref": "reports/phase-a1b/INDEX.md",
+      "result": "A1B-AE.1 status updated with commit SHA 558cfce; A1B-AE.2 row marked COMPLETED (filed, not verified); documents table extended with A1B_AE_2_TAXONOMY.md + A1B_AE_2_AGENT_ARCHITECTURE_RECONCILIATION.md"
+    }
+  ],
+  "verdict": "A1B_AE_2_AGENT_ARCHITECTURE_RECONCILED_AND_CATALOGED_FILED",
+  "forbidden_verdicts_checklist": {
+    "PRODUCTION_READY_emitted": false,
+    "FULLY_VERIFIED_emitted": false,
+    "PHI_BOUNDED_emitted": false,
+    "CORTI_PARITY_VERIFIED_emitted": false,
+    "PASS_A1A_GATE4_FINAL_emitted": false,
+    "READY_FOR_HOSPITAL_DEPLOYMENT_emitted": false,
+    "CLINICAL_GRADE_VERIFIED_emitted": false,
+    "CORTI_AGENTIC_FRAMEWORK_FULLY_REPLICATED_emitted": false
+  },
+  "clean_room_attested": true,
+  "clean_room_basis": "iCoDer filesystem observation + Corti PUBLIC docs only (A1B-AE.1 §1.1 attestment). No Corti-internal code, prompts, UI assets, trademarks, login-gated content used.",
+  "no_db_mutation_attested": true,
+  "no_runtime_behaviour_change_attested": true,
+  "no_frontend_change_attested": true,
+  "files_added_this_commit": [
+    "scripts/a1b_ae_2_build_catalogs.py",
+    "backend/agent_catalog/pack_catalog.json",
+    "backend/agent_catalog/agent_catalog.json",
+    "backend/agent_catalog/expert_catalog.json",
+    "backend/agent_catalog/aliases.json",
+    "backend/agent_catalog/migrations.json",
+    "backend/agent_catalog/BUILD_INFO.json",
+    "reports/phase-a1b/A1B_AE_2_TAXONOMY.md",
+    "reports/phase-a1b/A1B_AE_2_AGENT_ARCHITECTURE_RECONCILIATION.md",
+    "reports/phase-a1b/evidence/a1b_ae_2_authoring/step_log.json"
+  ],
+  "files_modified_this_commit": [
+    "reports/phase-a1b/INDEX.md"
+  ]
+}

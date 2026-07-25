@@ -84,10 +84,10 @@ class Expert(Base, TimestampMixin):
         String(128), nullable=True, index=True,
     )
     origin: Mapped[str] = mapped_column(
-        String(32), nullable=False, default="ICODER_INTERNAL",
+        String(32), nullable=False, default="ICODER_INTERNAL", server_default="icoder_internal",
     )
     corti_alignment: Mapped[str] = mapped_column(
-        String(32), nullable=False, default="UNKNOWN",
+        String(32), nullable=False, default="UNKNOWN", server_default="unknown",
     )
     pack_dir: Mapped[str | None] = mapped_column(
         String(128), nullable=True,
@@ -108,7 +108,7 @@ class McpServer(Base, TimestampMixin):
     description: Mapped[str] = mapped_column(Text, default="")
     auth_type: Mapped[str] = mapped_column(String(32), default="none")  # none / bearer / oauth2 — LEGACY column, kept for back-compat
     authorization_type: Mapped[str] = mapped_column(
-        String(32), default="none",
+        String(32), default="none", server_default="none",
     )  # A1B-AE.3 — Corti canonical enum: none | inherit | bearer | oauth2.0
     auth_header: Mapped[str | None] = mapped_column(String(512), nullable=True)  # e.g. "Bearer sk-xxx"
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)

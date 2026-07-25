@@ -1510,6 +1510,7 @@ from app.api.medical_docs import router as medical_docs_router
 from app.api.embedded import router as embedded_router
 from app.api.preview_sessions import router as preview_sessions_router
 from app.api.drg import router as drg_router
+from app.api.patient_context import router as patient_context_router  # A1C.3
 from app.api.examples import router as examples_router
 from app.api.runs import router as runs_router
 from app.api.v2_tools_coding import router as v2_tools_coding_router
@@ -1580,6 +1581,7 @@ app.include_router(examples_router)            # /examples/* (Phase 7 Gate 1 par
 app.include_router(runs_router)                # /api/v1/runs/{id}{,/cancel} (Phase 7 Gate 4)
 app.include_router(medical_docs_router)        # /api/medical-docs/*
 app.include_router(drg_router)                 # /api/drg/*
+app.include_router(patient_context_router)    # /api/v1/patient-context/* (A1C.3 — closes RV.5 J8)
 
 
 @app.get("/api/metrics")

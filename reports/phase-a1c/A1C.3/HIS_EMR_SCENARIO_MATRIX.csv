@@ -1,0 +1,17 @@
+scenario_id,scenario_name_zh,scenario_name_en,expected_status,expected_error_code,trigger_description,validates_contract_section,dry_run_outcome,live_run_pilot_target,rvgap_closed
+1,正常病例,smoke,201,(none),POST valid patient context,§2 Patient Context API,PASS,PENDING,RV.5 J8
+2,缺字段,missing_fields,400,INVALID_REQUEST,POST body missing required fields,§9 Error Code,PASS,PENDING,—
+3,重复消息,duplicate_message,200 (cache),(none),Same Idempotency-Key replayed,§8 Idempotency,PASS,PENDING,—
+4,乱序消息,out_of_order,404,NOT_FOUND,POST documents before context exists,§2 + §9,PASS,PENDING,—
+5,延迟消息,delayed_message,201,(none),90s client wait then POST,§2 + §10 Retry,PASS,PENDING,—
+6,撤回文书,withdraw_document,204,(none),DELETE document after creation,§3 Document Ingestion,PASS,PENDING,—
+7,文书版本更新,document_version_update,201,(none),POST same source_doc_id with new version,§3.2 Document Submission,PASS,PENDING,—
+8,患者合并,patient_merge,202,(none),POST patient-merge event (async),§2 + §13,PASS,PENDING,—
+9,就诊号变更,encounter_id_change,200,(none),PUT encounter-id rewrite,§2 + §13,PASS,PENDING,—
+10,跨机构错误,cross_tenant_deny,404,NOT_FOUND,GET other-org context,§2 + A1A Gate 3,PASS,PENDING,RV.5 J9 reinforce
+11,网络超时,network_timeout,504,UPSTREAM_TIMEOUT,Upstream LLM 120s timeout,§9 + §10,PASS,PENDING,—
+12,5xx upstream,upstream_5xx,502,UPSTREAM_ERROR,DeepSeek 502 simulation,§9,PASS,PENDING,—
+13,429 rate limit,rate_limited,429,RATE_LIMITED,Phase 7 Gate 8 quota,§9 + Phase 7 Gate 8,PASS,PENDING,—
+14,回调失败,callback_failure,200 + dead-letter,(none),Webhook to nonexistent host,§4 Result Callback + §7 Webhook,PASS,PENDING,—
+15,重复回写,duplicate_writeback,200,(none),Same delivery_id replayed to HIS,§4 + §8,PASS,PENDING,—
+16,consent 拒绝,consent_rejected,422,BUSINESS_RULE_VIOLATION,Research purpose without explicit consent,§2.2 + §9,PASS,PENDING,—

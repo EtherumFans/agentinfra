@@ -34,6 +34,13 @@ from app.models.cdi_case import (
 )
 from app.models.idempotency_record import IdempotencyRecord
 from app.models.preview_session import PreviewSession
+from app.models.patient_context import (
+    PatientContext,
+    VISIT_TYPE_VALUES,
+    PURPOSE_OF_USE_VALUES,
+    CONSENT_LEGAL_BASIS_VALUES,
+    CONTEXT_STATUS_VALUES,
+)
 
 __all__ = [
     "TimestampMixin",
@@ -64,4 +71,6 @@ __all__ = [
     "ClinicianResponseModel", "DocumentVersionModel",
     "IdempotencyRecord",
     "PreviewSession",
+    "PatientContext", "VISIT_TYPE_VALUES", "PURPOSE_OF_USE_VALUES",
+    "CONSENT_LEGAL_BASIS_VALUES", "CONTEXT_STATUS_VALUES",
 ]

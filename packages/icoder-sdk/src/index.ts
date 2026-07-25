@@ -22,6 +22,12 @@ export type {
   RunTraceEvent, RunTraceTimelineResponse, RunTraceRawResponse,
   A2AEnvelope, A2AMessage, A2AMessagePart,
 } from './resources/runs.js';
+// A1C.3 — Patient Context API (closes RV.5 BLOCKED_BY_NO_CONTEXT_CREATE_ENDPOINT)
+export { PatientContextResource } from './resources/patient-context.js';
+export type {
+  PatientContextCreate, PatientContextResponse,
+  VisitType, PurposeOfUse, ConsentLegalBasis, ContextStatus,
+} from './resources/patient-context.js';
 
 export type {
   TokenResponse, User, UserRole, Encounter, Review,
@@ -46,6 +52,7 @@ import { RuntimeResource } from './resources/runtime.js';
 import { MarketplaceResource } from './resources/marketplace.js';
 import { ComplianceResource } from './resources/compliance.js';
 import { RunsResource, RunHistoryResource, RunTraceResource } from './resources/runs.js';
+import { PatientContextResource } from './resources/patient-context.js';
 
 export default class iCoDer {
   client: iCoDerClient;
@@ -67,6 +74,8 @@ export default class iCoDer {
   runHistory: RunHistoryResource;
   /** Phase 6 Gate 4 — run_trace store (alembic 009). */
   runTrace: RunTraceResource;
+  /** A1C.3 — Patient Context API (closes RV.5 BLOCKED_BY_NO_CONTEXT_CREATE_ENDPOINT). */
+  patientContext: PatientContextResource;
 
   constructor(config: import('./client.js').iCoDerConfig) {
     this.client = new iCoDerClient(config);
@@ -85,5 +94,6 @@ export default class iCoDer {
     this.runs = new RunsResource(this.client.http);
     this.runHistory = new RunHistoryResource(this.client.http);
     this.runTrace = new RunTraceResource(this.client.http);
+    this.patientContext = new PatientContextResource(this.client.http);
   }
 }

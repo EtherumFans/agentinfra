@@ -1,0 +1,21 @@
+journey_id,journey_name,pdf_section,primary_actor,scenario,rv5_prior_status,a1c8_pilot_action,expected_evidence_count,notes
+J-01,Expert Registry,§十六 (a),organization_admin,Browse /experts → verify Corti-aligned 9-key set,PASS (RV.5 30/30),REPLAY_PILOT,9,Evidence template standardized
+J-02,Create Research Agent,§十六 (b),organization_admin,/ai-studio → new agent → save → verify,PASS,REPLAY_PILOT,9,
+J-03,Run Research Agent,§十六 (c),clinician,Agent chat → DeepSeek call → evidence chips → finish,PASS,REPLAY_PILOT,9,Verify cost.currency=CNY
+J-04,Calculator Tool,§十六 (d),clinician,Agent invokes calculator expert → verify result,PASS,REPLAY_PILOT,9,
+J-05,Interviewing Tool,§十六 (e),clinician,Agent invokes interviewing expert → verify session,PASS,REPLAY_PILOT,9,
+J-06,External Expert Disabled,§十六 (f),clinician,Toggle expert off → verify agent cannot invoke,PASS,REPLAY_PILOT,9,
+J-07,Clone Preset,§十六 (g),organization_admin,Clone a preset agent → verify own copy editable,PASS,REPLAY_PILOT,9,
+J-08,Context Delete (patient_context),§十六 (h),clinician,POST patient_context → DELETE → verify 404 + audit emit,PRIOR_BLOCKED → A1C.3 FIXED,REPLAY_PILOT_FRESH_ENDPOINT,9,Previously BLOCKED_BY_NO_CONTEXT_CREATE_ENDPOINT — closed by A1C.3
+J-09,Cross-Tenant Attack,§十六 (i),integration_service,Hospital-A JWT → Hospital-B encounter → verify 404,PASS,REPLAY_PILOT,9,tenant_read_policy exact 404
+J-10,Logout Storage Cleanup,§十六 (j),clinician,Logout → verify sessionStorage cleared + patient_context TTL cron,PASS,REPLAY_PILOT,9,RV.5 3/3 PASS
+J-11,Patient Context Lifecycle,§十六 (k),clinician,POST → GET → extend → DELETE → verify audit + 24h TTL,NEW (A1C.3),REPLAY_PILOT_FRESH_ENDPOINT,9,Fresh journey for A1C.3 endpoint
+J-12,Webhook Delivery,§十六 (l),integration_service,Agent run complete → webhook to HIS → verify 200 + retry on failure,DESIGN (A1C.3),REPLAY_PILOT_AFTER_WEBHOOK_WIRED,9,Requires Pilot HIS simulator + queue wired
+J-13,AI-Disabled Mode,§十六 (m),clinician,ICODER_AI_ENABLED=false → verify graceful degrade,PASS (A1C.5),REPLAY_PILOT,9,6/6 PDF §九 behaviors verified
+J-14,PHI Redaction Live,§十六 (n),clinician,Inject synthetic patient → verify <REDACTED> in all 11 surfaces,DESIGN (A1C.6),REPLAY_PILOT_WITH_HAR_CAPTURE,9,Requires HAR + Sentry regex alert
+J-15,DeepSeek Failure Recovery,§十六 (o),integration_service,Block DeepSeek → verify tenacity retry + cost=0,PRIOR_PASS (Phase 7 Gate 12),REPLAY_PILOT,9,Phase 7 Gate 12 prior PASS
+J-16,Multi-tenant Concurrent,§十六 (p),integration_service,2 tenants run agent_run simultaneously → verify isolation,PASS (A1A Gate 3R),REPLAY_PILOT,9,234 tests PASS prior
+J-17,SSO Re-login,§十六 (q),clinician,JWT expiry → refresh → verify token_version revocation,PASS,REPLAY_PILOT,9,
+J-18,Webhook Dead-Letter,§十六 (r),integration_service,Force 5 webhooks to fail → verify dead_letter_queue INSERT,DESIGN,REPLAY_PILOT_AFTER_QUEUE_WIRED,9,Requires Redis/Postgres LISTEN/NOTIFY wired
+J-19,KMS Key Rotation,§十六 (s),system_admin,Trigger CredentialVault.rotate() → verify audit emit,DESIGN (A1C.5),REPLAY_PILOT_AFTER_KMS_PROVIDER,9,Requires real KMS provider
+J-20,Coding Review Approve/Reject,§十六 (t),coder,Review generated codes → approve → verify audit + cost,PASS,REPLAY_PILOT,9,

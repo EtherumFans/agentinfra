@@ -36,7 +36,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Optional
 
-from sqlalchemy import JSON, DateTime, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy import JSON, DateTime, ForeignKey, Integer, String, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
@@ -105,19 +105,19 @@ class PreviewSession(Base):
     )
     single_use: Mapped[bool] = mapped_column(
         # SQLite doesn't have bool; use Integer 0/1
-        Integer, nullable=False, default=1,
+        Integer, nullable=False, default=1, server_default="1",
         comment="1 = ticket consumed on first successful exchange",
     )
     token_version: Mapped[int] = mapped_column(
-        Integer, nullable=False, default=1,
+        Integer, nullable=False, default=1, server_default="1",
         comment="Ticket format version; bumped on signature-scheme changes",
     )
     status: Mapped[str] = mapped_column(
-        String(32), nullable=False, default="PENDING",
+        String(32), nullable=False, default="PENDING", server_default="pending",
         comment="PENDING | EXCHANGED | REVOKED | EXPIRED",
     )
     issued_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=_utcnow, nullable=False,
+        DateTime(timezone=True), default=_utcnow, nullable=False, server_default=func.current_timestamp(),
     )
     expires_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False,

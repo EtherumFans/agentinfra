@@ -178,6 +178,13 @@ class MockLLMProvider(BaseLLMProvider):
 
     name = "mock"
 
+    def __init__(self, *, name: str = "") -> None:
+        # Phase A1D.4 — optional instance-level name override so tests can
+        # register multiple mocks (e.g. ``MockLLMProvider(name="fb1")``) and
+        # tell them apart in the fallback chain trail.
+        if name:
+            self.name = name
+
     async def generate(
         self,
         messages: list[dict[str, str]],
@@ -418,13 +425,29 @@ class OpenAICompatibleProvider(BaseLLMProvider):
         max_tokens: int = 4096,
         temperature: float = 0.1,
         timeout: int = 120,
+        *,
+        _name_override: str = "",
+        auth_header: str = "Authorization",
     ):
         self.api_key = api_key
-        self.base_url = base_url.rstrip("/")
+        # Phase A1D.4 — Azure OpenAI uses deployment-scoped URLs that already
+        # contain the full path + query string; don't strip the query.
+        if "?" in base_url:
+            self.base_url = base_url.rstrip("/")
+        else:
+            self.base_url = base_url.rstrip("/")
         self.model = model
         self.max_tokens = max_tokens
         self.temperature = temperature
         self.timeout = timeout
+        # Phase A1D.4 — instance-level name override so multiple fallbacks
+        # of the same class can coexist (azure_openai_fallback, qwen_fallback, ...).
+        if _name_override:
+            self.name = _name_override
+        # Phase A1D.4 — Azure uses ``api-key: <key>`` instead of
+        # ``Authorization: Bearer <key>``. Default to Authorization for
+        # OpenAI / Qwen / Moonshot compatibility.
+        self._auth_header = auth_header
 
     async def generate(
         self,
@@ -433,20 +456,42 @@ class OpenAICompatibleProvider(BaseLLMProvider):
         response_schema: dict | None = None,
         context: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
+        # Phase A1D.4 (A1C-B-007) — graceful degradation matches DeepSeekProvider.
+        # Returns _mock_fallback_response on every error path so the gateway's
+        # auto-failover logic can detect degraded responses uniformly.
+        if not self.api_key or self.api_key == "not-needed":
+            return _mock_fallback_response("no_api_key")
+
         import httpx
 
-        url = f"{self.base_url}/chat/completions"
+        # Azure OpenAI URLs already include /chat/completions in the base_url.
+        # Honor the contract: when base_url contains "?api-version=", treat
+        # it as fully-qualified (no /chat/completions append).
+        if "?" in self.base_url and "/chat/completions" in self.base_url:
+            url = self.base_url
+        else:
+            url = f"{self.base_url}/chat/completions"
         payload: dict[str, Any] = {
             "model": self.model,
             "messages": messages,
             "max_tokens": self.max_tokens,
             "temperature": self.temperature,
         }
+        if tools:
+            payload["tools"] = tools
+        if response_schema:
+            payload["response_format"] = {"type": "json_object", "schema": response_schema}
 
-        headers = {
-            "Authorization": f"Bearer {self.api_key}",
-            "Content-Type": "application/json",
-        }
+        if self._auth_header.lower() == "api-key":
+            headers = {
+                "api-key": self.api_key,
+                "Content-Type": "application/json",
+            }
+        else:
+            headers = {
+                "Authorization": f"Bearer {self.api_key}",
+                "Content-Type": "application/json",
+            }
 
         t0 = time.time()
         try:
@@ -454,8 +499,11 @@ class OpenAICompatibleProvider(BaseLLMProvider):
                 resp = await client.post(url, json=payload, headers=headers)
                 resp.raise_for_status()
                 data = resp.json()
-        except httpx.HTTPError as e:
-            raise ProviderError(f"OpenAI-compatible API error: {e}")
+        except httpx.HTTPStatusError as e:
+            status = e.response.status_code if e.response is not None else "?"
+            return _mock_fallback_response(f"provider_http_{status}")
+        except httpx.HTTPError:
+            return _mock_fallback_response("provider_network_error")
 
         choice = data["choices"][0]
         message = choice.get("message") or {}
@@ -469,6 +517,7 @@ class OpenAICompatibleProvider(BaseLLMProvider):
         result: dict[str, Any] = {
             "content": content,
             "model": data.get("model", self.model),
+            "provider": self.name,
             "usage": usage,
             "cost_usd": _compute_cost_usd(usage),
             "latency_ms": int((time.time() - t0) * 1000),
@@ -478,6 +527,8 @@ class OpenAICompatibleProvider(BaseLLMProvider):
         return result
 
     def health_check(self) -> dict:
+        if not self.api_key or self.api_key == "not-needed":
+            return {"provider": self.name, "model": self.model, "status": "missing"}
         return {"provider": self.name, "model": self.model, "status": "configured"}
 
 
@@ -590,6 +641,10 @@ class LLMGateway:
         self._providers: dict[str, BaseLLMProvider] = {}
         self._default: str | None = None
         self._aliases: dict[str, str] = {}
+        # Phase A1D.4 (A1C-B-007) — ordered fallback chain.
+        # When the primary returns a degraded response, the gateway walks
+        # this chain in order until a healthy response is found.
+        self.fallback_chain: list[BaseLLMProvider] = []
 
     def register(self, provider: BaseLLMProvider, *, default: bool = False, alias: str = "") -> "LLMGateway":
         """Register a provider. If default=True, set as the default provider."""
@@ -598,6 +653,18 @@ class LLMGateway:
             self._aliases[alias] = provider.name
         if default:
             self._default = provider.name
+        return self
+
+    def register_fallback(self, provider: BaseLLMProvider) -> "LLMGateway":
+        """Phase A1D.4 (A1C-B-007) — append a fallback provider.
+
+        Fallbacks form an ordered chain. When the primary returns a
+        response with ``degraded=True``, ``generate()`` walks the chain
+        in order until a healthy response is found. If every fallback
+        is also degraded, the last degraded response is returned with a
+        ``failover_trail`` recording every provider that was tried.
+        """
+        self.fallback_chain.append(provider)
         return self
 
     def get(self, name: str = "") -> BaseLLMProvider:
@@ -624,11 +691,55 @@ class LLMGateway:
         response_schema: dict | None = None,
         context: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        """Route a generation request to the appropriate provider."""
-        p = self.get(provider)
-        return await p.generate(
+        """Route a generation request to the appropriate provider.
+
+        Phase A1D.4 (A1C-B-007) — auto-failover. When the primary
+        returns a degraded response, walk ``fallback_chain`` in order
+        until a healthy response is found. Provenance is stamped:
+
+          - ``fallback_from`` — name of the original (degraded) primary
+          - ``fallback_reason`` — degraded_reason returned by the primary
+          - ``failover_trail`` — list of ``{provider, reason}`` for every
+            provider tried (only present when failover occurred)
+        """
+        primary = self.get(provider)
+        primary_name = getattr(primary, "name", provider or "primary")
+        result = await primary.generate(
             messages=messages, tools=tools, response_schema=response_schema, context=context
         )
+
+        # Healthy primary — short-circuit.
+        if not (isinstance(result, dict) and result.get("degraded") is True):
+            return result
+
+        # Primary degraded — record trail and walk fallback chain.
+        primary_reason = result.get("degraded_reason", "degraded")
+        trail: list[dict[str, str]] = [
+            {"provider": primary_name, "reason": primary_reason},
+        ]
+
+        for fb in self.fallback_chain:
+            fb_result = await fb.generate(
+                messages=messages, tools=tools, response_schema=response_schema, context=context
+            )
+            fb_name = getattr(fb, "name", "fallback")
+            if isinstance(fb_result, dict) and fb_result.get("degraded") is not True:
+                # Healthy fallback — stamp provenance and return.
+                fb_result.setdefault("fallback_from", primary_name)
+                fb_result.setdefault("fallback_reason", primary_reason)
+                fb_result.setdefault("failover_trail", trail)
+                return fb_result
+            # Fallback also degraded — record and continue.
+            trail.append({
+                "provider": fb_name,
+                "reason": fb_result.get("degraded_reason", "degraded") if isinstance(fb_result, dict) else "degraded",
+            })
+
+        # Every provider degraded — return last response with full trail.
+        result.setdefault("fallback_from", primary_name)
+        result.setdefault("fallback_reason", primary_reason)
+        result["failover_trail"] = trail
+        return result
 
     def list_providers(self) -> dict[str, dict]:
         """Return health status of all registered providers."""

@@ -1,7 +1,7 @@
 # A1D — Layer 1 工程债务清理与 CI 信号恢复 — CHARTER
 
 **Phase**: A1D — Layer 1 工程债务清理与 CI 信号恢复 (Engineering Debt Cleanup & CI Signal Restoration)
-**Charter version**: 1.0 (2026-08-05)
+**Charter version**: 1.1 (2026-08-05; v1.0 → v1.1 amendment in A1D.0 per IC-A1D-1 finding in `A1C_PREDECESSOR_CONSISTENCY_REPORT.md` — fixes §一/§二/§四 internal blocker-count error where A1C-B-015 was mis-listed as Engineering-class; truth is Pilot-env-class per A1C_OPEN_BLOCKERS.csv)
 **Execution prompt**: `docs/governance/RELEASE_ROADMAP.md` §2.1.1 (master tracker)
 **Opened**: 2026-08-05 (A1D.0 charter + entry audit)
 **Worktree (primary)**: `E:/Corti4C`
@@ -17,13 +17,13 @@ A1D 不是上线阶段、不是部署阶段、不是试点准入阶段。A1D 回
 
 > **A1C.9 列出的 9 个 Engineering 类 open blockers 是否全部清零,使 Layer 1 工程部分达到可重裁 A1C 的状态?**
 
-A1D 严格不处理 9 个 Pilot-env-gated blockers (A1C-B-001/004/005/006/009/013/014/016/017/019) — 这些是 Pilot ops 责任,与 A1D 工程工作并行推进,不进入 A1D verdict 范围。
+A1D 严格不处理 11 个 Pilot-env-gated blockers (A1C-B-001/004/005/006/009/013/014/015/016/017/019) — 这些是 Pilot ops 责任,与 A1D 工程工作并行推进,不进入 A1D verdict 范围。
 
 允许的最终裁决**(三选一,不得创造模糊裁决)**:
 
 | Verdict | 含义 |
 |---------|------|
-| `PASS_A1D_LAYER1_ENGINEERING_DEBT_CLEARED_ALL_9_ENG_BLOCKERS_CLOSED` | A1C-B-002/003/007/008/010/011/012/015/018/020 全部 closed;回归全 PASS;CI 信号 clean;Layer 1 工程部分可请求 A1C 重裁。**不等于**试点准入通过 — A1C 重裁仍需 Pilot env 12 blockers 闭环。 |
+| `PASS_A1D_LAYER1_ENGINEERING_DEBT_CLEARED_ALL_9_ENG_BLOCKERS_CLOSED` | A1C-B-002/003/007/008/010/011/012/018/020 全部 closed;回归全 PASS;CI 信号 clean;Layer 1 工程部分可请求 A1C 重裁。**不等于**试点准入通过 — A1C 重裁仍需 Pilot env 11 blockers 闭环。 |
 | `PARTIAL_A1D_SOME_ENG_BLOCKERS_REMAIN` | 至少一项 Eng blocker 未闭;已列入 `A1D_OPEN_BLOCKERS.csv`。 |
 | `FAIL_A1D_ENGINEERING_REGRESSION` | 修复过程引入 P0 安全/租户隔离/数据丢失/迁移损坏缺陷,或回归数 > A1C.9 基线。 |
 
@@ -48,9 +48,9 @@ A1D 承接 A1C.9 终态 `PARTIAL_A1C_PILOT_ENTRY_BLOCKERS_REMAIN` (commit `209f2
 
 A1C.9 继承并继续生效的事实清单 (以下 BLOCKED/未解决项**继续生效**带入 A1D):
 
-- A1C 12 open blockers 见 `reports/phase-a1c/A1C.9/A1C_OPEN_BLOCKERS.csv`
-  - **9 个 Engineering 类** (A1D 范围): A1C-B-002/003/007/008/010/011/012/015/018/020
-  - **9 个 Pilot-env 类** (A1D 范围外,并行推进): A1C-B-001/004/005/006/009/013/014/016/017/019
+- A1C 20 open blockers 见 `reports/phase-a1c/A1C.9/A1C_OPEN_BLOCKERS.csv` (Pilot env=11, A1D=8, A1D or Pilot prep=1)
+  - **9 个 Engineering 类** (A1D 范围): A1C-B-002/003/007/008/010/011/012/018/020
+  - **11 个 Pilot-env 类** (A1D 范围外,并行推进): A1C-B-001/004/005/006/009/013/014/015/016/017/019
 - A1C 5-tuple 状态不可变更 (见上表)
 - Charter §22 8 个禁用 verdict 继续生效
 
@@ -85,7 +85,7 @@ A1C.9 继承并继续生效的事实清单 (以下 BLOCKED/未解决项**继续�
 |------|------|-------------------|----------|
 | A1D.0 | 入场审计与 A1D Charter | — | 4 deliverable (本文件 + ENTRY_AUDIT + BASELINE_STATE + A1C_PREDECESSOR_CONSISTENCY_REPORT) |
 | A1D.1 | ESLint 引入与前端 lint 信号恢复 | A1C-B-003 | ESLINT_BASELINE.json + LINT_FAILURE_TRIAGE.csv + ESLINT_RULE_TUNING.md + FRONTEND_LINT_INTRODUCTION_REPORT.md |
-| A1D.2 | 小基础设施: audit pause + egress decision log + webhook queue | A1C-B-012, A1C-B-015, A1C-B-018 | 3 source code changes + 3 unit test suites + SMALL_INFRA_CHANGELOG.md |
+| A1D.2 | 小基础设施: audit pause + egress decision log | A1C-B-012, A1C-B-018 | 2 source code changes + 2 unit test suites + SMALL_INFRA_CHANGELOG.md (v1.1: A1C-B-015 webhook queue moved to Pilot env scope per IC-A1D-1) |
 | A1D.3 | 身份与审计: UserRole 扩展 + audit_middleware 改造 | A1C-B-010, A1C-B-011, A1C-B-020 | alembic migration N + UserRole enum + audit_middleware patches + IDENTITY_AUDIT_REPORT.md |
 | A1D.4 | 云弹性: KMS rotation + LLM fallback provider | A1C-B-007, A1C-B-008 | kms_version_token.py + fallback_provider.py (≥1 impl) + FALLBACK_FAILOVER_TEST_RESULTS.json + KMS_ROTATION_REPORT.md |
 | A1D.5 | CI 信号: 88 个历史基线失败 triage | A1C-B-002 | BASELINE_FAILURE_LEDGER.csv (root-caused) + 4 per-suite fix batches (spec/STT/oauth/health_check) + CI_GATE_POLICY.md |
@@ -235,7 +235,25 @@ PDF §十六 认可:**"如遇到真实外部环境缺失,不得伪造结果,先�
 
 ## §十二 Charter 冻结声明
 
-本 Charter 在 A1D.0 内冻结。后续子门如需扩展范围、变更裁决规则或解除 §三 红线,**必须**新建 Charter 修订 commit 并标注版本号 (e.g., v1.1)。在 Charter 修订落盘前,所有子门继续按 v1.0 执行。
+### 12.1 v1.0 冻结 (commit c81d49a, 2026-08-05)
+
+本 Charter v1.0 在 A1D.0 内冻结。
+
+### 12.2 v1.1 amendment (in A1D.0, this commit)
+
+A1D.0 内的 `A1C_PREDECESSOR_CONSISTENCY_REPORT.md` 发现 IC-A1D-1: charter v1.0 §一/§二/§四 内部 blocker-count 错误 (A1C-B-015 误列入 Engineering 类; 实际 target_phase=Pilot env)。本次 v1.1 修正:
+- §一 line 20: "9 个 Pilot-env-gated" → "11 个 Pilot-env-gated"; IDs 列表加 A1C-B-015
+- §一 line 26 PASS_A1D blocker IDs: 移除 A1C-B-015
+- §二 Engineering 类 IDs: 移除 A1C-B-015
+- §二 Pilot-env 类 IDs: 加入 A1C-B-015
+- §二 A1C blocker total: "12 open blockers" → "20 open blockers (Pilot env=11, A1D=8, A1D or Pilot prep=1)"
+- §四 A1D.2 scope: A1C-B-012/015/018 → A1C-B-012/018 (2 blockers); title 去 "+ webhook queue"
+
+A1C-B-015 carry-forward: 仍在 `A1C_OPEN_BLOCKERS.csv` target_phase=Pilot env, A1D 不关闭, Layer 2 phase 重新评估。
+
+### 12.3 后续子门
+
+后续子门如需扩展范围、变更裁决规则或解除 §三 红线,**必须**新建 Charter 修订 commit 并标注版本号 (e.g., v1.2)。在 Charter 修订落盘前,所有子门继续按 v1.1 执行。
 
 ---
 

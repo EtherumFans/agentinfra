@@ -8,6 +8,14 @@ Design:
 - llm_service and expert_runner call vault.resolve(service) to get credentials
 - Credentials are NEVER logged, NEVER serialized in audit events, NEVER in LLM context
 - Agent and Harness only see service names (e.g. "deepseek", "pubmed"), never keys
+
+Phase A1D.4 (A1C-B-008) — KMS rotation + cache invalidation:
+  - ``invalidate(service=None)`` flushes cache entries (operator-initiated).
+  - ``invalidate_all()`` is the no-arg alias.
+  - Optional ``kms_version_token`` stamps each cache entry with the token's
+    current value; on lookup, stale-stamped entries are re-read from env /
+    secrets manager. Production Pilot wires the token to the cloud KMS
+    rotation hook (the hook calls ``token.bump()`` post-rotation).
 """
 
 import os
@@ -35,8 +43,12 @@ class CredentialVault:
     The interface stays the same regardless of backing store.
     """
 
-    def __init__(self):
+    def __init__(self, kms_version_token=None):
         self._cache: dict[str, str] = {}
+        # Phase A1D.4 — version stamps for stale-entry detection.
+        # When kms_version_token is None, no stamping occurs (legacy behavior).
+        self._kms_token = kms_version_token
+        self._cache_stamps: dict[str, int] = {}
 
     def resolve(self, service: str) -> str:
         """Resolve a credential for a named service.
@@ -52,7 +64,21 @@ class CredentialVault:
         - "mcp_<name>" → MCP server credentials
 
         Environment variable format: ICODER_CREDENTIAL_{SERVICE_UPPER}
+
+        Phase A1D.4: when kms_version_token is set, stale-stamped entries
+        are re-read from env/secrets manager instead of being returned
+        stale.
         """
+        # Phase A1D.4 — KMS rotation stale-stamp check
+        if self._kms_token is not None and service in self._cache_stamps:
+            if self._kms_token.is_stale(self._cache_stamps[service]):
+                logger.info(
+                    "Credential cache stale for service '%s' (KMS token advanced); re-reading",
+                    service,
+                )
+                self._cache.pop(service, None)
+                self._cache_stamps.pop(service, None)
+
         if service in self._cache:
             return self._cache[service]
 
@@ -63,8 +89,38 @@ class CredentialVault:
             raise CredentialNotFound(service)
 
         self._cache[service] = value
+        if self._kms_token is not None:
+            self._cache_stamps[service] = self._kms_token.current
         logger.info(f"Credential resolved for service '{service}'")
         return value
+
+    def invalidate(self, service: str | None = None) -> None:
+        """Phase A1D.4 — flush one or all cached credentials.
+
+        Use cases:
+          - Operator-initiated flush after manual KMS key rotation.
+          - Test isolation between subtests.
+          - Recovery from a known-stale cache state.
+
+        With ``service=None`` (default), flushes the entire cache.
+        With ``service="llm"``, flushes only that entry.
+        Flushing an unknown service is a no-op (no error).
+        """
+        if service is None:
+            n = len(self._cache)
+            self._cache.clear()
+            self._cache_stamps.clear()
+            if n:
+                logger.info("Credential cache invalidated all (%d entries)", n)
+        else:
+            if service in self._cache:
+                self._cache.pop(service, None)
+                self._cache_stamps.pop(service, None)
+                logger.info("Credential cache invalidated for service '%s'", service)
+
+    def invalidate_all(self) -> None:
+        """Phase A1D.4 — alias for ``invalidate()`` (flush entire cache)."""
+        self.invalidate()
 
     def resolve_optional(self, service: str) -> str | None:
         """Resolve a credential, returning None if not configured (for optional services)."""

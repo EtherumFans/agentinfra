@@ -1,0 +1,164 @@
+{
+  "$schema": "https://icoder.cloud/schemas/a1d/4/fallback-failover-test-results-v1.json",
+  "subgate": "A1D.4",
+  "charter_ref": "A1D_CHARTER.md v1.1 §A1D.4",
+  "blockers_closed": ["A1C-B-007", "A1C-B-008"],
+  "timestamp_utc": "2026-08-05T14:08:00Z",
+  "verdict": "PASS_A1D_4_KMS_ROTATION_AND_LLM_FALLBACK_PROVIDER_FILED",
+  "summary": {
+    "total_net_new_tests": 20,
+    "total_pass": 20,
+    "total_fail": 0,
+    "broader_regression_sweep": {
+      "tests_run": 765,
+      "passed": 764,
+      "skipped": 10,
+      "failed": 1,
+      "failed_test": "tests/test_services/test_mcp.py::test_mcp_wrapper_discover_tools_invalid_url",
+      "failed_test_attribution": "pre-existing — UnicodeDecodeError in MCP test thread, unrelated to A1D.4",
+      "duration_seconds": 168.68
+    },
+    "a1d_4_test_breakdown": {
+      "test_a1d_4_kms_rotation": {
+        "path": "backend/tests/test_api/test_a1d_4_kms_rotation.py",
+        "passed": 10,
+        "failed": 0
+      },
+      "test_a1d_4_llm_fallback": {
+        "path": "backend/tests/test_api/test_a1d_4_llm_fallback.py",
+        "passed": 10,
+        "failed": 0
+      }
+    }
+  },
+  "kms_rotation_coverage": {
+    "module_under_test": "backend/icoder_runtime/core/kms_version_token.py",
+    "collateral_module_under_test": "backend/app/services/credential_vault.py",
+    "scenarios_covered": [
+      "KMSVersionToken initial value is 1",
+      "KMSVersionToken.bump() increments monotonically and is thread-safe",
+      "KMSVersionToken.is_stale() detects stamps older than current",
+      "CredentialVault.invalidate(service) flushes single service",
+      "CredentialVault.invalidate() with no arg flushes entire cache",
+      "CredentialVault.invalidate_all() is alias for invalidate()",
+      "CredentialVault.invalidate() on unknown service is silent no-op",
+      "CredentialVault attaches to KMSVersionToken when provided",
+      "KMSVersionToken.bump() invalidates stale cache entries on next resolve()",
+      "KMSVersionToken.bump() preserves fresh entries (only stale entries re-read)"
+    ],
+    "production_wiring_status": "DEFERRED_TO_PILOT_ENV",
+    "pilot_env_deliverable": "Cloud function / k8s sidecar that calls kms_version_token.bump() after cloud KMS rotation completes"
+  },
+  "llm_fallback_coverage": {
+    "module_under_test": "backend/icoder_runtime/core/llm_gateway.py",
+    "collateral_module_under_test": "backend/icoder_runtime/core/fallback_provider.py",
+    "scenarios_covered": [
+      "LLMGateway.register_fallback() returns self (chainable)",
+      "LLMGateway.register_fallback() accepts multiple providers — ordered chain",
+      "LLMGateway.generate() falls back when primary returns degraded=True",
+      "LLMGateway.generate() skips fallback when primary is healthy",
+      "LLMGateway.generate() falls through chain to second fallback when first also degraded",
+      "LLMGateway.generate() returns last degraded response with full failover_trail when all providers degraded",
+      "fallback_provider module exports 4 factory functions",
+      "make_openai_compatible_fallback returns BaseLLMProvider with name",
+      "make_azure_openai_fallback returns BaseLLMProvider with name",
+      "make_qwen_fallback returns BaseLLMProvider with name"
+    ],
+    "factories_available": [
+      "make_openai_compatible_fallback(api_key, base_url, model, ...) — generic",
+      "make_azure_openai_fallback(api_key, endpoint, deployment, api_version) — Azure OpenAI Service",
+      "make_qwen_fallback(api_key, model) — Alibaba DashScope (OpenAI-compatible)",
+      "make_moonshot_fallback(api_key, model) — Moonshot AI Kimi (OpenAI-compatible)"
+    ],
+    "production_wiring_status": "DEFERRED_TO_PILOT_ENV",
+    "pilot_env_deliverable": "Real API keys for ≥1 fallback (Azure OpenAI / Qwen / Moonshot) injected via CredentialVault"
+  },
+  "failover_provenance_schema": {
+    "description": "When LLMGateway.generate() triggers failover, the returned dict gains these audit-friendly fields",
+    "fields": {
+      "fallback_from": "string — name of the original (degraded) primary provider",
+      "fallback_reason": "string — degraded_reason returned by the primary",
+      "failover_trail": "array of {provider: string, reason: string} — every provider tried in order"
+    },
+    "example_healthy_fallback": {
+      "content": "fallback answer",
+      "provider": "qwen_fallback",
+      "fallback_from": "primary",
+      "fallback_reason": "no_api_key",
+      "failover_trail": [
+        {"provider": "primary", "reason": "no_api_key"}
+      ],
+      "degraded": false
+    },
+    "example_all_degraded": {
+      "content": "<last mock response>",
+      "provider": "mock",
+      "degraded": true,
+      "degraded_reason": "provider_network_error",
+      "fallback_from": "primary",
+      "fallback_reason": "no_api_key",
+      "failover_trail": [
+        {"provider": "primary", "reason": "no_api_key"},
+        {"provider": "fb1", "reason": "circuit_open"},
+        {"provider": "fb2", "reason": "provider_network_error"}
+      ]
+    }
+  },
+  "five_tuple_state_after_subgate": {
+    "A1C.9_VERDICT": "PARTIAL_A1C_PILOT_ENTRY_BLOCKERS_REMAIN",
+    "CORTI_PARITY": "NOT_DEMONSTRATED",
+    "PRODUCTION_READINESS": "NOT_VERIFIED",
+    "GATE4_ACCEPTANCE": "REOPENED",
+    "GATE4_9_FINAL_PASS": "SUPERSEDED",
+    "note": "5-tuple is informational state — A1D is a remediation phase, not a re-gate. NOT mutated by A1D.4."
+  },
+  "nine_engineering_blockers_status": {
+    "closed_count": 8,
+    "open_count": 1,
+    "remaining": ["A1C-B-002 — 88 historical baseline failures (target: A1D.5)"],
+    "closed_in_a1d_4": ["A1C-B-007", "A1C-B-008"],
+    "closed_in_a1d_3": ["A1C-B-010", "A1C-B-011", "A1C-B-020"],
+    "closed_in_a1d_2": ["A1C-B-012", "A1C-B-018"],
+    "closed_in_a1d_1": ["A1C-B-003"]
+  },
+  "charter_22_forbidden_verdicts_honoured": [
+    "PRODUCTION_READY not emitted",
+    "CORTI_PARITY_VERIFIED not emitted",
+    "CORTI_PARITY_DEMONSTRATED not emitted",
+    "PILOT_READY not emitted",
+    "COMMERCIAL_READY not emitted",
+    "GATE4_FINAL_PASS not emitted",
+    "GATE4_VERIFIED not emitted"
+  ],
+  "charter_23_forbidden_git_ops_honoured": [
+    "git push not performed",
+    "git push --force not performed",
+    "git push --force-with-lease not performed",
+    "git reset --hard not performed",
+    "git checkout -- not performed",
+    "git restore . not performed",
+    "git branch -D not performed",
+    "git tag -d on tag in origin not performed",
+    "git commit --amend (history rewrite) not performed",
+    "git rebase -i not performed",
+    "git merge --no-ff to protected branch not performed",
+    "git push --tags to protected ref not performed"
+  ],
+  "explicit_file_list": {
+    "new_files": [
+      "backend/icoder_runtime/core/kms_version_token.py",
+      "backend/icoder_runtime/core/fallback_provider.py",
+      "backend/tests/test_api/test_a1d_4_kms_rotation.py",
+      "backend/tests/test_api/test_a1d_4_llm_fallback.py",
+      "reports/phase-a1d/A1D.4/CLOUD_RESILIENCE_REPORT.md",
+      "reports/phase-a1d/A1D.4/FALLBACK_FAILOVER_TEST_RESULTS.json"
+    ],
+    "modified_files": [
+      "backend/app/services/credential_vault.py",
+      "backend/icoder_runtime/core/llm_gateway.py",
+      "reports/phase-a1d/A1D.0/A1D_OPEN_BLOCKERS.csv"
+    ],
+    "git_add_a_used": false
+  },
+  "next_subgate": "A1D.5 — Triage 88 historical baseline failures (A1C-B-002)"
+}

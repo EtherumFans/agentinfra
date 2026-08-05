@@ -459,7 +459,10 @@ class OpenAICompatibleProvider(BaseLLMProvider):
         # Phase A1D.4 (A1C-B-007) — graceful degradation matches DeepSeekProvider.
         # Returns _mock_fallback_response on every error path so the gateway's
         # auto-failover logic can detect degraded responses uniformly.
-        if not self.api_key or self.api_key == "not-needed":
+        # Note: only treat EMPTY api_key as missing. The literal "not-needed"
+        # is a documented placeholder for local providers (Ollama, vLLM) that
+        # don't require auth — those should still attempt the call.
+        if not self.api_key:
             return _mock_fallback_response("no_api_key")
 
         import httpx
@@ -527,7 +530,9 @@ class OpenAICompatibleProvider(BaseLLMProvider):
         return result
 
     def health_check(self) -> dict:
-        if not self.api_key or self.api_key == "not-needed":
+        # Phase A1D.5 — only treat EMPTY api_key as missing. The literal
+        # "not-needed" is a valid placeholder for local no-auth providers.
+        if not self.api_key:
             return {"provider": self.name, "model": self.model, "status": "missing"}
         return {"provider": self.name, "model": self.model, "status": "configured"}
 

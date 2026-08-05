@@ -837,6 +837,13 @@ Maintain a professional, empathetic tone. Do not diagnose — present screening 
                     input_schema=edata.get("input_schema"),
                     output_schema=edata.get("output_schema"),
                     tags=edata.get("tags", []),
+                    # Phase A1D.5 — prebuilts seeded from agent packs are
+                    # PACK_DECLARED by definition (Migration 022 §5 backfill
+                    # only fires on existing rows at upgrade time; fresh
+                    # seed must set the origin explicitly so the test
+                    # ``test_migration_022_origin_backfill_for_prebuilts``
+                    # passes against a freshly-seeded test.db).
+                    origin="PACK_DECLARED",
                 )
                 session.add(exp)
                 new_count += 1

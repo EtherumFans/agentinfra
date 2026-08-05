@@ -79,6 +79,63 @@ def _alembic_version(db_path: str) -> str:
         conn.close()
 
 
+def _current_alembic_head() -> str:
+    """Phase A1D.5 — read the canonical head revision from alembic/versions.
+
+    Stale assertions like ``== "026"`` break whenever a new migration lands.
+    Reading the head dynamically from the versions directory keeps the
+    test self-healing across migration additions. Same pattern used in
+    test_a1b_ae_rv_2_migration_safety.py (A1D.3 fix).
+    """
+    revision_files = sorted(
+        f for f in _VERSIONS_DIR.iterdir()
+        if f.is_file() and f.suffix == ".py" and not f.name.startswith("__")
+    )
+    head_revisions: set[str] = set()
+    child_revisions: set[str] = set()
+    for rf in revision_files:
+        text = rf.read_text(encoding="utf-8")
+        rev = None
+        down = None
+        for line in text.splitlines():
+            if line.startswith("revision = "):
+                rev = line.split("=", 1)[1].strip().strip('"').strip("'")
+            elif line.startswith("down_revision = "):
+                down = line.split("=", 1)[1].strip().strip('"').strip("'")
+        if rev is not None:
+            head_revisions.add(rev)
+            if down is not None and down != "None":
+                child_revisions.add(down)
+    heads = head_revisions - child_revisions
+    assert len(heads) == 1, f"expected 1 alembic head, got {heads}"
+    return next(iter(heads))
+
+
+def _previous_revision(target: str) -> str:
+    """Phase A1D.5 — find the down_revision of the given revision.
+
+    Used for round-trip tests that need to assert "downgrade -1 lands at
+    the previous head" without hardcoding the previous revision id.
+    """
+    for rf in _VERSIONS_DIR.iterdir():
+        if not (rf.is_file() and rf.suffix == ".py" and not rf.name.startswith("__")):
+            continue
+        text = rf.read_text(encoding="utf-8")
+        rev = None
+        down = None
+        for line in text.splitlines():
+            if line.startswith("revision = "):
+                rev = line.split("=", 1)[1].strip().strip('"').strip("'")
+            elif line.startswith("down_revision = "):
+                down = line.split("=", 1)[1].strip().strip('"').strip("'")
+        if rev == target:
+            assert down is not None and down != "None", (
+                f"target revision {target} has no down_revision (it's the root)"
+            )
+            return down
+    raise AssertionError(f"target revision {target} not found in {_VERSIONS_DIR}")
+
+
 def _count_trace_capture_status(db_path: str, status: str) -> int:
     import sqlite3
     conn = sqlite3.connect(db_path)
@@ -120,7 +177,7 @@ def test_fresh_sqlite_applies_all_migrations_to_head(tmp_path) -> None:
         f"alembic upgrade head failed on fresh DB:\n"
         f"stdout: {result.stdout}\nstderr: {result.stderr}"
     )
-    assert _alembic_version(db_path) == "026"
+    assert _alembic_version(db_path) == _current_alembic_head()
     # Verify the new columns landed
     assert _column_exists(db_path, "run_trace_events", "event_id")
     assert _column_exists(db_path, "run_trace_events", "sequence_number")
@@ -139,14 +196,14 @@ def test_migration_020_idempotent_rerun(tmp_path) -> None:
     db_path = str(tmp_path / "existing.db")
     first = _run_alembic(db_path, "upgrade", "head")
     assert first.returncode == 0
-    assert _alembic_version(db_path) == "026"
+    assert _alembic_version(db_path) == _current_alembic_head()
 
     # Re-run — alembic should succeed silently (no-op when already at head)
     second = _run_alembic(db_path, "upgrade", "head")
     assert second.returncode == 0, (
         f"second upgrade should be no-op; stderr: {second.stderr}"
     )
-    assert _alembic_version(db_path) == "026"
+    assert _alembic_version(db_path) == _current_alembic_head()
 
 
 # ────────────────────────────────────────────────────────────────────
@@ -164,22 +221,24 @@ def test_downgrade_upgrade_roundtrip(tmp_path) -> None:
     default 'org_default1') and upgrade head re-applies Migration 026.
     """
     db_path = str(tmp_path / "roundtrip.db")
+    head_now = _current_alembic_head()
+    prev_now = _previous_revision(head_now)
     up1 = _run_alembic(db_path, "upgrade", "head")
     assert up1.returncode == 0
-    assert _alembic_version(db_path) == "026"
+    assert _alembic_version(db_path) == head_now
     assert _column_exists(db_path, "run_trace_events", "event_id")
 
-    # Downgrade one step → 025 (Migration 026 reversed — default restored)
+    # Downgrade one step → previous head (latest migration reversed)
     down = _run_alembic(db_path, "downgrade", "-1")
     assert down.returncode == 0, (
         f"downgrade -1 failed:\nstdout: {down.stdout}\nstderr: {down.stderr}"
     )
-    assert _alembic_version(db_path) == "025"
+    assert _alembic_version(db_path) == prev_now
 
-    # Upgrade back to head → 026
+    # Upgrade back to head
     up2 = _run_alembic(db_path, "upgrade", "head")
     assert up2.returncode == 0
-    assert _alembic_version(db_path) == "026"
+    assert _alembic_version(db_path) == head_now
     assert _column_exists(db_path, "run_trace_events", "event_id")
 
 
@@ -231,7 +290,7 @@ def test_interrupted_recovery_completes_on_retry(tmp_path) -> None:
         f"recovery upgrade failed:\nstdout: {recovery.stdout}\n"
         f"stderr: {recovery.stderr}"
     )
-    assert _alembic_version(db_path) == "026"
+    assert _alembic_version(db_path) == _current_alembic_head()
     assert _column_exists(db_path, "run_trace_events", "event_id")
 
 

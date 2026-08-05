@@ -59,6 +59,12 @@ def _valid_cloud_env() -> dict[str, str]:
         "ICODER_API_CLIENT_SECRET": "secret-test-001-not-real",
         "SEED_ON_STARTUP": "false",
         "DEBUG": "false",
+        # Phase A1D.5 — Gate 4 added ICODER_PHI_ENCRYPTION_KEY as a
+        # cloud-mode requirement (Fernet envelope for at-rest PHI).
+        # Gate 3R added RUNTRACE_DEPLOYMENT_PROFILE=BEST_EFFORT_DB as a
+        # cloud-mode requirement (memory store loses trace on restart).
+        "ICODER_PHI_ENCRYPTION_KEY": "3PARkxUUNU68P58uuahocRIqiSHbx7ACY_JHkaKt3v4=",  # test-only Fernet key
+        "RUNTRACE_DEPLOYMENT_PROFILE": "BEST_EFFORT_DB",
     }
 
 

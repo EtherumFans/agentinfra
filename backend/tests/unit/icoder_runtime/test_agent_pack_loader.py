@@ -472,14 +472,17 @@ def test_discover_v1_files_finds_16_packs():
     if not OFFICIAL_AGENTS_DIR.exists():
         pytest.skip("official_agents dir not present in this checkout")
     files = discover_v1_files(OFFICIAL_AGENTS_DIR)
-    assert len(files) == 16
+    # Phase A1D.5 — A1B-AE Phase added 14 net-new Corti-parity packs.
+    # Previous baseline was 16; current is 30.
+    assert len(files) == 30
 
 
 def test_load_packs_from_dir_loads_all_16():
     if not OFFICIAL_AGENTS_DIR.exists():
         pytest.skip("official_agents dir not present in this checkout")
     packs = load_packs_from_dir(OFFICIAL_AGENTS_DIR)
-    assert len(packs) == 16
+    # Phase A1D.5 — 30 packs now (was 16).
+    assert len(packs) == 30
     # Every pack must have a non-empty agent_ref
     for p in packs:
         assert p.agent_ref, f"{p.source_path} has empty agent_ref"
@@ -537,7 +540,8 @@ def test_load_packs_from_dir_records_parse_error_on_bad_json():
 def test_all_16_official_packs_load_via_new_loader():
     """The big one — every pack on disk must be loadable."""
     packs = load_packs_from_dir(OFFICIAL_AGENTS_DIR)
-    assert len(packs) == 16
+    # Phase A1D.5 — 30 packs now (was 16).
+    assert len(packs) == 30
 
     # We expect this exact distribution per baseline audit:
     by_type = {p.agent_type for p in packs}
@@ -546,9 +550,9 @@ def test_all_16_official_packs_load_via_new_loader():
     assert "internal_engine" in by_type  # was "reference" pre-Phase-3-A
     assert "expert-stub" in by_type
 
-    # The 4 Phase D2 expert-stubs must all be METADATA_ONLY
+    # Phase A1D.5 — 3 expert-stubs (was 4). All METADATA_ONLY.
     expert_stubs = [p for p in packs if p.agent_type == "expert-stub"]
-    assert len(expert_stubs) == 4
+    assert len(expert_stubs) == 3
     assert all(p.status == PackStatus.METADATA_ONLY for p in expert_stubs)
 
     # The internal_engine (MedCodER Coding Review) must be EXECUTABLE
@@ -560,19 +564,19 @@ def test_all_16_official_packs_load_via_new_loader():
     assert refs[0].production_ready is True
     assert refs[0].expert_count == 4  # 4 atomic experts wired
 
-    # The 7 v1.1 certified packs must all load (no INVALID).
-    # Phase 3-D1 Task 5 (2026-07-06): 3 packs (code-validation /
-    # compliance-guardrail / note-completeness) upgraded from v1.1 to v1.2
-    # with maturity="runnable" — so v1.1 went from 10 to 7.
+    # Phase A1D.5 — the 4 remaining v1.1 packs must all load (no INVALID).
+    # All 4 are metadata-only stubs (catalog placeholders for legacy
+    # Corti-style packs not yet ported to v1.2).
     v11 = [p for p in packs if p.format_version == "1.1"]
-    assert len(v11) == 7
+    assert len(v11) == 4
     assert all(p.status != PackStatus.INVALID for p in v11)
 
-    # The v1.2 certified packs must all be EXECUTABLE.
-    # Phase 3-D1 Task 5: 1 (medical-coding-agent) + 3 simple agents = 4.
+    # Phase A1D.5 — v1.2 certified packs: 22 total, 10 EXECUTABLE.
+    # The other 12 are metadata-only stubs (Corti-parity placeholders).
     v12_cert = [p for p in packs if p.format_version == "1.2" and p.agent_type == "certified"]
-    assert len(v12_cert) == 4
-    assert all(p.status == PackStatus.EXECUTABLE for p in v12_cert)
+    assert len(v12_cert) == 22
+    v12_cert_exec = [p for p in v12_cert if p.status == PackStatus.EXECUTABLE]
+    assert len(v12_cert_exec) == 10
 
 
 @pytest.mark.skipif(not OFFICIAL_AGENTS_DIR.exists(), reason="official_agents dir missing")

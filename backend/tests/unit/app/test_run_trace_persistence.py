@@ -98,8 +98,11 @@ def test_db_store_append_stamps_persisted_on_run_history(tmp_path, monkeypatch):
     ))
 
     status = _read_trace_status(str(db_path), run_id)
-    assert status == "PERSISTED", (
-        f"expected PERSISTED, got {status!r}"
+    # Phase A1D.5 — Gate 3R.3 renamed the canonical literal from
+    # PERSISTED → CAPTURED. The old name is kept as a deprecated alias
+    # rewritten by Migration 020; new writes use CAPTURED.
+    assert status == "CAPTURED", (
+        f"expected CAPTURED, got {status!r}"
     )
 
 
@@ -156,15 +159,29 @@ def test_db_store_append_failure_stamps_failed(tmp_path, monkeypatch):
 
 
 def test_db_store_append_failure_raises_when_fail_closed(tmp_path, monkeypatch):
-    """With RUNTRACE_FAIL_CLOSED=True, a DB write failure must
-    propagate so the caller can fail the run instead of silently
-    continuing without trace."""
+    """With RUNTRACE_FAIL_CLOSED=True in cloud mode, a DB write failure
+    must propagate so the caller can fail the run instead of silently
+    continuing without trace.
+
+    Phase A1D.5 — Gate 3R.3 changed the canonical signal from the raw
+    ``RUNTRACE_FAIL_CLOSED`` flag to the resolved ``DeploymentProfile``
+    (REQUIRED_DB = cloud + RUNTRACE_STORE=db + RUNTRACE_FAIL_CLOSED=True).
+    The test must set DEPLOYMENT_MODE=cloud so the profile resolves to
+    REQUIRED_DB; setting the raw flag alone resolves to BEST_EFFORT_DB
+    in local mode, which swallows the exception.
+    """
     monkeypatch.setattr(
         "app.config.settings.DATABASE_URL",
         "sqlite:///Z:/no/such/dir/trace_fail_closed.db",
     )
     monkeypatch.setattr(
         "app.config.settings.RUNTRACE_FAIL_CLOSED", True,
+    )
+    monkeypatch.setattr(
+        "app.config.settings.ICODER_DEPLOYMENT_MODE", "cloud",
+    )
+    monkeypatch.setattr(
+        "app.config.settings.RUNTRACE_STORE", "db",
     )
     # Stub the marker so it doesn't raise on the bogus URL too.
     import app.icoder.agent_runtime.orchestrator.run_trace as rt_mod

@@ -60,11 +60,15 @@ def test_official_pack_loads_without_regression(agent_dir):
 
 
 def test_old_pack_defaults_backend_provider_to_empty():
-    """Old packs without backend_provider → backend_provider == '' (legacy)."""
+    """Phase A1D.5 — compliance-guardrail now ships a real backend_provider
+    (``icoder.rule-engine.v1``) instead of the empty legacy default. The
+    pack was upgraded as part of the v1.2 migration; the test was
+    asserting the pre-migration state.
+    """
     pack = _load_official_pack("compliance-guardrail")
     p = load_pack(pack)
-    assert p.backend_provider == ""
-    assert p.backend_config == {}
+    assert p.backend_provider == "icoder.rule-engine.v1"
+    assert p.backend_config  # populated dict
 
 
 # ── New packs with backend_provider (top-level) ───────────────────
@@ -128,12 +132,14 @@ def test_to_summary_includes_backend_provider_field():
 
 
 def test_to_summary_for_legacy_pack_shows_empty_backend():
-    """Old packs show empty backend_provider in summary."""
+    """Phase A1D.5 — compliance-guardrail summary now shows the real
+    backend_provider after the v1.2 migration upgrade.
+    """
     pack = _load_official_pack("compliance-guardrail")
     p = load_pack(pack)
     summary = p.to_summary()
-    assert summary["backend_provider"] == ""
-    assert summary["has_backend_config"] is False
+    assert summary["backend_provider"] == "icoder.rule-engine.v1"
+    assert summary["has_backend_config"] is True
 
 
 # ── Phase 4-B: note-completeness migrated to PureLLMProvider ──────

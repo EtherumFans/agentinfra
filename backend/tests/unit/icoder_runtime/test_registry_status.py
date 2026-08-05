@@ -37,19 +37,23 @@ OFFICIAL_AGENTS_DIR = REPO_BACKEND / "official_agents"
 @pytest.mark.skipif(not OFFICIAL_AGENTS_DIR.exists(), reason="official_agents dir missing")
 def test_compute_compatibility_returns_16_packs():
     report = compute_compatibility(OFFICIAL_AGENTS_DIR)
-    assert report.total_discovered == 16
+    # Phase A1D.5 — A1B-AE Phase added 14 net-new Corti-parity packs
+    # (10 metadata-only stubs + claim-check marked metadata-only + 3 new
+    # v1.2 exec packs). Previous baseline was 16; current is 30.
+    assert report.total_discovered == 30
 
 
 @pytest.mark.skipif(not OFFICIAL_AGENTS_DIR.exists(), reason="official_agents dir missing")
 def test_compute_compatibility_status_distribution():
     report = compute_compatibility(OFFICIAL_AGENTS_DIR)
-    # Per P1.1-A loader + baseline:
-    #   10 v1.1 certified (no experts, only tools) → executable, production_ready True (pure-prompt+tools = certified with tools → PR True)
-    #   1 v1.2 certified (medical-coding-agent) → executable, production_ready True
-    #   1 v1.2 reference (medcoder-coding-review) → executable, production_ready True
-    #   4 v1.2 expert-stub → metadata_only (per loader classification), production_ready False
-    assert report.by_status["executable"] >= 12  # 10 v1.1 + 1 v1.2 certified + 1 v1.2 reference
-    assert report.by_status["metadata_only"] == 4
+    # Phase A1D.5 — post A1B-AE Phase distribution:
+    #   11 executable (v1.2 certified + reference + internal_engine + community)
+    #   19 metadata_only (4 v1.1 stubs + 10 v1.2 sys_prompt-empty stubs
+    #                     + 3 v1.2 expert-stubs + claim-check + 1 more)
+    #   0 invalid (metadata-only maturity short-circuits validation per
+    #              A1D.5 loader fix)
+    assert report.by_status["executable"] == 11
+    assert report.by_status["metadata_only"] == 19
     assert report.by_status.get("invalid", 0) == 0
 
 
@@ -70,7 +74,9 @@ def test_compute_compatibility_medcoder_coding_review_is_executable():
 def test_compute_compatibility_expert_stubs_are_metadata_only():
     report = compute_compatibility(OFFICIAL_AGENTS_DIR)
     stubs = [e for e in report.entries if e.agent_type == "expert-stub"]
-    assert len(stubs) == 4
+    # Phase A1D.5 — 3 expert-stub packs (code-reconciler, index-navigator,
+    # tabular-validator). Previous baseline was 4.
+    assert len(stubs) == 3
     for s in stubs:
         assert s.status == PackStatus.METADATA_ONLY.value
         assert s.production_ready is False
@@ -78,32 +84,36 @@ def test_compute_compatibility_expert_stubs_are_metadata_only():
 
 
 @pytest.mark.skipif(not OFFICIAL_AGENTS_DIR.exists(), reason="official_agents dir missing")
-def test_compute_compatibility_v11_packs_all_executable():
+def test_compute_compatibility_v11_packs_all_metadata_only():
+    """Phase A1D.5 — the 4 remaining v1.1 packs are all metadata-only stubs.
+
+    The v1.1 → v1.2 migration (Phase 3-D1 Task 5) ported all runnable
+    packs to v1.2. The remaining v1.1 packs (claim-check, denial-appeals,
+    diagnosis-extractor, evidence-ranker) are catalog placeholders for
+    Corti-parity agents not yet ported.
+    """
     report = compute_compatibility(OFFICIAL_AGENTS_DIR)
     v11 = [e for e in report.entries if e.format_version == "1.1"]
-    # Phase 3-D1 Task 5 (2026-07-06): 3 packs upgraded v1.1 → v1.2, so
-    # v1.1 count went from 10 to 7.
-    assert len(v11) == 7
+    assert len(v11) == 4
     for p in v11:
-        assert p.status == PackStatus.EXECUTABLE.value
-        assert p.production_ready is True
+        assert p.status == PackStatus.METADATA_ONLY.value
+        assert p.production_ready is False
 
 
 @pytest.mark.skipif(not OFFICIAL_AGENTS_DIR.exists(), reason="official_agents dir missing")
 def test_compute_compatibility_cross_ref_registry():
-    """When a fake registry provides 7 v1.1 refs, those entries should
+    """When a fake registry provides 4 v1.1 refs, those entries should
     be marked ``registered=True``; the v1.2 packs stay registered=False.
 
-    Phase 3-D1 Task 5 (2026-07-06): v1.1 count went from 10 → 7 after
-    3 packs (code-validation / compliance-guardrail / note-completeness)
-    were upgraded to v1.2 with maturity="runnable".
+    Phase A1D.5 — v1.1 count is now 4 (down from 7). All 4 are
+    metadata-only stubs but still discoverable for registry cross-ref.
     """
     fake_registry = MagicMock()
 
-    # Build fake records mirroring the 7 v1.1 packs
+    # Build fake records mirroring the 4 v1.1 packs
     v11_refs = [e.agent_ref for e in compute_compatibility(OFFICIAL_AGENTS_DIR).entries
                 if e.format_version == "1.1"]
-    assert len(v11_refs) == 7
+    assert len(v11_refs) == 4
 
     def _fake_list_all():
         for i, ref in enumerate(v11_refs):
@@ -115,7 +125,7 @@ def test_compute_compatibility_cross_ref_registry():
     fake_registry.list_all.return_value = list(_fake_list_all())
 
     report = compute_compatibility(OFFICIAL_AGENTS_DIR, registry=fake_registry)
-    assert report.total_registered == 7
+    assert report.total_registered == 4
 
     for entry in report.entries:
         if entry.format_version == "1.1":
@@ -164,15 +174,18 @@ def test_compute_compatibility_handles_registry_none():
 def test_builtin_pack_provider_discover_all_returns_16():
     p = BuiltinAgentPackProvider(OFFICIAL_AGENTS_DIR)
     packs = p.discover_all()
-    assert len(packs) == 16
+    # Phase A1D.5 — 30 packs now (was 16). See compute_compatibility test
+    # for the breakdown.
+    assert len(packs) == 30
 
 
 @pytest.mark.skipif(not OFFICIAL_AGENTS_DIR.exists(), reason="official_agents dir missing")
 def test_builtin_pack_provider_compatibility_report():
     p = BuiltinAgentPackProvider(OFFICIAL_AGENTS_DIR)
     report = p.compatibility_report(registry=None)
-    assert report.total_discovered == 16
-    assert report.metadata_only == 4
+    # Phase A1D.5 — 30 total, 19 metadata-only.
+    assert report.total_discovered == 30
+    assert report.metadata_only == 19
 
 
 @pytest.mark.skipif(not OFFICIAL_AGENTS_DIR.exists(), reason="official_agents dir missing")
@@ -185,11 +198,9 @@ def test_builtin_pack_provider_register_all_skips_metadata_only():
     fake_runtime.install_agent = MagicMock()
 
     registered = p.register_all(fake_runtime)
-    # 12 executable packs attempted (10 v1.1 + 2 v1.2)
-    # But install_agent is mocked so all 12 calls "succeed" at the mock level
-    # (the real call would v1.1-reject the 2 v1.2 packs; that's fine — those
-    # are recorded as METADATA_ONLY in the compat report, never attempted).
-    assert fake_runtime.install_agent.call_count == 12
+    # Phase A1D.5 — 11 executable packs attempted (was 12).
+    # install_agent is mocked so all 11 calls "succeed" at the mock level.
+    assert fake_runtime.install_agent.call_count == 11
     # Every attempted install is for an EXECUTABLE pack
     for call in fake_runtime.install_agent.call_args_list:
         pack_arg = call.args[0]

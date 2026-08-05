@@ -75,6 +75,11 @@ _ALLOWED_DETAIL_KEYS: frozenset[str] = frozenset({
     # carry PHI (rbac_role / abac_purpose_match are enum literals).
     "decision", "decision_reason", "rbac_role",
     "abac_purpose_match", "tenant_match", "purpose_of_use",
+    # Phase A1D.5 — OAuth client identity (operational metadata, NOT PHI).
+    # ``client_id`` is the public API client identifier (not a secret);
+    # ``realm`` is the auth domain (e.g. "corti-cn"). Both are required
+    # by the OAuth rejection audit path (test_oauth_audit_rejection.py).
+    "client_id", "realm",
 })
 
 # Keys that are explicitly PHI and always redacted at the top level.

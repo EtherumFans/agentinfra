@@ -53,6 +53,32 @@ os.environ.setdefault("ICODER_CREDENTIAL_LLM", "test-fake-key")
 
 _BACKEND_ROOT = Path(__file__).resolve().parent.parent.parent
 _ALEMBIC_INI = _BACKEND_ROOT / "alembic.ini"
+_VERSIONS_DIR = _BACKEND_ROOT / "alembic" / "versions"
+
+
+def _current_alembic_head() -> str:
+    """Phase A1D.5 — read canonical head from versions dir (self-healing)."""
+    revision_files = sorted(
+        f for f in _VERSIONS_DIR.iterdir()
+        if f.is_file() and f.suffix == ".py" and not f.name.startswith("__")
+    )
+    head_revisions: set[str] = set()
+    child_revisions: set[str] = set()
+    for rf in revision_files:
+        text = rf.read_text(encoding="utf-8")
+        rev = down = None
+        for line in text.splitlines():
+            if line.startswith("revision = "):
+                rev = line.split("=", 1)[1].strip().strip('"').strip("'")
+            elif line.startswith("down_revision = "):
+                down = line.split("=", 1)[1].strip().strip('"').strip("'")
+        if rev is not None:
+            head_revisions.add(rev)
+            if down is not None and down != "None":
+                child_revisions.add(down)
+    heads = head_revisions - child_revisions
+    assert len(heads) == 1, f"expected 1 alembic head, got {heads}"
+    return next(iter(heads))
 
 
 @pytest.fixture
@@ -353,7 +379,7 @@ def test_L11_migration_head_is_020_on_fresh_db(tmp_path) -> None:
         cols = {row[1] for row in conn.execute("PRAGMA table_info(run_trace_events)")}
     finally:
         conn.close()
-    assert v == "026"
+    assert v == _current_alembic_head()
     assert "event_id" in cols
     assert "sequence_number" in cols
     assert "trace_id" in cols

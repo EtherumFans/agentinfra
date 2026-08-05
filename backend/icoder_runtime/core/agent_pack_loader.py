@@ -188,9 +188,44 @@ def _populate_identity(p: NormalizedPack) -> None:
 def _populate_system_prompt(p: NormalizedPack) -> None:
     sp = p.raw.get("system_prompt", "")
     if not sp or not isinstance(sp, str):
+        # Phase A1D.5 — metadata-only packs are explicit catalog stubs
+        # (manifest.maturity == "metadata-only"). They exist for marketplace
+        # presence / future road-map signaling, not for execution. Skip
+        # the runnability requirement so the loader can mark them
+        # METADATA_ONLY in _classify instead of INVALID.
+        if _is_metadata_only_maturity(p):
+            p.validation_warnings.append(
+                "system_prompt empty — allowed for manifest.maturity=metadata-only "
+                "(pack is METADATA_ONLY, not runnable)"
+            )
+            p.system_prompt = ""
+            return
         p.validation_errors.append("system_prompt is required and must be a non-empty string")
         return
     p.system_prompt = sp
+
+
+def _is_metadata_only_maturity(p: NormalizedPack) -> bool:
+    """Phase A1D.5 — True when the pack explicitly declares itself a stub.
+
+    A metadata-only pack is an intentional catalog placeholder: it ships
+    a manifest and (optionally) experts/tools skeleton, but no
+    runnable system_prompt. The loader classifies these as
+    METADATA_ONLY (visible in registry, not enabled) instead of INVALID.
+
+    Detection (either is sufficient):
+      - ``manifest.maturity == "metadata-only"``
+      - ``"metadata-only" in manifest.tags``
+    """
+    manifest = p.raw.get("manifest") or {}
+    if not isinstance(manifest, dict):
+        return False
+    if manifest.get("maturity") == "metadata-only":
+        return True
+    tags = manifest.get("tags") or []
+    if isinstance(tags, list) and "metadata-only" in tags:
+        return True
+    return False
 
 
 def _populate_experts(p: NormalizedPack) -> None:
@@ -537,6 +572,21 @@ def _classify(p: NormalizedPack) -> None:
     * EXECUTABLE — full validation passes AND the pack has either real
       experts OR executable code
     """
+    # Phase A1D.5 — explicit metadata-only maturity short-circuits to
+    # METADATA_ONLY status. These packs exist for catalog presence /
+    # road-map signaling; they ship a manifest but intentionally ship
+    # no runnable system_prompt or wired experts. They are visible in
+    # the registry (so users can see what's coming) but never enabled.
+    # Must run BEFORE the validation_errors check so stubs that ship
+    # v1.0-style vestigial fields (e.g. inline code dict, canonical_key
+    # experts) are not penalized for schema drift in their stub state.
+    if _is_metadata_only_maturity(p):
+        p.status = PackStatus.METADATA_ONLY
+        p.production_ready = False
+        p.enabled_by_default = False
+        p.experimental = False
+        return
+
     if p.validation_errors:
         p.status = PackStatus.INVALID
         p.production_ready = False

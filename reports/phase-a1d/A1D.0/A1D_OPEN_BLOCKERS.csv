@@ -1,0 +1,10 @@
+blocker_id,source,title,severity,subgate_assigned,status,target_phase,a1d_resolution_note
+A1C-B-002,A1C.9,88 historical baseline failures (spec/STT/oauth/health_check debt),P2,A1D.5,OPEN,A1D or Pilot prep,Triage into 4 per-suite fix batches; root-cause each before fix
+A1C-B-003,A1C.9,ESLint binary missing in audit env (frontend dev deps not installed),P2,A1D.1,OPEN,A1D,Run npm ci in frontend/ then capture ESLINT_BASELINE.json
+A1C-B-007,A1C.9,Fallback LLM provider not implemented (DeepSeek sole provider; Azure-OpenAI / Qwen / Moonshot fallback DESIGN only),P2,A1D.4,OPEN,A1D,Implement ≥1 fallback provider abstraction; real API key deferred to Pilot env
+A1C-B-008,A1C.9,KMS key rotation + cache invalidation not implemented (CredentialVault cache holds decrypted secrets),P2,A1D.4,OPEN,A1D,Implement KMS version token + cache invalidation signal; real KMS rotation deferred to Pilot env
+A1C-B-010,A1C.9,Allow-side policy_decision audit emission not wired (only deny-side emitted currently),P2,A1D.3,OPEN,A1D,Wire allow-side decision (rbac_role + abac_purpose_match + tenant_match) into audit_middleware
+A1C-B-011,A1C.9,ABAC purpose_of_use emission not in every audit row (request.state.purpose_of_use not propagated to audit_log.details),P2,A1D.3,OPEN,A1D,Wire purpose_of_use through to audit_log.details in audit_middleware
+A1C-B-012,A1C.9,DeepSeek region routing EXPLICIT decision log (egress decision IMPLICIT via region default; Charter §4 PDF asks EXPLICIT),P2,A1D.2,OPEN,A1D,Add data_policy.egress_decision_log() emit
+A1C-B-018,A1C.9,ICODER_AUDIT_WRITE_PAUSED flag not implemented (RB-3 PITR rollback needs pause-audit capability),P2,A1D.2,OPEN,A1D,Add ICODER_AUDIT_WRITE_PAUSED env flag + audit_middleware respect
+A1C-B-020,A1C.9,CDI specialist + medical records admin UserRole not extended (5/7 principals closed in A1C.4; 2 deferred),P1,A1D.3,OPEN,A1D,Extend UserRole enum + migration + role-permission wiring

@@ -45,7 +45,14 @@ def _run_alembic(target_db: str, *args: str) -> subprocess.CompletedProcess:
 
 
 def test_rv2_1_migration_026_lands_on_head_025(tmp_path):
-    """§1 — Migration 026 upgrades cleanly from 025 head."""
+    """§1 — Migration 026+ chain upgrades cleanly from 025 head.
+
+    Phase A1D.3 (2026-08-05) update: head advanced to 030 (user_role
+    extension). The test name retains "026" for historical traceability
+    of the original RV.2 gap (multi-step migration safety); the actual
+    assertion verifies that ALL migrations 026→head land cleanly on top
+    of 025, whatever the current head is.
+    """
     db = tmp_path / "rv2_026.db"
     r1 = _run_alembic(str(db), "upgrade", "025")
     assert r1.returncode == 0, f"upgrade head->025 failed: {r1.stderr}"
@@ -56,7 +63,34 @@ def test_rv2_1_migration_026_lands_on_head_025(tmp_path):
     conn = sqlite3.connect(str(db))
     try:
         head = conn.execute("SELECT version_num FROM alembic_version").fetchone()[0]
-        assert head == "026", f"expected head=026 after upgrade, got {head}"
+        # Read the canonical head from the alembic versions dir to avoid
+        # stale-test-assertion drift when new migrations land.
+        versions_dir = _BACKEND_ROOT / "alembic" / "versions"
+        revision_files = sorted(
+            f for f in versions_dir.iterdir()
+            if f.is_file() and f.suffix == ".py" and not f.name.startswith("__")
+        )
+        head_revisions: set[str] = set()
+        child_revisions: set[str] = set()
+        for rf in revision_files:
+            text = rf.read_text(encoding="utf-8")
+            rev = None
+            down = None
+            for line in text.splitlines():
+                if line.startswith("revision = "):
+                    rev = line.split("=", 1)[1].strip().strip('"').strip("'")
+                elif line.startswith("down_revision = "):
+                    down = line.split("=", 1)[1].strip().strip('"').strip("'")
+            if rev is not None:
+                head_revisions.add(rev)
+                if down is not None and down != "None":
+                    child_revisions.add(down)
+        heads = head_revisions - child_revisions
+        assert len(heads) == 1, f"expected 1 alembic head, got {heads}"
+        expected_head = next(iter(heads))
+        assert head == expected_head, (
+            f"expected head={expected_head} after upgrade, got {head}"
+        )
     finally:
         conn.close()
 

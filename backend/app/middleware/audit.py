@@ -31,12 +31,30 @@ async def log_action(
     tokens_used: Optional[int] = None,
     organization_id: Optional[str] = None,
     allow_null_org: bool = False,
+    *,
+    policy_decision: Optional[dict] = None,
+    purpose_of_use: Optional[str] = None,
 ):
     """Record an audit log entry.
 
     Phase A1A Gate 2 §3 — cloud mode fail-closed: refuses to commit
     a NULL org_id audit row unless ``allow_null_org=True`` (system-
     scope events like ``system.startup``).
+
+    Phase A1D.3 (A1C-B-010 + A1C-B-011) — keyword-only ``policy_decision``
+    and ``purpose_of_use`` parameters. Merged into ``details`` after the
+    A1A Gate 4.3 redactor. Existing 40+ call sites continue to work
+    (both default to ``None``); Pilot env wiring will opt-in per route.
+
+    ``policy_decision`` expected shape::
+
+        {
+            "decision": "allow" | "deny",
+            "decision_reason": str,
+            "rbac_role": str,            # UserRole.value or "system"
+            "abac_purpose_match": str,    # "match" | "mismatch" | "n/a"
+            "tenant_match": str,          # "match" | "mismatch"
+        }
     """
     # Phase A1A Gate 2 §3: fail-closed guard fires BEFORE the try/except
     # so a tenancy violation propagates to the caller (it's a server-
@@ -58,6 +76,14 @@ async def log_action(
             action, resource_type, resource_id, organization_id,
         )
         return
+    # Phase A1D.3 (A1C-B-010 + A1C-B-011) — merge policy_decision + purpose_of_use
+    # into the caller-supplied details BEFORE redaction. Redactor only
+    # scrubs PHI patterns; structured fields pass through.
+    merged_details = dict(details) if details else {}
+    if policy_decision:
+        merged_details.update(policy_decision)
+    if purpose_of_use is not None:
+        merged_details["purpose_of_use"] = purpose_of_use
     # Phase A1A Gate 4.3 — minimum-necessary-data chokepoint.
     # Regardless of what the caller passes, the audit row is scrubbed
     # before persist. This closes the live-path leak where an emit
@@ -67,7 +93,7 @@ async def log_action(
     from app.services.audit_detail_redactor import (
         redact_audit_details, redact_audit_summary,
     )
-    safe_details = redact_audit_details(details)
+    safe_details = redact_audit_details(merged_details or None)
     safe_input_summary = redact_audit_summary(model_input_summary)
     safe_output_summary = redact_audit_summary(model_output_summary)
     try:

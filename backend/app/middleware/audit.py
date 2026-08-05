@@ -1,5 +1,6 @@
 # iCoDer - Audit Logging Middleware
 import logging
+import os
 from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.middleware.tenancy_guard import (
@@ -44,6 +45,19 @@ async def log_action(
         organization_id, "audit_logs",
         allow_null_org=allow_null_org,
     )
+    # Phase A1D.2 (A1C-B-018) — operator-driven audit pause.
+    # RB-3 PITR rollback scenarios need the operator to PAUSE audit
+    # writes during the recovery window without stopping the service.
+    # When ICODER_AUDIT_WRITE_PAUSED=true, skip the DB write but warn
+    # so the operator sees the pause in logs. The fail-closed tenancy
+    # guard above fires FIRST — pause must NEVER bypass tenancy.
+    if os.environ.get("ICODER_AUDIT_WRITE_PAUSED", "false").lower() == "true":
+        logger.warning(
+            "audit_write_paused action=%r resource_type=%r resource_id=%r "
+            "organization_id=%r — ICODER_AUDIT_WRITE_PAUSED=true (RB-3 PITR window)",
+            action, resource_type, resource_id, organization_id,
+        )
+        return
     # Phase A1A Gate 4.3 — minimum-necessary-data chokepoint.
     # Regardless of what the caller passes, the audit row is scrubbed
     # before persist. This closes the live-path leak where an emit

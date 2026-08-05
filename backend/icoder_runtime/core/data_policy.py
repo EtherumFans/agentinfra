@@ -18,10 +18,14 @@ registry had no per-provider region metadata. The new policy adds:
 
 from __future__ import annotations
 
+import logging
 import os
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Literal
+
+_logger = logging.getLogger(__name__)
 
 MarketplaceSyncMode = Literal["offline", "online", "mirror"]
 EgressPolicy = Literal["strict", "best_effort", "off"]
@@ -157,12 +161,47 @@ class RuntimeDataPolicy:
             )
             if self.egress_policy == "strict":
                 return False, msg
-            # best_effort: log + allow
-            import logging
+            # best_effort: log + allow. Reason returned to caller is empty
+            # (matches pre-A1D.2 contract; the structured ``egress_decision``
+            # method exposes the violation text via the warning log instead).
             logging.getLogger(__name__).warning(
                 "data_policy egress %s: %s", self.egress_policy, msg,
             )
         return True, ""
+
+    def egress_decision(self, provider_name: str) -> dict:
+        """Phase A1D.2 (A1C-B-012) — produce a STRUCTURED egress decision record.
+
+        Predecessor state: ``can_use_provider`` returned ``(allowed, reason)``
+        with the decision encoded only inside the prose reason string. Phase
+        A1C.9 blocker A1C-B-012 (Charter §4 PDF) asked for an EXPLICIT
+        decision log so a compliance auditor can ``grep`` egress decisions
+        out of the audit trail without parsing prose.
+
+        Returns a dict with the following keys (all JSON-serializable):
+
+        - ``tenant_region`` — this policy's region (``eu`` / ``us`` / ``cn``)
+        - ``provider_name`` — the provider being checked
+        - ``provider_region`` — provider's residency region
+        - ``egress_policy`` — ``strict`` / ``best_effort`` / ``off``
+        - ``decision`` — ``allow`` or ``deny``
+        - ``reason`` — empty for plain allow; explanation otherwise
+        - ``timestamp`` — ISO-8601 UTC
+
+        Pure function — no side effect. Use ``egress_decision_log`` to also
+        emit a structured log line.
+        """
+        allowed, reason = self.can_use_provider(provider_name)
+        provider_region = get_provider_region(provider_name)
+        return {
+            "tenant_region": self.region,
+            "provider_name": provider_name,
+            "provider_region": provider_region,
+            "egress_policy": self.egress_policy,
+            "decision": "allow" if allowed else "deny",
+            "reason": reason,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
 
     def check_agent_requirements(self, llm_capabilities: dict) -> tuple[bool, str]:
         """Check if an agent's LLM requirements are compatible with the data policy.
@@ -193,6 +232,32 @@ def _valid_sync_mode(val: str) -> MarketplaceSyncMode:
     if val in ("offline", "online", "mirror"):
         return val  # type: ignore[return-value]
     return "offline"
+
+
+def egress_decision_log(policy: "RuntimeDataPolicy", provider_name: str) -> dict:
+    """Phase A1D.2 (A1C-B-012) — emit a structured egress decision log line.
+
+    Calls ``policy.egress_decision(provider_name)`` and emits the record to
+    ``icoder_runtime.core.data_policy`` logger:
+      - ``WARNING`` for deny decisions (compliance auditor grep target)
+      - ``INFO`` for allow decisions
+
+    Returns the same structured dict as ``egress_decision`` so callers can
+    chain the call.
+    """
+    record = policy.egress_decision(provider_name)
+    msg = (
+        f"egress_decision tenant_region={record['tenant_region']!r} "
+        f"provider={record['provider_name']!r} "
+        f"provider_region={record['provider_region']!r} "
+        f"policy={record['egress_policy']!r} "
+        f"decision={record['decision']!r}"
+    )
+    if record["decision"] == "deny":
+        _logger.warning("%s reason=%r", msg, record["reason"])
+    else:
+        _logger.info("%s", msg)
+    return record
 
 
 def _valid_region(val: str) -> Region:

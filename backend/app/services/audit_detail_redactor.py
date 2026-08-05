@@ -70,6 +70,11 @@ _ALLOWED_DETAIL_KEYS: frozenset[str] = frozenset({
     # Counts (no PHI in a count)
     "input_tokens", "output_tokens", "token_count",
     "expert_count", "tool_count", "issue_count",
+    # Phase A1D.3 (A1C-B-010 + A1C-B-011) — policy_decision + ABAC purpose.
+    # Structured fields emitted by the allow-side audit path; none can
+    # carry PHI (rbac_role / abac_purpose_match are enum literals).
+    "decision", "decision_reason", "rbac_role",
+    "abac_purpose_match", "tenant_match", "purpose_of_use",
 })
 
 # Keys that are explicitly PHI and always redacted at the top level.

@@ -1,0 +1,176 @@
+{
+  "$schema": "https://icoder.cloud/schemas/a1d/6/state-archive-v1.json",
+  "subgate": "A1D.6",
+  "charter_ref": "A1D_CHARTER.md v1.1 §A1D.6 (terminal subgate)",
+  "phase": "A1D — Pilot-Entry Engineering Debt Cleanup",
+  "timestamp_utc": "2026-08-05T16:00:00Z",
+  "verdict": "PARTIAL_A1D_REMEDIATION_PHASE_COMPLETE_9_OF_9_BLOCKERS_CLOSED_20_BASELINE_FAILURES_DEFERRED_TO_PILOT_PREP",
+  "predecessor_state_verdict": "PARTIAL_A1C_PILOT_ENTRY_BLOCKERS_REMAIN",
+  "successor_phase": "Pilot prep (A1E or Pilot env hardening, TBD by product owner)",
+  "branch": "phase-a1a/emergency-containment",
+  "base_commit": "209f25a",
+  "head_commit": "630f184",
+  "subgate_commits": {
+    "A1D.0": "96838bb (PASS_A1D_0_FILED) + c81d49a (charter v1.0)",
+    "A1D.1": "b3f33c6 (PASS_A1D_1_FILED)",
+    "A1D.2": "6fd1384 (PASS_A1D_2_FILED)",
+    "A1D.3": "65df0eb (PASS_A1D_3_FILED)",
+    "A1D.4": "1d70496 (PARTIAL_A1D_4_FILED)",
+    "A1D.5": "630f184 (PARTIAL_A1D_5_FILED)",
+    "A1D.6": "TBD — this subgate"
+  },
+  "five_tuple_state_carry_forward": {
+    "A1C.9_VERDICT": "PARTIAL_A1C_PILOT_ENTRY_BLOCKERS_REMAIN",
+    "CORTI_PARITY": "NOT_DEMONSTRATED",
+    "PRODUCTION_READINESS": "NOT_VERIFIED",
+    "GATE4_ACCEPTANCE": "REOPENED",
+    "GATE4_9_FINAL_PASS": "SUPERSEDED",
+    "note": "5-tuple is informational state. A1D is a remediation phase, not a re-gate. None of the 5 were mutated by A1D."
+  },
+  "nine_engineering_blockers_status": {
+    "closed_full": 8,
+    "closed_partial": 1,
+    "open": 0,
+    "total": 9,
+    "blockers": [
+      {"id": "A1C-B-002", "severity": "P2", "status": "CLOSED_PARTIAL", "subgate": "A1D.5", "note": "38/58 baseline failures remediated; 20 deferred"},
+      {"id": "A1C-B-003", "severity": "P2", "status": "CLOSED", "subgate": "A1D.1", "note": "ESLint 9.x flat config + 21 errors resolved"},
+      {"id": "A1C-B-007", "severity": "P2", "status": "CLOSED", "subgate": "A1D.4", "note": "4 fallback factories + LLMGateway auto-failover"},
+      {"id": "A1C-B-008", "severity": "P2", "status": "CLOSED", "subgate": "A1D.4", "note": "KMSVersionToken + CredentialVault invalidate()"},
+      {"id": "A1C-B-010", "severity": "P2", "status": "CLOSED", "subgate": "A1D.3", "note": "policy_decision kwarg on log_action"},
+      {"id": "A1C-B-011", "severity": "P2", "status": "CLOSED", "subgate": "A1D.3", "note": "purpose_of_use kwarg on log_action"},
+      {"id": "A1C-B-012", "severity": "P2", "status": "CLOSED", "subgate": "A1D.2", "note": "egress_decision_log structured record"},
+      {"id": "A1C-B-018", "severity": "P2", "status": "CLOSED", "subgate": "A1D.2", "note": "ICODER_AUDIT_WRITE_PAUSED env flag"},
+      {"id": "A1C-B-020", "severity": "P1", "status": "CLOSED", "subgate": "A1D.3", "note": "UserRole CDI_SPECIALIST + MEDICAL_RECORDS_ADMIN; Migration 030"}
+    ]
+  },
+  "subgate_tally": [
+    {
+      "subgate": "A1D.0",
+      "title": "Entry audit + charter v1.1 amendment",
+      "verdict": "PASS_A1D_0_FILED",
+      "commit": "96838bb + c81d49a",
+      "files_changed": 4,
+      "tests_added": 0,
+      "blockers_addressed": ["charter scope frozen"]
+    },
+    {
+      "subgate": "A1D.1",
+      "title": "ESLint 9.x flat config introduced + 21 baseline errors resolved",
+      "verdict": "PASS_A1D_1_FILED",
+      "commit": "b3f33c6",
+      "files_changed": 80,
+      "lines_added": 4276,
+      "lines_deleted": 530,
+      "tests_added": 0,
+      "blockers_closed": ["A1C-B-003"]
+    },
+    {
+      "subgate": "A1D.2",
+      "title": "Audit pause flag + egress decision log",
+      "verdict": "PASS_A1D_2_FILED",
+      "commit": "6fd1384",
+      "files_changed": 7,
+      "tests_added": 12,
+      "blockers_closed": ["A1C-B-012", "A1C-B-018"]
+    },
+    {
+      "subgate": "A1D.3",
+      "title": "UserRole extension + policy_decision + purpose_of_use primitives",
+      "verdict": "PASS_A1D_3_FILED",
+      "commit": "65df0eb",
+      "files_changed": 9,
+      "tests_added": 16,
+      "blockers_closed": ["A1C-B-010", "A1C-B-011", "A1C-B-020"]
+    },
+    {
+      "subgate": "A1D.4",
+      "title": "KMS rotation + LLM fallback provider (cloud resilience)",
+      "verdict": "PASS_A1D_4_KMS_ROTATION_AND_LLM_FALLBACK_PROVIDER_FILED",
+      "commit": "1d70496",
+      "files_changed": 9,
+      "tests_added": 20,
+      "blockers_closed": ["A1C-B-007", "A1C-B-008"]
+    },
+    {
+      "subgate": "A1D.5",
+      "title": "Baseline failure triage + 8-batch remediation",
+      "verdict": "PARTIAL_A1D_5_BASELINE_REDUCED_38_OF_58_REMAINING_20_PHASE_3B_INTEGRATION_DEFERRED",
+      "commit": "630f184",
+      "files_changed": 15,
+      "lines_added": 705,
+      "lines_deleted": 70,
+      "tests_added": 0,
+      "baseline_failures_closed": 38,
+      "baseline_failures_deferred": 20,
+      "blockers_closed": ["A1C-B-002 (CLOSED_PARTIAL)"]
+    }
+  ],
+  "phase_totals": {
+    "commits": 7,
+    "files_changed_approx": 130,
+    "lines_added_approx": 6000,
+    "lines_deleted_approx": 800,
+    "tests_added_net_new": 48,
+    "baseline_failures_remediated": 38,
+    "engineering_blockers_closed": 9,
+    "forbidden_verdicts_emitted": 0,
+    "forbidden_git_ops_performed": 0
+  },
+  "pilot_env_deferred_items": [
+    "Real API keys for ≥1 LLM fallback (Azure OpenAI / Qwen / Moonshot) — A1D.4 (A1C-B-007)",
+    "Cloud KMS rotation hook calling kms_version_token.bump() post-rotation — A1D.4 (A1C-B-008)",
+    "Per-route policy_decision opt-in wiring at consumer sites — A1D.3 (A1C-B-010)",
+    "Per-route request.state.purpose_of_use propagation — A1D.3 (A1C-B-011)",
+    "20 baseline failures remediation follow-up — A1D.5 (A1C-B-002 remainder)"
+  ],
+  "pilot_readiness_assessment": {
+    "engineering_blockers": "9/9 closed (8 full + 1 partial). No P0/P1 Engineering blockers remain.",
+    "corti_parity": "NOT_DEMONSTRATED — not in A1D scope. Carried from A1A Gate 4R-I.",
+    "production_readiness": "NOT_VERIFIED — Pilot env hardening (real keys, real KMS hook, real provider wiring) is the next gate.",
+    "five_tuple": "Carry-forward from A1C.9; A1D did not re-gate.",
+    "summary": "A1D cleared all 9 charter-named Engineering blockers. The platform is one step closer to Pilot env entry but not yet Pilot-ready. Pilot env hardening (real secrets, real KMS, real LLM fallback) is the next phase boundary."
+  },
+  "charter_22_forbidden_verdicts_audit": {
+    "all_honoured": true,
+    "forbidden_tokens_check": [
+      "PRODUCTION_READY not emitted",
+      "CORTI_PARITY_VERIFIED not emitted",
+      "CORTI_PARITY_DEMONSTRATED not emitted",
+      "PILOT_READY not emitted",
+      "COMMERCIAL_READY not emitted",
+      "GATE4_FINAL_PASS not emitted",
+      "GATE4_VERIFIED not emitted"
+    ],
+    "phase_verdict_token": "PARTIAL_A1D_REMEDIATION_PHASE_COMPLETE_9_OF_9_BLOCKERS_CLOSED_20_BASELINE_FAILURES_DEFERRED_TO_PILOT_PREP",
+    "phase_verdict_contains_no_forbidden_substring": true
+  },
+  "charter_23_forbidden_git_ops_audit": {
+    "all_honoured": true,
+    "forbidden_ops_check": [
+      "git push not performed (branch local-only)",
+      "git push --force not performed",
+      "git push --force-with-lease not performed",
+      "git reset --hard not performed",
+      "git checkout -- not performed",
+      "git restore . not performed",
+      "git branch -D not performed",
+      "git tag -d on tag in origin not performed",
+      "git commit --amend history rewrite not performed (only standard commits)",
+      "git rebase -i not performed",
+      "git merge --no-ff to protected branch not performed",
+      "git push --tags to protected ref not performed"
+    ],
+    "master_touched": false,
+    "branch": "phase-a1a/emergency-containment (local-only, never pushed)"
+  },
+  "charter_22_forbidden_state_mutations_audit": {
+    "five_tuple_mutated": false,
+    "details": "A1D is a remediation phase, not a re-gate. None of A1C.9_VERDICT / CORTI_PARITY / PRODUCTION_READINESS / GATE4_ACCEPTANCE / GATE4_9_FINAL_PASS were changed by A1D."
+  },
+  "next_phase_recommendation": {
+    "primary": "Pilot env hardening — wire real cloud secrets, real KMS rotation hook, real LLM fallback API key. The A1D abstractions are in place; Pilot is where they meet real infrastructure.",
+    "secondary": "A1D.5 follow-up batch — close the remaining 20 baseline failures (14 Phase 3B*/A2A integration tests need 3-4 hours careful cross-reference with commit history; 4 trace API orphan-run seed pattern tests need a RunHistory seed fixture; 1 compliance_guardrail behavioral needs product owner decision; 1 Windows-only MCP unicode doesn't reproduce on Linux CI).",
+    "not_in_scope": "Corti parity re-attempt — needs a fresh re-gate (A2 or beyond) per Charter. A1D did not touch Corti parity."
+  }
+}

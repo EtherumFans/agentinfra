@@ -6,6 +6,7 @@ import {
   Code2, LifeBuoy, MessageCircle, ExternalLink,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+
 import { useT } from '../i18n';
 
 type CapabilityCard = {

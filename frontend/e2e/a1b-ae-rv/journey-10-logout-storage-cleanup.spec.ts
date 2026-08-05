@@ -4,9 +4,11 @@
  * Login → populate localStorage/sessionStorage → click logout →
  * verify all iCoDer-owned keys are gone.
  */
-import { test, expect } from '@playwright/test';
 import * as fs from 'fs';
-import { JourneyRecorder, loginViaApiThenUi, FRONTEND } from './helpers';
+
+import { test, expect } from '@playwright/test';
+
+import { JourneyRecorder, loginViaApiThenUi } from './helpers';
 
 const JOURNEY = 'journey-10-logout-storage-cleanup';
 

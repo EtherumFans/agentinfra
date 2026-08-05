@@ -2,20 +2,20 @@
 // Global header (64px) + Sidebar (w/ project selector, nav groups, footer) + Main
 import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate, Link } from 'react-router-dom';
-import { useAuthStore, useThemeStore, useCostStore } from '../../store';
-import { BACKEND_BASE_URL } from '../../config';
-import { oauthApi, billingApi } from '../../services/api';
-import { useT, useLocaleStore } from '../../i18n';
-import OrgSwitcher from './OrgSwitcher';
-import { ErrorBoundary } from '../common/ErrorBoundary';
 import {
   PanelLeftClose, PanelLeft, Home, FlaskConical,
-  Mic, AlignLeft, ListTree, Asterisk,
+  Mic, ListTree, Asterisk,
   KeyRound, Users, CreditCard, ChartNoAxesColumn, Settings,
   ArrowUpRight, Bell, BookOpen, RotateCcw,
-  ChevronDown, Rocket, Layers, Folder, ChevronsUpDown, Database,
-  Bot, Users2, FileText, MessageSquare, ShieldCheck, ClipboardCheck, Code2,
+  ChevronDown, Rocket, Layers, Folder, ChevronsUpDown, Users2, FileText, MessageSquare, ShieldCheck, ClipboardCheck, Code2,
 } from 'lucide-react';
+
+import { useAuthStore, useThemeStore, useCostStore } from '../../store';
+import { oauthApi, billingApi } from '../../services/api';
+import { useT, useLocaleStore } from '../../i18n';
+import { ErrorBoundary } from '../common/ErrorBoundary';
+
+import OrgSwitcher from './OrgSwitcher';
 
 const PROJECT_SLUG = 'icoder-medical-coding';
 const DEFAULT_PROJECT_NAME = 'iCoDer Console';
@@ -331,7 +331,7 @@ export default function Layout() {
           {/* Navigation */}
           <nav className="flex-1 overflow-y-auto py-2">
             {/* Top items (Home, Developer quickstart) - no group label */}
-            {(!collapsed || true) && topItems.map((item) => (
+            {topItems.map((item) => (
               <NavLink key={item.to} to={item.to} end={item.end}
                 className={({ isActive }) =>
                   `sidebar-item ${isActive ? 'active' : ''} ${collapsed ? 'justify-center px-1' : 'px-2 mx-2'}`

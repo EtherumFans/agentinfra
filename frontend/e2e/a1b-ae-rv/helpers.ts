@@ -7,10 +7,11 @@
  *  - Produce a step_log.json + before/after screenshots + sanitized HAR
  *  - Tag every network request as LIVE_BROWSER (not VCR replay)
  */
-import type { Page, Request, Response } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
+
+import type { Page, Response } from '@playwright/test';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

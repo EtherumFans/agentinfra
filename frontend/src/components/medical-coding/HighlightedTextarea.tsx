@@ -24,6 +24,7 @@
  *   text" mid-composition.
  */
 import React, { useRef, useCallback } from 'react';
+
 import { EvidenceHighlighter, EvidenceSpanLike } from './EvidenceHighlighter';
 
 // Shared FONT/PADDING metrics. Both textarea and overlay use this so

@@ -1,14 +1,13 @@
-import { useLocaleStore } from '../i18n';
-import { useT } from '../i18n';
 // iCoDer Text Generation - Apple Minimalist Design
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import {
   BookOpen, Sparkles, Loader2,
   Copy, Check,
-  X, Plus, Trash2, Pencil, Info, Shield, ChevronRight,
+  X, Plus, Trash2, Pencil, Info, Shield,
 } from 'lucide-react';
-import { authApi } from '../services/api';
+
+import { useT } from '../i18n';
+import { useLocaleStore } from '../i18n';
 import EventInspector from '../components/common/EventInspector';
 import CodeSnippet from '../components/common/CodeSnippet';
 import SettingsCodeTab from '../components/common/SettingsCodeTab';

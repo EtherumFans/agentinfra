@@ -1,6 +1,6 @@
 blocker_id,source,title,severity,subgate_assigned,status,target_phase,a1d_resolution_note
 A1C-B-002,A1C.9,88 historical baseline failures (spec/STT/oauth/health_check debt),P2,A1D.5,OPEN,A1D or Pilot prep,Triage into 4 per-suite fix batches; root-cause each before fix
-A1C-B-003,A1C.9,ESLint binary missing in audit env (frontend dev deps not installed),P2,A1D.1,OPEN,A1D,Run npm ci in frontend/ then capture ESLINT_BASELINE.json
+A1C-B-003,A1C.9,ESLint binary missing in audit env (frontend dev deps not installed),P2,A1D.1,CLOSED,A1D,CLOSED in A1D.1 — ESLint 9.39.5 + 7 plugins installed; flat config eslint.config.js; 21 errors resolved (16 allowEmptyCatch + 5 manual); exit 0 with 380 warnings permitted. Closure commit: see A1D.1 FRONTEND_LINT_INTRODUCTION_REPORT.md
 A1C-B-007,A1C.9,Fallback LLM provider not implemented (DeepSeek sole provider; Azure-OpenAI / Qwen / Moonshot fallback DESIGN only),P2,A1D.4,OPEN,A1D,Implement ≥1 fallback provider abstraction; real API key deferred to Pilot env
 A1C-B-008,A1C.9,KMS key rotation + cache invalidation not implemented (CredentialVault cache holds decrypted secrets),P2,A1D.4,OPEN,A1D,Implement KMS version token + cache invalidation signal; real KMS rotation deferred to Pilot env
 A1C-B-010,A1C.9,Allow-side policy_decision audit emission not wired (only deny-side emitted currently),P2,A1D.3,OPEN,A1D,Wire allow-side decision (rbac_role + abac_purpose_match + tenant_match) into audit_middleware

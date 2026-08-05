@@ -16,9 +16,10 @@
  * The vitest config already covers runtime rendering via React Testing
  * Library in other suites.
  */
-import { describe, it, expect } from 'vitest';
 import fs from 'fs';
 import path from 'path';
+
+import { describe, it, expect } from 'vitest';
 
 const REPO_ROOT = path.resolve(__dirname, '..', '..', '..', '..');
 const APP_TSX = path.resolve(REPO_ROOT, 'frontend', 'src', 'App.tsx');

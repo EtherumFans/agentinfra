@@ -2,6 +2,7 @@
 // Phase 4-F (2026-07-09): replaced C# with curl per prompt §7.4 (JS / Python / curl).
 import { useState, useCallback } from 'react';
 import { Copy, Check } from 'lucide-react';
+
 import { useT } from '../../i18n';
 
 interface CodeSnippetProps {

@@ -6,6 +6,7 @@
  * highlighted.
  */
 import React from 'react';
+
 import { CandidateCode } from '../../types/runtime';
 import { useT } from '../../i18n';
 

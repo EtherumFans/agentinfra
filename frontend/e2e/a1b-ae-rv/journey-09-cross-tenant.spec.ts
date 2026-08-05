@@ -9,9 +9,11 @@
  * exercised via the API's org-filter behavior with a synthetic
  * mismatched org_id in the URL — never by bypassing auth.
  */
-import { test, expect } from '@playwright/test';
 import * as fs from 'fs';
-import { JourneyRecorder, loginViaApiThenUi, BACKEND } from './helpers';
+
+import { test, expect } from '@playwright/test';
+
+import { JourneyRecorder, loginViaApiThenUi } from './helpers';
 
 const JOURNEY = 'journey-09-cross-tenant';
 

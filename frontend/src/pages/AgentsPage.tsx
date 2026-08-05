@@ -1,13 +1,14 @@
 // iCoDer Agents - iCoDer Console 1:1 with My Agents / Prebuilt tabs + Agent detail chat
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useT, useLocaleStore } from '../i18n';
 import {
   Bot, Search, Plus, User,
   ChevronDown, Loader2,
   Wrench, Trash2, Send,
   Layers,
 } from 'lucide-react';
+
+import { useT, useLocaleStore } from '../i18n';
 import { billingApi, agentsApi, oauthApi } from '../services/api';
 import { runtimeAgentApi } from '../services/runtimeApi';
 import { agentHubApi, type HubCard } from '../services/agentHubApi';

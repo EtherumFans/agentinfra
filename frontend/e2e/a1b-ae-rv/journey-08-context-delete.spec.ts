@@ -12,9 +12,11 @@
  * scan exists, the scan is recorded as deferred to RV.3 unit tests
  * (which already cover this at the DB layer).
  */
-import { test, expect } from '@playwright/test';
 import * as fs from 'fs';
-import { JourneyRecorder, loginViaApiThenUi, BACKEND } from './helpers';
+
+import { test, expect } from '@playwright/test';
+
+import { JourneyRecorder, loginViaApiThenUi } from './helpers';
 
 const JOURNEY = 'journey-08-context-delete';
 

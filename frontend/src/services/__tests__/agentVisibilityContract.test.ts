@@ -19,9 +19,10 @@
  *   - Confirms every certified pack has a corresponding route or is
  *     documented as "not yet implemented".
  */
-import { describe, it, expect } from 'vitest';
 import fs from 'fs';
 import path from 'path';
+
+import { describe, it, expect } from 'vitest';
 
 const REPO_ROOT = path.resolve(__dirname, '..', '..', '..', '..');
 const OFFICIAL_AGENTS_DIR = path.resolve(REPO_ROOT, 'backend', 'official_agents');

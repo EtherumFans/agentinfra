@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Mic, FileText, MessageSquare, Stethoscope, ArrowRight, Sparkles,
 } from 'lucide-react';
+
 import { useT } from '../i18n';
 
 interface HomeTab {

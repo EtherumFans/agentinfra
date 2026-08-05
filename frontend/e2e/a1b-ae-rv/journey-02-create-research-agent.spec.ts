@@ -5,8 +5,10 @@
  * UI submit (which hits POST /rest/v1/agent_definitions). Verifies
  * the new agent shows up in the agent_definitions list.
  */
-import { test, expect } from '@playwright/test';
 import * as fs from 'fs';
+
+import { test, expect } from '@playwright/test';
+
 import { JourneyRecorder, loginViaApiThenUi, FRONTEND } from './helpers';
 
 const JOURNEY = 'journey-02-create-research-agent';

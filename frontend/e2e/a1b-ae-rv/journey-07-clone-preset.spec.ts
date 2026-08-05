@@ -5,9 +5,11 @@
  * endpoint (invoked from the browser), verifies the clone exists with a
  * new agent ID, then deletes it to keep the test hermetic.
  */
-import { test, expect } from '@playwright/test';
 import * as fs from 'fs';
-import { JourneyRecorder, loginViaApiThenUi, BACKEND } from './helpers';
+
+import { test, expect } from '@playwright/test';
+
+import { JourneyRecorder, loginViaApiThenUi } from './helpers';
 
 const JOURNEY = 'journey-07-clone-preset';
 

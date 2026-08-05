@@ -1,12 +1,12 @@
-import { useLocaleStore } from '../i18n';
-import { useT } from '../i18n';
 import { useState, useCallback, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import {
   Loader2, Copy, Check, FileText, Stethoscope,
   Activity, Clock, AlertTriangle, FileCheck, Sparkles,
-  Wand2, ChevronDown, ChevronRight,
+  Wand2, ChevronDown,
 } from 'lucide-react';
+
+import { useT } from '../i18n';
+import { useLocaleStore } from '../i18n';
 import { factsApi, billingApi } from '../services/api';
 import SettingsCodeTab from '../components/common/SettingsCodeTab';
 import EventInspector from '../components/common/EventInspector';

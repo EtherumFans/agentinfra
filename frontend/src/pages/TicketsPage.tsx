@@ -17,6 +17,7 @@ import {
   Loader2, Plus, Search, X, Trash2, MessageSquare, ChevronDown,
   AlertCircle,
 } from 'lucide-react';
+
 import { ticketsApi } from '../services/api';
 import { useT } from '../i18n';
 

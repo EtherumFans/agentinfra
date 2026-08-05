@@ -1,5 +1,6 @@
 // Event Inspector - iCoDer-style collapsible event log per page
 import { useState } from 'react';
+
 import { useT } from '../../i18n';
 
 interface EventEntry {

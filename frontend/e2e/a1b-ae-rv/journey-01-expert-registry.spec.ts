@@ -5,6 +5,7 @@
  * via real browser navigation. NO Python module, NO TestClient.
  */
 import { test, expect } from '@playwright/test';
+
 import { JourneyRecorder, loginViaApiThenUi, FRONTEND } from './helpers';
 
 const JOURNEY = 'journey-01-expert-registry';

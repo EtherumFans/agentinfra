@@ -18,9 +18,10 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useParams, useSearchParams, useNavigate, Link } from 'react-router-dom';
 import {
-  Bot, Send, Loader2, AlertCircle, CheckCircle2, Activity,
+  Bot, Loader2, AlertCircle, CheckCircle2, Activity,
   ChevronRight, Paperclip, X, User, Copy, Clipboard,
 } from 'lucide-react';
+
 import { agentsApi, oauthApi } from '../services/api';
 import { runtimeAgentApi } from '../services/runtimeApi';
 import { useToastStore } from '../store';

@@ -3,7 +3,6 @@
 // A1B-AE-R.5: also supports ?from_preset=<key> (Preset clone flow).
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useT } from '../i18n';
 import {
   Bot, Search, BookOpen, Sparkles,
   Stethoscope, BookOpenText, Shield, CheckCircle,
@@ -11,6 +10,8 @@ import {
   Pill, FileWarning, GraduationCap, Users, FileCheck,
   Send, FileSearch, ChevronRight, Plus, Lightbulb, ArrowRight,
 } from 'lucide-react';
+
+import { useT } from '../i18n';
 import { agentsApi, expertsApi } from '../services/api';
 
 const ICON_MAP: Record<string, React.ElementType> = {

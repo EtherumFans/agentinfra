@@ -1,4 +1,5 @@
 import { Component, type ReactNode } from 'react';
+
 import { useT } from '../../i18n';
 
 interface Props { children: ReactNode; fallback?: ReactNode }

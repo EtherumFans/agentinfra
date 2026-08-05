@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Key, BookOpen, Copy, Check, Terminal, ChevronRight, Loader2, Bot, Mic, FileEdit, Stethoscope, Play } from 'lucide-react';
+
 import { oauthApi } from '../services/api';
 import { useT } from '../i18n';
 

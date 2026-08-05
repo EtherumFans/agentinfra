@@ -19,6 +19,7 @@ import {
   Unlock,
   ArrowRight,
 } from 'lucide-react';
+
 import { expertsApi } from '../services/api';
 
 const EXPERT_ICONS: Record<string, React.ElementType> = {

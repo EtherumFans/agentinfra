@@ -7,11 +7,10 @@ Used in AgentDetailPage's "Tools" tab.
 
 import { useState, useEffect } from 'react';
 import {
-  Search, Wrench, Shield, BarChart3, BookOpenText, FileSearch,
-  Clock, Stethoscope, Target, CheckCircle, GitCompare, PieChart,
-  FileWarning, ClipboardList, FileText, MessageSquare, ChevronDown,
+  Search, Shield, ChevronDown,
   ChevronRight, Info,
 } from 'lucide-react';
+
 import { useT } from '../../i18n';
 
 interface ToolDef {

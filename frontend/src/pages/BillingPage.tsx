@@ -2,6 +2,7 @@
 import { CreditCard, Plus, ArrowUpRight, Loader2, Shield, Building2, History } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+
 import { useT } from '../i18n';
 import { billingApi } from '../services/api';
 

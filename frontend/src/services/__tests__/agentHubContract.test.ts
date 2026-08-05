@@ -12,9 +12,10 @@
  *   4. The AgentsPage Prebuilt tab imports agentHubApi (not the legacy
  *      runtimeAgentApi.listAgents('certified')).
  */
-import { describe, it, expect } from 'vitest';
 import fs from 'fs';
 import path from 'path';
+
+import { describe, it, expect } from 'vitest';
 
 const REPO_ROOT = path.resolve(__dirname, '..', '..', '..', '..');
 const FRONTEND_SRC = path.resolve(REPO_ROOT, 'frontend', 'src');

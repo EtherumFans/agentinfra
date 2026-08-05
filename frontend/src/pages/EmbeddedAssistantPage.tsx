@@ -18,10 +18,11 @@
 // flows ONLY over the MessageChannel — never in the URL.
 
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
+import { Monitor, Smartphone, Copy, Check, RefreshCw, Power } from 'lucide-react';
+
 import { useToastStore, useAuthStore } from '../store';
 import { agentsApi } from '../services/api';
 import { useT } from '../i18n';
-import { Monitor, Smartphone, Copy, Check, RefreshCw, Power } from 'lucide-react';
 import EventInspector from '../components/common/EventInspector';
 
 interface EmbeddedConfig {

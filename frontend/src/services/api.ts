@@ -1,8 +1,9 @@
 // iCoDer - API Client
 import axios, { AxiosError } from 'axios';
+
 import type {
-  TokenResponse, Encounter, Review, PaginatedResponse,
-  CodeSearchResult, RuleResult,
+  TokenResponse, Encounter, PaginatedResponse,
+  CodeSearchResult,
 } from '../types';
 import { useToastStore, useAuthStore } from '../store';
 

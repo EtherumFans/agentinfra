@@ -1,18 +1,17 @@
 // Agent Detail Page - standalone page for /ai-studio/agents/:agentId
 // Chat area (left) + SettingsCodeTab (right) with Settings/Code tabs
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useT } from '../i18n';
 import {
-  Bot, Send, Loader2, Home, ChevronRight, Plus, Settings, Code,
+  Bot, Send, Loader2, Plus,
   X, Paperclip, FileText, Braces, Trash2, Wrench, Pencil,
-  Search, Check, Sparkles, BookOpen, Copy, User, Clock,
 } from 'lucide-react';
+
+import { useT } from '../i18n';
 import { agentsApi, billingApi, oauthApi } from '../services/api';
 import { agentHubApi } from '../services/agentHubApi';
 import { runtimeAgentApi } from '../services/runtimeApi';
 import { useToastStore } from '../store';
-import type { RuntimeRunResult } from '../types/runtime';
 import SettingsCodeTab from '../components/common/SettingsCodeTab';
 import ToolSelector from '../components/agents/ToolSelector';
 import CodeSnippet from '../components/common/CodeSnippet';
@@ -131,7 +130,7 @@ export default function AgentDetailPage() {
       if (clients.length > 0) setSelectedApiClient(clients[0].client_id);
     }).catch(() => {});
 
-    let idToExpert: Record<string, any> = {};
+    const idToExpert: Record<string, any> = {};
     agentsApi.get(agentId).then(r2 => {
       if (!isActive()) return;
       const a = r2.data;
@@ -370,7 +369,7 @@ export default function AgentDetailPage() {
     // TODO: re-implement via A2A run history (/api/runtime/runs) filtered by agent_ref.
     try {
       const ref = agentRef || (agent?.name?.toLowerCase()?.replace(/\s+/g,'-')||'') + '-' + (agent?.version||'1.0.0');
-      // eslint-disable-next-line no-unused-vars
+       
       const _ = ref; // (kept for future A2A history call)
       setEvalHistory([]);
     } catch {}

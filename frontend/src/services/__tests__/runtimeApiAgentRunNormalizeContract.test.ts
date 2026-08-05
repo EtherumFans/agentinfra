@@ -19,9 +19,10 @@
  *   - `medical-coding-agent@2.0.0`        (fork flow pins a version)
  *   - `medical-coding-agent`              (short form, defensive)
  */
-import { describe, it, expect } from 'vitest';
 import fs from 'fs';
 import path from 'path';
+
+import { describe, it, expect } from 'vitest';
 
 const REPO_ROOT = path.resolve(__dirname, '..', '..', '..', '..');
 const RUNTIME_API_PATH = path.join(

@@ -1,6 +1,7 @@
 // Edit System Prompt modal - iCoDer-style, opens from agent detail Settings panel
 import { useState } from 'react';
 import { X, Sparkles, Loader2 } from 'lucide-react';
+
 import { useT } from '../i18n';
 
 interface Props {

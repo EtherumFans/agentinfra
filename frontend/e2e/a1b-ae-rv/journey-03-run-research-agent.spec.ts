@@ -10,8 +10,10 @@
  * drive the run endpoint directly via browser fetch — still a real
  * browser request, just not routed through React state.
  */
-import { test, expect } from '@playwright/test';
 import * as fs from 'fs';
+
+import { test, expect } from '@playwright/test';
+
 import { JourneyRecorder, loginViaApiThenUi, FRONTEND } from './helpers';
 
 const JOURNEY = 'journey-03-run-research-agent';

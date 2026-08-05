@@ -18,9 +18,10 @@
  * Whitelist: paths that can't be statically extracted (e.g., axios.get() on root
  * paths outside the api instance) live in path_whitelist.json with documented reasons.
  */
-import { describe, it, expect } from 'vitest';
 import fs from 'fs';
 import path from 'path';
+
+import { describe, it, expect } from 'vitest';
 
 type HttpMethod = 'get' | 'post' | 'put' | 'patch' | 'delete';
 

@@ -12,6 +12,7 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
 import api from '../services/api';
 
 const SAMPLE = `患者男性,78岁,因跌倒后腰背疼痛12小时入院。

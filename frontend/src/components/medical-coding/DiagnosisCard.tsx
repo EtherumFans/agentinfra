@@ -15,9 +15,11 @@
  * alignment (Phase 3-A). The internal_engine name does not surface to users.
  */
 import React, { useState } from 'react';
+
 import { ExtractedDiagnosis, CandidateCode } from '../../types/runtime';
-import { TopKChips } from './TopKChips';
 import { useT } from '../../i18n';
+
+import { TopKChips } from './TopKChips';
 
 interface DiagnosisCardProps {
   diagnosis: ExtractedDiagnosis;

@@ -1,6 +1,7 @@
 // iCoDer - 帮助与支持页面
 import { useNavigate } from 'react-router-dom';
 import { MessageCircle, ExternalLink, Mail, BookOpen, FileText } from 'lucide-react';
+
 import { useT } from '../i18n';
 
 export default function SupportPage() {

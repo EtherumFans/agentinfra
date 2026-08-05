@@ -1,9 +1,9 @@
-import { useLocaleStore } from '../i18n';
-import { useT } from '../i18n';
 // iCoDer Speech To Text - iCoDer Console 1:1 replica
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Link } from 'react-router-dom';
-import { Mic, MicOff, Copy, X, Plus, Settings2, AudioWaveform, Sparkles, ListTree, ChevronRight } from 'lucide-react';
+import { Mic, MicOff, Copy, X, Plus, AudioWaveform } from 'lucide-react';
+
+import { useT } from '../i18n';
+import { useLocaleStore } from '../i18n';
 import { appendWithPunctuation, llmPunctuate } from '../utils/stt-punctuation';
 import EventInspector from '../components/common/EventInspector';
 import CodeSnippet from '../components/common/CodeSnippet';
@@ -93,7 +93,11 @@ export default function SpeechToTextPage() {
       let interimText = '', finalText = '';
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const r = event.results[i];
-        r.isFinal ? finalText += r[0].transcript : interimText += r[0].transcript;
+        if (r.isFinal) {
+          finalText += r[0].transcript;
+        } else {
+          interimText += r[0].transcript;
+        }
       }
       if (finalText) {
         setSttEvents(prev => [...prev.slice(-50), { type: 'transcript', data: { text: finalText.trim().slice(0, 80) }, timestamp: new Date().toLocaleTimeString(locale, { hour12: false }), credits: 0.000001 }]);

@@ -4,6 +4,7 @@
 // emits the Corti-style 6-section layout (Validated Codes + Cross-Code
 // Issues tables).
 import { describe, it, expect } from 'vitest';
+
 import { generateFallbackMarkdown } from '../medicalCodingMarkdown';
 
 describe('generateFallbackMarkdown — CodeValidationOutput/v2', () => {

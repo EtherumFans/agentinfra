@@ -10,9 +10,11 @@
  * If no such API exists, fall back to: drive the gate's decision via
  * the documented /api/agents/experts/* endpoint if present.
  */
-import { test, expect } from '@playwright/test';
 import * as fs from 'fs';
-import { JourneyRecorder, loginViaApiThenUi, BACKEND } from './helpers';
+
+import { test, expect } from '@playwright/test';
+
+import { JourneyRecorder, loginViaApiThenUi } from './helpers';
 
 const JOURNEY = 'journey-06-external-expert-disabled';
 

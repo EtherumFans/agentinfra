@@ -17,6 +17,7 @@ import {
   Loader2, Plus, Search, X, ChevronLeft, ChevronRight,
   Trash2, Users,
 } from 'lucide-react';
+
 import { customersApi } from '../services/api';
 import { useT } from '../i18n';
 import { useAuthStore } from '../store';

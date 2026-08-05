@@ -18,6 +18,7 @@ import {
   Loader2, Plus, Search, X, ExternalLink, FileText, MoreVertical,
   Sparkles, MessageSquareWarning,
 } from 'lucide-react';
+
 import { templatesApi } from '../services/api';
 import { useT } from '../i18n';
 

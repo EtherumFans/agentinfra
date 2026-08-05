@@ -5,21 +5,22 @@
 // MedCodER retained as Deep Evidence mode (mode=medcoder_deep).
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import {
+  X, Sparkles, Loader2, Plus, ChevronRight,
+  Eraser, Copy, BookText, Info, RotateCcw,
+  FileText, ChevronDown, Check, SlidersHorizontal, Activity,
+  AlertTriangle, Zap, FileSearch, Clipboard,
+} from 'lucide-react';
+
 import { useAppStore, useCostStore } from '../store';
 import { useT } from '../i18n';
 import { codingApi } from '../services/api';
 import type { CodingPredictResult, CodingMode, CodingResultCode } from '../services/api';
 import type { RuntimeRunResult, CodingIssue } from '../types/runtime';
-import type { ExtractedDiagnosis, CandidateCode } from '../types/runtime';
+import type { ExtractedDiagnosis } from '../types/runtime';
 import { HighlightedTextarea } from '../components/medical-coding/HighlightedTextarea';
 import type { EvidenceSpanLike } from '../components/medical-coding/EvidenceHighlighter';
 import { DiagnosisCard } from '../components/medical-coding/DiagnosisCard';
-import {
-  X, Sparkles, Loader2, Plus, ChevronRight, ChevronLeft,
-  Eraser, Copy, BookText, Info, RotateCcw,
-  FileText, ChevronDown, Check, SlidersHorizontal, Activity,
-  AlertTriangle, Zap, FileSearch, Clipboard,
-} from 'lucide-react';
 import CodeSnippet from '../components/common/CodeSnippet';
 
 type RightTab = 'settings' | 'code';

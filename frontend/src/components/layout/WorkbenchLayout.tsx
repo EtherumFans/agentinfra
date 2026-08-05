@@ -4,6 +4,7 @@
 // Pages adopt this shell in Phase 2; for now it's a contract skeleton.
 import { ReactNode } from 'react';
 import { Settings, Terminal, PanelLeft, PanelRight } from 'lucide-react';
+
 import { useT } from '../../i18n';
 
 export interface WorkbenchLayoutProps {

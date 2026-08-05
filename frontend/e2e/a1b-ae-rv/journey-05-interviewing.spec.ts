@@ -4,8 +4,10 @@
  * Like Journey 4, the Interview UI may not exist. This spec probes
  * the /intake or /interview route and records findings honestly.
  */
-import { test, expect } from '@playwright/test';
 import * as fs from 'fs';
+
+import { test, expect } from '@playwright/test';
+
 import { JourneyRecorder, loginViaApiThenUi, FRONTEND } from './helpers';
 
 const JOURNEY = 'journey-05-interviewing';

@@ -1,8 +1,9 @@
 // iCoDer - Settings Page with real config
 import { useState, useEffect } from 'react';
+import { User, Shield, Database, Activity, Loader2, ExternalLink as ExternalLinkIcon, Check, Building2, UserPlus, X, Lock } from 'lucide-react';
+
 import { useAuthStore } from '../store';
 import type { OrgInfo } from '../store';
-import { Settings, User, Shield, Database, Activity, Loader2, ExternalLink as ExternalLinkIcon, Check, Building2, UserPlus, X, ChevronDown, Lock, Key } from 'lucide-react';
 import { useT } from '../i18n';
 import { configApi, a2aApi, orgApi, authApi } from '../services/api';
 

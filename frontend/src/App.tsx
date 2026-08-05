@@ -12,8 +12,9 @@
 // of implicit dependencies; the embedded-assistant page is physically deleted.
 // Phase 4-F2 (2026-07-10): RunTrace route is RESTORED — the dedicated trace
 // viewer is required by §4.3 to display trace_events from the unified endpoint.
-import { lazy, Suspense } from 'react';
+import { lazy } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
+
 import { useAuthStore } from './store';
 import Layout from './components/layout/Layout';
 import LoginPage from './pages/LoginPage';

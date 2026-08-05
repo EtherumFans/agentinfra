@@ -39,6 +39,7 @@ import {
   ChevronRight,
   Lock,
 } from 'lucide-react';
+
 import { useAuthStore } from '../store';
 import {
   runCDI,
@@ -51,14 +52,6 @@ import {
 } from '../services/cdiApi';
 import {
   LIFECYCLE_LABELS,
-  COMPLETION_LABELS,
-  GAP_TYPE_LABELS,
-  NLQ_VERDICT_LABELS,
-  EXPERT_LABELS,
-  EXECUTION_MODE_LABELS,
-  RISK_FLAG_LABELS,
-  ROLE_LABELS,
-  RULE_ID_LABELS,
   labelCompletion,
   labelGapType,
   labelNLQVerdict,

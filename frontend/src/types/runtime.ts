@@ -200,7 +200,7 @@ export interface MethodResult {
   processing_time_ms: number;
 }
 
-export interface CompareResultEntry extends MethodResult {}
+export type CompareResultEntry = MethodResult;
 
 export interface CompareRequest {
   emr_text: string;

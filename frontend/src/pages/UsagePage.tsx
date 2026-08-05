@@ -3,6 +3,7 @@
 // icons + prev-period comparison line) + 30-day daily cost chart (Phase 5 A6) + activity history list
 import { Activity, Loader2, ChevronDown, BarChart3, Zap, Clock, TrendingUp } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
+
 import { useT } from '../i18n';
 import { usageApi, oauthApi } from '../services/api';
 

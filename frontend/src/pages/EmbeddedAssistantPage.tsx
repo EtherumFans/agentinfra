@@ -1,4 +1,4 @@
-// Phase 7 Gate 13A — Corti-style Embedded Assistant Console page.
+// Phase 7 Gate 13A — Embedded Assistant Console page.
 //
 // SECURE bootstrap (replaces Gate 13's URL-embedded JWT):
 //   1. On mount (or Restart), POST /api/embedded/preview-sessions with the

@@ -174,7 +174,7 @@ function _mapA2AResultToRunResult(agentId: string, envelope: any): RuntimeRunRes
  * without touching the rendering layer.
  *
  * The unified endpoint returns a uniform envelope across all iCoDer built
- * agents. Medical Coding Agent runs via the G001 `corti_like_fast` path
+ * agents. Medical Coding Agent runs via the G001 fast path
  * (CodingRuntimeDispatcher) and returns ~9-10s on T12. A2A runs route to
  * InboundHandler + MedCodER 5-stage pipeline and 60s-timeout — we avoid
  * that path on chat now.
@@ -331,7 +331,7 @@ export const runtimeAgentApi = {
   listRuns: (agentRef = '', limit = 50) =>
     api.get<{ runs: RuntimeRunResult[]; total: number }>('/runs', { params: { agent_ref: agentRef, limit } }).then(r => r.data),
 
-  // Phase 3-D1 Task 4: RunTrace Corti-parity Viewer — 9-step timeline
+  // Phase 3-D1 Task 4: RunTrace Viewer — 9-step timeline
   getRunTrace: (runId: string) =>
     api.get<RunTraceResponse>(`/runs/${encodeURIComponent(runId)}/trace`).then(r => r.data),
 
@@ -406,7 +406,7 @@ export const runtimeAgentApi = {
    * `resp.error=true`, throws a structured error with `error_reason` so the
    * caller surfaces a structured error bubble instead of silent fail.
    *
-   * Medical Coding Agent default: `runtime_mode="corti_like_fast"` (G001,
+   * Medical Coding Agent default: fast path (G001,
    * ~9-10s on T12) — the A2A MedCodER 5-stage path 60s-timeouts.
    *
    * Phase 4-G #1 (2026-07-10): After a successful run with a populated

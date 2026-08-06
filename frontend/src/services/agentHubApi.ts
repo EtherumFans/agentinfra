@@ -1,6 +1,6 @@
 // Phase 3-B1 Section F — Agent Hub API service.
 //
-// Backend contract: GET /api/icoder/agents/hub returns Corti-style Hub cards
+// Backend contract: GET /api/icoder/agents/hub returns Hub cards
 // (pack-mastered from official_agents/**/agent_pack.json). See
 // backend/app/api/icoder_agents_hub.py:197 (operation_id=icoder_agents_hub_list_v1).
 //
@@ -16,7 +16,7 @@
 //
 // Frontend rules:
 //   - Prebuilt tab renders Hub cards (replaces runtimeAgentApi.listAgents
-//     for the Corti-style product browsing experience).
+//     for the product browsing experience).
 //   - metadata-only packs (runnable=false) show "Coming Soon" badge +
 //     no Run button.
 //   - expert-stubs and internal_engine are excluded by the backend filter
@@ -106,12 +106,12 @@ export interface HubCard {
   human_review_required_when: string[];
   a2a_endpoint: string | null;
   run_endpoint: string | null;
-  // Phase 3-B2 Loop 1 (Gap 2.3): Corti-style action URLs.
+  // Phase 3-B2 Loop 1 (Gap 2.3): action URLs.
   clone_url: string | null; // POST /api/icoder/agents/{agent_id}/clone
   chat_url: string | null; // template: /agents/{project_agent_id}/chat
   customize_url: string | null; // template: /ai-studio/agents/{project_agent_id}
   run_url: string | null; // A2A mainline URL
-  // Phase 4-D (D-6): Corti-style card metadata (DD-Mon-YYYY · Creator).
+  // Phase 4-D (D-6): card metadata (DD-Mon-YYYY · Creator).
   created_at?: string;
   creator?: string;
   // Phase 4-F (2026-07-09): Prebuilt Agent spec v1.3 fields — drive the

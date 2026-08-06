@@ -1,9 +1,9 @@
-// iCoDer AI Studio Overview - 1:1 Corti replica (Phase 3-E+)
+// iCoDer AI Studio Overview (Phase 3-E+)
 import { useNavigate } from 'react-router-dom';
 import {
   Layers, Mic, FileText, MessageSquare, Braces, Stethoscope,
   ArrowRight, ArrowUpRight, Compass, ShieldCheck, SlidersHorizontal,
-  Code2, LifeBuoy, MessageCircle, ExternalLink,
+  Code2, LifeBuoy, MessageCircle,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -34,48 +34,48 @@ export default function AIStudioOverviewPage() {
   ];
 
   // Phase 3-E+: iCoDer has Agents + Medical Coding live; STT / TextGen / Embedded /
-  // FactExtraction are Corti-parity placeholders routed to /ai-studio/agents for now.
+  // FactExtraction are placeholder entries routed to /ai-studio/agents for now.
   const capabilities: CapabilityCard[] = [
     {
       name: t.aiStudioOverviewAgentsName,
       desc: t.aiStudioOverviewAgentsDesc,
       exploreHref: '/ai-studio/agents',
-      docsHref: 'https://docs.corti.ai/agentic/overview',
+      docsHref: '/docs',
       Icon: Layers,
     },
     {
       name: t.aiStudioOverviewSttName,
       desc: t.aiStudioOverviewSttDesc,
       exploreHref: '/ai-studio/medical-coding',
-      docsHref: 'https://docs.corti.ai/stt/overview',
+      docsHref: '/docs',
       Icon: Mic,
     },
     {
       name: t.aiStudioOverviewTextGenName,
       desc: t.aiStudioOverviewTextGenDesc,
       exploreHref: '/ai-studio/medical-coding',
-      docsHref: 'https://docs.corti.ai/textgen/overview',
+      docsHref: '/docs',
       Icon: FileText,
     },
     {
       name: t.aiStudioOverviewEmbeddedName,
       desc: t.aiStudioOverviewEmbeddedDesc,
       exploreHref: '/ai-studio/agents',
-      docsHref: 'https://docs.corti.ai/assistant/introduction',
+      docsHref: '/docs',
       Icon: MessageSquare,
     },
     {
       name: t.aiStudioOverviewFactExtractName,
       desc: t.aiStudioOverviewFactExtractDesc,
       exploreHref: '/ai-studio/medical-coding',
-      docsHref: 'https://docs.corti.ai/api-reference/facts/extract-facts',
+      docsHref: '/docs',
       Icon: Braces,
     },
     {
       name: t.aiStudioOverviewCodingName,
       desc: t.aiStudioOverviewCodingDesc,
       exploreHref: '/ai-studio/medical-coding',
-      docsHref: 'https://docs.corti.ai/coding/overview',
+      docsHref: '/docs',
       Icon: Stethoscope,
     },
   ];
@@ -87,7 +87,7 @@ export default function AIStudioOverviewPage() {
         key={idx}
         className="flex flex-col border-border xl:border-r border-b xl:border-b-0 xl:last:border-r-0 last:border-b-0"
       >
-        {/* Image / icon preview area (Corti uses SVG previews; we use an icon-tile placeholder) */}
+        {/* Image / icon preview area (icon-tile placeholder) */}
         <div className="xl:h-52 h-32 overflow-hidden bg-muted/30 flex items-center justify-center border-border border-b">
           <Icon size={64} className="text-muted-foreground/40" />
         </div>
@@ -124,7 +124,7 @@ export default function AIStudioOverviewPage() {
 
   return (
     <div className="flex-1 overflow-y-auto bg-muted/20">
-      {/* Corti-style full-width container with vertical dividers on xl */}
+      {/* Full-width container with vertical dividers on xl */}
       <div className="mx-auto flex w-full flex-1 flex-col xl:border-x border-border bg-background">
         {/* Hero - H1 / tagline (eyebrow dropped per §4.7) */}
         <div className="flex flex-col gap-2 px-6 pt-6 pb-0">
@@ -206,65 +206,53 @@ export default function AIStudioOverviewPage() {
               <span className="column-header text-muted-foreground text-xs uppercase">
                 {t.aiStudioOverviewFooterDocs}
               </span>
-              <a
-                className="group/link inline-flex items-center gap-1 text-foreground text-sm hover:underline"
-                href="https://docs.corti.ai/authentication"
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                onClick={() => navigate('/docs')}
+                className="group/link inline-flex items-center gap-1 text-foreground text-sm hover:underline w-fit"
               >
                 {t.aiStudioOverviewFooterAuth}
                 <ArrowUpRight size={14} className="opacity-0 transition-opacity group-hover/link:opacity-100" />
-              </a>
-              <a
-                className="group/link inline-flex items-center gap-1 text-foreground text-sm hover:underline"
-                href="https://docs.corti.ai/guides"
-                target="_blank"
-                rel="noopener noreferrer"
+              </button>
+              <button
+                onClick={() => navigate('/docs')}
+                className="group/link inline-flex items-center gap-1 text-foreground text-sm hover:underline w-fit"
               >
                 {t.aiStudioOverviewFooterGuides}
                 <ArrowUpRight size={14} className="opacity-0 transition-opacity group-hover/link:opacity-100" />
-              </a>
-              <a
-                className="group/link inline-flex items-center gap-1 text-foreground text-sm hover:underline"
-                href="https://docs.corti.ai/api-reference"
-                target="_blank"
-                rel="noopener noreferrer"
+              </button>
+              <button
+                onClick={() => navigate('/docs')}
+                className="group/link inline-flex items-center gap-1 text-foreground text-sm hover:underline w-fit"
               >
                 {t.aiStudioOverviewFooterApiRef}
                 <ArrowUpRight size={14} className="opacity-0 transition-opacity group-hover/link:opacity-100" />
-              </a>
+              </button>
             </div>
             <div className="column flex flex-1 flex-col gap-3">
               <span className="column-header text-muted-foreground text-xs uppercase">
                 {t.aiStudioOverviewFooterSdks}
               </span>
-              <a
-                className="group/link inline-flex items-center gap-1 text-foreground text-sm hover:underline"
-                href="https://docs.corti.ai/sdk/js-sdk#javascript-sdk"
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                onClick={() => navigate('/docs')}
+                className="group/link inline-flex items-center gap-1 text-foreground text-sm hover:underline w-fit"
               >
                 {t.aiStudioOverviewFooterJsSdk}
                 <ArrowUpRight size={14} className="opacity-0 transition-opacity group-hover/link:opacity-100" />
-              </a>
-              <a
-                className="group/link inline-flex items-center gap-1 text-foreground text-sm hover:underline"
-                href="https://docs.corti.ai/sdk/postman#quickstart-postman"
-                target="_blank"
-                rel="noopener noreferrer"
+              </button>
+              <button
+                onClick={() => navigate('/docs')}
+                className="group/link inline-flex items-center gap-1 text-foreground text-sm hover:underline w-fit"
               >
                 {t.aiStudioOverviewFooterPostman}
                 <ArrowUpRight size={14} className="opacity-0 transition-opacity group-hover/link:opacity-100" />
-              </a>
-              <a
-                className="group/link inline-flex items-center gap-1 text-foreground text-sm hover:underline"
-                href="https://docs.corti.ai/quickstart/ai-coding-tools"
-                target="_blank"
-                rel="noopener noreferrer"
+              </button>
+              <button
+                onClick={() => navigate('/docs')}
+                className="group/link inline-flex items-center gap-1 text-foreground text-sm hover:underline w-fit"
               >
                 {t.aiStudioOverviewFooterAiCoding}
                 <ArrowUpRight size={14} className="opacity-0 transition-opacity group-hover/link:opacity-100" />
-              </a>
+              </button>
             </div>
             <div className="column flex flex-1 flex-col gap-3">
               <span className="column-header text-muted-foreground text-xs uppercase">
@@ -277,16 +265,13 @@ export default function AIStudioOverviewPage() {
                 <MessageCircle size={14} />
                 {t.aiStudioOverviewFooterChat}
               </button>
-              <a
-                className="group/link inline-flex items-center gap-1 text-foreground text-sm hover:underline"
-                href="https://help.corti.app/tickets-portal"
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                onClick={() => navigate('/support')}
+                className="group/link inline-flex items-center gap-1 text-foreground text-sm hover:underline w-fit"
               >
                 <LifeBuoy size={14} />
                 {t.aiStudioOverviewFooterTicket}
-                <ExternalLink size={12} className="opacity-50" />
-              </a>
+              </button>
             </div>
           </div>
         </div>

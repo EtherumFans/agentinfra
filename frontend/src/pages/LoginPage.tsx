@@ -90,7 +90,7 @@ export default function LoginPage() {
                   {loading ? '登录中...' : '登 录'}
                 </button>
               </form>
-              {/* OAuth login - Corti-style */}
+              {/* OAuth login */}
               <div className="mt-4 pt-4 border-t border-border">
                 <p className="text-[10px] text-muted-foreground text-center mb-3">或使用第三方账号登录</p>
                 <div className="flex gap-2">

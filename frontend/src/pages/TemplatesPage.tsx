@@ -1,6 +1,6 @@
-// iCoDer - Templates (Beta) page (Corti parity)
+// iCoDer - Templates (Beta) page
 //
-// Corti IA replicated:
+// IA:
 //   Header  Templates · "Manage templates and sections for generating
 //           structured documents"
 //   CTA     Template builder (right-aligned, opens builder modal)
@@ -210,7 +210,7 @@ export default function TemplatesPage() {
             </div>
           )}
 
-          {/* Counter footer (Corti-style, no hard pagination in Beta) */}
+          {/* Counter footer (no hard pagination in Beta) */}
           {!loading && !error && items.length > 0 && (
             <p className="text-xs text-muted-foreground mt-4 text-right">
               {items.length} / {total}

@@ -3,10 +3,10 @@
 // AgentHub pages deleted. Routes into /runtime/doctor, /runtime/method-compare,
 // /runtime/runs, /runtime/agent-hub, /marketplace removed. The legacy /studio/
 // and /manage/ aliases remain as no-op redirects so old links don't 404 while
-// Task #4 rewrites the sidebar to align with Corti's IA.
+// Task #4 rewrites the sidebar to align with the new IA.
 //
 // Phase 3-B2 Loop 0 (2026-07-05): TextGeneration and EmbeddedAssistant routes
-// removed (Corti parity - these concepts are replaced by the upcoming Chat
+// removed (these concepts are replaced by the upcoming Chat
 // flow and Agent Hub). Old paths redirect to /ai-studio/agents so deep links
 // don't 404. TextGeneration file is kept on disk as an orphan file in case
 // of implicit dependencies; the embedded-assistant page is physically deleted.
@@ -77,11 +77,11 @@ function App() {
         <Route path="ai-studio/agents/new" element={<NewAgentPage />} />
         <Route path="ai-studio/experts" element={<ExpertsPage />} />
         <Route path="ai-studio/agents/:agentId" element={<AgentDetailPage />} />
-        {/* Phase 4-D - Corti-style chat URL: /ai-studio/agents/:agentId/chat */}
+        {/* Phase 4-D - chat URL: /ai-studio/agents/:agentId/chat */}
         <Route path="ai-studio/agents/:agentId/chat" element={<AgentChatPage />} />
         {/* Phase 3-B2 Loop 2 - Click-to-Chat UX (Gap 2.2). Legacy route redirects. */}
         <Route path="agents/:project_agent_id/chat" element={<AgentChatPage />} />
-        {/* Phase 3-D1 Task 4 - RunTrace Corti-parity Viewer (9-step timeline).
+        {/* Phase 3-D1 Task 4 - RunTrace Viewer (9-step timeline).
             Openable from AgentChatPage via the "View RunTrace" button. */}
         <Route path="runs/:runId/trace" element={<RunTracePage />} />
         {/* Phase 3-B2 Loop 0: TextGeneration + EmbeddedAssistant routes removed.
@@ -113,8 +113,8 @@ function App() {
         <Route path="studio/new-agent" element={<NewAgentPage />} />
 
         {/* Runtime - only MedicalCoding remains. RuntimeConsole / Runs / Doctor
-            are iCoDer-internal concepts with no Corti equivalent; quality +
-            shadow-eval pages are pending Corti Mapping (see Task #4). */}
+            are iCoDer-internal concepts; quality +
+            shadow-eval pages are pending (see Task #4). */}
         <Route path="runtime/agents" element={<AgentsPage />} />
         <Route path="runtime/coding-review" element={<MedicalCodingPage />} />
         <Route path="runtime/coding-review/:runId" element={<MedicalCodingPage />} />

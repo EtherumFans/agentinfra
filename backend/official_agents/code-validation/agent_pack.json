@@ -5,7 +5,7 @@
   "manifest": {
     "name": "编码校验智能体",
     "version": "2.0.0",
-    "description": "iCoDer 编码校验 Agent v2 (Phase 4-C) — LLMWithToolsProvider + 4 MCP 工具 (verify_code / get_guidelines / explore_code / search_codes),1:1 复刻 Corti Code Validation Agent 架构。每个编码必调 verify+guidelines,非 assignable 时调 explore,替代建议时调 search。Legacy RuleEngine (R001-R010 + MC-R-M80-001) 作为 fallback 保留。",
+    "description": "iCoDer 编码校验 Agent v2 (Phase 4-C) — LLMWithToolsProvider + 4 MCP 工具 (verify_code / get_guidelines / explore_code / search_codes)。每个编码必调 verify+guidelines,非 assignable 时调 explore,替代建议时调 search。Legacy RuleEngine (R001-R010 + MC-R-M80-001) 作为 fallback 保留。",
     "category": "medical-coding",
     "category_display": "Coding and Revenue Cycle / 编码与收入周期",
     "icon": "CheckCircle",
@@ -30,7 +30,7 @@
       "expert_id": "llm-with-tools",
       "name": "LLM With Tools",
       "role": "primary",
-      "description": "LLMWithToolsProvider + 4 MCP tools (verify/guidelines/explore/search). Corti Code Validation 1:1 复刻。"
+      "description": "LLMWithToolsProvider + 4 MCP tools (verify/guidelines/explore/search)."
     },
     {
       "expert_id": "rule-engine-fallback",
@@ -146,7 +146,7 @@
       "cross_code_issues": "list[CrossCodeIssue] — EXCLUDES1_CONFLICT / SEQUENCING / MISSING_COMPANION / COMBINATION_CODE / SYMPTOM_SUPPRESSION / LATERALITY_MISMATCH / DUPLICATE",
       "manual_review_required": "bool — DRG/DIP 敏感或 FAIL 时 true",
       "summary": "1-2 句中文总结",
-      "markdown": "Corti 6 段 Markdown 报告 (Status/Summary/Validated Codes/Cross-Code Issues/Manual Review)"
+      "markdown": "6 段 Markdown 报告 (Status/Summary/Validated Codes/Cross-Code Issues/Manual Review)"
     },
     "breaking_changes_from_v1": [
       "移除 fired_rules (移入 trace_refs)",

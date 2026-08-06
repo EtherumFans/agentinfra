@@ -816,7 +816,7 @@ export default function AgentDetailPage() {
 
                   <div className="flex-1" />
 
-                  {/* Phase 4-F: API Client dropdown — Corti-style usage attribution selector */}
+                  {/* Phase 4-F: API Client dropdown — usage attribution selector */}
                   {apiClients.length > 0 && (
                     <select
                       value={selectedApiClient}

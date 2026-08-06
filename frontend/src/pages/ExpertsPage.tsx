@@ -115,7 +115,7 @@ export default function ExpertsPage() {
         <div className="max-w-6xl mx-auto p-6">
           <h1 className="text-lg font-semibold text-foreground mb-1">专家注册表</h1>
           <p className="text-xs text-muted-foreground mb-4">
-            9 个 Corti §3.2 Expert + 5 个 Preset Agent
+            9 个 Expert + 5 个 Preset Agent
           </p>
 
           <div className="relative mb-4">

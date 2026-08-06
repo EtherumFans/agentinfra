@@ -1,7 +1,7 @@
-// iCoDer Medical Coding - Corti Console 1:1 visual replica
+// iCoDer Medical Coding
 // All UI text is i18n-driven: zh-CN ↔ en-US
 // G001 refactor (2026-07-09): Default flow switched from A2A MedCodER 5-stage
-// pipeline to Corti-like Fast Coding Runtime via /api/v1/coding/predict.
+// pipeline to Fast Coding Runtime via /api/v1/coding/predict.
 // MedCodER retained as Deep Evidence mode (mode=medcoder_deep).
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
@@ -118,7 +118,7 @@ export default function MedicalCodingPage() {
   // ── Right panel ──
   const [rightTab, setRightTab] = useState<RightTab>('settings');
 
-  // ── Phase 3-F: Config drawer + Event Inspector drawer (Corti-style) ──
+  // ── Phase 3-F: Config drawer + Event Inspector drawer ──
   const [configOpen, setConfigOpen] = useState(false);
   const [eventInspectorOpen, setEventInspectorOpen] = useState(false);
 
@@ -141,7 +141,7 @@ export default function MedicalCodingPage() {
   // ── Sample dropdown (top header "Samples" button) ──
   const [sampleMenuOpen, setSampleMenuOpen] = useState(false);
 
-  // ── Inline templates (Corti-style 4-card layout) ──
+  // ── Inline templates (4-card layout) ──
 
   // ── Coding systems ──
   const [codingSystems, setCodingSystems] = useState<{code_system:string;name:string;is_default:boolean}[]>([]);
@@ -193,7 +193,7 @@ export default function MedicalCodingPage() {
     setSelectedSystems([systems[0].code_system]);
   }, []);
 
-  // ── Inline templates (Corti-style 4-card layout) ──
+  // ── Inline templates (4-card layout) ──
   const loadSampleAndRun = (sampleKey: typeof samples[number]['key']) => {
     const sample = samples.find(s => s.key === sampleKey);
     if (!sample) return;
@@ -209,7 +209,7 @@ export default function MedicalCodingPage() {
   };
 
   // ── Predict ──
-  // G001 refactor: Default calls /api/v1/coding/predict (Corti-like Fast Coding).
+  // G001 refactor: Default calls /api/v1/coding/predict (Fast Coding).
   // mode=corti_like_fast (default) → single LLM call, target <15s
   // mode=medcoder_deep             → 5-stage MedCodER pipeline, 30-60s+
   const handlePredict = async (textOverride?: string) => {
@@ -382,7 +382,7 @@ export default function MedicalCodingPage() {
         <span className="text-foreground font-medium truncate">{t.medicalCodingBreadcrumb}</span>
       </div>
 
-      {/* ==================== Phase 3-A Section D - MVP + AI-assisted banners (Corti red lines) ==================== */}
+      {/* ==================== Phase 3-A Section D - MVP + AI-assisted banners ==================== */}
       <div className="flex items-center gap-2 px-4 py-1.5 border-b border-amber-200/40 bg-amber-50/60 shrink-0 text-[11px]">
         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium" data-testid="mvp-banner">
           <Info size={10} /> {t.mvpBanner}
@@ -392,7 +392,7 @@ export default function MedicalCodingPage() {
         </span>
       </div>
 
-      {/* ==================== ACTION BAR - Corti-style: Coding systems + Predict + Config ==================== */}
+      {/* ==================== ACTION BAR - Coding systems + Predict + Config ==================== */}
       <div className="flex shrink-0 items-center border-b bg-muted px-4 py-3 gap-3">
         {/* 左: Coding systems label + info tooltip + combobox chips */}
         <span className="text-sm font-medium text-foreground">{t.codingSystems}</span>
@@ -456,11 +456,11 @@ export default function MedicalCodingPage() {
         </div>
       </div>
 
-      {/* ==================== MAIN 2-PANE (Corti-style: Input + Output) ==================== */}
+      {/* ==================== MAIN 2-PANE (Input + Output) ==================== */}
       <div className={`flex-1 flex min-h-0 transition-all duration-200 ${configOpen ? 'mr-[400px]' : ''}`}>
         {/* ===== LEFT: Input + sub-toolbar + floating onboarding card ===== */}
         <div className="flex-1 flex flex-col min-w-0 border-r border-border/20">
-          {/* Corti-style Input/Samples/Clear/Copy sub-toolbar */}
+          {/* Input/Samples/Clear/Copy sub-toolbar */}
           <div className="flex items-center justify-between px-4 py-2">
             <span className="text-sm font-medium text-foreground">{t.inputLabel}</span>
             <div className="flex items-center gap-1">
@@ -504,7 +504,7 @@ export default function MedicalCodingPage() {
               </span>
             </div>
           </div>
-          {/* textarea + floating onboarding card (Corti-style overlay) */}
+          {/* textarea + floating onboarding card (overlay) */}
           <div className="flex-1 relative min-h-0">
             <HighlightedTextarea
               value={input}
@@ -530,7 +530,7 @@ export default function MedicalCodingPage() {
                           <p className="text-xs text-muted-foreground mt-0.5">{t.medicalCodingDesc}</p>
                         </div>
                       </div>
-                      {/* Get started with + horizontal 4 sample buttons (Corti-style) */}
+                      {/* Get started with + horizontal 4 sample buttons */}
                       <div className="flex gap-3 items-start">
                         <p className="text-[11px] font-medium text-muted-foreground shrink-0 pt-1.5">{t.getStartedWith}</p>
                         <div className="flex flex-wrap gap-2">
@@ -559,7 +559,7 @@ export default function MedicalCodingPage() {
           </div>
         </div>
 
-        {/* ===== RIGHT: Output (Corti-style w-[480px]) — hidden when config drawer open to avoid being covered ===== */}
+        {/* ===== RIGHT: Output (w-[480px]) — hidden when config drawer open to avoid being covered ===== */}
         <div className={`w-[480px] shrink-0 flex flex-col ${configOpen ? 'hidden' : 'flex'}`}>
           <div className="px-4 py-3 border-b border-border/20 shrink-0">
             <span className="text-sm font-medium text-foreground">{t.outputLabel}</span>
@@ -806,10 +806,10 @@ export default function MedicalCodingPage() {
                   </div>
                 )}
 
-                {/* ==================== Phase 3-A Section D - Corti-style Review Summary (8-field output) ==================== */}
+                {/* ==================== Phase 3-A Section D - Review Summary (8-field output) ==================== */}
                 {(() => {
                   const r = result as RuntimeRunResult;
-                  // Project v1 → Corti-style display when v2 fields absent (Section E will populate v2)
+                  // Project v1 → 8-field display when v2 fields absent (Section E will populate v2)
                   const reviewConclusion = r?.review_conclusion
                     || (r?.human_review?.review_conclusion as string | undefined)
                     || (r?.issues_found && r.issues_found.length > 0 ? 'WARNING' : 'PASS');
@@ -924,10 +924,10 @@ export default function MedicalCodingPage() {
           </div>
         </div>
 
-        {/* ===== (Corti-style: no fixed right Settings pane - moved to Config drawer) ===== */}
+        {/* ===== (no fixed right Settings pane - moved to Config drawer) ===== */}
       </div>
 
-      {/* ==================== CONFIG DRAWER (Corti-style right slide-out) ==================== */}
+      {/* ==================== CONFIG DRAWER (right slide-out) ==================== */}
       {configOpen && (
         <div className="fixed inset-0 z-40 bg-black/20" onClick={() => setConfigOpen(false)} />
       )}
@@ -1071,7 +1071,7 @@ export default function MedicalCodingPage() {
                 <div className="flex items-center justify-between mb-1.5">
                   <div className="flex items-center gap-1">
                     <span className="text-xs font-medium text-foreground">Coding Mode</span>
-                    <span className="text-muted-foreground/40 cursor-help" title="G001: Fast = Corti-like single LLM call (~7-12s). Deep Evidence = MedCodER 5-stage pipeline (30-60s+).">
+                    <span className="text-muted-foreground/40 cursor-help" title="Fast = single LLM call (~7-12s). Deep Evidence = MedCodER 5-stage pipeline (30-60s+).">
                       <Info size={11} />
                     </span>
                   </div>
@@ -1167,7 +1167,7 @@ export default function MedicalCodingPage() {
         </div>
       </div>
 
-      {/* ==================== EVENT INSPECTOR - Corti-style floating button + drawer ==================== */}
+      {/* ==================== EVENT INSPECTOR - floating button + drawer ==================== */}
       <button
         data-testid="event-inspector-fab"
         onClick={() => setEventInspectorOpen(true)}

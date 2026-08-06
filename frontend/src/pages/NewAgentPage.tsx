@@ -314,7 +314,7 @@ export default function NewAgentPage() {
             <div className="space-y-6">
               {selected ? (
                 <div className="bg-background rounded-xl shadow-sm p-6">
-                  {/* Title + Customize agent (Corti: same row) */}
+                  {/* Title + Customize agent (same row) */}
                   <div className="flex items-start justify-between gap-3 mb-6">
                     <div className="min-w-0 flex-1">
                       <h2 className="text-base font-semibold text-foreground mb-2">{selected.title}</h2>
@@ -330,7 +330,7 @@ export default function NewAgentPage() {
                     </button>
                   </div>
 
-                  {/* Chat-style preview (Corti: Ask the agent...) */}
+                  {/* Chat-style preview (Ask the agent...) */}
                   <div className="flex flex-col items-center justify-center py-8">
                     <p className="text-3xl font-semibold text-foreground tracking-tight mb-6">
                       {t.askTheAgent}
@@ -369,7 +369,7 @@ export default function NewAgentPage() {
                     </div>
                   </div>
 
-                  {/* Helper chips (Corti: What can you do? / Suggest prompt) */}
+                  {/* Helper chips (What can you do? / Suggest prompt) */}
                   <div className="flex items-center justify-center gap-4 pt-6 border-t border-border/40">
                     <button
                       type="button"
@@ -399,7 +399,7 @@ export default function NewAgentPage() {
                 </div>
               )}
 
-              {/* Credit reminder (Corti bottom gray) */}
+              {/* Credit reminder (bottom gray) */}
               <div className="text-center pt-1">
                 <p className="text-[10px] text-muted-foreground/70">{t.messagingConsumesCredits}</p>
               </div>

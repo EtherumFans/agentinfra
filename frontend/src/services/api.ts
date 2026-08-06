@@ -201,7 +201,7 @@ export const factsApi = {
     api.post<{ facts: any[]; raw_output: string; credits_consumed: number }>('/facts/extract', { text, output_language: outputLanguage }),
 };
 
-// Customers (Embedded Assistant end-user mgmt — Corti parity)
+// Customers (Embedded Assistant end-user mgmt)
 export const customersApi = {
   list: (params: { search?: string; region?: string; page?: number; page_size?: number } = {}) =>
     api.get<{ customers: any[]; total: number; page: number; page_size: number }>('/customers', { params }),
@@ -211,7 +211,7 @@ export const customersApi = {
   delete: (customerId: string) => api.delete(`/customers/${encodeURIComponent(customerId)}`),
 };
 
-// Templates (Beta) — Corti /templates parity
+// Templates (Beta)
 export const templatesApi = {
   list: (params: { search?: string; category?: string; language?: string; page?: number; page_size?: number } = {}) =>
     api.get<{ templates: any[]; total: number; page: number; page_size: number }>('/templates', { params }),
@@ -223,7 +223,7 @@ export const templatesApi = {
   delete: (id: string) => api.delete(`/templates/${id}`),
 };
 
-// Tickets Portal — Corti /tickets parity (in-app equivalent)
+// Tickets Portal (in-app equivalent)
 export const ticketsApi = {
   list: (params: { search?: string; status?: string; priority?: string; created_by_me?: boolean; page?: number; page_size?: number } = {}) =>
     api.get<{ tickets: any[]; total: number; page: number; page_size: number }>('/tickets', { params }),
@@ -236,7 +236,7 @@ export const ticketsApi = {
 };
 
 // Agents (iCoDer Agentic Framework — backend entities)
-// Agent Definitions (Corti-style /rest/v1/agent_definitions)
+// Agent Definitions (/rest/v1/agent_definitions)
 // Phase 2.1-C: migrated from /api/agents to /rest/v1/agent_definitions
 // 9 management endpoints (list/get/create/update/delete/categories/
 // templates/version/clone). A2A discovery (list+card) remains on
@@ -255,7 +255,7 @@ export const agentsApi = {
     api.post(`/rest/v1/agent_definitions/${id}/clone`, { name, description }),
   // A1B-AE-R.2.c — POST /api/v1/agents/quick?from_preset=...
   // Creates an Agent definition cloned from a preset catalog entry.
-  // Note: agentsApi uses Corti-style /rest/v1/agent_definitions; this is
+  // Note: agentsApi uses /rest/v1/agent_definitions; this is
   // the iCoDer A1B-AE-R.2.c preset-clone endpoint under /api/v1/agents/quick.
   quickFromPreset: (from_preset: string, overrides: Record<string, any> = {}) =>
     api.post('/v1/agents/quick', overrides, { params: { from_preset } }),
@@ -300,7 +300,7 @@ export const configApi = {
   get: () => api.get('/health'),
 };
 
-// Coding — G001 refactor (2026-07-09): Corti-like Fast Coding Runtime default
+// Coding — G001 refactor (2026-07-09): Fast Coding Runtime default
 // Replaces the A2A flow as the primary MedicalCodingPage Predict target.
 // Fast mode: target <15s, axios timeout 45s. Deep mode: 30-60s+, axios timeout 120s.
 

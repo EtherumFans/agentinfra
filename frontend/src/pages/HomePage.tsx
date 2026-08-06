@@ -1,5 +1,5 @@
-// iCoDer Home - Corti Project Home 4-tab IA replica.
-// Source: /project/<id> on console.corti.app - 4 entry-point tabs:
+// iCoDer Home - Project Home 4-tab IA.
+// 4 entry-point tabs:
 //   Transcribe / Document / Chat / Code NEW.
 // Each tab is a card with a one-line description + a CTA that links into
 // the matching AI Studio workbench.
@@ -81,13 +81,13 @@ export default function HomePage() {
       <div className="flex-1 overflow-y-auto">
         <div className="mx-auto w-full max-w-5xl px-6 py-8 space-y-6">
 
-          {/* Hero (Corti: minimal, no big heading) */}
+          {/* Hero (minimal, no big heading) */}
           <div className="mb-2">
             <h1 className="text-xl font-bold text-foreground tracking-tight">{t.home}</h1>
             <p className="text-xs text-muted-foreground mt-1">{t.homeSubtitle ?? t.aiStudio}</p>
           </div>
 
-          {/* ===== 4-tab switcher (Corti Project Home IA) ===== */}
+          {/* ===== 4-tab switcher (Project Home IA) ===== */}
           <div role="tablist" className="inline-flex items-center rounded-xl border border-border/20 bg-background p-1 shadow-sm">
             {TABS.map((tt) => {
               const Ic = tt.icon;

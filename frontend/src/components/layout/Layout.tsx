@@ -1,4 +1,4 @@
-// iCoDer Layout - iCoDer Console exact replica
+// iCoDer Layout
 // Global header (64px) + Sidebar (w/ project selector, nav groups, footer) + Main
 import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate, Link } from 'react-router-dom';
@@ -42,7 +42,7 @@ export default function Layout() {
   const [editingProjectName, setEditingProjectName] = useState(false);
   const navigate = useNavigate();
 
-  // Navigation matches Corti Console IA exactly
+  // Navigation IA
   const topItems = [
     { to: '/', label: t.home, icon: Home, end: true },
     { to: '/developer-quickstart', label: t.developerQuickstart, icon: Rocket },
@@ -56,7 +56,7 @@ export default function Layout() {
         { to: '/ai-studio/agents', label: t.agents, icon: Layers },
         { to: '/ai-studio/speech-to-text', label: t.speechToText, icon: Mic },
         // Phase 3-B2 Loop 0 (2026-07-05): TextGeneration + EmbeddedAssistant
-        // sidebar entries removed (Corti parity). Old deep links redirect to
+        // sidebar entries removed. Old deep links redirect to
         // /ai-studio/agents via App.tsx Navigate rules. TextGen backend
         // capability (/api/v2/tools/*) is retained for implicit dependencies.
         { to: '/ai-studio/fact-extraction', label: t.factExtraction, icon: ListTree },
@@ -65,7 +65,7 @@ export default function Layout() {
         { to: '/ai-studio/coding-compliance', label: t.codingCompliance, icon: ShieldCheck },
         // Phase 5 Track D Gate 7 — CDI Core Entry Agent workbench
         { to: '/ai-studio/cdi', label: t.cdiWorkbench, icon: ClipboardCheck },
-        // Phase 7 Gate 13 — Corti-style embedded assistant parity page
+        // Phase 7 Gate 13 — embedded assistant page
         { to: '/ai-studio/embedded-assistant', label: t.embeddedAssistant, icon: Code2 },
       ],
     },
@@ -117,7 +117,7 @@ export default function Layout() {
   const theme = useThemeStore(s => s.theme);
   const toggleTheme = useThemeStore(s => s.toggleTheme);
 
-  // Live cost counter (Corti-style: $X.XXXXXX + Reset)
+  // Live cost counter (¥X.XXXXXX + Reset)
   const liveCost = useCostStore(s => s.liveCost);
   const resetCost = useCostStore(s => s.resetCost);
   const handleResetCost = () => {
@@ -162,7 +162,7 @@ export default function Layout() {
             iCoDer
           </a>
           <div className="flex items-center gap-2">
-            {/* Live cost counter + Reset (Corti IA) */}
+            {/* Live cost counter + Reset */}
             {liveCost > 0 && (
               <div className="flex items-center gap-1 px-2 py-1 rounded-md border border-border bg-background">
                 <span className="text-xs font-mono text-muted-foreground tabular-nums">¥{liveCost.toFixed(6)}</span>
@@ -172,7 +172,7 @@ export default function Layout() {
                 </button>
               </div>
             )}
-            {/* Available credits link (Corti IA - $XX.XX → /billing) */}
+            {/* Available credits link (¥XX.XX → /billing) */}
             {balance !== null && (
               <Link
                 to="/billing"
@@ -182,7 +182,7 @@ export default function Layout() {
                 <CreditCard size={12} /> <span className="tabular-nums">¥{balance.toFixed(2)}</span>
               </Link>
             )}
-            {/* Docs link (Corti IA - persistent in header) */}
+            {/* Docs link (persistent in header) */}
             <a href="/docs"
               className="text-xs px-2 py-1 rounded text-muted-foreground hover:text-foreground hover:bg-accent transition-colors flex items-center gap-1">
               <BookOpen size={12} /> {t.documentation ?? 'Docs'}

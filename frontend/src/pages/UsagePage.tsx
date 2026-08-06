@@ -1,5 +1,5 @@
 // iCoDer Usage Page - connected to real backend
-// Corti IA: header + period segmented control + 3 metric cards (with
+// IA: header + period segmented control + 3 metric cards (with
 // icons + prev-period comparison line) + 30-day daily cost chart (Phase 5 A6) + activity history list
 import { Activity, Loader2, ChevronDown, BarChart3, Zap, Clock, TrendingUp } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
@@ -129,7 +129,7 @@ export default function UsagePage() {
         </div>
       </div>
 
-      {/* Summary cards with comparison (Corti-style: icon + label + value + sub) */}
+      {/* Summary cards with comparison (icon + label + value + sub) */}
       <div className="grid grid-cols-3 gap-4 max-w-3xl mb-8">
         <div className="bg-background rounded-xl shadow-sm p-5">
           <div className="flex items-center gap-2 mb-2">
@@ -189,7 +189,7 @@ export default function UsagePage() {
         </div>
       </div>
 
-      {/* Phase 5 A6: 30-day daily cost chart (Corti-style bar chart) */}
+      {/* Phase 5 A6: 30-day daily cost chart (bar chart) */}
       {summary?.daily_breakdown?.length > 0 && (
         <div className="bg-background rounded-xl shadow-sm p-5 mb-6 max-w-3xl">
           <div className="flex items-center gap-2 mb-4">
@@ -259,7 +259,7 @@ function ComparisonLine({ label, value, current, reverse }: {
 }
 
 /**
- * Phase 5 A6 — Daily cost bar chart (Corti-style, no chart library).
+ * Phase 5 A6 — Daily cost bar chart (no chart library).
  *
  * Renders a CSS-grid bar chart from `daily_breakdown` returned by A3's
  * `/usage/summary` endpoint. Each bar's height is proportional to that day's

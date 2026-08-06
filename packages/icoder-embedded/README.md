@@ -2,7 +2,7 @@
 
 Embeddable AI coding assistant Web Component for HIS/EMR systems. Drop the `<icoder-embedded>` tag into any HTML page and your clinicians get in-context medical coding help powered by the iCoDer platform.
 
-> **Phase 5 A4 (2026-07-10):** v2.0.0 ships a Corti-compatible method-based API. Existing 1.0 attribute-based config still works through the 2.0.x deprecation window — see [MIGRATION-2.0.md](./MIGRATION-2.0.md).
+> **Phase 5 A4 (2026-07-10):** v2.0.0 ships a method-based API. Existing 1.0 attribute-based config still works through the 2.0.x deprecation window — see [MIGRATION-2.0.md](./MIGRATION-2.0.md).
 
 ## Install
 
@@ -30,7 +30,7 @@ pnpm add @icoder/embedded
     });
     await a.configureSession({
       defaultTemplateKey: 'icoder/medical-coding-agent',
-      // iCoDer ADVANTAGE: explicit patient context (Corti uses templateKey only)
+      // iCoDer 增强: 显式 patient context (templateKey 之外还能传 patientId/name/encounterId)
       patientId: 'P001', name: '张三', encounterId: 'E2026071001',
     });
     await a.configure({
@@ -40,7 +40,7 @@ pnpm add @icoder/embedded
     await a.show();
   });
 
-  // Unified event envelope (Corti-compatible)
+  // Unified event envelope
   a.addEventListener('embedded-event', (e) => {
     const { name, payload } = e.detail;
     switch (name) {
@@ -60,16 +60,16 @@ pnpm add @icoder/embedded
 
 ## API reference
 
-### Methods (Corti-compatible)
+### Methods
 
 | Method | Purpose |
 |---|---|
 | `auth({access_token, refresh_token?, token_type?, mode?})` | Set credentials. Required before any agent run. |
 | `configureSession({defaultTemplateKey, defaultLanguage?, ..., patientId?, name?, encounterId?})` | Set agent + patient context. |
 | `configure({features?, locale?})` | Feature flags + interface language. |
-| `show()` | Reveal the widget (hidden until called, matching Corti pattern). |
+| `show()` | Reveal the widget (hidden until called). |
 
-### Methods (iCoDer ADVANTAGE — Corti does not have these)
+### Methods (iCoDer 增强)
 
 | Method | Purpose |
 |---|---|
@@ -120,7 +120,7 @@ Apache-2.0
 
 ### 2.0.0 (2026-07-10) — Phase 5 A4
 
-- **BREAKING**: refactored attribute-based config → Corti-compatible method-based API (`auth()/configureSession()/configure()/show()`)
+- **BREAKING**: refactored attribute-based config → method-based API (`auth()/configureSession()/configure()/show()`)
 - **BREAKING**: tag renamed `<icoder-assistant>` → `<icoder-embedded>` (1.0 tag kept as deprecated alias)
 - **BREAKING**: events unified into `embedded-event` envelope (1.0 `coding.completed` + `error` removed)
 - **FIX**: endpoint updated to `POST /api/v1/agents/{id}/run` (1.0 used a removed endpoint that returned 410)

@@ -400,7 +400,7 @@ def test_well_known_agent_json_lists_cards(client):
     body = r.json()
     assert "agents" in body
     assert len(body["agents"]) >= 1
-    assert body["agents"][0]["name"] == "MedCodER Coding Review Agent"
+    assert body["agents"][0]["name"] == "MedCodER 编码审核智能体"
     # JSON-RPC envelope not used here — raw list
     assert A2A_PROTOCOL_HEADER in r.headers
 
@@ -412,7 +412,7 @@ def test_llms_txt_renders_markdown(client):
     assert r.headers["content-type"].startswith("text/markdown")
     body = r.text
     assert "# iCoDer v1 Agent Runtime" in body
-    assert "MedCodER Coding Review Agent" in body
+    assert "MedCodER 编码审核智能体" in body
     assert "search_icd" in body
     assert A2A_PROTOCOL_HEADER in r.headers
 
@@ -427,7 +427,7 @@ def test_agents_list_returns_simplified_cards(client):
     agent = body["agents"][0]
     # Simplified shape: id/name/description/version/capabilities/url
     assert "id" in agent
-    assert agent["name"] == "MedCodER Coding Review Agent"
+    assert agent["name"] == "MedCodER 编码审核智能体"
     assert "capabilities" in agent
     assert "url" in agent
     assert "v1/message:send" in agent["url"]
@@ -441,7 +441,7 @@ def test_agent_card_returns_full_card(client):
     )
     assert r.status_code == 200, r.text
     body = r.json()
-    assert body["name"] == "MedCodER Coding Review Agent"
+    assert body["name"] == "MedCodER 编码审核智能体"
     assert body["version"] == "1.0.0"
     assert "skills" in body
     skill_ids = {s["id"] for s in body["skills"]}

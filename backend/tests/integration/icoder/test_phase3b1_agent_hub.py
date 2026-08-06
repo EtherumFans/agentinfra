@@ -99,7 +99,7 @@ def test_internal_engine_excluded(client):
 # --- metadata-only packs visible but not runnable ---
 
 def test_metadata_only_packs_visible_but_not_runnable(client):
-    """The 5 metadata-only certified packs must appear with runnable=false
+    """The metadata-only certified packs must appear with runnable=false
     and a Coming Soon badge (no Run button on frontend).
 
     Phase 3-D1 Task 5 (2026-07-06): code-validation / compliance-guardrail /
@@ -110,16 +110,29 @@ def test_metadata_only_packs_visible_but_not_runnable(client):
     Phase 4-F (2026-07-09): drg-analyzer / procedure-extractor upgraded from
     metadata-only to mvp (now iCoDer built agents) — removed from this list.
     Their runnability is verified by the v1.3 spec schema test.
+
+    Phase 5 Track D Gate 3 (2026-07-11): cdi-review + documentation-gap
+    deprecated (folded into clinical-documentation-improvement-agent as
+    CORE_ENTRY_AGENT). Removed from this list — both are now hidden_from_hub.
+
+    Phase A1B-AE (2026-07-22): added 14 net-new metadata-only Corti-parity
+    stubs. Several appear in Hub with Coming Soon badge. Representative
+    sample asserted here.
     """
     r = client.get("/api/icoder/agents/hub")
     cards_by_ref = {c["agent_ref"]: c for c in r.json()["agents"]}
 
     metadata_only_refs = [
-        "icoder/cdi-review@1.0.0",
+        # Original Phase 4-F survivors (cdi-review + documentation-gap
+        # removed in Phase 5 Track D — both deprecated + hidden).
         "icoder/denial-appeals@1.0.0",
         "icoder/diagnosis-extractor@1.0.0",
-        "icoder/documentation-gap@1.0.0",
         "icoder/evidence-ranker@1.0.0",
+        # Phase A1D.5 claim-check stub (metadata-only tag).
+        "icoder/claim-check@1.0.0",
+        # Phase A1B-AE net-new metadata-only Corti-parity stubs (sample).
+        "icoder/discharge-edu@1.0.0",
+        "icoder/rule-explainer@1.0.0",
     ]
     for ref in metadata_only_refs:
         assert ref in cards_by_ref, (
@@ -148,7 +161,7 @@ def test_phase3d1_three_simple_agents_visible_and_runnable(client):
     cards_by_ref = {c["agent_ref"]: c for c in r.json()["agents"]}
 
     runnable_refs = [
-        "icoder/code-validation-agent@1.0.0",
+        "icoder/code-validation-agent@2.0.0",
         "icoder/compliance-guardrail-agent@1.0.0",
         "icoder/note-completeness-agent@1.0.0",
     ]
@@ -163,8 +176,8 @@ def test_phase3d1_three_simple_agents_visible_and_runnable(client):
         assert card["run_endpoint"] is not None, (
             f"agent {ref} must have an a2a run_endpoint"
         )
-        assert card["maturity"] == "runnable", (
-            f"agent {ref} maturity must be 'runnable'; got {card['maturity']!r}"
+        assert card["maturity"] in ("mvp", "runnable"), (
+            f"agent {ref} maturity must be 'mvp' or 'runnable'; got {card['maturity']!r}"
         )
         assert card["production_ready"] is False, (
             f"agent {ref} must declare production_ready=false"
@@ -236,31 +249,37 @@ def test_no_production_ready_false_claimed_as_ready(client):
 # --- Hub total count ---
 
 def test_hub_total_count_matches_visibility_filter(client):
-    """Hub must list exactly 14 visible packs after Phase 4-F (2026-07-09):
+    """Hub must list exactly 24 visible packs after Phase A1B-AE (2026-07-22).
 
-    Breakdown of the 18 packs:
-    - 9 certified runnable (MVP) — Phase 4-F iCoDer built 8 + code-validation@2.0.0
-      * medical-coding-agent
-      * evidence-extractor (upgraded from expert-stub in Phase 4-F)
-      * drg-analyzer (upgraded from metadata-only in Phase 4-F)
-      * procedure-extractor (upgraded from metadata-only in Phase 4-F)
-      * note-completeness-agent (Phase 3-D1 → Phase 4-B → Phase 4-F)
-      * compliance-guardrail-agent (Phase 3-D1 → Phase 4-F)
-      * principal-diagnosis-review (NEW in Phase 4-F)
-      * discharge-summary-structuring (NEW in Phase 4-F)
+    Breakdown of the 30 packs discovered by BuiltinAgentPackProvider:
+    - 10 certified runnable (MVP) - visible
+      * medical-coding-agent@2.0.0
+      * evidence-extractor / drg-analyzer / procedure-extractor (Phase 4-F)
+      * note-completeness-agent / compliance-guardrail-agent (Phase 3-D1)
+      * principal-diagnosis-review / discharge-summary-structuring (Phase 4-F)
       * code-validation-agent@2.0.0 (Phase 4-C v2 migration)
-    - 5 metadata-only certified — cdi-review / denial-appeals /
-      diagnosis-extractor / documentation-gap / evidence-ranker
-    - 1 internal_engine (medcoder-coding-review) — hidden
-    - 3 expert-stub (index-navigator / code-reconciler / tabular-validator) — hidden
+      * clinical-documentation-improvement-agent (Phase 5 Track D Gate 3 - CDI entry agent)
+    - 14 metadata-only certified - visible with Coming Soon badge
+      * 3 Phase 4-F survivors: denial-appeals / diagnosis-extractor / evidence-ranker
+        (cdi-review + documentation-gap deprecated + hidden in Phase 5 Track D Gate 3)
+      * 1 Phase A1D.5 claim-check stub
+      * 10 Phase A1B-AE net-new Corti-parity stubs (discharge-edu /
+        nursing-handoff / referral-gen / icd10-navigator / rule-explainer /
+        prior-auth / icu-summary / triage / med-reconciliation /
+        surgical-registry)
+    - 6 hidden - NOT visible
+      * 1 internal_engine (medcoder-coding-review)
+      * 3 expert-stub (index-navigator / code-reconciler / tabular-validator)
+      * 2 deprecated (cdi-review / documentation-gap - hidden_from_hub=true)
 
-    So Hub shows 14 visible cards (9 runnable + 5 metadata-only).
+    So Hub shows 24 visible cards (10 runnable + 14 metadata-only).
     """
     r = client.get("/api/icoder/agents/hub")
     body = r.json()
-    assert body["total"] == 14, (
-        f"Hub must list 14 visible packs (9 runnable + 5 metadata-only) after Phase 4-F; "
-        f"got {body['total']}. Cards: {[c['agent_ref'] for c in body['agents']]}"
+    assert body["total"] == 24, (
+        f"Hub must list 24 visible packs (10 runnable + 14 metadata-only) "
+        f"after Phase A1B-AE + A1D.5; got {body['total']}. "
+        f"Cards: {[c['agent_ref'] for c in body['agents']]}"
     )
 
 

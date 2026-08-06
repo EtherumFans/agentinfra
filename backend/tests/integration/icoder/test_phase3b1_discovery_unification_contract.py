@@ -54,8 +54,9 @@ def test_hub_is_pack_mastered_and_no_auth(client):
     assert r.status_code == 200
     body = r.json()
     assert body["source"] == "official_agents/agent_pack.json"
-    # 11 visible packs (10 metadata-only + medical-coding-agent MVP)
-    assert body["total"] == 11
+    # 24 visible packs (10 runnable + 14 metadata-only) after Phase A1B-AE
+    # added 14 net-new Corti-parity stubs + Phase A1D.5 claim-check stub.
+    assert body["total"] == 24
 
 
 # --- Entry point 2: A2A discovery (pack-mastered via card factories) ---
@@ -192,8 +193,8 @@ def test_hub_and_a2a_discovery_are_both_pack_mastered(client):
     hub = client.get("/api/icoder/agents/hub").json()
     a2a = client.get("/api/icoder/agents").json()
 
-    # Hub has 11 visible packs
-    assert hub["total"] == 11
+    # Hub has 24 visible packs (10 runnable + 14 metadata-only) after Phase A1B-AE.
+    assert hub["total"] == 24
     # A2A discovery currently has 1 (medcoder-coding-review) — Section D
     # will add medical-coding-agent to bring it to 2
     assert len(a2a["agents"]) >= 1
@@ -263,7 +264,7 @@ def test_seed_prebuilt_agents_no_silent_collision_with_packs(client):
     # to runnable, so their agent_ref gained the -agent suffix (matching
     # the medical-coding-agent convention).
     expected_pack_refs = [
-        "icoder/code-validation-agent@1.0.0",
+        "icoder/code-validation-agent@2.0.0",
         "icoder/compliance-guardrail-agent@1.0.0",
         "icoder/denial-appeals@1.0.0",
         "icoder/diagnosis-extractor@1.0.0",

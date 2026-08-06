@@ -12,6 +12,7 @@ Verifies:
 
 from __future__ import annotations
 
+import asyncio
 import os
 import uuid
 from unittest.mock import patch
@@ -19,6 +20,7 @@ from unittest.mock import patch
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from sqlalchemy import text
 
 from app.api.run_trace import router as run_trace_router
 from app.icoder.agent_runtime.orchestrator.run_trace import (
@@ -33,6 +35,55 @@ from app.middleware.tenant_extractor import TenantHeaderMiddleware
 
 # Use a per-test sqlite DB so DB tests don't collide with the dev DB.
 _DB_PATH_TEMPLATE = "./data/test_run_trace_{uid}.db"
+
+
+def _seed_modern_row(run_id: str, org_id: str) -> None:
+    """Seed an authoritative MODERN RunHistory row so the Phase A1A
+    Gate 3R.1 orphan-run guard does not deny the trace read. The row
+    is inserted into the application database (the same database the
+    guard queries via AsyncSessionLocal), not the per-test tmp DB
+    that the DbRunTraceStore fixture patches.
+    """
+    from app.database import AsyncSessionLocal
+    from app.models.run_history import RunHistoryModel
+
+    async def _go() -> None:
+        async with AsyncSessionLocal() as db:
+            await db.execute(
+                text("DELETE FROM run_history WHERE run_id = :rid"),
+                {"rid": run_id},
+            )
+            db.add(
+                RunHistoryModel(
+                    run_id=run_id,
+                    agent_id="medical-coding-agent",
+                    user_id="u-test-bypass",
+                    cost_usd=0.0,
+                    latency_ms=0,
+                    runtime_mode="a2a_pure_llm",
+                    status="COMPLETED",
+                    organization_id=org_id,
+                    tenancy_classification="MODERN",
+                )
+            )
+            await db.commit()
+
+    asyncio.run(_go())
+
+
+def _clear_run_history(run_id: str) -> None:
+    """Remove the seeded RunHistory row to keep tests hermetic."""
+    from app.database import AsyncSessionLocal
+
+    async def _go() -> None:
+        async with AsyncSessionLocal() as db:
+            await db.execute(
+                text("DELETE FROM run_history WHERE run_id = :rid"),
+                {"rid": run_id},
+            )
+            await db.commit()
+
+    asyncio.run(_go())
 
 
 @pytest.fixture
@@ -204,21 +255,29 @@ def test_api_returns_404_for_cross_org_run(app_with_db_store, db_store):
 def test_api_returns_200_for_same_org_run(app_with_db_store, db_store):
     """GET /trace returns 200 when run belongs to the requesting org."""
     run_id = f"run-{uuid.uuid4().hex[:8]}"
-    emit_trace_event(
-        run_id, RunTraceStep.USER_MESSAGE_RECEIVED,
-        safe_metadata={
-            "input_len": 100,
-            "_organization_id": "org-A",
-        },
-        store=db_store, ts=1.0,
-    )
+    # Phase A1A Gate 3R.1 — seed authoritative MODERN row so the orphan-run
+    # guard does not deny. Tenant-Name header resolves to
+    # ICODER_SINGLE_TENANT_ORG_ID (org_default1); seed + request under
+    # org_default1 so the resolved tenant matches.
+    _seed_modern_row(run_id, "org_default1")
+    try:
+        emit_trace_event(
+            run_id, RunTraceStep.USER_MESSAGE_RECEIVED,
+            safe_metadata={
+                "input_len": 100,
+                "_organization_id": "org_default1",
+            },
+            store=db_store, ts=1.0,
+        )
 
-    client = TestClient(app_with_db_store)
-    r = client.get(
-        f"/api/runtime/runs/{run_id}/trace",
-        headers={"X-Tenant": "org-A"},
-    )
-    assert r.status_code == 200
-    body = r.json()
-    assert body["run_id"] == run_id
-    assert body["step_count"] == 1
+        client = TestClient(app_with_db_store)
+        r = client.get(
+            f"/api/runtime/runs/{run_id}/trace",
+            headers={"X-Tenant": "org_default1"},
+        )
+        assert r.status_code == 200
+        body = r.json()
+        assert body["run_id"] == run_id
+        assert body["step_count"] == 1
+    finally:
+        _clear_run_history(run_id)

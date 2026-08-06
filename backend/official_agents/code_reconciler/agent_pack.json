@@ -62,8 +62,8 @@
     }
   ],
   "model": {
-    "primary": "deepseek-v4",
-    "fallback": "deepseek-v4-flash",
+    "primary": "deepseek-chat",
+    "fallback": "deepseek-chat",
     "temperature": 0.0,
     "max_tokens": 4096,
     "json_mode": true
@@ -79,7 +79,7 @@
       {
         "name": "llm_rerank",
         "engine": "llm",
-        "model": "deepseek-v4",
+        "model": "deepseek-chat",
         "top_k": 5,
         "few_shot_source": "cot_generation_progress_v2.json",
         "fallback": "offline_score_rank"
@@ -163,7 +163,7 @@
   "llm_capabilities": {
     "required_models": [
       {
-        "name": "deepseek-v4",
+        "name": "deepseek-chat",
         "purpose": "stage4_rerank (RankGPT-style + few-shot from cot_generation_progress_v2.json)"
       }
     ],

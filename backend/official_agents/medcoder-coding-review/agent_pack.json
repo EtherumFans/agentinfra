@@ -30,7 +30,7 @@
       "description": "Stage 1: 从病历抽取 diagnosis_facts / procedure_facts / negated_findings / historical_conditions, 每个 fact 含 evidence_text + char_start/char_end。LLM-backed (DeepSeek V4) with deterministic offline fallback.",
       "system_prompt": "你是一个病历证据提取专家。从病历中提取诊断事实、手术事实、否定发现、既往病史。输出 JSON，必须包含 diagnosis_facts / procedure_facts / negated_findings / historical_conditions 四个数组，每个 fact 必须附 evidence_text 和 char_start/char_end。",
       "tools": [],
-      "model": "deepseek-v4",
+      "model": "deepseek-chat",
       "non_goals": [
         "不直接做最终诊断决策",
         "不写回 EMR/HIS/医保",
@@ -86,7 +86,7 @@
         "get_differentiation_hint",
         "rerank_codes"
       ],
-      "model": "deepseek-v4",
+      "model": "deepseek-chat",
       "non_goals": [
         "不直接做最终诊断决策",
         "不写回 EMR/HIS",
@@ -171,8 +171,8 @@
     }
   ],
   "model": {
-    "primary": "deepseek-v4",
-    "fallback": "deepseek-v4-flash",
+    "primary": "deepseek-chat",
+    "fallback": "deepseek-chat",
     "embedding": "BAAI/bge-m3",
     "embedding_dim": 1024,
     "temperature": 0.0,
@@ -184,7 +184,7 @@
       {
         "name": "extraction",
         "engine": "llm",
-        "model": "deepseek-v4",
+        "model": "deepseek-chat",
         "input_count_target": "n_diagnoses_in_emr",
         "output_count_target": "n_diagnoses_in_emr"
       },
@@ -204,7 +204,7 @@
       {
         "name": "rerank",
         "engine": "llm",
-        "model": "deepseek-v4",
+        "model": "deepseek-chat",
         "top_k": 5,
         "few_shot_source": "cot_generation_progress_v2.json (Phase 2 wire)"
       },
@@ -288,7 +288,7 @@
   "llm_capabilities": {
     "required_models": [
       {
-        "name": "deepseek-v4",
+        "name": "deepseek-chat",
         "purpose": "stage1_extraction + stage4_rerank"
       },
       {

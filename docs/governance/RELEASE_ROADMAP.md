@@ -17,7 +17,7 @@
 | 综合审计 verdict | `INTERNAL_R_AND_D_PROJECT_NOT_HOSPITAL_PILOT_READY` | `GATE14_ISSUE_GRADING_ROADMAP_FINAL_VERDICT.md` |
 | 21 hard gates | 6 PASS + 1 PRIOR_PASS + 8 PARTIAL + 6 BLOCKED_BY_ENV | `A1C_PILOT_READINESS_MATRIX.csv` |
 | A1C 开放 blockers | 12（0 P0 security/tenant/data-loss；9 Pilot-env-gated + 11 Eng-in-A1D）| `A1C_OPEN_BLOCKERS.csv` |
-| GATE14 P0 | 16 个，其中 **6 已 closed**（A1A Gate 1/2/3R/4 + A1D-DEV.8），**10 仍 OPEN** | 本文档 §2.2 |
+| GATE14 P0 | 16 个，其中 **8 已 closed**（A1A Gate 1/2/3R/4 + A1D-DEV.8 + R1 G3-001/G12-002），**1 PARTIAL**（R6 G11-001/G13-004 决策已定落地待 Pilot），**7 仍 OPEN** | 本文档 §2.2 |
 | 禁用 verdict（8） | `PRODUCTION_READY` / `READY_FOR_HOSPITAL_DEPLOYMENT` / `CLINICAL_GRADE_VERIFIED` / `PHI_BOUNDED` / `CORTI_PARITY_VERIFIED` / `CORTI_AGENTIC_PARITY_VERIFIED` / `READY_FOR_MVP_SHIP` / `FULLY_VERIFIED` | Charter §22 |
 
 **注**：A1C 已 closed 不等于试点准入通过。"PARTIAL" 意味着工程条件部分就绪，仍有 12 个 blockers 阻碍真实医院试点启动。
@@ -69,19 +69,23 @@
 
 **目标**: 让一家真实医院能签合同、部署、付费、跑生产。
 
-#### GATE14 16 个 P0 中仍 OPEN 的 10 个
+#### GATE14 16 个 P0 中仍 OPEN 的 7 个
 
 | P0 ID | 任务 | 现状 | 估时 |
 |---|---|---|---|
 | G13-002 | **等保2.0 三级** 启动认证（不可压缩 3-6 月） | 未启动 | 立即启动 |
-| G11-001 / G13-004 | 选定**唯一**部署路径并落地（cloud SaaS or on-prem Docker） | Charter 当前强制 cloud-only；CLAUDE.md "不再支持医院内网 Docker" 与 GATE14 推荐（on-prem）冲突 — **战略决策** | 2 周 |
 | G13-001 | 支付接入（Stripe 国际 / 微信 / 支付宝 CN）+ 真实计费 | 0 transactions; fake ¥50 balance | 1 周 |
 | G13-003 | Privacy Policy + Terms + DPA + SLA 模板（`/legal/*`） | 0 legal docs | 3 天 |
 | G13-006 | 定价方案（Pilot / Pro / Enterprise 三档） | 无 tiers / 无 contracts | 3 天 |
 | G5-004 | **CDI 临床闭环**：医生答复机制 + 文档修订跟踪 + 再编码反馈 | 443 queries emitted / 0 responses | 2 周 |
 | G10-001 | **201-case F1 baseline** 月度运行（当前仅 20-case） | A1D-DEV.8 仅 20-case | 持续 |
-| G3-001 / G12-002 | 删除 13 个 Corti 外链 + 战略定位重写 | `docs.corti.ai/*` + `help.corti.app/*` 仍在 AI Studio | 1 周 |
 | G8-001 | npm publish `@icoder/sdk@1.0.0` + `@icoder/embedded@2.x` | registry 仍 404 | 1 天 |
+
+#### GATE14 16 P0 中 PARTIAL（决策已定 / 落地待外部条件）
+
+| P0 ID | 任务 | 当前状态 | 阻塞条件 |
+|---|---|---|---|
+| G11-001 / G13-004 | 选定**唯一**部署路径并落地（cloud SaaS or on-prem Docker） | **战略决策已定 — cloud-only**（2026-08-06, commit `30f9691`, 详见 `DEPLOYMENT_PATH_ADR.md`）；落地 = 真实 cloud 部署 | Pilot 云账号 + DNS CNAME (`api.cn.icoder.cloud`) + TLS cert |
 
 #### GATE14 16 P0 中已 CLOSED（仅记录，不再追踪）
 
@@ -93,6 +97,7 @@
 | G7-001 | `RUNTRACE_STORE` flip memory→db | A1A Gate 3R |
 | G9-005 | at-rest encryption | A1A Gate 4 |
 | G5-001 / G5-002 | cost=0 hardcode 修复 | A1D-DEV.8 B-003 |
+| G3-001 / G12-002 | 删除 13 个 Corti 外链 + 战略定位重写 | R1 (commit `401c1ef`) |
 
 **Layer 2 出口条件**: 16 P0 全部 closed + 1 家 design-partner 医院签约 + 真实部署 + 真实计费运行。
 

@@ -10,12 +10,14 @@ Verifies:
 
 from __future__ import annotations
 
+import asyncio
 from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from sqlalchemy import text
 
 from app.api.run_trace import router as run_trace_router
 from app.icoder.agent_runtime.orchestrator.run_trace import (
@@ -26,6 +28,52 @@ from app.icoder.agent_runtime.orchestrator.run_trace import (
     emit_trace_event,
     get_default_store,
 )
+
+
+def _seed_modern_row(run_id: str, org_id: str) -> None:
+    """Seed an authoritative MODERN RunHistory row so the Phase A1A
+    Gate 3R.1 orphan-run guard does not deny the trace read.
+    """
+    from app.database import AsyncSessionLocal
+    from app.models.run_history import RunHistoryModel
+
+    async def _go() -> None:
+        async with AsyncSessionLocal() as db:
+            await db.execute(
+                text("DELETE FROM run_history WHERE run_id = :rid"),
+                {"rid": run_id},
+            )
+            db.add(
+                RunHistoryModel(
+                    run_id=run_id,
+                    agent_id="medical-coding-agent",
+                    user_id="u-test-bypass",
+                    cost_usd=0.0,
+                    latency_ms=0,
+                    runtime_mode="a2a_pure_llm",
+                    status="COMPLETED",
+                    organization_id=org_id,
+                    tenancy_classification="MODERN",
+                )
+            )
+            await db.commit()
+
+    asyncio.run(_go())
+
+
+def _clear_run_history(run_id: str) -> None:
+    """Remove the seeded RunHistory row to keep tests hermetic."""
+    from app.database import AsyncSessionLocal
+
+    async def _go() -> None:
+        async with AsyncSessionLocal() as db:
+            await db.execute(
+                text("DELETE FROM run_history WHERE run_id = :rid"),
+                {"rid": run_id},
+            )
+            await db.commit()
+
+    asyncio.run(_go())
 
 
 def test_run_trace_store_append_and_get_run():
@@ -142,23 +190,29 @@ def test_get_run_trace_returns_timeline(app_with_trace):
     """GET /api/runtime/runs/{run_id}/trace returns the events as timeline."""
     store = get_default_store()
     store.clear()
-    emit_trace_event("run-api", RunTraceStep.USER_MESSAGE_RECEIVED,
-                     safe_metadata={"input_len": 100}, ts=1.0)
-    emit_trace_event("run-api", RunTraceStep.TOOLS_LIST,
-                     safe_metadata={"tool_count": 5}, ts=2.0)
-    emit_trace_event("run-api", RunTraceStep.COMPLETION,
-                     status=RunTraceStatus.OK, ts=3.0)
+    # Phase A1A Gate 3R.1 — seed authoritative MODERN row so the orphan-run
+    # guard does not deny. Resolved tenant is ICODER_SINGLE_TENANT_ORG_ID.
+    _seed_modern_row("run-api", "org_default1")
+    try:
+        emit_trace_event("run-api", RunTraceStep.USER_MESSAGE_RECEIVED,
+                         safe_metadata={"input_len": 100}, ts=1.0)
+        emit_trace_event("run-api", RunTraceStep.TOOLS_LIST,
+                         safe_metadata={"tool_count": 5}, ts=2.0)
+        emit_trace_event("run-api", RunTraceStep.COMPLETION,
+                         status=RunTraceStatus.OK, ts=3.0)
 
-    client = TestClient(app_with_trace)
-    r = client.get("/api/runtime/runs/run-api/trace")
-    assert r.status_code == 200
-    body = r.json()
-    assert body["run_id"] == "run-api"
-    assert body["step_count"] == 3
-    assert len(body["timeline"]) == 3
-    assert body["timeline"][0]["step"] == "user_message_received"
-    assert body["timeline"][2]["step"] == "completion"
-    store.clear()
+        client = TestClient(app_with_trace)
+        r = client.get("/api/runtime/runs/run-api/trace")
+        assert r.status_code == 200
+        body = r.json()
+        assert body["run_id"] == "run-api"
+        assert body["step_count"] == 3
+        assert len(body["timeline"]) == 3
+        assert body["timeline"][0]["step"] == "user_message_received"
+        assert body["timeline"][2]["step"] == "completion"
+    finally:
+        store.clear()
+        _clear_run_history("run-api")
 
 
 def test_get_run_trace_404_on_unknown_run(app_with_trace):
@@ -175,11 +229,16 @@ def test_get_run_trace_raw_format(app_with_trace):
     """?format=raw returns the internal store dump."""
     store = get_default_store()
     store.clear()
-    emit_trace_event("run-raw", RunTraceStep.TOOLS_LIST, ts=1.0)
-    client = TestClient(app_with_trace)
-    r = client.get("/api/runtime/runs/run-raw/trace?format=raw")
-    assert r.status_code == 200
-    body = r.json()
-    assert "events" in body
-    assert "timeline" not in body
-    store.clear()
+    # Phase A1A Gate 3R.1 — seed authoritative MODERN row.
+    _seed_modern_row("run-raw", "org_default1")
+    try:
+        emit_trace_event("run-raw", RunTraceStep.TOOLS_LIST, ts=1.0)
+        client = TestClient(app_with_trace)
+        r = client.get("/api/runtime/runs/run-raw/trace?format=raw")
+        assert r.status_code == 200
+        body = r.json()
+        assert "events" in body
+        assert "timeline" not in body
+    finally:
+        store.clear()
+        _clear_run_history("run-raw")

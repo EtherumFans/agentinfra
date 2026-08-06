@@ -22,12 +22,14 @@ secret_ref / PHI.
 
 from __future__ import annotations
 
+import asyncio
 import json
 from types import SimpleNamespace
 from typing import Any
 from unittest.mock import patch
 
 import pytest
+from sqlalchemy import text
 
 from app.icoder.mcp.auth import AuthHeader
 from app.icoder.mcp.errors import MCPAuthError, MCPError, MCPErrorCode
@@ -38,6 +40,82 @@ from app.icoder.agent_runtime.orchestrator.run_trace import (
     RunTraceStore,
     emit_trace_event,
 )
+
+
+def _seed_modern_row(run_id: str, org_id: str) -> None:
+    """Seed an authoritative MODERN RunHistory row so the Phase A1A
+    Gate 3R.1 orphan-run guard does not deny the trace read.
+
+    Synchronous wrapper around the async DB work; safe to call from
+    sync test bodies. Async tests should call ``_aseed_modern_row``
+    instead to avoid ``asyncio.run() inside a running loop``.
+    """
+    from app.database import AsyncSessionLocal
+    from app.models.run_history import RunHistoryModel
+
+    async def _go() -> None:
+        async with AsyncSessionLocal() as db:
+            await db.execute(
+                text("DELETE FROM run_history WHERE run_id = :rid"),
+                {"rid": run_id},
+            )
+            db.add(
+                RunHistoryModel(
+                    run_id=run_id,
+                    agent_id="medical-coding-agent",
+                    user_id="u-test-bypass",
+                    cost_usd=0.0,
+                    latency_ms=0,
+                    runtime_mode="a2a_pure_llm",
+                    status="COMPLETED",
+                    organization_id=org_id,
+                    tenancy_classification="MODERN",
+                )
+            )
+            await db.commit()
+
+    asyncio.run(_go())
+
+
+async def _aseed_modern_row(run_id: str, org_id: str) -> None:
+    """Async variant of ``_seed_modern_row`` for use inside ``async def``
+    test bodies where ``asyncio.run()`` would collide with the running
+    event loop.
+    """
+    from app.database import AsyncSessionLocal
+    from app.models.run_history import RunHistoryModel
+
+    async with AsyncSessionLocal() as db:
+        await db.execute(
+            text("DELETE FROM run_history WHERE run_id = :rid"),
+            {"rid": run_id},
+        )
+        db.add(
+            RunHistoryModel(
+                run_id=run_id,
+                agent_id="medical-coding-agent",
+                user_id="u-test-bypass",
+                cost_usd=0.0,
+                latency_ms=0,
+                runtime_mode="a2a_pure_llm",
+                status="COMPLETED",
+                organization_id=org_id,
+                tenancy_classification="MODERN",
+            )
+        )
+        await db.commit()
+
+
+async def _aclear_run_history(run_id: str) -> None:
+    """Async variant of ``_clear_run_history``."""
+    from app.database import AsyncSessionLocal
+
+    async with AsyncSessionLocal() as db:
+        await db.execute(
+            text("DELETE FROM run_history WHERE run_id = :rid"),
+            {"rid": run_id},
+        )
+        await db.commit()
 
 
 # ── Fixtures ───────────────────────────────────────────────────────
@@ -379,42 +457,48 @@ async def test_run_trace_api_returns_dispatch_detail():
     async def _fake_run(input_text, *, run_id=""):
         return fake_result
 
+    # Phase A1A Gate 3R.1 — seed authoritative MODERN row so the orphan-run
+    # guard does not deny. Resolved tenant is ICODER_SINGLE_TENANT_ORG_ID.
+    await _aseed_modern_row(run_id, "org_default1")
     store = RunTraceStore()
-    with patch("official_agents.code_validation.agent.run", new=_fake_run), \
-         patch(
-             "app.icoder.agent_runtime.orchestrator.run_trace.get_default_store",
-             return_value=store,
-         ):
-        await dispatch_tool(
-            "validate_codes",
-            {"coding_set": _coding_set_dict()},
-            _build_request(run_id=run_id, auth_header=_full_scopes_auth()),
-            run_id=run_id,
-        )
+    try:
+        with patch("official_agents.code_validation.agent.run", new=_fake_run), \
+             patch(
+                 "app.icoder.agent_runtime.orchestrator.run_trace.get_default_store",
+                 return_value=store,
+             ):
+            await dispatch_tool(
+                "validate_codes",
+                {"coding_set": _coding_set_dict()},
+                _build_request(run_id=run_id, auth_header=_full_scopes_auth()),
+                run_id=run_id,
+            )
 
-    # Now call the API endpoint directly with TestClient
-    from fastapi.testclient import TestClient
-    from app.main import app
+        # Now call the API endpoint directly with TestClient
+        from fastapi.testclient import TestClient
+        from app.main import app
 
-    # Override the API store to our in-memory store so the API reads
-    # what we just wrote.
-    with patch(
-        "app.api.run_trace.get_default_store",
-        return_value=store,
-    ), patch(
-        "app.api.run_trace.get_request_tenant",
-        return_value=None,  # in-memory store doesn't filter by org
-    ):
-        client = TestClient(app)
-        resp = client.get(f"/api/runtime/runs/{run_id}/trace")
-    assert resp.status_code == 200
-    body = resp.json()
-    assert "timeline" in body
-    tools_call_events = [
-        e for e in body["timeline"] if e.get("step") == RunTraceStep.TOOLS_CALL
-    ]
-    assert len(tools_call_events) >= 1
-    detail = tools_call_events[0].get("safe_metadata", {}).get("dispatch_detail")
-    assert detail is not None
-    assert detail["tool_name"] == "validate_codes"
-    assert detail["handler_status"] == "ok"
+        # Override the API store to our in-memory store so the API reads
+        # what we just wrote.
+        with patch(
+            "app.api.run_trace.get_default_store",
+            return_value=store,
+        ), patch(
+            "app.api.run_trace.get_request_tenant",
+            return_value=None,  # in-memory store doesn't filter by org
+        ):
+            client = TestClient(app)
+            resp = client.get(f"/api/runtime/runs/{run_id}/trace")
+        assert resp.status_code == 200
+        body = resp.json()
+        assert "timeline" in body
+        tools_call_events = [
+            e for e in body["timeline"] if e.get("step") == RunTraceStep.TOOLS_CALL
+        ]
+        assert len(tools_call_events) >= 1
+        detail = tools_call_events[0].get("safe_metadata", {}).get("dispatch_detail")
+        assert detail is not None
+        assert detail["tool_name"] == "validate_codes"
+        assert detail["handler_status"] == "ok"
+    finally:
+        await _aclear_run_history(run_id)

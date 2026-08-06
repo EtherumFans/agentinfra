@@ -133,7 +133,7 @@
 | R3 | **A1E-GP1 独立验证缺口** — 21/24 charter 条件 DONE，3 blocked on BLK-1（需独立人执行 10×3×3）。工程完整 ≠ 产品接受。 | 中 — 工程团队自证无效 | 招募独立 dev / 外部接受性伙伴 |
 | R4 | **等保认证不可压缩** — 3-6 个月，是 GA 时间表硬关键路径。 | 高 — 不启动则 GA 永远追不上 | 立即启动，与 Layer 2 并行 |
 | R5 | **PostgreSQL 真实运行从未做过** — SQLite parity 通过，但 PG 特有行为（CHECK / JSONB / partial index / advisory lock）从未在真实 PG 16 上跑过 alembic upgrade。 | 中 — 可能暴露 6+ 月 hidden bugs | A1C-B-001 必须在 Pilot 启动前完成 |
-| R6 | **部署路径战略未定** — Charter 强制 cloud-only；CLAUDE.md 明确"不再支持医院内网 Docker"；但 GATE14 推荐 on-prem given China hospital preference。 | 高 — 决策推迟会 cost 重做 | 战略评审，必须在 Layer 2 启动前定 |
+| ~~R6~~ | **部署路径已定 — cloud-only**（2026-08-06 战略评审决策；详见 `docs/governance/DEPLOYMENT_PATH_ADR.md`）。Charter §产品定位 + CLAUDE.md 立场强化，GATE14 on-prem 推荐被战略覆盖。 | 已 closed — reversibility triggers 见 ADR §6（连续 3 家拒签 / 等保拒绝 / 监管变化）| 已闭，无需后续行动 |
 | R7 | **3 个并行 runtime 层 + 3 个 expert 层级** — 重构债务 12 周规模。 | 中 — 影响新功能速度 | Layer 3 G6 收敛，不要在收敛前加新 feature |
 
 ---

@@ -136,7 +136,7 @@ export const useAppStore = create<AppState>((set) => ({
   setError: (e) => set({ error: e }),
 }));
 
-// Live cost tracker — Corti-style $X.XXXXXX per-session counter.
+// Live cost tracker — ¥X.XXXXXX per-session counter.
 // sessionStartBalance = balance at session start (or last reset).
 // After each A2A run, syncFromBalance(currentBalance) computes the delta
 // (sessionStartBalance - currentBalance) and sets liveCost to it.

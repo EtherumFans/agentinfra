@@ -179,7 +179,7 @@ export default function AgentChatPage() {
     try {
       // Phase 4-F1 (2026-07-10): Medical Coding Agent uses the unified
       // Agent Run API (POST /api/v1/agents/{id}/run) with the G001
-      // `corti_like_fast` fast path (~9-10s on T12). The A2A message:send
+      // `corti_like_fast` fast path (~9-10s on T12). A2A message:send
       // path routes to MedCodER 5-stage pipeline and 60s-timeouts.
       const isMedicalCoding =
         runtimeAgentId === 'medical-coding-agent' ||
@@ -249,7 +249,7 @@ export default function AgentChatPage() {
     }
   }, [input, loading, runtimeAgentId, agent, attachedFiles, toast, t]);
 
-  // Corti-style: Ctrl+Enter to submit, plain Enter = newline.
+  // Ctrl+Enter to submit, plain Enter = newline.
   const onTextareaKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
       e.preventDefault();
@@ -257,7 +257,7 @@ export default function AgentChatPage() {
     }
   }, [onSubmit]);
 
-  // Add context - JSON file picker (Corti "Add context" button).
+  // Add context - JSON file picker ("Add context" button).
   const onAddContextClick = useCallback(() => {
     fileInputRef.current?.click();
   }, [fileInputRef]);
@@ -315,7 +315,7 @@ export default function AgentChatPage() {
 
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-muted/20">
-      {/* Phase 4-D - Corti-style breadcrumb: Agents > {agent_name} */}
+      {/* Phase 4-D - breadcrumb: Agents > {agent_name} */}
       <div className="px-6 py-3 border-b border-border/40 bg-background flex items-center gap-2 text-sm">
         <Link
           to="/ai-studio/agents"
@@ -356,7 +356,7 @@ export default function AgentChatPage() {
 
       {/* Phase 4-D - 2-pane layout: left chat (flex-1) + right AgentConfigSidebar (w-400) */}
       <div className="flex-1 flex min-h-0">
-      {/* Left chat pane - Corti-style: scrollable message history + bottom input bar */}
+      {/* Left chat pane: scrollable message history + bottom input bar */}
       <div className="flex-1 flex flex-col min-h-0">
         {/* Message history (scrollable) */}
         <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
@@ -391,7 +391,7 @@ export default function AgentChatPage() {
           <div ref={historyEndRef} />
         </div>
 
-        {/* Bottom input bar - Corti-style: Add context + textarea + helper text. Ctrl+Enter to submit. */}
+        {/* Bottom input bar: Add context + textarea + helper text. Ctrl+Enter to submit. */}
         <div className="border-t border-border/40 bg-background px-6 py-3">
           {/* Phase 4-G #3: RunHistory dropdown — recent runs for this agent */}
           {runHistory.length > 0 && (
@@ -494,7 +494,7 @@ export default function AgentChatPage() {
                 ))}
               </select>
             )}
-            {/* Textarea - Corti placeholder + Ctrl+Enter submit */}
+            {/* Textarea - placeholder + Ctrl+Enter submit */}
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -505,7 +505,7 @@ export default function AgentChatPage() {
               disabled={loading}
             />
           </div>
-          {/* Helper text - Corti "Messaging an agent consumes credits" + Ctrl+Enter hint */}
+          {/* Helper text - "Messaging an agent consumes credits" + Ctrl+Enter hint */}
           <div className="flex items-center justify-between mt-1.5">
             <span className="text-[10px] text-muted-foreground">
               {t.agentChatConsumesCredits}
@@ -516,7 +516,7 @@ export default function AgentChatPage() {
           </div>
         </div>
       </div>
-      {/* Right sidebar - Corti-style Settings/Code dual panel */}
+      {/* Right sidebar - Settings/Code dual panel */}
       {agent && (
         <AgentConfigSidebar agent={agent} onAgentUpdated={(updated) => setAgent(updated)} />
       )}
@@ -525,7 +525,7 @@ export default function AgentChatPage() {
   );
 }
 
-// ── Message bubble - Corti-style chat turn ──
+// ── Message bubble - chat turn ──
 function MessageBubble({
   message, t, outputTab, setOutputTab,
 }: {
@@ -639,7 +639,7 @@ function MessageBubble({
                 </button>
               ))}
             </div>
-            {/* Phase 4-F: Copy JSON / Copy Markdown buttons (Corti-style §5.3) */}
+            {/* Phase 4-F: Copy JSON / Copy Markdown buttons */}
             <div className="flex items-center gap-2 mb-2">
               <button
                 onClick={() => navigator.clipboard?.writeText(

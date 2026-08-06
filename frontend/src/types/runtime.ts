@@ -25,11 +25,11 @@ export interface RuntimeRunResult {
   mode?: 'deepseek' | 'prompt_llm' | 'hybrid' | 'no_repair' | 'medcoder' | 'code_like_humans';
   extracted_diagnoses?: ExtractedDiagnosis[];
 
-  // Phase 3-A Section D — Corti-style 8-field output (projected from v1 by API layer)
+  // Phase 3-A Section D — 8-field output (projected from v1 by API layer)
   // Populated when Section E wires v2 projection in runtime_platform.py.
   // All fields optional — absent when runtime returns v1-only.
   // Note: validation_summary already exists above (supported/needs_review counts);
-  // Corti-style validation fields live in human_review + issues_found.
+  // validation fields live in human_review + issues_found.
   review_conclusion?: 'PASS' | 'WARNING' | 'FAIL' | string;
   manual_review_required?: boolean;
   encounter_summary?: {
@@ -319,9 +319,9 @@ export interface RuleEngineStatus {
   total_rule_sets: number;
 }
 
-// ── Phase 3-D1 Task 4: RunTrace Corti-parity Viewer ────────────────
+// ── Phase 3-D1 Task 4: RunTrace Viewer ────────────────
 // Backend: app/api/run_trace.py GET /api/runtime/runs/{run_id}/trace
-// 9-step timeline (Corti parity):
+// 9-step timeline:
 //   user_message_received / planner_selected_experts / tools_list /
 //   auth_resolved / scope_checked / tools_call / expert_response /
 //   output_generated / completion

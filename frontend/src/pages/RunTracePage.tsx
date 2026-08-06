@@ -1,10 +1,10 @@
-// Phase 3-D1 Task 4 - RunTrace Corti-parity Viewer.
+// Phase 3-D1 Task 4 - RunTrace Viewer.
 // Phase 3-D2 Task 2 - empty-timeline guard + retry button.
 // Phase 3-E Task 6 - enhanced dispatcher detail display.
 //
 // Route: /runs/:runId/trace
 //
-// Renders the 9-step Corti-parity timeline for a single run:
+// Renders the 9-step timeline for a single run:
 //   1. user_message_received
 //   2. planner_selected_experts
 //   3. tools_list          ┐

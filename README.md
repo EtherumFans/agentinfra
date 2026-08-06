@@ -1,12 +1,12 @@
 # iCoDer — Clinical AI Platform
 
-Corti-competitive 临床 AI 平台。Agent Runtime + 编码审核 + 语音转录 + 文书生成 + 事实提取 + 嵌入助手，即开即用。SDK/API/Web Components 供 HIS 厂商和第三方深度集成。
+面向中国医院场景的医疗合规 AI 平台。Agent Runtime + 编码审核 + 语音转录 + 文书生成 + 事实提取 + 嵌入助手，即开即用。SDK/API/Web Components 供 HIS 厂商和第三方深度集成。
 
-**无限逼近 Corti**，但每条决策链可审计、可溯源、可重放。
+**每条决策链可审计、可溯源、可重放**。
 
 ## Overview
 
-iCoDer is a production-grade clinical AI platform competing with Corti. Core capabilities:
+iCoDer is a production-grade medical compliance AI platform for Chinese hospital scenarios. Core capabilities:
 
 - **Clinical Documentation Improvement (CDI)**: Core entry agent #1 — identifies clinical documentation gaps, generates non-leading Provider Queries, drives clinician response → documentation revision → re-coding loop. NOT the same as note-completeness or discharge structuring.
 - **Medical Coding**: Core entry agent #2 — evidence-based ICD-10-CN / ICD-9-CM-3 coding with full audit trail (Phase 5 Track C: 7-stage mainline complete).
@@ -90,7 +90,7 @@ docker compose -f docker-compose.local-dev.yml up --build
 
 ### Cloud SaaS Deployment (生产)
 
-iCoDer v1 以**托管云 SaaS** 形式交付 (Corti-style: Environment EU/US/CN → Tenant → API Client)。
+iCoDer v1 以**托管云 SaaS** 形式交付 (Environment EU/US/CN → Tenant → API Client)。
 医院 / ISV 通过 onboarding intake 获取 Tenant 后,从 `https://{tenant_slug}.{region}.icoder.cloud` 接入。
 **不再**支持医院内网 Docker 部署。详见 [docs/cloud/CLOUD_DEPLOYMENT.md](./docs/cloud/CLOUD_DEPLOYMENT.md)。
 

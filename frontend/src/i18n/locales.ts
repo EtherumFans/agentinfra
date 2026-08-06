@@ -241,7 +241,7 @@ export interface LocaleDict {
   outpatientRecord: string;
   consultationRecord: string;
 
-  // Medical Coding pipeline UI (Corti-aligned - was MedCodER pipeline)
+  // Medical Coding pipeline UI (was MedCodER pipeline)
   medcoderPipeline: string;  // deprecated alias, kept for back-compat
   medcoderMode: string;      // deprecated alias, kept for back-compat
   enableMedcoder: string;    // deprecated alias, kept for back-compat
@@ -267,7 +267,7 @@ export interface LocaleDict {
   confidencePercent: string;     // e.g. "置信度 85%" / "Confidence 85%"
   positionRange: string;         // evidence chip title e.g. "位置 0-12" / "Position 0-12"
 
-  // Medical Coding - Corti-aligned extras
+  // Medical Coding - pipeline extras
   samples: string;
   openGuide: string;
   dismissGuide: string;
@@ -303,7 +303,7 @@ export interface LocaleDict {
   embeddedAssistantBreadcrumb: string;
   tabCode: string;
 
-  // Phase 3-A Section D - Corti-style 8-field output + banners
+  // Phase 3-A Section D - 8-field output + banners
   mvpBanner: string;
   aiAssistedBanner: string;
   reviewSummary: string;
@@ -470,7 +470,7 @@ export interface LocaleDict {
   dailyCostChart: string;
   requests: string;
 
-  // Customers (Embedded Assistant end-user mgmt - Corti parity)
+  // Customers (Embedded Assistant end-user mgmt)
   customersTitle: string;
   customersDesc: string;
   addCustomer: string;
@@ -492,7 +492,7 @@ export interface LocaleDict {
   customerDeleteSuccess: string;
   customerCreateSuccess: string;
 
-  // Templates (Beta) - Corti /templates parity
+  // Templates (Beta)
   templatesTitle: string;
   templatesDesc: string;
   templateBuilder: string;
@@ -519,7 +519,7 @@ export interface LocaleDict {
   templateLanguageZh: string;
   templateLanguageEn: string;
 
-  // Tickets Portal - Corti /tickets parity
+  // Tickets Portal
   ticketsTitle: string;
   ticketsDesc: string;
   ticketsAll: string;
@@ -1053,7 +1053,7 @@ export interface LocaleDict {
   agentChatViewRunTraceHint: string;
   agentChatRenderedTab: string;
   agentChatJsonTab: string;
-  // Phase 4-D - Corti naming catalog (en-US matches Corti verbatim)
+  // Phase 4-D - naming catalog (en-US canonical)
   agentChatBreadcrumbAgents: string;
   agentChatTextareaPlaceholder: string;
   agentChatAddContext: string;
@@ -1269,14 +1269,14 @@ export interface LocaleDict {
   agentDetailTestCaseText: string;
   agentDetailCapabilityQuestion: string;
 
-  // Phase 3-E+ - Use case filter dropdown (Corti 5 enum keys)
+  // Phase 3-E+ - Use case filter dropdown (5 enum keys)
   useCaseCodingRevenueCycle: string;
   useCaseClinicalEvidenceResearch: string;
   useCasePointOfCare: string;
   useCaseCareCoordination: string;
   useCaseChinaMedicalCompliance: string;
 
-  // Phase 3-E+ - AI Studio Overview (Corti 1:1 replica)
+  // Phase 3-E+ - AI Studio Overview
   aiStudioOverviewHeroEyebrow: string;
   aiStudioOverviewHeroTitle: string;
   aiStudioOverviewHeroTagline: string;
@@ -1538,12 +1538,12 @@ const zhCN: LocaleDict = {
   outpatientRecord: '门诊病历',
   consultationRecord: '会诊记录',
 
-  // Medical Coding pipeline UI (Corti-aligned - was MedCodER pipeline)
+  // Medical Coding pipeline UI (was MedCodER pipeline)
   medcoderPipeline: '编码管线',  // deprecated alias
-  medcoderMode: '编码模式 (Corti-style)',  // deprecated alias
+  medcoderMode: '编码模式',  // deprecated alias
   enableMedcoder: '启用编码管线',  // deprecated alias
   codingPipeline: '编码管线',
-  codingMode: '编码模式 (Corti-style)',
+  codingMode: '编码模式',
   enableCoding: '启用编码管线',
   evidenceHighlight: '证据高亮',
   topKCandidates: 'Top-K 候选编码',
@@ -1564,7 +1564,7 @@ const zhCN: LocaleDict = {
   confidencePercent: '置信度 {{p}}%',
   positionRange: '位置 {{start}}-{{end}}',
 
-  // Medical Coding - Corti-aligned extras
+  // Medical Coding - pipeline extras
   samples: '样例',
   openGuide: '打开引导',
   dismissGuide: '关闭引导',
@@ -1581,7 +1581,7 @@ const zhCN: LocaleDict = {
   expand: '展开',
   include: '包含',
 
-  // Phase 3-A Section D - Corti-style 8-field output + banners
+  // Phase 3-A Section D - 8-field output + banners
   mvpBanner: 'MVP - production_ready=false, human_review=required',
   aiAssistedBanner: 'AI-assisted coding - 不替代编码员, 所有编码建议需人工复核',
   reviewSummary: '复核摘要',
@@ -1913,7 +1913,7 @@ const zhCN: LocaleDict = {
   copy: '复制',
   copied: '已复制',
   // Embedded Assistant Console page (Phase 7 Gate 13)
-  embeddedPageSubtitle: 'Corti 风格对齐 · 一次配置，随处复制',
+  embeddedPageSubtitle: '一次配置，随处复制',
   embeddedPreview: '预览',
   embeddedDesktop: '桌面端',
   embeddedMobile: '移动端',
@@ -2321,7 +2321,7 @@ const zhCN: LocaleDict = {
   runTraceOk: 'ok',
   runTraceFailed: 'failed',
   runTraceTotal: 'total',
-  runTraceIntro: '9 步 Corti-parity 时间线。蓝色边框 = 统一工具调度器 (Dispatcher) 的 4 个步骤。点击任一行展开查看 dispatcher 详情 + raw metadata。',
+  runTraceIntro: '9 步运行轨迹时间线。蓝色边框 = 统一工具调度器 (Dispatcher) 的 4 个步骤。点击任一行展开查看 dispatcher 详情 + raw metadata。',
   runTraceAuthFilter: 'auth_resolved 步骤仅展示 tool_name / auth_type / redacted_view / granted_scopes / note，其余 metadata 一律隐藏（纵深防御）。',
   runTraceEmpty: '运行已完成但尚未发射 trace 事件。',
   runTraceEmptyHint: 'run 存在但 timeline 为空。可能是 trace emit 失败、DB 写入异常，或该 run 走了非 instrumented 路径。点击下方重试或返回 Agent Hub 重新发起。',
@@ -2368,7 +2368,7 @@ const zhCN: LocaleDict = {
   agentChatViewRunTraceHint: '查看 RunTrace 9 步时间线',
   agentChatRenderedTab: 'Rendered',
   agentChatJsonTab: 'JSON',
-  // Phase 4-D - Corti naming catalog (zh-CN translations)
+  // Phase 4-D - naming catalog (zh-CN translations)
   agentChatBreadcrumbAgents: '智能体',
   agentChatTextareaPlaceholder: '我能帮你什么？',
   agentChatAddContext: '添加上下文',
@@ -2583,14 +2583,14 @@ const zhCN: LocaleDict = {
   agentDetailTestCaseText: '患者，女，65岁。因腰痛伴左下肢放射痛3月就诊。腰椎MRI示L4/5椎间盘突出，压迫左侧神经根。入院诊断：腰椎间盘突出症。建议行PLIF手术。',
   agentDetailCapabilityQuestion: '你能做什么？请描述你的能力、专长以及如何在医疗编码、临床文档及相关医疗任务中提供帮助。',
 
-  // Phase 3-E+ - Use case filter dropdown (Corti 5 enum keys)
+  // Phase 3-E+ - Use case filter dropdown (5 enum keys)
   useCaseCodingRevenueCycle: '编码/收入循环',
   useCaseClinicalEvidenceResearch: '临床证据研究',
   useCasePointOfCare: '即时诊疗',
   useCaseCareCoordination: '诊疗协调',
   useCaseChinaMedicalCompliance: '中国医疗合规',
 
-  // Phase 3-E+ - AI Studio Overview (Corti 1:1 replica)
+  // Phase 3-E+ - AI Studio Overview
   aiStudioOverviewHeroEyebrow: 'AI Studio',
   aiStudioOverviewHeroTitle: '总览',
   aiStudioOverviewHeroTagline: '直接在 iCoDer 控制台测试和配置用例',
@@ -2852,12 +2852,12 @@ const enUS: LocaleDict = {
   outpatientRecord: 'Outpatient record',
   consultationRecord: 'Consultation record',
 
-  // Medical Coding pipeline UI (Corti-aligned - was MedCodER pipeline)
+  // Medical Coding pipeline UI (was MedCodER pipeline)
   medcoderPipeline: 'Coding pipeline',  // deprecated alias
-  medcoderMode: 'Coding mode (Corti-style)',  // deprecated alias
+  medcoderMode: 'Coding mode',  // deprecated alias
   enableMedcoder: 'Enable coding pipeline',  // deprecated alias
   codingPipeline: 'Coding pipeline',
-  codingMode: 'Coding mode (Corti-style)',
+  codingMode: 'Coding mode',
   enableCoding: 'Enable coding pipeline',
   evidenceHighlight: 'Evidence highlight',
   topKCandidates: 'Top-K candidates',
@@ -2878,7 +2878,7 @@ const enUS: LocaleDict = {
   confidencePercent: 'Confidence {{p}}%',
   positionRange: 'Position {{start}}-{{end}}',
 
-  // Medical Coding - Corti-aligned extras
+  // Medical Coding - pipeline extras
   samples: 'Samples',
   openGuide: 'Open guided demo',
   dismissGuide: 'Dismiss guided demo',
@@ -2906,7 +2906,7 @@ const enUS: LocaleDict = {
   enterCodePlaceholder: 'Enter code (e.g. J18.1)',
   tableCode: 'Code',
 
-  // Phase 3-A Section D - Corti-style 8-field output + banners
+  // Phase 3-A Section D - 8-field output + banners
   mvpBanner: 'MVP - production_ready=false, human_review=required',
   aiAssistedBanner: 'AI-assisted coding - does not replace the coder; all code suggestions require human review',
   reviewSummary: 'Review summary',
@@ -3227,7 +3227,7 @@ const enUS: LocaleDict = {
   copy: 'Copy',
   copied: 'Copied',
   // Embedded Assistant Console page (Phase 7 Gate 13)
-  embeddedPageSubtitle: 'Corti-style parity · Configure once, copy anywhere',
+  embeddedPageSubtitle: 'Configure once, copy anywhere',
   embeddedPreview: 'Preview',
   embeddedDesktop: 'Desktop',
   embeddedMobile: 'Mobile',
@@ -3635,7 +3635,7 @@ const enUS: LocaleDict = {
   runTraceOk: 'ok',
   runTraceFailed: 'failed',
   runTraceTotal: 'total',
-  runTraceIntro: '9-step Corti-parity timeline. Blue border = the 4 steps of the unified Dispatcher. Click any row to expand dispatcher detail + raw metadata.',
+  runTraceIntro: '9-step run trace timeline. Blue border = the 4 steps of the unified Dispatcher. Click any row to expand dispatcher detail + raw metadata.',
   runTraceAuthFilter: 'auth_resolved step only shows tool_name / auth_type / redacted_view / granted_scopes / note; all other metadata is hidden (defense in depth).',
   runTraceEmpty: 'Run completed but no trace events emitted yet.',
   runTraceEmptyHint: 'Run exists but timeline is empty. Possible causes: trace emit failure, DB write error, or the run took a non-instrumented path. Click retry below or return to Agent Hub to start again.',
@@ -3682,7 +3682,7 @@ const enUS: LocaleDict = {
   agentChatViewRunTraceHint: 'View RunTrace 9-step timeline',
   agentChatRenderedTab: 'Rendered',
   agentChatJsonTab: 'JSON',
-  // Phase 4-D - Corti naming catalog (en-US matches Corti verbatim)
+  // Phase 4-D - naming catalog (en-US canonical)
   agentChatBreadcrumbAgents: 'Agents',
   agentChatTextareaPlaceholder: 'What can I help you with?',
   agentChatAddContext: 'Add context',
@@ -3897,14 +3897,14 @@ const enUS: LocaleDict = {
   agentDetailTestCaseText: 'Female, 65. Lower back pain with left lower limb radiating pain for 3 months. Lumbar MRI shows L4/5 disc herniation compressing the left nerve root. Admission diagnosis: Lumbar disc herniation. PLIF surgery recommended.',
   agentDetailCapabilityQuestion: 'What can you do? Please describe your capabilities, specialties, and how you can help with medical coding, clinical documentation, and related medical tasks.',
 
-  // Phase 3-E+ - Use case filter dropdown (Corti 5 enum keys)
+  // Phase 3-E+ - Use case filter dropdown (5 enum keys)
   useCaseCodingRevenueCycle: 'Coding / Revenue cycle',
   useCaseClinicalEvidenceResearch: 'Clinical evidence research',
   useCasePointOfCare: 'Point of care',
   useCaseCareCoordination: 'Care coordination',
   useCaseChinaMedicalCompliance: 'China medical compliance',
 
-  // Phase 3-E+ - AI Studio Overview (Corti 1:1 replica)
+  // Phase 3-E+ - AI Studio Overview
   aiStudioOverviewHeroEyebrow: 'AI Studio',
   aiStudioOverviewHeroTitle: 'Overview',
   aiStudioOverviewHeroTagline: 'Test and configure use cases directly from iCoDer Console',

@@ -7,7 +7,7 @@
  * Human Review Gate decision (AUTO_PASS / REVIEW_RECOMMENDED / REVIEW_REQUIRED /
  * BLOCKED_*).
  *
- * Pattern: Corti-style single coding workbench (not 7 separate agent pages).
+ * Pattern: single coding workbench (not 7 separate agent pages).
  */
 
 import { useState } from 'react';

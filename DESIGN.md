@@ -5,7 +5,6 @@
 - **Who it's for:** Medical coders (病案科), department heads, insurance reviewers (医保办), QC staff (质控科)
 - **Space/industry:** Healthcare IT / medical coding / Chinese hospital information systems
 - **Project type:** Web app (React SPA dashboard/console)
-- **Reference:** Corti Console (console.corti.app)
 
 ## Aesthetic Direction
 - **Direction:** Industrial/Utilitarian with Chinese editorial warmth

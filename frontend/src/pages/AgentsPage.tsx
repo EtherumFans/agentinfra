@@ -15,8 +15,8 @@ import { agentHubApi, type HubCard } from '../services/agentHubApi';
 import { useToastStore } from '../store';
 import type { InstalledAgent } from '../types/runtime';
 
-// Phase 3-B2 Loop 4 - Corti-style use_case filter dropdown (backend-driven).
-// Maps Corti's 5 use_case enum values to display labels (now i18n'd - Phase 3-E+).
+// Phase 3-B2 Loop 4 - use_case filter dropdown (backend-driven).
+// Maps 5 use_case enum values to display labels (now i18n'd - Phase 3-E+).
 // The Hub endpoint filters server-side via ?use_case=<key>. Empty key = no filter.
 const USE_CASE_FILTER_KEYS: Array<{ key: string; labelKey: 'useCaseCodingRevenueCycle' | 'useCaseClinicalEvidenceResearch' | 'useCasePointOfCare' | 'useCaseCareCoordination' | 'useCaseChinaMedicalCompliance' }> = [
   { key: 'coding_revenue_cycle', labelKey: 'useCaseCodingRevenueCycle' },
@@ -39,7 +39,7 @@ export default function AgentsPage() {
   const toast = useToastStore((s) => s.addToast);
   const [activeTab, setActiveTab] = useState<TabType>('my');
   const [searchQuery, setSearchQuery] = useState('');
-  // Phase 3-B2 Loop 4: useCase now stores the Corti use_case key (e.g.
+  // Phase 3-B2 Loop 4: useCase now stores the use_case key (e.g.
   // 'coding_revenue_cycle'), not a Chinese label. Empty string = no filter.
   const [useCase, setUseCase] = useState('');
   const [balance, setBalance] = useState<number | null>(null);
@@ -92,7 +92,7 @@ export default function AgentsPage() {
   const loadCertifiedAgents = (useCaseKey: string = '') => {
     setCertifiedLoading(true);
     // Phase 3-B1 Section F + Phase 3-B2 Loop 4: Prebuilt tab reads from
-    // Corti-style Hub endpoint with optional ?use_case=<key> filter
+    // Hub endpoint with optional ?use_case=<key> filter
     // (pack-mastered, no auth, returns 11 visible packs by default: 10
     // metadata-only Coming Soon + Medical Coding Agent MVP). Backend
     // excludes expert-stubs and internal_engine automatically.
@@ -166,7 +166,7 @@ export default function AgentsPage() {
 
   // Phase 3-B2 Loop 2 (Gap 2.2) - Click-to-Chat CTA on Hub cards.
   // Calls Loop 1 clone endpoint (idempotent), then navigates to the
-  // Corti-style chat URL /ai-studio/agents/:agentId/chat?preset={agent_ref}.
+  // Chat URL /ai-studio/agents/:agentId/chat?preset={agent_ref}.
   // On 401, redirects to login (the clone endpoint requires a valid Bearer token).
   const chatWithHubCard = async (card: HubCard) => {
     if (!card.runnable || !card.agent_id || cloningAgentId) return;
@@ -174,7 +174,7 @@ export default function AgentsPage() {
     try {
       const res = await agentHubApi.clone(card.agent_id);
       const data = res.data;
-      // Phase 4-D: use Corti-style URL /ai-studio/agents/{id}/chat.
+      // Phase 4-D: chat URL /ai-studio/agents/{id}/chat.
       // data.chat_url may be legacy /agents/{id}/chat; normalize to new pattern
       // using the cloned project_agent_id from the response.
       const clonedId = data.project_agent_id || card.agent_ref || card.agent_id;
@@ -205,7 +205,7 @@ export default function AgentsPage() {
     <div className="flex-1 flex flex-col min-h-0 bg-muted/20">
       <div className="flex-1 p-6 overflow-y-auto mx-auto w-full max-w-5xl">
         <div className="bg-background rounded-xl">
-          {/* Section header with accent bar (Corti: "Create an agent" + subtitle + + New Agent) */}
+          {/* Section header with accent bar ("Create an agent" + subtitle + + New Agent) */}
           <div className="flex items-start gap-3 px-6 pt-5 pb-3 border-b border-border/40">
             <Layers size={18} className="text-muted-foreground shrink-0 mt-0.5" />
             <div className="min-w-0 flex-1">
@@ -288,9 +288,9 @@ export default function AgentsPage() {
         )}
       </div>
 
-      {/* Use case 过滤器 (Corti: 单 dropdown ▾) - Phase 3-B2 Loop 4
+      {/* Use case 过滤器 (single dropdown ▾) - Phase 3-B2 Loop 4
           backend-driven via ?use_case=<key>. Dropdown shows i18n label,
-          stores Corti use_case key (e.g. 'coding_revenue_cycle'). Empty
+          stores use_case key (e.g. 'coding_revenue_cycle'). Empty
           key = 全部 (no filter, all visible packs returned). */}
       {activeTab === 'prebuilt' && (
         <div className="relative flex items-center gap-2 px-6 pb-2">
@@ -389,7 +389,7 @@ export default function AgentsPage() {
           )
         )}
 
-        {/* Tab: 预置AI智能体 - Corti-style Hub cards (pack-mastered) */}
+        {/* Tab: 预置AI智能体 - Hub cards (pack-mastered) */}
         {activeTab === 'prebuilt' && (
           certifiedLoading ? (
             <div className="text-center py-12"><Loader2 className="animate-spin h-6 w-6 mx-auto text-muted-foreground" /></div>
@@ -472,7 +472,7 @@ export default function AgentsPage() {
                           ))}
                         </div>
                         <p className="text-xs text-muted-foreground mt-1 leading-relaxed line-clamp-2">{card.description}</p>
-                        {/* Phase 4-D (D-6): Corti-style card metadata (DD-Mon-YYYY · Creator) */}
+                        {/* Phase 4-D (D-6): card metadata (DD-Mon-YYYY · Creator) */}
                         {(card.created_at || card.creator) && (
                           <p className="text-[10px] text-muted-foreground/80 mt-1.5">
                             {card.created_at && <span>{card.created_at}</span>}
@@ -491,7 +491,7 @@ export default function AgentsPage() {
                             </span>
                           )}
                         </div>
-                        {/* Red lines (Corti 4 rules) - only show for runnable cards */}
+                        {/* Red lines (4 rules) - only show for runnable cards */}
                         {card.runnable && (card.red_lines?.no_upcoding || card.red_lines?.evidence_required) && (
                           <div className="flex items-center gap-1 mt-1.5 flex-wrap">
                             {card.red_lines?.no_upcoding && (
@@ -505,7 +505,7 @@ export default function AgentsPage() {
                             )}
                           </div>
                         )}
-                        {/* Workflow (Corti 7-step / pipeline stages) */}
+                        {/* Workflow (7-step / pipeline stages) */}
                         {card.runnable && card.workflow && (
                           <p className="text-[10px] text-muted-foreground mt-1.5 line-clamp-2">{card.workflow}</p>
                         )}

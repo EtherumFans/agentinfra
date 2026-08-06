@@ -18,9 +18,9 @@ cd backend && python -m uvicorn app.main:app --port 8000
 
 | Demo | URL | Agent | 场景 | iCoDer ADVANTAGE |
 |---|---|---|---|---|
-| **Medical Coding** | `/api/embedded/demos/medical-coding-demo.html` (需 backend routing) 或 file:// 直开 | `medical-coding-agent` (corti_like_fast) | 左肺结节 + 肋骨骨折 ICD-10-CN 编码 | 中国 ICD-10-CN 37,897 码 + MedCodER 5-stage pipeline |
+| **Medical Coding** | `/api/embedded/demos/medical-coding-demo.html` (需 backend routing) 或 file:// 直开 | `medical-coding-agent` (Fast Coding) | 左肺结节 + 肋骨骨折 ICD-10-CN 编码 | 中国 ICD-10-CN 37,897 码 + MedCodER 5-stage pipeline |
 | **CDI** | `/api/embedded/demos/cdi-demo.html` | `cdi` | 心衰入院 编码所需内涵缺口识别 | 中立澄清任务生成 (9 红线: 不自动改病历) |
-| **DRG-DIP** | `/api/embedded/demos/drg-dip-demo.html` | `drg-analyzer` | 急性脑梗死合并房颤/高血压/糖尿病 DRG 风险分析 | DRG/DIP 分组风险结构 (Corti 不针对中国 DRG) |
+| **DRG-DIP** | `/api/embedded/demos/drg-dip-demo.html` | `drg-analyzer` | 急性脑梗死合并房颤/高血压/糖尿病 DRG 风险分析 | DRG/DIP 分组风险结构 (针对中国医保结算增强) |
 
 ## Demo 演示的 Phase 6 能力
 

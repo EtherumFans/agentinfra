@@ -1,7 +1,7 @@
 """Embedded Assistant API — serves the @icoder/embedded v2.0 Web Component.
 
 Phase 6 Gate 1 (2026-07-13): upgraded from 1.0 src-serving to 2.0 dist-serving.
-The 2.0 build is the Corti-compatible method-based API
+The 2.0 build is the method-based API
 (`auth()/configureSession()/configure()/show()`) with unified `embedded-event`
 envelope, shipped from `packages/icoder-embedded/dist/`.
 
@@ -48,7 +48,7 @@ async def embedded_assistant_js():
 
 @router.get("/preview")
 async def embedded_assistant_preview():
-    """2.0 Preview page using Corti-compatible method-based API.
+    """2.0 Preview page using method-based API.
 
     Phase 6 (interactive sidebar) — kept for development convenience.
     For the Console-embedded iframe use /api/embedded/preview.html (Gate 13A).
@@ -85,7 +85,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif
 <body>
 <div class="sidebar">
   <h2>iCoDer Embedded</h2>
-  <div class="version">v2.0.0 · Corti-compatible method API · Phase 6 Gate 1</div>
+  <div class="version">v2.0.0 · Method-based API · Phase 6 Gate 1</div>
   <div>
     <label>Backend Base URL</label>
     <input id="baseUrl" value="http://localhost:8000" placeholder="https://hospital.icoder.cloud">

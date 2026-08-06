@@ -1,6 +1,6 @@
-// iCoDer - Tickets Portal page (Corti parity)
+// iCoDer - Tickets Portal page
 //
-// Corti /tickets IA: external Zendesk-style portal with org selector + All/
+// /tickets IA: external Zendesk-style portal with org selector + All/
 // Created by me + Search + Filter + table + empty state. iCoDer implements
 // the same conceptual workflow in-app (no external help-desk infra needed).
 //

@@ -6,8 +6,8 @@
  * stored char_start/char_end don't match exactly (server-side fuzzy).
  *
  * When `focusedSpanIndex` is provided, the matching span is rendered with
- * a distinct (green) class to indicate user focus - matches Corti
- * screenshot where clicking a code highlights its evidence in green while
+ * a distinct (green) class to indicate user focus -
+ * clicking a code highlights its evidence in green while
  * the rest stay yellow.
  */
 import React, { useMemo } from 'react';

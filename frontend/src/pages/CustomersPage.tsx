@@ -1,6 +1,6 @@
-// iCoDer - Customers page (Corti parity for Embedded Assistant end-user mgmt)
+// iCoDer - Customers page (Embedded Assistant end-user mgmt)
 //
-// Corti IA replicated:
+// IA:
 //   Header  Customers · "Manage your customers and end-users for Embedded Assistant"
 //   CTA     Add customer (right-aligned)
 //   Filters Search box (name / customer ID / region / tenant) + Clear Filters

@@ -1,5 +1,5 @@
-// Phase 4-D - Corti-style agent config sidebar (right pane).
-// Mirrors console.corti.app/ai-studio/agents/{id} right sidebar:
+// Phase 4-D - agent config sidebar (right pane).
+// Mirrors /ai-studio/agents/{id} right sidebar:
 //   Settings/Code radio toggle (SettingsCodeTab).
 //   Settings slot: Name input (21/50) + System prompt textarea + Experts list
 //                  + Browse Expert Library + Add expert + Pinned message parts.
@@ -79,7 +79,7 @@ export default function AgentConfigSidebar({ agent, onAgentUpdated }: AgentConfi
   // ── Settings slot ──
   const settingsSlot = (
     <div className="flex flex-col gap-5 p-4">
-      {/* Name input (Corti: 21/50 char counter) */}
+      {/* Name input (21/50 char counter) */}
       <div>
         <label className="text-[11px] font-semibold text-foreground block mb-1.5">
           {t.agentChatNameLabel}

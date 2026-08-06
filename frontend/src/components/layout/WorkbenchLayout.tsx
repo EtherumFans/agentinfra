@@ -1,6 +1,6 @@
 // WorkbenchLayout - shared shell for 5 AI Studio tool pages.
 // P1.3 Stage 6 (2026-07-02): shell only, individual pages not migrated yet.
-// Corti pattern: left Input / right Output 50/50 + right Settings panel + bottom Event Inspector.
+// Layout pattern: left Input / right Output 50/50 + right Settings panel + bottom Event Inspector.
 // Pages adopt this shell in Phase 2; for now it's a contract skeleton.
 import { ReactNode } from 'react';
 import { Settings, Terminal, PanelLeft, PanelRight } from 'lucide-react';

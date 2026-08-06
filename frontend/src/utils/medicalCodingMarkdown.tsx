@@ -226,7 +226,7 @@ export function generateFallbackMarkdown(v2: Record<string, unknown>): string {
 function _fallbackCodeValidationV2(v2: Record<string, unknown>): string {
   // Phase 4-C - v2 schema (BREAKING). The backend pre-renders markdown;
   // this fallback only fires when result.markdown is empty (legacy /
-  // degraded path). Mirrors Corti's 6-section layout.
+  // degraded path). Mirrors the 6-section layout.
   const lines: string[] = ['# Code Validation Agent Output (fallback v2)'];
   lines.push(`\n**Review Conclusion:** ${v2.review_conclusion ?? '-'}`);
   lines.push(`\n**Manual Review Required:** ${v2.manual_review_required ?? '-'}`);

@@ -14,7 +14,9 @@ npm install @icoder/sdk
 import iCoDer from '@icoder/sdk';
 
 const icoder = new iCoDer({
-  baseURL: 'http://localhost:8000',
+  // 云托管默认入口 (R6 cloud-only ADR — docs/governance/DEPLOYMENT_PATH_ADR.md)
+  baseURL: 'https://api.cn.icoder.cloud',
+  // 本地开发可在 env 中覆盖: baseURL: 'http://localhost:8000'
   auth: {
     accessToken: '<your-access-token>',
     refreshToken: '<your-refresh-token>',
@@ -62,7 +64,7 @@ console.log(trace.timeline);  // [{step, status, duration_ms, ...}, ...]
 
 ### Phase 6 Gate 4 注意事项
 
-- **不发布到 npm** — `1.0.0-beta.2` 仅作为 dist-tag，通过 git/source 消费 (PACKAGE_BUILD_VERIFIED, REGISTRY_PUBLISH_DEFERRED)。
+- **Registry publish 推迟到 1.0.0 stable** — 当前 `1.0.0-beta.2` 仅作为 dist-tag, 通过 git/source 消费 (PACKAGE_BUILD_VERIFIED, REGISTRY_PUBLISH_DEFERRED)。1.0.0 发布清单见 [PUBLISH.md](./PUBLISH.md), 版本历史见 [CHANGELOG.md](./CHANGELOG.md)。
 - **A2A v0.3 类型** — SDK 暴露 `A2AEnvelope`/`A2AMessage`/`A2AMessagePart` 类型 (mirror of `app/icoder/agent_runtime/a2a_facade.py`)。这些类型当前没有客户端消费者 (Python A2A 入口在 server 端)，仅用于未来 SDK 直接发 A2A 消息。
 - **SSE 客户端** — 当前 agent_run 是 request/response 模式。Phase 7 候选: 增加 `EventSource`-based stream 客户端。
 

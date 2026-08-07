@@ -21,7 +21,19 @@ Phase A1D.4 (A1C-B-008) — KMS rotation + cache invalidation:
 import os
 import logging
 
+from icoder_runtime.core.kms_version_token import KMSVersionToken
+
 logger = logging.getLogger(__name__)
+
+
+def get_global_kms_version_token():
+    """Return the process-wide KMSVersionToken.
+
+    Phase A1D.7 — exposes the singleton token so the admin rotation
+    endpoint and any future cloud-KMS adapter can ``bump()`` it without
+    reaching into the vault's private state.
+    """
+    return _kms_version_token
 
 
 class CredentialNotFound(Exception):
@@ -177,4 +189,9 @@ class CredentialVault:
 
 
 # Global singleton
-credential_vault = CredentialVault()
+# Phase A1D.7 (Pilot Prep Step 5a) — wire the global vault with a shared
+# KMSVersionToken so the admin rotation endpoint
+# (POST /api/admin/kms/rotate) can drive cache invalidation app-wide.
+# Without this wiring, KMSVersionToken instances existed only in tests.
+_kms_version_token = KMSVersionToken()
+credential_vault = CredentialVault(kms_version_token=_kms_version_token)

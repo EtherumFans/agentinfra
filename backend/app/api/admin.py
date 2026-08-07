@@ -230,3 +230,100 @@ async def admin_runtime_status(
         status["agents"] = rt.list_agents()
         return status
     return {"started": False, "error": "PlatformRuntime not initialized"}
+
+
+# ── KMS Rotation (admin only) ──
+# Phase A1D.7 (Pilot Prep Step 5a) — operator-driven KMS key rotation.
+# Endpoint bumps the global KMSVersionToken + flushes CredentialVault cache
+# + writes an audit row. Subsequent vault.resolve() calls re-read from env
+# (dev) or the cloud secrets manager (prod, when adapter is wired).
+#
+# This closes the gap: an operator rotates the cloud KMS key via console,
+# but the app keeps serving the old cached value. With this endpoint, the
+# operator (or a cloud-function post-rotation hook) calls
+# POST /api/admin/kms/rotate and every app instance drops its cached
+# secrets on the next resolve().
+
+
+class KMSRotationResponse(BaseModel):
+    previous_version: int
+    current_version: int
+    invalidated_entries: int
+    rotated_by: str
+
+
+@router.get("/kms/version", response_model=KMSRotationResponse)
+async def admin_kms_version(
+    admin: User = Depends(get_admin_user),
+):
+    """Read the current KMS version token without rotating.
+
+    Useful for health-check / canary: the operator can verify all app
+    instances report the same version before initiating rotation.
+    """
+    from app.services.credential_vault import get_global_kms_version_token
+    token = get_global_kms_version_token()
+    return KMSRotationResponse(
+        previous_version=token.current,
+        current_version=token.current,
+        invalidated_entries=0,
+        rotated_by=admin.username,
+    )
+
+
+@router.post("/kms/rotate", response_model=KMSRotationResponse)
+async def admin_kms_rotate(
+    admin: User = Depends(get_admin_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Bump the KMS version token + flush the CredentialVault cache.
+
+    Workflow (operator runbook):
+      1. Rotate the cloud KMS key via cloud console (AWS / Aliyun / Azure).
+      2. Wait for the new key material to propagate to secrets manager.
+      3. Call POST /api/admin/kms/rotate on each app instance.
+         (Or wire a cloud-function post-rotation hook to do this.)
+      4. The next vault.resolve(service) call re-reads from the secrets
+         manager and stamps the cache entry with the new token.
+
+    The audit row captures previous_version → current_version so the
+    operator can verify the bump took effect.
+    """
+    from app.services.credential_vault import (
+        credential_vault,
+        get_global_kms_version_token,
+    )
+    from app.middleware.audit import log_action
+
+    token = get_global_kms_version_token()
+    previous = token.current
+    current = token.bump()
+
+    # Defensive: stale-stamp check would catch this on next resolve(),
+    # but we flush explicitly so the rotation is observable immediately
+    # via health_check() / list_available_services().
+    cached_count = len(credential_vault._cache)
+    credential_vault.invalidate_all()
+    invalidated = cached_count
+
+    await log_action(
+        db,
+        user_id=admin.id,
+        username=admin.username,
+        action="kms.key_rotated",
+        resource_type="kms",
+        resource_id="global",
+        details={
+            "previous_version": previous,
+            "current_version": current,
+            "invalidated_entries": invalidated,
+        },
+    )
+    await db.commit()
+
+    return KMSRotationResponse(
+        previous_version=previous,
+        current_version=current,
+        invalidated_entries=invalidated,
+        rotated_by=admin.username,
+    )

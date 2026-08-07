@@ -39,7 +39,8 @@ export default function NewAgentPage() {
 
   useEffect(() => {
     agentsApi.templates().then(r => {
-      setTemplates(r.data?.templates || []);
+      const list = r.data?.templates;
+      setTemplates(Array.isArray(list) ? list : []);
     }).catch(() => {});
     // experts endpoint deleted in Phase 2.1-B Step 1; expertNameToId stays empty
   }, []);

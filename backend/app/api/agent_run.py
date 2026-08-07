@@ -116,6 +116,69 @@ def _agent_id_from_ref(agent_ref: str) -> str:
     return tail.split("@")[0]
 
 
+async def _load_pack_from_db(agent_id: str, db: AsyncSession) -> dict[str, Any] | None:
+    """Sprint 2 Goal B — synthesize an agent_pack dict from the DB Agent row.
+
+    Used as a fallback when ``_load_pack_by_agent_id`` (which only scans
+    ``official_agents/``) returns None. This is the path for user-created
+    custom agents that don't have a physical ``agent_pack.json`` on disk.
+
+    The synthesized pack is a minimal v1.2 dict sufficient for
+    ``ProviderRegistry.resolve_from_agent_pack`` to route to
+    ``PureLLMProvider``. It deliberately does NOT include any MedCodER /
+    medical-coding-specific fields, so a generic custom agent invokes zero
+    MedCodER modules (Sprint 2 Goal B MedCodER independence proof).
+    """
+    from sqlalchemy import select
+    from app.models.agent import Agent
+    result = await db.execute(select(Agent).where(Agent.id == agent_id))
+    agent = result.scalar_one_or_none()
+    if agent is None:
+        return None
+    version = agent.version or "1.0.0"
+    return {
+        "format_version": "1.2",
+        "agent_type": "certified",
+        "agent_ref": f"icoder/{agent.id}@{version}",
+        "manifest": {
+            "name": agent.name or "Custom Agent",
+            "version": version,
+            "description": agent.description or "",
+            "category": agent.category or "general",
+            "icon": agent.icon or "Bot",
+            "tags": ["custom", "generic"],
+            "maturity": "custom",
+            "production_ready": False,
+            "hidden_from_hub": False,
+            "use_case": "generic",
+        },
+        "system_prompt": agent.system_prompt or "",
+        "experts": [],
+        "tools": [],
+        "model": {
+            "primary": "deepseek-chat",
+            "fallback": "deepseek-chat",
+            "temperature": 0.0,
+            "max_tokens": 4096,
+            "json_mode": False,
+        },
+        "backend_provider": "icoder.pure-llm.v1",
+        "permissions": {
+            "key": f"custom-{agent.id}-default",
+            "name": "Custom Agent Default",
+            "description": "Default permissions for user-created agents. No writeback.",
+            "tools": {},
+            "production_writeback_blocked": True,
+        },
+        "phi_redaction": "required",
+        "context_required": True,
+        "recorder_required": True,
+        "metrics_required": True,
+        "code": {},
+        "integrity": {"sha256": "DB_SYNTHESIZED_NO_PACK_FILE"},
+    }
+
+
 # Phase 5 Track C Gate 1: contract derivation for StructuredOutputProjector.
 _AGENT_CONTRACT_MAP: dict[str, str] = {
     "note-completeness-agent": "icoder/NoteCompleteness/v1",
@@ -445,6 +508,7 @@ async def run_agent(
             t0=t0,
             current_user=current_user,
             request=request,
+            db=db,
         )
 
     # ── Phase 4-F2 §4.3: persist trace_events to RunTraceStore ──────
@@ -817,6 +881,7 @@ async def _run_via_provider_registry(
     t0: float,
     current_user: Optional[User],
     request: Request | None = None,
+    db: AsyncSession | None = None,
 ) -> AgentRunResponse:
     """Resolve the agent's backend_provider and call invoke()."""
     from app.icoder.agent_runtime.orchestrator.run_trace import (
@@ -840,6 +905,15 @@ async def _run_via_provider_registry(
 
     # Load agent_pack.json by agent_id.
     pack = _load_pack_by_agent_id(agent_id)
+    if pack is None and db is not None:
+        # Sprint 2 Goal B — fallback to DB Agent table for user-created
+        # custom agents that don't have a physical agent_pack.json on disk.
+        # This closes the "unknown_agent" gap for the Developer Golden Path:
+        # a developer creates a custom agent via POST /api/rest/v1/agent_definitions
+        # and immediately runs it via Test Console. Without this fallback the
+        # runtime returned unknown_agent because _load_pack_by_agent_id only
+        # scans official_agents/.
+        pack = await _load_pack_from_db(agent_id, db)
     if pack is None:
         emit_trace_event(
             run_id, RunTraceStep.COMPLETION,
@@ -853,7 +927,7 @@ async def _run_via_provider_registry(
             runtime_mode=body.runtime_mode or "",
             t0=t0,
             error_reason="unknown_agent",
-            summary=f"Unknown agent_id: {agent_id!r}. No matching agent_pack.json found.",
+            summary=f"Unknown agent_id: {agent_id!r}. No matching agent_pack.json or DB Agent found.",
         )
 
     # Resolve provider via ProviderRegistry.

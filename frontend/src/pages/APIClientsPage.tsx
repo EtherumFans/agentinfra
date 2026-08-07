@@ -1,5 +1,5 @@
 // iCoDer API Clients - API Keys + OAuth 2.0 Client management
-import { Key, Plus, Trash2, Clock, Loader2, Copy, Check, Shield } from 'lucide-react';
+import { Key, Plus, Trash2, Clock, Loader2, Copy, Check, Shield, RefreshCw, Power } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 
 import { keysApi, oauthApi } from '../services/api';
@@ -22,6 +22,9 @@ export default function APIClientsPage() {
   const [newClientId, setNewClientId] = useState<string | null>(null);
   const [copied, setCopied] = useState('');
   const [confirmDelete, setConfirmDelete] = useState<{clientId: string; name: string} | null>(null);
+  // Sprint 2 Goal D — Rotate / Disable state
+  const [rotatingId, setRotatingId] = useState<string | null>(null);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
 
   const fetchAll = useCallback(async () => {
     setLoading(true); setError('');
@@ -51,6 +54,40 @@ export default function APIClientsPage() {
   };
 
   const handleCopy = (text: string, key: string) => { navigator.clipboard.writeText(text); setCopied(key); setTimeout(() => setCopied(''), 2000); };
+
+  // Sprint 2 Goal D — Rotate secret + Disable / Enable client handlers.
+  // These call the partner endpoint family (platform_api_clients.py)
+  // which shares the oauth_clients DB table with oauth.py.
+  const handleRotate = async (clientId: string) => {
+    setRotatingId(clientId);
+    try {
+      const res = await oauthApi.rotate(clientId);
+      // Reuse the secret-reveal modal (same UX as create).
+      setNewClientId(res.data.client_id);
+      setNewSecret(res.data.client_secret);
+      fetchAll();
+    } catch (err: any) {
+      setError(err?.response?.data?.detail || 'Rotate failed');
+    } finally {
+      setRotatingId(null);
+    }
+  };
+
+  const handleToggleActive = async (clientId: string, currentlyActive: boolean) => {
+    setTogglingId(clientId);
+    try {
+      if (currentlyActive) {
+        await oauthApi.disable(clientId);
+      } else {
+        await oauthApi.enable(clientId);
+      }
+      fetchAll();
+    } catch (err: any) {
+      setError(err?.response?.data?.detail || 'Toggle failed');
+    } finally {
+      setTogglingId(null);
+    }
+  };
 
   if (loading) return <div className="flex items-center justify-center h-64"><Loader2 className="animate-spin h-8 w-8 text-muted-foreground" /></div>;
 
@@ -140,10 +177,32 @@ export default function APIClientsPage() {
                       <p className="text-sm font-medium text-foreground">{c.name}</p>
                       <p className="text-xs font-mono text-muted-foreground">{c.client_id}</p>
                     </div>
+                    {/* Sprint 2 Goal D — disabled indicator */}
+                    {c.is_active === false && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-destructive/10 text-destructive font-mono">DISABLED</span>
+                    )}
                   </div>
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
                     <span className="font-mono text-[10px] bg-muted px-1.5 py-0.5 rounded">{c.scopes}</span>
                     {c.last_used_at && <span className="flex items-center gap-1"><Clock size={12} /> {c.last_used_at?.split('T')[0]}</span>}
+                    {/* Sprint 2 Goal D — Rotate secret button */}
+                    <button
+                      onClick={() => handleRotate(c.client_id)}
+                      disabled={rotatingId === c.client_id}
+                      title="Rotate secret"
+                      className="text-muted-foreground hover:text-warning transition-colors disabled:opacity-40"
+                    >
+                      {rotatingId === c.client_id ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
+                    </button>
+                    {/* Sprint 2 Goal D — Disable / Enable toggle */}
+                    <button
+                      onClick={() => handleToggleActive(c.client_id, c.is_active !== false)}
+                      disabled={togglingId === c.client_id}
+                      title={c.is_active === false ? 'Enable' : 'Disable'}
+                      className={`transition-colors disabled:opacity-40 ${c.is_active === false ? 'text-success hover:text-success/80' : 'text-muted-foreground hover:text-warning'}`}
+                    >
+                      {togglingId === c.client_id ? <Loader2 size={14} className="animate-spin" /> : <Power size={14} />}
+                    </button>
                     <button onClick={() => handleDeleteOAuth(c.client_id, c.name)} className="text-destructive hover:text-destructive/80"><Trash2 size={14} /></button>
                   </div>
                 </div>

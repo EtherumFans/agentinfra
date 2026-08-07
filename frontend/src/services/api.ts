@@ -168,6 +168,8 @@ export const keysApi = {
 
 // OAuth Clients
 export const oauthApi = {
+  // Console-internal endpoints (oauth.py) — list / create / delete
+  // Sprint 1 audit reference: docs/governance/CONSOLE_API_CLIENTS_AUDIT.md
   list: () => api.get<{ clients: any[] }>('/oauth/clients'),
   create: (name: string, description = '', scopes = 'api:read api:write', tokenExpires = 3600) => {
     const params = new URLSearchParams({ name, description, scopes, token_expires_seconds: String(tokenExpires) });
@@ -176,6 +178,19 @@ export const oauthApi = {
     });
   },
   delete: (clientId: string) => api.delete(`/oauth/clients/${clientId}`),
+
+  // Sprint 2 Goal D — partner endpoint family (platform_api_clients.py)
+  // These complement the Console-internal endpoints with full lifecycle:
+  // rotate / disable / enable. Same oauth_clients DB table is shared.
+  // See backend/app/api/platform_api_clients.py.
+  rotate: (clientId: string) =>
+    api.post<{ client_id: string; client_secret: string; name: string; scopes: string; secret_shown_at: string }>(
+      `/clients/${clientId}/rotate`,
+    ),
+  disable: (clientId: string) =>
+    api.post(`/clients/${clientId}/disable`),
+  enable: (clientId: string) =>
+    api.post(`/clients/${clientId}/enable`),
 };
 
 // Team

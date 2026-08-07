@@ -1135,82 +1135,98 @@ export default function AgentDetailPage() {
             }
             code={
               <CodeSnippet
-                javascript={`import { iCoDerClient } from "@icoder/sdk";
+                javascript={`// Sprint 2 Goal E — real @icoder/sdk v1.0.0-beta.2 API.
+// Reference: packages/icoder-sdk/src/index.ts (16 resource classes).
+// Auth flow: exchange client_credentials at /api/oauth/token first,
+// then pass access_token to the SDK. SDK auto-refreshes on expiry.
+import iCoDer from "@icoder/sdk";
 
-const client = new iCoDerClient({
-  apiKey: "YOUR_API_KEY",
-});
-
-// Create and configure the agent
-const agent = await client.agents.create({
-  name: "${agentTitle}",
-  description: ${JSON.stringify(agent?.description || '')},
-  experts: [
-${agentExperts.map(e => `    { name: "${e.name}", type: "reference" },`).join('\n')}
-  ],
-  systemPrompt: ${JSON.stringify(systemPrompt || '')},
-});
-
-const agentId = agent.id;
-
-// Send a message to the agent
-const result = await client.agents.messageSend(agentId, {
-  message: {
-    role: "user",
-    parts: [
-      {
-        text: "patient case...",
-        kind: "text",
-      },
-    ],
-    messageId: crypto.randomUUID(),
-    kind: "message",
+const icoder = new iCoDer({
+  baseURL: "${window.location.origin}",
+  auth: {
+    accessToken: process.env.ICODER_ACCESS_TOKEN!,
+    refreshToken: process.env.ICODER_REFRESH_TOKEN!,
   },
 });
 
-console.log("Agent response:", result);`}
-                python={`from icoder import iCoDerClient
+// Run this agent — agentId is ${agentId ? `real (${JSON.stringify(agentId)})` : 'populated from the URL'}.
+const { data: run } = await icoder.runs.runText(
+  ${JSON.stringify(agentId || '')},
+  "your input text here",
+  {
+    runtime_mode: ${JSON.stringify(agent?.default_runtime_mode || '')},
+    idempotencyKey: \`my-key-\${Date.now()}\`,
+  }
+);
+
+console.log("run_id:", run.run_id);
+console.log("trace_url:", run.trace_url);
+console.log("cost:", run.cost);  // { amount: 0.0123, currency: "CNY" }
+console.log("latency_ms:", run.latency_ms);
+console.log("output:", run.result);`}
+                python={`# Sprint 2 Goal E — Python example using requests (no official Python SDK yet).
+# The JS SDK (@icoder/sdk) is the canonical client; Python consumers
+# should hit the REST API directly until icoder-python ships (Sprint 3+).
+import json
+import os
 import uuid
+import requests
 
-client = iCoDerClient(
-    api_key="YOUR_API_KEY"
-)
+BASE_URL = "${window.location.origin}"
+AGENT_ID = ${JSON.stringify(agentId || '')}
 
-# Create and configure the agent
-agent = client.agents.create(
-    name="${agentTitle}",
-    description=${JSON.stringify(agent?.description || '')},
-    experts=[
-${agentExperts.map(e => `        {"name": "${e.name}", "type": "reference"},`).join('\n')}
-    ],
-    system_prompt=${JSON.stringify(systemPrompt || '')},
-)
-
-agent_id = agent["id"]
-
-# Send a message to the agent
-result = client.agents.message_send(
-    agent_id=agent_id,
-    message={
-        "role": "user",
-        "parts": [
-            {
-                "text": "patient case...",
-                "kind": "text",
-            },
-        ],
-        "message_id": str(uuid.uuid4()),
-        "kind": "message",
+# Step 1: exchange client_credentials for an access_token.
+# Replace these with your API Client credentials from Console → API Clients.
+token_resp = requests.post(
+    f"{BASE_URL}/api/oauth/token",
+    data={
+        "grant_type": "client_credentials",
+        "client_id": os.environ["ICODER_API_CLIENT_ID"],
+        "client_secret": os.environ["ICODER_API_CLIENT_SECRET"],
+        "scope": "api:read api:write",
     },
 )
+token_resp.raise_for_status()
+access_token = token_resp.json()["access_token"]
 
-print("Agent response:", result)`}
-                curl={`curl -X POST "${window.location.origin}/api/v1/agents/${encodeURIComponent(agentId || '')}/run" \\
-  -H "Authorization: Bearer $ICODER_API_KEY" \\
+# Step 2: run the agent via the unified /api/v1/agents/{id}/run endpoint.
+run_resp = requests.post(
+    f"{BASE_URL}/api/v1/agents/{AGENT_ID}/run",
+    headers={
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json",
+        "Idempotency-Key": f"python-{uuid.uuid4()}",
+    },
+    json={
+        "input": {"text": "your input text here"},
+        ${agent?.default_runtime_mode ? `"runtime_mode": ${JSON.stringify(agent.default_runtime_mode)},` : '// no runtime_mode override'}
+        "include_trace": True,
+        "include_evidence": True,
+    },
+)
+run = run_resp.json()
+
+print("run_id:", run["run_id"])
+print("trace_url:", run["trace_url"])
+print("cost:", run["cost"])
+print("output:", run["result"])`}
+                curl={`# Sprint 2 Goal E — real curl with the canonical endpoint.
+# Step 1: exchange client_credentials for access_token (5-min TTL).
+TOKEN=$(curl -s -X POST "${window.location.origin}/api/oauth/token" \\
+  -H "Content-Type: application/x-www-form-urlencoded" \\
+  -d "grant_type=client_credentials" \\
+  -d "client_id=$ICODER_API_CLIENT_ID" \\
+  -d "client_secret=$ICODER_API_CLIENT_SECRET" \\
+  -d "scope=api:read api:write" | jq -r .access_token)
+
+# Step 2: run the agent via /api/v1/agents/{id}/run.
+curl -X POST "${window.location.origin}/api/v1/agents/${encodeURIComponent(agentId || '')}/run" \\
+  -H "Authorization: Bearer $TOKEN" \\
   -H "Content-Type: application/json" \\
+  -H "Idempotency-Key: curl-$(date +%s)" \\
   -d '{
-    "input": {"text": "patient case..."},
-    "runtime_mode": "${agent?.default_runtime_mode || ''}",
+    "input": {"text": "your input text here"},
+    ${agent?.default_runtime_mode ? `"runtime_mode": ${JSON.stringify(agent.default_runtime_mode)},` : ''}
     "include_trace": true,
     "include_evidence": true
   }'`}

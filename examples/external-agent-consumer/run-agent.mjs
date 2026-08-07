@@ -27,11 +27,10 @@ const CLIENT_ID = process.env.ICODER_API_CLIENT_ID;
 const CLIENT_SECRET = process.env.ICODER_API_CLIENT_SECRET;
 const AGENT_ID = process.env.ICODER_AGENT_ID || 'translator-blank';
 const INPUT_TEXT = process.env.ICODER_INPUT_TEXT || 'Hello world from Sprint 2 Goal F.';
-const MODE = process.argv.includes('--mode sdk')
-  ? 'sdk'
-  : process.argv.includes('--mode rest')
-    ? 'rest'
-    : 'auto';
+const modeIdx = process.argv.indexOf('--mode');
+const MODE = modeIdx !== -1 && process.argv[modeIdx + 1]
+  ? process.argv[modeIdx + 1]
+  : 'auto';
 
 if (!CLIENT_ID || !CLIENT_SECRET) {
   console.error('✗ Missing ICODER_API_CLIENT_ID or ICODER_API_CLIENT_SECRET env vars.');
@@ -43,13 +42,21 @@ if (!CLIENT_ID || !CLIENT_SECRET) {
 async function fetchAccessToken() {
   // OAuth 2.0 client_credentials grant per RFC 6749 §4.4.
   // iCoDer canonical endpoint: POST /api/oauth/token (realm hint-only).
+  // Scope handling: omit the `scope` param unless the caller set
+  // ICODER_OAUTH_SCOPE explicitly. The server will then grant the client's
+  // full capability set (whatever was configured at create time), which
+  // avoids invalid_scope rejections when the consumer doesn't know which
+  // specific scopes the client was issued.
   const url = `${BASE_URL}/api/oauth/token`;
   const body = new URLSearchParams({
     grant_type: 'client_credentials',
     client_id: CLIENT_ID,
     client_secret: CLIENT_SECRET,
-    scope: 'api:read api:write',
   });
+  const explicitScope = process.env.ICODER_OAUTH_SCOPE;
+  if (explicitScope) {
+    body.set('scope', explicitScope);
+  }
 
   console.log(`→ POST ${url}`);
   const res = await fetch(url, {
@@ -75,11 +82,11 @@ async function fetchAccessToken() {
 // ─── Step 2a: Pure REST path — POST /api/v1/agents/{id}/run ───────────────
 async function runViaRest(accessToken) {
   const url = `${BASE_URL}/api/v1/agents/${encodeURIComponent(AGENT_ID)}/run`;
+  // Schema (backend/app/api/agent_run.py:AgentRunRequest):
+  //   {input: {text, extra?}, runtime_mode?, ...}
   const payload = {
-    input_text: INPUT_TEXT,
+    input: { text: INPUT_TEXT },
     runtime_mode: 'corti_like_fast',
-    include_evidence: false,
-    include_trace: true,
   };
 
   console.log(`→ POST ${url}`);
@@ -144,20 +151,29 @@ async function runViaSdk(accessToken) {
 
 // ─── Step 3: Print result ─────────────────────────────────────────────────
 function prettyRun(result) {
+  // The run envelope (per backend/app/api/agent_run.py:AgentRunResponse) has
+  // the LLM output under ``result.markdown`` and the raw provider response
+  // under ``result.raw_provider_response.content``. ``summary`` is the
+  // first paragraph of the markdown.
+  const result_obj = result.result || {};
+  const raw = result_obj.raw_provider_response || {};
+  const output = result_obj.markdown
+    || result_obj.summary
+    || raw.content
+    || (typeof result.output === 'string' ? result.output : JSON.stringify(result.output ?? {}));
   const out = {
     run_id: result.run_id,
     trace_id: result.trace_id,
     trace_url: result.trace_url,
-    status: result.status,
+    status: result_obj.status,
     latency_ms: result.latency_ms,
     llm_provider: result.llm_provider,
+    backend_provider: result_obj.backend_provider,
     cost: result.cost,
     runtime_mode: result.runtime_mode,
     error: result.error,
     error_reason: result.error_reason,
-    output_preview: typeof result.output === 'string'
-      ? result.output.slice(0, 240)
-      : JSON.stringify(result.output ?? {}).slice(0, 240),
+    output_preview: typeof output === 'string' ? output.slice(0, 240) : JSON.stringify(output).slice(0, 240),
   };
   return JSON.stringify(out, null, 2);
 }

@@ -80,6 +80,11 @@ _ALLOWED_DETAIL_KEYS: frozenset[str] = frozenset({
     # ``realm`` is the auth domain (e.g. "corti-cn"). Both are required
     # by the OAuth rejection audit path (test_oauth_audit_rejection.py).
     "client_id", "realm",
+    # Phase A1D.7 (Pilot Prep Step 5a) — KMS rotation event metadata.
+    # All three are integers (version numbers + cache entry count);
+    # none can carry PHI. Required by the kms.key_rotated audit path
+    # so operators can verify previous_version → current_version deltas.
+    "previous_version", "current_version", "invalidated_entries",
 })
 
 # Keys that are explicitly PHI and always redacted at the top level.

@@ -46,6 +46,7 @@ const SupportPage = lazy(() => import('./pages/SupportPage'));
 const APIClientsPage = lazy(() => import('./pages/APIClientsPage'));
 const TeamPage = lazy(() => import('./pages/TeamPage'));
 const ExpertsPage = lazy(() => import('./pages/ExpertsPage'));
+const SpeechToTextPage = lazy(() => import('./pages/SpeechToTextPage'));
 
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -89,6 +90,10 @@ function App() {
         <Route path="ai-studio/text-generation" element={<Navigate to="/ai-studio/agents" replace />} />
         <Route path="ai-studio/embedded-assistant" element={<EmbeddedAssistantPage />} />
         <Route path="ai-studio/fact-extraction" element={<FactExtractionPage />} />
+        {/* B-005: SpeechToTextPage mount — sidebar entry at Layout.tsx:57
+            previously linked to /ai-studio/speech-to-text but App.tsx only
+            had a redirect to /ai-studio/agents, leaving the page orphaned. */}
+        <Route path="ai-studio/speech-to-text" element={<SpeechToTextPage />} />
         <Route path="ai-studio/medical-coding" element={<MedicalCodingPage />} />
         {/* Phase 5 Track C Gate 5 — 7-stage coding compliance mainline workbench */}
         <Route path="ai-studio/coding-compliance" element={<CodingComplianceWorkbenchPage />} />
@@ -108,7 +113,7 @@ function App() {
         <Route path="studio/quickstart" element={<DeveloperQuickstartPage />} />
         <Route path="studio/docs" element={<DocsPage />} />
         <Route path="studio/release-notes" element={<ReleaseNotesPage />} />
-        <Route path="studio/speech-to-text" element={<Navigate to="/ai-studio/agents" replace />} />
+        <Route path="studio/speech-to-text" element={<Navigate to="/ai-studio/speech-to-text" replace />} />
         <Route path="studio/embedded-assistant" element={<EmbeddedAssistantPage />} />
         <Route path="studio/new-agent" element={<NewAgentPage />} />
 

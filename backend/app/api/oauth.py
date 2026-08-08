@@ -23,7 +23,7 @@ import base64
 import logging
 import secrets
 from datetime import datetime, timedelta, timezone
-from fastapi import APIRouter, Depends, HTTPException, Form, Request
+from fastapi import APIRouter, Depends, HTTPException, Form, Request, Query
 from fastapi.responses import RedirectResponse
 from jose import jwt
 from sqlalchemy import select
@@ -457,15 +457,29 @@ async def create_client(
 
 @router.get("/clients")
 async def list_clients(
+    include_disabled: bool = Query(
+        True,
+        description="Include disabled (is_active=False) clients in the response. "
+                    "Default True so Console can render the disabled badge + re-enable "
+                    "action. Pass ?include_disabled=false for partner-facing listings.",
+    ),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """List OAuth clients for the current user."""
+    """List OAuth clients for the current user.
+
+    B-005 follow-up: previously this endpoint filtered ``is_active == True``
+    unconditionally, so once a client was disabled it disappeared from Console.
+    The frontend (APIClientsPage.tsx:180-181) already had a disabled badge
+    ready, but the backend hid the row — making the only re-enable path a
+    direct DB UPDATE. Now we surface disabled clients by default so the
+    Console can show them with their badge + enable action.
+    """
+    filters = [OAuthClient.owner_id == current_user.id]
+    if not include_disabled:
+        filters.append(OAuthClient.is_active == True)
     result = await db.execute(
-        select(OAuthClient).where(
-            OAuthClient.owner_id == current_user.id,
-            OAuthClient.is_active == True,
-        ).order_by(OAuthClient.created_at.desc())
+        select(OAuthClient).where(*filters).order_by(OAuthClient.created_at.desc())
     )
     clients = result.scalars().all()
     return {
@@ -476,6 +490,7 @@ async def list_clients(
                 "client_id": c.client_id,
                 "description": c.description,
                 "scopes": c.scopes,
+                "is_active": c.is_active,
                 "last_used_at": c.last_used_at.isoformat() if c.last_used_at else None,
                 "created_at": c.created_at.isoformat(),
             }

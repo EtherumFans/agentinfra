@@ -856,6 +856,35 @@ def _map_coding_result(
             error_reason=result.error_reason or "runtime_error",
         )
 
+    # B-003 layer 5: force error=True when LLM gateway returned a degraded
+    # mock envelope. FastCodingRuntime / MedCoderRuntime already set
+    # ``result.error=True`` on the short-circuit branch (so the block above
+    # handles them), but this defensive check catches any future runtime
+    # that populates ``degraded=True`` without also setting ``error=True``.
+    # Per Charter §二十六.24 ZERO TOLERANCE for false-success UI, the
+    # AgentRunResponse MUST surface the degradation so the frontend's
+    # existing red-banner + retry path (MedicalCodingPage.tsx:250-256/589-613)
+    # fires instead of a green "通过" badge on empty codes.
+    if getattr(result, "degraded", False):
+        degraded_reason = getattr(result, "degraded_reason", "") or "llm_degraded"
+        return AgentRunResponse(
+            agent_id=agent_id,
+            run_id=out_run_id,
+            trace_id=out_trace_id,
+            trace_url=_trace_url_for(out_run_id),
+            runtime_mode=result.runtime_mode,
+            latency_ms=result.latency_ms or int((time.perf_counter() - t0) * 1000),
+            cost=dict(result.cost),
+            summary=result.summary,
+            result=result_payload,
+            evidence=evidence,
+            warnings=warnings,
+            manual_review_required=True,
+            trace_events=trace_events,
+            error=True,
+            error_reason=degraded_reason,
+        )
+
     return AgentRunResponse(
         agent_id=agent_id,
         run_id=out_run_id,

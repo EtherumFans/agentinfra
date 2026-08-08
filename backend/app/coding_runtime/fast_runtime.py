@@ -195,6 +195,36 @@ class FastCodingRuntime:
             "is_mock": getattr(schema, "is_mock", False),
         })
 
+        # B-003 layer 4: short-circuit on gateway-side mock envelope. If
+        # schema.is_mock is True, the LLM gateway returned a degraded fallback
+        # (no_api_key / provider_http_4xx / network_error / 429_503 /
+        # circuit_open) and there is no real LLM output to parse. Per Charter
+        # §二十六.24 ZERO TOLERANCE for false-success UI, surface as error
+        # end-to-end — never let an empty/mock schema reach the success branch.
+        schema_is_mock = bool(getattr(schema, "is_mock", False))
+        if schema_is_mock:
+            degraded_reason = _extract_degraded_reason(getattr(schema, "notes", "") or "")
+            _emit("parse_json", "degraded", {"reason": degraded_reason})
+            _emit("return", "degraded", {"reason": degraded_reason})
+            latency_ms = int((time.perf_counter() - started) * 1000)
+            return CodingResult(
+                codes=[],
+                summary=(
+                    f"LLM 提供方降级 ({degraded_reason})。编码推理未真实执行,"
+                    "请检查 API 配置后重试。"
+                ),
+                runtime_mode="corti_like_fast",
+                latency_ms=latency_ms,
+                llm_provider="mock",
+                trace_id=trace_id,
+                run_id=run_id,
+                trace_events=events,
+                error=True,
+                error_reason="llm_degraded",
+                degraded=True,
+                degraded_reason=degraded_reason,
+            )
+
         # ── Parse JSON response (already done by DeepSeekCodingAdapter) ─
         # If schema is in error state (review_conclusion=FAIL + issues_found
         # has DS001), surface as error.
@@ -330,3 +360,29 @@ class FastCodingRuntime:
     @property
     def supported_mode(self) -> RuntimeMode:
         return RuntimeMode.CORTI_LIKE_FAST
+
+
+def _extract_degraded_reason(notes: str) -> str:
+    """B-003 layer 4 helper: parse ``[DeepSeek degraded] <reason>.`` prefix.
+
+    LLMGateway._mock_fallback_response stamps the mock envelope's ``notes``
+    with ``[DeepSeek degraded] <reason>. Mock response, not a real LLM call.``
+    so downstream layers can recover the original reason (no_api_key,
+    provider_http_4xx, network_error, 429_503, circuit_open) for display.
+
+    Returns the bare reason string, or ``"unknown"`` if the prefix is absent
+    (defensive — callers should still treat the schema as degraded based on
+    ``is_mock``, not the prefix).
+    """
+    if not notes:
+        return "unknown"
+    marker = "[DeepSeek degraded]"
+    idx = notes.find(marker)
+    if idx < 0:
+        return "unknown"
+    tail = notes[idx + len(marker):].lstrip()
+    # Reason ends at the first period or end-of-string.
+    end = tail.find(".")
+    if end < 0:
+        return tail.strip() or "unknown"
+    return tail[:end].strip() or "unknown"

@@ -208,8 +208,20 @@ class DeepSeekCodingAdapter(CodingEngineAdapter):
         return self._error_schema(f"DeepSeek V4 call failed after {self._max_retries + 1} attempts: {last_error}")
 
     def _parse_response(self, result: dict) -> MedicalCodingOutputSchema:
-        """Parse DeepSeek response into MedicalCodingOutputSchema. Includes JSON repair."""
+        """Parse DeepSeek response into MedicalCodingOutputSchema. Includes JSON repair.
+
+        B-003 layer 2: propagate the LLM gateway's ``degraded`` / ``is_mock``
+        flags onto the schema. Previously the gateway's mock fallback envelope
+        (no_api_key / provider_http_4xx / network_error / 429_503 / circuit_open)
+        was parsed into a real-looking schema with ``is_mock=False``, which then
+        tripped a false-success cascade through CodingResult → AgentRunResponse →
+        frontend "通过" badge. Per Charter §二十六.24 ZERO TOLERANCE for
+        false-success UI, the mock envelope MUST be visible end-to-end.
+        """
         content = result.get("content", "")
+        # Gateway-side mock markers (see LLMGateway._mock_fallback_response).
+        gateway_mock = bool(result.get("degraded") or result.get("is_mock"))
+        gateway_reason = result.get("degraded_reason", "")
 
         # Try direct JSON parse
         data = self._extract_json(content)
@@ -217,7 +229,7 @@ class DeepSeekCodingAdapter(CodingEngineAdapter):
             return MedicalCodingOutputSchema.from_dict(
                 data,
                 provider="deepseek_coding_adapter",
-                is_mock=False,
+                is_mock=gateway_mock,
             )
 
         # Try JSON repair — fix common LLM output issues
@@ -227,11 +239,15 @@ class DeepSeekCodingAdapter(CodingEngineAdapter):
             return MedicalCodingOutputSchema.from_dict(
                 repaired,
                 provider="deepseek_coding_adapter",
-                is_mock=False,
+                is_mock=gateway_mock,
             )
 
         logger.error(f"DeepSeekCodingAdapter: failed to parse response: {content[:200]}")
-        return self._error_schema("Failed to parse DeepSeek response as JSON")
+        return self._error_schema(
+            "Failed to parse DeepSeek response as JSON",
+            is_mock=gateway_mock,
+            degraded_reason=gateway_reason,
+        )
 
     def _extract_json(self, text: str) -> dict | None:
         """Extract JSON object from text (handles markdown code blocks)."""
@@ -302,8 +318,20 @@ class DeepSeekCodingAdapter(CodingEngineAdapter):
         except json.JSONDecodeError:
             return None
 
-    def _error_schema(self, message: str) -> MedicalCodingOutputSchema:
-        """Return an error schema when inference fails."""
+    def _error_schema(
+        self,
+        message: str,
+        *,
+        is_mock: bool = False,
+        degraded_reason: str = "",
+    ) -> MedicalCodingOutputSchema:
+        """Return an error schema when inference fails.
+
+        B-003 layer 2b: ``is_mock`` / ``degraded_reason`` kwargs let callers
+        that received a gateway-side mock envelope propagate the marker onto
+        the error schema, so downstream consumers (FastCodingRuntime /
+        MedCoderRuntime) can short-circuit on ``schema.is_mock``.
+        """
         schema = MedicalCodingOutputSchema.mock_result()
         schema.review_conclusion = "FAIL"
         schema.issues_found = [
@@ -313,7 +341,26 @@ class DeepSeekCodingAdapter(CodingEngineAdapter):
         ]
         schema.manual_review_required = True
         schema.confidence = 0.0
-        schema.notes = f"DeepSeek inference failed: {message}"
+        if is_mock:
+            # Preserve the gateway-side mock marker + reason so downstream
+            # runtimes can branch on schema.is_mock without re-reading the
+            # gateway envelope.
+            schema.is_mock = True
+            schema.notes = (
+                f"[DeepSeek degraded] {degraded_reason or 'unknown'}. "
+                f"Mock response, not a real LLM call. "
+                f"Underlying error: {message}"
+            )
+        else:
+            # Reset is_mock=False to override mock_result()'s default True,
+            # so legitimate DeepSeek failures (HTTP 5xx after retries, parse
+            # failure on a real LLM response, etc.) do NOT trigger the
+            # B-003 layer 4 short-circuit. Only gateway-side mock envelopes
+            # should short-circuit; real-call failures go through the normal
+            # error path (FastCodingRuntime returns error_reason="llm_call_failed"
+            # or "schema_returned_error").
+            schema.is_mock = False
+            schema.notes = f"DeepSeek inference failed: {message}"
         return schema
 
     @property

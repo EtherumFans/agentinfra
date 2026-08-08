@@ -112,6 +112,16 @@ class CodingResult:
     # the user-visible error message.
     error: bool = False
     error_reason: str = ""
+    # B-003 layer 3: LLM-degraded marker. When True, the LLM gateway returned
+    # a mock fallback envelope (no_api_key / provider_http_4xx / network_error /
+    # 429_503 / circuit_open) and the runtime short-circuited without a real
+    # LLM call. ``error_reason`` will be ``"llm_degraded"`` and
+    # ``degraded_reason`` carries the gateway-side reason string. Per §二十六.24
+    # ZERO TOLERANCE for false-success UI, this flag MUST surface end-to-end
+    # as ``AgentRunResponse(error=True)`` so the existing frontend red-banner
+    # path fires.
+    degraded: bool = False
+    degraded_reason: str = ""
 
 
 @runtime_checkable

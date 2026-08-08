@@ -128,6 +128,37 @@ class MedCoderRuntime:
         # Emit synthetic stage events based on the schema's method_stage_trace
         # (HybridCodingAdapter fills this with real per-stage data).
         stage_trace = getattr(schema, "method_stage_trace", []) or []
+
+        # B-003 layer 4b: short-circuit on gateway side mock envelope. If
+        # HybridCodingAdapter returned a schema flagged is_mock (because the
+        # underlying LLMGateway fell back to a mock response), the 5-stage
+        # pipeline did NOT really run. Surface as error end-to-end per
+        # Charter §二十六.24 ZERO TOLERANCE for false-success UI.
+        schema_is_mock = bool(getattr(schema, "is_mock", False))
+        if schema_is_mock:
+            from app.coding_runtime.fast_runtime import _extract_degraded_reason
+            degraded_reason = _extract_degraded_reason(getattr(schema, "notes", "") or "")
+            _emit("stage1_extract", "degraded", {"reason": degraded_reason})
+            _emit("return", "degraded", {"reason": degraded_reason})
+            latency_ms = int((time.perf_counter() - started) * 1000)
+            return CodingResult(
+                codes=[],
+                summary=(
+                    f"LLM 提供方降级 ({degraded_reason})。Deep Evidence 推理未真实执行,"
+                    "请检查 API 配置后重试或切换至 Fast Coding 模式。"
+                ),
+                runtime_mode="medcoder_deep",
+                latency_ms=latency_ms,
+                llm_provider="mock",
+                trace_id=trace_id,
+                run_id=run_id,
+                trace_events=events,
+                error=True,
+                error_reason="llm_degraded",
+                degraded=True,
+                degraded_reason=degraded_reason,
+            )
+
         stage_map = {
             "extract": "stage1_extract",
             "retrieve": "stage2_retrieve",

@@ -131,7 +131,11 @@ export default function MedicalCodingPage() {
   const [codingMode, setCodingMode] = useState<CodingMode>('corti_like_fast');
 
   // ── Real-time char + cost estimate (live, not gated on Predict) ──
-  // TODO: replace 0.00001 with real pricing once /api/v2/tools/coding/pricing lands.
+  // DEFERRED (plan wobbly-noodling-fountain.md TODO 3): /api/v2/tools/coding/pricing
+  // does not exist on this branch. Building it requires real DeepSeek RMB
+  // per-token pricing (in CLAUDE.md but per-token, not per-char) + a new
+  // endpoint + cache. Until then the heuristic 0.00001/char only stands in
+  // to keep the UX surface populated — DO NOT use this value for billing.
   const charCount = input.length;
   const costEstimate = (charCount * 0.00001).toFixed(6);
 

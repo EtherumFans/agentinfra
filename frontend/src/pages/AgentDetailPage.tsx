@@ -49,6 +49,11 @@ export default function AgentDetailPage() {
   const [showEval, setShowEval] = useState(false);
   const [evalResult, setEvalResult] = useState<any>(null);
   const [evalLoading, setEvalLoading] = useState(false);
+  // Tier 4 TODO (plan wobbly-noodling-fountain.md TODO 1): repurposed to
+  // hold recent A2A run summaries (runtime/runs/history filtered by agent_id).
+  // The original "evaluation history" was removed in Phase 2.1-A; until an
+  // evaluation agent is added (TODO 2 — DEFERRED), this panel shows real
+  // run history rows so the page isn't a stub.
   const [evalHistory, setEvalHistory] = useState<any[]>([]);
 
   // Chat state
@@ -363,20 +368,34 @@ export default function AgentDetailPage() {
     setChatInput(instruction);
   };
 
-  // Agent Evaluation
+  // Tier 4 TODO 1 (plan wobbly-noodling-fountain.md): fetch recent A2A runs
+  // for this agent via /api/runtime/runs/history?agent_id=<id>. Endpoint
+  // supports exact-match agent_id filter (see backend/app/api/run_trace.py
+  // list_run_history). Renders a simple list so the agent detail page is no
+  // longer a stub. Full evaluation panel is still DEFERRED (TODO 2).
   const fetchEvalHistory = async () => {
-    // /api/agents/{id}/evaluation-history was deleted in Phase 2.1-A.
-    // TODO: re-implement via A2A run history (/api/runtime/runs) filtered by agent_ref.
     try {
-      const ref = agentRef || (agent?.name?.toLowerCase()?.replace(/\s+/g,'-')||'') + '-' + (agent?.version||'1.0.0');
-       
-      const _ = ref; // (kept for future A2A history call)
+      const filterId = agent?.id || agentId || '';
+      if (!filterId) {
+        setEvalHistory([]);
+        return;
+      }
+      const data = await runtimeAgentApi.getRunHistory(filterId, 10);
+      setEvalHistory(data.items || []);
+    } catch (e: any) {
+      // Soft-fail: panel just stays empty. Console log helps debugging
+      // without spamming the user (the eval panel is opt-in).
+      console.warn('fetchEvalHistory: getRunHistory failed', e?.message || e);
       setEvalHistory([]);
-    } catch {}
+    }
   };
   const runEvaluation = async () => {
-    // /api/agents/{id}/evaluate was deleted in Phase 2.1-A.
-    // TODO: re-implement via A2A message:send + evaluation agent.
+    // DEFERRED (plan wobbly-noodling-fountain.md TODO 2): evaluation agent +
+    // A2A message:send integration. The /api/agents/{id}/evaluate endpoint
+    // was removed in Phase 2.1-A. Re-implementing requires designing an
+    // evaluation agent + gold-standard fixture routing — out of scope for
+    // this session. The button is kept so users can see the panel; runs
+    // fail loudly with a toast so the gap is visible.
     setEvalLoading(true);
     try {
       throw new Error('Agent evaluation endpoint removed in Phase 2.1-A. Use A2A message:send with an evaluation agent.');
@@ -920,8 +939,11 @@ export default function AgentDetailPage() {
                   <p className="font-medium mb-1">{t.agentDetailHistoryTrend}</p>
                   {evalHistory.slice(0,5).map((h: any, i: number) => (
                     <div key={i} className="flex justify-between py-0.5 text-[10px]">
-                      <span className="text-muted-foreground">{h.evaluated_at?.slice(0,16)||''}</span>
-                      <span className="font-mono text-green-700">{h.primary_dx_accuracy ? (h.primary_dx_accuracy*100).toFixed(0)+'%' : '-'}</span>
+                      <span className="text-muted-foreground">{(h.created_at || h.evaluated_at || '').slice(0,16)}</span>
+                      <span className="font-mono text-muted-foreground">
+                        {h.runtime_mode || h.agent_id || h.run_id?.slice(0,8) || '-'}
+                        {typeof h.latency_ms === 'number' ? ` · ${h.latency_ms}ms` : ''}
+                      </span>
                     </div>
                   ))}
                 </div>

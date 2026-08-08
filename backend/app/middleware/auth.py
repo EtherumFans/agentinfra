@@ -108,6 +108,31 @@ def create_delegation_token(
 
 
 def decode_token(token: str) -> dict:
+    # B-007 fix: Console preview iframe exchanges a Bootstrap Ticket for a
+    # Runtime Token (trace_token format: payload.signature, 2 segments,
+    # type='rt'). The widget then uses it as a Bearer for
+    # /api/v1/agents/{id}/run. PyJWT expects 3 segments and raises
+    # "Not enough segments" — route 2-segment tokens through
+    # verify_runtime_token and translate to a JWT-like payload so the
+    # rest of the auth pipeline (get_current_user_or_oauth_client,
+    # get_current_organization) works unchanged.
+    if token and token.count(".") == 1:
+        from app.services.preview_ticket import verify_runtime_token, PreviewTicketError
+        try:
+            claims = verify_runtime_token(token)
+        except PreviewTicketError as e:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail=f"Invalid runtime token: {e}",
+            )
+        return {
+            "type": "runtime_token",
+            "sub": claims.get("u") or None,
+            "org_id": claims.get("o") or None,
+            "scopes": claims.get("c") or [],
+            "exp": claims.get("e"),
+            "preview_session_id": claims.get("s"),
+        }
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
         return payload
@@ -283,6 +308,35 @@ async def get_current_user_or_oauth_client(
         # Reuse the existing client auth path (checks revocation, returns dict).
         client = await get_current_client(credentials, db)
         return None, client
+
+    if token_type == "runtime_token":
+        # B-007 fix: Console preview iframe Runtime Token (Bootstrap Ticket
+        # exchange). Identity is the Console user who triggered the preview;
+        # scopes are limited to agents:run / runs:read / traces:read /
+        # contexts:write and expire in 10min. Skip token_version check —
+        # Runtime Token is itself HMAC-signed + short-lived, so it does
+        # not need the long-lived JWT revocation gate.
+        user_id = payload.get("sub")
+        user = None
+        if user_id:
+            result = await db.execute(select(User).where(User.id == user_id))
+            user = result.scalar_one_or_none()
+            if user is None:
+                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
+            if not user.is_active:
+                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User account is deactivated")
+        return user, {
+            "type": "runtime_token",
+            "preview_session_id": payload.get("preview_session_id"),
+            "scopes": payload.get("scopes") or [],
+            "organization_id": payload.get("org_id"),
+            "org_id": payload.get("org_id") or "",
+            "user_id": user_id,
+            # agent_run.py partner path reads client_id for audit; use a
+            # sentinel so the preview-session origin shows up in run rows
+            # without colliding with real API Client IDs.
+            "client_id": f"console-preview:{payload.get('preview_session_id') or 'unknown'}",
+        }
 
     # User JWT path — same logic as get_current_user.
     user_id = payload.get("sub")

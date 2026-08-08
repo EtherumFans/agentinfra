@@ -694,7 +694,14 @@ async def _persist_run_history(
             pass
         else:
             row.status = final_status
-        row.trace_id = row.trace_id or response.trace_id
+        # B-008 fix: prefer response.trace_id (what widget / partner sees)
+        # over the envelope trace_id (what record_run_start wrote as PENDING).
+        # The medical-coding dispatch path regenerates trace_id inside the
+        # runtime, so without this override widget UI shows trace_id B while
+        # run_history stores trace_id A — making audit / debug lookups by
+        # displayed trace_id fail. Backward-compat: when response.trace_id is
+        # None (non-dispatch agents), envelope trace_id is kept.
+        row.trace_id = response.trace_id or row.trace_id
         row.runtime_mode = row.runtime_mode or response.runtime_mode
         row.latency_ms = response.latency_ms
         row.cost_usd = cost_amount

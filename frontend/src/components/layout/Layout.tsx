@@ -1,6 +1,6 @@
 // iCoDer Layout
 // Global header (64px) + Sidebar (w/ project selector, nav groups, footer) + Main
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { Outlet, NavLink, useNavigate, Link } from 'react-router-dom';
 import {
   PanelLeftClose, PanelLeft, Home, FlaskConical,
@@ -392,7 +392,13 @@ export default function Layout() {
         {/* Main content */}
         <main className="flex-1 min-h-0 overflow-y-auto bg-background flex flex-col">
           <ErrorBoundary>
-            <Outlet />
+            <Suspense fallback={
+              <div className="flex items-center justify-center min-h-[200px]">
+                <div className="text-xs text-muted-foreground">加载中…</div>
+              </div>
+            }>
+              <Outlet />
+            </Suspense>
           </ErrorBoundary>
         </main>
       </div>

@@ -1,0 +1,180 @@
+{
+  "agent_id": "medical-coding-agent",
+  "run_id": "run-b6dc3661-dce7-470c-b0c5-b28885218660",
+  "trace_id": "trace-7dae2e04da294443",
+  "trace_url": "/ai-studio/runs/run-b6dc3661-dce7-470c-b0c5-b28885218660/trace",
+  "runtime_mode": "corti_like_fast",
+  "latency_ms": 3791,
+  "cost": {
+    "amount": 0.000263,
+    "currency": "CNY",
+    "source": "provider_token_usage",
+    "token_usage": {
+      "input_tokens": 1274,
+      "output_tokens": 301
+    }
+  },
+  "billing": {},
+  "summary": "病历明确肺炎已排除，且无其他确诊诊断，无法给出有效主要诊断编码。必须人工复核。",
+  "result": {
+    "encounter_summary": {
+      "chief_complaint": "",
+      "treatment_course": "",
+      "key_findings": [],
+      "document_sources": [],
+      "encounter_date": ""
+    },
+    "documentation_analysis": {
+      "diagnosis_evidence": [],
+      "procedure_evidence": [],
+      "negated_findings": [],
+      "historical_conditions": []
+    },
+    "code_assignment": {
+      "primary_diagnosis": {
+        "code": "",
+        "description": "",
+        "confidence": 0.0,
+        "category": "",
+        "evidence": []
+      },
+      "secondary_diagnoses": [],
+      "procedures": []
+    },
+    "documentation_gaps": [],
+    "uncodable_items": [
+      {
+        "item_type": "negated_finding",
+        "text": "{'text': '入院时考虑肺炎，<REDACTED:NAME>查已排除', 'kind': 'auto_bootstrap'}",
+        "reason": "The runtime found no confirmed diagnosis; this rejected candidate must not be assigned or billed."
+      }
+    ],
+    "validation_summary": {
+      "passed": false,
+      "issues_found": [
+        {
+          "severity": "critical",
+          "code": "RULE-001",
+          "message": "主要诊断依据不足：病历明确记载肺炎已排除，且未形成其他确诊诊断，无法确定主要诊断。",
+          "suggestion": "请补充最终确诊诊断，或明确主要诊断的编码依据。"
+        },
+        {
+          "severity": "high",
+          "code": "RULE-002",
+          "message": "病历中存在转录噪声，可能干扰编码判断，需人工核实原始病历。",
+          "suggestion": "请核对原始病历，排除无关文本干扰。"
+        }
+      ],
+      "manual_review_required": true,
+      "rule_set": "MedCodERRetrievalRuleSet",
+      "fired_rules": [
+        "RULE-001",
+        "RULE-002"
+      ]
+    },
+    "human_review": {
+      "review_conclusion": "FAIL",
+      "review_required": true,
+      "review_focus": [
+        "主要诊断依据不足：病历明确记载肺炎已排除，且未形成其他确诊诊断，无法确定主要诊断。",
+        "病历中存在转录噪声，可能干扰编码判断，需人工核实原始病历。"
+      ],
+      "notes": "病历明确肺炎已排除，且无其他确诊诊断，无法给出有效主要诊断编码。必须人工复核。"
+    },
+    "trace_refs": {
+      "run_id": "run-b6dc3661-dce7-470c-b0c5-b28885218660",
+      "stage_trace": [],
+      "rule_fired": [
+        "RULE-001",
+        "RULE-002"
+      ],
+      "mode": "Mode.UNSET",
+      "method_id": "",
+      "provider": "",
+      "model": "",
+      "trace_id": "trace-7dae2e04da294443"
+    },
+    "codes": [],
+    "manual_review_required": true
+  },
+  "schema_ref": "icoder/MedicalCodingAgentOutputV2/v8",
+  "result_attestation": "eyJhIjoibWVkaWNhbC1jb2RpbmctYWdlbnQiLCJkIjoiOGNlODAwZDNlNzczNjQ3NjM0NjBiNTc1MzkxNmJiMmYyZWM5YzhkNDgyNzUzYWI0ZDE1N2JiZTY0YTE0ZTUxMCIsImUiOjE3ODc3NTA3NDcsIm8iOiIxOTRlNWMwM2FiNjQiLCJyIjoicnVuLWI2ZGMzNjYxLWRjZTctNDcwYy1iMGM1LWIyODg4NTIxODY2MCIsInMiOiJpY29kZXIvTWVkaWNhbENvZGluZ0FnZW50T3V0cHV0VjIvdjgiLCJ2IjoxfQ.v-wkdPVtNo1tKoj2UgbucmiSLP96DJui3gbyrSnl3K0",
+  "evidence": [],
+  "warnings": [
+    "需结合国家医保版 ICD-10-CN 目录进一步校验具体亚目"
+  ],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "input_received",
+      "status": "ok",
+      "ts": 1787664343.3863065,
+      "duration_ms": 0,
+      "metadata": {
+        "text_len": 113,
+        "mode": "corti_like_fast"
+      }
+    },
+    {
+      "step": "language_detect",
+      "status": "ok",
+      "ts": 1787664343.3863065,
+      "duration_ms": 0,
+      "metadata": {
+        "language": "zh"
+      }
+    },
+    {
+      "step": "build_prompt",
+      "status": "ok",
+      "ts": 1787664343.3863065,
+      "duration_ms": 0,
+      "metadata": {
+        "provider": "deepseek",
+        "language": "zh",
+        "system": "icd-10-cn"
+      }
+    },
+    {
+      "step": "llm_call",
+      "status": "ok",
+      "ts": 1787664347.178416,
+      "duration_ms": 3791,
+      "metadata": {
+        "provider": "deepseek",
+        "model": "deepseek-chat",
+        "is_mock": false
+      }
+    },
+    {
+      "step": "parse_json",
+      "status": "ok",
+      "ts": 1787664347.178416,
+      "duration_ms": 3791,
+      "metadata": {}
+    },
+    {
+      "step": "project_result",
+      "status": "ok",
+      "ts": 1787664347.178416,
+      "duration_ms": 3791,
+      "metadata": {
+        "code_count": 1
+      }
+    },
+    {
+      "step": "return",
+      "status": "ok",
+      "ts": 1787664347.178416,
+      "duration_ms": 3791,
+      "metadata": {
+        "latency_ms": 3791,
+        "code_count": 1
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 4.047
+}

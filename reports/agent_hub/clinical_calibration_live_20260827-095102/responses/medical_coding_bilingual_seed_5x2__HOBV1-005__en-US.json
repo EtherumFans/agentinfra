@@ -1,0 +1,335 @@
+{
+  "agent_id": "medical-coding-agent",
+  "run_id": "run-fa176a80-8556-4d19-b292-5b5fcd702255",
+  "trace_id": "trace-d49348fe79ad4dda",
+  "trace_url": "/ai-studio/runs/run-fa176a80-8556-4d19-b292-5b5fcd702255/trace",
+  "runtime_mode": "corti_like_fast",
+  "latency_ms": 6322,
+  "cost": {
+    "amount": 0.000373,
+    "currency": "CNY",
+    "source": "provider_token_usage",
+    "token_usage": {
+      "input_tokens": 1413,
+      "output_tokens": 625
+    }
+  },
+  "billing": {},
+  "summary": "主要诊断明确为急性下壁STEMI，对应I21.1。心衰（Killip II级）作为并发症编码，但病历未明确心衰类型，暂用I50.9。高血压、高脂血症、吸烟史作为合并症编码。",
+  "result": {
+    "encounter_summary": {
+      "chief_complaint": "",
+      "treatment_course": "",
+      "key_findings": [],
+      "document_sources": [],
+      "encounter_date": ""
+    },
+    "documentation_analysis": {
+      "diagnosis_evidence": [],
+      "procedure_evidence": [],
+      "negated_findings": [],
+      "historical_conditions": []
+    },
+    "code_assignment": {
+      "primary_diagnosis": {
+        "code": "I21.1",
+        "description": "急性透壁性下壁心肌梗死",
+        "confidence": 0.98,
+        "category": "principal",
+        "evidence": [
+          {
+            "text": "Admission diagnosis: acute inferior ST-elevation myocardial infarction (STEMI, Killip class II)",
+            "kind": "auto_bootstrap"
+          },
+          {
+            "text": "ECG: II, III, aVF ST elevation 0.3 mV, V1-V4 reciprocal depression",
+            "kind": "auto_bootstrap"
+          },
+          {
+            "text": "Troponin I 8.5 ng/mL (reference < 0.04)",
+            "kind": "auto_bootstrap"
+          }
+        ]
+      },
+      "secondary_diagnoses": [
+        {
+          "code": "I50.9",
+          "description": "心力衰竭",
+          "confidence": 0.85,
+          "category": "complication",
+          "evidence": [
+            {
+              "text": "Exam: BP 90/60, HR 110, bibasilar moist rales",
+              "kind": "auto_bootstrap"
+            },
+            {
+              "text": "Killip class II",
+              "kind": "auto_bootstrap"
+            }
+          ]
+        },
+        {
+          "code": "I10",
+          "description": "原发性高血压",
+          "confidence": 0.95,
+          "category": "comorbidity",
+          "evidence": [
+            {
+              "text": "History: essential hypertension for 12 years",
+              "kind": "auto_bootstrap"
+            }
+          ]
+        },
+        {
+          "code": "E78.5",
+          "description": "高脂血症",
+          "confidence": 0.9,
+          "category": "comorbidity",
+          "evidence": [
+            {
+              "text": "History: hyperlipidemia for 5 years",
+              "kind": "auto_bootstrap"
+            }
+          ]
+        },
+        {
+          "code": "Z72.0",
+          "description": "吸烟",
+          "confidence": 0.8,
+          "category": "secondary",
+          "evidence": [
+            {
+              "text": "25 pack-year smoking",
+              "kind": "auto_bootstrap"
+            }
+          ]
+        }
+      ],
+      "procedures": []
+    },
+    "documentation_gaps": [],
+    "uncodable_items": [],
+    "validation_summary": {
+      "passed": false,
+      "issues_found": [
+        {
+          "severity": "low",
+          "code": "RULE-001",
+          "message": "心力衰竭编码建议进一步明确类型（收缩性/舒张性），当前使用未特指编码I50.9",
+          "suggestion": "若病历中有超声心动图或进一步心衰类型描述，请更新为更精确编码（如I50.2收缩性心衰）"
+        }
+      ],
+      "manual_review_required": true,
+      "rule_set": "MedCodERRetrievalRuleSet",
+      "fired_rules": [
+        "RULE-001"
+      ]
+    },
+    "human_review": {
+      "review_conclusion": "PASS",
+      "review_required": true,
+      "review_focus": [],
+      "notes": "主要诊断明确为急性下壁STEMI，对应I21.1。心衰（Killip II级）作为并发症编码，但病历未明确心衰类型，暂用I50.9。高血压、高脂血症、吸烟史作为合并症编码。"
+    },
+    "trace_refs": {
+      "run_id": "run-fa176a80-8556-4d19-b292-5b5fcd702255",
+      "stage_trace": [],
+      "rule_fired": [
+        "RULE-001"
+      ],
+      "mode": "Mode.UNSET",
+      "method_id": "",
+      "provider": "",
+      "model": "",
+      "trace_id": "trace-d49348fe79ad4dda"
+    },
+    "codes": [
+      {
+        "code": "I21.1",
+        "system": "ICD-10-CN",
+        "display": "急性透壁性下壁心肌梗死",
+        "type": "primary_diagnosis",
+        "confidence": 0.98,
+        "evidence": "Admission diagnosis: acute inferior ST-elevation myocardial infarction (STEMI, Killip class II); ECG: II, III, aVF ST elevation 0.3 mV, V1-V4 reciprocal depression; Troponin I 8.5 ng/mL (reference < 0.04)",
+        "rationale": "主要诊断 — 基于病历证据的优先编码候选,需结合 ICD-10-CN 本地目录复核具体亚目。",
+        "warnings": [
+          "需结合国家医保版 ICD-10-CN 目录进一步校验具体亚目"
+        ],
+        "alternatives": []
+      },
+      {
+        "code": "I50.9",
+        "system": "ICD-10-CN",
+        "display": "心力衰竭",
+        "type": "complication",
+        "confidence": 0.85,
+        "evidence": "Exam: BP 90/60, HR 110, bibasilar moist rales; Killip class II",
+        "rationale": "次要诊断 (complication) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。",
+        "warnings": [
+          "需结合 ICD-10-CN 本地目录进一步校验具体亚目"
+        ],
+        "alternatives": []
+      },
+      {
+        "code": "I10",
+        "system": "ICD-10-CN",
+        "display": "原发性高血压",
+        "type": "secondary_diagnosis",
+        "confidence": 0.95,
+        "evidence": "History: essential hypertension for 12 years",
+        "rationale": "次要诊断 (comorbidity) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。",
+        "warnings": [
+          "需结合 ICD-10-CN 本地目录进一步校验具体亚目"
+        ],
+        "alternatives": []
+      },
+      {
+        "code": "E78.5",
+        "system": "ICD-10-CN",
+        "display": "高脂血症",
+        "type": "secondary_diagnosis",
+        "confidence": 0.9,
+        "evidence": "History: hyperlipidemia for 5 years",
+        "rationale": "次要诊断 (comorbidity) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。",
+        "warnings": [
+          "需结合 ICD-10-CN 本地目录进一步校验具体亚目"
+        ],
+        "alternatives": []
+      },
+      {
+        "code": "Z72.0",
+        "system": "ICD-10-CN",
+        "display": "吸烟",
+        "type": "secondary_diagnosis",
+        "confidence": 0.8,
+        "evidence": "25 pack-year smoking",
+        "rationale": "次要诊断 (secondary) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。",
+        "warnings": [
+          "需结合 ICD-10-CN 本地目录进一步校验具体亚目"
+        ],
+        "alternatives": []
+      }
+    ],
+    "manual_review_required": true
+  },
+  "schema_ref": "icoder/MedicalCodingAgentOutputV2/v8",
+  "result_attestation": "eyJhIjoibWVkaWNhbC1jb2RpbmctYWdlbnQiLCJkIjoiZGQwNzA2YmVkNzcwOGJiNWRlZmUyMmJkNjczZTlhYzJlMmRhZTUzYTc4YzkxYTkxZmU0MmU0MTY5YjliNmIwNCIsImUiOjE3ODc4ODI1NzUsIm8iOiJiYzkyZWUwNmFmMGYiLCJyIjoicnVuLWZhMTc2YTgwLTg1NTYtNGQxOS1iMjkyLTViNWZjZDcwMjI1NSIsInMiOiJpY29kZXIvTWVkaWNhbENvZGluZ0FnZW50T3V0cHV0VjIvdjgiLCJ2IjoxfQ.TdyyOcrITvFtJw3-eeqNKlg8DyxTza0b1PYCJ5j8ARE",
+  "evidence": [
+    {
+      "code": "I21.1",
+      "system": "ICD-10-CN",
+      "type": "primary_diagnosis",
+      "text": "Admission diagnosis: acute inferior ST-elevation myocardial infarction (STEMI, Killip class II); ECG: II, III, aVF ST elevation 0.3 mV, V1-V4 reciprocal depression; Troponin I 8.5 ng/mL (reference < 0.04)",
+      "rationale": "主要诊断 — 基于病历证据的优先编码候选,需结合 ICD-10-CN 本地目录复核具体亚目。"
+    },
+    {
+      "code": "I50.9",
+      "system": "ICD-10-CN",
+      "type": "complication",
+      "text": "Exam: BP 90/60, HR 110, bibasilar moist rales; Killip class II",
+      "rationale": "次要诊断 (complication) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。"
+    },
+    {
+      "code": "I10",
+      "system": "ICD-10-CN",
+      "type": "secondary_diagnosis",
+      "text": "History: essential hypertension for 12 years",
+      "rationale": "次要诊断 (comorbidity) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。"
+    },
+    {
+      "code": "E78.5",
+      "system": "ICD-10-CN",
+      "type": "secondary_diagnosis",
+      "text": "History: hyperlipidemia for 5 years",
+      "rationale": "次要诊断 (comorbidity) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。"
+    },
+    {
+      "code": "Z72.0",
+      "system": "ICD-10-CN",
+      "type": "secondary_diagnosis",
+      "text": "25 pack-year smoking",
+      "rationale": "次要诊断 (secondary) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。"
+    }
+  ],
+  "warnings": [
+    "需结合国家医保版 ICD-10-CN 目录进一步校验具体亚目",
+    "需结合 ICD-10-CN 本地目录进一步校验具体亚目",
+    "需结合 ICD-10-CN 本地目录进一步校验具体亚目",
+    "需结合 ICD-10-CN 本地目录进一步校验具体亚目",
+    "需结合 ICD-10-CN 本地目录进一步校验具体亚目"
+  ],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "input_received",
+      "status": "ok",
+      "ts": 1787796168.8522594,
+      "duration_ms": 0,
+      "metadata": {
+        "text_len": 682,
+        "mode": "corti_like_fast"
+      }
+    },
+    {
+      "step": "language_detect",
+      "status": "ok",
+      "ts": 1787796168.8522594,
+      "duration_ms": 0,
+      "metadata": {
+        "language": "en"
+      }
+    },
+    {
+      "step": "build_prompt",
+      "status": "ok",
+      "ts": 1787796168.8522594,
+      "duration_ms": 0,
+      "metadata": {
+        "provider": "deepseek",
+        "language": "en",
+        "system": "icd-10-cn"
+      }
+    },
+    {
+      "step": "llm_call",
+      "status": "ok",
+      "ts": 1787796175.1711004,
+      "duration_ms": 6322,
+      "metadata": {
+        "provider": "deepseek",
+        "model": "deepseek-chat",
+        "is_mock": false
+      }
+    },
+    {
+      "step": "parse_json",
+      "status": "ok",
+      "ts": 1787796175.1711004,
+      "duration_ms": 6322,
+      "metadata": {}
+    },
+    {
+      "step": "project_result",
+      "status": "ok",
+      "ts": 1787796175.1711004,
+      "duration_ms": 6322,
+      "metadata": {
+        "code_count": 5
+      }
+    },
+    {
+      "step": "return",
+      "status": "ok",
+      "ts": 1787796175.1711004,
+      "duration_ms": 6322,
+      "metadata": {
+        "latency_ms": 6322,
+        "code_count": 5
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 6.788
+}

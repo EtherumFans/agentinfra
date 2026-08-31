@@ -1,0 +1,107 @@
+{
+  "agent_id": "diagnosis-extractor",
+  "run_id": "run-7599bbca-3fbb-4431-bb3f-97409e2ef7f2",
+  "trace_id": "trace-25e119fae8d64061",
+  "trace_url": "/ai-studio/runs/run-7599bbca-3fbb-4431-bb3f-97409e2ef7f2/trace",
+  "runtime_mode": "governed_local_explicit_diagnosis_baseline",
+  "latency_ms": 100,
+  "cost": {
+    "amount": 0.0,
+    "currency": "CNY"
+  },
+  "billing": {},
+  "summary": "已定位 1 个明示当前诊断候选和 1 个非当前确诊提及；全部结果须编码员复核。",
+  "result": {
+    "status": "WARNING",
+    "markdown": "{\"diagnoses\": [{\"assertion_status\": \"present\", \"char_span\": [5, 13], \"confidence\": \"high\", \"diagnosis_text\": \"急性前壁心肌梗死\", \"evidence_text\": \"急性前壁心肌梗死\", \"icd10_cn_code\": \"I21.001\", \"icd10_cn_name\": \"急性前壁心肌梗死\", \"verification\": \"exact_catalog_name_unique; authority=source_unverified; license=external_review_required; clinical_support_not_assessed\"}], \"issues_found\": [\"高血压：既往史提及，不作为本次就诊当前诊断编码\", \"本地 ICD-10-CN 目录 authority_status=source_unverified、license_status=external_review_required；目录候选不具有结算权威。\"], \"manual_review_required\": true, \"non_codable_mentions\": [{\"assertion_status\": \"history_of\", \"char_span\": [14, 22], \"evidence_text\": \"既往有高血压病史\", \"mention_text\": \"高血压\", \"reason\": \"既往史提及，不作为本次就诊当前诊断编码\"}], \"status\": \"WARNING\", \"trace_refs\": {\"provider_trace_refs\": [\"run-7599bbca-3fbb-4431-bb3f-97409e2ef7f2:governed-diagnosis-extraction\"], \"run_id\": \"run-7599bbca-3fbb-4431-bb3f-97409e2ef7f2\"}}",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.governed-diagnosis-extractor.v1",
+    "backend_type": "rule_engine",
+    "diagnoses": [
+      {
+        "assertion_status": "present",
+        "char_span": [
+          5,
+          13
+        ],
+        "confidence": "high",
+        "diagnosis_text": "急性前壁心肌梗死",
+        "evidence_text": "急性前壁心肌梗死",
+        "icd10_cn_code": "I21.001",
+        "icd10_cn_name": "急性前壁心肌梗死",
+        "verification": "exact_catalog_name_unique; authority=source_unverified; license=external_review_required; clinical_support_not_assessed"
+      }
+    ],
+    "issues_found": [
+      "高血压：既往史提及，不作为本次就诊当前诊断编码",
+      "本地 ICD-10-CN 目录 authority_status=source_unverified、license_status=external_review_required；目录候选不具有结算权威。"
+    ],
+    "manual_review_required": true,
+    "non_codable_mentions": [
+      {
+        "assertion_status": "history_of",
+        "char_span": [
+          14,
+          22
+        ],
+        "evidence_text": "既往有高血压病史",
+        "mention_text": "高血压",
+        "reason": "既往史提及，不作为本次就诊当前诊断编码"
+      }
+    ],
+    "trace_refs": {
+      "run_id": "run-7599bbca-3fbb-4431-bb3f-97409e2ef7f2",
+      "trace_id": "trace-25e119fae8d64061",
+      "provider_trace_refs": [
+        "run-7599bbca-3fbb-4431-bb3f-97409e2ef7f2:governed-diagnosis-extraction"
+      ]
+    },
+    "structured_extraction": {
+      "contract": "icoder/DiagnosisExtractionOutput/v7",
+      "method": "json_block",
+      "warnings": [],
+      "required_fields": [
+        "status",
+        "diagnoses",
+        "non_codable_mentions",
+        "issues_found",
+        "manual_review_required",
+        "trace_refs"
+      ],
+      "optional_fields": [],
+      "missing_required_fields": [],
+      "invalid_field_types": [],
+      "invalid_field_schemas": [],
+      "invalid_cross_agent_relations": [],
+      "undeclared_output_fields": [],
+      "undeclared_output_field_count": 0,
+      "valid": true
+    }
+  },
+  "schema_ref": "icoder/DiagnosisExtractionOutput/v7",
+  "result_attestation": "eyJhIjoiZGlhZ25vc2lzLWV4dHJhY3RvciIsImQiOiI3Y2ZkOThmYjU5NTgyYTYyYzYyYzE4MjM5ZDJhYjJjNmEwZjZmMmI3OGZlNmM3NDAxY2Y5YzJkNWVmMTE5YTUwIiwiZSI6MTc4Nzc1MDYzNSwibyI6IjE5NGU1YzAzYWI2NCIsInIiOiJydW4tNzU5OWJiY2EtM2ZiYi00NDMxLWJiM2YtOTc0MDllMmVmN2YyIiwicyI6Imljb2Rlci9EaWFnbm9zaXNFeHRyYWN0aW9uT3V0cHV0L3Y3IiwidiI6MX0.1GX0YmjvFDHXuhpahZpRb_xSC-nqvP6N2X4vg3gtHzY",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 100,
+      "metadata": {
+        "agent_id": "diagnosis-extractor",
+        "runtime_mode": "governed_local_explicit_diagnosis_baseline",
+        "latency_ms": 100
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 0.317
+}

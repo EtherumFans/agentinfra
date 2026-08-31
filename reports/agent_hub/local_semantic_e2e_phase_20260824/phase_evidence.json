@@ -1,0 +1,77 @@
+{
+  "schema_version": "icoder.agent-hub-local-semantic-phase/v1",
+  "date": "2026-08-24",
+  "status": "development_verified",
+  "scope": {
+    "visible_agents": 26,
+    "local_baseline_agents": 7,
+    "external_model_agents": 19,
+    "strict_26_agent_live_provider_verified": 0,
+    "production_ready_verified": 0,
+    "local_gate_does_not_satisfy_full_gate": true
+  },
+  "local_agent_ids": [
+    "code-validation-agent",
+    "compliance-guardrail-agent",
+    "evidence-extractor",
+    "evidence-ranker",
+    "icd10-navigator",
+    "note-completeness-agent",
+    "surgical-registry"
+  ],
+  "e2e": {
+    "transport": "real_loopback_http",
+    "happy_passed": 7,
+    "adversarial_passed": 7,
+    "reference_passed": 7,
+    "stability_passed": 42,
+    "stability_repetitions": 3,
+    "stability_fresh_http_runs": 42,
+    "stability_seeded_runs": 0,
+    "real_llm_used": false,
+    "external_network_used": false,
+    "synthetic_pack_owned_cases_only": true
+  },
+  "defects_closed": {
+    "icd10_navigator_only_quoted_chinese_term_extracted": true,
+    "icd10_actual_catalog_governance_reported": true,
+    "note_completeness_spinal_literal_conflict_detected": true,
+    "note_completeness_surgical_gaps_cannot_pass": true,
+    "pack_reference_runtime_drift_closed": true
+  },
+  "tests": {
+    "combined_regression": {"passed": 264, "failed": 0},
+    "deployment_preflight_unit": {"passed": 1, "failed": 0},
+    "deployment_preflight_static": {"passed": 90, "failed": 0}
+  },
+  "artifacts": {
+    "phase_e2e": "local_semantic_e2e_evidence.json",
+    "examples_sha256": "68447a401452a0836334a37a54995acaf39ef4ca0ae368f6c143bbd3bb1c4a40",
+    "adversarial_sha256": "38d7b6c4c5d1d5915893eda6d7a1cb050511906ec584e3d7a9ba105a84ff2dd5",
+    "reference_sha256": "04bd6adbd6502cb3ad5df6a5272737a00c1c7f611213decaa4ba8d322d423036",
+    "stability_sha256": "ca9cbfe45b4386dfa6a2edc57f0f7216e2a37d857330885a87f3888e77bd1d65",
+    "local_bundle_sha256": "79e74ab3f2a3d86ca16e33fa8617534f5f874174018a0adcad366ec62604eb98",
+    "runtime_matrix_sha256": "fdbf15931a6c65abeefb4128a4ebaa4298d7ef5fc0e7b28e62dd64295a3ca67f",
+    "deployment_preflight_sha256": "154151df21f3261e3f862aa8f5e1dbc9752ef0d271f1c47607056cbf3aa6713b"
+  },
+  "corti_public_sources": [
+    "https://corti.ai/agents",
+    "https://docs.corti.ai/agentic/overview",
+    "https://corti.ai/agents/code-validation-agent"
+  ],
+  "safety_audit": {
+    "protected_database_size_bytes": 8536064,
+    "protected_database_sha256": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e",
+    "protected_database_unchanged": true,
+    "protected_database_revision": "041",
+    "source_alembic_head": "056",
+    "remaining_backend_or_decoder_processes": 0,
+    "remaining_phase_temp_directories": 0,
+    "llm_key_environment_present": false,
+    "docker_cli_available": false
+  },
+  "independent_clinical_gold_used": false,
+  "corti_parity_proven": false,
+  "hospital_acceptance_proven": false,
+  "external_gates_remain_open": true
+}

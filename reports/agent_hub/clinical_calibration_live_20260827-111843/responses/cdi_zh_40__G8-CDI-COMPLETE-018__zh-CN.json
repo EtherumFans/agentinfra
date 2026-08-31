@@ -1,0 +1,164 @@
+{
+  "agent_id": "clinical-documentation-improvement-agent",
+  "run_id": "run-6a30ccf1-be89-442b-b6e5-46a60765907e",
+  "trace_id": "trace-73a05d5f29584475",
+  "trace_url": "/ai-studio/runs/run-6a30ccf1-be89-442b-b6e5-46a60765907e/trace",
+  "runtime_mode": "cdi_real_orchestrator",
+  "latency_ms": 3290,
+  "cost": {
+    "amount": 0.00026096,
+    "currency": "CNY",
+    "source": "configured_usage_pricing_estimate",
+    "billing_authoritative": false
+  },
+  "billing": {},
+  "summary": "CDI review completed; specialist and clinician review remain required.",
+  "result": {
+    "encounter_summary": {
+      "key_points": [
+        "患者女性，28岁",
+        "孕12周产检",
+        "血压正常",
+        "无水肿",
+        "无蛋白尿",
+        "血常规正常",
+        "尿常规正常",
+        "肝肾功能正常",
+        "糖耐量正常",
+        "胎儿超声：CRL 58mm，胎心160次/分",
+        "诊断：孕12周，活胎"
+      ],
+      "encounter_metadata": {
+        "patient_age": "28岁",
+        "patient_sex": "女性",
+        "encounter_type": "产检"
+      }
+    },
+    "documentation_gaps": [],
+    "proposed_provider_queries": [],
+    "query_gate_summary": {
+      "withheld_count": 0,
+      "status_counts": {
+        "REWRITE_CANDIDATE_GENERATED": 0
+      },
+      "manual_cdi_action_required": false
+    },
+    "coding_specificity_checklist": [],
+    "risk_flags": [],
+    "specialist_trace": [
+      {
+        "expert_id": "coding-expert",
+        "consulted": false,
+        "requested": "You are a coding-specialist Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "no coding-relevant gaps survived earlier gates",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-d13af8e9668a",
+        "trace_id": "trace-410e2d6302e0"
+      },
+      {
+        "expert_id": "pubmed-expert",
+        "consulted": false,
+        "requested": "You are a PubMed literature Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-f2963ec64c69",
+        "trace_id": "trace-d23faf955ceb"
+      },
+      {
+        "expert_id": "web-search-expert",
+        "consulted": false,
+        "requested": "You are a clinical web-search Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-b192da52dc4a",
+        "trace_id": "trace-d3f3bd122c28"
+      },
+      {
+        "expert_id": "medical-calculator-expert",
+        "consulted": false,
+        "requested": "You are a medical-calculator Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-f77df596b6c8",
+        "trace_id": "trace-cc9bb6d36087"
+      }
+    ],
+    "human_review": {
+      "cdi_specialist_review_required": true,
+      "clinician_response_required": true,
+      "review_priority": "routine"
+    },
+    "trace_refs": {
+      "run_id": "run-6a30ccf1-be89-442b-b6e5-46a60765907e",
+      "stage_trace": {
+        "encounter_synthesis": "trace-7538c92ea79e",
+        "gap_identification": "trace-b84ef53f0634",
+        "expert_consultation": "trace-7da779d9039b",
+        "query_generation": "",
+        "query_eligibility_gate": "",
+        "query_necessity_gate": "",
+        "query_dimension_rewrite": "",
+        "query_single_dimension_gate": "",
+        "claim_evidence_alignment_gate": "trace-afc7ae2b8d1c",
+        "semantic_necessity_gate": "trace-95a73af2fc34",
+        "query_compliance_gate": "",
+        "specialist_trace_emit": "trace-b20baef6069b"
+      },
+      "experts_consulted": [],
+      "gate_results": {
+        "encounter_synthesis": "run-043ce94141b8",
+        "gap_identification": "run-7d7c96842825",
+        "gap_identification_risk_flags": "emitted=0;quote_snapped=0;withheld=0;quantity_redacted=0",
+        "expert_consultation": "run-f8febfdc3cbe",
+        "query_generation": "",
+        "query_generation::quote_snapped": "0",
+        "query_generation::coverage_missing": "0",
+        "query_eligibility_gate": "chart_complete=True;completeness_score=0.12;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=0;llm_complete=True;llm_reasoning=The chart documents a routine prenatal visit at 12 weeks gestation with normal m",
+        "query_necessity_gate": "necessary=0;unnecessary=0;overquery_triggered=False;final_count=0",
+        "query_dimension_rewrite": "not_executed",
+        "query_single_dimension_gate": "single_dim=0;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;rewrite_attempted=0;rewrite_accepted=0;final_count=0",
+        "claim_evidence_alignment_gate": "claims_extracted=0;degraded=0;blocked=0;flagged=0;final_count=0",
+        "claim_evidence_alignment_gate::run_id": "run-d4416326e931",
+        "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+        "semantic_necessity_gate::run_id": "run-128b0da38a50",
+        "query_compliance_gate": ";passed=0;blocked=0",
+        "specialist_trace_emit": "run-89ee4447b773"
+      },
+      "trace_id": "trace-73a05d5f29584475"
+    }
+  },
+  "schema_ref": "icoder/CDIAgentOutputV1/v6",
+  "result_attestation": "eyJhIjoiY2xpbmljYWwtZG9jdW1lbnRhdGlvbi1pbXByb3ZlbWVudC1hZ2VudCIsImQiOiI2YzMwNTUxNGVkZmQ3YzFhZDY5ZjcyOWUzMzNkODMyMWYzNzYwOGRkMTg2MGIwZDM1NjJmMTdlYjY1NmM4MjM5IiwiZSI6MTc4Nzg4NzM3NCwibyI6IjVmZWYzNzlmMjViZCIsInIiOiJydW4tNmEzMGNjZjEtYmU4OS00NDJiLWI2ZTUtNDZhNjA3NjU5MDdlIiwicyI6Imljb2Rlci9DRElBZ2VudE91dHB1dFYxL3Y2IiwidiI6MX0.wYgwcF1fY2uoSJdeaaAYqy-ZkbQ1FJHP9oM63aWUpqg",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 3.53
+}

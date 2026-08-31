@@ -1,0 +1,93 @@
+{
+  "agent_id": "triage",
+  "run_id": "run-9a9b22f2-7117-42cb-ad25-6ad8d832674d",
+  "trace_id": "trace-3f0a78f07a624ebe",
+  "trace_url": "/ai-studio/runs/run-9a9b22f2-7117-42cb-ad25-6ad8d832674d/trace",
+  "runtime_mode": "pure_llm",
+  "latency_ms": 127,
+  "cost": {},
+  "summary": "Provider output did not satisfy the Agent Pack contract.",
+  "result": {
+    "status": "requires_review",
+    "markdown": "",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "failed",
+    "finish_reason": "llm_degraded: degraded:mock_provider",
+    "backend_provider": "icoder.pure-llm.v1",
+    "backend_type": "pure_llm",
+    "structured_extraction": {
+      "contract": "icoder/TriageOutput/v2",
+      "method": "none",
+      "warnings": [
+        "empty structured provider output"
+      ],
+      "required_fields": [
+        "acuity_level",
+        "red_flags",
+        "supporting_evidence",
+        "recommended_disposition",
+        "immediate_actions",
+        "missing_information",
+        "uncertainty",
+        "manual_review_required"
+      ],
+      "optional_fields": [],
+      "missing_required_fields": [
+        "acuity_level",
+        "red_flags",
+        "supporting_evidence",
+        "recommended_disposition",
+        "immediate_actions",
+        "missing_information",
+        "uncertainty"
+      ],
+      "invalid_field_types": [],
+      "invalid_field_schemas": [],
+      "invalid_cross_agent_relations": [],
+      "undeclared_output_fields": [],
+      "undeclared_output_field_count": 0,
+      "valid": false
+    },
+    "contract_output_suppressed": true,
+    "manual_review_required": true
+  },
+  "schema_ref": "icoder/TriageOutput/v2",
+  "result_attestation": "",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "contract_validation",
+      "status": "failed",
+      "duration_ms": 0,
+      "metadata": {
+        "error_reason": "output_contract_violation",
+        "missing_required_field_count": 7,
+        "invalid_field_type_count": 0,
+        "invalid_field_schema_count": 0,
+        "invalid_cross_agent_relation_count": 0,
+        "undeclared_output_field_count": 0,
+        "invalid_paths": [],
+        "invalid_keywords": []
+      }
+    },
+    {
+      "step": "completion",
+      "status": "failed",
+      "duration_ms": 127,
+      "metadata": {
+        "agent_id": "triage",
+        "runtime_mode": "pure_llm",
+        "latency_ms": 127
+      }
+    }
+  ],
+  "error": true,
+  "error_reason": "llm_degraded: degraded:mock_provider",
+  "_http_status": 200,
+  "_elapsed_seconds": 0.31
+}

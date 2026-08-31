@@ -1,0 +1,292 @@
+{
+  "agent_id": "discharge-edu",
+  "run_id": "run-da51f191-429c-4f8d-89b9-654cd93616b3",
+  "trace_id": "trace-32f20c422ed84965",
+  "trace_url": "/ai-studio/runs/run-da51f191-429c-4f8d-89b9-654cd93616b3/trace",
+  "runtime_mode": "rule_engine",
+  "latency_ms": 103,
+  "cost": {
+    "amount": 0.0,
+    "currency": "CNY"
+  },
+  "billing": {},
+  "summary": "已整理 12 条出院原文证据；未解释临床意义、未重整用药或新增医嘱，须临床人员复核。",
+  "result": {
+    "status": "requires_review",
+    "markdown": "{\"clarification_questions\": [], \"clinical_interpretation_performed\": false, \"clinical_recommendations_generated\": false, \"contradictions\": [], \"diagnosis_summary\": \"慢性心力衰竭\", \"education_status\": \"COMPLETED\", \"encounter_summary\": {\"discharge_destination\": \"回家\", \"reason_for_visit\": \"活动后气促\", \"treatment_course\": \"住院期间按原记录完成评估与治疗\"}, \"evidence_items\": [{\"char_span\": [5, 11], \"evidence_id\": \"discharge-edu-evidence-1\", \"evidence_text\": \"慢性心力衰竭\", \"field\": \"diagnosis_summary\", \"source_label\": \"出院诊断\"}, {\"char_span\": [17, 22], \"evidence_id\": \"discharge-edu-evidence-2\", \"evidence_text\": \"活动后气促\", \"field\": \"reason_for_visit\", \"source_label\": \"就诊原因\"}, {\"char_span\": [28, 43], \"evidence_id\": \"discharge-edu-evidence-3\", \"evidence_text\": \"住院期间按原记录完成评估与治疗\", \"field\": \"treatment_course\", \"source_label\": \"诊疗经过\"}, {\"char_span\": [49, 51], \"evidence_id\": \"discharge-edu-evidence-4\", \"evidence_text\": \"回家\", \"field\": \"discharge_destination\", \"source_label\": \"出院去向\"}, {\"char_span\": [57, 68], \"evidence_id\": \"discharge-edu-evidence-5\", \"evidence_text\": \"血钾4.1mmol/L\", \"field\": \"laboratory_result\", \"source_label\": \"检验结果\"}, {\"char_span\": [74, 84], \"evidence_id\": \"discharge-edu-evidence-6\", \"evidence_text\": \"原记录注明胸片已完成\", \"field\": \"imaging_result\", \"source_label\": \"影像结果\"}, {\"char_span\": [91, 92], \"evidence_id\": \"discharge-edu-evidence-7\", \"evidence_text\": \"无\", \"field\": \"procedure\", \"source_label\": \"操作/手术\"}, {\"char_span\": [98, 110], \"evidence_id\": \"discharge-edu-evidence-8\", \"evidence_text\": \"呋塞米20mg，每日一次\", \"field\": \"medication_instructions\", \"source_label\": \"出院用药\"}, {\"char_span\": [116, 124], \"evidence_id\": \"discharge-edu-evidence-9\", \"evidence_text\": \"7日后心内科复诊\", \"field\": \"follow_up\", \"source_label\": \"复诊计划\"}, {\"char_span\": [130, 146], \"evidence_id\": \"discharge-edu-evidence-10\", \"evidence_text\": \"呼吸困难加重时按出院医嘱及时就医\", \"field\": \"warning_signs\", \"source_label\": \"警示症状\"}, {\"char_span\": [152, 163], \"evidence_id\": \"discharge-edu-evidence-11\", \"evidence_text\": \"低盐饮食；每日晨起称重\", \"field\": \"lifestyle\", \"source_label\": \"生活方式\"}, {\"char_span\": [169, 170], \"evidence_id\": \"discharge-edu-evidence-12\", \"evidence_text\": \"无\", \"field\": \"pending_results\", \"source_label\": \"待回结果\"}], \"external_knowledge_used\": false, \"follow_up\": \"7日后心内科复诊\", \"key_results\": [{\"category\": \"LABORATORY_RESULT\", \"documented_result\": \"血钾4.1mmol/L\", \"evidence_ref\": \"discharge-edu-evidence-5\", \"interpretation\": \"未解释；仅保留原文记录。\"}, {\"category\": \"IMAGING_RESULT\", \"documented_result\": \"原记录注明胸片已完成\", \"evidence_ref\": \"discharge-edu-evidence-6\", \"interpretation\": \"未解释；仅保留原文记录。\"}, {\"category\": \"PROCEDURE\", \"documented_result\": \"无\", \"evidence_ref\": \"discharge-edu-evidence-7\", \"interpretation\": \"未解释；仅保留原文记录。\"}], \"lifestyle\": \"低盐饮食；每日晨起称重\", \"limitations\": [\"仅解析明确字段标签；未标注自由文本不会被重写为患者宣教事实。\", \"仅逐字重排已记录内容；未执行通俗化医学释义、阅读等级改写或多语言翻译。\", \"未解释检验/影像意义，未补充诊断、预后、警示症状、返院条件或随访步骤。\", \"未执行药物重整、相互作用、剂量、禁忌、过敏或肝肾功能审查。\", \"未调用 PubMed、Web Search、Medical Calculator、患者门户或真实 EHR/MAR/LIS/PACS。\", \"所有患者可见内容必须由临床人员对照原始出院记录复核后发布。\"], \"manual_review_required\": true, \"medication_instructions\": \"呋塞米20mg，每日一次\", \"medication_reconciliation_status\": \"NOT_RECONCILED_GOVERNED_MEDICATION_RECONCILIATION_REQUIRED\", \"missing_items\": [], \"pending_results\": \"无\", \"production_writeback_blocked\": true, \"source_completeness\": {\"documented_sections\": [\"diagnosis_summary\", \"discharge_destination\", \"follow_up\", \"imaging_result\", \"laboratory_result\", \"lifestyle\", \"medication_instructions\", \"pending_results\", \"procedure\", \"reason_for_visit\", \"treatment_course\", \"warning_signs\"], \"evidence_item_count\": 12, \"input_truncated\": false, \"missing_sections\": []}, \"teach_back_questions\": [\"请用自己的话复述病历中记录的出院诊断。\", \"请对照出院医嘱复述用药名称、剂量、途径和频次。\", \"请复述已经记录的复诊或随访安排。\", \"请复述出院记录中写明的警示症状和返院提示。\", \"请复述出院记录中写明的生活方式或家庭护理事项。\", \"请说明记录中哪些结果仍待回报，以及应向谁确认。\"], \"trace_refs\": {\"provider_trace_refs\": [\"run-da51f191-429c-4f8d-89b9-654cd93616b3:governed-discharge-education\"], \"run_id\": \"run-da51f191-429c-4f8d-89b9-654cd93616b3\"}, \"translation_status\": \"VERBATIM_DOCUMENTED_CONTENT_ONLY\", \"warning_signs\": \"呼吸困难加重时按出院医嘱及时就医\"}",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.governed-discharge-education.v1",
+    "backend_type": "rule_engine",
+    "clarification_questions": [],
+    "clinical_interpretation_performed": false,
+    "clinical_recommendations_generated": false,
+    "contradictions": [],
+    "diagnosis_summary": "慢性心力衰竭",
+    "education_status": "COMPLETED",
+    "encounter_summary": {
+      "discharge_destination": "回家",
+      "reason_for_visit": "活动后气促",
+      "treatment_course": "住院期间按原记录完成评估与治疗"
+    },
+    "evidence_items": [
+      {
+        "char_span": [
+          5,
+          11
+        ],
+        "evidence_id": "discharge-edu-evidence-1",
+        "evidence_text": "慢性心力衰竭",
+        "field": "diagnosis_summary",
+        "source_label": "出院诊断"
+      },
+      {
+        "char_span": [
+          17,
+          22
+        ],
+        "evidence_id": "discharge-edu-evidence-2",
+        "evidence_text": "活动后气促",
+        "field": "reason_for_visit",
+        "source_label": "就诊原因"
+      },
+      {
+        "char_span": [
+          28,
+          43
+        ],
+        "evidence_id": "discharge-edu-evidence-3",
+        "evidence_text": "住院期间按原记录完成评估与治疗",
+        "field": "treatment_course",
+        "source_label": "诊疗经过"
+      },
+      {
+        "char_span": [
+          49,
+          51
+        ],
+        "evidence_id": "discharge-edu-evidence-4",
+        "evidence_text": "回家",
+        "field": "discharge_destination",
+        "source_label": "出院去向"
+      },
+      {
+        "char_span": [
+          57,
+          68
+        ],
+        "evidence_id": "discharge-edu-evidence-5",
+        "evidence_text": "血钾4.1mmol/L",
+        "field": "laboratory_result",
+        "source_label": "检验结果"
+      },
+      {
+        "char_span": [
+          74,
+          84
+        ],
+        "evidence_id": "discharge-edu-evidence-6",
+        "evidence_text": "原记录注明胸片已完成",
+        "field": "imaging_result",
+        "source_label": "影像结果"
+      },
+      {
+        "char_span": [
+          91,
+          92
+        ],
+        "evidence_id": "discharge-edu-evidence-7",
+        "evidence_text": "无",
+        "field": "procedure",
+        "source_label": "操作/手术"
+      },
+      {
+        "char_span": [
+          98,
+          110
+        ],
+        "evidence_id": "discharge-edu-evidence-8",
+        "evidence_text": "呋塞米20mg，每日一次",
+        "field": "medication_instructions",
+        "source_label": "出院用药"
+      },
+      {
+        "char_span": [
+          116,
+          124
+        ],
+        "evidence_id": "discharge-edu-evidence-9",
+        "evidence_text": "7日后心内科复诊",
+        "field": "follow_up",
+        "source_label": "复诊计划"
+      },
+      {
+        "char_span": [
+          130,
+          146
+        ],
+        "evidence_id": "discharge-edu-evidence-10",
+        "evidence_text": "呼吸困难加重时按出院医嘱及时就医",
+        "field": "warning_signs",
+        "source_label": "警示症状"
+      },
+      {
+        "char_span": [
+          152,
+          163
+        ],
+        "evidence_id": "discharge-edu-evidence-11",
+        "evidence_text": "低盐饮食；每日晨起称重",
+        "field": "lifestyle",
+        "source_label": "生活方式"
+      },
+      {
+        "char_span": [
+          169,
+          170
+        ],
+        "evidence_id": "discharge-edu-evidence-12",
+        "evidence_text": "无",
+        "field": "pending_results",
+        "source_label": "待回结果"
+      }
+    ],
+    "external_knowledge_used": false,
+    "follow_up": "7日后心内科复诊",
+    "key_results": [
+      {
+        "category": "LABORATORY_RESULT",
+        "documented_result": "血钾4.1mmol/L",
+        "evidence_ref": "discharge-edu-evidence-5",
+        "interpretation": "未解释；仅保留原文记录。"
+      },
+      {
+        "category": "IMAGING_RESULT",
+        "documented_result": "原记录注明胸片已完成",
+        "evidence_ref": "discharge-edu-evidence-6",
+        "interpretation": "未解释；仅保留原文记录。"
+      },
+      {
+        "category": "PROCEDURE",
+        "documented_result": "无",
+        "evidence_ref": "discharge-edu-evidence-7",
+        "interpretation": "未解释；仅保留原文记录。"
+      }
+    ],
+    "lifestyle": "低盐饮食；每日晨起称重",
+    "limitations": [
+      "仅解析明确字段标签；未标注自由文本不会被重写为患者宣教事实。",
+      "仅逐字重排已记录内容；未执行通俗化医学释义、阅读等级改写或多语言翻译。",
+      "未解释检验/影像意义，未补充诊断、预后、警示症状、返院条件或随访步骤。",
+      "未执行药物重整、相互作用、剂量、禁忌、过敏或肝肾功能审查。",
+      "未调用 PubMed、Web Search、Medical Calculator、患者门户或真实 EHR/MAR/LIS/PACS。",
+      "所有患者可见内容必须由临床人员对照原始出院记录复核后发布。"
+    ],
+    "manual_review_required": true,
+    "medication_instructions": "呋塞米20mg，每日一次",
+    "medication_reconciliation_status": "NOT_RECONCILED_GOVERNED_MEDICATION_RECONCILIATION_REQUIRED",
+    "missing_items": [],
+    "pending_results": "无",
+    "production_writeback_blocked": true,
+    "source_completeness": {
+      "documented_sections": [
+        "diagnosis_summary",
+        "discharge_destination",
+        "follow_up",
+        "imaging_result",
+        "laboratory_result",
+        "lifestyle",
+        "medication_instructions",
+        "pending_results",
+        "procedure",
+        "reason_for_visit",
+        "treatment_course",
+        "warning_signs"
+      ],
+      "evidence_item_count": 12,
+      "input_truncated": false,
+      "missing_sections": []
+    },
+    "teach_back_questions": [
+      "请用自己的话复述病历中记录的出院诊断。",
+      "请对照出院医嘱复述用药名称、剂量、途径和频次。",
+      "请复述已经记录的复诊或随访安排。",
+      "请复述出院记录中写明的警示症状和返院提示。",
+      "请复述出院记录中写明的生活方式或家庭护理事项。",
+      "请说明记录中哪些结果仍待回报，以及应向谁确认。"
+    ],
+    "trace_refs": {
+      "run_id": "run-da51f191-429c-4f8d-89b9-654cd93616b3",
+      "trace_id": "trace-32f20c422ed84965",
+      "provider_trace_refs": [
+        "run-da51f191-429c-4f8d-89b9-654cd93616b3:governed-discharge-education"
+      ]
+    },
+    "translation_status": "VERBATIM_DOCUMENTED_CONTENT_ONLY",
+    "warning_signs": "呼吸困难加重时按出院医嘱及时就医",
+    "structured_extraction": {
+      "contract": "icoder/DischargeEducationOutput/v3",
+      "method": "json_block",
+      "warnings": [],
+      "required_fields": [
+        "education_status",
+        "diagnosis_summary",
+        "encounter_summary",
+        "key_results",
+        "medication_instructions",
+        "medication_reconciliation_status",
+        "follow_up",
+        "warning_signs",
+        "lifestyle",
+        "pending_results",
+        "teach_back_questions",
+        "clarification_questions",
+        "contradictions",
+        "missing_items",
+        "source_completeness",
+        "evidence_items",
+        "limitations",
+        "translation_status",
+        "external_knowledge_used",
+        "clinical_interpretation_performed",
+        "clinical_recommendations_generated",
+        "production_writeback_blocked",
+        "manual_review_required",
+        "trace_refs"
+      ],
+      "optional_fields": [],
+      "missing_required_fields": [],
+      "invalid_field_types": [],
+      "invalid_field_schemas": [],
+      "invalid_cross_agent_relations": [],
+      "undeclared_output_fields": [],
+      "undeclared_output_field_count": 0,
+      "valid": true
+    }
+  },
+  "schema_ref": "icoder/DischargeEducationOutput/v3",
+  "result_attestation": "eyJhIjoiZGlzY2hhcmdlLWVkdSIsImQiOiI4ZDk4NmI1NmE1ODllOGIyZGMzNzEzNzRkMDIzZDJiMjZjYjNhYWMzZmFmODgzMjQzYzczYjRiMGNjODI1NDM0IiwiZSI6MTc4NzY0OTEzNCwibyI6IjdmYmJiYzNlNDBlZiIsInIiOiJydW4tZGE1MWYxOTEtNDI5Yy00ZjhkLTg5YjktNjU0Y2Q5MzYxNmIzIiwicyI6Imljb2Rlci9EaXNjaGFyZ2VFZHVjYXRpb25PdXRwdXQvdjMiLCJ2IjoxfQ.sYquiAazWESUg78LX1JkkDHlG8Ei6843Fu-t2DuTuhI",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 103,
+      "metadata": {
+        "agent_id": "discharge-edu",
+        "runtime_mode": "rule_engine",
+        "latency_ms": 103
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 0.185
+}

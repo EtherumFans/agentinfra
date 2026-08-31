@@ -1,0 +1,119 @@
+{
+  "active_provider": "mock",
+  "active_model": "deepseek-chat",
+  "tenant_region": "cn",
+  "egress_policy": "strict",
+  "external_llm_allowed": false,
+  "models": [
+    {
+      "id": "deepseek",
+      "display_name": "DeepSeek",
+      "default_model": "deepseek-chat",
+      "model": "deepseek-chat",
+      "deployment_kind": "external_api",
+      "selected": false,
+      "credential_required": true,
+      "credential_configured": null,
+      "adapter_capabilities": [
+        "chat",
+        "streaming",
+        "tool_calling",
+        "structured_output"
+      ],
+      "china_scenario": "Mainland China provider option; hospital approval remains required.",
+      "provider_region": "cn",
+      "tenant_region": "cn",
+      "egress_decision": "deny",
+      "status": "available_to_configure",
+      "blocking_reasons": []
+    },
+    {
+      "id": "qwen",
+      "display_name": "Qwen / 通义千问",
+      "default_model": "qwen-plus",
+      "model": "qwen-plus",
+      "deployment_kind": "external_api",
+      "selected": false,
+      "credential_required": true,
+      "credential_configured": null,
+      "adapter_capabilities": [
+        "chat",
+        "streaming",
+        "tool_calling",
+        "structured_output"
+      ],
+      "china_scenario": "OpenAI-compatible mainland China fallback option.",
+      "provider_region": "cn",
+      "tenant_region": "cn",
+      "egress_decision": "deny",
+      "status": "available_to_configure",
+      "blocking_reasons": []
+    },
+    {
+      "id": "openai_compat",
+      "display_name": "OpenAI-compatible Endpoint",
+      "default_model": "operator-defined",
+      "model": "operator-defined",
+      "deployment_kind": "external_or_private_api",
+      "selected": false,
+      "credential_required": true,
+      "credential_configured": null,
+      "adapter_capabilities": [
+        "chat",
+        "streaming",
+        "tool_calling",
+        "structured_output"
+      ],
+      "china_scenario": "Region must be explicitly declared for the concrete endpoint.",
+      "provider_region": "us",
+      "tenant_region": "cn",
+      "egress_decision": "deny",
+      "status": "available_to_configure",
+      "blocking_reasons": []
+    },
+    {
+      "id": "local",
+      "display_name": "Hospital-hosted OpenAI-compatible Model",
+      "default_model": "operator-defined",
+      "model": "operator-defined",
+      "deployment_kind": "self_hosted",
+      "selected": false,
+      "credential_required": false,
+      "credential_configured": null,
+      "adapter_capabilities": [
+        "chat",
+        "streaming",
+        "tool_calling",
+        "structured_output"
+      ],
+      "china_scenario": "Preferred option when PHI must remain inside the hospital boundary.",
+      "provider_region": "cn",
+      "tenant_region": "cn",
+      "egress_decision": "allow",
+      "status": "available_to_configure",
+      "blocking_reasons": []
+    },
+    {
+      "id": "mock",
+      "display_name": "Deterministic Mock",
+      "default_model": "mock/1.0",
+      "model": "deepseek-chat",
+      "deployment_kind": "development_only",
+      "selected": true,
+      "credential_required": false,
+      "credential_configured": false,
+      "adapter_capabilities": [
+        "contract_testing"
+      ],
+      "china_scenario": "Testing only; never a clinical model.",
+      "provider_region": "cn",
+      "tenant_region": "cn",
+      "egress_decision": "allow",
+      "status": "development_only",
+      "blocking_reasons": []
+    }
+  ],
+  "readiness_scope": "configuration_and_policy_only",
+  "live_health_verified": false,
+  "disclaimer": "External provider health, clinical quality, latency and hospital approval require separate live validation; no credential or endpoint URL is returned."
+}

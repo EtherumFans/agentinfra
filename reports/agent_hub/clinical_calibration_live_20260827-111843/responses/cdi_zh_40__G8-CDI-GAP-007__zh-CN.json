@@ -1,0 +1,241 @@
+{
+  "agent_id": "clinical-documentation-improvement-agent",
+  "run_id": "run-8d9682eb-b141-43b7-91c8-f119f7455416",
+  "trace_id": "trace-c471d082f5524200",
+  "trace_url": "/ai-studio/runs/run-8d9682eb-b141-43b7-91c8-f119f7455416/trace",
+  "runtime_mode": "cdi_real_orchestrator",
+  "latency_ms": 14080,
+  "cost": {
+    "amount": 0.00119546,
+    "currency": "CNY",
+    "source": "configured_usage_pricing_estimate",
+    "billing_authoritative": false
+  },
+  "billing": {},
+  "summary": "CDI review completed; specialist and clinician review remain required.",
+  "result": {
+    "encounter_summary": {
+      "key_points": [
+        "患者女性，70岁",
+        "突发左侧肢体无力2小时",
+        "头颅CT未见出血",
+        "NIHSS评分8分",
+        "入院诊断：脑梗死"
+      ],
+      "encounter_metadata": {
+        "patient_age": "70岁",
+        "patient_sex": "女性",
+        "encounter_type": "入院"
+      }
+    },
+    "documentation_gaps": [
+      {
+        "gap_id": "GAP-001",
+        "gap_type": "diagnostic_specificity",
+        "description": "脑梗死的病因未明确（如动脉粥样硬化性、心源性栓塞、小动脉闭塞等）",
+        "why_it_matters": "病因分型影响治疗策略和编码准确性，未明确可能导致编码不精确。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "入院诊断:脑梗死",
+          "char_start": 41,
+          "char_end": 49,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      },
+      {
+        "gap_id": "GAP-002",
+        "gap_type": "diagnostic_specificity",
+        "description": "脑梗死的具体解剖部位未明确（如大脑中动脉供血区、基底节等）",
+        "why_it_matters": "部位影响神经功能缺损的评估和编码，未明确可能影响编码准确性。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "突发左侧肢体无力2小时",
+          "char_start": 11,
+          "char_end": 22,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      },
+      {
+        "gap_id": "GAP-003",
+        "gap_type": "diagnostic_specificity",
+        "description": "脑梗死的严重程度未明确（如轻、中、重度）",
+        "why_it_matters": "严重程度影响治疗和预后，未明确可能影响编码和临床决策。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "NIHSS 8",
+          "char_start": 33,
+          "char_end": 40,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      }
+    ],
+    "proposed_provider_queries": [
+      {
+        "query_id": "Q-002",
+        "gap_id": "GAP-002",
+        "topic": "脑梗死解剖部位",
+        "reason": "患者突发左侧肢体无力，提示右侧大脑半球病变，但具体解剖部位（如大脑中动脉供血区、基底节等）未明确。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "突发左侧肢体无力2小时",
+          "char_start": 11,
+          "char_end": 22,
+          "documented_at": ""
+        },
+        "evidence_spans": [
+          {
+            "document_id": "chart-001",
+            "quote": "突发左侧肢体无力2小时",
+            "char_start": 11,
+            "char_end": 22,
+            "documented_at": ""
+          }
+        ],
+        "query_text": "该患者脑梗死的具体解剖部位是以下哪一种？",
+        "response_options": [
+          "A. 大脑中动脉供血区",
+          "B. 基底节区",
+          "C. 脑干",
+          "D. 小脑",
+          "E. 无法确定"
+        ],
+        "lifecycle_state": "DRAFT",
+        "priority": "routine",
+        "nlq_gate_verdict": "PASS",
+        "nlq_gate_block_reasons": []
+      }
+    ],
+    "query_gate_summary": {
+      "withheld_count": 3,
+      "status_counts": {
+        "REWRITE_CANDIDATE_GENERATED": 0
+      },
+      "manual_cdi_action_required": true
+    },
+    "coding_specificity_checklist": [],
+    "risk_flags": [],
+    "specialist_trace": [
+      {
+        "expert_id": "coding-expert",
+        "consulted": true,
+        "requested": "You are a coding-specialist Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "For accurate coding, the documentation must specify the underlying etiology (e.g., large-artery atherosclerosis, cardioembolism, or small-vessel occlusion) and the precise vascular territory or anatomical site (e.g., right middle cerebral artery territory, basal ganglia) of the infarction. Additionally, the severity should be quantified using the NIHSS score (already 8) and clearly stated as mild, moderate, or severe, as this impacts clinical management and outcome prediction. Without these details, the code assignment will lack the necessary clinical specificity for proper risk stratification and reimbursement.",
+        "route_decision": "needed",
+        "route_reason": "coding_relevant_gap",
+        "execution_mode": "LLM_KNOWLEDGE_ONLY",
+        "latency_ms": 1549,
+        "tokens": 265,
+        "run_id": "run-f01363973a7b",
+        "trace_id": "trace-1cfd7c27179e"
+      },
+      {
+        "expert_id": "pubmed-expert",
+        "consulted": false,
+        "requested": "You are a PubMed literature Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-2f23d7c94579",
+        "trace_id": "trace-c9a24422be41"
+      },
+      {
+        "expert_id": "web-search-expert",
+        "consulted": false,
+        "requested": "You are a clinical web-search Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-f2976aa6b62e",
+        "trace_id": "trace-8a8267d2422b"
+      },
+      {
+        "expert_id": "medical-calculator-expert",
+        "consulted": false,
+        "requested": "You are a medical-calculator Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "'NIHSS' score — parameters absent from chart",
+        "route_decision": "missing_inputs",
+        "route_reason": "calculator_params_missing",
+        "execution_mode": "SKIPPED_MISSING_INPUTS",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-edd6e67df6a9",
+        "trace_id": "trace-6c747e0b4d02"
+      }
+    ],
+    "human_review": {
+      "cdi_specialist_review_required": true,
+      "clinician_response_required": true,
+      "review_priority": "routine"
+    },
+    "trace_refs": {
+      "run_id": "run-8d9682eb-b141-43b7-91c8-f119f7455416",
+      "stage_trace": {
+        "encounter_synthesis": "trace-1d0caf8e23cc",
+        "gap_identification": "trace-238652e4b59a",
+        "expert_consultation": "trace-9cd09daf1a08",
+        "query_generation": "trace-f2b33a6e6ffe",
+        "query_eligibility_gate": "",
+        "query_necessity_gate": "",
+        "query_dimension_rewrite": "trace-f334a70bee97",
+        "query_single_dimension_gate": "",
+        "claim_evidence_alignment_gate": "trace-b91e219ef033",
+        "semantic_necessity_gate": "trace-a50e2f068733",
+        "query_compliance_gate": "",
+        "specialist_trace_emit": "trace-451f81bfd0e9"
+      },
+      "experts_consulted": [
+        "coding-expert"
+      ],
+      "gate_results": {
+        "encounter_synthesis": "run-7b589f89e9c4",
+        "gap_identification": "run-f6ecf871f46e",
+        "gap_identification_risk_flags": "emitted=0;quote_snapped=0;withheld=0;quantity_redacted=0",
+        "expert_consultation": "run-4343dce5fee3",
+        "query_generation": "run-96460f8414f7",
+        "query_generation::quote_snapped": "0",
+        "query_generation::coverage_missing": "0",
+        "query_eligibility_gate": "chart_complete=False;completeness_score=0.25;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=Y,D8_course=N;dropped=0;final_count=3;llm_complete=False;llm_reasoning=脑梗死诊断明确，但缺乏病因、部位和严重程度的具体描述，需要进一步明确才能满足编码要求。",
+        "query_necessity_gate": "necessary=2;unnecessary=1;overquery_triggered=False;final_count=2",
+        "query_dimension_rewrite": "run-cc2249b86868",
+        "query_single_dimension_gate": "single_dim=1;multi_dim=1;axis_cluster_triggered=False;axis_cluster_axis=etiology;rewrite_attempted=1;rewrite_accepted=0;final_count=1",
+        "claim_evidence_alignment_gate": "claims_extracted=1;degraded=0;blocked=0;flagged=0;final_count=1",
+        "claim_evidence_alignment_gate::run_id": "run-ec24026488e0",
+        "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=1",
+        "semantic_necessity_gate::run_id": "run-bfa7981acf79",
+        "query_compliance_gate": ";passed=1;blocked=0",
+        "specialist_trace_emit": "run-109cf166b629"
+      },
+      "trace_id": "trace-c471d082f5524200"
+    }
+  },
+  "schema_ref": "icoder/CDIAgentOutputV1/v6",
+  "result_attestation": "eyJhIjoiY2xpbmljYWwtZG9jdW1lbnRhdGlvbi1pbXByb3ZlbWVudC1hZ2VudCIsImQiOiJhNDlhOTY0MGI0ZWRlZDIwM2EzMmZjMzViMGU1Yjg3OWJkOTIwNGNhMWQyZWMzY2UyNDZmNjYzZjEzNTYxMmIyIiwiZSI6MTc4Nzg4NzI3NiwibyI6IjVmZWYzNzlmMjViZCIsInIiOiJydW4tOGQ5NjgyZWItYjE0MS00M2I3LTkxYzgtZjExOWY3NDU1NDE2IiwicyI6Imljb2Rlci9DRElBZ2VudE91dHB1dFYxL3Y2IiwidiI6MX0.UeuPMie0YWEL_Rc3Ff62inBrDyh4stq9xSVM0mR9Mwk",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 14.27
+}

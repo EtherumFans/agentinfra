@@ -1,0 +1,79 @@
+{
+  "schema": "icoder/agent-usage-composition-graph-phase-evidence/v1",
+  "generated_at": "2026-08-22T04:04:03+08:00",
+  "phase": "agent_usage_composition_graph",
+  "status": "development_candidate",
+  "external_llm_used": false,
+  "corti_write_operations": false,
+  "port_8000_started": false,
+  "capabilities": {
+    "tenant_scoped_agent_usage": true,
+    "usage_window_semantics": {
+      "from": "inclusive",
+      "to": "exclusive",
+      "accepted_granularity": ["minute", "hour", "day", "week"],
+      "returned_granularity": "day",
+      "maximum_window_days": 366
+    },
+    "automated_evaluation_machine_scope": "feedback:evaluate",
+    "training_authorized_by_feedback": false,
+    "connector_graph_unified_run_specialized_paths": true,
+    "connector_graph_all_direct_a2a_paths": true,
+    "server_owned_connector_results": true,
+    "typescript_python_sdk_composition": true
+  },
+  "validation": {
+    "backend_connector_graph": {"passed": 13, "failed": 0},
+    "backend_usage_feedback": {"passed": 6, "failed": 0},
+    "backend_a2a_async": {"passed": 3, "failed": 0},
+    "backend_real_startup": {"passed": 3, "failed": 0},
+    "backend_agent_run": {"passed": 46, "failed": 0},
+    "backend_openapi_parity": {"passed": 3, "failed": 0},
+    "backend_phase_total_independent_processes": {"passed": 74, "failed": 0},
+    "javascript_sdk": {"passed": 40, "failed": 0, "build": "passed"},
+    "python_sdk": {"passed": 47, "failed": 0},
+    "frontend_openapi_contract": {"passed": 60, "failed": 0},
+    "release_validator": {"passed": 5, "failed": 0},
+    "compileall": "passed",
+    "secret_shape_scan_files_matched": 0
+  },
+  "openapi": {
+    "path_count": 256,
+    "size_bytes": 788396,
+    "usage_path": "/api/v2/agentic/agents/{agent_id}/usage",
+    "snapshot_check": "passed"
+  },
+  "sdk_versions": {
+    "javascript": "1.0.0-beta.20",
+    "python": "1.0.0b20",
+    "dotnet": "1.0.0-beta.20",
+    "dotnet_local_compile": "not_run_toolchain_unavailable"
+  },
+  "artifacts": [
+    {
+      "path": "reports/release-candidate/beta20/icoder-sdk-1.0.0-beta.20.tgz",
+      "sha256": "1ed1b6445905c80a1e546e66e8361bfd0c49dd634d8fb5dbd31356e883ba404a"
+    },
+    {
+      "path": "reports/release-candidate/beta20/icoder_sdk-1.0.0b20-py3-none-any.whl",
+      "sha256": "4a2f31553596f7128f1c341b1387cbe3e5433f11947fcaf6f102cbb5e2b2b730"
+    },
+    {
+      "path": "reports/release-candidate/beta20/icoder_sdk-1.0.0b20.tar.gz",
+      "sha256": "f283525f7d4e769b3267c0fa1d84c45d7face4ee34bfa98715fcc2cde8706c08"
+    }
+  ],
+  "test_infrastructure_constraint": "Backend integration suites share one SQLite database and must run serially across pytest processes.",
+  "remaining_gates": [
+    "dynamic_standard_agent_card",
+    "server_side_conditional_parallel_connector_planner",
+    "production_connector_transport_and_credentials",
+    "distributed_queue_and_multi_replica_validation",
+    "independent_training_authorization",
+    "dotnet_ci_compile_and_test",
+    "governed_icd_retrieval_e2e",
+    "real_26_agent_clinical_quality_matrix",
+    "hospital_cloud_legal_certification_and_independent_reviewer"
+  ],
+  "publication": {"performed": false}
+}

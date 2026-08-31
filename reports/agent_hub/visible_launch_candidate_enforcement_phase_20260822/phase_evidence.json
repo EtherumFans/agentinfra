@@ -1,0 +1,155 @@
+{
+  "schema_version": "icoder.visible-agent-launch-candidate-enforcement/v1",
+  "generated_at": "2026-08-22T15:29:55+08:00",
+  "result": "passed_with_real_model_clinical_and_external_release_gates_open",
+  "inventory": {
+    "disk_packs": 32,
+    "hub_declared_visible_packs": 26,
+    "hub_visible_agents": 26,
+    "hub_declared_visible_excluded": [],
+    "hidden_packs": 6,
+    "hidden_metadata_only_or_stub_packs": 5,
+    "hidden_internal_executable_packs": 1,
+    "visible_executable": 26,
+    "visible_provider_resolvable": 26,
+    "visible_launch_candidate_ready": 26,
+    "visible_provider_registry_routes": 21,
+    "visible_dedicated_routes": 5,
+    "visible_legacy_default_routes": [],
+    "visible_not_ready": []
+  },
+  "implementation": {
+    "backend_hidden_flag_is_intent_only": true,
+    "backend_requires_executable_pack": true,
+    "backend_requires_launch_candidate_ready": true,
+    "backend_resolves_provider_registry": true,
+    "backend_allows_only_runnable_or_production_maturity": true,
+    "backend_rejects_metadata_only_stub_mvp_and_invalid": true,
+    "matrix_tracks_declared_and_actual_visibility": true,
+    "matrix_fails_when_declared_visible_pack_is_excluded": true,
+    "frontend_filters_untrusted_hub_response": true,
+    "frontend_rejects_non_runnable_blocked_mvp_and_actionless_cards": true,
+    "hub_schema_version": "1.2",
+    "native_e2e_runner_rejects_preloaded_torch_or_pyarrow": true,
+    "cache_only_test_proves_no_new_native_modules": true
+  },
+  "contract_gates": {
+    "visible_complete_type_contracts": 26,
+    "visible_complete_nested_schemas": 26,
+    "visible_strict_output_allowlists": 26,
+    "visible_immutable_registered_contracts": 26,
+    "visible_valid_field_relations": 26,
+    "visible_field_relation_count": 34,
+    "visible_valid_evidence_bindings": 26,
+    "visible_evidence_binding_count": 15,
+    "visible_valid_cross_agent_relations": 26,
+    "visible_cross_agent_relation_count": 8
+  },
+  "tests": {
+    "focused_backend_hub": {
+      "passed": 32,
+      "failed": 0,
+      "warnings": 1,
+      "duration_seconds": 48.57
+    },
+    "expanded_hub_pack_discovery_display": {
+      "passed": 285,
+      "failed": 0,
+      "warnings": 22,
+      "duration_seconds": 188.72
+    },
+    "initial_expanded_diagnostic": {
+      "passed": 283,
+      "failed": 1,
+      "failure": "cache-only unit test attributed native modules loaded by earlier unrelated tests to the runner",
+      "resolved_by": "preserved strict production guard; test now proves no additional native modules and directly tests guard rejection"
+    },
+    "final_matrix_and_preflight_focused": {
+      "passed": 9,
+      "failed": 0,
+      "duration_seconds": 2.66
+    },
+    "final_hub_visibility_and_projection_focused": {
+      "passed": 26,
+      "failed": 0,
+      "warnings": 1,
+      "duration_seconds": 37.90
+    },
+    "frontend": {
+      "tests_passed": 138,
+      "tests_failed": 0,
+      "production_build_passed": true
+    },
+    "javascript_sdk": {
+      "version": "1.0.0-beta.24",
+      "tests_passed": 43,
+      "tests_failed": 0,
+      "build_passed": true
+    },
+    "python_sdk": {
+      "version": "1.0.0b24",
+      "tests_passed": 50,
+      "tests_failed": 0
+    },
+    "dotnet_sdk": {
+      "version": "1.0.0-beta.24",
+      "locally_compiled": false,
+      "reason": "dotnet CLI is unavailable on this development host"
+    },
+    "openapi": {
+      "paths": 269,
+      "schemas": 288,
+      "bytes": 842015,
+      "drift": false
+    },
+    "deployment_preflight": {
+      "passed": 65,
+      "failed": 0,
+      "mode": "static_without_docker_cli"
+    },
+    "credential_scan": {
+      "credential_shaped_sk_token_files": 0,
+      "hardcoded_llm_credential_assignment_files": 0
+    },
+    "real_llm_used": false,
+    "external_llm_allowed": false,
+    "native_medcoder_used": false,
+    "development_backend_started_or_restarted": false
+  },
+  "data_safety": {
+    "schema_change": false,
+    "source_database_path": "backend/data/icoder.db",
+    "source_database_sha256": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e",
+    "source_database_unchanged": true,
+    "cutover_performed": false
+  },
+  "artifacts": {
+    "runtime_matrix": {
+      "path": "reports/agent_hub/visible_launch_candidate_enforcement_phase_20260822/current/agent_hub_runtime_matrix.json",
+      "sha256": "0e4cb75433af9c6af2d680d0b6af28cdd6ff1e9897b3366cff71ddc3648d7865"
+    },
+    "deployment_preflight": {
+      "path": "reports/agent_hub/visible_launch_candidate_enforcement_phase_20260822/deployment-preflight/deployment_preflight.json",
+      "sha256": "6b164543effa84d2bc9c799b6ade06ddbdd6cd7a6f3aa04a1da29118807ac67e"
+    },
+    "openapi": {
+      "path": "docs/openapi/openapi.json",
+      "sha256": "a095196fe81a671d8c94f57ece85831d9346490deb5c49e5cf2b05cb661a8cfe"
+    },
+    "summary": {
+      "path": "docs/corti_parity/ICODER_VISIBLE_AGENT_LAUNCH_CANDIDATE_ENFORCEMENT_PHASE_SUMMARY_2026-08-22.md",
+      "sha256": "74f98eac89058cb6000dc634147caecdb59cfa85707860610bb244d39f57efd9"
+    },
+    "live_gap_matrix": {
+      "path": "docs/corti_parity/CORTI_ICODER_LIVE_GAP_MATRIX_2026-08-21.md",
+      "sha256": "8adb841f11b4ef28d536c1c72eaa8800f6a54e7d3952441c3ac590119fcc6604"
+    }
+  },
+  "limitations": [
+    "The 26/26 result proves development wiring, public contracts, safety gates, and auditability; it does not prove real-model semantic or clinical quality.",
+    "A complete 26-Agent real-model happy/adversarial/repetition matrix still requires a rotated credential, explicit budget, new responses, and independent clinical review.",
+    "No dotnet, Docker, or Nginx CLI is available locally; those build and runtime gates remain CI or external-environment work.",
+    "Corti managed-model, billing, private runtime, tenant interoperability, and private-preview SDK behavior are not locally verifiable.",
+    "Hospital integration, authoritative patient consent, licensed China coding and DRG/DIP data, cloud infrastructure, legal, certification, penetration testing, and independent reviewers remain external gates."
+  ]
+}

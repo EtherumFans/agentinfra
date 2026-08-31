@@ -1,0 +1,281 @@
+{
+  "agent_id": "medical-coding-agent",
+  "run_id": "run-a8594c68-b268-4c3c-a38a-ff38b5223284",
+  "trace_id": "trace-a5e6cd007f2e4c68",
+  "trace_url": "/ai-studio/runs/run-a8594c68-b268-4c3c-a38a-ff38b5223284/trace",
+  "runtime_mode": "corti_like_fast",
+  "latency_ms": 5621,
+  "cost": {
+    "amount": 0.000325,
+    "currency": "CNY",
+    "source": "provider_token_usage",
+    "token_usage": {
+      "input_tokens": 1315,
+      "output_tokens": 502
+    }
+  },
+  "billing": {},
+  "summary": "主要诊断为2型糖尿病伴酮症酸中毒，使用组合编码E11.10，避免使用E11.9。酸中毒作为DKA的组成部分，编码E87.2可能重复，但为体现病情严重度可保留。手术操作编码99.29为胰岛素输注，符合治疗过程。",
+  "result": {
+    "encounter_summary": {
+      "chief_complaint": "",
+      "treatment_course": "",
+      "key_findings": [],
+      "document_sources": [],
+      "encounter_date": ""
+    },
+    "documentation_analysis": {
+      "diagnosis_evidence": [],
+      "procedure_evidence": [],
+      "negated_findings": [],
+      "historical_conditions": []
+    },
+    "code_assignment": {
+      "primary_diagnosis": {
+        "code": "E11.10",
+        "description": "2型糖尿病伴酮症酸中毒",
+        "confidence": 0.95,
+        "category": "principal",
+        "evidence": [
+          {
+            "text": "Admission diagnosis: type 2 diabetic ketoacidosis",
+            "kind": "auto_bootstrap",
+            "char_start": 341,
+            "char_end": 390,
+            "doc_id": "input"
+          },
+          {
+            "text": "Blood glucose 28.5 mmol/L, pH 7.20, HCO3- 12 mmol/L, urine ketone 3+",
+            "kind": "auto_bootstrap",
+            "char_start": 241,
+            "char_end": 309,
+            "doc_id": "input"
+          },
+          {
+            "text": "History: type 2 diabetes for 8 years",
+            "kind": "auto_bootstrap",
+            "char_start": 116,
+            "char_end": 152,
+            "doc_id": "input"
+          }
+        ]
+      },
+      "secondary_diagnoses": [
+        {
+          "code": "E87.2",
+          "description": "酸中毒",
+          "confidence": 0.8,
+          "category": "comorbidity",
+          "evidence": [
+            {
+              "text": "pH 7.20, HCO3- 12 mmol/L",
+              "kind": "auto_bootstrap",
+              "char_start": 268,
+              "char_end": 292,
+              "doc_id": "input"
+            }
+          ]
+        }
+      ],
+      "procedures": [
+        {
+          "code": "99.29",
+          "description": "胰岛素静脉输注",
+          "confidence": 0.9,
+          "category": "therapeutic",
+          "evidence": [
+            {
+              "text": "Given low-dose insulin IV titration",
+              "kind": "auto_bootstrap",
+              "char_start": 392,
+              "char_end": 427,
+              "doc_id": "input"
+            }
+          ]
+        }
+      ]
+    },
+    "documentation_gaps": [],
+    "uncodable_items": [],
+    "validation_summary": {
+      "passed": false,
+      "issues_found": [
+        {
+          "severity": "low",
+          "code": "RULE-001",
+          "message": "酸中毒作为酮症酸中毒的组成部分，可能无需单独编码，但为明确代谢紊乱程度，可保留作为次要诊断。",
+          "suggestion": "确认酸中毒是否作为合并症或并发症记录，若为DKA直接表现，可考虑不单独编码。"
+        }
+      ],
+      "manual_review_required": true,
+      "rule_set": "MedCodERRetrievalRuleSet",
+      "fired_rules": [
+        "RULE-001"
+      ]
+    },
+    "human_review": {
+      "review_conclusion": "PASS",
+      "review_required": true,
+      "review_focus": [],
+      "notes": "主要诊断为2型糖尿病伴酮症酸中毒，使用组合编码E11.10，避免使用E11.9。酸中毒作为DKA的组成部分，编码E87.2可能重复，但为体现病情严重度可保留。手术操作编码99.29为胰岛素输注，符合治疗过程。"
+    },
+    "trace_refs": {
+      "run_id": "run-a8594c68-b268-4c3c-a38a-ff38b5223284",
+      "stage_trace": [],
+      "rule_fired": [
+        "RULE-001"
+      ],
+      "mode": "Mode.UNSET",
+      "method_id": "",
+      "provider": "",
+      "model": "",
+      "trace_id": "trace-a5e6cd007f2e4c68"
+    },
+    "codes": [
+      {
+        "code": "E11.10",
+        "system": "ICD-10-CN",
+        "display": "2型糖尿病伴酮症酸中毒",
+        "type": "primary_diagnosis",
+        "confidence": 0.95,
+        "evidence": "Admission diagnosis: type 2 diabetic ketoacidosis; Blood glucose 28.5 mmol/L, pH 7.20, HCO3- 12 mmol/L, urine ketone 3+; History: type 2 diabetes for 8 years",
+        "rationale": "主要诊断 — 基于病历证据的优先编码候选,需结合 ICD-10-CN 本地目录复核具体亚目。",
+        "warnings": [
+          "需结合国家医保版 ICD-10-CN 目录进一步校验具体亚目"
+        ],
+        "alternatives": []
+      },
+      {
+        "code": "E87.2",
+        "system": "ICD-10-CN",
+        "display": "酸中毒",
+        "type": "secondary_diagnosis",
+        "confidence": 0.8,
+        "evidence": "pH 7.20, HCO3- 12 mmol/L",
+        "rationale": "次要诊断 (comorbidity) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。",
+        "warnings": [
+          "需结合 ICD-10-CN 本地目录进一步校验具体亚目"
+        ],
+        "alternatives": []
+      },
+      {
+        "code": "99.29",
+        "system": "ICD-9-CM-3-CN",
+        "display": "胰岛素静脉输注",
+        "type": "procedure",
+        "confidence": 0.9,
+        "evidence": "Given low-dose insulin IV titration",
+        "rationale": "手术/操作 (therapeutic) — 基于 ICD-9-CM-3-CN 编码候选,需结合本地手术目录复核。",
+        "warnings": [
+          "需结合 ICD-9-CM-3-CN 本地目录进一步校验具体亚目"
+        ],
+        "alternatives": []
+      }
+    ],
+    "manual_review_required": true
+  },
+  "schema_ref": "icoder/MedicalCodingAgentOutputV2/v8",
+  "result_attestation": "eyJhIjoibWVkaWNhbC1jb2RpbmctYWdlbnQiLCJkIjoiMGIyNWQwYzRkYzA0ZjMxOGM5NmVmZmFlZGEyMTYyN2I3MmExOTMyNmE3N2U5ODMyNmExZWMyNmEyNzRiZjlkMyIsImUiOjE3ODc4ODc2OTIsIm8iOiI1ZmVmMzc5ZjI1YmQiLCJyIjoicnVuLWE4NTk0YzY4LWIyNjgtNGMzYy1hMzhhLWZmMzhiNTIyMzI4NCIsInMiOiJpY29kZXIvTWVkaWNhbENvZGluZ0FnZW50T3V0cHV0VjIvdjgiLCJ2IjoxfQ.9oGHK2wEQKv3v3zA7MV_lXYwMgZkYPa1tWzJE4aitEs",
+  "evidence": [
+    {
+      "code": "E11.10",
+      "system": "ICD-10-CN",
+      "type": "primary_diagnosis",
+      "text": "Admission diagnosis: type 2 diabetic ketoacidosis; Blood glucose 28.5 mmol/L, pH 7.20, HCO3- 12 mmol/L, urine ketone 3+; History: type 2 diabetes for 8 years",
+      "rationale": "主要诊断 — 基于病历证据的优先编码候选,需结合 ICD-10-CN 本地目录复核具体亚目。"
+    },
+    {
+      "code": "E87.2",
+      "system": "ICD-10-CN",
+      "type": "secondary_diagnosis",
+      "text": "pH 7.20, HCO3- 12 mmol/L",
+      "rationale": "次要诊断 (comorbidity) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。"
+    },
+    {
+      "code": "99.29",
+      "system": "ICD-9-CM-3-CN",
+      "type": "procedure",
+      "text": "Given low-dose insulin IV titration",
+      "rationale": "手术/操作 (therapeutic) — 基于 ICD-9-CM-3-CN 编码候选,需结合本地手术目录复核。"
+    }
+  ],
+  "warnings": [
+    "需结合国家医保版 ICD-10-CN 目录进一步校验具体亚目",
+    "需结合 ICD-10-CN 本地目录进一步校验具体亚目",
+    "需结合 ICD-9-CM-3-CN 本地目录进一步校验具体亚目"
+  ],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "input_received",
+      "status": "ok",
+      "ts": 1787801286.934503,
+      "duration_ms": 0,
+      "metadata": {
+        "text_len": 610,
+        "mode": "corti_like_fast"
+      }
+    },
+    {
+      "step": "language_detect",
+      "status": "ok",
+      "ts": 1787801286.934503,
+      "duration_ms": 0,
+      "metadata": {
+        "language": "en"
+      }
+    },
+    {
+      "step": "build_prompt",
+      "status": "ok",
+      "ts": 1787801286.934503,
+      "duration_ms": 0,
+      "metadata": {
+        "provider": "deepseek",
+        "language": "en",
+        "system": "icd-10-cn"
+      }
+    },
+    {
+      "step": "llm_call",
+      "status": "ok",
+      "ts": 1787801292.5569348,
+      "duration_ms": 5621,
+      "metadata": {
+        "provider": "deepseek",
+        "model": "deepseek-chat",
+        "is_mock": false
+      }
+    },
+    {
+      "step": "parse_json",
+      "status": "ok",
+      "ts": 1787801292.5569348,
+      "duration_ms": 5621,
+      "metadata": {}
+    },
+    {
+      "step": "project_result",
+      "status": "ok",
+      "ts": 1787801292.5569348,
+      "duration_ms": 5621,
+      "metadata": {
+        "code_count": 3
+      }
+    },
+    {
+      "step": "return",
+      "status": "ok",
+      "ts": 1787801292.5569348,
+      "duration_ms": 5621,
+      "metadata": {
+        "latency_ms": 5621,
+        "code_count": 3
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 6.695
+}

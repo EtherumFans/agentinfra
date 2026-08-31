@@ -1,0 +1,234 @@
+{
+  "agent_id": "clinical-documentation-improvement-agent",
+  "run_id": "run-d66f8cee-bfd2-412d-b001-ffe6bb57e80c",
+  "trace_id": "trace-e6ece75d08524478",
+  "trace_url": "/ai-studio/runs/run-d66f8cee-bfd2-412d-b001-ffe6bb57e80c/trace",
+  "runtime_mode": "cdi_real_orchestrator",
+  "latency_ms": 21265,
+  "cost": {
+    "amount": 0.0012103,
+    "currency": "CNY",
+    "source": "configured_usage_pricing_estimate",
+    "billing_authoritative": false
+  },
+  "billing": {},
+  "summary": "CDI review completed; specialist and clinician review remain required.",
+  "result": {
+    "encounter_summary": {
+      "key_points": [
+        "患者男性，45岁",
+        "多饮多尿1月",
+        "FPG 12.5 mmol/L",
+        "HbA1c 11.2%",
+        "pH 7.30",
+        "HCO3 16 mmol/L",
+        "酮体阳性",
+        "入院诊断：2型糖尿病"
+      ],
+      "encounter_metadata": {
+        "patient_age": "45岁",
+        "patient_sex": "男性",
+        "encounter_type": "入院"
+      }
+    },
+    "documentation_gaps": [
+      {
+        "gap_id": "GAP-001",
+        "gap_type": "diagnostic_specificity",
+        "description": "The diagnosis of type 2 diabetes is documented, but the presence of ketosis and metabolic acidosis (pH 7.30, HCO3 16, ketones positive) suggests possible diabetic ketoacidosis (DKA) or ketosis-prone diabetes, which is not specified.",
+        "why_it_matters": "Coding requires specificity for diabetes with ketoacidosis or other complications. Without clarification, the encounter may be coded as uncomplicated type 2 diabetes, potentially undercoding the severity and complexity.",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "pH 7.30, HCO3 16, 酮体阳性。入院诊断:2型糖尿病。",
+          "char_start": 40,
+          "char_end": 74,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "urgent"
+      },
+      {
+        "gap_id": "GAP-002",
+        "gap_type": "diagnostic_specificity",
+        "description": "The type of diabetes is documented as type 2, but the clinical presentation with ketosis and acidosis may be atypical. The provider should clarify whether this is type 1, type 2 with ketosis, or other specific type.",
+        "why_it_matters": "The type of diabetes affects coding and treatment. Misclassification can lead to incorrect coding and potential compliance issues.",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "入院诊断:2型糖尿病",
+          "char_start": 63,
+          "char_end": 73,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "urgent"
+      }
+    ],
+    "proposed_provider_queries": [
+      {
+        "query_id": "Q-001",
+        "gap_id": "GAP-001",
+        "topic": "糖尿病急性并发症",
+        "reason": "酸中毒和酮体阳性，但急性并发症诊断未明确。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "pH 7.30, HCO3 16, 酮体阳性。入院诊断:2型糖尿病。",
+          "char_start": 40,
+          "char_end": 74,
+          "documented_at": ""
+        },
+        "evidence_spans": [
+          {
+            "document_id": "chart-001",
+            "quote": "pH 7.30, HCO3 16, 酮体阳性。入院诊断:2型糖尿病。",
+            "char_start": 40,
+            "char_end": 74,
+            "documented_at": ""
+          }
+        ],
+        "query_text": "请明确本次入院应记录的糖尿病急性并发症。",
+        "response_options": [
+          "A. 糖尿病酮症酸中毒",
+          "B. 糖尿病酮症（无酸中毒）",
+          "C. 其他急性并发症（请注明）",
+          "D. 无法确定"
+        ],
+        "lifecycle_state": "DRAFT",
+        "priority": "urgent",
+        "nlq_gate_verdict": "PASS",
+        "nlq_gate_block_reasons": []
+      }
+    ],
+    "query_gate_summary": {
+      "withheld_count": 2,
+      "status_counts": {
+        "REWRITE_CANDIDATE_GENERATED": 0
+      },
+      "manual_cdi_action_required": true
+    },
+    "coding_specificity_checklist": [],
+    "risk_flags": [
+      {
+        "category": "contradiction",
+        "description": "The diagnosis of type 2 diabetes is stated, but the presence of ketosis and metabolic acidosis is more typical of type 1 diabetes or DKA, creating a potential contradiction between the diagnosis and clinical findings."
+      }
+    ],
+    "specialist_trace": [
+      {
+        "expert_id": "coding-expert",
+        "consulted": true,
+        "requested": "You are a coding-specialist Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "The documentation should specify whether the patient has diabetic ketoacidosis (DKA) or ketosis-prone type 2 diabetes, given the metabolic acidosis (pH 7.30, HCO3 16) and positive ketones, as this distinction affects both treatment and coding. Additionally, clarify if the diabetes is truly type 2 or if an atypical presentation (e.g., latent autoimmune diabetes in adults, ketosis-prone diabetes) is suspected, since the clinical picture with ketosis and acidosis is not typical for uncomplicated type 2 diabetes. Please document the exact diabetes type and the presence or absence of DKA to ensure accurate clinical specificity.",
+        "route_decision": "needed",
+        "route_reason": "coding_relevant_gap",
+        "execution_mode": "LLM_KNOWLEDGE_ONLY",
+        "latency_ms": 2522,
+        "tokens": 346,
+        "run_id": "run-1c6f4f21836c",
+        "trace_id": "trace-47b2f2a5afe2"
+      },
+      {
+        "expert_id": "pubmed-expert",
+        "consulted": true,
+        "requested": "You are a PubMed literature Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "Based on the chart, the clinical picture of significant hyperglycemia (HbA1c 11.2%), ketosis, and metabolic acidosis (pH 7.30, HCO3 16) is atypical for classic type 2 diabetes and strongly suggests ketosis-prone diabetes (KPD) or diabetic ketoacidosis (DKA), which can occur in patients with type 2 diabetes under stress. Literature supports that ketosis-prone type 2 diabetes (e.g., \"Flatbush diabetes\") is a recognized phenotype, often presenting with DKA in middle-aged adults who later may not require insulin (PMID: 12679464; PMID: 23300216). I do not have live PubMed access, so please verify these PMIDs, but the evidence indicates the provider should reclassify the diabetes type (e.g., KPD, type 1, or type 2 with ketosis) and document the DKA episode explicitly for accurate management and coding.",
+        "route_decision": "needed",
+        "route_reason": "criteria_marker_present",
+        "execution_mode": "LLM_KNOWLEDGE_ONLY",
+        "latency_ms": 3291,
+        "tokens": 428,
+        "run_id": "run-a48a409693e7",
+        "trace_id": "trace-f4e8d4710257"
+      },
+      {
+        "expert_id": "web-search-expert",
+        "consulted": false,
+        "requested": "You are a clinical web-search Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-5f4531d70109",
+        "trace_id": "trace-8826a55b7ea8"
+      },
+      {
+        "expert_id": "medical-calculator-expert",
+        "consulted": false,
+        "requested": "You are a medical-calculator Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-4644b5cab4bf",
+        "trace_id": "trace-5af04d42aace"
+      }
+    ],
+    "human_review": {
+      "cdi_specialist_review_required": true,
+      "clinician_response_required": true,
+      "review_priority": "urgent"
+    },
+    "trace_refs": {
+      "run_id": "run-d66f8cee-bfd2-412d-b001-ffe6bb57e80c",
+      "stage_trace": {
+        "encounter_synthesis": "trace-76006623a292",
+        "gap_identification": "trace-dc5980b8b520",
+        "expert_consultation": "trace-b2b2993b9d43",
+        "query_generation": "trace-482fd1297b15",
+        "query_eligibility_gate": "",
+        "query_necessity_gate": "",
+        "query_dimension_rewrite": "",
+        "query_single_dimension_gate": "",
+        "claim_evidence_alignment_gate": "trace-18b7ff5f64ba",
+        "semantic_necessity_gate": "trace-59b21b09cdc4",
+        "query_compliance_gate": "",
+        "specialist_trace_emit": "trace-5c985ac81d8d"
+      },
+      "experts_consulted": [
+        "coding-expert",
+        "pubmed-expert"
+      ],
+      "gate_results": {
+        "encounter_synthesis": "run-4d57f804fb96",
+        "gap_identification": "run-cc6adfbaaeec",
+        "gap_identification_risk_flags": "emitted=1;quote_snapped=0",
+        "expert_consultation": "run-82591cbc0a59",
+        "query_generation": "run-b5b1d1e2cc9a",
+        "query_generation::quote_snapped": "0",
+        "query_generation::coverage_missing": "0",
+        "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=2;llm_complete=False;llm_reasoning=The chart documents type 2 diabetes but does not specify the presence of ketoaci",
+        "query_necessity_gate": "necessary=1;unnecessary=1;overquery_triggered=False;final_count=1",
+        "query_dimension_rewrite": "not_executed",
+        "query_single_dimension_gate": "single_dim=1;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=complication;rewrite_attempted=0;rewrite_accepted=0;final_count=1",
+        "claim_evidence_alignment_gate": "claims_extracted=2;degraded=0;blocked=0;flagged=0;final_count=1",
+        "claim_evidence_alignment_gate::run_id": "run-cb254eb5af80",
+        "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=1",
+        "semantic_necessity_gate::run_id": "run-b848f07ab65a",
+        "query_compliance_gate": ";passed=1;blocked=0",
+        "specialist_trace_emit": "run-0b97564a71a0"
+      },
+      "trace_id": "trace-e6ece75d08524478"
+    }
+  },
+  "schema_ref": "icoder/CDIAgentOutputV1/v6",
+  "result_attestation": "eyJhIjoiY2xpbmljYWwtZG9jdW1lbnRhdGlvbi1pbXByb3ZlbWVudC1hZ2VudCIsImQiOiIwNWU2ZjM2NGRmM2E0NDkzMTBiMjkzZWY0YjM5MmI0ODM5OTgxN2ZiMzI1NDAzYThjMmVhMzg0NTVhMDExZGU5IiwiZSI6MTc4Nzg4MjA3OCwibyI6ImJjOTJlZTA2YWYwZiIsInIiOiJydW4tZDY2ZjhjZWUtYmZkMi00MTJkLWIwMDEtZmZlNmJiNTdlODBjIiwicyI6Imljb2Rlci9DRElBZ2VudE91dHB1dFYxL3Y2IiwidiI6MX0.kB5k1k7yfb_d4Y0PMJbFEr0c_EPCfNrzGYFLBpQ9Qg0",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 21.379
+}

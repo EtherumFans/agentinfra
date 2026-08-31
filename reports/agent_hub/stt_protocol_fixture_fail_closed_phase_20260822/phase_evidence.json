@@ -1,0 +1,93 @@
+{
+  "schema_version": "icoder.stt-protocol-fixture-fail-closed/v1",
+  "generated_at": "2026-08-22T16:17:32+08:00",
+  "result": "passed_with_real_asr_clinical_and_external_release_gates_open",
+  "implementation": {
+    "real_recording_lifecycle_preserved": true,
+    "real_sync_transcription_path_preserved": true,
+    "real_persisted_async_transcription_path_preserved": true,
+    "engine_unavailable_http_status": 503,
+    "fixture_requires_development_or_test_environment": true,
+    "fixture_requires_explicit_switch": true,
+    "fixture_requires_pytest_runtime": true,
+    "environment_switch_alone_can_publish_synthetic_resources": false,
+    "cloud_fixture_enabled": false,
+    "unknown_runtime_recordings_are_synthetic": false,
+    "unknown_runtime_transcripts_are_synthetic": false
+  },
+  "tests": {
+    "focused_stt_protocol_and_preflight": {
+      "passed": 82,
+      "failed": 0,
+      "warnings": 1,
+      "duration_seconds": 5.69
+    },
+    "expanded_stt_api_repository_job_websocket_and_config": {
+      "passed": 145,
+      "failed": 0,
+      "warnings": 13,
+      "duration_seconds": 6.77
+    },
+    "non_pytest_process_probe": {
+      "app_env": "development",
+      "fixture_switch": true,
+      "fixtures_enabled": false,
+      "exit_code": 0
+    },
+    "deployment_preflight": {
+      "passed": 68,
+      "failed": 0,
+      "mode": "static_without_docker_cli"
+    },
+    "openapi": {
+      "paths": 269,
+      "schemas": 288,
+      "bytes": 842015,
+      "drift": false
+    },
+    "credential_scan": {
+      "deepseek_shaped_key_files": 0,
+      "hardcoded_deepseek_secret_assignment_files": 0
+    },
+    "real_asr_used": false,
+    "real_llm_used": false,
+    "external_llm_allowed": false,
+    "native_medcoder_used": false,
+    "independent_backend_started_or_restarted": false
+  },
+  "data_safety": {
+    "schema_change": false,
+    "source_database_path": "backend/data/icoder.db",
+    "source_database_sha256": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e",
+    "source_database_unchanged": true,
+    "cutover_performed": false
+  },
+  "artifacts": {
+    "runtime_matrix": {
+      "path": "reports/agent_hub/visible_launch_candidate_enforcement_phase_20260822/current/agent_hub_runtime_matrix.json",
+      "sha256": "0e4cb75433af9c6af2d680d0b6af28cdd6ff1e9897b3366cff71ddc3648d7865"
+    },
+    "deployment_preflight": {
+      "path": "reports/agent_hub/stt_protocol_fixture_fail_closed_phase_20260822/deployment-preflight/deployment_preflight.json",
+      "sha256": "4861de98d25ef876bf99b929e0c59ae774428808a8a9cd0bc6d120b98c562552"
+    },
+    "openapi": {
+      "path": "docs/openapi/openapi.json",
+      "sha256": "a095196fe81a671d8c94f57ece85831d9346490deb5c49e5cf2b05cb661a8cfe"
+    },
+    "summary": {
+      "path": "docs/corti_parity/ICODER_STT_PROTOCOL_FIXTURE_FAIL_CLOSED_PHASE_SUMMARY_2026-08-22.md",
+      "sha256": "f7732e99aa00c93c90991e3fc01e6fb0e3ffb76e0f22a33df6d240ff43f9a121"
+    },
+    "live_gap_matrix": {
+      "path": "docs/corti_parity/CORTI_ICODER_LIVE_GAP_MATRIX_2026-08-21.md",
+      "sha256": "8adb841f11b4ef28d536c1c72eaa8800f6a54e7d3952441c3ac590119fcc6604"
+    }
+  },
+  "limitations": [
+    "This phase proves synthetic protocol resources are test-only; it does not prove real ASR semantic or clinical quality.",
+    "The current verified server-side scope is Chinese single-channel audio and explicitly rejects diarization, multichannel, keyterms, unsupported punctuation settings, and multiple participant mappings.",
+    "No authorized Chinese medical audio gold set, dialect/noise/long-audio benchmark, Corti bilateral comparison, or independent clinical review was available.",
+    "No dotnet, Docker, or Nginx CLI is available locally; production queue, object storage, KMS, multi-replica, capacity, and cloud runtime gates remain external."
+  ]
+}

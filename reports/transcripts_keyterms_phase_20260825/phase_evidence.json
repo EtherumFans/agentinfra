@@ -1,0 +1,71 @@
+{
+  "schema_version": "icoder.transcripts-keyterms-phase-evidence/v1",
+  "generated_date": "2026-08-25",
+  "status": "passed",
+  "scope": "prerecorded ordered case-sensitive keyterms across sync, async and recovery paths",
+  "safety": {
+    "temporary_database": true,
+    "protected_database_written": false,
+    "real_llm_used": false,
+    "real_stt_used": false,
+    "patient_audio_used": false,
+    "native_models_loaded": false,
+    "release_published": false
+  },
+  "tests": {
+    "backend_full": {"passed": 5575, "skipped": 20, "deselected": 11, "failed": 0, "seconds": 1703.15},
+    "stt_expanded": {"passed": 130, "failed": 0},
+    "javascript_sdk": {"passed": 95, "failed": 0},
+    "python_sdk": {"passed": 101, "failed": 0},
+    "dotnet_net8": {"passed": 82, "failed": 0},
+    "dotnet_net10": {"passed": 82, "failed": 0},
+    "deployment_preflight": {"passed": 98, "failed": 0},
+    "final_validator_and_openapi_regression": {"passed": 13, "failed": 0},
+    "loopback_e2e": {
+      "status": "passed",
+      "real_uvicorn": true,
+      "synthetic_asr_boundary": true,
+      "prerecorded_keyterms_forwarded_in_order": true
+    }
+  },
+  "openapi": {
+    "bytes": 877158,
+    "paths": 271,
+    "schemas": 299,
+    "sha256": "2c4763c073a6ffafaec6c52e433af7903bb4aa9146c32c32e26307b2e6371d57"
+  },
+  "source_hashes": {
+    "backend/app/services/stt_service.py": "389ff6f241e3d07a371805e3bb543e046152b00f844b509a1b40aae6a12735aa",
+    "backend/app/api/v2_tools_stt.py": "14d32f6ff44c148eda31ad3a49159b119f35fa5de6a437242481d4841bc0b24f",
+    "backend/app/schemas/v2_tools_stt.py": "5825bc0a7cecbed69f8488ba229210c081129b96a7d049831ae4ecc4cca7a2da",
+    "backend/app/services/stt_jobs.py": "1aed851e7bb7c5dcea13d30c4918cf02ef158205c9e3610f9ad1b5b458fd04f8",
+    "backend/scripts/transcripts_dictation_e2e_app.py": "d56a7057fe39461b42c03ceb6af77d9bcf507458e706635dd61b5098e6c4c81c",
+    "backend/scripts/transcripts_dictation_e2e_client.py": "57b449a3918b1e2e0c7fd256641362db4baf25af48a9eee69843abb3ae1f12c8",
+    "scripts/release/run-transcripts-dictation-e2e.ps1": "4a9383861307ec24b458983f67cd77831a5f66955216259777710ace19f632d4",
+    "packages/icoder-sdk/src/resources/speech-to-text.ts": "47e7e91aef3d43211ed45f1277bcd1c05507dc97c3606de56262db25d5a1c749",
+    "packages/icoder-python/icoder_sdk/resources/speech_to_text.py": "c603ce779c8c588ec01e32b00749e7496a2565f6e06e2e5a60d05fabe387d7c8",
+    "packages/icoder-dotnet/src/Icoder.Sdk/SpeechToTextResource.cs": "6783cb7097e38980a060d2230d42d0771744df28a46682f15ecfacfbad5405a3",
+    "packages/icoder-dotnet/src/Icoder.Sdk/Models.cs": "a5692a6f7c0a81d7a03299ba929163dc926a0c0877bee5e67d0552ce3a20725e"
+  },
+  "evidence_hashes": {
+    "reports/transcripts_keyterms_phase_20260825/full_backend_final_junit.xml": "a257a0ab86d1ef22234e4321c6c518019b86c76244da12792a158d03730aaf7f",
+    "reports/transcripts_keyterms_phase_20260825/loopback_e2e.json": "93e210b4b24606da43037678a801b8d1ba362e1c2c4ee4dfc562f9a3fede91c5",
+    "reports/transcripts_keyterms_phase_20260825/preflight/deployment_preflight.json": "bef5f771b0999a3ec0d3744d6b948aadb7d9a8b2d1787e4a6daa407509c0f260",
+    "reports/transcripts_keyterms_phase_20260825/release_candidate_validation.json": "c1b138390258dce58a93ecdf3d4b8b2df4255726fb99bb06dfbd80576de155c0"
+  },
+  "release_artifacts": {
+    "icoder-sdk-1.0.0-beta.40.tgz": {"bytes": 73454, "sha256": "073c3a47e355cd25f62e4655585e1826e48417a270affe9eda141db05347cd1f"},
+    "icoder_sdk-1.0.0b40-py3-none-any.whl": {"bytes": 57971, "sha256": "cfe878d7ec20abac44e6b02c85b5940915f8826be44d59b9e7107e555b731b90"},
+    "icoder_sdk-1.0.0b40.tar.gz": {"bytes": 82268, "sha256": "1b0c16201d3fe107807d029ec064091995822b060e19c44da0610b23584ba75e"},
+    "iCoDer.Sdk.1.0.0-beta.40.nupkg": {"bytes": 422515, "sha256": "9a4e7b895da4261f21498ce2446124a3c1439ed681a6b1adda0e9a8bc721923c"},
+    "iCoDer.Sdk.1.0.0-beta.40.snupkg": {"bytes": 90377, "sha256": "be0d451d8a5aa60710b2ea1d419bbc7682507e399045304dd2a66fe154f4bb78"},
+    "release-candidate-b40-transcripts-keyterms.json": {"bytes": 1819, "sha256": "995b1e8516bc93fd635a4d668d3bffdb9ca700a54d1680cf74a17a178af9ad94"}
+  },
+  "open_gaps": [
+    "real prerecorded keyterm recognition gain on compliant Chinese clinical audio",
+    "prerecorded multichannel, diarization and participant attribution",
+    "multilingual and real automatic-punctuation control",
+    "Corti head-to-head quality, latency, cost and capacity",
+    "production Linux/PostgreSQL multi-replica, observability, security and hospital acceptance"
+  ]
+}

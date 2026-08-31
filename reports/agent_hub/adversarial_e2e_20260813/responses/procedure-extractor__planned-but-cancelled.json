@@ -1,0 +1,73 @@
+{
+  "agent_id": "procedure-extractor",
+  "run_id": "run-0d9189bf-ff5f-4275-b7d8-aba9eef83c8a",
+  "trace_id": "trace-60f99f3f9a6b47f2",
+  "trace_url": "/ai-studio/runs/run-0d9189bf-ff5f-4275-b7d8-aba9eef83c8a/trace",
+  "runtime_mode": "a2a_pure_llm",
+  "latency_ms": 4720,
+  "cost": {
+    "amount": 0.00016,
+    "currency": "CNY"
+  },
+  "summary": "```json",
+  "result": {
+    "status": "complete",
+    "markdown": "```json\n{\n  \"procedures\": [],\n  \"non_billable_mentions\": [\n    {\n      \"text\": \"原拟行腹腔镜胆囊切除术，因患者拒绝已取消\",\n      \"status\": \"cancelled\",\n      \"evidence_text\": \"原拟行腹腔镜胆囊切除术，因患者拒绝已取消\",\n      \"char_span\": [0, 24]\n    }\n  ],\n  \"issues_found\": [\n    \"手术记录中明确否定本次住院实施任何手术或操作，且拟行手术已取消，无 performed 状态手术操作可编码。\"\n  ],\n  \"manual_review_required\": true\n}\n```",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.pure-llm.v1",
+    "backend_type": "pure_llm",
+    "procedures": [],
+    "non_billable_mentions": [
+      {
+        "text": "原拟行腹腔镜胆囊切除术，因患者拒绝已取消",
+        "status": "cancelled",
+        "evidence_text": "原拟行腹腔镜胆囊切除术，因患者拒绝已取消",
+        "char_span": [
+          0,
+          24
+        ]
+      }
+    ],
+    "issues_found": [
+      "手术记录中明确否定本次住院实施任何手术或操作，且拟行手术已取消，无 performed 状态手术操作可编码。"
+    ],
+    "manual_review_required": true,
+    "total_count": 0,
+    "structured_extraction": {
+      "contract": "icoder/ProcedureCodingOutput/v1",
+      "method": "json_block",
+      "warnings": [],
+      "required_fields": [
+        "procedures",
+        "issues_found",
+        "manual_review_required"
+      ],
+      "missing_required_fields": [],
+      "valid": true
+    }
+  },
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 4720,
+      "metadata": {
+        "agent_id": "procedure-extractor",
+        "runtime_mode": "a2a_pure_llm",
+        "latency_ms": 4720
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 5.17
+}

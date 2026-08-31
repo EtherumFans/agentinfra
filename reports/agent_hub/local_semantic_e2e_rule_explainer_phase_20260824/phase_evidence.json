@@ -1,0 +1,72 @@
+{
+  "schema_version": "icoder.governed-rule-explainer-phase-evidence/v1",
+  "generated_at": "2026-08-24T00:15:33.7056993Z",
+  "status": "passed",
+  "agent_ref": "icoder/rule-explainer@1.2.0",
+  "backend_provider": "icoder.governed-rule-explainer.v1",
+  "output_contract": "icoder/RuleExplanationOutput/v4",
+  "pack_sha256": "dbaad7592eae9d25a662c1c4b8c99125847bf8e33fea9a51721efacf99d97fbd",
+  "runtime": {
+    "network_required": false,
+    "llm_required": false,
+    "real_llm_used": false,
+    "native_medcoder_used": false,
+    "manual_review_required": true,
+    "governed_instructional_notes_available": false
+  },
+  "local_http_e2e": {
+    "transport": "real_loopback_http",
+    "happy": {"passed": 10, "failed": 0},
+    "adversarial": {"passed": 10, "failed": 0},
+    "reference": {"passed": 10, "failed": 0},
+    "stability": {
+      "passed": 60,
+      "failed": 0,
+      "repetitions": 3,
+      "fresh_http_runs": 60,
+      "seeded_artifacts": 0
+    },
+    "evidence_path": "reports/agent_hub/local_semantic_e2e_rule_explainer_phase_20260824/local_semantic_e2e_evidence.json",
+    "evidence_sha256": "6a22b111f5b3c454b141a5df13a0cfc6976ca62dca3697d70f0b72c77a2fbbf0"
+  },
+  "regression": {
+    "passed": 726,
+    "failed": 0
+  },
+  "deployment_preflight": {
+    "passed": 90,
+    "failed": 0,
+    "path": "reports/deployment/preflight-agent-rule-explainer-local-20260824/deployment_preflight.json",
+    "sha256": "90b41b0e3097a987c78a16377a2e435a2316462bfa317fc3871c378d7752f942"
+  },
+  "runtime_matrix": {
+    "visible_agents": 26,
+    "local_baseline_agents": 10,
+    "external_model_agents": 16,
+    "strict_live_provider_verified": 0,
+    "production_ready_verified": 0
+  },
+  "corti_catalog_gate": {
+    "mapped": 20,
+    "development_verified": 20,
+    "china_profile_declared": 20,
+    "clinical_quality_verified": 0,
+    "production_ready_verified": 0
+  },
+  "safety": {
+    "protected_database_size": 8536064,
+    "protected_database_sha256": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e",
+    "protected_database_revision": "041",
+    "source_alembic_head": "056",
+    "backend_processes_remaining": 0,
+    "temporary_e2e_directories_remaining": 0,
+    "llm_environment_names_present": [],
+    "docker_available": false
+  },
+  "limitations": [
+    "The ICD-10-CN development catalog is source-unverified, license-review-pending, and not billing-authoritative.",
+    "No governed Includes/Excludes, Code First, Use Additional Code, Code Also, combination, sequencing, payer, DRG/DIP, or local reimbursement rules were available or inferred.",
+    "Pack-owned synthetic cases are not independent coder review, clinical gold, hospital acceptance, Corti parity, or production approval.",
+    "Sixteen external-model-dependent Agents and the optional Code Validation semantic enhancement still require fresh signed non-mock provider evidence."
+  ]
+}

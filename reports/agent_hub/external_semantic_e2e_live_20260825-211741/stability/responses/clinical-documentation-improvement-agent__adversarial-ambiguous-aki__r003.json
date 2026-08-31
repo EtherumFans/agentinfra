@@ -1,0 +1,236 @@
+{
+  "agent_id": "clinical-documentation-improvement-agent",
+  "run_id": "run-1118611c-77f0-4b0c-b12e-f160b7466b74",
+  "trace_id": "trace-f804bcd2fdc244c4",
+  "trace_url": "/ai-studio/runs/run-1118611c-77f0-4b0c-b12e-f160b7466b74/trace",
+  "runtime_mode": "cdi_real_orchestrator",
+  "latency_ms": 26132,
+  "cost": {},
+  "billing": {},
+  "summary": "CDI review completed; specialist and clinician review remain required.",
+  "result": {
+    "encounter_summary": {
+      "key_points": [
+        "急性肾损伤",
+        "肌酐210μmol/L",
+        "既往基线和尿量未记录"
+      ],
+      "encounter_metadata": {
+        "patient_age": "未记录",
+        "patient_sex": "未记录",
+        "encounter_type": "入院"
+      }
+    },
+    "documentation_gaps": [
+      {
+        "gap_id": "gap_001",
+        "gap_type": "diagnostic_specificity",
+        "description": "Acute kidney injury documented without baseline creatinine or prior renal function, making it impossible to determine if the injury is truly acute or acute-on-chronic.",
+        "why_it_matters": "Coding requires differentiation between acute kidney injury and chronic kidney disease; without baseline, the acuity and underlying etiology cannot be accurately coded.",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "急性肾损伤。肌酐210μmol/L，既往基线和尿量未记录。",
+          "char_start": 5,
+          "char_end": 34,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "urgent"
+      },
+      {
+        "gap_id": "gap_002",
+        "gap_type": "diagnostic_specificity",
+        "description": "Urine output not documented, which is essential for staging AKI and determining severity.",
+        "why_it_matters": "AKI staging relies on both serum creatinine and urine output; missing urine output limits severity assessment and may affect coding of severity.",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "既往基线和尿量未记录",
+          "char_start": 23,
+          "char_end": 33,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "urgent"
+      },
+      {
+        "gap_id": "gap_003",
+        "gap_type": "diagnostic_specificity",
+        "description": "Etiology of acute kidney injury not specified (e.g., prerenal, intrinsic, postrenal).",
+        "why_it_matters": "Specific etiology is required for accurate coding and appropriate treatment; unspecified AKI may lead to unspecified code.",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "急性肾损伤",
+          "char_start": 5,
+          "char_end": 10,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      }
+    ],
+    "proposed_provider_queries": [
+      {
+        "query_id": "q_gap_001",
+        "gap_id": "gap_001",
+        "topic": "Acute kidney injury: baseline renal function",
+        "reason": "The chart documents acute kidney injury with a creatinine of 210 μmol/L but does not record baseline creatinine or prior renal function, making it unclear whether this is acute or acute-on-chronic.",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "急性肾损伤。肌酐210μmol/L，既往基线和尿量未记录。",
+          "char_start": 5,
+          "char_end": 34,
+          "documented_at": ""
+        },
+        "evidence_spans": [
+          {
+            "document_id": "chart-001",
+            "quote": "急性肾损伤。肌酐210μmol/L，既往基线和尿量未记录。",
+            "char_start": 5,
+            "char_end": 34,
+            "documented_at": ""
+          }
+        ],
+        "query_text": "What is the patient's baseline renal function prior to this admission?",
+        "response_options": [
+          "A. Baseline creatinine was normal (no prior chronic kidney disease)",
+          "B. Baseline creatinine was elevated (known chronic kidney disease)",
+          "C. Baseline renal function is unknown",
+          "D. 无法确定"
+        ],
+        "lifecycle_state": "DRAFT",
+        "priority": "urgent",
+        "nlq_gate_verdict": "PASS",
+        "nlq_gate_block_reasons": []
+      }
+    ],
+    "query_gate_summary": {
+      "withheld_count": 2,
+      "status_counts": {
+        "REWRITE_CANDIDATE_GENERATED": 0
+      },
+      "manual_cdi_action_required": true
+    },
+    "coding_specificity_checklist": [],
+    "risk_flags": [
+      {
+        "category": "ambiguous_term",
+        "description": "The term '急性肾损伤' is used without further specification of stage or etiology, which may obscure the clinical picture."
+      }
+    ],
+    "specialist_trace": [
+      {
+        "expert_id": "coding-expert",
+        "consulted": false,
+        "requested": "You are a coding-specialist Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "empty chart — no coding substrate",
+        "route_decision": "not_needed",
+        "route_reason": "empty_chart",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-a7161699faa8",
+        "trace_id": "trace-5e03e9518039"
+      },
+      {
+        "expert_id": "pubmed-expert",
+        "consulted": false,
+        "requested": "You are a PubMed literature Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "empty_chart",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-012a8f24f472",
+        "trace_id": "trace-8fa1519b3672"
+      },
+      {
+        "expert_id": "web-search-expert",
+        "consulted": false,
+        "requested": "You are a clinical web-search Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "empty_chart",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-7a2bd8ae13ca",
+        "trace_id": "trace-941b198550d7"
+      },
+      {
+        "expert_id": "medical-calculator-expert",
+        "consulted": false,
+        "requested": "You are a medical-calculator Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "empty_chart",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-09003d056693",
+        "trace_id": "trace-721576b9d816"
+      }
+    ],
+    "human_review": {
+      "cdi_specialist_review_required": true,
+      "clinician_response_required": true,
+      "review_priority": "urgent"
+    },
+    "trace_refs": {
+      "run_id": "run-1118611c-77f0-4b0c-b12e-f160b7466b74",
+      "stage_trace": {
+        "encounter_synthesis": "trace-a651957e59dd",
+        "gap_identification": "trace-938dee054c8f",
+        "expert_consultation": "trace-1125d1d05332",
+        "query_generation": "trace-785dbd3fd352",
+        "query_eligibility_gate": "",
+        "query_necessity_gate": "",
+        "query_dimension_rewrite": "",
+        "query_single_dimension_gate": "",
+        "claim_evidence_alignment_gate": "trace-7e8503890980",
+        "semantic_necessity_gate": "trace-b6351127fc15",
+        "query_compliance_gate": "",
+        "specialist_trace_emit": "trace-853279dee2aa"
+      },
+      "experts_consulted": [],
+      "gate_results": {
+        "encounter_synthesis": "run-d4089ed2be51",
+        "gap_identification": "run-e997c7a6e775",
+        "gap_identification_risk_flags": "emitted=1;quote_snapped=0",
+        "expert_consultation": "run-962bd33c1896",
+        "query_generation": "run-41574f6d9ae1",
+        "query_generation::quote_snapped": "0",
+        "query_generation::coverage_missing": "0",
+        "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=3;llm_complete=False;llm_reasoning=The chart documents AKI with a creatinine value but lacks baseline renal functio",
+        "query_necessity_gate": "necessary=3;unnecessary=0;overquery_triggered=False;final_count=3",
+        "query_dimension_rewrite": "not_executed",
+        "query_single_dimension_gate": "single_dim=3;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;rewrite_attempted=0;rewrite_accepted=0;final_count=3",
+        "claim_evidence_alignment_gate": "claims_extracted=7;degraded=0;blocked=0;flagged=0;final_count=3",
+        "claim_evidence_alignment_gate::run_id": "run-9ed569a7b6b8",
+        "semantic_necessity_gate": "blocked=2;flagged=0;degraded=0;final_count=1",
+        "semantic_necessity_gate::run_id": "run-253a66d58390",
+        "query_compliance_gate": ";passed=1;blocked=0",
+        "specialist_trace_emit": "run-95658a4ad34a"
+      },
+      "trace_id": "trace-f804bcd2fdc244c4"
+    }
+  },
+  "schema_ref": "icoder/CDIAgentOutputV1/v6",
+  "result_attestation": "eyJhIjoiY2xpbmljYWwtZG9jdW1lbnRhdGlvbi1pbXByb3ZlbWVudC1hZ2VudCIsImQiOiIxODAyNTBjM2JlNmEwMTU1MmI3Zjc2N2YyODY0MTg1NDYyYTI5NDNhYmU2MGUwN2I1NmZjM2Y4MDVlZGFiOWY2IiwiZSI6MTc4Nzc1MDU5MiwibyI6IjE5NGU1YzAzYWI2NCIsInIiOiJydW4tMTExODYxMWMtNzdmMC00YjBjLWIxMmUtZjE2MGI3NDY2Yjc0IiwicyI6Imljb2Rlci9DRElBZ2VudE91dHB1dFYxL3Y2IiwidiI6MX0.xv6HUS-XBnNo4KURVQbO3eN75X5svJLlTdRGUAc5-_g",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 26.185
+}

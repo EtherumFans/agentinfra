@@ -1,0 +1,115 @@
+{
+  "agent_id": "diagnosis-extractor",
+  "run_id": "run-08046ee9-9d1b-4fa4-bd1f-db1e38e1b5fd",
+  "trace_id": "trace-9373afb472dd410a",
+  "trace_url": "/ai-studio/runs/run-08046ee9-9d1b-4fa4-bd1f-db1e38e1b5fd/trace",
+  "runtime_mode": "governed_local_explicit_diagnosis_baseline",
+  "latency_ms": 62,
+  "cost": {
+    "amount": 0.0,
+    "currency": "CNY"
+  },
+  "billing": {},
+  "summary": "已定位 0 个明示当前诊断候选和 3 个非当前确诊提及；全部结果须编码员复核。",
+  "result": {
+    "status": "REQUIRES_REVIEW",
+    "markdown": "{\"diagnoses\": [], \"issues_found\": [\"肺炎：疑似、待排或可能提及，不作为已确诊诊断编码\", \"肺炎：否定或已排除提及，不作为当前诊断编码\", \"糖尿病：否定或已排除提及，不作为当前诊断编码\", \"本地 ICD-10-CN 目录 authority_status=source_unverified、license_status=external_review_required；目录候选不具有结算权威。\"], \"manual_review_required\": true, \"non_codable_mentions\": [{\"assertion_status\": \"suspected\", \"char_span\": [5, 9], \"evidence_text\": \"考虑肺炎\", \"mention_text\": \"肺炎\", \"reason\": \"疑似、待排或可能提及，不作为已确诊诊断编码\"}, {\"assertion_status\": \"negated\", \"char_span\": [13, 18], \"evidence_text\": \"已排除肺炎\", \"mention_text\": \"肺炎\", \"reason\": \"否定或已排除提及，不作为当前诊断编码\"}, {\"assertion_status\": \"negated\", \"char_span\": [19, 25], \"evidence_text\": \"否认糖尿病史\", \"mention_text\": \"糖尿病\", \"reason\": \"否定或已排除提及，不作为当前诊断编码\"}], \"status\": \"REQUIRES_REVIEW\", \"trace_refs\": {\"provider_trace_refs\": [\"run-08046ee9-9d1b-4fa4-bd1f-db1e38e1b5fd:governed-diagnosis-extraction\"], \"run_id\": \"run-08046ee9-9d1b-4fa4-bd1f-db1e38e1b5fd\"}}",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.governed-diagnosis-extractor.v1",
+    "backend_type": "rule_engine",
+    "diagnoses": [],
+    "issues_found": [
+      "肺炎：疑似、待排或可能提及，不作为已确诊诊断编码",
+      "肺炎：否定或已排除提及，不作为当前诊断编码",
+      "糖尿病：否定或已排除提及，不作为当前诊断编码",
+      "本地 ICD-10-CN 目录 authority_status=source_unverified、license_status=external_review_required；目录候选不具有结算权威。"
+    ],
+    "manual_review_required": true,
+    "non_codable_mentions": [
+      {
+        "assertion_status": "suspected",
+        "char_span": [
+          5,
+          9
+        ],
+        "evidence_text": "考虑肺炎",
+        "mention_text": "肺炎",
+        "reason": "疑似、待排或可能提及，不作为已确诊诊断编码"
+      },
+      {
+        "assertion_status": "negated",
+        "char_span": [
+          13,
+          18
+        ],
+        "evidence_text": "已排除肺炎",
+        "mention_text": "肺炎",
+        "reason": "否定或已排除提及，不作为当前诊断编码"
+      },
+      {
+        "assertion_status": "negated",
+        "char_span": [
+          19,
+          25
+        ],
+        "evidence_text": "否认糖尿病史",
+        "mention_text": "糖尿病",
+        "reason": "否定或已排除提及，不作为当前诊断编码"
+      }
+    ],
+    "trace_refs": {
+      "run_id": "run-08046ee9-9d1b-4fa4-bd1f-db1e38e1b5fd",
+      "trace_id": "trace-9373afb472dd410a",
+      "provider_trace_refs": [
+        "run-08046ee9-9d1b-4fa4-bd1f-db1e38e1b5fd:governed-diagnosis-extraction"
+      ]
+    },
+    "structured_extraction": {
+      "contract": "icoder/DiagnosisExtractionOutput/v7",
+      "method": "json_block",
+      "warnings": [],
+      "required_fields": [
+        "status",
+        "diagnoses",
+        "non_codable_mentions",
+        "issues_found",
+        "manual_review_required",
+        "trace_refs"
+      ],
+      "optional_fields": [],
+      "missing_required_fields": [],
+      "invalid_field_types": [],
+      "invalid_field_schemas": [],
+      "invalid_cross_agent_relations": [],
+      "undeclared_output_fields": [],
+      "undeclared_output_field_count": 0,
+      "valid": true
+    }
+  },
+  "schema_ref": "icoder/DiagnosisExtractionOutput/v7",
+  "result_attestation": "eyJhIjoiZGlhZ25vc2lzLWV4dHJhY3RvciIsImQiOiI2NGU1NmUzODc0ZGM2ZThlOTI5Y2NkODA5NmU4YWU5ZTEyOGM2NGY4NGI5NWVlYjcxMGRmMTczZDkzNjBkYzg0IiwiZSI6MTc4NzY3NTMwMywibyI6IjdiYWQ1MjZmYmI1YSIsInIiOiJydW4tMDgwNDZlZTktOWQxYi00ZmE0LWJkMWYtZGIxZTM4ZTFiNWZkIiwicyI6Imljb2Rlci9EaWFnbm9zaXNFeHRyYWN0aW9uT3V0cHV0L3Y3IiwidiI6MX0.50aSsVoVs80kfEQKmmhkUy1wlnv6syKrEiBRpmye64o",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 62,
+      "metadata": {
+        "agent_id": "diagnosis-extractor",
+        "runtime_mode": "governed_local_explicit_diagnosis_baseline",
+        "latency_ms": 62
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 0.248
+}

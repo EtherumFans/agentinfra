@@ -1,0 +1,93 @@
+{
+  "schema_version": "icoder.governed-medication-reconciliation-phase-evidence/v1",
+  "generated_at": "2026-08-24T01:22:35.3620828Z",
+  "status": "passed",
+  "agent_ref": "icoder/med-reconciliation@1.1.0",
+  "backend_provider": "icoder.governed-medication-reconciliation.v1",
+  "output_contract": "icoder/MedicationReconciliationOutput/v4",
+  "pack_file_sha256": "4f1d4404b8eb449fd2ba980c510f6f7c0e9b06b4d00bd1c271eac65f1e1cb101",
+  "runtime": {
+    "network_required": false,
+    "llm_required": false,
+    "real_llm_used": false,
+    "native_medcoder_used": false,
+    "drug_knowledge_base_used": false,
+    "interaction_screening_status": "NOT_ASSESSED_LICENSED_SOURCE_REQUIRED",
+    "manual_review_required": true,
+    "production_writeback_blocked": true
+  },
+  "local_http_e2e": {
+    "transport": "real_loopback_http",
+    "happy": {"passed": 11, "failed": 0},
+    "adversarial": {"passed": 11, "failed": 0},
+    "reference": {"passed": 11, "failed": 0},
+    "stability": {
+      "passed": 66,
+      "failed": 0,
+      "repetitions": 3,
+      "fresh_http_runs": 66,
+      "seeded_artifacts": 0
+    },
+    "evidence_path": "reports/agent_hub/local_semantic_e2e_med_reconciliation_phase_20260824/local_semantic_e2e_evidence.json",
+    "evidence_sha256": "fed4b19a9f1ec85b8d76b48ed133c33a4ffd65ac1323d3de497e67f1ce8ff115"
+  },
+  "quality_gates": {
+    "focused_core_and_a2a_passed": 118,
+    "offline_all_visible_agent_safety_passed": 78,
+    "broad_regression_passed": 745,
+    "broad_regression_failed": 0,
+    "field_relation_adversarial_assertions": 81,
+    "field_relation_detected_assertions": 81,
+    "evidence_binding_adversarial_assertions": 32,
+    "evidence_binding_detected_assertions": 32,
+    "field_relation_evidence_sha256": "3276fde43a39323099f57b7dc99a9b427fd1c0d4a0bb767a3d1333602124c1e9",
+    "evidence_binding_evidence_sha256": "55052f138d15e28f351b21fb9059cd5bf9fdcf16b769207962e909af36412e6a"
+  },
+  "deployment_preflight": {
+    "passed": 90,
+    "failed": 0,
+    "path": "reports/agent_hub/local_semantic_e2e_med_reconciliation_phase_20260824/deployment-preflight/deployment_preflight.json",
+    "sha256": "24e3c683f22d546dca97e4884bd22e125930624395c1bbf2eda27a866201a815"
+  },
+  "runtime_matrix": {
+    "visible_agents": 26,
+    "local_baseline_agents": 11,
+    "local_only_agents": 10,
+    "external_model_agents": 15,
+    "optional_external_enhancement_agents": 1,
+    "strict_live_provider_verified": 0,
+    "production_ready_verified": 0
+  },
+  "contract_governance": {
+    "registered_contracts": 113,
+    "visible_contracts": 26,
+    "new_refs": [],
+    "changed_refs": [],
+    "invalid_refs": [],
+    "duplicate_refs": []
+  },
+  "corti_catalog_gate": {
+    "mapped": 20,
+    "development_verified": 20,
+    "china_profile_declared": 20,
+    "clinical_quality_verified": 0,
+    "production_ready_verified": 0,
+    "evidence_sha256": "2a973cf6e2438591ff0a5f97c5cda3c4906096556cb8e607295f6475dd7313ed"
+  },
+  "safety": {
+    "protected_database_size": 8536064,
+    "protected_database_sha256": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e",
+    "protected_database_revision": "041",
+    "source_alembic_head": "056",
+    "backend_processes_remaining": 0,
+    "temporary_e2e_directories_remaining": 0,
+    "llm_environment_names_present": [],
+    "docker_available": false
+  },
+  "limitations": [
+    "The local baseline performs exact documented-name alignment only; it does not normalize brand/generic names, formulations, salts, combinations or therapeutic classes.",
+    "No licensed DrugBank or hospital formulary was used, so interactions, contraindications, cross-allergy, therapeutic duplication, high-risk classes and dose suitability were not assessed.",
+    "Pack-owned synthetic cases are not independent pharmacist review, clinical gold, hospital acceptance, Corti parity or production approval.",
+    "Fifteen external-model-dependent Agents and the optional Code Validation semantic enhancement still require fresh signed non-mock provider evidence."
+  ]
+}

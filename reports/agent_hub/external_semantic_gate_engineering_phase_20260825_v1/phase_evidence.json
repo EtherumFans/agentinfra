@@ -1,0 +1,133 @@
+{
+  "schema_version": "icoder.external-semantic-gate-engineering-phase-evidence/v1",
+  "generated_at": "2026-08-25T01:20:00+08:00",
+  "status": "engineering_gate_passed_real_model_execution_pending",
+  "scope": {
+    "visible_agents": 26,
+    "local_semantic_agents": 24,
+    "external_model_agents": [
+      "clinical-documentation-improvement-agent",
+      "medical-coding-agent"
+    ],
+    "strict_semantic_live_verified": 0,
+    "production_ready_verified": 0
+  },
+  "implemented_controls": {
+    "external_scoped_bundle_validator": true,
+    "real_model_provider_and_name_required_per_external_run": true,
+    "mock_degraded_and_fallback_rejected": true,
+    "composite_scope_must_be_disjoint_and_cover_current_26": true,
+    "strict_runner_uses_single_ephemeral_server_trust_domain": true,
+    "strict_runner_is_serial": true,
+    "credential_passed_only_by_process_environment": true,
+    "credential_in_command_line": false,
+    "credential_artifact_and_log_scan_on_success_and_failure": true,
+    "credential_environment_cleared_on_success_and_failure": true,
+    "temporary_database_only": true,
+    "native_medcoder_disabled": true,
+    "local_stt_disabled": true,
+    "protected_database_used": false
+  },
+  "verification": {
+    "semantic_bundle_runtime_matrix_preflight_tests": {
+      "passed": 25,
+      "failed": 0
+    },
+    "all_visible_offline_safety_tests": {
+      "passed": 78,
+      "failed": 0
+    },
+    "missing_credential_probe": {
+      "passed": true,
+      "backend_started": false,
+      "stable_error": "ICODER_CREDENTIAL_LLM is not set in this PowerShell process."
+    },
+    "powershell_ast_parse": {
+      "passed": true,
+      "parse_errors": 0
+    },
+    "schema_generator_dry_run": {
+      "visible_agents": 26,
+      "changed_agents": []
+    },
+    "contract_compatibility": {
+      "passed": true,
+      "visible_contracts": 26,
+      "registered_contracts": 138,
+      "new_refs": [],
+      "changed_refs": [],
+      "invalid_refs": [],
+      "duplicate_refs": []
+    },
+    "corti_catalog_development_mapping": {
+      "mapped": 20,
+      "development_verified": 20,
+      "china_profile_declared": 20,
+      "clinical_quality_verified": 0,
+      "production_ready_verified": 0
+    },
+    "deployment_preflight": {
+      "passed": 91,
+      "failed": 0
+    },
+    "fresh_local_loopback_http": {
+      "happy": {"passed": 24, "failed": 0},
+      "adversarial": {"passed": 24, "failed": 0},
+      "reference": {"passed": 24, "failed": 0},
+      "stability": {
+        "passed": 144,
+        "failed": 0,
+        "fresh": 144,
+        "seeded": 0,
+        "repetitions": 3,
+        "p50_seconds": 0.527,
+        "p95_seconds": 1.025
+      },
+      "external_model_agents_not_evaluated": 2,
+      "real_llm_used": false,
+      "external_network_used": false
+    }
+  },
+  "artifact_hashes": {
+    "build_agent_hub_local_semantic_evidence_bundle.py": "1e8a3844cfc61ec97c6928c567d22530af4bffe754c7102e386bd22cc8998927",
+    "build_agent_hub_external_semantic_evidence_bundle.py": "73ecc350a0e9b775d5fa0d099a5ff5ab5f95759876ae28a30273eab1c2c66c2c",
+    "build_agent_hub_composite_semantic_evidence_bundle.py": "e30bc8151f5e620db9f566572d2500a72fbef0954e6d320f455b03a3360c33a6",
+    "build_agent_hub_runtime_matrix.py": "8bc5c50db93c6dd2835ca7e4b467c1f0289caa878fd6386f3143a20245da8948",
+    "run-agent-hub-external-semantic-e2e.ps1": "ac8d507f79a20fe7b6a380fd82c0734652c407e06e28087d4347197838a8279c",
+    "test_agent_hub_semantic_evidence_bundle.py": "a3e62b3b4ec8887ab3265fd8fa9c053314a03cc919c12e346bd7ebf9f24c452e",
+    "agent_hub_local_semantic_evidence_bundle.json": "7667f0b6cb4ea1b5b37e7630cb1ff20012cbb190053f544128625a2a5d4499a6",
+    "agent_hub_runtime_matrix.json": "44a43827402e680ae3ea9f25ac617d7e05fd19bca306d5586b49f888b7afb971",
+    "deployment_preflight.json": "7d9aab6c95d08e26dfdf9f803a73e2da656133bbcfd07ad1e134f06ea5f60e3c",
+    "corti_prebuilt_agent_parity.json": "7a85df98330b37067b85b8c49ab5e342640c200ed3a3d68fdddafe95239273c7"
+  },
+  "protected_database": {
+    "path": "backend/data/icoder.db",
+    "expected_bytes": 8536064,
+    "expected_sha256": "2f1e5af01aac020cdd0eadac51b3ea65ba5b2e714d9f6ea3707992e829692877",
+    "modified_by_phase": false
+  },
+  "corti_current_official_sources": [
+    "https://corti.ai/agents/medical-coding-icd-10-cpt-agent",
+    "https://corti.ai/medical-coding",
+    "https://docs.corti.ai/get_started/cdi-outpatient"
+  ],
+  "real_model_execution": {
+    "executed": false,
+    "reason": "No new process-scoped credential was present; the previously disclosed credential must remain revoked.",
+    "next_authorized_command": "scripts/release/run-agent-hub-external-semantic-e2e.ps1"
+  },
+  "claims_not_proven": [
+    "strict_26_agent_live_provider_semantic_quality",
+    "independent_medical_coding_or_cdi_quality",
+    "corti_symphony_or_agent_equivalence",
+    "authoritative_china_coding_rule_coverage_and_licensing",
+    "hospital_workflow_acceptance_and_interoperability",
+    "production_cloud_security_slo_and_capacity",
+    "legal_regulatory_or_certification_approval"
+  ],
+  "real_llm_used": false,
+  "external_network_used_by_e2e": false,
+  "independent_clinical_gold_used": false,
+  "corti_parity_proven": false,
+  "hospital_acceptance_proven": false
+}

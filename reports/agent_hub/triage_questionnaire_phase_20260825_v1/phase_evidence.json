@@ -1,0 +1,163 @@
+{
+  "schema_version": "icoder.governed-triage-questionnaire-phase-evidence/v1",
+  "generated_at": "2026-08-25T01:00:00+08:00",
+  "status": "development_candidate_slice_passed",
+  "agent": {
+    "agent_id": "triage",
+    "agent_ref": "icoder/triage@1.1.2",
+    "provider": "icoder.governed-triage-questionnaire.v1",
+    "output_contract": "icoder/TriageOutput/v5",
+    "runtime_mode": "governed_local_explicit_triage_questionnaire_review",
+    "review_method": "EXPLICIT_ANSWER_DETERMINISTIC_QUESTIONNAIRE_PATH_REVIEW",
+    "network_required": false,
+    "llm_required": false,
+    "tool_calls_required": false,
+    "cost_amount": 0.0,
+    "cost_currency": "CNY",
+    "manual_review_required": true,
+    "production_action_blocked": true,
+    "production_writeback_blocked": true
+  },
+  "governance_boundaries": {
+    "caller_supplied_protocol_definition_only": true,
+    "caller_supplied_explicit_answers_only": true,
+    "exact_source_span_binding_required": true,
+    "hospital_protocol_approval_verified_by_platform": false,
+    "protocol_source_authority_verified_by_platform": false,
+    "transcript_extraction_performed": false,
+    "questionnaire_answer_inference_performed": false,
+    "clinical_inference_performed": false,
+    "medical_calculator_used": false,
+    "external_knowledge_used": false,
+    "final_acuity_assignment_performed": false,
+    "reached_endpoint_classification": "DEVELOPMENT_UNVERIFIED_PROTOCOL_CANDIDATE",
+    "onsite_review_required": true
+  },
+  "verification": {
+    "triage_unit_and_a2a_tests": {"passed": 8, "failed": 0},
+    "focused_contract_runtime_tests": {"passed": 59, "failed": 0},
+    "note_completeness_regression_tests": {"passed": 24, "failed": 0},
+    "all_visible_offline_safety_tests": {"passed": 78, "failed": 0},
+    "loopback_http": {
+      "transport": "real_loopback_http",
+      "happy": {"passed": 24, "failed": 0},
+      "adversarial": {"passed": 24, "failed": 0},
+      "reference": {"passed": 24, "failed": 0},
+      "stability": {
+        "passed": 144,
+        "failed": 0,
+        "fresh": 144,
+        "seeded": 0,
+        "repetitions": 3,
+        "p50_seconds": 0.527,
+        "p95_seconds": 1.025
+      },
+      "real_llm_used": false,
+      "external_network_used": false
+    },
+    "field_relation_replay": {
+      "passed": true,
+      "relations": 110,
+      "detected_adversarial_assertions": 340,
+      "expected_adversarial_assertions": 340
+    },
+    "evidence_binding_replay": {
+      "passed": true,
+      "bindings": 30,
+      "detected_adversarial_assertions": 60,
+      "expected_adversarial_assertions": 60
+    },
+    "cross_agent_relation_replay": {
+      "passed": true,
+      "relations": 10,
+      "detected_adversarial_assertions": 20,
+      "expected_adversarial_assertions": 20
+    },
+    "schema_generator_dry_run": {"visible_agents": 26, "changed_agents": []},
+    "contract_compatibility": {
+      "passed": true,
+      "visible_contracts": 26,
+      "registered_contracts": 138,
+      "new_refs": [],
+      "changed_refs": [],
+      "invalid_refs": [],
+      "duplicate_refs": []
+    },
+    "corti_catalog_development_mapping": {
+      "mapped": 20,
+      "development_verified": 20,
+      "china_profile_declared": 20,
+      "clinical_quality_verified": 0,
+      "production_ready_verified": 0
+    },
+    "deployment_preflight": {"passed": 90, "failed": 0},
+    "runtime_matrix": {
+      "visible_agents": 26,
+      "provider_resolvable": 26,
+      "launch_candidate_ready": 26,
+      "registry_routes": 21,
+      "dedicated_routes": 5,
+      "external_llm_required": 2,
+      "external_llm_optional": 1,
+      "pure_local": 23,
+      "local_baseline": 24,
+      "local_semantic_verified": 24,
+      "strict_live_provider_verified": 0,
+      "production_ready_verified": 0
+    }
+  },
+  "artifact_hashes": {
+    "agent_pack.json": "86e67741ced2798ff20ee4739e61abe5fc5901fe7796c56dd8ec147b31c2ca08",
+    "agent_pack.integrity.sha256": "fd9e69e188f46cea784d58096b541ca400fe905f8e975c15356cadf96b717b32",
+    "agent.py": "d414cbe6d46c70abf8505d5bb7bc7140bcde52561560ceb6f7e697ed3123aec9",
+    "governed_triage_questionnaire_provider.py": "ac5326eb19e5f4139b9edd22176397c150031241454c73a45a40e269ca5af409",
+    "output_contract_registry.json": "ac9fd077adb763489ae89d1bbce29e66a4f15dfab9f77006caa9415ac1426c5d",
+    "agent_hub_examples_e2e.json": "22977bf1b3ad8884b2e225e345865254ea97ba3980a143e08336f94bdc000bfd",
+    "agent_hub_adversarial_e2e.json": "14efb6273b20b393f62a1a69dd73cc96b5f96428f79adfdf4b1fcd15395250e5",
+    "agent_hub_reference_quality_replay.json": "21cde64f161af0a2e157c1ea4f5fc6f3b85a865daf700e2df12a78de2a529f50",
+    "agent_hub_stability_benchmark.json": "e59d68c701db4f090cc6e31c1781b553633e80e6ae8b89e9d4aab65cabfa0c87",
+    "agent_hub_local_semantic_evidence_bundle.json": "7667f0b6cb4ea1b5b37e7630cb1ff20012cbb190053f544128625a2a5d4499a6",
+    "agent_hub_runtime_matrix.json": "44a43827402e680ae3ea9f25ac617d7e05fd19bca306d5586b49f888b7afb971",
+    "agent_hub_field_relation_replay.json": "89ec7c2bd01425a0ff7d85910e9b8ead94684d439c4f3838be21844636c7721b",
+    "agent_hub_evidence_binding_replay.json": "6874b7f0ffbecf899f7934ae0186b4795851627d1060ba4948907c0c6d98a0bd",
+    "agent_hub_cross_agent_replay.json": "ebdcf4fdc3fbbc98271860b38a5fbee7fce17cf13ed4c99e7ccbccd96f8fccf9",
+    "deployment_preflight.json": "ccd2aea8a70745d7f7cb60659796837d82cde0682d2adb0a9b07b04d8d530d11",
+    "corti_prebuilt_agent_parity.json": "3900db4e89cc4c9d08c0d04c768e53c2413cb93bc1e4876272e10ed3d9d91918"
+  },
+  "protected_database": {
+    "path": "backend/data/icoder.db",
+    "bytes": 8536064,
+    "sha256": "2f1e5af01aac020cdd0eadac51b3ea65ba5b2e714d9f6ea3707992e829692877",
+    "last_write_local": "2026-08-22 17:16:22",
+    "modified_by_phase": false
+  },
+  "corti_public_comparators": [
+    "https://corti.ai/agents/triage-and-initial-assessment-agent"
+  ],
+  "remaining_capability_gaps": [
+    "free_text_or_transcript_questionnaire_answer_extraction",
+    "interactive_interview_and_clarification_workflow",
+    "validated_hospital_triage_protocols_and_version_authority",
+    "medical_calculator_clinical_knowledge_and_drug_knowledge_tools",
+    "clinically_validated_final_acuity_assignment",
+    "real_hospital_system_integration_and_writeback_controls",
+    "independent_clinical_quality_and_human_factors_evaluation",
+    "production_cloud_security_legal_regulatory_and_certification_acceptance"
+  ],
+  "claims_not_proven": [
+    "strict_26_agent_live_provider_semantic_quality",
+    "corti_product_or_model_equivalence",
+    "autonomous_or_final_clinical_triage",
+    "independent_clinical_quality",
+    "hospital_protocol_authority_or_acceptance",
+    "hospital_interoperability",
+    "production_cloud_readiness",
+    "legal_regulatory_or_certification_approval"
+  ],
+  "memory_access_violation_observed": false,
+  "real_llm_used": false,
+  "external_network_used_by_e2e": false,
+  "independent_clinical_gold_used": false,
+  "corti_parity_proven": false,
+  "hospital_acceptance_proven": false
+}

@@ -1,0 +1,29 @@
+# Agent Hub cross-Agent relation replay
+
+- Passed: `True`
+- Relation Agents: `6`
+- Relations: `10`
+- Adversarial assertions: `20/20`
+
+| Agent | Relation | Case | Baseline | Detected |
+|---|---|---|---|---|
+| code-validation | validated_codes_match_medical_coding | value_conflict | yes | yes |
+| code-validation | validated_codes_match_medical_coding | ambiguous_upstream | yes | yes |
+| compliance-guardrail | reviewed_codes_match_code_validation | value_conflict | yes | yes |
+| compliance-guardrail | reviewed_codes_match_code_validation | ambiguous_upstream | yes | yes |
+| drg-analyzer | drg_primary_matches_medical_coding | value_conflict | yes | yes |
+| drg-analyzer | drg_primary_matches_medical_coding | ambiguous_upstream | yes | yes |
+| drg-analyzer | drg_secondary_matches_medical_coding | value_conflict | yes | yes |
+| drg-analyzer | drg_secondary_matches_medical_coding | ambiguous_upstream | yes | yes |
+| drg-analyzer | drg_procedures_match_medical_coding | value_conflict | yes | yes |
+| drg-analyzer | drg_procedures_match_medical_coding | ambiguous_upstream | yes | yes |
+| evidence_extractor | input_codes_match_extracted_diagnoses | value_conflict | yes | yes |
+| evidence_extractor | input_codes_match_extracted_diagnoses | ambiguous_upstream | yes | yes |
+| medical_coding | coding_primary_matches_principal_review | value_conflict | yes | yes |
+| medical_coding | coding_primary_matches_principal_review | ambiguous_upstream | yes | yes |
+| medical_coding | coding_secondary_matches_extracted_diagnoses | value_conflict | yes | yes |
+| medical_coding | coding_secondary_matches_extracted_diagnoses | ambiguous_upstream | yes | yes |
+| medical_coding | coding_procedures_match_extracted_procedures | value_conflict | yes | yes |
+| medical_coding | coding_procedures_match_extracted_procedures | ambiguous_upstream | yes | yes |
+| principal_diagnosis_review | documented_draft_code_matches_extracted_diagnosis | value_conflict | yes | yes |
+| principal_diagnosis_review | documented_draft_code_matches_extracted_diagnosis | ambiguous_upstream | yes | yes |

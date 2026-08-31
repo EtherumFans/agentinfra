@@ -1,0 +1,986 @@
+{
+  "schema_version": "icoder.agent-hub-field-relation-replay/v1",
+  "generated_at": "2026-08-15T00:43:58.954893+00:00",
+  "passed": true,
+  "relation_agents": 11,
+  "relations": 27,
+  "adversarial_assertions": 52,
+  "detected_assertions": 52,
+  "definition_errors": [],
+  "cases": [
+    {
+      "agent": "claim-check",
+      "schema_ref": "icoder/ClaimCheckOutput/v3",
+      "relation_id": "missing_policy_requires_review",
+      "must_index": 0,
+      "operator": "equals",
+      "baseline_valid": true,
+      "relation_violation_detected": true,
+      "violations": [
+        {
+          "path": "manual_review_required",
+          "keyword": "const",
+          "expected": "declared_value",
+          "actual": "value_mismatch"
+        },
+        {
+          "path": "manual_review_required",
+          "keyword": "fieldRelation",
+          "expected": "missing_policy_requires_review",
+          "actual": "equals_violated"
+        },
+        {
+          "path": "manual_review_required",
+          "keyword": "fieldRelation",
+          "expected": "insufficient_evidence_requires_review",
+          "actual": "equals_violated"
+        }
+      ]
+    },
+    {
+      "agent": "claim-check",
+      "schema_ref": "icoder/ClaimCheckOutput/v3",
+      "relation_id": "insufficient_evidence_requires_review",
+      "must_index": 0,
+      "operator": "equals",
+      "baseline_valid": true,
+      "relation_violation_detected": true,
+      "violations": [
+        {
+          "path": "manual_review_required",
+          "keyword": "const",
+          "expected": "declared_value",
+          "actual": "value_mismatch"
+        },
+        {
+          "path": "manual_review_required",
+          "keyword": "fieldRelation",
+          "expected": "missing_policy_requires_review",
+          "actual": "equals_violated"
+        },
+        {
+          "path": "manual_review_required",
+          "keyword": "fieldRelation",
+          "expected": "insufficient_evidence_requires_review",
+          "actual": "equals_violated"
+        }
+      ]
+    },
+    {
+      "agent": "clinical-documentation-improvement-agent",
+      "schema_ref": "icoder/CDIAgentOutputV1/v4",
+      "relation_id": "withheld_query_requires_human_action",
+      "must_index": 0,
+      "operator": "equals",
+      "baseline_valid": true,
+      "relation_violation_detected": true,
+      "violations": [
+        {
+          "path": "human_review.cdi_specialist_review_required",
+          "keyword": "const",
+          "expected": "declared_value",
+          "actual": "value_mismatch"
+        },
+        {
+          "path": "human_review.cdi_specialist_review_required",
+          "keyword": "fieldRelation",
+          "expected": "withheld_query_requires_human_action",
+          "actual": "equals_violated"
+        }
+      ]
+    },
+    {
+      "agent": "clinical-documentation-improvement-agent",
+      "schema_ref": "icoder/CDIAgentOutputV1/v4",
+      "relation_id": "withheld_query_requires_human_action",
+      "must_index": 1,
+      "operator": "equals",
+      "baseline_valid": true,
+      "relation_violation_detected": true,
+      "violations": [
+        {
+          "path": "human_review.clinician_response_required",
+          "keyword": "const",
+          "expected": "declared_value",
+          "actual": "value_mismatch"
+        },
+        {
+          "path": "human_review.clinician_response_required",
+          "keyword": "fieldRelation",
+          "expected": "withheld_query_requires_human_action",
+          "actual": "equals_violated"
+        }
+      ]
+    },
+    {
+      "agent": "clinical-documentation-improvement-agent",
+      "schema_ref": "icoder/CDIAgentOutputV1/v4",
+      "relation_id": "draft_queries_require_traceable_content",
+      "must_index": 0,
+      "operator": "non_empty",
+      "baseline_valid": true,
+      "relation_violation_detected": true,
+      "violations": [
+        {
+          "path": "proposed_provider_queries[].query_id",
+          "keyword": "fieldRelation",
+          "expected": "draft_queries_require_traceable_content",
+          "actual": "non_empty_violated"
+        }
+      ]
+    },
+    {
+      "agent": "clinical-documentation-improvement-agent",
+      "schema_ref": "icoder/CDIAgentOutputV1/v4",
+      "relation_id": "draft_queries_require_traceable_content",
+      "must_index": 1,
+      "operator": "non_empty",
+      "baseline_valid": true,
+      "relation_violation_detected": true,
+      "violations": [
+        {
+          "path": "proposed_provider_queries[].gap_id",
+          "keyword": "fieldRelation",
+          "expected": "draft_queries_require_traceable_content",
+          "actual": "non_empty_violated"
+        }
+      ]
+    },
+    {
+      "agent": "clinical-documentation-improvement-agent",
+      "schema_ref": "icoder/CDIAgentOutputV1/v4",
+      "relation_id": "draft_queries_require_traceable_content",
+      "must_index": 2,
+      "operator": "non_empty",
+      "baseline_valid": true,
+      "relation_violation_detected": true,
+      "violations": [
+        {
+          "path": "proposed_provider_queries[].query_text",
+          "keyword": "fieldRelation",
+          "expected": "draft_queries_require_traceable_content",
+          "actual": "non_empty_violated"
+        }
+      ]
+    },
+    {
+      "agent": "clinical-documentation-improvement-agent",
+      "schema_ref": "icoder/CDIAgentOutputV1/v4",
+      "relation_id": "draft_queries_require_traceable_content",
+      "must_index": 3,
+      "operator": "non_empty",
+      "baseline_valid": true,
+      "relation_violation_detected": true,
+      "violations": [
+        {
+          "path": "proposed_provider_queries[].evidence_spans",
+          "keyword": "fieldRelation",
+          "expected": "draft_queries_require_traceable_content",
+          "actual": "non_empty_violated"
+        }
+      ]
+    },
+    {
+      "agent": "clinical-documentation-improvement-agent",
+      "schema_ref": "icoder/CDIAgentOutputV1/v4",
+      "relation_id": "draft_queries_require_traceable_content",
+      "must_index": 4,
+      "operator": "non_empty",
+      "baseline_valid": true,
+      "relation_violation_detected": true,
+      "violations": [
+        {
+          "path": "proposed_provider_queries[].response_options",
+          "keyword": "fieldRelation",
+          "expected": "draft_queries_require_traceable_content",
+          "actual": "non_empty_violated"
+        }
+      ]
+    },
+    {
+      "agent": "clinical-education",
+      "schema_ref": "icoder/ClinicalEducationOutput/v3",
+      "relation_id": "insufficient_source_requires_limitations",
+      "must_index": 0,
+      "operator": "non_empty",
+      "baseline_valid": true,
+      "relation_violation_detected": true,
+      "violations": [
+        {
+          "path": "limitations",
+          "keyword": "fieldRelation",
+          "expected": "insufficient_source_requires_limitations",
+          "actual": "non_empty_violated"
+        }
+      ]
+    },
+    {
+      "agent": "clinical-education",
+      "schema_ref": "icoder/ClinicalEducationOutput/v3",
+      "relation_id": "insufficient_source_requires_limitations",
+      "must_index": 1,
+      "operator": "equals",
+      "baseline_valid": true,
+      "relation_violation_detected": true,
+      "violations": [
+        {
+          "path": "manual_review_required",
+          "keyword": "const",
+          "expected": "declared_value",
+          "actual": "value_mismatch"
+        },
+        {
+          "path": "manual_review_required",
+          "keyword": "fieldRelation",
+          "expected": "insufficient_source_requires_limitations",
+          "actual": "equals_violated"
+        }
+      ]
+    },
+    {
+      "agent": "clinical-guidelines",
+      "schema_ref": "icoder/ClinicalGuidelinesOutput/v4",
+      "relation_id": "unmet_guideline_requires_deviation",
+      "must_index": 0,
+      "operator": "non_empty",
+      "baseline_valid": true,
+      "relation_violation_detected": true,
+      "violations": [
+        {
+          "path": "deviations",
+          "keyword": "fieldRelation",
+          "expected": "unmet_guideline_requires_deviation",
+          "actual": "non_empty_violated"
+        }
+      ]
+    },
+    {
+      "agent": "clinical-guidelines",
+      "schema_ref": "icoder/ClinicalGuidelinesOutput/v4",
+      "relation_id": "unmet_guideline_requires_deviation",
+      "must_index": 1,
+      "operator": "equals",
+      "baseline_valid": true,
+      "relation_violation_detected": true,
+      "violations": [
+        {
+          "path": "manual_review_required",
+          "keyword": "const",
+          "expected": "declared_value",
+          "actual": "value_mismatch"
+        },
+        {
+          "path": "manual_review_required",
+          "keyword": "fieldRelation",
+          "expected": "unmet_guideline_requires_deviation",
+          "actual": "equals_violated"
+        }
+      ]
+    },
+    {
+      "agent": "clinical-guidelines",
+      "schema_ref": "icoder/ClinicalGuidelinesOutput/v4",
+      "relation_id": "unmet_criterion_requires_deviation",
+      "must_index": 0,
+      "operator": "non_empty",
+      "baseline_valid": true,
+      "relation_violation_detected": true,
+      "violations": [
+        {
+          "path": "criteria_checked[].deviations",
+          "keyword": "fieldRelation",
+          "expected": "unmet_criterion_requires_deviation",
+          "actual": "non_empty_violated"
+        }
+      ]
+    },
+    {
+      "agent": "clinical-guidelines",
+      "schema_ref": "icoder/ClinicalGuidelinesOutput/v4",
+      "relation_id": "unmet_criterion_requires_deviation",
+      "must_index": 1,
+      "operator": "non_empty",
+      "baseline_valid": true,
+      "relation_violation_detected": true,
+      "violations": [
+        {
+          "path": "criteria_checked[].citations",
+          "keyword": "fieldRelation",
+          "expected": "unmet_criterion_requires_deviation",
+          "actual": "non_empty_violated"
+        }
+      ]
+    },
+    {
+      "agent": "clinical-guidelines",
+      "schema_ref": "icoder/ClinicalGuidelinesOutput/v4",
+      "relation_id": "unassessable_criterion_requires_uncertainty",
+      "must_index": 0,
+      "operator": "non_empty",
+      "baseline_valid": true,
+      "relation_violation_detected": true,
+      "violations": [
+        {
+          "path": "criteria_checked[].uncertainty",
+          "keyword": "fieldRelation",
+          "expected": "unassessable_criterion_requires_uncertainty",
+          "actual": "non_empty_violated"
+        }
+      ]
+    },
+    {
+      "agent": "code-validation",
+      "schema_ref": "icoder/CodeValidationOutput/v5",
+      "relation_id": "failed_validation_requires_review",
+      "must_index": 0,
+      "operator": "equals",
+      "baseline_valid": true,
+      "relation_violation_detected": true,
+      "violations": [
+        {
+          "path": "manual_review_required",
+          "keyword": "fieldRelation",
+          "expected": "failed_validation_requires_review",
+          "actual": "equals_violated"
+        }
+      ]
+    },
+    {
+      "agent": "code-validation",
+      "schema_ref": "icoder/CodeValidationOutput/v5",
+      "relation_id": "valid_code_requires_catalog_assignability",
+      "must_index": 0,
+      "operator": "equals",
+      "baseline_valid": true,
+      "relation_violation_detected": true,
+      "violations": [
+        {
+          "path": "validated_codes[].in_catalog",
+          "keyword": "fieldRelation",
+          "expected": "valid_code_requires_catalog_assignability",
+          "actual": "equals_violated"
+        }
+      ]
+    },
+    {
+      "agent": "code-validation",
+      "schema_ref": "icoder/CodeValidationOutput/v5",
+      "relation_id": "valid_code_requires_catalog_assignability",
+      "must_index": 1,
+      "operator": "equals",
+      "baseline_valid": true,
+      "relation_violation_detected": true,
+      "violations": [
+        {
+          "path": "validated_codes[].assignable",
+          "keyword": "fieldRelation",
+          "expected": "valid_code_requires_catalog_assignability",
+          "actual": "equals_violated"
+        }
+      ]
+    },
+    {
+      "agent": "code-validation",
+      "schema_ref": "icoder/CodeValidationOutput/v5",
+      "relation_id": "invalid_code_requires_issue",
+      "must_index": 0,
+      "operator": "equals",
+      "baseline_valid": true,
+      "relation_violation_detected": true,
+      "violations": [
+        {
+          "path": "validated_codes[].assignable",
+          "keyword": "fieldRelation",
+          "expected": "invalid_code_requires_issue",
+          "actual": "equals_violated"
+        }
+      ]
+    },
+    {
+      "agent": "code-validation",
+      "schema_ref": "icoder/CodeValidationOutput/v5",
+      "relation_id": "invalid_code_requires_issue",
+      "must_index": 1,
+      "operator": "non_empty",
+      "baseline_valid": true,
+      "relation_violation_detected": true,
+      "violations": [
+        {
+          "path": "validated_codes[].issue",
+          "keyword": "fieldRelation",
+          "expected": "invalid_code_requires_issue",
+          "actual": "non_empty_violated"
+        }
+      ]
+    },
+    {
+      "agent": "diagnosis-extractor",
+      "schema_ref": "icoder/DiagnosisExtractionOutput/v4",
+      "relation_id": "codable_diagnosis_requires_current_evidence",
+      "must_index": 0,
+      "operator": "equals",
+      "baseline_valid": true,
+      "relation_violation_detected": true,
+      "violations": [
+        {
+          "path": "diagnoses[].assertion_status",
+          "keyword": "fieldRelation",
+          "expected": "codable_diagnosis_requires_current_evidence",
+          "actual": "equals_violated"
+        }
+      ]
+    },
+    {
+      "agent": "diagnosis-extractor",
+      "schema_ref": "icoder/DiagnosisExtractionOutput/v4",
+      "relation_id": "codable_diagnosis_requires_current_evidence",
+      "must_index": 1,
+      "operator": "non_empty",
+      "baseline_valid": true,
+      "relation_violation_detected": true,
+      "violations": [
+        {
+          "path": "diagnoses[].icd10_cn_code",
+          "keyword": "fieldRelation",
+          "expected": "codable_diagnosis_requires_current_evidence",
+          "actual": "non_empty_violated"
+        }
+      ]
+    },
+    {
+      "agent": "diagnosis-extractor",
+      "schema_ref": "icoder/DiagnosisExtractionOutput/v4",
+      "relation_id": "codable_diagnosis_requires_current_evidence",
+      "must_index": 2,
+      "operator": "non_empty",
+      "baseline_valid": true,
+      "relation_violation_detected": true,
+      "violations": [
+        {
+          "path": "diagnoses[].icd10_cn_name",
+          "keyword": "fieldRelation",
+          "expected": "codable_diagnosis_requires_current_evidence",
+          "actual": "non_empty_violated"
+        }
+      ]
+    },
+    {
+      "agent": "diagnosis-extractor",
+      "schema_ref": "icoder/DiagnosisExtractionOutput/v4",
+      "relation_id": "codable_diagnosis_requires_current_evidence",
+      "must_index": 3,
+      "operator": "non_empty",
+      "baseline_valid": true,
+      "relation_violation_detected": true,
+      "violations": [
+        {
+          "path": "diagnoses[].evidence_text",
+          "keyword": "fieldRelation",
+          "expected": "codable_diagnosis_requires_current_evidence",
+          "actual": "non_empty_violated"
+        }
+      ]
+    },
+    {
+      "agent": "diagnosis-extractor",
+      "schema_ref": "icoder/DiagnosisExtractionOutput/v4",
+      "relation_id": "noncodable_mention_requires_reason",
+      "must_index": 0,
+      "operator": "in",
+      "baseline_valid": true,
+      "relation_violation_detected": true,
+      "violations": [
+        {
+          "path": "non_codable_mentions[].assertion_status",
+          "keyword": "enum",
+          "expected": "declared_values",
+          "actual": "value_not_allowed"
+        },
+        {
+          "path": "non_codable_mentions[].assertion_status",
+          "keyword": "fieldRelation",
+          "expected": "noncodable_mention_requires_reason",
+          "actual": "in_violated"
+        }
+      ]
+    },
+    {
+      "agent": "diagnosis-extractor",
+      "schema_ref": "icoder/DiagnosisExtractionOutput/v4",
+      "relation_id": "noncodable_mention_requires_reason",
+      "must_index": 1,
+      "operator": "non_empty",
+      "baseline_valid": true,
+      "relation_violation_detected": true,
+      "violations": [
+        {
+          "path": "non_codable_mentions[].evidence_text",
+          "keyword": "fieldRelation",
+          "expected": "noncodable_mention_requires_reason",
+          "actual": "non_empty_violated"
+        }
+      ]
+    },
+    {
+      "agent": "diagnosis-extractor",
+      "schema_ref": "icoder/DiagnosisExtractionOutput/v4",
+      "relation_id": "noncodable_mention_requires_reason",
+      "must_index": 2,
+      "operator": "non_empty",
+      "baseline_valid": true,
+      "relation_violation_detected": true,
+      "violations": [
+        {
+          "path": "non_codable_mentions[].reason",
+          "keyword": "fieldRelation",
+          "expected": "noncodable_mention_requires_reason",
+          "actual": "non_empty_violated"
+        }
+      ]
+    },
+    {
+      "agent": "evidence_extractor",
+      "schema_ref": "icoder/CodedEvidence/v5",
+      "relation_id": "supported_code_requires_direct_high_confidence_evidence",
+      "must_index": 0,
+      "operator": "equals",
+      "baseline_valid": true,
+      "relation_violation_detected": true,
+      "violations": [
+        {
+          "path": "supported_codes[].evidence_strength",
+          "keyword": "fieldRelation",
+          "expected": "supported_code_requires_direct_high_confidence_evidence",
+          "actual": "equals_violated"
+        }
+      ]
+    },
+    {
+      "agent": "evidence_extractor",
+      "schema_ref": "icoder/CodedEvidence/v5",
+      "relation_id": "supported_code_requires_direct_high_confidence_evidence",
+      "must_index": 1,
+      "operator": "gte",
+      "baseline_valid": true,
+      "relation_violation_detected": true,
+      "violations": [
+        {
+          "path": "supported_codes[].confidence",
+          "keyword": "fieldRelation",
+          "expected": "supported_code_requires_direct_high_confidence_evidence",
+          "actual": "gte_violated"
+        }
+      ]
+    },
+    {
+      "agent": "evidence_extractor",
+      "schema_ref": "icoder/CodedEvidence/v5",
+      "relation_id": "supported_code_requires_direct_high_confidence_evidence",
+      "must_index": 2,
+      "operator": "non_empty",
+      "baseline_valid": true,
+      "relation_violation_detected": true,
+      "violations": [
+        {
+          "path": "supported_codes[].code",
+          "keyword": "fieldRelation",
+          "expected": "supported_code_requires_direct_high_confidence_evidence",
+          "actual": "non_empty_violated"
+        }
+      ]
+    },
+    {
+      "agent": "evidence_extractor",
+      "schema_ref": "icoder/CodedEvidence/v5",
+      "relation_id": "supported_code_requires_direct_high_confidence_evidence",
+      "must_index": 3,
+      "operator": "non_empty",
+      "baseline_valid": true,
+      "relation_violation_detected": true,
+      "violations": [
+        {
+          "path": "supported_codes[].evidence_text",
+          "keyword": "fieldRelation",
+          "expected": "supported_code_requires_direct_high_confidence_evidence",
+          "actual": "non_empty_violated"
+        }
+      ]
+    },
+    {
+      "agent": "evidence_extractor",
+      "schema_ref": "icoder/CodedEvidence/v5",
+      "relation_id": "uncertain_low_confidence_requires_review_prompt",
+      "must_index": 0,
+      "operator": "non_empty",
+      "baseline_valid": true,
+      "relation_violation_detected": true,
+      "violations": [
+        {
+          "path": "uncertain_candidates[].manual_review_prompt",
+          "keyword": "fieldRelation",
+          "expected": "uncertain_low_confidence_requires_review_prompt",
+          "actual": "non_empty_violated"
+        }
+      ]
+    },
+    {
+      "agent": "evidence_extractor",
+      "schema_ref": "icoder/CodedEvidence/v5",
+      "relation_id": "uncertain_risk_strength_requires_review_prompt",
+      "must_index": 0,
+      "operator": "non_empty",
+      "baseline_valid": true,
+      "relation_violation_detected": true,
+      "violations": [
+        {
+          "path": "uncertain_candidates[].manual_review_prompt",
+          "keyword": "fieldRelation",
+          "expected": "uncertain_low_confidence_requires_review_prompt",
+          "actual": "non_empty_violated"
+        },
+        {
+          "path": "uncertain_candidates[].manual_review_prompt",
+          "keyword": "fieldRelation",
+          "expected": "uncertain_risk_strength_requires_review_prompt",
+          "actual": "non_empty_violated"
+        }
+      ]
+    },
+    {
+      "agent": "evidence_extractor",
+      "schema_ref": "icoder/CodedEvidence/v5",
+      "relation_id": "rejected_low_confidence_requires_review_prompt",
+      "must_index": 0,
+      "operator": "non_empty",
+      "baseline_valid": true,
+      "relation_violation_detected": true,
+      "violations": [
+        {
+          "path": "rejected_candidates[].manual_review_prompt",
+          "keyword": "fieldRelation",
+          "expected": "rejected_low_confidence_requires_review_prompt",
+          "actual": "non_empty_violated"
+        }
+      ]
+    },
+    {
+      "agent": "evidence_extractor",
+      "schema_ref": "icoder/CodedEvidence/v5",
+      "relation_id": "rejected_risk_strength_requires_review_prompt",
+      "must_index": 0,
+      "operator": "non_empty",
+      "baseline_valid": true,
+      "relation_violation_detected": true,
+      "violations": [
+        {
+          "path": "rejected_candidates[].manual_review_prompt",
+          "keyword": "fieldRelation",
+          "expected": "rejected_low_confidence_requires_review_prompt",
+          "actual": "non_empty_violated"
+        },
+        {
+          "path": "rejected_candidates[].manual_review_prompt",
+          "keyword": "fieldRelation",
+          "expected": "rejected_risk_strength_requires_review_prompt",
+          "actual": "non_empty_violated"
+        }
+      ]
+    },
+    {
+      "agent": "medical_coding",
+      "schema_ref": "icoder/MedicalCodingAgentOutputV2/v3",
+      "relation_id": "failed_rules_require_human_review",
+      "must_index": 0,
+      "operator": "equals",
+      "baseline_valid": true,
+      "relation_violation_detected": true,
+      "violations": [
+        {
+          "path": "human_review.review_required",
+          "keyword": "fieldRelation",
+          "expected": "failed_rules_require_human_review",
+          "actual": "equals_violated"
+        }
+      ]
+    },
+    {
+      "agent": "principal_diagnosis_review",
+      "schema_ref": "icoder/PrincipalDxReview/v5",
+      "relation_id": "draft_conflict_requires_reason",
+      "must_index": 0,
+      "operator": "non_empty",
+      "baseline_valid": true,
+      "relation_violation_detected": true,
+      "violations": [
+        {
+          "path": "conflict_reason",
+          "keyword": "fieldRelation",
+          "expected": "draft_conflict_requires_reason",
+          "actual": "non_empty_violated"
+        }
+      ]
+    },
+    {
+      "agent": "principal_diagnosis_review",
+      "schema_ref": "icoder/PrincipalDxReview/v5",
+      "relation_id": "draft_conflict_requires_reason",
+      "must_index": 1,
+      "operator": "equals",
+      "baseline_valid": true,
+      "relation_violation_detected": true,
+      "violations": [
+        {
+          "path": "manual_review_required",
+          "keyword": "const",
+          "expected": "declared_value",
+          "actual": "value_mismatch"
+        },
+        {
+          "path": "manual_review_required",
+          "keyword": "fieldRelation",
+          "expected": "draft_conflict_requires_reason",
+          "actual": "equals_violated"
+        }
+      ]
+    },
+    {
+      "agent": "principal_diagnosis_review",
+      "schema_ref": "icoder/PrincipalDxReview/v5",
+      "relation_id": "recommended_candidate_requires_evidence",
+      "must_index": 0,
+      "operator": "non_empty",
+      "baseline_valid": true,
+      "relation_violation_detected": true,
+      "violations": [
+        {
+          "path": "candidates[].code",
+          "keyword": "fieldRelation",
+          "expected": "recommended_candidate_requires_evidence",
+          "actual": "non_empty_violated"
+        }
+      ]
+    },
+    {
+      "agent": "principal_diagnosis_review",
+      "schema_ref": "icoder/PrincipalDxReview/v5",
+      "relation_id": "recommended_candidate_requires_evidence",
+      "must_index": 1,
+      "operator": "non_empty",
+      "baseline_valid": true,
+      "relation_violation_detected": true,
+      "violations": [
+        {
+          "path": "candidates[].evidence_text",
+          "keyword": "fieldRelation",
+          "expected": "recommended_candidate_requires_evidence",
+          "actual": "non_empty_violated"
+        }
+      ]
+    },
+    {
+      "agent": "principal_diagnosis_review",
+      "schema_ref": "icoder/PrincipalDxReview/v5",
+      "relation_id": "recommended_candidate_requires_evidence",
+      "must_index": 2,
+      "operator": "non_empty",
+      "baseline_valid": true,
+      "relation_violation_detected": true,
+      "violations": [
+        {
+          "path": "candidates[].rationale",
+          "keyword": "fieldRelation",
+          "expected": "recommended_candidate_requires_evidence",
+          "actual": "non_empty_violated"
+        }
+      ]
+    },
+    {
+      "agent": "principal_diagnosis_review",
+      "schema_ref": "icoder/PrincipalDxReview/v5",
+      "relation_id": "nonrecommended_candidate_requires_rationale",
+      "must_index": 0,
+      "operator": "non_empty",
+      "baseline_valid": true,
+      "relation_violation_detected": true,
+      "violations": [
+        {
+          "path": "candidates[].rationale",
+          "keyword": "fieldRelation",
+          "expected": "nonrecommended_candidate_requires_rationale",
+          "actual": "non_empty_violated"
+        }
+      ]
+    },
+    {
+      "agent": "procedure-extractor",
+      "schema_ref": "icoder/ProcedureCodingOutput/v6",
+      "relation_id": "procedure_count_matches_items",
+      "must_index": 0,
+      "operator": "length_equals",
+      "baseline_valid": true,
+      "relation_violation_detected": true,
+      "violations": [
+        {
+          "path": "procedures",
+          "keyword": "fieldRelation",
+          "expected": "procedure_count_matches_items",
+          "actual": "length_equals_violated"
+        }
+      ]
+    },
+    {
+      "agent": "procedure-extractor",
+      "schema_ref": "icoder/ProcedureCodingOutput/v6",
+      "relation_id": "billable_procedure_requires_performed_evidence",
+      "must_index": 0,
+      "operator": "equals",
+      "baseline_valid": true,
+      "relation_violation_detected": true,
+      "violations": [
+        {
+          "path": "procedures[].status",
+          "keyword": "fieldRelation",
+          "expected": "billable_procedure_requires_performed_evidence",
+          "actual": "equals_violated"
+        }
+      ]
+    },
+    {
+      "agent": "procedure-extractor",
+      "schema_ref": "icoder/ProcedureCodingOutput/v6",
+      "relation_id": "billable_procedure_requires_performed_evidence",
+      "must_index": 1,
+      "operator": "non_empty",
+      "baseline_valid": true,
+      "relation_violation_detected": true,
+      "violations": [
+        {
+          "path": "procedures[].code",
+          "keyword": "fieldRelation",
+          "expected": "billable_procedure_requires_performed_evidence",
+          "actual": "non_empty_violated"
+        }
+      ]
+    },
+    {
+      "agent": "procedure-extractor",
+      "schema_ref": "icoder/ProcedureCodingOutput/v6",
+      "relation_id": "billable_procedure_requires_performed_evidence",
+      "must_index": 2,
+      "operator": "non_empty",
+      "baseline_valid": true,
+      "relation_violation_detected": true,
+      "violations": [
+        {
+          "path": "procedures[].display",
+          "keyword": "fieldRelation",
+          "expected": "billable_procedure_requires_performed_evidence",
+          "actual": "non_empty_violated"
+        }
+      ]
+    },
+    {
+      "agent": "procedure-extractor",
+      "schema_ref": "icoder/ProcedureCodingOutput/v6",
+      "relation_id": "billable_procedure_requires_performed_evidence",
+      "must_index": 3,
+      "operator": "non_empty",
+      "baseline_valid": true,
+      "relation_violation_detected": true,
+      "violations": [
+        {
+          "path": "procedures[].evidence_text",
+          "keyword": "fieldRelation",
+          "expected": "billable_procedure_requires_performed_evidence",
+          "actual": "non_empty_violated"
+        }
+      ]
+    },
+    {
+      "agent": "procedure-extractor",
+      "schema_ref": "icoder/ProcedureCodingOutput/v6",
+      "relation_id": "nonbillable_procedure_requires_status_evidence",
+      "must_index": 0,
+      "operator": "in",
+      "baseline_valid": true,
+      "relation_violation_detected": true,
+      "violations": [
+        {
+          "path": "non_billable_mentions[].status",
+          "keyword": "enum",
+          "expected": "declared_values",
+          "actual": "value_not_allowed"
+        },
+        {
+          "path": "non_billable_mentions[].status",
+          "keyword": "fieldRelation",
+          "expected": "nonbillable_procedure_requires_status_evidence",
+          "actual": "in_violated"
+        }
+      ]
+    },
+    {
+      "agent": "procedure-extractor",
+      "schema_ref": "icoder/ProcedureCodingOutput/v6",
+      "relation_id": "nonbillable_procedure_requires_status_evidence",
+      "must_index": 1,
+      "operator": "non_empty",
+      "baseline_valid": true,
+      "relation_violation_detected": true,
+      "violations": [
+        {
+          "path": "non_billable_mentions[].evidence_text",
+          "keyword": "fieldRelation",
+          "expected": "nonbillable_procedure_requires_status_evidence",
+          "actual": "non_empty_violated"
+        }
+      ]
+    },
+    {
+      "agent": "procedure-extractor",
+      "schema_ref": "icoder/ProcedureCodingOutput/v6",
+      "relation_id": "procedure_issues_require_review",
+      "must_index": 0,
+      "operator": "equals",
+      "baseline_valid": true,
+      "relation_violation_detected": true,
+      "violations": [
+        {
+          "path": "manual_review_required",
+          "keyword": "const",
+          "expected": "declared_value",
+          "actual": "value_mismatch"
+        },
+        {
+          "path": "manual_review_required",
+          "keyword": "fieldRelation",
+          "expected": "procedure_issues_require_review",
+          "actual": "equals_violated"
+        }
+      ]
+    },
+    {
+      "agent": "rule_explainer",
+      "schema_ref": "icoder/RuleExplanationOutput/v3",
+      "relation_id": "review_status_requires_review",
+      "must_index": 0,
+      "operator": "equals",
+      "baseline_valid": true,
+      "relation_violation_detected": true,
+      "violations": [
+        {
+          "path": "manual_review_required",
+          "keyword": "const",
+          "expected": "declared_value",
+          "actual": "value_mismatch"
+        },
+        {
+          "path": "manual_review_required",
+          "keyword": "fieldRelation",
+          "expected": "review_status_requires_review",
+          "actual": "equals_violated"
+        }
+      ]
+    }
+  ]
+}

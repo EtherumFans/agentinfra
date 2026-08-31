@@ -1,0 +1,251 @@
+{
+  "agent_id": "clinical-documentation-improvement-agent",
+  "run_id": "run-2b084108-a6d9-4985-8387-43fa8ee1e653",
+  "trace_id": "trace-9e8ed5aca0c04b96",
+  "trace_url": "/ai-studio/runs/run-2b084108-a6d9-4985-8387-43fa8ee1e653/trace",
+  "runtime_mode": "cdi_real_orchestrator",
+  "latency_ms": 22625,
+  "cost": {},
+  "billing": {},
+  "summary": "CDI review completed; specialist and clinician review remain required.",
+  "result": {
+    "encounter_summary": {
+      "key_points": [
+        "诊断: 肺炎",
+        "痰培养: 肺炎链球菌 (3+)"
+      ],
+      "encounter_metadata": {
+        "patient_age": "未知",
+        "patient_sex": "未知",
+        "encounter_type": "入院"
+      }
+    },
+    "documentation_gaps": [
+      {
+        "gap_id": "GAP-001",
+        "gap_type": "diagnostic_specificity",
+        "description": "Pneumonia diagnosis lacks specification of anatomical site (e.g., lobar, bronchopneumonia) and severity indicators (e.g., CURB-65, PSI, oxygen saturation).",
+        "why_it_matters": "Specificity of pneumonia type and severity affects coding (e.g., severity of illness, risk of mortality) and clinical management.",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "诊断: 肺炎",
+          "char_start": 6,
+          "char_end": 12,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      },
+      {
+        "gap_id": "GAP-002",
+        "gap_type": "diagnostic_specificity",
+        "description": "Etiology is identified as Streptococcus pneumoniae, but the clinical correlation is not explicitly stated (e.g., whether the sputum culture represents true infection or colonization).",
+        "why_it_matters": "Clarifying clinical correlation ensures accurate coding of the causative organism and appropriate antibiotic therapy.",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "痰培养: 肺炎链球菌 (3+)",
+          "char_start": 13,
+          "char_end": 28,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      }
+    ],
+    "proposed_provider_queries": [
+      {
+        "query_id": "Q-002",
+        "gap_id": "GAP-002",
+        "topic": "肺炎链球菌培养的临床意义",
+        "reason": "痰培养显示肺炎链球菌3+，但未明确该结果代表真正的感染还是定植。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "痰培养: 肺炎链球菌 (3+)",
+          "char_start": 13,
+          "char_end": 28,
+          "documented_at": ""
+        },
+        "evidence_spans": [
+          {
+            "document_id": "chart-001",
+            "quote": "痰培养: 肺炎链球菌 (3+)",
+            "char_start": 13,
+            "char_end": 28,
+            "documented_at": ""
+          }
+        ],
+        "query_text": "该痰培养结果在临床上的意义是什么？",
+        "response_options": [
+          "A. 考虑为真正的感染病原体",
+          "B. 考虑为定植菌，非感染病原体",
+          "C. 考虑为污染或不确定",
+          "D. 无法确定"
+        ],
+        "lifecycle_state": "DRAFT",
+        "priority": "routine",
+        "nlq_gate_verdict": "PASS",
+        "nlq_gate_block_reasons": []
+      },
+      {
+        "query_id": "Q-PNA-fb217825",
+        "gap_id": "GAP-001",
+        "topic": "肺炎类型",
+        "reason": "肺炎诊断已记录，但临床类型尚未明确。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "诊断: 肺炎",
+          "char_start": 6,
+          "char_end": 12,
+          "documented_at": ""
+        },
+        "evidence_spans": [
+          {
+            "document_id": "chart-001",
+            "quote": "诊断: 肺炎",
+            "char_start": 6,
+            "char_end": 12,
+            "documented_at": ""
+          }
+        ],
+        "query_text": "请明确本次肺炎的具体类型。",
+        "response_options": [
+          "A. 社区获得性肺炎",
+          "B. 医院获得性肺炎",
+          "C. 吸入性肺炎",
+          "D. 其他类型（请注明）",
+          "E. 无法确定"
+        ],
+        "lifecycle_state": "DRAFT",
+        "priority": "routine",
+        "nlq_gate_verdict": "PASS",
+        "nlq_gate_block_reasons": []
+      }
+    ],
+    "query_gate_summary": {
+      "withheld_count": 2,
+      "status_counts": {
+        "REWRITE_CANDIDATE_GENERATED": 0
+      },
+      "manual_cdi_action_required": true
+    },
+    "coding_specificity_checklist": [],
+    "risk_flags": [],
+    "specialist_trace": [
+      {
+        "expert_id": "coding-expert",
+        "consulted": true,
+        "requested": "You are a coding-specialist Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "To ensure accurate coding, the pneumonia diagnosis must specify the anatomical pattern (e.g., lobar vs. bronchopneumonia) and include severity markers such as oxygen saturation, CURB-65 score, or PSI to reflect clinical acuity. Additionally, explicitly document whether the Streptococcus pneumoniae (3+) sputum culture represents true infection versus colonization, correlating it with clinical signs (e.g., fever, purulent sputum, radiographic infiltrate) to justify the etiologic diagnosis.",
+        "route_decision": "needed",
+        "route_reason": "coding_relevant_gap",
+        "execution_mode": "LLM_KNOWLEDGE_ONLY",
+        "latency_ms": 2637,
+        "tokens": 245,
+        "run_id": "run-714657d41928",
+        "trace_id": "trace-41154257240b"
+      },
+      {
+        "expert_id": "pubmed-expert",
+        "consulted": false,
+        "requested": "You are a PubMed literature Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-6338df035521",
+        "trace_id": "trace-04808fb2538f"
+      },
+      {
+        "expert_id": "web-search-expert",
+        "consulted": false,
+        "requested": "You are a clinical web-search Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-8b77477d68bb",
+        "trace_id": "trace-53caf9d45e26"
+      },
+      {
+        "expert_id": "medical-calculator-expert",
+        "consulted": false,
+        "requested": "You are a medical-calculator Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "'CURB-65' score — parameters absent from chart",
+        "route_decision": "missing_inputs",
+        "route_reason": "calculator_params_missing",
+        "execution_mode": "SKIPPED_MISSING_INPUTS",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-1cd3023b7bf1",
+        "trace_id": "trace-6c8457bcabc2"
+      }
+    ],
+    "human_review": {
+      "cdi_specialist_review_required": true,
+      "clinician_response_required": true,
+      "review_priority": "routine"
+    },
+    "trace_refs": {
+      "run_id": "run-2b084108-a6d9-4985-8387-43fa8ee1e653",
+      "stage_trace": {
+        "encounter_synthesis": "trace-b969744d012b",
+        "gap_identification": "trace-3c48981ab455",
+        "expert_consultation": "trace-488e4288640d",
+        "query_generation": "trace-84d885eeca52",
+        "query_eligibility_gate": "",
+        "query_necessity_gate": "",
+        "query_dimension_rewrite": "",
+        "query_single_dimension_gate": "",
+        "claim_evidence_alignment_gate": "trace-beb02918ea2a",
+        "semantic_necessity_gate": "trace-3c654c66ef3e",
+        "query_compliance_gate": "",
+        "specialist_trace_emit": "trace-a7af540b7c6d"
+      },
+      "experts_consulted": [
+        "coding-expert"
+      ],
+      "gate_results": {
+        "encounter_synthesis": "run-7be30ee6e13c",
+        "gap_identification": "run-77a0cdd50682",
+        "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
+        "expert_consultation": "run-a43fcd78ee02",
+        "query_generation": "run-5093ca87ba12",
+        "query_generation::quote_snapped": "0",
+        "query_generation::coverage_missing": "0",
+        "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=;dropped=0;final_count=2;llm_complete=False;llm_reasoning=The chart documents pneumonia with a positive sputum culture for Streptococcus p",
+        "query_necessity_gate": "necessary=2;unnecessary=0;overquery_triggered=False;final_count=2",
+        "query_dimension_rewrite": "not_executed",
+        "query_single_dimension_gate": "single_dim=2;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=type;rewrite_attempted=0;rewrite_accepted=0;final_count=2",
+        "claim_evidence_alignment_gate": "claims_extracted=4;degraded=0;blocked=0;flagged=0;final_count=2",
+        "claim_evidence_alignment_gate::run_id": "run-f34f28df6e9c",
+        "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=2",
+        "semantic_necessity_gate::run_id": "run-8ae0b1f3695f",
+        "query_compliance_gate": ";passed=2;blocked=0",
+        "specialist_trace_emit": "run-0359600b5bea"
+      },
+      "trace_id": "trace-9e8ed5aca0c04b96"
+    }
+  },
+  "schema_ref": "icoder/CDIAgentOutputV1/v6",
+  "result_attestation": "eyJhIjoiY2xpbmljYWwtZG9jdW1lbnRhdGlvbi1pbXByb3ZlbWVudC1hZ2VudCIsImQiOiJjNjhhMTE0MThjZDhlOThmODFkZmY4ZGNlMjMzMGE1YjhmZmM1ZjMyYThiYjAzNzJlYjYyMjg1OTBkNTA2NDVkIiwiZSI6MTc4Nzc1MTI1OSwibyI6IjhjN2VjMDdiMzg3NyIsInIiOiJydW4tMmIwODQxMDgtYTZkOS00OTg1LTgzODctNDNmYThlZTFlNjUzIiwicyI6Imljb2Rlci9DRElBZ2VudE91dHB1dFYxL3Y2IiwidiI6MX0.pwDONIt_MIbDV_YzZ7y7LCtZjXAfDeJ8FyGqReltvWw",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 22.722
+}

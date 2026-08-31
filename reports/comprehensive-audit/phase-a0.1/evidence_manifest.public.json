@@ -1,0 +1,76 @@
+{
+  "$schema": "https://icoder.cloud/schemas/audit/evidence-manifest-public.json",
+  "schema_version": "1.1",
+  "generated_at": "2026-07-17",
+  "generated_by": "Phase A0.1 Gate 2 — Canonical Manifest Repair (public split)",
+  "audit": "iCoDer Comprehensive Product, Architecture and Delivery Audit",
+  "audit_phase": "A0.1",
+  "branch": "master",
+  "remote": "https://github.com/EtherumFans/agentinfra.git",
+  "trusted_commit": "c147d015455017bc1d8420cbdbd813b3b8ec23ce",
+
+  "publication_policy": "This public manifest excludes all PII, all secrets, and all sensitive Corti account information. Sensitive evidence paths are referenced by their existence and grade only; SHA-256 of sensitive artifacts is included only when the artifact itself is public.",
+
+  "note_on_restricted_artifacts": "Restricted manifest (evidence_manifest.v2_1.json) is the authoritative source. This public manifest is the redacted view; numbers below match the restricted manifest.",
+
+  "sensitive_evidence_redacted": {
+    "count": 7,
+    "rule": "Corti account email + Corti project_id are present in evidence/corti-foundation/console-walkthrough/00_console_access_metadata.md (restricted only); public manifest references the file by existence and grade only, not by its content."
+  },
+
+  "evidence_counts": {
+    "total_evidence_entries_in_v2_1": 36,
+    "exists_true": 27,
+    "exists_false": 9,
+    "capture_status_distribution": {
+      "CAPTURED": 27,
+      "NOT_CAPTURED": 8,
+      "NOT_POPULATED": 1
+    }
+  },
+
+  "evidence_grade_distribution": {
+    "E0_UNSUPPORTED": 9,
+    "E1_DOCUMENTED": 4,
+    "E2_CODE_OBSERVED": 13,
+    "E3_UNIT_VERIFIED": 0,
+    "E4_INTEGRATION_VERIFIED": 0,
+    "E5_BROWSER_VERIFIED": 10,
+    "E6_EXTERNAL_CONSUMER_VERIFIED": 0,
+    "E7_SECURITY_NEGATIVE_VERIFIED": 0,
+    "E8_EXTERNAL_PARTNER_OR_PRODUCTION_OBSERVED": 0
+  },
+
+  "gates_summary": {
+    "pre_phase_a0": {"gate0..gate14": "DONE per reports/comprehensive-audit/GATE*.md"},
+    "pre_a0": {"status": "SUPERSEDED", "verdict": "PASS_PRE_A0_CORTI_FOUNDATION_RECONCILIATION_COMPLETE (rejected in A0.1)"},
+    "phase_a0": {
+      "status": "SUPERSEDED_BY_PHASE_A0_1",
+      "final_verdict_claimed": "PASS_PHASE_A0_AUDIT_CLOSURE_AND_READY_FOR_PHASE_A1_...",
+      "final_verdict_status": "REFUTED_BY_PHASE_A0_1_GATE_0",
+      "refutation_count": 7
+    },
+    "phase_a0_1": {
+      "status": "IN_PROGRESS",
+      "gates_closed": ["gate0", "gate1"],
+      "gates_in_progress": ["gate2"],
+      "gates_pending": ["gate3", "gate4", "gate5", "gate6", "gate7", "gate8", "gate9"]
+    }
+  },
+
+  "forbidden_verdicts": [
+    "PRODUCTION_READY",
+    "HOSPITAL_DEPLOYMENT_READY",
+    "HOSPITAL_PILOT_READY",
+    "PARTNER_PRODUCTION_READY",
+    "PUBLIC_NPM_PUBLISHED",
+    "CORTI_FULL_PARITY",
+    "CORTI_AGENT_PARITY_COMPLETE",
+    "CORTI_EXPERT_PARITY_COMPLETE",
+    "SECURITY_CERTIFIED",
+    "CLINICALLY_VALIDATED",
+    "FOUNDATION_IMPLEMENTED",
+    "PASS_PRE_A0_CORTI_FOUNDATION_RECONCILIATION_COMPLETE",
+    "PASS_PHASE_A0_AUDIT_CLOSURE_AND_READY_FOR_PHASE_A1_*"
+  ]
+}

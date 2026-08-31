@@ -1,0 +1,127 @@
+{
+  "schema_version": "icoder.governed-evidence-ranker-phase/v1",
+  "date": "2026-08-23",
+  "result": "development_local_runtime_gate_passed_with_external_release_gates_open",
+  "agent": {
+    "agent_id": "evidence-ranker",
+    "agent_ref": "icoder/evidence-ranker@1.1.0",
+    "execution_path": "provider_registry",
+    "execution_target": "icoder.governed-evidence-ranker.v1",
+    "backend_type": "rule_engine",
+    "default_runtime_mode": "governed_local_documentation_grounding",
+    "policy_id": "icoder.documentation-grounding-ranking",
+    "policy_version": "1.0.0",
+    "external_llm_required": false,
+    "network_required": false,
+    "cost_usd": 0.0,
+    "clinical_support_assessed": false,
+    "output_contract": "icoder/EvidenceRankerOutput/v4",
+    "pack_sha256": "411b2a77f7588ed0a8dc1d57285a227853028398599c4483647dfce83e02d80a",
+    "human_review_required": true,
+    "production_ready": false
+  },
+  "capability_boundary": {
+    "verified": [
+      "explicit_structured_and_bounded_labeled_evidence_input",
+      "exact_source_document_character_span_validation",
+      "deterministic_documentation_grounding_component_scoring",
+      "source_document_type_does_not_change_score",
+      "explicit_certainty_and_negation_only",
+      "duplicate_evidence_id_conflict_detection",
+      "missing_source_empty_content_and_invalid_span_fail_closed",
+      "adversarial_suffix_exclusion",
+      "unified_run_a2a_hub_and_trace_provider_attribution"
+    ],
+    "not_claimed": [
+      "clinical_evidence_strength_or_relevance",
+      "diagnosis_probability_or_code_confidence",
+      "medical_semantic_contradiction_detection",
+      "code_assignment_validation_or_recommendation",
+      "current_corti_same_case_equivalence",
+      "independent_clinical_quality",
+      "production_approval"
+    ]
+  },
+  "runtime_matrix": {
+    "hub_visible_agents": 26,
+    "visible_external_llm_required": 21,
+    "visible_external_llm_optional": 1,
+    "visible_local_only_execution": 4,
+    "visible_local_baseline_available": 5,
+    "visible_offline_safe_fail_closed_expected": 21,
+    "visible_field_relation_count": 38,
+    "visible_semantic_live_e2e_verified": 0,
+    "visible_production_ready_verified": 0,
+    "artifact": "runtime_matrix/agent_hub_runtime_matrix.json"
+  },
+  "tests": {
+    "focused_agent_provider_run_a2a_hub_contract_and_offline": {
+      "passed": 220,
+      "failed": 0,
+      "seconds": 68.07
+    },
+    "expanded_agent_hub_provider_a2a_run_regression": {
+      "passed": 986,
+      "failed": 0,
+      "seconds": 227.37
+    },
+    "offline_visible_agent_e2e": {
+      "passed": 52,
+      "failed": 0,
+      "seconds": 11.65,
+      "local_baseline_success_per_matrix": 5,
+      "external_model_safe_fail_closed_per_matrix": 21,
+      "unsafe_or_invalid_per_matrix": 0
+    },
+    "field_relation_adversarial_replay": {
+      "relation_agents": 12,
+      "relations": 38,
+      "passed": 63,
+      "failed": 0,
+      "artifact": "field_relations/agent_hub_field_relation_replay.json"
+    },
+    "deployment_candidate_preflight": {
+      "passed": 81,
+      "failed": 0,
+      "artifact": "preflight/deployment_preflight.json"
+    }
+  },
+  "corti_public_comparison": {
+    "direct_named_prebuilt_equivalent_found": false,
+    "sources": [
+      "https://corti.ai/agents",
+      "https://corti.ai/agents/medical-coding-icd-10-cpt-agent",
+      "https://corti.ai/medical-coding",
+      "https://www.corti.ai/stories/research-symphony-for-medical-coding"
+    ],
+    "checked_at": "2026-08-23",
+    "nearest_public_boundaries": [
+      "coding_anchored_to_documented_evidence",
+      "specific_documentation_link_per_code",
+      "explicit_insufficient_evidence_gaps",
+      "supporting_evidence_ranked_alternatives_and_audit_trail",
+      "span_level_evidence_attribution"
+    ],
+    "material_open_gaps": [
+      "full_note_evidence_extraction_and_clinical_support_reasoning",
+      "authoritative_multicode_system_assignment_and_validation",
+      "ranked_code_alternatives_and_rule_grounded_justification",
+      "current_corti_same_case_and_repeatability_comparison",
+      "independent_clinical_gold_set_and_hospital_acceptance"
+    ]
+  },
+  "final_safety_state": {
+    "protected_database_sha256": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e",
+    "protected_database_hash_matches_expected": true,
+    "current_process_icoder_credential_length": 0,
+    "current_process_deepseek_key_length": 0,
+    "protected_port_listener_count": 0,
+    "python_or_uvicorn_process_count": 0
+  },
+  "limitations": [
+    "No direct public Corti Evidence Ranker pre-built Agent was found; comparison uses adjacent public Medical Coding and Agentic Framework capabilities.",
+    "No signed-in Corti console operation was executed because the host has a documented browser memory-crash risk.",
+    "No real external LLM call was executed and no exposed credential was read or used.",
+    "No real hospital data, independent clinical reviewer or production infrastructure gate was exercised."
+  ]
+}

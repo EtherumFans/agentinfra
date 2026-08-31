@@ -2,7 +2,7 @@
 
 **作者**: iCoDer 架构组
 **日期**: 2026-06-20
-**状态**: Draft (待审, Phase 1 spec 之三)
+**状态**: Implemented / release candidate（2026-08-10 按 Corti 当前契约校正多轮语义）
 **范围**: iCoDer v1 Context (会话级上下文) — contextId 数据模型、Context 对象结构、生命周期、跨 contextId 隔离语义、Context/Memory 边界、PHI 处理、GC 策略
 **前置**:
 - `ICODER_V1_AGENT_RUNTIME_ARCHITECTURE_RFC.md` (Decided 2026-06-20, Q4 + Q8 决策)
@@ -44,7 +44,7 @@
 | Context 生命周期 | 一次会话 (user-driven) | **同** |
 | Context 存储 | 服务端, 短期 | **同** (Q8) |
 | Memory 关系 | Context 短期, Memory 长期, semantic retrieval | **同** (Q8) |
-| 同一 contextId 内多轮 | 支持 (同一 contextId 多次 message:send) | **Phase 1 不实现** (单轮), Phase 5 多轮 (Q-S7) |
+| 同一 contextId 内多轮 | 支持 (同一 contextId 多次 message:send) | **已实现**：首轮服务端创建，后续租户/Agent/状态校验后复用；历史自动注入 |
 
 ### 1.3 关键边界 (从 RFC 1.3 + 4.4 来)
 
@@ -58,7 +58,7 @@
 
 ### 2.1 Goals (本 spec 必须达成)
 
-1. **G1**: contextId 服务端生成 (UUID v4), 客户端不能传 (即使传了也忽略)
+1. **G1**: contextId 首轮由服务端生成 (UUID v4)；后续只能复用服务端已签发且通过租户、Agent、生命周期校验的 ID
 2. **G2**: 跨 contextId 三层隔离 (数据/状态/缓存) 强保证, 与 Corti 对齐
 3. **G3**: Context 存储短期 (SQLite), 自动 expire, 不持久化到长期
 4. **G4**: Context/Memory 边界明确, 跨 contextId **不通过 Context 共享**, 走 Memory semantic retrieval (Q8)
@@ -72,9 +72,9 @@
 ### 2.2 Non-Goals (本 spec 明确不做)
 
 1. **N1**: 不实现 Memory 长期存储 (Phase 5 + `ICODER_V1_MEMORY_SPEC.md` 后续, 本 spec 只定义 Context/Memory 边界)
-2. **N2**: 不实现 Context 多轮对话 (同一 contextId 多次 message:send) — Phase 5 才支持
+2. **N2（已被 2026-08-10 实现取代）**: 原计划推迟 Context 多轮；当前已按 Corti 契约实现
 3. **N3**: 不实现 Context 跨进程共享 (单进程 in-memory + SQLite, 跨进程留 Phase 6)
-4. **N4**: 不实现 Context 加密 (iCoDer v1 = 托管云, TLS 即可, 不端到端加密)
+4. **N4（已被 2026-08-10 实现取代）**: 当前 Context message parts 已使用 PHI 加密组件进行数据库静态加密；仍不提供客户端端到端加密
 5. **N5**: 不实现 Context 编辑/回滚 (Append-only, 修改 = 新版本)
 6. **N6**: 不实现 Context 配额 (Phase 1 无, Phase 6 才接计费/配额)
 7. **N7**: 不实现 Context 主动失效 (e.g., admin 强制 destroy 某个 contextId) — Phase 5
@@ -99,7 +99,7 @@
 - **生成时机**: 每次 A2A `message/send` 请求接收时
 - **生成后行为**: 
   1. 服务端用 `uuid4()` 生成 contextId
-  2. 校验 client 传入的 `message.contextId` (如有), **忽略**, **不使用**
+  2. client 未传 `message.contextId` 时生成新 ID；传入时校验 canonical UUID、租户、Agent 和 active 状态
   3. 把服务端生成的 contextId 写入:
      - RunContext.context_id
      - Context.id
@@ -500,7 +500,7 @@ class ContextRepository:
 | SQL 注入 (跨 contextId 读) | SQLAlchemy ORM 自动防 (但测试必覆盖) | 抛 `ContextIsolationError` |
 | 代码 bug (忘记带 WHERE) | 单元测试全覆盖 + Code review | 抛 `ContextIsolationError` + 报警 |
 | 并发竞争 (contextId 复用) | UUID v4 强随机 (碰撞概率 ~0) | 实际不会发生 |
-| 恶意客户端 (伪造 contextId) | 服务端忽略, 重生成 | 正常流程 |
+| 恶意客户端 (伪造 contextId) | canonical UUID 校验 + 租户/Agent/active 状态校验；错误租户与不存在统一 404 | 无法读取或续写其他 Context |
 
 ---
 
@@ -561,8 +561,8 @@ class ContextRepository:
 - 性能: 直接 SQLite 读, 不走 embedding 检索
 
 **多轮同 contextId** (Phase 5, N2):
-- Phase 1 不支持多轮 (一次 message:send = 一次 run, 一次 Context)
-- Phase 5 支持: 客户端送同 contextId 多次 message:send, Context 累积 messages
+- 当前已支持多轮：首轮由服务端生成 `contextId`，后续请求复用同租户、同 Agent、active 的服务端 ID
+- 每轮原子追加脱敏 user message 与 Agent output；GET Context history 可分页读取当前 Context 的 messages/tasks
 
 ---
 
@@ -628,7 +628,7 @@ class ContextRepository:
 
 | A2A 字段 | 引用 Context 字段 | 说明 |
 |---------|-------------------|------|
-| `Message.contextId` (请求) | (客户端可传, 服务端忽略) | A2A spec §4.1 |
+| `Message.contextId` (请求) | 首轮省略；后续传服务端返回值以继续线程 | A2A spec §4.1 |
 | `Message.contextId` (响应) | `Context.id` | A2A spec §4.2 |
 | `Task.contextId` | `Context.id` | A2A spec §4.3 |
 | `Message.metadata` (iCoDer) | `Context.metadata` 的子集 (production_writeback_blocked / phi_redacted) | A2A spec §9 |
@@ -637,7 +637,7 @@ class ContextRepository:
 
 ```
 1. Client → POST /v1/message:send (A2A spec §7.2)
-   { message: { parts: [TextPart("病历原文...")], contextId?: "client-supplied-but-ignored" } }
+   { message: { parts: [TextPart("病历原文...")], contextId?: "server-issued-continuation-id" } }
 
 2. Orchestrator Inbound Handler:
    a. 生成 contextId = uuid4()           (Q4 服务端生成)
@@ -685,7 +685,7 @@ class ContextRepository:
 
 | 测试组 | 覆盖 | 数量 |
 |--------|------|------|
-| **contextId 生成** | UUID v4 格式 / 唯一性 / 客户端忽略 | 5 |
+| **contextId 生成与续用** | UUID v4 / 唯一性 / 首轮生成 / 后续租户、Agent、状态验证 | 8 |
 | **Context 创建** | 必填字段 / 默认值 / expires_at 计算 | 3 |
 | **Context 状态机** | active → completed / active → failed / active → expired | 4 |
 | **生命周期事件** | create / mutate / complete / fail / expire / destroy | 6 |

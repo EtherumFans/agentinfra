@@ -1,0 +1,284 @@
+{
+  "$schema": "https://icoder.cloud/schemas/audit/issue-ledger-v2.json",
+  "schema_version": "2.0",
+  "generated_at": "2026-07-17",
+  "generated_by": "Phase A0.1 Gate 3 — Issue Ledger Normalization",
+  "supersedes": "reports/comprehensive-audit/phase-a0/issue_ledger.json (v1.0, Phase A0 Gate 5)",
+  "design_principles": [
+    "Single source of truth: severity_counts MUST equal array-derived counts",
+    "No narrative numbers floating without derivation",
+    "Every entry has explicit status (no implicit default); P3 backlog normalized to status=OPEN_BACKLOG",
+    "canonical_count has explicit formula: total_raw - explicit_duplicates",
+    "Machine-verifiable JSON; Gate 8 validator recomputes counts from array"
+  ],
+  "severity_counts_normalized": {
+    "total_raw_findings": 91,
+    "by_severity_from_array": {
+      "P0-S": 12,
+      "P0-C": 2,
+      "P0-D": 4,
+      "P0-T": 6,
+      "P0_aggregate": 24,
+      "P1": 27,
+      "P2": 28,
+      "P3": 12
+    },
+    "by_status_from_array": {
+      "OPEN": 67,
+      "OPEN_BACKLOG": 11,
+      "DUPLICATE": 5,
+      "RESOLVED_PER_A0_GATE_2": 3,
+      "RESOLVED_PER_A0_GATE_3": 1,
+      "REFRAMED": 1,
+      "MITIGATED_IN_PHASE_7_IMPLEMENTATION_REPORTED": 2
+    },
+    "canonical_count_formula": "total_raw_findings - explicit_duplicates = 91 - 5 = 86",
+    "canonical_count": 86,
+    "open_canonical_count_formula": "canonical_count - resolved - reframed - mitigated = 86 - 4 - 1 - 2 = 79",
+    "open_canonical_count": 79,
+    "open_by_severity": {
+      "P0-S_open": 11,
+      "P0-C_open": 2,
+      "P0-D_open": 4,
+      "P0-T_open": 6,
+      "P0_aggregate_open": 23,
+      "P1_open": 22,
+      "P2_open": 27,
+      "P3_open": 11
+    },
+    "p0_aggregate_open_breakdown": {
+      "P0-S_open": 11,
+      "P0-C_open": 2,
+      "P0-D_open": 4,
+      "P0-T_open": 6,
+      "sum": 23
+    }
+  },
+  "duplicates_log": [
+    {
+      "canonical_id": "A0-P1-010",
+      "title": "(duplicate of P0-007 — CDI open loop, reclassified P0-C)",
+      "duplicates": "A0-P0-007",
+      "action": "cross-reference retained for audit trail; not counted in canonical"
+    },
+    {
+      "canonical_id": "A0-P1-012",
+      "title": "(duplicate of P0-008 — RUNTRACE_STORE=memory; reclassified P0-S)",
+      "duplicates": "A0-P0-008",
+      "action": "cross-reference retained for audit trail; not counted in canonical"
+    },
+    {
+      "canonical_id": "A0-P1-013",
+      "title": "(duplicate of P0-013 — no F1 baseline; reclassified P0-C)",
+      "duplicates": "A0-P0-013",
+      "action": "cross-reference retained for audit trail; not counted in canonical"
+    },
+    {
+      "canonical_id": "A0-P1-029",
+      "title": "(merged with A0-P1-009 — A2A stub)",
+      "duplicates": "A0-P1-009",
+      "action": "cross-reference retained for audit trail; not counted in canonical"
+    },
+    {
+      "canonical_id": "A0-P3-011",
+      "title": "(dup of P2 .NET SDK — A0-P1-048)",
+      "duplicates": "A0-P1-048",
+      "action": "NORMALIZED IN A0.1 GATE 3: previous ledger left status field missing; v2.0 explicitly marks DUPLICATE"
+    }
+  ],
+  "resolved_log": [
+    {
+      "canonical_id": "A0-P1-006",
+      "title": "Legacy ToolRegistry dual home",
+      "resolution": "RESOLVED_PER_A0_GATE_2",
+      "evidence": "A0_02_CAPABILITY_ONTOLOGY_AND_COUNTS.md"
+    },
+    {
+      "canonical_id": "A0-P1-007",
+      "title": "Historical '3 parallel runtimes' claim incorrect",
+      "resolution": "RESOLVED_PER_A0_GATE_2",
+      "evidence": "A0_07_CANONICAL_ARCHITECTURE_V2.md"
+    },
+    {
+      "canonical_id": "A0-P1-008",
+      "title": "Historical '13 metadata-only agents' claim incorrect",
+      "resolution": "RESOLVED_PER_A0_GATE_2",
+      "evidence": "A0_02_CAPABILITY_ONTOLOGY_AND_COUNTS.md"
+    },
+    {
+      "canonical_id": "A0-P1-052",
+      "title": "Pre-A0 26A conflated UI-surface observation with end-to-end capability verification",
+      "resolution": "RESOLVED_PER_A0_GATE_3",
+      "evidence": "A0_03_CORTI_EVIDENCE_REGRADING.md"
+    }
+  ],
+  "reframed_log": [
+    {
+      "canonical_id": "A0-P1-002",
+      "title": "3 kebab/snake duplicate agent pairs need consolidation",
+      "reframe": "Reclassified as packaging pattern not duplication; consolidate to single naming convention in Phase A2.",
+      "evidence": "A0_02_CAPABILITY_ONTOLOGY_AND_COUNTS.md"
+    }
+  ],
+  "mitigated_log": [
+    {
+      "canonical_id": "A0-P0-018",
+      "title": "Pre-13A Embedded Preview Token design had URL-JWT PHI risk",
+      "previous_status": "MITIGATED_IN_PHASE_7 (per Phase A0)",
+      "v2_0_status": "MITIGATED_IN_PHASE_7_IMPLEMENTATION_REPORTED",
+      "v2_0_severity_change": "P0-S_open (was P0-S MITIGATED_IN_PHASE_7 closed)",
+      "v2_0_evidence_grade_change": "E1 (was E7 — Phase A0.1 Gate 6 revokes E7 because no independent negative browser evidence exists)",
+      "reason": "Phase A0 v2 ledger claimed E7 (SECURITY_NEGATIVE_VERIFIED) but Gate 13A evidence directories are empty; cannot sustain E7 without captured browser artifacts"
+    },
+    {
+      "canonical_id": "A0-P0-019",
+      "title": "postMessage('*') origin risk in pre-13A embedded widget",
+      "previous_status": "MITIGATED_IN_PHASE_7 (per Phase A0)",
+      "v2_0_status": "MITIGATED_IN_PHASE_7_IMPLEMENTATION_REPORTED",
+      "v2_0_severity_change": "P0-S_open (was P0-S MITIGATED_IN_PHASE_7 closed)",
+      "v2_0_evidence_grade_change": "E1 (was E7)",
+      "reason": "Same as A0-P0-018"
+    }
+  ],
+  "primary_phase_mapping": {
+    "A1_security_first": [
+      "A0-P0-001", "A0-P0-002", "A0-P0-010", "A0-P0-011", "A0-P0-012",
+      "A0-P0-016", "A0-P0-017", "A0-P0-020", "A0-P0-021", "A0-P0-022",
+      "A0-P0-023", "A0-P0-024"
+    ],
+    "A1_clinical_safety": ["A0-P0-007", "A0-P0-013"],
+    "A1_deployment_ops": ["A0-P0-003"],
+    "A1_product_truth_minimal": [
+      "A0-P0-005", "A0-P0-006", "A0-P0-014", "A0-P0-015"
+    ],
+    "A2_commercial_deferred": [
+      "A0-P0-004", "A0-P0-008", "A0-P0-009"
+    ],
+    "principle": "P0-T issues split: Corti links + cost bug + parity overclaim + strategic incoherence in A1; billing theater + npm publish in A2 because commercial, not security blockers. This corrects the Phase A0 A0_08 Roadmap which lumped all 6 P0-T together and counted Payment Processor + Public npm as Day-1 security work.",
+    "deferred_to_A2_rationale": "A0-P0-004 (Billing theater) and A0-P0-009 (npm unpublished) and the supply-chain signing dependency A0-P0-021 are Partner Technical Staging blockers, not Security/PHI blockers. Phase A1 must address the security blockers first; A0-P0-004/009/021 can move to A2."
+  },
+  "coverage_check": {
+    "gate_14_p0_inherited": "16/16",
+    "gate_14_p1_inherited": "23/23",
+    "gate_14_p2_inherited": "24/24",
+    "gate_14_p3_inherited": "12/12",
+    "phase_7_gate_13a_inherited": "5/5 (4 threats + 1 supply chain)",
+    "pre_a0_inherited": "55/55",
+    "phase_a0_gates_0_4_new": 8,
+    "total_raw_findings": 91,
+    "total_duplicates": 5,
+    "total_canonical_issues": 86,
+    "total_open_canonical": 79,
+    "supercede_previous_75_claim": "The Phase A0 '75 unique after dedup' figure had no derivation (91 - 5 explicit dups = 86, not 75). v2.0 retires the 75 figure."
+  },
+  "issues": [
+    {"canonical_id": "A0-P0-001", "original_id": "G13-002", "source_gate": "Gate 13", "severity": "P0-S", "title": "Zero compliance certifications (等保2.0 三级 + GB/T 35273)", "domain": "compliance", "status": "OPEN", "primary_phase": "A1_security_first", "blocks": "public hospital pilot contract signature", "evidence_grade": "E2"},
+    {"canonical_id": "A0-P0-002", "original_id": "G13-003", "source_gate": "Gate 13", "severity": "P0-S", "title": "Zero legal documents (Privacy Policy / Terms / DPA / SLA)", "domain": "legal", "status": "OPEN", "primary_phase": "A1_security_first", "blocks": "any contract signature", "evidence_grade": "E2"},
+    {"canonical_id": "A0-P0-003", "original_id": "G13-004 + G11-001", "source_gate": "Gate 13 + Gate 11", "severity": "P0-D", "title": "Zero shippable deployment paths (cloud docs-only + on-prem disclaimed)", "domain": "deployment", "status": "OPEN", "primary_phase": "A1_deployment_ops", "blocks": "production rollout", "evidence_grade": "E1"},
+    {"canonical_id": "A0-P0-004", "original_id": "G13-001", "source_gate": "Gate 13", "severity": "P0-T", "title": "Billing theater (0 transactions, fake ¥50 balance, no payment processor)", "domain": "commercial", "status": "OPEN", "primary_phase": "A2_commercial_deferred", "blocks": "commercial partner contracts", "evidence_grade": "E2", "v2_0_note": "Phase A0.1 moves from A1-T to A2 because commercial blocker, not security blocker"},
+    {"canonical_id": "A0-P0-005", "original_id": "G3-001", "source_gate": "Gate 3", "severity": "P0-T", "title": "/ai-studio Overview has 13 user-visible external links to docs.corti.ai + help.corti.app", "domain": "product-integrity", "status": "OPEN", "primary_phase": "A1_product_truth_minimal", "blocks": "trust during buyer demos", "evidence_grade": "E5"},
+    {"canonical_id": "A0-P0-006", "original_id": "G5-001", "source_gate": "Gate 5", "severity": "P0-T", "title": "fast_runtime.py:307 hardcodes cost={'amount': 0.0} — 35 production runs show cost=0", "domain": "cost-bug", "status": "OPEN", "primary_phase": "A1_product_truth_minimal", "blocks": "accurate billing", "evidence_grade": "E2"},
+    {"canonical_id": "A0-P0-007", "original_id": "G5-004", "source_gate": "Gate 5", "severity": "P0-C", "title": "CDI loop open-ended — 443 queries emitted, 0 clinician responses, 0 document revisions", "domain": "cdi-safety", "status": "OPEN", "primary_phase": "A1_clinical_safety", "blocks": "CDI safety claim", "evidence_grade": "E2"},
+    {"canonical_id": "A0-P0-008", "original_id": "G7-001", "source_gate": "Gate 7", "severity": "P0-S", "title": "RUNTRACE_STORE=memory default — run_trace_events table empty; RunTrace page non-functional", "domain": "trace-store-dormant", "status": "OPEN", "primary_phase": "A2_commercial_deferred", "blocks": "auditability + reproducibility claims", "evidence_grade": "E2", "v2_0_note": "Phase A0.1 moves trace-store-default from A1-S to A2 because trace store is auditability not security"},
+    {"canonical_id": "A0-P0-009", "original_id": "G8-001", "source_gate": "Gate 8", "severity": "P0-T", "title": "@icoder/sdk@1.0.0-beta.2 + @icoder/embedded@2.0.0 both 404 on registry.npmjs.org", "domain": "npm-unpublished", "status": "OPEN", "primary_phase": "A2_commercial_deferred", "blocks": "public npm published claim", "evidence_grade": "E2", "v2_0_note": "Phase A0.1 moves from A1-T to A2 because commercial blocker, not security blocker"},
+    {"canonical_id": "A0-P0-010", "original_id": "G9-001", "source_gate": "Gate 9", "severity": "P0-S", "title": "Backend ships no .env.example; backend/.env on disk has placeholder SECRET_KEY=change-me-in-production; no startup check refuses the sentinel", "domain": "secrets-footgun", "status": "OPEN", "primary_phase": "A1_security_first", "blocks": "any production deployment", "evidence_grade": "E2", "v2_0_note": "Phase A0 narrative said 'Committed backend/.env' but git ls-files confirms it is NOT committed (gitignored). Real issue is no .env.example + no startup sentinel check."},
+    {"canonical_id": "A0-P0-011", "original_id": "G9-002", "source_gate": "Gate 9", "severity": "P0-S", "title": "audit_logs records only 5 actions (auth + preview_session); agent runs + CDI + billing unaudited", "domain": "audit-coverage-broken", "status": "OPEN", "primary_phase": "A1_security_first", "blocks": "compliance audit trail", "evidence_grade": "E2"},
+    {"canonical_id": "A0-P0-012", "original_id": "G9-003", "source_gate": "Gate 9", "severity": "P0-S", "title": "235/240 run_history rows have NULL organization_id; tenant isolation design-only", "domain": "tenancy-broken", "status": "OPEN", "primary_phase": "A1_security_first", "blocks": "multi-tenant SaaS claim", "evidence_grade": "E2"},
+    {"canonical_id": "A0-P0-013", "original_id": "G10-001", "source_gate": "Gate 10", "severity": "P0-C", "title": "Only F1@1=0.15 on 5-case smoke; no 201-case baseline; CLAUDE.md 金标准评估 claim unbacked", "domain": "no-f1-baseline", "status": "OPEN", "primary_phase": "A1_clinical_safety", "blocks": "Medical Coding quality claim", "evidence_grade": "E2"},
+    {"canonical_id": "A0-P0-014", "original_id": "G12-001", "source_gate": "Gate 12", "severity": "P0-T", "title": "Corti parity overclaim — Gate 12 said 11/32=34% parity vs 'Corti-competitive' marketing", "domain": "parity-overclaim", "status": "OPEN", "primary_phase": "A1_product_truth_minimal", "blocks": "strategic narrative coherence", "evidence_grade": "E2"},
+    {"canonical_id": "A0-P0-015", "original_id": "G12-002", "source_gate": "Gate 12", "severity": "P0-T", "title": "Strategic incoherence — 5 product framings + 13 Corti redirects + 'Corti-style' in UI strings", "domain": "strategic-incoherence", "status": "OPEN", "primary_phase": "A1_product_truth_minimal", "blocks": "'who is this for' answer", "evidence_grade": "E5"},
+    {"canonical_id": "A0-P0-016", "original_id": "G9-005", "source_gate": "Gate 9", "severity": "P0-S", "title": "No encryption at rest — SQLite file has raw PHI on disk; fails 等保2.0 + GB/T 35273", "domain": "encryption-at-rest", "status": "OPEN", "primary_phase": "A1_security_first", "blocks": "compliance certification", "evidence_grade": "E2"},
+    {"canonical_id": "A0-P0-017", "original_id": "A0-G4-001", "source_gate": "Phase A0 Gate 4", "severity": "P0-S", "title": "PHI redactor is EXPORT-PATH ONLY (per Gate 9 K3.2) — live path bypasses redaction", "domain": "phi-redaction-thin", "status": "OPEN", "primary_phase": "A1_security_first", "blocks": "edge-node PHI claim + compliance", "evidence_grade": "E2"},
+    {"canonical_id": "A0-P0-018", "original_id": "G13A threat model", "source_gate": "Phase 7 Gate 13A", "severity": "P0-S", "title": "Pre-13A Embedded Preview Token design had URL-JWT PHI risk (mitigation reported, NOT independently reverified)", "domain": "embedded-preview-security", "status": "MITIGATED_IN_PHASE_7_IMPLEMENTATION_REPORTED", "primary_phase": "A1_security_first", "blocks": "n/a — historical", "evidence_grade": "E1", "v2_0_note": "Phase A0 claimed E7; Phase A0.1 Gate 6 revokes E7 (no independent negative browser evidence). Will re-enter A1 for reverification."},
+    {"canonical_id": "A0-P0-019", "original_id": "G13A threat model", "source_gate": "Phase 7 Gate 13A", "severity": "P0-S", "title": "postMessage('*') origin risk in pre-13A embedded widget (mitigation reported, NOT independently reverified)", "domain": "embedded-origin", "status": "MITIGATED_IN_PHASE_7_IMPLEMENTATION_REPORTED", "primary_phase": "A1_security_first", "blocks": "n/a — historical", "evidence_grade": "E1", "v2_0_note": "Phase A0 claimed E7; Phase A0.1 Gate 6 revokes E7."},
+    {"canonical_id": "A0-P0-020", "original_id": "G13A threat model", "source_gate": "Phase 7 Gate 13A", "severity": "P0-S", "title": "Patient A/B isolation never exercised in multi-tenant prod", "domain": "patient-isolation", "status": "OPEN", "primary_phase": "A1_security_first", "blocks": "any real multi-pilot", "evidence_grade": "E1"},
+    {"canonical_id": "A0-P0-021", "original_id": "G13A threat model", "source_gate": "Phase 7 Gate 13A", "severity": "P0-S", "title": "External package consumer supply chain (smoke-tested Phase 7 Gate 2; no signing)", "domain": "supply-chain", "status": "OPEN", "primary_phase": "A2_commercial_deferred", "blocks": "npm publish claim", "evidence_grade": "E2", "v2_0_note": "Phase A0.1 moves supply-chain signing from A1-S to A2 because it blocks npm publish (A2) not Security"},
+    {"canonical_id": "A0-P0-022", "original_id": "A0-G4-002", "source_gate": "Phase A0 Gate 4", "severity": "P0-D", "title": "Multi-tenant Trace + Usage + Context isolation design-only at data layer", "domain": "multi-tenant-isolation", "status": "OPEN", "primary_phase": "A1_security_first", "blocks": "any tenant contract", "evidence_grade": "E2"},
+    {"canonical_id": "A0-P0-023", "original_id": "A0-G4-002", "source_gate": "Phase A0 Gate 4", "severity": "P0-D", "title": "No backup/restore runbook for tenant data", "domain": "ops-runbook", "status": "OPEN", "primary_phase": "A1_security_first", "blocks": "ops readiness", "evidence_grade": "E0"},
+    {"canonical_id": "A0-P0-024", "original_id": "A0-G4-002", "source_gate": "Phase A0 Gate 4", "severity": "P0-D", "title": "No upgrade/rollback runbook", "domain": "ops-runbook", "status": "OPEN", "primary_phase": "A1_security_first", "blocks": "ops readiness", "evidence_grade": "E0"},
+
+    {"canonical_id": "A0-P1-001", "original_id": "G11-002", "source_gate": "Gate 11", "severity": "P1", "title": "SLA targets documented but no production observability", "domain": "observability", "status": "OPEN", "primary_phase": "A2"},
+    {"canonical_id": "A0-P1-002", "original_id": "G2-001 (26H P1-02)", "source_gate": "Pre-A0 Gate 2", "severity": "P1", "title": "3 kebab/snake duplicate agent pairs need consolidation (now reclassified as code/manifest pattern per A0 Gate 2)", "domain": "ontology", "status": "REFRAMED", "primary_phase": "A2", "evidence_grade": "E2"},
+    {"canonical_id": "A0-P1-003", "original_id": "G2-005", "source_gate": "Pre-A0 Gate 2", "severity": "P1", "title": "4 MedCodER sub-component dirs appear as top-level agents", "domain": "ontology", "status": "OPEN", "primary_phase": "A2", "evidence_grade": "E2"},
+    {"canonical_id": "A0-P1-004", "original_id": "G2-006 + G6-001", "source_gate": "Pre-A0 Gate 2 + Gate 6", "severity": "P1", "title": "Legacy E-A experts (11 files, 2460 LOC) — powers T-1 tools per HC-3", "domain": "legacy", "status": "OPEN", "primary_phase": "A2", "evidence_grade": "E2"},
+    {"canonical_id": "A0-P1-005", "original_id": "G2-007 + G6-003 + HC-3", "source_gate": "Pre-A0 Gate 2 + Gate 6", "severity": "P1", "title": "Legacy T-1 tools (11 files, 987 LOC) — MCP-disconnected but API-connected", "domain": "legacy", "status": "OPEN", "primary_phase": "A2", "evidence_grade": "E2"},
+    {"canonical_id": "A0-P1-006", "original_id": "G2-008", "source_gate": "Pre-A0 Gate 2", "severity": "P1", "title": "Legacy ToolRegistry dual home (RG-3) — removed per A0 Gate 2", "domain": "registry", "status": "RESOLVED_PER_A0_GATE_2", "primary_phase": "n/a", "evidence_grade": "E2"},
+    {"canonical_id": "A0-P1-007", "original_id": "HC-1", "source_gate": "Pre-A0 Gate 3", "severity": "P1", "title": "Historical '3 parallel runtimes' claim incorrect — 1 execution plane + 1 domain runtime + 1 platform core library", "domain": "ontology", "status": "RESOLVED_PER_A0_GATE_2", "primary_phase": "n/a", "evidence_grade": "E2"},
+    {"canonical_id": "A0-P1-008", "original_id": "HC-4", "source_gate": "Pre-A0 Gate 3", "severity": "P1", "title": "Historical '13 metadata-only agents' claim incorrect — 29 agent_pack.json + 30 distinct agent_refs (14 count dimensions per A0 Gate 2)", "domain": "ontology", "status": "RESOLVED_PER_A0_GATE_2", "primary_phase": "n/a", "evidence_grade": "E2"},
+    {"canonical_id": "A0-P1-009", "original_id": "G3-006 + G2-010", "source_gate": "Pre-A0 Gate 3", "severity": "P1", "title": "A2A routes_task_stub still says 'Phase 5 will replace' but Phase 5 closed", "domain": "stale-spec", "status": "OPEN", "primary_phase": "A2", "evidence_grade": "E2"},
+    {"canonical_id": "A0-P1-010", "original_id": "G5-004 (= A0-P0-007)", "source_gate": "Gate 5", "severity": "P1", "title": "(duplicate of P0-007 — CDI open loop, reclassified P0-C)", "domain": "cdi", "status": "DUPLICATE", "duplicates": "A0-P0-007"},
+    {"canonical_id": "A0-P1-011", "original_id": "G6-006", "source_gate": "Pre-A0 Gate 6", "severity": "P1", "title": "Hub vs Runtime mismatch smaller than claimed — ~5 controlled_use agents", "domain": "hub-runtime", "status": "OPEN", "primary_phase": "A2", "evidence_grade": "E2"},
+    {"canonical_id": "A0-P1-012", "original_id": "G7-001", "source_gate": "Pre-A0 Gate 7", "severity": "P1", "title": "(duplicate of P0-008 — RUNTRACE_STORE=memory; reclassified P0-S)", "domain": "trace-store", "status": "DUPLICATE", "duplicates": "A0-P0-008"},
+    {"canonical_id": "A0-P1-013", "original_id": "G7-002", "source_gate": "Pre-A0 Gate 7", "severity": "P1", "title": "(duplicate of P0-013 — no F1 baseline; reclassified P0-C)", "domain": "quality", "status": "DUPLICATE", "duplicates": "A0-P0-013"},
+    {"canonical_id": "A0-P1-014", "original_id": "G13-005", "source_gate": "Gate 13", "severity": "P1", "title": "Pilot intake never exercised (0 real tenants)", "domain": "intake", "status": "OPEN", "primary_phase": "A2", "evidence_grade": "E2"},
+    {"canonical_id": "A0-P1-015", "original_id": "G13-006", "source_gate": "Gate 13", "severity": "P1", "title": "No pricing model — sales conversations cannot close", "domain": "pricing", "status": "OPEN", "primary_phase": "A3", "evidence_grade": "E2"},
+    {"canonical_id": "A0-P1-016", "original_id": "G5-002", "source_gate": "Gate 5", "severity": "P1", "title": "medcoder_runtime.py:255 same cost=0 bug as G5-001 (propagation)", "domain": "cost-bug", "status": "OPEN", "primary_phase": "A2", "evidence_grade": "E2"},
+    {"canonical_id": "A0-P1-017", "original_id": "G5-007", "source_gate": "Gate 5", "severity": "P1", "title": "DRG grouping code real but unused in any production run", "domain": "drg-unused", "status": "OPEN", "primary_phase": "A3", "evidence_grade": "E2"},
+    {"canonical_id": "A0-P1-018", "original_id": "G5-008", "source_gate": "Gate 5", "severity": "P1", "title": "DIP path returns 501 / demo HTML; no real implementation", "domain": "dip-demo-only", "status": "OPEN", "primary_phase": "A3", "evidence_grade": "E2"},
+    {"canonical_id": "A0-P1-019", "original_id": "G6-004", "source_gate": "Gate 6", "severity": "P1", "title": "13 official_agents directories confirmed metadata-only at file level", "domain": "metadata-only-agents", "status": "OPEN", "primary_phase": "A2", "evidence_grade": "E2"},
+    {"canonical_id": "A0-P1-020", "original_id": "G7-003", "source_gate": "Gate 7", "severity": "P1", "title": "/api/usage/by-agent under-reports medical coding by 100% (propagation of G5-001)", "domain": "cost-underreport", "status": "OPEN", "primary_phase": "A2", "evidence_grade": "E2"},
+    {"canonical_id": "A0-P1-021", "original_id": "G8-002", "source_gate": "Gate 8", "severity": "P1", "title": "Single-tenant — only 1 OAuth client ever registered; 0 real hospital partners", "domain": "single-tenant", "status": "OPEN", "primary_phase": "A2", "evidence_grade": "E2"},
+    {"canonical_id": "A0-P1-022", "original_id": "G9-004", "source_gate": "Gate 9", "severity": "P1", "title": "PHI redactor export-only with explicit non-compliance warning; fast-path bypasses", "domain": "phi-redaction-thin", "status": "OPEN", "primary_phase": "A1_security_first", "evidence_grade": "E2", "note": "Linked to A0-P0-017 (same issue, different framing)"},
+    {"canonical_id": "A0-P1-023", "original_id": "G10-002", "source_gate": "Gate 10", "severity": "P1", "title": "4 different model identifiers in code (deepseek-chat / deepseek-v4 / deepseek-v4-flash / etc)", "domain": "model-drift", "status": "OPEN", "primary_phase": "A2", "evidence_grade": "E2"},
+    {"canonical_id": "A0-P1-024", "original_id": "G10-003", "source_gate": "Gate 10", "severity": "P1", "title": "Data assets gitignored + single Windows-path dependent; cloud bucket claim unimplemented", "domain": "asset-portability", "status": "OPEN", "primary_phase": "A2", "evidence_grade": "E2"},
+    {"canonical_id": "A0-P1-025", "original_id": "G2-002", "source_gate": "Pre-A0 Gate 2", "severity": "P2", "title": "3 CDI variant dirs need consolidation", "domain": "ontology", "status": "OPEN", "primary_phase": "A3", "evidence_grade": "E2"},
+    {"canonical_id": "A0-P1-026", "original_id": "G2-003", "source_gate": "Pre-A0 Gate 2", "severity": "P2", "title": "2 ICD-10 navigator variants need consolidation", "domain": "ontology", "status": "OPEN", "primary_phase": "A3", "evidence_grade": "E2"},
+    {"canonical_id": "A0-P1-027", "original_id": "G2-004", "source_gate": "Pre-A0 Gate 2", "severity": "P2", "title": "2 Medical Coding variants need clarification", "domain": "ontology", "status": "OPEN", "primary_phase": "A3", "evidence_grade": "E2"},
+    {"canonical_id": "A0-P1-028", "original_id": "G2-009", "source_gate": "Pre-A0 Gate 2", "severity": "P2", "title": "Marketplace skeleton only — not implemented", "domain": "marketplace", "status": "OPEN", "primary_phase": "A3", "evidence_grade": "E2"},
+    {"canonical_id": "A0-P1-029", "original_id": "G2-010", "source_gate": "Pre-A0 Gate 2", "severity": "P2", "title": "(merged with A0-P1-009)", "domain": "a2a-stub", "status": "DUPLICATE", "duplicates": "A0-P1-009"},
+    {"canonical_id": "A0-P1-030", "original_id": "G2-011", "source_gate": "Pre-A0 Gate 2", "severity": "P2", "title": "iCoDer missing 2 Corti mirrors (Clinical Education, Clinical Guidelines)", "domain": "agent-mirror", "status": "OPEN", "primary_phase": "A3", "evidence_grade": "E5"},
+    {"canonical_id": "A0-P1-031", "original_id": "G11-003", "source_gate": "Gate 11", "severity": "P2", "title": "Frontend has 0 unit tests", "domain": "frontend-tests", "status": "OPEN", "primary_phase": "A3", "evidence_grade": "E2"},
+    {"canonical_id": "A0-P1-032", "original_id": "G11-004", "source_gate": "Gate 11", "severity": "P2", "title": "No release automation (release.yml)", "domain": "release-automation", "status": "OPEN", "primary_phase": "A3", "evidence_grade": "E2"},
+    {"canonical_id": "A0-P1-033", "original_id": "G11-005", "source_gate": "Gate 11", "severity": "P2", "title": "No ops runbook (incident response, backup/restore, secret rotation)", "domain": "ops-runbook", "status": "OPEN", "primary_phase": "A2", "evidence_grade": "E2"},
+    {"canonical_id": "A0-P1-034", "original_id": "G13-007", "source_gate": "Gate 13", "severity": "P2", "title": "No partner program / ISV contract template", "domain": "partner-program", "status": "OPEN", "primary_phase": "A3", "evidence_grade": "E2"},
+    {"canonical_id": "A0-P1-035", "original_id": "G13-008", "source_gate": "Gate 13", "severity": "P2", "title": "Support email support@icoder.local fake domain", "domain": "support", "status": "OPEN", "primary_phase": "A2", "evidence_grade": "E2"},
+    {"canonical_id": "A0-P1-036", "original_id": "G13-009", "source_gate": "Gate 13", "severity": "P2", "title": "Pilot Runbook archived under docs/archive", "domain": "docs", "status": "OPEN", "primary_phase": "A3", "evidence_grade": "E2"},
+    {"canonical_id": "A0-P1-037", "original_id": "G4-001", "source_gate": "Pre-A0 Gate 4", "severity": "P2", "title": "4 Corti experts OUT_OF_CURRENT_SCOPE — document explicitly", "domain": "expert-scope", "status": "OPEN", "primary_phase": "A3", "evidence_grade": "E1"},
+    {"canonical_id": "A0-P1-038", "original_id": "G4-002", "source_gate": "Pre-A0 Gate 4", "severity": "P2", "title": "4 Corti ICD-10 variants DIFFERENT_BY_DESIGN — document", "domain": "icd-variants", "status": "OPEN", "primary_phase": "A3", "evidence_grade": "E5"},
+    {"canonical_id": "A0-P1-039", "original_id": "G5-001", "source_gate": "Pre-A0 Gate 5", "severity": "P2", "title": "W-4 Insurance: rules exist but not deeply exercised", "domain": "insurance", "status": "OPEN", "primary_phase": "A3", "evidence_grade": "E2"},
+    {"canonical_id": "A0-P1-040", "original_id": "G5-002", "source_gate": "Pre-A0 Gate 5", "severity": "P2", "title": "W-5 Charge: rules reserved but empty", "domain": "charge", "status": "OPEN", "primary_phase": "A3", "evidence_grade": "E2"},
+    {"canonical_id": "A0-P1-041", "original_id": "G5-003", "source_gate": "Pre-A0 Gate 5", "severity": "P2", "title": "CN-9 ICD-9-CM-3 procedure coding depth lacking", "domain": "procedure-coding", "status": "OPEN", "primary_phase": "A3", "evidence_grade": "E2"},
+    {"canonical_id": "A0-P1-042", "original_id": "G5-007", "source_gate": "Pre-A0 Gate 5", "severity": "P2", "title": "iCoDer DRG-DIP advantage has no Corti mirror — document", "domain": "drg-dip-advantage", "status": "OPEN", "primary_phase": "A3", "evidence_grade": "E2"},
+    {"canonical_id": "A0-P1-043", "original_id": "G6-001", "source_gate": "Pre-A0 Gate 6", "severity": "P2", "title": "iCoDer Hub lacks My/Pre-built tabs", "domain": "hub-ux", "status": "OPEN", "primary_phase": "A3", "evidence_grade": "E2"},
+    {"canonical_id": "A0-P1-044", "original_id": "G6-002", "source_gate": "Pre-A0 Gate 6", "severity": "P2", "title": "iCoDer New Agent flow lacks template picker", "domain": "hub-ux", "status": "OPEN", "primary_phase": "A3", "evidence_grade": "E2"},
+    {"canonical_id": "A0-P1-045", "original_id": "G6-003", "source_gate": "Pre-A0 Gate 6", "severity": "P2", "title": "iCoDer requires pack/install; Corti save-and-go-live", "domain": "hub-ux", "status": "OPEN", "primary_phase": "A3", "evidence_grade": "E5"},
+    {"canonical_id": "A0-P1-046", "original_id": "G7-003", "source_gate": "Pre-A0 Gate 7", "severity": "P2", "title": "Corti 4 commercial advantages; iCoDer 0", "domain": "commercial", "status": "OPEN", "primary_phase": "A3", "evidence_grade": "E5"},
+    {"canonical_id": "A0-P1-047", "original_id": "G7-004", "source_gate": "Pre-A0 Gate 7", "severity": "P2", "title": "iCoDer observability class strongest dimension — leverage", "domain": "observability", "status": "OPEN", "primary_phase": "A3", "evidence_grade": "E2"},
+    {"canonical_id": "A0-P1-048", "original_id": "G7-006", "source_gate": "Pre-A0 Gate 7", "severity": "P2", "title": ".NET SDK missing from iCoDer Code generators", "domain": "code-generators", "status": "OPEN", "primary_phase": "A3", "evidence_grade": "E5"},
+
+    {"canonical_id": "A0-P3-001", "original_id": "G11-006", "source_gate": "Gate 11", "severity": "P3", "title": "e2e pytest marker defined but never applied", "domain": "test-hygiene", "status": "OPEN_BACKLOG", "primary_phase": "A4"},
+    {"canonical_id": "A0-P3-002", "original_id": "G11-007", "source_gate": "Gate 11", "severity": "P3", "title": "Root docs/ARCHITECTURE.md deprecated but in tree", "domain": "docs", "status": "OPEN_BACKLOG", "primary_phase": "A4"},
+    {"canonical_id": "A0-P3-003", "original_id": "G11-008", "source_gate": "Gate 11", "severity": "P3", "title": "Throughput test budgets marked TBD", "domain": "test", "status": "OPEN_BACKLOG", "primary_phase": "A4"},
+    {"canonical_id": "A0-P3-004", "original_id": "G11-009", "source_gate": "Gate 11", "severity": "P3", "title": "No locust/k6 load test config", "domain": "test", "status": "OPEN_BACKLOG", "primary_phase": "A4"},
+    {"canonical_id": "A0-P3-005", "original_id": "G13-010", "source_gate": "Gate 13", "severity": "P3", "title": "SLA targets docs-only", "domain": "docs", "status": "OPEN_BACKLOG", "primary_phase": "A4"},
+    {"canonical_id": "A0-P3-006", "original_id": "G3-007", "source_gate": "Pre-A0 Gate 3", "severity": "P3", "title": "Legacy E-A experts power T-1 tools (not strictly orphaned)", "domain": "legacy", "status": "OPEN_BACKLOG", "primary_phase": "A4"},
+    {"canonical_id": "A0-P3-007", "original_id": "G4-003", "source_gate": "Pre-A0 Gate 4", "severity": "P3", "title": "4 Corti experts PARITY_NICE_TO_HAVE — backlog", "domain": "backlog", "status": "OPEN_BACKLOG", "primary_phase": "A4"},
+    {"canonical_id": "A0-P3-008", "original_id": "G4-004", "source_gate": "Pre-A0 Gate 4", "severity": "P3", "title": "AMBOSS not in Corti docs list — Corti docs incomplete (and per A0 Gate 3 AMBOSS is E1 only)", "domain": "docs", "status": "OPEN_BACKLOG", "primary_phase": "A4"},
+    {"canonical_id": "A0-P3-009", "original_id": "G5-005", "source_gate": "Pre-A0 Gate 5", "severity": "P3", "title": "iCoDer missing Corti Clinical Education Agent", "domain": "agent-mirror", "status": "OPEN_BACKLOG", "primary_phase": "A4"},
+    {"canonical_id": "A0-P3-010", "original_id": "G5-006", "source_gate": "Pre-A0 Gate 5", "severity": "P3", "title": "iCoDer missing Corti Clinical Guidelines Agent", "domain": "agent-mirror", "status": "OPEN_BACKLOG", "primary_phase": "A4"},
+    {"canonical_id": "A0-P3-011", "original_id": "G6-004", "source_gate": "Pre-A0 Gate 6", "severity": "P3", "title": "(dup of P2 .NET SDK — A0-P1-048)", "domain": "code-generators", "status": "DUPLICATE", "duplicates": "A0-P1-048", "v2_0_note": "Phase A0 left status field missing; A0.1 Gate 3 normalizes to explicit DUPLICATE"},
+    {"canonical_id": "A0-P3-012", "original_id": "G6-005", "source_gate": "Pre-A0 Gate 6", "severity": "P3", "title": "iCoDer Code tab exposes URLs (chat/run/clone) — keep", "domain": "code-tab", "status": "OPEN_BACKLOG", "primary_phase": "A4"},
+
+    {"canonical_id": "A0-P1-049", "original_id": "A0-G2-001", "source_gate": "Phase A0 Gate 2", "severity": "P1", "title": "snake_case code dirs paired with kebab-case manifest dirs is a packaging pattern (3 pairs)", "domain": "ontology", "status": "OPEN", "primary_phase": "A2"},
+    {"canonical_id": "A0-P1-050", "original_id": "A0-G2-002", "source_gate": "Phase A0 Gate 2", "severity": "P1", "title": "15 metadata-only packs appear on Hub but have no target delivery date", "domain": "metadata-only-agents", "status": "OPEN", "primary_phase": "A2"},
+    {"canonical_id": "A0-P1-051", "original_id": "A0-G2-003", "source_gate": "Phase A0 Gate 2", "severity": "P2", "title": "2 deprecated packs (cdi-review, documentation-gap) still in catalog root", "domain": "deprecated-agents", "status": "OPEN", "primary_phase": "A3"},
+    {"canonical_id": "A0-P1-052", "original_id": "A0-G3-001", "source_gate": "Phase A0 Gate 3", "severity": "P1", "title": "Pre-A0 26A conflated UI-surface observation (E5) with end-to-end capability verification (E6/E8)", "domain": "evidence-grade-inflation", "status": "RESOLVED_PER_A0_GATE_3", "primary_phase": "n/a"},
+    {"canonical_id": "A0-P1-053", "original_id": "A0-G3-003", "source_gate": "Phase A0 Gate 3", "severity": "P2", "title": "Agent CRUD operations NOT end-to-end verified on Corti side", "domain": "evidence-gap", "status": "OPEN", "primary_phase": "A3"},
+    {"canonical_id": "A0-P1-054", "original_id": "A0-G3-004", "source_gate": "Phase A0 Gate 3", "severity": "P2", "title": "Corti payment processor identity NOT observed", "domain": "evidence-gap", "status": "OPEN", "primary_phase": "A3"},
+    {"canonical_id": "A0-P1-055", "original_id": "A0-G4-003", "source_gate": "Phase A0 Gate 4", "severity": "P2", "title": "4 dimensions downgraded to EVIDENCE_INSUFFICIENT in parity V2.1", "domain": "evidence-gap", "status": "OPEN", "primary_phase": "A3"}
+  ],
+  "what_was_missing_in_pre_a0_26h": [
+    "G3-001 (Corti external links) - P0",
+    "G5-001 (cost=0 bug) - P0",
+    "G5-004 reclassified P0-C - P0",
+    "G7-001 trace store dormant - P0",
+    "G8-001 npm unpublished - P0",
+    "G9-001 secrets in .env - P0",
+    "G9-002 audit coverage broken - P0",
+    "G9-003 tenancy broken - P0",
+    "G10-001 no F1 baseline - P0",
+    "G12-001 parity overclaim - P0",
+    "G12-002 strategic incoherence - P0",
+    "G9-005 no encryption at rest - P0"
+  ]
+}

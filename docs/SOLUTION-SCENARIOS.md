@@ -2,7 +2,7 @@
 
 ## 产品定位
 
-iCoDer 是**Corti-competitive 临床 AI 平台**——预置编码审核、语音转录、文书生成、事实提取、嵌入助手等临床 AI 能力即开即用。Agent Runtime 提供多租户、Marketplace、合同强制工具系统、Deny-First 安全模型。SDK/API/Web Components 供 HIS 厂商和第三方深度集成。
+iCoDer 是**Corti-competitive 临床 AI 平台**——预置编码审核、语音转录、文书生成、事实提取、嵌入助手等临床 AI 能力即开即用。Agent Runtime 提供多租户、Agent Hub、合同强制工具系统、Deny-First 安全模型。SDK/API/Web Components 供 HIS 厂商和第三方深度集成。
 
 **与 Corti 的关系**：iCoDer 在产品形态、能力边界和开发者体验上**无限逼近 Corti**——同样是 Agent Runtime 平台，支持语音转录→事实提取→编码审核→报告生成的完整临床 AI 工作流。区别在于 iCoDer 将**可审计**作为基础设施内置：每条编码可溯源，每条决策链 SHA-256 哈希可重放，这是 AI 安全性的前提而非定位边界。
 
@@ -34,8 +34,8 @@ extract_evidence → search_icd10_index → assign_diagnosis_code
 ### 部署方式
 
 ```bash
-# 1. 通过 API 创建 Agent
-curl -X POST /api/agents -d '{
+# 1. 通过 API 创建项目 Agent 定义
+curl -X POST /api/rest/v1/agent_definitions -d '{
   "name": "骨科编码审核Agent",
   "system_prompt": "你是骨科专科编码审核专家...",
   "config": {
@@ -46,7 +46,7 @@ curl -X POST /api/agents -d '{
 }'
 
 # 2. 对接 HIS/EMR 系统
-# 出院时自动触发 → POST /api/encounters/text → POST /api/reviews → Webhook 推送结果
+# 出院时自动触发 → POST /api/v1/agents/{agent_id}/run → 读取 Run/Trace 结果
 ```
 
 ### 效果指标
@@ -218,7 +218,7 @@ iCoDer Console (集团管理员)
 
 **技术支撑**：
 - 多租户：Organization + OrganizationMember + switch-org
-- Agent 市场：publish → marketplace → install
+- Agent Hub：发现上线候选卡片 → 校验租户 readiness → clone 到项目
 - 权限隔离：每个院区独立 PermissionPolicy
 - 审计独立：每个组织的 AuditChain 完全隔离
 
@@ -236,34 +236,28 @@ HIS 厂商通过 iCoDer SDK 在现有系统中嵌入 AI 能力：
 
 ```javascript
 // 东软 HIS 系统中的集成代码
-import { iCoDerClient } from '@icoder/sdk';
+import iCoDer from '@icoder/sdk';
 
-const client = new iCoDerClient({
-    apiKey: process.env.ICODER_API_KEY,
-    baseUrl: 'https://icoder.example.com',
+const client = new iCoDer({
+    baseURL: process.env.ICODER_BASE_URL,
+    auth: { accessToken: process.env.ICODER_ACCESS_TOKEN },
 });
 
-// 出院结算时自动触发编码审核
+// 服务端工作流在出院结算前生成编码审核建议；不自动写回 HIS。
 async function onDischarge(encounter) {
-    const agent = await client.agents.get('ortho-coding-audit');
+    const { data: review } = await client.runs.runText(
+        'medical-coding-agent',
+        encounter.deidentifiedText,
+        { idempotencyKey: `discharge-${encounter.id}` },
+    );
 
-    const review = await client.agents.messageSend(agent.id, {
-        message: {
-            role: 'user',
-            parts: [
-                { kind: 'text', text: encounter.rawText },
-                { kind: 'data', data: { patientId: encounter.patientId, existingCodes: encounter.codes } }
-            ],
-            messageId: crypto.randomUUID(),
-            kind: 'message',
-        },
-    });
-
-    // 审核结果直接嵌入 HIS 界面
+    // 仅嵌入人工复核工作台；禁止 SDK 自动提交临床/结算写回。
     return {
-        suggestedCodes: review.artifacts[0].data.codes,
-        drgImpact: review.artifacts[1].data.drgImpact,
-        auditReport: review.artifacts[2].data.report,
+        runId: review.run_id,
+        result: review.result,
+        evidence: review.evidence,
+        manualReviewRequired: review.manual_review_required,
+        traceUrl: review.trace_url,
     };
 }
 ```

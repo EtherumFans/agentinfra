@@ -1,0 +1,90 @@
+{
+  "agent_id": "evidence-extractor",
+  "run_id": "run-fa90df9f-08b0-4a97-bc0c-cb67d5689e11",
+  "trace_id": "trace-aea018fa94154eae",
+  "trace_url": "/ai-studio/runs/run-fa90df9f-08b0-4a97-bc0c-cb67d5689e11/trace",
+  "runtime_mode": "a2a_pure_llm",
+  "latency_ms": 156,
+  "cost": {},
+  "summary": "Provider output did not satisfy the Agent Pack contract.",
+  "result": {
+    "status": "requires_review",
+    "markdown": "",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "failed",
+    "finish_reason": "llm_degraded: degraded:mock_provider",
+    "backend_provider": "icoder.pure-llm.v1",
+    "backend_type": "pure_llm",
+    "structured_extraction": {
+      "contract": "icoder/CodedEvidence/v10",
+      "method": "none",
+      "warnings": [
+        "empty structured provider output"
+      ],
+      "required_fields": [
+        "supported_codes",
+        "uncertain_candidates",
+        "rejected_candidates",
+        "coded_evidence",
+        "uncoded_findings",
+        "review_summary"
+      ],
+      "optional_fields": [],
+      "missing_required_fields": [
+        "supported_codes",
+        "uncertain_candidates",
+        "rejected_candidates",
+        "coded_evidence",
+        "uncoded_findings",
+        "review_summary"
+      ],
+      "invalid_field_types": [],
+      "invalid_field_schemas": [],
+      "invalid_cross_agent_relations": [],
+      "undeclared_output_fields": [],
+      "undeclared_output_field_count": 0,
+      "valid": false
+    },
+    "contract_output_suppressed": true,
+    "manual_review_required": true
+  },
+  "schema_ref": "icoder/CodedEvidence/v10",
+  "result_attestation": "",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "contract_validation",
+      "status": "failed",
+      "duration_ms": 0,
+      "metadata": {
+        "error_reason": "output_contract_violation",
+        "missing_required_field_count": 6,
+        "invalid_field_type_count": 0,
+        "invalid_field_schema_count": 0,
+        "invalid_cross_agent_relation_count": 0,
+        "undeclared_output_field_count": 0,
+        "invalid_paths": [],
+        "invalid_keywords": []
+      }
+    },
+    {
+      "step": "completion",
+      "status": "failed",
+      "duration_ms": 156,
+      "metadata": {
+        "agent_id": "evidence-extractor",
+        "runtime_mode": "a2a_pure_llm",
+        "latency_ms": 156
+      }
+    }
+  ],
+  "error": true,
+  "error_reason": "llm_degraded: degraded:mock_provider",
+  "_http_status": 200,
+  "_elapsed_seconds": 0.32
+}

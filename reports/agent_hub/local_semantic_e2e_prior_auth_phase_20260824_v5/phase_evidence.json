@@ -1,0 +1,179 @@
+{
+  "schema_version": "icoder.governed-prior-authorization-phase-evidence/v1",
+  "generated_at": "2026-08-24T07:35:49.0871799Z",
+  "status": "development_candidate_slice_passed_external_gates_open",
+  "agent": {
+    "agent_id": "prior-auth",
+    "agent_ref": "icoder/prior-auth@1.1.0",
+    "provider": "icoder.governed-prior-authorization.v1",
+    "output_contract": "icoder/PriorAuthorizationOutput/v5",
+    "network_required": false,
+    "llm_required": false,
+    "policy_lookup_performed": false,
+    "medical_necessity_assessed": false,
+    "medical_calculator_used": false,
+    "medical_coding_validation_performed": false,
+    "manual_review_required": true,
+    "production_submission_blocked": true,
+    "production_writeback_blocked": true
+  },
+  "verification": {
+    "focused_provider_projector_matrix_tests": {"passed": 48, "failed": 0},
+    "phi_redaction_tests": {"passed": 29, "failed": 0},
+    "prior_authorization_a2a_tests": {"passed": 2, "failed": 0},
+    "all_visible_agent_offline_safety_tests": {"passed": 78, "failed": 0},
+    "compatible_agent_run_route_tests": {"passed": 11, "failed": 0},
+    "native_import_guard_tests": {"passed": 4, "failed": 0},
+    "broad_regression": {
+      "selected": 1151,
+      "passed": 1146,
+      "skipped": 5,
+      "deselected": 6,
+      "failed": 0,
+      "duration_seconds": 587.77,
+      "scope": [
+        "backend/tests/unit/icoder/backends",
+        "backend/tests/unit/icoder_runtime",
+        "backend/tests/unit/corti_parity",
+        "backend/tests/unit/icoder/orchestrator/test_phi_redactor.py",
+        "backend/tests/integration/icoder",
+        "backend/tests/test_api/test_phase4f_agent_run.py"
+      ]
+    },
+    "loopback_http": {
+      "transport": "real_loopback_http",
+      "happy": {"passed": 17, "failed": 0},
+      "adversarial": {"passed": 17, "failed": 0},
+      "reference": {"passed": 17, "failed": 0},
+      "stability": {"passed": 102, "failed": 0, "fresh": 102, "seeded": 0, "repetitions": 3}
+    },
+    "field_relation_replay": {
+      "passed": true,
+      "agents": 19,
+      "relations": 82,
+      "detected_adversarial_assertions": 210,
+      "expected_adversarial_assertions": 210
+    },
+    "evidence_binding_replay": {
+      "passed": true,
+      "agents": 13,
+      "bindings": 22,
+      "detected_adversarial_assertions": 44,
+      "expected_adversarial_assertions": 44
+    },
+    "schema_generator_dry_run": {"visible_agents": 1, "changed_agents": []},
+    "contract_compatibility": {
+      "passed": true,
+      "visible_contracts": 26,
+      "registered_contracts": 123,
+      "new_refs": [],
+      "changed_refs": [],
+      "invalid_refs": [],
+      "duplicate_refs": []
+    },
+    "corti_catalog_gate": {
+      "passed": true,
+      "expected_corti_agents": 20,
+      "catalog_mapped": 20,
+      "development_verified": 20,
+      "china_profile_declared": 20,
+      "clinical_quality_verified": 0,
+      "production_ready_verified": 0
+    },
+    "deployment_preflight": {"passed": 90, "failed": 0, "limitations_recorded": 11},
+    "runtime_matrix": {
+      "visible_agents": 26,
+      "external_llm_required": 9,
+      "external_llm_optional": 1,
+      "pure_local": 16,
+      "local_baseline": 17,
+      "local_semantic_verified": 17,
+      "strict_live_provider_verified": 0,
+      "production_ready_verified": 0,
+      "field_relations": 82,
+      "evidence_bindings": 22,
+      "registered_visible_contracts": 26
+    }
+  },
+  "regressions_found_and_closed": [
+    {
+      "id": "prior_authorization_phi_structural_label_destruction",
+      "finding": "The broad Chinese-name rule redacted prior-authorization labels and clinical phrases, converting a complete A2A request into INPUT_REQUIRED.",
+      "resolution": "Structural and clinical false positives are protected; patient name, date of birth, member number and provider identifier retain labels while values become typed placeholders.",
+      "verification": "PHI 29/29, Prior Auth A2A 2/2, redacted evidence spans 21/21, broad regression green"
+    },
+    {
+      "id": "prior_authorization_relation_predicate_limit",
+      "finding": "One v3 field relation had ten predicates and exceeded the reviewed maximum of eight.",
+      "resolution": "The invariant was split into clinical-authority and delivery-boundary relations under the immutable v4 contract.",
+      "verification": "launch_candidate_ready=true and relation replay 210/210"
+    },
+    {
+      "id": "public_trace_projection_min_items_mismatch",
+      "finding": "The v4 schema required one provider trace reference even when public projection intentionally suppresses trace details.",
+      "resolution": "The immutable v5 contract allows zero public provider trace references while runtime trace capture remains internal.",
+      "verification": "26-Agent contract round-trip and provider-backed A2A contract tests pass"
+    }
+  ],
+  "artifact_hashes": {
+    "agent_pack.json": "ee5f4e490022d6773c59e3969e0c4135e439a2543af3c85cc0c6c0872d092e7d",
+    "agent.py": "5386daacc4750cce3bb64a10a8f9b6cd575bc2892db7dbda2190f0e7a4526cfe",
+    "governed_prior_authorization_provider.py": "b8c4ca6582273135a836636dfa582c32e130cd3736f7204a5dd57f0954170835",
+    "output_contract_registry.json": "717de9ee719a59decd78b3c6f738a9cd1016d616d1d907225c3086995363ae24",
+    "corti_prebuilt_agent_catalog.json": "4f5e6876ac16df8a232df78bc35fd5845fadcd5cb0d20034dfa4b2a225fe6a40",
+    "phi_redactor.py": "8e1ecac5019df57dc6e3874e5777fbebc1f205fd2b6520f1043f796bf2de0c0d",
+    "agent_hub_examples_e2e.json": "b247ad799032e22773acb8a9b982b314409fd99d0688b17914970b5b1f449e12",
+    "agent_hub_adversarial_e2e.json": "615156f761f945e850a7d502838b3ae1bb835423ec85458f97d6735d5d66f192",
+    "agent_hub_reference_quality_replay.json": "f58be8debf9a1fa46d601e676de217fb61bdef8dd15db9fba90bed641a003478",
+    "agent_hub_stability_benchmark.json": "5b9de3559533da9a979e851f6be15a2e0201000ca5185c151377e2d8b2ba001c",
+    "agent_hub_local_semantic_evidence_bundle.json": "77c2398c2da6bae7ae2d5f7dd66bb4bab205161b03f33e78ea38c551de500cdc",
+    "agent_hub_runtime_matrix.json": "c0e0c26de64065c41895372e006b67aecc53573c9649417bb056dd0fd904c370",
+    "agent_hub_field_relation_replay.json": "0eafc895d66bc35820aa52db56f15702f669d41270cd4c14a8c3f4e39284f611",
+    "agent_hub_evidence_binding_replay.json": "edbfec4ab368e0d25991367016a22e95128dd47eec7532f9faaeb2f8a8b7172a",
+    "deployment_preflight.json": "d0747a096a0d7ec75868a309d5e5ba6adf22e5cc100ea6204181dd9577fcca54",
+    "corti_prebuilt_agent_parity.json": "67bcb9ab3105396201e5aaa31e8df554d3c572e07d2b3ef4ce05605846c7be9d"
+  },
+  "protected_database": {
+    "path": "backend/data/icoder.db",
+    "bytes": 8536064,
+    "sha256": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e",
+    "revision": "041",
+    "source_head": "056",
+    "modified_by_phase": false
+  },
+  "operational_findings": {
+    "e_drive_free_mib_after_phase": 113.15,
+    "temporary_pytest_database_files_remaining_in_c_temp": 12,
+    "temporary_pytest_database_bytes_remaining": 23093248,
+    "temporary_database_cleanup_blocked_by_execution_policy": true,
+    "backend_processes_or_listeners_remaining": false,
+    "memory_access_violation_observed_during_phase": false,
+    "known_pre_phase_native_crash": "python.exe/pyarrow arrow.dll/0xc0000005 on 2026-08-23",
+    "native_medcoder_disabled": true,
+    "local_stt_disabled": true,
+    "real_llm_used": false
+  },
+  "corti_public_comparators": [
+    "https://www.corti.ai/agents/prior-authorization-agent",
+    "https://corti.ai/agents",
+    "https://corti.ai/solutions"
+  ],
+  "claims_not_proven": [
+    "unlabelled_narrative_or_multi_document_prior_authorization_synthesis",
+    "payer_policy_retrieval_or_authoritative_policy_validation",
+    "medical_necessity_or_coverage_determination",
+    "clinical_calculator_or_medical_coding_validation",
+    "payer_specific_form_filling_submission_or_status_tracking",
+    "real_hospital_or_payer_interoperability",
+    "strict_26_agent_live_provider_semantic_quality",
+    "corti_product_or_model_equivalence",
+    "independent_clinical_or_payer_quality",
+    "production_cloud_readiness",
+    "legal_regulatory_or_certification_approval"
+  ],
+  "real_llm_used": false,
+  "external_network_used_by_e2e": false,
+  "independent_clinical_gold_used": false,
+  "corti_parity_proven": false,
+  "hospital_acceptance_proven": false
+}

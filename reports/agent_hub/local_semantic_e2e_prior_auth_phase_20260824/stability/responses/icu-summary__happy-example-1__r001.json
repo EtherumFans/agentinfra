@@ -1,0 +1,370 @@
+{
+  "agent_id": "icu-summary",
+  "run_id": "run-417e2d78-2aa0-4c8f-a030-ceb6f0b31ca8",
+  "trace_id": "trace-91f31b8fe89943ba",
+  "trace_url": "/ai-studio/runs/run-417e2d78-2aa0-4c8f-a030-ceb6f0b31ca8/trace",
+  "runtime_mode": "rule_engine",
+  "latency_ms": 124,
+  "cost": {
+    "amount": 0.0,
+    "currency": "CNY"
+  },
+  "billing": {},
+  "summary": "已整理 17 条 ICU 入院原文证据；未计算评分、筛查药物或生成治疗建议，须 ICU 医师复核。",
+  "result": {
+    "status": "requires_review",
+    "markdown": "{\"active_problems\": [{\"evidence_ref\": \"icu-evidence-8\", \"problem\": \"术后循环监护\", \"status\": \"DOCUMENTED\"}], \"admission_diagnoses\": [{\"assertion\": \"DOCUMENTED\", \"diagnosis\": \"主动脉夹层术后\", \"evidence_ref\": \"icu-evidence-3\"}], \"admission_reason\": \"术后循环监护\", \"clinical_recommendations_generated\": false, \"clinical_scores_status\": \"NOT_CALCULATED_GOVERNED_CALCULATOR_REQUIRED\", \"conflicts\": [{\"description\": \"药物给药途径未记录\", \"evidence\": \"药物给药途径未记录\", \"evidence_ref\": \"icu-evidence-17\", \"field\": \"记录\"}], \"evidence_items\": [{\"char_span\": [5, 17], \"evidence_id\": \"icu-evidence-1\", \"evidence_text\": \"患者编号已脱敏，AICU\", \"field\": \"patient_information\", \"source_label\": \"患者信息\"}, {\"char_span\": [25, 31], \"evidence_id\": \"icu-evidence-2\", \"evidence_text\": \"术后循环监护\", \"field\": \"admission_reason\", \"source_label\": \"入ICU原因\"}, {\"char_span\": [37, 44], \"evidence_id\": \"icu-evidence-3\", \"evidence_text\": \"主动脉夹层术后\", \"field\": \"admission_diagnoses\", \"source_label\": \"入院诊断\"}, {\"char_span\": [48, 56], \"evidence_id\": \"icu-evidence-4\", \"evidence_text\": \"高血压病史已记录\", \"field\": \"medical_history\", \"source_label\": \"病史\"}, {\"char_span\": [61, 77], \"evidence_id\": \"icu-evidence-5\", \"evidence_text\": \"2026-08-24主动脉置换术\", \"field\": \"surgical_history\", \"source_label\": \"手术史\"}, {\"char_span\": [82, 94], \"evidence_id\": \"icu-evidence-6\", \"evidence_text\": \"原记录注明无已知药物过敏\", \"field\": \"allergies\", \"source_label\": \"过敏史\"}, {\"char_span\": [99, 108], \"evidence_id\": \"icu-evidence-7\", \"evidence_text\": \"未记录吸烟饮酒情况\", \"field\": \"social_history\", \"source_label\": \"社会史\"}, {\"char_span\": [114, 120], \"evidence_id\": \"icu-evidence-8\", \"evidence_text\": \"术后循环监护\", \"field\": \"active_problems\", \"source_label\": \"活动问题\"}, {\"char_span\": [124, 151], \"evidence_id\": \"icu-evidence-9\", \"evidence_text\": \"去甲肾上腺素0.05μg/kg/min，给药途径未记录\", \"field\": \"medications\", \"source_label\": \"用药\"}, {\"char_span\": [157, 177], \"evidence_id\": \"icu-evidence-10\", \"evidence_text\": \"血压110/68mmHg，心率88次/分\", \"field\": \"vital_signs\", \"source_label\": \"生命体征\"}, {\"char_span\": [183, 200], \"evidence_id\": \"icu-evidence-11\", \"evidence_text\": \"乳酸由4.2降至2.1mmol/L\", \"field\": \"laboratory_results\", \"source_label\": \"检验结果\"}, {\"char_span\": [207, 223], \"evidence_id\": \"icu-evidence-12\", \"evidence_text\": \"2026-08-24主动脉置换术\", \"field\": \"procedures\", \"source_label\": \"操作/手术\"}, {\"char_span\": [229, 243], \"evidence_id\": \"icu-evidence-13\", \"evidence_text\": \"有创机械通气FiO2 40%\", \"field\": \"organ_support\", \"source_label\": \"器官支持\"}, {\"char_span\": [277, 294], \"evidence_id\": \"icu-evidence-14\", \"evidence_text\": \"乳酸由4.2降至2.1mmol/L\", \"field\": \"key_trends\", \"source_label\": \"趋势\"}, {\"char_span\": [298, 305], \"evidence_id\": \"icu-evidence-15\", \"evidence_text\": \"血气分析待回报\", \"field\": \"pending_items\", \"source_label\": \"待办\"}, {\"char_span\": [309, 318], \"evidence_id\": \"icu-evidence-16\", \"evidence_text\": \"原记录标注出血风险\", \"field\": \"risks\", \"source_label\": \"风险\"}, {\"char_span\": [325, 334], \"evidence_id\": \"icu-evidence-17\", \"evidence_text\": \"药物给药途径未记录\", \"field\": \"conflicts\", \"source_label\": \"矛盾/缺口\"}], \"key_trends\": [{\"evidence_ref\": \"icu-evidence-14\", \"indicator\": \"原记录趋势\", \"interpretation\": \"未解释；仅保留原文记录。\", \"trend\": \"乳酸由4.2降至2.1mmol/L\"}], \"laboratory_results\": [{\"evidence_ref\": \"icu-evidence-11\", \"text\": \"乳酸由4.2降至2.1mmol/L\"}], \"limitations\": [\"仅解析明确字段标签；未标注自由文本不会被重写为 ICU 临床事实。\", \"未计算 APACHE II、SOFA、GCS、死亡风险或其他临床评分。\", \"未应用生命体征/检验参考范围，未执行药物相互作用、剂量或肝肾调整审查。\", \"未调用 PubMed、DrugBank、Medical Calculator 或真实 EHR/MAR/LIS/监护设备。\", \"未生成诊疗建议；所有字段须 ICU 医师对照原始记录复核。\"], \"manual_review_required\": true, \"medication_screening_status\": \"NOT_SCREENED_LICENSED_DRUG_SOURCE_REQUIRED\", \"medications\": [{\"documented_text\": \"去甲肾上腺素0.05μg/kg/min，给药途径未记录\", \"dose\": \"\", \"evidence_ref\": \"icu-evidence-9\", \"route\": \"\"}], \"organ_support\": [{\"detail\": \"有创机械通气FiO2 40%\", \"evidence_ref\": \"icu-evidence-13\", \"route\": \"\", \"type\": \"DOCUMENTED_ORGAN_SUPPORT\"}], \"patient_background\": {\"allergies\": \"原记录注明无已知药物过敏\", \"medical_history\": \"高血压病史已记录\", \"patient_information\": \"患者编号已脱敏，AICU\", \"social_history\": \"未记录吸烟饮酒情况\", \"surgical_history\": \"2026-08-24主动脉置换术\"}, \"pending_items\": [{\"evidence_ref\": \"icu-evidence-15\", \"item\": \"血气分析待回报\", \"status\": \"DOCUMENTED_PENDING\"}], \"procedures\": [{\"evidence_ref\": \"icu-evidence-12\", \"text\": \"2026-08-24主动脉置换术\"}], \"production_writeback_blocked\": true, \"risks\": [{\"basis\": \"原记录明确标注\", \"evidence_ref\": \"icu-evidence-16\", \"risk\": \"原记录标注出血风险\"}], \"source_completeness\": {\"evidence_item_count\": 17, \"input_truncated\": false, \"missing_sections\": []}, \"summary_status\": \"COMPLETED\", \"timeline\": [], \"trace_refs\": {\"provider_trace_refs\": [\"run-417e2d78-2aa0-4c8f-a030-ceb6f0b31ca8:governed-icu-summary\"], \"run_id\": \"run-417e2d78-2aa0-4c8f-a030-ceb6f0b31ca8\"}, \"vital_signs\": [{\"evidence_ref\": \"icu-evidence-10\", \"text\": \"血压110/68mmHg，心率88次/分\"}]}",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.governed-icu-summary.v1",
+    "backend_type": "rule_engine",
+    "active_problems": [
+      {
+        "evidence_ref": "icu-evidence-8",
+        "problem": "术后循环监护",
+        "status": "DOCUMENTED"
+      }
+    ],
+    "admission_diagnoses": [
+      {
+        "assertion": "DOCUMENTED",
+        "diagnosis": "主动脉夹层术后",
+        "evidence_ref": "icu-evidence-3"
+      }
+    ],
+    "admission_reason": "术后循环监护",
+    "clinical_recommendations_generated": false,
+    "clinical_scores_status": "NOT_CALCULATED_GOVERNED_CALCULATOR_REQUIRED",
+    "conflicts": [
+      {
+        "description": "药物给药途径未记录",
+        "evidence": "药物给药途径未记录",
+        "evidence_ref": "icu-evidence-17",
+        "field": "记录"
+      }
+    ],
+    "evidence_items": [
+      {
+        "char_span": [
+          5,
+          17
+        ],
+        "evidence_id": "icu-evidence-1",
+        "evidence_text": "患者编号已脱敏，AICU",
+        "field": "patient_information",
+        "source_label": "患者信息"
+      },
+      {
+        "char_span": [
+          25,
+          31
+        ],
+        "evidence_id": "icu-evidence-2",
+        "evidence_text": "术后循环监护",
+        "field": "admission_reason",
+        "source_label": "入ICU原因"
+      },
+      {
+        "char_span": [
+          37,
+          44
+        ],
+        "evidence_id": "icu-evidence-3",
+        "evidence_text": "主动脉夹层术后",
+        "field": "admission_diagnoses",
+        "source_label": "入院诊断"
+      },
+      {
+        "char_span": [
+          48,
+          56
+        ],
+        "evidence_id": "icu-evidence-4",
+        "evidence_text": "高血压病史已记录",
+        "field": "medical_history",
+        "source_label": "病史"
+      },
+      {
+        "char_span": [
+          61,
+          77
+        ],
+        "evidence_id": "icu-evidence-5",
+        "evidence_text": "2026-08-24主动脉置换术",
+        "field": "surgical_history",
+        "source_label": "手术史"
+      },
+      {
+        "char_span": [
+          82,
+          94
+        ],
+        "evidence_id": "icu-evidence-6",
+        "evidence_text": "原记录注明无已知药物过敏",
+        "field": "allergies",
+        "source_label": "过敏史"
+      },
+      {
+        "char_span": [
+          99,
+          108
+        ],
+        "evidence_id": "icu-evidence-7",
+        "evidence_text": "未记录吸烟饮酒情况",
+        "field": "social_history",
+        "source_label": "社会史"
+      },
+      {
+        "char_span": [
+          114,
+          120
+        ],
+        "evidence_id": "icu-evidence-8",
+        "evidence_text": "术后循环监护",
+        "field": "active_problems",
+        "source_label": "活动问题"
+      },
+      {
+        "char_span": [
+          124,
+          151
+        ],
+        "evidence_id": "icu-evidence-9",
+        "evidence_text": "去甲肾上腺素0.05μg/kg/min，给药途径未记录",
+        "field": "medications",
+        "source_label": "用药"
+      },
+      {
+        "char_span": [
+          157,
+          177
+        ],
+        "evidence_id": "icu-evidence-10",
+        "evidence_text": "血压110/68mmHg，心率88次/分",
+        "field": "vital_signs",
+        "source_label": "生命体征"
+      },
+      {
+        "char_span": [
+          183,
+          200
+        ],
+        "evidence_id": "icu-evidence-11",
+        "evidence_text": "乳酸由4.2降至2.1mmol/L",
+        "field": "laboratory_results",
+        "source_label": "检验结果"
+      },
+      {
+        "char_span": [
+          207,
+          223
+        ],
+        "evidence_id": "icu-evidence-12",
+        "evidence_text": "2026-08-24主动脉置换术",
+        "field": "procedures",
+        "source_label": "操作/手术"
+      },
+      {
+        "char_span": [
+          229,
+          243
+        ],
+        "evidence_id": "icu-evidence-13",
+        "evidence_text": "有创机械通气FiO2 40%",
+        "field": "organ_support",
+        "source_label": "器官支持"
+      },
+      {
+        "char_span": [
+          277,
+          294
+        ],
+        "evidence_id": "icu-evidence-14",
+        "evidence_text": "乳酸由4.2降至2.1mmol/L",
+        "field": "key_trends",
+        "source_label": "趋势"
+      },
+      {
+        "char_span": [
+          298,
+          305
+        ],
+        "evidence_id": "icu-evidence-15",
+        "evidence_text": "血气分析待回报",
+        "field": "pending_items",
+        "source_label": "待办"
+      },
+      {
+        "char_span": [
+          309,
+          318
+        ],
+        "evidence_id": "icu-evidence-16",
+        "evidence_text": "原记录标注出血风险",
+        "field": "risks",
+        "source_label": "风险"
+      },
+      {
+        "char_span": [
+          325,
+          334
+        ],
+        "evidence_id": "icu-evidence-17",
+        "evidence_text": "药物给药途径未记录",
+        "field": "conflicts",
+        "source_label": "矛盾/缺口"
+      }
+    ],
+    "key_trends": [
+      {
+        "evidence_ref": "icu-evidence-14",
+        "indicator": "原记录趋势",
+        "interpretation": "未解释；仅保留原文记录。",
+        "trend": "乳酸由4.2降至2.1mmol/L"
+      }
+    ],
+    "laboratory_results": [
+      {
+        "evidence_ref": "icu-evidence-11",
+        "text": "乳酸由4.2降至2.1mmol/L"
+      }
+    ],
+    "limitations": [
+      "仅解析明确字段标签；未标注自由文本不会被重写为 ICU 临床事实。",
+      "未计算 APACHE II、SOFA、GCS、死亡风险或其他临床评分。",
+      "未应用生命体征/检验参考范围，未执行药物相互作用、剂量或肝肾调整审查。",
+      "未调用 PubMed、DrugBank、Medical Calculator 或真实 EHR/MAR/LIS/监护设备。",
+      "未生成诊疗建议；所有字段须 ICU 医师对照原始记录复核。"
+    ],
+    "manual_review_required": true,
+    "medication_screening_status": "NOT_SCREENED_LICENSED_DRUG_SOURCE_REQUIRED",
+    "medications": [
+      {
+        "documented_text": "去甲肾上腺素0.05μg/kg/min，给药途径未记录",
+        "dose": "",
+        "evidence_ref": "icu-evidence-9",
+        "route": ""
+      }
+    ],
+    "organ_support": [
+      {
+        "detail": "有创机械通气FiO2 40%",
+        "evidence_ref": "icu-evidence-13",
+        "route": "",
+        "type": "DOCUMENTED_ORGAN_SUPPORT"
+      }
+    ],
+    "patient_background": {
+      "allergies": "原记录注明无已知药物过敏",
+      "medical_history": "高血压病史已记录",
+      "patient_information": "患者编号已脱敏，AICU",
+      "social_history": "未记录吸烟饮酒情况",
+      "surgical_history": "2026-08-24主动脉置换术"
+    },
+    "pending_items": [
+      {
+        "evidence_ref": "icu-evidence-15",
+        "item": "血气分析待回报",
+        "status": "DOCUMENTED_PENDING"
+      }
+    ],
+    "procedures": [
+      {
+        "evidence_ref": "icu-evidence-12",
+        "text": "2026-08-24主动脉置换术"
+      }
+    ],
+    "production_writeback_blocked": true,
+    "risks": [
+      {
+        "basis": "原记录明确标注",
+        "evidence_ref": "icu-evidence-16",
+        "risk": "原记录标注出血风险"
+      }
+    ],
+    "source_completeness": {
+      "evidence_item_count": 17,
+      "input_truncated": false,
+      "missing_sections": []
+    },
+    "summary_status": "COMPLETED",
+    "timeline": [],
+    "trace_refs": {
+      "run_id": "run-417e2d78-2aa0-4c8f-a030-ceb6f0b31ca8",
+      "trace_id": "trace-91f31b8fe89943ba",
+      "provider_trace_refs": [
+        "run-417e2d78-2aa0-4c8f-a030-ceb6f0b31ca8:governed-icu-summary"
+      ]
+    },
+    "vital_signs": [
+      {
+        "evidence_ref": "icu-evidence-10",
+        "text": "血压110/68mmHg，心率88次/分"
+      }
+    ],
+    "structured_extraction": {
+      "contract": "icoder/IcuSummaryOutput/v3",
+      "method": "json_block",
+      "warnings": [],
+      "required_fields": [
+        "summary_status",
+        "patient_background",
+        "admission_reason",
+        "admission_diagnoses",
+        "timeline",
+        "active_problems",
+        "organ_support",
+        "medications",
+        "vital_signs",
+        "laboratory_results",
+        "procedures",
+        "key_trends",
+        "pending_items",
+        "risks",
+        "conflicts",
+        "source_completeness",
+        "evidence_items",
+        "limitations",
+        "clinical_scores_status",
+        "medication_screening_status",
+        "clinical_recommendations_generated",
+        "production_writeback_blocked",
+        "manual_review_required",
+        "trace_refs"
+      ],
+      "optional_fields": [],
+      "missing_required_fields": [],
+      "invalid_field_types": [],
+      "invalid_field_schemas": [],
+      "invalid_cross_agent_relations": [],
+      "undeclared_output_fields": [],
+      "undeclared_output_field_count": 0,
+      "valid": true
+    }
+  },
+  "schema_ref": "icoder/IcuSummaryOutput/v3",
+  "result_attestation": "eyJhIjoiaWN1LXN1bW1hcnkiLCJkIjoiZTc0NWVhMDFmNzY0YzQ1MjI4MzU0ZTk2MDE0MTExZTViNjhmYjQ2YmU4NTAxMmMyNWQxOGM4MGUxMTljYjg2MiIsImUiOjE3ODc2NDEzMzIsIm8iOiI2MTVkMjVlOTNjMTMiLCJyIjoicnVuLTQxN2UyZDc4LTJhYTAtNGM4Zi1hMDMwLWNlYjZmMGIzMWNhOCIsInMiOiJpY29kZXIvSWN1U3VtbWFyeU91dHB1dC92MyIsInYiOjF9.sP3cwcHME15ZTVPDW2ZV_NaH572GxXueRttDi3D6ZbI",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 124,
+      "metadata": {
+        "agent_id": "icu-summary",
+        "runtime_mode": "rule_engine",
+        "latency_ms": 124
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 0.208
+}

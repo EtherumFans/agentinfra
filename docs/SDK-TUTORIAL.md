@@ -21,18 +21,18 @@ curl -X POST http://localhost:8000/api/auth/login \
 ### 2. 从模板克隆 Agent
 
 ```bash
-curl -X POST http://localhost:8000/api/agents/medical-coding/clone \
+curl -X POST http://localhost:8000/api/icoder/agents/medical-coding-agent/clone \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"name":"骨科编码审核","description":"骨科专科编码审核 Agent"}'
 ```
 
-响应中拿到 `id`，后续步骤使用。
+响应中拿到 `project_agent_id`，后续步骤使用。
 
 ### 3. 自定义 System Prompt
 
 ```bash
-curl -X PUT http://localhost:8000/api/agents/{agent_id} \
+curl -X PUT http://localhost:8000/api/rest/v1/agent_definitions/{project_agent_id} \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"system_prompt": "<role>\n你是骨科专科编码审核专家。重点关注：骨质疏松性骨折编码(M80)、关节置换编码、脊柱手术编码。\n</role>\n\n<output_format>\n1. 主诊断编码 + ICD-10-CN 编码 + 证据\n2. 次要诊断 + 编码\n3. 手术编码 + ICD-9-CM-3 编码\n4. 编码依据不足的项（标记为需人工复核）\n</output_format>"}'
@@ -41,10 +41,11 @@ curl -X PUT http://localhost:8000/api/agents/{agent_id} \
 ### 4. 运行 Agent
 
 ```bash
-curl -X POST http://localhost:8000/api/agents/{agent_id}/run \
+curl -X POST http://localhost:8000/api/v1/agents/{project_agent_id}/run \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"input":"患者女性，72岁。摔倒后右髋疼痛2小时。X线示右股骨颈骨折。既往骨质疏松病史5年。行右人工全髋关节置换术。"}'
+  -H "Idempotency-Key: tutorial-encounter-001" \
+  -d '{"input":{"text":"患者女性，72岁。摔倒后右髋疼痛2小时。X线示右股骨颈骨折。既往骨质疏松病史5年。行右人工全髋关节置换术。"},"include_trace":true,"include_evidence":true}'
 ```
 
 ### 5. 用 Python SDK 做同样的事
@@ -59,22 +60,25 @@ config = iCoDerConfig(
 client = iCoDerClient(config)
 
 # Clone template
-agent = client.post("/api/agents/medical-coding/clone",
+agent = client.post("/api/icoder/agents/medical-coding-agent/clone",
     json={"name": "骨科编码审核"}).json()
-agent_id = agent["id"]
+agent_id = agent["project_agent_id"]
 
 # Customize
-client.put(f"/api/agents/{agent_id}", json={
+client.put(f"/api/rest/v1/agent_definitions/{agent_id}", json={
     "system_prompt": "你是骨科专科编码审核专家...",
 })
 
 # Run
-result = client.post(f"/api/agents/{agent_id}/run", json={
-    "input": "患者女性，72岁。摔倒后右髋疼痛2小时..."
-}).json()
+result = client.runs.run_text(
+    agent_id,
+    "患者女性，72岁。摔倒后右髋疼痛2小时...",
+    idempotency_key="tutorial-encounter-001",
+)
 
-print(f"主诊断: {result.get('primary_diagnosis', {}).get('code')}")
-print(f"置信度: {result.get('primary_diagnosis', {}).get('confidence')}")
+print(f"运行 ID: {result['run_id']}")
+print(f"结果: {result['result']}")
+print(f"必须人工复核: {result['manual_review_required']}")
 ```
 
 ---
@@ -166,73 +170,50 @@ curl -X POST http://localhost:8000/api/tools \
 
 ---
 
-## 教程三：导出证据包
+## 教程三：获取可审计的 Agent Run
 
-### 1. 先跑一次编码审核
+历史 `/api/reviews` 生命周期已删除。编码审核通过统一 Agent Run 或 A2A Task 执行，并从 Run/Trace 获取审计证据。
+
+### 1. 启动编码 Agent
 
 ```bash
-REVIEW_ID=$(curl -s -X POST http://localhost:8000/api/reviews \
+RUN_ID=$(curl -s -X POST http://localhost:8000/api/v1/agents/medical-coding-agent/run \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"encounter_id":"DEMO-001"}' \
-  | python -c "import sys,json; print(json.load(sys.stdin).get('review_id',''))")
-echo "Review: $REVIEW_ID"
+  -d '{"input":{"text":"患者主诉与出院诊断文本"},"purpose_of_use":"treatment"}' \
+  | python -c "import sys,json; print(json.load(sys.stdin).get('run_id',''))")
+echo "Run: $RUN_ID"
 ```
 
-### 2. 导出证据包
-
-> Phase 2.1-B Step 4 起 `/api/reviews/{id}/evidence-pack` 已删除。
-> 证据信息现通过 A2A Agent 调用返回的 artifacts 元数据获取。
+### 2. 查询生命周期和审计轨迹
 
 ```bash
-curl -X POST http://localhost:8000/api/icoder/agents/medcoder-coding-review/v1/message:send \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "A2A-Protocol-Version: 0.3" \
-  -H "Content-Type: application/json" \
-  -d '{"jsonrpc":"2.0","id":"ev-1","method":"message/send","params":{"message":{"role":"user","parts":[{"type":"text","text":"..."}]}}}'
+curl -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:8000/api/v1/runs/$RUN_ID"
+
+curl -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:8000/api/runtime/runs/$RUN_ID/trace?format=timeline"
 ```
 
-### 3. 查看证据包结构
-
-```bash
-python -c "
-import json
-with open('evidence-pack.json') as f:
-    pack = json.load(f)
-
-print('=== 证据包概览 ===')
-print(f'Review: {pack[\"metadata\"][\"review_id\"]}')
-print(f'Agent: {pack[\"metadata\"][\"agent_version\"]}')
-print(f'Model: {pack[\"metadata\"][\"model_used\"]}')
-print()
-
-print('编码决策:')
-for cd in pack['code_decisions']:
-    print(f'  {cd[\"type\"]}: {cd[\"code\"]} {cd[\"name\"]} (置信度: {cd[\"confidence\"]})')
-
-print()
-print(f'证据项: {len(pack[\"evidence_items\"])} 条')
-print(f'Pipeline: {pack[\"pipeline_health\"][\"status\"]}')
-print(f'人审状态: {pack[\"human_review\"][\"status\"]}')
-print()
-print(f'完整性校验: {pack[\"integrity\"][\"content_hash\"]}')
-"
-```
-
-### 4. 用 Python SDK 导出
-
-> Phase 2.1-B Step 4 起 `/api/reviews/{id}/evidence-pack` 已删除。
-> 改用 A2A message:send 调用 medcoder-coding-review agent, 从 artifacts 元数据提取证据。
+### 3. 用 Python SDK 执行
 
 ```python
-import httpx
-resp = httpx.post(
-    f"{base_url}/api/icoder/agents/medcoder-coding-review/v1/message:send",
-    headers={"Authorization": f"Bearer {token}", "A2A-Protocol-Version": "0.3"},
-    json={"jsonrpc":"2.0","id":"ev-1","method":"message/send",
-          "params":{"message":{"role":"user","parts":[{"type":"text","text":"..."}]}}},
+from icoder_sdk import RequestOptions
+
+response = client.runs.run_text(
+    "medical-coding-agent",
+    "患者主诉与出院诊断文本",
+    purpose_of_use="treatment",
 )
-pack = resp.json()
+run_id = response["run_id"]
+status = client.runs.get(run_id)
+trace_response = client.get(
+    f"/api/runtime/runs/{run_id}/trace",
+    request_options=RequestOptions(query_params={"format": "timeline"}),
+)
+trace_response.raise_for_status()
+trace = trace_response.json()
+```
 
 # 验证完整性
 import hashlib, json

@@ -1,0 +1,145 @@
+{
+  "schema_version": "icoder.agent-hub-clinical-calibration-gate-engineering-phase/v1",
+  "generated_at": "2026-08-25T00:00:00+08:00",
+  "status": "engineering_complete_real_model_run_pending",
+  "scope": {
+    "visible_agents": 26,
+    "external_model_agents": [
+      "clinical-documentation-improvement-agent",
+      "medical-coding-agent"
+    ],
+    "planned_serial_invocations": 50,
+    "real_model_invocations_executed_this_phase": 0,
+    "strict_live_provider_semantic_verified": 0,
+    "production_ready_verified": 0
+  },
+  "governed_plan": {
+    "path": "reports/agent_hub/clinical_calibration_plan_20260825_v1/agent_hub_clinical_calibration_plan.json",
+    "file_sha256": "81dbbd9a64478e415257a28f376910c5ea2181a245af7013698ca333fd0788c6",
+    "canonical_plan_sha256": "09f12473636d481ada9204e8bfa554a09336ec361d98f78d35e2e020387bef81",
+    "valid": true,
+    "allowed_external_calibration_assets": [
+      {
+        "asset_id": "cdi_corti_teacher_calibration_40",
+        "case_count": 40,
+        "sha256": "22382b8ebe5955849442cfcd3b3ed646252d66fee17a77a15e4107859648db9a",
+        "external_provider_egress_allowed": true
+      },
+      {
+        "asset_id": "medical_coding_held_out_bilingual_seed_5",
+        "base_case_count": 5,
+        "language_invocations_per_case": 2,
+        "sha256": "0461ddcaea112b9fab84d1bb9395bdfd5ee1de0dfd7695790855497793cc31a2",
+        "external_provider_egress_allowed": true
+      }
+    ],
+    "blocked_external_calibration_assets": [
+      {
+        "asset_id": "ccl2026_train_1800",
+        "case_count": 1800,
+        "sha256": "c71566686582ff4c3089c0547e2c2ebcccb6eb7b86756419309c680250093027",
+        "external_provider_egress_allowed": false
+      },
+      {
+        "asset_id": "ccl2026_validation_100",
+        "case_count": 100,
+        "sha256": "5403549263eba91101083ee9cdc6eba4ba871e48e9c9b18a6653aa3a7478a538",
+        "external_provider_egress_allowed": false
+      },
+      {
+        "asset_id": "icoder_201_subset",
+        "case_count": 201,
+        "sha256": "6b666f2d7494936f7a4e5a7dfc8dda72992fa8bb6980f8f6b1fb6481ae130878",
+        "external_provider_egress_allowed": false
+      }
+    ]
+  },
+  "legacy_cdi_candidate": {
+    "integrity": "passed",
+    "parity_status": "partial",
+    "authority": "historical_calibration_only_not_current_release_evidence",
+    "gaps": {
+      "agreement_rate_delta_le_1": 0.75,
+      "avg_abs_query_count_delta": 1.0,
+      "clear_gap_under_query_rate": 0.1,
+      "unsupported_query_rate": 0.025
+    },
+    "runner_findings": [
+      "hard_coded_multi_dimension_result",
+      "hard_coded_login_credentials",
+      "legacy_non_agent_hub_endpoint",
+      "missing_live_model_attestation_gate"
+    ]
+  },
+  "verification": {
+    "focused_pytest": {
+      "passed": 24,
+      "failed": 0,
+      "elapsed_seconds": 40.68,
+      "serial": true
+    },
+    "all_visible_offline_safety": {
+      "passed": 78,
+      "failed": 0,
+      "elapsed_seconds": 27.06,
+      "serial": true
+    },
+    "missing_egress_acknowledgement_probe": {
+      "exit_code": 1,
+      "backend_or_model_call_started": false,
+      "message": "--acknowledge-external-provider-egress is required for this controlled run"
+    },
+    "powershell_ast": {
+      "parse_errors": 0
+    },
+    "deployment_preflight": {
+      "passed": 92,
+      "failed": 0,
+      "path": "reports/deployment/clinical_calibration_gate_phase_20260825_v1/deployment_preflight.json",
+      "sha256": "bf704bb87e186139dea48565d7965cabfdd781dcbf54eaa7c6e8f26da17c13b2"
+    }
+  },
+  "security_invariants": {
+    "process_scoped_credential_required": true,
+    "credential_value_in_command_line": false,
+    "credential_value_persisted": false,
+    "credential_leak_scan_on_success_and_failure": true,
+    "temporary_database_required": true,
+    "native_medcoder_disabled": true,
+    "local_stt_disabled": true,
+    "loopback_application_transport_only": true,
+    "serial_execution_only": true,
+    "protected_database": {
+      "path": "backend/data/icoder.db",
+      "bytes": 8536064,
+      "last_write_local": "2026-08-22 17:16:22",
+      "sha256": "2f1e5af01aac020cdd0eadac51b3ea65ba5b2e714d9f6ea3707992e829692877",
+      "modified_this_phase": false
+    }
+  },
+  "source_sha256": {
+    "backend/scripts/corti_parity/build_agent_hub_clinical_calibration_plan.py": "4cae908f38a36f1f3a153e53fcd7811a5372067286e3dced741475bbb9fd5677",
+    "backend/scripts/corti_parity/run_agent_hub_clinical_calibration_e2e.py": "d36ad0640ae2338925a84c494071eb3a6d0e018e3083bbf1eccbcfc99aa59c9d",
+    "backend/tests/unit/corti_parity/test_agent_hub_clinical_calibration_plan.py": "0b470f944ca5e390d31688ff89d755cb3c47028aba6316abe2d098f8c5c50c6f",
+    "backend/tests/unit/corti_parity/test_agent_hub_clinical_calibration_e2e.py": "adea7e49c568db68583be3c0b39c1b73a3f9725f4da7f06e5875d129d308654e",
+    "scripts/release/run-agent-hub-external-semantic-e2e.ps1": "00a5eb21a3227aa80f045b0007b585d1152083abfa3907633064b73c24f4fc99",
+    "backend/scripts/corti_parity/validate_deployment_candidate.py": "2dfc1c1ebca67521792087d22424500009ebac64864c1370079a829f04aab058",
+    "backend/tests/unit/corti_parity/test_deployment_candidate_preflight.py": "6fa4cb5ae224e9971c1da65893aa8cbd68ef2fb21422e65358545da2c7947ddd"
+  },
+  "claim_boundaries": {
+    "clinical_accuracy_proven": false,
+    "independent_gold_used": false,
+    "corti_parity_proven": false,
+    "hospital_acceptance_proven": false,
+    "production_ready_proven": false
+  },
+  "external_release_gates": [
+    "new temporary DeepSeek key and fresh 50-invocation controlled run",
+    "at least 100 bilingual coding cases",
+    "independent bilingual clinical coder and CDI adjudication",
+    "approved hospital-distribution validation under DPA",
+    "data provenance, licence, and de-identification sign-off",
+    "controlled Corti head-to-head on identical authorized inputs",
+    "hospital acceptance, cloud capacity/SLA, legal, regulatory, and certification gates"
+  ]
+}

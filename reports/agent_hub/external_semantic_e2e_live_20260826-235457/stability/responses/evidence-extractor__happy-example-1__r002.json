@@ -1,0 +1,147 @@
+{
+  "agent_id": "evidence-extractor",
+  "run_id": "run-02bf7ed1-121b-482e-9cda-171f9a40da76",
+  "trace_id": "trace-068ebe36a5fe478c",
+  "trace_url": "/ai-studio/runs/run-02bf7ed1-121b-482e-9cda-171f9a40da76/trace",
+  "runtime_mode": "governed_local_exact_mention_extraction",
+  "latency_ms": 131,
+  "cost": {
+    "amount": 0.0,
+    "currency": "CNY"
+  },
+  "billing": {},
+  "summary": "处理 2 个输入编码，定位 2 个精确原文提及，0 个编码无精确提及或目录未命中。",
+  "result": {
+    "status": "requires_review",
+    "markdown": "# 编码候选精确证据提及定位\n\n**状态：** COMPLETED\n\n**输入编码数：** 2\n\n> 仅定位代码字面量或固定目录术语的精确 span；不判断临床支持度或编码有效性。\n\n## 逐码结果\n\n- **N18.803**：`EXACT_MENTION_FOUND`，精确提及 1 处\n  - 目录状态：`found`；目录可分配叶子：`true`\n  - 复核：已定位精确提及；这不证明临床支持或编码有效性，需结合完整病历和编码规则人工复核。\n- **E11.900**：`EXACT_MENTION_FOUND`，精确提及 1 处\n  - 目录状态：`found`；目录可分配叶子：`true`\n  - 复核：已定位精确提及；这不证明临床支持或编码有效性，需结合完整病历和编码规则人工复核。\n\n## 边界\n\n当前结果不能证明诊断成立、操作已实施或候选编码适用于本次就诊，必须人工复核。",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.governed-evidence-extractor.v1",
+    "backend_type": "rule_engine",
+    "code_results": [
+      {
+        "assignable_catalog_entry": true,
+        "catalog_display": "慢性肾脏病3期",
+        "catalog_status": "found",
+        "clinical_support_assessed": false,
+        "code": "N18.803",
+        "input_index": 0,
+        "manual_review_prompt": "已定位精确提及；这不证明临床支持或编码有效性，需结合完整病历和编码规则人工复核。",
+        "mention_count": 1,
+        "result_status": "EXACT_MENTION_FOUND"
+      },
+      {
+        "assignable_catalog_entry": true,
+        "catalog_display": "2型糖尿病",
+        "catalog_status": "found",
+        "clinical_support_assessed": false,
+        "code": "E11.900",
+        "input_index": 1,
+        "manual_review_prompt": "已定位精确提及；这不证明临床支持或编码有效性，需结合完整病历和编码规则人工复核。",
+        "mention_count": 1,
+        "result_status": "EXACT_MENTION_FOUND"
+      }
+    ],
+    "extraction_status": "COMPLETED",
+    "input_code_count": 2,
+    "input_codes": [
+      "N18.803",
+      "E11.900"
+    ],
+    "limitations": [
+      "只定位精确代码字面量或固定目录术语，不执行同义医学推理、缩写扩展或隐含证据判断。",
+      "current_mention 仅表示未检测到显式否定/既往/家族史/疑似修饰，不代表当前诊断成立。",
+      "目录命中和 assignable_catalog_entry 只描述来源未核验目录结构，不代表本次就诊可编码或可结算。",
+      "不扫描或生成新编码；uncoded_findings 固定为空。"
+    ],
+    "located_mentions": [
+      {
+        "char_span": [
+          31,
+          38
+        ],
+        "clinical_support_assessed": false,
+        "code": "N18.803",
+        "context_rule": "no_explicit_context_modifier_detected",
+        "context_status": "current_mention",
+        "evidence_text": "慢性肾脏病3期",
+        "input_index": 0,
+        "match_type": "exact_catalog_term",
+        "matched_term": "慢性肾脏病3期"
+      },
+      {
+        "char_span": [
+          41,
+          46
+        ],
+        "clinical_support_assessed": false,
+        "code": "E11.900",
+        "context_rule": "explicit_history_before_mention",
+        "context_status": "historical",
+        "evidence_text": "2型糖尿病",
+        "input_index": 1,
+        "match_type": "exact_catalog_term",
+        "matched_term": "2型糖尿病"
+      }
+    ],
+    "manual_review_required": true,
+    "match_basis": "EXACT_CATALOG_TERM_OR_CODE_LITERAL_ONLY",
+    "source_version": "cn.icd10cn.catalog@observed-local-2026-05-19; authority=source_unverified; license=external_review_required",
+    "summary": "处理 2 个输入编码，定位 2 个精确原文提及，0 个编码无精确提及或目录未命中。",
+    "uncoded_findings": [],
+    "unmatched_codes": [],
+    "structured_extraction": {
+      "contract": "icoder/CodedEvidence/v11",
+      "method": "bare_json",
+      "warnings": [],
+      "required_fields": [
+        "extraction_status",
+        "input_codes",
+        "input_code_count",
+        "match_basis",
+        "located_mentions",
+        "code_results",
+        "unmatched_codes",
+        "uncoded_findings",
+        "source_version",
+        "limitations",
+        "manual_review_required",
+        "summary",
+        "markdown"
+      ],
+      "optional_fields": [],
+      "missing_required_fields": [],
+      "invalid_field_types": [],
+      "invalid_field_schemas": [],
+      "invalid_cross_agent_relations": [],
+      "undeclared_output_fields": [],
+      "undeclared_output_field_count": 0,
+      "valid": true
+    }
+  },
+  "schema_ref": "icoder/CodedEvidence/v11",
+  "result_attestation": "eyJhIjoiZXZpZGVuY2UtZXh0cmFjdG9yIiwiZCI6ImJhZDU3NWVlZmUzZjM3NDFmMzMyNTRmMWMyZWQ5OGFhZGRmMjRkODQ0ODU5OGU1MjVkYzU4ZGY2MzUxY2I2ZTYiLCJlIjoxNzg3ODcwNzUzLCJvIjoiODUyMTlhZTI1ZjMwIiwiciI6InJ1bi0wMmJmN2VkMS0xMjFiLTQ4MmUtOWNkYS0xNzFmOWE0MGRhNzYiLCJzIjoiaWNvZGVyL0NvZGVkRXZpZGVuY2UvdjExIiwidiI6MX0.oFe4sy70FHp_eMvbKxmV8l2wNv1TcloQYZ5LS7yupaM",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 131,
+      "metadata": {
+        "agent_id": "evidence-extractor",
+        "runtime_mode": "governed_local_exact_mention_extraction",
+        "latency_ms": 131
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 0.469
+}

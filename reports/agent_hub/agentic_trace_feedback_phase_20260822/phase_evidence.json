@@ -1,0 +1,85 @@
+{
+  "phase": "agentic_context_trace_feedback",
+  "generated_at": "2026-08-22T03:09:46+08:00",
+  "verdict": "development_launch_candidate",
+  "official_contract_snapshot": {
+    "verified_at": "2026-08-22",
+    "trace_document": "https://docs.corti.ai/agentic/guides/export-traces",
+    "feedback_document": "https://docs.corti.ai/agentic/guides/submit-feedback",
+    "trace_path_is_singular": true,
+    "message_target_uses_target_message_id": true
+  },
+  "scope": {
+    "external_llm_used": false,
+    "corti_write_called": false,
+    "real_credentials_used": false
+  },
+  "contracts": {
+    "alembic_head": "046",
+    "table": "agent_task_feedback",
+    "openapi_path_count": 255,
+    "openapi_size_bytes": 783157,
+    "trace_path": "/api/v2/agentic/contexts/{context_id}/trace",
+    "feedback_path": "/api/v2/agentic/contexts/{context_id}/tasks/{task_id}/feedback",
+    "sdk_versions": {
+      "javascript": "1.0.0-beta.19",
+      "python": "1.0.0b19",
+      "dotnet": "1.0.0-beta.19"
+    }
+  },
+  "verification": [
+    {"name": "backend_joint_regression", "passed": 363, "failed": 0, "duration_seconds": 175.58},
+    {"name": "agentic_trace_feedback_integration", "passed": 4, "failed": 0},
+    {"name": "real_app_lifespan", "passed": 3, "failed": 0, "duration_seconds": 26.72},
+    {"name": "python_sdk", "passed": 42, "failed": 0, "duration_seconds": 79.67},
+    {"name": "javascript_sdk", "passed": 35, "failed": 0},
+    {"name": "frontend_openapi_contract", "passed": 60, "failed": 0},
+    {"name": "release_candidate_validator", "passed": 5, "failed": 0, "normalized_version": "1.0.0-beta.19"},
+    {"name": "openapi_drift", "passed": true, "path_count": 255},
+    {"name": "python_compileall", "passed": true},
+    {"name": "secret_shape_scan", "matching_files": 0},
+    {"name": "residual_runtime_check", "port_8000_listeners": 0, "uvicorn_processes": 0},
+    {
+      "name": "migration_upgrade_downgrade",
+      "passed": true,
+      "downgrade_revision": "045",
+      "table_after_downgrade": null,
+      "upgrade_revision": "046",
+      "table_after_upgrade": "agent_task_feedback"
+    },
+    {
+      "name": "local_release_artifacts",
+      "passed": true,
+      "publication_performed": false,
+      "manifest": "reports/release-candidate/LOCAL_RELEASE_MANIFEST_BETA19.json",
+      "artifacts": [
+        {"path": "icoder-sdk-1.0.0-beta.19.tgz", "size_bytes": 35905, "sha256": "e42ec6dc3c2ac5bfd811b0ea6cb4e595549d1f005be5f1b0bdcac8d105909aff"},
+        {"path": "icoder_sdk-1.0.0b19-py3-none-any.whl", "size_bytes": 27298, "sha256": "81d240ec58f292acd992af69f4f4539090e90ee3fe48c4178bb6fb1ab2d39f71"}
+      ]
+    },
+    {"name": "dotnet_build_and_tests", "passed": null, "reason": "dotnet, csc, and msbuild are not installed on this host"}
+  ],
+  "security_invariants": [
+    "tenant_scoped_context_task_trace_and_feedback",
+    "opaque_signed_canonical_trace_cursor",
+    "deterministic_otel_trace_and_parent_child_span_ids",
+    "raw_clinical_input_and_output_not_exported",
+    "feedback_reason_redacted_then_encrypted",
+    "external_feedback_identifiers_hashed",
+    "caller_owned_feedback_visibility",
+    "oauth_scope_fail_closed",
+    "idempotent_actor_target_upsert",
+    "context_hard_delete_physically_scrubs_feedback",
+    "bounded_retention_with_dry_run_operator_cli"
+  ],
+  "remaining_gates": [
+    "standard_openinference_coverage_for_every_provider_and_connector",
+    "automated_evaluation_and_explicit_training_authorization",
+    "agentic_usage_v2_reconciliation",
+    "dotnet_net8_net10_ci",
+    "postgresql_multi_replica_validation",
+    "linux_docker_cloud_kms_and_queue",
+    "hospital_interoperability",
+    "legal_compliance_certification_and_independent_clinical_review"
+  ]
+}

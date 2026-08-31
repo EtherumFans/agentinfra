@@ -1,0 +1,84 @@
+{
+  "agent_id": "medical-coding-agent",
+  "run_id": "run-acdb04fc-479b-4f6d-a5e5-fa6b202daa1a",
+  "trace_id": "trace-0cdc1756dd6a4c1e",
+  "trace_url": "/ai-studio/runs/run-acdb04fc-479b-4f6d-a5e5-fa6b202daa1a/trace",
+  "runtime_mode": "corti_like_fast",
+  "latency_ms": 433,
+  "cost": {},
+  "billing": {},
+  "summary": "LLM 提供方降级 (unknown)。编码推理未真实执行,请检查 API 配置后重试。",
+  "result": {
+    "contract_output_suppressed": true
+  },
+  "schema_ref": "icoder/MedicalCodingAgentOutputV2/v8",
+  "result_attestation": "",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "input_received",
+      "status": "ok",
+      "ts": 1787365195.0916426,
+      "duration_ms": 0,
+      "metadata": {
+        "text_len": 28,
+        "mode": "corti_like_fast"
+      }
+    },
+    {
+      "step": "language_detect",
+      "status": "ok",
+      "ts": 1787365195.0916426,
+      "duration_ms": 0,
+      "metadata": {
+        "language": "zh"
+      }
+    },
+    {
+      "step": "build_prompt",
+      "status": "ok",
+      "ts": 1787365195.0916426,
+      "duration_ms": 0,
+      "metadata": {
+        "provider": "deepseek",
+        "language": "zh",
+        "system": "icd-10-cn"
+      }
+    },
+    {
+      "step": "llm_call",
+      "status": "ok",
+      "ts": 1787365195.525329,
+      "duration_ms": 433,
+      "metadata": {
+        "provider": "deepseek",
+        "model": "deepseek-chat",
+        "is_mock": true
+      }
+    },
+    {
+      "step": "parse_json",
+      "status": "degraded",
+      "ts": 1787365195.525329,
+      "duration_ms": 433,
+      "metadata": {
+        "reason": "unknown"
+      }
+    },
+    {
+      "step": "return",
+      "status": "degraded",
+      "ts": 1787365195.525329,
+      "duration_ms": 433,
+      "metadata": {
+        "reason": "unknown"
+      }
+    }
+  ],
+  "error": true,
+  "error_reason": "llm_degraded",
+  "_http_status": 200,
+  "_elapsed_seconds": 1.06
+}

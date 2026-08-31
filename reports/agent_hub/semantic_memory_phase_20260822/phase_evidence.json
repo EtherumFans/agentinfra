@@ -1,0 +1,94 @@
+{
+  "schema_version": "icoder.agent-hub.phase-evidence/v1",
+  "phase": "semantic_memory_remote_http",
+  "date": "2026-08-22",
+  "result": "development_candidate_pass",
+  "claims": {
+    "remote_embedding_contract_implemented": true,
+    "real_tcp_contract_verified": true,
+    "deidentified_text_only": true,
+    "identifiers_sent_to_embedding_service": false,
+    "vectors_encrypted_at_rest_in_verified_path": true,
+    "cloud_semantic_fallback_allowed": false,
+    "patient_authority_verified": false,
+    "patient_phi_storage_allowed": false,
+    "real_embedding_model_quality_verified": false,
+    "production_embedding_service_verified": false,
+    "hospital_or_regulatory_approval": false
+  },
+  "contracts": {
+    "request": "icoder.memory-embedding.request/v1",
+    "response": "icoder.memory-embedding.response/v1",
+    "authority_class": "authenticated_user_self_service",
+    "supported_data_classifications": [
+      "non_phi",
+      "deidentified"
+    ],
+    "cloud_required_environment": [
+      "ICODER_MEMORY_SEMANTIC_URL",
+      "ICODER_CREDENTIAL_MEMORY_SEMANTIC",
+      "ICODER_MEMORY_SEMANTIC_REQUIRED=true",
+      "ICODER_CONNECTOR_EGRESS_ALLOWLIST",
+      "ICODER_PHI_ENCRYPTION_KEY"
+    ]
+  },
+  "tests": [
+    {
+      "name": "semantic_connector_combined_backend_regression",
+      "passed": 123,
+      "failed": 0
+    },
+    {
+      "name": "semantic_memory_real_tcp_e2e_standalone",
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "name": "semantic_provider_and_cloud_fail_closed",
+      "passed": 59,
+      "failed": 0
+    },
+    {
+      "name": "memory_consent_api_lifecycle",
+      "passed": 8,
+      "failed": 0
+    },
+    {
+      "name": "health_openapi_deployment_contract",
+      "passed": 9,
+      "failed": 0
+    },
+    {
+      "name": "typescript_sdk",
+      "passed": 41,
+      "failed": 0
+    },
+    {
+      "name": "python_sdk",
+      "passed": 48,
+      "failed": 0
+    },
+    {
+      "name": "static_deployment_preflight",
+      "passed": 54,
+      "failed": 0
+    }
+  ],
+  "artifacts": [
+    "backend/app/services/connector_memory_semantic.py",
+    "backend/app/services/connector_memory_store.py",
+    "backend/tests/fixtures/memory_semantic_http_worker.py",
+    "backend/tests/integration/icoder/test_memory_semantic_remote_http_e2e.py",
+    "docs/cloud/SEMANTIC_MEMORY_SERVICE.md",
+    "docs/corti_parity/ICODER_SEMANTIC_MEMORY_PHASE_SUMMARY_2026-08-22.md",
+    "reports/agent_hub/semantic_memory_phase_20260822/deployment/deployment_preflight.json"
+  ],
+  "external_gates": [
+    "production same-region embedding service and secret manager",
+    "licensed immutable model and supply-chain review",
+    "Chinese clinical retrieval gold set and independent quality review",
+    "patient or legal-representative authority and withdrawal propagation",
+    "capacity, latency, failover, disaster recovery and multi-replica validation",
+    "hospital security, privacy, legal and regulatory approval"
+  ]
+}

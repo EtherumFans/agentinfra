@@ -1,0 +1,245 @@
+{
+  "schema_version": "icoder.streams-checkpoint-recovery-phase/v1",
+  "generated_at": "2026-08-25T04:18:11.6090975+08:00",
+  "status": "development_checkpoint_recovery_verified_external_quality_gates_pending",
+  "scope": "synthetic_local_engineering_not_clinical_or_production_validation",
+  "implementation": {
+    "alembic_head": "057",
+    "checkpoint_state_encrypted": true,
+    "audio_chunks_encrypted": true,
+    "state_and_chunk_sha256_bound": true,
+    "configuration_exact_match_required": true,
+    "organization_owner_interaction_scoped": true,
+    "lease_and_session_fenced": true,
+    "maximum_chunk_bytes": 64000,
+    "maximum_audio_bytes": 33554432,
+    "maximum_state_bytes": 1048576,
+    "normal_end_checkpoint_cleanup": true,
+    "unrecoverable_media_checkpoint_cleanup": true,
+    "temporary_disconnect_checkpoint_preserved": true,
+    "restored_recording_idempotent": true,
+    "persisted_transcript_and_fact_reconciliation": true
+  },
+  "protocol": {
+    "config_accepted_recovery_fields": [
+      "resumed",
+      "restoredAudioBytes",
+      "restoredTranscriptMessages",
+      "restoredFactMessages"
+    ],
+    "javascript_resume_entrypoint": "client.streams.resume(options)",
+    "python_resume_entrypoint": "client.streams.resume_async(...)",
+    "dotnet_resume_entrypoint": "client.Streams.ResumeSessionAsync(options)",
+    "server_resume_ack_required": true,
+    "sdk_automatic_resume_classification_requires_flushed_ack": true,
+    "implicit_unconfirmed_audio_replay": false
+  },
+  "verification": {
+    "full_backend_regression": {
+      "passed": 5559,
+      "failed": 0,
+      "skipped": 20,
+      "deselected": 11,
+      "elapsed_seconds": 1823.66,
+      "serial": true,
+      "junit_path": "reports/streams_checkpoint_phase_20260825/full_backend_remediated_junit.xml",
+      "junit_sha256": "c255e511e7f4d63babbf44af725f1dbdf2c3445c987329cab93db3da9004842f"
+    },
+    "full_regression_remediation": {
+      "initial_passed": 5537,
+      "initial_failed": 22,
+      "targeted_files_passed": 139,
+      "targeted_files_failed": 0,
+      "production_defects_fixed": [
+        "mcp_transport_exception_never_returns_empty_error"
+      ],
+      "stale_contract_or_fixture_failures_updated": 21,
+      "production_contracts_weakened": false
+    },
+    "checkpoint_lease_and_streams_api": {
+      "passed": 44,
+      "failed": 0,
+      "elapsed_seconds": 6.18,
+      "serial": true
+    },
+    "migration_and_schema_drift": {
+      "passed": 10,
+      "failed": 0,
+      "elapsed_seconds": 63.06,
+      "fresh_head_to_056_to_head_roundtrip_exit_code": 0,
+      "serial": true
+    },
+    "stt_transcript_recording_and_facts_api": {
+      "passed": 114,
+      "failed": 0,
+      "elapsed_seconds": 8.0,
+      "serial": true
+    },
+    "all_visible_agent_offline_safety": {
+      "passed": 78,
+      "failed": 0,
+      "elapsed_seconds": 26.63,
+      "serial": true
+    },
+    "clinical_calibration_semantic_and_deployment_focused": {
+      "passed": 24,
+      "failed": 0,
+      "elapsed_seconds": 41.88,
+      "serial": true
+    },
+    "javascript_sdk": {
+      "version": "1.0.0-beta.36",
+      "passed": 91,
+      "failed": 0,
+      "build_passed": true
+    },
+    "python_sdk": {
+      "version": "1.0.0b36",
+      "passed": 95,
+      "failed": 0
+    },
+    "dotnet_sdk_net8": {
+      "version": "1.0.0-beta.36",
+      "passed": 77,
+      "failed": 0
+    },
+    "dotnet_sdk_net10": {
+      "version": "1.0.0-beta.36",
+      "passed": 77,
+      "failed": 0
+    },
+    "release_candidate_validator": {
+      "passed": 5,
+      "failed": 0,
+      "path": "reports/streams_checkpoint_phase_20260825/release_candidate_validation_remediated.json",
+      "sha256": "933769ed01bb85e3722e3a37bfd911a3c8e950d44512c25ddca2a6ca1a3e6bc7"
+    },
+    "deployment_preflight": {
+      "passed_checks": 93,
+      "failed_checks": 0,
+      "path": "reports/deployment/streams_checkpoint_phase_20260825_remediated/deployment_preflight.json",
+      "sha256": "971826321ea4f3f5c23062642e6fc2caab4a4d4e635be8a8b00c52d0a7a18238"
+    },
+    "powershell_ast_parse_errors": 0
+  },
+  "multiworker_e2e": {
+    "path": "reports/streams_checkpoint_phase_20260825/multiworker_e2e_evidence.json",
+    "sha256": "6681a088f37050126185bd425fa5946c575c07ce5dd58edaed0029ea66e79be6",
+    "api_processes": 2,
+    "transport": "real_loopback_websocket",
+    "shared_database": "temporary_sqlite_wal",
+    "duplicate_rejected_across_workers": true,
+    "primary_worker_crashed_forcefully": true,
+    "stale_lease_recovered_by_secondary": true,
+    "session_fence_rotated": true,
+    "restored_audio_bytes": 640,
+    "final_recording_count": 1,
+    "remaining_leases": 0,
+    "remaining_checkpoints": 0,
+    "remaining_checkpoint_chunks": 0,
+    "real_audio_used": false,
+    "real_stt_engine_used": false,
+    "real_llm_used": false
+  },
+  "release_candidate": {
+    "manifest": "C:/codex-artifacts/release-b36-streams-checkpoint-recovery/release-candidate-b36-streams-checkpoint-recovery.json",
+    "publication_performed": false,
+    "source_tree_state": "dirty",
+    "artifacts": [
+      {
+        "name": "icoder-sdk-1.0.0-beta.36.tgz",
+        "bytes": 72654,
+        "sha256": "4dddacc81d30d37e221a5815d183db6416b88aef6bdc3eb11cd44ec0e1f164c8"
+      },
+      {
+        "name": "icoder_sdk-1.0.0b36-py3-none-any.whl",
+        "bytes": 57439,
+        "sha256": "fd7df0159e6586413f38091bb8b2a69e7fba7603843b8afff4638c848666243b"
+      },
+      {
+        "name": "icoder_sdk-1.0.0b36.tar.gz",
+        "bytes": 80682,
+        "sha256": "262ca07a28925ac19aea730f69adbd6cdb25bed749794e10faf090eebe5946dc"
+      },
+      {
+        "name": "iCoDer.Sdk.1.0.0-beta.36.nupkg",
+        "bytes": 419306,
+        "sha256": "2b3347e302c73dd1693eb4c2dbe3b2e27cdfb7f263e283240fac2633256a9266"
+      },
+      {
+        "name": "iCoDer.Sdk.1.0.0-beta.36.snupkg",
+        "bytes": 89825,
+        "sha256": "1bdd0289d3ff2f3d446d3e859f313fe49afcd9dc8f119224888a6689722e9e79"
+      }
+    ]
+  },
+  "safety_invariants": {
+    "native_medcoder_disabled": true,
+    "local_stt_disabled": true,
+    "external_llm_disabled": true,
+    "temporary_sqlite_used": true,
+    "protected_database": {
+      "path": "backend/data/icoder.db",
+      "bytes": 8536064,
+      "last_write_local": "2026-08-22 17:16:22",
+      "sha256": "2f1e5af01aac020cdd0eadac51b3ea65ba5b2e714d9f6ea3707992e829692877",
+      "modified_this_phase": false
+    },
+    "llm_credential_environment_present_after_tests": false,
+    "python_or_uvicorn_processes_after_tests": 0,
+    "backend_common_listeners_after_tests": 0
+  },
+  "source_sha256": {
+    "backend/app/models/stt_artifact.py": "cc9df56a64aed529af473b5f1a58069117b2ba060fb5a366d4229dfbe3de46aa",
+    "backend/alembic/versions/057_streams_resumable_checkpoints.py": "c447c547b226a3a89512c6012b8bbf4ba5e0348e4a160140a7001f74c278c3c2",
+    "backend/app/services/stream_checkpoint_repository.py": "b0f3558ab074fbd16e6a4e7162fab6345a6d3f2e91c9455bc69c98ca5d49f42c",
+    "backend/app/api/v2_tools_streams.py": "53957fd310a827ae96af752f7d9ad156464c5c53fa88c209481e7cdd9780d504",
+    "backend/app/schemas/v2_tools_streams.py": "44e4506023c70b2d82af2997b670acfc4378ec2f597e4834265672d8864c38c8",
+    "backend/tests/unit/app/services/test_stream_checkpoint_repository.py": "7a316c9e96b43eca4c02d0a4c89ff8b97403d3954d84026794d922327abc2c66",
+    "backend/tests/test_api/test_v2_streams_consistency.py": "ca7a330a67d008193f98822246202cdf19a84c056311e3b1f597d105b10f4eb2",
+    "backend/scripts/streams_lease_e2e_client.py": "facd377b9d4c0b9d72d633876f7d8e47077392ed2fe9a3d6da916094d51c1305",
+    "scripts/release/run-streams-multiworker-e2e.ps1": "1c73175d8fdfad5d8ae5f06711585191d97441455f81bfa64c31c9e91675ca85",
+    "packages/icoder-sdk/src/managed-streams-session.ts": "202772a0f5a6b2048ac304005207b846105f024d65f98d3f09e632327b92f422",
+    "packages/icoder-sdk/src/resources/streams.ts": "ffe561a569dccc3b1553331df01cbd71dbe6cf4bc5995c3c3ccd2c2ad399ae21",
+    "packages/icoder-python/icoder_sdk/managed_streams_session.py": "28026cd42f58950e82f932cebf45603a5fc86b03c9e348bf40aa5ccdb219d286",
+    "packages/icoder-python/icoder_sdk/resources/streams.py": "524d2ca9c12cd5f01dda7dedd8a450eca3ffbec30c9ba39ce37822e08de1c59b",
+    "packages/icoder-dotnet/src/Icoder.Sdk/StreamsSession.cs": "bfeb65d4d1d4c508680f7155a65caf09b546ec7e421d408c67e9d961fb5bfcb3",
+    "packages/icoder-dotnet/src/Icoder.Sdk/StreamsResource.cs": "3c638494621c833da262963214c210fc521b368a82507a9788555356fa4eefa4",
+    "backend/scripts/corti_parity/validate_deployment_candidate.py": "589525c2e3cf762e494a694a911ef7d8587cb8b476bf81d122e304d29affd672",
+    "docs/corti_parity/ICODER_STREAMS_CHECKPOINT_RECOVERY_PHASE_SUMMARY_2026-08-25.md": "126cfef2a6d054389633342da992f23bdde9c46ffcc838b04742a2b133d258a8"
+  },
+  "regression_remediation_source_sha256": {
+    "backend/app/services/mcp_client.py": "e5def450aea0ab3adcc39aab4b5bee80b60b8e9736db19d4b97ef08f3610f952",
+    "backend/tests/integration/icoder/a2a/test_native_provider_stream_e2e.py": "1d2d168d6a2affcc95920cc9a7ccf272115c8d61d7c1abac5416b0d760f65f09",
+    "backend/tests/test_api/test_a1b_ae_3_expert_registry.py": "e54e87315282711e9b813246fb8f57eb23e9797dcb585fa038feaa13ece8f522",
+    "backend/tests/test_api/test_agent_hub_tenant_readiness.py": "272c383220dcebe14452c37d116705ab2f1de08520eb8468dc8628432131ae8f",
+    "backend/tests/test_api/test_phase4f3_core_agent_smoke.py": "3b203678825150f75fd90b1769d375ca4b476a9266718b7efc180c76e19c3272",
+    "backend/tests/test_api/test_phase4f_agent_run.py": "6d771e1350cdc96637e45609fa50c0894dbbd0653148110cf40ce25088fc3e7f",
+    "backend/tests/test_api/test_v2_sections_templates_consistency.py": "5feea3faefcf47592265c4c39a55225459be7a1c6962710ef6b0753fd46f4d7b",
+    "backend/tests/test_services/test_clinical_asset_governance.py": "0eef848f755856e13b4d8fe1cf9a48a18839a6b2fc19e7efebe65c7963ccf202",
+    "backend/tests/unit/corti_parity/test_replay_agent_hub_evidence_bindings.py": "db225859bc37470fcdf422961a481570aa14d3e559bcba629a7bd741e212ab42",
+    "backend/tests/unit/corti_parity/test_replay_agent_hub_field_relations.py": "a137d293fb6e217f673e4b5ed461e9fe8c949e8e76f8bd72991ba674f99dd3b3",
+    "backend/tests/unit/icoder/test_provider_a2a_streaming.py": "8c385325a61e11dcb748963af1e882fd543d35b3c3e04ceae4e200e31f1f4b9a",
+    "backend/tests/unit/icoder_runtime/test_visible_agent_contract_roundtrip.py": "16944234d92600cf48e07db56c4d4482ee975c294434b6823e33481ed659f352"
+  },
+  "corti_comparison": {
+    "official_streams_reference": "https://docs.corti.ai/api-reference/streams",
+    "publicly_documented_reopen": true,
+    "publicly_documented_checkpoint_resume_fields": false,
+    "head_to_head_checkpoint_semantics_completed": false
+  },
+  "claim_boundaries": {
+    "real_audio_used": false,
+    "real_asr_quality_proven": false,
+    "real_facts_quality_proven": false,
+    "real_llm_used": false,
+    "production_postgresql_multi_replica_proven": false,
+    "production_checkpoint_retention_scheduler_installed": false,
+    "corti_private_resume_equivalence_proven": false,
+    "hospital_acceptance_proven": false,
+    "production_ready_proven": false,
+    "strict_26_agent_live_provider_verified": 0,
+    "clinical_calibration_real_model_invocations": 0
+  },
+  "next_gate": "run strict 26-agent live-provider E2E plus 50 serial CDI/Medical Coding calibration invocations with a new temporary key"
+}

@@ -1,0 +1,126 @@
+{
+  "schema_version": "icoder.agent-hub-semantic-evidence-gate-phase/v1",
+  "generated_at": "2026-08-23T10:44:29.3749504+00:00",
+  "updated_at": "2026-08-23T11:30:05.5672941+00:00",
+  "status": "development_candidate_not_production_verified",
+  "scope": "Agent Hub live semantic evidence provenance, anti-replay, trace attestation, matrix gating, and regression hardening",
+  "implementation": {
+    "live_report_schema_versions": {
+      "examples": "v3",
+      "adversarial": "v3",
+      "stability": "v2",
+      "runtime_matrix": "v3"
+    },
+    "result_attestation": "HMAC verified and bound to run, tenant, agent, schema, result digest, and expiry",
+    "trace_attestation": "HMAC verified and bound to run, tenant, canonical safe event digest, and expiry",
+    "source_integrity": "Pack, response, trace, report, reference-case, stability-seed, and bundle SHA-256 bindings",
+    "fail_closed_rules": [
+      "reject stale or incomplete evidence",
+      "reject mock, degraded, fallback, resumed, unknown, or unbound normal rows",
+      "reject forged, expired, mismatched, or relocated-without-hash artifacts",
+      "reject Pack, output-schema, Agent-set, reference-case, or stability-source drift"
+    ]
+  },
+  "runtime_matrix": {
+    "visible_agents": 26,
+    "launch_candidate_ready": 26,
+    "external_llm_required": 19,
+    "external_llm_optional": 1,
+    "local_only_execution": 6,
+    "local_baseline_available": 7,
+    "semantic_live_e2e_verified": 0,
+    "production_ready_verified": 0,
+    "semantic_evidence_supplied": false
+  },
+  "negative_historical_evidence": {
+    "valid": false,
+    "verified_agents": 0,
+    "error_count": 140,
+    "bundle_sha256": "dcaa236d84a350ecede72de4d55d8d7bf0555a0e04616386aedc94a799157476"
+  },
+  "verification": {
+    "semantic_and_trace_focused": {
+      "passed": 68,
+      "failed": 0
+    },
+    "initial_full_suite": {
+      "passed": 5238,
+      "failed": 16,
+      "skipped": 20,
+      "deselected": 11,
+      "duration_seconds": 3237.86,
+      "resolution": "All 16 failures were corrected or isolated and passed"
+    },
+    "post_fix_full_suite": {
+      "passed": 5250,
+      "failed": 4,
+      "skipped": 20,
+      "deselected": 11,
+      "duration_seconds": 4994.82,
+      "failure_classification": "Three bounded Alembic subprocess timeouts and one fake-worker probe timing failure under full-suite load; no assertion of migration or product behavior failed"
+    },
+    "post_full_failure_isolation": {
+      "before_timeout_adjustment_passed": 7,
+      "after_timeout_adjustment_file_set_passed": 12,
+      "failed": 0
+    },
+    "final_clean_full_suite": {
+      "passed": 5254,
+      "failed": 0,
+      "skipped": 20,
+      "deselected": 11,
+      "duration_seconds": 2190.64,
+      "database": "isolated_sqlite_on_c_drive",
+      "external_llm_allowed": false
+    },
+    "cross_stack": {
+      "frontend_tests_passed": 142,
+      "frontend_test_files_passed": 23,
+      "frontend_production_build_passed": true,
+      "javascript_sdk_tests_passed": 54,
+      "javascript_sdk_build_passed": true,
+      "python_sdk_tests_passed": 55,
+      "dotnet_sdk_executed": false,
+      "dotnet_sdk_reason": "dotnet, csc, and msbuild are not installed on this host"
+    },
+    "contract_compatibility": {
+      "passed": true,
+      "visible_contracts": 26,
+      "registered_contracts": 109,
+      "new_refs": 0,
+      "changed_refs": 0,
+      "invalid_refs": 0,
+      "duplicate_refs": 0
+    },
+    "deployment_preflight": {
+      "passed": true,
+      "checks": 82,
+      "mode": "static_without_docker_cli"
+    },
+    "openapi_current": true,
+    "compileall_passed": true,
+    "workflow_yaml_valid": true,
+    "staged_json_valid": true,
+    "git_diff_check_passed": true
+  },
+  "safety": {
+    "real_llm_key_used": false,
+    "llm_key_environment_length": 0,
+    "deepseek_key_environment_length": 0,
+    "ports_8000_18022_listening": 0,
+    "project_python_processes": 0,
+    "protected_database_sha256": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e",
+    "protected_database_unchanged": true,
+    "e_drive_free_mb_at_close": 67.2
+  },
+  "artifacts": {
+    "runtime_matrix": "reports/agent_hub/semantic_evidence_gate_phase_20260823/runtime_matrix/agent_hub_runtime_matrix.json",
+    "historical_rejection": "reports/agent_hub/semantic_evidence_gate_phase_20260823/historical_evidence_rejection/agent_hub_semantic_evidence_bundle.json",
+    "preflight": "reports/agent_hub/semantic_evidence_gate_phase_20260823/preflight/deployment_preflight.json"
+  },
+  "limitations": [
+    "No fresh real-provider 26-Agent semantic bundle was generated in this phase",
+    "Synthetic reference cases are not an independent clinical gold standard or a Corti same-case blind comparison",
+    "Hospital integration, authoritative China coding and DRG/DIP data, legal approval, certification, cloud SLOs, and clinician acceptance remain external gates"
+  ]
+}

@@ -1,0 +1,104 @@
+{
+  "schema_version": "icoder.governed-discharge-education-phase-evidence/v1",
+  "generated_at": "2026-08-24T12:05:00+08:00",
+  "status": "development_candidate_passed_external_gates_open",
+  "agent": {
+    "id": "discharge-edu",
+    "ref": "icoder/discharge-edu@1.1.0",
+    "provider": "icoder.governed-discharge-education.v1",
+    "output_contract": "icoder/DischargeEducationOutput/v3",
+    "runtime_mode": "governed_local_documented_discharge_education",
+    "llm_required": false,
+    "network_required": false,
+    "medication_reconciliation_status": "NOT_RECONCILED_GOVERNED_MEDICATION_RECONCILIATION_REQUIRED",
+    "translation_status": "VERBATIM_DOCUMENTED_CONTENT_ONLY",
+    "external_knowledge_used": false,
+    "clinical_interpretation_performed": false,
+    "clinical_recommendations_generated": false,
+    "production_writeback_blocked": true,
+    "manual_review_required": true
+  },
+  "http_e2e": {
+    "transport": "real_loopback_http",
+    "happy": {"passed": 14, "failed": 0},
+    "adversarial": {"passed": 14, "failed": 0},
+    "reference": {"passed": 14, "failed": 0},
+    "stability": {"passed": 84, "failed": 0, "fresh": 84, "seeded": 0, "repetitions": 3},
+    "temporary_database": "created_migrated_removed",
+    "real_llm_used": false,
+    "external_network_used": false
+  },
+  "test_evidence": {
+    "focused_provider_and_projector": {"passed": 9, "failed": 0},
+    "discharge_education_a2a": {"passed": 2, "failed": 0},
+    "targeted_contract_runtime_matrix_and_replay": {"passed": 127, "failed": 0},
+    "all_visible_agent_offline_safety": {"passed": 78, "failed": 0},
+    "schema_generator_regression": {"passed": 6, "failed": 0},
+    "broad_relevant_regression": {"passed": 744, "failed": 0},
+    "evidence_binding_replay": {"agents": 10, "bindings": 19, "detected_assertions": 38, "expected_assertions": 38},
+    "field_relation_replay": {"agents": 16, "relations": 61, "detected_assertions": 138, "expected_assertions": 138},
+    "deployment_preflight": {"passed": 90, "failed": 0}
+  },
+  "runtime_matrix": {
+    "visible_agents": 26,
+    "external_model_required": 12,
+    "external_model_optional": 1,
+    "pure_local": 13,
+    "offline_local_baseline": 14,
+    "strict_26_agent_live_provider_semantic_verified": 0,
+    "production_ready_verified": 0
+  },
+  "contract_registry": {
+    "visible_contracts": 26,
+    "registered_contracts": 117,
+    "new_refs": [],
+    "changed_refs": [],
+    "invalid_refs": [],
+    "duplicate_refs": []
+  },
+  "corti_catalog": {
+    "catalog_entries": 20,
+    "development_verified": 20,
+    "china_profile_declared": 20,
+    "clinical_quality_verified": 0,
+    "production_ready_verified": 0
+  },
+  "safety": {
+    "protected_database": {
+      "path": "E:\\Corti4C\\backend\\data\\icoder.db",
+      "size_bytes": 8536064,
+      "sha256": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e",
+      "revision": "041",
+      "unchanged": true
+    },
+    "source_migration_head": "056",
+    "backend_process_count_after_tests": 0,
+    "port_8000_listener_count_after_tests": 0,
+    "real_llm_used": false,
+    "native_medcoder_faiss_bge_used": false,
+    "isolated_test_databases_retained": [
+      "E:\\Corti4C\\backend\\data\\test_discharge_education_phase_20260824.db",
+      "E:\\Corti4C\\backend\\data\\test_discharge_offline_phase_20260824.db",
+      "E:\\Corti4C\\backend\\data\\test_discharge_broad_regression_20260824.db"
+    ]
+  },
+  "artifact_sha256": {
+    "agent_pack.json": "a1e1d178a695782c7d2d37859bd471d0605f745afe6dc86cceffa538e551f2b3",
+    "local_semantic_e2e_evidence.json": "8ccc925718dc0dfe4315f8775eebfeb4d02706dd59ab057fe2a2a153d48853f1",
+    "agent_hub_local_semantic_evidence_bundle.json": "f10378c1aa7b16ed94b6707592309f4b941b02d34d74ea7fdddfc907b209e612",
+    "agent_hub_runtime_matrix.json": "b296108e4eff5a1cec9b93031e039f7114ba2ff12f031969bd408223db1e5ebd",
+    "agent_hub_evidence_binding_replay.json": "db5051365651159b94073ba63c84e6fba0ab25d00711ec924ca906279af6987c",
+    "agent_hub_field_relation_replay.json": "a413a9890d3b8a3a764da7867a8100f79f6dd785e19883130af92d121700be87",
+    "corti_prebuilt_agent_parity.json": "4a14ad4fe6959c62641ff89b3a6bdd6bee0b44f786819c183698a70991e52a00",
+    "deployment_preflight.json": "77d757ed0132193742802f92ab25b4d47c928a075208025ca0223113da74d66f"
+  },
+  "claims_not_proven": [
+    "Corti product equivalence",
+    "independent discharge-education clinical quality or patient comprehension",
+    "patient-friendly medical translation, result interpretation, medication-change explanation, or multilingual accessibility",
+    "live EHR, AVS, patient portal, PubMed, Web Search, or Medical Calculator integration",
+    "hospital clinician, pharmacist, patient, caregiver, or accessibility acceptance",
+    "production cloud readiness",
+    "regulatory, legal, security certification, or hospital approval"
+  ]
+}

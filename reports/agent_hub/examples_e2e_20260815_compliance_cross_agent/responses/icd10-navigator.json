@@ -1,0 +1,71 @@
+{
+  "agent_id": "icd10-navigator",
+  "run_id": "run-f2a01c9b-869b-4e98-b23e-18bb190e1db0",
+  "trace_id": "trace-705f7397ca0647ed",
+  "trace_url": "/ai-studio/runs/run-f2a01c9b-869b-4e98-b23e-18bb190e1db0/trace",
+  "runtime_mode": "pure_llm",
+  "latency_ms": 5106,
+  "cost": {
+    "amount": 0.000142,
+    "currency": "CNY"
+  },
+  "summary": "{",
+  "result": {
+    "status": "complete",
+    "markdown": "{\n  \"query_interpretation\": \"该诊断表述为‘2型糖尿病伴慢性肾脏病3期’，涉及两种疾病：2型糖尿病（E11.-）和慢性肾脏病（N18.-）。需根据ICD-10-CN规则确定联合编码或分别编码。慢性肾脏病3期需依据具体分期标准，但本输入未提供GFR数值或分期依据。\",\n  \"index_terms\": [\n    \"糖尿病，2型，伴有肾脏并发症\",\n    \"肾脏病，慢性，3期\",\n    \"糖尿病肾病（若明确）\"\n  ],\n  \"candidate_codes\": [],\n  \"hierarchy_notes\": \"待人工目录核对：需确认ICD-10-CN中E11（2型糖尿病）下是否包含‘伴有肾脏并发症’的亚目，以及N18（慢性肾脏病）的分期亚目（如N18.3）。\",\n  \"inclusion_exclusion_notes\": \"待人工目录核对：需确认E11下‘伴有肾脏并发症’是否包括‘慢性肾脏病3期’，以及N18.3的包括/不包括说明。\",\n  \"source_version\": \"未提供\",\n  \"manual_review_required\": true\n}",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.pure-llm.v1",
+    "backend_type": "pure_llm",
+    "query_interpretation": "该诊断表述为‘2型糖尿病伴慢性肾脏病3期’，涉及两种疾病：2型糖尿病（E11.-）和慢性肾脏病（N18.-）。需根据ICD-10-CN规则确定联合编码或分别编码。慢性肾脏病3期需依据具体分期标准，但本输入未提供GFR数值或分期依据。",
+    "index_terms": [
+      "糖尿病，2型，伴有肾脏并发症",
+      "肾脏病，慢性，3期",
+      "糖尿病肾病（若明确）"
+    ],
+    "candidate_codes": [],
+    "hierarchy_notes": "待人工目录核对：需确认ICD-10-CN中E11（2型糖尿病）下是否包含‘伴有肾脏并发症’的亚目，以及N18（慢性肾脏病）的分期亚目（如N18.3）。",
+    "inclusion_exclusion_notes": "待人工目录核对：需确认E11下‘伴有肾脏并发症’是否包括‘慢性肾脏病3期’，以及N18.3的包括/不包括说明。",
+    "source_version": "未提供",
+    "manual_review_required": true,
+    "structured_extraction": {
+      "contract": "icoder/Icd10NavigatorOutput/v1",
+      "method": "bare_json",
+      "warnings": [],
+      "required_fields": [
+        "query_interpretation",
+        "index_terms",
+        "candidate_codes",
+        "hierarchy_notes",
+        "inclusion_exclusion_notes",
+        "source_version",
+        "manual_review_required"
+      ],
+      "missing_required_fields": [],
+      "valid": true
+    }
+  },
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 5106,
+      "metadata": {
+        "agent_id": "icd10-navigator",
+        "runtime_mode": "pure_llm",
+        "latency_ms": 5106
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 5.7
+}

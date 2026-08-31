@@ -1,0 +1,230 @@
+{
+  "agent_id": "clinical-documentation-improvement-agent",
+  "run_id": "run-5ec87f31-a889-4fbf-9172-165f1d542b2a",
+  "trace_id": "trace-f876d5402e454618",
+  "trace_url": "/ai-studio/runs/run-5ec87f31-a889-4fbf-9172-165f1d542b2a/trace",
+  "runtime_mode": "cdi_real_orchestrator",
+  "latency_ms": 14191,
+  "cost": {
+    "amount": 0.00103572,
+    "currency": "CNY",
+    "source": "configured_usage_pricing_estimate",
+    "billing_authoritative": false
+  },
+  "billing": {},
+  "summary": "CDI review completed; specialist and clinician review remain required.",
+  "result": {
+    "encounter_summary": {
+      "key_points": [
+        "患者男性，70岁",
+        "食欲下降1月",
+        "体重减轻5kg",
+        "建议进一步检查"
+      ],
+      "encounter_metadata": {
+        "patient_age": "70岁",
+        "patient_sex": "男性",
+        "encounter_type": "门诊"
+      }
+    },
+    "documentation_gaps": [
+      {
+        "gap_id": "GAP-001",
+        "gap_type": "diagnostic_specificity",
+        "description": "食欲下降和体重减轻的病因未明确，需要进一步检查以确定诊断。",
+        "why_it_matters": "食欲下降和体重减轻是非特异性症状，可能由多种病因引起，如恶性肿瘤、内分泌疾病、消化系统疾病等。缺乏明确的病因诊断会影响编码的准确性和临床相关性。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "食欲下降1月, 体重减轻5kg",
+          "char_start": 11,
+          "char_end": 26,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "urgent"
+      },
+      {
+        "gap_id": "GAP-002",
+        "gap_type": "diagnostic_specificity",
+        "description": "建议进一步检查，但未明确具体检查项目或计划，导致临床相关性不明确。",
+        "why_it_matters": "未明确进一步检查的具体内容，无法确定临床工作方向，影响编码和后续诊疗计划的完整性。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "建议进一步检查",
+          "char_start": 59,
+          "char_end": 66,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      }
+    ],
+    "proposed_provider_queries": [
+      {
+        "query_id": "Q-002",
+        "gap_id": "GAP-002",
+        "topic": "进一步检查的具体项目",
+        "reason": "建议进一步检查但未明确具体项目，需明确检查计划以指导临床。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "建议进一步检查",
+          "char_start": 59,
+          "char_end": 66,
+          "documented_at": ""
+        },
+        "evidence_spans": [
+          {
+            "document_id": "chart-001",
+            "quote": "建议进一步检查",
+            "char_start": 59,
+            "char_end": 66,
+            "documented_at": ""
+          }
+        ],
+        "query_text": "建议的进一步检查具体包括哪些项目？",
+        "response_options": [
+          "A. 实验室检查（如血常规、生化、肿瘤标志物等）",
+          "B. 影像学检查（如胸腹部CT、超声等）",
+          "C. 内镜检查（如胃镜、肠镜等）",
+          "D. 其他检查",
+          "E. 无法确定"
+        ],
+        "lifecycle_state": "DRAFT",
+        "priority": "routine",
+        "nlq_gate_verdict": "PASS",
+        "nlq_gate_block_reasons": []
+      }
+    ],
+    "query_gate_summary": {
+      "withheld_count": 1,
+      "status_counts": {
+        "REWRITE_CANDIDATE_GENERATED": 0
+      },
+      "manual_cdi_action_required": true
+    },
+    "coding_specificity_checklist": [],
+    "risk_flags": [
+      {
+        "category": "ambiguous_term",
+        "description": "使用'建议进一步检查'这一模糊表述，未明确具体检查方向，可能掩盖临床结论。"
+      }
+    ],
+    "specialist_trace": [
+      {
+        "expert_id": "coding-expert",
+        "consulted": true,
+        "requested": "You are a coding-specialist Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "The clinical documentation must specify the suspected underlying etiology for the anorexia and weight loss (e.g., malignancy, gastrointestinal, endocrine, infectious, or psychiatric) and list the concrete diagnostic tests or imaging planned to confirm the diagnosis. Without this, the encounter lacks a clear medical necessity for the workup, and the specificity of the condition cannot be accurately captured. Please document the differential diagnosis and the exact next steps (e.g., upper endoscopy, CT abdomen, thyroid function tests, or depression screening) to support coding.",
+        "route_decision": "needed",
+        "route_reason": "coding_relevant_gap",
+        "execution_mode": "LLM_KNOWLEDGE_ONLY",
+        "latency_ms": 2454,
+        "tokens": 235,
+        "run_id": "run-c51aeb19e44d",
+        "trace_id": "trace-6b3bc34db69c"
+      },
+      {
+        "expert_id": "pubmed-expert",
+        "consulted": false,
+        "requested": "You are a PubMed literature Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-206e3c7f8283",
+        "trace_id": "trace-48a57ef101c1"
+      },
+      {
+        "expert_id": "web-search-expert",
+        "consulted": false,
+        "requested": "You are a clinical web-search Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-0557e37a3aa4",
+        "trace_id": "trace-1e19691b1a9d"
+      },
+      {
+        "expert_id": "medical-calculator-expert",
+        "consulted": false,
+        "requested": "You are a medical-calculator Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-957c34acc472",
+        "trace_id": "trace-c224bb568619"
+      }
+    ],
+    "human_review": {
+      "cdi_specialist_review_required": true,
+      "clinician_response_required": true,
+      "review_priority": "routine"
+    },
+    "trace_refs": {
+      "run_id": "run-5ec87f31-a889-4fbf-9172-165f1d542b2a",
+      "stage_trace": {
+        "encounter_synthesis": "trace-e17d8206b880",
+        "gap_identification": "trace-3cba5fc6e9bd",
+        "expert_consultation": "trace-a1ea5d69019f",
+        "query_generation": "trace-b5ae0b99058d",
+        "query_eligibility_gate": "",
+        "query_necessity_gate": "",
+        "query_dimension_rewrite": "",
+        "query_single_dimension_gate": "",
+        "claim_evidence_alignment_gate": "trace-6080e3597c6b",
+        "semantic_necessity_gate": "trace-195d0f63d256",
+        "query_compliance_gate": "",
+        "specialist_trace_emit": "trace-ad86f0b1ffd4"
+      },
+      "experts_consulted": [
+        "coding-expert"
+      ],
+      "gate_results": {
+        "encounter_synthesis": "run-ac1de10d7665",
+        "gap_identification": "run-75f8ca550ac4",
+        "gap_identification_risk_flags": "emitted=1;quote_snapped=0",
+        "expert_consultation": "run-f829c1050f3a",
+        "query_generation": "run-6ef22130d069",
+        "query_generation::quote_snapped": "0",
+        "query_generation::coverage_missing": "0",
+        "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=2;llm_complete=False;llm_reasoning=该图表仅记录了非特异性症状（食欲下降、体重减轻）和模糊的检查建议，缺乏明确的病因、诊断或具体检查计划，无法满足编码所需的临床特异性。",
+        "query_necessity_gate": "necessary=1;unnecessary=1;overquery_triggered=False;final_count=1",
+        "query_dimension_rewrite": "not_executed",
+        "query_single_dimension_gate": "single_dim=1;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;rewrite_attempted=0;rewrite_accepted=0;final_count=1",
+        "claim_evidence_alignment_gate": "claims_extracted=2;degraded=0;blocked=0;flagged=0;final_count=1",
+        "claim_evidence_alignment_gate::run_id": "run-6e647e8ef6c9",
+        "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=1",
+        "semantic_necessity_gate::run_id": "run-cca2184f1243",
+        "query_compliance_gate": ";passed=1;blocked=0",
+        "specialist_trace_emit": "run-a12c0184d311"
+      },
+      "trace_id": "trace-f876d5402e454618"
+    }
+  },
+  "schema_ref": "icoder/CDIAgentOutputV1/v6",
+  "result_attestation": "eyJhIjoiY2xpbmljYWwtZG9jdW1lbnRhdGlvbi1pbXByb3ZlbWVudC1hZ2VudCIsImQiOiJmMWFiZDE2NzI4OGY4YThiMWI5OGZkNTdiOTdjMDU3MTM5MjZmYzEzYzQyYzU0ZjU5MjUzNDI5OTUzODJlM2NkIiwiZSI6MTc4Nzg4MjI1NCwibyI6ImJjOTJlZTA2YWYwZiIsInIiOiJydW4tNWVjODdmMzEtYTg4OS00ZmJmLTkxNzItMTY1ZjFkNTQyYjJhIiwicyI6Imljb2Rlci9DRElBZ2VudE91dHB1dFYxL3Y2IiwidiI6MX0.8KOXtxRw95fbttUUFOHSEE2YDAehZqvFOMSkPJTnnrE",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 14.308
+}

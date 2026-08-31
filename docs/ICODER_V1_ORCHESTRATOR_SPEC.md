@@ -151,7 +151,7 @@ ICODER_V1_AGENT_CARD_SPEC (Registry 公开, Orchestrator 从 Registry 读 Agent 
    { message: { parts: [TextPart|DataPart], contextId?: ..., interactionId?: ... } }
 
 2. Inbound Handler:
-   - 生成 contextId = uuid4() (服务端, 客户端不能传)
+   - 首轮生成 contextId = uuid4()；续轮接收 transport 已验证的服务端 contextId
    - 加载 AgentDefinition from Registry
    - 提取 message.parts → 文本
    - PHI 脱敏: 替换姓名/身份证/电话/地址 → <REDACTED:NAME> 等
@@ -325,7 +325,7 @@ class RunContext:
         "text": "病历文本: 患者 XXX..."
       }
     ],
-    "contextId": "optional-client-supplied-but-ignored",  // 客户端可传但 Orchestrator 不信任
+    "contextId": "optional-server-issued-continuation-id",  // transport 校验租户/Agent/状态后传入
     "interactionId": "optional-correlation-id"
   }
 }
@@ -820,7 +820,7 @@ backend/tests/e2e/icoder/
 | Q-S4 | Aggregator 阶段是否引入二次 LLM 裁决? | 倾向: 不引入 (Phase 1 简单拼接), Phase 5 优化 | |
 | Q-S5 | PHI 脱敏失败是否可降级 (用原文 + 警告)? | 倾向: **不降级**, 直接 fail (合规底线) | |
 | Q-S6 | Expert 委托是否支持 timeout per Expert? | 倾向: 支持, 默认 30s/Expert, 可由 Plan.expert.timeout_ms 覆盖 | |
-| Q-S7 | Orchestrator 是否需要支持多轮 (同一 contextId 多次 message:send)? | 倾向: Phase 1 单轮 (一次 message:send = 一次 run); Phase 5 多轮 (conversation) | |
+| Q-S7 | Orchestrator 是否需要支持多轮 (同一 contextId 多次 message:send)? | **已实现**：持久化脱敏历史，有界检索后注入每轮执行 | 2026-08-10 |
 | Q-S8 | 旧 API 路由 deprecation header 内容? | 倾向: `Deprecation: true` + `Sunset: 2026-12-31` + `Link: <A2A 端点 URL>; rel="successor-version"` | |
 | Q-S9 | Orchestrator 是否暴露 admin API (查 in-flight runs / kill run)? | 倾向: 不暴露, Phase 5 Task spec 一并实现 | |
 | Q-S10 | 真实 LLM (DeepSeek) 端到端 e2e test 失败时, CI 怎么处理? | 倾向: e2e test 标记 `@pytest.mark.requires_llm`, 无 LLM key 时 skip + warning, 不阻塞 CI | |

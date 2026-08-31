@@ -1,0 +1,50 @@
+{
+  "schema_version": "icoder.stream-audio-format-phase/v1",
+  "date": "2026-08-24",
+  "status": "development_verified",
+  "contract": {
+    "encoded_stream_containers_only": true,
+    "raw_audio_rejected": true,
+    "wav_streaming_rejected": true,
+    "declared_mime_must_match_container": true,
+    "probe_prefix_bytes": 512,
+    "maximum_chunk_bytes": 64000,
+    "unvalidated_audio_reaches_asr_or_retention": false,
+    "flush_then_end_reprocesses_unchanged_audio": false
+  },
+  "tests": {
+    "backend_streams_expanded": {"passed": 54, "failed": 0},
+    "javascript_sdk": {"passed": 87, "failed": 0},
+    "python_sdk": {"passed": 91, "failed": 0},
+    "dotnet_net8": {"passed": 72, "failed": 0},
+    "dotnet_net10": {"passed": 72, "failed": 0},
+    "migration_and_schema_expanded": {"passed": 19, "failed": 0},
+    "release_validator": {"passed": 5, "failed": 0},
+    "deployment_preflight": {"passed": 87, "failed": 0}
+  },
+  "e2e": {
+    "three_sdk_loopback": "three_sdk_e2e_evidence.json",
+    "multiworker_recovery": "multiworker_e2e_evidence.json",
+    "real_patient_audio_used": false,
+    "real_stt_engine_used": false,
+    "real_llm_used": false,
+    "synthetic_fixture": "generated 0.25 second silent Ogg/Opus",
+    "expected_disabled_provider_error": "STT_UNAVAILABLE"
+  },
+  "release_candidate": {
+    "version": "1.0.0-beta.32",
+    "published": false,
+    "manifest": "C:\\codex-artifacts\\release-b32-stream-audio-final\\release-candidate-b32-stream-audio-final.json"
+  },
+  "safety_audit": {
+    "protected_database_size_bytes": 8536064,
+    "protected_database_sha256": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e",
+    "protected_database_unchanged": true,
+    "alembic_head": "056",
+    "remaining_backend_processes": 0,
+    "remaining_phase_temp_directories": 0,
+    "llm_key_environment_present": false,
+    "secret_pattern_found_in_phase_scope": false
+  },
+  "external_gates_remain_open": true
+}

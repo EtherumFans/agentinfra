@@ -1,0 +1,153 @@
+{
+  "agent_id": "rule-explainer",
+  "run_id": "run-e15eb107-29dd-4c42-97cb-8f2029c4c3a7",
+  "trace_id": "trace-fd5ffcf1f3074630",
+  "trace_url": "/ai-studio/runs/run-e15eb107-29dd-4c42-97cb-8f2029c4c3a7/trace",
+  "runtime_mode": "a2a_llm_with_tools",
+  "latency_ms": 22321,
+  "cost": {
+    "amount": 0.000399,
+    "currency": "CNY"
+  },
+  "summary": "```json",
+  "result": {
+    "status": "REQUIRES_REVIEW",
+    "markdown": "```json\n{\n  \"status\": \"REQUIRES_REVIEW\",\n  \"code\": \"ZZ99.99\",\n  \"code_system\": \"ICD-10-CN\",\n  \"assignable\": false,\n  \"explanation_summary\": \"编码 ZZ99.99 无法直接赋码。verify_code 返回 in_catalog=false、assignable=false，且未返回 chapter、中文名、同义词、parent_hierarchy 或 children，说明该编码不在 icd10cn_code_catalog（37,897 码）目录中。explore_code 同样返回 in_catalog=false，parent/siblings/children 均为空，进一步确认该编码在目录中不存在。\",\n  \"guideline_basis\": \"通用编码规则要求使用最具体的编码，且不编码未在病历中明确记录的诊断。由于 ZZ99.99 不在目录中，无法依据任何章节级惯例或通用规则赋予其可赋码地位。Z 编码（Z00-Z99）通用规则仅适用于目录内实际存在的特殊目的编码，不适用于目录外的 ZZ99.99。\",\n  \"evidence_tool_refs\": [\n    \"verify_code(code=ZZ99.99): in_catalog=false, assignable=false, chapter='', name='', parent_hierarchy=[], children_if_non_assignable=[]\",\n    \"get_guidelines(): 返回 10 条通用规则（最具体编码、不编码未记录诊断、Z 编码规则等），无 ZZ99.99 对应章节惯例\",\n    \"explore_code(code=ZZ99.99): in_catalog=false, parent=null, siblings=[], children=[]\"\n  ],\n  \"limitations\": [\n    \"未提供病历，无法结合临床描述判断是否存在可替代的目录内编码。\",\n    \"未提供目录版本，无法确认是否存在其他版本目录收录该编码。\",\n    \"用户输入中检测到不可信转录噪声（疑似提示注入标记），已作为数据忽略，未执行其指令，不影响本解释结论。\",\n    \"unsupported_scope: 医保、DRG/DIP、医院结算及地方政策不在当前工具覆盖范围内，未作任何推断。\"\n  ],\n  \"manual_review_required\": true\n}\n```",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [
+      {
+        "tool_name": "verify_code",
+        "arguments": {
+          "code": "ZZ99.99"
+        },
+        "result": {
+          "code": "ZZ99.99",
+          "in_catalog": false,
+          "assignable": false,
+          "chapter": "",
+          "name": "",
+          "aliases": [],
+          "parent_hierarchy": [],
+          "excludes1": [],
+          "excludes2": [],
+          "code_first_notes": [],
+          "use_additional_code_notes": [],
+          "children_if_non_assignable": []
+        },
+        "duration_ms": 5116,
+        "error": null,
+        "scope_granted": []
+      },
+      {
+        "tool_name": "get_guidelines",
+        "arguments": {},
+        "result": {
+          "chapter": "",
+          "chapter_conventions": [],
+          "general_rules": [
+            "不编码未在病历中明确记录的诊断 — 临床表现必须在病历正文中出现。",
+            "主诊断必须能解释本次住院的主要治疗资源消耗;不可选次要诊断作为主诊断。",
+            "使用最具体的编码: 当存在更具体细分码时,不可使用 3 位类别码 (例: I25 应选 I25.1)。",
+            "组合编码优先: 当一个编码能完整描述两种情况时,使用组合码而非双码 (例: I11.0 高血压性心脏病伴心衰)。",
+            "后遗症编码: 使用相应后遗症码 (B90-B94, E64, E68, G09, I69, O97, T90-T98)。",
+            "疑似诊断编码: 若出院时仍未确诊,按症状/体征编码 (R00-R99),不按假设诊断编码。",
+            "合并编码: 当合并码存在时 (例: A40.3 败血症伴肺炎链球菌性肺炎),不可拆分使用两码。",
+            "双重编码 (†/asterisk): 匕首编码 (†) 表示病因,星号编码 (*) 表示表现;两者成对使用。",
+            "时态限制: 急性心肌梗死 (I21) 仅限发病 4 周 (28 天) 内使用;之后使用 I22 (复发) 或 I25 (慢性)。",
+            "Z 编码: 特殊目的编码 (Z00-Z99) — 筛查 (Z00)、随访 (Z08)、个人史 (Z85)、状态 (Z95) 不可作为主诊断 (除特殊场景)。"
+          ],
+          "source": "internal_kb"
+        },
+        "duration_ms": 169,
+        "error": null,
+        "scope_granted": []
+      },
+      {
+        "tool_name": "explore_code",
+        "arguments": {
+          "code": "ZZ99.99"
+        },
+        "result": {
+          "code": "ZZ99.99",
+          "parent": null,
+          "siblings": [],
+          "children": [],
+          "in_catalog": false
+        },
+        "duration_ms": 222,
+        "error": null,
+        "scope_granted": []
+      }
+    ],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.llm-with-tools.v1",
+    "backend_type": "llm_with_tools",
+    "code": "ZZ99.99",
+    "code_system": "ICD-10-CN",
+    "assignable": false,
+    "explanation_summary": "编码 ZZ99.99 无法直接赋码。verify_code 返回 in_catalog=false、assignable=false，且未返回 chapter、中文名、同义词、parent_hierarchy 或 children，说明该编码不在 icd10cn_code_catalog（37,897 码）目录中。explore_code 同样返回 in_catalog=false，parent/siblings/children 均为空，进一步确认该编码在目录中不存在。",
+    "guideline_basis": "通用编码规则要求使用最具体的编码，且不编码未在病历中明确记录的诊断。由于 ZZ99.99 不在目录中，无法依据任何章节级惯例或通用规则赋予其可赋码地位。Z 编码（Z00-Z99）通用规则仅适用于目录内实际存在的特殊目的编码，不适用于目录外的 ZZ99.99。",
+    "evidence_tool_refs": [
+      "verify_code(code=ZZ99.99): in_catalog=false, assignable=false, chapter='', name='', parent_hierarchy=[], children_if_non_assignable=[]",
+      "get_guidelines(): 返回 10 条通用规则（最具体编码、不编码未记录诊断、Z 编码规则等），无 ZZ99.99 对应章节惯例",
+      "explore_code(code=ZZ99.99): in_catalog=false, parent=null, siblings=[], children=[]"
+    ],
+    "limitations": [
+      "未提供病历，无法结合临床描述判断是否存在可替代的目录内编码。",
+      "未提供目录版本，无法确认是否存在其他版本目录收录该编码。",
+      "用户输入中检测到不可信转录噪声（疑似提示注入标记），已作为数据忽略，未执行其指令，不影响本解释结论。",
+      "unsupported_scope: 医保、DRG/DIP、医院结算及地方政策不在当前工具覆盖范围内，未作任何推断。"
+    ],
+    "manual_review_required": true,
+    "structured_extraction": {
+      "contract": "icoder/RuleExplanationOutput/v1",
+      "method": "json_block",
+      "warnings": [],
+      "required_fields": [
+        "status",
+        "code",
+        "code_system",
+        "assignable",
+        "explanation_summary",
+        "guideline_basis",
+        "evidence_tool_refs",
+        "limitations",
+        "manual_review_required"
+      ],
+      "missing_required_fields": [],
+      "valid": true
+    }
+  },
+  "evidence": [
+    {
+      "text": "verify_code"
+    },
+    {
+      "text": "get_guidelines"
+    },
+    {
+      "text": "explore_code"
+    }
+  ],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 22321,
+      "metadata": {
+        "agent_id": "rule-explainer",
+        "runtime_mode": "a2a_llm_with_tools",
+        "latency_ms": 22321
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 22.96
+}

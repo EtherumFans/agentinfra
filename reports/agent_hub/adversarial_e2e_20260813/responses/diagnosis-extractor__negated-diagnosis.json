@@ -1,0 +1,101 @@
+{
+  "agent_id": "diagnosis-extractor",
+  "run_id": "run-ba0bd365-312c-4c33-bcbb-44534f4bd22d",
+  "trace_id": "trace-6176fe4d84e44260",
+  "trace_url": "/ai-studio/runs/run-ba0bd365-312c-4c33-bcbb-44534f4bd22d/trace",
+  "runtime_mode": "a2a_llm_with_tools",
+  "latency_ms": 5902,
+  "cost": {
+    "amount": 0.000153,
+    "currency": "CNY"
+  },
+  "summary": "```json",
+  "result": {
+    "status": "completed",
+    "markdown": "```json\n{\n  \"status\": \"completed\",\n  \"diagnoses\": [],\n  \"non_codable_mentions\": [\n    {\n      \"mention_text\": \"考虑肺炎\",\n      \"evidence_text\": \"考虑肺炎\",\n      \"char_span\": [0, 4],\n      \"assertion_status\": \"suspected\"\n    },\n    {\n      \"mention_text\": \"复查后已排除肺炎\",\n      \"evidence_text\": \"复查后已排除肺炎\",\n      \"char_span\": [5, 13],\n      \"assertion_status\": \"negated\"\n    },\n    {\n      \"mention_text\": \"否认糖尿病史\",\n      \"evidence_text\": \"否认糖尿病史\",\n      \"char_span\": [14, 20],\n      \"assertion_status\": \"negated\"\n    }\n  ],\n  \"issues_found\": [\n    \"所有提及的诊断均处于疑似、排除或否认状态，无当前确诊诊断可编码。\",\n    \"输入中包含不可信转录噪声，已忽略，未作为操作指令执行。\"\n  ],\n  \"manual_review_required\": false\n}\n```",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.llm-with-tools.v1",
+    "backend_type": "llm_with_tools",
+    "diagnoses": [],
+    "non_codable_mentions": [
+      {
+        "mention_text": "考虑肺炎",
+        "evidence_text": "考虑肺炎",
+        "char_span": [
+          0,
+          4
+        ],
+        "assertion_status": "suspected"
+      },
+      {
+        "mention_text": "复查后已排除肺炎",
+        "evidence_text": "复查后已排除肺炎",
+        "char_span": [
+          5,
+          13
+        ],
+        "assertion_status": "negated"
+      },
+      {
+        "mention_text": "否认糖尿病史",
+        "evidence_text": "否认糖尿病史",
+        "char_span": [
+          14,
+          20
+        ],
+        "assertion_status": "negated"
+      }
+    ],
+    "issues_found": [
+      "所有提及的诊断均处于疑似、排除或否认状态，无当前确诊诊断可编码。",
+      "输入中包含不可信转录噪声，已忽略，未作为操作指令执行。"
+    ],
+    "manual_review_required": true,
+    "trace_refs": {
+      "run_id": "run-ba0bd365-312c-4c33-bcbb-44534f4bd22d",
+      "trace_id": "trace-6176fe4d84e44260",
+      "provider_trace_refs": [
+        "run-ba0bd365-312c-4c33-bcbb-44534f4bd22d"
+      ]
+    },
+    "structured_extraction": {
+      "contract": "icoder/DiagnosisExtractionOutput/v1",
+      "method": "json_block",
+      "warnings": [],
+      "required_fields": [
+        "status",
+        "diagnoses",
+        "non_codable_mentions",
+        "issues_found",
+        "manual_review_required",
+        "trace_refs"
+      ],
+      "missing_required_fields": [],
+      "valid": true
+    }
+  },
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 5902,
+      "metadata": {
+        "agent_id": "diagnosis-extractor",
+        "runtime_mode": "a2a_llm_with_tools",
+        "latency_ms": 5902
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 7.49
+}

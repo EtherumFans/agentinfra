@@ -1,0 +1,256 @@
+{
+  "agent_id": "clinical-documentation-improvement-agent",
+  "run_id": "run-ebd26839-cb56-4445-92ab-d39356a31d78",
+  "trace_id": "trace-89d81339cc20482f",
+  "trace_url": "/ai-studio/runs/run-ebd26839-cb56-4445-92ab-d39356a31d78/trace",
+  "runtime_mode": "cdi_real_orchestrator",
+  "latency_ms": 19808,
+  "cost": {
+    "amount": 0.0012845,
+    "currency": "CNY",
+    "source": "configured_usage_pricing_estimate",
+    "billing_authoritative": false
+  },
+  "billing": {},
+  "summary": "CDI review completed; specialist and clinician review remain required.",
+  "result": {
+    "encounter_summary": {
+      "key_points": [
+        "诊断: 肺炎",
+        "痰培养: 肺炎链球菌 (3+)"
+      ],
+      "encounter_metadata": {
+        "patient_age": "未知",
+        "patient_sex": "未知",
+        "encounter_type": "入院"
+      }
+    },
+    "documentation_gaps": [
+      {
+        "gap_id": "GAP-001",
+        "gap_type": "diagnostic_specificity",
+        "description": "Pneumonia diagnosis lacks specification of type (e.g., community-acquired, hospital-acquired) and severity (e.g., mild, moderate, severe).",
+        "why_it_matters": "Specificity of pneumonia type and severity is required for accurate coding and to reflect clinical complexity and resource utilization.",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "诊断: 肺炎",
+          "char_start": 6,
+          "char_end": 12,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      },
+      {
+        "gap_id": "GAP-002",
+        "gap_type": "diagnostic_specificity",
+        "description": "The anatomical site of pneumonia (e.g., lobar, bronchopneumonia) is not documented.",
+        "why_it_matters": "Anatomical site is a component of pneumonia specificity that may affect coding and clinical clarity.",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "诊断: 肺炎",
+          "char_start": 6,
+          "char_end": 12,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      }
+    ],
+    "proposed_provider_queries": [
+      {
+        "query_id": "Q-002",
+        "gap_id": "GAP-002",
+        "topic": "肺炎解剖部位",
+        "reason": "入院诊断为肺炎，但未记录肺炎的解剖部位（如大叶性、支气管肺炎），影响病情评估和治疗。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "诊断: 肺炎",
+          "char_start": 6,
+          "char_end": 12,
+          "documented_at": ""
+        },
+        "evidence_spans": [
+          {
+            "document_id": "chart-001",
+            "quote": "诊断: 肺炎",
+            "char_start": 6,
+            "char_end": 12,
+            "documented_at": ""
+          }
+        ],
+        "query_text": "该患者肺炎的解剖部位是？",
+        "response_options": [
+          "A. 大叶性肺炎",
+          "B. 支气管肺炎",
+          "C. 间质性肺炎",
+          "D. 无法确定"
+        ],
+        "lifecycle_state": "DRAFT",
+        "priority": "routine",
+        "nlq_gate_verdict": "PASS",
+        "nlq_gate_block_reasons": []
+      },
+      {
+        "query_id": "Q-001-type-rewrite",
+        "gap_id": "GAP-001",
+        "topic": "肺炎类型",
+        "reason": "肺炎诊断已记录，但其临床类型尚未明确。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "诊断: 肺炎",
+          "char_start": 6,
+          "char_end": 12,
+          "documented_at": ""
+        },
+        "evidence_spans": [
+          {
+            "document_id": "chart-001",
+            "quote": "诊断: 肺炎",
+            "char_start": 6,
+            "char_end": 12,
+            "documented_at": ""
+          }
+        ],
+        "query_text": "请明确本次肺炎的具体类型。",
+        "response_options": [
+          "A. 社区获得性肺炎",
+          "B. 医院获得性肺炎",
+          "C. 吸入性肺炎",
+          "D. 其他类型（请注明）",
+          "E. 无法确定"
+        ],
+        "lifecycle_state": "DRAFT",
+        "priority": "routine",
+        "nlq_gate_verdict": "PASS",
+        "nlq_gate_block_reasons": []
+      }
+    ],
+    "query_gate_summary": {
+      "withheld_count": 1,
+      "status_counts": {
+        "REWRITE_CANDIDATE_GENERATED": 1
+      },
+      "manual_cdi_action_required": true
+    },
+    "coding_specificity_checklist": [],
+    "risk_flags": [],
+    "specialist_trace": [
+      {
+        "expert_id": "coding-expert",
+        "consulted": true,
+        "requested": "You are a coding-specialist Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "The documentation must specify the pneumonia type (e.g., community-acquired vs. hospital-acquired) and severity (e.g., mild, moderate, severe) to reflect clinical acuity and treatment context. Additionally, the anatomical pattern (e.g., lobar vs. bronchopneumonia) should be stated, as it influences coding and clinical management. Without these details, the diagnosis remains too nonspecific for accurate coding and risk adjustment.",
+        "route_decision": "needed",
+        "route_reason": "coding_relevant_gap",
+        "execution_mode": "LLM_KNOWLEDGE_ONLY",
+        "latency_ms": 2529,
+        "tokens": 216,
+        "run_id": "run-f511ced67988",
+        "trace_id": "trace-6c752457d037"
+      },
+      {
+        "expert_id": "pubmed-expert",
+        "consulted": false,
+        "requested": "You are a PubMed literature Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-a84368ce134c",
+        "trace_id": "trace-cc705b0c28ba"
+      },
+      {
+        "expert_id": "web-search-expert",
+        "consulted": false,
+        "requested": "You are a clinical web-search Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-ee4fe734b7dc",
+        "trace_id": "trace-39cfa957273b"
+      },
+      {
+        "expert_id": "medical-calculator-expert",
+        "consulted": false,
+        "requested": "You are a medical-calculator Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-73009bff31ee",
+        "trace_id": "trace-de37c633daef"
+      }
+    ],
+    "human_review": {
+      "cdi_specialist_review_required": true,
+      "clinician_response_required": true,
+      "review_priority": "routine"
+    },
+    "trace_refs": {
+      "run_id": "run-ebd26839-cb56-4445-92ab-d39356a31d78",
+      "stage_trace": {
+        "encounter_synthesis": "trace-0b8867a7131c",
+        "gap_identification": "trace-6a3548f41073",
+        "expert_consultation": "trace-9b2b44e8137c",
+        "query_generation": "trace-a672a59cfedc",
+        "query_eligibility_gate": "",
+        "query_necessity_gate": "",
+        "query_dimension_rewrite": "",
+        "query_single_dimension_gate": "",
+        "claim_evidence_alignment_gate": "trace-6bb1bdf7b740",
+        "semantic_necessity_gate": "trace-fe901b585d93",
+        "query_compliance_gate": "",
+        "specialist_trace_emit": "trace-16f3cb6713ca"
+      },
+      "experts_consulted": [
+        "coding-expert"
+      ],
+      "gate_results": {
+        "encounter_synthesis": "run-06797fe91c16",
+        "gap_identification": "run-6702e65f6f93",
+        "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
+        "expert_consultation": "run-c42ef3f86709",
+        "query_generation": "run-1d5827fb3006",
+        "query_generation::quote_snapped": "0",
+        "query_generation::coverage_missing": "0",
+        "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=;dropped=0;final_count=2;llm_complete=False;llm_reasoning=The chart documents a diagnosis of pneumonia with a positive sputum culture for ",
+        "query_necessity_gate": "necessary=2;unnecessary=0;overquery_triggered=False;final_count=2",
+        "query_dimension_rewrite": "deterministic",
+        "query_single_dimension_gate": "single_dim=1;multi_dim=1;axis_cluster_triggered=False;axis_cluster_axis=type;rewrite_attempted=1;rewrite_accepted=1;final_count=2",
+        "claim_evidence_alignment_gate": "claims_extracted=3;degraded=0;blocked=0;flagged=0;final_count=2",
+        "claim_evidence_alignment_gate::run_id": "run-c6a8d8d94e5b",
+        "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=2",
+        "semantic_necessity_gate::run_id": "run-d4e34320bdf4",
+        "query_compliance_gate": ";passed=2;blocked=0",
+        "specialist_trace_emit": "run-d70af18d1cee"
+      },
+      "trace_id": "trace-89d81339cc20482f"
+    }
+  },
+  "schema_ref": "icoder/CDIAgentOutputV1/v6",
+  "result_attestation": "eyJhIjoiY2xpbmljYWwtZG9jdW1lbnRhdGlvbi1pbXByb3ZlbWVudC1hZ2VudCIsImQiOiI0NTMyZjk4ZTE4NWUwZjUzY2ZiMDYzYjQ2ZjQ2MTcyMzM4MzYxOWMyZjg4MjVmMDNjZGU5M2MyMjJjMDFjMzdkIiwiZSI6MTc4Nzg0MDcwOCwibyI6ImEwNDIzMzM4ZTk0MyIsInIiOiJydW4tZWJkMjY4MzktY2I1Ni00NDQ1LTkyYWItZDM5MzU2YTMxZDc4IiwicyI6Imljb2Rlci9DRElBZ2VudE91dHB1dFYxL3Y2IiwidiI6MX0.ieL6xg1NXXWY4ruWkDd4xRJUQYSmzP_18MIpMUTWQW8",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 19.987
+}

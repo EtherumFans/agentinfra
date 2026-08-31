@@ -1,0 +1,91 @@
+{
+  "agent_id": "claim-check",
+  "run_id": "run-26ed1632-7f0d-44b7-8076-b77b9163534b",
+  "trace_id": "trace-7731ecad03e5479d",
+  "trace_url": "/ai-studio/runs/run-26ed1632-7f0d-44b7-8076-b77b9163534b/trace",
+  "runtime_mode": "pure_llm",
+  "latency_ms": 8255,
+  "cost": {
+    "amount": 0.000211,
+    "currency": "CNY"
+  },
+  "summary": "{",
+  "result": {
+    "status": "complete",
+    "markdown": "{\n  \"review_conclusion\": \"evidence_insufficient\",\n  \"evidence_consistency\": {\n    \"diagnosis\": \"住院记录明确记载急性阑尾炎，拟报主诊断K35.80（急性阑尾炎，其他和未特指的）与病历描述基本一致，但病历未提供具体阑尾炎类型（如是否伴有腹膜炎或脓肿）的详细证据，需进一步核实。\",\n    \"procedure\": \"住院记录记载行腹腔镜阑尾切除术，拟报手术编码47.01（腹腔镜阑尾切除术）与病历描述一致，但病历未提供手术记录或操作细节以完全确认。\",\n    \"overall\": \"现有证据有限，编码与病历表面描述一致，但缺乏关键细节（如病理报告、手术记录）以完全验证。\"\n  },\n  \"coding_risks\": [\n    {\n      \"risk\": \"主诊断编码K35.80可能需根据是否存在腹膜炎或脓肿进一步细分，若病历未明确，存在编码不精确风险。\",\n      \"evidence\": \"住院记录仅提及急性阑尾炎，未提供并发症或合并症信息。\"\n    },\n    {\n      \"risk\": \"手术编码47.01需确认是否包含腹腔镜操作的具体细节，若病历未记录手术方式，存在编码不准确风险。\",\n      \"evidence\": \"住院记录提及腹腔镜，但无手术记录佐证。\"\n    }\n  ],\n  \"insurance_risks\": [\n    {\n      \"risk\": \"支付方规则缺失，无法评估DRG/DIP分组或待遇范围，存在拒付风险。\",\n      \"evidence\": \"输入中仅提供规则节选，未包含具体分组、支付标准或拒付条件。\"\n    },\n    {\n      \"risk\": \"若编码与病历不一致，可能触发医保审核拒付。\",\n      \"evidence\": \"当前证据不足以完全确认编码一致性。\"\n    }\n  ],\n  \"policy_unavailable\": true,\n  \"evidence_insufficient\": true,\n  \"manual_review_required\": true,\n  \"summary\": \"根据提供的住院记录，拟报主诊断K35.80和手术编码47.01与病历表面描述基本一致，但病历证据不完整（缺乏手术记录、病理报告等），且支付方规则仅提供节选，无法进行完整合规核查。建议人工复核以确认编码精确性和医保支付风险。\"\n}",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.pure-llm.v1",
+    "backend_type": "pure_llm",
+    "review_conclusion": "evidence_insufficient",
+    "evidence_consistency": {
+      "diagnosis": "住院记录明确记载急性阑尾炎，拟报主诊断K35.80（急性阑尾炎，其他和未特指的）与病历描述基本一致，但病历未提供具体阑尾炎类型（如是否伴有腹膜炎或脓肿）的详细证据，需进一步核实。",
+      "procedure": "住院记录记载行腹腔镜阑尾切除术，拟报手术编码47.01（腹腔镜阑尾切除术）与病历描述一致，但病历未提供手术记录或操作细节以完全确认。",
+      "overall": "现有证据有限，编码与病历表面描述一致，但缺乏关键细节（如病理报告、手术记录）以完全验证。"
+    },
+    "coding_risks": [
+      {
+        "risk": "主诊断编码K35.80可能需根据是否存在腹膜炎或脓肿进一步细分，若病历未明确，存在编码不精确风险。",
+        "evidence": "住院记录仅提及急性阑尾炎，未提供并发症或合并症信息。"
+      },
+      {
+        "risk": "手术编码47.01需确认是否包含腹腔镜操作的具体细节，若病历未记录手术方式，存在编码不准确风险。",
+        "evidence": "住院记录提及腹腔镜，但无手术记录佐证。"
+      }
+    ],
+    "insurance_risks": [
+      {
+        "risk": "支付方规则缺失，无法评估DRG/DIP分组或待遇范围，存在拒付风险。",
+        "evidence": "输入中仅提供规则节选，未包含具体分组、支付标准或拒付条件。"
+      },
+      {
+        "risk": "若编码与病历不一致，可能触发医保审核拒付。",
+        "evidence": "当前证据不足以完全确认编码一致性。"
+      }
+    ],
+    "policy_unavailable": true,
+    "evidence_insufficient": true,
+    "manual_review_required": true,
+    "summary": "根据提供的住院记录，拟报主诊断K35.80和手术编码47.01与病历表面描述基本一致，但病历证据不完整（缺乏手术记录、病理报告等），且支付方规则仅提供节选，无法进行完整合规核查。建议人工复核以确认编码精确性和医保支付风险。",
+    "structured_extraction": {
+      "contract": "icoder/ClaimCheckOutput/v1",
+      "method": "bare_json",
+      "warnings": [],
+      "required_fields": [
+        "review_conclusion",
+        "evidence_consistency",
+        "coding_risks",
+        "insurance_risks",
+        "policy_unavailable",
+        "evidence_insufficient",
+        "manual_review_required",
+        "summary"
+      ],
+      "missing_required_fields": [],
+      "valid": true
+    }
+  },
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 8255,
+      "metadata": {
+        "agent_id": "claim-check",
+        "runtime_mode": "pure_llm",
+        "latency_ms": 8255
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 8.63
+}

@@ -1,0 +1,262 @@
+{
+  "agent_id": "med-reconciliation",
+  "run_id": "run-54abed25-7044-4478-83a8-6fce44106572",
+  "trace_id": "trace-93bdaeaf753a4ee7",
+  "trace_url": "/ai-studio/runs/run-54abed25-7044-4478-83a8-6fce44106572/trace",
+  "runtime_mode": "governed_local_documented_medication_reconciliation",
+  "latency_ms": 109,
+  "cost": {
+    "amount": 0.0,
+    "currency": "CNY"
+  },
+  "billing": {},
+  "summary": "已按 3 个明确来源比较 2 个药名字面条目；相互作用与剂量适宜性未评估，须医师或药师复核。",
+  "result": {
+    "status": "requires_review",
+    "markdown": "{\"allergy_conflicts\": [], \"allergy_review_status\": \"NO_ALLERGY_SOURCE\", \"discharge_medications\": [{\"char_span\": [42, 54], \"dose\": \"0.5g\", \"drug_name\": \"二甲双胍\", \"evidence_text\": \"二甲双胍0.5g bid\", \"frequency\": \"bid\", \"identity_basis\": \"verbatim_name\", \"instructions\": \"二甲双胍0.5g bid\", \"reason\": \"\", \"route\": \"\", \"source\": \"discharge\", \"status\": \"LISTED\"}], \"discrepancies\": [{\"description\": \"home 来源未记录：途径。\", \"drug_name\": \"二甲双胍\", \"evidence_refs\": [\"二甲双胍0.5g bid\"], \"type\": \"MISSING_DOCUMENTED_DETAILS\"}, {\"description\": \"inpatient 来源未记录：剂量、途径、频次。\", \"drug_name\": \"二甲双胍\", \"evidence_refs\": [\"因造影暂停\"], \"type\": \"MISSING_DOCUMENTED_DETAILS\"}, {\"description\": \"discharge 来源未记录：途径。\", \"drug_name\": \"二甲双胍\", \"evidence_refs\": [\"二甲双胍0.5g bid\"], \"type\": \"MISSING_DOCUMENTED_DETAILS\"}, {\"description\": \"住院来源记录暂停/停用/拒绝，出院来源再次列出；恢复或继续依据未在输入中说明。\", \"drug_name\": \"二甲双胍\", \"evidence_refs\": [\"因造影暂停\", \"二甲双胍0.5g bid\"], \"type\": \"HELD_THEN_RELISTED\"}, {\"description\": \"inpatient 来源未记录：剂量、途径、频次。\", \"drug_name\": \"胰岛素\", \"evidence_refs\": [\"胰岛素按血糖调整\"], \"type\": \"MISSING_DOCUMENTED_DETAILS\"}, {\"description\": \"住院来源列出该药，但出院来源未列出其继续、停止或变更去向。\", \"drug_name\": \"胰岛素\", \"evidence_refs\": [\"胰岛素按血糖调整\"], \"type\": \"MISSING_DISCHARGE_DISPOSITION\"}], \"follow_up_items\": [\"请医师或药师确认 二甲双胍 的转衔分类、完整剂量/途径/频次及变更理由。\", \"请医师或药师确认 胰岛素 的转衔分类、完整剂量/途径/频次及变更理由。\"], \"home_medications\": [{\"char_span\": [4, 16], \"dose\": \"0.5g\", \"drug_name\": \"二甲双胍\", \"evidence_text\": \"二甲双胍0.5g bid\", \"frequency\": \"bid\", \"identity_basis\": \"verbatim_name\", \"instructions\": \"二甲双胍0.5g bid\", \"reason\": \"\", \"route\": \"\", \"source\": \"home\", \"status\": \"LISTED\"}], \"inpatient_medications\": [{\"char_span\": [20, 25], \"dose\": \"\", \"drug_name\": \"二甲双胍\", \"evidence_text\": \"因造影暂停\", \"frequency\": \"\", \"identity_basis\": \"adjacent_single_medication_reference\", \"instructions\": \"因造影暂停\", \"reason\": \"造影\", \"route\": \"\", \"source\": \"inpatient\", \"status\": \"HELD\"}, {\"char_span\": [26, 34], \"dose\": \"\", \"drug_name\": \"胰岛素\", \"evidence_text\": \"胰岛素按血糖调整\", \"frequency\": \"\", \"identity_basis\": \"verbatim_name\", \"instructions\": \"胰岛素按血糖调整\", \"reason\": \"\", \"route\": \"\", \"source\": \"inpatient\", \"status\": \"LISTED\"}], \"interaction_risks\": [], \"interaction_screening_status\": \"NOT_ASSESSED_LICENSED_SOURCE_REQUIRED\", \"limitations\": [\"只按明确来源和药名字面值比较；未对品牌名/通用名、盐型、剂型或同类药物做归一化。\", \"未使用授权 DrugBank/医院药品库；相互作用、同类重复、禁忌和肾/肝功能剂量适宜性均未评估。\", \"START/STOP/CONTINUE/CHANGE 仅表示来源清单比较，不是处方或停药建议。\", \"所有差异、过敏字面冲突和缺失项必须由医师或药师复核。\"], \"manual_review_required\": true, \"missing_rationale\": [\"二甲双胍 住院暂停/停用后在出院来源再次列出，恢复或继续依据缺失。\", \"胰岛素 缺少出院继续、停止或变更去向及原因。\"], \"reconciliation_status\": \"COMPLETED\", \"reconciliation_summary\": [{\"category\": \"NEEDS_CLARIFICATION\", \"clarification_required\": true, \"differences\": [], \"discharge\": \"0.5g/途径未记录/bid/LISTED\", \"drug_name\": \"二甲双胍\", \"evidence_refs\": [\"home:4-16:二甲双胍0.5g bid\", \"inpatient:20-25:因造影暂停\", \"discharge:42-54:二甲双胍0.5g bid\"], \"home\": \"0.5g/途径未记录/bid/LISTED\", \"inpatient\": \"剂量未记录/途径未记录/频次未记录/HELD\"}, {\"category\": \"NEEDS_CLARIFICATION\", \"clarification_required\": true, \"differences\": [], \"discharge\": \"未列出\", \"drug_name\": \"胰岛素\", \"evidence_refs\": [\"inpatient:26-34:胰岛素按血糖调整\"], \"home\": \"未列出\", \"inpatient\": \"剂量未记录/途径未记录/频次未记录/LISTED\"}], \"source_completeness\": {\"comparison_ready\": true, \"discharge_source_present\": true, \"home_source_present\": true, \"inpatient_source_present\": true}, \"trace_refs\": {\"provider_trace_refs\": [\"run-54abed25-7044-4478-83a8-6fce44106572:governed-medication-reconciliation\"], \"run_id\": \"run-54abed25-7044-4478-83a8-6fce44106572\"}, \"unresolved_mentions\": []}",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.governed-medication-reconciliation.v1",
+    "backend_type": "rule_engine",
+    "allergy_conflicts": [],
+    "allergy_review_status": "NO_ALLERGY_SOURCE",
+    "discharge_medications": [
+      {
+        "char_span": [
+          42,
+          54
+        ],
+        "dose": "0.5g",
+        "drug_name": "二甲双胍",
+        "evidence_text": "二甲双胍0.5g bid",
+        "frequency": "bid",
+        "identity_basis": "verbatim_name",
+        "instructions": "二甲双胍0.5g bid",
+        "reason": "",
+        "route": "",
+        "source": "discharge",
+        "status": "LISTED"
+      }
+    ],
+    "discrepancies": [
+      {
+        "description": "home 来源未记录：途径。",
+        "drug_name": "二甲双胍",
+        "evidence_refs": [
+          "二甲双胍0.5g bid"
+        ],
+        "type": "MISSING_DOCUMENTED_DETAILS"
+      },
+      {
+        "description": "inpatient 来源未记录：剂量、途径、频次。",
+        "drug_name": "二甲双胍",
+        "evidence_refs": [
+          "因造影暂停"
+        ],
+        "type": "MISSING_DOCUMENTED_DETAILS"
+      },
+      {
+        "description": "discharge 来源未记录：途径。",
+        "drug_name": "二甲双胍",
+        "evidence_refs": [
+          "二甲双胍0.5g bid"
+        ],
+        "type": "MISSING_DOCUMENTED_DETAILS"
+      },
+      {
+        "description": "住院来源记录暂停/停用/拒绝，出院来源再次列出；恢复或继续依据未在输入中说明。",
+        "drug_name": "二甲双胍",
+        "evidence_refs": [
+          "因造影暂停",
+          "二甲双胍0.5g bid"
+        ],
+        "type": "HELD_THEN_RELISTED"
+      },
+      {
+        "description": "inpatient 来源未记录：剂量、途径、频次。",
+        "drug_name": "胰岛素",
+        "evidence_refs": [
+          "胰岛素按血糖调整"
+        ],
+        "type": "MISSING_DOCUMENTED_DETAILS"
+      },
+      {
+        "description": "住院来源列出该药，但出院来源未列出其继续、停止或变更去向。",
+        "drug_name": "胰岛素",
+        "evidence_refs": [
+          "胰岛素按血糖调整"
+        ],
+        "type": "MISSING_DISCHARGE_DISPOSITION"
+      }
+    ],
+    "follow_up_items": [
+      "请医师或药师确认 二甲双胍 的转衔分类、完整剂量/途径/频次及变更理由。",
+      "请医师或药师确认 胰岛素 的转衔分类、完整剂量/途径/频次及变更理由。"
+    ],
+    "home_medications": [
+      {
+        "char_span": [
+          4,
+          16
+        ],
+        "dose": "0.5g",
+        "drug_name": "二甲双胍",
+        "evidence_text": "二甲双胍0.5g bid",
+        "frequency": "bid",
+        "identity_basis": "verbatim_name",
+        "instructions": "二甲双胍0.5g bid",
+        "reason": "",
+        "route": "",
+        "source": "home",
+        "status": "LISTED"
+      }
+    ],
+    "inpatient_medications": [
+      {
+        "char_span": [
+          20,
+          25
+        ],
+        "dose": "",
+        "drug_name": "二甲双胍",
+        "evidence_text": "因造影暂停",
+        "frequency": "",
+        "identity_basis": "adjacent_single_medication_reference",
+        "instructions": "因造影暂停",
+        "reason": "造影",
+        "route": "",
+        "source": "inpatient",
+        "status": "HELD"
+      },
+      {
+        "char_span": [
+          26,
+          34
+        ],
+        "dose": "",
+        "drug_name": "胰岛素",
+        "evidence_text": "胰岛素按血糖调整",
+        "frequency": "",
+        "identity_basis": "verbatim_name",
+        "instructions": "胰岛素按血糖调整",
+        "reason": "",
+        "route": "",
+        "source": "inpatient",
+        "status": "LISTED"
+      }
+    ],
+    "interaction_risks": [],
+    "interaction_screening_status": "NOT_ASSESSED_LICENSED_SOURCE_REQUIRED",
+    "limitations": [
+      "只按明确来源和药名字面值比较；未对品牌名/通用名、盐型、剂型或同类药物做归一化。",
+      "未使用授权 DrugBank/医院药品库；相互作用、同类重复、禁忌和肾/肝功能剂量适宜性均未评估。",
+      "START/STOP/CONTINUE/CHANGE 仅表示来源清单比较，不是处方或停药建议。",
+      "所有差异、过敏字面冲突和缺失项必须由医师或药师复核。"
+    ],
+    "manual_review_required": true,
+    "missing_rationale": [
+      "二甲双胍 住院暂停/停用后在出院来源再次列出，恢复或继续依据缺失。",
+      "胰岛素 缺少出院继续、停止或变更去向及原因。"
+    ],
+    "reconciliation_status": "COMPLETED",
+    "reconciliation_summary": [
+      {
+        "category": "NEEDS_CLARIFICATION",
+        "clarification_required": true,
+        "differences": [],
+        "discharge": "0.5g/途径未记录/bid/LISTED",
+        "drug_name": "二甲双胍",
+        "evidence_refs": [
+          "home:4-16:二甲双胍0.5g bid",
+          "inpatient:20-25:因造影暂停",
+          "discharge:42-54:二甲双胍0.5g bid"
+        ],
+        "home": "0.5g/途径未记录/bid/LISTED",
+        "inpatient": "剂量未记录/途径未记录/频次未记录/HELD"
+      },
+      {
+        "category": "NEEDS_CLARIFICATION",
+        "clarification_required": true,
+        "differences": [],
+        "discharge": "未列出",
+        "drug_name": "胰岛素",
+        "evidence_refs": [
+          "inpatient:26-34:胰岛素按血糖调整"
+        ],
+        "home": "未列出",
+        "inpatient": "剂量未记录/途径未记录/频次未记录/LISTED"
+      }
+    ],
+    "source_completeness": {
+      "comparison_ready": true,
+      "discharge_source_present": true,
+      "home_source_present": true,
+      "inpatient_source_present": true
+    },
+    "trace_refs": {
+      "run_id": "run-54abed25-7044-4478-83a8-6fce44106572",
+      "trace_id": "trace-93bdaeaf753a4ee7",
+      "provider_trace_refs": [
+        "run-54abed25-7044-4478-83a8-6fce44106572:governed-medication-reconciliation"
+      ]
+    },
+    "unresolved_mentions": [],
+    "structured_extraction": {
+      "contract": "icoder/MedicationReconciliationOutput/v4",
+      "method": "json_block",
+      "warnings": [],
+      "required_fields": [
+        "reconciliation_status",
+        "home_medications",
+        "inpatient_medications",
+        "discharge_medications",
+        "reconciliation_summary",
+        "discrepancies",
+        "interaction_screening_status",
+        "interaction_risks",
+        "allergy_review_status",
+        "allergy_conflicts",
+        "missing_rationale",
+        "follow_up_items",
+        "unresolved_mentions",
+        "source_completeness",
+        "limitations",
+        "manual_review_required",
+        "trace_refs"
+      ],
+      "optional_fields": [],
+      "missing_required_fields": [],
+      "invalid_field_types": [],
+      "invalid_field_schemas": [],
+      "invalid_cross_agent_relations": [],
+      "undeclared_output_fields": [],
+      "undeclared_output_field_count": 0,
+      "valid": true
+    }
+  },
+  "schema_ref": "icoder/MedicationReconciliationOutput/v4",
+  "result_attestation": "eyJhIjoibWVkLXJlY29uY2lsaWF0aW9uIiwiZCI6ImZiNjc5YTNkNjRlNzg2ZDQzNDc5MGYxOWQ5NGU4NTI1ZGUzN2U2OWIzNGZkZDc0MWFmMWI0OWRkMDg4MjRkMjEiLCJlIjoxNzg3NjQ4OTc3LCJvIjoiNTNmNGUxNTMyNzZhIiwiciI6InJ1bi01NGFiZWQyNS03MDQ0LTQ0NzgtODNhOC02ZmNlNDQxMDY1NzIiLCJzIjoiaWNvZGVyL01lZGljYXRpb25SZWNvbmNpbGlhdGlvbk91dHB1dC92NCIsInYiOjF9.eVaM6HsghQsYl_GjAl9zxF278Yp5k5xtYFHLBlY8p4g",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 109,
+      "metadata": {
+        "agent_id": "med-reconciliation",
+        "runtime_mode": "governed_local_documented_medication_reconciliation",
+        "latency_ms": 109
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 0.187
+}

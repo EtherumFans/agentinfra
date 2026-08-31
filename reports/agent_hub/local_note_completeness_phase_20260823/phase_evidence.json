@@ -1,0 +1,73 @@
+{
+  "schema_version": "icoder.note-completeness-local-rules-phase/v1",
+  "date": "2026-08-23",
+  "result": "development_local_runtime_gate_passed",
+  "agent": {
+    "agent_id": "note-completeness-agent",
+    "agent_ref": "icoder/note-completeness-agent@1.0.0",
+    "execution_path": "dedicated.note_completeness_rules",
+    "execution_target": "icoder.documentation-rule-engine.v1",
+    "backend_type": "rule_engine",
+    "external_llm_required": false,
+    "network_required": false,
+    "cost_usd": 0.0,
+    "output_contract": "icoder/NoteCompletenessOutput/v2",
+    "pack_sha256": "4afaf8b5b33df3a18ae419cd160c5a429f43aa824578938028368bfe872aa5cc",
+    "human_review_required": true
+  },
+  "capability_boundary": {
+    "verified": [
+      "required_7_plus_1_section_presence",
+      "present_heading_with_empty_body_is_incomplete",
+      "negated_surgery_history_does_not_require_operation_note",
+      "strict_contract_projection",
+      "unified_run_and_a2a_provider_attribution",
+      "tenant_hub_local_readiness",
+      "backend_metadata_trace"
+    ],
+    "not_claimed": [
+      "semantic_documentation_adequacy",
+      "clinical_fact_consistency",
+      "temporality_negation_or_attribution_reasoning",
+      "independent_clinical_quality",
+      "production_approval"
+    ]
+  },
+  "runtime_matrix": {
+    "hub_visible_agents": 26,
+    "visible_external_llm_dependent": 24,
+    "visible_local_only_execution": 2,
+    "visible_offline_safe_fail_closed_expected": 24,
+    "visible_semantic_live_e2e_verified": 0,
+    "visible_production_ready_verified": 0,
+    "artifact": "runtime_matrix/agent_hub_runtime_matrix.json"
+  },
+  "tests": {
+    "targeted_unit_pack_matrix": {"passed": 97, "failed": 0},
+    "targeted_run_a2a": {"passed": 3, "failed": 0},
+    "failure_closure": {"passed": 8, "failed": 0},
+    "expanded_single_run": {"passed": 602, "failed": 0, "seconds": 127.29},
+    "deployment_candidate_preflight": {"passed": 81, "failed": 0},
+    "deployment_candidate_preflight_unit": {"passed": 1, "failed": 0},
+    "offline_visible_agent_e2e_in_expanded_run": {
+      "passed": 52,
+      "failed": 0,
+      "local_capability_success_per_matrix": 2,
+      "external_model_safe_fail_closed_per_matrix": 24,
+      "unsafe_or_invalid_per_matrix": 0
+    }
+  },
+  "final_safety_state": {
+    "protected_database_sha256": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e",
+    "protected_database_hash_matches_expected": true,
+    "current_process_llm_credential_lengths": 0,
+    "protected_port_listener_count": 0,
+    "python_or_uvicorn_process_count": 0
+  },
+  "limitations": [
+    "No current Corti console same-case comparison was executed in this phase.",
+    "No real-provider 24-Agent semantic matrix was executed.",
+    "No independent clinical gold set or reviewer validation was executed.",
+    "No hospital cloud legal regulatory certification or production operations gate is satisfied."
+  ]
+}

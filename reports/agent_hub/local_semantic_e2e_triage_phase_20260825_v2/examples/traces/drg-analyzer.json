@@ -1,0 +1,106 @@
+{
+  "run_id": "run-9f87ff62-e11a-4c76-afc3-03c6aaaf77e3",
+  "events": [
+    {
+      "run_id": "run-9f87ff62-e11a-4c76-afc3-03c6aaaf77e3",
+      "step": "user_message_received",
+      "status": "ok",
+      "ts": 1787589203.4692574,
+      "duration_ms": 0.0,
+      "safe_metadata": {
+        "agent_id": "drg-analyzer",
+        "source_runtime_agent_id": "",
+        "input_text_len": 255,
+        "runtime_mode": "",
+        "context_id": "6e80923e-6dcd-4ff2-a003-4a386f17e6b8",
+        "trace_id": "trace-d4ec5b11e70543cb",
+        "api_client_id": "",
+        "purpose_of_use": "treatment",
+        "_organization_id": "58c5e4dac86b",
+        "_user_id": "f4f3300b9e3c",
+        "_actor_id": "f4f3300b9e3c",
+        "_trace_id": "trace-d4ec5b11e70543cb"
+      },
+      "event_id": "4a6dc2d5-8d91-46f3-b290-c1d62d6b009d",
+      "sequence_number": 1,
+      "trace_id": "trace-d4ec5b11e70543cb"
+    },
+    {
+      "run_id": "run-9f87ff62-e11a-4c76-afc3-03c6aaaf77e3",
+      "step": "output_generated",
+      "status": "ok",
+      "ts": 1787589203.517132,
+      "duration_ms": 15.0,
+      "safe_metadata": {
+        "backend_provider": "icoder.governed-drg-dip-risk-review.v1",
+        "backend_type": "rule_engine",
+        "provider_latency_ms": 15,
+        "provider_status": "requires_review",
+        "provider_deterministic": true,
+        "supports_tool_calling": false,
+        "fallback_used": false,
+        "output_contract": "icoder/DRGDIPRiskReview/v8",
+        "tool_rounds": 0,
+        "model_deployment_id": "",
+        "model_routing_mode": "",
+        "model_selection_version": 0,
+        "model_routing_decision": "",
+        "clinical_asset_integrity_verified": false,
+        "semantic_enhancement_used": false,
+        "rephrasing_attempted": false,
+        "llm_call_count": 0,
+        "candidate_codes_count": 3,
+        "evidence_items_count": 10,
+        "valid_evidence_spans_count": 10,
+        "invalid_evidence_spans_count": 0,
+        "model_cost_usd": 0.0
+      },
+      "event_id": "f9091a49-beb9-4568-9aae-a37607708fb9",
+      "sequence_number": 1,
+      "trace_id": null
+    },
+    {
+      "run_id": "run-9f87ff62-e11a-4c76-afc3-03c6aaaf77e3",
+      "step": "completion",
+      "status": "ok",
+      "ts": 1787589203.5429864,
+      "duration_ms": 15.0,
+      "safe_metadata": {
+        "agent_id": "drg-analyzer",
+        "runtime_mode": "governed_local_explicit_coded_case_risk_review",
+        "_trace_id": "trace-d4ec5b11e70543cb",
+        "_organization_id": "58c5e4dac86b",
+        "_user_id": "f4f3300b9e3c",
+        "_actor_id": "f4f3300b9e3c",
+        "latency_ms": 15
+      },
+      "event_id": "c8a294de-25d5-473a-a24c-f73ea3595509",
+      "sequence_number": 2,
+      "trace_id": "trace-d4ec5b11e70543cb"
+    }
+  ],
+  "trace_attestation": "eyJkIjoiNTgyOTFmOWY4OTJjNDIyYzBhYmYwOGQ2NDgwZWY1ZWU0YjA5NWE1ZGFmZDQ5NTY3ZGQzY2VjZjIxZTg4ZDZkMyIsImUiOjE3ODc2NzU2MDMsIm8iOiI1OGM1ZTRkYWM4NmIiLCJyIjoicnVuLTlmODdmZjYyLWUxMWEtNGM3Ni1hZmMzLTAzYzZhYWFmNzdlMyIsInYiOjF9.p7peRod6hUupeVg50TY45WCrPNnDZ4caymAAnlmzhiM",
+  "summary": {
+    "agent_id": "drg-analyzer",
+    "trace_id": "trace-d4ec5b11e70543cb",
+    "run_status": "COMPLETED",
+    "runtime_mode": "governed_local_explicit_coded_case_risk_review",
+    "latency_ms": 15,
+    "cost": {
+      "amount": 0.0,
+      "currency": "CNY"
+    },
+    "error": false,
+    "error_reason": null,
+    "trace_capture_status": "FALLBACK_MEMORY",
+    "created_at": "2026-08-24T16:33:23.449903",
+    "review_signal": {
+      "state": "required",
+      "sources": [
+        "output_generated.provider_status:requires_review"
+      ],
+      "authoritative": false
+    }
+  },
+  "_http_status": 200
+}

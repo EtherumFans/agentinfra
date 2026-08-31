@@ -1,0 +1,166 @@
+{
+  "schema_version": "icoder.agent-hub-local-semantic-evidence-bundle/v1",
+  "generated_at": "2026-08-23T22:15:48.135385+00:00",
+  "quality_scope": "fresh_local_http_semantic_safety_stability_not_external_model_or_clinical_accuracy",
+  "max_age_hours": 24.0,
+  "valid": true,
+  "errors": [],
+  "summary": {
+    "visible_agents": 26,
+    "local_agents_expected": 7,
+    "local_semantic_e2e_verified": 7,
+    "external_model_agents_not_evaluated": 19
+  },
+  "sources": {
+    "examples": {
+      "path": "E:\\Corti4C\\reports\\agent_hub\\local_semantic_e2e_phase_20260824\\examples\\agent_hub_examples_e2e.json",
+      "relative_path": "examples\\agent_hub_examples_e2e.json",
+      "sha256": "68447a401452a0836334a37a54995acaf39ef4ca0ae368f6c143bbd3bb1c4a40",
+      "schema_version": "icoder.agent-hub-examples-e2e/v3",
+      "generated_at": "2026-08-23T22:15:30.478088+00:00"
+    },
+    "adversarial": {
+      "path": "E:\\Corti4C\\reports\\agent_hub\\local_semantic_e2e_phase_20260824\\adversarial\\agent_hub_adversarial_e2e.json",
+      "relative_path": "adversarial\\agent_hub_adversarial_e2e.json",
+      "sha256": "38d7b6c4c5d1d5915893eda6d7a1cb050511906ec584e3d7a9ba105a84ff2dd5",
+      "schema_version": "icoder.agent-hub-adversarial-e2e/v3",
+      "generated_at": "2026-08-23T22:15:33.697294+00:00"
+    },
+    "reference": {
+      "path": "E:\\Corti4C\\reports\\agent_hub\\local_semantic_e2e_phase_20260824\\reference\\agent_hub_reference_quality_replay.json",
+      "relative_path": "reference\\agent_hub_reference_quality_replay.json",
+      "sha256": "04bd6adbd6502cb3ad5df6a5272737a00c1c7f611213decaa4ba8d322d423036",
+      "schema_version": "icoder.agent-hub-reference-quality-replay/v1",
+      "generated_at": "2026-08-23T22:15:34.232586+00:00"
+    },
+    "stability": {
+      "path": "E:\\Corti4C\\reports\\agent_hub\\local_semantic_e2e_phase_20260824\\stability\\agent_hub_stability_benchmark.json",
+      "relative_path": "stability\\agent_hub_stability_benchmark.json",
+      "sha256": "ca9cbfe45b4386dfa6a2edc57f0f7216e2a37d857330885a87f3888e77bd1d65",
+      "schema_version": "icoder.agent-hub-stability-benchmark/v2",
+      "generated_at": "2026-08-23T22:15:47.497950+00:00"
+    }
+  },
+  "agent_snapshot": {
+    "code-validation-agent": {
+      "agent_ref": "icoder/code-validation-agent@2.0.0",
+      "pack_sha256": "04126e1bb38b23cad8b93bce5b991872727c9a41ac0daf707d40da5f49bfbb8f",
+      "output_schema_ref": "icoder/CodeValidationOutput/v7",
+      "backend_provider": "icoder.governed-code-validation.v1"
+    },
+    "compliance-guardrail-agent": {
+      "agent_ref": "icoder/compliance-guardrail-agent@1.0.0",
+      "pack_sha256": "cac7ea0ada4f0842179353576b050e370b59bd5d7ff9cae217f17c5aac22d786",
+      "output_schema_ref": "icoder/ComplianceGuardrailOutput/v4",
+      "backend_provider": "icoder.rule-engine.v1"
+    },
+    "evidence-extractor": {
+      "agent_ref": "icoder/evidence-extractor@1.1.0",
+      "pack_sha256": "cab618db24b513cf9a567368b70454beb8e1293efdb1f0e1d9df8d50245e4374",
+      "output_schema_ref": "icoder/CodedEvidence/v11",
+      "backend_provider": "icoder.governed-evidence-extractor.v1"
+    },
+    "evidence-ranker": {
+      "agent_ref": "icoder/evidence-ranker@1.1.0",
+      "pack_sha256": "411b2a77f7588ed0a8dc1d57285a227853028398599c4483647dfce83e02d80a",
+      "output_schema_ref": "icoder/EvidenceRankerOutput/v4",
+      "backend_provider": "icoder.governed-evidence-ranker.v1"
+    },
+    "icd10-navigator": {
+      "agent_ref": "icoder/icd10-navigator@1.1.0",
+      "pack_sha256": "27d83b6cb4cb5234b21c1327c9792eaeed978c936f1fb6c92145afd8a07b9ccb",
+      "output_schema_ref": "icoder/Icd10NavigatorOutput/v4",
+      "backend_provider": "icoder.governed-icd-navigator.v1"
+    },
+    "note-completeness-agent": {
+      "agent_ref": "icoder/note-completeness-agent@1.0.0",
+      "pack_sha256": "c024d4236fe28973feaef2238808d6bc7fe11ebd4e6cf8372be67c8b2bfdbea7",
+      "output_schema_ref": "icoder/NoteCompletenessOutput/v2",
+      "backend_provider": "icoder.documentation-rule-engine.v1"
+    },
+    "surgical-registry": {
+      "agent_ref": "icoder/surgical-registry@1.0.0",
+      "pack_sha256": "9a148ffa9261af5ab5ac0a610f6582ea3759ad5b1feefbf101ad97898e01b620",
+      "output_schema_ref": "icoder/SurgicalRegistryOutput/v4",
+      "backend_provider": "icoder.governed-surgical-registry.v1"
+    }
+  },
+  "agent_results": [
+    {
+      "agent_id": "code-validation-agent",
+      "gates": {
+        "examples": true,
+        "adversarial": true,
+        "reference": true,
+        "stability": true
+      },
+      "local_semantic_e2e_verified": true
+    },
+    {
+      "agent_id": "compliance-guardrail-agent",
+      "gates": {
+        "examples": true,
+        "adversarial": true,
+        "reference": true,
+        "stability": true
+      },
+      "local_semantic_e2e_verified": true
+    },
+    {
+      "agent_id": "evidence-extractor",
+      "gates": {
+        "examples": true,
+        "adversarial": true,
+        "reference": true,
+        "stability": true
+      },
+      "local_semantic_e2e_verified": true
+    },
+    {
+      "agent_id": "evidence-ranker",
+      "gates": {
+        "examples": true,
+        "adversarial": true,
+        "reference": true,
+        "stability": true
+      },
+      "local_semantic_e2e_verified": true
+    },
+    {
+      "agent_id": "icd10-navigator",
+      "gates": {
+        "examples": true,
+        "adversarial": true,
+        "reference": true,
+        "stability": true
+      },
+      "local_semantic_e2e_verified": true
+    },
+    {
+      "agent_id": "note-completeness-agent",
+      "gates": {
+        "examples": true,
+        "adversarial": true,
+        "reference": true,
+        "stability": true
+      },
+      "local_semantic_e2e_verified": true
+    },
+    {
+      "agent_id": "surgical-registry",
+      "gates": {
+        "examples": true,
+        "adversarial": true,
+        "reference": true,
+        "stability": true
+      },
+      "local_semantic_e2e_verified": true
+    }
+  ],
+  "limitations": [
+    "This proves seven local deterministic or governed-baseline Agents over fresh loopback HTTP; it is not the strict 26-Agent live-provider gate.",
+    "Nineteen external-model-dependent Agents were not evaluated and remain semantic-live pending.",
+    "Pack-owned synthetic cases are not independent clinical gold, Corti parity, hospital acceptance, or production approval."
+  ],
+  "bundle_sha256": "04a805a0dc2a3e927e281640c0363cbb2af19e8d11eee760feda1423e5f7b668"
+}

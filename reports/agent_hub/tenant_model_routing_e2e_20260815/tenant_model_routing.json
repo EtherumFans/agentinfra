@@ -1,0 +1,39 @@
+﻿{
+    "schema_version":  "tenant-model-routing-e2e/v1",
+    "before_selection":  {
+                             "mode":  "inherit",
+                             "deployment_id":  null,
+                             "version":  0
+                         },
+    "selection":  {
+                      "mode":  "pinned",
+                      "deployment_id":  "hospital-local-e2e",
+                      "version":  1
+                  },
+    "after":  {
+                  "active_provider":  "local",
+                  "active_model":  "hospital-model-e2e",
+                  "effective_deployment_id":  "hospital-local-e2e",
+                  "tenant_selection":  {
+                                           "mode":  "pinned",
+                                           "deployment_id":  "hospital-local-e2e",
+                                           "version":  1
+                                       },
+                  "selection_editable":  true,
+                  "live_health_verified":  false,
+                  "registered_deployment_count":  2
+              },
+    "agent_run":  {
+                      "agent_id":  "diagnosis-extractor",
+                      "error":  true,
+                      "error_reason":  "llm_degraded: degraded:provider_http_502",
+                      "result_field_count":  13,
+                      "mock_fallback_observed":  false,
+                      "summary":  "Provider output did not satisfy the Agent Pack contract."
+                  },
+    "secret_field_scan":  {
+                              "api_key":  false,
+                              "credential_llm":  false,
+                              "base_url":  false
+                          }
+}

@@ -1,0 +1,93 @@
+{
+  "agent_id": "claim-check",
+  "run_id": "run-b1d1c980-8f7e-44ba-a425-93473679607e",
+  "trace_id": "trace-977d5c9af0104566",
+  "trace_url": "/ai-studio/runs/run-b1d1c980-8f7e-44ba-a425-93473679607e/trace",
+  "runtime_mode": "pure_llm",
+  "latency_ms": 37,
+  "cost": {},
+  "summary": "Provider output did not satisfy the Agent Pack contract.",
+  "result": {
+    "status": "requires_review",
+    "markdown": "",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "failed",
+    "finish_reason": "llm_degraded: degraded:mock_provider",
+    "backend_provider": "icoder.pure-llm.v1",
+    "backend_type": "pure_llm",
+    "structured_extraction": {
+      "contract": "icoder/ClaimCheckOutput/v3",
+      "method": "none",
+      "warnings": [
+        "empty structured provider output"
+      ],
+      "required_fields": [
+        "review_conclusion",
+        "evidence_consistency",
+        "coding_risks",
+        "insurance_risks",
+        "policy_unavailable",
+        "evidence_insufficient",
+        "manual_review_required",
+        "summary"
+      ],
+      "optional_fields": [],
+      "missing_required_fields": [
+        "review_conclusion",
+        "evidence_consistency",
+        "coding_risks",
+        "insurance_risks",
+        "policy_unavailable",
+        "evidence_insufficient",
+        "summary"
+      ],
+      "invalid_field_types": [],
+      "invalid_field_schemas": [],
+      "invalid_cross_agent_relations": [],
+      "undeclared_output_fields": [],
+      "undeclared_output_field_count": 0,
+      "valid": false
+    },
+    "contract_output_suppressed": true,
+    "manual_review_required": true
+  },
+  "schema_ref": "icoder/ClaimCheckOutput/v3",
+  "result_attestation": "",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "contract_validation",
+      "status": "failed",
+      "duration_ms": 0,
+      "metadata": {
+        "error_reason": "output_contract_violation",
+        "missing_required_field_count": 7,
+        "invalid_field_type_count": 0,
+        "invalid_field_schema_count": 0,
+        "invalid_cross_agent_relation_count": 0,
+        "undeclared_output_field_count": 0,
+        "invalid_paths": [],
+        "invalid_keywords": []
+      }
+    },
+    {
+      "step": "completion",
+      "status": "failed",
+      "duration_ms": 37,
+      "metadata": {
+        "agent_id": "claim-check",
+        "runtime_mode": "pure_llm",
+        "latency_ms": 37
+      }
+    }
+  ],
+  "error": true,
+  "error_reason": "llm_degraded: degraded:mock_provider",
+  "_http_status": 200,
+  "_elapsed_seconds": 0.47
+}

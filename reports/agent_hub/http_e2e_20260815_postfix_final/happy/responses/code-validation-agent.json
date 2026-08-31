@@ -1,0 +1,90 @@
+{
+  "agent_id": "code-validation-agent",
+  "run_id": "run-3e1d7bed-a5f4-49a4-88a2-cc5d06bc1031",
+  "trace_id": "trace-a80ce7cc482842b1",
+  "trace_url": "/ai-studio/runs/run-3e1d7bed-a5f4-49a4-88a2-cc5d06bc1031/trace",
+  "runtime_mode": "llm_with_tools",
+  "latency_ms": 1,
+  "cost": {},
+  "summary": "Provider output did not satisfy the Agent Pack contract.",
+  "result": {
+    "status": "requires_review",
+    "markdown": "",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "failed",
+    "finish_reason": "llm_degraded: degraded:mock_provider",
+    "backend_provider": "icoder.llm-with-tools.v1",
+    "backend_type": "llm_with_tools",
+    "structured_extraction": {
+      "contract": "icoder/CodeValidationOutput/v6",
+      "method": "none",
+      "warnings": [
+        "empty structured provider output"
+      ],
+      "required_fields": [
+        "review_conclusion",
+        "validated_codes",
+        "cross_code_issues",
+        "manual_review_required",
+        "summary",
+        "markdown"
+      ],
+      "optional_fields": [],
+      "missing_required_fields": [
+        "review_conclusion",
+        "validated_codes",
+        "cross_code_issues",
+        "manual_review_required",
+        "summary",
+        "markdown"
+      ],
+      "invalid_field_types": [],
+      "invalid_field_schemas": [],
+      "invalid_cross_agent_relations": [],
+      "undeclared_output_fields": [],
+      "undeclared_output_field_count": 0,
+      "valid": false
+    },
+    "contract_output_suppressed": true,
+    "manual_review_required": true
+  },
+  "schema_ref": "icoder/CodeValidationOutput/v6",
+  "result_attestation": "",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "contract_validation",
+      "status": "failed",
+      "duration_ms": 0,
+      "metadata": {
+        "error_reason": "output_contract_violation",
+        "missing_required_field_count": 6,
+        "invalid_field_type_count": 0,
+        "invalid_field_schema_count": 0,
+        "invalid_cross_agent_relation_count": 0,
+        "undeclared_output_field_count": 0,
+        "invalid_paths": [],
+        "invalid_keywords": []
+      }
+    },
+    {
+      "step": "completion",
+      "status": "failed",
+      "duration_ms": 1,
+      "metadata": {
+        "agent_id": "code-validation-agent",
+        "runtime_mode": "llm_with_tools",
+        "latency_ms": 1
+      }
+    }
+  ],
+  "error": true,
+  "error_reason": "llm_degraded: degraded:mock_provider",
+  "_http_status": 200,
+  "_elapsed_seconds": 0.31
+}

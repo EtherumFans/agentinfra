@@ -1,0 +1,253 @@
+{
+  "agent_id": "clinical-documentation-improvement-agent",
+  "run_id": "run-4f07c1e7-25bb-4d68-9820-2dcceb7c095f",
+  "trace_id": "trace-e58c7320126b4402",
+  "trace_url": "/ai-studio/runs/run-4f07c1e7-25bb-4d68-9820-2dcceb7c095f/trace",
+  "runtime_mode": "cdi_real_orchestrator",
+  "latency_ms": 16782,
+  "cost": {
+    "amount": 0.00116354,
+    "currency": "CNY",
+    "source": "configured_usage_pricing_estimate",
+    "billing_authoritative": false
+  },
+  "billing": {},
+  "summary": "CDI review completed; specialist and clinician review remain required.",
+  "result": {
+    "encounter_summary": {
+      "key_points": [
+        "原发性高血压",
+        "2型糖尿病",
+        "慢性肾病",
+        "高脂血症",
+        "用药: 二甲双胍, 缬沙坦, 胰岛素"
+      ],
+      "encounter_metadata": {
+        "patient_age": "58岁",
+        "patient_sex": "男性",
+        "encounter_type": "住院"
+      }
+    },
+    "documentation_gaps": [
+      {
+        "gap_id": "GAP-001",
+        "gap_type": "diagnostic_specificity",
+        "description": "出院诊断仅写'高血压'和'糖尿病'，未明确为原发性高血压和2型糖尿病，且未提及慢性肾病和高脂血症。",
+        "why_it_matters": "影响编码准确性，慢性肾病和高脂血症若未记录将无法编码，且高血压和糖尿病的类型未明确可能导致特异性不足。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "出院诊断:高血压, 糖尿病。",
+          "char_start": 76,
+          "char_end": 90,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "urgent"
+      },
+      {
+        "gap_id": "GAP-002",
+        "gap_type": "diagnostic_specificity",
+        "description": "慢性肾病未明确分期或严重程度。",
+        "why_it_matters": "慢性肾病分期影响编码和严重程度分级，缺少分期可能导致编码不准确。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "病程记录:高血压, 糖尿病, 慢性肾病, 高脂血症。",
+          "char_start": 50,
+          "char_end": 76,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      },
+      {
+        "gap_id": "GAP-003",
+        "gap_type": "diagnostic_specificity",
+        "description": "高脂血症未明确类型（如高胆固醇血症、高甘油三酯血症等）。",
+        "why_it_matters": "高脂血症的类型影响编码和用药选择，缺少类型可能导致编码不准确。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "病程记录:高血压, 糖尿病, 慢性肾病, 高脂血症。",
+          "char_start": 50,
+          "char_end": 76,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      }
+    ],
+    "proposed_provider_queries": [
+      {
+        "query_id": "Q-DXOMIT-709e37d8",
+        "gap_id": "GAP-001",
+        "topic": "出院诊断合并症完整性",
+        "reason": "病程记录中的合并症未出现在出院诊断中。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "病程记录:高血压, 糖尿病, 慢性肾病, 高脂血症",
+          "char_start": 50,
+          "char_end": 75,
+          "documented_at": ""
+        },
+        "evidence_spans": [
+          {
+            "document_id": "chart-001",
+            "quote": "病程记录:高血压, 糖尿病, 慢性肾病, 高脂血症",
+            "char_start": 50,
+            "char_end": 75,
+            "documented_at": ""
+          },
+          {
+            "document_id": "chart-001",
+            "quote": "出院诊断:高血压, 糖尿病",
+            "char_start": 76,
+            "char_end": 89,
+            "documented_at": ""
+          }
+        ],
+        "query_text": "请明确病程中所列慢性肾病和高脂血症在出院诊断中的记录情况。",
+        "response_options": [
+          "A. 两者均应记录",
+          "B. 仅记录慢性肾病",
+          "C. 仅记录高脂血症",
+          "D. 两者均不记录",
+          "E. 无法确定"
+        ],
+        "lifecycle_state": "DRAFT",
+        "priority": "routine",
+        "nlq_gate_verdict": "PASS",
+        "nlq_gate_block_reasons": []
+      }
+    ],
+    "query_gate_summary": {
+      "withheld_count": 4,
+      "status_counts": {
+        "REWRITE_CANDIDATE_GENERATED": 0
+      },
+      "manual_cdi_action_required": true
+    },
+    "coding_specificity_checklist": [],
+    "risk_flags": [
+      {
+        "category": "ambiguous_term",
+        "description": "出院诊断使用'高血压'和'糖尿病'，未明确类型，可能造成歧义。"
+      }
+    ],
+    "specialist_trace": [
+      {
+        "expert_id": "coding-expert",
+        "consulted": true,
+        "requested": "You are a coding-specialist Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "To ensure accurate coding, the discharge diagnosis must explicitly specify \"essential (primary) hypertension\" and \"type 2 diabetes mellitus,\" and include the documented chronic kidney disease with its stage (e.g., CKD stage 3a) and the specific type of hyperlipidemia (e.g., pure hypercholesterolemia or mixed hyperlipidemia). Without this clinical specificity, the severity and coexisting conditions cannot be captured, leading to incomplete risk adjustment and potential under-coding. Please clarify the CKD stage and lipid profile in the final diagnosis.",
+        "route_decision": "needed",
+        "route_reason": "coding_relevant_gap",
+        "execution_mode": "LLM_KNOWLEDGE_ONLY",
+        "latency_ms": 2090,
+        "tokens": 289,
+        "run_id": "run-7b99b30c9a15",
+        "trace_id": "trace-645cb7ce51df"
+      },
+      {
+        "expert_id": "pubmed-expert",
+        "consulted": false,
+        "requested": "You are a PubMed literature Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-cee088d124dc",
+        "trace_id": "trace-f74a0ae50e35"
+      },
+      {
+        "expert_id": "web-search-expert",
+        "consulted": false,
+        "requested": "You are a clinical web-search Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-043f77890f5b",
+        "trace_id": "trace-790fe31ae5d0"
+      },
+      {
+        "expert_id": "medical-calculator-expert",
+        "consulted": false,
+        "requested": "You are a medical-calculator Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "'分级' score — no deterministic calculator wired",
+        "route_decision": "tool_unavailable",
+        "route_reason": "no_real_tool_wired",
+        "execution_mode": "TOOL_UNAVAILABLE",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-0e9ac7727cff",
+        "trace_id": "trace-bf133aaa2ae0"
+      }
+    ],
+    "human_review": {
+      "cdi_specialist_review_required": true,
+      "clinician_response_required": true,
+      "review_priority": "routine"
+    },
+    "trace_refs": {
+      "run_id": "run-4f07c1e7-25bb-4d68-9820-2dcceb7c095f",
+      "stage_trace": {
+        "encounter_synthesis": "trace-14f11ba9ac9a",
+        "gap_identification": "trace-e77da3dbdf0b",
+        "expert_consultation": "trace-20394859e5b7",
+        "query_generation": "trace-b13858a94425",
+        "query_eligibility_gate": "",
+        "query_necessity_gate": "",
+        "query_dimension_rewrite": "",
+        "query_single_dimension_gate": "",
+        "claim_evidence_alignment_gate": "trace-fe9f2ada9407",
+        "semantic_necessity_gate": "trace-ca217f86d85b",
+        "query_compliance_gate": "",
+        "specialist_trace_emit": "trace-1aaed854512e"
+      },
+      "experts_consulted": [
+        "coding-expert"
+      ],
+      "gate_results": {
+        "encounter_synthesis": "run-96d44cc0a570",
+        "gap_identification": "run-da05ad6c7d5a",
+        "gap_identification_risk_flags": "emitted=1;quote_snapped=0",
+        "expert_consultation": "run-c0ea3dbedd22",
+        "query_generation": "run-d786aa9aa332",
+        "query_generation::quote_snapped": "0",
+        "query_generation::coverage_missing": "0",
+        "query_eligibility_gate": "chart_complete=False;completeness_score=0.25;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=Y;dropped=0;final_count=3;llm_complete=False;llm_reasoning=出院诊断未明确高血压和糖尿病的类型，且未提及慢性肾病和高脂血症，导致诊断不完整，需要澄清。",
+        "query_necessity_gate": "necessary=3;unnecessary=0;overquery_triggered=False;final_count=1",
+        "query_dimension_rewrite": "not_executed",
+        "query_single_dimension_gate": "single_dim=1;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=complication;rewrite_attempted=0;rewrite_accepted=0;final_count=1",
+        "claim_evidence_alignment_gate": "claims_extracted=2;degraded=0;blocked=0;flagged=0;final_count=1",
+        "claim_evidence_alignment_gate::run_id": "run-a95efe851882",
+        "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=1",
+        "semantic_necessity_gate::run_id": "run-d67aa01cbc29",
+        "query_compliance_gate": ";passed=1;blocked=0",
+        "specialist_trace_emit": "run-b7172743390e"
+      },
+      "trace_id": "trace-e58c7320126b4402"
+    }
+  },
+  "schema_ref": "icoder/CDIAgentOutputV1/v6",
+  "result_attestation": "eyJhIjoiY2xpbmljYWwtZG9jdW1lbnRhdGlvbi1pbXByb3ZlbWVudC1hZ2VudCIsImQiOiI1MzgwYTVhZmIzZDdkYTY5NzZmMzk1YzZkYjc0ZTExZTcxNmFmZDY2OGY4ZTE2ZDcxZmNjOGJmYjYwOWJjYzc1IiwiZSI6MTc4Nzg4MjQxNywibyI6ImJjOTJlZTA2YWYwZiIsInIiOiJydW4tNGYwN2MxZTctMjViYi00ZDY4LTk4MjAtMmRjY2ViN2MwOTVmIiwicyI6Imljb2Rlci9DRElBZ2VudE91dHB1dFYxL3Y2IiwidiI6MX0.-TCs-LPe9ivBaBSRSffMnv-oM04XQjlkyqUetoocP0E",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 16.93
+}

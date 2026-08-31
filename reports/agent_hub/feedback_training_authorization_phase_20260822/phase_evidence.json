@@ -1,0 +1,126 @@
+{
+  "schema_version": "icoder.feedback-training-authorization/v1",
+  "generated_at": "2026-08-22T17:22:06+08:00",
+  "result": "passed_with_training_content_and_external_release_gates_open",
+  "implementation": {
+    "ordinary_feedback_is_training_authorization": false,
+    "automated_evaluation_is_training_authorization": false,
+    "authorization_roles": [
+      "owner",
+      "admin"
+    ],
+    "exact_feedback_snapshot_digest_bound": true,
+    "purpose": "quality_improvement",
+    "data_scope": "feedback_metadata_only",
+    "maximum_authorization_days": 30,
+    "explicit_acknowledgement_required": true,
+    "approval_reference_stored_as_sha256_only": true,
+    "feedback_mutation_revokes_authorization": true,
+    "feedback_delete_revokes_authorization": true,
+    "context_hard_delete_clears_authorization": true,
+    "retention_purge_clears_authorization": true,
+    "tenant_owned_grant_and_revoke_audit_fail_closed": true,
+    "training_content_export_endpoint_present": false,
+    "task_message_model_content_or_reason_authorized": false
+  },
+  "tests": {
+    "focused_backend_and_preflight": {
+      "passed": 8,
+      "failed": 0
+    },
+    "expanded_feedback_context_retention_rbac_oauth": {
+      "passed": 96,
+      "failed": 0,
+      "warnings": 3,
+      "duration_seconds": 60.48
+    },
+    "javascript_sdk": {
+      "passed": 43,
+      "failed": 0,
+      "build_passed": true
+    },
+    "python_sdk": {
+      "passed": 50,
+      "failed": 0,
+      "duration_seconds": 49.36
+    },
+    "dotnet_sdk": {
+      "source_and_contract_tests_updated": true,
+      "locally_compiled": false,
+      "reason": "dotnet CLI is unavailable on this development host"
+    },
+    "migration": {
+      "temporary_round_trip": "053_to_054_to_053_to_054",
+      "source_revision": "041",
+      "candidate_revision": "054",
+      "source_rows_preserved": 6090,
+      "candidate_foreign_key_errors": 0,
+      "candidate_data_tables": 69,
+      "orm_columns_checked": 1008,
+      "orm_schema_drift": 0,
+      "initial_server_default_drift_detected_and_fixed": true,
+      "source_cutover_performed": false
+    },
+    "openapi": {
+      "paths": 270,
+      "schemas": 290,
+      "bytes": 851708,
+      "drift": false
+    },
+    "deployment_preflight": {
+      "passed": 73,
+      "failed": 0,
+      "mode": "static_without_docker_cli"
+    },
+    "real_llm_used": false,
+    "real_asr_used": false,
+    "external_llm_allowed": false,
+    "native_medcoder_used": false,
+    "independent_backend_started_or_restarted": false
+  },
+  "data_safety": {
+    "schema_change": true,
+    "source_database_path": "backend/data/icoder.db",
+    "source_database_sha256": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e",
+    "source_database_unchanged": true,
+    "cutover_performed": false,
+    "port_8000_listening_after_verification": false
+  },
+  "artifacts": {
+    "runtime_matrix": {
+      "path": "reports/agent_hub/visible_launch_candidate_enforcement_phase_20260822/current/agent_hub_runtime_matrix.json",
+      "sha256": "0e4cb75433af9c6af2d680d0b6af28cdd6ff1e9897b3366cff71ddc3648d7865"
+    },
+    "deployment_preflight": {
+      "path": "reports/agent_hub/feedback_training_authorization_phase_20260822/deployment-preflight/deployment_preflight.json",
+      "sha256": "099821135bb4ec65b4cecb4fd7643f4facf581ec37577052ec9581b674db16f2"
+    },
+    "openapi": {
+      "path": "docs/openapi/openapi.json",
+      "sha256": "a095196fe81a671d8c94f57ece85831d9346490deb5c49e5cf2b05cb661a8cfe"
+    },
+    "summary": {
+      "path": "docs/corti_parity/ICODER_FEEDBACK_TRAINING_AUTHORIZATION_PHASE_SUMMARY_2026-08-22.md",
+      "sha256": "2d44c944b897491eba70cecf44c924d39f98316ad1a751b6bcf376410cbcc0f6"
+    },
+    "live_gap_matrix": {
+      "path": "docs/corti_parity/CORTI_ICODER_LIVE_GAP_MATRIX_2026-08-21.md",
+      "sha256": "8adb841f11b4ef28d536c1c72eaa8800f6a54e7d3952441c3ac590119fcc6604",
+      "bytes": 34561
+    },
+    "sqlite_reconciliation_report": {
+      "path": "reports/agent_hub/feedback_training_authorization_phase_20260822/sqlite-reconciliation-final/sqlite_migration_stage_report.json",
+      "sha256": "29d81c602496cd22eb52ff3874703bd63ef803307c12b0f8b846cea8cbec8bf9"
+    },
+    "sqlite_candidate": {
+      "path": "reports/agent_hub/feedback_training_authorization_phase_20260822/sqlite-reconciliation-final/icoder_054_candidate.db",
+      "sha256": "4f5fed1dcc2d8e7cbbbf54a0cb0411f9d9c0b23d0148e8e903e576c9bbd96983"
+    }
+  },
+  "limitations": [
+    "This authorization covers feedback metadata eligibility only; no Task, Message, model input, model output, clinical text, feedback reason, training export, training pipeline, or model-weight update is authorized or implemented.",
+    "Patient and hospital authority, legal basis, ethics review, de-identification quality, irreversible-training deletion impact, and training lineage remain external gates.",
+    "No fresh real-model clinical quality matrix or bilateral Corti comparison was executed in this phase.",
+    "No dotnet, Docker, or Nginx CLI is available locally; PostgreSQL multi-replica, cloud KMS/Secret Manager, production audit sink, hospital deployment, legal, certification, and independent review remain open."
+  ]
+}

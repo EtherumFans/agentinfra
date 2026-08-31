@@ -1,0 +1,194 @@
+{
+  "agent_id": "clinical-documentation-improvement-agent",
+  "run_id": "run-c881973b-8f36-48fc-9295-3f9b8f7e3480",
+  "trace_id": "trace-ac2a399f5dd44256",
+  "trace_url": "/ai-studio/runs/run-c881973b-8f36-48fc-9295-3f9b8f7e3480/trace",
+  "runtime_mode": "cdi_real_orchestrator",
+  "latency_ms": 9558,
+  "cost": {
+    "amount": 0.00065408,
+    "currency": "CNY",
+    "source": "configured_usage_pricing_estimate",
+    "billing_authoritative": false
+  },
+  "billing": {},
+  "summary": "CDI review completed; specialist and clinician review remain required.",
+  "result": {
+    "encounter_summary": {
+      "key_points": [
+        "患者男性，5岁",
+        "因急性中耳炎就诊",
+        "耳痛2天",
+        "体温38.0℃",
+        "耳镜检查：右耳鼓膜充血膨隆，无穿孔",
+        "诊断：急性化脓性中耳炎（右）",
+        "予阿莫西林克拉维酸钾口服7天",
+        "3天后复诊症状缓解"
+      ],
+      "encounter_metadata": {
+        "patient_age": "5岁",
+        "patient_sex": "男性",
+        "encounter_type": "门诊"
+      }
+    },
+    "documentation_gaps": [
+      {
+        "gap_id": "GAP-001",
+        "gap_type": "diagnostic_specificity",
+        "description": "The diagnosis of acute suppurative otitis media is documented, but the causative organism is not specified.",
+        "why_it_matters": "Specifying the organism (e.g., Streptococcus pneumoniae, Haemophilus influenzae) can affect antibiotic selection and coding specificity.",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "诊断:急性化脓性中耳炎(右)",
+          "char_start": 50,
+          "char_end": 64,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      },
+      {
+        "gap_id": "GAP-002",
+        "gap_type": "diagnostic_specificity",
+        "description": "The severity of the acute otitis media is not documented (e.g., mild, moderate, severe).",
+        "why_it_matters": "Severity may influence treatment decisions and is relevant for clinical accuracy and potential coding.",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "耳痛2天, T 38.0℃。耳镜:右耳鼓膜充血膨隆, 无穿孔。",
+          "char_start": 19,
+          "char_end": 50,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      }
+    ],
+    "proposed_provider_queries": [],
+    "query_gate_summary": {
+      "withheld_count": 2,
+      "status_counts": {
+        "REWRITE_CANDIDATE_GENERATED": 0
+      },
+      "manual_cdi_action_required": true
+    },
+    "coding_specificity_checklist": [],
+    "risk_flags": [],
+    "specialist_trace": [
+      {
+        "expert_id": "coding-expert",
+        "consulted": true,
+        "requested": "You are a coding-specialist Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "For accurate coding, the causative organism must be specified (e.g., bacterial vs. viral, or a named pathogen like *Streptococcus pneumoniae*), as this directly affects treatment and code selection. Additionally, document the severity (mild, moderate, severe) of the acute suppurative otitis media, since severity can influence the clinical course and management intensity. Without these details, the record lacks the specificity needed to reflect the true clinical picture.",
+        "route_decision": "needed",
+        "route_reason": "coding_relevant_gap",
+        "execution_mode": "LLM_KNOWLEDGE_ONLY",
+        "latency_ms": 1802,
+        "tokens": 260,
+        "run_id": "run-0331d242819c",
+        "trace_id": "trace-2b7df7c0581c"
+      },
+      {
+        "expert_id": "pubmed-expert",
+        "consulted": false,
+        "requested": "You are a PubMed literature Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-b229ba325cb5",
+        "trace_id": "trace-482ff39d534c"
+      },
+      {
+        "expert_id": "web-search-expert",
+        "consulted": false,
+        "requested": "You are a clinical web-search Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-0131ca5dbbc9",
+        "trace_id": "trace-286223818f74"
+      },
+      {
+        "expert_id": "medical-calculator-expert",
+        "consulted": false,
+        "requested": "You are a medical-calculator Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-f51a15503ffb",
+        "trace_id": "trace-43a3de4a1a0b"
+      }
+    ],
+    "human_review": {
+      "cdi_specialist_review_required": true,
+      "clinician_response_required": true,
+      "review_priority": "routine"
+    },
+    "trace_refs": {
+      "run_id": "run-c881973b-8f36-48fc-9295-3f9b8f7e3480",
+      "stage_trace": {
+        "encounter_synthesis": "trace-62d946b7442f",
+        "gap_identification": "trace-2972ec980ae9",
+        "expert_consultation": "trace-63c96928f854",
+        "query_generation": "trace-a4a7a7e02b52",
+        "query_eligibility_gate": "",
+        "query_necessity_gate": "",
+        "query_dimension_rewrite": "",
+        "query_single_dimension_gate": "",
+        "claim_evidence_alignment_gate": "trace-eb2e89bf458c",
+        "semantic_necessity_gate": "trace-27e2b733d0e1",
+        "query_compliance_gate": "",
+        "specialist_trace_emit": "trace-26d271625111"
+      },
+      "experts_consulted": [
+        "coding-expert"
+      ],
+      "gate_results": {
+        "encounter_synthesis": "run-cf6979323051",
+        "gap_identification": "run-9febd563194c",
+        "gap_identification_risk_flags": "emitted=0;quote_snapped=0;withheld=0;quantity_redacted=0",
+        "expert_consultation": "run-7e12c4ba44d6",
+        "query_generation": "run-612a76ec5fbd",
+        "query_generation::quote_snapped": "0",
+        "query_generation::coverage_missing": "0",
+        "query_eligibility_gate": "chart_complete=False;completeness_score=0.25;dimensions=D1_type=Y,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=Y;dropped=0;final_count=2;llm_complete=False;llm_reasoning=The chart documents the diagnosis and treatment but lacks specification of the c",
+        "query_necessity_gate": "necessary=0;unnecessary=2;overquery_triggered=False;final_count=0",
+        "query_dimension_rewrite": "not_executed",
+        "query_single_dimension_gate": "single_dim=0;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;rewrite_attempted=0;rewrite_accepted=0;final_count=0",
+        "claim_evidence_alignment_gate": "claims_extracted=0;degraded=0;blocked=0;flagged=0;final_count=0",
+        "claim_evidence_alignment_gate::run_id": "run-b8fa64fb059c",
+        "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+        "semantic_necessity_gate::run_id": "run-64db8bed6d19",
+        "query_compliance_gate": ";passed=0;blocked=0",
+        "specialist_trace_emit": "run-a1dd08e6dc72"
+      },
+      "trace_id": "trace-ac2a399f5dd44256"
+    }
+  },
+  "schema_ref": "icoder/CDIAgentOutputV1/v6",
+  "result_attestation": "eyJhIjoiY2xpbmljYWwtZG9jdW1lbnRhdGlvbi1pbXByb3ZlbWVudC1hZ2VudCIsImQiOiI2ZjU3OTU4ZGE2N2M3OTYzZmVlMTA0MzY2OWYyYTgyODBlOTU1N2I1Zjk1MDNkMjc5ODdhNDBlYjA2ZDUzMmVlIiwiZSI6MTc4Nzg4NzM1NywibyI6IjVmZWYzNzlmMjViZCIsInIiOiJydW4tYzg4MTk3M2ItOGYzNi00OGZjLTkyOTUtM2Y5YjhmN2UzNDgwIiwicyI6Imljb2Rlci9DRElBZ2VudE91dHB1dFYxL3Y2IiwidiI6MX0.FcRrjO8QKh5MxJ9jDHeBNtyxDBDXMuid8FcMo_zH0_k",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 9.725
+}

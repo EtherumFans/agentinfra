@@ -56,7 +56,7 @@ A1D-DEV.8 阶段（2026-07-26）的 20-case MedCodER live benchmark 显示：ful
 4. **独立 reviewer 签字** — 不允许工程团队自证
 5. **Pilot 客户接受性反馈** — 至少 1 家 design-partner 医院反馈
 
-在以上条件未满足时（当前状态：1/5 — 仅初始 seed），所有 Corti 对比 claim 在用户可见表面为**禁用**。
+在以上条件未满足时（2026-08-27 当前状态：**0/5 完整满足**；只有 5-case seed、双语 runner 和 reviewer 工作流基础设施），所有 Corti 对比 claim 在用户可见表面为**禁用**。
 
 ### 规则 4 — 内部研发材料允许的范围
 
@@ -113,6 +113,11 @@ Sales / Marketing / Pricing 页 / `README.md` / `docs/product/PRODUCT_DIRECTION.
 - 每例含 zh + en 平行病历 + ICD-10-CN 编码 + 证据 span
 - **明确 NOT derived from CCL 2026** — 由 iCoDer 团队从公开临床指南 + 合成模板构造
 
+**2026-08-27 增量**：
+- `run_agent_hub_clinical_calibration_e2e.py` 已支持 5 case × zh/en 的串行双语真实 Provider 校准，并同时输出双语代码集合一致性；结果仍使用工程 expected 标签。
+- `bilingual_coding_gold_review.py` 已生成不含工程 expected、notes、旧 evidence 或模型输出的盲化包，支持两位不同 reviewer、逐码中英文 evidence、目录成员校验、分歧仲裁和外部身份核验门。
+- reviewer readiness 已就绪，但没有任何外部 reviewer 提交或身份/资质核验，故 `independent_gold_ready=false`，规则 3 不解禁。
+
 **扩展到 100 cases 的路径**（不在本策略文档详细展开，见 sourcing strategy 文档）：
 1. Phase A — 合成扩展（5 → 30 cases，2-3 周）
 2. Phase B — 公开英文数据集翻译对齐（30 → 60 cases，4-6 周）— MIMIC-IV / MIMIC-IV-Note 选样
@@ -143,5 +148,5 @@ Sales / Marketing / Pricing 页 / `README.md` / `docs/product/PRODUCT_DIRECTION.
 
 ---
 
-**文档版本**: 1.0（2026-08-06 初始创建）
-**R2 状态**: PARTIAL_R2_CITATION_POLICY_FILED_BILINGUAL_SET_SEEDED_5_CASES
+**文档版本**: 1.1（2026-08-27 更新双语 runner 与独立 reviewer 门）
+**R2 状态**: PARTIAL_R2_CITATION_POLICY_ACTIVE_REVIEW_WORKFLOW_READY_NO_EXTERNAL_REVIEWS

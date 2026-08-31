@@ -1,0 +1,136 @@
+{
+  "schema_version": "icoder.a2a-v1-ai-sdk-adapter-phase-evidence/v1",
+  "generated_at": "2026-08-23T02:57:16+08:00",
+  "phase": "a2a_v1_interrupted_task_resume_and_ai_sdk_adapter",
+  "outcome": "development_environment_candidate",
+  "policy": {
+    "external_llm_allowed": false,
+    "real_llm_key_used": false,
+    "corti_live_calls_performed": false,
+    "protected_database_written": false,
+    "backend_started": false
+  },
+  "implementation": {
+    "alembic_head": "055",
+    "a2a_states": [
+      "submitted",
+      "working",
+      "completed",
+      "failed",
+      "canceled",
+      "rejected",
+      "input-required",
+      "auth-required"
+    ],
+    "resumable_states": [
+      "input-required",
+      "auth-required"
+    ],
+    "terminal_states": [
+      "completed",
+      "failed",
+      "canceled",
+      "rejected"
+    ],
+    "javascript_adapter_functions": [
+      "convertToParams",
+      "toUIMessageStream",
+      "createA2AClientFactory",
+      "createFetchImplementation"
+    ],
+    "sdk_versions": {
+      "javascript": "1.0.0-beta.25",
+      "python": "1.0.0b25",
+      "dotnet": "1.0.0-beta.25"
+    }
+  },
+  "verification": [
+    {
+      "name": "a2a_expanded_backend_regression",
+      "result": "329 passed, 1 skipped",
+      "passed": true
+    },
+    {
+      "name": "a2a_state_and_protocol",
+      "result": "31 passed",
+      "passed": true
+    },
+    {
+      "name": "durable_interrupted_task_runtime",
+      "result": "6 passed",
+      "passed": true
+    },
+    {
+      "name": "alembic_fresh_roundtrip_and_v1_state_constraint",
+      "result": "3 passed",
+      "passed": true
+    },
+    {
+      "name": "javascript_sdk_full",
+      "result": "50 passed, 0 failed; TypeScript build passed",
+      "passed": true
+    },
+    {
+      "name": "vercel_ai_v7_response_consumption",
+      "result": "1 passed; included in JavaScript total",
+      "passed": true
+    },
+    {
+      "name": "python_sdk_full",
+      "result": "51 passed",
+      "passed": true
+    },
+    {
+      "name": "deployment_preflight",
+      "result": "81 passed, 0 failed",
+      "passed": true,
+      "artifact": "deployment-preflight/deployment_preflight.json"
+    },
+    {
+      "name": "npm_official_registry_audit",
+      "result": "0 vulnerabilities",
+      "passed": true
+    }
+  ],
+  "candidate_artifacts": {
+    "javascript": {
+      "package": "@icoder/sdk@1.0.0-beta.25",
+      "dry_pack_only": true,
+      "published": false,
+      "shasum": "53e5717c90c1a53d275282f37677c94a87ab0d70"
+    },
+    "python": {
+      "package": "icoder_sdk-1.0.0b25-py3-none-any.whl",
+      "temporary_build_only": true,
+      "published": false,
+      "sha256": "29bcb53908014435ae1b3799d356af6a122752765bb8f2a6119260540a4c8bc0"
+    }
+  },
+  "safety_invariants": {
+    "protected_database_sha256": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e",
+    "protected_database_expected_sha256": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e",
+    "ports_expected_closed": [
+      8000,
+      18022
+    ],
+    "interrupted_result_encrypted": true,
+    "lease_released_on_interruption": true,
+    "resume_bound_to_tenant_agent_and_task": true,
+    "terminal_resume_rejected": true,
+    "adapter_same_origin": true,
+    "adapter_cookie_forwarding": false,
+    "adapter_upstream_error_leak": false
+  },
+  "reference_sources": [
+    "https://docs.corti.ai/sdk/ai-sdk-adapter/overview",
+    "https://docs.corti.ai/sdk/ai-sdk-adapter/reference",
+    "https://a2a-protocol.org/dev/specification/"
+  ],
+  "limitations": [
+    "No authenticated Corti package-level interoperability run was performed.",
+    "No local .NET compiler or test runner was available.",
+    "No PostgreSQL multi-worker race, failover, capacity, or SLA test was performed.",
+    "No real LLM, clinical Provider, hospital SSO, MCP external auth, cloud KMS, or production queue was exercised.",
+    "The full 5000-test backend baseline was not rerun in this phase."
+  ]
+}

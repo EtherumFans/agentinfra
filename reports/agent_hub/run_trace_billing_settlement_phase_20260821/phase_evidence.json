@@ -1,0 +1,277 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-08-21T22:35:00+08:00",
+  "scope": "Run Trace safe summary, diagnosis fail-closed normalization, opt-in development Agent Run billing preauthorization/settlement, China clinical asset governance, and controlled fixed-payload model connectivity canary",
+  "completion_audit": "docs/corti_parity/ICODER_COMPLETION_AUDIT_2026-08-21.md; proves development-candidate scope only and preserves real-model, infrastructure, hospital, legal, certification, and independent clinical review gates",
+  "runtime_safety": {
+    "real_credentials_stored": false,
+    "patient_data_used": false,
+    "offline_verification_provider": "mock",
+    "external_llm_allowed_during_offline_verification": false
+  },
+  "real_llm_observation": {
+    "synthetic": true,
+    "provider": "deepseek",
+    "agent_id": "diagnosis-extractor",
+    "run_id": "run-84162dd8-dfac-43cc-9346-7f9972158d85",
+    "status": "FAILED",
+    "reason": "output_contract_violation",
+    "latency_ms": 47683,
+    "cost_cny": 0.002997,
+    "tool_rounds": 4,
+    "provider_status": "incomplete",
+    "model_deployment_id": "deepseek",
+    "model_routing_mode": "inherit",
+    "model_selection_version": 0,
+    "model_routing_decision": "allow",
+    "contract_violations": [
+      "diagnoses[].icd10_cn_code",
+      "diagnoses[].icd10_cn_name",
+      "diagnoses[].fieldRelation"
+    ],
+    "remediation": "Unverified diagnoses without both code and name are removed from the codable diagnosis list; no code is invented; the result is forced to REQUIRES_REVIEW with manual_review_required=true. Malformed non-object entries still fail schema validation.",
+    "remediation_verification": "28/28 backend projection tests passed with external LLM disabled",
+    "real_post_fix_rerun": {
+      "executed_once": true,
+      "synthetic_and_deidentified": true,
+      "run_id": "run-71447985-6a29-4c88-9346-d7dd728d2009",
+      "trace_id": "trace-5c28c0478dd44b10",
+      "lifecycle_status": "COMPLETED",
+      "response_error": false,
+      "result_status": "PASS",
+      "schema_ref": "icoder/DiagnosisExtractionOutput/v6",
+      "result_attested": true,
+      "latency_ms": 32619,
+      "cost_cny": 0.003083,
+      "provider_status": "incomplete",
+      "tool_rounds": 5,
+      "tool_calls": 6,
+      "tool_results": {
+        "search_icd_failed_retriever_unavailable": 2,
+        "verify_code_succeeded": 3,
+        "explore_code_succeeded": 1
+      },
+      "diagnosis_count": 1,
+      "verified_code": "I21.001",
+      "verified_name": "急性前壁心肌梗死",
+      "non_codable_mention_count": 1,
+      "issue_count": 1,
+      "manual_review_required": true,
+      "finish_reason": "mandatory_tools_not_completed:search_icd",
+      "no_model_retry_or_canary": true,
+      "conclusion": "The post-fix result passed the v6 structural, relation, evidence-binding, and attestation gates without inventing a code. The disabled native retriever left search_icd unavailable, so the provider remained incomplete and the result was forced into human review. This is a single synthetic development observation, not clinical-quality or production-readiness evidence."
+    },
+    "safe_visible_launcher": "backend/scripts/start_visible_deepseek_e2e_backend.ps1; requires process-local credential, enforces DeepSeek/CN strict egress, disables native MedCodER and additional model live-canary calls, and never prints credential values"
+  },
+  "retrieval_follow_up_audit": {
+    "native_ml_executed_on_windows": false,
+    "llm_or_canary_calls": 0,
+    "temporary_backend_stopped": true,
+    "port_8000_listening_after_test": false,
+    "remote_worker_contract_tests": "31/31 passed; remote client, strict schema, token and HTTPS gates, two-code-system readiness, fake-worker API lifecycle, native-import isolation, and subprocess cleanup",
+    "cloud_fail_closed_config_tests": "40/40 passed",
+    "static_deployment_preflight": "51/51 passed in static_without_docker_cli mode",
+    "asset_manifest_verification": "Four ICD-10-CN/ICD-9-CM-3 index and metadata artifacts match the pinned size and SHA-256 manifest without importing native ML modules",
+    "docker_cli_available": false,
+    "compose_wiring_gap": "docker-compose.local-dev.yml can start the optional medcoder-retriever profile, but the backend MEDCODER_RETRIEVER_URL default remains empty and no checked-in local command/config sets http://medcoder-retriever:8100; the documented profile command therefore does not by itself connect the API to the worker",
+    "ci_runtime_gap": "No workflow builds and starts Dockerfile.ml plus the API and executes a real remote-retrieval request; current CI/static gates cover contracts and files only",
+    "conclusion": "The isolated Linux retrieval architecture and immutable assets are development-candidate complete at contract level, but live container wiring and end-to-end retrieval are unproven. This gap explains the post-fix real Run's RETRIEVER_UNAVAILABLE result and remains an engineering release blocker."
+  },
+  "corti_official_public_docs_refresh": {
+    "reviewed_at": "2026-08-21",
+    "authenticated_console_or_browser_used": false,
+    "sources": [
+      "https://docs.corti.ai/get_started/welcome",
+      "https://docs.corti.ai/agentic/overview",
+      "https://docs.corti.ai/agentic/connectors",
+      "https://docs.corti.ai/agentic/a2a-protocol",
+      "https://docs.corti.ai/agentic/context-memory",
+      "https://docs.corti.ai/agentic/guides/export-traces",
+      "https://docs.corti.ai/agentic/guides/submit-feedback",
+      "https://docs.corti.ai/coding/overview",
+      "https://docs.corti.ai/stt/overview",
+      "https://docs.corti.ai/textgen/overview",
+      "https://docs.corti.ai/assistant/introduction",
+      "https://docs.corti.ai/models/welcome",
+      "https://docs.corti.ai/sdk/overview"
+    ],
+    "authoritative_local_contract_probe": {
+      "openapi_paths": 241,
+      "v2_agentic_paths": 0,
+      "connector_paths": 0,
+      "agent_feedback_paths": 0,
+      "context_openinference_export_paths": 0,
+      "current_a2a_protocol": "0.3",
+      "current_a2a_public_subset": [
+        "message:send",
+        "message:stream",
+        "get task",
+        "cancel task"
+      ],
+      "agent_usage_endpoint_present": true,
+      "coding_include_exclude_expand_present": true,
+      "coding_document_id_and_evidence_candidates_present": true
+    },
+    "corrected_claim": "The historical 20/20 prebuilt-agent catalog mapping remains a directory snapshot only. It does not prove parity with Corti's current Agentic v2 five-connector model, A2A v1.0 dual bindings, context/task resources, OpenInference trace export, task/message feedback, or private-preview Agent SDK composition.",
+    "detailed_report": "docs/corti_parity/CORTI_OFFICIAL_PUBLIC_DOCS_REFRESH_2026-08-21.md"
+  },
+  "run_trace_summary": {
+    "fields": [
+      "agent_id",
+      "trace_id",
+      "run_status",
+      "runtime_mode",
+      "latency_ms",
+      "cost",
+      "error",
+      "error_reason",
+      "trace_capture_status",
+      "created_at",
+      "review_signal"
+    ],
+    "review_signal_authoritative": false,
+    "contains_input_or_output": false,
+    "contains_phi": false,
+    "backend_trace_tests": "11/11 passed",
+    "frontend_render_contract": "production build and 132/132 frontend tests passed"
+  },
+  "development_billing": {
+    "scope": "local/development simulation only",
+    "opt_in_environment_flags": [
+      "ICODER_BILLING_SIMULATION=true",
+      "ICODER_AGENT_RUN_BILLING_ENFORCED=true"
+    ],
+    "cloud_mutations_allowed": false,
+    "oauth_client_principal_supported": true,
+    "oauth_billing_attribution": "API Client usage settles against the registering owner ledger inside the token organization while RunHistory/Trace retain api_client_id",
+    "oauth_scope_gate": {
+      "general": ["agents:run", "api:write"],
+      "specialized": ["medical-coding:run", "cdi:run", "drg-dip:run"],
+      "read_only_tokens_rejected_before_input_processing": true
+    },
+    "capabilities": [
+      "provider call denied before dispatch when available balance is below reservation",
+      "conservative per-run reservation",
+      "actual provider cost settled once",
+      "idempotency replay does not rerun the provider or double debit",
+      "insufficient balance at settlement withholds the clinical payload",
+      "top-up retry settles the same run idempotently",
+      "balance distinguishes ledger balance, held reservations, and available balance",
+      "PHI-free settlement audit list",
+      "client_credentials Agent Runs are scope-gated and idempotently charged to the authoritative registering owner ledger",
+      "explicit stale-reservation reconciliation releases only orphaned RESERVED rows, converts orphaned SETTLING rows to retryable failures without waiving cost, and skips active RunHistory states",
+      "preauthorization, settlement, and reconciliation share an owner-row SELECT FOR UPDATE contract for PostgreSQL serialization"
+    ],
+    "backend_agent_run_tests": "11/11 billing, OAuth-scope, crash-reconciliation, and PostgreSQL FOR UPDATE SQL-contract tests passed",
+    "oauth_runtime_regression": "28/28 passed",
+    "api_client_crud_regression": "15/15 passed",
+    "idempotency_and_lifecycle_regression": "15/15 passed",
+    "auth_regression": "10/10 passed, including duplicate default organization-name suffixing",
+    "database_and_redaction_tests": "37/37 passed",
+    "migration_and_schema_drift_tests": "9/9 passed",
+    "alembic_head": "043",
+    "known_limits": [
+      "not a payment processor, invoice, refund, or financial reconciliation system",
+      "per-user development ledger; API Client usage is owner-attributed rather than a native project-level financial account",
+      "owner-row FOR UPDATE is implemented, but production multi-replica behavior still requires a real PostgreSQL concurrency run"
+    ]
+  },
+  "china_clinical_asset_governance": {
+    "manifest": "backend/data/china_clinical_assets_manifest.json",
+    "schema_version": "icoder.cn-clinical-assets/v1",
+    "declared_assets": [
+      "cn.icd10cn.catalog@observed-local-2026-05-19",
+      "cn.icd9cm3.catalog@observed-local-2026-05-19",
+      "cn.drg_dip.risk_heuristics@1.0.0-development"
+    ],
+    "integrity": "All declared artifacts have pinned SHA-256 and size; repository DRG artifacts and the two observed local catalog files verified on this host",
+    "source_and_license_truth": "ICD catalogs remain source_unverified/external_review_required; DRG/DIP rules remain experimental_unverified/external_review_required",
+    "drg_dip_policy": {
+      "development_risk_review_allowed": true,
+      "cloud_unverified_use_allowed": false,
+      "billing_allowed": false,
+      "settlement_allowed": false,
+      "production_grouping_allowed": false,
+      "billing_authoritative": false,
+      "manual_review_required": true,
+      "payment_weight_emitted": 0,
+      "dip_score_emitted": 0,
+      "payment_estimate_emitted": 0
+    },
+    "agent_output_contract": "icoder/DRGDIPRiskReview/v4",
+    "runtime_owned_constants": [
+      "manual_review_required=true",
+      "rule_authority_status=experimental_unverified",
+      "billing_authoritative=false",
+      "rule_pack_id=cn.drg_dip.risk_heuristics",
+      "rule_pack_version=1.0.0-development",
+      "jurisdiction=CN_GENERIC_DEVELOPMENT"
+    ],
+    "api_authentication_required": true,
+    "governance_and_drg_tests": "63/63 passed, including typed OpenAPI responses and invalid demographic rejection",
+    "agent_hub_pack_discovery_regression": "194/194 expanded runtime-matrix, visible-contract, safety, pack, projection, discovery, Hub, and clone regression passed",
+    "pack_contract_drift": "26/26 visible schemas and examples unchanged; 101 registered immutable contracts; no new, changed, invalid, or duplicate refs",
+    "runtime_matrix": "32 disk Packs; 26 visible and 6 hidden (5 metadata-only); 26/26 visible executable, provider-resolvable, launch-candidate-ready with no visible stub; reports/agent_hub/runtime_matrix_20260821_model_canary",
+    "corti_prebuilt_parity": "20/20 catalog mapped, development verified, and China profile declared; clinical quality and production ready remain 0/20; reports/agent_hub/corti_prebuilt_parity_20260821_model_canary",
+    "deployment_candidate_preflight": "51/51 passed, including fixed-payload/no-content/budget/cooldown/three-SDK canary contract; reports/deployment/development_preflight_20260821_model_canary",
+    "frontend_truthfulness": "DRG/DIP payment-analysis claims removed; frontend 132/132 and Embedded Assistant TypeScript build passed",
+    "known_limits": [
+      "The observed ICD catalogs do not have independently verified official source or redistribution licence evidence in the repository",
+      "The DRG/DIP pack is a development risk heuristic, not a national, provincial, municipal, hospital, payment, or settlement grouper",
+      "Authoritative regional rule import requires externally supplied licensed data, effective dates, and hospital/insurer acceptance evidence"
+    ]
+  },
+  "controlled_model_live_canary": {
+    "real_call_executed": false,
+    "scope": "single external connectivity observation only; no patient data, model quality, persistent health, SLA, or authoritative billing claim",
+    "default_enabled": false,
+    "supported_external_providers": ["deepseek", "qwen", "openai_compat"],
+    "authorization": "owner/admin, explicit acknowledgement, exact registered deployment, credential configured, and egress allow",
+    "request_contract": {
+      "purpose": "connectivity_only_no_patient_data",
+      "fixed_synthetic_payload": true,
+      "caller_text_allowed": false,
+      "extra_fields_rejected": true,
+      "completion_text_returned": false,
+      "completion_text_logged": false
+    },
+    "server_limits": {
+      "max_cost_cny": 0.05,
+      "max_output_tokens": 8,
+      "timeout_seconds": 15,
+      "max_attempts": 1,
+      "cooldown_seconds": 300,
+      "audit_started_before_network_call": true
+    },
+    "gateway_limit_enforcement": "Per-request max_tokens, timeout, and max_attempts now reach Provider calls and may only tighten server limits",
+    "catalog_truth": "live_health_verified remains false; catalog and registered deployment expose only the latest connectivity canary status/time",
+    "backend_and_provider_tests": "48/48 targeted passed; 116/116 combined canary, provider, audit, tool-gate, and diagnosis projection regression passed",
+    "frontend_contract": "132/132 passed; explicit confirmation and no free-text field",
+    "sdk_contract": "JavaScript, Python, and .NET expose typed fixed-payload canary methods; local .NET compilation remains pending"
+  },
+  "sdk_and_contracts": {
+    "drg_dip_fail_closed_contract": "All three SDKs reject authoritative, non-zero grouping/payment, or no-manual-review responses",
+    "model_canary_contract": "All three SDKs expose only the fixed-purpose acknowledged request and do not accept prompt text",
+    "javascript": "31/31 passed; 1.0.0-beta.17 npm dry-run package includes typed DRG/DIP and Models Canary resources",
+    "python": "38/38 passed; 1.0.0b17 wheel built",
+    "dotnet": "1.0.0-beta.17 DRG/DIP and Models Canary source contracts and negative tests updated; local dotnet CLI unavailable, CI compile/test pending",
+    "release_candidate": "5/5 validator tests passed; normalized three-SDK version 1.0.0-beta.17; local JavaScript .tgz and Python .whl were built and SHA-256 recorded; .NET artifact remains absent; reports/release-candidate/LOCAL_RELEASE_MANIFEST_BETA17.json records artifacts=2, source_tree_state=dirty, and publication.performed=false",
+    "openapi_bytes": 715968,
+    "openapi_check": "passed"
+  },
+  "frontend": {
+    "tests": "21 files, 132/132 passed",
+    "production_build": "passed"
+  },
+  "external_gates_remaining": [
+    "real payment and financial reconciliation",
+    "Linux and .NET CI",
+    "PostgreSQL multi-replica concurrency",
+    "Docker, reverse proxy, SBOM and vulnerability verification",
+    "hospital HIS/EMR interoperability",
+    "authorized national/provincial/municipal/hospital coding and DRG/DIP rule packages with source, licence, effective dates, and settlement acceptance",
+    "independent clinical quality review",
+    "Chinese legal, security classification and certification review",
+    "cloud capacity, observability, disaster recovery and SLA exercises"
+  ]
+}

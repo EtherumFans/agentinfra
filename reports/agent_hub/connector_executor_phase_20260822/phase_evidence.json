@@ -1,0 +1,66 @@
+{
+  "phase": "agentic_v2_connector_fail_closed_executor",
+  "captured_at": "2026-08-22T00:17:00+08:00",
+  "network_llm_calls": 0,
+  "external_connector_calls": 0,
+  "browser_started": false,
+  "native_medcoder_started": false,
+  "implementation": {
+    "executor": "app.services.connector_executor.ConnectorExecutor",
+    "connector_types": ["registry", "mcp", "agent", "a2a", "schema"],
+    "adapter_boundaries": [
+      "remote_transport",
+      "credential_resolver",
+      "registry_invoker",
+      "agent_invoker",
+      "policy_authorizer"
+    ],
+    "default_external_behavior": "fail closed when transport, credential, or data-policy adapter is absent",
+    "openapi_total_paths": 251,
+    "openapi_connector_paths": 3
+  },
+  "execution_contracts": [
+    "connector is loaded by organization, source Agent, id, enabled state and non-deleted tombstone",
+    "persisted config is fully revalidated immediately before every execution",
+    "registry, MCP and A2A require an explicit data-policy authorizer",
+    "MCP and A2A call only an injected transport; no implicit http client exists",
+    "credential headers are resolved only inside an injected adapter and are never audited",
+    "internal target Agent tenancy is revalidated immediately before invocation",
+    "schema connector validates input or output with the declared JSON Schema dialect",
+    "non-idempotent calls never retry",
+    "idempotent retries are bounded by max_attempts and total timeout",
+    "per-connector concurrency, response bytes and invocation bytes are bounded",
+    "retryable downstream failures open a per-connector circuit breaker",
+    "all terminal outcomes write minimum-necessary connector_execution_audit rows",
+    "operation, run, task, span, error code and HTTP class are allowlisted identifiers",
+    "adapter exception text, arguments, outputs, headers and credential references are not persisted"
+  ],
+  "verification": {
+    "connector_executor_mock_e2e": {
+      "passed": 10,
+      "failed": 0
+    },
+    "connector_resource_executor_openapi_specialized": {
+      "passed": 40,
+      "failed": 0
+    },
+    "combined_a2a_connector_ssrf_regression": {
+      "passed": 158,
+      "failed": 0,
+      "warnings": 1,
+      "warning": "Starlette TestClient httpx deprecation only"
+    },
+    "openapi_check": "passed"
+  },
+  "not_yet_implemented": [
+    "Agent planner/runtime wiring that selects and invokes persisted connectors",
+    "production MCP handshake and A2A transport",
+    "DNS-to-socket IP pinning and redirect-hop revalidation in a production transport",
+    "Vault/KMS provider adapters and OAuth2 token exchange",
+    "durable cross-worker circuit state and distributed concurrency limits",
+    "JavaScript/Python/.NET connector execution SDK resources",
+    "PostgreSQL, Redis and Docker Linux execution evidence"
+  ],
+  "completion_claim": "local fail-closed execution engine complete; product runtime integration partial",
+  "reason": "Five connector types execute through governed injected adapters in local E2E, but no production transport or Agent planner integration is claimed."
+}

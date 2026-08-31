@@ -1,0 +1,144 @@
+{
+  "agent_id": "icu-summary",
+  "run_id": "run-0ad14e4b-7691-4665-9825-b79afc08edb7",
+  "trace_id": "trace-c391aeb7918b4feb",
+  "trace_url": "/ai-studio/runs/run-0ad14e4b-7691-4665-9825-b79afc08edb7/trace",
+  "runtime_mode": "rule_engine",
+  "latency_ms": 147,
+  "cost": {
+    "amount": 0.0,
+    "currency": "CNY"
+  },
+  "billing": {},
+  "summary": "请按明确 ICU 入院字段提供可核验记录。",
+  "result": {
+    "status": "incomplete",
+    "markdown": "{\"active_problems\": [], \"admission_diagnoses\": [], \"admission_reason\": \"\", \"clinical_recommendations_generated\": false, \"clinical_scores_status\": \"NOT_CALCULATED_GOVERNED_CALCULATOR_REQUIRED\", \"conflicts\": [], \"evidence_items\": [], \"key_trends\": [], \"laboratory_results\": [], \"limitations\": [\"仅解析明确字段标签；未标注自由文本不会被重写为 ICU 临床事实。\", \"未计算 APACHE II、SOFA、GCS、死亡风险或其他临床评分。\", \"未应用生命体征/检验参考范围，未执行药物相互作用、剂量或肝肾调整审查。\", \"未调用 PubMed、DrugBank、Medical Calculator 或真实 EHR/MAR/LIS/监护设备。\", \"未生成诊疗建议；所有字段须 ICU 医师对照原始记录复核。\"], \"manual_review_required\": true, \"medication_screening_status\": \"NOT_SCREENED_LICENSED_DRUG_SOURCE_REQUIRED\", \"medications\": [], \"organ_support\": [], \"patient_background\": {\"allergies\": \"\", \"medical_history\": \"\", \"patient_information\": \"\", \"social_history\": \"\", \"surgical_history\": \"\"}, \"pending_items\": [], \"procedures\": [], \"production_writeback_blocked\": true, \"risks\": [], \"source_completeness\": {\"evidence_item_count\": 0, \"input_truncated\": true, \"missing_sections\": [\"患者信息\", \"入ICU原因\", \"入院诊断\", \"病史\", \"过敏史\", \"活动问题\", \"用药\", \"生命体征\", \"检验结果\", \"器官支持\", \"待办\"]}, \"summary_status\": \"INPUT_REQUIRED\", \"timeline\": [], \"trace_refs\": {\"provider_trace_refs\": [\"run-0ad14e4b-7691-4665-9825-b79afc08edb7:governed-icu-summary\"], \"run_id\": \"run-0ad14e4b-7691-4665-9825-b79afc08edb7\"}, \"vital_signs\": []}",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "input-required",
+    "finish_reason": "labelled_icu_admission_fields_required",
+    "backend_provider": "icoder.governed-icu-summary.v1",
+    "backend_type": "rule_engine",
+    "active_problems": [],
+    "admission_diagnoses": [],
+    "admission_reason": "",
+    "clinical_recommendations_generated": false,
+    "clinical_scores_status": "NOT_CALCULATED_GOVERNED_CALCULATOR_REQUIRED",
+    "conflicts": [],
+    "evidence_items": [],
+    "key_trends": [],
+    "laboratory_results": [],
+    "limitations": [
+      "仅解析明确字段标签；未标注自由文本不会被重写为 ICU 临床事实。",
+      "未计算 APACHE II、SOFA、GCS、死亡风险或其他临床评分。",
+      "未应用生命体征/检验参考范围，未执行药物相互作用、剂量或肝肾调整审查。",
+      "未调用 PubMed、DrugBank、Medical Calculator 或真实 EHR/MAR/LIS/监护设备。",
+      "未生成诊疗建议；所有字段须 ICU 医师对照原始记录复核。"
+    ],
+    "manual_review_required": true,
+    "medication_screening_status": "NOT_SCREENED_LICENSED_DRUG_SOURCE_REQUIRED",
+    "medications": [],
+    "organ_support": [],
+    "patient_background": {
+      "allergies": "",
+      "medical_history": "",
+      "patient_information": "",
+      "social_history": "",
+      "surgical_history": ""
+    },
+    "pending_items": [],
+    "procedures": [],
+    "production_writeback_blocked": true,
+    "risks": [],
+    "source_completeness": {
+      "evidence_item_count": 0,
+      "input_truncated": true,
+      "missing_sections": [
+        "患者信息",
+        "入ICU原因",
+        "入院诊断",
+        "病史",
+        "过敏史",
+        "活动问题",
+        "用药",
+        "生命体征",
+        "检验结果",
+        "器官支持",
+        "待办"
+      ]
+    },
+    "summary_status": "INPUT_REQUIRED",
+    "timeline": [],
+    "trace_refs": {
+      "run_id": "run-0ad14e4b-7691-4665-9825-b79afc08edb7",
+      "trace_id": "trace-c391aeb7918b4feb",
+      "provider_trace_refs": [
+        "run-0ad14e4b-7691-4665-9825-b79afc08edb7:governed-icu-summary"
+      ]
+    },
+    "vital_signs": [],
+    "structured_extraction": {
+      "contract": "icoder/IcuSummaryOutput/v3",
+      "method": "json_block",
+      "warnings": [],
+      "required_fields": [
+        "summary_status",
+        "patient_background",
+        "admission_reason",
+        "admission_diagnoses",
+        "timeline",
+        "active_problems",
+        "organ_support",
+        "medications",
+        "vital_signs",
+        "laboratory_results",
+        "procedures",
+        "key_trends",
+        "pending_items",
+        "risks",
+        "conflicts",
+        "source_completeness",
+        "evidence_items",
+        "limitations",
+        "clinical_scores_status",
+        "medication_screening_status",
+        "clinical_recommendations_generated",
+        "production_writeback_blocked",
+        "manual_review_required",
+        "trace_refs"
+      ],
+      "optional_fields": [],
+      "missing_required_fields": [],
+      "invalid_field_types": [],
+      "invalid_field_schemas": [],
+      "invalid_cross_agent_relations": [],
+      "undeclared_output_fields": [],
+      "undeclared_output_field_count": 0,
+      "valid": true
+    }
+  },
+  "schema_ref": "icoder/IcuSummaryOutput/v3",
+  "result_attestation": "eyJhIjoiaWN1LXN1bW1hcnkiLCJkIjoiOTc2ODRmZTMwY2RjNjViZWI1MzQwYTA3MzRhYTljMmRhNGE0ZmY3ZGQyZDQxOGVlNTQwYzRlOGMzZmE4NWFiMiIsImUiOjE3ODc5MTAyMzksIm8iOiJlYTM4MTY5MGY0Y2IiLCJyIjoicnVuLTBhZDE0ZTRiLTc2OTEtNDY2NS05ODI1LWI3OWFmYzA4ZWRiNyIsInMiOiJpY29kZXIvSWN1U3VtbWFyeU91dHB1dC92MyIsInYiOjF9.FGuek6EXeKmfPZPIcHRJOAdcIAg-pfZKMc9Rc5VFkgM",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 147,
+      "metadata": {
+        "agent_id": "icu-summary",
+        "runtime_mode": "rule_engine",
+        "latency_ms": 147
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 0.277
+}

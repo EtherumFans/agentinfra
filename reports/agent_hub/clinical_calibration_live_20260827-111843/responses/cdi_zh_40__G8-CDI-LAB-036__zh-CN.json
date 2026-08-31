@@ -1,0 +1,209 @@
+{
+  "agent_id": "clinical-documentation-improvement-agent",
+  "run_id": "run-7c374ff6-3b3e-43c0-a3a1-f8f59b328ebf",
+  "trace_id": "trace-fcaf2a1c49da4ea0",
+  "trace_url": "/ai-studio/runs/run-7c374ff6-3b3e-43c0-a3a1-f8f59b328ebf/trace",
+  "runtime_mode": "cdi_real_orchestrator",
+  "latency_ms": 8207,
+  "cost": {
+    "amount": 0.00087822,
+    "currency": "CNY",
+    "source": "configured_usage_pricing_estimate",
+    "billing_authoritative": false
+  },
+  "billing": {},
+  "summary": "CDI review completed; specialist and clinician review remain required.",
+  "result": {
+    "encounter_summary": {
+      "key_points": [
+        "患者男性，45岁，体检",
+        "无消化道症状",
+        "便潜血免疫法阳性",
+        "Hb 145，MCV 88，无贫血",
+        "既往史：无",
+        "建议：复查便潜血，必要时肠镜"
+      ],
+      "encounter_metadata": {
+        "patient_age": "45岁",
+        "patient_sex": "男性",
+        "encounter_type": "体检"
+      }
+    },
+    "documentation_gaps": [
+      {
+        "gap_id": "GAP-001",
+        "gap_type": "diagnostic_specificity",
+        "description": "Abnormal fecal occult blood test result documented without clinical correlation or planned workup details.",
+        "why_it_matters": "An abnormal lab value without clinical correlation may lead to coding queries and incomplete documentation of the clinical significance.",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "便潜血免疫法阳性",
+          "char_start": 21,
+          "char_end": 29,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      }
+    ],
+    "proposed_provider_queries": [
+      {
+        "query_id": "Q-001",
+        "gap_id": "GAP-001",
+        "topic": "便潜血阳性结果的临床意义及后续诊疗计划",
+        "reason": "便潜血免疫法阳性结果已记录，但未明确其临床相关性及具体诊疗计划，需进一步明确。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "便潜血免疫法阳性",
+          "char_start": 21,
+          "char_end": 29,
+          "documented_at": ""
+        },
+        "evidence_spans": [
+          {
+            "document_id": "chart-001",
+            "quote": "便潜血免疫法阳性",
+            "char_start": 21,
+            "char_end": 29,
+            "documented_at": ""
+          }
+        ],
+        "query_text": "患者便潜血免疫法阳性，无消化道症状，无贫血。请明确该结果的临床意义及后续诊疗计划。",
+        "response_options": [
+          "A. 考虑一过性或非特异性阳性，建议复查便潜血",
+          "B. 考虑消化道病变可能，建议行结肠镜检查",
+          "C. 结合其他检查结果综合判断，暂不特殊处理",
+          "D. 无法确定"
+        ],
+        "lifecycle_state": "DRAFT",
+        "priority": "routine",
+        "nlq_gate_verdict": "PASS",
+        "nlq_gate_block_reasons": []
+      }
+    ],
+    "query_gate_summary": {
+      "withheld_count": 0,
+      "status_counts": {
+        "REWRITE_CANDIDATE_GENERATED": 0
+      },
+      "manual_cdi_action_required": true
+    },
+    "coding_specificity_checklist": [],
+    "risk_flags": [],
+    "specialist_trace": [
+      {
+        "expert_id": "coding-expert",
+        "consulted": false,
+        "requested": "You are a coding-specialist Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "empty chart — no coding substrate",
+        "route_decision": "not_needed",
+        "route_reason": "empty_chart",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-ac9cbd40cf8a",
+        "trace_id": "trace-7221a45f1e15"
+      },
+      {
+        "expert_id": "pubmed-expert",
+        "consulted": false,
+        "requested": "You are a PubMed literature Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "empty_chart",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-d592216a39eb",
+        "trace_id": "trace-17287b9ede1b"
+      },
+      {
+        "expert_id": "web-search-expert",
+        "consulted": false,
+        "requested": "You are a clinical web-search Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "empty_chart",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-630521b05344",
+        "trace_id": "trace-f305cd144c1f"
+      },
+      {
+        "expert_id": "medical-calculator-expert",
+        "consulted": false,
+        "requested": "You are a medical-calculator Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "empty_chart",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-f3e085d7d31c",
+        "trace_id": "trace-7b2efbda83ee"
+      }
+    ],
+    "human_review": {
+      "cdi_specialist_review_required": true,
+      "clinician_response_required": true,
+      "review_priority": "routine"
+    },
+    "trace_refs": {
+      "run_id": "run-7c374ff6-3b3e-43c0-a3a1-f8f59b328ebf",
+      "stage_trace": {
+        "encounter_synthesis": "trace-2446e4b09df1",
+        "gap_identification": "trace-350a5b2894d4",
+        "expert_consultation": "trace-1afe11af70b3",
+        "query_generation": "trace-b829482a24e6",
+        "query_eligibility_gate": "",
+        "query_necessity_gate": "",
+        "query_dimension_rewrite": "",
+        "query_single_dimension_gate": "",
+        "claim_evidence_alignment_gate": "trace-9fb21e5e8466",
+        "semantic_necessity_gate": "trace-8240f7e0c994",
+        "query_compliance_gate": "",
+        "specialist_trace_emit": "trace-24e6d8c35ce7"
+      },
+      "experts_consulted": [],
+      "gate_results": {
+        "encounter_synthesis": "run-83bf8a82e45a",
+        "gap_identification": "run-b78f8454f282",
+        "gap_identification_risk_flags": "emitted=0;quote_snapped=0;withheld=0;quantity_redacted=0",
+        "expert_consultation": "run-6a6ada7d4278",
+        "query_generation": "run-a93207a40a4b",
+        "query_generation::quote_snapped": "0",
+        "query_generation::coverage_missing": "0",
+        "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=1;llm_complete=False;llm_reasoning=The chart documents an abnormal fecal occult blood test but lacks clinical corre",
+        "query_necessity_gate": "necessary=1;unnecessary=0;overquery_triggered=False;final_count=1",
+        "query_dimension_rewrite": "not_executed",
+        "query_single_dimension_gate": "single_dim=1;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;rewrite_attempted=0;rewrite_accepted=0;final_count=1",
+        "claim_evidence_alignment_gate": "claims_extracted=3;degraded=0;blocked=0;flagged=0;final_count=1",
+        "claim_evidence_alignment_gate::run_id": "run-d43d6c70bde8",
+        "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=1",
+        "semantic_necessity_gate::run_id": "run-c798b6d2682d",
+        "query_compliance_gate": ";passed=1;blocked=0",
+        "specialist_trace_emit": "run-0e6f0286ef7f"
+      },
+      "trace_id": "trace-fcaf2a1c49da4ea0"
+    }
+  },
+  "schema_ref": "icoder/CDIAgentOutputV1/v6",
+  "result_attestation": "eyJhIjoiY2xpbmljYWwtZG9jdW1lbnRhdGlvbi1pbXByb3ZlbWVudC1hZ2VudCIsImQiOiI0NzFkM2VjZTdmMDU1NTUxYzVkNzgyYjI1NDljNDgyZjA3Zjk5OTRiNTk3OTNjNmY0OTEwNjg1YzRhNjVhOWU1IiwiZSI6MTc4Nzg4NzU5MCwibyI6IjVmZWYzNzlmMjViZCIsInIiOiJydW4tN2MzNzRmZjYtM2IzZS00M2MwLWEzYTEtZjhmNTliMzI4ZWJmIiwicyI6Imljb2Rlci9DRElBZ2VudE91dHB1dFYxL3Y2IiwidiI6MX0.tWlPMh04FUsbKF3AmPBpSbTf0EPFP-5lInJyi8KRccQ",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 8.436
+}

@@ -1,0 +1,58 @@
+{
+  "schema_version": "icoder.streams-phase/v1",
+  "generated_at": "2026-08-24T03:00:03.5151441+08:00",
+  "status": "passed",
+  "release_version": "1.0.0-beta.31",
+  "source": {
+    "revision": "4fc31b3c012c49d09c6b3b01d3c67e25049efe98",
+    "tree_state": "dirty"
+  },
+  "tests": {
+    "backend_targeted": {"passed": 21, "failed": 0},
+    "backend_expanded": {"passed": 62, "failed": 0},
+    "javascript_sdk": {"passed": 86, "failed": 0},
+    "python_sdk": {"passed": 90, "failed": 0},
+    "dotnet_sdk_net8": {"passed": 71, "failed": 0},
+    "dotnet_sdk_net10": {"passed": 71, "failed": 0},
+    "deployment_preflight": {"passed": 85, "failed": 0}
+  },
+  "e2e": {
+    "evidence": "reports/sdk_streams_phase_20260824/e2e_evidence.json",
+    "transport": "real_loopback_websocket",
+    "api_processes": 1,
+    "sdk_sessions": 3,
+    "authenticated_tenant_token": true,
+    "configured_audits": 3,
+    "ended_audits": 3,
+    "retained_interactions": 1,
+    "retained_recordings": 1,
+    "retained_recording_retrieved_through_tenant_api": true,
+    "temporary_database": "created_migrated_removed",
+    "synthetic_non_audio_bytes_only": true
+  },
+  "release_candidate": {
+    "manifest": "C:/codex-artifacts/release-candidate-b31-streams-final.json",
+    "artifact_directory": "C:/codex-artifacts/release-b31-streams-final",
+    "publication_performed": false,
+    "artifacts": [
+      {"path": "icoder-sdk-1.0.0-beta.31.tgz", "size_bytes": 69693, "sha256": "0a9a17ec4f127e089c14f36287ab38ce8c8bbbb4f30995280ec1dbc8a95e4fa4"},
+      {"path": "icoder_sdk-1.0.0b31-py3-none-any.whl", "size_bytes": 56121, "sha256": "53fcd7763c2b34d9f0e6369ca1765a8637cd1f487915f6378d849b46fc5974d0"},
+      {"path": "iCoDer.Sdk.1.0.0-beta.31.nupkg", "size_bytes": 414552, "sha256": "31f6297e1aa83ed1617bc97ec9007189f1b582823bba8552f1f755cc5c93c225"},
+      {"path": "iCoDer.Sdk.1.0.0-beta.31.snupkg", "size_bytes": 88244, "sha256": "abee8529447684d92a8aef4b61e172c901ac202f57241947fcee1064a1c26de0"}
+    ]
+  },
+  "safety": {
+    "real_audio_used": false,
+    "real_stt_provider_used": false,
+    "real_llm_used": false,
+    "clinical_payload_captured": false,
+    "invented_credits": false,
+    "protected_database": {
+      "path": "backend/data/icoder.db",
+      "size_bytes": 8536064,
+      "sha256": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e",
+      "matches_baseline": true
+    }
+  },
+  "scope_limit": "This phase proves current Streams transport, tenant isolation, retention and fail-closed SDK behavior only; it does not prove real ASR/facts quality, Corti managed interoperability, production capacity, clinical safety, or external compliance gates."
+}

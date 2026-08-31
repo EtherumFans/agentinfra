@@ -1,0 +1,226 @@
+{
+  "agent_id": "triage",
+  "run_id": "run-68663c39-6c21-4987-9708-b5bc0f11265c",
+  "trace_id": "trace-cf51b40dfd234862",
+  "trace_url": "/ai-studio/runs/run-68663c39-6c21-4987-9708-b5bc0f11265c/trace",
+  "runtime_mode": "governed_local_explicit_triage_questionnaire_review",
+  "latency_ms": 10,
+  "cost": {
+    "amount": 0.0,
+    "currency": "CNY"
+  },
+  "billing": {},
+  "summary": "已机械执行 1 个明确回答的问卷分支；结果只是开发期协议候选，必须由现场分诊专业人员确认。",
+  "result": {
+    "status": "requires_review",
+    "markdown": "{\"acuity_level\": \"DEVELOPMENT_PROTOCOL_CANDIDATE_IMMEDIATE\", \"assessment_status\": \"READY_FOR_ONSITE_REVIEW\", \"clarification_questions\": [], \"clinical_inference_performed\": false, \"decision_path\": [{\"answer_type\": \"boolean\", \"documented_value\": \"true\", \"evidence_ref\": \"triage-evidence-5\", \"matched_branch_index\": 0, \"matched_operator\": \"equals\", \"next_node\": \"ep_immediate\", \"question_id\": \"q1\", \"step_index\": 0}], \"evidence_items\": [{\"char_span\": [23, 37], \"evidence_id\": \"triage-evidence-1\", \"evidence_status\": \"EXACT_INPUT_SPAN\", \"field\": \"protocol_id\", \"source_document\": \"triage_request\", \"text\": \"CN-ED-DEMO-001\"}, {\"char_span\": [43, 54], \"evidence_id\": \"triage-evidence-2\", \"evidence_status\": \"EXACT_INPUT_SPAN\", \"field\": \"protocol_version\", \"source_document\": \"triage_request\", \"text\": \"2026.08-dev\"}, {\"char_span\": [62, 81], \"evidence_id\": \"triage-evidence-3\", \"evidence_status\": \"EXACT_INPUT_SPAN\", \"field\": \"declared_status\", \"source_document\": \"triage_request\", \"text\": \"DEVELOPMENT_FIXTURE\"}, {\"char_span\": [87, 109], \"evidence_id\": \"triage-evidence-4\", \"evidence_status\": \"EXACT_INPUT_SPAN\", \"field\": \"protocol_source\", \"source_document\": \"triage_request\", \"text\": \"iCoDer 开发测试夹具（非医院批准协议）\"}, {\"char_span\": [118, 134], \"evidence_id\": \"triage-evidence-5\", \"evidence_status\": \"EXACT_INPUT_SPAN\", \"field\": \"answer:q1\", \"source_document\": \"护士分诊记录\", \"text\": \"患者突发压榨性胸痛40分钟伴大汗\"}], \"external_knowledge_used\": false, \"final_acuity_assignment_performed\": false, \"immediate_actions\": [\"立即通知现场分诊护士和急诊医师\", \"进入医院批准的抢救或紧急评估流程\", \"由现场人员持续观察并按批准协议复测关键参数\"], \"input_conflicts\": [], \"limitations\": [\"仅验证调用方明确提供的问卷定义和结构化回答，不从访谈或自由文本抽取回答。\", \"协议状态、来源和批准证明均为调用方声明，平台未验证其临床有效性、授权或医院批准状态。\", \"不计算 qSOFA、HEART、CURB-65、ESI 或其他临床评分；数值分支仅机械执行调用方规则。\", \"到达的终点只是开发期协议路径候选，不是最终分诊级别、诊断、检查或治疗建议。\", \"缺失、冲突、无匹配分支或协议无效时禁止降低紧急程度，必须现场人工复核。\", \"禁止自动处置、影像建议、药物/剂量/操作建议、患者分流、转运、出院或写回。\"], \"manual_review_required\": true, \"medical_calculator_used\": false, \"missing_information\": [], \"production_action_blocked\": true, \"production_writeback_blocked\": true, \"protocol_candidate\": {\"candidate_level\": \"IMMEDIATE\", \"disposition\": \"协议路径候选：立即现场人工紧急评估；不是最终分诊级别。\", \"endpoint_id\": \"ep_immediate\", \"reached\": true, \"red_flag_codes\": [\"RF_CHEST_PAIN_HYPOTENSION\"], \"result_status\": \"DEVELOPMENT_UNVERIFIED_PROTOCOL_CANDIDATE\"}, \"protocol_governance\": {\"approval_attestation_id\": \"\", \"declared_status\": \"DEVELOPMENT_FIXTURE\", \"jurisdiction\": \"CN_HOSPITAL_LOCAL_DECLARATION\", \"protocol_id\": \"CN-ED-DEMO-001\", \"protocol_source\": \"iCoDer 开发测试夹具（非医院批准协议）\", \"protocol_version\": \"2026.08-dev\", \"verification_status\": \"DEVELOPMENT_ONLY_UNVERIFIED\"}, \"questionnaire_answer_inference_performed\": false, \"questionnaire_validation\": {\"all_references_resolved\": true, \"cycle_free\": true, \"endpoint_count\": 3, \"errors\": [], \"question_count\": 2, \"valid\": true}, \"recommended_disposition\": \"协议路径候选：立即现场人工紧急评估；不是最终分诊级别。\", \"red_flags\": [\"RF_CHEST_PAIN_HYPOTENSION\"], \"review_method\": \"EXPLICIT_ANSWER_DETERMINISTIC_QUESTIONNAIRE_PATH_REVIEW\", \"supporting_evidence\": \"已沿调用方声明问卷执行 1 个明确回答；未从自由文本提取或推断。\", \"trace_refs\": {\"provider_trace_refs\": [\"run-68663c39-6c21-4987-9708-b5bc0f11265c:governed-triage-questionnaire-review\"], \"run_id\": \"run-68663c39-6c21-4987-9708-b5bc0f11265c\"}, \"transcript_extraction_performed\": false, \"uncertainty\": \"候选完全依赖调用方声明的问卷规则、版本和回答；平台未验证临床有效性，最终级别必须由现场分诊专业人员确认。\"}",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.governed-triage-questionnaire.v1",
+    "backend_type": "rule_engine",
+    "acuity_level": "DEVELOPMENT_PROTOCOL_CANDIDATE_IMMEDIATE",
+    "assessment_status": "READY_FOR_ONSITE_REVIEW",
+    "clarification_questions": [],
+    "clinical_inference_performed": false,
+    "decision_path": [
+      {
+        "answer_type": "boolean",
+        "documented_value": "true",
+        "evidence_ref": "triage-evidence-5",
+        "matched_branch_index": 0,
+        "matched_operator": "equals",
+        "next_node": "ep_immediate",
+        "question_id": "q1",
+        "step_index": 0
+      }
+    ],
+    "evidence_items": [
+      {
+        "char_span": [
+          23,
+          37
+        ],
+        "evidence_id": "triage-evidence-1",
+        "evidence_status": "EXACT_INPUT_SPAN",
+        "field": "protocol_id",
+        "source_document": "triage_request",
+        "text": "CN-ED-DEMO-001"
+      },
+      {
+        "char_span": [
+          43,
+          54
+        ],
+        "evidence_id": "triage-evidence-2",
+        "evidence_status": "EXACT_INPUT_SPAN",
+        "field": "protocol_version",
+        "source_document": "triage_request",
+        "text": "2026.08-dev"
+      },
+      {
+        "char_span": [
+          62,
+          81
+        ],
+        "evidence_id": "triage-evidence-3",
+        "evidence_status": "EXACT_INPUT_SPAN",
+        "field": "declared_status",
+        "source_document": "triage_request",
+        "text": "DEVELOPMENT_FIXTURE"
+      },
+      {
+        "char_span": [
+          87,
+          109
+        ],
+        "evidence_id": "triage-evidence-4",
+        "evidence_status": "EXACT_INPUT_SPAN",
+        "field": "protocol_source",
+        "source_document": "triage_request",
+        "text": "iCoDer 开发测试夹具（非医院批准协议）"
+      },
+      {
+        "char_span": [
+          118,
+          134
+        ],
+        "evidence_id": "triage-evidence-5",
+        "evidence_status": "EXACT_INPUT_SPAN",
+        "field": "answer:q1",
+        "source_document": "护士分诊记录",
+        "text": "患者突发压榨性胸痛40分钟伴大汗"
+      }
+    ],
+    "external_knowledge_used": false,
+    "final_acuity_assignment_performed": false,
+    "immediate_actions": [
+      "立即通知现场分诊护士和急诊医师",
+      "进入医院批准的抢救或紧急评估流程",
+      "由现场人员持续观察并按批准协议复测关键参数"
+    ],
+    "input_conflicts": [],
+    "limitations": [
+      "仅验证调用方明确提供的问卷定义和结构化回答，不从访谈或自由文本抽取回答。",
+      "协议状态、来源和批准证明均为调用方声明，平台未验证其临床有效性、授权或医院批准状态。",
+      "不计算 qSOFA、HEART、CURB-65、ESI 或其他临床评分；数值分支仅机械执行调用方规则。",
+      "到达的终点只是开发期协议路径候选，不是最终分诊级别、诊断、检查或治疗建议。",
+      "缺失、冲突、无匹配分支或协议无效时禁止降低紧急程度，必须现场人工复核。",
+      "禁止自动处置、影像建议、药物/剂量/操作建议、患者分流、转运、出院或写回。"
+    ],
+    "manual_review_required": true,
+    "medical_calculator_used": false,
+    "missing_information": [],
+    "production_action_blocked": true,
+    "production_writeback_blocked": true,
+    "protocol_candidate": {
+      "candidate_level": "IMMEDIATE",
+      "disposition": "协议路径候选：立即现场人工紧急评估；不是最终分诊级别。",
+      "endpoint_id": "ep_immediate",
+      "reached": true,
+      "red_flag_codes": [
+        "RF_CHEST_PAIN_HYPOTENSION"
+      ],
+      "result_status": "DEVELOPMENT_UNVERIFIED_PROTOCOL_CANDIDATE"
+    },
+    "protocol_governance": {
+      "approval_attestation_id": "",
+      "declared_status": "DEVELOPMENT_FIXTURE",
+      "jurisdiction": "CN_HOSPITAL_LOCAL_DECLARATION",
+      "protocol_id": "CN-ED-DEMO-001",
+      "protocol_source": "iCoDer 开发测试夹具（非医院批准协议）",
+      "protocol_version": "2026.08-dev",
+      "verification_status": "DEVELOPMENT_ONLY_UNVERIFIED"
+    },
+    "questionnaire_answer_inference_performed": false,
+    "questionnaire_validation": {
+      "all_references_resolved": true,
+      "cycle_free": true,
+      "endpoint_count": 3,
+      "errors": [],
+      "question_count": 2,
+      "valid": true
+    },
+    "recommended_disposition": "协议路径候选：立即现场人工紧急评估；不是最终分诊级别。",
+    "red_flags": [
+      "RF_CHEST_PAIN_HYPOTENSION"
+    ],
+    "review_method": "EXPLICIT_ANSWER_DETERMINISTIC_QUESTIONNAIRE_PATH_REVIEW",
+    "supporting_evidence": "已沿调用方声明问卷执行 1 个明确回答；未从自由文本提取或推断。",
+    "trace_refs": {
+      "run_id": "run-68663c39-6c21-4987-9708-b5bc0f11265c",
+      "trace_id": "trace-cf51b40dfd234862",
+      "provider_trace_refs": [
+        "run-68663c39-6c21-4987-9708-b5bc0f11265c:governed-triage-questionnaire-review"
+      ]
+    },
+    "transcript_extraction_performed": false,
+    "uncertainty": "候选完全依赖调用方声明的问卷规则、版本和回答；平台未验证临床有效性，最终级别必须由现场分诊专业人员确认。",
+    "structured_extraction": {
+      "contract": "icoder/TriageOutput/v5",
+      "method": "bare_json",
+      "warnings": [],
+      "required_fields": [
+        "assessment_status",
+        "review_method",
+        "acuity_level",
+        "red_flags",
+        "supporting_evidence",
+        "recommended_disposition",
+        "immediate_actions",
+        "missing_information",
+        "uncertainty",
+        "protocol_governance",
+        "questionnaire_validation",
+        "decision_path",
+        "protocol_candidate",
+        "clarification_questions",
+        "input_conflicts",
+        "evidence_items",
+        "limitations",
+        "transcript_extraction_performed",
+        "questionnaire_answer_inference_performed",
+        "clinical_inference_performed",
+        "medical_calculator_used",
+        "external_knowledge_used",
+        "final_acuity_assignment_performed",
+        "production_action_blocked",
+        "production_writeback_blocked",
+        "manual_review_required",
+        "trace_refs"
+      ],
+      "optional_fields": [],
+      "missing_required_fields": [],
+      "invalid_field_types": [],
+      "invalid_field_schemas": [],
+      "invalid_cross_agent_relations": [],
+      "undeclared_output_fields": [],
+      "undeclared_output_field_count": 0,
+      "valid": true
+    }
+  },
+  "schema_ref": "icoder/TriageOutput/v5",
+  "result_attestation": "eyJhIjoidHJpYWdlIiwiZCI6ImZiMjk2ZTE4OTc4MGMyZjNmNDczY2RkM2I1ZDgxZTA0ZjQ2YjY5YjJlYzVkZTc2ZmVmZDQyY2MwNDhhM2FlNjYiLCJlIjoxNzg3ODA2MDQ5LCJvIjoiYmE0ODkzZDU0MjM2IiwiciI6InJ1bi02ODY2M2MzOS02YzIxLTQ5ODctOTcwOC1iNWJjMGYxMTI2NWMiLCJzIjoiaWNvZGVyL1RyaWFnZU91dHB1dC92NSIsInYiOjF9.x7Pf_4aq2HLezyUxULjMJ5ar1dxR1sNps7bKLbKLii8",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 10,
+      "metadata": {
+        "agent_id": "triage",
+        "runtime_mode": "governed_local_explicit_triage_questionnaire_review",
+        "latency_ms": 10
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 0.25
+}

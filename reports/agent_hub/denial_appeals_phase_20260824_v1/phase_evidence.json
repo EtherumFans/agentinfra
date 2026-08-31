@@ -1,0 +1,206 @@
+{
+  "schema_version": "icoder.governed-denial-appeals-phase-evidence/v1",
+  "generated_at": "2026-08-24T18:45:57.9873958+08:00",
+  "status": "development_candidate_slice_passed_external_gates_open",
+  "agent": {
+    "agent_id": "denial-appeals",
+    "agent_ref": "icoder/denial-appeals@1.1.0",
+    "provider": "icoder.governed-denial-appeals.v1",
+    "backend_type": "rule_engine",
+    "runtime_mode": "governed_local_documented_denial_appeal",
+    "output_contract": "icoder/DenialAppealOutput/v3",
+    "required_output_fields": 39,
+    "field_relations": 5,
+    "evidence_bindings": 1,
+    "network_required": false,
+    "llm_required": false,
+    "external_knowledge_used": false,
+    "denial_classification_status": "DOCUMENTED_ONLY_NO_INFERENCE",
+    "draft_generation_status": "VERBATIM_TEMPLATE_ASSEMBLY_ONLY",
+    "clinical_support_assessed": false,
+    "medical_necessity_assessed": false,
+    "benefit_eligibility_determined": false,
+    "denial_root_cause_inferred": false,
+    "payer_policy_lookup_performed": false,
+    "medical_coding_validation_performed": false,
+    "manual_review_required": true,
+    "production_submission_blocked": true,
+    "production_writeback_blocked": true
+  },
+  "verification": {
+    "focused_provider_a2a_projector_matrix_and_contract": {
+      "passed": 73,
+      "failed": 0
+    },
+    "final_redaction_provider_a2a": {
+      "passed": 40,
+      "failed": 0
+    },
+    "offline_agent_run": {
+      "passed": 124,
+      "failed": 0
+    },
+    "broad_regression": {
+      "passed": 1167,
+      "skipped": 5,
+      "deselected": 6,
+      "failed": 0,
+      "duration_seconds": 797.68,
+      "scope": [
+        "backend/tests/unit/icoder/backends",
+        "backend/tests/unit/icoder_runtime",
+        "backend/tests/unit/corti_parity",
+        "backend/tests/unit/icoder/orchestrator/test_phi_redactor.py",
+        "backend/tests/integration/icoder",
+        "backend/tests/test_api/test_phase4f_agent_run.py"
+      ]
+    },
+    "loopback_http": {
+      "transport": "real_loopback_http",
+      "happy": {"passed": 19, "failed": 0},
+      "adversarial": {"passed": 19, "failed": 0},
+      "reference": {
+        "passed": 19,
+        "failed": 0,
+        "quality_scope": "pack_owned_synthetic_reference_semantics_not_independent_clinical_gold"
+      },
+      "stability": {
+        "passed": 114,
+        "failed": 0,
+        "repetitions": 3,
+        "p95_seconds": 0.197
+      },
+      "signed_bundle_verified": 19,
+      "external_model_agents_not_evaluated": 7
+    },
+    "field_relation_replay": {
+      "passed": true,
+      "agents": 20,
+      "relations": 89,
+      "detected_adversarial_assertions": 234,
+      "expected_adversarial_assertions": 234
+    },
+    "evidence_binding_replay": {
+      "passed": true,
+      "agents": 15,
+      "bindings": 24,
+      "detected_adversarial_assertions": 48,
+      "expected_adversarial_assertions": 48
+    },
+    "schema_generator_dry_run": {
+      "visible_agents": 1,
+      "changed_agents": []
+    },
+    "contract_compatibility": {
+      "passed": true,
+      "visible_contracts": 26,
+      "registered_contracts": 125,
+      "new_refs": [],
+      "changed_refs": [],
+      "invalid_refs": [],
+      "duplicate_refs": []
+    },
+    "corti_catalog_gate": {
+      "passed": true,
+      "expected_corti_agents": 20,
+      "catalog_mapped": 20,
+      "development_verified": 20,
+      "china_profile_declared": 20,
+      "clinical_quality_verified": 0,
+      "production_ready_verified": 0
+    },
+    "deployment_preflight": {
+      "passed": true,
+      "checks": 90,
+      "failed": 0,
+      "limitations_recorded": 11
+    },
+    "runtime_matrix": {
+      "visible_agents": 26,
+      "provider_resolvable": 26,
+      "launch_candidate_ready": 26,
+      "external_llm_required": 7,
+      "external_llm_optional": 1,
+      "pure_local": 18,
+      "local_baseline": 19,
+      "local_semantic_verified": 19,
+      "strict_live_provider_verified": 0,
+      "production_ready_verified": 0,
+      "field_relations": 89,
+      "evidence_bindings": 24,
+      "registered_visible_contracts": 26
+    }
+  },
+  "regressions_found_and_closed": [
+    {
+      "id": "local_semantic_bundle_count_stale",
+      "finding": "The evidence-bundle and deployment gates still required eighteen local Agents and eight external-model Agents.",
+      "resolution": "The authoritative gate, tests and limitations now require nineteen local baselines and seven external-model Agents."
+    },
+    {
+      "id": "denial_workflow_phrase_name_false_positive",
+      "finding": "The broad Chinese surname detector corrupted denial workflow phrases such as payment-party notification text and amount/item labels.",
+      "resolution": "Denial workflow phrases are protected longest-first while patient, member and clinician identifiers remain redacted; redaction is idempotent."
+    },
+    {
+      "id": "legacy_pack_inventory_assertion",
+      "finding": "The loader regression still expected one official v1.1 Pack after the final migration.",
+      "resolution": "The inventory gate now requires zero official v1.1 Packs and 28 v1.2 certified Packs, 26 executable."
+    }
+  ],
+  "artifact_hashes": {
+    "agent_pack.json": "c0194dd68a5d20381dad6c6327ac50e89bea34ec39ff1c761ce14f56112f0396",
+    "agent.py": "61a3052107bb0a6418349c539cbac260acd9d943a83f0983bffff923350e1439",
+    "governed_denial_appeals_provider.py": "3a183b47d1ffc401032988aca501d9db81da10bbeedcc64dcc4b6c090baa46d6",
+    "output_contract_registry.json": "dca2d0d5360a3403d55f34557b4173fe1b526bc47dd08b4068e9be95b20184b4",
+    "phi_redactor.py": "72943008cf7f6812a0d1176dd7fc10f07dea7f5fa431fdbe1713a745726511c6",
+    "agent_hub_examples_e2e.json": "2bb02b01f8959d85fdb9885785b639c9637b5b8a8f2d371d083ee3b3ca709f21",
+    "agent_hub_adversarial_e2e.json": "ba5c37bc674e3d4a7bdf7145a11595121a117f4079ae2047a48ae5132654187f",
+    "agent_hub_reference_quality_replay.json": "223796cfafc91d70e98ecd07dffb64cb1db9aec54acf26b8889a8b962edb87f8",
+    "agent_hub_stability_benchmark.json": "f1c8fa2d90087fc03c53f20c7dae917b8ef19164bb3e18645da9a3a58cd25fa8",
+    "agent_hub_local_semantic_evidence_bundle.json": "05ac021cb0f451e715e88bca79cf7891557e8f6d574a8d2ea92b76c1e2d267e3",
+    "agent_hub_runtime_matrix.json": "d78a46d57c78e29959e4f678635e3f2bffd727edcb3233c5186c62b024e86eda",
+    "agent_hub_field_relation_replay.json": "00579d197e08dbc22715992d466abd9c4a93cb38cb4c396cf24fdbefe1688e82",
+    "agent_hub_evidence_binding_replay.json": "ad8d1d8dc5d15628fbe992ecfa75c9278e287e5e3cb9c1fd4bcc0a6cd9da6d26",
+    "deployment_preflight.json": "c238e313d3f8eab00b9d6723ff246cfba399bc9f9ab72e582d8607f954e07c48",
+    "corti_prebuilt_agent_parity.json": "b5603c2734a09fe74554c3ef8a56146619055ee966a1c2b037424685782c5790"
+  },
+  "operational_findings": {
+    "protected_database_bytes": 8536064,
+    "protected_database_sha256": "2f1e5af01aac020cdd0eadac51b3ea65ba5b2e714d9f6ea3707992e829692877",
+    "backend_processes_or_python_listeners_remaining": false,
+    "memory_access_violation_observed_during_phase": false,
+    "native_medcoder_disabled": true,
+    "local_stt_disabled": true,
+    "real_llm_used": false,
+    "external_network_used_by_e2e": false,
+    "llm_environment_key_lengths_process_user_machine": [0, 0, 0]
+  },
+  "corti_public_comparators": [
+    "https://corti.ai/agents/denial-appeals-agent",
+    "https://corti.ai/solutions/practice-management",
+    "https://docs.corti.ai/coding/revenue-cycle",
+    "https://corti.ai/agentic-framework"
+  ],
+  "claims_not_proven": [
+    "automatic_denial_classification_or_root_cause_inference",
+    "automatic_appeal_vs_corrected_claim_path_selection",
+    "clinical_support_or_medical_necessity_assessment",
+    "benefit_eligibility_or_payer_policy_applicability",
+    "icd10_cpt_hcpcs_modifier_or_unit_validation",
+    "pubmed_web_or_medical_coding_expert_use",
+    "payer_policy_or_deadline_retrieval",
+    "claim_eob_era_or_submission_integration",
+    "denial_pattern_outcome_or_revenue_recovery_analytics",
+    "strict_26_agent_live_provider_semantic_quality",
+    "corti_product_or_model_equivalence",
+    "independent_clinical_coding_or_payer_quality",
+    "hospital_acceptance_or_production_cloud_readiness",
+    "legal_regulatory_or_certification_approval"
+  ],
+  "real_llm_used": false,
+  "independent_clinical_gold_used": false,
+  "corti_parity_proven": false,
+  "hospital_acceptance_proven": false,
+  "production_ready": false
+}

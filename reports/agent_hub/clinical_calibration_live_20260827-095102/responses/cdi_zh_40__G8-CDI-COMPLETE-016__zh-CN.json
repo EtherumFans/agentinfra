@@ -1,0 +1,164 @@
+{
+  "agent_id": "clinical-documentation-improvement-agent",
+  "run_id": "run-3c561b2e-e58c-48d7-85e3-f47742a61412",
+  "trace_id": "trace-2a67410c03954470",
+  "trace_url": "/ai-studio/runs/run-3c561b2e-e58c-48d7-85e3-f47742a61412/trace",
+  "runtime_mode": "cdi_real_orchestrator",
+  "latency_ms": 4422,
+  "cost": {
+    "amount": 0.00025676,
+    "currency": "CNY",
+    "source": "configured_usage_pricing_estimate",
+    "billing_authoritative": false
+  },
+  "billing": {},
+  "summary": "CDI review completed; specialist and clinician review remain required.",
+  "result": {
+    "encounter_summary": {
+      "key_points": [
+        "2型糖尿病5年",
+        "二甲双胍治疗",
+        "HbA1c 6.8",
+        "FPG 6.5",
+        "BP 125/78",
+        "BMI 24",
+        "无糖尿病并发症",
+        "视网膜检查正常",
+        "微量白蛋白尿阴性",
+        "神经传导正常",
+        "诊断:2型糖尿病,控制良好,无并发症"
+      ],
+      "encounter_metadata": {
+        "patient_age": "50岁",
+        "patient_sex": "男性",
+        "encounter_type": "门诊"
+      }
+    },
+    "documentation_gaps": [],
+    "proposed_provider_queries": [],
+    "query_gate_summary": {
+      "withheld_count": 0,
+      "status_counts": {
+        "REWRITE_CANDIDATE_GENERATED": 0
+      },
+      "manual_cdi_action_required": false
+    },
+    "coding_specificity_checklist": [],
+    "risk_flags": [],
+    "specialist_trace": [
+      {
+        "expert_id": "coding-expert",
+        "consulted": false,
+        "requested": "You are a coding-specialist Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "no coding-relevant gaps survived earlier gates",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-206e4ac980a2",
+        "trace_id": "trace-d35dafb03725"
+      },
+      {
+        "expert_id": "pubmed-expert",
+        "consulted": false,
+        "requested": "You are a PubMed literature Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-ca5e22362e7a",
+        "trace_id": "trace-32f240dad877"
+      },
+      {
+        "expert_id": "web-search-expert",
+        "consulted": false,
+        "requested": "You are a clinical web-search Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-29835ba8a0aa",
+        "trace_id": "trace-5195aada4a5c"
+      },
+      {
+        "expert_id": "medical-calculator-expert",
+        "consulted": false,
+        "requested": "You are a medical-calculator Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "'BMI' score — no deterministic calculator wired",
+        "route_decision": "tool_unavailable",
+        "route_reason": "no_real_tool_wired",
+        "execution_mode": "TOOL_UNAVAILABLE",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-2520ad08e851",
+        "trace_id": "trace-bdd04bfd96df"
+      }
+    ],
+    "human_review": {
+      "cdi_specialist_review_required": true,
+      "clinician_response_required": true,
+      "review_priority": "routine"
+    },
+    "trace_refs": {
+      "run_id": "run-3c561b2e-e58c-48d7-85e3-f47742a61412",
+      "stage_trace": {
+        "encounter_synthesis": "trace-bb1e9e6cd868",
+        "gap_identification": "trace-e9ddfeb00147",
+        "expert_consultation": "trace-61dde5ee7f10",
+        "query_generation": "",
+        "query_eligibility_gate": "",
+        "query_necessity_gate": "",
+        "query_dimension_rewrite": "",
+        "query_single_dimension_gate": "",
+        "claim_evidence_alignment_gate": "trace-a6065471f31c",
+        "semantic_necessity_gate": "trace-551cc23aaa7a",
+        "query_compliance_gate": "",
+        "specialist_trace_emit": "trace-d1040ca8c82d"
+      },
+      "experts_consulted": [],
+      "gate_results": {
+        "encounter_synthesis": "run-52212595ba6e",
+        "gap_identification": "run-226accb959cf",
+        "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
+        "expert_consultation": "run-80d5b2f61f76",
+        "query_generation": "",
+        "query_generation::quote_snapped": "0",
+        "query_generation::coverage_missing": "0",
+        "query_eligibility_gate": "chart_complete=True;completeness_score=0.12;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=Y,D8_course=N;dropped=0;final_count=0;llm_complete=True;llm_reasoning=The chart documents type 2 diabetes with good control (HbA1c 6.8, FPG 6.5) and e",
+        "query_necessity_gate": "necessary=0;unnecessary=0;overquery_triggered=False;final_count=0",
+        "query_dimension_rewrite": "not_executed",
+        "query_single_dimension_gate": "single_dim=0;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;rewrite_attempted=0;rewrite_accepted=0;final_count=0",
+        "claim_evidence_alignment_gate": "claims_extracted=0;degraded=0;blocked=0;flagged=0;final_count=0",
+        "claim_evidence_alignment_gate::run_id": "run-b65338383936",
+        "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+        "semantic_necessity_gate::run_id": "run-8b09434a1ae3",
+        "query_compliance_gate": ";passed=0;blocked=0",
+        "specialist_trace_emit": "run-ebad16604ba8"
+      },
+      "trace_id": "trace-2a67410c03954470"
+    }
+  },
+  "schema_ref": "icoder/CDIAgentOutputV1/v6",
+  "result_attestation": "eyJhIjoiY2xpbmljYWwtZG9jdW1lbnRhdGlvbi1pbXByb3ZlbWVudC1hZ2VudCIsImQiOiI4NTc3ZjYzMzE5YjgwZjg4YWZiZmU5N2FhNGFiYzA3ZjVmMTRkYWFkYTVjMDAwYmJkZmJmMWIyM2JmMjU1OGVlIiwiZSI6MTc4Nzg4MjE3NCwibyI6ImJjOTJlZTA2YWYwZiIsInIiOiJydW4tM2M1NjFiMmUtZTU4Yy00OGQ3LTg1ZTMtZjQ3NzQyYTYxNDEyIiwicyI6Imljb2Rlci9DRElBZ2VudE91dHB1dFYxL3Y2IiwidiI6MX0.o7ScDhCU5_7IF7FBwHX-a0WW34j6JbGV5vfCrZdNZDY",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 4.833
+}

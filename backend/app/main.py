@@ -13,7 +13,7 @@ from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.config import settings
-from app.database import get_db, init_db
+from app.database import get_db, init_db, verify_production_database
 from app.services.access_log_privacy import install_uvicorn_access_log_privacy
 import app.models  # noqa: F401 — register all models with Base before init_db() creates tables
 
@@ -126,8 +126,12 @@ async def lifespan(app: FastAPI):
     # prior platform_gateway instance.
     from app.coding_runtime import reset_dispatcher
     reset_dispatcher()
-    await init_db()
-    logger.info("Database initialized")
+    if settings.ICODER_DEPLOYMENT_MODE == "cloud":
+        await verify_production_database()
+        logger.info("Production PostgreSQL schema and tenant RLS verified")
+    else:
+        await init_db()
+        logger.info("Local database initialized")
     try:
         from app.services.stt_jobs import recover_pending_stt_jobs
 

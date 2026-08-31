@@ -2,12 +2,27 @@
 import logging
 import sqlite3
 from datetime import datetime
-from sqlalchemy import event
+from sqlalchemy import event, text
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
 from app.config import settings
 
 logger = logging.getLogger(__name__)
+
+# Production schema changes are applied exclusively through Alembic.  Keeping
+# the expected revision explicit makes an application image fail closed when
+# it is started before (or against a database behind) its migration job.
+PRODUCTION_SCHEMA_REVISION = "064"
+TENANT_POLICY_NAME = "icoder_tenant_isolation"
+PROTECTED_TENANT_TABLES = (
+    "patient_contexts",
+    "run_trace_events",
+    "run_history",
+    "transactions",
+    "contexts",
+    "memory_consents",
+    "conversation_memories",
+)
 
 _is_sqlite = "sqlite" in settings.DATABASE_URL
 
@@ -84,22 +99,97 @@ async_session_factory = AsyncSessionLocal
 
 
 async def init_db():
-    """Initialize database tables.
+    """Initialize local/test tables from ORM metadata.
 
-    Uses ``Base.metadata.create_all`` — idempotent, only creates tables
-    that don't already exist. This is what dev, test, **and prod**
-    actually use: ``app/main.py`` lifespan calls ``init_db()`` on every
-    uvicorn startup, so the schema is rebuilt-from-missing on each boot.
-
-    Alembic (``alembic upgrade head`` via ``python -m app.database
-    migrate``) is a **dev/manual** tool for column-add migrations on an
-    existing DB without wiping data. The chain 001→006 is kept in parity
-    with ``Base.metadata`` (cycle 24 closed the 5-table gap). Don't run
-    alembic in prod unless you've audited the chain against the current
-    model state — see ``docs/dev/BACKEND_RECOVERY.md`` §Prevention.
+    Cloud startup never calls this function. Production schema ownership is
+    Alembic-only and is verified by :func:`verify_production_database`.
     """
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+
+
+async def verify_production_database() -> None:
+    """Verify that cloud runtime is attached to the governed PostgreSQL schema.
+
+    The application role must not be a PostgreSQL superuser or carry
+    ``BYPASSRLS``; either capability would silently defeat FORCE RLS.  Every
+    protected table must have RLS enabled and forced before the API accepts
+    traffic.
+    """
+    if engine.dialect.name != "postgresql":
+        raise RuntimeError("cloud runtime requires PostgreSQL as authoritative storage")
+
+    async with engine.connect() as connection:
+        revision = (
+            await connection.execute(text("SELECT version_num FROM alembic_version"))
+        ).scalar_one_or_none()
+        if revision != PRODUCTION_SCHEMA_REVISION:
+            raise RuntimeError(
+                "database schema is not at the production revision: "
+                f"expected {PRODUCTION_SCHEMA_REVISION}, found {revision!r}"
+            )
+
+        role = (
+            await connection.execute(
+                text(
+                    "SELECT rolsuper, rolbypassrls FROM pg_roles "
+                    "WHERE rolname = current_user"
+                )
+            )
+        ).one_or_none()
+        if role is None or bool(role.rolsuper) or bool(role.rolbypassrls):
+            raise RuntimeError(
+                "application database role must exist and must not have "
+                "SUPERUSER or BYPASSRLS"
+            )
+
+        rows = await connection.execute(
+            text(
+                "SELECT c.relname, c.relrowsecurity, c.relforcerowsecurity, "
+                "a.attnotnull "
+                "FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace "
+                "JOIN pg_attribute a ON a.attrelid = c.oid "
+                "AND a.attname = 'organization_id' AND NOT a.attisdropped "
+                "WHERE n.nspname = current_schema() "
+                "AND c.relname = ANY(CAST(:tables AS text[]))"
+            ),
+            {"tables": list(PROTECTED_TENANT_TABLES)},
+        )
+        state = {
+            row.relname: (
+                bool(row.relrowsecurity),
+                bool(row.relforcerowsecurity),
+                bool(row.attnotnull),
+            )
+            for row in rows
+        }
+        invalid = [
+            table for table in PROTECTED_TENANT_TABLES
+            if state.get(table) != (True, True, True)
+        ]
+        if invalid:
+            raise RuntimeError(
+                "tenant RLS/NOT NULL enforcement is incomplete for: "
+                + ", ".join(invalid)
+            )
+
+        policy_rows = await connection.execute(
+            text(
+                "SELECT tablename FROM pg_policies "
+                "WHERE schemaname = current_schema() "
+                "AND policyname = :policy_name AND cmd = 'ALL' "
+                "AND qual IS NOT NULL AND with_check IS NOT NULL"
+            ),
+            {"policy_name": TENANT_POLICY_NAME},
+        )
+        policy_tables = set(policy_rows.scalars())
+        missing_policies = sorted(set(PROTECTED_TENANT_TABLES) - policy_tables)
+        if missing_policies:
+            raise RuntimeError(
+                "tenant RLS policy is missing or incomplete for: "
+                + ", ".join(missing_policies)
+            )
+
 
 
 def run_migrations():

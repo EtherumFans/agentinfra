@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.database import get_db
+from app.services.database_tenancy import bind_tenant_to_transaction
 from app.models.user import User
 from app.models.organization import Organization, OrganizationMember
 
@@ -233,6 +234,10 @@ async def get_current_organization(
         client = await get_current_client(credentials, db)
         if client.get("org_id") != org.id:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Organization context mismatch")
+    # PostgreSQL RLS reads this transaction-local setting.  Binding only after
+    # the live membership/client checks prevents an untrusted JWT org claim
+    # from becoming database authority.
+    await bind_tenant_to_transaction(db, org.id)
     return org
 
 

@@ -192,7 +192,18 @@ def test_cloud_mode_rejects_unauthenticated_request(monkeypatch) -> None:
     # Re-import the middleware call chain in this test process. The
     # middleware reads settings at dispatch time, so the monkeypatch
     # takes effect for the duration of the request.
-    from app.main import app
+    import app.main as main_module
+
+    async def _production_database_verified() -> None:
+        return None
+
+    # This test targets the HTTP tenant-header middleware. P1 production
+    # authority is covered separately and would correctly reject this suite's
+    # SQLite fixture before the request reaches that middleware.
+    monkeypatch.setattr(
+        main_module, "verify_production_database", _production_database_verified,
+    )
+    app = main_module.app
     with TestClient(app) as c:
         # No Authorization header, no ICODER_SINGLE_TENANT_ORG_ID fallback
         # in cloud mode.

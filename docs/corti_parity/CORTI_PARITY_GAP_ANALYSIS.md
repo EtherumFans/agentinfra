@@ -1,5 +1,7 @@
 # CORTI_PARITY_GAP_ANALYSIS — 对标差距分析
 
+> **历史基线，非当前状态。** 本文件冻结于 2026-07-02，仍包含“仅 3 个 Agent 对齐”“metadata-only”“固定 stub”等当时结论。当前审计与可复验证据以 [CORTI_PARITY_STATUS_2026-08-14.md](CORTI_PARITY_STATUS_2026-08-14.md) 和 `reports/agent_hub/agent_hub_runtime_matrix.json` 为准；不要用本文件判断当前上线候选状态。
+
 > **阶段**: P1.3 — Corti Parity Direction Audit & Asset Consolidation / Stage 2
 > **输入**: Stage 0 baseline (`CORTI_REFERENCE_BASELINE.md`) + Stage 1 inventory (`ICODER_ASSET_INVENTORY.md`)
 > **日期**: 2026-07-02
@@ -699,3 +701,67 @@ PostHog 自部署 / Stripe 全套 / Intercom / Mintlify / Keycloak 等第三方�
 ---
 
 ## Stage 2 完成, 等待继续指令。
+
+---
+
+## 2026-08-22 开发门禁增量说明
+
+本文件早期评分表中的“Pre-built Agents 仅 3/20、17 个缺失”和若干 Agentic Framework 描述已被后续实现证据取代，不应继续作为当前 Agent Hub 数量结论。当前状态为：26 个 Hub 可见 Agent 均达到开发环境 `launch-candidate-ready`，完整默认后端套件为 4996 passed、0 failed，静态部署预检为 78/78。详细证据见 `ICODER_FULL_BACKEND_RELEASE_GATE_PHASE_SUMMARY_2026-08-22.md`。
+
+上述增量没有重算本文件的历史 20 维总分，也不证明 Corti 私有模型质量等效。当前真实 Provider 新回放、独立临床金标准、中国医院联调、生产云与合规门禁仍开放。
+
+### 2026-08-23 严格稳定性增量
+
+完整默认后端门已进一步升级为 Runtime/Deprecation/JWT 严格告警模式，结果为 5001 passed、0 failed、1 条第三方依赖提示；静态预检为 79/79。Windows MedCodER Worker 使用显式启动握手，公开临床 confidence 强制限制在 `[0,1]`。详细证据见 `ICODER_STRICT_WARNING_NATIVE_WORKER_PHASE_SUMMARY_2026-08-23.md`。该增量不改变真实 Provider 与独立临床质量证据仍开放的结论。
+
+### 2026-08-23 TestClient 零告警增量
+
+Starlette TestClient 已按官方迁移路径使用锁定的 `httpx2==2.12.0`，生产 API 的旧 `httpx` Provider 依赖保持隔离。98 个 TestClient 文件兼容矩阵为 1050 passed；完整严格门为 5002 passed、0 warnings；部署预检为 80/80；26 个用户可见 Agent 继续全部 ready。详细证据见 `ICODER_HTTPX2_TESTCLIENT_ZERO_WARNING_PHASE_SUMMARY_2026-08-23.md`。真实 Provider、独立临床基准、中国医院和生产云门禁仍开放。
+
+### 2026-08-24 ICU Admission Summary 本地能力增量
+
+历史表中“ICU Admission 完全缺失”的结论已被受治理本地开发切片取代。`icu-summary` 现通过 `icoder.governed-icu-summary.v1` 只整理明确标签的 ICU 入院事实并绑定脱敏输入 span；它明确不计算 APACHE II、SOFA、GCS 或死亡风险，不应用异常阈值，不执行 DrugBank 式药物筛查，也不生成治疗建议或写回记录。
+
+该阶段本地真实 HTTP 门禁为 happy/adversarial/reference 各 13/13、stability 78/78；26-Agent 离线安全为 78/78，相关宽回归为 719/719，部署预检为 90/90。当阶段运行矩阵为 13 个离线本地基线、13 个外部模型强依赖、1 个可选增强；严格 26-Agent live-provider 和生产就绪仍为 0/26。详细证据见 `ICODER_GOVERNED_ICU_SUMMARY_PHASE_SUMMARY_2026-08-24.md`。这不证明 Corti 等价、真实 ICU 临床质量、评分/药物知识正确性、医院系统集成或生产上线。最新分类见下一段。
+
+### 2026-08-24 Patient Discharge Education 本地能力增量
+
+历史表中“Patient Discharge Education 完全缺失”的结论已被受治理本地开发切片取代。`discharge-edu` 现通过 `icoder.governed-discharge-education.v1` 只整理明确标签的出院事实并绑定脱敏输入 span；它明确不执行患者友好医学释义、结果解释、药物重整、外部知识检索、临床建议或生产写回。缺失和冲突被转换为澄清问题，所有患者可见内容强制临床复核。
+
+该阶段本地真实 HTTP 门禁为 happy/adversarial/reference 各 14/14、stability 84/84；26-Agent 离线安全为 78/78，相关宽回归为 744/744，字段关系对抗回放 138/138，证据绑定对抗回放 38/38，部署预检为 90/90。该阶段运行矩阵为 14 个离线本地基线、12 个外部模型强依赖、1 个可选增强；严格 26-Agent live-provider 和生产就绪仍为 0/26。详细证据见 `ICODER_GOVERNED_DISCHARGE_EDUCATION_PHASE_SUMMARY_2026-08-24.md`。这不证明 Corti 等价、患者理解/依从性、医学释义/结果解释质量、医院系统集成或生产上线。最新分类见下一段。
+
+### 2026-08-24 Discharge Summary Structuring 本地能力增量
+
+`discharge-summary-structuring` 是 iCoDer 的中国场景额外 Agent，不应被误称为 Corti 同名预置 Agent。Corti 当前公开 Agent Library 没有独立的 Discharge Summary Structuring Agent；邻近能力是 Textgen 标准 section `corti-discharge-summary`（将全部材料总结为出院记录格式）和 Patient Discharge Education Agent。iCoDer 当前通过 `icoder.governed-discharge-summary.v1` 只逐字重组明确中英文章节标题，绑定脱敏输入 span，并固定禁止未标注叙事总结、临床推断、ICD 编码、药物重整、新增医嘱/随访和生产写回。
+
+最终本地真实 HTTP 门禁为 happy/adversarial/reference 各 15/15、stability 90/90；26-Agent 离线安全 78/78，相关宽回归 822/822，字段关系对抗回放 161/161，证据绑定对抗回放 40/40，部署预检 90/90。当前运行矩阵为 15 个离线本地基线、11 个外部模型强依赖、1 个可选增强，其中 14 个纯本地；严格 26-Agent live-provider 和生产就绪仍为 0/26。详细证据见 `ICODER_GOVERNED_DISCHARGE_SUMMARY_STRUCTURING_PHASE_SUMMARY_2026-08-24.md`。这不证明 Corti Textgen 等价、自由叙事总结质量、医院出院小结模板符合性、真实临床质量或生产上线。
+
+### 2026-08-24 Referral Generator 本地能力增量
+
+历史表中 Referral Generator `absent` 的结论已不成立。`referral-gen` 现通过 `icoder.governed-referral.v1` 只装配明确标题下的患者、转出方、接收方、转诊原因、紧急度、时限、请求动作和支持材料；核心字段缺失时不生成转诊信，支持材料缺失时明确标记“未记录”。它固定禁止临床推断、新诊断、新治疗、外部知识、自动发送和生产写回，并加入中国双向转诊的机构/科室字段。
+
+最新本地 HTTP 门禁为 happy/adversarial/reference 各 16/16、stability 96/96；字段关系对抗回放 184/184，证据绑定对抗回放 42/42，更宽相关回归 1108 passed、5 skipped、0 failed，Corti 20-Agent 开发映射 20/20，部署预检 90/90。当前运行矩阵为 16 个离线本地基线、10 个外部模型强依赖、1 个可选增强，其中 15 个纯本地；严格 live-provider 与生产就绪仍为 0/26。详细证据见 `ICODER_GOVERNED_REFERRAL_GENERATOR_PHASE_SUMMARY_2026-08-24.md`。这不证明自由叙事转诊综合、专业文本质量、区域平台闭环、医院或 Corti 产品等价。
+
+### 2026-08-24 DRG/DIP 受治理本地风险复核增量
+
+`drg-analyzer` 已从外部模型泛化模板收敛为 `icoder.governed-drg-dip-risk-review.v1`：仅接收编码员明确提供的 ICD-10-CN / ICD-9-CM-3 编码、版本、来源和逐字证据，运行开发期 hash-pinned 启发式风险规则。v8 合同固定禁止编码提取、分配、验证、临床推断、官方 DRG 分组、DIP 计分、权重/CMI/支付计算、生产提交和写回。
+
+最终本地签名 HTTP 门禁为 happy/adversarial/reference 各 23/23、stability 138/138；26-Agent 离线安全 78/78，语义与合同专项 95/95，字段关系 323/323、证据绑定 58/58、跨 Agent 关系 20/20，合同注册 135 个追加版本且无漂移，部署预检 90/90。当前运行矩阵为 23 个本地语义基线已验证，外部模型待验证仅余 CDI、Medical Coding 和 Triage；production-ready 仍为 0/26。
+
+Corti 当前公开 Agent Library 未见独立同名 DRG/DIP Agent，最近邻对照是 Medical Coding Agent/API。iCoDer 本阶段不具备 Corti 邻近能力中的全病历提取、编码分配/验证、排序替代项和正式规则理由，也没有官方/授权 DRG grouper、地区 DIP 规则、权重、CMI 或支付结算。详细证据见 `ICODER_GOVERNED_DRG_DIP_RISK_REVIEW_PHASE_SUMMARY_2026-08-24.md`。上述增量证明开发期显式编码风险复核，不证明 Corti 等价、官方分组、医保结算、真实临床质量或生产上线。
+
+### 2026-08-25 Triage 受治理问卷路径复核增量
+
+历史表中“Triage 完全缺失”的结论已被受治理本地开发切片取代。`triage` 现通过 `icoder.governed-triage-questionnaire.v1` 验证调用方提供的有界问卷定义、显式结构化答案和唯一来源 span，并沿确定性分支生成开发期协议候选。它固定不从对话抽取或推断答案、不做临床推理/医学计算/外部知识调用、不分配最终 acuity、不触发动作或生产写回；平台也不验证医院协议来源、批准状态或版本权威。
+
+最新重签本地 HTTP 门禁为 happy/adversarial/reference 各 24/24、stability 144/144，P50 0.527 秒、P95 1.025 秒；26-Agent 离线安全 78/78，Triage 单元+A2A 8/8，聚焦合同/运行回归 59/59，字段关系 340/340、证据绑定 60/60、跨 Agent 关系 20/20，合同注册 138 个追加版本且无漂移，部署预检已扩展为 91/91。当前运行矩阵为 24 个本地语义基线已验证，外部模型必需仅余 CDI 与 Medical Coding；production-ready 仍为 0/26。
+
+Corti 当前公开 Triage and Initial Assessment Agent 包含问卷 JSON/分支、护士—患者对话字段抽取、缺失时澄清，以及 PubMed、Interviewing、Medical Calculator、DrugBank 等能力。iCoDer 本阶段只对齐了问卷结构校验、确定性路径、缺失/冲突失败关闭和审计边界；对话抽取、交互访谈、临床工具链、经授权医院规则、最终分诊级别、医院系统闭环和独立临床质量均未复刻。详细证据见 `ICODER_GOVERNED_TRIAGE_QUESTIONNAIRE_PHASE_SUMMARY_2026-08-25.md`。这不证明 Corti 等价、临床分诊有效性或生产上线。
+
+### 2026-08-25 CDI / Medical Coding 外部语义门禁工程增量
+
+最后两个外部模型必需 Agent 现有可执行的严格证据入口：完整 26-Agent 在同一临时后端和一次性 attestation 信任域串行运行，CDI/Medical Coding 每个 happy、adversarial 和 stability Run 都必须观察到真实、非 mock、非 degraded 的 model provider/name；结果/Trace 签名、Pack 快照、合同、参考回放、成本和稳定性任一不完整即归零。Key 只经进程环境继承，成功/失败均扫描输出与日志、清除三个 Key 变量、回收后端并删除精确限定的临时 SQLite。
+
+本阶段不使用真实 Key：无 Key 探针在启动后端前失败，门禁/矩阵/部署专项 25/25、离线安全 78/78、部署预检 91/91；本地 24-Agent v3 重签 HTTP happy/adversarial/reference 各 24/24、stability 144/144。严格 live-provider 仍为 0/26，生产就绪仍为 0/26。
+
+Corti 当前 Medical Coding Agent 公开覆盖 ICD-10-CM、CPT/HCPCS、顺序与 modifier 校验、逐码证据、不可编码项；Symphony 还宣称 ranked alternatives、规则理由、全球代码体系和真实/学术/合成基准。Corti CDI 公开支持 transcript/结构化事实/草稿/终稿、实时/近实时/批处理和 Coding/Web/Reference/Calculator Expert。iCoDer 已具备中国 ICD-10-CN/ICD-9-CM-3 方向、专用 CDI 编排、non-leading gate、span、lifecycle 和人工复核，但新鲜真实 DeepSeek 质量、权威中国规则许可、独立编码员/CDI reviewer 盲评、医院触发/写回及生产托管仍未证明。详见 `ICODER_EXTERNAL_SEMANTIC_GATE_ENGINEERING_PHASE_SUMMARY_2026-08-25.md`。

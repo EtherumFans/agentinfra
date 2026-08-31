@@ -1,0 +1,50 @@
+{
+  "schema_version": "icoder/agent-card-parallel-graph-phase-evidence/v1",
+  "date": "2026-08-22",
+  "scope": [
+    "a2a_1_0_standard_agent_card",
+    "tenant_dynamic_agent_card",
+    "connector_graph_structured_conditions",
+    "connector_graph_bounded_parallel_execution",
+    "sdk_beta_21"
+  ],
+  "external_llm_used": false,
+  "credential_value_captured": false,
+  "validation": {
+    "agent_card_graph_unit": {"passed": 44, "failed": 0},
+    "openapi_runtime_parity": {"passed": 7, "failed": 0},
+    "a2a_endpoints": {"passed": 43, "failed": 0},
+    "connector_graph_integration": {"passed": 15, "failed": 0},
+    "post_ordering_fix_targeted_integration": {"passed": 2, "failed": 0},
+    "javascript_sdk": {"passed": 41, "failed": 0, "version": "1.0.0-beta.21"},
+    "python_sdk": {"passed": 48, "failed": 0, "version": "1.0.0b21"},
+    "frontend_openapi_contract": {"passed": 60, "failed": 0},
+    "release_candidate_validator": {"passed": 5, "failed": 0},
+    "openapi": {"paths": 258, "bytes": 764797, "snapshot_current": true}
+  },
+  "artifacts": {
+    "manifest": "reports/release-candidate/LOCAL_RELEASE_MANIFEST_BETA21.json",
+    "count": 3,
+    "published": false,
+    "dotnet_binary_built": false,
+    "dotnet_binary_blocker": "dotnet/csc/msbuild unavailable on this Windows host"
+  },
+  "security_assertions": [
+    "public root discovery does not enumerate private tenant agents",
+    "tenant card lookup is organization scoped",
+    "configured cloud origin overrides untrusted request Host",
+    "agent card omits prompts connector identifiers credentials and internal metadata",
+    "graph conditions cannot inspect free text or execute expressions",
+    "required parallel node failures fail closed before provider invocation"
+  ],
+  "remaining_external_gates": [
+    "production_connector_transport_and_oauth",
+    "distributed_control_plane_and_postgresql_multi_replica",
+    "dotnet_ci_build",
+    "governed_icd_retrieval",
+    "26_agent_real_model_clinical_quality_matrix",
+    "hospital_interoperability",
+    "licensed_china_coding_and_drg_dip_assets",
+    "legal_security_certification_and_independent_clinical_review"
+  ]
+}

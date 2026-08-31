@@ -1,0 +1,291 @@
+{
+  "agent_id": "principal-diagnosis-review",
+  "run_id": "run-e31bbc35-e026-4a8c-9e2a-3391cbc6a342",
+  "trace_id": "trace-e2bff441babf4cda",
+  "trace_url": "/ai-studio/runs/run-e31bbc35-e026-4a8c-9e2a-3391cbc6a342/trace",
+  "runtime_mode": "rule_engine",
+  "latency_ms": 2,
+  "cost": {
+    "amount": 0.0,
+    "currency": "CNY"
+  },
+  "billing": {},
+  "summary": "已核对 2 个明确候选及 2 条声明依据；未选择、分配或替换主诊断，必须由编码员复核。",
+  "result": {
+    "status": "requires_review",
+    "markdown": "{\"candidate_evidence_gaps\": [], \"candidates\": [{\"candidate_id\": \"D1\", \"char_span\": [140, 156], \"code\": \"S22.000\", \"display\": \"T12椎体压缩性骨折\", \"evidence_ref\": \"principal-dx-evidence-6\", \"evidence_status\": \"EXACT_INPUT_SPAN\", \"evidence_text\": \"出院诊断记录T12椎体压缩性骨折\", \"is_documented_draft\": true, \"source_document\": \"出院记录\"}, {\"candidate_id\": \"D2\", \"char_span\": [184, 200], \"code\": \"M80.900\", \"display\": \"骨质疏松伴病理性骨折\", \"evidence_ref\": \"principal-dx-evidence-7\", \"evidence_status\": \"EXACT_INPUT_SPAN\", \"evidence_text\": \"出院诊断记录骨质疏松伴病理性骨折\", \"is_documented_draft\": false, \"source_document\": \"出院记录\"}], \"clinical_inference_performed\": false, \"code_assignment_performed\": false, \"coding_standard\": {\"system\": {\"documented_text\": \"ICD-10-CN\", \"evidence_ref\": \"principal-dx-evidence-2\"}, \"version\": {\"documented_text\": \"医院批准版2026.1\", \"evidence_ref\": \"principal-dx-evidence-3\"}}, \"declared_selection_basis\": [{\"basis_type\": \"ADMISSION_REASON\", \"candidate_id\": \"D1\", \"char_span\": [232, 238], \"evidence_ref\": \"principal-dx-evidence-8\", \"evidence_text\": \"因腰背痛入院\", \"source_document\": \"入院记录\"}, {\"basis_type\": \"MAIN_TREATMENT\", \"candidate_id\": \"D1\", \"char_span\": [262, 278], \"evidence_ref\": \"principal-dx-evidence-9\", \"evidence_text\": \"行T12椎体骨折切开复位内固定术\", \"source_document\": \"手术记录\"}], \"diagnosis_extraction_performed\": false, \"documentation_scope\": {\"documented_text\": \"入院记录、出院记录、手术记录\", \"evidence_ref\": \"principal-dx-evidence-4\"}, \"documented_coding_draft\": {\"authority_status\": \"CODER_DOCUMENTED_DRAFT_NOT_CLINICALLY_VALIDATED\", \"candidate_id\": \"D1\", \"code\": \"S22.000\", \"display\": \"T12椎体压缩性骨折\", \"evidence_ref\": \"principal-dx-evidence-5\"}, \"draft_consistency_status\": \"DOCUMENTED_DRAFT_AND_EVIDENCE_PRESENT\", \"draft_evidence_complete\": true, \"draft_in_candidate_set\": true, \"evidence_items\": [{\"char_span\": [5, 20], \"evidence_id\": \"principal-dx-evidence-1\", \"field\": \"review_purpose\", \"label\": \"审核目的\", \"text\": \"住院病案首页主诊断初稿证据复核\"}, {\"char_span\": [26, 35], \"evidence_id\": \"principal-dx-evidence-2\", \"field\": \"coding_system\", \"label\": \"编码标准\", \"text\": \"ICD-10-CN\"}, {\"char_span\": [41, 52], \"evidence_id\": \"principal-dx-evidence-3\", \"field\": \"coding_version\", \"label\": \"编码版本\", \"text\": \"医院批准版2026.1\"}, {\"char_span\": [60, 74], \"evidence_id\": \"principal-dx-evidence-4\", \"field\": \"documentation_scope\", \"label\": \"病案文档范围\", \"text\": \"入院记录、出院记录、手术记录\"}, {\"char_span\": [84, 105], \"evidence_id\": \"principal-dx-evidence-5\", \"field\": \"documented_draft\", \"label\": \"编码员主诊断初稿\", \"text\": \"D1|S22.000|T12椎体压缩性骨折\"}, {\"char_span\": [140, 156], \"evidence_id\": \"principal-dx-evidence-6\", \"field\": \"candidate_evidence\", \"label\": \"主诊断候选\", \"text\": \"出院诊断记录T12椎体压缩性骨折\"}, {\"char_span\": [184, 200], \"evidence_id\": \"principal-dx-evidence-7\", \"field\": \"candidate_evidence\", \"label\": \"主诊断候选\", \"text\": \"出院诊断记录骨质疏松伴病理性骨折\"}, {\"char_span\": [232, 238], \"evidence_id\": \"principal-dx-evidence-8\", \"field\": \"selection_basis\", \"label\": \"选择依据\", \"text\": \"因腰背痛入院\"}, {\"char_span\": [262, 278], \"evidence_id\": \"principal-dx-evidence-9\", \"field\": \"selection_basis\", \"label\": \"选择依据\", \"text\": \"行T12椎体骨折切开复位内固定术\"}], \"external_rules_used\": false, \"input_conflicts\": [], \"limitations\": [\"仅核对编码员明确提供的主诊断初稿、候选集合、选择依据和原文证据。\", \"不从自由文本提取或新增诊断，不分配、推荐、替换或排序主诊断编码。\", \"不判断诊断成立、临床严重程度、病因关系、主要治疗、资源消耗或主诊断选择正确性。\", \"不验证编码目录、国家/医保/病案首页规则版本、医院政策授权或结算有效性。\", \"READY_FOR_CODER_REVIEW 只表示输入集合与证据完整，不表示主诊断正确或可提交。\", \"结果只供编码员人工复核，不自动提交、处罚、修改病历或写回系统。\"], \"manual_review_required\": true, \"missing_required_fields\": [], \"principal_diagnosis_selection_performed\": false, \"production_submission_blocked\": true, \"production_writeback_blocked\": true, \"review_method\": \"DOCUMENTED_DRAFT_EVIDENCE_AND_SET_CONSISTENCY_ONLY\", \"review_purpose\": {\"documented_text\": \"住院病案首页主诊断初稿证据复核\", \"evidence_ref\": \"principal-dx-evidence-1\"}, \"review_status\": \"READY_FOR_CODER_REVIEW\", \"selection_basis_status\": \"DOCUMENTED\", \"trace_refs\": {\"provider_trace_refs\": [\"run-e31bbc35-e026-4a8c-9e2a-3391cbc6a342:governed-principal-diagnosis-review\"], \"run_id\": \"run-e31bbc35-e026-4a8c-9e2a-3391cbc6a342\"}}",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.governed-principal-diagnosis-review.v1",
+    "backend_type": "rule_engine",
+    "candidate_evidence_gaps": [],
+    "candidates": [
+      {
+        "candidate_id": "D1",
+        "char_span": [
+          140,
+          156
+        ],
+        "code": "S22.000",
+        "display": "T12椎体压缩性骨折",
+        "evidence_ref": "principal-dx-evidence-6",
+        "evidence_status": "EXACT_INPUT_SPAN",
+        "evidence_text": "出院诊断记录T12椎体压缩性骨折",
+        "is_documented_draft": true,
+        "source_document": "出院记录"
+      },
+      {
+        "candidate_id": "D2",
+        "char_span": [
+          184,
+          200
+        ],
+        "code": "M80.900",
+        "display": "骨质疏松伴病理性骨折",
+        "evidence_ref": "principal-dx-evidence-7",
+        "evidence_status": "EXACT_INPUT_SPAN",
+        "evidence_text": "出院诊断记录骨质疏松伴病理性骨折",
+        "is_documented_draft": false,
+        "source_document": "出院记录"
+      }
+    ],
+    "clinical_inference_performed": false,
+    "code_assignment_performed": false,
+    "coding_standard": {
+      "system": {
+        "documented_text": "ICD-10-CN",
+        "evidence_ref": "principal-dx-evidence-2"
+      },
+      "version": {
+        "documented_text": "医院批准版2026.1",
+        "evidence_ref": "principal-dx-evidence-3"
+      }
+    },
+    "declared_selection_basis": [
+      {
+        "basis_type": "ADMISSION_REASON",
+        "candidate_id": "D1",
+        "char_span": [
+          232,
+          238
+        ],
+        "evidence_ref": "principal-dx-evidence-8",
+        "evidence_text": "因腰背痛入院",
+        "source_document": "入院记录"
+      },
+      {
+        "basis_type": "MAIN_TREATMENT",
+        "candidate_id": "D1",
+        "char_span": [
+          262,
+          278
+        ],
+        "evidence_ref": "principal-dx-evidence-9",
+        "evidence_text": "行T12椎体骨折切开复位内固定术",
+        "source_document": "手术记录"
+      }
+    ],
+    "diagnosis_extraction_performed": false,
+    "documentation_scope": {
+      "documented_text": "入院记录、出院记录、手术记录",
+      "evidence_ref": "principal-dx-evidence-4"
+    },
+    "documented_coding_draft": {
+      "authority_status": "CODER_DOCUMENTED_DRAFT_NOT_CLINICALLY_VALIDATED",
+      "candidate_id": "D1",
+      "code": "S22.000",
+      "display": "T12椎体压缩性骨折",
+      "evidence_ref": "principal-dx-evidence-5"
+    },
+    "draft_consistency_status": "DOCUMENTED_DRAFT_AND_EVIDENCE_PRESENT",
+    "draft_evidence_complete": true,
+    "draft_in_candidate_set": true,
+    "evidence_items": [
+      {
+        "char_span": [
+          5,
+          20
+        ],
+        "evidence_id": "principal-dx-evidence-1",
+        "field": "review_purpose",
+        "label": "审核目的",
+        "text": "住院病案首页主诊断初稿证据复核"
+      },
+      {
+        "char_span": [
+          26,
+          35
+        ],
+        "evidence_id": "principal-dx-evidence-2",
+        "field": "coding_system",
+        "label": "编码标准",
+        "text": "ICD-10-CN"
+      },
+      {
+        "char_span": [
+          41,
+          52
+        ],
+        "evidence_id": "principal-dx-evidence-3",
+        "field": "coding_version",
+        "label": "编码版本",
+        "text": "医院批准版2026.1"
+      },
+      {
+        "char_span": [
+          60,
+          74
+        ],
+        "evidence_id": "principal-dx-evidence-4",
+        "field": "documentation_scope",
+        "label": "病案文档范围",
+        "text": "入院记录、出院记录、手术记录"
+      },
+      {
+        "char_span": [
+          84,
+          105
+        ],
+        "evidence_id": "principal-dx-evidence-5",
+        "field": "documented_draft",
+        "label": "编码员主诊断初稿",
+        "text": "D1|S22.000|T12椎体压缩性骨折"
+      },
+      {
+        "char_span": [
+          140,
+          156
+        ],
+        "evidence_id": "principal-dx-evidence-6",
+        "field": "candidate_evidence",
+        "label": "主诊断候选",
+        "text": "出院诊断记录T12椎体压缩性骨折"
+      },
+      {
+        "char_span": [
+          184,
+          200
+        ],
+        "evidence_id": "principal-dx-evidence-7",
+        "field": "candidate_evidence",
+        "label": "主诊断候选",
+        "text": "出院诊断记录骨质疏松伴病理性骨折"
+      },
+      {
+        "char_span": [
+          232,
+          238
+        ],
+        "evidence_id": "principal-dx-evidence-8",
+        "field": "selection_basis",
+        "label": "选择依据",
+        "text": "因腰背痛入院"
+      },
+      {
+        "char_span": [
+          262,
+          278
+        ],
+        "evidence_id": "principal-dx-evidence-9",
+        "field": "selection_basis",
+        "label": "选择依据",
+        "text": "行T12椎体骨折切开复位内固定术"
+      }
+    ],
+    "external_rules_used": false,
+    "input_conflicts": [],
+    "limitations": [
+      "仅核对编码员明确提供的主诊断初稿、候选集合、选择依据和原文证据。",
+      "不从自由文本提取或新增诊断，不分配、推荐、替换或排序主诊断编码。",
+      "不判断诊断成立、临床严重程度、病因关系、主要治疗、资源消耗或主诊断选择正确性。",
+      "不验证编码目录、国家/医保/病案首页规则版本、医院政策授权或结算有效性。",
+      "READY_FOR_CODER_REVIEW 只表示输入集合与证据完整，不表示主诊断正确或可提交。",
+      "结果只供编码员人工复核，不自动提交、处罚、修改病历或写回系统。"
+    ],
+    "manual_review_required": true,
+    "missing_required_fields": [],
+    "principal_diagnosis_selection_performed": false,
+    "production_submission_blocked": true,
+    "production_writeback_blocked": true,
+    "review_method": "DOCUMENTED_DRAFT_EVIDENCE_AND_SET_CONSISTENCY_ONLY",
+    "review_purpose": {
+      "documented_text": "住院病案首页主诊断初稿证据复核",
+      "evidence_ref": "principal-dx-evidence-1"
+    },
+    "review_status": "READY_FOR_CODER_REVIEW",
+    "selection_basis_status": "DOCUMENTED",
+    "trace_refs": {
+      "run_id": "run-e31bbc35-e026-4a8c-9e2a-3391cbc6a342",
+      "trace_id": "trace-e2bff441babf4cda",
+      "provider_trace_refs": [
+        "run-e31bbc35-e026-4a8c-9e2a-3391cbc6a342:governed-principal-diagnosis-review"
+      ]
+    },
+    "structured_extraction": {
+      "contract": "icoder/PrincipalDxReview/v11",
+      "method": "json_block",
+      "warnings": [],
+      "required_fields": [
+        "review_status",
+        "review_purpose",
+        "coding_standard",
+        "documentation_scope",
+        "documented_coding_draft",
+        "candidates",
+        "declared_selection_basis",
+        "candidate_evidence_gaps",
+        "input_conflicts",
+        "draft_in_candidate_set",
+        "draft_evidence_complete",
+        "draft_consistency_status",
+        "selection_basis_status",
+        "review_method",
+        "evidence_items",
+        "missing_required_fields",
+        "limitations",
+        "diagnosis_extraction_performed",
+        "code_assignment_performed",
+        "principal_diagnosis_selection_performed",
+        "clinical_inference_performed",
+        "external_rules_used",
+        "production_submission_blocked",
+        "production_writeback_blocked",
+        "manual_review_required",
+        "trace_refs"
+      ],
+      "optional_fields": [],
+      "missing_required_fields": [],
+      "invalid_field_types": [],
+      "invalid_field_schemas": [],
+      "invalid_cross_agent_relations": [],
+      "undeclared_output_fields": [],
+      "undeclared_output_field_count": 0,
+      "valid": true
+    }
+  },
+  "schema_ref": "icoder/PrincipalDxReview/v11",
+  "result_attestation": "eyJhIjoicHJpbmNpcGFsLWRpYWdub3Npcy1yZXZpZXciLCJkIjoiODVkYzNjYTk1YmNlZTAzNzcxMThkNWQyZGZjNmYzZmQ4NzcxMThhMWNjOTMwNWM5OGUwYjUyNjAzNTIzNzJmZiIsImUiOjE3ODc5MDgyMTgsIm8iOiI2ZDA1YjcwOGRmOWEiLCJyIjoicnVuLWUzMWJiYzM1LWUwMjYtNGE4Yy05ZTJhLTMzOTFjYmM2YTM0MiIsInMiOiJpY29kZXIvUHJpbmNpcGFsRHhSZXZpZXcvdjExIiwidiI6MX0.opM9oDSZD8-fb0tYw2OU2s2krlqk2VPLqbIBFUWalWY",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 2,
+      "metadata": {
+        "agent_id": "principal-diagnosis-review",
+        "runtime_mode": "rule_engine",
+        "latency_ms": 2
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 0.918
+}

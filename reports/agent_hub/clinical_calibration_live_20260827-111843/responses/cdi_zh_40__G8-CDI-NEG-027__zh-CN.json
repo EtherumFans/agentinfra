@@ -1,0 +1,191 @@
+{
+  "agent_id": "clinical-documentation-improvement-agent",
+  "run_id": "run-75077a79-d422-442e-8a31-0ccc4f13ce50",
+  "trace_id": "trace-8b5d6cf121f44ac8",
+  "trace_url": "/ai-studio/runs/run-75077a79-d422-442e-8a31-0ccc4f13ce50/trace",
+  "runtime_mode": "cdi_real_orchestrator",
+  "latency_ms": 9263,
+  "cost": {
+    "amount": 0.00061348,
+    "currency": "CNY",
+    "source": "configured_usage_pricing_estimate",
+    "billing_authoritative": false
+  },
+  "billing": {},
+  "summary": "CDI review completed; specialist and clinician review remain required.",
+  "result": {
+    "encounter_summary": {
+      "key_points": [
+        "60岁女性，咳嗽1周",
+        "否认发热、咳脓痰、咯血、胸痛",
+        "既往有高血压",
+        "双肺听诊清晰",
+        "胸片未见活动性病变"
+      ],
+      "encounter_metadata": {
+        "patient_age": "60岁",
+        "patient_sex": "女性",
+        "encounter_type": "门诊"
+      }
+    },
+    "documentation_gaps": [
+      {
+        "gap_id": "GAP-001",
+        "gap_type": "diagnostic_specificity",
+        "description": "The diagnosis of cough is not specified as acute or chronic, and the underlying etiology is not documented.",
+        "why_it_matters": "Coding requires specificity for cough (e.g., acute, chronic, unspecified) and the underlying cause to accurately capture the condition and avoid unspecified codes.",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "咳嗽1周",
+          "char_start": 11,
+          "char_end": 15,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      },
+      {
+        "gap_id": "GAP-002",
+        "gap_type": "diagnostic_specificity",
+        "description": "The type and severity of hypertension are not documented.",
+        "why_it_matters": "Hypertension coding requires specification of type (essential, secondary) and severity (e.g., benign, malignant, with or without heart/kidney disease) for accurate coding and risk adjustment.",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "高血压",
+          "char_start": 34,
+          "char_end": 37,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      }
+    ],
+    "proposed_provider_queries": [],
+    "query_gate_summary": {
+      "withheld_count": 2,
+      "status_counts": {
+        "REWRITE_CANDIDATE_GENERATED": 0
+      },
+      "manual_cdi_action_required": true
+    },
+    "coding_specificity_checklist": [],
+    "risk_flags": [],
+    "specialist_trace": [
+      {
+        "expert_id": "coding-expert",
+        "consulted": true,
+        "requested": "You are a coding-specialist Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "To accurately code this encounter, the cough must be specified as acute (e.g., duration <3 weeks) versus chronic, and any underlying cause (e.g., viral infection, post-nasal drip, asthma) must be documented. For hypertension, the type (e.g., essential vs. secondary) and severity (e.g., stage 1 or 2, or if controlled/uncontrolled) are required to assign the correct code. Without these details, the clinical picture remains incomplete for precise coding.",
+        "route_decision": "needed",
+        "route_reason": "coding_relevant_gap",
+        "execution_mode": "LLM_KNOWLEDGE_ONLY",
+        "latency_ms": 1558,
+        "tokens": 235,
+        "run_id": "run-7a6e8810dd75",
+        "trace_id": "trace-1cb407509932"
+      },
+      {
+        "expert_id": "pubmed-expert",
+        "consulted": false,
+        "requested": "You are a PubMed literature Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-6046850b7ef9",
+        "trace_id": "trace-20e398eaea17"
+      },
+      {
+        "expert_id": "web-search-expert",
+        "consulted": false,
+        "requested": "You are a clinical web-search Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-1110fd90625e",
+        "trace_id": "trace-cc8238a7e6ae"
+      },
+      {
+        "expert_id": "medical-calculator-expert",
+        "consulted": false,
+        "requested": "You are a medical-calculator Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-12226d7aa7ca",
+        "trace_id": "trace-f4ede1c1ccb5"
+      }
+    ],
+    "human_review": {
+      "cdi_specialist_review_required": true,
+      "clinician_response_required": true,
+      "review_priority": "routine"
+    },
+    "trace_refs": {
+      "run_id": "run-75077a79-d422-442e-8a31-0ccc4f13ce50",
+      "stage_trace": {
+        "encounter_synthesis": "trace-ef8938356265",
+        "gap_identification": "trace-042afef0ba7d",
+        "expert_consultation": "trace-34d89901287f",
+        "query_generation": "trace-43740fef4f1f",
+        "query_eligibility_gate": "",
+        "query_necessity_gate": "",
+        "query_dimension_rewrite": "",
+        "query_single_dimension_gate": "",
+        "claim_evidence_alignment_gate": "trace-f67d68f5f9fe",
+        "semantic_necessity_gate": "trace-d40d92dc358f",
+        "query_compliance_gate": "",
+        "specialist_trace_emit": "trace-d8e6d31b1316"
+      },
+      "experts_consulted": [
+        "coding-expert"
+      ],
+      "gate_results": {
+        "encounter_synthesis": "run-92b19876c89e",
+        "gap_identification": "run-968c0890849e",
+        "gap_identification_risk_flags": "emitted=0;quote_snapped=0;withheld=0;quantity_redacted=0",
+        "expert_consultation": "run-f94f281af50b",
+        "query_generation": "run-ea8435a23998",
+        "query_generation::quote_snapped": "0",
+        "query_generation::coverage_missing": "0",
+        "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=2;llm_complete=False;llm_reasoning=The chart lacks specificity for the cough (etiology, acuity) and hypertension (t",
+        "query_necessity_gate": "necessary=0;unnecessary=2;overquery_triggered=False;final_count=0",
+        "query_dimension_rewrite": "not_executed",
+        "query_single_dimension_gate": "single_dim=0;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;rewrite_attempted=0;rewrite_accepted=0;final_count=0",
+        "claim_evidence_alignment_gate": "claims_extracted=0;degraded=0;blocked=0;flagged=0;final_count=0",
+        "claim_evidence_alignment_gate::run_id": "run-d92b6370afc5",
+        "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+        "semantic_necessity_gate::run_id": "run-4e5d16213b6b",
+        "query_compliance_gate": ";passed=0;blocked=0",
+        "specialist_trace_emit": "run-2aed63e9eff8"
+      },
+      "trace_id": "trace-8b5d6cf121f44ac8"
+    }
+  },
+  "schema_ref": "icoder/CDIAgentOutputV1/v6",
+  "result_attestation": "eyJhIjoiY2xpbmljYWwtZG9jdW1lbnRhdGlvbi1pbXByb3ZlbWVudC1hZ2VudCIsImQiOiIzMDRmOWM1M2Y3MDk2NjJjN2FiZGE0OWI3NWY0MzRkMmM4ZmMyNjIwNWMxZWRkY2U4ODVkOGU4YmE4M2ViNWU1IiwiZSI6MTc4Nzg4NzQ3NCwibyI6IjVmZWYzNzlmMjViZCIsInIiOiJydW4tNzUwNzdhNzktZDQyMi00NDJlLThhMzEtMGNjYzRmMTNjZTUwIiwicyI6Imljb2Rlci9DRElBZ2VudE91dHB1dFYxL3Y2IiwidiI6MX0.OjXqTkpSAorxyAnXdV3ojI62jdo3WxHyq7We-7NWw78",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 9.424
+}

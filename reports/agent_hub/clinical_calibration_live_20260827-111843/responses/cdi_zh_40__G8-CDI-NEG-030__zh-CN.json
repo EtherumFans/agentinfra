@@ -1,0 +1,209 @@
+{
+  "agent_id": "clinical-documentation-improvement-agent",
+  "run_id": "run-daec0a23-a81e-40a0-85d6-6924ad1eb43d",
+  "trace_id": "trace-3780949bf7674cba",
+  "trace_url": "/ai-studio/runs/run-daec0a23-a81e-40a0-85d6-6924ad1eb43d/trace",
+  "runtime_mode": "cdi_real_orchestrator",
+  "latency_ms": 13287,
+  "cost": {
+    "amount": 0.00076328,
+    "currency": "CNY",
+    "source": "configured_usage_pricing_estimate",
+    "billing_authoritative": false
+  },
+  "billing": {},
+  "summary": "CDI review completed; specialist and clinician review remain required.",
+  "result": {
+    "encounter_summary": {
+      "key_points": [
+        "患者男性，40岁",
+        "间断头痛",
+        "否认恶心、呕吐、畏光、畏声、视觉先兆、肢体无力",
+        "既往无偏头痛史",
+        "无颅脑外伤史",
+        "无中枢神经系统肿瘤家族史",
+        "查体正常"
+      ],
+      "encounter_metadata": {
+        "patient_age": "40岁",
+        "patient_sex": "男性",
+        "encounter_type": "门诊"
+      }
+    },
+    "documentation_gaps": [
+      {
+        "gap_id": "GAP-001",
+        "gap_type": "diagnostic_specificity",
+        "description": "头痛的病因未明确，需要进一步说明可能的病因或诊断印象。",
+        "why_it_matters": "头痛的病因未明确，影响诊断编码的准确性和临床相关性。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "间断头痛",
+          "char_start": 11,
+          "char_end": 15,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      },
+      {
+        "gap_id": "GAP-002",
+        "gap_type": "diagnostic_specificity",
+        "description": "头痛的严重程度未描述，如疼痛评分或对日常生活的影响。",
+        "why_it_matters": "严重程度是头痛分类和编码的重要维度，缺失影响编码准确性。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "间断头痛",
+          "char_start": 11,
+          "char_end": 15,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      },
+      {
+        "gap_id": "GAP-003",
+        "gap_type": "diagnostic_specificity",
+        "description": "头痛的病程未明确，如持续时间、发作频率、起病时间等。",
+        "why_it_matters": "病程信息有助于区分急慢性头痛，影响编码和临床决策。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "间断头痛",
+          "char_start": 11,
+          "char_end": 15,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      }
+    ],
+    "proposed_provider_queries": [],
+    "query_gate_summary": {
+      "withheld_count": 3,
+      "status_counts": {
+        "REWRITE_CANDIDATE_GENERATED": 0
+      },
+      "manual_cdi_action_required": true
+    },
+    "coding_specificity_checklist": [],
+    "risk_flags": [],
+    "specialist_trace": [
+      {
+        "expert_id": "coding-expert",
+        "consulted": true,
+        "requested": "You are a coding-specialist Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "为准确编码，需明确头痛的病因或诊断印象（如原发性头痛类型或继发性病因），并补充疼痛严重程度（如数字评分或对日常活动的影响）及病程特征（如持续时间、发作频率、起病急缓）。这些临床细节将决定头痛的分类和后续管理，但无需在此提出具体ICD代码。",
+        "route_decision": "needed",
+        "route_reason": "coding_relevant_gap",
+        "execution_mode": "LLM_KNOWLEDGE_ONLY",
+        "latency_ms": 1651,
+        "tokens": 235,
+        "run_id": "run-46b65cd85c58",
+        "trace_id": "trace-d628ef248353"
+      },
+      {
+        "expert_id": "pubmed-expert",
+        "consulted": true,
+        "requested": "You are a PubMed literature Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "Based on the chart, the headache is episodic, without red-flag symptoms (no focal deficits, normal exam), and lacks features of migraine or tension-type patterns—so the evidence supports a primary headache disorder, most likely tension-type headache or unspecified primary headache, but the gaps you identified (duration, frequency, severity, onset) are essential to distinguish it from chronic migraine or medication-overuse headache. I do not have live PubMed access, so I cannot provide real PMIDs, but literature (e.g., ICHD-3 criteria) emphasizes that a detailed temporal profile and pain intensity are mandatory for accurate diagnosis. Please obtain those missing details to refine the impression.",
+        "route_decision": "needed",
+        "route_reason": "criteria_marker_present",
+        "execution_mode": "LLM_KNOWLEDGE_ONLY",
+        "latency_ms": 2333,
+        "tokens": 311,
+        "run_id": "run-d2f34db61313",
+        "trace_id": "trace-1766e9852195"
+      },
+      {
+        "expert_id": "web-search-expert",
+        "consulted": false,
+        "requested": "You are a clinical web-search Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-ff6004e76c9d",
+        "trace_id": "trace-01055c8b8c29"
+      },
+      {
+        "expert_id": "medical-calculator-expert",
+        "consulted": false,
+        "requested": "You are a medical-calculator Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "'评分' score — parameters absent from chart",
+        "route_decision": "missing_inputs",
+        "route_reason": "calculator_params_missing",
+        "execution_mode": "SKIPPED_MISSING_INPUTS",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-64269aacba8e",
+        "trace_id": "trace-378b0fb7dbad"
+      }
+    ],
+    "human_review": {
+      "cdi_specialist_review_required": true,
+      "clinician_response_required": true,
+      "review_priority": "routine"
+    },
+    "trace_refs": {
+      "run_id": "run-daec0a23-a81e-40a0-85d6-6924ad1eb43d",
+      "stage_trace": {
+        "encounter_synthesis": "trace-9c919aa3daf1",
+        "gap_identification": "trace-38f9013fb997",
+        "expert_consultation": "trace-d4d7de30a207",
+        "query_generation": "trace-0bd8a0c737c0",
+        "query_eligibility_gate": "",
+        "query_necessity_gate": "",
+        "query_dimension_rewrite": "",
+        "query_single_dimension_gate": "",
+        "claim_evidence_alignment_gate": "trace-b4bce6a851d9",
+        "semantic_necessity_gate": "trace-c392bcf24784",
+        "query_compliance_gate": "",
+        "specialist_trace_emit": "trace-888efcbcae50"
+      },
+      "experts_consulted": [
+        "coding-expert",
+        "pubmed-expert"
+      ],
+      "gate_results": {
+        "encounter_synthesis": "run-142c3aad1480",
+        "gap_identification": "run-19721c8abdd6",
+        "gap_identification_risk_flags": "emitted=0;quote_snapped=0;withheld=0;quantity_redacted=0",
+        "expert_consultation": "run-7bcea2327e31",
+        "query_generation": "run-a69f35bd4330",
+        "query_generation::quote_snapped": "0",
+        "query_generation::coverage_missing": "0",
+        "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=3;llm_complete=False;llm_reasoning=头痛的病因、严重程度和病程均未明确，且缺乏相关检查或诊断印象，需要进一步澄清。",
+        "query_necessity_gate": "necessary=0;unnecessary=3;overquery_triggered=False;final_count=0",
+        "query_dimension_rewrite": "not_executed",
+        "query_single_dimension_gate": "single_dim=0;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;rewrite_attempted=0;rewrite_accepted=0;final_count=0",
+        "claim_evidence_alignment_gate": "claims_extracted=0;degraded=0;blocked=0;flagged=0;final_count=0",
+        "claim_evidence_alignment_gate::run_id": "run-3fdd46fef47f",
+        "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+        "semantic_necessity_gate::run_id": "run-9b954e63b0ed",
+        "query_compliance_gate": ";passed=0;blocked=0",
+        "specialist_trace_emit": "run-e3095252118d"
+      },
+      "trace_id": "trace-3780949bf7674cba"
+    }
+  },
+  "schema_ref": "icoder/CDIAgentOutputV1/v6",
+  "result_attestation": "eyJhIjoiY2xpbmljYWwtZG9jdW1lbnRhdGlvbi1pbXByb3ZlbWVudC1hZ2VudCIsImQiOiI1MTc5ZTUwNWNlNTYxNTAzNGIxYmY3MGU5MTVhMWM5OTc3ZDY3NGRjZDExZGNkMjBiMTU0MWIxNDcwMzJlOGFlIiwiZSI6MTc4Nzg4NzUwNiwibyI6IjVmZWYzNzlmMjViZCIsInIiOiJydW4tZGFlYzBhMjMtYTgxZS00MGEwLTg1ZDYtNjkyNGFkMWViNDNkIiwicyI6Imljb2Rlci9DRElBZ2VudE91dHB1dFYxL3Y2IiwidiI6MX0.-f6KqCtq0_3vwNwUPgYPbUn3rIpUycSupyAJo5EhEt8",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 13.525
+}

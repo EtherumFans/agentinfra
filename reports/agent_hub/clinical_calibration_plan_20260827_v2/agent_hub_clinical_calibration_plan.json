@@ -1,0 +1,223 @@
+{
+  "schema_version": "icoder.agent-hub-clinical-calibration-plan/v1",
+  "generated_at": "2026-08-27T08:47:16.549590+00:00",
+  "quality_scope": "synthetic_development_calibration_not_independent_clinical_gold",
+  "valid": true,
+  "errors": [],
+  "controlled_external_model_run": {
+    "ready": true,
+    "serial_only": true,
+    "loopback_application_transport_only": true,
+    "native_medcoder_disabled": true,
+    "local_stt_disabled": true,
+    "temporary_database_required": true,
+    "process_scoped_credential_required": true,
+    "total_agent_invocations": 50,
+    "suites": [
+      {
+        "suite_id": "cdi_zh_40",
+        "agent_id": "clinical-documentation-improvement-agent",
+        "case_count": 40,
+        "languages": [
+          "zh-CN"
+        ],
+        "metrics": [
+          "fresh_real_model_trace_attestation_rate",
+          "query_count_expected_range_rate",
+          "complete_chart_over_query_rate",
+          "clear_gap_under_query_rate",
+          "final_query_single_dimension_rate_recomputed",
+          "evidence_exact_anchor_rate",
+          "response_options_four_plus_rate",
+          "escape_hatch_rate",
+          "non_leading_gate_pass_rate"
+        ]
+      },
+      {
+        "suite_id": "medical_coding_bilingual_seed_5x2",
+        "agent_id": "medical-coding-agent",
+        "case_count": 10,
+        "languages": [
+          "zh-CN",
+          "en-US"
+        ],
+        "metrics": [
+          "fresh_real_model_trace_attestation_rate",
+          "principal_diagnosis_exact_match_rate",
+          "secondary_diagnosis_set_f1",
+          "primary_procedure_exact_match_rate",
+          "assigned_code_evidence_exact_anchor_rate",
+          "cross_language_code_set_consistency_rate",
+          "human_review_enforcement_rate"
+        ]
+      }
+    ]
+  },
+  "assets": {
+    "external_calibration_allowed": [
+      {
+        "path": "E:\\Corti4C\\backend\\tests\\fixtures\\cdi_gate8_40cases.json",
+        "relative_path": "backend/tests/fixtures/cdi_gate8_40cases.json",
+        "sha256": "22382b8ebe5955849442cfcd3b3ed646252d66fee17a77a15e4107859648db9a",
+        "size_bytes": 34695,
+        "case_count": 40,
+        "asset_id": "cdi_corti_teacher_calibration_40",
+        "role": "controlled_external_model_calibration",
+        "external_provider_egress_allowed": true,
+        "egress_basis": "fixture declaration: no names, IDs, phones, or addresses",
+        "independent_clinical_gold": false,
+        "corti_teacher_calibration": true
+      },
+      {
+        "path": "E:\\Corti4C\\backend\\tests\\fixtures\\held_out_bilingual_v1.json",
+        "relative_path": "backend/tests/fixtures/held_out_bilingual_v1.json",
+        "sha256": "42ff7ec7cc2c0771886ec10456347d590729b89011ab74a0a5cfdbaa6e2dfb4b",
+        "size_bytes": 13484,
+        "case_count": 5,
+        "asset_id": "medical_coding_held_out_bilingual_seed_5",
+        "role": "controlled_external_model_calibration",
+        "external_provider_egress_allowed": true,
+        "egress_basis": "fixture declaration: synthetic and PHI-free",
+        "independent_clinical_gold": false,
+        "engineering_team_authored": true,
+        "target_case_count": 100
+      }
+    ],
+    "external_calibration_blocked": [
+      {
+        "path": "E:\\Corti4C\\backend\\tests\\fixtures\\ccl2026_train_gold.json",
+        "relative_path": "backend/tests/fixtures/ccl2026_train_gold.json",
+        "sha256": "c71566686582ff4c3089c0547e2c2ebcccb6eb7b86756419309c680250093027",
+        "size_bytes": 11393159,
+        "case_count": 1800,
+        "asset_id": "ccl2026_train_1800",
+        "role": "local_inventory_only",
+        "external_provider_egress_allowed": false,
+        "independent_clinical_gold": false,
+        "blockers": [
+          "commercial-use and external-processing licence not documented",
+          "source provenance not independently verified",
+          "de-identification certificate not present",
+          "derived/subsampled from the same CCL 2026 training monoculture"
+        ]
+      },
+      {
+        "path": "E:\\Corti4C\\backend\\tests\\fixtures\\ccl2026_val_100.json",
+        "relative_path": "backend/tests/fixtures/ccl2026_val_100.json",
+        "sha256": "5403549263eba91101083ee9cdc6eba4ba871e48e9c9b18a6653aa3a7478a538",
+        "size_bytes": 645165,
+        "case_count": 100,
+        "asset_id": "ccl2026_validation_100",
+        "role": "local_inventory_only",
+        "external_provider_egress_allowed": false,
+        "independent_clinical_gold": false,
+        "blockers": [
+          "commercial-use and external-processing licence not documented",
+          "source provenance not independently verified",
+          "de-identification certificate not present",
+          "derived/subsampled from the same CCL 2026 training monoculture"
+        ]
+      },
+      {
+        "path": "E:\\Corti4C\\backend\\tests\\fixtures\\icoder_201.json",
+        "relative_path": "backend/tests/fixtures/icoder_201.json",
+        "sha256": "6b666f2d7494936f7a4e5a7dfc8dda72992fa8bb6980f8f6b1fb6481ae130878",
+        "size_bytes": 1305403,
+        "case_count": 201,
+        "asset_id": "icoder_201_subset",
+        "role": "local_inventory_only",
+        "external_provider_egress_allowed": false,
+        "independent_clinical_gold": false,
+        "blockers": [
+          "commercial-use and external-processing licence not documented",
+          "source provenance not independently verified",
+          "de-identification certificate not present",
+          "derived/subsampled from the same CCL 2026 training monoculture"
+        ]
+      }
+    ]
+  },
+  "legacy_cdi_candidate": {
+    "status": "historical_calibration_only_not_current_release_evidence",
+    "candidate_version": "icoder-cdi-agent-v1.0.0-rc5",
+    "integrity": "passed",
+    "parity_status": "partial",
+    "metric_gaps": [
+      {
+        "metric": "agreement_rate_delta_le_1",
+        "value": 0.75,
+        "target": ">= 0.80"
+      },
+      {
+        "metric": "avg_abs_query_count_delta",
+        "value": 1.0,
+        "target": "<= 0.50"
+      },
+      {
+        "metric": "clear_gap_under_query_rate",
+        "value": 0.1,
+        "target": "= 0"
+      },
+      {
+        "metric": "unsupported_query_rate",
+        "value": 0.025,
+        "target": "= 0"
+      }
+    ],
+    "runner_findings": [
+      {
+        "id": "hard_coded_multi_dimension_result",
+        "detail": "The legacy runner hard-codes slipped multi-dimension queries to zero instead of re-evaluating final queries."
+      },
+      {
+        "id": "hard_coded_login_credentials",
+        "detail": "The legacy runner contains fixed development login credentials."
+      },
+      {
+        "id": "legacy_non_agent_hub_endpoint",
+        "detail": "The legacy runner bypasses the unified Agent Hub run endpoint."
+      },
+      {
+        "id": "missing_live_model_attestation_gate",
+        "detail": "The legacy runner does not require signed RunTrace evidence of a real provider/model call."
+      }
+    ],
+    "fresh_model_run": false,
+    "current_agent_pack_bound": false
+  },
+  "independent_bilingual_coding_gold_review": {
+    "protocol_version": "icoder.bilingual-coding-gold-review/2026-08-27",
+    "tool_relative_path": "backend/scripts/corti_parity/bilingual_coding_gold_review.py",
+    "ready_for_blinded_external_review": true,
+    "source_case_count": 5,
+    "minimum_independent_reviewers": 2,
+    "engineering_gold_removed_from_review_packet": true,
+    "model_outputs_removed_from_review_packet": true,
+    "catalog_and_bilingual_evidence_validation": true,
+    "disagreement_adjudication_required": true,
+    "external_identity_verification_required": true,
+    "completed_independent_reviews": 0,
+    "external_identity_verification_completed": false,
+    "independent_gold_ready": false
+  },
+  "claim_boundaries": {
+    "clinical_accuracy_proven": false,
+    "independent_gold_used": false,
+    "corti_parity_proven": false,
+    "hospital_acceptance_proven": false,
+    "production_ready_proven": false,
+    "allowed_claim": "Synthetic multi-case development calibration is prepared; results require a fresh, attested real-model run."
+  },
+  "external_release_gates": [
+    "expand bilingual coding suite from 5 to at least 100 cases",
+    "independent bilingual clinical coder adjudication",
+    "held-out hospital-distribution validation under approved DPA",
+    "data provenance, licence, and de-identification sign-off",
+    "controlled Corti head-to-head on identical authorized inputs",
+    "at least one design-partner hospital acceptance review"
+  ],
+  "network_used": false,
+  "models_loaded": false,
+  "real_model_executed": false,
+  "plan_sha256": "03f7d2f108aaf89a1c60dd43174a3c2bedb505a5d7c9b6868abafcbbb0a15e2b"
+}

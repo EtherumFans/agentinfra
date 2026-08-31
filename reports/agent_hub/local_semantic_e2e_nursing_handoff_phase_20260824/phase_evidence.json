@@ -1,0 +1,98 @@
+{
+  "schema_version": "icoder.governed-nursing-handoff-phase-evidence/v1",
+  "generated_at": "2026-08-24T10:25:00+08:00",
+  "status": "development_candidate_passed_external_gates_open",
+  "agent": {
+    "id": "nursing-handoff",
+    "ref": "icoder/nursing-handoff@1.1.0",
+    "provider": "icoder.governed-nursing-handoff.v1",
+    "output_contract": "icoder/NursingHandoffOutput/v4",
+    "runtime_mode": "governed_local_documented_nursing_handoff",
+    "llm_required": false,
+    "network_required": false,
+    "clinical_priority_assessed": false,
+    "medical_calculator_used": false,
+    "production_writeback_blocked": true,
+    "manual_review_required": true
+  },
+  "http_e2e": {
+    "transport": "real_loopback_http",
+    "happy": {"passed": 12, "failed": 0},
+    "adversarial": {"passed": 12, "failed": 0},
+    "reference": {"passed": 12, "failed": 0},
+    "stability": {"passed": 72, "failed": 0, "fresh": 72, "seeded": 0, "repetitions": 3},
+    "temporary_database": "created_migrated_removed",
+    "real_llm_used": false,
+    "external_network_used": false
+  },
+  "test_evidence": {
+    "focused_unit_registry_projector": {"passed": 58, "failed": 0},
+    "nursing_handoff_a2a": {"passed": 2, "failed": 0},
+    "targeted_global_contract_matrix_replay": {"passed": 102, "failed": 0},
+    "all_visible_agent_offline_safety": {"passed": 78, "failed": 0},
+    "broad_relevant_regression": {"passed": 655, "failed": 0},
+    "evidence_binding_replay": {"agents": 8, "bindings": 17, "detected_assertions": 34, "expected_assertions": 34},
+    "field_relation_replay": {"agents": 14, "relations": 49, "detected_assertions": 95, "expected_assertions": 95},
+    "deployment_preflight": {"passed": 90, "failed": 0}
+  },
+  "runtime_matrix": {
+    "visible_agents": 26,
+    "external_model_required": 14,
+    "external_model_optional": 1,
+    "pure_local": 11,
+    "offline_local_baseline": 12,
+    "strict_26_agent_live_provider_semantic_verified": 0,
+    "production_ready_verified": 0
+  },
+  "contract_registry": {
+    "visible_contracts": 26,
+    "registered_contracts": 115,
+    "new_refs": [],
+    "changed_refs": [],
+    "invalid_refs": [],
+    "duplicate_refs": []
+  },
+  "corti_catalog": {
+    "catalog_entries": 20,
+    "development_verified": 20,
+    "china_profile_declared": 20,
+    "clinical_quality_verified": 0,
+    "production_ready_verified": 0
+  },
+  "safety": {
+    "protected_database": {
+      "path": "E:\\Corti4C\\backend\\data\\icoder.db",
+      "size_bytes": 8536064,
+      "sha256": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e",
+      "revision": "041",
+      "unchanged": true
+    },
+    "source_migration_head": "056",
+    "backend_process_count_after_tests": 0,
+    "port_8000_listener_count_after_tests": 0,
+    "llm_credential_present_in_test_process": false,
+    "docker_available": false,
+    "native_medcoder_faiss_bge_used": false,
+    "regenerable_test_directories_retained_due_execution_policy": [
+      "E:\\Corti4C\\reports\\test-temp\\nursing-a2a-20260824",
+      "E:\\Corti4C\\reports\\test-temp\\nursing-offline-20260824",
+      "E:\\Corti4C\\reports\\test-temp\\nursing-validators"
+    ]
+  },
+  "artifact_sha256": {
+    "agent_pack.json": "e75c60644119effdbfa6822394bba774f57bab49d17325e1bd5c839b24e24c05",
+    "local_semantic_e2e_evidence.json": "aa3bfb0b251efb4f7009b5ddbce9bb0e45ae5c84282d7dcd9dd1c667080e95c4",
+    "agent_hub_evidence_binding_replay.json": "8fe33b40c48123aa710e23308eb1090ddb27732fa8ee4c93ea0978e10382ff82",
+    "agent_hub_field_relation_replay.json": "af67881e79f6e86084a4121d6510dffb36b364e90b520e057197af67486dec24",
+    "corti_prebuilt_agent_parity.json": "2fc4f99ec7f7e8e36411b8b538bff595bc45396cc040556560222358e28c8ec0",
+    "deployment_preflight.json": "cad091d486d41a0c08d3d964177158cd62ef3033c0fb1e8e3d1866f4bdbdfc48"
+  },
+  "claims_not_proven": [
+    "Corti product equivalence",
+    "independent clinical quality",
+    "nurse acceptance and workflow effectiveness",
+    "live EHR, MAR, laboratory, diagnostic, or device integration",
+    "production cloud readiness",
+    "regulatory, legal, security certification, or hospital approval"
+  ]
+}

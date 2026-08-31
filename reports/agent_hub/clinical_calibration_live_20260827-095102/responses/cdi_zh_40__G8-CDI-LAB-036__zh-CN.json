@@ -1,0 +1,209 @@
+{
+  "agent_id": "clinical-documentation-improvement-agent",
+  "run_id": "run-183845d0-3991-4859-8b77-490891d714bf",
+  "trace_id": "trace-6d113aca5c8f4c88",
+  "trace_url": "/ai-studio/runs/run-183845d0-3991-4859-8b77-490891d714bf/trace",
+  "runtime_mode": "cdi_real_orchestrator",
+  "latency_ms": 12790,
+  "cost": {
+    "amount": 0.000896,
+    "currency": "CNY",
+    "source": "configured_usage_pricing_estimate",
+    "billing_authoritative": false
+  },
+  "billing": {},
+  "summary": "CDI review completed; specialist and clinician review remain required.",
+  "result": {
+    "encounter_summary": {
+      "key_points": [
+        "患者男性，45岁，体检",
+        "无消化道症状",
+        "便潜血免疫法阳性",
+        "Hb 145，MCV 88，无贫血",
+        "既往史：无",
+        "建议：复查便潜血，必要时肠镜"
+      ],
+      "encounter_metadata": {
+        "patient_age": "45岁",
+        "patient_sex": "男性",
+        "encounter_type": "体检"
+      }
+    },
+    "documentation_gaps": [
+      {
+        "gap_id": "GAP-001",
+        "gap_type": "diagnostic_specificity",
+        "description": "便潜血免疫法阳性结果未明确临床意义或相关病因，需进一步评估。",
+        "why_it_matters": "异常实验室结果（便潜血阳性）需要临床解释，以确定是否需要进一步检查（如肠镜）或排除其他原因，影响编码和临床决策。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "便潜血免疫法阳性",
+          "char_start": 21,
+          "char_end": 29,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      }
+    ],
+    "proposed_provider_queries": [
+      {
+        "query_id": "Q-001",
+        "gap_id": "GAP-001",
+        "topic": "便潜血阳性病因评估",
+        "reason": "便潜血免疫法阳性但未明确临床意义或相关病因，需进一步评估。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "便潜血免疫法阳性",
+          "char_start": 21,
+          "char_end": 29,
+          "documented_at": ""
+        },
+        "evidence_spans": [
+          {
+            "document_id": "chart-001",
+            "quote": "便潜血免疫法阳性",
+            "char_start": 21,
+            "char_end": 29,
+            "documented_at": ""
+          }
+        ],
+        "query_text": "患者便潜血免疫法阳性，但无消化道症状，Hb 145, MCV 88，无贫血。请明确该阳性结果的临床意义及可能的病因。",
+        "response_options": [
+          "A. 考虑一过性因素（如饮食、药物等）所致，建议复查",
+          "B. 考虑消化道器质性病变（如息肉、肿瘤、炎症等），建议肠镜检查",
+          "C. 考虑其他原因（如痔疮、肛裂等），建议专科检查",
+          "D. 无法确定"
+        ],
+        "lifecycle_state": "DRAFT",
+        "priority": "routine",
+        "nlq_gate_verdict": "PASS",
+        "nlq_gate_block_reasons": []
+      }
+    ],
+    "query_gate_summary": {
+      "withheld_count": 0,
+      "status_counts": {
+        "REWRITE_CANDIDATE_GENERATED": 0
+      },
+      "manual_cdi_action_required": true
+    },
+    "coding_specificity_checklist": [],
+    "risk_flags": [],
+    "specialist_trace": [
+      {
+        "expert_id": "coding-expert",
+        "consulted": false,
+        "requested": "You are a coding-specialist Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "empty chart — no coding substrate",
+        "route_decision": "not_needed",
+        "route_reason": "empty_chart",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-df5728cc8fc6",
+        "trace_id": "trace-cc183719a6e8"
+      },
+      {
+        "expert_id": "pubmed-expert",
+        "consulted": false,
+        "requested": "You are a PubMed literature Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "empty_chart",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-1d186c53e18d",
+        "trace_id": "trace-a05a239aa943"
+      },
+      {
+        "expert_id": "web-search-expert",
+        "consulted": false,
+        "requested": "You are a clinical web-search Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "empty_chart",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-d08d9cac1ee4",
+        "trace_id": "trace-2bdcb3846cc3"
+      },
+      {
+        "expert_id": "medical-calculator-expert",
+        "consulted": false,
+        "requested": "You are a medical-calculator Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "empty_chart",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-6f5e787a89c9",
+        "trace_id": "trace-c299f4911d48"
+      }
+    ],
+    "human_review": {
+      "cdi_specialist_review_required": true,
+      "clinician_response_required": true,
+      "review_priority": "routine"
+    },
+    "trace_refs": {
+      "run_id": "run-183845d0-3991-4859-8b77-490891d714bf",
+      "stage_trace": {
+        "encounter_synthesis": "trace-d7f417c5c532",
+        "gap_identification": "trace-b135022f7ec6",
+        "expert_consultation": "trace-c0e513738cda",
+        "query_generation": "trace-b6c3e3483fe4",
+        "query_eligibility_gate": "",
+        "query_necessity_gate": "",
+        "query_dimension_rewrite": "",
+        "query_single_dimension_gate": "",
+        "claim_evidence_alignment_gate": "trace-7e5d74e8e5cd",
+        "semantic_necessity_gate": "trace-8a64aca1b458",
+        "query_compliance_gate": "",
+        "specialist_trace_emit": "trace-8d6de2cb3a4f"
+      },
+      "experts_consulted": [],
+      "gate_results": {
+        "encounter_synthesis": "run-c8d0565dd42b",
+        "gap_identification": "run-c7dcd123af85",
+        "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
+        "expert_consultation": "run-2f92ad718b2a",
+        "query_generation": "run-2aa1425b8359",
+        "query_generation::quote_snapped": "0",
+        "query_generation::coverage_missing": "0",
+        "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=1;llm_complete=False;llm_reasoning=便潜血阳性为异常发现，但未记录临床相关性或计划中的进一步检查（如肠镜）的明确指征，因此不完整。",
+        "query_necessity_gate": "necessary=1;unnecessary=0;overquery_triggered=False;final_count=1",
+        "query_dimension_rewrite": "not_executed",
+        "query_single_dimension_gate": "single_dim=1;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=etiology;rewrite_attempted=0;rewrite_accepted=0;final_count=1",
+        "claim_evidence_alignment_gate": "claims_extracted=3;degraded=0;blocked=0;flagged=0;final_count=1",
+        "claim_evidence_alignment_gate::run_id": "run-c610eb9a7294",
+        "semantic_necessity_gate": "blocked=0;flagged=1;degraded=0;final_count=1",
+        "semantic_necessity_gate::run_id": "run-d65c57d3af9c",
+        "query_compliance_gate": ";passed=1;blocked=0",
+        "specialist_trace_emit": "run-42c44b43e7d4"
+      },
+      "trace_id": "trace-6d113aca5c8f4c88"
+    }
+  },
+  "schema_ref": "icoder/CDIAgentOutputV1/v6",
+  "result_attestation": "eyJhIjoiY2xpbmljYWwtZG9jdW1lbnRhdGlvbi1pbXByb3ZlbWVudC1hZ2VudCIsImQiOiIyYjIxMTdmNjQxZmM3M2MyYTAyYmZiNzVjYmE0ZjQwZWMzNDA1YzcwM2NkNjNiNDcwMzk1NTViZmUzMGMyYWI5IiwiZSI6MTc4Nzg4MjQzMSwibyI6ImJjOTJlZTA2YWYwZiIsInIiOiJydW4tMTgzODQ1ZDAtMzk5MS00ODU5LThiNzctNDkwODkxZDcxNGJmIiwicyI6Imljb2Rlci9DRElBZ2VudE91dHB1dFYxL3Y2IiwidiI6MX0.s3KV3eQnciEhC9o_QEiULf-SRVUiizTQfXmGI3c91ck",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 12.925
+}

@@ -1,0 +1,81 @@
+{
+  "phase": "oauth_client_agent_purpose_delegation",
+  "date": "2026-08-22",
+  "status": "development_candidate_verified",
+  "security_contract": {
+    "default_deny": true,
+    "wildcard_agent_grants": false,
+    "exact_agent_allowlist": true,
+    "live_grant_recheck": true,
+    "purpose_of_use_required_for_client_credentials": true,
+    "connector_recheck": true,
+    "machine_memory_delegation": false,
+    "run_history_attribution": [
+      "api_client_id",
+      "delegated_subject_id",
+      "purpose_of_use"
+    ],
+    "connector_audit_attribution": [
+      "actor_type",
+      "actor_id",
+      "delegated_subject_id",
+      "granted_scopes",
+      "granted_purposes"
+    ]
+  },
+  "delegatable_purposes": [
+    "treatment",
+    "payment",
+    "healthcare_operations",
+    "quality_improvement",
+    "research",
+    "public_health"
+  ],
+  "tests": {
+    "backend_related": {"passed": 87, "failed": 0},
+    "openapi_contract": {"passed": 7, "failed": 0},
+    "javascript_sdk": {"passed": 41, "failed": 0},
+    "python_sdk": {"passed": 48, "failed": 0},
+    "frontend": {"passed": 134, "failed": 0},
+    "frontend_production_build": "passed",
+    "dotnet": "source_updated_runtime_unavailable"
+  },
+  "openapi": {
+    "paths": 260,
+    "file_bytes": 807143,
+    "drift_check": "passed"
+  },
+  "migration": {
+    "head": "049",
+    "isolated_round_trip": "048_to_049_to_048_to_head_passed",
+    "temporary_database_removed": true,
+    "development_database_modified": false,
+    "development_database_observed_revision": "041",
+    "development_database_reconcile_required": true
+  },
+  "llm_policy": {
+    "credential_cleared_for_tests": true,
+    "provider": "mock",
+    "external_llm_allowed": false,
+    "real_deepseek_called": false
+  },
+  "runtime_diagnosis": {
+    "last_trace_http_status": 200,
+    "sqlalchemy_rollback_is_read_transaction_end": true,
+    "uvicorn_exit_code": -1,
+    "uvicorn_running_at_inspection": false,
+    "port_8000_listening_at_inspection": false,
+    "native_memory_fault_reproduced": false
+  },
+  "external_gates_open": [
+    "dotnet_ci",
+    "development_database_reconcile",
+    "postgresql_multi_replica",
+    "corti_hosted_runtime_interoperability",
+    "hospital_identity_and_consent",
+    "clinical_review",
+    "china_authoritative_data_licensing",
+    "cloud_kms_and_secret_manager",
+    "legal_compliance_and_certification"
+  ]
+}

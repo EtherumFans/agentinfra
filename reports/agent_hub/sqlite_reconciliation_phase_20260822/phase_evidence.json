@@ -1,0 +1,44 @@
+{
+  "schema_version": "icoder.sqlite-reconciliation-phase-evidence/v1",
+  "generated_at": "2026-08-22T02:37:42.603734+00:00",
+  "result": "passed_with_external_cutover_gate_open",
+  "source": {
+    "revision": "041",
+    "integrity_check": "ok",
+    "sha256_before_and_after": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e",
+    "unchanged": true,
+    "foreign_key_violation_count": 827,
+    "missing_organization_parent_count": 6
+  },
+  "staged_candidate": {
+    "revision": "049",
+    "integrity_check": "ok",
+    "foreign_key_violation_count": 0,
+    "source_tables_copied": 58,
+    "source_rows_copied": 6090,
+    "data_preservation_mismatches": 0,
+    "inactive_quarantine_organization_count": 6,
+    "schema_drift_total": 0,
+    "schema_tables_checked": 65,
+    "schema_columns_checked": 948,
+    "cutover_performed": false
+  },
+  "tests": {
+    "fresh_head_and_staging": {"passed": 4, "failed": 0},
+    "joint_regression": {"passed": 23, "failed": 0},
+    "deployment_preflight": {"passed": 57, "failed": 0}
+  },
+  "artifacts": {
+    "stage_report": "reports/agent_hub/sqlite_reconciliation_phase_20260822/staged/sqlite_migration_stage_report.json",
+    "stage_report_sha256": "db259219452daf1f3a289ffc9fb35fe1b151e402b9627cd07cfb99ac71e30b79",
+    "deployment_preflight": "reports/agent_hub/sqlite_reconciliation_phase_20260822/deployment_preflight/deployment_preflight.json",
+    "summary": "docs/corti_parity/ICODER_SQLITE_RECONCILIATION_PHASE_SUMMARY_2026-08-22.md",
+    "database_copies_retained": false
+  },
+  "limitations": [
+    "The source development database remains at revision 041.",
+    "Quarantine rows are inactive containment records and do not establish tenant ownership.",
+    "No database cutover or backend restart was performed.",
+    "PostgreSQL multi-replica and hospital/cloud change controls remain external gates."
+  ]
+}

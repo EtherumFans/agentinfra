@@ -1,0 +1,176 @@
+{
+  "schema_version": "icoder.governed-principal-diagnosis-review-phase-evidence/v1",
+  "generated_at": "2026-08-24T22:04:22+08:00",
+  "status": "development_candidate_slice_passed_external_gates_open",
+  "agent": {
+    "agent_id": "principal-diagnosis-review",
+    "agent_ref": "icoder/principal-diagnosis-review@1.1.0",
+    "provider": "icoder.governed-principal-diagnosis-review.v1",
+    "backend_type": "rule_engine",
+    "runtime_mode": "governed_local_documented_principal_draft_review",
+    "output_contract": "icoder/PrincipalDxReview/v11",
+    "required_output_fields": 26,
+    "field_relations": 5,
+    "evidence_bindings": 3,
+    "network_required": false,
+    "llm_required": false,
+    "diagnosis_extraction_performed": false,
+    "code_assignment_performed": false,
+    "principal_diagnosis_selection_performed": false,
+    "clinical_inference_performed": false,
+    "external_rules_used": false,
+    "production_submission_blocked": true,
+    "production_writeback_blocked": true,
+    "manual_review_required": true
+  },
+  "verification": {
+    "focused_provider_projector_matrix": {"passed": 53, "failed": 0},
+    "focused_a2a_run_offline": {"passed": 17, "failed": 0},
+    "broad_regression": {
+      "passed": 1203,
+      "skipped": 5,
+      "deselected": 6,
+      "failed": 0,
+      "duration_seconds": 1368.66
+    },
+    "loopback_http": {
+      "transport": "real_loopback_http",
+      "happy": {"passed": 22, "failed": 0},
+      "adversarial": {"passed": 22, "failed": 0},
+      "reference": {
+        "passed": 22,
+        "failed": 0,
+        "quality_scope": "pack_owned_synthetic_reference_semantics_not_independent_clinical_gold"
+      },
+      "stability": {
+        "passed": 132,
+        "failed": 0,
+        "repetitions": 3,
+        "p50_seconds": 0.403,
+        "p95_seconds": 0.590
+      },
+      "signed_bundle_verified": 22,
+      "external_model_agents_not_evaluated": 4
+    },
+    "field_relation_replay": {
+      "passed": true,
+      "agents": 20,
+      "relations": 101,
+      "detected_adversarial_assertions": 301,
+      "expected_adversarial_assertions": 301
+    },
+    "evidence_binding_replay": {
+      "passed": true,
+      "agents": 17,
+      "bindings": 28,
+      "detected_adversarial_assertions": 56,
+      "expected_adversarial_assertions": 56
+    },
+    "schema_generator_dry_run": {"changed_agents": []},
+    "contract_compatibility": {
+      "passed": true,
+      "visible_contracts": 26,
+      "registered_contracts": 131,
+      "new_refs": [],
+      "changed_refs": [],
+      "invalid_refs": [],
+      "duplicate_refs": []
+    },
+    "deployment_preflight": {"passed": true, "checks": 90, "failed": 0},
+    "runtime_matrix": {
+      "visible_agents": 26,
+      "provider_resolvable": 26,
+      "launch_candidate_ready": 26,
+      "external_llm_required": 4,
+      "external_llm_optional": 1,
+      "pure_local": 21,
+      "local_baseline": 22,
+      "offline_fail_closed": 4,
+      "local_semantic_verified": 22,
+      "strict_live_provider_verified": 0,
+      "production_ready_verified": 0,
+      "field_relations": 101,
+      "evidence_bindings": 28,
+      "registered_visible_contracts": 26
+    }
+  },
+  "regressions_found_and_closed": [
+    {
+      "id": "unsafe_legacy_principal_recommendation",
+      "finding": "The former pure-LLM Pack recommended a principal diagnosis from broad harm, resource and treatment language, used zero spans and emitted unsupported rationale.",
+      "resolution": "The current runtime only reviews a coder-documented draft against an explicit candidate set and exact evidence, and exposes no recommendation field."
+    },
+    {
+      "id": "governed_projector_legacy_field_passthrough",
+      "finding": "The initial v11 projector copied arbitrary parsed JSON and could retain legacy recommended or principal_dx keys before contract rejection.",
+      "resolution": "The v11 projector now applies a strict 26-field allowlist and forcibly restores all non-selection and no-write constants."
+    },
+    {
+      "id": "duplicate_candidate_ambiguity",
+      "finding": "Identical duplicate candidate rows could create multiple draft flags without a declared conflict.",
+      "resolution": "Any duplicate candidate ID or code now enters EVIDENCE_REVIEW_REQUIRED with evidence references."
+    },
+    {
+      "id": "silent_candidate_or_basis_truncation",
+      "finding": "More than 100 candidate or basis rows were bounded without an explicit incomplete-input marker.",
+      "resolution": "Limit overflow now adds a missing-required marker and returns INPUT_REQUIRED."
+    }
+  ],
+  "artifact_hashes": {
+    "agent_pack.json": "db98be7349b0383b686bfc39419ef8a95a51c5fb08e1731c9e492667f5caa4d1",
+    "agent.py": "e8906c01f1f54e8ab6db5cfbb48304c5eeacf5158eb63cda74ca952418c4715f",
+    "governed_principal_diagnosis_review_provider.py": "186c789431ba4ad5ce1e6ee2713286e2fd6bd1ea63cb53857a8043932d49b6ce",
+    "structured_output_projector.py": "08225f76bb7c7e9eeb5916329b0c30df68c2c305670208bd135632a31a5f07af",
+    "output_contract_registry.json": "c5765454ed460c1b900085740a737467418a6da6e9fd879bbd9a03c54309719e",
+    "agent_hub_examples_e2e.json": "5b076d0b655d98737c0ab5bbc0384070aaa856d2eb54981752759bba263b98cf",
+    "agent_hub_adversarial_e2e.json": "04c10d40e1bbbdb19ae3410cdd09234a64625139d5c4094c2b33a71d5fd6e970",
+    "agent_hub_reference_quality_replay.json": "81af70d3d2160be02d7a3cefc744b8d33d6e6f2886d31e15ad7b7ae88a52fe22",
+    "agent_hub_stability_benchmark.json": "dfeed6404959a2e7c08fa8a22ba528905f019bf616dfd345df89346327ba941a",
+    "agent_hub_local_semantic_evidence_bundle.json": "01aa46e1bc03ed71eb8e199ef083dcffe31eae70c25a3096d1cb0b39d3449d92",
+    "agent_hub_runtime_matrix.json": "ef69f2e867a11bfb4e181d1696dd874d643a82c643d31cb4370ce506b735b046",
+    "agent_hub_field_relation_replay.json": "f0118327abb35fa306c9309b4ed6e1b524ea82825c9d374f4dbcbb3ec1232d4a",
+    "agent_hub_evidence_binding_replay.json": "fb7dd0cfc02e43e67480c6ea8e96cb76dd6f54c715a47cc376c24a27a6773906",
+    "deployment_preflight.json": "b95f724209faf7fec5c22d859cee20fa29347275720cae875a715964a46b8836"
+  },
+  "operational_findings": {
+    "protected_database_bytes": 8536064,
+    "protected_database_sha256": "2f1e5af01aac020cdd0eadac51b3ea65ba5b2e714d9f6ea3707992e829692877",
+    "protected_database_last_write_time": "2026-08-22 17:16:22",
+    "python_or_uvicorn_processes_remaining": false,
+    "python_listeners_remaining": false,
+    "memory_access_violation_observed_during_phase": false,
+    "native_medcoder_disabled": true,
+    "local_stt_disabled": true,
+    "real_llm_used": false,
+    "external_network_used_by_e2e": false,
+    "llm_environment_key_lengths_process_user_machine": {
+      "ICODER_CREDENTIAL_LLM": [0, 0, 0],
+      "DEEPSEEK_API_KEY": [0, 0, 0],
+      "OPENAI_API_KEY": [0, 0, 0]
+    },
+    "corti_console_browser_reinspection": "not_completed_browser_kernel_asset_path_missing"
+  },
+  "corti_public_comparators": [
+    "https://corti.ai/agents/medical-coding-icd-10-cpt-agent",
+    "https://docs.corti.ai/coding/introduction",
+    "https://docs.corti.ai/coding/encounter-coding",
+    "https://docs.corti.ai/agentic/overview"
+  ],
+  "claims_not_proven": [
+    "free_text_diagnosis_or_procedure_extraction",
+    "principal_diagnosis_selection_or_sequencing",
+    "medical_code_assignment_validation_or_alternatives",
+    "authoritative_china_principal_diagnosis_rules",
+    "drg_dip_or_insurance_billing_correctness",
+    "independent_clinical_or_coder_quality",
+    "strict_26_agent_live_provider_semantic_quality",
+    "corti_product_or_model_equivalence",
+    "hospital_acceptance_or_production_cloud_readiness",
+    "legal_regulatory_or_certification_approval"
+  ],
+  "real_llm_used": false,
+  "independent_clinical_gold_used": false,
+  "corti_parity_proven": false,
+  "hospital_acceptance_proven": false,
+  "production_ready": false
+}

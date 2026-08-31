@@ -1,0 +1,255 @@
+{
+  "agent_id": "clinical-documentation-improvement-agent",
+  "run_id": "run-c961c940-2b38-47a6-a178-527f49d0f9d4",
+  "trace_id": "trace-8c220207da6b42f6",
+  "trace_url": "/ai-studio/runs/run-c961c940-2b38-47a6-a178-527f49d0f9d4/trace",
+  "runtime_mode": "cdi_real_orchestrator",
+  "latency_ms": 19766,
+  "cost": {
+    "amount": 0.00118328,
+    "currency": "CNY",
+    "source": "configured_usage_pricing_estimate",
+    "billing_authoritative": false
+  },
+  "billing": {},
+  "summary": "CDI review completed; specialist and clinician review remain required.",
+  "result": {
+    "encounter_summary": {
+      "key_points": [
+        "患者男性，62岁",
+        "乙肝肝硬化病史",
+        "呕血1天",
+        "血红蛋白75g/L",
+        "血压95/60mmHg",
+        "心率110次/分",
+        "胃镜示食管静脉曲张出血，已行套扎治疗",
+        "入院诊断：上消化道出血"
+      ],
+      "encounter_metadata": {
+        "patient_age": "62岁",
+        "patient_sex": "男性",
+        "encounter_type": "住院"
+      }
+    },
+    "documentation_gaps": [
+      {
+        "gap_id": "GAP-001",
+        "gap_type": "diagnostic_specificity",
+        "description": "The admission diagnosis is '上消化道出血' (upper gastrointestinal bleeding), but the underlying etiology is documented as esophageal variceal bleeding due to hepatitis B cirrhosis. The diagnosis lacks specificity for the underlying cause.",
+        "why_it_matters": "Coding requires the specific cause of bleeding (e.g., esophageal varices) to accurately capture the condition and associated cirrhosis. Without this, the principal diagnosis may be coded as non-specific, affecting DRG assignment and severity.",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "入院诊断:上消化道出血",
+          "char_start": 65,
+          "char_end": 76,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "urgent"
+      },
+      {
+        "gap_id": "GAP-002",
+        "gap_type": "diagnostic_specificity",
+        "description": "The severity of the bleeding is not explicitly documented. The patient has tachycardia and hypotension, suggesting hemodynamic instability, but the degree of severity (e.g., massive, severe) is not stated.",
+        "why_it_matters": "Severity of bleeding impacts coding for complications and may affect risk adjustment. It also guides clinical management and documentation of acuity.",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "BP 95/60, HR 110",
+          "char_start": 31,
+          "char_end": 47,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      },
+      {
+        "gap_id": "GAP-003",
+        "gap_type": "diagnostic_specificity",
+        "description": "The clinical correlation of the low hemoglobin (75 g/L) with the bleeding episode is not explicitly stated. While it is likely due to acute blood loss, the chart does not document this correlation.",
+        "why_it_matters": "Documenting the correlation between the lab abnormality and the clinical condition ensures accurate coding of anemia due to acute blood loss, which is a separate diagnosis.",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "Hb 75",
+          "char_start": 24,
+          "char_end": 29,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      }
+    ],
+    "proposed_provider_queries": [
+      {
+        "query_id": "Q-001",
+        "gap_id": "GAP-001",
+        "topic": "上消化道出血的病因特异性",
+        "reason": "入院诊断为上消化道出血，但胃镜已明确为食管静脉曲张出血，诊断缺乏特异性。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "入院诊断:上消化道出血",
+          "char_start": 65,
+          "char_end": 76,
+          "documented_at": ""
+        },
+        "evidence_spans": [
+          {
+            "document_id": "chart-001",
+            "quote": "入院诊断:上消化道出血",
+            "char_start": 65,
+            "char_end": 76,
+            "documented_at": ""
+          },
+          {
+            "document_id": "chart-001",
+            "quote": "胃镜:食管静脉曲张出血",
+            "char_start": 48,
+            "char_end": 59,
+            "documented_at": ""
+          }
+        ],
+        "query_text": "根据胃镜结果，上消化道出血的具体病因是什么？",
+        "response_options": [
+          "A. 食管静脉曲张破裂出血",
+          "B. 消化性溃疡出血",
+          "C. 其他病因",
+          "D. 无法确定"
+        ],
+        "lifecycle_state": "DRAFT",
+        "priority": "urgent",
+        "nlq_gate_verdict": "PASS",
+        "nlq_gate_block_reasons": []
+      }
+    ],
+    "query_gate_summary": {
+      "withheld_count": 2,
+      "status_counts": {
+        "REWRITE_CANDIDATE_GENERATED": 0
+      },
+      "manual_cdi_action_required": true
+    },
+    "coding_specificity_checklist": [],
+    "risk_flags": [
+      {
+        "category": "unsupported_diagnosis",
+        "description": "The diagnosis of '乙肝肝硬化' (hepatitis B cirrhosis) is stated but there is no supporting evidence in the chart (e.g., imaging, labs, biopsy)."
+      }
+    ],
+    "specialist_trace": [
+      {
+        "expert_id": "coding-expert",
+        "consulted": true,
+        "requested": "You are a coding-specialist Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "To ensure accurate coding, the discharge diagnosis should explicitly state the underlying cause as “esophageal variceal bleeding due to hepatitis B cirrhosis” rather than the generic “upper gastrointestinal bleeding,” and should document the bleeding severity (e.g., “severe” or “hemodynamically significant”) given the hypotension and tachycardia. Additionally, the chart must explicitly link the low hemoglobin (75 g/L) to acute blood loss from the variceal bleed, stating that the anemia is a direct consequence of the bleeding episode, to support the clinical picture and avoid ambiguity in coding the condition’s acuity and etiology.",
+        "route_decision": "needed",
+        "route_reason": "coding_relevant_gap",
+        "execution_mode": "LLM_KNOWLEDGE_ONLY",
+        "latency_ms": 3109,
+        "tokens": 351,
+        "run_id": "run-90c4a52b0363",
+        "trace_id": "trace-b00841ef50ba"
+      },
+      {
+        "expert_id": "pubmed-expert",
+        "consulted": false,
+        "requested": "You are a PubMed literature Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-0d743ca017ce",
+        "trace_id": "trace-691a73f0b644"
+      },
+      {
+        "expert_id": "web-search-expert",
+        "consulted": false,
+        "requested": "You are a clinical web-search Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-3af1208e1c33",
+        "trace_id": "trace-d9de7e95fad1"
+      },
+      {
+        "expert_id": "medical-calculator-expert",
+        "consulted": false,
+        "requested": "You are a medical-calculator Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-bf38571db96b",
+        "trace_id": "trace-22cee8a674de"
+      }
+    ],
+    "human_review": {
+      "cdi_specialist_review_required": true,
+      "clinician_response_required": true,
+      "review_priority": "urgent"
+    },
+    "trace_refs": {
+      "run_id": "run-c961c940-2b38-47a6-a178-527f49d0f9d4",
+      "stage_trace": {
+        "encounter_synthesis": "trace-36bfa7a20649",
+        "gap_identification": "trace-4ce30b3d50bb",
+        "expert_consultation": "trace-ca48357667b2",
+        "query_generation": "trace-a52d42c36b33",
+        "query_eligibility_gate": "",
+        "query_necessity_gate": "",
+        "query_dimension_rewrite": "",
+        "query_single_dimension_gate": "",
+        "claim_evidence_alignment_gate": "trace-3ae086013eb2",
+        "semantic_necessity_gate": "trace-0294535153f6",
+        "query_compliance_gate": "",
+        "specialist_trace_emit": "trace-828d32b81718"
+      },
+      "experts_consulted": [
+        "coding-expert"
+      ],
+      "gate_results": {
+        "encounter_synthesis": "run-84655f9db017",
+        "gap_identification": "run-6e25ccd6cab4",
+        "gap_identification_risk_flags": "emitted=1;quote_snapped=0",
+        "expert_consultation": "run-604e2bf49f44",
+        "query_generation": "run-4e9db5ae5edc",
+        "query_generation::quote_snapped": "0",
+        "query_generation::coverage_missing": "0",
+        "query_eligibility_gate": "chart_complete=False;completeness_score=0.25;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=Y,D8_course=N;dropped=0;final_count=3;llm_complete=False;llm_reasoning=The chart lacks specificity in the principal diagnosis (does not specify esophag",
+        "query_necessity_gate": "necessary=1;unnecessary=2;overquery_triggered=False;final_count=1",
+        "query_dimension_rewrite": "not_executed",
+        "query_single_dimension_gate": "single_dim=1;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=etiology;rewrite_attempted=0;rewrite_accepted=0;final_count=1",
+        "claim_evidence_alignment_gate": "claims_extracted=2;degraded=0;blocked=0;flagged=0;final_count=1",
+        "claim_evidence_alignment_gate::run_id": "run-fa614a86d15d",
+        "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=1",
+        "semantic_necessity_gate::run_id": "run-fd127b798dc8",
+        "query_compliance_gate": ";passed=1;blocked=0",
+        "specialist_trace_emit": "run-648b3dbd15bf"
+      },
+      "trace_id": "trace-8c220207da6b42f6"
+    }
+  },
+  "schema_ref": "icoder/CDIAgentOutputV1/v6",
+  "result_attestation": "eyJhIjoiY2xpbmljYWwtZG9jdW1lbnRhdGlvbi1pbXByb3ZlbWVudC1hZ2VudCIsImQiOiJiZDAxOGVhZGExNjBkMzI3ZTc4NzQ4ODUwMzIyNzcyZjlkMTkwMTZjOTg4ODY0ZjJmMGY0ZjU4MWZmMjI2ZmQ4IiwiZSI6MTc4Nzg4MjEyMSwibyI6ImJjOTJlZTA2YWYwZiIsInIiOiJydW4tYzk2MWM5NDAtMmIzOC00N2E2LWExNzgtNTI3ZjQ5ZDBmOWQ0IiwicyI6Imljb2Rlci9DRElBZ2VudE91dHB1dFYxL3Y2IiwidiI6MX0.zbH6Os41n6-TJ7xPh8JFIY0hLMZcX5P0diW_GMCGidU",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 19.89
+}

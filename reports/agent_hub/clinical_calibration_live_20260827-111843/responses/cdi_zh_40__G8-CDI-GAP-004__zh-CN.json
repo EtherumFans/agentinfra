@@ -1,0 +1,281 @@
+{
+  "agent_id": "clinical-documentation-improvement-agent",
+  "run_id": "run-8ac7b880-e86a-4ce3-8c77-1e49730b7c7d",
+  "trace_id": "trace-b92da90e47f9470b",
+  "trace_url": "/ai-studio/runs/run-8ac7b880-e86a-4ce3-8c77-1e49730b7c7d/trace",
+  "runtime_mode": "cdi_real_orchestrator",
+  "latency_ms": 13548,
+  "cost": {
+    "amount": 0.00146832,
+    "currency": "CNY",
+    "source": "configured_usage_pricing_estimate",
+    "billing_authoritative": false
+  },
+  "billing": {},
+  "summary": "CDI review completed; specialist and clinician review remain required.",
+  "result": {
+    "encounter_summary": {
+      "key_points": [
+        "患者女性，55岁",
+        "上腹痛2天",
+        "淀粉酶580",
+        "CT显示胰腺肿胀伴渗出",
+        "入院诊断：急性胰腺炎",
+        "既往史：胆石症"
+      ],
+      "encounter_metadata": {
+        "patient_age": "55岁",
+        "patient_sex": "女性",
+        "encounter_type": "入院"
+      }
+    },
+    "documentation_gaps": [
+      {
+        "gap_id": "GAP-001",
+        "gap_type": "diagnostic_specificity",
+        "description": "急性胰腺炎的严重程度未明确（轻症、中重症或重症）",
+        "why_it_matters": "严重程度影响治疗和预后，且是编码和DRG分组的重要依据。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "入院诊断:急性胰腺炎",
+          "char_start": 37,
+          "char_end": 47,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "urgent"
+      },
+      {
+        "gap_id": "GAP-002",
+        "gap_type": "diagnostic_specificity",
+        "description": "急性胰腺炎的病因未明确（胆源性、酒精性、高脂血症性等）",
+        "why_it_matters": "病因影响治疗策略和编码，胆源性胰腺炎需考虑胆道干预。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "既往:胆石症",
+          "char_start": 48,
+          "char_end": 54,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "urgent"
+      },
+      {
+        "gap_id": "GAP-003",
+        "gap_type": "diagnostic_specificity",
+        "description": "CT显示胰腺肿胀伴渗出，但未明确渗出范围或局部并发症（如急性胰周液体积聚、坏死等）",
+        "why_it_matters": "局部并发症影响严重程度分级和编码，需明确是否存在并发症。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "CT:胰腺肿胀伴渗出",
+          "char_start": 26,
+          "char_end": 36,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      }
+    ],
+    "proposed_provider_queries": [
+      {
+        "query_id": "Q-002",
+        "gap_id": "GAP-002",
+        "topic": "急性胰腺炎病因",
+        "reason": "患者有胆石症病史，但未明确本次胰腺炎的病因。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "既往:胆石症",
+          "char_start": 48,
+          "char_end": 54,
+          "documented_at": ""
+        },
+        "evidence_spans": [
+          {
+            "document_id": "chart-001",
+            "quote": "既往:胆石症",
+            "char_start": 48,
+            "char_end": 54,
+            "documented_at": ""
+          }
+        ],
+        "query_text": "根据现有临床资料，该患者急性胰腺炎的可能病因是以下哪种？",
+        "response_options": [
+          "A. 胆源性",
+          "B. 酒精性",
+          "C. 高脂血症性",
+          "D. 其他病因",
+          "E. 无法确定"
+        ],
+        "lifecycle_state": "DRAFT",
+        "priority": "urgent",
+        "nlq_gate_verdict": "PASS",
+        "nlq_gate_block_reasons": []
+      },
+      {
+        "query_id": "Q-003",
+        "gap_id": "GAP-003",
+        "topic": "CT渗出范围及局部并发症",
+        "reason": "CT显示胰腺肿胀伴渗出，但未明确渗出范围或局部并发症。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "CT:胰腺肿胀伴渗出",
+          "char_start": 26,
+          "char_end": 36,
+          "documented_at": ""
+        },
+        "evidence_spans": [
+          {
+            "document_id": "chart-001",
+            "quote": "CT:胰腺肿胀伴渗出",
+            "char_start": 26,
+            "char_end": 36,
+            "documented_at": ""
+          }
+        ],
+        "query_text": "根据CT表现，该患者胰腺渗出及局部并发症的情况属于以下哪种？",
+        "response_options": [
+          "A. 仅胰腺周围渗出，无局部并发症",
+          "B. 存在急性胰周液体积聚",
+          "C. 存在胰腺或胰周坏死",
+          "D. 存在其他局部并发症",
+          "E. 无法确定"
+        ],
+        "lifecycle_state": "DRAFT",
+        "priority": "routine",
+        "nlq_gate_verdict": "PASS",
+        "nlq_gate_block_reasons": []
+      }
+    ],
+    "query_gate_summary": {
+      "withheld_count": 1,
+      "status_counts": {
+        "REWRITE_CANDIDATE_GENERATED": 0
+      },
+      "manual_cdi_action_required": true
+    },
+    "coding_specificity_checklist": [],
+    "risk_flags": [
+      {
+        "category": "unsupported_diagnosis",
+        "description": "入院诊断急性胰腺炎，但未提供支持该诊断的临床表现（如腹痛性质、体征）或实验室证据（淀粉酶580已提供，但缺乏症状描述）"
+      }
+    ],
+    "specialist_trace": [
+      {
+        "expert_id": "coding-expert",
+        "consulted": true,
+        "requested": "You are a coding-specialist Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "为准确编码，需明确急性胰腺炎的严重程度分级（轻症、中重症或重症）及病因（如胆源性、酒精性或高脂血症性），并补充CT所示渗出范围及是否存在局部并发症（如急性胰周液体积聚、胰腺坏死或假性囊肿），以反映疾病复杂性和资源消耗。",
+        "route_decision": "needed",
+        "route_reason": "coding_relevant_gap",
+        "execution_mode": "LLM_KNOWLEDGE_ONLY",
+        "latency_ms": 940,
+        "tokens": 230,
+        "run_id": "run-45541fd1a371",
+        "trace_id": "trace-25e9f610b841"
+      },
+      {
+        "expert_id": "pubmed-expert",
+        "consulted": false,
+        "requested": "You are a PubMed literature Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-a187316bb6b8",
+        "trace_id": "trace-e3f34c7886cf"
+      },
+      {
+        "expert_id": "web-search-expert",
+        "consulted": false,
+        "requested": "You are a clinical web-search Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-a1f5e9450727",
+        "trace_id": "trace-e27c50f0e2e2"
+      },
+      {
+        "expert_id": "medical-calculator-expert",
+        "consulted": false,
+        "requested": "You are a medical-calculator Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "'分级' score — parameters absent from chart",
+        "route_decision": "missing_inputs",
+        "route_reason": "calculator_params_missing",
+        "execution_mode": "SKIPPED_MISSING_INPUTS",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-db996d9d23fd",
+        "trace_id": "trace-ccda134dac5f"
+      }
+    ],
+    "human_review": {
+      "cdi_specialist_review_required": true,
+      "clinician_response_required": true,
+      "review_priority": "urgent"
+    },
+    "trace_refs": {
+      "run_id": "run-8ac7b880-e86a-4ce3-8c77-1e49730b7c7d",
+      "stage_trace": {
+        "encounter_synthesis": "trace-ccc354eb5bc1",
+        "gap_identification": "trace-a96add1a0f56",
+        "expert_consultation": "trace-19a6f7efa4a1",
+        "query_generation": "trace-6d2823951323",
+        "query_eligibility_gate": "",
+        "query_necessity_gate": "",
+        "query_dimension_rewrite": "",
+        "query_single_dimension_gate": "",
+        "claim_evidence_alignment_gate": "trace-b41c262575c8",
+        "semantic_necessity_gate": "trace-7a6b4631b63b",
+        "query_compliance_gate": "",
+        "specialist_trace_emit": "trace-9919e3a5f7ea"
+      },
+      "experts_consulted": [
+        "coding-expert"
+      ],
+      "gate_results": {
+        "encounter_synthesis": "run-df735ec4e258",
+        "gap_identification": "run-ffc33ae58da6",
+        "gap_identification_risk_flags": "emitted=1;quote_snapped=0;withheld=0;quantity_redacted=0",
+        "expert_consultation": "run-a665da7c9927",
+        "query_generation": "run-51283a6c1c47",
+        "query_generation::quote_snapped": "0",
+        "query_generation::coverage_missing": "0",
+        "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=3;llm_complete=False;llm_reasoning=急性胰腺炎的诊断已明确，但严重程度和病因未记录，且CT发现未细化，不足以支持精确编码和临床管理。",
+        "query_necessity_gate": "necessary=2;unnecessary=1;overquery_triggered=False;final_count=2",
+        "query_dimension_rewrite": "not_executed",
+        "query_single_dimension_gate": "single_dim=2;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=etiology;rewrite_attempted=0;rewrite_accepted=0;final_count=2",
+        "claim_evidence_alignment_gate": "claims_extracted=4;degraded=0;blocked=0;flagged=0;final_count=2",
+        "claim_evidence_alignment_gate::run_id": "run-dcb891ebc8ee",
+        "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=2",
+        "semantic_necessity_gate::run_id": "run-02a15633388e",
+        "query_compliance_gate": ";passed=2;blocked=0",
+        "specialist_trace_emit": "run-1fc094ac9f70"
+      },
+      "trace_id": "trace-b92da90e47f9470b"
+    }
+  },
+  "schema_ref": "icoder/CDIAgentOutputV1/v6",
+  "result_attestation": "eyJhIjoiY2xpbmljYWwtZG9jdW1lbnRhdGlvbi1pbXByb3ZlbWVudC1hZ2VudCIsImQiOiJiZmIwMzg4YzNiNTBiNzk1NWE1ZTcwNWI1OTdhMTA2Njk0OWIyMzdhNWRhNTg3ZjQ1NWFhNzA0YmJlYjhlNDc2IiwiZSI6MTc4Nzg4NzIzMiwibyI6IjVmZWYzNzlmMjViZCIsInIiOiJydW4tOGFjN2I4ODAtZTg2YS00Y2UzLThjNzctMWU0OTczMGI3YzdkIiwicyI6Imljb2Rlci9DRElBZ2VudE91dHB1dFYxL3Y2IiwidiI6MX0.0txpyucm08XFCH9r9bwzhXrgAJ0OX0U5pcbN64vxYng",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 13.92
+}

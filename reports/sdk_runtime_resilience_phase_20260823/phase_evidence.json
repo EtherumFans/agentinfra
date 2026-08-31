@@ -1,0 +1,52 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-08-23T19:50:22.5946220+08:00",
+  "scope": "local_sdk_runtime_resilience",
+  "external_llm_used": false,
+  "official_baseline": [
+    "https://docs.corti.ai/sdk/overview",
+    "https://docs.corti.ai/sdk/dotnet/reference",
+    "https://docs.corti.ai/agentic/sdks-integrations"
+  ],
+  "capabilities": {
+    "automatic_client_credentials": true,
+    "concurrency_safe_refresh": true,
+    "single_401_replay": true,
+    "bounded_429_5xx_retry": true,
+    "retry_after_capped": true,
+    "unsafe_write_requires_idempotency_key": true,
+    "sanitized_typed_authentication_error": true,
+    "full_resource_typed_error_taxonomy": false,
+    "automatic_pagination": false,
+    "cross_language_managed_websocket": false
+  },
+  "validation": {
+    "javascript": {
+      "tests_passed": 58,
+      "tests_failed": 0,
+      "build_passed": true,
+      "new_resilience_tests_passed": 4
+    },
+    "python": {
+      "tests_passed": 59,
+      "tests_failed": 0,
+      "new_resilience_tests_passed": 4
+    },
+    "dotnet": {
+      "executed": false,
+      "reason": "dotnet, csc, and msbuild are not installed on this host"
+    }
+  },
+  "source_sha256": {
+    "packages/icoder-sdk/src/client.ts": "cd70635621f1f0d7de679cc25f7a705734582bf380567344fe7345333f1c8b54",
+    "packages/icoder-sdk/tests/client-resilience.test.mjs": "1d2857a1ecf2ac01065b8d47a31bc8b0dfee6aa7b8ebe3f97b5540534351968e",
+    "packages/icoder-python/icoder_sdk/client.py": "6d9d9e1c98dae87977da5a7fac9db213de4c8d8d0b3256a877f14c5d57eb0270",
+    "packages/icoder-python/tests/test_client_resilience.py": "89d38aa3fc27b247e8ea8953ef6eef83149a9a9b19e469bdce57a7e5e6f172e6"
+  },
+  "safety": {
+    "icoder_credential_llm_length": 0,
+    "deepseek_api_key_length": 0,
+    "protected_ports_listening": 0,
+    "protected_database_sha256": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e"
+  }
+}

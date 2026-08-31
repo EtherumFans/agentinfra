@@ -1,0 +1,88 @@
+{
+  "agent_id": "diagnosis-extractor",
+  "run_id": "run-69a3189b-40b1-4ac0-b866-1df4b22624f8",
+  "trace_id": "trace-b76bd244fa43451f",
+  "trace_url": "/ai-studio/runs/run-69a3189b-40b1-4ac0-b866-1df4b22624f8/trace",
+  "runtime_mode": "a2a_llm_with_tools",
+  "latency_ms": 38,
+  "cost": {},
+  "summary": "Provider output did not satisfy the Agent Pack contract.",
+  "result": {
+    "status": "requires_review",
+    "markdown": "",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "failed",
+    "finish_reason": "llm_degraded: degraded:mock_provider",
+    "backend_provider": "icoder.llm-with-tools.v1",
+    "backend_type": "llm_with_tools",
+    "structured_extraction": {
+      "contract": "icoder/DiagnosisExtractionOutput/v6",
+      "method": "none",
+      "warnings": [
+        "empty structured provider output"
+      ],
+      "required_fields": [
+        "status",
+        "diagnoses",
+        "non_codable_mentions",
+        "issues_found",
+        "manual_review_required",
+        "trace_refs"
+      ],
+      "optional_fields": [],
+      "missing_required_fields": [
+        "status",
+        "diagnoses",
+        "non_codable_mentions",
+        "issues_found"
+      ],
+      "invalid_field_types": [],
+      "invalid_field_schemas": [],
+      "invalid_cross_agent_relations": [],
+      "undeclared_output_fields": [],
+      "undeclared_output_field_count": 0,
+      "valid": false
+    },
+    "contract_output_suppressed": true,
+    "manual_review_required": true
+  },
+  "schema_ref": "icoder/DiagnosisExtractionOutput/v6",
+  "result_attestation": "",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "contract_validation",
+      "status": "failed",
+      "duration_ms": 0,
+      "metadata": {
+        "error_reason": "output_contract_violation",
+        "missing_required_field_count": 4,
+        "invalid_field_type_count": 0,
+        "invalid_field_schema_count": 0,
+        "invalid_cross_agent_relation_count": 0,
+        "undeclared_output_field_count": 0,
+        "invalid_paths": [],
+        "invalid_keywords": []
+      }
+    },
+    {
+      "step": "completion",
+      "status": "failed",
+      "duration_ms": 38,
+      "metadata": {
+        "agent_id": "diagnosis-extractor",
+        "runtime_mode": "a2a_llm_with_tools",
+        "latency_ms": 38
+      }
+    }
+  ],
+  "error": true,
+  "error_reason": "llm_degraded: degraded:mock_provider",
+  "_http_status": 200,
+  "_elapsed_seconds": 0.47
+}

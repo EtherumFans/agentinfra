@@ -1,0 +1,181 @@
+{
+  "agent_id": "clinical-documentation-improvement-agent",
+  "run_id": "run-cc911bf6-acd6-434b-a419-2411bc227717",
+  "trace_id": "trace-207e25e43f364355",
+  "trace_url": "/ai-studio/runs/run-cc911bf6-acd6-434b-a419-2411bc227717/trace",
+  "runtime_mode": "cdi_real_orchestrator",
+  "latency_ms": 11988,
+  "cost": {
+    "amount": 0.00063462,
+    "currency": "CNY",
+    "source": "configured_usage_pricing_estimate",
+    "billing_authoritative": false
+  },
+  "billing": {},
+  "summary": "CDI review completed; specialist and clinician review remain required.",
+  "result": {
+    "encounter_summary": {
+      "key_points": [
+        "患者男性，50岁，体检发现HBsAg阳性",
+        "Anti-HBs阴性，HBeAg阴性，Anti-HBe阳性",
+        "HBV-DNA < 500，肝功能正常",
+        "腹部B超：肝脏回声均匀，无肝硬化征象",
+        "无症状，既往无相关病史"
+      ],
+      "encounter_metadata": {
+        "patient_age": "50岁",
+        "patient_sex": "男性",
+        "encounter_type": "体检"
+      }
+    },
+    "documentation_gaps": [
+      {
+        "gap_id": "GAP-001",
+        "gap_type": "diagnostic_specificity",
+        "description": "HBsAg positive with HBeAg negative and Anti-HBe positive indicates inactive carrier state, but the clinical significance and need for further monitoring are not explicitly documented.",
+        "why_it_matters": "Clarifying the clinical significance of the positive HBsAg and the carrier state is essential for accurate coding of chronic viral hepatitis B without delta-agent, and for appropriate follow-up planning.",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "HBsAg 阳性, Anti-HBs <REDACTED:NAME>, HBeAg <REDACTED:NAME>, Anti-HBe 阳性, HBV-DNA < 500",
+          "char_start": 18,
+          "char_end": 103,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      }
+    ],
+    "proposed_provider_queries": [],
+    "query_gate_summary": {
+      "withheld_count": 1,
+      "status_counts": {
+        "REWRITE_CANDIDATE_GENERATED": 0
+      },
+      "manual_cdi_action_required": true
+    },
+    "coding_specificity_checklist": [],
+    "risk_flags": [
+      {
+        "category": "ambiguous_term",
+        "description": "The phrase 'HBeAg <REDACTED:NAME>' is ambiguous because the actual result (positive or negative) is redacted, obscuring the clinical interpretation."
+      }
+    ],
+    "specialist_trace": [
+      {
+        "expert_id": "coding-expert",
+        "consulted": true,
+        "requested": "You are a coding-specialist Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "The clinical documentation should explicitly state the diagnosis of an inactive hepatitis B carrier state, including the absence of active viral replication and normal liver function, to justify the need for ongoing surveillance. Additionally, specify the recommended monitoring plan (e.g., periodic HBV-DNA, ALT, and liver ultrasound every 6–12 months) and any criteria for reactivation risk, as this is essential for accurate coding of chronic hepatitis B without active disease.",
+        "route_decision": "needed",
+        "route_reason": "coding_relevant_gap",
+        "execution_mode": "LLM_KNOWLEDGE_ONLY",
+        "latency_ms": 2211,
+        "tokens": 246,
+        "run_id": "run-0fcfdad8bba5",
+        "trace_id": "trace-333574e8b14c"
+      },
+      {
+        "expert_id": "pubmed-expert",
+        "consulted": false,
+        "requested": "You are a PubMed literature Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-e16226db269f",
+        "trace_id": "trace-770fa2a84c45"
+      },
+      {
+        "expert_id": "web-search-expert",
+        "consulted": false,
+        "requested": "You are a clinical web-search Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-3a162905da49",
+        "trace_id": "trace-a202b97c3496"
+      },
+      {
+        "expert_id": "medical-calculator-expert",
+        "consulted": false,
+        "requested": "You are a medical-calculator Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-1fcef3a9712e",
+        "trace_id": "trace-600997e18b1d"
+      }
+    ],
+    "human_review": {
+      "cdi_specialist_review_required": true,
+      "clinician_response_required": true,
+      "review_priority": "routine"
+    },
+    "trace_refs": {
+      "run_id": "run-cc911bf6-acd6-434b-a419-2411bc227717",
+      "stage_trace": {
+        "encounter_synthesis": "trace-66883482e26b",
+        "gap_identification": "trace-040270db2ed8",
+        "expert_consultation": "trace-990ef14a5111",
+        "query_generation": "trace-828269f5adfd",
+        "query_eligibility_gate": "",
+        "query_necessity_gate": "",
+        "query_dimension_rewrite": "",
+        "query_single_dimension_gate": "",
+        "claim_evidence_alignment_gate": "trace-818b006c4ecc",
+        "semantic_necessity_gate": "trace-2e20df6d9894",
+        "query_compliance_gate": "",
+        "specialist_trace_emit": "trace-3ffb4d9970e1"
+      },
+      "experts_consulted": [
+        "coding-expert"
+      ],
+      "gate_results": {
+        "encounter_synthesis": "run-a31b09d5f397",
+        "gap_identification": "run-743a69fb16c8",
+        "gap_identification_risk_flags": "emitted=1;quote_snapped=0",
+        "expert_consultation": "run-56508ab5497b",
+        "query_generation": "run-095d5da26e39",
+        "query_generation::quote_snapped": "0",
+        "query_generation::coverage_missing": "0",
+        "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=1;llm_complete=False;llm_reasoning=The chart documents an abnormal lab finding (HBsAg positive) but lacks explicit ",
+        "query_necessity_gate": "necessary=0;unnecessary=1;overquery_triggered=False;final_count=0",
+        "query_dimension_rewrite": "not_executed",
+        "query_single_dimension_gate": "single_dim=0;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;rewrite_attempted=0;rewrite_accepted=0;final_count=0",
+        "claim_evidence_alignment_gate": "claims_extracted=0;degraded=0;blocked=0;flagged=0;final_count=0",
+        "claim_evidence_alignment_gate::run_id": "run-59f296ed1f8e",
+        "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+        "semantic_necessity_gate::run_id": "run-4a3c6bf595ad",
+        "query_compliance_gate": ";passed=0;blocked=0",
+        "specialist_trace_emit": "run-120a9c9daae8"
+      },
+      "trace_id": "trace-207e25e43f364355"
+    }
+  },
+  "schema_ref": "icoder/CDIAgentOutputV1/v6",
+  "result_attestation": "eyJhIjoiY2xpbmljYWwtZG9jdW1lbnRhdGlvbi1pbXByb3ZlbWVudC1hZ2VudCIsImQiOiJjNjEwN2UxMjgyZDIyMzQzOWNlMTIwZWU3YmFiYmE5MDk4ZDdlZWEyNjg4YTcxOTZlNWRiNThjOWFjMzg0ZWRjIiwiZSI6MTc4Nzg4MjQ2MCwibyI6ImJjOTJlZTA2YWYwZiIsInIiOiJydW4tY2M5MTFiZjYtYWNkNi00MzRiLWE0MTktMjQxMWJjMjI3NzE3IiwicyI6Imljb2Rlci9DRElBZ2VudE91dHB1dFYxL3Y2IiwidiI6MX0.DZRX505CnYXey4X79gnmFAshxkCvXS2bv9f02pX76O8",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 12.1
+}

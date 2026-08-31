@@ -1,0 +1,53 @@
+{
+  "schema_version": "icoder.ccl2026-local-model-runtime-readiness/v1",
+  "generated_at": "2026-08-27T10:23:57.058731+00:00",
+  "status": "blocked",
+  "host": {
+    "platform": "Windows",
+    "python_version": "3.12.13"
+  },
+  "native_runtime_safety": {
+    "bge_safe": false,
+    "bge_reason": "known_unsafe_windows_native_stack: torch 2.11.0 + sentence-transformers 3.2.1 has produced torch_cpu.dll access violations; use a validated dependency build or an isolated Linux retrieval service",
+    "torch_version": "2.11.0",
+    "sentence_transformers_version": "3.2.1",
+    "pyarrow_safe": false,
+    "pyarrow_reason": "known_unsafe_windows_native_stack: pyarrow 24.0.0 has produced both write and read access violations in arrow.dll on this development host; use an isolated disposable process or a separately validated build",
+    "pyarrow_version": "24.0.0"
+  },
+  "retrieval_assets": {
+    "manifest_schema_version": "icoder.medcoder-assets/v1",
+    "index_version": "cn-catalog-2026-06-26-bge-m3-5617a9f6",
+    "embedding_repository": "BAAI/bge-m3",
+    "embedding_revision": "5617a9f61b028005a4858fdac845db406aefb181",
+    "embedding_dimension": 1024,
+    "artifact_count": 4,
+    "verified_artifact_count": 4,
+    "artifact_size_bytes": 220238288,
+    "embedding_model_cache_present": true,
+    "embedding_model_weight_size_bytes": 2271145830,
+    "integrity_verified": true
+  },
+  "model_inventory": {
+    "embedding_retriever_configured": true,
+    "embedding_retriever_is_generative_model": false,
+    "approved_local_generative_clinical_coding_model_configured": false
+  },
+  "capability": {
+    "can_generate_real_local_model_prediction_packet": false,
+    "deterministic_catalog_baseline_available": true
+  },
+  "claim_boundaries": {
+    "native_model_loaded_by_audit": false,
+    "network_used_by_audit": false,
+    "unsafe_runtime_override_used": false,
+    "local_model_quality_measured": false,
+    "clinical_accuracy_proven": false,
+    "production_readiness_proven": false
+  },
+  "blockers": [
+    "native embedding runtime is blocked by the host safety policy",
+    "no approved local generative clinical coding model is configured"
+  ],
+  "report_sha256": "64cf41cee933f2e6f55c7b60816fd8a9178fa518622ebf88f292154e0699a4cd"
+}

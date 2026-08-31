@@ -1,0 +1,733 @@
+{
+  "agent_id": "denial-appeals",
+  "run_id": "run-f3ec8a23-8338-48f7-9293-4c9cbe2063c9",
+  "trace_id": "trace-7c96317e6739481b",
+  "trace_url": "/ai-studio/runs/run-f3ec8a23-8338-48f7-9293-4c9cbe2063c9/trace",
+  "runtime_mode": "rule_engine",
+  "latency_ms": 13,
+  "cost": {
+    "amount": 0.0,
+    "currency": "CNY"
+  },
+  "billing": {},
+  "summary": "已装配 40 条明确记录；未分类拒付、推断根因或评估编码/政策，禁止自动提交。",
+  "result": {
+    "status": "requires_review",
+    "markdown": "{\"appeal_letter_draft\": \"## 拒付申诉草案（人工复核）\\n日期：未记录\\n支付方：示例市医保\\n主题：结算/理赔单号 TEST-CLAIM-001；服务日期 2026-07-20\\n患者/参保编号：<REDACTED:NAME> / <REDACTED:INSURANCE_NO>\\n\\n致审核人员：\\n我方就上述结算/理赔记录提出人工复核申诉。支付方已记录的拒付代码为“TEST-DENIAL-CODE”，拒付原因为“支付方通知记录需要补充指定材料”。\\n本次涉及的拒付明细为：行1：示例项目，金额1200.00。拟申诉诊断/手术/项目为：示例已报诊断 TEST-DX / 示例已报手术 TEST-PROC / 示例项目 TEST-ITEM。\\n已提供的病历证据为：病历原文记录示例服务已实施；病历原文记录示例检查结果。既往授权信息为：授权编号 TEST-AUTH-001。待遇资格信息为：服务日期待遇状态由用户记录为有效。\\n用户提供的支付方要求为：需提供病历首页；需提供示例检查报告。政策编号/版本/生效日期/来源为：TEST-POLICY-001 / 2026.1 / 2026-07-01 / 用户提供的示例政策节选。\\n请求事项：请求人工复核该拒付记录。申诉截止日期/层级/渠道为：2026-09-01 / 一级申诉 / 示例线上渠道。\\n随附材料：病历首页；示例检查报告。\\n\\n此草案仅逐字装配已提供材料，未形成编码、医疗必要性、待遇资格、支付政策适用性或可推翻拒付的结论。禁止自动提交或写回；提交前须由临床、编码、医保/商保及合规人员核验并补齐未记录信息。\\n申诉机构/医师/联系方式：示例医院 / <REDACTED:NAME> / TEST-CONTACT\", \"appeal_status\": \"READY_FOR_REVIEW\", \"benefit_eligibility_determined\": false, \"clinical_documentation\": [{\"documented_text\": \"病历原文记录示例服务已实施\", \"evidence_ref\": \"denial-appeals-evidence-27\"}, {\"documented_text\": \"病历原文记录示例检查结果\", \"evidence_ref\": \"denial-appeals-evidence-28\"}], \"clinical_support_assessed\": false, \"corrected_claim_checklist\": [], \"denial_classification_status\": \"DOCUMENTED_ONLY_NO_INFERENCE\", \"denial_root_cause_inferred\": false, \"denial_snapshot\": {\"appeal_deadline\": {\"documented_text\": \"2026-09-01\", \"evidence_ref\": \"denial-appeals-evidence-10\"}, \"appeal_level\": {\"documented_text\": \"一级申诉\", \"evidence_ref\": \"denial-appeals-evidence-11\"}, \"claim_id\": {\"documented_text\": \"TEST-CLAIM-001\", \"evidence_ref\": \"denial-appeals-evidence-1\"}, \"currency\": {\"documented_text\": \"CNY\", \"evidence_ref\": \"denial-appeals-evidence-9\"}, \"denial_date\": {\"documented_text\": \"2026-08-01\", \"evidence_ref\": \"denial-appeals-evidence-3\"}, \"denial_notice_id\": {\"documented_text\": \"TEST-DENIAL-001\", \"evidence_ref\": \"denial-appeals-evidence-2\"}, \"denial_reason_code\": {\"documented_text\": \"TEST-DENIAL-CODE\", \"evidence_ref\": \"denial-appeals-evidence-5\"}, \"denial_reason_description\": {\"documented_text\": \"支付方通知记录需要补充指定材料\", \"evidence_ref\": \"denial-appeals-evidence-6\"}, \"denied_amount\": {\"documented_text\": \"1200.00\", \"evidence_ref\": \"denial-appeals-evidence-8\"}, \"documented_denial_category\": {\"documented_text\": \"缺少材料（用户已记录）\", \"evidence_ref\": \"denial-appeals-evidence-7\"}, \"service_date\": {\"documented_text\": \"2026-07-20\", \"evidence_ref\": \"denial-appeals-evidence-4\"}, \"submission_channel\": {\"documented_text\": \"示例线上渠道\", \"evidence_ref\": \"denial-appeals-evidence-12\"}}, \"denied_claim_lines\": [{\"documented_text\": \"行1：示例项目，金额1200.00\", \"evidence_ref\": \"denial-appeals-evidence-23\"}], \"denied_diagnoses\": [{\"documented_text\": \"示例已报诊断 TEST-DX\", \"evidence_ref\": \"denial-appeals-evidence-24\"}], \"denied_items\": [{\"documented_text\": \"示例项目 TEST-ITEM\", \"evidence_ref\": \"denial-appeals-evidence-26\"}], \"denied_procedures\": [{\"documented_text\": \"示例已报手术 TEST-PROC\", \"evidence_ref\": \"denial-appeals-evidence-25\"}], \"documented_corrections\": [], \"documented_resolution_path\": {\"documented_text\": \"申诉并附临床文档\", \"evidence_ref\": \"denial-appeals-evidence-39\"}, \"draft_generation_status\": \"VERBATIM_TEMPLATE_ASSEMBLY_ONLY\", \"eligibility_information\": [{\"documented_text\": \"服务日期待遇状态由用户记录为有效\", \"evidence_ref\": \"denial-appeals-evidence-32\"}], \"evidence_items\": [{\"char_span\": [5, 19], \"evidence_id\": \"denial-appeals-evidence-1\", \"evidence_text\": \"TEST-CLAIM-001\", \"field\": \"claim_id\", \"source_label\": \"结算单号\"}, {\"char_span\": [27, 42], \"evidence_id\": \"denial-appeals-evidence-2\", \"evidence_text\": \"TEST-DENIAL-001\", \"field\": \"denial_notice_id\", \"source_label\": \"拒付通知编号\"}, {\"char_span\": [48, 58], \"evidence_id\": \"denial-appeals-evidence-3\", \"evidence_text\": \"2026-08-01\", \"field\": \"denial_date\", \"source_label\": \"拒付日期\"}, {\"char_span\": [64, 74], \"evidence_id\": \"denial-appeals-evidence-4\", \"evidence_text\": \"2026-07-20\", \"field\": \"service_date\", \"source_label\": \"服务日期\"}, {\"char_span\": [80, 96], \"evidence_id\": \"denial-appeals-evidence-5\", \"evidence_text\": \"TEST-DENIAL-CODE\", \"field\": \"denial_reason_code\", \"source_label\": \"拒付代码\"}, {\"char_span\": [102, 117], \"evidence_id\": \"denial-appeals-evidence-6\", \"evidence_text\": \"支付方通知记录需要补充指定材料\", \"field\": \"denial_reason_description\", \"source_label\": \"拒付原因\"}, {\"char_span\": [123, 134], \"evidence_id\": \"denial-appeals-evidence-7\", \"evidence_text\": \"缺少材料（用户已记录）\", \"field\": \"documented_denial_category\", \"source_label\": \"拒付类别\"}, {\"char_span\": [140, 147], \"evidence_id\": \"denial-appeals-evidence-8\", \"evidence_text\": \"1200.00\", \"field\": \"denied_amount\", \"source_label\": \"拒付金额\"}, {\"char_span\": [151, 154], \"evidence_id\": \"denial-appeals-evidence-9\", \"evidence_text\": \"CNY\", \"field\": \"currency\", \"source_label\": \"币种\"}, {\"char_span\": [162, 172], \"evidence_id\": \"denial-appeals-evidence-10\", \"evidence_text\": \"2026-09-01\", \"field\": \"appeal_deadline\", \"source_label\": \"申诉截止日期\"}, {\"char_span\": [178, 182], \"evidence_id\": \"denial-appeals-evidence-11\", \"evidence_text\": \"一级申诉\", \"field\": \"appeal_level\", \"source_label\": \"申诉层级\"}, {\"char_span\": [188, 194], \"evidence_id\": \"denial-appeals-evidence-12\", \"evidence_text\": \"示例线上渠道\", \"field\": \"submission_channel\", \"source_label\": \"申诉渠道\"}, {\"char_span\": [200, 215], \"evidence_id\": \"denial-appeals-evidence-13\", \"evidence_text\": \"<REDACTED:NAME>\", \"field\": \"patient_name\", \"source_label\": \"患者姓名\"}, {\"char_span\": [222, 245], \"evidence_id\": \"denial-appeals-evidence-14\", \"evidence_text\": \"<REDACTED:INSURANCE_NO>\", \"field\": \"member_id\", \"source_label\": \"参保人编号\"}, {\"char_span\": [251, 266], \"evidence_id\": \"denial-appeals-evidence-15\", \"evidence_text\": \"<REDACTED:NAME>\", \"field\": \"provider_name\", \"source_label\": \"经治医师\"}, {\"char_span\": [274, 296], \"evidence_id\": \"denial-appeals-evidence-16\", \"evidence_text\": \"<REDACTED:PROVIDER_ID>\", \"field\": \"provider_identifier\", \"source_label\": \"医师执业编号\"}, {\"char_span\": [302, 306], \"evidence_id\": \"denial-appeals-evidence-17\", \"evidence_text\": \"示例医院\", \"field\": \"facility\", \"source_label\": \"医疗机构\"}, {\"char_span\": [315, 327], \"evidence_id\": \"denial-appeals-evidence-18\", \"evidence_text\": \"TEST-CONTACT\", \"field\": \"provider_contact\", \"source_label\": \"申诉方联系方式\"}, {\"char_span\": [332, 337], \"evidence_id\": \"denial-appeals-evidence-19\", \"evidence_text\": \"示例市医保\", \"field\": \"payer_name\", \"source_label\": \"支付方\"}, {\"char_span\": [343, 349], \"evidence_id\": \"denial-appeals-evidence-20\", \"evidence_text\": \"基本医疗保险\", \"field\": \"payer_type\", \"source_label\": \"支付类型\"}, {\"char_span\": [354, 357], \"evidence_id\": \"denial-appeals-evidence-21\", \"evidence_text\": \"示例市\", \"field\": \"payer_region\", \"source_label\": \"统筹区\"}, {\"char_span\": [363, 371], \"evidence_id\": \"denial-appeals-evidence-22\", \"evidence_text\": \"示例医保经办机构\", \"field\": \"managing_agency\", \"source_label\": \"经办机构\"}, {\"char_span\": [377, 394], \"evidence_id\": \"denial-appeals-evidence-23\", \"evidence_text\": \"行1：示例项目，金额1200.00\", \"field\": \"denied_claim_lines\", \"source_label\": \"拒付明细\"}, {\"char_span\": [401, 415], \"evidence_id\": \"denial-appeals-evidence-24\", \"evidence_text\": \"示例已报诊断 TEST-DX\", \"field\": \"denied_diagnoses\", \"source_label\": \"拟申诉诊断\"}, {\"char_span\": [422, 438], \"evidence_id\": \"denial-appeals-evidence-25\", \"evidence_text\": \"示例已报手术 TEST-PROC\", \"field\": \"denied_procedures\", \"source_label\": \"拟申诉手术\"}, {\"char_span\": [445, 459], \"evidence_id\": \"denial-appeals-evidence-26\", \"evidence_text\": \"示例项目 TEST-ITEM\", \"field\": \"denied_items\", \"source_label\": \"拟申诉项目\"}, {\"char_span\": [465, 478], \"evidence_id\": \"denial-appeals-evidence-27\", \"evidence_text\": \"病历原文记录示例服务已实施\", \"field\": \"clinical_documentation\", \"source_label\": \"病历证据\"}, {\"char_span\": [479, 491], \"evidence_id\": \"denial-appeals-evidence-28\", \"evidence_text\": \"病历原文记录示例检查结果\", \"field\": \"clinical_documentation\", \"source_label\": \"病历证据\"}, {\"char_span\": [498, 502], \"evidence_id\": \"denial-appeals-evidence-29\", \"evidence_text\": \"病历首页\", \"field\": \"submitted_documents\", \"source_label\": \"已提交材料\"}, {\"char_span\": [503, 509], \"evidence_id\": \"denial-appeals-evidence-30\", \"evidence_text\": \"示例检查报告\", \"field\": \"submitted_documents\", \"source_label\": \"已提交材料\"}, {\"char_span\": [517, 535], \"evidence_id\": \"denial-appeals-evidence-31\", \"evidence_text\": \"授权编号 TEST-AUTH-001\", \"field\": \"prior_authorization_information\", \"source_label\": \"既往授权信息\"}, {\"char_span\": [543, 559], \"evidence_id\": \"denial-appeals-evidence-32\", \"evidence_text\": \"服务日期待遇状态由用户记录为有效\", \"field\": \"eligibility_information\", \"source_label\": \"待遇资格信息\"}, {\"char_span\": [566, 573], \"evidence_id\": \"denial-appeals-evidence-33\", \"evidence_text\": \"需提供病历首页\", \"field\": \"payer_requirements\", \"source_label\": \"支付方要求\"}, {\"char_span\": [574, 583], \"evidence_id\": \"denial-appeals-evidence-34\", \"evidence_text\": \"需提供示例检查报告\", \"field\": \"payer_requirements\", \"source_label\": \"支付方要求\"}, {\"char_span\": [591, 606], \"evidence_id\": \"denial-appeals-evidence-35\", \"evidence_text\": \"TEST-POLICY-001\", \"field\": \"policy_identifier\", \"source_label\": \"支付政策编号\"}, {\"char_span\": [614, 620], \"evidence_id\": \"denial-appeals-evidence-36\", \"evidence_text\": \"2026.1\", \"field\": \"policy_version\", \"source_label\": \"支付政策版本\"}, {\"char_span\": [628, 638], \"evidence_id\": \"denial-appeals-evidence-37\", \"evidence_text\": \"2026-07-01\", \"field\": \"policy_effective_date\", \"source_label\": \"政策生效日期\"}, {\"char_span\": [644, 655], \"evidence_id\": \"denial-appeals-evidence-38\", \"evidence_text\": \"用户提供的示例政策节选\", \"field\": \"policy_source\", \"source_label\": \"政策来源\"}, {\"char_span\": [661, 669], \"evidence_id\": \"denial-appeals-evidence-39\", \"evidence_text\": \"申诉并附临床文档\", \"field\": \"resolution_path\", \"source_label\": \"处理路径\"}, {\"char_span\": [675, 686], \"evidence_id\": \"denial-appeals-evidence-40\", \"evidence_text\": \"请求人工复核该拒付记录\", \"field\": \"requested_resolution\", \"source_label\": \"请求事项\"}], \"external_knowledge_used\": false, \"limitations\": [\"仅解析明确的中英文拒付、结算、病历和政策字段标题；未标注自由叙事不会被自动总结。\", \"拒付类别和处理路径仅呈现用户明确提供的内容；未自动分类拒付、推断根因或选择处理路径。\", \"仅逐字装配已提供事实；未判断病历是否支持编码、服务、医疗必要性、待遇资格或支付范围。\", \"未调用支付方网站、医保/商保政策、NCCI、编码目录、PubMed、指南或其他外部知识。\", \"未校验 ICD、CPT/HCPCS、ICD-9-CM-3、医保项目、药品、耗材、修饰符、单位或金额。\", \"未新增诊断、服务、日期、编码、授权、资格、政策条款、缺失材料或申诉论点。\", \"未连接真实 HIS/EMR、EOB/ERA、医保/商保结算、传真、邮件或申诉提交接口。\", \"草案和清单禁止自动提交或写回，必须由临床、编码、医保/商保及合规人员逐项复核。\"], \"manual_review_required\": true, \"medical_coding_validation_performed\": false, \"medical_necessity_assessed\": false, \"missing_policy_items\": [], \"missing_required_fields\": [], \"missing_supporting_items\": [], \"patient_information\": {\"member_id\": {\"documented_text\": \"<REDACTED:INSURANCE_NO>\", \"evidence_ref\": \"denial-appeals-evidence-14\"}, \"name\": {\"documented_text\": \"<REDACTED:NAME>\", \"evidence_ref\": \"denial-appeals-evidence-13\"}}, \"payer_information\": {\"managing_agency\": {\"documented_text\": \"示例医保经办机构\", \"evidence_ref\": \"denial-appeals-evidence-22\"}, \"payer_name\": {\"documented_text\": \"示例市医保\", \"evidence_ref\": \"denial-appeals-evidence-19\"}, \"payer_type\": {\"documented_text\": \"基本医疗保险\", \"evidence_ref\": \"denial-appeals-evidence-20\"}, \"plan_name\": {\"documented_text\": \"\", \"evidence_ref\": \"\"}, \"region\": {\"documented_text\": \"示例市\", \"evidence_ref\": \"denial-appeals-evidence-21\"}}, \"payer_policy_lookup_performed\": false, \"policy_evaluation_status\": \"DOCUMENTED_POLICY_ONLY\", \"prior_authorization_information\": [{\"documented_text\": \"授权编号 TEST-AUTH-001\", \"evidence_ref\": \"denial-appeals-evidence-31\"}], \"production_submission_blocked\": true, \"production_writeback_blocked\": true, \"provided_policy\": {\"effective_date\": {\"documented_text\": \"2026-07-01\", \"evidence_ref\": \"denial-appeals-evidence-37\"}, \"policy_identifier\": {\"documented_text\": \"TEST-POLICY-001\", \"evidence_ref\": \"denial-appeals-evidence-35\"}, \"requirements\": [{\"documented_text\": \"需提供病历首页\", \"evidence_ref\": \"denial-appeals-evidence-33\"}, {\"documented_text\": \"需提供示例检查报告\", \"evidence_ref\": \"denial-appeals-evidence-34\"}], \"source\": {\"documented_text\": \"用户提供的示例政策节选\", \"evidence_ref\": \"denial-appeals-evidence-38\"}, \"version\": {\"documented_text\": \"2026.1\", \"evidence_ref\": \"denial-appeals-evidence-36\"}}, \"provider_information\": {\"contact\": {\"documented_text\": \"TEST-CONTACT\", \"evidence_ref\": \"denial-appeals-evidence-18\"}, \"facility\": {\"documented_text\": \"示例医院\", \"evidence_ref\": \"denial-appeals-evidence-17\"}, \"name\": {\"documented_text\": \"<REDACTED:NAME>\", \"evidence_ref\": \"denial-appeals-evidence-15\"}, \"provider_identifier\": {\"documented_text\": \"<REDACTED:PROVIDER_ID>\", \"evidence_ref\": \"denial-appeals-evidence-16\"}}, \"requested_resolution\": {\"documented_text\": \"请求人工复核该拒付记录\", \"evidence_ref\": \"denial-appeals-evidence-40\"}, \"resolution_path_status\": \"DOCUMENTED_PATH_ONLY\", \"submitted_documents\": [{\"documented_text\": \"病历首页\", \"evidence_ref\": \"denial-appeals-evidence-29\"}, {\"documented_text\": \"示例检查报告\", \"evidence_ref\": \"denial-appeals-evidence-30\"}], \"trace_refs\": {\"provider_trace_refs\": [\"run-f3ec8a23-8338-48f7-9293-4c9cbe2063c9:governed-denial-appeals\"], \"run_id\": \"run-f3ec8a23-8338-48f7-9293-4c9cbe2063c9\"}}",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.governed-denial-appeals.v1",
+    "backend_type": "rule_engine",
+    "appeal_letter_draft": "## 拒付申诉草案（人工复核）\n日期：未记录\n支付方：示例市医保\n主题：结算/理赔单号 TEST-CLAIM-001；服务日期 2026-07-20\n患者/参保编号：<REDACTED:NAME> / <REDACTED:INSURANCE_NO>\n\n致审核人员：\n我方就上述结算/理赔记录提出人工复核申诉。支付方已记录的拒付代码为“TEST-DENIAL-CODE”，拒付原因为“支付方通知记录需要补充指定材料”。\n本次涉及的拒付明细为：行1：示例项目，金额1200.00。拟申诉诊断/手术/项目为：示例已报诊断 TEST-DX / 示例已报手术 TEST-PROC / 示例项目 TEST-ITEM。\n已提供的病历证据为：病历原文记录示例服务已实施；病历原文记录示例检查结果。既往授权信息为：授权编号 TEST-AUTH-001。待遇资格信息为：服务日期待遇状态由用户记录为有效。\n用户提供的支付方要求为：需提供病历首页；需提供示例检查报告。政策编号/版本/生效日期/来源为：TEST-POLICY-001 / 2026.1 / 2026-07-01 / 用户提供的示例政策节选。\n请求事项：请求人工复核该拒付记录。申诉截止日期/层级/渠道为：2026-09-01 / 一级申诉 / 示例线上渠道。\n随附材料：病历首页；示例检查报告。\n\n此草案仅逐字装配已提供材料，未形成编码、医疗必要性、待遇资格、支付政策适用性或可推翻拒付的结论。禁止自动提交或写回；提交前须由临床、编码、医保/商保及合规人员核验并补齐未记录信息。\n申诉机构/医师/联系方式：示例医院 / <REDACTED:NAME> / TEST-CONTACT",
+    "appeal_status": "READY_FOR_REVIEW",
+    "benefit_eligibility_determined": false,
+    "clinical_documentation": [
+      {
+        "documented_text": "病历原文记录示例服务已实施",
+        "evidence_ref": "denial-appeals-evidence-27"
+      },
+      {
+        "documented_text": "病历原文记录示例检查结果",
+        "evidence_ref": "denial-appeals-evidence-28"
+      }
+    ],
+    "clinical_support_assessed": false,
+    "corrected_claim_checklist": [],
+    "denial_classification_status": "DOCUMENTED_ONLY_NO_INFERENCE",
+    "denial_root_cause_inferred": false,
+    "denial_snapshot": {
+      "appeal_deadline": {
+        "documented_text": "2026-09-01",
+        "evidence_ref": "denial-appeals-evidence-10"
+      },
+      "appeal_level": {
+        "documented_text": "一级申诉",
+        "evidence_ref": "denial-appeals-evidence-11"
+      },
+      "claim_id": {
+        "documented_text": "TEST-CLAIM-001",
+        "evidence_ref": "denial-appeals-evidence-1"
+      },
+      "currency": {
+        "documented_text": "CNY",
+        "evidence_ref": "denial-appeals-evidence-9"
+      },
+      "denial_date": {
+        "documented_text": "2026-08-01",
+        "evidence_ref": "denial-appeals-evidence-3"
+      },
+      "denial_notice_id": {
+        "documented_text": "TEST-DENIAL-001",
+        "evidence_ref": "denial-appeals-evidence-2"
+      },
+      "denial_reason_code": {
+        "documented_text": "TEST-DENIAL-CODE",
+        "evidence_ref": "denial-appeals-evidence-5"
+      },
+      "denial_reason_description": {
+        "documented_text": "支付方通知记录需要补充指定材料",
+        "evidence_ref": "denial-appeals-evidence-6"
+      },
+      "denied_amount": {
+        "documented_text": "1200.00",
+        "evidence_ref": "denial-appeals-evidence-8"
+      },
+      "documented_denial_category": {
+        "documented_text": "缺少材料（用户已记录）",
+        "evidence_ref": "denial-appeals-evidence-7"
+      },
+      "service_date": {
+        "documented_text": "2026-07-20",
+        "evidence_ref": "denial-appeals-evidence-4"
+      },
+      "submission_channel": {
+        "documented_text": "示例线上渠道",
+        "evidence_ref": "denial-appeals-evidence-12"
+      }
+    },
+    "denied_claim_lines": [
+      {
+        "documented_text": "行1：示例项目，金额1200.00",
+        "evidence_ref": "denial-appeals-evidence-23"
+      }
+    ],
+    "denied_diagnoses": [
+      {
+        "documented_text": "示例已报诊断 TEST-DX",
+        "evidence_ref": "denial-appeals-evidence-24"
+      }
+    ],
+    "denied_items": [
+      {
+        "documented_text": "示例项目 TEST-ITEM",
+        "evidence_ref": "denial-appeals-evidence-26"
+      }
+    ],
+    "denied_procedures": [
+      {
+        "documented_text": "示例已报手术 TEST-PROC",
+        "evidence_ref": "denial-appeals-evidence-25"
+      }
+    ],
+    "documented_corrections": [],
+    "documented_resolution_path": {
+      "documented_text": "申诉并附临床文档",
+      "evidence_ref": "denial-appeals-evidence-39"
+    },
+    "draft_generation_status": "VERBATIM_TEMPLATE_ASSEMBLY_ONLY",
+    "eligibility_information": [
+      {
+        "documented_text": "服务日期待遇状态由用户记录为有效",
+        "evidence_ref": "denial-appeals-evidence-32"
+      }
+    ],
+    "evidence_items": [
+      {
+        "char_span": [
+          5,
+          19
+        ],
+        "evidence_id": "denial-appeals-evidence-1",
+        "evidence_text": "TEST-CLAIM-001",
+        "field": "claim_id",
+        "source_label": "结算单号"
+      },
+      {
+        "char_span": [
+          27,
+          42
+        ],
+        "evidence_id": "denial-appeals-evidence-2",
+        "evidence_text": "TEST-DENIAL-001",
+        "field": "denial_notice_id",
+        "source_label": "拒付通知编号"
+      },
+      {
+        "char_span": [
+          48,
+          58
+        ],
+        "evidence_id": "denial-appeals-evidence-3",
+        "evidence_text": "2026-08-01",
+        "field": "denial_date",
+        "source_label": "拒付日期"
+      },
+      {
+        "char_span": [
+          64,
+          74
+        ],
+        "evidence_id": "denial-appeals-evidence-4",
+        "evidence_text": "2026-07-20",
+        "field": "service_date",
+        "source_label": "服务日期"
+      },
+      {
+        "char_span": [
+          80,
+          96
+        ],
+        "evidence_id": "denial-appeals-evidence-5",
+        "evidence_text": "TEST-DENIAL-CODE",
+        "field": "denial_reason_code",
+        "source_label": "拒付代码"
+      },
+      {
+        "char_span": [
+          102,
+          117
+        ],
+        "evidence_id": "denial-appeals-evidence-6",
+        "evidence_text": "支付方通知记录需要补充指定材料",
+        "field": "denial_reason_description",
+        "source_label": "拒付原因"
+      },
+      {
+        "char_span": [
+          123,
+          134
+        ],
+        "evidence_id": "denial-appeals-evidence-7",
+        "evidence_text": "缺少材料（用户已记录）",
+        "field": "documented_denial_category",
+        "source_label": "拒付类别"
+      },
+      {
+        "char_span": [
+          140,
+          147
+        ],
+        "evidence_id": "denial-appeals-evidence-8",
+        "evidence_text": "1200.00",
+        "field": "denied_amount",
+        "source_label": "拒付金额"
+      },
+      {
+        "char_span": [
+          151,
+          154
+        ],
+        "evidence_id": "denial-appeals-evidence-9",
+        "evidence_text": "CNY",
+        "field": "currency",
+        "source_label": "币种"
+      },
+      {
+        "char_span": [
+          162,
+          172
+        ],
+        "evidence_id": "denial-appeals-evidence-10",
+        "evidence_text": "2026-09-01",
+        "field": "appeal_deadline",
+        "source_label": "申诉截止日期"
+      },
+      {
+        "char_span": [
+          178,
+          182
+        ],
+        "evidence_id": "denial-appeals-evidence-11",
+        "evidence_text": "一级申诉",
+        "field": "appeal_level",
+        "source_label": "申诉层级"
+      },
+      {
+        "char_span": [
+          188,
+          194
+        ],
+        "evidence_id": "denial-appeals-evidence-12",
+        "evidence_text": "示例线上渠道",
+        "field": "submission_channel",
+        "source_label": "申诉渠道"
+      },
+      {
+        "char_span": [
+          200,
+          215
+        ],
+        "evidence_id": "denial-appeals-evidence-13",
+        "evidence_text": "<REDACTED:NAME>",
+        "field": "patient_name",
+        "source_label": "患者姓名"
+      },
+      {
+        "char_span": [
+          222,
+          245
+        ],
+        "evidence_id": "denial-appeals-evidence-14",
+        "evidence_text": "<REDACTED:INSURANCE_NO>",
+        "field": "member_id",
+        "source_label": "参保人编号"
+      },
+      {
+        "char_span": [
+          251,
+          266
+        ],
+        "evidence_id": "denial-appeals-evidence-15",
+        "evidence_text": "<REDACTED:NAME>",
+        "field": "provider_name",
+        "source_label": "经治医师"
+      },
+      {
+        "char_span": [
+          274,
+          296
+        ],
+        "evidence_id": "denial-appeals-evidence-16",
+        "evidence_text": "<REDACTED:PROVIDER_ID>",
+        "field": "provider_identifier",
+        "source_label": "医师执业编号"
+      },
+      {
+        "char_span": [
+          302,
+          306
+        ],
+        "evidence_id": "denial-appeals-evidence-17",
+        "evidence_text": "示例医院",
+        "field": "facility",
+        "source_label": "医疗机构"
+      },
+      {
+        "char_span": [
+          315,
+          327
+        ],
+        "evidence_id": "denial-appeals-evidence-18",
+        "evidence_text": "TEST-CONTACT",
+        "field": "provider_contact",
+        "source_label": "申诉方联系方式"
+      },
+      {
+        "char_span": [
+          332,
+          337
+        ],
+        "evidence_id": "denial-appeals-evidence-19",
+        "evidence_text": "示例市医保",
+        "field": "payer_name",
+        "source_label": "支付方"
+      },
+      {
+        "char_span": [
+          343,
+          349
+        ],
+        "evidence_id": "denial-appeals-evidence-20",
+        "evidence_text": "基本医疗保险",
+        "field": "payer_type",
+        "source_label": "支付类型"
+      },
+      {
+        "char_span": [
+          354,
+          357
+        ],
+        "evidence_id": "denial-appeals-evidence-21",
+        "evidence_text": "示例市",
+        "field": "payer_region",
+        "source_label": "统筹区"
+      },
+      {
+        "char_span": [
+          363,
+          371
+        ],
+        "evidence_id": "denial-appeals-evidence-22",
+        "evidence_text": "示例医保经办机构",
+        "field": "managing_agency",
+        "source_label": "经办机构"
+      },
+      {
+        "char_span": [
+          377,
+          394
+        ],
+        "evidence_id": "denial-appeals-evidence-23",
+        "evidence_text": "行1：示例项目，金额1200.00",
+        "field": "denied_claim_lines",
+        "source_label": "拒付明细"
+      },
+      {
+        "char_span": [
+          401,
+          415
+        ],
+        "evidence_id": "denial-appeals-evidence-24",
+        "evidence_text": "示例已报诊断 TEST-DX",
+        "field": "denied_diagnoses",
+        "source_label": "拟申诉诊断"
+      },
+      {
+        "char_span": [
+          422,
+          438
+        ],
+        "evidence_id": "denial-appeals-evidence-25",
+        "evidence_text": "示例已报手术 TEST-PROC",
+        "field": "denied_procedures",
+        "source_label": "拟申诉手术"
+      },
+      {
+        "char_span": [
+          445,
+          459
+        ],
+        "evidence_id": "denial-appeals-evidence-26",
+        "evidence_text": "示例项目 TEST-ITEM",
+        "field": "denied_items",
+        "source_label": "拟申诉项目"
+      },
+      {
+        "char_span": [
+          465,
+          478
+        ],
+        "evidence_id": "denial-appeals-evidence-27",
+        "evidence_text": "病历原文记录示例服务已实施",
+        "field": "clinical_documentation",
+        "source_label": "病历证据"
+      },
+      {
+        "char_span": [
+          479,
+          491
+        ],
+        "evidence_id": "denial-appeals-evidence-28",
+        "evidence_text": "病历原文记录示例检查结果",
+        "field": "clinical_documentation",
+        "source_label": "病历证据"
+      },
+      {
+        "char_span": [
+          498,
+          502
+        ],
+        "evidence_id": "denial-appeals-evidence-29",
+        "evidence_text": "病历首页",
+        "field": "submitted_documents",
+        "source_label": "已提交材料"
+      },
+      {
+        "char_span": [
+          503,
+          509
+        ],
+        "evidence_id": "denial-appeals-evidence-30",
+        "evidence_text": "示例检查报告",
+        "field": "submitted_documents",
+        "source_label": "已提交材料"
+      },
+      {
+        "char_span": [
+          517,
+          535
+        ],
+        "evidence_id": "denial-appeals-evidence-31",
+        "evidence_text": "授权编号 TEST-AUTH-001",
+        "field": "prior_authorization_information",
+        "source_label": "既往授权信息"
+      },
+      {
+        "char_span": [
+          543,
+          559
+        ],
+        "evidence_id": "denial-appeals-evidence-32",
+        "evidence_text": "服务日期待遇状态由用户记录为有效",
+        "field": "eligibility_information",
+        "source_label": "待遇资格信息"
+      },
+      {
+        "char_span": [
+          566,
+          573
+        ],
+        "evidence_id": "denial-appeals-evidence-33",
+        "evidence_text": "需提供病历首页",
+        "field": "payer_requirements",
+        "source_label": "支付方要求"
+      },
+      {
+        "char_span": [
+          574,
+          583
+        ],
+        "evidence_id": "denial-appeals-evidence-34",
+        "evidence_text": "需提供示例检查报告",
+        "field": "payer_requirements",
+        "source_label": "支付方要求"
+      },
+      {
+        "char_span": [
+          591,
+          606
+        ],
+        "evidence_id": "denial-appeals-evidence-35",
+        "evidence_text": "TEST-POLICY-001",
+        "field": "policy_identifier",
+        "source_label": "支付政策编号"
+      },
+      {
+        "char_span": [
+          614,
+          620
+        ],
+        "evidence_id": "denial-appeals-evidence-36",
+        "evidence_text": "2026.1",
+        "field": "policy_version",
+        "source_label": "支付政策版本"
+      },
+      {
+        "char_span": [
+          628,
+          638
+        ],
+        "evidence_id": "denial-appeals-evidence-37",
+        "evidence_text": "2026-07-01",
+        "field": "policy_effective_date",
+        "source_label": "政策生效日期"
+      },
+      {
+        "char_span": [
+          644,
+          655
+        ],
+        "evidence_id": "denial-appeals-evidence-38",
+        "evidence_text": "用户提供的示例政策节选",
+        "field": "policy_source",
+        "source_label": "政策来源"
+      },
+      {
+        "char_span": [
+          661,
+          669
+        ],
+        "evidence_id": "denial-appeals-evidence-39",
+        "evidence_text": "申诉并附临床文档",
+        "field": "resolution_path",
+        "source_label": "处理路径"
+      },
+      {
+        "char_span": [
+          675,
+          686
+        ],
+        "evidence_id": "denial-appeals-evidence-40",
+        "evidence_text": "请求人工复核该拒付记录",
+        "field": "requested_resolution",
+        "source_label": "请求事项"
+      }
+    ],
+    "external_knowledge_used": false,
+    "limitations": [
+      "仅解析明确的中英文拒付、结算、病历和政策字段标题；未标注自由叙事不会被自动总结。",
+      "拒付类别和处理路径仅呈现用户明确提供的内容；未自动分类拒付、推断根因或选择处理路径。",
+      "仅逐字装配已提供事实；未判断病历是否支持编码、服务、医疗必要性、待遇资格或支付范围。",
+      "未调用支付方网站、医保/商保政策、NCCI、编码目录、PubMed、指南或其他外部知识。",
+      "未校验 ICD、CPT/HCPCS、ICD-9-CM-3、医保项目、药品、耗材、修饰符、单位或金额。",
+      "未新增诊断、服务、日期、编码、授权、资格、政策条款、缺失材料或申诉论点。",
+      "未连接真实 HIS/EMR、EOB/ERA、医保/商保结算、传真、邮件或申诉提交接口。",
+      "草案和清单禁止自动提交或写回，必须由临床、编码、医保/商保及合规人员逐项复核。"
+    ],
+    "manual_review_required": true,
+    "medical_coding_validation_performed": false,
+    "medical_necessity_assessed": false,
+    "missing_policy_items": [],
+    "missing_required_fields": [],
+    "missing_supporting_items": [],
+    "patient_information": {
+      "member_id": {
+        "documented_text": "<REDACTED:INSURANCE_NO>",
+        "evidence_ref": "denial-appeals-evidence-14"
+      },
+      "name": {
+        "documented_text": "<REDACTED:NAME>",
+        "evidence_ref": "denial-appeals-evidence-13"
+      }
+    },
+    "payer_information": {
+      "managing_agency": {
+        "documented_text": "示例医保经办机构",
+        "evidence_ref": "denial-appeals-evidence-22"
+      },
+      "payer_name": {
+        "documented_text": "示例市医保",
+        "evidence_ref": "denial-appeals-evidence-19"
+      },
+      "payer_type": {
+        "documented_text": "基本医疗保险",
+        "evidence_ref": "denial-appeals-evidence-20"
+      },
+      "plan_name": {
+        "documented_text": "",
+        "evidence_ref": ""
+      },
+      "region": {
+        "documented_text": "示例市",
+        "evidence_ref": "denial-appeals-evidence-21"
+      }
+    },
+    "payer_policy_lookup_performed": false,
+    "policy_evaluation_status": "DOCUMENTED_POLICY_ONLY",
+    "prior_authorization_information": [
+      {
+        "documented_text": "授权编号 TEST-AUTH-001",
+        "evidence_ref": "denial-appeals-evidence-31"
+      }
+    ],
+    "production_submission_blocked": true,
+    "production_writeback_blocked": true,
+    "provided_policy": {
+      "effective_date": {
+        "documented_text": "2026-07-01",
+        "evidence_ref": "denial-appeals-evidence-37"
+      },
+      "policy_identifier": {
+        "documented_text": "TEST-POLICY-001",
+        "evidence_ref": "denial-appeals-evidence-35"
+      },
+      "requirements": [
+        {
+          "documented_text": "需提供病历首页",
+          "evidence_ref": "denial-appeals-evidence-33"
+        },
+        {
+          "documented_text": "需提供示例检查报告",
+          "evidence_ref": "denial-appeals-evidence-34"
+        }
+      ],
+      "source": {
+        "documented_text": "用户提供的示例政策节选",
+        "evidence_ref": "denial-appeals-evidence-38"
+      },
+      "version": {
+        "documented_text": "2026.1",
+        "evidence_ref": "denial-appeals-evidence-36"
+      }
+    },
+    "provider_information": {
+      "contact": {
+        "documented_text": "TEST-CONTACT",
+        "evidence_ref": "denial-appeals-evidence-18"
+      },
+      "facility": {
+        "documented_text": "示例医院",
+        "evidence_ref": "denial-appeals-evidence-17"
+      },
+      "name": {
+        "documented_text": "<REDACTED:NAME>",
+        "evidence_ref": "denial-appeals-evidence-15"
+      },
+      "provider_identifier": {
+        "documented_text": "<REDACTED:PROVIDER_ID>",
+        "evidence_ref": "denial-appeals-evidence-16"
+      }
+    },
+    "requested_resolution": {
+      "documented_text": "请求人工复核该拒付记录",
+      "evidence_ref": "denial-appeals-evidence-40"
+    },
+    "resolution_path_status": "DOCUMENTED_PATH_ONLY",
+    "submitted_documents": [
+      {
+        "documented_text": "病历首页",
+        "evidence_ref": "denial-appeals-evidence-29"
+      },
+      {
+        "documented_text": "示例检查报告",
+        "evidence_ref": "denial-appeals-evidence-30"
+      }
+    ],
+    "trace_refs": {
+      "run_id": "run-f3ec8a23-8338-48f7-9293-4c9cbe2063c9",
+      "trace_id": "trace-7c96317e6739481b",
+      "provider_trace_refs": [
+        "run-f3ec8a23-8338-48f7-9293-4c9cbe2063c9:governed-denial-appeals"
+      ]
+    },
+    "structured_extraction": {
+      "contract": "icoder/DenialAppealOutput/v3",
+      "method": "json_block",
+      "warnings": [],
+      "required_fields": [
+        "appeal_status",
+        "denial_snapshot",
+        "patient_information",
+        "provider_information",
+        "payer_information",
+        "denied_claim_lines",
+        "denied_diagnoses",
+        "denied_procedures",
+        "denied_items",
+        "clinical_documentation",
+        "submitted_documents",
+        "prior_authorization_information",
+        "eligibility_information",
+        "provided_policy",
+        "documented_resolution_path",
+        "requested_resolution",
+        "documented_corrections",
+        "missing_required_fields",
+        "missing_supporting_items",
+        "missing_policy_items",
+        "denial_classification_status",
+        "resolution_path_status",
+        "policy_evaluation_status",
+        "appeal_letter_draft",
+        "corrected_claim_checklist",
+        "evidence_items",
+        "limitations",
+        "draft_generation_status",
+        "clinical_support_assessed",
+        "medical_necessity_assessed",
+        "benefit_eligibility_determined",
+        "denial_root_cause_inferred",
+        "payer_policy_lookup_performed",
+        "medical_coding_validation_performed",
+        "external_knowledge_used",
+        "production_submission_blocked",
+        "production_writeback_blocked",
+        "manual_review_required",
+        "trace_refs"
+      ],
+      "optional_fields": [],
+      "missing_required_fields": [],
+      "invalid_field_types": [],
+      "invalid_field_schemas": [],
+      "invalid_cross_agent_relations": [],
+      "undeclared_output_fields": [],
+      "undeclared_output_field_count": 0,
+      "valid": true
+    }
+  },
+  "schema_ref": "icoder/DenialAppealOutput/v3",
+  "result_attestation": "eyJhIjoiZGVuaWFsLWFwcGVhbHMiLCJkIjoiOWFjZTRjODQ3MTE4MTJhNDI5Y2UxNjYyYzNmMzNlOTRmZTEyZjI5OTExNjMyYmM5ZjJlNDQ5MGZiZGIxZWVkNyIsImUiOjE3ODc3NDkxMDksIm8iOiJmZTUzYTgwMTdhOWQiLCJyIjoicnVuLWYzZWM4YTIzLTgzMzgtNDhmNy05MjkzLTRjOWNiZTIwNjNjOSIsInMiOiJpY29kZXIvRGVuaWFsQXBwZWFsT3V0cHV0L3YzIiwidiI6MX0.T6Nkj7naHvCH6B2UgRPqnoClFjQXqvxM96xZvivYeoc",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 13,
+      "metadata": {
+        "agent_id": "denial-appeals",
+        "runtime_mode": "rule_engine",
+        "latency_ms": 13
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 0.33
+}

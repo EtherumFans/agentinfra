@@ -1,0 +1,215 @@
+{
+  "agent_id": "referral-gen",
+  "run_id": "run-d676ecee-b7a3-4983-a8a6-fa0de1a08b76",
+  "trace_id": "trace-a67f9c2d603a4f52",
+  "trace_url": "/ai-studio/runs/run-d676ecee-b7a3-4983-a8a6-fa0de1a08b76/trace",
+  "runtime_mode": "rule_engine",
+  "latency_ms": 64,
+  "cost": {
+    "amount": 0.0,
+    "currency": "CNY"
+  },
+  "billing": {},
+  "summary": "缺少生成转诊信所需的明确字段；请补充缺失项。",
+  "result": {
+    "status": "incomplete",
+    "markdown": "{\"allergies\": [], \"clinical_inference_performed\": false, \"clinical_summary\": {\"chief_concern\": {\"documented_text\": \"\", \"evidence_ref\": \"\"}, \"current_presentation\": {\"documented_text\": \"\", \"evidence_ref\": \"\"}, \"relevant_history\": {\"documented_text\": \"\", \"evidence_ref\": \"\"}, \"working_assessment\": {\"documented_text\": \"\", \"evidence_ref\": \"\"}}, \"diagnostic_results\": [], \"draft_generation_status\": \"VERBATIM_TEMPLATE_ASSEMBLY_ONLY\", \"evidence_items\": [], \"external_knowledge_used\": false, \"limitations\": [\"仅解析明确的中英文转诊字段标题；未标注自由叙事不会被自动总结。\", \"仅将逐字记录的内容装配进固定模板；未推断转诊原因、目标专科、紧急程度或时限。\", \"未新增诊断、鉴别诊断、治疗建议、检查建议、用药变更或待补材料。\", \"未调用指南、药品、医保、区域转诊目录或其他外部知识。\", \"未连接真实 HIS/EMR、区域转诊平台、预约系统、短信或传真服务。\", \"草案禁止自动发送或写回，必须由转出医师逐项复核。\"], \"manual_review_required\": true, \"medications\": [], \"missing_required_fields\": [\"患者姓名\", \"出生日期\", \"病历号/住院号/门诊号\", \"转出医师\", \"目标专科\", \"转诊原因\", \"紧急程度\", \"期望时间\", \"请求事项\"], \"missing_supporting_items\": [\"主诉/主要问题\", \"当前用药\", \"过敏史\", \"检查结果\"], \"new_diagnosis_generated\": false, \"new_treatment_recommended\": false, \"patient_identifiers\": {\"date_of_birth\": {\"documented_text\": \"\", \"evidence_ref\": \"\"}, \"medical_record_number\": {\"documented_text\": \"\", \"evidence_ref\": \"\"}, \"name\": {\"documented_text\": \"\", \"evidence_ref\": \"\"}}, \"production_transmission_blocked\": true, \"production_writeback_blocked\": true, \"receiving_party\": {\"clinician\": {\"documented_text\": \"\", \"evidence_ref\": \"\"}, \"facility\": {\"documented_text\": \"\", \"evidence_ref\": \"\"}, \"specialty\": {\"documented_text\": \"\", \"evidence_ref\": \"\"}}, \"referral_direction\": {\"documented_text\": \"\", \"evidence_ref\": \"\"}, \"referral_letter_draft\": \"\", \"referral_reason\": {\"documented_text\": \"\", \"evidence_ref\": \"\"}, \"referral_status\": \"INPUT_REQUIRED\", \"referring_party\": {\"clinician\": {\"documented_text\": \"\", \"evidence_ref\": \"\"}, \"contact\": {\"documented_text\": \"\", \"evidence_ref\": \"\"}, \"department\": {\"documented_text\": \"\", \"evidence_ref\": \"\"}, \"facility\": {\"documented_text\": \"\", \"evidence_ref\": \"\"}}, \"requested_action\": {\"documented_text\": \"\", \"evidence_ref\": \"\"}, \"trace_refs\": {\"provider_trace_refs\": [\"run-d676ecee-b7a3-4983-a8a6-fa0de1a08b76:governed-referral\"], \"run_id\": \"run-d676ecee-b7a3-4983-a8a6-fa0de1a08b76\"}, \"urgency\": {\"documented_level\": \"\", \"documented_timeframe\": \"\", \"evidence_refs\": []}}",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "input-required",
+    "finish_reason": "required_labelled_referral_fields_missing",
+    "backend_provider": "icoder.governed-referral.v1",
+    "backend_type": "rule_engine",
+    "allergies": [],
+    "clinical_inference_performed": false,
+    "clinical_summary": {
+      "chief_concern": {
+        "documented_text": "",
+        "evidence_ref": ""
+      },
+      "current_presentation": {
+        "documented_text": "",
+        "evidence_ref": ""
+      },
+      "relevant_history": {
+        "documented_text": "",
+        "evidence_ref": ""
+      },
+      "working_assessment": {
+        "documented_text": "",
+        "evidence_ref": ""
+      }
+    },
+    "diagnostic_results": [],
+    "draft_generation_status": "VERBATIM_TEMPLATE_ASSEMBLY_ONLY",
+    "evidence_items": [],
+    "external_knowledge_used": false,
+    "limitations": [
+      "仅解析明确的中英文转诊字段标题；未标注自由叙事不会被自动总结。",
+      "仅将逐字记录的内容装配进固定模板；未推断转诊原因、目标专科、紧急程度或时限。",
+      "未新增诊断、鉴别诊断、治疗建议、检查建议、用药变更或待补材料。",
+      "未调用指南、药品、医保、区域转诊目录或其他外部知识。",
+      "未连接真实 HIS/EMR、区域转诊平台、预约系统、短信或传真服务。",
+      "草案禁止自动发送或写回，必须由转出医师逐项复核。"
+    ],
+    "manual_review_required": true,
+    "medications": [],
+    "missing_required_fields": [
+      "患者姓名",
+      "出生日期",
+      "病历号/住院号/门诊号",
+      "转出医师",
+      "目标专科",
+      "转诊原因",
+      "紧急程度",
+      "期望时间",
+      "请求事项"
+    ],
+    "missing_supporting_items": [
+      "主诉/主要问题",
+      "当前用药",
+      "过敏史",
+      "检查结果"
+    ],
+    "new_diagnosis_generated": false,
+    "new_treatment_recommended": false,
+    "patient_identifiers": {
+      "date_of_birth": {
+        "documented_text": "",
+        "evidence_ref": ""
+      },
+      "medical_record_number": {
+        "documented_text": "",
+        "evidence_ref": ""
+      },
+      "name": {
+        "documented_text": "",
+        "evidence_ref": ""
+      }
+    },
+    "production_transmission_blocked": true,
+    "production_writeback_blocked": true,
+    "receiving_party": {
+      "clinician": {
+        "documented_text": "",
+        "evidence_ref": ""
+      },
+      "facility": {
+        "documented_text": "",
+        "evidence_ref": ""
+      },
+      "specialty": {
+        "documented_text": "",
+        "evidence_ref": ""
+      }
+    },
+    "referral_direction": {
+      "documented_text": "",
+      "evidence_ref": ""
+    },
+    "referral_letter_draft": "",
+    "referral_reason": {
+      "documented_text": "",
+      "evidence_ref": ""
+    },
+    "referral_status": "INPUT_REQUIRED",
+    "referring_party": {
+      "clinician": {
+        "documented_text": "",
+        "evidence_ref": ""
+      },
+      "contact": {
+        "documented_text": "",
+        "evidence_ref": ""
+      },
+      "department": {
+        "documented_text": "",
+        "evidence_ref": ""
+      },
+      "facility": {
+        "documented_text": "",
+        "evidence_ref": ""
+      }
+    },
+    "requested_action": {
+      "documented_text": "",
+      "evidence_ref": ""
+    },
+    "trace_refs": {
+      "run_id": "run-d676ecee-b7a3-4983-a8a6-fa0de1a08b76",
+      "trace_id": "trace-a67f9c2d603a4f52",
+      "provider_trace_refs": [
+        "run-d676ecee-b7a3-4983-a8a6-fa0de1a08b76:governed-referral"
+      ]
+    },
+    "urgency": {
+      "documented_level": "",
+      "documented_timeframe": "",
+      "evidence_refs": []
+    },
+    "structured_extraction": {
+      "contract": "icoder/ReferralOutput/v3",
+      "method": "json_block",
+      "warnings": [],
+      "required_fields": [
+        "referral_status",
+        "referral_direction",
+        "patient_identifiers",
+        "referring_party",
+        "receiving_party",
+        "referral_reason",
+        "urgency",
+        "clinical_summary",
+        "diagnostic_results",
+        "medications",
+        "allergies",
+        "requested_action",
+        "referral_letter_draft",
+        "missing_required_fields",
+        "missing_supporting_items",
+        "evidence_items",
+        "limitations",
+        "draft_generation_status",
+        "clinical_inference_performed",
+        "new_diagnosis_generated",
+        "new_treatment_recommended",
+        "external_knowledge_used",
+        "production_transmission_blocked",
+        "production_writeback_blocked",
+        "manual_review_required",
+        "trace_refs"
+      ],
+      "optional_fields": [],
+      "missing_required_fields": [],
+      "invalid_field_types": [],
+      "invalid_field_schemas": [],
+      "invalid_cross_agent_relations": [],
+      "undeclared_output_fields": [],
+      "undeclared_output_field_count": 0,
+      "valid": true
+    }
+  },
+  "schema_ref": "icoder/ReferralOutput/v3",
+  "result_attestation": "eyJhIjoicmVmZXJyYWwtZ2VuIiwiZCI6IjQ5ODgzZWFiZGFiM2NlYmYwMTc3OWYyMjMyMWFhY2MyZGRlZjUzNWMyZjA4ZjA3NDg4N2ZkYjM0ZDRjYjczMGQiLCJlIjoxNzg3NjUzODU3LCJvIjoiN2Y1YTEyZTA3MmZiIiwiciI6InJ1bi1kNjc2ZWNlZS1iN2EzLTQ5ODMtYThhNi1mYTBkZTFhMDhiNzYiLCJzIjoiaWNvZGVyL1JlZmVycmFsT3V0cHV0L3YzIiwidiI6MX0.e7B2uexxCzcgy_d94cg1nqf7quSSgGeTfdCXNAfWVJE",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 64,
+      "metadata": {
+        "agent_id": "referral-gen",
+        "runtime_mode": "rule_engine",
+        "latency_ms": 64
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 0.119
+}

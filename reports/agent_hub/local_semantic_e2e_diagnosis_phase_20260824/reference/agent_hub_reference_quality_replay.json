@@ -1,0 +1,621 @@
+{
+  "schema_version": "icoder.agent-hub-reference-quality-replay/v1",
+  "quality_scope": "pack_owned_synthetic_reference_semantics_not_independent_clinical_gold",
+  "generated_at": "2026-08-23T23:21:52.184975+00:00",
+  "network_used": false,
+  "credential_used": false,
+  "cases_path": "E:\\Corti4C\\backend\\scripts\\corti_parity\\agent_hub_reference_quality_cases.json",
+  "cases_sha256": "caf2b843b7a7a65f7bae50ba665e82d85b29cc7e21d012541886d16bd38c06bc",
+  "responses_dir": "E:\\Corti4C\\reports\\agent_hub\\local_semantic_e2e_diagnosis_phase_20260824\\examples\\responses",
+  "source_report": {
+    "path": "E:\\Corti4C\\reports\\agent_hub\\local_semantic_e2e_diagnosis_phase_20260824\\examples\\agent_hub_examples_e2e.json",
+    "schema_version": "icoder.agent-hub-examples-e2e/v3",
+    "generated_at": "2026-08-23T23:21:47.899571+00:00",
+    "total": 9,
+    "passed": 9,
+    "failed": 0,
+    "sha256": "2ac12923397df09f320652a9cc3ac05c5fdf6ba9d4ccf07a0d7598631440fa53"
+  },
+  "expected": 9,
+  "completed": 9,
+  "passed": 9,
+  "failed": 0,
+  "safe_fail_closed": 0,
+  "all_passed": true,
+  "rows": [
+    {
+      "agent_id": "code-validation-agent",
+      "example_index": 0,
+      "input_sha256": "eb7232a5ad2950d8ba6d4532c108be6b6ad4009cff47ff4a592ee30438b7330f",
+      "pack_reference_sha256": "749555e4528970982ba20d8af18534aec26f0cf2a8ddf544745a98a95610668d",
+      "response_sha256": "3a95c9e768bc812cef1c9e118c26d53878fb3bfd523611149a23c0dfee45c2f8",
+      "base_contract_safety_passed": true,
+      "reference_assertions_passed": true,
+      "passed": true,
+      "safe_fail_closed": false,
+      "outcome": "pack_reference_semantics_passed",
+      "assertions": [
+        {
+          "path": "review_conclusion",
+          "op": "equals",
+          "expected": "WARNING",
+          "exists": true,
+          "actual_type": "str",
+          "actual_nonempty": true,
+          "actual_sha256": "de37db19f99b77009122a055b4d468f13cfb8f4a9b5b3206ef8b8b3b1cfeca41",
+          "passed": true
+        },
+        {
+          "path": "validated_codes",
+          "op": "contains_all",
+          "expected": [
+            "I50.900"
+          ],
+          "exists": true,
+          "actual_type": "list",
+          "actual_nonempty": true,
+          "actual_sha256": "7d0fc3d0bd48a13759dd559ad9fb7cb35cdd74239320149fb351965f3601839e",
+          "passed": true
+        },
+        {
+          "path": "summary",
+          "op": "contains_all",
+          "expected": [
+            "固定哈希",
+            "人工复核"
+          ],
+          "exists": true,
+          "actual_type": "str",
+          "actual_nonempty": true,
+          "actual_sha256": "99585985e461f75b188c9eb2d890bf94276e51d4ce369bcc5dfe4a286866cf71",
+          "passed": true
+        },
+        {
+          "path": "manual_review_required",
+          "op": "is_true",
+          "expected": null,
+          "exists": true,
+          "actual_type": "bool",
+          "actual_nonempty": true,
+          "actual_sha256": "b5bea41b6c623f7c09f1bf24dcae58ebab3c0cdd90ad966bc43a45b44867e12b",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "agent_id": "compliance-guardrail-agent",
+      "example_index": 0,
+      "input_sha256": "58fab6f7e31fd506ca407551353347c4dd9a4dfde9aa21ada920cf36bc45730e",
+      "pack_reference_sha256": "5b8b550cbaa92bbf8f81ad6379de4ecfcacfafb5bdcaea4796349214eef9a5a5",
+      "response_sha256": "3aeecec6950ad50ad0b5d2aae32f6533e5805f71d2c0e2f32669bf55aac43573",
+      "base_contract_safety_passed": true,
+      "reference_assertions_passed": true,
+      "passed": true,
+      "safe_fail_closed": false,
+      "outcome": "pack_reference_semantics_passed",
+      "assertions": [
+        {
+          "path": "review_conclusion",
+          "op": "equals",
+          "expected": "PASS",
+          "exists": true,
+          "actual_type": "str",
+          "actual_nonempty": true,
+          "actual_sha256": "727e9bd17b077ba162e13ba877135cc6fbc6b30f83da0b34b3e20233f1cc885f",
+          "passed": true
+        },
+        {
+          "path": "reviewed_codes",
+          "op": "contains_all",
+          "expected": [
+            "M80.900",
+            "ICD-10-CN"
+          ],
+          "exists": true,
+          "actual_type": "list",
+          "actual_nonempty": true,
+          "actual_sha256": "cfa45d84a0dc139c5f4eaf40cf8de8e5b5457d7f51cb393c308f054b282ad302",
+          "passed": true
+        },
+        {
+          "path": "issues_found",
+          "op": "nonempty",
+          "expected": null,
+          "exists": true,
+          "actual_type": "list",
+          "actual_nonempty": true,
+          "actual_sha256": "dafd50e18ebc144081849a301a01aa7699ddc137911c7593c8009beece6ab8a7",
+          "passed": true
+        },
+        {
+          "path": "manual_review_required",
+          "op": "is_true",
+          "expected": null,
+          "exists": true,
+          "actual_type": "bool",
+          "actual_nonempty": true,
+          "actual_sha256": "b5bea41b6c623f7c09f1bf24dcae58ebab3c0cdd90ad966bc43a45b44867e12b",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "agent_id": "diagnosis-extractor",
+      "example_index": 0,
+      "input_sha256": "9805fdad0f662d1d827044a4a8872bef311271fbfed9a52fe28bf2898511258b",
+      "pack_reference_sha256": "afb7d39b88919e6501af55b771d3b535754235505f04d287d100dc789731b75e",
+      "response_sha256": "eb39cd011d1c13af90e1d6634a0afd6af3e5b916855822c94add64ede575cce9",
+      "base_contract_safety_passed": true,
+      "reference_assertions_passed": true,
+      "passed": true,
+      "safe_fail_closed": false,
+      "outcome": "pack_reference_semantics_passed",
+      "assertions": [
+        {
+          "path": "status",
+          "op": "equals",
+          "expected": "WARNING",
+          "exists": true,
+          "actual_type": "str",
+          "actual_nonempty": true,
+          "actual_sha256": "de37db19f99b77009122a055b4d468f13cfb8f4a9b5b3206ef8b8b3b1cfeca41",
+          "passed": true
+        },
+        {
+          "path": "diagnoses",
+          "op": "contains_all",
+          "expected": [
+            "急性前壁心肌梗死",
+            "I21.001",
+            "present"
+          ],
+          "exists": true,
+          "actual_type": "list",
+          "actual_nonempty": true,
+          "actual_sha256": "87c41eb1debf5af1a1e55597f7edf8eef197e982d9bc0d35a8e5ffa032996e65",
+          "passed": true
+        },
+        {
+          "path": "non_codable_mentions",
+          "op": "contains_all",
+          "expected": [
+            "高血压",
+            "history_of"
+          ],
+          "exists": true,
+          "actual_type": "list",
+          "actual_nonempty": true,
+          "actual_sha256": "667e78bfd6fba404aa5b0fa025281b9bfce581c961126270725c0802721ccd54",
+          "passed": true
+        },
+        {
+          "path": "issues_found",
+          "op": "contains_all",
+          "expected": [
+            "source_unverified",
+            "external_review_required"
+          ],
+          "exists": true,
+          "actual_type": "list",
+          "actual_nonempty": true,
+          "actual_sha256": "70eba110e32b195e3a20ca3b2c754ae14e5f3c9f5428a9fd9874e1deeda493df",
+          "passed": true
+        },
+        {
+          "path": "manual_review_required",
+          "op": "is_true",
+          "expected": null,
+          "exists": true,
+          "actual_type": "bool",
+          "actual_nonempty": true,
+          "actual_sha256": "b5bea41b6c623f7c09f1bf24dcae58ebab3c0cdd90ad966bc43a45b44867e12b",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "agent_id": "evidence-extractor",
+      "example_index": 0,
+      "input_sha256": "a168593b651cd0d7818a60169427afe764b5f205e3851fcc8b19c293ab416523",
+      "pack_reference_sha256": "dc6f5eeee15afe74a147f97416aa33cd694e23fbdf95dcff57f0f4df79d9dc35",
+      "response_sha256": "9c924e3b9bef9f72aec1141910b924340832e652767aceed07e2cde4f369afe8",
+      "base_contract_safety_passed": true,
+      "reference_assertions_passed": true,
+      "passed": true,
+      "safe_fail_closed": false,
+      "outcome": "pack_reference_semantics_passed",
+      "assertions": [
+        {
+          "path": "extraction_status",
+          "op": "equals",
+          "expected": "COMPLETED",
+          "exists": true,
+          "actual_type": "str",
+          "actual_nonempty": true,
+          "actual_sha256": "ba0ae16a200116e07f05885dfbad38d09f10323434cdeefb998aa0d03f7dbf91",
+          "passed": true
+        },
+        {
+          "path": "match_basis",
+          "op": "equals",
+          "expected": "EXACT_CATALOG_TERM_OR_CODE_LITERAL_ONLY",
+          "exists": true,
+          "actual_type": "str",
+          "actual_nonempty": true,
+          "actual_sha256": "395fe94bec75ae0f0ef93998c97586598e680b21de3e8c26747be79c456b3208",
+          "passed": true
+        },
+        {
+          "path": "located_mentions",
+          "op": "contains_all",
+          "expected": [
+            "N18.803",
+            "慢性肾脏病3期",
+            "E11.900",
+            "2型糖尿病",
+            "historical"
+          ],
+          "exists": true,
+          "actual_type": "list",
+          "actual_nonempty": true,
+          "actual_sha256": "247c6afef4bb92f6551ed106f535c82d96fc8c44f04c751ce1f470e5eb960c66",
+          "passed": true
+        },
+        {
+          "path": "code_results",
+          "op": "contains_all",
+          "expected": [
+            "EXACT_MENTION_FOUND",
+            "clinical_support_assessed"
+          ],
+          "exists": true,
+          "actual_type": "list",
+          "actual_nonempty": true,
+          "actual_sha256": "15580b648ccb561d368e7a395e27d49df91a204cb4f423b1f58e5ec1686cabfc",
+          "passed": true
+        },
+        {
+          "path": "uncoded_findings",
+          "op": "empty",
+          "expected": null,
+          "exists": true,
+          "actual_type": "list",
+          "actual_nonempty": false,
+          "actual_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "agent_id": "evidence-ranker",
+      "example_index": 0,
+      "input_sha256": "a3cbbb8d5e57ab9dc2d02fe53d3ec601647f7beea365f70cecff61ef145e21f6",
+      "pack_reference_sha256": "6365d8d14be1a8bec356058b0eb00abde45206bae380e1d16b669341215e9708",
+      "response_sha256": "cd0e6333523fc4a6a8eedb2be2ba7349747942b7b9a7fd59a2a41bd3b53ad04e",
+      "base_contract_safety_passed": true,
+      "reference_assertions_passed": true,
+      "passed": true,
+      "safe_fail_closed": false,
+      "outcome": "pack_reference_semantics_passed",
+      "assertions": [
+        {
+          "path": "ranked_evidence",
+          "op": "contains_all",
+          "expected": [
+            "A",
+            "前壁ST段抬高"
+          ],
+          "exists": true,
+          "actual_type": "list",
+          "actual_nonempty": true,
+          "actual_sha256": "ce898b843d2cdfb7d027bb84c5db350d9daf183a08fd5c63426e2f4bb91807f6",
+          "passed": true
+        },
+        {
+          "path": "ranking_basis",
+          "op": "equals",
+          "expected": "DOCUMENTATION_GROUNDING_ONLY",
+          "exists": true,
+          "actual_type": "str",
+          "actual_nonempty": true,
+          "actual_sha256": "38d9b7ed0852bc7e3c594203a6fe833a8a68c075cc20ecc96e804d091ccdd377",
+          "passed": true
+        },
+        {
+          "path": "conflicts",
+          "op": "contains_all",
+          "expected": [
+            "B",
+            "duplicate_evidence_id"
+          ],
+          "exists": true,
+          "actual_type": "list",
+          "actual_nonempty": true,
+          "actual_sha256": "23e4d45633a13d2f49bf9dd1705fd5062af339ae45e3b011a6feda037aefa39b",
+          "passed": true
+        },
+        {
+          "path": "unsupported_claims",
+          "op": "contains_any",
+          "expected": [
+            "C"
+          ],
+          "exists": true,
+          "actual_type": "list",
+          "actual_nonempty": true,
+          "actual_sha256": "6ed9f03f274dfd0c483c72da263a59d88f16c93e226eb3689f25b0f8e5ec0a0a",
+          "passed": true
+        },
+        {
+          "path": "manual_review_required",
+          "op": "is_true",
+          "expected": null,
+          "exists": true,
+          "actual_type": "bool",
+          "actual_nonempty": true,
+          "actual_sha256": "b5bea41b6c623f7c09f1bf24dcae58ebab3c0cdd90ad966bc43a45b44867e12b",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "agent_id": "icd10-navigator",
+      "example_index": 0,
+      "input_sha256": "cd320726df142e4ccbd8f990438071e002a4e3078d0af4cff13d9534461a7ff5",
+      "pack_reference_sha256": "1a720bdf83242d02df1258a60ea26ae73520f355e84a0053fb305b10b32c2d40",
+      "response_sha256": "eb95768a32d1c44cf57babf972dd43aeb9a8be330eef79cf2d0f4705a2b73cf8",
+      "base_contract_safety_passed": true,
+      "reference_assertions_passed": true,
+      "passed": true,
+      "safe_fail_closed": false,
+      "outcome": "pack_reference_semantics_passed",
+      "assertions": [
+        {
+          "path": "search_status",
+          "op": "equals",
+          "expected": "CANDIDATES_FOUND",
+          "exists": true,
+          "actual_type": "str",
+          "actual_nonempty": true,
+          "actual_sha256": "1314210ae48aab8b217c9bb18f328193ac636cc637ba3c62e1f3b936032334a3",
+          "passed": true
+        },
+        {
+          "path": "index_terms",
+          "op": "contains_all",
+          "expected": [
+            "慢性肾脏病3期"
+          ],
+          "exists": true,
+          "actual_type": "list",
+          "actual_nonempty": true,
+          "actual_sha256": "b4ac10b18435b5759796cd5cc134251d351399bc420796e983e282d92a7ccf2f",
+          "passed": true
+        },
+        {
+          "path": "candidate_codes",
+          "op": "contains_all",
+          "expected": [
+            "N18.803",
+            "term_index",
+            "cn.icd10cn.catalog"
+          ],
+          "exists": true,
+          "actual_type": "list",
+          "actual_nonempty": true,
+          "actual_sha256": "35595c9829af234d45b3585fd92cea79d55734b337b345b18e68cbb600ea57e8",
+          "passed": true
+        },
+        {
+          "path": "source_version",
+          "op": "contains_all",
+          "expected": [
+            "observed-local-2026-05-19",
+            "source_unverified",
+            "external_review_required"
+          ],
+          "exists": true,
+          "actual_type": "str",
+          "actual_nonempty": true,
+          "actual_sha256": "c913b10455e625a0bc77ba76d663c529e7efaff6407851a8e2f470e45eb4b7ad",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "agent_id": "note-completeness-agent",
+      "example_index": 0,
+      "input_sha256": "d7649ee898c4a32c0a58cf266e2355e5d1c0e03dfc5587e2f15d999232f9f7c1",
+      "pack_reference_sha256": "e46ebbffe9e4458e9835252d992b2cbb4e3c84ef981540b9f656ed034a091c41",
+      "response_sha256": "5dedbf13ac9e56e9016b704b83a9cbf96e7eef86716f92a3ea0a28625690fa03",
+      "base_contract_safety_passed": true,
+      "reference_assertions_passed": true,
+      "passed": true,
+      "safe_fail_closed": false,
+      "outcome": "pack_reference_semantics_passed",
+      "assertions": [
+        {
+          "path": "review_conclusion",
+          "op": "equals",
+          "expected": "WARNING",
+          "exists": true,
+          "actual_type": "str",
+          "actual_nonempty": true,
+          "actual_sha256": "de37db19f99b77009122a055b4d468f13cfb8f4a9b5b3206ef8b8b3b1cfeca41",
+          "passed": true
+        },
+        {
+          "path": "conflicts",
+          "op": "contains_all",
+          "expected": [
+            "T12",
+            "L1"
+          ],
+          "exists": true,
+          "actual_type": "list",
+          "actual_nonempty": true,
+          "actual_sha256": "f15d7cc59d4d65d73a580c5d896592af7c0bf4834ef1ae61d2f99e80d19bdc9d",
+          "passed": true
+        },
+        {
+          "path": "incomplete_sections",
+          "op": "nonempty",
+          "expected": null,
+          "exists": true,
+          "actual_type": "list",
+          "actual_nonempty": true,
+          "actual_sha256": "5b1b2acc919b7f33a2e20ee7d8d44dd71cb7ca75fc9fc6015b3e327dbdad5825",
+          "passed": true
+        },
+        {
+          "path": "missing_sections",
+          "op": "contains_all",
+          "expected": [
+            "手术记录"
+          ],
+          "exists": true,
+          "actual_type": "list",
+          "actual_nonempty": true,
+          "actual_sha256": "275abbfb246856e9d29158113f733268c4a959390e50a0b35e15942609d9f575",
+          "passed": true
+        },
+        {
+          "path": "completeness_score",
+          "op": "equals",
+          "expected": 0.875,
+          "exists": true,
+          "actual_type": "float",
+          "actual_nonempty": true,
+          "actual_sha256": "ef4426b63bfc6c328f5fbe6a63ae27703836c3538f16e2e006f4e7222aa14885",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "agent_id": "procedure-extractor",
+      "example_index": 0,
+      "input_sha256": "a256ad8609586e41f3e3f5a622d0ea712f0b09de8fff673ceeb9392ed69723c3",
+      "pack_reference_sha256": "1c1f49edcb632aee2153bc7853546975361c84e624f22f75fa568c5fcad77577",
+      "response_sha256": "bf3631a080e7b250bdfd5fa52af3c31bfd0597fdf461a02ffdd029e206b133a2",
+      "base_contract_safety_passed": true,
+      "reference_assertions_passed": true,
+      "passed": true,
+      "safe_fail_closed": false,
+      "outcome": "pack_reference_semantics_passed",
+      "assertions": [
+        {
+          "path": "procedures",
+          "op": "contains_all",
+          "expected": [
+            "03.5304",
+            "胸椎骨折切开复位内固定术",
+            "T12",
+            "performed",
+            "source_unverified"
+          ],
+          "exists": true,
+          "actual_type": "list",
+          "actual_nonempty": true,
+          "actual_sha256": "9114830a94da6845cd5bf91aff5919f9ed1860401b5ec82d8261be8af177c197",
+          "passed": true
+        },
+        {
+          "path": "total_count",
+          "op": "equals",
+          "expected": 1,
+          "exists": true,
+          "actual_type": "int",
+          "actual_nonempty": true,
+          "actual_sha256": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
+          "passed": true
+        },
+        {
+          "path": "non_billable_mentions",
+          "op": "empty",
+          "expected": null,
+          "exists": true,
+          "actual_type": "list",
+          "actual_nonempty": false,
+          "actual_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "passed": true
+        },
+        {
+          "path": "issues_found",
+          "op": "empty",
+          "expected": null,
+          "exists": true,
+          "actual_type": "list",
+          "actual_nonempty": false,
+          "actual_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "agent_id": "surgical-registry",
+      "example_index": 0,
+      "input_sha256": "02d174f7ae468e11d9e3868ba0264a30c5dbb49196eadaed3d5989c38d13a437",
+      "pack_reference_sha256": "dbddc6d9cdb547e2d8d1a20b567fea93f51b8ca7efadf292ef232a16d1a5ce18",
+      "response_sha256": "18dca16897444ed69590a70eb2b0e020373b4ab4d95b77caaf65d2d2c974b36e",
+      "base_contract_safety_passed": true,
+      "reference_assertions_passed": true,
+      "passed": true,
+      "safe_fail_closed": false,
+      "outcome": "pack_reference_semantics_passed",
+      "assertions": [
+        {
+          "path": "procedure",
+          "op": "equals",
+          "expected": "腹腔镜胆囊切除术",
+          "exists": true,
+          "actual_type": "str",
+          "actual_nonempty": true,
+          "actual_sha256": "af4fe73bec874ae0d7239af8d669cd5174f70ef897fbdb1e495eca42c317b7e3",
+          "passed": true
+        },
+        {
+          "path": "anesthesia",
+          "op": "equals",
+          "expected": "全麻",
+          "exists": true,
+          "actual_type": "str",
+          "actual_nonempty": true,
+          "actual_sha256": "8b66e6d42846a644b73188bf0a842131a9738884304bc22e4eedeca308dd311c",
+          "passed": true
+        },
+        {
+          "path": "complications",
+          "op": "contains_any",
+          "expected": [
+            "无胆管损伤",
+            "未见胆管损伤"
+          ],
+          "exists": true,
+          "actual_type": "str",
+          "actual_nonempty": true,
+          "actual_sha256": "6a5dba066792a2bea7cd2f6b3399a6da306415b7c874e187cf7ef4cc389a6d78",
+          "passed": true
+        },
+        {
+          "path": "missing_fields",
+          "op": "contains_all",
+          "expected": [
+            "indications",
+            "comorbidities",
+            "outcomes"
+          ],
+          "exists": true,
+          "actual_type": "list",
+          "actual_nonempty": true,
+          "actual_sha256": "d4ee18db5c9bd6541ce4f3ce625f24cfad82a048fd08ac7605454a0227a28bf5",
+          "passed": true
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "Assertions are maintained against synthetic Pack examples, not independent clinician gold.",
+    "Offline replay does not prove current Provider availability, latency, cost, stability, or Corti parity.",
+    "A fresh live run must be captured separately with a new temporary credential before release evidence can be current."
+  ]
+}

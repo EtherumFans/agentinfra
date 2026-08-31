@@ -1,0 +1,91 @@
+{
+  "agent_id": "denial-appeals",
+  "run_id": "run-ffc1d3f1-b9a5-4c9c-a4ef-2cb109076d0e",
+  "trace_id": "trace-1894ad51115749b9",
+  "trace_url": "/ai-studio/runs/run-ffc1d3f1-b9a5-4c9c-a4ef-2cb109076d0e/trace",
+  "runtime_mode": "pure_llm",
+  "latency_ms": 38,
+  "cost": {},
+  "summary": "Provider output did not satisfy the Agent Pack contract.",
+  "result": {
+    "status": "requires_review",
+    "markdown": "",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "failed",
+    "finish_reason": "llm_degraded: degraded:mock_provider",
+    "backend_provider": "icoder.pure-llm.v1",
+    "backend_type": "pure_llm",
+    "structured_extraction": {
+      "contract": "icoder/DenialAppealOutput/v2",
+      "method": "none",
+      "warnings": [
+        "empty structured provider output"
+      ],
+      "required_fields": [
+        "denial_reason",
+        "appeal_position",
+        "evidence_items",
+        "policy_gaps",
+        "draft_appeal",
+        "limitations",
+        "manual_review_required"
+      ],
+      "optional_fields": [],
+      "missing_required_fields": [
+        "denial_reason",
+        "appeal_position",
+        "evidence_items",
+        "policy_gaps",
+        "draft_appeal",
+        "limitations"
+      ],
+      "invalid_field_types": [],
+      "invalid_field_schemas": [],
+      "invalid_cross_agent_relations": [],
+      "undeclared_output_fields": [],
+      "undeclared_output_field_count": 0,
+      "valid": false
+    },
+    "contract_output_suppressed": true,
+    "manual_review_required": true
+  },
+  "schema_ref": "icoder/DenialAppealOutput/v2",
+  "result_attestation": "",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "contract_validation",
+      "status": "failed",
+      "duration_ms": 0,
+      "metadata": {
+        "error_reason": "output_contract_violation",
+        "missing_required_field_count": 6,
+        "invalid_field_type_count": 0,
+        "invalid_field_schema_count": 0,
+        "invalid_cross_agent_relation_count": 0,
+        "undeclared_output_field_count": 0,
+        "invalid_paths": [],
+        "invalid_keywords": []
+      }
+    },
+    {
+      "step": "completion",
+      "status": "failed",
+      "duration_ms": 38,
+      "metadata": {
+        "agent_id": "denial-appeals",
+        "runtime_mode": "pure_llm",
+        "latency_ms": 38
+      }
+    }
+  ],
+  "error": true,
+  "error_reason": "llm_degraded: degraded:mock_provider",
+  "_http_status": 200,
+  "_elapsed_seconds": 0.45
+}

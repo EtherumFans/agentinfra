@@ -1,0 +1,190 @@
+{
+  "agent_id": "medical-coding-agent",
+  "run_id": "run-801ceedf-e402-42ce-bce3-9c778d51ef47",
+  "trace_id": "trace-4b4550ed4be14dba",
+  "trace_url": "/ai-studio/runs/run-801ceedf-e402-42ce-bce3-9c778d51ef47/trace",
+  "runtime_mode": "corti_like_fast",
+  "latency_ms": 4483,
+  "cost": {
+    "amount": 0.000252,
+    "currency": "CNY",
+    "source": "provider_token_usage",
+    "token_usage": {
+      "input_tokens": 1217,
+      "output_tokens": 293
+    }
+  },
+  "billing": {},
+  "summary": "根据病历证据，主要诊断为T12椎体压缩性骨折，编码为S22.000x003。但病历信息不足，无法排除病理性骨折（如骨质疏松性）的可能性，需人工复核。",
+  "result": {
+    "encounter_summary": {
+      "chief_complaint": "",
+      "treatment_course": "",
+      "key_findings": [],
+      "document_sources": [],
+      "encounter_date": ""
+    },
+    "documentation_analysis": {
+      "diagnosis_evidence": [],
+      "procedure_evidence": [],
+      "negated_findings": [],
+      "historical_conditions": []
+    },
+    "code_assignment": {
+      "primary_diagnosis": {
+        "code": "S22.000x003",
+        "description": "胸椎压缩性骨折",
+        "confidence": 0.85,
+        "category": "principal",
+        "evidence": [
+          {
+            "text": "MRI 显示 T12 椎体压缩性骨折",
+            "kind": "auto_bootstrap"
+          }
+        ]
+      },
+      "secondary_diagnoses": [],
+      "procedures": []
+    },
+    "documentation_gaps": [],
+    "uncodable_items": [],
+    "validation_summary": {
+      "passed": false,
+      "issues_found": [
+        {
+          "severity": "medium",
+          "code": "RULE-001",
+          "message": "病历信息有限，仅提及T12椎体压缩性骨折，未明确骨折的具体类型（如病理性、创伤性）及是否有其他合并症。",
+          "suggestion": "建议补充病历信息，明确骨折的病因（如外伤、骨质疏松等），以确定是否需要使用组合编码（如M80.0）或外因编码。"
+        }
+      ],
+      "manual_review_required": true,
+      "rule_set": "MedCodERRetrievalRuleSet",
+      "fired_rules": [
+        "RULE-001"
+      ]
+    },
+    "human_review": {
+      "review_conclusion": "WARNING",
+      "review_required": true,
+      "review_focus": [],
+      "notes": "根据病历证据，主要诊断为T12椎体压缩性骨折，编码为S22.000x003。但病历信息不足，无法排除病理性骨折（如骨质疏松性）的可能性，需人工复核。"
+    },
+    "trace_refs": {
+      "run_id": "run-801ceedf-e402-42ce-bce3-9c778d51ef47",
+      "stage_trace": [],
+      "rule_fired": [
+        "RULE-001"
+      ],
+      "mode": "Mode.UNSET",
+      "method_id": "",
+      "provider": "",
+      "model": "",
+      "trace_id": "trace-4b4550ed4be14dba"
+    },
+    "codes": [
+      {
+        "code": "S22.000x003",
+        "system": "ICD-10-CN",
+        "display": "胸椎压缩性骨折",
+        "type": "primary_diagnosis",
+        "confidence": 0.85,
+        "evidence": "MRI 显示 T12 椎体压缩性骨折",
+        "rationale": "主要诊断 — 基于病历证据的优先编码候选,需结合 ICD-10-CN 本地目录复核具体亚目。",
+        "warnings": [
+          "需结合国家医保版 ICD-10-CN 目录进一步校验具体亚目"
+        ],
+        "alternatives": []
+      }
+    ],
+    "manual_review_required": true
+  },
+  "schema_ref": "icoder/MedicalCodingAgentOutputV2/v8",
+  "result_attestation": "eyJhIjoibWVkaWNhbC1jb2RpbmctYWdlbnQiLCJkIjoiMWY4Y2U1ODVmMDNkOTY2MzY5M2IxMDliNTNkNjUwMWFkODlkMzFkZmM5ODIzOTdjM2YxZGVjYjcxNDM2MTM5OSIsImUiOjE3ODc3NDkxMzIsIm8iOiJmZTUzYTgwMTdhOWQiLCJyIjoicnVuLTgwMWNlZWRmLWU0MDItNDJjZS1iY2UzLTljNzc4ZDUxZWY0NyIsInMiOiJpY29kZXIvTWVkaWNhbENvZGluZ0FnZW50T3V0cHV0VjIvdjgiLCJ2IjoxfQ.fCkT2oGVkgPMxqQ7UM_boYzYRW0JeAxImgRwKKaWQfA",
+  "evidence": [
+    {
+      "code": "S22.000x003",
+      "system": "ICD-10-CN",
+      "type": "primary_diagnosis",
+      "text": "MRI 显示 T12 椎体压缩性骨折",
+      "rationale": "主要诊断 — 基于病历证据的优先编码候选,需结合 ICD-10-CN 本地目录复核具体亚目。"
+    }
+  ],
+  "warnings": [
+    "需结合国家医保版 ICD-10-CN 目录进一步校验具体亚目"
+  ],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "input_received",
+      "status": "ok",
+      "ts": 1787662727.9964082,
+      "duration_ms": 0,
+      "metadata": {
+        "text_len": 28,
+        "mode": "corti_like_fast"
+      }
+    },
+    {
+      "step": "language_detect",
+      "status": "ok",
+      "ts": 1787662727.9964082,
+      "duration_ms": 0,
+      "metadata": {
+        "language": "zh"
+      }
+    },
+    {
+      "step": "build_prompt",
+      "status": "ok",
+      "ts": 1787662727.9964082,
+      "duration_ms": 0,
+      "metadata": {
+        "provider": "deepseek",
+        "language": "zh",
+        "system": "icd-10-cn"
+      }
+    },
+    {
+      "step": "llm_call",
+      "status": "ok",
+      "ts": 1787662732.4800208,
+      "duration_ms": 4483,
+      "metadata": {
+        "provider": "deepseek",
+        "model": "deepseek-chat",
+        "is_mock": false
+      }
+    },
+    {
+      "step": "parse_json",
+      "status": "ok",
+      "ts": 1787662732.4800208,
+      "duration_ms": 4483,
+      "metadata": {}
+    },
+    {
+      "step": "project_result",
+      "status": "ok",
+      "ts": 1787662732.4800208,
+      "duration_ms": 4483,
+      "metadata": {
+        "code_count": 1
+      }
+    },
+    {
+      "step": "return",
+      "status": "ok",
+      "ts": 1787662732.4800208,
+      "duration_ms": 4483,
+      "metadata": {
+        "latency_ms": 4483,
+        "code_count": 1
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 5.0
+}

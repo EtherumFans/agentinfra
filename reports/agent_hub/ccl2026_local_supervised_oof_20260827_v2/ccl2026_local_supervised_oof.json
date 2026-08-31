@@ -1,0 +1,119 @@
+{
+  "schema_version": "icoder.ccl2026-local-supervised-oof/v1",
+  "generated_at": "2026-08-27T11:42:22.691451+00:00",
+  "status": "valid_local_supervised_oof_measurement",
+  "evaluation": {
+    "mode": "deterministic_stratified_out_of_fold",
+    "fold_count": 5,
+    "evaluated_case_count": 1800,
+    "fold_sizes": [
+      366,
+      362,
+      361,
+      356,
+      355
+    ],
+    "training_sizes": [
+      1434,
+      1438,
+      1439,
+      1444,
+      1445
+    ],
+    "completed_case_count": 1800,
+    "safe_failure_case_count": 0
+  },
+  "model": {
+    "model_id": "bounded-char-ngram-neighbor-v1",
+    "implementation": "bounded_hashed_character_ngram_neighbor",
+    "maximum_features_per_document": 2048,
+    "maximum_neighbors": 19,
+    "native_ml_runtime_loaded": false,
+    "network_used": false,
+    "external_provider_used": false,
+    "persistent_model_artifact_created": false
+  },
+  "dataset_binding": {
+    "source_workbook_sha256": "4c0461036016d1a05edfb565d8b639fd4429e7f48951803f8a4527197c1472d8",
+    "fixture_sha256": "c71566686582ff4c3089c0547e2c2ebcccb6eb7b86756419309c680250093027",
+    "audit_report_sha256": "83faeb517dce2bd688c178ec1d2f902d9b90095bda9c5576858c7722f4d44ca2",
+    "audit_report_canonical_sha256": "e574cacffa226678ed703ee3d5ecdc90c48250fb8da52f9409a052b6f7fe6952",
+    "catalog_release": "icoder-cn-runtime-2026-08-27.2",
+    "case_count": 1800,
+    "split_assignment_sha256": "e39c7cb315f5d7fc97ea16a71c51cd67bc7525738d0e746d8239c413f795403b"
+  },
+  "integrity": {
+    "unique_text_digest_count": 1800,
+    "duplicate_text_group_count": 0,
+    "training_row_self_exposure_count": 0,
+    "out_of_catalog_diagnosis_count": 0,
+    "out_of_catalog_procedure_count": 0
+  },
+  "metrics": {
+    "case_count": 1800,
+    "completed_case_count": 1800,
+    "safe_failure_case_count": 0,
+    "execution_coverage": 1.0,
+    "principal_diagnosis_exact_accuracy": 0.895556,
+    "secondary_diagnosis": {
+      "true_positive_count": 2720,
+      "false_positive_count": 3848,
+      "false_negative_count": 4922,
+      "precision": 0.414129,
+      "recall": 0.355928,
+      "f1": 0.382829,
+      "macro_case_f1": 0.34076
+    },
+    "all_diagnosis": {
+      "true_positive_count": 4523,
+      "false_positive_count": 3845,
+      "false_negative_count": 4919,
+      "precision": 0.540511,
+      "recall": 0.47903,
+      "f1": 0.507917
+    },
+    "principal_procedure_exact_accuracy": 0.511111,
+    "principal_procedure_gold_present_case_count": 937,
+    "principal_procedure_predicted_present_case_count": 1501,
+    "principal_procedure_exact_accuracy_when_gold_present": 0.663821,
+    "other_procedure": {
+      "true_positive_count": 327,
+      "false_positive_count": 752,
+      "false_negative_count": 908,
+      "precision": 0.303058,
+      "recall": 0.264777,
+      "f1": 0.282627,
+      "macro_case_f1": 0.5275
+    },
+    "all_procedure": {
+      "true_positive_count": 1991,
+      "false_positive_count": 589,
+      "false_negative_count": 181,
+      "precision": 0.771705,
+      "recall": 0.916667,
+      "f1": 0.837963
+    },
+    "full_code_set_exact_match_rate": 0.017222
+  },
+  "privacy": {
+    "clinical_text_emitted": false,
+    "encounter_identifiers_emitted": false,
+    "case_digests_emitted": false,
+    "case_level_labels_emitted": false,
+    "case_level_predictions_emitted": false,
+    "neighbors_emitted": false,
+    "error_examples_emitted": false
+  },
+  "claim_boundaries": {
+    "local_supervised_development_baseline_measured": true,
+    "all_predictions_out_of_fold": true,
+    "identical_text_cross_fold_leakage_blocked": true,
+    "case_level_artifacts_emitted": false,
+    "external_network_used": false,
+    "independent_clinical_gold_proven": false,
+    "external_generalization_proven": false,
+    "corti_capability_parity_proven": false,
+    "clinical_production_readiness_proven": false
+  },
+  "report_sha256": "52dfa810580fb0fd3ec7b4c053be82b384b0960636b7bbb7b280d5b777bf584e"
+}

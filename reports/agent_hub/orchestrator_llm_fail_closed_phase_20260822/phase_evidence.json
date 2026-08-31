@@ -1,0 +1,99 @@
+{
+  "schema_version": "icoder.orchestrator-llm-fail-closed/v1",
+  "generated_at": "2026-08-22T15:49:18+08:00",
+  "result": "passed_with_real_model_clinical_and_external_release_gates_open",
+  "implementation": {
+    "production_missing_gateway_stub_removed": true,
+    "production_unconfigured_gateway_stub_removed": true,
+    "missing_llm_http_status": 503,
+    "missing_llm_error_code": "planning_failed",
+    "missing_llm_retryable": true,
+    "missing_llm_fabricated_model_response": false,
+    "configured_gateway_uses_real_sync_adapter": true,
+    "internal_medcoder_public_route_status": 404,
+    "public_medical_coding_mock_status": 503,
+    "public_medical_coding_mock_result_present": false
+  },
+  "tests": {
+    "orchestrator_and_preflight_focused": {
+      "passed": 135,
+      "failed": 0,
+      "duration_seconds": 3.34
+    },
+    "real_application_assembly": {
+      "passed": 55,
+      "failed": 0,
+      "skipped": 5,
+      "warnings": 51,
+      "duration_seconds": 89.95
+    },
+    "mock_public_internal_boundary": {
+      "passed": 2,
+      "failed": 0,
+      "warnings": 1,
+      "duration_seconds": 5.22
+    },
+    "initial_application_diagnostic": {
+      "passed": 53,
+      "failed": 2,
+      "skipped": 5,
+      "failure": "legacy smoke tests called the hidden internal MedCodER engine and required fabricated mock clinical success",
+      "resolved_by": "public facade now proves safe 503 without result; internal engine public route proves 404"
+    },
+    "deployment_preflight": {
+      "passed": 66,
+      "failed": 0,
+      "mode": "static_without_docker_cli"
+    },
+    "openapi": {
+      "paths": 269,
+      "schemas": 288,
+      "bytes": 842015,
+      "drift": false
+    },
+    "credential_scan": {
+      "deepseek_shaped_key_files": 0,
+      "hardcoded_deepseek_assignment_files": 0
+    },
+    "real_llm_used": false,
+    "external_llm_allowed": false,
+    "native_medcoder_used": false,
+    "independent_backend_started_or_restarted": false
+  },
+  "data_safety": {
+    "schema_change": false,
+    "source_database_path": "backend/data/icoder.db",
+    "source_database_sha256": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e",
+    "source_database_unchanged": true,
+    "cutover_performed": false
+  },
+  "artifacts": {
+    "runtime_matrix": {
+      "path": "reports/agent_hub/visible_launch_candidate_enforcement_phase_20260822/current/agent_hub_runtime_matrix.json",
+      "sha256": "0e4cb75433af9c6af2d680d0b6af28cdd6ff1e9897b3366cff71ddc3648d7865"
+    },
+    "deployment_preflight": {
+      "path": "reports/agent_hub/orchestrator_llm_fail_closed_phase_20260822/deployment-preflight/deployment_preflight.json",
+      "sha256": "8018f6a870ceaaf2c1cc8ff092ec1333a5eace7388ec3793bee50a7e6be416b6"
+    },
+    "openapi": {
+      "path": "docs/openapi/openapi.json",
+      "sha256": "a095196fe81a671d8c94f57ece85831d9346490deb5c49e5cf2b05cb661a8cfe"
+    },
+    "summary": {
+      "path": "docs/corti_parity/ICODER_ORCHESTRATOR_LLM_FAIL_CLOSED_PHASE_SUMMARY_2026-08-22.md",
+      "sha256": "9b750fbd1a75c3775ebf8425cca0c815b9ef496364d53d5c0357a53cfe1c1074"
+    },
+    "live_gap_matrix": {
+      "path": "docs/corti_parity/CORTI_ICODER_LIVE_GAP_MATRIX_2026-08-21.md",
+      "sha256": "8adb841f11b4ef28d536c1c72eaa8800f6a54e7d3952441c3ac590119fcc6604"
+    }
+  },
+  "limitations": [
+    "The change proves truthful missing-provider failure semantics; it does not prove real-model semantic or clinical quality.",
+    "The public wire code remains PLANNING_FAILED with HTTP 503 rather than introducing a non-standard A2A business code.",
+    "A complete 26-Agent real-model happy/adversarial/repetition matrix still requires a rotated credential, explicit budget, new responses, and independent clinical review.",
+    "No dotnet, Docker, or Nginx CLI is available locally; those build and runtime gates remain CI or external-environment work.",
+    "Hospital integration, authoritative patient consent, licensed China coding and DRG/DIP data, cloud infrastructure, legal, certification, penetration testing, and independent reviewers remain external gates."
+  ]
+}

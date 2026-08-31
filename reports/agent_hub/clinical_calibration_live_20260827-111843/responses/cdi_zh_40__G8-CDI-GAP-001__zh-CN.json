@@ -1,0 +1,276 @@
+{
+  "agent_id": "clinical-documentation-improvement-agent",
+  "run_id": "run-0cf68f06-f6a4-4c0e-aa97-49868d163175",
+  "trace_id": "trace-a22d65ffee0c4e4e",
+  "trace_url": "/ai-studio/runs/run-0cf68f06-f6a4-4c0e-aa97-49868d163175/trace",
+  "runtime_mode": "cdi_real_orchestrator",
+  "latency_ms": 14748,
+  "cost": {
+    "amount": 0.00164528,
+    "currency": "CNY",
+    "source": "configured_usage_pricing_estimate",
+    "billing_authoritative": false
+  },
+  "billing": {},
+  "summary": "CDI review completed; specialist and clinician review remain required.",
+  "result": {
+    "encounter_summary": {
+      "key_points": [
+        "患者男性，64岁",
+        "因咳嗽咳痰伴发热3天入院",
+        "胸片示右下肺浸润影",
+        "WBC 14.5",
+        "体温38.3℃",
+        "入院诊断：肺炎",
+        "予头孢曲松+阿奇霉素治疗",
+        "既往史：2型糖尿病、高血压"
+      ],
+      "encounter_metadata": {
+        "patient_age": "64岁",
+        "patient_sex": "男性",
+        "encounter_type": "住院"
+      }
+    },
+    "documentation_gaps": [
+      {
+        "gap_id": "GAP-001",
+        "gap_type": "diagnostic_specificity",
+        "description": "Pneumonia diagnosis lacks specification of causative organism or whether it is community-acquired or healthcare-associated.",
+        "why_it_matters": "Specificity of pneumonia etiology affects coding and treatment; unspecified pneumonia may lead to inaccurate coding and potential quality measures.",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "入院诊断:肺炎",
+          "char_start": 52,
+          "char_end": 59,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      },
+      {
+        "gap_id": "GAP-002",
+        "gap_type": "diagnostic_specificity",
+        "description": "Severity of pneumonia not documented (e.g., CURB-65 score, oxygen saturation, respiratory rate).",
+        "why_it_matters": "Severity determines level of care and coding; without it, severity of illness may be undercoded.",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "WBC 14.5, T 38.3℃",
+          "char_start": 34,
+          "char_end": 51,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      },
+      {
+        "gap_id": "GAP-003",
+        "gap_type": "diagnostic_specificity",
+        "description": "Clinical correlation of abnormal WBC and fever with pneumonia not explicitly stated.",
+        "why_it_matters": "Abnormal labs without clinical correlation may lead to queries; documentation should link findings to diagnosis.",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "WBC 14.5",
+          "char_start": 34,
+          "char_end": 42,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      }
+    ],
+    "proposed_provider_queries": [
+      {
+        "query_id": "Q-002",
+        "gap_id": "GAP-002",
+        "topic": "肺炎严重程度评估",
+        "reason": "病历中未记录肺炎严重程度相关指标（如CURB-65、氧饱和度、呼吸频率），需明确。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "WBC 14.5, T 38.3℃",
+          "char_start": 34,
+          "char_end": 51,
+          "documented_at": ""
+        },
+        "evidence_spans": [
+          {
+            "document_id": "chart-001",
+            "quote": "WBC 14.5, T 38.3℃",
+            "char_start": 34,
+            "char_end": 51,
+            "documented_at": ""
+          }
+        ],
+        "query_text": "该患者肺炎的严重程度如何评估？",
+        "response_options": [
+          "A. 轻度（如CURB-65 0-1分）",
+          "B. 中度（如CURB-65 2分）",
+          "C. 重度（如CURB-65 ≥3分或需ICU）",
+          "D. 无法确定"
+        ],
+        "lifecycle_state": "DRAFT",
+        "priority": "routine",
+        "nlq_gate_verdict": "PASS",
+        "nlq_gate_block_reasons": []
+      },
+      {
+        "query_id": "Q-001-type",
+        "gap_id": "GAP-001",
+        "topic": "肺炎的感染类型",
+        "reason": "明确肺炎是社区获得性还是医院获得性，有助于准确编码和质量管理。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "入院诊断:肺炎",
+          "char_start": 52,
+          "char_end": 59,
+          "documented_at": ""
+        },
+        "evidence_spans": [
+          {
+            "document_id": "chart-001",
+            "quote": "入院诊断:肺炎",
+            "char_start": 52,
+            "char_end": 59,
+            "documented_at": ""
+          }
+        ],
+        "query_text": "该患者的肺炎是社区获得性还是医院获得性？",
+        "response_options": [
+          "A. 社区获得性肺炎",
+          "B. 医院获得性肺炎",
+          "C. 医疗保健相关肺炎",
+          "D. 无法确定"
+        ],
+        "lifecycle_state": "DRAFT",
+        "priority": "routine",
+        "nlq_gate_verdict": "PASS",
+        "nlq_gate_block_reasons": []
+      }
+    ],
+    "query_gate_summary": {
+      "withheld_count": 2,
+      "status_counts": {
+        "REWRITE_CANDIDATE_GENERATED": 1
+      },
+      "manual_cdi_action_required": true
+    },
+    "coding_specificity_checklist": [],
+    "risk_flags": [],
+    "specialist_trace": [
+      {
+        "expert_id": "coding-expert",
+        "consulted": true,
+        "requested": "You are a coding-specialist Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "To ensure accurate coding, the documentation must specify the causative organism (e.g., bacterial, viral, or unspecified) and the setting of acquisition (community-acquired vs. healthcare-associated), as these directly affect classification. Additionally, the severity of pneumonia should be quantified using objective criteria (e.g., CURB-65 score, oxygen saturation, respiratory rate) to reflect clinical complexity, and the abnormal WBC and fever should be explicitly linked to the pneumonia diagnosis to confirm clinical correlation. Without these details, the record lacks the specificity needed for precise code assignment.",
+        "route_decision": "needed",
+        "route_reason": "coding_relevant_gap",
+        "execution_mode": "LLM_KNOWLEDGE_ONLY",
+        "latency_ms": 2003,
+        "tokens": 288,
+        "run_id": "run-ecbba086dd0f",
+        "trace_id": "trace-13157fb31bd3"
+      },
+      {
+        "expert_id": "pubmed-expert",
+        "consulted": false,
+        "requested": "You are a PubMed literature Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-d9296450a452",
+        "trace_id": "trace-bcd746ae94b7"
+      },
+      {
+        "expert_id": "web-search-expert",
+        "consulted": false,
+        "requested": "You are a clinical web-search Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-c7e4812a7cf2",
+        "trace_id": "trace-231a08b8a79e"
+      },
+      {
+        "expert_id": "medical-calculator-expert",
+        "consulted": false,
+        "requested": "You are a medical-calculator Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "'score' score — no deterministic calculator wired",
+        "route_decision": "tool_unavailable",
+        "route_reason": "no_real_tool_wired",
+        "execution_mode": "TOOL_UNAVAILABLE",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-b74a556cd584",
+        "trace_id": "trace-689d085aaf19"
+      }
+    ],
+    "human_review": {
+      "cdi_specialist_review_required": true,
+      "clinician_response_required": true,
+      "review_priority": "routine"
+    },
+    "trace_refs": {
+      "run_id": "run-0cf68f06-f6a4-4c0e-aa97-49868d163175",
+      "stage_trace": {
+        "encounter_synthesis": "trace-103f8c5b3f7a",
+        "gap_identification": "trace-050917c68905",
+        "expert_consultation": "trace-0d1dc56ff0f0",
+        "query_generation": "trace-09ff3d166266",
+        "query_eligibility_gate": "",
+        "query_necessity_gate": "",
+        "query_dimension_rewrite": "trace-3bb84ad85fc0",
+        "query_single_dimension_gate": "",
+        "claim_evidence_alignment_gate": "trace-bab145eeff49",
+        "semantic_necessity_gate": "trace-04e4cc03b680",
+        "query_compliance_gate": "",
+        "specialist_trace_emit": "trace-1d778b5faa2a"
+      },
+      "experts_consulted": [
+        "coding-expert"
+      ],
+      "gate_results": {
+        "encounter_synthesis": "run-1a9abd772a67",
+        "gap_identification": "run-ab3ed370cb19",
+        "gap_identification_risk_flags": "emitted=0;quote_snapped=0;withheld=0;quantity_redacted=0",
+        "expert_consultation": "run-01960e275f4e",
+        "query_generation": "run-9ba2202f63fd",
+        "query_generation::quote_snapped": "0",
+        "query_generation::coverage_missing": "0",
+        "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=3;llm_complete=False;llm_reasoning=The chart documents pneumonia with supporting evidence but lacks specificity of ",
+        "query_necessity_gate": "necessary=2;unnecessary=1;overquery_triggered=False;final_count=2",
+        "query_dimension_rewrite": "run-c77a052c4d46",
+        "query_single_dimension_gate": "single_dim=1;multi_dim=1;axis_cluster_triggered=False;axis_cluster_axis=etiology;rewrite_attempted=1;rewrite_accepted=1;final_count=2",
+        "claim_evidence_alignment_gate": "claims_extracted=4;degraded=0;blocked=0;flagged=0;final_count=2",
+        "claim_evidence_alignment_gate::run_id": "run-dd7fd21ef3cc",
+        "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=2",
+        "semantic_necessity_gate::run_id": "run-23e491b29476",
+        "query_compliance_gate": ";passed=2;blocked=0",
+        "specialist_trace_emit": "run-7bd0d83e9ccf"
+      },
+      "trace_id": "trace-a22d65ffee0c4e4e"
+    }
+  },
+  "schema_ref": "icoder/CDIAgentOutputV1/v6",
+  "result_attestation": "eyJhIjoiY2xpbmljYWwtZG9jdW1lbnRhdGlvbi1pbXByb3ZlbWVudC1hZ2VudCIsImQiOiI4MWE5Njg0MzQ2ZDliMTZiZWJkYTIwODUzNjM4NmVlZTZkOTVlZjNlYTNmM2Q4MjgyNDhjYjkwYTY1Y2M3MTYzIiwiZSI6MTc4Nzg4NzE4NSwibyI6IjVmZWYzNzlmMjViZCIsInIiOiJydW4tMGNmNjhmMDYtZjZhNC00YzBlLWFhOTctNDk4NjhkMTYzMTc1IiwicyI6Imljb2Rlci9DRElBZ2VudE91dHB1dFYxL3Y2IiwidiI6MX0.3ojbj5v2NjbfPuc4Nn32gcXhWQwVVDtJ_1PztcuXe38",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 15.095
+}

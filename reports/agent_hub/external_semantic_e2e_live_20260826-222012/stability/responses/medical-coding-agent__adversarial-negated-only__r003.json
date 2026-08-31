@@ -1,0 +1,203 @@
+{
+  "agent_id": "medical-coding-agent",
+  "run_id": "run-ac57077a-0973-4968-969d-400a31d91537",
+  "trace_id": "trace-674f3970ea334d1c",
+  "trace_url": "/ai-studio/runs/run-ac57077a-0973-4968-969d-400a31d91537/trace",
+  "runtime_mode": "corti_like_fast",
+  "latency_ms": 4279,
+  "cost": {
+    "amount": 0.000265,
+    "currency": "CNY",
+    "source": "provider_token_usage",
+    "token_usage": {
+      "input_tokens": 1274,
+      "output_tokens": 309
+    }
+  },
+  "billing": {},
+  "summary": "病历明确排除肺炎，且无其他确诊诊断，无法确定主要诊断，必须人工复核。",
+  "result": {
+    "encounter_summary": {
+      "chief_complaint": "",
+      "treatment_course": "",
+      "key_findings": [],
+      "document_sources": [],
+      "encounter_date": ""
+    },
+    "documentation_analysis": {
+      "diagnosis_evidence": [],
+      "procedure_evidence": [],
+      "negated_findings": [
+        {
+          "text": "出院记录：入院时考虑肺炎，<REDACTED:NAME>查已排除",
+          "char_start": 0,
+          "char_end": 32,
+          "doc_id": "input"
+        },
+        {
+          "text": "未形成其他确诊诊断，未实施手术",
+          "char_start": 33,
+          "char_end": 48,
+          "doc_id": "input"
+        }
+      ],
+      "historical_conditions": []
+    },
+    "code_assignment": {
+      "primary_diagnosis": {
+        "code": "",
+        "description": "",
+        "confidence": 0.0,
+        "category": "",
+        "evidence": []
+      },
+      "secondary_diagnoses": [],
+      "procedures": []
+    },
+    "documentation_gaps": [],
+    "uncodable_items": [
+      {
+        "item_type": "negated_finding",
+        "text": "{'text': '入院时考虑肺炎，<REDACTED:NAME>查已排除', 'kind': 'auto_bootstrap'}",
+        "reason": "The runtime found no confirmed diagnosis; this rejected candidate must not be assigned or billed."
+      },
+      {
+        "item_type": "negated_finding",
+        "text": "出院记录：入院时考虑肺炎，<REDACTED:NAME>查已排除",
+        "reason": "The source explicitly negates or rules out a diagnosis; no diagnosis code may be assigned from this statement."
+      },
+      {
+        "item_type": "negated_finding",
+        "text": "未形成其他确诊诊断，未实施手术",
+        "reason": "The source explicitly negates or rules out a diagnosis; no diagnosis code may be assigned from this statement."
+      }
+    ],
+    "validation_summary": {
+      "passed": false,
+      "issues_found": [
+        {
+          "severity": "critical",
+          "code": "RULE-001",
+          "message": "主要诊断依据不足：病历明确说明肺炎已排除，且未形成其他确诊诊断，因此不能编码肺炎作为主要诊断。",
+          "suggestion": "请补充明确的主要诊断，或根据病历实际情况选择适当的症状或体征编码，并确保有充分证据支持。"
+        },
+        {
+          "severity": "high",
+          "code": "RULE-002",
+          "message": "病历中存在转录噪声，可能干扰编码判断，需人工核实原始病历内容。",
+          "suggestion": "请人工审核原始病历，排除无关文本干扰。"
+        }
+      ],
+      "manual_review_required": true,
+      "rule_set": "MedCodERRetrievalRuleSet",
+      "fired_rules": [
+        "RULE-001",
+        "RULE-002"
+      ]
+    },
+    "human_review": {
+      "review_conclusion": "FAIL",
+      "review_required": true,
+      "review_focus": [
+        "主要诊断依据不足：病历明确说明肺炎已排除，且未形成其他确诊诊断，因此不能编码肺炎作为主要诊断。",
+        "病历中存在转录噪声，可能干扰编码判断，需人工核实原始病历内容。"
+      ],
+      "notes": "病历明确排除肺炎，且无其他确诊诊断，无法确定主要诊断，必须人工复核。"
+    },
+    "trace_refs": {
+      "run_id": "run-ac57077a-0973-4968-969d-400a31d91537",
+      "stage_trace": [],
+      "rule_fired": [
+        "RULE-001",
+        "RULE-002"
+      ],
+      "mode": "Mode.UNSET",
+      "method_id": "",
+      "provider": "",
+      "model": "",
+      "trace_id": "trace-674f3970ea334d1c"
+    },
+    "codes": [],
+    "manual_review_required": true
+  },
+  "schema_ref": "icoder/MedicalCodingAgentOutputV2/v8",
+  "result_attestation": "eyJhIjoibWVkaWNhbC1jb2RpbmctYWdlbnQiLCJkIjoiNGQxODhjZmNlOTk3ZjQ5MzcyMDJhNWJiNzc0ZTE3ZmU5NTZhOGJiNTY2ZTNiZWUyOGE4YzhjNDBiYjkzNGM5ZCIsImUiOjE3ODc4NDA5NDMsIm8iOiJhMDQyMzMzOGU5NDMiLCJyIjoicnVuLWFjNTcwNzdhLTA5NzMtNDk2OC05NjlkLTQwMGEzMWQ5MTUzNyIsInMiOiJpY29kZXIvTWVkaWNhbENvZGluZ0FnZW50T3V0cHV0VjIvdjgiLCJ2IjoxfQ.vhVP1VSNzfdpSouBZM-AL83uT9RM2tO77fFiU5RGi00",
+  "evidence": [],
+  "warnings": [
+    "需结合国家医保版 ICD-10-CN 目录进一步校验具体亚目"
+  ],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "input_received",
+      "status": "ok",
+      "ts": 1787754539.4243293,
+      "duration_ms": 0,
+      "metadata": {
+        "text_len": 113,
+        "mode": "corti_like_fast"
+      }
+    },
+    {
+      "step": "language_detect",
+      "status": "ok",
+      "ts": 1787754539.4243293,
+      "duration_ms": 0,
+      "metadata": {
+        "language": "zh"
+      }
+    },
+    {
+      "step": "build_prompt",
+      "status": "ok",
+      "ts": 1787754539.4243293,
+      "duration_ms": 0,
+      "metadata": {
+        "provider": "deepseek",
+        "language": "zh",
+        "system": "icd-10-cn"
+      }
+    },
+    {
+      "step": "llm_call",
+      "status": "ok",
+      "ts": 1787754543.7037132,
+      "duration_ms": 4279,
+      "metadata": {
+        "provider": "deepseek",
+        "model": "deepseek-chat",
+        "is_mock": false
+      }
+    },
+    {
+      "step": "parse_json",
+      "status": "ok",
+      "ts": 1787754543.7037132,
+      "duration_ms": 4279,
+      "metadata": {}
+    },
+    {
+      "step": "project_result",
+      "status": "ok",
+      "ts": 1787754543.7037132,
+      "duration_ms": 4279,
+      "metadata": {
+        "code_count": 1
+      }
+    },
+    {
+      "step": "return",
+      "status": "ok",
+      "ts": 1787754543.7037132,
+      "duration_ms": 4279,
+      "metadata": {
+        "latency_ms": 4279,
+        "code_count": 1
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 4.539
+}

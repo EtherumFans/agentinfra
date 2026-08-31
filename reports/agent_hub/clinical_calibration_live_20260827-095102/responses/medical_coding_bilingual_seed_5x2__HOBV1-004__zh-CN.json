@@ -1,0 +1,232 @@
+{
+  "agent_id": "medical-coding-agent",
+  "run_id": "run-68a5ebac-f6e7-4ccf-a7b2-701f5f8f19e3",
+  "trace_id": "trace-0e183bb3af4f4438",
+  "trace_url": "/ai-studio/runs/run-68a5ebac-f6e7-4ccf-a7b2-701f5f8f19e3/trace",
+  "runtime_mode": "corti_like_fast",
+  "latency_ms": 4575,
+  "cost": {
+    "amount": 0.000297,
+    "currency": "CNY",
+    "source": "provider_token_usage",
+    "token_usage": {
+      "input_tokens": 1388,
+      "output_tokens": 365
+    }
+  },
+  "billing": {},
+  "summary": "病历明确为2型糖尿病酮症酸中毒，使用组合编码E11.100，无需再编码糖尿病本身。",
+  "result": {
+    "encounter_summary": {
+      "chief_complaint": "",
+      "treatment_course": "",
+      "key_findings": [],
+      "document_sources": [],
+      "encounter_date": ""
+    },
+    "documentation_analysis": {
+      "diagnosis_evidence": [],
+      "procedure_evidence": [],
+      "negated_findings": [],
+      "historical_conditions": []
+    },
+    "code_assignment": {
+      "primary_diagnosis": {
+        "code": "E11.100",
+        "description": "2型糖尿病伴有酮症酸中毒",
+        "confidence": 0.95,
+        "category": "principal",
+        "evidence": [
+          {
+            "text": "入院诊断: 2 型糖尿病性酮症酸中毒",
+            "kind": "auto_bootstrap"
+          },
+          {
+            "text": "血糖 28.5 mmol/L, pH 7.20, HCO3- 12 mmol/L, 尿酮 3+",
+            "kind": "auto_bootstrap"
+          },
+          {
+            "text": "既往: 2 型糖尿病 8 年",
+            "kind": "auto_bootstrap"
+          }
+        ]
+      },
+      "secondary_diagnoses": [
+        {
+          "code": "E11.900",
+          "description": "2型糖尿病",
+          "confidence": 0.9,
+          "category": "comorbidity",
+          "evidence": [
+            {
+              "text": "既往: 2 型糖尿病 8 年",
+              "kind": "auto_bootstrap"
+            }
+          ]
+        }
+      ],
+      "procedures": []
+    },
+    "documentation_gaps": [],
+    "uncodable_items": [],
+    "validation_summary": {
+      "passed": false,
+      "issues_found": [
+        {
+          "severity": "medium",
+          "code": "RULE-001",
+          "message": "主要诊断编码E11.100已包含2型糖尿病，不应再单独编码E11.900作为次要诊断，避免重复编码。",
+          "suggestion": "删除次要诊断E11.900，仅保留主要诊断E11.100。"
+        }
+      ],
+      "manual_review_required": true,
+      "rule_set": "MedCodERRetrievalRuleSet",
+      "fired_rules": [
+        "RULE-001"
+      ]
+    },
+    "human_review": {
+      "review_conclusion": "PASS",
+      "review_required": true,
+      "review_focus": [],
+      "notes": "病历明确为2型糖尿病酮症酸中毒，使用组合编码E11.100，无需再编码糖尿病本身。"
+    },
+    "trace_refs": {
+      "run_id": "run-68a5ebac-f6e7-4ccf-a7b2-701f5f8f19e3",
+      "stage_trace": [],
+      "rule_fired": [
+        "RULE-001"
+      ],
+      "mode": "Mode.UNSET",
+      "method_id": "",
+      "provider": "",
+      "model": "",
+      "trace_id": "trace-0e183bb3af4f4438"
+    },
+    "codes": [
+      {
+        "code": "E11.100",
+        "system": "ICD-10-CN",
+        "display": "2型糖尿病伴有酮症酸中毒",
+        "type": "primary_diagnosis",
+        "confidence": 0.95,
+        "evidence": "入院诊断: 2 型糖尿病性酮症酸中毒; 血糖 28.5 mmol/L, pH 7.20, HCO3- 12 mmol/L, 尿酮 3+; 既往: 2 型糖尿病 8 年",
+        "rationale": "主要诊断 — 基于病历证据的优先编码候选,需结合 ICD-10-CN 本地目录复核具体亚目。",
+        "warnings": [
+          "需结合国家医保版 ICD-10-CN 目录进一步校验具体亚目"
+        ],
+        "alternatives": []
+      },
+      {
+        "code": "E11.900",
+        "system": "ICD-10-CN",
+        "display": "2型糖尿病",
+        "type": "secondary_diagnosis",
+        "confidence": 0.9,
+        "evidence": "既往: 2 型糖尿病 8 年",
+        "rationale": "次要诊断 (comorbidity) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。",
+        "warnings": [
+          "需结合 ICD-10-CN 本地目录进一步校验具体亚目"
+        ],
+        "alternatives": []
+      }
+    ],
+    "manual_review_required": true
+  },
+  "schema_ref": "icoder/MedicalCodingAgentOutputV2/v8",
+  "result_attestation": "eyJhIjoibWVkaWNhbC1jb2RpbmctYWdlbnQiLCJkIjoiOWY1YTc3MmFiM2QwYTRiYWYzYjI3ZmI4MzE4NDUyYjFlMDY1YzU1YTc3ZTg1N2RkNjI2MWM0NjU2MmRlYTNhMSIsImUiOjE3ODc4ODI1NTIsIm8iOiJiYzkyZWUwNmFmMGYiLCJyIjoicnVuLTY4YTVlYmFjLWY2ZTctNGNjZi1hN2IyLTcwMWY1ZjhmMTllMyIsInMiOiJpY29kZXIvTWVkaWNhbENvZGluZ0FnZW50T3V0cHV0VjIvdjgiLCJ2IjoxfQ.wfrVMmdFTJsRpJnTlKgwgPXx1q-HDlj6gWPiqtGh_Hg",
+  "evidence": [
+    {
+      "code": "E11.100",
+      "system": "ICD-10-CN",
+      "type": "primary_diagnosis",
+      "text": "入院诊断: 2 型糖尿病性酮症酸中毒; 血糖 28.5 mmol/L, pH 7.20, HCO3- 12 mmol/L, 尿酮 3+; 既往: 2 型糖尿病 8 年",
+      "rationale": "主要诊断 — 基于病历证据的优先编码候选,需结合 ICD-10-CN 本地目录复核具体亚目。"
+    },
+    {
+      "code": "E11.900",
+      "system": "ICD-10-CN",
+      "type": "secondary_diagnosis",
+      "text": "既往: 2 型糖尿病 8 年",
+      "rationale": "次要诊断 (comorbidity) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。"
+    }
+  ],
+  "warnings": [
+    "需结合国家医保版 ICD-10-CN 目录进一步校验具体亚目",
+    "需结合 ICD-10-CN 本地目录进一步校验具体亚目"
+  ],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "input_received",
+      "status": "ok",
+      "ts": 1787796147.5571487,
+      "duration_ms": 0,
+      "metadata": {
+        "text_len": 249,
+        "mode": "corti_like_fast"
+      }
+    },
+    {
+      "step": "language_detect",
+      "status": "ok",
+      "ts": 1787796147.5571487,
+      "duration_ms": 0,
+      "metadata": {
+        "language": "zh"
+      }
+    },
+    {
+      "step": "build_prompt",
+      "status": "ok",
+      "ts": 1787796147.5571487,
+      "duration_ms": 0,
+      "metadata": {
+        "provider": "deepseek",
+        "language": "zh",
+        "system": "icd-10-cn"
+      }
+    },
+    {
+      "step": "llm_call",
+      "status": "ok",
+      "ts": 1787796152.1341908,
+      "duration_ms": 4575,
+      "metadata": {
+        "provider": "deepseek",
+        "model": "deepseek-chat",
+        "is_mock": false
+      }
+    },
+    {
+      "step": "parse_json",
+      "status": "ok",
+      "ts": 1787796152.1341908,
+      "duration_ms": 4575,
+      "metadata": {}
+    },
+    {
+      "step": "project_result",
+      "status": "ok",
+      "ts": 1787796152.1341908,
+      "duration_ms": 4575,
+      "metadata": {
+        "code_count": 2
+      }
+    },
+    {
+      "step": "return",
+      "status": "ok",
+      "ts": 1787796152.1341908,
+      "duration_ms": 4575,
+      "metadata": {
+        "latency_ms": 4575,
+        "code_count": 2
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 5.128
+}

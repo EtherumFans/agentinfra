@@ -1,0 +1,64 @@
+{
+  "schema_version": "icoder/phase-evidence/v1",
+  "phase": "governed-persistent-memory-connector",
+  "date": "2026-08-22",
+  "result": "development_slice_passed_external_gates_open",
+  "llm": {
+    "provider": "mock_or_not_invoked",
+    "real_credential_used": false,
+    "external_llm_network_used": false
+  },
+  "capabilities": {
+    "legacy_thread_memory_operation": "retrieve",
+    "persistent_operations": ["remember", "recall", "forget"],
+    "retrieval_mode": "PERSISTENT_ENCRYPTED_LEXICAL_CJK_BIGRAM",
+    "semantic_embedding_loaded": false,
+    "patient_phi_long_term_memory_enabled": false
+  },
+  "governance_contract": {
+    "explicit_user_acknowledgement": true,
+    "server_owned_actor_identity": true,
+    "api_client_self_consent": false,
+    "consent_scope": ["organization_id", "user_id", "agent_id", "purpose_of_use"],
+    "allowed_purposes": ["treatment", "healthcare_operations", "quality_improvement"],
+    "maximum_consent_days": 90,
+    "maximum_retention_days": 90,
+    "encrypted_at_rest": true,
+    "phi_redaction_before_persist": true,
+    "prompt_injection_rejected_before_persist": true,
+    "cross_tenant_recall": false,
+    "revocation_hard_delete": true,
+    "expiry_recall": false,
+    "expiry_audited_purge": true,
+    "legacy_ungoverned_rows_visible": false
+  },
+  "migration": {
+    "revision": "047",
+    "round_trip_047_046_047": "passed",
+    "fresh_database_001_047": "passed",
+    "final_head": "047",
+    "development_database_schema_changed": false,
+    "development_database_version_restored": "041",
+    "deployment_note": "reconcile create_all schema with alembic version before upgrade"
+  },
+  "verification": [
+    {"suite": "connector_unit_security_openapi", "passed": 74, "failed": 0, "duration_seconds": 12.81},
+    {"suite": "connector_serial_database_integration", "passed": 36, "failed": 0, "warnings": 6, "duration_seconds": 103.40},
+    {"suite": "memory_specialized_integration", "passed": 8, "failed": 0, "duration_seconds": 2.94},
+    {"suite": "retention_regression", "passed": 17, "failed": 0, "duration_seconds": 2.15},
+    {"suite": "backend_startup_e2e", "passed": 3, "failed": 0, "duration_seconds": 12.99},
+    {"suite": "javascript_sdk", "passed": 41, "failed": 0},
+    {"suite": "python_sdk", "passed": 48, "failed": 0, "duration_seconds": 52.63},
+    {"suite": "dotnet_sdk", "status": "source_updated_toolchain_unavailable"},
+    {"suite": "openapi_drift_check", "passed": 1, "failed": 0, "paths": 259},
+    {"suite": "alembic_fresh_and_round_trip", "passed": 2, "failed": 0}
+  ],
+  "external_gates": [
+    "authoritative patient or hospital consent source before long-term patient PHI memory",
+    "validated isolated semantic retrieval runtime",
+    "distributed purge scheduling and multi-replica verification",
+    "console consent management user experience",
+    "hospital privacy, security, legal, and clinical reviewer approval",
+    "dotnet CI compile and contract tests"
+  ]
+}

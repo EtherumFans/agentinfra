@@ -1,0 +1,346 @@
+{
+  "agent_id": "medical-coding-agent",
+  "run_id": "run-cef7a020-00b8-49ff-a694-c7d2e33517f9",
+  "trace_id": "trace-11533ca999f3426d",
+  "trace_url": "/ai-studio/runs/run-cef7a020-00b8-49ff-a694-c7d2e33517f9/trace",
+  "runtime_mode": "corti_like_fast",
+  "latency_ms": 5972,
+  "cost": {
+    "amount": 0.000367,
+    "currency": "CNY",
+    "source": "provider_token_usage",
+    "token_usage": {
+      "input_tokens": 1534,
+      "output_tokens": 544
+    }
+  },
+  "billing": {},
+  "summary": "病历明确T12椎体压缩骨折，手术为切开复位内固定，编码合理。但骨质疏松与骨折的关联需进一步确认，以决定是否使用组合编码。",
+  "result": {
+    "encounter_summary": {
+      "chief_complaint": "",
+      "treatment_course": "",
+      "key_findings": [],
+      "document_sources": [],
+      "encounter_date": ""
+    },
+    "documentation_analysis": {
+      "diagnosis_evidence": [],
+      "procedure_evidence": [],
+      "negated_findings": [],
+      "historical_conditions": []
+    },
+    "code_assignment": {
+      "primary_diagnosis": {
+        "code": "S22.000x003",
+        "description": "胸椎压缩性骨折",
+        "confidence": 0.95,
+        "category": "principal",
+        "evidence": [
+          {
+            "text": "MRI: T12 vertebral compression fracture, approximately 40% height loss.",
+            "kind": "auto_bootstrap",
+            "char_start": 287,
+            "char_end": 358,
+            "doc_id": "input"
+          },
+          {
+            "text": "Admission diagnosis: T12 vertebral compression fracture.",
+            "kind": "auto_bootstrap",
+            "char_start": 359,
+            "char_end": 415,
+            "doc_id": "input"
+          }
+        ]
+      },
+      "secondary_diagnoses": [
+        {
+          "code": "M81.900",
+          "description": "骨质疏松",
+          "confidence": 0.9,
+          "category": "comorbidity",
+          "evidence": [
+            {
+              "text": "History: osteoporosis for 5 years",
+              "kind": "auto_bootstrap",
+              "char_start": 82,
+              "char_end": 115,
+              "doc_id": "input"
+            }
+          ]
+        },
+        {
+          "code": "I10.x09",
+          "description": "原发性高血压",
+          "confidence": 0.9,
+          "category": "comorbidity",
+          "evidence": [
+            {
+              "text": "essential hypertension for 10 years",
+              "kind": "auto_bootstrap",
+              "char_start": 117,
+              "char_end": 152,
+              "doc_id": "input"
+            }
+          ]
+        },
+        {
+          "code": "E11.900",
+          "description": "2型糖尿病",
+          "confidence": 0.9,
+          "category": "comorbidity",
+          "evidence": [
+            {
+              "text": "type 2 diabetes for 5 years",
+              "kind": "auto_bootstrap",
+              "char_start": 154,
+              "char_end": 181,
+              "doc_id": "input"
+            }
+          ]
+        }
+      ],
+      "procedures": [
+        {
+          "code": "03.5304",
+          "description": "胸椎骨折切开复位内固定术",
+          "confidence": 0.9,
+          "category": "principal",
+          "evidence": [
+            {
+              "text": "Underwent T12 open reduction and internal fixation",
+              "kind": "auto_bootstrap",
+              "char_start": 416,
+              "char_end": 466,
+              "doc_id": "input"
+            }
+          ]
+        }
+      ]
+    },
+    "documentation_gaps": [],
+    "uncodable_items": [],
+    "validation_summary": {
+      "passed": false,
+      "issues_found": [
+        {
+          "severity": "medium",
+          "code": "RULE_CODING_ACCURACY",
+          "message": "骨质疏松与骨折存在关联，考虑使用组合编码M80.0（骨质疏松伴病理性骨折）可能更准确，但需结合临床确认骨折是否病理性。",
+          "suggestion": "请确认骨折是否为骨质疏松引起的病理性骨折，若是，建议将主要诊断调整为M80.0，并保留S22.0作为附加编码。"
+        }
+      ],
+      "manual_review_required": true,
+      "rule_set": "MedCodERRetrievalRuleSet",
+      "fired_rules": [
+        "RULE_CODING_ACCURACY"
+      ]
+    },
+    "human_review": {
+      "review_conclusion": "PASS",
+      "review_required": true,
+      "review_focus": [],
+      "notes": "病历明确T12椎体压缩骨折，手术为切开复位内固定，编码合理。但骨质疏松与骨折的关联需进一步确认，以决定是否使用组合编码。"
+    },
+    "trace_refs": {
+      "run_id": "run-cef7a020-00b8-49ff-a694-c7d2e33517f9",
+      "stage_trace": [],
+      "rule_fired": [
+        "RULE_CODING_ACCURACY"
+      ],
+      "mode": "Mode.UNSET",
+      "method_id": "",
+      "provider": "",
+      "model": "",
+      "trace_id": "trace-11533ca999f3426d"
+    },
+    "codes": [
+      {
+        "code": "S22.000x003",
+        "system": "ICD-10-CN",
+        "display": "胸椎压缩性骨折",
+        "type": "primary_diagnosis",
+        "confidence": 0.95,
+        "evidence": "MRI: T12 vertebral compression fracture, approximately 40% height loss.; Admission diagnosis: T12 vertebral compression fracture.",
+        "rationale": "主要诊断 — 基于病历证据的优先编码候选,需结合 ICD-10-CN 本地目录复核具体亚目。",
+        "warnings": [
+          "需结合国家医保版 ICD-10-CN 目录进一步校验具体亚目"
+        ],
+        "alternatives": []
+      },
+      {
+        "code": "M81.900",
+        "system": "ICD-10-CN",
+        "display": "骨质疏松",
+        "type": "secondary_diagnosis",
+        "confidence": 0.9,
+        "evidence": "History: osteoporosis for 5 years",
+        "rationale": "次要诊断 (comorbidity) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。",
+        "warnings": [
+          "需结合 ICD-10-CN 本地目录进一步校验具体亚目"
+        ],
+        "alternatives": []
+      },
+      {
+        "code": "I10.x09",
+        "system": "ICD-10-CN",
+        "display": "原发性高血压",
+        "type": "secondary_diagnosis",
+        "confidence": 0.9,
+        "evidence": "History: essential hypertension for 10 years",
+        "rationale": "次要诊断 (comorbidity) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。",
+        "warnings": [
+          "需结合 ICD-10-CN 本地目录进一步校验具体亚目"
+        ],
+        "alternatives": []
+      },
+      {
+        "code": "E11.900",
+        "system": "ICD-10-CN",
+        "display": "2型糖尿病",
+        "type": "secondary_diagnosis",
+        "confidence": 0.9,
+        "evidence": "History: type 2 diabetes for 5 years",
+        "rationale": "次要诊断 (comorbidity) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。",
+        "warnings": [
+          "需结合 ICD-10-CN 本地目录进一步校验具体亚目"
+        ],
+        "alternatives": []
+      },
+      {
+        "code": "03.5304",
+        "system": "ICD-9-CM-3-CN",
+        "display": "胸椎骨折切开复位内固定术",
+        "type": "procedure",
+        "confidence": 0.9,
+        "evidence": "Underwent T12 open reduction and internal fixation",
+        "rationale": "手术/操作 (principal) — 基于 ICD-9-CM-3-CN 编码候选,需结合本地手术目录复核。",
+        "warnings": [
+          "需结合 ICD-9-CM-3-CN 本地目录进一步校验具体亚目"
+        ],
+        "alternatives": []
+      }
+    ],
+    "manual_review_required": true
+  },
+  "schema_ref": "icoder/MedicalCodingAgentOutputV2/v8",
+  "result_attestation": "eyJhIjoibWVkaWNhbC1jb2RpbmctYWdlbnQiLCJkIjoiYTk5ZjBhYmIwMDVmNGYzMThkMTdhMTlkMTU1YjkwYWY0MGEyY2U0ZDhmZWZlYWExMTBiZGEwNTQzMzNlMjMwZSIsImUiOjE3ODc4ODc2NTYsIm8iOiI1ZmVmMzc5ZjI1YmQiLCJyIjoicnVuLWNlZjdhMDIwLTAwYjgtNDlmZi1hNjk0LWM3ZDJlMzM1MTdmOSIsInMiOiJpY29kZXIvTWVkaWNhbENvZGluZ0FnZW50T3V0cHV0VjIvdjgiLCJ2IjoxfQ.Eh1XhNMfag8rcQKgwOTGWCvKy7IA1imLw1iTsSCSF9Q",
+  "evidence": [
+    {
+      "code": "S22.000x003",
+      "system": "ICD-10-CN",
+      "type": "primary_diagnosis",
+      "text": "MRI: T12 vertebral compression fracture, approximately 40% height loss.; Admission diagnosis: T12 vertebral compression fracture.",
+      "rationale": "主要诊断 — 基于病历证据的优先编码候选,需结合 ICD-10-CN 本地目录复核具体亚目。"
+    },
+    {
+      "code": "M81.900",
+      "system": "ICD-10-CN",
+      "type": "secondary_diagnosis",
+      "text": "History: osteoporosis for 5 years",
+      "rationale": "次要诊断 (comorbidity) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。"
+    },
+    {
+      "code": "I10.x09",
+      "system": "ICD-10-CN",
+      "type": "secondary_diagnosis",
+      "text": "History: essential hypertension for 10 years",
+      "rationale": "次要诊断 (comorbidity) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。"
+    },
+    {
+      "code": "E11.900",
+      "system": "ICD-10-CN",
+      "type": "secondary_diagnosis",
+      "text": "History: type 2 diabetes for 5 years",
+      "rationale": "次要诊断 (comorbidity) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。"
+    },
+    {
+      "code": "03.5304",
+      "system": "ICD-9-CM-3-CN",
+      "type": "procedure",
+      "text": "Underwent T12 open reduction and internal fixation",
+      "rationale": "手术/操作 (principal) — 基于 ICD-9-CM-3-CN 编码候选,需结合本地手术目录复核。"
+    }
+  ],
+  "warnings": [
+    "需结合国家医保版 ICD-10-CN 目录进一步校验具体亚目",
+    "需结合 ICD-10-CN 本地目录进一步校验具体亚目",
+    "需结合 ICD-10-CN 本地目录进一步校验具体亚目",
+    "需结合 ICD-10-CN 本地目录进一步校验具体亚目",
+    "需结合 ICD-9-CM-3-CN 本地目录进一步校验具体亚目"
+  ],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "input_received",
+      "status": "ok",
+      "ts": 1787801249.8846045,
+      "duration_ms": 0,
+      "metadata": {
+        "text_len": 600,
+        "mode": "corti_like_fast"
+      }
+    },
+    {
+      "step": "language_detect",
+      "status": "ok",
+      "ts": 1787801249.8846045,
+      "duration_ms": 0,
+      "metadata": {
+        "language": "en"
+      }
+    },
+    {
+      "step": "build_prompt",
+      "status": "ok",
+      "ts": 1787801249.8846045,
+      "duration_ms": 0,
+      "metadata": {
+        "provider": "deepseek",
+        "language": "en",
+        "system": "icd-10-cn"
+      }
+    },
+    {
+      "step": "llm_call",
+      "status": "ok",
+      "ts": 1787801255.8539724,
+      "duration_ms": 5972,
+      "metadata": {
+        "provider": "deepseek",
+        "model": "deepseek-chat",
+        "is_mock": false
+      }
+    },
+    {
+      "step": "parse_json",
+      "status": "ok",
+      "ts": 1787801255.8539724,
+      "duration_ms": 5972,
+      "metadata": {}
+    },
+    {
+      "step": "project_result",
+      "status": "ok",
+      "ts": 1787801255.8539724,
+      "duration_ms": 5972,
+      "metadata": {
+        "code_count": 5
+      }
+    },
+    {
+      "step": "return",
+      "status": "ok",
+      "ts": 1787801255.8539724,
+      "duration_ms": 5972,
+      "metadata": {
+        "latency_ms": 5972,
+        "code_count": 5
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 6.615
+}

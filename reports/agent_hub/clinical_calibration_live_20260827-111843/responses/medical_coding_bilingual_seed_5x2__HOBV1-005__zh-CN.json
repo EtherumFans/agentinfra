@@ -1,0 +1,353 @@
+{
+  "agent_id": "medical-coding-agent",
+  "run_id": "run-40180925-a106-43e1-9e1b-17e3afea19d4",
+  "trace_id": "trace-a1879396ff214937",
+  "trace_url": "/ai-studio/runs/run-40180925-a106-43e1-9e1b-17e3afea19d4/trace",
+  "runtime_mode": "corti_like_fast",
+  "latency_ms": 7334,
+  "cost": {
+    "amount": 0.000384,
+    "currency": "CNY",
+    "source": "provider_token_usage",
+    "token_usage": {
+      "input_tokens": 1587,
+      "output_tokens": 579
+    }
+  },
+  "billing": {},
+  "summary": "主要诊断明确为急性下壁 STEMI，编码 I21.1 精准；手术编码 36.0601 匹配药物涂层支架植入；心衰编码需临床确认。",
+  "result": {
+    "encounter_summary": {
+      "chief_complaint": "",
+      "treatment_course": "",
+      "key_findings": [],
+      "document_sources": [],
+      "encounter_date": ""
+    },
+    "documentation_analysis": {
+      "diagnosis_evidence": [],
+      "procedure_evidence": [],
+      "negated_findings": [],
+      "historical_conditions": []
+    },
+    "code_assignment": {
+      "primary_diagnosis": {
+        "code": "I21.1",
+        "description": "急性透壁性下壁心肌梗死",
+        "confidence": 0.95,
+        "category": "principal",
+        "evidence": [
+          {
+            "text": "心电图: II, III, aVF ST 段抬高 0.3 mV",
+            "kind": "auto_bootstrap",
+            "char_start": 124,
+            "char_end": 155,
+            "doc_id": "input"
+          },
+          {
+            "text": "入院诊断: 急性下壁 ST 段抬高型心肌梗死 (STEMI, Killip II 级)",
+            "kind": "auto_bootstrap",
+            "char_start": 197,
+            "char_end": 240,
+            "doc_id": "input"
+          }
+        ]
+      },
+      "secondary_diagnoses": [
+        {
+          "code": "I10.x00x002",
+          "description": "高血压",
+          "confidence": 0.95,
+          "category": "comorbidity",
+          "evidence": [
+            {
+              "text": "既往: 原发性高血压 12 年",
+              "kind": "auto_bootstrap",
+              "char_start": 46,
+              "char_end": 61,
+              "doc_id": "input"
+            }
+          ]
+        },
+        {
+          "code": "E78.500",
+          "description": "高脂血症",
+          "confidence": 0.95,
+          "category": "comorbidity",
+          "evidence": [
+            {
+              "text": "高脂血症 5 年",
+              "kind": "auto_bootstrap",
+              "char_start": 63,
+              "char_end": 71,
+              "doc_id": "input"
+            }
+          ]
+        },
+        {
+          "code": "I50.0",
+          "description": "充血性心力衰竭",
+          "confidence": 0.85,
+          "category": "complication",
+          "evidence": [
+            {
+              "text": "双肺底湿啰音",
+              "kind": "auto_bootstrap",
+              "char_start": 117,
+              "char_end": 123,
+              "doc_id": "input"
+            },
+            {
+              "text": "Killip II 级",
+              "kind": "auto_bootstrap",
+              "char_start": 228,
+              "char_end": 239,
+              "doc_id": "input"
+            }
+          ]
+        }
+      ],
+      "procedures": [
+        {
+          "code": "36.0601",
+          "description": "冠状动脉药物涂层支架置入术",
+          "confidence": 0.95,
+          "category": "principal",
+          "evidence": [
+            {
+              "text": "急诊行 PCI + 药物涂层支架植入 (右冠状动脉近段 100% 闭塞 → TIMI 3 级血流恢复)",
+              "kind": "auto_bootstrap",
+              "char_start": 241,
+              "char_end": 292,
+              "doc_id": "input"
+            }
+          ]
+        }
+      ]
+    },
+    "documentation_gaps": [],
+    "uncodable_items": [],
+    "validation_summary": {
+      "passed": false,
+      "issues_found": [
+        {
+          "severity": "low",
+          "code": "RULE-001",
+          "message": "心衰编码 I50.0 基于 Killip II 级推断，但病历未明确描述'充血性'，建议确认",
+          "suggestion": "若病历未明确心衰类型，可考虑使用 I50.9 或补充描述"
+        }
+      ],
+      "manual_review_required": true,
+      "rule_set": "MedCodERRetrievalRuleSet",
+      "fired_rules": [
+        "RULE-001"
+      ]
+    },
+    "human_review": {
+      "review_conclusion": "PASS",
+      "review_required": true,
+      "review_focus": [],
+      "notes": "主要诊断明确为急性下壁 STEMI，编码 I21.1 精准；手术编码 36.0601 匹配药物涂层支架植入；心衰编码需临床确认。"
+    },
+    "trace_refs": {
+      "run_id": "run-40180925-a106-43e1-9e1b-17e3afea19d4",
+      "stage_trace": [],
+      "rule_fired": [
+        "RULE-001"
+      ],
+      "mode": "Mode.UNSET",
+      "method_id": "",
+      "provider": "",
+      "model": "",
+      "trace_id": "trace-a1879396ff214937"
+    },
+    "codes": [
+      {
+        "code": "I21.1",
+        "system": "ICD-10-CN",
+        "display": "急性透壁性下壁心肌梗死",
+        "type": "primary_diagnosis",
+        "confidence": 0.95,
+        "evidence": "心电图: II, III, aVF ST 段抬高 0.3 mV; 入院诊断: 急性下壁 ST 段抬高型心肌梗死 (STEMI, Killip II 级)",
+        "rationale": "主要诊断 — 基于病历证据的优先编码候选,需结合 ICD-10-CN 本地目录复核具体亚目。",
+        "warnings": [
+          "需结合国家医保版 ICD-10-CN 目录进一步校验具体亚目"
+        ],
+        "alternatives": []
+      },
+      {
+        "code": "I10.x00x002",
+        "system": "ICD-10-CN",
+        "display": "高血压",
+        "type": "secondary_diagnosis",
+        "confidence": 0.95,
+        "evidence": "既往: 原发性高血压 12 年",
+        "rationale": "次要诊断 (comorbidity) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。",
+        "warnings": [
+          "需结合 ICD-10-CN 本地目录进一步校验具体亚目"
+        ],
+        "alternatives": []
+      },
+      {
+        "code": "E78.500",
+        "system": "ICD-10-CN",
+        "display": "高脂血症",
+        "type": "secondary_diagnosis",
+        "confidence": 0.95,
+        "evidence": "高脂血症 5 年",
+        "rationale": "次要诊断 (comorbidity) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。",
+        "warnings": [
+          "需结合 ICD-10-CN 本地目录进一步校验具体亚目"
+        ],
+        "alternatives": []
+      },
+      {
+        "code": "I50.0",
+        "system": "ICD-10-CN",
+        "display": "充血性心力衰竭",
+        "type": "complication",
+        "confidence": 0.85,
+        "evidence": "双肺底湿啰音; Killip II 级",
+        "rationale": "次要诊断 (complication) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。",
+        "warnings": [
+          "需结合 ICD-10-CN 本地目录进一步校验具体亚目"
+        ],
+        "alternatives": []
+      },
+      {
+        "code": "36.0601",
+        "system": "ICD-9-CM-3-CN",
+        "display": "冠状动脉药物涂层支架置入术",
+        "type": "procedure",
+        "confidence": 0.95,
+        "evidence": "急诊行 PCI + 药物涂层支架植入 (右冠状动脉近段 100% 闭塞 → TIMI 3 级血流恢复)",
+        "rationale": "手术/操作 (principal) — 基于 ICD-9-CM-3-CN 编码候选,需结合本地手术目录复核。",
+        "warnings": [
+          "需结合 ICD-9-CM-3-CN 本地目录进一步校验具体亚目"
+        ],
+        "alternatives": []
+      }
+    ],
+    "manual_review_required": true
+  },
+  "schema_ref": "icoder/MedicalCodingAgentOutputV2/v8",
+  "result_attestation": "eyJhIjoibWVkaWNhbC1jb2RpbmctYWdlbnQiLCJkIjoiNTIwN2RhNmZhMWNkYmNjZWUzNzEwZTQ0YmFiZWQ3ZmE2OWJkNzIwNmJiN2JmOWEwNmQwNTkxOTY1OWE1NmMxMiIsImUiOjE3ODc4ODc3MDIsIm8iOiI1ZmVmMzc5ZjI1YmQiLCJyIjoicnVuLTQwMTgwOTI1LWExMDYtNDNlMS05ZTFiLTE3ZTNhZmVhMTlkNCIsInMiOiJpY29kZXIvTWVkaWNhbENvZGluZ0FnZW50T3V0cHV0VjIvdjgiLCJ2IjoxfQ.2YrDFbJG8ga8397seoulrPmf3SLhwHTkrhW0kSFSvcQ",
+  "evidence": [
+    {
+      "code": "I21.1",
+      "system": "ICD-10-CN",
+      "type": "primary_diagnosis",
+      "text": "心电图: II, III, aVF ST 段抬高 0.3 mV; 入院诊断: 急性下壁 ST 段抬高型心肌梗死 (STEMI, Killip II 级)",
+      "rationale": "主要诊断 — 基于病历证据的优先编码候选,需结合 ICD-10-CN 本地目录复核具体亚目。"
+    },
+    {
+      "code": "I10.x00x002",
+      "system": "ICD-10-CN",
+      "type": "secondary_diagnosis",
+      "text": "既往: 原发性高血压 12 年",
+      "rationale": "次要诊断 (comorbidity) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。"
+    },
+    {
+      "code": "E78.500",
+      "system": "ICD-10-CN",
+      "type": "secondary_diagnosis",
+      "text": "高脂血症 5 年",
+      "rationale": "次要诊断 (comorbidity) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。"
+    },
+    {
+      "code": "I50.0",
+      "system": "ICD-10-CN",
+      "type": "complication",
+      "text": "双肺底湿啰音; Killip II 级",
+      "rationale": "次要诊断 (complication) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。"
+    },
+    {
+      "code": "36.0601",
+      "system": "ICD-9-CM-3-CN",
+      "type": "procedure",
+      "text": "急诊行 PCI + 药物涂层支架植入 (右冠状动脉近段 100% 闭塞 → TIMI 3 级血流恢复)",
+      "rationale": "手术/操作 (principal) — 基于 ICD-9-CM-3-CN 编码候选,需结合本地手术目录复核。"
+    }
+  ],
+  "warnings": [
+    "需结合国家医保版 ICD-10-CN 目录进一步校验具体亚目",
+    "需结合 ICD-10-CN 本地目录进一步校验具体亚目",
+    "需结合 ICD-10-CN 本地目录进一步校验具体亚目",
+    "需结合 ICD-10-CN 本地目录进一步校验具体亚目",
+    "需结合 ICD-9-CM-3-CN 本地目录进一步校验具体亚目"
+  ],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "input_received",
+      "status": "ok",
+      "ts": 1787801294.7467778,
+      "duration_ms": 0,
+      "metadata": {
+        "text_len": 324,
+        "mode": "corti_like_fast"
+      }
+    },
+    {
+      "step": "language_detect",
+      "status": "ok",
+      "ts": 1787801294.7467778,
+      "duration_ms": 0,
+      "metadata": {
+        "language": "zh"
+      }
+    },
+    {
+      "step": "build_prompt",
+      "status": "ok",
+      "ts": 1787801294.7467778,
+      "duration_ms": 0,
+      "metadata": {
+        "provider": "deepseek",
+        "language": "zh",
+        "system": "icd-10-cn"
+      }
+    },
+    {
+      "step": "llm_call",
+      "status": "ok",
+      "ts": 1787801302.0813138,
+      "duration_ms": 7334,
+      "metadata": {
+        "provider": "deepseek",
+        "model": "deepseek-chat",
+        "is_mock": false
+      }
+    },
+    {
+      "step": "parse_json",
+      "status": "ok",
+      "ts": 1787801302.0813138,
+      "duration_ms": 7334,
+      "metadata": {}
+    },
+    {
+      "step": "project_result",
+      "status": "ok",
+      "ts": 1787801302.0813138,
+      "duration_ms": 7334,
+      "metadata": {
+        "code_count": 5
+      }
+    },
+    {
+      "step": "return",
+      "status": "ok",
+      "ts": 1787801302.0813138,
+      "duration_ms": 7334,
+      "metadata": {
+        "latency_ms": 7334,
+        "code_count": 5
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 8.315
+}

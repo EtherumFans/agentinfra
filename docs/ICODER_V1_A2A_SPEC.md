@@ -1,5 +1,7 @@
 # iCoDer v1 A2A Protocol Spec
 
+> **实现状态更新（2026-08-23）**：本文早期的 Phase 1 范围表保留为历史设计记录；若与本段冲突，以当前实现为准。v0.3 `message/send` 与认证的 `message/stream` 均已挂载。独立 A2A v1.0 JSON-RPC/HTTP+JSON 接口位于 `/api/v2/agentic/agents/{agent_id}`，支持 `SendMessage`、`SendStreamingMessage`、`GetTask`、`ListTasks`、`CancelTask` 和 `SubscribeToTask`。`configuration.returnImmediately=true` 创建数据库持久化 Task，并支持轮询、事件 SSE、`Last-Event-ID` 续传和进程重启恢复。状态机覆盖 submitted、working、completed、failed、canceled、rejected、input-required 和 auth-required；后两项会结束当前阻塞/订阅但保留可审计续跑，携带原 `taskId` 的下一条消息以比较交换恢复到 working。DeepSeek、OpenAI-compatible、Qwen 与 Azure OpenAI Provider 复用同一原生 SSE 事件契约；原始 provisional 临床 token 直接展示仍未开放。多副本消息队列、真实云凭证、限流、区域延迟和长期可用性仍须在隔离环境验证。
+
 **作者**: iCoDer 架构组
 **日期**: 2026-06-20
 **状态**: Draft (待审, Phase 1 spec 之二)
@@ -27,7 +29,7 @@
 | 决策 | 拍板 | 对本 spec 的影响 |
 |------|------|------------------|
 | **Q2** A2A 协议版本对齐 Corti (v0.3) | RFC 第 9 节 | 本 spec 严格按 A2A v0.3 spec 实现, 不写 iCoDer 私有扩展 |
-| **Q4** Context 隔离对齐 Corti | RFC 第 9 节 | `contextId` 服务端生成, 客户端不能传 (A2A v0.3 行为) |
+| **Q4** Context 隔离对齐 Corti | RFC 第 9 节；2026-08-10 按 Corti 当前文档校正 | 首轮 `contextId` 由服务端生成；后续只接受同租户、同 Agent、仍 active 的服务端 ID |
 | **Q5** 旧 `AgentRunner` 不保留, clean replace | RFC 第 9 节 | 旧 `a2a_protocol.py` (现有 30 预置 Expert 注册) **重做**, 不保留 fallback |
 | **Q7** Expert 独立 + 可共享 | RFC 第 9 节 | Agent Card 必须暴露 Expert 自己的 `system_prompt` / `tools` / `model`, 允许第三方注册 |
 
@@ -118,7 +120,7 @@
     "message": {
       "role": "user",
       "parts": [ ... ],
-      "contextId": "optional-client-supplied-but-server-ignored",
+      "contextId": "optional-server-issued-continuation-id",
       "messageId": "optional-client-supplied"
     },
     "configuration": {
@@ -291,6 +293,7 @@ A2A v0.3 spec 支持 batch requests (多个 Request 在一个数组里). **Phase
 | `TASK_NOT_CANCELABLE` | 409 | `tasks/cancel` 时 task 已 completed / failed |
 | `UNSUPPORTED_OPERATION` | 501 | 调用了 Phase 1 不实现的方法 (如 `message/stream`) |
 | `PHI_REDACTION_FAILED` | 500 | PHI 脱敏失败 (iCoDer 特有) |
+| `INPUT_SAFETY_BLOCKED` | 400 | TextPart、DataPart 或 metadata 命中高置信度提示注入规则；在 Context、执行器、模型、工具和持久化之前拒绝，响应只返回规则 ID，不回显原始载荷 (iCoDer 特有) |
 | `PRODUCTION_WRITEBACK_BLOCKED` | 403 | 检测到客户端尝试写回 EMR/HIS (iCoDer 特有) |
 | `AUTH_REQUIRED` | 401 | Phase 4 才用, Phase 1 不触发 |
 | `RATE_LIMITED` | 429 | 限流 (Phase 6 才用, Phase 1 不触发) |
@@ -597,7 +600,7 @@ class SecurityScheme(BaseModel):
   "documentation_url": "/docs/agents/homepage-coding-review",
   
   "capabilities": {
-    "streaming": false,
+    "streaming": true,
     "pushNotifications": false,
     "stateTransitionHistory": true,
     "extensions": []

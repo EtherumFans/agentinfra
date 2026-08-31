@@ -1,0 +1,96 @@
+{
+  "agent_id": "clinical-education",
+  "run_id": "run-ed33e3d8-ce2b-4af2-9fac-34a8c0da7e75",
+  "trace_id": "trace-dd28d236033f44d7",
+  "trace_url": "/ai-studio/runs/run-ed33e3d8-ce2b-4af2-9fac-34a8c0da7e75/trace",
+  "runtime_mode": "pure_llm",
+  "latency_ms": 9,
+  "cost": {},
+  "billing": {},
+  "summary": "Provider output did not satisfy the Agent Pack contract.",
+  "result": {
+    "status": "requires_review",
+    "markdown": "",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "failed",
+    "finish_reason": "llm_degraded: degraded:mock_provider",
+    "backend_provider": "icoder.pure-llm.v1",
+    "backend_type": "pure_llm",
+    "structured_extraction": {
+      "contract": "icoder/ClinicalEducationOutput/v3",
+      "method": "none",
+      "warnings": [
+        "empty structured provider output"
+      ],
+      "required_fields": [
+        "topic",
+        "audience",
+        "learning_objectives",
+        "key_points",
+        "evidence_citations",
+        "knowledge_checks",
+        "limitations",
+        "source_insufficient",
+        "manual_review_required"
+      ],
+      "optional_fields": [],
+      "missing_required_fields": [
+        "topic",
+        "audience",
+        "learning_objectives",
+        "key_points",
+        "evidence_citations",
+        "knowledge_checks",
+        "limitations",
+        "source_insufficient"
+      ],
+      "invalid_field_types": [],
+      "invalid_field_schemas": [],
+      "invalid_cross_agent_relations": [],
+      "undeclared_output_fields": [],
+      "undeclared_output_field_count": 0,
+      "valid": false
+    },
+    "contract_output_suppressed": true,
+    "manual_review_required": true
+  },
+  "schema_ref": "icoder/ClinicalEducationOutput/v3",
+  "result_attestation": "",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "contract_validation",
+      "status": "failed",
+      "duration_ms": 0,
+      "metadata": {
+        "error_reason": "output_contract_violation",
+        "missing_required_field_count": 8,
+        "invalid_field_type_count": 0,
+        "invalid_field_schema_count": 0,
+        "invalid_cross_agent_relation_count": 0,
+        "undeclared_output_field_count": 0,
+        "invalid_paths": [],
+        "invalid_keywords": []
+      }
+    },
+    {
+      "step": "completion",
+      "status": "failed",
+      "duration_ms": 9,
+      "metadata": {
+        "agent_id": "clinical-education",
+        "runtime_mode": "pure_llm",
+        "latency_ms": 9
+      }
+    }
+  ],
+  "error": true,
+  "error_reason": "llm_degraded: degraded:mock_provider",
+  "_http_status": 200,
+  "_elapsed_seconds": 0.18
+}

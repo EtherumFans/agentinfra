@@ -1,0 +1,3095 @@
+{
+  "schema_version": "icoder.sqlite-migration-stage/v1",
+  "generated_at": "2026-08-22T09:15:50.393816+00:00",
+  "mode": "shadow_rebuild_head_source_read_only",
+  "source": {
+    "path": "E:\\Corti4C\\backend\\data\\icoder.db",
+    "size_bytes": 8536064,
+    "sha256": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e",
+    "integrity_check": "ok",
+    "foreign_key_violation_count": 827,
+    "foreign_key_violation_groups": [
+      {
+        "table": "agents",
+        "parent_table": "organizations",
+        "count": 16
+      },
+      {
+        "table": "cdi_cases",
+        "parent_table": "organizations",
+        "count": 718
+      },
+      {
+        "table": "coding_review_runs",
+        "parent_table": "organizations",
+        "count": 12
+      },
+      {
+        "table": "documents",
+        "parent_table": "organizations",
+        "count": 22
+      },
+      {
+        "table": "encounters",
+        "parent_table": "organizations",
+        "count": 10
+      },
+      {
+        "table": "experts",
+        "parent_table": "organizations",
+        "count": 30
+      },
+      {
+        "table": "idempotency_records",
+        "parent_table": "organizations",
+        "count": 6
+      },
+      {
+        "table": "oauth_tokens",
+        "parent_table": "organizations",
+        "count": 2
+      },
+      {
+        "table": "run_history",
+        "parent_table": "organizations",
+        "count": 2
+      },
+      {
+        "table": "templates",
+        "parent_table": "organizations",
+        "count": 9
+      }
+    ],
+    "missing_organization_parent_count": 6,
+    "missing_organization_parents": [
+      {
+        "organization_id_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "empty_identifier": true,
+        "referencing_rows": 46,
+        "tables": {
+          "agents": 16,
+          "experts": 30
+        }
+      },
+      {
+        "organization_id_sha256": "8fe63b34ad1fadb6b2373cb87ad782f2090f54a167b533594819810acd08389b",
+        "empty_identifier": false,
+        "referencing_rows": 2,
+        "tables": {
+          "run_history": 2
+        }
+      },
+      {
+        "organization_id_sha256": "0dcf7804d1568b77bb742623e8d5436da42f0c6b8b616718445281467718dc64",
+        "empty_identifier": false,
+        "referencing_rows": 6,
+        "tables": {
+          "idempotency_records": 6
+        }
+      },
+      {
+        "organization_id_sha256": "853fff0720a71c0ecc03fc3927b4d0fc62b8fcb26ba774ab312f9289f34d8a97",
+        "empty_identifier": false,
+        "referencing_rows": 6,
+        "tables": {
+          "coding_review_runs": 6
+        }
+      },
+      {
+        "organization_id_sha256": "8da68e742ea1b0c53aebe5f280364c0ab3214a16b017be18b3d0d7c4535392fb",
+        "empty_identifier": false,
+        "referencing_rows": 4,
+        "tables": {
+          "coding_review_runs": 4
+        }
+      },
+      {
+        "organization_id_sha256": "a0652006da8af810f4a626ec3a9f9811c15aa1018af257ff203e85f2d0d622be",
+        "empty_identifier": false,
+        "referencing_rows": 763,
+        "tables": {
+          "cdi_cases": 718,
+          "coding_review_runs": 2,
+          "documents": 22,
+          "encounters": 10,
+          "oauth_tokens": 2,
+          "templates": 9
+        }
+      }
+    ],
+    "alembic_revisions": [
+      "041"
+    ],
+    "table_count": 59,
+    "data_table_count": 58
+  },
+  "source_after": {
+    "path": "E:\\Corti4C\\backend\\data\\icoder.db",
+    "size_bytes": 8536064,
+    "sha256": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e",
+    "integrity_check": "ok",
+    "foreign_key_violation_count": 827,
+    "foreign_key_violation_groups": [
+      {
+        "table": "agents",
+        "parent_table": "organizations",
+        "count": 16
+      },
+      {
+        "table": "cdi_cases",
+        "parent_table": "organizations",
+        "count": 718
+      },
+      {
+        "table": "coding_review_runs",
+        "parent_table": "organizations",
+        "count": 12
+      },
+      {
+        "table": "documents",
+        "parent_table": "organizations",
+        "count": 22
+      },
+      {
+        "table": "encounters",
+        "parent_table": "organizations",
+        "count": 10
+      },
+      {
+        "table": "experts",
+        "parent_table": "organizations",
+        "count": 30
+      },
+      {
+        "table": "idempotency_records",
+        "parent_table": "organizations",
+        "count": 6
+      },
+      {
+        "table": "oauth_tokens",
+        "parent_table": "organizations",
+        "count": 2
+      },
+      {
+        "table": "run_history",
+        "parent_table": "organizations",
+        "count": 2
+      },
+      {
+        "table": "templates",
+        "parent_table": "organizations",
+        "count": 9
+      }
+    ],
+    "missing_organization_parent_count": 6,
+    "missing_organization_parents": [
+      {
+        "organization_id_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "empty_identifier": true,
+        "referencing_rows": 46,
+        "tables": {
+          "agents": 16,
+          "experts": 30
+        }
+      },
+      {
+        "organization_id_sha256": "8fe63b34ad1fadb6b2373cb87ad782f2090f54a167b533594819810acd08389b",
+        "empty_identifier": false,
+        "referencing_rows": 2,
+        "tables": {
+          "run_history": 2
+        }
+      },
+      {
+        "organization_id_sha256": "0dcf7804d1568b77bb742623e8d5436da42f0c6b8b616718445281467718dc64",
+        "empty_identifier": false,
+        "referencing_rows": 6,
+        "tables": {
+          "idempotency_records": 6
+        }
+      },
+      {
+        "organization_id_sha256": "853fff0720a71c0ecc03fc3927b4d0fc62b8fcb26ba774ab312f9289f34d8a97",
+        "empty_identifier": false,
+        "referencing_rows": 6,
+        "tables": {
+          "coding_review_runs": 6
+        }
+      },
+      {
+        "organization_id_sha256": "8da68e742ea1b0c53aebe5f280364c0ab3214a16b017be18b3d0d7c4535392fb",
+        "empty_identifier": false,
+        "referencing_rows": 4,
+        "tables": {
+          "coding_review_runs": 4
+        }
+      },
+      {
+        "organization_id_sha256": "a0652006da8af810f4a626ec3a9f9811c15aa1018af257ff203e85f2d0d622be",
+        "empty_identifier": false,
+        "referencing_rows": 763,
+        "tables": {
+          "cdi_cases": 718,
+          "coding_review_runs": 2,
+          "documents": 22,
+          "encounters": 10,
+          "oauth_tokens": 2,
+          "templates": 9
+        }
+      }
+    ],
+    "alembic_revisions": [
+      "041"
+    ],
+    "table_count": 59,
+    "data_table_count": 58
+  },
+  "source_snapshot": {
+    "path": "E:\\Corti4C\\reports\\agent_hub\\feedback_training_authorization_phase_20260822\\sqlite-reconciliation\\icoder.source-snapshot.db",
+    "size_bytes": 8536064,
+    "sha256": "2f1e5af01aac020cdd0eadac51b3ea65ba5b2e714d9f6ea3707992e829692877",
+    "integrity_check": "ok",
+    "foreign_key_violation_count": 827,
+    "foreign_key_violation_groups": [
+      {
+        "table": "agents",
+        "parent_table": "organizations",
+        "count": 16
+      },
+      {
+        "table": "cdi_cases",
+        "parent_table": "organizations",
+        "count": 718
+      },
+      {
+        "table": "coding_review_runs",
+        "parent_table": "organizations",
+        "count": 12
+      },
+      {
+        "table": "documents",
+        "parent_table": "organizations",
+        "count": 22
+      },
+      {
+        "table": "encounters",
+        "parent_table": "organizations",
+        "count": 10
+      },
+      {
+        "table": "experts",
+        "parent_table": "organizations",
+        "count": 30
+      },
+      {
+        "table": "idempotency_records",
+        "parent_table": "organizations",
+        "count": 6
+      },
+      {
+        "table": "oauth_tokens",
+        "parent_table": "organizations",
+        "count": 2
+      },
+      {
+        "table": "run_history",
+        "parent_table": "organizations",
+        "count": 2
+      },
+      {
+        "table": "templates",
+        "parent_table": "organizations",
+        "count": 9
+      }
+    ],
+    "missing_organization_parent_count": 6,
+    "missing_organization_parents": [
+      {
+        "organization_id_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "empty_identifier": true,
+        "referencing_rows": 46,
+        "tables": {
+          "agents": 16,
+          "experts": 30
+        }
+      },
+      {
+        "organization_id_sha256": "8fe63b34ad1fadb6b2373cb87ad782f2090f54a167b533594819810acd08389b",
+        "empty_identifier": false,
+        "referencing_rows": 2,
+        "tables": {
+          "run_history": 2
+        }
+      },
+      {
+        "organization_id_sha256": "0dcf7804d1568b77bb742623e8d5436da42f0c6b8b616718445281467718dc64",
+        "empty_identifier": false,
+        "referencing_rows": 6,
+        "tables": {
+          "idempotency_records": 6
+        }
+      },
+      {
+        "organization_id_sha256": "853fff0720a71c0ecc03fc3927b4d0fc62b8fcb26ba774ab312f9289f34d8a97",
+        "empty_identifier": false,
+        "referencing_rows": 6,
+        "tables": {
+          "coding_review_runs": 6
+        }
+      },
+      {
+        "organization_id_sha256": "8da68e742ea1b0c53aebe5f280364c0ab3214a16b017be18b3d0d7c4535392fb",
+        "empty_identifier": false,
+        "referencing_rows": 4,
+        "tables": {
+          "coding_review_runs": 4
+        }
+      },
+      {
+        "organization_id_sha256": "a0652006da8af810f4a626ec3a9f9811c15aa1018af257ff203e85f2d0d622be",
+        "empty_identifier": false,
+        "referencing_rows": 763,
+        "tables": {
+          "cdi_cases": 718,
+          "coding_review_runs": 2,
+          "documents": 22,
+          "encounters": 10,
+          "oauth_tokens": 2,
+          "templates": 9
+        }
+      }
+    ],
+    "alembic_revisions": [
+      "041"
+    ],
+    "table_count": 59,
+    "data_table_count": 58
+  },
+  "source_snapshot_path": "E:\\Corti4C\\reports\\agent_hub\\feedback_training_authorization_phase_20260822\\sqlite-reconciliation\\icoder.source-snapshot.db",
+  "candidate": {
+    "path": "E:\\Corti4C\\reports\\agent_hub\\feedback_training_authorization_phase_20260822\\sqlite-reconciliation\\icoder_054_candidate.db",
+    "size_bytes": 8785920,
+    "sha256": "35508b1292261eff07bc7ed262112454e0a39e5e121b6c0f64c2f72eb920a6fd",
+    "integrity_check": "ok",
+    "foreign_key_violation_count": 0,
+    "foreign_key_violation_groups": [],
+    "missing_organization_parent_count": 0,
+    "missing_organization_parents": [],
+    "alembic_revisions": [
+      "054"
+    ],
+    "table_count": 70,
+    "data_table_count": 69
+  },
+  "candidate_path": "E:\\Corti4C\\reports\\agent_hub\\feedback_training_authorization_phase_20260822\\sqlite-reconciliation\\icoder_054_candidate.db",
+  "quarantine_orphan_organizations_requested": true,
+  "quarantine_repairs": [
+    {
+      "organization_id_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "empty_identifier": true,
+      "referencing_rows": 46,
+      "tables": {
+        "agents": 16,
+        "experts": 30
+      }
+    },
+    {
+      "organization_id_sha256": "8fe63b34ad1fadb6b2373cb87ad782f2090f54a167b533594819810acd08389b",
+      "empty_identifier": false,
+      "referencing_rows": 2,
+      "tables": {
+        "run_history": 2
+      }
+    },
+    {
+      "organization_id_sha256": "0dcf7804d1568b77bb742623e8d5436da42f0c6b8b616718445281467718dc64",
+      "empty_identifier": false,
+      "referencing_rows": 6,
+      "tables": {
+        "idempotency_records": 6
+      }
+    },
+    {
+      "organization_id_sha256": "853fff0720a71c0ecc03fc3927b4d0fc62b8fcb26ba774ab312f9289f34d8a97",
+      "empty_identifier": false,
+      "referencing_rows": 6,
+      "tables": {
+        "coding_review_runs": 6
+      }
+    },
+    {
+      "organization_id_sha256": "8da68e742ea1b0c53aebe5f280364c0ab3214a16b017be18b3d0d7c4535392fb",
+      "empty_identifier": false,
+      "referencing_rows": 4,
+      "tables": {
+        "coding_review_runs": 4
+      }
+    },
+    {
+      "organization_id_sha256": "a0652006da8af810f4a626ec3a9f9811c15aa1018af257ff203e85f2d0d622be",
+      "empty_identifier": false,
+      "referencing_rows": 763,
+      "tables": {
+        "cdi_cases": 718,
+        "coding_review_runs": 2,
+        "documents": 22,
+        "encounters": 10,
+        "oauth_tokens": 2,
+        "templates": 9
+      }
+    }
+  ],
+  "alembic_head": "054",
+  "migration": {
+    "returncode": 0,
+    "stdout_tail": "\n[alembic 017] run_history reclassification: {}\n[alembic 017] audit_logs reclassification:  {}\n  [021] cdi_cases: index ix_cdi_cases_org_created skipped ((sqlite3.OperationalError) index ix_cdi_cases_org_created already exists\n[SQL: CREATE INDEX ix_cdi_cases_org_created ON cdi_cases (organization_id, created_at)]\n(Background on this error at: https://sqlalche.me/e/20/e3q8))\n",
+    "stderr_tail": ""
+  },
+  "copy_result": {
+    "table_count": 58,
+    "row_count": 6090,
+    "tables": [
+      {
+        "table": "organizations",
+        "row_count": 44
+      },
+      {
+        "table": "agents",
+        "row_count": 122
+      },
+      {
+        "table": "api_keys",
+        "row_count": 0
+      },
+      {
+        "table": "audit_logs",
+        "row_count": 577
+      },
+      {
+        "table": "billing_run_settlements",
+        "row_count": 0
+      },
+      {
+        "table": "cdi_cases",
+        "row_count": 1139
+      },
+      {
+        "table": "cdi_clinician_responses",
+        "row_count": 0
+      },
+      {
+        "table": "cdi_document_versions",
+        "row_count": 0
+      },
+      {
+        "table": "cdi_documentation_gaps",
+        "row_count": 2249
+      },
+      {
+        "table": "cdi_notification_subscriptions",
+        "row_count": 0
+      },
+      {
+        "table": "cdi_provider_queries",
+        "row_count": 838
+      },
+      {
+        "table": "clinical_evidences",
+        "row_count": 0
+      },
+      {
+        "table": "clinical_facts",
+        "row_count": 0
+      },
+      {
+        "table": "code_candidates",
+        "row_count": 0
+      },
+      {
+        "table": "code_mappings",
+        "row_count": 0
+      },
+      {
+        "table": "code_tables",
+        "row_count": 0
+      },
+      {
+        "table": "coding_review_runs",
+        "row_count": 16
+      },
+      {
+        "table": "coding_reviews",
+        "row_count": 0
+      },
+      {
+        "table": "context_artifact_refs",
+        "row_count": 0
+      },
+      {
+        "table": "context_messages",
+        "row_count": 0
+      },
+      {
+        "table": "context_task_refs",
+        "row_count": 0
+      },
+      {
+        "table": "contexts",
+        "row_count": 0
+      },
+      {
+        "table": "conversation_memories",
+        "row_count": 0
+      },
+      {
+        "table": "customers",
+        "row_count": 0
+      },
+      {
+        "table": "documents",
+        "row_count": 22
+      },
+      {
+        "table": "encounters",
+        "row_count": 10
+      },
+      {
+        "table": "experts",
+        "row_count": 30
+      },
+      {
+        "table": "gold_cases",
+        "row_count": 10
+      },
+      {
+        "table": "guided_documents",
+        "row_count": 0
+      },
+      {
+        "table": "guided_sections",
+        "row_count": 0
+      },
+      {
+        "table": "idempotency_records",
+        "row_count": 28
+      },
+      {
+        "table": "mcp_servers",
+        "row_count": 0
+      },
+      {
+        "table": "oauth_clients",
+        "row_count": 2
+      },
+      {
+        "table": "oauth_tokens",
+        "row_count": 12
+      },
+      {
+        "table": "organization_invite_deliveries",
+        "row_count": 0
+      },
+      {
+        "table": "organization_invites",
+        "row_count": 0
+      },
+      {
+        "table": "organization_members",
+        "row_count": 47
+      },
+      {
+        "table": "original_input_audit",
+        "row_count": 0
+      },
+      {
+        "table": "password_reset_tokens",
+        "row_count": 0
+      },
+      {
+        "table": "patient_contexts",
+        "row_count": 0
+      },
+      {
+        "table": "preview_sessions",
+        "row_count": 21
+      },
+      {
+        "table": "run_history",
+        "row_count": 471
+      },
+      {
+        "table": "run_trace_events",
+        "row_count": 0
+      },
+      {
+        "table": "runtime_audit_records",
+        "row_count": 0
+      },
+      {
+        "table": "runtime_duc_decisions",
+        "row_count": 0
+      },
+      {
+        "table": "runtime_sessions",
+        "row_count": 0
+      },
+      {
+        "table": "runtime_transitions",
+        "row_count": 0
+      },
+      {
+        "table": "stt_interactions",
+        "row_count": 0
+      },
+      {
+        "table": "stt_recordings",
+        "row_count": 0
+      },
+      {
+        "table": "stt_transcripts",
+        "row_count": 0
+      },
+      {
+        "table": "team_invites",
+        "row_count": 0
+      },
+      {
+        "table": "team_members",
+        "row_count": 0
+      },
+      {
+        "table": "template_versions",
+        "row_count": 0
+      },
+      {
+        "table": "templates",
+        "row_count": 405
+      },
+      {
+        "table": "tickets",
+        "row_count": 0
+      },
+      {
+        "table": "token_blacklist",
+        "row_count": 0
+      },
+      {
+        "table": "transactions",
+        "row_count": 0
+      },
+      {
+        "table": "users",
+        "row_count": 47
+      }
+    ]
+  },
+  "preexisting_table_fingerprints_before": {
+    "agents": {
+      "columns": [
+        "name",
+        "description",
+        "system_prompt",
+        "icon",
+        "category",
+        "expert_ids",
+        "default_expert_id",
+        "a2a_enabled",
+        "config",
+        "is_prebuilt",
+        "is_published",
+        "created_by",
+        "usage_count",
+        "id",
+        "created_at",
+        "updated_at",
+        "version",
+        "status",
+        "organization_id",
+        "canonical_key",
+        "agent_type",
+        "aliases"
+      ],
+      "row_count": 122,
+      "digest_sha256": "dec8e4fe5a45d7e921ceb2535de5630507a0e053c9e711620279f8f329321bc6"
+    },
+    "api_keys": {
+      "columns": [
+        "owner_id",
+        "name",
+        "key_prefix",
+        "key_hash",
+        "is_active",
+        "last_used_at",
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "audit_logs": {
+      "columns": [
+        "user_id",
+        "username",
+        "action",
+        "resource_type",
+        "resource_id",
+        "details",
+        "ip_address",
+        "user_agent",
+        "status",
+        "error_message",
+        "model_input_summary",
+        "model_output_summary",
+        "model_version",
+        "tool_calls_made",
+        "tokens_used",
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id",
+        "agent_id",
+        "agent_account_id",
+        "delegated_by_user_id",
+        "tenancy_classification",
+        "tenancy_attribution_source",
+        "tenancy_attribution_confidence",
+        "tenancy_attribution_migration",
+        "tenancy_attributed_at",
+        "tenancy_original_org_id",
+        "tenancy_candidate_count"
+      ],
+      "row_count": 577,
+      "digest_sha256": "0d8279a4a3a28cd11c80350e1f520a9f0cc4dd27b6ed0827abf8f21a630a7f96"
+    },
+    "billing_run_settlements": {
+      "columns": [
+        "organization_id",
+        "user_id",
+        "run_id",
+        "status",
+        "reserved_amount",
+        "settled_amount",
+        "currency",
+        "error_code",
+        "id",
+        "created_at",
+        "updated_at"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cdi_cases": {
+      "columns": [
+        "id",
+        "organization_id",
+        "patient_ref",
+        "encounter_ref",
+        "chart_excerpt_hash",
+        "chart_excerpt_length",
+        "encounter_metadata",
+        "draft_codes",
+        "run_id",
+        "trace_id",
+        "agent_ref",
+        "encounter_summary",
+        "coding_specificity_checklist",
+        "risk_flags",
+        "specialist_trace",
+        "completion_state",
+        "created_by_user_id",
+        "closed_at",
+        "created_at",
+        "updated_at",
+        "query_rewrite_queue"
+      ],
+      "row_count": 1139,
+      "digest_sha256": "28a3379921e127cb9074aca2dcda92cd109d56659c818ed9b8dab9e160e1e010"
+    },
+    "cdi_clinician_responses": {
+      "columns": [
+        "id",
+        "query_id",
+        "case_id",
+        "selected_option",
+        "free_text_response",
+        "response_metadata",
+        "is_latest",
+        "clinician_user_id",
+        "submitted_at",
+        "created_at",
+        "updated_at"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cdi_document_versions": {
+      "columns": [
+        "id",
+        "case_id",
+        "query_id",
+        "document_id",
+        "document_type",
+        "version_label",
+        "content_hash",
+        "content_length",
+        "diff_summary",
+        "captured_at",
+        "created_at",
+        "updated_at"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cdi_documentation_gaps": {
+      "columns": [
+        "id",
+        "case_id",
+        "gap_type",
+        "description",
+        "why_it_matters",
+        "minimal_clarification_needed",
+        "evidence_document_id",
+        "evidence_quote",
+        "evidence_char_start",
+        "evidence_char_end",
+        "evidence_documented_at",
+        "priority",
+        "status",
+        "candidate_codes",
+        "superseded_by_id",
+        "resolved_at",
+        "created_at",
+        "updated_at"
+      ],
+      "row_count": 2249,
+      "digest_sha256": "7527bdbca19b02e55a735e90640ed40965ebfb7d20a3165a214078f94963944e"
+    },
+    "cdi_notification_subscriptions": {
+      "columns": [
+        "id",
+        "organization_id",
+        "created_by_user_id",
+        "user_role",
+        "events",
+        "channel",
+        "target_url",
+        "secret_encrypted",
+        "active",
+        "created_at",
+        "updated_at"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cdi_provider_queries": {
+      "columns": [
+        "id",
+        "case_id",
+        "gap_id",
+        "topic",
+        "reason",
+        "query_text",
+        "response_options",
+        "evidence_document_id",
+        "evidence_quote",
+        "evidence_char_start",
+        "evidence_char_end",
+        "nlq_gate_verdict",
+        "nlq_gate_rules_evaluated",
+        "nlq_gate_rules_passed",
+        "nlq_gate_block_reasons",
+        "nlq_gate_version",
+        "lifecycle_state",
+        "priority",
+        "sla_due_at",
+        "sent_at",
+        "viewed_at",
+        "responded_at",
+        "closed_at",
+        "cdi_specialist_user_id",
+        "cdi_reviewed_at",
+        "clinician_user_id",
+        "created_by_agent_run_id",
+        "created_at",
+        "updated_at",
+        "evidence_spans"
+      ],
+      "row_count": 838,
+      "digest_sha256": "2c8fbc28d685415f0a1a5ed6786941519992f0b2a38f4127b9513186317995ac"
+    },
+    "clinical_evidences": {
+      "columns": [
+        "review_id",
+        "doc_id",
+        "doc_type",
+        "text",
+        "entity_type",
+        "supports_codes",
+        "certainty",
+        "negation",
+        "confidence",
+        "start_char",
+        "end_char",
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "clinical_facts": {
+      "columns": [
+        "id",
+        "organization_id",
+        "owner_id",
+        "interaction_id",
+        "fact_id",
+        "group_id",
+        "group_key",
+        "source",
+        "is_discarded",
+        "encrypted_text",
+        "encrypted_evidence_json",
+        "created_at",
+        "updated_at"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "code_candidates": {
+      "columns": [
+        "review_id",
+        "finding",
+        "code_system",
+        "code",
+        "name",
+        "score",
+        "chapter",
+        "evidence_ids",
+        "status",
+        "rule_checks",
+        "human_decision",
+        "human_reason",
+        "modified_code",
+        "modified_name",
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "code_mappings": {
+      "columns": [
+        "source_table_id",
+        "target_table_id",
+        "source_code",
+        "target_code",
+        "target_name",
+        "confidence",
+        "mapping_type",
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "code_tables": {
+      "columns": [
+        "name",
+        "description",
+        "code_system",
+        "version",
+        "is_active",
+        "is_default",
+        "source_type",
+        "institution",
+        "total_codes",
+        "config",
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "coding_review_runs": {
+      "columns": [
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id",
+        "created_by_user_id",
+        "agent_ref",
+        "agent_category",
+        "prediction_mode",
+        "case_id",
+        "trace_id",
+        "input_source",
+        "status",
+        "degraded",
+        "business_result_generated",
+        "manual_review_required",
+        "reason",
+        "primary_diagnosis",
+        "secondary_diagnoses",
+        "procedures",
+        "high_risk_coding_points",
+        "evidence_chain",
+        "risk_route",
+        "safety_gate",
+        "drg_route",
+        "pipeline_stages_observed",
+        "pipeline_stage_meta",
+        "human_review_records",
+        "encounter_text",
+        "encounter_text_redacted",
+        "model_version",
+        "code_dict_version",
+        "rule_version",
+        "agent_version",
+        "data_asset_version",
+        "started_at",
+        "finished_at"
+      ],
+      "row_count": 16,
+      "digest_sha256": "d7624c6b918fb7c6e373621f3eb6bd53b9e3eb65dee1f2316cccaf1e06af2dee"
+    },
+    "coding_reviews": {
+      "columns": [
+        "review_id",
+        "encounter_id",
+        "agent_version",
+        "model_used",
+        "primary_diagnosis_code",
+        "primary_diagnosis_name",
+        "primary_diagnosis_confidence",
+        "primary_diagnosis_evidence_ids",
+        "primary_diagnosis_judgment",
+        "primary_diagnosis_reasoning",
+        "main_procedure_code",
+        "main_procedure_name",
+        "main_procedure_confidence",
+        "main_procedure_evidence_ids",
+        "main_procedure_judgment",
+        "secondary_diagnoses",
+        "other_procedures",
+        "diagnosis_analysis",
+        "procedure_analysis",
+        "documentation_gaps",
+        "uncodable_items",
+        "drg_impact",
+        "human_checklist",
+        "validation_summary",
+        "report_markdown",
+        "report_html",
+        "human_review_status",
+        "reviewed_by",
+        "reviewed_at",
+        "reviewer_notes",
+        "processing_time_ms",
+        "error_message",
+        "retry_count",
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id",
+        "evidence_ranking",
+        "confidence_calibration"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "context_artifact_refs": {
+      "columns": [
+        "context_id",
+        "artifact_id",
+        "name",
+        "mime_type",
+        "url"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "context_messages": {
+      "columns": [
+        "context_id",
+        "message_id",
+        "role",
+        "parts_json",
+        "timestamp",
+        "redacted",
+        "metadata_json"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "context_task_refs": {
+      "columns": [
+        "context_id",
+        "task_id",
+        "state",
+        "started_at",
+        "completed_at"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "contexts": {
+      "columns": [
+        "id",
+        "created_at",
+        "updated_at",
+        "expires_at",
+        "agent_id",
+        "status",
+        "metadata_json",
+        "redacted_input_hash",
+        "original_input_ref",
+        "organization_id"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "conversation_memories": {
+      "columns": [
+        "user_id",
+        "expert_id",
+        "agent_id",
+        "session_id",
+        "role",
+        "content",
+        "summary",
+        "importance",
+        "key_facts",
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "customers": {
+      "columns": [
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id",
+        "display_name",
+        "customer_id",
+        "region",
+        "nfr"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "documents": {
+      "columns": [
+        "encounter_id",
+        "doc_type",
+        "title",
+        "content",
+        "doc_order",
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id"
+      ],
+      "row_count": 22,
+      "digest_sha256": "aa804ce0c170026e1671670aeb7db5970e3dda27a06120c414bca4ce53e20639"
+    },
+    "encounters": {
+      "columns": [
+        "encounter_id",
+        "patient_id",
+        "department",
+        "admission_time",
+        "discharge_time",
+        "admission_reason",
+        "discharge_summary",
+        "existing_diagnosis_codes",
+        "existing_procedure_codes",
+        "status",
+        "submitted_by",
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id"
+      ],
+      "row_count": 10,
+      "digest_sha256": "574bbdcd0c239c09e663242cdcd3814db2d8c17a99334fe328afc6b36c960165"
+    },
+    "experts": {
+      "columns": [
+        "name",
+        "description",
+        "system_prompt",
+        "icon",
+        "category",
+        "is_prebuilt",
+        "is_published",
+        "created_by",
+        "usage_count",
+        "capabilities",
+        "input_schema",
+        "output_schema",
+        "tags",
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id",
+        "canonical_key",
+        "origin",
+        "corti_alignment",
+        "pack_dir",
+        "provenance"
+      ],
+      "row_count": 30,
+      "digest_sha256": "bef3d70cd3fac90385a1ed37122ce3280207bfffc037e58560df46bcadc12108"
+    },
+    "gold_cases": {
+      "columns": [
+        "case_id",
+        "department",
+        "diagnosis_group",
+        "original_primary_diagnosis",
+        "original_primary_diag_name",
+        "original_main_procedure",
+        "original_main_proc_name",
+        "expected_principal_diagnosis",
+        "expected_principal_diag_name",
+        "expected_principal_procedure",
+        "expected_principal_proc_name",
+        "expected_secondary_diagnoses",
+        "expected_procedure_codes",
+        "expected_drg_group",
+        "acceptable_alternatives",
+        "reasoning_expectations",
+        "missing_codes",
+        "unsupported_codes",
+        "documentation_gaps",
+        "evidence_spans",
+        "full_case_data",
+        "difficulty",
+        "specialty",
+        "risk_tags",
+        "source",
+        "reviewer",
+        "review_time",
+        "agent_accuracy",
+        "last_evaluated_at",
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id"
+      ],
+      "row_count": 10,
+      "digest_sha256": "e1a0ba5a39b39538cca13f89d4311f0624741a88517ed760c75fb53b3a0d8794"
+    },
+    "guided_documents": {
+      "columns": [
+        "id",
+        "organization_id",
+        "owner_id",
+        "interaction_id",
+        "document_id",
+        "name",
+        "template_id",
+        "template_version_id",
+        "language",
+        "encrypted_string_document_json",
+        "encrypted_structured_document_json",
+        "encrypted_labels_json",
+        "encrypted_classic_sections_json",
+        "credits_consumed",
+        "is_stream",
+        "created_at",
+        "updated_at"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "guided_sections": {
+      "columns": [
+        "id",
+        "organization_id",
+        "owner_id",
+        "section_id",
+        "version_id",
+        "name",
+        "language",
+        "encrypted_definition_json",
+        "auto_generated",
+        "source",
+        "created_at",
+        "updated_at",
+        "deleted_at"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "idempotency_records": {
+      "columns": [
+        "id",
+        "organization_id",
+        "api_client_id",
+        "idempotency_key",
+        "agent_ref",
+        "context_id",
+        "request_hash",
+        "run_id",
+        "status",
+        "response_snapshot",
+        "created_at",
+        "expires_at"
+      ],
+      "row_count": 28,
+      "digest_sha256": "25a00e0bbe8ae03433ccdbf01edde303bb3d0d658e66388dba692cd6535df4e2"
+    },
+    "mcp_servers": {
+      "columns": [
+        "expert_id",
+        "name",
+        "url",
+        "transport_type",
+        "description",
+        "auth_type",
+        "auth_header",
+        "is_active",
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id",
+        "authorization_type"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "oauth_clients": {
+      "columns": [
+        "name",
+        "client_id",
+        "client_secret_hash",
+        "description",
+        "scopes",
+        "is_active",
+        "owner_id",
+        "last_used_at",
+        "token_expires_seconds",
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id",
+        "allowed_origins",
+        "embedded_app_id"
+      ],
+      "row_count": 2,
+      "digest_sha256": "d2bf477420511621681324e073936f6cdcd44a5566c1e18875eee2f6b44f4ddc"
+    },
+    "oauth_tokens": {
+      "columns": [
+        "client_id",
+        "token_hash",
+        "scopes",
+        "expires_at",
+        "is_revoked",
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id"
+      ],
+      "row_count": 12,
+      "digest_sha256": "7fe14b48156e9af11d3cbf06d97a88d9b05be03c907d4c866030e06e1c516521"
+    },
+    "organization_invite_deliveries": {
+      "columns": [
+        "organization_id",
+        "invite_id",
+        "encrypted_payload",
+        "status",
+        "attempts",
+        "next_attempt_at",
+        "locked_at",
+        "lock_id",
+        "delivered_at",
+        "last_error_code",
+        "provider_message_id_hash",
+        "id",
+        "created_at",
+        "updated_at"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "organization_invites": {
+      "columns": [
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id",
+        "email",
+        "role",
+        "token",
+        "status",
+        "expires_at",
+        "invited_by"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "organization_members": {
+      "columns": [
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id",
+        "user_id",
+        "role",
+        "is_default"
+      ],
+      "row_count": 47,
+      "digest_sha256": "cd62a12ad987e497cae52cd3108f1a76fbc6efb3ba35d489b46f5d6ba2eac43b"
+    },
+    "organizations": {
+      "columns": [
+        "id",
+        "created_at",
+        "updated_at",
+        "name",
+        "slug",
+        "plan",
+        "settings",
+        "is_active"
+      ],
+      "row_count": 44,
+      "digest_sha256": "b3b5b083ba15d9c3f1b77c39893bc77818dd0675014cf4ac450e04b218858412"
+    },
+    "original_input_audit": {
+      "columns": [
+        "id",
+        "context_id",
+        "original_input",
+        "created_at",
+        "retention_until"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "password_reset_tokens": {
+      "columns": [
+        "id",
+        "created_at",
+        "updated_at",
+        "user_id",
+        "token_hash",
+        "expires_at",
+        "is_used"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "patient_contexts": {
+      "columns": [
+        "id",
+        "organization_id",
+        "tenant_id",
+        "source_system",
+        "patient_id",
+        "encounter_id",
+        "visit_type",
+        "department_id",
+        "ward_id",
+        "clinician_id",
+        "document_ids",
+        "purpose_of_use",
+        "consent_legal_basis",
+        "trace_id",
+        "status",
+        "expires_at",
+        "created_by",
+        "created_at",
+        "updated_at"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "preview_sessions": {
+      "columns": [
+        "id",
+        "preview_session_id",
+        "organization_id",
+        "user_id",
+        "api_client_id",
+        "expected_parent_origin",
+        "expected_iframe_origin",
+        "nonce",
+        "allowed_agent_ids",
+        "allowed_scopes",
+        "jti",
+        "single_use",
+        "token_version",
+        "status",
+        "issued_at",
+        "expires_at",
+        "exchanged_at",
+        "exchanged_from_ip"
+      ],
+      "row_count": 21,
+      "digest_sha256": "a7104b72edc90c3b457085ee7caec47f140d3773544ffd5efb5210ce762eaa50"
+    },
+    "run_history": {
+      "columns": [
+        "id",
+        "organization_id",
+        "user_id",
+        "agent_id",
+        "run_id",
+        "trace_id",
+        "runtime_mode",
+        "latency_ms",
+        "cost_usd",
+        "input_text",
+        "output_summary",
+        "error",
+        "error_reason",
+        "created_at",
+        "updated_at",
+        "status",
+        "cancel_reason",
+        "cancelled_at",
+        "cancelled_by_user_id",
+        "api_client_id",
+        "embedded_app_id",
+        "session_id",
+        "context_id",
+        "request_id",
+        "idempotency_key",
+        "tenancy_classification",
+        "tenancy_attribution_source",
+        "tenancy_attribution_confidence",
+        "tenancy_attribution_migration",
+        "tenancy_attributed_at",
+        "tenancy_original_org_id",
+        "tenancy_candidate_count",
+        "trace_capture_status",
+        "trace_capture_failure_reason",
+        "trace_events_purged_at",
+        "trace_events_purged_count"
+      ],
+      "row_count": 471,
+      "digest_sha256": "9e8bcc2282f83f424090b327b378f41e4ddeddd3c7ab3a238c3cb0af44f78f2b"
+    },
+    "run_trace_events": {
+      "columns": [
+        "id",
+        "run_id",
+        "organization_id",
+        "project_id",
+        "user_id",
+        "actor_id",
+        "agent_id",
+        "step",
+        "status",
+        "duration_ms",
+        "ts",
+        "safe_metadata_json",
+        "created_at",
+        "updated_at",
+        "event_id",
+        "sequence_number",
+        "trace_id",
+        "identity_source"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "runtime_audit_records": {
+      "columns": [
+        "runtime_id",
+        "event_type",
+        "action",
+        "actor",
+        "current_state",
+        "guard_result",
+        "post_check_result",
+        "payload",
+        "immutable_hash",
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "runtime_duc_decisions": {
+      "columns": [
+        "runtime_id",
+        "action",
+        "reviewer",
+        "decision",
+        "reason",
+        "current_state",
+        "decision_hash",
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "runtime_sessions": {
+      "columns": [
+        "runtime_id",
+        "pipeline_id",
+        "review_id",
+        "agent_id",
+        "current_state",
+        "previous_state",
+        "state_entered_at",
+        "timeout_at",
+        "escalated",
+        "escalated_at",
+        "failed",
+        "failed_at",
+        "failed_reason",
+        "archived",
+        "archived_at",
+        "execution_path",
+        "total_processing_ms",
+        "error_count",
+        "content_hash",
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "runtime_transitions": {
+      "columns": [
+        "runtime_id",
+        "from_state",
+        "to_state",
+        "transition_type",
+        "actor",
+        "reason",
+        "payload",
+        "payload_hash",
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stt_interactions": {
+      "columns": [
+        "id",
+        "organization_id",
+        "owner_id",
+        "interaction_id",
+        "created_at"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stt_recordings": {
+      "columns": [
+        "id",
+        "organization_id",
+        "owner_id",
+        "interaction_id",
+        "recording_id",
+        "media_type",
+        "encrypted_content",
+        "byte_length",
+        "content_sha256",
+        "created_at"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stt_transcripts": {
+      "columns": [
+        "id",
+        "organization_id",
+        "owner_id",
+        "interaction_id",
+        "transcript_id",
+        "recording_id",
+        "encrypted_text",
+        "encrypted_request_json",
+        "status",
+        "participant_roles_json",
+        "error_code",
+        "error_detail",
+        "created_at",
+        "updated_at"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "team_invites": {
+      "columns": [
+        "email",
+        "role",
+        "invited_by",
+        "token",
+        "status",
+        "expires_at",
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "team_members": {
+      "columns": [
+        "user_id",
+        "email",
+        "name",
+        "role",
+        "status",
+        "invited_by",
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "template_versions": {
+      "columns": [
+        "id",
+        "organization_id",
+        "template_id",
+        "version_number",
+        "generation_json",
+        "snapshot_json",
+        "published_by_user_id",
+        "created_at"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "templates": {
+      "columns": [
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id",
+        "name",
+        "description",
+        "content",
+        "category",
+        "language",
+        "is_builtin",
+        "scope",
+        "deleted_at"
+      ],
+      "row_count": 405,
+      "digest_sha256": "069c334f985f8caa49a947c8bf57314650b1422d725cf3987b2afe55fd349e26"
+    },
+    "tickets": {
+      "columns": [
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id",
+        "created_by_id",
+        "subject",
+        "description",
+        "status",
+        "priority"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "token_blacklist": {
+      "columns": [
+        "id",
+        "created_at",
+        "updated_at",
+        "token_hash",
+        "user_id",
+        "expires_at",
+        "revoked_reason"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "transactions": {
+      "columns": [
+        "user_id",
+        "type",
+        "amount",
+        "balance_after",
+        "description",
+        "source",
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "users": {
+      "columns": [
+        "username",
+        "email",
+        "hashed_password",
+        "full_name",
+        "role",
+        "department",
+        "is_active",
+        "is_verified",
+        "id",
+        "created_at",
+        "updated_at",
+        "token_version"
+      ],
+      "row_count": 47,
+      "digest_sha256": "699ce5c0af5b7af5619c20ba07ceecb6b2d32badcefe244de10e53bcf995e7e9"
+    }
+  },
+  "preexisting_table_fingerprints_after": {
+    "agents": {
+      "columns": [
+        "name",
+        "description",
+        "system_prompt",
+        "icon",
+        "category",
+        "expert_ids",
+        "default_expert_id",
+        "a2a_enabled",
+        "config",
+        "is_prebuilt",
+        "is_published",
+        "created_by",
+        "usage_count",
+        "id",
+        "created_at",
+        "updated_at",
+        "version",
+        "status",
+        "organization_id",
+        "canonical_key",
+        "agent_type",
+        "aliases"
+      ],
+      "row_count": 122,
+      "digest_sha256": "dec8e4fe5a45d7e921ceb2535de5630507a0e053c9e711620279f8f329321bc6"
+    },
+    "api_keys": {
+      "columns": [
+        "owner_id",
+        "name",
+        "key_prefix",
+        "key_hash",
+        "is_active",
+        "last_used_at",
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "audit_logs": {
+      "columns": [
+        "user_id",
+        "username",
+        "action",
+        "resource_type",
+        "resource_id",
+        "details",
+        "ip_address",
+        "user_agent",
+        "status",
+        "error_message",
+        "model_input_summary",
+        "model_output_summary",
+        "model_version",
+        "tool_calls_made",
+        "tokens_used",
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id",
+        "agent_id",
+        "agent_account_id",
+        "delegated_by_user_id",
+        "tenancy_classification",
+        "tenancy_attribution_source",
+        "tenancy_attribution_confidence",
+        "tenancy_attribution_migration",
+        "tenancy_attributed_at",
+        "tenancy_original_org_id",
+        "tenancy_candidate_count"
+      ],
+      "row_count": 577,
+      "digest_sha256": "0d8279a4a3a28cd11c80350e1f520a9f0cc4dd27b6ed0827abf8f21a630a7f96"
+    },
+    "billing_run_settlements": {
+      "columns": [
+        "organization_id",
+        "user_id",
+        "run_id",
+        "status",
+        "reserved_amount",
+        "settled_amount",
+        "currency",
+        "error_code",
+        "id",
+        "created_at",
+        "updated_at"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cdi_cases": {
+      "columns": [
+        "id",
+        "organization_id",
+        "patient_ref",
+        "encounter_ref",
+        "chart_excerpt_hash",
+        "chart_excerpt_length",
+        "encounter_metadata",
+        "draft_codes",
+        "run_id",
+        "trace_id",
+        "agent_ref",
+        "encounter_summary",
+        "coding_specificity_checklist",
+        "risk_flags",
+        "specialist_trace",
+        "completion_state",
+        "created_by_user_id",
+        "closed_at",
+        "created_at",
+        "updated_at",
+        "query_rewrite_queue"
+      ],
+      "row_count": 1139,
+      "digest_sha256": "28a3379921e127cb9074aca2dcda92cd109d56659c818ed9b8dab9e160e1e010"
+    },
+    "cdi_clinician_responses": {
+      "columns": [
+        "id",
+        "query_id",
+        "case_id",
+        "selected_option",
+        "free_text_response",
+        "response_metadata",
+        "is_latest",
+        "clinician_user_id",
+        "submitted_at",
+        "created_at",
+        "updated_at"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cdi_document_versions": {
+      "columns": [
+        "id",
+        "case_id",
+        "query_id",
+        "document_id",
+        "document_type",
+        "version_label",
+        "content_hash",
+        "content_length",
+        "diff_summary",
+        "captured_at",
+        "created_at",
+        "updated_at"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cdi_documentation_gaps": {
+      "columns": [
+        "id",
+        "case_id",
+        "gap_type",
+        "description",
+        "why_it_matters",
+        "minimal_clarification_needed",
+        "evidence_document_id",
+        "evidence_quote",
+        "evidence_char_start",
+        "evidence_char_end",
+        "evidence_documented_at",
+        "priority",
+        "status",
+        "candidate_codes",
+        "superseded_by_id",
+        "resolved_at",
+        "created_at",
+        "updated_at"
+      ],
+      "row_count": 2249,
+      "digest_sha256": "7527bdbca19b02e55a735e90640ed40965ebfb7d20a3165a214078f94963944e"
+    },
+    "cdi_notification_subscriptions": {
+      "columns": [
+        "id",
+        "organization_id",
+        "created_by_user_id",
+        "user_role",
+        "events",
+        "channel",
+        "target_url",
+        "secret_encrypted",
+        "active",
+        "created_at",
+        "updated_at"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cdi_provider_queries": {
+      "columns": [
+        "id",
+        "case_id",
+        "gap_id",
+        "topic",
+        "reason",
+        "query_text",
+        "response_options",
+        "evidence_document_id",
+        "evidence_quote",
+        "evidence_char_start",
+        "evidence_char_end",
+        "nlq_gate_verdict",
+        "nlq_gate_rules_evaluated",
+        "nlq_gate_rules_passed",
+        "nlq_gate_block_reasons",
+        "nlq_gate_version",
+        "lifecycle_state",
+        "priority",
+        "sla_due_at",
+        "sent_at",
+        "viewed_at",
+        "responded_at",
+        "closed_at",
+        "cdi_specialist_user_id",
+        "cdi_reviewed_at",
+        "clinician_user_id",
+        "created_by_agent_run_id",
+        "created_at",
+        "updated_at",
+        "evidence_spans"
+      ],
+      "row_count": 838,
+      "digest_sha256": "2c8fbc28d685415f0a1a5ed6786941519992f0b2a38f4127b9513186317995ac"
+    },
+    "clinical_evidences": {
+      "columns": [
+        "review_id",
+        "doc_id",
+        "doc_type",
+        "text",
+        "entity_type",
+        "supports_codes",
+        "certainty",
+        "negation",
+        "confidence",
+        "start_char",
+        "end_char",
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "clinical_facts": {
+      "columns": [
+        "id",
+        "organization_id",
+        "owner_id",
+        "interaction_id",
+        "fact_id",
+        "group_id",
+        "group_key",
+        "source",
+        "is_discarded",
+        "encrypted_text",
+        "encrypted_evidence_json",
+        "created_at",
+        "updated_at"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "code_candidates": {
+      "columns": [
+        "review_id",
+        "finding",
+        "code_system",
+        "code",
+        "name",
+        "score",
+        "chapter",
+        "evidence_ids",
+        "status",
+        "rule_checks",
+        "human_decision",
+        "human_reason",
+        "modified_code",
+        "modified_name",
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "code_mappings": {
+      "columns": [
+        "source_table_id",
+        "target_table_id",
+        "source_code",
+        "target_code",
+        "target_name",
+        "confidence",
+        "mapping_type",
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "code_tables": {
+      "columns": [
+        "name",
+        "description",
+        "code_system",
+        "version",
+        "is_active",
+        "is_default",
+        "source_type",
+        "institution",
+        "total_codes",
+        "config",
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "coding_review_runs": {
+      "columns": [
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id",
+        "created_by_user_id",
+        "agent_ref",
+        "agent_category",
+        "prediction_mode",
+        "case_id",
+        "trace_id",
+        "input_source",
+        "status",
+        "degraded",
+        "business_result_generated",
+        "manual_review_required",
+        "reason",
+        "primary_diagnosis",
+        "secondary_diagnoses",
+        "procedures",
+        "high_risk_coding_points",
+        "evidence_chain",
+        "risk_route",
+        "safety_gate",
+        "drg_route",
+        "pipeline_stages_observed",
+        "pipeline_stage_meta",
+        "human_review_records",
+        "encounter_text",
+        "encounter_text_redacted",
+        "model_version",
+        "code_dict_version",
+        "rule_version",
+        "agent_version",
+        "data_asset_version",
+        "started_at",
+        "finished_at"
+      ],
+      "row_count": 16,
+      "digest_sha256": "d7624c6b918fb7c6e373621f3eb6bd53b9e3eb65dee1f2316cccaf1e06af2dee"
+    },
+    "coding_reviews": {
+      "columns": [
+        "review_id",
+        "encounter_id",
+        "agent_version",
+        "model_used",
+        "primary_diagnosis_code",
+        "primary_diagnosis_name",
+        "primary_diagnosis_confidence",
+        "primary_diagnosis_evidence_ids",
+        "primary_diagnosis_judgment",
+        "primary_diagnosis_reasoning",
+        "main_procedure_code",
+        "main_procedure_name",
+        "main_procedure_confidence",
+        "main_procedure_evidence_ids",
+        "main_procedure_judgment",
+        "secondary_diagnoses",
+        "other_procedures",
+        "diagnosis_analysis",
+        "procedure_analysis",
+        "documentation_gaps",
+        "uncodable_items",
+        "drg_impact",
+        "human_checklist",
+        "validation_summary",
+        "report_markdown",
+        "report_html",
+        "human_review_status",
+        "reviewed_by",
+        "reviewed_at",
+        "reviewer_notes",
+        "processing_time_ms",
+        "error_message",
+        "retry_count",
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id",
+        "evidence_ranking",
+        "confidence_calibration"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "context_artifact_refs": {
+      "columns": [
+        "context_id",
+        "artifact_id",
+        "name",
+        "mime_type",
+        "url"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "context_messages": {
+      "columns": [
+        "context_id",
+        "message_id",
+        "role",
+        "parts_json",
+        "timestamp",
+        "redacted",
+        "metadata_json"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "context_task_refs": {
+      "columns": [
+        "context_id",
+        "task_id",
+        "state",
+        "started_at",
+        "completed_at"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "contexts": {
+      "columns": [
+        "id",
+        "created_at",
+        "updated_at",
+        "expires_at",
+        "agent_id",
+        "status",
+        "metadata_json",
+        "redacted_input_hash",
+        "original_input_ref",
+        "organization_id"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "conversation_memories": {
+      "columns": [
+        "user_id",
+        "expert_id",
+        "agent_id",
+        "session_id",
+        "role",
+        "content",
+        "summary",
+        "importance",
+        "key_facts",
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "customers": {
+      "columns": [
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id",
+        "display_name",
+        "customer_id",
+        "region",
+        "nfr"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "documents": {
+      "columns": [
+        "encounter_id",
+        "doc_type",
+        "title",
+        "content",
+        "doc_order",
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id"
+      ],
+      "row_count": 22,
+      "digest_sha256": "aa804ce0c170026e1671670aeb7db5970e3dda27a06120c414bca4ce53e20639"
+    },
+    "encounters": {
+      "columns": [
+        "encounter_id",
+        "patient_id",
+        "department",
+        "admission_time",
+        "discharge_time",
+        "admission_reason",
+        "discharge_summary",
+        "existing_diagnosis_codes",
+        "existing_procedure_codes",
+        "status",
+        "submitted_by",
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id"
+      ],
+      "row_count": 10,
+      "digest_sha256": "574bbdcd0c239c09e663242cdcd3814db2d8c17a99334fe328afc6b36c960165"
+    },
+    "experts": {
+      "columns": [
+        "name",
+        "description",
+        "system_prompt",
+        "icon",
+        "category",
+        "is_prebuilt",
+        "is_published",
+        "created_by",
+        "usage_count",
+        "capabilities",
+        "input_schema",
+        "output_schema",
+        "tags",
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id",
+        "canonical_key",
+        "origin",
+        "corti_alignment",
+        "pack_dir",
+        "provenance"
+      ],
+      "row_count": 30,
+      "digest_sha256": "bef3d70cd3fac90385a1ed37122ce3280207bfffc037e58560df46bcadc12108"
+    },
+    "gold_cases": {
+      "columns": [
+        "case_id",
+        "department",
+        "diagnosis_group",
+        "original_primary_diagnosis",
+        "original_primary_diag_name",
+        "original_main_procedure",
+        "original_main_proc_name",
+        "expected_principal_diagnosis",
+        "expected_principal_diag_name",
+        "expected_principal_procedure",
+        "expected_principal_proc_name",
+        "expected_secondary_diagnoses",
+        "expected_procedure_codes",
+        "expected_drg_group",
+        "acceptable_alternatives",
+        "reasoning_expectations",
+        "missing_codes",
+        "unsupported_codes",
+        "documentation_gaps",
+        "evidence_spans",
+        "full_case_data",
+        "difficulty",
+        "specialty",
+        "risk_tags",
+        "source",
+        "reviewer",
+        "review_time",
+        "agent_accuracy",
+        "last_evaluated_at",
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id"
+      ],
+      "row_count": 10,
+      "digest_sha256": "e1a0ba5a39b39538cca13f89d4311f0624741a88517ed760c75fb53b3a0d8794"
+    },
+    "guided_documents": {
+      "columns": [
+        "id",
+        "organization_id",
+        "owner_id",
+        "interaction_id",
+        "document_id",
+        "name",
+        "template_id",
+        "template_version_id",
+        "language",
+        "encrypted_string_document_json",
+        "encrypted_structured_document_json",
+        "encrypted_labels_json",
+        "encrypted_classic_sections_json",
+        "credits_consumed",
+        "is_stream",
+        "created_at",
+        "updated_at"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "guided_sections": {
+      "columns": [
+        "id",
+        "organization_id",
+        "owner_id",
+        "section_id",
+        "version_id",
+        "name",
+        "language",
+        "encrypted_definition_json",
+        "auto_generated",
+        "source",
+        "created_at",
+        "updated_at",
+        "deleted_at"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "idempotency_records": {
+      "columns": [
+        "id",
+        "organization_id",
+        "api_client_id",
+        "idempotency_key",
+        "agent_ref",
+        "context_id",
+        "request_hash",
+        "run_id",
+        "status",
+        "response_snapshot",
+        "created_at",
+        "expires_at"
+      ],
+      "row_count": 28,
+      "digest_sha256": "25a00e0bbe8ae03433ccdbf01edde303bb3d0d658e66388dba692cd6535df4e2"
+    },
+    "mcp_servers": {
+      "columns": [
+        "expert_id",
+        "name",
+        "url",
+        "transport_type",
+        "description",
+        "auth_type",
+        "auth_header",
+        "is_active",
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id",
+        "authorization_type"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "oauth_clients": {
+      "columns": [
+        "name",
+        "client_id",
+        "client_secret_hash",
+        "description",
+        "scopes",
+        "is_active",
+        "owner_id",
+        "last_used_at",
+        "token_expires_seconds",
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id",
+        "allowed_origins",
+        "embedded_app_id"
+      ],
+      "row_count": 2,
+      "digest_sha256": "d2bf477420511621681324e073936f6cdcd44a5566c1e18875eee2f6b44f4ddc"
+    },
+    "oauth_tokens": {
+      "columns": [
+        "client_id",
+        "token_hash",
+        "scopes",
+        "expires_at",
+        "is_revoked",
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id"
+      ],
+      "row_count": 12,
+      "digest_sha256": "7fe14b48156e9af11d3cbf06d97a88d9b05be03c907d4c866030e06e1c516521"
+    },
+    "organization_invite_deliveries": {
+      "columns": [
+        "organization_id",
+        "invite_id",
+        "encrypted_payload",
+        "status",
+        "attempts",
+        "next_attempt_at",
+        "locked_at",
+        "lock_id",
+        "delivered_at",
+        "last_error_code",
+        "provider_message_id_hash",
+        "id",
+        "created_at",
+        "updated_at"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "organization_invites": {
+      "columns": [
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id",
+        "email",
+        "role",
+        "token",
+        "status",
+        "expires_at",
+        "invited_by"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "organization_members": {
+      "columns": [
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id",
+        "user_id",
+        "role",
+        "is_default"
+      ],
+      "row_count": 47,
+      "digest_sha256": "cd62a12ad987e497cae52cd3108f1a76fbc6efb3ba35d489b46f5d6ba2eac43b"
+    },
+    "organizations": {
+      "columns": [
+        "id",
+        "created_at",
+        "updated_at",
+        "name",
+        "slug",
+        "plan",
+        "settings",
+        "is_active"
+      ],
+      "row_count": 50,
+      "digest_sha256": "fccb27512384fe028853a9e4292e3b0fa85d05c205b053c6bfdb4bba09efd330"
+    },
+    "original_input_audit": {
+      "columns": [
+        "id",
+        "context_id",
+        "original_input",
+        "created_at",
+        "retention_until"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "password_reset_tokens": {
+      "columns": [
+        "id",
+        "created_at",
+        "updated_at",
+        "user_id",
+        "token_hash",
+        "expires_at",
+        "is_used"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "patient_contexts": {
+      "columns": [
+        "id",
+        "organization_id",
+        "tenant_id",
+        "source_system",
+        "patient_id",
+        "encounter_id",
+        "visit_type",
+        "department_id",
+        "ward_id",
+        "clinician_id",
+        "document_ids",
+        "purpose_of_use",
+        "consent_legal_basis",
+        "trace_id",
+        "status",
+        "expires_at",
+        "created_by",
+        "created_at",
+        "updated_at"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "preview_sessions": {
+      "columns": [
+        "id",
+        "preview_session_id",
+        "organization_id",
+        "user_id",
+        "api_client_id",
+        "expected_parent_origin",
+        "expected_iframe_origin",
+        "nonce",
+        "allowed_agent_ids",
+        "allowed_scopes",
+        "jti",
+        "single_use",
+        "token_version",
+        "status",
+        "issued_at",
+        "expires_at",
+        "exchanged_at",
+        "exchanged_from_ip"
+      ],
+      "row_count": 21,
+      "digest_sha256": "a7104b72edc90c3b457085ee7caec47f140d3773544ffd5efb5210ce762eaa50"
+    },
+    "run_history": {
+      "columns": [
+        "id",
+        "organization_id",
+        "user_id",
+        "agent_id",
+        "run_id",
+        "trace_id",
+        "runtime_mode",
+        "latency_ms",
+        "cost_usd",
+        "input_text",
+        "output_summary",
+        "error",
+        "error_reason",
+        "created_at",
+        "updated_at",
+        "status",
+        "cancel_reason",
+        "cancelled_at",
+        "cancelled_by_user_id",
+        "api_client_id",
+        "embedded_app_id",
+        "session_id",
+        "context_id",
+        "request_id",
+        "idempotency_key",
+        "tenancy_classification",
+        "tenancy_attribution_source",
+        "tenancy_attribution_confidence",
+        "tenancy_attribution_migration",
+        "tenancy_attributed_at",
+        "tenancy_original_org_id",
+        "tenancy_candidate_count",
+        "trace_capture_status",
+        "trace_capture_failure_reason",
+        "trace_events_purged_at",
+        "trace_events_purged_count"
+      ],
+      "row_count": 471,
+      "digest_sha256": "9e8bcc2282f83f424090b327b378f41e4ddeddd3c7ab3a238c3cb0af44f78f2b"
+    },
+    "run_trace_events": {
+      "columns": [
+        "id",
+        "run_id",
+        "organization_id",
+        "project_id",
+        "user_id",
+        "actor_id",
+        "agent_id",
+        "step",
+        "status",
+        "duration_ms",
+        "ts",
+        "safe_metadata_json",
+        "created_at",
+        "updated_at",
+        "event_id",
+        "sequence_number",
+        "trace_id",
+        "identity_source"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "runtime_audit_records": {
+      "columns": [
+        "runtime_id",
+        "event_type",
+        "action",
+        "actor",
+        "current_state",
+        "guard_result",
+        "post_check_result",
+        "payload",
+        "immutable_hash",
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "runtime_duc_decisions": {
+      "columns": [
+        "runtime_id",
+        "action",
+        "reviewer",
+        "decision",
+        "reason",
+        "current_state",
+        "decision_hash",
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "runtime_sessions": {
+      "columns": [
+        "runtime_id",
+        "pipeline_id",
+        "review_id",
+        "agent_id",
+        "current_state",
+        "previous_state",
+        "state_entered_at",
+        "timeout_at",
+        "escalated",
+        "escalated_at",
+        "failed",
+        "failed_at",
+        "failed_reason",
+        "archived",
+        "archived_at",
+        "execution_path",
+        "total_processing_ms",
+        "error_count",
+        "content_hash",
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "runtime_transitions": {
+      "columns": [
+        "runtime_id",
+        "from_state",
+        "to_state",
+        "transition_type",
+        "actor",
+        "reason",
+        "payload",
+        "payload_hash",
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stt_interactions": {
+      "columns": [
+        "id",
+        "organization_id",
+        "owner_id",
+        "interaction_id",
+        "created_at"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stt_recordings": {
+      "columns": [
+        "id",
+        "organization_id",
+        "owner_id",
+        "interaction_id",
+        "recording_id",
+        "media_type",
+        "encrypted_content",
+        "byte_length",
+        "content_sha256",
+        "created_at"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stt_transcripts": {
+      "columns": [
+        "id",
+        "organization_id",
+        "owner_id",
+        "interaction_id",
+        "transcript_id",
+        "recording_id",
+        "encrypted_text",
+        "encrypted_request_json",
+        "status",
+        "participant_roles_json",
+        "error_code",
+        "error_detail",
+        "created_at",
+        "updated_at"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "team_invites": {
+      "columns": [
+        "email",
+        "role",
+        "invited_by",
+        "token",
+        "status",
+        "expires_at",
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "team_members": {
+      "columns": [
+        "user_id",
+        "email",
+        "name",
+        "role",
+        "status",
+        "invited_by",
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "template_versions": {
+      "columns": [
+        "id",
+        "organization_id",
+        "template_id",
+        "version_number",
+        "generation_json",
+        "snapshot_json",
+        "published_by_user_id",
+        "created_at"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "templates": {
+      "columns": [
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id",
+        "name",
+        "description",
+        "content",
+        "category",
+        "language",
+        "is_builtin",
+        "scope",
+        "deleted_at"
+      ],
+      "row_count": 405,
+      "digest_sha256": "069c334f985f8caa49a947c8bf57314650b1422d725cf3987b2afe55fd349e26"
+    },
+    "tickets": {
+      "columns": [
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id",
+        "created_by_id",
+        "subject",
+        "description",
+        "status",
+        "priority"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "token_blacklist": {
+      "columns": [
+        "id",
+        "created_at",
+        "updated_at",
+        "token_hash",
+        "user_id",
+        "expires_at",
+        "revoked_reason"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "transactions": {
+      "columns": [
+        "user_id",
+        "type",
+        "amount",
+        "balance_after",
+        "description",
+        "source",
+        "id",
+        "created_at",
+        "updated_at",
+        "organization_id"
+      ],
+      "row_count": 0,
+      "digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "users": {
+      "columns": [
+        "username",
+        "email",
+        "hashed_password",
+        "full_name",
+        "role",
+        "department",
+        "is_active",
+        "is_verified",
+        "id",
+        "created_at",
+        "updated_at",
+        "token_version"
+      ],
+      "row_count": 47,
+      "digest_sha256": "699ce5c0af5b7af5619c20ba07ceecb6b2d32badcefe244de10e53bcf995e7e9"
+    }
+  },
+  "data_preservation_mismatches": [],
+  "schema_drift": {
+    "divergences": [
+      {
+        "table": "feedback_training_authorizations",
+        "column": "created_at",
+        "type": "server_default_mismatch",
+        "orm_value": "current_timestamp",
+        "db_value": "None",
+        "detail": ""
+      },
+      {
+        "table": "feedback_training_authorizations",
+        "column": "updated_at",
+        "type": "server_default_mismatch",
+        "orm_value": "current_timestamp",
+        "db_value": "None",
+        "detail": ""
+      }
+    ],
+    "summary": {
+      "total": 2,
+      "by_type": {
+        "server_default_mismatch": 2
+      },
+      "tables_checked": 69,
+      "columns_checked": 1008
+    }
+  },
+  "checks": {
+    "source_unchanged": true,
+    "candidate_integrity_ok": true,
+    "candidate_foreign_keys_ok": true,
+    "candidate_at_single_head": true,
+    "preexisting_data_preserved": true,
+    "candidate_matches_orm": false
+  },
+  "passed": false,
+  "cutover_performed": false
+}

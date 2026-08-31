@@ -1,0 +1,304 @@
+{
+  "agent_id": "clinical-documentation-improvement-agent",
+  "run_id": "run-22710655-08d6-4ba2-aeeb-379643165670",
+  "trace_id": "trace-f8a7fab5dc444d87",
+  "trace_url": "/ai-studio/runs/run-22710655-08d6-4ba2-aeeb-379643165670/trace",
+  "runtime_mode": "cdi_real_orchestrator",
+  "latency_ms": 17094,
+  "cost": {
+    "amount": 0.00177744,
+    "currency": "CNY",
+    "source": "configured_usage_pricing_estimate",
+    "billing_authoritative": false
+  },
+  "billing": {},
+  "summary": "CDI review completed; specialist and clinician review remain required.",
+  "result": {
+    "encounter_summary": {
+      "key_points": [
+        "患者男性，60岁",
+        "主诉：乏力1月",
+        "实验室检查：Hb 65，MCV 72",
+        "血清铁 4.5，铁蛋白 8",
+        "便潜血阳性",
+        "入院诊断：贫血"
+      ],
+      "encounter_metadata": {
+        "patient_age": "60岁",
+        "patient_sex": "男性",
+        "encounter_type": "入院"
+      }
+    },
+    "documentation_gaps": [
+      {
+        "gap_id": "GAP-001",
+        "gap_type": "diagnostic_specificity",
+        "description": "贫血的病因未明确，需要进一步区分缺铁性贫血、慢性病贫血或其他类型。",
+        "why_it_matters": "贫血的病因直接影响治疗和编码，缺铁性贫血与慢性病贫血的编码不同。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "入院诊断:贫血",
+          "char_start": 51,
+          "char_end": 58,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "urgent"
+      },
+      {
+        "gap_id": "GAP-002",
+        "gap_type": "diagnostic_specificity",
+        "description": "便潜血阳性的病因未明确，需要进一步检查以确定出血部位和原因。",
+        "why_it_matters": "便潜血阳性可能提示消化道出血，需要明确病因以指导治疗和编码。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "便潜血阳性",
+          "char_start": 45,
+          "char_end": 50,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "urgent"
+      }
+    ],
+    "proposed_provider_queries": [
+      {
+        "query_id": "Q-001",
+        "gap_id": "GAP-001",
+        "topic": "贫血类型",
+        "reason": "小细胞性贫血并伴铁蛋白降低，但诊断仅记录为贫血。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "Hb 65, MCV 72。血清铁 4.5, 铁蛋白 8",
+          "char_start": 16,
+          "char_end": 44,
+          "documented_at": ""
+        },
+        "evidence_spans": [
+          {
+            "document_id": "chart-001",
+            "quote": "Hb 65, MCV 72。血清铁 4.5, 铁蛋白 8",
+            "char_start": 16,
+            "char_end": 44,
+            "documented_at": ""
+          }
+        ],
+        "query_text": "请明确本次贫血的诊断类型。",
+        "response_options": [
+          "A. 缺铁性贫血",
+          "B. 慢性病性贫血",
+          "C. 其他类型（请注明）",
+          "D. 无法确定"
+        ],
+        "lifecycle_state": "DRAFT",
+        "priority": "urgent",
+        "nlq_gate_verdict": "PASS",
+        "nlq_gate_block_reasons": []
+      },
+      {
+        "query_id": "Q-002",
+        "gap_id": "GAP-002",
+        "topic": "便潜血阳性病因",
+        "reason": "患者便潜血阳性，但未明确出血部位和原因，需进一步明确。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "便潜血阳性",
+          "char_start": 45,
+          "char_end": 50,
+          "documented_at": ""
+        },
+        "evidence_spans": [
+          {
+            "document_id": "chart-001",
+            "quote": "便潜血阳性",
+            "char_start": 45,
+            "char_end": 50,
+            "documented_at": ""
+          }
+        ],
+        "query_text": "该患者便潜血阳性的可能病因是什么？",
+        "response_options": [
+          "A. 上消化道出血（如消化性溃疡、胃炎等）",
+          "B. 下消化道出血（如结肠息肉、肿瘤等）",
+          "C. 其他原因（如药物、血管畸形等）",
+          "D. 无法确定"
+        ],
+        "lifecycle_state": "DRAFT",
+        "priority": "urgent",
+        "nlq_gate_verdict": "PASS",
+        "nlq_gate_block_reasons": []
+      },
+      {
+        "query_id": "Q-IDA-BL-b16b6923",
+        "gap_id": "GAP-001",
+        "topic": "缺铁性贫血与慢性失血的诊断关系",
+        "reason": "小细胞性贫血、铁蛋白降低并伴便潜血阳性，但贫血与慢性消化道失血的诊断关系尚未记录。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "Hb 65, MCV 72。血清铁 4.5, 铁蛋白 8",
+          "char_start": 16,
+          "char_end": 44,
+          "documented_at": ""
+        },
+        "evidence_spans": [
+          {
+            "document_id": "chart-001",
+            "quote": "Hb 65, MCV 72。血清铁 4.5, 铁蛋白 8",
+            "char_start": 16,
+            "char_end": 44,
+            "documented_at": ""
+          },
+          {
+            "document_id": "chart-001",
+            "quote": "便潜血阳性",
+            "char_start": 45,
+            "char_end": 50,
+            "documented_at": ""
+          }
+        ],
+        "query_text": "请明确本次缺铁性贫血与慢性消化道失血的诊断关系。",
+        "response_options": [
+          "A. 缺铁性贫血继发于慢性消化道失血",
+          "B. 缺铁性贫血，但现有资料不能确定与慢性消化道失血相关",
+          "C. 其他贫血病因（请注明）",
+          "D. 无法确定"
+        ],
+        "lifecycle_state": "DRAFT",
+        "priority": "routine",
+        "nlq_gate_verdict": "PASS",
+        "nlq_gate_block_reasons": []
+      }
+    ],
+    "query_gate_summary": {
+      "withheld_count": 1,
+      "status_counts": {
+        "REWRITE_CANDIDATE_GENERATED": 0
+      },
+      "manual_cdi_action_required": true
+    },
+    "coding_specificity_checklist": [],
+    "risk_flags": [
+      {
+        "category": "unsupported_diagnosis",
+        "description": "入院诊断'贫血'虽然由实验室检查支持，但缺乏贫血的病因诊断，可能被视为不完整。"
+      }
+    ],
+    "specialist_trace": [
+      {
+        "expert_id": "coding-expert",
+        "consulted": true,
+        "requested": "You are a coding-specialist Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "The clinical specificity needed is to document the definitive type of anemia—given the microcytic indices, low serum iron, and low ferritin, this is consistent with iron deficiency anemia, but the underlying cause must be stated (e.g., gastrointestinal blood loss). Additionally, the source of the positive fecal occult blood must be investigated and specified (e.g., peptic ulcer, malignancy, angiodysplasia) to complete the diagnostic picture. Without these clarifications, coding cannot accurately reflect the true disease process or the reason for admission.",
+        "route_decision": "needed",
+        "route_reason": "coding_relevant_gap",
+        "execution_mode": "LLM_KNOWLEDGE_ONLY",
+        "latency_ms": 2539,
+        "tokens": 249,
+        "run_id": "run-b2a3babadf7d",
+        "trace_id": "trace-35b75f100c43"
+      },
+      {
+        "expert_id": "pubmed-expert",
+        "consulted": false,
+        "requested": "You are a PubMed literature Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-56b793f81001",
+        "trace_id": "trace-9f9bb67504de"
+      },
+      {
+        "expert_id": "web-search-expert",
+        "consulted": false,
+        "requested": "You are a clinical web-search Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-29eacba71528",
+        "trace_id": "trace-fb67e4c3f6fd"
+      },
+      {
+        "expert_id": "medical-calculator-expert",
+        "consulted": false,
+        "requested": "You are a medical-calculator Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-4e5d4ab537c6",
+        "trace_id": "trace-3a1491959c1a"
+      }
+    ],
+    "human_review": {
+      "cdi_specialist_review_required": true,
+      "clinician_response_required": true,
+      "review_priority": "urgent"
+    },
+    "trace_refs": {
+      "run_id": "run-22710655-08d6-4ba2-aeeb-379643165670",
+      "stage_trace": {
+        "encounter_synthesis": "trace-6bbb10a31947",
+        "gap_identification": "trace-ce4af202eec3",
+        "expert_consultation": "trace-8a6a40a1e004",
+        "query_generation": "trace-7441a03e05b2",
+        "query_eligibility_gate": "",
+        "query_necessity_gate": "",
+        "query_dimension_rewrite": "",
+        "query_single_dimension_gate": "",
+        "claim_evidence_alignment_gate": "trace-5e47bc6abf03",
+        "semantic_necessity_gate": "trace-cb84ee0cce4d",
+        "query_compliance_gate": "",
+        "specialist_trace_emit": "trace-47ad51ac4a4c"
+      },
+      "experts_consulted": [
+        "coding-expert"
+      ],
+      "gate_results": {
+        "encounter_synthesis": "run-d42ff97328df",
+        "gap_identification": "run-3ea062c08ef5",
+        "gap_identification_risk_flags": "emitted=1;quote_snapped=0",
+        "expert_consultation": "run-da528c7a5a34",
+        "query_generation": "run-333abaeee82e",
+        "query_generation::quote_snapped": "0",
+        "query_generation::coverage_missing": "0",
+        "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=2;llm_complete=False;llm_reasoning=贫血的病因未明确，且便潜血阳性需要进一步临床关联，因此图表不完整。",
+        "query_necessity_gate": "necessary=2;unnecessary=0;overquery_triggered=False;final_count=3",
+        "query_dimension_rewrite": "not_executed",
+        "query_single_dimension_gate": "single_dim=3;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=type;rewrite_attempted=0;rewrite_accepted=0;final_count=3",
+        "claim_evidence_alignment_gate": "claims_extracted=7;degraded=0;blocked=0;flagged=0;final_count=3",
+        "claim_evidence_alignment_gate::run_id": "run-9315ace34afe",
+        "semantic_necessity_gate": "blocked=0;flagged=1;degraded=0;final_count=3",
+        "semantic_necessity_gate::run_id": "run-57b5d302c7da",
+        "query_compliance_gate": ";passed=3;blocked=0",
+        "specialist_trace_emit": "run-5cfda7d5dc15"
+      },
+      "trace_id": "trace-f8a7fab5dc444d87"
+    }
+  },
+  "schema_ref": "icoder/CDIAgentOutputV1/v6",
+  "result_attestation": "eyJhIjoiY2xpbmljYWwtZG9jdW1lbnRhdGlvbi1pbXByb3ZlbWVudC1hZ2VudCIsImQiOiI2NjQ3NDlmZjk5OTE5MWExMWVlZjIwZmMxMzk1ZDE0YTBkZDFkNzQzOWE5M2RlZTYyNTJmMWIzOTk5OWFkYWQ0IiwiZSI6MTc4Nzg4MjAzMywibyI6ImJjOTJlZTA2YWYwZiIsInIiOiJydW4tMjI3MTA2NTUtMDhkNi00YmEyLWFlZWItMzc5NjQzMTY1NjcwIiwicyI6Imljb2Rlci9DRElBZ2VudE91dHB1dFYxL3Y2IiwidiI6MX0.3zErB0P-vEeum2ETRgAD64RqBirf2u5Wrvlpum3_Y8M",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 17.213
+}

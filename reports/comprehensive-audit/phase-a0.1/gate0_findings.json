@@ -1,0 +1,221 @@
+{
+  "$schema": "https://icoder.cloud/schemas/audit/phase-a0.1-gate0.json",
+  "schema_version": "1.0",
+  "generated_at": "2026-07-17",
+  "generated_by": "Phase A0.1 Gate 0 — Reproduce Current Semantic Failures",
+  "audit_phase": "A0.1",
+  "gate_id": "0",
+  "report": "reports/comprehensive-audit/phase-a0.1/A0_1_00_GATE0_REPRODUCE_CURRENT_SEMANTIC_FAILURES.md",
+  "git_state": {
+    "head": "c147d015455017bc1d8420cbdbd813b3b8ec23ce",
+    "head_subject": "feat(track-h): Tier 2 Corti controlled probes — H1.2/H1.3/H1.4 close 4 UNKNOWN capability cells",
+    "branch": "master",
+    "remote": "https://github.com/EtherumFans/agentinfra.git",
+    "working_tree_entries": 97,
+    "phase_a0_committed": false,
+    "phase_7_committed": false,
+    "phase_6_committed": false,
+    "comprehensive_audit_committed": false
+  },
+  "active_secret_leaks": {
+    "backend/.env": ["SECRET_KEY=change-me-in-production", "DEBUG=true"],
+    "issue": "A0-P0-010",
+    "blocks_any_commit": true
+  },
+  "unsafe_untracked_paths": [
+    ".audit-chrome-profile/",
+    "audit-gate3-01-home.png",
+    "audit-gate3-02-agent-hub.png",
+    "audit-gate3-03-medical-coding.png",
+    "audit-gate3-04-cdi.png",
+    "audit-gate3-05-ai-studio-overview-corti-links.png",
+    "corti_console_agent_code_js.png",
+    "corti_console_agent_detail_settings.png",
+    "corti_console_agents_list.png",
+    "corti_console_api_clients.png",
+    "corti_console_billing.png",
+    "corti_console_embedded_assistant.png",
+    "corti_console_home.png",
+    "corti_console_medical_coding_variants.png",
+    "corti_console_new_agent_medical_coding.png",
+    "corti_console_prebuilt_agents.png",
+    "corti_console_usage.png",
+    "corti_embedded_assistant_code_html.png",
+    "corti_embedded_assistant_event_inspector.png",
+    "corti_embedded_assistant_react_tab.png",
+    "corti_embedded_assistant_settings_tab.png"
+  ],
+  "phase_a0_gate_docs_present": {
+    "gate0": {"file": "A0_00_BASELINE_AND_SCOPE.md", "exists": true, "committed": false},
+    "gate1": {"file": "A0_01_EVIDENCE_MANIFEST_CLOSURE.md", "exists": true, "committed": false},
+    "gate2": {"file": "A0_02_CAPABILITY_ONTOLOGY_AND_COUNTS.md", "exists": true, "committed": false},
+    "gate3": {"file": "A0_03_CORTI_EVIDENCE_REGRADING.md", "exists": true, "committed": false},
+    "gate4": {"file": "A0_04_PARITY_MATRIX_V2_1.md", "exists": true, "committed": false},
+    "gate5": {"file": "A0_05_CANONICAL_ISSUE_LEDGER.md", "exists": true, "committed": false},
+    "gate6": {"file": "A0_06_PRODUCT_MATURITY_TRUTHFULNESS.md", "exists": true, "committed": false},
+    "gate7": {"file": "A0_07_CANONICAL_ARCHITECTURE_V2.md", "exists": true, "committed": false},
+    "gate8": {"file": "A0_08_REMEDIATION_ROADMAP_AND_PHASE_A1_ENTRY.md", "exists": true, "committed": false},
+    "gate9": {"file": "A0_09_EXECUTIVE_SUMMARY_AND_FINAL_DECISION.md", "exists": true, "committed": false}
+  },
+  "phase_a0_json_artifacts": {
+    "validator_lists_count": 8,
+    "executive_summary_claims_count": 9,
+    "discrepancy_reason": "Executive summary counts phase_a0_validation.json (the validator OUTPUT) as the 9th artifact; validator correctly counts only INPUTS.",
+    "artifacts": [
+      "evidence_manifest.v2.json",
+      "evidence_manifest.public.json",
+      "evidence_manifest.pre_a0.snapshot.json",
+      "capability_ontology.json",
+      "parity_matrix_v2_1.json",
+      "issue_ledger.json",
+      "product_maturity.json",
+      "architecture_v2.json"
+    ]
+  },
+  "parity_matrix_counts": {
+    "array_actual_total": 59,
+    "summary_claimed_total": 51,
+    "summary_claimed_by_status_sum": 55,
+    "summary_claimed_by_status": {
+      "PARITY": 9,
+      "PARTIAL_PARITY": 7,
+      "ICODER_ADVANTAGE": 11,
+      "CORTI_ADVANTAGE": 12,
+      "DIFFERENT_BY_DESIGN": 3,
+      "OUT_OF_SCOPE": 4,
+      "NOT_IMPLEMENTED": 4,
+      "EVIDENCE_INSUFFICIENT": 4,
+      "ICODER_TECH_DEBT": 1
+    },
+    "actual_by_status_from_parity_status_field": {
+      "PARITY": 9,
+      "PARTIAL_PARITY": 6,
+      "ICODER_ADVANTAGE": 11,
+      "CORTI_ADVANTAGE": 17,
+      "DIFFERENT_BY_DESIGN": 3,
+      "OUT_OF_SCOPE": 3,
+      "NOT_IMPLEMENTED": 4,
+      "EVIDENCE_INSUFFICIENT": 5,
+      "ICODER_TECH_DEBT": 1
+    },
+    "validator_recorded": {
+      "total_dimensions": 59,
+      "status_counts": {"UNKNOWN": 59},
+      "pass": true,
+      "bug": "validator reads dim.get('status') but JSON field is 'parity_status'; pass threshold is len >= 40 regardless of UNKNOWN collapse"
+    }
+  },
+  "issue_ledger_counts": {
+    "array_actual_total": 91,
+    "array_actual_by_severity": {
+      "P0-S": 12, "P0-C": 2, "P0-D": 4, "P0-T": 6, "P0_aggregate": 24,
+      "P1": 27, "P2": 28, "P3": 12
+    },
+    "gate5_narrative_claims": {"P0": 23, "P1": 23, "P2": 24, "P3": 12, "sum": 82, "narrative_text_says": 75},
+    "gate5_subclass_arithmetic": {"P0-S": 10, "P0-C": 2, "P0-D": 5, "P0-T": 6, "sum": 23},
+    "gate9_headline_claims": {"P0": 24, "P1": 27, "P2": 28, "P3": 12, "sum": 91},
+    "roadmap_gate8_claims": {"P0": 23, "P1": 23, "P2": 24, "P3": 12, "sum": 82},
+    "coverage_check_total_unique_after_dedup": 75,
+    "explicit_duplicates_count": 5,
+    "mathematical_inconsistency": "91 - 5 = 86, not 75; the 75 number has no derivation",
+    "validator_pass_because": "expected counts hardcoded to 91/24/27/28/12 which match the array but not the Gate 5 narrative"
+  },
+  "validator_self_attestation_bugs": {
+    "check_final_decision_enumerated": {
+      "bug": "Scans for substring of any of 5 allowed verdicts in the gate9 markdown. Gate9 §7 enumerates all 5 as candidates, so all 5 substring-match. Pass=True because len(found) >= 1. Does NOT verify that exactly one verdict was selected in §9 Final Decision block."
+    },
+    "check_parity_matrix_dimensions": {
+      "bug": "Reads dim.get('status') but JSON field is 'parity_status'. All 59 dims collapse to UNKNOWN. Pass threshold is len >= 40, so PASS regardless of UNKNOWN."
+    },
+    "check_hard_checkpoints_pass": {
+      "bug": "Searches gate doc text for 'HARD_CHECKPOINT_X_PASS' marker and 'Hard Checkpoint X: ✅ PASS' string. The gate doc writes both strings about itself; validator confirms. Loop: report self-asserts → validator confirms."
+    },
+    "check_no_placeholders_in_v2_manifest": {
+      "bug": "Regex matches only '(per-file)', 'pending write', 'TODO', '<TBD>', 'TBD'. Does NOT match 'NOT_YET_CAPTURED', 'EMPTY_DIR', 'NOT_WRITTEN', 'NOT_VERIFIED'. Concludes 0 placeholders while 16+ such markers remain."
+    }
+  },
+  "v2_manifest_placeholders_remaining": {
+    "NOT_YET_CAPTURED_hashes": [
+      "evidence_index.commands[0].sha256 (gate0/git_rev_parse_head.txt)",
+      "evidence_index.commands[1].sha256 (gate0/git_status_short.txt)",
+      "evidence_index.commands[2].sha256 (gate0/git_remote_v.txt)"
+    ],
+    "EMPTY_DIRS": [
+      "phase7/gate13a/test-results/",
+      "phase7/gate13a/screenshots/",
+      "phase7/gate13a/console-logs/",
+      "phase7/gate13a/network-audit/",
+      "phase7/gate13a/sanitized-har/",
+      "phase7/gate13a/playwright-traces/",
+      "phase7/gate13a/storage-audit/",
+      "evidence/architecture/"
+    ],
+    "future_tense_violations": [
+      "evidence_index.security[0].note: 'Phase A0 Gate 5 will inherit ...'",
+      "evidence_index.architecture[0].note: 'Phase A0 Gate 7 will populate'",
+      "evidence_grade_index.grades_to_add_in_phase_a0 (Phase A0 is closed; cannot add later)"
+    ]
+  },
+  "gate13a_real_evidence_files": {
+    "reports/phase7/gate13a/": [
+      "PHASE7_GATE13A_BASELINE.md",
+      "PHASE7_GATE13A_FINAL_REPORT.md",
+      "PHASE7_GATE13A_THREAT_MODEL.md"
+    ],
+    "docs/corti_parity/phase7_gate13a/": ["e2e_widget_interactive.png"],
+    "screenshots_actual": 0,
+    "console_logs_actual": 0,
+    "network_audit_actual": 0,
+    "sanitized_har_actual": 0,
+    "playwright_traces_actual": 0,
+    "storage_audit_actual": 0,
+    "test_results_actual": 0,
+    "implication": "A0-P0-018 and A0-P0-019 evidence_grade=E7 cannot hold without independent negative browser evidence; must downgrade to IMPLEMENTATION_REPORTED + MITIGATION_NOT_INDEPENDENTLY_REVERIFIED"
+  },
+  "medical_coding_l8_claim": {
+    "source": "product_maturity.json CN-01 current_maturity=L8_QUALITY_BENCHMARKED",
+    "rationale_claimed": "Phase 5 Track H ran 40-case Corti calibration + 201 iCoDer baseline",
+    "rationale_invalid": "Track H is calibration/prompt-tuning; same dataset retuned per iteration; NOT a held-out benchmark; no tests/regression/test_f1_baseline.py against frozen 201-case fixture exists",
+    "contradicts_issue": "A0-P0-013 (P0-C): 'Only F1@1=0.15 on 5-case smoke; no 201-case baseline'",
+    "correct_maturity": "SMOKE_ONLY"
+  },
+  "roadmap_priority_and_verdict_failures": {
+    "wrong_p0_priorities": [
+      "A0-P0-004 Payment Processor (Stripe/Alipay/WeChat) — commercial, not security blocker",
+      "A0-P0-009 npm publish — commercial, not security blocker",
+      "A0-P0-021 npm signing — supply chain hygiene, NOT primary security blocker"
+    ],
+    "forbidden_verdicts_in_roadmap": [
+      "Month 13 PARTNER_PRODUCTION_READY achievable",
+      "Month 14 COMMERCIAL_GA"
+    ],
+    "must_replace_with": "CONDITIONAL_TARGET_PENDING_ENTRY_CRITERIA",
+    "count_mismatch_vs_ledger": {
+      "P0_claimed": 23, "P0_actual": 24,
+      "P1_claimed": 23, "P1_actual": 27,
+      "P2_claimed": 24, "P2_actual": 28,
+      "P3_claimed": 12, "P3_actual": 12
+    }
+  },
+  "temporary_verdict": "FAIL_PHASE_A0_OVERALL_PASS_INVALIDATED",
+  "blocked_by": [
+    "PARITY_MATRIX_SEMANTIC_INVALID",
+    "VALIDATOR_SELF_ATTESTING_LOOP",
+    "FINAL_DECISION_SELECTION_AMBIGUOUS",
+    "PLACEHOLDER_RESOLUTION_INCOMPLETE",
+    "GATE_13A_SECURITY_CLOSURE_UNEVIDENCED",
+    "PRODUCT_MATURITY_L8_OVERCLAIMED",
+    "ROADMAP_PRIORITY_AND_VERDICTS_INVALID",
+    "LEDGER_COUNT_TRIALLY_INCONSISTENT",
+    "BASELINE_NON_REPRODUCIBLE_UNCOMMITTED"
+  ],
+  "preserved_from_phase_a0": [
+    "Execution Plane / Domain Runtime / Platform Core 3-layer separation",
+    "Agent Pack Catalog (not Expert Hierarchy)",
+    "CDI Workflow Gates (not pseudo-experts)",
+    "Reinstated Secret / Tenant / PHI / Cost / Trace / Audit + clinical quality concerns",
+    "Retirement of composite parity percentages (59% / 77% / 90%)",
+    "40+ correct canonical issues with real evidence"
+  ],
+  "next_action": "Phase A0.1 Gate 1 — Audited Fileset and Baseline Snapshot"
+}

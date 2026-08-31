@@ -1,0 +1,120 @@
+{
+  "schema_version": "icoder.streams-keyterms-current-contract-phase/v1",
+  "generated_at": "2026-08-25T10:06:06+08:00",
+  "status": "passed_development_scope",
+  "official_contract_observed": {
+    "source": "https://docs.corti.ai/api-reference/streams",
+    "observed_on": "2026-08-25",
+    "primary_diarization_field": "diarize",
+    "legacy_diarization_field_accepted": "isDiarization",
+    "keyterms_max_items": 1000,
+    "keyterm_max_characters": 50,
+    "keyterms_case_sensitive": true,
+    "keyterms_ordered": true
+  },
+  "scope": {
+    "current_diarize_wire_shape": true,
+    "legacy_isDiarization_input_compatible": true,
+    "streams_keyterms_accepted": true,
+    "keyterms_forwarded_to_funasr_hotword": true,
+    "keyterms_content_logged_or_telemetried": false,
+    "diarization": false,
+    "real_stt_used": false,
+    "real_llm_used": false,
+    "real_patient_audio_used": false,
+    "production_ready_claimed": false
+  },
+  "tests": {
+    "focused_backend_after_remediation": {"passed": 67, "failed": 0},
+    "streams_api_boundary": {"passed": 40, "failed": 0},
+    "full_backend": {
+      "passed": 5568,
+      "skipped": 20,
+      "deselected": 11,
+      "failed": 0,
+      "seconds": 1590.14
+    },
+    "javascript_sdk": {"passed": 95, "failed": 0},
+    "python_sdk": {"passed": 101, "failed": 0},
+    "dotnet_net8": {"passed": 82, "failed": 0},
+    "dotnet_net10": {"passed": 82, "failed": 0},
+    "deployment_preflight": {"passed": 95, "failed": 0},
+    "loopback_websocket": {
+      "status": "passed",
+      "sdk_executions": 3,
+      "multichannel_execution": true,
+      "keyterms_accepted": true
+    },
+    "first_full_backend_run": {
+      "passed": 5563,
+      "failed": 4,
+      "cause": "empty keyterms keyword was forwarded through the prerecorded telemetry wrapper and broke four legacy monkeypatch signatures",
+      "remediation": "omit the optional keyword when no keyterms are supplied"
+    }
+  },
+  "evidence": {
+    "full_backend_junit": {
+      "path": "reports/streams_keyterms_phase_20260825/full_backend_remediated_junit.xml",
+      "size_bytes": 820215,
+      "sha256": "a2b89aba1b2e6a44f614e1625a8e84860df21a6eece88913ff81b389be7731bd"
+    },
+    "loopback_e2e": {
+      "path": "reports/streams_keyterms_phase_20260825/loopback_e2e.json",
+      "size_bytes": 4339,
+      "sha256": "77f1389736a478c5f03caae2d183c0073c6707f7f7c55136d4be80fe95e0018b"
+    },
+    "deployment_preflight": {
+      "path": "reports/deployment/streams_keyterms_phase_20260825/deployment_preflight.json",
+      "size_bytes": 8600,
+      "sha256": "5c7ebd02c110d06a1a2956d5de2f78eab29bae7ab8c4bb945a8d6f1c8df6a93a"
+    },
+    "release_candidate_validation": {
+      "path": "reports/streams_keyterms_phase_20260825/release_candidate_validation.json",
+      "size_bytes": 2021,
+      "sha256": "fe583e66c05085492ab932dec6efbc7aa5f7e29d97969d452a7f8260e6f96f21"
+    }
+  },
+  "release_candidate": {
+    "published": false,
+    "javascript": "1.0.0-beta.38",
+    "python": "1.0.0b38",
+    "dotnet": "1.0.0-beta.38",
+    "artifact_directory": "C:/codex-artifacts/release-b38-streams-keyterms-current-shape",
+    "artifacts": [
+      {"name": "icoder-sdk-1.0.0-beta.38.tgz", "size_bytes": 73048, "sha256": "bb31842b9ee0e2077a1d2d704ae1c72b26861756aabbc7d612279c32c4fc9566"},
+      {"name": "icoder_sdk-1.0.0b38-py3-none-any.whl", "size_bytes": 57731, "sha256": "702f9889d90b5bcaf91106c8a4087a53743ed039ebed73b1dcccc7c84bec20d5"},
+      {"name": "icoder_sdk-1.0.0b38.tar.gz", "size_bytes": 81581, "sha256": "99d049a316e8653ef7d887afad60aa38141e2ec644872edef137d28b53c8b228"},
+      {"name": "iCoDer.Sdk.1.0.0-beta.38.nupkg", "size_bytes": 420076, "sha256": "6caf271bcd95eb67f7ee1e805fdc154904dc3f94bd9c287dc43f9123244f5f7e"},
+      {"name": "iCoDer.Sdk.1.0.0-beta.38.snupkg", "size_bytes": 90054, "sha256": "95e91fedf76a06e00405a598f6e4974c1040b442914c49642faff5b5f999c9d9"},
+      {"name": "release-candidate-b38-streams-keyterms-current-shape.json", "size_bytes": 1819, "sha256": "9b34931ea6af3ec164b8aebef64a4aced3ad10791ef22e3ecb60b72342089555"}
+    ]
+  },
+  "source_hashes": {
+    "backend/app/schemas/v2_tools_streams.py": "44e4506023c70b2d82af2997b670acfc4378ec2f597e4834265672d8864c38c8",
+    "backend/app/services/ambient_processing.py": "846cf2c486dc9a0090e9f429570c4ae946508562915c9e16089920f365af234f",
+    "backend/app/services/stt_service.py": "1d52545b6e22ba5d187d4c6804fd4f1b2e68b5aab7fd05d0cc8e076bbaac0195",
+    "backend/app/api/v2_tools_streams.py": "8cf2ab04b74e5b643fe6d908d8cec7226f16022d71714b5d256d05df221b64d1",
+    "backend/scripts/streams_multichannel_e2e_client.py": "2470ee121bac20765bc9437da3527fe428136760fc2f4fd2e97cbb22aa32cccc",
+    "backend/scripts/corti_parity/validate_deployment_candidate.py": "9565c2b753ebddd4d074dbda12f5fedaa2100b30a493c2f83cd7da9a299ad89c",
+    "packages/icoder-sdk/src/managed-streams-session.ts": "4f30428fa473182ac5bb20bda7d3054716495ce28336e68e87aa4d92e9e99a86",
+    "packages/icoder-python/icoder_sdk/managed_streams_session.py": "9192d695e8405f8232ab1a5d38c622eb1bce54c2552fd95f09965d81a13f6136",
+    "packages/icoder-dotnet/src/Icoder.Sdk/StreamsSession.cs": "bfeb65d4d1d4c508680f7155a65caf09b546ec7e421d408c67e9d961fb5bfcb3",
+    "packages/icoder-dotnet/src/Icoder.Sdk/StreamsResource.cs": "e57c22a000c62fab533262c926a03ace9103baf4eb75633af4209a5a84ee522b"
+  },
+  "protected_database": {
+    "path": "E:/Corti4C/backend/data/icoder.db",
+    "size_bytes": 8536064,
+    "last_write_local": "2026-08-22T17:16:22+08:00",
+    "sha256": "2f1e5af01aac020cdd0eadac51b3ea65ba5b2e714d9f6ea3707992e829692877",
+    "unchanged": true
+  },
+  "open_gates": {
+    "diarization": "fail_closed",
+    "real_keyterm_accuracy": "not_tested",
+    "real_cn_medical_asr": "not_tested",
+    "corti_head_to_head": "not_tested",
+    "strict_live_provider_agents": "0/26",
+    "clinical_calibration_real_runs": "0/50",
+    "clinical_and_production_validation": "0/26"
+  }
+}

@@ -1,0 +1,223 @@
+{
+  "schema_version": "icoder.governed-claim-check-phase-evidence/v1",
+  "generated_at": "2026-08-24T17:25:39.1362059+08:00",
+  "status": "development_candidate_slice_passed_external_gates_open",
+  "agent": {
+    "agent_id": "claim-check",
+    "agent_ref": "icoder/claim-check@1.1.0",
+    "provider": "icoder.governed-claim-check.v1",
+    "backend_type": "rule_engine",
+    "runtime_mode": "governed_local_documented_claim_review",
+    "output_contract": "icoder/ClaimCheckOutput/v4",
+    "required_output_fields": 29,
+    "field_relations": 4,
+    "evidence_bindings": 1,
+    "example_evidence_items": 27,
+    "network_required": false,
+    "llm_required": false,
+    "external_knowledge_used": false,
+    "clinical_support_assessed": false,
+    "medical_necessity_assessed": false,
+    "benefit_eligibility_determined": false,
+    "code_assignment_performed": false,
+    "drg_dip_grouping_performed": false,
+    "manual_review_required": true,
+    "production_submission_blocked": true,
+    "production_writeback_blocked": true
+  },
+  "verification": {
+    "focused_provider_projector_redaction_matrix_and_connector": {
+      "passed": 82,
+      "failed": 0
+    },
+    "offline_agent_run_relation_binding_and_preflight_tests": {
+      "passed": 127,
+      "failed": 0
+    },
+    "broad_regression": {
+      "selected": 1161,
+      "passed": 1156,
+      "skipped": 5,
+      "deselected": 6,
+      "failed": 0,
+      "duration_seconds": 500.53,
+      "scope": [
+        "backend/tests/unit/icoder/backends",
+        "backend/tests/unit/icoder_runtime",
+        "backend/tests/unit/corti_parity",
+        "backend/tests/unit/icoder/orchestrator/test_phi_redactor.py",
+        "backend/tests/integration/icoder",
+        "backend/tests/test_api/test_phase4f_agent_run.py"
+      ]
+    },
+    "loopback_http": {
+      "transport": "real_loopback_http",
+      "happy": {"passed": 18, "failed": 0},
+      "adversarial": {"passed": 18, "failed": 0},
+      "reference": {
+        "passed": 18,
+        "failed": 0,
+        "quality_scope": "pack_owned_synthetic_reference_semantics_not_independent_clinical_gold"
+      },
+      "stability": {
+        "passed": 108,
+        "failed": 0,
+        "fresh_http_runs": 108,
+        "seeded_artifacts": 0,
+        "repetitions": 3,
+        "p95_seconds": 0.227
+      }
+    },
+    "field_relation_replay": {
+      "passed": true,
+      "agents": 19,
+      "relations": 84,
+      "detected_adversarial_assertions": 216,
+      "expected_adversarial_assertions": 216
+    },
+    "evidence_binding_replay": {
+      "passed": true,
+      "agents": 14,
+      "bindings": 23,
+      "detected_adversarial_assertions": 46,
+      "expected_adversarial_assertions": 46
+    },
+    "schema_generator_dry_run": {
+      "visible_agents": 1,
+      "changed_agents": []
+    },
+    "contract_compatibility": {
+      "passed": true,
+      "visible_contracts": 26,
+      "registered_contracts": 124,
+      "new_refs": [],
+      "changed_refs": [],
+      "invalid_refs": [],
+      "duplicate_refs": []
+    },
+    "corti_catalog_gate": {
+      "passed": true,
+      "expected_corti_agents": 20,
+      "catalog_mapped": 20,
+      "development_verified": 20,
+      "china_profile_declared": 20,
+      "clinical_quality_verified": 0,
+      "production_ready_verified": 0
+    },
+    "deployment_preflight": {
+      "passed": true,
+      "checks": 90,
+      "failed": 0,
+      "limitations_recorded": 11
+    },
+    "runtime_matrix": {
+      "visible_agents": 26,
+      "provider_resolvable": 26,
+      "launch_candidate_ready": 26,
+      "external_llm_required": 8,
+      "external_llm_optional": 1,
+      "pure_local": 17,
+      "local_baseline": 18,
+      "local_semantic_verified": 18,
+      "strict_live_provider_verified": 0,
+      "production_ready_verified": 0,
+      "field_relations": 84,
+      "evidence_bindings": 23,
+      "registered_visible_contracts": 26
+    }
+  },
+  "regressions_found_and_closed": [
+    {
+      "id": "claim_amount_label_double_redaction",
+      "finding": "The broad Chinese NAME detector treated the structural phrase 申报总金额 as a person name and corrupted it again at the second redaction boundary, shifting exact evidence spans.",
+      "resolution": "Claim and billing amount labels are protected as structural phrases; redacting the full Chinese claim example is now idempotent.",
+      "verification": "First pass detects NAME, INSURANCE_NO and PROVIDER_ID; second pass makes no change; focused suite 82/82 and broad regression 1156/1156 pass."
+    },
+    {
+      "id": "connector_static_claim_fixture_not_bound_to_redacted_input",
+      "finding": "The internal Agent Connector test returned a static unredacted example while the route validated evidence against redacted input.",
+      "resolution": "The Connector test now invokes the production GovernedClaimCheckProvider so output evidence is constructed from the actual route-redacted input.",
+      "verification": "Internal registry-to-Agent Connector integration and Claim Check A2A evidence binding pass."
+    }
+  ],
+  "artifact_hashes": {
+    "agent_pack.json": "270f941122ae2ae9b728e21ff8153b8680acf6f4a3c1da502624b295cad83786",
+    "agent.py": "dbd4eb924c9a9bddbb71143bf0dc37d6779272d1644ea08afb8b389d2d3dd35d",
+    "governed_claim_check_provider.py": "687a3111a6a947ae6498762415d63351493cf332bbeb4cac0905ab5a148b5943",
+    "output_contract_registry.json": "bce1d5d0ec20f11db438b7aed7bf696178b0203898274bfd3f4e3d00fca6b99f",
+    "phi_redactor.py": "a0f2fecd2e8967a8630b64dc594fd73710c00e370fc6f4064fcfe7b446bfba06",
+    "agent_hub_examples_e2e.json": "3b9436a867908d0b30e1f4264ddd780df75d54a4a9d047852bcc29bfd1a8f593",
+    "agent_hub_adversarial_e2e.json": "ca7f1145145253c0afdb70423c5d0d6800d36aedc798d8fb189abd06177ceac3",
+    "agent_hub_reference_quality_replay.json": "73305e265c399426263b46ead789124ddb3519d43c788f0b942cff430234c7ca",
+    "agent_hub_stability_benchmark.json": "b977e36f2e9a175aca68d7af21776cde97c8501fb7ffff48e9c12975b40a0ad8",
+    "agent_hub_local_semantic_evidence_bundle.json": "f38c29413df5d6e91278eda6bca811363fff5d546afc07d144149ebb4fa004b0",
+    "agent_hub_runtime_matrix.json": "0f4a751dc31b7059cca2e3e1b05e1ba663b32b846fe59b6c9b73b2a5d522e184",
+    "agent_hub_field_relation_replay.json": "8d632d1f88f3f2c70cbdea4717c13e8eb64d721942f49b53fa372d4f37094d90",
+    "agent_hub_evidence_binding_replay.json": "f707ba92a41f324d83442d92fc5a72ad11ab4bc27e3927c9ec7ccdc7643707e7",
+    "deployment_preflight.json": "529466e369e00b7d73c6b9ddb0178d89693b994ce2dfa0b32d1ca896e9aa1708",
+    "corti_prebuilt_agent_parity.json": "93f9eea183116fc54a3a9be439d964ce1799bd4a4140f2002cf601c61936f130"
+  },
+  "database_recovery": {
+    "incident": "A one-off TestClient diagnostic set ICODER_DATABASE_URL instead of the standalone application's DATABASE_URL and therefore opened the development database during startup.",
+    "accidental_state": {
+      "bytes": 9117696,
+      "sha256": "d4f274888c803e5de928e3c8059eb1f9e291d54c762b9a6f524fab2989f80825",
+      "observed_changes": "14 seeded Agent rows and 11 create_all tables beyond the 041 baseline",
+      "recoverable_backup": "C:\\Temp\\icoder-claim-check\\accidental-dev-db-after-testclient-20260824-165304.db"
+    },
+    "pre_incident_baseline": {
+      "bytes": 8536064,
+      "sha256": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e",
+      "revision": "041",
+      "tables": 59,
+      "agents": 122
+    },
+    "recovery_source": "reports/agent_hub/feedback_training_authorization_phase_20260822/sqlite-reconciliation-final/icoder.source-snapshot.db",
+    "recovery_evidence": "The prior read-only reconciliation report proves identical source/snapshot table counts and all preexisting table fingerprints with no data preservation mismatch.",
+    "final_state": {
+      "integrity_check": "ok",
+      "bytes": 8536064,
+      "sha256": "2f1e5af01aac020cdd0eadac51b3ea65ba5b2e714d9f6ea3707992e829692877",
+      "revision": "041",
+      "tables": 59,
+      "agents": 122,
+      "logical_state_restored": true,
+      "original_byte_layout_hash_restored": false
+    }
+  },
+  "operational_findings": {
+    "e_drive_free_mib_after_phase": 10030.95,
+    "backend_processes_or_watched_listeners_remaining": false,
+    "memory_access_violation_observed_during_phase": false,
+    "native_medcoder_disabled": true,
+    "local_stt_disabled": true,
+    "real_llm_used": false,
+    "external_network_used_by_e2e": false,
+    "llm_environment_key_lengths_process_user_machine": 0
+  },
+  "corti_public_comparators": [
+    "https://docs.corti.ai/coding/revenue-cycle",
+    "https://docs.corti.ai/llms.txt"
+  ],
+  "claims_not_proven": [
+    "a_publicly_named_Corti_Claim_Check_agent_equivalent",
+    "unlabelled_narrative_or_multi_document_claim_synthesis",
+    "documentation_supported_code_prediction_or_assignment",
+    "original_billed_claim_to_supported_code_comparison",
+    "HCC_DRG_or_DIP_impact_analysis",
+    "payer_policy_retrieval_or_authoritative_policy_validation",
+    "medical_necessity_coverage_or_benefit_eligibility_determination",
+    "denial_prediction_or_payment_determination",
+    "claim_submission_amendment_or_writeback",
+    "real_hospital_payer_or_claims_interoperability",
+    "strict_26_agent_live_provider_semantic_quality",
+    "Corti_product_or_model_equivalence",
+    "independent_clinical_coding_or_payer_quality",
+    "production_cloud_readiness",
+    "legal_regulatory_or_certification_approval"
+  ],
+  "real_llm_used": false,
+  "independent_clinical_gold_used": false,
+  "corti_parity_proven": false,
+  "hospital_acceptance_proven": false
+}

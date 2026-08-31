@@ -1,0 +1,273 @@
+{
+  "agent_id": "medical-coding-agent",
+  "run_id": "run-8eb4655a-55b6-400b-b5f5-2b18c292de2d",
+  "trace_id": "trace-f4965322e0354e62",
+  "trace_url": "/ai-studio/runs/run-8eb4655a-55b6-400b-b5f5-2b18c292de2d/trace",
+  "runtime_mode": "corti_like_fast",
+  "latency_ms": 7440,
+  "cost": {
+    "amount": 0.000364,
+    "currency": "CNY",
+    "source": "provider_token_usage",
+    "token_usage": {
+      "input_tokens": 1384,
+      "output_tokens": 607
+    }
+  },
+  "billing": {},
+  "summary": "主要诊断明确为骨质疏松性椎体压缩骨折，但编码精度需人工核对。手术编码未要求，故未提供。",
+  "result": {
+    "encounter_summary": {
+      "chief_complaint": "",
+      "treatment_course": "",
+      "key_findings": [],
+      "document_sources": [],
+      "encounter_date": ""
+    },
+    "documentation_analysis": {
+      "diagnosis_evidence": [],
+      "procedure_evidence": [],
+      "negated_findings": [],
+      "historical_conditions": []
+    },
+    "code_assignment": {
+      "primary_diagnosis": {
+        "code": "M80.08",
+        "description": "骨质疏松性椎体压缩骨折（T12）",
+        "confidence": 0.95,
+        "category": "principal",
+        "evidence": [
+          {
+            "text": "History: osteoporosis for 5 years",
+            "kind": "auto_bootstrap"
+          },
+          {
+            "text": "MRI: T12 vertebral compression fracture, approximately 40% height loss",
+            "kind": "auto_bootstrap"
+          },
+          {
+            "text": "Admission diagnosis: T12 vertebral compression fracture",
+            "kind": "auto_bootstrap"
+          }
+        ]
+      },
+      "secondary_diagnoses": [
+        {
+          "code": "I10",
+          "description": "原发性高血压",
+          "confidence": 0.95,
+          "category": "comorbidity",
+          "evidence": [
+            {
+              "text": "essential hypertension for 10 years",
+              "kind": "auto_bootstrap"
+            }
+          ]
+        },
+        {
+          "code": "E11.9",
+          "description": "2型糖尿病",
+          "confidence": 0.9,
+          "category": "comorbidity",
+          "evidence": [
+            {
+              "text": "type 2 diabetes for 5 years",
+              "kind": "auto_bootstrap"
+            }
+          ]
+        }
+      ],
+      "procedures": []
+    },
+    "documentation_gaps": [],
+    "uncodable_items": [],
+    "validation_summary": {
+      "passed": false,
+      "issues_found": [
+        {
+          "severity": "medium",
+          "code": "RULE-001",
+          "message": "主要诊断编码M80.08为4位编码，但ICD-10-CN中M80.0为骨质疏松伴病理性骨折，需进一步细分至5位以明确部位。建议使用M80.08（骨质疏松伴病理性骨折，其他部位）或更精确的M80.08x具体部位编码。",
+          "suggestion": "请核对病历中是否明确骨折部位为T12，若明确，建议使用M80.08x（如M80.08x012）以精确编码。"
+        },
+        {
+          "severity": "low",
+          "code": "RULE-002",
+          "message": "2型糖尿病未特指并发症，使用E11.9（未特指并发症），但病历未提及并发症，可接受。",
+          "suggestion": "若病历中无并发症描述，E11.9可接受，但建议确认是否有糖尿病相关并发症记录。"
+        }
+      ],
+      "manual_review_required": true,
+      "rule_set": "MedCodERRetrievalRuleSet",
+      "fired_rules": [
+        "RULE-001",
+        "RULE-002"
+      ]
+    },
+    "human_review": {
+      "review_conclusion": "WARNING",
+      "review_required": true,
+      "review_focus": [],
+      "notes": "主要诊断明确为骨质疏松性椎体压缩骨折，但编码精度需人工核对。手术编码未要求，故未提供。"
+    },
+    "trace_refs": {
+      "run_id": "run-8eb4655a-55b6-400b-b5f5-2b18c292de2d",
+      "stage_trace": [],
+      "rule_fired": [
+        "RULE-001",
+        "RULE-002"
+      ],
+      "mode": "Mode.UNSET",
+      "method_id": "",
+      "provider": "",
+      "model": "",
+      "trace_id": "trace-f4965322e0354e62"
+    },
+    "codes": [
+      {
+        "code": "M80.08",
+        "system": "ICD-10-CN",
+        "display": "骨质疏松性椎体压缩骨折（T12）",
+        "type": "primary_diagnosis",
+        "confidence": 0.95,
+        "evidence": "History: osteoporosis for 5 years; MRI: T12 vertebral compression fracture, approximately 40% height loss; Admission diagnosis: T12 vertebral compression fracture",
+        "rationale": "主要诊断 — 基于病历证据的优先编码候选,需结合 ICD-10-CN 本地目录复核具体亚目。",
+        "warnings": [
+          "需结合国家医保版 ICD-10-CN 目录进一步校验具体亚目"
+        ],
+        "alternatives": []
+      },
+      {
+        "code": "I10",
+        "system": "ICD-10-CN",
+        "display": "原发性高血压",
+        "type": "secondary_diagnosis",
+        "confidence": 0.95,
+        "evidence": "essential hypertension for 10 years",
+        "rationale": "次要诊断 (comorbidity) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。",
+        "warnings": [
+          "需结合 ICD-10-CN 本地目录进一步校验具体亚目"
+        ],
+        "alternatives": []
+      },
+      {
+        "code": "E11.9",
+        "system": "ICD-10-CN",
+        "display": "2型糖尿病",
+        "type": "secondary_diagnosis",
+        "confidence": 0.9,
+        "evidence": "type 2 diabetes for 5 years",
+        "rationale": "次要诊断 (comorbidity) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。",
+        "warnings": [
+          "需结合 ICD-10-CN 本地目录进一步校验具体亚目"
+        ],
+        "alternatives": []
+      }
+    ],
+    "manual_review_required": true
+  },
+  "schema_ref": "icoder/MedicalCodingAgentOutputV2/v8",
+  "result_attestation": "eyJhIjoibWVkaWNhbC1jb2RpbmctYWdlbnQiLCJkIjoiZTAxNmViYWIzODJmZTFmN2U2NDdhYmQ0N2ZhODI2Njg0OWQyYmI4ZDA1MWYzNjAzNGZkZTI0YTEzMzhkN2QwNyIsImUiOjE3ODc4ODI1MTksIm8iOiJiYzkyZWUwNmFmMGYiLCJyIjoicnVuLThlYjQ2NTVhLTU1YjYtNDAwYi1iNWY1LTJiMThjMjkyZGUyZCIsInMiOiJpY29kZXIvTWVkaWNhbENvZGluZ0FnZW50T3V0cHV0VjIvdjgiLCJ2IjoxfQ.SCOcBLZ_OhIUbMA3n-ZKhMda6ID1jBTz8qWy1EEaMKU",
+  "evidence": [
+    {
+      "code": "M80.08",
+      "system": "ICD-10-CN",
+      "type": "primary_diagnosis",
+      "text": "History: osteoporosis for 5 years; MRI: T12 vertebral compression fracture, approximately 40% height loss; Admission diagnosis: T12 vertebral compression fracture",
+      "rationale": "主要诊断 — 基于病历证据的优先编码候选,需结合 ICD-10-CN 本地目录复核具体亚目。"
+    },
+    {
+      "code": "I10",
+      "system": "ICD-10-CN",
+      "type": "secondary_diagnosis",
+      "text": "essential hypertension for 10 years",
+      "rationale": "次要诊断 (comorbidity) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。"
+    },
+    {
+      "code": "E11.9",
+      "system": "ICD-10-CN",
+      "type": "secondary_diagnosis",
+      "text": "type 2 diabetes for 5 years",
+      "rationale": "次要诊断 (comorbidity) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。"
+    }
+  ],
+  "warnings": [
+    "需结合国家医保版 ICD-10-CN 目录进一步校验具体亚目",
+    "需结合 ICD-10-CN 本地目录进一步校验具体亚目",
+    "需结合 ICD-10-CN 本地目录进一步校验具体亚目"
+  ],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "input_received",
+      "status": "ok",
+      "ts": 1787796111.8945088,
+      "duration_ms": 0,
+      "metadata": {
+        "text_len": 600,
+        "mode": "corti_like_fast"
+      }
+    },
+    {
+      "step": "language_detect",
+      "status": "ok",
+      "ts": 1787796111.8945088,
+      "duration_ms": 0,
+      "metadata": {
+        "language": "en"
+      }
+    },
+    {
+      "step": "build_prompt",
+      "status": "ok",
+      "ts": 1787796111.8945088,
+      "duration_ms": 0,
+      "metadata": {
+        "provider": "deepseek",
+        "language": "en",
+        "system": "icd-10-cn"
+      }
+    },
+    {
+      "step": "llm_call",
+      "status": "ok",
+      "ts": 1787796119.3322499,
+      "duration_ms": 7440,
+      "metadata": {
+        "provider": "deepseek",
+        "model": "deepseek-chat",
+        "is_mock": false
+      }
+    },
+    {
+      "step": "parse_json",
+      "status": "ok",
+      "ts": 1787796119.3322499,
+      "duration_ms": 7440,
+      "metadata": {}
+    },
+    {
+      "step": "project_result",
+      "status": "ok",
+      "ts": 1787796119.3322499,
+      "duration_ms": 7440,
+      "metadata": {
+        "code_count": 3
+      }
+    },
+    {
+      "step": "return",
+      "status": "ok",
+      "ts": 1787796119.3322499,
+      "duration_ms": 7440,
+      "metadata": {
+        "latency_ms": 7440,
+        "code_count": 3
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 7.963
+}

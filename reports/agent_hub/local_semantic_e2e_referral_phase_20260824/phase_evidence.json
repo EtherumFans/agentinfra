@@ -1,0 +1,171 @@
+{
+  "schema_version": "icoder.governed-referral-generator-phase-evidence/v1",
+  "generated_at": "2026-08-24T06:12:27.1189816Z",
+  "status": "development_candidate_slice_passed_external_gates_open",
+  "agent": {
+    "agent_id": "referral-gen",
+    "agent_ref": "icoder/referral-gen@1.1.0",
+    "provider": "icoder.governed-referral.v1",
+    "output_contract": "icoder/ReferralOutput/v3",
+    "network_required": false,
+    "llm_required": false,
+    "manual_review_required": true,
+    "production_transmission_blocked": true,
+    "production_writeback_blocked": true
+  },
+  "verification": {
+    "focused_tests": {"passed": 141, "failed": 0},
+    "referral_a2a_tests": {"passed": 2, "failed": 0},
+    "all_visible_agent_offline_safety_tests": {"passed": 78, "failed": 0},
+    "broad_regression": {
+      "selected": 1113,
+      "passed": 1108,
+      "skipped": 5,
+      "deselected": 6,
+      "failed": 0,
+      "duration_seconds": 798.89,
+      "scope": [
+        "backend/tests/unit/icoder/backends",
+        "backend/tests/unit/icoder_runtime",
+        "backend/tests/unit/corti_parity",
+        "backend/tests/integration/icoder",
+        "backend/tests/test_api/test_phase4f_agent_run.py"
+      ]
+    },
+    "loopback_http": {
+      "transport": "real_loopback_http",
+      "happy": {"passed": 16, "failed": 0},
+      "adversarial": {"passed": 16, "failed": 0},
+      "reference": {"passed": 16, "failed": 0},
+      "stability": {"passed": 96, "failed": 0, "fresh": 96, "seeded": 0, "repetitions": 3}
+    },
+    "field_relation_replay": {
+      "passed": true,
+      "agents": 18,
+      "relations": 74,
+      "detected_adversarial_assertions": 184,
+      "expected_adversarial_assertions": 184
+    },
+    "evidence_binding_replay": {
+      "passed": true,
+      "agents": 12,
+      "bindings": 21,
+      "detected_adversarial_assertions": 42,
+      "expected_adversarial_assertions": 42
+    },
+    "schema_generator_dry_run": {"visible_agents": 26, "changed_agents": []},
+    "contract_compatibility": {
+      "passed": true,
+      "visible_contracts": 26,
+      "registered_contracts": 120,
+      "new_refs": [],
+      "changed_refs": [],
+      "invalid_refs": [],
+      "duplicate_refs": []
+    },
+    "corti_catalog_gate": {
+      "passed": true,
+      "expected_corti_agents": 20,
+      "catalog_mapped": 20,
+      "development_verified": 20,
+      "china_profile_declared": 20,
+      "clinical_quality_verified": 0,
+      "production_ready_verified": 0
+    },
+    "deployment_preflight": {"passed": 90, "failed": 0, "limitations_recorded": 11},
+    "runtime_matrix": {
+      "visible_agents": 26,
+      "external_llm_required": 10,
+      "external_llm_optional": 1,
+      "pure_local": 15,
+      "local_baseline": 16,
+      "local_semantic_verified": 16,
+      "strict_live_provider_verified": 0,
+      "production_ready_verified": 0,
+      "field_relations": 74,
+      "evidence_bindings": 21,
+      "registered_visible_contracts": 26
+    }
+  },
+  "regressions_found_and_closed": [
+    {
+      "id": "original_input_audit_clock_collision",
+      "finding": "Consecutive audit writes could share the same Windows wall-clock timestamp and collide on the primary key.",
+      "resolution": "Runtime-generated audit IDs now use independent UUIDv4 values; caller-supplied replay/import IDs remain supported.",
+      "verification": "same-timestamp deterministic regression plus full broad suite"
+    },
+    {
+      "id": "referral_parity_contract_field_drift",
+      "finding": "The Corti catalog gate still referenced two retired flat ReferralOutput/v2 field names.",
+      "resolution": "The mapping now checks ReferralOutput/v3 top-level receiving_party and missing_supporting_items fields.",
+      "verification": "Corti catalog development gate 20/20 and deployment preflight 90/90"
+    },
+    {
+      "id": "stale_hub_and_runtime_test_assumptions",
+      "finding": "Tests treated Referral Generator as revenue-cycle and exposed its provider-internal mode as the API runtime mode.",
+      "resolution": "Tests now follow the authoritative care_coordination classification and public rule_engine mode.",
+      "verification": "targeted 4/4 followed by the full broad suite"
+    }
+  ],
+  "artifact_hashes": {
+    "agent_pack.json": "ef27a1cc2241a93a04e324c9a4e17df3945e18a7badb9b2028450bb543e5a6c7",
+    "agent.py": "95f6f64797c3ae49988299b4d36aa6111e95ed08bf14c2031fa853a5e2de2230",
+    "governed_referral_provider.py": "e23380e1e122d3297c972b5b4ef356696c3b4bceeb4c1b64b3ba901bf5af3365",
+    "output_contract_registry.json": "a89fe260cf125ce5a671e6657378d798fbc85b486a2b2ce15ad7810eec12f8d0",
+    "corti_prebuilt_agent_catalog.json": "de1ea4d03e948a647eda16f7435b50734d3986f9ed42a9d5406fbd2162266af8",
+    "context_audit.py": "fcfd0959b114d9a6026a05194bbf58f00b4f3417b68c68f8db32bd2af07b594e",
+    "agent_hub_examples_e2e.json": "508eef8b2ed0b94a29f176baa84511ac432886b338ff54d91a45ea704f204b9e",
+    "agent_hub_adversarial_e2e.json": "1627be6660034d78da24648314ebe7adb24d5bfc7f098c5d38e50b600160206d",
+    "agent_hub_reference_quality_replay.json": "706203548c9a31c3b84aeaf2d0dd2deb3adb567c4ff37f211dc3eb859c822fd1",
+    "agent_hub_stability_benchmark.json": "342b721ed3dc4a8bbad9886c03dc5e11d4ce4fbfc255c9a408b31282632ee3bd",
+    "agent_hub_local_semantic_evidence_bundle.json": "8055e33395a28596cb6222d81e4be02b2cbb50909c55ed53413169df69a2672b",
+    "agent_hub_runtime_matrix.json": "489f6c9d83d32711120befff81f61e8f97349368bdc03479a27cdab8b3b0f4dd",
+    "agent_hub_field_relation_replay.json": "e892403e0ade2cbf541c706ea028c40821508f55ef1c42757deeaee899c21b86",
+    "agent_hub_evidence_binding_replay.json": "893def62fb90f5bb9560662226ce199c287cda339131466e5ba970d418a935e2",
+    "deployment_preflight.json": "ccf34318ead38fc99ba7a97291c3d5cadfd74ad93fa9820db211d05d98149d52",
+    "corti_prebuilt_agent_parity.json": "0d185117cfb616221455e726daeb613bedb8fd1eac4319f12f111d0f02c516f3"
+  },
+  "protected_database": {
+    "path": "backend/data/icoder.db",
+    "bytes": 8536064,
+    "sha256": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e",
+    "revision": "041",
+    "source_head": "056",
+    "modified_by_phase": false
+  },
+  "operational_findings": {
+    "e_drive_free_mib_before_cleanup": 0.66,
+    "disposable_test_database_files_moved_to_c_temp": 35,
+    "disposable_test_database_bytes_moved": 68247552,
+    "disposable_test_database_recovery_path": "C:/Users/huawei/AppData/Local/Temp/icoder-disposable-test-dbs-20260824-referral-cleanup/",
+    "files_deleted": 0,
+    "broad_regression_database": "C:/Users/huawei/AppData/Local/Temp/icoder_referral_broad_regression_green_20260824.db",
+    "memory_access_violation_observed": false,
+    "uvicorn_started_for_broad_regression": false,
+    "real_llm_used": false
+  },
+  "corti_public_comparators": [
+    "https://www.corti.ai/agents/referral-generator-agent",
+    "https://corti.ai/agents",
+    "https://docs.corti.ai/textgen/templates-standard",
+    "https://corti.ai/text-generation"
+  ],
+  "claims_not_proven": [
+    "unlabelled_narrative_referral_synthesis",
+    "multi_document_chart_synthesis",
+    "clinical_relevance_selection_or_intent_inference",
+    "specialty_template_quality",
+    "regional_referral_platform_delivery_or_receipt_tracking",
+    "strict_26_agent_live_provider_semantic_quality",
+    "corti_product_or_model_equivalence",
+    "independent_clinical_quality",
+    "hospital_acceptance_or_interoperability",
+    "production_cloud_readiness",
+    "legal_regulatory_or_certification_approval"
+  ],
+  "real_llm_used": false,
+  "external_network_used_by_e2e": false,
+  "independent_clinical_gold_used": false,
+  "corti_parity_proven": false,
+  "hospital_acceptance_proven": false
+}

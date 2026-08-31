@@ -1,0 +1,145 @@
+{
+  "schema_version": "icoder.openinference-provider-telemetry/v1",
+  "generated_at": "2026-08-22T17:50:39+08:00",
+  "result": "passed_with_dedicated_runtime_otlp_and_external_release_gates_open",
+  "official_evidence": {
+    "url": "https://docs.corti.ai/agentic/guides/export-traces.md",
+    "retrieved_at": "2026-08-22T17:47:53+08:00",
+    "http_status": 200,
+    "utf8_bytes": 3708,
+    "sha256": "c0185cd104d29e71638863841a3b0c21d2949e0b2200a2b86530bb725d0a76cd",
+    "observed_contract": {
+      "context_trace_path": "/v2/agentic/contexts/{context_id}/trace",
+      "newest_first": true,
+      "maximum_page_size": 200,
+      "opaque_page_token": true,
+      "total_size_currently_populated": false,
+      "example_attributes": [
+        "llm.token_count.total",
+        "tool.name",
+        "input.value"
+      ]
+    }
+  },
+  "implementation": {
+    "root_span_kind": "AGENT",
+    "llm_span_kind": "LLM",
+    "tool_span_kind": "TOOL",
+    "standard_attributes": [
+      "session.id",
+      "llm.provider",
+      "llm.system",
+      "llm.model_name",
+      "llm.token_count.prompt",
+      "llm.token_count.completion",
+      "llm.token_count.total",
+      "llm.cost.total",
+      "llm.finish_reason",
+      "tool.name",
+      "tool.id"
+    ],
+    "provider_registry_pure_llm_telemetry": true,
+    "provider_registry_multi_round_llm_telemetry_aggregated": true,
+    "connector_tool_telemetry": true,
+    "gateway_selected_provider_provenance": true,
+    "missing_telemetry_fabricated": false,
+    "invalid_counts_normalized_to_zero": false,
+    "bounded_ascii_model_identifiers_only": true,
+    "input_value_exported": false,
+    "output_value_exported": false,
+    "raw_provider_payload_exported": false,
+    "china_medical_minimum_necessary_policy_preserved": true
+  },
+  "tests": {
+    "focused_initial_diagnostic": {
+      "passed": 82,
+      "failed": 1,
+      "failure": "non-ASCII model identifier was accepted by Python isalnum",
+      "resolved": true
+    },
+    "focused_provider_trace_export": {
+      "passed": 83,
+      "failed": 0,
+      "duration_seconds": 3.72
+    },
+    "provider_backend_and_preflight": {
+      "passed": 311,
+      "failed": 0,
+      "duration_seconds": 5.52
+    },
+    "expanded_initial_diagnostic": {
+      "passed": 677,
+      "failed": 2,
+      "failures": [
+        "one non-reproduced A2A validated-stream artifact timing failure",
+        "one stale cloud-mode positive test fixture missing current mandatory security settings"
+      ],
+      "all_failures_resolved": true
+    },
+    "a2a_endpoint_isolated_recheck": {
+      "passed": 43,
+      "failed": 0,
+      "duration_seconds": 22.47
+    },
+    "final_expanded_a2a_provider_runtrace_security": {
+      "passed": 679,
+      "failed": 0,
+      "warnings": 100,
+      "duration_seconds": 159.77
+    },
+    "openapi": {
+      "paths": 270,
+      "schemas": 290,
+      "bytes": 851708,
+      "drift": false
+    },
+    "deployment_preflight": {
+      "passed": 74,
+      "failed": 0,
+      "mode": "static_without_docker_cli"
+    },
+    "sdk_contract_change_required": false,
+    "real_llm_used": false,
+    "real_asr_used": false,
+    "external_llm_allowed": false,
+    "native_medcoder_used": false,
+    "independent_backend_started_or_restarted": false
+  },
+  "data_safety": {
+    "schema_change": false,
+    "source_database_path": "backend/data/icoder.db",
+    "source_database_sha256": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e",
+    "source_database_unchanged": true,
+    "cutover_performed": false,
+    "port_8000_listening_after_verification": false
+  },
+  "artifacts": {
+    "runtime_matrix": {
+      "path": "reports/agent_hub/visible_launch_candidate_enforcement_phase_20260822/current/agent_hub_runtime_matrix.json",
+      "sha256": "0e4cb75433af9c6af2d680d0b6af28cdd6ff1e9897b3366cff71ddc3648d7865"
+    },
+    "deployment_preflight": {
+      "path": "reports/agent_hub/openinference_provider_telemetry_phase_20260822/deployment-preflight/deployment_preflight.json",
+      "sha256": "d502f1117c351a4a9053fe9f5c55fbf338408b4f56e5073a360807b7288b1d94"
+    },
+    "openapi": {
+      "path": "docs/openapi/openapi.json",
+      "sha256": "a095196fe81a671d8c94f57ece85831d9346490deb5c49e5cf2b05cb661a8cfe"
+    },
+    "summary": {
+      "path": "docs/corti_parity/ICODER_OPENINFERENCE_PROVIDER_TELEMETRY_PHASE_SUMMARY_2026-08-22.md",
+      "sha256": "99cbe1bf84c1674ac2a69d18f8ddf81c5c3be877218e1a15a96ec8b8943f5794"
+    },
+    "live_gap_matrix": {
+      "path": "docs/corti_parity/CORTI_ICODER_LIVE_GAP_MATRIX_2026-08-21.md",
+      "sha256": "8adb841f11b4ef28d536c1c72eaa8800f6a54e7d3952441c3ac590119fcc6604",
+      "bytes": 34561
+    }
+  },
+  "limitations": [
+    "This phase proves OpenInference-shaped Context API projection, not OTLP Collector push, W3C cross-service propagation, or production APM/SIEM acceptance.",
+    "Provider Registry Pure LLM, LLM-with-tools, and Connector telemetry are covered; dedicated Medical Coding, CDI, and ASR runtimes still require end-to-end standard telemetry coverage.",
+    "The China-medical minimum-necessary policy intentionally omits input.value, output.value, clinical text, tool arguments/results, and reasoning content even though Corti documents input.value as an example.",
+    "No real-provider clinical run, bilateral Corti trace comparison, dotnet, Docker, Nginx, PostgreSQL multi-replica, cloud, hospital, legal, certification, or independent review was executed."
+  ]
+}

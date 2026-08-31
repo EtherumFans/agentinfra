@@ -1,0 +1,86 @@
+{
+  "schema_version": "icoder.agent-hub-clone-projection-phase/v1",
+  "date": "2026-08-23",
+  "result": "development_clone_identity_and_projection_gate_passed_with_customized_clone_execution_gap_open",
+  "closed_gaps": [
+    "hub_visible_agent_clone_no_longer_requires_development_db_seed",
+    "hidden_or_non_launch_candidate_pack_cannot_be_cloned",
+    "registry_projection_is_complete_and_pack_mastered",
+    "registry_projection_field_drift_is_detected_and_repaired",
+    "custom_and_unmanaged_seed_agents_are_excluded_from_registry_orphan_checks",
+    "development_seed_does_not_overwrite_registry_managed_rows",
+    "repeated_startup_registry_sync_is_idempotent"
+  ],
+  "tests": {
+    "clone_and_registry_projection_focused": {"passed": 15, "failed": 0},
+    "hub_discovery_tenant_startup_cross_surface": {"passed": 96, "failed": 0},
+    "backend_default_safe_full": {
+      "passed": 5168,
+      "skipped": 20,
+      "deselected": 11,
+      "failed": 0,
+      "seconds": 1720.64,
+      "default_exclusions": ["heavy", "retrieval", "infra"]
+    },
+    "frontend_agent_hub_contract": {"passed": 17, "failed": 0},
+    "frontend_production_build": {"passed": true},
+    "openapi_drift_check": {"passed": true},
+    "deployment_candidate_preflight": {
+      "passed": 81,
+      "failed": 0,
+      "artifact": "preflight/deployment_preflight.json"
+    }
+  },
+  "startup_idempotency_evidence": {
+    "broad_seed_updated": 5,
+    "registry_managed_seed_skipped": 27,
+    "registry_sync_repaired": 0,
+    "registry_sync_failed": 0
+  },
+  "runtime_matrix": {
+    "hub_visible_agents": 26,
+    "visible_executable": 26,
+    "visible_provider_resolvable": 26,
+    "visible_launch_candidate_ready": 26,
+    "visible_external_llm_dependent": 20,
+    "visible_external_llm_optional": 1,
+    "visible_local_only_execution": 5,
+    "visible_local_baseline_available": 6,
+    "visible_semantic_live_e2e_verified": 0,
+    "visible_production_ready_verified": 0,
+    "artifact": "runtime_matrix/agent_hub_runtime_matrix.json"
+  },
+  "corti_public_comparison": {
+    "sources": [
+      "https://corti.ai/agents",
+      "https://docs.corti.ai/agentic/quickstart"
+    ],
+    "supported_public_claims": [
+      "prebuilt_agents_can_be_deployed_or_configured",
+      "system_prompt_experts_custom_logic_tools_and_integrations_are_customizable",
+      "projects_can_create_agents_and_send_messages_through_the_agentic_api"
+    ]
+  },
+  "material_open_gap": {
+    "id": "customized_clone_execution_not_yet_source_runtime_equivalent",
+    "severity": "P0",
+    "evidence": [
+      "AgentChatPage derives the source runtime agent id from source_agent_ref",
+      "direct project-agent-id execution synthesizes a generic DB Agent Pack",
+      "no E2E currently proves cloned prompt or Expert changes affect source-specific execution"
+    ],
+    "not_claimed": [
+      "corti_clone_or_customization_semantic_parity",
+      "concurrent_multiworker_clone_uniqueness",
+      "production_readiness"
+    ]
+  },
+  "final_safety_state": {
+    "protected_database_sha256": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e",
+    "protected_database_hash_matches_expected": true,
+    "current_process_icoder_credential_length": 0,
+    "current_process_deepseek_key_length": 0,
+    "protected_port_listener_count": 0,
+    "python_or_uvicorn_process_count": 0
+  }
+}

@@ -1,0 +1,162 @@
+{
+  "schema": "icoder.strict-warning-native-worker-stability/v1",
+  "generated_at": "2026-08-23T01:10:00+08:00",
+  "phase": "strict_warning_gate_native_worker_handshake_and_confidence_bounds",
+  "conclusion": {
+    "default_backend_suite": "passed_under_strict_project_warning_gate",
+    "development_release_gate": "closed",
+    "visible_agent_runtime_matrix": "26_of_26_launch_candidate_ready",
+    "project_owned_runtime_deprecation_sqlite_utc_jwt_warnings": 0,
+    "third_party_warnings": 1,
+    "corti_capability_equivalence": "not_proven",
+    "clinical_production_approval": "not_granted"
+  },
+  "strict_warning_policy": [
+    "RuntimeWarning",
+    "DeprecationWarning",
+    "jwt.warnings.InsecureKeyLengthWarning"
+  ],
+  "tests": {
+    "final_uninterrupted_default_backend_suite": {
+      "passed": 5001,
+      "skipped": 20,
+      "deselected": 11,
+      "failed": 0,
+      "warnings": 1,
+      "duration_seconds": 1115.11,
+      "exit_code": 0,
+      "remaining_warning": "third-party StarletteDeprecationWarning requesting httpx2"
+    },
+    "initial_runtime_warning_strict_full_suite": {
+      "passed": 4997,
+      "skipped": 20,
+      "deselected": 11,
+      "failed": 0,
+      "warnings": 568,
+      "duration_seconds": 2471.06
+    },
+    "utc_sqlite_jwt_strict_matrix": {
+      "passed": 441,
+      "skipped": 1,
+      "failed": 0,
+      "warnings": 1,
+      "duration_seconds": 174.81
+    },
+    "runtime_bridge_regression": {
+      "passed": 48,
+      "failed": 0,
+      "runtime_warnings": 0
+    },
+    "native_worker_related_matrix": {
+      "passed": 20,
+      "skipped": 1,
+      "failed": 0
+    },
+    "native_worker_protocol_repeat": {
+      "runs": 5,
+      "passed": 40,
+      "failed": 0
+    },
+    "legacy_test_helper_repeat": {
+      "runs": 3,
+      "passed": 18,
+      "skipped": 3,
+      "failed": 0
+    },
+    "medcoder_score_and_strategy_matrix": {
+      "passed": 100,
+      "failed": 0
+    },
+    "deployment_preflight": {
+      "passed": 79,
+      "failed": 0,
+      "mode": "static_without_docker_cli"
+    },
+    "runtime_matrix": {
+      "visible": 26,
+      "launch_candidate_ready": 26,
+      "provider_registry_routes": 21,
+      "dedicated_routes": 5,
+      "legacy_default_routes": 0,
+      "not_ready": 0
+    }
+  },
+  "long_run_defects_exposed_and_closed": [
+    {
+      "defect": "raw HTTP text test used deprecated httpx data parameter",
+      "evidence_before_fix": "failed after 288 passes under strict DeprecationWarning",
+      "fix": "raw malformed JSON now uses content= without changing API behavior"
+    },
+    {
+      "defect": "Windows MedCodER worker startup time was counted against a fixed request timeout",
+      "evidence_before_fix": "worker response timed out after 2525 passes",
+      "fix": "explicit STARTUP_READY/STARTUP_ERROR handshake and separate 60 second startup probe boundary"
+    },
+    {
+      "defect": "legacy test client bypassed the production worker startup handshake",
+      "evidence_before_fix": "round-trip returned empty after 2294 passes",
+      "fix": "all direct worker test clients consume readiness before starting the five second request clock"
+    },
+    {
+      "defect": "raw FAISS inner-product score escaped as negative ProcedureEntry confidence",
+      "evidence_before_fix": "confidence was -0.009217244572937489 after 2493 passes",
+      "fix": "all retrieval and rerank boundaries map non-finite to zero and clamp public confidence to [0,1]"
+    }
+  ],
+  "implementation": {
+    "async_bridges": {
+      "cdi_coroutine_constructed_only_after_loop_detection": true,
+      "coding_expert_rejects_sync_call_before_coroutine_construction": true
+    },
+    "time_and_database": {
+      "datetime_utcnow_remaining_in_project_python": 0,
+      "explicit_sqlite_datetime_adapter": true,
+      "timezone_aware_runtime_contract_timestamps": true,
+      "naive_sql_columns_preserved_via_aware_utc_clock_conversion": true
+    },
+    "test_secret_isolation": {
+      "host_or_developer_secret_used_by_pytest": false,
+      "pytest_only_hs256_key_meets_minimum_length": true
+    },
+    "native_medcoder": {
+      "startup_ready_signal": true,
+      "startup_error_signal": true,
+      "default_probe_timeout_seconds": 60,
+      "request_timeout_starts_after_ready_in_tests": true,
+      "confidence_output_range": "0_to_1",
+      "nan_or_infinity_output": 0.0
+    }
+  },
+  "data_safety": {
+    "external_llm_allowed": false,
+    "llm_provider": "mock",
+    "real_llm_key_used": false,
+    "native_medcoder_loaded": false,
+    "listen_ports_8000_18022": 0,
+    "source_database": {
+      "path": "backend/data/icoder.db",
+      "sha256": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e",
+      "changed_by_phase": false
+    }
+  },
+  "artifacts": [
+    {"path": "backend/app/icoder/agent_runtime/cdi/real_runner.py", "bytes": 35830, "sha256": "e3bd48a7d4b333443e5b0519725b1d63d320c54f8b48f5d96a80ad89ef6d8e44"},
+    {"path": "backend/app/database.py", "bytes": 4339, "sha256": "d7e82834e311e24ee7949d7b325335d9578a25a73863df3a1f09d7526fb8c5d7"},
+    {"path": "backend/icoder_runtime/providers/medical_coding/medcoder_retriever.py", "bytes": 42076, "sha256": "f008a03c522c40c3be7b89b91de4a12e7f022d122f11dac5ba967aa5854bae2c"},
+    {"path": "backend/icoder_runtime/providers/medical_coding/medcoder_strategy.py", "bytes": 55071, "sha256": "bfcd97022e172ac90bd589b6a58284a2ea6809a610468610e1d47490f5bdebe0"},
+    {"path": "backend/scripts/corti_parity/validate_deployment_candidate.py", "bytes": 94229, "sha256": "c11d49350c580e9f15bc719d95f13f3e62fe4b774676c235c700c02563f87129"},
+    {"path": "reports/deployment/full_backend_release_gate_20260823/deployment_preflight.json", "bytes": 6812, "sha256": "98e60f45937b490dfc8a6437b4ab449c771e3a2eb52bcb0dc27c3274fdb6bf84"},
+    {"path": "reports/agent_hub/strict_warning_native_worker_phase_20260823/runtime_matrix/agent_hub_runtime_matrix.json", "bytes": 230658, "sha256": "cdf3f1a1b82b1a1c55b415f1810e7f110b2077ada8b4b64293a72a4c30650e11"}
+  ],
+  "open_development_debt": [
+    "migrate the FastAPI TestClient compatibility layer from httpx to httpx2 after the pinned framework stack supports it",
+    "fresh current real-provider 26-Agent happy, adversarial and repeated stability evidence remains absent",
+    "historical real-provider semantic replay remains 22_of_26 against the current reference gate"
+  ],
+  "external_gates": [
+    "independent blinded clinical gold-set review",
+    "hospital HIS EMR PACS and China coding or payment rule integration validation",
+    "production cloud image build SBOM vulnerability signature KMS HA capacity disaster recovery and SLA",
+    "penetration testing legal licensing certification and independent reviewer approval"
+  ]
+}

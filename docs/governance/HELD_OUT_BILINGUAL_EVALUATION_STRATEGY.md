@@ -31,10 +31,14 @@
 3. **国家临床重点专科病例模板** (公开教学用，中文)
 
 **质控**:
-- 每个 case 由 2 名团队成员独立构造，第 3 名仲裁
-- 编码必须通过 `icd10cn_code_catalog.json` (37,897 码) 验证
+- 工程团队只负责构造 PHI-free 平行病历，不得直接把自身 expected code 提升为独立 gold
+- 每个 case 使用不含 `expected_*`、旧 evidence、notes 或模型输出的盲化包，由至少 2 名独立合格编码 reviewer 分别标注；任何分歧由第 3 名独立合格 adjudicator 裁决
+- reviewer/adjudicator 身份、资质、签字、机构独立性和利益冲突必须由外部临床治理 owner 核验
+- 所有诊断和术式必须通过当前固定哈希 ICD-10-CN / ICD-9-CM-3 目录成员校验，并分别绑定中英文病历中的逐字 evidence span
 - 平行 zh+en 翻译必须由医学英语背景者审核
 - 显式标注 `construction_method: synthetic` + `phi_status: phi-free`
+
+当前可执行工作流为 `backend/scripts/corti_parity/bilingual_coding_gold_review.py`；2026-08-27 已生成首份 5-case reviewer readiness bundle，但尚无外部 reviewer 提交，因此 `independent_gold_ready=false`。
 
 **Phase A 出口**: 30 cases 覆盖 10 个科室 + 4 类任务。
 
@@ -78,11 +82,11 @@
 
 | Case ID | 科室 | Primary Dx | Primary Proc | Secondary Count |
 |---|---|---|---|---|
-| HOBV1-001 | 骨科 | S22.000 T12 骨折 | 81.01 切开复位内固定 | 3 |
-| HOBV1-002 | 普外 | K35.900 急性阑尾炎 | 47.01 腹腔镜阑尾切除 | 0 |
-| HOBV1-003 | 呼吸 | J18.900 CAP | (无) | 2 |
+| HOBV1-001 | 骨科 | S22.000 T12 骨折（待独立裁决父/子码） | 03.5301 脊椎骨折切开复位内固定 | 3 |
+| HOBV1-002 | 普外 | K35.800x001 急性单纯性阑尾炎 | 47.0100 腹腔镜阑尾切除 | 0 |
+| HOBV1-003 | 呼吸 | J18.900 CAP | (无) | 1 |
 | HOBV1-004 | 内分泌 | E11.100 T2DM DKA | (无) | 0 |
-| HOBV1-005 | 心内 | I21.100 下壁 STEMI | 36.06 PCI+DES | 3 |
+| HOBV1-005 | 心内 | I21.100 下壁 STEMI | 36.0601 药物涂层支架植入 | 2 |
 
 **覆盖评估**:
 - ✅ 4 类任务: dx + procedure + chronic comorbidity + acute complication
@@ -93,29 +97,18 @@
 
 ---
 
-## 4. Runner 支持计划
+## 4. Runner 与 reviewer 工作流现状
 
-当前 runner **仅支持中文 + ccl2026_train_gold.json 结构**:
+当前开发校准 runner 已支持双语 5×2，但仍必须区分工程校准与独立 gold：
 
 | Runner | 输入结构 | 是否支持双语 |
 |---|---|---|
 | `e2e_medcoder_validation.py` | CCL 2026 gold_cases | ❌ |
 | `e2e_runtime_validation.py` | CCL 2026 gold_cases | ❌ |
+| `run_agent_hub_clinical_calibration_e2e.py` | 40 CDI + 5 coding × zh/en | ✅，串行 50 次、真实 Trace/签名门；当前 coding expected 仍为工程校准标签 |
+| `bilingual_coding_gold_review.py` | 盲化 5-case packet + reviewer/adjudication artifacts | ✅，不调用模型；外部 reviewer 尚未完成 |
 
-**改造选项**（不在 R2 范围内）:
-
-**Option A** — 新建 `e2e_bilingual_validation.py`
-- 读取 `held_out_bilingual_v1.json`
-- 对 zh / en 分别跑 MedCodER full pipeline
-- 输出 per-language F1@1/2/5 + cross-language consistency metric
-- 可加 `--cases` flag 指定文件路径
-
-**Option B** — 扩展现有 runner 支持 fixture format flag
-- `e2e_medcoder_validation.py --fixture held_out_bilingual_v1.json --lang zh`
-- 优点: 复用 4-variant ablation 逻辑
-- 缺点: 双语并跑需求无法表达
-
-**推荐 Option A**，理由: 双语评测本质上是不同任务（不同语言不同 LLM 路径），分开 runner 更清晰。在 R2 后续 sub-gate（R2.4 / R2.5）实现。
+双语 runner 已输出 principal exact、secondary set F1、procedure exact、evidence anchor、跨语言代码集合一致性和人工复核门。任何 accuracy/Corti claim 仍必须等待 reviewer workflow 的完整外部提交与身份核验，并在 100+ 合法病例上重跑；5-case 工程标签通过不构成解禁。
 
 ---
 
@@ -123,7 +116,7 @@
 
 为避免范围蔓延，以下**明确不在 R2 范围内**:
 
-1. **不实现 R2.4 runner 脚本** — 当前 5 cases 无需 runner（手工跑 + 目检即可）。≥30 cases 时再实现。
+1. **不把 5-case runner 结果外推为准确率** — runner 与 reviewer 工具已实现，但样本规模、独立性和医院分布均未满足。
 2. **不修改现有 CCL 2026 fixture** — 现有 runner 依赖原结构，不动。
 3. **不修改 MedCodER / HybridCodingAdapter** — R2 是评测策略，不动产品代码。
 4. **不在 marketing / README 引用新 fixture 的 F1 数字** — `EVALUATION_CITATION_POLICY.md` §2 rule 5 明确禁止。
@@ -158,5 +151,5 @@
 
 ---
 
-**文档版本**: 1.0（2026-08-06 初始创建）
-**R2 状态**: PARTIAL_R2_HOLD_OUT_STRATEGY_FILED_5_OF_100_CASES_PHASE_A_NOT_STARTED
+**文档版本**: 1.1（2026-08-27 更新 runner、目录和独立 reviewer 工作流现状）
+**R2 状态**: PARTIAL_R2_5_OF_100_REVIEW_WORKFLOW_READY_EXTERNAL_REVIEWS_NOT_STARTED

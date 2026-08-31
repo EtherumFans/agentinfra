@@ -1,0 +1,208 @@
+{
+  "agent_id": "clinical-documentation-improvement-agent",
+  "run_id": "run-fe66de0e-8139-4e42-8a1a-9d0ac8a45c9d",
+  "trace_id": "trace-ce41686501294ecd",
+  "trace_url": "/ai-studio/runs/run-fe66de0e-8139-4e42-8a1a-9d0ac8a45c9d/trace",
+  "runtime_mode": "cdi_real_orchestrator",
+  "latency_ms": 10862,
+  "cost": {
+    "amount": 0.00070658,
+    "currency": "CNY",
+    "source": "configured_usage_pricing_estimate",
+    "billing_authoritative": false
+  },
+  "billing": {},
+  "summary": "CDI review completed; specialist and clinician review remain required.",
+  "result": {
+    "encounter_summary": {
+      "key_points": [
+        "患者男性，40岁",
+        "间断头痛",
+        "否认恶心、呕吐、畏光、畏声、视觉先兆、肢体无力",
+        "既往无偏头痛史",
+        "无颅脑外伤史",
+        "无中枢神经系统肿瘤家族史",
+        "查体正常"
+      ],
+      "encounter_metadata": {
+        "patient_age": "40岁",
+        "patient_sex": "男性",
+        "encounter_type": "门诊"
+      }
+    },
+    "documentation_gaps": [
+      {
+        "gap_id": "GAP-001",
+        "gap_type": "diagnostic_specificity",
+        "description": "头痛的病因未明确，未记录头痛的类型（如偏头痛、紧张型头痛等）或具体诊断。",
+        "why_it_matters": "头痛的病因和类型影响诊断编码的准确性和治疗方案的制定。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "间断头痛",
+          "char_start": 11,
+          "char_end": 15,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      },
+      {
+        "gap_id": "GAP-002",
+        "gap_type": "diagnostic_specificity",
+        "description": "头痛的严重程度未记录（如疼痛评分），也未描述头痛的性质（如搏动性、压迫性）。",
+        "why_it_matters": "严重程度和性质有助于鉴别头痛类型，并影响编码的严重性修饰。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "间断头痛",
+          "char_start": 11,
+          "char_end": 15,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      },
+      {
+        "gap_id": "GAP-003",
+        "gap_type": "diagnostic_specificity",
+        "description": "头痛的病程和发作频率未记录（如持续时间、发作次数）。",
+        "why_it_matters": "病程和频率有助于区分急性或慢性头痛，影响编码和临床管理。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "间断头痛",
+          "char_start": 11,
+          "char_end": 15,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      }
+    ],
+    "proposed_provider_queries": [],
+    "query_gate_summary": {
+      "withheld_count": 3,
+      "status_counts": {
+        "REWRITE_CANDIDATE_GENERATED": 0
+      },
+      "manual_cdi_action_required": true
+    },
+    "coding_specificity_checklist": [],
+    "risk_flags": [],
+    "specialist_trace": [
+      {
+        "expert_id": "coding-expert",
+        "consulted": true,
+        "requested": "You are a coding-specialist Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "为准确编码，需明确头痛的具体类型（如偏头痛、紧张型头痛或继发性头痛）及病因诊断，并记录头痛的严重程度（如疼痛评分）、性质（搏动性或压迫性）及病程（持续时间、发作频率），以区分原发与继发头痛并反映临床严重度。",
+        "route_decision": "needed",
+        "route_reason": "coding_relevant_gap",
+        "execution_mode": "LLM_KNOWLEDGE_ONLY",
+        "latency_ms": 1735,
+        "tokens": 246,
+        "run_id": "run-34c79ce097b4",
+        "trace_id": "trace-221d684ed3be"
+      },
+      {
+        "expert_id": "pubmed-expert",
+        "consulted": false,
+        "requested": "You are a PubMed literature Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-131080a77849",
+        "trace_id": "trace-99886fa57fb7"
+      },
+      {
+        "expert_id": "web-search-expert",
+        "consulted": false,
+        "requested": "You are a clinical web-search Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-f4b9f220146c",
+        "trace_id": "trace-f7eecd51060f"
+      },
+      {
+        "expert_id": "medical-calculator-expert",
+        "consulted": false,
+        "requested": "You are a medical-calculator Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "'评分' score — parameters absent from chart",
+        "route_decision": "missing_inputs",
+        "route_reason": "calculator_params_missing",
+        "execution_mode": "SKIPPED_MISSING_INPUTS",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-5e79e9131359",
+        "trace_id": "trace-da431c5e1ad5"
+      }
+    ],
+    "human_review": {
+      "cdi_specialist_review_required": true,
+      "clinician_response_required": true,
+      "review_priority": "routine"
+    },
+    "trace_refs": {
+      "run_id": "run-fe66de0e-8139-4e42-8a1a-9d0ac8a45c9d",
+      "stage_trace": {
+        "encounter_synthesis": "trace-656b001e94f2",
+        "gap_identification": "trace-8c855365f374",
+        "expert_consultation": "trace-844c8c053283",
+        "query_generation": "trace-9ef5182436f7",
+        "query_eligibility_gate": "",
+        "query_necessity_gate": "",
+        "query_dimension_rewrite": "",
+        "query_single_dimension_gate": "",
+        "claim_evidence_alignment_gate": "trace-411d3f21c0a9",
+        "semantic_necessity_gate": "trace-ddd4f1437eb8",
+        "query_compliance_gate": "",
+        "specialist_trace_emit": "trace-9d38606ff69f"
+      },
+      "experts_consulted": [
+        "coding-expert"
+      ],
+      "gate_results": {
+        "encounter_synthesis": "run-11e2bde2261c",
+        "gap_identification": "run-24ab8fd4acd2",
+        "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
+        "expert_consultation": "run-ebb8844118b0",
+        "query_generation": "run-f57fb3bec6df",
+        "query_generation::quote_snapped": "0",
+        "query_generation::coverage_missing": "0",
+        "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=3;llm_complete=False;llm_reasoning=头痛的病因、类型、严重程度和病程均未明确，缺乏诊断特异性，无法准确编码。",
+        "query_necessity_gate": "necessary=0;unnecessary=3;overquery_triggered=False;final_count=0",
+        "query_dimension_rewrite": "not_executed",
+        "query_single_dimension_gate": "single_dim=0;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;rewrite_attempted=0;rewrite_accepted=0;final_count=0",
+        "claim_evidence_alignment_gate": "claims_extracted=0;degraded=0;blocked=0;flagged=0;final_count=0",
+        "claim_evidence_alignment_gate::run_id": "run-53e7cbc4d823",
+        "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+        "semantic_necessity_gate::run_id": "run-e8afeea03989",
+        "query_compliance_gate": ";passed=0;blocked=0",
+        "specialist_trace_emit": "run-149beb72768d"
+      },
+      "trace_id": "trace-ce41686501294ecd"
+    }
+  },
+  "schema_ref": "icoder/CDIAgentOutputV1/v6",
+  "result_attestation": "eyJhIjoiY2xpbmljYWwtZG9jdW1lbnRhdGlvbi1pbXByb3ZlbWVudC1hZ2VudCIsImQiOiJiMDBjNzgwZjIxNGFkYzEyYTFhZmZjZDQzZTA3MmM2YTFmYTZiZGFhY2M0ZTY5Yzk5ZDVlNmFmNTBlMGRmMDA5IiwiZSI6MTc4Nzg4MjMzMywibyI6ImJjOTJlZTA2YWYwZiIsInIiOiJydW4tZmU2NmRlMGUtODEzOS00ZTQyLThhMWEtOWQwYWM4YTQ1YzlkIiwicyI6Imljb2Rlci9DRElBZ2VudE91dHB1dFYxL3Y2IiwidiI6MX0.L6hFo7SU07tCQXsjrhQYeYYJ-rqdSOHsZHIGBvz1kfQ",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 10.985
+}

@@ -1,0 +1,160 @@
+{
+  "agent_id": "clinical-documentation-improvement-agent",
+  "run_id": "run-8c1cd296-3a2e-44cd-9599-e00ab648e1a1",
+  "trace_id": "trace-38169fc497d9488d",
+  "trace_url": "/ai-studio/runs/run-8c1cd296-3a2e-44cd-9599-e00ab648e1a1/trace",
+  "runtime_mode": "cdi_real_orchestrator",
+  "latency_ms": 4207,
+  "cost": {
+    "amount": 0.00023506,
+    "currency": "CNY",
+    "source": "configured_usage_pricing_estimate",
+    "billing_authoritative": false
+  },
+  "billing": {},
+  "summary": "CDI review completed; specialist and clinician review remain required.",
+  "result": {
+    "encounter_summary": {
+      "key_points": [
+        "健康体检，无异常发现",
+        "BMI 23，血压118/76 mmHg",
+        "无吸烟饮酒史",
+        "既往无特殊病史",
+        "查体正常",
+        "血脂、血糖、肝肾功能均正常",
+        "建议定期随访"
+      ],
+      "encounter_metadata": {
+        "patient_age": "28岁",
+        "patient_sex": "男性",
+        "encounter_type": "健康体检"
+      }
+    },
+    "documentation_gaps": [],
+    "proposed_provider_queries": [],
+    "query_gate_summary": {
+      "withheld_count": 0,
+      "status_counts": {
+        "REWRITE_CANDIDATE_GENERATED": 0
+      },
+      "manual_cdi_action_required": false
+    },
+    "coding_specificity_checklist": [],
+    "risk_flags": [],
+    "specialist_trace": [
+      {
+        "expert_id": "coding-expert",
+        "consulted": false,
+        "requested": "You are a coding-specialist Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "no coding-relevant gaps survived earlier gates",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-b4bad3596045",
+        "trace_id": "trace-b80b7e150d54"
+      },
+      {
+        "expert_id": "pubmed-expert",
+        "consulted": false,
+        "requested": "You are a PubMed literature Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-78c10e75b712",
+        "trace_id": "trace-12ef01c79010"
+      },
+      {
+        "expert_id": "web-search-expert",
+        "consulted": false,
+        "requested": "You are a clinical web-search Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-5bf82d1dcb27",
+        "trace_id": "trace-9cf5264cd8a0"
+      },
+      {
+        "expert_id": "medical-calculator-expert",
+        "consulted": false,
+        "requested": "You are a medical-calculator Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "'BMI' score — parameters absent from chart",
+        "route_decision": "missing_inputs",
+        "route_reason": "calculator_params_missing",
+        "execution_mode": "SKIPPED_MISSING_INPUTS",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-9263b29b10cb",
+        "trace_id": "trace-d4d280254115"
+      }
+    ],
+    "human_review": {
+      "cdi_specialist_review_required": true,
+      "clinician_response_required": true,
+      "review_priority": "routine"
+    },
+    "trace_refs": {
+      "run_id": "run-8c1cd296-3a2e-44cd-9599-e00ab648e1a1",
+      "stage_trace": {
+        "encounter_synthesis": "trace-d4e7c97adaef",
+        "gap_identification": "trace-dcfd29ed4c87",
+        "expert_consultation": "trace-315e3708cf16",
+        "query_generation": "",
+        "query_eligibility_gate": "",
+        "query_necessity_gate": "",
+        "query_dimension_rewrite": "",
+        "query_single_dimension_gate": "",
+        "claim_evidence_alignment_gate": "trace-4c54585fb0c2",
+        "semantic_necessity_gate": "trace-16caca23bdc3",
+        "query_compliance_gate": "",
+        "specialist_trace_emit": "trace-8ba32733b1ea"
+      },
+      "experts_consulted": [],
+      "gate_results": {
+        "encounter_synthesis": "run-da40dd3991f6",
+        "gap_identification": "run-000af69b56ae",
+        "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
+        "expert_consultation": "run-c65a0e4c1c11",
+        "query_generation": "",
+        "query_generation::quote_snapped": "0",
+        "query_generation::coverage_missing": "0",
+        "query_eligibility_gate": "chart_complete=True;completeness_score=0.12;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=0;llm_complete=True;llm_reasoning=The chart is a routine health check-up with no abnormal findings, all labs and p",
+        "query_necessity_gate": "necessary=0;unnecessary=0;overquery_triggered=False;final_count=0",
+        "query_dimension_rewrite": "not_executed",
+        "query_single_dimension_gate": "single_dim=0;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;rewrite_attempted=0;rewrite_accepted=0;final_count=0",
+        "claim_evidence_alignment_gate": "claims_extracted=0;degraded=0;blocked=0;flagged=0;final_count=0",
+        "claim_evidence_alignment_gate::run_id": "run-cc48ca3675e9",
+        "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+        "semantic_necessity_gate::run_id": "run-c26dfb9a0a3a",
+        "query_compliance_gate": ";passed=0;blocked=0",
+        "specialist_trace_emit": "run-82de1c3f4aab"
+      },
+      "trace_id": "trace-38169fc497d9488d"
+    }
+  },
+  "schema_ref": "icoder/CDIAgentOutputV1/v6",
+  "result_attestation": "eyJhIjoiY2xpbmljYWwtZG9jdW1lbnRhdGlvbi1pbXByb3ZlbWVudC1hZ2VudCIsImQiOiIxOTVlY2MxZjJhMWQyZmVlNzBmMTdhZWQ2MDlhNjczNzVhZDIwMzdjYmRlMGMzYzA5YjM5YmY4NWFmMTY2OWQzIiwiZSI6MTc4Nzg4MjE0NywibyI6ImJjOTJlZTA2YWYwZiIsInIiOiJydW4tOGMxY2QyOTYtM2EyZS00NGNkLTk1OTktZTAwYWI2NDhlMWExIiwicyI6Imljb2Rlci9DRElBZ2VudE91dHB1dFYxL3Y2IiwidiI6MX0.LDaSGsctH--iWm1M4pmfPzinFtxhOkisDE925kgvEtg",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 4.32
+}

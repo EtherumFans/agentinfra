@@ -1,0 +1,142 @@
+{
+  "agent_id": "note-completeness-agent",
+  "run_id": "run-d4618c81-c0d6-4d47-bd7a-9a3d2ede1fd8",
+  "trace_id": "trace-f67572da9477429e",
+  "trace_url": "/ai-studio/runs/run-d4618c81-c0d6-4d47-bd7a-9a3d2ede1fd8/trace",
+  "runtime_mode": "local_documentation_rules",
+  "latency_ms": 70,
+  "cost": {
+    "amount": 0.0,
+    "currency": "CNY"
+  },
+  "billing": {},
+  "summary": "Documentation completeness WARNING: 1 missing and 2 incomplete section(s).",
+  "result": {
+    "status": "requires_review",
+    "markdown": "{\"completeness_score\": 0.875, \"conflicts\": [{\"note\": \"诊断记录的脊柱节段为 L1，治疗/手术记录为 T12；存在显式节段冲突，需人工核对。\", \"section\": \"诊断与治疗经过\"}], \"corrected_draft\": \"\", \"documentation_gaps\": [{\"description\": \"病历缺少必填章节: 手术记录\", \"gap_type\": \"missing_section\", \"section\": \"手术记录\"}, {\"description\": \"诊断章节未明确区分入院诊断与出院诊断。\", \"gap_type\": \"incomplete_section\", \"section\": \"诊断\"}, {\"description\": \"手术病例的治疗经过缺少明确的术前准备或术中情况。\", \"gap_type\": \"incomplete_section\", \"section\": \"治疗经过\"}, {\"description\": \"诊断记录的脊柱节段为 L1，治疗/手术记录为 T12；存在显式节段冲突，需人工核对。\", \"gap_type\": \"conflict\", \"section\": \"诊断与治疗经过\"}], \"incomplete_sections\": [{\"deficit_note\": \"诊断章节未明确区分入院诊断与出院诊断。\", \"section\": \"诊断\"}, {\"deficit_note\": \"手术病例的治疗经过缺少明确的术前准备或术中情况。\", \"section\": \"治疗经过\"}], \"missing_sections\": [\"手术记录\"], \"present_sections\": [\"主诉\", \"现病史\", \"既往史\", \"体格检查\", \"辅助检查\", \"诊断\", \"治疗经过\"], \"required_sections\": [\"主诉\", \"现病史\", \"既往史\", \"体格检查\", \"辅助检查\", \"诊断\", \"治疗经过\", \"手术记录\"], \"review_conclusion\": \"WARNING\", \"trace_refs\": {\"agent_ref\": \"icoder/note-completeness-agent@1.0.0\", \"rule_set\": \"documentation_completeness\", \"run_id\": \"run-d4618c81-c0d6-4d47-bd7a-9a3d2ede1fd8\"}}",
+    "issues": [],
+    "corrected_draft": "",
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.documentation-rule-engine.v1",
+    "backend_type": "rule_engine",
+    "completeness_score": 0.875,
+    "conflicts": [
+      {
+        "note": "诊断记录的脊柱节段为 L1，治疗/手术记录为 T12；存在显式节段冲突，需人工核对。",
+        "section": "诊断与治疗经过"
+      }
+    ],
+    "documentation_gaps": [
+      {
+        "description": "病历缺少必填章节: 手术记录",
+        "gap_type": "missing_section",
+        "section": "手术记录"
+      },
+      {
+        "description": "诊断章节未明确区分入院诊断与出院诊断。",
+        "gap_type": "incomplete_section",
+        "section": "诊断"
+      },
+      {
+        "description": "手术病例的治疗经过缺少明确的术前准备或术中情况。",
+        "gap_type": "incomplete_section",
+        "section": "治疗经过"
+      },
+      {
+        "description": "诊断记录的脊柱节段为 L1，治疗/手术记录为 T12；存在显式节段冲突，需人工核对。",
+        "gap_type": "conflict",
+        "section": "诊断与治疗经过"
+      }
+    ],
+    "incomplete_sections": [
+      {
+        "deficit_note": "诊断章节未明确区分入院诊断与出院诊断。",
+        "section": "诊断"
+      },
+      {
+        "deficit_note": "手术病例的治疗经过缺少明确的术前准备或术中情况。",
+        "section": "治疗经过"
+      }
+    ],
+    "missing_sections": [
+      "手术记录"
+    ],
+    "present_sections": [
+      "主诉",
+      "现病史",
+      "既往史",
+      "体格检查",
+      "辅助检查",
+      "诊断",
+      "治疗经过"
+    ],
+    "required_sections": [
+      "主诉",
+      "现病史",
+      "既往史",
+      "体格检查",
+      "辅助检查",
+      "诊断",
+      "治疗经过",
+      "手术记录"
+    ],
+    "review_conclusion": "WARNING",
+    "trace_refs": {
+      "run_id": "run-d4618c81-c0d6-4d47-bd7a-9a3d2ede1fd8",
+      "trace_id": "trace-f67572da9477429e",
+      "provider_trace_refs": [
+        "run-d4618c81-c0d6-4d47-bd7a-9a3d2ede1fd8:documentation-rules"
+      ]
+    },
+    "manual_review_required": true,
+    "structured_extraction": {
+      "contract": "icoder/NoteCompletenessOutput/v2",
+      "method": "json_block",
+      "warnings": [],
+      "required_fields": [
+        "review_conclusion",
+        "documentation_gaps",
+        "completeness_score",
+        "missing_sections",
+        "present_sections",
+        "required_sections",
+        "incomplete_sections",
+        "conflicts",
+        "corrected_draft",
+        "trace_refs"
+      ],
+      "optional_fields": [],
+      "missing_required_fields": [],
+      "invalid_field_types": [],
+      "invalid_field_schemas": [],
+      "invalid_cross_agent_relations": [],
+      "undeclared_output_fields": [],
+      "undeclared_output_field_count": 0,
+      "valid": true
+    }
+  },
+  "schema_ref": "icoder/NoteCompletenessOutput/v2",
+  "result_attestation": "eyJhIjoibm90ZS1jb21wbGV0ZW5lc3MtYWdlbnQiLCJkIjoiYjExYWEzMjBjMDI2MjFiMjA3MWQ1YmYwODAyOTYxOGNkMGZkMDQ2MjYyM2YxNDA4YWM0NzYyYmMzN2FhOTAyMSIsImUiOjE3ODc2NDcwODksIm8iOiI1MTJjNDZiNmVhNDUiLCJyIjoicnVuLWQ0NjE4YzgxLWMwZDYtNGQ0Ny1iZDdhLTlhM2QyZWRlMWZkOCIsInMiOiJpY29kZXIvTm90ZUNvbXBsZXRlbmVzc091dHB1dC92MiIsInYiOjF9.HPTxALPvPqf5pGwT0hc5eRZwKke7ldzB8bzI75ra1lQ",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 70,
+      "metadata": {
+        "agent_id": "note-completeness-agent",
+        "runtime_mode": "local_documentation_rules",
+        "latency_ms": 70
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 0.115
+}

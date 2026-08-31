@@ -1,0 +1,178 @@
+{
+  "schema_version": "icoder.agent-failure-envelope-phase/v1",
+  "captured_at": "2026-08-22T10:08:00+08:00",
+  "scope": "Agent Hub public failure publication boundary and capability/safe-failure evidence separation",
+  "claims": {
+    "visible_agent_count": 26,
+    "visible_agents_launch_candidate_ready": 26,
+    "hidden_pack_count": 6,
+    "hidden_metadata_only_pack_count": 5,
+    "failed_contract_output_is_suppressed": true,
+    "failed_output_requires_manual_review": true,
+    "frontend_does_not_infer_pass_from_failed_envelope": true,
+    "mock_evidence_is_not_claimed_as_model_quality": true,
+    "real_llm_credential_used": false
+  },
+  "isolated_tcp_e2e": {
+    "base_url": "http://127.0.0.1:18022",
+    "database": "temporary isolated SQLite",
+    "provider": "mock",
+    "credential_present": false,
+    "external_llm_allowed": false,
+    "native_medcoder_disabled": true,
+    "server_stopped": true,
+    "listener_remaining": false,
+    "examples": {
+      "schema_version": "icoder.agent-hub-examples-e2e/v2",
+      "total": 26,
+      "capability_passed": 1,
+      "safe_fail_closed": 25,
+      "safety_passed": 26,
+      "unsafe_or_invalid": 0,
+      "cli_exit_code": 1,
+      "exit_code_interpretation": "expected because CLI success requires all capability checks, not safe-failure checks"
+    },
+    "adversarial": {
+      "schema_version": "icoder.agent-hub-adversarial-e2e/v2",
+      "total": 26,
+      "semantic_capability_passed": 1,
+      "safe_fail_closed": 25,
+      "safety_passed": 26,
+      "unsafe_or_invalid": 0,
+      "cli_exit_code": 1,
+      "prompt_injection_canary_leaks": 0,
+      "exit_code_interpretation": "expected because CLI success requires all semantic capability checks, not safe-failure checks"
+    },
+    "native_import_log_counts": {
+      "faiss_loader": 0,
+      "torch": 0,
+      "pyarrow": 0,
+      "operator_disabled_native_medcoder": 2
+    }
+  },
+  "historical_real_model_revalidation": {
+    "source": "reports/agent_hub/adversarial_e2e_20260813",
+    "cached_response_count": 26,
+    "current_contract_passed": 10,
+    "current_contract_failed": 16,
+    "semantic_assertion_rows_passed": 26,
+    "prompt_injection_canary_absent_rows": 26,
+    "release_evidence": false,
+    "reason": "cached DeepSeek responses predate current output schemas and cannot substitute for a fresh controlled 26-Agent run"
+  },
+  "verification": [
+    {
+      "name": "current_agent_hub_runtime_matrix",
+      "passed": true,
+      "disk_packs": 32,
+      "visible_agents": 26,
+      "hidden_packs": 6,
+      "visible_executable": 26,
+      "visible_provider_resolvable": 26,
+      "visible_launch_candidate_ready": 26,
+      "hidden_metadata_only": 5
+    },
+    {
+      "name": "backend_failure_envelope_regression",
+      "passed": true,
+      "tests_passed": 125,
+      "tests_failed": 0,
+      "environment": "mock provider, empty credential, external LLM denied, native MedCoder disabled"
+    },
+    {
+      "name": "frontend_vitest",
+      "passed": true,
+      "test_files_passed": 23,
+      "tests_passed": 137,
+      "tests_failed": 0
+    },
+    {
+      "name": "frontend_production_build",
+      "passed": true,
+      "typescript": true,
+      "vite": true,
+      "modules_transformed": 1703
+    },
+    {
+      "name": "static_deployment_candidate_preflight",
+      "passed": true,
+      "checks_passed": 55,
+      "checks_failed": 0,
+      "mode": "static_without_docker_cli"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "backend/app/api/agent_run.py",
+      "size_bytes": 121534,
+      "sha256": "350268a5d0d83e32f3708b2f7c782c271cb479801eba1a1073d2b485db8de53d"
+    },
+    {
+      "path": "backend/scripts/corti_parity/run_agent_hub_examples_e2e.py",
+      "size_bytes": 26583,
+      "sha256": "adb2aad6548528194bb89a0351d8b9911ce807ec084bd09858d2fd2952bf826c"
+    },
+    {
+      "path": "backend/scripts/corti_parity/run_agent_hub_adversarial_e2e.py",
+      "size_bytes": 11276,
+      "sha256": "1351bd705f8faa84dbdfc8ff97b094cdda346fb5f7aaef1a8cf0f79c9fbd663f"
+    },
+    {
+      "path": "frontend/src/pages/MedicalCodingPage.tsx",
+      "size_bytes": 69622,
+      "sha256": "2847a5f93451b44d7ab1f77120d33823e7a70e9cb0bf8281b2e3d281df49ce89"
+    },
+    {
+      "path": "frontend/src/utils/medicalCodingSafety.ts",
+      "size_bytes": 499,
+      "sha256": "550ff5a246ccbbc7ba038799e9f70b7bd22588a64d075c4e8b9bd7f0b0c216e8"
+    },
+    {
+      "path": "frontend/src/utils/__tests__/medicalCodingSafety.test.ts",
+      "size_bytes": 866,
+      "sha256": "3f0f7368514e53af94f1553bb1f3849b241cfd2fb5f236893f2a583ebd19d674"
+    },
+    {
+      "path": "reports/agent_hub/mock_failure_envelope_e2e_20260822/examples/agent_hub_examples_e2e.json",
+      "size_bytes": 106357,
+      "sha256": "c994fda60693ac103a753546464ab371e07713b91466b5bad3504caf224f344d"
+    },
+    {
+      "path": "reports/agent_hub/mock_failure_envelope_e2e_20260822/adversarial/agent_hub_adversarial_e2e.json",
+      "size_bytes": 130171,
+      "sha256": "58d6f8b7248a8da986637cfbe16d1f15756c3dfe4132aa3f91f66b3cc58cc9ce"
+    },
+    {
+      "path": "reports/agent_hub/development_preflight_20260822_failure_envelope/deployment_preflight.json",
+      "size_bytes": 4923,
+      "sha256": "05c479052f6d389910a9b25a023ea495febc9c14347d9ce241b3c37c354df9e6"
+    },
+    {
+      "path": "reports/agent_hub/agent_failure_envelope_phase_20260822/runtime_matrix/agent_hub_runtime_matrix.json",
+      "size_bytes": 228893,
+      "sha256": "404fdb61bf9dbe9ff019e3c8e7324cd521ed2b9bd993ef4472e4e02091af6c53"
+    },
+    {
+      "path": "reports/agent_hub/agent_failure_envelope_phase_20260822/runtime_matrix/agent_hub_runtime_matrix.md",
+      "size_bytes": 7678,
+      "sha256": "34dc1c4db516380e8d076c2de13a4399436c05719528236721d9d99a630c60b8"
+    },
+    {
+      "path": "docs/corti_parity/CORTI_ICODER_LIVE_GAP_MATRIX_2026-08-21.md",
+      "size_bytes": 34282,
+      "sha256": "1229ee7efd3417bfb2d69299b6381de50ffe5adb0a0ce202c0229d5b2a313aa6"
+    },
+    {
+      "path": "docs/corti_parity/ICODER_AGENT_FAILURE_ENVELOPE_PHASE_SUMMARY_2026-08-22.md",
+      "size_bytes": 4950,
+      "sha256": "263d61ac3aba5bf77e48246a9606c353b83559bde02e11c84b6c87d2fb6322e1"
+    }
+  ],
+  "limitations": [
+    "No fresh 26-Agent real-model quality matrix was executed.",
+    "The development database remains an unreconciled historical 041/create_all mix and was not restarted.",
+    "No browser run was forced because this host has a known Chromium/Codex memory-crash risk.",
+    "Docker image build/scan, Linux native MedCoder, .NET, PostgreSQL multi-replica, cloud and hospital validation remain external.",
+    "Clinical, legal, licensing, certification and independent reviewer gates remain open."
+  ]
+}

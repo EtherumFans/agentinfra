@@ -15,6 +15,11 @@
 1. A producer writes intermediate data to an ignored temporary directory.
 2. The producer reduces it to a compact aggregate report.
 3. The aggregate report records source revision, configuration, limitations and hashes.
+
+The current development-baseline verdict is
+`development-baseline/TRUSTED_BASELINE_AUDIT_2026-08-31.md`; the directory
+cleanup decisions are recorded in
+`development-baseline/DIRECTORY_CLEANUP_AUDIT_2026-08-31.md`.
 4. Only evidence referenced by a final summary is retained in the source baseline.
 5. Large raw runs are uploaded as CI/release artifacts or stored in governed object storage.
 

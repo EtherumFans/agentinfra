@@ -38,7 +38,7 @@ def upgrade() -> None:
         sa.Column("cost_usd", sa.Float(), nullable=False, server_default="0.0"),
         sa.Column("input_text", sa.Text(), nullable=False),
         sa.Column("output_summary", sa.Text(), nullable=False),
-        sa.Column("error", sa.Boolean(), nullable=False, server_default=sa.text("0")),
+        sa.Column("error", sa.Boolean(), nullable=False, server_default=sa.false()),
         sa.Column("error_reason", sa.String(length=128), nullable=True),
         sa.Column(
             "created_at",

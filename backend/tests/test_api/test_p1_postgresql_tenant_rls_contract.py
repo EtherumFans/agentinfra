@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import importlib.util
+import ast
+import re
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -102,6 +104,98 @@ def test_cloud_startup_does_not_use_metadata_create_all() -> None:
     assert "rolbypassrls" in database_source
     assert "pg_policies" in database_source
     assert "attnotnull" in database_source
+
+
+def test_alembic_decouples_migrations_from_async_runtime_drivers() -> None:
+    source = (BACKEND_ROOT / "alembic" / "env.py").read_text(encoding="utf-8")
+    assert '"postgresql+asyncpg://", "postgresql+psycopg://"' in source
+    assert '"sqlite+aiosqlite://", "sqlite://"' in source
+    assert "create_engine(" in source
+    assert "create_async_engine" not in source
+
+
+def test_boolean_migration_defaults_are_cross_dialect() -> None:
+    versions = BACKEND_ROOT / "alembic" / "versions"
+    forbidden = re.compile(
+        r"server_default\s*=\s*(?:sa\.text\()?['\"](?:0|1)['\"]"
+    )
+    violations: list[str] = []
+    for path in versions.glob("*.py"):
+        source = path.read_text(encoding="utf-8")
+        tree = ast.parse(source)
+        for node in ast.walk(tree):
+            if (
+                not isinstance(node, ast.Call)
+                or not isinstance(node.func, ast.Attribute)
+                or node.func.attr != "Column"
+            ):
+                continue
+            segment = ast.get_source_segment(source, node) or ""
+            if "sa.Boolean" in segment and forbidden.search(segment):
+                violations.append(f"{path.name}:{node.lineno}")
+    assert violations == []
+
+
+def test_trace_capture_state_column_fits_longest_literal() -> None:
+    migration = (
+        BACKEND_ROOT / "alembic" / "versions"
+        / "020_trace_event_identity_and_capture_state.py"
+    ).read_text(encoding="utf-8")
+    model = (BACKEND_ROOT / "app" / "models" / "run_history.py").read_text(
+        encoding="utf-8",
+    )
+    assert 'type_=sa.String(length=32)' in migration
+    assert 'String(32), nullable=True, index=True' in model
+    assert len("NEVER_CAPTURED_LEGACY") <= 32
+
+
+def test_clinical_tenant_migration_never_defaults_unknown_rows() -> None:
+    migration = (
+        BACKEND_ROOT / "alembic" / "versions"
+        / "021_clinical_tables_tenant_not_null.py"
+    ).read_text(encoding="utf-8")
+    assert "requires evidence-backed clinical tenant" in migration
+    assert '"reconciliation: " + details' in migration
+    assert "SET organization_id = :org" not in migration
+    assert "except Exception" not in migration
+    assert "sa.inspect(bind).get_indexes" in migration
+
+
+def test_registry_migrations_use_cross_dialect_introspection() -> None:
+    for filename in (
+        "022_expert_registry_provenance.py",
+        "023_agent_canonical_key_and_alias.py",
+    ):
+        source = (BACKEND_ROOT / "alembic" / "versions" / filename).read_text(
+            encoding="utf-8",
+        )
+        assert "PRAGMA" not in source
+        assert "except Exception" not in source
+        assert "sa.inspect(bind)" in source
+
+
+def test_context_table_migration_uses_cross_dialect_types() -> None:
+    source = (
+        BACKEND_ROOT / "alembic" / "versions"
+        / "024_context_task_state_check.py"
+    ).read_text(encoding="utf-8")
+    assert "DATETIME" not in source
+    assert "CREATE TABLE" not in source
+    assert "sa.DateTime()" in source
+    assert "server_default=sa.true()" in source
+    assert "sa.inspect(bind)" in source
+    assert "except Exception" not in source
+
+
+def test_a2a_state_constraint_does_not_recreate_postgresql_table() -> None:
+    source = (
+        BACKEND_ROOT / "alembic" / "versions"
+        / "055_a2a_v1_interrupted_task_states.py"
+    ).read_text(encoding="utf-8")
+    assert 'bind.dialect.name == "postgresql"' in source
+    assert 'op.drop_constraint(' in source
+    assert 'op.create_check_constraint(' in source
+    assert 'op.batch_alter_table("context_task_refs"' in source
 
 
 @pytest.mark.asyncio

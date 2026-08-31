@@ -26,7 +26,7 @@ def upgrade() -> None:
         sa.Column("channel", sa.String(16), nullable=False),
         sa.Column("target_url", sa.Text(), nullable=False),
         sa.Column("secret_encrypted", sa.Text(), nullable=False),
-        sa.Column("active", sa.Boolean(), server_default=sa.text("1"), nullable=False),
+        sa.Column("active", sa.Boolean(), server_default=sa.true(), nullable=False),
         sa.Column("created_at", sa.DateTime(), server_default=sa.func.now(), nullable=False),
         sa.Column("updated_at", sa.DateTime(), server_default=sa.func.now(), nullable=False),
         sa.ForeignKeyConstraint(["organization_id"], ["organizations.id"]),

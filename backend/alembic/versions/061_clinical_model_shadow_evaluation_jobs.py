@@ -41,7 +41,7 @@ def upgrade() -> None:
         ),
         sa.Column("evaluation_id", sa.String(length=36), nullable=True),
         sa.Column("error_code", sa.String(length=64), nullable=True),
-        sa.Column("rollback_performed", sa.Boolean(), server_default="0", nullable=False),
+        sa.Column("rollback_performed", sa.Boolean(), server_default=sa.false(), nullable=False),
         sa.Column("created_by_user_id", sa.String(length=36), nullable=False),
         sa.Column("started_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("completed_at", sa.DateTime(timezone=True), nullable=True),

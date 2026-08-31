@@ -13,8 +13,9 @@ Gate 3R.0 §19 and emits a partial verdict.
    canonicalized PERSISTED rows)
 §4 Interrupted recovery — simulate a mid-migration crash and verify
    the next `alembic upgrade head` completes cleanly
-§5 PostgreSQL — BLOCKED (no psql/asyncpg/testcontainers available;
-   see Gate 3R.0 §19). Partial verdict.
+§5 PostgreSQL — the live non-superuser gate is maintained in
+   tests/integration/test_p1_postgres_rls_attack.py and is executed only when
+   its two disposable-database URLs are supplied.
 
 Each sub-check uses a temp DB file under tmp_path so the dev DB at
 data/icoder.db is NOT touched.
@@ -22,7 +23,6 @@ data/icoder.db is NOT touched.
 from __future__ import annotations
 
 import os
-import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -337,48 +337,23 @@ def test_interrupted_recovery_completes_on_retry(tmp_path) -> None:
 
 
 # ────────────────────────────────────────────────────────────────────
-# §5 PostgreSQL — BLOCKED (partial verdict)
+# §5 PostgreSQL — live gate is explicit and discoverable
 # ────────────────────────────────────────────────────────────────────
 
 
-def test_postgresql_migration_verification_blocked() -> None:
-    """Document the partial verdict: PostgreSQL migration portability
-    is NOT verified because no PG tooling is installed in this env.
-
-    Charter §3R.5 permits the partial verdict
-    PARTIAL_BLOCKED_BY_POSTGRES_MIGRATION_NOT_VERIFIED. This test
-    exists primarily to surface the gap in the test suite output
-    so it's not silently forgotten.
-    """
-    blockers = []
-    # Check for psql CLI
-    if shutil.which("psql") is None:
-        blockers.append("psql CLI not installed")
-    # Check for asyncpg / psycopg
-    try:
-        import asyncpg  # noqa: F401
-    except ImportError:
-        blockers.append("asyncpg not installed")
-    try:
-        import psycopg  # noqa: F401
-    except ImportError:
-        blockers.append("psycopg not installed")
-    try:
-        import testcontainers  # noqa: F401
-    except ImportError:
-        blockers.append("testcontainers not installed")
-
-    # If everything is installed, this test would normally run a real
-    # PG verification — but for now, just assert we know what's missing.
-    assert blockers, (
-        "PG tooling IS installed — this test should be promoted to "
-        "actually run the migration against a real PG instance. "
-        "Remove the partial verdict in Gate 3R.5 closure report."
-    )
-    # The verdict: PG verification is blocked.
-    # Document the blockers as the test's failure mode (which is
-    # actually the expected state).
-    assert "psql CLI not installed" in blockers
+def test_postgresql_live_release_gate_is_present() -> None:
+    source = (
+        _BACKEND_ROOT / "tests" / "integration"
+        / "test_p1_postgres_rls_attack.py"
+    ).read_text(encoding="utf-8")
+    assert "P1_POSTGRES_TEST_DATABASE_URL" in source
+    assert "P1_POSTGRES_MIGRATION_DATABASE_URL" in source
+    assert "rolsuper, rolbypassrls" in source
+    for surface in (
+        "Patient", "Trace event", "Trace run", "Usage", "Context",
+        "Memory consent", "Memory",
+    ):
+        assert f'"{surface}"' in source
 
 
 # ────────────────────────────────────────────────────────────────────

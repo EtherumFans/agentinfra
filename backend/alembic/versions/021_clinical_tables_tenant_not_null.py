@@ -13,21 +13,15 @@ tables are on the PHI critical path and cannot wait.
 
 This migration:
 
-1. Backfills every NULL / empty organization_id row in
-   encounters, documents, cdi_cases to the canonical dev/test
-   org ``org_default1``. Pre-migration counts on
-   ``data/icoder.db`` (2026-07-19):
+1. Refuses to proceed if any NULL / empty organization_id row remains in
+   encounters, documents or cdi_cases. Historical development evidence was:
 
-       encounters  10 NULL → 10 backfilled
-       documents   22 NULL → 22 backfilled
-       cdi_cases  718 NULL → 718 backfilled
+       encounters  10 NULL
+       documents   22 NULL
+       cdi_cases  718 NULL
 
-   The default ``org_default1`` is the same org Gate 2 used
-   for legacy system-scope rows. In production, the same
-   pattern applies with the deployment's actual default org;
-   the backfill constant is configurable via env var
-   ``ICODER_BACKFILL_DEFAULT_ORG`` (defaults to ``org_default1``
-   for dev parity).
+   Those rows require evidence-backed operator reconciliation before upgrade;
+   assigning unknown clinical data to a default tenant is forbidden.
 
 2. Adds a NOT NULL constraint on organization_id for each
    table via batch_alter_table. SQLite doesn't support
@@ -42,15 +36,11 @@ This migration:
    forgets to re-add it; the CHECK is harder to remove
    accidentally).
 
-Backwards compatibility: NULL rows are eliminated by the
-backfill before the constraint is added, so the CHECK passes
-immediately on all rows. The downgrade reverses the constraint
-additions but does NOT undo the backfill (the original NULL
-state is not recoverable from the row alone).
+The downgrade reverses the constraint additions but never changes tenant
+attribution data.
 """
 from __future__ import annotations
 
-import os
 from typing import Sequence, Union
 
 import sqlalchemy as sa
@@ -70,18 +60,14 @@ _CLINICAL_TABLES: tuple[str, ...] = (
 )
 
 
-def _default_org() -> str:
-    """The org id to use for backfilling NULL organization_id rows."""
-    return os.environ.get("ICODER_BACKFILL_DEFAULT_ORG", "org_default1")
-
-
 def upgrade() -> None:
     bind = op.get_bind()
-    default_org = _default_org()
 
-    # ── §1 Backfill NULL / empty organization_id ──────────────────
-    # Some legacy rows have empty string instead of NULL — both
-    # must be normalised before the NOT NULL constraint lands.
+    # ── §1 Refuse unattributed clinical rows ───────────────────────
+    # Assigning unknown PHI rows to a default tenant is a cross-tenant data
+    # breach. Operators must reconcile them from source evidence before this
+    # migration can proceed.
+    unattributed: dict[str, int] = {}
     for table in _CLINICAL_TABLES:
         result = bind.execute(
             sa.text(
@@ -90,19 +76,16 @@ def upgrade() -> None:
             )
         )
         null_count = result.scalar() or 0
-        if null_count > 0:
-            bind.execute(
-                sa.text(
-                    f"UPDATE {table} "
-                    f"SET organization_id = :org "
-                    f"WHERE organization_id IS NULL OR organization_id = ''"
-                ),
-                {"org": default_org},
-            )
-            print(
-                f"  [021] {table}: backfilled {null_count} NULL/empty "
-                f"organization_id rows → {default_org!r}"
-            )
+        if null_count:
+            unattributed[table] = int(null_count)
+    if unattributed:
+        details = ", ".join(
+            f"{table}={count}" for table, count in sorted(unattributed.items())
+        )
+        raise RuntimeError(
+            "migration 021 requires evidence-backed clinical tenant "
+            "reconciliation: " + details
+        )
 
     # ── §2 NOT NULL + CHECK on organization_id ────────────────────
     # SQLite needs batch_alter_table for column constraint changes.
@@ -123,29 +106,26 @@ def upgrade() -> None:
     # ── §3 Index for tenant-scoped list queries ──────────────────
     # Most clinical list endpoints filter by (organization_id, created_at).
     # The existing index on organization_id is retained; this adds a
-    # composite for the list-page access pattern. Skip if the index
-    # already exists (defensive against partial-state DBs).
+    # composite for the list-page access pattern. Inspect before DDL: catching
+    # a duplicate-object exception would leave PostgreSQL's transaction in an
+    # aborted state.
     for table in _CLINICAL_TABLES:
-        try:
-            with op.batch_alter_table(table) as batch_op:
-                batch_op.create_index(
-                    f"ix_{table}_org_created",
-                    ["organization_id", "created_at"],
-                )
-        except Exception as e:
-            print(f"  [021] {table}: index ix_{table}_org_created skipped ({e})")
+        index_name = f"ix_{table}_org_created"
+        existing = {item["name"] for item in sa.inspect(bind).get_indexes(table)}
+        if index_name not in existing:
+            op.create_index(
+                index_name, table, ["organization_id", "created_at"],
+            )
 
 
 def downgrade() -> None:
     # Reverse order: drop indexes, then CHECK, then NOT NULL.
-    # The backfill is NOT reversed — historical NULL state is not
-    # recoverable from the row alone.
+    bind = op.get_bind()
     for table in _CLINICAL_TABLES:
-        try:
-            with op.batch_alter_table(table) as batch_op:
-                batch_op.drop_index(f"ix_{table}_org_created")
-        except Exception:
-            pass
+        index_name = f"ix_{table}_org_created"
+        existing = {item["name"] for item in sa.inspect(bind).get_indexes(table)}
+        if index_name in existing:
+            op.drop_index(index_name, table_name=table)
 
     for table in _CLINICAL_TABLES:
         with op.batch_alter_table(table) as batch_op:

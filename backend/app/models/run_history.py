@@ -153,7 +153,7 @@ class RunHistoryModel(Base, TimestampMixin):
     # When RUNTRACE_FAIL_CLOSED=True, a FAILED run surfaces the error
     # to the caller instead of continuing silently.
     trace_capture_status: Mapped[Optional[str]] = mapped_column(
-        String(16), nullable=True, index=True,
+        String(32), nullable=True, index=True,
         comment="PERSISTED | FAILED | FALLBACK_MEMORY",
     )
     trace_capture_failure_reason: Mapped[Optional[str]] = mapped_column(

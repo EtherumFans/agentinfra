@@ -151,7 +151,7 @@ def upgrade() -> None:
         sa.Column("selected_option", sa.String(length=512), nullable=True),
         sa.Column("free_text_response", sa.Text(), nullable=False, server_default=""),
         sa.Column("response_metadata", sa.JSON(), nullable=False, server_default="{}"),
-        sa.Column("is_latest", sa.Boolean(), nullable=False, server_default=sa.text("1")),
+        sa.Column("is_latest", sa.Boolean(), nullable=False, server_default=sa.true()),
         sa.Column("clinician_user_id", sa.String(length=64), nullable=True),
         sa.Column("submitted_at", sa.DateTime(), nullable=False),
         sa.Column("created_at", sa.DateTime(), nullable=False, server_default=sa.func.now()),

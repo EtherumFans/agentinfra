@@ -175,6 +175,12 @@ def upgrade() -> None:
         batch_op.drop_constraint(
             "chk_run_history_trace_cap", type_="check",
         )
+        batch_op.alter_column(
+            "trace_capture_status",
+            existing_type=sa.String(length=16),
+            type_=sa.String(length=32),
+            existing_nullable=True,
+        )
         batch_op.create_check_constraint(
             "chk_run_history_trace_cap",
             condition=(
@@ -221,6 +227,12 @@ def downgrade() -> None:
     with op.batch_alter_table("run_history") as batch_op:
         batch_op.drop_constraint(
             "chk_run_history_trace_cap", type_="check",
+        )
+        batch_op.alter_column(
+            "trace_capture_status",
+            existing_type=sa.String(length=32),
+            type_=sa.String(length=16),
+            existing_nullable=True,
         )
         batch_op.create_check_constraint(
             "chk_run_history_trace_cap",

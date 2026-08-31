@@ -41,9 +41,8 @@ Schema changes:
    duplicate-key collisions without blocking multiple NULL-keyed
    iCoDer-original rows.
 
-The migration is idempotent on re-application: every column addition
-is guarded by an introspection check; constraint creation is wrapped
-in try/except per the pattern established by Migration 019.
+The migration is idempotent on re-application: columns, indexes and
+constraints are guarded by cross-dialect SQLAlchemy introspection checks.
 """
 from __future__ import annotations
 
@@ -82,10 +81,7 @@ _MCP_AUTHORIZATION_TYPE_VALUES = (
 
 
 def _column_exists(bind, table: str, column: str) -> bool:
-    # SQLite PRAGMA doesn't accept bind parameters; the table name is a
-    # constant controlled by this migration so f-string is safe here.
-    row = bind.execute(sa.text(f"PRAGMA table_info({table})")).fetchall()
-    return any(r[1] == column for r in row)
+    return column in {item["name"] for item in sa.inspect(bind).get_columns(table)}
 
 
 def upgrade() -> None:
@@ -121,48 +117,44 @@ def upgrade() -> None:
             )
 
     # ── §2 Indexes (idempotent) ──────────────────────────────────────
-    try:
-        with op.batch_alter_table("experts") as batch_op:
-            batch_op.create_index(
-                "ix_experts_canonical_key",
-                ["canonical_key"],
-            )
-    except Exception as e:
-        print(f"  [022] experts.ix_experts_canonical_key skipped ({e})")
+    inspector = sa.inspect(bind)
+    expert_indexes = {item["name"] for item in inspector.get_indexes("experts")}
+    if "ix_experts_canonical_key" not in expert_indexes:
+        op.create_index("ix_experts_canonical_key", "experts", ["canonical_key"])
 
     # ── §3 CHECK constraints for enum domains ────────────────────────
-    # Wrap each in try/except so partial-state DBs don't blow up the
-    # migration mid-flight.
+    # Inspect before DDL so PostgreSQL never enters an aborted transaction
+    # because a duplicate constraint exception was swallowed.
     origin_values_sql = ",".join(f"'{v}'" for v in _EXPERT_ORIGIN_VALUES)
     alignment_values_sql = ",".join(f"'{v}'" for v in _EXPERT_CORTI_ALIGNMENT_VALUES)
     mcp_values_sql = ",".join(f"'{v}'" for v in _MCP_AUTHORIZATION_TYPE_VALUES)
 
-    try:
+    expert_checks = {
+        item["name"] for item in sa.inspect(bind).get_check_constraints("experts")
+    }
+    if "chk_experts_origin_domain" not in expert_checks:
         with op.batch_alter_table("experts") as batch_op:
             batch_op.create_check_constraint(
                 "chk_experts_origin_domain",
                 condition=f"origin IN ({origin_values_sql})",
             )
-    except Exception as e:
-        print(f"  [022] experts.chk_experts_origin_domain skipped ({e})")
 
-    try:
+    if "chk_experts_corti_alignment_domain" not in expert_checks:
         with op.batch_alter_table("experts") as batch_op:
             batch_op.create_check_constraint(
                 "chk_experts_corti_alignment_domain",
                 condition=f"corti_alignment IN ({alignment_values_sql})",
             )
-    except Exception as e:
-        print(f"  [022] experts.chk_experts_corti_alignment_domain skipped ({e})")
 
-    try:
+    mcp_checks = {
+        item["name"] for item in sa.inspect(bind).get_check_constraints("mcp_servers")
+    }
+    if "chk_mcp_servers_authorization_type_domain" not in mcp_checks:
         with op.batch_alter_table("mcp_servers") as batch_op:
             batch_op.create_check_constraint(
                 "chk_mcp_servers_authorization_type_domain",
                 condition=f"authorization_type IN ({mcp_values_sql})",
             )
-    except Exception as e:
-        print(f"  [022] mcp_servers.chk_mcp_servers_authorization_type_domain skipped ({e})")
 
     # ── §4 Backfill authorization_type from legacy auth_type ─────────
     # Legacy auth_type accepted {none, bearer, oauth2}. All three have
@@ -183,29 +175,29 @@ def upgrade() -> None:
     bind.execute(
         sa.text(
             "UPDATE experts SET origin = 'PACK_DECLARED' "
-            "WHERE origin = 'ICODER_INTERNAL' AND is_prebuilt = 1"
+            "WHERE origin = 'ICODER_INTERNAL' AND is_prebuilt IS TRUE"
         )
     )
 
 
 def downgrade() -> None:
     # Reverse order: drop CHECKs, drop indexes, drop columns.
+    bind = op.get_bind()
     for table, constraint in (
         ("experts", "chk_experts_origin_domain"),
         ("experts", "chk_experts_corti_alignment_domain"),
         ("mcp_servers", "chk_mcp_servers_authorization_type_domain"),
     ):
-        try:
+        checks = {
+            item["name"] for item in sa.inspect(bind).get_check_constraints(table)
+        }
+        if constraint in checks:
             with op.batch_alter_table(table) as batch_op:
                 batch_op.drop_constraint(constraint, type_="check")
-        except Exception:
-            pass
 
-    try:
-        with op.batch_alter_table("experts") as batch_op:
-            batch_op.drop_index("ix_experts_canonical_key")
-    except Exception:
-        pass
+    indexes = {item["name"] for item in sa.inspect(bind).get_indexes("experts")}
+    if "ix_experts_canonical_key" in indexes:
+        op.drop_index("ix_experts_canonical_key", table_name="experts")
 
     with op.batch_alter_table("experts") as batch_op:
         batch_op.drop_column("provenance")

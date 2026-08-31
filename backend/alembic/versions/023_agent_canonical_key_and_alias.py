@@ -65,8 +65,7 @@ _DUAL_NAME_FIXES = {
 
 
 def _column_exists(bind, table: str, column: str) -> bool:
-    row = bind.execute(sa.text(f"PRAGMA table_info({table})")).fetchall()
-    return any(r[1] == column for r in row)
+    return column in {item["name"] for item in sa.inspect(bind).get_columns(table)}
 
 
 def _slugify(name: str) -> str:
@@ -109,25 +108,21 @@ def upgrade() -> None:
             batch_op.add_column(sa.Column("aliases", sa.JSON(), nullable=True))
 
     # ── §2 Indexes ───────────────────────────────────────────────────
-    try:
-        with op.batch_alter_table("agents") as batch_op:
-            batch_op.create_index(
-                "ix_agents_canonical_key",
-                ["canonical_key"],
-            )
-    except Exception as e:
-        print(f"  [023] agents.ix_agents_canonical_key skipped ({e})")
+    indexes = {item["name"] for item in sa.inspect(bind).get_indexes("agents")}
+    if "ix_agents_canonical_key" not in indexes:
+        op.create_index("ix_agents_canonical_key", "agents", ["canonical_key"])
 
     # ── §3 CHECK constraint on agent_type enum ───────────────────────
     values_sql = ",".join(f"'{v}'" for v in _AGENT_TYPE_VALUES)
-    try:
+    checks = {
+        item["name"] for item in sa.inspect(bind).get_check_constraints("agents")
+    }
+    if "chk_agents_agent_type_domain" not in checks:
         with op.batch_alter_table("agents") as batch_op:
             batch_op.create_check_constraint(
                 "chk_agents_agent_type_domain",
                 condition=f"agent_type IN ({values_sql})",
             )
-    except Exception as e:
-        print(f"  [023] agents.chk_agents_agent_type_domain skipped ({e})")
 
     # ── §4 Backfill canonical_key from name (slug) ───────────────────
     rows = bind.execute(sa.text("SELECT id, name FROM agents WHERE canonical_key IS NULL")).fetchall()
@@ -161,17 +156,17 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    try:
+    bind = op.get_bind()
+    checks = {
+        item["name"] for item in sa.inspect(bind).get_check_constraints("agents")
+    }
+    if "chk_agents_agent_type_domain" in checks:
         with op.batch_alter_table("agents") as batch_op:
             batch_op.drop_constraint("chk_agents_agent_type_domain", type_="check")
-    except Exception:
-        pass
 
-    try:
-        with op.batch_alter_table("agents") as batch_op:
-            batch_op.drop_index("ix_agents_canonical_key")
-    except Exception:
-        pass
+    indexes = {item["name"] for item in sa.inspect(bind).get_indexes("agents")}
+    if "ix_agents_canonical_key" in indexes:
+        op.drop_index("ix_agents_canonical_key", table_name="agents")
 
     with op.batch_alter_table("agents") as batch_op:
         batch_op.drop_column("aliases")

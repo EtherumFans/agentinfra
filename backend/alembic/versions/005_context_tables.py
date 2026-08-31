@@ -52,7 +52,7 @@ def upgrade() -> None:
             "redacted",
             sa.Boolean(),
             nullable=False,
-            server_default=sa.text("1"),
+            server_default=sa.true(),
         ),
         sa.Column(
             "metadata_json",

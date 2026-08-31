@@ -25,14 +25,25 @@ _LEGACY_STATE_CHECK = (
 
 
 def _replace_state_check(expression: str) -> None:
-    # Batch mode is portable to SQLite, whose ALTER TABLE cannot replace a
-    # CHECK constraint, and remains valid for PostgreSQL deployment previews.
+    bind = op.get_bind()
     check_names = {
         str(item.get("name") or "")
-        for item in sa.inspect(op.get_bind()).get_check_constraints(
-            "context_task_refs"
-        )
+        for item in sa.inspect(bind).get_check_constraints("context_task_refs")
     }
+    if bind.dialect.name == "postgresql":
+        # Replacing only the CHECK avoids recreating the table and its primary
+        # key, which is referenced by a2a_task_artifacts in PostgreSQL.
+        if "ck_context_task_refs_state" in check_names:
+            op.drop_constraint(
+                "ck_context_task_refs_state", "context_task_refs", type_="check"
+            )
+        op.create_check_constraint(
+            "ck_context_task_refs_state", "context_task_refs", expression
+        )
+        return
+
+    # SQLite cannot replace CHECK constraints with ALTER TABLE, so retain
+    # Alembic's table-recreation path for that development database.
     with op.batch_alter_table("context_task_refs", recreate="always") as batch_op:
         if "ck_context_task_refs_state" in check_names:
             batch_op.drop_constraint("ck_context_task_refs_state", type_="check")

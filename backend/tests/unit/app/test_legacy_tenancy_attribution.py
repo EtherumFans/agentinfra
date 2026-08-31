@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import os
 import sys
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta, timezone
 
 import pytest
 from sqlalchemy import create_engine
@@ -167,7 +167,8 @@ def _add_run_history(
             "id": row_id, "org": current_org, "u": user_id,
             "ac": api_client_id, "ea": embedded_app_id,
             "s": session_id, "ctx": context_id, "rq": request_id,
-            "cls": current_cls, "c": created_at or datetime.utcnow(),
+            "cls": current_cls,
+            "c": created_at or datetime.now(UTC).replace(tzinfo=None),
         },
     )
 
@@ -181,7 +182,8 @@ def _add_audit_log(conn, *, row_id, user_id=None, action, created_at=None, curre
         ),
         {
             "id": row_id, "org": current_org, "u": user_id, "a": action,
-            "cls": current_cls, "c": created_at or datetime.utcnow(),
+            "cls": current_cls,
+            "c": created_at or datetime.now(UTC).replace(tzinfo=None),
         },
     )
 
@@ -489,7 +491,7 @@ def test_collect_evidence_skips_missing_runtime_sessions_context_id(tmp_path):
         c.execute(sa_text(
             "INSERT INTO run_history (id, context_id, created_at) "
             "VALUES ('r', 'ctx-x', :now)"
-        ), {"now": datetime.utcnow()})
+        ), {"now": datetime.now(UTC).replace(tzinfo=None)})
         c.commit()
         ev = collect_evidence_for_row(c, table="run_history", row_id="r")
         # context_id lookup was skipped silently; no crash.

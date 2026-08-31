@@ -32,7 +32,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Optional
 
 from fastapi import HTTPException
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -118,6 +118,41 @@ def compute_request_hash(
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
 
+def _bind_request_hash_to_delegation(
+    request_hash: str,
+    *,
+    delegated_subject_id: Optional[str],
+    purpose_of_use: Optional[str],
+) -> str:
+    """Bind a machine request digest to its authorization context.
+
+    One OAuth client can be re-authorized for a different delegated subject or
+    purpose.  The existing database uniqueness boundary is intentionally the
+    client, so reusing a key after such a change must produce a 409 rather than
+    replaying a prior subject's response.  Only the derived digest is stored;
+    the delegated identifier is never copied into the idempotency table.
+
+    Human/legacy callers omit both values and retain the original digest for
+    backward-compatible replay of existing records.
+    """
+
+    subject = (delegated_subject_id or "").strip()
+    purpose = (purpose_of_use or "").strip()
+    if not subject and not purpose:
+        return request_hash
+    payload = json.dumps(
+        {
+            "request_hash": request_hash,
+            "delegated_subject_id": subject,
+            "purpose_of_use": purpose,
+        },
+        sort_keys=True,
+        ensure_ascii=False,
+        separators=(",", ":"),
+    )
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
 async def acquire_or_replay(
     db: AsyncSession,
     *,
@@ -127,6 +162,8 @@ async def acquire_or_replay(
     organization_id: Optional[str] = None,
     api_client_id: Optional[str] = None,
     context_id: Optional[str] = None,
+    delegated_subject_id: Optional[str] = None,
+    purpose_of_use: Optional[str] = None,
     ttl_seconds: int = DEFAULT_TTL_SECONDS,
 ) -> DedupResult:
     """Atomic INSERT-or-SELECT against idempotency_records.
@@ -147,6 +184,12 @@ async def acquire_or_replay(
     if not idempotency_key:
         # Empty key — caller should bypass dedup entirely (not call us).
         raise ValueError("idempotency_key must be non-empty")
+
+    request_hash = _bind_request_hash_to_delegation(
+        request_hash,
+        delegated_subject_id=delegated_subject_id,
+        purpose_of_use=purpose_of_use,
+    )
 
     # Phase A1A Gate 2 §3: cloud-mode fail-closed tenancy guard.
     # In cloud mode, every partner request MUST have a resolved org
@@ -253,6 +296,34 @@ async def acquire_or_replay(
                 in_progress=False,
             )
         # PENDING / IN_PROGRESS — caller returns the run_id.
+        if existing.status == STATUS_FAILED:
+            # Failed executions are retryable. Claim the retry with a
+            # conditional transition so simultaneous retries cannot both run.
+            retry_result = await db.execute(
+                update(IdempotencyRecord)
+                .where(
+                    IdempotencyRecord.id == existing.id,
+                    IdempotencyRecord.status == STATUS_FAILED,
+                )
+                .values(
+                    status=STATUS_PENDING,
+                    run_id=None,
+                    response_snapshot=None,
+                    agent_ref=agent_ref,
+                    context_id=context_id,
+                    expires_at=expires_at,
+                )
+            )
+            if retry_result.rowcount == 1:
+                await db.refresh(existing)
+                logger.info(
+                    "idempotency: REACQUIRED failed key=%s record_id=%s",
+                    idempotency_key[:8], existing.id,
+                )
+                return DedupResult(should_run=True, record=existing)
+
+            # Another request won the FAILED -> PENDING transition.
+            await db.refresh(existing)
         logger.info(
             "idempotency: IN_PROGRESS key=%s run_id=%s status=%s",
             idempotency_key[:8], existing.run_id, existing.status,

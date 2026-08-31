@@ -230,10 +230,14 @@ class ProviderRegistry:
         except NotImplementedError:
             return ProviderHealth(state="ok", details={"note": "health() not implemented"})
         except Exception as e:
-            logger.warning("provider %s health() raised: %s", provider_id, e)
+            logger.warning(
+                "provider %s health() raised error_type=%s",
+                provider_id,
+                type(e).__name__,
+            )
             return ProviderHealth(
                 state="down",
-                details={"error": f"{type(e).__name__}: {str(e)[:200]}"},
+                details={"error": f"health_check_failed:{type(e).__name__}"},
             )
 
     async def health_all(self) -> dict[str, ProviderHealth]:
@@ -366,7 +370,7 @@ def _extract_backend_config(agent_pack: dict[str, Any]) -> dict[str, Any]:
 
 
 def _register_builtin_providers(registry: ProviderRegistry) -> None:
-    """Register the 3 Phase 4-A builtin providers.
+    """Register the builtin providers.
 
     Phase 4-A only ships: RuleEngineProvider, PureLLMProvider (skeleton),
     LLMWithToolsProvider (skeleton). The 5 meta-providers (ensemble,
@@ -374,6 +378,43 @@ def _register_builtin_providers(registry: ProviderRegistry) -> None:
     """
     # Import locally so module import doesn't pay for provider imports.
     from .rule_engine_provider import RuleEngineProvider
+    from .documentation_rule_engine_provider import DocumentationRuleEngineProvider
+    from .governed_code_validation_provider import GovernedCodeValidationProvider
+    from .governed_claim_check_provider import GovernedClaimCheckProvider
+    from .governed_clinical_education_provider import GovernedClinicalEducationProvider
+    from .governed_clinical_guidelines_provider import GovernedClinicalGuidelinesProvider
+    from .governed_denial_appeals_provider import GovernedDenialAppealsProvider
+    from .governed_diagnosis_extractor_provider import GovernedDiagnosisExtractorProvider
+    from .governed_drg_dip_risk_review_provider import (
+        GovernedDRGDIPRiskReviewProvider,
+    )
+    from .governed_discharge_education_provider import (
+        GovernedDischargeEducationProvider,
+    )
+    from .governed_discharge_summary_provider import (
+        GovernedDischargeSummaryProvider,
+    )
+    from .governed_evidence_extractor_provider import GovernedEvidenceExtractorProvider
+    from .governed_evidence_ranker_provider import GovernedEvidenceRankerProvider
+    from .governed_icd_navigator_provider import GovernedICDNavigatorProvider
+    from .governed_icu_summary_provider import GovernedIcuSummaryProvider
+    from .governed_medication_reconciliation_provider import (
+        GovernedMedicationReconciliationProvider,
+    )
+    from .governed_nursing_handoff_provider import GovernedNursingHandoffProvider
+    from .governed_procedure_extractor_provider import GovernedProcedureExtractorProvider
+    from .governed_prior_authorization_provider import (
+        GovernedPriorAuthorizationProvider,
+    )
+    from .governed_principal_diagnosis_review_provider import (
+        GovernedPrincipalDiagnosisReviewProvider,
+    )
+    from .governed_referral_provider import GovernedReferralProvider
+    from .governed_rule_explainer_provider import GovernedRuleExplainerProvider
+    from .governed_surgical_registry_provider import GovernedSurgicalRegistryProvider
+    from .governed_triage_questionnaire_provider import (
+        GovernedTriageQuestionnaireProvider,
+    )
     from .pure_llm_provider import PureLLMProvider
     from .llm_with_tools_provider import LLMWithToolsProvider
 
@@ -384,6 +425,183 @@ def _register_builtin_providers(registry: ProviderRegistry) -> None:
         candidates.append(RuleEngineProvider())
     except Exception as e:  # defensive
         logger.error("RuleEngineProvider init failed: %s", e)
+
+    # DocumentationRuleEngineProvider — local 7+1 section checks.
+    try:
+        candidates.append(DocumentationRuleEngineProvider())
+    except Exception as e:  # defensive
+        logger.error("DocumentationRuleEngineProvider init failed: %s", e)
+
+    # GovernedCodeValidationProvider — local hash-pinned catalog baseline
+    # with separately gated optional LLM semantic review.
+    try:
+        candidates.append(GovernedCodeValidationProvider())
+    except Exception as e:  # defensive
+        logger.error("GovernedCodeValidationProvider init failed: %s", e)
+
+    # GovernedClaimCheckProvider — exact-span claim/policy packet assembly;
+    # no coverage, eligibility, code-support, DRG/DIP, submission, or writeback.
+    try:
+        candidates.append(GovernedClaimCheckProvider())
+    except Exception as e:  # defensive
+        logger.error("GovernedClaimCheckProvider init failed: %s", e)
+
+    # GovernedClinicalEducationProvider — exact-span assembly from explicitly
+    # approved source material; no retrieval, clinical reasoning or advice.
+    try:
+        candidates.append(GovernedClinicalEducationProvider())
+    except Exception as e:  # defensive
+        logger.error("GovernedClinicalEducationProvider init failed: %s", e)
+
+    # GovernedClinicalGuidelinesProvider — deterministic comparison of
+    # documented facts with explicitly supplied approved-source rules; no
+    # retrieval, source authentication, clinical inference or recommendations.
+    try:
+        candidates.append(GovernedClinicalGuidelinesProvider())
+    except Exception as e:  # defensive
+        logger.error("GovernedClinicalGuidelinesProvider init failed: %s", e)
+
+    # GovernedDenialAppealsProvider — exact-span denial/claim/policy packet
+    # assembly; no denial classification, root-cause inference, coding or
+    # policy assessment, submission, or writeback.
+    try:
+        candidates.append(GovernedDenialAppealsProvider())
+    except Exception as e:  # defensive
+        logger.error("GovernedDenialAppealsProvider init failed: %s", e)
+
+    # GovernedICDNavigatorProvider — local hash-pinned term lookup and
+    # one-level hierarchy traversal; no LLM and no external network.
+    try:
+        candidates.append(GovernedICDNavigatorProvider())
+    except Exception as e:  # defensive
+        logger.error("GovernedICDNavigatorProvider init failed: %s", e)
+
+    # GovernedEvidenceExtractorProvider — locates exact submitted-code literals
+    # or hash-pinned ICD-10-CN catalog terms; no clinical-support inference.
+    try:
+        candidates.append(GovernedEvidenceExtractorProvider())
+    except Exception as e:  # defensive
+        logger.error("GovernedEvidenceExtractorProvider init failed: %s", e)
+
+    # GovernedDiagnosisExtractorProvider — explicit diagnosis labels and
+    # assertion modifiers plus unique governed ICD-10-CN mapping; no model,
+    # clinical inference, or billing authority.
+    try:
+        candidates.append(GovernedDiagnosisExtractorProvider())
+    except Exception as e:  # defensive
+        logger.error("GovernedDiagnosisExtractorProvider init failed: %s", e)
+
+    # GovernedDRGDIPRiskReviewProvider — explicit coded input, exact evidence,
+    # and hash-pinned development risk heuristics only; no official grouping,
+    # DIP scoring, payment, settlement, submission or writeback.
+    try:
+        candidates.append(GovernedDRGDIPRiskReviewProvider())
+    except Exception as e:  # defensive
+        logger.error("GovernedDRGDIPRiskReviewProvider init failed: %s", e)
+
+    # GovernedTriageQuestionnaireProvider — deterministic traversal of an
+    # explicit bounded questionnaire with exact answer evidence only; no
+    # transcript extraction, clinical inference, score calculation, final
+    # acuity assignment, automatic action, or writeback.
+    try:
+        candidates.append(GovernedTriageQuestionnaireProvider())
+    except Exception as e:  # defensive
+        logger.error("GovernedTriageQuestionnaireProvider init failed: %s", e)
+
+    # GovernedDischargeEducationProvider — explicitly labelled discharge facts
+    # and exact spans only; no result interpretation, medication reconciliation,
+    # new advice, follow-up generation or patient-record writeback.
+    try:
+        candidates.append(GovernedDischargeEducationProvider())
+    except Exception as e:  # defensive
+        logger.error("GovernedDischargeEducationProvider init failed: %s", e)
+
+    # GovernedDischargeSummaryProvider — explicit headed discharge-summary
+    # sections, including multi-line content, with exact spans only; no
+    # clinical inference, code assignment, medication reconciliation or
+    # health-record writeback.
+    try:
+        candidates.append(GovernedDischargeSummaryProvider())
+    except Exception as e:  # defensive
+        logger.error("GovernedDischargeSummaryProvider init failed: %s", e)
+
+    # GovernedEvidenceRankerProvider — ranks only explicit evidence source/span
+    # traceability; it never promotes the score to clinical or coding support.
+    try:
+        candidates.append(GovernedEvidenceRankerProvider())
+    except Exception as e:  # defensive
+        logger.error("GovernedEvidenceRankerProvider init failed: %s", e)
+
+    # GovernedSurgicalRegistryProvider — conservative lexical extraction of
+    # explicit registry facts with exact quotes and mandatory human review.
+    try:
+        candidates.append(GovernedSurgicalRegistryProvider())
+    except Exception as e:  # defensive
+        logger.error("GovernedSurgicalRegistryProvider init failed: %s", e)
+
+    # GovernedProcedureExtractorProvider — explicit performed/planned/
+    # historical/cancelled/negated mentions plus unique governed catalog
+    # mapping; no model, network, clinical inference, or billing authority.
+    try:
+        candidates.append(GovernedProcedureExtractorProvider())
+    except Exception as e:  # defensive
+        logger.error("GovernedProcedureExtractorProvider init failed: %s", e)
+
+    # GovernedRuleExplainerProvider — catalog membership, display name,
+    # chapter and hierarchy facts only. Governed instructional notes are not
+    # present in the development asset and are never synthesized.
+    try:
+        candidates.append(GovernedRuleExplainerProvider())
+    except Exception as e:  # defensive
+        logger.error("GovernedRuleExplainerProvider init failed: %s", e)
+
+    # GovernedMedicationReconciliationProvider — explicitly labelled source
+    # lists, exact spans and conservative documented-field comparison only;
+    # no drug-knowledge, interaction or dose-suitability inference.
+    try:
+        candidates.append(GovernedMedicationReconciliationProvider())
+    except Exception as e:  # defensive
+        logger.error("GovernedMedicationReconciliationProvider init failed: %s", e)
+
+    # GovernedNursingHandoffProvider — explicitly labelled patient/field
+    # extraction with exact spans; no acuity, priority, order, device-state or
+    # escalation-threshold inference.
+    try:
+        candidates.append(GovernedNursingHandoffProvider())
+    except Exception as e:  # defensive
+        logger.error("GovernedNursingHandoffProvider init failed: %s", e)
+
+    # GovernedIcuSummaryProvider — explicitly labelled ICU admission facts
+    # with exact spans; no scoring, thresholds, drug screening, clinical
+    # recommendations or writeback.
+    try:
+        candidates.append(GovernedIcuSummaryProvider())
+    except Exception as e:  # defensive
+        logger.error("GovernedIcuSummaryProvider init failed: %s", e)
+
+    # GovernedReferralProvider — fixed-template assembly of explicitly labelled
+    # referral fields with exact spans; no inferred specialty, urgency,
+    # diagnoses, recommendations, transmission or health-record writeback.
+    try:
+        candidates.append(GovernedReferralProvider())
+    except Exception as e:  # defensive
+        logger.error("GovernedReferralProvider init failed: %s", e)
+
+    # GovernedPriorAuthorizationProvider — exact-span assembly of explicitly
+    # documented request evidence and versioned payer-policy fields; no policy
+    # lookup, necessity decision, coding validation, submission or writeback.
+    try:
+        candidates.append(GovernedPriorAuthorizationProvider())
+    except Exception as e:  # defensive
+        logger.error("GovernedPriorAuthorizationProvider init failed: %s", e)
+
+    # GovernedPrincipalDiagnosisReviewProvider — checks a coder-documented
+    # draft against an explicit candidate set and exact input evidence only;
+    # no diagnosis extraction, ranking, recommendation, assignment or writeback.
+    try:
+        candidates.append(GovernedPrincipalDiagnosisReviewProvider())
+    except Exception as e:  # defensive
+        logger.error("GovernedPrincipalDiagnosisReviewProvider init failed: %s", e)
 
     # PureLLMProvider skeleton — init may need an LLM gateway; on
     # failure, skip (the skeleton is testable, not production-wired).

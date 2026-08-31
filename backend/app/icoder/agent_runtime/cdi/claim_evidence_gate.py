@@ -62,6 +62,7 @@ from app.icoder.agent_runtime.cdi.domain import (
     ClaimEvidenceAlignment,
     ClaimValidationStatus,
     ProviderQuery,
+    query_audit_item,
     SupportType,
 )
 
@@ -329,6 +330,42 @@ def snap_quote_to_chart(
     if best_start < 0:
         return quote
     return chart[best_start:best_start + qlen]
+
+
+def anchor_query_evidence_spans(
+    query: ProviderQuery,
+    chart: str,
+) -> tuple[list[str], int]:
+    """Anchor every query evidence item to an independent chart substring.
+
+    Returns ``(errors, snapped_count)``. On success, coordinates are filled,
+    ``evidence_spans`` becomes authoritative, and the legacy ``evidence_span``
+    points at its first item. A concatenation of separated facts fails because
+    it is not one contiguous substring; callers must withhold the query.
+    """
+    spans = query.all_evidence_spans()
+    errors: list[str] = []
+    snapped_count = 0
+    for index, span in enumerate(spans):
+        original = span.quote
+        snapped = snap_quote_to_chart(original, chart)
+        if snapped and snapped != original:
+            span.quote = snapped
+            snapped_count += 1
+        start = chart.find(span.quote)
+        if start < 0:
+            errors.append(
+                f"evidence_spans[{index}] is not a verbatim contiguous chart span"
+            )
+            continue
+        span.char_start = start
+        span.char_end = start + len(span.quote)
+    if not spans:
+        errors.append("at least one evidence span is required")
+    if not errors:
+        query.evidence_spans = spans
+        query.evidence_span = spans[0]
+    return errors, snapped_count
 
 
 def _rule_cea_001(alignment: ClaimEvidenceAlignment, chart: str) -> ClaimEvidenceRuleResult:
@@ -852,6 +889,11 @@ def apply_claim_evidence_to_case(case: CDICase) -> CaseClaimEvidenceResult:
             survivors.append(q)
             continue
         if gate.verdict == "BLOCK":
+            case.query_rewrite_queue.append(query_audit_item(
+                q,
+                status="REJECTED_BY_CLAIM_EVIDENCE",
+                gate_reasons=list(gate.block_reasons),
+            ))
             continue  # drop
         if gate.verdict == "REVIEW_REQUIRED":
             # Tag the query — downstream NLQ /w lifecycle may surface it
@@ -876,8 +918,9 @@ def _extract_case_documents(case: CDICase) -> list[str]:
             if ev.document_id:
                 docs.add(ev.document_id)
     for q in case.proposed_provider_queries:
-        if q.evidence_span.document_id:
-            docs.add(q.evidence_span.document_id)
+        for ev in q.all_evidence_spans():
+            if ev.document_id:
+                docs.add(ev.document_id)
     return sorted(docs)
 
 
@@ -1056,5 +1099,6 @@ __all__ = [
     "apply_claim_evidence_to_case",
     "extract_claims",
     "snap_quote_to_chart",
+    "anchor_query_evidence_spans",
     "QUOTE_SNAP_THRESHOLD",
 ]

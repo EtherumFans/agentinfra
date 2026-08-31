@@ -42,7 +42,10 @@ from __future__ import annotations
 
 from typing import List, Optional
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
+
+
+MAX_FACTS_CONTEXT_CHARS = 200_000
 
 
 # ─── Request ──────────────────────────────────────────────────────────
@@ -56,18 +59,20 @@ class FactsContextItem(BaseModel):
     (today only ``text`` is wired); iCoDer keeps the field so future audio
     transcriptions can be fed without breaking the wire format.
     """
-    text: str = Field(default="", description="Source text to extract facts from")
-    type: str = Field(default="text", description="Modality discriminator: text (today); audio reserved for Phase 1.3")
+    text: str = Field(default="", max_length=MAX_FACTS_CONTEXT_CHARS, description="Source text to extract facts from")
+    type: str = Field(default="text", max_length=64, description="Modality discriminator: text (today); audio reserved for Phase 1.3")
 
 
 class FactsExtractRequest(BaseModel):
     """Corti §3.2 ``POST /v2/tools/extract-facts`` request body."""
     context: List[FactsContextItem] = Field(
         default_factory=list,
+        max_length=64,
         description="One or more context blocks (text spans). At least one must contain non-whitespace text.",
     )
     outputLanguage: str = Field(
         default="en-US",
+        max_length=35,
         description=(
             "Output language code. Corti docs (2026-05 release) only "
             "support ``en-US``; iCoDer also accepts ``zh-CN`` natively "
@@ -83,6 +88,15 @@ class FactsExtractRequest(BaseModel):
         if not v:
             return "en-US"
         return v
+
+    @model_validator(mode="after")
+    def _limit_total_context(self):
+        total_chars = sum(len(item.text) for item in self.context)
+        if total_chars > MAX_FACTS_CONTEXT_CHARS:
+            raise ValueError(
+                f"context text exceeds {MAX_FACTS_CONTEXT_CHARS} characters"
+            )
+        return self
 
 
 # ─── Response ─────────────────────────────────────────────────────────
@@ -266,7 +280,7 @@ class FactsCreateInput(BaseModel):
     Per spec (``FactsCreateInput`` in
     ``docs/corti-reverse-engineered/facts-add-facts.md``), ``text`` and
     ``group`` are **required**; ``source`` is optional (enum
-    core|system|user, default corti picks; iCoDer stub defaults to
+    core|system|user; iCoDer defaults caller-created facts to
     ``user`` since the caller is the one creating it).
     """
     text: str = Field(default="", description="The text content of the fact")
@@ -334,7 +348,7 @@ class FactsCreateResponse(BaseModel):
 # Returns the **catalog of fact-group keys** the platform supports
 # (e.g. demographics, chief-complaint, vital-signs, ...). iCoDer
 # reuses the canonical ``CORTI_FACT_GROUPS`` frozenset already defined
-# in this module — the stub just projects those keys into the
+# in this module and projects those keys into the
 # ``{data: [...]}`` envelope with deterministic per-group UUIDs.
 
 

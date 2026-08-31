@@ -86,6 +86,12 @@ class RunTraceEvent:
     ts: float  # epoch seconds
     duration_ms: float = 0.0
     safe_metadata: dict[str, Any] = field(default_factory=dict)
+    # Stable transport identity. DB rows use the persisted UUID/sequence;
+    # memory mode assigns the same shape at append time. Legacy DB rows fall
+    # back to ``legacy:<row primary key>`` when read.
+    event_id: Optional[str] = None
+    sequence_number: Optional[int] = None
+    trace_id: Optional[str] = None
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -122,13 +128,54 @@ _SAFE_KEYS: frozenset[str] = frozenset({
     "redacted_view", "auth_type", "granted_scopes", "required_scopes",
     "tool_name", "tool_count", "tool_names", "handler_ref", "error",
     "error_code", "mcp_error_code", "is_error", "agent_id", "input_parts",
-    "input_len", "review_conclusion", "issues_count", "experts",
+    "input_len", "review_conclusion", "issues_count", "validated_codes_count",
+    "cross_code_issues_count", "candidate_codes_count", "query_terms_count",
+    "rephrasing_attempted", "evidence_items_count",
+    "valid_evidence_spans_count", "invalid_evidence_spans_count",
+    "evidence_source_coverage_ratio", "experts",
+    "evidence_input_codes_count", "evidence_located_mentions_count",
+    "evidence_unmatched_codes_count",
     "expert_id", "reason", "stage",
     # ── Phase 4-A (2026-07-07): Agent Backend Provider metadata ──
     "backend_provider", "backend_type", "provider_latency_ms",
     "provider_status", "provider_deterministic",
     "supports_tool_calling", "fallback_used", "output_contract",
     "tool_rounds",
+    # ── Agentic v2 Connector graph (bounded identifiers/counters only) ──
+    "connector_id", "connector_type", "connector_node_id",
+    "connector_graph_revision", "connector_node_count", "attempts",
+    # ── Dedicated project clone policy (digest/IDs only; never prompt text) ──
+    "source_runtime_agent_id", "project_policy_digest",
+    "project_prompt_overridden", "project_expert_ids",
+    "dedicated_source_experts_fixed",
+    "model_deployment_id", "model_routing_mode",
+    "model_selection_version", "model_routing_decision",
+    # ── OpenInference model telemetry (bounded identifiers/counters only) ──
+    # Raw prompts, completions, tool arguments and provider payloads are
+    # intentionally absent. These values are normalized by
+    # ``emit_backend_metadata_event`` before reaching the persistence choke
+    # point, so Context trace export can use standard OpenInference keys
+    # without weakening the China-medical minimum-necessary policy.
+    "model_provider", "model_system", "model_name", "input_tokens",
+    "output_tokens", "total_tokens", "model_cost_usd", "finish_reason",
+    "llm_call_count", "provider_error_category", "provider_http_status",
+    "provider_attempt_count", "provider_retryable",
+    # Config-priced non-authoritative CNY accounting for dedicated runtimes.
+    # These are bounded numbers/identifiers only; provider invoices remain a
+    # separate external reconciliation concern.
+    "cost_amount", "cost_currency", "cost_source", "billing_authoritative",
+    # CDI orchestration performance attribution. Stage names are fixed
+    # identifiers; all other values are bounded counters/booleans.
+    "orchestration_latency_ms", "instrumented_stage_latency_ms",
+    "model_call_latency_sum_ms", "non_provider_wall_latency_ms",
+    "non_provider_wall_latency_known", "parallel_model_calls_observed",
+    "provider_latency_exceeds_wall_time", "slowest_stage",
+    "slowest_stage_latency_ms", "latency_budget_ms",
+    "latency_budget_exceeded",
+    # ── Governed clinical catalog provenance (bounded identifiers only) ──
+    "clinical_asset_ids", "clinical_asset_versions",
+    "clinical_asset_authority_statuses", "clinical_asset_license_statuses",
+    "clinical_asset_integrity_verified", "semantic_enhancement_used",
     # ── Phase A1A Gate 3R.4 — trace identity context (underscore-prefixed) ──
     # These are popped before persist (used for row attribution, not
     # stored in safe_metadata_json). Listed here so the redactor does
@@ -217,6 +264,12 @@ class RunTraceStore:
         self._events: dict[str, list[RunTraceEvent]] = {}
 
     def append(self, event: RunTraceEvent) -> None:
+        if not event.trace_id:
+            event.trace_id = str(event.safe_metadata.get("_trace_id") or "") or None
+        if not event.event_id:
+            event.event_id, event.sequence_number = _assign_event_identity(
+                event.run_id, event.trace_id
+            )
         self._events.setdefault(event.run_id, []).append(event)
         # Phase A1A Gate 3.3 §3 — record FALLBACK_MEMORY on run_history
         # so audits can distinguish "events in DB" from "events only in
@@ -248,6 +301,26 @@ class RunTraceStore:
         self._events.clear()
 
 
+def to_sync_database_url(database_url: str) -> str:
+    """Resolve the explicit synchronous driver used by trace writes.
+
+    The main API uses ``asyncpg`` but this store is synchronous because trace
+    emitters also run in synchronous orchestrator contexts. Never depend on
+    SQLAlchemy's implicit psycopg2 fallback: the API image carries Psycopg 3.
+    """
+    if database_url.startswith("sqlite+aiosqlite://"):
+        return database_url.replace("sqlite+aiosqlite://", "sqlite://", 1)
+    if database_url.startswith("postgresql+asyncpg://"):
+        return database_url.replace(
+            "postgresql+asyncpg://", "postgresql+psycopg://", 1
+        )
+    if database_url.startswith("postgresql://"):
+        return database_url.replace(
+            "postgresql://", "postgresql+psycopg://", 1
+        )
+    return database_url
+
+
 class DbRunTraceStore:
     """DB-backed store. Uses a sync SQLAlchemy engine so emit_trace_event
     can be called from sync contexts (InboundHandler / _SimpleAgentDispatchHandler
@@ -275,9 +348,7 @@ class DbRunTraceStore:
 
         # Strip async driver from URL: sqlite+aiosqlite://... → sqlite://...
         #                                postgresql+asyncpg://... → postgresql://...
-        url = settings.DATABASE_URL
-        for async_driver in ("+aiosqlite", "+asyncpg", "+psycopg"):
-            url = url.replace(async_driver, "")
+        url = to_sync_database_url(settings.DATABASE_URL)
         # SQLite needs check_same_thread=False for cross-thread usage.
         connect_args = {"check_same_thread": False} if "sqlite" in url else {}
         self._sync_engine = create_engine(url, connect_args=connect_args, echo=False)
@@ -297,14 +368,21 @@ class DbRunTraceStore:
         agent_id = scrubbed.get("agent_id")
         # Phase A1A Gate 3R.4 — propagate trace_id from safe_metadata
         # if the emit site stashed it there. Fall back to None.
-        trace_id = scrubbed.pop("_trace_id", None)
+        metadata_trace_id = scrubbed.pop("_trace_id", None)
+        trace_id = event.trace_id or metadata_trace_id
 
         # Phase A1A Gate 3R.4 — stable event identity.
         # event_id is a UUID v4 string. sequence_number is per-trace
         # monotonic ordering (1-indexed within trace_id).
-        event_id, sequence_number = _assign_event_identity(
-            event.run_id, trace_id
-        )
+        event_id = event.event_id
+        sequence_number = event.sequence_number
+        if not event_id:
+            event_id, sequence_number = _assign_event_identity(
+                event.run_id, trace_id
+            )
+        event.event_id = event_id
+        event.sequence_number = sequence_number
+        event.trace_id = trace_id
 
         record = RunTraceEventModel(
             run_id=event.run_id,
@@ -393,6 +471,9 @@ class DbRunTraceStore:
                 ts=row.ts or 0.0,
                 duration_ms=row.duration_ms or 0.0,
                 safe_metadata=row.safe_metadata_json or {},
+                event_id=row.event_id or f"legacy:{row.id}",
+                sequence_number=row.sequence_number,
+                trace_id=row.trace_id,
             ))
         return events
 
@@ -405,7 +486,12 @@ class DbRunTraceStore:
             stmt = (
                 select(RunTraceEventModel)
                 .where(RunTraceEventModel.run_id == run_id)
-                .order_by(RunTraceEventModel.created_at)
+                .order_by(
+                    RunTraceEventModel.ts,
+                    RunTraceEventModel.created_at,
+                    RunTraceEventModel.sequence_number,
+                    RunTraceEventModel.id,
+                )
             )
             rows = session.execute(stmt).scalars().all()
             return self._rows_to_events(rows)
@@ -421,7 +507,12 @@ class DbRunTraceStore:
             stmt = (
                 select(RunTraceEventModel)
                 .where(RunTraceEventModel.run_id == run_id)
-                .order_by(RunTraceEventModel.created_at)
+                .order_by(
+                    RunTraceEventModel.ts,
+                    RunTraceEventModel.created_at,
+                    RunTraceEventModel.sequence_number,
+                    RunTraceEventModel.id,
+                )
             )
             if organization_id is not None:
                 stmt = stmt.where(RunTraceEventModel.organization_id == organization_id)
@@ -564,9 +655,7 @@ def _mark_trace_capture_status(
     from sqlalchemy import create_engine, update
     from sqlalchemy.orm import sessionmaker
 
-    url = settings.DATABASE_URL
-    for async_driver in ("+aiosqlite", "+asyncpg", "+psycopg"):
-        url = url.replace(async_driver, "")
+    url = to_sync_database_url(settings.DATABASE_URL)
     connect_args = {"check_same_thread": False} if "sqlite" in url else {}
     engine = create_engine(url, connect_args=connect_args, echo=False)
     Session = sessionmaker(bind=engine, expire_on_commit=False)
@@ -638,8 +727,7 @@ def emit_trace_event(
 # ── Phase 4-A: Agent Backend Provider metadata helper ──────────────────
 
 
-def emit_backend_metadata_event(
-    run_id: str,
+def build_backend_safe_metadata(
     *,
     backend_provider: str,
     backend_type: str,
@@ -650,10 +738,47 @@ def emit_backend_metadata_event(
     fallback_used: bool = False,
     output_contract: str = "",
     tool_rounds: int = 0,
-    step: str = RunTraceStep.OUTPUT_GENERATED,
-    store: RunTraceStore | DbRunTraceStore | None = None,
-) -> RunTraceEvent:
-    """Emit a RunTrace event carrying Agent Backend Provider metadata.
+    model_deployment_id: str = "",
+    model_routing_mode: str = "",
+    model_selection_version: int = 0,
+    model_routing_decision: str = "",
+    model_provider: str = "",
+    model_system: str = "",
+    model_name: str = "",
+    input_tokens: int | None = None,
+    output_tokens: int | None = None,
+    total_tokens: int | None = None,
+    model_cost_usd: float | None = None,
+    finish_reason: str = "",
+    llm_call_count: int | None = None,
+    provider_error_category: str = "",
+    provider_http_status: int | None = None,
+    provider_attempt_count: int | None = None,
+    provider_retryable: bool | None = None,
+    clinical_asset_ids: str = "",
+    clinical_asset_versions: str = "",
+    clinical_asset_authority_statuses: str = "",
+    clinical_asset_license_statuses: str = "",
+    clinical_asset_integrity_verified: bool = False,
+    semantic_enhancement_used: bool = False,
+    candidate_codes_count: int | None = None,
+    query_terms_count: int | None = None,
+    rephrasing_attempted: bool = False,
+    evidence_items_count: int | None = None,
+    valid_evidence_spans_count: int | None = None,
+    invalid_evidence_spans_count: int | None = None,
+    evidence_source_coverage_ratio: float | None = None,
+    evidence_input_codes_count: int | None = None,
+    evidence_located_mentions_count: int | None = None,
+    evidence_unmatched_codes_count: int | None = None,
+) -> dict[str, Any]:
+    """Normalize one Provider invocation into persistence-safe metadata.
+
+    This is shared by direct emitters and dedicated clinical runtimes that
+    first carry telemetry inline and persist it later with tenant/run
+    attribution.  Keeping normalization here prevents those runtimes from
+    bypassing the same bounded identifier/count/cost rules used by Provider
+    Registry backends.
 
     Phase 4-A Task 8 (2026-07-07): every provider invocation should
     emit one of these so ``RunTracePage`` can render a "Backend
@@ -668,6 +793,21 @@ def emit_backend_metadata_event(
     of 8 known literals; provider_status is one of 9 status literals;
     the booleans and ints are display-safe by construction.
     """
+    def _identifier(value: Any, *, limit: int = 256) -> str:
+        text = str(value or "").strip()
+        if len(text) > limit or not text:
+            return ""
+        return text if all(
+            ch.isascii() and (ch.isalnum() or ch in "._:/@+-") for ch in text
+        ) else ""
+
+    def _count(value: Any) -> int | None:
+        try:
+            count = int(value)
+        except (TypeError, ValueError, OverflowError):
+            return None
+        return count if 0 <= count <= 100_000_000 else None
+
     safe_metadata: dict[str, Any] = {
         "backend_provider": backend_provider,
         "backend_type": backend_type,
@@ -678,10 +818,182 @@ def emit_backend_metadata_event(
         "fallback_used": bool(fallback_used),
         "output_contract": str(output_contract),
         "tool_rounds": int(tool_rounds),
+        "model_deployment_id": str(model_deployment_id),
+        "model_routing_mode": str(model_routing_mode),
+        "model_selection_version": int(model_selection_version),
+        "model_routing_decision": str(model_routing_decision),
     }
+    for key, value in (
+        ("model_provider", _identifier(model_provider)),
+        ("model_system", _identifier(model_system)),
+        ("model_name", _identifier(model_name)),
+        ("finish_reason", _identifier(finish_reason, limit=128)),
+        (
+            "provider_error_category",
+            _identifier(provider_error_category, limit=64),
+        ),
+        ("clinical_asset_ids", _identifier(clinical_asset_ids, limit=512)),
+        ("clinical_asset_versions", _identifier(clinical_asset_versions, limit=512)),
+        (
+            "clinical_asset_authority_statuses",
+            _identifier(clinical_asset_authority_statuses, limit=256),
+        ),
+        (
+            "clinical_asset_license_statuses",
+            _identifier(clinical_asset_license_statuses, limit=256),
+        ),
+    ):
+        if value:
+            safe_metadata[key] = value
+    safe_metadata["clinical_asset_integrity_verified"] = bool(
+        clinical_asset_integrity_verified
+    )
+    safe_metadata["semantic_enhancement_used"] = bool(semantic_enhancement_used)
+    safe_metadata["rephrasing_attempted"] = bool(rephrasing_attempted)
+    for key, value in (
+        ("input_tokens", input_tokens),
+        ("output_tokens", output_tokens),
+        ("total_tokens", total_tokens),
+        ("llm_call_count", llm_call_count),
+        ("provider_http_status", provider_http_status),
+        ("provider_attempt_count", provider_attempt_count),
+        ("candidate_codes_count", candidate_codes_count),
+        ("query_terms_count", query_terms_count),
+        ("evidence_items_count", evidence_items_count),
+        ("valid_evidence_spans_count", valid_evidence_spans_count),
+        ("invalid_evidence_spans_count", invalid_evidence_spans_count),
+        ("evidence_input_codes_count", evidence_input_codes_count),
+        ("evidence_located_mentions_count", evidence_located_mentions_count),
+        ("evidence_unmatched_codes_count", evidence_unmatched_codes_count),
+    ):
+        if value is not None:
+            normalized_count = _count(value)
+            if normalized_count is not None:
+                safe_metadata[key] = normalized_count
+    if provider_retryable is not None:
+        safe_metadata["provider_retryable"] = bool(provider_retryable)
+    try:
+        normalized_cost = float(model_cost_usd) if model_cost_usd is not None else None
+    except (TypeError, ValueError, OverflowError):
+        normalized_cost = None
+    if (
+        normalized_cost is not None
+        and normalized_cost == normalized_cost
+        and 0.0 <= normalized_cost <= 1_000_000.0
+    ):
+        safe_metadata["model_cost_usd"] = normalized_cost
+    try:
+        normalized_coverage = (
+            float(evidence_source_coverage_ratio)
+            if evidence_source_coverage_ratio is not None
+            else None
+        )
+    except (TypeError, ValueError, OverflowError):
+        normalized_coverage = None
+    if (
+        normalized_coverage is not None
+        and normalized_coverage == normalized_coverage
+        and 0.0 <= normalized_coverage <= 1.0
+    ):
+        safe_metadata["evidence_source_coverage_ratio"] = round(
+            normalized_coverage, 4
+        )
+    return safe_metadata
+
+
+def emit_backend_metadata_event(
+    run_id: str,
+    *,
+    backend_provider: str,
+    backend_type: str,
+    provider_latency_ms: int = 0,
+    provider_status: str = "complete",
+    provider_deterministic: bool = False,
+    supports_tool_calling: bool = False,
+    fallback_used: bool = False,
+    output_contract: str = "",
+    tool_rounds: int = 0,
+    model_deployment_id: str = "",
+    model_routing_mode: str = "",
+    model_selection_version: int = 0,
+    model_routing_decision: str = "",
+    model_provider: str = "",
+    model_system: str = "",
+    model_name: str = "",
+    input_tokens: int | None = None,
+    output_tokens: int | None = None,
+    total_tokens: int | None = None,
+    model_cost_usd: float | None = None,
+    finish_reason: str = "",
+    llm_call_count: int | None = None,
+    clinical_asset_ids: str = "",
+    clinical_asset_versions: str = "",
+    clinical_asset_authority_statuses: str = "",
+    clinical_asset_license_statuses: str = "",
+    clinical_asset_integrity_verified: bool = False,
+    semantic_enhancement_used: bool = False,
+    candidate_codes_count: int | None = None,
+    query_terms_count: int | None = None,
+    rephrasing_attempted: bool = False,
+    evidence_items_count: int | None = None,
+    valid_evidence_spans_count: int | None = None,
+    invalid_evidence_spans_count: int | None = None,
+    evidence_source_coverage_ratio: float | None = None,
+    evidence_input_codes_count: int | None = None,
+    evidence_located_mentions_count: int | None = None,
+    evidence_unmatched_codes_count: int | None = None,
+    step: str = RunTraceStep.OUTPUT_GENERATED,
+    store: RunTraceStore | DbRunTraceStore | None = None,
+) -> RunTraceEvent:
+    """Emit a RunTrace event carrying Agent Backend Provider metadata."""
+    safe_metadata = build_backend_safe_metadata(
+        backend_provider=backend_provider,
+        backend_type=backend_type,
+        provider_latency_ms=provider_latency_ms,
+        provider_status=provider_status,
+        provider_deterministic=provider_deterministic,
+        supports_tool_calling=supports_tool_calling,
+        fallback_used=fallback_used,
+        output_contract=output_contract,
+        tool_rounds=tool_rounds,
+        model_deployment_id=model_deployment_id,
+        model_routing_mode=model_routing_mode,
+        model_selection_version=model_selection_version,
+        model_routing_decision=model_routing_decision,
+        model_provider=model_provider,
+        model_system=model_system,
+        model_name=model_name,
+        input_tokens=input_tokens,
+        output_tokens=output_tokens,
+        total_tokens=total_tokens,
+        model_cost_usd=model_cost_usd,
+        finish_reason=finish_reason,
+        llm_call_count=llm_call_count,
+        clinical_asset_ids=clinical_asset_ids,
+        clinical_asset_versions=clinical_asset_versions,
+        clinical_asset_authority_statuses=clinical_asset_authority_statuses,
+        clinical_asset_license_statuses=clinical_asset_license_statuses,
+        clinical_asset_integrity_verified=clinical_asset_integrity_verified,
+        semantic_enhancement_used=semantic_enhancement_used,
+        candidate_codes_count=candidate_codes_count,
+        query_terms_count=query_terms_count,
+        rephrasing_attempted=rephrasing_attempted,
+        evidence_items_count=evidence_items_count,
+        valid_evidence_spans_count=valid_evidence_spans_count,
+        invalid_evidence_spans_count=invalid_evidence_spans_count,
+        evidence_source_coverage_ratio=evidence_source_coverage_ratio,
+        evidence_input_codes_count=evidence_input_codes_count,
+        evidence_located_mentions_count=evidence_located_mentions_count,
+        evidence_unmatched_codes_count=evidence_unmatched_codes_count,
+    )
     return emit_trace_event(
         run_id, step,
-        status=RunTraceStatus.OK,
+        status=(
+            RunTraceStatus.FAILED
+            if str(provider_status).lower()
+            in {"fail", "failed", "error", "degraded", "unavailable"}
+            else RunTraceStatus.OK
+        ),
         duration_ms=float(provider_latency_ms),
         safe_metadata=safe_metadata,
         store=store,
@@ -692,6 +1004,7 @@ __all__ = [
     "RunTraceStep",
     "RunTraceStatus",
     "RunTraceEvent",
+    "build_backend_safe_metadata",
     "RunTraceStore",
     "DbRunTraceStore",
     "get_default_store",

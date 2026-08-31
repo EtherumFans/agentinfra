@@ -195,16 +195,21 @@ export function generateFallbackMarkdown(v2: Record<string, unknown>): string {
   // /old pack). Each branch produces a minimal structured view so the
   // Rendered tab still shows something useful.
   const schemaRef = (v2.schema_ref as string) || (v2.output_contract as string) || '';
-  if (schemaRef === 'icoder/CodeValidationOutput/v2') {
+  if (
+    schemaRef === 'icoder/CodeValidationOutput/v2'
+    || schemaRef === 'icoder/CodeValidationOutput/v3'
+    || schemaRef === 'icoder/CodeValidationOutput/v4'
+    || schemaRef === 'icoder/CodeValidationOutput/v5'
+  ) {
     return _fallbackCodeValidationV2(v2);
   }
   if (schemaRef === 'icoder/CodeValidationOutput/v1') {
     return _fallbackCodeValidation(v2);
   }
-  if (schemaRef === 'icoder/ComplianceGuardrailOutput/v1') {
+  if (schemaRef === 'icoder/ComplianceGuardrailOutput/v1' || schemaRef === 'icoder/ComplianceGuardrailOutput/v2') {
     return _fallbackComplianceGuardrail(v2);
   }
-  if (schemaRef === 'icoder/NoteCompletenessOutput/v1') {
+  if (schemaRef === 'icoder/NoteCompletenessOutput/v1' || schemaRef === 'icoder/NoteCompletenessOutput/v2') {
     return _fallbackNoteCompleteness(v2);
   }
   // Default fallback: generic JSON dump (covers MedicalCodingAgentOutputV2

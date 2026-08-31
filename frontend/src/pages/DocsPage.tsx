@@ -6,17 +6,17 @@ import { BACKEND_BASE_URL } from '../config';
 
 const SDK_CARDS = [
   { icon: Code, title: 'JavaScript SDK', desc: 'Node.js + 浏览器。全 REST + WebSocket 支持。', cmd: 'npm install @icoder/sdk', href: '#js-sdk' },
-  { icon: Terminal, title: 'Python SDK', desc: 'Python 3.9+。httpx 异步 HTTP 客户端。', cmd: 'pip install icoder-sdk', href: '#python-sdk' },
-  { icon: Code, title: 'C# .NET SDK', desc: '.NET 8+。async/await + WebSocket。', cmd: 'dotnet add package iCoDer.Sdk', href: '#dotnet-sdk' },
+  { icon: Terminal, title: 'Python SDK', desc: 'Python 3.9+。httpx 同步 HTTP 客户端。', cmd: 'pip install icoder-sdk', href: '#python-sdk' },
+  { icon: Code, title: 'C# .NET SDK', desc: '.NET 8+。类型化 REST + A2A SSE。', cmd: 'dotnet add package iCoDer.Sdk', href: '#dotnet-sdk' },
   { icon: Puzzle, title: 'Web Components', desc: '零依赖。任意 HTML 页面一行标签嵌入。', cmd: 'npm install @icoder/web', href: '#web-components' },
 ];
 
 const API_SECTIONS = [
-  { icon: Mic, title: 'Speech To Text', path: '/api/v2/tools/interactions', desc: '实时语音识别，中英混合，语音指令', method: 'POST / WS' },
+  { icon: Mic, title: 'Speech To Text', path: '/api/v2/tools/interactions', desc: 'zh-CN 医疗语音识别、预录音生命周期与实时语音指令', method: 'POST / WS' },
   { icon: FileText, title: 'Fact Extraction', path: '/api/v2/tools/extract-facts', desc: '临床文本→结构化事实', method: 'POST' },
-  { icon: FileText, title: 'Guided Documents', path: '/api/v2/tools/guided-documents', desc: 'templateRef + ephemeral 文书生成', method: 'POST' },
-  { icon: Stethoscope, title: 'Medical Coding', path: '/api/v2/tools/coding/icoder/', desc: 'ICD-10-CN / ICD-9-CM-3 编码', method: 'POST' },
-  { icon: Sparkles, title: 'Agentic Framework', path: '/api/agents', desc: '智能体创建/管理/流式对话', method: 'POST / GET / SSE' },
+  { icon: FileText, title: 'Guided Documents', path: '/api/v2/tools/guided-documents', desc: 'templateRef / assemblyTemplate / dynamicTemplate，支持保存或文书零留存', method: 'POST' },
+  { icon: Stethoscope, title: 'Medical Coding', path: '/api/v1/coding/predict', desc: 'ICD-10-CN / ICD-9-CM-3 编码', method: 'POST' },
+  { icon: Sparkles, title: 'Agentic Framework', path: '/api/icoder/agents/{agent_id}/v1/message:stream', desc: '认证 A2A v0.3 流式调用', method: 'POST / SSE' },
   { icon: Key, title: 'Authentication', path: '/api/auth/login', desc: 'JWT + OAuth 2.0 + PKCE', method: 'POST' },
   { icon: Puzzle, title: 'Embedded Assistant', path: '/api/embedded', desc: 'Web Component 嵌入', method: 'GET' },
 ];
@@ -137,7 +137,8 @@ const facts = await icoder.facts.extract(
   '患者因腰痛伴左下肢放射痛3月就诊。MRI示L4/5椎间盘突出。',
   'zh-CN'
 );
-console.log(facts.facts.diagnosis_facts);`}</pre>
+console.log(facts.facts);
+console.log(facts.usageInfo.creditsConsumed);`}</pre>
                 </div>
               </div>
             </div>

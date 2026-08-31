@@ -56,7 +56,11 @@ import re
 from dataclasses import dataclass, field
 from typing import Literal
 
-from app.icoder.agent_runtime.cdi.domain import CDICase, ProviderQuery
+from app.icoder.agent_runtime.cdi.domain import (
+    CDICase,
+    ProviderQuery,
+    query_audit_item,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -81,6 +85,11 @@ def detect_axes(text: str) -> set[str]:
     """Return the set of axis names whose keywords appear in ``text``."""
     if not text:
         return set()
+    # ``病程记录`` is a document-section label, not a request for the
+    # clinical-course axis.  Treating the label as an axis made genuine
+    # single-axis contradiction queries (for example, conflicting severity
+    # across admission / progress / discharge notes) look compound.
+    text = text.replace("病程记录", "记录")
     found: set[str] = set()
     for axis, keywords in AXIS_KEYWORDS.items():
         for kw in keywords:
@@ -88,6 +97,25 @@ def detect_axes(text: str) -> set[str]:
                 found.add(axis)
                 break
     return found
+
+
+def _request_scope_text(text: str) -> str:
+    """Exclude a leading evidence preamble from request-axis counting.
+
+    ``根据血气及临床病程，本次加重的严重程度如何`` asks only for
+    severity.  ``临床病程`` is evidence context before the comma, not a
+    second requested answer dimension.  The topic is evaluated separately,
+    and every axis in the actual request clause remains visible.
+    """
+    stripped = (text or "").strip()
+    if not re.match(r"^(?:根据|结合|基于)", stripped):
+        return stripped
+    for delimiter in ("，", ","):
+        if delimiter in stripped:
+            tail = stripped.rsplit(delimiter, 1)[-1].strip()
+            if tail:
+                return tail
+    return stripped
 
 
 # ---------------------------------------------------------------------------
@@ -170,7 +198,7 @@ def _rule_sd_002(query: ProviderQuery) -> SingleDimensionRuleResult:
 
     # Sliding 40-char window. If any window contains ≥2 axes, fail.
     window = 40
-    text_lower = text
+    text_lower = _request_scope_text(text)
     failed_axes: set[str] = set()
     for start in range(0, max(1, len(text_lower) - window + 1)):
         chunk = text_lower[start:start + window]
@@ -229,7 +257,9 @@ def evaluate_single_dimension(query: ProviderQuery) -> SingleDimensionGateResult
         _rule_sd_002(query),
     ]
     hard_fails = [r for r in rules if not r.passed and r.severity == "hard"]
-    axes = detect_axes((query.topic or "") + " " + (query.query_text or ""))
+    axes = detect_axes(
+        (query.topic or "") + " " + _request_scope_text(query.query_text or "")
+    )
 
     if hard_fails:
         return SingleDimensionGateResult(
@@ -281,6 +311,16 @@ def apply_single_dimension_to_case(case: CDICase) -> CaseSingleDimensionResult:
         verdict = result.per_query.get(q.query_id)
         if verdict is None or verdict.verdict != "MULTI_DIM":
             survivors.append(q)
+            continue
+        # Do not silently erase a clinically relevant gap and do not send the
+        # compound draft to a clinician. Preserve it as a traceable CDI rewrite
+        # work item with its original evidence and deterministic gate reasons.
+        case.query_rewrite_queue.append(query_audit_item(
+            q,
+            status="NEEDS_CDI_REWRITE",
+            gate_reasons=list(verdict.drop_reasons),
+            detected_axes=list(verdict.axes_detected),
+        ))
     case.proposed_provider_queries = survivors
     return result
 

@@ -95,8 +95,8 @@ class SpeakerDiarizer:
 
             return labeled
 
-        except Exception as e:
-            logger.error(f"Diarization failed: {e}")
+        except Exception as error:
+            logger.error("Diarization failed type=%s", type(error).__name__)
             return []
 
     # ---- Audio I/O ----
@@ -106,8 +106,8 @@ class SpeakerDiarizer:
             with wave.open(path, 'rb') as wf:
                 frames = wf.readframes(wf.getnframes())
                 return frames
-        except Exception as e:
-            logger.error(f"Failed to read WAV: {e}")
+        except Exception as error:
+            logger.error("Failed to read WAV type=%s", type(error).__name__)
             return None
 
     # ---- VAD ----
@@ -269,8 +269,11 @@ class SpeakerDiarizer:
                     n_clusters=2, linkage="ward"
                 )
                 labels = clustering.fit_predict(features_norm).tolist()
-            except Exception as e:
-                logger.warning(f"Clustering failed: {e}, using energy-median split")
+            except Exception as error:
+                logger.warning(
+                    "Clustering failed type=%s; using energy-median split",
+                    type(error).__name__,
+                )
 
         if set(labels) == {0}:
             # All same cluster — fallback: energy median split

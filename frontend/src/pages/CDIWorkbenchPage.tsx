@@ -38,6 +38,7 @@ import {
   ChevronDown,
   ChevronRight,
   Lock,
+  BarChart3,
 } from 'lucide-react';
 
 import { useAuthStore } from '../store';
@@ -45,10 +46,13 @@ import {
   runCDI,
   getCDICase,
   transitionQuery,
+  getCDIAuditDashboard,
   type CDIRunResponse,
+  type CDIAuditDashboard,
   type ProviderQueryDTO,
   type LifecycleState,
   type NLQVerdict,
+  type QueryAuditStatus,
 } from '../services/cdiApi';
 import {
   LIFECYCLE_LABELS,
@@ -113,6 +117,22 @@ const NLQ_COLOR: Record<NLQVerdict, string> = {
   PENDING: 'bg-yellow-100 text-yellow-800 border-yellow-300',
 };
 
+const QUERY_AUDIT_LABELS: Record<QueryAuditStatus, string> = {
+  NEEDS_QUERY_DRAFT: '待 CDI 起草澄清任务',
+  NEEDS_CDI_REWRITE: '待 CDI 拆分重写',
+  NEEDS_EVIDENCE_REWRITE: '待补正证据引用',
+  NEEDS_NON_LEADING_REWRITE: '待改写为非诱导式询问',
+  REWRITE_CANDIDATE_GENERATED: '已生成替代候选，继续安全复核',
+  REJECTED_AS_INELIGIBLE: '已拦截：与文档缺口不匹配',
+  REJECTED_AS_UNNECESSARY: '已拦截：无需向医生询问',
+  REJECTED_BY_CLAIM_EVIDENCE: '已拦截：临床断言证据不足',
+  REJECTED_BY_SEMANTIC_NECESSITY: '已拦截：语义必要性不成立',
+};
+
+function labelQueryAuditStatus(status: string): string {
+  return QUERY_AUDIT_LABELS[status as QueryAuditStatus] ?? status;
+}
+
 // ---------------------------------------------------------------------------
 // Default chart (placeholder for the empty state — NOT a fake result)
 // ---------------------------------------------------------------------------
@@ -125,6 +145,7 @@ function normalizeCase(c: CDIRunResponse): CDIRunResponse {
     ...c,
     documentation_gaps: c.documentation_gaps ?? [],
     proposed_provider_queries: c.proposed_provider_queries ?? [],
+    query_rewrite_queue: c.query_rewrite_queue ?? [],
     risk_flags: c.risk_flags ?? [],
     specialist_trace: c.specialist_trace ?? [],
     stage_traces: c.stage_traces ?? [],
@@ -146,10 +167,39 @@ function normalizeCase(c: CDIRunResponse): CDIRunResponse {
 
 type LoadState = 'idle' | 'loading' | 'success' | 'error';
 
+function formatHours(value: number | null): string {
+  return value === null ? '—' : `${value.toFixed(1)}h`;
+}
+
+function AuditMetric({
+  label,
+  value,
+  tone = 'default',
+}: {
+  label: string;
+  value: string | number;
+  tone?: 'default' | 'warning' | 'danger';
+}) {
+  const toneClass = tone === 'danger'
+    ? 'text-red-700'
+    : tone === 'warning'
+      ? 'text-amber-700'
+      : 'text-mono-text-primary';
+  return (
+    <div className="rounded border border-mono-border bg-white p-2">
+      <div className="text-[10px] text-mono-text-secondary">{label}</div>
+      <div className={`mt-1 text-base font-semibold ${toneClass}`}>{value}</div>
+    </div>
+  );
+}
+
 export default function CDIWorkbenchPage() {
   const user = useAuthStore((s) => s.user);
   const role = mapCDIRole(user?.role ?? '');
   const showTech = canSeeTechDetails(role);
+  const canSeeQueryAudit =
+    role === 'admin' || role === 'cdi_specialist' || role === 'auditor';
+  const canSeeAuditDashboard = role === 'admin' || role === 'auditor';
 
   const [chartInput, setChartInput] = useState<string>(DEFAULT_CHART_HINT);
   const [caseData, setCaseData] = useState<CDIRunResponse | null>(null);
@@ -158,6 +208,10 @@ export default function CDIWorkbenchPage() {
   const [caseIdInput, setCaseIdInput] = useState<string>('');
   const [selectedQueryId, setSelectedQueryId] = useState<string | null>(null);
   const [techDetailsOpen, setTechDetailsOpen] = useState<boolean>(false);
+  const [dashboardOpen, setDashboardOpen] = useState(false);
+  const [dashboard, setDashboard] = useState<CDIAuditDashboard | null>(null);
+  const [dashboardLoading, setDashboardLoading] = useState(false);
+  const [dashboardError, setDashboardError] = useState('');
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -232,6 +286,26 @@ export default function CDIWorkbenchPage() {
     }
   }
 
+  async function toggleAuditDashboard() {
+    if (dashboardOpen) {
+      setDashboardOpen(false);
+      return;
+    }
+    setDashboardOpen(true);
+    setDashboardLoading(true);
+    setDashboardError('');
+    try {
+      setDashboard(await getCDIAuditDashboard());
+    } catch (e: any) {
+      const detail = e?.response?.data?.detail;
+      setDashboardError(
+        detail?.message || detail?.error || e?.message || '加载审计看板失败',
+      );
+    } finally {
+      setDashboardLoading(false);
+    }
+  }
+
   const selectedQuery =
     caseData?.proposed_provider_queries.find(
       (q) => q.query_id === selectedQueryId,
@@ -273,6 +347,15 @@ export default function CDIWorkbenchPage() {
               </div>
             </div>
             <div className="flex items-center gap-3 text-xs">
+              {canSeeAuditDashboard && (
+                <button
+                  onClick={toggleAuditDashboard}
+                  className="rounded border border-mono-border bg-white px-3 py-1 text-mono-text-primary hover:bg-mono-surface inline-flex items-center gap-1.5"
+                >
+                  <BarChart3 className="h-3 w-3" />
+                  {dashboardOpen ? '关闭审计看板' : '审计看板'}
+                </button>
+              )}
               <span className="rounded-full bg-mono-surface px-3 py-1 text-mono-text-secondary">
                 当前角色: <span className="font-medium">{labelRole(role)}</span>
               </span>
@@ -285,6 +368,36 @@ export default function CDIWorkbenchPage() {
           </div>
         </div>
       </div>
+
+      {dashboardOpen && canSeeAuditDashboard && (
+        <div className="border-b bg-slate-50 px-6 py-4">
+          <div className="mx-auto max-w-[1600px]">
+            {dashboardLoading ? (
+              <div className="flex items-center gap-2 text-xs text-mono-text-secondary">
+                <Loader2 className="h-4 w-4 animate-spin" /> 正在加载租户 CDI 指标…
+              </div>
+            ) : dashboardError ? (
+              <div className="text-xs text-red-700">{dashboardError}</div>
+            ) : dashboard ? (
+              <div className="space-y-3" data-testid="cdi-audit-dashboard">
+                <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-2">
+                  <AuditMetric label="病例" value={dashboard.total_cases} />
+                  <AuditMetric label="澄清任务" value={dashboard.total_queries} />
+                  <AuditMetric label="严重超时" value={dashboard.breaches_critical} tone="danger" />
+                  <AuditMetric label="临近超时" value={dashboard.breaches_warning} tone="warning" />
+                  <AuditMetric label="升级率" value={`${(dashboard.escalation_rate * 100).toFixed(1)}%`} />
+                  <AuditMetric label="平均响应" value={formatHours(dashboard.average_hours_to_response)} />
+                  <AuditMetric label="平均关闭" value={formatHours(dashboard.average_hours_to_close)} />
+                  <AuditMetric label="更新时间" value={new Date(dashboard.generated_at).toLocaleTimeString()} />
+                </div>
+                <p className="text-[10px] text-mono-text-secondary">
+                  仅显示当前组织的聚合工作流指标，不返回病历正文或临床回复正文。
+                </p>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      )}
 
       {/* Chart input bar */}
       <div className="border-b bg-mono-surface/40 px-6 py-3">
@@ -651,6 +764,73 @@ export default function CDIWorkbenchPage() {
                 )}
               </div>
             </section>
+
+            {/* Fail-closed drafts are audit/work items only; never sendable. */}
+            {canSeeQueryAudit && caseData.query_rewrite_queue.length > 0 && (
+              <section>
+                <header className="mb-3 flex items-center justify-between">
+                  <h2 className="flex items-center gap-2 text-sm font-semibold text-mono-text-primary">
+                    <Lock className="h-4 w-4 text-amber-700" />
+                    安全门禁工作项 ({caseData.query_rewrite_queue.length})
+                  </h2>
+                </header>
+                <div className="space-y-3">
+                  {caseData.query_rewrite_queue.map((item, index) => (
+                    <div
+                      key={`${item.query_id}-${item.status}-${index}`}
+                      className="rounded-lg border border-amber-200 bg-amber-50 p-4"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <h3 className="text-sm font-medium text-mono-text-primary">
+                            {item.topic || item.query_text || item.query_id}
+                          </h3>
+                          <p className="mt-1 text-[11px] text-mono-text-secondary">
+                            缺口引用：{item.gap_id || '未提供'}
+                            {item.gap_reference_valid === false ? '（引用无效，已保留审计）' : ''}
+                          </p>
+                        </div>
+                        <span className="shrink-0 rounded border border-amber-300 bg-white px-2 py-0.5 text-[10px] font-semibold text-amber-800">
+                          {labelQueryAuditStatus(item.status)}
+                        </span>
+                      </div>
+                      {item.query_text && (
+                        <p className="mt-2 text-xs leading-relaxed text-mono-text-primary">
+                          {item.query_text}
+                        </p>
+                      )}
+                      {(item.gate_reasons?.length ?? 0) > 0 && (
+                        <ul className="mt-2 space-y-1 text-[11px] text-amber-900">
+                          {item.gate_reasons?.map((reason, reasonIndex) => (
+                            <li key={reasonIndex}>• {reason}</li>
+                          ))}
+                        </ul>
+                      )}
+                      {item.rewrite_attempt_status && (
+                        <div className="mt-2 rounded border border-amber-200 bg-white/70 p-2 text-[11px] text-amber-950">
+                          <p>
+                            自动重写状态：{item.rewrite_attempt_status}
+                            {item.replacement_query_id
+                              ? `；替代候选：${item.replacement_query_id}`
+                              : ''}
+                          </p>
+                          {(item.rewrite_attempt_reasons?.length ?? 0) > 0 && (
+                            <ul className="mt-1 space-y-1">
+                              {item.rewrite_attempt_reasons?.map((reason, reasonIndex) => (
+                                <li key={reasonIndex}>• {reason}</li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                      )}
+                      <p className="mt-2 text-[10px] text-amber-800">
+                        此工作项不能直接发送给临床医生，需由 CDI 专员复核处理。
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
           </main>
 
           {/* ─── Pane 3: Physician Response Panel ─── */}

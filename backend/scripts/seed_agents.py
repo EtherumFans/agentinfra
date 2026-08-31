@@ -76,6 +76,10 @@ def _build_fields(pack: dict[str, Any]) -> dict[str, Any]:
         a2a_enabled=bool(pack.get("a2a")),
         config={
             "agent_ref": pack.get("agent_ref", ""),
+            # RuntimeAgentRegistry owns executable Pack projections after its
+            # startup sync. Seed rows remain REST/administration projections
+            # until that service explicitly adopts them.
+            "registry_projection_managed": False,
             "agent_type": pack.get("agent_type", "certified"),
             "format_version": pack.get("format_version", "1.2"),
             "use_case": manifest.get("use_case", ""),
@@ -142,6 +146,15 @@ async def seed_agents_from_packs() -> dict[str, int]:
             fields = _build_fields(pack)
 
             if existing:
+                existing_config = (
+                    existing.config if isinstance(existing.config, dict) else {}
+                )
+                if existing_config.get("registry_projection_managed") is True:
+                    # Do not overwrite a complete Registry-owned executable
+                    # projection with the broader metadata seed shape. The
+                    # Registry sync below is authoritative for Pack changes.
+                    stats["skipped"] += 1
+                    continue
                 for k, v in fields.items():
                     setattr(existing, k, v)
                 stats["updated"] += 1

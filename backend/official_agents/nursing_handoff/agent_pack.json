@@ -1,52 +1,990 @@
 {
   "format_version": "1.2",
   "agent_type": "certified",
-  "agent_ref": "icoder/nursing-handoff@1.0.0",
+  "agent_ref": "icoder/nursing-handoff@1.1.0",
   "manifest": {
     "name": "护理交班智能体",
-    "version": "1.0.0",
-    "description": "结构化护理交班报告，突出关键患者信息，减少交接差错。",
+    "version": "1.1.0",
+    "description": "从明确标注的护理交班字段中生成可追溯的多患者 SBAR 视图，突出原文已记录的待办与安全事项。",
     "category": "care-coordination",
     "category_display": "Care Coordination / 护理协同",
     "icon": "Users",
     "tags": [
       "corti-parity",
-      "metadata-only"
+      "china-nursing",
+      "evidence-bound",
+      "deterministic-local"
     ],
-    "maturity": "metadata-only",
+    "maturity": "runnable",
     "production_ready": false,
     "hidden_from_hub": false,
     "use_case": "care_coordination",
     "human_review": "required"
   },
-  "system_prompt": "",
+  "system_prompt": "你是中国医院护理交班智能体的受治理本地基线。只整理明确患者分区和明确字段标签中的原文事实，最多处理10名患者。不得推断病情轻重、护理优先级、诊断、生命体征阈值、管路通畅/敷料状态、给药状态、护理措施、医嘱或升级条件；未明确记录时必须保持未记录，不得补写。每条抽取事实必须保留原文和[start,end)字符区间。clinical_priority_assessed 与 medical_calculator_used 必须为 false，production_writeback_blocked 与 manual_review_required 必须为 true。",
+  "backend_provider": "icoder.governed-nursing-handoff.v1",
+  "backend_config": {
+    "documented_nursing_handoff": {
+      "network_required": false,
+      "llm_required": false,
+      "maximum_input_characters": 30000,
+      "maximum_patients": 10,
+      "input_mode": "explicit_patient_sections_and_field_labels",
+      "clinical_priority_assessed": false,
+      "medical_calculator_used": false,
+      "production_writeback_blocked": true
+    }
+  },
   "experts": [],
   "tools": [],
+  "model": null,
   "permissions": {
     "key": "nursing-handoff",
     "name": "护理交班智能体 权限",
-    "description": "结构化护理交班报告，突出关键患者信息，减少交接差错。",
+    "description": "只读整理明确标注的护理交班事实；禁止自动写回。",
     "no_upcoding": true,
     "no_inference": true,
     "evidence_required": true,
     "production_writeback_blocked": true
   },
+  "output_contract": {
+    "schema_ref": "icoder/NursingHandoffOutput/v4",
+    "required_fields": [
+      "handoff_status",
+      "assignment_summary",
+      "patient_handoffs",
+      "situation",
+      "background",
+      "assessment",
+      "recommendations",
+      "safety_risks",
+      "lines_devices",
+      "pending_tasks",
+      "escalation_triggers",
+      "source_completeness",
+      "evidence_items",
+      "limitations",
+      "clinical_priority_assessed",
+      "medical_calculator_used",
+      "production_writeback_blocked",
+      "manual_review_required",
+      "trace_refs"
+    ],
+    "field_types": {
+      "handoff_status": "string",
+      "assignment_summary": "array",
+      "patient_handoffs": "array",
+      "situation": "string",
+      "background": "string",
+      "assessment": "string",
+      "recommendations": "string",
+      "safety_risks": "array",
+      "lines_devices": "array",
+      "pending_tasks": "array",
+      "escalation_triggers": "string",
+      "source_completeness": "object",
+      "evidence_items": "array",
+      "limitations": "array",
+      "clinical_priority_assessed": "boolean",
+      "medical_calculator_used": "boolean",
+      "production_writeback_blocked": "boolean",
+      "manual_review_required": "boolean",
+      "trace_refs": "object"
+    },
+    "field_schemas": {
+      "handoff_status": {
+        "type": "string",
+        "maxLength": 32768,
+        "enum": [
+          "COMPLETED",
+          "PARTIAL",
+          "INPUT_REQUIRED"
+        ]
+      },
+      "assignment_summary": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "current_status": {
+              "type": "string",
+              "maxLength": 2048,
+              "minLength": 0
+            },
+            "evidence_refs": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 128,
+                "minLength": 1
+              },
+              "maxItems": 200,
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "open_items": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 2048,
+                "minLength": 1
+              },
+              "maxItems": 100,
+              "minItems": 0
+            },
+            "patient_identifier": {
+              "type": "string",
+              "maxLength": 160,
+              "minLength": 1
+            },
+            "primary_issue": {
+              "type": "string",
+              "maxLength": 2048,
+              "minLength": 0
+            },
+            "room_bed": {
+              "type": "string",
+              "maxLength": 160,
+              "minLength": 0
+            }
+          },
+          "required": [
+            "current_status",
+            "evidence_refs",
+            "open_items",
+            "patient_identifier",
+            "primary_issue",
+            "room_bed"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 10,
+        "minItems": 0
+      },
+      "patient_handoffs": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "background": {
+              "type": "string",
+              "maxLength": 2048,
+              "minLength": 0
+            },
+            "current_status": {
+              "type": "string",
+              "maxLength": 2048,
+              "minLength": 0
+            },
+            "documented_escalation_triggers": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 2048,
+                "minLength": 1
+              },
+              "maxItems": 100,
+              "minItems": 0
+            },
+            "evidence_refs": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 128,
+                "minLength": 1
+              },
+              "maxItems": 200,
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "gaps_conflicts": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 2048,
+                "minLength": 1
+              },
+              "maxItems": 100,
+              "minItems": 0
+            },
+            "key_considerations": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 2048,
+                "minLength": 1
+              },
+              "maxItems": 100,
+              "minItems": 0
+            },
+            "labs_diagnostics": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 2048,
+                "minLength": 1
+              },
+              "maxItems": 100,
+              "minItems": 0
+            },
+            "lines_devices": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 2048,
+                "minLength": 1
+              },
+              "maxItems": 100,
+              "minItems": 0
+            },
+            "medications": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 2048,
+                "minLength": 1
+              },
+              "maxItems": 100,
+              "minItems": 0
+            },
+            "missing_sections": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 128,
+                "minLength": 1
+              },
+              "maxItems": 8,
+              "minItems": 0
+            },
+            "patient_identifier": {
+              "type": "string",
+              "maxLength": 160,
+              "minLength": 1
+            },
+            "pending_tasks": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 2048,
+                "minLength": 1
+              },
+              "maxItems": 100,
+              "minItems": 0
+            },
+            "primary_issue": {
+              "type": "string",
+              "maxLength": 2048,
+              "minLength": 0
+            },
+            "recent_events": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 2048,
+                "minLength": 1
+              },
+              "maxItems": 100,
+              "minItems": 0
+            },
+            "room_bed": {
+              "type": "string",
+              "maxLength": 160,
+              "minLength": 0
+            },
+            "safety_precautions": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 2048,
+                "minLength": 1
+              },
+              "maxItems": 100,
+              "minItems": 0
+            }
+          },
+          "required": [
+            "background",
+            "current_status",
+            "documented_escalation_triggers",
+            "evidence_refs",
+            "gaps_conflicts",
+            "key_considerations",
+            "labs_diagnostics",
+            "lines_devices",
+            "medications",
+            "missing_sections",
+            "patient_identifier",
+            "pending_tasks",
+            "primary_issue",
+            "recent_events",
+            "room_bed",
+            "safety_precautions"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 10,
+        "minItems": 0
+      },
+      "situation": {
+        "type": "string",
+        "maxLength": 32768
+      },
+      "background": {
+        "type": "string",
+        "maxLength": 32768
+      },
+      "assessment": {
+        "type": "string",
+        "maxLength": 32768
+      },
+      "recommendations": {
+        "type": "string",
+        "maxLength": 32768
+      },
+      "safety_risks": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 32768
+        },
+        "maxItems": 100,
+        "minItems": 0
+      },
+      "lines_devices": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 32768
+        },
+        "maxItems": 100,
+        "minItems": 0
+      },
+      "pending_tasks": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 32768
+        },
+        "maxItems": 200,
+        "minItems": 0
+      },
+      "escalation_triggers": {
+        "type": "string",
+        "maxLength": 32768
+      },
+      "source_completeness": {
+        "type": "object",
+        "properties": {
+          "input_truncated": {
+            "type": "boolean"
+          },
+          "max_patients": {
+            "type": "integer",
+            "minimum": 10,
+            "maximum": 10,
+            "const": 10
+          },
+          "missing_sections": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1
+            },
+            "maxItems": 8,
+            "minItems": 0
+          },
+          "patient_count": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10
+          }
+        },
+        "required": [
+          "input_truncated",
+          "max_patients",
+          "missing_sections",
+          "patient_count"
+        ],
+        "additionalProperties": false
+      },
+      "evidence_items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "char_span": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "maxItems": 2,
+              "minItems": 2,
+              "x-order": "nondecreasing"
+            },
+            "evidence_id": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1
+            },
+            "evidence_text": {
+              "type": "string",
+              "maxLength": 2048,
+              "minLength": 1
+            },
+            "field": {
+              "type": "string",
+              "maxLength": 32768,
+              "enum": [
+                "patient_identifier",
+                "room_bed",
+                "primary_issue",
+                "current_status",
+                "background",
+                "recent_events",
+                "lines_devices",
+                "medications",
+                "labs_diagnostics",
+                "pending_tasks",
+                "safety_precautions",
+                "documented_escalation_triggers",
+                "gaps_conflicts"
+              ]
+            },
+            "patient_index": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9
+            },
+            "source_label": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1
+            }
+          },
+          "required": [
+            "char_span",
+            "evidence_id",
+            "evidence_text",
+            "field",
+            "patient_index",
+            "source_label"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 200,
+        "minItems": 0
+      },
+      "limitations": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 2048,
+          "minLength": 1
+        },
+        "maxItems": 5,
+        "minItems": 4
+      },
+      "clinical_priority_assessed": {
+        "type": "boolean",
+        "const": false
+      },
+      "medical_calculator_used": {
+        "type": "boolean",
+        "const": false
+      },
+      "production_writeback_blocked": {
+        "type": "boolean",
+        "const": true
+      },
+      "manual_review_required": {
+        "type": "boolean",
+        "const": true
+      },
+      "trace_refs": {
+        "type": "object",
+        "properties": {
+          "provider_trace_refs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 512,
+              "minLength": 1
+            },
+            "maxItems": 10,
+            "minItems": 0
+          },
+          "run_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1
+          },
+          "trace_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 0
+          }
+        },
+        "required": [
+          "run_id"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "field_relations": [
+      {
+        "id": "input_required_has_no_handoff_claims",
+        "when": [
+          {
+            "path": "handoff_status",
+            "operator": "equals",
+            "value": "INPUT_REQUIRED"
+          }
+        ],
+        "must": [
+          {
+            "path": "assignment_summary",
+            "operator": "empty"
+          },
+          {
+            "path": "patient_handoffs",
+            "operator": "empty"
+          },
+          {
+            "path": "evidence_items",
+            "operator": "empty"
+          },
+          {
+            "path": "manual_review_required",
+            "operator": "equals",
+            "value": true
+          }
+        ]
+      },
+      {
+        "id": "completed_handoff_has_patients_and_evidence",
+        "when": [
+          {
+            "path": "handoff_status",
+            "operator": "equals",
+            "value": "COMPLETED"
+          }
+        ],
+        "must": [
+          {
+            "path": "assignment_summary",
+            "operator": "non_empty"
+          },
+          {
+            "path": "patient_handoffs",
+            "operator": "non_empty"
+          },
+          {
+            "path": "evidence_items",
+            "operator": "non_empty"
+          }
+        ]
+      },
+      {
+        "id": "partial_handoff_has_patients_and_evidence",
+        "when": [
+          {
+            "path": "handoff_status",
+            "operator": "equals",
+            "value": "PARTIAL"
+          }
+        ],
+        "must": [
+          {
+            "path": "patient_handoffs",
+            "operator": "non_empty"
+          },
+          {
+            "path": "evidence_items",
+            "operator": "non_empty"
+          }
+        ]
+      },
+      {
+        "id": "local_handoff_never_claims_clinical_priority",
+        "when": [
+          {
+            "path": "clinical_priority_assessed",
+            "operator": "equals",
+            "value": false
+          }
+        ],
+        "must": [
+          {
+            "path": "medical_calculator_used",
+            "operator": "equals",
+            "value": false
+          },
+          {
+            "path": "production_writeback_blocked",
+            "operator": "equals",
+            "value": true
+          },
+          {
+            "path": "manual_review_required",
+            "operator": "equals",
+            "value": true
+          }
+        ]
+      },
+      {
+        "id": "patient_handoff_is_traceable",
+        "for_each": "patient_handoffs",
+        "when": [
+          {
+            "path": "patient_identifier",
+            "operator": "present"
+          }
+        ],
+        "must": [
+          {
+            "path": "patient_identifier",
+            "operator": "non_empty"
+          },
+          {
+            "path": "evidence_refs",
+            "operator": "non_empty"
+          }
+        ]
+      }
+    ],
+    "evidence_bindings": [
+      {
+        "id": "nursing_handoff_evidence_matches_input",
+        "for_each": "evidence_items",
+        "text_path": "evidence_text",
+        "span_path": "char_span"
+      }
+    ]
+  },
+  "phi_redaction": "required",
+  "context_required": true,
+  "recorder_required": true,
+  "metrics_required": true,
   "requirements": {
-    "min_runtime_version": "1.0.0",
-    "icoder_runtime_modules": []
+    "min_runtime_version": "2.0.0",
+    "icoder_runtime_modules": [
+      "icoder_runtime.backends.governed_nursing_handoff_provider",
+      "official_agents.nursing_handoff.agent"
+    ]
+  },
+  "llm_capabilities": {
+    "required_models": [],
+    "supports_tool_calling": false,
+    "supports_json_mode": true,
+    "supports_mcp_tools": false
   },
   "non_goals": [
-    "不替代编码员 / 临床医生最终决策",
-    "不自动写回 EMR/HIS"
+    "不评估患者病情轻重或护理优先级",
+    "不生成新护理措施、医嘱或升级阈值",
+    "不推断未记录的给药、管路、皮肤或风险评估状态",
+    "不替代接班护士核验或自动写回护理系统"
   ],
   "human_review_required_when": [
-    "All outputs require human review (metadata-only pack, no executable wiring yet)"
+    "every handoff before acknowledgement by the receiving nurse",
+    "patient identity, critical risk, device status, medication, pending task or escalation condition is missing or conflicting"
+  ],
+  "default_runtime_mode": "governed_local_documented_nursing_handoff",
+  "available_runtime_modes": [
+    "governed_local_documented_nursing_handoff"
+  ],
+  "example_inputs": [
+    {
+      "title": "单患者明确字段夜班交班",
+      "input_text": "患者：患者甲\n床位：12床\n主要问题：术后第1天\n当前状态：氧疗2L/min，疼痛评分3分\n背景：术后第1天\n本班事件：22:00体温38.2℃，已报告医生\n管路/设备：右颈内静脉置管在位\n用药/MAR：22:30头孢唑林已按医嘱给药\n检验/检查：血培养已送检待结果\n待办：关注血培养结果\n安全/预防：跌倒风险评估待接班护士核验\n升级触发：原记录注明体温达到医嘱阈值时报告医生\n矛盾/缺口：管路通畅性及敷料状态未记录",
+      "extra": {
+        "shift": "night",
+        "input_profile": "explicit_labelled_single_patient"
+      }
+    }
+  ],
+  "example_outputs": [
+    {
+      "handoff_status": "COMPLETED",
+      "assignment_summary": [
+        {
+          "patient_identifier": "患者甲",
+          "room_bed": "12床",
+          "primary_issue": "术后第1天",
+          "current_status": "氧疗2L/min，疼痛评分3分",
+          "open_items": [
+            "关注血培养结果",
+            "血培养已送检待结果",
+            "管路通畅性及敷料状态未记录",
+            "跌倒风险评估待接班护士核验"
+          ],
+          "evidence_refs": [
+            "handoff-evidence-1",
+            "handoff-evidence-2",
+            "handoff-evidence-3",
+            "handoff-evidence-4",
+            "handoff-evidence-5",
+            "handoff-evidence-6",
+            "handoff-evidence-7",
+            "handoff-evidence-8",
+            "handoff-evidence-9",
+            "handoff-evidence-10",
+            "handoff-evidence-11",
+            "handoff-evidence-12",
+            "handoff-evidence-13"
+          ]
+        }
+      ],
+      "patient_handoffs": [
+        {
+          "patient_identifier": "患者甲",
+          "room_bed": "12床",
+          "primary_issue": "术后第1天",
+          "current_status": "氧疗2L/min，疼痛评分3分",
+          "background": "术后第1天",
+          "recent_events": [
+            "22:00体温38.2℃，已报告医生"
+          ],
+          "lines_devices": [
+            "右颈内静脉置管在位"
+          ],
+          "medications": [
+            "22:30头孢唑林已按医嘱给药"
+          ],
+          "labs_diagnostics": [
+            "血培养已送检待结果"
+          ],
+          "pending_tasks": [
+            "关注血培养结果"
+          ],
+          "safety_precautions": [
+            "跌倒风险评估待接班护士核验"
+          ],
+          "documented_escalation_triggers": [
+            "原记录注明体温达到医嘱阈值时报告医生"
+          ],
+          "gaps_conflicts": [
+            "管路通畅性及敷料状态未记录"
+          ],
+          "key_considerations": [
+            "关注血培养结果",
+            "血培养已送检待结果",
+            "管路通畅性及敷料状态未记录",
+            "跌倒风险评估待接班护士核验"
+          ],
+          "evidence_refs": [
+            "handoff-evidence-1",
+            "handoff-evidence-2",
+            "handoff-evidence-3",
+            "handoff-evidence-4",
+            "handoff-evidence-5",
+            "handoff-evidence-6",
+            "handoff-evidence-7",
+            "handoff-evidence-8",
+            "handoff-evidence-9",
+            "handoff-evidence-10",
+            "handoff-evidence-11",
+            "handoff-evidence-12",
+            "handoff-evidence-13"
+          ],
+          "missing_sections": []
+        }
+      ],
+      "situation": "患者甲：术后第1天；氧疗2L/min，疼痛评分3分；22:00体温38.2℃，已报告医生",
+      "background": "患者甲：术后第1天",
+      "assessment": "患者甲：氧疗2L/min，疼痛评分3分；血培养已送检待结果；跌倒风险评估待接班护士核验",
+      "recommendations": "患者甲：关注血培养结果",
+      "safety_risks": [
+        "跌倒风险评估待接班护士核验"
+      ],
+      "lines_devices": [
+        "右颈内静脉置管在位"
+      ],
+      "pending_tasks": [
+        "关注血培养结果",
+        "血培养已送检待结果"
+      ],
+      "escalation_triggers": "原记录注明体温达到医嘱阈值时报告医生",
+      "source_completeness": {
+        "patient_count": 1,
+        "max_patients": 10,
+        "missing_sections": [],
+        "input_truncated": false
+      },
+      "evidence_items": [
+        {
+          "evidence_id": "handoff-evidence-1",
+          "patient_index": 0,
+          "field": "patient_identifier",
+          "source_label": "患者",
+          "evidence_text": "患者甲",
+          "char_span": [
+            3,
+            6
+          ]
+        },
+        {
+          "evidence_id": "handoff-evidence-2",
+          "patient_index": 0,
+          "field": "room_bed",
+          "source_label": "床位",
+          "evidence_text": "12床",
+          "char_span": [
+            10,
+            13
+          ]
+        },
+        {
+          "evidence_id": "handoff-evidence-3",
+          "patient_index": 0,
+          "field": "primary_issue",
+          "source_label": "主要问题",
+          "evidence_text": "术后第1天",
+          "char_span": [
+            19,
+            24
+          ]
+        },
+        {
+          "evidence_id": "handoff-evidence-4",
+          "patient_index": 0,
+          "field": "current_status",
+          "source_label": "当前状态",
+          "evidence_text": "氧疗2L/min，疼痛评分3分",
+          "char_span": [
+            30,
+            45
+          ]
+        },
+        {
+          "evidence_id": "handoff-evidence-5",
+          "patient_index": 0,
+          "field": "background",
+          "source_label": "背景",
+          "evidence_text": "术后第1天",
+          "char_span": [
+            49,
+            54
+          ]
+        },
+        {
+          "evidence_id": "handoff-evidence-6",
+          "patient_index": 0,
+          "field": "recent_events",
+          "source_label": "本班事件",
+          "evidence_text": "22:00体温38.2℃，已报告医生",
+          "char_span": [
+            60,
+            78
+          ]
+        },
+        {
+          "evidence_id": "handoff-evidence-7",
+          "patient_index": 0,
+          "field": "lines_devices",
+          "source_label": "管路/设备",
+          "evidence_text": "右颈内静脉置管在位",
+          "char_span": [
+            85,
+            94
+          ]
+        },
+        {
+          "evidence_id": "handoff-evidence-8",
+          "patient_index": 0,
+          "field": "medications",
+          "source_label": "用药/MAR",
+          "evidence_text": "22:30头孢唑林已按医嘱给药",
+          "char_span": [
+            102,
+            117
+          ]
+        },
+        {
+          "evidence_id": "handoff-evidence-9",
+          "patient_index": 0,
+          "field": "labs_diagnostics",
+          "source_label": "检验/检查",
+          "evidence_text": "血培养已送检待结果",
+          "char_span": [
+            124,
+            133
+          ]
+        },
+        {
+          "evidence_id": "handoff-evidence-10",
+          "patient_index": 0,
+          "field": "pending_tasks",
+          "source_label": "待办",
+          "evidence_text": "关注血培养结果",
+          "char_span": [
+            137,
+            144
+          ]
+        },
+        {
+          "evidence_id": "handoff-evidence-11",
+          "patient_index": 0,
+          "field": "safety_precautions",
+          "source_label": "安全/预防",
+          "evidence_text": "跌倒风险评估待接班护士核验",
+          "char_span": [
+            151,
+            164
+          ]
+        },
+        {
+          "evidence_id": "handoff-evidence-12",
+          "patient_index": 0,
+          "field": "documented_escalation_triggers",
+          "source_label": "升级触发",
+          "evidence_text": "原记录注明体温达到医嘱阈值时报告医生",
+          "char_span": [
+            170,
+            188
+          ]
+        },
+        {
+          "evidence_id": "handoff-evidence-13",
+          "patient_index": 0,
+          "field": "gaps_conflicts",
+          "source_label": "矛盾/缺口",
+          "evidence_text": "管路通畅性及敷料状态未记录",
+          "char_span": [
+            195,
+            208
+          ]
+        }
+      ],
+      "limitations": [
+        "仅解析明确的患者分区与字段标签；未标注自由文本不会被重写为护理事实。",
+        "未评估患者病情轻重、护理优先级、生命体征阈值或治疗方案。",
+        "未连接真实护理系统、MAR、检验系统、设备状态或 Medical Calculator。",
+        "所有待办、风险、管路状态和升级条件均须接班护士对照原始记录核验。"
+      ],
+      "clinical_priority_assessed": false,
+      "medical_calculator_used": false,
+      "production_writeback_blocked": true,
+      "manual_review_required": true,
+      "trace_refs": {
+        "run_id": "example-nursing-handoff",
+        "provider_trace_refs": [
+          "example-nursing-handoff:governed-nursing-handoff"
+        ]
+      }
+    }
   ],
   "metadata": {
-    "created_at": "2026-07-11",
+    "created_at": "2026-08-24",
     "author": "iCoDer",
     "corti_match": "nursing-shift-handoff-agent",
-    "audit_note": "Created during Phase 5 Track B GAP-13-02 fix (2026-07-11). Metadata-only stub for Corti parity inventory. Wiring deferred to Phase 5 Track B-2."
+    "audit_note": "Deterministic explicit-label baseline aligned to Corti's documented-only handoff boundary. Free-text synthesis, Medical Calculator, live nursing/MAR/lab integration and prospective nurse safety validation remain explicit gaps."
   },
-  "built_by": "icoder"
+  "built_by": "icoder",
+  "code": {},
+  "integrity": {
+    "sha256": "fe790d2f579617eb5e2ae43dec1834ef9dc21e77f764df0ecfc5087faf544934"
+  }
 }

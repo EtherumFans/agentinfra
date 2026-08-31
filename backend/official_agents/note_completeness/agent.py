@@ -1,4 +1,4 @@
-"""Note Completeness Agent — LLM-based implementation (Phase 4-B).
+"""Note Completeness Agent — deterministic primary implementation.
 
 Migrates from regex (legacy, see ``agent_legacy.py``) to ``PureLLMProvider``.
 The LLM is asked to:
@@ -13,9 +13,9 @@ Risks / Next Steps) but adapted for《病历书写基本规范》7+1 sections
 (主诉/现病史/既往史/体格检查/辅助检查/诊断/治疗经过 + 手术记录
 for surgical cases).
 
-Legacy fallback: if the LLM returns ``status="fail"`` (e.g., timeout,
-degraded mode, parse error), ``agent.run()`` falls back to the regex
-implementation in ``agent_legacy.py`` so a working path always exists.
+The user-facing Run/A2A path uses local deterministic 7+1 section checks. The
+former LLM implementation remains available as ``run_llm_enhanced`` for
+explicit evaluation, and fails back to the same local rules.
 """
 
 from __future__ import annotations
@@ -124,7 +124,19 @@ review_conclusion:
 
 
 async def run(input_text: str, *, run_id: str = "") -> dict:
-    """Run the Note Completeness Agent (LLM-based, Phase 4-B).
+    """Run the production-candidate deterministic section checks."""
+    return await run_deterministic(input_text, run_id=run_id)
+
+
+async def run_deterministic(input_text: str, *, run_id: str = "") -> dict:
+    """Run the local 7+1 section detector without an LLM or network."""
+    from official_agents.note_completeness.agent_legacy import run as local_run
+
+    return await local_run(input_text, run_id=run_id)
+
+
+async def run_llm_enhanced(input_text: str, *, run_id: str = "") -> dict:
+    """Run the optional LLM semantic enhancement with local fallback.
 
     Args:
         input_text: EMR text (Chinese hospital note).
@@ -144,16 +156,13 @@ async def run(input_text: str, *, run_id: str = "") -> dict:
         llm_response = await _invoke_llm(text, run_id)
     except Exception as e:
         logger.warning(
-            "note_completeness LLM invoke raised; falling back to legacy: %s", e,
+            "note_completeness LLM invoke raised; falling back to legacy error_type=%s",
+            type(e).__name__,
         )
         return await _legacy_run(text, run_id)
 
     if llm_response is None or llm_response.get("status") == "fail":
-        logger.info(
-            "note_completeness LLM returned fail; falling back to legacy. "
-            "finish_reason=%s",
-            llm_response.get("finish_reason") if llm_response else "none",
-        )
+        logger.info("note_completeness LLM returned fail; falling back to legacy")
         return await _legacy_run(text, run_id)
 
     schema = _parse_llm_json_to_schema(
@@ -272,8 +281,6 @@ def _parse_llm_json_to_schema(
             "gap_type": "missing_section",
             "description": str(gap.get("description") or f"病历缺少必填章节: {section}"),
             "section": section,
-            "suggestion": str(gap.get("suggestion") or f"请补充 {section} 章节 — 《病历书写基本规范》要求"),
-            "related_code": str(gap.get("related_code") or ""),
         })
 
     is_surgical = bool(parsed.get("is_surgical_case", is_surgical_hint))
@@ -348,9 +355,31 @@ def _detect_surgical(text: str) -> bool:
 
 
 async def _legacy_run(text: str, run_id: str) -> dict[str, Any]:
-    """Fall back to the regex implementation."""
+    """Run deterministic regex checks as a review-required degradation."""
     from official_agents.note_completeness.agent_legacy import run as legacy_run
-    return await legacy_run(text, run_id=run_id)
+    result = await legacy_run(text, run_id=run_id)
+    result["manual_review_required"] = True
+    result["degraded"] = True
+    result["fallback_used"] = True
+    result["runtime_mode"] = "deterministic_regex_fallback"
+    result.setdefault("trace_refs", {})["fallback"] = "legacy_regex"
+    return result
+
+
+def to_current_pack_candidate(result: dict[str, Any]) -> dict[str, Any]:
+    """Expose only fields declared by NoteCompletenessOutput/v2."""
+    return {
+        "review_conclusion": str(result.get("review_conclusion") or "FAIL"),
+        "documentation_gaps": list(result.get("documentation_gaps") or []),
+        "completeness_score": float(result.get("completeness_score") or 0.0),
+        "missing_sections": list(result.get("missing_sections") or []),
+        "present_sections": list(result.get("present_sections") or []),
+        "required_sections": list(result.get("required_sections") or []),
+        "incomplete_sections": list(result.get("incomplete_sections") or []),
+        "conflicts": list(result.get("conflicts") or []),
+        "corrected_draft": str(result.get("corrected_draft") or ""),
+        "trace_refs": dict(result.get("trace_refs") or {}),
+    }
 
 
 def _empty_input_response(run_id: str) -> dict[str, Any]:
@@ -380,4 +409,11 @@ def _empty_input_response(run_id: str) -> dict[str, Any]:
     }
 
 
-__all__ = ["run", "SYSTEM_PROMPT", "AGENT_REF"]
+__all__ = [
+    "run",
+    "run_deterministic",
+    "run_llm_enhanced",
+    "to_current_pack_candidate",
+    "SYSTEM_PROMPT",
+    "AGENT_REF",
+]

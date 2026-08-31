@@ -1,0 +1,887 @@
+{
+  "agent_id": "code-validation-agent",
+  "run_id": "run-719637a9-526c-4916-96cd-48c85a067569",
+  "trace_id": "trace-ed757e110f1646dd",
+  "trace_url": "/ai-studio/runs/run-719637a9-526c-4916-96cd-48c85a067569/trace",
+  "runtime_mode": "llm_with_tools",
+  "latency_ms": 35106,
+  "cost": {
+    "amount": 0.001309,
+    "currency": "CNY"
+  },
+  "summary": "This confirms E11.201 alone is not in the catalog — only the dual code E11.201+N08.3* is valid. I now have complete evidence.",
+  "result": {
+    "status": "warning",
+    "markdown": "## 编码校验结论:FAIL\n\n### 待校验编码核验\n| 提交编码 | 目录状态 | 正确编码 | 说明 |\n|---|---|---|---|\n| E11.21 | ❌ 不存在 | **E11.201+N08.3*** | 2型糖尿病性肾病(双重编码组合码,可分配) |\n| N18.3 | ❌ 不存在 | **N18.803** | 慢性肾脏病3期(可分配) |\n\n### 有效编码\n- **E11.201+N08.3*** — 2型糖尿病性肾病(第4章,可分配)。匕首码E11.201(病因)+星号码N08.3*(表现),成对使用,完整描述'2型糖尿病伴糖尿病肾病'。\n- **N18.803** — 慢性肾脏病3期(第14章,可分配)。\n\n### 风险提示(需人工核验)\n1. **双重编码风险**:组合码E11.201+N08.3*已完整描述糖尿病肾病;是否同时附加N18.803标注CKD 3期,目录与规则未明确指引。\n2. **排序风险**:主诊断须解释主要治疗资源消耗。若住院以糖尿病管理为主,主诊断选E11.201+N08.3*;若以肾脏/CKD治疗为主,主诊断可能为N18.803。需依据病历实际治疗资源判断。\n\n### 结论\n提交的两个编码均无效,须替换为E11.201+N08.3*与N18.803。伴随编码与主诊断排序涉及DRG/DIP敏感判断,须人工核验后确认。",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [
+      {
+        "tool_name": "verify_code",
+        "arguments": {
+          "code": "E11.21"
+        },
+        "result": {
+          "code": "E11.21",
+          "in_catalog": false,
+          "assignable": false,
+          "chapter": "",
+          "name": "",
+          "aliases": [],
+          "parent_hierarchy": [],
+          "excludes1": [],
+          "excludes2": [],
+          "code_first_notes": [],
+          "use_additional_code_notes": [],
+          "children_if_non_assignable": []
+        },
+        "duration_ms": 2278,
+        "error": null,
+        "scope_granted": []
+      },
+      {
+        "tool_name": "verify_code",
+        "arguments": {
+          "code": "N18.3"
+        },
+        "result": {
+          "code": "N18.3",
+          "in_catalog": false,
+          "assignable": false,
+          "chapter": "",
+          "name": "",
+          "aliases": [],
+          "parent_hierarchy": [],
+          "excludes1": [],
+          "excludes2": [],
+          "code_first_notes": [],
+          "use_additional_code_notes": [],
+          "children_if_non_assignable": []
+        },
+        "duration_ms": 121,
+        "error": null,
+        "scope_granted": []
+      },
+      {
+        "tool_name": "get_guidelines",
+        "arguments": {},
+        "result": {
+          "chapter": "",
+          "chapter_conventions": [],
+          "general_rules": [
+            "不编码未在病历中明确记录的诊断 — 临床表现必须在病历正文中出现。",
+            "主诊断必须能解释本次住院的主要治疗资源消耗;不可选次要诊断作为主诊断。",
+            "使用最具体的编码: 当存在更具体细分码时,不可使用 3 位类别码 (例: I25 应选 I25.1)。",
+            "组合编码优先: 当一个编码能完整描述两种情况时,使用组合码而非双码 (例: I11.0 高血压性心脏病伴心衰)。",
+            "后遗症编码: 使用相应后遗症码 (B90-B94, E64, E68, G09, I69, O97, T90-T98)。",
+            "疑似诊断编码: 若出院时仍未确诊,按症状/体征编码 (R00-R99),不按假设诊断编码。",
+            "合并编码: 当合并码存在时 (例: A40.3 败血症伴肺炎链球菌性肺炎),不可拆分使用两码。",
+            "双重编码 (†/asterisk): 匕首编码 (†) 表示病因,星号编码 (*) 表示表现;两者成对使用。",
+            "时态限制: 急性心肌梗死 (I21) 仅限发病 4 周 (28 天) 内使用;之后使用 I22 (复发) 或 I25 (慢性)。",
+            "Z 编码: 特殊目的编码 (Z00-Z99) — 筛查 (Z00)、随访 (Z08)、个人史 (Z85)、状态 (Z95) 不可作为主诊断 (除特殊场景)。"
+          ],
+          "source": "internal_kb"
+        },
+        "duration_ms": 104,
+        "error": null,
+        "scope_granted": []
+      },
+      {
+        "tool_name": "search_codes",
+        "arguments": {
+          "query": "2型糖尿病伴糖尿病肾病"
+        },
+        "result": {
+          "candidates": [],
+          "source": "retrieve",
+          "degraded": true,
+          "error_code": "MEDCODER_RETRIEVER_UNAVAILABLE",
+          "error_detail": "BGE-M3 + FAISS retriever not initialized"
+        },
+        "duration_ms": 134,
+        "error": null,
+        "scope_granted": []
+      },
+      {
+        "tool_name": "search_codes",
+        "arguments": {
+          "query": "慢性肾脏病 3期"
+        },
+        "result": {
+          "candidates": [
+            {
+              "code": "N18",
+              "name": "肾终末期疾病",
+              "score": 1.0,
+              "chapter": "第14章 泌尿生殖系统疾病",
+              "source": "lexical_catalog_fallback",
+              "matched_term": "慢性肾脏病"
+            },
+            {
+              "code": "N18.900",
+              "name": "慢性肾衰竭",
+              "score": 1.0,
+              "chapter": "第14章 泌尿生殖系统疾病",
+              "source": "lexical_catalog_fallback",
+              "matched_term": "慢性肾脏病"
+            }
+          ],
+          "source": "lexical_catalog_fallback",
+          "degraded": false,
+          "error_code": "MEDCODER_RETRIEVE_LEXICAL_FALLBACK",
+          "error_detail": "semantic retriever unavailable; exact catalog term/code lookup used"
+        },
+        "duration_ms": 114,
+        "error": null,
+        "scope_granted": []
+      },
+      {
+        "tool_name": "explore_code",
+        "arguments": {
+          "code": "E11"
+        },
+        "result": {
+          "code": "E11",
+          "parent": {
+            "chapter": "第4章 内分泌、营养和代谢疾病",
+            "chapter_no": "第4章",
+            "category_code": "E11",
+            "category_name": ""
+          },
+          "siblings": [
+            {
+              "code": "E11.000",
+              "name": "2型糖尿病伴有昏迷"
+            },
+            {
+              "code": "E11.000x001",
+              "name": "2型糖尿病性高渗性高血糖状态昏迷"
+            },
+            {
+              "code": "E11.000x005",
+              "name": "2型糖尿病性乳酸性酸中毒并昏迷"
+            },
+            {
+              "code": "E11.000x006",
+              "name": "2型糖尿病性酮症酸中毒和乳酸性酸中毒并昏迷"
+            },
+            {
+              "code": "E11.000x011",
+              "name": "2型糖尿病性高血糖状态昏迷"
+            },
+            {
+              "code": "E11.000x012",
+              "name": "2型糖尿病性低血糖昏迷"
+            },
+            {
+              "code": "E11.000x013",
+              "name": "2型糖尿病性酮症酸中毒并昏迷"
+            },
+            {
+              "code": "E11.001",
+              "name": "2型糖尿病性高渗性昏迷"
+            },
+            {
+              "code": "E11.002",
+              "name": "2型糖尿病性低血糖性昏迷"
+            },
+            {
+              "code": "E11.003",
+              "name": "2型糖尿病性酮症酸中毒昏迷"
+            },
+            {
+              "code": "E11.100",
+              "name": "2型糖尿病伴有酮症酸中毒"
+            },
+            {
+              "code": "E11.100x011",
+              "name": "2型糖尿病性乳酸性酸中毒"
+            },
+            {
+              "code": "E11.100x051",
+              "name": "2型糖尿病性酮症酸中毒和乳酸性酸中毒"
+            },
+            {
+              "code": "E11.101",
+              "name": "2型糖尿病性酮症酸中毒"
+            },
+            {
+              "code": "E11.102",
+              "name": "2型糖尿病性乳酸酸中毒"
+            },
+            {
+              "code": "E11.103",
+              "name": "2型糖尿病性酮症"
+            },
+            {
+              "code": "E11.200",
+              "name": "2型糖尿病伴有肾的并发症"
+            },
+            {
+              "code": "E11.200x011+N08.3*",
+              "name": "2型糖尿病性前期肾病"
+            },
+            {
+              "code": "E11.200x012+N08.3*",
+              "name": "2型糖尿病性前期肾小球肾病"
+            },
+            {
+              "code": "E11.200x013+N08.3*",
+              "name": "2型糖尿病性前期基膜肥厚性肾小球肾病"
+            }
+          ],
+          "children": [
+            {
+              "code": "E11.000",
+              "name": "2型糖尿病伴有昏迷"
+            },
+            {
+              "code": "E11.000x001",
+              "name": "2型糖尿病性高渗性高血糖状态昏迷"
+            },
+            {
+              "code": "E11.000x005",
+              "name": "2型糖尿病性乳酸性酸中毒并昏迷"
+            },
+            {
+              "code": "E11.000x006",
+              "name": "2型糖尿病性酮症酸中毒和乳酸性酸中毒并昏迷"
+            },
+            {
+              "code": "E11.000x011",
+              "name": "2型糖尿病性高血糖状态昏迷"
+            },
+            {
+              "code": "E11.000x012",
+              "name": "2型糖尿病性低血糖昏迷"
+            },
+            {
+              "code": "E11.000x013",
+              "name": "2型糖尿病性酮症酸中毒并昏迷"
+            },
+            {
+              "code": "E11.001",
+              "name": "2型糖尿病性高渗性昏迷"
+            },
+            {
+              "code": "E11.002",
+              "name": "2型糖尿病性低血糖性昏迷"
+            },
+            {
+              "code": "E11.003",
+              "name": "2型糖尿病性酮症酸中毒昏迷"
+            },
+            {
+              "code": "E11.100",
+              "name": "2型糖尿病伴有酮症酸中毒"
+            },
+            {
+              "code": "E11.100x011",
+              "name": "2型糖尿病性乳酸性酸中毒"
+            },
+            {
+              "code": "E11.100x051",
+              "name": "2型糖尿病性酮症酸中毒和乳酸性酸中毒"
+            },
+            {
+              "code": "E11.101",
+              "name": "2型糖尿病性酮症酸中毒"
+            },
+            {
+              "code": "E11.102",
+              "name": "2型糖尿病性乳酸酸中毒"
+            },
+            {
+              "code": "E11.103",
+              "name": "2型糖尿病性酮症"
+            },
+            {
+              "code": "E11.200",
+              "name": "2型糖尿病伴有肾的并发症"
+            },
+            {
+              "code": "E11.200x011+N08.3*",
+              "name": "2型糖尿病性前期肾病"
+            },
+            {
+              "code": "E11.200x012+N08.3*",
+              "name": "2型糖尿病性前期肾小球肾病"
+            },
+            {
+              "code": "E11.200x013+N08.3*",
+              "name": "2型糖尿病性前期基膜肥厚性肾小球肾病"
+            }
+          ],
+          "in_catalog": true
+        },
+        "duration_ms": 126,
+        "error": null,
+        "scope_granted": []
+      },
+      {
+        "tool_name": "explore_code",
+        "arguments": {
+          "code": "N18"
+        },
+        "result": {
+          "code": "N18",
+          "parent": {
+            "chapter": "第14章 泌尿生殖系统疾病",
+            "chapter_no": "第14章",
+            "category_code": "N18",
+            "category_name": ""
+          },
+          "siblings": [
+            {
+              "code": "N18.000",
+              "name": "肾终末期疾病"
+            },
+            {
+              "code": "N18.000x001",
+              "name": "梗阻性肾衰竭"
+            },
+            {
+              "code": "N18.001",
+              "name": "慢性肾脏病5期"
+            },
+            {
+              "code": "N18.002+D63.8*",
+              "name": "慢性肾脏病5期贫血"
+            },
+            {
+              "code": "N18.800",
+              "name": "慢性肾衰竭，其他的"
+            },
+            {
+              "code": "N18.800x004",
+              "name": "尿毒症性心肌炎"
+            },
+            {
+              "code": "N18.800x005",
+              "name": "尿毒症性心脏病"
+            },
+            {
+              "code": "N18.800x013",
+              "name": "肾性视网膜病"
+            },
+            {
+              "code": "N18.800x014",
+              "name": "慢性肾衰竭(肾功能不全)合并感染"
+            },
+            {
+              "code": "N18.800x015",
+              "name": "慢性肾衰竭(肾功能不全)合并继发性甲状旁腺功能亢进"
+            },
+            {
+              "code": "N18.800x016",
+              "name": "慢性肾衰竭(肾功能不全)合并脑病"
+            },
+            {
+              "code": "N18.800x017",
+              "name": "慢性肾衰竭(肾功能不全)合并贫血"
+            },
+            {
+              "code": "N18.800x018",
+              "name": "慢性肾衰竭(肾功能不全)合并肾性骨病"
+            },
+            {
+              "code": "N18.800x019",
+              "name": "慢性肾衰竭(肾功能不全)合并营养不良"
+            },
+            {
+              "code": "N18.800x020",
+              "name": "慢性肾衰竭(肾功能不全)合并心力衰竭"
+            },
+            {
+              "code": "N18.800x021",
+              "name": "慢性肾衰竭(肾功能不全)合并心包炎"
+            },
+            {
+              "code": "N18.801",
+              "name": "慢性肾脏病1期"
+            },
+            {
+              "code": "N18.802",
+              "name": "慢性肾脏病2期"
+            },
+            {
+              "code": "N18.803",
+              "name": "慢性肾脏病3期"
+            },
+            {
+              "code": "N18.804",
+              "name": "慢性肾脏病4期"
+            }
+          ],
+          "children": [
+            {
+              "code": "N18.000",
+              "name": "肾终末期疾病"
+            },
+            {
+              "code": "N18.000x001",
+              "name": "梗阻性肾衰竭"
+            },
+            {
+              "code": "N18.001",
+              "name": "慢性肾脏病5期"
+            },
+            {
+              "code": "N18.002+D63.8*",
+              "name": "慢性肾脏病5期贫血"
+            },
+            {
+              "code": "N18.800",
+              "name": "慢性肾衰竭，其他的"
+            },
+            {
+              "code": "N18.800x004",
+              "name": "尿毒症性心肌炎"
+            },
+            {
+              "code": "N18.800x005",
+              "name": "尿毒症性心脏病"
+            },
+            {
+              "code": "N18.800x013",
+              "name": "肾性视网膜病"
+            },
+            {
+              "code": "N18.800x014",
+              "name": "慢性肾衰竭(肾功能不全)合并感染"
+            },
+            {
+              "code": "N18.800x015",
+              "name": "慢性肾衰竭(肾功能不全)合并继发性甲状旁腺功能亢进"
+            },
+            {
+              "code": "N18.800x016",
+              "name": "慢性肾衰竭(肾功能不全)合并脑病"
+            },
+            {
+              "code": "N18.800x017",
+              "name": "慢性肾衰竭(肾功能不全)合并贫血"
+            },
+            {
+              "code": "N18.800x018",
+              "name": "慢性肾衰竭(肾功能不全)合并肾性骨病"
+            },
+            {
+              "code": "N18.800x019",
+              "name": "慢性肾衰竭(肾功能不全)合并营养不良"
+            },
+            {
+              "code": "N18.800x020",
+              "name": "慢性肾衰竭(肾功能不全)合并心力衰竭"
+            },
+            {
+              "code": "N18.800x021",
+              "name": "慢性肾衰竭(肾功能不全)合并心包炎"
+            },
+            {
+              "code": "N18.801",
+              "name": "慢性肾脏病1期"
+            },
+            {
+              "code": "N18.802",
+              "name": "慢性肾脏病2期"
+            },
+            {
+              "code": "N18.803",
+              "name": "慢性肾脏病3期"
+            },
+            {
+              "code": "N18.804",
+              "name": "慢性肾脏病4期"
+            }
+          ],
+          "in_catalog": true
+        },
+        "duration_ms": 134,
+        "error": null,
+        "scope_granted": []
+      },
+      {
+        "tool_name": "explore_code",
+        "arguments": {
+          "code": "E11.200"
+        },
+        "result": {
+          "code": "E11.200",
+          "parent": {
+            "chapter": "第4章 内分泌、营养和代谢疾病",
+            "chapter_no": "第4章",
+            "category_code": "E11",
+            "category_name": ""
+          },
+          "siblings": [
+            {
+              "code": "E11",
+              "name": "2型糖尿病伴有昏迷"
+            },
+            {
+              "code": "E11.000",
+              "name": "2型糖尿病伴有昏迷"
+            },
+            {
+              "code": "E11.000x001",
+              "name": "2型糖尿病性高渗性高血糖状态昏迷"
+            },
+            {
+              "code": "E11.000x005",
+              "name": "2型糖尿病性乳酸性酸中毒并昏迷"
+            },
+            {
+              "code": "E11.000x006",
+              "name": "2型糖尿病性酮症酸中毒和乳酸性酸中毒并昏迷"
+            },
+            {
+              "code": "E11.000x011",
+              "name": "2型糖尿病性高血糖状态昏迷"
+            },
+            {
+              "code": "E11.000x012",
+              "name": "2型糖尿病性低血糖昏迷"
+            },
+            {
+              "code": "E11.000x013",
+              "name": "2型糖尿病性酮症酸中毒并昏迷"
+            },
+            {
+              "code": "E11.001",
+              "name": "2型糖尿病性高渗性昏迷"
+            },
+            {
+              "code": "E11.002",
+              "name": "2型糖尿病性低血糖性昏迷"
+            },
+            {
+              "code": "E11.003",
+              "name": "2型糖尿病性酮症酸中毒昏迷"
+            },
+            {
+              "code": "E11.100",
+              "name": "2型糖尿病伴有酮症酸中毒"
+            },
+            {
+              "code": "E11.100x011",
+              "name": "2型糖尿病性乳酸性酸中毒"
+            },
+            {
+              "code": "E11.100x051",
+              "name": "2型糖尿病性酮症酸中毒和乳酸性酸中毒"
+            },
+            {
+              "code": "E11.101",
+              "name": "2型糖尿病性酮症酸中毒"
+            },
+            {
+              "code": "E11.102",
+              "name": "2型糖尿病性乳酸酸中毒"
+            },
+            {
+              "code": "E11.103",
+              "name": "2型糖尿病性酮症"
+            },
+            {
+              "code": "E11.200x011+N08.3*",
+              "name": "2型糖尿病性前期肾病"
+            },
+            {
+              "code": "E11.200x012+N08.3*",
+              "name": "2型糖尿病性前期肾小球肾病"
+            },
+            {
+              "code": "E11.200x013+N08.3*",
+              "name": "2型糖尿病性前期基膜肥厚性肾小球肾病"
+            }
+          ],
+          "children": [],
+          "in_catalog": true
+        },
+        "duration_ms": 141,
+        "error": null,
+        "scope_granted": []
+      },
+      {
+        "tool_name": "verify_code",
+        "arguments": {
+          "code": "N18.803"
+        },
+        "result": {
+          "code": "N18.803",
+          "in_catalog": true,
+          "assignable": true,
+          "chapter": "第14章 泌尿生殖系统疾病",
+          "name": "慢性肾脏病3期",
+          "aliases": [
+            "其他的慢性肾衰竭",
+            "慢性肾脏病Ⅲa期 chronic kidney disease, stage IIIa",
+            "慢性肾脏病Ⅲb期 chronic kidney disease, stage IIIb",
+            "慢性肾脏病Ⅲ期 chronic kidney disease, stage III",
+            "慢性肾脏病 3 期"
+          ],
+          "parent_hierarchy": [
+            "第14章",
+            "N18",
+            "N18.803"
+          ],
+          "excludes1": [],
+          "excludes2": [],
+          "code_first_notes": [],
+          "use_additional_code_notes": [],
+          "children_if_non_assignable": []
+        },
+        "duration_ms": 111,
+        "error": null,
+        "scope_granted": []
+      },
+      {
+        "tool_name": "search_codes",
+        "arguments": {
+          "query": "2型糖尿病性肾病"
+        },
+        "result": {
+          "candidates": [
+            {
+              "code": "E11.201+N08.3*",
+              "name": "2型糖尿病性肾病",
+              "score": 1.0,
+              "chapter": "第4章 内分泌、营养和代谢疾病",
+              "source": "lexical_catalog_fallback",
+              "matched_term": "2型糖尿病性肾病"
+            }
+          ],
+          "source": "lexical_catalog_fallback",
+          "degraded": false,
+          "error_code": "MEDCODER_RETRIEVE_LEXICAL_FALLBACK",
+          "error_detail": "semantic retriever unavailable; exact catalog term/code lookup used"
+        },
+        "duration_ms": 101,
+        "error": null,
+        "scope_granted": []
+      },
+      {
+        "tool_name": "search_codes",
+        "arguments": {
+          "query": "糖尿病肾病"
+        },
+        "result": {
+          "candidates": [],
+          "source": "retrieve",
+          "degraded": true,
+          "error_code": "MEDCODER_RETRIEVER_UNAVAILABLE",
+          "error_detail": "BGE-M3 + FAISS retriever not initialized"
+        },
+        "duration_ms": 94,
+        "error": null,
+        "scope_granted": []
+      },
+      {
+        "tool_name": "verify_code",
+        "arguments": {
+          "code": "E11.201+N08.3*"
+        },
+        "result": {
+          "code": "E11.201+N08.3*",
+          "in_catalog": true,
+          "assignable": true,
+          "chapter": "第4章 内分泌、营养和代谢疾病",
+          "name": "2型糖尿病性肾病",
+          "aliases": [],
+          "parent_hierarchy": [
+            "第4章",
+            "E11",
+            "E11.201+N08.3*"
+          ],
+          "excludes1": [],
+          "excludes2": [],
+          "code_first_notes": [],
+          "use_additional_code_notes": [],
+          "children_if_non_assignable": []
+        },
+        "duration_ms": 117,
+        "error": null,
+        "scope_granted": []
+      },
+      {
+        "tool_name": "get_guidelines",
+        "arguments": {
+          "code": "E11"
+        },
+        "result": {
+          "chapter": "第4章 内分泌、营养和代谢疾病",
+          "chapter_conventions": [],
+          "general_rules": [
+            "不编码未在病历中明确记录的诊断 — 临床表现必须在病历正文中出现。",
+            "主诊断必须能解释本次住院的主要治疗资源消耗;不可选次要诊断作为主诊断。",
+            "使用最具体的编码: 当存在更具体细分码时,不可使用 3 位类别码 (例: I25 应选 I25.1)。",
+            "组合编码优先: 当一个编码能完整描述两种情况时,使用组合码而非双码 (例: I11.0 高血压性心脏病伴心衰)。",
+            "后遗症编码: 使用相应后遗症码 (B90-B94, E64, E68, G09, I69, O97, T90-T98)。",
+            "疑似诊断编码: 若出院时仍未确诊,按症状/体征编码 (R00-R99),不按假设诊断编码。",
+            "合并编码: 当合并码存在时 (例: A40.3 败血症伴肺炎链球菌性肺炎),不可拆分使用两码。",
+            "双重编码 (†/asterisk): 匕首编码 (†) 表示病因,星号编码 (*) 表示表现;两者成对使用。",
+            "时态限制: 急性心肌梗死 (I21) 仅限发病 4 周 (28 天) 内使用;之后使用 I22 (复发) 或 I25 (慢性)。",
+            "Z 编码: 特殊目的编码 (Z00-Z99) — 筛查 (Z00)、随访 (Z08)、个人史 (Z85)、状态 (Z95) 不可作为主诊断 (除特殊场景)。"
+          ],
+          "source": "internal_kb"
+        },
+        "duration_ms": 101,
+        "error": null,
+        "scope_granted": []
+      },
+      {
+        "tool_name": "verify_code",
+        "arguments": {
+          "code": "E11.201"
+        },
+        "result": {
+          "code": "E11.201",
+          "in_catalog": false,
+          "assignable": false,
+          "chapter": "",
+          "name": "",
+          "aliases": [],
+          "parent_hierarchy": [],
+          "excludes1": [],
+          "excludes2": [],
+          "code_first_notes": [],
+          "use_additional_code_notes": [],
+          "children_if_non_assignable": []
+        },
+        "duration_ms": 101,
+        "error": null,
+        "scope_granted": []
+      }
+    ],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.llm-with-tools.v1",
+    "backend_type": "llm_with_tools",
+    "review_conclusion": "FAIL",
+    "validated_codes": [
+      {
+        "code": "E11.201+N08.3*",
+        "name": "2型糖尿病性肾病",
+        "chapter": "第4章 内分泌、营养和代谢疾病",
+        "assignable": true,
+        "status": "valid",
+        "note": "双重编码(†/asterisk)组合码,匕首码E11.201表示病因(2型糖尿病),星号码N08.3*表示表现(肾小球疾病)。该组合码完整描述'2型糖尿病伴糖尿病肾病'。"
+      },
+      {
+        "code": "N18.803",
+        "name": "慢性肾脏病3期",
+        "chapter": "第14章 泌尿生殖系统疾病",
+        "assignable": true,
+        "status": "valid",
+        "note": "对应诊断中的'糖尿病肾病'分期(3期)。"
+      }
+    ],
+    "cross_code_issues": [
+      {
+        "code": "E11.21",
+        "issue": "编码不存在于目录(in_catalog=false)。目录中无E11.21。正确编码应为组合码E11.201+N08.3*(2型糖尿病性肾病)。",
+        "severity": "error",
+        "manual_review_required": false
+      },
+      {
+        "code": "N18.3",
+        "issue": "编码不存在于目录(in_catalog=false)。目录中无N18.3。正确编码应为N18.803(慢性肾脏病3期)。",
+        "severity": "error",
+        "manual_review_required": false
+      },
+      {
+        "code": "E11.201+N08.3* / N18.803",
+        "issue": "双重编码风险:组合码E11.201+N08.3*已完整描述糖尿病肾病。是否同时附加N18.803(慢性肾脏病3期)以标注分期,涉及组合码优先与分期细化的权衡,目录与规则未给出明确指引,需人工核验。",
+        "severity": "warning",
+        "manual_review_required": true
+      },
+      {
+        "code": "主诊断排序",
+        "issue": "排序风险:主诊断须能解释本次住院主要治疗资源消耗。若住院主要因糖尿病管理则主诊断选E11.201+N08.3*;若主要因肾脏/慢性肾脏病治疗则主诊断可能为N18.803。需依据病历实际治疗资源判断,目录与规则无法自动判定,需人工核验。",
+        "severity": "warning",
+        "manual_review_required": true
+      }
+    ],
+    "manual_review_required": true,
+    "summary": "待校验编码E11.21与N18.3均不在ICD-10-CN目录中(in_catalog=false),均无效。经目录检索,正确编码为:E11.201+N08.3*(2型糖尿病性肾病,双重编码组合码,可分配)与N18.803(慢性肾脏病3期,可分配)。'2型糖尿病伴糖尿病肾病'由组合码E11.201+N08.3*完整描述。是否同时附加N18.803标注CKD分期,以及主诊断排序(糖尿病 vs 肾脏治疗资源主导),均涉及DRG/DIP敏感判断,目录与规则未提供明确指引,须人工核验。",
+    "structured_extraction": {
+      "contract": "icoder/CodeValidationOutput/v2",
+      "method": "json_block",
+      "warnings": [],
+      "required_fields": [
+        "review_conclusion",
+        "validated_codes",
+        "cross_code_issues",
+        "manual_review_required",
+        "summary",
+        "markdown"
+      ],
+      "missing_required_fields": [],
+      "valid": true
+    }
+  },
+  "evidence": [
+    {
+      "text": "verify_code"
+    },
+    {
+      "text": "verify_code"
+    },
+    {
+      "text": "get_guidelines"
+    },
+    {
+      "text": "search_codes"
+    },
+    {
+      "text": "search_codes"
+    },
+    {
+      "text": "explore_code"
+    },
+    {
+      "text": "explore_code"
+    },
+    {
+      "text": "explore_code"
+    },
+    {
+      "text": "verify_code"
+    },
+    {
+      "text": "search_codes"
+    },
+    {
+      "text": "search_codes"
+    },
+    {
+      "text": "verify_code"
+    },
+    {
+      "text": "get_guidelines"
+    },
+    {
+      "text": "verify_code"
+    }
+  ],
+  "warnings": [],
+  "manual_review_required": false,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 35106,
+      "metadata": {
+        "agent_id": "code-validation-agent",
+        "runtime_mode": "llm_with_tools",
+        "latency_ms": 35106
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 35.56
+}

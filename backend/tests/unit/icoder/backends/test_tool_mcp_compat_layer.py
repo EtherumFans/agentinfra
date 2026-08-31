@@ -56,7 +56,20 @@ def test_provider_to_mcp_mcp_native_shape():
         {"tool": "search_icd", "input": {"query": "heart failure"}},
     )
     assert req.tool_name == "search_icd"
-    assert req.arguments == {"query": "heart failure"}
+    assert req.arguments == {"emr_text": "heart failure"}
+
+
+def test_provider_to_mcp_normalizes_search_icd_query_alias():
+    layer = ToolMCPCompatLayer()
+    req = layer.provider_to_mcp({
+        "name": "search_icd",
+        "arguments": {"query": "急性前壁心肌梗死", "top_k": 5},
+    })
+
+    assert req.arguments == {
+        "emr_text": "急性前壁心肌梗死",
+        "top_k": 5,
+    }
 
 
 def test_provider_to_mcp_strips_secret_keys():
@@ -73,7 +86,7 @@ def test_provider_to_mcp_strips_secret_keys():
     })
     assert req.arguments["token"] == "[REDACTED]"
     assert req.arguments["api_key"] == "[REDACTED]"
-    assert req.arguments["query"] == "ok"
+    assert req.arguments["emr_text"] == "ok"
     assert req.arguments["normal_arg"] == "fine"
 
 
@@ -310,7 +323,8 @@ async def test_call_dispatch_exception_returns_error_envelope():
     )
     assert resp.is_error is True
     assert resp.error_code == "RuntimeError"
-    assert "dispatch exploded" in resp.error_message
+    assert resp.error_message == "tool_execution_failed:RuntimeError"
+    assert "dispatch exploded" not in resp.error_message
 
 
 @pytest.mark.asyncio

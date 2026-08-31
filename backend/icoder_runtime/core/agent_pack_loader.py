@@ -21,10 +21,24 @@ unchanged for legacy callers; it remains the gate for ``v1.1`` packs.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 from pathlib import Path
 from typing import Any, Iterable
+
+from icoder_runtime.backends.output_contract_validation import (
+    SUPPORTED_FIELD_TYPES,
+    declared_field_schemas,
+    declared_optional_fields,
+    declared_field_types,
+    validate_declared_field_schemas,
+    validate_cross_agent_relations_definition,
+    validate_evidence_bindings_definition,
+    validate_field_relations_definition,
+    validate_field_schema_definition,
+    validate_required_field_types,
+)
 
 from .agent_pack_schema import (
     LEGAL_AGENT_TYPES,
@@ -74,6 +88,7 @@ def load_pack(
     _populate_v13_extensions(normalized)
 
     _classify(normalized)
+    _assess_launch_candidate(normalized)
     return normalized
 
 
@@ -441,6 +456,7 @@ def _populate_backend_provider(p: NormalizedPack) -> None:
         if isinstance(tools_cfg, dict):
             scope = tools_cfg.get("scope")
             mandatory = tools_cfg.get("mandatory")
+            conditional_mandatory = tools_cfg.get("conditional_mandatory")
             forbidden = tools_cfg.get("forbidden")
             if scope is not None and not isinstance(scope, list):
                 p.validation_errors.append(
@@ -454,6 +470,23 @@ def _populate_backend_provider(p: NormalizedPack) -> None:
                 p.validation_errors.append(
                     "backend_config.tools.forbidden: expected list"
                 )
+            if conditional_mandatory is not None and not isinstance(
+                conditional_mandatory, list
+            ):
+                p.validation_errors.append(
+                    "backend_config.tools.conditional_mandatory: expected list"
+                )
+            if isinstance(scope, list) and isinstance(conditional_mandatory, list):
+                conditional_tools = {
+                    str(tool)
+                    for policy in conditional_mandatory
+                    if isinstance(policy, dict)
+                    for tool in (policy.get("tools") or [])
+                }
+                if not conditional_tools.issubset(set(scope)):
+                    p.validation_errors.append(
+                        "backend_config.tools: conditional mandatory tools must be subset of scope"
+                    )
             if (
                 isinstance(scope, list)
                 and isinstance(mandatory, list)
@@ -613,7 +646,7 @@ def _classify(p: NormalizedPack) -> None:
         # metadata-only marked production-ready, and reference is the
         # "real Python impl" marker that bypasses hybrid_adapter).
         p.status = PackStatus.EXECUTABLE
-        p.production_ready = True
+        p.production_ready = _production_ready_from_manifest(p, inferred=True)
         p.experimental = False
         p.enabled_by_default = True
         return
@@ -625,7 +658,7 @@ def _classify(p: NormalizedPack) -> None:
         # The Medical Coding Agent (icoder/medical-coding-agent@2.0.0)
         # is the user-facing product; medcoder-coding-review is its engine.
         p.status = PackStatus.EXECUTABLE
-        p.production_ready = True
+        p.production_ready = _production_ready_from_manifest(p, inferred=True)
         p.experimental = False
         p.enabled_by_default = True
         return
@@ -634,7 +667,7 @@ def _classify(p: NormalizedPack) -> None:
         # community packs need real code to be executable
         if p.code:
             p.status = PackStatus.EXECUTABLE
-            p.production_ready = True
+            p.production_ready = _production_ready_from_manifest(p, inferred=True)
         else:
             p.status = PackStatus.METADATA_ONLY
             p.production_ready = False
@@ -650,9 +683,9 @@ def _classify(p: NormalizedPack) -> None:
         p.enabled_by_default = False
         return
 
-    if _has_real_experts(p) or p.tools:
+    if _has_real_experts(p) or p.tools or _has_non_prompt_backend(p):
         p.status = PackStatus.EXECUTABLE
-        p.production_ready = True
+        p.production_ready = _production_ready_from_manifest(p, inferred=True)
     else:
         # Pure-prompt certified: still executable but production-ready False
         # (per P1.1 honest-classification rule)
@@ -674,6 +707,222 @@ def _has_real_experts(p: NormalizedPack) -> bool:
     )
 
 
+def _has_non_prompt_backend(p: NormalizedPack) -> bool:
+    """Recognize an explicit runtime that is more than prompt execution."""
+    return bool(p.backend_provider) and p.backend_provider not in {
+        "icoder.pure-llm.v1",
+        "icoder.llm-with-tools.v1",
+    }
+
+
+def _production_ready_from_manifest(p: NormalizedPack, *, inferred: bool) -> bool:
+    """Honor explicit governance state over loader shape inference.
+
+    Executable wiring cannot overrule ``manifest.production_ready=false``.
+    Legacy packs that omit the field retain historical inferred behavior.
+    """
+    manifest = p.raw.get("manifest") or {}
+    declared = manifest.get("production_ready") if isinstance(manifest, dict) else None
+    return declared if isinstance(declared, bool) else inferred
+
+
+def _assess_launch_candidate(p: NormalizedPack) -> None:
+    """Assess the development-verifiable gate for an external release cycle.
+
+    ``launch_candidate_ready`` is intentionally narrower than production
+    readiness.  It proves that the pack is executable, auditable, bounded and
+    testable from repository evidence.  Hospital integration, independent
+    clinical validation, security/privacy review and deployment approval stay
+    explicit external gates even when this assessment passes.
+    """
+    blockers: list[str] = []
+    manifest = p.raw.get("manifest") or {}
+    maturity = str(manifest.get("maturity", "")) if isinstance(manifest, dict) else ""
+    tags = set(p.tags)
+
+    if p.status != PackStatus.EXECUTABLE:
+        blockers.append(f"pack_status={p.status.value}; executable required")
+    if maturity in {"metadata-only", "stub", "deprecated"} or tags.intersection(
+        {"metadata-only", "stub", "deprecated"}
+    ):
+        blockers.append("placeholder/deprecated maturity or tag must be removed")
+    if not p.system_prompt.strip():
+        blockers.append("system_prompt is required")
+    if not (p.backend_provider or p.a2a.get("endpoint")):
+        blockers.append("explicit backend_provider or a2a.endpoint is required")
+    if p.backend_provider == "icoder.pure-llm.v1" and p.tools:
+        blockers.append("pure_llm backend cannot declare runtime tools")
+
+    schema_ref = p.output_contract.get("schema_ref")
+    required_fields = p.output_contract.get("required_fields")
+    raw_optional_fields = p.output_contract.get("optional_fields", [])
+    optional_fields = declared_optional_fields(p.output_contract)
+    if not isinstance(schema_ref, str) or not schema_ref.strip():
+        blockers.append("output_contract.schema_ref is required")
+    if not isinstance(required_fields, list) or not required_fields:
+        blockers.append("output_contract.required_fields must be non-empty")
+    if not isinstance(raw_optional_fields, list):
+        blockers.append("output_contract.optional_fields must be an array when present")
+    elif (
+        len(optional_fields) != len(raw_optional_fields)
+        or len(set(optional_fields)) != len(optional_fields)
+        or any(not field.strip() for field in optional_fields)
+    ):
+        blockers.append("output_contract.optional_fields must contain unique non-empty strings")
+    if isinstance(required_fields, list) and set(required_fields).intersection(optional_fields):
+        blockers.append("output_contract.required_fields and optional_fields must be disjoint")
+    declared_fields = [
+        field for field in (required_fields if isinstance(required_fields, list) else [])
+        if isinstance(field, str)
+    ] + optional_fields
+    field_types = declared_field_types(p.output_contract)
+    if not isinstance(p.output_contract.get("field_types"), dict):
+        blockers.append("output_contract.field_types must be an object")
+    elif declared_fields:
+        missing_type_declarations = [
+            field for field in declared_fields if field not in field_types
+        ]
+        unsupported_type_declarations = [
+            field for field in declared_fields
+            if field_types.get(field) not in SUPPORTED_FIELD_TYPES
+        ]
+        if missing_type_declarations:
+            blockers.append(
+                "output_contract.field_types must cover every required field: "
+                + ", ".join(missing_type_declarations)
+            )
+        if unsupported_type_declarations:
+            blockers.append(
+                "output_contract.field_types contains unsupported types for: "
+                + ", ".join(unsupported_type_declarations)
+            )
+        stale_type_declarations = sorted(set(field_types) - set(declared_fields))
+        if stale_type_declarations:
+            blockers.append(
+                "output_contract.field_types contains undeclared fields: "
+                + ", ".join(stale_type_declarations)
+            )
+        raw_field_schemas = p.output_contract.get("field_schemas")
+        field_schemas = declared_field_schemas(p.output_contract)
+        if declared_fields and not isinstance(raw_field_schemas, dict):
+            blockers.append("output_contract.field_schemas must be an object")
+        elif isinstance(raw_field_schemas, dict):
+            missing_field_schemas = sorted(set(declared_fields) - set(field_schemas))
+            stale_field_schemas = sorted(set(field_schemas) - set(declared_fields))
+            if missing_field_schemas:
+                blockers.append(
+                    "output_contract.field_schemas must cover every declared field: "
+                    + ", ".join(missing_field_schemas)
+                )
+            if stale_field_schemas:
+                blockers.append(
+                    "output_contract.field_schemas contains undeclared fields: "
+                    + ", ".join(stale_field_schemas)
+                )
+            for field in declared_fields:
+                schema = field_schemas.get(field)
+                if schema is None:
+                    continue
+                blockers.extend(
+                    validate_field_schema_definition(
+                        schema,
+                        path=f"output_contract.field_schemas.{field}",
+                        expected_root_type=field_types.get(field),
+                    )
+                )
+        blockers.extend(validate_field_relations_definition(p.output_contract))
+        blockers.extend(validate_evidence_bindings_definition(p.output_contract))
+        blockers.extend(validate_cross_agent_relations_definition(p.output_contract))
+
+    # Every first-party clinical pack processes potentially identifiable chart
+    # content.  Candidate packs must declare the same fail-closed guardrails,
+    # independent of whether a particular demo input is synthetic.
+    if p.phi_redaction != "required":
+        blockers.append("phi_redaction=required is required")
+    if not p.recorder_required:
+        blockers.append("recorder_required=true is required")
+    if not p.metrics_required:
+        blockers.append("metrics_required=true is required")
+    if not p.permissions.get("production_writeback_blocked", False):
+        blockers.append("permissions.production_writeback_blocked=true is required")
+
+    human_review = str(manifest.get("human_review", "")) if isinstance(manifest, dict) else ""
+    if human_review != "required" and not p.human_review_required_when:
+        blockers.append("human review policy or explicit review triggers are required")
+    if not p.example_inputs:
+        blockers.append("at least one example_input is required for smoke/E2E tests")
+    if not p.example_outputs:
+        blockers.append("at least one contract-complete example_output is required")
+    elif isinstance(required_fields, list) and required_fields:
+        contract_complete = any(
+            all(field in example for field in required_fields)
+            for example in p.example_outputs
+            if isinstance(example, dict)
+        )
+        if not contract_complete:
+            blockers.append(
+                "an example_output containing every output_contract.required_field is required"
+            )
+        elif field_types:
+            type_complete = any(
+                all(field in example for field in required_fields)
+                and not validate_required_field_types(example, p.output_contract)
+                and not validate_declared_field_schemas(example, p.output_contract)
+                and not (set(example) - set(declared_fields))
+                for example in p.example_outputs
+                if isinstance(example, dict)
+            )
+            if not type_complete:
+                blockers.append(
+                    "a contract-complete example_output with valid declared field types is required"
+                )
+            missing_optional_examples = [
+                field for field in optional_fields
+                if not any(field in example for example in p.example_outputs)
+            ]
+            if missing_optional_examples:
+                blockers.append(
+                    "every optional output field requires at least one typed example: "
+                    + ", ".join(missing_optional_examples)
+                )
+
+    # Integrity is optional in the pack format, but a pack that declares it
+    # must provide a real canonical SHA-256. Placeholders and stale hashes
+    # cannot qualify as release candidates.
+    if p.integrity:
+        declared_sha = str(p.integrity.get("sha256") or "").lower()
+        if len(declared_sha) != 64 or any(c not in "0123456789abcdef" for c in declared_sha):
+            blockers.append("integrity.sha256 must be a 64-character lowercase hex digest")
+        elif declared_sha != _canonical_pack_sha256(p.raw):
+            blockers.append("integrity.sha256 does not match canonical pack content")
+
+    p.launch_candidate_blockers = blockers
+    p.launch_candidate_ready = not blockers
+    p.external_release_gates = [
+        "independent_clinical_quality_validation",
+        "hospital_workflow_and_interoperability_validation",
+        "security_privacy_and_compliance_review",
+        "production_infrastructure_and_operations_approval",
+    ]
+
+
+def _canonical_pack_sha256(pack: dict[str, Any]) -> str:
+    """Match the v1 pack integrity algorithm for every normalized version."""
+    # ``_pack_mtime_iso`` is injected by the Hub at read time solely for card
+    # presentation.  It is not authored pack content and must not invalidate a
+    # pack whose canonical digest was verified directly from disk.
+    excluded = {
+        "integrity",
+        "downloads",
+        "published_at",
+        "loaded_at",
+        "_pack_mtime_iso",
+    }
+    clean = {key: value for key, value in pack.items() if key not in excluded}
+    raw = json.dumps(clean, sort_keys=True, ensure_ascii=False, default=str)
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+
 # ── Aggregations over many packs ──
 
 
@@ -684,6 +933,7 @@ def summary_counts(packs: Iterable[NormalizedPack]) -> dict[str, int]:
     by_type: dict[str, int] = {}
     by_format: dict[str, int] = {}
     production_ready = 0
+    launch_candidate_ready = 0
     experimental = 0
     metadata_only = 0
     invalid = 0
@@ -693,6 +943,8 @@ def summary_counts(packs: Iterable[NormalizedPack]) -> dict[str, int]:
         by_format[p.format_version] = by_format.get(p.format_version, 0) + 1
         if p.production_ready:
             production_ready += 1
+        if p.launch_candidate_ready:
+            launch_candidate_ready += 1
         if p.experimental:
             experimental += 1
         if p.status == PackStatus.METADATA_ONLY:
@@ -705,6 +957,7 @@ def summary_counts(packs: Iterable[NormalizedPack]) -> dict[str, int]:
         "metadata_only": metadata_only,
         "invalid": invalid,
         "production_ready": production_ready,
+        "launch_candidate_ready": launch_candidate_ready,
         "experimental": experimental,
         "by_type": by_type,
         "by_format": by_format,

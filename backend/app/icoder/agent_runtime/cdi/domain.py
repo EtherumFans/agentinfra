@@ -355,6 +355,87 @@ class ProviderQuery:
     semantic_necessity_verdict: str = ""  # "PASS" | "REVIEW_REQUIRED" | "BLOCK" | "DEGRADED"
     semantic_necessity_reason_codes: list[str] = field(default_factory=list)
     semantic_necessity_degraded: bool = False
+    # Authoritative evidence set. Keep this field last so adding it does not
+    # shift the positional ABI of older ProviderQuery constructors.
+    # ``evidence_span`` remains the first/primary item for v1 clients.
+    evidence_spans: list[EvidenceSpan] = field(default_factory=list)
+
+    def all_evidence_spans(self) -> list[EvidenceSpan]:
+        """Return de-duplicated evidence, falling back to the legacy span."""
+        candidates = self.evidence_spans or (
+            [self.evidence_span] if self.evidence_span.quote else []
+        )
+        seen: set[tuple[str, str, int, int]] = set()
+        result: list[EvidenceSpan] = []
+        for span in candidates:
+            key = (span.document_id, span.quote, span.char_start, span.char_end)
+            if not span.quote or key in seen:
+                continue
+            seen.add(key)
+            result.append(span)
+        return result
+
+
+def query_audit_item(
+    query: ProviderQuery,
+    *,
+    status: str,
+    gate_reasons: list[str],
+    **extra: Any,
+) -> dict[str, Any]:
+    """Create the canonical fail-closed audit item for a withheld query."""
+    item: dict[str, Any] = {
+        "query_id": query.query_id,
+        "gap_id": query.gap_id,
+        "topic": query.topic,
+        "reason": query.reason,
+        "query_text": query.query_text,
+        "response_options": list(query.response_options),
+        "evidence_spans": [
+            {
+                "document_id": span.document_id,
+                "quote": span.quote,
+                "char_start": span.char_start,
+                "char_end": span.char_end,
+                "documented_at": span.documented_at,
+            }
+            for span in query.all_evidence_spans()
+        ],
+        "gate_reasons": list(gate_reasons),
+        "status": status,
+    }
+    item.update(extra)
+    return item
+
+
+def gap_query_draft_item(gap: DocumentationGap) -> dict[str, Any]:
+    """Create an auditable work item when generation leaves a gap uncovered."""
+    spans = gap.evidence_spans or (
+        [gap.evidence_span] if gap.evidence_span.quote else []
+    )
+    return {
+        "query_id": "",
+        "gap_id": gap.gap_id,
+        "topic": gap.description,
+        "reason": gap.why_it_matters,
+        "query_text": "",
+        "response_options": [],
+        "evidence_spans": [
+            {
+                "document_id": span.document_id,
+                "quote": span.quote,
+                "char_start": span.char_start,
+                "char_end": span.char_end,
+                "documented_at": span.documented_at,
+            }
+            for span in spans
+        ],
+        "gate_reasons": [
+            "QG-001 no provider-query candidate was generated for this gap"
+        ],
+        "status": "NEEDS_QUERY_DRAFT",
+        "priority": gap.priority,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -460,6 +541,30 @@ class SpecialistTraceEntry:
 
 
 # ---------------------------------------------------------------------------
+# Content-free model-call telemetry
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class CDIModelCallTrace:
+    """Bounded accounting for one gate-internal LLM call.
+
+    Clinical prompts, completions, extracted claims and query text are
+    intentionally absent. ``None`` token values mean that provider usage was
+    not observed; callers must not coerce those values to zero for costing.
+    """
+
+    stage: str
+    provider: str = ""
+    model: str = ""
+    latency_ms: int = 0
+    prompt_tokens: int | None = None
+    completion_tokens: int | None = None
+    total_tokens: int | None = None
+    degraded: bool = False
+
+
+# ---------------------------------------------------------------------------
 # Top-level CDI case state
 # ---------------------------------------------------------------------------
 
@@ -479,6 +584,9 @@ class CDICase:
     encounter_summary: EncounterSummary | None = None
     documentation_gaps: list[DocumentationGap] = field(default_factory=list)
     proposed_provider_queries: list[ProviderQuery] = field(default_factory=list)
+    # Multi-axis drafts rejected by the clinician-facing safety gate. These
+    # are audit/rewrite work items only and must never be sent as queries.
+    query_rewrite_queue: list[dict[str, Any]] = field(default_factory=list)
     coding_specificity_checklist: list[CodingSpecificityItem] = field(default_factory=list)
     risk_flags: list[RiskFlag] = field(default_factory=list)
     specialist_trace: list[SpecialistTraceEntry] = field(default_factory=list)
@@ -492,6 +600,14 @@ class CDICase:
     ] = "REVIEW_REQUIRED"
     stage_run_ids: dict[str, str] = field(default_factory=dict)
     stage_trace_ids: dict[str, str] = field(default_factory=dict)
+    # Internal-only performance and model accounting. Public CDI result
+    # projectors deliberately omit both collections.
+    stage_duration_ms: dict[str, int] = field(default_factory=dict)
+    safety_gate_model_traces: list[CDIModelCallTrace] = field(default_factory=list)
+    # Required safety gates may use a separate LLM call after the main stage
+    # runner. Keep their degradation structured so public adapters cannot
+    # mistake a locally preserved query for a fully reviewed result.
+    degraded_safety_gates: dict[str, str] = field(default_factory=dict)
 
 
 __all__ = [
@@ -499,9 +615,12 @@ __all__ = [
     "EncounterSummary",
     "DocumentationGap",
     "ProviderQuery",
+    "query_audit_item",
+    "gap_query_draft_item",
     "CodingSpecificityItem",
     "RiskFlag",
     "SpecialistTraceEntry",
+    "CDIModelCallTrace",
     "CDICase",
     "claim_evidence_alignment_score",
     "classify_gap_type_with_confidence",

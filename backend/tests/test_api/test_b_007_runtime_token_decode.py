@@ -128,7 +128,7 @@ async def _seed_testuser(client) -> str:
         "email": "testuser-b007@example.com",
         "password": "Testpass123!",
         "full_name": "B-007 Test User",
-        "role": "admin",
+        "role": "coder",
         "department": "测试科",
     })
     # 200/201 = newly registered; 400/409 = already exists — both fine.

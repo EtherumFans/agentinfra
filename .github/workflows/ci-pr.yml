@@ -22,10 +22,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: "22"
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
+      - run: npm audit --audit-level=high
       - run: npx tsc --noEmit
       - run: npx vite build
 
@@ -42,6 +43,8 @@ jobs:
           python-version: "3.11"
           cache: pip
       - run: pip install -r requirements.txt
+      - run: pip install pip-audit
+      - run: python -m pip_audit -r requirements-api.txt
       # Phase A A5: unit tests only on PR. Integration/regression/e2e
       # moved to ci-integration.yml.
       - name: Unit tests (excludes integration / e2e / regression / e2e_product)
@@ -63,9 +66,87 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-      - run: npm install
-      - run: npx tsc --noEmit
+          node-version: "20.19"
+          cache: npm
+          cache-dependency-path: packages/icoder-sdk/package-lock.json
+      - run: npm ci
+      - run: npm audit --audit-level=high
+      - run: npm test
+
+  sdk-python:
+    name: Python SDK
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/icoder-python
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install pytest build httpx pydantic
+      - run: python -m pytest -q
+      - run: python -m build --wheel --outdir artifacts/ci
+
+  sdk-dotnet:
+    name: .NET SDK (netstandard2.0 + net8.0 + net10.0)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/icoder-dotnet
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+      - name: Test native runtime targets
+        run: dotnet test tests/Icoder.Sdk.Tests/Icoder.Sdk.Tests.csproj -c Release
+      - name: Build oldest supported consumers
+        run: |
+          dotnet build tests/Icoder.Sdk.NetStandard20Consumer/Icoder.Sdk.NetStandard20Consumer.csproj -c Release
+          dotnet build tests/Icoder.Sdk.Net462Consumer/Icoder.Sdk.Net462Consumer.csproj -c Release
+      - name: Pack all supported framework assets
+        run: dotnet pack src/Icoder.Sdk/Icoder.Sdk.csproj -c Release --no-restore -o artifacts/ci
+      - name: Verify NuGet framework assets
+        run: |
+          package="$(find artifacts/ci -maxdepth 1 -name 'iCoDer.Sdk.*.nupkg' ! -name '*.snupkg' -print -quit)"
+          test -n "$package"
+          unzip -l "$package" | grep -F 'lib/netstandard2.0/Icoder.Sdk.dll'
+          unzip -l "$package" | grep -F 'lib/net8.0/Icoder.Sdk.dll'
+          unzip -l "$package" | grep -F 'lib/net10.0/Icoder.Sdk.dll'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: icoder-dotnet-packages
+          path: packages/icoder-dotnet/artifacts/ci/*.*nupkg
+          if-no-files-found: error
+          retention-days: 14
+
+  contracts-deployment:
+    name: OpenAPI + Deployment Preflight
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: pip install pip-audit
+      - run: python -m pip_audit -r requirements-api.txt
+      - name: Cross-language release version contract
+        run: |
+          python ../scripts/release/validate_release_candidate.py \
+            --output ../reports/release-candidate/ci-version-manifest.json
+          python -m pytest -q ../tests/test_release_candidate_validator.py
+      - run: python scripts/export_openapi.py --check
+      - run: python scripts/corti_parity/validate_deployment_candidate.py --output-dir ../reports/deployment/ci-preflight
+      - run: python -m pytest -q tests/unit/app/test_config_fail_closed.py tests/unit/corti_parity/test_deployment_candidate_preflight.py
 
   sdk-web:
     name: Web Components

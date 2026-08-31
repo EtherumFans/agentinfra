@@ -44,6 +44,12 @@ class OAuthClient(Base, TimestampMixin):
     # Phase 7 Gate 5 §10: partner embed attribution
     allowed_origins: Mapped[Optional[list]] = mapped_column(JSON, nullable=True)
     embedded_app_id: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
+    allowed_agent_ids: Mapped[list[str]] = mapped_column(
+        JSON, default=list, server_default="[]", nullable=False,
+    )
+    allowed_purposes: Mapped[list[str]] = mapped_column(
+        JSON, default=list, server_default="[]", nullable=False,
+    )
 
     @classmethod
     def generate_client_id(cls, prefix: str = "icoder") -> str:
@@ -69,6 +75,14 @@ class OAuthClient(Base, TimestampMixin):
     def granted_scopes(self) -> set[str]:
         """Return the set of scopes this client may request tokens for."""
         return {s for s in (self.scopes or "").split() if s}
+
+    def delegated_agent_ids(self) -> set[str]:
+        """Return exact Agent IDs this Client may invoke; empty denies all."""
+        return {str(value) for value in (self.allowed_agent_ids or []) if str(value)}
+
+    def delegated_purposes(self) -> set[str]:
+        """Return explicit purposes this Client may assert; empty denies all."""
+        return {str(value) for value in (self.allowed_purposes or []) if str(value)}
 
     def is_capability_only(self, capability_scopes: set[str]) -> bool:
         """True iff every granted scope is a Corti-style capability scope.

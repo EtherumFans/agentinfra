@@ -289,20 +289,20 @@ def test_handle_propagates_interaction_id():
     assert resp.metadata["interaction_id"] == "test-int-1"
 
 
-def test_handle_ignores_client_supplied_context_id():
-    """Q4: server generates contextId regardless of client input."""
+def test_handle_reuses_route_validated_context_id():
+    """Continuation uses the server-issued ID validated by the route."""
     handler, _ = _build_handler()
+    context_id = "550e8400-e29b-41d4-a716-446655440000"
     req = InboundRequest(
         message=InboundMessage(
             role="user",
             parts=[{"kind": "text", "text": "x"}],
             interaction_id="",
+            context_id=context_id,
         )
     )
     resp = handler.handle("medical-coding-agent", req)
-    assert resp.context_id != ""
-    # This isn't checked explicitly — but the client couldn't supply a
-    # context_id in InboundRequest shape anyway, so Q4 is structurally enforced.
+    assert resp.context_id == context_id
 
 
 # ---------------------------------------------------------------------------
@@ -507,11 +507,11 @@ def test_concurrent_requests_10x_no_block():
 
 
 def test_planner_real_gateway_degraded_fallback():
-    """Planner with a real LLMCall that returns a degraded payload.
+    """Planner rejects a malformed response from an injected test LLM.
 
-    Mirrors :meth:`wiring.build_llm_call_from_gateway` falling back to the
-    stub when a real gateway raises. Verifies the orchestrator surfaces a
-    ``PLANNING_FAILED`` envelope (not a 500) so callers can retry.
+    Production wiring no longer fabricates this response when the gateway is
+    unavailable; it raises a retryable 503 directly. This test retains the
+    malformed-payload boundary check for explicitly injected test callers.
     """
     from app.icoder.agent_runtime.orchestrator.planner import (
         PlannerConfig,
@@ -521,9 +521,7 @@ def test_planner_real_gateway_degraded_fallback():
     )
 
     def _degraded_llm(_sys: str, _user: str) -> dict:
-        # Simulate the fallback stub in wiring._stub_llm_call — empty
-        # content. The Planner raises PlannerError, the handler maps it
-        # to PLANNING_FAILED.
+        # An injected test double returns a syntactically valid but empty plan.
         return {"content": "{}", "model": "degraded", "latency_ms": 0}
 
     from app.icoder.agent_runtime.orchestrator.planner import Planner
@@ -541,6 +539,28 @@ def test_planner_real_gateway_degraded_fallback():
     # Plan has no experts → Planner raises → handler maps to planning_failed.
     assert resp.error["code"].lower() in {"planning_failed", "invalid_request"}
     assert resp.http_status == 500
+
+
+def test_missing_gateway_factory_surfaces_retryable_503_without_model_call():
+    """Production factory absence is an explicit service failure, not a stub."""
+    from app.icoder.agent_runtime.orchestrator.planner import Planner, PlannerConfig
+    from app.icoder.agent_runtime.orchestrator.wiring import (
+        build_llm_call_from_gateway,
+    )
+
+    planner = Planner(
+        llm_call=build_llm_call_from_gateway(None),
+        config=PlannerConfig(sleep_fn=lambda _: None),
+    )
+    handler, _ = _build_handler()
+    handler._planner = planner  # type: ignore[attr-defined]
+
+    resp = handler.handle("medical-coding-agent", _ok_request())
+
+    assert resp.kind == "error"
+    assert resp.error is not None
+    assert resp.error["code"] == "planning_failed"
+    assert resp.http_status == 503
 
 
 def test_inbound_handler_handle_is_sync_documents_known_limitation():

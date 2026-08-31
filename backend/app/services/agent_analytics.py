@@ -17,9 +17,16 @@ logger = logging.getLogger(__name__)
 class AgentAnalytics:
     """Collect and report per-Agent usage statistics."""
 
-    async def get_agent_stats(self, agent_id: str, db: AsyncSession) -> dict:
+    async def get_agent_stats(
+        self, agent_id: str, organization_id: str, db: AsyncSession,
+    ) -> dict:
         """Get usage stats for a specific Agent."""
-        result = await db.execute(select(Agent).where(Agent.id == agent_id))
+        result = await db.execute(
+            select(Agent).where(
+                Agent.id == agent_id,
+                Agent.organization_id == organization_id,
+            )
+        )
         agent = result.scalar_one_or_none()
         if not agent:
             return {"error": "Agent not found"}
@@ -29,7 +36,10 @@ class AgentAnalytics:
         expert_names = []
         if agent.expert_ids:
             exp_result = await db.execute(
-                select(Expert.name).where(Expert.id.in_(agent.expert_ids))
+                select(Expert.name).where(
+                    Expert.id.in_(agent.expert_ids),
+                    Expert.organization_id == organization_id,
+                )
             )
             expert_names = [r[0] for r in exp_result]
             expert_count = len(expert_names)
@@ -47,26 +57,38 @@ class AgentAnalytics:
             "created_at": agent.created_at.isoformat(),
         }
 
-    async def get_overall_stats(self, db: AsyncSession) -> dict:
+    async def get_overall_stats(
+        self, organization_id: str, db: AsyncSession,
+    ) -> dict:
         """Get aggregate stats across all Agents."""
         # Agent counts
-        total_result = await db.execute(select(func.count(Agent.id)))
+        total_result = await db.execute(
+            select(func.count(Agent.id)).where(
+                Agent.organization_id == organization_id,
+            )
+        )
         total_agents = total_result.scalar() or 0
 
         prebuilt_result = await db.execute(
-            select(func.count(Agent.id)).where(Agent.is_prebuilt == True)
+            select(func.count(Agent.id)).where(
+                Agent.organization_id == organization_id,
+                Agent.is_prebuilt == True,
+            )
         )
         prebuilt_count = prebuilt_result.scalar() or 0
 
         # Total usage
         usage_result = await db.execute(
-            select(func.sum(Agent.usage_count))
+            select(func.sum(Agent.usage_count)).where(
+                Agent.organization_id == organization_id,
+            )
         )
         total_calls = usage_result.scalar() or 0
 
         # Agent by category
         cat_result = await db.execute(
             select(Agent.category, func.count(Agent.id))
+            .where(Agent.organization_id == organization_id)
             .group_by(Agent.category)
         )
         by_category = {r[0]: r[1] for r in cat_result}
@@ -74,6 +96,7 @@ class AgentAnalytics:
         # Top agents by usage
         top_result = await db.execute(
             select(Agent.name, Agent.usage_count)
+            .where(Agent.organization_id == organization_id)
             .order_by(Agent.usage_count.desc())
             .limit(5)
         )

@@ -1,0 +1,394 @@
+{
+  "case_id": "CASE-5be73ec9d794",
+  "completion_state": "REVIEW_RECOMMENDED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-5be73ec9d794/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "Acute myocardial infarction is documented without specifying the type (ST-elevation vs non-ST-elevation) or the specific anatomical site (e.g., anterior wall).",
+      "why_it_matters": "Specificity of the MI type and location is required for accurate coding and to reflect the clinical severity and management.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "入院诊断:急性心肌梗死",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-5be73ec9d794/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "The acuity of the myocardial infarction is not explicitly documented (e.g., acute, subacute, old).",
+      "why_it_matters": "Acuity affects coding and treatment decisions; acute MI is distinct from prior or old MI.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "入院诊断:急性心肌梗死",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-5be73ec9d794/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "The clinical correlation of elevated troponin I with the ECG findings and diagnosis is not explicitly stated.",
+      "why_it_matters": "Troponin elevation is a key diagnostic criterion; explicit correlation ensures the diagnosis is supported and avoids ambiguity.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "肌钙蛋白I升高",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-5be73ec9d794/Q-001",
+      "gap_id": "CASE-5be73ec9d794/GAP-001",
+      "topic": "急性心肌梗死的类型",
+      "reason": "明确急性心肌梗死的类型（ST段抬高型或非ST段抬高型）对于临床管理和编码准确性至关重要。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "心电图:前壁导联ST段抬高",
+        "char_start": 19,
+        "char_end": 32,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "心电图:前壁导联ST段抬高",
+          "char_start": 19,
+          "char_end": 32,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "根据心电图和心肌损伤标志物结果，该急性心肌梗死的类型是ST段抬高型还是非ST段抬高型？",
+      "response_options": [
+        "A. ST段抬高型心肌梗死",
+        "B. 非ST段抬高型心肌梗死",
+        "C. 无法确定类型",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "urgent",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    }
+  ],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-002",
+      "gap_id": "CASE-5be73ec9d794/GAP-002",
+      "topic": "心肌梗死的病程阶段",
+      "reason": "入院诊断为急性心肌梗死，但未明确其病程阶段（急性、亚急性或陈旧性）。",
+      "query_text": "该心肌梗死的病程阶段是？",
+      "response_options": [
+        "A. 急性",
+        "B. 亚急性",
+        "C. 陈旧性",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "入院诊断:急性心肌梗死",
+          "char_start": 63,
+          "char_end": 74,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-001: chart matches /急性[^,。、\\s]{0,8}(?:心肌梗死|阑尾炎|胆囊炎|胰腺炎|肺炎|胃肠炎)/ (急性类型已明确) and query asks for 心肌梗死的病程阶段"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-001",
+      "gap_id": "CASE-5be73ec9d794/GAP-001",
+      "topic": "急性心肌梗死的具体类型和部位",
+      "reason": "入院诊断为急性心肌梗死，但未明确是ST段抬高型还是非ST段抬高型，也未指明具体解剖部位。",
+      "query_text": "根据心电图和冠脉造影结果，该急性心肌梗死的具体类型和部位是什么？",
+      "response_options": [
+        "A. 急性ST段抬高型心肌梗死（前壁）",
+        "B. 急性非ST段抬高型心肌梗死（前壁）",
+        "C. 急性ST段抬高型心肌梗死（其他部位）",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "入院诊断:急性心肌梗死",
+          "char_start": 63,
+          "char_end": 74,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "SD-001: topic axes = ['site', 'type']",
+        "SD-002: axes in 40-char window = ['site', 'type']"
+      ],
+      "status": "REWRITE_CANDIDATE_GENERATED",
+      "detected_axes": [
+        "site",
+        "type"
+      ],
+      "replacement_query_id": "Q-001-type",
+      "rewrite_attempt_status": "ACCEPTED_FOR_DOWNSTREAM_GATES",
+      "rewrite_attempt_reasons": [],
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-003",
+      "gap_id": "CASE-5be73ec9d794/GAP-003",
+      "topic": "肌钙蛋白I升高与心电图及诊断的临床相关性",
+      "reason": "肌钙蛋白I升高，但未明确其与心电图改变和急性心肌梗死诊断的临床相关性。",
+      "query_text": "肌钙蛋白I升高与心电图及临床诊断的相关性如何？",
+      "response_options": [
+        "A. 与心电图ST段抬高及急性心肌梗死诊断一致",
+        "B. 与心电图改变不一致，需进一步评估",
+        "C. 考虑其他原因导致的肌钙蛋白升高",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "肌钙蛋白I升高",
+          "char_start": 33,
+          "char_end": 40,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "REDUNDANT_WITH_CHART",
+        "CHART_ALREADY_COMPLETE",
+        "NO_DOCUMENTATION_IMPACT",
+        "BEYOND_MINIMAL_DOCUMENTATION_NEED"
+      ],
+      "status": "REJECTED_BY_SEMANTIC_NECESSITY",
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者男性, 58岁, 持续胸痛2小时。心电图:前壁导联ST段抬高。肌钙蛋白I升高。冠脉造影:前降支近段100%闭塞。行PCI。入院诊断:急性心肌梗死。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者男性，58岁",
+      "持续胸痛2小时",
+      "心电图示前壁导联ST段抬高",
+      "肌钙蛋白I升高",
+      "冠脉造影示前降支近段100%闭塞",
+      "行经皮冠状动脉介入治疗（PCI）",
+      "入院诊断：急性心肌梗死"
+    ],
+    "encounter_metadata": {
+      "patient_age": "58岁",
+      "patient_sex": "男性",
+      "encounter_type": "住院"
+    }
+  },
+  "risk_flags": [
+    {
+      "category": "unsupported_diagnosis",
+      "description": "The diagnosis of acute myocardial infarction is asserted but the chart lacks explicit documentation of symptoms (chest pain is present), ECG changes, and troponin elevation, which are present but not explicitly linked to the diagnosis in a single statement."
+    }
+  ],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "For accurate coding, the documentation must explicitly specify the type of myocardial infarction (ST-elevation vs. non-ST-elevation) and the precise anatomical site (e.g., anterior wall) based on the ECG and angiographic findings, as well as clearly state the acuity (acute, subacute, or old) and the temporal relationship of the elevated troponin I to the acute event. Without these explicit clinical details, the specificity required for correct code assignment is lacking, and the clinical correlation between the biomarker elevation, ECG changes, and the diagnosis must be documented to support the acute nature of the infarction.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3747,
+      "tokens": 306
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-3d901c7e15a7",
+    "gap_identification": "run-88c3ba228bc1",
+    "gap_identification_risk_flags": "emitted=1;quote_snapped=0",
+    "expert_consultation": "run-8d9f2def5a36",
+    "query_generation": "run-d880c8892bc7",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.25;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=Y,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=3;llm_complete=False;llm_reasoning=The chart documents key elements (chest pain, ECG ST elevation, troponin elevati",
+    "query_necessity_gate": "necessary=2;unnecessary=1;overquery_triggered=False;final_count=2",
+    "query_dimension_rewrite": "run-75d056b9e456",
+    "query_single_dimension_gate": "single_dim=1;multi_dim=1;axis_cluster_triggered=False;axis_cluster_axis=site;rewrite_attempted=1;rewrite_accepted=1;final_count=2",
+    "claim_evidence_alignment_gate": "claims_extracted=6;blocked=0;flagged=0;final_count=2",
+    "claim_evidence_alignment_gate::run_id": "run-3dff2c8f4628",
+    "semantic_necessity_gate": "blocked=1;flagged=0;degraded=0;final_count=1",
+    "semantic_necessity_gate::run_id": "run-ace47eed848b",
+    "query_compliance_gate": ";passed=1;blocked=0",
+    "specialist_trace_emit": "run-173f87cca27c"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-ff96169cc8a0",
+    "gap_identification": "trace-f3f12b35a711",
+    "expert_consultation": "trace-db14647e1aa0",
+    "query_generation": "trace-e54aa4b12605",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_dimension_rewrite": "trace-b96c0686767b",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-f7754e7a2089",
+    "semantic_necessity_gate": "trace-9b2068b27e79",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-921def742388"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 1775,
+      "prompt_tokens": 224,
+      "completion_tokens": 119,
+      "total_tokens": 343,
+      "run_id": "run-3d901c7e15a7",
+      "trace_id": "trace-ff96169cc8a0",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6292,
+      "prompt_tokens": 1067,
+      "completion_tokens": 590,
+      "total_tokens": 1657,
+      "run_id": "run-88c3ba228bc1",
+      "trace_id": "trace-f3f12b35a711",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5900,
+      "prompt_tokens": 1130,
+      "completion_tokens": 652,
+      "total_tokens": 1782,
+      "run_id": "run-d880c8892bc7",
+      "trace_id": "trace-e54aa4b12605",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_dimension_rewrite",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 4056,
+      "prompt_tokens": 671,
+      "completion_tokens": 248,
+      "total_tokens": 919,
+      "run_id": "run-75d056b9e456",
+      "trace_id": "trace-b96c0686767b",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3747,
+      "prompt_tokens": 184,
+      "completion_tokens": 122,
+      "total_tokens": 306,
+      "run_id": "run-7d13b35640a8",
+      "trace_id": "trace-d24338f86ef2",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-436e4f9be5ad",
+      "trace_id": "trace-c4d610ff0181",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-ce5d21a8cce1",
+      "trace_id": "trace-1c914e777e7b",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-17b9f2257781",
+      "trace_id": "trace-bbad1aef3e40",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T19:13:32.362722Z"
+}

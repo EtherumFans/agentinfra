@@ -1,0 +1,338 @@
+{
+  "case_id": "CASE-4acd498cb327",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-4acd498cb327/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "高血压的病程持续时间未明确（仅提及10年病史，但未说明具体起病时间或分期）。",
+      "why_it_matters": "高血压的持续时间可能影响风险分层和治疗决策，编码时可能需要明确慢性高血压的持续时间。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "高血压病史10年",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-4acd498cb327/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "未明确高血压的病因（原发性或继发性），尽管诊断写为原发性，但未提供排除继发性病因的依据。",
+      "why_it_matters": "明确病因有助于编码的准确性，继发性高血压有单独的编码类别。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "诊断:原发性高血压1级(控制良好)",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-4acd498cb327/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "未明确高血压的严重程度分级（如1级、2级、3级），尽管诊断中提及1级，但未提供血压测量值对应的分级依据。",
+      "why_it_matters": "高血压的分级直接影响编码和风险调整，需明确分级。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "诊断:原发性高血压1级(控制良好)",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-4acd498cb327/Q-001",
+      "gap_id": "CASE-4acd498cb327/GAP-002",
+      "topic": "高血压病因分类",
+      "reason": "诊断写为原发性高血压，但未提供排除继发性病因的依据，需明确病因分类。",
+      "evidence_span": {
+        "document_id": "chart-001",
+        "quote": "诊断:原发性高血压1级(控制良好)",
+        "char_start": 118,
+        "char_end": 135,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "诊断:原发性高血压1级(控制良好)",
+          "char_start": 118,
+          "char_end": 135,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "该患者高血压的病因分类如何确定？",
+      "response_options": [
+        "A. 原发性高血压，已排除继发性病因",
+        "B. 原发性高血压，未进行继发性病因筛查",
+        "C. 继发性高血压，病因待查",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    }
+  ],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-001",
+      "gap_id": "CASE-4acd498cb327/GAP-001",
+      "topic": "高血压病程持续时间",
+      "reason": "病历仅提及高血压病史10年，但未明确具体起病时间或分期，影响对病程的准确评估。",
+      "query_text": "该患者高血压的病程持续时间如何描述？",
+      "response_options": [
+        "A. 高血压病史10年，具体起病时间不详",
+        "B. 高血压病史10年，起病于约10年前",
+        "C. 高血压病史超过10年，具体年限不详",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "高血压病史10年",
+          "char_start": 0,
+          "char_end": 0,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "evidence_spans[0] is not a verbatim contiguous chart span"
+      ],
+      "status": "NEEDS_EVIDENCE_REWRITE",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-003",
+      "gap_id": "CASE-4acd498cb327/GAP-003",
+      "topic": "高血压严重程度分级",
+      "reason": "诊断提及1级，但未提供血压测量值对应的分级依据，需明确分级。",
+      "query_text": "该患者高血压的严重程度分级依据是什么？",
+      "response_options": [
+        "A. 1级高血压，依据诊室血压测量值",
+        "B. 1级高血压，依据家庭自测血压值",
+        "C. 1级高血压，依据动态血压监测值",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "诊断:原发性高血压1级(控制良好)",
+          "char_start": 118,
+          "char_end": 135,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "REDUNDANT_WITH_CHART",
+        "CHART_ALREADY_COMPLETE",
+        "BEYOND_MINIMAL_DOCUMENTATION_NEED"
+      ],
+      "status": "REJECTED_BY_SEMANTIC_NECESSITY",
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者男性, 65岁, <REDACTED:NAME>10年, 缬沙坦 80mg qd 治疗。BP 132/82。心超:<REDACTED:NAME>血分数 65%, 室壁运动正常, 无左室肥厚。心电图:<REDACTED:NAME>律。诊断:原发性高血压1级(控制良好), 无靶器官损害。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "男性，65岁",
+      "高血压病史10年",
+      "服用缬沙坦80mg每日一次",
+      "血压132/82 mmHg",
+      "超声心动图：射血分数65%，室壁运动正常，无左室肥厚",
+      "心电图：窦性心律",
+      "诊断：原发性高血压1级（控制良好）",
+      "无靶器官损害"
+    ],
+    "encounter_metadata": {
+      "patient_age": "65岁",
+      "patient_sex": "男性",
+      "encounter_type": "门诊"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "For accurate coding, the chart must document the specific duration and onset of hypertension (e.g., diagnosed in 2014) and explicitly state the clinical stage (e.g., stage 1) with corresponding blood pressure readings over time, not just a single controlled value. Additionally, provide a brief note on the exclusion of secondary causes (e.g., normal renal function, no adrenal or renovascular findings) to support the primary diagnosis. Finally, clarify the severity grading by referencing the highest untreated or pre-treatment BP values, as the current 132/82 reflects treated status, not baseline severity.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3656,
+      "tokens": 353
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "'分级' score — no deterministic calculator wired",
+      "route_decision": "tool_unavailable",
+      "route_reason": "no_real_tool_wired",
+      "execution_mode": "TOOL_UNAVAILABLE",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-12e70cd448fa",
+    "gap_identification": "run-775d89da43cb",
+    "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
+    "expert_consultation": "run-4cf66144bcdc",
+    "query_generation": "run-a8c67e546b5a",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=N,D3_severity=Y,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=2;llm_complete=False;llm_reasoning=该图表记录了高血压的诊断和血压控制情况，但缺乏高血压的持续时间、病因和严重程度分级等关键信息，这些信息对于编码和临床管理至关重要。",
+    "query_necessity_gate": "necessary=2;unnecessary=0;overquery_triggered=False;final_count=2",
+    "query_single_dimension_gate": "single_dim=2;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=etiology;rewrite_attempted=0;rewrite_accepted=0;final_count=2",
+    "claim_evidence_alignment_gate": "claims_extracted=5;blocked=0;flagged=0;final_count=2",
+    "claim_evidence_alignment_gate::run_id": "run-ca3796d9e69c",
+    "semantic_necessity_gate": "blocked=1;flagged=0;degraded=0;final_count=1",
+    "semantic_necessity_gate::run_id": "run-6f942ead8516",
+    "query_compliance_gate": ";passed=1;blocked=0",
+    "specialist_trace_emit": "run-d54a00d6045c"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-f0260d744019",
+    "gap_identification": "trace-c19da360a7d6",
+    "expert_consultation": "trace-20d56b452602",
+    "query_generation": "trace-c231c5ca3272",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-899d7b19a3dc",
+    "semantic_necessity_gate": "trace-ee190f2590d5",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-ff53ee5435b4"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3027,
+      "prompt_tokens": 260,
+      "completion_tokens": 131,
+      "total_tokens": 391,
+      "run_id": "run-12e70cd448fa",
+      "trace_id": "trace-f0260d744019",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5929,
+      "prompt_tokens": 1115,
+      "completion_tokens": 483,
+      "total_tokens": 1598,
+      "run_id": "run-775d89da43cb",
+      "trace_id": "trace-c19da360a7d6",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6316,
+      "prompt_tokens": 1186,
+      "completion_tokens": 656,
+      "total_tokens": 1842,
+      "run_id": "run-a8c67e546b5a",
+      "trace_id": "trace-c231c5ca3272",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3656,
+      "prompt_tokens": 234,
+      "completion_tokens": 119,
+      "total_tokens": 353,
+      "run_id": "run-ebb3027c9068",
+      "trace_id": "trace-e5910f9f5eb8",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-3d036ac14212",
+      "trace_id": "trace-3e5308daa72f",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-ece6549e04fe",
+      "trace_id": "trace-7a92922a5848",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-5d1b657f6613",
+      "trace_id": "trace-28e5e3da808c",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T17:44:48.302532Z"
+}

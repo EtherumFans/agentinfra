@@ -1,0 +1,269 @@
+{
+  "case_id": "CASE-ec3f7c743710",
+  "completion_state": "REVIEW_RECOMMENDED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-ec3f7c743710/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "The severity of COPD acute exacerbation is documented inconsistently across the chart: admission diagnosis states '重度' (severe), progress notes state '轻度' (mild), and discharge diagnosis states '中度' (moderate). This conflicting documentation creates ambiguity in the final severity classification.",
+      "why_it_matters": "Severity of COPD exacerbation is a key clinical factor that affects treatment intensity, prognosis, and risk adjustment. Inconsistent severity documentation can lead to coding discrepancies and potential compliance issues.",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": ":pH 7.38, PaCO2 56, PaO2 70。病程记录:COPD急性加重, 轻度。出院诊断:COP",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-ec3f7c743710/Q-001",
+      "gap_id": "CASE-ec3f7c743710/GAP-001",
+      "topic": "COPD急性加重严重程度分级",
+      "reason": "入院诊断、病程记录和出院诊断对COPD急性加重严重程度的描述不一致（重度/轻度/中度），需要明确最终分级。",
+      "evidence_span": {
+        "document_id": "chart-001",
+        "quote": "入院诊断:COPD急性加重, 重度。",
+        "char_start": 17,
+        "char_end": 35,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "入院诊断:COPD急性加重, 重度。",
+          "char_start": 17,
+          "char_end": 35,
+          "documented_at": ""
+        },
+        {
+          "document_id": "chart-001",
+          "quote": "病程记录:COPD急性加重, 轻度。",
+          "char_start": 67,
+          "char_end": 85,
+          "documented_at": ""
+        },
+        {
+          "document_id": "chart-001",
+          "quote": "出院诊断:COPD急性加重, 中度。",
+          "char_start": 85,
+          "char_end": 103,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "根据血气分析结果（pH 7.38, PaCO2 56, PaO2 70）及临床病程，本次COPD急性加重的严重程度分级应如何确定？",
+      "response_options": [
+        "A. 重度",
+        "B. 中度",
+        "C. 轻度",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "urgent",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    }
+  ],
+  "query_rewrite_queue": [],
+  "chart_excerpt_preview": "患者男性, 70岁, COPD史。入院诊断:COPD急性加重, 重度。血气分析:pH 7.38, PaCO2 56, PaO2 70。病程记录:COPD急性加重, 轻度。出院诊断:COPD急性加重, 中度。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者男性，70岁，有COPD病史",
+      "入院诊断：COPD急性加重，重度",
+      "血气分析：pH 7.38，PaCO2 56，PaO2 70",
+      "病程记录：COPD急性加重，轻度",
+      "出院诊断：COPD急性加重，中度"
+    ],
+    "encounter_metadata": {
+      "patient_age": "70岁",
+      "patient_sex": "男性",
+      "encounter_type": "住院"
+    }
+  },
+  "risk_flags": [
+    {
+      "category": "contradiction",
+      "description": "The severity of COPD acute exacerbation is documented as severe in the admission diagnosis, mild in the progress notes, and moderate in the discharge diagnosis, which are internally conflicting."
+    }
+  ],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "The clinical documentation must be reconciled to a single, definitive severity classification for the acute exacerbation, as the conflicting terms (severe, mild, moderate) across admission, progress, and discharge notes render the final code unassignable. Please clarify the severity based on objective criteria (e.g., dyspnea scale, respiratory rate, oxygen saturation, use of accessory muscles, or need for ventilatory support) and ensure all notes reflect the same final assessment. Without this correction, the coding will be inaccurate and potentially non-compliant.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3417,
+      "tokens": 285
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": true,
+      "rationale": "The conflicting severity labels (severe vs. mild vs. moderate) in the chart are not supported by a single, standardized clinical definition, as COPD exacerbation severity is typically graded by symptom burden, GOLD stage, and need for ventilatory support rather than a single blood gas value. The pH of 7.38 with PaCO2 56 mmHg suggests hypercapnic respiratory failure (type II), which generally aligns with a moderate-to-severe exacerbation, not mild (PMID: 32829544). I do not have live PubMed access, so I cannot verify additional citations, but I recommend reconciling the final severity based on the most objective criteria (e.g., GOLD 2023 or ERS/ATS guidelines) and documenting the rationale to resolve the ambiguity.",
+      "route_decision": "needed",
+      "route_reason": "criteria_marker_present",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 2930,
+      "tokens": 349
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-9e25fb72a417",
+    "gap_identification": "run-4e0f450f854a",
+    "gap_identification_risk_flags": "emitted=1;quote_snapped=1",
+    "expert_consultation": "run-f7d1efdd35ad",
+    "query_generation": "run-96c5cc93780f",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.25;dimensions=D1_type=N,D2_site=N,D3_severity=Y,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=Y;dropped=0;final_count=1;llm_complete=False;llm_reasoning=The chart lacks a consistent and definitive severity classification for the COPD",
+    "query_necessity_gate": "necessary=1;unnecessary=0;overquery_triggered=False;final_count=1",
+    "query_single_dimension_gate": "single_dim=1;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=severity;rewrite_attempted=0;rewrite_accepted=0;final_count=1",
+    "claim_evidence_alignment_gate": "claims_extracted=3;blocked=0;flagged=0;final_count=1",
+    "claim_evidence_alignment_gate::run_id": "run-ed9a6d7e6812",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=1",
+    "semantic_necessity_gate::run_id": "run-e603a176e1d3",
+    "query_compliance_gate": ";passed=1;blocked=0",
+    "specialist_trace_emit": "run-72d508f105e9"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-32286f84fb06",
+    "gap_identification": "trace-d19789276d22",
+    "expert_consultation": "trace-d749bceb1068",
+    "query_generation": "trace-17a11cacd1e1",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-8ad364965252",
+    "semantic_necessity_gate": "trace-65f8b1c5852d",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-1d5ead218795"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2889,
+      "prompt_tokens": 235,
+      "completion_tokens": 119,
+      "total_tokens": 354,
+      "run_id": "run-9e25fb72a417",
+      "trace_id": "trace-32286f84fb06",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5137,
+      "prompt_tokens": 1079,
+      "completion_tokens": 388,
+      "total_tokens": 1467,
+      "run_id": "run-4e0f450f854a",
+      "trace_id": "trace-d19789276d22",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3697,
+      "prompt_tokens": 1195,
+      "completion_tokens": 313,
+      "total_tokens": 1508,
+      "run_id": "run-96c5cc93780f",
+      "trace_id": "trace-17a11cacd1e1",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3417,
+      "prompt_tokens": 177,
+      "completion_tokens": 108,
+      "total_tokens": 285,
+      "run_id": "run-1c19602da7e5",
+      "trace_id": "trace-27ac0b288a79",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2930,
+      "prompt_tokens": 191,
+      "completion_tokens": 158,
+      "total_tokens": 349,
+      "run_id": "run-57cf832010e4",
+      "trace_id": "trace-54c619f25cb9",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-d349c3227618",
+      "trace_id": "trace-526a8a6c872f",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-632c473e849e",
+      "trace_id": "trace-44b903ef1bc9",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T17:51:49.748338Z"
+}

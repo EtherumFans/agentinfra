@@ -59,6 +59,8 @@ def test_create_returns_plaintext_secret_once(client: TestClient) -> None:
         "description": "EMR backend integration",
         "scopes": "agents:run runs:read traces:read usage:read",
         "allowed_origins": ["https://emr.partner-a.example"],
+        "allowed_agent_ids": ["diagnosis-extractor"],
+        "allowed_purposes": ["treatment"],
     })
     assert resp.status_code == 201, resp.text
     data = resp.json()
@@ -67,6 +69,8 @@ def test_create_returns_plaintext_secret_once(client: TestClient) -> None:
     assert len(data["client_secret"]) > 40  # ics_ + 64 hex chars
     assert data["is_active"] is True
     assert data["allowed_origins"] == ["https://emr.partner-a.example"]
+    assert data["allowed_agent_ids"] == ["diagnosis-extractor"]
+    assert data["allowed_purposes"] == ["treatment"]
     assert data["secret_shown_at"]
 
 
@@ -261,14 +265,84 @@ def test_update_origins(client: TestClient) -> None:
 
 
 def test_connection_active_client(client: TestClient) -> None:
-    """POST /test returns ok=True for an active client with scopes."""
-    create = client.post("/api/clients", json={"name": "T", "scopes": "agents:run"})
+    """POST /test requires complete machine delegation for Agent Run."""
+    create = client.post("/api/clients", json={
+        "name": "T",
+        "scopes": "agents:run",
+        "allowed_agent_ids": ["diagnosis-extractor"],
+        "allowed_purposes": ["treatment"],
+    })
     client_id = create.json()["client_id"]
     resp = client.post(f"/api/clients/{client_id}/test")
     assert resp.status_code == 200
     data = resp.json()
     assert data["ok"] is True
     assert "agents:run" in data["granted_scopes"]
+    assert data["allowed_agent_ids"] == ["diagnosis-extractor"]
+    assert data["allowed_purposes"] == ["treatment"]
+
+
+def test_connection_agent_run_defaults_to_deny_without_delegation(
+    client: TestClient,
+) -> None:
+    create = client.post(
+        "/api/clients", json={"name": "Unconfigured", "scopes": "agents:run"},
+    )
+    resp = client.post(f"/api/clients/{create.json()['client_id']}/test")
+    assert resp.status_code == 200
+    assert resp.json()["ok"] is False
+    assert resp.json()["message"] == (
+        "Agent Run delegation requires Agent and purpose grants."
+    )
+
+
+@pytest.mark.parametrize(
+    "body,code",
+    [
+        ({"allowed_agent_ids": ["*"], "allowed_purposes": ["treatment"]},
+         "INVALID_AGENT_GRANT"),
+        ({"allowed_agent_ids": ["unknown-agent"], "allowed_purposes": ["treatment"]},
+         "UNKNOWN_AGENT_GRANT"),
+        ({"allowed_agent_ids": ["diagnosis-extractor"],
+          "allowed_purposes": ["system_operations"]},
+         "INVALID_PURPOSE_GRANT"),
+    ],
+)
+def test_delegation_rejects_wildcard_unknown_agent_and_reserved_purpose(
+    client: TestClient, body: dict, code: str,
+) -> None:
+    resp = client.post(
+        "/api/clients", json={"name": "Bad delegation", "scopes": "agents:run", **body},
+    )
+    assert resp.status_code == 400
+    assert resp.json()["detail"]["code"] == code
+
+
+def test_delegation_can_be_replaced_and_immediately_revoked(
+    client: TestClient,
+) -> None:
+    create = client.post(
+        "/api/clients", json={"name": "Delegation patch", "scopes": "agents:run"},
+    )
+    client_id = create.json()["client_id"]
+    granted = client.patch(
+        f"/api/clients/{client_id}/delegation",
+        json={
+            "allowed_agent_ids": ["diagnosis-extractor"],
+            "allowed_purposes": ["treatment", "payment"],
+        },
+    )
+    assert granted.status_code == 200, granted.text
+    assert granted.json()["allowed_agent_ids"] == ["diagnosis-extractor"]
+    assert granted.json()["allowed_purposes"] == ["payment", "treatment"]
+
+    revoked = client.patch(
+        f"/api/clients/{client_id}/delegation",
+        json={"allowed_agent_ids": [], "allowed_purposes": []},
+    )
+    assert revoked.status_code == 200
+    assert revoked.json()["allowed_agent_ids"] == []
+    assert revoked.json()["allowed_purposes"] == []
 
 
 def test_connection_disabled_client(client: TestClient) -> None:
@@ -286,10 +360,8 @@ def test_connection_disabled_client(client: TestClient) -> None:
 # ────────────────────────────────────────────────────────────────────
 
 
-def test_agent_run_persists_api_client_id(client: TestClient) -> None:
-    """When a partner sends api_client_id in the request body, the
-    run_history row records it (§10.1 — every Embedded Run must be
-    attributable to an API Client)."""
+def test_agent_run_rejects_body_api_client_id_as_attribution(client: TestClient) -> None:
+    """Only verified client-credentials auth may attribute an Embedded Run."""
     api_client_id = "icoder-test-attribution"
     resp = client.post(
         "/api/v1/agents/medical-coding-agent/run",
@@ -310,7 +382,9 @@ def test_agent_run_persists_api_client_id(client: TestClient) -> None:
     # api_client_id — that's an extension for this gate. Verify the
     # run_history DB row directly instead.
     import sqlite3
-    conn = sqlite3.connect("data/test.db")
+    test_db_path = os.environ.get("ICODER_TEST_DB_PATH", "data/test.db")
+    assert test_db_path, "SQLite test database is required for this assertion"
+    conn = sqlite3.connect(test_db_path)
     cur = conn.cursor()
     cur.execute(
         "SELECT api_client_id FROM run_history WHERE run_id = ?",
@@ -319,6 +393,6 @@ def test_agent_run_persists_api_client_id(client: TestClient) -> None:
     row = cur.fetchone()
     conn.close()
     assert row is not None, "run_history row must exist"
-    assert row[0] == api_client_id, (
-        f"api_client_id must be persisted; got {row[0]!r}"
+    assert row[0] is None, (
+        f"request-body api_client_id must be ignored; got {row[0]!r}"
     )

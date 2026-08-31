@@ -200,9 +200,9 @@ def test_a2a_medical_coding_agent_red_lines_in_metadata(client):
     )
     assert icoder_meta.get("phi_redaction") == "required"
     assert icoder_meta.get("human_review") == "required"
-    assert icoder_meta.get("maturity") == "mvp"
+    assert icoder_meta.get("maturity") == "runnable"
     assert icoder_meta.get("production_ready") is False, (
-        "Medical Coding Agent must declare production_ready=false (MVP)"
+        "Medical Coding Agent must remain production_ready=false until external gates pass"
     )
 
 
@@ -267,7 +267,8 @@ def test_a2a_medical_coding_agent_state_history_in_metadata(client):
         f"got {metadata.get('production_writeback_blocked')!r}"
     )
     # Corti-style v2 output contract with v1 projection provenance.
-    assert metadata.get("output_contract") == "icoder/MedicalCodingAgentOutputV2/v1", (
+    from app.icoder.agent_runtime.a2a_facade import medical_coding_schema_ref
+    assert metadata.get("output_contract") == medical_coding_schema_ref(), (
         f"output_contract must be the v2 Corti shape; got {metadata.get('output_contract')!r}"
     )
     assert metadata.get("v1_to_v2_projected") is True, (
@@ -320,7 +321,7 @@ def test_a2a_medical_coding_agent_malformed_body_returns_parse_error(client):
     """
     r = client.post(
         "/api/icoder/agents/medical-coding-agent/v1/message:send",
-        data="not-valid-json",
+        content="not-valid-json",
         headers={**_a2a_headers(), "Content-Type": "application/json"},
     )
     # Parse error → 400 per routes_inbound.py
@@ -348,7 +349,8 @@ def test_a2a_medical_coding_agent_v1_to_v2_projection_metadata(client):
     assert metadata.get("v1_to_v2_projected") is True, (
         f"v1→v2 projection must run for medical-coding-agent; metadata: {metadata}"
     )
-    assert metadata.get("output_contract") == "icoder/MedicalCodingAgentOutputV2/v1"
+    from app.icoder.agent_runtime.a2a_facade import medical_coding_schema_ref
+    assert metadata.get("output_contract") == medical_coding_schema_ref()
 
 
 # --- medcoder-coding-review NOT projected (passthrough) ---

@@ -293,11 +293,14 @@ class EvaluateComplianceInput(BaseModel):
 class EvaluateComplianceOutput(BaseModel):
     """Output for ``evaluate_compliance`` — matches ComplianceGuardrailOutputSchema."""
 
-    risk_conclusion: str = Field(default="", description="LOW_RISK / MEDIUM_RISK / HIGH_RISK")
-    drg_dip_sensitive_items: list[dict] = Field(default_factory=list)
-    compliance_checks: list[dict] = Field(default_factory=list)
-    risk_level: str = Field(default="")
-    audit_advice: str = Field(default="")
+    review_conclusion: str = Field(default="", description="PASS / WARNING / FAIL")
+    issues_found: list[dict] = Field(default_factory=list)
+    manual_review_required: bool = False
+    drg_suggestion: str = Field(default="")
+    reviewed_codes: list[dict] = Field(default_factory=list)
+    compliance_checks: dict[str, bool] = Field(default_factory=dict)
+    rule_set: str = Field(default="medical_coding")
+    fired_rules: list[str] = Field(default_factory=list)
     trace_refs: dict = Field(default_factory=dict)
 
 
@@ -483,8 +486,8 @@ TOOL_REGISTRY: dict[str, ToolDescriptor] = {
     "evaluate_compliance": ToolDescriptor.from_pydantic(
         "evaluate_compliance",
         "合规守门 Agent — 评估 DRG/DIP 敏感项 + 合规风险 (CG-001..CG-004)。"
-        "输入 coding_set (dict) + 可选 encounter_text;输出 risk_conclusion "
-        "+ drg_dip_sensitive_items + compliance_checks + audit_advice。",
+        "输入 coding_set (dict) + 可选 encounter_text;输出 review_conclusion "
+        "+ issues_found + compliance_checks + drg_suggestion。",
         input_model=EvaluateComplianceInput,
         output_model=EvaluateComplianceOutput,
         handler_ref="app.icoder.mcp.handlers.evaluate_compliance:handle",

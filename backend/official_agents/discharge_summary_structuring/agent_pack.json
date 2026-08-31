@@ -1,156 +1,1187 @@
 {
   "format_version": "1.2",
   "agent_type": "certified",
-  "agent_ref": "icoder/discharge-summary-structuring@1.0.0",
+  "agent_ref": "icoder/discharge-summary-structuring@1.1.0",
   "manifest": {
     "name": "出院小结结构化智能体",
-    "version": "1.0.0",
-    "description": "iCoDer Discharge Summary Structuring Agent。给定非结构化出院小结原文, 输出结构化字段: 诊断列表/手术操作列表/治疗经过/出院医嘱/随访建议。LLM-based via PureLLMProvider。MVP maturity: production_ready=false, human_review=required。",
-    "category": "medical-coding",
-    "category_display": "Coding and Revenue Cycle / 编码与收入周期",
+    "version": "1.1.0",
+    "description": "将带明确章节标题的中英文出院小结逐字重组为证据绑定结构；不总结未标注叙事、不推断临床事实、不分配编码、不重整药物或写回病历。",
+    "category": "care-coordination",
+    "category_display": "Care Coordination / 医疗协同",
     "icon": "FileText",
     "tags": [
       "discharge-summary",
       "structuring",
-      "llm-based",
-      "pure-llm",
-      "corti-style"
+      "evidence-bound",
+      "deterministic",
+      "cn-adapted",
+      "human-review"
     ],
-    "maturity": "mvp",
+    "maturity": "runnable",
     "production_ready": false,
     "human_review": "required",
     "hidden_from_hub": false,
-    "use_case": "coding_revenue_cycle"
+    "use_case": "care_coordination"
   },
-  "backend_provider": "icoder.pure-llm.v1",
+  "backend_provider": "icoder.governed-discharge-summary.v1",
   "backend_config": {
-    "llm": {
-      "model": "deepseek-chat",
-      "temperature": 0.0,
-      "max_tokens": 4096,
-      "timeout_seconds": 60
-    }
+    "network_required": false,
+    "llm_required": false,
+    "runtime_mode": "governed_local_documented_discharge_summary_structuring",
+    "max_input_chars": 40000,
+    "max_evidence_items": 200,
+    "max_items_per_section": 100
   },
-  "system_prompt": "你是 iCoDer Discharge Summary Structuring Agent。职责:\n\n给定非结构化出院小结原文, 输出结构化字段:\n1. diagnoses[] — 诊断列表 (含 primary / secondary 标记 + evidence span)\n2. procedures[] — 手术操作列表 (含 code + evidence span)\n3. treatment_summary — 治疗经过 (自然语言, 按时间顺序)\n4. discharge_orders[] — 出院医嘱 (用药/活动/复诊/饮食)\n5. follow_up_recommendations[] — 随访建议 (科室/时间/项目)\n6. discharge_status — 出院状态 (1=治愈/2=好转/3=未愈/4=死亡/5=其他)\n\n硬约束:\n- 不分配 ICD 编码 — 仅结构化抽取 (编码由 Medical Coding Agent 完成)\n- 不修改原文 — 只读取 + 结构化\n- 每个 evidence span 必须能在原文找到 (no fabrication)\n- 不写回 EMR / HIS\n\n输出 JSON:\n{\n  \"diagnoses\": [{\"text\": \"T12 椎体压缩性骨折\", \"primary\": true, \"evidence_text\": \"MRI 显示 T12 椎体压缩性骨折\", \"char_span\": [12, 28]}],\n  \"procedures\": [{\"text\": \"T12 椎体切开复位内固定术\", \"evidence_text\": \"行 T12 椎体切开复位内固定术\", \"char_span\": [120, 138]}],\n  \"treatment_summary\": \"患者入院后行 MRI 检查确诊 T12 骨折, 行切开复位内固定术, 术后恢复良好。\",\n  \"discharge_orders\": [\"腰背支具佩戴 3 个月\", \"避免负重活动 1 个月\", \"抗骨质疏松药物治疗\"],\n  \"follow_up_recommendations\": [{\"department\": \"骨科\", \"time\": \"术后 1 月\", \"items\": [\"X 线复查\"]}],\n  \"discharge_status\": 1,\n  \"manual_review_required\": true\n}",
-  "experts": [
-    {
-      "expert_id": "discharge-structurer",
-      "name": "Discharge Summary Structurer",
-      "role": "primary",
-      "description": "出院小结结构化 Expert — 抽取诊断/手术/治疗经过/出院医嘱/随访建议。LLM-based via PureLLMProvider。"
-    }
-  ],
+  "system_prompt": "你是 iCoDer Governed Discharge Summary Structuring Agent。\n只结构化明确中英文章节标题下的出院事实，并为每条事实保留脱敏输入中的精确字符证据。\n不得总结未标注自由叙事；不得推断诊断、因果、严重程度、预后或治疗意图；不得分配 ICD 编码。\n不得执行药物重整、相互作用、禁忌、剂量或过敏筛查；不得新增出院医嘱、随访、返院条件或医疗建议。\n未提供受支持章节时返回 INPUT_REQUIRED；资料不完整时返回 PARTIAL 和缺失章节。\n所有输出须临床人员复核，生产写回始终阻断。",
+  "experts": [],
   "tools": [],
-  "model": {
-    "primary": "deepseek-chat",
-    "fallback": "deepseek-chat",
-    "temperature": 0.0,
-    "max_tokens": 4096,
-    "json_mode": true
-  },
+  "model": null,
   "non_goals": [
-    "不分配 ICD 编码 — 编码由 Medical Coding Agent 完成",
-    "不修改原文",
-    "不写回 EMR / HIS",
-    "不绕过 PHI redaction",
-    "不调用工具 — PureLLMProvider 不支持 tool_calling"
+    "不总结未标注自由叙事",
+    "不推断、补写或改变临床事实",
+    "不分配或验证 ICD-10-CN/ICD-9-CM-3 编码",
+    "不执行药物重整或药品知识筛查",
+    "不新增医嘱、随访、返院条件或医疗建议",
+    "不写回 HIS/EMR 或患者门户",
+    "不绕过 PHI 脱敏和人工复核"
   ],
   "output_contract": {
-    "schema_ref": "icoder/DischargeSummaryStructured/v1",
+    "schema_ref": "icoder/DischargeSummaryStructured/v5",
     "a2a_parts": [
       "DataPart"
     ],
     "required_fields": [
+      "structuring_status",
+      "encounter_metadata",
+      "admission_reason",
       "diagnoses",
       "procedures",
-      "treatment_summary",
+      "treatment_course",
+      "key_results",
       "discharge_orders",
       "follow_up_recommendations",
       "discharge_status",
-      "manual_review_required"
+      "allergies",
+      "pending_results",
+      "complications",
+      "conflicts",
+      "missing_sections",
+      "source_completeness",
+      "evidence_items",
+      "limitations",
+      "summary_generation_status",
+      "icd_codes_assigned",
+      "medication_reconciliation_performed",
+      "clinical_inference_performed",
+      "production_writeback_blocked",
+      "manual_review_required",
+      "trace_refs"
     ],
+    "optional_fields": [],
     "field_definitions": {
-      "diagnoses": "list[{text, primary, evidence_text, char_span}]",
-      "procedures": "list[{text, evidence_text, char_span}]",
-      "treatment_summary": "str — 按时间顺序的自然语言摘要",
-      "discharge_orders": "list[str] — 出院医嘱",
-      "follow_up_recommendations": "list[{department, time, items}]",
-      "discharge_status": "int — 1=治愈/2=好转/3=未愈/4=死亡/5=其他",
-      "manual_review_required": "bool — 总是 true"
-    }
+      "structuring_status": "COMPLETED/PARTIAL/INPUT_REQUIRED",
+      "encounter_metadata": "仅保留明确记录的入院/出院日期、科室和出院去向",
+      "admission_reason": "逐字记录的入院原因或主诉",
+      "diagnoses": "list[{text, role, evidence_ref}]",
+      "procedures": "list[{text, evidence_ref}]",
+      "treatment_course": "逐字记录的诊疗/住院经过",
+      "key_results": "list[{category, documented_result, evidence_ref}]",
+      "discharge_orders": "list[{category, documented_instruction, evidence_ref}]",
+      "follow_up_recommendations": "list[{documented_instruction, evidence_ref}]",
+      "discharge_status": "{documented_text, normalized_status, evidence_ref}",
+      "allergies": "逐字过敏史",
+      "pending_results": "list[{documented_text, evidence_ref}]",
+      "complications": "list[{documented_text, evidence_ref}]",
+      "conflicts": "list[{description, resolution, evidence_ref}]",
+      "missing_sections": "缺失核心章节",
+      "source_completeness": "解析范围、截断和证据计数",
+      "evidence_items": "精确 [start,end) 证据",
+      "limitations": "明确能力边界",
+      "summary_generation_status": "固定 VERBATIM_SECTION_REORGANIZATION_ONLY",
+      "icd_codes_assigned": "固定 false",
+      "medication_reconciliation_performed": "固定 false",
+      "clinical_inference_performed": "固定 false",
+      "production_writeback_blocked": "固定 true",
+      "manual_review_required": "固定 true",
+      "trace_refs": "运行与 Provider 审计引用"
+    },
+    "field_types": {
+      "structuring_status": "string",
+      "encounter_metadata": "object",
+      "admission_reason": "string",
+      "diagnoses": "array",
+      "procedures": "array",
+      "treatment_course": "string",
+      "key_results": "array",
+      "discharge_orders": "array",
+      "follow_up_recommendations": "array",
+      "discharge_status": "object",
+      "allergies": "string",
+      "pending_results": "array",
+      "complications": "array",
+      "conflicts": "array",
+      "missing_sections": "array",
+      "source_completeness": "object",
+      "evidence_items": "array",
+      "limitations": "array",
+      "summary_generation_status": "string",
+      "icd_codes_assigned": "boolean",
+      "medication_reconciliation_performed": "boolean",
+      "clinical_inference_performed": "boolean",
+      "production_writeback_blocked": "boolean",
+      "manual_review_required": "boolean",
+      "trace_refs": "object"
+    },
+    "field_schemas": {
+      "structuring_status": {
+        "type": "string",
+        "maxLength": 32768,
+        "enum": [
+          "COMPLETED",
+          "PARTIAL",
+          "INPUT_REQUIRED"
+        ]
+      },
+      "encounter_metadata": {
+        "type": "object",
+        "properties": {
+          "admission_date": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 0
+          },
+          "department": {
+            "type": "string",
+            "maxLength": 512,
+            "minLength": 0
+          },
+          "discharge_date": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 0
+          },
+          "discharge_destination": {
+            "type": "string",
+            "maxLength": 512,
+            "minLength": 0
+          }
+        },
+        "required": [
+          "admission_date",
+          "department",
+          "discharge_date",
+          "discharge_destination"
+        ],
+        "additionalProperties": false
+      },
+      "admission_reason": {
+        "type": "string",
+        "maxLength": 4096,
+        "minLength": 0
+      },
+      "diagnoses": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "evidence_ref": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1
+            },
+            "role": {
+              "type": "string",
+              "maxLength": 32768,
+              "enum": [
+                "DOCUMENTED_PRIMARY",
+                "DOCUMENTED_SECONDARY",
+                "DOCUMENTED_UNSPECIFIED"
+              ]
+            },
+            "text": {
+              "type": "string",
+              "maxLength": 4096,
+              "minLength": 1
+            }
+          },
+          "required": [
+            "evidence_ref",
+            "role",
+            "text"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100,
+        "minItems": 0
+      },
+      "procedures": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "evidence_ref": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1
+            },
+            "text": {
+              "type": "string",
+              "maxLength": 4096,
+              "minLength": 1
+            }
+          },
+          "required": [
+            "evidence_ref",
+            "text"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100,
+        "minItems": 0
+      },
+      "treatment_course": {
+        "type": "string",
+        "maxLength": 32768,
+        "minLength": 0
+      },
+      "key_results": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "category": {
+              "type": "string",
+              "maxLength": 32768,
+              "enum": [
+                "LABORATORY_RESULT",
+                "IMAGING_RESULT"
+              ]
+            },
+            "documented_result": {
+              "type": "string",
+              "maxLength": 4096,
+              "minLength": 1
+            },
+            "evidence_ref": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1
+            }
+          },
+          "required": [
+            "category",
+            "documented_result",
+            "evidence_ref"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100,
+        "minItems": 0
+      },
+      "discharge_orders": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "category": {
+              "type": "string",
+              "maxLength": 32768,
+              "enum": [
+                "GENERAL",
+                "MEDICATION",
+                "ACTIVITY",
+                "DIET",
+                "WOUND_CARE"
+              ]
+            },
+            "documented_instruction": {
+              "type": "string",
+              "maxLength": 4096,
+              "minLength": 1
+            },
+            "evidence_ref": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1
+            }
+          },
+          "required": [
+            "category",
+            "documented_instruction",
+            "evidence_ref"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100,
+        "minItems": 0
+      },
+      "follow_up_recommendations": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "documented_instruction": {
+              "type": "string",
+              "maxLength": 4096,
+              "minLength": 1
+            },
+            "evidence_ref": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1
+            }
+          },
+          "required": [
+            "documented_instruction",
+            "evidence_ref"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100,
+        "minItems": 0
+      },
+      "discharge_status": {
+        "type": "object",
+        "properties": {
+          "documented_text": {
+            "type": "string",
+            "maxLength": 4096,
+            "minLength": 0
+          },
+          "evidence_ref": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 0
+          },
+          "normalized_status": {
+            "type": "string",
+            "maxLength": 32768,
+            "enum": [
+              "CURED",
+              "IMPROVED",
+              "NOT_CURED",
+              "DECEASED",
+              "OTHER",
+              "DOCUMENTED_UNMAPPED",
+              "NOT_DOCUMENTED"
+            ]
+          }
+        },
+        "required": [
+          "documented_text",
+          "evidence_ref",
+          "normalized_status"
+        ],
+        "additionalProperties": false
+      },
+      "allergies": {
+        "type": "string",
+        "maxLength": 4096,
+        "minLength": 0
+      },
+      "pending_results": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "documented_text": {
+              "type": "string",
+              "maxLength": 4096,
+              "minLength": 1
+            },
+            "evidence_ref": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1
+            }
+          },
+          "required": [
+            "documented_text",
+            "evidence_ref"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100,
+        "minItems": 0
+      },
+      "complications": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "documented_text": {
+              "type": "string",
+              "maxLength": 4096,
+              "minLength": 1
+            },
+            "evidence_ref": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1
+            }
+          },
+          "required": [
+            "documented_text",
+            "evidence_ref"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100,
+        "minItems": 0
+      },
+      "conflicts": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string",
+              "maxLength": 4096,
+              "minLength": 1
+            },
+            "resolution": {
+              "type": "string",
+              "maxLength": 32768,
+              "enum": [
+                "UNRESOLVED_CLINICAL_REVIEW_REQUIRED"
+              ]
+            },
+            "evidence_ref": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1
+            }
+          },
+          "required": [
+            "description",
+            "resolution",
+            "evidence_ref"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100,
+        "minItems": 0
+      },
+      "missing_sections": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 128,
+          "minLength": 1
+        },
+        "maxItems": 5,
+        "minItems": 0
+      },
+      "source_completeness": {
+        "type": "object",
+        "properties": {
+          "documented_sections": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1
+            },
+            "maxItems": 17,
+            "minItems": 0,
+            "uniqueItems": true
+          },
+          "evidence_item_count": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 200
+          },
+          "input_truncated": {
+            "type": "boolean"
+          },
+          "missing_sections": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1
+            },
+            "maxItems": 5,
+            "minItems": 0,
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "documented_sections",
+          "evidence_item_count",
+          "input_truncated",
+          "missing_sections"
+        ],
+        "additionalProperties": false
+      },
+      "evidence_items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "char_span": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "maxItems": 2,
+              "minItems": 2,
+              "x-order": "nondecreasing"
+            },
+            "evidence_id": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1
+            },
+            "evidence_text": {
+              "type": "string",
+              "maxLength": 4096,
+              "minLength": 1
+            },
+            "field": {
+              "type": "string",
+              "maxLength": 32768,
+              "enum": [
+                "admission_date",
+                "discharge_date",
+                "department",
+                "discharge_destination",
+                "admission_reason",
+                "diagnoses",
+                "procedures",
+                "treatment_course",
+                "laboratory_results",
+                "imaging_results",
+                "discharge_orders",
+                "follow_up_recommendations",
+                "discharge_status",
+                "allergies",
+                "pending_results",
+                "complications",
+                "conflicts"
+              ]
+            },
+            "source_label": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1
+            }
+          },
+          "required": [
+            "char_span",
+            "evidence_id",
+            "evidence_text",
+            "field",
+            "source_label"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 200,
+        "minItems": 0
+      },
+      "limitations": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 2048,
+          "minLength": 1
+        },
+        "maxItems": 7,
+        "minItems": 7
+      },
+      "summary_generation_status": {
+        "type": "string",
+        "maxLength": 32768,
+        "const": "VERBATIM_SECTION_REORGANIZATION_ONLY"
+      },
+      "icd_codes_assigned": {
+        "type": "boolean",
+        "const": false
+      },
+      "medication_reconciliation_performed": {
+        "type": "boolean",
+        "const": false
+      },
+      "clinical_inference_performed": {
+        "type": "boolean",
+        "const": false
+      },
+      "production_writeback_blocked": {
+        "type": "boolean",
+        "const": true
+      },
+      "manual_review_required": {
+        "type": "boolean",
+        "const": true
+      },
+      "trace_refs": {
+        "type": "object",
+        "properties": {
+          "provider_trace_refs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 512,
+              "minLength": 1
+            },
+            "maxItems": 10,
+            "minItems": 0
+          },
+          "run_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1
+          },
+          "trace_id": {
+            "type": "string",
+            "maxLength": 32768
+          }
+        },
+        "required": [
+          "run_id"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "field_relations": [
+      {
+        "id": "input_required_has_no_discharge_summary_claims",
+        "when": [
+          {
+            "path": "structuring_status",
+            "operator": "equals",
+            "value": "INPUT_REQUIRED"
+          }
+        ],
+        "must": [
+          {
+            "path": "diagnoses",
+            "operator": "empty"
+          },
+          {
+            "path": "procedures",
+            "operator": "empty"
+          },
+          {
+            "path": "treatment_course",
+            "operator": "equals",
+            "value": ""
+          },
+          {
+            "path": "discharge_orders",
+            "operator": "empty"
+          },
+          {
+            "path": "follow_up_recommendations",
+            "operator": "empty"
+          },
+          {
+            "path": "evidence_items",
+            "operator": "empty"
+          }
+        ]
+      },
+      {
+        "id": "completed_discharge_summary_has_core_sections",
+        "when": [
+          {
+            "path": "structuring_status",
+            "operator": "equals",
+            "value": "COMPLETED"
+          }
+        ],
+        "must": [
+          {
+            "path": "diagnoses",
+            "operator": "non_empty"
+          },
+          {
+            "path": "treatment_course",
+            "operator": "non_empty"
+          },
+          {
+            "path": "discharge_orders",
+            "operator": "non_empty"
+          },
+          {
+            "path": "follow_up_recommendations",
+            "operator": "non_empty"
+          },
+          {
+            "path": "discharge_status.documented_text",
+            "operator": "non_empty"
+          },
+          {
+            "path": "missing_sections",
+            "operator": "empty"
+          },
+          {
+            "path": "evidence_items",
+            "operator": "non_empty"
+          }
+        ]
+      },
+      {
+        "id": "partial_discharge_summary_has_evidence_and_gaps",
+        "when": [
+          {
+            "path": "structuring_status",
+            "operator": "equals",
+            "value": "PARTIAL"
+          }
+        ],
+        "must": [
+          {
+            "path": "missing_sections",
+            "operator": "non_empty"
+          },
+          {
+            "path": "evidence_items",
+            "operator": "non_empty"
+          }
+        ]
+      },
+      {
+        "id": "governed_discharge_summary_never_claims_inference_or_coding",
+        "when": [
+          {
+            "path": "summary_generation_status",
+            "operator": "equals",
+            "value": "VERBATIM_SECTION_REORGANIZATION_ONLY"
+          }
+        ],
+        "must": [
+          {
+            "path": "icd_codes_assigned",
+            "operator": "equals",
+            "value": false
+          },
+          {
+            "path": "medication_reconciliation_performed",
+            "operator": "equals",
+            "value": false
+          },
+          {
+            "path": "clinical_inference_performed",
+            "operator": "equals",
+            "value": false
+          },
+          {
+            "path": "production_writeback_blocked",
+            "operator": "equals",
+            "value": true
+          },
+          {
+            "path": "manual_review_required",
+            "operator": "equals",
+            "value": true
+          }
+        ]
+      },
+      {
+        "id": "diagnosis_items_are_traceable",
+        "for_each": "diagnoses",
+        "when": [
+          {
+            "path": "text",
+            "operator": "present"
+          }
+        ],
+        "must": [
+          {
+            "path": "text",
+            "operator": "non_empty"
+          },
+          {
+            "path": "evidence_ref",
+            "operator": "non_empty"
+          }
+        ]
+      },
+      {
+        "id": "documented_conflicts_require_review",
+        "when": [
+          {
+            "path": "conflicts",
+            "operator": "non_empty"
+          }
+        ],
+        "must": [
+          {
+            "path": "manual_review_required",
+            "operator": "equals",
+            "value": true
+          }
+        ]
+      }
+    ],
+    "evidence_bindings": [
+      {
+        "id": "discharge_summary_evidence_matches_input",
+        "for_each": "evidence_items",
+        "text_path": "evidence_text",
+        "span_path": "char_span"
+      }
+    ]
   },
   "permissions": {
     "key": "discharge-summary-structuring-default",
     "name": "出院小结结构化智能体 默认权限",
-    "description": "允许读取出院小结原文进行结构化。禁止写回, 禁止编码分配。",
+    "description": "允许读取已脱敏出院小结并本地结构化；禁止推断、编码、药物重整、外部知识和生产写回。",
     "tools": {},
     "production_writeback_blocked": true,
     "no_upcoding": true,
     "no_inference": true,
-    "evidence_required": true
+    "evidence_required": true,
+    "clinical_review_required": true
   },
   "phi_redaction": "required",
   "context_required": false,
-  "recorder_required": false,
+  "recorder_required": true,
   "metrics_required": true,
   "requirements": {
-    "min_runtime_version": "2.0.0",
+    "min_runtime_version": "1.0.0",
     "icoder_runtime_modules": []
   },
-  "llm_capabilities": {
-    "required_models": [
-      {
-        "name": "deepseek-chat",
-        "purpose": "discharge summary structuring (with json_mode)"
-      }
-    ],
-    "supports_tool_calling": false,
-    "supports_json_mode": true,
-    "supports_mcp_tools": false
-  },
+  "llm_capabilities": null,
   "a2a": {
     "protocol_version": "0.3",
     "endpoint": "/api/icoder/agents/discharge-summary-structuring/v1/message:send",
     "discovery": "/api/icoder/agents",
-    "agent_card_ref": "icoder/discharge-summary-structuring@1.0.0"
+    "agent_card_ref": "icoder/discharge-summary-structuring@1.1.0"
   },
-  "default_runtime_mode": "a2a_pure_llm",
-  "available_runtime_modes": [
-    "a2a_pure_llm"
-  ],
   "example_inputs": [
     {
-      "title": "T12 骨折出院小结",
-      "input_text": "患者男性,78岁,因腰背部疼痛 3 月入院。入院后 MRI 显示 T12 椎体压缩性骨折,既往骨质疏松病史 5 年,原发性高血压 10 年,2 型糖尿病 5 年。行 T12 椎体切开复位内固定术,手术顺利。术后给予抗骨质疏松药物治疗,腰背支具佩戴。术后 7 天出院,切口愈合良好。出院诊断: 1. T12 椎体压缩性骨折; 2. 骨质疏松伴病理性骨折; 3. 原发性高血压; 4. 2 型糖尿病。出院医嘱: 腰背支具佩戴 3 个月, 避免负重活动 1 个月, 抗骨质疏松药物治疗。随访: 术后 1 月骨科门诊 X 线复查。"
+      "title": "中文多行出院小结",
+      "input_text": "入院日期：2026-08-10\n出院日期：2026-08-18\n科室：心内科\n出院去向：回家\n入院原因：活动后气促3天\n出院诊断：\n1. 慢性心力衰竭\n2. 原发性高血压\n手术及操作：冠状动脉造影\n诊疗经过：\n完成检查并按原记录治疗，症状好转。\n检验结果：血钾4.1mmol/L\n影像结果：胸片示双肺纹理增多\n出院用药：呋塞米20mg，每日一次\n活动医嘱：逐步恢复活动\n饮食医嘱：低盐饮食\n随访计划：7日后心内科复诊；复查电解质\n出院状态：好转\n过敏史：未记录\n待回结果：无"
     }
   ],
   "example_outputs": [
     {
+      "structuring_status": "COMPLETED",
+      "encounter_metadata": {
+        "admission_date": "2026-08-10",
+        "discharge_date": "2026-08-18",
+        "department": "心内科",
+        "discharge_destination": "回家"
+      },
+      "admission_reason": "活动后气促3天",
       "diagnoses": [
-        {"text": "T12 椎体压缩性骨折", "primary": true, "evidence_text": "MRI 显示 T12 椎体压缩性骨折"},
-        {"text": "骨质疏松伴病理性骨折", "primary": false, "evidence_text": "既往骨质疏松病史 5 年"},
-        {"text": "原发性高血压", "primary": false, "evidence_text": "原发性高血压 10 年"},
-        {"text": "2 型糖尿病", "primary": false, "evidence_text": "2 型糖尿病 5 年"}
+        {
+          "text": "慢性心力衰竭",
+          "role": "DOCUMENTED_UNSPECIFIED",
+          "evidence_ref": "discharge-summary-evidence-6"
+        },
+        {
+          "text": "原发性高血压",
+          "role": "DOCUMENTED_UNSPECIFIED",
+          "evidence_ref": "discharge-summary-evidence-7"
+        }
       ],
       "procedures": [
-        {"text": "T12 椎体切开复位内固定术", "evidence_text": "行 T12 椎体切开复位内固定术"}
+        {
+          "text": "冠状动脉造影",
+          "evidence_ref": "discharge-summary-evidence-8"
+        }
       ],
-      "treatment_summary": "患者入院后行 MRI 检查确诊 T12 骨折, 行切开复位内固定术, 术后给予抗骨质疏松药物治疗, 腰背支具佩戴。术后 7 天出院, 切口愈合良好。",
+      "treatment_course": "完成检查并按原记录治疗，症状好转。",
+      "key_results": [
+        {
+          "category": "LABORATORY_RESULT",
+          "documented_result": "血钾4.1mmol/L",
+          "evidence_ref": "discharge-summary-evidence-10"
+        },
+        {
+          "category": "IMAGING_RESULT",
+          "documented_result": "胸片示双肺纹理增多",
+          "evidence_ref": "discharge-summary-evidence-11"
+        }
+      ],
       "discharge_orders": [
-        "腰背支具佩戴 3 个月",
-        "避免负重活动 1 个月",
-        "抗骨质疏松药物治疗"
+        {
+          "category": "MEDICATION",
+          "documented_instruction": "呋塞米20mg，每日一次",
+          "evidence_ref": "discharge-summary-evidence-12"
+        },
+        {
+          "category": "ACTIVITY",
+          "documented_instruction": "逐步恢复活动",
+          "evidence_ref": "discharge-summary-evidence-13"
+        },
+        {
+          "category": "DIET",
+          "documented_instruction": "低盐饮食",
+          "evidence_ref": "discharge-summary-evidence-14"
+        }
       ],
       "follow_up_recommendations": [
-        {"department": "骨科", "time": "术后 1 月", "items": ["X 线复查"]}
+        {
+          "documented_instruction": "7日后心内科复诊",
+          "evidence_ref": "discharge-summary-evidence-15"
+        },
+        {
+          "documented_instruction": "复查电解质",
+          "evidence_ref": "discharge-summary-evidence-16"
+        }
       ],
-      "discharge_status": 1,
-      "manual_review_required": true
+      "discharge_status": {
+        "documented_text": "好转",
+        "normalized_status": "IMPROVED",
+        "evidence_ref": "discharge-summary-evidence-17"
+      },
+      "allergies": "未记录",
+      "pending_results": [
+        {
+          "documented_text": "无",
+          "evidence_ref": "discharge-summary-evidence-19"
+        }
+      ],
+      "complications": [],
+      "conflicts": [],
+      "missing_sections": [],
+      "source_completeness": {
+        "documented_sections": [
+          "activity_orders",
+          "admission_date",
+          "admission_reason",
+          "allergies",
+          "department",
+          "diagnoses",
+          "diet_orders",
+          "discharge_date",
+          "discharge_destination",
+          "discharge_status",
+          "follow_up",
+          "imaging_results",
+          "laboratory_results",
+          "medication_orders",
+          "pending_results",
+          "procedures",
+          "treatment_course"
+        ],
+        "missing_sections": [],
+        "input_truncated": false,
+        "evidence_item_count": 19
+      },
+      "evidence_items": [
+        {
+          "evidence_id": "discharge-summary-evidence-1",
+          "field": "admission_date",
+          "source_label": "入院日期",
+          "evidence_text": "2026-08-10",
+          "char_span": [
+            5,
+            15
+          ]
+        },
+        {
+          "evidence_id": "discharge-summary-evidence-2",
+          "field": "discharge_date",
+          "source_label": "出院日期",
+          "evidence_text": "2026-08-18",
+          "char_span": [
+            21,
+            31
+          ]
+        },
+        {
+          "evidence_id": "discharge-summary-evidence-3",
+          "field": "department",
+          "source_label": "科室",
+          "evidence_text": "心内科",
+          "char_span": [
+            35,
+            38
+          ]
+        },
+        {
+          "evidence_id": "discharge-summary-evidence-4",
+          "field": "discharge_destination",
+          "source_label": "出院去向",
+          "evidence_text": "回家",
+          "char_span": [
+            44,
+            46
+          ]
+        },
+        {
+          "evidence_id": "discharge-summary-evidence-5",
+          "field": "admission_reason",
+          "source_label": "入院原因",
+          "evidence_text": "活动后气促3天",
+          "char_span": [
+            52,
+            59
+          ]
+        },
+        {
+          "evidence_id": "discharge-summary-evidence-6",
+          "field": "diagnoses",
+          "source_label": "出院诊断",
+          "evidence_text": "慢性心力衰竭",
+          "char_span": [
+            69,
+            75
+          ]
+        },
+        {
+          "evidence_id": "discharge-summary-evidence-7",
+          "field": "diagnoses",
+          "source_label": "出院诊断",
+          "evidence_text": "原发性高血压",
+          "char_span": [
+            79,
+            85
+          ]
+        },
+        {
+          "evidence_id": "discharge-summary-evidence-8",
+          "field": "procedures",
+          "source_label": "手术及操作",
+          "evidence_text": "冠状动脉造影",
+          "char_span": [
+            92,
+            98
+          ]
+        },
+        {
+          "evidence_id": "discharge-summary-evidence-9",
+          "field": "treatment_course",
+          "source_label": "诊疗经过",
+          "evidence_text": "完成检查并按原记录治疗，症状好转。",
+          "char_span": [
+            105,
+            122
+          ]
+        },
+        {
+          "evidence_id": "discharge-summary-evidence-10",
+          "field": "laboratory_results",
+          "source_label": "检验结果",
+          "evidence_text": "血钾4.1mmol/L",
+          "char_span": [
+            128,
+            139
+          ]
+        },
+        {
+          "evidence_id": "discharge-summary-evidence-11",
+          "field": "imaging_results",
+          "source_label": "影像结果",
+          "evidence_text": "胸片示双肺纹理增多",
+          "char_span": [
+            145,
+            154
+          ]
+        },
+        {
+          "evidence_id": "discharge-summary-evidence-12",
+          "field": "discharge_orders",
+          "source_label": "出院用药",
+          "evidence_text": "呋塞米20mg，每日一次",
+          "char_span": [
+            160,
+            172
+          ]
+        },
+        {
+          "evidence_id": "discharge-summary-evidence-13",
+          "field": "discharge_orders",
+          "source_label": "活动医嘱",
+          "evidence_text": "逐步恢复活动",
+          "char_span": [
+            178,
+            184
+          ]
+        },
+        {
+          "evidence_id": "discharge-summary-evidence-14",
+          "field": "discharge_orders",
+          "source_label": "饮食医嘱",
+          "evidence_text": "低盐饮食",
+          "char_span": [
+            190,
+            194
+          ]
+        },
+        {
+          "evidence_id": "discharge-summary-evidence-15",
+          "field": "follow_up_recommendations",
+          "source_label": "随访计划",
+          "evidence_text": "7日后心内科复诊",
+          "char_span": [
+            200,
+            208
+          ]
+        },
+        {
+          "evidence_id": "discharge-summary-evidence-16",
+          "field": "follow_up_recommendations",
+          "source_label": "随访计划",
+          "evidence_text": "复查电解质",
+          "char_span": [
+            209,
+            214
+          ]
+        },
+        {
+          "evidence_id": "discharge-summary-evidence-17",
+          "field": "discharge_status",
+          "source_label": "出院状态",
+          "evidence_text": "好转",
+          "char_span": [
+            220,
+            222
+          ]
+        },
+        {
+          "evidence_id": "discharge-summary-evidence-18",
+          "field": "allergies",
+          "source_label": "过敏史",
+          "evidence_text": "未记录",
+          "char_span": [
+            227,
+            230
+          ]
+        },
+        {
+          "evidence_id": "discharge-summary-evidence-19",
+          "field": "pending_results",
+          "source_label": "待回结果",
+          "evidence_text": "无",
+          "char_span": [
+            236,
+            237
+          ]
+        }
+      ],
+      "limitations": [
+        "仅解析明确的中英文出院小结章节标题；未标注自由叙事不会被自动总结。",
+        "仅逐字重排已记录内容；未推断诊断、因果、严重程度、预后或治疗意图。",
+        "未分配或验证 ICD-10-CN/ICD-9-CM-3 编码。",
+        "未执行药物重整、相互作用、禁忌、剂量或过敏匹配。",
+        "未补充出院医嘱、复诊计划、返院条件或其他医疗建议。",
+        "未连接真实 HIS/EMR、医嘱、MAR/药房、LIS/PACS 或患者门户。",
+        "所有结构化内容必须由临床人员对照原始出院记录复核。"
+      ],
+      "summary_generation_status": "VERBATIM_SECTION_REORGANIZATION_ONLY",
+      "icd_codes_assigned": false,
+      "medication_reconciliation_performed": false,
+      "clinical_inference_performed": false,
+      "production_writeback_blocked": true,
+      "manual_review_required": true,
+      "trace_refs": {
+        "run_id": "example-discharge-summary",
+        "provider_trace_refs": [
+          "example-discharge-summary:governed-discharge-summary"
+        ]
+      }
     }
   ],
   "built_by": "icoder",
-  "code": {},
+  "code": null,
   "integrity": {
-    "sha256": "PLACEHOLDER_RECOMPUTED_AT_PUBLISH"
+    "sha256": "2159cf89dcb494faf22f8d5aac80839ca184cb3b144d3509e17f03c2a263b92f"
   }
 }

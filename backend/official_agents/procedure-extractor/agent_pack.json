@@ -1,81 +1,360 @@
 {
   "format_version": "1.2",
   "agent_type": "certified",
-  "agent_ref": "icoder/procedure-extractor@1.0.0",
+  "agent_ref": "icoder/procedure-extractor@1.1.0",
   "manifest": {
     "name": "手术提取智能体",
-    "version": "1.0.0",
-    "description": "iCoDer Procedure Coding Agent。从手术记录中提取手术操作并分配 ICD-9-CM-3 编码。LLM-based via PureLLMProvider — 输出手术操作列表 + 编码 + evidence span + confidence。MVP maturity: production_ready=false, human_review=required。",
+    "version": "1.1.0",
+    "description": "从已脱敏病历中保守提取明示手术/操作及 performed、planned、historical、cancelled、negated 状态；仅在固定 SHA-256 的本地 ICD-9-CM-3 目录得到唯一词法命中时输出编码。目录来源与许可待外部核验，始终要求人工复核。",
     "category": "medical-coding",
     "category_display": "Coding and Revenue Cycle / 编码与收入周期",
     "icon": "Scalpel",
     "tags": [
       "icd-9-cm-3",
-      "procedure-coding",
+      "procedure-extraction",
+      "governed-assets",
+      "deterministic",
       "evidence-first",
       "no-upcoding",
       "corti-style"
     ],
-    "maturity": "mvp",
+    "maturity": "runnable",
     "production_ready": false,
     "human_review": "required",
     "hidden_from_hub": false,
     "use_case": "coding_revenue_cycle"
   },
-  "backend_provider": "icoder.pure-llm.v1",
+  "backend_provider": "icoder.governed-procedure-extractor.v1",
   "backend_config": {
-    "llm": {
-      "model": "deepseek-chat",
-      "temperature": 0.0,
-      "max_tokens": 4096,
-      "timeout_seconds": 60
+    "explicit_procedure_baseline": {
+      "asset_id": "cn.icd9cm3.catalog",
+      "version": "observed-local-2026-05-19",
+      "integrity_required": true,
+      "network_required": false,
+      "llm_required": false,
+      "maximum_input_characters": 20000,
+      "maximum_mentions": 100,
+      "clinical_appropriateness_assessed": false,
+      "billing_authoritative": false
     }
   },
-  "system_prompt": "你是 iCoDer Procedure Coding Agent。职责:\n\n从手术记录中提取手术操作并分配 ICD-9-CM-3 编码 (中国版 ICD-9-CM-3):\n1. 识别所有手术操作 (主手术 + 其他手术)\n2. 每个手术操作匹配 ICD-9-CM-3 编码 (≤7 码, 含部位/方法/入路细分)\n3. 每个编码附 evidence_text + char_span + confidence + status\n4. 输出 issues_found (手术-诊断不一致 / 编码冲突 / 缺少手术记录)\n\nPhase 5 Track C Gate 2 §7.3 — Procedure Status Gate:\n为每个识别到的手术操作分配 status 字段, 取值之一:\n- performed — 已执行 (本次住院期间完成; 唯一可进入正式 procedure codes 的状态)\n- planned — 计划/拟行/必要时 (尚未执行)\n- historical — 既往/曾行 (历史手术, 非本次)\n- cancelled — 取消/拒绝手术\n- negated — 未行 (明确否定)\n- unknown — 状态不明\n\n只有 status=performed 的手术操作进入 procedures[]。其他状态进入 non_billable_mentions[]。\n\n识别规则 (中文关键词):\n- performed: \"行\"、\"施行的\"、\"完成\"、\"术后\" (本次)\n- planned: \"拟行\"、\"计划\"、\"必要时\"、\"准备\"\n- historical: \"既往\"、\"曾行\"、\"年前\"、\"历史\"\n- cancelled: \"取消\"、\"拒绝手术\"、\"放弃\"\n- negated: \"未行\"、\"未施行\"、\"无手术\"\n- unknown: 状态不明或不在此列\n\n硬约束:\n- 不 upcoding — 不优先选择高补偿编码\n- 不推断未记录的手术操作 (evidence-first)\n- 每个最终编码必须附 evidence span\n- 不写回 EMR / HIS\n\n输出 JSON:\n{\n  \"procedures\": [{\n    \"code\": \"81.0100\",\n    \"display\": \"脊椎骨折切开复位内固定术\",\n    \"evidence_text\": \"行 T12 椎体切开复位内固定术\",\n    \"char_span\": [120, 138],\n    \"confidence\": 0.88,\n    \"status\": \"performed\",\n    \"warnings\": []\n  }],\n  \"non_billable_mentions\": [{\n    \"text\": \"拟行 PCI 治疗\",\n    \"status\": \"planned\",\n    \"evidence_text\": \"拟行 PCI\",\n    \"char_span\": [200, 206]\n  }],\n  \"issues_found\": [],\n  \"manual_review_required\": true\n}",
-  "experts": [
-    {
-      "expert_id": "procedure-extractor",
-      "name": "Procedure Extractor",
-      "role": "primary",
-      "description": "手术操作提取 + ICD-9-CM-3 编码 Expert。LLM-based via PureLLMProvider。"
-    }
-  ],
+  "system_prompt": "你是 iCoDer 受治理本地手术操作提取智能体。只从已脱敏输入中提取带有明示状态词的手术/操作，evidence_text 与 char_span 必须逐字回指原文。只有 performed 进入 procedures；planned、historical、cancelled、negated、unknown 必须进入 non_billable_mentions。仅当输入明确提交的 ICD-9-CM-3 编码命中固定目录，或术式经有界词法规范化得到唯一目录条目时，才可填写 code；无唯一命中时 code 为空并给出 warning，不得猜测替代编码。不得判断术式与诊断一致性、临床适应证、手术分级、医保政策或最终可编码性。目录 authority_status=source_unverified、license_status=external_review_required、billing_authoritative=false，所有结果必须由编码员复核，禁止自动结算和 EMR/HIS 写回。",
+  "experts": [],
   "tools": [],
-  "model": {
-    "primary": "deepseek-chat",
-    "fallback": "deepseek-chat",
-    "temperature": 0.0,
-    "max_tokens": 4096,
-    "json_mode": true
-  },
+  "model": null,
   "non_goals": [
     "不分配诊断编码 — 诊断由 Medical Coding Agent 完成",
     "不修改手术记录",
     "不写回 EMR / HIS",
     "不绕过 PHI redaction",
-    "不调用工具 — PureLLMProvider 不支持 tool_calling",
+    "不调用外部模型、网络或工具",
+    "不把唯一词法目录命中解释为临床适用性或结算权威",
     "不输出未脱敏 PHI"
   ],
   "output_contract": {
-    "schema_ref": "icoder/ProcedureCodingOutput/v1",
+    "schema_ref": "icoder/ProcedureCodingOutput/v8",
     "a2a_parts": [
       "DataPart"
     ],
     "required_fields": [
       "procedures",
+      "non_billable_mentions",
       "issues_found",
       "manual_review_required"
+    ],
+    "optional_fields": [
+      "total_count"
     ],
     "field_definitions": {
       "procedures": "list[{code, display, evidence_text, char_span, confidence, warnings}]",
       "issues_found": "list[{issue_type, message, severity}]",
       "manual_review_required": "bool — 总是 true (编码需人工复核)"
-    }
+    },
+    "field_types": {
+      "procedures": "array",
+      "non_billable_mentions": "array",
+      "issues_found": "array",
+      "manual_review_required": "boolean",
+      "total_count": "integer"
+    },
+    "field_schemas": {
+      "procedures": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "char_span": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "maxItems": 2,
+              "minItems": 2,
+              "x-order": "nondecreasing"
+            },
+            "code": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "confidence": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "display": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "evidence_text": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "status": {
+              "type": "string",
+              "maxLength": 32768,
+              "enum": [
+                "performed",
+                "planned",
+                "historical",
+                "cancelled",
+                "negated",
+                "unknown"
+              ]
+            },
+            "warnings": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "maxItems": 100
+            }
+          },
+          "required": [
+            "char_span",
+            "code",
+            "confidence",
+            "display",
+            "evidence_text",
+            "status",
+            "warnings"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100
+      },
+      "non_billable_mentions": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "status": {
+              "type": "string",
+              "maxLength": 32768,
+              "enum": [
+                "performed",
+                "planned",
+                "historical",
+                "cancelled",
+                "negated",
+                "unknown"
+              ]
+            },
+            "evidence_text": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "char_span": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "maxItems": 2,
+              "minItems": 2,
+              "x-order": "nondecreasing"
+            }
+          },
+          "required": [
+            "text",
+            "status",
+            "evidence_text",
+            "char_span"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100
+      },
+      "issues_found": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "category": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "message": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "severity": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "suggestion": {
+              "type": "string",
+              "maxLength": 32768
+            }
+          },
+          "required": [
+            "category",
+            "message"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100
+      },
+      "manual_review_required": {
+        "type": "boolean",
+        "const": true
+      },
+      "total_count": {
+        "type": "integer"
+      }
+    },
+    "field_relations": [
+      {
+        "id": "procedure_count_matches_items",
+        "when": [
+          {
+            "path": "procedures",
+            "operator": "present"
+          }
+        ],
+        "must": [
+          {
+            "path": "procedures",
+            "operator": "length_equals",
+            "other_path": "total_count"
+          }
+        ]
+      },
+      {
+        "id": "billable_procedure_requires_performed_evidence",
+        "for_each": "procedures",
+        "when": [
+          {
+            "path": "code",
+            "operator": "present"
+          }
+        ],
+        "must": [
+          {
+            "path": "status",
+            "operator": "equals",
+            "value": "performed"
+          },
+          {
+            "path": "code",
+            "operator": "non_empty"
+          },
+          {
+            "path": "display",
+            "operator": "non_empty"
+          },
+          {
+            "path": "evidence_text",
+            "operator": "non_empty"
+          }
+        ]
+      },
+      {
+        "id": "nonbillable_procedure_requires_status_evidence",
+        "for_each": "non_billable_mentions",
+        "when": [
+          {
+            "path": "text",
+            "operator": "present"
+          }
+        ],
+        "must": [
+          {
+            "path": "status",
+            "operator": "in",
+            "value": [
+              "planned",
+              "historical",
+              "cancelled",
+              "negated",
+              "unknown"
+            ]
+          },
+          {
+            "path": "evidence_text",
+            "operator": "non_empty"
+          }
+        ]
+      },
+      {
+        "id": "billable_and_nonbillable_evidence_are_disjoint",
+        "when": [
+          {
+            "path": "procedures",
+            "operator": "present"
+          }
+        ],
+        "must": [
+          {
+            "path": "procedures",
+            "operator": "disjoint_fields",
+            "item_path": "evidence_text",
+            "other_path": "non_billable_mentions",
+            "other_item_path": "evidence_text"
+          }
+        ]
+      },
+      {
+        "id": "procedure_issues_require_review",
+        "when": [
+          {
+            "path": "issues_found",
+            "operator": "non_empty"
+          }
+        ],
+        "must": [
+          {
+            "path": "manual_review_required",
+            "operator": "equals",
+            "value": true
+          }
+        ]
+      }
+    ],
+    "evidence_bindings": [
+      {
+        "id": "procedure_evidence_matches_input",
+        "for_each": "procedures",
+        "text_path": "evidence_text",
+        "span_path": "char_span"
+      },
+      {
+        "id": "nonbillable_evidence_matches_input",
+        "for_each": "non_billable_mentions",
+        "text_path": "evidence_text",
+        "span_path": "char_span"
+      }
+    ]
   },
   "permissions": {
     "key": "procedure-extractor-default",
     "name": "手术提取智能体 默认权限",
-    "description": "允许读取手术记录提取 ICD-9-CM-3 编码。禁止写回, 禁止诊断编码。",
+    "description": "允许从已脱敏手术记录提取明示状态和唯一目录候选。禁止推断、结算和写回。",
     "tools": {},
     "production_writeback_blocked": true,
     "no_upcoding": true,
@@ -84,19 +363,14 @@
   },
   "phi_redaction": "required",
   "context_required": false,
-  "recorder_required": false,
+  "recorder_required": true,
   "metrics_required": true,
   "requirements": {
     "min_runtime_version": "2.0.0",
     "icoder_runtime_modules": []
   },
   "llm_capabilities": {
-    "required_models": [
-      {
-        "name": "deepseek-chat",
-        "purpose": "procedure extraction + ICD-9-CM-3 coding (with json_mode)"
-      }
-    ],
+    "required_models": [],
     "supports_tool_calling": false,
     "supports_json_mode": true,
     "supports_mcp_tools": false
@@ -105,11 +379,11 @@
     "protocol_version": "0.3",
     "endpoint": "/api/icoder/agents/procedure-extractor/v1/message:send",
     "discovery": "/api/icoder/agents",
-    "agent_card_ref": "icoder/procedure-extractor@1.0.0"
+    "agent_card_ref": "icoder/procedure-extractor@1.1.0"
   },
-  "default_runtime_mode": "a2a_pure_llm",
+  "default_runtime_mode": "governed_local_explicit_procedure_baseline",
   "available_runtime_modes": [
-    "a2a_pure_llm"
+    "governed_local_explicit_procedure_baseline"
   ],
   "example_inputs": [
     {
@@ -121,20 +395,30 @@
     {
       "procedures": [
         {
-          "code": "81.0100",
-          "display": "脊椎骨折切开复位内固定术",
+          "code": "03.5304",
+          "display": "胸椎骨折切开复位内固定术",
           "evidence_text": "行 T12 椎体切开复位内固定术",
-          "confidence": 0.88,
-          "warnings": []
+          "char_span": [
+            22,
+            38
+          ],
+          "confidence": 0.8,
+          "status": "performed",
+          "warnings": [
+            "本地 ICD-9-CM-3 目录 authority_status=source_unverified、license_status=external_review_required；不得用于自动结算或写回。",
+            "编码来自明示脊柱节段的有界目录规范化，必须人工确认术式与解剖部位。"
+          ]
         }
       ],
+      "non_billable_mentions": [],
       "issues_found": [],
-      "manual_review_required": true
+      "manual_review_required": true,
+      "total_count": 1
     }
   ],
   "built_by": "icoder",
   "code": {},
   "integrity": {
-    "sha256": "PLACEHOLDER_RECOMPUTED_AT_PUBLISH"
+    "sha256": "7ca0f0e8986f33241fa7746f7f9a1a9671d6dd220e0259ba6d1b766fb880971f"
   }
 }

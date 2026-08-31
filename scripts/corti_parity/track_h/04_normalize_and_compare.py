@@ -26,13 +26,21 @@ Produces:
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 
-CORTI_DIR = Path("reports/track_h/corti_per_case")
-ICODER_DIR = Path("backend/reports/phase5_d_p05/gate8_icoder_per_case")
+CORTI_DIR = Path(os.environ.get(
+    "CORTI_COMPARE_CORTI_DIR", "reports/track_h/corti_per_case"
+))
+ICODER_DIR = Path(os.environ.get(
+    "CORTI_COMPARE_ICODER_DIR",
+    "backend/reports/phase5_d_p05/gate8_icoder_per_case",
+))
 FIXTURE = Path("backend/tests/fixtures/cdi_gate8_40cases.json")
-OUT = Path("reports/track_h/h34_normalizer_40case.json")
+OUT = Path(os.environ.get(
+    "CORTI_COMPARE_OUT", "reports/track_h/h34_normalizer_40case.json"
+))
 
 
 def load_corti_case(case_id: str) -> dict | None:
@@ -48,6 +56,66 @@ def load_icoder_case(case_id: str) -> dict | None:
     if not files:
         return None
     return json.loads(files[0].read_text(encoding="utf-8"))
+
+
+def _agreement_metrics(rows: list[dict]) -> dict:
+    """Calculate raw parity plus safety-conditioned parity.
+
+    The raw metrics remain authoritative for product imitation. The
+    conditioned slice prevents a comparator's clinically out-of-range query
+    count from becoming an optimisation target for a safety-gated system.
+    """
+    n = len(rows)
+    comparator_safe = [row for row in rows if row.get("corti_in_range") is True]
+    both_safe = [
+        row for row in comparator_safe if row.get("icoder_in_range") is True
+    ]
+
+    def _slice_metrics(items: list[dict]) -> dict:
+        count = len(items)
+        return {
+            "cases": count,
+            "avg_abs_query_count_delta": round(
+                sum(row["abs_query_count_delta"] for row in items) / count, 2
+            ) if count else None,
+            "agreement_rate_delta_le_1": round(
+                sum(row["abs_query_count_delta"] <= 1 for row in items) / count, 2
+            ) if count else None,
+        }
+
+    return {
+        "raw": _slice_metrics(rows),
+        "when_corti_in_expected_range": _slice_metrics(comparator_safe),
+        "when_both_in_expected_range": _slice_metrics(both_safe),
+        "corti_range_conformance_rate": round(
+            sum(row.get("corti_in_range") is True for row in rows) / n, 2
+        ) if n else None,
+        "icoder_range_conformance_rate": round(
+            sum(row.get("icoder_in_range") is True for row in rows) / n, 2
+        ) if n else None,
+        "interpretation": (
+            "Raw metrics measure product imitation. Conditioned metrics are "
+            "diagnostic only and must not replace or hide the raw parity gap."
+        ),
+    }
+
+
+def _classify_query_count_divergence(row: dict) -> str:
+    """Separate product imitation gaps from expected-range safety defects."""
+
+    if row["query_count_delta"] == 0:
+        return "aligned"
+    icoder_in_range = row.get("icoder_in_range")
+    corti_in_range = row.get("corti_in_range")
+    if icoder_in_range is False:
+        if row["icoder_query_count"] < row["expected_query_min"]:
+            return "icoder_under_expected_range_defect"
+        return "icoder_over_expected_range_defect"
+    if icoder_in_range is True and corti_in_range is False:
+        return "safety_preserving_divergence_corti_out_of_range"
+    if icoder_in_range is True and corti_in_range is True:
+        return "product_behavior_divergence_within_expected_range"
+    return "unclassified_missing_expected_range"
 
 
 def main() -> None:
@@ -91,7 +159,7 @@ def main() -> None:
                 return None
             return exp_min <= q <= exp_max
 
-        per_case.append({
+        row = {
             "case_id": case_id,
             "category": category,
             "expected_query_min": exp_min,
@@ -109,7 +177,11 @@ def main() -> None:
             "abs_query_count_delta": abs(icode_q - corti_q),
             "corti_in_range": in_range(corti_q),
             "icoder_in_range": in_range(icode_q),
-        })
+        }
+        row["query_count_divergence_class"] = (
+            _classify_query_count_divergence(row)
+        )
+        per_case.append(row)
 
     # Aggregate
     n = len(per_case)
@@ -119,6 +191,11 @@ def main() -> None:
     agreement_count = sum(1 for c in per_case if c["abs_query_count_delta"] <= 1)
     corti_in_range = sum(1 for c in per_case if c["corti_in_range"])
     icode_in_range = sum(1 for c in per_case if c["icoder_in_range"])
+    safety_conditioned_agreement = _agreement_metrics(per_case)
+    divergence_classes: dict[str, int] = {}
+    for row in per_case:
+        key = row["query_count_divergence_class"]
+        divergence_classes[key] = divergence_classes.get(key, 0) + 1
 
     # §9.10 safety metrics (iCoDer side)
     complete_cases = [c for c in per_case if c["category"] == "complete_chart"]
@@ -169,6 +246,8 @@ def main() -> None:
                 "total": n,
                 "rate": round(icode_in_range / n, 2),
             },
+            "safety_conditioned_agreement": safety_conditioned_agreement,
+            "query_count_divergence_classes": divergence_classes,
             "by_category": {cat: {k: v for k, v in bc.items() if k != "agreement_count"} for cat, bc in by_category.items()},
         },
         "section_9_10_icoder_safety": {
@@ -189,6 +268,7 @@ def main() -> None:
         },
         "per_case": per_case,
     }
+    OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(output, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"Wrote: {OUT}")
     print()

@@ -240,10 +240,12 @@ def test_make_parse_error_response_shape():
 def test_validate_method_accepts_supported():
     for m in SUPPORTED_METHODS:
         assert validate_method(m, SUPPORTED_METHODS) is None
+    assert "message/send" in SUPPORTED_METHODS
+    assert "message/stream" in SUPPORTED_METHODS
 
 
 def test_validate_method_rejects_unknown():
-    err = validate_method("message/stream", SUPPORTED_METHODS)
+    err = validate_method("message/subscribe", SUPPORTED_METHODS)
     assert isinstance(err, A2AError)
     assert err.code == A2AErrorCode.METHOD_NOT_FOUND
     assert err.jsonrpc_code == JSON_RPC_METHOD_NOT_FOUND

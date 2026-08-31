@@ -1,0 +1,395 @@
+{
+  "case_id": "CASE-2f0ac92d6347",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-2f0ac92d6347/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "急性心肌梗死未明确具体类型（STEMI vs NSTEMI）",
+      "why_it_matters": "急性心肌梗死需区分ST段抬高型（STEMI）和非ST段抬高型（NSTEMI），因治疗和编码不同。心电图示ST段抬高，但诊断未明确类型。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "入院诊断:急性心肌梗死",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-2f0ac92d6347/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "心肌梗死部位未明确（前壁、前间壁等）",
+      "why_it_matters": "心肌梗死的部位（如前壁、下壁）影响编码和临床管理。心电图示前壁导联ST段抬高，但诊断未明确部位。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "心电图:前壁导联ST段抬高",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-2f0ac92d6347/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "心肌梗死病因未明确（如冠状动脉粥样硬化性心脏病）",
+      "why_it_matters": "心肌梗死的病因（如冠心病）是编码和治疗的依据。冠脉造影示前降支闭塞，但未明确病因。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "冠脉造影:前降支近段100%闭塞",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-2f0ac92d6347/GAP-004",
+      "gap_type": "diagnostic_specificity",
+      "description": "肌钙蛋白I升高未提供具体数值及参考范围",
+      "why_it_matters": "肌钙蛋白I的具体数值有助于确定心肌梗死的诊断和严重程度。仅描述'升高'缺乏量化信息。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "肌钙蛋白I升高",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-2f0ac92d6347/Q-001",
+      "gap_id": "CASE-2f0ac92d6347/GAP-001",
+      "topic": "急性心肌梗死的具体类型",
+      "reason": "入院诊断为急性心肌梗死，但未明确具体类型（STEMI或NSTEMI），需明确以指导治疗。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "入院诊断:急性心肌梗死",
+        "char_start": 63,
+        "char_end": 74,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "入院诊断:急性心肌梗死",
+          "char_start": 63,
+          "char_end": 74,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "根据心电图及临床资料，该急性心肌梗死的具体类型是？",
+      "response_options": [
+        "A. ST段抬高型心肌梗死（STEMI）",
+        "B. 非ST段抬高型心肌梗死（NSTEMI）",
+        "C. 其他类型（请注明）",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "urgent",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    },
+    {
+      "query_id": "CASE-2f0ac92d6347/Q-002",
+      "gap_id": "CASE-2f0ac92d6347/GAP-002",
+      "topic": "心肌梗死的部位",
+      "reason": "心电图提示前壁导联ST段抬高，但未明确具体梗死部位，需明确以评估预后。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "心电图:前壁导联ST段抬高",
+        "char_start": 19,
+        "char_end": 32,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "心电图:前壁导联ST段抬高",
+          "char_start": 19,
+          "char_end": 32,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "根据心电图及冠脉造影结果，该心肌梗死的具体部位是？",
+      "response_options": [
+        "A. 前壁",
+        "B. 前间壁",
+        "C. 广泛前壁",
+        "D. 其他部位（请注明）",
+        "E. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    },
+    {
+      "query_id": "CASE-2f0ac92d6347/Q-003",
+      "gap_id": "CASE-2f0ac92d6347/GAP-003",
+      "topic": "心肌梗死的病因",
+      "reason": "冠脉造影显示前降支近段100%闭塞，但未明确病因，需明确以指导二级预防。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "冠脉造影:前降支近段100%闭塞",
+        "char_start": 41,
+        "char_end": 57,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "冠脉造影:前降支近段100%闭塞",
+          "char_start": 41,
+          "char_end": 57,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "根据冠脉造影结果，该心肌梗死的病因是？",
+      "response_options": [
+        "A. 冠状动脉粥样硬化性心脏病",
+        "B. 冠状动脉痉挛",
+        "C. 冠状动脉栓塞",
+        "D. 其他病因（请注明）",
+        "E. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    },
+    {
+      "query_id": "CASE-2f0ac92d6347/Q-004",
+      "gap_id": "CASE-2f0ac92d6347/GAP-004",
+      "topic": "肌钙蛋白I的具体数值及参考范围",
+      "reason": "病历仅记录肌钙蛋白I升高，未提供具体数值及参考范围，需明确以评估梗死范围。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "肌钙蛋白I升高",
+        "char_start": 33,
+        "char_end": 40,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "肌钙蛋白I升高",
+          "char_start": 33,
+          "char_end": 40,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "肌钙蛋白I的具体数值及参考范围是？",
+      "response_options": [
+        "A. 具体数值为____，参考范围为____",
+        "B. 具体数值未记录，但参考范围为____",
+        "C. 具体数值及参考范围均未记录",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    }
+  ],
+  "query_rewrite_queue": [],
+  "chart_excerpt_preview": "患者男性, 58岁, 持续胸痛2小时。心电图:前壁导联ST段抬高。肌钙蛋白I升高。冠脉造影:前降支近段100%闭塞。行PCI。入院诊断:急性心肌梗死。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者男性，58岁",
+      "持续胸痛2小时",
+      "心电图示前壁导联ST段抬高",
+      "肌钙蛋白I升高",
+      "冠脉造影示前降支近段100%闭塞",
+      "行经皮冠状动脉介入治疗（PCI）",
+      "入院诊断：急性心肌梗死"
+    ],
+    "encounter_metadata": {
+      "patient_age": "58岁",
+      "patient_sex": "男性",
+      "encounter_type": "住院"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "请明确心肌梗死为ST段抬高型（STEMI）还是非ST段抬高型（NSTEMI），并具体指出梗死部位（如前壁、前间壁）及病因（如冠状动脉粥样硬化性心脏病）。同时，请提供肌钙蛋白I的具体数值及参考范围，以支持诊断的准确性和编码的临床特异性。",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3163,
+      "tokens": 245
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-085e39ed9776",
+    "gap_identification": "run-fa98fb76d351",
+    "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
+    "expert_consultation": "run-04c04808984a",
+    "query_generation": "run-b5052caa2574",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.25;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=Y,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=4;llm_complete=False;llm_reasoning=急性心肌梗死诊断明确，但未明确STEMI/NSTEMI类型、具体部位和病因，且肌钙蛋白I缺乏具体数值，这些信息对编码和临床管理至关重要。",
+    "query_necessity_gate": "necessary=4;unnecessary=0;overquery_triggered=False;final_count=4",
+    "query_single_dimension_gate": "single_dim=4;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=type;rewrite_attempted=0;rewrite_accepted=0;final_count=4",
+    "claim_evidence_alignment_gate": "claims_extracted=6;blocked=0;flagged=0;final_count=4",
+    "claim_evidence_alignment_gate::run_id": "run-72a20309c2c7",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=4",
+    "semantic_necessity_gate::run_id": "run-c0819482827d",
+    "query_compliance_gate": ";passed=4;blocked=0",
+    "specialist_trace_emit": "run-ea34eaa7bec2"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-fc430a5bc8c0",
+    "gap_identification": "trace-c16999ad13ce",
+    "expert_consultation": "trace-c3b644fb4b97",
+    "query_generation": "trace-be09c6a00824",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-1f6b6042c95b",
+    "semantic_necessity_gate": "trace-fdd3a623efba",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-29fd89f76fba"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 1568,
+      "prompt_tokens": 224,
+      "completion_tokens": 119,
+      "total_tokens": 343,
+      "run_id": "run-085e39ed9776",
+      "trace_id": "trace-fc430a5bc8c0",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6100,
+      "prompt_tokens": 1067,
+      "completion_tokens": 628,
+      "total_tokens": 1695,
+      "run_id": "run-fa98fb76d351",
+      "trace_id": "trace-c16999ad13ce",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6871,
+      "prompt_tokens": 1161,
+      "completion_tokens": 836,
+      "total_tokens": 1997,
+      "run_id": "run-b5052caa2574",
+      "trace_id": "trace-be09c6a00824",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3163,
+      "prompt_tokens": 172,
+      "completion_tokens": 73,
+      "total_tokens": 245,
+      "run_id": "run-9bc494430b2a",
+      "trace_id": "trace-736278007795",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-d54e6c76912f",
+      "trace_id": "trace-ea604b4ede3f",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-96376892bb70",
+      "trace_id": "trace-8e377f1de505",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-acaa497f99ca",
+      "trace_id": "trace-03c64143708b",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T19:19:17.647029Z"
+}

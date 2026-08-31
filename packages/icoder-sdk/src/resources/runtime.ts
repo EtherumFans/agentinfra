@@ -1,6 +1,7 @@
 /** Runtime API resource — agent execution, lifecycle, observability. */
 
 import type { AxiosInstance } from 'axios';
+import { requestConfig, type iCoDerRequestOptions } from '../request-options.js';
 
 export interface InstalledAgent {
   agent_ref: string; name: string; version: string; description: string;
@@ -23,39 +24,112 @@ export interface RuntimeRunResult {
 export class RuntimeResource {
   constructor(private http: AxiosInstance) {}
 
-  status() { return this.http.get('/api/runtime/status'); }
-  dataPolicy() { return this.http.get('/api/runtime/data-policy'); }
+  status(options?: iCoDerRequestOptions) {
+    return this.http.get('/api/runtime/status', requestConfig(options));
+  }
+  dataPolicy(options?: iCoDerRequestOptions) {
+    return this.http.get('/api/runtime/data-policy', requestConfig(options));
+  }
 
-  listAgents(agentType = '') {
+  listAgents(agentType = '', options?: iCoDerRequestOptions) {
     return this.http.get<{ agents: InstalledAgent[]; total: number }>(
-      '/api/runtime/agents', { params: { agent_type: agentType } }
+      '/api/runtime/agents', requestConfig(options, { agent_type: agentType }),
     );
   }
 
-  installAgent(name: string, version: string, agentType = 'community') {
-    return this.http.post('/api/runtime/agents/install', { agent_name: name, agent_version: version, agent_type: agentType });
+  installAgent(
+    name: string,
+    version: string,
+    agentType = 'community',
+    options?: iCoDerRequestOptions,
+  ) {
+    return this.http.post(
+      '/api/runtime/agents/install',
+      { agent_name: name, agent_version: version, agent_type: agentType },
+      requestConfig(options),
+    );
   }
 
-  runAgent(agentRef: string, input: string) {
-    return this.http.post<RuntimeRunResult>(`/api/runtime/agents/${encodeURIComponent(agentRef)}/run`, { input });
+  runAgent(agentRef: string, input: string, options?: iCoDerRequestOptions) {
+    return this.http.post<RuntimeRunResult>(
+      `/api/runtime/agents/${encodeURIComponent(agentRef)}/run`,
+      { input },
+      requestConfig(options),
+    );
   }
 
-  agentLifecycle(agentRef: string, action: 'enable' | 'disable' | 'uninstall' | 'rollback') {
-    return this.http.post(`/api/runtime/agents/${encodeURIComponent(agentRef)}/lifecycle`, { action });
+  agentLifecycle(
+    agentRef: string,
+    action: 'enable' | 'disable' | 'uninstall' | 'rollback',
+    options?: iCoDerRequestOptions,
+  ) {
+    return this.http.post(
+      `/api/runtime/agents/${encodeURIComponent(agentRef)}/lifecycle`,
+      { action },
+      requestConfig(options),
+    );
   }
 
-  listRuns(agentRef = '', limit = 50) { return this.http.get('/api/runtime/runs', { params: { agent_ref: agentRef, limit } }); }
-  getRun(runId: string) { return this.http.get(`/api/runtime/runs/${runId}`); }
-  fallbackStats(hours = 24) { return this.http.get('/api/runtime/observability/fallback', { params: { hours } }); }
-  shadowStats(hours = 24) { return this.http.get('/api/runtime/observability/shadow', { params: { hours } }); }
-  auditLog(eventType = '', limit = 100) { return this.http.get('/api/runtime/audit-log', { params: { event_type: eventType, limit } }); }
-  medicalCodingStatus() { return this.http.get('/api/runtime/medical-coding/status'); }
-  testMedicalCoding(text: string) { return this.http.post('/api/runtime/medical-coding/test', { encounter_text: text }); }
-  ruleEngineStatus() { return this.http.get('/api/runtime/rule-engine/status'); }
-  ruleEngineRules() { return this.http.get('/api/runtime/rule-engine/rules'); }
-  validateRules(ruleSet: string, output: Record<string, unknown>, context: Record<string, unknown> = {}) {
-    return this.http.post('/api/runtime/rule-engine/validate', { rule_set: ruleSet, structured_output: output, context });
+  listRuns(agentRef = '', limit = 50, options?: iCoDerRequestOptions) {
+    return this.http.get(
+      '/api/runtime/runs', requestConfig(options, { agent_ref: agentRef, limit }),
+    );
   }
-  registryHealth() { return this.http.get('/api/runtime/registry/health'); }
-  registryRepair(direction = 'registry_to_db') { return this.http.post('/api/runtime/registry/repair', { direction }); }
+  getRun(runId: string, options?: iCoDerRequestOptions) {
+    return this.http.get(
+      `/api/runtime/runs/${encodeURIComponent(runId)}`, requestConfig(options),
+    );
+  }
+  fallbackStats(hours = 24, options?: iCoDerRequestOptions) {
+    return this.http.get(
+      '/api/runtime/observability/fallback', requestConfig(options, { hours }),
+    );
+  }
+  shadowStats(hours = 24, options?: iCoDerRequestOptions) {
+    return this.http.get(
+      '/api/runtime/observability/shadow', requestConfig(options, { hours }),
+    );
+  }
+  auditLog(eventType = '', limit = 100, options?: iCoDerRequestOptions) {
+    return this.http.get(
+      '/api/runtime/audit-log',
+      requestConfig(options, { event_type: eventType, limit }),
+    );
+  }
+  medicalCodingStatus(options?: iCoDerRequestOptions) {
+    return this.http.get('/api/runtime/medical-coding/status', requestConfig(options));
+  }
+  testMedicalCoding(text: string, options?: iCoDerRequestOptions) {
+    return this.http.post(
+      '/api/runtime/medical-coding/test',
+      { encounter_text: text },
+      requestConfig(options),
+    );
+  }
+  ruleEngineStatus(options?: iCoDerRequestOptions) {
+    return this.http.get('/api/runtime/rule-engine/status', requestConfig(options));
+  }
+  ruleEngineRules(options?: iCoDerRequestOptions) {
+    return this.http.get('/api/runtime/rule-engine/rules', requestConfig(options));
+  }
+  validateRules(
+    ruleSet: string,
+    output: Record<string, unknown>,
+    context: Record<string, unknown> = {},
+    options?: iCoDerRequestOptions,
+  ) {
+    return this.http.post(
+      '/api/runtime/rule-engine/validate',
+      { rule_set: ruleSet, structured_output: output, context },
+      requestConfig(options),
+    );
+  }
+  registryHealth(options?: iCoDerRequestOptions) {
+    return this.http.get('/api/runtime/registry/health', requestConfig(options));
+  }
+  registryRepair(direction = 'registry_to_db', options?: iCoDerRequestOptions) {
+    return this.http.post(
+      '/api/runtime/registry/repair', { direction }, requestConfig(options),
+    );
+  }
 }

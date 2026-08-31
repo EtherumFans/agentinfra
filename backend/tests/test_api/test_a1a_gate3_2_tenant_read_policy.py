@@ -40,7 +40,12 @@ def client():
 @pytest.fixture
 def seeded_invisible_rows(client: TestClient):
     """Seed one MODERN row + four invisible classifications under the
-    test user, then yield and clean up."""
+    test user, then yield and clean up.
+
+    The shared session test database can legitimately contain runs produced by
+    earlier API suites. Capture the public aggregate baseline so these tests
+    assert only their own visibility delta instead of depending on file order.
+    """
     from app.database import AsyncSessionLocal
     from app.models.run_history import RunHistoryModel
     from app.models.audit_log import AuditLog as AuditLogModel
@@ -62,6 +67,20 @@ def seeded_invisible_rows(client: TestClient):
         (f"audit-g32-unknown-{token}", "LEGACY_TENANT_UNKNOWN"),
         (f"audit-g32-quarantined-{token}", "QUARANTINED"),
     ]
+    baseline_summary = client.get("/api/usage/summary?days=1").json()
+    baseline_by_agent = client.get("/api/usage/by-agent?days=1").json()
+    baseline_agent = next(
+        (
+            item for item in baseline_by_agent.get("items", [])
+            if item.get("agent_id") == "evidence-extractor"
+        ),
+        {"run_count": 0, "cost": 0.0},
+    )
+    today_str = datetime.now(UTC).strftime("%Y-%m-%d")
+    baseline_today_cost = sum(
+        day["cost"] for day in baseline_summary.get("daily_breakdown", [])
+        if day.get("date") == today_str
+    )
 
     async def _seed():
         async with AsyncSessionLocal() as db:
@@ -96,7 +115,13 @@ def seeded_invisible_rows(client: TestClient):
             await db.commit()
 
     asyncio.run(_seed())
-    yield rows
+    yield {
+        "rows": rows,
+        "credits_used": baseline_summary.get("credits_used", 0.0),
+        "today_cost": baseline_today_cost,
+        "agent_run_count": baseline_agent.get("run_count", 0),
+        "agent_cost": baseline_agent.get("cost", 0.0),
+    }
     async def _clear():
         async with AsyncSessionLocal() as db:
             await db.execute(text(
@@ -121,8 +146,9 @@ def test_summary_excludes_invisible_classifications(
     resp = client.get("/api/usage/summary?days=1")
     assert resp.status_code == 200, resp.text
     body = resp.json()
-    assert abs(body["credits_used"] - 0.10) < 1e-6, (
-        f"expected 0.10 (MODERN only), got {body['credits_used']}"
+    expected = seeded_invisible_rows["credits_used"] + 0.10
+    assert abs(body["credits_used"] - expected) < 1e-6, (
+        f"expected baseline + 0.10 ({expected}), got {body['credits_used']}"
     )
 
 
@@ -139,8 +165,9 @@ def test_summary_daily_breakdown_excludes_invisible(
         day["cost"] for day in body["daily_breakdown"]
         if day["date"] == today_str
     )
-    assert abs(today_total - 0.10) < 1e-6, (
-        f"daily_breakdown today={today_total}, expected 0.10"
+    expected = seeded_invisible_rows["today_cost"] + 0.10
+    assert abs(today_total - expected) < 1e-6, (
+        f"daily_breakdown today={today_total}, expected {expected}"
     )
 
 
@@ -156,8 +183,11 @@ def test_by_agent_excludes_invisible(
     body = resp.json()
     items = {it["agent_id"]: it for it in body["items"]}
     assert "evidence-extractor" in items
-    assert items["evidence-extractor"]["run_count"] == 1
-    assert abs(items["evidence-extractor"]["cost"] - 0.10) < 1e-6
+    assert items["evidence-extractor"]["run_count"] == (
+        seeded_invisible_rows["agent_run_count"] + 1
+    )
+    expected_cost = seeded_invisible_rows["agent_cost"] + 0.10
+    assert abs(items["evidence-extractor"]["cost"] - expected_cost) < 1e-6
 
 
 # ── §3 /api/runtime/runs/history ─────────────────────────────────────
@@ -176,7 +206,7 @@ def test_runs_history_excludes_invisible(
     returned_ids = {it["run_id"] for it in body["items"]}
     # The MODERN run should be present
     modern_id = next(
-        rid for rid, *_ in seeded_invisible_rows
+        rid for rid, *_ in seeded_invisible_rows["rows"]
         if rid.startswith("run-g32-modern-")
     )
     assert modern_id in returned_ids

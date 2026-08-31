@@ -89,7 +89,10 @@ async def test_dispatch_tool_validate_codes_with_scopes_succeeds(trace_store=Non
     async def _fake_run(input_text, *, run_id=""):
         return fake_result
 
-    with patch("official_agents.code_validation.agent.run", new=_fake_run):
+    with patch(
+        "official_agents.code_validation.agent_legacy.run_legacy",
+        new=_fake_run,
+    ):
         auth = AuthHeader(
             kind="none",
             granted_scopes=["coding:validate"],

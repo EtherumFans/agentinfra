@@ -9,7 +9,7 @@ Verifies the Corti-style use_case filter on the Hub endpoint
 - `?use_case=clinical_evidence_research` → 0 packs (none declared yet).
 - `?use_case=invalid_key` → 0 packs (unknown key returns empty, not 400).
 - Each Hub card now includes a top-level `use_case` field (Loop 4 §1).
-- Schema version bumped to "1.1" (Loop 4).
+- Schema version is "1.3" after runtime-readiness truthfulness was added.
 """
 from __future__ import annotations
 
@@ -50,16 +50,16 @@ def test_hub_no_use_case_filter_returns_all_visible(client: TestClient):
     response = _get(client, "/api/icoder/agents/hub")
     assert response.status_code == 200
     body = response.json()
-    assert body["schema_version"] == "1.1"
-    assert body["total"] == 24, f"Expected 24 visible packs, got {body['total']}"
+    assert body["schema_version"] == "1.3"
+    assert body["total"] == 26, f"Expected 26 visible packs, got {body['total']}"
     use_cases = {c.get("use_case") for c in body["agents"]}
     # coding_revenue_cycle is the dominant use_case and must be present;
     # other use_cases may also appear (care_coordination, etc.).
     assert "coding_revenue_cycle" in use_cases, use_cases
 
 
-def test_hub_filter_coding_revenue_cycle_returns_all_11(client: TestClient):
-    """?use_case=coding_revenue_cycle → all 17 packs that declare this key.
+def test_hub_filter_coding_revenue_cycle_returns_all_16(client: TestClient):
+    """?use_case=coding_revenue_cycle → all 16 packs that declare this key.
 
     Phase 3-D1 Task 5 (2026-07-06): 3 packs upgraded from metadata-only to
     runnable (code-validation / compliance-guardrail / note-completeness).
@@ -71,13 +71,14 @@ def test_hub_filter_coding_revenue_cycle_returns_all_11(client: TestClient):
     Phase 5 Track D Gate 3 (2026-07-11): clinical-documentation-improvement-
     agent added as CORE_ENTRY_AGENT (CDI).
 
-    After all upgrades: 10 runnable + 7 metadata-only = 17 packs under
+    Referral Generator is intentionally classified as care coordination.
+    The current visible catalog therefore contains 16 packs under
     coding_revenue_cycle.
     """
     response = _get(client, "/api/icoder/agents/hub?use_case=coding_revenue_cycle")
     assert response.status_code == 200
     body = response.json()
-    assert body["total"] == 17, f"Expected 17 packs for coding_revenue_cycle, got {body['total']}"
+    assert body["total"] == 16, f"Expected 16 packs for coding_revenue_cycle, got {body['total']}"
     # All returned cards should declare this use_case at top level.
     for card in body["agents"]:
         assert card["use_case"] == "coding_revenue_cycle"

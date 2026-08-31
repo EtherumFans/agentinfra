@@ -4,17 +4,17 @@
     "generated_by": "scripts/a1b_ae_2_build_catalogs.py",
     "clean_room_attested": true,
     "counts": {
-      "pack_total": 32,
-      "pack_runnable": 2,
-      "pack_metadata_only": 27,
-      "pack_legacy_orphan": 3,
-      "pack_empty": 0,
-      "dual_named_pairs": 3,
-      "agent_total_canonical": 29,
-      "expert_total": 40,
+      "pack_total": 44,
+      "pack_runnable": 6,
+      "pack_metadata_only": 26,
+      "pack_legacy_orphan": 10,
+      "pack_empty": 2,
+      "dual_named_pairs": 10,
+      "agent_total_canonical": 32,
+      "expert_total": 38,
       "expert_corti_public_9key": 9,
-      "expert_icoder_internal": 11,
-      "expert_pack_declared": 20,
+      "expert_icoder_internal": 12,
+      "expert_pack_declared": 17,
       "seed_prebuilt_agents": 16
     },
     "classification_legend": {
@@ -44,6 +44,19 @@
       "dual_name_migration": null
     },
     {
+      "canonical_name": "claim-check",
+      "canonical_agent_ref": "icoder/claim-check@1.1.0",
+      "sources": [
+        "official_agents/claim-check/agent_pack.json",
+        "official_agents/claim_check/__init__.py"
+      ],
+      "pack_dir": "claim-check",
+      "seed_key": null,
+      "expert_ids": [],
+      "classification": "METADATA_ONLY_PACK",
+      "dual_name_migration": "claim_check -> claim-check"
+    },
+    {
       "canonical_name": "clinical-documentation-improvement-agent",
       "canonical_agent_ref": "icoder/clinical-documentation-improvement-agent@1.0.0",
       "sources": [
@@ -59,6 +72,32 @@
       ],
       "classification": "METADATA_ONLY_PACK",
       "dual_name_migration": null
+    },
+    {
+      "canonical_name": "clinical-education",
+      "canonical_agent_ref": "icoder/clinical-education@1.1.0",
+      "sources": [
+        "official_agents/clinical-education/agent_pack.json",
+        "official_agents/clinical_education/__init__.py"
+      ],
+      "pack_dir": "clinical-education",
+      "seed_key": null,
+      "expert_ids": [],
+      "classification": "METADATA_ONLY_PACK",
+      "dual_name_migration": "clinical_education -> clinical-education"
+    },
+    {
+      "canonical_name": "clinical-guidelines",
+      "canonical_agent_ref": "icoder/clinical-guidelines@1.1.0",
+      "sources": [
+        "official_agents/clinical-guidelines/agent_pack.json",
+        "official_agents/clinical_guidelines/__init__.py"
+      ],
+      "pack_dir": "clinical-guidelines",
+      "seed_key": null,
+      "expert_ids": [],
+      "classification": "METADATA_ONLY_PACK",
+      "dual_name_migration": "clinical_guidelines -> clinical-guidelines"
     },
     {
       "canonical_name": "code-reconciler",
@@ -85,8 +124,8 @@
       "pack_dir": "code-validation",
       "seed_key": "code-validation",
       "expert_ids": [
-        "LLM With Tools",
-        "Rule Engine (Legacy Fallback)",
+        "Governed Local Catalog Baseline",
+        "LLM With Tools Semantic Review",
         "编码校验专家"
       ],
       "classification": "METADATA_ONLY_PACK",
@@ -111,10 +150,11 @@
     },
     {
       "canonical_name": "denial-appeals",
-      "canonical_agent_ref": "icoder/denial-appeals@1.0.0",
+      "canonical_agent_ref": "icoder/denial-appeals@1.1.0",
       "sources": [
         "backend/app/seed.py#PREBUILT_AGENTS",
-        "official_agents/denial-appeals/agent_pack.json"
+        "official_agents/denial-appeals/agent_pack.json",
+        "official_agents/denial_appeals/__init__.py"
       ],
       "pack_dir": "denial-appeals",
       "seed_key": "denial-appeals",
@@ -122,14 +162,15 @@
         "拒付申诉专家"
       ],
       "classification": "METADATA_ONLY_PACK",
-      "dual_name_migration": null
+      "dual_name_migration": "denial_appeals -> denial-appeals"
     },
     {
       "canonical_name": "diagnosis-extractor",
-      "canonical_agent_ref": "icoder/diagnosis-extractor@1.0.0",
+      "canonical_agent_ref": "icoder/diagnosis-extractor@1.2.0",
       "sources": [
         "backend/app/seed.py#PREBUILT_AGENTS",
-        "official_agents/diagnosis-extractor/agent_pack.json"
+        "official_agents/diagnosis-extractor/agent_pack.json",
+        "official_agents/diagnosis_extractor/__init__.py"
       ],
       "pack_dir": "diagnosis-extractor",
       "seed_key": "diagnosis-extractor",
@@ -137,11 +178,11 @@
         "诊断提取专家"
       ],
       "classification": "METADATA_ONLY_PACK",
-      "dual_name_migration": null
+      "dual_name_migration": "diagnosis_extractor -> diagnosis-extractor"
     },
     {
       "canonical_name": "discharge-edu",
-      "canonical_agent_ref": "icoder/discharge-edu@1.0.0",
+      "canonical_agent_ref": "icoder/discharge-edu@1.1.0",
       "sources": [
         "backend/app/seed.py#PREBUILT_AGENTS",
         "official_agents/discharge_edu/agent_pack.json"
@@ -156,15 +197,13 @@
     },
     {
       "canonical_name": "discharge-summary-structuring",
-      "canonical_agent_ref": "icoder/discharge-summary-structuring@1.0.0",
+      "canonical_agent_ref": "icoder/discharge-summary-structuring@1.1.0",
       "sources": [
         "official_agents/discharge_summary_structuring/agent_pack.json"
       ],
       "pack_dir": "discharge_summary_structuring",
       "seed_key": null,
-      "expert_ids": [
-        "Discharge Summary Structurer"
-      ],
+      "expert_ids": [],
       "classification": "METADATA_ONLY_PACK",
       "dual_name_migration": null
     },
@@ -182,10 +221,11 @@
     },
     {
       "canonical_name": "drg-analyzer",
-      "canonical_agent_ref": "icoder/drg-analyzer@1.0.0",
+      "canonical_agent_ref": "icoder/drg-analyzer@1.1.3",
       "sources": [
+        "official_agents/drg-analyzer/__init__.py",
         "official_agents/drg-analyzer/agent_pack.json",
-        "official_agents/drg-analyzer/__init__.py"
+        "official_agents/drg_analyzer/__init__.py"
       ],
       "pack_dir": "drg-analyzer",
       "seed_key": null,
@@ -193,25 +233,23 @@
         "DRG/DIP Risk Reviewer"
       ],
       "classification": "RUNNABLE_PACK",
-      "dual_name_migration": null
+      "dual_name_migration": "drg_analyzer -> drg-analyzer"
     },
     {
       "canonical_name": "evidence-extractor",
-      "canonical_agent_ref": "icoder/evidence-extractor@1.0.0",
+      "canonical_agent_ref": "icoder/evidence-extractor@1.1.0",
       "sources": [
         "official_agents/evidence_extractor/agent_pack.json"
       ],
       "pack_dir": "evidence_extractor",
       "seed_key": null,
-      "expert_ids": [
-        "Evidence Extractor"
-      ],
+      "expert_ids": [],
       "classification": "METADATA_ONLY_PACK",
       "dual_name_migration": null
     },
     {
       "canonical_name": "evidence-ranker",
-      "canonical_agent_ref": "icoder/evidence-ranker@1.0.0",
+      "canonical_agent_ref": "icoder/evidence-ranker@1.1.0",
       "sources": [
         "official_agents/evidence-ranker/agent_pack.json"
       ],
@@ -219,11 +257,11 @@
       "seed_key": null,
       "expert_ids": [],
       "classification": "METADATA_ONLY_PACK",
-      "dual_name_migration": null
+      "dual_name_migration": "evidence_ranker -> evidence-ranker"
     },
     {
       "canonical_name": "icd10-navigator",
-      "canonical_agent_ref": "icoder/icd10-navigator@1.0.0",
+      "canonical_agent_ref": "icoder/icd10-navigator@1.1.0",
       "sources": [
         "backend/app/seed.py#PREBUILT_AGENTS",
         "official_agents/icd10_navigator/agent_pack.json"
@@ -238,7 +276,7 @@
     },
     {
       "canonical_name": "icu-summary",
-      "canonical_agent_ref": "icoder/icu-summary@1.0.0",
+      "canonical_agent_ref": "icoder/icu-summary@1.1.0",
       "sources": [
         "backend/app/seed.py#PREBUILT_AGENTS",
         "official_agents/icu_summary/agent_pack.json"
@@ -267,9 +305,10 @@
     },
     {
       "canonical_name": "med-reconciliation",
-      "canonical_agent_ref": "icoder/med-reconciliation@1.0.0",
+      "canonical_agent_ref": "icoder/med-reconciliation@1.1.0",
       "sources": [
         "backend/app/seed.py#PREBUILT_AGENTS",
+        "official_agents/med_reconciliation/__init__.py",
         "official_agents/med_reconciliation/agent_pack.json"
       ],
       "pack_dir": "med_reconciliation",
@@ -277,7 +316,7 @@
       "expert_ids": [
         "用药重整专家"
       ],
-      "classification": "METADATA_ONLY_PACK",
+      "classification": "RUNNABLE_PACK",
       "dual_name_migration": null
     },
     {
@@ -331,7 +370,7 @@
     },
     {
       "canonical_name": "nursing-handoff",
-      "canonical_agent_ref": "icoder/nursing-handoff@1.0.0",
+      "canonical_agent_ref": "icoder/nursing-handoff@1.1.0",
       "sources": [
         "backend/app/seed.py#PREBUILT_AGENTS",
         "official_agents/nursing_handoff/agent_pack.json"
@@ -346,21 +385,20 @@
     },
     {
       "canonical_name": "principal-diagnosis-review",
-      "canonical_agent_ref": "icoder/principal-diagnosis-review@1.0.0",
+      "canonical_agent_ref": "icoder/principal-diagnosis-review@1.1.0",
       "sources": [
-        "official_agents/principal_diagnosis_review/agent_pack.json"
+        "official_agents/principal_diagnosis_review/agent_pack.json",
+        "official_agents/principal_diagnosis_review/__init__.py"
       ],
       "pack_dir": "principal_diagnosis_review",
       "seed_key": null,
-      "expert_ids": [
-        "Principal Dx Reviewer"
-      ],
-      "classification": "METADATA_ONLY_PACK",
+      "expert_ids": [],
+      "classification": "RUNNABLE_PACK",
       "dual_name_migration": null
     },
     {
       "canonical_name": "prior-auth",
-      "canonical_agent_ref": "icoder/prior-auth@1.0.0",
+      "canonical_agent_ref": "icoder/prior-auth@1.1.0",
       "sources": [
         "backend/app/seed.py#PREBUILT_AGENTS",
         "official_agents/prior_auth/agent_pack.json"
@@ -375,23 +413,23 @@
     },
     {
       "canonical_name": "procedure-extractor",
-      "canonical_agent_ref": "icoder/procedure-extractor@1.0.0",
+      "canonical_agent_ref": "icoder/procedure-extractor@1.1.0",
       "sources": [
         "backend/app/seed.py#PREBUILT_AGENTS",
-        "official_agents/procedure-extractor/agent_pack.json"
+        "official_agents/procedure-extractor/agent_pack.json",
+        "official_agents/procedure_extractor/__init__.py"
       ],
       "pack_dir": "procedure-extractor",
       "seed_key": "procedure-extractor",
       "expert_ids": [
-        "Procedure Extractor",
         "手术提取专家"
       ],
       "classification": "METADATA_ONLY_PACK",
-      "dual_name_migration": null
+      "dual_name_migration": "procedure_extractor -> procedure-extractor"
     },
     {
       "canonical_name": "referral-gen",
-      "canonical_agent_ref": "icoder/referral-gen@1.0.0",
+      "canonical_agent_ref": "icoder/referral-gen@1.1.0",
       "sources": [
         "backend/app/seed.py#PREBUILT_AGENTS",
         "official_agents/referral_gen/agent_pack.json"
@@ -406,9 +444,10 @@
     },
     {
       "canonical_name": "rule-explainer",
-      "canonical_agent_ref": "icoder/rule-explainer@1.0.0",
+      "canonical_agent_ref": "icoder/rule-explainer@1.2.0",
       "sources": [
         "backend/app/seed.py#PREBUILT_AGENTS",
+        "official_agents/rule_explainer/__init__.py",
         "official_agents/rule_explainer/agent_pack.json"
       ],
       "pack_dir": "rule_explainer",
@@ -416,7 +455,7 @@
       "expert_ids": [
         "规则解释专家"
       ],
-      "classification": "METADATA_ONLY_PACK",
+      "classification": "RUNNABLE_PACK",
       "dual_name_migration": null
     },
     {
@@ -450,17 +489,19 @@
     },
     {
       "canonical_name": "triage",
-      "canonical_agent_ref": "icoder/triage@1.0.0",
+      "canonical_agent_ref": "icoder/triage@1.1.2",
       "sources": [
         "backend/app/seed.py#PREBUILT_AGENTS",
+        "official_agents/triage/__init__.py",
         "official_agents/triage/agent_pack.json"
       ],
       "pack_dir": "triage",
       "seed_key": "triage",
       "expert_ids": [
+        "Triage Questionnaire Path Reviewer",
         "急诊分诊评估专家"
       ],
-      "classification": "METADATA_ONLY_PACK",
+      "classification": "RUNNABLE_PACK",
       "dual_name_migration": null
     }
   ]

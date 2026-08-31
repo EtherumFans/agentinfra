@@ -177,6 +177,14 @@ def _localize_child_ids(case: CDICase) -> CDICase:
         case,
         documentation_gaps=new_gaps,
         proposed_provider_queries=new_queries,
+        query_rewrite_queue=[
+            {
+                **item,
+                "gap_id": gap_id_map.get(item.get("gap_id"), item.get("gap_id")),
+                "gap_reference_valid": item.get("gap_id") in gap_id_map,
+            }
+            for item in case.query_rewrite_queue
+        ],
     )
 
 
@@ -240,6 +248,7 @@ def query_to_orm(q: ProviderQuery, case_id: str) -> ProviderQueryModel:
         evidence_quote=ev.quote if ev else "",
         evidence_char_start=ev.char_start if ev else 0,
         evidence_char_end=ev.char_end if ev else 0,
+        evidence_spans=[_evidence_to_dict(span) for span in q.all_evidence_spans()],
         nlq_gate_verdict=q.nlq_gate_verdict or "PENDING",
         nlq_gate_block_reasons=list(q.nlq_gate_block_reasons),
         lifecycle_state=q.lifecycle_state,
@@ -300,6 +309,7 @@ def case_to_orm(
             }
             for e in case.specialist_trace
         ],
+        query_rewrite_queue=list(case.query_rewrite_queue),
         completion_state=case.completion_state,
         created_by_user_id=created_by_user_id,
         closed_at=None,
@@ -340,9 +350,23 @@ async def persist_case(
         "0 Gap + N Query" pathology when LLM placeholder IDs collided
         across cases. Localization makes the skip unnecessary.
     """
-    existing = await session.get(CDICaseModel, case.case_id)
+    existing_stmt = select(CDICaseModel).where(
+        CDICaseModel.id == case.case_id,
+    )
+    if organization_id is not None:
+        existing_stmt = existing_stmt.where(
+            CDICaseModel.organization_id == organization_id,
+        )
+    existing = (await session.execute(existing_stmt)).scalar_one_or_none()
     if existing is not None:
         return existing
+
+    # A caller may reuse a case ID that exists in another tenant. Treat it as
+    # a collision, never as an idempotent replay and never overwrite it.
+    if organization_id is not None:
+        cross_tenant = await session.get(CDICaseModel, case.case_id)
+        if cross_tenant is not None:
+            raise ValueError("cdi_case_id_collision")
 
     # Gate 1: localize child IDs + drop orphan queries.
     localized = _localize_child_ids(case)
@@ -373,10 +397,16 @@ async def persist_case(
 
 
 async def load_case(
-    session: AsyncSession, case_id: str
+    session: AsyncSession,
+    case_id: str,
+    *,
+    organization_id: str | None = None,
 ) -> CDICaseModel | None:
     """Load a CDI case + its gaps + queries. Returns None if not found."""
-    case_model = await session.get(CDICaseModel, case_id)
+    stmt = select(CDICaseModel).where(CDICaseModel.id == case_id)
+    if organization_id is not None:
+        stmt = stmt.where(CDICaseModel.organization_id == organization_id)
+    case_model = (await session.execute(stmt)).scalar_one_or_none()
     if case_model is None:
         return None
 
@@ -505,19 +535,28 @@ def orm_to_gap_dict(gap_model: DocumentationGapModel) -> dict[str, Any]:
 
 def orm_to_query_dict(q_model: ProviderQueryModel) -> dict[str, Any]:
     """Convert ORM query to a dict matching ProviderQuerySchema."""
+    primary_evidence = {
+        "document_id": q_model.evidence_document_id,
+        "quote": q_model.evidence_quote,
+        "char_start": q_model.evidence_char_start,
+        "char_end": q_model.evidence_char_end,
+    }
+    evidence_spans = list(q_model.evidence_spans or [])
+    if not evidence_spans and primary_evidence["quote"]:
+        evidence_spans = [dict(primary_evidence)]
     return {
         "query_id": q_model.id,
         "gap_id": q_model.gap_id,
         "topic": q_model.topic,
         "reason": q_model.reason,
-        "evidence_span": {
-            "document_id": q_model.evidence_document_id,
-            "quote": q_model.evidence_quote,
-        },
+        "evidence_span": primary_evidence,
+        "evidence_spans": evidence_spans,
         "query_text": q_model.query_text,
         "response_options": list(q_model.response_options or []),
         "lifecycle_state": q_model.lifecycle_state,
         "priority": q_model.priority,
+        "nlq_gate_verdict": q_model.nlq_gate_verdict or "PENDING",
+        "nlq_gate_block_reasons": list(q_model.nlq_gate_block_reasons or []),
     }
 
 
@@ -535,6 +574,7 @@ async def update_query_lifecycle(
     nlq_gate_verdict: str | None = None,
     nlq_gate_block_reasons: list[str] | None = None,
     sla_due_at: datetime | None = None,
+    organization_id: str | None = None,
 ) -> tuple[ProviderQueryModel | None, bool]:
     """Atomically transition a query's lifecycle_state with optimistic lock.
 
@@ -545,7 +585,12 @@ async def update_query_lifecycle(
     Implementation: ``UPDATE ... WHERE id=:id AND lifecycle_state=:from``
     relies on row-level locking; we read back to confirm.
     """
-    q_model = await session.get(ProviderQueryModel, query_id)
+    stmt = select(ProviderQueryModel).where(ProviderQueryModel.id == query_id)
+    if organization_id is not None:
+        stmt = stmt.join(
+            CDICaseModel, ProviderQueryModel.case_id == CDICaseModel.id,
+        ).where(CDICaseModel.organization_id == organization_id)
+    q_model = (await session.execute(stmt)).scalar_one_or_none()
     if q_model is None:
         return None, False
 

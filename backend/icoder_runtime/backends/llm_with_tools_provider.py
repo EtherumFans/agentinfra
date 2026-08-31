@@ -1,9 +1,9 @@
 """LLMWithToolsProvider — LLM backend with MCP tool calls.
 
-Phase 4-A Task 6 (2026-07-07): skeleton — implemented the
-``AgentBackendProvider`` interface and routed tool calls through
-``ToolMCPCompatLayer`` → ``app.icoder.mcp.server.dispatch_tool``,
-but did NOT wire a real LLM.
+The provider is production fail-closed.  Tool dispatch only occurs when a
+real LLM client (or the application-wide gateway) requests a tool call; a
+missing LLM must never execute a guessed tool or manufacture a successful
+clinical response.
 
 Phase 4-C (2026-07-08): real LLM tool-calling loop. Mirrors the
 Corti Code Validation Agent architecture (LLM + 4 mandatory tools
@@ -44,10 +44,11 @@ Hard rules:
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import time
-from typing import Any, AsyncIterator
+from typing import Any, AsyncIterator, Callable
 
 from .contracts import (
     AgentBackendProvider,
@@ -60,10 +61,47 @@ from .contracts import (
     ProviderStatus,
     ToolCallRecord,
 )
-from .pure_llm_provider import LLMClient, LLMResponse
+from .pure_llm_provider import (
+    LLMClient,
+    LLMResponse,
+    _append_pack_contract_instruction,
+    _is_incomplete_finish_reason,
+    _model_telemetry_from_raw,
+    _pack_output_contract,
+    _redact_untrusted_instruction_echo,
+)
 from .tool_mcp_compat_layer import ToolMCPCompatLayer, ToolCallResponse
 
 logger = logging.getLogger(__name__)
+
+
+def _accumulate_cost(total: float | None, incremental: float | None) -> float | None:
+    """Sum billed model calls while preserving an entirely unknown total."""
+    if incremental is None:
+        return total
+    return round((total or 0.0) + float(incremental), 12)
+
+
+def _accumulate_model_telemetry(
+    aggregate: dict[str, Any],
+    raw: Any,
+) -> None:
+    """Accumulate bounded telemetry across a multi-round LLM/tool loop."""
+
+    current = _model_telemetry_from_raw(raw)
+    for key in ("model_provider", "model_system", "model_name"):
+        value = current.get(key)
+        if not value:
+            continue
+        existing = aggregate.get(key)
+        if existing and existing != value:
+            aggregate[key] = "mixed"
+        else:
+            aggregate[key] = value
+    for key in ("input_tokens", "output_tokens", "total_tokens"):
+        value = current.get(key)
+        if value is not None:
+            aggregate[key] = int(aggregate.get(key) or 0) + int(value)
 
 
 # ── Provider ───────────────────────────────────────────────────────────
@@ -103,16 +141,33 @@ class LLMWithToolsProvider:
     # ── AgentBackendProvider protocol ─────────────────────────────
 
     async def health(self) -> ProviderHealth:
-        if self._llm_client is None:
+        client = self._resolve_client()
+        if client is None:
             return ProviderHealth(
                 state="degraded",
-                details={"note": "no llm_client wired (Phase 4-C production needs one)"},
+                details={"note": "no application LLM gateway is configured"},
+            )
+        configuration_status = getattr(client, "configuration_status", None)
+        if callable(configuration_status):
+            snapshot = configuration_status()
+            if snapshot.get("status") != "configured":
+                return ProviderHealth(state="degraded", details=dict(snapshot))
+            return ProviderHealth(
+                state="ok",
+                details={
+                    "provider_id": self.provider_id,
+                    "backend_type": self.backend_type,
+                    "max_tool_rounds": self._max_tool_rounds,
+                    **snapshot,
+                },
             )
         return ProviderHealth(
             state="ok",
             details={"provider_id": self.provider_id,
                      "backend_type": self.backend_type,
-                     "max_tool_rounds": self._max_tool_rounds},
+                     "max_tool_rounds": self._max_tool_rounds,
+                     "configuration_status": "injected_client",
+                     "live_health_verified": False},
         )
 
     async def invoke(
@@ -124,15 +179,12 @@ class LLMWithToolsProvider:
 
         Phase 5 Track C Gate 1 (2026-07-11): lazy-resolve ``llm_client``
         via ``registry.get_gateway()`` (same pattern as
-        ``PureLLMProvider._resolve_client``). Fixes the B-2 P0 SKELETON
-        blocker where ``registry.py:397`` instantiated
-        ``LLMWithToolsProvider()`` with no args, so code-validation-agent
-        always fell through to ``_skeleton_pipeline`` even when the
-        LLMGateway was registered.
+        ``PureLLMProvider._resolve_client``). Registry-created providers
+        therefore use the application gateway without a constructor-level
+        client dependency.
 
-        Phase 4-C: real LLM tool-calling loop. If after lazy-resolve
-        ``llm_client`` is still None, runs the ``_skeleton_pipeline``
-        so the contract is still verifiable in unit tests without an LLM.
+        If lazy resolution cannot find an LLM client, return a failed backend
+        envelope.  Offline contract tests inject a mock client explicitly.
 
         ``request`` is the FastAPI ``Request`` (or stand-in) needed by
         ``dispatch_tool`` to read ``app.state``. In-process callers
@@ -140,13 +192,23 @@ class LLMWithToolsProvider:
         ``app.main.py:_handle_simple`` for the established pattern).
         """
         t0 = time.perf_counter()
-        system_prompt = req.system_prompt or _extract_system_prompt(ctx)
+        system_prompt = _append_pack_contract_instruction(
+            req.system_prompt or _extract_system_prompt(ctx),
+            ctx.agent_pack,
+        )
         user_input = req.user_input or ctx.redacted_input or _extract_user_input(req)
 
         # Validate tool scope config (mandatory ⊆ scope, forbidden ∩ scope = ∅).
         scope_ok, scope_errors = self._mcp_layer.validate_tool_scope(
             req.tool_scope,
-            mandatory=req.mandatory_tools,
+            mandatory=(
+                list(req.mandatory_tools)
+                + [
+                    str(tool)
+                    for policy in req.conditional_mandatory_tools
+                    for tool in (policy.get("tools") or [])
+                ]
+            ),
             forbidden=req.forbidden_tools,
         )
         if not scope_ok:
@@ -158,9 +220,10 @@ class LLMWithToolsProvider:
         # Track C Gate 1: lazy-resolve llm_client if not explicitly wired.
         client = self._resolve_client()
         if client is None:
-            return await self._skeleton_pipeline(
-                req=req, ctx=ctx, system_prompt=system_prompt,
-                user_input=user_input, request=request, t0=t0,
+            return self._fail(
+                "llm_unavailable: no llm_client and no application gateway wired",
+                t0,
+                ctx,
             )
 
         try:
@@ -169,9 +232,12 @@ class LLMWithToolsProvider:
                 user_input=user_input, request=request, t0=t0,
             )
         except Exception as e:
-            logger.exception("LLMWithToolsProvider.invoke failed")
+            logger.error(
+                "LLMWithToolsProvider.invoke failed error_type=%s",
+                type(e).__name__,
+            )
             return self._fail(
-                f"llm error: {type(e).__name__}: {e}",
+                f"llm_error: {type(e).__name__}",
                 t0, ctx,
             )
 
@@ -182,7 +248,11 @@ class LLMWithToolsProvider:
     ) -> AsyncIterator[Any]:
         """Streaming LLM with tools.
 
-        Phase 4-C: emits a 4-event sequence derived from the invoke
+        Current implementation consumes provider-native text/tool/usage/reset
+        events while the canonical MCP loop is running. Provisional payloads
+        are internal; the final normalized response remains authoritative.
+
+        Historical Phase 4-C behavior emitted a sequence derived from invoke
         path (real streaming with interleaved tool calls is Phase 4-D
         scope — DeepSeek SSE):
 
@@ -191,13 +261,75 @@ class LLMWithToolsProvider:
           3. ``{"step": "output_chunk", "payload": {"delta": str}}``
           4. ``{"step": "finished", "payload": {"state": "completed"}}``
         """
-        resp = await self.invoke(req, ctx, request=request)
+        t0 = time.perf_counter()
+        system_prompt = _append_pack_contract_instruction(
+            req.system_prompt or _extract_system_prompt(ctx),
+            ctx.agent_pack,
+        )
+        user_input = req.user_input or ctx.redacted_input or _extract_user_input(req)
+        scope_ok, scope_errors = self._mcp_layer.validate_tool_scope(
+            req.tool_scope,
+            mandatory=(
+                list(req.mandatory_tools)
+                + [
+                    str(tool)
+                    for policy in req.conditional_mandatory_tools
+                    for tool in (policy.get("tools") or [])
+                ]
+            ),
+            forbidden=req.forbidden_tools,
+        )
+        if not scope_ok:
+            resp = self._fail(f"tool_scope invalid: {scope_errors}", t0, ctx)
+            yield {"step": "backend_invoked", "payload": resp}
+            yield {"step": "finished", "payload": {"state": resp.finish_state}}
+            return
+        if self._resolve_client() is None:
+            resp = self._fail(
+                "llm_unavailable: no llm_client and no application gateway wired",
+                t0,
+                ctx,
+            )
+            yield {"step": "backend_invoked", "payload": resp}
+            yield {"step": "finished", "payload": {"state": resp.finish_state}}
+            return
+
+        queue: asyncio.Queue[dict[str, Any]] = asyncio.Queue()
+        task = asyncio.create_task(self._real_llm_pipeline(
+            req=req,
+            ctx=ctx,
+            system_prompt=system_prompt,
+            user_input=user_input,
+            request=request,
+            t0=t0,
+            event_sink=queue.put_nowait,
+        ))
+        try:
+            while not task.done() or not queue.empty():
+                try:
+                    event = await asyncio.wait_for(queue.get(), timeout=0.1)
+                except TimeoutError:
+                    continue
+                yield event
+            resp = await task
+        except Exception as exc:
+            if not task.done():
+                task.cancel()
+            logger.error(
+                "LLMWithToolsProvider.stream failed error_type=%s",
+                type(exc).__name__,
+            )
+            resp = self._fail(f"llm_error: {type(exc).__name__}", t0, ctx)
+
         yield {"step": "backend_invoked", "payload": resp}
         for tc in resp.tool_calls:
             yield {"step": "tool_calls", "payload": tc}
         text = resp.markdown or ""
         for i in range(0, len(text), 200):
-            yield {"step": "output_chunk", "payload": {"delta": text[i:i + 200]}}
+            yield {
+                "step": "output_chunk",
+                "payload": {"delta": text[i:i + 200], "native": False},
+            }
         yield {"step": "finished", "payload": {"state": resp.finish_state}}
 
     def output_contract(self) -> str:
@@ -222,89 +354,6 @@ class LLMWithToolsProvider:
             ),
         )
 
-    # ── Skeleton pipeline (no llm_client) ──────────────────────────
-
-    async def _skeleton_pipeline(
-        self,
-        *,
-        req: BackendRequest,
-        ctx: AgentRunContext,
-        system_prompt: str,
-        user_input: str,
-        request: Any,
-        t0: float,
-    ) -> BackendResponse:
-        """Skeleton fallback: simulate one tool call + placeholder LLM.
-
-        Used when no ``llm_client`` is wired (unit tests, dev startup
-        before LLM gateway is registered). Picks the first tool in
-        ``req.tool_scope`` and routes it through
-        ``ToolMCPCompatLayer.call`` so the dispatch_tool contract is
-        verified.
-        """
-        tool_calls: list[ToolCallRecord] = []
-        scope = list(req.tool_scope or [])
-        if not scope:
-            all_tools = self._mcp_layer.list_available_tools(
-                agent_id=ctx.agent_id, provider_id=self.provider_id,
-            )
-            if all_tools:
-                first = all_tools[0]
-                if isinstance(first, dict):
-                    name = first.get("name", "")
-                    if isinstance(name, str) and name:
-                        scope = [name]
-
-        if scope and request is not None:
-            tool_name = scope[0]
-            tool_args = _build_skeleton_tool_args(
-                tool_name, user_input, req.input,
-            )
-            tool_call = {"name": tool_name, "arguments": tool_args,
-                         "run_id": ctx.run_id}
-            mcp_resp: ToolCallResponse = await self._mcp_layer.call(
-                tool_call, ctx, provider_id=self.provider_id, request=request,
-            )
-            tool_calls.append(self._mcp_layer.to_tool_call_record(
-                mcp_resp, arguments=tool_args,
-            ))
-        elif scope and request is None:
-            tool_calls.append(ToolCallRecord(
-                tool_name=scope[0],
-                arguments={},
-                error=("ToolMCPCompatLayer.call requires `request` — "
-                       "pass it via invoke(..., request=...)"),
-            ))
-
-        placeholder_text = _placeholder_markdown(
-            user_input, system_prompt, tool_calls,
-        )
-        latency_ms = int((time.perf_counter() - t0) * 1000)
-        status: ProviderStatus = "complete"
-        self._emit_backend_metadata(
-            ctx, latency_ms, status,
-            tool_rounds=len(tool_calls), fallback_used=False,
-        )
-        return BackendResponse(
-            status=status,
-            summary="LLMWithToolsProvider skeleton: placeholder response (no llm_client wired).",
-            markdown=placeholder_text,
-            tool_calls=tool_calls,
-            backend_provider=self.provider_id,
-            backend_type=self.backend_type,
-            latency_ms=latency_ms,
-            cost_usd=0.0,
-            finish_state="completed",
-            raw_provider_response={
-                "skeleton": True,
-                "tool_rounds": len(tool_calls),
-                "system_prompt_chars": len(system_prompt),
-                "user_input_chars": len(user_input),
-            },
-            evidence_refs=[tc.tool_name for tc in tool_calls],
-            trace_refs=[ctx.run_id],
-        )
-
     # ── Real LLM tool-calling pipeline (Phase 4-C) ─────────────────
 
     async def _real_llm_pipeline(
@@ -316,6 +365,7 @@ class LLMWithToolsProvider:
         user_input: str,
         request: Any,
         t0: float,
+        event_sink: Callable[[dict[str, Any]], None] | None = None,
     ) -> BackendResponse:
         """Phase 4-C real LLM tool-calling loop.
 
@@ -336,11 +386,94 @@ class LLMWithToolsProvider:
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_input},
         ]
+        total_cost: float | None = None
+        llm_call_count = 0
+        model_telemetry: dict[str, Any] = {}
+
+        # Output-dependent tool policies require a no-tool classification
+        # pass before tools are exposed.  This prevents a diagnosis extractor
+        # from querying codes for mentions that are all negated, ruled out or
+        # historical.  If the preflight cannot be parsed, the resolver fails
+        # closed and the regular tool-enabled path remains available.
+        if req.conditional_mandatory_tools:
+            preflight = await self._call_llm(
+                messages=messages + [{
+                    "role": "system",
+                    "content": (
+                        "This is a tool-eligibility preflight, not the final "
+                        "public response. No tools are available in this "
+                        "round. Return only one JSON object with this exact "
+                        "shape: {\"tool_eligibility\": {\"<output_path>\": "
+                        "true_or_false}}. Include every conditional output "
+                        "path named by the runtime policy. Set a path to true "
+                        "when the supplied input contains qualifying content "
+                        "that would make that final output path non-empty; "
+                        "set it to false only when confidently empty. The "
+                        "absence of tools or verified codes is never a reason "
+                        "to set it to false. Do not emit the public output "
+                        "contract and do not invent or verify codes."
+                    ),
+                }],
+                tools=[],
+                temperature=self._default_temperature,
+                max_tokens=None,
+                timeout_seconds=req.timeout_seconds,
+                event_sink=event_sink,
+            )
+            llm_call_count += 1
+            total_cost = _accumulate_cost(total_cost, preflight.cost_usd)
+            _accumulate_model_telemetry(model_telemetry, preflight.raw)
+            preflight_finish = str(preflight.finish_reason or "")
+            if _is_incomplete_finish_reason(preflight_finish):
+                return self._fail(
+                    f"llm_incomplete: {preflight_finish}",
+                    t0,
+                    ctx,
+                    cost_usd=total_cost,
+                    llm_call_count=llm_call_count,
+                    model_routing=_model_routing_from_raw(preflight.raw),
+                    model_telemetry={
+                        **model_telemetry,
+                        "model_cost_usd": total_cost,
+                        "finish_reason": preflight_finish,
+                        "llm_call_count": llm_call_count,
+                    },
+                )
+            if preflight_finish.startswith(("degraded", "gateway_error:")):
+                return self._fail(
+                    (
+                        f"llm_degraded: {preflight_finish}"
+                        if preflight_finish.startswith("degraded:")
+                        else "llm_degraded: gateway_error"
+                    ),
+                    t0,
+                    ctx,
+                    fallback_used=preflight_finish.startswith("degraded"),
+                    cost_usd=total_cost,
+                    llm_call_count=llm_call_count,
+                    model_routing=_model_routing_from_raw(preflight.raw),
+                    model_telemetry={
+                        **model_telemetry,
+                        "model_cost_usd": total_cost,
+                        "finish_reason": preflight_finish,
+                        "llm_call_count": llm_call_count,
+                    },
+                )
+            conditional_tools = _resolve_preflight_conditional_tools(
+                preflight.text,
+                req.conditional_mandatory_tools,
+            )
+            if not conditional_tools:
+                tool_schemas = []
+                logger.info(
+                    "LLMWithToolsProvider conditional preflight withheld "
+                    "all tools agent_id=%s",
+                    ctx.agent_id,
+                )
         all_tool_records: list[ToolCallRecord] = []
         tool_rounds = 0
         final_text = ""
         final_finish_reason = ""
-        last_cost: float | None = None
         last_raw: dict[str, Any] = {}
         incomplete = False
 
@@ -350,12 +483,53 @@ class LLMWithToolsProvider:
                 messages=messages, tools=tool_schemas,
                 temperature=self._default_temperature,
                 max_tokens=None, timeout_seconds=req.timeout_seconds,
+                event_sink=event_sink,
             )
+            llm_call_count += 1
+            total_cost = _accumulate_cost(total_cost, llm_resp.cost_usd)
+            _accumulate_model_telemetry(model_telemetry, llm_resp.raw)
+            llm_finish_reason = str(llm_resp.finish_reason or "")
+            if _is_incomplete_finish_reason(llm_finish_reason):
+                return self._fail(
+                    f"llm_incomplete: {llm_finish_reason}",
+                    t0,
+                    ctx,
+                    cost_usd=total_cost,
+                    tool_rounds=tool_rounds,
+                    llm_call_count=llm_call_count,
+                    model_routing=_model_routing_from_raw(llm_resp.raw),
+                    model_telemetry={
+                        **model_telemetry,
+                        "model_cost_usd": total_cost,
+                        "finish_reason": llm_finish_reason,
+                        "llm_call_count": llm_call_count,
+                    },
+                )
+            if llm_finish_reason.startswith(("degraded", "gateway_error:")):
+                return self._fail(
+                    (
+                        f"llm_degraded: {llm_finish_reason}"
+                        if llm_finish_reason.startswith("degraded:")
+                        else "llm_degraded: gateway_error"
+                    ),
+                    t0,
+                    ctx,
+                    fallback_used=llm_finish_reason.startswith("degraded"),
+                    cost_usd=total_cost,
+                    tool_rounds=tool_rounds,
+                    llm_call_count=llm_call_count,
+                    model_routing=_model_routing_from_raw(llm_resp.raw),
+                    model_telemetry={
+                        **model_telemetry,
+                        "model_cost_usd": total_cost,
+                        "finish_reason": llm_finish_reason,
+                        "llm_call_count": llm_call_count,
+                    },
+                )
             if llm_resp.text and not llm_resp.tool_calls:
                 # Final response — LLM stopped calling tools.
                 final_text = llm_resp.text
                 final_finish_reason = llm_resp.finish_reason
-                last_cost = llm_resp.cost_usd
                 last_raw = llm_resp.raw
                 break
 
@@ -363,7 +537,6 @@ class LLMWithToolsProvider:
                 # No text AND no tool_calls — LLM produced nothing.
                 final_text = llm_resp.text or ""
                 final_finish_reason = llm_resp.finish_reason or "empty_response"
-                last_cost = llm_resp.cost_usd
                 last_raw = llm_resp.raw
                 break
 
@@ -383,19 +556,128 @@ class LLMWithToolsProvider:
                 )
                 all_tool_records.append(record)
                 messages.append(tool_message)
+                if event_sink is not None:
+                    event_sink({
+                        "step": "tool_call_completed",
+                        "payload": record,
+                    })
 
             tool_rounds += 1
-            last_cost = llm_resp.cost_usd
             last_raw = llm_resp.raw
-        else:
+        if (
+            tool_rounds >= self._max_tool_rounds
+            and not final_text
+        ):
             # Loop exited via while-condition (max_tool_rounds hit)
-            # without a clean break — mark as incomplete.
+            # without a clean break. Give the model one tools-disabled
+            # synthesis round: mandatory evidence may already be complete,
+            # and returning an incomplete markdown placeholder would violate
+            # the owning Pack's public JSON contract. This round cannot
+            # dispatch another tool, so the budget remains a hard cap.
+            messages.append({
+                "role": "system",
+                "content": (
+                    "Tool budget is exhausted. Do not request or call any "
+                    "more tools. Using only the supplied input and successful "
+                    "tool results already present above, return the final "
+                    "JSON object required by the public output contract now."
+                ),
+            })
+            synthesis_resp = await self._call_llm(
+                messages=messages,
+                tools=[],
+                temperature=self._default_temperature,
+                max_tokens=None,
+                timeout_seconds=req.timeout_seconds,
+                event_sink=event_sink,
+            )
+            llm_call_count += 1
+            total_cost = _accumulate_cost(total_cost, synthesis_resp.cost_usd)
+            _accumulate_model_telemetry(model_telemetry, synthesis_resp.raw)
+            synthesis_finish_reason = str(synthesis_resp.finish_reason or "")
+            if _is_incomplete_finish_reason(synthesis_finish_reason):
+                return self._fail(
+                    f"llm_incomplete: {synthesis_finish_reason}",
+                    t0,
+                    ctx,
+                    cost_usd=total_cost,
+                    tool_rounds=tool_rounds,
+                    llm_call_count=llm_call_count,
+                    model_routing=_model_routing_from_raw(synthesis_resp.raw),
+                    model_telemetry={
+                        **model_telemetry,
+                        "model_cost_usd": total_cost,
+                        "finish_reason": synthesis_finish_reason,
+                        "llm_call_count": llm_call_count,
+                    },
+                )
+            if synthesis_finish_reason.startswith(("degraded", "gateway_error:")):
+                return self._fail(
+                    (
+                        f"llm_degraded: {synthesis_finish_reason}"
+                        if synthesis_finish_reason.startswith("degraded:")
+                        else "llm_degraded: gateway_error"
+                    ),
+                    t0,
+                    ctx,
+                    fallback_used=synthesis_finish_reason.startswith("degraded"),
+                    cost_usd=total_cost,
+                    tool_rounds=tool_rounds,
+                    llm_call_count=llm_call_count,
+                    model_routing=_model_routing_from_raw(synthesis_resp.raw),
+                    model_telemetry={
+                        **model_telemetry,
+                        "model_cost_usd": total_cost,
+                        "finish_reason": synthesis_finish_reason,
+                        "llm_call_count": llm_call_count,
+                    },
+                )
+            if synthesis_resp.text and not synthesis_resp.tool_calls:
+                final_text = synthesis_resp.text
+                final_finish_reason = "tool_budget_finalized"
+                last_raw = synthesis_resp.raw
+            else:
+                incomplete = True
+                final_finish_reason = (
+                    f"max_tool_rounds_exceeded:{self._max_tool_rounds}"
+                )
+
+        # A declarative mandatory tool is a runtime contract, not merely a
+        # prompt hint. A model that answers without successfully calling all
+        # mandatory tools has not grounded its answer and cannot succeed.
+        successful_tools = {
+            record.tool_name for record in all_tool_records if not record.error
+        }
+        effective_mandatory = set(req.mandatory_tools)
+        effective_mandatory.update(
+            _resolve_conditional_mandatory_tools(
+                final_text,
+                req.conditional_mandatory_tools,
+                ctx,
+            )
+        )
+        missing_mandatory = sorted(effective_mandatory - successful_tools)
+        if missing_mandatory:
             incomplete = True
             final_finish_reason = (
-                f"max_tool_rounds_exceeded:{self._max_tool_rounds}"
+                "mandatory_tools_not_completed:"
+                + ",".join(missing_mandatory)
+            )
+            final_text = _build_missing_mandatory_markdown(
+                final_text, missing_mandatory,
             )
 
-        # 5. Normalize to BackendResponse.
+        # 5. Normalize to BackendResponse.  A model can reject a document
+        # injection yet repeat its literal marker in the explanation; remove
+        # that echo before structured projection and public serialization.
+        final_text, echoed_markers = _redact_untrusted_instruction_echo(
+            final_text, user_input,
+        )
+        if echoed_markers:
+            logger.warning(
+                "LLMWithToolsProvider redacted %d untrusted marker echo(es)",
+                len(echoed_markers),
+            )
         latency_ms = int((time.perf_counter() - t0) * 1000)
         if incomplete:
             status: ProviderStatus = "incomplete"
@@ -411,9 +693,16 @@ class LLMWithToolsProvider:
         # Detect degraded LLM responses (gateway returned a mock fallback).
         finish_reason_str = final_finish_reason or ""
         degraded = finish_reason_str.startswith("degraded")
+        model_telemetry.update({
+            "model_cost_usd": total_cost,
+            "finish_reason": finish_reason_str,
+            "llm_call_count": llm_call_count,
+        })
         self._emit_backend_metadata(
             ctx, latency_ms, status,
             tool_rounds=tool_rounds, fallback_used=degraded,
+            model_routing=_model_routing_from_raw(last_raw),
+            model_telemetry=model_telemetry,
         )
 
         return BackendResponse(
@@ -424,15 +713,18 @@ class LLMWithToolsProvider:
             backend_provider=self.provider_id,
             backend_type=self.backend_type,
             latency_ms=latency_ms,
-            cost_usd=last_cost,
+            cost_usd=total_cost,
             finish_state=finish_state,
             finish_reason=final_finish_reason or None,
             raw_provider_response={
                 **(last_raw or {}),
                 "tool_rounds": tool_rounds,
                 "tool_calls_count": len(all_tool_records),
+                "llm_call_count": llm_call_count,
+                "cost_usd_total": total_cost,
                 "max_tool_rounds": self._max_tool_rounds,
                 "incomplete": incomplete,
+                "missing_mandatory_tools": missing_mandatory,
             },
             evidence_refs=[tc.tool_name for tc in all_tool_records],
             trace_refs=[ctx.run_id],
@@ -442,6 +734,7 @@ class LLMWithToolsProvider:
         self, *, messages: list[dict[str, Any]],
         tools: list[dict[str, Any]], temperature: float,
         max_tokens: int | None, timeout_seconds: float,
+        event_sink: Callable[[dict[str, Any]], None] | None = None,
     ) -> LLMResponse:
         """Call the LLM with the full messages list.
 
@@ -452,6 +745,79 @@ class LLMWithToolsProvider:
         but multi-round loops require ``complete_messages``.
         """
         client = self._llm_client
+        if event_sink is not None and hasattr(client, "stream_messages"):
+            terminal: LLMResponse | None = None
+            async for chunk in client.stream_messages(  # type: ignore[attr-defined]
+                messages=messages,
+                tools=tools,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                timeout_seconds=timeout_seconds,
+            ):
+                event_type = getattr(chunk, "event_type", "text_delta")
+                if event_type == "text_delta":
+                    delta = getattr(chunk, "delta", "")
+                    if isinstance(delta, str) and delta:
+                        event_sink({
+                            "step": "provider_text_delta",
+                            "payload": {
+                                "delta": delta,
+                                "provider": getattr(chunk, "provider", ""),
+                                "native": bool(getattr(chunk, "native", False)),
+                                "provisional": True,
+                            },
+                        })
+                elif event_type == "tool_call_delta":
+                    raw_delta = dict(
+                        getattr(chunk, "tool_call_delta", {}) or {}
+                    )
+                    fn = raw_delta.get("function")
+                    event_sink({
+                        "step": "provider_tool_call_delta",
+                        "payload": {
+                            "index": int(
+                                getattr(chunk, "raw", {}).get("index", 0) or 0
+                            ),
+                            "id_present": bool(raw_delta.get("id")),
+                            "name_fragment": (
+                                str(fn.get("name") or "")
+                                if isinstance(fn, dict)
+                                else ""
+                            ),
+                            "argument_characters": (
+                                len(str(fn.get("arguments") or ""))
+                                if isinstance(fn, dict)
+                                else 0
+                            ),
+                            "provider": getattr(chunk, "provider", ""),
+                            "native": bool(getattr(chunk, "native", False)),
+                            "provisional": True,
+                        },
+                    })
+                elif event_type == "provider_reset":
+                    event_sink({
+                        "step": "provider_reset",
+                        "payload": {
+                            "provider": getattr(chunk, "provider", ""),
+                            "native": bool(getattr(chunk, "native", False)),
+                        },
+                    })
+                elif event_type == "usage":
+                    event_sink({
+                        "step": "provider_usage",
+                        "payload": {
+                            "usage": dict(getattr(chunk, "usage", {}) or {}),
+                            "provider": getattr(chunk, "provider", ""),
+                        },
+                    })
+                elif event_type == "completed":
+                    terminal = getattr(chunk, "response", None)
+            if terminal is None:
+                return LLMResponse(
+                    text="",
+                    finish_reason="gateway_error:stream_missing_completion",
+                )
+            return terminal
         if hasattr(client, "complete_messages"):
             return await client.complete_messages(  # type: ignore[attr-defined]
                 messages=messages, tools=tools,
@@ -558,7 +924,8 @@ class LLMWithToolsProvider:
             )
         except Exception as e:
             logger.warning(
-                "LLMWithToolsProvider: list_available_tools failed: %s", e,
+                "LLMWithToolsProvider: list_available_tools failed: %s",
+                type(e).__name__,
             )
             return []
         schemas: list[dict[str, Any]] = []
@@ -589,6 +956,8 @@ class LLMWithToolsProvider:
         self, ctx: AgentRunContext, latency_ms: int,
         status: ProviderStatus, *, tool_rounds: int = 0,
         fallback_used: bool = False,
+        model_routing: dict[str, Any] | None = None,
+        model_telemetry: dict[str, Any] | None = None,
     ) -> None:
         """Emit a ``backend_metadata`` RunTrace event.
 
@@ -611,13 +980,27 @@ class LLMWithToolsProvider:
                 provider_deterministic=self.deterministic,
                 supports_tool_calling=self.supports_tool_calling,
                 fallback_used=fallback_used,
-                output_contract=self.output_contract(),
+                output_contract=_pack_output_contract(
+                    ctx.agent_pack, fallback=self.output_contract()
+                ),
                 tool_rounds=tool_rounds,
+                model_deployment_id=str(
+                    (model_routing or {}).get("deployment_id") or ""
+                ),
+                model_routing_mode=str((model_routing or {}).get("mode") or ""),
+                model_selection_version=int(
+                    (model_routing or {}).get("selection_version") or 0
+                ),
+                model_routing_decision=str(
+                    (model_routing or {}).get("decision") or ""
+                ),
+                **(model_telemetry or {}),
                 store=get_default_store(),
             )
         except Exception as e:
             logger.warning(
-                "LLMWithToolsProvider: emit_backend_metadata_event failed: %s", e,
+                "LLMWithToolsProvider: emit_backend_metadata_event failed: %s",
+                type(e).__name__,
             )
 
     # ── Internal helpers ──────────────────────────────────────────
@@ -630,7 +1013,7 @@ class LLMWithToolsProvider:
           1. ``self._llm_client`` set at construction time.
           2. Lazy-resolve via ``registry.get_gateway()`` (registered by
              ``app/main.py`` at startup). Wrap in ``LLMGatewayAdapter``.
-          3. None — caller falls back to ``_skeleton_pipeline``.
+          3. None — ``invoke`` returns a failed backend envelope.
 
         Caches into ``self._llm_client`` so subsequent invokes (and
         ``_call_llm`` downstream) skip the lookup.
@@ -649,12 +1032,26 @@ class LLMWithToolsProvider:
         self._llm_client = client
         return client
 
-    def _fail(self, message: str, t0: float, ctx: AgentRunContext) -> BackendResponse:
+    def _fail(
+        self,
+        message: str,
+        t0: float,
+        ctx: AgentRunContext,
+        *,
+        fallback_used: bool = False,
+        cost_usd: float | None = None,
+        tool_rounds: int = 0,
+        llm_call_count: int = 0,
+        model_routing: dict[str, Any] | None = None,
+        model_telemetry: dict[str, Any] | None = None,
+    ) -> BackendResponse:
         latency_ms = int((time.perf_counter() - t0) * 1000)
         # Emit metadata so the RunTrace shows the failure even on _fail path.
         self._emit_backend_metadata(
             ctx, latency_ms, "fail",
-            tool_rounds=0, fallback_used=False,
+            tool_rounds=tool_rounds, fallback_used=fallback_used,
+            model_routing=model_routing,
+            model_telemetry=model_telemetry,
         )
         return BackendResponse(
             status="fail",
@@ -664,12 +1061,27 @@ class LLMWithToolsProvider:
             backend_provider=self.provider_id,
             backend_type=self.backend_type,
             latency_ms=latency_ms,
-            raw_provider_response={"error": message[:500]},
+            cost_usd=cost_usd,
+            raw_provider_response={
+                "error": message[:500],
+                "tool_rounds": tool_rounds,
+                "llm_call_count": llm_call_count,
+                "cost_usd_total": cost_usd,
+                **({"model_routing": model_routing} if model_routing else {}),
+            },
             trace_refs=[ctx.run_id],
         )
 
 
 # ── Helpers ────────────────────────────────────────────────────────────
+
+
+def _model_routing_from_raw(raw: Any) -> dict[str, Any] | None:
+    """Return the gateway's secret-free routing decision, if present."""
+    if not isinstance(raw, dict):
+        return None
+    routing = raw.get("model_routing")
+    return dict(routing) if isinstance(routing, dict) else None
 
 
 def _extract_system_prompt(ctx: AgentRunContext) -> str:
@@ -694,41 +1106,109 @@ def _extract_user_input(req: BackendRequest) -> str:
     return ""
 
 
-def _build_skeleton_tool_args(
-    tool_name: str, user_input: str, input_data: dict[str, Any],
-) -> dict[str, Any]:
-    """Build plausible tool args for the skeleton pipeline."""
-    if not isinstance(input_data, dict):
-        input_data = {}
-    if tool_name in ("search_icd", "verify_code", "get_differentiation_hint"):
-        if tool_name == "verify_code":
-            return {"code": (user_input or "I50.900")[:20]}
-        return {"query": user_input[:200]}
-    if tool_name in ("rerank_codes", "calibrate_confidence"):
-        return {
-            "disease_text": user_input[:200],
-            "candidates": input_data.get("candidates", []),
-        }
-    return {"query": user_input[:200]}
+def _extract_preflight_json(model_text: str) -> dict[str, Any]:
+    """Extract a small eligibility object without applying the public schema."""
+    text = str(model_text or "").strip()
+    candidates = [text]
+    if "```" in text:
+        for block in text.split("```"):
+            candidate = block.strip()
+            if candidate.lower().startswith("json"):
+                candidate = candidate[4:].strip()
+            if candidate:
+                candidates.append(candidate)
+    start = text.find("{")
+    end = text.rfind("}")
+    if start >= 0 and end > start:
+        candidates.append(text[start:end + 1])
+    for candidate in candidates:
+        try:
+            parsed = json.loads(candidate)
+        except (TypeError, ValueError):
+            continue
+        if isinstance(parsed, dict):
+            return parsed
+    return {}
 
 
-def _placeholder_markdown(
-    user_input: str, system_prompt: str, tool_calls: list[ToolCallRecord],
-) -> str:
-    """Deterministic placeholder so tests can verify the contract."""
-    tool_lines = "\n".join(
-        f"- {tc.tool_name} ({tc.duration_ms}ms"
-        f"{', error=' + tc.error if tc.error else ''})"
-        for tc in tool_calls
-    ) or "(no tool calls in skeleton pipeline)"
-    return (
-        "# LLMWithToolsProvider — Skeleton Response\n\n"
-        f"## User Input (truncated)\n\n> {user_input[:200]}\n\n"
-        f"## System Prompt (truncated)\n\n> {system_prompt[:200]}\n\n"
-        f"## Tool Calls\n\n{tool_lines}\n\n"
-        "## Status\n\ncomplete (skeleton — no real LLM call)\n\n"
-        "## Note\n\nPhase 4-A skeleton. Wire `llm_client` to enable real LLM calls.\n"
-    )
+def _resolve_preflight_conditional_tools(
+    model_text: str,
+    policies: list[dict[str, Any]],
+) -> set[str]:
+    """Resolve a preflight decision; malformed/missing decisions expose tools.
+
+    The preflight has a deliberately separate contract from the public Agent
+    Pack output. This avoids a deadlock where an evidence-first agent refuses
+    to populate its public diagnoses before tools are available, and the
+    runtime then interprets the empty diagnoses list as a reason to hide those
+    same tools.
+    """
+    all_tools = {
+        str(tool)
+        for policy in policies
+        for tool in (policy.get("tools") or [])
+        if str(tool)
+    }
+    if not policies:
+        return set()
+    parsed = _extract_preflight_json(model_text)
+    eligibility = parsed.get("tool_eligibility")
+    if not isinstance(eligibility, dict):
+        return all_tools
+
+    resolved: set[str] = set()
+    for policy in policies:
+        tools = {str(tool) for tool in (policy.get("tools") or []) if str(tool)}
+        path = str(policy.get("output_path") or "")
+        decision = eligibility.get(path)
+        # Only an explicit JSON boolean false may withhold a policy's tools.
+        # Missing paths, strings such as "false", or malformed values fail
+        # closed by exposing tools to the model-controlled MCP boundary.
+        if decision is not False:
+            resolved.update(tools)
+    return resolved
+
+
+def _resolve_conditional_mandatory_tools(
+    model_text: str,
+    policies: list[dict[str, Any]],
+    ctx: AgentRunContext,
+) -> set[str]:
+    """Resolve output-dependent tool requirements, failing closed on parse.
+
+    Inspect the model's raw structured candidate rather than its public-output
+    projection. Diagnosis projection intentionally removes entries whose code
+    has not yet been verified; using that projected list here would hide the
+    very search/verification tools required to make those entries codable.
+    """
+    if not policies:
+        return set()
+    del ctx  # The raw candidate is deliberately independent of public projection.
+    parsed = _extract_preflight_json(model_text)
+    resolved: set[str] = set()
+    for policy in policies:
+        tools = {str(tool) for tool in (policy.get("tools") or []) if str(tool)}
+        path = str(policy.get("output_path") or "")
+        when = str(policy.get("when") or "nonempty")
+        if not parsed or not path:
+            resolved.update(tools)
+            continue
+        value: Any = parsed
+        exists = True
+        for part in path.split("."):
+            if not isinstance(value, dict) or part not in value:
+                exists = False
+                break
+            value = value[part]
+        if not exists:
+            resolved.update(tools)
+        elif when == "nonempty" and bool(value):
+            resolved.update(tools)
+        elif when == "truthy" and bool(value):
+            resolved.update(tools)
+        elif when not in {"nonempty", "truthy"}:
+            resolved.update(tools)
+    return resolved
 
 
 def _build_incomplete_markdown(
@@ -752,6 +1232,22 @@ def _build_incomplete_markdown(
         "Manual review required.\n\n"
         f"## Tool Calls ({len(tool_calls)} total)\n\n{tool_lines}\n\n"
         f"## User Input (truncated)\n\n> {user_input[:200]}\n"
+    )
+
+
+def _build_missing_mandatory_markdown(
+    model_text: str,
+    missing_tools: list[str],
+) -> str:
+    """Preserve model text as an unverified draft and expose the failure."""
+    missing = ", ".join(missing_tools)
+    draft = model_text.strip()
+    suffix = f"\n\n## Unverified model draft\n\n{draft}" if draft else ""
+    return (
+        "# Status: incomplete\n\n"
+        "The response was not grounded by all mandatory tools.\n\n"
+        f"Missing successful tool calls: `{missing}`."
+        f"{suffix}"
     )
 
 

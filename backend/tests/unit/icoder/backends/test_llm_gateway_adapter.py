@@ -18,7 +18,7 @@ Covers:
   - ``complete()`` forwards ``tools`` to ``gateway.generate(tools=...)``
   - ``complete_messages()`` accepts a full messages list (Phase 4-C)
   - ``LLMResponse.tool_calls`` populated from gateway result (Phase 4-C)
-  - ``stream()`` raises ``NotImplementedError`` (Phase 4-D scope)
+  - ``stream()`` falls back to one non-native completion for legacy gateways
   - Adapter is reusable across providers (stateless)
 """
 from __future__ import annotations
@@ -165,6 +165,71 @@ async def test_complete_detects_degraded_fallback_response():
     assert resp.raw.get("degraded") is True
 
 
+@pytest.mark.asyncio
+async def test_real_gateway_mock_provider_is_never_clinical_success():
+    """A real gateway's deterministic MockLLMProvider must fail closed."""
+    from icoder_runtime.core.llm_gateway import LLMGateway, MockLLMProvider
+
+    gateway = LLMGateway()
+    gateway.register(MockLLMProvider(), default=True)
+
+    resp = await LLMGatewayAdapter(gateway).complete(
+        system_prompt="clinical agent",
+        user_input="patient note",
+    )
+
+    assert resp.finish_reason == "degraded:mock_provider"
+    assert resp.text
+
+
+def test_configuration_status_rejects_real_gateway_mock_provider():
+    from icoder_runtime.core.llm_gateway import LLMGateway, MockLLMProvider
+
+    gateway = LLMGateway()
+    gateway.register(MockLLMProvider(), default=True)
+
+    status = LLMGatewayAdapter(gateway).configuration_status()
+
+    assert status == {
+        "status": "unavailable",
+        "reason": "mock_provider",
+        "provider": "mock",
+        "live_health_verified": False,
+    }
+
+
+def test_configuration_status_accepts_configured_provider_without_live_claim():
+    from icoder_runtime.core.llm_gateway import DeepSeekProvider, LLMGateway
+
+    gateway = LLMGateway()
+    gateway.register(DeepSeekProvider(api_key="test-only-placeholder"), default=True)
+
+    status = LLMGatewayAdapter(gateway).configuration_status()
+
+    assert status["status"] == "configured"
+    assert status["reason"] == "configuration_present_not_live_verified"
+    assert status["provider"] == "deepseek"
+    assert status["provider_configuration_status"] == "configured"
+    assert status["live_health_verified"] is False
+
+
+def test_configuration_status_rejects_egress_denied_provider():
+    from icoder_runtime.core.llm_gateway import DeepSeekProvider, LLMGateway
+
+    class _DenyPolicy:
+        def egress_decision(self, provider_name):
+            return {"decision": "deny", "provider": provider_name}
+
+    gateway = LLMGateway(data_policy=_DenyPolicy())
+    gateway.register(DeepSeekProvider(api_key="test-only-placeholder"), default=True)
+
+    status = LLMGatewayAdapter(gateway).configuration_status()
+
+    assert status["status"] == "unavailable"
+    assert status["reason"] == "external_llm_egress_denied"
+    assert status["live_health_verified"] is False
+
+
 # ── error handling ─────────────────────────────────────────────────
 
 
@@ -178,7 +243,8 @@ async def test_complete_swallows_gateway_exceptions():
     assert resp.text == ""
     assert "gateway_error" in resp.finish_reason
     assert "RuntimeError" in resp.finish_reason
-    assert "gateway exploded" in resp.raw.get("adapter_error", "")
+    assert resp.raw.get("adapter_error") == "RuntimeError"
+    assert "gateway exploded" not in repr(resp.raw)
 
 
 @pytest.mark.asyncio
@@ -196,11 +262,18 @@ async def test_complete_handles_non_dict_gateway_result():
 # ── stream() ───────────────────────────────────────────────────────
 
 
-def test_stream_raises_not_implemented():
-    """Phase 4-C: streaming still not supported — NotImplementedError is intentional."""
+@pytest.mark.asyncio
+async def test_stream_legacy_gateway_returns_non_native_completion():
+    """Legacy gateways remain compatible through one terminal completion."""
     adapter = LLMGatewayAdapter(_MockGateway())
-    with pytest.raises(NotImplementedError, match="Phase 4-C"):
-        adapter.stream(system_prompt="sys", user_input="hi")
+    chunks = [
+        chunk
+        async for chunk in adapter.stream(system_prompt="sys", user_input="hi")
+    ]
+    assert len(chunks) == 1
+    assert chunks[0].event_type == "completed"
+    assert chunks[0].native is False
+    assert chunks[0].response.text == "mock"
 
 
 # ── adapter is stateless / reusable ────────────────────────────────
@@ -326,4 +399,3 @@ async def test_complete_messages_never_raises_on_gateway_error():
     assert resp.text == ""
     assert "gateway_error" in resp.finish_reason
     assert "ConnectionError" in resp.finish_reason
-

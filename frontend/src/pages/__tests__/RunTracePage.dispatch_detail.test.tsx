@@ -33,9 +33,11 @@ beforeAll(() => {
 // Import AFTER matchMedia stub is registered. Vitest hoists imports
 // above beforeAll, so we use a dynamic import inside the test body.
 let ToolDispatchDetail: any;
+let BackendProviderSummary: any;
 beforeAll(async () => {
   const mod = await import('../RunTracePage');
   ToolDispatchDetail = mod.ToolDispatchDetail;
+  BackendProviderSummary = mod.BackendProviderSummary;
 });
 
 afterEach(() => {
@@ -122,5 +124,28 @@ describe('ToolDispatchDetail', () => {
     expect(screen.getByText('handler_invoke')).toBeTruthy();
     // error_code visible
     expect(screen.getByText('-32603')).toBeTruthy();
+  });
+});
+
+describe('BackendProviderSummary model routing audit', () => {
+  it('renders the effective deployment and versioned tenant decision', () => {
+    render(
+      <BackendProviderSummary
+        meta={{
+          backend_provider: 'icoder.pure-llm.v1',
+          backend_type: 'pure_llm',
+          provider_status: 'fail',
+          model_deployment_id: 'hospital-qwen-a',
+          model_routing_mode: 'pinned',
+          model_selection_version: 7,
+          model_routing_decision: 'tenant_pinned',
+        }}
+      />,
+    );
+
+    expect(screen.getByText('hospital-qwen-a')).toBeTruthy();
+    expect(screen.getByText('pinned')).toBeTruthy();
+    expect(screen.getByText('7')).toBeTruthy();
+    expect(screen.getByText('tenant_pinned')).toBeTruthy();
   });
 });

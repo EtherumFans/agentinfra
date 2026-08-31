@@ -56,14 +56,216 @@ export interface AgentRunResponse {
   runtime_mode: string;
   latency_ms: number;
   cost: Record<string, unknown>;
+  billing?: Record<string, unknown>;
   summary: string;
   result: Record<string, unknown>;
+  schema_ref: string;
+  result_attestation: string;
   evidence: Array<Record<string, unknown>>;
   warnings: string[];
   manual_review_required: boolean;
   trace_events: Array<Record<string, unknown>>;
   error: boolean;
   error_reason: string;
+  /** Present when the response came from the A2A message stream. */
+  context_id?: string;
+  message_id?: string;
+}
+
+export interface AgentStreamHandlers {
+  signal?: AbortSignal;
+  context_id?: string;
+  onStatus?: (status: Record<string, unknown>) => void;
+  onTextDelta?: (delta: string) => void;
+  onProviderProgress?: (progress: Record<string, unknown>) => void;
+  onToolEvent?: (event: string, payload: Record<string, unknown>) => void;
+  onProviderUsage?: (usage: Record<string, unknown>) => void;
+}
+
+function _mapA2AEnvelopeToAgentRunResponse(
+  agentId: string,
+  envelope: any,
+): AgentRunResponse {
+  if (envelope?.error) {
+    const reason = envelope.error?.data?.details || envelope.error?.message || 'A2A stream failed';
+    return {
+      agent_id: agentId,
+      run_id: '',
+      trace_id: '',
+      runtime_mode: 'a2a_stream',
+      latency_ms: 0,
+      cost: {},
+      summary: reason,
+      result: {},
+      schema_ref: '',
+      result_attestation: '',
+      evidence: [],
+      warnings: [],
+      manual_review_required: true,
+      trace_events: [],
+      error: true,
+      error_reason: reason,
+    };
+  }
+
+  const message = envelope?.result;
+  if (!message || message.kind !== 'message') {
+    throw new Error('A2A stream completed without a message result');
+  }
+  const dataPart = (message.parts || []).find(
+    (part: any) => part?.kind === 'data' && part?.data,
+  );
+  const textPart = (message.parts || []).find(
+    (part: any) => part?.kind === 'text' && typeof part?.text === 'string',
+  );
+  const result = (dataPart?.data && typeof dataPart.data === 'object')
+    ? dataPart.data
+    : {};
+  const metadata = message.metadata || {};
+  const summary = result.summary || textPart?.text || result.markdown || '';
+  const manualReview = Boolean(
+    metadata.manual_review_required
+    || result.manual_review_required
+    || result.human_review?.review_required,
+  );
+
+  return {
+    agent_id: agentId,
+    run_id: metadata.run_id || '',
+    trace_id: metadata.run_id || '',
+    runtime_mode: 'a2a_stream',
+    latency_ms: Number(metadata.provider_latency_ms || 0),
+    cost: {},
+    summary: String(summary || ''),
+    result,
+    schema_ref: String(metadata.output_contract || dataPart?.metadata?.schema_ref || ''),
+    result_attestation: String(
+      metadata.result_attestation || dataPart?.metadata?.result_attestation || '',
+    ),
+    evidence: [],
+    warnings: [],
+    manual_review_required: manualReview,
+    trace_events: [],
+    error: false,
+    error_reason: '',
+    context_id: message.contextId || '',
+    message_id: message.messageId || '',
+  };
+}
+
+function _parseSseBlock(block: string): { event: string; data: string } | null {
+  let event = 'message';
+  const data: string[] = [];
+  for (const line of block.split('\n')) {
+    if (line.startsWith('event:')) event = line.slice(6).trim();
+    if (line.startsWith('data:')) data.push(line.slice(5).trimStart());
+  }
+  return data.length > 0 ? { event, data: data.join('\n') } : null;
+}
+
+async function _streamAgentViaA2A(
+  agentId: string,
+  input: string,
+  handlers: AgentStreamHandlers,
+): Promise<AgentRunResponse> {
+  const shortId = agentId.split('/').pop()!.split('@')[0];
+  const token = localStorage.getItem('access_token') || '';
+  const message: Record<string, unknown> = {
+    role: 'user',
+    messageId: crypto.randomUUID(),
+    parts: [{ kind: 'text', text: input }],
+    metadata: {},
+  };
+  if (handlers.context_id) message.contextId = handlers.context_id;
+
+  const response = await fetch(
+    `/api/icoder/agents/${encodeURIComponent(shortId)}/v1/message:stream`,
+    {
+      method: 'POST',
+      headers: {
+        'A2A-Protocol-Version': '0.3',
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: crypto.randomUUID(),
+        method: 'message/stream',
+        params: { message },
+      }),
+      signal: handlers.signal,
+    },
+  );
+
+  if (!response.ok || !response.headers.get('content-type')?.startsWith('text/event-stream')) {
+    let reason = `A2A stream HTTP ${response.status}`;
+    try {
+      const body = await response.json();
+      reason = body?.error?.data?.details || body?.error?.message || body?.detail || reason;
+    } catch {
+      // Stable HTTP error above is sufficient; never echo an HTML proxy body.
+    }
+    throw new Error(reason);
+  }
+  if (!response.body) throw new Error('A2A stream response has no body');
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  let finalEnvelope: any = null;
+
+  const consume = (block: string) => {
+    const parsed = _parseSseBlock(block);
+    if (!parsed) return;
+    if (parsed.event === 'data-status-update') {
+      handlers.onStatus?.(JSON.parse(parsed.data));
+    } else if (parsed.event === 'data-provider-progress') {
+      handlers.onProviderProgress?.(JSON.parse(parsed.data));
+    } else if (
+      parsed.event === 'data-tool-call-delta'
+      || parsed.event === 'data-tool-call'
+      || parsed.event === 'data-provider-reset'
+    ) {
+      handlers.onToolEvent?.(parsed.event, JSON.parse(parsed.data));
+    } else if (parsed.event === 'data-provider-usage') {
+      handlers.onProviderUsage?.(JSON.parse(parsed.data));
+    } else if (parsed.event === 'text-delta') {
+      const delta = JSON.parse(parsed.data)?.delta;
+      if (typeof delta === 'string') handlers.onTextDelta?.(delta);
+    } else if (parsed.event === 'data-json') {
+      finalEnvelope = JSON.parse(parsed.data);
+    }
+  };
+
+  while (true) {
+    const { done, value } = await reader.read();
+    buffer += decoder.decode(value || new Uint8Array(), { stream: !done });
+    buffer = buffer.replace(/\r\n/g, '\n');
+    let boundary = buffer.indexOf('\n\n');
+    while (boundary >= 0) {
+      consume(buffer.slice(0, boundary));
+      buffer = buffer.slice(boundary + 2);
+      boundary = buffer.indexOf('\n\n');
+    }
+    if (done) break;
+  }
+  if (buffer.trim()) consume(buffer);
+  if (!finalEnvelope) throw new Error('A2A stream ended without data-json');
+
+  const mapped = _mapA2AEnvelopeToAgentRunResponse(shortId, finalEnvelope);
+  // Keep store/service imports lazy: the store imports API types during app
+  // bootstrap, so eager imports here would create a browser-only cycle.
+  import('../store').then(({ useCostStore }) => {
+    import('./api').then(({ billingApi }) => {
+      billingApi.balance().then((billing: any) => {
+        const balance = billing.data?.balance;
+        if (typeof balance === 'number') {
+          useCostStore.getState().syncFromBalance(balance);
+        }
+      }).catch(() => {});
+    });
+  }).catch(() => {});
+  return mapped;
 }
 
 /**
@@ -366,6 +568,14 @@ export const runtimeAgentApi = {
   getRules: () => api.get('/rule-engine/rules').then(r => r.data),
 
   // ── Phase 4-F (2026-07-09): Unified Agent Run API ──
+  /** A2A SSE mainline used by Agent Hub chat. It opens immediately, accepts
+   * status/text callbacks and returns the same UI envelope as agentRun(). */
+  agentStream: (
+    agentId: string,
+    input: string,
+    handlers: AgentStreamHandlers = {},
+  ) => _streamAgentViaA2A(agentId, input, handlers),
+
   // POST /api/v1/agents/{agent_id}/run — thin facade that routes any
   // iCoDer built agent to its appropriate runtime (CodingRuntimeDispatcher
   // for medical-coding, ProviderRegistry for everything else). Returns a
@@ -382,18 +592,35 @@ export const runtimeAgentApi = {
     options: {
       runtime_mode?: string;
       extra?: Record<string, unknown>;
+      documents?: Array<{
+        document_id: string;
+        text: string;
+        document_version?: string;
+        document_type?: string;
+        normalization?: 'none' | 'NFC' | 'NFKC';
+      }>;
+      upstream_results?: Array<{
+        agent_id: string;
+        result: Record<string, unknown>;
+        run_id: string;
+        schema_ref: string;
+        attestation: string;
+      }>;
       include_trace?: boolean;
       include_evidence?: boolean;
-      api_client_id?: string;
     } = {},
   ) => {
     const shortId = agentId.split('/').pop()!.split('@')[0];
     const body = {
-      input: { text: input, extra: options.extra || {} },
+      input: {
+        text: input,
+        extra: options.extra || {},
+        documents: options.documents || [],
+        upstream_results: options.upstream_results || [],
+      },
       runtime_mode: options.runtime_mode,
       include_trace: options.include_trace ?? true,
       include_evidence: options.include_evidence ?? true,
-      api_client_id: options.api_client_id || undefined,
     };
     return unifiedRunApi.post(`/${encodeURIComponent(shortId)}/run`, body).then(
       r => r.data as AgentRunResponse,
@@ -414,10 +641,9 @@ export const runtimeAgentApi = {
    * counter updates immediately (no need to wait for the next billing
    * balance poll).
    *
-   * Phase 4-G #2 (2026-07-10): Forwards the selected `api_client_id`
-   * through to the backend so the run is attributed to that OAuth client
-   * (logged in trace metadata; future: route through client-scoped
-   * credentials).
+   * API Client attribution is never accepted from this browser request body.
+   * Machine integrations authenticate with a client-credentials Bearer token;
+   * the backend derives the client identity from that verified token.
    */
   runAgentUnified: (
     agentId: string,
@@ -427,7 +653,6 @@ export const runtimeAgentApi = {
       extra?: Record<string, unknown>;
       include_trace?: boolean;
       include_evidence?: boolean;
-      api_client_id?: string;
     } = {},
   ) => {
     const runPromise = runtimeAgentApi

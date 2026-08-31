@@ -61,7 +61,11 @@ class FailingStartupRetriever:
 # ── Test helpers ──
 
 
-def _spawn_worker(retriever: FakeRetriever) -> tuple[multiprocessing.Process, multiprocessing.Queue, multiprocessing.Queue]:
+def _spawn_worker(
+    retriever: FakeRetriever,
+    *,
+    await_ready: bool = True,
+) -> tuple[multiprocessing.Process, multiprocessing.Queue, multiprocessing.Queue]:
     q_in: multiprocessing.Queue = multiprocessing.Queue()
     q_out: multiprocessing.Queue = multiprocessing.Queue()
     proc = multiprocessing.Process(
@@ -70,6 +74,26 @@ def _spawn_worker(retriever: FakeRetriever) -> tuple[multiprocessing.Process, mu
         daemon=True,
     )
     proc.start()
+    if await_ready:
+        try:
+            startup_id, payload = q_out.get(timeout=15.0)
+        except Exception as exc:
+            if proc.is_alive():
+                proc.terminate()
+                proc.join(timeout=2)
+            raise TimeoutError(
+                "worker did not emit an explicit startup result within 15s "
+                f"(alive={proc.is_alive()}, exitcode={proc.exitcode})"
+            ) from exc
+        if startup_id != MedCodERRetrieverWorker.STARTUP_READY_ID:
+            if proc.is_alive():
+                proc.terminate()
+                proc.join(timeout=2)
+            raise RuntimeError(
+                f"worker startup failed: id={startup_id!r}, payload={payload!r}, "
+                f"exitcode={proc.exitcode}"
+            )
+        assert payload == {"ready": True}
     return proc, q_in, q_out
 
 
@@ -119,6 +143,21 @@ def test_worker_processes_three_requests_in_order():
         q_in.put(None)
         proc.join(timeout=5)
         assert not proc.is_alive(), "worker did not exit on sentinel"
+
+
+def test_worker_emits_ready_only_after_retriever_loads():
+    """The parent gets an explicit startup boundary before sending work."""
+
+    retriever = FakeRetriever({})
+    proc, q_in, _q_out = _spawn_worker(retriever)
+    try:
+        assert proc.is_alive()
+        assert retriever._ensure_loaded_counter.value == 1
+        assert retriever._retrieve_counter.value == 0
+    finally:
+        q_in.put(None)
+        proc.join(timeout=5)
+        assert not proc.is_alive()
 
 
 def test_worker_returns_error_envelope_on_retrieve_failure():
@@ -207,11 +246,38 @@ def test_worker_sentinel_none_terminates_cleanly():
     assert proc.exitcode == 0, f"worker exited with code {proc.exitcode}"
 
 
+def test_worker_exits_when_parent_watch_pipe_closes():
+    """An abruptly terminated parent must not leave a native model worker."""
+    q_in: multiprocessing.Queue = multiprocessing.Queue()
+    q_out: multiprocessing.Queue = multiprocessing.Queue()
+    watch_recv, watch_send = multiprocessing.Pipe(duplex=False)
+    proc = multiprocessing.Process(
+        target=MedCodERRetrieverWorker.run,
+        args=(q_in, q_out, "unused", FakeRetriever({}), None, watch_recv),
+        daemon=True,
+    )
+    proc.start()
+    watch_recv.close()
+    try:
+        # Closing the only parent-side writer simulates parent process exit.
+        watch_send.close()
+        proc.join(timeout=4)
+        assert not proc.is_alive(), "worker ignored parent-watch EOF"
+        assert proc.exitcode == 0
+    finally:
+        if proc.is_alive():
+            proc.terminate()
+            proc.join(timeout=2)
+
+
 def test_worker_startup_error_reported_via_special_id():
     """If ensure_loaded() raises at startup, the worker pushes a special
     ``STARTUP_ERROR_ID`` tuple and exits (no further requests served).
     """
-    proc, q_in, q_out = _spawn_worker(FailingStartupRetriever())
+    proc, q_in, q_out = _spawn_worker(
+        FailingStartupRetriever(),
+        await_ready=False,
+    )
     try:
         # Worker should send STARTUP_ERROR_ID and exit
         msg = _recv_with_timeout(q_out)

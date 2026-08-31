@@ -24,14 +24,34 @@ invoked via the Pack's runtime modes (``corti_like_fast`` /
 """
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any
+
+
+def _medical_coding_pack_identity() -> tuple[str, str]:
+    pack_path = (
+        Path(__file__).resolve().parents[3]
+        / "official_agents"
+        / "medical_coding"
+        / "agent_pack.json"
+    )
+    pack = json.loads(pack_path.read_text(encoding="utf-8"))
+    agent_ref = str(pack.get("agent_ref") or "")
+    schema_ref = str(
+        (pack.get("output_contract") or {}).get("schema_ref") or ""
+    )
+    if not agent_ref or not schema_ref:
+        raise RuntimeError("medical-coding Agent Pack identity is incomplete")
+    return agent_ref, schema_ref
 
 
 CODING_EXPERT_CANONICAL_KEY = "coding-expert"
 CODING_EXPERT_NAME = "Coding Expert"
-CODING_EXPERT_DELEGATES_TO = "icoder/medical-coding-agent@2.0.0"
-CODING_EXPERT_OUTPUT_CONTRACT = "icoder/MedicalCodingAgentOutputV2/v1"
+CODING_EXPERT_DELEGATES_TO, CODING_EXPERT_OUTPUT_CONTRACT = (
+    _medical_coding_pack_identity()
+)
 
 
 @dataclass
@@ -93,9 +113,9 @@ def delegate(
         input_text=input_text,
         runtime_mode=runtime_mode,
         notes=(
-            "Delegates to icoder/medical-coding-agent@2.0.0 via the Agent "
+            f"Delegates to {CODING_EXPERT_DELEGATES_TO} via the Agent "
             "Runner. Corti §3.2 coding-expert contract surface matches "
-            "iCoDer Pack output_contract icoder/MedicalCodingAgentOutputV2/v1."
+            f"iCoDer Pack output_contract {CODING_EXPERT_OUTPUT_CONTRACT}."
         ),
     )
 
@@ -107,7 +127,7 @@ def delegate(
             notes=(
                 "Wrapper only — Pack execution is the caller's "
                 "responsibility (invoke AgentRunner with "
-                "icoder/medical-coding-agent@2.0.0)."
+                f"{CODING_EXPERT_DELEGATES_TO})."
             ),
         )
 

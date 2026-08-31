@@ -1,52 +1,884 @@
 {
   "format_version": "1.2",
   "agent_type": "certified",
-  "agent_ref": "icoder/triage@1.0.0",
+  "agent_ref": "icoder/triage@1.1.2",
   "manifest": {
-    "name": "急诊分诊评估智能体",
-    "version": "1.0.0",
-    "description": "使用验证过的风险评分和循证紧急度分级，辅助急诊分诊决策。",
+    "name": "急诊分诊问卷路径复核智能体",
+    "version": "1.1.2",
+    "description": "验证调用方提供的有界急诊分诊问卷，把明确结构化回答绑定到来源记录逐字证据，并确定性执行分支。结果仅是开发期协议候选；不抽取访谈、不做临床推断或评分、不分配最终分诊级别、不自动处置或写回。",
     "category": "point-of-care",
-    "category_display": "Point of Care Tools / 床旁工具",
+    "category_display": "Point of Care / 床旁支持",
     "icon": "Stethoscope",
     "tags": [
-      "corti-parity",
-      "metadata-only"
+      "triage",
+      "questionnaire",
+      "deterministic-path",
+      "exact-evidence",
+      "china-emergency",
+      "onsite-review-required"
     ],
-    "maturity": "metadata-only",
+    "maturity": "runnable",
     "production_ready": false,
     "hidden_from_hub": false,
     "use_case": "point_of_care",
     "human_review": "required"
   },
-  "system_prompt": "",
-  "experts": [],
+  "system_prompt": "你是 iCoDer 面向中国医院急诊分诊场景的受治理问卷路径复核智能体。只验证调用方明确提供的有界问卷定义、结构化回答和逐字来源证据，并机械执行问卷分支。不得从护士患者访谈或自由文本抽取、猜测或补全回答；不得验证协议临床有效性或医院批准状态；不得计算 ESI、qSOFA、HEART、CURB-65 等评分；不得诊断、分配最终分诊级别、建议药物/剂量/操作、自动分流、转运、出院、处置或写回。到达终点只能标记为开发期协议候选，必须由现场分诊专业人员确认。",
+  "model": null,
+  "backend_provider": "icoder.governed-triage-questionnaire.v1",
+  "backend_config": {},
+  "experts": [
+    {
+      "expert_id": "triage-questionnaire-path-reviewer",
+      "name": "Triage Questionnaire Path Reviewer",
+      "role": "primary",
+      "description": "确定性校验问卷图、回答类型、逐字证据和分支路径，不执行临床判断。"
+    }
+  ],
   "tools": [],
   "permissions": {
-    "key": "triage",
-    "name": "急诊分诊评估智能体 权限",
-    "description": "使用验证过的风险评分和循证紧急度分级，辅助急诊分诊决策。",
-    "no_upcoding": true,
+    "key": "governed-triage-questionnaire-default",
+    "name": "受治理分诊问卷复核默认权限",
+    "description": "只读处理调用方明确问卷、回答和来源证据；禁止临床推断、最终分级、自动处置和写回。",
+    "tools": {},
     "no_inference": true,
     "evidence_required": true,
+    "production_action_blocked": true,
     "production_writeback_blocked": true
   },
-  "requirements": {
-    "min_runtime_version": "1.0.0",
-    "icoder_runtime_modules": []
+  "output_contract": {
+    "schema_ref": "icoder/TriageOutput/v5",
+    "a2a_parts": [
+      "DataPart"
+    ],
+    "required_fields": [
+      "assessment_status",
+      "review_method",
+      "acuity_level",
+      "red_flags",
+      "supporting_evidence",
+      "recommended_disposition",
+      "immediate_actions",
+      "missing_information",
+      "uncertainty",
+      "protocol_governance",
+      "questionnaire_validation",
+      "decision_path",
+      "protocol_candidate",
+      "clarification_questions",
+      "input_conflicts",
+      "evidence_items",
+      "limitations",
+      "transcript_extraction_performed",
+      "questionnaire_answer_inference_performed",
+      "clinical_inference_performed",
+      "medical_calculator_used",
+      "external_knowledge_used",
+      "final_acuity_assignment_performed",
+      "production_action_blocked",
+      "production_writeback_blocked",
+      "manual_review_required",
+      "trace_refs"
+    ],
+    "optional_fields": [],
+    "field_definitions": {
+      "assessment_status": "输入、问卷图、回答与证据的路径复核状态，不是最终分诊结论",
+      "acuity_level": "仅开发期问卷终点候选；NOT_ASSIGNED 表示未到达终点",
+      "protocol_governance": "调用方声明的协议标识、版本、来源和批准状态；平台不独立验证",
+      "decision_path": "按明确结构化回答机械执行的分支审计轨迹",
+      "protocol_candidate": "到达的开发期协议终点候选，必须现场确认",
+      "evidence_items": "输出中实际使用的输入逐字证据及字符跨度"
+    },
+    "field_types": {
+      "assessment_status": "string",
+      "review_method": "string",
+      "acuity_level": "string",
+      "red_flags": "array",
+      "supporting_evidence": "string",
+      "recommended_disposition": "string",
+      "immediate_actions": "array",
+      "missing_information": "array",
+      "uncertainty": "string",
+      "protocol_governance": "object",
+      "questionnaire_validation": "object",
+      "decision_path": "array",
+      "protocol_candidate": "object",
+      "clarification_questions": "array",
+      "input_conflicts": "array",
+      "evidence_items": "array",
+      "limitations": "array",
+      "transcript_extraction_performed": "boolean",
+      "questionnaire_answer_inference_performed": "boolean",
+      "clinical_inference_performed": "boolean",
+      "medical_calculator_used": "boolean",
+      "external_knowledge_used": "boolean",
+      "final_acuity_assignment_performed": "boolean",
+      "production_action_blocked": "boolean",
+      "production_writeback_blocked": "boolean",
+      "manual_review_required": "boolean",
+      "trace_refs": "object"
+    },
+    "field_schemas": {
+      "assessment_status": {
+        "type": "string",
+        "maxLength": 32768,
+        "enum": [
+          "INPUT_REQUIRED",
+          "PROTOCOL_INVALID",
+          "CONFLICT_REVIEW_REQUIRED",
+          "READY_FOR_ONSITE_REVIEW"
+        ]
+      },
+      "review_method": {
+        "type": "string",
+        "maxLength": 32768,
+        "const": "EXPLICIT_ANSWER_DETERMINISTIC_QUESTIONNAIRE_PATH_REVIEW"
+      },
+      "acuity_level": {
+        "type": "string",
+        "maxLength": 32768,
+        "enum": [
+          "NOT_ASSIGNED",
+          "DEVELOPMENT_PROTOCOL_CANDIDATE_IMMEDIATE",
+          "DEVELOPMENT_PROTOCOL_CANDIDATE_URGENT",
+          "DEVELOPMENT_PROTOCOL_CANDIDATE_STANDARD",
+          "DEVELOPMENT_PROTOCOL_CANDIDATE_LOWER_ACUITY"
+        ]
+      },
+      "red_flags": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 32768
+        },
+        "maxItems": 64,
+        "minItems": 0,
+        "uniqueItems": true
+      },
+      "supporting_evidence": {
+        "type": "string",
+        "maxLength": 32768
+      },
+      "recommended_disposition": {
+        "type": "string",
+        "maxLength": 32768
+      },
+      "immediate_actions": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 32768
+        },
+        "maxItems": 10,
+        "minItems": 1
+      },
+      "missing_information": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 32768
+        },
+        "maxItems": 64,
+        "minItems": 0
+      },
+      "uncertainty": {
+        "type": "string",
+        "maxLength": 32768
+      },
+      "protocol_governance": {
+        "type": "object",
+        "properties": {
+          "approval_attestation_id": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "declared_status": {
+            "type": "string",
+            "maxLength": 32768,
+            "enum": [
+              "",
+              "DEVELOPMENT_FIXTURE",
+              "HOSPITAL_APPROVED_ATTESTED"
+            ]
+          },
+          "jurisdiction": {
+            "type": "string",
+            "maxLength": 32768,
+            "const": "CN_HOSPITAL_LOCAL_DECLARATION"
+          },
+          "protocol_id": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "protocol_source": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "protocol_version": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "verification_status": {
+            "type": "string",
+            "maxLength": 32768,
+            "enum": [
+              "NOT_VERIFIED",
+              "DEVELOPMENT_ONLY_UNVERIFIED",
+              "CALLER_DECLARED_APPROVAL_NOT_PLATFORM_VERIFIED"
+            ]
+          }
+        },
+        "required": [
+          "protocol_id",
+          "protocol_version",
+          "declared_status",
+          "protocol_source",
+          "approval_attestation_id",
+          "verification_status",
+          "jurisdiction"
+        ],
+        "additionalProperties": false
+      },
+      "questionnaire_validation": {
+        "type": "object",
+        "properties": {
+          "all_references_resolved": {
+            "type": "boolean"
+          },
+          "cycle_free": {
+            "type": "boolean"
+          },
+          "endpoint_count": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 16
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "maxItems": 128,
+            "minItems": 0
+          },
+          "question_count": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 64
+          },
+          "valid": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "valid",
+          "errors",
+          "question_count",
+          "endpoint_count",
+          "all_references_resolved",
+          "cycle_free"
+        ],
+        "additionalProperties": false
+      },
+      "decision_path": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "answer_type": {
+              "type": "string",
+              "maxLength": 32768,
+              "enum": [
+                "boolean",
+                "number",
+                "enum"
+              ]
+            },
+            "documented_value": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "evidence_ref": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "matched_branch_index": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 15
+            },
+            "matched_operator": {
+              "type": "string",
+              "maxLength": 32768,
+              "enum": [
+                "equals",
+                "in",
+                "lt",
+                "lte",
+                "gt",
+                "gte",
+                "default"
+              ]
+            },
+            "next_node": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "question_id": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "step_index": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 63
+            }
+          },
+          "required": [
+            "step_index",
+            "question_id",
+            "answer_type",
+            "documented_value",
+            "evidence_ref",
+            "matched_branch_index",
+            "matched_operator",
+            "next_node"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 64,
+        "minItems": 0
+      },
+      "protocol_candidate": {
+        "type": "object",
+        "properties": {
+          "candidate_level": {
+            "type": "string",
+            "maxLength": 32768,
+            "enum": [
+              "NOT_ASSIGNED",
+              "IMMEDIATE",
+              "URGENT",
+              "STANDARD",
+              "LOWER_ACUITY"
+            ]
+          },
+          "disposition": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "endpoint_id": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "reached": {
+            "type": "boolean"
+          },
+          "red_flag_codes": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "maxItems": 64,
+            "minItems": 0,
+            "uniqueItems": true
+          },
+          "result_status": {
+            "type": "string",
+            "maxLength": 32768,
+            "enum": [
+              "NOT_ASSESSED",
+              "DEVELOPMENT_UNVERIFIED_PROTOCOL_CANDIDATE"
+            ]
+          }
+        },
+        "required": [
+          "reached",
+          "endpoint_id",
+          "candidate_level",
+          "disposition",
+          "red_flag_codes",
+          "result_status"
+        ],
+        "additionalProperties": false
+      },
+      "clarification_questions": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 32768
+        },
+        "maxItems": 64,
+        "minItems": 0
+      },
+      "input_conflicts": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 32768
+        },
+        "maxItems": 128,
+        "minItems": 0,
+        "uniqueItems": true
+      },
+      "evidence_items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "char_span": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "maxItems": 2,
+              "minItems": 2,
+              "x-order": "nondecreasing"
+            },
+            "evidence_id": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "evidence_status": {
+              "type": "string",
+              "maxLength": 32768,
+              "enum": [
+                "EXACT_INPUT_SPAN"
+              ]
+            },
+            "field": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "source_document": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "text": {
+              "type": "string",
+              "maxLength": 32768
+            }
+          },
+          "required": [
+            "evidence_id",
+            "field",
+            "source_document",
+            "text",
+            "char_span",
+            "evidence_status"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100,
+        "minItems": 0
+      },
+      "limitations": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 32768
+        },
+        "maxItems": 6,
+        "minItems": 6
+      },
+      "transcript_extraction_performed": {
+        "type": "boolean",
+        "const": false
+      },
+      "questionnaire_answer_inference_performed": {
+        "type": "boolean",
+        "const": false
+      },
+      "clinical_inference_performed": {
+        "type": "boolean",
+        "const": false
+      },
+      "medical_calculator_used": {
+        "type": "boolean",
+        "const": false
+      },
+      "external_knowledge_used": {
+        "type": "boolean",
+        "const": false
+      },
+      "final_acuity_assignment_performed": {
+        "type": "boolean",
+        "const": false
+      },
+      "production_action_blocked": {
+        "type": "boolean",
+        "const": true
+      },
+      "production_writeback_blocked": {
+        "type": "boolean",
+        "const": true
+      },
+      "manual_review_required": {
+        "type": "boolean",
+        "const": true
+      },
+      "trace_refs": {
+        "type": "object",
+        "properties": {
+          "provider_trace_refs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "maxItems": 20,
+            "minItems": 1
+          },
+          "run_id": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "trace_id": {
+            "type": "string",
+            "maxLength": 32768
+          }
+        },
+        "required": [
+          "run_id",
+          "provider_trace_refs"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "field_relations": [
+      {
+        "id": "ready_triage_candidate_has_valid_reached_path",
+        "when": [
+          {
+            "path": "assessment_status",
+            "operator": "equals",
+            "value": "READY_FOR_ONSITE_REVIEW"
+          }
+        ],
+        "must": [
+          {
+            "path": "missing_information",
+            "operator": "empty"
+          },
+          {
+            "path": "input_conflicts",
+            "operator": "empty"
+          },
+          {
+            "path": "questionnaire_validation.valid",
+            "operator": "equals",
+            "value": true
+          },
+          {
+            "path": "decision_path",
+            "operator": "non_empty"
+          },
+          {
+            "path": "protocol_candidate.reached",
+            "operator": "equals",
+            "value": true
+          },
+          {
+            "path": "protocol_candidate.result_status",
+            "operator": "equals",
+            "value": "DEVELOPMENT_UNVERIFIED_PROTOCOL_CANDIDATE"
+          }
+        ]
+      },
+      {
+        "id": "unreached_triage_candidate_is_not_assessed",
+        "when": [
+          {
+            "path": "assessment_status",
+            "operator": "not_equals",
+            "value": "READY_FOR_ONSITE_REVIEW"
+          }
+        ],
+        "must": [
+          {
+            "path": "acuity_level",
+            "operator": "equals",
+            "value": "NOT_ASSIGNED"
+          },
+          {
+            "path": "protocol_candidate.result_status",
+            "operator": "equals",
+            "value": "NOT_ASSESSED"
+          }
+        ]
+      },
+      {
+        "id": "governed_triage_never_infers_or_assigns_final_acuity",
+        "when": [
+          {
+            "path": "review_method",
+            "operator": "equals",
+            "value": "EXPLICIT_ANSWER_DETERMINISTIC_QUESTIONNAIRE_PATH_REVIEW"
+          }
+        ],
+        "must": [
+          {
+            "path": "transcript_extraction_performed",
+            "operator": "equals",
+            "value": false
+          },
+          {
+            "path": "questionnaire_answer_inference_performed",
+            "operator": "equals",
+            "value": false
+          },
+          {
+            "path": "clinical_inference_performed",
+            "operator": "equals",
+            "value": false
+          },
+          {
+            "path": "medical_calculator_used",
+            "operator": "equals",
+            "value": false
+          },
+          {
+            "path": "external_knowledge_used",
+            "operator": "equals",
+            "value": false
+          },
+          {
+            "path": "final_acuity_assignment_performed",
+            "operator": "equals",
+            "value": false
+          }
+        ]
+      },
+      {
+        "id": "governed_triage_always_requires_onsite_gate",
+        "when": [
+          {
+            "path": "review_method",
+            "operator": "equals",
+            "value": "EXPLICIT_ANSWER_DETERMINISTIC_QUESTIONNAIRE_PATH_REVIEW"
+          }
+        ],
+        "must": [
+          {
+            "path": "production_action_blocked",
+            "operator": "equals",
+            "value": true
+          },
+          {
+            "path": "production_writeback_blocked",
+            "operator": "equals",
+            "value": true
+          },
+          {
+            "path": "manual_review_required",
+            "operator": "equals",
+            "value": true
+          }
+        ]
+      }
+    ],
+    "evidence_bindings": [
+      {
+        "id": "triage_evidence_items_match_input",
+        "for_each": "evidence_items",
+        "text_path": "text",
+        "span_path": "char_span"
+      }
+    ]
   },
   "non_goals": [
-    "不替代编码员 / 临床医生最终决策",
-    "不自动写回 EMR/HIS"
+    "不从护士患者访谈、自由文本或来源记录抽取、推断或补全问卷回答",
+    "不验证医院本地问卷的临床有效性、授权、版本现行性或批准状态",
+    "不计算 ESI、qSOFA、HEART、CURB-65 或其他临床评分",
+    "不作诊断、检查建议、药物/剂量/操作建议或最终分诊级别分配",
+    "不自动分流、转运、处置、出院、触发生产动作或写回 EMR/HIS"
   ],
-  "human_review_required_when": [
-    "All outputs require human review (metadata-only pack, no executable wiring yet)"
+  "phi_redaction": "required",
+  "context_required": false,
+  "recorder_required": true,
+  "metrics_required": true,
+  "requirements": {
+    "min_runtime_version": "2.0.0",
+    "icoder_runtime_modules": [
+      "official_agents.triage.agent",
+      "icoder_runtime.backends.governed_triage_questionnaire_provider"
+    ]
+  },
+  "llm_capabilities": {
+    "required_models": [],
+    "supports_tool_calling": false,
+    "supports_json_mode": false,
+    "supports_mcp_tools": false
+  },
+  "a2a": {
+    "protocol_version": "0.3",
+    "endpoint": "/api/icoder/agents/triage/v1/message:send",
+    "discovery": "/api/icoder/agents",
+    "agent_card_ref": "icoder/triage@1.1.2"
+  },
+  "default_runtime_mode": "governed_local_explicit_triage_questionnaire_review",
+  "available_runtime_modes": [
+    "governed_local_explicit_triage_questionnaire_review"
+  ],
+  "example_inputs": [
+    {
+      "title": "开发期胸痛分诊问卷路径复核",
+      "input_text": "审核目的：开发环境分诊问卷路径复核\n协议标识：CN-ED-DEMO-001\n协议版本：2026.08-dev\n协议声明状态：DEVELOPMENT_FIXTURE\n协议来源：iCoDer 开发测试夹具（非医院批准协议）\n来源记录：<<<患者突发压榨性胸痛40分钟伴大汗；血压88/56mmHg。>>>\n问卷定义JSON：{\"start_question_id\":\"q1\",\"questions\":[{\"id\":\"q1\",\"answer_type\":\"boolean\",\"required\":true,\"branches\":[{\"operator\":\"equals\",\"value\":true,\"next\":\"ep_immediate\"},{\"operator\":\"equals\",\"value\":false,\"next\":\"q2\"}]},{\"id\":\"q2\",\"answer_type\":\"number\",\"required\":true,\"branches\":[{\"operator\":\"lt\",\"value\":90,\"next\":\"ep_urgent\"},{\"operator\":\"default\",\"next\":\"ep_standard\"}]}],\"endpoints\":[{\"id\":\"ep_immediate\",\"candidate_level\":\"IMMEDIATE\",\"red_flag_codes\":[\"RF_CHEST_PAIN_HYPOTENSION\"]},{\"id\":\"ep_urgent\",\"candidate_level\":\"URGENT\",\"red_flag_codes\":[\"RF_LOW_SPO2\"]},{\"id\":\"ep_standard\",\"candidate_level\":\"STANDARD\",\"red_flag_codes\":[]}]}\n问卷回答JSON：[{\"question_id\":\"q1\",\"value\":true,\"source_document\":\"护士分诊记录\",\"evidence_text\":\"患者突发压榨性胸痛40分钟伴大汗\"}]"
+    }
+  ],
+  "example_outputs": [
+    {
+      "assessment_status": "READY_FOR_ONSITE_REVIEW",
+      "review_method": "EXPLICIT_ANSWER_DETERMINISTIC_QUESTIONNAIRE_PATH_REVIEW",
+      "acuity_level": "DEVELOPMENT_PROTOCOL_CANDIDATE_IMMEDIATE",
+      "red_flags": [
+        "RF_CHEST_PAIN_HYPOTENSION"
+      ],
+      "supporting_evidence": "已沿调用方声明问卷执行 1 个明确回答；未从自由文本提取或推断。",
+      "recommended_disposition": "协议路径候选：立即现场人工紧急评估；不是最终分诊级别。",
+      "immediate_actions": [
+        "立即通知现场分诊护士和急诊医师",
+        "进入医院批准的抢救或紧急评估流程",
+        "由现场人员持续观察并按批准协议复测关键参数"
+      ],
+      "missing_information": [],
+      "uncertainty": "候选完全依赖调用方声明的问卷规则、版本和回答；平台未验证临床有效性，最终级别必须由现场分诊专业人员确认。",
+      "protocol_governance": {
+        "protocol_id": "CN-ED-DEMO-001",
+        "protocol_version": "2026.08-dev",
+        "declared_status": "DEVELOPMENT_FIXTURE",
+        "protocol_source": "iCoDer 开发测试夹具（非医院批准协议）",
+        "approval_attestation_id": "",
+        "verification_status": "DEVELOPMENT_ONLY_UNVERIFIED",
+        "jurisdiction": "CN_HOSPITAL_LOCAL_DECLARATION"
+      },
+      "questionnaire_validation": {
+        "valid": true,
+        "errors": [],
+        "question_count": 2,
+        "endpoint_count": 3,
+        "all_references_resolved": true,
+        "cycle_free": true
+      },
+      "decision_path": [
+        {
+          "step_index": 0,
+          "question_id": "q1",
+          "answer_type": "boolean",
+          "documented_value": "true",
+          "evidence_ref": "triage-evidence-5",
+          "matched_branch_index": 0,
+          "matched_operator": "equals",
+          "next_node": "ep_immediate"
+        }
+      ],
+      "protocol_candidate": {
+        "reached": true,
+        "endpoint_id": "ep_immediate",
+        "candidate_level": "IMMEDIATE",
+        "disposition": "协议路径候选：立即现场人工紧急评估；不是最终分诊级别。",
+        "red_flag_codes": [
+          "RF_CHEST_PAIN_HYPOTENSION"
+        ],
+        "result_status": "DEVELOPMENT_UNVERIFIED_PROTOCOL_CANDIDATE"
+      },
+      "clarification_questions": [],
+      "input_conflicts": [],
+      "evidence_items": [
+        {
+          "evidence_id": "triage-evidence-1",
+          "field": "protocol_id",
+          "source_document": "triage_request",
+          "text": "CN-ED-DEMO-001",
+          "char_span": [
+            23,
+            37
+          ],
+          "evidence_status": "EXACT_INPUT_SPAN"
+        },
+        {
+          "evidence_id": "triage-evidence-2",
+          "field": "protocol_version",
+          "source_document": "triage_request",
+          "text": "2026.08-dev",
+          "char_span": [
+            43,
+            54
+          ],
+          "evidence_status": "EXACT_INPUT_SPAN"
+        },
+        {
+          "evidence_id": "triage-evidence-3",
+          "field": "declared_status",
+          "source_document": "triage_request",
+          "text": "DEVELOPMENT_FIXTURE",
+          "char_span": [
+            62,
+            81
+          ],
+          "evidence_status": "EXACT_INPUT_SPAN"
+        },
+        {
+          "evidence_id": "triage-evidence-4",
+          "field": "protocol_source",
+          "source_document": "triage_request",
+          "text": "iCoDer 开发测试夹具（非医院批准协议）",
+          "char_span": [
+            87,
+            109
+          ],
+          "evidence_status": "EXACT_INPUT_SPAN"
+        },
+        {
+          "evidence_id": "triage-evidence-5",
+          "field": "answer:q1",
+          "source_document": "护士分诊记录",
+          "text": "患者突发压榨性胸痛40分钟伴大汗",
+          "char_span": [
+            118,
+            134
+          ],
+          "evidence_status": "EXACT_INPUT_SPAN"
+        }
+      ],
+      "limitations": [
+        "仅验证调用方明确提供的问卷定义和结构化回答，不从访谈或自由文本抽取回答。",
+        "协议状态、来源和批准证明均为调用方声明，平台未验证其临床有效性、授权或医院批准状态。",
+        "不计算 qSOFA、HEART、CURB-65、ESI 或其他临床评分；数值分支仅机械执行调用方规则。",
+        "到达的终点只是开发期协议路径候选，不是最终分诊级别、诊断、检查或治疗建议。",
+        "缺失、冲突、无匹配分支或协议无效时禁止降低紧急程度，必须现场人工复核。",
+        "禁止自动处置、影像建议、药物/剂量/操作建议、患者分流、转运、出院或写回。"
+      ],
+      "transcript_extraction_performed": false,
+      "questionnaire_answer_inference_performed": false,
+      "clinical_inference_performed": false,
+      "medical_calculator_used": false,
+      "external_knowledge_used": false,
+      "final_acuity_assignment_performed": false,
+      "production_action_blocked": true,
+      "production_writeback_blocked": true,
+      "manual_review_required": true,
+      "trace_refs": {
+        "run_id": "sample-run",
+        "provider_trace_refs": [
+          "sample-run:governed-triage-questionnaire-review"
+        ]
+      }
+    }
   ],
   "metadata": {
     "created_at": "2026-07-11",
+    "updated_at": "2026-08-25",
     "author": "iCoDer",
     "corti_match": "triage-and-initial-assessment-agent",
-    "audit_note": "Created during Phase 5 Track B GAP-13-02 fix (2026-07-11). Metadata-only stub for Corti parity inventory. Wiring deferred to Phase 5 Track B-2."
+    "audit_note": "Provider-backed deterministic development baseline. It matches Corti's configurable questionnaire-path concept but intentionally omits transcript extraction, clinical knowledge tools, validated scoring, final acuity assignment, automatic action, and production writeback."
   },
-  "built_by": "icoder"
+  "built_by": "icoder",
+  "code": {},
+  "integrity": {
+    "sha256": "fd9e69e188f46cea784d58096b541ca400fe905f8e975c15356cadf96b717b32"
+  }
 }

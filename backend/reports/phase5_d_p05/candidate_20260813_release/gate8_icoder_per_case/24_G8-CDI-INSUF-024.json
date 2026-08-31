@@ -1,0 +1,293 @@
+{
+  "case_id": "CASE-c281507fdd99",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-c281507fdd99/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "食欲下降和体重减轻的病因未明确，需要进一步检查以确定诊断。",
+      "why_it_matters": "食欲下降和体重减轻是非特异性症状，可能由多种病因引起，如恶性肿瘤、内分泌疾病、消化系统疾病等。缺乏明确的病因诊断会影响编码的准确性和临床治疗的针对性。",
+      "evidence_span": {
+        "document_id": "chart_1",
+        "quote": "食欲下降1月, 体重减轻5kg",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-c281507fdd99/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "检查结果（<REDACTED:NAME>明显异常）未具体说明异常的项目和临床意义，缺乏临床相关性。",
+      "why_it_matters": "异常检查结果需要明确其临床意义，否则无法确定诊断或指导治疗，影响编码和临床决策。",
+      "evidence_span": {
+        "document_id": "chart_1",
+        "quote": "<REDACTED:NAME>明显异常",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [],
+  "query_rewrite_queue": [
+    {
+      "query_id": "q_gap_1",
+      "gap_id": "CASE-c281507fdd99/GAP-001",
+      "topic": "食欲下降和体重减轻的病因",
+      "reason": "患者出现食欲下降和体重减轻，但病因未明确，需要进一步明确诊断。",
+      "query_text": "患者食欲下降和体重减轻的可能病因是什么？",
+      "response_options": [
+        "A. 消化系统疾病（如慢性胃炎、消化性溃疡、肿瘤等）",
+        "B. 内分泌代谢性疾病（如糖尿病、甲状腺功能亢进等）",
+        "C. 慢性感染或消耗性疾病（如结核、恶性肿瘤等）",
+        "D. 精神心理因素（如抑郁、焦虑等）",
+        "E. 其他原因",
+        "F. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart_1",
+          "quote": "食欲下降1月, 体重减轻5kg",
+          "char_start": 11,
+          "char_end": 26,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-004: the chart defers diagnosis to further evaluation"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "q_gap_2",
+      "gap_id": "CASE-c281507fdd99/GAP-002",
+      "topic": "明显异常检查结果的具体项目和临床意义",
+      "reason": "检查结果描述为明显异常，但未具体说明异常项目和临床意义，需要明确。",
+      "query_text": "请明确<REDACTED:NAME>明显异常的具体项目和临床意义。",
+      "response_options": [
+        "A. 血常规异常（如白细胞、血红蛋白、血小板等）",
+        "B. 生化检查异常（如肝功能、肾功能、血糖、电解质等）",
+        "C. 肿瘤标志物异常（如CEA、AFP、CA19-9等）",
+        "D. 影像学检查异常（如CT、MRI、超声等）",
+        "E. 其他检查异常",
+        "F. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart_1",
+          "quote": "<REDACTED:NAME>明显异常",
+          "char_start": 27,
+          "char_end": 46,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-004: query is grounded in or asks to decode a REDACTED placeholder"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者男性, 70岁, 食欲下降1月, 体重减轻5kg。<REDACTED:NAME>明显异常。建议进一步检查。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者男性，70岁",
+      "食欲下降1月",
+      "体重减轻5kg",
+      "建议进一步检查"
+    ],
+    "encounter_metadata": {
+      "patient_age": "70岁",
+      "patient_sex": "男性",
+      "encounter_type": "门诊"
+    }
+  },
+  "risk_flags": [
+    {
+      "category": "ambiguous_term",
+      "description": "使用'明显异常'描述检查结果，但未具体说明异常项目，可能模糊最终临床结论。"
+    }
+  ],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "请明确食欲下降和体重减轻的具体病因线索（如消化道症状、内分泌或肿瘤相关表现），并详细记录<REDACTED:NAME>异常检查项目的名称、数值及临床意义（如贫血、肝功能或肿瘤标志物），以便编码时能准确反映疾病严重程度和诊疗方向。",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 2924,
+      "tokens": 197
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-372743510bbd",
+    "gap_identification": "run-d3118c7ed044",
+    "gap_identification_risk_flags": "emitted=1;quote_snapped=0",
+    "expert_consultation": "run-4051209d0e30",
+    "query_generation": "run-a2bb22e7be75",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=2;llm_complete=False;llm_reasoning=该病历仅记录了非特异性症状和异常检查结果，但未明确病因、具体异常项目及其临床意义，也未提供进一步检查计划，因此对于CDI目的而言不完整。",
+    "query_necessity_gate": "necessary=0;unnecessary=2;overquery_triggered=False;final_count=0",
+    "query_single_dimension_gate": "single_dim=0;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;rewrite_attempted=0;rewrite_accepted=0;final_count=0",
+    "claim_evidence_alignment_gate": "claims_extracted=0;blocked=0;flagged=0;final_count=0",
+    "claim_evidence_alignment_gate::run_id": "run-e3c41e93d1b8",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+    "semantic_necessity_gate::run_id": "run-4a6687b8f69c",
+    "query_compliance_gate": ";passed=0;blocked=0",
+    "specialist_trace_emit": "run-1977ae00f484"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-c31f51a9454a",
+    "gap_identification": "trace-0fe7f1f9ee38",
+    "expert_consultation": "trace-4ab6a31e4dc3",
+    "query_generation": "trace-b7d17b05549b",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-d762246f7969",
+    "semantic_necessity_gate": "trace-16a4f7483a1d",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-dcfee097ee24"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2334,
+      "prompt_tokens": 203,
+      "completion_tokens": 75,
+      "total_tokens": 278,
+      "run_id": "run-372743510bbd",
+      "trace_id": "trace-c31f51a9454a",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5066,
+      "prompt_tokens": 1003,
+      "completion_tokens": 452,
+      "total_tokens": 1455,
+      "run_id": "run-d3118c7ed044",
+      "trace_id": "trace-0fe7f1f9ee38",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5202,
+      "prompt_tokens": 1164,
+      "completion_tokens": 541,
+      "total_tokens": 1705,
+      "run_id": "run-a2bb22e7be75",
+      "trace_id": "trace-b7d17b05549b",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2924,
+      "prompt_tokens": 134,
+      "completion_tokens": 63,
+      "total_tokens": 197,
+      "run_id": "run-155f470ffd94",
+      "trace_id": "trace-4b7fa16a6980",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-169b149c7372",
+      "trace_id": "trace-72c909731997",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-1ee92fc680de",
+      "trace_id": "trace-c9c322944e8c",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-5186c855419e",
+      "trace_id": "trace-7eb4dbdc93c4",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T18:58:09.193528Z"
+}

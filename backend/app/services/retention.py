@@ -37,7 +37,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, UTC
 from typing import Optional
 
-from sqlalchemy import delete, select, func
+from sqlalchemy import delete, select, func, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
@@ -69,7 +69,17 @@ class RetentionPolicy:
 
     @classmethod
     def from_env(cls) -> "RetentionPolicy":
-        """Read TTLs from env vars. Invalid values fall back to defaults."""
+        """Read TTLs from env vars.
+
+        Local development falls back to conservative defaults. Cloud mode
+        fails closed on an invalid value so an operator typo cannot silently
+        change the published retention contract.
+        """
+
+        cloud_mode = (
+            os.environ.get("ICODER_DEPLOYMENT_MODE", "local").strip().lower()
+            == "cloud"
+        )
 
         def _positive_int(name: str, default: int) -> int:
             raw = os.environ.get(name, "").strip()
@@ -77,18 +87,41 @@ class RetentionPolicy:
                 return default
             try:
                 v = int(raw)
-                return v if v > 0 else default
+                if v > 0:
+                    return v
             except ValueError:
-                logger.warning(
-                    "retention: invalid %s=%r, falling back to %d", name, raw, default,
+                pass
+            if cloud_mode:
+                raise ValueError(
+                    f"{name} must be a positive integer in cloud mode"
                 )
-                return default
+            logger.warning(
+                "retention: invalid %s=%r, falling back to %d", name, raw, default,
+            )
+            return default
 
-        return cls(
+        policy = cls(
             audit_log_ttl_days=_positive_int("ICODER_AUDIT_LOG_TTL_DAYS", DEFAULT_AUDIT_LOG_TTL_DAYS),
             run_history_ttl_days=_positive_int("ICODER_RUN_HISTORY_TTL_DAYS", DEFAULT_RUN_HISTORY_TTL_DAYS),
             run_trace_events_ttl_days=_positive_int("ICODER_RUN_TRACE_EVENTS_TTL_DAYS", DEFAULT_RUN_TRACE_EVENTS_TTL_DAYS),
         )
+        if policy.run_trace_events_ttl_days > policy.run_history_ttl_days:
+            if cloud_mode:
+                raise ValueError(
+                    "ICODER_RUN_TRACE_EVENTS_TTL_DAYS must not exceed "
+                    "ICODER_RUN_HISTORY_TTL_DAYS in cloud mode"
+                )
+            logger.warning(
+                "retention: trace TTL exceeds RunHistory TTL; clamping %d to %d",
+                policy.run_trace_events_ttl_days,
+                policy.run_history_ttl_days,
+            )
+            return cls(
+                audit_log_ttl_days=policy.audit_log_ttl_days,
+                run_history_ttl_days=policy.run_history_ttl_days,
+                run_trace_events_ttl_days=policy.run_history_ttl_days,
+            )
+        return policy
 
 
 # ── Purge primitives ────────────────────────────────────────────────
@@ -228,6 +261,119 @@ async def purge_expired_run_history(
     return {"run_history": rh_deleted, "run_trace_events": rt_deleted}
 
 
+async def purge_expired_run_trace_events(
+    db: AsyncSession,
+    policy: RetentionPolicy,
+    *,
+    dry_run: bool = False,
+    organization_id: Optional[str] = None,
+) -> dict[str, int]:
+    """Purge retained trace events without deleting their RunHistory rows.
+
+    Only terminal runs are eligible. This prevents an operator schedule from
+    deleting the prefix of a legitimately long-running stream. Each affected
+    RunHistory row receives a durable purge timestamp and cumulative count so
+    subsequent SSE resume attempts can return 410 instead of conflating an
+    expired cursor with a cursor that never belonged to the run.
+    """
+    from app.models.run_history import RunHistoryModel
+    from app.models.run_trace import RunTraceEventModel
+    from app.services.run_lifecycle import RunStatus
+
+    cutoff = datetime.now(UTC) - timedelta(
+        days=policy.run_trace_events_ttl_days
+    )
+    terminal_statuses = (
+        RunStatus.COMPLETED,
+        RunStatus.FAILED,
+        RunStatus.CANCELLED,
+        RunStatus.COMPLETED_AFTER_CLIENT_ABORT,
+    )
+    conditions = [
+        RunTraceEventModel.created_at < cutoff,
+        RunHistoryModel.status.in_(terminal_statuses),
+    ]
+    if organization_id is not None:
+        conditions.append(RunHistoryModel.organization_id == organization_id)
+
+    grouped_stmt = (
+        select(RunTraceEventModel.run_id, func.count(RunTraceEventModel.id))
+        .join(
+            RunHistoryModel,
+            RunHistoryModel.run_id == RunTraceEventModel.run_id,
+        )
+        .where(*conditions)
+        .group_by(RunTraceEventModel.run_id)
+    )
+    grouped = [
+        (str(run_id), int(count))
+        for run_id, count in (await db.execute(grouped_stmt)).all()
+    ]
+    total = sum(count for _, count in grouped)
+    result = {"run_trace_events": total, "runs_affected": len(grouped)}
+    if dry_run or total == 0:
+        logger.info(
+            "retention: run_trace_events purge dry_run=%s cutoff=%s org=%s events=%d runs=%d",
+            dry_run,
+            cutoff.isoformat(),
+            organization_id,
+            total,
+            len(grouped),
+        )
+        return result
+
+    purged_at = datetime.now(UTC)
+    for run_id, count in grouped:
+        await db.execute(
+            update(RunHistoryModel)
+            .where(RunHistoryModel.run_id == run_id)
+            .values(
+                trace_events_purged_at=purged_at,
+                trace_events_purged_count=(
+                    func.coalesce(RunHistoryModel.trace_events_purged_count, 0)
+                    + count
+                ),
+            )
+        )
+
+    eligible_ids = (
+        select(RunTraceEventModel.id)
+        .join(
+            RunHistoryModel,
+            RunHistoryModel.run_id == RunTraceEventModel.run_id,
+        )
+        .where(*conditions)
+    )
+    delete_result = await db.execute(
+        delete(RunTraceEventModel).where(
+            RunTraceEventModel.id.in_(eligible_ids)
+        )
+    )
+    deleted = int(delete_result.rowcount or 0)
+    if deleted != total:
+        await db.rollback()
+        raise RuntimeError(
+            "run_trace retention count changed during purge; transaction rolled back"
+        )
+
+    await emit_purge_audit(
+        db,
+        table_name="run_trace_events",
+        rows_deleted=deleted,
+        cutoff=cutoff,
+        organization_id=organization_id,
+    )
+    await db.commit()
+    logger.info(
+        "retention: run_trace_events purge cutoff=%s org=%s events=%d runs=%d",
+        cutoff.isoformat(),
+        organization_id,
+        deleted,
+        len(grouped),
+    )
+    return {"run_trace_events": deleted, "runs_affected": len(grouped)}
+
+
 # ── Purge audit emit ────────────────────────────────────────────────
 
 
@@ -273,10 +419,127 @@ async def emit_purge_audit(
         )
 
 
+async def purge_expired_agent_feedback(
+    db: AsyncSession,
+    *,
+    dry_run: bool = False,
+    organization_id: Optional[str] = None,
+    now: datetime | None = None,
+) -> int:
+    """Physically remove Task feedback after each row's bounded deadline."""
+    from app.models.agent_feedback import (
+        AgentTaskFeedback,
+        FeedbackTrainingAuthorization,
+    )
+
+    cutoff = now or datetime.now(UTC)
+    count_stmt = select(func.count(AgentTaskFeedback.id)).where(
+        AgentTaskFeedback.retention_until <= cutoff
+    )
+    if organization_id is not None:
+        count_stmt = count_stmt.where(
+            AgentTaskFeedback.organization_id == organization_id
+        )
+    count = int((await db.execute(count_stmt)).scalar_one())
+    if dry_run or count == 0:
+        return count
+    feedback_ids = select(AgentTaskFeedback.id).where(
+        AgentTaskFeedback.retention_until <= cutoff
+    )
+    if organization_id is not None:
+        feedback_ids = feedback_ids.where(
+            AgentTaskFeedback.organization_id == organization_id
+        )
+    await db.execute(delete(FeedbackTrainingAuthorization).where(
+        FeedbackTrainingAuthorization.feedback_id.in_(feedback_ids)
+    ))
+    delete_stmt = delete(AgentTaskFeedback).where(
+        AgentTaskFeedback.retention_until <= cutoff
+    )
+    if organization_id is not None:
+        delete_stmt = delete_stmt.where(
+            AgentTaskFeedback.organization_id == organization_id
+        )
+    result = await db.execute(delete_stmt)
+    deleted = int(result.rowcount or 0)
+    await emit_purge_audit(
+        db,
+        table_name="agent_task_feedback",
+        rows_deleted=deleted,
+        cutoff=cutoff,
+        organization_id=organization_id,
+    )
+    await db.commit()
+    return deleted
+
+
+async def purge_expired_conversation_memory(
+    db: AsyncSession,
+    *,
+    dry_run: bool = False,
+    organization_id: Optional[str] = None,
+    now: datetime | None = None,
+) -> int:
+    """Hard-delete governed memory at its row-specific consent deadline.
+
+    Legacy ConversationMemory rows have no ``retention_until`` and are outside
+    this primitive; their older context lifecycle remains unchanged.
+    """
+    from app.models.memory import ConversationMemory, MemoryConsent
+
+    cutoff = now or datetime.now(UTC)
+    conditions = [
+        ConversationMemory.consent_id.is_not(None),
+        ConversationMemory.retention_until.is_not(None),
+        ConversationMemory.retention_until <= cutoff,
+    ]
+    if organization_id is not None:
+        conditions.append(ConversationMemory.organization_id == organization_id)
+    count = int((await db.execute(
+        select(func.count(ConversationMemory.id)).where(*conditions)
+    )).scalar_one())
+    if dry_run:
+        return count
+
+    consent_conditions = [
+        MemoryConsent.status == "active",
+        MemoryConsent.expires_at <= cutoff,
+    ]
+    if organization_id is not None:
+        consent_conditions.append(MemoryConsent.organization_id == organization_id)
+    await db.execute(
+        update(MemoryConsent)
+        .where(*consent_conditions)
+        .values(status="expired")
+        .execution_options(synchronize_session=False)
+    )
+    if count == 0:
+        await db.commit()
+        return 0
+    result = await db.execute(
+        delete(ConversationMemory)
+        .where(*conditions)
+        .execution_options(synchronize_session=False)
+    )
+    deleted = int(result.rowcount or 0)
+    await emit_purge_audit(
+        db,
+        table_name="conversation_memories",
+        rows_deleted=deleted,
+        cutoff=cutoff,
+        organization_id=organization_id,
+    )
+    await db.commit()
+    return deleted
+
+
 __all__ = [
     "RetentionPolicy",
     "purge_expired_audit_logs",
     "purge_expired_run_history",
+    "purge_expired_run_trace_events",
+    "purge_expired_agent_feedback",
+    "purge_expired_conversation_memory",
     "emit_purge_audit",
     "DEFAULT_AUDIT_LOG_TTL_DAYS",
     "DEFAULT_RUN_HISTORY_TTL_DAYS",

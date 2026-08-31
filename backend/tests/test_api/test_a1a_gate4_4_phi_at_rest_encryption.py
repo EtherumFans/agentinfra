@@ -40,6 +40,32 @@ def test_encrypt_decrypt_roundtrip_with_key(monkeypatch) -> None:
     assert phi_encryption.decrypt_phi(encrypted) == plaintext
 
 
+def test_binary_phi_encrypt_decrypt_and_rotation_prefix(monkeypatch) -> None:
+    """Audio bytes use the same versioned Fernet lifecycle as text PHI."""
+    from cryptography.fernet import Fernet
+
+    key = Fernet.generate_key().decode("ascii")
+    monkeypatch.setenv("ICODER_PHI_ENCRYPTION_KEY", key)
+    monkeypatch.setenv("ICODER_PHI_ENCRYPTION_KEY_ACTIVE_ID", "2")
+    from app.services import phi_encryption
+
+    payload = b"RIFF\x00patient-audio"
+    encrypted = phi_encryption.encrypt_phi_bytes(payload)
+    assert encrypted.startswith(b"v2:")
+    assert payload not in encrypted
+    assert phi_encryption.decrypt_phi_bytes(encrypted) == payload
+
+
+def test_binary_phi_local_fallback_is_explicit(monkeypatch) -> None:
+    monkeypatch.delenv("ICODER_PHI_ENCRYPTION_KEY", raising=False)
+    from app.services import phi_encryption
+
+    payload = b"local-audio"
+    stored = phi_encryption.encrypt_phi_bytes(payload)
+    assert stored.startswith(b"plain:")
+    assert phi_encryption.decrypt_phi_bytes(stored) == payload
+
+
 def test_encrypt_returns_plaintext_when_no_key(monkeypatch) -> None:
     """Local-dev fallback: no key → store plaintext, mark as not encrypted."""
     monkeypatch.delenv("ICODER_PHI_ENCRYPTION_KEY", raising=False)
@@ -262,6 +288,47 @@ def test_cloud_mode_boots_with_encryption_key_and_no_bypass(monkeypatch) -> None
     monkeypatch.setenv("RUNTRACE_STORE", "db")
     monkeypatch.setenv("RUNTRACE_FAIL_CLOSED", "0")
     monkeypatch.setenv("ICODER_PHI_ENCRYPTION_KEY", Fernet.generate_key().decode("ascii"))
+    monkeypatch.setenv("DATABASE_URL", "postgresql+asyncpg://test:test@db:5432/icoder")
+    monkeypatch.setenv("CORS_ORIGINS", '["https://app.icoder.cloud"]')
+    monkeypatch.setenv("ICODER_PHI_REDACTION_MODE", "edge")
+    monkeypatch.setenv("ICODER_AUDIT_SINK", "cloud_audit")
+    monkeypatch.setenv("ICODER_SINGLE_TENANT_ORG_ID", "")
+    monkeypatch.setenv("ICODER_ASSET_BUCKET", "icoder-assets-cn-hangzhou")
+    monkeypatch.setenv("ICODER_CREDENTIAL_LLM", "kms-test-credential-not-real")
+    monkeypatch.setenv("LLM_PROVIDER", "deepseek")
+    monkeypatch.setenv(
+        "ICODER_METRICS_BEARER_TOKEN",
+        "test-metrics-bearer-token-32-characters",
+    )
+    monkeypatch.setenv("MEDCODER_RETRIEVER_URL", "https://medcoder.internal")
+    monkeypatch.setenv(
+        "MEDCODER_RETRIEVER_TOKEN", "test-medcoder-service-token-32-characters"
+    )
+    monkeypatch.setenv("ICODER_CONNECTOR_EGRESS_ALLOWLIST", "memory.internal")
+    monkeypatch.setenv(
+        "ICODER_MEMORY_SEMANTIC_URL",
+        "https://memory.internal/v1/embed",
+    )
+    monkeypatch.setenv("ICODER_MEMORY_SEMANTIC_REQUIRED", "true")
+    monkeypatch.setenv(
+        "ICODER_CREDENTIAL_MEMORY_SEMANTIC",
+        "test-memory-semantic-token-32-characters",
+    )
+    monkeypatch.setenv("ICODER_INVITE_DELIVERY_MODE", "webhook")
+    monkeypatch.setenv(
+        "ICODER_INVITE_WEBHOOK_URL",
+        "https://notification.internal/invitations",
+    )
+    monkeypatch.setenv(
+        "ICODER_INVITE_WEBHOOK_BEARER_TOKEN",
+        "test-invite-webhook-token-32-characters",
+    )
+    monkeypatch.setenv(
+        "ICODER_INVITE_ALLOWED_EMAIL_DOMAINS",
+        '["hospital.example.cn"]',
+    )
+    monkeypatch.setenv("APP_ENV", "cloud")
+    monkeypatch.setenv("OAUTH_REQUIRE_TENANT_HEADER", "true")
     monkeypatch.delenv("ICODER_PHI_REDACTION_BYPASS", raising=False)
 
     s = Settings()  # should not raise

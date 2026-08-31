@@ -31,7 +31,8 @@ async def embedded_assistant_js():
     """Serve the @icoder/embedded v2.0 Web Component bundle.
 
     Returns the compiled ES module from `packages/icoder-embedded/dist/`.
-    If the dist hasn't been built, returns a stub that prints a build hint.
+    A missing release artifact fails closed with 503; it must never return a
+    successful placeholder module to a hospital integration.
     """
     if _DIST_JS.exists():
         content = _DIST_JS.read_text(encoding="utf-8")
@@ -41,8 +42,16 @@ async def embedded_assistant_js():
             headers={"Cache-Control": "no-cache"},
         )
     return Response(
-        content="// @icoder/embedded dist not built. Run: cd packages/icoder-embedded && npx tsc",
+        status_code=503,
+        content=(
+            "// iCoDer Embedded Assistant is unavailable: "
+            "the verified release bundle is missing.\n"
+        ),
         media_type="application/javascript",
+        headers={
+            "Cache-Control": "no-store",
+            "X-iCoDer-Error": "embedded_bundle_missing",
+        },
     )
 
 

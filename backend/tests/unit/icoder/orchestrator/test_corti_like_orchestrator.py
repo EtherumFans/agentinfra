@@ -285,12 +285,7 @@ def test_corti_like_orchestrator_metadata_block():
         InboundMessage,
     )
     from app.icoder.agent_runtime.orchestrator.planner import Planner
-    from app.icoder.agent_runtime.orchestrator.wiring import (
-        _stub_expert_invoker,
-        _stub_llm_call,
-    )
-
-    # Plan stub — emit one expert so the planner parse succeeds.
+    # Test-local plan fixture — emit one expert so the planner parse succeeds.
     def fake_llm(system, user):
         import json as _j
         return {
@@ -300,6 +295,12 @@ def test_corti_like_orchestrator_metadata_block():
             }),
             "model": "stub",
             "latency_ms": 0,
+        }
+
+    def fake_expert(invocation):
+        return {
+            "expert_id": invocation.expert_id,
+            "test_result": True,
         }
 
     class _Agent:
@@ -313,7 +314,7 @@ def test_corti_like_orchestrator_metadata_block():
     orch = CortiLikeOrchestrator(
         phi_redactor=_FakeRedactor(),
         planner=Planner(fake_llm),
-        delegator=Delegator(_stub_expert_invoker),
+        delegator=Delegator(fake_expert),
         aggregator=Aggregator(),
         agent_provider=provider,
     )
@@ -324,7 +325,7 @@ def test_corti_like_orchestrator_metadata_block():
         )
     )
     response = orch.handle("ag1", req)
-    # Stub LLM returns deterministic empty plan that planner accepts.
+    # The deterministic test LLM returns a plan that the parser accepts.
     # Either success or planning_failure — both prove the facade ran.
     assert response.kind in ("message", "error")
     if response.kind == "message":

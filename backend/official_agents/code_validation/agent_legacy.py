@@ -231,7 +231,12 @@ def _convert_v1_to_v2(v1: dict, *, run_id: str) -> dict:
         "run_id": run_id or (v1.get("trace_refs") or {}).get("run_id", ""),
         "review_conclusion": v1.get("review_conclusion") or "WARNING",
         "issues_found": list(v1.get("issues_found") or []),
-        "manual_review_required": bool(v1.get("manual_review_required")),
+        # This adapter is a lossy fallback without mandatory MCP evidence;
+        # even a deterministic PASS remains a draft for human review.
+        "manual_review_required": True,
+        "degraded": True,
+        "fallback_used": True,
+        "runtime_mode": "deterministic_rule_engine_fallback",
         "rule_set": "medical_coding",
         "validated_codes": validated_codes,
         "cross_code_issues": cross_issues,

@@ -1,0 +1,138 @@
+{
+  "agent_id": "evidence-ranker",
+  "run_id": "run-1f76bc76-6986-4349-8ae8-5d605db07b5f",
+  "trace_id": "trace-64ddcaa03ac2482c",
+  "trace_url": "/ai-studio/runs/run-1f76bc76-6986-4349-8ae8-5d605db07b5f/trace",
+  "runtime_mode": "pure_llm",
+  "latency_ms": 8576,
+  "cost": {
+    "amount": 0.000287,
+    "currency": "CNY"
+  },
+  "summary": "{",
+  "result": {
+    "status": "complete",
+    "markdown": "{\n  \"ranked_evidence\": [\n    {\n      \"evidence_id\": \"A\",\n      \"location\": \"入院记录第3段\",\n      \"content\": \"前壁ST段抬高\",\n      \"relevance_to_code\": \"直接支持急性心肌梗死（I21.0）的心电图表现\",\n      \"directness\": \"高\",\n      \"temporal_consistency\": \"入院时记录，时间一致\",\n      \"negation_or_uncertainty\": \"无\",\n      \"record_attribution\": \"入院记录，临床医生记录\",\n      \"rank\": 1,\n      \"rationale\": \"ST段抬高是急性心肌梗死的关键诊断依据，直接指向I21.0，且无否定或不确定表达。\"\n    },\n    {\n      \"evidence_id\": \"B\",\n      \"location\": \"检验单\",\n      \"content\": \"肌钙蛋白升高\",\n      \"relevance_to_code\": \"支持心肌损伤，是急性心肌梗死的生物标志物\",\n      \"directness\": \"中高\",\n      \"temporal_consistency\": \"未提供具体时间，但通常与急性事件相关\",\n      \"negation_or_uncertainty\": \"无\",\n      \"record_attribution\": \"检验单，实验室结果\",\n      \"rank\": 2,\n      \"rationale\": \"肌钙蛋白升高是心肌坏死的敏感指标，但需结合临床和心电图，直接性略低于ST段抬高。\"\n    },\n    {\n      \"evidence_id\": \"C\",\n      \"location\": \"既往史\",\n      \"content\": \"<REDACTED:NAME>心肌梗死\",\n      \"relevance_to_code\": \"提示既往心肌梗死史，可能影响编码（如陈旧性 vs 急性）\",\n      \"directness\": \"低\",\n      \"temporal_consistency\": \"既往史，非当前事件\",\n      \"negation_or_uncertainty\": \"无\",\n      \"record_attribution\": \"既往史记录\",\n      \"rank\": 3,\n      \"rationale\": \"既往心肌梗死史不能直接支持当前急性心肌梗死编码，需区分急性与陈旧性，且姓名被遮蔽，归属不明确。\"\n    }\n  ],\n  \"conflicts\": [\n    {\n      \"evidence_ids\": [\"A\", \"C\"],\n      \"description\": \"证据A提示当前急性前壁ST段抬高，证据C为既往心肌梗死史，可能造成急性与陈旧性心肌梗死的混淆，需明确时间关系。\"\n    }\n  ],\n  \"unsupported_claims\": [\n    {\n      \"claim\": \"证据C中的心肌梗死与当前编码I21.0直接相关\",\n      \"reason\": \"既往史无法定位到当前急性事件，且姓名被遮蔽，无法确认记录归属。\"\n    }\n  ],\n  \"confidence_calibration\": {\n    \"overall_confidence\": \"中高\",\n    \"explanation\": \"证据A和B强支持急性心肌梗死，但证据C的既往史可能引入混淆，且缺乏明确的发病时间、心电图动态变化和更多临床细节，因此置信度未达到高。\"\n  },\n  \"source_coverage\": {\n    \"covered_sources\": [\"入院记录\", \"检验单\", \"既往史\"],\n    \"missing_sources\": [\"心电图报告原文\", \"出院小结\", \"病程记录\", \"影像学检查\"],\n    \"coverage_assessment\": \"核心证据已覆盖，但缺少心电图报告和出院小结，可能影响编码的最终确认。\"\n  },\n  \"limitations\": [\n    \"证据B未提供具体检验时间，无法确认与入院事件的时间一致性。\",\n    \"证据C中姓名被遮蔽，无法验证记录归属。\",\n    \"未提供心电图报告原文，ST段抬高的具体导联和动态变化未知。\",\n    \"未提供出院诊断或最终临床结论，可能影响编码的准确性。\"\n  ],\n  \"manual_review_required\": true\n}",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.pure-llm.v1",
+    "backend_type": "pure_llm",
+    "ranked_evidence": [
+      {
+        "evidence_id": "A",
+        "location": "入院记录第3段",
+        "content": "前壁ST段抬高",
+        "relevance_to_code": "直接支持急性心肌梗死（I21.0）的心电图表现",
+        "directness": "高",
+        "temporal_consistency": "入院时记录，时间一致",
+        "negation_or_uncertainty": "无",
+        "record_attribution": "入院记录，临床医生记录",
+        "rank": 1,
+        "rationale": "ST段抬高是急性心肌梗死的关键诊断依据，直接指向I21.0，且无否定或不确定表达。"
+      },
+      {
+        "evidence_id": "B",
+        "location": "检验单",
+        "content": "肌钙蛋白升高",
+        "relevance_to_code": "支持心肌损伤，是急性心肌梗死的生物标志物",
+        "directness": "中高",
+        "temporal_consistency": "未提供具体时间，但通常与急性事件相关",
+        "negation_or_uncertainty": "无",
+        "record_attribution": "检验单，实验室结果",
+        "rank": 2,
+        "rationale": "肌钙蛋白升高是心肌坏死的敏感指标，但需结合临床和心电图，直接性略低于ST段抬高。"
+      },
+      {
+        "evidence_id": "C",
+        "location": "既往史",
+        "content": "<REDACTED:NAME>心肌梗死",
+        "relevance_to_code": "提示既往心肌梗死史，可能影响编码（如陈旧性 vs 急性）",
+        "directness": "低",
+        "temporal_consistency": "既往史，非当前事件",
+        "negation_or_uncertainty": "无",
+        "record_attribution": "既往史记录",
+        "rank": 3,
+        "rationale": "既往心肌梗死史不能直接支持当前急性心肌梗死编码，需区分急性与陈旧性，且姓名被遮蔽，归属不明确。"
+      }
+    ],
+    "conflicts": [
+      {
+        "evidence_ids": [
+          "A",
+          "C"
+        ],
+        "description": "证据A提示当前急性前壁ST段抬高，证据C为既往心肌梗死史，可能造成急性与陈旧性心肌梗死的混淆，需明确时间关系。"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "claim": "证据C中的心肌梗死与当前编码I21.0直接相关",
+        "reason": "既往史无法定位到当前急性事件，且姓名被遮蔽，无法确认记录归属。"
+      }
+    ],
+    "confidence_calibration": {
+      "overall_confidence": "中高",
+      "explanation": "证据A和B强支持急性心肌梗死，但证据C的既往史可能引入混淆，且缺乏明确的发病时间、心电图动态变化和更多临床细节，因此置信度未达到高。"
+    },
+    "source_coverage": {
+      "covered_sources": [
+        "入院记录",
+        "检验单",
+        "既往史"
+      ],
+      "missing_sources": [
+        "心电图报告原文",
+        "出院小结",
+        "病程记录",
+        "影像学检查"
+      ],
+      "coverage_assessment": "核心证据已覆盖，但缺少心电图报告和出院小结，可能影响编码的最终确认。"
+    },
+    "limitations": [
+      "证据B未提供具体检验时间，无法确认与入院事件的时间一致性。",
+      "证据C中姓名被遮蔽，无法验证记录归属。",
+      "未提供心电图报告原文，ST段抬高的具体导联和动态变化未知。",
+      "未提供出院诊断或最终临床结论，可能影响编码的准确性。"
+    ],
+    "manual_review_required": true,
+    "structured_extraction": {
+      "contract": "icoder/EvidenceRankerOutput/v1",
+      "method": "bare_json",
+      "warnings": [],
+      "required_fields": [
+        "ranked_evidence",
+        "conflicts",
+        "unsupported_claims",
+        "confidence_calibration",
+        "source_coverage",
+        "limitations",
+        "manual_review_required"
+      ],
+      "missing_required_fields": [],
+      "valid": true
+    }
+  },
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 8576,
+      "metadata": {
+        "agent_id": "evidence-ranker",
+        "runtime_mode": "pure_llm",
+        "latency_ms": 8576
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 8.85
+}

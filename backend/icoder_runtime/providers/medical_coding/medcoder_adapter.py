@@ -18,6 +18,8 @@ import re
 from dataclasses import dataclass, field
 from typing import Any
 
+from .project_policy import apply_medical_coding_project_policy
+
 logger = logging.getLogger(__name__)
 
 
@@ -129,7 +131,10 @@ _EXTRACTION_FEW_SHOT: list[dict[str, str]] = [
 ]
 
 
-def build_extraction_messages(emr_text: str) -> list[dict[str, str]]:
+def build_extraction_messages(
+    emr_text: str,
+    project_policy: str = "",
+) -> list[dict[str, str]]:
     """Build Stage 1 messages: system prompt + (optional) few-shot + user EMR.
 
     E1.8: prepend 3 few-shot user/assistant pairs after the system prompt
@@ -142,7 +147,13 @@ def build_extraction_messages(emr_text: str) -> list[dict[str, str]]:
     re-enabled without code change.
     """
     messages: list[dict[str, str]] = [
-        {"role": "system", "content": EXTRACTION_SYSTEM_PROMPT},
+        {
+            "role": "system",
+            "content": apply_medical_coding_project_policy(
+                EXTRACTION_SYSTEM_PROMPT,
+                project_policy,
+            ),
+        },
     ]
     if is_medcoder_fewshot_enabled():
         messages.extend(_EXTRACTION_FEW_SHOT)
@@ -207,6 +218,7 @@ def build_rerank_messages(
     supporting_evidence: str,
     candidates: list[dict],
     differentiation_hints: list[str] | None = None,
+    project_policy: str = "",
 ) -> list[dict[str, str]]:
     """Build the Stage 4 re-rank prompt for one disease."""
     # Build candidate list with code, name, score, source
@@ -230,7 +242,13 @@ def build_rerank_messages(
         f"请输出 top-5 编码 + 置信度。"
     )
     return [
-        {"role": "system", "content": RERANK_SYSTEM_PROMPT},
+        {
+            "role": "system",
+            "content": apply_medical_coding_project_policy(
+                RERANK_SYSTEM_PROMPT,
+                project_policy,
+            ),
+        },
         {"role": "user", "content": user_content},
     ]
 

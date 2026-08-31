@@ -31,6 +31,7 @@ imported unchanged — M2's MCP server will reuse them.
 from __future__ import annotations
 
 import logging
+import math
 import os
 from dataclasses import dataclass, field
 from typing import Any, Callable
@@ -73,6 +74,25 @@ STAGE2_OK = "MEDCODER_RETRIEVE_OK"
 STAGE2_RETRIEVER_UNAVAILABLE = "MEDCODER_RETRIEVER_UNAVAILABLE"
 STAGE2_RETRIEVE_FAILED = "MEDCODER_RETRIEVE_FAILED"
 STAGE2_EMPTY_INPUT = "MEDCODER_RETRIEVE_EMPTY_INPUT"
+
+
+def _bounded_confidence(value: Any) -> float:
+    """Convert an untrusted/raw score to the public confidence domain.
+
+    FAISS inner-product scores are ranking signals and can be negative (or
+    exceed one when vectors are not normalized). Provider responses can also
+    contain NaN/Infinity. None of those values are valid clinical confidence
+    values, so every boundary from retrieval/rerank into output schemas uses
+    this helper.
+    """
+
+    try:
+        parsed = float(value)
+    except (TypeError, ValueError):
+        return 0.0
+    if not math.isfinite(parsed):
+        return 0.0
+    return max(0.0, min(1.0, parsed))
 
 
 @dataclass
@@ -204,7 +224,11 @@ class MedCodERStrategy:
 
     # ── 5 public stage methods ─────────────────────────────────────
 
-    async def stage1_extraction(self, emr_text: str) -> Any:
+    async def stage1_extraction(
+        self,
+        emr_text: str,
+        project_policy: str = "",
+    ) -> Any:
         """Stage 1: LLM call → :class:`ExtractionResult`.
 
         E1.4: returns ``ExtractionResult`` (diseases + procedure_mentions)
@@ -213,22 +237,28 @@ class MedCodERStrategy:
         working. Use ``extraction.diseases`` for explicit access or
         ``extraction.procedure_mentions`` for the new procedure list.
 
-        Falls back to ``_mock_stage1`` when the gateway is missing or
-        the LLM call raises. The fallback is intentional — strategy tests
-        and the no-gateway dev path still need a deterministic Stage 1
-        result.
+        Missing, degraded, invalid, or failed LLM calls return an empty
+        extraction. The variant runner converts that to an explicit failed
+        schema; synthetic diagnoses are never produced in a runtime path.
         """
         if not emr_text or not emr_text.strip():
             return ExtractionResult()
-        ext_messages = build_extraction_messages(emr_text)
+        ext_messages = build_extraction_messages(emr_text, project_policy)
         if not self._gateway:
-            return self._mock_stage1(emr_text)
+            logger.warning("MedCodER: Stage 1 gateway unavailable")
+            return ExtractionResult()
         try:
             resp = await self._gateway.generate(ext_messages, provider="default")
+            if not isinstance(resp, dict) or resp.get("degraded") or resp.get("is_mock"):
+                logger.warning("MedCodER: Stage 1 gateway degraded")
+                return ExtractionResult()
             content = resp.get("content", "") if isinstance(resp, dict) else ""
-        except Exception as e:
-            logger.warning("MedCodER: Stage 1 LLM failed: %s", e)
-            return self._mock_stage1(emr_text)
+        except Exception as exc:
+            logger.warning(
+                "MedCodER: Stage 1 LLM failed error_type=%s",
+                type(exc).__name__,
+            )
+            return ExtractionResult()
         return parse_extraction_response(content)
 
     async def stage2_retrieve(
@@ -415,6 +445,7 @@ class MedCodERStrategy:
         evidence: str,
         candidates: list[dict],
         hints: list[str] | None = None,
+        project_policy: str = "",
     ) -> list[dict]:
         """Stage 4: RankGPT-style re-rank to top-K (default 5).
 
@@ -425,21 +456,25 @@ class MedCodERStrategy:
         if not candidates:
             return []
         if not self._gateway:
-            return self._mock_rerank(candidates)
+            return self._deterministic_rerank(candidates)
 
         try:
             msgs = build_rerank_messages(
-                disease_text, evidence or "", candidates, hints,
+                disease_text,
+                evidence or "",
+                candidates,
+                hints,
+                project_policy,
             )
             resp = await self._gateway.generate(msgs, provider="default")
             content = resp.get("content", "") if isinstance(resp, dict) else ""
         except Exception as e:
             logger.warning("MedCodER: Stage 4 LLM failed: %s", e)
-            return self._mock_rerank(candidates)
+            return self._deterministic_rerank(candidates)
 
         ranked = parse_rerank_response(content)
         if not ranked:
-            return self._mock_rerank(candidates)
+            return self._deterministic_rerank(candidates)
         return ranked
 
     async def stage5_compliance(
@@ -550,14 +585,23 @@ class MedCodERStrategy:
         """
         emr_text = self._extract_emr_text(emr_text)
         if not emr_text:
-            out = MedicalCodingOutputSchema.mock_result("medcoder")
+            out = MedicalCodingOutputSchema.failure_result(
+                "medcoder", reason="empty_emr"
+            )
             out.mode = Mode.MEDCODER
             return out
 
-        extraction = await self.stage1_extraction(emr_text)
+        project_policy = str(ctx.get("project_policy") or "")
+        extraction = (
+            await self.stage1_extraction(emr_text, project_policy)
+            if project_policy
+            else await self.stage1_extraction(emr_text)
+        )
         if not extraction:
-            logger.warning("MedCodER: Stage 1 produced 0 diagnoses, falling back to mock")
-            out = MedicalCodingOutputSchema.mock_result("medcoder")
+            logger.warning("MedCodER: Stage 1 produced 0 diagnoses; failing closed")
+            out = MedicalCodingOutputSchema.failure_result(
+                "medcoder", reason="stage1_empty"
+            )
             out.mode = Mode.MEDCODER
             out.notes = "MedCodER Stage 1 (extraction) returned 0 diseases"
             return out
@@ -581,14 +625,23 @@ class MedCodERStrategy:
         """Stage 1 only — LLM initial ICD codes, no retrieval, no rerank."""
         emr_text = self._extract_emr_text(emr_text)
         if not emr_text:
-            out = MedicalCodingOutputSchema.mock_result("medcoder")
+            out = MedicalCodingOutputSchema.failure_result(
+                "medcoder", reason="empty_emr"
+            )
             out.mode = Mode.MEDCODER
             out.notes = "MedCodER variant=prompt: empty EMR"
             return out
 
-        extraction = await self.stage1_extraction(emr_text)
+        project_policy = str(ctx.get("project_policy") or "")
+        extraction = (
+            await self.stage1_extraction(emr_text, project_policy)
+            if project_policy
+            else await self.stage1_extraction(emr_text)
+        )
         if not extraction:
-            out = MedicalCodingOutputSchema.mock_result("medcoder")
+            out = MedicalCodingOutputSchema.failure_result(
+                "medcoder", reason="stage1_empty"
+            )
             out.mode = Mode.MEDCODER
             out.notes = "MedCodER variant=prompt: Stage 1 returned 0 diseases"
             return out
@@ -624,7 +677,9 @@ class MedCodERStrategy:
         """
         emr_text = self._extract_emr_text(emr_text)
         if not emr_text:
-            out = MedicalCodingOutputSchema.mock_result("medcoder")
+            out = MedicalCodingOutputSchema.failure_result(
+                "medcoder", reason="empty_emr"
+            )
             out.mode = Mode.MEDCODER
             out.notes = "MedCodER variant=retrieve: empty EMR"
             return out
@@ -645,7 +700,9 @@ class MedCodERStrategy:
                 disease_text=mention[:80],
                 retrieved_codes=list(retrieved),
                 final_top_k=final_top_k,
-                final_confidence=top1.score if top1 else 0.0,
+                final_confidence=(
+                    _bounded_confidence(top1.score) if top1 else 0.0
+                ),
                 rerank_notes="retrieve-only: no LLM rerank",
             ))
         return await self.stage5_compliance(extracted, ctx)
@@ -662,14 +719,23 @@ class MedCodERStrategy:
         """
         emr_text = self._extract_emr_text(emr_text)
         if not emr_text:
-            out = MedicalCodingOutputSchema.mock_result("medcoder")
+            out = MedicalCodingOutputSchema.failure_result(
+                "medcoder", reason="empty_emr"
+            )
             out.mode = Mode.MEDCODER
             out.notes = "MedCodER variant=prompt+retrieve: empty EMR"
             return out
 
-        extraction = await self.stage1_extraction(emr_text)
+        project_policy = str(ctx.get("project_policy") or "")
+        extraction = (
+            await self.stage1_extraction(emr_text, project_policy)
+            if project_policy
+            else await self.stage1_extraction(emr_text)
+        )
         if not extraction:
-            out = MedicalCodingOutputSchema.mock_result("medcoder")
+            out = MedicalCodingOutputSchema.failure_result(
+                "medcoder", reason="stage1_empty"
+            )
             out.mode = Mode.MEDCODER
             out.notes = "MedCodER variant=prompt+retrieve: Stage 1 returned 0 diseases"
             return out
@@ -698,7 +764,9 @@ class MedCodERStrategy:
                 llm_initial_code=llm_code,
                 retrieved_codes=list(retrieved),
                 final_top_k=final_top_k,
-                final_confidence=top1.score if top1 else 0.0,
+                final_confidence=(
+                    _bounded_confidence(top1.score) if top1 else 0.0
+                ),
                 rerank_notes="prompt+retrieve: no LLM rerank",
             ))
         output = await self.stage5_compliance(extracted, ctx)
@@ -779,7 +847,7 @@ class MedCodERStrategy:
             procedures.append(ProcedureEntry(
                 code=code,
                 description=top.name or "",
-                confidence=float(top.score) if top.score else 0.0,
+                confidence=_bounded_confidence(top.score),
                 category="therapeutic",  # default; future work: classify
                 evidence=[text],
             ))
@@ -1003,8 +1071,22 @@ class MedCodERStrategy:
         hints = get_differentiation_hints(disease_text)
 
         # 4) Re-rank
-        ranked = await self.stage4_rerank(
-            disease_text, evidence_text, merged, hints,
+        project_policy = str(ctx.get("project_policy") or "")
+        ranked = (
+            await self.stage4_rerank(
+                disease_text,
+                evidence_text,
+                merged,
+                hints,
+                project_policy,
+            )
+            if project_policy
+            else await self.stage4_rerank(
+                disease_text,
+                evidence_text,
+                merged,
+                hints,
+            )
         )
 
         # Fallback: if rerank produced nothing, use top-K by merge score
@@ -1012,7 +1094,7 @@ class MedCodERStrategy:
             ranked = [
                 {
                     "code": c["code"], "name": c.get("name", ""),
-                    "confidence": float(c.get("score", 0.0)),
+                    "confidence": _bounded_confidence(c.get("score", 0.0)),
                     "rationale": "rerank-failed: using retrieval order",
                 }
                 for c in merged[: self._rerank_top_k]
@@ -1028,14 +1110,18 @@ class MedCodERStrategy:
             final_top_k.append(CandidateCode(
                 code=code,
                 name=r.get("name", ""),
-                score=float(r.get("confidence", 0.0)),
+                score=_bounded_confidence(r.get("confidence", 0.0)),
                 chapter="",
                 source="rerank",
             ))
 
         rerank_note = ranked[0].get("rationale", "") if ranked else "no candidates"
         try:
-            per_dx_conf = float(ranked[0].get("confidence", 0.0)) if ranked else 0.0
+            per_dx_conf = (
+                _bounded_confidence(ranked[0].get("confidence", 0.0))
+                if ranked
+                else 0.0
+            )
         except (TypeError, ValueError):
             per_dx_conf = 0.0
 
@@ -1065,7 +1151,7 @@ class MedCodERStrategy:
             output.primary_diagnosis = DiagnosisEntry(
                 code=best.code,
                 description=best.name,
-                confidence=top.final_confidence,
+                confidence=_bounded_confidence(top.final_confidence),
                 category="principal",
                 evidence=list(top.supporting_evidence),
             )
@@ -1075,7 +1161,7 @@ class MedCodERStrategy:
             b = edx.final_top_k[0]
             output.secondary_diagnoses.append(DiagnosisEntry(
                 code=b.code, description=b.name,
-                confidence=edx.final_confidence,
+                confidence=_bounded_confidence(edx.final_confidence),
                 category="comorbidity",
                 evidence=list(edx.supporting_evidence),
             ))
@@ -1105,23 +1191,8 @@ class MedCodERStrategy:
         parts = re.split(r"[。；\n.!?;]+", text)
         return [p.strip() for p in parts if p and p.strip()]
 
-    def _mock_stage1(self, emr_text: str) -> ExtractionResult:
-        """Deterministic Stage 1 result when gateway is missing/failed.
-
-        Single "心力衰竭" diagnosis with a stable ICD initial code. Tests
-        rely on this shape — change with care.
-
-        E1.4: returns :class:`ExtractionResult` (diseases + empty
-        procedure_mentions). The mock has no procedure extraction.
-        """
-        return ExtractionResult(diseases=[{
-            "disease_text": "心力衰竭",
-            "supporting_evidence": emr_text[:80] if emr_text else "胸闷气短",
-            "llm_initial_code": "I50.900",
-        }])
-
-    def _mock_rerank(self, candidates: list[dict]) -> list[dict]:
-        """Top-K by score when Stage 4 LLM is missing or fails."""
+    def _deterministic_rerank(self, candidates: list[dict]) -> list[dict]:
+        """Degraded Top-K using only real retrieval scores."""
         sorted_c = sorted(
             candidates, key=lambda c: float(c.get("score", 0)), reverse=True,
         )
@@ -1164,6 +1235,26 @@ class MedCodERStrategy:
             on this platform when combined with httpx async I/O.
           - else use the in-process ``MedCodERRetriever``.
         """
+        remote_url = os.environ.get("MEDCODER_RETRIEVER_URL", "").strip()
+        if remote_url:
+            try:
+                from .remote_retriever import RemoteMedCodERRetriever
+
+                logger.info("MedCodERStrategy: using isolated remote ICD-10-CN retriever")
+                return RemoteMedCodERRetriever.from_env(code_system="ICD-10-CN")
+            except Exception as exc:
+                logger.error(
+                    "MedCodERStrategy: remote retriever configuration invalid: %s",
+                    type(exc).__name__,
+                )
+                return None
+
+        from .runtime_safety import assess_bge_runtime_safety
+
+        safety = assess_bge_runtime_safety()
+        if not safety.safe:
+            logger.error("MedCodERStrategy: local BGE disabled: %s", safety.reason)
+            return None
         use_subprocess = (
             os.environ.get("MEDCODER_SUBPROCESS") == "1"
             or os.name == "nt"
@@ -1217,6 +1308,33 @@ class MedCodERStrategy:
         ``SubprocessMedCodERICD9CM3Retriever`` isolates BGE-M3 from
         the parent's httpx async loop on Windows.
         """
+        remote_url = os.environ.get("MEDCODER_RETRIEVER_URL", "").strip()
+        if remote_url:
+            try:
+                from .remote_retriever import RemoteMedCodERRetriever
+
+                logger.info(
+                    "MedCodERStrategy: using isolated remote ICD-9-CM-3-CN retriever"
+                )
+                return RemoteMedCodERRetriever.from_env(
+                    code_system="ICD-9-CM-3-CN"
+                )
+            except Exception as exc:
+                logger.error(
+                    "MedCodERStrategy: remote procedure retriever configuration invalid: %s",
+                    type(exc).__name__,
+                )
+                return None
+
+        from .runtime_safety import assess_bge_runtime_safety
+
+        safety = assess_bge_runtime_safety()
+        if not safety.safe:
+            logger.error(
+                "MedCodERStrategy: local procedure BGE disabled: %s",
+                safety.reason,
+            )
+            return None
         use_subprocess = (
             os.environ.get("MEDCODER_SUBPROCESS") == "1"
             or os.name == "nt"

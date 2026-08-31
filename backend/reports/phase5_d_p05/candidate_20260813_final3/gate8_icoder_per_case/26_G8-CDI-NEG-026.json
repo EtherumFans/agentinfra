@@ -1,0 +1,365 @@
+{
+  "case_id": "CASE-476b76d80cd1",
+  "completion_state": "REVIEW_RECOMMENDED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-476b76d80cd1/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "入院诊断'2型糖尿病?'使用了疑问语气，未明确诊断，且缺乏分型依据（如胰岛自身抗体、C肽等）和严重程度（如血糖水平、有无酮症）的说明。",
+      "why_it_matters": "糖尿病分型（1型 vs 2型）直接影响治疗方案和编码准确性；未明确诊断和分型会导致编码不精确，可能影响DRG分组和医疗质量评价。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "入院诊断:2型糖尿病?",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-476b76d80cd1/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "未记录血糖水平、糖化血红蛋白等实验室检查结果，无法确认糖尿病诊断及其严重程度。",
+      "why_it_matters": "糖尿病诊断需血糖或HbA1c证据支持，缺乏这些数据导致诊断依据不足，影响编码的准确性和临床合理性。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "多饮多尿1周",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-476b76d80cd1/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "未记录糖尿病相关并发症（如酮症酸中毒、高渗状态、周围神经病变等）的筛查或排除情况。",
+      "why_it_matters": "并发症的存在与否直接影响编码和疾病严重程度，遗漏可能导致编码不完整。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "否认糖尿病、冠心病、慢性肾病",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-476b76d80cd1/Q-001",
+      "gap_id": "CASE-476b76d80cd1/GAP-002",
+      "topic": "血糖及糖化血红蛋白水平",
+      "reason": "缺乏血糖及糖化血红蛋白等实验室检查结果，无法确认糖尿病诊断及严重程度。",
+      "evidence_span": {
+        "document_id": "chart-001",
+        "quote": "多饮多尿1周",
+        "char_start": 11,
+        "char_end": 17,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "多饮多尿1周",
+          "char_start": 11,
+          "char_end": 17,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "请提供血糖水平（如空腹血糖、餐后血糖）及糖化血红蛋白等实验室检查结果，以明确糖尿病诊断及其严重程度。",
+      "response_options": [
+        "A. 血糖及糖化血红蛋白结果已记录，支持糖尿病诊断",
+        "B. 血糖及糖化血红蛋白结果已记录，但未达到糖尿病诊断标准",
+        "C. 血糖及糖化血红蛋白结果尚未检测或记录",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "urgent",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    }
+  ],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-001",
+      "gap_id": "CASE-476b76d80cd1/GAP-001",
+      "topic": "2型糖尿病诊断明确性及分型依据",
+      "reason": "入院诊断使用疑问语气，需明确诊断及分型依据。",
+      "query_text": "根据现有临床资料，2型糖尿病的诊断是否明确？若明确，请提供分型依据（如胰岛自身抗体、C肽水平等）及严重程度（如血糖水平、有无酮症）的说明。",
+      "response_options": [
+        "A. 诊断明确，已进行分型及严重程度评估",
+        "B. 诊断明确，但分型依据或严重程度评估尚未完成",
+        "C. 诊断尚不明确，需进一步检查",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "入院诊断:2型糖尿病?",
+          "char_start": 76,
+          "char_end": 87,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "SD-002: axes in 40-char window = ['severity', 'type']"
+      ],
+      "status": "NEEDS_CDI_REWRITE",
+      "detected_axes": [
+        "severity",
+        "type"
+      ],
+      "rewrite_attempt_status": "REJECTED_BY_SAFETY_GATES",
+      "rewrite_attempt_reasons": [
+        "rewrite must address exactly the server-selected target axis: target=type, got=[]",
+        "rewrite clinical dimension does not match source gap: expected=['severity', 'type'], got=[]",
+        "NQ-004: the chart explicitly documents type 2 diabetes"
+      ],
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-003",
+      "gap_id": "CASE-476b76d80cd1/GAP-003",
+      "topic": "糖尿病相关并发症筛查情况",
+      "reason": "未记录糖尿病相关并发症的筛查或排除情况。",
+      "query_text": "针对糖尿病相关并发症（如酮症酸中毒、高渗状态、周围神经病变等），是否已进行筛查或排除？请说明相关评估结果。",
+      "response_options": [
+        "A. 已进行并发症筛查，结果正常",
+        "B. 已进行并发症筛查，发现异常",
+        "C. 尚未进行并发症筛查",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "否认糖尿病、冠心病、慢性肾病",
+          "char_start": 39,
+          "char_end": 53,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NLQ-001 (no_yes_no_opening): matched /(是不是|是否|是否为|能否|能不能|是不是说|是不是要|能否认为|是否可以)/ : '是否'"
+      ],
+      "status": "NEEDS_NON_LEADING_REWRITE",
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者男性, 55岁, 多饮多尿1周。既往:<REDACTED:NAME>5年。否认糖尿病、冠心病、慢性肾病。<REDACTED:NAME>:父亲糖尿病。入院诊断:2型糖尿病?",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者男性，55岁",
+      "主诉：多饮多尿1周",
+      "既往史：<REDACTED:NAME>5年",
+      "否认糖尿病、冠心病、慢性肾病",
+      "家族史：父亲有糖尿病",
+      "入院诊断：2型糖尿病？"
+    ],
+    "encounter_metadata": {
+      "patient_age": "55岁",
+      "patient_sex": "男性",
+      "encounter_type": "入院"
+    }
+  },
+  "risk_flags": [
+    {
+      "category": "ambiguous_term",
+      "description": "入院诊断使用'?'，表明诊断不确定，可能影响最终临床结论的明确性。"
+    }
+  ],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "For accurate coding, the documentation must explicitly confirm or rule out diabetes by stating the diagnostic criteria met (e.g., fasting glucose, HbA1c, or oral glucose tolerance test results) and remove the question mark, specifying the type (e.g., type 2) with supporting evidence such as C-peptide or islet autoantibodies if available. Additionally, you must document the presence or absence of acute and chronic complications (e.g., DKA, hyperosmolar state, neuropathy, retinopathy) and the severity of hyperglycemia, as these directly affect code assignment and cannot be inferred from the current note.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3575,
+      "tokens": 330
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-e9e9f41a8f41",
+    "gap_identification": "run-642d182a39f1",
+    "gap_identification_risk_flags": "emitted=1;quote_snapped=0",
+    "expert_consultation": "run-6bd0e30741f5",
+    "query_generation": "run-e152311dc583",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=3;llm_complete=False;llm_reasoning=糖尿病诊断尚未明确（带问号），且缺乏血糖、HbA1c等关键实验室证据和分型依据，无法满足编码所需的特异性。",
+    "query_necessity_gate": "necessary=3;unnecessary=0;overquery_triggered=False;final_count=3",
+    "query_dimension_rewrite": "run-c514a5097d13",
+    "query_single_dimension_gate": "single_dim=2;multi_dim=1;axis_cluster_triggered=False;axis_cluster_axis=severity;rewrite_attempted=1;rewrite_accepted=0;final_count=2",
+    "claim_evidence_alignment_gate": "claims_extracted=4;blocked=0;flagged=0;final_count=2",
+    "claim_evidence_alignment_gate::run_id": "run-f685fe3ef8e8",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=2",
+    "semantic_necessity_gate::run_id": "run-5c63fc18c795",
+    "query_compliance_gate": ";passed=1;blocked=1",
+    "specialist_trace_emit": "run-6e9b591ff595"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-9db013819723",
+    "gap_identification": "trace-602708a3202e",
+    "expert_consultation": "trace-525bc9543487",
+    "query_generation": "trace-b4a2ea59423e",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_dimension_rewrite": "trace-b104eaa4e2a6",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-8ac7ad45e610",
+    "semantic_necessity_gate": "trace-3b7f23c11e6e",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-2e6136eed810"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2521,
+      "prompt_tokens": 221,
+      "completion_tokens": 111,
+      "total_tokens": 332,
+      "run_id": "run-e9e9f41a8f41",
+      "trace_id": "trace-9db013819723",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6223,
+      "prompt_tokens": 1056,
+      "completion_tokens": 596,
+      "total_tokens": 1652,
+      "run_id": "run-642d182a39f1",
+      "trace_id": "trace-602708a3202e",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6382,
+      "prompt_tokens": 1266,
+      "completion_tokens": 729,
+      "total_tokens": 1995,
+      "run_id": "run-e152311dc583",
+      "trace_id": "trace-b4a2ea59423e",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_dimension_rewrite",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3325,
+      "prompt_tokens": 729,
+      "completion_tokens": 241,
+      "total_tokens": 970,
+      "run_id": "run-c514a5097d13",
+      "trace_id": "trace-b104eaa4e2a6",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3575,
+      "prompt_tokens": 204,
+      "completion_tokens": 126,
+      "total_tokens": 330,
+      "run_id": "run-d9f3d82b3444",
+      "trace_id": "trace-a088ee0abe98",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-005a298195b5",
+      "trace_id": "trace-8bcd5d41ccb9",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-85c18b4be183",
+      "trace_id": "trace-201f0d2cb49a",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-aa238fd2e629",
+      "trace_id": "trace-4e73b9a64fe8",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T18:32:45.836683Z"
+}

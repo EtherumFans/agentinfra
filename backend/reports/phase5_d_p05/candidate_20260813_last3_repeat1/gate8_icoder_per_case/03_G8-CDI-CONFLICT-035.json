@@ -1,0 +1,416 @@
+{
+  "case_id": "CASE-62790bb04400",
+  "completion_state": "REVIEW_RECOMMENDED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-62790bb04400/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "出院诊断中糖尿病未明确分型（1型或2型），且入院诊断为2型糖尿病，但出院诊断仅写'糖尿病'，存在诊断特异性不足。",
+      "why_it_matters": "影响糖尿病相关编码的准确性，需明确糖尿病类型以选择正确的ICD-10-CM代码。",
+      "evidence_span": {
+        "document_id": "discharge_summary",
+        "quote": "出院诊断:<REDACTED:NAME>, 糖尿病",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-62790bb04400/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "病程记录提及'慢性肾病'，但未明确分期或严重程度，也未说明与糖尿病或高血压的关联。",
+      "why_it_matters": "慢性肾病的分期和病因影响编码和严重程度评分，需明确分期及病因（如糖尿病肾病或高血压肾病）。",
+      "evidence_span": {
+        "document_id": "progress_note",
+        "quote": "病程记录:<REDACTED:NAME>, 糖尿病, 慢性肾病, <REDACTED:NAME>症",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-62790bb04400/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "用药记录中包含胰岛素，但未明确胰岛素的使用是否因血糖控制不佳或糖尿病类型，需澄清胰岛素使用指征。",
+      "why_it_matters": "胰岛素使用可能影响糖尿病分型和治疗编码，需明确是否因2型糖尿病控制不佳或为1型糖尿病。",
+      "evidence_span": {
+        "document_id": "medication_record",
+        "quote": "用药记录:二甲双胍, 缬沙坦, 胰岛素",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-62790bb04400/Q-001",
+      "gap_id": "CASE-62790bb04400/GAP-001",
+      "topic": "糖尿病分型",
+      "reason": "出院诊断仅写'糖尿病'，未明确1型或2型，入院诊断为2型糖尿病，需澄清分型。",
+      "evidence_span": {
+        "document_id": "chart-001",
+        "quote": "2型糖尿病",
+        "char_start": 24,
+        "char_end": 29,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "2型糖尿病",
+          "char_start": 24,
+          "char_end": 29,
+          "documented_at": ""
+        },
+        {
+          "document_id": "chart-001",
+          "quote": "糖尿病",
+          "char_start": 26,
+          "char_end": 29,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "请明确出院诊断中糖尿病的具体分型。",
+      "response_options": [
+        "A. 1型糖尿病",
+        "B. 2型糖尿病",
+        "C. 其他明确类型（请注明）",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    },
+    {
+      "query_id": "CASE-62790bb04400/Q-002",
+      "gap_id": "CASE-62790bb04400/GAP-003",
+      "topic": "胰岛素使用指征",
+      "reason": "用药记录包含胰岛素，但未明确使用指征，需澄清是否因血糖控制不佳或糖尿病类型。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "胰岛素",
+        "char_start": 46,
+        "char_end": 49,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "胰岛素",
+          "char_start": 46,
+          "char_end": 49,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "用药记录中包含胰岛素，请明确胰岛素使用的具体指征。",
+      "response_options": [
+        "A. 因血糖控制不佳而使用",
+        "B. 因糖尿病类型（如1型）而使用",
+        "C. 因其他原因（如围手术期、应激状态）使用",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    }
+  ],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-001",
+      "gap_id": "CASE-62790bb04400/GAP-001",
+      "topic": "糖尿病分型",
+      "reason": "出院诊断仅写'糖尿病'，未明确1型或2型，入院诊断为2型糖尿病，需澄清分型。",
+      "query_text": "出院诊断中糖尿病未明确分型，请明确该患者糖尿病的具体分型。",
+      "response_options": [
+        "A. 1型糖尿病",
+        "B. 2型糖尿病",
+        "C. 其他特殊类型糖尿病",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "出院诊断:<REDACTED:NAME>, 糖尿病",
+          "char_start": 100,
+          "char_end": 125,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "CDI-Conflict: admission type is more specific than discharge diagnosis"
+      ],
+      "status": "AUTOMATIC_CONTRADICTION_REWRITE",
+      "rewrite_kind": "FOCUS_DIABETES_TYPE_CONTRADICTION",
+      "replacement_query_id": "Q-001",
+      "rewrite_attempt_status": "ACCEPTED_FOR_DOWNSTREAM_GATES",
+      "rewritten_query_text": "请明确出院诊断中糖尿病的具体分型。",
+      "rewritten_response_options": [
+        "A. 1型糖尿病",
+        "B. 2型糖尿病",
+        "C. 其他明确类型（请注明）",
+        "D. 无法确定"
+      ],
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-002",
+      "gap_id": "CASE-62790bb04400/GAP-002",
+      "topic": "慢性肾病分期及关联",
+      "reason": "病程记录提及'慢性肾病'，但未明确分期或严重程度，也未说明与糖尿病或高血压的关联。",
+      "query_text": "病程记录中提及'慢性肾病'，请明确其分期或严重程度，以及与糖尿病或高血压的关联。",
+      "response_options": [
+        "A. 慢性肾病1期",
+        "B. 慢性肾病2期",
+        "C. 慢性肾病3期或以上",
+        "D. 与糖尿病相关",
+        "E. 与高血压相关",
+        "F. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "慢性肾病",
+          "char_start": 77,
+          "char_end": 81,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "SD-001: topic axes = ['correlation', 'severity']",
+        "SD-002: axes in 40-char window = ['correlation', 'severity']"
+      ],
+      "status": "NEEDS_CDI_REWRITE",
+      "detected_axes": [
+        "correlation",
+        "severity"
+      ],
+      "rewrite_attempt_status": "REJECTED_BY_SAFETY_GATES",
+      "rewrite_attempt_reasons": [
+        "rewrite must address exactly the server-selected target axis: target=type, got=[]",
+        "rewrite clinical dimension does not match source gap: expected=['correlation', 'severity'], got=[]"
+      ],
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者男性, 58岁, 入院诊断:原发性高血压, 2型糖尿病。用药记录:二甲双胍, 缬沙坦, 胰岛素。病程记录:<REDACTED:NAME>, 糖尿病, 慢性肾病, <REDACTED:NAME>症。出院诊断:<REDACTED:NAME>, 糖尿病。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者男性，58岁",
+      "入院诊断：原发性高血压，2型糖尿病",
+      "用药记录：二甲双胍，缬沙坦，胰岛素",
+      "病程记录：糖尿病，慢性肾病",
+      "出院诊断：糖尿病"
+    ],
+    "encounter_metadata": {
+      "patient_age": "58岁",
+      "patient_sex": "男性",
+      "encounter_type": "住院"
+    }
+  },
+  "risk_flags": [
+    {
+      "category": "contradiction",
+      "description": "入院诊断明确为2型糖尿病，但出院诊断仅写'糖尿病'，未明确分型，存在不一致。"
+    }
+  ],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "For accurate coding, the discharge diagnosis must explicitly specify the diabetes type (e.g., type 2) and document the chronic kidney disease stage (e.g., CKD stage 3a) along with its etiology (e.g., diabetic nephropathy vs. hypertensive nephrosclerosis). Additionally, clarify the insulin indication—whether it is for type 2 diabetes with poor glycemic control on oral agents or for a different reason—to ensure the treatment plan aligns with the documented diagnosis. These clarifications are essential to capture the full clinical picture and avoid under- or over-coding of severity and associated conditions.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3186,
+      "tokens": 340
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "'评分' score — no deterministic calculator wired",
+      "route_decision": "tool_unavailable",
+      "route_reason": "no_real_tool_wired",
+      "execution_mode": "TOOL_UNAVAILABLE",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-45095c55c54a",
+    "gap_identification": "run-c86f0eb082c4",
+    "gap_identification_risk_flags": "emitted=1;quote_snapped=0",
+    "expert_consultation": "run-44f03ab274a8",
+    "query_generation": "run-a8b5b6c290f3",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.25;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=Y;dropped=0;final_count=3;llm_complete=False;llm_reasoning=糖尿病类型未在出院诊断中明确，慢性肾病未分期，且胰岛素使用指征未说明，这些信息对编码和临床管理至关重要。",
+    "query_necessity_gate": "necessary=3;unnecessary=0;overquery_triggered=False;final_count=3",
+    "query_dimension_rewrite": "run-96c88d49de2b",
+    "query_single_dimension_gate": "single_dim=2;multi_dim=1;axis_cluster_triggered=False;axis_cluster_axis=type;rewrite_attempted=1;rewrite_accepted=0;final_count=2",
+    "claim_evidence_alignment_gate": "claims_extracted=4;blocked=0;flagged=0;final_count=2",
+    "claim_evidence_alignment_gate::run_id": "run-40ad8d574679",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=2",
+    "semantic_necessity_gate::run_id": "run-c96810698246",
+    "query_compliance_gate": ";passed=2;blocked=0",
+    "specialist_trace_emit": "run-3b8559946c9d"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-761d241f8760",
+    "gap_identification": "trace-d85a47d66e41",
+    "expert_consultation": "trace-046892814ae0",
+    "query_generation": "trace-f4b0eae6616e",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_dimension_rewrite": "trace-9f79ed2ebff6",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-e82e079497c5",
+    "semantic_necessity_gate": "trace-d97f46f20fb1",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-0fff49963d74"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2418,
+      "prompt_tokens": 244,
+      "completion_tokens": 101,
+      "total_tokens": 345,
+      "run_id": "run-45095c55c54a",
+      "trace_id": "trace-761d241f8760",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5553,
+      "prompt_tokens": 1070,
+      "completion_tokens": 620,
+      "total_tokens": 1690,
+      "run_id": "run-c86f0eb082c4",
+      "trace_id": "trace-d85a47d66e41",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5243,
+      "prompt_tokens": 1314,
+      "completion_tokens": 628,
+      "total_tokens": 1942,
+      "run_id": "run-a8b5b6c290f3",
+      "trace_id": "trace-f4b0eae6616e",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_dimension_rewrite",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3640,
+      "prompt_tokens": 687,
+      "completion_tokens": 248,
+      "total_tokens": 935,
+      "run_id": "run-96c88d49de2b",
+      "trace_id": "trace-9f79ed2ebff6",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3186,
+      "prompt_tokens": 221,
+      "completion_tokens": 119,
+      "total_tokens": 340,
+      "run_id": "run-39004e005452",
+      "trace_id": "trace-5645d76266e3",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-cdfb395dbebd",
+      "trace_id": "trace-a7f197fee8d8",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-697e54b98290",
+      "trace_id": "trace-46c054078479",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-8671862cf36e",
+      "trace_id": "trace-09f1402acdfe",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T18:42:44.387162Z"
+}

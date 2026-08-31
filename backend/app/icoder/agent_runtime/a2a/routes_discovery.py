@@ -13,6 +13,8 @@ as the inbound route) so tests can supply a stub.
 
 from __future__ import annotations
 
+import hashlib
+import json
 from typing import Any, Callable, Union
 
 from fastapi import APIRouter, Query, Request
@@ -26,6 +28,7 @@ from .agent_card import (
     code_validation_agent_card,
     compliance_guardrail_agent_card,
     note_completeness_agent_card,
+    project_v1_agent_card,
 )
 from .envelope import make_error_response
 from .errors import A2AError, A2AErrorCode, agent_not_found
@@ -61,6 +64,52 @@ def build_discovery_router(
         cards = _list_all_cards(agent_provider)
         body = AgentListResponse(agents=cards).model_dump(by_alias=True)
         return _json(body)
+
+    @root.get(
+        "/.well-known/agent-card.json",
+        operation_id="a2a_well_known_agent_card_v1",
+        summary="A2A 1.0 standard discovery for the public default Agent",
+    )
+    async def well_known_agent_card_v1(request: Request):
+        """Publish one non-tenant default card without exposing private Agents."""
+
+        agent_id = str(
+            getattr(agent_provider, "default_agent_id", "")
+            or "medical-coding-agent"
+        )
+        card = _resolve_card(agent_provider, agent_id)
+        if card is None:
+            cards = _list_all_cards(agent_provider)
+            if not cards:
+                return JSONResponse(
+                    status_code=404,
+                    content={"error": {"code": "AGENT_NOT_FOUND"}},
+                    headers={"A2A-Version": "1.0"},
+                )
+            card = cards[0]
+            agent_id = _agent_id(card)
+        content = project_v1_agent_card(
+            card, base_url=str(request.base_url), agent_id=agent_id,
+        )
+        canonical = json.dumps(
+            content, ensure_ascii=False, sort_keys=True, separators=(",", ":"),
+        ).encode("utf-8")
+        etag = f'"{hashlib.sha256(canonical).hexdigest()}"'
+        headers = {
+            "A2A-Version": "1.0",
+            "ETag": etag,
+            "Cache-Control": "public, max-age=300",
+        }
+        if request.headers.get("if-none-match") == etag:
+            from fastapi.responses import Response
+
+            return Response(status_code=304, headers=headers)
+        return JSONResponse(
+            status_code=200,
+            content=content,
+            media_type="application/a2a+json",
+            headers=headers,
+        )
 
     @root.get("/llms.txt", operation_id="a2a_llms_txt_v0_3")
     async def llms_txt(request: Request):
@@ -122,8 +171,8 @@ def _list_all_cards(provider: AgentProvider) -> list[AgentCard]:
 
     Phase 3-B1 (2026-07-04): enumerate both public runnable agents —
     ``medcoder-coding-review`` (internal engine, but card exists for
-    orchestrator internal use) AND ``medical-coding-agent`` (the user-facing
-    Corti-style MVP). The provider is consulted first; if it returns None
+    orchestrator internal use) AND ``medical-coding-agent`` (the public
+    controlled-rollout facade). The provider is consulted first; if it returns None
     for either, we fall back to the fixture.
 
     Phase 3-D1 Task 5 (2026-07-06): added 3 simple runnable agents
@@ -135,6 +184,7 @@ def _list_all_cards(provider: AgentProvider) -> list[AgentCard]:
     with Coming Soon badges instead.
     """
     cards: list[AgentCard] = []
+    seen: set[str] = set()
     for agent_id, factory in [
         ("medcoder-coding-review", medcoder_coding_review_card),
         ("medical-coding-agent", medical_coding_agent_card),
@@ -146,6 +196,15 @@ def _list_all_cards(provider: AgentProvider) -> list[AgentCard]:
         if card is None:
             card = factory()
         cards.append(card)
+        seen.add(agent_id)
+
+    # Provider implementations may expose additional executable official
+    # Agent Cards. Enumerate them when the callable carries ``agent_ids``.
+    provider_ids = getattr(provider, "agent_ids", ()) or ()
+    for agent_id in sorted(set(provider_ids) - seen):
+        card = _resolve_card(provider, agent_id)
+        if card is not None:
+            cards.append(card)
     return cards
 
 

@@ -2,10 +2,10 @@
 
 Orchestrator → Expert (``POST /api/icoder/internal/experts/{expert_id}/v1/message:send``).
 
-Per Q-A10 (open question Q-A10) Phase 1 dispatches **in-process** via
-a caller-supplied callable. The HTTP route exists so spec compliance
-is testable end-to-end; it does not actually issue an HTTP request to
-the Expert.
+Expert dispatch is **in-process** via a caller-supplied callable. The HTTP
+route is the stable protocol boundary; local Expert implementations remain
+behind the injected dispatcher and can be tested end-to-end without a
+second network hop.
 
 The expert caller signature::
 
@@ -55,8 +55,7 @@ def build_outbound_router(expert_caller: ExpertCaller) -> APIRouter:
     """Build the outbound (Orchestrator → Expert) router.
 
     The caller injects an in-process ``expert_caller(expert_id, body)``
-    that returns an A2A Message dict. For Phase 1 this is the only
-    integration shape (Q-A10).
+    that returns an A2A Message dict.
     """
     router = APIRouter(prefix="/internal/experts", tags=["a2a-outbound"])
 

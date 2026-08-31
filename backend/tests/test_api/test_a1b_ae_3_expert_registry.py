@@ -152,6 +152,18 @@ def test_api_list_experts_filters_by_origin(client):
         assert e["origin"] == "ICODER_INTERNAL"
 
 
+def test_api_list_experts_search_is_real_and_bounded(client):
+    r = client.get(
+        "/api/v1/experts",
+        params={"search": "definitely-no-such-expert-8f13c2"},
+    )
+    assert r.status_code == 200, r.text
+    assert r.json() == {"experts": [], "total": 0}
+
+    oversized = client.get("/api/v1/experts", params={"search": "x" * 129})
+    assert oversized.status_code == 422
+
+
 def test_api_list_experts_rejects_invalid_origin(client):
     r = client.get("/api/v1/experts", params={"origin": "BOGUS"})
     assert r.status_code == 400
@@ -167,6 +179,20 @@ def test_api_get_expert_404_unknown(client):
     assert r.status_code == 404
 
 
+def test_expert_readiness_is_aggregate_and_secret_free(client):
+    response = client.get("/api/v1/experts/readiness")
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["expert_count"] >= body["published_expert_count"] >= 0
+    assert body["mcp_server_count"] >= body["active_mcp_server_count"] >= 0
+    assert body["built_in_mcp_tool_count"] > 0
+    assert body["tenant_scope_enforced"] is True
+    assert body["credentials_exposed"] is False
+    assert body["aggregate_only"] is True
+    assert body["external_mcp_live_verified"] is False
+    assert "url" not in json.dumps(body).lower()
+
+
 # ─────────────────────────────────────────────────────────────────────
 # §4 Registry reconciliation
 # ─────────────────────────────────────────────────────────────────────
@@ -175,8 +201,13 @@ def test_api_registry_reconcile_returns_200(client):
     r = client.get("/api/v1/experts/registry/reconcile")
     assert r.status_code == 200, r.text
     body = r.json()
-    assert body["catalog_count"] >= 40, body  # A1B-AE.2 catalog has 40 entries
+    # The regenerated A1B-AE.2 catalog currently has 38 canonical entries
+    # after stale Pack declarations were removed and the governed triage and
+    # external-expert-gate entries were added.  Pin the reviewed canonical
+    # inventory so an accidental catalog loss cannot pass as a loose minimum.
+    assert body["catalog_count"] == 38, body
     assert "entries" in body and isinstance(body["entries"], list)
+    assert len(body["entries"]) == body["catalog_count"]
     assert body["summary"]["present"] + body["summary"]["missing"] + body["summary"]["divergent"] == body["catalog_count"]
 
 

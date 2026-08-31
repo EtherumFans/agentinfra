@@ -27,26 +27,38 @@ was actually recorded (real Provider charges).
 from __future__ import annotations
 
 import logging
-from typing import Optional
+import os
+import time
+from typing import Literal, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, Header, HTTPException, Request, Response
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
-from app.middleware.auth import get_current_organization, get_current_user
+from app.middleware.auth import (
+    get_current_organization,
+    get_current_user_or_oauth_client,
+)
 from app.models.organization import Organization
-from app.models.user import User
 from app.services.run_lifecycle import (
     CancelOutcome,
     RunStatus,
     get_run_status,
     request_cancel,
 )
+from app.services.run_sse_observability import get_run_sse_metrics
 
 logger = logging.getLogger(__name__)
+_SSE_METRICS = get_run_sse_metrics()
 
 router = APIRouter(prefix="/api/v1/runs", tags=["phase7-runs"])
+
+
+# Run-event SSE tuning. Module constants keep the production contract
+# explicit while allowing regression tests to use millisecond-scale waits.
+_SSE_POLL_INTERVAL_SECONDS = 0.25
+_SSE_HEARTBEAT_INTERVAL_SECONDS = 15.0
 
 
 # ── Phase A1A Gate 3.6 — system-scope audit helper ────────────────
@@ -114,6 +126,9 @@ class RunStatusResponse(BaseModel):
     cancelled_at: Optional[str] = None
     cancelled_by_user_id: Optional[str] = None
     created_at: Optional[str] = None
+    trace_retention_days: int = 90
+    trace_events_purged_at: Optional[str] = None
+    trace_events_purged_count: int = 0
 
 
 class CancelRequest(BaseModel):
@@ -132,6 +147,58 @@ class CancelResponse(BaseModel):
     message: str
     cancel_reason: Optional[str] = None
     cancelled_at: Optional[str] = None
+
+
+class TraceTokenRenewResponse(BaseModel):
+    """Fresh run-bound trace authorization for resilient SDK streams."""
+
+    run_id: str
+    trace_token: str
+    expires_at: int
+    events_url: str
+    trace_url: str
+    trace_retention_days: int
+
+
+class TraceRetentionErrorDetail(BaseModel):
+    code: Literal["SSE_CURSOR_EXPIRED", "SSE_TRACE_EXPIRED", "TRACE_EXPIRED"]
+    message: str
+    retention_days: int
+    purged_at: Optional[str] = None
+    events_purged: int = 0
+
+
+class TraceRetentionErrorResponse(BaseModel):
+    detail: TraceRetentionErrorDetail
+
+
+def _trace_retention_days() -> int:
+    from app.services.retention import RetentionPolicy
+
+    return RetentionPolicy.from_env().run_trace_events_ttl_days
+
+
+def _raise_trace_retention_error(
+    row,
+    *,
+    code: Literal["SSE_CURSOR_EXPIRED", "SSE_TRACE_EXPIRED", "TRACE_EXPIRED"],
+    message: str,
+) -> None:
+    retention_days = _trace_retention_days()
+    purged_at = getattr(row, "trace_events_purged_at", None)
+    raise HTTPException(
+        status_code=410,
+        detail={
+            "code": code,
+            "message": message,
+            "retention_days": retention_days,
+            "purged_at": purged_at.isoformat() if purged_at else None,
+            "events_purged": int(
+                getattr(row, "trace_events_purged_count", 0) or 0
+            ),
+        },
+        headers={"X-iCoDer-Trace-Retention-Days": str(retention_days)},
+    )
 
 
 # ── GET /api/v1/runs/{run_id} ──────────────────────────────────────
@@ -213,6 +280,15 @@ async def get_run(
         cancelled_at=row.cancelled_at.isoformat() if row.cancelled_at else None,
         cancelled_by_user_id=row.cancelled_by_user_id,
         created_at=row.created_at.isoformat() if row.created_at else None,
+        trace_retention_days=_trace_retention_days(),
+        trace_events_purged_at=(
+            row.trace_events_purged_at.isoformat()
+            if getattr(row, "trace_events_purged_at", None)
+            else None
+        ),
+        trace_events_purged_count=int(
+            getattr(row, "trace_events_purged_count", 0) or 0
+        ),
     )
 
 
@@ -222,12 +298,19 @@ async def get_run(
 @router.post(
     "/{run_id}/cancel",
     response_model=CancelResponse,
+    responses={
+        202: {
+            "model": CancelResponse,
+            "description": "Cancellation recorded, but the provider call continues.",
+        },
+    },
     operation_id="phase7_cancel_run",
 )
 async def cancel_run(
     run_id: str,
     body: CancelRequest,
-    current_user: User = Depends(get_current_user),
+    http_response: Response,
+    principal: tuple = Depends(get_current_user_or_oauth_client),
     current_org: Organization = Depends(get_current_organization),
     db: AsyncSession = Depends(get_db),
 ) -> CancelResponse:
@@ -244,7 +327,12 @@ async def cancel_run(
     - 202 + RECORDED_ONLY    — Provider mid-call, cancel not supported
     - 404 + NOT_FOUND        — run_id unknown (or other org)
     """
-    user_id = str(getattr(current_user, "id", "") or "")
+    current_user, current_client = principal
+    user_id = (
+        str((current_client or {}).get("client_id") or "")
+        if current_client is not None
+        else str(getattr(current_user, "id", "") or "")
+    )
     outcome, status, row = await request_cancel(
         db,
         run_id=run_id,
@@ -273,7 +361,11 @@ async def cancel_run(
     # ALREADY_COMPLETE) — NOT_FOUND and FORBIDDEN already raised above.
     try:
         from app.middleware.audit import log_action
-        username = getattr(current_user, "username", None) or getattr(current_user, "email", None)
+        username = (
+            f"oauth:{(current_client or {}).get('client_id') or 'unknown'}"
+            if current_client is not None
+            else getattr(current_user, "username", None) or getattr(current_user, "email", None)
+        )
         await log_action(
             db,
             user_id=user_id or None,
@@ -304,19 +396,157 @@ async def cancel_run(
         cancelled_at=row.cancelled_at.isoformat() if row and row.cancelled_at else None,
     )
 
-    # The HTTP status code differs by outcome; we set it via the
-    # Response object. FastAPI defaults to 200, so we only need to
-    # override for the 202 RECORDED_ONLY case.
+    # The HTTP status is part of the public contract. RECORDED_ONLY is
+    # accepted for audit but did not stop the provider, so it must not look
+    # like a synchronous 200 cancellation success.
     if outcome == CancelOutcome.RECORDED_ONLY:
-        # 202 Accepted — request received but not yet acted on.
-        from fastapi import Response
-        # We can't change status_code from inside the handler cleanly
-        # without a Response dependency; clients should read the body's
-        # ``outcome`` field. (FastAPI will return 200 here; we document
-        # the semantic in the response body.)
-        pass
+        http_response.status_code = 202
 
     return response
+
+
+@router.post(
+    "/{run_id}/trace-token",
+    response_model=TraceTokenRenewResponse,
+    responses={
+        200: {
+            "description": "Fresh run-bound trace authorization.",
+            "headers": {
+                "Cache-Control": {
+                    "description": "Credential responses are never cacheable.",
+                    "schema": {"type": "string", "example": "no-store"},
+                },
+            },
+        },
+        401: {"description": "Bearer identity is missing or expired."},
+        404: {"description": "Run is absent or not visible to this organization."},
+        503: {"description": "The authorization audit could not be persisted."},
+    },
+    operation_id="phase9_renew_run_trace_token",
+)
+async def renew_run_trace_token(
+    run_id: str,
+    http_response: Response,
+    principal: tuple = Depends(get_current_user_or_oauth_client),
+    current_org: Organization = Depends(get_current_organization),
+    db: AsyncSession = Depends(get_db),
+) -> TraceTokenRenewResponse:
+    """Issue a fresh signed trace token for an authorized Run principal.
+
+    The bearer principal must still belong to the Run's organization. Unknown,
+    cross-organization and non-tenant-visible rows share the same 404 response.
+    The token response is never cacheable.
+    """
+    row = await get_run_status(db, run_id=run_id)
+    if (
+        row is None
+        or (
+            row.organization_id is not None
+            and current_org.id is not None
+            and row.organization_id != current_org.id
+        )
+    ):
+        _SSE_METRICS.token_renewed("run_not_found")
+        raise HTTPException(status_code=404, detail={
+            "code": "RUN_NOT_FOUND",
+            "message": f"Run {run_id} not found.",
+        })
+
+    from app.services.tenant_read_policy import enforce_tenant_visible_or_404
+    try:
+        enforce_tenant_visible_or_404(
+            classification=getattr(row, "tenancy_classification", None),
+            run_id=run_id,
+            resource="run",
+        )
+    except HTTPException:
+        _SSE_METRICS.token_renewed("visibility_denied")
+        raise
+
+    from app.services.trace_token import (
+        DEFAULT_TTL_SECONDS,
+        issue_trace_token,
+        verify_trace_token,
+    )
+
+    if os.environ.get("ICODER_AUDIT_WRITE_PAUSED", "false").lower() == "true":
+        _SSE_METRICS.token_renewed("audit_paused")
+        raise HTTPException(status_code=503, detail={
+            "code": "AUDIT_PERSISTENCE_FAILED",
+            "message": "Trace authorization cannot be renewed while audit writes are paused.",
+        })
+
+    current_user, current_client = principal
+    api_client_id = (
+        str((current_client or {}).get("client_id") or "")
+        if current_client is not None
+        else ""
+    )
+    actor_id = (
+        api_client_id
+        if current_client is not None
+        else str(getattr(current_user, "id", "") or "")
+    )
+    try:
+        token = issue_trace_token(
+            run_id=run_id,
+            organization_id=row.organization_id or current_org.id,
+            api_client_id=api_client_id or None,
+            ttl_seconds=DEFAULT_TTL_SECONDS,
+        )
+        claims = verify_trace_token(token, expected_run_id=run_id)
+    except Exception:
+        _SSE_METRICS.token_renewed("other_failure")
+        raise
+
+    try:
+        from app.middleware.audit import log_action
+        username = (
+            f"oauth:{api_client_id or 'unknown'}"
+            if current_client is not None
+            else getattr(current_user, "username", None)
+            or getattr(current_user, "email", None)
+        )
+        await log_action(
+            db,
+            user_id=actor_id or None,
+            username=username,
+            action="run.trace_token.renew",
+            resource_type="run_history",
+            resource_id=run_id,
+            details={
+                "expires_at": claims.exp,
+                "principal_type": "oauth_client" if current_client is not None else "user",
+            },
+            organization_id=row.organization_id or current_org.id,
+        )
+        await db.commit()
+    except Exception as audit_err:  # pragma: no cover - defensive
+        await db.rollback()
+        logger.error(
+            "run.trace_token renew audit failed: %s (run_id=%s)",
+            audit_err,
+            run_id,
+        )
+        _SSE_METRICS.token_renewed("audit_failed")
+        # Credential issuance must remain auditable.  The fresh token only
+        # exists in this process at this point, so failing before the response
+        # prevents an unrecorded authorization from escaping to the caller.
+        raise HTTPException(status_code=503, detail={
+            "code": "AUDIT_PERSISTENCE_FAILED",
+            "message": "Trace authorization could not be renewed safely.",
+        }) from audit_err
+
+    http_response.headers["Cache-Control"] = "no-store"
+    _SSE_METRICS.token_renewed("success")
+    return TraceTokenRenewResponse(
+        run_id=run_id,
+        trace_token=token,
+        expires_at=claims.exp,
+        events_url=f"/api/v1/runs/{run_id}/events",
+        trace_url=f"/api/v1/runs/{run_id}/trace",
+        trace_retention_days=_trace_retention_days(),
+    )
 
 
 __all__ = ["router"]
@@ -328,6 +558,12 @@ __all__ = ["router"]
 @router.get(
     "/{run_id}/trace",
     operation_id="phase7_get_run_trace_partner",
+    responses={
+        410: {
+            "model": TraceRetentionErrorResponse,
+            "description": "The authorized Run trace was removed by retention.",
+        },
+    },
 )
 async def get_run_trace_partner(
     run_id: str,
@@ -476,6 +712,12 @@ async def get_run_trace_partner(
         events = await asyncio.to_thread(store.get_run, run_id)
 
     if not events:
+        if getattr(row, "trace_events_purged_at", None):
+            _raise_trace_retention_error(
+                row,
+                code="TRACE_EXPIRED",
+                message="The Run trace is no longer available after retention purge.",
+            )
         raise HTTPException(status_code=404, detail={
             "code": "TRACE_NOT_FOUND",
             "message": f"no trace events for run_id {run_id!r}",
@@ -499,11 +741,24 @@ async def get_run_trace_partner(
 @router.get(
     "/{run_id}/events",
     operation_id="phase9_stream_run_events",
+    responses={
+        400: {"description": "Malformed Last-Event-ID cursor"},
+        409: {"description": "Last-Event-ID is not part of this run trace"},
+        410: {
+            "model": TraceRetentionErrorResponse,
+            "description": "The trace or requested cursor is outside the retention window.",
+        },
+    },
 )
 async def stream_run_events(
     run_id: str,
     request: Request,
     token: Optional[str] = None,
+    last_event_id_header: Optional[str] = Header(
+        default=None,
+        alias="Last-Event-ID",
+        description="Resume strictly after this previously received SSE event ID.",
+    ),
 ):
     """Partner-accessible SSE stream of run-state events (§14.1).
 
@@ -527,11 +782,16 @@ async def stream_run_events(
       - 401 TRACE_TOKEN_INVALID  — bad signature
       - 401 TRACE_TOKEN_EXPIRED  — past exp
       - 401 TRACE_TOKEN_RUN_MISMATCH — token bound to a different run_id
-      - 404 TRACE_NOT_FOUND      — no events for run_id
+      - 404 TRACE_NOT_FOUND      — unknown/inaccessible run, or a terminal
+                                   run with no captured trace
 
     Heartbeat (§14.3): every 15s while waiting for new events, emits a
     SSE comment line ``: keepalive\\n\\n`` so intermediaries don't close
     the connection.
+
+    Resume: clients may send the standard ``Last-Event-ID`` header. The
+    stream resumes strictly after that stable trace event ID. Unknown or
+    malformed cursors fail before response streaming begins.
     """
     import asyncio
     import json as _json
@@ -546,7 +806,11 @@ async def stream_run_events(
         verify_trace_token,
     )
 
+    request_started_at = time.monotonic()
+    _SSE_METRICS.connection_attempted()
+
     if not token:
+        _SSE_METRICS.rejected("token_required")
         raise HTTPException(status_code=401, detail={
             "code": "TRACE_TOKEN_REQUIRED",
             "message": "Partner event stream requires a signed ?token= query param.",
@@ -555,19 +819,23 @@ async def stream_run_events(
     try:
         claims = verify_trace_token(token, expected_run_id=run_id)
     except TraceTokenExpired as e:
+        _SSE_METRICS.rejected("token_expired")
         raise HTTPException(status_code=401, detail={
             "code": "TRACE_TOKEN_EXPIRED", "message": str(e),
         })
     except TraceTokenInvalidSignature:
+        _SSE_METRICS.rejected("token_invalid")
         raise HTTPException(status_code=401, detail={
             "code": "TRACE_TOKEN_INVALID",
             "message": "Trace token signature invalid.",
         })
     except TraceTokenRunMismatch as e:
+        _SSE_METRICS.rejected("token_run_mismatch")
         raise HTTPException(status_code=401, detail={
             "code": "TRACE_TOKEN_RUN_MISMATCH", "message": str(e),
         })
     except (TraceTokenMalformed, TraceTokenError) as e:
+        _SSE_METRICS.rejected("token_malformed")
         raise HTTPException(status_code=401, detail={
             "code": "TRACE_TOKEN_MALFORMED", "message": str(e),
         })
@@ -606,6 +874,7 @@ async def stream_run_events(
     async with AsyncSessionLocal() as db:
         sse_row = await get_run_status(db, run_id=run_id)
     if sse_row is None:
+        _SSE_METRICS.rejected("run_not_found")
         # Phase A1A Gate 3R.1 — orphan-run denial. No authoritative
         # RunHistory row means no tenant-owned run; refuse even if
         # trace events exist in the store.
@@ -632,6 +901,7 @@ async def stream_run_events(
         and org_id is not None
         and sse_row.organization_id != org_id
     ):
+        _SSE_METRICS.rejected("org_mismatch")
         _log.warning(
             "sse.denied org_mismatch run_id=%s token_org=%s row_org=%s",
             run_id, org_id, sse_row.organization_id,
@@ -651,6 +921,7 @@ async def stream_run_events(
         })
     # Visibility classification guard.
     if not is_tenant_visible(getattr(sse_row, "tenancy_classification", None)):
+        _SSE_METRICS.rejected("visibility_denied")
         _log.warning(
             "sse.denied invisible_classification run_id=%s classification=%s",
             run_id, getattr(sse_row, "tenancy_classification", None),
@@ -673,41 +944,215 @@ async def stream_run_events(
     else:
         events = await asyncio.to_thread(store.get_run, run_id)
 
-    if not events:
+    # A newly-started run may legitimately have no trace event yet. Keep the
+    # subscription open instead of forcing partners to race the first trace
+    # write. A terminal run with no captured trace remains TRACE_NOT_FOUND.
+    if not events and RunStatus.is_terminal(sse_row.status):
+        if getattr(sse_row, "trace_events_purged_at", None):
+            _SSE_METRICS.rejected("trace_expired")
+            _raise_trace_retention_error(
+                sse_row,
+                code="SSE_TRACE_EXPIRED",
+                message="The Run event stream is no longer available after retention purge.",
+            )
+        _SSE_METRICS.rejected("trace_not_found")
         raise HTTPException(status_code=404, detail={
             "code": "TRACE_NOT_FOUND",
             "message": f"no trace events for run_id {run_id!r}",
         })
 
-    def _format_sse_event(name: str, payload: dict, meta: dict) -> str:
+    def _event_id_for(ev) -> str:
+        return str(
+            getattr(ev, "event_id", None)
+            or f"legacy-ts:{ev.step}:{ev.ts:.6f}"
+        )
+
+    last_event_id = (last_event_id_header or "").strip()
+    if last_event_id and (
+        len(last_event_id) > 128
+        or "\r" in last_event_id
+        or "\n" in last_event_id
+        or "\x00" in last_event_id
+    ):
+        _SSE_METRICS.rejected("cursor_invalid")
+        raise HTTPException(status_code=400, detail={
+            "code": "SSE_CURSOR_INVALID",
+            "message": "Last-Event-ID is malformed.",
+        })
+
+    resume_index = 0
+    if last_event_id:
+        event_ids = [_event_id_for(ev) for ev in events]
+        try:
+            resume_index = event_ids.index(last_event_id) + 1
+        except ValueError:
+            if getattr(sse_row, "trace_events_purged_at", None):
+                _SSE_METRICS.rejected("cursor_expired")
+                _raise_trace_retention_error(
+                    sse_row,
+                    code="SSE_CURSOR_EXPIRED",
+                    message=(
+                        "The requested event cursor cannot be resolved after "
+                        "retention purge. Restart from the retained prefix or "
+                        "fetch the authoritative Run status."
+                    ),
+                )
+            _SSE_METRICS.rejected("cursor_not_found")
+            raise HTTPException(status_code=409, detail={
+                "code": "SSE_CURSOR_NOT_FOUND",
+                "message": "Last-Event-ID does not belong to this run trace.",
+            })
+
+    def _format_sse_event(
+        name: str,
+        payload: dict,
+        meta: dict,
+        *,
+        event_id: str | None = None,
+    ) -> str:
         envelope = {"name": name, "payload": payload, "meta": meta}
-        return f"data: {_json.dumps(envelope, separators=(',', ':'))}\n\n"
+        lines = []
+        if event_id:
+            lines.append(f"id: {event_id}")
+        lines.append(f"event: {name}")
+        lines.append(f"data: {_json.dumps(envelope, separators=(',', ':'))}")
+        return "\n".join(lines) + "\n\n"
+
+    def _format_trace_event(ev) -> str:
+        event_id = _event_id_for(ev)
+        payload = {
+            "step": ev.step,
+            "status": ev.status,
+            "duration_ms": ev.duration_ms,
+            "safe_metadata": ev.safe_metadata,
+        }
+        meta = {
+            "run_id": run_id,
+            "ts": ev.ts,
+            "event_id": event_id,
+            "sequence_number": getattr(ev, "sequence_number", None),
+            "version": "1.0",
+        }
+        return _format_sse_event(
+            f"run.{ev.step}", payload, meta, event_id=event_id
+        )
+
+    async def _read_events():
+        if hasattr(store, "get_run_scoped"):
+            return await asyncio.to_thread(store.get_run_scoped, run_id, org_id)
+        return await asyncio.to_thread(store.get_run, run_id)
+
+    async def _read_status():
+        async with AsyncSessionLocal() as db:
+            return await get_run_status(db, run_id=run_id)
+
+    resume_recovery_seconds = time.monotonic() - request_started_at
 
     async def _event_stream():
-        # Replay existing events first. Each emits as run.<step>.
-        for ev in events:
-            payload = {
-                "step": ev.step,
-                "status": ev.status,
-                "duration_ms": ev.duration_ms,
-                "safe_metadata": ev.safe_metadata,
-            }
-            meta = {
-                "run_id": run_id,
-                "ts": ev.ts,
-                "event_id": f"{ev.step}:{ev.ts:.6f}",
-                "version": "1.0",
-            }
-            yield _format_sse_event(f"run.{ev.step}", payload, meta)
+        """Replay then tail an append-only trace until its Run is terminal."""
+        import time as _time
 
-        # If the run is already terminal, close the stream with a
-        # stream.completed event. We can tell by looking at the last
-        # event's status (or step naming convention).
-        # For now: always emit stream.completed after replaying.
-        yield _format_sse_event("stream.completed", {
-            "run_id": run_id,
-            "event_count": len(events),
-        }, {"run_id": run_id, "version": "1.0"})
+        emitted_count = resume_index
+        current_events = events
+        current_row = sse_row
+        first_pass = True
+        last_output_at = _time.monotonic()
+        stream_started_at = _time.monotonic()
+        close_reason = "other"
+        _SSE_METRICS.stream_started(
+            resumed=bool(last_event_id),
+            recovery_seconds=(resume_recovery_seconds if last_event_id else None),
+        )
+
+        try:
+            while True:
+                if await request.is_disconnected():
+                    close_reason = "client_disconnected"
+                    _log.info("sse.disconnected run_id=%s", run_id)
+                    return
+
+                if not first_pass:
+                    # Status and trace are separate durable records. If status
+                    # turns terminal between the two reads, the terminal branch
+                    # below performs one final trace refresh before closing.
+                    current_events = await _read_events()
+                    current_row = await _read_status()
+                first_pass = False
+
+                # Ownership/visibility can change while a long stream is open.
+                # Once response headers are sent we cannot return a fresh 404,
+                # so fail closed by ending the connection without another event.
+                if current_row is None:
+                    close_reason = "run_missing"
+                    _log.warning("sse.closed missing_run run_id=%s", run_id)
+                    return
+                if (
+                    current_row.organization_id is not None
+                    and org_id is not None
+                    and current_row.organization_id != org_id
+                ):
+                    close_reason = "org_changed"
+                    _log.warning(
+                        "sse.closed org_changed run_id=%s token_org=%s row_org=%s",
+                        run_id, org_id, current_row.organization_id,
+                    )
+                    return
+                if not is_tenant_visible(
+                    getattr(current_row, "tenancy_classification", None)
+                ):
+                    close_reason = "visibility_changed"
+                    _log.warning(
+                        "sse.closed visibility_changed run_id=%s classification=%s",
+                        run_id,
+                        getattr(current_row, "tenancy_classification", None),
+                    )
+                    return
+
+                # Both stores are append-only and return insertion order, so the
+                # emitted prefix length is a stable incremental cursor.
+                for ev in current_events[emitted_count:]:
+                    _SSE_METRICS.event_emitted()
+                    yield _format_trace_event(ev)
+                    emitted_count += 1
+                    last_output_at = _time.monotonic()
+
+                if RunStatus.is_terminal(current_row.status):
+                    # Close the trace/status commit race with one last read.
+                    final_events = await _read_events()
+                    for ev in final_events[emitted_count:]:
+                        _SSE_METRICS.event_emitted()
+                        yield _format_trace_event(ev)
+                        emitted_count += 1
+                    _SSE_METRICS.event_emitted()
+                    yield _format_sse_event("stream.completed", {
+                        "run_id": run_id,
+                        "status": current_row.status,
+                        "event_count": emitted_count,
+                    }, {
+                        "run_id": run_id,
+                        "version": "1.0",
+                    })
+                    close_reason = "terminal"
+                    return
+
+                now = _time.monotonic()
+                if now - last_output_at >= _SSE_HEARTBEAT_INTERVAL_SECONDS:
+                    _SSE_METRICS.heartbeat_emitted()
+                    yield ": keepalive\n\n"
+                    last_output_at = now
+
+                await asyncio.sleep(_SSE_POLL_INTERVAL_SECONDS)
+        except asyncio.CancelledError:
+            close_reason = "cancelled"
+            raise
+        except Exception:
+            close_reason = "stream_error"
+            raise
+        finally:
+            _SSE_METRICS.stream_closed(
+                reason=close_reason,
+                duration_seconds=_time.monotonic() - stream_started_at,
+            )
 
     return StreamingResponse(
         _event_stream(),
@@ -716,5 +1161,7 @@ async def stream_run_events(
             "Cache-Control": "no-cache",
             "X-Accel-Buffering": "no",  # disable proxy buffering
             "Connection": "keep-alive",
+            "X-iCoDer-Trace-Retention-Days": str(_trace_retention_days()),
+            "X-iCoDer-SSE-Resumed": "true" if last_event_id else "false",
         },
     )

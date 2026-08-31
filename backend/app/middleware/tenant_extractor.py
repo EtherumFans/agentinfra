@@ -156,7 +156,16 @@ class TenantHeaderMiddleware(BaseHTTPMiddleware):
             )
 
         request.state.tenant_name = authoritative_org
-        return await call_next(request)
+        from app.services.tenant_model_routing import (
+            bind_request_tenant,
+            reset_request_tenant,
+        )
+
+        routing_token = bind_request_tenant(authoritative_org)
+        try:
+            return await call_next(request)
+        finally:
+            reset_request_tenant(routing_token)
 
 
 def get_request_tenant(request: Request) -> Optional[str]:
@@ -202,8 +211,11 @@ def _peek_jwt_org_id(token: str) -> Optional[str]:
     """
     try:
         # Decode body without verification — we only want the org_id claim.
-        from jose import jwt
-        claims = jwt.get_unverified_claims(token)
+        import jwt
+        claims = jwt.decode(
+            token,
+            options={"verify_signature": False, "verify_exp": False},
+        )
         org_id = claims.get("org_id")
         return org_id if isinstance(org_id, str) and org_id else None
     except Exception:

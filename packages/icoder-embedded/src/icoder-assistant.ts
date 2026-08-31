@@ -172,7 +172,7 @@ const TEMPLATE = `
   <div class="quick-actions" data-actions>
     <button data-action="review">审核编码</button>
     <button data-action="gaps">检查文档缺口</button>
-    <button data-action="drg">DRG 分析</button>
+    <button data-action="drg">DRG/DIP 风险复核</button>
   </div>
   <div class="input-area">
     <textarea rows="1" placeholder="输入消息..." data-input></textarea>
@@ -540,7 +540,7 @@ class iCoDerEmbedded extends HTMLElement {
         const prompts: Record<string, string> = {
           review: '请审核当前患者的编码，检查是否有错误、遗漏或合规风险。',
           gaps: '请检查当前患者的病历文档完整性，列出缺失的关键信息。',
-          drg: '请分析当前患者的编码对 DRG 分组和医保支付的影响。',
+          drg: '请仅依据病历证据复核当前编码的 DRG/DIP 风险；不要预测官方分组、权重、分值或支付金额，并明确要求人工复核。',
         };
         const msg = prompts[action] || action;
         this._addMessage('user', msg);
@@ -571,8 +571,8 @@ class iCoDerEmbedded extends HTMLElement {
     const input = this._shadow.querySelector('[data-input]') as HTMLTextAreaElement;
     const actions = this._shadow.querySelectorAll('[data-action]');
     const labels: Record<string, Record<string, string>> = {
-      'zh-CN': { placeholder: '输入消息...', review: '审核编码', gaps: '检查文档缺口', drg: 'DRG 分析' },
-      'en-US': { placeholder: 'Type a message...', review: 'Review Codes', gaps: 'Check Doc Gaps', drg: 'DRG Analysis' },
+      'zh-CN': { placeholder: '输入消息...', review: '审核编码', gaps: '检查文档缺口', drg: 'DRG/DIP 风险复核' },
+      'en-US': { placeholder: 'Type a message...', review: 'Review Codes', gaps: 'Check Doc Gaps', drg: 'DRG/DIP Risk Review' },
     };
     const set = labels[lang] || labels['zh-CN'];
     input.placeholder = set.placeholder;

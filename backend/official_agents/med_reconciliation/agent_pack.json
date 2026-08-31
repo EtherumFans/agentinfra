@@ -1,52 +1,1162 @@
 {
   "format_version": "1.2",
   "agent_type": "certified",
-  "agent_ref": "icoder/med-reconciliation@1.0.0",
+  "agent_ref": "icoder/med-reconciliation@1.1.0",
   "manifest": {
     "name": "用药重整智能体",
-    "version": "1.0.0",
-    "description": "在入院、转科和出院环节提供准确的用药重整，减少用药差错。",
+    "version": "1.1.0",
+    "description": "从明确标注的入院前、住院 MAR/用药和出院用药来源提取逐字药物事实，按药名字面值及已记录剂量、途径、频次保守比较转衔差异；不使用模型记忆判断相互作用、禁忌或剂量适宜性。",
     "category": "point-of-care",
     "category_display": "Point of Care Tools / 床旁工具",
     "icon": "Pill",
     "tags": [
       "corti-parity",
-      "metadata-only"
+      "medication-reconciliation",
+      "transition-of-care",
+      "evidence-first",
+      "deterministic"
     ],
-    "maturity": "metadata-only",
+    "maturity": "runnable",
     "production_ready": false,
     "hidden_from_hub": false,
     "use_case": "point_of_care",
     "human_review": "required"
   },
-  "system_prompt": "",
+  "system_prompt": "你是 iCoDer 受治理本地用药重整智能体。只处理明确标注为入院前/家庭用药、住院中/MAR、拟出院/出院医嘱的来源。每个药物条目必须保留逐字 evidence_text 和 [start,end) char_span；只抽取原文明确记录的药名、剂量、途径、频次、状态和原因，缺失字段保留为空，不得默认口服、按需或补写适应证。只按药名字面值对齐来源，比较已同时记录的剂量/途径/频次，并以来源清单比较产生 CONTINUE/START/STOP/CHANGE/NEEDS_CLARIFICATION；这些分类不是处方或停药建议。无授权 DrugBank/医院药品库时，品牌-通用名、同类重复、相互作用、禁忌、肾/肝功能剂量适宜性一律不得判断，interaction_screening_status 固定为 NOT_ASSESSED_LICENSED_SOURCE_REQUIRED。不得自行开药、停药、调整剂量或生成临床恢复条件；所有结果必须由医师或药师复核。",
+  "backend_provider": "icoder.governed-medication-reconciliation.v1",
+  "backend_config": {
+    "documented_medication_reconciliation": {
+      "network_required": false,
+      "llm_required": false,
+      "maximum_input_characters": 20000,
+      "maximum_medications_per_source": 100,
+      "name_alignment": "exact_literal_only",
+      "documented_fields": [
+        "drug_name",
+        "dose",
+        "route",
+        "frequency",
+        "status",
+        "reason"
+      ],
+      "interaction_screening_available": false,
+      "brand_generic_normalization_available": false,
+      "clinical_dose_suitability_assessed": false,
+      "production_writeback_blocked": true
+    }
+  },
   "experts": [],
   "tools": [],
+  "model": null,
   "permissions": {
-    "key": "med-reconciliation",
-    "name": "用药重整智能体 权限",
-    "description": "在入院、转科和出院环节提供准确的用药重整，减少用药差错。",
+    "key": "med-reconciliation-v1-1",
+    "name": "用药重整智能体默认权限",
+    "description": "允许本地只读抽取和逐来源字面比较；禁止开药、停药、剂量调整、外部药物知识推断和写回。",
+    "tools": {},
     "no_upcoding": true,
     "no_inference": true,
     "evidence_required": true,
     "production_writeback_blocked": true
   },
+  "output_contract": {
+    "schema_ref": "icoder/MedicationReconciliationOutput/v4",
+    "a2a_parts": [
+      "DataPart"
+    ],
+    "required_fields": [
+      "reconciliation_status",
+      "home_medications",
+      "inpatient_medications",
+      "discharge_medications",
+      "reconciliation_summary",
+      "discrepancies",
+      "interaction_screening_status",
+      "interaction_risks",
+      "allergy_review_status",
+      "allergy_conflicts",
+      "missing_rationale",
+      "follow_up_items",
+      "unresolved_mentions",
+      "source_completeness",
+      "limitations",
+      "manual_review_required",
+      "trace_refs"
+    ],
+    "field_definitions": {
+      "reconciliation_status": "COMPLETED | PARTIAL | INPUT_REQUIRED",
+      "home_medications": "入院前/家庭用药来源中的逐字药物条目",
+      "inpatient_medications": "住院中/MAR 来源中的逐字药物条目",
+      "discharge_medications": "拟出院/出院医嘱来源中的逐字药物条目",
+      "reconciliation_summary": "按精确药名字面对齐后的来源比较；分类不是处方建议",
+      "discrepancies": "从来源清单、明确字段差异和缺失字段直接得到的可追溯问题",
+      "interaction_screening_status": "固定为未评估，直到取得授权 DrugBank/医院药品库",
+      "interaction_risks": "本地基线固定为空，不从模型记忆生成相互作用",
+      "allergy_review_status": "无过敏来源或仅执行完全相同药名字面匹配",
+      "allergy_conflicts": "仅完全相同药名字面值与活动/出院药物的冲突",
+      "missing_rationale": "明确变化、暂停后重列或清单去向缺少原因",
+      "follow_up_items": "供医师或药师确认的中性问题，不包含治疗建议",
+      "unresolved_mentions": "来源中缺少明确药名而无法归属的原文",
+      "source_completeness": "三类来源是否存在以及是否具备至少双来源比较条件",
+      "limitations": "品牌/通用名、药物知识、相互作用、禁忌和剂量适宜性边界",
+      "manual_review_required": "固定为 true",
+      "trace_refs": "本地 Provider 执行引用"
+    },
+    "field_types": {
+      "reconciliation_status": "string",
+      "home_medications": "array",
+      "inpatient_medications": "array",
+      "discharge_medications": "array",
+      "reconciliation_summary": "array",
+      "discrepancies": "array",
+      "interaction_screening_status": "string",
+      "interaction_risks": "array",
+      "allergy_review_status": "string",
+      "allergy_conflicts": "array",
+      "missing_rationale": "array",
+      "follow_up_items": "array",
+      "unresolved_mentions": "array",
+      "source_completeness": "object",
+      "limitations": "array",
+      "manual_review_required": "boolean",
+      "trace_refs": "object"
+    },
+    "field_schemas": {
+      "reconciliation_status": {
+        "type": "string",
+        "maxLength": 32768,
+        "enum": [
+          "COMPLETED",
+          "PARTIAL",
+          "INPUT_REQUIRED"
+        ]
+      },
+      "home_medications": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "char_span": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "maxItems": 2,
+              "minItems": 2,
+              "x-order": "nondecreasing"
+            },
+            "dose": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "drug_name": {
+              "type": "string",
+              "maxLength": 256,
+              "minLength": 1
+            },
+            "evidence_text": {
+              "type": "string",
+              "maxLength": 1024,
+              "minLength": 1
+            },
+            "frequency": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "identity_basis": {
+              "type": "string",
+              "maxLength": 32768,
+              "enum": [
+                "verbatim_name",
+                "adjacent_single_medication_reference"
+              ]
+            },
+            "instructions": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "reason": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "route": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "source": {
+              "type": "string",
+              "maxLength": 32768,
+              "enum": [
+                "home"
+              ]
+            },
+            "status": {
+              "type": "string",
+              "maxLength": 32768,
+              "enum": [
+                "LISTED",
+                "GIVEN",
+                "HELD",
+                "REFUSED",
+                "STOPPED",
+                "CONTINUED",
+                "STARTED"
+              ]
+            }
+          },
+          "required": [
+            "char_span",
+            "dose",
+            "drug_name",
+            "evidence_text",
+            "frequency",
+            "identity_basis",
+            "instructions",
+            "reason",
+            "route",
+            "source",
+            "status"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100,
+        "minItems": 0
+      },
+      "inpatient_medications": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "char_span": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "maxItems": 2,
+              "minItems": 2,
+              "x-order": "nondecreasing"
+            },
+            "dose": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "drug_name": {
+              "type": "string",
+              "maxLength": 256,
+              "minLength": 1
+            },
+            "evidence_text": {
+              "type": "string",
+              "maxLength": 1024,
+              "minLength": 1
+            },
+            "frequency": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "identity_basis": {
+              "type": "string",
+              "maxLength": 32768,
+              "enum": [
+                "verbatim_name",
+                "adjacent_single_medication_reference"
+              ]
+            },
+            "instructions": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "reason": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "route": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "source": {
+              "type": "string",
+              "maxLength": 32768,
+              "enum": [
+                "inpatient"
+              ]
+            },
+            "status": {
+              "type": "string",
+              "maxLength": 32768,
+              "enum": [
+                "LISTED",
+                "GIVEN",
+                "HELD",
+                "REFUSED",
+                "STOPPED",
+                "CONTINUED",
+                "STARTED"
+              ]
+            }
+          },
+          "required": [
+            "char_span",
+            "dose",
+            "drug_name",
+            "evidence_text",
+            "frequency",
+            "identity_basis",
+            "instructions",
+            "reason",
+            "route",
+            "source",
+            "status"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100,
+        "minItems": 0
+      },
+      "discharge_medications": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "char_span": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "maxItems": 2,
+              "minItems": 2,
+              "x-order": "nondecreasing"
+            },
+            "dose": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "drug_name": {
+              "type": "string",
+              "maxLength": 256,
+              "minLength": 1
+            },
+            "evidence_text": {
+              "type": "string",
+              "maxLength": 1024,
+              "minLength": 1
+            },
+            "frequency": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "identity_basis": {
+              "type": "string",
+              "maxLength": 32768,
+              "enum": [
+                "verbatim_name",
+                "adjacent_single_medication_reference"
+              ]
+            },
+            "instructions": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "reason": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "route": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "source": {
+              "type": "string",
+              "maxLength": 32768,
+              "enum": [
+                "discharge"
+              ]
+            },
+            "status": {
+              "type": "string",
+              "maxLength": 32768,
+              "enum": [
+                "LISTED",
+                "GIVEN",
+                "HELD",
+                "REFUSED",
+                "STOPPED",
+                "CONTINUED",
+                "STARTED"
+              ]
+            }
+          },
+          "required": [
+            "char_span",
+            "dose",
+            "drug_name",
+            "evidence_text",
+            "frequency",
+            "identity_basis",
+            "instructions",
+            "reason",
+            "route",
+            "source",
+            "status"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100,
+        "minItems": 0
+      },
+      "reconciliation_summary": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "category": {
+              "type": "string",
+              "maxLength": 32768,
+              "enum": [
+                "CONTINUE",
+                "START",
+                "STOP",
+                "CHANGE",
+                "NEEDS_CLARIFICATION"
+              ]
+            },
+            "clarification_required": {
+              "type": "boolean"
+            },
+            "differences": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "maxItems": 100
+            },
+            "discharge": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "drug_name": {
+              "type": "string",
+              "maxLength": 256,
+              "minLength": 1
+            },
+            "evidence_refs": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "maxItems": 100
+            },
+            "home": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "inpatient": {
+              "type": "string",
+              "maxLength": 32768
+            }
+          },
+          "required": [
+            "category",
+            "clarification_required",
+            "differences",
+            "discharge",
+            "drug_name",
+            "evidence_refs",
+            "home",
+            "inpatient"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100,
+        "minItems": 0
+      },
+      "discrepancies": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string",
+              "maxLength": 2048,
+              "minLength": 1
+            },
+            "drug_name": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "evidence_refs": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "maxItems": 100
+            },
+            "type": {
+              "type": "string",
+              "maxLength": 32768,
+              "enum": [
+                "EXACT_NAME_DUPLICATE",
+                "MISSING_DOCUMENTED_DETAILS",
+                "DOCUMENTED_FIELD_CHANGE",
+                "HELD_THEN_RELISTED",
+                "MISSING_DISCHARGE_DISPOSITION",
+                "HOME_NOT_ON_DISCHARGE_LIST"
+              ]
+            }
+          },
+          "required": [
+            "description",
+            "drug_name",
+            "evidence_refs",
+            "type"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 200,
+        "minItems": 0
+      },
+      "interaction_screening_status": {
+        "type": "string",
+        "maxLength": 32768,
+        "enum": [
+          "NOT_ASSESSED_LICENSED_SOURCE_REQUIRED"
+        ],
+        "const": "NOT_ASSESSED_LICENSED_SOURCE_REQUIRED"
+      },
+      "interaction_risks": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "medications": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "maxItems": 100
+            },
+            "risk": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "evidence_refs": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "maxItems": 100
+            }
+          },
+          "required": [
+            "medications",
+            "risk",
+            "evidence_refs"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 0,
+        "minItems": 0
+      },
+      "allergy_review_status": {
+        "type": "string",
+        "maxLength": 32768,
+        "enum": [
+          "NO_ALLERGY_SOURCE",
+          "EXACT_LITERAL_SCREEN_ONLY"
+        ]
+      },
+      "allergy_conflicts": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "drug_name": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "allergen": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "match_basis": {
+              "type": "string",
+              "maxLength": 32768,
+              "enum": [
+                "EXACT_LITERAL_NAME_ONLY"
+              ]
+            },
+            "evidence_refs": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "maxItems": 100
+            }
+          },
+          "required": [
+            "drug_name",
+            "allergen",
+            "match_basis",
+            "evidence_refs"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100,
+        "minItems": 0
+      },
+      "missing_rationale": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 2048,
+          "minLength": 1
+        },
+        "maxItems": 200,
+        "minItems": 0
+      },
+      "follow_up_items": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 2048,
+          "minLength": 1
+        },
+        "maxItems": 200,
+        "minItems": 0
+      },
+      "unresolved_mentions": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "source": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "evidence_text": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "char_span": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "maxItems": 2,
+              "minItems": 2,
+              "x-order": "nondecreasing"
+            },
+            "reason": {
+              "type": "string",
+              "maxLength": 32768
+            }
+          },
+          "required": [
+            "source",
+            "evidence_text",
+            "char_span",
+            "reason"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100,
+        "minItems": 0
+      },
+      "source_completeness": {
+        "type": "object",
+        "properties": {
+          "comparison_ready": {
+            "type": "boolean"
+          },
+          "discharge_source_present": {
+            "type": "boolean"
+          },
+          "home_source_present": {
+            "type": "boolean"
+          },
+          "inpatient_source_present": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "comparison_ready",
+          "discharge_source_present",
+          "home_source_present",
+          "inpatient_source_present"
+        ],
+        "additionalProperties": false
+      },
+      "limitations": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 2048,
+          "minLength": 1
+        },
+        "maxItems": 10,
+        "minItems": 1
+      },
+      "manual_review_required": {
+        "type": "boolean",
+        "const": true
+      },
+      "trace_refs": {
+        "type": "object",
+        "properties": {
+          "provider_trace_refs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "maxItems": 100
+          },
+          "run_id": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "trace_id": {
+            "type": "string",
+            "maxLength": 32768
+          }
+        },
+        "required": [
+          "run_id"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "field_relations": [
+      {
+        "id": "input_required_has_no_medication_claims",
+        "when": [
+          {
+            "path": "reconciliation_status",
+            "operator": "equals",
+            "value": "INPUT_REQUIRED"
+          }
+        ],
+        "must": [
+          {
+            "path": "home_medications",
+            "operator": "empty"
+          },
+          {
+            "path": "inpatient_medications",
+            "operator": "empty"
+          },
+          {
+            "path": "discharge_medications",
+            "operator": "empty"
+          },
+          {
+            "path": "reconciliation_summary",
+            "operator": "empty"
+          },
+          {
+            "path": "manual_review_required",
+            "operator": "equals",
+            "value": true
+          }
+        ]
+      },
+      {
+        "id": "completed_comparison_has_sources_and_summary",
+        "when": [
+          {
+            "path": "reconciliation_status",
+            "operator": "equals",
+            "value": "COMPLETED"
+          }
+        ],
+        "must": [
+          {
+            "path": "source_completeness.comparison_ready",
+            "operator": "equals",
+            "value": true
+          },
+          {
+            "path": "reconciliation_summary",
+            "operator": "non_empty"
+          }
+        ]
+      },
+      {
+        "id": "unlicensed_interaction_screen_is_empty_and_reviewed",
+        "when": [
+          {
+            "path": "interaction_screening_status",
+            "operator": "equals",
+            "value": "NOT_ASSESSED_LICENSED_SOURCE_REQUIRED"
+          }
+        ],
+        "must": [
+          {
+            "path": "interaction_risks",
+            "operator": "empty"
+          },
+          {
+            "path": "manual_review_required",
+            "operator": "equals",
+            "value": true
+          }
+        ]
+      },
+      {
+        "id": "clarification_category_requires_clinician_confirmation",
+        "for_each": "reconciliation_summary",
+        "when": [
+          {
+            "path": "category",
+            "operator": "equals",
+            "value": "NEEDS_CLARIFICATION"
+          }
+        ],
+        "must": [
+          {
+            "path": "clarification_required",
+            "operator": "equals",
+            "value": true
+          }
+        ]
+      },
+      {
+        "id": "home_medication_is_traceable",
+        "for_each": "home_medications",
+        "when": [
+          {
+            "path": "drug_name",
+            "operator": "present"
+          }
+        ],
+        "must": [
+          {
+            "path": "source",
+            "operator": "equals",
+            "value": "home"
+          },
+          {
+            "path": "evidence_text",
+            "operator": "non_empty"
+          }
+        ]
+      },
+      {
+        "id": "inpatient_medication_is_traceable",
+        "for_each": "inpatient_medications",
+        "when": [
+          {
+            "path": "drug_name",
+            "operator": "present"
+          }
+        ],
+        "must": [
+          {
+            "path": "source",
+            "operator": "equals",
+            "value": "inpatient"
+          },
+          {
+            "path": "evidence_text",
+            "operator": "non_empty"
+          }
+        ]
+      },
+      {
+        "id": "discharge_medication_is_traceable",
+        "for_each": "discharge_medications",
+        "when": [
+          {
+            "path": "drug_name",
+            "operator": "present"
+          }
+        ],
+        "must": [
+          {
+            "path": "source",
+            "operator": "equals",
+            "value": "discharge"
+          },
+          {
+            "path": "evidence_text",
+            "operator": "non_empty"
+          }
+        ]
+      }
+    ],
+    "evidence_bindings": [
+      {
+        "id": "home_medication_evidence_matches_input",
+        "for_each": "home_medications",
+        "text_path": "evidence_text",
+        "span_path": "char_span"
+      },
+      {
+        "id": "inpatient_medication_evidence_matches_input",
+        "for_each": "inpatient_medications",
+        "text_path": "evidence_text",
+        "span_path": "char_span"
+      },
+      {
+        "id": "discharge_medication_evidence_matches_input",
+        "for_each": "discharge_medications",
+        "text_path": "evidence_text",
+        "span_path": "char_span"
+      },
+      {
+        "id": "unresolved_medication_evidence_matches_input",
+        "for_each": "unresolved_mentions",
+        "text_path": "evidence_text",
+        "span_path": "char_span"
+      }
+    ]
+  },
+  "phi_redaction": "required",
+  "context_required": true,
+  "recorder_required": true,
+  "metrics_required": true,
   "requirements": {
-    "min_runtime_version": "1.0.0",
-    "icoder_runtime_modules": []
+    "min_runtime_version": "2.0.0",
+    "icoder_runtime_modules": [
+      "icoder_runtime.backends.governed_medication_reconciliation_provider",
+      "official_agents.med_reconciliation.agent"
+    ]
+  },
+  "llm_capabilities": {
+    "required_models": [],
+    "supports_tool_calling": false,
+    "supports_json_mode": true,
+    "supports_mcp_tools": false
   },
   "non_goals": [
-    "不替代编码员 / 临床医生最终决策",
-    "不自动写回 EMR/HIS"
+    "不自行开药、停药或调整剂量",
+    "不推断适应证、品牌/通用名等价、同类重复或相互作用",
+    "不判断肾/肝功能剂量适宜性、禁忌或临床危害",
+    "不自动写回处方、医嘱、EMR/HIS 或患者材料"
   ],
   "human_review_required_when": [
-    "All outputs require human review (metadata-only pack, no executable wiring yet)"
+    "所有本地基线输出",
+    "来源缺失、字段缺失、清单不一致或变更原因不明确",
+    "存在暂停、拒绝、停用、恢复或出院去向不明",
+    "需要品牌/通用名、同类重复、相互作用、过敏交叉反应、禁忌或剂量适宜性判断"
+  ],
+  "default_runtime_mode": "governed_local_documented_medication_reconciliation",
+  "available_runtime_modes": [
+    "governed_local_documented_medication_reconciliation"
+  ],
+  "example_inputs": [
+    {
+      "title": "出院前用药重整",
+      "input_text": "入院前：二甲双胍0.5g bid。住院中因造影暂停；胰岛素按血糖调整。拟出院医嘱仅列二甲双胍0.5g bid。请识别差异与需医师确认事项。",
+      "extra": {
+        "stage": "discharge"
+      }
+    }
+  ],
+  "example_outputs": [
+    {
+      "reconciliation_status": "COMPLETED",
+      "home_medications": [
+        {
+          "drug_name": "二甲双胍",
+          "dose": "0.5g",
+          "route": "",
+          "frequency": "bid",
+          "status": "LISTED",
+          "reason": "",
+          "instructions": "二甲双胍0.5g bid",
+          "source": "home",
+          "identity_basis": "verbatim_name",
+          "evidence_text": "二甲双胍0.5g bid",
+          "char_span": [
+            4,
+            16
+          ]
+        }
+      ],
+      "inpatient_medications": [
+        {
+          "drug_name": "二甲双胍",
+          "dose": "",
+          "route": "",
+          "frequency": "",
+          "status": "HELD",
+          "reason": "造影",
+          "instructions": "因造影暂停",
+          "source": "inpatient",
+          "identity_basis": "adjacent_single_medication_reference",
+          "evidence_text": "因造影暂停",
+          "char_span": [
+            20,
+            25
+          ]
+        },
+        {
+          "drug_name": "胰岛素",
+          "dose": "",
+          "route": "",
+          "frequency": "",
+          "status": "LISTED",
+          "reason": "",
+          "instructions": "胰岛素按血糖调整",
+          "source": "inpatient",
+          "identity_basis": "verbatim_name",
+          "evidence_text": "胰岛素按血糖调整",
+          "char_span": [
+            26,
+            34
+          ]
+        }
+      ],
+      "discharge_medications": [
+        {
+          "drug_name": "二甲双胍",
+          "dose": "0.5g",
+          "route": "",
+          "frequency": "bid",
+          "status": "LISTED",
+          "reason": "",
+          "instructions": "二甲双胍0.5g bid",
+          "source": "discharge",
+          "identity_basis": "verbatim_name",
+          "evidence_text": "二甲双胍0.5g bid",
+          "char_span": [
+            42,
+            54
+          ]
+        }
+      ],
+      "reconciliation_summary": [
+        {
+          "drug_name": "二甲双胍",
+          "category": "NEEDS_CLARIFICATION",
+          "home": "0.5g/途径未记录/bid/LISTED",
+          "inpatient": "剂量未记录/途径未记录/频次未记录/HELD",
+          "discharge": "0.5g/途径未记录/bid/LISTED",
+          "differences": [],
+          "clarification_required": true,
+          "evidence_refs": [
+            "home:4-16:二甲双胍0.5g bid",
+            "inpatient:20-25:因造影暂停",
+            "discharge:42-54:二甲双胍0.5g bid"
+          ]
+        },
+        {
+          "drug_name": "胰岛素",
+          "category": "NEEDS_CLARIFICATION",
+          "home": "未列出",
+          "inpatient": "剂量未记录/途径未记录/频次未记录/LISTED",
+          "discharge": "未列出",
+          "differences": [],
+          "clarification_required": true,
+          "evidence_refs": [
+            "inpatient:26-34:胰岛素按血糖调整"
+          ]
+        }
+      ],
+      "discrepancies": [
+        {
+          "drug_name": "二甲双胍",
+          "type": "MISSING_DOCUMENTED_DETAILS",
+          "description": "home 来源未记录：途径。",
+          "evidence_refs": [
+            "二甲双胍0.5g bid"
+          ]
+        },
+        {
+          "drug_name": "二甲双胍",
+          "type": "MISSING_DOCUMENTED_DETAILS",
+          "description": "inpatient 来源未记录：剂量、途径、频次。",
+          "evidence_refs": [
+            "因造影暂停"
+          ]
+        },
+        {
+          "drug_name": "二甲双胍",
+          "type": "MISSING_DOCUMENTED_DETAILS",
+          "description": "discharge 来源未记录：途径。",
+          "evidence_refs": [
+            "二甲双胍0.5g bid"
+          ]
+        },
+        {
+          "drug_name": "二甲双胍",
+          "type": "HELD_THEN_RELISTED",
+          "description": "住院来源记录暂停/停用/拒绝，出院来源再次列出；恢复或继续依据未在输入中说明。",
+          "evidence_refs": [
+            "因造影暂停",
+            "二甲双胍0.5g bid"
+          ]
+        },
+        {
+          "drug_name": "胰岛素",
+          "type": "MISSING_DOCUMENTED_DETAILS",
+          "description": "inpatient 来源未记录：剂量、途径、频次。",
+          "evidence_refs": [
+            "胰岛素按血糖调整"
+          ]
+        },
+        {
+          "drug_name": "胰岛素",
+          "type": "MISSING_DISCHARGE_DISPOSITION",
+          "description": "住院来源列出该药，但出院来源未列出其继续、停止或变更去向。",
+          "evidence_refs": [
+            "胰岛素按血糖调整"
+          ]
+        }
+      ],
+      "interaction_screening_status": "NOT_ASSESSED_LICENSED_SOURCE_REQUIRED",
+      "interaction_risks": [],
+      "allergy_review_status": "NO_ALLERGY_SOURCE",
+      "allergy_conflicts": [],
+      "missing_rationale": [
+        "二甲双胍 住院暂停/停用后在出院来源再次列出，恢复或继续依据缺失。",
+        "胰岛素 缺少出院继续、停止或变更去向及原因。"
+      ],
+      "follow_up_items": [
+        "请医师或药师确认 二甲双胍 的转衔分类、完整剂量/途径/频次及变更理由。",
+        "请医师或药师确认 胰岛素 的转衔分类、完整剂量/途径/频次及变更理由。"
+      ],
+      "unresolved_mentions": [],
+      "source_completeness": {
+        "home_source_present": true,
+        "inpatient_source_present": true,
+        "discharge_source_present": true,
+        "comparison_ready": true
+      },
+      "limitations": [
+        "只按明确来源和药名字面值比较；未对品牌名/通用名、盐型、剂型或同类药物做归一化。",
+        "未使用授权 DrugBank/医院药品库；相互作用、同类重复、禁忌和肾/肝功能剂量适宜性均未评估。",
+        "START/STOP/CONTINUE/CHANGE 仅表示来源清单比较，不是处方或停药建议。",
+        "所有差异、过敏字面冲突和缺失项必须由医师或药师复核。"
+      ],
+      "manual_review_required": true,
+      "trace_refs": {
+        "run_id": "example-med-reconciliation",
+        "provider_trace_refs": [
+          "example-med-reconciliation:governed-medication-reconciliation"
+        ]
+      }
+    }
   ],
   "metadata": {
-    "created_at": "2026-07-11",
+    "created_at": "2026-08-24",
     "author": "iCoDer",
     "corti_match": "medication-reconciliation-agent",
-    "audit_note": "Created during Phase 5 Track B GAP-13-02 fix (2026-07-11). Metadata-only stub for Corti parity inventory. Wiring deferred to Phase 5 Track B-2."
+    "audit_note": "Deterministic exact-source baseline. Licensed DrugBank/hospital formulary screening, generic-brand normalization and clinical dose review remain explicit external gates."
   },
-  "built_by": "icoder"
+  "built_by": "icoder",
+  "code": {},
+  "integrity": {
+    "sha256": "fa15675d5908f8590b0403295d44323094c87b28b8ae317643f662e48038f0be"
+  }
 }

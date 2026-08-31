@@ -4,7 +4,8 @@ Exposes the RunTraceStore via a read-only endpoint so the frontend
 RunTracePage can render the 9-step timeline.
 
   GET /api/runtime/runs/{run_id}/trace
-    → 200 {"run_id": "...", "events": [RunTraceEvent.to_dict(), ...]}
+    → 200 {"run_id": "...", "events": [RunTraceEvent.to_dict(), ...],
+            "trace_attestation": "<tenant/run/events-bound proof>"}
 
   GET /api/runtime/runs/{run_id}/trace?format=timeline
     → 200 {"run_id": "...", "timeline": [{"step": ..., "status": ...,
@@ -38,9 +39,76 @@ from fastapi import APIRouter, HTTPException, Query, Request
 
 from app.icoder.agent_runtime.orchestrator.run_trace import get_default_store
 from app.middleware.tenant_extractor import get_request_tenant
+from app.services.trace_attestation import (
+    TraceAttestationError,
+    issue_trace_attestation,
+)
 
 
 router = APIRouter(prefix="/api/runtime", tags=["run-trace"])
+
+
+def _build_run_summary(console_row: Any, events: list[Any]) -> dict[str, Any]:
+    """Build a display-safe, auditable summary for the Console trace view.
+
+    Only bounded run-envelope fields are projected from ``run_history``.  The
+    review state is intentionally an event-derived *signal*, not an
+    authoritative clinical review decision: older runs did not persist the
+    response-level ``manual_review_required`` flag.
+    """
+    required_sources: list[str] = []
+    explicit_not_required_sources: list[str] = []
+    required_provider_statuses = {
+        "requires_review", "unclear", "incomplete", "non_compliant",
+    }
+    for event in events:
+        metadata = getattr(event, "safe_metadata", None) or {}
+        step = str(getattr(event, "step", "event") or "event")
+        for key in ("manual_review_required", "review_required"):
+            value = metadata.get(key)
+            if value is True:
+                required_sources.append(f"{step}.{key}")
+            elif value is False:
+                explicit_not_required_sources.append(f"{step}.{key}")
+        provider_status = str(metadata.get("provider_status") or "").lower()
+        if provider_status in required_provider_statuses:
+            required_sources.append(f"{step}.provider_status:{provider_status}")
+
+    if required_sources:
+        review_state = "required"
+        review_sources = required_sources
+    elif explicit_not_required_sources:
+        review_state = "not_required"
+        review_sources = explicit_not_required_sources
+    else:
+        review_state = "not_recorded"
+        review_sources = []
+
+    created_at = getattr(console_row, "created_at", None)
+    return {
+        "agent_id": str(getattr(console_row, "agent_id", "") or ""),
+        "trace_id": str(getattr(console_row, "trace_id", "") or ""),
+        "run_status": str(getattr(console_row, "status", "") or "UNKNOWN"),
+        "runtime_mode": str(getattr(console_row, "runtime_mode", "") or ""),
+        "latency_ms": int(getattr(console_row, "latency_ms", 0) or 0),
+        # cost_usd is the historical DB column name; configured run pricing
+        # and all public contracts use CNY (see app.config).
+        "cost": {
+            "amount": max(float(getattr(console_row, "cost_usd", 0.0) or 0.0), 0.0),
+            "currency": "CNY",
+        },
+        "error": bool(getattr(console_row, "error", False)),
+        "error_reason": str(getattr(console_row, "error_reason", "") or "") or None,
+        "trace_capture_status": str(
+            getattr(console_row, "trace_capture_status", "") or "NOT_RECORDED"
+        ),
+        "created_at": created_at.isoformat() if created_at else None,
+        "review_signal": {
+            "state": review_state,
+            "sources": sorted(set(review_sources)),
+            "authoritative": False,
+        },
+    }
 
 
 # ── Phase A1A Gate 3.6 — system-scope audit helper ────────────────
@@ -174,22 +242,63 @@ async def _get_run_trace_impl(
         events = await asyncio.to_thread(store.get_run, run_id)
 
     if not events:
+        if getattr(console_row, "trace_events_purged_at", None):
+            from app.services.retention import RetentionPolicy
+
+            retention_days = RetentionPolicy.from_env().run_trace_events_ttl_days
+            purged_at = console_row.trace_events_purged_at
+            raise HTTPException(
+                status_code=410,
+                detail={
+                    "code": "TRACE_EXPIRED",
+                    "message": "The Run trace is no longer available after retention purge.",
+                    "retention_days": retention_days,
+                    "purged_at": purged_at.isoformat() if purged_at else None,
+                    "events_purged": int(
+                        getattr(console_row, "trace_events_purged_count", 0) or 0
+                    ),
+                },
+                headers={"X-iCoDer-Trace-Retention-Days": str(retention_days)},
+            )
         raise HTTPException(
             status_code=404,
             detail=f"no trace events for run_id {run_id!r}",
         )
 
+    serialized_events = [event.to_dict() for event in events]
+    attestation_org = str(getattr(console_row, "organization_id", None) or org_id or "")
+    try:
+        trace_attestation = issue_trace_attestation(
+            run_id=run_id,
+            organization_id=attestation_org,
+            events=serialized_events,
+        )
+    except TraceAttestationError as exc:
+        _log.error(
+            "console.trace.attestation_failed run_id=%s error_type=%s",
+            run_id,
+            type(exc).__name__,
+        )
+        raise HTTPException(
+            status_code=500,
+            detail="trace authenticity proof could not be created",
+        ) from exc
+
     if format == "raw":
         return {
             "run_id": run_id,
-            "events": [e.to_dict() for e in events],
+            "events": serialized_events,
+            "trace_attestation": trace_attestation,
+            "summary": _build_run_summary(console_row, events),
         }
 
     # Default: timeline format — already display-safe.
     return {
         "run_id": run_id,
-        "timeline": [e.to_dict() for e in events],
+        "timeline": serialized_events,
         "step_count": len(events),
+        "trace_attestation": trace_attestation,
+        "summary": _build_run_summary(console_row, events),
     }
 
 
@@ -209,8 +318,9 @@ async def get_run_trace(
             internal store dump (for debugging).
 
     Returns:
-        200 ``{"run_id": ..., "events": [...]}`` or
-        ``{"run_id": ..., "timeline": [...]}`` depending on format.
+        200 ``{"run_id": ..., "events": [...], "trace_attestation": ...}``
+        or ``{"run_id": ..., "timeline": [...], "trace_attestation": ...}``
+        depending on format.
 
     Raises:
         404 if run_id has no trace events OR if the run belongs to

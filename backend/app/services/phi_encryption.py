@@ -184,6 +184,44 @@ def decrypt_phi(stored: Optional[str]) -> Optional[str]:
         raise
 
 
+def encrypt_phi_bytes(plaintext: bytes) -> bytes:
+    """Encrypt binary PHI with the same versioned Fernet key lifecycle.
+
+    Local development without a configured key uses a ``plain:`` marker,
+    mirroring :func:`encrypt_phi`'s documented plaintext fallback. Cloud mode
+    cannot reach that branch because Settings refuses to boot without a key.
+    """
+    if not plaintext:
+        return b"plain:"
+    key = _resolve_active_key()
+    if key is None:
+        return b"plain:" + plaintext
+    from cryptography.fernet import Fernet
+
+    token = Fernet(key).encrypt(plaintext)
+    return f"v{_active_key_id()}:".encode("ascii") + token
+
+
+def decrypt_phi_bytes(stored: bytes) -> bytes:
+    """Decrypt bytes produced by :func:`encrypt_phi_bytes`."""
+    if stored.startswith(b"plain:"):
+        return stored[len(b"plain:"):]
+    match = re.match(br"^v(\d+):", stored)
+    if not match:
+        # Backward-compatible local rows written before the binary marker.
+        return stored
+    key_id = int(match.group(1))
+    key = _resolve_key_by_id(key_id)
+    if key is None:
+        raise RuntimeError(
+            f"phi_encryption: cannot decrypt binary value with key_id={key_id}; "
+            f"set ICODER_PHI_ENCRYPTION_KEY_V{key_id} to enable"
+        )
+    from cryptography.fernet import Fernet
+
+    return Fernet(key).decrypt(stored[match.end():])
+
+
 def generate_key() -> str:
     """Generate a new Fernet key. Helper for the operator runbook.
 
@@ -337,6 +375,8 @@ async def rotate_encrypted_columns(
 __all__ = [
     "encrypt_phi",
     "decrypt_phi",
+    "encrypt_phi_bytes",
+    "decrypt_phi_bytes",
     "is_encrypted_value",
     "is_encryption_enabled",
     "generate_key",

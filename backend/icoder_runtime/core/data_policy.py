@@ -52,10 +52,38 @@ Region = Literal["eu", "us", "cn"]
 #   parity with the product's primary market)
 PROVIDER_REGIONS: dict[str, Region] = {
     "deepseek": "cn",
+    "qwen": "cn",
+    "moonshot": "cn",
+    "azure_openai": "us",
     "openai_compat": "us",
     "mock": "cn",
     "local": "cn",
 }
+
+EXTERNAL_LLM_PROVIDERS = frozenset({
+    "deepseek",
+    "qwen",
+    "moonshot",
+    "azure_openai",
+    "openai_compat",
+})
+
+
+def normalize_provider_name(provider_name: str) -> str:
+    """Map runtime aliases to the provider family used by policy decisions."""
+
+    name = str(provider_name or "").strip().lower().replace("-", "_")
+    if name.startswith("qwen"):
+        return "qwen"
+    if name.startswith("moonshot") or name.startswith("kimi"):
+        return "moonshot"
+    if name.startswith("azure_openai"):
+        return "azure_openai"
+    if name in {"medical_coding", "medical_coding_llm", "ollama", "vllm"}:
+        return "local"
+    if name.startswith("openai_compat"):
+        return "openai_compat"
+    return name
 
 
 def get_provider_region(provider_name: str) -> Region:
@@ -67,6 +95,7 @@ def get_provider_region(provider_name: str) -> Region:
     ``us`` (the conservative default for compliance — the operator
     must explicitly whitelist a CN provider).
     """
+    provider_name = normalize_provider_name(provider_name)
     env_key = f"ICODER_PROVIDER_REGION_{provider_name.upper()}"
     env_val = os.environ.get(env_key, "").strip().lower()
     if env_val in ("eu", "us", "cn"):
@@ -147,7 +176,8 @@ class RuntimeDataPolicy:
              The provider's region must equal the tenant's region
              when ``egress_policy="strict"``.
         """
-        if provider_name in ("deepseek", "openai_compat") and not self.allow_external_llm:
+        provider_name = normalize_provider_name(provider_name)
+        if provider_name in EXTERNAL_LLM_PROVIDERS and not self.allow_external_llm:
             return False, f"External LLM provider '{provider_name}' blocked by data_policy (allow_external_llm=false)"
 
         # ── Phase A1A Gate 4.5 — regional residency ──
@@ -191,6 +221,7 @@ class RuntimeDataPolicy:
         Pure function — no side effect. Use ``egress_decision_log`` to also
         emit a structured log line.
         """
+        provider_name = normalize_provider_name(provider_name)
         allowed, reason = self.can_use_provider(provider_name)
         provider_region = get_provider_region(provider_name)
         return {

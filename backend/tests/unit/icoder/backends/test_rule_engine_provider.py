@@ -13,6 +13,8 @@ Verifies:
 """
 from __future__ import annotations
 
+import json
+
 import pytest
 
 from icoder_runtime.backends import (
@@ -22,6 +24,9 @@ from icoder_runtime.backends import (
     ProviderHealth,
 )
 from icoder_runtime.backends.rule_engine_provider import RuleEngineProvider
+from icoder_runtime.backends.documentation_rule_engine_provider import (
+    DocumentationRuleEngineProvider,
+)
 
 
 def _ctx(agent_id: str = "test-agent") -> AgentRunContext:
@@ -73,6 +78,25 @@ async def test_rule_engine_provider_health_ok():
     h = await p.health()
     assert isinstance(h, ProviderHealth)
     assert h.state == "ok"
+
+
+@pytest.mark.asyncio
+async def test_compliance_guardrail_facade_shape_uses_official_rules() -> None:
+    p = RuleEngineProvider()
+    response = await p.invoke(
+        BackendRequest(input={
+            "text": "MRI documents T12 compression fracture.",
+            "codes": ["M80.900"],
+        }),
+        _ctx("compliance-guardrail-agent"),
+    )
+
+    assert response.finish_state == "completed"
+    assert response.backend_provider == p.provider_id
+    assert response.raw_provider_response["rule_set"] == "medical_coding"
+    assert "review_conclusion" in response.raw_provider_response
+    assert "compliance_checks" in response.raw_provider_response
+    assert response.markdown.startswith("{")
 
 
 # ── invoke: coding_output shape ────────────────────────────────────
@@ -230,3 +254,53 @@ async def test_stream_yields_backend_invoked_then_finished():
     assert events[0]["step"] == "backend_invoked"
     assert events[1]["step"] == "finished"
     assert events[0]["payload"].backend_provider == "icoder.rule-engine.v1"
+
+
+@pytest.mark.asyncio
+async def test_documentation_rule_provider_returns_strict_local_contract():
+    provider = DocumentationRuleEngineProvider()
+    context = AgentRunContext(
+        run_id="run-note-local-1",
+        context_id="ctx-note-local-1",
+        agent_id="note-completeness-agent",
+        redacted_input="主诉：腹痛。诊断：急性胃炎。",
+        agent_pack={"manifest": {"human_review": "required"}},
+    )
+
+    response = await provider.invoke(
+        BackendRequest(input={"text": context.redacted_input}),
+        context,
+    )
+
+    assert response.finish_state == "completed"
+    assert response.status == "requires_review"
+    assert response.backend_provider == "icoder.documentation-rule-engine.v1"
+    assert response.backend_type == "rule_engine"
+    assert response.cost_usd == 0.0
+    assert "现病史" in response.raw_provider_response["missing_sections"]
+    public = json.loads(response.markdown)
+    assert set(public) == {
+        "review_conclusion",
+        "documentation_gaps",
+        "completeness_score",
+        "missing_sections",
+        "present_sections",
+        "required_sections",
+        "incomplete_sections",
+        "conflicts",
+        "corrected_draft",
+        "trace_refs",
+    }
+
+
+@pytest.mark.asyncio
+async def test_documentation_rule_provider_health_and_capabilities():
+    provider = DocumentationRuleEngineProvider()
+
+    health = await provider.health()
+    capability = provider.capabilities()
+
+    assert health.state == "ok"
+    assert health.details["network_required"] is False
+    assert capability.deterministic is True
+    assert capability.default_output_contract == "icoder/NoteCompletenessOutput/v2"

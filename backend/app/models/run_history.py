@@ -46,6 +46,12 @@ class RunHistoryModel(Base, TimestampMixin):
     api_client_id: Mapped[Optional[str]] = mapped_column(
         String(128), nullable=True, index=True,
     )
+    delegated_subject_id: Mapped[Optional[str]] = mapped_column(
+        String(128), nullable=True, index=True,
+    )
+    purpose_of_use: Mapped[Optional[str]] = mapped_column(
+        String(32), nullable=True, index=True,
+    )
     embedded_app_id: Mapped[Optional[str]] = mapped_column(
         String(128), nullable=True,
     )
@@ -153,6 +159,19 @@ class RunHistoryModel(Base, TimestampMixin):
     trace_capture_failure_reason: Mapped[Optional[str]] = mapped_column(
         String(255), nullable=True,
         comment="Short error string when trace_capture_status=FAILED.",
+    )
+
+    # Durable retention tombstone. The trace purge job may remove only an old
+    # prefix (or all events) while retaining the RunHistory row. Keeping the
+    # purge timestamp/count lets SSE distinguish a random unknown cursor from
+    # one that can no longer be resolved after an authorized retention purge.
+    trace_events_purged_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True,
+        comment="Most recent authorized run_trace_events retention purge.",
+    )
+    trace_events_purged_count: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0, server_default="0",
+        comment="Cumulative trace event rows removed by retention.",
     )
 
     # Timestamp for ordering (created_at comes from TimestampMixin)

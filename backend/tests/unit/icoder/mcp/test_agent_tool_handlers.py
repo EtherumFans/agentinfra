@@ -91,11 +91,14 @@ async def test_validate_codes_handler_invokes_agent_run():
 async def test_evaluate_compliance_handler_invokes_agent_run():
     """evaluate_compliance handler builds input_text + calls agent.run()."""
     fake_result = {
-        "risk_conclusion": "LOW_RISK",
-        "drg_dip_sensitive_items": [],
-        "compliance_checks": [],
-        "risk_level": "low",
-        "audit_advice": "",
+        "review_conclusion": "PASS",
+        "issues_found": [],
+        "manual_review_required": False,
+        "drg_suggestion": "ready",
+        "reviewed_codes": [],
+        "compliance_checks": {"primary_dx_present": True},
+        "rule_set": "medical_coding",
+        "fired_rules": [],
     }
     async def _fake_run(input_text, *, run_id=""):
         assert "I50.9" in input_text
@@ -111,7 +114,7 @@ async def test_evaluate_compliance_handler_invokes_agent_run():
             _fake_request(),
         )
     assert result == fake_result
-    assert result["risk_conclusion"] == "LOW_RISK"
+    assert result["review_conclusion"] == "PASS"
 
 
 # ── check_documentation_gaps ─────────────────────────────────────────

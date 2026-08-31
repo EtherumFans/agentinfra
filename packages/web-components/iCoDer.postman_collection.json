@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "iCoDer API",
-    "description": "iCoDer Medical AI Agent Platform — API Collection for Developers",
+    "name": "iCoDer Current Public API",
+    "description": "Route-truthful starter collection. Removed Reviews and Marketplace facades are intentionally excluded.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -10,80 +10,62 @@
   },
   "variable": [
     {"key": "base_url", "value": "http://localhost:8000"},
-    {"key": "access_token", "value": ""}
+    {"key": "access_token", "value": ""},
+    {"key": "agent_id", "value": "medical-coding-agent"},
+    {"key": "run_id", "value": ""}
   ],
   "item": [
     {
-      "name": "Auth",
+      "name": "Agent Hub",
+      "item": [
+        {"name": "List Hub Agents", "request": {"method": "GET", "url": "{{base_url}}/api/icoder/agents/hub"}},
+        {"name": "Tenant Readiness", "request": {"method": "GET", "url": "{{base_url}}/api/icoder/agents/hub/readiness"}},
+        {"name": "List Project Agents", "request": {"method": "GET", "url": "{{base_url}}/api/rest/v1/agent_definitions"}}
+      ]
+    },
+    {
+      "name": "Agent Run",
       "item": [
         {
-          "name": "Login",
+          "name": "Run Agent",
           "request": {
             "method": "POST",
-            "url": "{{base_url}}/api/auth/login",
-            "body": {"mode": "raw", "raw": "{\"username\":\"admin\",\"password\":\"admin123\"}", "options": {"raw": {"language": "json"}}},
-            "header": [{"key": "Content-Type", "value": "application/json"}]
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{base_url}}/api/v1/agents/{{agent_id}}/run",
+            "body": {"mode": "raw", "raw": "{\"input\":{\"text\":\"患者主诉与出院诊断文本\"},\"purpose_of_use\":\"treatment\"}", "options": {"raw": {"language": "json"}}}
+          }
+        },
+        {"name": "Get Run", "request": {"method": "GET", "url": "{{base_url}}/api/v1/runs/{{run_id}}"}},
+        {"name": "Run Trace", "request": {"method": "GET", "url": "{{base_url}}/api/runtime/runs/{{run_id}}/trace?format=timeline"}}
+      ]
+    },
+    {
+      "name": "Clinical Tools",
+      "item": [
+        {
+          "name": "Medical Coding Predict",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{base_url}}/api/v1/coding/predict",
+            "body": {"mode": "raw", "raw": "{\"text\":\"患者主诉与出院诊断文本\",\"coding_systems\":[\"icd10cn\"]}", "options": {"raw": {"language": "json"}}}
+          }
+        },
+        {
+          "name": "Extract Facts",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{base_url}}/api/v2/tools/extract-facts",
+            "body": {"mode": "raw", "raw": "{\"context\":[{\"type\":\"text\",\"text\":\"患者主诉胸痛，既往高血压。\"}],\"outputLanguage\":\"zh-CN\"}", "options": {"raw": {"language": "json"}}}
           }
         }
       ]
     },
     {
-      "name": "Agents",
-      "item": [
-        {"name": "List Agents", "request": {"method": "GET", "url": "{{base_url}}/api/agents"}},
-        {"name": "Create Agent", "request": {"method": "POST", "url": "{{base_url}}/api/agents", "body": {"mode": "raw", "raw": "{\"name\":\"My Agent\",\"description\":\"Description\",\"system_prompt\":\"You are...\",\"category\":\"coding\"}", "options": {"raw": {"language": "json"}}}}},
-        {"name": "Get Agent", "request": {"method": "GET", "url": "{{base_url}}/api/agents/{{agent_id}}"}},
-        {"name": "Run Agent", "request": {"method": "POST", "url": "{{base_url}}/api/agents/{{agent_id}}/run", "body": {"mode": "raw", "raw": "{\"input\":\"Clinical text to analyze\",\"conversation_history\":[]}"}}},
-        {"name": "Stream Agent (SSE)", "request": {"method": "POST", "url": "{{base_url}}/api/agents/{{agent_id}}/stream"}},
-        {"name": "Publish Agent", "request": {"method": "POST", "url": "{{base_url}}/api/agents/{{agent_id}}/publish?env=prod"}},
-        {"name": "Agent Marketplace", "request": {"method": "GET", "url": "{{base_url}}/api/agents/marketplace/list"}},
-        {"name": "Create Thread", "request": {"method": "POST", "url": "{{base_url}}/api/agents/{{agent_id}}/threads"}}
-      ]
-    },
-    {
       "name": "Experts",
       "item": [
-        {"name": "List Experts", "request": {"method": "GET", "url": "{{base_url}}/api/experts?type=all"}},
-        {"name": "Create Expert", "request": {"method": "POST", "url": "{{base_url}}/api/experts", "body": {"mode": "raw", "raw": "{\"name\":\"My Expert\",\"description\":\"Description\",\"system_prompt\":\"You are...\",\"category\":\"coding\"}"}}}
-      ]
-    },
-    {
-      "name": "Medical Coding (Pipeline)",
-      "item": [
-        {"name": "Create Review (Async)", "request": {"method": "POST", "url": "{{base_url}}/api/reviews?async=true", "body": {"mode": "raw", "raw": "{\"encounter_id\":\"DEMO-001\"}"}}},
-        {"name": "Batch Review", "request": {"method": "POST", "url": "{{base_url}}/api/reviews/batch", "body": {"mode": "raw", "raw": "{\"encounter_ids\":[\"DEMO-001\",\"DEMO-002\"]}"}}},
-        {"name": "Get Review", "request": {"method": "GET", "url": "{{base_url}}/api/reviews/{{review_id}}"}},
-        {"name": "Task Status", "request": {"method": "GET", "url": "{{base_url}}/api/reviews/tasks/{{task_id}}"}},
-        {"name": "Batch Transcribe", "request": {"method": "POST", "url": "{{base_url}}/api/reviews/transcripts", "body": {"mode": "raw", "raw": "{\"audio_urls\":[\"https://example.com/audio1.mp3\"],\"language\":\"zh-CN\"}"}}}
-      ]
-    },
-    {
-      "name": "Fact Extraction",
-      "item": [
-        {"name": "Extract Facts", "request": {"method": "POST", "url": "{{base_url}}/api/facts/extract", "body": {"mode": "raw", "raw": "{\"text\":\"Patient with chest pain and hypertension\",\"output_language\":\"zh-CN\"}"}}}
-      ]
-    },
-    {
-      "name": "A2A Protocol",
-      "item": [
-        {"name": "Discover Agents", "request": {"method": "GET", "url": "{{base_url}}/api/experts/a2a/agents"}},
-        {"name": "Agent Card", "request": {"method": "GET", "url": "{{base_url}}/api/experts/a2a/.well-known/agent.json"}}
-      ]
-    },
-    {
-      "name": "Admin",
-      "item": [
-        {"name": "Platform Stats", "request": {"method": "GET", "url": "{{base_url}}/api/admin/stats"}},
-        {"name": "List All Agents", "request": {"method": "GET", "url": "{{base_url}}/api/admin/agents"}},
-        {"name": "List Users", "request": {"method": "GET", "url": "{{base_url}}/api/admin/users"}}
-      ]
-    },
-    {
-      "name": "Runtime",
-      "item": [
-        {"name": "Get Runtime Status", "request": {"method": "GET", "url": "{{base_url}}/api/runtime/status/{{case_id}}"}},
-        {"name": "Get Audit Trail", "request": {"method": "GET", "url": "{{base_url}}/api/runtime/audit/{{case_id}}"}},
-        {"name": "Get Review Summary", "request": {"method": "GET", "url": "{{base_url}}/api/runtime/summary/{{review_id}}"}}
+        {"name": "List Experts", "request": {"method": "GET", "url": "{{base_url}}/api/v1/experts"}}
       ]
     }
   ]

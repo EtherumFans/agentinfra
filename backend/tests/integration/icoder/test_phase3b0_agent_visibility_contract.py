@@ -17,6 +17,9 @@ from pathlib import Path
 
 import pytest
 
+from icoder_runtime.core.agent_pack_loader import load_pack
+from icoder_runtime.core.agent_pack_schema import PackStatus
+
 REPO_ROOT = Path(__file__).resolve().parents[4]
 OFFICIAL_AGENTS_DIR = REPO_ROOT / "backend" / "official_agents"
 
@@ -36,16 +39,18 @@ def _manifest(pack: dict) -> dict:
 # --- A.5.1: metadata-only ≠ runnable ---
 
 def test_a51_metadata_only_packs_must_not_have_runnable_signals():
-    """If a pack has no real implementation (no experts[] or empty experts[]),
-    it MUST declare maturity != mvp / runnable / production-ready.
+    """Canonical metadata-only packs must not claim runnable maturity.
+
+    Prompt agents can be executable through a backend provider and tools even
+    when ``experts`` is empty, so the canonical loader is the source of truth.
     """
     packs = _load_packs()
     for path, pack in packs:
         if pack.get("agent_type") == "expert-stub":
             continue  # expert-stubs are stage-level experts, separate test
-        experts = pack.get("experts") or []
         m = _manifest(pack)
-        if not experts:
+        normalized = load_pack(pack, source_path=str(path))
+        if normalized.status == PackStatus.METADATA_ONLY:
             # No experts → no implementation → must NOT be labeled runnable/mvp/production-ready
             maturity = m.get("maturity")
             assert maturity not in ("mvp", "runnable", "production-ready"), (
@@ -58,15 +63,13 @@ def test_a51_metadata_only_packs_must_not_have_runnable_signals():
 # --- A.5.2: stub ≠ MVP ---
 
 def test_a52_stubs_must_not_be_labeled_mvp():
-    """Packs with no experts[] must NOT declare maturity=mvp.
-    Use maturity=metadata-only or maturity=stub instead.
-    """
+    """Canonical metadata-only packs must not declare maturity=mvp."""
     packs = _load_packs()
     for path, pack in packs:
         if pack.get("agent_type") == "expert-stub":
             continue
-        experts = pack.get("experts") or []
-        if not experts:
+        normalized = load_pack(pack, source_path=str(path))
+        if normalized.status == PackStatus.METADATA_ONLY:
             m = _manifest(pack)
             maturity = m.get("maturity")
             assert maturity != "mvp", (
@@ -103,6 +106,64 @@ def test_a54_internal_engine_must_be_hidden_from_hub():
                 f"Internal engine {pack.get('agent_ref')} must be manifest.hidden_from_hub=true "
                 f"in {path}"
             )
+
+
+def test_all_user_facing_packs_are_executable_launch_candidates():
+    """No visible, non-deprecated Agent may regress to metadata-only/stub."""
+
+    packs = _load_packs()
+    visible_count = 0
+    for path, pack in packs:
+        manifest = _manifest(pack)
+        if manifest.get("hidden_from_hub") is True or pack.get("deprecated"):
+            continue
+        visible_count += 1
+        normalized = load_pack(pack, source_path=str(path))
+        assert normalized.status == PackStatus.EXECUTABLE, (
+            f"User-facing pack {pack.get('agent_ref')} is "
+            f"{normalized.status.value}: {normalized.validation_errors}"
+        )
+        assert normalized.launch_candidate_ready is True, (
+            f"User-facing pack {pack.get('agent_ref')} is not an engineering "
+            f"launch candidate: {normalized.launch_candidate_blockers}"
+        )
+        assert manifest.get("maturity") == "runnable", (
+            f"User-facing pack {pack.get('agent_ref')} must declare "
+            "maturity=runnable"
+        )
+        assert manifest.get("production_ready") is False, (
+            "Engineering launch-candidate status must not bypass external "
+            f"production gates for {pack.get('agent_ref')}"
+        )
+
+    assert visible_count == 26
+
+
+def test_every_non_executable_pack_is_hidden_and_explicitly_classified():
+    """Non-executable packs are only aliases or internal pipeline stages."""
+
+    packs = _load_packs()
+    classifications: dict[str, str] = {}
+    for path, pack in packs:
+        normalized = load_pack(pack, source_path=str(path))
+        if normalized.status == PackStatus.EXECUTABLE:
+            continue
+        manifest = _manifest(pack)
+        assert manifest.get("hidden_from_hub") is True
+        if pack.get("deprecated"):
+            assert pack.get("deprecated_replacement")
+            classifications[pack["agent_ref"]] = "deprecated_alias"
+        else:
+            assert pack.get("agent_type") == "expert-stub"
+            classifications[pack["agent_ref"]] = "internal_pipeline_stage"
+
+    assert classifications == {
+        "icoder/cdi-review@1.0.0": "deprecated_alias",
+        "icoder/documentation-gap@1.0.0": "deprecated_alias",
+        "icoder/index-navigator@1.0.0": "internal_pipeline_stage",
+        "icoder/code-reconciler@1.0.0": "internal_pipeline_stage",
+        "icoder/tabular-validator@1.0.0": "internal_pipeline_stage",
+    }
 
 
 # --- A.5.5: production_ready must be declared ---

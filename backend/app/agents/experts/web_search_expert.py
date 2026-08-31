@@ -1,4 +1,4 @@
-"""Web Search Expert — Corti public §3.2 key 6 of 9 (A1B-AE.7 policy gate).
+"""Web Search Expert compatibility API and governed live adapter.
 
 Corti public docs describe this Expert as searching and retrieving
 up-to-date web content. iCoDer's default policy is DISABLED — live web
@@ -10,8 +10,8 @@ A1B-AE.7 lands:
 1. canonical_key='web-search' with corti_alignment='CORTI_REFERENCE'.
 2. A 3-value policy gate: DISABLED_BY_DEFAULT / OPT_IN_PER_PROVIDER /
    ENABLED_FOR_TENANT. Default = DISABLED_BY_DEFAULT.
-3. An offline stub that returns empty + policy indicator. No live web
-   call is made in A1B-AE.7.
+3. A non-networking compatibility function plus ``search_async`` for the
+   privacy-governed, dual-opt-in Registry provider.
 
 Charter §6 egress policy is enforced centrally by
 ``external_expert_gate.py`` so individual Experts don't each re-implement
@@ -20,7 +20,9 @@ the region/egress check.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Awaitable, Callable
+
+from app.services.connector_executor import ConnectorInvocation
 
 
 WEB_SEARCH_EXPERT_CANONICAL_KEY = "web-search"
@@ -52,7 +54,7 @@ def search(
     tenant_opt_in: bool = False,
     provider_opt_in: bool = False,
 ) -> WebSearchResult:
-    """Offline-first Web Search stub.
+    """Non-networking Web Search policy compatibility call.
 
     Policy resolution (first non-None wins):
     1. Explicit ``policy`` argument.
@@ -60,10 +62,8 @@ def search(
     3. ``WEB_SEARCH_POLICY_OPT_IN`` if exactly one is set.
     4. ``WEB_SEARCH_POLICY_DISABLED`` (default).
 
-    A1B-AE.7 NEVER performs a live web call. Even when policy resolves
-    to ENABLED_FOR_TENANT, ``live_search_performed`` stays False — the
-    real web-search integration is a future enhancement. The policy
-    field tells the caller what *would* be allowed.
+    Live execution is explicit via ``search_async`` so a synchronous caller
+    can never accidentally exfiltrate a query merely by changing a flag.
     """
     resolved_policy = _resolve_policy(policy, tenant_opt_in, provider_opt_in)
 
@@ -82,13 +82,40 @@ def search(
         live_search_performed=False,
         policy=resolved_policy,
         notes=(
-            "STUB: live web search integration deferred (A1B-AE.7 scope = "
-            "Expert Registry entry + policy gate). Default policy is "
-            "DISABLED_BY_DEFAULT — live web egress is a PHI-leak risk and "
-            "is not needed for core coding/CDI/DRG-DIP flows. Future "
-            "enhancement: wire to a privacy-preserving search provider when "
-            "policy != DISABLED_BY_DEFAULT, gated by the External-Expert Gate."
+            "OFFLINE_COMPATIBILITY: no network call was requested. Use "
+            "search_async through the governed Agent Connector runtime; "
+            "provider and tenant opt-in remain mandatory."
         ),
+    )
+
+
+async def search_async(
+    query: str,
+    *,
+    organization_id: str,
+    provider: Callable[[str, ConnectorInvocation], Awaitable[dict[str, Any]]],
+    max_results: int = 5,
+) -> WebSearchResult:
+    """Execute the dual-opt-in privacy search gateway."""
+
+    output = await provider("web-search", ConnectorInvocation(
+        organization_id=organization_id,
+        agent_id="web-search",
+        connector_id="web-search",
+        operation="search",
+        arguments={"query": query, "max_results": max_results},
+        data_classification="deidentified",
+        purpose_of_use="treatment",
+    ))
+    results = output.get("results")
+    if not isinstance(results, list) or any(not isinstance(item, dict) for item in results):
+        raise RuntimeError("CONNECTOR_REGISTRY_RESPONSE_INVALID")
+    return WebSearchResult(
+        query=query.strip(),
+        results=results,
+        live_search_performed=bool(output.get("live_external_performed")),
+        policy=WEB_SEARCH_POLICY_ENABLED,
+        notes="privacy-governed Registry gateway; source verification required",
     )
 
 
@@ -119,4 +146,5 @@ __all__ = [
     "WEB_SEARCH_POLICY_VALUES",
     "WebSearchResult",
     "search",
+    "search_async",
 ]

@@ -10,7 +10,7 @@ Verifies:
   - The event is persisted in the default RunTrace store.
   - ``invoke()`` still returns a valid ``BackendResponse`` (the
     metadata emission is non-blocking).
-  - Skeleton path (no llm_client) ALSO emits the event.
+  - Missing LLM wiring fails closed and emits no success metadata.
 """
 from __future__ import annotations
 
@@ -43,11 +43,13 @@ def _ctx() -> AgentRunContext:
 class _MockLLMClient:
     """Mock LLM client returning a configurable LLMResponse."""
     def __init__(self, *, text: str = "ok", finish_reason: str = "stop",
-                 latency_ms: int = 5, raise_exc: Exception | None = None) -> None:
+                 latency_ms: int = 5, raise_exc: Exception | None = None,
+                 raw: dict | None = None) -> None:
         self._text = text
         self._finish_reason = finish_reason
         self._latency_ms = latency_ms
         self._raise = raise_exc
+        self._raw = raw or {}
 
     async def complete(self, *, system_prompt, user_input,
                        temperature=0.0, max_tokens=None, timeout_seconds=60.0):
@@ -57,6 +59,7 @@ class _MockLLMClient:
             text=self._text,
             finish_reason=self._finish_reason,
             latency_ms=self._latency_ms,
+            raw=self._raw,
         )
 
     def stream(self, *, system_prompt, user_input, **kwargs):
@@ -95,6 +98,11 @@ async def test_invoke_emits_backend_metadata_event_with_all_fields(fresh_trace_s
     mock = _MockLLMClient(
         text='{"review_conclusion":"PASS","completeness_score":1.0}',
         latency_ms=42,
+        raw={
+            "provider": "deepseek",
+            "model": "deepseek-chat",
+            "usage": {"input_tokens": 11, "output_tokens": 7},
+        },
     )
     p = PureLLMProvider(llm_client=mock)
     req = BackendRequest(system_prompt="sys", user_input="主诉：心悸")
@@ -116,6 +124,13 @@ async def test_invoke_emits_backend_metadata_event_with_all_fields(fresh_trace_s
     assert md["fallback_used"] is False
     assert md["output_contract"] == "icoder/PureLLMOutput/v1"
     assert md["tool_rounds"] == 0
+    assert md["model_provider"] == "deepseek"
+    assert md["model_system"] == "deepseek"
+    assert md["model_name"] == "deepseek-chat"
+    assert md["input_tokens"] == 11
+    assert md["output_tokens"] == 7
+    assert md["total_tokens"] == 18
+    assert md["finish_reason"] == "stop"
 
 
 @pytest.mark.asyncio
@@ -129,7 +144,9 @@ async def test_invoke_marks_fallback_used_when_degraded(fresh_trace_store):
     p = PureLLMProvider(llm_client=mock)
     req = BackendRequest(system_prompt="sys", user_input="hello")
     resp = await p.invoke(req, _ctx())
-    assert resp.finish_reason == "degraded:no_api_key"
+    assert resp.status == "fail"
+    assert resp.finish_state == "failed"
+    assert resp.finish_reason == "llm_degraded: degraded:no_api_key"
 
     events = fresh_trace_store.get_run("run-p4b-backend-metadata")
     backend_events = [
@@ -138,15 +155,55 @@ async def test_invoke_marks_fallback_used_when_degraded(fresh_trace_store):
     ]
     assert len(backend_events) == 1
     assert backend_events[0].safe_metadata["fallback_used"] is True
+    assert backend_events[0].safe_metadata["provider_status"] == "fail"
+    assert backend_events[0].status == "failed"
 
 
 @pytest.mark.asyncio
-async def test_invoke_skeleton_path_also_emits_event(fresh_trace_store):
-    """Skeleton path (no llm_client, no gateway) also emits backend_metadata."""
+async def test_invoke_audits_tenant_model_routing_on_degraded_response(
+    fresh_trace_store,
+):
+    """A failed-closed model call still retains its deployment decision."""
+    mock = _MockLLMClient(
+        text="degraded",
+        finish_reason="degraded:provider_http_502",
+        raw={
+            "model_routing": {
+                "mode": "pinned",
+                "deployment_id": "hospital-local-a",
+                "selection_version": 3,
+                "decision": "tenant_pinned",
+            }
+        },
+    )
+    p = PureLLMProvider(llm_client=mock)
+    resp = await p.invoke(
+        BackendRequest(system_prompt="sys", user_input="hello"),
+        _ctx(),
+    )
+
+    assert resp.status == "fail"
+    events = fresh_trace_store.get_run("run-p4b-backend-metadata")
+    backend_event = next(
+        event for event in events
+        if event.safe_metadata.get("backend_provider") == "icoder.pure-llm.v1"
+    )
+    assert backend_event.safe_metadata["model_deployment_id"] == "hospital-local-a"
+    assert backend_event.safe_metadata["model_routing_mode"] == "pinned"
+    assert backend_event.safe_metadata["model_selection_version"] == 3
+    assert backend_event.safe_metadata["model_routing_decision"] == "tenant_pinned"
+    assert resp.raw_provider_response["model_routing"]["deployment_id"] == "hospital-local-a"
+
+
+@pytest.mark.asyncio
+async def test_invoke_without_llm_fails_closed_without_success_event(fresh_trace_store):
+    """Missing LLM wiring must not emit a successful backend event."""
     p = PureLLMProvider()  # no llm_client
     req = BackendRequest(system_prompt="sys", user_input="hello")
     resp = await p.invoke(req, _ctx())
-    assert resp.raw_provider_response.get("skeleton") is True
+    assert resp.status == "fail"
+    assert resp.finish_state == "failed"
+    assert "llm_unavailable" in resp.finish_reason
 
     events = fresh_trace_store.get_run("run-p4b-backend-metadata")
     backend_events = [
@@ -154,24 +211,27 @@ async def test_invoke_skeleton_path_also_emits_event(fresh_trace_store):
         if e.safe_metadata.get("backend_provider") == "icoder.pure-llm.v1"
     ]
     assert len(backend_events) == 1
-    assert backend_events[0].safe_metadata["backend_provider"] == "icoder.pure-llm.v1"
+    assert backend_events[0].safe_metadata["provider_status"] == "fail"
+    assert backend_events[0].status == "failed"
 
 
 @pytest.mark.asyncio
-async def test_invoke_fail_envelope_does_not_emit_event(fresh_trace_store):
-    """Fail envelopes (LLM raises) do NOT emit backend_metadata — the run didn't complete."""
+async def test_invoke_fail_envelope_emits_failed_audit_event(fresh_trace_store):
+    """Failed runs stay auditable and are explicitly marked failed."""
     mock = _MockLLMClient(raise_exc=RuntimeError("LLM exploded"))
     p = PureLLMProvider(llm_client=mock)
     req = BackendRequest(system_prompt="sys", user_input="hello")
     resp = await p.invoke(req, _ctx())
     assert resp.status == "fail"
-    # No backend_metadata event should be emitted for failed runs.
+    # A failure event is retained for audit; it must not look successful.
     events = fresh_trace_store.get_run("run-p4b-backend-metadata")
     backend_events = [
         e for e in events
         if e.safe_metadata.get("backend_provider") == "icoder.pure-llm.v1"
     ]
-    assert len(backend_events) == 0
+    assert len(backend_events) == 1
+    assert backend_events[0].safe_metadata["provider_status"] == "fail"
+    assert backend_events[0].status == "failed"
 
 
 @pytest.mark.asyncio

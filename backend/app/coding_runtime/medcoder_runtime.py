@@ -107,7 +107,14 @@ class MedCoderRuntime:
             from icoder_runtime.providers.medical_coding import HybridCodingAdapter
             adapter = HybridCodingAdapter(mode="medcoder.full")
             _emit("stage1_extract", "ok", {"note": "stage1+2+3+4+5 run by HybridCodingAdapter"})
-            schema = await adapter.infer_async(messages)
+            schema = (
+                await adapter.infer_async(
+                    messages,
+                    context={"project_policy": request.project_policy},
+                )
+                if request.project_policy
+                else await adapter.infer_async(messages)
+            )
         except Exception as exc:
             logger.error(f"MedCoderRuntime: HybridCodingAdapter failed: {exc!r}", exc_info=True)
             _emit("stage1_extract", "error", {"reason": str(exc)[:200]})

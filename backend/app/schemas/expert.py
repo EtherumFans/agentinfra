@@ -8,7 +8,7 @@ source, what Corti-public Expert it aligns with (if any), and which
 Pack directory declares it.
 """
 from datetime import datetime
-from typing import Optional
+from typing import Literal, Optional
 from pydantic import BaseModel, Field
 
 from app.models.expert import (
@@ -67,6 +67,22 @@ class McpServerResponse(BaseModel):
     authorization_type: str = "none"
     auth_type: str = "none"
     is_active: bool = True
+
+
+class ExpertCapabilityReadinessResponse(BaseModel):
+    """Secret-free aggregate readiness for tenant Experts and MCP bindings."""
+
+    expert_count: int = Field(ge=0)
+    published_expert_count: int = Field(ge=0)
+    mcp_server_count: int = Field(ge=0)
+    active_mcp_server_count: int = Field(ge=0)
+    mcp_authorization_type_counts: dict[str, int]
+    built_in_mcp_tool_count: int = Field(ge=0)
+    tenant_scope_enforced: Literal[True]
+    credentials_exposed: Literal[False]
+    external_mcp_live_verified: Literal[False]
+    aggregate_only: Literal[True]
+    production_ready: bool
 
 
 # ── A1B-AE.3 Registry reconcile response shape ─────────────────────

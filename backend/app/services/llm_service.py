@@ -16,6 +16,55 @@ from app.services.circuit_breaker import llm_circuit_breaker
 logger = logging.getLogger(__name__)
 
 
+class LLMProviderCallError(RuntimeError):
+    """Content-free provider failure safe for traces and user-facing logs."""
+
+    def __init__(
+        self,
+        *,
+        category: str,
+        status_code: int | None,
+        attempts: int,
+        retryable: bool,
+    ) -> None:
+        self.category = category
+        self.status_code = status_code
+        self.attempts = attempts
+        self.retryable = retryable
+        super().__init__(
+            f"LLM provider call failed ({category}) after {attempts} attempt(s)."
+        )
+
+
+def _classify_provider_error(exc: Exception) -> tuple[str, int | None]:
+    """Return a bounded category/status without retaining provider content."""
+    if isinstance(exc, LLMProviderCallError):
+        return exc.category, exc.status_code
+    status = getattr(exc, "status_code", None)
+    try:
+        status = int(status) if status is not None else None
+    except (TypeError, ValueError, OverflowError):
+        status = None
+    if status == 429:
+        return "rate_limit", status
+    if status in {500, 502, 503, 504}:
+        return "server_error", status
+    if status in {408, 425}:
+        return "timeout", status
+    if status == 401:
+        return "authentication", status
+    if status == 403:
+        return "permission", status
+    if status in {400, 404, 413}:
+        return "bad_request", status
+    marker = f"{type(exc).__name__} {exc}".lower()
+    if "timeout" in marker:
+        return "timeout", status
+    if "connection" in marker or "reset" in marker:
+        return "connection", status
+    return "unknown", status
+
+
 def _is_transient_error(exc: Exception) -> bool:
     """Return True if the error is transient and worth retrying.
     Permanent errors (auth, bad request, context length) skip retry entirely.
@@ -55,6 +104,24 @@ def _resolve_api_key() -> str:
     return os.environ.get("DEEPSEEK_API_KEY", "")
 
 
+def _ensure_llm_call_allowed() -> None:
+    """Apply the same fail-closed egress policy as the unified LLMGateway."""
+
+    from icoder_runtime.core.data_policy import (
+        RuntimeDataPolicy,
+        normalize_provider_name,
+    )
+
+    provider = normalize_provider_name(
+        os.environ.get("LLM_PROVIDER", settings.LLM_PROVIDER or "mock")
+    )
+    if provider == "mock":
+        raise RuntimeError("LLM provider unavailable: mock mode is development-only")
+    allowed, reason = RuntimeDataPolicy.from_env().can_use_provider(provider)
+    if not allowed:
+        raise RuntimeError(f"LLM provider egress denied by data policy: {reason}")
+
+
 class LLMService:
     """Unified LLM interface. Defaults to DeepSeek V4 Pro.
 
@@ -76,6 +143,10 @@ class LLMService:
         self.temperature = settings.LLM_TEMPERATURE
         self.max_retries = settings.AGENT_MAX_RETRIES
 
+    async def aclose(self) -> None:
+        """Close the request-scoped async HTTP connection pool."""
+        await self.client.close()
+
     async def chat(
         self,
         messages: list[dict],
@@ -85,6 +156,7 @@ class LLMService:
         response_format: Optional[str] = None,
     ) -> dict:
         """Send chat completion and return result with token counts."""
+        _ensure_llm_call_allowed()
         full_messages = []
         if system_prompt:
             full_messages.append({"role": "system", "content": system_prompt})
@@ -100,7 +172,12 @@ class LLMService:
             kwargs["response_format"] = {"type": "json_object"}
 
         if llm_circuit_breaker.is_open:
-            raise RuntimeError("LLM circuit breaker is OPEN — provider appears unhealthy")
+            raise LLMProviderCallError(
+                category="circuit_open",
+                status_code=None,
+                attempts=0,
+                retryable=True,
+            )
 
         last_error = None
         for attempt in range(self.max_retries + 1):
@@ -125,15 +202,34 @@ class LLMService:
             except Exception as e:
                 last_error = e
                 llm_circuit_breaker.record_failure()
-                if not _is_transient_error(e):
-                    logger.error(f"LLM call failed with permanent error: {type(e).__name__}: {e}")
-                    raise RuntimeError(f"LLM call failed (permanent): {e}") from e
-                logger.warning(f"LLM call attempt {attempt + 1} failed (transient): {e}")
+                retryable = _is_transient_error(e)
+                category, status_code = _classify_provider_error(e)
+                if not retryable:
+                    logger.error(
+                        "LLM call failed permanently: category=%s status=%s type=%s",
+                        category, status_code, type(e).__name__,
+                    )
+                    raise LLMProviderCallError(
+                        category=category,
+                        status_code=status_code,
+                        attempts=attempt + 1,
+                        retryable=False,
+                    ) from e
+                logger.warning(
+                    "LLM call failed transiently: attempt=%s category=%s status=%s type=%s",
+                    attempt + 1, category, status_code, type(e).__name__,
+                )
                 if attempt < self.max_retries:
                     delay = (2 ** attempt) + random.uniform(0, 0.5)
                     await asyncio.sleep(delay)
 
-        raise RuntimeError(f"LLM call failed after {self.max_retries + 1} attempts: {last_error}")
+        category, status_code = _classify_provider_error(last_error)
+        raise LLMProviderCallError(
+            category=category,
+            status_code=status_code,
+            attempts=self.max_retries + 1,
+            retryable=True,
+        ) from last_error
 
     async def chat_stream(
         self,
@@ -148,6 +244,7 @@ class LLMService:
             async for chunk in llm_service.chat_stream(messages):
                 yield chunk  # Each chunk is a text fragment
         """
+        _ensure_llm_call_allowed()
         full_messages = []
         if system_prompt:
             full_messages.append({"role": "system", "content": system_prompt})
@@ -176,13 +273,19 @@ class LLMService:
         temperature: Optional[float] = None,
     ) -> dict:
         """Chat with function/tool calling support."""
+        _ensure_llm_call_allowed()
         full_messages = []
         if system_prompt:
             full_messages.append({"role": "system", "content": system_prompt})
         full_messages.extend(messages)
 
         if llm_circuit_breaker.is_open:
-            raise RuntimeError("LLM circuit breaker is OPEN — provider appears unhealthy")
+            raise LLMProviderCallError(
+                category="circuit_open",
+                status_code=None,
+                attempts=0,
+                retryable=True,
+            )
 
         last_error = None
         for attempt in range(self.max_retries + 1):
@@ -224,15 +327,34 @@ class LLMService:
             except Exception as e:
                 last_error = e
                 llm_circuit_breaker.record_failure()
-                if not _is_transient_error(e):
-                    logger.error(f"LLM tool call failed with permanent error: {type(e).__name__}: {e}")
-                    raise RuntimeError(f"LLM tool call failed (permanent): {e}") from e
-                logger.warning(f"LLM tool call attempt {attempt + 1} failed (transient): {e}")
+                retryable = _is_transient_error(e)
+                category, status_code = _classify_provider_error(e)
+                if not retryable:
+                    logger.error(
+                        "LLM tool call failed permanently: category=%s status=%s type=%s",
+                        category, status_code, type(e).__name__,
+                    )
+                    raise LLMProviderCallError(
+                        category=category,
+                        status_code=status_code,
+                        attempts=attempt + 1,
+                        retryable=False,
+                    ) from e
+                logger.warning(
+                    "LLM tool call failed transiently: attempt=%s category=%s status=%s type=%s",
+                    attempt + 1, category, status_code, type(e).__name__,
+                )
                 if attempt < self.max_retries:
                     delay = (2 ** attempt) + random.uniform(0, 0.5)
                     await asyncio.sleep(delay)
 
-        raise RuntimeError(f"LLM tool call failed after {self.max_retries + 1} attempts: {last_error}")
+        category, status_code = _classify_provider_error(last_error)
+        raise LLMProviderCallError(
+            category=category,
+            status_code=status_code,
+            attempts=self.max_retries + 1,
+            retryable=True,
+        ) from last_error
 
     async def extract_json(self, prompt: str, text: str, schema_hint: Optional[str] = None) -> dict:
         """Extract structured JSON from text using LLM."""

@@ -2,15 +2,18 @@
   "title": "T12 骨折出院小结",
   "agent_id": "discharge-summary-structuring",
   "input_text": "患者男性,78岁,因腰背部疼痛 3 月入院。入院后 MRI 显示 T12 椎体压缩性骨折,既往骨质疏松病史 5 年,原发性高血压 10 年,2 型糖尿病 5 年。行 T12 椎体切开复位内固定术,手术顺利。术后给予抗骨质疏松药物治疗,腰背支具佩戴。术后 7 天出院,切口愈合良好。出院诊断: 1. T12 椎体压缩性骨折; 2. 骨质疏松伴病理性骨折; 3. 原发性高血压; 4. 2 型糖尿病。出院医嘱: 腰背支具佩戴 3 个月, 避免负重活动 1 个月, 抗骨质疏松药物治疗。随访: 术后 1 月骨科门诊 X 线复查。",
-  "runtime_mode": "a2a_pure_llm",
+  "runtime_mode": "rule_engine",
   "expected_output_fields": [
     "diagnoses",
     "procedures",
-    "treatment_summary",
+    "treatment_course",
     "discharge_orders",
     "follow_up_recommendations",
     "discharge_status",
-    "manual_review_required"
+    "manual_review_required",
+    "summary_generation_status",
+    "clinical_inference_performed",
+    "production_writeback_blocked"
   ],
   "expected_latency_ms_max": 30000
 }

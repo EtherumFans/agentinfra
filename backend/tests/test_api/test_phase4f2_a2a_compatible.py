@@ -102,17 +102,15 @@ def test_f2_2_medical_coding_default_runtime_is_corti_like_fast(
 # ── §8.1 #3: A2A message:send also defaults to corti_like_fast ────────────
 
 
-def test_f2_3_a2a_message_send_defaults_to_corti_like_fast(
+def test_f2_3_a2a_message_send_fails_closed_without_provider(
     client: TestClient,
 ) -> None:
-    """A2A message:send for medical-coding-agent must NOT default to MedCODER 5-stage.
+    """Mock/provider unavailability must not publish a coding result.
 
-    Evidence: calling POST /api/icoder/agents/medical-coding-agent/v1/message:send
-    returns within 30s (mock gateway is instant; real DeepSeek ~6-8s). If it
-    defaulted to MedCODER 5-stage, it would take 30-60s+ even under mock.
-
-    This test verifies the response is a v2 contract (8-field
-    MedicalCodingAgentOutputV2), not the v1 5-stage output.
+    The old smoke required a 200 v2 clinical payload from the mock gateway.
+    The current public contract deliberately returns 503 without ``result``;
+    routing latency is still bounded so this also guards against accidentally
+    entering the native MedCodER path on Windows.
     """
     fix = _load_fixture("medical_coding_t12.json")
     t0 = time.perf_counter()
@@ -133,28 +131,11 @@ def test_f2_3_a2a_message_send_defaults_to_corti_like_fast(
         headers={"A2A-Protocol-Version": "0.3"},
     )
     elapsed_ms = (time.perf_counter() - t0) * 1000
-    assert resp.status_code == 200, f"HTTP {resp.status_code}: {resp.text}"
-    data = resp.json()
-    # A2A JSON-RPC envelope — result is the message itself (parts at top level)
-    result = data.get("result", {})
-    parts = result.get("parts", [])
-    assert len(parts) > 0, (
-        f"A2A response must have parts; full body: {json.dumps(data, ensure_ascii=False)[:500]}"
-    )
-    data_part = parts[0].get("data", {})
-    # The fast path (corti_like_fast) adds an _runtime envelope to the data
-    # part. If we went through the InboundHandler 5-stage, _runtime would be
-    # absent (the v1→v2 projection path doesn't add it). So presence of
-    # _runtime proves the A2A message:send routed to corti_like_fast.
-    assert "_runtime" in data_part, (
-        f"_runtime field missing — A2A path may have routed to MedCODER 5-stage; "
-        f"got: {list(data_part.keys())}"
-    )
-    runtime_info = data_part.get("_runtime", {})
-    assert runtime_info.get("runtime_mode") in ("corti_like_fast", ""), (
-        f"runtime_mode should be corti_like_fast (fast path), got: {runtime_info.get('runtime_mode')}"
-    )
-    # Must NOT take 30s+ (mock gateway is instant; 5-stage would be slower)
+    assert resp.status_code == 503, f"HTTP {resp.status_code}: {resp.text}"
+    envelope = resp.json()
+    assert "result" not in envelope
+    assert envelope["error"]["data"]["a2a_error_code"] == "INTERNAL_ERROR"
+    assert "valid result" in envelope["error"]["data"]["details"]
     assert elapsed_ms < 30000, (
         f"A2A message:send took {elapsed_ms:.0f}ms — may have routed to MedCODER 5-stage"
     )

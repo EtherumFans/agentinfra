@@ -5,11 +5,9 @@
 // and /manage/ aliases remain as no-op redirects so old links don't 404 while
 // Task #4 rewrites the sidebar to align with the new IA.
 //
-// Phase 3-B2 Loop 0 (2026-07-05): TextGeneration and EmbeddedAssistant routes
-// removed (these concepts are replaced by the upcoming Chat
-// flow and Agent Hub). Old paths redirect to /ai-studio/agents so deep links
-// don't 404. TextGeneration file is kept on disk as an orphan file in case
-// of implicit dependencies; the embedded-assistant page is physically deleted.
+// Phase 3-B2 Loop 0 (2026-07-05) temporarily removed TextGeneration and
+// EmbeddedAssistant. Both standalone Corti-parity tools are now restored on
+// real backend paths; legacy /studio aliases remain redirects/canonical shims.
 // Phase 4-F2 (2026-07-10): RunTrace route is RESTORED — the dedicated trace
 // viewer is required by §4.3 to display trace_events from the unified endpoint.
 import { lazy } from 'react';
@@ -23,12 +21,12 @@ import AIStudioOverviewPage from './pages/AIStudioOverviewPage';
 import AgentsPage from './pages/AgentsPage';
 import AgentDetailPage from './pages/AgentDetailPage';
 import AgentChatPage from './pages/AgentChatPage';
-import MedicalCodingPage from './pages/MedicalCodingPage';
 import CodingComplianceWorkbenchPage from './pages/CodingComplianceWorkbenchPage';
 import CDIWorkbenchPage from './pages/CDIWorkbenchPage';
 import FactExtractionPage from './pages/FactExtractionPage';
 import EmbeddedAssistantPage from './pages/EmbeddedAssistantPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
+import AcceptInvitePage from './pages/AcceptInvitePage';
 import ToastContainer from './components/common/Toast';
 import SettingsPage from './pages/SettingsPage';
 import BillingPage from './pages/BillingPage';
@@ -47,11 +45,21 @@ const APIClientsPage = lazy(() => import('./pages/APIClientsPage'));
 const TeamPage = lazy(() => import('./pages/TeamPage'));
 const ExpertsPage = lazy(() => import('./pages/ExpertsPage'));
 const SpeechToTextPage = lazy(() => import('./pages/SpeechToTextPage'));
+const MedicalCodingPage = lazy(() => import('./pages/MedicalCodingPage'));
+const TextGenerationPage = lazy(() => import('./pages/TextGenerationPage'));
+const PlatformAccessPage = lazy(() => import('./pages/PlatformAccessPage'));
+const ModelsPage = lazy(() => import('./pages/ModelsPage'));
 
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuthStore();
   if (!isAuthenticated) return <Navigate to="/login" replace />;
+  return <>{children}</>;
+}
+
+function PlatformAdminRoute({ children }: { children: React.ReactNode }) {
+  const { user } = useAuthStore();
+  if (user?.role !== 'admin') return <Navigate to="/" replace />;
   return <>{children}</>;
 }
 
@@ -69,6 +77,7 @@ function App() {
       <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
         <Route index element={<HomePage />} />
         <Route path="developer-quickstart" element={<DeveloperQuickstartPage />} />
+        <Route path="models" element={<ModelsPage />} />
         <Route path="docs" element={<DocsPage />} />
         <Route path="release-notes" element={<ReleaseNotesPage />} />
 
@@ -85,9 +94,7 @@ function App() {
         {/* Phase 3-D1 Task 4 - RunTrace Viewer (9-step timeline).
             Openable from AgentChatPage via the "View RunTrace" button. */}
         <Route path="runs/:runId/trace" element={<RunTracePage />} />
-        {/* Phase 3-B2 Loop 0: TextGeneration + EmbeddedAssistant routes removed.
-            Old paths redirect to /ai-studio/agents (Agent Hub). */}
-        <Route path="ai-studio/text-generation" element={<Navigate to="/ai-studio/agents" replace />} />
+        <Route path="ai-studio/text-generation" element={<TextGenerationPage />} />
         <Route path="ai-studio/embedded-assistant" element={<EmbeddedAssistantPage />} />
         <Route path="ai-studio/fact-extraction" element={<FactExtractionPage />} />
         {/* B-005: SpeechToTextPage mount — sidebar entry at Layout.tsx:57
@@ -105,7 +112,7 @@ function App() {
         <Route path="studio/agents" element={<AgentsPage />} />
         <Route path="studio/agents/new" element={<NewAgentPage />} />
         <Route path="studio/agents/:agentId" element={<AgentDetailPage />} />
-        <Route path="studio/text-generation" element={<Navigate to="/ai-studio/agents" replace />} />
+        <Route path="studio/text-generation" element={<Navigate to="/ai-studio/text-generation" replace />} />
         <Route path="studio/fact-extraction" element={<FactExtractionPage />} />
         <Route path="studio/medical-coding" element={<MedicalCodingPage />} />
         {/* homepage-coding-review shim: legacy route → medical-coding */}
@@ -132,6 +139,7 @@ function App() {
         <Route path="manage/customers" element={<CustomersPage />} />
         <Route path="manage/templates" element={<TemplatesPage />} />
         <Route path="manage/settings" element={<SettingsPage />} />
+        <Route path="manage/platform-access" element={<PlatformAdminRoute><PlatformAccessPage /></PlatformAdminRoute>} />
         <Route path="manage/support" element={<SupportPage />} />
 
         {/* Support */}
@@ -144,10 +152,12 @@ function App() {
         <Route path="customers" element={<CustomersPage />} />
         <Route path="templates" element={<TemplatesPage />} />
         <Route path="settings" element={<SettingsPage />} />
+        <Route path="platform-access" element={<PlatformAdminRoute><PlatformAccessPage /></PlatformAdminRoute>} />
 
         <Route path="support" element={<SupportPage />} />
       </Route>
       <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/accept-invite" element={<AcceptInvitePage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
     </>

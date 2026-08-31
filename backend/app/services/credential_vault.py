@@ -72,6 +72,8 @@ class CredentialVault:
         - "drugbank" → DrugBank API key
         - "pubmed" → PubMed/NCBI API key
         - "posos" → POSOS medication database key
+        - "web_search" → privacy-preserving web-search gateway key
+        - "memory_semantic" → isolated semantic-memory embedding service key
         - "clinical_trials" → ClinicalTrials.gov API key
         - "mcp_<name>" → MCP server credentials
 
@@ -168,7 +170,10 @@ class CredentialVault:
     def health_check(self) -> dict:
         """Check which services have credentials configured."""
         required = ["llm"]
-        optional = ["drugbank", "pubmed", "posos", "clinical_trials"]
+        optional = [
+            "drugbank", "pubmed", "posos", "clinical_trials", "web_search",
+            "memory_semantic",
+        ]
 
         result = {"required": {}, "optional": {}}
         for svc in required:

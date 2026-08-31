@@ -121,6 +121,8 @@ export const orgApi = {
   getMembers: (orgId: string) => api.get(`/organizations/${orgId}/members`),
   invite: (orgId: string, data: { email: string; role: string }) =>
     api.post(`/organizations/${orgId}/invites`, data),
+  acceptInvite: (token: string) =>
+    api.post('/organizations/invites/accept', { token }),
   removeMember: (orgId: string, userId: string) =>
     api.delete(`/organizations/${orgId}/members/${userId}`),
   updateMemberRole: (orgId: string, userId: string, data: { role: string }) =>
@@ -149,11 +151,49 @@ export const codesApi = {
 
 // Billing
 export const billingApi = {
-  balance: () => api.get<{ balance: number; currency: string }>('/billing/balance'),
+  balance: () => api.get<{
+    balance: number;
+    reserved: number;
+    available: number;
+    currency: string;
+    simulation: boolean;
+    ledger_authoritative: boolean;
+    quota: { kind: string; limit: number | null; remaining: number; enforced: boolean };
+    alerts: { low_balance: boolean; threshold: number };
+  }>('/billing/balance'),
   transactions: (limit = 20) =>
     api.get<{ transactions: any[]; total: number }>('/billing/transactions', { params: { limit } }),
   addCredits: (amount: number) =>
-    api.post<{ status: string; added: number; new_balance: number }>('/billing/credits', null, { params: { amount } }),
+    api.post<{ status: string; added: number; new_balance: number; simulation: boolean }>('/billing/credits', null, { params: { amount } }),
+  simulateDebit: (amount: number, reference: string) =>
+    api.post<{ status: string; debited: number; new_balance: number; simulation: boolean }>('/billing/simulation/debit', { amount, reference }),
+  runSettlements: (limit = 20) =>
+    api.get<{
+      items: Array<{
+        run_id: string;
+        status: string;
+        reserved_amount: number;
+        settled_amount: number;
+        currency: string;
+        error_code?: string | null;
+        created_at?: string | null;
+      }>;
+      total: number;
+      simulation: boolean;
+    }>('/billing/run-settlements', { params: { limit } }),
+  retryRunSettlement: (runId: string) =>
+    api.post(`/billing/run-settlements/${encodeURIComponent(runId)}/retry`),
+  reconcileStaleRunSettlements: (olderThanSeconds = 3600) =>
+    api.post<{
+      simulation: boolean;
+      released: number;
+      marked_retryable: number;
+      skipped_active: number;
+      inspected: number;
+      older_than_seconds: number;
+    }>('/billing/run-settlements/reconcile-stale', null, {
+      params: { older_than_seconds: olderThanSeconds },
+    }),
 };
 
 // API Keys
@@ -171,9 +211,30 @@ export const oauthApi = {
   // Console-internal endpoints (oauth.py) — list / create / delete
   // Sprint 1 audit reference: docs/governance/CONSOLE_API_CLIENTS_AUDIT.md
   list: () => api.get<{ clients: any[] }>('/oauth/clients'),
-  create: (name: string, description = '', scopes = 'api:read api:write', tokenExpires = 3600) => {
-    const params = new URLSearchParams({ name, description, scopes, token_expires_seconds: String(tokenExpires) });
-    return api.post<{ client_id: string; client_secret: string; name: string; scopes: string }>('/oauth/clients', params, {
+  create: (
+    name: string,
+    description = '',
+    scopes = 'api:read api:write',
+    tokenExpires = 3600,
+    allowedAgentIds: string[] = [],
+    allowedPurposes: string[] = [],
+  ) => {
+    const params = new URLSearchParams({
+      name,
+      description,
+      scopes,
+      token_expires_seconds: String(tokenExpires),
+      allowed_agent_ids: allowedAgentIds.join(','),
+      allowed_purposes: allowedPurposes.join(','),
+    });
+    return api.post<{
+      client_id: string;
+      client_secret: string;
+      name: string;
+      scopes: string;
+      allowed_agent_ids: string[];
+      allowed_purposes: string[];
+    }>('/oauth/clients', params, {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     });
   },
@@ -191,6 +252,14 @@ export const oauthApi = {
     api.post(`/clients/${clientId}/disable`),
   enable: (clientId: string) =>
     api.post(`/clients/${clientId}/enable`),
+  updateDelegation: (
+    clientId: string,
+    allowedAgentIds: string[],
+    allowedPurposes: string[],
+  ) => api.patch(`/clients/${clientId}/delegation`, {
+    allowed_agent_ids: allowedAgentIds,
+    allowed_purposes: allowedPurposes,
+  }),
 };
 
 // Team
@@ -204,6 +273,27 @@ export const teamApi = {
   remove: (id: string) => api.delete(`/team/members/${id}`),
 };
 
+// Platform administration. These routes are platform-admin only and are
+// intentionally separate from organization owner/admin membership controls.
+export const platformAdminApi = {
+  users: (search = '', limit = 100, offset = 0) =>
+    api.get('/admin/users', { params: { search, limit, offset } }),
+  updateUserAccess: (userId: string, data: {
+    role?: string;
+    is_active?: boolean;
+    expected_token_version: number;
+    reason_code: string;
+    ticket_id?: string;
+  }) => api.patch(`/admin/users/${userId}`, data),
+  organizations: () => api.get('/admin/organizations'),
+  updateOrganization: (orgId: string, data: {
+    plan?: 'free' | 'pro' | 'enterprise';
+    is_active?: boolean;
+    reason_code: string;
+    ticket_id?: string;
+  }) => api.patch(`/admin/organizations/${orgId}`, data),
+};
+
 // Usage
 export const usageApi = {
   summary: (days = 30) => api.get('/usage/summary', { params: { days } }),
@@ -211,9 +301,80 @@ export const usageApi = {
 };
 
 // Facts Extraction
+export interface ExtractedFact {
+  group: string;
+  text: string;
+  value: string;
+}
+
+export interface FactExtractResponse {
+  facts: ExtractedFact[];
+  outputLanguage: string;
+  usageInfo: { creditsConsumed: number };
+}
+
 export const factsApi = {
   extract: (text: string, outputLanguage = 'zh-CN') =>
-    api.post<{ facts: any[]; raw_output: string; credits_consumed: number }>('/facts/extract', { text, output_language: outputLanguage }),
+    api.post<FactExtractResponse>('/v2/tools/extract-facts', {
+      context: [{ type: 'text', text }],
+      outputLanguage,
+    }),
+};
+
+export interface GuidedDocumentResponse {
+  document: {
+    name: string;
+    templateId: string;
+    templateVersionId: string;
+    language: string;
+    interactionId?: string | null;
+    stringDocument: Record<string, string>;
+    structuredDocument?: Record<string, unknown> | null;
+    labels: Array<{ key: string; value: string }>;
+  };
+  usageInfo: { creditsConsumed: number };
+}
+
+export type GuidedDocumentContext =
+  | { type: 'text'; text: string }
+  | { type: 'facts'; facts: Array<{ text: string; group?: string }> }
+  | {
+      type: 'transcript';
+      transcript: {
+        transcripts: Array<{
+          text: string;
+          channel?: number;
+          participant?: number;
+          speakerId?: number;
+          start?: number;
+          end?: number;
+        }>;
+        metadata?: Record<string, unknown>;
+      };
+    };
+
+export const guidedDocumentsApi = {
+  generateDynamic: (data: {
+    outputLanguage: string;
+    context: GuidedDocumentContext[];
+    dynamicTemplate: {
+      name: string;
+      generation: {
+        instructions: { prompt: string };
+        sections: Array<{
+          heading: string;
+          instructions: {
+            contentPrompt: string;
+            writingStylePrompt?: string;
+            miscPrompt?: string;
+          };
+          outputSchema: Record<string, unknown>;
+        }>;
+      };
+    };
+  }) => api.post<GuidedDocumentResponse>('/v2/tools/guided-documents', data, {
+    headers: { 'X-Corti-Retention-Policy': 'none' },
+  }),
 };
 
 // Customers (Embedded Assistant end-user mgmt)
@@ -235,7 +396,50 @@ export const templatesApi = {
     name: string; description?: string; content?: string;
     category?: string; language?: string; scope?: string;
   }) => api.post<any>('/templates', data),
+  update: (id: string, data: {
+    name?: string; description?: string; content?: string;
+    category?: string; language?: string; scope?: string;
+  }) => api.patch<any>(`/templates/${id}`, data),
+  publish: (id: string) => api.post<any>(`/templates/${encodeURIComponent(id)}/publish`),
+  versions: (id: string) => api.get<any[]>(`/templates/${encodeURIComponent(id)}/versions`),
   delete: (id: string) => api.delete(`/templates/${id}`),
+  sections: () => api.get<any[]>('/v2/tools/sections/'),
+  createSection: (data: {
+    name: string; description?: string; language?: string;
+    specialties?: string[]; labels?: Array<{ key: string; value: string }>;
+    outputSchema?: Record<string, unknown>;
+  }) => api.post<any>('/v2/tools/sections/', data),
+  updateSection: (id: string, data: {
+    name?: string; description?: string; language?: string;
+    specialties?: string[]; labels?: Array<{ key: string; value: string }>;
+    outputSchema?: Record<string, unknown>;
+  }) => api.patch<any>(`/v2/tools/sections/${id}`, data),
+  deleteSection: (id: string) => api.delete(`/v2/tools/sections/${id}`),
+  previewDocument: (interactionId: string, data: {
+    context: Array<{ type: 'string'; data: string }>;
+    template: {
+      sections: Array<{
+        key: string;
+        nameOverride?: string;
+        writingStyleOverride?: string;
+        additionalInstructionsOverride?: string;
+        contentOverride?: string;
+      }>;
+      description?: string;
+      additionalInstructionsOverride?: string;
+    };
+    name?: string;
+    outputLanguage: string;
+    documentationMode: 'global_sequential';
+  }) => api.post<{
+    id: string;
+    name: string;
+    sections: Array<{ key: string; name: string; text: string; sort: number }>;
+    outputLanguage: string;
+    usageInfo: { creditsConsumed: number };
+  }>(`/v2/tools/interactions/${encodeURIComponent(interactionId)}/documents/`, data, {
+    headers: { 'X-Corti-Retention-Policy': 'none' },
+  }),
 };
 
 // Tickets Portal (in-app equivalent)
@@ -253,8 +457,8 @@ export const ticketsApi = {
 // Agents (iCoDer Agentic Framework — backend entities)
 // Agent Definitions (/rest/v1/agent_definitions)
 // Phase 2.1-C: migrated from /api/agents to /rest/v1/agent_definitions
-// 9 management endpoints (list/get/create/update/delete/categories/
-// templates/version/clone). A2A discovery (list+card) remains on
+// Management endpoints include explicit publish/archive/restore lifecycle
+// transitions. A2A discovery (list+card) remains on
 // /api/icoder/agents via a2aApi below.
 export const agentsApi = {
   list: (category = '', search = '', type = 'all') =>
@@ -266,8 +470,15 @@ export const agentsApi = {
   categories: () => api.get<{ categories: { name: string; count: number }[] }>('/rest/v1/agent_definitions/categories'),
   templates: () => api.get<{ templates: any[] }>('/rest/v1/agent_definitions/templates'),
   version: (id: string) => api.post(`/rest/v1/agent_definitions/${id}/version`),
+  publish: (id: string) => api.post(`/rest/v1/agent_definitions/${id}/publish`),
+  archive: (id: string) => api.post(`/rest/v1/agent_definitions/${id}/archive`),
+  restore: (id: string) => api.post(`/rest/v1/agent_definitions/${id}/restore`),
   clone: (id: string, name?: string, description?: string) =>
     api.post(`/rest/v1/agent_definitions/${id}/clone`, { name, description }),
+  memoryReadiness: (id: string, purpose_of_use = 'treatment') =>
+    api.get(`/v2/agentic/agents/${encodeURIComponent(id)}/memory-readiness`, {
+      params: { purpose_of_use },
+    }),
   // A1B-AE-R.2.c — POST /api/v1/agents/quick?from_preset=...
   // Creates an Agent definition cloned from a preset catalog entry.
   // Note: agentsApi uses /rest/v1/agent_definitions; this is
@@ -280,6 +491,15 @@ export const agentsApi = {
 // baseURL is '/api' so we use '/v1/experts' here.
 export const expertsApi = {
   list: () => api.get<{ experts: any[] }>('/v1/experts'),
+  readiness: () => api.get<{
+    expert_count: number;
+    published_expert_count: number;
+    mcp_server_count: number;
+    active_mcp_server_count: number;
+    built_in_mcp_tool_count: number;
+    external_mcp_live_verified: boolean;
+    production_ready: boolean;
+  }>('/v1/experts/readiness'),
   presets: () => api.get<{ presets: any[] }>('/v1/presets'),
   evaluateExternalGate: (params: {
     expert_key: string;
@@ -294,20 +514,37 @@ export const expertsApi = {
     ),
 };
 
+export const sttApi = {
+  readiness: () => api.get<{
+    configuration_status: 'configured_not_live_verified' | 'unavailable';
+    verified_languages: string[];
+    at_rest_encryption_enabled: boolean;
+    durable_job_state: boolean;
+    restart_recovery: boolean;
+    queue_backend: 'in_process';
+    horizontally_scalable_queue: false;
+    pending_transcript_count: number;
+    live_health_verified: false;
+    production_ready: false;
+  }>('/v2/tools/stt/readiness'),
+};
+
 // A2A Protocol
 // Backend routes (see app/icoder/agent_runtime/a2a/a2a_routes.py):
 //   GET  /.well-known/agent.json              (root, no /api prefix)
 //   GET  /api/icoder/agents                   (list, optional ?capability=)
 //   GET  /api/icoder/agents/{id}/card         (single AgentCard)
-//   GET  /api/icoder/tasks/{id}               (stub, 501)
-//   POST /api/icoder/tasks/{id}/cancel        (stub, 501)
-// chain/coordinate/listTasks/createTask/retryTask have no backend endpoint.
-// getTask/cancelTask also have no backend endpoint (Phase 5 A2A Task stub, not yet implemented).
+//   GET  /api/icoder/tasks/{id}               (tenant-scoped Task state)
+//   POST /api/icoder/tasks/{id}/cancel        (Task state transition)
 export const a2aApi = {
   agentCard: () => axios.get('/.well-known/agent.json'),
   discoverAgents: (capability = '') =>
     api.get<{ agents: any[] }>('/icoder/agents', { params: { capability } }),
   getAgentCard: (id: string) => api.get(`/icoder/agents/${id}/card`),
+  getTask: (id: string) =>
+    api.get(`/icoder/tasks/${encodeURIComponent(id)}`),
+  cancelTask: (id: string, reason = '') =>
+    api.post(`/icoder/tasks/${encodeURIComponent(id)}/cancel`, { reason }),
 };
 
 // Settings / Config
@@ -346,21 +583,55 @@ export interface CodingPredictResult {
   trace_events: Array<{ step: string; status: string; ts: number; duration_ms: number; metadata: Record<string, unknown> }>;
   error: boolean;
   error_reason: string;
+  filter_applied?: CodingCodeFilter | null;
+  coding_systems_applied?: Array<'icd10cn' | 'icd9cm3'>;
+}
+
+export interface CodingCodeFilter {
+  include: string[];
+  exclude: string[];
+  expand: boolean;
+}
+
+export interface CodingPricingEstimate {
+  input_chars: number;
+  runtime_mode: CodingMode;
+  currency: 'CNY' | string;
+  estimated_input_tokens_min: number;
+  estimated_input_tokens_max: number;
+  estimated_output_tokens_min: number;
+  estimated_output_tokens_max: number;
+  estimated_model_calls_min: number;
+  estimated_model_calls_max: number;
+  estimated_cost_min: number;
+  estimated_cost_max: number;
+  input_price_per_1m: number;
+  output_price_per_1m: number;
+  price_source: 'server_configuration' | string;
+  billing_authoritative: false;
+  disclaimer: string;
 }
 
 export const codingApi = {
+  estimateCost: (inputChars: number, mode: CodingMode, signal?: AbortSignal) =>
+    api.get<CodingPricingEstimate>('/v1/coding/pricing', {
+      params: { input_chars: inputChars, mode },
+      signal,
+    }),
   predict: (text: string, mode: CodingMode = 'corti_like_fast', options?: {
-    coding_system?: string;
+    coding_systems?: Array<'icd10cn' | 'icd9cm3'>;
     include_evidence?: boolean;
     include_trace?: boolean;
+    filter?: CodingCodeFilter;
   }) => {
     const timeout = mode === 'medcoder_deep' ? 120000 : 45000; // Fast 45s, Deep 120s
     return api.post<CodingPredictResult>('/v1/coding/predict', {
       text,
       mode,
-      coding_system: options?.coding_system ?? 'icd10cn',
+      coding_systems: options?.coding_systems ?? ['icd10cn'],
       include_evidence: options?.include_evidence ?? true,
       include_trace: options?.include_trace ?? true,
+      filter: options?.filter,
     }, { timeout });
   },
 };
@@ -436,5 +707,166 @@ export interface RuntimeStateInfo {
   permitted_actions: string[];
   allowed_transitions: string[];
 }
+
+export const modelCatalogApi = {
+  get: () => api.get('/v1/model-catalog'),
+  listClinicalPackages: () => api.get('/v1/clinical-model-packages'),
+  createClinicalPackage: (manifest: Record<string, unknown>) =>
+    api.post('/v1/clinical-model-packages', manifest),
+  submitClinicalPackage: (packageId: string, expectedVersion: number) =>
+    api.post(`/v1/clinical-model-packages/${encodeURIComponent(packageId)}/submit`, {
+      expected_version: expectedVersion,
+    }),
+  decideClinicalPackage: (packageId: string, data: {
+    expected_version: number;
+    decision: 'approve' | 'reject';
+    review_reference_sha256: string;
+    reason_code: string;
+  }) => api.post(
+    `/v1/clinical-model-packages/${encodeURIComponent(packageId)}/decision`, data,
+  ),
+  activateClinicalPackage: (
+    useCase: string,
+    data: {
+      package_id: string;
+      deployment_mode: 'development' | 'hospital_private' | 'cloud';
+      expected_version: number;
+      acknowledge_clinical_governance: true;
+    },
+  ) => api.put(
+    `/v1/clinical-model-packages/activations/${encodeURIComponent(useCase)}`, data,
+  ),
+  rollbackClinicalPackage: (
+    useCase: string,
+    data: {
+      package_id: string;
+      deployment_mode: 'development' | 'hospital_private' | 'cloud';
+      expected_version: number;
+      acknowledge_clinical_governance: true;
+    },
+  ) => api.post(
+    `/v1/clinical-model-packages/activations/${encodeURIComponent(useCase)}/rollback`, data,
+  ),
+  listClinicalArtifactAttestations: (packageId: string) => api.get(
+    `/v1/clinical-model-packages/${encodeURIComponent(packageId)}/artifact-attestations`,
+  ),
+  probeSyntheticClinicalArtifact: (
+    packageId: string,
+    bundleBase64: string,
+    expectedPackageRecordVersion: number,
+  ) => api.post(
+    `/v1/clinical-model-packages/${encodeURIComponent(packageId)}/synthetic-artifact-probe`,
+    {
+      bundle_base64: bundleBase64,
+      expected_package_record_version: expectedPackageRecordVersion,
+    },
+  ),
+  getClinicalShadowBinding: (useCase: string) => api.get(
+    `/v1/clinical-model-packages/shadow-bindings/${encodeURIComponent(useCase)}`,
+  ),
+  bindClinicalShadowAttestation: (
+    useCase: string,
+    attestationId: string,
+    expectedVersion: number,
+  ) => api.put(
+    `/v1/clinical-model-packages/shadow-bindings/${encodeURIComponent(useCase)}`,
+    {
+      attestation_id: attestationId,
+      expected_version: expectedVersion,
+      acknowledge_shadow_only: true,
+    },
+  ),
+  rollbackClinicalShadowBinding: (
+    useCase: string,
+    attestationId: string,
+    expectedVersion: number,
+  ) => api.post(
+    `/v1/clinical-model-packages/shadow-bindings/${encodeURIComponent(useCase)}/rollback`,
+    {
+      attestation_id: attestationId,
+      expected_version: expectedVersion,
+      acknowledge_shadow_only: true,
+    },
+  ),
+  listClinicalShadowEvaluations: (useCase: string) => api.get(
+    `/v1/clinical-model-packages/shadow-bindings/${encodeURIComponent(useCase)}/evaluations`,
+  ),
+  evaluateSyntheticClinicalShadow: (
+    useCase: string,
+    data: {
+      expected_binding_version: number;
+      bundle_base64?: string;
+      fault_mode?: 'none' | 'worker_timeout' | 'malformed_response' | 'model_hash_mismatch';
+      acknowledge_synthetic_only: true;
+      acknowledge_fault_injection?: boolean;
+    },
+  ) => api.post(
+    `/v1/clinical-model-packages/shadow-bindings/${encodeURIComponent(useCase)}/synthetic-evaluation`,
+    data,
+  ),
+  createClinicalShadowEvaluationJob: (
+    useCase: string,
+    data: {
+      expected_binding_version: number;
+      fault_mode?: 'none' | 'worker_timeout' | 'malformed_response' | 'model_hash_mismatch';
+      acknowledge_synthetic_only: true;
+      acknowledge_fault_injection?: boolean;
+    },
+    idempotencyKey: string,
+  ) => api.post(
+    `/v1/clinical-model-packages/shadow-bindings/${encodeURIComponent(useCase)}/evaluation-jobs`,
+    data,
+    { headers: { 'Idempotency-Key': idempotencyKey } },
+  ),
+  listClinicalShadowEvaluationJobs: (useCase: string) => api.get(
+    `/v1/clinical-model-packages/shadow-bindings/${encodeURIComponent(useCase)}/evaluation-jobs`,
+  ),
+  getClinicalShadowEvaluationJob: (jobId: string) => api.get(
+    `/v1/clinical-model-packages/shadow-evaluation-jobs/${encodeURIComponent(jobId)}`,
+  ),
+  executeClinicalShadowEvaluationJobSimulation: (jobId: string) => api.post(
+    `/v1/clinical-model-packages/shadow-evaluation-jobs/${encodeURIComponent(jobId)}/execute`,
+    {},
+  ),
+  cancelClinicalShadowEvaluationJob: (
+    jobId: string,
+    reason: 'operator_request' | 'maintenance' | 'safety_stop',
+  ) => api.post(
+    `/v1/clinical-model-packages/shadow-evaluation-jobs/${encodeURIComponent(jobId)}/cancel`,
+    { reason },
+  ),
+  getClinicalShadowEvaluationJobHealth: () => api.get(
+    '/v1/clinical-model-packages/shadow-evaluation-jobs/health/summary',
+  ),
+  maintainClinicalShadowEvaluationJobsSimulation: () => api.post(
+    '/v1/clinical-model-packages/shadow-evaluation-jobs/maintenance/run',
+    {},
+  ),
+  listClinicalShadowDeadLetters: () => api.get(
+    '/v1/clinical-model-packages/shadow-evaluation-jobs/dead-letters/list',
+  ),
+  replayClinicalShadowDeadLetter: (deadLetterId: string, idempotencyKey: string) => api.post(
+    `/v1/clinical-model-packages/shadow-evaluation-jobs/dead-letters/${encodeURIComponent(deadLetterId)}/replay`,
+    {},
+    { headers: { 'Idempotency-Key': idempotencyKey } },
+  ),
+  listClinicalShadowAlertStates: () => api.get(
+    '/v1/clinical-model-packages/shadow-evaluation-jobs/alerts/states',
+  ),
+  healthProbe: (deploymentId: string) =>
+    api.post('/v1/model-catalog/health-probe', { deployment_id: deploymentId }),
+  liveCanary: (deploymentId: string, maxCostCny: number) =>
+    api.post('/v1/model-catalog/live-canary', {
+      deployment_id: deploymentId,
+      acknowledge_external_call: true,
+      purpose: 'connectivity_only_no_patient_data',
+      max_cost_cny: maxCostCny,
+    }),
+  updateSelection: (data: {
+    mode: 'inherit' | 'pinned';
+    deployment_id?: string;
+    expected_version: number;
+  }) => api.put('/v1/model-catalog/selection', data),
+};
 
 export default api;

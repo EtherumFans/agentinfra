@@ -27,6 +27,7 @@ Output: reports/track_h/h41_quality_safety_expert_40case.json
 from __future__ import annotations
 
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -39,9 +40,15 @@ except ImportError:  # pragma: no cover
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-PER_CASE_DIR = REPO_ROOT / "backend" / "reports" / "phase5_d_p05" / "gate8_icoder_per_case"
+PER_CASE_DIR = Path(os.environ.get(
+    "CORTI_SCORING_PER_CASE_DIR",
+    str(REPO_ROOT / "backend" / "reports" / "phase5_d_p05" / "gate8_icoder_per_case"),
+)).resolve()
 FIXTURE_PATH = REPO_ROOT / "backend" / "tests" / "fixtures" / "cdi_gate8_40cases.json"
-OUTPUT_JSON = REPO_ROOT / "reports" / "track_h" / "h41_quality_safety_expert_40case.json"
+OUTPUT_JSON = Path(os.environ.get(
+    "CORTI_SCORING_OUTPUT_JSON",
+    str(REPO_ROOT / "reports" / "track_h" / "h41_quality_safety_expert_40case.json"),
+)).resolve()
 
 LEADING_QUERY_PATTERNS = [
     r"是不是",
@@ -72,9 +79,27 @@ def _is_verbatim_or_fuzzy(quote: str, chart: str) -> tuple[bool, float]:
     return (score >= 0.85, score)
 
 
+def _query_evidence_quotes(q: dict) -> list[str]:
+    """Return the v2 evidence set, falling back to the v1 primary span."""
+    raw_spans = q.get("evidence_spans") or []
+    quotes = [
+        str(span.get("quote", "") or "")
+        for span in raw_spans
+        if isinstance(span, dict)
+    ]
+    if not quotes:
+        quotes = [str((q.get("evidence_span") or {}).get("quote", "") or "")]
+    return quotes
+
+
 def _score_query(q: dict, chart: str) -> dict:
-    quote = (q.get("evidence_span") or {}).get("quote", "") or ""
-    verbatim, fuzz_score = _is_verbatim_or_fuzzy(quote, chart)
+    quotes = _query_evidence_quotes(q)
+    span_scores = [_is_verbatim_or_fuzzy(quote, chart) for quote in quotes]
+    evidence_present = bool(quotes) and all(bool(quote) for quote in quotes)
+    # A multi-fact query is supported only when every declared independent
+    # evidence item is chart-grounded. One hallucinated span fails closed.
+    verbatim = evidence_present and all(item[0] for item in span_scores)
+    fuzz_score = min((item[1] for item in span_scores), default=0.0)
     options = q.get("response_options", []) or []
     has_escape = any(any(p in opt for p in ESCAPE_PHRASES) for opt in options)
     qt = q.get("query_text", "") or ""
@@ -83,9 +108,11 @@ def _score_query(q: dict, chart: str) -> dict:
 
     return {
         "query_id": q.get("query_id"),
-        "evidence_quote_present": bool(quote),
+        "evidence_quote_present": evidence_present,
         "evidence_quote_verbatim": verbatim,
         "evidence_quote_fuzz_score": round(fuzz_score, 3),
+        "evidence_span_count": len(quotes),
+        "evidence_span_fuzz_scores": [round(item[1], 3) for item in span_scores],
         "response_options_count": len(options),
         "response_options_has_escape": has_escape,
         "query_text_non_leading": non_leading,

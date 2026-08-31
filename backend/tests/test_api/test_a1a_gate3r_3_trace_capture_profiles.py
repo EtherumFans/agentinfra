@@ -403,6 +403,48 @@ def test_cloud_mode_required_db_profile_accepted(monkeypatch) -> None:
     monkeypatch.setenv("RUNTRACE_STORE", "db")
     monkeypatch.setenv("RUNTRACE_FAIL_CLOSED", "false")
     monkeypatch.setenv("RUNTRACE_DEPLOYMENT_PROFILE", "REQUIRED_DB")
+    monkeypatch.setenv("DATABASE_URL", "postgresql+asyncpg://test:test@db:5432/icoder")
+    monkeypatch.setenv("CORS_ORIGINS", '["https://app.icoder.cloud"]')
+    monkeypatch.setenv("ICODER_SINGLE_TENANT_ORG_ID", "")
+    monkeypatch.setenv("ICODER_ASSET_BUCKET", "icoder-assets-cn-hangzhou")
+    monkeypatch.setenv("ICODER_CREDENTIAL_LLM", "kms-test-credential-not-real")
+    monkeypatch.setenv("LLM_PROVIDER", "deepseek")
+    monkeypatch.setenv(
+        "ICODER_METRICS_BEARER_TOKEN",
+        "test-metrics-bearer-token-32-characters",
+    )
+    monkeypatch.setenv(
+        "ICODER_CONNECTOR_EGRESS_ALLOWLIST",
+        "memory-semantic.internal",
+    )
+    monkeypatch.setenv(
+        "ICODER_MEMORY_SEMANTIC_URL",
+        "https://memory-semantic.internal",
+    )
+    monkeypatch.setenv("ICODER_MEMORY_SEMANTIC_REQUIRED", "true")
+    monkeypatch.setenv(
+        "ICODER_CREDENTIAL_MEMORY_SEMANTIC",
+        "test-memory-semantic-token-32-characters",
+    )
+    monkeypatch.setenv("ICODER_INVITE_DELIVERY_MODE", "webhook")
+    monkeypatch.setenv(
+        "ICODER_INVITE_WEBHOOK_URL",
+        "https://invite-delivery.example.invalid/events",
+    )
+    monkeypatch.setenv(
+        "ICODER_INVITE_WEBHOOK_BEARER_TOKEN",
+        "test-invite-webhook-token-32-characters",
+    )
+    monkeypatch.setenv(
+        "ICODER_INVITE_ALLOWED_EMAIL_DOMAINS",
+        '["hospital.example"]',
+    )
+    monkeypatch.setenv("MEDCODER_RETRIEVER_URL", "https://medcoder.internal")
+    monkeypatch.setenv(
+        "MEDCODER_RETRIEVER_TOKEN", "test-medcoder-service-token-32-characters"
+    )
+    monkeypatch.setenv("APP_ENV", "cloud")
+    monkeypatch.setenv("OAUTH_REQUIRE_TENANT_HEADER", "true")
     monkeypatch.delenv("DEBUG", raising=False)
 
     from app.config import Settings

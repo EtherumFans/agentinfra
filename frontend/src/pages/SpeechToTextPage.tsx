@@ -9,6 +9,8 @@ import EventInspector from '../components/common/EventInspector';
 import CodeSnippet from '../components/common/CodeSnippet';
 import SettingsCodeTab from '../components/common/SettingsCodeTab';
 import WorkbenchLayout from '../components/layout/WorkbenchLayout';
+import { useAuthStore } from '../store';
+import { sttApi } from '../services/api';
 
 
 const TEMPLATES = ['出院小结', '病程记录', '出院指导', '入院记录', '手术记录', '会诊记录'];
@@ -34,6 +36,7 @@ const LANGUAGES = [
 
 export default function SpeechToTextPage() {
   const locale = useLocaleStore(s => s.locale);
+  const accessToken = useAuthStore(s => s.accessToken);
   const t = useT();
   const [transcript, setTranscript] = useState('');
   const [interim, setInterim] = useState('');
@@ -55,8 +58,8 @@ export default function SpeechToTextPage() {
   const [varValues, setVarValues] = useState('');
   const [sttMode, setSttMode] = useState<'browser' | 'server'>('server');
   const [sttBuffering, setSttBuffering] = useState(0);
+  const [readiness, setReadiness] = useState<any | null>(null);
   const [sttEvents, setSttEvents] = useState<{type:string;data:Record<string,unknown>;timestamp:string;credits?:number}[]>([]);
-  const [sttCredits, setSttCredits] = useState(0);
   const recognitionRef = useRef<any | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -64,6 +67,12 @@ export default function SpeechToTextPage() {
   const streamRef = useRef<MediaStream | null>(null);
   const getRecognitionRef = useRef<(() => any | null) | null>(null);
   const transcriptRef = useRef('');
+
+  useEffect(() => {
+    sttApi.readiness()
+      .then(response => setReadiness(response.data))
+      .catch(() => setReadiness(null));
+  }, []);
 
   // Keep transcriptRef in sync
   useEffect(() => { transcriptRef.current = transcript; }, [transcript]);
@@ -100,8 +109,7 @@ export default function SpeechToTextPage() {
         }
       }
       if (finalText) {
-        setSttEvents(prev => [...prev.slice(-50), { type: 'transcript', data: { text: finalText.trim().slice(0, 80) }, timestamp: new Date().toLocaleTimeString(locale, { hour12: false }), credits: 0.000001 }]);
-        setSttCredits(c => c + 0.000001);
+        setSttEvents(prev => [...prev.slice(-50), { type: 'transcript', data: { text: finalText.trim().slice(0, 80), usage: 'browser-managed' }, timestamp: new Date().toLocaleTimeString(locale, { hour12: false }) }]);
         let processed = finalText.trim();
         let cmdMatched = false;
 
@@ -155,6 +163,14 @@ export default function SpeechToTextPage() {
 
   // Server-side STT via WebSocket
   const startServerSTT = useCallback(async () => {
+    if (!accessToken) {
+      setErrorMsg('缺少登录访问令牌，请重新登录后再启动服务端语音识别。');
+      return;
+    }
+    if (language !== 'zh-CN') {
+      setErrorMsg('Medvoice 当前已验证的实时语言仅为简体中文；English 可使用 Web 内置模式。');
+      return;
+    }
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
@@ -165,7 +181,7 @@ export default function SpeechToTextPage() {
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
       // Dev: frontend on :3000, backend on :8001 → connect directly to backend
       const wshost = window.location.port === '3000' ? `${window.location.hostname}:8001` : window.location.host;
-      const wsUrl = `${protocol}//${wshost}/ws/speech-to-text`;
+      const wsUrl = `${protocol}//${wshost}/ws/speech-to-text?token=${encodeURIComponent(accessToken)}`;
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
 
@@ -179,11 +195,10 @@ export default function SpeechToTextPage() {
 
       ws.onopen = () => {
         clearTimeout(connectTimeout);
-        ws.send(JSON.stringify({ type: 'start', mimeType: mime }));
+        ws.send(JSON.stringify({ type: 'start', mimeType: mime, language }));
         rec.start(250);
         setIsListening(true);
-        setSttEvents(prev => [...prev.slice(-50), { type: 'stt_start', data: { mode: 'server', language }, timestamp: new Date().toLocaleTimeString(locale, { hour12: false }), credits: 0.000001 }]);
-        setSttCredits(c => c + 0.000001);
+        setSttEvents(prev => [...prev.slice(-50), { type: 'stt_start', data: { mode: 'server', language, usage: 'not-reported' }, timestamp: new Date().toLocaleTimeString(locale, { hour12: false }) }]);
         // Server pushes interim automatically - no client polling needed
       };
 
@@ -195,8 +210,7 @@ export default function SpeechToTextPage() {
           const incoming = m.text;
           setTranscript(p => appendWithPunctuation(p, incoming));
           setInterim('');
-          setSttEvents(prev => [...prev.slice(-50), { type: 'final', data: { text: incoming.slice(0, 80) }, timestamp: new Date().toLocaleTimeString(locale, { hour12: false }), credits: 0.000001 }]);
-          setSttCredits(c => c + 0.000001);
+          setSttEvents(prev => [...prev.slice(-50), { type: 'final', data: { text: incoming.slice(0, 80), usage: 'not-reported' }, timestamp: new Date().toLocaleTimeString(locale, { hour12: false }) }]);
         }
         else if (m.type === 'buffering') { setSttBuffering(m.bytes || 0); }
         else if (m.type === 'error') { setInterim('转录失败: ' + m.message); setSttEvents(prev => [...prev.slice(-50), { type: 'error', data: { message: m.message }, timestamp: new Date().toLocaleTimeString(locale, { hour12: false }) }]); }
@@ -228,7 +242,7 @@ export default function SpeechToTextPage() {
     } catch (err: any) {
       setErrorMsg('无法启动录音: ' + (err.message || '请检查麦克风权限'));
     }
-  }, []);
+  }, [accessToken, language, locale]);
 
   const stopServerSTT = useCallback(() => {
     if (interimTimerRef.current) { clearInterval(interimTimerRef.current); interimTimerRef.current = null; }
@@ -271,7 +285,7 @@ export default function SpeechToTextPage() {
         <div className="flex items-center gap-2">
           <span className="text-xs font-medium text-foreground">识别引擎</span>
           <div className="flex items-center rounded-lg bg-muted p-0.5">
-            <button onClick={() => { if (isListening) stopServerSTT(); setSttMode('server'); }}
+            <button onClick={() => { if (isListening) stopServerSTT(); setSttMode('server'); setLanguage('zh-CN'); setPunctuationMode('auto'); }}
               className={`px-3 py-1 text-[11px] rounded-md transition-all font-medium ${sttMode === 'server' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>Medvoice</button>
             <button onClick={() => setSttMode('browser')}
               className={`px-3 py-1 text-[11px] rounded-md transition-all font-medium ${sttMode === 'browser' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>Web 内置</button>
@@ -283,6 +297,20 @@ export default function SpeechToTextPage() {
         <div className="mb-2 px-3 py-2 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700 flex items-center justify-between">
           <span>{errorMsg}</span>
           <button onClick={() => setErrorMsg(null)} className="p-0.5 rounded hover:bg-red-100 shrink-0 ml-2"><X size={12} /></button>
+        </div>
+      )}
+
+      {sttMode === 'server' && readiness && (
+        <div className={`mb-2 px-3 py-2 rounded-lg border text-[11px] ${
+          readiness.configuration_status === 'unavailable'
+            ? 'bg-amber-50 border-amber-200 text-amber-800'
+            : 'bg-emerald-50 border-emerald-200 text-emerald-800'
+        }`}>
+          服务端：{readiness.configuration_status === 'unavailable' ? '尚未配置识别引擎' : '已配置、待真实音频健康验证'}
+          {' · '}加密存储：{readiness.at_rest_encryption_enabled ? '已启用' : '未启用'}
+          {' · '}恢复：{readiness.restart_recovery ? '支持' : '不支持'}
+          {' · '}队列：{readiness.queue_backend === 'in_process' ? '单进程' : readiness.queue_backend}
+          {' · '}待处理：{readiness.pending_transcript_count}
         </div>
       )}
 
@@ -357,9 +385,12 @@ export default function SpeechToTextPage() {
                 <span className="text-sm text-foreground/80">听写语言</span>
                 <select value={language} onChange={e => setLanguage(e.target.value)}
                   className="h-8 text-xs border border-input bg-background rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-ring">
-                  {LANGUAGES.map(l => <option key={l.code} value={l.code}>{l.label}</option>)}
+                  {LANGUAGES.filter(l => sttMode === 'browser' || l.code === 'zh-CN').map(l => <option key={l.code} value={l.code}>{l.label}</option>)}
                 </select>
               </div>
+              <p className="text-[11px] text-muted-foreground">
+                {sttMode === 'server' ? 'Medvoice 已验证：zh-CN；服务端未返回 usage 时费用显示 N/A。' : 'Web 内置识别由浏览器提供，费用不计入 iCoDer usage。'}
+              </p>
             </div>
           </div>
 
@@ -370,7 +401,7 @@ export default function SpeechToTextPage() {
             </div>
             <div className="flex flex-col gap-2 px-4 pb-4">
               <label className="flex items-center gap-2 text-sm text-foreground/70">
-                <input type="radio" name="punctuation" checked={punctuationMode === 'spoken'} onChange={() => setPunctuationMode('spoken')} />
+                <input type="radio" name="punctuation" checked={punctuationMode === 'spoken'} disabled={sttMode === 'server'} onChange={() => setPunctuationMode('spoken')} />
                 语音标点
               </label>
               <label className="flex items-center gap-2 text-sm text-foreground/70">
@@ -415,55 +446,65 @@ export default function SpeechToTextPage() {
       }
       code={
         <CodeSnippet
-          javascript={`import { iCoDerClient } from "@icoder/sdk";
+          javascript={`import iCoDer from "@icoder/sdk";
 
-const client = new iCoDerClient({ apiKey: "YOUR_API_KEY" });
-
-const session = await client.speechToText.startSession({
-  language: "${language}",
-  punctuation: "${punctuationMode}",
-  interimResults: ${interimResults},
+const client = new iCoDer({
+  baseURL: window.location.origin,
+  auth: { accessToken: "<tenant-access-token>" },
 });
 
-session.onTranscript((text) => {
-  console.log("Transcript:", text);
-});`}
-          python={`from icoder_speech import iCoDerSTTClient
+const audio = await (await fetch("/consultation.wav")).arrayBuffer();
+const recording = await client.speechToText.uploadRecording(
+  "interaction-001", audio, "audio/wav",
+);
+const result = await client.speechToText.createTranscript("interaction-001", {
+  recordingId: recording.recordingId,
+  primaryLanguage: "zh-CN",
+  automaticPunctuation: true,
+  async: true,
+});
+console.log(result.statusCode, result.location);`}
+          python={`from icoder_sdk import iCoDerClient, iCoDerConfig
 
-client = iCoDerSTTClient(api_key="YOUR_API_KEY")
-
-session = client.create_session(
-    language="${language}",
-    punctuation="${punctuationMode}",
-    interim_results=${interimResults},
+client = iCoDerClient(iCoDerConfig(
+    base_url="https://api.example.cn",
+    access_token="<tenant-access-token>",
+))
+with open("consultation.wav", "rb") as source:
+    recording = client.speech_to_text.upload_recording(
+        "interaction-001", source.read(), "audio/wav"
+    )
+result = client.speech_to_text.create_transcript(
+    "interaction-001",
+    recording["recordingId"],
+    primary_language="zh-CN",
+    async_=True,
 )
+print(result.status_code, result.location)`}
+          csharp={`using Icoder.Sdk;
 
-session.start()
-for transcript in session.transcripts():
-    print(f"Transcript: {transcript}")`}
-          csharp={`using iCoDer.Speech;
-
-var config = new iCoDerConfig { ApiKey = "YOUR_API_KEY" };
-using var client = new iCoDerSttClient(config);
-
-var session = await client.StartSessionAsync(new SttSessionOptions
+using var client = new ICoDerClient(new ICoDerClientOptions
 {
-    Language = "${language}",
-    Punctuation = PunctuationMode.${punctuationMode === 'auto' ? 'Auto' : 'Spoken'},
-    InterimResults = ${interimResults}
+    BaseUri = new Uri("https://api.example.cn"),
+    AccessToken = "<tenant-access-token>",
 });
-
-session.OnTranscript += (sender, text) =>
+var audio = await File.ReadAllBytesAsync("consultation.wav");
+var recording = await client.SpeechToText.UploadRecordingAsync(
+    "interaction-001", audio, "audio/wav");
+var result = await client.SpeechToText.CreateTranscriptAsync(
+    "interaction-001", new TranscriptCreateRequest
 {
-    Console.WriteLine($"Transcript: {text}");
-};
-
-await session.StartAsync();`}
+        RecordingId = recording.RecordingId,
+        PrimaryLanguage = "zh-CN",
+        AutomaticPunctuation = true,
+        Async = true,
+    });
+Console.WriteLine($"HTTP {(int)result.StatusCode}: {result.Location}");`}
           json={`{
-  "apiKey": "YOUR_API_KEY",
-  "language": "${language}",
-  "punctuation": "${punctuationMode}",
-  "interimResults": ${interimResults}
+  "recordingId": "<uploaded-recording-id>",
+  "primaryLanguage": "zh-CN",
+  "automaticPunctuation": true,
+  "async": true
 }`}
         />
       }
@@ -471,7 +512,7 @@ await session.StartAsync();`}
   );
 
   const inspectorSlot = (
-    <EventInspector events={sttEvents} creditsConsumed={sttCredits} />
+    <EventInspector events={sttEvents} creditsConsumed={0} />
   );
 
   return (

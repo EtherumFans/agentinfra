@@ -142,28 +142,105 @@ def test_to_summary_for_legacy_pack_shows_empty_backend():
     assert summary["has_backend_config"] is True
 
 
-# ── Phase 4-B: note-completeness migrated to PureLLMProvider ──────
+# ── Note Completeness: local deterministic documentation rules ─────
 
 
-def test_note_completeness_pack_declares_pure_llm_backend():
-    """Phase 4-B: note-completeness pack now declares backend_provider='icoder.pure-llm.v1'."""
+def test_note_completeness_pack_declares_documentation_rule_backend():
+    """The user path is local and does not require an external model."""
     pack = _load_official_pack("note-completeness")
     p = load_pack(pack)
-    assert p.backend_provider == "icoder.pure-llm.v1"
-    # backend_config should now be populated with llm/fallback keys.
+    assert p.backend_provider == "icoder.documentation-rule-engine.v1"
     assert isinstance(p.backend_config, dict)
-    assert "llm" in p.backend_config
-    assert p.backend_config["llm"]["model"] == "deepseek-chat"
-    assert "fallback" in p.backend_config
+    assert p.backend_config["rules"]["network_required"] is False
 
 
-def test_note_completeness_pack_summary_shows_pure_llm():
-    """Agent Hub card summary reflects the migrated backend."""
+def test_note_completeness_pack_summary_shows_documentation_rules():
+    """Agent Hub summary reflects the deterministic backend."""
     pack = _load_official_pack("note-completeness")
     p = load_pack(pack)
     summary = p.to_summary()
-    assert summary["backend_provider"] == "icoder.pure-llm.v1"
+    assert summary["backend_provider"] == "icoder.documentation-rule-engine.v1"
     assert summary["has_backend_config"] is True
+
+
+# ── Code Validation: governed local baseline + optional semantic review ──
+
+
+def test_code_validation_pack_declares_governed_catalog_backend():
+    pack = _load_official_pack("code-validation")
+    p = load_pack(pack)
+    assert p.backend_provider == "icoder.governed-code-validation.v1"
+    assert p.backend_config["catalog_baseline"]["integrity_required"] is True
+    assert p.backend_config["catalog_baseline"]["billing_authoritative"] is False
+    assert p.backend_config["semantic_enhancement"]["default_enabled"] is False
+    assert p.raw["manifest"]["human_review"] == "required"
+    assert p.raw["llm_capabilities"]["required_models"] == []
+
+
+def test_icd10_navigator_pack_declares_governed_local_index_backend():
+    pack = _load_official_pack("icd10_navigator")
+    p = load_pack(pack)
+    assert p.backend_provider == "icoder.governed-icd-navigator.v1"
+    config = p.backend_config["catalog_navigation"]
+    assert config["asset_id"] == "cn.icd10cn.catalog"
+    assert config["integrity_required"] is True
+    assert config["network_required"] is False
+    assert config["maximum_candidate_blocks"] == 3
+    assert config["maximum_rephrasing_attempts"] == 1
+    assert config["instructional_notes_available"] is False
+    assert config["billing_authoritative"] is False
+    assert p.raw["llm_capabilities"]["required_models"] == []
+    assert p.raw["manifest"]["human_review"] == "required"
+    assert p.raw["output_contract"]["schema_ref"] == (
+        "icoder/Icd10NavigatorOutput/v4"
+    )
+
+
+def test_evidence_ranker_pack_declares_documentation_grounding_only_backend():
+    pack = _load_official_pack("evidence-ranker")
+    p = load_pack(pack)
+    assert p.backend_provider == "icoder.governed-evidence-ranker.v1"
+    config = p.backend_config["documentation_grounding"]
+    assert config["policy_id"] == "icoder.documentation-grounding-ranking"
+    assert config["maximum_evidence_items"] == 50
+    assert config["source_span_exact_match"] is True
+    assert config["clinical_support_assessed"] is False
+    assert config["network_required"] is False
+    assert p.raw["llm_capabilities"]["required_models"] == []
+    assert p.raw["manifest"]["human_review"] == "required"
+    assert p.raw["output_contract"]["schema_ref"] == (
+        "icoder/EvidenceRankerOutput/v4"
+    )
+    schemas = p.raw["output_contract"]["field_schemas"]
+    assert schemas["ranking_basis"]["const"] == "DOCUMENTATION_GROUNDING_ONLY"
+    assert schemas["ranked_evidence"]["maxItems"] == 50
+    score = schemas["ranked_evidence"]["items"]["properties"][
+        "documentation_grounding_score"
+    ]
+    assert score["minimum"] == 0
+    assert score["maximum"] == 1
+
+
+def test_evidence_extractor_pack_declares_governed_exact_mention_backend():
+    pack = _load_official_pack("evidence_extractor")
+    p = load_pack(pack)
+    assert p.backend_provider == "icoder.governed-evidence-extractor.v1"
+    config = p.backend_config["exact_mention_extraction"]
+    assert config["asset_id"] == "cn.icd10cn.catalog"
+    assert config["integrity_required"] is True
+    assert config["network_required"] is False
+    assert config["maximum_input_codes"] == 20
+    assert config["maximum_mentions_per_code"] == 5
+    assert config["clinical_support_assessed"] is False
+    assert config["billing_authoritative"] is False
+    assert p.raw["llm_capabilities"]["required_models"] == []
+    assert p.raw["manifest"]["human_review"] == "required"
+    assert p.raw["output_contract"]["schema_ref"] == "icoder/CodedEvidence/v11"
+    schemas = p.raw["output_contract"]["field_schemas"]
+    assert schemas["match_basis"]["const"] == (
+        "EXACT_CATALOG_TERM_OR_CODE_LITERAL_ONLY"
+    )
+    assert schemas["uncoded_findings"]["maxItems"] == 0
 
 
 # ── Schema validation: backend_config.tools ───────────────────────

@@ -1,0 +1,188 @@
+{
+  "case_id": "CASE-350eef253b45",
+  "completion_state": "AUTO_PASS",
+  "documentation_gaps": [],
+  "proposed_provider_queries": [],
+  "query_rewrite_queue": [],
+  "chart_excerpt_preview": "患者男性, 50岁, 急性阑尾炎切除术后10年。目前无症状。否认腹痛、发热、恶心、呕吐。查体正常。诊断:阑尾切除术后状态。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者男性，50岁",
+      "急性阑尾炎切除术后10年",
+      "目前无症状",
+      "否认腹痛、发热、恶心、呕吐",
+      "查体正常",
+      "诊断：阑尾切除术后状态"
+    ],
+    "encounter_metadata": {
+      "patient_age": "50岁",
+      "patient_sex": "男性",
+      "encounter_type": "门诊"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": false,
+      "rationale": "no coding-relevant gaps survived earlier gates",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-722e38890e46",
+    "gap_identification": "run-87dd5cbcba2b",
+    "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
+    "expert_consultation": "run-50d1641fbbe6",
+    "query_generation": "",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=True;completeness_score=0.25;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=Y,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=0;llm_complete=True;llm_reasoning=The chart documents a post-operative status after appendectomy with no current s",
+    "query_necessity_gate": "necessary=0;unnecessary=0;overquery_triggered=False;final_count=0",
+    "query_single_dimension_gate": "single_dim=0;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;rewrite_attempted=0;rewrite_accepted=0;final_count=0",
+    "claim_evidence_alignment_gate": "claims_extracted=0;blocked=0;flagged=0;final_count=0",
+    "claim_evidence_alignment_gate::run_id": "run-a60651ed6748",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+    "semantic_necessity_gate::run_id": "run-14be3d952f4d",
+    "query_compliance_gate": ";passed=0;blocked=0",
+    "specialist_trace_emit": "run-4b998399801f"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-35c354f96922",
+    "gap_identification": "trace-73f96a5ced18",
+    "expert_consultation": "trace-b62ec59468eb",
+    "query_generation": "",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-61be54fcb91d",
+    "semantic_necessity_gate": "trace-57202e716300",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-bafc2b6f1b6c"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2303,
+      "prompt_tokens": 212,
+      "completion_tokens": 98,
+      "total_tokens": 310,
+      "run_id": "run-722e38890e46",
+      "trace_id": "trace-35c354f96922",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2605,
+      "prompt_tokens": 1035,
+      "completion_tokens": 73,
+      "total_tokens": 1108,
+      "run_id": "run-87dd5cbcba2b",
+      "trace_id": "trace-73f96a5ced18",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-1cd63b5175e3",
+      "trace_id": "trace-2f7f3ccba7dd",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-0cb7854a6109",
+      "trace_id": "trace-10478f4d2fd8",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-dc1506496865",
+      "trace_id": "trace-56311340f323",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-15402f502808",
+      "trace_id": "trace-aadfbe70ca6f",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T21:39:09.907581Z"
+}

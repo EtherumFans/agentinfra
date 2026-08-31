@@ -66,6 +66,16 @@ logger = logging.getLogger(__name__)
 # as MODERN_SYSTEM. Adding actions here automatically makes the
 # classifier recognise them.
 _SYSTEM_AUDIT_ACTIONS_EXTRA: frozenset[str] = frozenset({
+    # Public registration must never self-assign a privileged platform role.
+    "auth.register.denied.role_escalation",
+    # Platform-wide user/tenant access administration. These events have no
+    # single owning tenant and must remain invisible to tenant audit readers.
+    "platform_admin.user_access_updated",
+    "platform_admin.user_access_update_denied",
+    "platform_admin.organization_updated",
+    "org.invite.delivery_succeeded",
+    "org.invite.delivery_retry_scheduled",
+    "org.invite.delivery_dead_letter",
     # Gate 3.2 — Security Admin forensic reads
     "security_admin.access",
     # Gate 3.4 — SSE denials
@@ -82,6 +92,13 @@ _SYSTEM_AUDIT_ACTIONS_EXTRA: frozenset[str] = frozenset({
     "run.timeout",
     "run.complete",
     "run.failed",
+    # CDI direct REST failures that occur after the main model stages but
+    # before any clinical result is persisted or returned.
+    "cdi.run.failed.required_gate_degraded",
+    # Feedback never implies model-improvement permission.  These explicit,
+    # tenant-owned mutations are the only authorization lifecycle events.
+    "agentic.feedback.training_authorization.granted",
+    "agentic.feedback.training_authorization.revoked",
     # Gate 3.6 — idempotency dedup event
     "idempotency.dedup",
     # Gate 3.6 — patient context clear (Phase 6 Gate 2)

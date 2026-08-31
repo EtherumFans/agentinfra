@@ -46,7 +46,11 @@ import re
 from dataclasses import dataclass, field
 from typing import Literal
 
-from app.icoder.agent_runtime.cdi.domain import CDICase, ProviderQuery
+from app.icoder.agent_runtime.cdi.domain import (
+    CDICase,
+    ProviderQuery,
+    query_audit_item,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -418,6 +422,12 @@ def apply_eligibility_to_case(case: CDICase) -> CaseEligibilityResult:
         verdict = result.per_query.get(q.query_id)
         if verdict is None or verdict.verdict != "INELIGIBLE":
             survivors.append(q)
+            continue
+        case.query_rewrite_queue.append(query_audit_item(
+            q,
+            status="REJECTED_AS_INELIGIBLE",
+            gate_reasons=list(verdict.drop_reasons),
+        ))
     result.dropped_count = len(case.proposed_provider_queries) - len(survivors)
     case.proposed_provider_queries = survivors
     return result

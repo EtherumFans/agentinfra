@@ -17,6 +17,8 @@ from __future__ import annotations
 
 import os
 import uuid
+import asyncio
+from types import SimpleNamespace
 
 import pytest
 from fastapi.testclient import TestClient
@@ -156,3 +158,70 @@ def test_cancel_does_not_zero_recorded_cost(client: TestClient) -> None:
     assert cost_after >= cost_before, (
         f"Cancel must not zero cost: before={cost_before}, after={cost_after}"
     )
+
+
+# POST /api/v1/runs/{run_id}/trace-token
+
+
+def test_renew_trace_token_is_bound_no_store_and_audited(client: TestClient) -> None:
+    """An authorized caller receives a fresh run/org-bound token only once
+    the tenant audit row has been persisted."""
+    from sqlalchemy import text
+    from app.database import AsyncSessionLocal
+    from app.services.trace_token import verify_trace_token
+
+    run_id = _seed_run(client, input_text="trace token renewal")
+
+    async def _count() -> int:
+        async with AsyncSessionLocal() as db:
+            result = await db.execute(text(
+                "SELECT COUNT(*) FROM audit_logs "
+                "WHERE action = 'run.trace_token.renew' AND resource_id = :run_id"
+            ), {"run_id": run_id})
+            return int(result.scalar() or 0)
+
+    before = asyncio.run(_count())
+    response = client.post(f"/api/v1/runs/{run_id}/trace-token")
+    assert response.status_code == 200, response.text
+    assert response.headers["cache-control"] == "no-store"
+    body = response.json()
+    assert body["run_id"] == run_id
+    assert body["events_url"] == f"/api/v1/runs/{run_id}/events"
+    assert body["trace_url"] == f"/api/v1/runs/{run_id}/trace"
+    claims = verify_trace_token(body["trace_token"], expected_run_id=run_id)
+    assert claims.organization_id == "org_default1"
+    assert claims.exp == body["expires_at"]
+    assert asyncio.run(_count()) == before + 1
+
+
+def test_renew_trace_token_unknown_returns_404(client: TestClient) -> None:
+    response = client.post("/api/v1/runs/run-token-does-not-exist/trace-token")
+    assert response.status_code == 404
+    assert response.json()["detail"]["code"] == "RUN_NOT_FOUND"
+
+
+def test_renew_trace_token_cross_org_returns_same_404(client: TestClient) -> None:
+    from app.main import app
+    from app.middleware.auth import get_current_organization
+
+    run_id = _seed_run(client, input_text="trace token cross org")
+    app.dependency_overrides[get_current_organization] = lambda: SimpleNamespace(
+        id="org-other1"
+    )
+    try:
+        response = client.post(f"/api/v1/runs/{run_id}/trace-token")
+        assert response.status_code == 404
+        assert response.json()["detail"]["code"] == "RUN_NOT_FOUND"
+    finally:
+        app.dependency_overrides.pop(get_current_organization, None)
+
+
+def test_renew_trace_token_fails_closed_while_audit_is_paused(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    run_id = _seed_run(client, input_text="trace token audit pause")
+    monkeypatch.setenv("ICODER_AUDIT_WRITE_PAUSED", "true")
+    response = client.post(f"/api/v1/runs/{run_id}/trace-token")
+    assert response.status_code == 503
+    assert response.json()["detail"]["code"] == "AUDIT_PERSISTENCE_FAILED"

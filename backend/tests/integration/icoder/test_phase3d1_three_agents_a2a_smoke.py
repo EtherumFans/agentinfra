@@ -124,8 +124,8 @@ def _send(client: TestClient, agent_id: str, input_text: str):
 
 
 def test_code_validation_agent_runs_via_a2a(client):
-    """Phase 4-D (D-5): code-validation-agent A2A path now routes to
-    agent_v2 (LLMWithToolsProvider + 4 MCP tools) directly, bypassing
+    """Code Validation A2A routes to the governed local catalog baseline
+    with separately gated optional LLM/tool review, bypassing
     the v1 validate_codes MCP tool. Response shape is v2:
     validated_codes / cross_code_issues / markdown / summary.
     """
@@ -142,18 +142,26 @@ def test_code_validation_agent_runs_via_a2a(client):
     )
     assert data_part is not None, "response missing DataPart"
     data = data_part["data"]
-    # v2 assertions (Phase 4-C/D)
+    # Current v2 Pack contract; removed internal/legacy fields must not be
+    # reintroduced merely to satisfy an old smoke.
+    expected_fields = {
+        "review_conclusion",
+        "validated_codes",
+        "cross_code_issues",
+        "manual_review_required",
+        "summary",
+        "markdown",
+    }
+    assert set(data) == expected_fields
     assert data["review_conclusion"] in ("PASS", "WARNING", "FAIL")
-    assert data["rule_set"] == "medical_coding"
     assert "validated_codes" in data, "v2 missing validated_codes"
     assert "cross_code_issues" in data, "v2 missing cross_code_issues"
     assert "markdown" in data, "v2 missing markdown"
     assert "summary" in data, "v2 missing summary"
-    # v2 agent_ref — @2.0.0 (D-5 wiring overrides legacy fallback carry-over)
-    assert data.get("agent_ref") == "icoder/code-validation-agent@2.0.0"
-    assert data["trace_refs"].get("agent_ref") == "icoder/code-validation-agent@2.0.0"
-    # backend_provider marker — frontend uses this to detect v2 path
-    assert data_part["metadata"].get("backend_provider") == "icoder.llm-with-tools.v1"
+    assert data_part["metadata"].get("backend_provider") == (
+        "icoder.governed-code-validation.v1"
+    )
+    assert data_part["metadata"].get("backend_type") == "hybrid"
     # run_id should be in metadata (for RunTrace page)
     assert "run_id" in result["metadata"]
 
@@ -174,7 +182,19 @@ def test_compliance_guardrail_agent_runs_via_a2a(client):
     assert data["review_conclusion"] in ("PASS", "WARNING", "FAIL")
     assert "compliance_checks" in data
     assert "drg_suggestion" in data
-    assert data["trace_refs"]["agent_ref"] == "icoder/compliance-guardrail-agent@1.0.0"
+    compliance_required = {
+        "review_conclusion",
+        "issues_found",
+        "manual_review_required",
+        "drg_suggestion",
+        "reviewed_codes",
+        "compliance_checks",
+        "rule_set",
+        "trace_refs",
+    }
+    assert compliance_required.issubset(data)
+    assert set(data).issubset(compliance_required | {"fired_rules"})
+    assert data["trace_refs"]["run_id"] == result["metadata"]["run_id"]
 
 
 def test_note_completeness_agent_runs_via_a2a(client):
@@ -199,8 +219,24 @@ def test_note_completeness_agent_runs_via_a2a(client):
     assert 0.0 <= data["completeness_score"] <= 1.0
     assert "missing_sections" in data
     assert "present_sections" in data
-    assert data["trace_refs"]["agent_ref"] == "icoder/note-completeness-agent@1.0.0"
-    assert data["is_surgical_case"] is True  # 手术 keyword present
+    note_required = {
+        "review_conclusion",
+        "documentation_gaps",
+        "completeness_score",
+        "missing_sections",
+        "present_sections",
+        "required_sections",
+        "incomplete_sections",
+        "conflicts",
+        "corrected_draft",
+        "trace_refs",
+    }
+    assert set(data) == note_required
+    assert data["trace_refs"]["run_id"] == result["metadata"]["run_id"]
+    assert data_part["metadata"].get("backend_provider") == (
+        "icoder.documentation-rule-engine.v1"
+    )
+    assert data_part["metadata"].get("backend_type") == "rule_engine"
 
 
 def test_run_trace_page_works_for_simple_agent(client):

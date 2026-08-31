@@ -80,6 +80,7 @@ def test_preflight_allowed_partner_origin_returns_204(client: TestClient) -> Non
     assert resp.status_code == 204, resp.text
     assert resp.headers.get("access-control-allow-origin") == "https://partner-test.example"
     assert "GET" in resp.headers.get("access-control-allow-methods", "")
+    assert "Last-Event-ID" in resp.headers.get("access-control-allow-headers", "")
     assert "origin" in resp.headers.get("vary", "").lower()
 
 

@@ -1,0 +1,398 @@
+{
+  "case_id": "CASE-2c74588d4e4e",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-2c74588d4e4e/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "脑梗死的具体类型未明确（如动脉粥样硬化性、心源性栓塞、小动脉闭塞等）",
+      "why_it_matters": "脑梗死的病因分型影响治疗方案和预后评估，且对编码准确性至关重要。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "入院诊断:脑梗死",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-2c74588d4e4e/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "脑梗死的受累血管和具体解剖部位未明确（如大脑中动脉、基底节等）",
+      "why_it_matters": "明确梗死部位有助于确定病因和严重程度，且对编码和临床管理有直接影响。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "头颅CT:未见出血",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-2c74588d4e4e/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "脑梗死的严重程度未明确（如轻、中、重度）",
+      "why_it_matters": "严重程度影响治疗决策和预后，且对编码和DRG分组有影响。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "NIHSS 8",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-2c74588d4e4e/Q-001",
+      "gap_id": "CASE-2c74588d4e4e/GAP-002",
+      "topic": "脑梗死受累血管及部位",
+      "reason": "头颅CT未见出血，但未明确具体受累血管和部位，影响定位诊断。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "头颅CT:未见出血",
+        "char_start": 23,
+        "char_end": 32,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "头颅CT:未见出血",
+          "char_start": 23,
+          "char_end": 32,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "根据影像学和临床表现，脑梗死的受累血管及具体解剖部位最可能为以下哪一项？",
+      "response_options": [
+        "A. 大脑中动脉供血区（如基底节）",
+        "B. 大脑前动脉供血区",
+        "C. 大脑后动脉供血区",
+        "D. 椎基底动脉系统",
+        "E. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "urgent",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    },
+    {
+      "query_id": "CASE-2c74588d4e4e/Q-002",
+      "gap_id": "CASE-2c74588d4e4e/GAP-003",
+      "topic": "脑梗死严重程度",
+      "reason": "NIHSS评分为8，但未明确严重程度分级，影响病情评估。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "NIHSS 8",
+        "char_start": 33,
+        "char_end": 40,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "NIHSS 8",
+          "char_start": 33,
+          "char_end": 40,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "根据NIHSS评分及临床表现，该患者脑梗死的严重程度分级为以下哪一项？",
+      "response_options": [
+        "A. 轻度",
+        "B. 中度",
+        "C. 重度",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    },
+    {
+      "query_id": "CASE-2c74588d4e4e/Q-003",
+      "gap_id": "CASE-2c74588d4e4e/GAP-001",
+      "topic": "脑梗死类型",
+      "reason": "明确脑梗死的具体类型（如急性、亚急性等）有助于指导治疗和预后评估。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "入院诊断:脑梗死",
+        "char_start": 41,
+        "char_end": 49,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "入院诊断:脑梗死",
+          "char_start": 41,
+          "char_end": 49,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "根据现有临床资料，该患者脑梗死的类型最符合以下哪一项？",
+      "response_options": [
+        "A. 急性脑梗死",
+        "B. 亚急性脑梗死",
+        "C. 慢性脑梗死",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    }
+  ],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-001",
+      "gap_id": "CASE-2c74588d4e4e/GAP-001",
+      "topic": "脑梗死病因分型",
+      "reason": "入院诊断为脑梗死，但未明确具体病因分型，影响治疗决策。",
+      "query_text": "根据患者临床表现和影像学检查，脑梗死的病因分型最符合以下哪一项？",
+      "response_options": [
+        "A. 动脉粥样硬化性",
+        "B. 心源性栓塞",
+        "C. 小动脉闭塞",
+        "D. 其他明确病因",
+        "E. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "入院诊断:脑梗死",
+          "char_start": 41,
+          "char_end": 49,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "SD-001: topic axes = ['etiology', 'type']",
+        "SD-002: axes in 40-char window = ['etiology', 'type']"
+      ],
+      "status": "REWRITE_CANDIDATE_GENERATED",
+      "detected_axes": [
+        "etiology",
+        "type"
+      ],
+      "replacement_query_id": "Q-001-type",
+      "rewrite_attempt_status": "ACCEPTED_FOR_DOWNSTREAM_GATES",
+      "rewrite_attempt_reasons": [],
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者女性, 70岁, 突发左侧肢体无力2小时。头颅CT:未见出血。NIHSS 8。入院诊断:脑梗死。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者女性，70岁",
+      "突发左侧肢体无力2小时",
+      "头颅CT未见出血",
+      "NIHSS评分8分",
+      "入院诊断：脑梗死"
+    ],
+    "encounter_metadata": {
+      "patient_age": "70岁",
+      "patient_sex": "女性",
+      "encounter_type": "入院"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "For accurate coding, the documentation must specify the cerebral infarction subtype (e.g., atherosclerotic, cardioembolic, or lacunar/small-vessel occlusion) and the affected vascular territory or anatomical site (e.g., middle cerebral artery, basal ganglia), as these directly determine the clinical classification. Additionally, the severity (mild, moderate, or severe) should be explicitly stated, as it reflects the NIHSS score and impacts treatment and outcome documentation. Without these details, the record lacks the clinical specificity required for precise coding and risk adjustment.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3452,
+      "tokens": 262
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "'NIHSS' score — parameters absent from chart",
+      "route_decision": "missing_inputs",
+      "route_reason": "calculator_params_missing",
+      "execution_mode": "SKIPPED_MISSING_INPUTS",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-0f359020b97b",
+    "gap_identification": "run-e730ab96cbf3",
+    "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
+    "expert_consultation": "run-033c89973d52",
+    "query_generation": "run-b11951313c5a",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.25;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=Y,D8_course=N;dropped=0;final_count=3;llm_complete=False;llm_reasoning=脑梗死诊断明确，但缺乏病因分型、具体部位和严重程度等关键信息，影响编码和临床管理。",
+    "query_necessity_gate": "necessary=3;unnecessary=0;overquery_triggered=False;final_count=3",
+    "query_dimension_rewrite": "run-325f644ae4e9",
+    "query_single_dimension_gate": "single_dim=2;multi_dim=1;axis_cluster_triggered=False;axis_cluster_axis=type;rewrite_attempted=1;rewrite_accepted=1;final_count=3",
+    "claim_evidence_alignment_gate": "claims_extracted=9;blocked=0;flagged=0;final_count=3",
+    "claim_evidence_alignment_gate::run_id": "run-b0f21edcb701",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=3",
+    "semantic_necessity_gate::run_id": "run-6eff775e1e63",
+    "query_compliance_gate": ";passed=3;blocked=0",
+    "specialist_trace_emit": "run-1c8a06982660"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-f39d06879081",
+    "gap_identification": "trace-c28e515248af",
+    "expert_consultation": "trace-93afb6bfbd2f",
+    "query_generation": "trace-0d637f25aafb",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_dimension_rewrite": "trace-5432fe871313",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-d094e6b66c39",
+    "semantic_necessity_gate": "trace-34d21354ec57",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-bf92408447ad"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2548,
+      "prompt_tokens": 203,
+      "completion_tokens": 87,
+      "total_tokens": 290,
+      "run_id": "run-0f359020b97b",
+      "trace_id": "trace-f39d06879081",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5339,
+      "prompt_tokens": 1014,
+      "completion_tokens": 452,
+      "total_tokens": 1466,
+      "run_id": "run-e730ab96cbf3",
+      "trace_id": "trace-c28e515248af",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5753,
+      "prompt_tokens": 1097,
+      "completion_tokens": 629,
+      "total_tokens": 1726,
+      "run_id": "run-b11951313c5a",
+      "trace_id": "trace-0d637f25aafb",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_dimension_rewrite",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3065,
+      "prompt_tokens": 635,
+      "completion_tokens": 218,
+      "total_tokens": 853,
+      "run_id": "run-325f644ae4e9",
+      "trace_id": "trace-5432fe871313",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3452,
+      "prompt_tokens": 153,
+      "completion_tokens": 109,
+      "total_tokens": 262,
+      "run_id": "run-545f2a3cdf9a",
+      "trace_id": "trace-ca438fa12ccd",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-71c13dec71e9",
+      "trace_id": "trace-ff948684f994",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-03cca0230641",
+      "trace_id": "trace-b91462855596",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-2cd815225788",
+      "trace_id": "trace-639c09d84780",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T17:55:43.934858Z"
+}

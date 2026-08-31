@@ -1,0 +1,290 @@
+{
+  "case_id": "CASE-7574c954efc6",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-7574c954efc6/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "主诉乏力，但未明确具体病因或诊断，缺乏诊断特异性。",
+      "why_it_matters": "乏力是非特异性症状，编码时需要明确潜在病因，否则无法准确编码，影响DRG分组和医疗质量评估。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "患者男性, 50岁, 乏力。建议进一步检查。",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-7574c954efc6/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "未明确乏力相关的检查结果或临床发现，缺乏临床相关性。",
+      "why_it_matters": "没有检查结果或临床发现，无法确定乏力的病因，影响诊断的准确性和后续治疗。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "建议进一步检查",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-001",
+      "gap_id": "CASE-7574c954efc6/GAP-001",
+      "topic": "乏力病因诊断",
+      "reason": "主诉乏力但未明确具体病因或诊断，需明确诊断方向。",
+      "query_text": "患者主诉乏力，目前尚未明确具体病因。请明确以下哪项最符合当前临床判断？",
+      "response_options": [
+        "A. 乏力由明确的内科疾病所致（如贫血、甲状腺功能减退、慢性感染等）",
+        "B. 乏力由精神心理因素所致（如抑郁、焦虑等）",
+        "C. 乏力由药物或毒物引起",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "患者男性, 50岁, 乏力。",
+          "char_start": 0,
+          "char_end": 14,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "INSUFFICIENT_CLINICAL_SUBSTRATE",
+        "NOT_ANSWERABLE"
+      ],
+      "status": "REJECTED_BY_SEMANTIC_NECESSITY",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-002",
+      "gap_id": "CASE-7574c954efc6/GAP-002",
+      "topic": "乏力相关检查结果",
+      "reason": "未明确乏力相关的检查结果或临床发现，需明确相关检查是否已进行及结果。",
+      "query_text": "针对乏力，目前是否已进行相关检查并明确结果？请选择最符合当前情况的一项。",
+      "response_options": [
+        "A. 已进行相关检查，结果异常并指向具体病因",
+        "B. 已进行相关检查，结果均正常",
+        "C. 尚未进行相关检查",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "建议进一步检查",
+          "char_start": 14,
+          "char_end": 21,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "INSUFFICIENT_CLINICAL_SUBSTRATE",
+        "NOT_ANSWERABLE"
+      ],
+      "status": "REJECTED_BY_SEMANTIC_NECESSITY",
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者男性, 50岁, 乏力。建议进一步检查。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者男性，50岁",
+      "主诉乏力",
+      "建议进一步检查"
+    ],
+    "encounter_metadata": {
+      "patient_age": "50岁",
+      "patient_sex": "男",
+      "encounter_type": "门诊"
+    }
+  },
+  "risk_flags": [
+    {
+      "category": "ambiguous_term",
+      "description": "使用'建议进一步检查'，未明确具体检查或诊断方向，模糊了临床结论。"
+    }
+  ],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": false,
+      "rationale": "empty chart — no coding substrate",
+      "route_decision": "not_needed",
+      "route_reason": "empty_chart",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "empty_chart",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "empty_chart",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "empty_chart",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-d3a286523527",
+    "gap_identification": "run-61ab4331e00d",
+    "gap_identification_risk_flags": "emitted=1;quote_snapped=0",
+    "expert_consultation": "run-764245e06311",
+    "query_generation": "run-4059fb8990a2",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=;dropped=0;final_count=2;llm_complete=False;llm_reasoning=病历仅记录主诉'乏力'和'建议进一步检查'，未提供任何诊断、检查结果或病因，缺乏临床完整性，无法进行准确编码。",
+    "query_necessity_gate": "necessary=2;unnecessary=0;overquery_triggered=False;final_count=2",
+    "query_single_dimension_gate": "single_dim=2;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=etiology;rewrite_attempted=0;rewrite_accepted=0;final_count=2",
+    "claim_evidence_alignment_gate": "claims_extracted=4;blocked=0;flagged=0;final_count=2",
+    "claim_evidence_alignment_gate::run_id": "run-4abb52c8d808",
+    "semantic_necessity_gate": "blocked=2;flagged=0;degraded=0;final_count=0",
+    "semantic_necessity_gate::run_id": "run-af08e24c94b0",
+    "query_compliance_gate": ";passed=0;blocked=0",
+    "specialist_trace_emit": "run-3962e4650442"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-dfaee6d2ac09",
+    "gap_identification": "trace-f1bd603b477e",
+    "expert_consultation": "trace-5c1ecdec2a81",
+    "query_generation": "trace-dfa839b89286",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-d855a6ac24d3",
+    "semantic_necessity_gate": "trace-c56cb1079f8d",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-5e10c8d49d5b"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 1979,
+      "prompt_tokens": 185,
+      "completion_tokens": 61,
+      "total_tokens": 246,
+      "run_id": "run-d3a286523527",
+      "trace_id": "trace-dfaee6d2ac09",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 4664,
+      "prompt_tokens": 977,
+      "completion_tokens": 419,
+      "total_tokens": 1396,
+      "run_id": "run-61ab4331e00d",
+      "trace_id": "trace-f1bd603b477e",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5322,
+      "prompt_tokens": 1133,
+      "completion_tokens": 464,
+      "total_tokens": 1597,
+      "run_id": "run-4059fb8990a2",
+      "trace_id": "trace-dfa839b89286",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-4ccf7b15278b",
+      "trace_id": "trace-56e389f4e815",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-ef99ac879884",
+      "trace_id": "trace-9d1a2a83eabe",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-fa8efed621e4",
+      "trace_id": "trace-09517ed3c5bf",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-2b9122310e99",
+      "trace_id": "trace-147d2f130e3d",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T20:05:35.936668Z"
+}

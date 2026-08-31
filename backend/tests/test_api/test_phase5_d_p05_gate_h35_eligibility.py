@@ -209,6 +209,11 @@ def test_apply_eligibility_drops_mixed_case():
     assert len(case.proposed_provider_queries) == 1
     assert case.proposed_provider_queries[0].query_id == "Q-1"
     assert result.dropped_count == 1
+    assert len(case.query_rewrite_queue) == 1
+    rejected = case.query_rewrite_queue[0]
+    assert rejected["query_id"] == "Q-2"
+    assert rejected["status"] == "REJECTED_AS_INELIGIBLE"
+    assert rejected["gate_reasons"]
 
 
 def test_apply_eligibility_preserves_all_when_all_eligible():
@@ -228,6 +233,7 @@ def test_apply_eligibility_preserves_all_when_all_eligible():
     result = apply_eligibility_to_case(case)
     assert len(case.proposed_provider_queries) == 2
     assert result.dropped_count == 0
+    assert case.query_rewrite_queue == []
 
 
 # ---------------------------------------------------------------------------

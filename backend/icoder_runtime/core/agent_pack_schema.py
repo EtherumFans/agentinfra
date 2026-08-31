@@ -182,6 +182,14 @@ class NormalizedPack:
     # ── Classification (set by loader, not from raw) ──
     status: PackStatus = PackStatus.INVALID
     production_ready: bool = False
+    # Development-environment release gate.  This is deliberately separate
+    # from ``production_ready``: it answers whether the pack has all
+    # machine-verifiable wiring and safety contracts needed to enter an
+    # external clinical/security/integration validation cycle.  It must never
+    # be presented as regulatory or hospital production approval.
+    launch_candidate_ready: bool = False
+    launch_candidate_blockers: list[str] = field(default_factory=list)
+    external_release_gates: list[str] = field(default_factory=list)
     experimental: bool = False
     enabled_by_default: bool = True
     validation_errors: list[str] = field(default_factory=list)
@@ -241,6 +249,9 @@ class NormalizedPack:
             "tool_count": self.tool_count,
             "status": self.status.value,
             "production_ready": self.production_ready,
+            "launch_candidate_ready": self.launch_candidate_ready,
+            "launch_candidate_blockers": list(self.launch_candidate_blockers),
+            "external_release_gates": list(self.external_release_gates),
             "experimental": self.experimental,
             "enabled_by_default": self.enabled_by_default,
             "tier": self.tier,

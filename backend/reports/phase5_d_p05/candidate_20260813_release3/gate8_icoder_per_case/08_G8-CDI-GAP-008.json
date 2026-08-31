@@ -1,0 +1,412 @@
+{
+  "case_id": "CASE-e76fc0ca89f4",
+  "completion_state": "REVIEW_RECOMMENDED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-e76fc0ca89f4/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "The chart documents metabolic acidosis (pH 7.30, HCO3 16) and ketosis, but the type of diabetes is not specified as type 2 with diabetic ketoacidosis (DKA) or as a distinct condition. The diagnosis of type 2 diabetes is present, but the acute metabolic decompensation is not explicitly diagnosed.",
+      "why_it_matters": "Coding requires specificity for the acute condition (e.g., type 2 diabetes with ketoacidosis) to accurately capture the severity and resource utilization. Without this, the encounter may be under-coded.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "pH 7.30, HCO3 16, 酮体阳性。入院诊断:2型糖尿病。",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-e76fc0ca89f4/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "The chart does not specify the type of diabetes (type 1 vs type 2) in the context of the acute presentation. Although the admission diagnosis is type 2 diabetes, the presence of ketosis and acidosis may suggest type 1 diabetes or latent autoimmune diabetes in adults (LADA). The provider should clarify the type.",
+      "why_it_matters": "The type of diabetes affects the treatment plan and coding. Misclassification can lead to inappropriate management and inaccurate coding.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "入院诊断:2型糖尿病",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-e76fc0ca89f4/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "The chart does not document the clinical correlation or planned workup for the abnormal lab values (e.g., elevated glucose, HbA1c, ketones, acidosis). Specifically, there is no statement of the clinical significance or the next steps (e.g., insulin therapy, further testing for autoantibodies).",
+      "why_it_matters": "For CDI, abnormal labs without clinical correlation leave the clinical picture incomplete, potentially leading to queries and delayed coding.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "FPG 12.5, HbA1c 11.2, pH 7.30, HCO3 16, 酮体阳性",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-e76fc0ca89f4/Q-001",
+      "gap_id": "CASE-e76fc0ca89f4/GAP-001",
+      "topic": "急性代谢失代偿的诊断",
+      "reason": "患者存在代谢性酸中毒和酮症，但未明确诊断为糖尿病酮症酸中毒（DKA）或与其他情况区分。",
+      "evidence_span": {
+        "document_id": "chart-001",
+        "quote": "pH 7.30, HCO3 16, 酮体阳性。入院诊断:2型糖尿病。",
+        "char_start": 40,
+        "char_end": 74,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "pH 7.30, HCO3 16, 酮体阳性。入院诊断:2型糖尿病。",
+          "char_start": 40,
+          "char_end": 74,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "患者存在代谢性酸中毒和酮症，请明确其急性代谢失代偿的临床诊断。",
+      "response_options": [
+        "A. 糖尿病酮症酸中毒（DKA）",
+        "B. 高血糖高渗状态（HHS）",
+        "C. 其他（请注明）",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "urgent",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    },
+    {
+      "query_id": "CASE-e76fc0ca89f4/Q-002",
+      "gap_id": "CASE-e76fc0ca89f4/GAP-003",
+      "topic": "异常实验室值的临床意义及后续计划",
+      "reason": "病历记录了血糖、HbA1c、酮体和酸中毒等异常值，但未说明其临床意义或下一步诊疗计划。",
+      "evidence_span": {
+        "document_id": "chart-001",
+        "quote": "FPG 12.5, HbA1c 11.2, pH 7.30, HCO3 16, 酮体阳性",
+        "char_start": 18,
+        "char_end": 62,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "FPG 12.5, HbA1c 11.2, pH 7.30, HCO3 16, 酮体阳性",
+          "char_start": 18,
+          "char_end": 62,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "请说明上述异常实验室值的临床意义及下一步诊疗计划。",
+      "response_options": [
+        "A. 考虑糖尿病酮症酸中毒，计划启动胰岛素治疗并监测血糖和电解质",
+        "B. 考虑糖尿病酮症酸中毒，计划进一步检查胰岛自身抗体以明确糖尿病类型",
+        "C. 考虑其他诊断，计划进一步检查（请注明）",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    },
+    {
+      "query_id": "CASE-e76fc0ca89f4/Q-003",
+      "gap_id": "CASE-e76fc0ca89f4/GAP-001",
+      "topic": "糖尿病急性并发症",
+      "reason": "酸中毒和酮体阳性，但急性并发症诊断未明确。",
+      "evidence_span": {
+        "document_id": "chart-001",
+        "quote": "pH 7.30, HCO3 16, 酮体阳性",
+        "char_start": 40,
+        "char_end": 62,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "pH 7.30, HCO3 16, 酮体阳性",
+          "char_start": 40,
+          "char_end": 62,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "请明确本次入院应记录的糖尿病急性并发症。",
+      "response_options": [
+        "A. 糖尿病酮症酸中毒",
+        "B. 糖尿病酮症（无酸中毒）",
+        "C. 其他急性并发症（请注明）",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    }
+  ],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-002",
+      "gap_id": "CASE-e76fc0ca89f4/GAP-002",
+      "topic": "糖尿病类型",
+      "reason": "尽管入院诊断为2型糖尿病，但酮症和酸中毒可能提示1型糖尿病或LADA，需明确糖尿病类型。",
+      "query_text": "患者存在酮症和酸中毒，请明确其糖尿病的具体类型。",
+      "response_options": [
+        "A. 1型糖尿病",
+        "B. 2型糖尿病",
+        "C. 成人隐匿性自身免疫糖尿病（LADA）",
+        "D. 其他（请注明）",
+        "E. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "入院诊断:2型糖尿病",
+          "char_start": 63,
+          "char_end": 73,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-001: chart explicitly documents diabetes type: '2型糖尿病'",
+        "NQ-004: the chart explicitly documents type 2 diabetes"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-DKA-8251787d",
+      "gap_id": "CASE-e76fc0ca89f4/GAP-001",
+      "topic": "糖尿病急性并发症",
+      "reason": "酸中毒和酮体阳性，但急性并发症诊断未明确。",
+      "query_text": "请明确本次入院应记录的糖尿病急性并发症。",
+      "response_options": [
+        "A. 糖尿病酮症酸中毒",
+        "B. 糖尿病酮症（无酸中毒）",
+        "C. 其他急性并发症（请注明）",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "pH 7.30, HCO3 16, 酮体阳性",
+          "char_start": 40,
+          "char_end": 62,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "CDI-Coverage: objective metabolic acidosis and ketones without DKA documentation"
+      ],
+      "status": "DETERMINISTIC_COVERAGE_GENERATED",
+      "rewrite_kind": "DIABETIC_KETOACIDOSIS_DIAGNOSIS",
+      "rewrite_attempt_status": "ACCEPTED_FOR_DOWNSTREAM_GATES",
+      "replacement_query_id": "Q-DKA-8251787d",
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者男性, 45岁, 多饮多尿1月。FPG 12.5, HbA1c 11.2, pH 7.30, HCO3 16, 酮体阳性。入院诊断:2型糖尿病。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者男性，45岁",
+      "主诉多饮多尿1月",
+      "空腹血糖12.5 mmol/L",
+      "糖化血红蛋白11.2%",
+      "pH 7.30",
+      "碳酸氢根16 mmol/L",
+      "酮体阳性",
+      "入院诊断：2型糖尿病"
+    ],
+    "encounter_metadata": {
+      "patient_age": "45岁",
+      "patient_sex": "男性",
+      "encounter_type": "入院"
+    }
+  },
+  "risk_flags": [
+    {
+      "category": "unsupported_diagnosis",
+      "description": "The diagnosis of type 2 diabetes is asserted, but the clinical picture (ketosis, acidosis) may be more consistent with type 1 diabetes or DKA. The diagnosis is not fully supported by the evidence without further clarification."
+    }
+  ],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "To ensure accurate coding, the provider must explicitly document the acute metabolic decompensation as diabetic ketoacidosis (DKA) or a related acidosis/ketosis syndrome, and clarify whether this presentation is consistent with type 2 diabetes with ketosis-prone features or an alternative type (e.g., type 1, LADA). Additionally, the chart should include a clinical statement linking the abnormal labs (pH, HCO3, ketones, glucose, HbA1c) to the diagnosis and outline the planned workup (e.g., autoantibody testing, C-peptide) and treatment (e.g., insulin protocol), as this specificity is essential for correct code assignment and severity capture.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3813,
+      "tokens": 450
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": true,
+      "rationale": "I do not have live PubMed search access, so I cannot provide verified PMIDs. However, based on established literature, ketosis-prone diabetes in a 45-year-old with severe hyperglycemia (HbA1c 11.2%) and metabolic acidosis (pH 7.30, HCO3 16) warrants evaluation for autoimmune (type 1/LADA) or ketosis-prone type 2 diabetes, as up to 10–20% of phenotypic type 2 patients with DKA have positive islet autoantibodies (e.g., GAD65) and require insulin. The chart gap is clinically significant: without specifying diabetes type or documenting a workup plan (autoantibodies, C-peptide, insulin initiation), the risk of misclassification and inappropriate oral-agent-only therapy is high. I recommend explicitly documenting \"DKA (ketosis-prone diabetes, type to be determined)\" and ordering GAD65, IA-2, and C-peptide to guide long-term therapy.",
+      "route_decision": "needed",
+      "route_reason": "criteria_marker_present",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3157,
+      "tokens": 527
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-fd880bfbb219",
+    "gap_identification": "run-2686ed1c718c",
+    "gap_identification_risk_flags": "emitted=1;quote_snapped=0",
+    "expert_consultation": "run-639a485c1290",
+    "query_generation": "run-a024f2bb38a0",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=3;llm_complete=False;llm_reasoning=The chart lacks specificity for the acute metabolic decompensation (DKA vs. type",
+    "query_necessity_gate": "necessary=2;unnecessary=1;overquery_triggered=False;final_count=3",
+    "query_single_dimension_gate": "single_dim=3;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=complication;rewrite_attempted=0;rewrite_accepted=0;final_count=3",
+    "claim_evidence_alignment_gate": "claims_extracted=7;blocked=0;flagged=0;final_count=3",
+    "claim_evidence_alignment_gate::run_id": "run-225ce8669942",
+    "semantic_necessity_gate": "blocked=0;flagged=1;degraded=0;final_count=3",
+    "semantic_necessity_gate::run_id": "run-8167314d51d2",
+    "query_compliance_gate": ";passed=3;blocked=0",
+    "specialist_trace_emit": "run-cc7eb19c57f0"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-9ec7527ffe72",
+    "gap_identification": "trace-7d5fdef5593d",
+    "expert_consultation": "trace-b9a74cf1d5b2",
+    "query_generation": "trace-3c6c3fffc9d3",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-b09de62f627e",
+    "semantic_necessity_gate": "trace-ae5acb8bedaf",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-ded7780b5d24"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3022,
+      "prompt_tokens": 226,
+      "completion_tokens": 118,
+      "total_tokens": 344,
+      "run_id": "run-fd880bfbb219",
+      "trace_id": "trace-9ec7527ffe72",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 7803,
+      "prompt_tokens": 1067,
+      "completion_tokens": 779,
+      "total_tokens": 1846,
+      "run_id": "run-2686ed1c718c",
+      "trace_id": "trace-7d5fdef5593d",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6723,
+      "prompt_tokens": 1303,
+      "completion_tokens": 797,
+      "total_tokens": 2100,
+      "run_id": "run-a024f2bb38a0",
+      "trace_id": "trace-3c6c3fffc9d3",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3813,
+      "prompt_tokens": 311,
+      "completion_tokens": 139,
+      "total_tokens": 450,
+      "run_id": "run-9c7c0496db83",
+      "trace_id": "trace-5b97edc22a42",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3157,
+      "prompt_tokens": 325,
+      "completion_tokens": 202,
+      "total_tokens": 527,
+      "run_id": "run-59bcec64c296",
+      "trace_id": "trace-4c4c72f3f72f",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-700eba419a9f",
+      "trace_id": "trace-993565779996",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-ae328451c37c",
+      "trace_id": "trace-215bfb653e0f",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T20:02:03.288976Z"
+}

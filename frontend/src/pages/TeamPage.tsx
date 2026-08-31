@@ -8,8 +8,7 @@ import { teamApi } from '../services/api';
 const ROLE_LABELS: Record<string, string> = {
   owner: '拥有者',
   admin: '管理员',
-  coder: '编码员',
-  dept_head: '科室主任',
+  member: '成员',
   viewer: '查看者',
 };
 
@@ -20,7 +19,7 @@ export default function TeamPage() {
   const [error, setError] = useState('');
   const [showInvite, setShowInvite] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteRole, setInviteRole] = useState('coder');
+  const [inviteRole, setInviteRole] = useState('member');
   const [invitations, setInvitations] = useState<any[]>([]);
   const [activeSection, setActiveSection] = useState<'members' | 'invitations'>('members');
   const [removeConfirm, setRemoveConfirm] = useState<{id: string; name: string} | null>(null);
@@ -48,6 +47,7 @@ export default function TeamPage() {
       setShowInvite(false);
       setInviteEmail('');
       fetchMembers();
+      teamApi.invitations().then(r => setInvitations(r.data?.invitations || [])).catch(() => {});
     } catch (err: any) {
       if (err?.response?.status === 409) {
         setError('该成员已在团队中。');
@@ -110,8 +110,8 @@ export default function TeamPage() {
               onKeyDown={(e) => e.key === 'Enter' && handleInvite()}
             />
             <select value={inviteRole} onChange={(e) => setInviteRole(e.target.value)} className="w-full text-sm border border-border/20 rounded-lg px-3 py-2 bg-transparent focus:outline-none focus:ring-1 focus:ring-ring">
-              <option value="coder">编码员</option>
-              <option value="dept_head">科室主任</option>
+              <option value="member">成员</option>
+              <option value="admin">管理员</option>
               <option value="viewer">查看者</option>
             </select>
             <div className="flex gap-2">

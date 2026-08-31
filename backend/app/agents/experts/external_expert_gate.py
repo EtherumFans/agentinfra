@@ -59,8 +59,7 @@ class GateDecision:
     supplied context (the caller still MUST consult the Expert's own
     live_*_performed flag — the gate does not perform the call).
 
-    ``permitted=False`` means the caller MUST treat the Expert as
-    offline-empty regardless of what the stub returns.
+    ``permitted=False`` means the caller MUST not invoke the external provider.
     """
 
     expert_key: str

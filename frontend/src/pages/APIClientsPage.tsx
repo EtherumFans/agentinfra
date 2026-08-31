@@ -18,6 +18,8 @@ export default function APIClientsPage() {
   const [newName, setNewName] = useState('');
   const [newDesc, setNewDesc] = useState('');
   const [newScopes, setNewScopes] = useState('api:read api:write');
+  const [newAgentIds, setNewAgentIds] = useState('');
+  const [newPurposes, setNewPurposes] = useState('');
   const [newSecret, setNewSecret] = useState<string | null>(null);
   const [newClientId, setNewClientId] = useState<string | null>(null);
   const [copied, setCopied] = useState('');
@@ -41,10 +43,22 @@ export default function APIClientsPage() {
   const handleCreateOAuth = async () => {
     if (!newName.trim()) return;
     try {
-      const res = await oauthApi.create(newName.trim(), newDesc.trim(), newScopes);
+      const parseGrants = (value: string) => value
+        .split(/[\s,]+/)
+        .map(item => item.trim())
+        .filter(Boolean);
+      const res = await oauthApi.create(
+        newName.trim(),
+        newDesc.trim(),
+        newScopes,
+        3600,
+        parseGrants(newAgentIds),
+        parseGrants(newPurposes),
+      );
       setNewClientId(res.data.client_id);
       setNewSecret(res.data.client_secret);
       setShowNew(false); setNewName(''); setNewDesc('');
+      setNewAgentIds(''); setNewPurposes('');
       fetchAll();
     } catch (err: any) { setError(err?.response?.data?.detail || t.apiClientsCreateFailed); }
   };
@@ -151,6 +165,23 @@ export default function APIClientsPage() {
             <input value={newName} onChange={e => setNewName(e.target.value)} placeholder={t.apiClientsNamePlaceholder} className="w-full text-sm border border-border/20 rounded-lg px-3 py-2 bg-transparent focus:outline-none focus:ring-1 focus:ring-ring" onKeyDown={e => e.key === 'Enter' && handleCreateOAuth()} />
             <input value={newDesc} onChange={e => setNewDesc(e.target.value)} placeholder={t.apiClientsDescPlaceholder} className="w-full text-sm border border-border/20 rounded-lg px-3 py-2 bg-transparent focus:outline-none focus:ring-1 focus:ring-ring" />
             <input value={newScopes} onChange={e => setNewScopes(e.target.value)} placeholder={t.apiClientsScopesPlaceholder} className="w-full text-sm border border-border/20 rounded-lg px-3 py-2 bg-transparent focus:outline-none focus:ring-1 focus:ring-ring font-mono text-xs" />
+            <input
+              value={newAgentIds}
+              onChange={e => setNewAgentIds(e.target.value)}
+              placeholder="允许的 Agent ID（逗号分隔；agents:run 必填）"
+              className="w-full text-sm border border-border/20 rounded-lg px-3 py-2 bg-transparent focus:outline-none focus:ring-1 focus:ring-ring font-mono text-xs"
+            />
+            <input
+              value={newPurposes}
+              onChange={e => setNewPurposes(e.target.value)}
+              placeholder="用途：treatment, payment, healthcare_operations…"
+              className="w-full text-sm border border-border/20 rounded-lg px-3 py-2 bg-transparent focus:outline-none focus:ring-1 focus:ring-ring font-mono text-xs"
+            />
+            {newScopes.split(/\s+/).includes('agents:run') && (!newAgentIds.trim() || !newPurposes.trim()) && (
+              <p className="text-xs text-warning-foreground">
+                Agent Run 默认拒绝：必须同时配置精确 Agent ID 和用途授权。
+              </p>
+            )}
             <div className="flex gap-2">
               <button onClick={handleCreateOAuth} className="bg-primary text-primary-foreground rounded-lg text-sm px-4 py-2 font-medium hover:bg-primary/90 transition-colors disabled:opacity-50" disabled={!newName.trim()}>{t.apiClientsCreate}</button>
               <button onClick={() => { setShowNew(false); setNewName(''); }} className="px-4 py-2 text-sm rounded-lg border border-border/20 hover:bg-accent transition-colors text-muted-foreground">{t.apiClientsCancel}</button>
@@ -206,6 +237,22 @@ export default function APIClientsPage() {
                     <button onClick={() => handleDeleteOAuth(c.client_id, c.name)} className="text-destructive hover:text-destructive/80"><Trash2 size={14} /></button>
                   </div>
                 </div>
+                {String(c.scopes || '').split(/\s+/).includes('agents:run') && (
+                  <div className="mt-3 border-t border-border/20 pt-3 text-[11px] text-muted-foreground space-y-1">
+                    <div>
+                      <span className="font-medium text-foreground">Agents: </span>
+                      {(c.allowed_agent_ids || []).length
+                        ? c.allowed_agent_ids.join(', ')
+                        : <span className="text-destructive">未授权（运行默认拒绝）</span>}
+                    </div>
+                    <div>
+                      <span className="font-medium text-foreground">Purposes: </span>
+                      {(c.allowed_purposes || []).length
+                        ? c.allowed_purposes.join(', ')
+                        : <span className="text-destructive">未授权（运行默认拒绝）</span>}
+                    </div>
+                  </div>
+                )}
               </div>
             ))
           )

@@ -1,0 +1,193 @@
+{
+  "case_id": "CASE-9fa1c6c6c6bc",
+  "completion_state": "AUTO_PASS",
+  "documentation_gaps": [],
+  "proposed_provider_queries": [],
+  "query_rewrite_queue": [],
+  "chart_excerpt_preview": "患者男性, 50岁, 2型糖尿病5年, 二甲双胍治疗。复查:HbA1c 6.8, FPG 6.5。BP 125/78, BMI 24。无糖尿病并发症。视网膜检查正常, 微量白蛋白尿阴性, 神经传导正常。诊断:2型糖尿病, 控制良好, 无并发症。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "2型糖尿病5年",
+      "二甲双胍治疗",
+      "HbA1c 6.8",
+      "FPG 6.5",
+      "BP 125/78",
+      "BMI 24",
+      "无糖尿病并发症",
+      "视网膜检查正常",
+      "微量白蛋白尿阴性",
+      "神经传导正常",
+      "诊断:2型糖尿病, 控制良好, 无并发症"
+    ],
+    "encounter_metadata": {
+      "patient_age": "50岁",
+      "patient_sex": "男性",
+      "encounter_type": "门诊"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": false,
+      "rationale": "no coding-relevant gaps survived earlier gates",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "'BMI' score — no deterministic calculator wired",
+      "route_decision": "tool_unavailable",
+      "route_reason": "no_real_tool_wired",
+      "execution_mode": "TOOL_UNAVAILABLE",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-3d3baf00822e",
+    "gap_identification": "run-07e740382ac5",
+    "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
+    "expert_consultation": "run-7aa150684fa6",
+    "query_generation": "",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=True;completeness_score=0.12;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=Y,D8_course=N;dropped=0;final_count=0;llm_complete=True;llm_reasoning=The chart documents type 2 diabetes with good control (HbA1c 6.8, FPG 6.5) and e",
+    "query_necessity_gate": "necessary=0;unnecessary=0;overquery_triggered=False;final_count=0",
+    "query_single_dimension_gate": "single_dim=0;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;rewrite_attempted=0;rewrite_accepted=0;final_count=0",
+    "claim_evidence_alignment_gate": "claims_extracted=0;blocked=0;flagged=0;final_count=0",
+    "claim_evidence_alignment_gate::run_id": "run-589b0d8df8d2",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+    "semantic_necessity_gate::run_id": "run-b2d1d4fe5a31",
+    "query_compliance_gate": ";passed=0;blocked=0",
+    "specialist_trace_emit": "run-23ed804253d5"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-9246947ea3f3",
+    "gap_identification": "trace-3052fd8c6cce",
+    "expert_consultation": "trace-9f39d3d98a13",
+    "query_generation": "",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-e253e58b98d9",
+    "semantic_necessity_gate": "trace-2102cb7f2fec",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-28192d325a9e"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2377,
+      "prompt_tokens": 254,
+      "completion_tokens": 139,
+      "total_tokens": 393,
+      "run_id": "run-3d3baf00822e",
+      "trace_id": "trace-9246947ea3f3",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3170,
+      "prompt_tokens": 1114,
+      "completion_tokens": 109,
+      "total_tokens": 1223,
+      "run_id": "run-07e740382ac5",
+      "trace_id": "trace-3052fd8c6cce",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-0884df25d263",
+      "trace_id": "trace-ef6fb1c298cc",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-9de34cb831d2",
+      "trace_id": "trace-ad7d473d0763",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-9b4b3bf15328",
+      "trace_id": "trace-e03c61eb8b84",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-79e76cbcf606",
+      "trace_id": "trace-54f59099daf6",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T18:29:29.946694Z"
+}

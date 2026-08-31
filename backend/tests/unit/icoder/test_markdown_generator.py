@@ -303,6 +303,24 @@ def test_compliance_guardrail_markdown_has_5_sections():
     assert "cg-1" in md
 
 
+def test_compliance_guardrail_markdown_accepts_runtime_check_map():
+    """The runnable agent emits a named boolean map, not legacy list rows."""
+    from app.icoder.markdown_generator import generate_compliance_guardrail_markdown
+
+    md = generate_compliance_guardrail_markdown({
+        "review_conclusion": "WARNING",
+        "compliance_checks": {
+            "primary_dx_present": False,
+            "no_upcoding_risk": True,
+        },
+    })
+
+    assert "primary_dx_present" in md
+    assert "No" in md
+    assert "no_upcoding_risk" in md
+    assert "Yes" in md
+
+
 def test_note_completeness_markdown_has_5_sections():
     """Note Completeness markdown must render all 5 sections per spec."""
     from app.icoder.markdown_generator import generate_note_completeness_markdown

@@ -33,6 +33,7 @@ from sqlalchemy import (
     JSON,
     String,
     Text,
+    func,
 )
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -83,6 +84,9 @@ class CDICaseModel(Base, TimestampMixin):
     coding_specificity_checklist: Mapped[list] = mapped_column(JSON, default=list, server_default="[]")
     risk_flags: Mapped[list] = mapped_column(JSON, default=list, server_default="[]")
     specialist_trace: Mapped[list] = mapped_column(JSON, default=list, server_default="[]")
+    query_rewrite_queue: Mapped[list] = mapped_column(
+        JSON, default=list, server_default="[]",
+    )
 
     # Completion
     completion_state: Mapped[str] = mapped_column(
@@ -187,6 +191,9 @@ class ProviderQueryModel(Base, TimestampMixin):
     evidence_quote: Mapped[str] = mapped_column(Text, nullable=False)
     evidence_char_start: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     evidence_char_end: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    evidence_spans: Mapped[list] = mapped_column(
+        JSON, default=list, server_default="[]",
+    )
 
     # Non-leading gate result (per query)
     nlq_gate_verdict: Mapped[str] = mapped_column(
@@ -304,10 +311,50 @@ class DocumentVersionModel(Base, TimestampMixin):
     captured_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, index=True)
 
 
+# ---------------------------------------------------------------------------
+# Notification subscription
+# ---------------------------------------------------------------------------
+
+
+class CDINotificationSubscriptionModel(Base):
+    """Tenant-scoped durable CDI notification routing configuration.
+
+    Webhook shared secrets are stored only as versioned ciphertext.  The API
+    refuses webhook registration when the PHI/envelope encryption key is not
+    configured, so a development fallback can never persist the secret in
+    plaintext.
+    """
+
+    __tablename__ = "cdi_notification_subscriptions"
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    organization_id: Mapped[str] = mapped_column(
+        String(12), ForeignKey("organizations.id"), nullable=False, index=True,
+    )
+    created_by_user_id: Mapped[Optional[str]] = mapped_column(
+        String(64), nullable=True, index=True,
+    )
+    user_role: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
+    events: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
+    channel: Mapped[str] = mapped_column(String(16), nullable=False, index=True)
+    target_url: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    secret_encrypted: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    active: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True, server_default="1", index=True,
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, nullable=False, server_default=func.now(),
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, nullable=False, server_default=func.now(), onupdate=func.now(),
+    )
+
+
 __all__ = [
     "CDICaseModel",
     "DocumentationGapModel",
     "ProviderQueryModel",
     "ClinicianResponseModel",
     "DocumentVersionModel",
+    "CDINotificationSubscriptionModel",
 ]

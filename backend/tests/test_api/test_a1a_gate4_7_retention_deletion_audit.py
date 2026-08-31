@@ -163,6 +163,25 @@ def test_retention_policy_zero_or_negative_falls_back(monkeypatch):
     assert p.audit_log_ttl_days == DEFAULT_AUDIT_LOG_TTL_DAYS
 
 
+def test_retention_policy_cloud_mode_fails_closed(monkeypatch):
+    from app.services.retention import RetentionPolicy
+
+    monkeypatch.setenv("ICODER_DEPLOYMENT_MODE", "cloud")
+    monkeypatch.setenv("ICODER_RUN_TRACE_EVENTS_TTL_DAYS", "not-a-number")
+    with pytest.raises(ValueError, match="positive integer"):
+        RetentionPolicy.from_env()
+
+
+def test_trace_retention_cannot_outlive_run_history(monkeypatch):
+    from app.services.retention import RetentionPolicy
+
+    monkeypatch.setenv("ICODER_DEPLOYMENT_MODE", "cloud")
+    monkeypatch.setenv("ICODER_RUN_HISTORY_TTL_DAYS", "30")
+    monkeypatch.setenv("ICODER_RUN_TRACE_EVENTS_TTL_DAYS", "90")
+    with pytest.raises(ValueError, match="must not exceed"):
+        RetentionPolicy.from_env()
+
+
 # ─────────────────────────────────────────────────────────────────────
 # §3 purge_expired_audit_logs
 # ─────────────────────────────────────────────────────────────────────
@@ -337,7 +356,7 @@ async def test_emit_purge_audit_with_org_uses_tenant_owned():
     """emit_purge_audit with organization_id writes a tenant-attributed row."""
     from app.services.retention import emit_purge_audit
     from app.models.audit_log import AuditLog
-    from sqlalchemy import select
+    from sqlalchemy import func, select
 
     cutoff = datetime.now(UTC) - timedelta(days=30)
     # Use a unique org_id so this test's row is unambiguous.
@@ -460,7 +479,7 @@ async def test_rotate_encrypted_columns_re_encrypts_with_new_key(monkeypatch):
     carry the v2: prefix."""
     from cryptography.fernet import Fernet
     from app.models.audit_log import AuditLog
-    from sqlalchemy import select
+    from sqlalchemy import func, select
 
     v1 = Fernet.generate_key().decode()
     v2 = Fernet.generate_key().decode()
@@ -494,11 +513,25 @@ async def test_rotate_encrypted_columns_re_encrypts_with_new_key(monkeypatch):
 
     # Rotate.
     async with _open_session() as db:
+        expected_eligible = (
+            await db.execute(
+                select(func.count())
+                .select_from(AuditLog)
+                .where(
+                    AuditLog.error_message.is_not(None),
+                    AuditLog.error_message != "",
+                    ~AuditLog.error_message.like("v2:%"),
+                )
+            )
+        ).scalar_one()
         results = await phi_encryption.rotate_encrypted_columns(
             db,
             columns=[(AuditLog, "error_message")],
         )
-    assert results["audit_logs.error_message"] == 1
+    # The session-scoped DB can contain eligible audit rows from earlier
+    # tests; assert the actual pre-rotation population instead of assuming
+    # this test owns the only non-empty error_message row.
+    assert results["audit_logs.error_message"] == expected_eligible
 
     # Verify the row now carries v2: and decrypts to the same plaintext.
     async with _open_session() as db:

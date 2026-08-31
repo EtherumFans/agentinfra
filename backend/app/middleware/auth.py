@@ -8,7 +8,8 @@ from typing import Optional
 
 from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from jose import JWTError, jwt
+import jwt
+from jwt import PyJWTError as JWTError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -154,6 +155,11 @@ async def get_current_user(
             detail="Not authenticated. Please provide a valid Bearer token.",
         )
     payload = decode_token(credentials.credentials)
+    if payload.get("type") != "access":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Access token required",
+        )
     user_id = payload.get("sub")
     if user_id is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token payload")
@@ -166,7 +172,7 @@ async def get_current_user(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User account is deactivated")
     # Check token_version: if user's tokens have been revoked, reject
     token_version = payload.get("token_version", 0)
-    if user.token_version > token_version:
+    if user.token_version != token_version:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token revoked. Please re-authenticate.")
     return user
 
@@ -182,6 +188,12 @@ async def get_current_organization(
             detail="Not authenticated.",
         )
     payload = decode_token(credentials.credentials)
+    token_type = payload.get("type")
+    if token_type not in {"access", "runtime_token", "client_credentials"}:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Organization access token required",
+        )
     org_id = payload.get("org_id")
     if not org_id:
         raise HTTPException(
@@ -195,6 +207,32 @@ async def get_current_organization(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organization not found")
     if not org.is_active:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Organization is suspended")
+
+    # An org_id claim is context, not proof of tenant membership. Validate the
+    # principal here so organization-only dependencies cannot be used after
+    # membership removal or with a refresh token.
+    if token_type in {"access", "runtime_token"}:
+        user_id = payload.get("sub")
+        if not user_id:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token payload")
+        user_result = await db.execute(select(User).where(User.id == user_id))
+        user = user_result.scalar_one_or_none()
+        if user is None or not user.is_active:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found or inactive")
+        if token_type == "access" and user.token_version != payload.get("token_version", 0):
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token revoked. Please re-authenticate.")
+        membership_result = await db.execute(
+            select(OrganizationMember).where(
+                OrganizationMember.organization_id == org.id,
+                OrganizationMember.user_id == user_id,
+            )
+        )
+        if membership_result.scalar_one_or_none() is None:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Organization membership required")
+    else:
+        client = await get_current_client(credentials, db)
+        if client.get("org_id") != org.id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Organization context mismatch")
     return org
 
 
@@ -258,23 +296,111 @@ async def get_current_client(
     if token_type != "client_credentials":
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Client credentials required")
 
-    # Verify token hasn't been revoked
+    # Verify token hasn't been revoked and still belongs to the asserted
+    # tenant. JWT claims are attribution hints; the current database rows are
+    # the authority for client state, owner and scopes.
     import hashlib
+    from app.models.oauth import OAuthClient
+    from app.services.oauth_delegation import (
+        OAuthDelegationValidationError,
+        normalize_agent_grants,
+        normalize_purpose_grants,
+    )
+
+    client_id = str(payload.get("sub") or "")
+    org_id = str(payload.get("org_id") or "")
+    owner_id = str(payload.get("owner_id") or "")
+    if not client_id or not org_id or not owner_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid client credential attribution",
+        )
     token_hash = hashlib.sha256(credentials.credentials.encode()).hexdigest()
     result = await db.execute(
         select(OAuthToken).where(
             OAuthToken.token_hash == token_hash,
             OAuthToken.is_revoked == False,
+            OAuthToken.client_id == client_id,
+            OAuthToken.organization_id == org_id,
         )
     )
     if not result.scalar_one_or_none():
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token revoked")
 
+    client = (
+        await db.execute(
+            select(OAuthClient).where(
+                OAuthClient.client_id == client_id,
+                OAuthClient.organization_id == org_id,
+            )
+        )
+    ).scalar_one_or_none()
+    if client is None or not client.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="API Client is disabled or unavailable",
+        )
+    if client.owner_id != owner_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="API Client owner attribution mismatch",
+        )
+    owner = await db.get(User, owner_id)
+    if owner is None or not owner.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Delegated subject is inactive",
+        )
+    membership = (
+        await db.execute(
+            select(OrganizationMember).where(
+                OrganizationMember.organization_id == org_id,
+                OrganizationMember.user_id == owner_id,
+            )
+        )
+    ).scalar_one_or_none()
+    if membership is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Delegated subject organization membership required",
+        )
+
+    token_scopes = {
+        str(item).strip()
+        for item in (payload.get("scopes") or "").split()
+        if str(item).strip()
+    }
+    current_scopes = client.granted_scopes()
+    if not token_scopes.issubset(current_scopes):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "code": "CLIENT_SCOPE_REVOKED",
+                "revoked_scopes": sorted(token_scopes - current_scopes),
+            },
+        )
+
+    try:
+        allowed_agent_ids = normalize_agent_grants(
+            list(client.allowed_agent_ids or [])
+        )
+        allowed_purposes = normalize_purpose_grants(
+            list(client.allowed_purposes or [])
+        )
+    except OAuthDelegationValidationError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={"code": "CLIENT_DELEGATION_INVALID"},
+        ) from exc
+
     return {
-        "client_id": payload.get("sub"),
-        "scopes": (payload.get("scopes") or "").split(),
-        "owner_id": payload.get("owner_id"),
-        "org_id": payload.get("org_id", ""),
+        "client_id": client_id,
+        "scopes": sorted(token_scopes),
+        "owner_id": owner_id,
+        "delegated_subject_id": owner_id,
+        "org_id": org_id,
+        "allowed_agent_ids": allowed_agent_ids,
+        "allowed_purposes": allowed_purposes,
         "token_type": "client_credentials",
     }
 
@@ -327,6 +453,7 @@ async def get_current_user_or_oauth_client(
                 raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User account is deactivated")
         return user, {
             "type": "runtime_token",
+            "token_type": "runtime_token",
             "preview_session_id": payload.get("preview_session_id"),
             "scopes": payload.get("scopes") or [],
             "organization_id": payload.get("org_id"),
@@ -337,6 +464,9 @@ async def get_current_user_or_oauth_client(
             # without colliding with real API Client IDs.
             "client_id": f"console-preview:{payload.get('preview_session_id') or 'unknown'}",
         }
+
+    if token_type != "access":
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Access token required")
 
     # User JWT path — same logic as get_current_user.
     user_id = payload.get("sub")
@@ -349,7 +479,7 @@ async def get_current_user_or_oauth_client(
     if not user.is_active:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User account is deactivated")
     token_version = payload.get("token_version", 0)
-    if user.token_version > token_version:
+    if user.token_version != token_version:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token revoked. Please re-authenticate.")
     return user, None
 

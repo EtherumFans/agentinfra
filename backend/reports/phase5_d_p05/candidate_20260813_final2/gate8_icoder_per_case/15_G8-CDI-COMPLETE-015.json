@@ -1,0 +1,297 @@
+{
+  "case_id": "CASE-afaaae3072bb",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-afaaae3072bb/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "The chart does not specify the severity or acuity of the chronic cholecystitis, nor the clinical significance of the right upper quadrant pain.",
+      "why_it_matters": "Coding requires specificity for cholecystitis (acute vs. chronic) and any associated complications. The absence of severity/acuity may lead to unspecified codes.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "间断右上腹隐痛",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-afaaae3072bb/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "The chart does not document the clinical correlation of the right upper quadrant pain with the gallstones or cholecystitis.",
+      "why_it_matters": "Without explicit correlation, the pain may be considered unrelated, affecting the medical necessity of the surgery and coding of symptoms.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "间断右上腹隐痛",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-afaaae3072bb/Q-001",
+      "gap_id": "CASE-afaaae3072bb/GAP-001",
+      "topic": "慢性胆囊炎的严重程度或急性程度",
+      "reason": "病历未明确慢性胆囊炎的严重程度或急性程度，以及右上腹疼痛的临床意义。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "间断右上腹隐痛",
+        "char_start": 20,
+        "char_end": 27,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "间断右上腹隐痛",
+          "char_start": 20,
+          "char_end": 27,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "根据术中所见及术后病理，该患者的慢性胆囊炎在临床上的严重程度或急性程度如何？",
+      "response_options": [
+        "A. 轻度慢性胆囊炎，无急性炎症表现",
+        "B. 中度慢性胆囊炎，伴有急性炎症表现",
+        "C. 重度慢性胆囊炎，伴有并发症（如坏疽、穿孔等）",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    }
+  ],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-002",
+      "gap_id": "CASE-afaaae3072bb/GAP-002",
+      "topic": "右上腹疼痛与胆囊结石或胆囊炎的临床相关性",
+      "reason": "病历未记录右上腹疼痛与胆囊结石或胆囊炎的临床相关性。",
+      "query_text": "该患者的右上腹疼痛与胆囊结石或胆囊炎的临床相关性如何？",
+      "response_options": [
+        "A. 疼痛与胆囊结石或胆囊炎直接相关",
+        "B. 疼痛与胆囊结石或胆囊炎可能相关，但需进一步评估",
+        "C. 疼痛与胆囊结石或胆囊炎无关，由其他原因引起",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "间断右上腹隐痛",
+          "char_start": 20,
+          "char_end": 27,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "REDUNDANT_WITH_CHART",
+        "CHART_ALREADY_COMPLETE",
+        "BEYOND_MINIMAL_DOCUMENTATION_NEED"
+      ],
+      "status": "REJECTED_BY_SEMANTIC_NECESSITY",
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者女性, 40岁, 胆囊结石史2年, 间断右上腹隐痛。择期行腹腔镜胆囊切除术。术中见:胆囊大小正常, 内含1枚 1.5cm 胆固醇性结石, 无粘连。手术顺利, 出血 50ml。术后病理:慢性胆囊炎伴胆固醇结石。术后第2天出院。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者女性，40岁",
+      "胆囊结石史2年",
+      "间断右上腹隐痛",
+      "择期行腹腔镜胆囊切除术",
+      "术中见胆囊大小正常，内含1枚1.5cm胆固醇性结石，无粘连",
+      "手术顺利，出血50ml",
+      "术后病理：慢性胆囊炎伴胆固醇结石",
+      "术后第2天出院"
+    ],
+    "encounter_metadata": {
+      "patient_age": "40岁",
+      "patient_sex": "女性",
+      "encounter_type": "择期手术住院"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "To ensure accurate coding, the chart must explicitly document the clinical severity of the chronic cholecystitis (e.g., mild, moderate, or severe) and the acuity of the right upper quadrant pain (e.g., acute, chronic, or intermittent) with its clinical significance (e.g., whether it is attributable to the gallstones or cholecystitis). Additionally, the clinical correlation between the pain and the pathological findings should be stated, including whether the pain was symptomatic of the cholecystitis or an incidental finding, to support the medical necessity of the elective procedure.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 9367,
+      "tokens": 304
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-5f87991fcc07",
+    "gap_identification": "run-b6bf48f3e8bd",
+    "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
+    "expert_consultation": "run-587e1d52ec84",
+    "query_generation": "run-6f0667d9f2f3",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.62;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=Y,D6_pathology=Y,D7_complications=Y,D8_course=Y;dropped=0;final_count=2;llm_complete=False;llm_reasoning=The chart documents the procedure and pathology but lacks explicit clinical corr",
+    "query_necessity_gate": "necessary=2;unnecessary=0;overquery_triggered=False;final_count=2",
+    "query_single_dimension_gate": "single_dim=2;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=severity;rewrite_attempted=0;rewrite_accepted=0;final_count=2",
+    "claim_evidence_alignment_gate": "claims_extracted=6;blocked=0;flagged=0;final_count=2",
+    "claim_evidence_alignment_gate::run_id": "run-f6b9c7ac9cbc",
+    "semantic_necessity_gate": "blocked=1;flagged=0;degraded=0;final_count=1",
+    "semantic_necessity_gate::run_id": "run-abac967fafa5",
+    "query_compliance_gate": ";passed=1;blocked=0",
+    "specialist_trace_emit": "run-3f1bb79f5d84"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-18e4b023cdd6",
+    "gap_identification": "trace-d689b9ebcc0b",
+    "expert_consultation": "trace-c6511e52a951",
+    "query_generation": "trace-8e3ad0a2f401",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-a5632c370867",
+    "semantic_necessity_gate": "trace-321c5bae2780",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-898efae31ad4"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2440,
+      "prompt_tokens": 250,
+      "completion_tokens": 135,
+      "total_tokens": 385,
+      "run_id": "run-5f87991fcc07",
+      "trace_id": "trace-18e4b023cdd6",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 4838,
+      "prompt_tokens": 1107,
+      "completion_tokens": 366,
+      "total_tokens": 1473,
+      "run_id": "run-b6bf48f3e8bd",
+      "trace_id": "trace-d689b9ebcc0b",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 4402,
+      "prompt_tokens": 1097,
+      "completion_tokens": 461,
+      "total_tokens": 1558,
+      "run_id": "run-6f0667d9f2f3",
+      "trace_id": "trace-8e3ad0a2f401",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 9367,
+      "prompt_tokens": 188,
+      "completion_tokens": 116,
+      "total_tokens": 304,
+      "run_id": "run-6dc932330895",
+      "trace_id": "trace-d4973868de21",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-543fa7800208",
+      "trace_id": "trace-95f37bd162cc",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-2b9f0775a4ac",
+      "trace_id": "trace-cf686c9a1f9d",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-3196d5b562d5",
+      "trace_id": "trace-0e076a2fb3d1",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T17:58:37.611004Z"
+}

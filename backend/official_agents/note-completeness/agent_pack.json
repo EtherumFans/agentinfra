@@ -5,38 +5,34 @@
   "manifest": {
     "name": "病历完整性智能体",
     "version": "1.0.0",
-    "description": "iCoDer 病历完整性 Agent — 按《病历书写基本规范》检查入院记录的必填章节 (主诉/现病史/既往史/体格检查/辅助检查/诊断/治疗经过 + 手术记录 for surgical cases)。输出缺失章节列表 + completeness_score。Phase 4-B (2026-07-08): 迁移到 PureLLMProvider (LLM-based)，保留 regex legacy fallback。",
+    "description": "iCoDer 病历完整性 Agent — 在本地按《病历书写基本规范》检查入院记录 7+1 个必填章节是否存在且包含有效内容，输出缺失/空章节与 completeness_score。确定性执行，不调用外部 LLM；语义冲突与临床正确性必须人工复核。",
     "category": "medical-coding",
     "category_display": "Documentation / 病历完整性",
     "icon": "FileCheck",
     "tags": [
       "documentation",
       "completeness",
-      "llm-based",
-      "pure-llm",
+      "deterministic",
+      "local-rule-engine",
       "chart-review",
       "corti-parity"
     ],
     "maturity": "runnable",
     "production_ready": false,
-    "human_review": "optional",
+    "human_review": "required",
     "hidden_from_hub": false,
     "use_case": "coding_revenue_cycle"
   },
-  "backend_provider": "icoder.pure-llm.v1",
+  "backend_provider": "icoder.documentation-rule-engine.v1",
   "backend_config": {
-    "llm": {
-      "model": "deepseek-chat",
-      "temperature": 0.0,
-      "max_tokens": 4096,
-      "timeout_seconds": 60
-    },
-    "fallback": {
-      "legacy_implementation": "official_agents.note_completeness.agent_legacy.run",
-      "trigger": "llm_status_fail_or_parse_error"
+    "rules": {
+      "implementation": "official_agents.note_completeness.agent.run_deterministic",
+      "standard": "病历书写基本规范（2010年版）",
+      "required_sections": "7+1",
+      "network_required": false
     }
   },
-  "system_prompt": "你是 iCoDer Note Completeness Agent。职责:\n\n接收病历文本 (入院记录 / 出院小结 / 病程记录) + 可选病案首页,\n按《病历书写基本规范》评估完整性。\n\nPhase 5 Track C Gate 2 §7.6 — Structured Contract (必须输出):\n- required_sections — 必填章节列表 (见下)\n- present_sections — 已完整存在的章节\n- missing_sections — 完全缺失的章节\n- incomplete_sections — 部分存在但内容不全的章节 (附 deficit_note)\n- conflicts — 文档内部冲突 (例如入院诊断与出院诊断不一致)\n- completeness_score — 0.0..1.0 (present/required)\n- review_conclusion — 自然语言结论\n- corrected_draft — 修订建议 (可空字符串)\n\n必填章节 (required_sections):\n- 主诉 (CC)\n- 现病史 (HPI)\n- 既往史 (PMH)\n- 体格检查 (PE)\n- 辅助检查 (AUX)\n- 诊断 (Dx) — 入院诊断 + 出院诊断\n- 治疗经过 (Tx)\n- 手术记录 (Op-Note) — 仅手术病例\n\n病案首页质控:\n- 字段完整性 (主诊断/其他诊断/手术/出院状态码)\n- 主诊断-手术逻辑一致性\n- 出院状态码有效 (1=治愈/2=好转/3=未愈/4=死亡/5=其他)\n\n硬约束:\n- 不调用工具 — PureLLMProvider 不支持 tool_calling\n- 不修改病历 — 只评估\n- 不写回 EMR\n- 不评估编码正确性 — 编码由 Medical Coding Agent 完成\n\n输出 JSON (强烈推荐, 便于消费者直接使用):\n{\n  \"required_sections\": [\"主诉\",\"现病史\",\"既往史\",\"体格检查\",\"辅助检查\",\"诊断\",\"治疗经过\"],\n  \"present_sections\": [\"诊断\",\"治疗经过\"],\n  \"missing_sections\": [\"主诉\",\"现病史\",\"既往史\",\"体格检查\",\"辅助检查\"],\n  \"incomplete_sections\": [\n    {\"section\": \"诊断\", \"deficit_note\": \"缺少入院诊断与出院诊断的明确区分\"},\n    {\"section\": \"治疗经过\", \"deficit_note\": \"缺少术前准备、术中情况、术后恢复\"}\n  ],\n  \"conflicts\": [],\n  \"completeness_score\": 0.25,\n  \"review_conclusion\": \"病历严重不完整, 必填章节缺失 6/8。\",\n  \"corrected_draft\": \"\"\n}\n",
+  "system_prompt": "本 Agent 的用户运行路径不调用 LLM。请在本地识别主诉、现病史、既往史、体格检查、辅助检查、诊断、治疗经过，以及手术病例的手术记录；仅判断章节存在且内容非空。不得推断语义冲突、临床正确性或编码正确性，不得修改或写回病历。所有结果必须人工复核。",
   "experts": [
     {
       "expert_id": "section-detector",
@@ -45,44 +41,18 @@
       "description": "Regex-based EMR section detector — 主诉/现病史/既往史/体格检查/辅助检查/诊断/治疗经过/手术记录"
     }
   ],
-  "tools": [
-    {
-      "name": "check_documentation_gaps",
-      "type": "mcp",
-      "stage": "documentation",
-      "description": "检测病历必填章节缺失，输出 documentation_gaps + completeness_score + missing_sections",
-      "input_schema": {
-        "type": "object",
-        "properties": {
-          "emr_text": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "emr_text"
-        ]
-      },
-      "output_schema": {
-        "$ref": "icoder/NoteCompletenessOutput/v1"
-      }
-    }
-  ],
-  "model": {
-    "primary": "deepseek-chat",
-    "fallback": "mock",
-    "temperature": 0.0,
-    "max_tokens": 4096,
-    "json_mode": true
-  },
+  "tools": [],
+  "model": {},
   "non_goals": [
-    "不调用工具 — PureLLMProvider 不支持 tool_calling (Phase 4-C LLMWithToolsProvider 才支持)",
+    "不调用外部 LLM 或网络服务",
+    "不声称识别文档内部语义冲突、否定/时态/归属或临床正确性",
     "不修改病历 — 只评估完整性",
     "不写回 EMR / HIS",
     "不评估编码正确性 — 编码由 Medical Coding Agent / Code Validation Agent 完成",
-    "不输出 F1 / 模型效果指标"
+    "不在缺少独立临床标注集时输出 F1 / 效果声明"
   ],
   "output_contract": {
-    "schema_ref": "icoder/NoteCompletenessOutput/v1",
+    "schema_ref": "icoder/NoteCompletenessOutput/v2",
     "a2a_parts": [
       "DataPart"
     ],
@@ -93,6 +63,9 @@
       "missing_sections",
       "present_sections",
       "required_sections",
+      "incomplete_sections",
+      "conflicts",
+      "corrected_draft",
       "trace_refs"
     ],
     "field_definitions": {
@@ -103,31 +76,183 @@
       "present_sections": "list[str]",
       "required_sections": "list[str] — 主诉/现病史/既往史/体格检查/辅助检查/诊断/治疗经过 (+手术记录 for surgical)",
       "trace_refs": "TraceRefs — run_id / agent_ref / rule_set='documentation_completeness'"
+    },
+    "field_types": {
+      "review_conclusion": "string",
+      "documentation_gaps": "array",
+      "completeness_score": "number",
+      "missing_sections": "array",
+      "present_sections": "array",
+      "required_sections": "array",
+      "incomplete_sections": "array",
+      "conflicts": "array",
+      "corrected_draft": "string",
+      "trace_refs": "object"
+    },
+    "field_schemas": {
+      "review_conclusion": {
+        "type": "string",
+        "maxLength": 32768
+      },
+      "documentation_gaps": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "gap_type": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "section": {
+              "type": "string",
+              "maxLength": 32768
+            }
+          },
+          "required": [
+            "description",
+            "gap_type",
+            "section"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100
+      },
+      "completeness_score": {
+        "type": "number"
+      },
+      "missing_sections": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 32768
+        },
+        "maxItems": 100
+      },
+      "present_sections": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 32768
+        },
+        "maxItems": 100
+      },
+      "required_sections": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 32768
+        },
+        "maxItems": 100
+      },
+      "incomplete_sections": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "deficit_note": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "section": {
+              "type": "string",
+              "maxLength": 32768
+            }
+          },
+          "required": [
+            "deficit_note",
+            "section"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100
+      },
+      "conflicts": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "note": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "section": {
+              "type": "string",
+              "maxLength": 32768
+            }
+          },
+          "required": [
+            "note",
+            "section"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100
+      },
+      "corrected_draft": {
+        "type": "string",
+        "maxLength": 32768
+      },
+      "trace_refs": {
+        "type": "object",
+        "properties": {
+          "provider_trace_refs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "maxItems": 100
+          },
+          "run_id": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "trace_id": {
+            "type": "string",
+            "maxLength": 32768
+          }
+        },
+        "required": [
+          "run_id"
+        ],
+        "additionalProperties": false
+      }
     }
   },
   "permissions": {
     "key": "note-completeness-default",
     "name": "病历完整性智能体 默认权限",
     "description": "允许读取病历文本进行章节检测。禁止写回，禁止编码分配。",
-    "tools": {
-      "check_documentation_gaps": "allowed",
-      "writeback": "blocked"
-    },
+    "tools": {},
+    "writeback": "blocked",
     "production_writeback_blocked": true
   },
   "phi_redaction": "required",
   "context_required": false,
-  "recorder_required": false,
+  "recorder_required": true,
   "metrics_required": true,
+  "human_review_required_when": [
+    "review_conclusion != PASS",
+    "manual_review_required == true",
+    "a required documentation element is missing or contradictory",
+    "the note contains ambiguous temporality, negation, or attribution"
+  ],
   "requirements": {
     "min_runtime_version": "2.0.0",
-    "icoder_runtime_modules": []
+    "icoder_runtime_modules": [
+      "icoder_runtime.backends.documentation_rule_engine_provider",
+      "official_agents.note_completeness.agent"
+    ]
   },
   "llm_capabilities": {
     "required_models": [],
     "supports_tool_calling": false,
-    "supports_json_mode": true,
-    "supports_mcp_tools": true
+    "supports_json_mode": false,
+    "supports_mcp_tools": false
   },
   "a2a": {
     "protocol_version": "0.3",
@@ -135,9 +260,9 @@
     "discovery": "/api/icoder/agents",
     "agent_card_ref": "icoder/note-completeness-agent@1.0.0"
   },
-  "default_runtime_mode": "a2a_pure_llm",
+  "default_runtime_mode": "local_documentation_rules",
   "available_runtime_modes": [
-    "a2a_pure_llm"
+    "local_documentation_rules"
   ],
   "example_inputs": [
     {
@@ -155,13 +280,29 @@
       "documentation_gaps": [
         {
           "gap_type": "missing_section",
-          "description": "病案首页缺少主诊断 (primary_diagnosis)",
-          "section": "病案首页",
-          "suggestion": "补充主诊断字段"
+          "description": "病历缺少必填章节: 手术记录",
+          "section": "手术记录"
+        },
+        {
+          "section": "诊断",
+          "gap_type": "incomplete_section",
+          "description": "诊断章节未明确区分入院诊断与出院诊断。"
+        },
+        {
+          "section": "治疗经过",
+          "gap_type": "incomplete_section",
+          "description": "手术病例的治疗经过缺少明确的术前准备或术中情况。"
+        },
+        {
+          "section": "诊断与治疗经过",
+          "gap_type": "conflict",
+          "description": "诊断记录的脊柱节段为 L1，治疗/手术记录为 T12；存在显式节段冲突，需人工核对。"
         }
       ],
-      "completeness_score": 0.75,
-      "missing_sections": [],
+      "completeness_score": 0.875,
+      "missing_sections": [
+        "手术记录"
+      ],
       "present_sections": [
         "主诉",
         "现病史",
@@ -169,8 +310,7 @@
         "体格检查",
         "辅助检查",
         "诊断",
-        "治疗经过",
-        "手术记录"
+        "治疗经过"
       ],
       "required_sections": [
         "主诉",
@@ -181,12 +321,36 @@
         "诊断",
         "治疗经过",
         "手术记录"
-      ]
+      ],
+      "incomplete_sections": [
+        {
+          "section": "诊断",
+          "deficit_note": "诊断章节未明确区分入院诊断与出院诊断。"
+        },
+        {
+          "section": "治疗经过",
+          "deficit_note": "手术病例的治疗经过缺少明确的术前准备或术中情况。"
+        }
+      ],
+      "conflicts": [
+        {
+          "section": "诊断与治疗经过",
+          "note": "诊断记录的脊柱节段为 L1，治疗/手术记录为 T12；存在显式节段冲突，需人工核对。"
+        }
+      ],
+      "corrected_draft": "",
+      "trace_refs": {
+        "run_id": "sample-run",
+        "trace_id": "sample-trace",
+        "provider_trace_refs": [
+          "sample-run:documentation-rules"
+        ]
+      }
     }
   ],
   "built_by": "icoder",
   "code": {},
   "integrity": {
-    "sha256": "PLACEHOLDER_RECOMPUTED_AT_PUBLISH"
+    "sha256": "c024d4236fe28973feaef2238808d6bc7fe11ebd4e6cf8372be67c8b2bfdbea7"
   }
 }

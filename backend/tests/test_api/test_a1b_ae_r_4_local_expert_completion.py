@@ -359,7 +359,10 @@ async def test_memory_ingest_context_messages_basic(memory_db):
     await memory_db.commit()
 
     saved = await memory_expert.ingest_context_messages(
-        context_id=ctx_id, user_id="user-1", db=memory_db
+        context_id=ctx_id,
+        user_id="user-1",
+        organization_id="org_test",
+        db=memory_db,
     )
     assert saved == 1
 
@@ -397,10 +400,16 @@ async def test_memory_ingest_is_idempotent(memory_db):
     await memory_db.commit()
 
     first = await memory_expert.ingest_context_messages(
-        context_id=ctx_id, user_id="user-1", db=memory_db
+        context_id=ctx_id,
+        user_id="user-1",
+        organization_id="org_test",
+        db=memory_db,
     )
     second = await memory_expert.ingest_context_messages(
-        context_id=ctx_id, user_id="user-1", db=memory_db
+        context_id=ctx_id,
+        user_id="user-1",
+        organization_id="org_test",
+        db=memory_db,
     )
     assert first == 1
     assert second == 0, "second ingest should skip already-saved messages"
@@ -439,7 +448,10 @@ async def test_memory_ingest_handles_string_parts_json(memory_db):
     await memory_db.commit()
 
     saved = await memory_expert.ingest_context_messages(
-        context_id=ctx_id, user_id="user-1", db=memory_db
+        context_id=ctx_id,
+        user_id="user-1",
+        organization_id="org_test",
+        db=memory_db,
     )
     assert saved == 1
 
@@ -477,7 +489,10 @@ async def test_memory_ingest_skips_empty_messages(memory_db):
     await memory_db.commit()
 
     saved = await memory_expert.ingest_context_messages(
-        context_id=ctx_id, user_id="user-1", db=memory_db
+        context_id=ctx_id,
+        user_id="user-1",
+        organization_id="org_test",
+        db=memory_db,
     )
     assert saved == 0
 
@@ -524,9 +539,99 @@ async def test_memory_ingest_scopes_to_specific_context(memory_db):
     await memory_db.commit()
 
     saved = await memory_expert.ingest_context_messages(
-        context_id="ctx-A", user_id="user-1", db=memory_db
+        context_id="ctx-A",
+        user_id="user-1",
+        organization_id="org_test",
+        db=memory_db,
     )
     assert saved == 1
+
+
+@pytest.mark.asyncio
+async def test_memory_save_encrypts_and_recall_is_tenant_scoped(
+    memory_db, monkeypatch
+):
+    from cryptography.fernet import Fernet
+
+    from app.services.memory_expert import memory_expert
+    from app.services.phi_encryption import is_encrypted_value
+
+    monkeypatch.setenv("ICODER_PHI_ENCRYPTION_KEY", Fernet.generate_key().decode())
+    memory = await memory_expert.save(
+        user_id="user-1",
+        session_id="session-encrypted",
+        role="user",
+        content="患者2型糖尿病控制欠佳，近期空腹血糖升高",
+        organization_id="org_test",
+        db=memory_db,
+    )
+
+    assert memory is not None
+    assert memory.organization_id == "org_test"
+    assert is_encrypted_value(memory.content)
+    assert is_encrypted_value(memory.key_facts)
+    assert "糖尿病" not in memory.content
+
+    recalled = await memory_expert.recall(
+        user_id="user-1",
+        organization_id="org_test",
+        query="糖尿病控制",
+        db=memory_db,
+    )
+    assert len(recalled) == 1
+    assert "糖尿病控制欠佳" in recalled[0]["content"]
+    assert recalled[0]["retrieval_mode"] == "LEXICAL_CJK_BIGRAM"
+    assert recalled[0]["key_facts"] == []
+
+    cross_tenant = await memory_expert.recall(
+        user_id="user-1",
+        organization_id="other_org",
+        query="糖尿病控制",
+        db=memory_db,
+    )
+    assert cross_tenant == []
+
+
+@pytest.mark.asyncio
+async def test_memory_ingest_rejects_wrong_organization(memory_db):
+    from app.services.memory_expert import memory_expert
+    from app.icoder.agent_runtime.context.db_models import (
+        ContextMessageRow,
+        ContextRow,
+    )
+
+    context_id = "ctx-org-isolation"
+    memory_db.add(
+        ContextRow(
+            id=context_id,
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
+            expires_at=datetime.now(UTC),
+            agent_id="agent-1",
+            organization_id="org_test",
+            status="ACTIVE",
+            metadata_json="{}",
+        )
+    )
+    memory_db.add(
+        ContextMessageRow(
+            context_id=context_id,
+            message_id="msg-org",
+            role="user",
+            parts_json=json.dumps([{"text": "tenant-bound content"}]),
+            timestamp=datetime.now(UTC),
+        )
+    )
+    await memory_db.commit()
+
+    saved = await memory_expert.ingest_context_messages(
+        context_id=context_id,
+        user_id="user-1",
+        organization_id="other_org",
+        db=memory_db,
+    )
+
+    assert saved == 0
 
 
 # ─────────────────────────────────────────────────────────────────────

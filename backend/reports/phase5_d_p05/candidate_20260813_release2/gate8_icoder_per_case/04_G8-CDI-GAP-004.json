@@ -1,0 +1,338 @@
+{
+  "case_id": "CASE-e484c524053c",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-e484c524053c/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "The severity of acute pancreatitis is not documented (e.g., mild, moderate, severe).",
+      "why_it_matters": "Severity affects treatment and prognosis; coding requires severity specification for acute pancreatitis.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "入院诊断:急性胰腺炎",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-e484c524053c/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "The etiology of acute pancreatitis is not explicitly stated; the history of cholelithiasis suggests biliary etiology but is not confirmed.",
+      "why_it_matters": "Etiology (e.g., biliary, alcoholic, hypertriglyceridemia) is a key differentiator for coding and clinical management.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "既往:胆石症",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-e484c524053c/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "The clinical correlation of the elevated amylase (580) with the diagnosis is not explicitly documented; the lab value is abnormal but its significance is implied.",
+      "why_it_matters": "Abnormal lab values require clinical correlation to establish their significance and support the diagnosis.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "淀粉酶 580",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-e484c524053c/Q-001",
+      "gap_id": "CASE-e484c524053c/GAP-002",
+      "topic": "急性胰腺炎病因",
+      "reason": "患者有胆石症病史，但病历未明确急性胰腺炎的病因，需确认是否为胆源性。",
+      "evidence_span": {
+        "document_id": "chart-001",
+        "quote": "既往:胆石症",
+        "char_start": 48,
+        "char_end": 54,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "既往:胆石症",
+          "char_start": 48,
+          "char_end": 54,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "结合患者胆石症病史，该患者急性胰腺炎的病因考虑为？",
+      "response_options": [
+        "A. 胆源性胰腺炎",
+        "B. 高脂血症性胰腺炎",
+        "C. 酒精性胰腺炎",
+        "D. 其他病因",
+        "E. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    }
+  ],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-001",
+      "gap_id": "CASE-e484c524053c/GAP-001",
+      "topic": "急性胰腺炎严重程度",
+      "reason": "入院诊断为急性胰腺炎，但病历未明确其严重程度分级（轻、中、重），需明确以指导治疗。",
+      "query_text": "根据CT提示胰腺肿胀伴渗出及临床情况，该患者急性胰腺炎的严重程度分级为？",
+      "response_options": [
+        "A. 轻症急性胰腺炎",
+        "B. 中重症急性胰腺炎",
+        "C. 重症急性胰腺炎",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "入院诊断:急性胰腺炎",
+          "char_start": 37,
+          "char_end": 47,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-001: chart matches /急性[^,。、\\s]{0,8}(?:心肌梗死|阑尾炎|胆囊炎|胰腺炎|肺炎|胃肠炎)/ (急性类型已明确) and query asks for 急性胰腺炎严重程度"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-003",
+      "gap_id": "CASE-e484c524053c/GAP-003",
+      "topic": "淀粉酶升高与诊断的关联",
+      "reason": "淀粉酶580升高，但病历未明确其与急性胰腺炎诊断的关联，需明确其临床意义。",
+      "query_text": "该患者淀粉酶580升高，结合临床表现及影像学，其与急性胰腺炎诊断的关联为？",
+      "response_options": [
+        "A. 支持急性胰腺炎诊断",
+        "B. 与急性胰腺炎诊断无关",
+        "C. 需结合其他检查进一步评估",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "淀粉酶 580",
+          "char_start": 18,
+          "char_end": 25,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "REDUNDANT_WITH_CHART",
+        "CHART_ALREADY_COMPLETE",
+        "NO_DOCUMENTATION_IMPACT",
+        "BEYOND_MINIMAL_DOCUMENTATION_NEED"
+      ],
+      "status": "REJECTED_BY_SEMANTIC_NECESSITY",
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者女性, 55岁, 上腹痛2天, 淀粉酶 580。CT:胰腺肿胀伴渗出。入院诊断:急性胰腺炎。既往:胆石症。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者女性，55岁",
+      "上腹痛2天",
+      "淀粉酶580",
+      "CT示胰腺肿胀伴渗出",
+      "入院诊断：急性胰腺炎",
+      "既往史：胆石症"
+    ],
+    "encounter_metadata": {
+      "patient_age": "55岁",
+      "patient_sex": "女性",
+      "encounter_type": "入院"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "To ensure accurate coding, the clinician must explicitly document the severity of acute pancreatitis (mild, moderate, or severe) using validated criteria (e.g., Atlanta classification) and confirm the etiology as biliary by linking the cholelithiasis history to the current episode. Additionally, the note should state that the elevated amylase of 580 is consistent with the diagnosis of acute pancreatitis, thereby establishing clinical correlation rather than leaving it implied. Without these explicit statements, the record lacks the specificity required for precise severity and causal assignment.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3851,
+      "tokens": 276
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-287306f0fd78",
+    "gap_identification": "run-e8d5b050d5a6",
+    "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
+    "expert_consultation": "run-70b80a6d15ae",
+    "query_generation": "run-ee4cc2438c2a",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=3;llm_complete=False;llm_reasoning=The chart documents acute pancreatitis with supporting lab and imaging, but lack",
+    "query_necessity_gate": "necessary=2;unnecessary=1;overquery_triggered=False;final_count=2",
+    "query_single_dimension_gate": "single_dim=2;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=etiology;rewrite_attempted=0;rewrite_accepted=0;final_count=2",
+    "claim_evidence_alignment_gate": "claims_extracted=6;blocked=0;flagged=0;final_count=2",
+    "claim_evidence_alignment_gate::run_id": "run-a1d7220aeba8",
+    "semantic_necessity_gate": "blocked=1;flagged=0;degraded=0;final_count=1",
+    "semantic_necessity_gate::run_id": "run-2ad7d6072099",
+    "query_compliance_gate": ";passed=1;blocked=0",
+    "specialist_trace_emit": "run-03ea6937bdf9"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-86c69477308b",
+    "gap_identification": "trace-3530c5bb3325",
+    "expert_consultation": "trace-62966cf53f73",
+    "query_generation": "trace-fd83653247dc",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-5f080cfecdf1",
+    "semantic_necessity_gate": "trace-27be68f507ba",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-8eb6997d006d"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2859,
+      "prompt_tokens": 210,
+      "completion_tokens": 95,
+      "total_tokens": 305,
+      "run_id": "run-287306f0fd78",
+      "trace_id": "trace-86c69477308b",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5213,
+      "prompt_tokens": 1029,
+      "completion_tokens": 464,
+      "total_tokens": 1493,
+      "run_id": "run-e8d5b050d5a6",
+      "trace_id": "trace-3530c5bb3325",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6475,
+      "prompt_tokens": 1115,
+      "completion_tokens": 660,
+      "total_tokens": 1775,
+      "run_id": "run-ee4cc2438c2a",
+      "trace_id": "trace-fd83653247dc",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3851,
+      "prompt_tokens": 171,
+      "completion_tokens": 105,
+      "total_tokens": 276,
+      "run_id": "run-1f42797f5e17",
+      "trace_id": "trace-265b7ef7618d",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-da41bd50055f",
+      "trace_id": "trace-73bb85f9149b",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-894257ed5865",
+      "trace_id": "trace-ac717f7afddc",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-5db3c02bbf32",
+      "trace_id": "trace-17df2b6ec8d4",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T19:32:07.067475Z"
+}

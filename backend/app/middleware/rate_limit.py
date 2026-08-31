@@ -121,19 +121,22 @@ async def rate_limit_middleware(request: Request, call_next):
     if not client_ip:
         client_ip = request.client.host if request.client else "unknown"
 
-    # Login endpoint: stricter limit
-    limit = LOGIN_LIMIT if request.url.path == "/api/auth/login" else GENERAL_LIMIT
+    # Login and general traffic have separate windows. Sharing one IP bucket
+    # lets ordinary authenticated traffic consume the much smaller login
+    # budget and lock a legitimate user out before their first login attempt.
+    bucket = "login" if request.url.path == "/api/auth/login" else "general"
+    limit = LOGIN_LIMIT if bucket == "login" else GENERAL_LIMIT
 
     r = _get_redis_for_request(request)
     if r:
         # Redis sliding window via sorted set
         now_ms = int(time.time() * 1000)
-        key = f"ratelimit:{client_ip}"
+        key = f"ratelimit:{bucket}:{client_ip}"
         window_ms = WINDOW_SECONDS * 1000
         async with r.pipeline() as pipe:
             pipe.zremrangebyscore(key, 0, now_ms - window_ms)
             pipe.zcard(key)
-            pipe.zadd(key, {str(now_ms): now_ms})
+            pipe.zadd(key, {f"{now_ms}:{time.time_ns()}": now_ms})
             pipe.expire(key, WINDOW_SECONDS * 2)
             _, count, _, _ = await pipe.execute()
         if count >= limit:
@@ -142,10 +145,15 @@ async def rate_limit_middleware(request: Request, call_next):
         # Memory backend — per-app-state
         counts = _get_counts(request)
         now = time.time()
-        counts[client_ip] = [t for t in counts[client_ip] if now - t < WINDOW_SECONDS]
-        if len(counts[client_ip]) >= limit:
+        counter_key = f"{bucket}:{client_ip}"
+        counts[counter_key] = [
+            timestamp
+            for timestamp in counts[counter_key]
+            if now - timestamp < WINDOW_SECONDS
+        ]
+        if len(counts[counter_key]) >= limit:
             raise HTTPException(status_code=429, detail=f"Rate limit exceeded ({limit}/min).")
-        counts[client_ip].append(now)
+        counts[counter_key].append(now)
 
     return await call_next(request)
 

@@ -83,6 +83,11 @@ def test_hub_internal_fields_preserved_for_engineering(client: TestClient) -> No
         assert "maturity" in card
         assert "production_ready" in card
         assert "human_review" in card
+        assert card["pack_status"] in {"executable", "metadata_only", "invalid"}
+        assert isinstance(card["launch_candidate_ready"], bool)
+        assert isinstance(card["launch_candidate_blockers"], list)
+        assert isinstance(card["external_release_gates"], list)
+        assert card["external_release_gates"], "external production gates must stay explicit"
         # display_status_internal carries the full state for engineering views
         internal = card["display_status_internal"]
         assert "maturity" in internal
@@ -141,12 +146,11 @@ def test_hub_hidden_packs_excluded(client: TestClient) -> None:
 def test_hub_no_card_renders_raw_engineering_text_in_badges(
     client: TestClient,
 ) -> None:
-    """PDF §B1: ``MVP / AI-assisted / production_ready=false`` MUST NOT
-    appear in ``display_badges``. Legacy ``badge`` field still has the
-    engineering string for backward compat, but user UI uses display_badges."""
+    """Raw MVP/production flags must not appear in either badge surface."""
     resp = client.get("/api/icoder/agents/hub")
     data = resp.json()
     for card in data["agents"]:
+        assert "mvp" not in card["badge"].lower()
         for b in card["display_badges"]:
             label = b["label_en"].lower()
             # The forbidden engineering strings must never appear

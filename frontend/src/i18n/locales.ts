@@ -212,7 +212,6 @@ export interface LocaleDict {
   viewFullReport: string;
   systemPrompt: string;
   codingSystem: string;
-  confidenceThreshold: string;
   outputLanguage: string;
   model: string;
   includeEvidence: string;
@@ -304,7 +303,7 @@ export interface LocaleDict {
   tabCode: string;
 
   // Phase 3-A Section D - 8-field output + banners
-  mvpBanner: string;
+  launchCandidateBanner: string;
   aiAssistedBanner: string;
   reviewSummary: string;
   reviewConclusion: string;
@@ -1018,6 +1017,16 @@ export interface LocaleDict {
   runTraceBack: string;
   runTraceBackToHub: string;
   runTraceDispatcherHeader: string;
+  runTraceAuditSummary: string;
+  runTraceRunStatus: string;
+  runTraceRuntimeMode: string;
+  runTraceCost: string;
+  runTraceCaptureStatus: string;
+  runTraceReviewSignal: string;
+  runTraceReviewRequired: string;
+  runTraceReviewNotRequired: string;
+  runTraceReviewNotRecorded: string;
+  runTraceReviewNonAuthoritative: string;
   // Phase 3-D2.5 - Tool Dispatch Detail
   runTraceToolDispatchDetail: string;
   runTraceDispatchMode: string;
@@ -1065,6 +1074,9 @@ export interface LocaleDict {
   agentChatExperts: string;
   agentChatBrowseExpertLibrary: string;
   agentChatCustomExperts: string;
+  agentChatDedicatedPolicyHint: string;
+  agentChatFixedSourceExperts: string;
+  agentChatProjectExperts: string;
   agentChatAddExpert: string;
   agentChatPinnedMessageParts: string;
   agentChatSdkJavaScript: string;
@@ -1167,6 +1179,12 @@ export interface LocaleDict {
   agentCardProductionReadyFalse: string;
   agentCardExpertsSuffix: string;
   agentCardToolsSuffix: string;
+  agentRuntimeLocalReady: string;
+  agentRuntimeConfiguredLive: string;
+  agentRuntimeConfiguredNotLive: string;
+  agentRuntimeUnavailable: string;
+  agentRuntimeUnavailableHint: string;
+  agentSemanticNotVerified: string;
   // Phase 5 Track D P0 Gate 1 (2026-07-11) — user-visible display status
   // labels (PDF §B3). Replaces legacy MVP/AI-assisted/production_ready=false.
   displayStatusPreview: string;
@@ -1222,12 +1240,15 @@ export interface LocaleDict {
   agentDetailIssues: string;
   agentDetailRuleChecks: string;
   agentDetailEvalTitle: string;
-  agentDetailEvaluating: string;
-  agentDetailRunGoldStandard: string;
-  agentDetailDxAccuracy: string;
-  agentDetailProcAccuracy: string;
-  agentDetailExportCsv: string;
   agentDetailHistoryTrend: string;
+  agentRunHistoryRefresh: string;
+  agentRunHistoryEmpty: string;
+  agentLifecyclePublish: string;
+  agentLifecycleArchive: string;
+  agentLifecycleRestore: string;
+  agentLifecycleRunDisabled: string;
+  agentLifecycleActionSucceeded: string;
+  agentLifecycleRestoreBeforeEdit: string;
   agentDetailBasicInfo: string;
   agentDetailOrchestrationStrategy: string;
   agentDetailRoutingStrategy: string;
@@ -1491,7 +1512,7 @@ const zhCN: LocaleDict = {
   predictCodes: '预测编码',
   config: '配置',
   codingSystems: '编码体系',
-  codingSystemsInfo: '选择要包含的编码体系（ICD-10 / ICD-9-CM-3 / 限定版）。点击 × 移除，点击 + 添加。',
+  codingSystemsInfo: '可单独或同时请求 ICD-10-CN 诊断与 ICD-9-CM-3 手术操作编码。',
   addSystem: '+ 添加',
   close: '关闭',
   apiClient: 'API 客户端',
@@ -1509,7 +1530,6 @@ const zhCN: LocaleDict = {
   viewFullReport: '查看完整报告',
   systemPrompt: '系统提示词',
   codingSystem: '编码体系',
-  confidenceThreshold: '置信度阈值',
   outputLanguage: '输出语言',
   model: '模型',
   includeEvidence: '在输出中包含证据',
@@ -1578,11 +1598,11 @@ const zhCN: LocaleDict = {
   done: '完成',
   add: '添加',
   ready: '就绪',
-  expand: '展开',
+  expand: '展开类别',
   include: '包含',
 
   // Phase 3-A Section D - 8-field output + banners
-  mvpBanner: 'MVP - production_ready=false, human_review=required',
+  launchCandidateBanner: '开发上线候选 - 尚未生产批准，必须人工复核',
   aiAssistedBanner: 'AI-assisted coding - 不替代编码员, 所有编码建议需人工复核',
   reviewSummary: '复核摘要',
   reviewConclusion: '复核结论',
@@ -1940,7 +1960,7 @@ const zhCN: LocaleDict = {
 
   // ── Product Hub Homepage tabs ──
   productHubTranscribe: '语音转录',
-  productHubTranscribeDesc: '实时转录临床对话，支持中英混合语音指令，可用于环境抄录和临床听写',
+  productHubTranscribeDesc: '实时转录中文临床对话，支持中文语音指令；英文识别仅在兼容浏览器的 Web 内置模式提供',
   productHubTranscribeCta: '试用语音转录',
   productHubTranscribeSecondary: '开始录音',
   productHubTranscribeBuild: 'SDK集成',
@@ -2189,7 +2209,7 @@ const zhCN: LocaleDict = {
   orchestrationRunPipeline: '运行编码审核流水线',
   orchestrationDiagnosisCandidates: '诊断编码候选',
   orchestrationProcedureCandidates: '手术编码候选',
-  orchestrationDrgImpact: 'DRG 影响分析',
+  orchestrationDrgImpact: 'DRG/DIP 候选风险复核（非结算）',
   orchestrationDocumentationGaps: '文档缺口',
   orchestrationHumanChecklist: '人工审核清单',
   orchestrationHumanReview: '人工复核',
@@ -2333,6 +2353,16 @@ const zhCN: LocaleDict = {
   runTraceBack: '返回',
   runTraceBackToHub: '返回 Agent Hub',
   runTraceDispatcherHeader: '统一工具调度器 / Dispatcher',
+  runTraceAuditSummary: '运行审计摘要',
+  runTraceRunStatus: '运行状态',
+  runTraceRuntimeMode: '运行模式',
+  runTraceCost: '成本',
+  runTraceCaptureStatus: '轨迹捕获',
+  runTraceReviewSignal: '人工复核信号',
+  runTraceReviewRequired: '需要复核',
+  runTraceReviewNotRequired: '未要求复核',
+  runTraceReviewNotRecorded: '未记录',
+  runTraceReviewNonAuthoritative: '此处为事件派生信号，不是权威临床复核结论。',
   // Phase 3-D2.5 - Tool Dispatch Detail
   runTraceToolDispatchDetail: 'Tool Dispatch Detail',
   runTraceDispatchMode: 'Dispatch Mode',
@@ -2380,6 +2410,9 @@ const zhCN: LocaleDict = {
   agentChatExperts: '专家',
   agentChatBrowseExpertLibrary: '浏览专家库',
   agentChatCustomExperts: '自定义专家',
+  agentChatDedicatedPolicyHint: '此专用临床智能体保留源安全规则与输出契约；此处的提示词和项目专家仅作为附加专科策略。',
+  agentChatFixedSourceExperts: '固定源专家',
+  agentChatProjectExperts: '项目附加专家',
   agentChatAddExpert: '添加专家',
   agentChatPinnedMessageParts: '固定消息片段',
   agentChatSdkJavaScript: 'JavaScript (SDK)',
@@ -2482,6 +2515,12 @@ const zhCN: LocaleDict = {
   agentCardProductionReadyFalse: 'production_ready=false',
   agentCardExpertsSuffix: '专家',
   agentCardToolsSuffix: '工具',
+  agentRuntimeLocalReady: '本地运行已就绪',
+  agentRuntimeConfiguredLive: '模型连接已验证（仍需语义验证）',
+  agentRuntimeConfiguredNotLive: '模型已配置（未验证实时健康）',
+  agentRuntimeUnavailable: '当前运行不可用',
+  agentRuntimeUnavailableHint: '当前运行依赖尚未就绪，请先配置并验证模型或运行服务。',
+  agentSemanticNotVerified: '语义质量未验证',
   // Phase 5 Track D P0 Gate 1 — user-visible display status labels (PDF §B3).
   displayStatusPreview: '预览版',
   displayStatusAvailable: '可用',
@@ -2500,7 +2539,7 @@ const zhCN: LocaleDict = {
   agentDisabledToast: '已禁用',
   agentUninstalledToast: '已卸载',
   agentUninstallFailedToast: '卸载失败',
-  agentClonedToDraftToast: '已克隆为草稿',
+  agentClonedToDraftToast: '已创建项目副本，可立即运行和自定义',
   agentCloneFailedToast: '克隆失败',
   agentClonedEnterChatToast: '已克隆 - 进入对话',
   agentExistingCloneToast: '已有克隆 - 进入对话',
@@ -2535,13 +2574,16 @@ const zhCN: LocaleDict = {
   agentDetailProcedures: '手术',
   agentDetailIssues: '问题',
   agentDetailRuleChecks: '规则检查',
-  agentDetailEvalTitle: 'Agent 评估',
-  agentDetailEvaluating: '评估中...',
-  agentDetailRunGoldStandard: '运行金标准评估',
-  agentDetailDxAccuracy: '诊断准确率',
-  agentDetailProcAccuracy: '手术准确率',
-  agentDetailExportCsv: '导出 CSV',
-  agentDetailHistoryTrend: '历史趋势',
+  agentDetailEvalTitle: '运行记录',
+  agentDetailHistoryTrend: '最近运行',
+  agentRunHistoryRefresh: '刷新运行记录',
+  agentRunHistoryEmpty: '尚无已持久化的运行记录。',
+  agentLifecyclePublish: '发布',
+  agentLifecycleArchive: '归档',
+  agentLifecycleRestore: '恢复',
+  agentLifecycleRunDisabled: '当前 Agent 未发布，运行已禁用。',
+  agentLifecycleActionSucceeded: 'Agent 生命周期状态已更新',
+  agentLifecycleRestoreBeforeEdit: '请先恢复已归档的 Agent，再编辑设置。',
   agentDetailBasicInfo: '基本信息',
   agentDetailOrchestrationStrategy: '编排策略',
   agentDetailRoutingStrategy: '路由策略',
@@ -2571,12 +2613,12 @@ const zhCN: LocaleDict = {
   agentDetailRoutingSingleExpertDesc: '仅调用默认专家，忽略其他绑定',
   agentDetailPermissionMedicalCoding: '医学编码（推荐）',
   agentDetailPermissionCdiAudit: '临床文档审核（只读）',
-  agentDetailPermissionDrgAnalysis: 'DRG/DIP 支付分析',
+  agentDetailPermissionDrgAnalysis: 'DRG/DIP 风险复核（非结算）',
   agentDetailPermissionRestrictive: '严格模式（仅确定性工具）',
   agentDetailPermissionFullAccess: '全量访问（开发/管理）',
   agentDetailPermissionMedicalCodingDesc: '标准编码管道:确定性工具+LLM工具有限使用',
   agentDetailPermissionCdiAuditDesc: '只读分析工具:不允许编码分配',
-  agentDetailPermissionDrgAnalysisDesc: '编码+DRG分析:适合医保审核',
+  agentDetailPermissionDrgAnalysisDesc: '仅作编码风险提示；不输出官方分组、权重、分值或支付结果',
   agentDetailPermissionRestrictiveDesc: '仅确定性工具（ICD索引/证据排名等），最大安全性',
   agentDetailPermissionFullAccessDesc: '全部工具可用:仅开发和管理使用',
   agentDetailTestCaseLabel: '腰椎间盘突出症',
@@ -2805,7 +2847,7 @@ const enUS: LocaleDict = {
   predictCodes: 'Predict codes',
   config: 'Config',
   codingSystems: 'Coding systems',
-  codingSystemsInfo: 'Select coding systems to include (ICD-10 / ICD-9-CM-3 / limited). Click × to remove, + to add.',
+  codingSystemsInfo: 'Request ICD-10-CN diagnoses, ICD-9-CM-3 procedures, or both in one run.',
   addSystem: '+ Add',
   close: 'Close',
   apiClient: 'API Client',
@@ -2823,7 +2865,6 @@ const enUS: LocaleDict = {
   viewFullReport: 'View full report',
   systemPrompt: 'System Prompt',
   codingSystem: 'Coding System',
-  confidenceThreshold: 'Confidence Threshold',
   outputLanguage: 'Output Language',
   model: 'Model',
   includeEvidence: 'Include evidence in output',
@@ -2892,7 +2933,7 @@ const enUS: LocaleDict = {
   done: 'Done',
   add: 'Add',
   ready: 'Ready',
-  expand: 'Expand',
+  expand: 'Expand categories',
   include: 'Include',
   exclude: 'Exclude',
   filterCodes: 'Filter codes',
@@ -2907,7 +2948,7 @@ const enUS: LocaleDict = {
   tableCode: 'Code',
 
   // Phase 3-A Section D - 8-field output + banners
-  mvpBanner: 'MVP - production_ready=false, human_review=required',
+  launchCandidateBanner: 'Development launch candidate - not production approved; human review required',
   aiAssistedBanner: 'AI-assisted coding - does not replace the coder; all code suggestions require human review',
   reviewSummary: 'Review summary',
   reviewConclusion: 'Review conclusion',
@@ -3254,7 +3295,7 @@ const enUS: LocaleDict = {
 
   // ── Product Hub Homepage tabs ──
   productHubTranscribe: 'Transcribe',
-  productHubTranscribeDesc: 'Real-time clinical speech transcription with bilingual (ZH/EN) voice commands for ambient scribing and dictation',
+  productHubTranscribeDesc: 'Real-time zh-CN clinical transcription with Chinese voice commands; English recognition is browser-managed only',
   productHubTranscribeCta: 'Try Speech to Text',
   productHubTranscribeSecondary: 'Start recording',
   productHubTranscribeBuild: 'SDK Integration',
@@ -3503,7 +3544,7 @@ const enUS: LocaleDict = {
   orchestrationRunPipeline: 'Run Coding Audit Pipeline',
   orchestrationDiagnosisCandidates: 'Diagnosis Code Candidates',
   orchestrationProcedureCandidates: 'Procedure Code Candidates',
-  orchestrationDrgImpact: 'DRG Impact Analysis',
+  orchestrationDrgImpact: 'DRG/DIP Candidate Risk Review (Non-settlement)',
   orchestrationDocumentationGaps: 'Documentation Gaps',
   orchestrationHumanChecklist: 'Human Review Checklist',
   orchestrationHumanReview: 'Human Review',
@@ -3647,6 +3688,16 @@ const enUS: LocaleDict = {
   runTraceBack: 'Back',
   runTraceBackToHub: 'Back to Agent Hub',
   runTraceDispatcherHeader: 'Unified Tool Dispatcher',
+  runTraceAuditSummary: 'Run audit summary',
+  runTraceRunStatus: 'Run status',
+  runTraceRuntimeMode: 'Runtime mode',
+  runTraceCost: 'Cost',
+  runTraceCaptureStatus: 'Trace capture',
+  runTraceReviewSignal: 'Manual review signal',
+  runTraceReviewRequired: 'Review required',
+  runTraceReviewNotRequired: 'Review not required',
+  runTraceReviewNotRecorded: 'Not recorded',
+  runTraceReviewNonAuthoritative: 'This is an event-derived signal, not an authoritative clinical review decision.',
   // Phase 3-D2.5 - Tool Dispatch Detail
   runTraceToolDispatchDetail: 'Tool Dispatch Detail',
   runTraceDispatchMode: 'Dispatch Mode',
@@ -3694,6 +3745,9 @@ const enUS: LocaleDict = {
   agentChatExperts: 'Experts',
   agentChatBrowseExpertLibrary: 'Browse Expert Library',
   agentChatCustomExperts: 'Custom experts',
+  agentChatDedicatedPolicyHint: 'This dedicated clinical Agent keeps its source safety rules and output contract. The prompt and project Experts here are additive specialization only.',
+  agentChatFixedSourceExperts: 'Fixed source Experts',
+  agentChatProjectExperts: 'Additive project Experts',
   agentChatAddExpert: 'Add expert',
   agentChatPinnedMessageParts: 'Pinned message parts',
   agentChatSdkJavaScript: 'JavaScript (SDK)',
@@ -3796,6 +3850,12 @@ const enUS: LocaleDict = {
   agentCardProductionReadyFalse: 'production_ready=false',
   agentCardExpertsSuffix: 'experts',
   agentCardToolsSuffix: 'tools',
+  agentRuntimeLocalReady: 'Local runtime ready',
+  agentRuntimeConfiguredLive: 'Model connectivity verified (semantic validation pending)',
+  agentRuntimeConfiguredNotLive: 'Model configured (live health not verified)',
+  agentRuntimeUnavailable: 'Runtime currently unavailable',
+  agentRuntimeUnavailableHint: 'Runtime dependencies are not ready. Configure and verify the model or runtime service first.',
+  agentSemanticNotVerified: 'Semantic quality not verified',
   // Phase 5 Track D P0 Gate 1 — user-visible display status labels (PDF §B3).
   displayStatusPreview: 'Preview',
   displayStatusAvailable: 'Available',
@@ -3814,7 +3874,7 @@ const enUS: LocaleDict = {
   agentDisabledToast: 'Disabled',
   agentUninstalledToast: 'Uninstalled',
   agentUninstallFailedToast: 'Uninstall failed',
-  agentClonedToDraftToast: 'Cloned as draft',
+  agentClonedToDraftToast: 'Project copy created; ready to run and customize',
   agentCloneFailedToast: 'Clone failed',
   agentClonedEnterChatToast: 'Cloned - entering chat',
   agentExistingCloneToast: 'Existing clone - entering chat',
@@ -3849,13 +3909,16 @@ const enUS: LocaleDict = {
   agentDetailProcedures: 'Procedures',
   agentDetailIssues: 'Issues',
   agentDetailRuleChecks: 'Rule checks',
-  agentDetailEvalTitle: 'Agent Evaluation',
-  agentDetailEvaluating: 'Evaluating...',
-  agentDetailRunGoldStandard: 'Run gold-standard evaluation',
-  agentDetailDxAccuracy: 'Diagnosis accuracy',
-  agentDetailProcAccuracy: 'Procedure accuracy',
-  agentDetailExportCsv: 'Export CSV',
-  agentDetailHistoryTrend: 'History trend',
+  agentDetailEvalTitle: 'Run history',
+  agentDetailHistoryTrend: 'Recent runs',
+  agentRunHistoryRefresh: 'Refresh run history',
+  agentRunHistoryEmpty: 'No persisted runs yet.',
+  agentLifecyclePublish: 'Publish',
+  agentLifecycleArchive: 'Archive',
+  agentLifecycleRestore: 'Restore',
+  agentLifecycleRunDisabled: 'This Agent is not published; running is disabled.',
+  agentLifecycleActionSucceeded: 'Agent lifecycle state updated',
+  agentLifecycleRestoreBeforeEdit: 'Restore the archived Agent before editing settings.',
   agentDetailBasicInfo: 'Basic info',
   agentDetailOrchestrationStrategy: 'Orchestration strategy',
   agentDetailRoutingStrategy: 'Routing strategy',
@@ -3885,12 +3948,12 @@ const enUS: LocaleDict = {
   agentDetailRoutingSingleExpertDesc: 'Only call the default expert, ignore other bindings',
   agentDetailPermissionMedicalCoding: 'Medical coding (recommended)',
   agentDetailPermissionCdiAudit: 'Clinical documentation audit (read-only)',
-  agentDetailPermissionDrgAnalysis: 'DRG/DIP payment analysis',
+  agentDetailPermissionDrgAnalysis: 'DRG/DIP risk review (non-settlement)',
   agentDetailPermissionRestrictive: 'Restrictive (deterministic tools only)',
   agentDetailPermissionFullAccess: 'Full access (dev/admin)',
   agentDetailPermissionMedicalCodingDesc: 'Standard coding pipeline - deterministic tools + limited LLM tool use',
   agentDetailPermissionCdiAuditDesc: 'Read-only analysis tools - coding assignment disallowed',
-  agentDetailPermissionDrgAnalysisDesc: 'Coding + DRG analysis - for insurance audit',
+  agentDetailPermissionDrgAnalysisDesc: 'Coding-risk review only; no official group, weight, score, or payment result',
   agentDetailPermissionRestrictiveDesc: 'Deterministic tools only (ICD index / evidence ranking etc.), maximum safety',
   agentDetailPermissionFullAccessDesc: 'All tools available - dev/admin only',
   agentDetailTestCaseLabel: 'Lumbar disc herniation',

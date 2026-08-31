@@ -14,6 +14,9 @@ Output (ComplianceGuardrailOutputSchema):
     "issues_found": [...],
     "manual_review_required": bool,
     "drg_suggestion": str,
+    "reviewed_codes": [
+      {"code": str, "code_system": "ICD-10-CN" | "ICD-9-CM-3", "role": str}
+    ],
     "compliance_checks": {
       "primary_dx_present": bool,
       "no_upcoding_risk": bool,
@@ -156,6 +159,38 @@ def _conclusion(issues: list[dict]) -> str:
     return "PASS"
 
 
+def _reviewed_codes(coding_set: dict[str, Any]) -> list[dict[str, str]]:
+    """Return the exact non-empty coding-set members evaluated by the rules."""
+    reviewed: list[dict[str, str]] = []
+    seen: set[tuple[str, str]] = set()
+
+    def add(value: Any, *, code_system: str, role: str) -> None:
+        if isinstance(value, dict):
+            code = str(value.get("code") or "").strip()
+        else:
+            code = ""
+        identity = (code.upper(), role)
+        if not code or identity in seen:
+            return
+        seen.add(identity)
+        reviewed.append({
+            "code": code,
+            "code_system": code_system,
+            "role": role,
+        })
+
+    add(
+        coding_set.get("primary_diagnosis"),
+        code_system="ICD-10-CN",
+        role="primary_diagnosis",
+    )
+    for item in coding_set.get("secondary_diagnoses") or []:
+        add(item, code_system="ICD-10-CN", role="secondary_diagnosis")
+    for item in coding_set.get("procedures") or []:
+        add(item, code_system="ICD-9-CM-3", role="procedure")
+    return reviewed
+
+
 async def run(input_text: str, *, run_id: str = "") -> dict:
     """Run the Compliance Guardrail Agent."""
     from compliance_services.medical_coding_rules import MedicalCodingRuleSet
@@ -186,6 +221,7 @@ async def run(input_text: str, *, run_id: str = "") -> dict:
         "issues_found": all_issues,
         "manual_review_required": manual_review,
         "drg_suggestion": _drg_suggestion(coding_set, checks),
+        "reviewed_codes": _reviewed_codes(coding_set),
         "compliance_checks": checks,
         "rule_set": "medical_coding",
         "fired_rules": rule_result.rules_fired,

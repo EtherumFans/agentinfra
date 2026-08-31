@@ -1,0 +1,343 @@
+{
+  "case_id": "CASE-3c2cfcdc214e",
+  "completion_state": "REVIEW_RECOMMENDED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-3c2cfcdc214e/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "The chief complaint '间断胸闷' (intermittent chest tightness) lacks specification of duration, frequency, severity, and associated symptoms, which are essential for accurate coding and clinical clarity.",
+      "why_it_matters": "Without temporal and severity details, the provider cannot accurately classify the condition, and coders may assign a non-specific code, affecting DRG assignment and quality measures.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "间断胸闷",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-3c2cfcdc214e/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "The phrase '常' is incomplete and ambiguous; it likely intended to describe a physical examination finding (e.g., '心肺听诊未见异常' or '生命体征正常') but is truncated, leaving the clinical status undocumented.",
+      "why_it_matters": "Incomplete documentation of physical examination findings hinders clinical correlation and may lead to queries or inaccurate coding of the encounter.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "常",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-3c2cfcdc214e/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "The plan '建议随访' (recommend follow-up) does not specify the follow-up interval, target condition, or any diagnostic workup, leaving the clinical course and necessity of follow-up unclear.",
+      "why_it_matters": "Lack of a clear follow-up plan may affect care continuity and coding of the encounter as a medical visit without a definitive management plan.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "建议随访",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-3c2cfcdc214e/Q-001",
+      "gap_id": "CASE-3c2cfcdc214e/GAP-001",
+      "topic": "Chief complaint specification",
+      "reason": "The chief complaint '间断胸闷' lacks details on duration, frequency, severity, and associated symptoms, which are essential for accurate clinical assessment and documentation.",
+      "evidence_span": {
+        "document_id": "DOC-001",
+        "quote": "间断胸闷",
+        "char_start": 11,
+        "char_end": 15,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "DOC-001",
+          "quote": "间断胸闷",
+          "char_start": 11,
+          "char_end": 15,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "请描述胸闷的具体特征：",
+      "response_options": [
+        "A. 胸闷持续数分钟至数小时，每日发作，活动后加重，伴气促",
+        "B. 胸闷偶发，每月1-2次，休息后缓解，无伴随症状",
+        "C. 胸闷持续存在，程度较重，伴心悸、出汗",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    },
+    {
+      "query_id": "CASE-3c2cfcdc214e/Q-002",
+      "gap_id": "CASE-3c2cfcdc214e/GAP-003",
+      "topic": "Follow-up plan specification",
+      "reason": "The plan '建议随访' does not specify the follow-up interval, target condition, or any diagnostic workup, leaving the clinical course and necessity of follow-up unclear.",
+      "evidence_span": {
+        "document_id": "DOC-001",
+        "quote": "建议随访",
+        "char_start": 33,
+        "char_end": 37,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "DOC-001",
+          "quote": "建议随访",
+          "char_start": 33,
+          "char_end": 37,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "请明确随访的具体安排：",
+      "response_options": [
+        "A. 建议1个月后门诊随访，复查心电图及心肌酶",
+        "B. 建议3个月后门诊随访，评估症状变化",
+        "C. 建议6个月后门诊随访，行心脏超声检查",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    }
+  ],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-002",
+      "gap_id": "CASE-3c2cfcdc214e/GAP-002",
+      "topic": "Physical examination finding",
+      "reason": "The phrase '常' is incomplete and ambiguous, likely intended to describe a physical examination finding but truncated, leaving the clinical status undocumented.",
+      "query_text": "请明确体格检查结果：",
+      "response_options": [
+        "A. 生命体征正常，心肺听诊未见异常",
+        "B. 生命体征平稳，双肺呼吸音清，未闻及干湿性啰音",
+        "C. 生命体征异常，心率增快，肺部闻及湿性啰音",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "DOC-001",
+          "quote": "常",
+          "char_start": 31,
+          "char_end": 32,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "INSUFFICIENT_CLINICAL_SUBSTRATE",
+        "NOT_ANSWERABLE"
+      ],
+      "status": "REJECTED_BY_SEMANTIC_NECESSITY",
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者女性, 35岁, 间断胸闷。<REDACTED:NAME>常。建议随访。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者女性，35岁",
+      "主诉：间断胸闷",
+      "建议随访"
+    ],
+    "encounter_metadata": {
+      "patient_age": "35岁",
+      "patient_sex": "女性",
+      "encounter_type": "门诊"
+    }
+  },
+  "risk_flags": [
+    {
+      "category": "ambiguous_term",
+      "description": "The phrase '常' is ambiguous and incomplete, potentially indicating a copied-forward or truncated note, obscuring the clinical finding."
+    }
+  ],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "For accurate coding, the chest tightness must be characterized by onset, duration, frequency, precipitating factors, and any associated symptoms (e.g., dyspnea, palpitations, diaphoresis), plus whether it is exertional or at rest. The truncated phrase “常” must be completed to document a specific physical examination finding (e.g., vital signs, heart/lung auscultation) so the clinical status is explicit. The follow-up plan needs a defined interval, the target condition to monitor, and any planned diagnostic tests (e.g., ECG, stress test, labs) to clarify medical necessity and clinical intent.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3730,
+      "tokens": 331
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-2e47c830f7f6",
+    "gap_identification": "run-e03ceca1c15d",
+    "gap_identification_risk_flags": "emitted=1;quote_snapped=0",
+    "expert_consultation": "run-4d1cfbb7696c",
+    "query_generation": "run-da659d3f5331",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=;dropped=0;final_count=3;llm_complete=False;llm_reasoning=The chart lacks essential clinical details such as duration, severity, physical ",
+    "query_necessity_gate": "necessary=3;unnecessary=0;overquery_triggered=False;final_count=3",
+    "query_single_dimension_gate": "single_dim=3;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;rewrite_attempted=0;rewrite_accepted=0;final_count=3",
+    "claim_evidence_alignment_gate": "claims_extracted=5;blocked=0;flagged=0;final_count=3",
+    "claim_evidence_alignment_gate::run_id": "run-aeba711d07e3",
+    "semantic_necessity_gate": "blocked=1;flagged=0;degraded=0;final_count=2",
+    "semantic_necessity_gate::run_id": "run-31bb16da695f",
+    "query_compliance_gate": ";passed=2;blocked=0",
+    "specialist_trace_emit": "run-4332a1741cce"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-bdcd708d75d2",
+    "gap_identification": "trace-b492274cdfc6",
+    "expert_consultation": "trace-be0b59048bf2",
+    "query_generation": "trace-8dc2725cfcce",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-c572d1749fca",
+    "semantic_necessity_gate": "trace-27fdf6fe1107",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-56f973fc39dc"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2695,
+      "prompt_tokens": 193,
+      "completion_tokens": 68,
+      "total_tokens": 261,
+      "run_id": "run-2e47c830f7f6",
+      "trace_id": "trace-bdcd708d75d2",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6816,
+      "prompt_tokens": 986,
+      "completion_tokens": 602,
+      "total_tokens": 1588,
+      "run_id": "run-e03ceca1c15d",
+      "trace_id": "trace-b492274cdfc6",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6000,
+      "prompt_tokens": 1249,
+      "completion_tokens": 674,
+      "total_tokens": 1923,
+      "run_id": "run-da659d3f5331",
+      "trace_id": "trace-8dc2725cfcce",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3730,
+      "prompt_tokens": 204,
+      "completion_tokens": 127,
+      "total_tokens": 331,
+      "run_id": "run-6c0d3985a8ca",
+      "trace_id": "trace-d03210e9bfb1",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-50e9cbf6eaf2",
+      "trace_id": "trace-112d23f7827c",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-d1136ddb155c",
+      "trace_id": "trace-786a63096727",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-e481542a38a5",
+      "trace_id": "trace-dae741809972",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T18:47:03.086820Z"
+}

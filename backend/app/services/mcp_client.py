@@ -21,6 +21,14 @@ MCP_ENDPOINTS = {
     "web_search": None,  # Requires Brave/Bing API key
 }
 
+MCP_SOURCE_NAMES = {
+    "pubmed": "PubMed",
+    "clinical_trials": "ClinicalTrials.gov",
+    "drugbank": "DrugBank",
+    "posos": "Posos",
+    "web_search": "Web Search",
+}
+
 
 class McpClient:
     """Real MCP server client for connecting Experts to external services."""
@@ -36,7 +44,17 @@ class McpClient:
                 return await handler(tool, params)
             except Exception as e:
                 logger.error(f"MCP call failed for {service}/{tool}: {e}")
-                return {"error": str(e), "source": service, "tool": tool}
+                # Several transport exceptions (notably ReadTimeout on some
+                # httpx versions) stringify to an empty value.  Returning an
+                # empty ``error`` makes an unavailable connector look like an
+                # ambiguous success to API and Agent callers.  Keep the public
+                # failure secret-free while always exposing a useful reason.
+                error_message = str(e).strip() or type(e).__name__
+                return {
+                    "error": error_message,
+                    "source": MCP_SOURCE_NAMES.get(service, service),
+                    "tool": tool,
+                }
         return {"error": f"Unknown MCP service: {service}", "source": service}
 
     async def _handle_pubmed(self, tool: str, params: dict) -> dict:

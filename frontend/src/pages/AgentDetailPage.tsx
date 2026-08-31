@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 
 import { useT } from '../i18n';
-import { agentsApi, billingApi, oauthApi } from '../services/api';
+import { agentsApi, billingApi } from '../services/api';
 import { agentHubApi } from '../services/agentHubApi';
 import { runtimeAgentApi } from '../services/runtimeApi';
 import { useToastStore } from '../store';
@@ -17,6 +17,19 @@ import ToolSelector from '../components/agents/ToolSelector';
 import CodeSnippet from '../components/common/CodeSnippet';
 import EditSystemPromptModal from '../components/EditSystemPromptModal';
 import A2ACollaboration from '../components/A2ACollaboration';
+import { buildAgentRunSnippets } from '../utils/agentSdkCode';
+
+function isRunActionDisabled(agent: any): boolean {
+  if (!agent) return true;
+  if (!agent.is_prebuilt && agent.lifecycle) {
+    return agent.lifecycle.run_action_enabled !== true;
+  }
+  return Boolean(
+    agent.is_prebuilt
+    && agent.runtime_readiness
+    && agent.runtime_readiness.run_action_enabled !== true
+  );
+}
 
 export default function AgentDetailPage() {
   const t = useT();
@@ -45,23 +58,19 @@ export default function AgentDetailPage() {
   const [testResult, setTestResult] = useState<any>(null);
   const [testLoading, setTestLoading] = useState(false);
 
-  // Agent Evaluation
-  const [showEval, setShowEval] = useState(false);
-  const [evalResult, setEvalResult] = useState<any>(null);
-  const [evalLoading, setEvalLoading] = useState(false);
-  // Tier 4 TODO (plan wobbly-noodling-fountain.md TODO 1): repurposed to
-  // hold recent A2A run summaries (runtime/runs/history filtered by agent_id).
-  // The original "evaluation history" was removed in Phase 2.1-A; until an
-  // evaluation agent is added (TODO 2 — DEFERRED), this panel shows real
-  // run history rows so the page isn't a stub.
-  const [evalHistory, setEvalHistory] = useState<any[]>([]);
+  // Real persisted run history. This deliberately does not claim evaluation
+  // accuracy because no independent gold-standard evaluation service exists.
+  const [showRunHistory, setShowRunHistory] = useState(false);
+  const [runHistory, setRunHistory] = useState<any[]>([]);
+  const [runHistoryLoading, setRunHistoryLoading] = useState(false);
+  const [runHistoryError, setRunHistoryError] = useState('');
 
   // Chat state
   const [chatInput, setChatInput] = useState('');
   const [chatMessages, setChatMessages] = useState<{ role: string; content: string }[]>([]);
   const [chatLoading, setChatLoading] = useState(false);
   const [sessionId, setSessionId] = useState(() => `sess-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`);
-  const [memoryLoaded, setMemoryLoaded] = useState(false);
+  const [memoryReadiness, setMemoryReadiness] = useState<any | null>(null);
 
   // Expert bindings
   const [agentExperts, setAgentExperts] = useState<any[]>([]);
@@ -74,6 +83,7 @@ export default function AgentDetailPage() {
   const [showEditPrompt, setShowEditPrompt] = useState(false);
   const [savingSettings, setSavingSettings] = useState(false);
   const [settingsSaved, setSettingsSaved] = useState(false);
+  const [lifecycleLoading, setLifecycleLoading] = useState(false);
 
   // Orchestration config
   const [routingStrategy, setRoutingStrategy] = useState<string>('llm_plan');
@@ -95,17 +105,15 @@ export default function AgentDetailPage() {
   const [attachedFile, setAttachedFile] = useState<{ name: string; content: string } | null>(null);
   const [showFormatMenu, setShowFormatMenu] = useState(false);
 
-  // API client / balance
+  // Billing balance
   const [balance, setBalance] = useState<number | null>(null);
-  const [apiClients, setApiClients] = useState<any[]>([]);
-  const [selectedApiClient, setSelectedApiClient] = useState<string>('');
-  const [copied, setCopied] = useState('');
   // Delete confirmation modal state
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Track the currently active agentId to discard stale responses
   const activeAgentIdRef = useRef(agentId);
   const activeStreamRef = useRef<AbortController | null>(null);
+  const activeContextRef = useRef<string>('');
   useEffect(() => {
     activeAgentIdRef.current = agentId;
     // Abort any in-flight stream from previous agent
@@ -113,6 +121,7 @@ export default function AgentDetailPage() {
       activeStreamRef.current.abort();
       activeStreamRef.current = null;
     }
+    activeContextRef.current = '';
   }, [agentId]);
 
   // Load agent data
@@ -124,37 +133,43 @@ export default function AgentDetailPage() {
     setError('');
     setLoading(true);
     setChatMessages([]);
-    setMemoryLoaded(false);
+    setMemoryReadiness(null);
+    setRuntimeInstalled(false);
+    setRuntimeStatus('');
+    setRuntimeTier(null);
+    setRunHistory([]);
+    setRunHistoryError('');
     setSessionId(`sess-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`);
 
     billingApi.balance().then(r => { if (isActive()) setBalance(r.data.balance); }).catch(() => {});
-    oauthApi.list().then(r => {
-      if (!isActive()) return;
-      const clients = r.data?.clients || [];
-      setApiClients(clients);
-      if (clients.length > 0) setSelectedApiClient(clients[0].client_id);
-    }).catch(() => {});
-
     const idToExpert: Record<string, any> = {};
     agentsApi.get(agentId).then(r2 => {
       if (!isActive()) return;
       const a = r2.data;
       setAgent(a);
       setAgentName(a.name || '');
-      // Check Runtime status for this agent
+      // Project Agents are runtime-addressable by their database ID. Their
+      // explicit lifecycle is authoritative; registry install state applies
+      // only to separately installed/prebuilt runtime Packs.
       const cleanName = (a.name || 'agent').toLowerCase().replace(/\s+/g, '-').replace(/\(copy\)/g, '').replace(/-+$/g, '');
       const ref = cleanName + '-' + (a.version || '1.0.0');
-      setAgentRef(ref);
-      runtimeAgentApi.listAgents().then(({ agents: installed }) => {
-        const found = installed.find((inst: { agent_ref: string }) =>
-          inst.agent_ref.includes(cleanName) || inst.agent_ref === ref
-        );
-        if (found) {
-          setRuntimeInstalled(true);
-          setRuntimeStatus(found.status);
-          setRuntimeTier((found as any).tier ?? null);
-        }
-      }).catch(() => {});
+      if (!a.is_prebuilt && a.lifecycle) {
+        setAgentRef(a.id);
+        setRuntimeInstalled(true);
+        setRuntimeStatus(a.lifecycle.state || a.status || 'draft');
+      } else {
+        setAgentRef(ref);
+        runtimeAgentApi.listAgents().then(({ agents: installed }) => {
+          const found = installed.find((inst: { agent_ref: string }) =>
+            inst.agent_ref.includes(cleanName) || inst.agent_ref === ref
+          );
+          if (found) {
+            setRuntimeInstalled(true);
+            setRuntimeStatus(found.status);
+            setRuntimeTier((found as any).tier ?? null);
+          }
+        }).catch(() => {});
+      }
       setSystemPrompt(a.system_prompt || '');
       const cfg = a.config || {};
       setRoutingStrategy(cfg.routing_strategy || 'llm_plan');
@@ -186,7 +201,7 @@ export default function AgentDetailPage() {
       } catch {}
       // Fallback: try Hub (prebuilt agents like icoder/medical-coding-agent@2.0.0)
       try {
-        const hubRes = await agentHubApi.list();
+        const hubRes = await agentHubApi.listWithTenantReadiness();
         if (!isActive()) return;
         const card = (hubRes.data?.agents || []).find(c => c.agent_ref === agentId || c.agent_id === agentId);
         if (card) {
@@ -212,6 +227,7 @@ export default function AgentDetailPage() {
             display_status: card.display_status,
             display_badges: card.display_badges,
             usage_boundaries: card.usage_boundaries,
+            runtime_readiness: card.runtime_readiness,
           } as any);
           setAgentName(card.name); setAgentRef(card.agent_ref);
           return;
@@ -238,13 +254,18 @@ export default function AgentDetailPage() {
     });
   }, [agentId]);
 
-  // Load memory context
+  // Load only aggregate governed-Memory readiness; no remembered content is fetched.
   useEffect(() => {
-    if (agent && !memoryLoaded) {
-      setMemoryLoaded(true);
+    if (!agentId || !agent) {
+      setMemoryReadiness(null);
+      return;
     }
-    if (!agent) setMemoryLoaded(false);
-  }, [agent, sessionId, memoryLoaded]);
+    let active = true;
+    agentsApi.memoryReadiness(agentId)
+      .then(response => { if (active) setMemoryReadiness(response.data); })
+      .catch(() => { if (active) setMemoryReadiness(null); });
+    return () => { active = false; };
+  }, [agent, agentId]);
 
   // Build message content
   const buildMessageContent = (): string => {
@@ -259,6 +280,10 @@ export default function AgentDetailPage() {
   const handleSend = async (overrideContent?: string) => {
     const content = overrideContent || buildMessageContent();
     if (!content.trim() || !agent) return;
+    if (isRunActionDisabled(agent)) {
+      toast(t.agentRuntimeUnavailableHint, 'error');
+      return;
+    }
 
     // Abort any in-flight stream
     if (activeStreamRef.current) {
@@ -269,7 +294,6 @@ export default function AgentDetailPage() {
     const isActive = () => activeAgentIdRef.current === agentId;
 
     const userMsg = { role: 'user', content };
-    const history = chatMessages.map(m => ({ role: m.role, content: m.content }));
     setChatMessages(prev => [...prev, userMsg]);
     if (!overrideContent) {
       setChatInput('');
@@ -283,19 +307,57 @@ export default function AgentDetailPage() {
     setChatMessages(prev => [...prev, { role: 'assistant', content: '' }]);
 
     try {
-      const token = localStorage.getItem('access_token') || '';
-      void token; // auth handled by axios interceptor in runtimeApi
-
-      // Phase 4-F (2026-07-09): use unified Agent Run API
-      // POST /api/v1/agents/{id}/run — uniform 13-field envelope across
-      // all iCoDer built agents. Routes internally to CodingRuntimeDispatcher
-      // (medical-coding) or ProviderRegistry (others).
-      const { runtimeAgentApi } = await import('../services/runtimeApi');
-      const resp = await runtimeAgentApi.agentRun(agentId || '', content, {
-        runtime_mode: agent?.default_runtime_mode || undefined,
+      let streamedText = '';
+      let providerCharacters = 0;
+      const resp = await runtimeAgentApi.agentStream(agentId || '', content, {
+        signal: abortController.signal,
+        context_id: activeContextRef.current || undefined,
+        onStatus: (status) => {
+          if (!isActive() || streamedText) return;
+          const message = typeof status.message === 'string'
+            ? status.message
+            : 'Agent execution in progress';
+          setChatMessages(prev => prev.map((item, index) =>
+            index === assistantIdx ? { ...item, content: `⏳ ${message}` } : item
+          ));
+        },
+        onTextDelta: (delta) => {
+          if (!isActive()) return;
+          streamedText += delta;
+          setChatMessages(prev => prev.map((item, index) =>
+            index === assistantIdx ? { ...item, content: streamedText } : item
+          ));
+        },
+        onProviderProgress: (progress) => {
+          if (!isActive() || streamedText) return;
+          const characters = Number(progress.characters || 0);
+          if (Number.isFinite(characters) && characters > 0) {
+            providerCharacters += characters;
+          }
+          setChatMessages(prev => prev.map((item, index) =>
+            index === assistantIdx
+              ? { ...item, content: `⏳ Model output received (${providerCharacters} characters); validating…` }
+              : item
+          ));
+        },
+        onToolEvent: (event, payload) => {
+          if (!isActive() || streamedText) return;
+          const toolName = typeof payload.toolName === 'string'
+            ? `: ${payload.toolName}`
+            : '';
+          const label = event === 'data-tool-call'
+            ? `Tool completed${toolName}`
+            : event === 'data-provider-reset'
+              ? 'Provider switched; partial output discarded'
+              : 'Tool call streaming';
+          setChatMessages(prev => prev.map((item, index) =>
+            index === assistantIdx ? { ...item, content: `⏳ ${label}` } : item
+          ));
+        },
       });
 
       if (!isActive()) return;
+      if (resp.context_id) activeContextRef.current = resp.context_id;
 
       if (resp.error) {
         setChatMessages(prev => prev.map((m, i) =>
@@ -368,49 +430,41 @@ export default function AgentDetailPage() {
     setChatInput(instruction);
   };
 
-  // Tier 4 TODO 1 (plan wobbly-noodling-fountain.md): fetch recent A2A runs
-  // for this agent via /api/runtime/runs/history?agent_id=<id>. Endpoint
-  // supports exact-match agent_id filter (see backend/app/api/run_trace.py
-  // list_run_history). Renders a simple list so the agent detail page is no
-  // longer a stub. Full evaluation panel is still DEFERRED (TODO 2).
-  const fetchEvalHistory = async () => {
+  const fetchRunHistory = async () => {
+    setRunHistoryLoading(true);
+    setRunHistoryError('');
     try {
       const filterId = agent?.id || agentId || '';
       if (!filterId) {
-        setEvalHistory([]);
+        setRunHistory([]);
         return;
       }
       const data = await runtimeAgentApi.getRunHistory(filterId, 10);
-      setEvalHistory(data.items || []);
+      setRunHistory(data.items || []);
     } catch (e: any) {
-      // Soft-fail: panel just stays empty. Console log helps debugging
-      // without spamming the user (the eval panel is opt-in).
-      console.warn('fetchEvalHistory: getRunHistory failed', e?.message || e);
-      setEvalHistory([]);
+      console.warn('fetchRunHistory: getRunHistory failed', e?.message || e);
+      setRunHistory([]);
+      const detail = e?.response?.data?.detail;
+      const message = typeof detail === 'string'
+        ? detail
+        : detail?.message || detail?.error || t.agentDetailOperationFailed;
+      setRunHistoryError(message);
+      toast(message, 'error');
+    } finally {
+      setRunHistoryLoading(false);
     }
-  };
-  const runEvaluation = async () => {
-    // DEFERRED (plan wobbly-noodling-fountain.md TODO 2): evaluation agent +
-    // A2A message:send integration. The /api/agents/{id}/evaluate endpoint
-    // was removed in Phase 2.1-A. Re-implementing requires designing an
-    // evaluation agent + gold-standard fixture routing — out of scope for
-    // this session. The button is kept so users can see the panel; runs
-    // fail loudly with a toast so the gap is visible.
-    setEvalLoading(true);
-    try {
-      throw new Error('Agent evaluation endpoint removed in Phase 2.1-A. Use A2A message:send with an evaluation agent.');
-    } catch (e: any) {
-      // Surface the migration error
-      console.warn(e.message);
-    } finally { setEvalLoading(false); }
   };
 
   // Save settings
   const handleSaveSettings = async () => {
     if (!agent?.id) return;
+    if (agent.lifecycle?.state === 'archived') {
+      toast(t.agentLifecycleRestoreBeforeEdit, 'error');
+      return;
+    }
     setSavingSettings(true);
     try {
-      await agentsApi.update(agent.id, {
+      const response = await agentsApi.update(agent.id, {
         name: agentName,
         system_prompt: systemPrompt,
         expert_ids: agentExperts.map(e => e.id),
@@ -425,10 +479,42 @@ export default function AgentDetailPage() {
           },
         },
       });
+      setAgent(response.data);
+      setAgentName(response.data.name || agentName);
+      setAgentRef(response.data.id || agentRef);
+      setRuntimeStatus(response.data.lifecycle?.state || response.data.status || runtimeStatus);
       setSettingsSaved(true);
       setTimeout(() => setSettingsSaved(false), 2000);
-    } catch { /* silently fail */ }
+    } catch (e: any) {
+      const detail = e?.response?.data?.detail;
+      const message = typeof detail === 'string'
+        ? detail
+        : detail?.message || detail?.error || t.agentDetailOperationFailed;
+      toast(message, 'error');
+    }
     setSavingSettings(false);
+  };
+
+  const handleLifecycleAction = async (action: 'publish' | 'archive' | 'restore') => {
+    if (!agent?.id || lifecycleLoading) return;
+    setLifecycleLoading(true);
+    try {
+      const response = await agentsApi[action](agent.id);
+      const updated = response.data;
+      setAgent(updated);
+      setRuntimeInstalled(true);
+      setRuntimeStatus(updated.lifecycle?.state || updated.status || action);
+      setAgentRef(updated.id || agentRef);
+      toast(t.agentLifecycleActionSucceeded, 'success');
+    } catch (e: any) {
+      const detail = e?.response?.data?.detail;
+      const message = typeof detail === 'string'
+        ? detail
+        : detail?.message || detail?.error || t.agentDetailOperationFailed;
+      toast(message, 'error');
+    } finally {
+      setLifecycleLoading(false);
+    }
   };
 
   // Delete agent
@@ -443,7 +529,13 @@ export default function AgentDetailPage() {
       await agentsApi.delete(agent.id);
       setShowDeleteConfirm(false);
       navigate('/ai-studio/agents');
-    } catch { /* silently fail */ }
+    } catch (e: any) {
+      const detail = e?.response?.data?.detail;
+      const message = typeof detail === 'string'
+        ? detail
+        : detail?.message || detail?.error || t.agentDetailOperationFailed;
+      toast(message, 'error');
+    }
   };
 
   // Browse expert library
@@ -458,13 +550,6 @@ export default function AgentDetailPage() {
 
   const removeExpertFromAgent = (id: string) => {
     setAgentExperts(prev => prev.filter(e => e.id !== id));
-  };
-
-  const handleCopy = (key: string) => {
-    const code = `import { iCoDerClient } from "@icoder/sdk";\n\nconst client = new iCoDerClient({ apiKey: "YOUR_API_KEY" });\nconst agent = client.agent("${agent?.id || agentId}");\nconst response = await agent.chat("patient case...");`;
-    navigator.clipboard.writeText(code);
-    setCopied(key);
-    setTimeout(() => setCopied(''), 2000);
   };
 
   // Only show spinner on very first load (no agent data at all)
@@ -494,17 +579,45 @@ export default function AgentDetailPage() {
   }
 
   const agentTitle = agentName || agent.name || agent.title || '智能体';
+  const dynamicProjectAgent = Boolean(agent && !agent.is_prebuilt && agent.lifecycle);
+  const runActionDisabled = isRunActionDisabled(agent);
+  const agentRunCode = buildAgentRunSnippets({
+    agentId: agent?.id || agentId || '',
+    agentRef: agentRef || agent?.config?.source_agent_ref || agent?.config?.agent_ref || '',
+    baseURL: window.location.origin,
+    runtimeMode: agent?.default_runtime_mode || agent?.config?.default_runtime_mode || '',
+  });
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
       {/* Runtime status bar */}
       <div className="flex items-center gap-4 px-6 py-2 bg-muted/30 border-b text-xs">
         <span className="text-muted-foreground">Runtime:</span>
-        <span className="text-[11px] font-mono text-muted-foreground ml-auto">¥0.000000</span>
+        {memoryReadiness && (
+          <span
+            className={`px-1.5 py-0.5 rounded-full text-[10px] font-medium ${
+              memoryReadiness.operationally_configured
+                ? 'bg-green-100 text-green-700'
+                : 'bg-amber-100 text-amber-700'
+            }`}
+            title={`持久记忆 ${memoryReadiness.consent_status}；${memoryReadiness.persisted_memory_count} 条；患者授权未验证，禁止 PHI`}
+          >
+            Memory: {memoryReadiness.consent_status === 'active' ? '已授权' : '未授权'}
+          </span>
+        )}
+        {dynamicProjectAgent && (
+          <span className="text-[11px] font-mono text-muted-foreground ml-auto">
+            v{agent?.lifecycle?.version || agent?.version || '1.0.0'}
+          </span>
+        )}
         {runtimeInstalled ? (
           <>
             <span className={`px-1.5 py-0.5 rounded-full font-medium ${
-              runtimeStatus === 'enabled' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+              runtimeStatus === 'enabled' || runtimeStatus === 'published'
+                ? 'bg-green-100 text-green-700'
+                : runtimeStatus === 'archived'
+                  ? 'bg-red-100 text-red-700'
+                  : 'bg-amber-100 text-amber-700'
             }`}>{runtimeStatus || 'installed'}</span>
             <span className="text-muted-foreground font-mono text-[11px]">{agentRef}</span>
             {/* Tier badge */}
@@ -522,7 +635,7 @@ export default function AgentDetailPage() {
               </span>
             )}
           </>
-        ) : (
+        ) : !dynamicProjectAgent ? (
           <button onClick={async () => {
             setInstallLoading(true);
             try {
@@ -545,8 +658,8 @@ export default function AgentDetailPage() {
             className="px-2 py-0.5 rounded text-[11px] bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
             {installLoading ? 'Installing...' : 'Install to Runtime'}
           </button>
-        )}
-        {runtimeInstalled && (
+        ) : null}
+        {(runtimeInstalled || dynamicProjectAgent) && (
           <div className="flex gap-1 ml-auto">
             {/* Phase 4-G #4: Fork iCoDer built agent into user's editable namespace */}
             {agent?.is_prebuilt && (
@@ -581,15 +694,34 @@ export default function AgentDetailPage() {
                 {forkLoading ? 'Forking...' : '自定义'}
               </button>
             )}
-            <button onClick={() => setShowTestPanel(!showTestPanel)}
-              className="px-2 py-0.5 rounded text-[11px] bg-blue-50 text-blue-600 hover:bg-blue-100">
+            {dynamicProjectAgent && agent?.lifecycle?.allowed_actions?.includes('publish') && (
+              <button onClick={() => handleLifecycleAction('publish')} disabled={lifecycleLoading}
+                className="px-2 py-0.5 rounded text-[11px] bg-green-50 text-green-700 hover:bg-green-100 disabled:opacity-40">
+                {t.agentLifecyclePublish}
+              </button>
+            )}
+            {dynamicProjectAgent && agent?.lifecycle?.allowed_actions?.includes('archive') && (
+              <button onClick={() => handleLifecycleAction('archive')} disabled={lifecycleLoading}
+                className="px-2 py-0.5 rounded text-[11px] bg-amber-50 text-amber-700 hover:bg-amber-100 disabled:opacity-40">
+                {t.agentLifecycleArchive}
+              </button>
+            )}
+            {dynamicProjectAgent && agent?.lifecycle?.allowed_actions?.includes('restore') && (
+              <button onClick={() => handleLifecycleAction('restore')} disabled={lifecycleLoading}
+                className="px-2 py-0.5 rounded text-[11px] bg-green-50 text-green-700 hover:bg-green-100 disabled:opacity-40">
+                {t.agentLifecycleRestore}
+              </button>
+            )}
+            <button onClick={() => setShowTestPanel(!showTestPanel)} disabled={runActionDisabled}
+              title={runActionDisabled ? t.agentLifecycleRunDisabled : undefined}
+              className="px-2 py-0.5 rounded text-[11px] bg-blue-50 text-blue-600 hover:bg-blue-100 disabled:opacity-40">
               {t.agentDetailTestTitle}
             </button>
-            <button onClick={() => { setShowEval(!showEval); if (!showEval && !evalHistory.length) fetchEvalHistory(); }}
+            <button onClick={() => { setShowRunHistory(!showRunHistory); if (!showRunHistory) fetchRunHistory(); }}
               className="px-2 py-0.5 rounded text-[11px] bg-green-50 text-green-600 hover:bg-green-100">
               {t.agentDetailEvalTitle}
             </button>
-            <button onClick={async () => {
+            {!dynamicProjectAgent && <button onClick={async () => {
               try {
                 const newAction = runtimeStatus === 'enabled' ? 'disable' : 'enable';
                 await runtimeAgentApi.agentLifecycle(agentRef, newAction);
@@ -599,7 +731,7 @@ export default function AgentDetailPage() {
             }}
               className="px-2 py-0.5 rounded text-[11px] bg-gray-100 hover:bg-gray-200">
               {runtimeStatus === 'enabled' ? t.agentDisable : t.agentEnable}
-            </button>
+            </button>}
           </div>
         )}
       </div>
@@ -625,7 +757,11 @@ export default function AgentDetailPage() {
                 setTestResult(data);
               } catch (e: any) { setTestResult({ error: e?.message || t.agentDetailTestFailed }); }
               finally { setTestLoading(false); }
-            }} disabled={testLoading || !testInput.trim()}
+            }} disabled={
+              testLoading
+              || !testInput.trim()
+              || runActionDisabled
+            }
               className="px-4 py-2 rounded-lg bg-blue-600 text-white text-xs font-medium hover:bg-blue-700 disabled:opacity-40 shrink-0 self-end">
               {testLoading ? t.agentDetailRunning : t.agentDetailRunTest}
             </button>
@@ -835,24 +971,12 @@ export default function AgentDetailPage() {
 
                   <div className="flex-1" />
 
-                  {/* Phase 4-F: API Client dropdown — usage attribution selector */}
-                  {apiClients.length > 0 && (
-                    <select
-                      value={selectedApiClient}
-                      onChange={e => setSelectedApiClient(e.target.value)}
-                      className="text-[10px] text-muted-foreground bg-transparent border border-border/40 rounded-md px-1.5 py-1 focus:outline-none focus:ring-1 focus:ring-ring max-w-[120px]"
-                      title={t.apiClient || 'API Client'}
-                    >
-                      {apiClients.map((c: any) => (
-                        <option key={c.client_id} value={c.client_id}>
-                          {c.name || c.client_id}
-                        </option>
-                      ))}
-                    </select>
-                  )}
-
                   <button onClick={() => handleSend()}
-                    disabled={(!chatInput.trim() && !jsonData.trim() && !attachedFile) || chatLoading}
+                    disabled={
+                      (!chatInput.trim() && !jsonData.trim() && !attachedFile)
+                      || chatLoading
+                      || runActionDisabled
+                    }
                     className="w-9 h-9 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 active:scale-[0.98] disabled:opacity-30 transition-all shrink-0 flex items-center justify-center">
                     {chatLoading ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
                   </button>
@@ -897,57 +1021,39 @@ export default function AgentDetailPage() {
         {/* Separator */}
         <div className="h-full w-px bg-border/40 shrink-0" />
 
-        {/* Right: SettingsCodeTab panel or Eval panel */}
+        {/* Right: settings/code or persisted run-history panel */}
         <div className="w-80 bg-muted/10 shrink-0 overflow-y-auto">
-          {showEval ? (
+          {showRunHistory ? (
             <div className="p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <h4 className="text-xs font-semibold text-foreground">{t.agentDetailEvalTitle}</h4>
-                <button onClick={() => setShowEval(false)} className="p-0.5 rounded hover:bg-accent"><X size={14} className="text-muted-foreground" /></button>
+                <button onClick={() => setShowRunHistory(false)} className="p-0.5 rounded hover:bg-accent"><X size={14} className="text-muted-foreground" /></button>
               </div>
-              <button onClick={runEvaluation} disabled={evalLoading}
-                className="w-full py-2 rounded-lg bg-green-600 text-white text-xs font-medium hover:bg-green-700 disabled:opacity-40">
-                {evalLoading ? t.agentDetailEvaluating : t.agentDetailRunGoldStandard}
+              <button onClick={fetchRunHistory} disabled={runHistoryLoading}
+                className="w-full py-2 rounded-lg border border-border bg-background text-xs font-medium hover:bg-accent disabled:opacity-40">
+                {runHistoryLoading ? <Loader2 size={14} className="animate-spin mx-auto" /> : t.agentRunHistoryRefresh}
               </button>
-              {evalResult && (
-                <div className="bg-white rounded-lg border p-3 space-y-2 text-xs">
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="text-center p-2 bg-muted/50 rounded"><p className="text-lg font-bold text-green-700">{evalResult.primary_dx_accuracy ? (evalResult.primary_dx_accuracy*100).toFixed(0)+'%' : '-'}</p><p className="text-[10px] text-muted-foreground">{t.agentDetailDxAccuracy}</p></div>
-                    <div className="text-center p-2 bg-muted/50 rounded"><p className="text-lg font-bold text-blue-700">{evalResult.primary_proc_accuracy ? (evalResult.primary_proc_accuracy*100).toFixed(0)+'%' : '-'}</p><p className="text-[10px] text-muted-foreground">{t.agentDetailProcAccuracy}</p></div>
-                  </div>
-                  <p className="text-[10px] text-muted-foreground text-center">{evalResult.total_cases} cases in {evalResult.elapsed_seconds}s</p>
-                  <button onClick={() => {
-                    const rows = [['Case ID','Expected DX','Actual DX','Match','Expected PROC','Actual PROC','Match','Latency(ms)']];
-                    (evalResult.per_case||[]).forEach((c:any) => rows.push([c.case_id,c.expected_dx,c.actual_dx,c.dx_match?'YES':'NO',c.expected_proc||'',c.actual_proc||'',c.proc_match?'YES':'NO',String(c.latency_ms||0)]));
-                    const csv = rows.map(r => r.join(',')).join('\n');
-                    const blob = new Blob(['﻿'+csv], {type:'text/csv;charset=utf-8'});
-                    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `eval-${agentRef||'agent'}-${new Date().toISOString().slice(0,10)}.csv`; a.click();
-                  }} className="w-full mt-2 py-1.5 rounded text-[10px] border border-border text-muted-foreground hover:text-foreground">{t.agentDetailExportCsv}</button>
-                  <div className="max-h-48 overflow-y-auto space-y-1">
-                    {evalResult.per_case?.map((c: any, i: number) => (
-                      <div key={i} className="flex items-center gap-2 py-1 border-b border-muted">
-                        <span className="text-[10px] font-mono">{c.case_id}</span>
-                        <span className="text-[10px] font-mono">{c.expected_dx}</span>
-                        <span className="ml-auto">{c.dx_match ? '✅' : '❌'}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {evalHistory.length > 0 && (
+              {runHistoryError ? (
+                <p className="text-xs text-destructive text-center py-4" role="alert">{runHistoryError}</p>
+              ) : runHistory.length > 0 ? (
                 <div className="bg-white rounded-lg border p-3 text-xs">
                   <p className="font-medium mb-1">{t.agentDetailHistoryTrend}</p>
-                  {evalHistory.slice(0,5).map((h: any, i: number) => (
-                    <div key={i} className="flex justify-between py-0.5 text-[10px]">
-                      <span className="text-muted-foreground">{(h.created_at || h.evaluated_at || '').slice(0,16)}</span>
-                      <span className="font-mono text-muted-foreground">
-                        {h.runtime_mode || h.agent_id || h.run_id?.slice(0,8) || '-'}
-                        {typeof h.latency_ms === 'number' ? ` · ${h.latency_ms}ms` : ''}
-                      </span>
+                  {runHistory.map((h: any, i: number) => (
+                    <div key={h.run_id || i} className="py-1.5 border-b border-muted last:border-0 text-[10px]">
+                      <div className="flex justify-between gap-2">
+                        <span className="font-mono text-foreground">{h.run_id?.slice(0,12) || '-'}</span>
+                        <span className={h.status === 'completed' ? 'text-green-700' : h.status === 'failed' ? 'text-red-700' : 'text-amber-700'}>{h.status || '-'}</span>
+                      </div>
+                      <div className="flex justify-between gap-2 text-muted-foreground mt-0.5">
+                        <span>{(h.created_at || '').slice(0,16)}</span>
+                        <span>{h.runtime_mode || '-'}{typeof h.latency_ms === 'number' ? ` · ${h.latency_ms}ms` : ''}</span>
+                      </div>
                     </div>
                   ))}
                 </div>
-              )}
+              ) : !runHistoryLoading ? (
+                <p className="text-xs text-muted-foreground text-center py-8">{t.agentRunHistoryEmpty}</p>
+              ) : null}
             </div>
           ) : (
           <SettingsCodeTab
@@ -1147,7 +1253,8 @@ export default function AgentDetailPage() {
                   </button>
                   <button
                     onClick={handleSaveSettings}
-                    disabled={savingSettings}
+                    disabled={savingSettings || agent?.lifecycle?.state === 'archived'}
+                    title={agent?.lifecycle?.state === 'archived' ? t.agentLifecycleRestoreBeforeEdit : undefined}
                     className="text-xs px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40 transition-all shadow-sm shadow-primary/20"
                   >
                     {savingSettings ? t.savingAgent : settingsSaved ? t.savedAgent : t.save}
@@ -1157,108 +1264,10 @@ export default function AgentDetailPage() {
             }
             code={
               <CodeSnippet
-                javascript={`// Sprint 2 Goal E — real @icoder/sdk v1.0.0-beta.2 API.
-// Reference: packages/icoder-sdk/src/index.ts (16 resource classes).
-// Auth flow: exchange client_credentials at /api/oauth/token first,
-// then pass access_token to the SDK. SDK auto-refreshes on expiry.
-import iCoDer from "@icoder/sdk";
-
-const icoder = new iCoDer({
-  baseURL: "${window.location.origin}",
-  auth: {
-    accessToken: process.env.ICODER_ACCESS_TOKEN!,
-    refreshToken: process.env.ICODER_REFRESH_TOKEN!,
-  },
-});
-
-// Run this agent — agentId is ${agentId ? `real (${JSON.stringify(agentId)})` : 'populated from the URL'}.
-const { data: run } = await icoder.runs.runText(
-  ${JSON.stringify(agentId || '')},
-  "your input text here",
-  {
-    runtime_mode: ${JSON.stringify(agent?.default_runtime_mode || '')},
-    idempotencyKey: \`my-key-\${Date.now()}\`,
-  }
-);
-
-console.log("run_id:", run.run_id);
-console.log("trace_url:", run.trace_url);
-console.log("cost:", run.cost);  // { amount: 0.0123, currency: "CNY" }
-console.log("latency_ms:", run.latency_ms);
-console.log("output:", run.result);`}
-                python={`# Sprint 2 Goal E — Python example using requests (no official Python SDK yet).
-# The JS SDK (@icoder/sdk) is the canonical client; Python consumers
-# should hit the REST API directly until icoder-python ships (Sprint 3+).
-import json
-import os
-import uuid
-import requests
-
-BASE_URL = "${window.location.origin}"
-AGENT_ID = ${JSON.stringify(agentId || '')}
-
-# Step 1: exchange client_credentials for an access_token.
-# Replace these with your API Client credentials from Console → API Clients.
-token_resp = requests.post(
-    f"{BASE_URL}/api/oauth/token",
-    data={
-        "grant_type": "client_credentials",
-        "client_id": os.environ["ICODER_API_CLIENT_ID"],
-        "client_secret": os.environ["ICODER_API_CLIENT_SECRET"],
-        "scope": "api:read api:write",
-    },
-)
-token_resp.raise_for_status()
-access_token = token_resp.json()["access_token"]
-
-# Step 2: run the agent via the unified /api/v1/agents/{id}/run endpoint.
-run_resp = requests.post(
-    f"{BASE_URL}/api/v1/agents/{AGENT_ID}/run",
-    headers={
-        "Authorization": f"Bearer {access_token}",
-        "Content-Type": "application/json",
-        "Idempotency-Key": f"python-{uuid.uuid4()}",
-    },
-    json={
-        "input": {"text": "your input text here"},
-        ${agent?.default_runtime_mode ? `"runtime_mode": ${JSON.stringify(agent.default_runtime_mode)},` : '// no runtime_mode override'}
-        "include_trace": True,
-        "include_evidence": True,
-    },
-)
-run = run_resp.json()
-
-print("run_id:", run["run_id"])
-print("trace_url:", run["trace_url"])
-print("cost:", run["cost"])
-print("output:", run["result"])`}
-                curl={`# Sprint 2 Goal E — real curl with the canonical endpoint.
-# Step 1: exchange client_credentials for access_token (5-min TTL).
-TOKEN=$(curl -s -X POST "${window.location.origin}/api/oauth/token" \\
-  -H "Content-Type: application/x-www-form-urlencoded" \\
-  -d "grant_type=client_credentials" \\
-  -d "client_id=$ICODER_API_CLIENT_ID" \\
-  -d "client_secret=$ICODER_API_CLIENT_SECRET" \\
-  -d "scope=api:read api:write" | jq -r .access_token)
-
-# Step 2: run the agent via /api/v1/agents/{id}/run.
-curl -X POST "${window.location.origin}/api/v1/agents/${encodeURIComponent(agentId || '')}/run" \\
-  -H "Authorization: Bearer $TOKEN" \\
-  -H "Content-Type: application/json" \\
-  -H "Idempotency-Key: curl-$(date +%s)" \\
-  -d '{
-    "input": {"text": "your input text here"},
-    ${agent?.default_runtime_mode ? `"runtime_mode": ${JSON.stringify(agent.default_runtime_mode)},` : ''}
-    "include_trace": true,
-    "include_evidence": true
-  }'`}
-                json={JSON.stringify({
-                  name: agentTitle,
-                  description: agent?.description || '',
-                  system_prompt: systemPrompt || '',
-                  experts: agentExperts.map(e => ({ name: e.name, type: 'reference' })),
-                  config: agent?.config || {},
-                }, null, 2)}
+                javascript={agentRunCode.javascript}
+                python={agentRunCode.python}
+                curl={agentRunCode.curl}
+                json={agentRunCode.json}
               />
             }
           />

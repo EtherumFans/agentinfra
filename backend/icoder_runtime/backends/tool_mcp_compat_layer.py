@@ -171,6 +171,13 @@ class ToolMCPCompatLayer:
         run_id = tool_call.get("run_id", "") or ""
         # Defensive: strip any obvious secret keys before handing off.
         args = _strip_secret_keys(args, provider_id)
+        # Provider schemas commonly expose ``query`` while the canonical MCP
+        # search_icd contract names the same value ``emr_text``. Normalize the
+        # alias before validation without bypassing dispatch_tool.
+        if name == "search_icd" and "emr_text" not in args:
+            query = args.pop("query", None)
+            if isinstance(query, str) and query.strip():
+                args["emr_text"] = query
         return ToolCallRequest(
             tool_name=name,
             arguments=args,
@@ -340,14 +347,14 @@ class ToolMCPCompatLayer:
         except Exception as e:
             duration_ms = int((time.perf_counter() - t0) * 1000)
             logger.warning(
-                "ToolMCPCompatLayer.call(%s) raised: %s",
-                req.tool_name, e,
+                "ToolMCPCompatLayer.call(%s) raised error_type=%s",
+                req.tool_name, type(e).__name__,
             )
             return ToolCallResponse(
                 tool_name=req.tool_name,
                 is_error=True,
                 error_code=type(e).__name__,
-                error_message=str(e)[:300],
+                error_message=f"tool_execution_failed:{type(e).__name__}",
                 duration_ms=duration_ms,
             )
 
@@ -377,7 +384,10 @@ class ToolMCPCompatLayer:
             self._dispatch_tool_fn = dispatch_tool
             return dispatch_tool
         except Exception as e:
-            logger.error("could not import dispatch_tool: %s", e)
+            logger.error(
+                "could not import dispatch_tool error_type=%s",
+                type(e).__name__,
+            )
             return None
 
     def _list_all_tools(self) -> list[dict[str, Any]]:

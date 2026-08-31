@@ -393,7 +393,21 @@ def generate_compliance_guardrail_markdown(result: dict[str, Any]) -> str:
     ))
 
     # ── Section 3: Compliance Checks ──
-    checks = result.get("compliance_checks") or []
+    raw_checks = result.get("compliance_checks") or []
+    if isinstance(raw_checks, dict):
+        checks = [
+            {
+                "check_id": check_id,
+                "passed": passed,
+                "severity": "" if passed else "warning",
+                "detail": "",
+            }
+            for check_id, passed in raw_checks.items()
+        ]
+    elif isinstance(raw_checks, list):
+        checks = raw_checks
+    else:
+        checks = []
     sections.append("## 3. Compliance Checks")
     sections.append(_md_table(
         ["#", "Check ID", "Passed", "Severity", "Detail"],

@@ -1,0 +1,298 @@
+{
+  "case_id": "CASE-5690932c56e4",
+  "completion_state": "REVIEW_RECOMMENDED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-5690932c56e4/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "The diagnosis of gestational diabetes mellitus (GDM) is documented, but the OGTT results are not explicitly correlated with the diagnostic criteria. The 2-hour value of 7.8 mmol/L is below the typical threshold of 8.5 mmol/L, and the 1-hour value of 9.2 mmol/L is above the typical threshold of 10.0 mmol/L. The chart does not specify which criteria were used or why the diagnosis was made.",
+      "why_it_matters": "Without explicit correlation of the OGTT results to diagnostic criteria, the clinical basis for the GDM diagnosis is unclear, which may affect coding accuracy and clinical decision-making.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "症状。75g OGTT: 0h 4.5, 1h 9.2, 2h 7.8。诊断:妊娠糖尿病(",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-5690932c56e4/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "The chart does not specify the severity or management plan details for GDM. It mentions '饮食运动控制' (diet and exercise control) and '建议监测血糖' (recommend blood glucose monitoring), but lacks specifics on target glucose levels, frequency of monitoring, or follow-up plan.",
+      "why_it_matters": "Insufficient documentation of the management plan may lead to incomplete coding of the encounter and unclear clinical guidance for the patient.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "饮食运动控制。建议监测血糖。",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-5690932c56e4/Q-001",
+      "gap_id": "CASE-5690932c56e4/GAP-002",
+      "topic": "GDM管理计划",
+      "reason": "病历仅提及饮食运动控制和监测血糖，但缺乏具体目标和管理细节。",
+      "evidence_span": {
+        "document_id": "chart-001",
+        "quote": "饮食运动控制。建议监测血糖。",
+        "char_start": 96,
+        "char_end": 110,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "饮食运动控制。建议监测血糖。",
+          "char_start": 96,
+          "char_end": 110,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "该患者GDM管理计划中提及饮食运动控制和血糖监测，但未明确具体目标。请补充以下管理细节：",
+      "response_options": [
+        "A. 血糖控制目标为空腹<5.3 mmol/L，餐后1小时<7.8 mmol/L，餐后2小时<6.7 mmol/L",
+        "B. 血糖监测频率为每日4次（空腹及三餐后2小时）",
+        "C. 随访计划为每2周产检时复查血糖，必要时转诊内分泌科",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    }
+  ],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-001",
+      "gap_id": "CASE-5690932c56e4/GAP-001",
+      "topic": "GDM诊断标准",
+      "reason": "OGTT结果与常见诊断标准不完全一致，需明确采用的诊断标准及诊断依据。",
+      "query_text": "该患者OGTT结果中1小时值为9.2 mmol/L，2小时值为7.8 mmol/L，与常见GDM诊断阈值（1小时≥10.0，2小时≥8.5）不完全一致。请明确该患者GDM诊断所依据的具体标准或进一步检查结果。",
+      "response_options": [
+        "A. 依据IADPSG标准（1小时≥10.0，2小时≥8.5）诊断，但结果未达阈值，诊断可能有误",
+        "B. 依据其他标准（如WHO 1999或中国标准）诊断，请说明具体标准",
+        "C. 诊断依据为其他检查结果（如糖化血红蛋白或空腹血糖）",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "75g OGTT: 0h 4.5, 1h 9.2, 2h 7.8。诊断:妊娠糖尿病(",
+          "char_start": 36,
+          "char_end": 78,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NLQ-010 (no_coding_codes_in_options): option 'A. 依据IADPSG标准（1小时≥10.0，2小时≥8.5）诊断，但结果未达阈值，诊断可能有误' matched /\\b\\d{2,3}\\.\\d{1,2}\\b/ : '10.0'"
+      ],
+      "status": "NEEDS_NON_LEADING_REWRITE",
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者女性, 35岁, 孕28<REDACTED:NAME>。无糖路症状。75g OGTT: 0h 4.5, 1h 9.2, 2h 7.8。诊断:妊娠糖尿病(<REDACTED:NAME>常)。饮食运动控制。建议监测血糖。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者女性，35岁，孕28周",
+      "无糖尿病症状",
+      "75g OGTT结果：空腹4.5 mmol/L，1小时9.2 mmol/L，2小时7.8 mmol/L",
+      "诊断为妊娠期糖尿病（GDM）",
+      "给予饮食和运动控制",
+      "建议监测血糖"
+    ],
+    "encounter_metadata": {
+      "patient_age": "35岁",
+      "patient_sex": "女性",
+      "encounter_type": "产前检查"
+    }
+  },
+  "risk_flags": [
+    {
+      "category": "ambiguous_term",
+      "description": "The term '常' in '妊娠糖尿病(常)' is ambiguous; it may be a typo or abbreviation for '常见' (common) or '正常' (normal), which could obscure the diagnosis."
+    }
+  ],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "To ensure accurate coding, the clinician must explicitly document which diagnostic criteria (e.g., IADPSG/WHO 2013) were applied and state that the 1-hour value of 9.2 mmol/L meets the threshold for GDM, while clarifying why the 2-hour value below 8.5 mmol/L does not exclude the diagnosis. Additionally, specify the management plan in detail—including target fasting and postprandial glucose ranges, frequency of self-monitoring (e.g., four times daily), and scheduled follow-up intervals—to reflect the severity and active treatment required. Without this specificity, the diagnosis and care intensity remain ambiguous for coding purposes.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3867,
+      "tokens": 418
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": true,
+      "rationale": "I do not have live PubMed access, so I cannot retrieve or verify specific PMIDs. Based on established criteria (e.g., IADPSG/WHO 2013), a 1-hour OGTT value of 9.2 mmol/L is below the 10.0 mmol/L threshold, and the 2-hour value of 7.8 mmol/L is below 8.5 mmol/L, so this single test does not meet standard GDM diagnostic cutoffs—unless the 0-hour value (4.5 mmol/L) is normal, the diagnosis appears unsupported by these numbers. The chart’s management plan (diet/exercise, glucose monitoring) is appropriate for GDM, but without specifying target glucose levels (e.g., fasting <5.3, 1-hour <7.8, 2-hour <6.7 mmol/L) and follow-up intervals, the plan lacks the detail needed for evidence-based care. I recommend re-evaluating the diagnosis against the specific criteria used and documenting explicit glycemic targets and monitoring frequency.",
+      "route_decision": "needed",
+      "route_reason": "criteria_marker_present",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3059,
+      "tokens": 512
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-9642c3ef9e41",
+    "gap_identification": "run-673130bc0cf7",
+    "gap_identification_risk_flags": "emitted=1;quote_snapped=1",
+    "expert_consultation": "run-eaea790d71ad",
+    "query_generation": "run-b1f6e80f651a",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=2;llm_complete=False;llm_reasoning=The chart lacks explicit correlation of OGTT results to diagnostic criteria and ",
+    "query_necessity_gate": "necessary=2;unnecessary=0;overquery_triggered=False;final_count=2",
+    "query_single_dimension_gate": "single_dim=2;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;rewrite_attempted=0;rewrite_accepted=0;final_count=2",
+    "claim_evidence_alignment_gate": "claims_extracted=5;blocked=0;flagged=0;final_count=2",
+    "claim_evidence_alignment_gate::run_id": "run-b66734cf8992",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=2",
+    "semantic_necessity_gate::run_id": "run-9cb08d7a54e2",
+    "query_compliance_gate": ";passed=1;blocked=1",
+    "specialist_trace_emit": "run-d7a0f15c85f0"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-e1ff2046566a",
+    "gap_identification": "trace-552925610006",
+    "expert_consultation": "trace-28e8bbca713c",
+    "query_generation": "trace-1fb0719ae909",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-35820d8400c5",
+    "semantic_necessity_gate": "trace-ccaabadb65c5",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-f8959a6d429e"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2783,
+      "prompt_tokens": 244,
+      "completion_tokens": 123,
+      "total_tokens": 367,
+      "run_id": "run-9642c3ef9e41",
+      "trace_id": "trace-e1ff2046566a",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6790,
+      "prompt_tokens": 1089,
+      "completion_tokens": 606,
+      "total_tokens": 1695,
+      "run_id": "run-673130bc0cf7",
+      "trace_id": "trace-552925610006",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6522,
+      "prompt_tokens": 1338,
+      "completion_tokens": 636,
+      "total_tokens": 1974,
+      "run_id": "run-b1f6e80f651a",
+      "trace_id": "trace-1fb0719ae909",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3867,
+      "prompt_tokens": 283,
+      "completion_tokens": 135,
+      "total_tokens": 418,
+      "run_id": "run-de8449c2e9f4",
+      "trace_id": "trace-ba3c24bf4188",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3059,
+      "prompt_tokens": 297,
+      "completion_tokens": 215,
+      "total_tokens": 512,
+      "run_id": "run-a56002fdff62",
+      "trace_id": "trace-aaed15a122ea",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-03fce2f5c83b",
+      "trace_id": "trace-bdd600b34c4f",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-919d4322efc4",
+      "trace_id": "trace-41096cd86247",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T20:12:59.035711Z"
+}

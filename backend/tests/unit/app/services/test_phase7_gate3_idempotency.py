@@ -29,6 +29,7 @@ from app.services.idempotency_service import (
     DEFAULT_TTL_SECONDS,
     IdempotencyKeyReusedError,
     STATUS_COMPLETED,
+    STATUS_FAILED,
     STATUS_IN_PROGRESS,
     STATUS_PENDING,
     acquire_or_replay,
@@ -37,9 +38,6 @@ from app.services.idempotency_service import (
     mark_failed,
     mark_in_progress,
 )
-
-
-pytestmark = pytest.mark.asyncio
 
 
 def _fresh_session() -> AsyncSession:
@@ -59,6 +57,7 @@ def _fresh_session() -> AsyncSession:
 # ────────────────────────────────────────────────────────────────────
 
 
+@pytest.mark.asyncio
 async def test_completed_replay_returns_snapshot():
     """A second acquire_or_replay on a COMPLETED record returns the
     saved response_snapshot (the partner's first call's response)."""
@@ -100,6 +99,7 @@ async def test_completed_replay_returns_snapshot():
 # ────────────────────────────────────────────────────────────────────
 
 
+@pytest.mark.asyncio
 async def test_in_progress_replay_returns_run_id():
     """A second acquire_or_replay on an IN_PROGRESS record returns
     in_progress=True (caller returns 200 with the existing run_id)."""
@@ -125,6 +125,7 @@ async def test_in_progress_replay_returns_run_id():
         assert r2.record.run_id == "run-running"
 
 
+@pytest.mark.asyncio
 async def test_pending_replay_returns_in_progress():
     """A second acquire_or_replay on a PENDING record (no run_id yet)
     also returns in_progress=True — the partner should poll/retry."""
@@ -152,6 +153,7 @@ async def test_pending_replay_returns_in_progress():
 # ────────────────────────────────────────────────────────────────────
 
 
+@pytest.mark.asyncio
 async def test_hash_mismatch_raises_409():
     """Same Idempotency-Key + DIFFERENT request body → 409
     IdempotencyKeyReusedError. This is the contract that protects
@@ -185,6 +187,7 @@ async def test_hash_mismatch_raises_409():
 # ────────────────────────────────────────────────────────────────────
 
 
+@pytest.mark.asyncio
 async def test_concurrent_insert_exactly_one_winner():
     """Two concurrent asyncio.gather calls with the same key + hash:
     the UNIQUE constraint guarantees exactly one should_run=True.
@@ -224,6 +227,7 @@ async def test_concurrent_insert_exactly_one_winner():
 # ────────────────────────────────────────────────────────────────────
 
 
+@pytest.mark.asyncio
 async def test_mark_failed_transitions_status():
     """A FAILED record's status changes; future replays will re-attempt
     (the contract is "transient failures are retryable")."""
@@ -239,7 +243,100 @@ async def test_mark_failed_transitions_status():
         await mark_in_progress(db, r.record, run_id="run-failing")
         await mark_failed(db, r.record)
         await db.commit()
-        assert r.record.status == "FAILED"
+        assert r.record.status == STATUS_FAILED
+
+
+@pytest.mark.asyncio
+async def test_failed_replay_reacquires_for_retry():
+    """A matching replay after FAILED gets a fresh execution attempt."""
+    key = "test-failed-retry-" + datetime.now(timezone.utc).isoformat()
+    req_hash = compute_request_hash(
+        agent_id="test-agent", input_text="retryable", runtime_mode="default",
+    )
+
+    async with _fresh_session() as db1:
+        first = await acquire_or_replay(
+            db1,
+            idempotency_key=key,
+            request_hash=req_hash,
+            agent_ref="test-agent",
+            organization_id="org-test",
+        )
+        await mark_in_progress(db1, first.record, run_id="run-failed")
+        await mark_failed(db1, first.record)
+        await db1.commit()
+
+    async with _fresh_session() as db2:
+        retry = await acquire_or_replay(
+            db2,
+            idempotency_key=key,
+            request_hash=req_hash,
+            agent_ref="test-agent",
+            organization_id="org-test",
+        )
+        assert retry.should_run is True
+        assert retry.in_progress is False
+        assert retry.record.status == STATUS_PENDING
+        assert retry.record.run_id is None
+
+
+@pytest.mark.asyncio
+async def test_machine_replay_is_bound_to_delegated_subject_and_purpose():
+    """A machine key must never replay across delegated authorization scope."""
+
+    key = "test-delegated-scope-" + datetime.now(timezone.utc).isoformat()
+    base_hash = compute_request_hash(
+        agent_id="test-agent",
+        input_text="same clinical request",
+        runtime_mode="default",
+    )
+
+    async with _fresh_session() as db1:
+        first = await acquire_or_replay(
+            db1,
+            idempotency_key=key,
+            request_hash=base_hash,
+            agent_ref="test-agent",
+            organization_id="org-test",
+            api_client_id="machine-client",
+            delegated_subject_id="delegated-user-a",
+            purpose_of_use="treatment",
+        )
+        assert first.should_run is True
+        assert first.record.request_hash != base_hash
+        assert not hasattr(first.record, "delegated_subject_id")
+        await db1.commit()
+
+    async with _fresh_session() as db2:
+        replay = await acquire_or_replay(
+            db2,
+            idempotency_key=key,
+            request_hash=base_hash,
+            agent_ref="test-agent",
+            organization_id="org-test",
+            api_client_id="machine-client",
+            delegated_subject_id="delegated-user-a",
+            purpose_of_use="treatment",
+        )
+        assert replay.should_run is False
+        assert replay.in_progress is True
+
+    for subject, purpose in (
+        ("delegated-user-b", "treatment"),
+        ("delegated-user-a", "payment"),
+    ):
+        async with _fresh_session() as db:
+            with pytest.raises(IdempotencyKeyReusedError):
+                await acquire_or_replay(
+                    db,
+                    idempotency_key=key,
+                    request_hash=base_hash,
+                    agent_ref="test-agent",
+                    organization_id="org-test",
+                    api_client_id="machine-client",
+                    delegated_subject_id=subject,
+                    purpose_of_use=purpose,
+                )
 
 
 # ────────────────────────────────────────────────────────────────────

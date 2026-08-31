@@ -33,8 +33,7 @@ export default function AIStudioOverviewPage() {
     { label: t.aiStudioOverviewConfigureLabel, desc: t.aiStudioOverviewConfigureDesc, Icon: SlidersHorizontal },
   ];
 
-  // Phase 3-E+: iCoDer has Agents + Medical Coding live; STT / TextGen / Embedded /
-  // FactExtraction are placeholder entries routed to /ai-studio/agents for now.
+  // Every capability card routes to its live standalone workbench.
   const capabilities: CapabilityCard[] = [
     {
       name: t.aiStudioOverviewAgentsName,
@@ -46,28 +45,28 @@ export default function AIStudioOverviewPage() {
     {
       name: t.aiStudioOverviewSttName,
       desc: t.aiStudioOverviewSttDesc,
-      exploreHref: '/ai-studio/medical-coding',
+      exploreHref: '/ai-studio/speech-to-text',
       docsHref: '/docs',
       Icon: Mic,
     },
     {
       name: t.aiStudioOverviewTextGenName,
       desc: t.aiStudioOverviewTextGenDesc,
-      exploreHref: '/ai-studio/medical-coding',
+      exploreHref: '/ai-studio/text-generation',
       docsHref: '/docs',
       Icon: FileText,
     },
     {
       name: t.aiStudioOverviewEmbeddedName,
       desc: t.aiStudioOverviewEmbeddedDesc,
-      exploreHref: '/ai-studio/agents',
+      exploreHref: '/ai-studio/embedded-assistant',
       docsHref: '/docs',
       Icon: MessageSquare,
     },
     {
       name: t.aiStudioOverviewFactExtractName,
       desc: t.aiStudioOverviewFactExtractDesc,
-      exploreHref: '/ai-studio/medical-coding',
+      exploreHref: '/ai-studio/fact-extraction',
       docsHref: '/docs',
       Icon: Braces,
     },
@@ -87,7 +86,7 @@ export default function AIStudioOverviewPage() {
         key={idx}
         className="flex flex-col border-border xl:border-r border-b xl:border-b-0 xl:last:border-r-0 last:border-b-0"
       >
-        {/* Image / icon preview area (icon-tile placeholder) */}
+        {/* Image / icon preview area */}
         <div className="xl:h-52 h-32 overflow-hidden bg-muted/30 flex items-center justify-center border-border border-b">
           <Icon size={64} className="text-muted-foreground/40" />
         </div>

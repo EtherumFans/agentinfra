@@ -15,13 +15,15 @@ import {
 import { useAppStore, useCostStore } from '../store';
 import { useT } from '../i18n';
 import { codingApi } from '../services/api';
-import type { CodingPredictResult, CodingMode, CodingResultCode } from '../services/api';
+import type { CodingPredictResult, CodingMode, CodingPricingEstimate, CodingResultCode } from '../services/api';
 import type { RuntimeRunResult, CodingIssue } from '../types/runtime';
 import type { ExtractedDiagnosis } from '../types/runtime';
 import { HighlightedTextarea } from '../components/medical-coding/HighlightedTextarea';
 import type { EvidenceSpanLike } from '../components/medical-coding/EvidenceHighlighter';
 import { DiagnosisCard } from '../components/medical-coding/DiagnosisCard';
 import CodeSnippet from '../components/common/CodeSnippet';
+import { buildMedicalCodingSnippets } from '../utils/developerSdkCode';
+import { shouldRenderCodingReviewSummary } from '../utils/medicalCodingSafety';
 
 type RightTab = 'settings' | 'code';
 
@@ -130,14 +132,34 @@ export default function MedicalCodingPage() {
   // ── G001 refactor: coding mode (corti_like_fast default, medcoder_deep for advanced) ──
   const [codingMode, setCodingMode] = useState<CodingMode>('corti_like_fast');
 
-  // ── Real-time char + cost estimate (live, not gated on Predict) ──
-  // DEFERRED (plan wobbly-noodling-fountain.md TODO 3): /api/v2/tools/coding/pricing
-  // does not exist on this branch. Building it requires real DeepSeek RMB
-  // per-token pricing (in CLAUDE.md but per-token, not per-char) + a new
-  // endpoint + cache. Until then the heuristic 0.00001/char only stands in
-  // to keep the UX surface populated — DO NOT use this value for billing.
+  // ── Real-time char + server-configured cost range (not a billing quote) ──
   const charCount = input.length;
-  const costEstimate = (charCount * 0.00001).toFixed(6);
+  const [pricingEstimate, setPricingEstimate] = useState<CodingPricingEstimate | null>(null);
+
+  useEffect(() => {
+    if (charCount === 0) {
+      setPricingEstimate(null);
+      return;
+    }
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => {
+      codingApi.estimateCost(charCount, codingMode, controller.signal)
+        .then(response => setPricingEstimate(response.data))
+        .catch(error => {
+          if (error?.name !== 'CanceledError' && error?.code !== 'ERR_CANCELED') {
+            setPricingEstimate(null);
+          }
+        });
+    }, 300);
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [charCount, codingMode]);
+
+  const costEstimate = pricingEstimate
+    ? `${pricingEstimate.estimated_cost_min.toFixed(6)}–${pricingEstimate.estimated_cost_max.toFixed(6)}`
+    : charCount === 0 ? '0.000000' : '—';
 
   // ── Evidence highlight focus (which code row is currently clicked) ──
   const [focusedSpanIndex, setFocusedSpanIndex] = useState<number | null>(null);
@@ -157,9 +179,8 @@ export default function MedicalCodingPage() {
   const [addCodeDialog, setAddCodeDialog] = useState<{show:boolean; target:'include'|'exclude'}>({show:false, target:'include'});
   const [addCodeVal, setAddCodeVal] = useState('');
 
-  // ── Expand & threshold ──
-  const [expandResults, setExpandResults] = useState(false);
-  const [confidenceThreshold, setConfidenceThreshold] = useState(0.6);
+  // ── Corti-compatible category expansion ──
+  const [expandResults, setExpandResults] = useState(true);
 
   // ── Event Inspector ──
   const [events, setEvents] = useState<{ts:string; msg:string; type:'info'|'success'|'error'}[]>([]);
@@ -218,7 +239,7 @@ export default function MedicalCodingPage() {
   // mode=medcoder_deep             → 5-stage MedCodER pipeline, 30-60s+
   const handlePredict = async (textOverride?: string) => {
     const text = textOverride || input;
-    if (!text.trim() || loading) return;
+    if (!text.trim() || loading || selectedSystems.length < 1) return;
     if (!textOverride) setInput(text);
     setLoading(true);
     setProcessing(true);
@@ -232,14 +253,24 @@ export default function MedicalCodingPage() {
     try {
       const startTime = Date.now();
       const response = await codingApi.predict(text, codingMode, {
-        coding_system: selectedSystems[0] || 'icd10cn',
+        coding_systems: selectedSystems as Array<'icd10cn' | 'icd9cm3'>,
         include_evidence: true,
         include_trace: true,
+        filter: {
+          include: includeCodes,
+          exclude: excludeCodes,
+          expand: expandResults,
+        },
       });
       const elapsed = Date.now() - startTime;
       const data: CodingPredictResult = response.data;
       setResult(data);
-      if (data.latency_ms) addCost((data.latency_ms / 1000) * 0.02);
+      addEvent(
+        `filter include=${includeCodes.length} exclude=${excludeCodes.length} expand=${expandResults}`,
+        'info',
+      );
+      const reportedCost = Number(data.cost?.amount ?? 0);
+      if (Number.isFinite(reportedCost) && reportedCost > 0) addCost(reportedCost);
 
       // Emit trace events from the runtime (7-step Fast / 5-stage+2 Deep)
       if (data.trace_events?.length) {
@@ -297,14 +328,20 @@ export default function MedicalCodingPage() {
     setSelectedSystems(prev => prev.filter(s => s !== sys));
   };
   const addSystem = (sys: string) => {
-    if (!selectedSystems.includes(sys)) setSelectedSystems(prev => [...prev, sys]);
+    setSelectedSystems(prev => (
+      prev.includes(sys) || prev.length >= 2 ? prev : [...prev, sys]
+    ));
   };
 
   // ── Add include/exclude code ──
   const confirmAddCode = () => {
-    if (!addCodeVal.trim()) return;
-    if (addCodeDialog.target === 'include') setIncludeCodes(prev => [...prev, addCodeVal.trim()]);
-    else setExcludeCodes(prev => [...prev, addCodeVal.trim()]);
+    const code = addCodeVal.trim();
+    if (!code || code.length > 64) return;
+    if (addCodeDialog.target === 'include') {
+      setIncludeCodes(prev => prev.some(item => item.toLowerCase() === code.toLowerCase()) ? prev : [...prev, code]);
+    } else {
+      setExcludeCodes(prev => prev.some(item => item.toLowerCase() === code.toLowerCase()) ? prev : [...prev, code]);
+    }
     setAddCodeVal('');
     setAddCodeDialog({show:false, target:'include'});
   };
@@ -339,42 +376,22 @@ export default function MedicalCodingPage() {
     ? [...codingResultCodes]
     : [primaryDiag, ...secondaryDiags, ...procedures].filter(Boolean).slice().sort((a: any, b: any) => (b.confidence ?? 0) - (a.confidence ?? 0));
   const hasText = input.trim().length > 0;
+  const hasRunnableSystem = selectedSystems.length >= 1;
   const availableSystems = codingSystems.filter(cs => !selectedSystems.includes(cs.code_system));
-  const snippetSystems = selectedSystems.length ? selectedSystems : ['icd10-cn'];
 
   // ── Code snippets (live) ──
   const snippetInput = input.slice(0, 80) + (input.length > 80 ? '...' : '');
-  const codeSnippetJS = useMemo(() => {
-    const lines = [
-      `import { iCoDerClient } from "@icoder/sdk";`,
-      ``,
-      `const client = new iCoDerClient({`,
-      `  baseURL: "http://localhost:8000",`,
-      `  accessToken: "<your-access-token>",`,
-      `});`,
-      ``,
-      `const response = await client.codes.predict({`,
-      `  context: [{ type: "text", text: \`${snippetInput || t.enterClinicalText}\` }],`,
-      `  system: [${snippetSystems.map(s => `"${s}"`).join(', ')}],`,
-    ];
-    if (includeCodes.length) lines.push(`  include_codes: [${includeCodes.map(c => `"${c}"`).join(', ')}],`);
-    if (excludeCodes.length) lines.push(`  exclude_codes: [${excludeCodes.map(c => `"${c}"`).join(', ')}],`);
-    lines.push(`  expand: ${expandResults},`);
-    lines.push(`  confidence_threshold: ${confidenceThreshold},`);
-    lines.push(`});`);
-    return lines.join('\n');
-  }, [snippetInput, snippetSystems, includeCodes, excludeCodes, expandResults, confidenceThreshold, t]);
-  const codeSnippetJSON = useMemo(() => JSON.stringify({
-    method: 'codes.predict',
-    params: {
-      context: [{ type: 'text', text: snippetInput || t.enterClinicalText }],
-      system: snippetSystems,
-      include_codes: includeCodes.length ? includeCodes : undefined,
-      exclude_codes: excludeCodes.length ? excludeCodes : undefined,
-      expand: expandResults,
-      confidence_threshold: confidenceThreshold,
-    },
-  }, null, 2), [snippetInput, snippetSystems, includeCodes, excludeCodes, expandResults, confidenceThreshold, t]);
+  const medicalCodingSnippets = useMemo(() => buildMedicalCodingSnippets({
+    baseURL: window.location.origin,
+    text: snippetInput || t.enterClinicalText,
+    mode: codingMode,
+    codingSystems: selectedSystems.length ? selectedSystems : ['icd10cn'],
+    includeCodes,
+    excludeCodes,
+    expand: expandResults,
+  }), [snippetInput, codingMode, selectedSystems, includeCodes, excludeCodes, expandResults, t]);
+  const codeSnippetJS = medicalCodingSnippets.javascript;
+  const codeSnippetJSON = medicalCodingSnippets.json;
 
   // ── Render ──
   return (
@@ -386,10 +403,10 @@ export default function MedicalCodingPage() {
         <span className="text-foreground font-medium truncate">{t.medicalCodingBreadcrumb}</span>
       </div>
 
-      {/* ==================== Phase 3-A Section D - MVP + AI-assisted banners ==================== */}
+      {/* Launch-candidate status remains explicit without the obsolete MVP label. */}
       <div className="flex items-center gap-2 px-4 py-1.5 border-b border-amber-200/40 bg-amber-50/60 shrink-0 text-[11px]">
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium" data-testid="mvp-banner">
-          <Info size={10} /> {t.mvpBanner}
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium" data-testid="launch-candidate-banner">
+          <Info size={10} /> {t.launchCandidateBanner}
         </span>
         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-medium" data-testid="ai-assisted-banner">
           <Check size={10} /> {t.aiAssistedBanner}
@@ -443,7 +460,7 @@ export default function MedicalCodingPage() {
           <button
             data-testid="predict-codes-btn"
             onClick={() => handlePredict()}
-            disabled={!hasText || loading}
+            disabled={!hasText || !hasRunnableSystem || loading}
             className="px-4 py-1.5 rounded-lg border border-border bg-background text-foreground text-sm font-medium hover:bg-accent disabled:opacity-30 transition-all flex items-center gap-1.5"
           >
             {loading ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
@@ -498,11 +515,11 @@ export default function MedicalCodingPage() {
                 className="px-2 py-1 text-muted-foreground hover:text-foreground disabled:opacity-30" title={t.copyInput}>
                 <Copy size={14} />
               </button>
-              {/* Live char + cost counter (updates per keystroke; not gated on Predict) */}
+              {/* Debounced server-configured range; final billing uses actual provider usage. */}
               <span
                 className="ml-1 text-[11px] text-muted-foreground/70 font-mono tabular-nums"
                 data-testid="char-counter"
-                title="Live char + cost estimate (placeholder rate, see TODO in source)"
+                title={pricingEstimate?.disclaimer || 'Pre-run estimate unavailable; final cost is reported after completion.'}
               >
                 {fillTmpl(t.charCount, { n: charCount })} · {fillTmpl(t.costEstimate, { n: costEstimate })}
               </span>
@@ -811,7 +828,7 @@ export default function MedicalCodingPage() {
                 )}
 
                 {/* ==================== Phase 3-A Section D - Review Summary (8-field output) ==================== */}
-                {(() => {
+                {shouldRenderCodingReviewSummary(result) && (() => {
                   const r = result as RuntimeRunResult;
                   // Project v1 → 8-field display when v2 fields absent (Section E will populate v2)
                   const reviewConclusion = r?.review_conclusion
@@ -972,7 +989,7 @@ export default function MedicalCodingPage() {
         <div className="flex-1 overflow-y-auto">
           {rightTab === 'settings' ? (
             <div className="p-4 space-y-5">
-              {/* Coding systems (chips) */}
+              {/* China runtime supports diagnosis, procedure, or both systems. */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <div className="flex items-center gap-1">
@@ -1120,7 +1137,7 @@ export default function MedicalCodingPage() {
                 )}
               </div>
 
-              {/* Expand */}
+              {/* Corti filter.expand: category-prefix matching when enabled. */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1">
                   <span className="text-xs font-medium text-foreground">{t.expand}</span>
@@ -1135,30 +1152,8 @@ export default function MedicalCodingPage() {
                 </button>
               </div>
 
-              {/* Confidence threshold */}
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <div className="flex items-center gap-1">
-                    <span className="text-xs font-medium text-foreground">{t.confidenceThreshold}</span>
-                    <span className="text-muted-foreground/40 cursor-help" title="Minimum confidence to include a candidate">
-                      <Info size={11} />
-                    </span>
-                  </div>
-                  <span className="text-[11px] font-mono text-muted-foreground">{confidenceThreshold.toFixed(2)}</span>
-                </div>
-                <input
-                  type="range" min={0} max={1} step={0.05}
-                  value={confidenceThreshold}
-                  onChange={e => setConfidenceThreshold(parseFloat(e.target.value))}
-                  className="w-full h-1.5 bg-muted rounded-full appearance-none cursor-pointer accent-primary"
-                />
-                <div className="flex justify-between text-[10px] text-muted-foreground/50 mt-0.5 font-mono">
-                  <span>0.00</span><span>0.50</span><span>1.00</span>
-                </div>
-              </div>
-
               {/* Reset settings */}
-              <button onClick={() => { setExpandResults(false); setConfidenceThreshold(0.6); setIncludeCodes([]); setExcludeCodes([]); setCodingMode('corti_like_fast'); }}
+              <button onClick={() => { setExpandResults(true); setIncludeCodes([]); setExcludeCodes([]); setCodingMode('corti_like_fast'); }}
                 className="w-full text-[11px] text-muted-foreground hover:text-foreground flex items-center justify-center gap-1 py-1.5 border border-border/40 rounded-md transition-colors">
                 <RotateCcw size={11} /> {t.resetSettings}
               </button>

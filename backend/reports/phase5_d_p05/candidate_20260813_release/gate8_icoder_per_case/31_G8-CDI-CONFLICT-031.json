@@ -1,0 +1,291 @@
+{
+  "case_id": "CASE-57d075028b58",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-57d075028b58/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "The admission diagnosis is redacted and does not specify the anatomical site of the fracture.",
+      "why_it_matters": "Coding requires a specific anatomical site for fractures; without it, the diagnosis cannot be accurately coded.",
+      "evidence_span": {
+        "document_id": "admission_note",
+        "quote": "入院诊断:<REDACTED:NAME>骨骨折",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-57d075028b58/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "The initial diagnosis is redacted and does not specify the type of injury.",
+      "why_it_matters": "The type of injury (e.g., fracture, contusion) is essential for accurate coding and clinical clarity.",
+      "evidence_span": {
+        "document_id": "initial_assessment",
+        "quote": "初步诊断:<REDACTED:NAME>伤",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-001",
+      "gap_id": "CASE-57d075028b58/GAP-001",
+      "topic": "明确骨折的具体解剖部位",
+      "reason": "入院诊断中骨折部位被遮蔽，需明确具体解剖位置以确定诊断特异性。",
+      "query_text": "入院诊断中骨折的具体解剖部位是什么？",
+      "response_options": [
+        "A. 肋骨骨折",
+        "B. 四肢骨骨折",
+        "C. 脊柱骨骨折",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "入院诊断:<REDACTED:NAME>骨骨折",
+          "char_start": 16,
+          "char_end": 39,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-004: query is grounded in or asks to decode a REDACTED placeholder"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-002",
+      "gap_id": "CASE-57d075028b58/GAP-002",
+      "topic": "明确损伤的具体类型",
+      "reason": "初步诊断中损伤类型被遮蔽，需明确具体损伤类型以确定诊断特异性。",
+      "query_text": "初步诊断中损伤的具体类型是什么？",
+      "response_options": [
+        "A. 骨折",
+        "B. 脱位",
+        "C. 软组织损伤",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "初步诊断:<REDACTED:NAME>伤",
+          "char_start": 68,
+          "char_end": 89,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-004: query is grounded in or asks to decode a REDACTED placeholder"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者男性, 42岁, 外伤入院。入院诊断:<REDACTED:NAME>骨骨折。出院诊断:右侧肋骨骨折。手术记录:右胸第5肋骨折固定术。初步诊断:<REDACTED:NAME>伤。CT报告:右侧肋骨骨折。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者男性，42岁，外伤入院",
+      "入院诊断：<REDACTED:NAME>骨骨折",
+      "出院诊断：右侧肋骨骨折",
+      "手术记录：右胸第5肋骨折固定术",
+      "初步诊断：<REDACTED:NAME>伤",
+      "CT报告：右侧肋骨骨折"
+    ],
+    "encounter_metadata": {
+      "patient_age": "42岁",
+      "patient_sex": "男性",
+      "encounter_type": "住院"
+    }
+  },
+  "risk_flags": [
+    {
+      "category": "ambiguous_term",
+      "description": "Redacted terms obscure the final clinical conclusion for admission and initial diagnoses."
+    }
+  ],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "The clinical documentation must specify the exact anatomical site of the fracture (e.g., rib number and side) and the precise type of injury (e.g., closed vs. open, traumatic vs. pathological) in both the admission and initial diagnoses, as the current redactions prevent accurate code assignment. Additionally, clarify whether the \"initial diagnosis\" refers to a separate injury or is synonymous with the rib fracture, and document any associated complications (e.g., pneumothorax, flail chest) to ensure complete specificity.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3472,
+      "tokens": 252
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-94ab3e05eb31",
+    "gap_identification": "run-fababcccafca",
+    "gap_identification_risk_flags": "emitted=1;quote_snapped=0",
+    "expert_consultation": "run-02c3cf5e746d",
+    "query_generation": "run-82956bcb5914",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=Y;dropped=0;final_count=2;llm_complete=False;llm_reasoning=The chart lacks specificity for the fracture site and type due to redacted terms",
+    "query_necessity_gate": "necessary=0;unnecessary=2;overquery_triggered=False;final_count=0",
+    "query_single_dimension_gate": "single_dim=0;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;rewrite_attempted=0;rewrite_accepted=0;final_count=0",
+    "claim_evidence_alignment_gate": "claims_extracted=0;blocked=0;flagged=0;final_count=0",
+    "claim_evidence_alignment_gate::run_id": "run-395d245391f0",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+    "semantic_necessity_gate::run_id": "run-d4ed47a0a414",
+    "query_compliance_gate": ";passed=0;blocked=0",
+    "specialist_trace_emit": "run-36d25aaeb165"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-d7b518d34fdd",
+    "gap_identification": "trace-c0c35b2edd6c",
+    "expert_consultation": "trace-2252b60ab79a",
+    "query_generation": "trace-5e6ae7a64cd7",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-9a04ac31e835",
+    "semantic_necessity_gate": "trace-e4d79ffac9b4",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-32df4fcf0735"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 39363,
+      "prompt_tokens": 231,
+      "completion_tokens": 119,
+      "total_tokens": 350,
+      "run_id": "run-94ab3e05eb31",
+      "trace_id": "trace-d7b518d34fdd",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 4543,
+      "prompt_tokens": 1074,
+      "completion_tokens": 402,
+      "total_tokens": 1476,
+      "run_id": "run-fababcccafca",
+      "trace_id": "trace-c0c35b2edd6c",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 4257,
+      "prompt_tokens": 1183,
+      "completion_tokens": 399,
+      "total_tokens": 1582,
+      "run_id": "run-82956bcb5914",
+      "trace_id": "trace-5e6ae7a64cd7",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3472,
+      "prompt_tokens": 149,
+      "completion_tokens": 103,
+      "total_tokens": 252,
+      "run_id": "run-2303eb96f02c",
+      "trace_id": "trace-df756f3d6a9c",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-d7b9dd52cd8c",
+      "trace_id": "trace-d46c0156f91d",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-f4040f52274e",
+      "trace_id": "trace-d3932dbe64e6",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-e5441fb7a1eb",
+      "trace_id": "trace-8ef28d3363a3",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T19:01:15.880589Z"
+}

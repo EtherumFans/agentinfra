@@ -1,0 +1,329 @@
+{
+  "case_id": "CASE-42a077fd6cd1",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-42a077fd6cd1/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "高血压病史持续时间未明确（10年），但诊断分级为1级，需确认是否基于当前血压水平，且未提及既往最高血压或危险分层依据。",
+      "why_it_matters": "高血压分级和危险分层影响治疗决策和编码准确性，缺少危险分层（如心血管风险因素、靶器官损害评估）可能导致编码不完整。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "高血压病史10年",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-42a077fd6cd1/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "未明确高血压的病因（原发性 vs 继发性），尽管诊断写为原发性，但缺乏继发性高血压的排除性评估记录。",
+      "why_it_matters": "病因特异性影响编码和临床管理，继发性高血压有特定编码和不同治疗路径。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "诊断:原发性高血压1级(控制良好)",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-42a077fd6cd1/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "未记录高血压的危险分层（如心血管风险因素、靶器官损害评估），尽管提到无靶器官损害，但未列出具体评估项目。",
+      "why_it_matters": "危险分层是高血压管理的关键，影响治疗强度和编码（如并发症编码）。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "无靶器官损害",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-001",
+      "gap_id": "CASE-42a077fd6cd1/GAP-001",
+      "topic": "高血压病史持续时间与分级依据",
+      "reason": "病史持续时间与当前分级可能不一致，需明确分级依据。",
+      "query_text": "患者高血压病史10年，目前血压132/82mmHg，诊断分级为1级。请问该分级是基于当前血压水平，还是基于既往最高血压水平？",
+      "response_options": [
+        "A. 基于当前血压水平",
+        "B. 基于既往最高血压水平",
+        "C. 基于其他依据（请注明）",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "高血压病史10年",
+          "char_start": 0,
+          "char_end": 0,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "evidence_spans[0] is not a verbatim contiguous chart span"
+      ],
+      "status": "NEEDS_EVIDENCE_REWRITE",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-002",
+      "gap_id": "CASE-42a077fd6cd1/GAP-002",
+      "topic": "高血压病因分类",
+      "reason": "诊断写为原发性，但缺乏继发性高血压的排除性评估记录。",
+      "query_text": "患者诊断为原发性高血压，但病历中未记录继发性高血压的排除性评估。请问该诊断是基于哪些评估结果？",
+      "response_options": [
+        "A. 已进行相关检查排除继发性高血压（请注明检查项目）",
+        "B. 未进行相关检查，但临床考虑原发性",
+        "C. 存在继发性高血压的线索（请注明）",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "诊断:原发性高血压1级(控制良好)",
+          "char_start": 118,
+          "char_end": 135,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-004: the chart explicitly diagnoses essential/primary hypertension"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-003",
+      "gap_id": "CASE-42a077fd6cd1/GAP-003",
+      "topic": "高血压危险分层评估",
+      "reason": "提到无靶器官损害，但未列出具体评估项目。",
+      "query_text": "病历记录'无靶器官损害'，但未列出具体评估项目。请问该结论是基于哪些检查或评估？",
+      "response_options": [
+        "A. 已进行心脏、肾脏、脑血管等靶器官评估（请注明具体项目）",
+        "B. 仅基于临床检查，未进行全部评估",
+        "C. 未进行系统评估，但临床考虑无损害",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "无靶器官损害",
+          "char_start": 137,
+          "char_end": 143,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-004: grade, control status, and target-organ assessment are explicit"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者男性, 65岁, <REDACTED:NAME>10年, 缬沙坦 80mg qd 治疗。BP 132/82。心超:<REDACTED:NAME>血分数 65%, 室壁运动正常, 无左室肥厚。心电图:<REDACTED:NAME>律。诊断:原发性高血压1级(控制良好), 无靶器官损害。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者男性，65岁",
+      "高血压病史10年",
+      "服用缬沙坦80mg每日一次治疗",
+      "血压132/82 mmHg",
+      "心脏超声：射血分数65%，室壁运动正常，无左室肥厚",
+      "心电图：窦性心律",
+      "诊断：原发性高血压1级（控制良好）",
+      "无靶器官损害"
+    ],
+    "encounter_metadata": {
+      "patient_age": "65岁",
+      "patient_sex": "男性",
+      "encounter_type": "门诊"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "For accurate coding, the clinical record must explicitly document the duration of hypertension, the basis for the 1-grade classification (e.g., current treated BP vs. historical peak), and the specific exclusion of secondary causes (e.g., renal, endocrine, renovascular workup). Additionally, a formal risk stratification—including cardiovascular risk factors (e.g., smoking, lipids, glucose), and objective evidence of target organ assessment (e.g., renal function, albuminuria, retinal exam)—is required to support the “no target organ damage” statement. Without these details, the diagnosis lacks the specificity needed to confirm the severity and clinical context for precise code assignment.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3524,
+      "tokens": 375
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "'分级' score — no deterministic calculator wired",
+      "route_decision": "tool_unavailable",
+      "route_reason": "no_real_tool_wired",
+      "execution_mode": "TOOL_UNAVAILABLE",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-c51b6458add2",
+    "gap_identification": "run-762c3f9e1b53",
+    "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
+    "expert_consultation": "run-e54926e3a51f",
+    "query_generation": "run-d2f62cac7fb2",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=N,D3_severity=Y,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=2;llm_complete=False;llm_reasoning=高血压诊断虽明确，但缺少危险分层和继发性病因排除，且未记录既往最高血压或心血管风险因素，不足以支持完整编码。",
+    "query_necessity_gate": "necessary=0;unnecessary=2;overquery_triggered=False;final_count=0",
+    "query_single_dimension_gate": "single_dim=0;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;rewrite_attempted=0;rewrite_accepted=0;final_count=0",
+    "claim_evidence_alignment_gate": "claims_extracted=0;blocked=0;flagged=0;final_count=0",
+    "claim_evidence_alignment_gate::run_id": "run-ecc23aab453c",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+    "semantic_necessity_gate::run_id": "run-73ef68bf8fa0",
+    "query_compliance_gate": ";passed=0;blocked=0",
+    "specialist_trace_emit": "run-e9102a8b8bf2"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-23f05884becc",
+    "gap_identification": "trace-4958c3db650b",
+    "expert_consultation": "trace-a8881561b933",
+    "query_generation": "trace-1a7fde007f71",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-d0bf257e0bfa",
+    "semantic_necessity_gate": "trace-64259adb9c59",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-5992412740e9"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2409,
+      "prompt_tokens": 260,
+      "completion_tokens": 132,
+      "total_tokens": 392,
+      "run_id": "run-c51b6458add2",
+      "trace_id": "trace-23f05884becc",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6199,
+      "prompt_tokens": 1116,
+      "completion_tokens": 501,
+      "total_tokens": 1617,
+      "run_id": "run-762c3f9e1b53",
+      "trace_id": "trace-4958c3db650b",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5829,
+      "prompt_tokens": 1190,
+      "completion_tokens": 640,
+      "total_tokens": 1830,
+      "run_id": "run-d2f62cac7fb2",
+      "trace_id": "trace-1a7fde007f71",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3524,
+      "prompt_tokens": 244,
+      "completion_tokens": 131,
+      "total_tokens": 375,
+      "run_id": "run-0c87c3405427",
+      "trace_id": "trace-24dc095103b2",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-2ad1aa09985d",
+      "trace_id": "trace-72f96ca32f74",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-3262b5f2f95f",
+      "trace_id": "trace-5559fb368ff4",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-3c1b1e8175ac",
+      "trace_id": "trace-72a037f26f2b",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T18:30:01.970377Z"
+}

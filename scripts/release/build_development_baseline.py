@@ -151,6 +151,11 @@ def build(root: Path, output: Path) -> dict[str, Any]:
 def comparable(manifest: dict[str, Any]) -> dict[str, Any]:
     value = json.loads(json.dumps(manifest))
     value.pop("generated_at", None)
+    # The manifest records the commit from which it was generated, but
+    # committing the manifest necessarily advances HEAD.  Comparing that
+    # field would make a sealed manifest fail forever by self-reference.
+    # Tree state and every non-output changed path remain strict.
+    value.get("repository", {}).pop("head", None)
     return value
 
 

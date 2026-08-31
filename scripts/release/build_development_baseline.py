@@ -156,6 +156,10 @@ def comparable(manifest: dict[str, Any]) -> dict[str, Any]:
     # field would make a sealed manifest fail forever by self-reference.
     # Tree state and every non-output changed path remain strict.
     value.get("repository", {}).pop("head", None)
+    # A clean checkout of an annotated tag is normally detached. Branch names
+    # describe checkout topology, not repository content, so requiring the
+    # original branch would make the same commit unverifiable elsewhere.
+    value.get("repository", {}).pop("branch", None)
     return value
 
 

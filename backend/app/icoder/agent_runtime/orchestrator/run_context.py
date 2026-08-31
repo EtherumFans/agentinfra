@@ -60,6 +60,7 @@ class RunContext:
     agent_id: str
     agent_definition: Any = None
     original_input: str = ""
+    current_redacted_input: str = ""
     redacted_input: str = ""
     plan: Plan | None = None
     expert_results: list[ExpertResult] = field(default_factory=list)

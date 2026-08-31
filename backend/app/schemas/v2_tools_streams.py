@@ -1,221 +1,233 @@
-"""Corti §13.3/§13.4 Streams WSS request/response schemas.
+"""Strict wire models for the current Corti-compatible Streams protocol.
 
-Cycle 2 (2026-06-30) — wire-shape parity with the Corti AsyncAPI definition at
-``docs/corti-reverse-engineered/stream-asyncapi.json``. This is the **single
-source of truth** for field names, types, and required/optional semantics
-used by ``POST/WS /api/v2/tools/streams``. Any change here MUST be matched
-against that AsyncAPI file (and vice-versa).
-
-Why each name matches the spec verbatim:
-- Corti SDK + browser client parse the wire directly; renaming a key
-  (e.g. ``outputLanguage`` -> ``outputLocale``) breaks every consumer.
-- The spec uses CamelCase throughout (e.g. ``primaryLanguage``,
-  ``outputLocale``, ``isMultichannel``); we keep that casing verbatim.
-
-Field sources (per message type) and their schema refs:
-  configuration        -> StreamConfigMessage / StreamConfig /
-                          StreamConfigTranscription / StreamConfigMode
-  configStatus         -> StreamConfigStatusMessage
-  transcript           -> StreamTranscriptMessage / StreamTranscript /
-                          StreamParticipant / StreamTranscriptTime
-  facts                -> StreamFactsMessage / StreamFact
-  end / ended          -> StreamEndMessage / StreamEndedMessage
-  usage                -> StreamUsageMessage
-  error                -> StreamErrorMessage / StreamErrorDetail
-  audio                -> binary (webm/opus)
+The public reference is https://docs.corti.ai/api-reference/streams. The
+models deliberately reject unknown configuration fields: accepting an option
+that the runtime silently ignores is unsafe for clinical audio.
 """
 
 from __future__ import annotations
 
 from datetime import datetime
-from typing import List, Literal, Optional
+from typing import Annotated, Literal
 
-from pydantic import BaseModel, Field
-
-
-# ─── Client → Server: configuration ─────────────────────────────────
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field, model_validator
 
 
-class StreamConfigParticipant(BaseModel):
-    """StreamConfigParticipant schema.
+class _StrictModel(BaseModel):
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
 
-    Channels audio and assigns a role. Required when ``isMultichannel=true``;
-    omitted otherwise. Roles are an enum per the Corti schema.
-    """
-    channel: int = Field(..., ge=0, description="Audio channel number (e.g. 0 or 1)")
-    role: Literal["doctor", "patient", "multiple"] = Field(
-        ..., description="Role of the participant (e.g. doctor, patient, or multiple)"
+
+class StreamConfigParticipant(_StrictModel):
+    channel: int = Field(..., ge=0, le=15)
+    role: str = Field(..., min_length=1, max_length=64)
+
+
+class StreamConfigTranscription(_StrictModel):
+    primaryLanguage: str = Field(..., min_length=2, max_length=32)
+    diarize: bool = Field(
+        default=False,
+        validation_alias=AliasChoices("diarize", "isDiarization"),
+        serialization_alias="diarize",
     )
-
-
-class StreamConfigTranscription(BaseModel):
-    """StreamConfigTranscription schema — speech-to-text config block."""
-    primaryLanguage: str = Field(
-        ..., description="Primary spoken language code (Corti SupportedLanguage string)"
-    )
-    isDiarization: bool = Field(
-        default=False, description="Enable speaker diarization (legacy alias: `diarize`)"
-    )
-    isMultichannel: bool = Field(
-        default=False, description="Enable multi-channel audio processing"
-    )
-    participants: List[StreamConfigParticipant] = Field(
+    isMultichannel: bool = False
+    participants: list[StreamConfigParticipant] = Field(
         default_factory=list,
-        description="List of participants with roles assigned to a channel; minItems=1 when isMultichannel=true",
+        max_length=16,
     )
 
-
-class StreamConfigMode(BaseModel):
-    """StreamConfigMode schema — output mode block."""
-    type: Literal["facts", "transcription", "documentation"] = Field(
-        ..., description="Processing mode (real-time output selector)"
-    )
-    outputLocale: Optional[str] = Field(
-        default=None, description="Output language locale for facts (required when type='facts')"
-    )
-    templateId: Optional[str] = Field(
-        default=None, description="Template identifier for processing configuration (documentation mode)"
-    )
+    @model_validator(mode="after")
+    def validate_participants(self) -> "StreamConfigTranscription":
+        channels = [item.channel for item in self.participants]
+        if len(channels) != len(set(channels)):
+            raise ValueError("participant channels must be unique")
+        return self
 
 
-class StreamConfig(BaseModel):
-    """StreamConfig schema — inner configuration block."""
+class StreamConfigMode(_StrictModel):
+    type: Literal["facts", "transcription"]
+    outputLocale: str | None = Field(default=None, min_length=2, max_length=32)
+    factGenerationInterval: Literal["fixed", "fast_init"] | None = None
+
+    @model_validator(mode="after")
+    def validate_output_locale(self) -> "StreamConfigMode":
+        if self.type == "facts" and not self.outputLocale:
+            raise ValueError("outputLocale is required in facts mode")
+        return self
+
+
+class StreamAudioEventsConfig(_StrictModel):
+    enabled: bool
+
+
+class StreamReplacement(_StrictModel):
+    find: str = Field(..., min_length=1, max_length=200)
+    replace: str = Field(..., max_length=200)
+
+
+class StreamKeyterm(_StrictModel):
+    term: str = Field(..., min_length=1, max_length=50)
+
+
+class StreamKeyterms(_StrictModel):
+    terms: list[StreamKeyterm] = Field(default_factory=list, max_length=1000)
+
+
+class StreamConfig(_StrictModel):
     transcription: StreamConfigTranscription
     mode: StreamConfigMode
+    retentionPolicy: Literal["none", "retain"] = Field(
+        default="retain",
+        validation_alias=AliasChoices("retentionPolicy", "xCortiRetentionPolicy"),
+        serialization_alias="retentionPolicy",
+    )
+    audioFormat: str | None = Field(default=None, min_length=3, max_length=128)
+    audioEvents: StreamAudioEventsConfig = Field(
+        default_factory=lambda: StreamAudioEventsConfig(enabled=False)
+    )
+    replacements: list[StreamReplacement] = Field(default_factory=list, max_length=1000)
+    keyterms: StreamKeyterms = Field(default_factory=StreamKeyterms)
 
 
-class StreamConfigMessage(BaseModel):
-    """StreamConfigMessage schema — client→server setup message.
-
-    Must be sent within 15 seconds of opening the WSS per the AsyncAPI doc.
-    """
-    type: Literal["config"] = Field(..., description="Discriminator; always 'config'")
+class StreamConfigMessage(_StrictModel):
+    type: Literal["config"]
     configuration: StreamConfig
 
 
-# ─── Server → Client: configStatus ───────────────────────────────────
+class StreamConfigAcceptedMessage(_StrictModel):
+    type: Literal["CONFIG_ACCEPTED"]
+    sessionId: str = Field(..., min_length=36, max_length=36)
+    configuration: StreamConfig
+    resumed: bool = False
+    restoredAudioBytes: int = Field(default=0, ge=0, le=32 * 1024 * 1024)
+    restoredTranscriptMessages: int = Field(default=0, ge=0)
+    restoredFactMessages: int = Field(default=0, ge=0)
 
 
-class StreamConfigStatusMessage(BaseModel):
-    """StreamConfigStatusMessage schema — server→client ack/nack."""
+class StreamConfigStatusMessage(_StrictModel):
     type: Literal[
-        "CONFIG_ACCEPTED",
         "CONFIG_DENIED",
         "CONFIG_MISSING",
         "CONFIG_NOT_PROVIDED",
         "CONFIG_ALREADY_RECEIVED",
-        "CONFIG_TIMEOUT",
-    ] = Field(..., description="Configuration status result")
-    reason: Optional[str] = Field(
-        default=None, description="Optional reason for rejection (e.g. 'language unavailable')"
-    )
+    ]
+    reason: str | None = Field(default=None, max_length=160)
+    interactionId: str
 
 
-# ─── Server → Client: transcript ─────────────────────────────────────
+class StreamParticipant(_StrictModel):
+    channel: int = Field(..., ge=0, le=15)
 
 
-class StreamParticipant(BaseModel):
-    """StreamParticipant schema — embedded in transcript items."""
-    channel: int = Field(..., ge=0, description="Audio channel number (e.g. 0 or 1)")
+class StreamTranscriptTime(_StrictModel):
+    start: float = Field(..., ge=0.0)
+    end: float = Field(..., ge=0.0)
 
 
-class StreamTranscriptTime(BaseModel):
-    """StreamTranscriptTime schema — segment timing."""
-    start: float = Field(..., ge=0.0, description="Start time of the transcript segment")
-    end: float = Field(..., ge=0.0, description="End time of the transcript segment")
-
-
-class StreamTranscript(BaseModel):
-    """StreamTranscript schema — one segment."""
-    id: str = Field(..., description="Unique identifier for the transcript segment")
-    transcript: str = Field(..., description="The transcribed text")
-    final: bool = Field(..., description="True when the transcript is final; False for interim")
-    speakerId: int = Field(..., description="Speaker identifier (-1 when diarization is off)")
+class StreamTranscript(_StrictModel):
+    id: str
+    transcript: str
+    final: bool
+    speakerId: int
     participant: StreamParticipant
     time: StreamTranscriptTime
 
 
-class StreamTranscriptMessage(BaseModel):
-    """StreamTranscriptMessage schema — server→client transcript batch."""
-    type: Literal["transcript"] = Field(..., description="Discriminator; always 'transcript'")
-    data: List[StreamTranscript] = Field(..., min_length=1, description="Transcript segments")
+class StreamTranscriptMessage(_StrictModel):
+    type: Literal["transcript"]
+    data: list[StreamTranscript] = Field(..., min_length=1)
 
 
-# ─── Server → Client: facts ──────────────────────────────────────────
+class StreamFact(_StrictModel):
+    id: str
+    text: str
+    group: str
+    groupId: str
+    isDiscarded: bool
+    source: str
+    createdAt: datetime
+    updatedAt: datetime | None = None
+    createdAtTzOffset: str | None = None
+    updatedAtTzOffset: str | None = None
 
 
-class StreamFact(BaseModel):
-    """StreamFact schema — one extracted clinical fact."""
-    id: str = Field(..., description="Unique identifier for the fact")
-    text: str = Field(..., description="Text description of the fact")
-    group: str = Field(..., description="Categorization (e.g. 'medical-history')")
-    groupId: str = Field(..., description="Unique identifier for the group")
-    isDiscarded: bool = Field(..., description="Whether the fact was discarded")
-    source: str = Field(..., description="Source of the fact (e.g. 'core' for LLM-generated)")
-    createdAt: datetime = Field(..., description="Timestamp when the fact was created")
-    updatedAt: Optional[datetime] = Field(default=None, description="Last-update timestamp")
-    createdAtTzOffset: Optional[str] = Field(
-        default=None, description="Timezone offset for createdAt (e.g. '+00:00')"
-    )
-    updatedAtTzOffset: Optional[str] = Field(
-        default=None, description="Timezone offset for updatedAt"
-    )
+class StreamFactsMessage(_StrictModel):
+    type: Literal["facts"]
+    fact: list[StreamFact] = Field(..., min_length=1)
 
 
-class StreamFactsMessage(BaseModel):
-    """StreamFactsMessage schema — server→client facts batch."""
-    type: Literal["facts"] = Field(..., description="Discriminator; always 'facts'")
-    fact: List[StreamFact] = Field(..., min_length=1, description="Extracted facts (Corti uses singular 'fact' per the schema)")
+class StreamFlushMessage(_StrictModel):
+    type: Literal["flush"]
 
 
-# ─── Client → Server: end / Server → Client: ended ───────────────────
+class StreamFlushedMessage(_StrictModel):
+    type: Literal["flushed"]
 
 
-class StreamEndMessage(BaseModel):
-    """StreamEndMessage schema — client→server end-of-stream signal."""
-    type: Literal["end"] = Field(..., description="Discriminator; always 'end'")
+class StreamEndMessage(_StrictModel):
+    type: Literal["end"]
 
 
-class StreamEndedMessage(BaseModel):
-    """StreamEndedMessage schema — server→client stream-has-ended ack."""
-    type: Literal["ENDED"] = Field(..., description="Discriminator; always 'ENDED'")
+class StreamEndedMessage(_StrictModel):
+    type: Literal["ENDED"]
 
 
-# ─── Server → Client: usage / error ──────────────────────────────────
+class StreamUsageMessage(_StrictModel):
+    type: Literal["usage"]
+    credits: float = Field(..., ge=0.0)
 
 
-class StreamUsageMessage(BaseModel):
-    """StreamUsageMessage schema — server→client credits-billed notice."""
-    type: Literal["usage"] = Field(..., description="Discriminator; always 'usage'")
-    credits: float = Field(..., ge=0.0, description="The amount of credits used for this stream")
+class StreamDeltaUsageMessage(_StrictModel):
+    type: Literal["delta_usage"]
+    credits: float = Field(..., ge=0.0)
 
 
-class StreamErrorDetail(BaseModel):
-    """StreamErrorDetail schema — embedded error block."""
-    id: str = Field(..., description="Error identifier")
-    title: str = Field(..., description="Error title")
-    status: int = Field(..., description="HTTP status code or similar error code")
-    details: str = Field(..., description="Detailed error message")
-    doc: str = Field(..., description="Link to documentation or further information")
+StreamAudioEventName = Literal[
+    "speechQualityIssueDetected",
+    "speechQualityIssueRecovered",
+    "longSilenceDetected",
+    "longSilenceRecovered",
+]
 
 
-class StreamErrorMessage(BaseModel):
-    """StreamErrorMessage schema — server→client error notice."""
-    type: Literal["error"] = Field(..., description="Discriminator; always 'error'")
+class StreamAudioEventData(_StrictModel):
+    event: StreamAudioEventName
+    channel: int = Field(..., ge=0, le=15)
+    startTimeMs: int = Field(..., ge=0)
+
+
+class StreamAudioEventMessage(_StrictModel):
+    type: Literal["audioEvent"]
+    data: StreamAudioEventData
+
+
+class StreamErrorDetail(_StrictModel):
+    id: str
+    title: str
+    status: int
+    details: str
+    doc: str
+
+
+class StreamErrorMessage(_StrictModel):
+    type: Literal["error"]
     error: StreamErrorDetail
 
 
-# ─── Discriminator union (for typed send/recv) ───────────────────────
-
-# Receivable from server (in spec-defined order of arrival):
-ServerMessage = (
-    StreamConfigStatusMessage
+ServerMessage = Annotated[
+    StreamConfigAcceptedMessage
+    | StreamConfigStatusMessage
     | StreamTranscriptMessage
     | StreamFactsMessage
-    | StreamEndedMessage
+    | StreamFlushedMessage
+    | StreamDeltaUsageMessage
+    | StreamAudioEventMessage
     | StreamUsageMessage
-    | StreamErrorMessage
-)
+    | StreamEndedMessage
+    | StreamErrorMessage,
+    Field(discriminator="type"),
+]
 
-# Sendable from client:
-ClientMessage = StreamConfigMessage | StreamEndMessage
+ClientMessage = Annotated[
+    StreamConfigMessage | StreamFlushMessage | StreamEndMessage,
+    Field(discriminator="type"),
+]

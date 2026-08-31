@@ -352,4 +352,21 @@ export interface RunTraceResponse {
   run_id: string;
   timeline: RunTraceEvent[];
   step_count: number;
+  summary: {
+    agent_id: string;
+    trace_id: string;
+    run_status: string;
+    runtime_mode: string;
+    latency_ms: number;
+    cost: { amount: number; currency: 'CNY' | string };
+    error: boolean;
+    error_reason?: string | null;
+    trace_capture_status: string;
+    created_at?: string | null;
+    review_signal: {
+      state: 'required' | 'not_required' | 'not_recorded' | string;
+      sources: string[];
+      authoritative: false;
+    };
+  };
 }

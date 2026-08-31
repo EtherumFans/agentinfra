@@ -179,6 +179,19 @@ class CodingExpert:
         ``invoke_async`` directly.
         """
 
+        try:
+            asyncio.get_running_loop()
+        except RuntimeError:
+            pass
+        else:
+            # Check before constructing ``_invoke()``. Passing an already
+            # created coroutine to asyncio.run while a loop is active raises
+            # and then emits a second, misleading "was never awaited" warning.
+            raise RuntimeError(
+                "asyncio.run() cannot be called from a running event loop; "
+                "use CodingExpert.invoke_async()"
+            )
+
         async def _invoke() -> dict:
             return await self.invoke_async(emr_text, ctx, variant=variant)
 

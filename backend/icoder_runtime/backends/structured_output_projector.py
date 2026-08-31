@@ -123,6 +123,11 @@ def _extract_note_completeness(md: str) -> tuple[dict, list[str]]:
 
     parsed = _extract_json_dict(md, warnings)
     if isinstance(parsed, dict):
+        # A strict Pack contract may evolve faster than this compatibility
+        # projector. Preserve every model-emitted field, then apply only the
+        # documented aliases/normalizations below. Dropping valid fields here
+        # makes a conformant provider response fail its Pack contract.
+        result.update(parsed)
         # Preferred §7.6 contract keys.
         for key in (
             "required_sections", "present_sections", "missing_sections",
@@ -138,6 +143,36 @@ def _extract_note_completeness(md: str) -> tuple[dict, list[str]]:
             result["conflicts"] = parsed["issues"]
         if "category_scores" in parsed:
             result.setdefault("category_scores", parsed["category_scores"])
+        if "documentation_gaps" not in result:
+            gaps: list[dict[str, Any]] = []
+            for section in result.get("missing_sections") or []:
+                gaps.append({
+                    "section": section,
+                    "gap_type": "missing",
+                    "description": f"{section}缺失",
+                })
+            for item in result.get("incomplete_sections") or []:
+                if isinstance(item, dict):
+                    gaps.append({
+                        "section": item.get("section", ""),
+                        "gap_type": "incomplete",
+                        "description": item.get("deficit_note", ""),
+                    })
+            for conflict in result.get("conflicts") or []:
+                if isinstance(conflict, dict):
+                    conflict_description = str(
+                        conflict.get("note")
+                        or conflict.get("description")
+                        or ""
+                    )
+                else:
+                    conflict_description = str(conflict)
+                gaps.append({
+                    "section": "",
+                    "gap_type": "conflict",
+                    "description": conflict_description,
+                })
+            result["documentation_gaps"] = gaps
         if result:
             return result, warnings
 
@@ -215,6 +250,7 @@ def _extract_compliance_guardrail(md: str) -> tuple[dict, list[str]]:
 
     parsed = _extract_json_dict(md, warnings)
     if isinstance(parsed, dict):
+        result.update(parsed)
         for key in ("risk_points", "violations", "risk_level", "risk_score",
                     "compliant", "recommendations", "rules_triggered"):
             if key in parsed:
@@ -243,6 +279,7 @@ def _extract_procedure_extractor(md: str) -> tuple[dict, list[str]]:
 
     parsed = _extract_json_dict(md, warnings)
     if isinstance(parsed, dict):
+        result.update(parsed)
         for key in (
             "procedures", "total_count", "coded_procedures",
             "non_billable_mentions", "issues_found", "manual_review_required",
@@ -295,6 +332,7 @@ def _extract_evidence_extractor(md: str) -> tuple[dict, list[str]]:
 
     parsed = _extract_json_dict(md, warnings)
     if isinstance(parsed, dict):
+        result.update(parsed)
         for key in (
             "supported_codes", "uncertain_candidates", "rejected_candidates",
             "coded_evidence", "overall_strength", "evidence_items",
@@ -318,6 +356,7 @@ def _extract_principal_dx(md: str) -> tuple[dict, list[str]]:
 
     parsed = _extract_json_dict(md, warnings)
     if isinstance(parsed, dict):
+        result.update(parsed)
         for key in (
             "candidates", "recommended", "not_recommended",
             "principal_dx", "principal_diagnosis",
@@ -329,6 +368,46 @@ def _extract_principal_dx(md: str) -> tuple[dict, list[str]]:
                 result[key] = parsed[key]
         if result:
             return result, warnings
+    return result, warnings
+
+
+def _extract_governed_principal_dx(md: str) -> tuple[dict, list[str]]:
+    """Preserve documented draft evidence while enforcing non-selection constants."""
+    warnings: list[str] = []
+    parsed = _extract_json_dict(md, warnings)
+    if not isinstance(parsed, dict):
+        return {}, warnings
+    allowed_fields = {
+        "review_status", "review_purpose", "coding_standard",
+        "documentation_scope", "documented_coding_draft", "candidates",
+        "declared_selection_basis", "candidate_evidence_gaps", "input_conflicts",
+        "draft_in_candidate_set", "draft_evidence_complete",
+        "draft_consistency_status", "selection_basis_status", "review_method",
+        "evidence_items", "missing_required_fields", "limitations",
+        "diagnosis_extraction_performed", "code_assignment_performed",
+        "principal_diagnosis_selection_performed", "clinical_inference_performed",
+        "external_rules_used", "production_submission_blocked",
+        "production_writeback_blocked", "manual_review_required", "trace_refs",
+    }
+    result = {key: value for key, value in parsed.items() if key in allowed_fields}
+    result["review_method"] = (
+        "DOCUMENTED_DRAFT_EVIDENCE_AND_SET_CONSISTENCY_ONLY"
+    )
+    documented_draft = result.get("documented_coding_draft")
+    if isinstance(documented_draft, dict):
+        documented_draft = dict(documented_draft)
+        documented_draft["authority_status"] = (
+            "CODER_DOCUMENTED_DRAFT_NOT_CLINICALLY_VALIDATED"
+        )
+        result["documented_coding_draft"] = documented_draft
+    result["diagnosis_extraction_performed"] = False
+    result["code_assignment_performed"] = False
+    result["principal_diagnosis_selection_performed"] = False
+    result["clinical_inference_performed"] = False
+    result["external_rules_used"] = False
+    result["production_submission_blocked"] = True
+    result["production_writeback_blocked"] = True
+    result["manual_review_required"] = True
     return result, warnings
 
 
@@ -344,11 +423,12 @@ def _extract_discharge_summary(md: str) -> tuple[dict, list[str]]:
 
     parsed = _extract_json_dict(md, warnings)
     if isinstance(parsed, dict):
+        result.update(parsed)
         for key in ("structured_sections", "sections", "discharge_sections"):
             if key in parsed:
                 result[key] = parsed[key]
         # Bare shape: diagnoses + procedures + treatment_summary at top level.
-        if not result and any(
+        if "structured_sections" not in result and any(
             k in parsed for k in
             ("diagnoses", "procedures", "treatment_summary", "discharge_plan", "medications")
         ):
@@ -363,6 +443,153 @@ def _extract_discharge_summary(md: str) -> tuple[dict, list[str]]:
     return result, warnings
 
 
+def _extract_governed_discharge_summary(md: str) -> tuple[dict, list[str]]:
+    """Preserve documented discharge sections and enforce safety constants."""
+    warnings: list[str] = []
+    parsed = _extract_json_dict(md, warnings)
+    if not isinstance(parsed, dict):
+        return {}, warnings
+    result = dict(parsed)
+    result["summary_generation_status"] = (
+        "VERBATIM_SECTION_REORGANIZATION_ONLY"
+    )
+    result["icd_codes_assigned"] = False
+    result["medication_reconciliation_performed"] = False
+    result["clinical_inference_performed"] = False
+    result["production_writeback_blocked"] = True
+    result["manual_review_required"] = True
+    return result, warnings
+
+
+def _extract_governed_referral(md: str) -> tuple[dict, list[str]]:
+    """Preserve documented referral fields and enforce the delivery boundary."""
+    warnings: list[str] = []
+    parsed = _extract_json_dict(md, warnings)
+    if not isinstance(parsed, dict):
+        return {}, warnings
+    result = dict(parsed)
+    result["draft_generation_status"] = "VERBATIM_TEMPLATE_ASSEMBLY_ONLY"
+    result["clinical_inference_performed"] = False
+    result["new_diagnosis_generated"] = False
+    result["new_treatment_recommended"] = False
+    result["external_knowledge_used"] = False
+    result["production_transmission_blocked"] = True
+    result["production_writeback_blocked"] = True
+    result["manual_review_required"] = True
+    return result, warnings
+
+
+def _extract_governed_prior_authorization(md: str) -> tuple[dict, list[str]]:
+    """Preserve documented authorization evidence and enforce review gates."""
+    warnings: list[str] = []
+    parsed = _extract_json_dict(md, warnings)
+    if not isinstance(parsed, dict):
+        return {}, warnings
+    result = dict(parsed)
+    result["medical_necessity_assessment_status"] = (
+        "NOT_ASSESSED_POLICY_AND_CLINICAL_REVIEW_REQUIRED"
+    )
+    result["draft_generation_status"] = "VERBATIM_TEMPLATE_ASSEMBLY_ONLY"
+    result["clinical_inference_performed"] = False
+    result["new_diagnosis_generated"] = False
+    result["new_treatment_recommended"] = False
+    result["external_knowledge_used"] = False
+    result["medical_calculator_used"] = False
+    result["medical_coding_validation_performed"] = False
+    result["production_submission_blocked"] = True
+    result["production_writeback_blocked"] = True
+    result["manual_review_required"] = True
+    return result, warnings
+
+
+def _extract_governed_claim_check(md: str) -> tuple[dict, list[str]]:
+    """Preserve documented claim facts and enforce adjudication boundaries."""
+    warnings: list[str] = []
+    parsed = _extract_json_dict(md, warnings)
+    if not isinstance(parsed, dict):
+        return {}, warnings
+    result = dict(parsed)
+    result["evidence_consistency_status"] = "NOT_ASSESSED_LITERAL_PACKET_ONLY"
+    result["comparison_basis"] = "DOCUMENTED_CLAIM_AND_POLICY_ONLY"
+    result["clinical_support_assessed"] = False
+    result["medical_necessity_assessed"] = False
+    result["benefit_eligibility_determined"] = False
+    result["code_assignment_performed"] = False
+    result["drg_dip_grouping_performed"] = False
+    result["external_knowledge_used"] = False
+    result["production_submission_blocked"] = True
+    result["production_writeback_blocked"] = True
+    result["manual_review_required"] = True
+    return result, warnings
+
+
+def _extract_governed_denial_appeals(md: str) -> tuple[dict, list[str]]:
+    """Preserve documented denial facts and enforce review/delivery gates."""
+    warnings: list[str] = []
+    parsed = _extract_json_dict(md, warnings)
+    if not isinstance(parsed, dict):
+        return {}, warnings
+    result = dict(parsed)
+    result["denial_classification_status"] = "DOCUMENTED_ONLY_NO_INFERENCE"
+    result["draft_generation_status"] = "VERBATIM_TEMPLATE_ASSEMBLY_ONLY"
+    result["clinical_support_assessed"] = False
+    result["medical_necessity_assessed"] = False
+    result["benefit_eligibility_determined"] = False
+    result["denial_root_cause_inferred"] = False
+    result["payer_policy_lookup_performed"] = False
+    result["medical_coding_validation_performed"] = False
+    result["external_knowledge_used"] = False
+    result["production_submission_blocked"] = True
+    result["production_writeback_blocked"] = True
+    result["manual_review_required"] = True
+    return result, warnings
+
+
+def _extract_governed_clinical_education(md: str) -> tuple[dict, list[str]]:
+    """Preserve source-bound teaching material and enforce safety constants."""
+    warnings: list[str] = []
+    parsed = _extract_json_dict(md, warnings)
+    if not isinstance(parsed, dict):
+        return {}, warnings
+    result = dict(parsed)
+    result["content_generation_status"] = "SOURCE_BOUND_TEMPLATE_ONLY"
+    result["question_classification_performed"] = False
+    result["clinical_reasoning_performed"] = False
+    result["diagnostic_advice_generated"] = False
+    result["treatment_advice_generated"] = False
+    result["drug_interaction_assessed"] = False
+    result["medical_calculator_used"] = False
+    result["pubmed_lookup_performed"] = False
+    result["web_search_performed"] = False
+    result["external_knowledge_used"] = False
+    result["production_writeback_blocked"] = True
+    result["manual_review_required"] = True
+    return result, warnings
+
+
+def _extract_governed_clinical_guidelines(md: str) -> tuple[dict, list[str]]:
+    """Preserve declared-rule comparison and enforce non-inference constants."""
+    warnings: list[str] = []
+    parsed = _extract_json_dict(md, warnings)
+    if not isinstance(parsed, dict):
+        return {}, warnings
+    result = dict(parsed)
+    result["source_authenticity_status"] = (
+        "USER_DOCUMENTED_METADATA_ONLY_NOT_INDEPENDENTLY_VERIFIED"
+    )
+    result["source_currency_verified"] = False
+    result["evaluation_method"] = "DECLARED_RULES_DETERMINISTIC_COMPARISON"
+    result["guideline_retrieval_performed"] = False
+    result["web_search_performed"] = False
+    result["clinical_inference_performed"] = False
+    result["clinical_significance_assessed"] = False
+    result["treatment_recommendations_generated"] = False
+    result["external_knowledge_used"] = False
+    result["production_writeback_blocked"] = True
+    result["manual_review_required"] = True
+    return result, warnings
+
+
 def _extract_drg_analyzer(md: str) -> tuple[dict, list[str]]:
     """DRG: extract risk_points + drg_dip_rule_reservation_note."""
     warnings: list[str] = []
@@ -370,6 +597,7 @@ def _extract_drg_analyzer(md: str) -> tuple[dict, list[str]]:
 
     parsed = _extract_json_dict(md, warnings)
     if isinstance(parsed, dict):
+        result.update(parsed)
         for key in ("risk_points", "drg_dip_rule_reservation_note",
                     "upcoding_risk", "downcoding_risk",
                     "inconsistency_risk", "missing_complication_risk"):
@@ -388,6 +616,66 @@ def _extract_drg_analyzer(md: str) -> tuple[dict, list[str]]:
     return result, warnings
 
 
+def _extract_governed_drg_analyzer(md: str) -> tuple[dict, list[str]]:
+    """Preserve the governed coded-case review and enforce non-billing flags."""
+    warnings: list[str] = []
+    parsed = _extract_json_dict(md, warnings)
+    if not isinstance(parsed, dict):
+        return {}, warnings
+    allowed_fields = {
+        "review_status", "review_conclusion", "review_method", "coded_case",
+        "development_candidate_group", "dip_review", "risk_findings",
+        "review_actions", "quality_flags", "governance", "evidence_items",
+        "missing_required_fields", "input_conflicts", "limitations",
+        "code_extraction_performed", "code_assignment_performed",
+        "code_validation_performed", "clinical_inference_performed",
+        "local_development_rules_used", "official_grouping_performed",
+        "official_dip_scoring_performed", "payment_calculation_performed",
+        "billing_authoritative", "production_submission_blocked",
+        "production_writeback_blocked", "manual_review_required", "trace_refs",
+    }
+    result = {key: value for key, value in parsed.items() if key in allowed_fields}
+    result["review_method"] = (
+        "EXPLICIT_CODED_CASE_DETERMINISTIC_UNVERIFIED_RISK_REVIEW"
+    )
+    candidate = result.get("development_candidate_group")
+    if isinstance(candidate, dict):
+        candidate = {
+            key: value for key, value in candidate.items()
+            if key in {
+                "candidate_drg", "candidate_name", "mdc", "mdc_name", "adrg",
+                "cc_level", "grouping_method", "coverage", "result_status",
+            }
+        }
+        result["development_candidate_group"] = candidate
+    governance = result.get("governance")
+    if isinstance(governance, dict):
+        governance = dict(governance)
+        governance.update({
+            "rule_pack_id": "cn.drg_dip.risk_heuristics",
+            "rule_pack_version": "1.0.0-development",
+            "jurisdiction": "CN_GENERIC_DEVELOPMENT",
+            "authority_status": "experimental_unverified",
+            "license_status": "external_review_required",
+            "use_restriction": (
+                "development_risk_review_only_not_for_grouping_payment_or_settlement"
+            ),
+        })
+        result["governance"] = governance
+    result["code_extraction_performed"] = False
+    result["code_assignment_performed"] = False
+    result["code_validation_performed"] = False
+    result["clinical_inference_performed"] = False
+    result["official_grouping_performed"] = False
+    result["official_dip_scoring_performed"] = False
+    result["payment_calculation_performed"] = False
+    result["billing_authoritative"] = False
+    result["production_submission_blocked"] = True
+    result["production_writeback_blocked"] = True
+    result["manual_review_required"] = True
+    return result, warnings
+
+
 def _extract_code_validation(md: str) -> tuple[dict, list[str]]:
     """Code validation: extract validation_results[] + overall_valid."""
     warnings: list[str] = []
@@ -395,6 +683,7 @@ def _extract_code_validation(md: str) -> tuple[dict, list[str]]:
 
     parsed = _extract_json_dict(md, warnings)
     if isinstance(parsed, dict):
+        result.update(parsed)
         for key in ("validation_results", "overall_valid", "issues",
                     "validated_codes", "rules_checked"):
             if key in parsed:
@@ -404,15 +693,283 @@ def _extract_code_validation(md: str) -> tuple[dict, list[str]]:
     return result, warnings
 
 
+def _extract_diagnosis_extraction(md: str) -> tuple[dict, list[str]]:
+    warnings: list[str] = []
+    parsed = _extract_json_dict(md, warnings)
+    if not isinstance(parsed, dict):
+        return {}, warnings
+    result = dict(parsed)
+    raw_status = str(result.get("status") or "").strip().casefold()
+    normalized_status = {
+        "completed": "PASS",
+        "success": "PASS",
+        "pass": "PASS",
+        "warning": "WARNING",
+        "warnings": "WARNING",
+        "requires_review": "REQUIRES_REVIEW",
+        "review": "REQUIRES_REVIEW",
+    }.get(raw_status)
+    if normalized_status is not None:
+        result["status"] = normalized_status
+    result.setdefault("non_codable_mentions", [])
+    result.setdefault("issues_found", list(result.get("manual_review_reasons") or []))
+
+    # DiagnosisExtractionOutput/v6 permits an empty ``diagnoses`` list, but
+    # every item that remains in that list is a *codable* diagnosis and must
+    # carry a verified ICD-10-CN code and display name.  A tool-aware model
+    # may responsibly leave those fields empty when search/verification is
+    # unavailable.  Do not turn that safe refusal into a whole-response
+    # contract failure and, critically, never invent a code here.  Remove the
+    # unverified item from the codable list, retain a PHI-free audit issue and
+    # force manual review.
+    diagnoses = result.get("diagnoses")
+    if isinstance(diagnoses, list):
+        codable_diagnoses: list[Any] = []
+        omitted_indexes: list[int] = []
+        for index, diagnosis in enumerate(diagnoses):
+            if not isinstance(diagnosis, dict):
+                # Preserve malformed shapes so the schema validator still
+                # fails closed instead of silently discarding unknown data.
+                codable_diagnoses.append(diagnosis)
+                continue
+            code = str(diagnosis.get("icd10_cn_code") or "").strip()
+            name = str(diagnosis.get("icd10_cn_name") or "").strip()
+            if not code or not name:
+                omitted_indexes.append(index)
+                continue
+            codable_diagnoses.append(diagnosis)
+        if omitted_indexes:
+            result["diagnoses"] = codable_diagnoses
+            existing_issues = result.get("issues_found")
+            if not isinstance(existing_issues, list):
+                existing_issues = []
+            for index in omitted_indexes:
+                issue = (
+                    f"diagnoses[{index}] omitted from codable output because "
+                    "ICD-10-CN code/name was not verified"
+                )
+                if issue not in existing_issues:
+                    existing_issues.append(issue)
+            result["issues_found"] = existing_issues
+            result["manual_review_required"] = True
+            result["status"] = "REQUIRES_REVIEW"
+            warnings.append(
+                f"omitted {len(omitted_indexes)} unverified diagnosis item(s); "
+                "manual review required"
+            )
+    return result, warnings
+
+
+def _extract_rule_explanation(md: str) -> tuple[dict, list[str]]:
+    warnings: list[str] = []
+    parsed = _extract_json_dict(md, warnings)
+    if not isinstance(parsed, dict):
+        return {}, warnings
+    result = dict(parsed)
+    explanation = result.get("explanation")
+    if isinstance(explanation, dict):
+        result.setdefault("explanation_summary", explanation.get("application_notes") or [])
+        result.setdefault("guideline_basis", explanation.get("general_rules") or [])
+        result.setdefault("evidence_tool_refs", explanation.get("catalog_facts") or [])
+    limitations = list(result.get("unsupported_scope") or [])
+    limitations.extend(result.get("tool_errors") or [])
+    result.setdefault("limitations", limitations)
+    return result, warnings
+
+
+def _extract_medication_reconciliation(md: str) -> tuple[dict, list[str]]:
+    """Preserve governed medication facts while enforcing public safety flags."""
+    warnings: list[str] = []
+    parsed = _extract_json_dict(md, warnings)
+    if not isinstance(parsed, dict):
+        return {}, warnings
+    result = dict(parsed)
+    result["interaction_screening_status"] = (
+        "NOT_ASSESSED_LICENSED_SOURCE_REQUIRED"
+    )
+    result["interaction_risks"] = []
+    result["manual_review_required"] = True
+    return result, warnings
+
+
+def _extract_nursing_handoff(md: str) -> tuple[dict, list[str]]:
+    """Preserve documented handoff facts while enforcing local safety flags."""
+    warnings: list[str] = []
+    parsed = _extract_json_dict(md, warnings)
+    if not isinstance(parsed, dict):
+        return {}, warnings
+    result = dict(parsed)
+    result["clinical_priority_assessed"] = False
+    result["medical_calculator_used"] = False
+    result["production_writeback_blocked"] = True
+    result["manual_review_required"] = True
+    return result, warnings
+
+
+def _extract_icu_summary(md: str) -> tuple[dict, list[str]]:
+    """Preserve documented ICU facts while enforcing local safety flags."""
+    warnings: list[str] = []
+    parsed = _extract_json_dict(md, warnings)
+    if not isinstance(parsed, dict):
+        return {}, warnings
+    result = dict(parsed)
+    result["clinical_scores_status"] = (
+        "NOT_CALCULATED_GOVERNED_CALCULATOR_REQUIRED"
+    )
+    result["medication_screening_status"] = (
+        "NOT_SCREENED_LICENSED_DRUG_SOURCE_REQUIRED"
+    )
+    result["clinical_recommendations_generated"] = False
+    result["production_writeback_blocked"] = True
+    result["manual_review_required"] = True
+    return result, warnings
+
+
+def _extract_discharge_education(md: str) -> tuple[dict, list[str]]:
+    """Preserve documented discharge facts while enforcing safety flags."""
+    warnings: list[str] = []
+    parsed = _extract_json_dict(md, warnings)
+    if not isinstance(parsed, dict):
+        return {}, warnings
+    result = dict(parsed)
+    result["medication_reconciliation_status"] = (
+        "NOT_RECONCILED_GOVERNED_MEDICATION_RECONCILIATION_REQUIRED"
+    )
+    result["translation_status"] = "VERBATIM_DOCUMENTED_CONTENT_ONLY"
+    result["external_knowledge_used"] = False
+    result["clinical_interpretation_performed"] = False
+    result["clinical_recommendations_generated"] = False
+    result["production_writeback_blocked"] = True
+    result["manual_review_required"] = True
+    return result, warnings
+
+
+def _extract_icd10_navigator(md: str) -> tuple[dict, list[str]]:
+    """Normalize the ICD-10 navigator's unverified-source safety boundary.
+
+    A language model may still emit an empty notes list (or memorized codes)
+    after correctly admitting that no catalog version was supplied.  The
+    public contract must be deterministic: no source means no candidate code
+    claims, an explicit manual catalog-review note, and mandatory review.
+    """
+    warnings: list[str] = []
+    parsed = _extract_json_dict(md, warnings)
+    if not isinstance(parsed, dict):
+        return {}, warnings
+    result = dict(parsed)
+    source_version = str(result.get("source_version") or "").strip()
+    normalized_version = source_version.casefold()
+    source_missing = not source_version or any(
+        marker in normalized_version
+        for marker in (
+            "未提供", "未知", "缺失", "无法确认",
+            "not provided", "unknown", "missing", "unavailable",
+        )
+    )
+    if source_missing:
+        result["source_version"] = source_version or "未提供"
+        result["candidate_codes"] = []
+        result["hierarchy_notes"] = [
+            "未提供可验证的 ICD-10-CN 目录版本，类目层级须由编码员人工核对。"
+        ]
+        result["inclusion_exclusion_notes"] = [
+            "未提供可验证的 ICD-10-CN 目录版本，包括/不包括说明须由编码员人工核对。"
+        ]
+        result["manual_review_required"] = True
+        warnings.append("unverified ICD-10 source normalized to manual-review-only output")
+    return result, warnings
+
+
 _CONTRACT_EXTRACTORS: dict[str, callable] = {
+    "icoder/ClaimCheckOutput/v4": _extract_governed_claim_check,
+    "icoder/DenialAppealOutput/v3": _extract_governed_denial_appeals,
+    "icoder/ClinicalEducationOutput/v4": _extract_governed_clinical_education,
+    "icoder/ClinicalEducationOutput/v5": _extract_governed_clinical_education,
+    "icoder/ClinicalEducationOutput/v6": _extract_governed_clinical_education,
+    "icoder/ClinicalGuidelinesOutput/v5": _extract_governed_clinical_guidelines,
+    "icoder/ClinicalGuidelinesOutput/v6": _extract_governed_clinical_guidelines,
     "icoder/NoteCompleteness/v1": _extract_note_completeness,
+    "icoder/NoteCompletenessOutput/v1": _extract_note_completeness,
+    "icoder/NoteCompletenessOutput/v2": _extract_note_completeness,
     "icoder/ComplianceGuardrail/v1": _extract_compliance_guardrail,
+    "icoder/ComplianceGuardrailOutput/v1": _extract_compliance_guardrail,
+    "icoder/ComplianceGuardrailOutput/v2": _extract_compliance_guardrail,
+    "icoder/ComplianceGuardrailOutput/v3": _extract_compliance_guardrail,
+    "icoder/ComplianceGuardrailOutput/v4": _extract_compliance_guardrail,
     "icoder/ProcedureExtractor/v1": _extract_procedure_extractor,
+    "icoder/ProcedureCodingOutput/v1": _extract_procedure_extractor,
+    "icoder/ProcedureCodingOutput/v2": _extract_procedure_extractor,
+    "icoder/ProcedureCodingOutput/v3": _extract_procedure_extractor,
+    "icoder/ProcedureCodingOutput/v4": _extract_procedure_extractor,
+    "icoder/ProcedureCodingOutput/v5": _extract_procedure_extractor,
+    "icoder/ProcedureCodingOutput/v6": _extract_procedure_extractor,
+    "icoder/ProcedureCodingOutput/v7": _extract_procedure_extractor,
+    "icoder/ProcedureCodingOutput/v8": _extract_procedure_extractor,
     "icoder/EvidenceExtractor/v1": _extract_evidence_extractor,
+    "icoder/CodedEvidence/v1": _extract_evidence_extractor,
+    "icoder/CodedEvidence/v2": _extract_evidence_extractor,
+    "icoder/CodedEvidence/v3": _extract_evidence_extractor,
+    "icoder/CodedEvidence/v4": _extract_evidence_extractor,
+    "icoder/CodedEvidence/v5": _extract_evidence_extractor,
+    "icoder/CodedEvidence/v6": _extract_evidence_extractor,
+    "icoder/CodedEvidence/v7": _extract_evidence_extractor,
+    "icoder/CodedEvidence/v8": _extract_evidence_extractor,
+    "icoder/CodedEvidence/v9": _extract_evidence_extractor,
+    "icoder/CodedEvidence/v10": _extract_evidence_extractor,
     "icoder/PrincipalDxReview/v1": _extract_principal_dx,
+    "icoder/PrincipalDxReview/v2": _extract_principal_dx,
+    "icoder/PrincipalDxReview/v3": _extract_principal_dx,
+    "icoder/PrincipalDxReview/v4": _extract_principal_dx,
+    "icoder/PrincipalDxReview/v5": _extract_principal_dx,
+    "icoder/PrincipalDxReview/v6": _extract_principal_dx,
+    "icoder/PrincipalDxReview/v7": _extract_principal_dx,
+    "icoder/PrincipalDxReview/v8": _extract_principal_dx,
+    "icoder/PrincipalDxReview/v9": _extract_principal_dx,
+    "icoder/PrincipalDxReview/v10": _extract_principal_dx,
+    "icoder/PrincipalDxReview/v11": _extract_governed_principal_dx,
     "icoder/DischargeSummary/v1": _extract_discharge_summary,
+    "icoder/DischargeSummaryStructured/v1": _extract_discharge_summary,
+    "icoder/DischargeSummaryStructured/v2": _extract_discharge_summary,
+    "icoder/DischargeSummaryStructured/v3": _extract_discharge_summary,
+    "icoder/DischargeSummaryStructured/v4": _extract_governed_discharge_summary,
+    "icoder/DischargeSummaryStructured/v5": _extract_governed_discharge_summary,
+    "icoder/ReferralOutput/v3": _extract_governed_referral,
+    "icoder/PriorAuthorizationOutput/v3": _extract_governed_prior_authorization,
+    "icoder/PriorAuthorizationOutput/v4": _extract_governed_prior_authorization,
+    "icoder/PriorAuthorizationOutput/v5": _extract_governed_prior_authorization,
     "icoder/DrgAnalyzer/v1": _extract_drg_analyzer,
+    "icoder/DRGDIPRiskReview/v1": _extract_drg_analyzer,
+    "icoder/DRGDIPRiskReview/v2": _extract_drg_analyzer,
+    "icoder/DRGDIPRiskReview/v3": _extract_drg_analyzer,
+    "icoder/DRGDIPRiskReview/v4": _extract_drg_analyzer,
+    "icoder/DRGDIPRiskReview/v5": _extract_governed_drg_analyzer,
+    "icoder/DRGDIPRiskReview/v6": _extract_governed_drg_analyzer,
+    "icoder/DRGDIPRiskReview/v7": _extract_governed_drg_analyzer,
+    "icoder/DRGDIPRiskReview/v8": _extract_governed_drg_analyzer,
     "icoder/CodeValidation/v1": _extract_code_validation,
+    "icoder/CodeValidationOutput/v2": _extract_code_validation,
+    "icoder/CodeValidationOutput/v3": _extract_code_validation,
+    "icoder/CodeValidationOutput/v4": _extract_code_validation,
+    "icoder/CodeValidationOutput/v5": _extract_code_validation,
+    "icoder/DiagnosisExtractionOutput/v1": _extract_diagnosis_extraction,
+    "icoder/DiagnosisExtractionOutput/v2": _extract_diagnosis_extraction,
+    "icoder/DiagnosisExtractionOutput/v3": _extract_diagnosis_extraction,
+    "icoder/DiagnosisExtractionOutput/v4": _extract_diagnosis_extraction,
+    "icoder/DiagnosisExtractionOutput/v5": _extract_diagnosis_extraction,
+    "icoder/DiagnosisExtractionOutput/v6": _extract_diagnosis_extraction,
+    "icoder/DiagnosisExtractionOutput/v7": _extract_diagnosis_extraction,
+    "icoder/RuleExplanationOutput/v1": _extract_rule_explanation,
+    "icoder/RuleExplanationOutput/v2": _extract_rule_explanation,
+    "icoder/RuleExplanationOutput/v3": _extract_rule_explanation,
+    "icoder/RuleExplanationOutput/v4": _extract_rule_explanation,
+    "icoder/MedicationReconciliationOutput/v3": _extract_medication_reconciliation,
+    "icoder/MedicationReconciliationOutput/v4": _extract_medication_reconciliation,
+    "icoder/NursingHandoffOutput/v3": _extract_nursing_handoff,
+    "icoder/NursingHandoffOutput/v4": _extract_nursing_handoff,
+    "icoder/IcuSummaryOutput/v3": _extract_icu_summary,
+    "icoder/DischargeEducationOutput/v3": _extract_discharge_education,
+    "icoder/Icd10NavigatorOutput/v1": _extract_icd10_navigator,
+    "icoder/Icd10NavigatorOutput/v2": _extract_icd10_navigator,
 }
 
 

@@ -79,8 +79,6 @@ class RunStatus:
             cls.COMPLETED,
             cls.FAILED,
             cls.CANCELLED,
-            cls.CANCEL_NOT_SUPPORTED,
-            cls.CLIENT_ABORTED,
             cls.COMPLETED_AFTER_CLIENT_ABORT,
         )
 
@@ -134,6 +132,8 @@ async def record_run_start(
     trace_id: str = "",
     # ── Phase 7 Gate 5 §10.1: partner attribution ──────────────────
     api_client_id: Optional[str] = None,
+    delegated_subject_id: Optional[str] = None,
+    purpose_of_use: Optional[str] = None,
     embedded_app_id: Optional[str] = None,
     session_id: Optional[str] = None,
     context_id: Optional[str] = None,
@@ -176,6 +176,8 @@ async def record_run_start(
         error=False,
         # Partner attribution (§10.1)
         api_client_id=api_client_id,
+        delegated_subject_id=delegated_subject_id,
+        purpose_of_use=purpose_of_use,
         embedded_app_id=embedded_app_id,
         session_id=session_id,
         context_id=context_id,

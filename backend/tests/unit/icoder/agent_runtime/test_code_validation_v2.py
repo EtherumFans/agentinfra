@@ -109,7 +109,7 @@ def _make_mock_provider(response_dict: dict[str, Any]):
 
 async def test_code_validation_v2_happy_path():
     """LLM returns v2-shape JSON → schema populated, conclusion preserved."""
-    from official_agents.code_validation.agent import run
+    from official_agents.code_validation.agent import run_llm_enhanced as run
 
     mock_provider = _make_mock_provider(_make_llm_response_dict(
         markdown=_LLM_HAPPY_MARKDOWN,
@@ -157,7 +157,7 @@ async def test_code_validation_v2_happy_path():
 
 async def test_code_validation_v2_legacy_fallback_on_llm_fail():
     """When LLM returns status='fail', fall back to legacy RuleEngine."""
-    from official_agents.code_validation.agent import run
+    from official_agents.code_validation.agent import run_llm_enhanced as run
 
     mock_provider = _make_mock_provider(_make_llm_response_dict(
         status="fail", markdown="", finish_reason="timeout",
@@ -184,6 +184,10 @@ async def test_code_validation_v2_legacy_fallback_on_llm_fail():
     assert "markdown" in result
     assert "Legacy RuleEngine Fallback" in result["markdown"]
     assert result["trace_refs"].get("fallback") == "legacy_rule_engine"
+    assert result["manual_review_required"] is True
+    assert result["degraded"] is True
+    assert result["fallback_used"] is True
+    assert result["runtime_mode"] == "deterministic_rule_engine_fallback"
 
 
 # ── legacy fallback: unparseable LLM output ─────────────────────────
@@ -191,7 +195,7 @@ async def test_code_validation_v2_legacy_fallback_on_llm_fail():
 
 async def test_code_validation_v2_legacy_fallback_on_unparseable_output():
     """When LLM returns markdown without JSON, fall back to legacy."""
-    from official_agents.code_validation.agent import run
+    from official_agents.code_validation.agent import run_llm_enhanced as run
 
     mock_provider = _make_mock_provider(_make_llm_response_dict(
         markdown="Sorry, I cannot produce JSON. Have a nice day!",
@@ -214,21 +218,24 @@ async def test_code_validation_v2_legacy_fallback_on_unparseable_output():
     # Should fall back to legacy
     assert "Legacy RuleEngine Fallback" in result["markdown"]
     assert result["trace_refs"].get("fallback") == "legacy_rule_engine"
+    assert result["manual_review_required"] is True
+    assert result["degraded"] is True
 
 
 # ── empty input ─────────────────────────────────────────────────────
 
 
 async def test_code_validation_v2_empty_input_returns_fail():
-    """Empty input → FAIL with INPUT-001 issue."""
+    """Empty input fails closed without publishing a code-validity claim."""
     from official_agents.code_validation.agent import run
 
     result = await run("", run_id="test-empty")
     assert result["review_conclusion"] == "FAIL"
     assert result["manual_review_required"] is True
-    assert len(result["issues_found"]) == 1
-    assert result["issues_found"][0]["rule_id"] == "INPUT-001"
-    assert "Empty input" in result["summary"]
+    assert result["validated_codes"] == []
+    assert len(result["cross_code_issues"]) == 1
+    assert result["cross_code_issues"][0]["code"] == "input"
+    assert "未提取" in result["summary"]
     assert "FAIL" in result["markdown"]
 
 
@@ -263,7 +270,7 @@ async def test_code_validation_v2_prompt_injection_refusal():
 
 async def test_code_validation_v2_output_matches_pydantic_schema():
     """Verify the v2 output dict validates against CodeValidationOutputV2."""
-    from official_agents.code_validation.agent import run
+    from official_agents.code_validation.agent import run_llm_enhanced as run
     from official_agents.code_validation.output_schema_v2 import CodeValidationOutputV2
 
     mock_provider = _make_mock_provider(_make_llm_response_dict(

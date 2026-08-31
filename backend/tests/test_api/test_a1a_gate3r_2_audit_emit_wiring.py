@@ -84,7 +84,12 @@ def _delete_audit(action: str, resource_id: str | None = None) -> None:
     asyncio.run(_go())
 
 
-def _seed_pending_run(run_id: str, *, org_id: str = "org_default1") -> None:
+def _seed_pending_run(
+    run_id: str,
+    *,
+    org_id: str = "org_default1",
+    status: str = "PENDING",
+) -> None:
     """Insert a PENDING run_history row directly so cancel_run has
     something to cancel without doing a full agent_run."""
     from app.database import AsyncSessionLocal
@@ -102,7 +107,7 @@ def _seed_pending_run(run_id: str, *, org_id: str = "org_default1") -> None:
                 user_id="u-test-bypass",
                 organization_id=org_id,
                 tenancy_classification="MODERN",
-                status="PENDING",
+                status=status,
                 latency_ms=0,
                 cost_usd=0.0,
                 input_text="",
@@ -146,6 +151,30 @@ def test_run_cancel_emits_audit(client: TestClient) -> None:
         assert after == before + 1, (
             f"run.cancel audit emit missing: before={before} after={after}"
         )
+    finally:
+        _delete_audit("run.cancel", run_id)
+        _clear_run_history(run_id)
+
+
+def test_running_cancel_is_202_recorded_only_and_audited(client: TestClient) -> None:
+    """A provider call that cannot be interrupted is never reported as a
+    successful synchronous cancellation."""
+    run_id = f"run-3r2-running-{secrets.token_hex(4)}"
+    _seed_pending_run(run_id, status="RUNNING")
+    _delete_audit("run.cancel", run_id)
+    try:
+        resp = client.post(
+            f"/api/v1/runs/{run_id}/cancel",
+            json={"reason": "operator-requested"},
+        )
+        assert resp.status_code == 202, resp.text
+        assert resp.json()["outcome"] == "RECORDED_ONLY"
+        assert resp.json()["status"] == "CANCEL_NOT_SUPPORTED"
+        status = client.get(f"/api/v1/runs/{run_id}")
+        assert status.status_code == 200
+        assert status.json()["status"] == "CANCEL_NOT_SUPPORTED"
+        assert status.json()["terminal"] is False
+        assert _count_audit("run.cancel", run_id) == 1
     finally:
         _delete_audit("run.cancel", run_id)
         _clear_run_history(run_id)

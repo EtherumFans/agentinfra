@@ -1,5 +1,6 @@
 """Structured logging middleware — request logs + Prometheus metrics."""
 import logging
+import threading
 import time
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -13,6 +14,7 @@ _metrics: dict = {
     "llm_calls": 0,
     "active_sessions": 0,
 }
+_metrics_lock = threading.Lock()
 
 SENSITIVE_FIELDS = {"password", "token", "secret", "authorization", "api_key", "credential"}
 
@@ -25,13 +27,17 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         response = await call_next(request)
         duration_ms = int((time.time() - start) * 1000)
 
-        path = request.url.path
+        # Route templates are low-cardinality and cannot contain patient/run
+        # identifiers. Never use the raw URL path as a metric label.
+        route = request.scope.get("route")
+        path = getattr(route, "path", None) or "UNMATCHED"
         method = request.method
         status = response.status_code
 
         # Update metrics
         key = f"{method}:{path}:{status}"
-        _metrics["requests"][key] = _metrics["requests"].get(key, 0) + 1
+        with _metrics_lock:
+            _metrics["requests"][key] = _metrics["requests"].get(key, 0) + 1
 
         # Structured log (skip health/static)
         if not path.startswith("/api/health"):
@@ -46,20 +52,23 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
 def record_agent_run(agent_ref: str, status: str):
     """Record an agent run in metrics."""
     key = f"{agent_ref}:{status}"
-    _metrics["agent_runs"][key] = _metrics["agent_runs"].get(key, 0) + 1
+    with _metrics_lock:
+        _metrics["agent_runs"][key] = _metrics["agent_runs"].get(key, 0) + 1
 
 
 def record_llm_call():
-    _metrics["llm_calls"] += 1
+    with _metrics_lock:
+        _metrics["llm_calls"] += 1
 
 
 def get_metrics() -> dict:
     """Return current metrics snapshot."""
-    return {
-        "requests_total": sum(_metrics["requests"].values()),
-        "requests_by_endpoint": dict(list(_metrics["requests"].items())[:20]),
-        "agent_runs_total": sum(_metrics["agent_runs"].values()),
-        "agent_runs": dict(list(_metrics["agent_runs"].items())[:20]),
-        "llm_calls_total": _metrics["llm_calls"],
-        "active_sessions": _metrics["active_sessions"],
-    }
+    with _metrics_lock:
+        return {
+            "requests_total": sum(_metrics["requests"].values()),
+            "requests_by_endpoint": dict(list(_metrics["requests"].items())[:20]),
+            "agent_runs_total": sum(_metrics["agent_runs"].values()),
+            "agent_runs": dict(list(_metrics["agent_runs"].items())[:20]),
+            "llm_calls_total": _metrics["llm_calls"],
+            "active_sessions": _metrics["active_sessions"],
+        }

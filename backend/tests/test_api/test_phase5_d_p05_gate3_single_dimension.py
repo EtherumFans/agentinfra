@@ -82,6 +82,34 @@ def test_detect_axes_correlation_is_single_axis() -> None:
     assert detect_axes("症状与血压的关系") == {"correlation"}
 
 
+def test_document_section_label_does_not_add_course_axis() -> None:
+    assert detect_axes("病程记录中的严重程度不一致") == {"severity"}
+
+
+def test_true_clinical_course_still_detected() -> None:
+    assert detect_axes("请明确头痛的病程和持续时间") == {"course"}
+
+
+def test_evidence_preamble_does_not_make_severity_request_compound() -> None:
+    q = _q(
+        "q-evidence-preamble",
+        topic="COPD急性加重严重程度",
+        query_text="根据血气分析及临床病程，本次COPD急性加重的严重程度应如何界定？",
+    )
+    result = evaluate_single_dimension(q)
+    assert result.verdict == "SINGLE_DIM"
+    assert result.axes_detected == ["severity"]
+
+
+def test_course_in_actual_request_clause_still_makes_query_compound() -> None:
+    q = _q(
+        "q-compound",
+        topic="COPD急性加重严重程度和病程",
+        query_text="根据血气分析，请明确严重程度和病程。",
+    )
+    assert evaluate_single_dimension(q).verdict == "MULTI_DIM"
+
+
 # ---------------------------------------------------------------------------
 # SD-001 — topic multi-axis
 # ---------------------------------------------------------------------------
@@ -255,6 +283,31 @@ def test_apply_single_dimension_drops_multi_dim_preserves_single() -> None:
     # The dropped query is still in the result for traceability
     assert "q_multi" in result.per_query
     assert result.per_query["q_multi"].verdict == "MULTI_DIM"
+    assert len(case.query_rewrite_queue) == 1
+    rewrite = case.query_rewrite_queue[0]
+    assert rewrite["query_id"] == "q_multi"
+    assert rewrite["status"] == "NEEDS_CDI_REWRITE"
+    assert len(rewrite["detected_axes"]) >= 2
+    assert rewrite["gate_reasons"]
+
+
+def test_apply_single_dimension_never_sends_only_multi_dim_draft_but_preserves_it() -> None:
+    case = CDICase(
+        case_id="c1",
+        chart_excerpt="any",
+        proposed_provider_queries=[
+            _q(
+                "q_multi",
+                topic="\u7c7b\u578b\u548c\u90e8\u4f4d",
+                query_text="\u8bf7\u660e\u786e\u80ba\u708e\u7684\u7c7b\u578b\u548c\u90e8\u4f4d",
+            )
+        ],
+    )
+
+    apply_single_dimension_to_case(case)
+
+    assert case.proposed_provider_queries == []
+    assert [item["query_id"] for item in case.query_rewrite_queue] == ["q_multi"]
 
 
 def test_apply_single_dimension_preserves_all_when_single_dim() -> None:

@@ -29,7 +29,7 @@ external_a2A).
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, AsyncIterator, Literal, Protocol, runtime_checkable
 
 from pydantic import BaseModel, Field
@@ -161,6 +161,9 @@ class BackendRequest:
     mandatory_tools: list[str] = field(default_factory=list)
     """Tools that must be called at least once (Corti Code Validation: verify+guidelines)."""
 
+    conditional_mandatory_tools: list[dict[str, Any]] = field(default_factory=list)
+    """Output-dependent mandatory tool policies declared by the Agent Pack."""
+
     forbidden_tools: list[str] = field(default_factory=list)
     """Tools this agent must NOT call (Corti Compliance Guardrail: search)."""
 
@@ -180,6 +183,9 @@ class BackendRequest:
             user_input=self.user_input,
             tool_scope=list(self.tool_scope),
             mandatory_tools=list(self.mandatory_tools),
+            conditional_mandatory_tools=[
+                dict(item) for item in self.conditional_mandatory_tools
+            ],
             forbidden_tools=list(self.forbidden_tools),
             placeholder_values=dict(self.placeholder_values),
             timeout_seconds=self.timeout_seconds,
@@ -272,6 +278,12 @@ class AgentRunContext:
     context_id: str
     agent_id: str
     tenant_id: str = "default"
+    runtime_agent_id: str = ""
+    """Server-owned source implementation ID for a project clone.
+
+    ``agent_id`` remains the public/audit identity. Providers may use this
+    field only when selecting source-specific deterministic behavior.
+    """
     region: str = "cn"
     redacted_input: str = ""
     """PHI-redacted user input — providers NEVER see raw PHI."""
@@ -283,7 +295,7 @@ class AgentRunContext:
     """Convenience: agent_pack['agent']['backend_config'] (or {})."""
 
     interaction_id: str = ""
-    started_at: datetime = field(default_factory=datetime.utcnow)
+    started_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 # ── Provider health / capability ───────────────────────────────────────
@@ -299,7 +311,7 @@ class ProviderHealth:
 
     state: Literal["ok", "degraded", "down"] = "ok"
     latency_ms: int = 0
-    last_check: datetime = field(default_factory=datetime.utcnow)
+    last_check: datetime = field(default_factory=lambda: datetime.now(UTC))
     details: dict[str, Any] = field(default_factory=dict)
 
 

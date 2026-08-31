@@ -119,6 +119,7 @@ def to_clinician_view(query: "ProviderQuery") -> "ProviderQuery | None":
         reason=query.reason,
         evidence_span=query.evidence_span,
         query_text=sanitized_text,
+        evidence_spans=list(query.all_evidence_spans()),
         response_options=sanitized_options,
         priority=query.priority,
         lifecycle_state=query.lifecycle_state,

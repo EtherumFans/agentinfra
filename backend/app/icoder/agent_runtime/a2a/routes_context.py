@@ -12,11 +12,10 @@ and only deletes the row if ``contexts.organization_id`` matches the
 JWT's ``current_org.id``. Mismatch returns 404 CONTEXT_NOT_FOUND —
 never leak that the context exists under a different tenant.
 
-Other Context verbs (GET, PATCH state) are intentionally NOT added
-in R.1.b — they belong in a later sub-gate once the inbound handler
-starts persisting Context rows from real Message:send traffic. For
-now Context rows exist for the lifecycle/GC tests and for future
-expansion; the only user-facing verb is DELETE.
+Context history GET is implemented on the agent-scoped inbound router at
+``/api/icoder/agents/{agent_id}/v1/contexts/{context_id}``. This module owns
+the global scrub endpoint only; Context rows are persisted by real
+``message:send`` traffic.
 """
 
 from __future__ import annotations

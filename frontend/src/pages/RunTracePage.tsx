@@ -129,6 +129,10 @@ export function BackendProviderSummary({
   const fallbackUsed = (meta.fallback_used as boolean) ?? false;
   const outputContract = (meta.output_contract as string) || '';
   const toolRounds = (meta.tool_rounds as number) || 0;
+  const modelDeployment = (meta.model_deployment_id as string) || '';
+  const modelRoutingMode = (meta.model_routing_mode as string) || '';
+  const modelSelectionVersion = meta.model_selection_version;
+  const modelRoutingDecision = (meta.model_routing_decision as string) || '';
 
   if (!provider) return null;
 
@@ -180,6 +184,26 @@ export function BackendProviderSummary({
         {outputContract && (
           <span>
             contract: <span className="text-foreground">{outputContract}</span>
+          </span>
+        )}
+        {modelDeployment && (
+          <span>
+            model deployment: <span className="text-foreground font-semibold">{modelDeployment}</span>
+          </span>
+        )}
+        {modelRoutingMode && (
+          <span>
+            routing: <span className="text-foreground">{modelRoutingMode}</span>
+          </span>
+        )}
+        {typeof modelSelectionVersion === 'number' && (
+          <span>
+            selection version: <span className="text-foreground">{modelSelectionVersion}</span>
+          </span>
+        )}
+        {modelRoutingDecision && (
+          <span>
+            decision: <span className="text-foreground">{modelRoutingDecision}</span>
           </span>
         )}
       </div>
@@ -760,6 +784,18 @@ export default function RunTracePage() {
   const totalDuration = timeline.reduce(
     (acc, e) => acc + (typeof e.duration_ms === 'number' ? e.duration_ms : 0), 0,
   );
+  const summary = trace?.summary;
+  const reviewState = summary?.review_signal?.state || 'not_recorded';
+  const reviewLabel = reviewState === 'required'
+    ? t.runTraceReviewRequired
+    : reviewState === 'not_required'
+    ? t.runTraceReviewNotRequired
+    : t.runTraceReviewNotRecorded;
+  const reviewBadgeClass = reviewState === 'required'
+    ? 'bg-amber-100 text-amber-800 border-amber-200'
+    : reviewState === 'not_required'
+    ? 'bg-green-100 text-green-700 border-green-200'
+    : 'bg-muted text-muted-foreground border-border/50';
 
   // Group timeline into segments: pre-dispatcher / dispatcher / post-dispatcher.
   // The dispatcher group is the 4 MCP steps (tools_list / auth_resolved /
@@ -842,6 +878,67 @@ export default function RunTracePage() {
             </span>
           </p>
 
+          {summary && (
+            <section className="mb-5 rounded-lg border border-border/50 bg-background p-3">
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                <h2 className="text-xs font-semibold text-foreground">
+                  {t.runTraceAuditSummary}
+                </h2>
+                <span className="text-[10px] font-mono text-muted-foreground">
+                  {summary.agent_id || '-'}
+                </span>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+                <div className="rounded-md bg-muted/30 p-2">
+                  <p className="text-[10px] text-muted-foreground">{t.runTraceRunStatus}</p>
+                  <p className={`text-xs font-mono font-semibold mt-1 ${summary.error ? 'text-red-700' : 'text-foreground'}`}>
+                    {summary.run_status || '-'}
+                  </p>
+                </div>
+                <div className="rounded-md bg-muted/30 p-2">
+                  <p className="text-[10px] text-muted-foreground">{t.runTraceRuntimeMode}</p>
+                  <p className="text-xs font-mono font-semibold text-foreground mt-1 truncate" title={summary.runtime_mode}>
+                    {summary.runtime_mode || '-'}
+                  </p>
+                </div>
+                <div className="rounded-md bg-muted/30 p-2">
+                  <p className="text-[10px] text-muted-foreground">{t.runTraceCost}</p>
+                  <p className="text-xs font-mono font-semibold text-foreground mt-1">
+                    {summary.cost.currency} {summary.cost.amount.toFixed(6)}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground font-mono mt-0.5">
+                    {summary.latency_ms}ms
+                  </p>
+                </div>
+                <div className="rounded-md bg-muted/30 p-2">
+                  <p className="text-[10px] text-muted-foreground">{t.runTraceCaptureStatus}</p>
+                  <p className="text-xs font-mono font-semibold text-foreground mt-1">
+                    {summary.trace_capture_status}
+                  </p>
+                </div>
+                <div className="rounded-md bg-muted/30 p-2">
+                  <p className="text-[10px] text-muted-foreground">{t.runTraceReviewSignal}</p>
+                  <span className={`inline-flex mt-1 text-[10px] px-1.5 py-0.5 rounded border font-medium ${reviewBadgeClass}`}>
+                    {reviewLabel}
+                  </span>
+                </div>
+              </div>
+              <p className="text-[10px] text-muted-foreground mt-2">
+                {t.runTraceReviewNonAuthoritative}
+                {summary.review_signal.sources.length > 0 && (
+                  <span className="font-mono ml-1">
+                    {summary.review_signal.sources.join(', ')}
+                  </span>
+                )}
+              </p>
+              {summary.error_reason && (
+                <p className="text-[10px] text-red-700 font-mono mt-2 break-all">
+                  {summary.error_reason}
+                </p>
+              )}
+            </section>
+          )}
+
           {timeline.length === 0 ? (
             <div className="text-center py-12 text-sm text-muted-foreground flex flex-col items-center gap-3">
               <p>{t.runTraceEmpty}</p>
@@ -891,4 +988,3 @@ export default function RunTracePage() {
     </div>
   );
 }
-

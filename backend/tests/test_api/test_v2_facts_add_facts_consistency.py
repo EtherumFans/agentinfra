@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import os
 import re
+import uuid
 from pathlib import Path
 from typing import Any
 
@@ -125,8 +126,8 @@ def test_v2_facts_add_minimal_request(icoder_client):
     assert f["group"] == "demographics"
 
 
-def test_v2_facts_add_path_echo(icoder_client):
-    """Path-echo contract: created fact id + groupId carry interaction_id prefix."""
+def test_v2_facts_add_server_assigned_ids(icoder_client):
+    """Created facts receive opaque UUID identifiers from the server."""
     interaction_id = "f47ac10b-58cc-4372-a567-0e02b2c3d479"
     r = icoder_client.post(
         f"/api/v2/tools/interactions/{interaction_id}/facts/",
@@ -134,12 +135,13 @@ def test_v2_facts_add_path_echo(icoder_client):
     )
     assert r.status_code == 200, r.text
     f = r.json()["facts"][0]
-    assert f["id"].startswith(interaction_id), f["id"]
-    assert f["groupId"].startswith(interaction_id), f["groupId"]
+    uuid.UUID(f["id"])
+    uuid.UUID(f["groupId"])
+    assert f["id"] != f["groupId"]
 
 
 def test_v2_facts_add_source_optional_default_user(icoder_client):
-    """When ``source`` is omitted, the stub defaults to ``"user"``
+    """When ``source`` is omitted, persisted facts default to ``"user"``
     (caller-created)."""
     interaction_id = "f47ac10b-58cc-4372-a567-0e02b2c3d479"
     r = icoder_client.post(
@@ -204,11 +206,15 @@ def test_v2_facts_add_trailing_slash_optional(icoder_client):
         f"/api/v2/tools/interactions/{interaction_id}/facts", json=body
     )
     assert r_slash.status_code == r_noslash.status_code == 200
-    assert r_slash.json() == r_noslash.json()
+    slash_fact = r_slash.json()["facts"][0]
+    noslash_fact = r_noslash.json()["facts"][0]
+    assert slash_fact["id"] != noslash_fact["id"]
+    assert slash_fact["text"] == noslash_fact["text"] == "Test."
+    assert slash_fact["groupId"] == noslash_fact["groupId"]
 
 
 def test_v2_facts_add_multiple_facts(icoder_client):
-    """Multiple facts in one request are echoed back in order with sequential ids."""
+    """Multiple facts are persisted in request order with unique opaque IDs."""
     interaction_id = "f47ac10b-58cc-4372-a567-0e02b2c3d479"
     r = icoder_client.post(
         f"/api/v2/tools/interactions/{interaction_id}/facts/",
@@ -224,9 +230,7 @@ def test_v2_facts_add_multiple_facts(icoder_client):
     facts = r.json()["facts"]
     assert len(facts) == 3
     assert [f["text"] for f in facts] == ["First.", "Second.", "Third."]
-    # Ids should be deterministic and different (sequential 01/02/03).
     ids = [f["id"] for f in facts]
     assert len(set(ids)) == 3
-    assert ids[0].endswith("-01")
-    assert ids[1].endswith("-02")
-    assert ids[2].endswith("-03")
+    for fact_id in ids:
+        uuid.UUID(fact_id)

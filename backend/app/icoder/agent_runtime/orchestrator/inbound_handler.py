@@ -3,7 +3,8 @@
 Implements ``POST /api/icoder/agents/{agent_id}/v1/message:send`` in a
 testable shape:
 
-  1. server-generated ``contextId`` (UUID v4, Q4)
+  1. server-generated ``contextId`` for a new thread, or a route-validated
+     server-issued ``contextId`` for continuation
   2. PHI redaction as the FIRST step (hard requirement, SPEC §6.3)
   3. drives the state machine ``received → planning → delegating →
      aggregating → completed/failed``
@@ -16,8 +17,8 @@ data and returns already-shaped response data, so the FastAPI route is a
 thin adapter.
 
 Per RFC Q5, the OLD ``AgentRunner`` is NOT used; this handler is the only
-entry point. Per Q4, ``contextId`` is server-generated even when the
-client supplies one in the request (Q4 — strict contextId isolation).
+entry point. The transport route owns tenant/agent validation before it
+places a continuation ID into :class:`InboundMessage`.
 """
 
 from __future__ import annotations
@@ -70,6 +71,7 @@ class InboundMessage:
     role: str = "user"
     parts: list[dict] = field(default_factory=list)
     interaction_id: str = ""
+    context_id: str = ""
 
 
 @dataclass
@@ -78,13 +80,26 @@ class InboundRequest:
 
     message: InboundMessage
     metadata: dict = field(default_factory=dict)
+    context_messages: list[dict] = field(default_factory=list)
+    # Internal-only FastAPI request handoff for providers whose MCP adapter
+    # needs app/state. It is never serialized or persisted in Context.
+    runtime_request: Any = None
+    # Internal-only event sink used by message/stream. Provider events cross
+    # the worker-thread boundary through this callable; they are sanitized by
+    # the transport before any SSE serialization.
+    stream_sink: Any = None
 
 
 @dataclass
 class InboundResponse:
-    """Outbound A2A Message response (SPEC §5.1.2) or error (SPEC §5.1.3)."""
+    """Outbound A2A Message, Task, or error.
 
-    kind: str = "message"  # "message" | "error"
+    Task responses reuse ``message_id``/``role``/``parts`` for the optional
+    status message. ``task_id`` is overwritten by the v1 transport when the
+    execution belongs to a server-owned durable Task.
+    """
+
+    kind: str = "message"  # "message" | "task" | "error"
     message_id: str = ""
     context_id: str = ""
     role: str = "agent"
@@ -92,8 +107,33 @@ class InboundResponse:
     metadata: dict = field(default_factory=dict)
     error: dict | None = None
     http_status: int = 200
+    task_id: str = ""
+    task_state: str = ""
+    artifacts: list[dict] = field(default_factory=list)
+    # Internal-only handoff to the persistence route. Never serialized.
+    redacted_input: str = ""
 
     def to_dict(self) -> dict:
+        if self.kind == "task":
+            status: dict[str, Any] = {"state": self.task_state}
+            if self.message_id and self.parts:
+                status["message"] = {
+                    "kind": "message",
+                    "messageId": self.message_id,
+                    "contextId": self.context_id,
+                    "role": self.role,
+                    "parts": list(self.parts),
+                    "metadata": dict(self.metadata),
+                }
+            return {
+                "kind": "task",
+                "id": self.task_id,
+                "contextId": self.context_id,
+                "status": status,
+                "artifacts": list(self.artifacts),
+                "history": ([status["message"]] if "message" in status else []),
+                "metadata": dict(self.metadata),
+            }
         out: dict[str, Any] = {
             "kind": self.kind,
             "messageId": self.message_id,
@@ -194,7 +234,7 @@ class InboundHandler:
     def handle(self, agent_id: str, request: InboundRequest) -> InboundResponse:
         """Synchronous handler — run inside ``asyncio.to_thread`` if needed."""
         run_id = make_run_id()
-        context_id = make_context_id()  # Q4: server-generated
+        context_id = request.message.context_id or make_context_id()
 
         # ── Trace step 1: user_message_received
         emit_trace_event(
@@ -268,7 +308,13 @@ class InboundHandler:
             )
 
         # ── Step 2: extract text from parts
-        original_input = extract_text_from_parts(request.message.parts)
+        current_input = extract_text_from_parts(request.message.parts)
+        history_chunks = [
+            extract_text_from_parts(message.get("parts", []))
+            for message in request.context_messages
+            if isinstance(message, dict)
+        ]
+        history_chunks = [chunk for chunk in history_chunks if chunk]
 
         # ── Step 3: RunContext + state machine at received
         run_ctx = RunContext(
@@ -276,7 +322,8 @@ class InboundHandler:
             context_id=context_id,
             agent_id=agent_id,
             agent_definition=agent,
-            original_input=original_input,
+            original_input=current_input,
+            current_redacted_input="",
             redacted_input="",
         )
         sm = OrchestratorStateMachine()
@@ -286,7 +333,7 @@ class InboundHandler:
 
         # ── Step 4: PHI redaction (HARD requirement)
         try:
-            phi_result = self._redactor.redact(original_input)
+            phi_result = self._redactor.redact(current_input)
         except PHIRedactionError as e:
             emit_trace_event(
                 run_id, RunTraceStep.COMPLETION,
@@ -301,12 +348,20 @@ class InboundHandler:
                 run_id=run_id,
                 context_id=context_id,
             )
+        run_ctx.current_redacted_input = phi_result.redacted_text
         run_ctx.redacted_input = phi_result.redacted_text
+        if history_chunks:
+            run_ctx.redacted_input = (
+                "[REDACTED_CONTEXT_MEMORY]\n"
+                + "\n\n".join(history_chunks)
+                + "\n[CURRENT_MESSAGE]\n"
+                + phi_result.redacted_text
+            )
         sm = sm.transition(OrchestratorEvent.PHI_REDACTED)  # received → planning
 
         # ── Step 5: planning
         try:
-            plan = self._planner.plan(redacted_input=phi_result.redacted_text, agent=agent)
+            plan = self._planner.plan(redacted_input=run_ctx.redacted_input, agent=agent)
         except PlannerError as e:
             run_ctx.error = e
             # Per SPEC §4.2: PLAN_FAILED loops to planning (already there) and
@@ -479,8 +534,13 @@ class InboundHandler:
                 "phi_redacted": True,
                 "production_writeback_blocked": True,
                 "redaction_entity_types": list(phi_result.entity_types),
+                "context_memory_items": len(request.context_messages),
+                "context_memory_mode": request.metadata.get(
+                    "context_memory_mode", "NONE"
+                ),
             },
             http_status=200,
+            redacted_input=run_ctx.current_redacted_input,
         )
 
         # ── Trace step 9: completion (success)
@@ -514,6 +574,7 @@ class InboundHandler:
             http_status=error.http_status,
             stage=error.stage,
             state_history=[h.to_state for h in sm.state_history],
+            redacted_input=run_ctx.current_redacted_input,
         )
 
     @staticmethod
@@ -526,6 +587,7 @@ class InboundHandler:
         http_status: int,
         stage: str,
         state_history: list[str] | None = None,
+        redacted_input: str = "",
     ) -> InboundResponse:
         return InboundResponse(
             kind="error",
@@ -542,6 +604,7 @@ class InboundHandler:
             },
             error={"code": code, "message": message},
             http_status=http_status,
+            redacted_input=redacted_input,
         )
 
 

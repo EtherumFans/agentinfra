@@ -1,8 +1,9 @@
-"""CHS-DRG 1.1 Knowledge Base — bundled ICD-9-CM-3 → DRG mapping + DRG name dict.
+"""Development-only DRG/DIP risk-review terminology and heuristic mappings.
 
-Source: CHS-DRG 1.1 (国家医保局 2024 版) 主要 ADRG/DRG 列表 + 三甲医院高频手术映射.
-Bundled as inline data so the grouper has no external file dependency.
-Coverage: ~80 common surgical procedures (~70% of typical hospital surgical volume).
+The original source, licence, jurisdiction and effective dates have not been
+independently verified.  This module is therefore not an official CHS-DRG,
+provincial, municipal or hospital grouper.  It may only support development
+risk review with mandatory human review; payment and settlement use is barred.
 
 Format:
   SURGERY_TO_DRG[icd9cm3] = {
@@ -18,7 +19,7 @@ Format:
 from __future__ import annotations
 
 
-# ── DRG name dictionary (CHS-DRG 1.1 全部 376 组核心条目) ─────────────────────
+# ── Development terminology dictionary (source/licence unverified) ───────────
 
 DRG_NAMES: dict[str, str] = {
     # MDCA — 神经系统
@@ -337,7 +338,7 @@ DRG_NAMES: dict[str, str] = {
 }
 
 
-# ── Surgery → DRG mapping (CHS-DRG 1.1 高频手术) ────────────────────────────
+# ── Surgery → candidate mapping (development heuristic only) ────────────────
 # Each entry: icd9cm3_code -> {name, mdc, adrg, drg_with_mcc, drg_with_cc, drg_without, drg_names}
 # DRG 后缀约定: 1=MCC, 3=CC, 5=无 CC/MCC
 
@@ -487,7 +488,7 @@ SURGERY_NAME_INDEX: dict[str, str] = {
 }
 
 
-# ── 性别敏感诊断前缀 (CHS-DRG 1.1 错误组 YA1/YA2/YA3) ──────────────────────
+# ── 性别敏感诊断前缀 (development consistency heuristic) ───────────────────
 # Male-only diagnosis prefixes
 _MALE_ONLY_PREFIXES = {
     "B26.0", "C60", "C61", "C62", "C63",
@@ -543,7 +544,7 @@ def check_gender_consistency(diagnosis_code: str, patient_gender: str) -> dict:
         return {
             "consistent": False, "rule_id": "DRG004",
             "expected_gender": "M",
-            "message": f"主诊断 {code} 仅限男性，但患者性别为 {patient_gender}。CHS-DRG 1.1 错误组 YA1。",
+            "message": f"主诊断 {code} 与患者性别 {patient_gender} 可能不一致；这是非权威开发规则提示，需人工核实。",
         }
     if is_female_only and gender.startswith("F"):
         return {"consistent": True, "rule_id": "", "expected_gender": "F", "message": ""}
@@ -551,12 +552,12 @@ def check_gender_consistency(diagnosis_code: str, patient_gender: str) -> dict:
         return {
             "consistent": False, "rule_id": "DRG004",
             "expected_gender": "F",
-            "message": f"主诊断 {code} 仅限女性，但患者性别为 {patient_gender}。CHS-DRG 1.1 错误组 YA1。",
+            "message": f"主诊断 {code} 与患者性别 {patient_gender} 可能不一致；这是非权威开发规则提示，需人工核实。",
         }
     return {"consistent": True, "rule_id": "", "expected_gender": "both", "message": ""}
 
 
-# ── ADRG list (CHS-DRG 1.1 ADRG 字典) ────────────────────────────────────────
+# ── ADRG terminology candidates (source/licence unverified) ─────────────────
 ADRG_LIST: list[dict] = [
     # (adrg, name, mdc, surgical)
     ("AA1", "脑创伤", "MDCA", True),

@@ -35,7 +35,7 @@ from pathlib import Path
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import select, func
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
@@ -54,6 +54,7 @@ from app.schemas.expert import (
     ExpertListResponse,
     ExpertRegistryReconcileEntry,
     ExpertRegistryReconcileResponse,
+    ExpertCapabilityReadinessResponse,
     McpServerResponse,
 )
 
@@ -111,6 +112,12 @@ async def list_experts(
     ),
     pack_dir: Optional[str] = Query(None, description="Filter by Pack directory."),
     category: Optional[str] = Query(None, description="Filter by category."),
+    search: Optional[str] = Query(
+        None,
+        min_length=1,
+        max_length=128,
+        description="Case-insensitive name or description search.",
+    ),
     is_prebuilt: Optional[bool] = Query(None, description="Filter by is_prebuilt flag."),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -144,6 +151,11 @@ async def list_experts(
         stmt = stmt.where(Expert.pack_dir == pack_dir)
     if category is not None:
         stmt = stmt.where(Expert.category == category)
+    if search is not None:
+        pattern = f"%{search.strip()}%"
+        stmt = stmt.where(
+            or_(Expert.name.ilike(pattern), Expert.description.ilike(pattern))
+        )
     if is_prebuilt is not None:
         stmt = stmt.where(Expert.is_prebuilt == is_prebuilt)
     stmt = stmt.order_by(Expert.category, Expert.name)
@@ -280,6 +292,55 @@ async def reconcile_expert_registry(
     )
 
 
+@router.get("/readiness", response_model=ExpertCapabilityReadinessResponse)
+async def get_expert_capability_readiness(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    current_org: Organization = Depends(get_current_organization),
+) -> ExpertCapabilityReadinessResponse:
+    """Return aggregate-only Expert/MCP readiness without URLs or credentials."""
+    expert_count = int((await db.execute(
+        select(func.count(Expert.id)).where(Expert.organization_id == current_org.id)
+    )).scalar_one())
+    published_count = int((await db.execute(
+        select(func.count(Expert.id)).where(
+            Expert.organization_id == current_org.id,
+            Expert.is_published.is_(True),
+        )
+    )).scalar_one())
+    mcp_rows = (await db.execute(
+        select(McpServer.authorization_type, McpServer.is_active)
+        .join(Expert, Expert.id == McpServer.expert_id)
+        .where(
+            Expert.organization_id == current_org.id,
+            or_(
+                McpServer.organization_id == current_org.id,
+                McpServer.organization_id.is_(None),
+            ),
+        )
+    )).all()
+    authorization_counts = {key: 0 for key in MCP_AUTHORIZATION_TYPE_VALUES}
+    for authorization_type, _is_active in mcp_rows:
+        key = authorization_type if authorization_type in authorization_counts else "none"
+        authorization_counts[key] += 1
+    from app.icoder.mcp.tool_registry import TOOL_REGISTRY
+
+    active_count = sum(1 for _auth, active in mcp_rows if bool(active))
+    return ExpertCapabilityReadinessResponse(
+        expert_count=expert_count,
+        published_expert_count=published_count,
+        mcp_server_count=len(mcp_rows),
+        active_mcp_server_count=active_count,
+        mcp_authorization_type_counts=authorization_counts,
+        built_in_mcp_tool_count=len(TOOL_REGISTRY),
+        tenant_scope_enforced=True,
+        credentials_exposed=False,
+        external_mcp_live_verified=False,
+        aggregate_only=True,
+        production_ready=False,
+    )
+
+
 @router.get("/{expert_id}", response_model=ExpertResponse)
 async def get_expert(
     expert_id: str,
@@ -323,7 +384,19 @@ async def list_expert_mcp_servers(
             status_code=400,
             detail=f"authorization_type must be one of {MCP_AUTHORIZATION_TYPE_VALUES}",
         )
-    stmt = select(McpServer).where(McpServer.expert_id == expert_id)
+    expert_exists = (await db.execute(select(Expert.id).where(
+        Expert.id == expert_id,
+        Expert.organization_id == current_org.id,
+    ))).scalar_one_or_none()
+    if expert_exists is None:
+        raise HTTPException(status_code=404, detail="Expert not found")
+    stmt = select(McpServer).where(
+        McpServer.expert_id == expert_id,
+        or_(
+            McpServer.organization_id == current_org.id,
+            McpServer.organization_id.is_(None),
+        ),
+    )
     if authorization_type is not None:
         stmt = stmt.where(McpServer.authorization_type == authorization_type)
     stmt = stmt.order_by(McpServer.name)

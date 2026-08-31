@@ -7,7 +7,6 @@ from .delegator import (
     ExpertInvocation,
     ExpertInvocationError,
     ExpertInvoker,
-    noop_invoker,
 )
 from .errors import OrchestratorError, OrchestratorStateError
 from .events import OrchestratorEvent
@@ -165,6 +164,5 @@ __all__ = [
     "make_context_id",
     "make_message_id",
     "make_run_id",
-    "noop_invoker",
     "reset_default_metrics",
 ]

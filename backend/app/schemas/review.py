@@ -58,7 +58,6 @@ class MainProcedureResult(BaseModel):
 
 
 class ReviewResponse(BaseModel):
-    model_config = {"protected_namespaces": ()}
     id: str
     review_id: str
     encounter_id: str
@@ -90,7 +89,7 @@ class ReviewResponse(BaseModel):
     evidences: List[EvidenceResponse] = []
     created_at: datetime
     updated_at: datetime
-    model_config = {"from_attributes": False}
+    model_config = {"from_attributes": False, "protected_namespaces": ()}
 
 
 class HumanReviewInput(BaseModel):

@@ -1,18 +1,20 @@
 # iCoDer Medical Coding Agent - FastAPI Application
 import json
+import hmac
 import logging
 import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any, Callable
 
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.config import settings
-from app.database import init_db
+from app.database import get_db, init_db
+from app.services.access_log_privacy import install_uvicorn_access_log_privacy
 import app.models  # noqa: F401 — register all models with Base before init_db() creates tables
 
 # Configure logging
@@ -20,7 +22,19 @@ logging.basicConfig(
     level=getattr(logging, settings.LOG_LEVEL),
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
 )
+install_uvicorn_access_log_privacy()
 logger = logging.getLogger(__name__)
+
+
+def _test_fail_closed_a2a_mode_enabled() -> bool:
+    """True only for an explicit pytest-only fail-closed wiring exercise."""
+
+    import sys
+
+    return (
+        os.environ.get("ICODER_PHASE1_STUB_LLM", "0") == "1"
+        and "pytest" in sys.modules
+    )
 
 
 async def _recover_runtime_sessions() -> int:
@@ -106,8 +120,20 @@ async def lifespan(app: FastAPI):
     logger.info(f"Starting {settings.APP_NAME} V{settings.APP_VERSION}")
     logger.info(f"Environment: {settings.APP_ENV}")
     logger.info(f"LLM: {settings.LLM_PROVIDER} / {settings.LLM_MODEL}")
+    # CodingRuntimeDispatcher caches a FastCodingRuntime, which in turn caches
+    # the gateway-bound DeepSeek adapter. Repeated application lifespans (test
+    # workers, reloads, embedded hosts) must never reuse an adapter from the
+    # prior platform_gateway instance.
+    from app.coding_runtime import reset_dispatcher
+    reset_dispatcher()
     await init_db()
     logger.info("Database initialized")
+    try:
+        from app.services.stt_jobs import recover_pending_stt_jobs
+
+        await recover_pending_stt_jobs()
+    except Exception as e:
+        logger.error("STT pending-job recovery failed: %s", e, exc_info=True)
     # Auto-seed demo users on first startup (idempotent — seed.py checks if already seeded)
     if settings.APP_ENV in ("development", "dev") or settings.SEED_ON_STARTUP:
         try:
@@ -139,7 +165,11 @@ async def lifespan(app: FastAPI):
     logger.info(f"Runtime recovery: {recovered} active session(s) restored")
     # --- Embedded Runtime: initialize LLMGateway + PlatformRuntime ---
     from icoder_runtime.core.llm_gateway import (
-        LLMGateway, MockLLMProvider, DeepSeekProvider, MedicalCodingLLMProvider,
+        LLMGateway, MockLLMProvider, MedicalCodingLLMProvider,
+    )
+    from icoder_runtime.core.llm_provider_factory import (
+        create_configured_llm_deployments,
+        create_primary_llm_provider,
     )
     from icoder_runtime.core.registry import init_registry
     from icoder_runtime.core.runtime_config import RuntimeConfig
@@ -157,7 +187,18 @@ async def lifespan(app: FastAPI):
     agent_registry = init_registry(runtime_config.registry_dir)
     logger.info(f"Agent Registry: {agent_registry.count} agent(s) loaded from {runtime_config.registry_dir}")
 
-    platform_gateway = LLMGateway()
+    # Create the policy before the gateway so every provider invocation,
+    # including native streaming and fallbacks, is guarded at the last common
+    # network boundary.
+    from icoder_runtime.core.data_policy import RuntimeDataPolicy
+    from app.services.tenant_model_routing import resolve_tenant_model_route
+    data_policy = RuntimeDataPolicy.from_env()
+    app.state.data_policy = data_policy
+
+    platform_gateway = LLMGateway(
+        data_policy=data_policy,
+        tenant_provider_resolver=resolve_tenant_model_route,
+    )
     # Mock provider (always available as fallback)
     platform_gateway.register(MockLLMProvider(), alias="mock")
 
@@ -169,9 +210,13 @@ async def lifespan(app: FastAPI):
     if mc_mode == "real":
         logger.info(f"MedicalCodingLLMProvider registered (mode=real via PromptLLMAdapter)")
     else:
-        logger.info(f"MedicalCodingLLMProvider registered (mode={mc_mode}). No real coding engine — using MOCK.")
+        logger.info(
+            "MedicalCodingLLMProvider registered (mode=%s). "
+            "No real coding engine; requests fail closed.",
+            mc_mode,
+        )
 
-    # DeepSeek (real LLM) if configured. Canonical key env var is
+    # Primary LLM if configured. Canonical key env var is
     # ICODER_CREDENTIAL_LLM (matches credential_vault + llm_service).
     # settings.LLM_API_KEY is the legacy alias; fall back to it for
     # backward compatibility with .env-based dev setups.
@@ -186,48 +231,107 @@ async def lifespan(app: FastAPI):
     # because Settings() captures the env snapshot at import time, and
     # pytest's monkeypatch.setenv() runs after import — settings would
     # still report the import-time value.
-    _deepseek_key = (
+    _llm_key = (
         os.environ.get("ICODER_CREDENTIAL_LLM", "").strip()
         or settings.LLM_API_KEY
     )
     _llm_provider_cfg = os.environ.get(
         "LLM_PROVIDER", settings.LLM_PROVIDER or ""
     ).lower()
+    model_deployments: dict[str, dict[str, Any]] = {}
     if _llm_provider_cfg == "mock":
-        platform_gateway.register(MockLLMProvider(), default=True)
+        mock_provider = MockLLMProvider()
+        # FastCodingRuntime's legacy DeepSeek adapter still requests the
+        # stable ``deepseek`` alias explicitly. In mock mode bind that alias
+        # to the degraded mock provider so the runtime fails immediately and
+        # truthfully as ``llm_degraded`` instead of retrying a missing name.
+        platform_gateway.register(mock_provider, default=True, alias="deepseek")
+        model_deployments[mock_provider.name] = {
+            "id": mock_provider.name,
+            "provider_id": "mock",
+            "model": "mock/1.0",
+            "is_default": True,
+            "tenant_selectable": False,
+            "credential_configured": False,
+            "endpoint_configuration_valid": True,
+        }
         logger.info(
             "LLM_PROVIDER=mock — MockLLMProvider registered as default "
-            "(DeepSeek suppressed, key_present=%s)",
-            bool(_deepseek_key),
+            "(external providers suppressed, key_present=%s)",
+            bool(_llm_key),
         )
-    elif _deepseek_key or _llm_provider_cfg == "deepseek":
+    else:
         try:
-            platform_gateway.register(
-                DeepSeekProvider(
-                    api_key=_deepseek_key,
-                    base_url=settings.LLM_BASE_URL,
-                    model=settings.LLM_MODEL,
-                ),
-                default=True,
+            primary_provider = create_primary_llm_provider(
+                provider_name=_llm_provider_cfg,
+                api_key=_llm_key,
+                base_url=settings.LLM_BASE_URL,
+                model=settings.LLM_MODEL,
+                max_tokens=settings.LLM_MAX_TOKENS,
+                temperature=settings.LLM_TEMPERATURE,
+                timeout=settings.LLM_TIMEOUT,
             )
+            platform_gateway.register(primary_provider, default=True)
+            model_deployments[primary_provider.name] = {
+                "id": primary_provider.name,
+                "provider_id": str(
+                    getattr(primary_provider, "policy_provider_name", "")
+                    or primary_provider.name
+                ),
+                "model": settings.LLM_MODEL,
+                "is_default": True,
+                "tenant_selectable": primary_provider.name != "mock",
+                "credential_configured": bool(_llm_key),
+                "endpoint_configuration_valid": True,
+            }
             logger.info(
-                "Embedded Runtime: DeepSeekProvider registered as default "
-                "(key source=%s, model=%s)",
+                "Embedded Runtime: %s registered as default "
+                "(credential source=%s, model=%s)",
+                primary_provider.name,
                 "env" if os.environ.get("ICODER_CREDENTIAL_LLM", "").strip() else "settings",
                 settings.LLM_MODEL,
             )
         except Exception as e:
-            logger.warning(f"DeepSeekProvider registration failed, using mock: {e}")
-            platform_gateway.register(MockLLMProvider(), default=True)
-    else:
-        platform_gateway.register(MockLLMProvider(), default=True)
-        logger.info("Embedded Runtime: MockLLMProvider registered as default (development mode)")
+            logger.warning("Primary LLM registration failed closed; using mock: %s", e)
+            mock_provider = MockLLMProvider()
+            # No configured provider is available. Preserve the same
+            # fail-closed legacy alias used by FastCodingRuntime.
+            platform_gateway.register(mock_provider, default=True, alias="deepseek")
+            model_deployments[mock_provider.name] = {
+                "id": mock_provider.name,
+                "provider_id": "mock",
+                "model": "mock/1.0",
+                "is_default": True,
+                "tenant_selectable": False,
+                "credential_configured": False,
+                "endpoint_configuration_valid": True,
+            }
+    try:
+        extra_deployments = create_configured_llm_deployments()
+        for deployment, public_metadata in extra_deployments:
+            if deployment.name in platform_gateway.registered_deployments:
+                raise ValueError(
+                    f"duplicate configured LLM deployment: {deployment.name}"
+                )
+            platform_gateway.register(deployment)
+            model_deployments[deployment.name] = public_metadata
+        if extra_deployments:
+            logger.info(
+                "Registered %d additional tenant-selectable LLM deployment(s)",
+                len(extra_deployments),
+            )
+    except Exception as e:
+        if settings.ICODER_DEPLOYMENT_MODE == "cloud":
+            raise RuntimeError(
+                "Invalid ICODER_LLM_DEPLOYMENTS_JSON configuration"
+            ) from e
+        logger.warning(
+            "Additional LLM deployments ignored in local mode error_type=%s",
+            type(e).__name__,
+        )
+    app.state.model_deployments = model_deployments
 
     # ── Data Policy (must be created before PlatformRuntime) ──
-    from icoder_runtime.core.data_policy import RuntimeDataPolicy
-    data_policy = RuntimeDataPolicy.from_env()
-    app.state.data_policy = data_policy
-
     platform_runtime = PlatformRuntime(
         gateway=platform_gateway,
         config=runtime_config,
@@ -239,6 +343,20 @@ async def lifespan(app: FastAPI):
     app.state.platform_gateway = platform_gateway
     app.state.agent_registry = agent_registry
     app.state.runtime_config = runtime_config
+    # Five-type Agentic Connector resources are useful only when the runtime
+    # owns a real execution boundary.  The governed transport is inert at
+    # startup (no probe or external call), ignores OS proxy variables, pins
+    # approved DNS results to the TCP socket, and still requires per-node data
+    # policy authorization before any outbound request.
+    from app.services.connector_runtime import build_connector_runtime
+
+    connector_runtime = build_connector_runtime(app)
+    app.state.connector_runtime = connector_runtime
+    app.state.connector_executor = connector_runtime.executor
+    logger.info(
+        "Connector runtime wired (registry/internal-agent=governed, "
+        "MCP/A2A transport=governed, external PHI default=deny)"
+    )
     # Phase 4-B Step 3: register the platform gateway with the backend
     # provider registry so ``PureLLMProvider`` can lazy-resolve it on
     # first ``invoke()``. Lazy — startup doesn't pay for the lookup
@@ -281,6 +399,11 @@ async def lifespan(app: FastAPI):
     app.state.medcoder_retriever = None  # populated by C7 if subprocess mode is on
     logger.info("MedCodER index: not yet loaded (lazy init on first request)")
 
+    from icoder_runtime.providers.medical_coding.runtime_safety import (
+        assess_bge_runtime_safety,
+    )
+    _bge_safety = assess_bge_runtime_safety()
+
     # ── M2.5: FAISS index health check (governance — NO silent continue) ──
     # Runs synchronously at startup so /api/health + MCP /tools/call can
     # observe the structured health report. If the index is missing or
@@ -292,7 +415,11 @@ async def lifespan(app: FastAPI):
             is_icd9cm3_retriever_available,
         )
         _medcoder_index_dir = Path("data/medcoder")
-        _medcoder_health = index_health_check(_medcoder_index_dir)
+        _medcoder_health = index_health_check(
+            _medcoder_index_dir,
+            allow_native=_bge_safety.safe,
+            native_disabled_reason=_bge_safety.reason,
+        )
         app.state.medcoder_index_health = _medcoder_health
         if _medcoder_health["status"] == "ok":
             logger.info(
@@ -311,7 +438,11 @@ async def lifespan(app: FastAPI):
             )
         # ICD-9-CM-3 index is optional (NEW in M2.5). Log a warning if
         # it's not built yet — it's expected to be missing on first run.
-        _icd9cm3_ok = is_icd9cm3_retriever_available(_medcoder_index_dir)
+        _icd9cm3_ok = is_icd9cm3_retriever_available(
+            _medcoder_index_dir,
+            allow_native=_bge_safety.safe,
+            native_disabled_reason=_bge_safety.reason,
+        )
         if not _icd9cm3_ok:
             logger.warning(
                 "MedCodER ICD-9-CM-3 FAISS index: not yet built. "
@@ -337,7 +468,14 @@ async def lifespan(app: FastAPI):
     # startup event loop unblocked.
     _subprocess_mode = (
         os.environ.get("MEDCODER_SUBPROCESS") == "1" or os.name == "nt"
-    )
+    ) and _bge_safety.safe
+    if not _bge_safety.safe:
+        app.state.medcoder_index_ready = False
+        app.state.medcoder_index_error = _bge_safety.reason
+        logger.error(
+            "MedCodER local BGE runtime disabled: %s",
+            _bge_safety.reason,
+        )
     if _subprocess_mode:
         import asyncio as _asyncio
         try:
@@ -394,6 +532,87 @@ async def lifespan(app: FastAPI):
         finally:
             app.state.medcoder_index_loading = False
 
+    # A separately built Linux worker is the production-equivalent path.
+    # It takes precedence over local/subprocess state and keeps Torch/FAISS
+    # entirely out of the API image.  The probe is bounded and fails closed;
+    # no credential value or remote response body is logged.
+    _remote_retriever_url = os.environ.get("MEDCODER_RETRIEVER_URL", "").strip()
+    app.state.medcoder_retriever_mode = "remote" if _remote_retriever_url else (
+        "subprocess" if _subprocess_mode else (
+            "local_in_process" if _bge_safety.safe else "local_disabled"
+        )
+    )
+    app.state.medcoder_retriever_worker_version = ""
+    app.state.medcoder_retriever_index_version = ""
+    if _remote_retriever_url:
+        try:
+            from icoder_runtime.providers.medical_coding.remote_retriever import (
+                RemoteMedCodERRetriever,
+            )
+
+            _remote_retriever = RemoteMedCodERRetriever.from_env(
+                code_system="ICD-10-CN"
+            )
+            _remote_health = await _remote_retriever.health_async()
+            app.state.medcoder_index_ready = _remote_health.ready
+            app.state.medcoder_index_error = (
+                None if _remote_health.ready else _remote_health.reason
+            )
+            app.state.medcoder_retriever_worker_version = (
+                _remote_health.worker_version
+            )
+            app.state.medcoder_retriever_index_version = (
+                _remote_health.index_version
+            )
+            # MCP handlers consume this structured gate rather than the
+            # convenience ``medcoder_index_ready`` flag.  A remote worker is
+            # authoritative when configured, so do not leave the earlier
+            # local/native health result in place (that would make a healthy
+            # isolated worker look degraded and silently bypass remote
+            # semantic retrieval on Windows).
+            app.state.medcoder_index_health = {
+                "status": "ok" if _remote_health.ready else "degraded",
+                "reason": None if _remote_health.ready else _remote_health.reason,
+                "mode": "remote",
+                "code_system": _remote_health.code_system,
+                "worker_version": _remote_health.worker_version,
+                "index_version": _remote_health.index_version,
+                "checks": {
+                    "remote_configured": True,
+                    "remote_ready": _remote_health.ready,
+                },
+                "ntotal": None,
+                "dim": None,
+                "metadata_len": None,
+            }
+            logger.info(
+                "MedCodER remote retriever probe ready=%s worker_version=%s index_version=%s",
+                _remote_health.ready,
+                _remote_health.worker_version or "unknown",
+                _remote_health.index_version or "unknown",
+            )
+        except Exception as exc:
+            app.state.medcoder_index_ready = False
+            app.state.medcoder_index_error = (
+                f"remote_retriever_configuration_{type(exc).__name__}"
+            )
+            app.state.medcoder_index_health = {
+                "status": "degraded",
+                "reason": app.state.medcoder_index_error,
+                "mode": "remote",
+                "checks": {
+                    "remote_configured": True,
+                    "remote_ready": False,
+                },
+                "ntotal": None,
+                "dim": None,
+                "metadata_len": None,
+            }
+            logger.error(
+                "MedCodER remote retriever configuration failed error_type=%s",
+                type(exc).__name__,
+            )
+
     logger.info(f"Embedded Runtime started: {platform_runtime.status()}")
 
     # ── Register Official Agent Packs (BuiltinAgentPackProvider) ──
@@ -405,7 +624,9 @@ async def lifespan(app: FastAPI):
         registered = provider.register_all(platform_runtime)
         logger.info(f"BuiltinAgentPackProvider: {len(discovered)} packs discovered, {registered} registered")
 
-        # Sync all Runtime agents to DB (DB is master for CRUD)
+        # Sync all installed Runtime agents into their derived DB projection.
+        # Registry/Pack is authoritative for executable prebuilt rows; custom
+        # tenant Agents remain DB-owned.
         from app.services.agent_registry_sync_service import AgentRegistrySyncService
         from app.models.agent import Agent as AgentModel
         from app.database import async_session_factory
@@ -424,8 +645,8 @@ async def lifespan(app: FastAPI):
 
     # --- Mount new A2A v0.3 package (replaces a2a_registry in Commit 3) ---
     # T5/T6: LLMCall/ExpertInvoker wire to the real LLMGateway + MedCodER
-    # HybridCodingAdapter via sync adapters. Set ICODER_PHASE1_STUB_LLM=1
-    # to short-circuit to inline stubs (used by tests + smoke checks).
+    # HybridCodingAdapter via sync adapters. The fail-closed test switch is
+    # accepted only inside a pytest process and can never alter a deployment.
     try:
         from app.icoder.agent_runtime.a2a import (
             mount_a2a,
@@ -452,9 +673,10 @@ async def lifespan(app: FastAPI):
         from app.icoder.agent_runtime.orchestrator.wiring import (
             build_expert_invoker_for_medcoder,
             build_llm_call_from_gateway,
+            unavailable_expert_invoker,
         )
 
-        _phase1_stub_llm = os.environ.get("ICODER_PHASE1_STUB_LLM", "0") == "1"
+        _phase1_stub_llm = _test_fail_closed_a2a_mode_enabled()
 
         # E1.1 (2026-06-26): hoist `_hybrid_adapter = None` to the outer
         # scope so the MCP mount code (which runs unconditionally AFTER
@@ -472,7 +694,7 @@ async def lifespan(app: FastAPI):
                 "(no real LLM, no MedCodER)"
             )
             _llm_call: Callable[[str, str], dict] = lambda _s, _u: {"content": "{}"}
-            _expert_invoker: Callable[[Any], dict] = lambda _i: {"echo": True}
+            _expert_invoker: Callable[[Any], dict] = unavailable_expert_invoker
         else:
             # Construct HybridCodingAdapter in mode="medcoder" so the NAACL
             # 5-stage pipeline runs when coding-expert is invoked. The
@@ -500,8 +722,9 @@ async def lifespan(app: FastAPI):
                 )
             except Exception as _he:
                 logger.warning(
-                    f"A2A wiring: HybridCodingAdapter construction failed, "
-                    f"falling back to stub invoker: {_he}"
+                    "A2A wiring: HybridCodingAdapter unavailable; legacy "
+                    "coding-expert will fail closed error_type=%s",
+                    type(_he).__name__,
                 )
 
             _llm_call = build_llm_call_from_gateway(
@@ -520,8 +743,9 @@ async def lifespan(app: FastAPI):
                 _rule_engine = RuleEngine()
             except Exception as _re:
                 logger.warning(
-                    f"A2A wiring: RuleEngine construction failed, "
-                    f"tabular-validator will lazy-import at call time: {_re}"
+                    "A2A wiring: RuleEngine unavailable; tabular-validator "
+                    "will lazy-import error_type=%s",
+                    type(_re).__name__,
                 )
             _expert_invoker = build_expert_invoker_for_medcoder(
                 platform_gateway,
@@ -532,8 +756,8 @@ async def lifespan(app: FastAPI):
             logger.info(
                 "A2A wiring: LLMGateway=%s, MedCodER=%s, RuleEngine=%s, "
                 "expert_packs=E1_4pack",
-                "real" if platform_gateway.is_configured else "stub",
-                "real" if _hybrid_adapter is not None else "stub",
+                "real" if platform_gateway.is_configured else "unavailable_fail_closed",
+                "real" if _hybrid_adapter is not None else "unavailable_fail_closed",
                 "real" if _rule_engine is not None else "lazy",
             )
 
@@ -596,11 +820,12 @@ async def lifespan(app: FastAPI):
                     )
             except Exception as _ae:
                 logger.warning(
-                    f"A2A wiring: failed to enrich agent from official pack, "
-                    f"using minimal definition: {_ae}"
+                    "A2A wiring: official agent pack enrichment failed "
+                    "error_type=%s",
+                    type(_ae).__name__,
                 )
 
-            # Phase 3-B1 (2026-07-04): Medical Coding Agent (user-facing MVP)
+            # Phase 3-B1 (2026-07-04): Medical Coding Agent public facade.
             # Same expert_ids (coding-expert routes to 4 D2 packs via the
             # build_expert_invoker_for_medcoder wiring), but the output_contract
             # is v2 (MedicalCodingAgentOutputV2, 8 Corti fields). The v1→v2
@@ -608,9 +833,9 @@ async def lifespan(app: FastAPI):
             _medical_agent = AgentDefinition(
                 id="medical-coding-agent",
                 name="医学编码智能体",
-                description="iCoDer 官方医学编码 Agent (Corti-style MVP)",
+                description="iCoDer 官方医学编码 Agent (controlled rollout)",
                 system_prompt=(
-                    "你是 iCoDer Medical Coding Agent (Corti-style, MVP)。"
+                    "你是 iCoDer Medical Coding Agent (controlled rollout)。"
                     "基于病历证据生成 ICD-10-CN 诊断编码与 ICD-9-CM-3 手术操作编码建议, "
                     "输出 Corti-style 8-field 结构化结果。"
                     "AI-assisted coding — 不替代编码员, 不 upcoding, 不推断未记录的诊断/手术。"
@@ -668,8 +893,9 @@ async def lifespan(app: FastAPI):
                     )
             except Exception as _mae:
                 logger.warning(
-                    f"A2A wiring: failed to enrich medical-coding-agent from pack, "
-                    f"using minimal definition: {_mae}"
+                    "A2A wiring: medical-coding pack enrichment failed "
+                    "error_type=%s",
+                    type(_mae).__name__,
                 )
             return DictAgentProvider({"medcoder-coding-review": _agent, "medical-coding-agent": _medical_agent})
 
@@ -690,7 +916,7 @@ async def lifespan(app: FastAPI):
         # Phase 3-B1 (2026-07-04): v1→v2 projection wrapper for
         # medical-coding-agent. The coding-expert returns v1
         # MedicalCodingOutputSchema (MedCodER 5-stage technical output).
-        # For medical-coding-agent (user-facing MVP), we project v1 → v2
+        # For the public medical-coding-agent facade, we project v1 → v2
         # MedicalCodingAgentOutputV2 (Corti 8-field) in the response parts
         # so the A2A mainline returns the 8-field contract.
         # For medcoder-coding-review (internal engine), pass through v1.
@@ -726,24 +952,193 @@ async def lifespan(app: FastAPI):
                 # A2A message:send defaults to corti_like_fast (bypass 5-stage).
                 if agent_id == "medical-coding-agent":
                     meta = request.metadata or {}
+                    from app.services.dedicated_project_policy import (
+                        DedicatedProjectPolicy,
+                    )
+                    project_policy_token = meta.get(
+                        "_dedicated_project_policy_token"
+                    )
+                    is_dedicated_project_clone = isinstance(
+                        project_policy_token,
+                        DedicatedProjectPolicy,
+                    )
+                    public_agent_id = str(
+                        meta.get("project_agent_id") or agent_id
+                    )
+                    source_runtime_agent_id = str(
+                        meta.get("source_runtime_agent_id") or agent_id
+                    )
+                    execution_tenant_id = str(
+                        meta.get("organization_id")
+                        or meta.get("tenant_id")
+                        or "default"
+                    )
                     runtime_mode = meta.get("runtime_mode") or "corti_like_fast"
-                    if runtime_mode != "medcoder_deep":
+                    if (
+                        runtime_mode != "medcoder_deep"
+                        or is_dedicated_project_clone
+                    ):
                         # Fast path: route to CodingRuntimeDispatcher directly.
-                        input_text = extract_text_from_parts(request.message.parts)
+                        from app.icoder.agent_runtime.orchestrator.phi_redactor import (
+                            redact_payload,
+                        )
+                        from icoder_runtime.backends.output_contract_validation import (
+                            prepare_source_documents,
+                        )
+                        from app.services.result_attestation import (
+                            ResultAttestationError,
+                            verify_upstream_result_attestations,
+                        )
+                        raw_data_input = {}
+                        for part in request.message.parts:
+                            if not isinstance(part, dict) or part.get("kind") != "data":
+                                continue
+                            raw_data = part.get("data")
+                            raw_value = (
+                                raw_data.get("value")
+                                if isinstance(raw_data, dict) else None
+                            )
+                            if isinstance(raw_value, dict):
+                                raw_data_input.update(raw_value)
+                        raw_upstream_results = raw_data_input.get("upstream_results")
+                        if not isinstance(raw_upstream_results, list):
+                            raw_upstream_results = []
+                        attestation_org_id = str(
+                            meta.get("organization_id")
+                            or meta.get("tenant_id")
+                            or "default"
+                        )
+                        if meta.get("upstream_result_attestations_verified") is not True:
+                            try:
+                                verify_upstream_result_attestations(
+                                    raw_upstream_results,
+                                    organization_id=attestation_org_id,
+                                )
+                            except ResultAttestationError:
+                                return InboundResponse(
+                                    kind="error",
+                                    context_id=meta.get("context_id", ""),
+                                    metadata={
+                                        "run_id": meta.get("run_id", ""),
+                                        "trace_id": meta.get("trace_id", ""),
+                                        "agent_id": agent_id,
+                                        "phi_redacted": True,
+                                    },
+                                    error={
+                                        "code": "INVALID_UPSTREAM_ATTESTATION",
+                                        "message": "An upstream Agent result could not be authenticated.",
+                                    },
+                                    http_status=400,
+                                )
+                        safe_parts = redact_payload(request.message.parts).value
+                        primary_chunks = [
+                            str(part.get("text"))
+                            for part in safe_parts
+                            if isinstance(part, dict)
+                            and (part.get("kind") or part.get("type")) == "text"
+                            and part.get("text")
+                        ]
+                        primary_text = "\n".join(primary_chunks).strip()
+                        data_input = {}
+                        for part in safe_parts:
+                            if not isinstance(part, dict) or part.get("kind") != "data":
+                                continue
+                            data = part.get("data")
+                            value = data.get("value") if isinstance(data, dict) else None
+                            if isinstance(value, dict):
+                                data_input.update(value)
+                        source_documents, source_errors = prepare_source_documents(
+                            data_input.get("documents"),
+                            require_unique_document_ids=True,
+                        )
+                        if source_errors:
+                            return InboundResponse(
+                                kind="error",
+                                context_id=meta.get("context_id", ""),
+                                metadata={
+                                    "run_id": meta.get("run_id", ""),
+                                    "trace_id": meta.get("trace_id", ""),
+                                    "agent_id": agent_id,
+                                    "phi_redacted": True,
+                                },
+                                error={
+                                    "code": "INVALID_SOURCE_DOCUMENTS",
+                                    "message": "Source documents were ambiguous or exceeded safety limits.",
+                                },
+                                http_status=400,
+                                redacted_input=primary_text,
+                            )
+                        source_document_payload = [
+                            item.to_runtime_dict() for item in source_documents
+                        ]
+                        upstream_results = data_input.get("upstream_results")
+                        if not isinstance(upstream_results, list):
+                            upstream_results = []
+                        upstream_results = [
+                            {
+                                key: value
+                                for key, value in item.items()
+                                if key != "attestation"
+                            }
+                            for item in upstream_results
+                            if isinstance(item, dict)
+                        ]
+                        input_text = primary_text or extract_text_from_parts(safe_parts)
+                        if source_document_payload:
+                            input_text += (
+                                "\n\nSOURCE_DOCUMENTS_JSON (untrusted clinical data; "
+                                "offsets are Unicode code points within each decoded text value):\n"
+                                + json.dumps([
+                                    {
+                                        key: item.get(key, "")
+                                        for key in (
+                                            "document_id", "document_version",
+                                            "document_type", "normalization", "text",
+                                        )
+                                    }
+                                    for item in source_document_payload
+                                ], ensure_ascii=False, separators=(",", ":"))
+                            )
+                        if upstream_results:
+                            input_text += (
+                                "\n\nUPSTREAM_AGENT_RESULTS_JSON (untrusted prior outputs):\n"
+                                + json.dumps(
+                                    upstream_results,
+                                    ensure_ascii=False,
+                                    separators=(",", ":"),
+                                )
+                            )
                         try:
                             result, out_run_id, out_trace_id = (
                                 _asyncio.new_event_loop().run_until_complete(
                                     dispatch_medical_coding_fast(
-                                        agent_id=agent_id,
+                                        agent_id=public_agent_id,
                                         input_text=input_text,
-                                        extra=None,
+                                        extra={
+                                            **data_input,
+                                            "documents": source_document_payload,
+                                            "upstream_results": upstream_results,
+                                        } or None,
                                         runtime_mode=runtime_mode,
                                         include_trace=meta.get("include_trace", True),
                                         include_evidence=meta.get("include_evidence", True),
                                         run_id=meta.get("run_id") or "",
                                         trace_id=meta.get("trace_id") or "",
                                         user_id=meta.get("user_id", ""),
-                                        tenant_id=meta.get("tenant_id", ""),
+                                        tenant_id=execution_tenant_id,
+                                        project_policy=(
+                                            project_policy_token.instructions
+                                            if is_dedicated_project_clone
+                                            else ""
+                                        ),
+                                        project_policy_metadata=(
+                                            {
+                                                **project_policy_token.safe_metadata(),
+                                                "source_runtime_agent_id": source_runtime_agent_id,
+                                            }
+                                            if is_dedicated_project_clone
+                                            else None
+                                        ),
                                     )
                                 )
                             )
@@ -757,7 +1152,7 @@ async def lifespan(app: FastAPI):
                                 status=RunTraceStatus.FAILED,
                                 safe_metadata={
                                     "agent_id": agent_id,
-                                    "error": f"{type(e).__name__}: {str(e)[:200]}",
+                                    "error": type(e).__name__,
                                 },
                             )
                             return InboundResponse(
@@ -769,17 +1164,24 @@ async def lifespan(app: FastAPI):
                                     "agent_id": agent_id,
                                     "phi_redacted": True,
                                 },
-                                error={"code": "INTERNAL_ERROR", "message": str(e)},
+                                error={
+                                    "code": "INTERNAL_ERROR",
+                                    "message": f"Medical coding execution failed ({type(e).__name__}).",
+                                },
                                 http_status=500,
+                                redacted_input=input_text,
                             )
                         # Persist trace_events so /runs/{run_id}/trace works.
                         if result.trace_events and not result.error:
                             persist_trace_events(
                                 run_id=out_run_id,
                                 trace_events=list(result.trace_events),
-                                agent_id=agent_id,
+                                agent_id=public_agent_id,
                                 runtime_mode=result.runtime_mode,
                                 trace_id=out_trace_id,
+                                organization_id=execution_tenant_id,
+                                user_id=meta.get("user_id", ""),
+                                actor_id=meta.get("user_id", ""),
                             )
                         return build_medical_coding_inbound_response(
                             result=result,
@@ -787,6 +1189,10 @@ async def lifespan(app: FastAPI):
                             trace_id=out_trace_id,
                             context_id=meta.get("context_id") or "",
                             interaction_id=request.message.interaction_id,
+                            source_text=primary_text,
+                            source_documents=source_document_payload,
+                            upstream_results=upstream_results,
+                            organization_id=attestation_org_id,
                         )
 
                 # medcoder_deep or non-medical-coding: pass through to InboundHandler.
@@ -814,10 +1220,14 @@ async def lifespan(app: FastAPI):
                         MedicalCodingOutputSchema,
                         MedicalCodingAgentOutputV2,
                     )
+                    from app.icoder.agent_runtime.a2a_facade import (
+                        medical_coding_schema_ref,
+                    )
                 except Exception:
                     return response  # schema not available, pass through
 
                 run_id = (response.metadata or {}).get("run_id", "")
+                schema_ref = medical_coding_schema_ref()
                 new_parts = []
                 for part in response.parts or []:
                     if not isinstance(part, dict) or part.get("kind") != "data":
@@ -863,7 +1273,7 @@ async def lifespan(app: FastAPI):
                             if _k in data:
                                 part_meta[f"orchestrator_{_k}"] = data[_k]
                         part_meta.update({
-                            "schema_ref": "icoder/MedicalCodingAgentOutputV2/v1",
+                            "schema_ref": schema_ref,
                             "projected_from": "MedicalCodingOutputSchema/v1",
                             "phi_redacted": True,
                             "production_writeback_blocked": True,
@@ -881,9 +1291,7 @@ async def lifespan(app: FastAPI):
                         new_parts.append(part)
                 response.parts = new_parts
                 response.metadata = dict(response.metadata or {})
-                response.metadata["output_contract"] = (
-                    "icoder/MedicalCodingAgentOutputV2/v1"
-                )
+                response.metadata["output_contract"] = schema_ref
                 response.metadata["v1_to_v2_projected"] = True
                 return response
 
@@ -892,8 +1300,10 @@ async def lifespan(app: FastAPI):
         # Phase 3-D1 Task 5: 3 simple runnable agents (code-validation /
         # compliance-guardrail / note-completeness). These bypass the
         # orchestrator (Planner/Delegator/Aggregator) and call the
-        # agent's run() function directly — they're deterministic, no-LLM,
-        # and don't need expert delegation. The dispatch handler:
+        # agent's governed entry point directly. Compliance Guardrail and Note
+        # Completeness are local deterministic runtimes; Code Validation uses
+        # a governed local catalog baseline with optional LLM/tool review. The
+        # dispatch handler:
         #   1. Generates run_id + context_id (consistent with InboundHandler)
         #   2. Emits RunTrace events (USER_MESSAGE_RECEIVED + OUTPUT_GENERATED
         #      + COMPLETION) so /api/runtime/runs/{id}/trace works for them
@@ -922,6 +1332,34 @@ async def lifespan(app: FastAPI):
             "compliance-guardrail-agent": "evaluate_compliance",
             "note-completeness-agent": "check_documentation_gaps",
         }
+        _SIMPLE_AGENT_PACK_DIRS: dict[str, str] = {
+            "code-validation-agent": "code-validation",
+            "compliance-guardrail-agent": "compliance-guardrail",
+            "note-completeness-agent": "note-completeness",
+        }
+
+        def _simple_agent_pack(agent_id: str) -> dict[str, Any]:
+            """Load the authoritative current Pack used by Hub and Agent Run."""
+            import json as _json
+
+            pack_dir = _SIMPLE_AGENT_PACK_DIRS[agent_id]
+            pack_path = (
+                Path(__file__).parent.parent
+                / "official_agents"
+                / pack_dir
+                / "agent_pack.json"
+            )
+            return _json.loads(pack_path.read_text(encoding="utf-8"))
+
+        def _simple_agent_schema_ref(agent_id: str) -> str:
+            """Resolve A2A metadata from the same current Pack as Hub/Run."""
+            pack = _simple_agent_pack(agent_id)
+            schema_ref = str(
+                (pack.get("output_contract") or {}).get("schema_ref") or ""
+            )
+            if not schema_ref:
+                raise RuntimeError(f"missing output schema_ref for {agent_id}")
+            return schema_ref
 
         class _SimpleAgentDispatchHandler:
             """Routes 3 simple agent_ids through the MCP dispatcher; falls
@@ -945,6 +1383,240 @@ async def lifespan(app: FastAPI):
                     return self._inner.handle(agent_id, request)
                 return self._handle_simple(agent_id, request)
 
+            def _contract_response(
+                self,
+                *,
+                agent_id: str,
+                result: dict[str, Any],
+                input_text: str,
+                run_id: str,
+                context_id: str,
+                request,
+                redaction_entity_types: list[str],
+                backend_provider: str,
+                backend_type: str,
+                runtime_mode: str,
+            ) -> InboundResponse:
+                """Project, validate and attest a dedicated Agent result."""
+                import json as _json
+                import time as _time
+
+                from app.api.agent_run import map_backend_response
+                from app.services.result_attestation import (
+                    ResultAttestationError,
+                    issue_result_attestation,
+                )
+                from icoder_runtime.backends.contracts import BackendResponse
+                from icoder_runtime.backends.output_contract_validation import (
+                    declared_optional_fields,
+                )
+
+                pack = _simple_agent_pack(agent_id)
+                output_contract = pack.get("output_contract") or {}
+                schema_ref = _simple_agent_schema_ref(agent_id)
+                required_fields = list(output_contract.get("required_fields") or [])
+                optional_fields = declared_optional_fields(output_contract)
+                declared_fields = [*required_fields, *optional_fields]
+                allowed_fields = set(declared_fields)
+
+                candidate = dict(result)
+                if agent_id == "code-validation-agent":
+                    from official_agents.code_validation.agent import (
+                        to_current_pack_candidate,
+                    )
+
+                    candidate = to_current_pack_candidate(candidate)
+                elif agent_id == "note-completeness-agent":
+                    candidate.setdefault("incomplete_sections", [])
+                    candidate.setdefault("conflicts", [])
+                    candidate.setdefault("corrected_draft", "")
+
+                # Compatibility/audit fields remain internal. Missing required
+                # fields stay missing so the common validator fails closed.
+                candidate = {
+                    key: value
+                    for key, value in candidate.items()
+                    if key in allowed_fields
+                }
+                requires_review = (
+                    str((pack.get("manifest") or {}).get("human_review") or "")
+                    == "required"
+                )
+                response = BackendResponse(
+                    status="requires_review" if requires_review else "pass",
+                    summary=str(
+                        candidate.get("summary")
+                        or candidate.get("review_conclusion")
+                        or ""
+                    ),
+                    backend_provider=backend_provider,
+                    backend_type=backend_type,
+                    fallback_used=bool(result.get("degraded")),
+                    markdown=_json.dumps(
+                        candidate,
+                        ensure_ascii=False,
+                        sort_keys=True,
+                    ),
+                )
+                public = map_backend_response(
+                    agent_id=agent_id,
+                    run_id=run_id,
+                    trace_id=str(request.metadata.get("trace_id") or run_id),
+                    runtime_mode=runtime_mode,
+                    resp=response,
+                    include_trace=False,
+                    include_evidence=False,
+                    agent_pack=pack,
+                    source_text=input_text,
+                    upstream_results=[],
+                    t0=_time.perf_counter(),
+                )
+                if public.error:
+                    extraction = public.result.get("structured_extraction") or {}
+                    emit_trace_event(
+                        run_id,
+                        RunTraceStep.COMPLETION,
+                        status=RunTraceStatus.FAILED,
+                        safe_metadata={
+                            "agent_id": agent_id,
+                            "reason": "output_contract_violation",
+                        },
+                    )
+                    return InboundResponse(
+                        kind="error",
+                        context_id=context_id,
+                        metadata={
+                            "run_id": run_id,
+                            "agent_id": agent_id,
+                            "backend_provider": backend_provider,
+                            "backend_type": backend_type,
+                            "output_contract": schema_ref,
+                            "phi_redacted": True,
+                            "redaction_entity_types": redaction_entity_types,
+                            "production_writeback_blocked": True,
+                            "manual_review_required": True,
+                            "missing_required_fields": list(
+                                extraction.get("missing_required_fields") or []
+                            ),
+                            "invalid_field_types": list(
+                                extraction.get("invalid_field_types") or []
+                            ),
+                            "invalid_field_schemas": list(
+                                extraction.get("invalid_field_schemas") or []
+                            ),
+                        },
+                        error={
+                            "code": "OUTPUT_CONTRACT_VIOLATION",
+                            "message": (
+                                "Dedicated Agent output did not satisfy the "
+                                "current Agent Pack contract."
+                            ),
+                        },
+                        http_status=503,
+                        redacted_input=input_text,
+                    )
+
+                public_result = {
+                    field: public.result[field]
+                    for field in declared_fields
+                    if field in public.result
+                }
+                tenant_id = str(
+                    request.metadata.get("organization_id") or "default"
+                )
+                try:
+                    result_attestation = issue_result_attestation(
+                        run_id=run_id,
+                        agent_id=agent_id,
+                        schema_ref=schema_ref,
+                        organization_id=tenant_id,
+                        result=public_result,
+                    )
+                except ResultAttestationError as exc:
+                    logger.error(
+                        "Dedicated A2A attestation failed agent_id=%s error_type=%s",
+                        agent_id,
+                        type(exc).__name__,
+                    )
+                    emit_trace_event(
+                        run_id,
+                        RunTraceStep.COMPLETION,
+                        status=RunTraceStatus.FAILED,
+                        safe_metadata={
+                            "agent_id": agent_id,
+                            "reason": "result_attestation_failed",
+                        },
+                    )
+                    return InboundResponse(
+                        kind="error",
+                        context_id=context_id,
+                        metadata={
+                            "run_id": run_id,
+                            "agent_id": agent_id,
+                            "phi_redacted": True,
+                            "production_writeback_blocked": True,
+                        },
+                        error={
+                            "code": "RESULT_ATTESTATION_FAILED",
+                            "message": (
+                                "The Agent result authenticity proof could not "
+                                "be created."
+                            ),
+                        },
+                        http_status=503,
+                        redacted_input=input_text,
+                    )
+
+                emit_trace_event(
+                    run_id,
+                    RunTraceStep.COMPLETION,
+                    status=RunTraceStatus.OK,
+                    safe_metadata={
+                        "agent_id": agent_id,
+                        "backend_provider": backend_provider,
+                        "backend_type": backend_type,
+                    },
+                )
+                return InboundResponse(
+                    kind="message",
+                    message_id=make_message_id(),
+                    context_id=context_id,
+                    role="agent",
+                    parts=[{
+                        "kind": "data",
+                        "data": public_result,
+                        "metadata": {
+                            "schema_ref": schema_ref,
+                            "agent_ref": str(pack.get("agent_ref") or ""),
+                            "result_attestation": result_attestation,
+                            "phi_redacted": True,
+                            "production_writeback_blocked": True,
+                            "orchestrator_expert_id": agent_id,
+                            "orchestrator_latency_ms": 0,
+                            "orchestrator_ok": True,
+                            "backend_provider": backend_provider,
+                            "backend_type": backend_type,
+                        },
+                    }],
+                    metadata={
+                        "run_id": run_id,
+                        "agent_id": agent_id,
+                        "interaction_id": request.message.interaction_id,
+                        "backend_provider": backend_provider,
+                        "backend_type": backend_type,
+                        "output_contract": schema_ref,
+                        "result_attestation": result_attestation,
+                        "provider_latency_ms": public.latency_ms,
+                        "phi_redacted": True,
+                        "redaction_entity_types": redaction_entity_types,
+                        "redaction_applied": bool(redaction_entity_types),
+                        "production_writeback_blocked": True,
+                        "manual_review_required": public.manual_review_required,
+                    },
+                    http_status=200,
+                    redacted_input=input_text,
+                )
+
             def _handle_simple(self, agent_id: str, request) -> InboundResponse:
                 import asyncio as _asyncio
                 from types import SimpleNamespace as _NS
@@ -952,7 +1624,10 @@ async def lifespan(app: FastAPI):
                 from app.icoder.mcp.auth import AuthHeader
 
                 run_id = make_run_id()
-                context_id = make_context_id()
+                # The route has already created or tenant-validated this
+                # context. Reusing it is required for real multi-turn A2A;
+                # generating another ID here would orphan the persisted turn.
+                context_id = request.message.context_id or make_context_id()
                 # Trace step 1: user message received
                 emit_trace_event(
                     run_id, RunTraceStep.USER_MESSAGE_RECEIVED,
@@ -969,17 +1644,23 @@ async def lifespan(app: FastAPI):
                     status=RunTraceStatus.SKIPPED,
                     safe_metadata={"reason": "simple_agent_no_orchestrator"},
                 )
-                # Extract text from parts
-                input_text = extract_text_from_parts(request.message.parts)
+                # Extract and redact before the deterministic Agent/MCP path.
+                # This path bypasses InboundHandler, so it must enforce the
+                # same PHI boundary itself; only redacted text may reach a
+                # tool, Context persistence, trace metadata, or an error.
+                raw_input_text = extract_text_from_parts(request.message.parts)
+                redaction = PHIRedactor().redact(raw_input_text)
+                input_text = redaction.redacted_text
 
-                # Phase 4-D (D-5): code-validation-agent routes to v2
-                # (LLMWithToolsProvider + 4 MCP tools) directly — bypassing
+                # Code Validation routes to its governed v2 Agent directly —
+                # bypassing
                 # the validate_codes MCP tool which stays v1 (RuleEngine)
-                # for other MCP consumers. Other 2 simple agents still go
+                # for other MCP consumers. The two local rule Agents go
                 # through the MCP dispatcher.
                 if agent_id == "code-validation-agent":
                     return self._handle_code_validation_v2(
                         agent_id, input_text, run_id, context_id, request,
+                        redaction.entity_types,
                     )
 
                 # Map agent_id → MCP tool_name + build tool arguments.
@@ -1042,7 +1723,7 @@ async def lifespan(app: FastAPI):
                         status=RunTraceStatus.FAILED,
                         safe_metadata={
                             "tool_name": tool_name,
-                            "error": f"{type(e).__name__}: {str(e)[:200]}",
+                            "error": type(e).__name__,
                         },
                     )
                     return InboundResponse(
@@ -1053,9 +1734,14 @@ async def lifespan(app: FastAPI):
                             "agent_id": agent_id,
                             "phi_redacted": True,
                             "production_writeback_blocked": True,
+                            "redaction_entity_types": redaction.entity_types,
                         },
-                        error={"code": "INTERNAL_ERROR", "message": str(e)},
+                        error={
+                            "code": "INTERNAL_ERROR",
+                            "message": f"Tool execution failed ({type(e).__name__}).",
+                        },
                         http_status=500,
+                        redacted_input=input_text,
                     )
                 # Trace step: output generated + completion
                 emit_trace_event(
@@ -1065,79 +1751,30 @@ async def lifespan(app: FastAPI):
                         "issues_count": len(result.get("issues_found", []) or []),
                     },
                 )
-                emit_trace_event(
-                    run_id, RunTraceStep.COMPLETION,
-                    status=RunTraceStatus.OK,
-                    safe_metadata={"agent_id": agent_id},
-                )
-                # Phase 3-D2 Task 4 — pre-render markdown so the
-                # frontend's Rendered tab shows structured tables (not
-                # a JSON dump). The SSOT is generate_markdown_for(); the
-                # frontend falls back to generateFallbackMarkdown() only
-                # when this field is absent (legacy/old pack).
-                from app.icoder.markdown_generator import generate_markdown_for
-                try:
-                    result_markdown = generate_markdown_for(agent_id, result)
-                    # Embed markdown into the result dict so the existing
-                    # DataPart pass-through carries it to the frontend.
-                    result_with_md = dict(result)
-                    result_with_md["markdown"] = result_markdown
-                except Exception as _md_err:
-                    logger.warning(
-                        "markdown generation failed for %s: %s; "
-                        "frontend will fall back to JSON dump",
-                        agent_id, _md_err,
-                    )
-                    result_with_md = result
-                # Build response — single DataPart with the result dict.
-                # Match the projection wrapper's metadata shape so the
-                # frontend's _mapA2AResultToRunResult works uniformly.
-                return InboundResponse(
-                    kind="message",
-                    message_id=make_message_id(),
+                return self._contract_response(
+                    agent_id=agent_id,
+                    result=result,
+                    input_text=input_text,
+                    run_id=run_id,
                     context_id=context_id,
-                    role="agent",
-                    parts=[{
-                        "kind": "data",
-                        "data": result_with_md,
-                        "metadata": {
-                            "schema_ref": (
-                                "icoder/CodeValidationOutput/v1"
-                                if agent_id == "code-validation-agent"
-                                else "icoder/ComplianceGuardrailOutput/v1"
-                                if agent_id == "compliance-guardrail-agent"
-                                else "icoder/NoteCompletenessOutput/v1"
-                            ),
-                            "phi_redacted": True,
-                            "production_writeback_blocked": True,
-                            "orchestrator_expert_id": agent_id,
-                            "orchestrator_latency_ms": 0,
-                            "orchestrator_ok": True,
-                        },
-                    }],
-                    metadata={
-                        "run_id": run_id,
-                        "agent_id": agent_id,
-                        "interaction_id": request.message.interaction_id,
-                        "phi_redacted": True,
-                        "production_writeback_blocked": True,
-                        "output_contract": (
-                            "icoder/CodeValidationOutput/v1"
-                            if agent_id == "code-validation-agent"
-                            else "icoder/ComplianceGuardrailOutput/v1"
-                            if agent_id == "compliance-guardrail-agent"
-                            else "icoder/NoteCompletenessOutput/v1"
-                        ),
-                    },
-                    http_status=200,
+                    request=request,
+                    redaction_entity_types=redaction.entity_types,
+                    backend_provider=(
+                        "icoder.rule-engine.v1"
+                        if agent_id == "compliance-guardrail-agent"
+                        else "icoder.documentation-rule-engine.v1"
+                    ),
+                    backend_type="rule_engine",
+                    runtime_mode=f"a2a_dedicated_{agent_id}",
                 )
 
             def _handle_code_validation_v2(
                 self, agent_id: str, input_text: str,
                 run_id: str, context_id: str, request,
+                redaction_entity_types: list[str],
             ) -> InboundResponse:
-                """Phase 4-D (D-5): invoke code_validation/agent.py v2
-                (LLMWithToolsProvider + 4 MCP tools) directly — bypassing
+                """Invoke the governed catalog baseline with optional semantic
+                LLM/tool review — bypassing
                 the v1 ``validate_codes`` MCP tool. Other MCP consumers of
                 ``validate_codes`` (if any) stay on v1 (RuleEngine).
                 """
@@ -1156,7 +1793,7 @@ async def lifespan(app: FastAPI):
                         status=RunTraceStatus.FAILED,
                         safe_metadata={
                             "agent_id": agent_id,
-                            "error": f"{type(e).__name__}: {str(e)[:200]}",
+                            "error": type(e).__name__,
                         },
                     )
                     return InboundResponse(
@@ -1166,10 +1803,15 @@ async def lifespan(app: FastAPI):
                             "run_id": run_id,
                             "agent_id": agent_id,
                             "phi_redacted": True,
+                            "redaction_entity_types": redaction_entity_types,
                             "production_writeback_blocked": True,
                         },
-                        error={"code": "INTERNAL_ERROR", "message": str(e)},
+                        error={
+                            "code": "INTERNAL_ERROR",
+                            "message": f"Code validation failed ({type(e).__name__}).",
+                        },
                         http_status=500,
+                        redacted_input=input_text,
                     )
                 # Trace step: output generated + completion
                 emit_trace_event(
@@ -1178,67 +1820,129 @@ async def lifespan(app: FastAPI):
                         "review_conclusion": result.get("review_conclusion", ""),
                         "validated_codes_count": len(result.get("validated_codes", []) or []),
                         "cross_code_issues_count": len(result.get("cross_code_issues", []) or []),
+                        "clinical_asset_ids": "+".join(
+                            str(item)
+                            for item in (
+                                (result.get("trace_refs") or {}).get(
+                                    "catalog_asset_ids"
+                                )
+                                or []
+                            )
+                            if item
+                        ),
+                        "clinical_asset_versions": "+".join(
+                            str(item)
+                            for item in (
+                                (result.get("trace_refs") or {}).get(
+                                    "catalog_asset_versions"
+                                )
+                                or []
+                            )
+                            if item
+                        ),
+                        "clinical_asset_authority_statuses": "+".join(
+                            str(item)
+                            for item in (
+                                (result.get("trace_refs") or {}).get(
+                                    "catalog_authority_statuses"
+                                )
+                                or []
+                            )
+                            if item
+                        ),
+                        "clinical_asset_license_statuses": "+".join(
+                            str(item)
+                            for item in (
+                                (result.get("trace_refs") or {}).get(
+                                    "catalog_license_statuses"
+                                )
+                                or []
+                            )
+                            if item
+                        ),
+                        "clinical_asset_integrity_verified": bool(
+                            (result.get("trace_refs") or {}).get(
+                                "catalog_integrity_verified"
+                            )
+                        ),
+                        "semantic_enhancement_used": bool(
+                            (result.get("trace_refs") or {}).get(
+                                "semantic_enhancement_used"
+                            )
+                        ),
                     },
                 )
-                emit_trace_event(
-                    run_id, RunTraceStep.COMPLETION,
-                    status=RunTraceStatus.OK,
-                    safe_metadata={
-                        "agent_id": agent_id,
-                        "backend_provider": "icoder.llm-with-tools.v1",
-                    },
-                )
-                # v2 schema already includes a `markdown` field, but wrap
-                # through generate_markdown_for() to ensure consistency for
-                # the frontend's Rendered tab (no-op when markdown exists).
-                from app.icoder.markdown_generator import generate_markdown_for
-                try:
-                    md = generate_markdown_for(agent_id, result) or result.get("markdown", "")
-                except Exception:
-                    md = result.get("markdown", "")
-                result_with_md = dict(result)
-                result_with_md["markdown"] = md
-                # v2 agent_ref — frontend checks @2.0.0 for v2 vs v1.
-                # Override trace_refs.agent_ref too: the legacy fallback
-                # path carries v1's @1.0.0 trace_refs, which would mislead
-                # the frontend into thinking this is a v1 response.
-                result_with_md = dict(result)
-                result_with_md["agent_ref"] = "icoder/code-validation-agent@2.0.0"
-                tr = dict(result_with_md.get("trace_refs") or {})
-                tr["agent_ref"] = "icoder/code-validation-agent@2.0.0"
-                result_with_md["trace_refs"] = tr
-                return InboundResponse(
-                    kind="message",
-                    message_id=make_message_id(),
+                return self._contract_response(
+                    agent_id=agent_id,
+                    result=result,
+                    input_text=input_text,
+                    run_id=run_id,
                     context_id=context_id,
-                    role="agent",
-                    parts=[{
-                        "kind": "data",
-                        "data": result_with_md,
-                        "metadata": {
-                            "schema_ref": "icoder/CodeValidationOutputV2/1",
-                            "agent_ref": "icoder/code-validation-agent@2.0.0",
-                            "phi_redacted": True,
-                            "production_writeback_blocked": True,
-                            "orchestrator_expert_id": "code-validation-agent",
-                            "orchestrator_latency_ms": 0,
-                            "orchestrator_ok": True,
-                            "backend_provider": "icoder.llm-with-tools.v1",
-                        },
-                    }],
-                    metadata={
-                        "run_id": run_id,
-                        "agent_id": agent_id,
-                        "interaction_id": request.message.interaction_id,
-                        "phi_redacted": True,
-                        "production_writeback_blocked": True,
-                        "output_contract": "icoder/CodeValidationOutputV2/1",
-                        "backend_provider": "icoder.llm-with-tools.v1",
-                    },
-                    http_status=200,
+                    request=request,
+                    redaction_entity_types=redaction_entity_types,
+                    backend_provider="icoder.governed-code-validation.v1",
+                    backend_type="hybrid",
+                    runtime_mode="a2a_governed_code_validation",
                 )
 
         phase1_handler = _SimpleAgentDispatchHandler(phase1_handler)
+
+        # All remaining visible official packs with an explicit
+        # backend_provider share the same A2A execution adapter as the
+        # unified Agent Run endpoint. This makes every advertised Hub A2A URL
+        # executable instead of falling through to agent_not_found.
+        from app.icoder.agent_runtime.provider_a2a_handler import (
+            ProviderA2AHandler,
+        )
+        _provider_a2a_handler = ProviderA2AHandler(
+            Path(__file__).parent.parent / "official_agents"
+        )
+
+        class _OfficialProviderDispatchHandler:
+            def __init__(self, inner, provider_handler):
+                self._inner = inner
+                self._provider_handler = provider_handler
+
+            def handle(self, agent_id: str, request):
+                if self._provider_handler.can_handle_candidate(agent_id):
+                    return self._provider_handler.handle(agent_id, request)
+                return self._inner.handle(agent_id, request)
+
+        phase1_handler = _OfficialProviderDispatchHandler(
+            phase1_handler, _provider_a2a_handler
+        )
+
+        from app.icoder.agent_runtime.cdi_a2a_handler import CDIA2AHandler
+        _cdi_a2a_handler = CDIA2AHandler()
+
+        class _CDIDispatchHandler:
+            def __init__(self, inner, cdi_handler):
+                self._inner = inner
+                self._cdi_handler = cdi_handler
+
+            def handle(self, agent_id: str, request):
+                if agent_id == self._cdi_handler.AGENT_ID:
+                    return self._cdi_handler.handle(agent_id, request)
+                return self._inner.handle(agent_id, request)
+
+        phase1_handler = _CDIDispatchHandler(phase1_handler, _cdi_a2a_handler)
+
+        # Project clones of dedicated clinical runtimes have no
+        # backend_provider to resolve. Delegate to the exact source adapter,
+        # then restore project identity for proof, history and trace ownership.
+        from app.icoder.agent_runtime.tenant_clone_a2a_dispatch_handler import (
+            TenantCloneA2ADispatchHandler,
+        )
+        phase1_handler = TenantCloneA2ADispatchHandler(phase1_handler)
+
+        # Connector graphs are Agent policy, not a Provider implementation
+        # detail. Apply the tenant-owned graph outside every A2A dispatch path
+        # so dedicated coding/CDI adapters cannot bypass it. Provider-backed
+        # handlers receive a pre-executed marker and therefore run it once.
+        from app.icoder.agent_runtime.connector_graph_dispatch_handler import (
+            ConnectorGraphDispatchHandler,
+        )
+        phase1_handler = ConnectorGraphDispatchHandler(phase1_handler)
 
         def _phase1_agent_provider(agent_id: str):
             if agent_id == "medcoder-coding-review":
@@ -1251,17 +1955,40 @@ async def lifespan(app: FastAPI):
                 return compliance_guardrail_agent_card()
             if agent_id == "note-completeness-agent":
                 return note_completeness_agent_card()
+            if agent_id == _cdi_a2a_handler.AGENT_ID:
+                import json as _json
+                from app.icoder.agent_runtime.a2a.agent_card import (
+                    agent_card_from_pack,
+                )
+                _cdi_pack_path = (
+                    Path(__file__).parent.parent
+                    / "official_agents"
+                    / "clinical-documentation-improvement-agent"
+                    / "agent_pack.json"
+                )
+                return agent_card_from_pack(
+                    _json.loads(_cdi_pack_path.read_text(encoding="utf-8"))
+                )
+            pack = _provider_a2a_handler.pack_for(agent_id)
+            if pack is not None:
+                from app.icoder.agent_runtime.a2a.agent_card import (
+                    agent_card_from_pack,
+                )
+                return agent_card_from_pack(pack)
             return None
 
+        _phase1_agent_provider.agent_ids = tuple(sorted({
+            *_provider_a2a_handler.agent_ids,
+            _cdi_a2a_handler.AGENT_ID,
+        }))
+        # The standard root well-known URI can describe only one Agent. Keep
+        # tenant/private Agents behind authenticated per-Agent discovery and
+        # publish the public Medical Coding Agent as the truthful default.
+        _phase1_agent_provider.default_agent_id = "medical-coding-agent"
+
         def _phase1_expert_caller(expert_id: str, body: dict):
-            return {
-                "kind": "message",
-                "role": "agent",
-                "messageId": "phase1-stub",
-                "contextId": "",
-                "parts": [{"kind": "data", "data": {"expert_id": expert_id, "echo": body}}],
-                "metadata": {},
-            }
+            from app.icoder.agent_runtime.a2a.errors import agent_not_found
+            raise agent_not_found(expert_id)
 
         mount_a2a(
             app,
@@ -1269,7 +1996,15 @@ async def lifespan(app: FastAPI):
             agent_provider=_phase1_agent_provider,
             expert_caller=_phase1_expert_caller,
         )
-        logger.info("A2A v0.3 package mounted (Phase 1 stub)" if _phase1_stub_llm else "A2A v0.3 package mounted (real wiring)")
+        _a2a_task_runtime = getattr(app.state, "a2a_task_runtime", None)
+        if _a2a_task_runtime is not None:
+            await _a2a_task_runtime.start(app)
+            logger.info("A2A durable Task runtime started")
+        logger.info(
+            "A2A v0.3 package mounted (fail-closed test LLM mode)"
+            if _phase1_stub_llm
+            else "A2A v0.3 package mounted (real wiring)"
+        )
 
         # ── M2: Mount MCP server (5 MedCodER tools) ──
         # The MCP server reuses the same MedCodERStrategy that the A2A
@@ -1326,9 +2061,9 @@ async def lifespan(app: FastAPI):
                     _hybrid_adapter,
                 )
         except Exception as e:
-            logger.warning(f"MCP mount skipped: {e}")
+            logger.warning("MCP mount skipped error_type=%s", type(e).__name__)
     except Exception as e:
-        logger.warning(f"A2A v0.3 mount skipped: {e}")
+        logger.warning("A2A v0.3 mount skipped error_type=%s", type(e).__name__)
     # Start runtime timeout checker (background task)
     import asyncio as _asyncio
     async def _check_timeouts():
@@ -1381,6 +2116,12 @@ async def lifespan(app: FastAPI):
 
     yield
     logger.info("Shutting down")
+    _a2a_task_runtime = getattr(app.state, "a2a_task_runtime", None)
+    if _a2a_task_runtime is not None:
+        await _a2a_task_runtime.stop()
+    _connector_runtime = getattr(app.state, "connector_runtime", None)
+    if _connector_runtime is not None:
+        await _connector_runtime.aclose()
     # Phase 3-C0 A2 (2026-07-05): cancel the runtime timeout checker
     # background task so it doesn't leak as a "Task was destroyed but it
     # is pending" warning during TestClient / uvicorn shutdown.
@@ -1391,6 +2132,31 @@ async def lifespan(app: FastAPI):
             await _timeout_task
         except _asyncio.CancelledError:
             pass
+    # The BGE/FAISS worker is a native multiprocessing child. Explicitly
+    # close it on every lifespan exit; otherwise repeated TestClient/uvicorn
+    # lifespans leave orphaned torch workers that retain gigabytes of virtual
+    # memory and can destabilize the desktop host.
+    _medcoder_retriever = getattr(app.state, "medcoder_retriever", None)
+    if _medcoder_retriever is not None and hasattr(_medcoder_retriever, "close"):
+        try:
+            await _asyncio.to_thread(_medcoder_retriever.close)
+        except Exception as _close_error:
+            logger.warning(
+                "MedCodER retriever shutdown failed (%s)",
+                type(_close_error).__name__,
+            )
+        finally:
+            app.state.medcoder_retriever = None
+    # The backend provider registry holds a process-global lazy callback to
+    # ``app.state.platform_gateway``.  Clear it when this application
+    # lifespan ends; otherwise a later app/test lifespan can resolve a stale
+    # mock or closed gateway and turn an intended ``llm_unavailable`` failure
+    # into order-dependent behaviour.
+    set_gateway_lookup(None)
+    # Release the cached Fast/MedCodER runtime instances together with the
+    # gateway callback. A later lifespan will construct fresh, correctly
+    # policy-bound runtimes.
+    reset_dispatcher()
 
 
 app = FastAPI(
@@ -1452,6 +2218,31 @@ except Exception as _tenant_e:
     logger.warning(f"TenantHeaderMiddleware install skipped: {_tenant_e}")
 
 
+# Connector request schemas are intentionally strict and may reject a body
+# before the route-level secret scanner runs.  FastAPI's default validation
+# response reflects the rejected ``input`` value, which could echo an
+# accidentally supplied token.  Strip inputs only on this sensitive resource
+# family while preserving the standard error shape and all other handlers.
+from fastapi.encoders import jsonable_encoder
+from fastapi.exception_handlers import request_validation_exception_handler
+from fastapi.exceptions import RequestValidationError
+
+
+@app.exception_handler(RequestValidationError)
+async def request_validation_error_handler(request: Request, exc: RequestValidationError):
+    if request.url.path.startswith("/api/v2/agentic/agents/") and "/connectors" in request.url.path:
+        safe_errors = []
+        for error in exc.errors():
+            safe_error = dict(error)
+            safe_error.pop("input", None)
+            safe_errors.append(safe_error)
+        return JSONResponse(
+            status_code=422,
+            content={"detail": jsonable_encoder(safe_errors)},
+        )
+    return await request_validation_exception_handler(request, exc)
+
+
 # Global exception handler — only catches truly unhandled exceptions
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
@@ -1473,6 +2264,11 @@ async def global_exception_handler(request: Request, exc: Exception):
 # Health check
 @app.get("/api/health")
 async def health_check():
+    from app.services.prerecorded_media_decoder import (
+        prerecorded_media_decoder_snapshot,
+    )
+    from app.services.stream_media_decoder import stream_media_decoder_snapshot
+
     return {
         "status": "healthy",
         "app": settings.APP_NAME,
@@ -1481,8 +2277,24 @@ async def health_check():
         "medcoder_index_ready": getattr(app.state, "medcoder_index_ready", False),
         "medcoder_index_loading": getattr(app.state, "medcoder_index_loading", False),
         "medcoder_index_error": getattr(app.state, "medcoder_index_error", None),
+        "medcoder_retriever_mode": getattr(
+            app.state, "medcoder_retriever_mode", "local_disabled"
+        ),
+        "medcoder_retriever_worker_version": getattr(
+            app.state, "medcoder_retriever_worker_version", ""
+        ),
+        "medcoder_retriever_index_version": getattr(
+            app.state, "medcoder_retriever_index_version", ""
+        ),
         "llm_provider": settings.LLM_PROVIDER,
         "llm_model": settings.LLM_MODEL,
+        "stream_media_decoder": stream_media_decoder_snapshot(),
+        "prerecorded_media_decoder": prerecorded_media_decoder_snapshot(),
+        "connector_runtime": (
+            app.state.connector_runtime.status()
+            if getattr(app.state, "connector_runtime", None) is not None
+            else {"configured": False, "live_external_verified": False}
+        ),
     }
 
 
@@ -1502,6 +2314,8 @@ from app.api.organizations import router as organizations_router
 from app.api.platform_environments import router as platform_environments_router
 from app.api.platform_api_clients import router as platform_api_clients_router
 from app.api.platform_tenants import router as platform_tenants_router
+from app.api.model_catalog import router as model_catalog_router
+from app.api.clinical_model_packages import router as clinical_model_packages_router
 from app.api.tools import router as tools_router
 from app.api.runtime_platform import router as runtime_platform_router
 from app.api.runtime_platform import runtime_router as standard_runtime_router
@@ -1511,6 +2325,12 @@ from app.api.embedded import router as embedded_router
 from app.api.preview_sessions import router as preview_sessions_router
 from app.api.drg import router as drg_router
 from app.api.patient_context import router as patient_context_router  # A1C.3
+from app.api.agent_connectors import router as agent_connectors_router
+from app.api.agentic_observability import router as agentic_observability_router
+from app.api.agentic_context_resources import (
+    artifact_object_router,
+    router as agentic_context_resources_router,
+)
 from app.api.examples import router as examples_router
 from app.api.runs import router as runs_router
 from app.api.v2_tools_coding import router as v2_tools_coding_router
@@ -1533,9 +2353,30 @@ from app.api.experts import router as experts_router
 from app.api.agent_cards import router as agent_cards_router
 from app.api.presets import router as presets_router
 from app.middleware.rate_limit import rate_limit_middleware
+from app.middleware.request_body_limit import RequestBodyLimitMiddleware
+from app.middleware.auth import get_current_user, security
+
+
+_INFERENCE_JSON_MAX_BYTES = 1024 * 1024
+_BOUNDED_INFERENCE_PATHS = frozenset({
+    "/api/v2/tools/extract-facts",
+    "/api/v2/tools/guided-documents",
+})
+
 
 # Rate limiting middleware
 app.middleware("http")(rate_limit_middleware)
+app.add_middleware(
+    RequestBodyLimitMiddleware,
+    max_bytes=_INFERENCE_JSON_MAX_BYTES,
+    paths=_BOUNDED_INFERENCE_PATHS,
+)
+app.add_middleware(
+    RequestBodyLimitMiddleware,
+    max_bytes=7_100_000,
+    paths=(),
+    path_prefixes=("/api/v2/agentic/contexts",),
+)
 
 app.include_router(auth_router)
 app.include_router(encounters_router)
@@ -1552,9 +2393,9 @@ app.include_router(v2_tools_coding_router)         # Phase 1.1 (2026-06-30) /api
 app.include_router(v2_tools_facts_router)          # Phase 1.2 cycle 1 (2026-06-30) /api/v2/tools/extract-facts (Corti §3.2 / §13.4 FactsR™)
 app.include_router(v2_tools_streams_router)        # Phase 1.2 cycle 2 (2026-06-30) /api/v2/tools/streams/{id} (Corti §13.3/§13.4 Streams WSS)
 app.include_router(v2_tools_guided_document_router) # Phase 1.2 cycle 3 (2026-06-30) /api/v2/tools/guided-documents/ (Corti §13.4 Guided Documents, templateRef + ephemeral only)
-app.include_router(v2_tools_sections_templates_router) # Phase 1.2 cycle 4 (2026-07-01) /api/v2/tools/{templates,sections}/ (Corti §13.4 LIST, stub data)
-app.include_router(v2_tools_documents_classic_router) # Phase 1.2 cycle 5 (2026-07-01) /api/v2/tools/interactions/{id}/documents/ (Corti §13.4 Documents Classic LIST, Planned deprecation, stub data)
-app.include_router(v2_tools_stt_router)              # Phase 1.3 cycle 6 (2026-07-01) /api/v2/tools/interactions/{id}/transcripts/ (Corti §13.3 STT LIST, stub data)
+app.include_router(v2_tools_sections_templates_router) # Corti-compatible tenant template/section discovery
+app.include_router(v2_tools_documents_classic_router) # Documents Classic saved lifecycle compatibility
+app.include_router(v2_tools_stt_router)              # Corti-compatible persisted STT transcript discovery
 app.include_router(icoder_agents_hub_router)          # Phase 3-B1 (2026-07-04) /api/icoder/agents/hub (Corti-style Agent Hub, pack-mastered)
 app.include_router(customers_router)             # /api/customers/* (Corti parity)
 app.include_router(templates_router)             # /api/templates/* (Templates Beta — Corti parity)
@@ -1568,9 +2409,11 @@ app.include_router(experts_router)              # /api/v1/experts/* (A1B-AE.3 Ex
 app.include_router(agent_cards_router)          # /api/v1/agents/{quick|resolve|card} (A1B-AE.4 Corti-compatible surfaces)
 app.include_router(presets_router)              # /api/v1/presets/* (A1B-AE.9 Preset Agents REST)
 app.include_router(organizations_router)
-app.include_router(platform_environments_router)  # Phase 1 cloud-flip stub (501)
+app.include_router(platform_environments_router)
 app.include_router(platform_api_clients_router)    # Phase 1 cloud-flip stub (501)
-app.include_router(platform_tenants_router)         # Phase 1 cloud-flip stub (501)
+app.include_router(platform_tenants_router)
+app.include_router(model_catalog_router)
+app.include_router(clinical_model_packages_router)
 app.include_router(tools_router)
 app.include_router(runtime_platform_router)  # /api/runtime-platform/* (backward compat)
 app.include_router(standard_runtime_router)   # /api/runtime/* (standard)
@@ -1582,13 +2425,82 @@ app.include_router(runs_router)                # /api/v1/runs/{id}{,/cancel} (Ph
 app.include_router(medical_docs_router)        # /api/medical-docs/*
 app.include_router(drg_router)                 # /api/drg/*
 app.include_router(patient_context_router)    # /api/v1/patient-context/* (A1C.3 — closes RV.5 J8)
+app.include_router(agent_connectors_router)   # /api/v2/agentic/agents/{id}/connectors
+app.include_router(agentic_context_resources_router)  # /api/v2/agentic/contexts + Task/Artifact resources
+app.include_router(artifact_object_router)  # signed, one-time managed Artifact object downloads
+app.include_router(agentic_observability_router)  # /api/v2/agentic/contexts/{id}/{trace,tasks/.../feedback}
 
 
-@app.get("/api/metrics")
-async def metrics():
-    """Prometheus-compatible metrics endpoint."""
+async def _require_metrics_access(
+    credentials=Depends(security),
+    db=Depends(get_db),
+):
+    """Allow a platform admin JWT or a dedicated monitoring bearer.
+
+    The monitoring token is read from the runtime-injected environment. It
+    must be at least 32 characters and is compared in constant time; normal
+    platform secret rotation may still restart the pod/process.
+    """
+    from fastapi import HTTPException, status
+
+    if credentials is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+    candidate = credentials.credentials
+    monitoring_token = os.environ.get("ICODER_METRICS_BEARER_TOKEN", "")
+    if (
+        len(monitoring_token) >= 32
+        and hmac.compare_digest(candidate, monitoring_token)
+    ):
+        return "monitoring_service"
+
+    user = await get_current_user(credentials=credentials, db=db)
+    if getattr(getattr(user, "role", None), "value", None) != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Administrator access required",
+        )
+    return "platform_admin"
+
+
+@app.get(
+    "/api/metrics",
+    operation_id="get_process_metrics",
+    responses={
+        200: {
+            "description": "PHI-safe, process-scoped operational metrics.",
+            "headers": {
+                "Cache-Control": {
+                    "schema": {"type": "string", "example": "no-store"},
+                },
+            },
+        },
+        401: {"description": "Authentication required."},
+        403: {"description": "Administrator access required."},
+    },
+)
+async def metrics(
+    http_response: Response,
+    _metrics_principal=Depends(_require_metrics_access),
+):
+    """Return a PHI-safe snapshot for this API process.
+
+    External monitoring must scrape every worker/pod and aggregate the
+    snapshots. This endpoint deliberately does not expose run, cursor, tenant,
+    user, token, or clinical labels.
+    """
     from app.middleware.logging import get_metrics
-    return get_metrics()
+    from app.services.run_sse_observability import get_run_sse_metrics
+    from app.services.clinical_model_shadow_observability import (
+        get_clinical_shadow_metrics,
+    )
+
+    snapshot = get_metrics()
+    snapshot["schema_version"] = "icoder.process-metrics/v1"
+    snapshot["scope"] = "single_api_process"
+    snapshot["run_sse"] = get_run_sse_metrics().snapshot()
+    snapshot["clinical_shadow"] = get_clinical_shadow_metrics().snapshot()
+    http_response.headers["Cache-Control"] = "no-store"
+    return snapshot
 
 
 @app.get("/")

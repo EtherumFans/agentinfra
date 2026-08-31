@@ -140,7 +140,7 @@ def test_compliance_guardrail_passes_complete_case():
         },
         "secondary_diagnoses": [],
         "procedures": [
-            {"code": "33.24", "confidence": 0.9, "evidence": ["手术记录"]}
+            {"code": "33.2400", "confidence": 0.9, "evidence": ["手术记录"]}
         ],
     })
     result = _run(compliance_guardrail_run(payload))
@@ -148,7 +148,51 @@ def test_compliance_guardrail_passes_complete_case():
     assert result["compliance_checks"]["primary_dx_present"] is True
     assert result["compliance_checks"]["no_upcoding_risk"] is True
     assert result["compliance_checks"]["drg_readiness"] is True
+    assert result["reviewed_codes"] == [
+        {
+            "code": "I50.9",
+            "code_system": "ICD-10-CN",
+            "role": "primary_diagnosis",
+        },
+        {
+            "code": "33.2400",
+            "code_system": "ICD-9-CM-3",
+            "role": "procedure",
+        },
+    ]
     assert "DRG 就绪" in result["drg_suggestion"]
+
+
+def test_compliance_guardrail_reviewed_codes_are_exact_deduplicated_inputs():
+    payload = json.dumps({
+        "primary_diagnosis": {"code": " I50.9 "},
+        "secondary_diagnoses": [
+            {"code": "E11.9"},
+            {"code": "e11.9"},
+            {"code": ""},
+        ],
+        "procedures": [{"code": "33.24"}, {"code": "33.24"}],
+    })
+
+    result = _run(compliance_guardrail_run(payload))
+
+    assert result["reviewed_codes"] == [
+        {
+            "code": "I50.9",
+            "code_system": "ICD-10-CN",
+            "role": "primary_diagnosis",
+        },
+        {
+            "code": "E11.9",
+            "code_system": "ICD-10-CN",
+            "role": "secondary_diagnosis",
+        },
+        {
+            "code": "33.24",
+            "code_system": "ICD-9-CM-3",
+            "role": "procedure",
+        },
+    ]
 
 
 def test_compliance_guardrail_fires_cg001_when_no_primary():
@@ -224,16 +268,21 @@ PARTIAL_EMR = """入院记录
 """
 
 
-def test_note_completeness_passes_complete_emr():
-    """Complete EMR with all 7+1 sections → PASS, score 1.0."""
+def test_note_completeness_flags_structurally_present_but_incomplete_surgical_emr():
+    """All 7+1 headings score 1.0, but bounded surgical gaps prevent PASS."""
     result = _run(note_completeness_run(COMPLETE_EMR))
-    assert result["review_conclusion"] == "PASS"
+    assert result["review_conclusion"] == "WARNING"
     assert result["completeness_score"] == 1.0
     assert set(result["missing_sections"]) == set()
     # Surgical case detected (手术 keyword)
     assert result["is_surgical_case"] is True
     assert "手术记录" in result["present_sections"]
     assert "主诉" in result["present_sections"]
+    assert {item["section"] for item in result["incomplete_sections"]} == {
+        "诊断",
+        "治疗经过",
+    }
+    assert result["manual_review_required"] is True
 
 
 def test_note_completeness_fails_on_missing_sections():
@@ -253,7 +302,7 @@ def test_note_completeness_fails_on_missing_sections():
 
 
 def test_note_completeness_surgical_adds_operation_record_requirement():
-    """Surgical case (mentions 手术) → 手术记录 added to required."""
+    """Surgical headings can be complete while bounded content gaps require review."""
     text = """主诉：阑尾炎。
 现病史：转移性右下腹痛。
 既往史：无。
@@ -267,7 +316,11 @@ def test_note_completeness_surgical_adds_operation_record_requirement():
     assert result["is_surgical_case"] is True
     assert "手术记录" in result["required_sections"]
     assert "手术记录" in result["present_sections"]
-    assert result["review_conclusion"] == "PASS"
+    assert result["review_conclusion"] == "WARNING"
+    assert {item["section"] for item in result["incomplete_sections"]} == {
+        "诊断",
+        "治疗经过",
+    }
 
 
 def test_note_completeness_surgical_missing_operation_record():
@@ -293,15 +346,37 @@ def test_note_completeness_empty_text_returns_fail():
     assert len(result["missing_sections"]) == len(result["required_sections"])
 
 
-def test_note_completeness_documentation_gaps_have_suggestion():
-    """Each documentation_gap has a non-empty suggestion."""
+def test_note_completeness_documentation_gaps_match_public_contract():
+    """Each documentation gap uses the strict public item allowlist."""
     result = _run(note_completeness_run("主诉：腹痛。"))
     assert len(result["documentation_gaps"]) > 0
     for gap in result["documentation_gaps"]:
         assert gap["gap_type"] == "missing_section"
         assert gap["section"]
-        assert gap["suggestion"]
-        assert "病历书写基本规范" in gap["suggestion"]
+        assert set(gap) == {"gap_type", "description", "section"}
+
+
+def test_note_completeness_heading_without_body_is_incomplete():
+    result = _run(note_completeness_run(
+        "主诉：\n现病史：腹痛三天。\n既往史：无。\n体格检查：腹部压痛。"
+    ))
+
+    assert "主诉" not in result["present_sections"]
+    assert "主诉" not in result["missing_sections"]
+    assert result["incomplete_sections"] == [{
+        "section": "主诉",
+        "deficit_note": "主诉章节存在标题但未记录有效内容",
+    }]
+    assert result["manual_review_required"] is True
+
+
+def test_note_completeness_negated_surgery_history_does_not_require_op_note():
+    result = _run(note_completeness_run(
+        "主诉：头晕。\n现病史：头晕一天。\n既往史：否认手术史。"
+    ))
+
+    assert result["is_surgical_case"] is False
+    assert "手术记录" not in result["required_sections"]
 
 
 def test_note_completeness_run_id_propagates():

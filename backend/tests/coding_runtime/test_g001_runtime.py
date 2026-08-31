@@ -47,10 +47,12 @@ class _FakeGateway:
         self._always_fail = always_fail
         self._fail_once = fail_once
         self._calls = 0
+        self.last_messages = []
         self.is_configured = is_configured
 
     async def generate(self, messages, *, provider: str = "", **kw) -> dict[str, Any]:
         self._calls += 1
+        self.last_messages = list(messages)
         if self._always_fail or (self._fail_once and self._calls == 1):
             raise RuntimeError("simulated DeepSeek failure")
         return {"content": self._content, "model": "deepseek-chat", "usage": {}}
@@ -74,29 +76,29 @@ def _ok_json() -> str:
     return json.dumps({
         "review_conclusion": "PASS",
         "primary_diagnosis": {
-            "code": "S22.089A",
-            "description": "胸椎(T11-T12)压缩性骨折",
+            "code": "S22.000x003",
+            "description": "胸椎压缩性骨折",
             "confidence": 0.88,
             "category": "principal",
             "evidence": ["MRI 显示 T12 椎体压缩性骨折"],
         },
         "secondary_diagnoses": [
             {
-                "code": "M81.0",
-                "description": "年龄相关性骨质疏松不伴当前病理性骨折",
+                "code": "M81.900",
+                "description": "骨质疏松",
                 "confidence": 0.82,
                 "category": "secondary",
                 "evidence": ["既往有骨质疏松"],
             },
             {
-                "code": "I10",
+                "code": "I10.x09",
                 "description": "原发性高血压",
                 "confidence": 0.90,
                 "category": "comorbidity",
                 "evidence": ["高血压病史"],
             },
             {
-                "code": "E11.9",
+                "code": "E11.900",
                 "description": "2 型糖尿病不伴并发症",
                 "confidence": 0.86,
                 "category": "comorbidity",
@@ -105,8 +107,8 @@ def _ok_json() -> str:
         ],
         "procedures": [
             {
-                "code": "81.62",
-                "description": "经皮椎体成形术",
+                "code": "81.6500",
+                "description": "经皮椎骨成形术",
                 "confidence": 0.85,
                 "category": "therapeutic",
                 "evidence": ["行 T12 经皮椎体成形术"],
@@ -236,7 +238,7 @@ async def test_fast_runtime_happy_path_returns_structured_codes():
     assert result.runtime_mode == "corti_like_fast"
     assert len(result.codes) >= 4  # 1 primary + 3 secondary + 1 procedure = 5
     primary = next(c for c in result.codes if c.type == "primary_diagnosis")
-    assert primary.code == "S22.089A"
+    assert primary.code == "S22.000x003"
     assert "T12" in primary.evidence or "椎体" in primary.evidence
     assert primary.confidence > 0.5
     assert len(primary.warnings) > 0  # G001 §7: must include local-catalog-review warning
@@ -253,6 +255,49 @@ async def test_fast_runtime_happy_path_returns_structured_codes():
     assert result.latency_ms > 0
     assert result.trace_id.startswith("trace-")
     assert result.run_id.startswith("fast-")
+
+
+@pytest.mark.asyncio
+async def test_fast_runtime_uses_provider_reported_cost_and_tokens():
+    gateway = _FakeGateway(content=_ok_json())
+
+    async def generate_with_accounting(messages, *, provider="", **kw):
+        del messages, provider, kw
+        return {
+            "content": _ok_json(),
+            "model": "deepseek-chat",
+            "usage": {"input_tokens": 1200, "output_tokens": 300},
+            "cost_usd": 0.000252,
+        }
+
+    gateway.generate = generate_with_accounting
+    result = await FastCodingRuntime(gateway=gateway).predict(
+        CodingRequest(text=T12_TEXT, mode=RuntimeMode.CORTI_LIKE_FAST)
+    )
+
+    assert result.cost == {
+        "amount": 0.000252,
+        "currency": "CNY",
+        "source": "provider_token_usage",
+        "token_usage": {"input_tokens": 1200, "output_tokens": 300},
+    }
+
+
+@pytest.mark.asyncio
+async def test_fast_runtime_scopes_prompt_to_requested_procedure_system():
+    gateway = _FakeGateway(content=_ok_json())
+    runtime = FastCodingRuntime(gateway=gateway)
+
+    await runtime.predict(CodingRequest(
+        text=T12_TEXT,
+        mode=RuntimeMode.CORTI_LIKE_FAST,
+        coding_system="icd9cm3",
+        coding_systems=("icd9cm3",),
+    ))
+
+    assert gateway.last_messages[0]["role"] == "system"
+    assert "仅请求 ICD-9-CM-3" in gateway.last_messages[0]["content"]
+    assert "primary_diagnosis 设为空对象" in gateway.last_messages[0]["content"]
 
 
 @pytest.mark.asyncio

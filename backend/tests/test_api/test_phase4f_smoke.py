@@ -78,10 +78,16 @@ def test_p0_medical_coding_t12(client: TestClient) -> None:
     assert data["run_id"].startswith("run-")
     # Medical coding always requires human review
     assert data["manual_review_required"] is True
-    # Result must have codes[]
-    assert "codes" in data["result"]
-    # Under mock, codes may be empty; that's OK. We just verify the envelope
-    # structure is stable.
+    if data.get("error"):
+        # A deliberately unavailable coding engine must fail closed: do not
+        # publish an empty/partial clinical payload that a caller could mistake
+        # for a successful "no codes" decision.
+        assert data["result"] == {"contract_output_suppressed": True}
+        assert data.get("error_reason")
+    else:
+        # When the mock/native coding path is available, retain the public
+        # success-contract assertion. Codes may legitimately be empty here.
+        assert "codes" in data["result"]
 
 
 # ── 2. Coding Evidence — T12 + 2 codes ───────────────────────────────────

@@ -1,0 +1,310 @@
+{
+  "case_id": "CASE-625a79e8ff6a",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-625a79e8ff6a/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "The diagnosis of cough is documented without specifying the underlying etiology or clinical correlation.",
+      "why_it_matters": "Coding requires specificity regarding the cause of cough (e.g., infectious, allergic, cardiac) to assign the appropriate diagnosis code. Without an etiology, the chart is incomplete for accurate coding.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "咳嗽1周",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-625a79e8ff6a/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "The chest X-ray finding '未见活动性病变' is documented without clinical correlation to the cough.",
+      "why_it_matters": "An abnormal or negative finding should be correlated with the clinical presentation to establish its significance. Without correlation, the clinical meaning is unclear, affecting coding and patient management.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "胸片:未见活动性病变",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-002",
+      "gap_id": "CASE-625a79e8ff6a/GAP-002",
+      "topic": "胸片结果与咳嗽的临床关联",
+      "reason": "胸片报告未见活动性病变，但未与咳嗽症状进行临床关联。",
+      "query_text": "胸片未见活动性病变，如何与患者的咳嗽症状进行临床关联？",
+      "response_options": [
+        "A. 胸片结果与咳嗽症状相符，支持急性支气管炎等气道疾病",
+        "B. 胸片结果不能完全解释咳嗽，需进一步检查（如肺功能、支气管镜等）",
+        "C. 胸片结果提示咳嗽可能由非肺部原因引起（如胃食管反流、鼻后滴漏等）",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "胸片:未见活动性病变",
+          "char_start": 83,
+          "char_end": 93,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-004: red flags are denied and lung examination/imaging is non-acute"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-001",
+      "gap_id": "CASE-625a79e8ff6a/GAP-001",
+      "topic": "咳嗽的病因或临床关联",
+      "reason": "病历记录咳嗽1周，但未明确咳嗽的病因或临床关联。",
+      "query_text": "患者咳嗽1周，可能的病因或临床关联是什么？",
+      "response_options": [
+        "A. 急性上呼吸道感染",
+        "B. 急性支气管炎",
+        "C. 咳嗽变异性哮喘",
+        "D. 胃食管反流性咳嗽",
+        "E. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "咳嗽1周",
+          "char_start": 11,
+          "char_end": 15,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "SD-001: topic axes = ['correlation', 'etiology']",
+        "SD-002: axes in 40-char window = ['correlation', 'etiology']"
+      ],
+      "status": "NEEDS_CDI_REWRITE",
+      "detected_axes": [
+        "correlation",
+        "etiology"
+      ],
+      "rewrite_attempt_status": "REJECTED_BY_SAFETY_GATES",
+      "rewrite_attempt_reasons": [
+        "rewrite must address exactly the server-selected target axis: target=type, got=[]"
+      ],
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者女性, 60岁, 咳嗽1周。否认发热、咳脓痰、咯血、胸痛。既往:<REDACTED:NAME>。<REDACTED:NAME>:<REDACTED:NAME>晰。胸片:未见活动性病变。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者女性，60岁",
+      "咳嗽1周",
+      "否认发热、咳脓痰、咯血、胸痛",
+      "胸片未见活动性病变"
+    ],
+    "encounter_metadata": {
+      "patient_age": "60岁",
+      "patient_sex": "女性",
+      "encounter_type": "门诊"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "The documentation should clarify whether the cough is acute, chronic, or recurrent, and specify any suspected or confirmed underlying cause (e.g., post-infectious, allergic, GERD, or medication-related) based on clinical evaluation. Additionally, the chest X-ray finding should be explicitly correlated with the cough—stating whether it supports a benign, self-limited process or if further workup is needed—to ensure the diagnosis reflects the true clinical picture. Without this specificity, the record lacks the clinical rationale needed for accurate code assignment.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3563,
+      "tokens": 255
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-343b29c934ba",
+    "gap_identification": "run-896e53998261",
+    "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
+    "expert_consultation": "run-6941326b5891",
+    "query_generation": "run-01e236ef0d1c",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=2;llm_complete=False;llm_reasoning=The chart documents a symptom (cough) and a negative chest X-ray but lacks an et",
+    "query_necessity_gate": "necessary=1;unnecessary=1;overquery_triggered=False;final_count=1",
+    "query_dimension_rewrite": "run-647582cbf5f5",
+    "query_single_dimension_gate": "single_dim=0;multi_dim=1;axis_cluster_triggered=False;axis_cluster_axis=etiology;rewrite_attempted=1;rewrite_accepted=0;final_count=0",
+    "claim_evidence_alignment_gate": "claims_extracted=0;blocked=0;flagged=0;final_count=0",
+    "claim_evidence_alignment_gate::run_id": "run-afcc647b8bb0",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+    "semantic_necessity_gate::run_id": "run-9d9974b58fcd",
+    "query_compliance_gate": ";passed=0;blocked=0",
+    "specialist_trace_emit": "run-8c2937db377b"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-b682ea9f9452",
+    "gap_identification": "trace-8e5cb0901503",
+    "expert_consultation": "trace-73f2621b58b2",
+    "query_generation": "trace-50f255dfac4d",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_dimension_rewrite": "trace-d63887beae48",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-a57d23c72df6",
+    "semantic_necessity_gate": "trace-e2d1fa61acdc",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-80c4123e19f9"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2543,
+      "prompt_tokens": 228,
+      "completion_tokens": 85,
+      "total_tokens": 313,
+      "run_id": "run-343b29c934ba",
+      "trace_id": "trace-b682ea9f9452",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 4465,
+      "prompt_tokens": 1038,
+      "completion_tokens": 357,
+      "total_tokens": 1395,
+      "run_id": "run-896e53998261",
+      "trace_id": "trace-8e5cb0901503",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 4816,
+      "prompt_tokens": 1058,
+      "completion_tokens": 457,
+      "total_tokens": 1515,
+      "run_id": "run-01e236ef0d1c",
+      "trace_id": "trace-50f255dfac4d",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_dimension_rewrite",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3170,
+      "prompt_tokens": 661,
+      "completion_tokens": 228,
+      "total_tokens": 889,
+      "run_id": "run-647582cbf5f5",
+      "trace_id": "trace-d63887beae48",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3563,
+      "prompt_tokens": 149,
+      "completion_tokens": 106,
+      "total_tokens": 255,
+      "run_id": "run-e69394cd959c",
+      "trace_id": "trace-a1ce2e2e0ecb",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-f17f9fddf37e",
+      "trace_id": "trace-d01f9fe1df7b",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-6d1f80e94357",
+      "trace_id": "trace-62583c7b44b6",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-49557db5f81a",
+      "trace_id": "trace-738580233c6e",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T18:42:13.414750Z"
+}

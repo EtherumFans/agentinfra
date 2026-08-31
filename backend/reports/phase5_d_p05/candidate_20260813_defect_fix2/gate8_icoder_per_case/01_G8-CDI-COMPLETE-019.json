@@ -1,0 +1,248 @@
+{
+  "case_id": "CASE-ba0a21318e8b",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-ba0a21318e8b/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "高血压分级未明确是1级还是2级，且未说明危险分层。",
+      "why_it_matters": "高血压的分级和危险分层影响治疗决策和预后评估，编码时需要明确严重程度。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "诊断:原发性高血压1级(控制良好)",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-001",
+      "gap_id": "CASE-ba0a21318e8b/GAP-001",
+      "topic": "高血压分级与危险分层",
+      "reason": "病历中诊断写为'原发性高血压1级(控制良好)'，但未明确危险分层（如低危、中危、高危、极高危）。",
+      "query_text": "根据患者目前血压水平及危险因素、靶器官损害情况，请明确高血压的危险分层。",
+      "response_options": [
+        "A. 低危",
+        "B. 中危",
+        "C. 高危",
+        "D. 极高危",
+        "E. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "unknown",
+          "quote": "诊断:原发性高血压1级(控制良好)",
+          "char_start": 118,
+          "char_end": 135,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-004: grade, control status, and target-organ assessment are explicit"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者男性, 65岁, <REDACTED:NAME>10年, 缬沙坦 80mg qd 治疗。BP 132/82。心超:<REDACTED:NAME>血分数 65%, 室壁运动正常, 无左室肥厚。心电图:<REDACTED:NAME>律。诊断:原发性高血压1级(控制良好), 无靶器官损害。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "男性，65岁",
+      "高血压病史10年",
+      "服用缬沙坦80mg每日一次",
+      "血压132/82 mmHg",
+      "超声心动图：射血分数65%，室壁运动正常，无左室肥厚",
+      "心电图：窦性心律",
+      "诊断：原发性高血压1级（控制良好）",
+      "无靶器官损害"
+    ],
+    "encounter_metadata": {
+      "patient_age": "65岁",
+      "patient_sex": "男性",
+      "encounter_type": "门诊"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "The chart already specifies \"原发性高血压1级\" and explicitly states \"无靶器官损害,\" which covers the grade and risk stratification (low risk given controlled BP and no TOD). However, to ensure accurate coding, please document the specific risk stratification (e.g., low, moderate, high, or very high) based on the 2018/2020 Chinese hypertension guidelines, as the current note implies low risk but does not state it explicitly. Additionally, confirm whether the patient has any cardiovascular risk factors (e.g., dyslipidemia, smoking, diabetes) that would elevate the risk category beyond what is implied by grade 1 alone.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3765,
+      "tokens": 292
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "'分级' score — no deterministic calculator wired",
+      "route_decision": "tool_unavailable",
+      "route_reason": "no_real_tool_wired",
+      "execution_mode": "TOOL_UNAVAILABLE",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-7da0567a892e",
+    "gap_identification": "run-15b0e50bc8bb",
+    "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
+    "expert_consultation": "run-e6ea374d7b30",
+    "query_generation": "run-a2457a333394",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=N,D3_severity=Y,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=1;llm_complete=False;llm_reasoning=高血压诊断虽已明确，但缺少危险分层和靶器官损害的具体评估细节，且未提及心血管风险因素，影响编码准确性。",
+    "query_necessity_gate": "necessary=0;unnecessary=1;overquery_triggered=False;final_count=0",
+    "query_single_dimension_gate": "single_dim=0;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;rewrite_attempted=0;rewrite_accepted=0;final_count=0",
+    "claim_evidence_alignment_gate": "claims_extracted=0;blocked=0;flagged=0;final_count=0",
+    "claim_evidence_alignment_gate::run_id": "run-f3422f95cc30",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+    "semantic_necessity_gate::run_id": "run-120817a47f47",
+    "query_compliance_gate": ";passed=0;blocked=0",
+    "specialist_trace_emit": "run-93df56f34f17"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-0a7790e91622",
+    "gap_identification": "trace-b570619576d9",
+    "expert_consultation": "trace-58c8b93106f5",
+    "query_generation": "trace-5e10122cd13d",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-a7a1be1da1a8",
+    "semantic_necessity_gate": "trace-11e2359e8c42",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-8ff21514fc63"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 1716,
+      "prompt_tokens": 260,
+      "completion_tokens": 131,
+      "total_tokens": 391,
+      "run_id": "run-7da0567a892e",
+      "trace_id": "trace-0a7790e91622",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3592,
+      "prompt_tokens": 1115,
+      "completion_tokens": 209,
+      "total_tokens": 1324,
+      "run_id": "run-15b0e50bc8bb",
+      "trace_id": "trace-b570619576d9",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3618,
+      "prompt_tokens": 1043,
+      "completion_tokens": 234,
+      "total_tokens": 1277,
+      "run_id": "run-a2457a333394",
+      "trace_id": "trace-5e10122cd13d",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3765,
+      "prompt_tokens": 163,
+      "completion_tokens": 129,
+      "total_tokens": 292,
+      "run_id": "run-1cf924fa74d6",
+      "trace_id": "trace-890db1557df6",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-308618f8f3cd",
+      "trace_id": "trace-71d930c56517",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-704f1c7611c1",
+      "trace_id": "trace-dcd214ac8ef2",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-bb2de942fe18",
+      "trace_id": "trace-2a07483953c5",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T17:50:50.864946Z"
+}

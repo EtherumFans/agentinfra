@@ -1,0 +1,428 @@
+{
+  "agent_id": "rule-explainer",
+  "run_id": "run-b3bea237-6746-4512-9d49-f5d3e7c6a926",
+  "trace_id": "trace-16261a35f7c04e38",
+  "trace_url": "/ai-studio/runs/run-b3bea237-6746-4512-9d49-f5d3e7c6a926/trace",
+  "runtime_mode": "a2a_llm_with_tools",
+  "latency_ms": 11860,
+  "cost": {
+    "amount": 0.000676,
+    "currency": "CNY"
+  },
+  "summary": "```json",
+  "result": {
+    "status": "REQUIRES_REVIEW",
+    "markdown": "```json\n{\n  \"status\": \"REQUIRES_REVIEW\",\n  \"code\": \"I50.9\",\n  \"code_system\": \"ICD-10-CN\",\n  \"assignable\": false,\n  \"explanation_summary\": \"编码 I50.9 未通过 verify_code 验证，返回 in_catalog=false，即该编码不在 ICD-10-CN 编码目录（37,897 码）中，因此不可直接赋码。目录中实际存在的是 I50.900（心力衰竭）及其细分码（如 I50.900x001 低心排综合征、I50.900x002 心功能不全、I50.900x007 心功能Ⅱ级等）。I50.9 是 ICD-10 国际版中'心力衰竭，未特指'的写法，但在 ICD-10-CN 中需使用 I50.900 系列编码。\",\n  \"guideline_basis\": [\n    \"通用规则：使用最具体的编码——当存在更具体细分码时，不可使用 3 位类别码（例：I25 应选 I25.1）。I50 为类别码，其下存在 I50.900 等可赋码细分，故 I50.9 不可直接使用。\",\n    \"通用规则：不编码未在病历中明确记录的诊断——临床表现必须在病历正文中出现。\",\n    \"通用规则：主诊断必须能解释本次住院的主要治疗资源消耗。\"\n  ],\n  \"evidence_tool_refs\": [\n    \"verify_code(I50.9)：返回 in_catalog=false, assignable=false, chapter='', name=''——该编码不在目录中。\",\n    \"get_guidelines(I50.9)：返回通用规则 10 条，其中'使用最具体的编码'规则直接适用于本场景。\",\n    \"explore_code(I50)：返回 I50 为第9章循环系统疾病类别码，其 children 包含 I50.900（心力衰竭）、I50.900x001（低心排综合征）、I50.900x002（心功能不全）、I50.900x007（心功能Ⅱ级 NYHA 分级）等可赋码细分。\",\n    \"search_codes('心力衰竭 未特指 心衰')：返回候选 I50.900（心力衰竭，score=1.0）、I50.900x002（心功能不全）等，确认 I50.900 系列为心力衰竭相关可赋码编码。\"\n  ],\n  \"limitations\": [\n    \"I50.9 不在 ICD-10-CN 目录中，无法给出其目录事实（章节、中文名、同义词、父子层级）。\",\n    \"未提供具体病历临床描述，无法确定应选择 I50.900 系列中的哪一个细分码（如左心/右心/全心衰竭、NYHA 分级等）。\",\n    \"unsupported_scope：医保、DRG/DIP、医院结算及地方政策不在当前工具覆盖范围内，未作任何推断。\",\n    \"search_codes 返回 source=lexical_catalog_fallback（语义检索不可用，使用词法回退），候选结果仅供参考。\"\n  ],\n  \"manual_review_required\": true\n}\n```",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [
+      {
+        "tool_name": "verify_code",
+        "arguments": {
+          "code": "I50.9"
+        },
+        "result": {
+          "code": "I50.9",
+          "in_catalog": false,
+          "assignable": false,
+          "chapter": "",
+          "name": "",
+          "aliases": [],
+          "parent_hierarchy": [],
+          "excludes1": [],
+          "excludes2": [],
+          "code_first_notes": [],
+          "use_additional_code_notes": [],
+          "children_if_non_assignable": []
+        },
+        "duration_ms": 283,
+        "error": null,
+        "scope_granted": []
+      },
+      {
+        "tool_name": "get_guidelines",
+        "arguments": {
+          "code": "I50.9"
+        },
+        "result": {
+          "chapter": "",
+          "chapter_conventions": [],
+          "general_rules": [
+            "不编码未在病历中明确记录的诊断 — 临床表现必须在病历正文中出现。",
+            "主诊断必须能解释本次住院的主要治疗资源消耗;不可选次要诊断作为主诊断。",
+            "使用最具体的编码: 当存在更具体细分码时,不可使用 3 位类别码 (例: I25 应选 I25.1)。",
+            "组合编码优先: 当一个编码能完整描述两种情况时,使用组合码而非双码 (例: I11.0 高血压性心脏病伴心衰)。",
+            "后遗症编码: 使用相应后遗症码 (B90-B94, E64, E68, G09, I69, O97, T90-T98)。",
+            "疑似诊断编码: 若出院时仍未确诊,按症状/体征编码 (R00-R99),不按假设诊断编码。",
+            "合并编码: 当合并码存在时 (例: A40.3 败血症伴肺炎链球菌性肺炎),不可拆分使用两码。",
+            "双重编码 (†/asterisk): 匕首编码 (†) 表示病因,星号编码 (*) 表示表现;两者成对使用。",
+            "时态限制: 急性心肌梗死 (I21) 仅限发病 4 周 (28 天) 内使用;之后使用 I22 (复发) 或 I25 (慢性)。",
+            "Z 编码: 特殊目的编码 (Z00-Z99) — 筛查 (Z00)、随访 (Z08)、个人史 (Z85)、状态 (Z95) 不可作为主诊断 (除特殊场景)。"
+          ],
+          "source": "internal_kb"
+        },
+        "duration_ms": 73,
+        "error": null,
+        "scope_granted": []
+      },
+      {
+        "tool_name": "explore_code",
+        "arguments": {
+          "code": "I50"
+        },
+        "result": {
+          "code": "I50",
+          "parent": {
+            "chapter": "第9章 循环系统疾病",
+            "chapter_no": "第9章",
+            "category_code": "I50",
+            "category_name": ""
+          },
+          "siblings": [
+            {
+              "code": "I50.000",
+              "name": "充血性心力衰竭"
+            },
+            {
+              "code": "I50.000x005",
+              "name": "右心室衰竭(继发于左心衰竭)"
+            },
+            {
+              "code": "I50.000x006",
+              "name": "急性右心衰竭"
+            },
+            {
+              "code": "I50.001",
+              "name": "右心衰竭"
+            },
+            {
+              "code": "I50.002",
+              "name": "全心衰竭"
+            },
+            {
+              "code": "I50.100",
+              "name": "左心室衰竭"
+            },
+            {
+              "code": "I50.100x006",
+              "name": "左心衰竭"
+            },
+            {
+              "code": "I50.101",
+              "name": "急性左心衰竭"
+            },
+            {
+              "code": "I50.102",
+              "name": "左心房衰竭"
+            },
+            {
+              "code": "I50.103",
+              "name": "左心衰竭合并急性肺水肿"
+            },
+            {
+              "code": "I50.104",
+              "name": "心源性哮喘"
+            },
+            {
+              "code": "I50.105",
+              "name": "慢性左心功能不全"
+            },
+            {
+              "code": "I50.900",
+              "name": "心力衰竭"
+            },
+            {
+              "code": "I50.900x001",
+              "name": "低心排综合征"
+            },
+            {
+              "code": "I50.900x002",
+              "name": "心功能不全"
+            },
+            {
+              "code": "I50.900x007",
+              "name": "心功能Ⅱ级(NYHA分级)"
+            },
+            {
+              "code": "I50.900x008",
+              "name": "心功能III级(NYHA分级)"
+            },
+            {
+              "code": "I50.900x009",
+              "name": "心功能Ⅱ--Ⅲ级(NYHA分级)"
+            },
+            {
+              "code": "I50.900x010",
+              "name": "心功能IV级(NYHA分级)"
+            },
+            {
+              "code": "I50.900x014",
+              "name": "KillipII级"
+            }
+          ],
+          "children": [
+            {
+              "code": "I50.000",
+              "name": "充血性心力衰竭"
+            },
+            {
+              "code": "I50.000x005",
+              "name": "右心室衰竭(继发于左心衰竭)"
+            },
+            {
+              "code": "I50.000x006",
+              "name": "急性右心衰竭"
+            },
+            {
+              "code": "I50.001",
+              "name": "右心衰竭"
+            },
+            {
+              "code": "I50.002",
+              "name": "全心衰竭"
+            },
+            {
+              "code": "I50.100",
+              "name": "左心室衰竭"
+            },
+            {
+              "code": "I50.100x006",
+              "name": "左心衰竭"
+            },
+            {
+              "code": "I50.101",
+              "name": "急性左心衰竭"
+            },
+            {
+              "code": "I50.102",
+              "name": "左心房衰竭"
+            },
+            {
+              "code": "I50.103",
+              "name": "左心衰竭合并急性肺水肿"
+            },
+            {
+              "code": "I50.104",
+              "name": "心源性哮喘"
+            },
+            {
+              "code": "I50.105",
+              "name": "慢性左心功能不全"
+            },
+            {
+              "code": "I50.900",
+              "name": "心力衰竭"
+            },
+            {
+              "code": "I50.900x001",
+              "name": "低心排综合征"
+            },
+            {
+              "code": "I50.900x002",
+              "name": "心功能不全"
+            },
+            {
+              "code": "I50.900x007",
+              "name": "心功能Ⅱ级(NYHA分级)"
+            },
+            {
+              "code": "I50.900x008",
+              "name": "心功能III级(NYHA分级)"
+            },
+            {
+              "code": "I50.900x009",
+              "name": "心功能Ⅱ--Ⅲ级(NYHA分级)"
+            },
+            {
+              "code": "I50.900x010",
+              "name": "心功能IV级(NYHA分级)"
+            },
+            {
+              "code": "I50.900x014",
+              "name": "KillipII级"
+            }
+          ],
+          "in_catalog": true
+        },
+        "duration_ms": 101,
+        "error": null,
+        "scope_granted": []
+      },
+      {
+        "tool_name": "search_codes",
+        "arguments": {
+          "query": "心力衰竭 未特指 心衰",
+          "top_k": 10
+        },
+        "result": {
+          "candidates": [
+            {
+              "code": "I50",
+              "name": "充血性心力衰竭",
+              "score": 1.0,
+              "chapter": "第9章 循环系统疾病",
+              "source": "lexical_catalog_fallback",
+              "matched_term": "心力衰竭"
+            },
+            {
+              "code": "I50.900",
+              "name": "心力衰竭",
+              "score": 1.0,
+              "chapter": "第9章 循环系统疾病",
+              "source": "lexical_catalog_fallback",
+              "matched_term": "心力衰竭"
+            },
+            {
+              "code": "I50.900x002",
+              "name": "心功能不全",
+              "score": 1.0,
+              "chapter": "第9章 循环系统疾病",
+              "source": "lexical_catalog_fallback",
+              "matched_term": "心力衰竭"
+            },
+            {
+              "code": "I50.900x018",
+              "name": "慢性心功能不全急性加重",
+              "score": 1.0,
+              "chapter": "第9章 循环系统疾病",
+              "source": "lexical_catalog_fallback",
+              "matched_term": "心力衰竭"
+            },
+            {
+              "code": "N00.900",
+              "name": "急性肾炎综合征",
+              "score": 1.0,
+              "chapter": "第14章 泌尿生殖系统疾病",
+              "source": "lexical_catalog_fallback",
+              "matched_term": "未特指"
+            },
+            {
+              "code": "N00.900x002",
+              "name": "急性肾炎",
+              "score": 1.0,
+              "chapter": "第14章 泌尿生殖系统疾病",
+              "source": "lexical_catalog_fallback",
+              "matched_term": "未特指"
+            },
+            {
+              "code": "N00.900x004",
+              "name": "链球菌感染后急性肾小球肾炎",
+              "score": 1.0,
+              "chapter": "第14章 泌尿生殖系统疾病",
+              "source": "lexical_catalog_fallback",
+              "matched_term": "未特指"
+            },
+            {
+              "code": "N00.900x006",
+              "name": "急性肾小球病",
+              "score": 1.0,
+              "chapter": "第14章 泌尿生殖系统疾病",
+              "source": "lexical_catalog_fallback",
+              "matched_term": "未特指"
+            },
+            {
+              "code": "N00.900x007",
+              "name": "慢性肾小球肾炎急性发作",
+              "score": 1.0,
+              "chapter": "第14章 泌尿生殖系统疾病",
+              "source": "lexical_catalog_fallback",
+              "matched_term": "未特指"
+            },
+            {
+              "code": "N00.900x008",
+              "name": "急性肾病",
+              "score": 1.0,
+              "chapter": "第14章 泌尿生殖系统疾病",
+              "source": "lexical_catalog_fallback",
+              "matched_term": "未特指"
+            }
+          ],
+          "source": "lexical_catalog_fallback",
+          "degraded": false,
+          "error_code": "MEDCODER_RETRIEVE_LEXICAL_FALLBACK",
+          "error_detail": "semantic retriever unavailable; exact catalog term/code lookup used"
+        },
+        "duration_ms": 95,
+        "error": null,
+        "scope_granted": []
+      }
+    ],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.llm-with-tools.v1",
+    "backend_type": "llm_with_tools",
+    "code": "I50.9",
+    "code_system": "ICD-10-CN",
+    "assignable": false,
+    "explanation_summary": "编码 I50.9 未通过 verify_code 验证，返回 in_catalog=false，即该编码不在 ICD-10-CN 编码目录（37,897 码）中，因此不可直接赋码。目录中实际存在的是 I50.900（心力衰竭）及其细分码（如 I50.900x001 低心排综合征、I50.900x002 心功能不全、I50.900x007 心功能Ⅱ级等）。I50.9 是 ICD-10 国际版中'心力衰竭，未特指'的写法，但在 ICD-10-CN 中需使用 I50.900 系列编码。",
+    "guideline_basis": [
+      "通用规则：使用最具体的编码——当存在更具体细分码时，不可使用 3 位类别码（例：I25 应选 I25.1）。I50 为类别码，其下存在 I50.900 等可赋码细分，故 I50.9 不可直接使用。",
+      "通用规则：不编码未在病历中明确记录的诊断——临床表现必须在病历正文中出现。",
+      "通用规则：主诊断必须能解释本次住院的主要治疗资源消耗。"
+    ],
+    "evidence_tool_refs": [
+      "verify_code(I50.9)：返回 in_catalog=false, assignable=false, chapter='', name=''——该编码不在目录中。",
+      "get_guidelines(I50.9)：返回通用规则 10 条，其中'使用最具体的编码'规则直接适用于本场景。",
+      "explore_code(I50)：返回 I50 为第9章循环系统疾病类别码，其 children 包含 I50.900（心力衰竭）、I50.900x001（低心排综合征）、I50.900x002（心功能不全）、I50.900x007（心功能Ⅱ级 NYHA 分级）等可赋码细分。",
+      "search_codes('心力衰竭 未特指 心衰')：返回候选 I50.900（心力衰竭，score=1.0）、I50.900x002（心功能不全）等，确认 I50.900 系列为心力衰竭相关可赋码编码。"
+    ],
+    "limitations": [
+      "I50.9 不在 ICD-10-CN 目录中，无法给出其目录事实（章节、中文名、同义词、父子层级）。",
+      "未提供具体病历临床描述，无法确定应选择 I50.900 系列中的哪一个细分码（如左心/右心/全心衰竭、NYHA 分级等）。",
+      "unsupported_scope：医保、DRG/DIP、医院结算及地方政策不在当前工具覆盖范围内，未作任何推断。",
+      "search_codes 返回 source=lexical_catalog_fallback（语义检索不可用，使用词法回退），候选结果仅供参考。"
+    ],
+    "manual_review_required": true,
+    "structured_extraction": {
+      "contract": "icoder/RuleExplanationOutput/v1",
+      "method": "json_block",
+      "warnings": [],
+      "required_fields": [
+        "status",
+        "code",
+        "code_system",
+        "assignable",
+        "explanation_summary",
+        "guideline_basis",
+        "evidence_tool_refs",
+        "limitations",
+        "manual_review_required"
+      ],
+      "missing_required_fields": [],
+      "valid": true
+    }
+  },
+  "evidence": [
+    {
+      "text": "verify_code"
+    },
+    {
+      "text": "get_guidelines"
+    },
+    {
+      "text": "explore_code"
+    },
+    {
+      "text": "search_codes"
+    }
+  ],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 11860,
+      "metadata": {
+        "agent_id": "rule-explainer",
+        "runtime_mode": "a2a_llm_with_tools",
+        "latency_ms": 11860
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 12.06
+}

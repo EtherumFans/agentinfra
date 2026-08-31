@@ -31,8 +31,34 @@ from app.icoder.agent_runtime.orchestrator.run_trace import (
     RunTraceStatus,
     RunTraceStep,
     RunTraceStore,
+    to_sync_database_url,
 )
 from app.models.run_history import RunHistoryModel
+
+
+@pytest.mark.parametrize(
+    ("source", "expected"),
+    [
+        ("sqlite+aiosqlite:///tmp/test.db", "sqlite:///tmp/test.db"),
+        (
+            "postgresql+asyncpg://user:pass@db:5432/icoder",
+            "postgresql+psycopg://user:pass@db:5432/icoder",
+        ),
+        (
+            "postgresql://user:pass@db:5432/icoder",
+            "postgresql+psycopg://user:pass@db:5432/icoder",
+        ),
+        (
+            "postgresql+psycopg://user:pass@db:5432/icoder",
+            "postgresql+psycopg://user:pass@db:5432/icoder",
+        ),
+    ],
+)
+def test_trace_store_uses_an_explicit_installed_sync_driver(
+    source: str,
+    expected: str,
+) -> None:
+    assert to_sync_database_url(source) == expected
 
 
 # ── §1 DbRunTraceStore.append persists events ─────────────────────

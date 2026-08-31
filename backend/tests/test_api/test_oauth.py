@@ -6,6 +6,7 @@ Phase 1.0 (2026-06-30) added four Corti-style enforcement points:
 3. Limited-scope credentials (capability scopes)
 4. Realm-routed token URL (path-parameter tenant slug)
 """
+import jwt
 import pytest
 from httpx import AsyncClient
 
@@ -101,11 +102,24 @@ async def test_unsupported_grant_type(auth_client: AsyncClient):
 # ────────────────────────────────────────────────────────────────────────────
 
 
-async def _create_client(auth_client: AsyncClient, name: str, scopes: str) -> tuple[str, str]:
+async def _create_client(
+    auth_client: AsyncClient,
+    name: str,
+    scopes: str,
+    *,
+    allowed_agent_ids: str = "",
+    allowed_purposes: str = "",
+) -> tuple[str, str]:
     """Helper: mint a fresh OAuth client + return (client_id, client_secret)."""
     resp = await auth_client.post(
         "/api/oauth/clients",
-        data={"name": name, "description": "p1.0", "scopes": scopes},
+        data={
+            "name": name,
+            "description": "p1.0",
+            "scopes": scopes,
+            "allowed_agent_ids": allowed_agent_ids,
+            "allowed_purposes": allowed_purposes,
+        },
     )
     assert resp.status_code == 200, resp.text
     data = resp.json()
@@ -135,6 +149,11 @@ async def test_p1_0_short_lived_token_default(auth_client: AsyncClient):
     assert token_data["expires_in"] == 300, (
         f"Expected 5-minute default (300s), got {token_data['expires_in']}"
     )
+    claims = jwt.decode(
+        token_data["access_token"],
+        options={"verify_signature": False, "verify_exp": False},
+    )
+    assert claims["org_id"]
 
 
 @pytest.mark.asyncio
@@ -155,12 +174,14 @@ async def test_p1_0_realm_routed_token_url(auth_client: AsyncClient):
     assert body["token_type"] == "Bearer"
     assert body["expires_in"] == 300
     assert body["realm"] == "base"
-    # Realm is also encoded as the org_id claim so downstream tenant
-    # cross-checks succeed without an extra DB hop.
-    from jose import jwt
-    claims = jwt.get_unverified_claims(body["access_token"])
+    # Realm routing is descriptive; it must not overwrite the OAuth client's
+    # authoritative organization isolation claim.
+    claims = jwt.decode(
+        body["access_token"],
+        options={"verify_signature": False, "verify_exp": False},
+    )
     assert claims["realm"] == "base"
-    assert claims["org_id"] == "base"
+    assert claims["org_id"]
 
 
 @pytest.mark.asyncio
@@ -207,6 +228,232 @@ async def test_p1_0_capability_scope_intersect(auth_client: AsyncClient):
     )
     assert bad.status_code == 400
     assert bad.json()["detail"]["error"] == "invalid_scope"
+
+
+@pytest.mark.asyncio
+async def test_client_token_rechecks_live_client_state_and_scope(
+    auth_client: AsyncClient, needs_auth,
+):
+    """Issued tokens cannot retain a scope removed later or outlive disable."""
+    import app.database as database
+    from sqlalchemy import select
+    from app.models.oauth import OAuthClient
+
+    cid, secret = await _create_client(
+        auth_client,
+        "Delegated live-state gate",
+        "agents:run coding:validate",
+        allowed_agent_ids="diagnosis-extractor",
+        allowed_purposes="treatment",
+    )
+    token = await _token(
+        auth_client,
+        client_id=cid,
+        client_secret=secret,
+        scope="agents:run coding:validate",
+    )
+    headers = {"Authorization": f"Bearer {token['access_token']}"}
+    payload = {"input": {"text": "去标识化测试"}, "purpose_of_use": "treatment"}
+
+    accepted = await auth_client.post(
+        "/api/v1/agents/diagnosis-extractor/run",
+        json=payload,
+        headers=headers,
+    )
+    assert accepted.status_code == 200
+
+    async with database.AsyncSessionLocal() as db:
+        client = (
+            await db.execute(select(OAuthClient).where(OAuthClient.client_id == cid))
+        ).scalar_one()
+        client.scopes = "agents:run"
+        await db.commit()
+    narrowed = await auth_client.post(
+        "/api/v1/agents/diagnosis-extractor/run",
+        json=payload,
+        headers=headers,
+    )
+    assert narrowed.status_code == 403
+    assert narrowed.json()["detail"]["code"] == "CLIENT_SCOPE_REVOKED"
+
+    async with database.AsyncSessionLocal() as db:
+        client = (
+            await db.execute(select(OAuthClient).where(OAuthClient.client_id == cid))
+        ).scalar_one()
+        client.scopes = "agents:run coding:validate"
+        client.is_active = False
+        await db.commit()
+    disabled = await auth_client.post(
+        "/api/v1/agents/this-agent-does-not-exist/run",
+        json=payload,
+        headers=headers,
+    )
+    assert disabled.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_machine_run_enforces_live_agent_and_purpose_delegation(
+    auth_client: AsyncClient, needs_auth,
+):
+    """A token cannot enlarge, retain, or forge server-owned delegation."""
+    import app.database as database
+    from sqlalchemy import select
+    from app.models.oauth import OAuthClient
+    from app.models.run_history import RunHistoryModel
+
+    cid, secret = await _create_client(
+        auth_client,
+        "Agent and purpose gate",
+        "agents:run",
+        allowed_agent_ids="diagnosis-extractor",
+        allowed_purposes="treatment",
+    )
+    token = await _token(
+        auth_client,
+        client_id=cid,
+        client_secret=secret,
+        scope="agents:run",
+    )
+    headers = {"Authorization": f"Bearer {token['access_token']}"}
+    text = {"input": {"text": "去标识化机器委托测试"}}
+
+    cross_agent = await auth_client.post(
+        "/api/v1/agents/medical-coding-agent/run",
+        json={**text, "purpose_of_use": "treatment"},
+        headers=headers,
+    )
+    assert cross_agent.status_code == 403
+    assert cross_agent.json()["detail"]["code"] == "AGENT_NOT_ALLOWED"
+
+    missing_purpose = await auth_client.post(
+        "/api/v1/agents/diagnosis-extractor/run", json=text, headers=headers,
+    )
+    assert missing_purpose.status_code == 403
+    assert missing_purpose.json()["detail"]["code"] == "PURPOSE_OF_USE_REQUIRED"
+
+    forged_purpose = await auth_client.post(
+        "/api/v1/agents/diagnosis-extractor/run",
+        json={**text, "purpose_of_use": "payment"},
+        headers=headers,
+    )
+    assert forged_purpose.status_code == 403
+    assert forged_purpose.json()["detail"]["code"] == "PURPOSE_NOT_ALLOWED"
+
+    accepted = await auth_client.post(
+        "/api/v1/agents/diagnosis-extractor/run",
+        json={**text, "purpose_of_use": "treatment"},
+        headers=headers,
+    )
+    assert accepted.status_code == 200, accepted.text
+    run_id = accepted.json()["run_id"]
+    async with database.AsyncSessionLocal() as db:
+        history = (
+            await db.execute(
+                select(RunHistoryModel).where(RunHistoryModel.run_id == run_id)
+            )
+        ).scalar_one()
+        assert history.api_client_id == cid
+        assert history.delegated_subject_id
+        assert history.purpose_of_use == "treatment"
+
+        oauth_client = (
+            await db.execute(select(OAuthClient).where(OAuthClient.client_id == cid))
+        ).scalar_one()
+        oauth_client.allowed_purposes = []
+        await db.commit()
+
+    revoked_purpose = await auth_client.post(
+        "/api/v1/agents/diagnosis-extractor/run",
+        json={**text, "purpose_of_use": "treatment"},
+        headers=headers,
+    )
+    assert revoked_purpose.status_code == 403
+    assert revoked_purpose.json()["detail"]["code"] == "PURPOSE_NOT_ALLOWED"
+
+    async with database.AsyncSessionLocal() as db:
+        oauth_client = (
+            await db.execute(select(OAuthClient).where(OAuthClient.client_id == cid))
+        ).scalar_one()
+        oauth_client.allowed_purposes = ["treatment"]
+        oauth_client.allowed_agent_ids = []
+        await db.commit()
+
+    revoked_agent = await auth_client.post(
+        "/api/v1/agents/diagnosis-extractor/run",
+        json={**text, "purpose_of_use": "treatment"},
+        headers=headers,
+    )
+    assert revoked_agent.status_code == 403
+    assert revoked_agent.json()["detail"]["code"] == "AGENT_NOT_ALLOWED"
+
+
+@pytest.mark.asyncio
+async def test_client_token_rechecks_delegated_subject_membership(
+    auth_client: AsyncClient, needs_auth,
+):
+    """Removing the owner from the tenant immediately invalidates delegation."""
+    import app.database as database
+    from sqlalchemy import delete, select
+    from app.models.oauth import OAuthClient
+    from app.models.organization import OrganizationMember
+
+    cid, secret = await _create_client(
+        auth_client,
+        "Delegated membership gate",
+        "agents:run",
+        allowed_agent_ids="diagnosis-extractor",
+        allowed_purposes="treatment",
+    )
+    token = await _token(
+        auth_client,
+        client_id=cid,
+        client_secret=secret,
+        scope="agents:run",
+    )
+    headers = {"Authorization": f"Bearer {token['access_token']}"}
+    payload = {
+        "input": {"text": "去标识化成员撤销测试"},
+        "purpose_of_use": "treatment",
+    }
+
+    async with database.AsyncSessionLocal() as db:
+        oauth_client = (
+            await db.execute(select(OAuthClient).where(OAuthClient.client_id == cid))
+        ).scalar_one()
+        membership = (
+            await db.execute(
+                select(OrganizationMember).where(
+                    OrganizationMember.organization_id == oauth_client.organization_id,
+                    OrganizationMember.user_id == oauth_client.owner_id,
+                )
+            )
+        ).scalar_one()
+        saved = {
+            "id": membership.id,
+            "organization_id": membership.organization_id,
+            "user_id": membership.user_id,
+            "role": membership.role,
+            "is_default": membership.is_default,
+        }
+        await db.execute(
+            delete(OrganizationMember).where(OrganizationMember.id == membership.id)
+        )
+        await db.commit()
+
+    try:
+        denied = await auth_client.post(
+            "/api/v1/agents/diagnosis-extractor/run",
+            json=payload,
+            headers=headers,
+        )
+        assert denied.status_code == 403
+        assert denied.json()["detail"] == (
+            "Delegated subject organization membership required"
+        )
+    finally:
+        async with database.AsyncSessionLocal() as db:
+            db.add(OrganizationMember(**saved))
+            await db.commit()
 
 
 @pytest.mark.asyncio
@@ -283,7 +530,7 @@ async def test_p1_0_tenant_header_mismatch_with_jwt(auth_client: AsyncClient):
     ``org_id`` claim. They must agree. Test targets a non-exempt route
     (``/api/encounters``) so the middleware fires before route-level auth.
     """
-    from jose import jwt
+    import jwt
     from app.config import settings
 
     # Forge a JWT whose org_id does NOT match the header we will send.

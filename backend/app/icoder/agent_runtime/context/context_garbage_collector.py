@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Callable
 
 from .context_audit import ContextAudit
@@ -45,7 +45,12 @@ class ContextGarbageCollector:
         self._audit = audit
         self._interval = sweep_interval_seconds
         self._audit_prune_enabled = audit_prune_enabled
-        self._now = now_fn or (lambda: datetime.utcnow())
+        # Context persistence currently uses timezone-naive SQL DateTime
+        # columns. Derive that value from an aware UTC clock without relying on
+        # Python's deprecated datetime.utcnow().
+        self._now = now_fn or (
+            lambda: datetime.now(UTC).replace(tzinfo=None)
+        )
         self._sleep = sleep_fn or asyncio.sleep
         self._task: asyncio.Task | None = None
         self._stop = asyncio.Event()

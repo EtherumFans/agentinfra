@@ -52,6 +52,7 @@ export interface EvidenceSpan {
   quote: string;
   char_start?: number;
   char_end?: number;
+  documented_at?: string;
 }
 
 export interface DocumentationGapDTO {
@@ -69,12 +70,41 @@ export interface ProviderQueryDTO {
   topic: string;
   reason: string;
   evidence_span: EvidenceSpan;
+  evidence_spans?: EvidenceSpan[];
   query_text: string;
   response_options: string[];
   priority: 'routine' | 'urgent';
   lifecycle_state: LifecycleState;
   nlq_gate_verdict: NLQVerdict;
   nlq_gate_block_reasons: string[];
+}
+
+export type QueryAuditStatus =
+  | 'NEEDS_QUERY_DRAFT'
+  | 'NEEDS_CDI_REWRITE'
+  | 'NEEDS_EVIDENCE_REWRITE'
+  | 'NEEDS_NON_LEADING_REWRITE'
+  | 'REWRITE_CANDIDATE_GENERATED'
+  | 'REJECTED_AS_INELIGIBLE'
+  | 'REJECTED_AS_UNNECESSARY'
+  | 'REJECTED_BY_CLAIM_EVIDENCE'
+  | 'REJECTED_BY_SEMANTIC_NECESSITY';
+
+export interface QueryAuditItemDTO {
+  query_id: string;
+  gap_id: string;
+  topic?: string;
+  reason?: string;
+  query_text?: string;
+  response_options?: string[];
+  evidence_spans?: EvidenceSpan[];
+  gate_reasons?: string[];
+  detected_axes?: string[];
+  status: QueryAuditStatus | string;
+  gap_reference_valid?: boolean;
+  replacement_query_id?: string;
+  rewrite_attempt_status?: string;
+  rewrite_attempt_reasons?: string[];
 }
 
 export interface CDIRunResponse {
@@ -90,6 +120,7 @@ export interface CDIRunResponse {
   encounter_summary?: { key_points: string[] };
   documentation_gaps: DocumentationGapDTO[];
   proposed_provider_queries: ProviderQueryDTO[];
+  query_rewrite_queue: QueryAuditItemDTO[];
   risk_flags: { category: string; description: string }[];
   specialist_trace: SpecialistTraceEntry[];
   stage_run_ids?: Record<string, string>;
@@ -126,6 +157,22 @@ export interface CDIHealthResponse {
   router: string;
   endpoints: string[];
   boundaries_enforced: string[];
+}
+
+export interface CDIAuditDashboard {
+  generated_at: string;
+  total_cases: number;
+  total_queries: number;
+  queries_by_state: Record<string, number>;
+  queries_by_priority: Record<string, number>;
+  breaches_critical: number;
+  breaches_warning: number;
+  response_category_distribution: Record<string, number>;
+  average_hours_to_response: number | null;
+  average_hours_to_close: number | null;
+  top_gap_types: Array<[string, number]>;
+  escalation_rate: number;
+  note: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -192,5 +239,10 @@ export async function transitionQuery(
 
 export async function cdiHealth(): Promise<CDIHealthResponse> {
   const { data } = await cdiApi.get<CDIHealthResponse>('/health');
+  return data;
+}
+
+export async function getCDIAuditDashboard(): Promise<CDIAuditDashboard> {
+  const { data } = await cdiApi.get<CDIAuditDashboard>('/audit/dashboard');
   return data;
 }

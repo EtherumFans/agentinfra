@@ -1,0 +1,388 @@
+{
+  "case_id": "CASE-d20f33c83763",
+  "completion_state": "REVIEW_RECOMMENDED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-d20f33c83763/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "The diagnosis of upper gastrointestinal bleeding is documented, but the underlying cause (esophageal variceal bleeding) is confirmed by endoscopy. However, the documentation does not specify the severity of the bleeding episode (e.g., massive, moderate) or the hemodynamic status beyond vital signs. This lack of severity specification may affect coding for severity and resource utilization.",
+      "why_it_matters": "Severity of bleeding is a key clinical factor that influences treatment intensity, monitoring, and prognosis. Without explicit severity documentation, coding may not capture the full complexity of the case, potentially affecting DRG assignment and reimbursement.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "呕血1天。Hb 75, BP 95/60, HR 110。",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-d20f33c83763/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "The chart documents '乙肝肝硬化史' (history of hepatitis B cirrhosis) but does not specify the current status of the liver disease, such as decompensation (e.g., ascites, encephalopathy, jaundice) or the severity of cirrhosis (e.g., Child-Pugh class). This lack of specificity may affect coding for cirrhosis-related complications.",
+      "why_it_matters": "Cirrhosis severity and decompensation status are important for coding and risk adjustment. Without this information, the documentation may not fully capture the patient's clinical complexity, potentially leading to undercoding.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "乙肝肝硬化史",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-d20f33c83763/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "The chart documents '食管静脉曲张出血' (esophageal variceal bleeding) but does not specify the anatomical site of the varices (e.g., lower esophagus, upper esophagus) or the grade of the varices (e.g., grade I-IV). This lack of anatomical site and grade specificity may affect coding for the variceal bleeding.",
+      "why_it_matters": "Specificity of the anatomical site and grade of varices is important for accurate coding and for guiding treatment decisions. Without this detail, coding may not capture the precise condition, potentially affecting quality measures and reimbursement.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "胃镜:食管静脉曲张出血",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-d20f33c83763/GAP-004",
+      "gap_type": "diagnostic_specificity",
+      "description": "The chart documents '已套扎' (band ligation performed) but does not specify the number of bands placed or the completeness of the ligation. This lack of procedural detail may affect coding for the procedure and for any residual bleeding risk.",
+      "why_it_matters": "The extent of band ligation is relevant for coding the procedure and for assessing the risk of rebleeding. Without this detail, the documentation may be incomplete for accurate coding.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "已套扎",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-d20f33c83763/Q-001",
+      "gap_id": "CASE-d20f33c83763/GAP-002",
+      "topic": "Current status of liver disease",
+      "reason": "The chart documents history of hepatitis B cirrhosis but does not specify current decompensation status or severity (e.g., Child-Pugh class).",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "乙肝肝硬化史",
+        "char_start": 11,
+        "char_end": 17,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "乙肝肝硬化史",
+          "char_start": 11,
+          "char_end": 17,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "根据现有资料（乙肝肝硬化史），请明确当前肝硬化的状态。",
+      "response_options": [
+        "A. 代偿期肝硬化",
+        "B. 失代偿期肝硬化（如腹水、肝性脑病、黄疸等）",
+        "C. 肝硬化伴食管静脉曲张出血",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    },
+    {
+      "query_id": "CASE-d20f33c83763/Q-002",
+      "gap_id": "CASE-d20f33c83763/GAP-004",
+      "topic": "Number of bands and completeness of ligation",
+      "reason": "The chart documents band ligation but does not specify the number of bands placed or completeness of ligation.",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "已套扎",
+        "char_start": 61,
+        "char_end": 64,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "已套扎",
+          "char_start": 61,
+          "char_end": 64,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "根据内镜下套扎治疗记录，请明确套扎的具体情况。",
+      "response_options": [
+        "A. 套扎1个环，完全套扎",
+        "B. 套扎2个环，完全套扎",
+        "C. 套扎多个环，部分套扎",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    }
+  ],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-001",
+      "gap_id": "CASE-d20f33c83763/GAP-001",
+      "topic": "Severity of upper gastrointestinal bleeding",
+      "reason": "The chart documents upper gastrointestinal bleeding but does not specify the severity of the bleeding episode (e.g., massive, moderate) or hemodynamic status beyond vital signs.",
+      "query_text": "根据现有资料（呕血1天，Hb 75，BP 95/60，HR 110），请明确本次上消化道出血的严重程度分级。",
+      "response_options": [
+        "A. 轻度出血",
+        "B. 中度出血",
+        "C. 重度出血（大量出血）",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "呕血1天。Hb 75, BP 95/60, HR 110。",
+          "char_start": 19,
+          "char_end": 48,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-004: blood pressure, heart rate, and haemoglobin are explicit"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-003",
+      "gap_id": "CASE-d20f33c83763/GAP-003",
+      "topic": "Anatomical site and grade of esophageal varices",
+      "reason": "The chart documents esophageal variceal bleeding but does not specify the anatomical site or grade of the varices.",
+      "query_text": "根据胃镜结果（食管静脉曲张出血），请明确食管静脉曲张的具体解剖部位和分级。",
+      "response_options": [
+        "A. 下段食管静脉曲张，I级",
+        "B. 下段食管静脉曲张，II级",
+        "C. 中上段食管静脉曲张，III级",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "胃镜:食管静脉曲张出血",
+          "char_start": 48,
+          "char_end": 59,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-004: blood pressure, heart rate, and haemoglobin are explicit"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者男性, 62岁, 乙肝肝硬化史, 呕血1天。Hb 75, BP 95/60, HR 110。胃镜:食管静脉曲张出血, 已套扎。入院诊断:上消化道出血。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者男性，62岁",
+      "乙肝肝硬化病史",
+      "呕血1天",
+      "血红蛋白75g/L",
+      "血压95/60mmHg",
+      "心率110次/分",
+      "胃镜示食管静脉曲张出血，已行套扎治疗",
+      "入院诊断：上消化道出血"
+    ],
+    "encounter_metadata": {
+      "patient_age": "62岁",
+      "patient_sex": "男性",
+      "encounter_type": "住院"
+    }
+  },
+  "risk_flags": [
+    {
+      "category": "unsupported_diagnosis",
+      "description": "The diagnosis of '上消化道出血' (upper gastrointestinal bleeding) is supported by symptoms (呕血) and lab (Hb 75), but the specific source is confirmed by endoscopy. However, the diagnosis of '乙肝肝硬化' is stated as history without current evidence of active disease, but it is a historical diagnosis, so it is not unsupported. No risk flags identified."
+    }
+  ],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "To ensure accurate coding, the documentation must specify the severity of the bleeding episode (e.g., massive vs. moderate) and the patient’s hemodynamic status (e.g., shock, transfusion requirement) to reflect resource intensity. Additionally, clarify the current status of cirrhosis (e.g., decompensated with ascites, encephalopathy, or jaundice) and the Child-Pugh class, as well as the anatomical site and grade of the esophageal varices (e.g., lower third, grade III) to capture the full clinical complexity. Finally, document the number of bands placed and whether ligation was complete or incomplete, as this procedural detail impacts coding for the intervention and residual bleeding risk.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3141,
+      "tokens": 512
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "'grade' score — parameters absent from chart",
+      "route_decision": "missing_inputs",
+      "route_reason": "calculator_params_missing",
+      "execution_mode": "SKIPPED_MISSING_INPUTS",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-2fb4180d535d",
+    "gap_identification": "run-8345d6de417a",
+    "gap_identification_risk_flags": "emitted=1;quote_snapped=0",
+    "expert_consultation": "run-93b37a83d35c",
+    "query_generation": "run-91af945819ce",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.25;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=Y,D8_course=N;dropped=0;final_count=4;llm_complete=False;llm_reasoning=The chart documents the diagnosis of upper gastrointestinal bleeding and the con",
+    "query_necessity_gate": "necessary=2;unnecessary=2;overquery_triggered=False;final_count=2",
+    "query_single_dimension_gate": "single_dim=2;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;rewrite_attempted=0;rewrite_accepted=0;final_count=2",
+    "claim_evidence_alignment_gate": "claims_extracted=4;blocked=0;flagged=0;final_count=2",
+    "claim_evidence_alignment_gate::run_id": "run-bd863824a7ba",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=2",
+    "semantic_necessity_gate::run_id": "run-d74b85f902a6",
+    "query_compliance_gate": ";passed=2;blocked=0",
+    "specialist_trace_emit": "run-1ecff15cdc56"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-5611a1464d83",
+    "gap_identification": "trace-e1a9feacb1bf",
+    "expert_consultation": "trace-2c61295473c0",
+    "query_generation": "trace-abcf5749eb19",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-a3da512efe66",
+    "semantic_necessity_gate": "trace-c451db35289c",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-b143a7b1fe10"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2639,
+      "prompt_tokens": 224,
+      "completion_tokens": 117,
+      "total_tokens": 341,
+      "run_id": "run-2fb4180d535d",
+      "trace_id": "trace-5611a1464d83",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 10636,
+      "prompt_tokens": 1066,
+      "completion_tokens": 994,
+      "total_tokens": 2060,
+      "run_id": "run-8345d6de417a",
+      "trace_id": "trace-e1a9feacb1bf",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 7078,
+      "prompt_tokens": 1362,
+      "completion_tokens": 923,
+      "total_tokens": 2285,
+      "run_id": "run-91af945819ce",
+      "trace_id": "trace-abcf5749eb19",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3141,
+      "prompt_tokens": 372,
+      "completion_tokens": 140,
+      "total_tokens": 512,
+      "run_id": "run-b4526f0cb70b",
+      "trace_id": "trace-88e92378a435",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-403ddc645412",
+      "trace_id": "trace-a4a77992e6db",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-880cfc275022",
+      "trace_id": "trace-477048e7f73b",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-98510d049454",
+      "trace_id": "trace-8ae1b7ccb05c",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T17:57:13.523583Z"
+}

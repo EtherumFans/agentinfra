@@ -5,19 +5,13 @@ Tests the 9 requirements per prompt §7 — 4 P0 non-Medical-Coding agents
 discharge-summary-structuring) run stably via the A2A-compatible
 unified Agent Run endpoint and produce structured envelopes.
 
-Architecture (§2):
-  - All 4 agents route through ProviderRegistry → PureLLMProvider.
-  - Under LLM_PROVIDER=mock, MockLLMProvider returns a deterministic
-    generic JSON (doesn't match each agent's output_contract, but
-    exercises the full envelope construction + trace persistence path).
-  - Tests assert envelope structure (13 fields, run_id, trace_id,
-    runtime_mode=a2a_pure_llm, latency_ms < 30000, trace_events
-    persisted and retrievable). Tests do NOT assert specific output
-    field shapes — those are validated by agent_pack.json schema
-    validation and will be exercised by real DeepSeek in browser
-    walkthrough (§9).
-
-Browser walkthrough (§9) covers real-DeepSeek output shape parity.
+Current architecture:
+  - All four agents use governed deterministic local providers and publish
+    their full contracts offline.
+  - Legacy free-text fixtures must fail safe with INPUT_REQUIRED where the
+    current contract requires explicit, evidence-bound structured inputs.
+  - Tests assert both the common envelope and the safety boundary appropriate
+    to each execution path; no real model or browser session is required.
 """
 from __future__ import annotations
 
@@ -77,11 +71,71 @@ def _assert_envelope_shape(data: dict, agent_id: str, fix: dict) -> None:
                   "cost", "summary", "result", "evidence", "warnings",
                   "manual_review_required", "trace_events", "error", "error_reason"):
         assert field in data, f"missing envelope field: {field}"
-    # No error
-    assert data["error"] is False, (
-        f"error=True for {agent_id}: reason={data.get('error_reason')}; "
-        f"summary={data.get('summary')}"
-    )
+    if agent_id == "evidence-extractor":
+        assert data["error"] is False
+        assert data["result"]["extraction_status"] == "COMPLETED"
+        assert data["result"]["match_basis"] == (
+            "EXACT_CATALOG_TERM_OR_CODE_LITERAL_ONLY"
+        )
+        assert data["result"]["uncoded_findings"] == []
+    elif agent_id == "principal-diagnosis-review":
+        result = data["result"]
+        assert data["error"] is False
+        assert result["backend_provider"] == (
+            "icoder.governed-principal-diagnosis-review.v1"
+        )
+        assert result["backend_type"] == "rule_engine"
+        assert result["review_status"] == "INPUT_REQUIRED"
+        assert result["review_method"] == (
+            "DOCUMENTED_DRAFT_EVIDENCE_AND_SET_CONSISTENCY_ONLY"
+        )
+        assert result["diagnosis_extraction_performed"] is False
+        assert result["code_assignment_performed"] is False
+        assert result["principal_diagnosis_selection_performed"] is False
+        assert result["clinical_inference_performed"] is False
+        assert result["production_writeback_blocked"] is True
+        assert result["manual_review_required"] is True
+    elif agent_id == "drg-analyzer":
+        result = data["result"]
+        assert data["error"] is False
+        assert result["backend_provider"] == (
+            "icoder.governed-drg-dip-risk-review.v1"
+        )
+        assert result["backend_type"] == "rule_engine"
+        assert result["review_status"] == "INPUT_REQUIRED"
+        assert result["review_method"] == (
+            "EXPLICIT_CODED_CASE_DETERMINISTIC_UNVERIFIED_RISK_REVIEW"
+        )
+        assert result["local_development_rules_used"] is False
+        assert result["official_grouping_performed"] is False
+        assert result["official_dip_scoring_performed"] is False
+        assert result["payment_calculation_performed"] is False
+        assert result["billing_authoritative"] is False
+        assert result["production_writeback_blocked"] is True
+        assert result["manual_review_required"] is True
+    elif agent_id == "discharge-summary-structuring":
+        # The legacy single-paragraph fixture has no supported line-level
+        # headings. The governed local parser must not summarize it anyway.
+        result = data["result"]
+        assert data["error"] is False
+        assert result["backend_provider"] == (
+            "icoder.governed-discharge-summary.v1"
+        )
+        assert result["backend_type"] == "rule_engine"
+        assert result["structuring_status"] == "INPUT_REQUIRED"
+        assert result["diagnoses"] == []
+        assert result["procedures"] == []
+        assert result["discharge_orders"] == []
+        assert result["follow_up_recommendations"] == []
+        assert result["evidence_items"] == []
+        assert result["summary_generation_status"] == (
+            "VERBATIM_SECTION_REORGANIZATION_ONLY"
+        )
+        assert result["icd_codes_assigned"] is False
+        assert result["medication_reconciliation_performed"] is False
+        assert result["clinical_inference_performed"] is False
+        assert result["production_writeback_blocked"] is True
+        assert result["manual_review_required"] is True
 
 
 def test_f3_1_evidence_extractor_returns_structured_envelope(client: TestClient) -> None:
@@ -146,17 +200,17 @@ def test_f3_4_discharge_summary_structuring_returns_structured_envelope(
     _assert_envelope_shape(data, "discharge-summary-structuring", fix)
 
 
-# ── §7 #5: runtime_mode = a2a_pure_llm for all 4 P0 agents ─────────────
+# ── §7 #5: runtime_mode matches the authoritative execution path ────────
 
 
 @pytest.mark.parametrize("agent_id,fixture_name", P0_AGENTS)
-def test_f3_5_runtime_mode_is_a2a_pure_llm(
+def test_f3_5_runtime_mode_matches_authoritative_execution_path(
     client: TestClient, agent_id: str, fixture_name: str,
 ) -> None:
     """§7 #5: runtime_mode reflects each agent's default_runtime_mode.
 
-    All 4 P0 packs declare ``default_runtime_mode = "a2a_pure_llm"`` —
-    the response.runtime_mode must match.
+    The response runtime_mode must match the pack's authoritative local or
+    external execution mode.
     """
     fix = _load_fixture(fixture_name)
     resp = client.post(
@@ -170,8 +224,14 @@ def test_f3_5_runtime_mode_is_a2a_pure_llm(
     )
     assert resp.status_code == 200
     data = resp.json()
-    assert data["runtime_mode"] == "a2a_pure_llm", (
-        f"{agent_id}: runtime_mode should be 'a2a_pure_llm', "
+    expected = {
+        "evidence-extractor": "governed_local_exact_mention_extraction",
+        "principal-diagnosis-review": "rule_engine",
+        "drg-analyzer": "governed_local_explicit_coded_case_risk_review",
+        "discharge-summary-structuring": "rule_engine",
+    }[agent_id]
+    assert data["runtime_mode"] == expected, (
+        f"{agent_id}: runtime_mode should be {expected!r}, "
         f"got: {data['runtime_mode']}"
     )
 
@@ -312,3 +372,5 @@ def test_f3_9_unknown_non_medical_coding_agent_returns_structured_error(
     )
     assert data["agent_id"] == "nonexistent-p0-agent-xyz"
     assert data["run_id"].startswith("run-")
+    assert data["manual_review_required"] is True
+    assert data["result"] == {"contract_output_suppressed": True}

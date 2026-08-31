@@ -237,6 +237,25 @@ def test_find_sla_breaches_critical() -> None:
     assert breaches[0].hours_overdue > 0
 
 
+def test_find_sla_breaches_accepts_sqlite_naive_utc_timestamp() -> None:
+    """SQLite may return persisted UTC timestamps without tzinfo."""
+
+    now = datetime(2026, 8, 12, 12, 0, tzinfo=timezone.utc)
+    query = {
+        "query_id": "q-sqlite",
+        "case_id": "c1",
+        "priority": "routine",
+        "approved_at": datetime(2026, 8, 8, 8, 0),
+        "lifecycle_state": "SENT_TO_CLINICIAN",
+    }
+
+    breaches = find_sla_breaches([query], now=now)
+
+    assert len(breaches) == 1
+    assert breaches[0].approved_at.tzinfo == timezone.utc
+    assert breaches[0].severity == "critical"
+
+
 def test_find_sla_breaches_warning_at_80pct() -> None:
     """Query past 80% of SLA window but not yet due = warning."""
 

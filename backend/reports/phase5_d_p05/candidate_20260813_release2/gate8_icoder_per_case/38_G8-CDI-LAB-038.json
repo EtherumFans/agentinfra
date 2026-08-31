@@ -1,0 +1,245 @@
+{
+  "case_id": "CASE-7af3e7398091",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-7af3e7398091/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "HBsAg positive with HBeAg negative and Anti-HBe positive indicates inactive carrier state, but the clinical significance and need for further monitoring are not explicitly documented.",
+      "why_it_matters": "Clarifying the clinical significance of the lab findings ensures accurate coding of chronic viral hepatitis B without delta-agent, and guides appropriate follow-up.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "HBsAg 阳性, Anti-HBs <REDACTED:NAME>, HBeAg <REDACTED:NAME>, Anti-HBe 阳性, HBV-DNA < 500",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-001",
+      "gap_id": "CASE-7af3e7398091/GAP-001",
+      "topic": "HBsAg阳性携带状态的临床意义及监测计划",
+      "reason": "患者HBsAg阳性，HBeAg阴性，Anti-HBe阳性，HBV-DNA<500，提示可能为非活动性携带状态，但病历未明确记录该状态的临床意义及是否需要进一步监测。",
+      "query_text": "根据患者HBsAg阳性、HBeAg阴性、Anti-HBe阳性及HBV-DNA<500的结果，请明确该患者目前乙肝病毒感染状态的临床评估及后续监测计划。",
+      "response_options": [
+        "A. 非活动性HBsAg携带状态，无需特殊治疗，建议定期监测肝功能和HBV-DNA",
+        "B. 慢性乙型肝炎，需进一步评估肝纤维化程度并考虑抗病毒治疗",
+        "C. 乙型肝炎康复期，具有免疫力，无需特殊处理",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "HBsAg 阳性, Anti-HBs <REDACTED:NAME>, HBeAg <REDACTED:NAME>, Anti-HBe 阳性, HBV-DNA < 500",
+          "char_start": 18,
+          "char_end": 103,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-004: query is grounded in or asks to decode a REDACTED placeholder"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者男性, 50岁, 体检。无症状。HBsAg 阳性, Anti-HBs <REDACTED:NAME>, HBeAg <REDACTED:NAME>, Anti-HBe 阳性, HBV-DNA < 500。肝功能正常。腹部B超:肝脏回声均匀, 无肝硬化征象。既往:无。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者男性，50岁，体检发现HBsAg阳性",
+      "Anti-HBs阴性，HBeAg阴性，Anti-HBe阳性",
+      "HBV-DNA < 500 IU/mL",
+      "肝功能正常",
+      "腹部B超示肝脏回声均匀，无肝硬化征象",
+      "无症状，既往无特殊病史"
+    ],
+    "encounter_metadata": {
+      "patient_age": "50岁",
+      "patient_sex": "男性",
+      "encounter_type": "体检"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "The clinical documentation should explicitly state the diagnosis of an inactive hepatitis B carrier state, including the absence of active viral replication and normal liver function, to justify the need for ongoing surveillance. Please specify the recommended monitoring interval (e.g., every 6–12 months) for ALT, HBV-DNA, and liver ultrasound, as well as any plan for hepatocellular carcinoma screening, to support the clinical significance of this serologic pattern.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 2774,
+      "tokens": 244
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-509ae950133d",
+    "gap_identification": "run-ab8b1e8fe5d6",
+    "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
+    "expert_consultation": "run-a9d8db54974f",
+    "query_generation": "run-1aa39a091ea1",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=1;llm_complete=False;llm_reasoning=The chart documents HBsAg positivity with serology consistent with inactive carr",
+    "query_necessity_gate": "necessary=0;unnecessary=1;overquery_triggered=False;final_count=0",
+    "query_single_dimension_gate": "single_dim=0;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;rewrite_attempted=0;rewrite_accepted=0;final_count=0",
+    "claim_evidence_alignment_gate": "claims_extracted=0;blocked=0;flagged=0;final_count=0",
+    "claim_evidence_alignment_gate::run_id": "run-55ddf008f5ae",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+    "semantic_necessity_gate::run_id": "run-3818ae3278fd",
+    "query_compliance_gate": ";passed=0;blocked=0",
+    "specialist_trace_emit": "run-9a7263de39ce"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-9c1033607497",
+    "gap_identification": "trace-5e2da2fce16f",
+    "expert_consultation": "trace-8d141bca4fc0",
+    "query_generation": "trace-115ed3ec7c22",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-742d52730472",
+    "semantic_necessity_gate": "trace-710c61fa9d11",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-29dd0140c987"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3026,
+      "prompt_tokens": 242,
+      "completion_tokens": 119,
+      "total_tokens": 361,
+      "run_id": "run-509ae950133d",
+      "trace_id": "trace-9c1033607497",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 4049,
+      "prompt_tokens": 1083,
+      "completion_tokens": 263,
+      "total_tokens": 1346,
+      "run_id": "run-ab8b1e8fe5d6",
+      "trace_id": "trace-5e2da2fce16f",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 4138,
+      "prompt_tokens": 1067,
+      "completion_tokens": 361,
+      "total_tokens": 1428,
+      "run_id": "run-1aa39a091ea1",
+      "trace_id": "trace-115ed3ec7c22",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2774,
+      "prompt_tokens": 160,
+      "completion_tokens": 84,
+      "total_tokens": 244,
+      "run_id": "run-a1924b4efd18",
+      "trace_id": "trace-bcd6e7e34f85",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-7c776435be6f",
+      "trace_id": "trace-35fabdfe1c39",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-413314928326",
+      "trace_id": "trace-7d004aefe1cb",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-729f515bac7d",
+      "trace_id": "trace-9daa6669a790",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T19:44:15.572010Z"
+}

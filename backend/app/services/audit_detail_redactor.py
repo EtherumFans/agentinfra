@@ -51,25 +51,58 @@ logger = logging.getLogger(__name__)
 _ALLOWED_DETAIL_KEYS: frozenset[str] = frozenset({
     # Run / agent identity (operational metadata)
     "run_id", "trace_id", "agent_id", "agent_version", "expert_id",
+    # Agent-definition lifecycle provenance. These values are server-owned
+    # identifiers, enum states, semantic versions, or bounded field-name lists;
+    # prompt/config values are intentionally never included.
+    "source_agent_ref", "source_runtime_agent_id", "changed_fields",
+    "previous_status",
+    "connector_id", "connector_type", "credential_provider", "credential_version",
+    "connector_graph_revision", "connector_node_count",
     "api_client_id", "embedded_app_id", "session_id", "context_id",
     "request_id", "correlation_id",
     # Resource identity (operational metadata, NOT PHI)
     "encounter_id", "case_id", "document_id", "review_id", "code_id",
-    "resource_type", "resource_id",
+    "resource_type", "resource_id", "organization_id", "org_id",
+    "invite_id", "target_user_id",
     # Action context (operational metadata)
     "action", "endpoint", "method", "status", "status_code",
-    "reason", "stage", "step", "outcome", "duration_ms", "latency_ms",
+    "reason", "reason_code", "error_code", "stage", "step", "outcome", "duration_ms", "latency_ms",
+    "attempts", "retry_delay_seconds",
     "tokens_used", "cost", "currency", "model_version",
     # Auth context (operational metadata)
-    "role", "scope", "scopes_granted", "scopes_required",
+    "role", "old_role", "new_role", "old_active", "new_active",
+    "ticket_id", "expected_token_version", "actual_token_version",
+    "tokens_revoked", "clients_disabled", "scope", "scopes_granted", "scopes_required",
     "auth_type", "ip_address_hashed",
     # System metadata
-    "version", "deployment_mode", "environment", "region",
+    "version", "deployment_mode", "runtime_mode", "environment", "region",
+    # Tenant model routing (enumerated mode + operator-defined deployment ID).
+    "selection_mode", "previous_selection_mode",
+    "model_deployment_id", "previous_model_deployment_id",
+    # Model deployment health probe metadata. These values are bounded
+    # identifiers/enums/booleans; no credential or endpoint value is ever
+    # accepted here.
+    "deployment_id", "provider_id", "probe_mode", "egress_decision",
+    "circuit_open", "credential_configured", "max_cost", "estimated_max_cost",
+    "max_output_tokens", "timeout_seconds", "cooldown_seconds",
+    "synthetic_payload", "patient_data_sent", "acknowledged",
+    "expected_token_matched", "billing_authoritative",
+    # Development billing ledger simulation metadata. Amounts are bounded
+    # numeric values; reference is an operator-supplied non-PHI identifier.
+    "amount", "balance", "balance_before", "new_balance", "simulation", "source",
+    "reference", "reserved_amount", "settled_amount", "held_amount",
+    "available_balance",
     # Boolean flags
     "success", "is_retry", "is_test", "is_system_event",
+    "enabled", "previous_enabled",
     # Counts (no PHI in a count)
     "input_tokens", "output_tokens", "token_count",
     "expert_count", "tool_count", "issue_count",
+    # Agentic observability and caller-feedback events. Values are bounded
+    # enums, booleans, numeric counts, or server-owned identifiers.
+    "trace_count", "page_size", "actor_type", "task_id", "target_type",
+    "feedback_count",
+    "rating", "label_count", "reason_redacted", "deleted_count",
     # Phase A1D.3 (A1C-B-010 + A1C-B-011) — policy_decision + ABAC purpose.
     # Structured fields emitted by the allow-side audit path; none can
     # carry PHI (rbac_role / abac_purpose_match are enum literals).
@@ -85,6 +118,32 @@ _ALLOWED_DETAIL_KEYS: frozenset[str] = frozenset({
     # none can carry PHI. Required by the kms.key_rotated audit path
     # so operators can verify previous_version → current_version deltas.
     "previous_version", "current_version", "invalidated_entries",
+    # Clinical-model governance, aggregate shadow observations and fenced
+    # worker jobs. These are server-owned IDs, digests, enums, counts and
+    # booleans only; bundle bytes, vectors, predictions and patient text are
+    # never valid audit-detail values.
+    "package_id", "package_key", "package_version", "package_sha256",
+    "attestation_id", "binding_id", "evaluation_id", "job_id",
+    "previous_package_id", "previous_attestation_id",
+    "failed_package_id", "failed_attestation_id",
+    "restored_package_id", "restored_attestation_id",
+    "review_reference_sha256", "bundle_content_sha256", "manifest_sha256",
+    "verification_report_sha256", "model_sha256", "suite_sha256",
+    "observation_report_sha256", "request_sha256",
+    "use_case", "fault_mode", "result", "artifact_source", "mode",
+    "binding_version", "binding_record_version", "binding_version_after",
+    "record_version", "four_eyes", "metadata_only", "bundle_stored",
+    "patient_data_used", "patient_data_allowed", "raw_input_stored",
+    "runtime_inference_enabled", "production_inference_enabled",
+    "predictions_emitted", "network_used", "aggregate_only",
+    "rollback_performed", "attempt_count", "max_attempts",
+    "cancellation_reason", "cancelled_by_user_id",
+    "dead_letter_status", "dead_letter_id", "source_job_id",
+    "scheduler_name", "generation", "alert_code", "alert_state",
+    "organizations_evaluated", "alerts_fired", "alerts_resolved",
+    "recovered_after_expiry", "lease_seconds", "retry_scheduled",
+    "test_vector_count", "run_count", "vector_observation_count",
+    "success_count", "error_count", "mismatch_count",
 })
 
 # Keys that are explicitly PHI and always redacted at the top level.

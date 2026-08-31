@@ -159,8 +159,17 @@ class TranscriptsCreateReplacement(BaseModel):
     Required: ``find`` (term to replace, e.g. ``"BID"``), ``replace``
     (preferred form, e.g. ``"twice daily"``).
     """
-    find: str = Field(..., description="Term to be replaced (case-insensitive)")
-    replace: str = Field(..., description="Preferred replacement text")
+    find: str = Field(
+        ...,
+        min_length=1,
+        max_length=256,
+        description="Term to be replaced (case-insensitive)",
+    )
+    replace: str = Field(
+        ...,
+        max_length=256,
+        description="Preferred replacement text",
+    )
 
 
 class TranscriptsCreateKeyterm(BaseModel):
@@ -168,7 +177,14 @@ class TranscriptsCreateKeyterm(BaseModel):
 
     Required: ``term`` (the word/phrase, in expected written form).
     """
-    term: str = Field(..., description="Word/phrase to be recognized")
+    term: str = Field(
+        ...,
+        min_length=1,
+        max_length=50,
+        description=(
+            "Word/phrase in its expected written form; order and casing are preserved"
+        ),
+    )
 
 
 class TranscriptsCreateKeyterms(BaseModel):
@@ -176,7 +192,7 @@ class TranscriptsCreateKeyterms(BaseModel):
 
     Required: ``terms`` (ordered list of word/phrase hints).
     """
-    terms: List[TranscriptsCreateKeyterm]
+    terms: List[TranscriptsCreateKeyterm] = Field(..., min_length=1, max_length=1000)
 
 
 class TranscriptsCreateRequest(BaseModel):
@@ -189,7 +205,9 @@ class TranscriptsCreateRequest(BaseModel):
     - ``spokenPunctuation``: turn spoken punctuation into symbols (overrides
       ``automaticPunctuation`` when both true).
     - ``automaticPunctuation``: auto-punctuate / capitalize (default true).
-    - ``isDictation``: **deprecated** — ignored when new fields provided.
+    - ``isDictation``: deprecated compatibility fallback; treated as
+      ``spokenPunctuation=true`` only when neither current punctuation field
+      is provided.
     - ``isMultichannel``: per-channel transcription.
     - ``diarize``: separate speakers within a channel.
     - ``participants``: channel→role mapping (empty when ``diarize=true``).
@@ -201,8 +219,18 @@ class TranscriptsCreateRequest(BaseModel):
     Spec source:
     ``docs/corti-reverse-engineered/stt-create-transcript.md`` (14,078 bytes).
     """
-    recordingId: str = Field(..., description="UUID of the source recording (uploaded via /recordings)")
-    primaryLanguage: str = Field(..., description="Primary spoken language, e.g. 'en' or 'zh-CN'")
+    recordingId: str = Field(
+        ...,
+        min_length=1,
+        max_length=240,
+        description="UUID of the source recording (uploaded via /recordings)",
+    )
+    primaryLanguage: str = Field(
+        ...,
+        min_length=1,
+        max_length=32,
+        description="Primary spoken language, e.g. 'en' or 'zh-CN'",
+    )
     spokenPunctuation: Optional[bool] = Field(
         default=None, description="Convert spoken punctuation to symbols (overrides automaticPunctuation)"
     )
@@ -210,7 +238,11 @@ class TranscriptsCreateRequest(BaseModel):
         default=None, description="Auto-punctuate/capitalize (default true)"
     )
     isDictation: Optional[bool] = Field(
-        default=None, description="Deprecated — use spokenPunctuation or automaticPunctuation"
+        default=None,
+        description=(
+            "Deprecated compatibility fallback; ignored when spokenPunctuation "
+            "or automaticPunctuation is provided"
+        ),
     )
     isMultichannel: Optional[bool] = Field(
         default=None, description="Transcribe each audio channel separately"
@@ -219,16 +251,24 @@ class TranscriptsCreateRequest(BaseModel):
         default=None, description="Separate speakers within a channel"
     )
     participants: Optional[List[TranscriptsParticipant]] = Field(
-        default=None, description="Per-channel participant role mapping (omit when diarize=true)"
+        default=None,
+        max_length=1000,
+        description="Per-channel participant role mapping (omit when diarize=true)",
     )
     async_: Optional[bool] = Field(
         default=None, alias="async", description="Process asynchronously (returns 202 + Location)"
     )
     replacements: Optional[List[TranscriptsCreateReplacement]] = Field(
-        default=None, description="Find/replace pairs (max 1,000 per stream)"
+        default=None,
+        max_length=1000,
+        description="Find/replace pairs (max 1,000 per stream)",
     )
     keyterms: Optional[TranscriptsCreateKeyterms] = Field(
-        default=None, description="Vocabulary hints (max 1,000 terms per stream)"
+        default=None,
+        description=(
+            "Ordered, case-sensitive recognition hints (max 1,000 terms; "
+            "50 characters per term)"
+        ),
     )
 
 
@@ -293,3 +333,24 @@ class TranscriptsStatusResponse(BaseModel):
     status: TranscriptsStatusLiteral = Field(
         ..., description="Current status of the transcript processing"
     )
+
+
+class STTReadinessResponse(BaseModel):
+    """Tenant-scoped, content-free operational status for the STT runtime."""
+
+    configuration_status: Literal["configured_not_live_verified", "unavailable"]
+    verified_languages: List[str]
+    local_engine_enabled: bool
+    whisper_fallback_configured: bool
+    batch_provider_priority: List[str]
+    recording_storage_backend: Literal["encrypted_database"]
+    external_object_storage_configured: Literal[False]
+    at_rest_encryption_enabled: bool
+    durable_job_state: Literal[True]
+    restart_recovery: Literal[True]
+    queue_backend: Literal["in_process"]
+    horizontally_scalable_queue: Literal[False]
+    pending_transcript_count: int = Field(ge=0)
+    live_health_verified: Literal[False]
+    maximum_recording_bytes: int = Field(gt=0)
+    production_ready: Literal[False]

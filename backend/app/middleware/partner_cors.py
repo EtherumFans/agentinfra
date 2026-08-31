@@ -196,9 +196,13 @@ class PartnerCORSMiddleware(BaseHTTPMiddleware):
                     "Access-Control-Allow-Headers": (
                         "Authorization, Content-Type, X-Request-Id, "
                         "Idempotency-Key, X-Tenant, X-Tenant-Name, "
-                        "X-iCoDer-Demo-Version, X-Attempt, Accept"
+                        "X-iCoDer-Demo-Version, X-Attempt, Accept, "
+                        "Last-Event-ID"
                     ),
                     "Access-Control-Allow-Credentials": "true",
+                    "Access-Control-Expose-Headers": (
+                        "X-iCoDer-Trace-Retention-Days, X-iCoDer-SSE-Resumed"
+                    ),
                     "Access-Control-Max-Age": "600",
                     "Vary": "Origin",
                     "Cache-Control": "no-store",
@@ -212,4 +216,7 @@ class PartnerCORSMiddleware(BaseHTTPMiddleware):
         response = await call_next(request)
         response.headers["Access-Control-Allow-Origin"] = origin
         response.headers["Vary"] = "Origin"
+        response.headers["Access-Control-Expose-Headers"] = (
+            "X-iCoDer-Trace-Retention-Days, X-iCoDer-SSE-Resumed"
+        )
         return response

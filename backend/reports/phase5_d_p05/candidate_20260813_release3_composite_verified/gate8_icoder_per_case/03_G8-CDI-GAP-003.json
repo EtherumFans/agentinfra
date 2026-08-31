@@ -1,0 +1,367 @@
+{
+  "case_id": "CASE-166c075e02f2",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-166c075e02f2/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "急性心肌梗死未明确具体类型（ST段抬高型 vs 非ST段抬高型）",
+      "why_it_matters": "急性心肌梗死的具体类型（STEMI vs NSTEMI）是编码和临床管理的关键，影响治疗路径和预后评估。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "入院诊断:急性心肌梗死",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-166c075e02f2/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "心肌梗死部位未明确（前壁、前间壁等）",
+      "why_it_matters": "心肌梗死的具体部位（如前壁、下壁）影响编码和临床管理，需明确解剖位置。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "2小时。心电图:前壁导联S",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-166c075e02f2/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "冠脉造影显示前降支近段100%闭塞，但未明确罪犯血管与心肌梗死部位的对应关系",
+      "why_it_matters": "明确罪犯血管与心肌梗死部位的对应关系有助于确认诊断的准确性，避免编码错误。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "冠脉造影:前降支近段100%闭塞",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-166c075e02f2/Q-001",
+      "gap_id": "CASE-166c075e02f2/GAP-001",
+      "topic": "急性心肌梗死的具体类型",
+      "reason": "入院诊断为急性心肌梗死，但未明确具体类型（ST段抬高型或非ST段抬高型），需明确诊断以指导治疗。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "入院诊断:急性心肌梗死",
+        "char_start": 63,
+        "char_end": 74,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "入院诊断:急性心肌梗死",
+          "char_start": 63,
+          "char_end": 74,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "根据心电图和心肌损伤标志物结果，该急性心肌梗死应归类为以下哪种类型？",
+      "response_options": [
+        "A. ST段抬高型心肌梗死",
+        "B. 非ST段抬高型心肌梗死",
+        "C. 其他类型（请注明）",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "urgent",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    },
+    {
+      "query_id": "CASE-166c075e02f2/Q-002",
+      "gap_id": "CASE-166c075e02f2/GAP-002",
+      "topic": "心肌梗死的具体部位",
+      "reason": "心电图提示前壁导联ST段抬高，但未明确心肌梗死的具体部位（如前壁、前间壁等），需明确部位以完善诊断。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "心电图:前壁导联ST段抬高",
+        "char_start": 19,
+        "char_end": 32,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "心电图:前壁导联ST段抬高",
+          "char_start": 19,
+          "char_end": 32,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "根据心电图表现，该心肌梗死的具体部位是以下哪种？",
+      "response_options": [
+        "A. 前壁心肌梗死",
+        "B. 前间壁心肌梗死",
+        "C. 广泛前壁心肌梗死",
+        "D. 其他部位（请注明）",
+        "E. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    }
+  ],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-003",
+      "gap_id": "CASE-166c075e02f2/GAP-003",
+      "topic": "罪犯血管与心肌梗死部位的对应关系",
+      "reason": "冠脉造影显示前降支近段100%闭塞，但未明确该罪犯血管与心肌梗死部位的对应关系，需明确以确认诊断一致性。",
+      "query_text": "根据冠脉造影结果，前降支近段闭塞与心肌梗死部位的对应关系是以下哪种？",
+      "response_options": [
+        "A. 前降支为罪犯血管，与心电图所示心肌梗死部位一致",
+        "B. 前降支为罪犯血管，但与心电图所示心肌梗死部位不一致",
+        "C. 存在其他罪犯血管（请注明）",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "冠脉造影:前降支近段100%闭塞",
+          "char_start": 41,
+          "char_end": 57,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "SD-001: topic axes = ['correlation', 'site']",
+        "SD-002: axes in 40-char window = ['correlation', 'site']"
+      ],
+      "status": "NEEDS_CDI_REWRITE",
+      "detected_axes": [
+        "correlation",
+        "site"
+      ],
+      "rewrite_attempt_status": "REJECTED_BY_SAFETY_GATES",
+      "rewrite_attempt_reasons": [
+        "rewrite clinical dimension does not match source gap: expected=['correlation', 'site'], got=['type']"
+      ],
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者男性, 58岁, 持续胸痛2小时。心电图:前壁导联ST段抬高。肌钙蛋白I升高。冠脉造影:前降支近段100%闭塞。行PCI。入院诊断:急性心肌梗死。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者男性，58岁",
+      "持续胸痛2小时",
+      "心电图示前壁导联ST段抬高",
+      "肌钙蛋白I升高",
+      "冠脉造影示前降支近段100%闭塞",
+      "行经皮冠状动脉介入治疗（PCI）",
+      "入院诊断：急性心肌梗死"
+    ],
+    "encounter_metadata": {
+      "patient_age": "58岁",
+      "patient_sex": "男性",
+      "encounter_type": "住院"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "请明确心肌梗死的临床分型（ST段抬高型或非ST段抬高型），并具体描述梗死部位（如前壁、前间壁等），同时将冠脉造影结果（前降支近段100%闭塞）与心电图及心肌损伤标志物对应，明确该闭塞血管即为罪犯血管，以支持急性前壁ST段抬高型心肌梗死的诊断。",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 2548,
+      "tokens": 254
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-5ffca3b1ccfe",
+    "gap_identification": "run-e056e17a156e",
+    "gap_identification_risk_flags": "emitted=0;quote_snapped=1",
+    "expert_consultation": "run-ba0a9b053b45",
+    "query_generation": "run-f84887f76f48",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.25;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=Y,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=3;llm_complete=False;llm_reasoning=急性心肌梗死的类型（STEMI vs NSTEMI）和具体部位未明确，影响编码和临床管理，需要澄清。",
+    "query_necessity_gate": "necessary=3;unnecessary=0;overquery_triggered=False;final_count=3",
+    "query_dimension_rewrite": "run-b079a60a031f",
+    "query_single_dimension_gate": "single_dim=2;multi_dim=1;axis_cluster_triggered=False;axis_cluster_axis=site;rewrite_attempted=1;rewrite_accepted=0;final_count=2",
+    "claim_evidence_alignment_gate": "claims_extracted=5;blocked=0;flagged=0;final_count=2",
+    "claim_evidence_alignment_gate::run_id": "run-02c8ae7a108e",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=2",
+    "semantic_necessity_gate::run_id": "run-509f1f5d6354",
+    "query_compliance_gate": ";passed=2;blocked=0",
+    "specialist_trace_emit": "run-5103a2f1666b"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-affe191b3199",
+    "gap_identification": "trace-71e2f457f425",
+    "expert_consultation": "trace-680c71c27c68",
+    "query_generation": "trace-99792ae54ee9",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_dimension_rewrite": "trace-37bccc604b1b",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-4cd49e8b63ce",
+    "semantic_necessity_gate": "trace-8d339cfad711",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-2fc22d23d46f"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 1171,
+      "prompt_tokens": 224,
+      "completion_tokens": 119,
+      "total_tokens": 343,
+      "run_id": "run-5ffca3b1ccfe",
+      "trace_id": "trace-affe191b3199",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5170,
+      "prompt_tokens": 1067,
+      "completion_tokens": 475,
+      "total_tokens": 1542,
+      "run_id": "run-e056e17a156e",
+      "trace_id": "trace-71e2f457f425",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5575,
+      "prompt_tokens": 1129,
+      "completion_tokens": 722,
+      "total_tokens": 1851,
+      "run_id": "run-f84887f76f48",
+      "trace_id": "trace-99792ae54ee9",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_dimension_rewrite",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3070,
+      "prompt_tokens": 669,
+      "completion_tokens": 231,
+      "total_tokens": 900,
+      "run_id": "run-b079a60a031f",
+      "trace_id": "trace-37bccc604b1b",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2548,
+      "prompt_tokens": 173,
+      "completion_tokens": 81,
+      "total_tokens": 254,
+      "run_id": "run-63cde33056c4",
+      "trace_id": "trace-7efa4e10e849",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-7f4e41fec1fb",
+      "trace_id": "trace-112f3f87477a",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-63bf70ed97dc",
+      "trace_id": "trace-6573181efb2b",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-a05b28c35e22",
+      "trace_id": "trace-60c6b83a753b",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T20:39:23.265503Z"
+}

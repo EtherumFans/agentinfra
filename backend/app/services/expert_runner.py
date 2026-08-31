@@ -4,8 +4,25 @@ import logging
 from app.services.llm_service import llm_service
 from app.services.mcp_client import mcp_client
 from app.models.expert import Expert, McpServer
+from app.icoder.agent_runtime.orchestrator.phi_redactor import redact_payload
 
 logger = logging.getLogger(__name__)
+
+
+class ExpertRunnerError(RuntimeError):
+    """Safe, caller-visible failure from the legacy Expert runtime."""
+
+
+class ExpertExecutionError(ExpertRunnerError):
+    """The Expert could not produce a valid response."""
+
+
+class MCPToolExecutionError(ExpertRunnerError):
+    """A configured MCP tool call failed closed."""
+
+
+class UnsupportedMCPServiceError(MCPToolExecutionError):
+    """The requested MCP server has no production connector."""
 
 
 class ExpertRunner:
@@ -20,6 +37,20 @@ class ExpertRunner:
     ) -> str:
         conversation_history = conversation_history or []
         mcp_servers = mcp_servers or []
+
+        try:
+            safe_payload = redact_payload({
+                "user_input": user_input,
+                "conversation_history": conversation_history,
+            }).value
+        except Exception:
+            logger.warning("ExpertRunner PHI boundary failed")
+            raise ExpertExecutionError(
+                "Expert input could not be safely de-identified"
+            ) from None
+
+        user_input = safe_payload["user_input"]
+        conversation_history = safe_payload["conversation_history"]
 
         system_content = expert.system_prompt or f"You are {expert.name}. {expert.description}"
         messages = [{"role": "system", "content": system_content}]
@@ -50,18 +81,24 @@ class ExpertRunner:
                 result = await llm_service.chat_with_tools(messages=messages, tools=tools, temperature=0.1)
                 if isinstance(result, dict) and result.get("tool_calls"):
                     output = await self._handle_tool_calls(result["tool_calls"], messages, mcp_servers)
-                elif isinstance(result, dict) and result.get("content"):
-                    output = result["content"]
+                elif isinstance(result, dict) and isinstance(result.get("content"), str):
+                    output = result["content"].strip()
                 else:
-                    output = str(result)
+                    raise ExpertExecutionError("LLM returned an invalid Expert response")
             else:
                 result = await llm_service.chat(messages=messages, temperature=0.1)
-                output = result.get("content", "") if isinstance(result, dict) else str(result)
-                if not output:
-                    output = "No output generated."
-        except Exception as e:
-            logger.error(f"ExpertRunner error for {expert.name}: {e}")
-            output = f"Error running expert: {str(e)}"
+                output = result.get("content", "").strip() if isinstance(result, dict) else ""
+            if not output:
+                raise ExpertExecutionError("LLM returned an empty Expert response")
+        except ExpertRunnerError:
+            raise
+        except Exception as exc:
+            logger.error(
+                "ExpertRunner failed expert_id=%s error_type=%s",
+                getattr(expert, "id", ""),
+                type(exc).__name__,
+            )
+            raise ExpertExecutionError("Expert execution failed") from None
 
         return output
 
@@ -70,13 +107,32 @@ class ExpertRunner:
         conversation_history: list[dict] | None = None,
     ):
         """Stream expert response token by token via DeepSeek stream."""
-        history = conversation_history or []
+        try:
+            safe_payload = redact_payload({
+                "user_input": user_input,
+                "conversation_history": conversation_history or [],
+            }).value
+        except Exception:
+            logger.warning("ExpertRunner streaming PHI boundary failed")
+            raise ExpertExecutionError(
+                "Expert input could not be safely de-identified"
+            ) from None
+        history = safe_payload["conversation_history"]
+        user_input = safe_payload["user_input"]
         system_content = expert.system_prompt or f"You are {expert.name}."
         messages = [{"role": "system", "content": system_content}]
         messages.extend(history)
         messages.append({"role": "user", "content": user_input})
-        async for token in llm_service.chat_stream(messages=messages, temperature=0.1):
-            yield token
+        try:
+            async for token in llm_service.chat_stream(messages=messages, temperature=0.1):
+                yield token
+        except Exception as exc:
+            logger.error(
+                "ExpertRunner stream failed expert_id=%s error_type=%s",
+                getattr(expert, "id", ""),
+                type(exc).__name__,
+            )
+            raise ExpertExecutionError("Expert streaming failed") from None
 
     async def _handle_tool_calls(
         self, tool_calls: list[dict], messages: list[dict], mcp_servers: list[McpServer]
@@ -87,36 +143,55 @@ class ExpertRunner:
             tool_name = srv.name.replace(" ", "_").replace("-", "_").lower()
             server_map[tool_name] = srv
 
+        messages.append({"role": "assistant", "content": "", "tool_calls": tool_calls})
         for tc in tool_calls:
             func_name = tc.get("function", {}).get("name", "")
             func_args = tc.get("function", {}).get("arguments", "{}")
             try:
                 args = json.loads(func_args) if isinstance(func_args, str) else func_args
             except json.JSONDecodeError:
-                args = {"query": str(func_args)}
+                raise MCPToolExecutionError("MCP tool arguments are invalid") from None
+            if not isinstance(args, dict):
+                raise MCPToolExecutionError("MCP tool arguments must be an object")
             query = args.get("query", "")
             srv = server_map.get(func_name)
-            if srv:
-                tool_result = await self._real_mcp_call(srv, query)
-                messages.append({
-                    "role": "tool",
-                    "tool_call_id": tc.get("id", "call_1"),
-                    "content": json.dumps(tool_result, ensure_ascii=False),
-                })
+            if srv is None:
+                raise UnsupportedMCPServiceError(
+                    "LLM requested an MCP tool outside the configured server set"
+                )
+            if not isinstance(query, str) or not query.strip():
+                raise MCPToolExecutionError("MCP tool query must be a non-empty string")
+            tool_result = await self._real_mcp_call(srv, query)
+            messages.append({
+                "role": "tool",
+                "tool_call_id": tc.get("id", "call_1"),
+                "content": json.dumps(tool_result, ensure_ascii=False),
+            })
 
         try:
             result = await llm_service.chat(messages=messages, temperature=0.1)
-            return result.get("content", "") if isinstance(result, dict) else str(result)
-        except Exception as e:
-            logger.error(f"_handle_tool_calls error: {e}")
-            return f"Tool calls completed but final response failed: {e}"
+        except Exception as exc:
+            logger.error(
+                "ExpertRunner final synthesis failed error_type=%s",
+                type(exc).__name__,
+            )
+            raise ExpertExecutionError("Expert final synthesis failed") from None
+        output = result.get("content", "").strip() if isinstance(result, dict) else ""
+        if not output:
+            raise ExpertExecutionError("Expert final synthesis returned no content")
+        return output
 
     async def _real_mcp_call(self, srv: McpServer, query: str) -> dict:
-        """Real MCP server call via McpClient. Falls back to mock for unknown services."""
+        """Call a supported production MCP connector or fail closed."""
         service = self._detect_service(srv)
-        if service:
-            return await mcp_client.call(service, "search", {"query": query})
-        return self._mock_mcp_call(srv, query)
+        if not service:
+            raise UnsupportedMCPServiceError(
+                "Configured MCP server has no production connector"
+            )
+        result = await mcp_client.call(service, "search", {"query": query})
+        if not isinstance(result, dict) or result.get("error"):
+            raise MCPToolExecutionError("MCP connector call failed")
+        return result
 
     def _detect_service(self, srv: McpServer) -> str | None:
         """Detect which MCP service a server connects to."""
@@ -134,9 +209,14 @@ class ExpertRunner:
             return "web_search"
         return None
 
-    def _mock_mcp_call(self, srv: McpServer, query: str) -> dict:
-        """Mock MCP call for services without real API access."""
-        return {"source": srv.name, "query": query, "response": f"Mock response from {srv.name}: results for '{query}'"}
-
-
 expert_runner = ExpertRunner()
+
+
+__all__ = [
+    "ExpertExecutionError",
+    "ExpertRunner",
+    "ExpertRunnerError",
+    "MCPToolExecutionError",
+    "UnsupportedMCPServiceError",
+    "expert_runner",
+]

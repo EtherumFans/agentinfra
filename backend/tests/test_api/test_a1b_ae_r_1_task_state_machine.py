@@ -2,8 +2,8 @@
 
 Coverage:
 
-§1  Migration 024 — context_task_refs.state CHECK constraint active
-§2  TaskState enum — 5 values + terminal states
+§1  Migration 055 — eight-state context_task_refs CHECK constraint active
+§2  TaskState enum — A2A v1 terminal and interrupted states
 §3  next_state transitions — allowed + rejected
 §4  GET /api/icoder/tasks/{task_id} — happy path + 404
 §5  POST /api/icoder/tasks/{task_id}/cancel — submitted/working OK, terminal 409
@@ -15,10 +15,8 @@ from __future__ import annotations
 
 import asyncio
 import os
-import sqlite3
 import uuid
 from datetime import datetime, timezone
-from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
@@ -55,44 +53,38 @@ def client():
         yield c
 
 
-def _db_path() -> str:
-    return os.environ.get(
-        "ICODER_TEST_DB_PATH",
-        str(Path(__file__).resolve().parents[2] / "data" / "test.db"),
-    )
-
-
-def _check_constraint_exists(db_path: str, table: str, name: str) -> bool:
-    if not os.path.exists(db_path):
-        return False
-    conn = sqlite3.connect(db_path)
-    try:
-        rows = conn.execute(
-            f"SELECT sql FROM sqlite_master WHERE type='table' AND name='{table}'"
-        ).fetchone()
-        if not rows or not rows[0]:
-            return False
-        return name in rows[0]
-    finally:
-        conn.close()
-
-
 # ─────────────────────────────────────────────────────────────────────
-# §1 Migration 024 schema
+# §1 Migration 055 schema
 # ─────────────────────────────────────────────────────────────────────
 
 
-def test_migration_024_state_check_constraint_present():
-    db = _db_path()
-    if not os.path.exists(db):
-        pytest.skip(f"test DB not present at {db}")
-    assert _check_constraint_exists(db, "context_task_refs", "ck_context_task_refs_state"), (
-        "context_task_refs.state CHECK constraint missing — Migration 024 not applied"
+@pytest.mark.asyncio(loop_scope="session")
+async def test_migration_055_state_check_constraint_present():
+    """Inspect the active test engine, never a stale fixed SQLite filename."""
+
+    import app.database as database
+    from sqlalchemy import inspect
+
+    async with database.engine.connect() as connection:
+        constraints = await connection.run_sync(
+            lambda sync_connection: inspect(sync_connection).get_check_constraints(
+                "context_task_refs"
+            )
+        )
+    names = {
+        str(item.get("name"))
+        for item in constraints
+        if item.get("name") is not None
+    }
+
+    assert "ck_context_task_refs_state" in names, (
+        "context_task_refs.state CHECK constraint missing on the active test engine"
     )
 
 
-def test_migration_024_rejects_invalid_state_value():
-    """CHECK constraint must reject any state not in the 5-value enum."""
+@pytest.mark.asyncio(loop_scope="session")
+async def test_migration_055_rejects_invalid_state_value():
+    """CHECK constraint must reject any state outside the eight-state enum."""
     from app.database import AsyncSessionLocal
 
     async def _go():
@@ -114,7 +106,7 @@ def test_migration_024_rejects_invalid_state_value():
             await db.commit()
 
     with pytest.raises(Exception):
-        asyncio.run(_go())
+        await _go()
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -122,21 +114,32 @@ def test_migration_024_rejects_invalid_state_value():
 # ─────────────────────────────────────────────────────────────────────
 
 
-def test_task_state_enum_has_5_values():
+def test_task_state_enum_has_v1_values():
     from app.icoder.agent_runtime.a2a.task_state import TaskState
     assert {s.value for s in TaskState} == {
         "submitted", "working", "completed", "failed", "canceled",
+        "rejected", "input-required", "auth-required",
     }
 
 
 def test_task_state_terminal_set():
     from app.icoder.agent_runtime.a2a.task_state import (
-        TERMINAL_STATES, TaskState, is_terminal,
+        INTERRUPTED_STATES, SETTLED_STATES, TERMINAL_STATES,
+        TaskState, is_settled, is_terminal,
     )
     assert TERMINAL_STATES == frozenset(
-        {TaskState.COMPLETED, TaskState.FAILED, TaskState.CANCELED}
+        {
+            TaskState.COMPLETED, TaskState.FAILED,
+            TaskState.CANCELED, TaskState.REJECTED,
+        }
     )
+    assert INTERRUPTED_STATES == frozenset(
+        {TaskState.INPUT_REQUIRED, TaskState.AUTH_REQUIRED}
+    )
+    assert SETTLED_STATES == TERMINAL_STATES | INTERRUPTED_STATES
     assert is_terminal(TaskState.COMPLETED)
+    assert not is_terminal(TaskState.INPUT_REQUIRED)
+    assert is_settled(TaskState.INPUT_REQUIRED)
     assert not is_terminal(TaskState.SUBMITTED)
 
 
@@ -154,6 +157,11 @@ def test_next_state_allows_valid_transitions():
     assert next_state(TaskState.WORKING, TaskState.COMPLETED) == TaskState.COMPLETED
     assert next_state(TaskState.WORKING, TaskState.FAILED) == TaskState.FAILED
     assert next_state(TaskState.WORKING, TaskState.CANCELED) == TaskState.CANCELED
+    assert next_state(TaskState.WORKING, TaskState.REJECTED) == TaskState.REJECTED
+    assert next_state(TaskState.WORKING, TaskState.INPUT_REQUIRED) == TaskState.INPUT_REQUIRED
+    assert next_state(TaskState.WORKING, TaskState.AUTH_REQUIRED) == TaskState.AUTH_REQUIRED
+    assert next_state(TaskState.INPUT_REQUIRED, TaskState.WORKING) == TaskState.WORKING
+    assert next_state(TaskState.AUTH_REQUIRED, TaskState.WORKING) == TaskState.WORKING
 
 
 def test_next_state_rejects_invalid_transitions():
@@ -165,7 +173,10 @@ def test_next_state_rejects_invalid_transitions():
         with pytest.raises(InvalidTaskTransition):
             next_state(TaskState.SUBMITTED, bad)
     # terminal states reject everything
-    for terminal in (TaskState.COMPLETED, TaskState.FAILED, TaskState.CANCELED):
+    for terminal in (
+        TaskState.COMPLETED, TaskState.FAILED,
+        TaskState.CANCELED, TaskState.REJECTED,
+    ):
         for target in TaskState:
             with pytest.raises(InvalidTaskTransition):
                 next_state(terminal, target)

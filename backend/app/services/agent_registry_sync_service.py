@@ -19,6 +19,120 @@ from sqlalchemy.ext.asyncio import AsyncSession
 logger = logging.getLogger(__name__)
 
 
+def _registry_agent_ref(record: Any) -> str:
+    raw_pack = getattr(record, "pack_data", None)
+    pack = raw_pack if isinstance(raw_pack, dict) else {}
+    return str(pack.get("agent_ref") or "").strip()
+
+
+def _db_agent_ref(agent: Any) -> str:
+    config = agent.config if isinstance(agent.config, dict) else {}
+    return str(config.get("agent_ref") or "").strip()
+
+
+def _is_registry_projection_managed(agent: Any) -> bool:
+    config = agent.config if isinstance(agent.config, dict) else {}
+    return config.get("registry_projection_managed") is True
+
+
+def _runtime_agent_id_from_ref(agent_ref: str) -> str:
+    tail = str(agent_ref or "").rsplit("/", 1)[-1]
+    return tail.split("@", 1)[0].strip()
+
+
+def _registry_record_db_fields(record: Any) -> dict[str, Any]:
+    """Project one installed Pack into a complete global prebuilt DB row."""
+    pack = record.pack_data if isinstance(record.pack_data, dict) else {}
+    manifest = pack.get("manifest") if isinstance(pack.get("manifest"), dict) else {}
+    experts = pack.get("experts") if isinstance(pack.get("experts"), list) else []
+    expert_ids = [
+        str(item.get("expert_id") or item.get("id") or "").strip()
+        for item in experts
+        if isinstance(item, dict)
+        and str(item.get("expert_id") or item.get("id") or "").strip()
+    ]
+    agent_ref = _registry_agent_ref(record)
+    runtime_agent_id = _runtime_agent_id_from_ref(agent_ref)
+    return {
+        "organization_id": None,
+        "name": str(manifest.get("name") or record.name or runtime_agent_id),
+        "description": str(manifest.get("description") or record.description or ""),
+        "category": str(manifest.get("category") or record.category or "general"),
+        "icon": str(manifest.get("icon") or record.icon or "Bot"),
+        "system_prompt": str(pack.get("system_prompt") or record.system_prompt or ""),
+        "expert_ids": expert_ids,
+        "default_expert_id": expert_ids[0] if expert_ids else "",
+        "a2a_enabled": bool(pack.get("a2a")),
+        "config": {
+            "agent_ref": agent_ref,
+            "runtime_agent_id": runtime_agent_id,
+            "registry_agent_id": str(record.agent_id or ""),
+            "registry_projection_managed": True,
+            "agent_type": pack.get("agent_type", "certified"),
+            "format_version": pack.get("format_version", "1.2"),
+            "use_case": manifest.get("use_case", ""),
+            "maturity": manifest.get("maturity", ""),
+            "human_review": manifest.get("human_review", "required"),
+            "production_ready": bool(manifest.get("production_ready", False)),
+            "hidden_from_hub": bool(manifest.get("hidden_from_hub", False)),
+            "non_goals": list(pack.get("non_goals") or []),
+            "output_contract": dict(pack.get("output_contract") or {}),
+            "permissions": dict(pack.get("permissions") or {}),
+            "requirements": dict(pack.get("requirements") or {}),
+            "llm_capabilities": dict(pack.get("llm_capabilities") or {}),
+            "a2a": dict(pack.get("a2a") or {}),
+            "runtime_binding": {
+                "internal_engine": dict(pack.get("internal_engine") or {}),
+                "code": dict(pack.get("code") or {}),
+                "integrity": dict(pack.get("integrity") or {}),
+            },
+        },
+        "version": str(manifest.get("version") or record.version or "1.0.0"),
+        "status": "published",
+        "is_prebuilt": True,
+        "is_published": True,
+        "created_by": "",
+        "usage_count": 0,
+        "canonical_key": runtime_agent_id or None,
+        "agent_type": "orchestrator",
+        "aliases": [str(record.agent_id)] if record.agent_id else [],
+    }
+
+
+_PACK_PROJECTION_FIELDS = (
+    "organization_id",
+    "name",
+    "description",
+    "category",
+    "icon",
+    "system_prompt",
+    "expert_ids",
+    "default_expert_id",
+    "a2a_enabled",
+    "config",
+    "version",
+    "status",
+    "is_prebuilt",
+    "is_published",
+    "canonical_key",
+    "agent_type",
+    "aliases",
+)
+
+
+def _projection_mismatches(agent: Any, expected: dict[str, Any]) -> list[str]:
+    """Return Pack-mastered fields whose DB projection has drifted.
+
+    Operational counters and timestamps are intentionally excluded because
+    they are DB-owned state, not Pack metadata.
+    """
+    return [
+        field_name
+        for field_name in _PACK_PROJECTION_FIELDS
+        if getattr(agent, field_name, None) != expected[field_name]
+    ]
+
+
 @dataclass
 class Inconsistency:
     type: str  # "missing_in_db" | "missing_in_registry" | "field_mismatch"
@@ -103,39 +217,86 @@ class AgentRegistrySyncService:
         from app.models.agent import Agent as AgentModel
 
         registry_records = self._registry.list_all()
-        result = await db.execute(select(AgentModel))
-        db_agents = result.scalars().all()
+        result = await db.execute(
+            select(AgentModel).where(AgentModel.is_prebuilt == True)  # noqa: E712
+        )
+        db_agents = [
+            agent for agent in result.scalars().all()
+            if _is_registry_projection_managed(agent)
+        ]
 
         # Build lookup maps
         reg_map: dict[str, Any] = {}
+        reg_refs: dict[str, Any] = {}
         for r in registry_records:
             reg_map[r.agent_id] = r
-            # Also index by publisher/name@version pattern for fuzzy matching
-            ref = f"{r.publisher_name or 'unknown'}/{r.name}@{r.version}"
-            reg_map[ref] = r
+            ref = _registry_agent_ref(r)
+            if ref:
+                reg_refs[ref] = r
 
         db_map: dict[str, Any] = {a.id: a for a in db_agents}
+        db_refs: dict[str, Any] = {
+            ref: agent
+            for agent in db_agents
+            if (ref := _db_agent_ref(agent))
+        }
+        db_registry_ids: dict[str, Any] = {
+            str(agent.config.get("registry_agent_id")): agent
+            for agent in db_agents
+            if isinstance(agent.config, dict)
+            and agent.config.get("registry_agent_id")
+        }
 
         inconsistencies: list[Inconsistency] = []
 
         # Registry agents missing from DB
-        for agent_ref, reg_rec in reg_map.items():
-            if agent_ref not in db_map and reg_rec.agent_id not in db_map:
+        for registry_id, reg_rec in reg_map.items():
+            ref = _registry_agent_ref(reg_rec)
+            db_agent = (
+                db_map.get(registry_id)
+                or db_registry_ids.get(registry_id)
+                or (db_refs.get(ref) if ref else None)
+            )
+            if db_agent is None:
                 inconsistencies.append(Inconsistency(
                     type="missing_in_db",
                     agent_ref=reg_rec.agent_id,
                     detail=f"Agent '{reg_rec.name}' present in Registry but missing from DB.",
                 ))
+                continue
+
+            expected = _registry_record_db_fields(reg_rec)
+            mismatches = _projection_mismatches(db_agent, expected)
+            if mismatches:
+                inconsistencies.append(Inconsistency(
+                    type="field_mismatch",
+                    agent_ref=reg_rec.agent_id,
+                    detail=(
+                        f"Agent '{reg_rec.name}' DB projection differs from "
+                        f"Registry Pack fields: {', '.join(mismatches)}."
+                    ),
+                    registry_data={
+                        "agent_ref": ref,
+                        "fields": {key: expected[key] for key in mismatches},
+                    },
+                    db_data={
+                        "id": db_agent.id,
+                        "fields": {
+                            key: getattr(db_agent, key, None) for key in mismatches
+                        },
+                    },
+                ))
 
         # DB agents missing from Registry (stale/orphaned references)
         for db_id, db_agent in db_map.items():
-            found = db_id in reg_map
-            if not found:
-                # Try partial match
-                for reg_id, reg_rec in reg_map.items():
-                    if db_id in reg_id or reg_id in db_id:
-                        found = True
-                        break
+            config = db_agent.config if isinstance(db_agent.config, dict) else {}
+            registry_id = str(config.get("registry_agent_id") or "")
+            ref = _db_agent_ref(db_agent)
+            found = (
+                db_id in reg_map
+                or bool(registry_id and registry_id in reg_map)
+                or bool(ref and ref in reg_refs)
+            )
             if not found:
                 inconsistencies.append(Inconsistency(
                     type="missing_in_registry",
@@ -181,26 +342,47 @@ class AgentRegistrySyncService:
             state.checked_at = report.checked_at
 
             for inc in report.inconsistencies:
-                if inc.type == "missing_in_db":
+                if inc.type in {"missing_in_db", "field_mismatch"}:
                     reg_rec = self._registry.get(inc.agent_ref)
                     try:
-                        existing = await db.execute(
-                            select(AgentModel).where(AgentModel.id == inc.agent_ref)
-                        )
-                        if existing.scalar_one_or_none():
-                            continue  # Already exists (race)
-
-                        db_agent = AgentModel(
-                            id=reg_rec.agent_id,
-                            name=reg_rec.name,
-                            description=reg_rec.description,
-                            category=reg_rec.category,
-                            icon=reg_rec.icon,
-                            system_prompt=reg_rec.system_prompt,
-                            expert_ids=reg_rec.expert_ids or [],
-                            status="published",
-                        )
-                        db.add(db_agent)
+                        fields = _registry_record_db_fields(reg_rec)
+                        ref = str(fields["config"].get("agent_ref") or "")
+                        db_agent = None
+                        if inc.db_data and inc.db_data.get("id"):
+                            existing = await db.execute(
+                                select(AgentModel).where(
+                                    AgentModel.id == str(inc.db_data["id"])
+                                )
+                            )
+                            db_agent = existing.scalar_one_or_none()
+                        if db_agent is None:
+                            existing = await db.execute(
+                                select(AgentModel).where(
+                                    AgentModel.id == inc.agent_ref
+                                )
+                            )
+                            db_agent = existing.scalar_one_or_none()
+                        if db_agent is None and ref:
+                            candidates = await db.execute(
+                                select(AgentModel).where(
+                                    AgentModel.is_prebuilt == True  # noqa: E712
+                                )
+                            )
+                            db_agent = next(
+                                (
+                                    item for item in candidates.scalars().all()
+                                    if _db_agent_ref(item) == ref
+                                ),
+                                None,
+                            )
+                        if db_agent is None:
+                            db_agent = AgentModel(**fields)
+                            db.add(db_agent)
+                        else:
+                            # Upgrade rows created by the former incomplete
+                            # repair path instead of leaving an orphan clone-like row.
+                            for key, value in fields.items():
+                                setattr(db_agent, key, value)
                         repaired.append(inc.agent_ref)
                     except Exception as e:
                         logger.error(f"Failed to repair DB for {inc.agent_ref}: {e}")

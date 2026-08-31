@@ -42,11 +42,18 @@ import requests
 
 BACKEND = os.environ.get("ICODER_BACKEND", "http://127.0.0.1:8000")
 FIXTURE = Path("tests/fixtures/cdi_gate8_40cases.json")
-OUT_DIR = Path("reports/phase5_d_p05")
+OUT_DIR = Path(os.environ.get("ICODER_GATE8_OUT_DIR", "reports/phase5_d_p05"))
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 OUT = OUT_DIR / "gate8_icoder_40case_results.json"
 PER_CASE_DIR = OUT_DIR / "gate8_icoder_per_case"
 PER_CASE_DIR.mkdir(parents=True, exist_ok=True)
+MAX_ATTEMPTS = max(1, int(os.environ.get("ICODER_GATE8_MAX_ATTEMPTS", "3")))
+INTER_CASE_DELAY_S = max(0.0, float(os.environ.get("ICODER_GATE8_INTER_CASE_DELAY_S", "3")))
+CASE_IDS = {
+    case_id.strip()
+    for case_id in os.environ.get("ICODER_GATE8_CASE_IDS", "").split(",")
+    if case_id.strip()
+}
 
 
 def login() -> str:
@@ -104,7 +111,7 @@ def run_one(token: str, case: dict[str, Any], idx: int, max_attempts: int = 3) -
         elapsed = round(time.time() - t0, 1)
 
         if r.status_code != 200:
-            return {
+            failure = {
                 "case_id": case["case_id"],
                 "category": case["category"],
                 "status": r.status_code,
@@ -112,6 +119,11 @@ def run_one(token: str, case: dict[str, Any], idx: int, max_attempts: int = 3) -
                 "elapsed_s": elapsed,
                 "attempts": attempt,
             }
+            failure_file = PER_CASE_DIR / f"{idx:02d}_{case['case_id']}.failure.json"
+            failure_file.write_text(
+                json.dumps(failure, ensure_ascii=False, indent=2), encoding="utf-8",
+            )
+            return failure
 
         data = r.json()
         last_data = data
@@ -316,6 +328,11 @@ def main() -> None:
         raise SystemExit(f"fixture not found: {FIXTURE}")
     fixture = json.loads(FIXTURE.read_text(encoding="utf-8"))
     cases = fixture["cases"]
+    if CASE_IDS:
+        cases = [case for case in cases if case.get("case_id") in CASE_IDS]
+        missing = CASE_IDS - {str(case.get("case_id")) for case in cases}
+        if missing:
+            raise SystemExit(f"requested case IDs not found: {sorted(missing)}")
     print(f"Loaded {len(cases)} cases from {FIXTURE}")
 
     token = login()
@@ -324,7 +341,7 @@ def main() -> None:
     results: list[dict[str, Any]] = []
     for i, case in enumerate(cases, 1):
         print(f"[{i:02d}/{len(cases)}] {case['case_id']} ({case['category']}) ...", end=" ", flush=True)
-        r = run_one(token, case, i)
+        r = run_one(token, case, i, max_attempts=MAX_ATTEMPTS)
         if r.get("status") == 200:
             attempts = r.get("attempts", 1)
             att_tag = f"a{attempts}" if attempts > 1 else "  "
@@ -334,7 +351,7 @@ def main() -> None:
         results.append(r)
         # Small inter-case delay to avoid rate limit spikes
         if i < len(cases):
-            time.sleep(3)
+            time.sleep(INTER_CASE_DELAY_S)
 
     summary = aggregate(results)
     summary["fixture"] = str(FIXTURE)

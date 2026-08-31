@@ -56,6 +56,51 @@ def test_safe_metadata_allows_known_key() -> None:
     assert scrubbed == src
 
 
+def test_safe_metadata_allows_bounded_clinical_catalog_provenance() -> None:
+    """Catalog IDs/versions/statuses are fixed identifiers, never patient data."""
+    from app.icoder.agent_runtime.orchestrator.run_trace import (
+        _redact_safe_metadata,
+    )
+
+    src = {
+        "clinical_asset_ids": "cn.icd10cn.catalog+cn.icd9cm3.catalog",
+        "clinical_asset_versions": "observed-local-2026-05-19",
+        "clinical_asset_authority_statuses": "source_unverified",
+        "clinical_asset_license_statuses": "external_review_required",
+        "clinical_asset_integrity_verified": True,
+        "semantic_enhancement_used": False,
+    }
+    assert _redact_safe_metadata(src) == src
+
+
+def test_safe_metadata_allows_content_free_non_authoritative_cost_attribution() -> None:
+    from app.icoder.agent_runtime.orchestrator.run_trace import (
+        _redact_safe_metadata,
+    )
+
+    src = {
+        "cost_amount": 0.00066472,
+        "cost_currency": "CNY",
+        "cost_source": "configured_usage_pricing_estimate",
+        "billing_authoritative": False,
+    }
+    assert _redact_safe_metadata(src) == src
+
+
+def test_safe_metadata_allows_content_free_provider_failure_diagnostics() -> None:
+    from app.icoder.agent_runtime.orchestrator.run_trace import (
+        _redact_safe_metadata,
+    )
+
+    src = {
+        "provider_error_category": "rate_limit",
+        "provider_http_status": 429,
+        "provider_attempt_count": 3,
+        "provider_retryable": True,
+    }
+    assert _redact_safe_metadata(src) == src
+
+
 def test_safe_metadata_redacts_unknown_key() -> None:
     """Any key not in ``_SAFE_KEYS`` is replaced with ``[REDACTED]``.
 
@@ -125,6 +170,7 @@ def test_audit_details_allows_operational_keys() -> None:
         "status": "success",
         "tokens_used": 1234,
         "encounter_id": "enc-1",
+        "runtime_mode": "a2a_pure_llm",
     }
     assert redact_audit_details(src) == src
 
@@ -163,6 +209,50 @@ def test_audit_details_preserves_none() -> None:
     """None input returns None so the nullable column stays NULL."""
     from app.services.audit_detail_redactor import redact_audit_details
     assert redact_audit_details(None) is None
+
+
+def test_shadow_job_audit_keeps_safe_metadata_and_redacts_fence_secrets() -> None:
+    from app.services.audit_detail_redactor import redact_audit_details
+
+    out = redact_audit_details({
+        "job_id": "job-1",
+        "binding_id": "binding-1",
+        "attempt_count": 2,
+        "recovered_after_expiry": True,
+        "aggregate_only": True,
+        "patient_data_used": False,
+        "cancellation_reason": "safety_stop",
+        "cancelled_by_user_id": "user-1",
+        "lease_token": "must-never-be-retained",
+        "idempotency_key": "must-never-be-retained",
+        "input_text": "patient content",
+    })
+
+    assert out == {
+        "job_id": "job-1",
+        "binding_id": "binding-1",
+        "attempt_count": 2,
+        "recovered_after_expiry": True,
+        "aggregate_only": True,
+        "patient_data_used": False,
+        "cancellation_reason": "safety_stop",
+        "cancelled_by_user_id": "user-1",
+        "lease_token": "[REDACTED]",
+        "idempotency_key": "[REDACTED]",
+        "input_text": "[REDACTED]",
+    }
+
+
+def test_agent_run_audit_reason_code_drops_free_form_suffix() -> None:
+    from app.api.agent_run import _audit_reason_code
+
+    assert _audit_reason_code("connector_graph_failed") == "connector_graph_failed"
+    assert _audit_reason_code("ValueError: 张三 13800138000") == "valueerror"
+    assert _audit_reason_code("input_safety_blocked:PI-003,PI-001") == (
+        "input_safety_blocked"
+    )
+    assert _audit_reason_code("张三") == "unclassified_error"
+    assert _audit_reason_code("") is None
 
 
 def test_audit_summary_truncates_to_max_len() -> None:

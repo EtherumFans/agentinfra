@@ -49,7 +49,7 @@ def test_drg_dip_preset_delegates_to_drg_pack():
     from app.services.preset_agents import get_preset
     p = get_preset("icoder-drg-dip-preset")
     assert p is not None
-    assert p.delegates_to_pack == "icoder/drg-analyzer@1.0.0", (
+    assert p.delegates_to_pack == "icoder/drg-analyzer@1.1.3", (
         f"icoder-drg-dip-preset.delegates_to_pack must point at DRG analyzer Pack, got {p.delegates_to_pack!r}"
     )
 
@@ -58,7 +58,7 @@ def test_claim_check_preset_delegates_to_claim_check_pack():
     from app.services.preset_agents import get_preset
     p = get_preset("icoder-claim-check-preset")
     assert p is not None
-    assert p.delegates_to_pack == "icoder/claim-check@1.0.0", (
+    assert p.delegates_to_pack == "icoder/claim-check@1.1.0", (
         f"icoder-claim-check-preset.delegates_to_pack must point at claim-check Pack, got {p.delegates_to_pack!r}"
     )
 
@@ -88,18 +88,26 @@ def test_claim_check_pack_is_valid_json_with_required_fields():
     p = OFFICIAL_AGENTS_DIR / "claim-check" / "agent_pack.json"
     data = json.loads(p.read_text(encoding="utf-8"))
     assert data["format_version"] in {"1.1", "1.2"}
-    assert data["agent_ref"] == "icoder/claim-check@1.0.0"
+    assert data["agent_ref"] == "icoder/claim-check@1.1.0"
     assert data["agent_type"] == "certified"
     manifest = data["manifest"]
-    assert manifest["maturity"] == "mvp"
+    assert manifest["maturity"] == "runnable"
     assert manifest["production_ready"] is False
     assert manifest["human_review"] == "required"
-    # Wrap Insurance Audit rule_set + external-gate
-    assert data["backend_config"]["rules"]["rule_set"] == "insurance_audit"
-    tools = data["tools"]
-    assert "external-gate/evaluate" in tools
-    assert "verify_code" in tools
-    assert "search_codes" in tools
+    # The governed local provider only assembles explicitly labelled claim,
+    # chart, and versioned payer-policy facts with exact spans.  It does not
+    # adjudicate coding support, coverage, eligibility, or payment.
+    assert data["backend_provider"] == "icoder.governed-claim-check.v1"
+    assert data["backend_config"]["network_required"] is False
+    assert data["backend_config"]["llm_required"] is False
+    assert data["tools"] == []
+    assert data["llm_capabilities"]["supports_tool_calling"] is False
+    assert data["llm_capabilities"]["supports_mcp_tools"] is False
+    assert data["permissions"]["evidence_required"] is True
+    assert data["permissions"]["production_writeback_blocked"] is True
+    assert "missing_policy_items" in data["output_contract"]["required_fields"]
+    assert "production_submission_blocked" in data["output_contract"]["required_fields"]
+    assert data["human_review_required_when"]
 
 
 # ─────────────────────────────────────────────────────────────────────

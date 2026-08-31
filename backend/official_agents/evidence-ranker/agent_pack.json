@@ -1,67 +1,603 @@
 {
-  "format_version": "1.1",
+  "format_version": "1.2",
   "agent_type": "certified",
-  "agent_ref": "icoder/evidence-ranker@1.0.0",
+  "agent_ref": "icoder/evidence-ranker@1.1.0",
   "manifest": {
     "name": "证据排序智能体",
-    "version": "1.0.0",
-    "description": "对编码候选的证据强度进行排名，检测证据冲突。纯确定性算法。",
-    "category": "编码",
+    "name_en": "Evidence Ranker Agent",
+    "version": "1.1.0",
+    "description": "按显式来源、字符区间、否定/不确定标记和候选码词面出现情况，对输入证据执行确定性的文档可追溯性辅助排序；不评估临床支持度、诊断真伪或编码有效性。",
+    "category": "medical-coding",
+    "category_display": "Coding and Revenue Cycle / 编码与收入周期",
     "icon": "BarChart3",
-    "maturity": "metadata-only",
+    "tags": [
+      "evidence-ranking",
+      "documentation-grounding",
+      "source-span-validation",
+      "deterministic-local",
+      "human-review-required"
+    ],
+    "maturity": "runnable",
     "production_ready": false,
+    "human_review": "required",
     "hidden_from_hub": false,
     "use_case": "coding_revenue_cycle"
   },
-  "system_prompt": "你是证据排名引擎。使用确定性评分算法对每个编码候选的证据强度进行排名。",
-  "experts": [],
-  "tools": [
-    "rank_evidence",
-    "calibrate_confidence",
-    "analyze_disagreements",
-    "verify_evidence",
-    "guard_input",
-    "guard_output"
-  ],
-  "permissions": {
-    "key": "evidence-ranker",
-    "name": "证据排名权限",
-    "description": "对编码候选的证据强度进行排名，检测证据冲突。纯确定性算法。",
-    "tools": {
-      "rank_evidence": {
-        "allowed": true
-      },
-      "calibrate_confidence": {
-        "allowed": true
-      },
-      "analyze_disagreements": {
-        "allowed": true
-      },
-      "verify_evidence": {
-        "allowed": true
-      },
-      "guard_input": {
-        "allowed": true
-      },
-      "guard_output": {
-        "allowed": true
-      }
+  "system_prompt": "你是编码证据文档可追溯性排序智能体。只处理用户显式提供的候选编码、证据内容、来源标签、source document 字符区间及否定/不确定标记。documentation_grounding_score 仅反映这些字段的可审计完整性，不是临床证据强度、诊断概率或编码置信度。不得根据文档类型推断真实性，不得补造证据、解释医学含义、验证或推荐编码。字符区间不一致、来源缺失和重复 evidence_id 必须显式报告。所有结果必须人工复核。",
+  "backend_provider": "icoder.governed-evidence-ranker.v1",
+  "backend_config": {
+    "documentation_grounding": {
+      "policy_id": "icoder.documentation-grounding-ranking",
+      "policy_version": "1.0.0",
+      "maximum_evidence_items": 50,
+      "source_span_exact_match": true,
+      "clinical_support_assessed": false,
+      "network_required": false
     }
   },
+  "experts": [],
+  "tools": [],
+  "permissions": {
+    "key": "evidence-ranker",
+    "name": "证据排序智能体默认权限",
+    "description": "只读处理输入证据，不调用外部服务，不修改编码或病历。",
+    "no_upcoding": true,
+    "no_inference": true,
+    "evidence_required": true,
+    "production_writeback_blocked": true
+  },
+  "output_contract": {
+    "schema_ref": "icoder/EvidenceRankerOutput/v4",
+    "required_fields": [
+      "ranking_status",
+      "candidate_code",
+      "ranking_basis",
+      "ranked_evidence",
+      "conflicts",
+      "unsupported_claims",
+      "confidence_calibration",
+      "source_coverage",
+      "limitations",
+      "manual_review_required",
+      "summary",
+      "markdown"
+    ],
+    "field_types": {
+      "ranking_status": "string",
+      "candidate_code": "string",
+      "ranking_basis": "string",
+      "ranked_evidence": "array",
+      "conflicts": "array",
+      "unsupported_claims": "array",
+      "confidence_calibration": "object",
+      "source_coverage": "object",
+      "limitations": "array",
+      "manual_review_required": "boolean",
+      "summary": "string",
+      "markdown": "string"
+    },
+    "field_schemas": {
+      "ranking_status": {
+        "type": "string",
+        "maxLength": 32768,
+        "enum": [
+          "RANKED",
+          "RANKED_WITH_GAPS",
+          "INPUT_REQUIRED"
+        ]
+      },
+      "candidate_code": {
+        "type": "string",
+        "maxLength": 32
+      },
+      "ranking_basis": {
+        "type": "string",
+        "maxLength": 32768,
+        "const": "DOCUMENTATION_GROUNDING_ONLY"
+      },
+      "ranked_evidence": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "certainty": {
+              "type": "string",
+              "maxLength": 32768,
+              "enum": [
+                "confirmed",
+                "suspected",
+                "probable",
+                "ruled_out",
+                "unknown"
+              ]
+            },
+            "content": {
+              "type": "string",
+              "maxLength": 1000,
+              "minLength": 1
+            },
+            "documentation_grounding_score": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "evidence_id": {
+              "type": "string",
+              "maxLength": 64,
+              "minLength": 1
+            },
+            "explicit_negation": {
+              "type": "boolean"
+            },
+            "lexical_code_mention": {
+              "type": "boolean"
+            },
+            "rank": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50
+            },
+            "rationale": {
+              "type": "string",
+              "maxLength": 1024,
+              "minLength": 1
+            },
+            "score_components": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 128,
+                "minLength": 1
+              },
+              "maxItems": 10,
+              "minItems": 0
+            },
+            "source": {
+              "type": "string",
+              "maxLength": 200
+            },
+            "span_status": {
+              "type": "string",
+              "maxLength": 32768,
+              "enum": [
+                "valid",
+                "mismatch",
+                "missing_coordinates",
+                "source_unavailable"
+              ]
+            }
+          },
+          "required": [
+            "certainty",
+            "content",
+            "documentation_grounding_score",
+            "evidence_id",
+            "explicit_negation",
+            "lexical_code_mention",
+            "rank",
+            "rationale",
+            "score_components",
+            "source",
+            "span_status"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 50,
+        "minItems": 0
+      },
+      "conflicts": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "conflict_type": {
+              "type": "string",
+              "maxLength": 32768,
+              "enum": [
+                "duplicate_evidence_id"
+              ]
+            },
+            "description": {
+              "type": "string",
+              "maxLength": 512,
+              "minLength": 1
+            },
+            "evidence_ids": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 64,
+                "minLength": 1
+              },
+              "maxItems": 50,
+              "minItems": 1
+            }
+          },
+          "required": [
+            "conflict_type",
+            "description",
+            "evidence_ids"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 50,
+        "minItems": 0
+      },
+      "unsupported_claims": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "claim": {
+              "type": "string",
+              "maxLength": 200
+            },
+            "evidence_id": {
+              "type": "string",
+              "maxLength": 64,
+              "minLength": 1
+            },
+            "reason": {
+              "type": "string",
+              "maxLength": 512,
+              "minLength": 1
+            },
+            "reason_code": {
+              "type": "string",
+              "maxLength": 32768,
+              "enum": [
+                "empty_content",
+                "missing_source_label",
+                "span_mismatch",
+                "source_unavailable"
+              ]
+            }
+          },
+          "required": [
+            "claim",
+            "evidence_id",
+            "reason",
+            "reason_code"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100,
+        "minItems": 0
+      },
+      "confidence_calibration": {
+        "type": "object",
+        "properties": {
+          "overall_confidence": {
+            "type": "string",
+            "maxLength": 32768,
+            "enum": [
+              "high",
+              "moderate",
+              "low",
+              "not_assessed"
+            ]
+          },
+          "rationale": {
+            "type": "string",
+            "maxLength": 512,
+            "minLength": 1
+          }
+        },
+        "required": [
+          "overall_confidence",
+          "rationale"
+        ],
+        "additionalProperties": false
+      },
+      "source_coverage": {
+        "type": "object",
+        "properties": {
+          "coverage_assessment": {
+            "type": "string",
+            "maxLength": 512,
+            "minLength": 1
+          },
+          "covered_sources": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 200,
+              "minLength": 1
+            },
+            "maxItems": 50,
+            "minItems": 0,
+            "uniqueItems": true
+          },
+          "evidence_count": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 50
+          },
+          "invalid_span_count": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 50
+          },
+          "missing_sources": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 64,
+              "minLength": 1
+            },
+            "maxItems": 50,
+            "minItems": 0,
+            "uniqueItems": true
+          },
+          "source_coverage_ratio": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "sourced_count": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 50
+          },
+          "valid_span_count": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 50
+          }
+        },
+        "required": [
+          "coverage_assessment",
+          "covered_sources",
+          "evidence_count",
+          "invalid_span_count",
+          "missing_sources",
+          "source_coverage_ratio",
+          "sourced_count",
+          "valid_span_count"
+        ],
+        "additionalProperties": false
+      },
+      "limitations": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 512,
+          "minLength": 1
+        },
+        "maxItems": 10,
+        "minItems": 1
+      },
+      "manual_review_required": {
+        "type": "boolean",
+        "const": true
+      },
+      "summary": {
+        "type": "string",
+        "maxLength": 512,
+        "minLength": 1
+      },
+      "markdown": {
+        "type": "string",
+        "maxLength": 20000,
+        "minLength": 1
+      }
+    },
+    "field_relations": [
+      {
+        "id": "input_required_has_no_ranked_evidence",
+        "when": [
+          {
+            "path": "ranking_status",
+            "operator": "equals",
+            "value": "INPUT_REQUIRED"
+          }
+        ],
+        "must": [
+          {
+            "path": "ranked_evidence",
+            "operator": "empty"
+          }
+        ]
+      },
+      {
+        "id": "ranked_status_has_evidence",
+        "when": [
+          {
+            "path": "ranking_status",
+            "operator": "equals",
+            "value": "RANKED"
+          }
+        ],
+        "must": [
+          {
+            "path": "ranked_evidence",
+            "operator": "non_empty"
+          }
+        ]
+      },
+      {
+        "id": "ranked_with_gaps_has_evidence",
+        "when": [
+          {
+            "path": "ranking_status",
+            "operator": "equals",
+            "value": "RANKED_WITH_GAPS"
+          }
+        ],
+        "must": [
+          {
+            "path": "ranked_evidence",
+            "operator": "non_empty"
+          }
+        ]
+      },
+      {
+        "id": "documentation_ranking_requires_human_review",
+        "when": [
+          {
+            "path": "ranking_basis",
+            "operator": "equals",
+            "value": "DOCUMENTATION_GROUNDING_ONLY"
+          }
+        ],
+        "must": [
+          {
+            "path": "manual_review_required",
+            "operator": "equals",
+            "value": true
+          }
+        ]
+      }
+    ]
+  },
+  "phi_redaction": "required",
+  "context_required": false,
+  "recorder_required": true,
+  "metrics_required": true,
   "requirements": {
-    "min_runtime_version": "1.0.0"
+    "min_runtime_version": "1.0.0",
+    "icoder_runtime_modules": [
+      "icoder.governed-evidence-ranker.v1"
+    ]
   },
   "llm_capabilities": {
-    "required_models": [
-      {
-        "name": "deepseek-chat"
-      }
-    ],
+    "required_models": [],
+    "optional_models": [],
     "supports_tool_calling": false,
-    "supports_json_mode": true
+    "supports_json_mode": false,
+    "supports_mcp_tools": false
   },
-  "code": {},
+  "default_runtime_mode": "governed_local_documentation_grounding",
+  "available_runtime_modes": [
+    "governed_local_documentation_grounding"
+  ],
+  "non_goals": [
+    "不把文档可追溯性分数解释为临床证据强度或编码置信度",
+    "不根据来源文档类型推断临床真实性",
+    "不补造、改写或医学解释证据",
+    "不验证、推荐、选择、修改或提交编码"
+  ],
+  "human_review_required_when": [
+    "all rankings used for coding, reimbursement or clinical decisions",
+    "source labels or source spans are missing or invalid",
+    "evidence identifiers conflict or certainty/negation flags require review"
+  ],
+  "example_inputs": [
+    {
+      "title": "候选编码证据文档可追溯性排序",
+      "input_text": "{\"candidate_code\":\"I21.0\",\"source_documents\":{\"doc-1\":\"入院记录：I21.0 前壁ST段抬高。\"},\"evidence_items\":[{\"evidence_id\":\"A\",\"source\":\"入院记录第3段\",\"content\":\"I21.0 前壁ST段抬高\",\"doc_id\":\"doc-1\",\"char_start\":5,\"char_end\":18,\"certainty\":\"confirmed\"},{\"evidence_id\":\"B\",\"source\":\"检验单\",\"content\":\"肌钙蛋白升高\",\"certainty\":\"confirmed\"},{\"evidence_id\":\"B\",\"source\":\"既往史\",\"content\":\"陈旧性心肌梗死\",\"certainty\":\"confirmed\"},{\"evidence_id\":\"C\",\"source\":\"\",\"content\":\"未定位片段\",\"certainty\":\"unknown\"}]}",
+      "extra": {
+        "ranking_mode": "documentation_grounding_only"
+      }
+    }
+  ],
+  "example_outputs": [
+    {
+      "ranking_status": "RANKED_WITH_GAPS",
+      "candidate_code": "I21.0",
+      "ranking_basis": "DOCUMENTATION_GROUNDING_ONLY",
+      "ranked_evidence": [
+        {
+          "evidence_id": "A",
+          "source": "入院记录第3段",
+          "content": "I21.0 前壁ST段抬高",
+          "rank": 1,
+          "documentation_grounding_score": 1.0,
+          "span_status": "valid",
+          "certainty": "confirmed",
+          "explicit_negation": false,
+          "lexical_code_mention": true,
+          "score_components": [
+            "content_present:+0.35",
+            "source_label_present:+0.20",
+            "evidence_id_present:+0.10",
+            "source_span_exact:+0.25",
+            "candidate_code_literal_present:+0.10"
+          ],
+          "rationale": "content_present:+0.35；source_label_present:+0.20；evidence_id_present:+0.10；source_span_exact:+0.25；candidate_code_literal_present:+0.10"
+        },
+        {
+          "evidence_id": "B",
+          "source": "检验单",
+          "content": "肌钙蛋白升高",
+          "rank": 2,
+          "documentation_grounding_score": 0.65,
+          "span_status": "missing_coordinates",
+          "certainty": "confirmed",
+          "explicit_negation": false,
+          "lexical_code_mention": false,
+          "score_components": [
+            "content_present:+0.35",
+            "source_label_present:+0.20",
+            "evidence_id_present:+0.10"
+          ],
+          "rationale": "content_present:+0.35；source_label_present:+0.20；evidence_id_present:+0.10"
+        },
+        {
+          "evidence_id": "C",
+          "source": "",
+          "content": "未定位片段",
+          "rank": 3,
+          "documentation_grounding_score": 0.45,
+          "span_status": "missing_coordinates",
+          "certainty": "unknown",
+          "explicit_negation": false,
+          "lexical_code_mention": false,
+          "score_components": [
+            "content_present:+0.35",
+            "evidence_id_present:+0.10"
+          ],
+          "rationale": "content_present:+0.35；evidence_id_present:+0.10"
+        }
+      ],
+      "conflicts": [
+        {
+          "conflict_type": "duplicate_evidence_id",
+          "evidence_ids": [
+            "B"
+          ],
+          "description": "同一 evidence_id 对应多个不同来源或内容，已仅保留首次出现项。"
+        }
+      ],
+      "unsupported_claims": [
+        {
+          "evidence_id": "C",
+          "claim": "未定位片段",
+          "reason_code": "missing_source_label",
+          "reason": "证据项没有显式来源标签，不能视为可追溯证据。"
+        }
+      ],
+      "confidence_calibration": {
+        "overall_confidence": "low",
+        "rationale": "置信度只描述输入来源和 span 的可审计完整性，不描述临床正确性。"
+      },
+      "source_coverage": {
+        "evidence_count": 3,
+        "sourced_count": 2,
+        "valid_span_count": 1,
+        "invalid_span_count": 0,
+        "source_coverage_ratio": 0.6667,
+        "covered_sources": [
+          "入院记录第3段",
+          "检验单"
+        ],
+        "missing_sources": [
+          "C"
+        ],
+        "coverage_assessment": "来源或 span 存在缺口"
+      },
+      "limitations": [
+        "documentation_grounding_score 不是临床证据强度、诊断概率或编码置信度。",
+        "来源文档类型不被当作临床真实性或编码适用性的证明。",
+        "本地基线不执行医学语义推理、代码验证、指南检索或结算规则判断。"
+      ],
+      "manual_review_required": true,
+      "summary": "按文档可追溯性排序 3 项证据；发现 1 个来源/span 缺口和 1 个结构冲突。",
+      "markdown": "# 编码证据文档可追溯性排序\n\n**状态：** RANKED_WITH_GAPS\n\n**候选编码：** I21.0\n\n> 分数仅反映显式来源、span、否定/不确定标记和词面信息，不代表临床支持度或编码置信度。\n\n## 排序结果\n\n1. **A** — `1.0000`\n2. **B** — `0.6500`\n3. **C** — `0.4500`\n\n## 人工复核\n\n本结果不验证诊断、操作或编码。任何编码、结算或临床用途都必须人工复核。"
+    }
+  ],
+  "built_by": "icoder",
   "integrity": {
-    "sha256": ""
+    "sha256": "411b2a77f7588ed0a8dc1d57285a227853028398599c4483647dfce83e02d80a"
   }
 }

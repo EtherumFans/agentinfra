@@ -49,9 +49,10 @@ def test_operator_env_override(monkeypatch) -> None:
     than the public provider.
     """
     monkeypatch.setenv("ICODER_PROVIDER_REGION_OPENAI_COMPAT", "cn")
-    import importlib
     from icoder_runtime.core import data_policy
-    importlib.reload(data_policy)
+    # get_provider_region reads the deployment override on every call. Reloading
+    # this module changes the RuntimeDataPolicy class identity held by already
+    # imported API modules and contaminates later full-suite isinstance checks.
     assert data_policy.get_provider_region("openai_compat") == "cn"
 
 

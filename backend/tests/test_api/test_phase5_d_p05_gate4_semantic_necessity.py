@@ -191,6 +191,59 @@ def test_pass_when_query_is_necessary_and_answerable() -> None:
     assert result.clinical_substrate_present is True
 
 
+def test_overly_detailed_without_documentation_impact_is_forced_block() -> None:
+    """Server normalizes an internally inconsistent PASS from the reviewer."""
+    import asyncio
+
+    mock = _MockLLM(
+        response={
+            "clinical_substrate_present": True,
+            "existing_documentation_ambiguous": True,
+            "query_answerable": True,
+            "query_changes_documentation": False,
+            "query_requests_new_diagnosis": False,
+            "query_is_redundant": False,
+            "query_is_overly_detailed": True,
+            "chart_fully_documented": False,
+            "verdict": "PASS",
+            "reason_codes": [],
+        }
+    )
+    result = asyncio.run(review_necessity(
+        _make_query(query_text="请进一步细分该客观异常的类型。"),
+        chart="客观异常及临床归因均已明确记录。",
+        llm=mock,
+    ))
+    assert result.verdict == "BLOCK"
+    assert "BEYOND_MINIMAL_DOCUMENTATION_NEED" in result.reason_codes
+
+
+def test_overly_detailed_but_documentation_changing_is_not_forced_block() -> None:
+    """A critical coding/documentation change is not blocked merely for detail."""
+    import asyncio
+
+    mock = _MockLLM(
+        response={
+            "clinical_substrate_present": True,
+            "existing_documentation_ambiguous": True,
+            "query_answerable": True,
+            "query_changes_documentation": True,
+            "query_requests_new_diagnosis": False,
+            "query_is_redundant": False,
+            "query_is_overly_detailed": True,
+            "chart_fully_documented": False,
+            "verdict": "PASS",
+            "reason_codes": [],
+        }
+    )
+    result = asyncio.run(review_necessity(
+        _make_query(query_text="请明确会改变编码的关键分型。"),
+        chart="关键分型尚未记录。",
+        llm=mock,
+    ))
+    assert result.verdict == "PASS"
+
+
 # ---------------------------------------------------------------------------
 # DEGRADED path
 # ---------------------------------------------------------------------------

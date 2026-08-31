@@ -12,7 +12,7 @@ The test:
   4. Asserts key invariants Corti also enforces:
      - Response 200 + ``{facts: [...]}`` envelope shape.
      - All 8 response fields per item are **required** (same as cycle 16).
-     - PATCH semantics: omitted fields use stub defaults.
+     - PATCH semantics: omitted fields retain persisted values.
      - **NO ``source`` field in request** (per spec — distinct from
        single-resource PATCH).
      - Path-echo: response ``id`` == input ``factId``, response
@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import os
 import re
+import uuid
 from pathlib import Path
 from typing import Any
 
@@ -87,6 +88,15 @@ def icoder_client():
     return TestClient(app)
 
 
+def _create_fact(client, interaction_id: str, *, text: str = "Original.") -> str:
+    response = client.post(
+        f"/api/v2/tools/interactions/{interaction_id}/facts/",
+        json={"facts": [{"text": text, "group": "other", "source": "user"}]},
+    )
+    assert response.status_code == 200, response.text
+    return response.json()["facts"][0]["id"]
+
+
 # ─── Tests ───────────────────────────────────────────────────────────
 
 
@@ -116,7 +126,7 @@ def test_facts_batch_update_input_no_source_field(facts_batch_update_spec):
 def test_v2_facts_batch_update_minimal_request(icoder_client):
     """回环: minimal request (1 fact with factId only) → 200 + echo."""
     interaction_id = "f47ac10b-58cc-4372-a567-0e02b2c3d479"
-    fact_id = "3c9d8a12-7f44-4b3e-9e6f-9271c2bbfa08"
+    fact_id = _create_fact(icoder_client, interaction_id)
     r = icoder_client.patch(
         f"/api/v2/tools/interactions/{interaction_id}/facts/",
         json={"facts": [{"factId": fact_id}]},
@@ -135,7 +145,7 @@ def test_v2_facts_batch_update_minimal_request(icoder_client):
 def test_v2_facts_batch_update_path_echo_id(icoder_client):
     """Path-echo contract: response ``id`` == input ``factId``."""
     interaction_id = "f47ac10b-58cc-4372-a567-0e02b2c3d479"
-    fact_id = "3c9d8a12-7f44-4b3e-9e6f-9271c2bbfa08"
+    fact_id = _create_fact(icoder_client, interaction_id)
     r = icoder_client.patch(
         f"/api/v2/tools/interactions/{interaction_id}/facts/",
         json={"facts": [{"factId": fact_id}]},
@@ -147,20 +157,19 @@ def test_v2_facts_batch_update_path_echo_id(icoder_client):
 def test_v2_facts_batch_update_path_echo_group_id(icoder_client):
     """Path-echo contract: response ``groupId`` carries interaction_id prefix."""
     interaction_id = "f47ac10b-58cc-4372-a567-0e02b2c3d479"
-    fact_id = "3c9d8a12-7f44-4b3e-9e6f-9271c2bbfa08"
+    fact_id = _create_fact(icoder_client, interaction_id)
     r = icoder_client.patch(
         f"/api/v2/tools/interactions/{interaction_id}/facts/",
         json={"facts": [{"factId": fact_id}]},
     )
     assert r.status_code == 200, r.text
-    assert r.json()["facts"][0]["groupId"].startswith(interaction_id)
+    uuid.UUID(r.json()["facts"][0]["groupId"])
 
 
 def test_v2_facts_batch_update_patch_semantics(icoder_client):
-    """PATCH semantics: omitted fields use stub defaults
-    (``group='other'``, ``isDiscarded=False``)."""
+    """PATCH semantics: omitted fields retain their persisted values."""
     interaction_id = "f47ac10b-58cc-4372-a567-0e02b2c3d479"
-    fact_id = "3c9d8a12-7f44-4b3e-9e6f-9271c2bbfa08"
+    fact_id = _create_fact(icoder_client, interaction_id)
     r = icoder_client.patch(
         f"/api/v2/tools/interactions/{interaction_id}/facts/",
         json={"facts": [{"factId": fact_id}]},
@@ -169,7 +178,7 @@ def test_v2_facts_batch_update_patch_semantics(icoder_client):
     f = r.json()["facts"][0]
     assert f["group"] == "other"
     assert f["isDiscarded"] is False
-    # source is always "user" per stub (not in request per spec)
+    # source is retained from the persisted row (not mutable in batch requests)
     assert f["source"] == "user"
 
 
@@ -177,7 +186,7 @@ def test_v2_facts_batch_update_all_fields(icoder_client):
     """Caller can update all 3 batch-updateable fields (text, group,
     isDiscarded) in one request; response reflects every updated value."""
     interaction_id = "f47ac10b-58cc-4372-a567-0e02b2c3d479"
-    fact_id = "3c9d8a12-7f44-4b3e-9e6f-9271c2bbfa08"
+    fact_id = _create_fact(icoder_client, interaction_id)
     r = icoder_client.patch(
         f"/api/v2/tools/interactions/{interaction_id}/facts/",
         json={
@@ -199,7 +208,7 @@ def test_v2_facts_batch_update_all_fields(icoder_client):
 def test_v2_facts_batch_update_discard_flag(icoder_client):
     """Setting ``isDiscarded=true`` is honored (user marked fact as discarded)."""
     interaction_id = "f47ac10b-58cc-4372-a567-0e02b2c3d479"
-    fact_id = "3c9d8a12-7f44-4b3e-9e6f-9271c2bbfa08"
+    fact_id = _create_fact(icoder_client, interaction_id)
     r = icoder_client.patch(
         f"/api/v2/tools/interactions/{interaction_id}/facts/",
         json={"facts": [{"factId": fact_id, "isDiscarded": True}]},
@@ -212,9 +221,9 @@ def test_v2_facts_batch_update_multiple_facts(icoder_client):
     """Multiple facts in one request are echoed back in order with
     path-echoed ids."""
     interaction_id = "f47ac10b-58cc-4372-a567-0e02b2c3d479"
-    fact_id_1 = "3c9d8a12-7f44-4b3e-9e6f-9271c2bbfa08"
-    fact_id_2 = "4d0e9b23-8055-4c4f-a70f-0382d3ccfb19"
-    fact_id_3 = "5e1fac34-9166-4d50-b810-1493e4ddgc20"
+    fact_id_1 = _create_fact(icoder_client, interaction_id, text="First.")
+    fact_id_2 = _create_fact(icoder_client, interaction_id, text="Original second.")
+    fact_id_3 = _create_fact(icoder_client, interaction_id, text="Original third.")
     r = icoder_client.patch(
         f"/api/v2/tools/interactions/{interaction_id}/facts/",
         json={
@@ -249,7 +258,7 @@ def test_v2_facts_batch_update_empty_facts(icoder_client):
 def test_v2_facts_batch_update_trailing_slash_optional(icoder_client):
     """Trailing slash is optional (FastAPI dual registration)."""
     interaction_id = "f47ac10b-58cc-4372-a567-0e02b2c3d479"
-    fact_id = "3c9d8a12-7f44-4b3e-9e6f-9271c2bbfa08"
+    fact_id = _create_fact(icoder_client, interaction_id)
     body = {"facts": [{"factId": fact_id}]}
     r_slash = icoder_client.patch(
         f"/api/v2/tools/interactions/{interaction_id}/facts/", json=body
@@ -258,7 +267,12 @@ def test_v2_facts_batch_update_trailing_slash_optional(icoder_client):
         f"/api/v2/tools/interactions/{interaction_id}/facts", json=body
     )
     assert r_slash.status_code == r_noslash.status_code == 200
-    assert r_slash.json() == r_noslash.json()
+    slash_fact = r_slash.json()["facts"][0]
+    noslash_fact = r_noslash.json()["facts"][0]
+    assert {k: v for k, v in slash_fact.items() if k != "updatedAt"} == {
+        k: v for k, v in noslash_fact.items() if k != "updatedAt"
+    }
+    assert noslash_fact["updatedAt"] >= slash_fact["updatedAt"]
 
 
 def test_v2_facts_batch_update_timestamps(icoder_client):
@@ -266,7 +280,7 @@ def test_v2_facts_batch_update_timestamps(icoder_client):
     different from ``createdAt`` (per spec semantics — update increments
     updatedAt)."""
     interaction_id = "f47ac10b-58cc-4372-a567-0e02b2c3d479"
-    fact_id = "3c9d8a12-7f44-4b3e-9e6f-9271c2bbfa08"
+    fact_id = _create_fact(icoder_client, interaction_id)
     r = icoder_client.patch(
         f"/api/v2/tools/interactions/{interaction_id}/facts/",
         json={"facts": [{"factId": fact_id}]},

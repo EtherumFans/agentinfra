@@ -31,9 +31,10 @@ def test_coding_expert_constants():
         CODING_EXPERT_DELEGATES_TO,
         CODING_EXPERT_OUTPUT_CONTRACT,
     )
+    from app.icoder.agent_runtime.a2a_facade import medical_coding_schema_ref
     assert CODING_EXPERT_CANONICAL_KEY == "coding-expert"
     assert CODING_EXPERT_DELEGATES_TO == "icoder/medical-coding-agent@2.0.0"
-    assert CODING_EXPERT_OUTPUT_CONTRACT == "icoder/MedicalCodingAgentOutputV2/v1"
+    assert CODING_EXPERT_OUTPUT_CONTRACT == medical_coding_schema_ref()
 
 
 def test_coding_expert_delegate_without_pack_output():
@@ -66,7 +67,7 @@ def test_coding_expert_runtime_mode_passthrough():
 
 
 # ─────────────────────────────────────────────────────────────────────
-# §2 DrugBank stub
+# §2 DrugBank offline compatibility + governed live path
 # ─────────────────────────────────────────────────────────────────────
 
 def test_drugbank_constants():
@@ -80,13 +81,13 @@ def test_drugbank_constants():
     assert DRUGBANK_LLM_FALLBACK_ALLOWED is False  # red line
 
 
-def test_drugbank_stub_returns_empty_with_flag():
+def test_drugbank_sync_compatibility_returns_empty_with_flag():
     from app.agents.experts.drugbank_expert import lookup
     r = lookup("metformin interactions")
     assert r.live_lookup_performed is False
     assert r.drug_info == {}
     assert r.interactions == []
-    assert "STUB" in r.notes
+    assert "OFFLINE_COMPATIBILITY" in r.notes
 
 
 def test_drugbank_stub_empty_query():
@@ -103,7 +104,7 @@ def test_drugbank_stub_no_llm_fallback_marker():
 
 
 # ─────────────────────────────────────────────────────────────────────
-# §3 POSOS stub
+# §3 POSOS offline compatibility + governed live path
 # ─────────────────────────────────────────────────────────────────────
 
 def test_posos_constants():
@@ -117,12 +118,12 @@ def test_posos_constants():
     assert POSOS_LLM_FALLBACK_ALLOWED is False
 
 
-def test_posos_stub_returns_empty_with_flag():
+def test_posos_sync_compatibility_returns_empty_with_flag():
     from app.agents.experts.posos_expert import guide
     r = guide("renal dose adjustment metformin")
     assert r.live_lookup_performed is False
     assert r.guidance == {}
-    assert "STUB" in r.notes
+    assert "OFFLINE_COMPATIBILITY" in r.notes
 
 
 def test_posos_stub_empty_query():
@@ -198,15 +199,14 @@ def test_web_search_invalid_policy_raises():
         search("foo", policy="NOT_A_REAL_POLICY")
 
 
-def test_web_search_still_returns_empty_when_enabled():
-    """A1B-AE.7 never performs a live web call — even when policy=ENABLED."""
+def test_web_search_sync_path_never_implicitly_sends_network_query():
     from app.agents.experts.web_search_expert import (
         search,
         WEB_SEARCH_POLICY_ENABLED,
     )
     r = search("foo", policy=WEB_SEARCH_POLICY_ENABLED)
     assert r.live_search_performed is False
-    assert "STUB" in r.notes
+    assert "OFFLINE_COMPATIBILITY" in r.notes
 
 
 # ─────────────────────────────────────────────────────────────────────

@@ -1,0 +1,454 @@
+{
+  "case_id": "CASE-4eec706c8b61",
+  "completion_state": "REVIEW_RECOMMENDED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-4eec706c8b61/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "慢性肾病 documented in progress notes but not in admission or discharge diagnoses; lacks specification of stage or etiology.",
+      "why_it_matters": "Chronic kidney disease is a significant comorbidity that affects coding, risk adjustment, and management; unspecified stage or etiology may lead to inaccurate coding and incomplete clinical picture.",
+      "evidence_span": {
+        "document_id": "progress_note",
+        "quote": "病程记录:高血压, 糖尿病, 慢性肾病, 高脂血症。",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-4eec706c8b61/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "高脂血症 documented in progress notes but not in admission or discharge diagnoses; lacks specification of type (e.g., hypercholesterolemia, hypertriglyceridemia) or severity.",
+      "why_it_matters": "Hyperlipidemia is a chronic condition that should be coded; unspecified type may affect treatment and coding accuracy.",
+      "evidence_span": {
+        "document_id": "progress_note",
+        "quote": "病程记录:高血压, 糖尿病, 慢性肾病, 高脂血症。",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-4eec706c8b61/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "原发性高血压 lacks specification of severity or any complications (e.g., hypertensive heart disease, renal involvement).",
+      "why_it_matters": "Hypertension coding requires specification of severity and associated conditions; unspecified hypertension may lead to incomplete coding.",
+      "evidence_span": {
+        "document_id": "admission_note",
+        "quote": "入院诊断:原发性高血压, 2型糖尿病。",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-4eec706c8b61/GAP-004",
+      "gap_type": "diagnostic_specificity",
+      "description": "2型糖尿病 lacks specification of complications or control status (e.g., with diabetic nephropathy, neuropathy, or uncontrolled).",
+      "why_it_matters": "Diabetes coding requires specification of complications and control; unspecified diabetes may lead to incomplete coding and missed risk adjustment.",
+      "evidence_span": {
+        "document_id": "admission_note",
+        "quote": "入院诊断:原发性高血压, 2型糖尿病。",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-4eec706c8b61/Q-001",
+      "gap_id": "CASE-4eec706c8b61/GAP-001",
+      "topic": "出院诊断合并症完整性",
+      "reason": "病程记录中的合并症未出现在出院诊断中。",
+      "evidence_span": {
+        "document_id": "chart-001",
+        "quote": "病程记录:高血压, 糖尿病, 慢性肾病, 高脂血症",
+        "char_start": 50,
+        "char_end": 75,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "病程记录:高血压, 糖尿病, 慢性肾病, 高脂血症",
+          "char_start": 50,
+          "char_end": 75,
+          "documented_at": ""
+        },
+        {
+          "document_id": "chart-001",
+          "quote": "出院诊断:高血压, 糖尿病",
+          "char_start": 76,
+          "char_end": 89,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "请明确病程中所列慢性肾病和高脂血症在出院诊断中的记录情况。",
+      "response_options": [
+        "A. 两者均应记录",
+        "B. 仅记录慢性肾病",
+        "C. 仅记录高脂血症",
+        "D. 两者均不记录",
+        "E. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    }
+  ],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-DXOMIT-2c6adc2e",
+      "gap_id": "CASE-4eec706c8b61/GAP-001",
+      "topic": "出院诊断合并症完整性",
+      "reason": "病程记录中的合并症未出现在出院诊断中。",
+      "query_text": "请明确病程中所列慢性肾病和高脂血症在出院诊断中的记录情况。",
+      "response_options": [
+        "A. 两者均应记录",
+        "B. 仅记录慢性肾病",
+        "C. 仅记录高脂血症",
+        "D. 两者均不记录",
+        "E. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "病程记录:高血压, 糖尿病, 慢性肾病, 高脂血症",
+          "char_start": 50,
+          "char_end": 75,
+          "documented_at": ""
+        },
+        {
+          "document_id": "chart-001",
+          "quote": "出院诊断:高血压, 糖尿病",
+          "char_start": 76,
+          "char_end": 89,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "CDI-Coverage: progress-note comorbidities are absent from discharge diagnoses"
+      ],
+      "status": "DETERMINISTIC_COVERAGE_GENERATED",
+      "rewrite_kind": "DISCHARGE_COMORBIDITY_OMISSION",
+      "rewrite_attempt_status": "ACCEPTED_FOR_DOWNSTREAM_GATES",
+      "replacement_query_id": "Q-DXOMIT-2c6adc2e",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-001",
+      "gap_id": "CASE-4eec706c8b61/GAP-001",
+      "topic": "慢性肾病的分期或病因",
+      "reason": "病程记录提及慢性肾病，但未明确分期或病因，影响诊断完整性。",
+      "query_text": "病程记录中提及慢性肾病，请明确其分期或病因。",
+      "response_options": [
+        "A. 慢性肾病，具体分期或病因未明确",
+        "B. 慢性肾病，考虑高血压肾损害",
+        "C. 慢性肾病，考虑糖尿病肾病",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "病程记录:高血压, 糖尿病, 慢性肾病, 高脂血症。",
+          "char_start": 50,
+          "char_end": 76,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "CDI-Focus: resolve the core diagnosis/conflict before secondary refinements"
+      ],
+      "status": "DEFERRED_SECONDARY_TO_CORE_DIAGNOSIS",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-002",
+      "gap_id": "CASE-4eec706c8b61/GAP-002",
+      "topic": "高脂血症的类型或严重程度",
+      "reason": "病程记录提及高脂血症，但未明确类型或严重程度。",
+      "query_text": "病程记录中提及高脂血症，请明确其类型或严重程度。",
+      "response_options": [
+        "A. 高胆固醇血症",
+        "B. 高甘油三酯血症",
+        "C. 混合型高脂血症",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "病程记录:高血压, 糖尿病, 慢性肾病, 高脂血症。",
+          "char_start": 50,
+          "char_end": 76,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "CDI-Focus: resolve the core diagnosis/conflict before secondary refinements"
+      ],
+      "status": "DEFERRED_SECONDARY_TO_CORE_DIAGNOSIS",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-003",
+      "gap_id": "CASE-4eec706c8b61/GAP-003",
+      "topic": "原发性高血压的严重程度或并发症",
+      "reason": "入院诊断提及原发性高血压，但未明确严重程度或并发症。",
+      "query_text": "入院诊断中提及原发性高血压，请明确其严重程度或并发症。",
+      "response_options": [
+        "A. 高血压，无并发症",
+        "B. 高血压，伴心脏并发症",
+        "C. 高血压，伴肾脏并发症",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "入院诊断:原发性高血压, 2型糖尿病。",
+          "char_start": 11,
+          "char_end": 30,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "CDI-Focus: resolve the core diagnosis/conflict before secondary refinements"
+      ],
+      "status": "DEFERRED_SECONDARY_TO_CORE_DIAGNOSIS",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-004",
+      "gap_id": "CASE-4eec706c8b61/GAP-004",
+      "topic": "2型糖尿病的并发症或控制状态",
+      "reason": "入院诊断提及2型糖尿病，但未明确并发症或控制状态。",
+      "query_text": "入院诊断中提及2型糖尿病，请明确其并发症或控制状态。",
+      "response_options": [
+        "A. 糖尿病，无并发症",
+        "B. 糖尿病，伴肾脏并发症",
+        "C. 糖尿病，伴神经并发症",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "入院诊断:原发性高血压, 2型糖尿病。",
+          "char_start": 11,
+          "char_end": 30,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "CDI-Focus: resolve the core diagnosis/conflict before secondary refinements"
+      ],
+      "status": "DEFERRED_SECONDARY_TO_CORE_DIAGNOSIS",
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者男性, 58岁, 入院诊断:原发性高血压, 2型糖尿病。用药记录:二甲双胍, 缬沙坦, 胰岛素。病程记录:高血压, 糖尿病, 慢性肾病, 高脂血症。出院诊断:高血压, 糖尿病。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "原发性高血压",
+      "2型糖尿病",
+      "慢性肾病",
+      "高脂血症",
+      "用药:二甲双胍",
+      "用药:缬沙坦",
+      "用药:胰岛素"
+    ],
+    "encounter_metadata": {
+      "patient_age": "58岁",
+      "patient_sex": "男性",
+      "encounter_type": "住院"
+    }
+  },
+  "risk_flags": [
+    {
+      "category": "contradiction",
+      "description": "Discharge diagnosis lists only '高血压, 糖尿病' while progress notes include '慢性肾病' and '高脂血症', creating inconsistency in documented diagnoses."
+    }
+  ],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "For accurate coding, the clinical documentation must specify the stage and etiology of chronic kidney disease (e.g., CKD stage 3 due to diabetic nephropathy) and clarify whether it is acute or chronic, as this directly impacts severity and management. Additionally, specify the type of hyperlipidemia (e.g., pure hypercholesterolemia vs. mixed) and any related severity, and document the presence or absence of hypertensive complications (e.g., heart or renal involvement) and diabetic complications (e.g., nephropathy, neuropathy, retinopathy) or uncontrolled status, as these are essential for precise code assignment. Without these details, the coded data will underrepresent the patient’s true clinical complexity and risk.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 4035,
+      "tokens": 370
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-82ce1624ae65",
+    "gap_identification": "run-6ed169c5473a",
+    "gap_identification_risk_flags": "emitted=1;quote_snapped=0",
+    "expert_consultation": "run-35456289958a",
+    "query_generation": "run-73c5b3364c6e",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.25;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=Y;dropped=0;final_count=4;llm_complete=False;llm_reasoning=The chart lacks specificity for major chronic conditions (hypertension, diabetes",
+    "query_necessity_gate": "necessary=4;unnecessary=0;overquery_triggered=False;final_count=1",
+    "query_single_dimension_gate": "single_dim=1;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=complication;rewrite_attempted=0;rewrite_accepted=0;final_count=1",
+    "claim_evidence_alignment_gate": "claims_extracted=2;blocked=0;flagged=0;final_count=1",
+    "claim_evidence_alignment_gate::run_id": "run-f141f6e19e17",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=1",
+    "semantic_necessity_gate::run_id": "run-ec22cf1cf0ec",
+    "query_compliance_gate": ";passed=1;blocked=0",
+    "specialist_trace_emit": "run-c50253ff7f03"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-97959085e3df",
+    "gap_identification": "trace-5165d1ab06a2",
+    "expert_consultation": "trace-833e57787112",
+    "query_generation": "trace-333bd55ff1b8",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-6582c389d1ec",
+    "semantic_necessity_gate": "trace-9e2f673f839b",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-c0b5660854d6"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2203,
+      "prompt_tokens": 232,
+      "completion_tokens": 93,
+      "total_tokens": 325,
+      "run_id": "run-82ce1624ae65",
+      "trace_id": "trace-97959085e3df",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 7110,
+      "prompt_tokens": 1050,
+      "completion_tokens": 742,
+      "total_tokens": 1792,
+      "run_id": "run-6ed169c5473a",
+      "trace_id": "trace-5165d1ab06a2",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6259,
+      "prompt_tokens": 1355,
+      "completion_tokens": 828,
+      "total_tokens": 2183,
+      "run_id": "run-73c5b3364c6e",
+      "trace_id": "trace-333bd55ff1b8",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 4035,
+      "prompt_tokens": 228,
+      "completion_tokens": 142,
+      "total_tokens": 370,
+      "run_id": "run-88382424fbc9",
+      "trace_id": "trace-a056d4f2a24a",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-5480e1425b05",
+      "trace_id": "trace-189ba1cc7fed",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-ee862a622194",
+      "trace_id": "trace-edc546c3c179",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-aeec5fda9931",
+      "trace_id": "trace-f03e6fc0c286",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T20:22:31.564148Z"
+}

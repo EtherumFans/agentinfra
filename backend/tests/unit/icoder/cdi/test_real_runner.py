@@ -21,6 +21,7 @@ import pytest
 
 from app.icoder.agent_runtime.cdi import CDICase, CDIOrchestrator, RealCDIRunner
 from app.icoder.agent_runtime.cdi.real_runner import StageTrace
+from app.services.llm_service import LLMProviderCallError
 
 
 # ---------------------------------------------------------------------------
@@ -69,6 +70,8 @@ class _MockLLM:
             stage = "gap_identification"
         elif "draft a NON-LEADING provider query" in user_text:
             stage = "query_generation"
+        elif "Repair the compound drafts below" in user_text:
+            stage = "query_dimension_rewrite"
         else:
             stage = "unknown"
 
@@ -90,8 +93,8 @@ class _MockLLM:
                         "why_it_matters": "影响编码特异性",
                         "evidence_span": {
                             "document_id": "入院记录",
-                            "quote": "诊断: 肺炎",
-                            "char_start": 0, "char_end": 6,
+                            "quote": "肺炎",
+                            "char_start": 0, "char_end": 2,
                         },
                         "priority": "routine",
                     }
@@ -105,7 +108,7 @@ class _MockLLM:
                         "gap_id": "g1",
                         "topic": "肺炎病原体",
                         "reason": "特异性不足",
-                        "evidence_span": {"document_id": "入院记录", "quote": "诊断: 肺炎"},
+                        "evidence_span": {"document_id": "入院记录", "quote": "肺炎"},
                         "query_text": "请说明痰培养结果及临床判断:",
                         "response_options": [
                             "A. 痰培养为肺炎链球菌",
@@ -117,6 +120,8 @@ class _MockLLM:
                     }
                 ]
             })
+        elif stage == "query_dimension_rewrite":
+            content = json.dumps({"queries": []})
         else:
             content = "{}"
 
@@ -135,7 +140,7 @@ def test_real_runner_captures_stage_traces() -> None:
     """Every LLM-backed stage records provider/model/latency/tokens."""
     mock = _MockLLM()
     runner = RealCDIRunner(llm=mock)
-    case = CDICase(case_id="c1", chart_excerpt="患者男性,58岁,诊断肺炎。")
+    case = CDICase(case_id="c1", chart_excerpt="患者男性,58岁,诊断: 肺炎。")
 
     orch = CDIOrchestrator(runner=runner)
     orch.run(case)
@@ -156,6 +161,63 @@ def test_real_runner_captures_stage_traces() -> None:
         assert trace.run_id.startswith("run-")
         assert trace.trace_id.startswith("trace-")
         assert not trace.degraded
+
+
+def test_cdi_run_reuses_one_event_loop_across_all_llm_stages() -> None:
+    class LoopBoundLLM(_MockLLM):
+        def __init__(self):
+            super().__init__()
+            self.loop_ids: list[int] = []
+
+        async def chat(self, *args, **kwargs):
+            self.loop_ids.append(id(asyncio.get_running_loop()))
+            return await super().chat(*args, **kwargs)
+
+    llm = LoopBoundLLM()
+    runner = RealCDIRunner(llm=llm)
+    case = CDICase(case_id="c-loop", chart_excerpt="患者男性,58岁,诊断肺炎。")
+
+    CDIOrchestrator(runner=runner).run(case)
+
+    assert len(llm.loop_ids) >= 3
+    assert len(set(llm.loop_ids)) == 1
+
+
+def test_default_cdi_runner_closes_request_scoped_llm_client(monkeypatch) -> None:
+    from app.services import llm_service as llm_service_module
+
+    class OwnedLLM(_MockLLM):
+        closed = False
+        created_loop_id: int | None = None
+        closed_loop_id: int | None = None
+
+        def __init__(self) -> None:
+            super().__init__()
+            self.created_loop_id = id(asyncio.get_running_loop())
+
+        async def aclose(self) -> None:
+            self.closed = True
+            self.closed_loop_id = id(asyncio.get_running_loop())
+
+    created: list[OwnedLLM] = []
+
+    def create_owned_llm() -> OwnedLLM:
+        llm = OwnedLLM()
+        created.append(llm)
+        return llm
+
+    monkeypatch.setattr(llm_service_module, "LLMService", create_owned_llm)
+    runner = RealCDIRunner()
+    case = CDICase(case_id="c-close", chart_excerpt="患者男性,58岁,诊断肺炎。")
+
+    CDIOrchestrator(runner=runner).run(case)
+
+    assert len(created) == 1
+    llm = created[0]
+    assert llm.closed is True
+    assert llm.created_loop_id is not None
+    assert llm.closed_loop_id == llm.created_loop_id
+    assert runner.llm is None
 
 
 def test_real_runner_captures_expert_traces() -> None:
@@ -236,13 +298,13 @@ def test_real_runner_populates_documentation_gaps() -> None:
     assert len(case.documentation_gaps) == 1
     gap = case.documentation_gaps[0]
     assert gap.description == "肺炎病原体未明确"
-    assert gap.evidence_span.quote == "诊断: 肺炎"
+    assert gap.evidence_span.quote == "肺炎"
 
 
 def test_real_runner_populates_provider_queries() -> None:
     mock = _MockLLM()
     runner = RealCDIRunner(llm=mock)
-    case = CDICase(case_id="c1", chart_excerpt="患者男性,58岁,诊断肺炎。")
+    case = CDICase(case_id="c1", chart_excerpt="患者男性,58岁,诊断: 肺炎。")
     CDIOrchestrator(runner=runner).run(case)
 
     assert len(case.proposed_provider_queries) == 1
@@ -250,6 +312,73 @@ def test_real_runner_populates_provider_queries() -> None:
     assert q.topic == "肺炎病原体"
     assert len(q.response_options) == 4
     assert any("无法确定" in opt for opt in q.response_options)  # escape hatch
+
+
+def test_query_generation_prompt_requires_one_gap_and_dimension_per_query() -> None:
+    mock = _MockLLM()
+    runner = RealCDIRunner(llm=mock)
+    case = CDICase(case_id="c_prompt", chart_excerpt="诊断: 肺炎")
+
+    CDIOrchestrator(runner=runner).run(case)
+
+    _, messages, system_prompt = next(
+        call for call in mock.calls if call[0] == "query_generation"
+    )
+    user_prompt = next(
+        message["content"] for message in messages if message["role"] == "user"
+    )
+    assert "exactly ONE gap and ONE clinical dimension" in (system_prompt or "")
+    assert "Never merge separate gap_ids" in (system_prompt or "")
+    assert "GAP COVERAGE (mandatory)" in user_prompt
+    assert "exactly one listed gap_id" in user_prompt
+
+
+def test_query_dimension_rewrite_prompt_is_bounded_to_source_gap() -> None:
+    mock = _MockLLM()
+    runner = RealCDIRunner(llm=mock)
+    case = CDICase(
+        case_id="c-rewrite-prompt",
+        chart_excerpt="入院诊断：急性胰腺炎。既往：胆石症。",
+    )
+
+    result = runner("query_dimension_rewrite", case, {
+        "rewrite_items": [{
+            "source_query_id": "q-compound",
+            "gap_id": "g-etiology",
+            "gap_description": "急性胰腺炎病因未明确",
+            "compound_query_text": "请说明病因和严重程度。",
+            "target_axis": "etiology",
+        }],
+    })
+
+    assert result["queries"] == []
+    _, messages, system_prompt = next(
+        call for call in mock.calls if call[0] == "query_dimension_rewrite"
+    )
+    user_prompt = next(
+        message["content"] for message in messages if message["role"] == "user"
+    )
+    assert "at most one replacement per source_query_id" in user_prompt
+    assert '"gap_id": "g-etiology"' in user_prompt
+    assert '"target_axis": "etiology"' in user_prompt
+    assert "keep the exact source_query_id and gap_id" in (system_prompt or "")
+    assert "detected axis set is not exactly {target_axis}" in (system_prompt or "")
+    assert "Do not add a new diagnosis" in (system_prompt or "")
+
+
+@pytest.mark.asyncio
+async def test_sync_runner_inside_active_loop_uses_worker_without_coroutine_leak(
+    recwarn: pytest.WarningsRecorder,
+) -> None:
+    """The compatibility bridge must not construct an abandoned coroutine."""
+
+    runner = RealCDIRunner(llm=_MockLLM(), invoke_experts=False)
+    case = CDICase(case_id="c-active-loop", chart_excerpt="诊断：肺炎。")
+
+    result = runner("encounter_synthesis", case, {})
+
+    assert result["key_points"] == ["肺炎诊断", "痰培养阳性"]
+    assert not any("was never awaited" in str(item.message) for item in recwarn)
 
 
 def test_real_runner_records_run_ids_and_trace_ids_per_stage() -> None:
@@ -299,6 +428,88 @@ def test_real_runner_marks_degraded_on_llm_failure() -> None:
     assert not runner.stage_traces["encounter_synthesis"].degraded
     # No gaps produced (degraded → empty)
     assert case.documentation_gaps == []
+
+
+def test_real_runner_captures_content_free_provider_failure_diagnostics() -> None:
+    class DiagnosticLLM(_MockLLM):
+        async def chat(self, *args, **kwargs):
+            raise LLMProviderCallError(
+                category="rate_limit",
+                status_code=429,
+                attempts=3,
+                retryable=True,
+            )
+
+    runner = RealCDIRunner(llm=DiagnosticLLM())
+    case = CDICase(case_id="c1", chart_excerpt="患者男性,58岁,诊断肺炎。")
+
+    CDIOrchestrator(runner=runner).run(case)
+
+    trace = runner.stage_traces["encounter_synthesis"]
+    assert trace.degraded is True
+    assert trace.error_reason == "llm_call_failed:rate_limit"
+    assert trace.provider_error_category == "rate_limit"
+    assert trace.provider_http_status == 429
+    assert trace.provider_attempt_count == 3
+    assert trace.provider_retryable is True
+
+
+def test_cdi_invalid_structured_response_gets_one_bounded_repair_retry() -> None:
+    class RepairLLM:
+        def __init__(self) -> None:
+            self.calls = 0
+            self.system_prompts: list[str] = []
+
+        async def chat(self, *args, **kwargs):
+            self.calls += 1
+            self.system_prompts.append(str(kwargs.get("system_prompt") or ""))
+            content = (
+                "not-json"
+                if self.calls == 1
+                else json.dumps({"key_points": ["diagnosis"], "encounter_metadata": {}})
+            )
+            return {
+                "content": content,
+                "usage": {"prompt_tokens": 2, "completion_tokens": 3, "total_tokens": 5},
+            }
+
+    llm = RepairLLM()
+    runner = RealCDIRunner(llm=llm, invoke_experts=False)
+    case = CDICase(case_id="c-repair", chart_excerpt="diagnosis")
+
+    CDIOrchestrator(runner=runner).run(case, stages=("encounter_synthesis",))
+
+    trace = runner.stage_traces["encounter_synthesis"]
+    assert llm.calls == 2
+    assert "prior response did not satisfy the JSON contract" in llm.system_prompts[1]
+    assert trace.degraded is False
+    assert trace.total_tokens == 10
+    assert case.encounter_summary is not None
+
+
+def test_cdi_invalid_structured_response_fails_closed_after_one_retry() -> None:
+    class AlwaysInvalidLLM:
+        calls = 0
+
+        async def chat(self, *args, **kwargs):
+            self.calls += 1
+            return {
+                "content": "not-json",
+                "usage": {"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2},
+            }
+
+    llm = AlwaysInvalidLLM()
+    runner = RealCDIRunner(llm=llm, invoke_experts=False)
+    case = CDICase(case_id="c-invalid", chart_excerpt="diagnosis")
+
+    CDIOrchestrator(runner=runner).run(case, stages=("encounter_synthesis",))
+
+    trace = runner.stage_traces["encounter_synthesis"]
+    assert llm.calls == 2
+    assert trace.degraded is True
+    assert trace.provider_error_category == "invalid_response"
+    assert trace.provider_attempt_count == 2
+    assert trace.provider_retryable is False
 
 
 def test_real_runner_marks_degraded_on_expert_failure() -> None:

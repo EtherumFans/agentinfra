@@ -66,6 +66,25 @@ def _make_subprocess_with_fake_worker():
         daemon=True,
     )
     proc.start()
+    try:
+        startup_id, startup_payload = q_out.get(timeout=30.0)
+    except Exception as exc:
+        if proc.is_alive():
+            proc.terminate()
+            proc.join(timeout=2)
+        raise TimeoutError(
+            "fake MedCodER worker did not complete startup within 30s "
+            f"(alive={proc.is_alive()}, exitcode={proc.exitcode})"
+        ) from exc
+    if startup_id != MedCodERRetrieverWorker.STARTUP_READY_ID:
+        if proc.is_alive():
+            proc.terminate()
+            proc.join(timeout=2)
+        raise RuntimeError(
+            f"fake MedCodER worker startup failed: {startup_id!r} "
+            f"{startup_payload!r}"
+        )
+    assert startup_payload == {"ready": True}
     client = SubprocessMedCodERRetriever.__new__(SubprocessMedCodERRetriever)
     client.index_dir = "unused"
     client.timeout = 5.0
@@ -151,6 +170,12 @@ async def test_subprocess_retriever_retrieve_sync_via_inline_path():
 def test_get_retriever_uses_subprocess_when_env_var_set(monkeypatch):
     """MEDCODER_SUBPROCESS=1 → adapter creates SubprocessMedCodERRetriever."""
     monkeypatch.setenv("MEDCODER_SUBPROCESS", "1")
+    monkeypatch.setenv("MEDCODER_ALLOW_UNSAFE_WINDOWS_BGE", "1")
+    # This is a constructor-selection test with both implementations replaced
+    # by no-op classes; it never imports Torch/FAISS or starts a worker. Remove
+    # the operator kill switch only within this test so the routing branch is
+    # observable under the full suite's safety environment.
+    monkeypatch.delenv("ICODER_DISABLE_NATIVE_MEDCODER", raising=False)
 
     from icoder_runtime.providers.medical_coding.hybrid_adapter import (
         HybridCodingAdapter,

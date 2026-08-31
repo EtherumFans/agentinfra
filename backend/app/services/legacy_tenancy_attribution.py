@@ -39,7 +39,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Iterable, Optional, Sequence
 
 from sqlalchemy import text as sa_text
@@ -65,6 +65,13 @@ logger = logging.getLogger(__name__)
 # route through app.services.system_audit (Gate 3.6).
 SYSTEM_AUDIT_ACTIONS: frozenset[str] = frozenset({
     "api_client.authentication_rejected",
+    "auth.register.denied.role_escalation",
+    "platform_admin.user_access_updated",
+    "platform_admin.user_access_update_denied",
+    "platform_admin.organization_updated",
+    "org.invite.delivery_succeeded",
+    "org.invite.delivery_retry_scheduled",
+    "org.invite.delivery_dead_letter",
     "system.startup",
     "system.shutdown",
     "system.config_change",
@@ -84,6 +91,11 @@ SYSTEM_AUDIT_ACTIONS: frozenset[str] = frozenset({
     "run.timeout",
     "run.complete",
     "run.failed",
+    "cdi.run.failed.required_gate_degraded",
+    # Explicit feedback-training authorization lifecycle. These are governed
+    # security events, never ordinary tenant activity inferred from a user.
+    "agentic.feedback.training_authorization.granted",
+    "agentic.feedback.training_authorization.revoked",
     "idempotency.dedup",
     "context.clear",
     "api_client.rotate",
@@ -571,7 +583,9 @@ def reclassify_table(
         f"WHERE {id_col} = :rid"
     )
 
-    now = datetime.utcnow()
+    # The historical audit columns are timezone-naive SQL DateTime values.
+    # Preserve that storage contract while avoiding deprecated utcnow().
+    now = datetime.now(UTC).replace(tzinfo=None)
     for batch_start in range(0, len(rows), batch_size):
         batch = rows[batch_start:batch_start + batch_size]
         for row in batch:

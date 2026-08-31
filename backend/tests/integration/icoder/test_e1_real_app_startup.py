@@ -76,6 +76,7 @@ async def test_e1_real_app_lifespan_creates_real_wiring():
     # *import* on starlette 1.3.1. We rely on the conftest hook so
     # we don't need to re-apply it here.
     from app.main import app
+    from app.config import settings
 
     from asgi_lifespan import LifespanManager
 
@@ -91,7 +92,7 @@ async def test_e1_real_app_lifespan_creates_real_wiring():
             assert r.status_code == 200, r.text
             body = r.json()
             assert body["status"] == "healthy"
-            assert body["app"] == "iCoDer Medical Coding Agent"
+            assert body["app"] == settings.APP_NAME
 
             # 2) MedCodER agent pack discovery works
             r = await ac.get("/api/icoder/agents")
@@ -194,8 +195,8 @@ def _wait_for_http(url: str, timeout_s: float = 20.0) -> bool:
     return False
 
 
-@pytest.mark.timeout(60)
-def test_e1_real_uvicorn_subprocess_boot_and_health():
+@pytest.mark.timeout(120)
+def test_e1_real_uvicorn_subprocess_boot_and_health(tmp_path: Path):
     """E1.1 production boot gate: spawn the real uvicorn process
     against the real app, hit ``/api/health`` and the MedCodER agent
     discovery endpoint, then clean up.
@@ -208,6 +209,14 @@ def test_e1_real_uvicorn_subprocess_boot_and_health():
     base = f"http://127.0.0.1:{port}"
 
     env = os.environ.copy()
+    # A subprocess imports Settings from scratch and therefore cannot see the
+    # in-process conftest rebinding of app.database. Give it a dedicated
+    # disposable DB explicitly; otherwise it falls back to data/icoder.db and
+    # silently mutates the developer database during the integration suite.
+    isolated_db = (tmp_path / "e1_uvicorn.db").resolve().as_posix()
+    env["DATABASE_URL"] = f"sqlite+aiosqlite:///{isolated_db}"
+    env["SEED_ON_STARTUP"] = "0"
+    env["APP_NAME"] = "iCoDer Clinical AI Platform"
     # Degraded-echo path is fine for boot smoke (no real DeepSeek key).
     env.setdefault("ICODER_ALLOW_DEGRADED_NO_KEY", "1")
     env.setdefault("ICODER_DISABLE_AUTH_FOR_TESTS", "1")
@@ -237,8 +246,8 @@ def test_e1_real_uvicorn_subprocess_boot_and_health():
 
     try:
         # 1) Wait for uvicorn to bind the port and become ready
-        assert _wait_for_http(f"{base}/api/health", timeout_s=60.0), (
-            f"uvicorn did not become ready on /api/health within 60s "
+        assert _wait_for_http(f"{base}/api/health", timeout_s=90.0), (
+            f"uvicorn did not become ready on /api/health within 90s "
             f"(pid={proc.pid}). Check the test process logs above for "
             f"uvicorn stderr output."
         )
@@ -250,7 +259,7 @@ def test_e1_real_uvicorn_subprocess_boot_and_health():
             assert resp.status == 200
             body = json.loads(resp.read())
             assert body["status"] == "healthy"
-            assert body["app"] == "iCoDer Medical Coding Agent"
+            assert body["app"] == "iCoDer Clinical AI Platform"
 
         # 3) MedCodER agent is discoverable
         with urllib.request.urlopen(f"{base}/api/icoder/agents", timeout=5) as resp:

@@ -1,0 +1,334 @@
+{
+  "case_id": "CASE-6b743e95cfd2",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-6b743e95cfd2/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "血脂异常未分型，未明确具体类型（如高胆固醇血症、高甘油三酯血症或混合型高脂血症）。",
+      "why_it_matters": "影响编码的准确性和特异性，不同分型对应不同ICD编码，且影响治疗和随访方案。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "诊断:血脂异常",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-6b743e95cfd2/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "血脂异常未明确严重程度或风险分层，尽管提供了10年心血管风险5%，但未明确血脂异常本身的严重程度。",
+      "why_it_matters": "严重程度影响治疗决策和编码，如是否需药物治疗。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "10年心血管风险:5%",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-6b743e95cfd2/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "血脂异常未明确病因或原发性/继发性，未提及排除继发性原因（如甲状腺功能减退、肾病综合征等）。",
+      "why_it_matters": "病因特异性影响编码和临床管理，继发性血脂异常需治疗原发病。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "无慢性病史",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-001",
+      "gap_id": "CASE-6b743e95cfd2/GAP-001",
+      "topic": "血脂异常的具体类型",
+      "reason": "病历中仅记录'血脂异常'，未明确具体分型（如高胆固醇血症、高甘油三酯血症或混合型高脂血症），影响诊断特异性。",
+      "query_text": "根据血脂结果（TC 5.8, LDL-C 3.6, HDL-C 1.0, TG 2.2），该患者的血脂异常最符合以下哪种类型？",
+      "response_options": [
+        "A. 高胆固醇血症",
+        "B. 高甘油三酯血症",
+        "C. 混合型高脂血症",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "诊断:血脂异常",
+          "char_start": 94,
+          "char_end": 101,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-004: complete lipid panel and cardiovascular risk are explicit"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-002",
+      "gap_id": "CASE-6b743e95cfd2/GAP-002",
+      "topic": "血脂异常的严重程度或风险分层",
+      "reason": "病历提供了10年心血管风险5%，但未明确血脂异常本身的严重程度，需要进一步分层。",
+      "query_text": "基于当前血脂水平和10年心血管风险5%，该患者血脂异常的严重程度或风险分层如何？",
+      "response_options": [
+        "A. 轻度升高，低风险",
+        "B. 中度升高，中风险",
+        "C. 重度升高，高风险",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "10年心血管风险:5%",
+          "char_start": 82,
+          "char_end": 93,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-004: complete lipid panel and cardiovascular risk are explicit"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-003",
+      "gap_id": "CASE-6b743e95cfd2/GAP-003",
+      "topic": "血脂异常的病因分类（原发性或继发性）",
+      "reason": "病历未提及排除继发性原因，需明确血脂异常为原发性或继发性。",
+      "query_text": "该患者血脂异常考虑为原发性还是继发性？是否已排除甲状腺功能减退、肾病综合征等继发因素？",
+      "response_options": [
+        "A. 原发性",
+        "B. 继发性",
+        "C. 两者均有可能",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "无慢性病史",
+          "char_start": 19,
+          "char_end": 24,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NLQ-001 (no_yes_no_opening): matched /(是不是|是否|是否为|能否|能不能|是不是说|是不是要|能否认为|是否可以)/ : '是否'"
+      ],
+      "status": "NEEDS_NON_LEADING_REWRITE",
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者男性, 55岁, 体检。无症状, 无慢性病史。血脂:TC 5.8, LDL-C 3.6, HDL-C 1.0, TG 2.2。血压 130/85。BMI 25。10年心血管风险:5%。诊断:血脂异常。建议:饮食运动, 3月后复查。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者男性，55岁，体检",
+      "无症状，无慢性病史",
+      "血脂：TC 5.8 mmol/L，LDL-C 3.6 mmol/L，HDL-C 1.0 mmol/L，TG 2.2 mmol/L",
+      "血压 130/85 mmHg",
+      "BMI 25 kg/m²",
+      "10年心血管风险：5%",
+      "诊断：血脂异常",
+      "建议：饮食运动，3月后复查"
+    ],
+    "encounter_metadata": {
+      "patient_age": "55岁",
+      "patient_sex": "男性",
+      "encounter_type": "体检"
+    }
+  },
+  "risk_flags": [
+    {
+      "category": "unsupported_diagnosis",
+      "description": "诊断“血脂异常”有实验室证据支持，但未明确具体类型，且未提供临床相关性，但实验室值异常，因此不构成unsupported_diagnosis。但需注意，血脂异常诊断有实验室支持，故不标记。"
+    }
+  ],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "For accurate coding, the clinician must specify the lipid abnormality type (e.g., isolated hypercholesterolemia, hypertriglyceridemia, or mixed dyslipidemia) based on the provided values, and document whether it is primary (familial) or secondary by noting exclusion of hypothyroidism, nephrotic syndrome, or other causes. Additionally, state the severity or risk category (e.g., borderline, moderate, or high) explicitly, linking it to the 10-year cardiovascular risk and other factors, rather than leaving the diagnosis as a nonspecific “dyslipidemia.”",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3819,
+      "tokens": 339
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "'BMI' score — no deterministic calculator wired",
+      "route_decision": "tool_unavailable",
+      "route_reason": "no_real_tool_wired",
+      "execution_mode": "TOOL_UNAVAILABLE",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-2341370dccde",
+    "gap_identification": "run-9d910623194f",
+    "gap_identification_risk_flags": "emitted=1;quote_snapped=0",
+    "expert_consultation": "run-3ed0fc32dd1f",
+    "query_generation": "run-a9a59c564be5",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=3;llm_complete=False;llm_reasoning=血脂异常诊断缺乏具体分型、严重程度和病因说明，且未明确临床相关性，需要进一步澄清才能准确编码。",
+    "query_necessity_gate": "necessary=1;unnecessary=2;overquery_triggered=False;final_count=1",
+    "query_single_dimension_gate": "single_dim=1;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=etiology;rewrite_attempted=0;rewrite_accepted=0;final_count=1",
+    "claim_evidence_alignment_gate": "claims_extracted=3;blocked=0;flagged=0;final_count=1",
+    "claim_evidence_alignment_gate::run_id": "run-fa5c3621e4e4",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=1",
+    "semantic_necessity_gate::run_id": "run-e85d5494d948",
+    "query_compliance_gate": ";passed=0;blocked=1",
+    "specialist_trace_emit": "run-2452799ad916"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-cfd81ae0e38d",
+    "gap_identification": "trace-3793955094c9",
+    "expert_consultation": "trace-fb4fe5a07932",
+    "query_generation": "trace-7c70462d31f3",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-0bf19d8dc159",
+    "semantic_necessity_gate": "trace-6bcc7b65551b",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-0d446730b578"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2945,
+      "prompt_tokens": 249,
+      "completion_tokens": 151,
+      "total_tokens": 400,
+      "run_id": "run-2341370dccde",
+      "trace_id": "trace-cfd81ae0e38d",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6600,
+      "prompt_tokens": 1123,
+      "completion_tokens": 599,
+      "total_tokens": 1722,
+      "run_id": "run-9d910623194f",
+      "trace_id": "trace-3793955094c9",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5692,
+      "prompt_tokens": 1163,
+      "completion_tokens": 658,
+      "total_tokens": 1821,
+      "run_id": "run-a9a59c564be5",
+      "trace_id": "trace-7c70462d31f3",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3819,
+      "prompt_tokens": 221,
+      "completion_tokens": 118,
+      "total_tokens": 339,
+      "run_id": "run-fbd19dd6410d",
+      "trace_id": "trace-354d2c5eb5cb",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-1b10818ef649",
+      "trace_id": "trace-9eb69e9f2539",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-2626d2324c64",
+      "trace_id": "trace-fdf1fa68210e",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-5e990678687d",
+      "trace_id": "trace-1e52404cda31",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T20:13:26.466890Z"
+}

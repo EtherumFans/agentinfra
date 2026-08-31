@@ -181,7 +181,7 @@ async def test_fast_runtime_short_circuits_on_schema_is_mock(monkeypatch) -> Non
         model = "deepseek-chat"
         notes = "[DeepSeek degraded] no_api_key. Mock response, not a real LLM call."
 
-    async def _fake_infer_async(self, messages):
+    async def _fake_infer_async(self, messages, *, context=None):
         return _FakeSchema()
 
     # Patch the DeepSeekCodingAdapter.infer_async on the class.
@@ -294,5 +294,8 @@ def test_map_coding_result_forces_error_on_degraded() -> None:
     )
     assert response.error_reason == "no_api_key"
     assert response.manual_review_required is True
+    assert response.result == {"contract_output_suppressed": True}
+    assert response.evidence == []
+    assert response.warnings == []
     # Summary preserved (user-visible signal).
     assert "降级" in response.summary

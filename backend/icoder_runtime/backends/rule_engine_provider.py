@@ -38,6 +38,7 @@ remains cheap (Task 2 requirement #5).
 
 from __future__ import annotations
 
+import json
 import logging
 import time
 from typing import Any, AsyncIterator
@@ -106,7 +107,7 @@ class RuleEngineProvider:
         except Exception as e:
             return ProviderHealth(
                 state="down",
-                details={"error": f"{type(e).__name__}: {str(e)[:200]}"},
+                details={"error": f"adapter_unavailable:{type(e).__name__}"},
             )
 
     async def invoke(
@@ -122,11 +123,22 @@ class RuleEngineProvider:
         ``raw_provider_response`` populated.
         """
         t0 = time.perf_counter()
-        self._ensure_adapter()
-        backend_req_id = self._stamp_backend(req, ctx)
-
         input_data = req.input or {}
         try:
+            if (ctx.runtime_agent_id or ctx.agent_id) == "compliance-guardrail-agent":
+                response = await self._invoke_compliance_guardrail(
+                    input_data,
+                    ctx,
+                    t0,
+                )
+                self._emit_backend_metadata(
+                    ctx,
+                    response.latency_ms,
+                    response.status,
+                )
+                return response
+            self._ensure_adapter()
+            backend_req_id = self._stamp_backend(req, ctx)
             if "coding_output" in input_data or "primary_diagnosis" in input_data:
                 verdict = self._validate_coding_output(input_data)
             elif "coding_set" in input_data:
@@ -144,16 +156,21 @@ class RuleEngineProvider:
                 }
         except Exception as e:
             # Defensive — never leak a stack trace; produce a fail envelope.
-            logger.exception("RuleEngineProvider.invoke failed")
-            return BackendResponse(
+            logger.error(
+                "RuleEngineProvider.invoke failed error_type=%s",
+                type(e).__name__,
+            )
+            response = BackendResponse(
                 status="fail",
-                summary=f"rule engine invoke raised: {type(e).__name__}: {e}",
+                summary=f"Rule engine execution failed ({type(e).__name__}).",
                 finish_state="failed",
-                finish_reason=f"{type(e).__name__}: {str(e)[:200]}",
+                finish_reason=f"rule_engine_error:{type(e).__name__}",
                 backend_provider=self.provider_id,
                 backend_type=self.backend_type,
                 latency_ms=int((time.perf_counter() - t0) * 1000),
             )
+            self._emit_backend_metadata(ctx, response.latency_ms, response.status)
+            return response
 
         latency_ms = int((time.perf_counter() - t0) * 1000)
         issues = [OutputIssue(**i) for i in verdict.get("issues", []) if isinstance(i, dict)]
@@ -171,7 +188,70 @@ class RuleEngineProvider:
             evidence_refs=[i.code for i in issues],
             trace_refs=[backend_req_id],
         )
+        self._emit_backend_metadata(ctx, latency_ms, resp.status)
         return resp
+
+    async def _invoke_compliance_guardrail(
+        self,
+        input_data: dict[str, Any],
+        ctx: AgentRunContext,
+        t0: float,
+    ) -> BackendResponse:
+        """Execute the existing deterministic CG-001..CG-004 agent.
+
+        The unified API carries free text plus optional ``extra.codes``.  The
+        official compliance implementation accepts either free text or a
+        coding-set JSON object, so normalize that facade shape here without
+        duplicating any clinical rule.
+        """
+        from official_agents.compliance_guardrail.agent import run
+
+        text = str(input_data.get("text") or input_data.get("user_input") or "")
+        coding_set = input_data.get("coding_set")
+        if not isinstance(coding_set, dict):
+            codes = input_data.get("codes")
+            if isinstance(codes, list) and codes:
+                normalized_codes = [str(code).strip() for code in codes if str(code).strip()]
+                coding_set = {
+                    "primary_diagnosis": {
+                        "code": normalized_codes[0] if normalized_codes else "",
+                    },
+                    "secondary_diagnoses": [
+                        {"code": code} for code in normalized_codes[1:]
+                    ],
+                    "procedures": [],
+                }
+            else:
+                coding_set = None
+        if coding_set is not None:
+            provider_input = json.dumps(
+                {"encounter_text": text, **coding_set},
+                ensure_ascii=False,
+            )
+        else:
+            provider_input = text
+
+        result = await run(provider_input, run_id=ctx.run_id)
+        conclusion = str(result.get("review_conclusion") or "WARNING").upper()
+        status: ProviderStatus = {
+            "PASS": "pass",
+            "FAIL": "fail",
+        }.get(conclusion, "warning")  # type: ignore[assignment]
+        return BackendResponse(
+            status=status,
+            summary=(
+                f"Compliance guardrail {conclusion}: "
+                f"{len(result.get('issues_found') or [])} issue(s)."
+            ),
+            latency_ms=int((time.perf_counter() - t0) * 1000),
+            cost_usd=0.0,
+            finish_state="completed",
+            backend_provider=self.provider_id,
+            backend_type=self.backend_type,
+            raw_provider_response=dict(result),
+            markdown=json.dumps(result, ensure_ascii=False),
+            trace_refs=[ctx.run_id],
+        )
 
     async def stream(
         self, req: BackendRequest, ctx: AgentRunContext,
@@ -222,13 +302,19 @@ class RuleEngineProvider:
             )
             self._adapter = RuleEngineAdapter()
         except Exception as e:
-            logger.error("RuleEngineAdapter import failed: %s", e)
-            self._adapter = _FallbackRuleEngineAdapter()
+            logger.error(
+                "RuleEngineAdapter import failed error_type=%s",
+                type(e).__name__,
+            )
+            raise RuntimeError("rule_engine_adapter_unavailable") from None
         try:
             from app.services.rule_engine import rule_engine_service
             self._service = rule_engine_service
         except Exception as e:
-            logger.debug("RuleEngineService import skipped: %s", e)
+            logger.debug(
+                "RuleEngineService import skipped error_type=%s",
+                type(e).__name__,
+            )
             self._service = None
 
     def _stamp_backend(self, req: BackendRequest, ctx: AgentRunContext) -> str:
@@ -237,6 +323,42 @@ class RuleEngineProvider:
         Returns a backend_req_id (used as trace_ref).
         """
         return f"{ctx.run_id}:rule-engine:{int(time.time() * 1000)}"
+
+    def _emit_backend_metadata(
+        self,
+        ctx: AgentRunContext,
+        latency_ms: int,
+        status: ProviderStatus,
+    ) -> None:
+        """Emit the same auditable backend event as model-backed providers."""
+        try:
+            from app.icoder.agent_runtime.orchestrator.run_trace import (
+                emit_backend_metadata_event,
+                get_default_store,
+            )
+
+            output_contract = str(
+                (ctx.agent_pack.get("output_contract") or {}).get("schema_ref")
+                or self.output_contract()
+            )
+            emit_backend_metadata_event(
+                ctx.run_id,
+                backend_provider=self.provider_id,
+                backend_type=self.backend_type,
+                provider_latency_ms=latency_ms,
+                provider_status=status,
+                provider_deterministic=True,
+                supports_tool_calling=False,
+                fallback_used=False,
+                output_contract=output_contract,
+                tool_rounds=0,
+                store=get_default_store(),
+            )
+        except Exception as exc:
+            logger.warning(
+                "RuleEngineProvider trace emit failed error_type=%s",
+                type(exc).__name__,
+            )
 
     def _validate_coding_output(self, input_data: dict[str, Any]) -> dict[str, Any]:
         """Run R001-R012 against a ``MedicalCodingOutputSchema``-shaped dict."""
@@ -256,9 +378,9 @@ class RuleEngineProvider:
         except Exception as e:
             return {
                 "status": "fail",
-                "summary": f"coding_output parse failed: {type(e).__name__}: {e}",
+                "summary": f"coding_output parse failed ({type(e).__name__}).",
                 "issues": [],
-                "raw": {"parse_error": str(e)[:300]},
+                "raw": {"parse_error": type(e).__name__},
             }
         if self._adapter is None:
             return {

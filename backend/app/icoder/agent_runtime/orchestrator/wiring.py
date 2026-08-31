@@ -15,8 +15,7 @@ This module provides thin adapter classes that bridge the two shapes:
 The MedCodER Expert path is now wired via
 :func:`build_expert_invoker_from_hybrid`, which constructs a
 :class:`CodingExpert` (the Runtime's first real Expert impl) and wraps
-it in a thin dispatcher that returns a Phase-1 stub for non-coding
-experts (``drg-expert`` / ``compliance-expert`` — Phase 5 work).
+it in a thin dispatcher that fails closed for unsupported expert IDs.
 
 Both adapters use :func:`asyncio.run` to drive the coroutine. Phase 2
 will migrate ``InboundHandler.handle`` to ``async def`` and drop the
@@ -37,7 +36,8 @@ import asyncio
 import logging
 from typing import TYPE_CHECKING, Any, Callable
 
-from .delegator import ExpertInvocation
+from .delegator import ExpertInvocation, ExpertInvocationError
+from .planner import PlannerError
 
 if TYPE_CHECKING:
     from icoder_runtime.core.llm_gateway import LLMGateway
@@ -148,15 +148,14 @@ def _dispatch_expert_invocation(
     """Dispatch an ``ExpertInvocation`` to the right backend.
 
     Coding-expert invocations go through :class:`CodingExpert` (which
-    itself wraps :class:`MedCodERStrategy`). All other expert IDs return
-    a Phase-1 stub. This is the single place Phase 5 will add drg-expert
-    / compliance-expert branches.
+    itself wraps :class:`MedCodERStrategy`). Unsupported expert IDs fail
+    closed until a production implementation is registered.
     """
     from app.icoder.agent_runtime.experts.coding_expert import CodingExpert
 
     if coding_expert is not None and invocation.expert_id == CodingExpert.EXPERT_ID:
         return coding_expert(invocation)
-    return _stub_expert_invoker(invocation)
+    return unavailable_expert_invoker(invocation)
 
 
 def build_expert_invoker_from_hybrid(
@@ -167,8 +166,8 @@ def build_expert_invoker_from_hybrid(
 
     M1: returns a dispatcher that routes ``coding-expert`` invocations
     to a :class:`CodingExpert` (the Runtime's first real Expert impl,
-    wrapping :class:`MedCodERStrategy`). Other expert IDs get a Phase-1
-    stub. Falls back to the stub entirely when ``hybrid is None`` or
+    wrapping :class:`MedCodERStrategy`). Other expert IDs fail closed.
+    Missing Hybrid/strategy dependencies also fail closed when ``hybrid is None`` or
     when ``hybrid._strategy`` was never built (i.e. ``mode`` is not in
     :data:`HybridCodingAdapter.MEDCODER_MODES`).
 
@@ -186,22 +185,22 @@ def build_expert_invoker_from_hybrid(
     if hybrid is None:
         logger.warning(
             "wiring.build_expert_invoker_from_hybrid: no hybrid adapter — "
-            "returning echo stub",
+            "Expert calls will fail closed",
         )
-        return _stub_expert_invoker
+        return unavailable_expert_invoker
 
     strategy = getattr(hybrid, "_strategy", None)
     if strategy is None:
         # Legacy / non-medcoder mode — the adapter doesn't own a strategy.
         # Real coding-expert calls would be misrouted, so fall back to the
-        # stub entirely. (In practice this means the lifespan must pass a
+        # unavailable callable. (In practice this means the lifespan must pass a
         # medcoder-mode hybrid to get real coding inference.)
         logger.warning(
             "wiring.build_expert_invoker_from_hybrid: hybrid mode=%r has no "
-            "strategy — returning echo stub for all experts",
+            "strategy — Expert calls will fail closed",
             hybrid._mode,
         )
-        return _stub_expert_invoker
+        return unavailable_expert_invoker
 
     # Build the real Expert impl lazily so the wiring import doesn't pull
     # in the strategy module eagerly.
@@ -269,12 +268,12 @@ def build_expert_invoker_for_medcoder(
             the ``coding-expert`` strategy. When supplied,
             ``coding-expert`` invocations still route to the M1
             ``CodingExpert(strategy)`` for back-compat. When ``None``,
-            ``coding-expert`` falls through to the Phase-1 stub.
+            ``coding-expert`` fails closed.
 
     Returns:
         A ``Callable[[ExpertInvocation], dict]`` dispatcher. Each call
         routes to the matching expert instance (one of the 4 D2 packs,
-        or the M1 back-compat ``CodingExpert``, or the Phase-1 stub).
+        or the M1 back-compat ``CodingExpert``; every other ID fails closed).
     """
     # Lazy imports — keep the wiring module cheap to import.
     from app.icoder.agent_runtime.experts.code_reconciler_expert import (
@@ -297,7 +296,7 @@ def build_expert_invoker_for_medcoder(
 
     # Back-compat: only build the M1 CodingExpert wrapper if a hybrid
     # adapter with a real strategy is provided. Otherwise the M1 path
-    # collapses to the Phase-1 stub.
+    # fails closed.
     coding_expert = None
     if hybrid_fallback is not None:
         strategy = getattr(hybrid_fallback, "_strategy", None)
@@ -327,32 +326,45 @@ def build_expert_invoker_for_medcoder(
             return coding_expert(invocation)
         logger.warning(
             "wiring.build_expert_invoker_for_medcoder: unknown expert_id=%r — "
-            "returning Phase-1 stub",
+            "failing closed",
             eid,
         )
-        return _stub_expert_invoker(invocation)
+        return unavailable_expert_invoker(invocation)
 
     return _invoker
 
 
 # ---------------------------------------------------------------------------
-# Stubs (used when ICODER_PHASE1_STUB_LLM=1 or no real backends wired)
+# Fail-closed runtime callables
 # ---------------------------------------------------------------------------
 
 
-def _stub_llm_call(system: str, user: str) -> dict:
-    """Deterministic stub LLM — returns an empty plan that the Planner
-    will reject as ``planning_failed``. Tests that want a happy-path
-    plan should inject their own LLM."""
-    return {"content": "{}", "model": "stub", "latency_ms": 0}
+def _unavailable_llm_call(system: str, user: str) -> dict:
+    """Fail closed when no production LLM provider is configured.
+
+    Returning an empty or synthetic model response here used to make an
+    unavailable backend look like a successful LLM invocation before the
+    Planner rejected the fabricated plan. Raise the classified runtime error
+    directly so callers receive a retryable 503 and traces never claim that a
+    model ran.
+    """
+    del system, user
+    raise PlannerError(
+        "LLM backend unavailable: no configured provider",
+        code="planning_failed",
+        http_status=503,
+        retryable=True,
+    )
 
 
-def _stub_expert_invoker(invocation: ExpertInvocation) -> dict:
-    return {
-        "expert_id": invocation.expert_id,
-        "echo": invocation.subtask_input,
-        "phase1_stub": True,
-    }
+def unavailable_expert_invoker(invocation: ExpertInvocation) -> dict:
+    """Fail closed when an Expert has no production implementation."""
+    raise ExpertInvocationError(
+        "expert backend unavailable",
+        retryable=False,
+        code="expert_failed",
+        http_status=503,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -367,23 +379,23 @@ def build_llm_call_from_gateway(
 ) -> Callable[[str, str], dict]:
     """Build the Planner's ``llm_call`` from a real :class:`LLMGateway`.
 
-    Falls back to a deterministic stub when the gateway is missing (e.g.
-    during unit tests, or when ``ICODER_PHASE1_STUB_LLM=1`` is set in
-    production to short-circuit real LLM calls).
+    Fails closed with a retryable 503 when the gateway is missing or has no
+    configured providers. Tests that need a deterministic LLM must inject one
+    explicitly; the production factory never fabricates a model response.
     """
     if gateway is None:
         logger.warning(
             "wiring.build_llm_call_from_gateway: no gateway — "
-            "returning deterministic stub",
+            "returning fail-closed unavailable callable",
         )
-        return _stub_llm_call
+        return _unavailable_llm_call
 
     if not gateway.is_configured:
         logger.warning(
             "wiring.build_llm_call_from_gateway: gateway has no providers — "
-            "falling back to deterministic stub",
+            "returning fail-closed unavailable callable",
         )
-        return _stub_llm_call
+        return _unavailable_llm_call
 
     return LMGatewaySyncAdapter(
         gateway,
@@ -396,4 +408,5 @@ __all__ = [
     "build_expert_invoker_for_medcoder",
     "build_expert_invoker_from_hybrid",
     "build_llm_call_from_gateway",
+    "unavailable_expert_invoker",
 ]

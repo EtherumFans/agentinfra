@@ -109,7 +109,15 @@ _SEMANTIC_NECESSITY_PROMPT = """你是 CDI Provider Query 的"语义必要性"�
    - 病历已写"急性胆囊炎" 还问 "是否急性" → true
    - 既往史已写"糖尿病" 还问 "是否有糖尿病史" → true
 
-7. chart_fully_documented (true/false)  [Track H3.11]
+7. query_is_overly_detailed (true/false)
+   Query 是否超出当前 CDI 文档/编码闭环的最小必要粒度?
+   - 已有明确感染诊断但无培养/病原学证据, 仅为继续细分而追问病原体 → true
+   - 已记录客观异常且其临床归因已明确, 再问异常的"类型/临床意义/原因" → true
+   - 诊断与治疗闭环已完整, 再追严重程度、分型或病因且不改变文档/编码 → true
+   - 有培养结果但病原体未写入诊断, 或存在真实矛盾/关键编码维度缺失 → false
+   关键: "临床上还能继续细分"不等于"CDI 必须追问".
+
+8. chart_fully_documented (true/false)  [Track H3.11]
    chart 是否已记录该 Query 所需的全部维度 (类型/部位/严重程度/病因/手术/病理/并发症/病程)?
    - 病历已写"急性化脓性阑尾炎(局限性),腹腔镜切除,病理确诊,无并发症,3天出院" → true
    - 病历只有"肺炎"(未说病原体/严重程度) → false
@@ -119,6 +127,7 @@ _SEMANTIC_NECESSITY_PROMPT = """你是 CDI Provider Query 的"语义必要性"�
 - 如果 clinical_substrate_present=false AND query_requests_new_diagnosis=true → verdict="BLOCK", reason="INSUFFICIENT_CLINICAL_SUBSTRATE"
 - 如果 query_answerable=false → verdict="BLOCK", reason="NOT_ANSWERABLE"
 - 如果 query_is_redundant=true → verdict="BLOCK", reason="REDUNDANT_WITH_CHART"
+- 如果 query_is_overly_detailed=true AND query_changes_documentation=false → verdict="BLOCK", reason="BEYOND_MINIMAL_DOCUMENTATION_NEED"
 - 如果 chart_fully_documented=true AND query_changes_documentation=false → verdict="BLOCK", reason="CHART_ALREADY_COMPLETE"
 - 如果 existing_documentation_ambiguous=false AND query_changes_documentation=false → verdict="BLOCK", reason="NO_DOCUMENTATION_IMPACT"
 - 如果 query_requests_new_diagnosis=true (但 substrate 存在) → verdict="REVIEW_REQUIRED", reason="POSSIBLE_DIAGNOSIS_INVENTION"
@@ -180,8 +189,9 @@ async def review_necessity(
 ) -> SemanticNecessityResult:
     """LLM-backed semantic necessity review.
 
-    DEGRADED on failure: returns verdict="PASS" with degraded=True so the
-    orchestrator never blocks on LLM outage.
+    DEGRADED on failure: preserves the query for local audit with
+    ``degraded=True``. The orchestrator records the required-gate failure,
+    and public REST/A2A adapters reject the entire result.
     """
     if llm is None:
         from app.services.llm_service import llm_service as _default_llm
@@ -241,17 +251,24 @@ async def review_necessity(
     verdict_raw = str(data.get("verdict") or "PASS").upper()
     if verdict_raw not in ("PASS", "REVIEW_REQUIRED", "BLOCK"):
         verdict_raw = "PASS"
+    changes_documentation = bool(data.get("query_changes_documentation", True))
+    overly_detailed = bool(data.get("query_is_overly_detailed", False))
+    reason_codes = [str(r) for r in (data.get("reason_codes") or [])]
+    if overly_detailed and not changes_documentation:
+        verdict_raw = "BLOCK"
+        if "BEYOND_MINIMAL_DOCUMENTATION_NEED" not in reason_codes:
+            reason_codes.append("BEYOND_MINIMAL_DOCUMENTATION_NEED")
 
     return SemanticNecessityResult(
         verdict=verdict_raw,
-        reason_codes=[str(r) for r in (data.get("reason_codes") or [])],
+        reason_codes=reason_codes,
         clinical_substrate_present=bool(data.get("clinical_substrate_present", True)),
         existing_documentation_ambiguous=bool(data.get("existing_documentation_ambiguous", False)),
         query_answerable=bool(data.get("query_answerable", True)),
-        query_changes_documentation=bool(data.get("query_changes_documentation", True)),
+        query_changes_documentation=changes_documentation,
         query_requests_new_diagnosis=bool(data.get("query_requests_new_diagnosis", False)),
         query_is_redundant=bool(data.get("query_is_redundant", False)),
-        query_is_overly_detailed=bool(data.get("query_is_overly_detailed", False)),
+        query_is_overly_detailed=overly_detailed,
         chart_fully_documented=bool(data.get("chart_fully_documented", False)),
         degraded=False,
         provider=getattr(llm, "provider", "deepseek"),

@@ -7,7 +7,7 @@ import {
   Mic, ListTree, Asterisk,
   KeyRound, Users, CreditCard, ChartNoAxesColumn, Settings,
   ArrowUpRight, Bell, BookOpen, RotateCcw,
-  ChevronDown, Rocket, Layers, Folder, ChevronsUpDown, Users2, FileText, MessageSquare, ShieldCheck, ClipboardCheck, Code2,
+  ChevronDown, Rocket, Layers, Folder, ChevronsUpDown, Users2, FileText, MessageSquare, ShieldCheck, ClipboardCheck, Code2, Cpu,
 } from 'lucide-react';
 
 import { useAuthStore, useThemeStore, useCostStore } from '../../store';
@@ -46,6 +46,7 @@ export default function Layout() {
   const topItems = [
     { to: '/', label: t.home, icon: Home, end: true },
     { to: '/developer-quickstart', label: t.developerQuickstart, icon: Rocket },
+    { to: '/models', label: locale === 'zh-CN' ? '医疗模型' : 'Models', icon: Cpu },
   ];
 
   const navSections = [
@@ -55,10 +56,7 @@ export default function Layout() {
         { to: '/ai-studio', label: t.overview, icon: FlaskConical, end: true },
         { to: '/ai-studio/agents', label: t.agents, icon: Layers },
         { to: '/ai-studio/speech-to-text', label: t.speechToText, icon: Mic },
-        // Phase 3-B2 Loop 0 (2026-07-05): TextGeneration + EmbeddedAssistant
-        // sidebar entries removed. Old deep links redirect to
-        // /ai-studio/agents via App.tsx Navigate rules. TextGen backend
-        // capability (/api/v2/tools/*) is retained for implicit dependencies.
+        { to: '/ai-studio/text-generation', label: t.textGeneration, icon: BookOpen },
         { to: '/ai-studio/fact-extraction', label: t.factExtraction, icon: ListTree },
         { to: '/ai-studio/medical-coding', label: t.medicalCoding, icon: Asterisk },
         // Phase 5 Track C Gate 5 — 7-stage coding compliance mainline
@@ -79,6 +77,9 @@ export default function Layout() {
         { to: '/customers', label: t.customersTitle, icon: Users2 },
         { to: '/templates', label: t.templatesTitle, icon: FileText },
         { to: '/settings', label: t.settings, icon: Settings },
+        ...(user?.role === 'admin'
+          ? [{ to: '/platform-access', label: '平台访问控制', icon: ShieldCheck }]
+          : []),
       ],
     },
     {

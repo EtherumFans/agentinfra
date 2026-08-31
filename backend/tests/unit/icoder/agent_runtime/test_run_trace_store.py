@@ -197,7 +197,10 @@ def test_get_run_trace_returns_timeline(app_with_trace):
         emit_trace_event("run-api", RunTraceStep.USER_MESSAGE_RECEIVED,
                          safe_metadata={"input_len": 100}, ts=1.0)
         emit_trace_event("run-api", RunTraceStep.TOOLS_LIST,
-                         safe_metadata={"tool_count": 5}, ts=2.0)
+                         safe_metadata={
+                             "tool_count": 5,
+                             "provider_status": "requires_review",
+                         }, ts=2.0)
         emit_trace_event("run-api", RunTraceStep.COMPLETION,
                          status=RunTraceStatus.OK, ts=3.0)
 
@@ -208,8 +211,28 @@ def test_get_run_trace_returns_timeline(app_with_trace):
         assert body["run_id"] == "run-api"
         assert body["step_count"] == 3
         assert len(body["timeline"]) == 3
+        from app.services.trace_attestation import verify_trace_attestation
+
+        verify_trace_attestation(
+            body["trace_attestation"],
+            expected_run_id="run-api",
+            expected_organization_id="org_default1",
+            events=body["timeline"],
+        )
         assert body["timeline"][0]["step"] == "user_message_received"
         assert body["timeline"][2]["step"] == "completion"
+        summary = body["summary"]
+        assert summary["agent_id"] == "medical-coding-agent"
+        assert summary["run_status"] == "COMPLETED"
+        assert summary["runtime_mode"] == "a2a_pure_llm"
+        assert summary["cost"] == {"amount": 0.0, "currency": "CNY"}
+        assert summary["review_signal"] == {
+            "state": "required",
+            "sources": ["tools_list.provider_status:requires_review"],
+            "authoritative": False,
+        }
+        assert "input_text" not in summary
+        assert "output_summary" not in summary
     finally:
         store.clear()
         _clear_run_history("run-api")
@@ -239,6 +262,15 @@ def test_get_run_trace_raw_format(app_with_trace):
         body = r.json()
         assert "events" in body
         assert "timeline" not in body
+        from app.services.trace_attestation import verify_trace_attestation
+
+        verify_trace_attestation(
+            body["trace_attestation"],
+            expected_run_id="run-raw",
+            expected_organization_id="org_default1",
+            events=body["events"],
+        )
+        assert body["summary"]["review_signal"]["state"] == "not_recorded"
     finally:
         store.clear()
         _clear_run_history("run-raw")

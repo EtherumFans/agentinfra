@@ -43,11 +43,15 @@ from .errors import (
 
 JSONRPC_VERSION: Final[str] = "2.0"
 
-# Phase 1 supported methods (SPEC §3). Phase 5 adds message/stream.
-SUPPORTED_METHODS: Final[tuple[str, ...]] = ("message/send",)
+# Public message methods.  Transport routes still pass the method that belongs
+# to that concrete endpoint, so ``message/stream`` cannot be smuggled through
+# the non-streaming URL (or vice versa).
+SUPPORTED_METHODS: Final[tuple[str, ...]] = (
+    "message/send",
+    "message/stream",
+)
 
-# Phase 1 supported A2A business operations. Phase 5 adds tasks/cancel,
-# Phase 1 stubs tasks/get and tasks/cancel (routes_task_stub.py).
+# Persisted A2A task business operations implemented by routes_task.py.
 SUPPORTED_TASKS_METHODS: Final[tuple[str, ...]] = (
     "tasks/get",
     "tasks/cancel",

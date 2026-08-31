@@ -14,6 +14,7 @@ from .dictionary_rag import (
     format_candidates_block,
     _extract_user_text,
 )
+from .project_policy import apply_medical_coding_project_policy
 
 logger = logging.getLogger(__name__)
 
@@ -76,32 +77,74 @@ class PromptLLMAdapter(CodingEngineAdapter):
         context: dict[str, Any] | None = None,
     ) -> MedicalCodingOutputSchema:
         if not self._gateway or not self._gateway.is_configured:
-            logger.warning("PromptLLMAdapter: no gateway configured, falling back to mock")
-            return MedicalCodingOutputSchema.mock_result()
+            logger.warning("PromptLLMAdapter: no gateway configured; failing closed")
+            return MedicalCodingOutputSchema.failure_result(
+                self.name, reason="gateway_unavailable"
+            )
 
         # RAG injection
         encounter_text = _extract_user_text(messages)
         system_prompt = await self._build_prompt_with_candidates(self._system_prompt, encounter_text)
+        system_prompt = apply_medical_coding_project_policy(
+            system_prompt,
+            str((context or {}).get("project_policy") or ""),
+        )
         full_messages = [{"role": "system", "content": system_prompt}] + list(messages)
 
         try:
             result = await self._gateway.generate(full_messages)
             content = result.get("content", "")
-            data = json.loads(content) if isinstance(content, str) and content.strip().startswith("{") else {}
-            return MedicalCodingOutputSchema.from_dict(
+            gateway_mock = bool(result.get("degraded") or result.get("is_mock"))
+            if gateway_mock:
+                return MedicalCodingOutputSchema.failure_result(
+                    self.name,
+                    reason=result.get("degraded_reason") or "mock_provider",
+                )
+            if not isinstance(content, str) or not content.strip().startswith("{"):
+                return MedicalCodingOutputSchema.failure_result(
+                    self.name, reason="invalid_llm_response"
+                )
+            data = json.loads(content)
+            if not isinstance(data, dict) or not data:
+                return MedicalCodingOutputSchema.failure_result(
+                    self.name, reason="invalid_llm_schema"
+                )
+            schema = MedicalCodingOutputSchema.from_dict(
                 data,
                 provider="prompt_llm_adapter",
                 is_mock=False,
             )
+            return schema
         except json.JSONDecodeError:
-            logger.warning("PromptLLMAdapter: LLM returned non-JSON, returning mock")
-            return MedicalCodingOutputSchema.mock_result()
-        except Exception as e:
-            logger.error(f"PromptLLMAdapter: LLM call failed: {e}")
-            return MedicalCodingOutputSchema.mock_result()
+            logger.warning("PromptLLMAdapter: LLM returned invalid JSON; failing closed")
+            return MedicalCodingOutputSchema.failure_result(
+                self.name, reason="invalid_json"
+            )
+        except Exception as exc:
+            logger.error(
+                "PromptLLMAdapter: LLM call failed error_type=%s",
+                type(exc).__name__,
+            )
+            return MedicalCodingOutputSchema.failure_result(
+                self.name, reason="llm_call_failed"
+            )
 
     def health_check(self) -> dict:
+        status = "no_gateway"
+        provider = ""
+        if self._gateway and self._gateway.is_configured:
+            try:
+                selected = self._gateway.get()
+                provider = getattr(selected, "name", "")
+                status = (
+                    "degraded"
+                    if selected.__class__.__name__ == "MockLLMProvider"
+                    else "configured"
+                )
+            except Exception:
+                status = "no_gateway"
         return {
             "engine": self.name,
-            "status": "configured" if self._gateway and self._gateway.is_configured else "no_gateway",
+            "status": status,
+            "provider": provider,
         }

@@ -5,6 +5,11 @@ import { Key, BookOpen, Copy, Check, Terminal, ChevronRight, Loader2, Bot, Mic, 
 
 import { oauthApi } from '../services/api';
 import { useT } from '../i18n';
+import {
+  DEVELOPER_API_ENDPOINTS as API_ENDPOINTS,
+  buildCredentialEnv,
+  buildQuickstartSdkSnippets,
+} from '../utils/developerSdkCode';
 
 type AiTool = 'claude' | 'cursor' | 'codex' | 'lovable';
 type UseCase = 'dictation' | 'scribe' | 'coding' | 'chat';
@@ -12,13 +17,6 @@ type MainTab = 'ai-tools' | 'js-sdk' | 'dotnet-sdk' | 'api-playground';
 
 const AI_TOOLS: { key: AiTool; label: string }[] = [
   { key: 'claude', label: 'Claude Code' }, { key: 'cursor', label: 'Cursor' }, { key: 'codex', label: 'Codex' }, { key: 'lovable', label: 'Lovable' },
-];
-
-const API_ENDPOINTS: { key: string; method: string; path: string; label: string; sampleBody: string | null }[] = [
-  { key: 'facts-extract', method: 'POST', path: '/api/v2/tools/extract-facts', label: 'POST /api/v2/tools/extract-facts', sampleBody: JSON.stringify({ context: { type: 'text', text: '患者因腰痛伴左下肢放射痛3月就诊。查体：腰椎活动受限，左下肢直腿抬高试验阳性。' }, outputLanguage: 'zh-CN' }, null, 2) },
-  { key: 'agents-run', method: 'POST', path: '/api/icoder/agents/medcoder-coding-review/v1/message:send', label: 'POST /api/icoder/agents/{id}/v1/message:send (A2A)', sampleBody: JSON.stringify({ jsonrpc: '2.0', id: 'q-1', method: 'message/send', params: { message: { role: 'user', parts: [{ type: 'text', text: '请根据以下病例提供ICD-10-CN编码建议。' }] } } }, null, 2) },
-  { key: 'coding', method: 'POST', path: '/api/v2/tools/coding/icoder/', label: 'POST /api/v2/tools/coding/icoder/', sampleBody: JSON.stringify({ input: { case_id: 'case-xxx', text: '主诉：腹痛...' } }, null, 2) },
-  { key: 'usage', method: 'GET', path: '/api/usage/summary', label: 'GET /api/usage/summary', sampleBody: null },
 ];
 
 export default function DeveloperQuickstartPage() {
@@ -85,6 +83,7 @@ const [oauthError, setOauthError] = useState<string | null>(null);
       const headers: Record<string, string> = {
         Authorization: token ? `Bearer ${token}` : '',
         'Content-Type': 'application/json',
+        ...(ep.headers || {}),
       };
       let parsedBody: any = {};
       if (ep.method === 'POST') {
@@ -110,8 +109,13 @@ const [oauthError, setOauthError] = useState<string | null>(null);
 
   const currentPrompt = USE_CASE_PROMPTS[useCase](window.location.origin);
   const origin = window.location.origin;
-  const jsCode = `import { iCoDerClient } from "@icoder/sdk";\n\nconst client = new iCoDerClient({ baseURL: "${origin}" });\n\nconst token = await client.oauth.getToken("${clientId || 'icoder-xxx'}", "${clientSecret ? clientSecret.substring(0, 20) + '...' : 'ics_xxx'}");\n\n// 事实提取\nconst facts = await client.facts.extract({\n  context: { type: "text", text: "患者因腰痛伴左下肢放射痛3月就诊..." },\n  outputLanguage: "zh-CN",\n});\nconsole.log("诊断:", facts.diagnosis_facts);\nconsole.log("手术:", facts.procedure_facts);`;
-  const dotNetCode = `using iCoDer.Sdk;\nusing iCoDer.Sdk.Models;\n\nvar credentials = new ClientCredentials { ClientId = "${clientId || 'icoder-xxx'}", ClientSecret = "${clientSecret ? clientSecret.substring(0, 20) + '...' : 'ics_xxx'}", BaseUrl = "${origin}" };\n\nvar client = new iCoDerClient(credentials);\n\n// 事实提取\nvar facts = await client.Facts.ExtractAsync(new FactExtractRequest\n{\n    Context = new FactContext { Type = "text", Text = "患者因腰痛伴左下肢放射痛3月就诊..." },\n    OutputLanguage = "zh-CN",\n});\nConsole.WriteLine($"诊断: {string.Join(", ", facts.DiagnosisFacts)}");\nConsole.WriteLine($"手术: {string.Join(", ", facts.ProcedureFacts)}");`;
+  const { javascript: jsCode, dotnet: dotNetCode } = buildQuickstartSdkSnippets(origin);
+  const credentialEnv = buildCredentialEnv(origin, clientId, clientSecret);
+  const copyCredentialEnv = () => {
+    navigator.clipboard.writeText(credentialEnv);
+    setEnvCopied(true);
+    setTimeout(() => setEnvCopied(false), 2000);
+  };
 
   if (loading) return <div className="flex items-center justify-center h-64"><Loader2 className="animate-spin h-8 w-8 text-muted-foreground" /></div>;
 
@@ -156,7 +160,7 @@ const [oauthError, setOauthError] = useState<string | null>(null);
               <Link to="/api-clients" className="px-3 py-1.5 rounded-md text-sm border border-border text-muted-foreground hover:text-foreground hover:bg-accent transition-colors">{t.devQsManageClients}</Link>
               {clientId ? (
                 <>
-                  <button onClick={() => { const dotEnv = `CLIENT_ID=${clientId}\nCLIENT_SECRET=${clientSecret || 'ics_xxx'}\nENVIRONMENT=development\nTENANT=default`; navigator.clipboard.writeText(dotEnv); setEnvCopied(true); setTimeout(() => setEnvCopied(false), 2000); }} className="px-3 py-1.5 rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center gap-1.5">{envCopied ? <Check size={14} /> : <Copy size={14} />}{envCopied ? t.copied : t.devQsCopyEnv}</button>
+                  <button onClick={copyCredentialEnv} className="px-3 py-1.5 rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center gap-1.5">{envCopied ? <Check size={14} /> : <Copy size={14} />}{envCopied ? t.copied : t.devQsCopyEnv}</button>
                   <span className="text-xs text-muted-foreground">{clientName}{showSecret && clientSecret && <span className="ml-2 font-mono text-[10px] text-muted-foreground/60">{clientSecret}</span>}</span>
                 </>
               ) : <button onClick={handleGenerate} disabled={generating} className="px-3 py-1.5 rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center gap-1.5 disabled:opacity-50">{generating ? <Loader2 size={14} className="animate-spin" /> : <Key size={14} />}{generating ? t.devQsGenerating : t.devQsGenerateCreds}</button>}
@@ -174,7 +178,7 @@ const [oauthError, setOauthError] = useState<string | null>(null);
             <div className="flex items-center gap-2">
               {clientId ? (
                 <>
-                  <button onClick={() => { const dotEnv = `CLIENT_ID=${clientId}\nCLIENT_SECRET=${clientSecret || 'ics_xxx'}\nENVIRONMENT=development\nTENANT=default`; navigator.clipboard.writeText(dotEnv); setEnvCopied(true); setTimeout(() => setEnvCopied(false), 2000); }} className="px-3 py-1.5 rounded-md text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center gap-1.5">{envCopied ? <Check size={14} /> : <Copy size={14} />}{envCopied ? t.copied : t.devQsCopyEnv}</button>
+                  <button onClick={copyCredentialEnv} className="px-3 py-1.5 rounded-md text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center gap-1.5">{envCopied ? <Check size={14} /> : <Copy size={14} />}{envCopied ? t.copied : t.devQsCopyEnv}</button>
                   <button onClick={() => setShowSecret(!showSecret)} className="px-3 py-1.5 rounded-md text-sm border border-border text-muted-foreground hover:text-foreground transition-colors">{showSecret ? '隐藏凭据' : t.devQsViewCreds}</button>
                 </>
               ) : <button onClick={handleGenerate} disabled={generating} className="px-3 py-1.5 rounded-md text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center gap-1.5 disabled:opacity-50">{generating ? <Loader2 size={14} className="animate-spin" /> : <Key size={14} />}{generating ? t.devQsGenerating : t.devQsGenerateCreds}</button>}
@@ -205,7 +209,7 @@ const [oauthError, setOauthError] = useState<string | null>(null);
             <div className="flex items-center gap-2">
               {clientId ? (
                 <>
-                  <button onClick={() => { const dotEnv = `CLIENT_ID=${clientId}\nCLIENT_SECRET=${clientSecret || 'ics_xxx'}\nENVIRONMENT=development\nTENANT=default`; navigator.clipboard.writeText(dotEnv); setEnvCopied(true); setTimeout(() => setEnvCopied(false), 2000); }} className="px-3 py-1.5 rounded-md text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center gap-1.5">{envCopied ? <Check size={14} /> : <Copy size={14} />}{envCopied ? t.copied : t.devQsCopyEnv}</button>
+                  <button onClick={copyCredentialEnv} className="px-3 py-1.5 rounded-md text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center gap-1.5">{envCopied ? <Check size={14} /> : <Copy size={14} />}{envCopied ? t.copied : t.devQsCopyEnv}</button>
                   <button onClick={() => setShowSecret(!showSecret)} className="px-3 py-1.5 rounded-md text-sm border border-border text-muted-foreground hover:text-foreground transition-colors">{showSecret ? '隐藏凭据' : t.devQsViewCreds}</button>
                 </>
               ) : <button onClick={handleGenerate} disabled={generating} className="px-3 py-1.5 rounded-md text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center gap-1.5 disabled:opacity-50">{generating ? <Loader2 size={14} className="animate-spin" /> : <Key size={14} />}{generating ? t.devQsGenerating : t.devQsGenerateCreds}</button>}

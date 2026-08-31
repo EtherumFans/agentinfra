@@ -401,6 +401,11 @@ def test_apply_drops_blocked_queries_keeps_passing() -> None:
     assert len(case.proposed_provider_queries) == 1
     assert case.proposed_provider_queries[0].query_id == "q_pass"
     assert result.blocked_query_ids == ["q_block"]
+    assert len(case.query_rewrite_queue) == 1
+    rejected = case.query_rewrite_queue[0]
+    assert rejected["query_id"] == "q_block"
+    assert rejected["status"] == "REJECTED_BY_CLAIM_EVIDENCE"
+    assert rejected["gate_reasons"]
 
 
 def test_apply_keeps_review_required_queries_flagged() -> None:

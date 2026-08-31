@@ -7,10 +7,9 @@ Verifies the three P0 gaps closed in Phase 4-G #1-#3:
          the generate() result dict (token usage × pricing)
        - AgentRunResponse.cost.amount flows through to the client
 
-  #2 — API Client selector real binding:
-       - POST /api/v1/agents/{id}/run accepts `api_client_id` in the body
-       - The non-medical path emits trace metadata that records the
-         `api_client_id` used (so /runs/{run_id}/trace surfaces it)
+  #2 — API Client anti-spoofing:
+       - The deprecated request-body `api_client_id` remains parse-compatible
+       - Identity and attribution ignore it and use verified auth only
 
   #3 — RunHistory server-side persistence:
        - Each run writes one row to the run_history table
@@ -74,11 +73,11 @@ def test_g1_cost_field_present_in_unified_response(client: TestClient) -> None:
         assert "currency" in data["cost"]
 
 
-# ── #2 — api_client_id is accepted and recorded in trace metadata ─────────
+# ── #2 — api_client_id body compatibility is non-authoritative ─────────────
 
 
 def test_g2_api_client_id_accepted_in_request_body(client: TestClient) -> None:
-    """The unified endpoint must accept `api_client_id` without erroring."""
+    """The deprecated field stays parse-compatible during migration."""
     fix = _load_fixture("coding_evidence_case.json")
     resp = client.post(
         f"/api/v1/agents/{fix['agent_id']}/run",
@@ -89,15 +88,19 @@ def test_g2_api_client_id_accepted_in_request_body(client: TestClient) -> None:
     )
     assert resp.status_code == 200
     data = resp.json()
-    assert data["error"] is False, f"unexpected error: {data.get('error_reason')}"
+    # The request contract is accepted. Evidence Extractor now has a governed
+    # local exact-mention runtime, so mock LLM mode is not an error. This input
+    # deliberately omits candidate codes and must return the bounded
+    # INPUT_REQUIRED result rather than infer diagnoses from the note.
+    assert data["error"] is False
+    assert data["result"]["extraction_status"] == "INPUT_REQUIRED"
+    assert data["result"]["input_codes"] == []
+    assert data["result"]["located_mentions"] == []
+    assert data["manual_review_required"] is True
 
 
-def test_g2_api_client_id_recorded_in_trace_metadata(client: TestClient) -> None:
-    """api_client_id must surface in the user_message_received trace event.
-
-    Evidence: GET /api/runtime/runs/{run_id}/trace returns trace_events;
-    the first event's metadata must include `api_client_id`.
-    """
+def test_g2_forged_api_client_id_is_ignored_in_trace_metadata(client: TestClient) -> None:
+    """A browser body cannot forge OAuth client attribution."""
     fix = _load_fixture("coding_evidence_case.json")
     test_client_id = "test-client-trace-001"
     resp = client.post(
@@ -143,8 +146,8 @@ def test_g2_api_client_id_recorded_in_trace_metadata(client: TestClient) -> None
         or persisted_user_msg[0].get("metadata")
         or {}
     )
-    assert persisted_metadata.get("api_client_id") == test_client_id, (
-        f"api_client_id missing/wrong in persisted trace: {persisted_metadata}"
+    assert persisted_metadata.get("api_client_id") == "", (
+        f"forged api_client_id entered persisted trace: {persisted_metadata}"
     )
 
 

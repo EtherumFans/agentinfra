@@ -1,0 +1,111 @@
+{
+  "agent_id": "note-completeness-agent",
+  "run_id": "run-301ed246-7653-43c8-8896-7181770d0c93",
+  "trace_id": "trace-6837c46f8b9d4c83",
+  "trace_url": "/ai-studio/runs/run-301ed246-7653-43c8-8896-7181770d0c93/trace",
+  "runtime_mode": "a2a_pure_llm",
+  "latency_ms": 2649,
+  "cost": {
+    "amount": 0.000179,
+    "currency": "CNY"
+  },
+  "summary": "{",
+  "result": {
+    "status": "incomplete",
+    "markdown": "{\n  \"required_sections\": [\"主诉\", \"现病史\", \"既往史\", \"体格检查\", \"辅助检查\", \"诊断\", \"治疗经过\"],\n  \"present_sections\": [\"主诉\", \"现病史\", \"既往史\", \"体格检查\", \"辅助检查\", \"诊断\", \"治疗经过\"],\n  \"missing_sections\": [],\n  \"incomplete_sections\": [\n    {\n      \"section\": \"诊断\",\n      \"deficit_note\": \"缺少入院诊断与出院诊断的明确区分\"\n    },\n    {\n      \"section\": \"治疗经过\",\n      \"deficit_note\": \"缺少术前准备、术中情况、术后恢复的详细描述\"\n    }\n  ],\n  \"conflicts\": [],\n  \"completeness_score\": 1.0,\n  \"review_conclusion\": \"病历基本完整，所有必填章节均存在，但诊断和治疗经过部分内容不够详细，建议补充入院/出院诊断区分及手术细节。\",\n  \"corrected_draft\": \"\"\n}",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.pure-llm.v1",
+    "backend_type": "pure_llm",
+    "required_sections": [
+      "主诉",
+      "现病史",
+      "既往史",
+      "体格检查",
+      "辅助检查",
+      "诊断",
+      "治疗经过"
+    ],
+    "present_sections": [
+      "主诉",
+      "现病史",
+      "既往史",
+      "体格检查",
+      "辅助检查",
+      "诊断",
+      "治疗经过"
+    ],
+    "missing_sections": [],
+    "incomplete_sections": [
+      {
+        "section": "诊断",
+        "deficit_note": "缺少入院诊断与出院诊断的明确区分"
+      },
+      {
+        "section": "治疗经过",
+        "deficit_note": "缺少术前准备、术中情况、术后恢复的详细描述"
+      }
+    ],
+    "conflicts": [],
+    "completeness_score": 1.0,
+    "review_conclusion": "病历基本完整，所有必填章节均存在，但诊断和治疗经过部分内容不够详细，建议补充入院/出院诊断区分及手术细节。",
+    "documentation_gaps": [
+      {
+        "section": "诊断",
+        "gap_type": "incomplete",
+        "description": "缺少入院诊断与出院诊断的明确区分"
+      },
+      {
+        "section": "治疗经过",
+        "gap_type": "incomplete",
+        "description": "缺少术前准备、术中情况、术后恢复的详细描述"
+      }
+    ],
+    "trace_refs": {
+      "run_id": "run-301ed246-7653-43c8-8896-7181770d0c93",
+      "trace_id": "trace-6837c46f8b9d4c83",
+      "provider_trace_refs": [
+        "run-301ed246-7653-43c8-8896-7181770d0c93"
+      ]
+    },
+    "structured_extraction": {
+      "contract": "icoder/NoteCompletenessOutput/v1",
+      "method": "json_block",
+      "warnings": [],
+      "required_fields": [
+        "review_conclusion",
+        "documentation_gaps",
+        "completeness_score",
+        "missing_sections",
+        "present_sections",
+        "required_sections",
+        "trace_refs"
+      ],
+      "missing_required_fields": [],
+      "valid": true
+    }
+  },
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 2649,
+      "metadata": {
+        "agent_id": "note-completeness-agent",
+        "runtime_mode": "a2a_pure_llm",
+        "latency_ms": 2649
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 2.85
+}

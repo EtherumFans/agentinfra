@@ -41,7 +41,12 @@ def client():
         yield c
 
 
-def _seed_events(run_id: str, *, count: int = 3) -> None:
+def _seed_events(
+    run_id: str,
+    *,
+    count: int = 3,
+    status: str = "COMPLETED",
+) -> None:
     """Append N synthetic RunTraceEvents for the given run_id.
 
     Phase A1A Gate 3R.1 — also seed an authoritative run_history row
@@ -73,7 +78,7 @@ def _seed_events(run_id: str, *, count: int = 3) -> None:
                 user_id="u-test-bypass",
                 organization_id="org_default1",
                 tenancy_classification="MODERN",
-                status="COMPLETED",
+                status=status,
                 latency_ms=0,
                 cost_usd=0.0,
                 input_text="",
@@ -100,6 +105,53 @@ def _seed_events(run_id: str, *, count: int = 3) -> None:
         ))
 
 
+def _append_event(run_id: str, *, step: str, marker: str) -> None:
+    from app.icoder.agent_runtime.orchestrator.run_trace import (
+        RunTraceEvent,
+        get_default_store,
+    )
+
+    get_default_store().append(RunTraceEvent(
+        run_id=run_id,
+        step=step,
+        status="ok",
+        ts=time.time(),
+        duration_ms=25,
+        safe_metadata={"agent_id": "medical-coding-agent", "marker": marker},
+    ))
+
+
+def _set_run_status(run_id: str, status: str) -> None:
+    import asyncio
+    from app.database import AsyncSessionLocal
+    from app.services.run_lifecycle import set_status
+
+    async def _update():
+        async with AsyncSessionLocal() as db:
+            await set_status(db, run_id=run_id, status=status)
+            await db.commit()
+
+    asyncio.run(_update())
+
+
+def _sse_frames(body: str) -> list[tuple[str | None, dict]]:
+    """Parse the small SSE subset emitted by the Run lifecycle endpoint."""
+    import json
+
+    frames: list[tuple[str | None, dict]] = []
+    for block in body.split("\n\n"):
+        event_id = None
+        data_lines: list[str] = []
+        for line in block.splitlines():
+            if line.startswith("id: "):
+                event_id = line[len("id: "):]
+            elif line.startswith("data: "):
+                data_lines.append(line[len("data: "):])
+        if data_lines:
+            frames.append((event_id, json.loads("\n".join(data_lines))))
+    return frames
+
+
 def _clear_events() -> None:
     """Clear trace events + run_history rows for known test run_ids."""
     import asyncio
@@ -115,6 +167,73 @@ def _clear_events() -> None:
             ))
             await db.commit()
     asyncio.run(_clear_rows())
+
+
+def test_sse_observability_is_resumable_low_cardinality_and_phi_safe(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import json
+
+    from app.services.run_sse_observability import (
+        get_run_sse_metrics,
+        reset_run_sse_metrics_for_tests,
+    )
+    from app.services.trace_token import issue_trace_token
+
+    run_id = "run-sse-observability-secret-id"
+    trace_token = issue_trace_token(
+        run_id=run_id,
+        organization_id="org_default1",
+    )
+    reset_run_sse_metrics_for_tests()
+    _seed_events(run_id, count=3)
+    try:
+        first = client.get(
+            f"/api/v1/runs/{run_id}/events",
+            params={"token": trace_token},
+        )
+        assert first.status_code == 200
+        assert first.headers["X-iCoDer-SSE-Resumed"] == "false"
+        first_frames = _sse_frames(first.text)
+        cursor = first_frames[0][0]
+        assert cursor
+
+        resumed = client.get(
+            f"/api/v1/runs/{run_id}/events",
+            params={"token": trace_token},
+            headers={"Last-Event-ID": cursor},
+        )
+        assert resumed.status_code == 200
+        assert resumed.headers["X-iCoDer-SSE-Resumed"] == "true"
+
+        rejected = client.get(f"/api/v1/runs/{run_id}/events")
+        assert rejected.status_code == 401
+
+        snapshot = get_run_sse_metrics().snapshot()
+        assert snapshot["connection_attempts_total"] == 3
+        assert snapshot["connections_accepted_total"] == 2
+        assert snapshot["resumed_connections_total"] == 1
+        assert snapshot["active_connections"] == 0
+        assert snapshot["stream_closes_by_reason"] == {"terminal": 2}
+        assert snapshot["rejections_by_reason"] == {"token_required": 1}
+        assert snapshot["resume_recovery_seconds"]["observations_total"] == 1
+
+        monitoring_token = "test-monitoring-token-32-characters-minimum"
+        monkeypatch.setenv("ICODER_METRICS_BEARER_TOKEN", monitoring_token)
+        metrics_response = client.get(
+            "/api/metrics",
+            headers={"Authorization": f"Bearer {monitoring_token}"},
+        )
+        assert metrics_response.status_code == 200
+        assert metrics_response.headers["Cache-Control"] == "no-store"
+        assert metrics_response.json()["run_sse"] == snapshot
+        serialized = json.dumps(metrics_response.json())
+        assert run_id not in serialized
+        assert trace_token not in serialized
+        assert cursor not in serialized
+    finally:
+        _clear_events()
 
 
 # ────────────────────────────────────────────────────────────────────
@@ -179,7 +298,10 @@ def test_sse_payload_carries_step_status_duration_metadata(client: TestClient) -
         body = resp.text
         import json
         # First data block is the ingest event
-        first = json.loads(body.split("\n")[0][len("data: "):])
+        first_data = next(
+            line for line in body.splitlines() if line.startswith("data: ")
+        )
+        first = json.loads(first_data[len("data: "):])
         assert first["name"] == "run.ingest"
         assert first["payload"]["step"] == "ingest"
         assert first["payload"]["status"] == "ok"
@@ -284,5 +406,190 @@ def test_sse_stream_matches_trace_replay_endpoint(client: TestClient) -> None:
                     sse_steps.append(ev["payload"]["step"])
         # stream.completed is excluded from sse_steps by the .startswith("run.") filter
         assert trace_steps == sse_steps
+    finally:
+        _clear_events()
+
+
+def test_sse_tails_new_events_heartbeats_and_closes_only_at_terminal(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A running subscription must not claim completion after replay."""
+    import json
+    import threading
+
+    from app.api import runs as runs_api
+    from app.services.trace_token import issue_trace_token
+
+    run_id = "run-sse-8"
+    _seed_events(run_id, count=1, status="RUNNING")
+    monkeypatch.setattr(runs_api, "_SSE_POLL_INTERVAL_SECONDS", 0.005)
+    monkeypatch.setattr(runs_api, "_SSE_HEARTBEAT_INTERVAL_SECONDS", 0.01)
+
+    def _finish_run() -> None:
+        # Leave a deterministic interval for at least one heartbeat even on
+        # slower Windows CI hosts where each DB poll can take tens of ms.
+        time.sleep(0.5)
+        _append_event(run_id, step="completion", marker="late")
+        _set_run_status(run_id, "COMPLETED")
+
+    worker = threading.Thread(target=_finish_run, daemon=True)
+    worker.start()
+    try:
+        token = issue_trace_token(run_id=run_id)
+        resp = client.get(f"/api/v1/runs/{run_id}/events?token={token}")
+        worker.join(timeout=2)
+
+        assert resp.status_code == 200
+        assert ": keepalive\n\n" in resp.text
+        envelopes = [
+            json.loads(line[len("data: "):])
+            for line in resp.text.splitlines()
+            if line.startswith("data: ")
+        ]
+        assert [item["name"] for item in envelopes] == [
+            "run.ingest",
+            "run.completion",
+            "stream.completed",
+        ]
+        assert envelopes[-1]["payload"] == {
+            "run_id": run_id,
+            "status": "COMPLETED",
+            "event_count": 2,
+        }
+    finally:
+        worker.join(timeout=2)
+        _clear_events()
+
+
+def test_sse_accepts_active_run_before_first_trace_event(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Partners can subscribe immediately after run creation without a 404 race."""
+    import json
+    import threading
+
+    from app.api import runs as runs_api
+    from app.services.trace_token import issue_trace_token
+
+    run_id = "run-sse-9"
+    _seed_events(run_id, count=0, status="CLIENT_ABORTED")
+    monkeypatch.setattr(runs_api, "_SSE_POLL_INTERVAL_SECONDS", 0.005)
+    monkeypatch.setattr(runs_api, "_SSE_HEARTBEAT_INTERVAL_SECONDS", 0.01)
+
+    def _finish_run() -> None:
+        time.sleep(0.04)
+        _append_event(run_id, step="completion", marker="first")
+        _set_run_status(run_id, "COMPLETED_AFTER_CLIENT_ABORT")
+
+    worker = threading.Thread(target=_finish_run, daemon=True)
+    worker.start()
+    try:
+        token = issue_trace_token(run_id=run_id)
+        resp = client.get(f"/api/v1/runs/{run_id}/events?token={token}")
+        worker.join(timeout=1)
+
+        assert resp.status_code == 200
+        envelopes = [
+            json.loads(line[len("data: "):])
+            for line in resp.text.splitlines()
+            if line.startswith("data: ")
+        ]
+        assert [item["name"] for item in envelopes] == [
+            "run.completion",
+            "stream.completed",
+        ]
+        assert envelopes[-1]["payload"]["status"] == "COMPLETED_AFTER_CLIENT_ABORT"
+    finally:
+        worker.join(timeout=1)
+        _clear_events()
+
+
+def test_sse_emits_stable_ids_and_resumes_strictly_after_cursor(
+    client: TestClient,
+) -> None:
+    from app.services.trace_token import issue_trace_token
+
+    run_id = "run-sse-10"
+    _seed_events(run_id, count=3)
+    try:
+        token = issue_trace_token(run_id=run_id)
+        first = client.get(f"/api/v1/runs/{run_id}/events?token={token}")
+        first_frames = _sse_frames(first.text)
+        trace_frames = [frame for frame in first_frames if frame[1]["name"].startswith("run.")]
+        assert len(trace_frames) == 3
+        assert all(event_id for event_id, _ in trace_frames)
+        assert len({event_id for event_id, _ in trace_frames}) == 3
+        for event_id, envelope in trace_frames:
+            assert envelope["meta"]["event_id"] == event_id
+
+        cursor = trace_frames[0][0]
+        resumed = client.get(
+            f"/api/v1/runs/{run_id}/events?token={token}",
+            headers={"Last-Event-ID": cursor},
+        )
+        resumed_frames = _sse_frames(resumed.text)
+        assert [frame[1]["name"] for frame in resumed_frames] == [
+            "run.extract", "run.validate", "stream.completed"
+        ]
+        assert all(
+            frame[1]["meta"].get("event_id") != cursor
+            for frame in resumed_frames
+        )
+    finally:
+        _clear_events()
+
+
+def test_sse_resume_after_last_trace_replays_only_terminal_marker(
+    client: TestClient,
+) -> None:
+    from app.services.trace_token import issue_trace_token
+
+    run_id = "run-sse-11"
+    _seed_events(run_id, count=2)
+    try:
+        token = issue_trace_token(run_id=run_id)
+        initial = client.get(f"/api/v1/runs/{run_id}/events?token={token}")
+        cursor = [
+            event_id
+            for event_id, envelope in _sse_frames(initial.text)
+            if envelope["name"].startswith("run.")
+        ][-1]
+        resumed = client.get(
+            f"/api/v1/runs/{run_id}/events?token={token}",
+            headers={"Last-Event-ID": cursor},
+        )
+        frames = _sse_frames(resumed.text)
+        assert [(event_id, envelope["name"]) for event_id, envelope in frames] == [
+            (None, "stream.completed")
+        ]
+        assert frames[0][1]["payload"]["event_count"] == 2
+    finally:
+        _clear_events()
+
+
+def test_sse_rejects_unknown_and_malformed_resume_cursors(
+    client: TestClient,
+) -> None:
+    from app.services.trace_token import issue_trace_token
+
+    run_id = "run-sse-12"
+    _seed_events(run_id, count=1)
+    try:
+        token = issue_trace_token(run_id=run_id)
+        unknown = client.get(
+            f"/api/v1/runs/{run_id}/events?token={token}",
+            headers={"Last-Event-ID": "00000000-0000-4000-8000-000000000000"},
+        )
+        assert unknown.status_code == 409
+        assert unknown.json()["detail"]["code"] == "SSE_CURSOR_NOT_FOUND"
+
+        malformed = client.get(
+            f"/api/v1/runs/{run_id}/events?token={token}",
+            headers={"Last-Event-ID": "x" * 129},
+        )
+        assert malformed.status_code == 400
+        assert malformed.json()["detail"]["code"] == "SSE_CURSOR_INVALID"
     finally:
         _clear_events()

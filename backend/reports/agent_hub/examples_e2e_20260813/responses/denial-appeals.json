@@ -1,0 +1,85 @@
+{
+  "agent_id": "denial-appeals",
+  "run_id": "run-98ead56e-c172-48e0-936f-3c7f2b4131af",
+  "trace_id": "trace-887d6f2f65814655",
+  "trace_url": "/ai-studio/runs/run-98ead56e-c172-48e0-936f-3c7f2b4131af/trace",
+  "runtime_mode": "pure_llm",
+  "latency_ms": 7391,
+  "cost": {
+    "amount": 0.000183,
+    "currency": "CNY"
+  },
+  "summary": "{",
+  "result": {
+    "status": "complete",
+    "markdown": "{\n  \"denial_reason\": \"主要诊断与手术指征不一致\",\n  \"appeal_position\": \"病历记录显示患者诊断为股骨颈骨折，并接受了人工股骨头置换术，该手术是股骨颈骨折的常规治疗方式，诊断与手术指征相符。\",\n  \"evidence_items\": [\n    {\n      \"evidence\": \"病历记录：股骨颈骨折\",\n      \"support\": \"明确主要诊断\"\n    },\n    {\n      \"evidence\": \"病历记录：入院后行人工股骨头置换\",\n      \"support\": \"手术与诊断对应\"\n    }\n  ],\n  \"policy_gaps\": [\n    \"支付方规则原文未提供，仅提及'某市2026版规则节选'，但未给出具体条款或版本内容\",\n    \"缺少支付方规则中关于股骨颈骨折手术指征的具体规定\",\n    \"缺少病历中关于骨折分型、患者年龄、术前功能状态等支持手术选择的详细记录\",\n    \"缺少手术记录、术前讨论或会诊记录等支持手术必要性的文件\"\n  ],\n  \"draft_appeal\": \"尊敬的医保审核部门：\\n\\n针对本次拒付（拒付原因：主要诊断与手术指征不一致），我方提出如下申诉：\\n\\n患者因股骨颈骨折入院，根据病历记录，入院后行人工股骨头置换术。股骨颈骨折是人工股骨头置换术的明确手术指征，该手术为治疗股骨颈骨折的常用术式，尤其适用于老年患者。因此，主要诊断与手术指征相符，不存在不一致的情况。\\n\\n请贵部门复核相关病历及手术记录，予以纠正拒付。\\n\\n此致\\n敬礼\",\n  \"limitations\": [\n    \"本申诉草案仅基于提供的有限病历信息，未包含完整病历、手术记录、影像学报告等关键资料\",\n    \"支付方规则的具体内容未提供，无法进行精确的规则比对\",\n    \"未提供患者年龄、骨折类型等可能影响手术选择的关键临床细节\"\n  ],\n  \"manual_review_required\": true\n}",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.pure-llm.v1",
+    "backend_type": "pure_llm",
+    "denial_reason": "主要诊断与手术指征不一致",
+    "appeal_position": "病历记录显示患者诊断为股骨颈骨折，并接受了人工股骨头置换术，该手术是股骨颈骨折的常规治疗方式，诊断与手术指征相符。",
+    "evidence_items": [
+      {
+        "evidence": "病历记录：股骨颈骨折",
+        "support": "明确主要诊断"
+      },
+      {
+        "evidence": "病历记录：入院后行人工股骨头置换",
+        "support": "手术与诊断对应"
+      }
+    ],
+    "policy_gaps": [
+      "支付方规则原文未提供，仅提及'某市2026版规则节选'，但未给出具体条款或版本内容",
+      "缺少支付方规则中关于股骨颈骨折手术指征的具体规定",
+      "缺少病历中关于骨折分型、患者年龄、术前功能状态等支持手术选择的详细记录",
+      "缺少手术记录、术前讨论或会诊记录等支持手术必要性的文件"
+    ],
+    "draft_appeal": "尊敬的医保审核部门：\n\n针对本次拒付（拒付原因：主要诊断与手术指征不一致），我方提出如下申诉：\n\n患者因股骨颈骨折入院，根据病历记录，入院后行人工股骨头置换术。股骨颈骨折是人工股骨头置换术的明确手术指征，该手术为治疗股骨颈骨折的常用术式，尤其适用于老年患者。因此，主要诊断与手术指征相符，不存在不一致的情况。\n\n请贵部门复核相关病历及手术记录，予以纠正拒付。\n\n此致\n敬礼",
+    "limitations": [
+      "本申诉草案仅基于提供的有限病历信息，未包含完整病历、手术记录、影像学报告等关键资料",
+      "支付方规则的具体内容未提供，无法进行精确的规则比对",
+      "未提供患者年龄、骨折类型等可能影响手术选择的关键临床细节"
+    ],
+    "manual_review_required": true,
+    "structured_extraction": {
+      "contract": "icoder/DenialAppealOutput/v1",
+      "method": "bare_json",
+      "warnings": [],
+      "required_fields": [
+        "denial_reason",
+        "appeal_position",
+        "evidence_items",
+        "policy_gaps",
+        "draft_appeal",
+        "limitations",
+        "manual_review_required"
+      ],
+      "missing_required_fields": [],
+      "valid": true
+    }
+  },
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 7391,
+      "metadata": {
+        "agent_id": "denial-appeals",
+        "runtime_mode": "pure_llm",
+        "latency_ms": 7391
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 7.61
+}

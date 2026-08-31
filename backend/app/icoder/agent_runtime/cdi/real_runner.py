@@ -27,24 +27,23 @@ DEGRADED state
 
 If ``llm_service.chat()`` raises (network, auth, schema-validation), the
 runner records a per-stage ``degraded`` flag + error reason and returns
-minimal empty outputs so the orchestrator can still produce a response.
-The orchestrator's ``_decide_completion`` then sees gaps=[] / queries=[]
-and emits ``AUTO_PASS`` with a degraded marker. Front-end shows a
-warning banner.
+minimal empty outputs so the orchestrator can finish local audit state.
+Public REST/A2A adapters inspect both these traces and the orchestrator's
+required safety-gate degradation state, then return 503 without publishing,
+persisting, or signing a clinical result.
 
 Sync vs async
 =============
 
-The orchestrator is sync (Gate 3 contract, kept stable for 18 existing
-tests). The runner wraps async ``llm_service.chat()`` via
-``asyncio.run()`` — safe because the FastAPI handler invokes the
-orchestrator inside ``asyncio.to_thread`` so there's no running event
-loop in the worker thread.
+The orchestrator is sync (Gate 3 contract, kept stable for existing tests).
+Production creates one request-scoped LLM client and one event-loop bridge for
+the complete CDI run. Reusing a global ``AsyncOpenAI`` connection pool across
+the short-lived loops created by repeated ``asyncio.run()`` calls causes
+intermittent ``APIConnectionError`` failures on Windows/httpx.
 """
 
 from __future__ import annotations
 
-import asyncio
 import json
 import logging
 import time
@@ -101,7 +100,55 @@ class StageTrace:
     trace_id: str = ""
     degraded: bool = False
     error_reason: str = ""
+    provider_error_category: str = ""
+    provider_http_status: int | None = None
+    provider_attempt_count: int | None = None
+    provider_retryable: bool | None = None
     expert_id: str = ""  # only set for expert_consultation sub-stages
+
+
+_SAFE_PROVIDER_ERROR_CATEGORIES = frozenset({
+    "authentication", "permission", "bad_request", "rate_limit", "timeout",
+    "connection", "server_error", "circuit_open", "invalid_response", "unknown",
+})
+
+
+class _CDIStructuredResponseError(ValueError):
+    """Content-free marker for an exhausted structured-output repair retry."""
+
+    category = "invalid_response"
+    status_code = None
+    retryable = False
+
+    def __init__(self, attempts: int) -> None:
+        self.attempts = attempts
+        super().__init__("CDI provider response did not satisfy the JSON contract.")
+
+
+def _record_provider_failure(trace: StageTrace, exc: Exception) -> None:
+    """Copy only bounded provider failure attributes into a stage trace."""
+    category = str(getattr(exc, "category", "") or "").strip().lower()
+    if category not in _SAFE_PROVIDER_ERROR_CATEGORIES:
+        category = ""
+    status = getattr(exc, "status_code", None)
+    attempts = getattr(exc, "attempts", None)
+    try:
+        status = int(status) if status is not None else None
+    except (TypeError, ValueError, OverflowError):
+        status = None
+    try:
+        attempts = int(attempts) if attempts is not None else None
+    except (TypeError, ValueError, OverflowError):
+        attempts = None
+    trace.provider_error_category = category
+    trace.provider_http_status = status if status is not None and 100 <= status <= 599 else None
+    trace.provider_attempt_count = attempts if attempts is not None and 0 <= attempts <= 10 else None
+    retryable = getattr(exc, "retryable", None)
+    trace.provider_retryable = retryable if isinstance(retryable, bool) else None
+    trace.error_reason = (
+        f"llm_call_failed:{category}" if category
+        else f"llm_call_failed:{type(exc).__name__}"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -151,8 +198,32 @@ _QUERY_GENERATION_SCHEMA = """
       "topic": "string",
       "reason": "string",
       "evidence_span": {"document_id": "string", "quote": "string"},
+      "evidence_spans": [
+        {"document_id": "string", "quote": "one VERBATIM contiguous chart span"}
+      ],
       "query_text": "string (NON-LEADING: no 是不是/能否/can you confirm etc)",
       "response_options": ["A. ...", "B. ...", "C. ...", "D. 无法确定"],
+      "priority": "routine | urgent"
+    }
+  ]
+}
+"""
+
+_QUERY_DIMENSION_REWRITE_SCHEMA = """
+{
+  "queries": [
+    {
+      "source_query_id": "string (must match the supplied compound draft)",
+      "query_id": "string",
+      "gap_id": "string (must remain unchanged)",
+      "topic": "string (one clinical dimension only)",
+      "reason": "string",
+      "evidence_span": {"document_id": "string", "quote": "string"},
+      "evidence_spans": [
+        {"document_id": "string", "quote": "one VERBATIM contiguous chart span"}
+      ],
+      "query_text": "string (one NON-LEADING clinical dimension only)",
+      "response_options": ["A. ...", "B. ...", "C. ...", "D. unable to determine"],
       "priority": "routine | urgent"
     }
   ]
@@ -233,7 +304,12 @@ _GAP_IDENTIFICATION_PROMPT = (
 
 _QUERY_GENERATION_PROMPT = (
     "You are a CDI specialist performing Stage 4: provider query "
-    "generation. For each gap, draft a NON-LEADING clarification query. "
+    "generation. Draft each query for exactly ONE gap and ONE clinical "
+    "dimension. Normally emit exactly one NON-LEADING query per gap. "
+    "Never merge separate gap_ids (for example severity and etiology) "
+    "into one query; keep them as separate provider tasks. A contradiction "
+    "may require separate branch queries for the same gap, but each branch "
+    "must still remain single-dimension. "
     "RED LINES (forbidden): do NOT ask yes/no leading questions, do NOT "
     "reference ICD codes, DRG, CMI, or reimbursement. Each query MUST "
     "include ≥4 response_options including ≥1 escape hatch ('D. 无法确定' "
@@ -251,6 +327,22 @@ _QUERY_GENERATION_PROMPT = (
     "the missing piece is not in the chart — that is the nature of an "
     "absence gap. Only skip a gap if the chart truly has no surrounding "
     "context for it."
+)
+
+_QUERY_DIMENSION_REWRITE_PROMPT = (
+    "You are a CDI specialist repairing provider-query drafts that were "
+    "withheld because they combined multiple clinical dimensions. For each "
+    "supplied draft, emit AT MOST ONE replacement. The replacement must keep "
+    "the exact source_query_id and gap_id, address only the clinical dimension "
+    "named in target_axis, and MUST NOT use keywords from any other clinical "
+    "axis in its topic or query text. The server will reject any result whose "
+    "detected axis set is not exactly {target_axis}. Keep it non-leading, and "
+    "include at least four "
+    "response options with an unable-to-determine escape hatch. Do not add a "
+    "new diagnosis, new gap, ICD code, DRG, CMI, or reimbursement language. "
+    "Every evidence quote must be copied verbatim from the chart; use separate "
+    "evidence_spans for non-contiguous facts. If a safe single-dimension rewrite "
+    "cannot be produced from chart context, omit that draft. Output only JSON."
 )
 
 
@@ -293,7 +385,8 @@ class RealCDIRunner:
     layer can expose provider/model/latency/token evidence (PDF §A2).
     """
 
-    # Injected for testability — production uses the singleton llm_service
+    # Injected for testability. Production creates a request-scoped client
+    # lazily on the CDI bridge loop.
     llm: Any = None
     # When True, expert_consultation actually calls ExpertRunner. False
     # skips Expert calls (useful for offline tests).
@@ -302,6 +395,7 @@ class RealCDIRunner:
     stage_traces: dict[str, StageTrace] = field(default_factory=dict)
     # Captured per-expert trace metadata (within expert_consultation)
     expert_traces: list[StageTrace] = field(default_factory=list)
+    _owns_llm: bool = field(default=False, init=False, repr=False)
     # Phase 5 Track D P0.5 Gate 5 — per-case Expert route decisions
     # captured by the most recent expert_consultation stage call. The
     # orchestrator reads this after stage 3 finishes so specialist_trace
@@ -312,33 +406,38 @@ class RealCDIRunner:
 
     def __post_init__(self) -> None:
         if self.llm is None:
-            # Lazy import to avoid module-load side effects
-            from app.services.llm_service import llm_service
-            self.llm = llm_service
+            self._owns_llm = True
+
+    def begin_run(self) -> None:
+        if self._owns_llm and self.llm is None:
+            async def create_client() -> Any:
+                # Construct AsyncOpenAI on the same running event loop that
+                # will own every request and the final close operation.
+                from app.services.llm_service import LLMService
+                return LLMService()
+
+            from .orchestrator import _run_async
+            self.llm = _run_async(create_client())
+
+    def end_run(self) -> None:
+        if not self._owns_llm or self.llm is None:
+            return
+        close = getattr(self.llm, "aclose", None)
+        if callable(close):
+            from .orchestrator import _run_async
+            _run_async(close())
+        self.llm = None
 
     # ------------------------------------------------------------------ entry
 
     def __call__(self, stage: str, case: CDICase, kwargs: dict[str, Any]) -> dict[str, Any]:
         """Sync entry point — orchestrator calls this.
 
-        Uses ``asyncio.run`` to drive the async LLM call. Safe because
-        the FastAPI handler runs the orchestrator in a worker thread via
-        ``asyncio.to_thread``.
+        Uses the CDI orchestrator's request-scoped event-loop bridge. The
+        FastAPI handler runs the sync orchestrator in a worker thread.
         """
-        try:
-            return asyncio.run(self._async_call(stage, case, kwargs))
-        except RuntimeError as e:
-            # If we're already inside an event loop, fall back to a
-            # fresh thread. This path is for unit tests that drive the
-            # orchestrator directly inside an async test function.
-            if "asyncio.run() cannot be called from a running event loop" in str(e):
-                import concurrent.futures
-                with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
-                    future = pool.submit(
-                        asyncio.run, self._async_call(stage, case, kwargs)
-                    )
-                    return future.result()
-            raise
+        from .orchestrator import _run_async
+        return _run_async(self._async_call(stage, case, kwargs))
 
     # ------------------------------------------------------------------ async dispatch
 
@@ -354,6 +453,8 @@ class RealCDIRunner:
             return await self._stage_expert_consultation(case)
         if stage == "query_generation":
             return await self._stage_query_generation(case)
+        if stage == "query_dimension_rewrite":
+            return await self._stage_query_dimension_rewrite(case, kwargs)
         if stage == "specialist_trace_emit":
             return await self._stage_specialist_trace_emit(case)
         # query_compliance_gate is handled by the orchestrator directly
@@ -487,15 +588,15 @@ class RealCDIRunner:
                     trace.total_tokens = int(usage.get("total_tokens", 0))
                 except Exception as e:
                     trace.degraded = True
-                    trace.error_reason = str(e)[:200]
-                    error_reason = str(e)[:200]
+                    _record_provider_failure(trace, e)
+                    error_reason = trace.error_reason
                     # On LLM failure we mark this Expert DEGRADED (not
                     # the original execution_mode) so the audit trail
                     # reflects the actual outcome.
                     decision.execution_mode = "DEGRADED"
                     logger.warning(
                         "CDI expert_consultation %s failed (degraded): %s",
-                        expert_id, e,
+                        expert_id, type(e).__name__,
                     )
             else:
                 # SKIPPED_NOT_NEEDED / SKIPPED_MISSING_INPUTS / TOOL_UNAVAILABLE
@@ -594,7 +695,14 @@ class RealCDIRunner:
             )
 
         prompt = (
-            f"For each gap below, draft a NON-LEADING provider query. "
+            f"For each gap below, draft a NON-LEADING provider query as a "
+            f"separate task. "
+            f"GAP COVERAGE (mandatory): each output query must reference exactly "
+            f"one listed gap_id and must ask only about that gap's single clinical "
+            f"dimension. Do not combine content from another gap into its topic, "
+            f"query_text, or response_options. Unless the risk-flag branch rule "
+            f"below applies, emit exactly one query for every listed gap that has "
+            f"chart context. "
             f"QUOTE-ANCHOR PROCEDURE (Track H3.12 — mandatory):\n"
             f"  Step 1. Identify the gap type: absence (missing info), "
             f"ambiguity (unclear info), or contradiction (conflicting info).\n"
@@ -608,12 +716,18 @@ class RealCDIRunner:
             f"punctuation, whitespace — no paraphrasing). If the gap's "
             f"anchor_hint is non-empty, prefer reusing it.\n"
             f"  Step 4. Draft the query_text + ≥4 response_options "
-            f"(including an escape hatch).\n"
+            f"(including an escape hatch). Never introduce a numeric clinical "
+            f"threshold, dose, measurement, or time window unless that exact "
+            f"quantity appears verbatim in the chart.\n"
             f"  Step 5. Only skip a gap if the chart has NO surrounding "
             f"context for it at all (very rare)."
             f"{amplifier_hint}\n\n"
             f"Each query MUST cite evidence_span.quote = verbatim anchor "
-            f"span. Paraphrased quotes will fail downstream CEA-001. "
+            f"span. If one query relies on facts from non-contiguous chart "
+            f"locations, set evidence_spans to one separate VERBATIM item per "
+            f"location and set evidence_span equal to the first item. Never "
+            f"concatenate separated chart fragments into one quote. "
+            f"Paraphrased or concatenated quotes will fail closed. "
             f"Respond as JSON matching this schema:\n{_QUERY_GENERATION_SCHEMA}\n\n"
             f"Gaps:\n{gap_list}\n\n"
             f"Chart:\n{case.chart_excerpt}"
@@ -621,6 +735,30 @@ class RealCDIRunner:
         return await self._llm_call_structured(
             stage="query_generation",
             system_prompt=_QUERY_GENERATION_PROMPT,
+            user_prompt=prompt,
+            empty_result={"queries": []},
+        )
+
+    async def _stage_query_dimension_rewrite(
+        self, case: CDICase, kwargs: dict[str, Any]
+    ) -> dict[str, Any]:
+        """Make one bounded repair attempt for withheld compound drafts."""
+
+        items = list(kwargs.get("rewrite_items") or [])[:8]
+        if not items:
+            return {"queries": [], "run_id": "", "trace_id": ""}
+        prompt = (
+            "Repair the compound drafts below. Each item includes the only gap "
+            "its replacement may address and one server-selected target_axis. "
+            "Return at most one replacement per "
+            "source_query_id.\n\n"
+            f"Schema:\n{_QUERY_DIMENSION_REWRITE_SCHEMA}\n\n"
+            f"Rewrite items:\n{json.dumps(items, ensure_ascii=False)}\n\n"
+            f"Chart:\n{case.chart_excerpt}"
+        )
+        return await self._llm_call_structured(
+            stage="query_dimension_rewrite",
+            system_prompt=_QUERY_DIMENSION_REWRITE_PROMPT,
             user_prompt=prompt,
             empty_result={"queries": []},
         )
@@ -662,30 +800,48 @@ class RealCDIRunner:
         self.stage_traces[stage] = trace
         t0 = time.perf_counter()
         try:
-            response = await self.llm.chat(
-                messages=[{"role": "user", "content": user_prompt}],
-                system_prompt=system_prompt,
-                temperature=0.1,
-                response_format="json",
-            )
-            content = response.get("content", "") if isinstance(response, dict) else ""
-            usage = response.get("usage", {}) if isinstance(response, dict) else {}
-            trace.prompt_tokens = int(usage.get("prompt_tokens", 0))
-            trace.completion_tokens = int(usage.get("completion_tokens", 0))
-            trace.total_tokens = int(usage.get("total_tokens", 0))
-            parsed = _parse_json(content)
-            trace.latency_ms = int((time.perf_counter() - t0) * 1000)
-            return {
-                **parsed,
-                "run_id": trace.run_id,
-                "trace_id": trace.trace_id,
-            }
+            for structured_attempt in range(2):
+                repair_instruction = (
+                    "\n\nYour prior response did not satisfy the JSON contract. "
+                    "Return exactly one valid JSON object matching the schema; "
+                    "do not add markdown or prose."
+                    if structured_attempt else ""
+                )
+                response = await self.llm.chat(
+                    messages=[{"role": "user", "content": user_prompt}],
+                    system_prompt=system_prompt + repair_instruction,
+                    temperature=0.1,
+                    response_format="json",
+                )
+                content = response.get("content", "") if isinstance(response, dict) else ""
+                usage = response.get("usage", {}) if isinstance(response, dict) else {}
+                trace.prompt_tokens += int(usage.get("prompt_tokens", 0) or 0)
+                trace.completion_tokens += int(usage.get("completion_tokens", 0) or 0)
+                trace.total_tokens += int(usage.get("total_tokens", 0) or 0)
+                try:
+                    parsed = _parse_json(content)
+                except (TypeError, ValueError) as exc:
+                    if structured_attempt == 0:
+                        logger.warning(
+                            "CDI stage %s returned invalid structured output; "
+                            "performing one bounded repair retry",
+                            stage,
+                        )
+                        continue
+                    raise _CDIStructuredResponseError(attempts=2) from exc
+                trace.latency_ms = int((time.perf_counter() - t0) * 1000)
+                return {
+                    **parsed,
+                    "run_id": trace.run_id,
+                    "trace_id": trace.trace_id,
+                }
+            raise _CDIStructuredResponseError(attempts=2)  # pragma: no cover
         except Exception as e:
             trace.degraded = True
-            trace.error_reason = str(e)[:300]
+            _record_provider_failure(trace, e)
             trace.latency_ms = int((time.perf_counter() - t0) * 1000)
             logger.warning(
-                "CDI stage %s failed (degraded): %s", stage, e,
+                "CDI stage %s failed (degraded): %s", stage, type(e).__name__,
             )
             return {
                 **empty_result,

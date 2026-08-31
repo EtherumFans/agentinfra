@@ -123,7 +123,7 @@ SAMPLE_EMR = (
 @pytest.mark.asyncio
 async def test_run_happy_path_returns_schema_dict(wired_gateway):
     """agent.run() with a PASS response returns all schema fields populated."""
-    from official_agents.note_completeness.agent import run
+    from official_agents.note_completeness.agent import run_llm_enhanced as run
 
     wired_gateway._response_text = _schema_json(
         conclusion="PASS",
@@ -148,7 +148,10 @@ async def test_run_happy_path_returns_schema_dict(wired_gateway):
 @pytest.mark.asyncio
 async def test_run_passes_system_prompt_and_emr_to_llm(wired_gateway):
     """The LLM receives the Chinese system prompt + the EMR text."""
-    from official_agents.note_completeness.agent import run, SYSTEM_PROMPT
+    from official_agents.note_completeness.agent import (
+        SYSTEM_PROMPT,
+        run_llm_enhanced as run,
+    )
 
     wired_gateway._response_text = _schema_json()
 
@@ -169,7 +172,7 @@ async def test_run_passes_system_prompt_and_emr_to_llm(wired_gateway):
 @pytest.mark.asyncio
 async def test_run_handles_pure_json_output(wired_gateway):
     """LLM outputs just a JSON object — agent parses it."""
-    from official_agents.note_completeness.agent import run
+    from official_agents.note_completeness.agent import run_llm_enhanced as run
 
     wired_gateway._response_text = _schema_json(
         conclusion="WARNING", score=0.7143,
@@ -186,7 +189,7 @@ async def test_run_handles_pure_json_output(wired_gateway):
 @pytest.mark.asyncio
 async def test_run_handles_fenced_json_block(wired_gateway):
     """LLM wraps JSON in ```json ... ``` fence — agent extracts it."""
-    from official_agents.note_completeness.agent import run
+    from official_agents.note_completeness.agent import run_llm_enhanced as run
 
     payload = _schema_json(
         conclusion="WARNING", score=0.7143, missing=["主诉"],
@@ -204,7 +207,7 @@ async def test_run_handles_fenced_json_block(wired_gateway):
 @pytest.mark.asyncio
 async def test_run_handles_json_embedded_in_prose(wired_gateway):
     """LLM writes prose with embedded JSON — agent pulls the {...} substring."""
-    from official_agents.note_completeness.agent import run
+    from official_agents.note_completeness.agent import run_llm_enhanced as run
 
     payload = _schema_json(
         conclusion="PASS", score=1.0,
@@ -216,6 +219,7 @@ async def test_run_handles_json_embedded_in_prose(wired_gateway):
     )
     result = await run(SAMPLE_EMR, run_id="run-prose-1")
     assert result["review_conclusion"] == "PASS"
+    assert result["manual_review_required"] is False
 
 
 # ── conclusion / score consistency ─────────────────────────────────
@@ -224,7 +228,7 @@ async def test_run_handles_json_embedded_in_prose(wired_gateway):
 @pytest.mark.asyncio
 async def test_run_overrides_inconsistent_conclusion(wired_gateway):
     """LLM says PASS but score < 0.5 → agent derives FAIL from score."""
-    from official_agents.note_completeness.agent import run
+    from official_agents.note_completeness.agent import run_llm_enhanced as run
 
     wired_gateway._response_text = _schema_json(
         conclusion="PASS",  # wrong
@@ -243,7 +247,7 @@ async def test_run_overrides_inconsistent_conclusion(wired_gateway):
 @pytest.mark.asyncio
 async def test_run_falls_back_to_legacy_on_llm_fail(wired_gateway):
     """LLM returns degraded (no_api_key) → agent falls back to legacy regex."""
-    from official_agents.note_completeness.agent import run
+    from official_agents.note_completeness.agent import run_llm_enhanced as run
 
     # LLM returns a degraded response (no real content)
     wired_gateway._response_text = ""
@@ -254,6 +258,8 @@ async def test_run_falls_back_to_legacy_on_llm_fail(wired_gateway):
 
     # Legacy regex should fire — it detects 7 sections in SAMPLE_EMR → PASS
     assert result["review_conclusion"] == "PASS"
+    assert result["manual_review_required"] is True
+    assert result["fallback_used"] is True
     assert result["completeness_score"] == 1.0
     assert result["missing_sections"] == []
     # Legacy uses a uuid when run_id is empty; our run_id is preserved.
@@ -263,7 +269,7 @@ async def test_run_falls_back_to_legacy_on_llm_fail(wired_gateway):
 @pytest.mark.asyncio
 async def test_run_falls_back_to_legacy_on_unparseable_output(wired_gateway):
     """LLM returns garbage text → agent falls back to legacy regex."""
-    from official_agents.note_completeness.agent import run
+    from official_agents.note_completeness.agent import run_llm_enhanced as run
 
     wired_gateway._response_text = "Sorry, I can't help with that."
 
@@ -277,7 +283,7 @@ async def test_run_falls_back_to_legacy_on_unparseable_output(wired_gateway):
 @pytest.mark.asyncio
 async def test_run_falls_back_to_legacy_on_llm_exception(fresh_registry):
     """LLM raises an exception → agent falls back to legacy regex."""
-    from official_agents.note_completeness.agent import run
+    from official_agents.note_completeness.agent import run_llm_enhanced as run
 
     gw = _MockGateway(raise_exc=RuntimeError("LLM gateway exploded"))
     set_gateway_lookup(lambda: gw)
@@ -294,7 +300,7 @@ async def test_run_falls_back_to_legacy_on_llm_exception(fresh_registry):
 @pytest.mark.asyncio
 async def test_run_empty_input_returns_fail_without_calling_llm(wired_gateway):
     """Empty EMR text → fail response immediately, no LLM call."""
-    from official_agents.note_completeness.agent import run
+    from official_agents.note_completeness.agent import run_llm_enhanced as run
 
     result = await run("", run_id="run-empty-1")
 
@@ -307,7 +313,7 @@ async def test_run_empty_input_returns_fail_without_calling_llm(wired_gateway):
 @pytest.mark.asyncio
 async def test_run_whitespace_only_input_returns_fail(wired_gateway):
     """Whitespace-only EMR → also fail, no LLM call."""
-    from official_agents.note_completeness.agent import run
+    from official_agents.note_completeness.agent import run_llm_enhanced as run
 
     result = await run("   \n  \t  ", run_id="run-ws-1")
     assert result["review_conclusion"] == "FAIL"
@@ -320,7 +326,7 @@ async def test_run_whitespace_only_input_returns_fail(wired_gateway):
 @pytest.mark.asyncio
 async def test_run_surgical_case_propagates_is_surgical(wired_gateway):
     """Surgical case (手术 keyword) → is_surgical_case=True in result."""
-    from official_agents.note_completeness.agent import run
+    from official_agents.note_completeness.agent import run_llm_enhanced as run
 
     surgical_emr = (
         "主诉：腹痛3天\n"

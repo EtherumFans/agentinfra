@@ -9,6 +9,7 @@ Stores the raw PHI separately from the Context lifecycle so that:
 from __future__ import annotations
 
 import hashlib
+import uuid
 from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import select
@@ -55,7 +56,12 @@ class ContextAudit:
             )
         now = now or datetime.now(timezone.utc)
         row = OriginalInputAuditRow(
-            id=audit_id or hash_original_input(f"{context_id}:{now.isoformat()}"),
+            # Wall-clock timestamps are not unique identifiers.  In particular,
+            # Windows may return the same ``datetime.now`` value for consecutive
+            # writes, which previously caused a primary-key collision and lost
+            # the second audit event.  Keep caller-supplied IDs for replay/import
+            # flows and use an independent UUID for ordinary runtime writes.
+            id=audit_id or str(uuid.uuid4()),
             context_id=context_id,
             original_input=original_input,
             created_at=now,

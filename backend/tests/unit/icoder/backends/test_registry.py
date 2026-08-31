@@ -276,7 +276,7 @@ def test_get_backend_config_empty_when_absent():
 
 
 def test_lazy_registration_on_first_get():
-    """The default registry auto-registers 3 builtin providers on first get."""
+    """The default registry lazily exposes its builtin providers."""
     reset_default_registry()
     r = get_default_registry()
     # First get triggers lazy registration.
@@ -294,5 +294,13 @@ def test_lazy_registration_idempotent():
     ids = r.list()
     # Each builtin appears exactly once.
     assert ids.count("icoder.rule-engine.v1") == 1
+    assert ids.count("icoder.documentation-rule-engine.v1") == 1
+    assert ids.count("icoder.governed-code-validation.v1") == 1
+    assert ids.count("icoder.governed-evidence-extractor.v1") == 1
+    assert ids.count("icoder.governed-evidence-ranker.v1") == 1
+    assert ids.count("icoder.governed-surgical-registry.v1") == 1
+    assert ids.count("icoder.governed-icd-navigator.v1") == 1
+    assert ids.count("icoder.governed-rule-explainer.v1") == 1
+    assert ids.count("icoder.governed-medication-reconciliation.v1") == 1
     assert ids.count("icoder.pure-llm.v1") == 1
     assert ids.count("icoder.llm-with-tools.v1") == 1

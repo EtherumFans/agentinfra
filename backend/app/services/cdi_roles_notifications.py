@@ -264,6 +264,19 @@ def _now_utc() -> datetime:
     return datetime.now(timezone.utc)
 
 
+def _as_utc(value: datetime) -> datetime:
+    """Normalize database timestamps for portable SLA arithmetic.
+
+    SQLite drops timezone metadata for persisted UTC datetimes, while
+    PostgreSQL returns aware values.  Treat naive persisted values as UTC and
+    convert aware values to UTC so both backends use the same SLA semantics.
+    """
+
+    if value.tzinfo is None or value.utcoffset() is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
+
+
 def find_sla_breaches(
     open_queries: Iterable[dict],
     *,
@@ -285,6 +298,8 @@ def find_sla_breaches(
 
     if now is None:
         now = _now_utc()
+    else:
+        now = _as_utc(now)
 
     TERMINAL_STATES = {"CLOSED", "CANCELLED", "EXPIRED"}
     records: list[SLABreachRecord] = []
@@ -297,6 +312,7 @@ def find_sla_breaches(
         approved_at = q.get("approved_at")
         if approved_at is None:
             continue
+        approved_at = _as_utc(approved_at)
 
         priority = q.get("priority", "routine")
         sla_due_at = compute_sla_due_at(approved_at, priority)

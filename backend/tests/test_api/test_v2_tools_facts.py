@@ -8,8 +8,8 @@ These tests assert the wire-shape contract of
 
 Approach
 --------
-``llm_service.chat`` is stubbed via ``monkeypatch.setattr`` on the endpoint
-module so the fixtures never touch a real LLM. Each test stages the raw
+The canonical gateway boundary is stubbed via ``monkeypatch.setattr`` on the
+endpoint module so the fixtures never touch a real LLM. Each test stages the raw
 model ``content`` (and optional ``usage``) the stub should return.
 """
 
@@ -39,7 +39,7 @@ def client():
 
 @pytest.fixture
 def stub_chat(monkeypatch):
-    """Inject a stub ``llm_service.chat`` that returns a staged result.
+    """Inject a provider result at the canonical gateway boundary.
 
     The returned dict has a ``staged`` slot the test fills before calling
     the endpoint. ``captured`` records the messages the endpoint sent so
@@ -49,12 +49,11 @@ def stub_chat(monkeypatch):
 
     state: dict[str, Any] = {"staged": {"content": "[]", "usage": None}, "captured": {}}
 
-    async def _fake_chat(messages, *args, **kwargs):
+    async def _fake_chat(messages):
         state["captured"]["messages"] = list(messages)
-        state["captured"]["kwargs"] = kwargs
         return state["staged"]
 
-    monkeypatch.setattr(api_mod.llm_service, "chat", _fake_chat)
+    monkeypatch.setattr(api_mod, "_invoke_facts_model", _fake_chat)
     return state
 
 
@@ -194,6 +193,26 @@ def test_v2_facts_empty_context_rejected(client, stub_chat):
     assert r.json()["detail"].get("error") == "empty_context"
 
 
+def test_v2_facts_oversized_context_rejected_before_llm(client, stub_chat):
+    response = client.post("/api/v2/tools/extract-facts", json={
+        "context": [{"text": "x" * 200_001, "type": "text"}],
+        "outputLanguage": "en-US",
+    })
+    assert response.status_code == 422, response.text
+    assert not stub_chat["captured"]
+
+
+def test_v2_facts_content_length_guard_returns_413(client, stub_chat):
+    response = client.post(
+        "/api/v2/tools/extract-facts",
+        headers={"Content-Length": str(1024 * 1024 + 1)},
+        json={},
+    )
+    assert response.status_code == 413, response.text
+    assert response.json()["type"] == "request_too_large"
+    assert not stub_chat["captured"]
+
+
 def test_v2_facts_no_llm_credential_returns_503(client, monkeypatch):
     """#8: no ``ICODER_CREDENTIAL_LLM`` and no dev opt-in → 503 hard-fail.
 
@@ -208,3 +227,41 @@ def test_v2_facts_no_llm_credential_returns_503(client, monkeypatch):
     })
     assert r.status_code == 503, r.text
     assert r.json()["detail"].get("reason") == "llm_credential_missing"
+
+
+def test_v2_facts_malformed_provider_json_fails_closed(client, stub_chat):
+    stub_chat["staged"] = {"content": "not-json", "usage": {}}
+
+    response = client.post("/api/v2/tools/extract-facts", json={
+        "context": [{"text": "患者主诉胸痛。", "type": "text"}],
+        "outputLanguage": "zh-CN",
+    })
+
+    assert response.status_code == 503
+    assert response.json()["detail"]["reason"] == "facts_provider_json_invalid"
+
+
+@pytest.mark.asyncio
+async def test_v2_facts_rejects_degraded_gateway_result(monkeypatch):
+    from app.main import app
+    from app.api.v2_tools_facts import _invoke_facts_model
+
+    class DegradedGateway:
+        async def generate(self, *args, **kwargs):
+            return {
+                "content": '{"facts": []}',
+                "is_mock": True,
+                "degraded": True,
+            }
+
+    monkeypatch.setattr(
+        app.state,
+        "platform_gateway",
+        DegradedGateway(),
+        raising=False,
+    )
+
+    with pytest.raises(RuntimeError, match="facts_provider_degraded"):
+        await _invoke_facts_model([
+            {"role": "user", "content": "患者主诉胸痛。"},
+        ])

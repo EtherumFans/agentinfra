@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import {
   Loader2, Copy, Check, FileText, Stethoscope,
   Activity, Clock, AlertTriangle, FileCheck, Sparkles,
@@ -7,11 +7,14 @@ import {
 
 import { useT } from '../i18n';
 import { useLocaleStore } from '../i18n';
-import { factsApi, billingApi } from '../services/api';
+import { factsApi } from '../services/api';
+import type { ExtractedFact } from '../services/api';
 import SettingsCodeTab from '../components/common/SettingsCodeTab';
 import EventInspector from '../components/common/EventInspector';
 import WorkbenchLayout from '../components/layout/WorkbenchLayout';
 import CodeSnippet from '../components/common/CodeSnippet';
+
+const MAX_FACTS_CONTEXT_CHARS = 200_000;
 
 // ---- 示例文本 ----
 const SAMPLES: Record<string, { label: string; text: string }> = {
@@ -48,19 +51,20 @@ const factIcons: Record<string, React.ReactNode> = {
 // ---- SDK 代码示例 ----
 function getSdkCode(languageCode: string, sampleText: string): string {
   const escaped = sampleText.slice(0, 80).replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n');
-  return `import { iCoDerClient } from "@icoder/sdk"
+  return `import iCoDer from "@icoder/sdk"
 
-const client = new iCoDerClient({
+const client = new iCoDer({
+  baseURL: "https://api.cn.icoder.cloud",
   auth: { accessToken: "<access-token>" }
 })
 
 try {
   const response = await client.facts.extract({
-    context: { type: "text", text: "${escaped}..." },
+    context: [{ type: "text", text: "${escaped}..." }],
     outputLanguage: "${languageCode}",
   })
   console.log("Extracted facts:", response.facts)
-  console.log("Credits consumed:", response.creditsConsumed)
+  console.log("Credits consumed:", response.usageInfo.creditsConsumed)
 } catch (error) {
   console.error("Error extracting facts:", error)
 }`;
@@ -70,12 +74,10 @@ export default function FactExtractionPage() {
   const locale = useLocaleStore(s => s.locale);
   const t = useT();
   const [input, setInput] = useState('');
-  const [output, setOutput] = useState<any>(null);
+  const [output, setOutput] = useState<ExtractedFact[] | null>(null);
   const [rawOutput, setRawOutput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [cost, setCost] = useState(0);
-  const [balance, setBalance] = useState(0);
   const [outputLanguage, setOutputLanguage] = useState('zh-CN');
   const [showSampleMenu, setShowSampleMenu] = useState(false);
   const [copiedRaw, setCopiedRaw] = useState(false);
@@ -83,27 +85,22 @@ export default function FactExtractionPage() {
   const [editableFacts, setEditableFacts] = useState<any>(null);
   const [extractEvents, setExtractEvents] = useState<{type:string;data:Record<string,unknown>;timestamp:string;credits?:number}[]>([]);
 
-  // 加载计费信息
-  useEffect(() => {
-    billingApi.balance().then(({ data }) => {
-      setBalance(data.balance);
-    }).catch(() => {});
-  }, []);
-
   // 提取事实
   const handleExtract = useCallback(async () => {
     if (!input.trim() || loading) return;
+    if (input.length > MAX_FACTS_CONTEXT_CHARS) {
+      setError(`输入不能超过 ${MAX_FACTS_CONTEXT_CHARS} 个字符。`);
+      return;
+    }
     setLoading(true); setOutput(null); setError(''); setRawOutput('');
-    setExtractEvents(prev => [...prev.slice(-50), { type: 'extract_start', data: { inputLength: input.length, language: outputLanguage }, timestamp: new Date().toLocaleTimeString(locale, { hour12: false }), credits: 0.000001 }]);
+    setExtractEvents(prev => [...prev.slice(-50), { type: 'extract_start', data: { inputLength: input.length, language: outputLanguage }, timestamp: new Date().toLocaleTimeString(locale, { hour12: false }) }]);
     try {
       const { data } = await factsApi.extract(input.trim(), outputLanguage);
       setOutput(data.facts);
-      setRawOutput(data.raw_output);
-      const credits = (data as any).credits_consumed || 1;
+      setRawOutput(JSON.stringify(data, null, 2));
+      const credits = data.usageInfo.creditsConsumed;
       setCreditsConsumed(credits);
-      setCost(c => c + 0.000001);
-      setEditableFacts(data.facts);
-      setExtractEvents(prev => [...prev.slice(-50), { type: 'extract_complete', data: { diagCount: (data.facts as any)?.diagnosis_facts?.length || 0, procCount: (data.facts as any)?.procedure_facts?.length || 0 }, timestamp: new Date().toLocaleTimeString(locale, { hour12: false }), credits }]);
+      setExtractEvents(prev => [...prev.slice(-50), { type: 'extract_complete', data: { factCount: data.facts.length, groups: [...new Set(data.facts.map(fact => fact.group))] }, timestamp: new Date().toLocaleTimeString(locale, { hour12: false }), credits }]);
     } catch (err: any) {
       const msg = err.response?.data?.detail || '提取失败';
       setError(msg);
@@ -139,6 +136,34 @@ export default function FactExtractionPage() {
   // 渲染结构化事实
   const renderFacts = (facts: any) => {
     if (!facts) return null;
+    if (Array.isArray(facts)) {
+      const grouped = facts.reduce<Record<string, ExtractedFact[]>>((result, fact) => {
+        const group = fact.group || 'other';
+        (result[group] ||= []).push(fact);
+        return result;
+      }, {});
+      if (!facts.length) {
+        return <p className="text-sm text-muted-foreground">未从输入中提取到可确认的事实。</p>;
+      }
+      return Object.entries(grouped).map(([group, items]) => (
+        <div key={group} className="mb-4 last:mb-0">
+          <h4 className="text-xs font-semibold text-foreground flex items-center gap-1.5 mb-2">
+            {factIcons[group] || <FileText size={14} />}
+            {group.replace(/-/g, ' ')} ({items.length})
+          </h4>
+          <div className="space-y-2">
+            {items.map((item, index) => (
+              <div key={`${group}-${index}`} className="bg-muted/50 rounded-lg p-3 border border-border/50">
+                <p className="text-sm text-foreground">{item.text}</p>
+                {item.value && item.value !== item.text && (
+                  <p className="text-xs text-muted-foreground mt-1">结构化值：{item.value}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      ));
+    }
 
     const sections: { key: string; title: string; items: any[] }[] = [];
 
@@ -354,6 +379,7 @@ export default function FactExtractionPage() {
       <textarea
         value={input}
         onChange={e => setInput(e.target.value)}
+        maxLength={MAX_FACTS_CONTEXT_CHARS}
         placeholder="输入临床文本以提取结构化事实..."
         className="flex-1 w-full resize-none bg-transparent text-sm text-foreground placeholder:text-foreground/70/40 focus:outline-none min-h-0 leading-relaxed"
       />
@@ -428,8 +454,8 @@ export default function FactExtractionPage() {
       code={
         <CodeSnippet
           javascript={getSdkCode(outputLanguage, input || '...')}
-          python={`from icoder_sdk import iCoDerClient\n\nclient = iCoDerClient(\n    auth={"access_token": "<access-token>"}\n)\n\ntry:\n    response = client.facts.extract(\n        context={"type": "text", "text": "${(input || '...').slice(0, 80).replace(/"/g, '\\"')}"},\n        output_language="${outputLanguage}",\n    )\n    print("Extracted facts:", response.facts)\nexcept Exception as error:\n    print("Error extracting facts:", error)`}
-          json={`{\n  "context": {\n    "type": "text",\n    "text": "${(input || '临床文本...').slice(0, 60).replace(/"/g, '\\"')}"\n  },\n  "outputLanguage": "${outputLanguage}"\n}`}
+          python={`from icoder_sdk import iCoDerClient, iCoDerConfig\n\nclient = iCoDerClient(iCoDerConfig(\n    base_url="https://api.cn.icoder.cloud",\n    access_token="<access-token>",\n))\n\ntry:\n    response = client.facts.extract(\n        "${(input || '...').slice(0, 80).replace(/"/g, '\\"')}",\n        output_language="${outputLanguage}",\n    )\n    print("Extracted facts:", response.facts)\n    print("Credits consumed:", response.usage_info.credits_consumed)\nexcept Exception as error:\n    print("Error extracting facts:", error)`}
+          json={`{\n  "context": [{\n    "type": "text",\n    "text": "${(input || '临床文本...').slice(0, 60).replace(/"/g, '\\"')}"\n  }],\n  "outputLanguage": "${outputLanguage}"\n}`}
         />
       }
     />

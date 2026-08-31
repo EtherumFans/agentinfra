@@ -12,9 +12,45 @@ import pytest
 from icoder_runtime.circuit_breaker import CircuitBreaker
 from icoder_runtime.core.llm_gateway import (
     DeepSeekProvider,
+    LLMGateway,
+    MedicalCodingLLMProvider,
+    MockLLMProvider,
     _mock_fallback_response,
     gateway_circuit_breaker,
 )
+
+
+@pytest.mark.asyncio
+async def test_medical_coding_unavailable_provider_returns_empty_failure():
+    """An unavailable engine must not return the historical demo codes."""
+    provider = MedicalCodingLLMProvider()
+    response = await provider.generate([{"role": "user", "content": "test"}])
+
+    assert response["is_mock"] is True
+    assert response["degraded"] is True
+    assert response["degraded_reason"] == "coding_engine_unavailable"
+    assert response["provider"] == "mock"
+    structured = response["structured"]
+    assert structured["review_conclusion"] == "FAIL"
+    assert structured["primary_diagnosis"]["code"] == ""
+    assert structured["secondary_diagnoses"] == []
+    assert structured["procedures"] == []
+    assert provider.health_check()["status"] == "degraded"
+
+
+@pytest.mark.asyncio
+async def test_medical_coding_prompt_adapter_propagates_mock_gateway():
+    """The application startup path wraps a gateway; its mock must survive."""
+    gateway = LLMGateway()
+    gateway.register(MockLLMProvider(), default=True)
+    provider = MedicalCodingLLMProvider(gateway=gateway)
+
+    response = await provider.generate([{"role": "user", "content": "test"}])
+
+    assert response["is_mock"] is True
+    assert response["degraded"] is True
+    assert response["degraded_reason"] == "mock_provider"
+    assert provider.health_check()["status"] == "degraded"
 
 
 @pytest.fixture

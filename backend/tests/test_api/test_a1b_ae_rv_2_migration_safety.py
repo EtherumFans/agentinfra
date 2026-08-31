@@ -40,7 +40,10 @@ def _run_alembic(target_db: str, *args: str) -> subprocess.CompletedProcess:
     cmd = [sys.executable, "-m", "alembic", "-c", str(_ALEMBIC_INI), *args]
     return subprocess.run(
         cmd, cwd=str(_BACKEND_ROOT), env=env,
-        capture_output=True, text=True, timeout=60,
+        # A clean Windows spawn can exceed one minute while the full 5k-test
+        # suite is under load.  Keep the subprocess bounded while avoiding a
+        # false migration failure caused only by scheduler contention.
+        capture_output=True, text=True, timeout=120,
     )
 
 

@@ -1,0 +1,245 @@
+{
+  "case_id": "CASE-95fd70422420",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-95fd70422420/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "头痛的病因未明确，缺乏进一步检查或诊断性描述。",
+      "why_it_matters": "头痛的病因未明确，影响诊断编码的准确性和临床相关性。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "间断头痛",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-001",
+      "gap_id": "CASE-95fd70422420/GAP-001",
+      "topic": "头痛病因",
+      "reason": "病历中仅描述'间断头痛'，未记录头痛的病因或进一步检查结果，需明确诊断方向。",
+      "query_text": "该患者头痛的病因考虑为以下哪种情况？",
+      "response_options": [
+        "A. 原发性头痛（如偏头痛、紧张型头痛）",
+        "B. 继发性头痛（如颅内病变、感染等）",
+        "C. 其他原因（请注明）",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "间断头痛",
+          "char_start": 11,
+          "char_end": 15,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-004: red flags are broadly denied and the examination is normal"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者男性, 40岁, 间断头痛。否认恶心、呕吐、畏光、畏声、视觉先兆、肢体无力。既往:无偏头痛史, 无颅脑外伤史, 无中枢神经系统肿瘤家族史。<REDACTED:NAME>常。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者男性，40岁",
+      "间断头痛",
+      "否认恶心、呕吐、畏光、畏声、视觉先兆、肢体无力",
+      "既往无偏头痛史",
+      "无颅脑外伤史",
+      "无中枢神经系统肿瘤家族史"
+    ],
+    "encounter_metadata": {
+      "patient_age": "40岁",
+      "patient_sex": "男性",
+      "encounter_type": "门诊"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "To ensure accurate coding, the clinical documentation must specify the headache type (e.g., tension-type, migraine, cluster, or secondary cause) and include results of any neurological examination or diagnostic workup (e.g., imaging, labs) that rule out or confirm an underlying etiology. Without this, the encounter cannot be classified beyond a generic symptom, risking unspecified coding. Please clarify the final diagnosis and any objective findings supporting it.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3380,
+      "tokens": 215
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-3dad58903f45",
+    "gap_identification": "run-69e9e136b296",
+    "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
+    "expert_consultation": "run-f1bccdc27e5f",
+    "query_generation": "run-f50a54f935d2",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=1;llm_complete=False;llm_reasoning=头痛的病因未明确，缺乏进一步检查或诊断性描述，需要澄清。",
+    "query_necessity_gate": "necessary=0;unnecessary=1;overquery_triggered=False;final_count=0",
+    "query_single_dimension_gate": "single_dim=0;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;rewrite_attempted=0;rewrite_accepted=0;final_count=0",
+    "claim_evidence_alignment_gate": "claims_extracted=0;blocked=0;flagged=0;final_count=0",
+    "claim_evidence_alignment_gate::run_id": "run-90c97a8f0ad5",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+    "semantic_necessity_gate::run_id": "run-fe01ed716a98",
+    "query_compliance_gate": ";passed=0;blocked=0",
+    "specialist_trace_emit": "run-96e06273e8fe"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-30615e92d17b",
+    "gap_identification": "trace-3a310a3ae7fd",
+    "expert_consultation": "trace-9483debd4011",
+    "query_generation": "trace-5e0dc9b032ce",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-e6588b8964ff",
+    "semantic_necessity_gate": "trace-2db81688703c",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-86b3ec4a45cf"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2708,
+      "prompt_tokens": 230,
+      "completion_tokens": 105,
+      "total_tokens": 335,
+      "run_id": "run-3dad58903f45",
+      "trace_id": "trace-30615e92d17b",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3124,
+      "prompt_tokens": 1060,
+      "completion_tokens": 179,
+      "total_tokens": 1239,
+      "run_id": "run-69e9e136b296",
+      "trace_id": "trace-3a310a3ae7fd",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3809,
+      "prompt_tokens": 1002,
+      "completion_tokens": 218,
+      "total_tokens": 1220,
+      "run_id": "run-f50a54f935d2",
+      "trace_id": "trace-5e0dc9b032ce",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3380,
+      "prompt_tokens": 130,
+      "completion_tokens": 85,
+      "total_tokens": 215,
+      "run_id": "run-7e16f643a3d3",
+      "trace_id": "trace-a2d3e2396fdc",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-63fe2cb221bf",
+      "trace_id": "trace-e3a97ab0e1cf",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-ae1a94ffdc2e",
+      "trace_id": "trace-f22305d94827",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-c7124ad2acd7",
+      "trace_id": "trace-c95cda914650",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T19:00:23.127156Z"
+}

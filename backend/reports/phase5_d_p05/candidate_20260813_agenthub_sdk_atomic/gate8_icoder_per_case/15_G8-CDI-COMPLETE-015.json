@@ -1,0 +1,247 @@
+{
+  "case_id": "CASE-fb5396eae303",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-fb5396eae303/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "The chart does not specify the severity or acuity of the chronic cholecystitis, nor does it document any complications or the patient's postoperative course in detail.",
+      "why_it_matters": "For coding and clinical accuracy, the severity of cholecystitis (e.g., acute vs. chronic) and any complications (e.g., perforation, gangrene) must be documented. The absence of this information may lead to unspecified coding and potential queries.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "术后病理:慢性胆囊炎伴胆固醇结石。术后第2天出院。",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-001",
+      "gap_id": "CASE-fb5396eae303/GAP-001",
+      "topic": "慢性胆囊炎的严重程度或并发症",
+      "reason": "术后病理仅报告慢性胆囊炎，未明确其严重程度或有无并发症，需进一步明确。",
+      "query_text": "术后病理提示慢性胆囊炎，请明确其严重程度或有无并发症（如坏疽、穿孔、化脓等）。",
+      "response_options": [
+        "A. 轻度慢性胆囊炎，无并发症",
+        "B. 中度慢性胆囊炎，伴胆囊周围粘连",
+        "C. 重度慢性胆囊炎，伴坏疽或穿孔",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "术后病理:慢性胆囊炎伴胆固醇结石。",
+          "char_start": 89,
+          "char_end": 106,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-004: chronic pathology and an uncomplicated operative course are explicit"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者女性, 40岁, 胆囊结石史2年, 间断右上腹隐痛。择期行腹腔镜胆囊切除术。术中见:胆囊大小正常, 内含1枚 1.5cm 胆固醇性结石, 无粘连。手术顺利, 出血 50ml。术后病理:慢性胆囊炎伴胆固醇结石。术后第2天出院。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者女性，40岁",
+      "胆囊结石史2年",
+      "间断右上腹隐痛",
+      "择期行腹腔镜胆囊切除术",
+      "术中见胆囊大小正常，内含1枚1.5cm胆固醇性结石，无粘连",
+      "手术顺利，出血50ml",
+      "术后病理：慢性胆囊炎伴胆固醇结石",
+      "术后第2天出院"
+    ],
+    "encounter_metadata": {
+      "patient_age": "40岁",
+      "patient_sex": "女性",
+      "encounter_type": "择期手术住院"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "To ensure accurate coding, the chart must explicitly document the severity (e.g., mild, moderate, severe) and acuity (acute vs. chronic) of the cholecystitis, as well as any associated complications (e.g., perforation, gangrene, empyema) or absence thereof. Additionally, the postoperative course should be detailed—specifically noting any adverse events, the need for escalation of care, or uncomplicated recovery—to capture the full clinical picture beyond the routine day-2 discharge.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3106,
+      "tokens": 270
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-3fde2ad6bd4f",
+    "gap_identification": "run-0a2d44d2455a",
+    "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
+    "expert_consultation": "run-500442755204",
+    "query_generation": "run-568eedd4f5ed",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.62;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=Y,D6_pathology=Y,D7_complications=Y,D8_course=Y;dropped=0;final_count=1;llm_complete=False;llm_reasoning=The chart documents the procedure and pathology but lacks explicit documentation",
+    "query_necessity_gate": "necessary=0;unnecessary=1;overquery_triggered=False;final_count=0",
+    "query_single_dimension_gate": "single_dim=0;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;rewrite_attempted=0;rewrite_accepted=0;final_count=0",
+    "claim_evidence_alignment_gate": "claims_extracted=0;blocked=0;flagged=0;final_count=0",
+    "claim_evidence_alignment_gate::run_id": "run-2f775351a847",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+    "semantic_necessity_gate::run_id": "run-fb7d8804bb9d",
+    "query_compliance_gate": ";passed=0;blocked=0",
+    "specialist_trace_emit": "run-8e44e848a4c1"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-9b2c2ae57672",
+    "gap_identification": "trace-5a61fcde156f",
+    "expert_consultation": "trace-fe60605422f9",
+    "query_generation": "trace-fa4eb584b0b8",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-4c99a584d9e7",
+    "semantic_necessity_gate": "trace-4981d3ca3c4b",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-bcf70d3273c5"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2537,
+      "prompt_tokens": 250,
+      "completion_tokens": 135,
+      "total_tokens": 385,
+      "run_id": "run-3fde2ad6bd4f",
+      "trace_id": "trace-9b2c2ae57672",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3918,
+      "prompt_tokens": 1107,
+      "completion_tokens": 279,
+      "total_tokens": 1386,
+      "run_id": "run-0a2d44d2455a",
+      "trace_id": "trace-5a61fcde156f",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3520,
+      "prompt_tokens": 1053,
+      "completion_tokens": 244,
+      "total_tokens": 1297,
+      "run_id": "run-568eedd4f5ed",
+      "trace_id": "trace-fa4eb584b0b8",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3106,
+      "prompt_tokens": 167,
+      "completion_tokens": 103,
+      "total_tokens": 270,
+      "run_id": "run-918b114150ac",
+      "trace_id": "trace-56749c7d22d7",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-4eac1556bad2",
+      "trace_id": "trace-445dcea6c1c7",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-f66e92f05dd8",
+      "trace_id": "trace-29798ee8512f",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-e22742f1f76f",
+      "trace_id": "trace-96291742ae93",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T21:35:21.512763Z"
+}

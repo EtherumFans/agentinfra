@@ -1,25 +1,43 @@
 {
   "format_version": "1.2",
   "agent_type": "certified",
-  "agent_ref": "icoder/icd10-navigator@1.0.0",
+  "agent_ref": "icoder/icd10-navigator@1.1.0",
   "manifest": {
     "name": "ICD-10 索引导航智能体",
-    "version": "1.0.0",
-    "description": "从临床术语遍历 ICD-10 字母索引，为编码员审核提供候选编码。",
+    "version": "1.1.0",
+    "description": "基于固定 SHA-256 的本地 ICD-10-CN 目录与术语反向索引执行 Search 和一层 Explore，为编码员提供未验证候选；不分配、不验证、不推荐编码，目录来源与许可待外部复核。",
     "category": "medical-coding",
     "category_display": "Coding and Revenue Cycle / 编码与收入周期",
     "icon": "Compass",
     "tags": [
       "corti-parity",
-      "metadata-only"
+      "icd-10-cn",
+      "local-catalog",
+      "governed-assets",
+      "deterministic-navigation"
     ],
-    "maturity": "metadata-only",
+    "maturity": "runnable",
     "production_ready": false,
     "hidden_from_hub": false,
     "use_case": "coding_revenue_cycle",
     "human_review": "required"
   },
-  "system_prompt": "",
+  "system_prompt": "你是 iCoDer ICD-10-CN 索引导航智能体。默认运行时只使用经 manifest 固定大小和 SHA-256 的本地目录与术语反向索引：接收一个明确术语或编码，执行一次 Search；首次未命中时最多按输入中明确连接词拆分一次；对最多三个候选执行一层父类目、同层和子条目 Explore。只呈现目录返回内容，不解释病历、不判断临床适用性、不执行 Verify/Guidelines、不分配或推荐编码、不生成目录没有的包括/不包括说明。所有候选均为未验证索引条目，manual_review_required 始终为 true，必须进入 Code Validation 并由编码员审核。目录 authority_status=source_unverified、license_status=external_review_required、billing_authoritative=false，仅限开发验证。",
+  "backend_provider": "icoder.governed-icd-navigator.v1",
+  "backend_config": {
+    "catalog_navigation": {
+      "asset_id": "cn.icd10cn.catalog",
+      "version": "observed-local-2026-05-19",
+      "integrity_required": true,
+      "network_required": false,
+      "maximum_candidate_blocks": 3,
+      "maximum_rephrasing_attempts": 1,
+      "traversal_depth_up": 1,
+      "traversal_depth_down": 1,
+      "instructional_notes_available": false,
+      "billing_authoritative": false
+    }
+  },
   "experts": [],
   "tools": [],
   "permissions": {
@@ -31,22 +49,379 @@
     "evidence_required": true,
     "production_writeback_blocked": true
   },
+  "output_contract": {
+    "schema_ref": "icoder/Icd10NavigatorOutput/v4",
+    "required_fields": [
+      "search_status",
+      "query_interpretation",
+      "query_used",
+      "rephrasing_attempted",
+      "rephrased_query",
+      "index_terms",
+      "candidate_codes",
+      "hierarchy_notes",
+      "inclusion_exclusion_notes",
+      "source_version",
+      "manual_review_required",
+      "summary",
+      "markdown"
+    ],
+    "field_types": {
+      "search_status": "string",
+      "query_interpretation": "string",
+      "query_used": "string",
+      "rephrasing_attempted": "boolean",
+      "rephrased_query": "string",
+      "index_terms": "array",
+      "candidate_codes": "array",
+      "hierarchy_notes": "array",
+      "inclusion_exclusion_notes": "array",
+      "source_version": "string",
+      "manual_review_required": "boolean",
+      "summary": "string",
+      "markdown": "string"
+    },
+    "field_schemas": {
+      "search_status": {
+        "type": "string",
+        "maxLength": 32768,
+        "enum": [
+          "CANDIDATES_FOUND",
+          "NO_CANDIDATES",
+          "INPUT_REQUIRED",
+          "CATALOG_UNAVAILABLE"
+        ]
+      },
+      "query_interpretation": {
+        "type": "string",
+        "maxLength": 512,
+        "minLength": 0
+      },
+      "query_used": {
+        "type": "string",
+        "maxLength": 256,
+        "minLength": 0
+      },
+      "rephrasing_attempted": {
+        "type": "boolean"
+      },
+      "rephrased_query": {
+        "type": "string",
+        "maxLength": 256,
+        "minLength": 0
+      },
+      "index_terms": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 256,
+          "minLength": 0
+        },
+        "maxItems": 6,
+        "minItems": 0,
+        "uniqueItems": true
+      },
+      "candidate_codes": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "assignable": {
+              "type": "boolean"
+            },
+            "children": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "maxLength": 32,
+                    "minLength": 0
+                  },
+                  "display": {
+                    "type": "string",
+                    "maxLength": 512,
+                    "minLength": 0
+                  }
+                },
+                "required": [
+                  "code",
+                  "display"
+                ],
+                "additionalProperties": false
+              },
+              "maxItems": 10,
+              "minItems": 0
+            },
+            "code": {
+              "type": "string",
+              "maxLength": 32,
+              "minLength": 0
+            },
+            "description": {
+              "type": "string",
+              "maxLength": 1024,
+              "minLength": 0
+            },
+            "display": {
+              "type": "string",
+              "maxLength": 512,
+              "minLength": 0
+            },
+            "index_term": {
+              "type": "string",
+              "maxLength": 256,
+              "minLength": 0
+            },
+            "instructional_notes_available": {
+              "type": "boolean",
+              "const": false
+            },
+            "match_score": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "match_type": {
+              "type": "string",
+              "maxLength": 32768,
+              "enum": [
+                "exact_code",
+                "prefix_code",
+                "term_index",
+                "lexical_name"
+              ]
+            },
+            "parent": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "maxLength": 32,
+                  "minLength": 0
+                },
+                "display": {
+                  "type": "string",
+                  "maxLength": 512,
+                  "minLength": 0
+                }
+              },
+              "required": [
+                "code",
+                "display"
+              ],
+              "additionalProperties": false
+            },
+            "rationale": {
+              "type": "string",
+              "maxLength": 1024,
+              "minLength": 0
+            },
+            "related_codes_count": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100000
+            },
+            "siblings": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "maxLength": 32,
+                    "minLength": 0
+                  },
+                  "display": {
+                    "type": "string",
+                    "maxLength": 512,
+                    "minLength": 0
+                  }
+                },
+                "required": [
+                  "code",
+                  "display"
+                ],
+                "additionalProperties": false
+              },
+              "maxItems": 10,
+              "minItems": 0
+            },
+            "source_asset_id": {
+              "type": "string",
+              "maxLength": 32768,
+              "const": "cn.icd10cn.catalog"
+            },
+            "source_version": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 0
+            }
+          },
+          "required": [
+            "assignable",
+            "children",
+            "code",
+            "description",
+            "display",
+            "index_term",
+            "instructional_notes_available",
+            "match_score",
+            "match_type",
+            "parent",
+            "rationale",
+            "related_codes_count",
+            "siblings",
+            "source_asset_id",
+            "source_version"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 3,
+        "minItems": 0
+      },
+      "hierarchy_notes": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 1024,
+          "minLength": 0
+        },
+        "maxItems": 3,
+        "minItems": 0
+      },
+      "inclusion_exclusion_notes": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 1024,
+          "minLength": 0
+        },
+        "maxItems": 3,
+        "minItems": 0
+      },
+      "source_version": {
+        "type": "string",
+        "maxLength": 512,
+        "minLength": 0
+      },
+      "manual_review_required": {
+        "type": "boolean",
+        "const": true
+      },
+      "summary": {
+        "type": "string",
+        "maxLength": 32768
+      },
+      "markdown": {
+        "type": "string",
+        "maxLength": 32768
+      }
+    }
+  },
+  "phi_redaction": "required",
+  "context_required": false,
+  "recorder_required": true,
+  "metrics_required": true,
   "requirements": {
     "min_runtime_version": "1.0.0",
-    "icoder_runtime_modules": []
+    "icoder_runtime_modules": [
+      "icoder.governed-icd-navigator.v1"
+    ],
+    "external_assets": [
+      "cn.icd10cn.catalog@observed-local-2026-05-19"
+    ]
   },
+  "llm_capabilities": {
+    "required_models": [],
+    "optional_models": []
+  },
+  "default_runtime_mode": "governed_local_index_navigation",
+  "available_runtime_modes": [
+    "governed_local_index_navigation"
+  ],
   "non_goals": [
     "不替代编码员 / 临床医生最终决策",
-    "不自动写回 EMR/HIS"
+    "不自动写回 EMR/HIS",
+    "不执行编码验证、Guidelines 或临床适用性判断",
+    "不生成目录未提供的包括/不包括说明",
+    "不用于医保结算、支付或自动提交"
   ],
   "human_review_required_when": [
-    "All outputs require human review (metadata-only pack, no executable wiring yet)"
+    "all final code assignment decisions",
+    "all surfaced candidates because the local catalog source and licence are not independently verified"
+  ],
+  "example_inputs": [
+    {
+      "title": "ICD-10-CN 索引导航",
+      "input_text": "诊断表述：慢性肾脏病3期。请执行索引导航，不要验证或分配编码。",
+      "extra": {
+        "code_system": "ICD-10-CN"
+      }
+    }
   ],
   "metadata": {
     "created_at": "2026-07-11",
     "author": "iCoDer",
     "corti_match": "icd-10-index-navigator-agent",
-    "audit_note": "Created during Phase 5 Track B GAP-13-02 fix (2026-07-11). Metadata-only stub for Corti parity inventory. Wiring deferred to Phase 5 Track B-2."
+    "audit_note": "Governed local Search + one-level Explore is executable without an LLM. Catalog and term-index integrity are verified before use; source/licence remain unverified, so every candidate requires downstream Code Validation and human review."
   },
-  "built_by": "icoder"
+  "built_by": "icoder",
+  "example_outputs": [
+    {
+      "search_status": "CANDIDATES_FOUND",
+      "query_interpretation": "只按输入中的明确术语执行目录索引检索；未解释病历、未判断候选适用性。",
+      "query_used": "慢性肾脏病3期",
+      "rephrasing_attempted": false,
+      "rephrased_query": "",
+      "index_terms": [
+        "慢性肾脏病3期"
+      ],
+      "candidate_codes": [
+        {
+          "code": "N18.803",
+          "display": "慢性肾脏病3期",
+          "description": "",
+          "index_term": "慢性肾脏病3期",
+          "rationale": "固定术语反向索引命中；候选尚未经过 Verify/Guidelines 校验。",
+          "match_type": "term_index",
+          "match_score": 1.0,
+          "assignable": true,
+          "parent": {
+            "code": "N18",
+            "display": ""
+          },
+          "siblings": [
+            {
+              "code": "N18.001",
+              "display": "慢性肾脏病5期"
+            },
+            {
+              "code": "N18.800",
+              "display": "慢性肾衰竭，其他的"
+            }
+          ],
+          "children": [],
+          "related_codes_count": 36,
+          "instructional_notes_available": false,
+          "source_asset_id": "cn.icd10cn.catalog",
+          "source_version": "observed-local-2026-05-19"
+        }
+      ],
+      "hierarchy_notes": [
+        "N18.803：父类目 N18；同层候选 10 条；子条目 0 条；相关目录条目总数 36。"
+      ],
+      "inclusion_exclusion_notes": [
+        "当前固定资产不包含可验证的包括/不包括 instructional notes；未生成或猜测。"
+      ],
+      "source_version": "cn.icd10cn.catalog@observed-local-2026-05-19; authority=source_unverified; license=external_review_required",
+      "manual_review_required": true,
+      "summary": "固定目录索引返回 1 个未验证候选；仅完成导航和一层层级浏览。",
+      "markdown": "# ICD-10-CN 索引导航\n\n**状态：** CANDIDATES_FOUND\n\n**检索词：** 慢性肾脏病3期\n\n## 候选与一层目录遍历\n\n1. **N18.803 — 慢性肾脏病3期**\n\n## 包括/不包括说明\n\n当前固定资产不包含可验证 instructional notes；本 Agent 不生成或猜测该信息。\n\n## 目录治理\n\n`cn.icd10cn.catalog@observed-local-2026-05-19`：authority=`source_unverified`，license=`external_review_required`，billing_authoritative=`false`。\n\n## 下一步\n\n所有候选均未验证。分配或提交前必须进入 Code Validation，并由编码员人工审核。"
+    }
+  ],
+  "integrity": {
+    "sha256": "27d83b6cb4cb5234b21c1327c9792eaeed978c936f1fb6c92145afd8a07b9ccb"
+  }
 }

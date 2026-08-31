@@ -124,6 +124,19 @@ def app() -> FastAPI:
         agent_provider=_agent_provider,
         expert_caller=_expert_caller,
     )
+    from app.middleware.auth import (
+        get_current_organization,
+        get_current_user_or_oauth_client,
+    )
+
+    class _MockOrg:
+        id = "org_default1"
+        is_active = True
+
+    app.dependency_overrides[get_current_organization] = lambda: _MockOrg()
+    app.dependency_overrides[get_current_user_or_oauth_client] = (
+        lambda: (object(), None)
+    )
     return app
 
 
@@ -167,7 +180,6 @@ def test_e2e_discovery_then_send_then_validate(client):
                     {"kind": "text", "text": "张三 主诉胸痛, 13800138000"}
                 ],
                 "messageId": "client-msg-e2e-1",
-                "contextId": "client-ctx-supplied-should-be-discarded",
                 "metadata": {"interaction_id": "e2e-correlation"},
             }
         },
@@ -191,8 +203,8 @@ def test_e2e_discovery_then_send_then_validate(client):
     assert result["role"] == "agent"
     assert result["messageId"] != ""
     assert result["contextId"] != ""
-    # Q4: client-supplied contextId MUST be discarded; server-generated UUID v4
-    assert result["contextId"] != "client-ctx-supplied-should-be-discarded"
+    # First request receives a server-generated contextId.
+    first_context_id = result["contextId"]
     assert result["messageId"] != "client-msg-e2e-1"  # server-generated too
 
     # iCoDer metadata — production writeback blocked, PHI redacted
@@ -213,11 +225,131 @@ def test_e2e_discovery_then_send_then_validate(client):
     # interaction_id propagated from client messageId (T3 contract)
     assert md.get("interaction_id") == "client-msg-e2e-1"
 
-    # Parts — must include at least one data part with the expert summary
+    # A subsequent message reuses the server-issued ID and appears in the
+    # same isolated context history.
+    continuation = {
+        "jsonrpc": "2.0",
+        "id": "e2e-2",
+        "method": "message/send",
+        "params": {
+            "message": {
+                "role": "user",
+                "parts": [{"kind": "text", "text": "继续说明既往史"}],
+                "messageId": "client-msg-e2e-2",
+                "contextId": first_context_id,
+                "metadata": {},
+            }
+        },
+    }
+    second = client.post(
+        "/api/icoder/agents/medcoder-coding-review/v1/message:send",
+        headers=headers,
+        json=continuation,
+    )
+    assert second.status_code == 200, second.text
+    second_result = second.json()["result"]
+    assert second_result["contextId"] == first_context_id
+    assert second_result["metadata"]["context_memory_items"] == 2
+    assert second_result["metadata"]["context_memory_mode"] == "LEXICAL_CJK_BIGRAM"
+
+    history = client.get(
+        f"/api/icoder/agents/medcoder-coding-review/v1/contexts/{first_context_id}",
+        headers=headers,
+    )
+    assert history.status_code == 200, history.text
+    history_items = history.json()["items"]
+    assert [item["kind"] for item in history_items] == [
+        "message", "message", "message", "message"
+    ]
+    assert history_items[0]["messageId"] == "client-msg-e2e-1"
+    assert history_items[2]["messageId"] == "client-msg-e2e-2"
+
+    # Parts — must include at least one data part with the expert summary.
     parts = result["parts"]
     summary_parts = [
-        p for p in parts
-        if isinstance(p, dict) and p.get("kind") == "data" and "summary" in p.get("data", {})
+        part
+        for part in parts
+        if isinstance(part, dict)
+        and part.get("kind") == "data"
+        and "summary" in part.get("data", {})
     ]
     assert len(summary_parts) == 1
     assert summary_parts[0]["data"]["summary"]["expert_count"] == 1
+
+
+def test_context_reuse_and_history_are_cross_tenant_opaque(client, app):
+    from app.middleware.auth import get_current_organization
+
+    headers = {A2A_PROTOCOL_HEADER: A2A_PROTOCOL_VERSION}
+    first = client.post(
+        "/api/icoder/agents/medcoder-coding-review/v1/message:send",
+        headers=headers,
+        json={
+            "jsonrpc": "2.0",
+            "id": "tenant-first",
+            "method": "message/send",
+            "params": {
+                "message": {
+                    "role": "user",
+                    "parts": [{"kind": "text", "text": "租户隔离测试"}],
+                    "messageId": "tenant-message-1",
+                }
+            },
+        },
+    )
+    context_id = first.json()["result"]["contextId"]
+
+    class _OtherOrg:
+        id = "org_other001"
+        is_active = True
+
+    app.dependency_overrides[get_current_organization] = lambda: _OtherOrg()
+    continued = client.post(
+        "/api/icoder/agents/medcoder-coding-review/v1/message:send",
+        headers=headers,
+        json={
+            "jsonrpc": "2.0",
+            "id": "tenant-second",
+            "method": "message/send",
+            "params": {
+                "message": {
+                    "role": "user",
+                    "parts": [{"kind": "text", "text": "不应访问"}],
+                    "messageId": "tenant-message-2",
+                    "contextId": context_id,
+                }
+            },
+        },
+    )
+    assert continued.status_code == 404
+    assert "CONTEXT_NOT_FOUND" in str(continued.json())
+
+    history = client.get(
+        f"/api/icoder/agents/medcoder-coding-review/v1/contexts/{context_id}",
+        headers=headers,
+    )
+    assert history.status_code == 404
+
+
+def test_invalid_context_id_is_rejected_without_creating_a_thread(client):
+    headers = {A2A_PROTOCOL_HEADER: A2A_PROTOCOL_VERSION}
+    response = client.post(
+        "/api/icoder/agents/medcoder-coding-review/v1/message:send",
+        headers=headers,
+        json={
+            "jsonrpc": "2.0",
+            "id": "invalid-context",
+            "method": "message/send",
+            "params": {
+                "message": {
+                    "role": "user",
+                    "parts": [{"kind": "text", "text": "测试"}],
+                    "messageId": "invalid-context-message",
+                    "contextId": "not-a-server-context-id",
+                }
+            },
+        },
+    )
+
+    assert response.status_code == 400
+    assert "CONTEXT_INVALID" in str(response.json())

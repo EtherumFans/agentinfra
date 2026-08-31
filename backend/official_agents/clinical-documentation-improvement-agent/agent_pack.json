@@ -9,7 +9,7 @@
     "name": "临床文档改进智能体 (CDI)",
     "name_en": "Clinical Documentation Improvement Agent",
     "version": "1.0.0",
-    "description": "iCoDer 官方 CDI 智能体 (CORE_ENTRY_AGENT #1)。识别影响临床事实表达、准确编码和合规审核的内涵缺口, 生成非诱导式临床澄清任务 (Provider Query), 驱动 医生答复 → 文档修订 → CDI 复核 → Medical Coding 闭环。基于病历证据, 不自动生成诊断, 不 upcoding, 不自动改病历, 不绕过 Non-leading Query Gate。MVP maturity: production_ready=false, human_review=required。",
+    "description": "iCoDer 官方 CDI 智能体 (CORE_ENTRY_AGENT #1)。识别影响临床事实表达、准确编码和合规审核的内涵缺口, 生成非诱导式临床澄清任务 (Provider Query), 驱动 医生答复 → 文档修订 → CDI 复核 → Medical Coding 闭环。基于病历证据, 不自动生成诊断, 不 upcoding, 不自动改病历, 不绕过 Non-leading Query Gate。Runnable launch candidate: production_ready=false, human_review=required。",
     "category": "clinical-documentation",
     "category_display": "Coding and Revenue Cycle / 编码与收入周期",
     "icon": "ClipboardCheck",
@@ -25,7 +25,7 @@
       "corti-compatible",
       "localized-for-china"
     ],
-    "maturity": "mvp",
+    "maturity": "runnable",
     "production_ready": false,
     "human_review": "required",
     "hidden_from_hub": false,
@@ -263,7 +263,7 @@
     "documentation_gaps / proposed_provider_queries / specialist_trace 必须显式输出, 即使为空"
   ],
   "output_contract": {
-    "schema_ref": "icoder/CDIAgentOutputV1/v1",
+    "schema_ref": "icoder/CDIAgentOutputV1/v6",
     "a2a_parts": [
       "DataPart"
     ],
@@ -271,6 +271,7 @@
       "encounter_summary",
       "documentation_gaps",
       "proposed_provider_queries",
+      "query_gate_summary",
       "coding_specificity_checklist",
       "risk_flags",
       "specialist_trace",
@@ -280,7 +281,8 @@
     "field_definitions": {
       "encounter_summary": "EncounterSummary — 1-5 key points from chart excerpt (chart-explicit only, no inference)",
       "documentation_gaps": "list[DocumentationGap] — 每个 gap 附 description + why_it_matters + evidence_span (char-anchored) + minimal_clarification_needed",
-      "proposed_provider_queries": "list[ProviderQuery] — 每个 query 附 topic + reason + evidence_span + query_text + response_options (≥3, 含 escape hatch) + nlq_gate_result",
+      "proposed_provider_queries": "list[ProviderQuery] — 每个 query 附 topic + reason + evidence_spans（逐段连续原文，权威证据集）+ evidence_span（兼容主片段）+ query_text + response_options (≥3, 含 escape hatch) + nlq_gate_result；任一证据片段无法逐段锚定时整条 query 不得进入可发送列表",
+      "query_gate_summary": "QueryGateSummary — 公开 A2A 仅返回被门禁留置的数量、状态计数和是否需要 CDI 人工处理；复合问题可触发一次绑定原 gap 的单维度重写，但原草稿和替代候选仍分别接受全门禁审计；不暴露被拒绝的内部草稿正文",
       "coding_specificity_checklist": "list[CodingSpecificityItem] — condition-level documentation elements to address",
       "risk_flags": "list[RiskFlag] — contradictions / unsupported diagnoses / ambiguous terms / copied-forward indicators",
       "specialist_trace": "list[SpecialistTraceEntry] — per Expert: consulted + requested + accepted + rejected + rationale",
@@ -293,7 +295,736 @@
       "production_writeback_blocked": "bool — 强制 true",
       "non_leading_query_gate_version": "string — 'NLQ-001..009'",
       "chart_evidence_binding_required": "bool — 强制 true"
-    }
+    },
+    "field_types": {
+      "encounter_summary": "object",
+      "documentation_gaps": "array",
+      "proposed_provider_queries": "array",
+      "query_gate_summary": "object",
+      "coding_specificity_checklist": "array",
+      "risk_flags": "array",
+      "specialist_trace": "array",
+      "human_review": "object",
+      "trace_refs": "object"
+    },
+    "field_schemas": {
+      "encounter_summary": {
+        "type": "object",
+        "properties": {
+          "encounter_metadata": {
+            "type": "object",
+            "properties": {
+              "encounter_type": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "patient_age": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "patient_sex": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "encounter_type",
+              "patient_age",
+              "patient_sex"
+            ],
+            "additionalProperties": false
+          },
+          "key_points": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "maxItems": 100
+          }
+        },
+        "required": [
+          "encounter_metadata",
+          "key_points"
+        ],
+        "additionalProperties": false
+      },
+      "documentation_gaps": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "evidence_span": {
+              "type": "object",
+              "properties": {
+                "char_end": {
+                  "type": "integer"
+                },
+                "char_start": {
+                  "type": "integer"
+                },
+                "document_id": {
+                  "type": "string",
+                  "maxLength": 32768
+                },
+                "documented_at": {
+                  "type": "string",
+                  "maxLength": 32768
+                },
+                "quote": {
+                  "type": "string",
+                  "maxLength": 32768
+                }
+              },
+              "required": [
+                "char_end",
+                "char_start",
+                "document_id",
+                "documented_at",
+                "quote"
+              ],
+              "additionalProperties": false
+            },
+            "gap_id": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "gap_type": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "minimal_clarification_needed": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "priority": {
+              "type": "string",
+              "maxLength": 32768,
+              "enum": [
+                "routine",
+                "urgent"
+              ]
+            },
+            "why_it_matters": {
+              "type": "string",
+              "maxLength": 32768
+            }
+          },
+          "required": [
+            "description",
+            "evidence_span",
+            "gap_id",
+            "gap_type",
+            "minimal_clarification_needed",
+            "priority",
+            "why_it_matters"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100
+      },
+      "proposed_provider_queries": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "evidence_span": {
+              "type": "object",
+              "properties": {
+                "char_end": {
+                  "type": "integer"
+                },
+                "char_start": {
+                  "type": "integer"
+                },
+                "document_id": {
+                  "type": "string",
+                  "maxLength": 32768
+                },
+                "documented_at": {
+                  "type": "string",
+                  "maxLength": 32768
+                },
+                "quote": {
+                  "type": "string",
+                  "maxLength": 32768
+                }
+              },
+              "required": [
+                "char_end",
+                "char_start",
+                "document_id",
+                "documented_at",
+                "quote"
+              ],
+              "additionalProperties": false
+            },
+            "evidence_spans": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "char_end": {
+                    "type": "integer"
+                  },
+                  "char_start": {
+                    "type": "integer"
+                  },
+                  "document_id": {
+                    "type": "string",
+                    "maxLength": 32768
+                  },
+                  "documented_at": {
+                    "type": "string",
+                    "maxLength": 32768
+                  },
+                  "quote": {
+                    "type": "string",
+                    "maxLength": 32768
+                  }
+                },
+                "required": [
+                  "char_end",
+                  "char_start",
+                  "document_id",
+                  "documented_at",
+                  "quote"
+                ],
+                "additionalProperties": false
+              },
+              "maxItems": 100
+            },
+            "gap_id": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "lifecycle_state": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "nlq_gate_block_reasons": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "maxItems": 100
+            },
+            "nlq_gate_verdict": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "priority": {
+              "type": "string",
+              "maxLength": 32768,
+              "enum": [
+                "routine",
+                "urgent"
+              ]
+            },
+            "query_id": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "query_text": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "reason": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "response_options": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "maxItems": 100
+            },
+            "topic": {
+              "type": "string",
+              "maxLength": 32768
+            }
+          },
+          "required": [
+            "evidence_span",
+            "evidence_spans",
+            "gap_id",
+            "lifecycle_state",
+            "nlq_gate_block_reasons",
+            "nlq_gate_verdict",
+            "priority",
+            "query_id",
+            "query_text",
+            "reason",
+            "response_options",
+            "topic"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100
+      },
+      "query_gate_summary": {
+        "type": "object",
+        "properties": {
+          "manual_cdi_action_required": {
+            "type": "boolean"
+          },
+          "status_counts": {
+            "type": "object",
+            "properties": {
+              "REWRITE_CANDIDATE_GENERATED": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "REWRITE_CANDIDATE_GENERATED"
+            ],
+            "additionalProperties": false
+          },
+          "withheld_count": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "manual_cdi_action_required",
+          "status_counts",
+          "withheld_count"
+        ],
+        "additionalProperties": false
+      },
+      "coding_specificity_checklist": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "condition": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "elements_to_address": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "maxItems": 100
+            }
+          },
+          "required": [
+            "condition",
+            "elements_to_address"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100
+      },
+      "risk_flags": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "category": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "description": {
+              "type": "string",
+              "maxLength": 32768
+            }
+          },
+          "required": [
+            "category",
+            "description"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100
+      },
+      "specialist_trace": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "accepted": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "maxItems": 100
+            },
+            "consulted": {
+              "type": "boolean"
+            },
+            "execution_mode": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "expert_id": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "latency_ms": {
+              "type": "integer"
+            },
+            "rationale": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "rejected": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "maxItems": 100
+            },
+            "requested": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "route_decision": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "route_reason": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "run_id": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "tokens": {
+              "type": "integer"
+            },
+            "trace_id": {
+              "type": "string",
+              "maxLength": 32768
+            }
+          },
+          "required": [
+            "accepted",
+            "consulted",
+            "execution_mode",
+            "expert_id",
+            "latency_ms",
+            "rationale",
+            "rejected",
+            "requested",
+            "route_decision",
+            "route_reason",
+            "run_id",
+            "tokens",
+            "trace_id"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100
+      },
+      "human_review": {
+        "type": "object",
+        "properties": {
+          "cdi_specialist_review_required": {
+            "type": "boolean",
+            "const": true
+          },
+          "clinician_response_required": {
+            "type": "boolean",
+            "const": true
+          },
+          "review_priority": {
+            "type": "string",
+            "maxLength": 32768,
+            "enum": [
+              "routine",
+              "urgent"
+            ]
+          }
+        },
+        "required": [
+          "cdi_specialist_review_required",
+          "clinician_response_required",
+          "review_priority"
+        ],
+        "additionalProperties": false
+      },
+      "trace_refs": {
+        "type": "object",
+        "properties": {
+          "experts_consulted": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "maxItems": 100
+          },
+          "gate_results": {
+            "type": "object",
+            "properties": {
+              "claim_evidence_alignment_gate": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "claim_evidence_alignment_gate::run_id": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "encounter_synthesis": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "expert_consultation": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "gap_identification": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "gap_identification_risk_flags": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "query_compliance_gate": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "query_dimension_rewrite": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "query_eligibility_gate": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "query_generation": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "query_generation::coverage_missing": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "query_generation::quote_snapped": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "query_necessity_gate": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "query_single_dimension_gate": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "semantic_necessity_gate": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "semantic_necessity_gate::run_id": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "specialist_trace_emit": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "claim_evidence_alignment_gate",
+              "claim_evidence_alignment_gate::run_id",
+              "encounter_synthesis",
+              "expert_consultation",
+              "gap_identification",
+              "gap_identification_risk_flags",
+              "query_compliance_gate",
+              "query_dimension_rewrite",
+              "query_eligibility_gate",
+              "query_generation",
+              "query_generation::coverage_missing",
+              "query_generation::quote_snapped",
+              "query_necessity_gate",
+              "query_single_dimension_gate",
+              "semantic_necessity_gate",
+              "semantic_necessity_gate::run_id",
+              "specialist_trace_emit"
+            ],
+            "additionalProperties": false
+          },
+          "run_id": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "stage_trace": {
+            "type": "object",
+            "properties": {
+              "claim_evidence_alignment_gate": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "encounter_synthesis": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "expert_consultation": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "gap_identification": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "query_compliance_gate": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "query_dimension_rewrite": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "query_eligibility_gate": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "query_generation": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "query_necessity_gate": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "query_single_dimension_gate": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "semantic_necessity_gate": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "specialist_trace_emit": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "claim_evidence_alignment_gate",
+              "encounter_synthesis",
+              "expert_consultation",
+              "gap_identification",
+              "query_compliance_gate",
+              "query_dimension_rewrite",
+              "query_eligibility_gate",
+              "query_generation",
+              "query_necessity_gate",
+              "query_single_dimension_gate",
+              "semantic_necessity_gate",
+              "specialist_trace_emit"
+            ],
+            "additionalProperties": false
+          },
+          "trace_id": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "provider_trace_refs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "maxItems": 100
+          }
+        },
+        "required": [
+          "run_id"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "field_relations": [
+      {
+        "id": "withheld_query_requires_human_action",
+        "when": [
+          {
+            "path": "query_gate_summary.manual_cdi_action_required",
+            "operator": "equals",
+            "value": true
+          }
+        ],
+        "must": [
+          {
+            "path": "human_review.cdi_specialist_review_required",
+            "operator": "equals",
+            "value": true
+          },
+          {
+            "path": "human_review.clinician_response_required",
+            "operator": "equals",
+            "value": true
+          }
+        ]
+      },
+      {
+        "id": "draft_queries_require_traceable_content",
+        "for_each": "proposed_provider_queries",
+        "when": [
+          {
+            "path": "lifecycle_state",
+            "operator": "equals",
+            "value": "DRAFT"
+          }
+        ],
+        "must": [
+          {
+            "path": "query_id",
+            "operator": "non_empty"
+          },
+          {
+            "path": "gap_id",
+            "operator": "non_empty"
+          },
+          {
+            "path": "query_text",
+            "operator": "non_empty"
+          },
+          {
+            "path": "evidence_spans",
+            "operator": "non_empty"
+          },
+          {
+            "path": "response_options",
+            "operator": "non_empty"
+          }
+        ]
+      }
+    ],
+    "evidence_bindings": [
+      {
+        "id": "cdi_gap_evidence_matches_document",
+        "for_each": "documentation_gaps",
+        "text_path": "evidence_span.quote",
+        "start_path": "evidence_span.char_start",
+        "end_path": "evidence_span.char_end",
+        "document_id_path": "evidence_span.document_id"
+      },
+      {
+        "id": "cdi_query_evidence_matches_document",
+        "for_each": "proposed_provider_queries",
+        "text_path": "evidence_span.quote",
+        "start_path": "evidence_span.char_start",
+        "end_path": "evidence_span.char_end",
+        "document_id_path": "evidence_span.document_id"
+      }
+    ]
   },
   "permissions": {
     "key": "cdi-core-agent",
@@ -464,64 +1195,286 @@
   ],
   "example_outputs": [
     {
-      "encounter_summary": [
-        "患者因肺炎入院",
-        "痰培养示肺炎链球菌 3+"
-      ],
+      "encounter_summary": {
+        "key_points": [
+          "诊断: 肺炎",
+          "痰培养: 肺炎链球菌 (3+)"
+        ],
+        "encounter_metadata": {
+          "patient_age": "未知",
+          "patient_sex": "未知",
+          "encounter_type": "入院"
+        }
+      },
       "documentation_gaps": [
         {
-          "gap_id": "gap_diagnostic_specificity_pneumonia",
-          "description": "肺炎诊断未记录病原体",
-          "why_it_matters": "J18.9 (肺炎, 未特指) vs J13 (肺炎链球菌性肺炎) 编码特异性差异",
+          "gap_id": "GAP-001",
+          "gap_type": "diagnostic_specificity",
+          "description": "Pneumonia diagnosis lacks specification of type (e.g., community-acquired, hospital-acquired) and anatomical site (e.g., lobar, bronchopneumonia).",
+          "why_it_matters": "Specificity of pneumonia type and site affects coding and treatment; unspecified pneumonia may lead to inaccurate coding and potential reimbursement issues.",
           "evidence_span": {
-            "document_id": "入院记录",
-            "char_start": 234,
-            "char_end": 240,
-            "quote": "诊断: 肺炎"
+            "document_id": "admission_record",
+            "quote": "诊断: 肺炎",
+            "char_start": 6,
+            "char_end": 12,
+            "documented_at": ""
           },
-          "minimal_clarification_needed": "病原体是否为肺炎链球菌"
+          "minimal_clarification_needed": "",
+          "priority": "routine"
+        },
+        {
+          "gap_id": "GAP-002",
+          "gap_type": "diagnostic_specificity",
+          "description": "Severity of pneumonia is not documented (e.g., mild, moderate, severe, or presence of hypoxia, respiratory failure).",
+          "why_it_matters": "Severity impacts coding (e.g., sepsis, respiratory failure) and clinical management; without it, the chart is incomplete for accurate coding.",
+          "evidence_span": {
+            "document_id": "admission_record",
+            "quote": "诊断: 肺炎",
+            "char_start": 6,
+            "char_end": 12,
+            "documented_at": ""
+          },
+          "minimal_clarification_needed": "",
+          "priority": "routine"
+        },
+        {
+          "gap_id": "GAP-003",
+          "gap_type": "diagnostic_specificity",
+          "description": "Clinical correlation of sputum culture result with pneumonia is not explicitly stated; the culture may represent colonization or contamination.",
+          "why_it_matters": "Without clinical correlation, the etiology may be uncertain, affecting coding and treatment decisions.",
+          "evidence_span": {
+            "document_id": "admission_record",
+            "quote": "痰培养: 肺炎链球菌 (3+)",
+            "char_start": 13,
+            "char_end": 28,
+            "documented_at": ""
+          },
+          "minimal_clarification_needed": "",
+          "priority": "routine"
         }
       ],
       "proposed_provider_queries": [
         {
-          "query_id": "q_cdi_a3c5",
-          "gap_id": "gap_diagnostic_specificity_pneumonia",
-          "topic": "肺炎病原体",
-          "reason": "痰培养结果阳性但诊断未记录病原体, 影响编码特异性",
+          "query_id": "Q-002",
+          "gap_id": "GAP-002",
+          "topic": "肺炎严重程度",
+          "reason": "入院诊断为肺炎，但未记录肺炎的严重程度（如轻、中、重度）或是否存在低氧血症、呼吸衰竭等表现。",
           "evidence_span": {
             "document_id": "入院记录",
-            "char_start": 234,
-            "char_end": 240,
-            "quote": "诊断: 肺炎"
+            "quote": "诊断: 肺炎",
+            "char_start": 6,
+            "char_end": 12,
+            "documented_at": ""
           },
-          "query_text": "入院记录诊断为'肺炎', 痰培养结果为'肺炎链球菌'. 请根据您的临床判断回答:",
-          "response_options": [
-            "A. 肺炎病原体为肺炎链球菌 (J13)",
-            "B. 肺炎病原体为其他已知病原体 (请在自由文本中说明)",
-            "C. 痰培养结果为定植菌, 不作为病原体",
-            "D. 无法确定 (unable to determine)",
-            "E. 临床不支持 (痰培养结果与临床表现不符)"
+          "evidence_spans": [
+            {
+              "document_id": "入院记录",
+              "quote": "诊断: 肺炎",
+              "char_start": 6,
+              "char_end": 12,
+              "documented_at": ""
+            }
           ],
-          "nlq_gate_result": {
-            "verdict": "PASS",
-            "rules_evaluated": 9,
-            "rules_passed": 9,
-            "rules_failed": []
-          }
+          "query_text": "该患者肺炎的严重程度如何？",
+          "response_options": [
+            "A. 轻度",
+            "B. 中度",
+            "C. 重度",
+            "D. 无法确定"
+          ],
+          "lifecycle_state": "DRAFT",
+          "priority": "routine",
+          "nlq_gate_verdict": "PASS",
+          "nlq_gate_block_reasons": []
+        },
+        {
+          "query_id": "Q-003",
+          "gap_id": "GAP-003",
+          "topic": "痰培养结果与肺炎的临床相关性",
+          "reason": "痰培养显示肺炎链球菌，但未明确该结果是否与肺炎相关，或仅为定植/污染。",
+          "evidence_span": {
+            "document_id": "入院记录",
+            "quote": "痰培养: 肺炎链球菌 (3+)",
+            "char_start": 13,
+            "char_end": 28,
+            "documented_at": ""
+          },
+          "evidence_spans": [
+            {
+              "document_id": "入院记录",
+              "quote": "痰培养: 肺炎链球菌 (3+)",
+              "char_start": 13,
+              "char_end": 28,
+              "documented_at": ""
+            }
+          ],
+          "query_text": "该患者痰培养结果（肺炎链球菌 3+）的临床意义是什么？",
+          "response_options": [
+            "A. 考虑为肺炎的致病菌",
+            "B. 考虑为定植菌",
+            "C. 考虑为污染",
+            "D. 无法确定"
+          ],
+          "lifecycle_state": "DRAFT",
+          "priority": "routine",
+          "nlq_gate_verdict": "PASS",
+          "nlq_gate_block_reasons": []
+        },
+        {
+          "query_id": "Q-001-type",
+          "gap_id": "GAP-001",
+          "topic": "type",
+          "reason": "The diagnosis of pneumonia lacks specification of type (e.g., community-acquired, hospital-acquired). Clarifying the type is important for accurate coding and treatment.",
+          "evidence_span": {
+            "document_id": "入院记录",
+            "quote": "诊断: 肺炎",
+            "char_start": 6,
+            "char_end": 12,
+            "documented_at": ""
+          },
+          "evidence_spans": [
+            {
+              "document_id": "入院记录",
+              "quote": "诊断: 肺炎",
+              "char_start": 6,
+              "char_end": 12,
+              "documented_at": ""
+            }
+          ],
+          "query_text": "该患者的肺炎类型是什么？",
+          "response_options": [
+            "A. 社区获得性肺炎",
+            "B. 医院获得性肺炎",
+            "C. 其他类型",
+            "D. 无法确定"
+          ],
+          "lifecycle_state": "DRAFT",
+          "priority": "routine",
+          "nlq_gate_verdict": "PASS",
+          "nlq_gate_block_reasons": []
+        }
+      ],
+      "query_gate_summary": {
+        "withheld_count": 1,
+        "status_counts": {
+          "REWRITE_CANDIDATE_GENERATED": 1
+        },
+        "manual_cdi_action_required": true
+      },
+      "coding_specificity_checklist": [],
+      "risk_flags": [
+        {
+          "category": "unsupported_diagnosis",
+          "description": "Pneumonia diagnosis is asserted without supporting clinical evidence such as symptoms, imaging, or labs."
         }
       ],
       "specialist_trace": [
         {
           "expert_id": "coding-expert",
           "consulted": true,
-          "requested": "J18.9 vs J13 specificity gap",
-          "accepted": [
-            "建议生成病原体澄清 query"
-          ],
+          "requested": "You are a coding-specialist Expert",
+          "accepted": [],
           "rejected": [],
-          "rationale": "Encoding specificity gap confirmed"
+          "rationale": "To ensure accurate coding, the pneumonia diagnosis must specify the clinical type (e.g., community-acquired vs. hospital-acquired) and anatomical pattern (e.g., lobar vs. bronchopneumonia), as these directly affect code selection. Additionally, document severity indicators such as hypoxia, respiratory failure, or need for ICU care, and explicitly state whether the sputum culture represents true infection versus colonization/contamination based on clinical signs and radiographic findings. Without this specificity, the record lacks the clinical clarity required for precise code assignment.",
+          "route_decision": "needed",
+          "route_reason": "coding_relevant_gap",
+          "execution_mode": "LLM_KNOWLEDGE_ONLY",
+          "latency_ms": 3331,
+          "tokens": 266,
+          "run_id": "sample-run",
+          "trace_id": "sample-trace"
+        },
+        {
+          "expert_id": "pubmed-expert",
+          "consulted": false,
+          "requested": "You are a PubMed literature Expert",
+          "accepted": [],
+          "rejected": [],
+          "rationale": "",
+          "route_decision": "not_needed",
+          "route_reason": "no_relevant_gap",
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0,
+          "run_id": "sample-run",
+          "trace_id": "sample-trace"
+        },
+        {
+          "expert_id": "web-search-expert",
+          "consulted": false,
+          "requested": "You are a clinical web-search Expert",
+          "accepted": [],
+          "rejected": [],
+          "rationale": "",
+          "route_decision": "not_needed",
+          "route_reason": "no_relevant_gap",
+          "execution_mode": "SKIPPED_NOT_NEEDED",
+          "latency_ms": 0,
+          "tokens": 0,
+          "run_id": "sample-run",
+          "trace_id": "sample-trace"
+        },
+        {
+          "expert_id": "medical-calculator-expert",
+          "consulted": false,
+          "requested": "You are a medical-calculator Expert",
+          "accepted": [],
+          "rejected": [],
+          "rationale": "'PSI' score — parameters absent from chart",
+          "route_decision": "missing_inputs",
+          "route_reason": "calculator_params_missing",
+          "execution_mode": "SKIPPED_MISSING_INPUTS",
+          "latency_ms": 0,
+          "tokens": 0,
+          "run_id": "sample-run",
+          "trace_id": "sample-trace"
         }
-      ]
+      ],
+      "human_review": {
+        "cdi_specialist_review_required": true,
+        "clinician_response_required": true,
+        "review_priority": "routine"
+      },
+      "trace_refs": {
+        "run_id": "sample-run",
+        "stage_trace": {
+          "encounter_synthesis": "trace-60619d9934ed",
+          "gap_identification": "trace-bdffa561a63d",
+          "expert_consultation": "trace-a677aa136cae",
+          "query_generation": "trace-4f8e3b0a0665",
+          "query_eligibility_gate": "",
+          "query_necessity_gate": "",
+          "query_dimension_rewrite": "trace-fa30da044bef",
+          "query_single_dimension_gate": "",
+          "claim_evidence_alignment_gate": "trace-9ec10c9265fb",
+          "semantic_necessity_gate": "trace-4c0bd4940fc1",
+          "query_compliance_gate": "",
+          "specialist_trace_emit": "trace-475f595d2cf1"
+        },
+        "experts_consulted": [
+          "coding-expert"
+        ],
+        "gate_results": {
+          "encounter_synthesis": "run-d90898ad2dd9",
+          "gap_identification": "run-bd0997ce8c5a",
+          "gap_identification_risk_flags": "emitted=1;quote_snapped=0",
+          "expert_consultation": "run-bd6a3c2229b8",
+          "query_generation": "run-f4685dc7b113",
+          "query_generation::quote_snapped": "0",
+          "query_generation::coverage_missing": "0",
+          "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=;dropped=0;final_count=3;llm_complete=False;llm_reasoning=The chart documents a pneumonia diagnosis and a sputum culture result, but lacks",
+          "query_necessity_gate": "necessary=3;unnecessary=0;overquery_triggered=False;final_count=3",
+          "query_dimension_rewrite": "run-6a17807e3416",
+          "query_single_dimension_gate": "single_dim=2;multi_dim=1;axis_cluster_triggered=False;axis_cluster_axis=type;rewrite_attempted=1;rewrite_accepted=1;final_count=3",
+          "claim_evidence_alignment_gate": "claims_extracted=5;blocked=0;flagged=0;final_count=3",
+          "claim_evidence_alignment_gate::run_id": "run-31775a72b255",
+          "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=3",
+          "semantic_necessity_gate::run_id": "run-23eda269c656",
+          "query_compliance_gate": ";passed=3;blocked=0",
+          "specialist_trace_emit": "run-2e325e5e9e3d"
+        },
+        "trace_id": "sample-trace"
+      }
     }
   ],
   "built_by": "icoder",
@@ -540,6 +1493,6 @@
   },
   "code": {},
   "integrity": {
-    "sha256": "PLACEHOLDER_RECOMPUTED_AT_PUBLISH"
+    "sha256": "e345059797b3de1856944c66e26f77ee45c1cb830d776b07e03f3e5805c59a04"
   }
 }

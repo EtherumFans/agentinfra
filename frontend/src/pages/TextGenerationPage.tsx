@@ -12,12 +12,33 @@ import EventInspector from '../components/common/EventInspector';
 import CodeSnippet from '../components/common/CodeSnippet';
 import SettingsCodeTab from '../components/common/SettingsCodeTab';
 import WorkbenchLayout from '../components/layout/WorkbenchLayout';
+import { guidedDocumentsApi } from '../services/api';
+import type { GuidedDocumentContext } from '../services/api';
 
 // Medical document template types from backend
 interface MedDocSection { key: string; label: string; value: string; required: boolean; filled: boolean; }
 
 // 文书模板 - 支持用户编辑
-type Template = { key: string; name: string; desc: string; category: string; sample: string };
+export type Template = { key: string; name: string; desc: string; category: string; sample: string };
+
+export const MAX_GUIDED_CONTEXT_CHARS = 200_000;
+export const MAX_GUIDED_JSON_BYTES = 1024 * 1024;
+const MAX_TEMPLATES = 100;
+const MAX_TEMPLATE_KEY_CHARS = 64;
+const MAX_TEMPLATE_NAME_CHARS = 256;
+const MAX_TEMPLATE_DESCRIPTION_CHARS = 2_000;
+const MAX_TEMPLATE_CATEGORY_CHARS = 64;
+const MAX_TEMPLATE_SAMPLE_CHARS = 20_000;
+
+function isTemplate(value: unknown): value is Template {
+  if (!value || typeof value !== 'object') return false;
+  const item = value as Record<string, unknown>;
+  return typeof item.key === 'string' && item.key.length > 0 && item.key.length <= MAX_TEMPLATE_KEY_CHARS
+    && typeof item.name === 'string' && item.name.length > 0 && item.name.length <= MAX_TEMPLATE_NAME_CHARS
+    && typeof item.desc === 'string' && item.desc.length <= MAX_TEMPLATE_DESCRIPTION_CHARS
+    && typeof item.category === 'string' && item.category.length > 0 && item.category.length <= MAX_TEMPLATE_CATEGORY_CHARS
+    && typeof item.sample === 'string' && item.sample.length <= MAX_TEMPLATE_SAMPLE_CHARS;
+}
 
 const DEFAULT_TEMPLATES: Template[] = [
   { key: 'discharge_summary', name: '出院小结', desc: '标准出院小结，包含入院情况、诊疗经过、出院诊断、出院医嘱', category: '住院',
@@ -60,13 +81,107 @@ const DEFAULT_TEMPLATES: Template[] = [
     sample: '患者：赵六，男，78岁，住院号：345678\n入院日期：2026年5月1日 死亡日期：2026年5月15日 住院天数：15天\n入院情况：因突发胸痛2小时入院。既往冠心病史5年，2型糖尿病史10年。\n诊疗经过：入院后心电图示急性广泛前壁心肌梗死，急诊行PCI术，于LAD植入支架1枚。术后第5天出现心源性休克，予IABP辅助，多巴胺+去甲肾上腺素维持血压。第10天出现急性肾损伤，予CRRT治疗。第14天出现多器官功能衰竭。\n死亡原因：1. 急性心肌梗死；2. 心源性休克；3. 多器官功能衰竭\n死亡诊断：1. 冠状动脉粥样硬化性心脏病 急性广泛前壁心肌梗死 PCI术后；2. 心源性休克；3. 急性肾损伤；4. 2型糖尿病\n家属告知：已通知家属，家属表示理解。\n记录医师：孙主任' },
 ];
 
+export function parseStoredTemplates(raw: string | null): Template[] {
+  if (!raw) return DEFAULT_TEMPLATES;
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) && parsed.length <= MAX_TEMPLATES && parsed.every(isTemplate)
+      ? parsed
+      : DEFAULT_TEMPLATES;
+  } catch {
+    return DEFAULT_TEMPLATES;
+  }
+}
+
+export function parseGuidedDocumentContext(
+  input: string,
+  inputType: 'text' | 'json',
+): GuidedDocumentContext[] {
+  if (inputType === 'text') {
+    if (!input.trim()) throw new Error('文本输入不能为空。');
+    if (input.length > MAX_GUIDED_CONTEXT_CHARS) {
+      throw new Error(`文本输入不能超过 ${MAX_GUIDED_CONTEXT_CHARS} 个字符。`);
+    }
+    return [{ type: 'text', text: input.trim() }];
+  }
+  if (new TextEncoder().encode(input).byteLength > MAX_GUIDED_JSON_BYTES) {
+    throw new Error(`JSON 输入不能超过 ${MAX_GUIDED_JSON_BYTES} 字节。`);
+  }
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(input);
+  } catch {
+    throw new Error('JSON 输入格式无效。');
+  }
+  const candidate = parsed && typeof parsed === 'object' && !Array.isArray(parsed)
+    && Array.isArray((parsed as { context?: unknown }).context)
+    ? (parsed as { context: unknown[] }).context
+    : Array.isArray(parsed) ? parsed : [parsed];
+  if (!candidate.length) throw new Error('JSON context 不能为空。');
+  if (candidate.length > 64) throw new Error('JSON context 不能超过 64 个项目。');
+  const contexts: GuidedDocumentContext[] = [];
+  let contextChars = 0;
+  for (const raw of candidate) {
+    if (!raw || typeof raw !== 'object') throw new Error('JSON context 必须是对象。');
+    const item = raw as Record<string, any>;
+    if (item.type === 'text' && typeof item.text === 'string' && item.text.trim()) {
+      if (item.text.length > MAX_GUIDED_CONTEXT_CHARS) throw new Error('单个 text context 过长。');
+      contextChars += item.text.length;
+      contexts.push({ type: 'text', text: item.text.trim() });
+    } else if (item.type === 'facts' && Array.isArray(item.facts) && item.facts.length
+      && item.facts.length <= 2_000
+      && item.facts.every((fact: any) => fact && typeof fact.text === 'string' && fact.text.trim()
+        && fact.text.length <= 4_000 && (fact.group === undefined
+          || (typeof fact.group === 'string' && fact.group.length <= 128)))) {
+      contextChars += item.facts.reduce((total: number, fact: any) => total + fact.text.length, 0);
+      contexts.push({
+        type: 'facts',
+        facts: item.facts.map((fact: any) => ({
+          text: fact.text.trim(),
+          ...(typeof fact.group === 'string' && fact.group ? { group: fact.group } : {}),
+        })),
+      });
+    } else if (item.type === 'transcript' && item.transcript
+      && Array.isArray(item.transcript.transcripts) && item.transcript.transcripts.length
+      && item.transcript.transcripts.length <= 2_000
+      && item.transcript.transcripts.every((segment: any) => segment && typeof segment.text === 'string'
+        && segment.text.trim() && segment.text.length <= 4_000
+        && ['channel', 'participant', 'speakerId', 'start', 'end'].every(field => segment[field] === undefined
+          || (Number.isInteger(segment[field]) && segment[field] >= 0)))) {
+      contextChars += item.transcript.transcripts.reduce(
+        (total: number, segment: any) => total + segment.text.length, 0,
+      );
+      contexts.push({
+        type: 'transcript',
+        transcript: {
+          transcripts: item.transcript.transcripts.map((segment: any) => ({
+            text: segment.text.trim(),
+            ...(['channel', 'participant', 'speakerId', 'start', 'end'].reduce<Record<string, number>>((result, field) => {
+              if (Number.isInteger(segment[field])) result[field] = segment[field];
+              return result;
+            }, {})),
+          })),
+          ...(item.transcript.metadata && typeof item.transcript.metadata === 'object'
+            && !Array.isArray(item.transcript.metadata)
+            ? { metadata: item.transcript.metadata }
+            : {}),
+        },
+      });
+    } else {
+      throw new Error('JSON context 仅支持非空 text、facts 或 transcript。');
+    }
+    if (contextChars > MAX_GUIDED_CONTEXT_CHARS) {
+      throw new Error(`context 文本总量不能超过 ${MAX_GUIDED_CONTEXT_CHARS} 个字符。`);
+    }
+  }
+  if (!contexts.length) throw new Error('JSON context 不能为空。');
+  return contexts;
+}
+
 const INPUT_TYPES = [
-  { key: 'string', label: '字符串' },
-  { key: 'text', label: '自由文本' },
-  { key: 'transcript', label: '对话转录' },
-  { key: 'facts', label: '结构化事实' },
+  { key: 'text', label: '文本' },
   { key: 'json', label: 'JSON' },
-];
+] as const;
 
 const LANGUAGES = [
   { code: 'zh-CN', label: '简体中文' },
@@ -78,21 +193,16 @@ const TEMPLATE_CATEGORIES = ['全部', '住院', '门诊', '手术', '急诊', '
 export default function TextGenerationPage() {
   const locale = useLocaleStore(s => s.locale);
   const t = useT();
-  const [templates, setTemplates] = useState<Template[]>(() => {
-    const saved = localStorage.getItem('icoder-textgen-templates');
-    return saved ? JSON.parse(saved) : DEFAULT_TEMPLATES;
-  });
+  const [templates, setTemplates] = useState<Template[]>(() =>
+    parseStoredTemplates(localStorage.getItem('icoder-textgen-templates')));
   const [input, setInput] = useState('');
   const [output, setOutput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [cost, setCost] = useState('0.000000');
-
-  const [inputType, setInputType] = useState('text');
+  const [storageWarning, setStorageWarning] = useState('');
+  const [inputType, setInputType] = useState<'text' | 'json'>('text');
   const [activeTemplate, setActiveTemplate] = useState('');
   const [outputLang, setOutputLang] = useState('zh-CN');
-  const [docName, setDocName] = useState('');
-  const [showGuardrails, setShowGuardrails] = useState(true);
   const [docMode, setDocMode] = useState('standard');
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [templateSearch, setTemplateSearch] = useState('');
@@ -113,18 +223,14 @@ export default function TextGenerationPage() {
   // Delete confirmation state (replaces confirm())
   const [deleteConfirmKey, setDeleteConfirmKey] = useState<string | null>(null);
 
-  // Fetch templates from API on mount, merging with user customizations
-  useEffect(() => {
-    // text-gen router deleted in Phase 2.1-B Step 4 - keep localStorage templates
-    const prevStr = localStorage.getItem('icoder-textgen-templates');
-    if (prevStr) {
-      try { setTemplates(JSON.parse(prevStr)); } catch { /* keep defaults */ }
-    }
-  }, []);
-
   // Persist templates to localStorage
   useEffect(() => {
-    localStorage.setItem('icoder-textgen-templates', JSON.stringify(templates));
+    try {
+      localStorage.setItem('icoder-textgen-templates', JSON.stringify(templates));
+      setStorageWarning('');
+    } catch {
+      setStorageWarning('浏览器存储空间不足，模板变更仅在当前页面有效。');
+    }
   }, [templates]);
 
   const filteredTemplates = templates.filter(t => {
@@ -136,16 +242,59 @@ export default function TextGenerationPage() {
   const currentTemplate = templates.find(t => t.key === activeTemplate);
 
   const handleGenerate = async () => {
-    if (!input.trim() || !activeTemplate) return;
+    if (!input.trim() || !activeTemplate || !currentTemplate) return;
     setLoading(true); setError(''); setOutput('');
-    setGenEvents(prev => [...prev.slice(-50), { type: 'generate_start', data: { template: activeTemplate, inputLength: input.length }, timestamp: new Date().toLocaleTimeString(locale, { hour12: false }), credits: 0.000001 }]);
-    setGenCredits(c => c + 0.000001);
+    setGenEvents(prev => [...prev.slice(-50), { type: 'generate_start', data: { template: activeTemplate, inputLength: input.length }, timestamp: new Date().toLocaleTimeString(locale, { hour12: false }) }]);
     try {
-      // text-gen router deleted in Phase 2.1-B Step 4 - use /api/v2/tools/guided-documents for document generation
-      throw new Error('Text Generation API has been deprecated. Use /api/v2/tools/guided-documents for document generation.');
+      const qualityInstruction = docMode === 'strict'
+        ? '严格核对原文，缺失信息明确标注“未提供”，不得推断。'
+        : docMode === 'draft'
+          ? '生成供临床人员复核的简洁草稿。'
+          : '生成结构完整、措辞专业的临床文书。';
+      const response = await guidedDocumentsApi.generateDynamic({
+        outputLanguage: outputLang,
+        context: parseGuidedDocumentContext(input, inputType),
+        dynamicTemplate: {
+          name: currentTemplate.name,
+          generation: {
+            instructions: {
+              prompt: `${currentTemplate.desc} ${qualityInstruction} 仅使用输入中有依据的信息。`,
+            },
+            sections: [{
+              heading: currentTemplate.name,
+              instructions: {
+                contentPrompt: `${currentTemplate.desc} ${qualityInstruction}`,
+                writingStylePrompt: '使用符合中国临床病历书写习惯的专业中文；输出语言以请求参数为准。',
+                miscPrompt: '不得编造诊断、用药、检查结果或患者身份信息。',
+              },
+              outputSchema: { type: 'string' },
+            }],
+          },
+        },
+      });
+      if (response.headers['x-corti-retention-policy'] !== 'acknowledged') {
+        throw new Error('服务器未确认零留存策略，结果已丢弃。');
+      }
+      const generated = Object.values(response.data.document.stringDocument)
+        .filter(value => typeof value === 'string' && value.trim())
+        .join('\n\n');
+      if (!generated) throw new Error('服务未返回可显示的文书内容。');
+      const credits = response.data.usageInfo.creditsConsumed;
+      setOutput(generated);
+      setGenCredits(current => current + credits);
+      setGenEvents(prev => [...prev.slice(-50), {
+        type: 'generate_complete',
+        data: { template: activeTemplate, outputLength: generated.length, retention: 'none' },
+        timestamp: new Date().toLocaleTimeString(locale, { hour12: false }),
+        credits,
+      }]);
     } catch (err: any) {
-      setError(err?.response?.data?.detail || err.message || '生成失败');
-      setGenEvents(prev => [...prev.slice(-50), { type: 'generate_error', data: { error: err?.response?.data?.detail || err.message || '未知错误', template: activeTemplate }, timestamp: new Date().toLocaleTimeString(locale, { hour12: false }) }]);
+      const detail = err?.response?.data?.detail;
+      const message = typeof detail === 'string'
+        ? detail
+        : detail?.detail || detail?.reason || err.message || '生成失败';
+      setError(message);
+      setGenEvents(prev => [...prev.slice(-50), { type: 'generate_error', data: { error: message, template: activeTemplate }, timestamp: new Date().toLocaleTimeString(locale, { hour12: false }) }]);
     } finally {
       setLoading(false);
     }
@@ -159,6 +308,10 @@ export default function TextGenerationPage() {
 
   // Template CRUD
   const openNewTemplate = () => {
+    if (templates.length >= MAX_TEMPLATES) {
+      setStorageWarning(`最多可保存 ${MAX_TEMPLATES} 个模板，请先删除不再使用的模板。`);
+      return;
+    }
     setEditingTemplate(null);
     setEditKey(''); setEditName(''); setEditDesc(''); setEditCategory('住院'); setEditSample('');
     setShowTemplateEditor(true);
@@ -180,6 +333,10 @@ export default function TextGenerationPage() {
       category: editCategory,
       sample: editSample,
     };
+    if (!isTemplate(t)) {
+      setStorageWarning('模板字段为空或超过长度限制，请缩短后重试。');
+      return;
+    }
     if (editingTemplate) {
       setTemplates(prev => prev.map(x => x.key === editingTemplate.key ? t : x));
     } else {
@@ -194,33 +351,44 @@ export default function TextGenerationPage() {
     setDeleteConfirmKey(null);
   };
 
-  const embedCode = `import { iCoDerClient } from "@icoder/sdk";
-const client = new iCoDerClient({ apiKey: "YOUR_API_KEY" });
-const result = await client.textGen.generate({
-  input: "临床文本...",
-  template: "${activeTemplate || 'discharge_summary'}",
-  language: "${outputLang}",
-  mode: "${docMode}",
+  const embedCode = `import iCoDer from "@icoder/sdk";
+const client = new iCoDer({
+  baseURL: "https://api.cn.icoder.cloud",
+  auth: { accessToken: "<access-token>" },
+});
+const result = await client.textGen.generate("临床文本...", {
+  template: "${currentTemplate?.name || '出院小结'}",
+  outputLanguage: "${outputLang}",
 });`;
 
-  const embedCodePython = `from icoder_sdk import iCoDerClient
+  const embedCodePython = `from icoder_sdk import iCoDerClient, iCoDerConfig
 
-client = iCoDerClient(api_key="YOUR_API_KEY")
+client = iCoDerClient(iCoDerConfig(
+    base_url="https://api.cn.icoder.cloud",
+    access_token="<access-token>",
+))
 
-result = client.text_generation.generate(
-    input="临床文本...",
-    template="${activeTemplate || 'discharge_summary'}",
-    language="${outputLang}",
-    mode="${docMode}",
+result = client.textgen.generate(
+    "临床文本...",
+    template="${currentTemplate?.name || '出院小结'}",
+    output_language="${outputLang}",
 )
-print(result.output)`;
+print(result["output"])`;
 
   const embedCodeJson = `{
-  "apiKey": "YOUR_API_KEY",
-  "input": "临床文本...",
-  "template": "${activeTemplate || 'discharge_summary'}",
-  "language": "${outputLang}",
-  "mode": "${docMode}"
+  "outputLanguage": "${outputLang}",
+  "context": [{ "type": "text", "text": "临床文本..." }],
+  "dynamicTemplate": {
+    "name": "${currentTemplate?.name || '出院小结'}",
+    "generation": {
+      "instructions": { "prompt": "仅使用输入中有依据的信息生成临床文书。" },
+      "sections": [{
+        "heading": "${currentTemplate?.name || '出院小结'}",
+        "instructions": { "contentPrompt": "${currentTemplate?.desc || '生成临床文书'}" },
+        "outputSchema": { "type": "string" }
+      }]
+    }
+  }
 }`;
 
   const settingsPanel = (
@@ -257,11 +425,6 @@ print(result.output)`;
             </select>
           </div>
           <div className="flex items-center justify-between gap-4 min-h-[32px]">
-            <span className="text-sm text-foreground/80">文书名称</span>
-            <input value={docName} onChange={e => setDocName(e.target.value)} placeholder="自定义..."
-              className="h-8 text-xs border border-input bg-background rounded-md px-2 py-1 w-28 focus:outline-none focus:ring-2 focus:ring-ring" />
-          </div>
-          <div className="flex items-center justify-between gap-4 min-h-[32px]">
             <span className="text-sm text-foreground/80">质控模式</span>
             <select value={docMode} onChange={e => setDocMode(e.target.value)}
               className="h-8 text-xs border border-input bg-background rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-ring">
@@ -283,7 +446,7 @@ print(result.output)`;
           <span className="relative group">
             <Info size={12} className="text-muted-foreground cursor-help" />
             <div className="absolute bottom-full right-0 mb-1.5 w-56 p-2 text-[10px] leading-relaxed bg-popover text-popover-foreground rounded-lg shadow-lg border border-border opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-              护栏规则在每次请求前后执行检查。关闭后请求将跳过所有护栏验证，建议仅在调试时使用。
+              医疗文书生成固定经过服务端安全策略；当前接口不允许客户端绕过。
             </div>
           </span>
         </div>
@@ -291,12 +454,9 @@ print(result.output)`;
           <span className="text-xs text-foreground/80 flex items-center gap-1">
             <Shield size={12} className="text-primary" /> 护栏
           </span>
-          <button onClick={() => setShowGuardrails(!showGuardrails)}
-            className={`relative w-9 h-5 rounded-full transition-colors shrink-0 ${showGuardrails ? 'bg-primary' : 'bg-muted border border-border'}`}>
-            <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-all ${showGuardrails ? 'left-[18px]' : 'left-0.5'}`} />
-          </button>
+          <span className="text-[10px] px-2 py-1 rounded-full bg-emerald-500/10 text-emerald-600">服务端强制</span>
         </div>
-        <p className="text-[10px] text-muted-foreground mt-2">{showGuardrails ? '护栏已启用 - 请求将经过安全规则检查' : '护栏已禁用 - 请求跳过安全检查'}</p>
+        <p className="text-[10px] text-muted-foreground mt-2">请求使用零留存策略；服务端未确认时不会展示生成结果。</p>
       </div>
     </div>
   );
@@ -326,7 +486,10 @@ print(result.output)`;
       <textarea
         value={input}
         onChange={(e) => setInput(e.target.value)}
-        placeholder={inputType === 'transcript' ? '输入对话转录文本...' : inputType === 'facts' ? '输入结构化临床事实...' : '输入临床文本...'}
+        maxLength={inputType === 'json' ? MAX_GUIDED_JSON_BYTES : MAX_GUIDED_CONTEXT_CHARS}
+        placeholder={inputType === 'json'
+          ? '输入 context JSON：支持 text、facts 或 transcript...'
+          : '输入临床文本、事实摘要或转录文本...'}
         className="flex-1 w-full resize-none bg-transparent text-sm text-foreground placeholder:text-foreground/70/40 focus:outline-none min-h-0 leading-relaxed"
       />
     </div>
@@ -421,16 +584,16 @@ print(result.output)`;
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-medium block mb-1">模板键 <span className="text-red-400">*</span></label>
-                  <input value={editKey} onChange={e => setEditKey(e.target.value)} placeholder="discharge_summary" className="w-full text-xs border border-border rounded-lg px-3 py-2 bg-transparent font-mono" />
+                  <input value={editKey} onChange={e => setEditKey(e.target.value)} maxLength={MAX_TEMPLATE_KEY_CHARS} placeholder="discharge_summary" className="w-full text-xs border border-border rounded-lg px-3 py-2 bg-transparent font-mono" />
                 </div>
                 <div>
                   <label className="text-xs font-medium block mb-1">名称 <span className="text-red-400">*</span></label>
-                  <input value={editName} onChange={e => setEditName(e.target.value)} placeholder="出院小结" className="w-full text-xs border border-border rounded-lg px-3 py-2 bg-transparent" />
+                  <input value={editName} onChange={e => setEditName(e.target.value)} maxLength={MAX_TEMPLATE_NAME_CHARS} placeholder="出院小结" className="w-full text-xs border border-border rounded-lg px-3 py-2 bg-transparent" />
                 </div>
               </div>
               <div>
                 <label className="text-xs font-medium block mb-1">描述</label>
-                <input value={editDesc} onChange={e => setEditDesc(e.target.value)} placeholder="简要描述模板用途" className="w-full text-xs border border-border rounded-lg px-3 py-2 bg-transparent" />
+                <input value={editDesc} onChange={e => setEditDesc(e.target.value)} maxLength={MAX_TEMPLATE_DESCRIPTION_CHARS} placeholder="简要描述模板用途" className="w-full text-xs border border-border rounded-lg px-3 py-2 bg-transparent" />
               </div>
               <div>
                 <label className="text-xs font-medium block mb-1">分类</label>
@@ -441,6 +604,7 @@ print(result.output)`;
               <div>
                 <label className="text-xs font-medium block mb-1">样例文本 <span className="text-muted-foreground font-normal">（点击"使用样例"时填入编辑器的内容）</span></label>
                 <textarea value={editSample} onChange={e => setEditSample(e.target.value)}
+                  maxLength={MAX_TEMPLATE_SAMPLE_CHARS}
                   placeholder="输入格式化的示例临床文本..."
                   rows={8}
                   className="w-full text-xs border border-border rounded-lg px-3 py-2 bg-transparent resize-none focus:outline-none focus:ring-1 focus:ring-ring font-mono" />
@@ -473,7 +637,8 @@ print(result.output)`;
             </div>
             <div className="p-3 border-b border-border">
               <input value={templateSearch} onChange={e => setTemplateSearch(e.target.value)}
-                placeholder="搜索模板..." className="w-full text-xs border border-border rounded-lg px-3 py-2 bg-card" />
+                maxLength={100} placeholder="搜索模板..." className="w-full text-xs border border-border rounded-lg px-3 py-2 bg-card" />
+              {storageWarning && <p className="mt-2 text-[10px] text-amber-600">{storageWarning}</p>}
             </div>
             <div className="flex gap-1 px-4 py-2 flex-wrap border-b border-border">
               {TEMPLATE_CATEGORIES.map(c => (

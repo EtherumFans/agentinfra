@@ -23,6 +23,15 @@ export default function LoginPage() {
 
   const resetForm = () => { setError(''); setSuccess(''); setUsername(''); setPassword(''); setEmail(''); setFullName(''); };
 
+  const continueAfterAuthentication = () => {
+    const inviteHash = window.location.hash;
+    if (/^#token=[A-Za-z0-9_-]{32,256}$/.test(inviteHash)) {
+      navigate(`/accept-invite${inviteHash}`, { replace: true });
+      return;
+    }
+    navigate('/', { replace: true });
+  };
+
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
     if (!username.trim() || !password.trim()) { setError('请输入用户名和密码'); return; }
@@ -31,6 +40,7 @@ export default function LoginPage() {
       const res = await authApi.login(username, password);
       const { user, access_token, refresh_token, organizations, current_org_id } = res.data;
       login(user, access_token, refresh_token, organizations || [], current_org_id || '');
+      continueAfterAuthentication();
     } catch (err: any) {
       setError(err?.response?.data?.detail || '登录失败');
     } finally { setLoading(false); }
@@ -47,6 +57,7 @@ export default function LoginPage() {
       const res = await authApi.register(username, password, email, fullName);
       const { user, access_token, refresh_token, organizations, current_org_id } = res.data;
       login(user, access_token, refresh_token, organizations || [], current_org_id || '');
+      continueAfterAuthentication();
     } catch (err: any) {
       setError(err?.response?.data?.detail || '注册失败');
     } finally { setLoading(false); }

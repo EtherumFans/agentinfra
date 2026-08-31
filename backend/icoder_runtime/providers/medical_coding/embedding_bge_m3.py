@@ -41,6 +41,9 @@ logger = logging.getLogger(__name__)
 # pre-populates this dir; embed() also falls back to the HF cache.
 DEFAULT_MODEL_DIR = "data/medcoder/models"
 MODEL_NAME = "BAAI/bge-m3"
+# Revision used to build the checked-in development FAISS assets. Production
+# workers run offline and resolve this exact snapshot from the mounted cache.
+MODEL_REVISION = "5617a9f61b028005a4858fdac845db406aefb181"
 EMBED_DIM = 1024
 BATCH_SIZE = 32
 
@@ -56,6 +59,7 @@ class BGEEmbedder:
     def __init__(
         self,
         model_name: str = MODEL_NAME,
+        model_revision: str | None = None,
         model_dir: str = DEFAULT_MODEL_DIR,
         batch_size: int = BATCH_SIZE,
         device: str | None = None,
@@ -64,7 +68,15 @@ class BGEEmbedder:
         encode_kwargs: dict | None = None,
     ) -> None:
         self.model_name = model_name
+        self.model_revision = (
+            model_revision
+            or os.environ.get("MEDCODER_BGE_REVISION")
+            or MODEL_REVISION
+        )
         self.model_dir = model_dir
+        self.local_files_only = (
+            os.environ.get("MEDCODER_BGE_LOCAL_FILES_ONLY", "0") == "1"
+        )
         self.batch_size = batch_size
         # E1.9 (2026-06-27): memory knobs. fp16 load halves peak memory
         # (3-4 GB → 1.5-2 GB) and keeps the dev box viable for full
@@ -164,6 +176,8 @@ class BGEEmbedder:
             cache_folder=self.model_dir,
             device=self.device,
             model_kwargs=load_kwargs or None,
+            revision=self.model_revision,
+            local_files_only=self.local_files_only,
         )
         # Sanity: dim must match.
         if getattr(self._model, "get_sentence_embedding_dimension", lambda: None)() not in (None, EMBED_DIM):

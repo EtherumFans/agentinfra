@@ -81,7 +81,7 @@ def test_grouper_gender_consistency_male_only():
 
     r2 = check_gender_consistency("C61", "F")
     assert r2["consistent"] is False
-    assert "YA1" in r2.get("message", "")
+    assert "非权威" in r2.get("message", "")
 
 
 def test_grouper_gender_consistency_female_only():
@@ -173,7 +173,7 @@ def test_dip_rule_001_specificity():
 
 @pytest.mark.asyncio
 async def test_adapter_ami_with_pci():
-    """End-to-end: AMI + PCI → DRG group, PASS conclusion."""
+    """A matched candidate remains non-authoritative and review-required."""
     from app.services.drg_analyzer_service import DRGAnalysisAdapter
 
     adapter = DRGAnalysisAdapter()
@@ -184,14 +184,17 @@ async def test_adapter_ami_with_pci():
         context={"patient_gender": "M", "patient_age": 58},
     )
 
-    assert result.review_conclusion == "PASS"
-    assert result.manual_review_required is False
+    assert result.review_conclusion == "WARNING"
+    assert result.manual_review_required is True
     assert result.drg_impact.coverage is True
     assert result.drg_impact.grouping_method == "surgical"
     assert result.drg_impact.mdc == "MDCE"
     assert "EC" in result.drg_impact.adrg
-    assert result.drg_impact.payment_weight > 0
-    assert result.drg_impact.payment_estimate_yuan > 0
+    assert result.drg_impact.payment_weight == 0
+    assert result.drg_impact.payment_estimate_yuan == 0
+    assert result.drg_impact.billing_authoritative is False
+    assert result.dip_impact.dip_score == 0
+    assert result.governance["authority_status"] == "experimental_unverified"
 
 
 @pytest.mark.asyncio
@@ -254,6 +257,32 @@ async def test_adapter_to_dict_serializable():
     assert "MDCE" in payload
 
 
+@pytest.mark.asyncio
+async def test_adapter_grouper_failure_returns_empty_failed_result(monkeypatch):
+    """Runtime failures must not emit hard-coded AMI/PCI/DRG examples."""
+    from app.services.drg_analyzer_service import DRGAnalysisAdapter
+    from app.services import drg_grouper
+
+    def _broken_grouper(*_args, **_kwargs):
+        raise RuntimeError("internal failure with patient 13800138000")
+
+    monkeypatch.setattr(drg_grouper, "group_drg", _broken_grouper)
+    result = await DRGAnalysisAdapter().analyze_async(
+        primary_diagnosis={"code": "I50.9"},
+        secondary_diagnoses=[],
+        procedures=[],
+    )
+
+    payload = result.to_dict()
+    assert payload["error"] is True
+    assert payload["error_reason"] == "grouper_failed"
+    assert payload["review_conclusion"] == "FAIL"
+    assert payload["manual_review_required"] is True
+    assert payload["primary_diagnosis"] == {}
+    assert payload["drg_impact"]["predicted_drg"] == ""
+    assert "13800138000" not in repr(payload)
+
+
 # ── API endpoint tests ──
 
 
@@ -271,7 +300,11 @@ async def test_api_drg_analyze(client):
     data = response.json()
     assert data["drg_impact"]["mdc"] == "MDCE"
     assert "EC" in data["drg_impact"]["adrg"]
-    assert data["review_conclusion"] == "PASS"
+    assert data["review_conclusion"] == "WARNING"
+    assert data["manual_review_required"] is True
+    assert data["drg_impact"]["billing_authoritative"] is False
+    assert data["drg_impact"]["payment_estimate_yuan"] == 0
+    assert data["governance"]["authority_status"] == "experimental_unverified"
 
 
 @pytest.mark.asyncio
@@ -287,6 +320,7 @@ async def test_api_drg_rules(client):
     assert "DRG004" in rule_ids
     assert "DIP001" in rule_ids
     assert "DIP003" in rule_ids
+    assert data["governance"]["billing_authoritative"] is False
 
 
 @pytest.mark.asyncio
@@ -300,6 +334,7 @@ async def test_api_drg_list(client):
     # Each entry has code/name/mdc/surgical
     first = data["adrgs"][0]
     assert {"code", "name", "mdc", "surgical"}.issubset(first.keys())
+    assert data["governance"]["manual_review_required"] is True
 
 
 @pytest.mark.asyncio
@@ -313,7 +348,8 @@ async def test_api_drg_check_gender(client):
     assert response.status_code == 200
     data = response.json()
     assert data["consistent"] is False
-    assert "YA1" in data.get("message", "")
+    assert "非权威" in data.get("message", "")
+    assert data["governance"]["billing_authoritative"] is False
 
 
 @pytest.mark.asyncio
@@ -324,6 +360,77 @@ async def test_api_drg_surgery_lookup(client):
     data = response.json()
     assert data["mdc"] == "MDCE"
     assert "EC1" in data["adrg"]
+    assert data["governance"]["authority_status"] == "experimental_unverified"
+
+
+@pytest.mark.asyncio
+async def test_api_drg_governance(client):
+    response = await client.get("/api/drg/governance")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["asset_id"] == "cn.drg_dip.risk_heuristics"
+    assert data["billing_authoritative"] is False
+    assert data["manual_review_required"] is True
+
+
+@pytest.mark.asyncio
+async def test_api_drg_rejects_invalid_demographics_before_analysis(client):
+    response = await client.post("/api/drg/analyze", json={
+        "primary_diagnosis": {"code": "I10"},
+        "patient_gender": "unknown",
+        "patient_age": 151,
+    })
+    assert response.status_code == 422
+
+
+def test_api_drg_openapi_publishes_typed_non_payment_responses():
+    from app.main import app
+
+    schema = app.openapi()
+    analyze = schema["paths"]["/api/drg/analyze"]["post"]
+    governance = schema["paths"]["/api/drg/governance"]["get"]
+    assert analyze["responses"]["200"]["content"]["application/json"]["schema"] == {
+        "$ref": "#/components/schemas/AnalyzeResponse"
+    }
+    assert governance["responses"]["200"]["content"]["application/json"]["schema"] == {
+        "$ref": "#/components/schemas/GovernanceResponse"
+    }
+    components = schema["components"]["schemas"]
+    assert components["GovernanceResponse"]["properties"]["billing_authoritative"]["const"] is False
+    assert components["GovernanceResponse"]["properties"]["manual_review_required"]["const"] is True
+    assert components["DRGImpactResponse"]["properties"]["payment_estimate_yuan"]["const"] == 0.0
+
+
+def test_api_drg_cloud_mode_fails_closed():
+    from fastapi import HTTPException
+    from app.api.drg import _governance
+    from app.config import settings
+
+    previous = settings.ICODER_DEPLOYMENT_MODE
+    settings.ICODER_DEPLOYMENT_MODE = "cloud"
+    try:
+        with pytest.raises(HTTPException) as captured:
+            _governance()
+    finally:
+        settings.ICODER_DEPLOYMENT_MODE = previous
+    assert captured.value.status_code == 503
+    assert captured.value.detail == (
+        "DRG/DIP clinical asset governance gate is not satisfied"
+    )
+
+
+@pytest.mark.asyncio
+async def test_api_drg_requires_authentication(client):
+    from app.main import app
+    from app.middleware.auth import get_current_user
+
+    original = app.dependency_overrides.pop(get_current_user, None)
+    try:
+        response = await client.get("/api/drg/governance")
+    finally:
+        if original is not None:
+            app.dependency_overrides[get_current_user] = original
+    assert response.status_code == 401
 
 
 @pytest.mark.asyncio

@@ -76,16 +76,77 @@ def _is_blocked_ip(ip_str: str) -> tuple[bool, str]:
     for net in BLOCKED_NETWORKS:
         if ip in net:
             return True, f"{ip} in blocked network {net}"
+    # Cover address classes not represented by the explicit operational
+    # ranges above (IPv6 unspecified, multicast, documentation/reserved
+    # ranges, and newly assigned private ranges).  Connector validation and
+    # every outbound caller therefore fail closed as Python's IP registry is
+    # updated instead of relying on a stale hand-maintained CIDR list.
+    classifications = (
+        (ip.is_unspecified, "unspecified"),
+        (ip.is_multicast, "multicast"),
+        (ip.is_reserved, "reserved"),
+        (ip.is_private, "private"),
+        (ip.is_loopback, "loopback"),
+        (ip.is_link_local, "link-local"),
+    )
+    for blocked, label in classifications:
+        if blocked:
+            return True, f"{ip} is {label}"
     return False, ""
 
 
-def _resolve_host(host: str) -> list[str]:
+def _resolve_host(host: str, port: int | None = None) -> list[str]:
     """Resolve a hostname to IPv4 + IPv6 literals. Empty list on failure."""
     try:
-        infos = socket.getaddrinfo(host, None)
-    except socket.gaierror:
+        infos = socket.getaddrinfo(host, port, type=socket.SOCK_STREAM)
+    except (OSError, UnicodeError):
         return []
     return list({info[4][0] for info in infos})
+
+
+def resolve_safe_addresses(host: str, port: int = 443) -> tuple[str, ...]:
+    """Resolve *host* and return only after every address passes policy.
+
+    Outbound transports use the returned literals as their actual TCP
+    destinations while retaining the original hostname for TLS SNI and the
+    HTTP ``Host`` header.  This closes the check-then-resolve DNS-rebinding
+    gap that remains when callers merely invoke :func:`check_url` before a
+    normal hostname connection.
+    """
+
+    canonical_host = (host or "").rstrip(".").casefold()
+    if not canonical_host:
+        raise SSRFError(host="", reason="no hostname")
+    if canonical_host in CLOUD_METADATA_HOSTS:
+        raise SSRFError(
+            host=canonical_host,
+            reason=f"{canonical_host} is a cloud metadata endpoint",
+        )
+    if not 1 <= int(port) <= 65535:
+        raise SSRFError(host=canonical_host, reason="invalid destination port")
+
+    try:
+        ipaddress.ip_address(canonical_host)
+        addresses = [canonical_host]
+    except ValueError:
+        addresses = _resolve_host(canonical_host, int(port))
+        if not addresses:
+            raise SSRFError(
+                host=canonical_host,
+                reason=f"DNS resolution returned no records for {canonical_host!r}",
+            )
+
+    approved: list[str] = []
+    for address in addresses:
+        blocked, reason = _is_blocked_ip(address)
+        if blocked:
+            raise SSRFError(
+                host=canonical_host,
+                reason=f"{canonical_host} resolves to {reason}",
+            )
+        if address not in approved:
+            approved.append(address)
+    return tuple(approved)
 
 
 def check_url(url: str) -> SSRFCheckResult:
@@ -111,7 +172,20 @@ def check_url(url: str) -> SSRFCheckResult:
             reason=f"scheme {scheme!r} not allowed (http/https only)",
         )
 
-    host = parsed.hostname or ""
+    # ``urlparse`` is intentionally permissive; accessing ``hostname`` or
+    # ``port`` performs the authority validation and may raise ValueError for
+    # malformed IPv6 brackets or ports outside 0..65535. Convert those parser
+    # errors into a normal fail-closed verdict instead of leaking an unrelated
+    # exception through every outbound connector.
+    try:
+        host = parsed.hostname or ""
+        port = parsed.port
+    except ValueError as exc:
+        return SSRFCheckResult(
+            permitted=False,
+            host="",
+            reason=f"invalid URL authority: {exc}",
+        )
     if not host:
         return SSRFCheckResult(
             permitted=False, host="", reason="no hostname in URL"
@@ -125,32 +199,10 @@ def check_url(url: str) -> SSRFCheckResult:
             reason=f"{host} is a cloud metadata endpoint",
         )
 
-    # If host is already an IP literal, check directly
     try:
-        ipaddress.ip_address(host)
-        blocked, reason = _is_blocked_ip(host)
-        if blocked:
-            return SSRFCheckResult(permitted=False, host=host, reason=reason)
-    except ValueError:
-        # Host is a DNS name — resolve and check each record
-        # (DNS rebinding defence)
-        ips = _resolve_host(host)
-        if not ips:
-            # Resolution failed — fail CLOSED (block). Callers that
-            # need to allow unresolved hosts must opt in explicitly.
-            return SSRFCheckResult(
-                permitted=False,
-                host=host,
-                reason=f"DNS resolution returned no records for {host!r}",
-            )
-        for ip_str in ips:
-            blocked, reason = _is_blocked_ip(ip_str)
-            if blocked:
-                return SSRFCheckResult(
-                    permitted=False,
-                    host=host,
-                    reason=f"{host} resolves to {reason}",
-                )
+        resolve_safe_addresses(host, port or (443 if scheme == "https" else 80))
+    except SSRFError as exc:
+        return SSRFCheckResult(permitted=False, host=exc.host, reason=exc.reason)
 
     return SSRFCheckResult(permitted=True, host=host)
 
@@ -167,6 +219,7 @@ __all__ = [
     "SSRFCheckResult",
     "BLOCKED_NETWORKS",
     "CLOUD_METADATA_HOSTS",
+    "resolve_safe_addresses",
     "check_url",
     "assert_url_safe",
 ]

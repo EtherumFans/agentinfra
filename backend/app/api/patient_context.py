@@ -106,7 +106,10 @@ async def get_patient_context(
             "code": "GONE", "message": "patient context was deleted"
         })
     # Auto-mark expired if past expires_at (lazy TTL)
-    if ctx.status == "active" and ctx.expires_at < datetime.utcnow():
+    if (
+        ctx.status == "active"
+        and ctx.expires_at < datetime.now(timezone.utc).replace(tzinfo=None)
+    ):
         ctx.status = "expired"
         await db.flush()
     return PatientContextResponse.model_validate(ctx)

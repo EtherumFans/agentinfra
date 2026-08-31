@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 
 import { useT, useLocaleStore } from '../i18n';
-import { billingApi, agentsApi, oauthApi } from '../services/api';
+import { billingApi, agentsApi } from '../services/api';
 import { runtimeAgentApi } from '../services/runtimeApi';
 import { agentHubApi, type HubCard } from '../services/agentHubApi';
 import { useToastStore } from '../store';
@@ -56,9 +56,6 @@ export default function AgentsPage() {
   const [hubCards, setHubCards] = useState<HubCard[]>([]);
   const [myAgentsLoading, setMyAgentsLoading] = useState(true);
   const [certifiedLoading, setCertifiedLoading] = useState(true);
-  // API Client selector (iCoDer-style project/workspace switcher)
-  const [apiClients, setApiClients] = useState<any[]>([]);
-  const [selectedApiClient, setSelectedApiClient] = useState<string>('');
   // Delete confirmation modal state
   const [deleteConfirmAgent, setDeleteConfirmAgent] = useState<any>(null);
   // DB agents (for clone picker and create flow only)
@@ -69,12 +66,6 @@ export default function AgentsPage() {
 
   useEffect(() => {
     billingApi.balance().then(r => setBalance(r.data.balance)).catch(() => {});
-    // Fetch OAuth clients
-    oauthApi.list().then(r => {
-      const clients = r.data?.clients || [];
-      setApiClients(clients);
-      if (clients.length > 0) setSelectedApiClient(clients[0].client_id);
-    }).catch(() => {});
     // Fetch DB agents for clone picker
     agentsApi.list('', '', 'all').then(r => {
       setDbAgents(r.data?.agents || []);
@@ -93,10 +84,9 @@ export default function AgentsPage() {
     setCertifiedLoading(true);
     // Phase 3-B1 Section F + Phase 3-B2 Loop 4: Prebuilt tab reads from
     // Hub endpoint with optional ?use_case=<key> filter
-    // (pack-mastered, no auth, returns 11 visible packs by default: 10
-    // metadata-only Coming Soon + Medical Coding Agent MVP). Backend
-    // excludes expert-stubs and internal_engine automatically.
-    agentHubApi.list(useCaseKey || undefined)
+    // (pack-mastered, currently returns 26 executable launch candidates).
+    // Backend excludes internal/metadata-only expert packs automatically.
+    agentHubApi.listWithTenantReadiness(useCaseKey || undefined)
       .then((res: { data?: { agents?: HubCard[] } }) => setHubCards(res.data?.agents || []))
       .catch(() => setHubCards([]))
       .finally(() => setCertifiedLoading(false));
@@ -169,7 +159,12 @@ export default function AgentsPage() {
   // Chat URL /ai-studio/agents/:agentId/chat?preset={agent_ref}.
   // On 401, redirects to login (the clone endpoint requires a valid Bearer token).
   const chatWithHubCard = async (card: HubCard) => {
-    if (!card.runnable || !card.agent_id || cloningAgentId) return;
+    if (
+      !card.runnable
+      || card.runtime_readiness?.run_action_enabled !== true
+      || !card.agent_id
+      || cloningAgentId
+    ) return;
     setCloningAgentId(card.agent_id);
     try {
       const res = await agentHubApi.clone(card.agent_id);
@@ -414,6 +409,15 @@ export default function AgentsPage() {
                 const isDeprecated = card.display_status === 'deprecated';
                 const dimCard = isComingSoon || isDeprecated;
                 const isCloningThis = cloningAgentId === card.agent_id;
+                const runActionEnabled = card.runtime_readiness?.run_action_enabled === true;
+                const runtimeConfigurationStatus = card.runtime_readiness?.configuration_status;
+                const runtimeReadinessLabel = runtimeConfigurationStatus === 'local_ready'
+                  ? t.agentRuntimeLocalReady
+                  : runtimeConfigurationStatus === 'configured_live_verified'
+                    ? t.agentRuntimeConfiguredLive
+                  : runtimeConfigurationStatus === 'configured_not_live_verified'
+                    ? t.agentRuntimeConfiguredNotLive
+                    : t.agentRuntimeUnavailable;
                 const displayBadgeClass = (b: typeof card.display_badges[number]): string => {
                   switch (b.type) {
                     case 'preview':
@@ -480,6 +484,17 @@ export default function AgentsPage() {
                             {card.creator && <span>{card.creator}</span>}
                           </p>
                         )}
+                        <p
+                          className={`text-[10px] mt-1.5 ${
+                            runActionEnabled ? 'text-emerald-700' : 'text-amber-700'
+                          }`}
+                          title={card.runtime_readiness?.reason || runtimeReadinessLabel}
+                        >
+                          {runtimeReadinessLabel}
+                          {card.runtime_readiness?.semantic_validation_status === 'not_verified'
+                            ? ` · ${t.agentSemanticNotVerified}`
+                            : ''}
+                        </p>
                         <div className="flex items-center gap-2 mt-2 flex-wrap">
                           {card.category && (
                             <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{card.category}</span>
@@ -516,7 +531,8 @@ export default function AgentsPage() {
                           <div className="flex items-center gap-2 mt-3">
                             <button
                               onClick={(e) => { e.stopPropagation(); chatWithHubCard(card); }}
-                              disabled={isCloningThis}
+                              disabled={isCloningThis || !runActionEnabled}
+                              title={!runActionEnabled ? t.agentRuntimeUnavailableHint : t.agentChatUseAgent}
                               className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-foreground text-background hover:opacity-90 disabled:opacity-50 transition-opacity duration-200 active:scale-[0.98] font-medium"
                             >
                               {isCloningThis ? (
@@ -584,4 +600,3 @@ export default function AgentsPage() {
         </div>
   );
 }
-

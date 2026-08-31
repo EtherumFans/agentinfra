@@ -1,12 +1,12 @@
 {
   "_meta": {
     "name": "iCoDer Held-out Bilingual Evaluation Set v1",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "created": "2026-08-06",
     "source_doc": "docs/governance/EVALUATION_CITATION_POLICY.md",
     "purpose": "R2 mitigation — CN/EN asymmetry. Seed for held-out bilingual evaluation set, NOT derived from CCL 2026.",
     "citation_policy": "Do NOT cite iCoDer F1 numbers vs Corti in user-visible surfaces. Corti comparison DEFERRED to pilot gate (5 conditions in EVALUATION_CITATION_POLICY.md §2 rule 3).",
-    "construction_method": "Synthetic but clinically-realistic cases constructed from public clinical guidelines (UpToDate / 默沙东诊疗手册 / 中国国家卫健委临床路径). Each case has parallel zh+en charts authored by iCoDer team. Codes validated against icd10cn_code_catalog.json (37,897 codes).",
+    "construction_method": "Synthetic but clinically-realistic cases constructed from public clinical guidelines (UpToDate / 默沙东诊疗手册 / 中国国家卫健委临床路径). Each case has parallel zh+en charts authored by iCoDer team. Expected codes were revalidated on 2026-08-27 against the governed runtime ICD-10-CN and ICD-9-CM-3 catalogs; this remains engineering-team-authored calibration, not independent clinical gold.",
     "not_derived_from": [
       "CCL 2026 train set",
       "MIMIC-IV",
@@ -32,12 +32,12 @@
       },
       "expected_secondary_diagnoses": [
         {
-          "code": "M80.900",
-          "display_zh": "骨质疏松伴病理性骨折",
-          "display_en": "Osteoporosis with pathological fracture"
+          "code": "M81.900",
+          "display_zh": "骨质疏松",
+          "display_en": "Osteoporosis"
         },
         {
-          "code": "I10.x00",
+          "code": "I10.x09",
           "display_zh": "原发性高血压",
           "display_en": "Essential hypertension"
         },
@@ -48,7 +48,7 @@
         }
       ],
       "expected_primary_procedure": {
-        "code": "81.0100",
+        "code": "03.5301",
         "display_zh": "脊椎骨折切开复位内固定术",
         "display_en": "Open reduction and internal fixation of spinal fracture"
       },
@@ -66,7 +66,7 @@
           "strength": "direct"
         }
       ],
-      "notes": "经典骨科 case, S22.000 是 T12骨折的标准码; 注意 M80.900 应作为 secondary 不可作 primary (骨质疏松慢性合并症)"
+      "notes": "经典骨科 case。病历仅明确 T12 椎体压缩性骨折和骨质疏松，未明确病理性骨折因果关系；主诊断使用 S22.000，骨质疏松使用 M81.900 作为 secondary，不得推断 M80 病理性骨折。"
     },
     {
       "case_id": "HOBV1-002",
@@ -74,7 +74,7 @@
       "chart_zh": "患者女性, 32岁, 转移性右下腹痛 1 天, 伴恶心呕吐 2 次。查体: T 38.5℃, McBurney 点压痛反跳痛阳性, Rovsing 征阳性。WBC 14.2, 中性 88%。腹部 CT: 阑尾肿胀, 周围渗出, 未见穿孔。入院诊断: 急性单纯性阑尾炎。行腹腔镜阑尾切除术, 手术顺利。术后病理: 急性单纯性阑尾炎, 浆膜层未累及。术后恢复良好, 第 3 天出院。",
       "chart_en": "32-year-old female with migrating right lower quadrant pain for 1 day, accompanied by nausea and vomiting twice. Exam: T 38.5C, McBurney point tenderness and rebound tenderness positive, Rovsing sign positive. WBC 14.2, neutrophils 88%. Abdominal CT: swollen appendix with surrounding exudate, no perforation seen. Admission diagnosis: acute simple appendicitis. Underwent laparoscopic appendectomy, surgery uneventful. Postoperative pathology: acute simple appendicitis, serosa not involved. Recovered well, discharged on day 3.",
       "expected_principal_diagnosis": {
-        "code": "K35.900",
+        "code": "K35.800x001",
         "display_zh": "急性单纯性阑尾炎",
         "display_en": "Acute simple appendicitis"
       },
@@ -115,11 +115,6 @@
           "code": "E11.900",
           "display_zh": "2 型糖尿病",
           "display_en": "Type 2 diabetes mellitus"
-        },
-        {
-          "code": "F17.200",
-          "display_zh": "烟草依赖",
-          "display_en": "Tobacco dependence"
         }
       ],
       "expected_primary_procedure": null,
@@ -131,7 +126,7 @@
           "strength": "direct"
         }
       ],
-      "notes": "J18.9 是未特指病原体的肺炎; 注意不要错编 J13 (肺炎链球菌性肺炎) 除非院方编码细则要求; 糖尿病 + 吸烟作为 secondary"
+      "notes": "J18.9 是未特指病原体的肺炎；糖尿病作为 secondary。吸烟史不等同于已确诊烟草依赖，不得仅凭吸烟史推断 F17.200。"
     },
     {
       "case_id": "HOBV1-004",
@@ -167,7 +162,7 @@
       },
       "expected_secondary_diagnoses": [
         {
-          "code": "I10.x00",
+          "code": "I10.x09",
           "display_zh": "原发性高血压",
           "display_en": "Essential hypertension"
         },
@@ -175,15 +170,10 @@
           "code": "E78.500",
           "display_zh": "高脂血症",
           "display_en": "Hyperlipidemia"
-        },
-        {
-          "code": "F17.200",
-          "display_zh": "烟草依赖",
-          "display_en": "Tobacco dependence"
         }
       ],
       "expected_primary_procedure": {
-        "code": "36.0600",
+        "code": "36.0601",
         "display_zh": "经皮冠状动脉药物涂层支架植入术",
         "display_en": "Percutaneous drug-eluting stent implantation of coronary artery"
       },
@@ -201,7 +191,7 @@
           "strength": "direct"
         }
       ],
-      "notes": "I21.1 (下壁) 注意区别于 I21.0 (前壁) / I21.2 (其他部位); 高血压/高脂/吸烟为 secondary; PCI 必须编 36.06 (药物涂层), 不可编 36.09 (其他)"
+      "notes": "I21.1 (下壁) 注意区别于 I21.0 (前壁) / I21.2 (其他部位)；高血压和高脂血症为 secondary。吸烟史不等同于烟草依赖诊断，不得推断 F17.200。药物涂层支架按当前受控目录使用 36.0601。"
     }
   ]
 }

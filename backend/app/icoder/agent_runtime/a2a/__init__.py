@@ -1,7 +1,8 @@
 """iCoDer A2A v0.3 Protocol Implementation (SPEC §3).
 
-Phase 1 subset: ``message/send`` (inbound + outbound stub) +
-``tasks/get`` / ``tasks/cancel`` stubs + 4 Discovery endpoints.
+Implemented subset: ``message/send`` (inbound + in-process Expert dispatch),
+the persisted ``tasks/get`` / ``tasks/cancel`` state machine, and Discovery
+endpoints. Streaming remains outside the advertised protocol capabilities.
 
 Public API (re-exported):
 
@@ -51,6 +52,7 @@ from .errors import (
     context_invalid,
     context_not_found,
     internal_error,
+    input_safety_blocked,
     invalid_params,
     invalid_request,
     method_not_found,
@@ -107,6 +109,7 @@ from .routes_discovery import AgentProvider, build_discovery_router
 from .routes_inbound import build_inbound_router
 from .routes_outbound import ExpertCaller, build_outbound_router
 from .routes_task import build_task_router
+from .v1 import A2A_V1_HEADER, A2A_V1_VERSION, build_v1_router
 
 __all__ = [
     # Errors
@@ -122,6 +125,7 @@ __all__ = [
     "context_invalid",
     "context_not_found",
     "internal_error",
+    "input_safety_blocked",
     "invalid_params",
     "invalid_request",
     "method_not_found",
@@ -194,4 +198,8 @@ __all__ = [
     "build_outbound_router",
     "build_task_router",
     "mount_a2a",
+    # A2A v1.0 compatibility layer
+    "A2A_V1_HEADER",
+    "A2A_V1_VERSION",
+    "build_v1_router",
 ]

@@ -22,11 +22,14 @@ async def handle(arguments: dict[str, Any], request: Request) -> dict[str, Any]:
       - encounter_text: str — optional EMR text.
 
     Returns the ComplianceGuardrailOutputSchema dict:
-      - risk_conclusion: "LOW_RISK" | "MEDIUM_RISK" | "HIGH_RISK"
-      - drg_dip_sensitive_items: list[dict]
-      - compliance_checks: list[dict]
-      - risk_level: str
-      - audit_advice: str
+      - review_conclusion: "PASS" | "WARNING" | "FAIL"
+      - issues_found: list[dict]
+      - manual_review_required: bool
+      - drg_suggestion: str
+      - reviewed_codes: list[dict]
+      - compliance_checks: dict[str, bool]
+      - rule_set: str
+      - fired_rules: list[str]
       - trace_refs: dict
     """
     from official_agents.compliance_guardrail.agent import run as _run

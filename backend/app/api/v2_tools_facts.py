@@ -7,7 +7,7 @@ text-generation surface to the documented Corti contract at
 ``docs/corti-reverse-engineered/feature-flows/ai-studio-fact-extraction/summary.json``).
 
 **What this endpoint is**
-- A thin HTTP wrapper around ``llm_service.chat`` that extracts structured
+- A thin HTTP wrapper around the canonical ``LLMGateway`` that extracts structured
   clinical facts (Corti kebab-case ``group`` taxonomy) from supplied text and
   projects the model output to the Corti ``{facts, outputLanguage, usageInfo}``
   shape.
@@ -16,8 +16,8 @@ text-generation surface to the documented Corti contract at
 - NOT a replacement for the legacy ``/api/facts/extract`` (iCoDer Chinese-schema
   ``chief_complaint / diagnosis_facts / drug_facts / ...`` surface). The legacy
   endpoint stays; its wire-shape differs from Corti and is out of scope here.
-- NOT yet OAuth-scoped (``facts`` capability scope wiring lands with the Phase
-  1.2 OAuth client integration).
+- Authenticated through the shared user/tenant boundary; a mock or degraded
+  provider is never promoted as clinical output.
 
 Field mapping (Corti ↔ iCoDer) is documented in
 ``docs/PHASE_1_2_FACTSR_FACTS_EXTRACTION.md``.
@@ -28,11 +28,14 @@ from __future__ import annotations
 import json
 import logging
 import os
-from typing import Any
+from typing import Any, List
 
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.middleware.auth import get_current_user
+from app.database import get_db
+from app.middleware.auth import get_current_organization, get_current_user
+from app.models.organization import Organization
 from app.models.user import User
 from app.schemas.v2_tools_facts import (
     FACTSR_SYSTEM_PROMPT_EN,
@@ -43,11 +46,46 @@ from app.schemas.v2_tools_facts import (
     ICODER_FACTS_NATIVE_LANGUAGES,
     default_output_language,
 )
-from app.services.llm_service import llm_service
-
+from app.services.clinical_fact_repository import clinical_fact_repository
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v2/tools", tags=["v2-tools"])
+
+
+def _fact_scope(
+    current_user: User,
+    current_org: Organization,
+    interaction_id: str,
+) -> dict[str, str]:
+    interaction_id = interaction_id.strip()
+    organization_id = str(getattr(current_org, "id", "") or "")
+    owner_id = str(getattr(current_user, "id", "") or "")
+    if not interaction_id or len(interaction_id) > 160:
+        raise HTTPException(status_code=400, detail="interaction_id_invalid")
+    if not organization_id or not owner_id:
+        raise HTTPException(status_code=403, detail="organization_context_required")
+    return {
+        "organization_id": organization_id,
+        "owner_id": owner_id,
+        "interaction_id": interaction_id,
+    }
+
+
+def _validate_fact_fields(text: str, group: str, source: str) -> tuple[str, str, str]:
+    text = (text or "").strip()
+    group = (group or "").strip()
+    source = (source or "").strip().casefold()
+    if not text or len(text) > 4000:
+        raise HTTPException(status_code=422, detail="fact_text_invalid")
+    if not group or len(group) > 96:
+        raise HTTPException(status_code=422, detail="fact_group_invalid")
+    if source not in {"core", "system", "user"}:
+        raise HTTPException(status_code=422, detail="fact_source_invalid")
+    return text, group, source
+
+
+def _iso(value: Any) -> str:
+    return value.isoformat().replace("+00:00", "Z")
 
 
 # ─── Credit estimation ───────────────────────────────────────────────
@@ -64,8 +102,10 @@ def _estimate_credits(usage: Any) -> float:
         return 0.0
     total = usage.get("total_tokens")
     if total is None:
-        prompt = usage.get("prompt_tokens", 0) or 0
-        completion = usage.get("completion_tokens", 0) or 0
+        prompt = usage.get("prompt_tokens", usage.get("input_tokens", 0)) or 0
+        completion = usage.get(
+            "completion_tokens", usage.get("output_tokens", 0)
+        ) or 0
         total = prompt + completion
     try:
         return round(max(0.0, float(total) / 1000.0 * _CREDITS_PER_1K_TOKENS), 6)
@@ -97,15 +137,17 @@ def _parse_facts(raw: str) -> list[FactItem]:
     domain-specific or future groups don't get dropped.
     """
     if not raw or not raw.strip():
-        return []
+        raise ValueError("facts_provider_content_empty")
     try:
         parsed = json.loads(_strip_code_fence(raw))
-    except (json.JSONDecodeError, ValueError):
-        return []
+    except (json.JSONDecodeError, ValueError) as exc:
+        raise ValueError("facts_provider_json_invalid") from exc
     if isinstance(parsed, dict):
-        parsed = parsed.get("facts", [])
+        if "facts" not in parsed:
+            raise ValueError("facts_provider_contract_invalid")
+        parsed = parsed["facts"]
     if not isinstance(parsed, list):
-        return []
+        raise ValueError("facts_provider_contract_invalid")
 
     facts: list[FactItem] = []
     for row in parsed:
@@ -117,7 +159,32 @@ def _parse_facts(raw: str) -> list[FactItem]:
         if not text and not value:
             continue
         facts.append(FactItem(group=group, text=text, value=value or text))
+    if parsed and not facts:
+        raise ValueError("facts_provider_rows_invalid")
     return facts
+
+
+async def _invoke_facts_model(messages: list[dict[str, str]]) -> dict[str, Any]:
+    """Use the canonical gateway and reject all mock/degraded fallbacks."""
+    from app.main import app as application
+
+    gateway = getattr(application.state, "platform_gateway", None)
+    if gateway is None:
+        raise RuntimeError("platform_gateway_unavailable")
+    result = await gateway.generate(
+        messages,
+        response_schema={
+            "type": "object",
+            "required": ["facts"],
+            "properties": {"facts": {"type": "array"}},
+        },
+        context={"operation": "corti_extract_facts", "clinical": True},
+    )
+    if not isinstance(result, dict):
+        raise RuntimeError("facts_provider_response_invalid")
+    if result.get("degraded") is True or result.get("is_mock") is True:
+        raise RuntimeError("facts_provider_degraded")
+    return result
 
 
 # ─── Endpoint ────────────────────────────────────────────────────────
@@ -193,23 +260,39 @@ async def post_v2_tools_extract_facts(
             redactor = PIIRedactor(enabled=True)
             messages, _ = redactor.redact_messages(messages)
         except Exception as _pii_err:
-            logger.warning(f"PII redaction skipped (non-fatal): {_pii_err!r}")
+            logger.error(
+                "facts PHI redaction failed error_type=%s",
+                type(_pii_err).__name__,
+            )
+            raise HTTPException(
+                status_code=503,
+                detail={"error": "phi_redaction_failed"},
+            ) from _pii_err
 
     # ── 5. Run the extraction inference ────────────────────────────────
     try:
-        result = await llm_service.chat(messages=messages, temperature=0.0, max_tokens=2048)
+        result = await _invoke_facts_model(messages)
     except Exception as exc:
-        logger.error(f"/api/v2/tools/extract-facts llm_service.chat failed: {exc!r}")
-        raise HTTPException(
-            status_code=502,
-            detail={"error": "facts_extraction_failed", "reason": str(exc)[:200]},
+        logger.error(
+            "/api/v2/tools/extract-facts gateway failed error_type=%s",
+            type(exc).__name__,
         )
+        raise HTTPException(
+            status_code=503,
+            detail={"error": "facts_extraction_failed", "reason": str(exc)[:200]},
+        ) from exc
 
     content = result.get("content", "") if isinstance(result, dict) else ""
     usage = result.get("usage", None) if isinstance(result, dict) else None
 
     # ── 6. Corti-shape projection ──────────────────────────────────────
-    facts = _parse_facts(content)
+    try:
+        facts = _parse_facts(content)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail={"error": "facts_response_invalid", "reason": str(exc)},
+        ) from exc
     return FactExtractResponse(
         facts=facts,
         outputLanguage=out_lang,
@@ -227,13 +310,8 @@ async def post_v2_tools_extract_facts(
 # Distinct from Phase 1.2 cycle 1 §3.2/§13.4 extract-facts (LLM call) —
 # list-facts is a CRUD-style read of stored facts.
 #
-# **Stub strategy** (no DB):
-#   - ``empty-{uuid}`` interaction_id → ``facts: []`` (exercises the
-#     empty envelope path)
-#   - default → 2 facts with mixed group/source (core + system) and
-#     evidence with reference/quote echoed from interaction_id prefix.
-#   - ``facts[*].id`` and ``facts[*].groupId`` echo interaction_id so
-#     SDK callers can verify the path-echo contract.
+# Facts are read from encrypted, tenant/principal-scoped durable storage.
+# Unknown interactions return an empty envelope and never synthesize rows.
 
 from app.schemas.v2_tools_facts import (
     FactsEvidence,
@@ -242,57 +320,23 @@ from app.schemas.v2_tools_facts import (
 )
 
 
-def _stub_facts_for_interaction(interaction_id: str) -> List[FactsListItem]:
-    """Deterministic stub data per interaction UUID.
-
-    Returns ``[]`` when interaction_id starts with ``empty-`` so callers
-    can verify the spec's empty-envelope path. Otherwise returns 2 facts
-    with mixed ``source`` and ``group`` values, each with one evidence
-    row whose ``reference`` and ``quote`` echo the interaction_id.
-    """
-    if interaction_id.startswith("empty-"):
-        return []
-
-    # Derive a deterministic short tag from interaction_id so tests can
-    # assert path-echo without hard-coding UUIDs.
-    short_tag = interaction_id.replace("-", "")[:12]
-    ts = "2026-07-01T12:00:00Z"
-    return [
-        FactsListItem(
-            id=f"{interaction_id}-fact-{short_tag}-01",
-            text="67-year-old male presenting with recurrent chest tightness.",
-            group="demographics",
-            groupId=f"{interaction_id}-grp-{short_tag}-01",
-            isDiscarded=False,
-            source="core",
-            createdAt=ts,
-            updatedAt=ts,
-            evidence=[
-                FactsEvidence(
-                    type="transcript",
-                    reference=f"/interactions/{interaction_id}/transcripts/{short_tag}",
-                    quote="67-year-old male, recurrent chest tightness for 3 days.",
-                ),
-            ],
-        ),
-        FactsListItem(
-            id=f"{interaction_id}-fact-{short_tag}-02",
-            text="LVEF 38% on echocardiogram (2026-06-28).",
-            group="imaging-results",
-            groupId=f"{interaction_id}-grp-{short_tag}-02",
-            isDiscarded=False,
-            source="system",
-            createdAt=ts,
-            updatedAt=ts,
-            evidence=[
-                FactsEvidence(
-                    type="report",
-                    reference=f"/interactions/{interaction_id}/recordings/{short_tag}",
-                    quote="LVEF 38%; mild mitral regurgitation.",
-                ),
-            ],
-        ),
+def _fact_list_item(row: Any) -> FactsListItem:
+    evidence = [
+        FactsEvidence.model_validate(item)
+        for item in clinical_fact_repository.evidence(row)
+        if isinstance(item, dict)
     ]
+    return FactsListItem(
+        id=row.fact_id,
+        text=clinical_fact_repository.text(row),
+        group=row.group_key,
+        groupId=row.group_id,
+        isDiscarded=row.is_discarded,
+        source=row.source,
+        createdAt=_iso(row.created_at),
+        updatedAt=_iso(row.updated_at),
+        evidence=evidence,
+    )
 
 
 @router.get("/interactions/{interaction_id}/facts", response_model=FactsListResponse)
@@ -300,6 +344,8 @@ def _stub_facts_for_interaction(interaction_id: str) -> List[FactsListItem]:
 async def get_v2_tools_interaction_facts(
     interaction_id: str,
     current_user: User = Depends(get_current_user),
+    current_org: Organization = Depends(get_current_organization),
+    db: AsyncSession = Depends(get_db),
 ):
     """Corti §13.5 facts_list — list facts for an interaction.
 
@@ -307,15 +353,16 @@ async def get_v2_tools_interaction_facts(
     Path: ``/api/v2/tools/interactions/{interaction_id}/facts/`` (mounted
     under the existing ``/api/v2/tools`` prefix).
 
-    Returns a ``{facts: [...]}`` envelope. Stub does NOT hit a DB —
-    ``empty-{uuid}`` interaction IDs return an empty list; all other
-    IDs return 2 deterministic facts whose ``id``/``groupId``/``reference``
-    echo the interaction_id (path-echo contract).
+    Returns the durable, encrypted and tenant/principal-scoped facts for the
+    interaction. Unknown interactions return an empty list.
 
     Error response per spec is **504** (RFC9457 ``ErrorResponse``).
     """
-    facts = _stub_facts_for_interaction(interaction_id)
-    return FactsListResponse(facts=facts)
+    rows = await clinical_fact_repository.list(
+        db,
+        **_fact_scope(current_user, current_org, interaction_id),
+    )
+    return FactsListResponse(facts=[_fact_list_item(row) for row in rows])
 
 
 # ─── Phase 1.3 cycle 14 — Facts ADD (Corti §13.5) ──────────────────
@@ -326,12 +373,12 @@ async def get_v2_tools_interaction_facts(
 # This is the **second endpoint of the §13.5 Facts family** (4 more to
 # follow). Distinct from Phase 1.2 cycle 1 §3.2/§13.4 extract-facts
 # (LLM call) — add-facts is a CRUD-style create where the caller
-# supplies the fact text+group; iCoDer just echoes back the created
-# facts with deterministic server-assigned ids and timestamps.
+# supplies the fact text+group; iCoDer persists the created facts with
+# opaque server-assigned ids and timestamps.
 #
-# **Stub strategy** (no DB):
-#   - Echoes each input fact back with server-assigned
-#     ``id``/``groupId``/``updatedAt`` (deterministic per interaction_id).
+# **Persistence semantics**:
+#   - Returns each newly stored fact with server-assigned
+#     ``id``/``groupId``/``updatedAt``.
 #   - ``source`` defaults to ``"user"`` when caller omits it (per spec,
 #     source is optional).
 #   - ``isDiscarded`` defaults to ``False`` on every create.
@@ -343,32 +390,16 @@ from app.schemas.v2_tools_facts import (
 )
 
 
-def _stub_create_facts(
-    interaction_id: str, body: FactsCreateRequest
-) -> List[FactsCreateItem]:
-    """Echo input facts back with deterministic server-assigned ids.
-
-    Each returned fact mirrors the input ``text``/``group``/``source``
-    and adds server-assigned ``id``/``groupId``/``updatedAt``. Path
-    UUIDs are echoed so SDK callers can verify the contract.
-    """
-    short_tag = interaction_id.replace("-", "")[:12]
-    ts = "2026-07-01T12:00:00Z"
-    out: List[FactsCreateItem] = []
-    for i, fact_in in enumerate(body.facts, start=1):
-        idx = f"{i:02d}"
-        out.append(
-            FactsCreateItem(
-                id=f"{interaction_id}-fact-{short_tag}-{idx}",
-                text=fact_in.text,
-                group=fact_in.group,
-                groupId=f"{interaction_id}-grp-{short_tag}-{idx}",
-                source=fact_in.source or "user",
-                isDiscarded=False,
-                updatedAt=ts,
-            )
-        )
-    return out
+def _fact_create_item(row: Any) -> FactsCreateItem:
+    return FactsCreateItem(
+        id=row.fact_id,
+        text=clinical_fact_repository.text(row),
+        group=row.group_key,
+        groupId=row.group_id,
+        source=row.source,
+        isDiscarded=row.is_discarded,
+        updatedAt=_iso(row.updated_at),
+    )
 
 
 @router.post("/interactions/{interaction_id}/facts", response_model=FactsCreateResponse)
@@ -377,6 +408,8 @@ async def post_v2_tools_interaction_facts(
     interaction_id: str,
     body: FactsCreateRequest,
     current_user: User = Depends(get_current_user),
+    current_org: Organization = Depends(get_current_organization),
+    db: AsyncSession = Depends(get_db),
 ):
     """Corti §13.5 facts_create — add facts to an interaction.
 
@@ -387,14 +420,28 @@ async def post_v2_tools_interaction_facts(
     Request body: ``{facts: [{text, group, source?}, ...]}``.
     Response: ``{facts: [{id, text, group, groupId, source, isDiscarded, updatedAt}, ...]}``.
 
-    Stub does NOT persist (no DB). Each input fact is echoed back with
-    deterministic server-assigned ``id``/``groupId``/``updatedAt`` and
-    ``isDiscarded=False``.
+    Facts are persisted with tenant/principal scope and encrypted text.
 
     Error response per spec is **504** (RFC9457 ``ErrorResponse``).
     """
-    facts = _stub_create_facts(interaction_id, body)
-    return FactsCreateResponse(facts=facts)
+    if len(body.facts) > 100:
+        raise HTTPException(status_code=422, detail="facts_count_invalid")
+    scope = _fact_scope(current_user, current_org, interaction_id)
+    rows = []
+    for fact in body.facts:
+        text, group, source = _validate_fact_fields(
+            fact.text,
+            fact.group,
+            fact.source or "user",
+        )
+        rows.append(await clinical_fact_repository.create(
+            db,
+            **scope,
+            text=text,
+            group_key=group,
+            source=source,
+        ))
+    return FactsCreateResponse(facts=[_fact_create_item(row) for row in rows])
 
 
 # ─── Phase 1.3 cycle 15 — Facts LIST-FACT-GROUPS (Corti §13.5) ─────
@@ -410,7 +457,7 @@ async def post_v2_tools_interaction_facts(
 # Returns the **catalog of fact-group keys** the platform supports
 # (e.g. demographics, chief-complaint, vital-signs, ...). iCoDer
 # reuses the canonical ``CORTI_FACT_GROUPS`` frozenset already defined
-# in ``app.schemas.v2_tools_facts`` — the stub just projects those
+# in ``app.schemas.v2_tools_facts`` and projects those
 # keys into the ``{data: [...]}`` envelope with deterministic
 # per-group UUIDs (uuid5 from a fixed namespace + key).
 
@@ -422,8 +469,8 @@ from app.schemas.v2_tools_facts import (
 )
 
 
-def _stub_fact_groups() -> List[FactsFactGroupsItem]:
-    """Build a deterministic fact-group catalog from ``CORTI_FACT_GROUPS``.
+def _fact_groups_catalog() -> List[FactsFactGroupsItem]:
+    """Build the stable fact-group catalog from ``CORTI_FACT_GROUPS``.
 
     Each group gets a stable UUID5 derived from a fixed namespace and
     the kebab-case key, plus a single en-US translation row with the
@@ -469,7 +516,7 @@ async def get_v2_tools_fact_groups(
     The ``data`` field is required; individual item fields are all
     optional per spec.
 
-    Stub is deterministic — every call returns the same set of group
+    The catalog is deterministic — every call returns the same set of group
     rows derived from ``CORTI_FACT_GROUPS`` (17 keys at last count).
     Group UUIDs are uuid5 from a fixed namespace + kebab-case key, so
     SDK callers can cache them across requests.
@@ -477,7 +524,7 @@ async def get_v2_tools_fact_groups(
     Error response per spec is **500** (RFC9457 ``ErrorResponse``) —
     note this differs from the 504 in list-facts/add-facts.
     """
-    items = _stub_fact_groups()
+    items = _fact_groups_catalog()
     return FactsFactGroupsListResponse(data=items)
 
 
@@ -490,22 +537,26 @@ async def get_v2_tools_fact_groups(
 # follow: update-facts batch). Distinct from add-facts (cycle 14) — this
 # is PATCH (in-place update) of an existing fact.
 #
-# **Stub strategy** (no DB):
-#   - PATCH semantics: only fields present in the request body are
-#     changed; omitted fields retain their "current" value.
-#   - Since there's no DB, the stub tracks the "current" value as the
-#     most recent state for each (interaction_id, fact_id) — but
-#     because every test sends a fresh request, we approximate by
-#     using sensible defaults: text="(unchanged)", group="other",
-#     source="user", isDiscarded=False, groupId derived from
-#     interaction_id, createdAt/updatedAt deterministic.
-#   - Path UUIDs are echoed into response id and groupId so SDK
-#     callers can verify the path-echo contract.
+# PATCH semantics update only fields present in the request. Missing or
+# cross-scope fact ids return 404; omitted fields retain persisted values.
 
 from app.schemas.v2_tools_facts import (
     FactsUpdateRequest,
     FactsUpdateResponse,
 )
+
+
+def _fact_update_response(row: Any) -> FactsUpdateResponse:
+    return FactsUpdateResponse(
+        id=row.fact_id,
+        text=clinical_fact_repository.text(row),
+        group=row.group_key,
+        groupId=row.group_id,
+        source=row.source,
+        isDiscarded=row.is_discarded,
+        createdAt=_iso(row.created_at),
+        updatedAt=_iso(row.updated_at),
+    )
 
 
 @router.patch("/interactions/{interaction_id}/facts/{fact_id}", response_model=FactsUpdateResponse)
@@ -514,6 +565,8 @@ async def patch_v2_tools_interaction_fact(
     fact_id: str,
     body: FactsUpdateRequest,
     current_user: User = Depends(get_current_user),
+    current_org: Organization = Depends(get_current_organization),
+    db: AsyncSession = Depends(get_db),
 ):
     """Corti §13.5 facts_update — update a single fact.
 
@@ -526,25 +579,36 @@ async def patch_v2_tools_interaction_fact(
     Response: ``{id, text, group, groupId, source, isDiscarded, createdAt, updatedAt}``
     — all 8 fields **required** per spec.
 
-    Stub does NOT persist (no DB). Fields present in the request body
-    override defaults; omitted fields use deterministic placeholder
-    values (``text="(unchanged)"``, ``group="other"``, ``source="user"``,
-    ``isDiscarded=False``). Path UUIDs are echoed into response
-    ``id`` (== fact_id) and ``groupId`` (derived from interaction_id).
+    The update is persisted in encrypted, tenant/principal-scoped storage.
+    Fields omitted from the PATCH body retain their existing values.
 
     Error response per spec is **504** (RFC9457 ``ErrorResponse``).
     """
-    short_tag = interaction_id.replace("-", "")[:12]
-    return FactsUpdateResponse(
-        id=fact_id,
-        text=body.text if body.text is not None else "(unchanged)",
-        group=body.group if body.group is not None else "other",
-        groupId=f"{interaction_id}-grp-{short_tag}",
-        source=body.source if body.source is not None else "user",
-        isDiscarded=body.isDiscarded if body.isDiscarded is not None else False,
-        createdAt="2026-07-01T12:00:00Z",
-        updatedAt="2026-07-01T12:00:01Z",
+    scope = _fact_scope(current_user, current_org, interaction_id)
+    row = await clinical_fact_repository.get(db, **scope, fact_id=fact_id)
+    if row is None:
+        raise HTTPException(status_code=404, detail="fact_not_found")
+    if body.text is not None and (
+        not body.text.strip() or len(body.text.strip()) > 4000
+    ):
+        raise HTTPException(status_code=422, detail="fact_text_invalid")
+    if body.group is not None and (
+        not body.group.strip() or len(body.group.strip()) > 96
+    ):
+        raise HTTPException(status_code=422, detail="fact_group_invalid")
+    if body.source is not None and body.source.strip().casefold() not in {
+        "core", "system", "user",
+    }:
+        raise HTTPException(status_code=422, detail="fact_source_invalid")
+    row = await clinical_fact_repository.update(
+        db,
+        row,
+        text=body.text.strip() if body.text is not None else None,
+        group_key=body.group.strip() if body.group is not None else None,
+        source=body.source.strip().casefold() if body.source is not None else None,
+        is_discarded=body.isDiscarded,
     )
+    return _fact_update_response(row)
 
 
 # ─── Phase 1.3 cycle 17 — Facts UPDATE-FACTS BATCH (Corti §13.5) ──
@@ -560,14 +624,8 @@ async def patch_v2_tools_interaction_fact(
 # - **NO ``source`` field in batch request** (per spec — only factId,
 #   text, group, isDiscarded are updateable via batch).
 #
-# **Stub strategy** (no DB):
-#   - Each input fact is echoed back with all 8 required response fields
-#     populated. Fields present in the input override defaults; omitted
-#     fields use deterministic placeholders.
-#   - Path UUIDs are echoed: ``id`` == input.factId, ``groupId`` derived
-#     from ``interaction_id``.
-#   - Source is NOT in the request (per spec) but IS in the response —
-#     stub defaults to "user".
+# Batch updates validate the full request before mutation, reject duplicate or
+# missing fact ids, and preserve each row's source (not mutable in this shape).
 
 from app.schemas.v2_tools_facts import (
     FactsBatchUpdateItem,
@@ -582,6 +640,8 @@ async def patch_v2_tools_interaction_facts_batch(
     interaction_id: str,
     body: FactsBatchUpdateRequest,
     current_user: User = Depends(get_current_user),
+    current_org: Organization = Depends(get_current_organization),
+    db: AsyncSession = Depends(get_db),
 ):
     """Corti §13.5 facts_batch_update — batch update multiple facts.
 
@@ -594,26 +654,41 @@ async def patch_v2_tools_interaction_facts_batch(
     Response: ``{facts: [{id, text, group, groupId, source, isDiscarded, createdAt, updatedAt}, ...]}``
     — all 8 fields **required** per spec, per item.
 
-    Stub does NOT persist (no DB). Each input fact is echoed back with
-    deterministic server-assigned ``createdAt``/``updatedAt`` and
-    path-echoed ``id`` (== input.factId) + ``groupId`` (derived from
-    interaction_id).
+    All fact ids are resolved within the authenticated interaction scope before
+    any mutation; valid rows are then updated in request order.
 
     Error response per spec is **504** (RFC9457 ``ErrorResponse``).
     """
-    short_tag = interaction_id.replace("-", "")[:12]
+    if len(body.facts) > 100:
+        raise HTTPException(status_code=422, detail="facts_count_invalid")
+    fact_ids = [item.factId for item in body.facts]
+    if len(fact_ids) != len(set(fact_ids)):
+        raise HTTPException(status_code=422, detail="duplicate_fact_id")
+    scope = _fact_scope(current_user, current_org, interaction_id)
+    scoped_rows = await clinical_fact_repository.list(db, **scope)
+    rows = {row.fact_id: row for row in scoped_rows if row.fact_id in fact_ids}
+    if set(rows) != set(fact_ids):
+        raise HTTPException(status_code=404, detail="fact_not_found")
+    for fact_in in body.facts:
+        if fact_in.text is not None and (
+            not fact_in.text.strip() or len(fact_in.text.strip()) > 4000
+        ):
+            raise HTTPException(status_code=422, detail="fact_text_invalid")
+        if fact_in.group is not None and (
+            not fact_in.group.strip() or len(fact_in.group.strip()) > 96
+        ):
+            raise HTTPException(status_code=422, detail="fact_group_invalid")
     out: List[FactsBatchUpdateItem] = []
     for fact_in in body.facts:
+        row = await clinical_fact_repository.update(
+            db,
+            rows[fact_in.factId],
+            text=fact_in.text.strip() if fact_in.text is not None else None,
+            group_key=fact_in.group.strip() if fact_in.group is not None else None,
+            is_discarded=fact_in.isDiscarded,
+        )
+        projected = _fact_update_response(row)
         out.append(
-            FactsBatchUpdateItem(
-                id=fact_in.factId,
-                text=fact_in.text if fact_in.text is not None else "(unchanged)",
-                group=fact_in.group if fact_in.group is not None else "other",
-                groupId=f"{interaction_id}-grp-{short_tag}",
-                source="user",  # not in request per spec
-                isDiscarded=fact_in.isDiscarded if fact_in.isDiscarded is not None else False,
-                createdAt="2026-07-01T12:00:00Z",
-                updatedAt="2026-07-01T12:00:01Z",
-            )
+            FactsBatchUpdateItem(**projected.model_dump())
         )
     return FactsBatchUpdateResponse(facts=out)

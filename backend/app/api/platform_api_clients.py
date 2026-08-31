@@ -40,6 +40,11 @@ from app.middleware.auth import get_current_organization, get_current_user
 from app.models.oauth import OAuthClient
 from app.models.organization import Organization
 from app.models.user import User
+from app.services.oauth_delegation import (
+    OAuthDelegationValidationError,
+    normalize_purpose_grants,
+    validate_agent_grants_exist,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -62,6 +67,16 @@ class ClientCreate(BaseModel):
     )
     embedded_app_id: Optional[str] = None
     token_expires_seconds: int = Field(default=300, ge=60, le=3600)
+    allowed_agent_ids: list[str] = Field(
+        default_factory=list,
+        max_length=64,
+        description="Exact runnable Agent IDs. Empty means Agent Run is denied.",
+    )
+    allowed_purposes: list[str] = Field(
+        default_factory=list,
+        max_length=6,
+        description="Explicit purpose-of-use grants. Empty means Agent Run is denied.",
+    )
 
 
 class ClientUpdateScopes(BaseModel):
@@ -72,6 +87,11 @@ class ClientUpdateOrigins(BaseModel):
     allowed_origins: list[str] = Field(
         ..., description="Exact Origin strings. Empty list = deny all embeds.",
     )
+
+
+class ClientUpdateDelegation(BaseModel):
+    allowed_agent_ids: list[str] = Field(default_factory=list, max_length=64)
+    allowed_purposes: list[str] = Field(default_factory=list, max_length=6)
 
 
 class ClientRotate(BaseModel):
@@ -91,6 +111,8 @@ class ClientSummary(BaseModel):
     last_used_at: Optional[datetime]
     allowed_origins: list[str]
     embedded_app_id: Optional[str]
+    allowed_agent_ids: list[str]
+    allowed_purposes: list[str]
     token_expires_seconds: int
     created_at: datetime
     updated_at: datetime
@@ -115,6 +137,8 @@ class ClientTestResponse(BaseModel):
     client_id: str
     is_active: bool
     granted_scopes: list[str]
+    allowed_agent_ids: list[str]
+    allowed_purposes: list[str]
     message: str
 
 
@@ -123,10 +147,12 @@ class ClientTestResponse(BaseModel):
 
 _VALID_SCOPES = {
     "agents:run", "runs:read", "traces:read", "usage:read",
+    "feedback:read", "feedback:write", "feedback:evaluate",
     "contexts:write", "cdi:run", "medical-coding:run", "drg-dip:run",
     # Legacy / capability scopes (kept for backward compat with Phase 1.0 clients):
     "api:read", "api:write",
     "transcribe", "streams", "textgen", "facts", "openid",
+    "coding:validate", "compliance:evaluate", "documentation:check",
 }
 
 
@@ -182,6 +208,32 @@ def _validate_origins(origins: list[str]) -> list[str]:
     return cleaned
 
 
+def _delegation_http_error(exc: OAuthDelegationValidationError) -> HTTPException:
+    return HTTPException(
+        status_code=400,
+        detail={"code": exc.code, "values": exc.values},
+    )
+
+
+async def _validated_delegation(
+    db: AsyncSession,
+    *,
+    organization_id: str,
+    agent_ids: list[str],
+    purposes: list[str],
+) -> tuple[list[str], list[str]]:
+    try:
+        agents = await validate_agent_grants_exist(
+            db,
+            organization_id=organization_id,
+            agent_ids=agent_ids,
+        )
+        normalized_purposes = normalize_purpose_grants(purposes)
+    except OAuthDelegationValidationError as exc:
+        raise _delegation_http_error(exc) from exc
+    return agents, normalized_purposes
+
+
 def _to_summary(c: OAuthClient) -> ClientSummary:
     return ClientSummary(
         client_id=c.client_id,
@@ -194,6 +246,8 @@ def _to_summary(c: OAuthClient) -> ClientSummary:
         last_used_at=c.last_used_at,
         allowed_origins=list(c.allowed_origins or []),
         embedded_app_id=c.embedded_app_id,
+        allowed_agent_ids=sorted(c.delegated_agent_ids()),
+        allowed_purposes=sorted(c.delegated_purposes()),
         token_expires_seconds=int(c.token_expires_seconds or 300),
         created_at=c.created_at,
         updated_at=c.updated_at,
@@ -253,6 +307,12 @@ async def create_client(
     """
     scopes = _validate_scopes(body.scopes)
     origins = _validate_origins(body.allowed_origins)
+    allowed_agent_ids, allowed_purposes = await _validated_delegation(
+        db,
+        organization_id=current_org.id,
+        agent_ids=body.allowed_agent_ids,
+        purposes=body.allowed_purposes,
+    )
     client_id = OAuthClient.generate_client_id("icoder")
     plaintext, secret_hash = OAuthClient.generate_client_secret()
     owner_id = str(getattr(current_user, "id", "") or "")
@@ -268,13 +328,16 @@ async def create_client(
         token_expires_seconds=int(body.token_expires_seconds),
         allowed_origins=origins,
         embedded_app_id=body.embedded_app_id,
+        allowed_agent_ids=allowed_agent_ids,
+        allowed_purposes=allowed_purposes,
     )
     db.add(client)
     await db.commit()
     await db.refresh(client)
     logger.info(
-        "phase7: API Client created client_id=%s org=%s owner=%s scopes=%s origins=%d",
+        "phase7: API Client created client_id=%s org=%s owner=%s scopes=%s origins=%d agents=%d purposes=%d",
         client_id, current_org.id, owner_id, scopes, len(origins),
+        len(allowed_agent_ids), len(allowed_purposes),
     )
     base = _to_summary(client)
     return ClientCreateResponse(
@@ -435,6 +498,32 @@ async def update_origins(
     return _to_summary(c)
 
 
+@router.patch(
+    "/{client_id}/delegation",
+    response_model=ClientSummary,
+    operation_id="phase7_update_api_client_delegation",
+)
+async def update_delegation(
+    client_id: str,
+    body: ClientUpdateDelegation,
+    current_org: Organization = Depends(get_current_organization),
+    db: AsyncSession = Depends(get_db),
+) -> ClientSummary:
+    """Replace exact Agent and purpose grants; empty lists revoke all runs."""
+    c = await _get_owned(db, client_id=client_id, org_id=current_org.id)
+    agents, purposes = await _validated_delegation(
+        db,
+        organization_id=current_org.id,
+        agent_ids=body.allowed_agent_ids,
+        purposes=body.allowed_purposes,
+    )
+    c.allowed_agent_ids = agents
+    c.allowed_purposes = purposes
+    await db.commit()
+    await db.refresh(c)
+    return _to_summary(c)
+
+
 @router.post(
     "/{client_id}/test",
     response_model=ClientTestResponse,
@@ -453,15 +542,26 @@ async def test_connection(
     """
     c = await _get_owned(db, client_id=client_id, org_id=current_org.id)
     granted = sorted(c.granted_scopes())
+    allowed_agents = sorted(c.delegated_agent_ids())
+    allowed_purposes = sorted(c.delegated_purposes())
+    delegation_ready = (
+        "agents:run" not in granted
+        or bool(allowed_agents and allowed_purposes)
+    )
     return ClientTestResponse(
-        ok=bool(c.is_active and granted),
+        ok=bool(c.is_active and granted and delegation_ready),
         client_id=c.client_id,
         is_active=bool(c.is_active),
         granted_scopes=granted,
+        allowed_agent_ids=allowed_agents,
+        allowed_purposes=allowed_purposes,
         message=(
-            "Client is active and has scopes." if c.is_active and granted
+            "Client is active and fully configured."
+            if c.is_active and granted and delegation_ready
             else "Client is disabled." if not c.is_active
             else "Client has no granted scopes."
+            if not granted
+            else "Agent Run delegation requires Agent and purpose grants."
         ),
     )
 

@@ -168,18 +168,25 @@ class FastCodingRuntime:
         })
 
         try:
-            schema = await adapter.infer_async(messages)
+            schema = await adapter.infer_async(
+                messages,
+                context={
+                    "coding_systems": list(request.coding_systems),
+                    "project_policy": request.project_policy,
+                },
+            )
         except Exception as exc:
             logger.error(
-                f"FastCodingRuntime: DeepSeekCodingAdapter.infer_async failed: {exc!r}",
+                "FastCodingRuntime: DeepSeekCodingAdapter.infer_async failed: type=%s",
+                type(exc).__name__,
                 exc_info=True,
             )
-            _emit("llm_call", "error", {"reason": str(exc)[:200]})
+            _emit("llm_call", "error", {"reason": "provider_call_failed"})
             _emit("return", "error", {"reason": "llm_call_failed"})
             latency_ms = int((time.perf_counter() - started) * 1000)
             return CodingResult(
                 codes=[],
-                summary=f"编码推理失败: {str(exc)[:200]}。可重试或切换至 Deep Evidence 模式。",
+                summary="编码推理失败。可重试或切换至 Deep Evidence 模式。",
                 runtime_mode="corti_like_fast",
                 latency_ms=latency_ms,
                 llm_provider="deepseek",
@@ -325,6 +332,8 @@ class FastCodingRuntime:
         # raw_schema keeps the original MedicalCodingOutputSchema dict so
         # downstream consumers (DiagnosisCard, evaluation harness) work.
         raw_schema_dict = schema.to_dict() if hasattr(schema, "to_dict") else {}
+        provider_cost = max(float(getattr(schema, "cost_usd", 0.0) or 0.0), 0.0)
+        token_usage = dict(getattr(schema, "token_usage", {}) or {})
 
         return CodingResult(
             codes=codes,
@@ -334,7 +343,12 @@ class FastCodingRuntime:
             llm_provider="deepseek",
             trace_id=trace_id,
             run_id=run_id,
-            cost={"amount": 0.0, "currency": "internal_credit"},
+            cost={
+                "amount": provider_cost,
+                "currency": "CNY",
+                "source": "provider_token_usage" if token_usage else "not_reported",
+                "token_usage": token_usage,
+            },
             raw_schema=raw_schema_dict,
             trace_events=events,
         )

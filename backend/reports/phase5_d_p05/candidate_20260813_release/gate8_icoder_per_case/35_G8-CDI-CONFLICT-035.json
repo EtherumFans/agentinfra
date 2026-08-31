@@ -1,0 +1,346 @@
+{
+  "case_id": "CASE-9fdf0d17a3da",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-9fdf0d17a3da/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "出院诊断中糖尿病未明确分型（1型或2型），且未提及慢性肾病，与入院诊断和病程记录不一致。",
+      "why_it_matters": "糖尿病分型影响治疗和编码，慢性肾病未在出院诊断中体现可能导致合并症未编码。",
+      "evidence_span": {
+        "document_id": "discharge_summary",
+        "quote": "出院诊断:<REDACTED:NAME>, 糖尿病。",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-9fdf0d17a3da/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "慢性肾病未明确分期或病因，且未在出院诊断中体现。",
+      "why_it_matters": "慢性肾病分期和病因影响严重程度和编码，未明确可能导致编码不准确。",
+      "evidence_span": {
+        "document_id": "progress_note",
+        "quote": "病程记录:<REDACTED:NAME>, 糖尿病, 慢性肾病, <REDACTED:NAME>症。",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-9fdf0d17a3da/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "高血压未明确分级或危险分层，且未提及是否继发性。",
+      "why_it_matters": "高血压分级和危险分层影响治疗和编码，未明确可能导致编码不准确。",
+      "evidence_span": {
+        "document_id": "admission_note",
+        "quote": "入院诊断:原发性高血压",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-001",
+      "gap_id": "CASE-9fdf0d17a3da/GAP-001",
+      "topic": "糖尿病分型",
+      "reason": "出院诊断仅记录'糖尿病'，未明确分型，且与入院诊断'2型糖尿病'不一致。",
+      "query_text": "出院诊断中糖尿病的具体分型是什么？",
+      "response_options": [
+        "A. 1型糖尿病",
+        "B. 2型糖尿病",
+        "C. 其他特殊类型糖尿病",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "出院诊断:<REDACTED:NAME>, 糖尿病。",
+          "char_start": 100,
+          "char_end": 126,
+          "documented_at": ""
+        },
+        {
+          "document_id": "chart",
+          "quote": "入院诊断:原发性高血压, 2型糖尿病。",
+          "char_start": 11,
+          "char_end": 30,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-004: query is grounded in or asks to decode a REDACTED placeholder"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-002",
+      "gap_id": "CASE-9fdf0d17a3da/GAP-002",
+      "topic": "慢性肾病分期及病因",
+      "reason": "病程记录提及慢性肾病，但出院诊断未体现，且未明确分期或病因。",
+      "query_text": "慢性肾病的具体分期和病因是什么？",
+      "response_options": [
+        "A. 糖尿病肾病，具体分期为...",
+        "B. 高血压肾病，具体分期为...",
+        "C. 其他病因，具体分期为...",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "病程记录:<REDACTED:NAME>, 糖尿病, 慢性肾病, <REDACTED:NAME>症。",
+          "char_start": 50,
+          "char_end": 100,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-004: query is grounded in or asks to decode a REDACTED placeholder"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-003",
+      "gap_id": "CASE-9fdf0d17a3da/GAP-003",
+      "topic": "高血压分级及危险分层",
+      "reason": "入院诊断仅写'原发性高血压'，未明确分级、危险分层及是否继发性。",
+      "query_text": "高血压的分级、危险分层及是否继发性如何描述？",
+      "response_options": [
+        "A. 原发性高血压，分级为...，危险分层为...",
+        "B. 继发性高血压，具体病因...",
+        "C. 高血压急症/亚急症",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "入院诊断:原发性高血压",
+          "char_start": 11,
+          "char_end": 22,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "CDI-Focus: resolve the documented contradiction before ancillary refinement"
+      ],
+      "status": "DEFERRED_UNTIL_CONTRADICTION_RESOLVED",
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者男性, 58岁, 入院诊断:原发性高血压, 2型糖尿病。用药记录:二甲双胍, 缬沙坦, 胰岛素。病程记录:<REDACTED:NAME>, 糖尿病, 慢性肾病, <REDACTED:NAME>症。出院诊断:<REDACTED:NAME>, 糖尿病。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者男性，58岁",
+      "入院诊断：原发性高血压",
+      "入院诊断：2型糖尿病",
+      "用药记录：二甲双胍",
+      "用药记录：缬沙坦",
+      "用药记录：胰岛素",
+      "病程记录：糖尿病",
+      "病程记录：慢性肾病",
+      "出院诊断：糖尿病"
+    ],
+    "encounter_metadata": {
+      "patient_age": "58岁",
+      "patient_sex": "男性",
+      "encounter_type": "住院"
+    }
+  },
+  "risk_flags": [
+    {
+      "category": "contradiction",
+      "description": "入院诊断和病程记录提及慢性肾病，但出院诊断未包含，存在不一致。"
+    },
+    {
+      "category": "unsupported_diagnosis",
+      "description": "慢性肾病在病程记录中提及，但无相关实验室或影像学证据支持。"
+    }
+  ],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "For accurate coding, the discharge summary must explicitly document the diabetes type (Type 1 vs. Type 2) and confirm whether chronic kidney disease (CKD) is present, including its stage (e.g., CKD stage 3a) and underlying etiology (e.g., diabetic nephropathy). Additionally, hypertension requires specification of severity (grade) and risk stratification (e.g., high risk), and any secondary cause must be ruled out or documented. Without these clinical details, the coded data will not reflect the true disease burden or acuity, risking inaccurate reimbursement and quality metrics.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3523,
+      "tokens": 310
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "'分级' score — no deterministic calculator wired",
+      "route_decision": "tool_unavailable",
+      "route_reason": "no_real_tool_wired",
+      "execution_mode": "TOOL_UNAVAILABLE",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-d7b6a65e9e26",
+    "gap_identification": "run-77fbe37be61d",
+    "gap_identification_risk_flags": "emitted=2;quote_snapped=0",
+    "expert_consultation": "run-e38bee578ae8",
+    "query_generation": "run-28bfb307db84",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.25;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=Y;dropped=0;final_count=3;llm_complete=False;llm_reasoning=出院诊断不完整，缺少慢性肾病和高血压分级，糖尿病分型未明确，需要澄清。",
+    "query_necessity_gate": "necessary=1;unnecessary=2;overquery_triggered=False;final_count=0",
+    "query_single_dimension_gate": "single_dim=0;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;rewrite_attempted=0;rewrite_accepted=0;final_count=0",
+    "claim_evidence_alignment_gate": "claims_extracted=0;blocked=0;flagged=0;final_count=0",
+    "claim_evidence_alignment_gate::run_id": "run-1f382dc45852",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+    "semantic_necessity_gate::run_id": "run-fb5176d128b1",
+    "query_compliance_gate": ";passed=0;blocked=0",
+    "specialist_trace_emit": "run-c2778c6ac953"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-b12c53089243",
+    "gap_identification": "trace-4ac8756849ba",
+    "expert_consultation": "trace-c539564c1fba",
+    "query_generation": "trace-8666d0ad6f97",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-47aa11421962",
+    "semantic_necessity_gate": "trace-58da0552bbae",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-54bee613bf0d"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3023,
+      "prompt_tokens": 244,
+      "completion_tokens": 121,
+      "total_tokens": 365,
+      "run_id": "run-d7b6a65e9e26",
+      "trace_id": "trace-b12c53089243",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6426,
+      "prompt_tokens": 1090,
+      "completion_tokens": 647,
+      "total_tokens": 1737,
+      "run_id": "run-77fbe37be61d",
+      "trace_id": "trace-4ac8756849ba",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6296,
+      "prompt_tokens": 1279,
+      "completion_tokens": 659,
+      "total_tokens": 1938,
+      "run_id": "run-28bfb307db84",
+      "trace_id": "trace-8666d0ad6f97",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3523,
+      "prompt_tokens": 194,
+      "completion_tokens": 116,
+      "total_tokens": 310,
+      "run_id": "run-897265a07ad8",
+      "trace_id": "trace-a3ff7a85c938",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-b69b037db7d3",
+      "trace_id": "trace-dfbbe18e893a",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-4993c64ef86c",
+      "trace_id": "trace-435b0cdeb8a4",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-9398eff8a007",
+      "trace_id": "trace-e47ac804c7a7",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T19:02:56.367464Z"
+}

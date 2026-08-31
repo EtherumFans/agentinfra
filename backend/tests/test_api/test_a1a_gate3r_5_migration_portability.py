@@ -242,6 +242,48 @@ def test_downgrade_upgrade_roundtrip(tmp_path) -> None:
     assert _column_exists(db_path, "run_trace_events", "event_id")
 
 
+def test_a2a_v1_interrupted_state_constraint_roundtrip(tmp_path) -> None:
+    """055 accepts only the eight supported A2A states and downgrades cleanly."""
+    import sqlite3
+
+    db_path = str(tmp_path / "a2a-v1-states.db")
+    upgraded = _run_alembic(db_path, "upgrade", "head")
+    assert upgraded.returncode == 0, upgraded.stderr
+
+    def _insert(state: str, suffix: str) -> None:
+        with sqlite3.connect(db_path) as connection:
+            connection.execute(
+                "INSERT INTO context_task_refs "
+                "(context_id, task_id, state, started_at, completed_at) "
+                "VALUES (?, ?, ?, CURRENT_TIMESTAMP, NULL)",
+                (f"context-{suffix}", f"task-{suffix}", state),
+            )
+
+    for index, state in enumerate(
+        ("input-required", "auth-required", "rejected"), start=1
+    ):
+        _insert(state, str(index))
+    with pytest.raises(sqlite3.IntegrityError):
+        _insert("awaiting-unsafe-unknown-state", "invalid")
+
+    # Target the semantic boundary explicitly. Head may gain newer migrations;
+    # ``-1`` would then only reverse the newest unrelated revision and stop
+    # before exercising 055's protected downgrade.
+    blocked = _run_alembic(db_path, "downgrade", "054")
+    assert blocked.returncode != 0
+    assert "Cannot downgrade revision 055" in blocked.stderr
+
+    with sqlite3.connect(db_path) as connection:
+        connection.execute("DELETE FROM context_task_refs")
+    downgraded = _run_alembic(db_path, "downgrade", "054")
+    assert downgraded.returncode == 0, downgraded.stderr
+    with pytest.raises(sqlite3.IntegrityError):
+        _insert("input-required", "legacy")
+
+    restored = _run_alembic(db_path, "upgrade", "head")
+    assert restored.returncode == 0, restored.stderr
+    _insert("input-required", "restored")
+
 # ────────────────────────────────────────────────────────────────────
 # §4 Interrupted recovery — simulate mid-migration crash
 # ────────────────────────────────────────────────────────────────────

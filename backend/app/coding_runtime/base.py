@@ -57,6 +57,7 @@ class CodingRequest:
     text: str
     mode: RuntimeMode = RuntimeMode.CORTI_LIKE_FAST
     coding_system: str = "icd10cn"
+    coding_systems: tuple[str, ...] = ("icd10cn",)
     include_evidence: bool = True
     include_trace: bool = True
     # Optional run_id for trace correlation. If absent, the runtime
@@ -65,6 +66,10 @@ class CodingRequest:
     # Optional user_id / tenant_id for cost attribution (filled by API layer).
     user_id: str = ""
     tenant_id: str = ""
+    # Server-resolved project specialization for a dedicated clone. It is
+    # appended under immutable source-runtime safeguards and is never copied
+    # into response or trace metadata.
+    project_policy: str = ""
 
 
 @dataclass
@@ -130,5 +135,3 @@ class CodingRuntime(Protocol):
 
     async def predict(self, request: CodingRequest) -> CodingResult:
         ...
-
-

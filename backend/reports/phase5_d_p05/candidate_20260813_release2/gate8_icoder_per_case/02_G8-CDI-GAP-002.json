@@ -1,0 +1,475 @@
+{
+  "case_id": "CASE-d050bb92d32b",
+  "completion_state": "REVIEW_RECOMMENDED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-d050bb92d32b/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "脓毒症的感染源未明确",
+      "why_it_matters": "脓毒症的编码需要明确感染源（如肺炎、尿路感染等），否则无法准确编码，且影响治疗和预后评估。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "入院诊断:脓毒症",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-d050bb92d32b/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "脓毒症相关器官功能障碍未明确",
+      "why_it_matters": "脓毒症是否伴有器官功能障碍（如乳酸升高提示组织缺氧）需要明确，以区分脓毒症和脓毒性休克，影响编码和严重程度分级。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "乳酸 4.2",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-d050bb92d32b/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "意识模糊的病因未明确",
+      "why_it_matters": "意识模糊可能是脓毒症相关脑病，也可能是其他原因，需要明确病因以准确编码和指导治疗。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "因意识模糊1天入急诊",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-d050bb92d32b/Q-001",
+      "gap_id": "CASE-d050bb92d32b/GAP-001",
+      "topic": "脓毒症感染源",
+      "reason": "入院诊断为脓毒症，但感染源未明确，需进一步明确以指导治疗。",
+      "evidence_span": {
+        "document_id": "chart-001",
+        "quote": "入院诊断:脓毒症",
+        "char_start": 61,
+        "char_end": 69,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "入院诊断:脓毒症",
+          "char_start": 61,
+          "char_end": 69,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "该患者脓毒症的感染源考虑为何？",
+      "response_options": [
+        "A. 肺部感染",
+        "B. 泌尿系感染",
+        "C. 腹腔感染",
+        "D. 皮肤软组织感染",
+        "E. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "urgent",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    },
+    {
+      "query_id": "CASE-d050bb92d32b/Q-002",
+      "gap_id": "CASE-d050bb92d32b/GAP-002",
+      "topic": "脓毒症相关器官功能障碍",
+      "reason": "乳酸升高提示组织灌注不足，但未明确具体器官功能障碍，需进一步评估。",
+      "evidence_span": {
+        "document_id": "chart-001",
+        "quote": "乳酸 4.2",
+        "char_start": 54,
+        "char_end": 60,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "乳酸 4.2",
+          "char_start": 54,
+          "char_end": 60,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "该患者脓毒症相关的器官功能障碍情况如何？",
+      "response_options": [
+        "A. 循环功能障碍（休克）",
+        "B. 呼吸功能障碍",
+        "C. 肾功能障碍",
+        "D. 凝血功能障碍",
+        "E. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "urgent",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    },
+    {
+      "query_id": "CASE-d050bb92d32b/Q-003",
+      "gap_id": "CASE-d050bb92d32b/GAP-003",
+      "topic": "意识模糊病因",
+      "reason": "患者因意识模糊入院，但病因未明确，需进一步鉴别。",
+      "evidence_span": {
+        "document_id": "chart-001",
+        "quote": "因意识模糊1天入急诊",
+        "char_start": 11,
+        "char_end": 21,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "因意识模糊1天入急诊",
+          "char_start": 11,
+          "char_end": 21,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "该患者意识模糊的可能病因是什么？",
+      "response_options": [
+        "A. 脓毒症相关性脑病",
+        "B. 代谢性脑病（如低血糖、电解质紊乱）",
+        "C. 脑血管事件（如卒中）",
+        "D. 药物或毒物因素",
+        "E. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    }
+  ],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-001",
+      "gap_id": "CASE-d050bb92d32b/GAP-001",
+      "topic": "脓毒症感染源",
+      "reason": "入院诊断为脓毒症，但感染源未明确，需进一步明确以指导治疗。",
+      "query_text": "该患者脓毒症的感染源考虑为何？",
+      "response_options": [
+        "A. 肺部感染",
+        "B. 泌尿系感染",
+        "C. 腹腔感染",
+        "D. 皮肤软组织感染",
+        "E. 其他感染源",
+        "F. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "入院诊断:脓毒症",
+          "char_start": 61,
+          "char_end": 69,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NLQ-011 (max_five_response_options): response_options count=6 (cap=5)"
+      ],
+      "status": "AUTOMATIC_COMPLIANCE_REWRITE",
+      "rewrite_kind": "BOUND_RESPONSE_OPTIONS",
+      "replacement_query_id": "Q-001",
+      "rewrite_attempt_status": "ACCEPTED_AFTER_FULL_NLQ_RECHECK",
+      "rewritten_query_text": "该患者脓毒症的感染源考虑为何？",
+      "rewritten_response_options": [
+        "A. 肺部感染",
+        "B. 泌尿系感染",
+        "C. 腹腔感染",
+        "D. 皮肤软组织感染",
+        "E. 无法确定"
+      ],
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-002",
+      "gap_id": "CASE-d050bb92d32b/GAP-002",
+      "topic": "脓毒症相关器官功能障碍",
+      "reason": "乳酸升高提示组织灌注不足，但未明确具体器官功能障碍，需进一步评估。",
+      "query_text": "该患者脓毒症相关的器官功能障碍情况如何？",
+      "response_options": [
+        "A. 循环功能障碍（休克）",
+        "B. 呼吸功能障碍",
+        "C. 肾功能障碍",
+        "D. 凝血功能障碍",
+        "E. 肝功能障碍",
+        "F. 无明确器官功能障碍",
+        "G. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "乳酸 4.2",
+          "char_start": 54,
+          "char_end": 60,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NLQ-011 (max_five_response_options): response_options count=7 (cap=5)"
+      ],
+      "status": "AUTOMATIC_COMPLIANCE_REWRITE",
+      "rewrite_kind": "BOUND_RESPONSE_OPTIONS",
+      "replacement_query_id": "Q-002",
+      "rewrite_attempt_status": "ACCEPTED_AFTER_FULL_NLQ_RECHECK",
+      "rewritten_query_text": "该患者脓毒症相关的器官功能障碍情况如何？",
+      "rewritten_response_options": [
+        "A. 循环功能障碍（休克）",
+        "B. 呼吸功能障碍",
+        "C. 肾功能障碍",
+        "D. 凝血功能障碍",
+        "E. 无法确定"
+      ],
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-003",
+      "gap_id": "CASE-d050bb92d32b/GAP-003",
+      "topic": "意识模糊病因",
+      "reason": "患者因意识模糊入院，但病因未明确，需进一步鉴别。",
+      "query_text": "该患者意识模糊的可能病因是什么？",
+      "response_options": [
+        "A. 脓毒症相关性脑病",
+        "B. 代谢性脑病（如低血糖、电解质紊乱）",
+        "C. 脑血管事件（如卒中）",
+        "D. 药物或毒物因素",
+        "E. 其他病因",
+        "F. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "因意识模糊1天入急诊",
+          "char_start": 11,
+          "char_end": 21,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NLQ-011 (max_five_response_options): response_options count=6 (cap=5)"
+      ],
+      "status": "AUTOMATIC_COMPLIANCE_REWRITE",
+      "rewrite_kind": "BOUND_RESPONSE_OPTIONS",
+      "replacement_query_id": "Q-003",
+      "rewrite_attempt_status": "ACCEPTED_AFTER_FULL_NLQ_RECHECK",
+      "rewritten_query_text": "该患者意识模糊的可能病因是什么？",
+      "rewritten_response_options": [
+        "A. 脓毒症相关性脑病",
+        "B. 代谢性脑病（如低血糖、电解质紊乱）",
+        "C. 脑血管事件（如卒中）",
+        "D. 药物或毒物因素",
+        "E. 无法确定"
+      ],
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者女性, 72岁, 因意识模糊1天入急诊。BP 86/52, HR 124, T 38.1℃。血培养已抽。乳酸 4.2。入院诊断:脓毒症。予经验性抗生素治疗。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者女性，72岁，因意识模糊1天入急诊",
+      "血压86/52 mmHg，心率124次/分，体温38.1℃",
+      "血培养已抽",
+      "乳酸4.2 mmol/L",
+      "入院诊断：脓毒症",
+      "予经验性抗生素治疗"
+    ],
+    "encounter_metadata": {
+      "patient_age": "72岁",
+      "patient_sex": "女性",
+      "encounter_type": "急诊"
+    }
+  },
+  "risk_flags": [
+    {
+      "category": "unsupported_diagnosis",
+      "description": "脓毒症诊断缺乏明确的感染源和器官功能障碍证据，仅凭生命体征和乳酸升高，但未明确感染源。"
+    }
+  ],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "需明确脓毒症的感染源（如肺部、泌尿道、腹腔或皮肤软组织等），并记录具体感染部位及病原学证据；同时需明确脓毒症相关器官功能障碍的具体类型（如急性肾损伤、呼吸衰竭、凝血异常等）及其严重程度（如SOFA评分）。意识模糊的病因需区分是否为脓毒症相关性脑病、低血压导致的脑灌注不足、代谢紊乱（如低血糖、电解质异常）或药物因素，并记录神经系统检查及影像学结果。这些临床细节是确保编码准确反映疾病严重性和治疗复杂性的关键。",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 4176,
+      "tokens": 265
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "'分级' score — no deterministic calculator wired",
+      "route_decision": "tool_unavailable",
+      "route_reason": "no_real_tool_wired",
+      "execution_mode": "TOOL_UNAVAILABLE",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-21752236d2e9",
+    "gap_identification": "run-082d1a7597ff",
+    "gap_identification_risk_flags": "emitted=1;quote_snapped=0",
+    "expert_consultation": "run-b8604a5c8806",
+    "query_generation": "run-f75ce194d865",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=3;llm_complete=False;llm_reasoning=脓毒症的诊断需要明确感染源和器官功能障碍，但图表中未提供感染源，且乳酸升高提示可能存在器官功能障碍，但未明确诊断。",
+    "query_necessity_gate": "necessary=3;unnecessary=0;overquery_triggered=False;final_count=3",
+    "query_single_dimension_gate": "single_dim=3;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=etiology;rewrite_attempted=0;rewrite_accepted=0;final_count=3",
+    "claim_evidence_alignment_gate": "claims_extracted=7;blocked=0;flagged=0;final_count=3",
+    "claim_evidence_alignment_gate::run_id": "run-e7d7ef348c6b",
+    "semantic_necessity_gate": "blocked=0;flagged=1;degraded=0;final_count=3",
+    "semantic_necessity_gate::run_id": "run-a8f9a1db76eb",
+    "query_compliance_gate": ";passed=3;blocked=0",
+    "specialist_trace_emit": "run-1931d5178527"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-c4d34759f4a7",
+    "gap_identification": "trace-a91b76ab5030",
+    "expert_consultation": "trace-c9ea0a40e513",
+    "query_generation": "trace-2cab5cc8c00c",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-d650cb432c58",
+    "semantic_necessity_gate": "trace-4ff8aefb794e",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-4cce880f5e0d"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3163,
+      "prompt_tokens": 228,
+      "completion_tokens": 116,
+      "total_tokens": 344,
+      "run_id": "run-21752236d2e9",
+      "trace_id": "trace-c4d34759f4a7",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5982,
+      "prompt_tokens": 1069,
+      "completion_tokens": 537,
+      "total_tokens": 1606,
+      "run_id": "run-082d1a7597ff",
+      "trace_id": "trace-a91b76ab5030",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5839,
+      "prompt_tokens": 1087,
+      "completion_tokens": 662,
+      "total_tokens": 1749,
+      "run_id": "run-f75ce194d865",
+      "trace_id": "trace-2cab5cc8c00c",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 4176,
+      "prompt_tokens": 142,
+      "completion_tokens": 123,
+      "total_tokens": 265,
+      "run_id": "run-9084067ef0e9",
+      "trace_id": "trace-399c289e4502",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-bb3bcba6a9b8",
+      "trace_id": "trace-853b6f142739",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-47bc9e29a0f0",
+      "trace_id": "trace-4ee144855166",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-b7c921b870a8",
+      "trace_id": "trace-e7c51f6a95d9",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T19:31:01.666583Z"
+}

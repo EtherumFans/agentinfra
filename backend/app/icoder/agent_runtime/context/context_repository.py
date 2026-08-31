@@ -14,11 +14,18 @@ from sqlalchemy import select
 from sqlalchemy import update as sa_update
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.services.phi_encryption import decrypt_phi, encrypt_phi
+
 from .context import Context, ContextArtifactRef, ContextMessage, ContextTaskRef
 from .context_id import is_valid_context_id
 from .context_isolation import ContextIsolationError, ContextNotFoundError
 from .context_status import ContextStatus
 from .db_models import (
+    A2AArtifactDownloadGrantRow,
+    A2AArtifactObjectRow,
+    A2ATaskArtifactRow,
+    A2ATaskEventRow,
+    A2ATaskExecutionRow,
     ContextArtifactRefRow,
     ContextMessageRow,
     ContextRow,
@@ -206,6 +213,65 @@ class ContextRepository:
         )
         counts["context_artifact_refs"] = r.rowcount or 0
 
+        # Feedback has an explicit hard-delete requirement when the owning
+        # Context is erased, independent of database FK pragma behaviour.
+        from app.models.agent_feedback import (
+            AgentTaskFeedback,
+            FeedbackTrainingAuthorization,
+        )
+
+        r = await self._session.execute(
+            sa_delete(FeedbackTrainingAuthorization).where(
+                FeedbackTrainingAuthorization.context_id == context_id
+            )
+        )
+        counts["feedback_training_authorizations"] = r.rowcount or 0
+
+        r = await self._session.execute(
+            sa_delete(AgentTaskFeedback).where(
+                AgentTaskFeedback.context_id == context_id
+            )
+        )
+        counts["agent_task_feedback"] = r.rowcount or 0
+
+        object_ids = select(A2AArtifactObjectRow.object_id).where(
+            A2AArtifactObjectRow.context_id == context_id
+        )
+        r = await self._session.execute(
+            sa_delete(A2AArtifactDownloadGrantRow).where(
+                A2AArtifactDownloadGrantRow.object_id.in_(object_ids)
+            )
+        )
+        counts["a2a_artifact_download_grants"] = r.rowcount or 0
+
+        r = await self._session.execute(
+            sa_delete(A2AArtifactObjectRow).where(
+                A2AArtifactObjectRow.context_id == context_id
+            )
+        )
+        counts["a2a_artifact_objects"] = r.rowcount or 0
+
+        r = await self._session.execute(
+            sa_delete(A2ATaskArtifactRow).where(
+                A2ATaskArtifactRow.context_id == context_id
+            )
+        )
+        counts["a2a_task_artifacts"] = r.rowcount or 0
+
+        r = await self._session.execute(
+            sa_delete(A2ATaskEventRow).where(
+                A2ATaskEventRow.context_id == context_id
+            )
+        )
+        counts["a2a_task_events"] = r.rowcount or 0
+
+        r = await self._session.execute(
+            sa_delete(A2ATaskExecutionRow).where(
+                A2ATaskExecutionRow.context_id == context_id
+            )
+        )
+        counts["a2a_task_executions"] = r.rowcount or 0
+
         r = await self._session.execute(
             sa_delete(ContextTaskRefRow).where(
                 ContextTaskRefRow.context_id == context_id
@@ -299,7 +365,7 @@ class ContextRepository:
         await self._require_valid_id(context_id)
         stmt = select(ContextMessageRow).where(
             ContextMessageRow.context_id == context_id
-        )
+        ).order_by(ContextMessageRow.timestamp, ContextMessageRow.message_id)
         if message_id is not None:
             stmt = stmt.where(ContextMessageRow.message_id == message_id)
         rows = (await self._session.execute(stmt)).scalars().all()
@@ -307,7 +373,7 @@ class ContextRepository:
             ContextMessage(
                 message_id=r.message_id,
                 role=r.role,
-                parts=json.loads(r.parts_json),
+                parts=json.loads(decrypt_phi(r.parts_json) or "[]"),
                 timestamp=_as_utc(r.timestamp),
                 redacted=r.redacted,
                 metadata=json.loads(r.metadata_json) if r.metadata_json else {},
@@ -318,21 +384,37 @@ class ContextRepository:
     async def add_message(
         self, context_id: str, message: ContextMessage
     ) -> ContextMessage:
-        await self._require_context_exists(context_id)
-        row = ContextMessageRow(
-            context_id=context_id,
-            message_id=message.message_id,
-            role=message.role,
-            parts_json=json.dumps(message.parts, ensure_ascii=False),
-            timestamp=message.timestamp,
-            redacted=message.redacted,
-            metadata_json=message.metadata.model_dump_json()
-            if hasattr(message.metadata, "model_dump_json")
-            else json.dumps(message.metadata, ensure_ascii=False),
-        )
-        self._session.add(row)
-        await self._session.commit()
+        await self.add_messages(context_id, [message])
         return message
+
+    async def add_messages(
+        self, context_id: str, messages: list[ContextMessage]
+    ) -> list[ContextMessage]:
+        """Atomically append an ordered message batch and touch the context."""
+        await self._require_context_exists(context_id)
+        if not messages:
+            return []
+        for message in messages:
+            self._session.add(
+                ContextMessageRow(
+                    context_id=context_id,
+                    message_id=message.message_id,
+                    role=message.role,
+                    parts_json=encrypt_phi(
+                        json.dumps(message.parts, ensure_ascii=False)
+                    ),
+                    timestamp=message.timestamp,
+                    redacted=message.redacted,
+                    metadata_json=message.metadata.model_dump_json()
+                    if hasattr(message.metadata, "model_dump_json")
+                    else json.dumps(message.metadata, ensure_ascii=False),
+                )
+            )
+        context_row = await self._session.get(ContextRow, context_id)
+        if context_row is not None:
+            context_row.updated_at = max(message.timestamp for message in messages)
+        await self._session.commit()
+        return messages
 
     async def get_tasks(self, context_id: str) -> list[ContextTaskRef]:
         await self._require_valid_id(context_id)

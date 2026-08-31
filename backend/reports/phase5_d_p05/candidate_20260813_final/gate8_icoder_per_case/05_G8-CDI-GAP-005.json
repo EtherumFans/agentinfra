@@ -1,0 +1,344 @@
+{
+  "case_id": "CASE-b35af32b1394",
+  "completion_state": "REVIEW_RECOMMENDED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-b35af32b1394/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "The severity of the COPD exacerbation is not specified (e.g., mild, moderate, severe).",
+      "why_it_matters": "Severity of exacerbation affects treatment intensity and prognosis, and is important for coding and quality measures.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "入院诊断:慢阻肺急性加重",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-b35af32b1394/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "The etiology of the acute exacerbation is not documented (e.g., infection, environmental trigger, unknown).",
+      "why_it_matters": "Identifying the cause (e.g., bacterial vs viral) guides antibiotic use and other therapies, and is relevant for coding.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "咳嗽气促加重3天",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-b35af32b1394/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "The clinical correlation of the abnormal blood gas values (respiratory acidosis and hypoxemia) is not explicitly stated.",
+      "why_it_matters": "Abnormal labs require clinical interpretation to confirm the diagnosis and guide management; lack of correlation may lead to ambiguity in coding.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "血气:pH 7.34, PaCO2 62, PaO2 55",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-b35af32b1394/Q-001",
+      "gap_id": "CASE-b35af32b1394/GAP-002",
+      "topic": "慢阻肺急性加重的病因",
+      "reason": "病历中未记录本次急性加重的诱因或病因。",
+      "evidence_span": {
+        "document_id": "chart-001",
+        "quote": "咳嗽气促加重3天",
+        "char_start": 24,
+        "char_end": 32,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "咳嗽气促加重3天",
+          "char_start": 24,
+          "char_end": 32,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "本次慢阻肺急性加重可能的病因或诱因是什么？",
+      "response_options": [
+        "A. 呼吸道感染",
+        "B. 环境因素（如空气污染、烟雾）",
+        "C. 其他原因（如治疗中断、合并症）",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    },
+    {
+      "query_id": "CASE-b35af32b1394/Q-002",
+      "gap_id": "CASE-b35af32b1394/GAP-003",
+      "topic": "血气异常的临床意义",
+      "reason": "血气分析显示呼吸性酸中毒和低氧血症，但未明确其与患者临床表现的关联。",
+      "evidence_span": {
+        "document_id": "chart-001",
+        "quote": "血气:pH 7.34, PaCO2 62, PaO2 55",
+        "char_start": 33,
+        "char_end": 62,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "血气:pH 7.34, PaCO2 62, PaO2 55",
+          "char_start": 33,
+          "char_end": 62,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "结合患者临床表现，血气分析结果提示的病理生理状态如何解释？",
+      "response_options": [
+        "A. 符合慢阻肺急性加重导致的呼吸性酸中毒伴低氧血症",
+        "B. 考虑合并其他呼吸系统疾病（如肺炎、肺栓塞）",
+        "C. 血气结果与临床表现不符，需复查或进一步评估",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "urgent",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    }
+  ],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-001",
+      "gap_id": "CASE-b35af32b1394/GAP-001",
+      "topic": "COPD急性加重的严重程度",
+      "reason": "病历中仅记录'慢阻肺急性加重'，未明确严重程度分级。",
+      "query_text": "根据患者临床表现和辅助检查，本次慢阻肺急性加重的严重程度如何评估？",
+      "response_options": [
+        "A. 轻度",
+        "B. 中度",
+        "C. 重度",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "入院诊断:慢阻肺急性加重",
+          "char_start": 63,
+          "char_end": 75,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-001: chart matches /慢性[^,。、\\s]{0,8}(?:阻塞性肺疾病|肺疾病|肾脏病|心力衰竭)/ (慢性类型已明确) and query asks for COPD急性加重的严重程度"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者男性, 68岁, 慢性阻塞性肺疾病10年, 咳嗽气促加重3天。血气:pH 7.34, PaCO2 62, PaO2 55。入院诊断:慢阻肺急性加重。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者男性，68岁",
+      "慢性阻塞性肺疾病病史10年",
+      "咳嗽、气促加重3天",
+      "血气分析：pH 7.34，PaCO2 62 mmHg，PaO2 55 mmHg",
+      "入院诊断：慢性阻塞性肺疾病急性加重"
+    ],
+    "encounter_metadata": {
+      "patient_age": "68岁",
+      "patient_sex": "男性",
+      "encounter_type": "入院"
+    }
+  },
+  "risk_flags": [
+    {
+      "category": "ambiguous_term",
+      "description": "The term '慢阻肺急性加重' is used without specifying severity or etiology, which may obscure the clinical picture."
+    }
+  ],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "To ensure accurate coding, the clinician must explicitly document the severity of the acute exacerbation (e.g., mild, moderate, or severe) and state the presumed etiology (e.g., viral or bacterial infection, environmental trigger, or unknown). Additionally, the chart should explicitly link the blood gas abnormalities (respiratory acidosis with hypoxemia) to the exacerbation severity, noting whether this represents acute-on-chronic respiratory failure or a new acute process. Without these clarifications, the clinical picture remains ambiguous for precise code assignment.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3426,
+      "tokens": 280
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-45ff91624b95",
+    "gap_identification": "run-a005a36b4256",
+    "gap_identification_risk_flags": "emitted=1;quote_snapped=0",
+    "expert_consultation": "run-58dfb00e091d",
+    "query_generation": "run-19734b2eb62f",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.25;dimensions=D1_type=Y,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=3;llm_complete=False;llm_reasoning=The chart documents the diagnosis of COPD exacerbation but lacks specification o",
+    "query_necessity_gate": "necessary=2;unnecessary=1;overquery_triggered=False;final_count=2",
+    "query_single_dimension_gate": "single_dim=2;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=etiology;rewrite_attempted=0;rewrite_accepted=0;final_count=2",
+    "claim_evidence_alignment_gate": "claims_extracted=6;blocked=0;flagged=0;final_count=2",
+    "claim_evidence_alignment_gate::run_id": "run-2c557fe339ff",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=2",
+    "semantic_necessity_gate::run_id": "run-1706362038a6",
+    "query_compliance_gate": ";passed=2;blocked=0",
+    "specialist_trace_emit": "run-a75b4ec23bc5"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-3e0784d21f96",
+    "gap_identification": "trace-597cdfaecf2b",
+    "expert_consultation": "trace-734ccbf1b915",
+    "query_generation": "trace-1d90b413e270",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-940015f6a64e",
+    "semantic_necessity_gate": "trace-1ef7ea9e49bf",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-9d811654c1a9"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2567,
+      "prompt_tokens": 224,
+      "completion_tokens": 114,
+      "total_tokens": 338,
+      "run_id": "run-45ff91624b95",
+      "trace_id": "trace-3e0784d21f96",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6049,
+      "prompt_tokens": 1063,
+      "completion_tokens": 569,
+      "total_tokens": 1632,
+      "run_id": "run-a005a36b4256",
+      "trace_id": "trace-597cdfaecf2b",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6318,
+      "prompt_tokens": 1249,
+      "completion_tokens": 675,
+      "total_tokens": 1924,
+      "run_id": "run-19734b2eb62f",
+      "trace_id": "trace-1d90b413e270",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3426,
+      "prompt_tokens": 175,
+      "completion_tokens": 105,
+      "total_tokens": 280,
+      "run_id": "run-229df2797c61",
+      "trace_id": "trace-6cdc9a5d40bd",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-2880f672ef46",
+      "trace_id": "trace-befe1cc40784",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-0b5588cbd3db",
+      "trace_id": "trace-b2d1b8e1b1e7",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-4dddae94b913",
+      "trace_id": "trace-af2fe888bfd8",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T17:22:14.960841Z"
+}

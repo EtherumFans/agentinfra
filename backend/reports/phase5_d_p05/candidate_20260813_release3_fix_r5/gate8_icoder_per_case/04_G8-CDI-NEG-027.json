@@ -1,0 +1,376 @@
+{
+  "case_id": "CASE-7cc4a8edce72",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-7cc4a8edce72/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "The type of cough is not specified (e.g., acute, chronic, productive, non-productive).",
+      "why_it_matters": "Specificity of cough type is important for accurate diagnosis and coding; without it, the clinical picture is incomplete.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "咳嗽1周",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-7cc4a8edce72/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "The etiology of the cough is not established; no diagnosis is documented.",
+      "why_it_matters": "Without an etiological diagnosis, coding cannot capture the underlying condition, and the encounter may be coded as a symptom only.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "咳嗽1周",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-7cc4a8edce72/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "The severity of the cough is not documented (e.g., mild, moderate, severe).",
+      "why_it_matters": "Severity is a key dimension for clinical assessment and may influence treatment decisions and coding.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "咳嗽1周",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-7cc4a8edce72/GAP-004",
+      "gap_type": "diagnostic_specificity",
+      "description": "The acuity of the cough is not specified (e.g., acute, subacute, chronic).",
+      "why_it_matters": "Acuity helps differentiate between acute and chronic conditions, which is essential for accurate coding.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "咳嗽1周",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-7cc4a8edce72/Q-001",
+      "gap_id": "CASE-7cc4a8edce72/GAP-001",
+      "topic": "咳嗽类型",
+      "reason": "病历中仅记录'咳嗽1周'，未明确咳嗽的类型（如干咳、湿咳、急性、慢性等），影响对病情的准确描述。",
+      "evidence_span": {
+        "document_id": "chart-001",
+        "quote": "咳嗽1周",
+        "char_start": 11,
+        "char_end": 15,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "咳嗽1周",
+          "char_start": 11,
+          "char_end": 15,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "该患者的咳嗽类型属于以下哪种？",
+      "response_options": [
+        "A. 急性干咳",
+        "B. 急性湿咳（有痰）",
+        "C. 慢性咳嗽（持续超过8周）",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    }
+  ],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-003",
+      "gap_id": "CASE-7cc4a8edce72/GAP-003",
+      "topic": "咳嗽严重程度",
+      "reason": "病历中未描述咳嗽的严重程度，需要明确以评估病情。",
+      "query_text": "该患者咳嗽的严重程度如何？",
+      "response_options": [
+        "A. 轻度（不影响日常活动）",
+        "B. 中度（影响部分日常活动）",
+        "C. 重度（严重影响休息或工作）",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "咳嗽1周",
+          "char_start": 11,
+          "char_end": 15,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-004: red flags are denied and lung examination/imaging is non-acute"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-002",
+      "gap_id": "CASE-7cc4a8edce72/GAP-002",
+      "topic": "咳嗽病因",
+      "reason": "病历中未记录咳嗽的病因或相关诊断，需要明确可能的病因以指导诊疗。",
+      "query_text": "该患者咳嗽的可能病因是什么？",
+      "response_options": [
+        "A. 上呼吸道感染",
+        "B. 支气管炎",
+        "C. 咳嗽变异性哮喘",
+        "D. 胃食管反流",
+        "E. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "咳嗽1周",
+          "char_start": 11,
+          "char_end": 15,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "CDI-Focus: keep one symptom clarification; defer unrelated chronic-history refinement"
+      ],
+      "status": "DEFERRED_LOW_RISK_SYMPTOM_FOCUS",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-004",
+      "gap_id": "CASE-7cc4a8edce72/GAP-004",
+      "topic": "咳嗽病程",
+      "reason": "病历中仅记录'咳嗽1周'，未明确咳嗽的病程分类（急性、亚急性、慢性），需要明确。",
+      "query_text": "该患者咳嗽的病程属于以下哪种？",
+      "response_options": [
+        "A. 急性（<3周）",
+        "B. 亚急性（3-8周）",
+        "C. 慢性（>8周）",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "咳嗽1周",
+          "char_start": 11,
+          "char_end": 15,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "CDI-Focus: keep one symptom clarification; defer unrelated chronic-history refinement"
+      ],
+      "status": "DEFERRED_LOW_RISK_SYMPTOM_FOCUS",
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者女性, 60岁, 咳嗽1周。否认发热、咳脓痰、咯血、胸痛。既往:高血压。<REDACTED:NAME>:双肺清晰。胸片:未见活动性病变。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "60岁女性",
+      "咳嗽1周",
+      "否认发热、咳脓痰、咯血、胸痛",
+      "既往高血压",
+      "双肺清晰",
+      "胸片未见活动性病变"
+    ],
+    "encounter_metadata": {
+      "patient_age": "60岁",
+      "patient_sex": "女性",
+      "encounter_type": "门诊"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "To accurately code this encounter, the clinical documentation must specify the type of cough (e.g., productive vs. non-productive) and its duration-based acuity (acute, subacute, or chronic), as well as establish a definitive etiology (e.g., post-infectious, allergic, or due to a specific condition) rather than leaving it as an isolated symptom. Additionally, documenting the severity (mild, moderate, severe) and any impact on daily activities would support the medical necessity of the visit and clarify the clinical picture. Without these details, the chart lacks the specificity needed to assign a precise code reflecting the true nature and cause of the cough.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3437,
+      "tokens": 310
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-5f24aeeb992a",
+    "gap_identification": "run-76b1f01e88a2",
+    "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
+    "expert_consultation": "run-d31fd693d246",
+    "query_generation": "run-536b033b3a40",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=4;llm_complete=False;llm_reasoning=The chart documents a cough but lacks specification of type, severity, acuity, a",
+    "query_necessity_gate": "necessary=3;unnecessary=1;overquery_triggered=False;final_count=1",
+    "query_single_dimension_gate": "single_dim=1;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=type;rewrite_attempted=0;rewrite_accepted=0;final_count=1",
+    "claim_evidence_alignment_gate": "claims_extracted=2;blocked=0;flagged=0;final_count=1",
+    "claim_evidence_alignment_gate::run_id": "run-bdfb79907c9b",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=1",
+    "semantic_necessity_gate::run_id": "run-5f320ee78548",
+    "query_compliance_gate": ";passed=1;blocked=0",
+    "specialist_trace_emit": "run-c536703c073f"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-13ea95d37f1b",
+    "gap_identification": "trace-a1adc1416928",
+    "expert_consultation": "trace-52a2869963fa",
+    "query_generation": "trace-07e48230eeb4",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-fd515fe0e410",
+    "semantic_necessity_gate": "trace-13dc6d59b6d1",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-9df652127570"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2892,
+      "prompt_tokens": 218,
+      "completion_tokens": 94,
+      "total_tokens": 312,
+      "run_id": "run-5f24aeeb992a",
+      "trace_id": "trace-13ea95d37f1b",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5544,
+      "prompt_tokens": 1037,
+      "completion_tokens": 563,
+      "total_tokens": 1600,
+      "run_id": "run-76b1f01e88a2",
+      "trace_id": "trace-a1adc1416928",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6387,
+      "prompt_tokens": 1147,
+      "completion_tokens": 803,
+      "total_tokens": 1950,
+      "run_id": "run-536b033b3a40",
+      "trace_id": "trace-07e48230eeb4",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3437,
+      "prompt_tokens": 178,
+      "completion_tokens": 132,
+      "total_tokens": 310,
+      "run_id": "run-9e583886928b",
+      "trace_id": "trace-9d6c86847db4",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-e94795cbd9ea",
+      "trace_id": "trace-0ff36611cf06",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-e6d76a2b0757",
+      "trace_id": "trace-3899a1b1037a",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-20b10b8bdcac",
+      "trace_id": "trace-88d5851c582c",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T20:40:54.457511Z"
+}

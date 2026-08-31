@@ -53,6 +53,7 @@ export default function ExpertsPage() {
   const [experts, setExperts] = useState<any[]>([]);
   const [presets, setPresets] = useState<any[]>([]);
   const [gateDecisions, setGateDecisions] = useState<Record<string, any>>({});
+  const [readiness, setReadiness] = useState<any | null>(null);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -60,14 +61,16 @@ export default function ExpertsPage() {
   useEffect(() => {
     (async () => {
       try {
-        const [expertsRes, presetsRes] = await Promise.all([
+        const [expertsRes, presetsRes, readinessRes] = await Promise.all([
           expertsApi.list(),
           expertsApi.presets(),
+          expertsApi.readiness(),
         ]);
         const ex = expertsRes.data?.experts || [];
         const ps = presetsRes.data?.presets || [];
         setExperts(ex);
         setPresets(ps);
+        setReadiness(readinessRes.data);
 
         // Evaluate gate for each external expert
         const gatedKeys = ex.filter((e: any) => e.is_gated).map((e: any) => e.canonical_key);
@@ -117,6 +120,20 @@ export default function ExpertsPage() {
           <p className="text-xs text-muted-foreground mb-4">
             9 个 Expert + 5 个 Preset Agent
           </p>
+
+          {readiness && (
+            <div className="mb-4 rounded-lg border border-border bg-background px-4 py-3">
+              <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-xs">
+                <span>租户 Experts：<b>{readiness.expert_count}</b></span>
+                <span>已发布：<b>{readiness.published_expert_count}</b></span>
+                <span>活跃 MCP：<b>{readiness.active_mcp_server_count}/{readiness.mcp_server_count}</b></span>
+                <span>内置 MCP Tools：<b>{readiness.built_in_mcp_tool_count}</b></span>
+                <span className={readiness.external_mcp_live_verified ? 'text-emerald-700' : 'text-amber-700'}>
+                  外部 MCP：{readiness.external_mcp_live_verified ? '已实测' : '待环境联调'}
+                </span>
+              </div>
+            </div>
+          )}
 
           <div className="relative mb-4">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />

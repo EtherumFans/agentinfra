@@ -220,6 +220,69 @@ def test_api_agent_card_returns_404_on_unknown(client):
     assert r.status_code == 404
 
 
+def test_agent_crud_rejects_unknown_expert_binding(client):
+    create = client.post(
+        "/api/rest/v1/agent_definitions",
+        json={"name": "Expert binding isolation test", "expert_ids": []},
+    )
+    assert create.status_code in (200, 201), create.text
+
+    update = client.put(
+        f"/api/rest/v1/agent_definitions/{create.json()['id']}",
+        json={"expert_ids": ["cross-tenant-or-missing-expert"]},
+    )
+    assert update.status_code == 422
+    assert update.json()["detail"]["error"] == "expert_binding_unavailable"
+
+
+def test_agent_management_surfaces_are_tenant_scoped(client):
+    from app.main import app
+    from app.middleware.auth import get_current_organization
+
+    create = client.post(
+        "/api/rest/v1/agent_definitions",
+        json={"name": "Tenant management isolation test", "expert_ids": []},
+    )
+    assert create.status_code in (200, 201), create.text
+    agent_id = create.json()["id"]
+    thread = client.post(
+        f"/api/rest/v1/agent_definitions/{agent_id}/threads",
+    )
+    assert thread.status_code == 200, thread.text
+    thread_id = thread.json()["thread_id"]
+
+    class _OtherOrg:
+        id = "org-other001"
+        name = "Other organization"
+        slug = "other-organization"
+        plan = "free"
+        settings = {}
+        is_active = True
+
+    original = app.dependency_overrides.get(get_current_organization)
+    app.dependency_overrides[get_current_organization] = lambda: _OtherOrg()
+    try:
+        assert client.get(
+            f"/api/rest/v1/agent_definitions/{agent_id}/share",
+        ).status_code == 404
+        assert client.post(
+            f"/api/rest/v1/agent_definitions/{agent_id}/version",
+        ).status_code == 404
+        assert client.get(
+            f"/api/rest/v1/agent_definitions/threads/{thread_id}",
+        ).status_code == 404
+        stats = client.get(
+            "/api/rest/v1/agent_definitions/threads/stats",
+        )
+        assert stats.status_code == 200
+        assert stats.json()["total_threads"] == 0
+    finally:
+        if original is None:
+            app.dependency_overrides.pop(get_current_organization, None)
+        else:
+            app.dependency_overrides[get_current_organization] = original
+
+
 def test_api_agent_card_shape_matches_corti_public_contract(client):
     # Quick-create then fetch the card
     create = client.post("/api/v1/agents/quick", json={"name": "Card Shape Test"})

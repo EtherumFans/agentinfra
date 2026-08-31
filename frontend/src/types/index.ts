@@ -11,7 +11,16 @@ export interface User {
   created_at: string;
 }
 
-export type UserRole = 'admin' | 'coder' | 'dept_head' | 'insurance' | 'qc' | 'clinician' | 'it';
+export type UserRole =
+  | 'admin'
+  | 'coder'
+  | 'dept_head'
+  | 'insurance'
+  | 'qc'
+  | 'clinician'
+  | 'it'
+  | 'cdi_specialist'
+  | 'medical_records_admin';
 
 export interface OrgInfo {
   id: string;

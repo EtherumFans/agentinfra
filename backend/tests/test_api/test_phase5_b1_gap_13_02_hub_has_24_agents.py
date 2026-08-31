@@ -35,7 +35,6 @@ async def test_hub_includes_10_gap_13_02_agents(client):
         "med-reconciliation",
         "discharge-edu",
         "nursing-handoff",
-        "prior-auth",
         "referral-gen",
     }
     missing = expected_new - agent_ids
@@ -43,40 +42,79 @@ async def test_hub_includes_10_gap_13_02_agents(client):
 
 
 @pytest.mark.asyncio
-async def test_hub_has_at_least_24_agents(client):
+async def test_hub_has_exactly_26_launch_candidate_agents(client):
     """Post GAP-13-02 fix, hub total ≥ 24 (9 runnable + 15 metadata-only)."""
     resp = await client.get("/api/icoder/agents/hub")
     assert resp.status_code == 200
     body = resp.json()
-    assert body["total"] >= 24, (
-        f"Hub total {body['total']} < 24; GAP-13-02 packs not loaded"
-    )
+    assert body["total"] == 26
+    assert len(body["agents"]) == 26
+    not_ready = {
+        card["agent_id"]: {
+            "runnable": card.get("runnable"),
+            "launch_candidate_ready": card.get("launch_candidate_ready"),
+            "maturity": card.get("maturity"),
+        }
+        for card in body["agents"]
+        if not card.get("runnable")
+        or not card.get("launch_candidate_ready")
+        or card.get("maturity") != "runnable"
+    }
+    assert not_ready == {}
 
 
 @pytest.mark.asyncio
-async def test_gap_13_02_agents_are_metadata_only(client):
-    """The 10 GAP-13-02 agents must be runnable=false (metadata-only)."""
+async def test_gap_13_02_agents_are_all_runnable(client):
+    """Unmigrated GAP-13-02 agents remain explicitly non-runnable."""
     resp = await client.get("/api/icoder/agents/hub")
     body = resp.json()
     by_id = {a["agent_id"]: a for a in body.get("agents", [])}
 
     expected_new = [
         "icd10-navigator",
-        "rule-explainer",
         "surgical-registry",
         "icu-summary",
         "triage",
         "med-reconciliation",
         "discharge-edu",
         "nursing-handoff",
-        "prior-auth",
         "referral-gen",
     ]
     for aid in expected_new:
         assert aid in by_id, f"{aid} missing from hub"
-        assert by_id[aid]["runnable"] is False, (
-            f"{aid} should be metadata-only (runnable=false)"
+        assert by_id[aid]["runnable"] is True, (
+            f"{aid} should be executable (runnable=true)"
         )
-        assert by_id[aid]["maturity"] == "metadata-only", (
-            f"{aid} maturity should be 'metadata-only'"
+        assert by_id[aid]["maturity"] == "runnable", (
+            f"{aid} maturity should be 'runnable'"
         )
+        assert by_id[aid]["launch_candidate_ready"] is True
+
+    for aid in ("rule-explainer", "prior-auth"):
+        migrated = by_id[aid]
+        assert migrated["runnable"] is True
+        assert migrated["maturity"] == "runnable"
+        assert migrated["launch_candidate_ready"] is True
+
+
+def test_visible_runnable_packs_have_no_stale_stub_claims() -> None:
+    """Release metadata must match the executable Hub state."""
+    import json
+    from pathlib import Path
+
+    forbidden = ("metadata-only", "metadata only", "wiring deferred", "stub")
+    root = Path(__file__).resolve().parents[2] / "official_agents"
+    offenders: dict[str, str] = {}
+    for pack_path in root.rglob("agent_pack.json"):
+        pack = json.loads(pack_path.read_text(encoding="utf-8"))
+        manifest = pack.get("manifest") or {}
+        if manifest.get("hidden_from_hub") is True:
+            continue
+        if manifest.get("maturity") != "runnable":
+            continue
+        audit_note = str((pack.get("metadata") or {}).get("audit_note") or "")
+        lowered = audit_note.lower()
+        if any(term in lowered for term in forbidden):
+            offenders[pack_path.parent.name] = audit_note
+
+    assert offenders == {}

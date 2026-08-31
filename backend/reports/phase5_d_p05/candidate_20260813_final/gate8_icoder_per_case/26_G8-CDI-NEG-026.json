@@ -1,0 +1,332 @@
+{
+  "case_id": "CASE-cdad776f07f8",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-cdad776f07f8/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "入院诊断'2型糖尿病?'使用问号，未明确诊断，且缺乏诊断依据（如血糖值、糖化血红蛋白等）的明确记录。",
+      "why_it_matters": "诊断不明确会影响编码准确性，且缺乏实验室证据支持诊断，可能导致编码不准确或需要查询。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "入院诊断:2型糖尿病?",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-cdad776f07f8/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "主诉'多饮多尿1周'未明确是否已进行相关检查（如血糖、尿糖、OGTT等）以支持糖尿病诊断，且未记录检查结果。",
+      "why_it_matters": "缺乏客观检查结果，无法确认诊断，影响编码和临床决策。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "多饮多尿1周",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-cdad776f07f8/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "既往史中'<REDACTED:NAME>5年'被遮蔽，无法确定具体疾病，可能影响合并症编码。",
+      "why_it_matters": "既往史不明确，可能遗漏重要合并症，影响DRG分组和风险调整。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "既往:<REDACTED:NAME>5年",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-003",
+      "gap_id": "CASE-cdad776f07f8/GAP-003",
+      "topic": "既往史遮蔽疾病名称",
+      "reason": "既往史中疾病名称被遮蔽，无法确定具体疾病，需明确诊断。",
+      "query_text": "患者既往史中'<REDACTED:NAME>5年'，请明确该遮蔽项所代表的具体疾病诊断？",
+      "response_options": [
+        "A. 高血压",
+        "B. 高脂血症",
+        "C. 其他慢性疾病（请注明）",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "既往:<REDACTED:NAME>5年",
+          "char_start": 18,
+          "char_end": 38,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "CEA-008: critical claim '患者既往史中有遮蔽项持续5年' has no valid chart evidence (best=pmh_as_current)"
+      ],
+      "status": "REJECTED_BY_CLAIM_EVIDENCE",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-001",
+      "gap_id": "CASE-cdad776f07f8/GAP-001",
+      "topic": "2型糖尿病诊断明确性",
+      "reason": "入院诊断使用问号，提示诊断未明确，且缺乏血糖等客观依据记录。",
+      "query_text": "患者入院诊断'2型糖尿病?'，请明确该诊断是否已确诊，或仍为待排除诊断？",
+      "response_options": [
+        "A. 已确诊为2型糖尿病",
+        "B. 仍为疑似诊断，待进一步检查明确",
+        "C. 已排除2型糖尿病，考虑其他诊断",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "入院诊断:2型糖尿病?",
+          "char_start": 76,
+          "char_end": 87,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NLQ-001 (no_yes_no_opening): matched /(是不是|是否|是否为|能否|能不能|是不是说|是不是要|能否认为|是否可以)/ : '是否'"
+      ],
+      "status": "NEEDS_NON_LEADING_REWRITE",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-002",
+      "gap_id": "CASE-cdad776f07f8/GAP-002",
+      "topic": "糖尿病相关检查完成情况",
+      "reason": "主诉提示多饮多尿，但未记录相关检查结果，需明确是否已行检查及结果。",
+      "query_text": "针对患者'多饮多尿1周'的症状，请明确是否已进行血糖、尿糖或OGTT等相关检查，并记录结果？",
+      "response_options": [
+        "A. 已行相关检查，结果支持糖尿病诊断",
+        "B. 已行相关检查，结果不支持糖尿病诊断",
+        "C. 尚未行相关检查，计划进行",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "多饮多尿1周",
+          "char_start": 11,
+          "char_end": 17,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NLQ-001 (no_yes_no_opening): matched /(是不是|是否|是否为|能否|能不能|是不是说|是不是要|能否认为|是否可以)/ : '是否'"
+      ],
+      "status": "NEEDS_NON_LEADING_REWRITE",
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者男性, 55岁, 多饮多尿1周。既往:<REDACTED:NAME>5年。否认糖尿病、冠心病、慢性肾病。<REDACTED:NAME>:父亲糖尿病。入院诊断:2型糖尿病?",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者男性，55岁",
+      "主诉：多饮多尿1周",
+      "既往史：高血压5年（根据上下文推断，原文为<REDACTED:NAME>5年，但结合常见病史，可能为高血压，但原文未明确，故不写入）",
+      "否认糖尿病、冠心病、慢性肾病",
+      "家族史：父亲有糖尿病",
+      "入院诊断：2型糖尿病待查"
+    ],
+    "encounter_metadata": {
+      "patient_age": "55岁",
+      "patient_sex": "男性",
+      "encounter_type": "入院"
+    }
+  },
+  "risk_flags": [
+    {
+      "category": "ambiguous_term",
+      "description": "入院诊断使用'?'，表示疑似或待查，未明确最终诊断。"
+    }
+  ],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "To ensure accurate coding, the clinical record must explicitly confirm the diagnosis of type 2 diabetes by documenting diagnostic criteria (e.g., fasting glucose, HbA1c, or OGTT results) and removing the question mark from the admission diagnosis. Additionally, clarify the redacted 5-year condition in the past medical history and specify whether any diabetes-related tests were performed prior to admission, as this directly impacts the assignment of relevant complication or comorbidity codes.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 2746,
+      "tokens": 302
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-62cbec4b78e6",
+    "gap_identification": "run-9e831b864675",
+    "gap_identification_risk_flags": "emitted=1;quote_snapped=0",
+    "expert_consultation": "run-e45cc6a474b6",
+    "query_generation": "run-1b7451faec39",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=3;llm_complete=False;llm_reasoning=入院诊断不明确（带问号），且缺乏血糖等实验室检查结果支持，无法确认糖尿病诊断及其分型，需要进一步检查或澄清。",
+    "query_necessity_gate": "necessary=3;unnecessary=0;overquery_triggered=False;final_count=3",
+    "query_single_dimension_gate": "single_dim=3;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;rewrite_attempted=0;rewrite_accepted=0;final_count=3",
+    "claim_evidence_alignment_gate": "claims_extracted=6;blocked=1;flagged=0;final_count=2",
+    "claim_evidence_alignment_gate::run_id": "run-ba5def4adb7f",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=2",
+    "semantic_necessity_gate::run_id": "run-cda7a5ac78b1",
+    "query_compliance_gate": ";passed=0;blocked=2",
+    "specialist_trace_emit": "run-bc5295fc4348"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-27732b9d3504",
+    "gap_identification": "trace-cf81d1aae5ac",
+    "expert_consultation": "trace-e2174bc85fbe",
+    "query_generation": "trace-255ebe88d675",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-7a427b183089",
+    "semantic_necessity_gate": "trace-f5d8e40a180a",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-872e463b3d57"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2567,
+      "prompt_tokens": 221,
+      "completion_tokens": 141,
+      "total_tokens": 362,
+      "run_id": "run-62cbec4b78e6",
+      "trace_id": "trace-27732b9d3504",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6459,
+      "prompt_tokens": 1086,
+      "completion_tokens": 578,
+      "total_tokens": 1664,
+      "run_id": "run-9e831b864675",
+      "trace_id": "trace-cf81d1aae5ac",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6028,
+      "prompt_tokens": 1276,
+      "completion_tokens": 691,
+      "total_tokens": 1967,
+      "run_id": "run-1b7451faec39",
+      "trace_id": "trace-255ebe88d675",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2746,
+      "prompt_tokens": 211,
+      "completion_tokens": 91,
+      "total_tokens": 302,
+      "run_id": "run-f063db0a2996",
+      "trace_id": "trace-147fef1f4326",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-3754f39b6eba",
+      "trace_id": "trace-64c17d3cd578",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-afdbdfa0c807",
+      "trace_id": "trace-1f0e0926b999",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-7cf6a1f88e9f",
+      "trace_id": "trace-bcded7065ef2",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T17:29:14.812326Z"
+}

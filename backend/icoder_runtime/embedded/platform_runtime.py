@@ -21,6 +21,7 @@ from ..core.errors import (
     ValidationError,
 )
 from ..core.llm_gateway import LLMGateway, MockLLMProvider
+from ..core.data_policy import RuntimeDataPolicy
 from ..core.agent_pack_v1 import AgentPackageV1
 from ..core.registry import RuntimeAgentRegistry, get_registry, InstalledAgentRecord
 from ..core.runtime_config import RuntimeConfig
@@ -66,14 +67,15 @@ class PlatformRuntime:
         storage_dir: str | Path = "",
         data_policy=None,
     ):
-        self._gateway = gateway or LLMGateway()
+        effective_data_policy = data_policy or RuntimeDataPolicy.from_env()
+        self._gateway = gateway or LLMGateway(data_policy=effective_data_policy)
         self._config = config or RuntimeConfig.from_env()
         self._registry = registry or get_registry(
             storage_dir or self._config.registry_dir
         )
         self._started = False
         self._started_at: str = ""
-        self._data_policy = data_policy
+        self._data_policy = effective_data_policy
 
     # ── Lifecycle ──
 

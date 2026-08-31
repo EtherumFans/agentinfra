@@ -1,0 +1,288 @@
+{
+  "case_id": "CASE-2b0bb839ee20",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-2b0bb839ee20/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "The chart does not specify the anatomical site of the appendicitis (e.g., retrocecal, pelvic, preileal) which may affect surgical approach and coding.",
+      "why_it_matters": "Specific anatomical site of appendicitis can influence procedure codes and clinical management; unspecified site may lead to coding queries.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "CT:阑尾肿胀",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-2b0bb839ee20/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "The chart does not document the severity of the acute appendicitis beyond 'acute simple' from pathology; clinical severity (e.g., mild, moderate) is not stated.",
+      "why_it_matters": "Severity of appendicitis may affect treatment and outcome; lack of clinical severity documentation may be a gap for coding and quality measures.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "术前诊断:急性阑尾炎",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-001",
+      "gap_id": "CASE-2b0bb839ee20/GAP-001",
+      "topic": "阑尾炎解剖位置",
+      "reason": "病历未明确阑尾炎的解剖位置（如回盲部后位、盆腔位、回肠前位等），可能影响手术方式及编码。",
+      "query_text": "根据CT及术中所见，阑尾的解剖位置属于以下哪种？",
+      "response_options": [
+        "A. 回盲部后位（腹膜后位）",
+        "B. 盆腔位",
+        "C. 回肠前位",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "CT:阑尾肿胀",
+          "char_start": 56,
+          "char_end": 63,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "QE-001: chart_completeness_score≥6/8 and no ambiguity"
+      ],
+      "status": "REJECTED_AS_INELIGIBLE",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-002",
+      "gap_id": "CASE-2b0bb839ee20/GAP-002",
+      "topic": "急性阑尾炎临床严重程度",
+      "reason": "病历仅描述病理为急性单纯性，未明确临床严重程度（如轻度、中度），需补充。",
+      "query_text": "根据临床表现、实验室及影像学检查，该急性阑尾炎的临床严重程度如何？",
+      "response_options": [
+        "A. 轻度",
+        "B. 中度",
+        "C. 重度",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "术前诊断:急性阑尾炎",
+          "char_start": 82,
+          "char_end": 92,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "QE-001: chart_completeness_score≥6/8 and no ambiguity"
+      ],
+      "status": "REJECTED_AS_INELIGIBLE",
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者男性, 45岁, 转移性右下腹痛1天, mcburney点压痛反跳痛阳性。WBC 13.2, 中性 85%。CT:阑尾肿胀, <REDACTED:NAME>出。术前诊断:急性阑尾炎(<REDACTED:NAME>, 无穿孔)。行腹腔镜阑尾切除术。术后病理:急性单纯性阑尾炎。无并发症。术后恢复良好, 第3天出院。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "转移性右下腹痛1天",
+      "McBurney点压痛反跳痛阳性",
+      "WBC 13.2, 中性粒细胞85%",
+      "CT示阑尾肿胀",
+      "术前诊断：急性阑尾炎（无穿孔）",
+      "行腹腔镜阑尾切除术",
+      "术后病理：急性单纯性阑尾炎",
+      "无并发症，术后恢复良好，第3天出院"
+    ],
+    "encounter_metadata": {
+      "patient_age": "45岁",
+      "patient_sex": "男性",
+      "encounter_type": "住院"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "For accurate coding, the documentation must specify the exact anatomical location of the appendix (e.g., retrocecal, pelvic, preileal) as determined intraoperatively or radiologically, since this influences the surgical approach and potential complexity. Additionally, the clinical severity of the acute appendicitis should be explicitly documented (e.g., mild, moderate, severe) based on intraoperative findings and systemic response, not just the pathology report, to reflect the true clinical course and resource utilization.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3437,
+      "tokens": 324
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-9eb6fe608ae4",
+    "gap_identification": "run-ae188527c4b3",
+    "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
+    "expert_consultation": "run-f08fecc36ee8",
+    "query_generation": "run-882f64a0189d",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=True;completeness_score=0.75;dimensions=D1_type=Y,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=Y,D6_pathology=Y,D7_complications=Y,D8_course=Y;dropped=2;final_count=0;llm_complete=True;llm_reasoning=The chart documents a clear diagnosis of acute simple appendicitis with supporti",
+    "query_necessity_gate": "necessary=0;unnecessary=0;overquery_triggered=False;final_count=0",
+    "query_single_dimension_gate": "single_dim=0;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;rewrite_attempted=0;rewrite_accepted=0;final_count=0",
+    "claim_evidence_alignment_gate": "claims_extracted=0;blocked=0;flagged=0;final_count=0",
+    "claim_evidence_alignment_gate::run_id": "run-c9be012f5818",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+    "semantic_necessity_gate::run_id": "run-944bc10841a5",
+    "query_compliance_gate": ";passed=0;blocked=0",
+    "specialist_trace_emit": "run-18048a0682c1"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-3695748e7f76",
+    "gap_identification": "trace-146406ecbf01",
+    "expert_consultation": "trace-031b0342c254",
+    "query_generation": "trace-13117dbb8d54",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-69685bb535aa",
+    "semantic_necessity_gate": "trace-22b647198e1a",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-5d6cbc6d03c4"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2907,
+      "prompt_tokens": 271,
+      "completion_tokens": 140,
+      "total_tokens": 411,
+      "run_id": "run-9eb6fe608ae4",
+      "trace_id": "trace-3695748e7f76",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 4649,
+      "prompt_tokens": 1131,
+      "completion_tokens": 386,
+      "total_tokens": 1517,
+      "run_id": "run-ae188527c4b3",
+      "trace_id": "trace-146406ecbf01",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 4988,
+      "prompt_tokens": 1138,
+      "completion_tokens": 425,
+      "total_tokens": 1563,
+      "run_id": "run-882f64a0189d",
+      "trace_id": "trace-13117dbb8d54",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3437,
+      "prompt_tokens": 227,
+      "completion_tokens": 97,
+      "total_tokens": 324,
+      "run_id": "run-2ca25c342f1f",
+      "trace_id": "trace-280d20234f76",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-d17f9d58fb99",
+      "trace_id": "trace-364bd0c978a5",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-e44f73e1cb26",
+      "trace_id": "trace-6cee6cdd348c",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-dff3231f3793",
+      "trace_id": "trace-34529b7e8c17",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T18:54:32.866019Z"
+}

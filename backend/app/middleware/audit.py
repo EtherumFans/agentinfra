@@ -34,7 +34,7 @@ async def log_action(
     *,
     policy_decision: Optional[dict] = None,
     purpose_of_use: Optional[str] = None,
-):
+) -> AuditLog | None:
     """Record an audit log entry.
 
     Phase A1A Gate 2 §3 — cloud mode fail-closed: refuses to commit
@@ -119,5 +119,7 @@ async def log_action(
             ),
         )
         db.add(log_entry)
+        return log_entry
     except Exception as e:
         logger.error(f"Failed to write audit log: {e}")
+        return None

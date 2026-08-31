@@ -1,9 +1,10 @@
-"""POSOS Expert — Corti public §3.2 key 5 of 9 (A1B-AE.7 stub).
+"""POSOS Expert compatibility API and governed live adapter.
 
 Corti public docs describe this Expert as providing medication guidance
 and prescribing decision support backed by the POSOS commercial service.
 
-iCoDer's A1B-AE.7 scope mirrors the DrugBank stub pattern:
+iCoDer keeps a non-networking compatibility function and provides
+``guide_async`` for the configured, governed enterprise gateway.
 
 1. Registers under canonical_key='posos' with
    corti_alignment='CORTI_REFERENCE' (no POSOS licence; live lookup
@@ -19,7 +20,9 @@ Gated behind the External-Expert Gate (``external_expert_gate.py``).
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Awaitable, Callable
+
+from app.services.connector_executor import ConnectorInvocation
 
 
 POSOS_EXPERT_CANONICAL_KEY = "posos"
@@ -42,7 +45,7 @@ def guide(
     *,
     licence_token: str | None = None,
 ) -> PososResult:
-    """Offline stub for POSOS prescribing guidance.
+    """Non-networking compatibility path for POSOS guidance.
 
     Returns empty with ``live_lookup_performed=False``. Caller MUST
     check the flag before clinical use. No LLM fallback (same red line
@@ -57,12 +60,41 @@ def guide(
         live_lookup_performed=False,
         licence_present=bool(licence_token),
         notes=(
-            "STUB: POSOS live lookup deferred (A1B-AE.7 scope = Expert "
-            "Registry entry only). No LLM fallback — prescribing guidance "
-            "requires a licensed source. Future enhancement: wire to POSOS "
-            "API when a Provider supplies credentials, gated by the "
-            "External-Expert Gate."
+            "OFFLINE_COMPATIBILITY: no network call was requested. Use "
+            "guide_async through the governed Agent Connector runtime for "
+            "licensed POSOS gateway data. No LLM fallback is permitted."
         ),
+    )
+
+
+async def guide_async(
+    query: str,
+    *,
+    organization_id: str,
+    provider: Callable[[str, ConnectorInvocation], Awaitable[dict[str, Any]]],
+    max_results: int = 5,
+) -> PososResult:
+    """Execute the configured POSOS gateway through the governed provider."""
+
+    output = await provider("posos", ConnectorInvocation(
+        organization_id=organization_id,
+        agent_id="posos",
+        connector_id="posos",
+        operation="guide",
+        arguments={"query": query, "max_results": max_results},
+        data_classification="deidentified",
+        purpose_of_use="treatment",
+    ))
+    guidance = output.get("guidance")
+    if not isinstance(guidance, list):
+        raise RuntimeError("CONNECTOR_REGISTRY_RESPONSE_INVALID")
+    first = guidance[0] if guidance and isinstance(guidance[0], dict) else {}
+    return PososResult(
+        query=query.strip(),
+        guidance=first,
+        live_lookup_performed=bool(output.get("live_external_performed")),
+        licence_present=True,
+        notes="licensed governed Registry gateway; clinician review required",
     )
 
 
@@ -73,4 +105,5 @@ __all__ = [
     "POSOS_LLM_FALLBACK_ALLOWED",
     "PososResult",
     "guide",
+    "guide_async",
 ]

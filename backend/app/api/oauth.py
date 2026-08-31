@@ -25,14 +25,21 @@ import secrets
 from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException, Form, Request, Query
 from fastapi.responses import RedirectResponse
-from jose import jwt
+import jwt
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
 from app.database import get_db
 from app.middleware.audit import log_action
-from app.middleware.auth import get_current_user
+from app.middleware.auth import get_current_organization, get_current_user
+from app.models.organization import Organization
 from app.models.oauth import OAuthClient, OAuthToken
+from app.services.oauth_delegation import (
+    OAuthDelegationValidationError,
+    normalize_purpose_grants,
+    parse_grant_list,
+    validate_agent_grants_exist,
+)
 from app.models.user import User
 
 logger = logging.getLogger(__name__)
@@ -409,7 +416,10 @@ async def create_client(
     description: str = Form(""),
     scopes: str = Form("api:read api:write"),
     token_expires_seconds: int | None = Form(None),
+    allowed_agent_ids: str = Form(""),
+    allowed_purposes: str = Form(""),
     current_user: User = Depends(get_current_user),
+    current_org: Organization = Depends(get_current_organization),
     db: AsyncSession = Depends(get_db),
 ):
     """Create a new OAuth 2.0 client (requires user auth).
@@ -421,6 +431,21 @@ async def create_client(
     """
     client_id = OAuthClient.generate_client_id()
     secret_plaintext, secret_hash = OAuthClient.generate_client_secret()
+
+    try:
+        delegated_agents = await validate_agent_grants_exist(
+            db,
+            organization_id=current_org.id,
+            agent_ids=parse_grant_list(allowed_agent_ids),
+        )
+        delegated_purposes = normalize_purpose_grants(
+            parse_grant_list(allowed_purposes)
+        )
+    except OAuthDelegationValidationError as exc:
+        raise HTTPException(
+            status_code=400,
+            detail={"code": exc.code, "values": exc.values},
+        ) from exc
 
     default_ttl = _default_oauth_ttl()
     if token_expires_seconds is None:
@@ -437,7 +462,10 @@ async def create_client(
         description=description,
         scopes=scopes,
         owner_id=current_user.id,
+        organization_id=current_org.id,
         token_expires_seconds=effective_ttl,
+        allowed_agent_ids=delegated_agents,
+        allowed_purposes=delegated_purposes,
     )
     db.add(client)
     await db.commit()
@@ -451,6 +479,8 @@ async def create_client(
         "description": client.description,
         "scopes": client.scopes,
         "token_expires_seconds": client.token_expires_seconds,
+        "allowed_agent_ids": sorted(client.delegated_agent_ids()),
+        "allowed_purposes": sorted(client.delegated_purposes()),
         "created_at": client.created_at.isoformat(),
     }
 
@@ -492,6 +522,8 @@ async def list_clients(
                 "scopes": c.scopes,
                 "is_active": c.is_active,
                 "last_used_at": c.last_used_at.isoformat() if c.last_used_at else None,
+                "allowed_agent_ids": sorted(c.delegated_agent_ids()),
+                "allowed_purposes": sorted(c.delegated_purposes()),
                 "created_at": c.created_at.isoformat(),
             }
             for c in clients

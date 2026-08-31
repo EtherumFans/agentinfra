@@ -32,6 +32,7 @@ import os
 import pickle
 import threading
 from dataclasses import dataclass
+from queue import Empty
 from typing import Sequence
 
 logger = logging.getLogger(__name__)
@@ -659,6 +660,7 @@ class MedCodERRetrieverWorker:
     """
 
     STARTUP_ERROR_ID = "__startup_error__"
+    STARTUP_READY_ID = "__startup_ready__"
 
     @staticmethod
     def run(
@@ -667,6 +669,7 @@ class MedCodERRetrieverWorker:
         index_dir: str = DEFAULT_INDEX_DIR,
         retriever: Optional[Any] = None,
         retriever_factory=None,
+        parent_watch=None,
     ) -> None:
         if retriever is None:
             if retriever_factory is not None:
@@ -683,9 +686,30 @@ class MedCodERRetrieverWorker:
                 pass
             return
 
+        # Explicit readiness is separate from request responses. Without this
+        # handshake the parent/test can enqueue work before a Windows spawned
+        # interpreter has completed imports and index setup, making a fixed
+        # per-request timeout incorrectly report a retrieval failure.
+        try:
+            queue_out.put(
+                (MedCodERRetrieverWorker.STARTUP_READY_ID, {"ready": True})
+            )
+        except Exception:
+            return
+
         while True:
             try:
-                msg = queue_in.get()
+                msg = queue_in.get(timeout=1.0 if parent_watch is not None else None)
+            except Empty:
+                # The parent owns the write end of a one-way pipe. Abrupt
+                # parent termination closes it, allowing this native-model
+                # worker to exit instead of remaining orphaned on Windows.
+                try:
+                    if parent_watch is not None and parent_watch.poll():
+                        parent_watch.recv()
+                except (EOFError, OSError):
+                    return
+                continue
             except (EOFError, OSError):
                 # Parent process died — exit cleanly
                 return
@@ -755,23 +779,47 @@ class SubprocessMedCodERRetriever:
         timeout:   seconds to wait for a single response. Default 30s.
     """
 
-    def __init__(self, index_dir: str = DEFAULT_INDEX_DIR, timeout: float = 30.0, probe_timeout: float = 10.0, retriever_factory=None):
+    def __init__(
+        self,
+        index_dir: str = DEFAULT_INDEX_DIR,
+        timeout: float = 30.0,
+        probe_timeout: float = 60.0,
+        retriever_factory=None,
+    ):
         self.index_dir = index_dir
         self.timeout = timeout
         self._q_in: _mp.Queue = _mp.Queue()
         self._q_out: _mp.Queue = _mp.Queue()
+        self._parent_watch_recv, self._parent_watch_send = _mp.Pipe(duplex=False)
         # Worker is shared with the ICD-9-CM-3 wrapper (E1.3); the
         # ``retriever_factory`` is a thin lambda that constructs the
         # appropriate retriever class for the index dir.
-        proc_args: tuple = (self._q_in, self._q_out, index_dir)
+        proc_args: tuple = (
+            self._q_in,
+            self._q_out,
+            index_dir,
+            None,
+            None,
+            self._parent_watch_recv,
+        )
         if retriever_factory is not None:
-            proc_args = (self._q_in, self._q_out, index_dir, None, retriever_factory)
+            proc_args = (
+                self._q_in,
+                self._q_out,
+                index_dir,
+                None,
+                retriever_factory,
+                self._parent_watch_recv,
+            )
         self._proc: _mp.Process = _mp.Process(
             target=MedCodERRetrieverWorker.run,
             args=proc_args,
             daemon=True,
         )
         self._proc.start()
+        # Only the child keeps the receive end. A duplicate in the parent
+        # would prevent the child from observing EOF after a parent crash.
+        self._parent_watch_recv.close()
         self._next_id = 0
         self._lock = threading.Lock()
         self._closed = False
@@ -806,18 +854,28 @@ class SubprocessMedCodERRetriever:
             self._q_in.put((req_id, "__probe__", 1))
         except Exception:
             return self._probe_failed_reset()
-        try:
-            resp_id, payload = self._q_out.get(timeout=probe_timeout)
-        except Exception:
-            return self._probe_failed_reset()
-        if resp_id != req_id:
-            # The probe response (or the prior startup_error envelope)
-            # arrived after timeout / under a different id. Drain and
-            # reset so real requests start clean.
-            return self._probe_failed_reset()
-        if isinstance(payload, dict) and "error" in payload:
-            return self._probe_failed_reset()
-        return True
+        import time as _time
+
+        deadline = _time.monotonic() + probe_timeout
+        while True:
+            remaining = deadline - _time.monotonic()
+            if remaining <= 0:
+                return self._probe_failed_reset()
+            try:
+                resp_id, payload = self._q_out.get(timeout=remaining)
+            except Exception:
+                return self._probe_failed_reset()
+            if resp_id == MedCodERRetrieverWorker.STARTUP_READY_ID:
+                # Readiness proves ensure_loaded completed; the queued probe
+                # response still proves the request loop is consuming work.
+                continue
+            if resp_id != req_id:
+                # The probe response (or startup_error envelope) arrived under
+                # a different id. Drain and reset so real requests start clean.
+                return self._probe_failed_reset()
+            if isinstance(payload, dict) and "error" in payload:
+                return self._probe_failed_reset()
+            return True
 
     def _probe_failed_reset(self) -> bool:
         """Best-effort recovery after a probe failure.
@@ -955,6 +1013,12 @@ class SubprocessMedCodERRetriever:
             return
         self._closed = True
         try:
+            parent_watch_send = getattr(self, "_parent_watch_send", None)
+            if parent_watch_send is not None:
+                parent_watch_send.close()
+        except Exception:
+            pass
+        try:
             self._q_in.put(None)
         except Exception:
             pass
@@ -964,6 +1028,14 @@ class SubprocessMedCodERRetriever:
             logger.warning("SubprocessMedCodERRetriever: terminating worker")
             self._proc.terminate()
             self._proc.join(timeout=2)
+        for queue in (getattr(self, "_q_in", None), getattr(self, "_q_out", None)):
+            if queue is None:
+                continue
+            try:
+                queue.close()
+                queue.join_thread()
+            except Exception:
+                pass
 
     def __del__(self):
         try:

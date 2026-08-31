@@ -1,27 +1,20 @@
 # Pytest configuration for iCoDer
+# FastAPI/Starlette compatibility is pinned in requirements-api.txt;
+# test-time router monkey-patching is intentionally not used.
 
 # FastAPI/starlette env patch — fastapi 0.115.0 still passes ``on_startup``
 # to starlette 1.3.1's Router, which removed the kwarg. Must run before
 # ANY ``FastAPI()`` or ``APIRouter()`` instantiation in the import chain.
-import starlette.routing as _sr  # noqa: E402
-
-_orig_router_init = _sr.Router.__init__
-
-
-def _patched_router_init(self, *args, **kwargs):
-    for k in ("on_startup", "on_shutdown"):
-        kwargs.pop(k, None)
-    return _orig_router_init(self, *args, **kwargs)
-
-
-_sr.Router.__init__ = _patched_router_init
-
-import fastapi.routing as _fr  # noqa: E402
-
-_fr.APIRouter.on_startup = []
-_fr.APIRouter.on_shutdown = []
-
 import os
+from pathlib import Path
+
+# Never let a developer or CI host secret leak into hermetic JWT tests. This
+# value is process-local, explicitly non-production, and long enough for
+# HS256's RFC 7518 minimum so security warnings remain actionable.
+os.environ["ICODER_SECRET_KEY"] = (
+    "icoder-pytest-only-not-a-production-secret-2026-08-22-64chars"
+)
+
 import pytest_asyncio
 import pytest
 from httpx import AsyncClient, ASGITransport
@@ -35,6 +28,26 @@ if not _test_db_url:
     _test_db_url = "sqlite+aiosqlite:///./data/test.db"
 settings.DATABASE_URL = _test_db_url
 settings.DEBUG = False
+
+# Keep legacy migration assertions pointed at the same isolated SQLite file as
+# the SQLAlchemy test engine.  Without this bridge, an explicit
+# ICODER_DATABASE_URL (for example a C: drive database used to avoid a full E:
+# disk) still makes those assertions inspect backend/data/test.db instead.
+from sqlalchemy.engine import make_url
+
+_parsed_test_db_url = make_url(_test_db_url)
+if (
+    _parsed_test_db_url.get_backend_name() == "sqlite"
+    and _parsed_test_db_url.database
+    and _parsed_test_db_url.database != ":memory:"
+):
+    _sqlite_test_path = Path(_parsed_test_db_url.database)
+    if not _sqlite_test_path.is_absolute():
+        _sqlite_test_path = (Path.cwd() / _sqlite_test_path).resolve()
+    os.environ["ICODER_TEST_DB_PATH"] = str(_sqlite_test_path)
+else:
+    # SQLite-specific schema checks skip cleanly for PostgreSQL/in-memory runs.
+    os.environ["ICODER_TEST_DB_PATH"] = ""
 
 # M3-0 hospital pilot gate: the API hard-503s when ICODER_CREDENTIAL_LLM is
 # unset, unless ICODER_ALLOW_DEGRADED_NO_KEY=1. Tests run without a real
@@ -185,6 +198,13 @@ async def setup_db():
     # while the API reads test DB — the rows are invisible.
     _db_module.async_session_factory = _db_module.AsyncSessionLocal
 
+    # A prior interrupted pytest session cannot run the teardown below and
+    # may leave fixed-id fixtures in data/test.db.  Start from a known-empty
+    # schema so repeated and interrupted local runs remain deterministic.
+    # This engine is already rebound to the dedicated test URL; the dev DB
+    # guard below continues to prove data/icoder.db is untouched.
+    async with _test_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
     await init_db()
     yield
     # Drop tables from the test engine only — dev DB (data/icoder.db) is never touched.
@@ -231,7 +251,7 @@ async def auth_client():
                 "email": "test@example.com",
                 "password": "testpass123",
                 "full_name": "Test User",
-                "role": "admin",
+                "role": "coder",
                 "department": "测试科",
             })
         if response.status_code in (200, 201):
@@ -299,13 +319,20 @@ async def needs_auth():
     Removes the get_current_user + get_current_organization overrides for
     the duration of the test, then restores them after.
     """
-    from app.middleware.auth import get_current_user, get_current_organization
+    from app.middleware.auth import (
+        get_current_user,
+        get_current_organization,
+        get_current_user_or_oauth_client,
+    )
     saved_user = app.dependency_overrides.get(get_current_user)
     saved_org = app.dependency_overrides.get(get_current_organization)
+    saved_hybrid = app.dependency_overrides.get(get_current_user_or_oauth_client)
     if get_current_user in app.dependency_overrides:
         del app.dependency_overrides[get_current_user]
     if get_current_organization in app.dependency_overrides:
         del app.dependency_overrides[get_current_organization]
+    if get_current_user_or_oauth_client in app.dependency_overrides:
+        del app.dependency_overrides[get_current_user_or_oauth_client]
     try:
         yield
     finally:
@@ -313,3 +340,5 @@ async def needs_auth():
             app.dependency_overrides[get_current_user] = saved_user
         if saved_org is not None:
             app.dependency_overrides[get_current_organization] = saved_org
+        if saved_hybrid is not None:
+            app.dependency_overrides[get_current_user_or_oauth_client] = saved_hybrid

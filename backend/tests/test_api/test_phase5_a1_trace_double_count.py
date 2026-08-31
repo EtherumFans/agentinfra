@@ -20,7 +20,10 @@ Fix (A1, 2026-07-10):
   - Error paths keep direct COMPLETION failed emit (lines 553/574/626).
 
 Expected trace counts after fix:
-  - Success path: 3 events (USER_MESSAGE_RECEIVED + OUTPUT_GENERATED + COMPLETION)
+  - Provider response (success or fail-closed): 3 events
+    (USER_MESSAGE_RECEIVED + OUTPUT_GENERATED + COMPLETION)
+  - Provider response that fails the output contract: 4 events, adding the
+    explicit CONTRACT_VALIDATION failure event before COMPLETION.
   - Error path (unknown_agent): 2 events (USER_MESSAGE_RECEIVED + COMPLETION failed)
 """
 from __future__ import annotations
@@ -53,16 +56,16 @@ def client():
         yield c
 
 
-def test_a1_success_path_has_exactly_3_trace_events_no_double_count(
+def test_a1_provider_path_has_no_duplicate_trace_events(
     client: TestClient,
 ) -> None:
-    """A1 regression: success-path run must produce exactly 3 trace events.
+    """A1 regression: provider-path run must produce exactly 3 trace events.
 
     Before fix: 6 events (each of USER_MESSAGE_RECEIVED, OUTPUT_GENERATED,
     COMPLETION appeared twice — once without duration from direct emit,
     once with duration from persist_trace_events).
-    After fix: 3 events (USER_MESSAGE_RECEIVED + OUTPUT_GENERATED + COMPLETION),
-    each appearing exactly once.
+    After fix: the three lifecycle events appear exactly once; a contract
+    violation may add one explicit contract_validation event.
     """
     fix = _load_fixture("coding_evidence_case.json")
     resp = client.post(
@@ -78,16 +81,23 @@ def test_a1_success_path_has_exactly_3_trace_events_no_double_count(
     assert resp.status_code == 200, (
         f"run failed: {resp.status_code} {resp.text[:300]}"
     )
-    run_id = resp.json()["run_id"]
+    body = resp.json()
+    # Evidence Extractor is a governed local exact-mention Provider and does
+    # not depend on the configured mock LLM. Its successful trace must still
+    # contain each lifecycle event exactly once.
+    assert body.get("error") is False
+    assert body["result"]["extraction_status"] == "COMPLETED"
+    run_id = body["run_id"]
 
     trace_resp = client.get(f"/api/runtime/runs/{run_id}/trace")
     assert trace_resp.status_code == 200
     timeline = trace_resp.json().get("timeline", trace_resp.json().get("events", []))
 
-    # Bug-12-01: must be exactly 3, not 6 (or 7).
+    # Bug-12-01: no duplicate lifecycle events. The local Provider produces a
+    # contract-valid result, so only the three lifecycle events are expected.
     assert len(timeline) == 3, (
-        f"BUG-12-01 regression: expected exactly 3 trace events on success path "
-        f"(USER_MESSAGE_RECEIVED + OUTPUT_GENERATED + COMPLETION), got {len(timeline)}. "
+        f"BUG-12-01 regression: expected exactly 3 trace events for a valid "
+        f"provider path, got {len(timeline)}. "
         f"Steps: {[ev.get('step') for ev in timeline]}"
     )
 
@@ -102,6 +112,9 @@ def test_a1_success_path_has_exactly_3_trace_events_no_double_count(
     assert steps.count("completion") == 1, (
         f"COMPLETION must appear exactly once, got {steps.count('completion')}"
     )
+    assert steps.count("contract_validation") == 0
+    completion_ev = next(ev for ev in timeline if ev.get("step") == "completion")
+    assert completion_ev.get("status") == "ok"
 
 
 def test_a1_error_path_has_exactly_2_trace_events_no_double_count(

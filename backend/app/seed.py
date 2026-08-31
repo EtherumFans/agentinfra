@@ -1,7 +1,7 @@
 # iCoDer - Database Seeding (Multi-Tenant)
 # Run with: python -m app.seed
 import asyncio
-from app.database import init_db, AsyncSessionLocal
+from app.database import init_db
 from app.models.user import User, UserRole
 from app.models.organization import Organization, OrganizationMember, OrgRole as OrgMemberRole
 from app.models.team import TeamMember, TeamRole
@@ -51,8 +51,13 @@ EXISTING_CODES = {
 
 
 async def seed():
+    # Resolve the session factory at call time. Test and embedded runtimes may
+    # rebind ``app.database.AsyncSessionLocal`` to a dedicated database;
+    # capturing it at import time would keep writing to the development DB.
+    from app import database as _database
+
     await init_db()
-    async with AsyncSessionLocal() as session:
+    async with _database.AsyncSessionLocal() as session:
         # Check if already seeded
         from sqlalchemy import select
         result = await session.execute(select(User).limit(1))
@@ -120,8 +125,7 @@ async def seed():
 
             # Seed default OAuth client for Developer Quickstart
             from app.models.oauth import OAuthClient
-            import hashlib
-            plaintext, secret_hash = OAuthClient.generate_client_secret()
+            _plaintext, secret_hash = OAuthClient.generate_client_secret()
             default_client = OAuthClient(
                 name="Default client",
                 client_id=OAuthClient.generate_client_id("icoder"),
@@ -134,7 +138,10 @@ async def seed():
             )
             session.add(default_client)
             print(f"  Client ID: {default_client.client_id}")
-            print(f"  Client Secret: {plaintext}")
+            # Never print client secrets into developer terminals or CI logs.
+            # The seeded client is discovery-only; create a new client through
+            # the authenticated Console/API to receive a one-time secret.
+            print("  Client Secret: not logged; create a client to receive a one-time secret")
             await session.commit()
             print("Seeded default OAuth client (icoder_default_client).")
 
@@ -1066,7 +1073,9 @@ async def seed_builtin_templates():
     )
     from sqlalchemy import select as _select
 
-    async with AsyncSessionLocal() as session:
+    from app import database as _database
+
+    async with _database.AsyncSessionLocal() as session:
         orgs = (await session.execute(_select(Organization))).scalars().all()
         if not orgs:
             return

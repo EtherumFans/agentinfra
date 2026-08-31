@@ -1,0 +1,377 @@
+{
+  "case_id": "CASE-45abee0d2996",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-45abee0d2996/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "头痛的病因未明确，未提及可能的原发性或继发性头痛类型，也未进行影像学或实验室检查以排除器质性病变。",
+      "why_it_matters": "头痛的病因未明确，影响诊断编码的准确性，可能无法区分原发性头痛（如偏头痛、紧张型头痛）与继发性头痛（如颅内占位、血管病变等），导致编码不精确。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "间断头痛",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-45abee0d2996/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "头痛的严重程度未描述，如疼痛评分（0-10分）或对日常生活的影响。",
+      "why_it_matters": "严重程度是头痛分类和编码的重要依据，缺乏严重程度描述可能影响诊断的准确性和治疗决策。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "间断头痛",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-45abee0d2996/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "头痛的病程未明确，如持续时间、发作频率、起病时间等。",
+      "why_it_matters": "病程（急性、亚急性、慢性）是头痛诊断和编码的关键要素，缺乏病程信息可能导致编码不准确。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "间断头痛",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-45abee0d2996/GAP-004",
+      "gap_type": "diagnostic_specificity",
+      "description": "头痛的具体部位未描述，如额部、颞部、枕部或全头部。",
+      "why_it_matters": "头痛部位有助于鉴别诊断，如偏头痛常为单侧，紧张型头痛常为双侧，缺乏部位描述可能影响诊断准确性。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "间断头痛",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-45abee0d2996/Q-001",
+      "gap_id": "CASE-45abee0d2996/GAP-004",
+      "topic": "头痛部位",
+      "reason": "病历中未描述头痛的具体部位。",
+      "evidence_span": {
+        "document_id": "chart-001",
+        "quote": "间断头痛",
+        "char_start": 11,
+        "char_end": 15,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "间断头痛",
+          "char_start": 11,
+          "char_end": 15,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "该患者头痛的具体部位是哪里？",
+      "response_options": [
+        "A. 额部",
+        "B. 颞部",
+        "C. 枕部",
+        "D. 全头部",
+        "E. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    }
+  ],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-001",
+      "gap_id": "CASE-45abee0d2996/GAP-001",
+      "topic": "头痛病因",
+      "reason": "病历中仅描述'间断头痛'，未提及可能的原发性或继发性头痛类型，也未进行影像学或实验室检查以排除器质性病变。",
+      "query_text": "该患者头痛的可能病因分类是什么？",
+      "response_options": [
+        "A. 原发性头痛（如偏头痛、紧张型头痛等）",
+        "B. 继发性头痛（如颅内病变、感染、血管性疾病等）",
+        "C. 病因暂不明确，需进一步检查",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "间断头痛",
+          "char_start": 11,
+          "char_end": 15,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-004: red flags are broadly denied and the examination is normal"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-002",
+      "gap_id": "CASE-45abee0d2996/GAP-002",
+      "topic": "头痛严重程度",
+      "reason": "病历中未描述头痛的严重程度，如疼痛评分或对日常生活的影响。",
+      "query_text": "该患者头痛的严重程度如何？",
+      "response_options": [
+        "A. 轻度（疼痛评分1-3分，不影响日常活动）",
+        "B. 中度（疼痛评分4-6分，部分影响日常活动）",
+        "C. 重度（疼痛评分7-10分，严重影响日常活动）",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "间断头痛",
+          "char_start": 11,
+          "char_end": 15,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-004: red flags are broadly denied and the examination is normal"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-003",
+      "gap_id": "CASE-45abee0d2996/GAP-003",
+      "topic": "头痛病程",
+      "reason": "病历中未明确头痛的持续时间、发作频率和起病时间。",
+      "query_text": "该患者头痛的病程特点是什么？",
+      "response_options": [
+        "A. 急性起病，持续时间短（<1周）",
+        "B. 亚急性起病，持续1-4周",
+        "C. 慢性起病，持续超过4周",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "间断头痛",
+          "char_start": 11,
+          "char_end": 15,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-004: red flags are broadly denied and the examination is normal"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者男性, 40岁, 间断头痛。否认恶心、呕吐、畏光、畏声、视觉先兆、肢体无力。既往:无偏头痛史, 无颅脑外伤史, 无中枢神经系统肿瘤家族史。查体正常。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者男性，40岁",
+      "间断头痛",
+      "否认恶心、呕吐、畏光、畏声、视觉先兆、肢体无力",
+      "既往无偏头痛史",
+      "无颅脑外伤史",
+      "无中枢神经系统肿瘤家族史",
+      "查体正常"
+    ],
+    "encounter_metadata": {
+      "patient_age": "40岁",
+      "patient_sex": "男性",
+      "encounter_type": "门诊"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "To ensure accurate coding, the chart must specify the headache type (e.g., migraine, tension-type, cluster, or secondary cause) and document the results of any neuroimaging or lab tests performed to rule out organic pathology. Additionally, quantify severity (e.g., pain score), duration, frequency, onset, and exact location (e.g., frontal, temporal, occipital) to capture the clinical course and impact on daily function. Without these details, the diagnosis remains nonspecific, limiting code precision and clinical validity.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3291,
+      "tokens": 309
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": true,
+      "rationale": "Based on the chart, the clinical picture (intermittent headache, normal exam, no red-flag symptoms) most likely suggests a primary headache disorder such as tension-type headache or migraine without aura, but the gaps you identified (severity, location, duration, and lack of neuroimaging) are critical to rule out secondary causes. Literature supports that in adults with a normal neurological exam and no red flags (e.g., sudden onset, fever, focal deficits, or new headache after age 50), routine neuroimaging is not indicated for primary headaches (PMID: 31060104, 31570556). However, without documenting pain intensity, location, and temporal pattern, you cannot confidently classify the headache subtype or exclude secondary pathology—so I recommend obtaining a detailed headache diary and, if any red flags emerge, proceeding with MRI/CT. I do not have live PubMed access, so please verify these PMIDs independently.",
+      "route_decision": "needed",
+      "route_reason": "criteria_marker_present",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3478,
+      "tokens": 405
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "'评分' score — parameters absent from chart",
+      "route_decision": "missing_inputs",
+      "route_reason": "calculator_params_missing",
+      "execution_mode": "SKIPPED_MISSING_INPUTS",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-3873b525fdfd",
+    "gap_identification": "run-dc36fc9cfc2b",
+    "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
+    "expert_consultation": "run-f8a34a70bdc8",
+    "query_generation": "run-d9a52d4f50a3",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=4;llm_complete=False;llm_reasoning=头痛的病因、严重程度、病程和部位均未明确，且未进行相关检查，无法确定头痛的具体类型，需要进一步澄清。",
+    "query_necessity_gate": "necessary=1;unnecessary=3;overquery_triggered=False;final_count=1",
+    "query_single_dimension_gate": "single_dim=1;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=site;rewrite_attempted=0;rewrite_accepted=0;final_count=1",
+    "claim_evidence_alignment_gate": "claims_extracted=1;blocked=0;flagged=0;final_count=1",
+    "claim_evidence_alignment_gate::run_id": "run-a6428ab63fab",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=1",
+    "semantic_necessity_gate::run_id": "run-17f985ad4ff9",
+    "query_compliance_gate": ";passed=1;blocked=0",
+    "specialist_trace_emit": "run-5eaa43b7a40e"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-0adabb4dd8f8",
+    "gap_identification": "trace-76ea4b421e68",
+    "expert_consultation": "trace-582de7dd603b",
+    "query_generation": "trace-d32b4f5edcf5",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-5c1f5cc0526f",
+    "semantic_necessity_gate": "trace-8ccaaf3601e9",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-cc22f13c826d"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2577,
+      "prompt_tokens": 226,
+      "completion_tokens": 111,
+      "total_tokens": 337,
+      "run_id": "run-3873b525fdfd",
+      "trace_id": "trace-0adabb4dd8f8",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6792,
+      "prompt_tokens": 1062,
+      "completion_tokens": 626,
+      "total_tokens": 1688,
+      "run_id": "run-dc36fc9cfc2b",
+      "trace_id": "trace-76ea4b421e68",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5923,
+      "prompt_tokens": 1171,
+      "completion_tokens": 766,
+      "total_tokens": 1937,
+      "run_id": "run-d9a52d4f50a3",
+      "trace_id": "trace-d32b4f5edcf5",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3291,
+      "prompt_tokens": 205,
+      "completion_tokens": 104,
+      "total_tokens": 309,
+      "run_id": "run-565959d54c33",
+      "trace_id": "trace-d3e2441ffe9a",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3478,
+      "prompt_tokens": 219,
+      "completion_tokens": 186,
+      "total_tokens": 405,
+      "run_id": "run-9c2c9fcdd4cc",
+      "trace_id": "trace-2da046584e3a",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-35fb9b1e0b3f",
+      "trace_id": "trace-7b424e55cc21",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-4522a1ab0db5",
+      "trace_id": "trace-13689741a8f0",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T20:08:48.115896Z"
+}

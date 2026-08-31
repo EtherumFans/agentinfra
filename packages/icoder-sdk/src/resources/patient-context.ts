@@ -1,6 +1,7 @@
 // PatientContext resource — A1C.3 HIS/EMR Integration Contract §2
 // Closes RV.5 BLOCKED_BY_NO_CONTEXT_CREATE_ENDPOINT.
 import type { AxiosInstance } from 'axios';
+import { requestConfig, type iCoDerRequestOptions } from '../request-options.js';
 
 export type VisitType =
   | 'inpatient' | 'outpatient' | 'emergency' | 'day-case'
@@ -57,33 +58,42 @@ export class PatientContextResource {
   async create(
     body: PatientContextCreate,
     options?: { idempotencyKey?: string },
+    requestOptions?: iCoDerRequestOptions,
   ): Promise<PatientContextResponse> {
     const headers: Record<string, string> = {};
     if (options?.idempotencyKey) headers['Idempotency-Key'] = options.idempotencyKey;
     const { data } = await this.http.post<PatientContextResponse>(
-      '/api/v1/patient-context', body, { headers },
+      '/api/v1/patient-context',
+      body,
+      requestConfig(requestOptions, {}, headers),
     );
     return data;
   }
 
-  async get(contextId: string): Promise<PatientContextResponse> {
+  async get(contextId: string, options?: iCoDerRequestOptions): Promise<PatientContextResponse> {
     const { data } = await this.http.get<PatientContextResponse>(
       `/api/v1/patient-context/${contextId}`,
+      requestConfig(options),
     );
     return data;
   }
 
-  async delete(contextId: string): Promise<void> {
-    await this.http.delete(`/api/v1/patient-context/${contextId}`);
+  async delete(contextId: string, options?: iCoDerRequestOptions): Promise<void> {
+    await this.http.delete(
+      `/api/v1/patient-context/${contextId}`,
+      requestConfig(options),
+    );
   }
 
   async extend(
     contextId: string,
     extendSeconds: number,
+    options?: iCoDerRequestOptions,
   ): Promise<PatientContextResponse> {
     const { data } = await this.http.post<PatientContextResponse>(
       `/api/v1/patient-context/${contextId}/extend`,
       { extend_seconds: extendSeconds },
+      requestConfig(options),
     );
     return data;
   }

@@ -11,7 +11,6 @@ from app.icoder.agent_runtime.orchestrator.delegator import (
     DelegatorConfig,
     ExpertInvocation,
     ExpertInvocationError,
-    noop_invoker,
 )
 from app.icoder.agent_runtime.orchestrator.run_context import ExpertResult
 
@@ -275,18 +274,6 @@ def test_latency_recorded_per_expert():
     d = Delegator(invoker=inv)
     results = d.delegate(plan_steps=[_step()])
     assert results[0].latency_ms >= 0
-
-
-# ---------------------------------------------------------------------------
-# Default noop invoker
-# ---------------------------------------------------------------------------
-
-
-def test_noop_invoker_returns_marker():
-    r = noop_invoker(
-        ExpertInvocation(expert_id="x", subtask_input="something")
-    )
-    assert r == {"expert_id": "x", "noop": True, "attempt": 1}
 
 
 # ---------------------------------------------------------------------------

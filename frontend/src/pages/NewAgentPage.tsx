@@ -13,6 +13,7 @@ import {
 
 import { useT } from '../i18n';
 import { agentsApi, expertsApi } from '../services/api';
+import { agentHubApi } from '../services/agentHubApi';
 
 const ICON_MAP: Record<string, React.ElementType> = {
   Bot, BookOpenText, Shield, CheckCircle, Stethoscope,
@@ -118,6 +119,21 @@ export default function NewAgentPage() {
     if (!selected) return;
     setCreating(true);
     try {
+      if (selected.template_kind === 'governed_prebuilt') {
+        const res = await agentHubApi.clone(
+          selected.runtime_agent_id || selected.id,
+          {
+            name: selected.title,
+            description: selected.description,
+          },
+        );
+        const clone = res.data;
+        navigate(
+          clone.customize_url || `/ai-studio/agents/${clone.project_agent_id}`,
+          { state: { newAgent: clone.cloned } },
+        );
+        return;
+      }
       const expertIds = (selected.expert_ids || [])
         .map((name: string) => expertNameToId[name])
         .filter(Boolean);

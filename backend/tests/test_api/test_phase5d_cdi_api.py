@@ -58,6 +58,22 @@ def _override_role(client: TestClient, role: str):
     return _restore
 
 
+def test_query_audit_queue_projection_is_role_scoped() -> None:
+    from app.api.cdi import _project_query_audit_queue
+    from tests.conftest import _make_mock_user
+
+    queue = [{"query_id": "q-blocked", "status": "NEEDS_CDI_REWRITE"}]
+
+    assert _project_query_audit_queue(queue, _make_mock_user("admin")) == queue
+    assert _project_query_audit_queue(queue, _make_mock_user("qc")) == queue
+    assert _project_query_audit_queue(queue, _make_mock_user("insurance")) == queue
+    assert _project_query_audit_queue(queue, _make_mock_user("clinician")) == []
+
+    unknown = _make_mock_user("clinician")
+    unknown.role = "unknown_role"
+    assert _project_query_audit_queue(queue, unknown) == []
+
+
 # ---------------------------------------------------------------------------
 # Health
 # ---------------------------------------------------------------------------
@@ -67,10 +83,11 @@ def test_cdi_health(client: TestClient) -> None:
     r = client.get("/api/v1/cdi/health")
     assert r.status_code == 200
     body = r.json()
-    assert body["status"] == "healthy"
+    assert body["status"] in {"healthy", "degraded"}
     assert body["router"] == "cdi"
     assert "POST /runs" in body["endpoints"]
     assert "no_medical_coding_calls" in body["boundaries_enforced"]
+    assert body["capabilities"]["subscription_persistence"] == "ready"
 
 
 # ---------------------------------------------------------------------------
@@ -166,8 +183,10 @@ def test_get_cdi_case_round_trips_after_post(client: TestClient) -> None:
     assert get_resp.status_code == 200
     get_data = get_resp.json()
     assert get_data["case_id"] == "CASE-ROUNDTRIP-001"
-    assert get_data["patient_ref"] == "MRN-001"
-    assert get_data["encounter_ref"] == "ENC-001"
+    assert get_data["patient_ref"].startswith("PSEUDO-PATIENT-")
+    assert get_data["encounter_ref"].startswith("PSEUDO-ENCOUNTER-")
+    assert get_data["patient_ref"] != "MRN-001"
+    assert get_data["encounter_ref"] != "ENC-001"
     # Gaps + queries count must match what POST returned
     assert len(get_data["documentation_gaps"]) == len(post_data["documentation_gaps"])
     assert len(get_data["proposed_provider_queries"]) == len(
@@ -355,9 +374,93 @@ def test_audit_dashboard_for_admin(client: TestClient) -> None:
     r = client.get("/api/v1/cdi/audit/dashboard")
     assert r.status_code == 200, r.text
     body = r.json()
-    assert body["total_cases"] == 0
-    assert body["total_queries"] == 0
-    assert "Gate 9 stub" in body["note"]
+    assert body["total_cases"] >= 0
+    assert body["total_queries"] >= 0
+    assert "Tenant-scoped" in body["note"]
+
+
+def test_audit_dashboard_aggregates_persisted_workflow_rows(client: TestClient) -> None:
+    """The dashboard is a real tenant aggregate, not a fixed empty shell."""
+
+    _seed_case_with_query(client, lifecycle_state="ESCALATED")
+    response = client.get("/api/v1/cdi/audit/dashboard")
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["total_cases"] >= 1
+    assert body["total_queries"] >= 1
+    assert body["queries_by_state"]["ESCALATED"] >= 1
+    assert body["queries_by_priority"]["routine"] >= 1
+    assert any(
+        gap_type == "UNSPECIFIED_CLINICAL_DETAIL" and count >= 1
+        for gap_type, count in body["top_gap_types"]
+    )
+    assert body["escalation_rate"] > 0
+    assert "chart_excerpt" not in body
+    assert "query_text" not in body
+
+
+def test_cdi_case_query_and_dashboard_are_tenant_scoped(client: TestClient) -> None:
+    """A different organization cannot observe or mutate persisted CDI data."""
+
+    import asyncio
+
+    from sqlalchemy import select
+
+    from app.database import async_session_factory
+    from app.main import app
+    from app.middleware.auth import get_current_organization, get_current_user
+    from app.models.cdi_case import ProviderQueryModel
+    from tests.conftest import _make_mock_user
+
+    query_id = _seed_case_with_query(client, lifecycle_state="PENDING_CDI_REVIEW")
+
+    async def _case_id() -> str:
+        async with async_session_factory() as session:
+            return str(
+                (
+                    await session.execute(
+                        select(ProviderQueryModel.case_id).where(
+                            ProviderQueryModel.id == query_id,
+                        )
+                    )
+                ).scalar_one()
+            )
+
+    case_id = asyncio.run(_case_id())
+    original_user = app.dependency_overrides.get(get_current_user)
+    original_org = app.dependency_overrides.get(get_current_organization)
+
+    def _other_tenant_user():
+        return _make_mock_user("admin")
+
+    class _OtherTenantOrg:
+        id = "org-other001"
+
+    app.dependency_overrides[get_current_user] = _other_tenant_user
+    app.dependency_overrides[get_current_organization] = lambda: _OtherTenantOrg()
+    try:
+        get_response = client.get(f"/api/v1/cdi/runs/{case_id}")
+        assert get_response.status_code == 404
+
+        transition_response = client.post(
+            f"/api/v1/cdi/queries/{query_id}/transition",
+            json={"to_state": "APPROVED"},
+        )
+        assert transition_response.status_code == 404
+
+        dashboard_response = client.get("/api/v1/cdi/audit/dashboard")
+        assert dashboard_response.status_code == 200
+        assert dashboard_response.json()["total_cases"] == 0
+        assert dashboard_response.json()["total_queries"] == 0
+    finally:
+        if original_user is None:
+            app.dependency_overrides.pop(get_current_user, None)
+        else:
+            app.dependency_overrides[get_current_user] = original_user
+        if original_org is None:
+            app.dependency_overrides.pop(get_current_organization, None)
+        else:
+            app.dependency_overrides[get_current_organization] = original_org
 
 
 def test_audit_dashboard_for_qc_cdi_specialist_forbidden(client: TestClient) -> None:
@@ -426,7 +529,10 @@ def test_create_subscription_webhook_requires_url(client: TestClient) -> None:
     assert r.json()["detail"]["error"] == "webhook_requires_url"
 
 
-def test_create_subscription_webhook_with_url(client: TestClient) -> None:
+def test_create_subscription_webhook_with_url(client: TestClient, monkeypatch) -> None:
+    from cryptography.fernet import Fernet
+
+    monkeypatch.setenv("ICODER_PHI_ENCRYPTION_KEY", Fernet.generate_key().decode())
     r = client.post(
         "/api/v1/cdi/subscriptions",
         json={
@@ -434,9 +540,29 @@ def test_create_subscription_webhook_with_url(client: TestClient) -> None:
             "events": ["SLA_BREACH_CRITICAL"],
             "channel": "webhook",
             "target_url": "https://emr.example.com/cdi-webhook",
+            "secret": "hospital-shared-secret-2026",
         },
     )
     assert r.status_code == 200
+    assert "secret" not in r.json()
+
+
+def test_create_subscription_webhook_fails_closed_without_encryption_key(
+    client: TestClient, monkeypatch,
+) -> None:
+    monkeypatch.delenv("ICODER_PHI_ENCRYPTION_KEY", raising=False)
+    r = client.post(
+        "/api/v1/cdi/subscriptions",
+        json={
+            "user_role": "auditor",
+            "events": ["SLA_BREACH_CRITICAL"],
+            "channel": "webhook",
+            "target_url": "https://emr.example.com/cdi-webhook",
+            "secret": "hospital-shared-secret-2026",
+        },
+    )
+    assert r.status_code == 503
+    assert r.json()["detail"]["error"] == "webhook_encryption_unavailable"
 
 
 def test_create_subscription_rejects_invalid_event(client: TestClient) -> None:

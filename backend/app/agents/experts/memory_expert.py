@@ -1,31 +1,24 @@
-"""Memory Expert — Corti public §3.2 key 1 of 9 (A1B-AE.5 stub).
+"""Memory Expert compatibility API and governed persistent retrieval adapter.
 
-Corti public docs describe the Memory Expert as a RAG pipeline that
-provides semantic retrieval over long-term memory. iCoDer's baseline
-memory capability is LEXICAL_ONLY (strictly weaker — no embedding
-index) per A1B-AE.1 §3.2.
+Corti public docs describe the Memory Expert as a RAG pipeline that provides
+semantic retrieval over long-term memory. ``retrieve`` remains a deterministic
+non-persistent thread compatibility helper. ``retrieve_persistent_async`` uses
+the consent-bound encrypted Connector Memory store and its configured remote
+semantic embedding service.
 
-A1B-AE.5 ships a STUB that:
-
-1. Registers the Memory Expert in the Expert Registry with
-   ``origin=CLEAN_ROOM_PUBLIC``, ``canonical_key='memory'``,
-   ``corti_alignment='CORTI_REFERENCE'``. A1B-AE.1 §3.2 documents
-   this as a known parity gap (iCoDer CORTI_ADVANTAGE = NONE;
-   iCoDer DEFICIENCY = no semantic retrieval).
-
-2. Returns a deterministic lexical-only retrieval result from the
-   thread's prior messages. This is NOT semantic — there is no
-   embedding index. The implementation is explicitly a placeholder
-   so the Expert Registry has a row for 'memory' that consumers can
-   route to; A1B-AE.6 or later may add a real semantic retriever.
-
-The stub must NOT claim parity with Corti's RAG pipeline.
+The live path never imports native ML into the API process. Missing semantic
+infrastructure is explicitly disclosed as lexical fallback in development or
+fails closed when ``ICODER_MEMORY_SEMANTIC_REQUIRED=true``.
 """
 from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
 from typing import Any
+
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.services.connector_executor import ConnectorInvocation
 
 logger = logging.getLogger(__name__)
 
@@ -34,9 +27,8 @@ logger = logging.getLogger(__name__)
 MEMORY_EXPERT_CANONICAL_KEY = "memory"
 MEMORY_EXPERT_NAME = "Memory Expert"
 MEMORY_EXPERT_DESCRIPTION = (
-    "Lexical-only thread memory retrieval. "
-    "iCoDer baseline; semantic RAG deferred (A1B-AE.1 §3.2 documents "
-    "this as a known CORTI_REFERENCE parity gap)."
+    "Consent-bound encrypted persistent memory with optional governed remote "
+    "semantic retrieval; synchronous thread compatibility remains lexical."
 )
 
 
@@ -104,10 +96,49 @@ def retrieve(
     )
 
 
+async def retrieve_persistent_async(
+    query: str,
+    *,
+    db: AsyncSession,
+    store: Any,
+    organization_id: str,
+    user_id: str,
+    agent_id: str,
+    purpose_of_use: str = "treatment",
+    top_k: int = 5,
+) -> MemoryRetrievalResult:
+    """Retrieve encrypted persistent Memory through the governed store."""
+
+    output = await store.invoke(db, ConnectorInvocation(
+        organization_id=organization_id,
+        agent_id=agent_id,
+        connector_id="memory",
+        operation="recall",
+        arguments={"query": query, "top_k": top_k},
+        data_classification="deidentified",
+        purpose_of_use=purpose_of_use,
+        actor_type="user",
+        actor_id=user_id,
+    ))
+    memories = output.get("memories")
+    if not isinstance(memories, list):
+        raise RuntimeError("CONNECTOR_RESPONSE_INVALID")
+    return MemoryRetrievalResult(
+        query=query,
+        matches=memories,
+        retrieval_mode=str(output.get("retrieval_mode") or "UNKNOWN"),
+        notes=(
+            "Governed persistent Memory; encrypted at rest, consent and "
+            "retention bound, non-authoritative and manual review required."
+        ),
+    )
+
+
 __all__ = [
     "MEMORY_EXPERT_CANONICAL_KEY",
     "MEMORY_EXPERT_NAME",
     "MEMORY_EXPERT_DESCRIPTION",
     "MemoryRetrievalResult",
     "retrieve",
+    "retrieve_persistent_async",
 ]

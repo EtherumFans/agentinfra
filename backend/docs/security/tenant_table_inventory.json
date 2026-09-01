@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "generated_at": "2026-09-01",
-  "authoritative_database_revision": "065",
+  "authoritative_database_revision": "066",
   "database_table_count": 82,
   "orm_table_count": 82,
   "catalog_union_count": 83,
@@ -9,7 +9,7 @@
     "database_tables_with_organization_id": 72,
     "organization_id_not_null": 50,
     "organization_id_nullable": 22,
-    "force_rls_enforced": 16,
+    "force_rls_enforced": 22,
     "tenant_tables_without_organization_id": 4,
     "platform_or_global_tables": 6,
     "orm_only_schema_drift": 1
@@ -38,6 +38,12 @@
     "patient_contexts",
     "run_history",
     "run_trace_events",
+    "stt_interactions",
+    "stt_recordings",
+    "stt_stream_checkpoint_chunks",
+    "stt_stream_checkpoints",
+    "stt_stream_leases",
+    "stt_transcripts",
     "transactions"
   ],
   "batch_2_first_wave_tables": [
@@ -50,6 +56,14 @@
     "a2a_task_artifacts",
     "a2a_artifact_objects",
     "a2a_artifact_download_grants"
+  ],
+  "batch_2_second_wave_tables": [
+    "stt_interactions",
+    "stt_recordings",
+    "stt_stream_checkpoint_chunks",
+    "stt_stream_checkpoints",
+    "stt_stream_leases",
+    "stt_transcripts"
   ],
   "tables": [
     {"name":"a2a_artifact_download_grants","scope":"tenant_direct","tenant_resolution":"organization_id; composite FK to a2a_artifact_objects","organization_id":"required","rls":"force","sensitivity":"clinical_sensitive_authorization","wave":"batch2_wave1_complete","schema_presence":"database_and_orm"},
@@ -121,12 +135,12 @@
     {"name":"runtime_duc_decisions","scope":"tenant_legacy_nullable","tenant_resolution":"organization_id and runtime_sessions.organization_id","organization_id":"nullable","rls":"pending","sensitivity":"runtime_decision","wave":"batch2_wave6","schema_presence":"database_and_orm"},
     {"name":"runtime_sessions","scope":"tenant_legacy_nullable","tenant_resolution":"organization_id","organization_id":"nullable","rls":"pending","sensitivity":"runtime_session","wave":"batch2_wave6","schema_presence":"database_and_orm"},
     {"name":"runtime_transitions","scope":"tenant_legacy_nullable","tenant_resolution":"organization_id and runtime_sessions.organization_id","organization_id":"nullable","rls":"pending","sensitivity":"runtime_state","wave":"batch2_wave6","schema_presence":"database_and_orm"},
-    {"name":"stt_interactions","scope":"tenant_direct","tenant_resolution":"organization_id","organization_id":"required","rls":"pending","sensitivity":"phi_stt_interaction","wave":"batch2_wave2","schema_presence":"database_and_orm"},
-    {"name":"stt_recordings","scope":"tenant_direct","tenant_resolution":"organization_id","organization_id":"required","rls":"pending","sensitivity":"encrypted_phi_audio","wave":"batch2_wave2","schema_presence":"database_and_orm"},
-    {"name":"stt_stream_checkpoint_chunks","scope":"tenant_direct","tenant_resolution":"organization_id and stt_stream_checkpoints composite key","organization_id":"required","rls":"pending","sensitivity":"encrypted_phi_audio_chunk","wave":"batch2_wave2","schema_presence":"database_and_orm"},
-    {"name":"stt_stream_checkpoints","scope":"tenant_direct","tenant_resolution":"organization_id","organization_id":"required","rls":"pending","sensitivity":"encrypted_phi_stream_state","wave":"batch2_wave2","schema_presence":"database_and_orm"},
-    {"name":"stt_stream_leases","scope":"tenant_direct","tenant_resolution":"organization_id","organization_id":"required","rls":"pending","sensitivity":"stream_control","wave":"batch2_wave2","schema_presence":"database_and_orm"},
-    {"name":"stt_transcripts","scope":"tenant_direct","tenant_resolution":"organization_id","organization_id":"required","rls":"pending","sensitivity":"encrypted_phi_transcript","wave":"batch2_wave2","schema_presence":"database_and_orm"},
+    {"name":"stt_interactions","scope":"tenant_direct","tenant_resolution":"organization_id","organization_id":"required","rls":"force","sensitivity":"phi_stt_interaction","wave":"batch2_wave2_complete","schema_presence":"database_and_orm"},
+    {"name":"stt_recordings","scope":"tenant_direct","tenant_resolution":"organization_id; composite FK to stt_interactions","organization_id":"required","rls":"force","sensitivity":"encrypted_phi_audio","wave":"batch2_wave2_complete","schema_presence":"database_and_orm"},
+    {"name":"stt_stream_checkpoint_chunks","scope":"tenant_direct","tenant_resolution":"organization_id and stt_stream_checkpoints composite key","organization_id":"required","rls":"force","sensitivity":"encrypted_phi_audio_chunk","wave":"batch2_wave2_complete","schema_presence":"database_and_orm"},
+    {"name":"stt_stream_checkpoints","scope":"tenant_direct","tenant_resolution":"organization_id","organization_id":"required","rls":"force","sensitivity":"encrypted_phi_stream_state","wave":"batch2_wave2_complete","schema_presence":"database_and_orm"},
+    {"name":"stt_stream_leases","scope":"tenant_direct","tenant_resolution":"organization_id","organization_id":"required","rls":"force","sensitivity":"stream_control","wave":"batch2_wave2_complete","schema_presence":"database_and_orm"},
+    {"name":"stt_transcripts","scope":"tenant_direct","tenant_resolution":"organization_id; composite FK to stt_interactions","organization_id":"required","rls":"force","sensitivity":"encrypted_phi_transcript","wave":"batch2_wave2_complete","schema_presence":"database_and_orm"},
     {"name":"team_invites","scope":"tenant_legacy_nullable","tenant_resolution":"organization_id; legacy NULL must be backfilled or expired","organization_id":"nullable","rls":"pending","sensitivity":"identity_invitation","wave":"batch2_wave4","schema_presence":"database_and_orm"},
     {"name":"team_members","scope":"tenant_legacy_nullable","tenant_resolution":"organization_id; legacy NULL must be backfilled or quarantined","organization_id":"nullable","rls":"pending","sensitivity":"authorization_membership","wave":"batch2_wave4","schema_presence":"database_and_orm"},
     {"name":"template_versions","scope":"tenant_direct","tenant_resolution":"organization_id and templates.organization_id","organization_id":"required","rls":"pending","sensitivity":"tenant_template","wave":"batch2_wave6","schema_presence":"database_and_orm"},

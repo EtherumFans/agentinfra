@@ -70,6 +70,8 @@ async def acquire_stream_lease(
     seconds = lease_seconds or configured_lease_seconds()
     expires = current + timedelta(seconds=seconds)
     async with database.AsyncSessionLocal() as db:
+        from app.services.database_tenancy import bind_tenant_to_transaction
+        await bind_tenant_to_transaction(db, scope.organization_id)
         db.add(STTStreamLease(
             organization_id=scope.organization_id,
             owner_id=scope.owner_id,
@@ -114,6 +116,8 @@ async def renew_stream_lease(
     current = now or utc_now()
     seconds = lease_seconds or configured_lease_seconds()
     async with database.AsyncSessionLocal() as db:
+        from app.services.database_tenancy import bind_tenant_to_transaction
+        await bind_tenant_to_transaction(db, scope.organization_id)
         renewed = await db.execute(
             update(STTStreamLease)
             .where(
@@ -133,6 +137,8 @@ async def release_stream_lease(scope: StreamLeaseScope, session_id: str) -> bool
     """Delete only the caller's row; a stale worker cannot release a successor."""
 
     async with database.AsyncSessionLocal() as db:
+        from app.services.database_tenancy import bind_tenant_to_transaction
+        await bind_tenant_to_transaction(db, scope.organization_id)
         released = await db.execute(
             delete(STTStreamLease).where(
                 _scope_filter(scope),

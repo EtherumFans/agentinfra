@@ -61,6 +61,29 @@ _SSE_POLL_INTERVAL_SECONDS = 0.25
 _SSE_HEARTBEAT_INTERVAL_SECONDS = 15.0
 
 
+def _resolve_trace_token_organization(token_organization_id: str) -> str:
+    """Return the authoritative tenant for a partner trace token.
+
+    Legacy empty-org tokens are accepted only in explicitly local,
+    single-tenant mode.  Cloud deployments must carry the tenant in the
+    signed token and therefore fail closed before opening a database session.
+    """
+
+    normalized = (token_organization_id or "").strip()
+    if normalized:
+        return normalized
+
+    from app.config import settings
+
+    local_org = (settings.ICODER_SINGLE_TENANT_ORG_ID or "").strip()
+    if settings.ICODER_DEPLOYMENT_MODE == "local" and local_org:
+        return local_org
+    raise HTTPException(status_code=401, detail={
+        "code": "TRACE_TOKEN_MALFORMED",
+        "message": "Trace token is not bound to an organization.",
+    })
+
+
 # ── Phase A1A Gate 3.6 — system-scope audit helper ────────────────
 
 
@@ -644,12 +667,15 @@ async def get_run_trace_partner(
     # valid but if no authoritative RunHistory row exists, the run has
     # no tenant ownership and trace reads MUST refuse (charter §3R.1).
     from app.database import AsyncSessionLocal
+    from app.services.database_tenancy import bind_tenant_to_transaction
     from app.services.run_lifecycle import get_run_status
     from app.services.tenant_read_policy import is_tenant_visible
     import logging as _logging
     _log = _logging.getLogger("app.api.runs.trace_url")
 
+    org_id = _resolve_trace_token_organization(claims.organization_id)
     async with AsyncSessionLocal() as db:
+        await bind_tenant_to_transaction(db, org_id)
         row = await get_run_status(db, run_id=run_id)
     if row is None:
         # Orphan run: no authoritative RunHistory row. Refuse even if
@@ -671,7 +697,7 @@ async def get_run_trace_partner(
             "code": "TRACE_NOT_FOUND",
             "message": f"no trace events for run_id {run_id!r}",
         })
-    if claims.organization_id and row.organization_id and row.organization_id != claims.organization_id:
+    if row.organization_id and row.organization_id != org_id:
         raise HTTPException(status_code=403, detail={
             "code": "TRACE_TOKEN_ORG_MISMATCH",
             "message": "Trace token not valid for this run.",
@@ -705,7 +731,6 @@ async def get_run_trace_partner(
     from app.icoder.agent_runtime.orchestrator.run_trace import get_default_store
     import asyncio
     store = get_default_store()
-    org_id = claims.organization_id or None
     if hasattr(store, "get_run_scoped"):
         events = await asyncio.to_thread(store.get_run_scoped, run_id, org_id)
     else:
@@ -842,7 +867,7 @@ async def stream_run_events(
 
     from app.icoder.agent_runtime.orchestrator.run_trace import get_default_store
     store = get_default_store()
-    org_id = claims.organization_id or None
+    org_id = _resolve_trace_token_organization(claims.organization_id)
 
     # ── Phase A1A Gate 3.4 (F04 carry-over) — defence-in-depth ──
     # The signed trace token already pins (run_id, org_id). But we
@@ -866,12 +891,14 @@ async def stream_run_events(
     # in the store, but without an authoritative row the run has no
     # tenant ownership. Deny (charter §3R.1).
     from app.database import AsyncSessionLocal
+    from app.services.database_tenancy import bind_tenant_to_transaction
     from app.services.run_lifecycle import get_run_status
     from app.services.tenant_read_policy import enforce_tenant_visible_or_404, is_tenant_visible
     import logging as _logging
     _log = _logging.getLogger("app.api.runs.sse")
 
     async with AsyncSessionLocal() as db:
+        await bind_tenant_to_transaction(db, org_id)
         sse_row = await get_run_status(db, run_id=run_id)
     if sse_row is None:
         _SSE_METRICS.rejected("run_not_found")
@@ -1044,6 +1071,7 @@ async def stream_run_events(
 
     async def _read_status():
         async with AsyncSessionLocal() as db:
+            await bind_tenant_to_transaction(db, org_id)
             return await get_run_status(db, run_id=run_id)
 
     resume_recovery_seconds = time.monotonic() - request_started_at

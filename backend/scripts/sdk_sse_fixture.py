@@ -22,6 +22,7 @@ from app.icoder.agent_runtime.orchestrator.run_trace import (
 )
 from app.models.run_history import RunHistoryModel
 from app.models.run_trace import RunTraceEventModel
+from app.services.database_tenancy import bind_tenant_to_sync_session
 from app.services.trace_token import DEFAULT_TTL_SECONDS, issue_trace_token
 
 
@@ -49,6 +50,7 @@ def seed(run_id: str, organization_id: str, *, expired: bool = False) -> None:
     now = datetime.now(UTC)
     try:
         with Session(engine) as db:
+            bind_tenant_to_sync_session(db, organization_id)
             db.execute(delete(RunTraceEventModel).where(
                 RunTraceEventModel.run_id == run_id
             ))
@@ -88,6 +90,7 @@ def finish(run_id: str, organization_id: str, delay_seconds: float) -> None:
     engine = create_engine(_sync_database_url())
     try:
         with Session(engine) as db:
+            bind_tenant_to_sync_session(db, organization_id)
             db.execute(
                 update(RunHistoryModel)
                 .where(RunHistoryModel.run_id == run_id)

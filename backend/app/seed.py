@@ -9,6 +9,7 @@ from app.models.billing import Transaction
 from app.models.expert import Expert
 from app.models.agent import Agent
 from app.middleware.auth import hash_password
+from app.services.database_tenancy import bind_tenant_to_transaction
 
 SAMPLE_USERS = [
     {"username": "admin", "password": "admin123", "email": "admin@icoder.ai", "full_name": "系统管理员", "role": UserRole.ADMIN, "department": "信息科"},
@@ -118,6 +119,7 @@ async def seed():
             print(f"Seeded {len(team_members)} team members.")
 
             # Seed initial credits
+            await bind_tenant_to_transaction(session, default_org.id)
             txn = Transaction(organization_id=default_org.id, user_id=admin.id, type="credit", amount=50.0, balance_after=50.0, description="Welcome credits", source="signup")
             session.add(txn)
             await session.commit()

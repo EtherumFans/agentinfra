@@ -175,10 +175,13 @@ async def _get_run_trace_impl(
     import logging as _logging
     _log = _logging.getLogger("app.api.run_trace.console")
     from app.database import AsyncSessionLocal
+    from app.services.database_tenancy import bind_tenant_to_transaction
     from app.services.run_lifecycle import get_run_status
     from app.services.tenant_read_policy import is_tenant_visible
 
     async with AsyncSessionLocal() as db:
+        if org_id:
+            await bind_tenant_to_transaction(db, org_id)
         console_row = await get_run_status(db, run_id=run_id)
     if console_row is None:
         # Phase A1A Gate 3R.1 — orphan-run denial. No authoritative
@@ -357,20 +360,24 @@ async def list_run_history(
     Returns ``{"items": [...], "total": <int>}`` ordered by created_at desc.
     """
     from datetime import datetime, timedelta, timezone
-    from sqlalchemy import create_engine, select, desc, text as sa_text
+    from sqlalchemy import create_engine, select, desc
     from sqlalchemy.orm import Session
     from app.config import settings
+    from app.icoder.agent_runtime.orchestrator.run_trace import to_sync_database_url
     from app.models.run_history import RunHistoryModel
+    from app.services.database_tenancy import bind_tenant_to_sync_session
 
     org_id = get_request_tenant(request) or None
     user_attr = getattr(request.state, "user", None)
     user_id = getattr(user_attr, "id", None) if user_attr else None
 
     db_url = getattr(settings, "DATABASE_URL", "") or "sqlite+aiosqlite:///./data/icoder.db"
-    sync_url = db_url.replace("+aiosqlite", "").replace("sqlite+aiosqlite", "sqlite")
+    sync_url = to_sync_database_url(db_url)
     engine = create_engine(sync_url, echo=False)
     try:
         with Session(engine) as session:
+            if org_id:
+                bind_tenant_to_sync_session(session, org_id)
             stmt = select(RunHistoryModel).order_by(desc(RunHistoryModel.created_at)).limit(limit)
             if agent_id:
                 stmt = stmt.where(RunHistoryModel.agent_id == agent_id)

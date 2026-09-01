@@ -324,7 +324,7 @@ def test_db_store_writes_canonical_state_names(monkeypatch) -> None:
     # Capture the state names DbRunTraceStore.append would write
     captured_states: list[str] = []
 
-    def fake_mark(run_id, status, *, reason=None):
+    def fake_mark(run_id, status, *, reason=None, organization_id=None):
         captured_states.append(status)
 
     monkeypatch.setattr(rt, "_mark_trace_capture_status", fake_mark)

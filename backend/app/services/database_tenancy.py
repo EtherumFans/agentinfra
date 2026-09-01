@@ -10,10 +10,18 @@ import re
 
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 
 
 TENANT_SETTING = "icoder.current_organization_id"
 _ORGANIZATION_ID = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
+
+
+def _validated_organization_id(organization_id: str) -> str:
+    normalized = str(organization_id or "").strip()
+    if not _ORGANIZATION_ID.fullmatch(normalized):
+        raise ValueError("organization_id is empty or contains invalid characters")
+    return normalized
 
 
 async def bind_tenant_to_transaction(
@@ -26,9 +34,7 @@ async def bind_tenant_to_transaction(
     not leak tenant state to the next request. SQLite remains available only
     for local development and hermetic unit tests.
     """
-    normalized = str(organization_id or "").strip()
-    if not _ORGANIZATION_ID.fullmatch(normalized):
-        raise ValueError("organization_id is empty or contains invalid characters")
+    normalized = _validated_organization_id(organization_id)
 
     bind = session.get_bind()
     if bind.dialect.name != "postgresql":
@@ -39,4 +45,23 @@ async def bind_tenant_to_transaction(
     )
 
 
-__all__ = ["TENANT_SETTING", "bind_tenant_to_transaction"]
+def bind_tenant_to_sync_session(
+    session: Session,
+    organization_id: str,
+) -> None:
+    """Synchronous counterpart for trace emitters and bounded operator CLIs."""
+    normalized = _validated_organization_id(organization_id)
+    bind = session.get_bind()
+    if bind.dialect.name != "postgresql":
+        return
+    session.execute(
+        text("SELECT set_config(:setting_name, :tenant_id, true)"),
+        {"setting_name": TENANT_SETTING, "tenant_id": normalized},
+    )
+
+
+__all__ = [
+    "TENANT_SETTING",
+    "bind_tenant_to_sync_session",
+    "bind_tenant_to_transaction",
+]

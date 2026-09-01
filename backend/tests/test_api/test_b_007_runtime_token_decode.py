@@ -115,7 +115,7 @@ def test_decode_token_malformed_2_segments_raises_401() -> None:
 # ─────────────────────────────────────────────────────────────────────
 
 
-async def _seed_testuser(client) -> str:
+async def _seed_testuser(client) -> tuple[str, str]:
     """Register testuser via HTTP so a real row exists in the test DB.
 
     The default `client` fixture + autouse auth bypass means /api/auth/login
@@ -135,11 +135,19 @@ async def _seed_testuser(client) -> str:
     assert resp.status_code in (200, 201, 400, 409), resp.text
     from app.database import AsyncSessionLocal
     from app.models.user import User
+    from app.models.organization import OrganizationMember
     from sqlalchemy import select
     async with AsyncSessionLocal() as db:
         result = await db.execute(select(User).where(User.username == "testuser-b007").limit(1))
         user = result.scalar_one()
-    return user.id
+        organization_id = (
+            await db.execute(
+                select(OrganizationMember.organization_id).where(
+                    OrganizationMember.user_id == user.id
+                ).limit(1)
+            )
+        ).scalar_one()
+    return user.id, organization_id
 
 
 @pytest.mark.asyncio
@@ -150,11 +158,11 @@ async def test_get_current_user_or_oauth_client_runtime_token_returns_user(clien
     from fastapi.security import HTTPAuthorizationCredentials
     from app.database import AsyncSessionLocal
 
-    user_id = await _seed_testuser(client)
+    user_id, organization_id = await _seed_testuser(client)
 
     rt = issue_runtime_token(
         preview_session_id="psid_user_lookup",
-        organization_id="org_default1",
+        organization_id=organization_id,
         user_id=user_id,
         allowed_scopes=["agents:run", "runs:read"],
     )
@@ -194,7 +202,7 @@ async def test_runtime_token_skips_token_version_gate(client) -> None:
     from app.models.user import User
     from sqlalchemy import select
 
-    user_id = await _seed_testuser(client)
+    user_id, organization_id = await _seed_testuser(client)
 
     async with AsyncSessionLocal() as db:
         result = await db.execute(select(User).where(User.id == user_id).limit(1))
@@ -207,7 +215,7 @@ async def test_runtime_token_skips_token_version_gate(client) -> None:
     try:
         rt = issue_runtime_token(
             preview_session_id="psid_post_revoke",
-            organization_id="org_default1",
+            organization_id=organization_id,
             user_id=user_id,
         )
         creds = HTTPAuthorizationCredentials(scheme="Bearer", credentials=rt)

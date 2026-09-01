@@ -104,6 +104,12 @@ async def init_db():
     Cloud startup never calls this function. Production schema ownership is
     Alembic-only and is verified by :func:`verify_production_database`.
     """
+    # Import the model package before reading ``Base.metadata``.  Test modules
+    # may call ``init_db`` before a feature router imports its model (for
+    # example the Streams checkpoint tables), which otherwise makes schema
+    # creation depend on test collection/import order.
+    from app import models as _models  # noqa: F401
+
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 

@@ -13,6 +13,7 @@ import logging
 from typing import Any
 
 import app.database as database
+from app.services.database_tenancy import bind_tenant_to_transaction
 from app.icoder.agent_runtime.orchestrator.inbound_handler import (
     InboundRequest,
     InboundResponse,
@@ -112,6 +113,7 @@ class TenantCloneA2ADispatchHandler:
     @staticmethod
     async def _resolve(agent_id: str, tenant_id: str) -> TenantRuntimeResolution:
         async with database.AsyncSessionLocal() as db:
+            await bind_tenant_to_transaction(db, tenant_id)
             return await resolve_tenant_runtime(agent_id, tenant_id, db)
 
     @staticmethod
@@ -183,6 +185,7 @@ class TenantCloneA2ADispatchHandler:
         )
         safe_input = extract_text_from_parts(request.message.parts)
         async with database.AsyncSessionLocal() as db:
+            await bind_tenant_to_transaction(db, tenant_id)
             row = await get_run_status(db, run_id=run_id)
             if row is not None and row.organization_id not in {None, tenant_id}:
                 raise RuntimeError("run tenancy mismatch")

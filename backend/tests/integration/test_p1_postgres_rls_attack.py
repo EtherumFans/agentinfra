@@ -540,6 +540,128 @@ def test_stt_streams_wave_fails_closed_across_tenants() -> None:
             migration_engine.dispose()
 
 
+def test_agent_connector_wave_fails_closed_across_tenants() -> None:
+    """Exercise revision-067 configuration, credential, and audit ownership."""
+    app_engine = sa.create_engine(_sync_url(APP_URL))
+    migration_engine = sa.create_engine(_sync_url(MIGRATION_URL))
+    suffix = uuid.uuid4().hex[:8]
+    org_a, org_b = f"w3a_{suffix}", f"w3b_{suffix}"
+    agent_a, agent_b = f"a3a{suffix}", f"a3b{suffix}"
+    connector_id = f"c3a{suffix}"
+    credential_id = f"d3a{suffix}"
+    audit_id = f"e3a{suffix}"
+    protected = (
+        "agent_connectors",
+        "connector_credentials",
+        "connector_execution_audit",
+    )
+    try:
+        with migration_engine.begin() as connection:
+            for organization_id in (org_a, org_b):
+                connection.execute(sa.text(
+                    "INSERT INTO organizations "
+                    "(id, name, slug, plan, settings, is_active) VALUES "
+                    "(:id, :id, :id, 'free', CAST('{}' AS json), true)"
+                ), {"id": organization_id})
+            for agent_id, organization_id, label in (
+                (agent_a, org_a, "a"),
+                (agent_b, org_b, "b"),
+            ):
+                connection.execute(sa.text(
+                    "INSERT INTO agents (id, organization_id, name, description, "
+                    "system_prompt, icon, category, expert_ids, default_expert_id, "
+                    "a2a_enabled, is_prebuilt, is_published, created_by, usage_count, "
+                    "aliases) VALUES (:id, :org, :name, '', '', 'Bot', 'test', "
+                    "CAST('[]' AS json), '', false, false, false, 'p1-gate', 0, "
+                    "CAST('[]' AS json))"
+                ), {
+                    "id": agent_id,
+                    "org": organization_id,
+                    "name": f"Wave 3 Agent {label} {suffix}",
+                })
+
+        with app_engine.begin() as connection:
+            _tenant(connection, org_a)
+            connection.execute(sa.text(
+                "INSERT INTO agent_connectors "
+                "(id, organization_id, agent_id, type, name, description, enabled, "
+                "config_json, version, created_by, created_at, updated_at) VALUES "
+                "(:id, :org, :agent, 'registry', 'wave-3', '', false, "
+                "CAST('{}' AS json), 1, 'p1-gate', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
+            ), {"id": connector_id, "org": org_a, "agent": agent_a})
+            connection.execute(sa.text(
+                "INSERT INTO connector_credentials "
+                "(id, organization_id, connector_id, provider, secret_ref, fingerprint, "
+                "secret_type, status, version, rotated_at, created_by, created_at, "
+                "updated_at) VALUES (:id, :org, :connector, 'vault', "
+                "'vault://p1/connectors/wave3', 'fingerprint', 'api-key', 'active', 1, "
+                "CURRENT_TIMESTAMP, 'p1-gate', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
+            ), {"id": credential_id, "org": org_a, "connector": connector_id})
+            connection.execute(sa.text(
+                "INSERT INTO connector_execution_audit "
+                "(id, organization_id, connector_id, action, actor_type, actor_id, "
+                "delegated_subject_id, granted_scopes, granted_purposes, policy_decision, "
+                "status, retry_count, created_at, updated_at) VALUES "
+                "(:id, :org, :connector, 'lookup', 'user', 'p1-actor', NULL, "
+                "CAST('[]' AS json), CAST('[\"treatment\"]' AS json), 'allow', "
+                "'success', 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
+            ), {"id": audit_id, "org": org_a, "connector": connector_id})
+
+        for organization_id, expected in (("", 0), (org_a, 1), (org_b, 0)):
+            with app_engine.begin() as connection:
+                if organization_id:
+                    _tenant(connection, organization_id)
+                for table in protected:
+                    assert connection.execute(
+                        sa.text(f'SELECT count(*) FROM "{table}"')
+                    ).scalar_one() == expected, table
+
+        with pytest.raises(DBAPIError, match="row-level security"):
+            with app_engine.begin() as connection:
+                _tenant(connection, org_a)
+                connection.execute(sa.text(
+                    "INSERT INTO agent_connectors "
+                    "(id, organization_id, agent_id, type, name, description, enabled, "
+                    "config_json, version, created_by, created_at, updated_at) VALUES "
+                    "('cross-rls', :org_b, :agent_b, 'registry', 'cross-rls', '', "
+                    "false, CAST('{}' AS json), 1, 'p1-gate', CURRENT_TIMESTAMP, "
+                    "CURRENT_TIMESTAMP)"
+                ), {"org_b": org_b, "agent_b": agent_b})
+
+        with pytest.raises(DBAPIError, match="foreign key"):
+            with app_engine.begin() as connection:
+                _tenant(connection, org_b)
+                connection.execute(sa.text(
+                    "INSERT INTO agent_connectors "
+                    "(id, organization_id, agent_id, type, name, description, enabled, "
+                    "config_json, version, created_by, created_at, updated_at) VALUES "
+                    "('cross-fk', :org_b, :agent_a, 'registry', 'cross-fk', '', "
+                    "false, CAST('{}' AS json), 1, 'p1-gate', CURRENT_TIMESTAMP, "
+                    "CURRENT_TIMESTAMP)"
+                ), {"org_b": org_b, "agent_a": agent_a})
+    finally:
+        try:
+            with migration_engine.begin() as connection:
+                _tenant(connection, org_a)
+                for table in (
+                    "connector_execution_audit",
+                    "connector_credentials",
+                    "agent_connectors",
+                ):
+                    connection.execute(sa.text(
+                        f'DELETE FROM "{table}" WHERE organization_id = :org'
+                    ), {"org": org_a})
+                connection.execute(sa.text(
+                    "DELETE FROM agents WHERE id IN (:a, :b)"
+                ), {"a": agent_a, "b": agent_b})
+                connection.execute(sa.text(
+                    "DELETE FROM organizations WHERE id IN (:a, :b)"
+                ), {"a": org_a, "b": org_b})
+        finally:
+            app_engine.dispose()
+            migration_engine.dispose()
+
+
 def test_transaction_local_tenant_does_not_leak_on_pool_reuse() -> None:
     """Reuse one physical backend connection across A → empty → B."""
     app_engine = sa.create_engine(

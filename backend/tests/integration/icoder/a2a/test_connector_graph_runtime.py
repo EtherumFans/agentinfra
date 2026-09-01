@@ -76,6 +76,8 @@ async def graph_rows():
             special_snapshot = {
                 "organization_id": special.organization_id,
                 "config": copy.deepcopy(special.config or {}),
+                "status": special.status,
+                "is_published": special.is_published,
             }
         await db.execute(
             delete(ConnectorExecutionAudit).where(
@@ -111,11 +113,15 @@ async def graph_rows():
                     expert_ids=[],
                     aliases=[],
                     a2a_enabled=True,
+                    status="published",
+                    is_published=True,
                     config={},
                 ))
             else:
                 agent.organization_id = org_id
                 agent.a2a_enabled = True
+                agent.status = "published"
+                agent.is_published = True
                 agent.config = {}
         await db.flush()
         db.add(AgentConnector(
@@ -160,6 +166,8 @@ async def graph_rows():
             if special is not None and special_snapshot is not None:
                 special.organization_id = special_snapshot["organization_id"]
                 special.config = copy.deepcopy(special_snapshot["config"])
+                special.status = special_snapshot["status"]
+                special.is_published = special_snapshot["is_published"]
             elif special is not None and special.created_by == "test":
                 await db.delete(special)
             await db.commit()
@@ -991,6 +999,8 @@ async def test_unified_dedicated_runtime_executes_graph_and_receives_server_payl
             )
             db.add(special)
         special.organization_id = ORG
+        special.status = "published"
+        special.is_published = True
         special.config = {"connector_graph": _graph()}
         connector = await db.get(AgentConnector, CONNECTOR_ID)
         connector.agent_id = "medical-coding-agent"

@@ -12,6 +12,9 @@ _INVENTORY_PATH = _BACKEND_ROOT / "docs" / "security" / "tenant_table_inventory.
 _ORM_TABLE_PATTERN = re.compile(r'__tablename__\s*=\s*["\']([^"\']+)["\']')
 
 _EXISTING_FORCE_RLS = {
+    "agent_connectors",
+    "connector_credentials",
+    "connector_execution_audit",
     "contexts",
     "conversation_memories",
     "memory_consents",
@@ -55,6 +58,12 @@ _BATCH_2_SECOND_WAVE = {
     "stt_stream_checkpoints",
     "stt_stream_leases",
     "stt_transcripts",
+}
+
+_BATCH_2_THIRD_WAVE = {
+    "agent_connectors",
+    "connector_credentials",
+    "connector_execution_audit",
 }
 
 
@@ -139,6 +148,10 @@ def test_inventory_release_waves_match_the_approved_scope() -> None:
     assert set(inventory["batch_2_second_wave_tables"]) == _BATCH_2_SECOND_WAVE
     assert {name for name, row in rows.items() if row["wave"] == "batch2_wave2_complete"} == (
         _BATCH_2_SECOND_WAVE
+    )
+    assert set(inventory["batch_2_third_wave_tables"]) == _BATCH_2_THIRD_WAVE
+    assert {name for name, row in rows.items() if row["wave"] == "batch2_wave3_complete"} == (
+        _BATCH_2_THIRD_WAVE
     )
 
 

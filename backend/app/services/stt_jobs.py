@@ -5,6 +5,8 @@ from __future__ import annotations
 import asyncio
 import logging
 
+from sqlalchemy import text
+
 from app import database as database_module
 from app.services.stt_artifact_repository import stt_artifact_repository
 from app.services.stt_service import (
@@ -182,11 +184,34 @@ async def process_stt_transcript_job(
 async def recover_pending_stt_jobs() -> int:
     """Schedule all persisted processing jobs after application restart."""
     async with database_module.AsyncSessionLocal() as db:
-        pending = await stt_artifact_repository.list_processing(db)
-        identities = [
-            (row.organization_id, row.owner_id, row.interaction_id, row.transcript_id)
-            for row in pending
-        ]
+        organization_ids = list(
+            (await db.execute(text("SELECT id FROM organizations"))).scalars()
+        )
+        # SQLite remains a supported local-development store and may contain
+        # artifacts created before the organization ownership FK existed.
+        if db.bind is not None and db.bind.dialect.name == "sqlite":
+            legacy_ids = (
+                await db.execute(text(
+                    "SELECT DISTINCT organization_id FROM stt_transcripts "
+                    "WHERE organization_id IS NOT NULL"
+                ))
+            ).scalars()
+            organization_ids = list(dict.fromkeys([*organization_ids, *legacy_ids]))
+    identities: list[tuple[str, str, str, str]] = []
+    for organization_id in organization_ids:
+        async with database_module.AsyncSessionLocal() as db:
+            pending = await stt_artifact_repository.list_processing(
+                db, organization_id
+            )
+            identities.extend(
+                (
+                    row.organization_id,
+                    row.owner_id,
+                    row.interaction_id,
+                    row.transcript_id,
+                )
+                for row in pending
+            )
     for identity in identities:
         _schedule_recovery_job(identity)
     if identities:

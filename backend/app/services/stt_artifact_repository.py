@@ -16,6 +16,7 @@ from app.services.phi_encryption import (
     encrypt_phi,
     encrypt_phi_bytes,
 )
+from app.services.database_tenancy import bind_tenant_to_transaction
 
 
 _TRANSCRIPT_PAYLOAD_PREFIX = "icoder/stt-transcript-payload/v1\n"
@@ -80,9 +81,14 @@ def _decode_transcript_segments(raw: str) -> tuple[dict[str, object], ...] | Non
 
 
 class STTArtifactRepository:
+    @staticmethod
+    async def _bind(db: AsyncSession, organization_id: str) -> None:
+        await bind_tenant_to_transaction(db, organization_id)
+
     async def is_materialized(
         self, db: AsyncSession, organization_id: str, owner_id: str, interaction_id: str
     ) -> bool:
+        await self._bind(db, organization_id)
         return bool(await db.scalar(select(exists().where(
             STTInteraction.organization_id == organization_id,
             STTInteraction.owner_id == owner_id,
@@ -92,6 +98,7 @@ class STTArtifactRepository:
     async def ensure_interaction(
         self, db: AsyncSession, organization_id: str, owner_id: str, interaction_id: str
     ) -> None:
+        await self._bind(db, organization_id)
         if await self.is_materialized(db, organization_id, owner_id, interaction_id):
             return
         # Two first writes for the same interaction can race between the
@@ -123,6 +130,7 @@ class STTArtifactRepository:
         media_type: str,
         content: bytes,
     ) -> STTRecording:
+        await self._bind(db, organization_id)
         await self.ensure_interaction(db, organization_id, owner_id, interaction_id)
         row = STTRecording(
             organization_id=organization_id,
@@ -139,6 +147,7 @@ class STTArtifactRepository:
         return row
 
     async def list_recordings(self, db: AsyncSession, *, organization_id: str, owner_id: str, interaction_id: str) -> list[STTRecording]:
+        await self._bind(db, organization_id)
         result = await db.execute(select(STTRecording).where(
             STTRecording.organization_id == organization_id,
             STTRecording.owner_id == owner_id,
@@ -147,6 +156,7 @@ class STTArtifactRepository:
         return list(result.scalars())
 
     async def get_recording(self, db: AsyncSession, *, organization_id: str, owner_id: str, interaction_id: str, recording_id: str) -> STTRecording | None:
+        await self._bind(db, organization_id)
         return await db.scalar(select(STTRecording).where(
             STTRecording.organization_id == organization_id,
             STTRecording.owner_id == owner_id,
@@ -162,6 +172,7 @@ class STTArtifactRepository:
         return content
 
     async def delete_recording(self, db: AsyncSession, **scope) -> bool:
+        await self._bind(db, scope["organization_id"])
         result = await db.execute(delete(STTRecording).where(
             STTRecording.organization_id == scope["organization_id"],
             STTRecording.owner_id == scope["owner_id"],
@@ -180,6 +191,7 @@ class STTArtifactRepository:
         request_data: dict | None = None,
         **fields,
     ) -> STTTranscript:
+        await self._bind(db, fields["organization_id"])
         await self.ensure_interaction(
             db, fields["organization_id"], fields["owner_id"], fields["interaction_id"]
         )
@@ -208,6 +220,7 @@ class STTArtifactRepository:
         return row
 
     async def list_transcripts(self, db: AsyncSession, *, organization_id: str, owner_id: str, interaction_id: str) -> list[STTTranscript]:
+        await self._bind(db, organization_id)
         result = await db.execute(select(STTTranscript).where(
             STTTranscript.organization_id == organization_id,
             STTTranscript.owner_id == owner_id,
@@ -216,6 +229,7 @@ class STTArtifactRepository:
         return list(result.scalars())
 
     async def get_transcript(self, db: AsyncSession, *, organization_id: str, owner_id: str, interaction_id: str, transcript_id: str) -> STTTranscript | None:
+        await self._bind(db, organization_id)
         return await db.scalar(select(STTTranscript).where(
             STTTranscript.organization_id == organization_id,
             STTTranscript.owner_id == owner_id,
@@ -248,6 +262,7 @@ class STTArtifactRepository:
     async def set_transcript_completed(
         self, db: AsyncSession, row: STTTranscript, text: str
     ) -> None:
+        await self._bind(db, row.organization_id)
         row.encrypted_text = encrypt_phi(text)
         row.status = "completed"
         row.error_code = None
@@ -260,6 +275,7 @@ class STTArtifactRepository:
         row: STTTranscript,
         segments: tuple[dict[str, object], ...],
     ) -> None:
+        await self._bind(db, row.organization_id)
         row.encrypted_text = encrypt_phi(_encode_transcript_segments(segments))
         row.status = "completed"
         row.error_code = None
@@ -269,6 +285,7 @@ class STTArtifactRepository:
     async def set_transcript_failed(
         self, db: AsyncSession, row: STTTranscript, code: str, detail: str
     ) -> None:
+        await self._bind(db, row.organization_id)
         row.status = "failed"
         row.error_code = code
         row.error_detail = encrypt_phi(detail)
@@ -283,6 +300,7 @@ class STTArtifactRepository:
         """Persist only the bounded ASR accounting allowlist, encrypted."""
         if not isinstance(telemetry, dict) or not telemetry:
             return
+        await self._bind(db, row.organization_id)
         safe: dict[str, object] = {}
         for key in ("schema", "provider", "model", "status"):
             value = telemetry.get(key)
@@ -321,13 +339,20 @@ class STTArtifactRepository:
         )
         await db.flush()
 
-    async def list_processing(self, db: AsyncSession) -> list[STTTranscript]:
+    async def list_processing(
+        self, db: AsyncSession, organization_id: str
+    ) -> list[STTTranscript]:
+        await self._bind(db, organization_id)
         result = await db.execute(
-            select(STTTranscript).where(STTTranscript.status == "processing")
+            select(STTTranscript).where(
+                STTTranscript.organization_id == organization_id,
+                STTTranscript.status == "processing",
+            )
         )
         return list(result.scalars())
 
     async def delete_transcript(self, db: AsyncSession, **scope) -> bool:
+        await self._bind(db, scope["organization_id"])
         result = await db.execute(delete(STTTranscript).where(
             STTTranscript.organization_id == scope["organization_id"],
             STTTranscript.owner_id == scope["owner_id"],

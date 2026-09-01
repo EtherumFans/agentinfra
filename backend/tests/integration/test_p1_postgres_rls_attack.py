@@ -6,9 +6,11 @@ to create and remove unprotected foreign-key fixtures.
 """
 from __future__ import annotations
 
+import json
 import os
 import uuid
 from dataclasses import dataclass
+from pathlib import Path
 
 import pytest
 import sqlalchemy as sa
@@ -54,6 +56,64 @@ async def _async_tenant(connection, organization_id: str) -> None:
         sa.text("SELECT set_config(:name, :value, true)"),
         {"name": "icoder.current_organization_id", "value": organization_id},
     )
+
+
+def test_tenant_table_inventory_matches_live_postgresql_schema() -> None:
+    inventory_path = (
+        Path(__file__).resolve().parents[2]
+        / "docs"
+        / "security"
+        / "tenant_table_inventory.json"
+    )
+    inventory = json.loads(inventory_path.read_text(encoding="utf-8"))
+    expected = {
+        row["name"]: row
+        for row in inventory["tables"]
+        if row["schema_presence"] != "orm_only"
+    }
+
+    migration_engine = sa.create_engine(_sync_url(MIGRATION_URL))
+    try:
+        with migration_engine.connect() as connection:
+            rows = connection.execute(sa.text(
+                "SELECT c.relname, a.attnotnull, c.relrowsecurity, "
+                "c.relforcerowsecurity "
+                "FROM pg_class c "
+                "JOIN pg_namespace n ON n.oid = c.relnamespace "
+                "LEFT JOIN pg_attribute a ON a.attrelid = c.oid "
+                "AND a.attname = 'organization_id' AND NOT a.attisdropped "
+                "WHERE n.nspname = current_schema() AND c.relkind = 'r'"
+            )).all()
+    finally:
+        migration_engine.dispose()
+
+    actual = {
+        row.relname: {
+            "has_organization_id": row.attnotnull is not None,
+            "organization_id_not_null": bool(row.attnotnull),
+            "rls": bool(row.relrowsecurity),
+            "force_rls": bool(row.relforcerowsecurity),
+        }
+        for row in rows
+    }
+    assert set(actual) == set(expected)
+    assert len(actual) == inventory["database_table_count"] == 82
+
+    for name, governed in expected.items():
+        state = actual[name]
+        column_state = governed["organization_id"]
+        if column_state == "required":
+            assert state["has_organization_id"], name
+            assert state["organization_id_not_null"], name
+        elif column_state == "nullable":
+            assert state["has_organization_id"], name
+            assert not state["organization_id_not_null"], name
+        else:
+            assert column_state in {"missing", "not_applicable"}
+            assert not state["has_organization_id"], name
+
+        if governed["rls"] == "force":
+            assert state["rls"] and state["force_rls"], name
 
 
 def _insert(

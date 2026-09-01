@@ -112,6 +112,9 @@ async def validate_graph_bindings(
     agent_id: str,
     graph: ConnectorGraphSpec,
 ) -> None:
+    from app.services.database_tenancy import bind_tenant_to_transaction
+
+    await bind_tenant_to_transaction(db, organization_id)
     connector_ids = {node.connector_id for node in graph.nodes}
     if not connector_ids:
         return

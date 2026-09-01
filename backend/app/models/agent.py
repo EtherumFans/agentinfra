@@ -24,7 +24,16 @@ from ``name`` (slugified) when the caller doesn't supply one. This
 keeps every row queryable by canonical_key without forcing every
 caller to compute the slug.
 """
-from sqlalchemy import String, Boolean, Integer, Text, JSON, ForeignKey, event
+from sqlalchemy import (
+    Boolean,
+    ForeignKey,
+    Integer,
+    JSON,
+    String,
+    Text,
+    UniqueConstraint,
+    event,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 from app.database import Base
 from app.models.base import TimestampMixin
@@ -68,6 +77,11 @@ class Agent(Base, TimestampMixin):
     """
 
     __tablename__ = "agents"
+    __table_args__ = (
+        UniqueConstraint(
+            "organization_id", "id", name="uq_agents_org_id",
+        ),
+    )
 
     organization_id: Mapped[str] = mapped_column(String(12), ForeignKey("organizations.id"), nullable=True, index=True)
     name: Mapped[str] = mapped_column(String(256), nullable=False, index=True)
@@ -123,4 +137,3 @@ def _agent_before_insert(mapper, connection, target):
         target.aliases = []
     if not target.agent_type:
         target.agent_type = AGENT_TYPE_DEFAULT
-

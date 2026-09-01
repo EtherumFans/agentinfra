@@ -54,6 +54,7 @@ from app.services.connector_graph import (
     validate_graph_node_binding,
 )
 from app.services.connector_memory_store import GovernedMemoryStore, MEMORY_PURPOSES
+from app.services.database_tenancy import bind_tenant_to_transaction
 from app.services.phi_encryption import is_encryption_enabled
 from app.config import settings
 
@@ -495,6 +496,7 @@ async def _get_connector(
     connector_id: str,
     lock: bool = False,
 ) -> AgentConnector:
+    await bind_tenant_to_transaction(db, organization_id)
     stmt = select(AgentConnector).where(
         AgentConnector.organization_id == organization_id,
         AgentConnector.agent_id == agent_id,
@@ -518,6 +520,7 @@ async def _credential_for(
     organization_id: str,
     connector_id: str,
 ) -> ConnectorCredential | None:
+    await bind_tenant_to_transaction(db, organization_id)
     return (
         await db.execute(
             select(ConnectorCredential).where(

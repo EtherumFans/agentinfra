@@ -21,6 +21,9 @@ MIGRATION_066 = (
 MIGRATION_067 = (
     BACKEND_ROOT / "alembic" / "versions" / "067_agent_connectors_tenant_rls.py"
 )
+MIGRATION_068 = (
+    BACKEND_ROOT / "alembic" / "versions" / "068_identity_access_tenant_rls.py"
+)
 
 
 def _load_migration():
@@ -172,6 +175,36 @@ def test_revision_067_governs_approved_agent_connector_wave() -> None:
     assert "FORCE ROW LEVEL SECURITY" in source
     assert "WITH CHECK" in source
     assert "unknown" not in source.lower()
+
+
+def test_revision_068_governs_identity_and_access_wave() -> None:
+    spec = importlib.util.spec_from_file_location("p1_migration_068", MIGRATION_068)
+    assert spec and spec.loader
+    migration = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(migration)
+
+    assert migration.revision == "068"
+    assert migration.down_revision == "067"
+    assert set(migration.TENANT_TABLES) == {
+        "api_keys",
+        "oauth_clients",
+        "oauth_tokens",
+        "organization_invite_deliveries",
+        "organization_invites",
+        "organization_members",
+        "team_invites",
+        "team_members",
+    }
+    assert migration.SPLIT_POLICY_TABLES == ("audit_logs",)
+    source = MIGRATION_068.read_text(encoding="utf-8")
+    assert "requires evidence-backed identity/access tenant" in source
+    assert "reconciliation: " in source
+    assert "icoder_write_system_audit" in source
+    assert "icoder_resolve_oauth_client_tenant" in source
+    assert "icoder_resolve_invite_tenant" in source
+    assert "ENABLE ROW LEVEL SECURITY" in source
+    assert "FORCE ROW LEVEL SECURITY" in source
+    assert "WITH CHECK" in source
 
 
 def test_cloud_startup_does_not_use_metadata_create_all() -> None:

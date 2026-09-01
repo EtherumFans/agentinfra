@@ -752,6 +752,202 @@ def test_transaction_local_tenant_does_not_leak_on_pool_reuse() -> None:
             migration_engine.dispose()
 
 
+def test_identity_access_wave_fails_closed_across_tenants() -> None:
+    """Exercise revision 068 credentials, membership, invite, and audit RLS."""
+    app_engine = sa.create_engine(_sync_url(APP_URL))
+    migration_engine = sa.create_engine(_sync_url(MIGRATION_URL))
+    suffix = uuid.uuid4().hex[:8]
+    org_a, org_b = f"w4a_{suffix}", f"w4b_{suffix}"
+    user_a, user_b = f"u4a{suffix}", f"u4b{suffix}"
+    member_a, member_b = f"m4a{suffix}", f"m4b{suffix}"
+    client_a, client_b = f"client-a-{suffix}", f"client-b-{suffix}"
+    protected = (
+        "api_keys",
+        "oauth_clients",
+        "oauth_tokens",
+        "organization_invite_deliveries",
+        "organization_invites",
+        "organization_members",
+        "team_invites",
+        "team_members",
+        "audit_logs",
+    )
+    try:
+        with migration_engine.begin() as connection:
+            for organization_id in (org_a, org_b):
+                connection.execute(sa.text(
+                    "INSERT INTO organizations "
+                    "(id, name, slug, plan, settings, is_active) VALUES "
+                    "(:id, :id, :id, 'free', CAST('{}' AS json), true)"
+                ), {"id": organization_id})
+            for user_id, label in ((user_a, "a"), (user_b, "b")):
+                connection.execute(sa.text(
+                    "INSERT INTO users (id, username, email, hashed_password, "
+                    "full_name, role, department, is_active, is_verified) VALUES "
+                    "(:id, :username, :email, 'not-a-real-hash', 'Wave 4', "
+                    "'CODER', 'test', true, true)"
+                ), {
+                    "id": user_id,
+                    "username": f"wave4-{label}-{suffix}",
+                    "email": f"wave4-{label}-{suffix}@invalid.example",
+                })
+
+        for organization_id, user_id, member_id, client_id, side in (
+            (org_a, user_a, member_a, client_a, "a"),
+            (org_b, user_b, member_b, client_b, "b"),
+        ):
+            with app_engine.begin() as connection:
+                _tenant(connection, organization_id)
+                values = {
+                    "org": organization_id,
+                    "user": user_id,
+                    "member": member_id,
+                    "client": client_id,
+                    "side": side,
+                    "suffix": suffix,
+                }
+                statements = (
+                    "INSERT INTO organization_members "
+                    "(id, organization_id, user_id, role, is_default) VALUES "
+                    "(:member, :org, :user, 'owner', true)",
+                    "INSERT INTO api_keys "
+                    "(id, organization_id, owner_id, name, key_prefix, key_hash, is_active) "
+                    "VALUES ('k-' || :side || :suffix, :org, :user, 'wave4', "
+                    "'sk-test', 'hash-key-' || :side || :suffix, true)",
+                    "INSERT INTO oauth_clients "
+                    "(id, organization_id, name, client_id, client_secret_hash, "
+                    "description, scopes, is_active, owner_id, token_expires_seconds, "
+                    "allowed_agent_ids, allowed_purposes) VALUES "
+                    "('oc-' || :side || :suffix, :org, 'wave4', :client, "
+                    "'secret-hash', '', 'api:read', true, :user, 300, '[]', '[]')",
+                    "INSERT INTO oauth_tokens "
+                    "(id, organization_id, client_id, token_hash, scopes, expires_at, "
+                    "is_revoked) VALUES ('ot-' || :side || :suffix, :org, :client, "
+                    "'token-hash-' || :side || :suffix, 'api:read', "
+                    "CURRENT_TIMESTAMP + INTERVAL '5 minutes', false)",
+                    "INSERT INTO organization_invites "
+                    "(id, organization_id, email, role, token, status, expires_at, "
+                    "invited_by) VALUES ('oi-' || :side || :suffix, :org, "
+                    "'invite-' || :side || :suffix || '@invalid.example', 'member', "
+                    "'invite-token-' || :side || :suffix, 'pending', "
+                    "CURRENT_TIMESTAMP + INTERVAL '1 day', :user)",
+                    "INSERT INTO organization_invite_deliveries "
+                    "(id, organization_id, invite_id, encrypted_payload, status, "
+                    "attempts, next_attempt_at) VALUES ('od-' || :side || :suffix, "
+                    ":org, 'oi-' || :side || :suffix, 'encrypted', 'queued', 0, "
+                    "CURRENT_TIMESTAMP)",
+                    "INSERT INTO team_members "
+                    "(id, organization_id, user_id, email, name, role, status, invited_by) "
+                    "VALUES ('tm-' || :side || :suffix, :org, :user, "
+                    "'member-' || :side || :suffix || '@invalid.example', 'Wave 4', "
+                    "'OWNER', 'active', :user)",
+                    "INSERT INTO team_invites "
+                    "(id, organization_id, email, role, invited_by, token, status, "
+                    "expires_at) VALUES ('ti-' || :side || :suffix, :org, "
+                    "'team-' || :side || :suffix || '@invalid.example', 'CODER', "
+                    ":user, 'team-token-' || :side || :suffix, 'pending', "
+                    "CURRENT_TIMESTAMP + INTERVAL '1 day')",
+                    "INSERT INTO audit_logs "
+                    "(id, organization_id, action, resource_type, status, "
+                    "tenancy_classification) VALUES ('al-' || :side || :suffix, "
+                    ":org, 'wave4.test', 'security_test', 'success', 'MODERN')",
+                )
+                for statement in statements:
+                    connection.execute(sa.text(statement), values)
+
+        for organization_id, side in ((org_a, "a"), (org_b, "b")):
+            with app_engine.begin() as connection:
+                _tenant(connection, organization_id)
+                for table in protected:
+                    assert connection.execute(
+                        sa.text(f'SELECT count(*) FROM "{table}" WHERE organization_id IN (:a, :b)'),
+                        {"a": org_a, "b": org_b},
+                    ).scalar_one() == 1, (table, side)
+
+        with app_engine.begin() as connection:
+            assert all(
+                connection.execute(
+                    sa.text(f'SELECT count(*) FROM "{table}" WHERE organization_id IN (:a, :b)'),
+                    {"a": org_a, "b": org_b},
+                ).scalar_one() == 0
+                for table in protected
+            )
+
+        with pytest.raises(DBAPIError, match="row-level security"):
+            with app_engine.begin() as connection:
+                _tenant(connection, org_a)
+                connection.execute(sa.text(
+                    "INSERT INTO oauth_tokens (id, organization_id, client_id, "
+                    "token_hash, scopes, expires_at, is_revoked) VALUES "
+                    "('cross-w4', :org_b, :client_b, 'cross-token-w4', '', "
+                    "CURRENT_TIMESTAMP + INTERVAL '1 minute', false)"
+                ), {"org_b": org_b, "client_b": client_b})
+
+        # The bootstrap function discloses only the owning tenant; direct
+        # cross-tenant OAuth rows remain invisible after binding.
+        with app_engine.begin() as connection:
+            assert connection.execute(
+                sa.text("SELECT icoder_resolve_oauth_client_tenant(:client)"),
+                {"client": client_b},
+            ).scalar_one() == org_b
+            _tenant(connection, org_a)
+            assert connection.execute(
+                sa.text("SELECT count(*) FROM oauth_clients WHERE client_id=:client"),
+                {"client": client_b},
+            ).scalar_one() == 0
+
+        # System audit is append-only through the narrow function and remains
+        # invisible even inside the transaction that emitted it.
+        with app_engine.connect() as connection:
+            transaction = connection.begin()
+            system_id = f"sys{suffix}"
+            connection.execute(sa.text(
+                "SELECT icoder_write_system_audit(CAST(:event AS jsonb))"
+            ), {"event": json.dumps({
+                "id": system_id,
+                "action": "api_client.authentication_rejected",
+                "resource_type": "api_client",
+                "status": "failure",
+            })})
+            assert connection.execute(
+                sa.text("SELECT count(*) FROM audit_logs WHERE id=:id"),
+                {"id": system_id},
+            ).scalar_one() == 0
+            transaction.rollback()
+        with pytest.raises(DBAPIError, match="not allowlisted"):
+            with app_engine.begin() as connection:
+                connection.execute(sa.text(
+                    "SELECT icoder_write_system_audit(CAST(:event AS jsonb))"
+                ), {"event": json.dumps({
+                    "id": f"bad{suffix}",
+                    "action": "tenant.data.read",
+                    "resource_type": "forgery_attempt",
+                })})
+    finally:
+        try:
+            for organization_id in (org_a, org_b):
+                with migration_engine.begin() as connection:
+                    _tenant(connection, organization_id)
+                    for table in (
+                        "organization_invite_deliveries", "team_invites",
+                        "team_members", "oauth_tokens", "oauth_clients", "api_keys",
+                        "organization_invites", "audit_logs", "organization_members",
+                    ):
+                        connection.execute(sa.text(
+                            f'DELETE FROM "{table}" WHERE organization_id=:org'
+                        ), {"org": organization_id})
+            with migration_engine.begin() as connection:
+                connection.execute(sa.text(
+                    "DELETE FROM users WHERE id IN (:a, :b)"
+                ), {"a": user_a, "b": user_b})
+                connection.execute(sa.text(
+                    "DELETE FROM organizations WHERE id IN (:a, :b)"
+                ), {"a": org_a, "b": org_b})
+        finally:
+            app_engine.dispose()
+            migration_engine.dispose()
+
+
 @pytest.mark.asyncio
 async def test_async_application_pool_reuse_clears_tenant_context() -> None:
     """Exercise the same invariant through the API runtime's async pool."""

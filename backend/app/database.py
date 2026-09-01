@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 # Production schema changes are applied exclusively through Alembic.  Keeping
 # the expected revision explicit makes an application image fail closed when
 # it is started before (or against a database behind) its migration job.
-PRODUCTION_SCHEMA_REVISION = "065"
+PRODUCTION_SCHEMA_REVISION = "066"
 TENANT_POLICY_NAME = "icoder_tenant_isolation"
 PROTECTED_TENANT_TABLES = (
     "patient_contexts",
@@ -31,6 +31,12 @@ PROTECTED_TENANT_TABLES = (
     "a2a_task_artifacts",
     "a2a_artifact_objects",
     "a2a_artifact_download_grants",
+    "stt_interactions",
+    "stt_recordings",
+    "stt_transcripts",
+    "stt_stream_leases",
+    "stt_stream_checkpoints",
+    "stt_stream_checkpoint_chunks",
 )
 
 _is_sqlite = "sqlite" in settings.DATABASE_URL

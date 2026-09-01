@@ -26,6 +26,11 @@ def _utcnow() -> datetime:
 class STTInteraction(Base):
     __tablename__ = "stt_interactions"
     __table_args__ = (
+        ForeignKeyConstraint(
+            ["organization_id"],
+            ["organizations.id"],
+            name="fk_stt_interactions_organization",
+        ),
         UniqueConstraint(
             "organization_id", "owner_id", "interaction_id",
             name="uq_stt_interaction_scope",
@@ -44,6 +49,16 @@ class STTInteraction(Base):
 class STTRecording(Base):
     __tablename__ = "stt_recordings"
     __table_args__ = (
+        ForeignKeyConstraint(
+            ["organization_id", "owner_id", "interaction_id"],
+            [
+                "stt_interactions.organization_id",
+                "stt_interactions.owner_id",
+                "stt_interactions.interaction_id",
+            ],
+            name="fk_stt_recordings_interaction_scope",
+            ondelete="CASCADE",
+        ),
         UniqueConstraint(
             "organization_id", "owner_id", "interaction_id", "recording_id",
             name="uq_stt_recording_scope",
@@ -67,6 +82,16 @@ class STTRecording(Base):
 class STTTranscript(Base):
     __tablename__ = "stt_transcripts"
     __table_args__ = (
+        ForeignKeyConstraint(
+            ["organization_id", "owner_id", "interaction_id"],
+            [
+                "stt_interactions.organization_id",
+                "stt_interactions.owner_id",
+                "stt_interactions.interaction_id",
+            ],
+            name="fk_stt_transcripts_interaction_scope",
+            ondelete="CASCADE",
+        ),
         UniqueConstraint(
             "organization_id", "owner_id", "interaction_id", "transcript_id",
             name="uq_stt_transcript_scope",
@@ -98,6 +123,16 @@ class STTStreamLease(Base):
 
     __tablename__ = "stt_stream_leases"
     __table_args__ = (
+        ForeignKeyConstraint(
+            ["organization_id", "owner_id", "interaction_id"],
+            [
+                "stt_interactions.organization_id",
+                "stt_interactions.owner_id",
+                "stt_interactions.interaction_id",
+            ],
+            name="fk_stt_stream_leases_interaction_scope",
+            ondelete="CASCADE",
+        ),
         UniqueConstraint("session_id", name="uq_stt_stream_lease_session"),
         Index("ix_stt_stream_lease_expiry", "lease_expires_at"),
     )
@@ -122,6 +157,16 @@ class STTStreamCheckpoint(Base):
 
     __tablename__ = "stt_stream_checkpoints"
     __table_args__ = (
+        ForeignKeyConstraint(
+            ["organization_id", "owner_id", "interaction_id"],
+            [
+                "stt_interactions.organization_id",
+                "stt_interactions.owner_id",
+                "stt_interactions.interaction_id",
+            ],
+            name="fk_stt_stream_checkpoints_interaction_scope",
+            ondelete="CASCADE",
+        ),
         Index("ix_stt_stream_checkpoint_updated", "updated_at"),
     )
 

@@ -119,6 +119,13 @@ async def log_action(
             ),
         )
         db.add(log_entry)
+        # PostgreSQL production audit rows and their cryptographic archive
+        # envelopes are committed atomically. SQLite remains a lightweight
+        # local/test path and does not pretend to provide WORM guarantees.
+        if db.get_bind().dialect.name == "postgresql":
+            await db.flush()
+            from app.services.audit_integrity import archive_audit_log
+            await archive_audit_log(db, log_entry)
         return log_entry
     except Exception as e:
         logger.error(f"Failed to write audit log: {e}")

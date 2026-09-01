@@ -28,6 +28,7 @@ from app.services.phi_encryption import (
     is_encryption_enabled,
 )
 from app.services.system_audit import tenant_owned_system_audit
+from app.services.database_tenancy import bind_tenant_to_transaction
 
 
 class InviteDeliveryConfigurationError(RuntimeError):
@@ -38,6 +39,7 @@ class InviteDeliveryConfigurationError(RuntimeError):
 class DeliveryClaim:
     delivery_id: str
     lock_id: str
+    organization_id: str | None = None
 
 
 @dataclass(frozen=True)
@@ -200,28 +202,48 @@ async def claim_due_deliveries(
             & (OrganizationInviteDelivery.locked_at <= stale_before)
         ),
     )
-    candidate_ids = (
-        await db.execute(
-            select(OrganizationInviteDelivery.id)
-            .where(due)
-            .order_by(OrganizationInviteDelivery.next_attempt_at, OrganizationInviteDelivery.created_at)
-            .limit(limit * 3)
-        )
-    ).scalars().all()
-
     claims: list[DeliveryClaim] = []
-    for delivery_id in candidate_ids:
-        lock_id = secrets.token_hex(16)
-        claimed = await db.execute(
-            update(OrganizationInviteDelivery)
-            .where(OrganizationInviteDelivery.id == delivery_id, due)
-            .values(status="processing", locked_at=now, lock_id=lock_id)
+    if db.get_bind().dialect.name == "postgresql":
+        tenant_ids: list[str | None] = list(
+            (await db.execute(select(Organization.id))).scalars().all()
         )
-        if claimed.rowcount == 1:
-            claims.append(DeliveryClaim(delivery_id=delivery_id, lock_id=lock_id))
-            if len(claims) >= limit:
-                break
-    await db.commit()
+    else:
+        tenant_ids = [None]
+
+    for organization_id in tenant_ids:
+        if organization_id:
+            await bind_tenant_to_transaction(db, organization_id)
+        candidate_ids = (
+            await db.execute(
+                select(OrganizationInviteDelivery.id)
+                .where(due)
+                .order_by(
+                    OrganizationInviteDelivery.next_attempt_at,
+                    OrganizationInviteDelivery.created_at,
+                )
+                .limit(limit * 3)
+            )
+        ).scalars().all()
+        for delivery_id in candidate_ids:
+            lock_id = secrets.token_hex(16)
+            claimed = await db.execute(
+                update(OrganizationInviteDelivery)
+                .where(OrganizationInviteDelivery.id == delivery_id, due)
+                .values(status="processing", locked_at=now, lock_id=lock_id)
+            )
+            if claimed.rowcount == 1:
+                claims.append(
+                    DeliveryClaim(
+                        delivery_id=delivery_id,
+                        lock_id=lock_id,
+                        organization_id=organization_id,
+                    )
+                )
+                if len(claims) >= limit:
+                    break
+        await db.commit()
+        if len(claims) >= limit:
+            break
     return claims
 
 
@@ -277,6 +299,8 @@ async def process_delivery_claim(
     *,
     provider: WebhookInviteProvider | None = None,
 ) -> str:
+    if claim.organization_id:
+        await bind_tenant_to_transaction(db, claim.organization_id)
     row = (
         await db.execute(
             select(OrganizationInviteDelivery).where(

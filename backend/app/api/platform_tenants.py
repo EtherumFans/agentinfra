@@ -21,6 +21,7 @@ from app.middleware.audit import log_action
 from app.middleware.auth import get_current_organization, get_current_user
 from app.models.organization import Organization, OrganizationMember, OrgRole
 from app.models.user import User
+from app.services.database_tenancy import bind_tenant_to_transaction
 
 
 router = APIRouter(prefix="/api/tenants", tags=["platform-tenants"])
@@ -118,6 +119,7 @@ async def create_tenant(
     )
     db.add(org)
     await db.flush()
+    await bind_tenant_to_transaction(db, org.id)
     db.add(OrganizationMember(
         organization_id=org.id,
         user_id=current_user.id,
@@ -132,6 +134,7 @@ async def create_tenant(
         "organization",
         org.id,
         details={"name": org.name, "environment_assignments": data.environment_assignments},
+        organization_id=org.id,
         ip_address=request.client.host if request.client else None,
     )
     await db.flush()

@@ -9,7 +9,7 @@ from app.models.base import TimestampMixin
 class ApiKey(Base, TimestampMixin):
     __tablename__ = "api_keys"
 
-    organization_id: Mapped[str] = mapped_column(String(12), ForeignKey("organizations.id"), nullable=True, index=True)
+    organization_id: Mapped[str] = mapped_column(String(12), ForeignKey("organizations.id"), nullable=False, index=True)
     owner_id: Mapped[str] = mapped_column(String(12), ForeignKey("users.id"), nullable=False, index=True)
     name: Mapped[str] = mapped_column(String(128), default="Default Key")
     key_prefix: Mapped[str] = mapped_column(String(16), nullable=False)

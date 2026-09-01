@@ -73,6 +73,10 @@ async def _all_partner_origins() -> set[str]:
         from sqlalchemy import select, text
         origins: set[str] = set()
         async with AsyncSessionLocal() as db:
+            if db.get_bind().dialect.name == "postgresql":
+                # PostgreSQL uses the one-origin predicate below; never read
+                # every tenant's OAuth client rows through the runtime role.
+                return set()
             # JSON column → flatten in Python (portable across SQLite + PG).
             stmt = select(text("allowed_origins")).select_from(text("oauth_clients"))
             result = await db.execute(stmt)
@@ -97,6 +101,24 @@ async def _all_partner_origins() -> set[str]:
 
 # Static cache attribute
 _all_partner_origins._cache = None  # type: ignore[attr-defined]
+
+
+async def _partner_origin_allowed(origin: str) -> bool:
+    """Check one origin without exposing protected OAuth client rows."""
+    from app.database import AsyncSessionLocal
+    from sqlalchemy import text
+
+    async with AsyncSessionLocal() as db:
+        if db.get_bind().dialect.name != "postgresql":
+            return origin in await _all_partner_origins()
+        return bool(
+            (
+                await db.execute(
+                    text("SELECT icoder_partner_origin_allowed(:origin)"),
+                    {"origin": origin},
+                )
+            ).scalar_one()
+        )
 
 
 class PartnerCORSMiddleware(BaseHTTPMiddleware):
@@ -137,10 +159,9 @@ class PartnerCORSMiddleware(BaseHTTPMiddleware):
         # Build the full allowlist: static (Console) + dynamic (partners).
         from app.config import settings
         static_origins = set(getattr(settings, "CORS_ORIGINS", []) or [])
-        partner_origins = await _all_partner_origins()
-        allowed = static_origins | partner_origins
+        allowed = origin in static_origins or await _partner_origin_allowed(origin)
 
-        if origin not in allowed:
+        if not allowed:
             # Preflight OPTIONS: respond with 403 + a clear CORS error.
             if request.method == "OPTIONS":
                 return JSONResponse(

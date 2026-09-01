@@ -21,6 +21,7 @@ from app.middleware.auth import (
     decode_token, get_current_user, get_current_organization,
 )
 from app.middleware.audit import log_action
+from app.services.database_tenancy import bind_tenant_to_transaction
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 logger = logging.getLogger(__name__)
@@ -37,17 +38,24 @@ def _slugify(name: str) -> str:
 
 async def _get_user_orgs(db: AsyncSession, user_id: str) -> list[OrgInfo]:
     """Get all organizations for a user with membership info."""
-    result = await db.execute(
-        select(Organization, OrganizationMember).join(
-            OrganizationMember, OrganizationMember.organization_id == Organization.id
-        ).where(
-            OrganizationMember.user_id == user_id,
-            Organization.is_active.is_(True),
-        )
-    )
-    rows = result.all()
     orgs = []
-    for org, member in rows:
+    organizations = (
+        await db.execute(
+            select(Organization).where(Organization.is_active.is_(True))
+        )
+    ).scalars().all()
+    for org in organizations:
+        await bind_tenant_to_transaction(db, org.id)
+        member = (
+            await db.execute(
+                select(OrganizationMember).where(
+                    OrganizationMember.organization_id == org.id,
+                    OrganizationMember.user_id == user_id,
+                )
+            )
+        ).scalar_one_or_none()
+        if member is None:
+            continue
         orgs.append(OrgInfo(
             id=org.id,
             name=org.name,
@@ -132,6 +140,7 @@ async def register(data: UserCreate, request: Request, db: AsyncSession = Depend
     org = Organization(name=org_name, slug=slug, plan="free")
     db.add(org)
     await db.flush()
+    await bind_tenant_to_transaction(db, org.id)
 
     # Creator becomes owner
     member = OrganizationMember(
@@ -144,7 +153,8 @@ async def register(data: UserCreate, request: Request, db: AsyncSession = Depend
 
     await log_action(db, user.id, user.username, "user.register", "user", user.id,
                      ip_address=request.client.host if request.client else None,
-                     details={"org_id": org.id, "org_name": org.name})
+                     details={"org_id": org.id, "org_name": org.name},
+                     organization_id=org.id)
 
     orgs = [OrgInfo(id=org.id, name=org.name, slug=org.slug, plan=org.plan,
                     role="owner", is_default=True)]
@@ -202,9 +212,12 @@ async def login(data: UserLogin, request: Request, db: AsyncSession = Depends(ge
     if not default_org_id and orgs:
         default_org_id = orgs[0].id
 
+    if default_org_id:
+        await bind_tenant_to_transaction(db, default_org_id)
     await log_action(db, user.id, user.username, "user.login", "user", user.id,
                      ip_address=request.client.host if request.client else None,
-                     details={"org_count": len(orgs), "current_org_id": default_org_id})
+                     details={"org_count": len(orgs), "current_org_id": default_org_id},
+                     organization_id=default_org_id or None)
 
     access_token = create_access_token(user.id, user.username, user.role.value, default_org_id, token_version=user.token_version)
     refresh_token = create_refresh_token(user.id, default_org_id, token_version=user.token_version)
@@ -256,6 +269,7 @@ async def switch_org(data: SwitchOrgRequest, request: Request,
                      db: AsyncSession = Depends(get_db)):
     """Switch to a different organization. Returns new JWT with new org_id."""
     # Verify membership
+    await bind_tenant_to_transaction(db, data.org_id)
     result = await db.execute(
         select(OrganizationMember).where(
             OrganizationMember.organization_id == data.org_id,
@@ -273,6 +287,7 @@ async def switch_org(data: SwitchOrgRequest, request: Request,
         raise HTTPException(status_code=400, detail="Organization not found or suspended")
 
     orgs = await _get_user_orgs(db, current_user.id)
+    await bind_tenant_to_transaction(db, data.org_id)
 
     await log_action(db, current_user.id, current_user.username, "org.switch", "organization",
                      data.org_id, details={"org_name": org.name},

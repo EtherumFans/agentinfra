@@ -10,10 +10,10 @@ import secrets
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.auth import _slugify
+from app.api.auth import _get_user_orgs, _slugify
 from app.database import get_db
 from app.middleware.audit import log_action
 from app.middleware.auth import get_current_organization, get_current_user, require_org_membership
@@ -44,6 +44,7 @@ from app.services.invite_delivery import (
     recipient_domain_allowed,
     requeue_dead_letter,
 )
+from app.services.database_tenancy import bind_tenant_to_transaction
 
 router = APIRouter(prefix="/api/organizations", tags=["organizations"])
 
@@ -129,6 +130,7 @@ async def create_organization(
     org = Organization(name=data.name, slug=slug, plan="free")
     db.add(org)
     await db.flush()
+    await bind_tenant_to_transaction(db, org.id)
     db.add(OrganizationMember(
         organization_id=org.id,
         user_id=current_user.id,
@@ -148,12 +150,22 @@ async def list_my_organizations(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    result = await db.execute(
-        select(Organization)
-        .join(OrganizationMember, OrganizationMember.organization_id == Organization.id)
-        .where(OrganizationMember.user_id == current_user.id, Organization.is_active.is_(True))
-    )
-    return [_org_response(org) for org in result.scalars().all()]
+    memberships = await _get_user_orgs(db, current_user.id)
+    if not memberships:
+        return []
+    organizations = (
+        await db.execute(
+            select(Organization).where(
+                Organization.id.in_([membership.id for membership in memberships])
+            )
+        )
+    ).scalars().all()
+    by_id = {organization.id: organization for organization in organizations}
+    return [
+        _org_response(by_id[membership.id])
+        for membership in memberships
+        if membership.id in by_id
+    ]
 
 
 @router.get("/current", response_model=OrganizationResponse)
@@ -169,10 +181,27 @@ async def accept_invite(
     db: AsyncSession = Depends(get_db),
 ):
     """Consume a one-time invitation whose normalized email matches the user."""
+    membership_count = (
+        await db.execute(
+            select(func.count()).select_from(OrganizationMember).where(
+                OrganizationMember.user_id == current_user.id
+            )
+        )
+    ).scalar_one()
+    token_digest = _token_digest(data.token)
+    if db.get_bind().dialect.name == "postgresql":
+        invite_org_id = (
+            await db.execute(
+                text("SELECT icoder_resolve_invite_tenant(:token)"),
+                {"token": token_digest},
+            )
+        ).scalar_one_or_none()
+        if invite_org_id:
+            await bind_tenant_to_transaction(db, str(invite_org_id))
     invite = (
         await db.execute(
             select(OrganizationInvite)
-            .where(OrganizationInvite.token == _token_digest(data.token))
+            .where(OrganizationInvite.token == token_digest)
             .with_for_update()
         )
     ).scalar_one_or_none()
@@ -208,13 +237,6 @@ async def accept_invite(
     if org is None or not org.is_active:
         raise HTTPException(status_code=410, detail="Invited organization is unavailable")
 
-    membership_count = (
-        await db.execute(
-            select(func.count()).select_from(OrganizationMember).where(
-                OrganizationMember.user_id == current_user.id
-            )
-        )
-    ).scalar_one()
     db.add(OrganizationMember(
         organization_id=invite.organization_id,
         user_id=current_user.id,

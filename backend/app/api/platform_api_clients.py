@@ -259,7 +259,10 @@ async def _get_owned(
 ) -> OAuthClient:
     """Fetch a client scoped to the current org; 404 if not found or
     cross-org (don't leak existence)."""
-    stmt = select(OAuthClient).where(OAuthClient.client_id == client_id)
+    stmt = select(OAuthClient).where(
+        OAuthClient.client_id == client_id,
+        OAuthClient.organization_id == org_id,
+    )
     result = await db.execute(stmt)
     c = result.scalars().one_or_none()
     if c is None or (c.organization_id and org_id and c.organization_id != org_id):

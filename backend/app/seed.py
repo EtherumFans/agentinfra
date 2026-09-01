@@ -923,7 +923,10 @@ Maintain a professional, empathetic tone. Do not diagnose — present screening 
         for dc in DEMO_CASES:
             # Check if encounter already exists
             enc_result = await session.execute(
-                select(Encounter).where(Encounter.encounter_id == dc["encounter_id"])
+                select(Encounter).where(
+                    Encounter.encounter_id == dc["encounter_id"],
+                    Encounter.organization_id == default_org.id,
+                )
             )
             if not enc_result.scalar_one_or_none():
                 encounter = Encounter(

@@ -8,7 +8,7 @@ from app.models.base import TimestampMixin
 class CodeCandidate(Base, TimestampMixin):
     __tablename__ = "code_candidates"
 
-    organization_id: Mapped[str] = mapped_column(String(12), ForeignKey("organizations.id"), nullable=True, index=True)
+    organization_id: Mapped[str] = mapped_column(String(12), ForeignKey("organizations.id"), nullable=False, index=True)
     review_id: Mapped[str] = mapped_column(
         String(12), ForeignKey("coding_reviews.id"), nullable=False, index=True
     )

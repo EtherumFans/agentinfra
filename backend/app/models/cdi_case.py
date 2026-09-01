@@ -114,6 +114,9 @@ class DocumentationGapModel(Base, TimestampMixin):
     __tablename__ = "cdi_documentation_gaps"
 
     id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    organization_id: Mapped[str] = mapped_column(
+        String(12), ForeignKey("organizations.id"), nullable=False, index=True,
+    )
     case_id: Mapped[str] = mapped_column(
         String(64), ForeignKey("cdi_cases.id"), nullable=False, index=True,
     )
@@ -173,6 +176,9 @@ class ProviderQueryModel(Base, TimestampMixin):
     __tablename__ = "cdi_provider_queries"
 
     id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    organization_id: Mapped[str] = mapped_column(
+        String(12), ForeignKey("organizations.id"), nullable=False, index=True,
+    )
     case_id: Mapped[str] = mapped_column(
         String(64), ForeignKey("cdi_cases.id"), nullable=False, index=True,
     )
@@ -247,6 +253,9 @@ class ClinicianResponseModel(Base, TimestampMixin):
     __tablename__ = "cdi_clinician_responses"
 
     id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    organization_id: Mapped[str] = mapped_column(
+        String(12), ForeignKey("organizations.id"), nullable=False, index=True,
+    )
     query_id: Mapped[str] = mapped_column(
         String(64), ForeignKey("cdi_provider_queries.id"), nullable=False, index=True,
     )
@@ -282,6 +291,9 @@ class DocumentVersionModel(Base, TimestampMixin):
     __tablename__ = "cdi_document_versions"
 
     id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    organization_id: Mapped[str] = mapped_column(
+        String(12), ForeignKey("organizations.id"), nullable=False, index=True,
+    )
     case_id: Mapped[str] = mapped_column(
         String(64), ForeignKey("cdi_cases.id"), nullable=False, index=True,
     )

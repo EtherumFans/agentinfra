@@ -23,7 +23,8 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
-from app.middleware.auth import get_current_user
+from app.middleware.auth import get_current_organization, get_current_user
+from app.models.organization import Organization
 from app.models.user import User
 from app.models.audit_log import AuditLog
 from app.models.run_history import RunHistoryModel
@@ -65,6 +66,7 @@ async def get_usage_summary(
         ),
     ),
     user: User = Depends(get_current_user),
+    organization: Organization = Depends(get_current_organization),
     db: AsyncSession = Depends(get_db),
 ):
     """Get usage summary from real audit logs, run_history, and transaction records.
@@ -82,6 +84,7 @@ async def get_usage_summary(
     result = await db.execute(
         select(func.count(AuditLog.id))
         .where(AuditLog.user_id == user.id)
+        .where(AuditLog.organization_id == organization.id)
         .where(AuditLog.created_at >= since)
     )
     total_requests = result.scalar() or 0
@@ -99,6 +102,7 @@ async def get_usage_summary(
 
     cost_query = (
         select(func.coalesce(func.sum(RunHistoryModel.cost_usd), 0.0))
+        .where(RunHistoryModel.organization_id == organization.id)
         .where(RunHistoryModel.user_id == str(user.id))
         .where(RunHistoryModel.created_at >= since)
     )
@@ -126,6 +130,7 @@ async def get_usage_summary(
             func.date(RunHistoryModel.created_at).label("day"),
             func.coalesce(func.sum(RunHistoryModel.cost_usd), 0.0).label("cost"),
         )
+        .where(RunHistoryModel.organization_id == organization.id)
         .where(RunHistoryModel.user_id == str(user.id))
         .where(RunHistoryModel.created_at >= since)
         .group_by(func.date(RunHistoryModel.created_at))
@@ -155,6 +160,7 @@ async def get_usage_summary(
     from app.models.review import CodingReview
     rt_result = await db.execute(
         select(func.avg(CodingReview.processing_time_ms))
+        .where(CodingReview.organization_id == organization.id)
         .where(CodingReview.created_at >= since)
     )
     avg_response_time = rt_result.scalar()

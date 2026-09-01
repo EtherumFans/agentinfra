@@ -213,11 +213,14 @@ def _evidence_to_dict(ev: EvidenceSpan | None) -> dict[str, Any]:
     }
 
 
-def gap_to_orm(gap: DocumentationGap, case_id: str) -> DocumentationGapModel:
+def gap_to_orm(
+    gap: DocumentationGap, case_id: str, organization_id: str,
+) -> DocumentationGapModel:
     """Convert a runtime DocumentationGap to its ORM model (no DB write)."""
     ev = gap.evidence_span
     return DocumentationGapModel(
         id=gap.gap_id,
+        organization_id=organization_id,
         case_id=case_id,
         gap_type=gap.gap_type,
         description=gap.description,
@@ -233,11 +236,14 @@ def gap_to_orm(gap: DocumentationGap, case_id: str) -> DocumentationGapModel:
     )
 
 
-def query_to_orm(q: ProviderQuery, case_id: str) -> ProviderQueryModel:
+def query_to_orm(
+    q: ProviderQuery, case_id: str, organization_id: str,
+) -> ProviderQueryModel:
     """Convert a runtime ProviderQuery to its ORM model (no DB write)."""
     ev = q.evidence_span
     return ProviderQueryModel(
         id=q.query_id,
+        organization_id=organization_id,
         case_id=case_id,
         gap_id=q.gap_id,
         topic=q.topic,
@@ -259,7 +265,7 @@ def query_to_orm(q: ProviderQuery, case_id: str) -> ProviderQueryModel:
 def case_to_orm(
     case: CDICase,
     *,
-    organization_id: str | None = None,
+    organization_id: str,
     created_by_user_id: str | None = None,
     agent_ref: str = "icoder/clinical-documentation-improvement-agent@1.0.0",
     run_id: str = "",
@@ -316,7 +322,7 @@ def case_to_orm(
     )
     # Attach children
     for gap in case.documentation_gaps:
-        case_model_doc_gap = gap_to_orm(gap, case.case_id)
+        case_model_doc_gap = gap_to_orm(gap, case.case_id, organization_id)
         # SQLAlchemy relationship attr — assigning list sets backrefs
     # NOTE: We return the case_model only; caller adds children via session
     # to avoid relying on a relationship attr that may not exist. See
@@ -333,7 +339,7 @@ async def persist_case(
     session: AsyncSession,
     case: CDICase,
     *,
-    organization_id: str | None = None,
+    organization_id: str,
     created_by_user_id: str | None = None,
     run_id: str = "",
     trace_id: str = "",
@@ -353,20 +359,12 @@ async def persist_case(
     existing_stmt = select(CDICaseModel).where(
         CDICaseModel.id == case.case_id,
     )
-    if organization_id is not None:
-        existing_stmt = existing_stmt.where(
-            CDICaseModel.organization_id == organization_id,
-        )
+    existing_stmt = existing_stmt.where(
+        CDICaseModel.organization_id == organization_id,
+    )
     existing = (await session.execute(existing_stmt)).scalar_one_or_none()
     if existing is not None:
         return existing
-
-    # A caller may reuse a case ID that exists in another tenant. Treat it as
-    # a collision, never as an idempotent replay and never overwrite it.
-    if organization_id is not None:
-        cross_tenant = await session.get(CDICaseModel, case.case_id)
-        if cross_tenant is not None:
-            raise ValueError("cdi_case_id_collision")
 
     # Gate 1: localize child IDs + drop orphan queries.
     localized = _localize_child_ids(case)
@@ -382,9 +380,9 @@ async def persist_case(
 
     # Write children directly. IDs are already case-scoped, so no skip needed.
     for gap in localized.documentation_gaps:
-        session.add(gap_to_orm(gap, localized.case_id))
+        session.add(gap_to_orm(gap, localized.case_id, organization_id))
     for q in localized.proposed_provider_queries:
-        session.add(query_to_orm(q, localized.case_id))
+        session.add(query_to_orm(q, localized.case_id, organization_id))
 
     await session.commit()
     await session.refresh(case_model)
@@ -400,12 +398,11 @@ async def load_case(
     session: AsyncSession,
     case_id: str,
     *,
-    organization_id: str | None = None,
+    organization_id: str,
 ) -> CDICaseModel | None:
     """Load a CDI case + its gaps + queries. Returns None if not found."""
     stmt = select(CDICaseModel).where(CDICaseModel.id == case_id)
-    if organization_id is not None:
-        stmt = stmt.where(CDICaseModel.organization_id == organization_id)
+    stmt = stmt.where(CDICaseModel.organization_id == organization_id)
     case_model = (await session.execute(stmt)).scalar_one_or_none()
     if case_model is None:
         return None
@@ -416,6 +413,12 @@ async def load_case(
     )
     queries_q = select(ProviderQueryModel).where(
         ProviderQueryModel.case_id == case_id
+    )
+    gaps_q = gaps_q.where(
+        DocumentationGapModel.organization_id == organization_id,
+    )
+    queries_q = queries_q.where(
+        ProviderQueryModel.organization_id == organization_id,
     )
     case_model.gaps_ = (await session.execute(gaps_q)).scalars().all()
     case_model.queries_ = (await session.execute(queries_q)).scalars().all()
@@ -574,7 +577,7 @@ async def update_query_lifecycle(
     nlq_gate_verdict: str | None = None,
     nlq_gate_block_reasons: list[str] | None = None,
     sla_due_at: datetime | None = None,
-    organization_id: str | None = None,
+    organization_id: str,
 ) -> tuple[ProviderQueryModel | None, bool]:
     """Atomically transition a query's lifecycle_state with optimistic lock.
 
@@ -586,10 +589,7 @@ async def update_query_lifecycle(
     relies on row-level locking; we read back to confirm.
     """
     stmt = select(ProviderQueryModel).where(ProviderQueryModel.id == query_id)
-    if organization_id is not None:
-        stmt = stmt.join(
-            CDICaseModel, ProviderQueryModel.case_id == CDICaseModel.id,
-        ).where(CDICaseModel.organization_id == organization_id)
+    stmt = stmt.where(ProviderQueryModel.organization_id == organization_id)
     q_model = (await session.execute(stmt)).scalar_one_or_none()
     if q_model is None:
         return None, False

@@ -196,7 +196,8 @@ class ContextRepository:
         Returns a per-store delete/redact count dict so callers
         (and tests) can assert no store was silently missed.
         """
-        await self._require_context_exists(context_id)
+        context_row = await self._require_context_exists(context_id)
+        organization_id = context_row.organization_id
         counts: dict[str, int] = {}
 
         # ── Direct children: hard delete ──────────────────────────
@@ -223,14 +224,16 @@ class ContextRepository:
 
         r = await self._session.execute(
             sa_delete(FeedbackTrainingAuthorization).where(
-                FeedbackTrainingAuthorization.context_id == context_id
+                FeedbackTrainingAuthorization.context_id == context_id,
+                FeedbackTrainingAuthorization.organization_id == organization_id,
             )
         )
         counts["feedback_training_authorizations"] = r.rowcount or 0
 
         r = await self._session.execute(
             sa_delete(AgentTaskFeedback).where(
-                AgentTaskFeedback.context_id == context_id
+                AgentTaskFeedback.context_id == context_id,
+                AgentTaskFeedback.organization_id == organization_id,
             )
         )
         counts["agent_task_feedback"] = r.rowcount or 0

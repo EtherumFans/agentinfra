@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from sqlalchemy import Boolean, DateTime, Integer, String, Text, UniqueConstraint
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
@@ -27,7 +27,9 @@ class ClinicalFactRecord(Base):
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    organization_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    organization_id: Mapped[str] = mapped_column(
+        String(12), ForeignKey("organizations.id"), nullable=False, index=True,
+    )
     owner_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
     interaction_id: Mapped[str] = mapped_column(String(160), nullable=False, index=True)
     fact_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)

@@ -81,6 +81,7 @@ async def create_encounter_from_text(
 ):
     """Create encounter from raw text paste (simplified input)."""
     import uuid
+    from app.services.phi_encryption import encrypt_phi
 
     encounter_id = f"ENC-{uuid.uuid4().hex[:12].upper()}"
     encounter = Encounter(
@@ -104,7 +105,7 @@ async def create_encounter_from_text(
             encounter_id=encounter.id,
             doc_type="住院病历",
             title="完整病历",
-            content=text,
+            content=encrypt_phi(text),
             doc_order=0,
         )
         db.add(doc)
@@ -114,7 +115,7 @@ async def create_encounter_from_text(
             encounter_id=encounter.id,
             doc_type="出院小结",
             title="病历文本",
-            content=text,
+            content=encrypt_phi(text),
             doc_order=0,
         )
         db.add(doc)

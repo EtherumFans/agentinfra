@@ -123,6 +123,7 @@ async def test_insert_and_reload_minimal(db_session):
     from app.models.coding_review_run import CodingReviewRun
 
     run = CodingReviewRun(
+        organization_id="org_default1",
         agent_ref="icoder/homepage-coding-review-agent@1.0.0",
         case_id="c-roundtrip-001",
         trace_id="t-roundtrip-001",
@@ -209,6 +210,7 @@ async def test_insert_and_reload_full_payload(db_session):
     ]
 
     run = CodingReviewRun(
+        organization_id="org_default1",
         agent_ref="icoder/homepage-coding-review-agent@1.0.0",
         case_id="c-full-001",
         trace_id="t-full-001",
@@ -232,7 +234,6 @@ async def test_insert_and_reload_full_payload(db_session):
         model_version="deepseek-v4-flash (M3-0 interim)",
         code_dict_version="icd10cn_code_catalog 37897 codes (M3-0 baseline)",
         rule_version="medical_coding R001-R010 (M3-0 baseline)",
-        organization_id="org_default1",
         created_by_user_id="u-test-001",
     )
     db_session.add(run)
@@ -271,6 +272,7 @@ async def test_query_by_trace_id_returns_one(db_session):
 
     target_trace = f"t-trace-{uuid.uuid4().hex[:8]}"
     run = CodingReviewRun(
+        organization_id="org_default1",
         agent_ref="icoder/homepage-coding-review-agent@1.0.0",
         trace_id=target_trace,
         case_id="c-trace-001",

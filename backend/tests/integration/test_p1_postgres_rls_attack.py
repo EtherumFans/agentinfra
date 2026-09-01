@@ -97,7 +97,7 @@ def test_tenant_table_inventory_matches_live_postgresql_schema() -> None:
         for row in rows
     }
     assert set(actual) == set(expected)
-    assert len(actual) == inventory["database_table_count"] == 82
+    assert len(actual) == inventory["database_table_count"] == 83
 
     for name, governed in expected.items():
         state = actual[name]
@@ -946,6 +946,69 @@ def test_identity_access_wave_fails_closed_across_tenants() -> None:
         finally:
             app_engine.dispose()
             migration_engine.dispose()
+
+
+def test_phi_clinical_wave_write_checks_cover_all_tables() -> None:
+    """Every revision-069 table rejects a row owned by another tenant.
+
+    Supplying only ``organization_id`` intentionally keeps the probe generic:
+    PostgreSQL must reject it at the RLS WITH CHECK boundary before ordinary
+    NOT NULL validation can expose any table-specific write path.
+    """
+    app_engine = sa.create_engine(_sync_url(APP_URL))
+    migration_engine = sa.create_engine(_sync_url(MIGRATION_URL))
+    suffix = uuid.uuid4().hex[:8]
+    org_a, org_b = f"w5a_{suffix}", f"w5b_{suffix}"
+    protected = (
+        "agent_task_feedback", "cdi_cases", "cdi_clinician_responses",
+        "cdi_document_versions", "cdi_documentation_gaps",
+        "cdi_notification_subscriptions", "cdi_provider_queries",
+        "clinical_evidences", "clinical_facts", "code_candidates",
+        "coding_review_runs", "coding_reviews", "documents", "encounters",
+        "feedback_training_authorizations", "guided_documents",
+        "guided_sections",
+    )
+    try:
+        with migration_engine.begin() as connection:
+            rows = connection.execute(sa.text(
+                "SELECT c.relname, c.relrowsecurity, c.relforcerowsecurity, "
+                "a.attnotnull, count(p.policyname) FILTER (WHERE "
+                "p.policyname='icoder_tenant_isolation' AND p.cmd='ALL' "
+                "AND p.qual IS NOT NULL AND p.with_check IS NOT NULL) AS policies "
+                "FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace "
+                "JOIN pg_attribute a ON a.attrelid=c.oid "
+                "AND a.attname='organization_id' AND NOT a.attisdropped "
+                "LEFT JOIN pg_policies p ON p.schemaname=n.nspname "
+                "AND p.tablename=c.relname WHERE n.nspname=current_schema() "
+                "AND c.relname=ANY(:tables) GROUP BY c.relname, "
+                "c.relrowsecurity, c.relforcerowsecurity, a.attnotnull"
+            ), {"tables": list(protected)}).all()
+        assert len(rows) == len(protected)
+        assert all(
+            row.relrowsecurity and row.relforcerowsecurity
+            and row.attnotnull and row.policies == 1
+            for row in rows
+        )
+
+        for table in protected:
+            with pytest.raises(DBAPIError, match="row-level security"):
+                with app_engine.begin() as connection:
+                    _tenant(connection, org_a)
+                    connection.execute(
+                        sa.text(
+                            f'INSERT INTO "{table}" (organization_id) VALUES (:org)'
+                        ),
+                        {"org": org_b},
+                    )
+
+        with app_engine.begin() as connection:
+            for table in protected:
+                assert connection.execute(
+                    sa.text(f'SELECT count(*) FROM "{table}"')
+                ).scalar_one() == 0
+    finally:
+        app_engine.dispose()
+        migration_engine.dispose()
 
 
 @pytest.mark.asyncio

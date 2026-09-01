@@ -24,6 +24,9 @@ MIGRATION_067 = (
 MIGRATION_068 = (
     BACKEND_ROOT / "alembic" / "versions" / "068_identity_access_tenant_rls.py"
 )
+MIGRATION_069 = (
+    BACKEND_ROOT / "alembic" / "versions" / "069_phi_clinical_tenant_rls.py"
+)
 
 
 def _load_migration():
@@ -205,6 +208,34 @@ def test_revision_068_governs_identity_and_access_wave() -> None:
     assert "ENABLE ROW LEVEL SECURITY" in source
     assert "FORCE ROW LEVEL SECURITY" in source
     assert "WITH CHECK" in source
+
+
+def test_revision_069_governs_phi_clinical_wave() -> None:
+    spec = importlib.util.spec_from_file_location("p1_migration_069", MIGRATION_069)
+    assert spec and spec.loader
+    migration = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(migration)
+
+    assert migration.revision == "069"
+    assert migration.down_revision == "068"
+    assert set(migration.TENANT_TABLES) == {
+        "agent_task_feedback", "cdi_cases", "cdi_clinician_responses",
+        "cdi_document_versions", "cdi_documentation_gaps",
+        "cdi_notification_subscriptions", "cdi_provider_queries",
+        "clinical_evidences", "clinical_facts", "code_candidates",
+        "coding_review_runs", "coding_reviews", "documents", "encounters",
+        "feedback_training_authorizations", "guided_documents",
+        "guided_sections",
+    }
+    source = MIGRATION_069.read_text(encoding="utf-8")
+    assert "requires evidence-backed PHI clinical tenant" in source
+    assert "run_history" in source and "count(DISTINCT organization_id)=1" in source
+    assert "case_or_gap_scope_mismatch" in source
+    assert "parent_scope_mismatch" in source
+    assert "ENABLE ROW LEVEL SECURITY" in source
+    assert "FORCE ROW LEVEL SECURITY" in source
+    assert "WITH CHECK" in source
+    assert "unknown" not in source.lower()
 
 
 def test_cloud_startup_does_not_use_metadata_create_all() -> None:

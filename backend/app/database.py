@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 # Production schema changes are applied exclusively through Alembic.  Keeping
 # the expected revision explicit makes an application image fail closed when
 # it is started before (or against a database behind) its migration job.
-PRODUCTION_SCHEMA_REVISION = "068"
+PRODUCTION_SCHEMA_REVISION = "070"
 TENANT_POLICY_NAME = "icoder_tenant_isolation"
 PROTECTED_TENANT_TABLES = (
     "patient_contexts",
@@ -48,8 +48,26 @@ PROTECTED_TENANT_TABLES = (
     "organization_members",
     "team_invites",
     "team_members",
+    "agent_task_feedback",
+    "cdi_cases",
+    "cdi_clinician_responses",
+    "cdi_document_versions",
+    "cdi_documentation_gaps",
+    "cdi_notification_subscriptions",
+    "cdi_provider_queries",
+    "clinical_evidences",
+    "clinical_facts",
+    "code_candidates",
+    "coding_review_runs",
+    "coding_reviews",
+    "documents",
+    "encounters",
+    "feedback_training_authorizations",
+    "guided_documents",
+    "guided_sections",
 )
 SPLIT_POLICY_TENANT_TABLES = ("audit_logs",)
+IMMUTABLE_AUDIT_ARCHIVE_TABLE = "audit_integrity_archive"
 
 _is_sqlite = "sqlite" in settings.DATABASE_URL
 
@@ -253,6 +271,35 @@ async def verify_production_database() -> None:
                 "split-policy tenant isolation policy is missing for: "
                 + ", ".join(missing_split_policies)
             )
+
+        archive_gate = (
+            await connection.execute(
+                text(
+                    "SELECT c.relrowsecurity, c.relforcerowsecurity, "
+                    "EXISTS (SELECT 1 FROM pg_policies p WHERE "
+                    "p.schemaname=current_schema() AND p.tablename=c.relname "
+                    "AND p.policyname='icoder_audit_archive_tenant_read' "
+                    "AND p.cmd='SELECT' AND p.qual IS NOT NULL), "
+                    "EXISTS (SELECT 1 FROM pg_trigger t WHERE t.tgrelid=c.oid "
+                    "AND t.tgname='trg_audit_archive_immutable' "
+                    "AND NOT t.tgisinternal) "
+                    "FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace "
+                    "WHERE n.nspname=current_schema() AND c.relname=:table"
+                ),
+                {"table": IMMUTABLE_AUDIT_ARCHIVE_TABLE},
+            )
+        ).one_or_none()
+        if archive_gate is None or tuple(bool(value) for value in archive_gate) != (
+            True, True, True, True,
+        ):
+            raise RuntimeError(
+                "audit integrity archive RLS/immutability enforcement is incomplete"
+            )
+
+        # Resolve the signer before accepting traffic so cloud deployments
+        # cannot defer a missing signing key until the first audit event.
+        from app.services.audit_integrity import configured_audit_signer
+        configured_audit_signer()
 
 
 

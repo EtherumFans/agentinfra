@@ -7,6 +7,7 @@ from app.models.code_candidate import CodeCandidate
 from app.models.review import CodingReview, ReviewJudgment
 from app.models.gold_case import GoldCase
 from app.models.audit_log import AuditLog
+from app.models.audit_archive import AuditIntegrityArchive
 from app.models.billing import Transaction
 from app.models.billing_run_settlement import BillingRunSettlement
 from app.models.api_key import ApiKey
@@ -101,7 +102,7 @@ __all__ = [
     "CodeCandidate",
     "CodingReview", "ReviewJudgment",
     "GoldCase",
-    "AuditLog",
+    "AuditLog", "AuditIntegrityArchive",
     "Transaction",
     "BillingRunSettlement",
     "ApiKey",

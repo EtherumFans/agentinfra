@@ -218,6 +218,8 @@ async def system_audit(
                     )
                 },
             )
+            from app.services.audit_integrity import archive_audit_log
+            await archive_audit_log(db, log_entry)
         else:
             db.add(log_entry)
             await db.flush()
@@ -328,6 +330,9 @@ async def tenant_owned_system_audit(
     db.add(log_entry)
     try:
         await db.flush()
+        if db.get_bind().dialect.name == "postgresql":
+            from app.services.audit_integrity import archive_audit_log
+            await archive_audit_log(db, log_entry)
     except Exception as e:
         logger.error(
             "tenant_owned_system_audit write failed: %s (action=%s "

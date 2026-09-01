@@ -18,6 +18,9 @@ MIGRATION_065 = (
 MIGRATION_066 = (
     BACKEND_ROOT / "alembic" / "versions" / "066_stt_streams_tenant_rls.py"
 )
+MIGRATION_067 = (
+    BACKEND_ROOT / "alembic" / "versions" / "067_agent_connectors_tenant_rls.py"
+)
 
 
 def _load_migration():
@@ -144,6 +147,27 @@ def test_revision_066_governs_approved_stt_streams_wave() -> None:
     }
     source = MIGRATION_066.read_text(encoding="utf-8")
     assert "requires evidence-backed STT tenant reconciliation" in source
+    assert "ENABLE ROW LEVEL SECURITY" in source
+    assert "FORCE ROW LEVEL SECURITY" in source
+    assert "WITH CHECK" in source
+    assert "unknown" not in source.lower()
+
+
+def test_revision_067_governs_approved_agent_connector_wave() -> None:
+    spec = importlib.util.spec_from_file_location("p1_migration_067", MIGRATION_067)
+    assert spec and spec.loader
+    migration = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(migration)
+
+    assert migration.revision == "067"
+    assert migration.down_revision == "066"
+    assert set(migration.TENANT_TABLES) == {
+        "agent_connectors",
+        "connector_credentials",
+        "connector_execution_audit",
+    }
+    source = MIGRATION_067.read_text(encoding="utf-8")
+    assert "requires evidence-backed Connector tenant reconciliation" in source
     assert "ENABLE ROW LEVEL SECURITY" in source
     assert "FORCE ROW LEVEL SECURITY" in source
     assert "WITH CHECK" in source

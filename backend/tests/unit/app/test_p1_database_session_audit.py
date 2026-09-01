@@ -47,6 +47,9 @@ def test_indirect_core_runtime_sessions_bind_before_service_calls() -> None:
         "app/icoder/agent_runtime/provider_a2a_handler.py",
         "app/icoder/agent_runtime/tenant_clone_a2a_dispatch_handler.py",
         "app/icoder/agent_runtime/a2a/v1/task_runtime.py",
+        "app/services/agent_connectors.py",
+        "app/services/connector_executor.py",
+        "app/services/connector_graph.py",
     )
     for relative in required:
         source = (BACKEND_ROOT / relative).read_text(encoding="utf-8")

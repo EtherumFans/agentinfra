@@ -18,6 +18,12 @@ _EXISTING_FORCE_RLS = {
     "patient_contexts",
     "run_history",
     "run_trace_events",
+    "stt_interactions",
+    "stt_recordings",
+    "stt_stream_checkpoint_chunks",
+    "stt_stream_checkpoints",
+    "stt_stream_leases",
+    "stt_transcripts",
     "transactions",
     "context_messages",
     "context_task_refs",
@@ -40,6 +46,15 @@ _BATCH_2_FIRST_WAVE = {
     "a2a_task_artifacts",
     "a2a_artifact_objects",
     "a2a_artifact_download_grants",
+}
+
+_BATCH_2_SECOND_WAVE = {
+    "stt_interactions",
+    "stt_recordings",
+    "stt_stream_checkpoint_chunks",
+    "stt_stream_checkpoints",
+    "stt_stream_leases",
+    "stt_transcripts",
 }
 
 
@@ -120,6 +135,10 @@ def test_inventory_release_waves_match_the_approved_scope() -> None:
     assert set(inventory["batch_2_first_wave_tables"]) == _BATCH_2_FIRST_WAVE
     assert {name for name, row in rows.items() if row["wave"] == "batch2_wave1_complete"} == (
         _BATCH_2_FIRST_WAVE
+    )
+    assert set(inventory["batch_2_second_wave_tables"]) == _BATCH_2_SECOND_WAVE
+    assert {name for name, row in rows.items() if row["wave"] == "batch2_wave2_complete"} == (
+        _BATCH_2_SECOND_WAVE
     )
 
 

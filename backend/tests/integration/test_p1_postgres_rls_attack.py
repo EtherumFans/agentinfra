@@ -428,6 +428,118 @@ def test_context_a2a_wave_fails_closed_across_tenants() -> None:
             migration_engine.dispose()
 
 
+def test_stt_streams_wave_fails_closed_across_tenants() -> None:
+    """Exercise all revision-066 STT/Streams tables through the app role."""
+    app_engine = sa.create_engine(_sync_url(APP_URL))
+    migration_engine = sa.create_engine(_sync_url(MIGRATION_URL))
+    suffix = uuid.uuid4().hex[:8]
+    org_a, org_b = f"w2a_{suffix}", f"w2b_{suffix}"
+    owner_id = f"owner-{suffix}"
+    interaction_id = f"interaction-{suffix}"
+    recording_id = f"recording-{suffix}"
+    transcript_id = f"transcript-{suffix}"
+    session_id = str(uuid.uuid4())
+    protected = (
+        "stt_interactions",
+        "stt_recordings",
+        "stt_transcripts",
+        "stt_stream_leases",
+        "stt_stream_checkpoints",
+        "stt_stream_checkpoint_chunks",
+    )
+    try:
+        with migration_engine.begin() as connection:
+            for organization_id in (org_a, org_b):
+                connection.execute(sa.text(
+                    "INSERT INTO organizations "
+                    "(id, name, slug, plan, settings, is_active) VALUES "
+                    "(:id, :id, :id, 'free', CAST('{}' AS json), true)"
+                ), {"id": organization_id})
+
+        with app_engine.begin() as connection:
+            _tenant(connection, org_a)
+            parameters = {
+                "org": org_a,
+                "owner": owner_id,
+                "interaction": interaction_id,
+                "recording": recording_id,
+                "transcript": transcript_id,
+                "session": session_id,
+            }
+            statements = (
+                "INSERT INTO stt_interactions "
+                "(organization_id, owner_id, interaction_id, created_at) VALUES "
+                "(:org, :owner, :interaction, CURRENT_TIMESTAMP)",
+                "INSERT INTO stt_recordings "
+                "(organization_id, owner_id, interaction_id, recording_id, "
+                "media_type, encrypted_content, byte_length, content_sha256, created_at) "
+                "VALUES (:org, :owner, :interaction, :recording, 'audio/wav', "
+                "decode('00', 'hex'), 1, 'sha256-test', CURRENT_TIMESTAMP)",
+                "INSERT INTO stt_transcripts "
+                "(organization_id, owner_id, interaction_id, transcript_id, "
+                "recording_id, status, participant_roles_json, created_at, updated_at) "
+                "VALUES (:org, :owner, :interaction, :transcript, :recording, "
+                "'processing', '[]', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",
+                "INSERT INTO stt_stream_leases "
+                "(organization_id, owner_id, interaction_id, session_id, acquired_at, "
+                "lease_expires_at, updated_at) VALUES (:org, :owner, :interaction, "
+                ":session, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP + INTERVAL '5 minutes', "
+                "CURRENT_TIMESTAMP)",
+                "INSERT INTO stt_stream_checkpoints "
+                "(organization_id, owner_id, interaction_id, session_id, recording_id, "
+                "encrypted_state_json, state_sha256, audio_bytes, audio_chunk_count, "
+                "created_at, updated_at) VALUES (:org, :owner, :interaction, :session, "
+                ":recording, 'encrypted-state', 'sha256-state', 1, 1, "
+                "CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",
+                "INSERT INTO stt_stream_checkpoint_chunks "
+                "(organization_id, owner_id, interaction_id, sequence, "
+                "encrypted_content, byte_length, content_sha256, created_at) VALUES "
+                "(:org, :owner, :interaction, 0, decode('00', 'hex'), 1, "
+                "'sha256-chunk', CURRENT_TIMESTAMP)",
+            )
+            for statement in statements:
+                connection.execute(sa.text(statement), parameters)
+
+        for organization_id, expected in (("", 0), (org_a, 1), (org_b, 0)):
+            with app_engine.begin() as connection:
+                if organization_id:
+                    _tenant(connection, organization_id)
+                for table in protected:
+                    assert connection.execute(
+                        sa.text(f'SELECT count(*) FROM "{table}"')
+                    ).scalar_one() == expected, table
+
+        with pytest.raises(DBAPIError, match="row-level security|foreign key"):
+            with app_engine.begin() as connection:
+                _tenant(connection, org_a)
+                connection.execute(sa.text(
+                    "INSERT INTO stt_interactions "
+                    "(organization_id, owner_id, interaction_id, created_at) VALUES "
+                    "(:org_b, :owner, 'cross-tenant', CURRENT_TIMESTAMP)"
+                ), {"org_b": org_b, "owner": owner_id})
+    finally:
+        try:
+            with migration_engine.begin() as connection:
+                _tenant(connection, org_a)
+                for table in (
+                    "stt_stream_checkpoint_chunks",
+                    "stt_stream_checkpoints",
+                    "stt_stream_leases",
+                    "stt_transcripts",
+                    "stt_recordings",
+                    "stt_interactions",
+                ):
+                    connection.execute(sa.text(
+                        f'DELETE FROM "{table}" WHERE organization_id = :org'
+                    ), {"org": org_a})
+                connection.execute(sa.text(
+                    "DELETE FROM organizations WHERE id IN (:a, :b)"
+                ), {"a": org_a, "b": org_b})
+        finally:
+            app_engine.dispose()
+            migration_engine.dispose()
+
+
 def test_transaction_local_tenant_does_not_leak_on_pool_reuse() -> None:
     """Reuse one physical backend connection across A → empty → B."""
     app_engine = sa.create_engine(

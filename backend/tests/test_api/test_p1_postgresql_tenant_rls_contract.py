@@ -15,6 +15,9 @@ MIGRATION = BACKEND_ROOT / "alembic" / "versions" / "064_postgresql_tenant_rls.p
 MIGRATION_065 = (
     BACKEND_ROOT / "alembic" / "versions" / "065_context_a2a_tenant_rls.py"
 )
+MIGRATION_066 = (
+    BACKEND_ROOT / "alembic" / "versions" / "066_stt_streams_tenant_rls.py"
+)
 
 
 def _load_migration():
@@ -117,6 +120,30 @@ def test_revision_065_governs_approved_context_a2a_wave() -> None:
     }
     source = MIGRATION_065.read_text(encoding="utf-8")
     assert "requires evidence-backed tenant reconciliation" in source
+    assert "ENABLE ROW LEVEL SECURITY" in source
+    assert "FORCE ROW LEVEL SECURITY" in source
+    assert "WITH CHECK" in source
+    assert "unknown" not in source.lower()
+
+
+def test_revision_066_governs_approved_stt_streams_wave() -> None:
+    spec = importlib.util.spec_from_file_location("p1_migration_066", MIGRATION_066)
+    assert spec and spec.loader
+    migration = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(migration)
+
+    assert migration.revision == "066"
+    assert migration.down_revision == "065"
+    assert set(migration.TENANT_TABLES) == {
+        "stt_interactions",
+        "stt_recordings",
+        "stt_transcripts",
+        "stt_stream_leases",
+        "stt_stream_checkpoints",
+        "stt_stream_checkpoint_chunks",
+    }
+    source = MIGRATION_066.read_text(encoding="utf-8")
+    assert "requires evidence-backed STT tenant reconciliation" in source
     assert "ENABLE ROW LEVEL SECURITY" in source
     assert "FORCE ROW LEVEL SECURITY" in source
     assert "WITH CHECK" in source

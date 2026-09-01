@@ -262,7 +262,10 @@ async def test_repository_persists_only_bounded_stt_telemetry_allowlist():
         participant_roles_json="[]",
         status="processing",
     )
-    db = SimpleNamespace(flush=AsyncMock())
+    db = SimpleNamespace(
+        flush=AsyncMock(),
+        get_bind=lambda: SimpleNamespace(dialect=SimpleNamespace(name="sqlite")),
+    )
 
     await stt_artifact_repository.set_transcript_runtime_telemetry(
         db,

@@ -319,6 +319,115 @@ def test_core_surfaces_fail_closed_against_cross_tenant_attacks() -> None:
             migration_engine.dispose()
 
 
+def test_context_a2a_wave_fails_closed_across_tenants() -> None:
+    """Exercise the complete revision-065 ownership chain through the app role."""
+    app_engine = sa.create_engine(_sync_url(APP_URL))
+    migration_engine = sa.create_engine(_sync_url(MIGRATION_URL))
+    suffix = uuid.uuid4().hex[:8]
+    org_a, org_b = f"w1a_{suffix}", f"w1b_{suffix}"
+    context_id, task_id = f"ctx-{suffix}", f"task-{suffix}"
+    protected = (
+        "context_messages", "context_task_refs", "context_artifact_refs",
+        "original_input_audit", "a2a_task_executions", "a2a_task_events",
+        "a2a_task_artifacts", "a2a_artifact_objects",
+        "a2a_artifact_download_grants",
+    )
+    try:
+        with migration_engine.begin() as connection:
+            for organization_id in (org_a, org_b):
+                connection.execute(sa.text(
+                    "INSERT INTO organizations "
+                    "(id, name, slug, plan, settings, is_active) VALUES "
+                    "(:id, :id, :id, 'free', CAST('{}' AS json), true)"
+                ), {"id": organization_id})
+
+        with app_engine.begin() as connection:
+            _tenant(connection, org_a)
+            statements = (
+                ("INSERT INTO contexts (id, organization_id, created_at, updated_at, "
+                 "expires_at, agent_id, status, metadata_json) VALUES (:context, :org, "
+                 "CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP + INTERVAL "
+                 "'1 day', 'p1-agent', 'active', '{}')", {}),
+                ("INSERT INTO context_messages (context_id, message_id, organization_id, "
+                 "role, parts_json, timestamp) VALUES (:context, 'message-1', :org, "
+                 "'user', '[]', CURRENT_TIMESTAMP)", {}),
+                ("INSERT INTO context_task_refs (context_id, task_id, organization_id, "
+                 "state, started_at) VALUES (:context, :task, :org, 'submitted', "
+                 "CURRENT_TIMESTAMP)", {}),
+                ("INSERT INTO context_artifact_refs (context_id, artifact_id, "
+                 "organization_id, name, mime_type, url) VALUES (:context, "
+                 "'artifact-ref', :org, 'artifact', 'text/plain', 'managed://test')", {}),
+                ("INSERT INTO original_input_audit (id, context_id, organization_id, "
+                 "original_input, created_at, retention_until) VALUES ('audit-" + suffix +
+                 "', :context, :org, 'encrypted-test', CURRENT_TIMESTAMP, "
+                 "CURRENT_TIMESTAMP + INTERVAL '1 day')", {}),
+                ("INSERT INTO a2a_task_executions (task_id, context_id, organization_id, "
+                 "agent_id, message_id, request_json, attempt_count, created_at, "
+                 "updated_at) VALUES (:task, :context, :org, 'p1-agent', 'message-1', "
+                 "'{}', 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)", {}),
+                ("INSERT INTO a2a_task_events (task_id, context_id, organization_id, "
+                 "agent_id, state, event_type, created_at) VALUES (:task, :context, "
+                 ":org, 'p1-agent', 'submitted', 'submitted', CURRENT_TIMESTAMP)", {}),
+                ("INSERT INTO a2a_task_artifacts (context_id, task_id, artifact_id, "
+                 "organization_id, payload_json, payload_sha256, size_bytes, created_at) "
+                 "VALUES (:context, :task, 'artifact-1', :org, '{}', 'hash', 2, "
+                 "CURRENT_TIMESTAMP)", {}),
+                ("INSERT INTO a2a_artifact_objects (object_id, organization_id, context_id, "
+                 "task_id, artifact_id, filename_encrypted, declared_media_type, "
+                 "data_classification, payload_ciphertext, payload_sha256, size_bytes, "
+                 "status, malware_scan_status, dlp_scan_status, scan_engine, "
+                 "scan_findings_json, actor_type, actor_id_hash, created_at) VALUES "
+                 "('object-" + suffix + "', :org, :context, :task, 'artifact-1', "
+                 "'encrypted-name', 'text/plain', 'deidentified', decode('00','hex'), "
+                 "'hash', 1, 'quarantined', 'pending', 'clear', 'p1-test', '{}', "
+                 "'service', 'actor-hash', CURRENT_TIMESTAMP)", {}),
+                ("INSERT INTO a2a_artifact_download_grants (grant_id, object_id, "
+                 "organization_id, actor_type, actor_id_hash, purpose_of_use, created_at, "
+                 "expires_at) VALUES ('grant-" + suffix + "', 'object-" + suffix +
+                 "', :org, 'service', 'actor-hash', 'treatment', CURRENT_TIMESTAMP, "
+                 "CURRENT_TIMESTAMP + INTERVAL '1 day')", {}),
+            )
+            for statement, extra in statements:
+                connection.execute(sa.text(statement), {
+                    "org": org_a, "context": context_id, "task": task_id, **extra,
+                })
+
+        for organization_id, expected in (("", 0), (org_a, 1), (org_b, 0)):
+            with app_engine.begin() as connection:
+                if organization_id:
+                    _tenant(connection, organization_id)
+                for table in protected:
+                    assert connection.execute(
+                        sa.text(f'SELECT count(*) FROM "{table}"')
+                    ).scalar_one() == expected, table
+
+        with pytest.raises(DBAPIError, match="row-level security|foreign key"):
+            with app_engine.begin() as connection:
+                _tenant(connection, org_a)
+                connection.execute(sa.text(
+                    "INSERT INTO context_messages (context_id, message_id, "
+                    "organization_id, role, parts_json, timestamp) VALUES "
+                    "(:context, 'cross-tenant', :org_b, 'user', '[]', CURRENT_TIMESTAMP)"
+                ), {"context": context_id, "org_b": org_b})
+    finally:
+        try:
+            with migration_engine.begin() as connection:
+                _tenant(connection, org_a)
+                connection.execute(
+                    sa.text("DELETE FROM original_input_audit WHERE context_id = :id"),
+                    {"id": context_id},
+                )
+                connection.execute(
+                    sa.text("DELETE FROM contexts WHERE id = :id"), {"id": context_id}
+                )
+                connection.execute(sa.text(
+                    "DELETE FROM organizations WHERE id IN (:a, :b)"
+                ), {"a": org_a, "b": org_b})
+        finally:
+            app_engine.dispose()
+            migration_engine.dispose()
+
+
 def test_transaction_local_tenant_does_not_leak_on_pool_reuse() -> None:
     """Reuse one physical backend connection across A → empty → B."""
     app_engine = sa.create_engine(

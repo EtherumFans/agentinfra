@@ -12,6 +12,9 @@ import pytest
 
 BACKEND_ROOT = Path(__file__).resolve().parents[2]
 MIGRATION = BACKEND_ROOT / "alembic" / "versions" / "064_postgresql_tenant_rls.py"
+MIGRATION_065 = (
+    BACKEND_ROOT / "alembic" / "versions" / "065_context_a2a_tenant_rls.py"
+)
 
 
 def _load_migration():
@@ -91,6 +94,33 @@ def test_migration_blocks_unattributed_rows_before_enabling_rls(monkeypatch) -> 
         migration.upgrade()
 
     assert statements == []
+
+
+def test_revision_065_governs_approved_context_a2a_wave() -> None:
+    spec = importlib.util.spec_from_file_location("p1_migration_065", MIGRATION_065)
+    assert spec and spec.loader
+    migration = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(migration)
+
+    assert migration.revision == "065"
+    assert migration.down_revision == "064"
+    assert set(migration.TENANT_TABLES) == {
+        "context_messages",
+        "context_task_refs",
+        "context_artifact_refs",
+        "original_input_audit",
+        "a2a_task_executions",
+        "a2a_task_events",
+        "a2a_task_artifacts",
+        "a2a_artifact_objects",
+        "a2a_artifact_download_grants",
+    }
+    source = MIGRATION_065.read_text(encoding="utf-8")
+    assert "requires evidence-backed tenant reconciliation" in source
+    assert "ENABLE ROW LEVEL SECURITY" in source
+    assert "FORCE ROW LEVEL SECURITY" in source
+    assert "WITH CHECK" in source
+    assert "unknown" not in source.lower()
 
 
 def test_cloud_startup_does_not_use_metadata_create_all() -> None:

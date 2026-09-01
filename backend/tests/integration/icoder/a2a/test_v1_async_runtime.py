@@ -38,6 +38,7 @@ from app.icoder.agent_runtime.context.db_models import (
 from app.icoder.agent_runtime.context.context_repository import ContextRepository
 from app.icoder.agent_runtime.orchestrator.inbound_handler import InboundResponse
 from app.services.phi_encryption import encrypt_phi
+from app.models.organization import Organization
 
 
 class _BlockingHandler:
@@ -134,6 +135,15 @@ async def _seed_submitted_execution() -> tuple[str, str]:
     }))
     assert encrypted
     async with database.AsyncSessionLocal() as db:
+        if await db.get(Organization, "org_default1") is None:
+            db.add(Organization(
+                id="org_default1",
+                name="A2A Runtime Test Organization",
+                slug="a2a-runtime-test",
+                plan="free",
+                settings={},
+                is_active=True,
+            ))
         db.add(ContextRow(
             id=context_id,
             created_at=now,
@@ -148,6 +158,7 @@ async def _seed_submitted_execution() -> tuple[str, str]:
         ))
         db.add(ContextTaskRefRow(
             context_id=context_id,
+            organization_id="org_default1",
             task_id=task_id,
             state="submitted",
             started_at=now,
@@ -198,7 +209,7 @@ async def test_input_required_task_is_durable_resumable_and_completes() -> None:
     runtime = A2ATaskRuntime(_InputRequiredHandler())
     app = FastAPI()
     try:
-        runtime.schedule(app, task_id)
+        runtime.schedule(app, task_id, "org_default1")
         pending = list(runtime._tasks.values())
         if pending:
             await asyncio.gather(*pending)
@@ -294,7 +305,7 @@ async def test_graceful_stop_releases_lease_and_next_runtime_recovers() -> None:
     app = FastAPI()
 
     try:
-        first_runtime.schedule(app, task_id)
+        first_runtime.schedule(app, task_id, "org_default1")
         assert await asyncio.to_thread(blocking.started.wait, 2)
 
         async with database.AsyncSessionLocal() as db:
@@ -368,7 +379,7 @@ async def test_validated_response_is_persisted_as_exact_multi_chunk_stream() -> 
     handler = _LongImmediateHandler()
     runtime = A2ATaskRuntime(handler)
     try:
-        await runtime._run(task_id)
+        await runtime._run(task_id, "org_default1")
         async with database.AsyncSessionLocal() as db:
             task = await db.get(
                 ContextTaskRefRow,
@@ -425,7 +436,7 @@ async def test_required_connector_failure_is_auditable_failed_terminal_task() ->
     context_id, task_id = await _seed_submitted_execution()
     runtime = A2ATaskRuntime(_RequiredConnectorFailureHandler())
     try:
-        await runtime._run(task_id)
+        await runtime._run(task_id, "org_default1")
         async with database.AsyncSessionLocal() as db:
             execution = await db.get(A2ATaskExecutionRow, task_id)
             task = await db.get(
@@ -462,7 +473,7 @@ async def test_local_working_task_can_be_canceled_without_late_result() -> None:
     app = FastAPI()
 
     try:
-        runtime.schedule(app, task_id)
+        runtime.schedule(app, task_id, "org_default1")
         assert await asyncio.to_thread(blocking.started.wait, 2)
 
         async with database.AsyncSessionLocal() as db:

@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "generated_at": "2026-09-01",
-  "authoritative_database_revision": "066",
+  "authoritative_database_revision": "067",
   "database_table_count": 82,
   "orm_table_count": 82,
   "catalog_union_count": 83,
@@ -9,7 +9,7 @@
     "database_tables_with_organization_id": 72,
     "organization_id_not_null": 50,
     "organization_id_nullable": 22,
-    "force_rls_enforced": 22,
+    "force_rls_enforced": 25,
     "tenant_tables_without_organization_id": 4,
     "platform_or_global_tables": 6,
     "orm_only_schema_drift": 1
@@ -28,6 +28,9 @@
     "a2a_task_artifacts",
     "a2a_task_events",
     "a2a_task_executions",
+    "agent_connectors",
+    "connector_credentials",
+    "connector_execution_audit",
     "context_artifact_refs",
     "context_messages",
     "context_task_refs",
@@ -65,6 +68,11 @@
     "stt_stream_leases",
     "stt_transcripts"
   ],
+  "batch_2_third_wave_tables": [
+    "agent_connectors",
+    "connector_credentials",
+    "connector_execution_audit"
+  ],
   "tables": [
     {"name":"a2a_artifact_download_grants","scope":"tenant_direct","tenant_resolution":"organization_id; composite FK to a2a_artifact_objects","organization_id":"required","rls":"force","sensitivity":"clinical_sensitive_authorization","wave":"batch2_wave1_complete","schema_presence":"database_and_orm"},
     {"name":"a2a_artifact_objects","scope":"tenant_direct","tenant_resolution":"organization_id; composite FK to a2a_task_artifacts","organization_id":"required","rls":"force","sensitivity":"encrypted_phi_artifact","wave":"batch2_wave1_complete","schema_presence":"database_and_orm"},
@@ -72,7 +80,7 @@
     {"name":"a2a_task_events","scope":"tenant_direct","tenant_resolution":"organization_id; composite FK to contexts","organization_id":"required","rls":"force","sensitivity":"clinical_operational","wave":"batch2_wave1_complete","schema_presence":"database_and_orm"},
     {"name":"a2a_task_executions","scope":"tenant_direct","tenant_resolution":"organization_id; composite FK to contexts","organization_id":"required","rls":"force","sensitivity":"encrypted_clinical_payload","wave":"batch2_wave1_complete","schema_presence":"database_and_orm"},
     {"name":"agent_accounts","scope":"tenant_indirect","tenant_resolution":"agents.organization_id or governed platform-agent policy","organization_id":"missing","rls":"not_deployed","sensitivity":"credential_reference","wave":"schema_decision_required","schema_presence":"orm_only"},
-    {"name":"agent_connectors","scope":"tenant_direct","tenant_resolution":"organization_id","organization_id":"required","rls":"pending","sensitivity":"integration_configuration","wave":"batch2_wave3","schema_presence":"database_and_orm"},
+    {"name":"agent_connectors","scope":"tenant_direct","tenant_resolution":"organization_id; composite FKs to source and target agents","organization_id":"required","rls":"force","sensitivity":"integration_configuration","wave":"batch2_wave3_complete","schema_presence":"database_and_orm"},
     {"name":"agent_task_feedback","scope":"tenant_direct","tenant_resolution":"organization_id","organization_id":"required","rls":"pending","sensitivity":"clinical_feedback","wave":"batch2_wave5","schema_presence":"database_and_orm"},
     {"name":"agents","scope":"hybrid_catalog","tenant_resolution":"organization_id for tenant installs; NULL only for governed platform catalog","organization_id":"nullable","rls":"pending_split_policy","sensitivity":"agent_configuration","wave":"batch2_wave6","schema_presence":"database_and_orm"},
     {"name":"alembic_version","scope":"schema_metadata","tenant_resolution":"not_applicable","organization_id":"not_applicable","rls":"exempt","sensitivity":"schema","wave":"platform_exempt","schema_presence":"database_only"},
@@ -101,8 +109,8 @@
     {"name":"code_tables","scope":"hybrid_catalog","tenant_resolution":"organization_id for tenant override; NULL for governed global table","organization_id":"nullable","rls":"pending_split_policy","sensitivity":"coding_catalog","wave":"batch2_wave6","schema_presence":"database_and_orm"},
     {"name":"coding_review_runs","scope":"tenant_legacy_nullable","tenant_resolution":"organization_id","organization_id":"nullable","rls":"pending","sensitivity":"phi_clinical_review","wave":"batch2_wave5","schema_presence":"database_and_orm"},
     {"name":"coding_reviews","scope":"tenant_legacy_nullable","tenant_resolution":"organization_id and encounters.organization_id","organization_id":"nullable","rls":"pending","sensitivity":"phi_clinical_review","wave":"batch2_wave5","schema_presence":"database_and_orm"},
-    {"name":"connector_credentials","scope":"tenant_direct","tenant_resolution":"organization_id","organization_id":"required","rls":"pending","sensitivity":"credential_ciphertext","wave":"batch2_wave3","schema_presence":"database_and_orm"},
-    {"name":"connector_execution_audit","scope":"tenant_direct","tenant_resolution":"organization_id","organization_id":"required","rls":"pending","sensitivity":"integration_audit","wave":"batch2_wave3","schema_presence":"database_and_orm"},
+    {"name":"connector_credentials","scope":"tenant_direct","tenant_resolution":"organization_id; composite FK to agent_connectors","organization_id":"required","rls":"force","sensitivity":"credential_reference_metadata","wave":"batch2_wave3_complete","schema_presence":"database_and_orm"},
+    {"name":"connector_execution_audit","scope":"tenant_direct","tenant_resolution":"organization_id; composite FK to agent_connectors","organization_id":"required","rls":"force","sensitivity":"integration_audit","wave":"batch2_wave3_complete","schema_presence":"database_and_orm"},
     {"name":"context_artifact_refs","scope":"tenant_direct","tenant_resolution":"organization_id; composite FK to contexts","organization_id":"required","rls":"force","sensitivity":"phi_artifact_locator","wave":"batch2_wave1_complete","schema_presence":"database_and_orm"},
     {"name":"context_messages","scope":"tenant_direct","tenant_resolution":"organization_id; composite FK to contexts","organization_id":"required","rls":"force","sensitivity":"phi_conversation","wave":"batch2_wave1_complete","schema_presence":"database_and_orm"},
     {"name":"context_task_refs","scope":"tenant_direct","tenant_resolution":"organization_id; composite FK to contexts","organization_id":"required","rls":"force","sensitivity":"clinical_task_metadata","wave":"batch2_wave1_complete","schema_presence":"database_and_orm"},

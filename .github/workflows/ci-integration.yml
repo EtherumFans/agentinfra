@@ -67,6 +67,14 @@ jobs:
           cache-dependency-path: packages/icoder-sdk/package-lock.json
       - run: pip install -r requirements.txt
 
+      - name: PostgreSQL least-privilege role provisioning contract
+        env:
+          P1_POSTGRES_ADMIN_DATABASE_URL: postgresql+psycopg://icoder:icoder_test@localhost:5432/icoder_test
+        run: >-
+          python -m pytest
+          tests/integration/test_postgresql_role_provisioning.py
+          -v --tb=short
+
       - name: Install official A2A JavaScript interoperability dependency
         working-directory: packages/icoder-sdk
         run: npm ci

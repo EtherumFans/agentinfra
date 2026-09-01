@@ -59,7 +59,7 @@ class ContextRepository:
                 context_id=context_id,
             )
 
-    async def _require_context_exists(self, context_id: str) -> None:
+    async def _require_context_exists(self, context_id: str) -> ContextRow:
         await self._require_valid_id(context_id)
         row = await self._session.get(ContextRow, context_id)
         if row is None:
@@ -67,6 +67,7 @@ class ContextRepository:
                 f"context {context_id!r} not found",
                 context_id=context_id,
             )
+        return row
 
     @staticmethod
     def _row_to_context(row: ContextRow) -> Context:
@@ -391,13 +392,14 @@ class ContextRepository:
         self, context_id: str, messages: list[ContextMessage]
     ) -> list[ContextMessage]:
         """Atomically append an ordered message batch and touch the context."""
-        await self._require_context_exists(context_id)
+        context = await self._require_context_exists(context_id)
         if not messages:
             return []
         for message in messages:
             self._session.add(
                 ContextMessageRow(
                     context_id=context_id,
+                    organization_id=context.organization_id,
                     message_id=message.message_id,
                     role=message.role,
                     parts_json=encrypt_phi(
@@ -435,9 +437,10 @@ class ContextRepository:
     async def add_task(
         self, context_id: str, task_ref: ContextTaskRef
     ) -> ContextTaskRef:
-        await self._require_context_exists(context_id)
+        context = await self._require_context_exists(context_id)
         row = ContextTaskRefRow(
             context_id=context_id,
+            organization_id=context.organization_id,
             task_id=task_ref.task_id,
             state=task_ref.state,
             started_at=task_ref.started_at,
@@ -466,9 +469,10 @@ class ContextRepository:
     async def add_artifact(
         self, context_id: str, artifact_ref: ContextArtifactRef
     ) -> ContextArtifactRef:
-        await self._require_context_exists(context_id)
+        context = await self._require_context_exists(context_id)
         row = ContextArtifactRefRow(
             context_id=context_id,
+            organization_id=context.organization_id,
             artifact_id=artifact_ref.artifact_id,
             name=artifact_ref.name,
             mime_type=artifact_ref.mime_type,

@@ -17,7 +17,7 @@ from typing import Any
 
 from fastapi import Request
 from fastapi.responses import JSONResponse
-from sqlalchemy import or_, select, update
+from sqlalchemy import or_, select, text, update
 
 import app.database as database
 from app.services.database_tenancy import bind_tenant_to_transaction
@@ -130,27 +130,36 @@ class A2ATaskRuntime:
         self._app = app
         now = utc_now()
         async with database.AsyncSessionLocal() as db:
-            rows = (
-                await db.execute(
-                    select(A2ATaskExecutionRow.task_id)
-                    .join(
-                        ContextTaskRefRow,
-                        ContextTaskRefRow.task_id == A2ATaskExecutionRow.task_id,
+            organization_ids = list(
+                (await db.execute(text("SELECT id FROM organizations"))).scalars()
+            )
+        rows: list[tuple[str, str]] = []
+        for organization_id in organization_ids:
+            async with database.AsyncSessionLocal() as db:
+                await bind_tenant_to_transaction(db, organization_id)
+                task_ids = (
+                    await db.execute(
+                        select(A2ATaskExecutionRow.task_id)
+                        .join(
+                            ContextTaskRefRow,
+                            ContextTaskRefRow.task_id
+                            == A2ATaskExecutionRow.task_id,
+                        )
+                        .where(
+                            ContextTaskRefRow.state.in_([
+                                TaskState.SUBMITTED.value,
+                                TaskState.WORKING.value,
+                            ]),
+                            or_(
+                                A2ATaskExecutionRow.lease_expires_at.is_(None),
+                                A2ATaskExecutionRow.lease_expires_at <= now,
+                            ),
+                        )
                     )
-                    .where(
-                        ContextTaskRefRow.state.in_([
-                            TaskState.SUBMITTED.value,
-                            TaskState.WORKING.value,
-                        ]),
-                        or_(
-                            A2ATaskExecutionRow.lease_expires_at.is_(None),
-                            A2ATaskExecutionRow.lease_expires_at <= now,
-                        ),
-                    )
-                )
-            ).scalars().all()
-        for task_id in rows:
-            self.schedule(app, task_id)
+                ).scalars().all()
+                rows.extend((task_id, organization_id) for task_id in task_ids)
+        for task_id, organization_id in rows:
+            self.schedule(app, task_id, organization_id)
 
     async def stop(self) -> None:
         pending = [task for task in self._tasks.values() if not task.done()]
@@ -161,13 +170,13 @@ class A2ATaskRuntime:
         self._tasks.clear()
         self._app = None
 
-    def schedule(self, app: Any, task_id: str) -> None:
+    def schedule(self, app: Any, task_id: str, organization_id: str) -> None:
         self._app = app
         existing = self._tasks.get(task_id)
         if existing is not None and not existing.done():
             return
         task = asyncio.create_task(
-            self._run(task_id), name=f"a2a-task-{task_id}"
+            self._run(task_id, organization_id), name=f"a2a-task-{task_id}"
         )
         self._tasks[task_id] = task
         task.add_done_callback(
@@ -196,22 +205,22 @@ class A2ATaskRuntime:
         await asyncio.gather(task, return_exceptions=True)
         return task.cancelled()
 
-    async def _run(self, task_id: str) -> None:
+    async def _run(self, task_id: str, organization_id: str) -> None:
         heartbeat: asyncio.Task | None = None
         try:
-            claimed = await self._claim(task_id)
+            claimed = await self._claim(task_id, organization_id)
             if claimed is None:
                 return
             execution, task_row = claimed
             heartbeat = asyncio.create_task(
-                self._heartbeat(task_id),
+                self._heartbeat(task_id, organization_id),
                 name=f"a2a-task-heartbeat-{task_id}",
             )
 
             recovered = await self._recover_persisted_message(execution, task_row)
             if recovered is not None:
                 await self._persist_recovered_stream(execution, recovered)
-                await self._finish(task_id, recovered)
+                await self._finish(task_id, organization_id, recovered)
                 return
 
             raw_payload = decrypt_phi(execution.request_json)
@@ -281,9 +290,9 @@ class A2ATaskRuntime:
                     dispatch_task.cancel()
                 await asyncio.gather(dispatch_task, return_exceptions=True)
                 raise
-            await self._finish(task_id, response)
+            await self._finish(task_id, organization_id, response)
         except asyncio.CancelledError:
-            await self._release_lease(task_id)
+            await self._release_lease(task_id, organization_id)
             raise
         except Exception as exc:
             logger.error(
@@ -291,22 +300,24 @@ class A2ATaskRuntime:
                 task_id,
                 type(exc).__name__,
             )
-            await self._fail_internal(task_id)
+            await self._fail_internal(task_id, organization_id)
         finally:
             if heartbeat is not None:
                 heartbeat.cancel()
                 await asyncio.gather(heartbeat, return_exceptions=True)
 
     async def _claim(
-        self, task_id: str,
+        self, task_id: str, organization_id: str,
     ) -> tuple[A2ATaskExecutionRow, ContextTaskRefRow] | None:
         now = utc_now()
         lease_until = now + timedelta(seconds=LEASE_SECONDS)
         async with database.AsyncSessionLocal() as db:
+            await bind_tenant_to_transaction(db, organization_id)
             execution = await db.get(A2ATaskExecutionRow, task_id)
             if execution is None:
                 return None
-            await bind_tenant_to_transaction(db, execution.organization_id)
+            if execution.organization_id != organization_id:
+                return None
             task_row = await db.get(
                 ContextTaskRefRow,
                 {"context_id": execution.context_id, "task_id": task_id},
@@ -379,7 +390,7 @@ class A2ATaskRuntime:
             await db.refresh(task_row)
             return execution, task_row
 
-    async def _heartbeat(self, task_id: str) -> None:
+    async def _heartbeat(self, task_id: str, organization_id: str) -> None:
         """Renew an owned lease while a long Provider invocation is running."""
 
         interval = max(1.0, LEASE_SECONDS / 3)
@@ -388,15 +399,6 @@ class A2ATaskRuntime:
             now = utc_now()
             try:
                 async with database.AsyncSessionLocal() as db:
-                    organization_id = (
-                        await db.execute(
-                            select(A2ATaskExecutionRow.organization_id).where(
-                                A2ATaskExecutionRow.task_id == task_id
-                            )
-                        )
-                    ).scalar_one_or_none()
-                    if not organization_id:
-                        return
                     await bind_tenant_to_transaction(db, organization_id)
                     renewed = await db.execute(
                         update(A2ATaskExecutionRow)
@@ -422,21 +424,12 @@ class A2ATaskRuntime:
                     "A2A Task lease heartbeat failed task_id=%s", task_id
                 )
 
-    async def _release_lease(self, task_id: str) -> None:
+    async def _release_lease(self, task_id: str, organization_id: str) -> None:
         """Make interrupted work immediately recoverable by the next process."""
 
         now = utc_now()
         try:
             async with database.AsyncSessionLocal() as db:
-                organization_id = (
-                    await db.execute(
-                        select(A2ATaskExecutionRow.organization_id).where(
-                            A2ATaskExecutionRow.task_id == task_id
-                        )
-                    )
-                ).scalar_one_or_none()
-                if not organization_id:
-                    return
                 await bind_tenant_to_transaction(db, organization_id)
                 await db.execute(
                     update(A2ATaskExecutionRow)
@@ -570,7 +563,9 @@ class A2ATaskRuntime:
             current_execution.updated_at = now
             await db.commit()
 
-    async def _finish(self, task_id: str, response: JSONResponse) -> None:
+    async def _finish(
+        self, task_id: str, organization_id: str, response: JSONResponse
+    ) -> None:
         try:
             body = json.loads(bytes(response.body).decode("utf-8"))
         except (UnicodeDecodeError, json.JSONDecodeError):
@@ -614,10 +609,10 @@ class A2ATaskRuntime:
         )
 
         async with database.AsyncSessionLocal() as db:
+            await bind_tenant_to_transaction(db, organization_id)
             execution = await db.get(A2ATaskExecutionRow, task_id)
             if execution is None:
                 return
-            await bind_tenant_to_transaction(db, execution.organization_id)
             task_row = await db.get(
                 ContextTaskRefRow,
                 {"context_id": execution.context_id, "task_id": task_id},
@@ -732,13 +727,13 @@ class A2ATaskRuntime:
             )
             await db.commit()
 
-    async def _fail_internal(self, task_id: str) -> None:
+    async def _fail_internal(self, task_id: str, organization_id: str) -> None:
         now = utc_now()
         async with database.AsyncSessionLocal() as db:
+            await bind_tenant_to_transaction(db, organization_id)
             execution = await db.get(A2ATaskExecutionRow, task_id)
             if execution is None:
                 return
-            await bind_tenant_to_transaction(db, execution.organization_id)
             task_row = await db.get(
                 ContextTaskRefRow,
                 {"context_id": execution.context_id, "task_id": task_id},

@@ -142,7 +142,7 @@ def build_v1_router(handler: Any, agent_provider: AgentProvider) -> APIRouter:
                         request_id=request_id,
                         initial_replay_sequence=submitted_sequence,
                     )
-                    task_runtime.schedule(request.app, task["id"])
+                    task_runtime.schedule(request.app, task["id"], current_org.id)
                     return stream
                 if configuration.get("returnImmediately") is True:
                     task, _submitted_sequence = await _enqueue_async_task(
@@ -318,7 +318,7 @@ def build_v1_router(handler: Any, agent_provider: AgentProvider) -> APIRouter:
                     request_id=None,
                     initial_replay_sequence=submitted_sequence,
                 )
-                task_runtime.schedule(request.app, task["id"])
+                task_runtime.schedule(request.app, task["id"], current_org.id)
                 return stream
             response = await _execute_send(
                 handler,
@@ -672,6 +672,7 @@ async def _enqueue_async_task(
 
     task_row = ContextTaskRefRow(
         context_id=context_id,
+        organization_id=organization_id,
         task_id=task_id,
         state=TaskState.SUBMITTED.value,
         started_at=now,
@@ -720,7 +721,7 @@ async def _enqueue_async_task(
     await db.refresh(task_row)
     await db.refresh(submitted_event)
     if schedule:
-        runtime.schedule(request.app, task_id)
+        runtime.schedule(request.app, task_id, organization_id)
     return task_row_to_v1(task_row), int(submitted_event.sequence_id)
 
 

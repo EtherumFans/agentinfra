@@ -408,7 +408,9 @@ async def test_persist_case_localizes_ids_real_db(tmp_path):
 
             # Consistency assertion must pass
             from app.services.cdi_persistence import load_case
-            loaded = await load_case(db, case.case_id)
+            loaded = await load_case(
+                db, case.case_id, organization_id="test-org",
+            )
             issues = assert_case_consistent(loaded)
             assert issues == [], f"unexpected issues: {issues}"
         finally:

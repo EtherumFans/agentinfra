@@ -79,6 +79,7 @@ def seeded_db(client: TestClient):
             ))
             for run_id, agent_id, api_client_id, cost, lat in rows:
                 row = RunHistoryModel(
+                    organization_id="org_default1",
                     run_id=run_id,
                     agent_id=agent_id,
                     api_client_id=api_client_id,
@@ -313,6 +314,7 @@ def test_by_client_omits_console_bucket_when_no_console_runs(
             async with AsyncSessionLocal() as db:
                 for run_id, cost, lat in [("run-g8-5", 0.01, 1500), ("run-g8-6", 0.02, 1800)]:
                     db.add(RunHistoryModel(
+                        organization_id="org_default1",
                         run_id=run_id,
                         agent_id="medical-coding-agent",
                         api_client_id=None,

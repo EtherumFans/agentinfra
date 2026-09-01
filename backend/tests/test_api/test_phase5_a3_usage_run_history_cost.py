@@ -54,7 +54,7 @@ def _insert_run_history_row(
     agent_id: str,
     cost_usd: float,
     user_id: str,
-    org_id: str | None = None,
+    org_id: str | None = "org_default1",
     created_at_iso: str | None = None,
 ) -> None:
     """Insert one row directly into run_history for test setup."""

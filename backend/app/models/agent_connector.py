@@ -8,7 +8,17 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, JSON, String, Text, UniqueConstraint
+from sqlalchemy import (
+    Boolean,
+    DateTime,
+    ForeignKey,
+    ForeignKeyConstraint,
+    Integer,
+    JSON,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
@@ -21,6 +31,19 @@ CONNECTOR_TYPE_VALUES = ("registry", "mcp", "agent", "a2a", "schema")
 class AgentConnector(Base, TimestampMixin):
     __tablename__ = "agent_connectors"
     __table_args__ = (
+        ForeignKeyConstraint(
+            ["organization_id", "agent_id"],
+            ["agents.organization_id", "agents.id"],
+            name="fk_agent_connectors_agent_scope",
+        ),
+        ForeignKeyConstraint(
+            ["organization_id", "target_agent_id"],
+            ["agents.organization_id", "agents.id"],
+            name="fk_agent_connectors_target_agent_scope",
+        ),
+        UniqueConstraint(
+            "organization_id", "id", name="uq_agent_connectors_org_id",
+        ),
         UniqueConstraint(
             "organization_id", "agent_id", "name",
             name="uq_agent_connector_org_agent_name",
@@ -31,7 +54,7 @@ class AgentConnector(Base, TimestampMixin):
         String(12), ForeignKey("organizations.id"), nullable=False, index=True,
     )
     agent_id: Mapped[str] = mapped_column(
-        String(12), ForeignKey("agents.id"), nullable=False, index=True,
+        String(12), nullable=False, index=True,
     )
     type: Mapped[str] = mapped_column(String(16), nullable=False, index=True)
     name: Mapped[str] = mapped_column(String(128), nullable=False)
@@ -42,7 +65,7 @@ class AgentConnector(Base, TimestampMixin):
     config_json: Mapped[dict] = mapped_column(JSON, default=dict, nullable=False)
     credential_ref: Mapped[str | None] = mapped_column(String(512), nullable=True)
     target_agent_id: Mapped[str | None] = mapped_column(
-        String(12), ForeignKey("agents.id"), nullable=True, index=True,
+        String(12), nullable=True, index=True,
     )
     normalized_url: Mapped[str | None] = mapped_column(String(2048), nullable=True)
     schema_ref: Mapped[str | None] = mapped_column(String(512), nullable=True)
@@ -59,6 +82,11 @@ class ConnectorCredential(Base, TimestampMixin):
 
     __tablename__ = "connector_credentials"
     __table_args__ = (
+        ForeignKeyConstraint(
+            ["organization_id", "connector_id"],
+            ["agent_connectors.organization_id", "agent_connectors.id"],
+            name="fk_connector_credentials_connector_scope",
+        ),
         UniqueConstraint("connector_id", name="uq_connector_credential_connector"),
     )
 
@@ -66,7 +94,7 @@ class ConnectorCredential(Base, TimestampMixin):
         String(12), ForeignKey("organizations.id"), nullable=False, index=True,
     )
     connector_id: Mapped[str] = mapped_column(
-        String(12), ForeignKey("agent_connectors.id"), nullable=False, index=True,
+        String(12), nullable=False, index=True,
     )
     provider: Mapped[str] = mapped_column(String(32), nullable=False)
     secret_ref: Mapped[str] = mapped_column(String(512), nullable=False)
@@ -84,12 +112,19 @@ class ConnectorExecutionAudit(Base, TimestampMixin):
     """Minimum-necessary execution and delegated authorization metadata."""
 
     __tablename__ = "connector_execution_audit"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["organization_id", "connector_id"],
+            ["agent_connectors.organization_id", "agent_connectors.id"],
+            name="fk_connector_execution_audit_connector_scope",
+        ),
+    )
 
     organization_id: Mapped[str] = mapped_column(
         String(12), ForeignKey("organizations.id"), nullable=False, index=True,
     )
     connector_id: Mapped[str] = mapped_column(
-        String(12), ForeignKey("agent_connectors.id"), nullable=False, index=True,
+        String(12), nullable=False, index=True,
     )
     task_id: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
     run_id: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)

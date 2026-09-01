@@ -29,6 +29,7 @@ from app.services.agent_connectors import (
     require_agent_in_tenant,
 )
 from app.services.circuit_breaker import CircuitBreaker
+from app.services.database_tenancy import bind_tenant_to_transaction
 
 
 MAX_INVOCATION_BYTES = 64 * 1024
@@ -181,6 +182,7 @@ class ConnectorExecutor:
         db: AsyncSession,
         invocation: ConnectorInvocation,
     ) -> ConnectorExecutionResult:
+        await bind_tenant_to_transaction(db, invocation.organization_id)
         started = time.monotonic()
         connector = (
             await db.execute(

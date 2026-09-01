@@ -16,6 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.agent import Agent
 from app.models.agent_connector import AgentConnector
 from app.schemas.agent_connector import CONFIG_MODELS
+from app.services.database_tenancy import bind_tenant_to_transaction
 from app.services.ssrf_guard import check_url
 
 
@@ -295,6 +296,7 @@ def normalize_config(connector_type: str, config: dict, *, enabled: bool) -> Nor
 
 
 async def require_agent_in_tenant(db: AsyncSession, organization_id: str, agent_id: str) -> Agent:
+    await bind_tenant_to_transaction(db, organization_id)
     agent = (
         await db.execute(
             select(Agent).where(

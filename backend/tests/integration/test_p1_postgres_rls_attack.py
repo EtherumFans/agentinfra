@@ -13,6 +13,7 @@ from dataclasses import dataclass
 import pytest
 import sqlalchemy as sa
 from sqlalchemy.exc import DBAPIError
+from sqlalchemy.ext.asyncio import create_async_engine
 
 
 APP_URL = os.getenv("P1_POSTGRES_TEST_DATABASE_URL", "")
@@ -43,6 +44,13 @@ class TenantRow:
 
 def _tenant(connection: sa.Connection, organization_id: str) -> None:
     connection.execute(
+        sa.text("SELECT set_config(:name, :value, true)"),
+        {"name": "icoder.current_organization_id", "value": organization_id},
+    )
+
+
+async def _async_tenant(connection, organization_id: str) -> None:
+    await connection.execute(
         sa.text("SELECT set_config(:name, :value, true)"),
         {"name": "icoder.current_organization_id", "value": organization_id},
     )
@@ -248,4 +256,175 @@ def test_core_surfaces_fail_closed_against_cross_tenant_attacks() -> None:
                 connection.execute(sa.text("DELETE FROM organizations WHERE id IN (:a, :b)"), {"a": org_a, "b": org_b})
         finally:
             app_engine.dispose()
+            migration_engine.dispose()
+
+
+def test_transaction_local_tenant_does_not_leak_on_pool_reuse() -> None:
+    """Reuse one physical backend connection across A → empty → B."""
+    app_engine = sa.create_engine(
+        _sync_url(APP_URL), pool_size=1, max_overflow=0, pool_pre_ping=True
+    )
+    migration_engine = sa.create_engine(_sync_url(MIGRATION_URL))
+    suffix = uuid.uuid4().hex[:8]
+    org_a, org_b = f"p2a_{suffix}", f"p2b_{suffix}"
+    event_a, event_b = f"p2ea{suffix}", f"p2eb{suffix}"
+    pids: list[int] = []
+    try:
+        with migration_engine.begin() as connection:
+            for organization_id in (org_a, org_b):
+                connection.execute(
+                    sa.text(
+                        "INSERT INTO organizations "
+                        "(id, name, slug, plan, settings, is_active) VALUES "
+                        "(:id, :id, :id, 'free', CAST('{}' AS json), true)"
+                    ),
+                    {"id": organization_id},
+                )
+
+        for organization_id, event_id in ((org_a, event_a), (org_b, event_b)):
+            with app_engine.begin() as connection:
+                _tenant(connection, organization_id)
+                connection.execute(
+                    sa.text(
+                        "INSERT INTO run_trace_events "
+                        "(id, run_id, organization_id, step, status, duration_ms, ts) "
+                        "VALUES (:id, :id, :org, 'start', 'ok', 0, 0)"
+                    ),
+                    {"id": event_id, "org": organization_id},
+                )
+
+        with app_engine.begin() as connection:
+            _tenant(connection, org_a)
+            pids.append(connection.execute(sa.text("SELECT pg_backend_pid() ")).scalar_one())
+            assert connection.execute(
+                sa.text("SELECT id FROM run_trace_events WHERE id IN (:a, :b)"),
+                {"a": event_a, "b": event_b},
+            ).scalars().all() == [event_a]
+
+        # The same checked-in physical connection must carry no tenant after
+        # commit, before another request establishes its authority.
+        with app_engine.begin() as connection:
+            pids.append(connection.execute(sa.text("SELECT pg_backend_pid() ")).scalar_one())
+            setting = connection.execute(
+                sa.text(
+                    "SELECT current_setting('icoder.current_organization_id', true)"
+                )
+            ).scalar_one_or_none()
+            assert setting in (None, "")
+            assert connection.execute(
+                sa.text("SELECT count(*) FROM run_trace_events WHERE id IN (:a, :b)"),
+                {"a": event_a, "b": event_b},
+            ).scalar_one() == 0
+
+        with app_engine.begin() as connection:
+            _tenant(connection, org_b)
+            pids.append(connection.execute(sa.text("SELECT pg_backend_pid() ")).scalar_one())
+            assert connection.execute(
+                sa.text("SELECT id FROM run_trace_events WHERE id IN (:a, :b)"),
+                {"a": event_a, "b": event_b},
+            ).scalars().all() == [event_b]
+
+        # Prove this was connection reuse, not isolation obtained by opening
+        # a different server session for each phase.
+        assert len(set(pids)) == 1
+    finally:
+        for organization_id, event_id in ((org_a, event_a), (org_b, event_b)):
+            try:
+                with app_engine.begin() as connection:
+                    _tenant(connection, organization_id)
+                    connection.execute(
+                        sa.text("DELETE FROM run_trace_events WHERE id = :id"),
+                        {"id": event_id},
+                    )
+            except Exception:
+                pass
+        try:
+            with migration_engine.begin() as connection:
+                connection.execute(
+                    sa.text("DELETE FROM organizations WHERE id IN (:a, :b)"),
+                    {"a": org_a, "b": org_b},
+                )
+        finally:
+            app_engine.dispose()
+            migration_engine.dispose()
+
+
+@pytest.mark.asyncio
+async def test_async_application_pool_reuse_clears_tenant_context() -> None:
+    """Exercise the same invariant through the API runtime's async pool."""
+    app_engine = create_async_engine(
+        APP_URL, pool_size=1, max_overflow=0, pool_pre_ping=True
+    )
+    migration_engine = sa.create_engine(_sync_url(MIGRATION_URL))
+    suffix = uuid.uuid4().hex[:8]
+    org_a, org_b = f"p3a_{suffix}", f"p3b_{suffix}"
+    event_a, event_b = f"p3ea{suffix}", f"p3eb{suffix}"
+    pids: list[int] = []
+    try:
+        with migration_engine.begin() as connection:
+            for organization_id in (org_a, org_b):
+                connection.execute(
+                    sa.text(
+                        "INSERT INTO organizations "
+                        "(id, name, slug, plan, settings, is_active) VALUES "
+                        "(:id, :id, :id, 'free', CAST('{}' AS json), true)"
+                    ),
+                    {"id": organization_id},
+                )
+        for organization_id, event_id in ((org_a, event_a), (org_b, event_b)):
+            async with app_engine.begin() as connection:
+                await _async_tenant(connection, organization_id)
+                await connection.execute(
+                    sa.text(
+                        "INSERT INTO run_trace_events "
+                        "(id, run_id, organization_id, step, status, duration_ms, ts) "
+                        "VALUES (:id, :id, :org, 'start', 'ok', 0, 0)"
+                    ),
+                    {"id": event_id, "org": organization_id},
+                )
+
+        async with app_engine.begin() as connection:
+            await _async_tenant(connection, org_a)
+            pids.append((await connection.execute(sa.text("SELECT pg_backend_pid()"))).scalar_one())
+            assert (await connection.execute(
+                sa.text("SELECT id FROM run_trace_events WHERE id IN (:a, :b)"),
+                {"a": event_a, "b": event_b},
+            )).scalars().all() == [event_a]
+        async with app_engine.begin() as connection:
+            pids.append((await connection.execute(sa.text("SELECT pg_backend_pid()"))).scalar_one())
+            setting = (await connection.execute(sa.text(
+                "SELECT current_setting('icoder.current_organization_id', true)"
+            ))).scalar_one_or_none()
+            assert setting in (None, "")
+            assert (await connection.execute(
+                sa.text("SELECT count(*) FROM run_trace_events WHERE id IN (:a, :b)"),
+                {"a": event_a, "b": event_b},
+            )).scalar_one() == 0
+        async with app_engine.begin() as connection:
+            await _async_tenant(connection, org_b)
+            pids.append((await connection.execute(sa.text("SELECT pg_backend_pid()"))).scalar_one())
+            assert (await connection.execute(
+                sa.text("SELECT id FROM run_trace_events WHERE id IN (:a, :b)"),
+                {"a": event_a, "b": event_b},
+            )).scalars().all() == [event_b]
+        assert len(set(pids)) == 1
+    finally:
+        for organization_id, event_id in ((org_a, event_a), (org_b, event_b)):
+            try:
+                async with app_engine.begin() as connection:
+                    await _async_tenant(connection, organization_id)
+                    await connection.execute(
+                        sa.text("DELETE FROM run_trace_events WHERE id = :id"),
+                        {"id": event_id},
+                    )
+            except Exception:
+                pass
+        await app_engine.dispose()
+        try:
+            with migration_engine.begin() as connection:
+                connection.execute(
+                    sa.text("DELETE FROM organizations WHERE id IN (:a, :b)"),
+                    {"a": org_a, "b": org_b},
+                )
+        finally:
             migration_engine.dispose()

@@ -80,8 +80,8 @@ class CodingReviewRun(Base):
     )
 
     # Tenant + ownership
-    organization_id: Mapped[Optional[str]] = mapped_column(
-        String(12), ForeignKey("organizations.id"), nullable=True, index=True,
+    organization_id: Mapped[str] = mapped_column(
+        String(12), ForeignKey("organizations.id"), nullable=False, index=True,
     )
     created_by_user_id: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
 

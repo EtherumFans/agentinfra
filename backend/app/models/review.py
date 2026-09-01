@@ -16,7 +16,7 @@ class ReviewJudgment(str, enum.Enum):
 class CodingReview(Base, TimestampMixin):
     __tablename__ = "coding_reviews"
 
-    organization_id: Mapped[str] = mapped_column(String(12), ForeignKey("organizations.id"), nullable=True, index=True)
+    organization_id: Mapped[str] = mapped_column(String(12), ForeignKey("organizations.id"), nullable=False, index=True)
     review_id: Mapped[str] = mapped_column(String(64), unique=True, index=True, nullable=False)
     encounter_id: Mapped[str] = mapped_column(
         String(12), ForeignKey("encounters.id"), nullable=False, index=True

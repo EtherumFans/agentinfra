@@ -432,6 +432,11 @@ async def purge_expired_agent_feedback(
         FeedbackTrainingAuthorization,
     )
 
+    if db.get_bind().dialect.name == "postgresql" and not organization_id:
+        raise ValueError(
+            "PostgreSQL feedback purge requires one explicit organization"
+        )
+
     cutoff = now or datetime.now(UTC)
     count_stmt = select(func.count(AgentTaskFeedback.id)).where(
         AgentTaskFeedback.retention_until <= cutoff
@@ -451,7 +456,11 @@ async def purge_expired_agent_feedback(
             AgentTaskFeedback.organization_id == organization_id
         )
     await db.execute(delete(FeedbackTrainingAuthorization).where(
-        FeedbackTrainingAuthorization.feedback_id.in_(feedback_ids)
+        FeedbackTrainingAuthorization.feedback_id.in_(feedback_ids),
+        *(
+            [FeedbackTrainingAuthorization.organization_id == organization_id]
+            if organization_id is not None else []
+        ),
     ))
     delete_stmt = delete(AgentTaskFeedback).where(
         AgentTaskFeedback.retention_until <= cutoff

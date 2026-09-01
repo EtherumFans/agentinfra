@@ -45,6 +45,9 @@ async def _bind_live_user_membership(
                 detail="No organization selected.",
             )
         return False
+    # The asserted tenant narrows RLS visibility; the live membership query
+    # remains the authorization decision and rejects a forged JWT claim.
+    await bind_tenant_to_transaction(db, org_id)
     membership = (
         await db.execute(
             select(OrganizationMember.id)
@@ -66,7 +69,6 @@ async def _bind_live_user_membership(
                 detail="Organization membership required",
             )
         return False
-    await bind_tenant_to_transaction(db, org_id)
     return True
 
 
@@ -260,7 +262,11 @@ async def get_current_organization(
     if not org.is_active:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Organization is suspended")
 
-    # An org_id claim is context, not proof of tenant membership. Validate the
+    # An org_id claim is context, not proof of tenant membership. Binding it
+    # first only narrows RLS visibility; the checks below remain authoritative.
+    await bind_tenant_to_transaction(db, org.id)
+
+    # Validate the
     # principal here so organization-only dependencies cannot be used after
     # membership removal or with a refresh token.
     if token_type in {"access", "runtime_token"}:
@@ -285,10 +291,6 @@ async def get_current_organization(
         client = await get_current_client(credentials, db)
         if client.get("org_id") != org.id:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Organization context mismatch")
-    # PostgreSQL RLS reads this transaction-local setting.  Binding only after
-    # the live membership/client checks prevents an untrusted JWT org claim
-    # from becoming database authority.
-    await bind_tenant_to_transaction(db, org.id)
     return org
 
 
@@ -371,6 +373,9 @@ async def get_current_client(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid client credential attribution",
         )
+    # Enter the asserted tenant before touching protected OAuth state. The
+    # token/client/owner checks below prove whether that assertion is valid.
+    await bind_tenant_to_transaction(db, org_id)
     token_hash = hashlib.sha256(credentials.credentials.encode()).hexdigest()
     result = await db.execute(
         select(OAuthToken).where(
@@ -447,8 +452,6 @@ async def get_current_client(
             status_code=status.HTTP_403_FORBIDDEN,
             detail={"code": "CLIENT_DELEGATION_INVALID"},
         ) from exc
-
-    await bind_tenant_to_transaction(db, org_id)
 
     return {
         "client_id": client_id,

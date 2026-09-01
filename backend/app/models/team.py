@@ -17,7 +17,7 @@ class TeamRole(str, enum.Enum):
 class TeamMember(Base, TimestampMixin):
     __tablename__ = "team_members"
 
-    organization_id: Mapped[str] = mapped_column(String(12), ForeignKey("organizations.id"), nullable=True, index=True)
+    organization_id: Mapped[str] = mapped_column(String(12), ForeignKey("organizations.id"), nullable=False, index=True)
     user_id: Mapped[str] = mapped_column(String(12), ForeignKey("users.id"), nullable=False, index=True)
     email: Mapped[str] = mapped_column(String(128), nullable=False)
     name: Mapped[str] = mapped_column(String(128), default="")
@@ -29,7 +29,7 @@ class TeamMember(Base, TimestampMixin):
 class TeamInvite(Base, TimestampMixin):
     __tablename__ = "team_invites"
 
-    organization_id: Mapped[str] = mapped_column(String(12), ForeignKey("organizations.id"), nullable=True, index=True)
+    organization_id: Mapped[str] = mapped_column(String(12), ForeignKey("organizations.id"), nullable=False, index=True)
     email: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
     role: Mapped[TeamRole] = mapped_column(Enum(TeamRole), default=TeamRole.CODER, nullable=False)
     invited_by: Mapped[str] = mapped_column(String(12), ForeignKey("users.id"), nullable=False)

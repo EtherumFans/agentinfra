@@ -30,7 +30,7 @@ class OAuthClient(Base, TimestampMixin):
     """
     __tablename__ = "oauth_clients"
 
-    organization_id: Mapped[str] = mapped_column(String(12), ForeignKey("organizations.id"), nullable=True, index=True)
+    organization_id: Mapped[str] = mapped_column(String(12), ForeignKey("organizations.id"), nullable=False, index=True)
     name: Mapped[str] = mapped_column(String(256), nullable=False)
     client_id: Mapped[str] = mapped_column(String(128), unique=True, nullable=False, index=True)
     client_secret_hash: Mapped[str] = mapped_column(String(256), nullable=False)
@@ -114,7 +114,7 @@ class OAuthToken(Base, TimestampMixin):
     """Active OAuth 2.0 access tokens (for revocation/audit)."""
     __tablename__ = "oauth_tokens"
 
-    organization_id: Mapped[str] = mapped_column(String(12), ForeignKey("organizations.id"), nullable=True, index=True)
+    organization_id: Mapped[str] = mapped_column(String(12), ForeignKey("organizations.id"), nullable=False, index=True)
     client_id: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
     token_hash: Mapped[str] = mapped_column(String(256), unique=True, nullable=False)
     scopes: Mapped[str] = mapped_column(String(512), default="")

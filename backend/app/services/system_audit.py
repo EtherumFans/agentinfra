@@ -35,10 +35,13 @@ Why a separate service (not just ``log_action(allow_null_org=True)``)?
 """
 from __future__ import annotations
 
+import json
 import logging
+import uuid
 from datetime import datetime, UTC
 from typing import Any, Optional
 
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.middleware.tenancy_guard import CLASS_MODERN_SYSTEM
@@ -191,9 +194,33 @@ async def system_audit(
     log_entry.tenancy_attributed_at = datetime.now(UTC)
     log_entry.tenancy_candidate_count = 0
     log_entry.tenancy_original_org_id = None
-    db.add(log_entry)
     try:
-        await db.flush()
+        if db.get_bind().dialect.name == "postgresql":
+            log_entry.id = uuid.uuid4().hex[:12]
+            await db.execute(
+                text("SELECT icoder_write_system_audit(CAST(:event AS jsonb))"),
+                {
+                    "event": json.dumps(
+                        {
+                            "id": log_entry.id,
+                            "user_id": user_id,
+                            "username": username,
+                            "action": action,
+                            "resource_type": resource_type,
+                            "resource_id": resource_id,
+                            "details": details,
+                            "ip_address": ip_address,
+                            "user_agent": user_agent,
+                            "status": status,
+                            "error_message": error_message,
+                        },
+                        ensure_ascii=False,
+                    )
+                },
+            )
+        else:
+            db.add(log_entry)
+            await db.flush()
     except Exception as e:
         logger.error(
             "system_audit write failed: %s (action=%s resource=%s/%s)",

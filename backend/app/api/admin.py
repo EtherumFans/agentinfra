@@ -20,6 +20,7 @@ from app.models.organization import Organization, OrganizationMember
 from app.middleware.auth import get_admin_user
 from app.config import settings
 from app.services.system_audit import system_audit, tenant_owned_system_audit
+from app.services.database_tenancy import bind_tenant_to_transaction
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
@@ -81,6 +82,16 @@ def _user_view(user: User) -> dict:
         "created_at": user.created_at.isoformat(),
         "updated_at": user.updated_at.isoformat(),
     }
+
+
+async def _organization_ids(db: AsyncSession) -> list[str]:
+    return list(
+        (
+            await db.execute(
+                select(Organization.id)
+            )
+        ).scalars().all()
+    )
 
 
 @router.get("/stats")
@@ -267,13 +278,20 @@ async def update_user_access(
 
     clients_disabled = 0
     if old_active and not new_active:
-        clients = (
-            await db.execute(select(OAuthClient).where(OAuthClient.owner_id == target.id))
-        ).scalars().all()
-        for client in clients:
-            if client.is_active:
-                client.is_active = False
-                clients_disabled += 1
+        for organization_id in await _organization_ids(db):
+            await bind_tenant_to_transaction(db, organization_id)
+            clients = (
+                await db.execute(
+                    select(OAuthClient).where(OAuthClient.owner_id == target.id)
+                )
+            ).scalars().all()
+            for client in clients:
+                if client.is_active:
+                    client.is_active = False
+                    clients_disabled += 1
+            # Flush while the same tenant remains bound; do not accumulate
+            # dirty rows from several RLS partitions.
+            await db.flush()
 
     await system_audit(
         db,
@@ -313,16 +331,22 @@ async def list_api_clients(
     db: AsyncSession = Depends(get_db),
 ):
     """List all OAuth API clients."""
-    result = await db.execute(select(OAuthClient))
-    clients = result.scalars().all()
-    return {
-        "clients": [
-            {"client_id": c.client_id, "name": c.name,
-             "scopes": c.scopes, "is_active": c.is_active,
-             "created_at": c.created_at.isoformat()}
-            for c in clients
-        ],
-    }
+    clients: list[dict] = []
+    for organization_id in await _organization_ids(db):
+        await bind_tenant_to_transaction(db, organization_id)
+        rows = (await db.execute(select(OAuthClient))).scalars().all()
+        clients.extend(
+            {
+                "client_id": client.client_id,
+                "organization_id": client.organization_id,
+                "name": client.name,
+                "scopes": client.scopes,
+                "is_active": client.is_active,
+                "created_at": client.created_at.isoformat(),
+            }
+            for client in rows
+        )
+    return {"clients": clients}
 
 
 # --- Organization Admin Endpoints ---
@@ -361,6 +385,7 @@ async def admin_update_organization(
     org = result.scalar_one_or_none()
     if not org:
         raise HTTPException(status_code=404, detail="Organization not found")
+    await bind_tenant_to_transaction(db, org.id)
 
     old_active = org.is_active
     old_plan = org.plan

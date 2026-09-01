@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 # Production schema changes are applied exclusively through Alembic.  Keeping
 # the expected revision explicit makes an application image fail closed when
 # it is started before (or against a database behind) its migration job.
-PRODUCTION_SCHEMA_REVISION = "067"
+PRODUCTION_SCHEMA_REVISION = "068"
 TENANT_POLICY_NAME = "icoder_tenant_isolation"
 PROTECTED_TENANT_TABLES = (
     "patient_contexts",
@@ -40,7 +40,16 @@ PROTECTED_TENANT_TABLES = (
     "agent_connectors",
     "connector_credentials",
     "connector_execution_audit",
+    "api_keys",
+    "oauth_clients",
+    "oauth_tokens",
+    "organization_invite_deliveries",
+    "organization_invites",
+    "organization_members",
+    "team_invites",
+    "team_members",
 )
+SPLIT_POLICY_TENANT_TABLES = ("audit_logs",)
 
 _is_sqlite = "sqlite" in settings.DATABASE_URL
 
@@ -212,6 +221,37 @@ async def verify_production_database() -> None:
             raise RuntimeError(
                 "tenant RLS policy is missing or incomplete for: "
                 + ", ".join(missing_policies)
+            )
+
+        split_rows = await connection.execute(
+            text(
+                "SELECT c.relname, c.relrowsecurity, c.relforcerowsecurity "
+                "FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace "
+                "WHERE n.nspname=current_schema() "
+                "AND c.relname = ANY(CAST(:tables AS text[]))"
+            ),
+            {"tables": list(SPLIT_POLICY_TENANT_TABLES)},
+        )
+        split_state = {
+            row.relname: (bool(row.relrowsecurity), bool(row.relforcerowsecurity))
+            for row in split_rows
+        }
+        invalid_split = [
+            table for table in SPLIT_POLICY_TENANT_TABLES
+            if split_state.get(table) != (True, True)
+        ]
+        if invalid_split:
+            raise RuntimeError(
+                "split-policy tenant RLS enforcement is incomplete for: "
+                + ", ".join(invalid_split)
+            )
+        missing_split_policies = sorted(
+            set(SPLIT_POLICY_TENANT_TABLES) - policy_tables
+        )
+        if missing_split_policies:
+            raise RuntimeError(
+                "split-policy tenant isolation policy is missing for: "
+                + ", ".join(missing_split_policies)
             )
 
 

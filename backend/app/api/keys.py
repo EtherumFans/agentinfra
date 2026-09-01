@@ -7,7 +7,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
-from app.middleware.auth import get_current_user
+from app.middleware.auth import get_current_organization, get_current_user
+from app.models.organization import Organization
 from app.models.user import User
 from app.models.api_key import ApiKey
 
@@ -26,12 +27,14 @@ def _generate_key() -> tuple[str, str, str]:
 @router.get("")
 async def list_keys(
     user: User = Depends(get_current_user),
+    current_org: Organization = Depends(get_current_organization),
     db: AsyncSession = Depends(get_db),
 ):
     """List API keys for the current user"""
     result = await db.execute(
         select(ApiKey).where(
             ApiKey.owner_id == user.id,
+            ApiKey.organization_id == current_org.id,
             ApiKey.is_active == True,
         ).order_by(ApiKey.created_at.desc())
     )
@@ -55,11 +58,13 @@ async def list_keys(
 async def create_key(
     name: str = "Default Key",
     user: User = Depends(get_current_user),
+    current_org: Organization = Depends(get_current_organization),
     db: AsyncSession = Depends(get_db),
 ):
     """Create a new API key. Returns the full key only once."""
     full_key, key_prefix, key_hash = _generate_key()
     api_key = ApiKey(
+        organization_id=current_org.id,
         owner_id=user.id,
         name=name,
         key_prefix=key_prefix,
@@ -82,11 +87,16 @@ async def create_key(
 async def delete_key(
     key_id: str,
     user: User = Depends(get_current_user),
+    current_org: Organization = Depends(get_current_organization),
     db: AsyncSession = Depends(get_db),
 ):
     """Revoke an API key"""
     result = await db.execute(
-        select(ApiKey).where(ApiKey.id == key_id, ApiKey.is_active == True)
+        select(ApiKey).where(
+            ApiKey.id == key_id,
+            ApiKey.organization_id == current_org.id,
+            ApiKey.is_active == True,
+        )
     )
     key = result.scalar_one_or_none()
     if not key:

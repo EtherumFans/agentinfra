@@ -26,7 +26,7 @@ from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException, Form, Request, Query
 from fastapi.responses import RedirectResponse
 import jwt
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
 from app.database import get_db
@@ -34,6 +34,7 @@ from app.middleware.audit import log_action
 from app.middleware.auth import get_current_organization, get_current_user
 from app.models.organization import Organization
 from app.models.oauth import OAuthClient, OAuthToken
+from app.services.database_tenancy import bind_tenant_to_transaction
 from app.services.oauth_delegation import (
     OAuthDelegationValidationError,
     normalize_purpose_grants,
@@ -67,10 +68,10 @@ async def _emit_auth_rejection(
         if request is not None:
             ip = request.client.host if request.client else None
             ua = request.headers.get("user-agent")
-        await log_action(
+        from app.services.system_audit import system_audit
+
+        await system_audit(
             db,
-            user_id=None,
-            username=None,
             action="api_client.authentication_rejected",
             resource_type="api_client",
             resource_id=client_id or None,
@@ -170,6 +171,33 @@ def _default_oauth_ttl() -> int:
     return int(getattr(settings, "OAUTH_CLIENT_EXPIRE_SECONDS", 300) or 300)
 
 
+async def _resolve_and_bind_client_tenant(
+    db: AsyncSession,
+    *,
+    client_id: str,
+) -> str | None:
+    """Resolve only the bootstrap tenant mapping, then enter FORCE RLS."""
+    if db.get_bind().dialect.name == "postgresql":
+        organization_id = (
+            await db.execute(
+                text("SELECT icoder_resolve_oauth_client_tenant(:client_id)"),
+                {"client_id": client_id},
+            )
+        ).scalar_one_or_none()
+        if organization_id:
+            await bind_tenant_to_transaction(db, str(organization_id))
+        return str(organization_id) if organization_id else None
+    client = (
+        await db.execute(
+            select(OAuthClient).where(
+                OAuthClient.client_id == client_id,
+                OAuthClient.is_active.is_(True),
+            )
+        )
+    ).scalar_one_or_none()
+    return client.organization_id if client else None
+
+
 @router.post("/token")
 async def token_endpoint(
     request: Request,
@@ -193,9 +221,16 @@ async def token_endpoint(
     mismatches with the bearer JWT's ``org_id`` claim return HTTP 400
     ``tenant_header_mismatch`` (see ``TenantHeaderMiddleware``).
     """
-    # Find client first
+    organization_id = await _resolve_and_bind_client_tenant(
+        db, client_id=client_id,
+    )
+    # Read the client only after PostgreSQL is narrowed to its tenant.
     result = await db.execute(
-        select(OAuthClient).where(OAuthClient.client_id == client_id, OAuthClient.is_active == True)
+        select(OAuthClient).where(
+            OAuthClient.client_id == client_id,
+            OAuthClient.organization_id == organization_id,
+            OAuthClient.is_active == True,
+        )
     )
     client = result.scalar_one_or_none()
     if not client:
@@ -277,8 +312,15 @@ async def realm_token_endpoint(
     if not realm or not realm.replace("-", "").replace("_", "").isalnum():
         raise HTTPException(status_code=400, detail="invalid_realm")
 
+    organization_id = await _resolve_and_bind_client_tenant(
+        db, client_id=client_id,
+    )
     result = await db.execute(
-        select(OAuthClient).where(OAuthClient.client_id == client_id, OAuthClient.is_active == True)
+        select(OAuthClient).where(
+            OAuthClient.client_id == client_id,
+            OAuthClient.organization_id == organization_id,
+            OAuthClient.is_active == True,
+        )
     )
     client = result.scalar_one_or_none()
     if not client:

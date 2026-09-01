@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import Any
 
 import app.database as database
+from app.services.database_tenancy import bind_tenant_to_transaction
 from app.icoder.agent_runtime.orchestrator.inbound_handler import (
     InboundRequest,
     InboundResponse,
@@ -116,6 +117,7 @@ class ProviderA2AHandler:
         # Official Packs are process-local. Custom Agents must be resolved
         # through the active organization and explicitly opt into A2A.
         async with database.AsyncSessionLocal() as db:
+            await bind_tenant_to_transaction(db, tenant_id)
             db_agent = await load_tenant_agent(agent_id, tenant_id, db)
             if pack is None and db_agent is not None and db_agent.a2a_enabled:
                 try:
@@ -285,6 +287,7 @@ class ProviderA2AHandler:
                 graph = load_connector_graph(db_agent)
                 if graph is not None and graph.enabled:
                     async with database.AsyncSessionLocal() as graph_db:
+                        await bind_tenant_to_transaction(graph_db, tenant_id)
                         try:
                             await validate_graph_bindings(
                                 graph_db,
@@ -379,6 +382,7 @@ class ProviderA2AHandler:
                             "connector_graph_revision": connector_graph_revision,
                         },
                     ),
+                    organization_id=tenant_id,
                     trace_id=trace_id,
                     started_at=run_started,
                     error_reason=exc.code,
@@ -409,6 +413,7 @@ class ProviderA2AHandler:
                         "Agent execution was stopped because its Connector graph failed safely.",
                         503,
                     ),
+                    organization_id=tenant_id,
                     trace_id=trace_id,
                     started_at=run_started,
                     error_reason="CONNECTOR_GRAPH_INTERNAL_ERROR",
@@ -445,6 +450,7 @@ class ProviderA2AHandler:
                     "PROVIDER_UNAVAILABLE", "The configured backend provider is unavailable.",
                     503,
                 ),
+                organization_id=tenant_id,
                 trace_id=trace_id,
                 started_at=run_started,
                 error_reason="PROVIDER_UNAVAILABLE",
@@ -465,6 +471,7 @@ class ProviderA2AHandler:
                     "The configured backend provider could not be resolved safely.",
                     503,
                 ),
+                organization_id=tenant_id,
                 trace_id=trace_id,
                 started_at=run_started,
                 error_reason="PROVIDER_UNAVAILABLE",
@@ -540,6 +547,7 @@ class ProviderA2AHandler:
                             "Provider stream ended without a terminal response.",
                             503,
                         ),
+                        organization_id=tenant_id,
                         trace_id=trace_id,
                         started_at=run_started,
                         error_reason="PROVIDER_EXECUTION_FAILED",
@@ -559,6 +567,7 @@ class ProviderA2AHandler:
                     agent_id, context_id, run_id, input_text,
                     "PROVIDER_EXECUTION_FAILED", "Provider execution failed.", 500,
                 ),
+                organization_id=tenant_id,
                 trace_id=trace_id,
                 started_at=run_started,
                 error_reason="PROVIDER_EXECUTION_FAILED",
@@ -577,6 +586,7 @@ class ProviderA2AHandler:
                         "backend_type": response.backend_type,
                     },
                 ),
+                organization_id=tenant_id,
                 trace_id=trace_id,
                 started_at=run_started,
                 error_reason="PROVIDER_EXECUTION_FAILED",
@@ -624,6 +634,7 @@ class ProviderA2AHandler:
                     "Provider output could not be projected safely.",
                     503,
                 ),
+                organization_id=tenant_id,
                 trace_id=trace_id,
                 started_at=run_started,
                 error_reason="OUTPUT_CONTRACT_VIOLATION",
@@ -664,6 +675,7 @@ class ProviderA2AHandler:
                         "manual_review_required": True,
                     },
                 ),
+                organization_id=tenant_id,
                 trace_id=trace_id,
                 started_at=run_started,
                 error_reason="OUTPUT_CONTRACT_VIOLATION",
@@ -710,6 +722,7 @@ class ProviderA2AHandler:
                     "The Agent result authenticity proof could not be created.",
                     503,
                 ),
+                organization_id=tenant_id,
                 trace_id=trace_id,
                 started_at=run_started,
                 error_reason="RESULT_ATTESTATION_FAILED",
@@ -746,6 +759,7 @@ class ProviderA2AHandler:
                 },
                 redacted_input=input_text,
             ),
+            organization_id=tenant_id,
             trace_id=trace_id,
             started_at=run_started,
             summary=public.summary,
@@ -766,6 +780,7 @@ class ProviderA2AHandler:
         from app.services.run_lifecycle import RunStatus, record_run_start, set_status
 
         async with database.AsyncSessionLocal() as db:
+            await bind_tenant_to_transaction(db, organization_id)
             await record_run_start(
                 db,
                 run_id=run_id,
@@ -783,6 +798,7 @@ class ProviderA2AHandler:
     async def _finalize_response(
         response: InboundResponse,
         *,
+        organization_id: str,
         trace_id: str,
         started_at: float,
         summary: str = "",
@@ -821,6 +837,7 @@ class ProviderA2AHandler:
         )
         try:
             async with database.AsyncSessionLocal() as db:
+                await bind_tenant_to_transaction(db, organization_id)
                 row = await set_status(
                     db,
                     run_id=run_id,

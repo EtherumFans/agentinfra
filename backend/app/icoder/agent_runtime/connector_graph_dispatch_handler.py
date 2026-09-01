@@ -14,6 +14,7 @@ import logging
 from typing import Any
 
 import app.database as database
+from app.services.database_tenancy import bind_tenant_to_transaction
 from app.icoder.agent_runtime.orchestrator.inbound_handler import (
     InboundRequest,
     InboundResponse,
@@ -88,6 +89,7 @@ class ConnectorGraphDispatchHandler:
         request.message.parts = safe_parts
 
         async with database.AsyncSessionLocal() as db:
+            await bind_tenant_to_transaction(db, tenant_id)
             db_agent = await load_tenant_agent(agent_id, tenant_id, db)
             if db_agent is None:
                 return request, None

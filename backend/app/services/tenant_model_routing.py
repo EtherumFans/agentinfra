@@ -105,8 +105,10 @@ async def resolve_tenant_model_route(
     # FastAPI application's SQLAlchemy model graph.
     from app.database import AsyncSessionLocal
     from app.models.organization import Organization
+    from app.services.database_tenancy import bind_tenant_to_transaction
 
     async with AsyncSessionLocal() as db:
+        await bind_tenant_to_transaction(db, tenant_id)
         row = (
             await db.execute(
                 select(Organization.settings).where(

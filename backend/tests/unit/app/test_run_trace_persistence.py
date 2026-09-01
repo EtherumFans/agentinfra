@@ -157,7 +157,7 @@ def test_db_store_append_failure_stamps_failed(tmp_path, monkeypatch):
     import app.icoder.agent_runtime.orchestrator.run_trace as rt_mod
     real_url = f"sqlite:///{db_path.as_posix()}"
 
-    def fake_mark(rid, status, *, reason=None):
+    def fake_mark(rid, status, *, reason=None, organization_id=None):
         engine = create_engine(real_url)
         Session = sessionmaker(bind=engine)
         try:

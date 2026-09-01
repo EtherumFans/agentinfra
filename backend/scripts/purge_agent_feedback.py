@@ -11,9 +11,17 @@ import os
 async def _run(*, execute: bool, organization_id: str | None) -> dict:
     os.environ["DEBUG"] = "false"
     from app.database import AsyncSessionLocal
+    from app.services.database_tenancy import bind_tenant_to_transaction
     from app.services.retention import purge_expired_agent_feedback
 
     async with AsyncSessionLocal() as db:
+        if db.get_bind().dialect.name == "postgresql" and not organization_id:
+            raise ValueError(
+                "PostgreSQL feedback purge requires --organization-id; "
+                "run one audited tenant transaction at a time"
+            )
+        if organization_id:
+            await bind_tenant_to_transaction(db, organization_id)
         count = await purge_expired_agent_feedback(
             db, dry_run=not execute, organization_id=organization_id,
         )

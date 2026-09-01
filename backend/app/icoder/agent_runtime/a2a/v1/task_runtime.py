@@ -20,6 +20,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy import or_, select, update
 
 import app.database as database
+from app.services.database_tenancy import bind_tenant_to_transaction
 from app.services.phi_encryption import decrypt_phi, encrypt_phi
 
 from ...context.context_repository import ContextRepository
@@ -245,6 +246,9 @@ class A2ATaskRuntime:
 
             async def dispatch() -> JSONResponse:
                 async with database.AsyncSessionLocal() as db:
+                    await bind_tenant_to_transaction(
+                        db, execution.organization_id
+                    )
                     return await _dispatch(
                         self._handler,
                         execution.agent_id,
@@ -302,6 +306,7 @@ class A2ATaskRuntime:
             execution = await db.get(A2ATaskExecutionRow, task_id)
             if execution is None:
                 return None
+            await bind_tenant_to_transaction(db, execution.organization_id)
             task_row = await db.get(
                 ContextTaskRefRow,
                 {"context_id": execution.context_id, "task_id": task_id},
@@ -383,6 +388,16 @@ class A2ATaskRuntime:
             now = utc_now()
             try:
                 async with database.AsyncSessionLocal() as db:
+                    organization_id = (
+                        await db.execute(
+                            select(A2ATaskExecutionRow.organization_id).where(
+                                A2ATaskExecutionRow.task_id == task_id
+                            )
+                        )
+                    ).scalar_one_or_none()
+                    if not organization_id:
+                        return
+                    await bind_tenant_to_transaction(db, organization_id)
                     renewed = await db.execute(
                         update(A2ATaskExecutionRow)
                         .where(
@@ -413,6 +428,16 @@ class A2ATaskRuntime:
         now = utc_now()
         try:
             async with database.AsyncSessionLocal() as db:
+                organization_id = (
+                    await db.execute(
+                        select(A2ATaskExecutionRow.organization_id).where(
+                            A2ATaskExecutionRow.task_id == task_id
+                        )
+                    )
+                ).scalar_one_or_none()
+                if not organization_id:
+                    return
+                await bind_tenant_to_transaction(db, organization_id)
                 await db.execute(
                     update(A2ATaskExecutionRow)
                     .where(
@@ -437,6 +462,7 @@ class A2ATaskRuntime:
         task_row: ContextTaskRefRow,
     ) -> JSONResponse | None:
         async with database.AsyncSessionLocal() as db:
+            await bind_tenant_to_transaction(db, execution.organization_id)
             repo = ContextRepository(db)
             messages = await repo.get_messages(task_row.context_id)
         for message in reversed(messages):
@@ -509,6 +535,7 @@ class A2ATaskRuntime:
         artifact = payload["artifact"]
         now = utc_now()
         async with database.AsyncSessionLocal() as db:
+            await bind_tenant_to_transaction(db, execution.organization_id)
             current_execution = await db.get(
                 A2ATaskExecutionRow, execution.task_id
             )
@@ -590,6 +617,7 @@ class A2ATaskRuntime:
             execution = await db.get(A2ATaskExecutionRow, task_id)
             if execution is None:
                 return
+            await bind_tenant_to_transaction(db, execution.organization_id)
             task_row = await db.get(
                 ContextTaskRefRow,
                 {"context_id": execution.context_id, "task_id": task_id},
@@ -710,6 +738,7 @@ class A2ATaskRuntime:
             execution = await db.get(A2ATaskExecutionRow, task_id)
             if execution is None:
                 return
+            await bind_tenant_to_transaction(db, execution.organization_id)
             task_row = await db.get(
                 ContextTaskRefRow,
                 {"context_id": execution.context_id, "task_id": task_id},

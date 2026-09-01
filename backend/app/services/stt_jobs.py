@@ -46,6 +46,8 @@ async def process_stt_transcript_job(
         "interaction_id": interaction_id,
     }
     async with database_module.AsyncSessionLocal() as db:
+        from app.services.database_tenancy import bind_tenant_to_transaction
+        await bind_tenant_to_transaction(db, organization_id)
         transcript = await stt_artifact_repository.get_transcript(
             db, **scope, transcript_id=transcript_id
         )
@@ -157,6 +159,10 @@ async def process_stt_transcript_job(
             )
             await db.rollback()
             async with database_module.AsyncSessionLocal() as failure_db:
+                from app.services.database_tenancy import (
+                    bind_tenant_to_transaction,
+                )
+                await bind_tenant_to_transaction(failure_db, organization_id)
                 row = await stt_artifact_repository.get_transcript(
                     failure_db, **scope, transcript_id=transcript_id
                 )

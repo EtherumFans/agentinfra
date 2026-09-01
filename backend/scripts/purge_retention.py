@@ -18,6 +18,7 @@ async def _run(*, execute: bool, organization_id: str | None) -> dict:
     # document even when the surrounding development shell has DEBUG=true.
     os.environ["DEBUG"] = "false"
     from app.database import AsyncSessionLocal
+    from app.services.database_tenancy import bind_tenant_to_transaction
     from app.services.retention import (
         RetentionPolicy,
         purge_expired_conversation_memory,
@@ -26,6 +27,13 @@ async def _run(*, execute: bool, organization_id: str | None) -> dict:
 
     policy = RetentionPolicy.from_env()
     async with AsyncSessionLocal() as db:
+        if db.get_bind().dialect.name == "postgresql" and not organization_id:
+            raise ValueError(
+                "PostgreSQL retention purge requires --organization-id; "
+                "run one audited tenant transaction at a time"
+            )
+        if organization_id:
+            await bind_tenant_to_transaction(db, organization_id)
         counts = await purge_expired_run_trace_events(
             db,
             policy,

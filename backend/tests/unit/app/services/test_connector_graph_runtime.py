@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+from types import SimpleNamespace
 
 import pytest
 
@@ -10,6 +11,9 @@ from app.services.connector_graph import execute_connector_graph
 
 
 class _Session:
+    def get_bind(self):
+        return SimpleNamespace(dialect=SimpleNamespace(name="sqlite"))
+
     async def __aenter__(self):
         return self
 

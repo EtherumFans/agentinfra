@@ -21,7 +21,7 @@ from fastapi import APIRouter, HTTPException, Query, WebSocket, WebSocketDisconn
 from fastapi.security import HTTPAuthorizationCredentials
 
 from app.config import settings
-from app.database import AsyncSessionLocal
+from app import database
 from app.middleware.audit import log_action
 from app.middleware.auth import (
     decode_token,
@@ -56,6 +56,7 @@ from app.services.ambient_processing import (
     transcribe_stream_audio,
 )
 from app.services.clinical_fact_repository import clinical_fact_repository
+from app.services.database_tenancy import bind_tenant_to_transaction
 from app.services.stt_artifact_repository import stt_artifact_repository
 from app.services.stt_service import apply_requested_replacements
 from app.services.stream_audio_format import (
@@ -276,7 +277,7 @@ async def _authenticate_stream(
         raise HTTPException(status_code=401, detail="stream_token_invalid") from exc
     credentials = HTTPAuthorizationCredentials(scheme="Bearer", credentials=token)
 
-    async with AsyncSessionLocal() as db:
+    async with database.AsyncSessionLocal() as db:
         token_type = str(payload.get("type") or "")
         if token_type == "access":
             user = await get_current_user(credentials, db)
@@ -318,7 +319,8 @@ async def _audit_state(
     status: str = "success",
     details: dict[str, Any] | None = None,
 ) -> None:
-    async with AsyncSessionLocal() as db:
+    async with database.AsyncSessionLocal() as db:
+        await bind_tenant_to_transaction(db, state.principal.organization_id)
         await log_action(
             db,
             user_id=state.principal.owner_id,
@@ -348,7 +350,8 @@ async def _persist_transcript(
     participant_roles = tuple(
         (item.channel, item.role) for item in state.config.transcription.participants
     )
-    async with AsyncSessionLocal() as db:
+    async with database.AsyncSessionLocal() as db:
+        await bind_tenant_to_transaction(db, state.principal.organization_id)
         await stt_artifact_repository.put_transcript(
             db,
             **state.scope,
@@ -373,7 +376,8 @@ async def _persist_transcript(
 async def _persist_fact(state: _StreamState, fact: StreamFact) -> None:
     if state.config.retentionPolicy == "none":
         return
-    async with AsyncSessionLocal() as db:
+    async with database.AsyncSessionLocal() as db:
+        await bind_tenant_to_transaction(db, state.principal.organization_id)
         await clinical_fact_repository.create(
             db,
             **state.scope,
@@ -390,7 +394,8 @@ async def _persist_recording(state: _StreamState) -> None:
         return
     if not state.audio_format_validated or state.resolved_audio_format is None:
         raise RuntimeError("stream_audio_format_unvalidated")
-    async with AsyncSessionLocal() as db:
+    async with database.AsyncSessionLocal() as db:
+        await bind_tenant_to_transaction(db, state.principal.organization_id)
         existing = await stt_artifact_repository.get_recording(
             db,
             **state.scope,
@@ -528,7 +533,8 @@ def _apply_checkpoint_state(
 async def _rehydrate_retained_outputs(state: _StreamState) -> None:
     """Make persisted transcript/fact writes authoritative after a crash."""
 
-    async with AsyncSessionLocal() as db:
+    async with database.AsyncSessionLocal() as db:
+        await bind_tenant_to_transaction(db, state.principal.organization_id)
         transcript_rows = await stt_artifact_repository.list_transcripts(
             db, **state.scope
         )
@@ -573,7 +579,8 @@ async def _rehydrate_retained_outputs(state: _StreamState) -> None:
 async def _resume_or_initialize_checkpoint(state: _StreamState) -> None:
     state.checkpoint_enabled = state.config.retentionPolicy == "retain"
     initial = _checkpoint_state_payload(state)
-    async with AsyncSessionLocal() as db:
+    async with database.AsyncSessionLocal() as db:
+        await bind_tenant_to_transaction(db, state.principal.organization_id)
         restored = await stream_checkpoint_repository.resume_or_initialize(
             db,
             scope=state.scope,
@@ -595,7 +602,8 @@ async def _resume_or_initialize_checkpoint(state: _StreamState) -> None:
 async def _append_checkpoint_chunk(state: _StreamState, chunk: bytes) -> None:
     if not state.checkpoint_enabled:
         return
-    async with AsyncSessionLocal() as db:
+    async with database.AsyncSessionLocal() as db:
+        await bind_tenant_to_transaction(db, state.principal.organization_id)
         await stream_checkpoint_repository.append_chunk(
             db,
             scope=state.scope,
@@ -609,7 +617,8 @@ async def _append_checkpoint_chunk(state: _StreamState, chunk: bytes) -> None:
 async def _save_checkpoint_state(state: _StreamState) -> None:
     if not state.checkpoint_enabled:
         return
-    async with AsyncSessionLocal() as db:
+    async with database.AsyncSessionLocal() as db:
+        await bind_tenant_to_transaction(db, state.principal.organization_id)
         await stream_checkpoint_repository.save_state(
             db,
             scope=state.scope,
@@ -622,7 +631,8 @@ async def _save_checkpoint_state(state: _StreamState) -> None:
 async def _discard_checkpoint(state: _StreamState) -> bool:
     if not state.checkpoint_enabled:
         return False
-    async with AsyncSessionLocal() as db:
+    async with database.AsyncSessionLocal() as db:
+        await bind_tenant_to_transaction(db, state.principal.organization_id)
         discarded = await stream_checkpoint_repository.discard(
             db,
             scope=state.scope,

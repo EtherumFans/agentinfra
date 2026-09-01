@@ -404,6 +404,11 @@ class DbRunTraceStore:
 
         try:
             with self._sync_session_factory() as session:
+                if org_id:
+                    from app.services.database_tenancy import (
+                        bind_tenant_to_sync_session,
+                    )
+                    bind_tenant_to_sync_session(session, org_id)
                 session.add(record)
                 session.commit()
         except Exception as e:
@@ -430,7 +435,10 @@ class DbRunTraceStore:
             from app.services.trace_capture_state import TraceCaptureState
             try:
                 _mark_trace_capture_status(
-                    event.run_id, TraceCaptureState.FAILED, reason=str(e)[:250],
+                    event.run_id,
+                    TraceCaptureState.FAILED,
+                    reason=str(e)[:250],
+                    organization_id=org_id,
                 )
             except Exception as mark_err:  # pragma: no cover — defensive
                 logger.error(
@@ -454,7 +462,11 @@ class DbRunTraceStore:
         # literals identically.
         try:
             from app.services.trace_capture_state import TraceCaptureState
-            _mark_trace_capture_status(event.run_id, TraceCaptureState.CAPTURED)
+            _mark_trace_capture_status(
+                event.run_id,
+                TraceCaptureState.CAPTURED,
+                organization_id=org_id,
+            )
         except Exception as mark_err:  # pragma: no cover — defensive
             logger.debug(
                 "run_trace CAPTURED mark skipped: %s (run_id=%s)",
@@ -504,6 +516,11 @@ class DbRunTraceStore:
         from app.models.run_trace import RunTraceEventModel
 
         with self._sync_session_factory() as session:
+            if organization_id:
+                from app.services.database_tenancy import (
+                    bind_tenant_to_sync_session,
+                )
+                bind_tenant_to_sync_session(session, organization_id)
             stmt = (
                 select(RunTraceEventModel)
                 .where(RunTraceEventModel.run_id == run_id)
@@ -633,6 +650,7 @@ def _mark_trace_capture_status(
     status: str,
     *,
     reason: Optional[str] = None,
+    organization_id: Optional[str] = None,
 ) -> None:
     """Best-effort UPDATE run_history.trace_capture_status for one run.
 
@@ -662,6 +680,11 @@ def _mark_trace_capture_status(
     try:
         from app.models.run_history import RunHistoryModel
         with Session() as session:
+            if organization_id:
+                from app.services.database_tenancy import (
+                    bind_tenant_to_sync_session,
+                )
+                bind_tenant_to_sync_session(session, organization_id)
             stmt = update(RunHistoryModel).where(
                 RunHistoryModel.run_id == run_id
             ).values(

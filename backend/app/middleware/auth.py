@@ -24,6 +24,52 @@ logger = logging.getLogger(__name__)
 security = HTTPBearer(auto_error=False)
 
 
+async def _bind_live_user_membership(
+    db: AsyncSession,
+    *,
+    user_id: str,
+    organization_id: str | None,
+    required: bool = False,
+) -> bool:
+    """Bind only a currently active organization membership.
+
+    User-only dependencies are common across older routes.  A JWT org claim
+    is not authority, so the claim is promoted to PostgreSQL RLS context only
+    after this live membership and organization-status check.
+    """
+    org_id = str(organization_id or "").strip()
+    if not org_id:
+        if required:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="No organization selected.",
+            )
+        return False
+    membership = (
+        await db.execute(
+            select(OrganizationMember.id)
+            .join(
+                Organization,
+                Organization.id == OrganizationMember.organization_id,
+            )
+            .where(
+                OrganizationMember.organization_id == org_id,
+                OrganizationMember.user_id == user_id,
+                Organization.is_active.is_(True),
+            )
+        )
+    ).scalar_one_or_none()
+    if membership is None:
+        if required:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Organization membership required",
+            )
+        return False
+    await bind_tenant_to_transaction(db, org_id)
+    return True
+
+
 def hash_password(password: str) -> str:
     """Hash password using bcrypt (production default)."""
     import bcrypt
@@ -175,6 +221,11 @@ async def get_current_user(
     token_version = payload.get("token_version", 0)
     if user.token_version != token_version:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token revoked. Please re-authenticate.")
+    await _bind_live_user_membership(
+        db,
+        user_id=user.id,
+        organization_id=payload.get("org_id"),
+    )
     return user
 
 
@@ -369,7 +420,6 @@ async def get_current_client(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Delegated subject organization membership required",
         )
-
     token_scopes = {
         str(item).strip()
         for item in (payload.get("scopes") or "").split()
@@ -397,6 +447,8 @@ async def get_current_client(
             status_code=status.HTTP_403_FORBIDDEN,
             detail={"code": "CLIENT_DELEGATION_INVALID"},
         ) from exc
+
+    await bind_tenant_to_transaction(db, org_id)
 
     return {
         "client_id": client_id,
@@ -456,6 +508,12 @@ async def get_current_user_or_oauth_client(
                 raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
             if not user.is_active:
                 raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User account is deactivated")
+            await _bind_live_user_membership(
+                db,
+                user_id=user_id,
+                organization_id=payload.get("org_id"),
+                required=True,
+            )
         return user, {
             "type": "runtime_token",
             "token_type": "runtime_token",
@@ -486,6 +544,11 @@ async def get_current_user_or_oauth_client(
     token_version = payload.get("token_version", 0)
     if user.token_version != token_version:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token revoked. Please re-authenticate.")
+    await _bind_live_user_membership(
+        db,
+        user_id=user.id,
+        organization_id=payload.get("org_id"),
+    )
     return user, None
 
 

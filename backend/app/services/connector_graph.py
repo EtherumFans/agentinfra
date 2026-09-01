@@ -403,6 +403,10 @@ async def execute_connector_graph(
             logger.debug("Parallel Connector graph node scheduled (node_id=%s)", node.id)
             async with semaphore:
                 async with database.AsyncSessionLocal() as node_db:
+                    from app.services.database_tenancy import (
+                        bind_tenant_to_transaction,
+                    )
+                    await bind_tenant_to_transaction(node_db, organization_id)
                     try:
                         logger.debug(
                             "Parallel Connector graph node executing (node_id=%s)",

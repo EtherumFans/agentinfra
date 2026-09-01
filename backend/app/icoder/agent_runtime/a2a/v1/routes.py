@@ -37,6 +37,7 @@ from app.services.agent_runtime_pack import (
     load_tenant_agent,
     pack_from_tenant_agent,
 )
+from app.services.database_tenancy import bind_tenant_to_transaction
 from app.services.phi_encryption import encrypt_phi
 from app.services.result_attestation import (
     ResultAttestationError,
@@ -1263,6 +1264,7 @@ async def _subscribe_task(
     initial_replay_sequence: int | None = None,
 ) -> StreamingResponse:
     async with database.AsyncSessionLocal() as db:
+        await bind_tenant_to_transaction(db, organization_id)
         row = await _load_task(db, organization_id, agent_id, task_id)
         if row is None:
             raise _task_not_found(task_id)
@@ -1315,6 +1317,7 @@ async def _subscribe_task(
             if await request.is_disconnected():
                 return
             async with database.AsyncSessionLocal() as db:
+                await bind_tenant_to_transaction(db, organization_id)
                 events = (
                     await db.execute(
                         select(A2ATaskEventRow)

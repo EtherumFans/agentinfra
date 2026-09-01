@@ -45,21 +45,25 @@ class ContextRow(Base):
 
     messages: Mapped[list["ContextMessageRow"]] = relationship(
         back_populates="context",
+        foreign_keys="ContextMessageRow.context_id",
         cascade="all, delete-orphan",
         passive_deletes=True,
     )
     tasks: Mapped[list["ContextTaskRefRow"]] = relationship(
         back_populates="context",
+        foreign_keys="ContextTaskRefRow.context_id",
         cascade="all, delete-orphan",
         passive_deletes=True,
     )
     artifacts: Mapped[list["ContextArtifactRefRow"]] = relationship(
         back_populates="context",
+        foreign_keys="ContextArtifactRefRow.context_id",
         cascade="all, delete-orphan",
         passive_deletes=True,
     )
 
     __table_args__ = (
+        UniqueConstraint("organization_id", "id", name="uq_contexts_org_id"),
         Index("idx_contexts_expires_at", "expires_at"),
         Index("idx_contexts_agent_id", "agent_id"),
         Index("idx_contexts_status", "status"),
@@ -81,6 +85,9 @@ class ContextMessageRow(Base):
         ForeignKey("contexts.id", ondelete="CASCADE"),
         primary_key=True,
     )
+    # Nullable in ORM-created local SQLite databases for legacy fixture
+    # compatibility; revision 065 makes this NOT NULL in PostgreSQL.
+    organization_id: Mapped[str | None] = mapped_column(String(12), nullable=True)
     message_id: Mapped[str] = mapped_column(String(64), primary_key=True)
     role: Mapped[str] = mapped_column(String(32), nullable=False)
     parts_json: Mapped[str] = mapped_column(Text, nullable=False)
@@ -92,7 +99,9 @@ class ContextMessageRow(Base):
         Text, nullable=False, default="{}", server_default="{}"
     )
 
-    context: Mapped[ContextRow] = relationship(back_populates="messages")
+    context: Mapped[ContextRow] = relationship(
+        back_populates="messages", foreign_keys=[context_id]
+    )
 
 
 class ContextTaskRefRow(Base):
@@ -103,6 +112,10 @@ class ContextTaskRefRow(Base):
             "'rejected', 'input-required', 'auth-required')",
             name="ck_context_task_refs_state",
         ),
+        UniqueConstraint(
+            "organization_id", "context_id", "task_id",
+            name="uq_context_task_refs_org_context_task",
+        ),
     )
 
     context_id: Mapped[str] = mapped_column(
@@ -110,28 +123,33 @@ class ContextTaskRefRow(Base):
         ForeignKey("contexts.id", ondelete="CASCADE"),
         primary_key=True,
     )
+    organization_id: Mapped[str | None] = mapped_column(String(12), nullable=True)
     task_id: Mapped[str] = mapped_column(String(64), primary_key=True)
     state: Mapped[str] = mapped_column(String(32), nullable=False)
     started_at: Mapped[DateTime] = mapped_column(DateTime, nullable=False)
     completed_at: Mapped[DateTime | None] = mapped_column(DateTime, nullable=True)
 
-    context: Mapped[ContextRow] = relationship(back_populates="tasks")
+    context: Mapped[ContextRow] = relationship(
+        back_populates="tasks", foreign_keys=[context_id]
+    )
 
 
 class ContextArtifactRefRow(Base):
     __tablename__ = "context_artifact_refs"
-
     context_id: Mapped[str] = mapped_column(
         String(36),
         ForeignKey("contexts.id", ondelete="CASCADE"),
         primary_key=True,
     )
+    organization_id: Mapped[str | None] = mapped_column(String(12), nullable=True)
     artifact_id: Mapped[str] = mapped_column(String(64), primary_key=True)
     name: Mapped[str] = mapped_column(String(256), nullable=False)
     mime_type: Mapped[str] = mapped_column(String(128), nullable=False)
     url: Mapped[str] = mapped_column(String(1024), nullable=False)
 
-    context: Mapped[ContextRow] = relationship(back_populates="artifacts")
+    context: Mapped[ContextRow] = relationship(
+        back_populates="artifacts", foreign_keys=[context_id]
+    )
 
 
 class A2ATaskExecutionRow(Base):
@@ -219,6 +237,10 @@ class A2ATaskArtifactRow(Base):
             ["context_task_refs.context_id", "context_task_refs.task_id"],
             ondelete="CASCADE",
         ),
+        UniqueConstraint(
+            "organization_id", "context_id", "task_id", "artifact_id",
+            name="uq_a2a_task_artifacts_org_context_task_artifact",
+        ),
         CheckConstraint("size_bytes >= 0", name="ck_a2a_task_artifact_size"),
         Index(
             "ix_a2a_task_artifact_task_created",
@@ -229,6 +251,7 @@ class A2ATaskArtifactRow(Base):
     )
 
     context_id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    organization_id: Mapped[str | None] = mapped_column(String(12), nullable=True)
     task_id: Mapped[str] = mapped_column(String(64), primary_key=True)
     artifact_id: Mapped[str] = mapped_column(String(128), primary_key=True)
     payload_json: Mapped[str] = mapped_column(Text, nullable=False)
@@ -252,6 +275,10 @@ class A2AArtifactObjectRow(Base):
                 "a2a_task_artifacts.artifact_id",
             ],
             ondelete="CASCADE",
+        ),
+        UniqueConstraint(
+            "organization_id", "object_id",
+            name="uq_a2a_artifact_objects_org_object",
         ),
         CheckConstraint("size_bytes > 0", name="ck_a2a_artifact_object_size"),
         CheckConstraint(
@@ -342,6 +369,7 @@ class OriginalInputAuditRow(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
     context_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    organization_id: Mapped[str | None] = mapped_column(String(12), nullable=True)
     original_input: Mapped[str] = mapped_column(Text, nullable=False)
     created_at: Mapped[DateTime] = mapped_column(DateTime, nullable=False)
     retention_until: Mapped[DateTime] = mapped_column(DateTime, nullable=False)

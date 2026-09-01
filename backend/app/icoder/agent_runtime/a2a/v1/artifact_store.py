@@ -496,6 +496,7 @@ async def persist_artifacts(
         if encrypted is None:
             raise ArtifactIntegrityError("Artifact encryption returned no payload")
         db.add(A2ATaskArtifactRow(
+            organization_id=parent.organization_id,
             context_id=context_id,
             task_id=task_id,
             artifact_id=artifact_id,

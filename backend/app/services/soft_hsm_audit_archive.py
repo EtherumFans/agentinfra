@@ -521,6 +521,56 @@ class S3ObjectLockAuditArchive:
             "records": [item["record"] for item in self._load_objects()],
         }) + b"\n"
 
+    def verify_control_plane(
+        self, *, sts_client: Any, expected_caller_arn: str,
+        replica_bucket_arn: str,
+    ) -> dict[str, Any]:
+        if not expected_caller_arn or not replica_bucket_arn.startswith("arn:aws:s3:::"):
+            raise RuntimeError("S3 audit archive control-plane identity is invalid")
+        caller_arn = str(sts_client.get_caller_identity().get("Arn", ""))
+        if not hmac.compare_digest(caller_arn, expected_caller_arn):
+            raise RuntimeError("unexpected S3 audit archive writer identity")
+        self.client.head_bucket(
+            Bucket=self.bucket, ExpectedBucketOwner=self.expected_bucket_owner,
+        )
+        versioning = self.client.get_bucket_versioning(
+            Bucket=self.bucket, ExpectedBucketOwner=self.expected_bucket_owner,
+        )
+        if versioning.get("Status") != "Enabled":
+            raise RuntimeError("S3 audit archive versioning is not enabled")
+        lock = self.client.get_object_lock_configuration(
+            Bucket=self.bucket, ExpectedBucketOwner=self.expected_bucket_owner,
+        ).get("ObjectLockConfiguration", {})
+        default_retention = lock.get("Rule", {}).get("DefaultRetention", {})
+        retention_days = int(default_retention.get("Days", 0)) + (
+            int(default_retention.get("Years", 0)) * 365
+        )
+        if (
+            lock.get("ObjectLockEnabled") != "Enabled"
+            or default_retention.get("Mode") != "COMPLIANCE"
+            or retention_days < self.policy.retention_days
+        ):
+            raise RuntimeError("S3 audit archive default Object Lock policy is insufficient")
+        replication = self.client.get_bucket_replication(
+            Bucket=self.bucket, ExpectedBucketOwner=self.expected_bucket_owner,
+        ).get("ReplicationConfiguration", {})
+        matches = [
+            rule for rule in replication.get("Rules", [])
+            if rule.get("Status") == "Enabled"
+            and rule.get("Destination", {}).get("Bucket") == replica_bucket_arn
+        ]
+        if not matches:
+            raise RuntimeError("S3 audit archive cross-region replication is not enabled")
+        return {
+            "schema": "icoder.software-hsm-audit-s3-control-plane/v1",
+            "status": "passed", "bucket": self.bucket,
+            "expected_bucket_owner": self.expected_bucket_owner,
+            "writer_arn": caller_arn, "object_lock_mode": "COMPLIANCE",
+            "default_retention_days": retention_days,
+            "replica_bucket_arn": replica_bucket_arn,
+            "replication_rules": len(matches),
+        }
+
 
 def archive_from_environment() -> AuditArchive:
     adapter = os.environ.get("ICODER_SOFT_HSM_AUDIT_ARCHIVE_ADAPTER", "").strip()

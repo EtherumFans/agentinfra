@@ -15,7 +15,9 @@ import pytest
 from cryptography.fernet import Fernet
 
 from app.services.phi_encryption import encrypt_phi_v1
+from app.services.soft_hsm_keystore import seal_keyring
 from scripts.backfill_phi_envelopes import run as backfill
+from scripts.manage_soft_hsm_keystore import rotate as rotate_key_store
 from scripts.prepare_phi_070_compatibility import run as restore_070
 from scripts.rewrap_phi_deks import run as rewrap_deks
 from scripts.rotate_phi_envelopes import run as rotate
@@ -58,7 +60,9 @@ def _set_tenant(cursor, organization_id: str) -> None:
     )
 
 
-def test_v1_v2_online_rotation_and_populated_070_compatibility(monkeypatch, request) -> None:
+def test_v1_v2_online_rotation_and_populated_070_compatibility(
+    monkeypatch, request, tmp_path,
+) -> None:
     suffix = uuid.uuid4().hex[:8]
     organization_id = f"h72{suffix}"
     row_id = f"e72{suffix}"
@@ -123,6 +127,8 @@ def test_v1_v2_online_rotation_and_populated_070_compatibility(monkeypatch, requ
         connection.commit()
 
     monkeypatch.setenv("ICODER_PHI_KEY_PROVIDER", "software_hsm")
+    monkeypatch.delenv("ICODER_SOFT_HSM_KEYSTORE_PATH", raising=False)
+    monkeypatch.delenv("ICODER_SOFT_HSM_REQUIRE_ENCRYPTED_KEYSTORE", raising=False)
     monkeypatch.setenv("ICODER_SOFT_HSM_KEY_ID", "integration-kek-v1")
     monkeypatch.setenv("ICODER_SOFT_HSM_MASTER_KEY", hsm_key)
 
@@ -135,17 +141,31 @@ def test_v1_v2_online_rotation_and_populated_070_compatibility(monkeypatch, requ
             _set_tenant(cursor, organization_id)
             cursor.execute("SELECT admission_reason FROM encounters WHERE id=%s", (row_id,))
             before_rewrap = str(cursor.fetchone()[0])
-    new_hsm_key = base64.urlsafe_b64encode(os.urandom(32)).decode("ascii")
-    monkeypatch.setenv(
-        "ICODER_SOFT_HSM_KEYRING_JSON",
-        json.dumps({
-            "active_key_id": "integration-kek-v2",
+    bootstrap_key = bytearray(os.urandom(32))
+    key_store = (tmp_path / "integration-software-hsm.keys").resolve()
+    key_store.write_bytes(seal_keyring(
+        {
+            "active_key_id": "integration-kek-v1",
             "keys": {
-                "integration-kek-v1": {"key": hsm_key, "state": "decrypt-only"},
-                "integration-kek-v2": {"key": new_hsm_key, "state": "active"},
+                "integration-kek-v1": {"key": hsm_key, "state": "active"},
             },
-        }),
+        },
+        bootstrap_key=bootstrap_key,
+        generation=1,
+    ))
+    os.chmod(key_store, 0o600)
+    rotation = rotate_key_store(
+        key_store, new_key_id="integration-kek-v2", expected_generation=1,
+        bootstrap_key=bootstrap_key,
     )
+    assert rotation["generation"] == 2
+    monkeypatch.setenv("ICODER_SOFT_HSM_KEYSTORE_PATH", str(key_store))
+    monkeypatch.setenv(
+        "ICODER_SOFT_HSM_BOOTSTRAP_KEY",
+        base64.urlsafe_b64encode(bootstrap_key).decode("ascii"),
+    )
+    monkeypatch.setenv("ICODER_SOFT_HSM_MIN_GENERATION", "2")
+    monkeypatch.setenv("ICODER_SOFT_HSM_REQUIRE_ENCRYPTED_KEYSTORE", "true")
     preview_rewrap = rewrap_deks(MIGRATION_URL, execute=False, batch_size=1)
     assert preview_rewrap["values_to_rewrap"] == 3
     applied_rewrap = rewrap_deks(MIGRATION_URL, execute=True, batch_size=1)

@@ -43,6 +43,7 @@ _ENV_KEYS = (
     "ICODER_SOFT_HSM_OPS_AUDIT_KEY",
     "ICODER_SOFT_HSM_OPS_AUDIT_KEY_ID",
     "ICODER_SOFT_HSM_OPS_AUDIT_MIN_SEQUENCE",
+    "ICODER_SOFT_HSM_AUDIT_ARCHIVE_REQUIRED",
 )
 
 
@@ -81,6 +82,7 @@ def run() -> dict:
                 "ICODER_SOFT_HSM_OPS_AUDIT_KEY": _encoded(audit_key),
                 "ICODER_SOFT_HSM_OPS_AUDIT_KEY_ID": "drill-audit-v1",
                 "ICODER_SOFT_HSM_OPS_AUDIT_MIN_SEQUENCE": "0",
+                "ICODER_SOFT_HSM_AUDIT_ARCHIVE_REQUIRED": "false",
             })
             created = _audited_mutation(
                 operation="create", path=key_store, expected_generation=0,

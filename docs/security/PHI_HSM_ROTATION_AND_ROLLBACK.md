@@ -123,13 +123,17 @@ ICODER_SOFT_HSM_KEYSTORE_PATH=/run/secrets/icoder/software-hsm.keys
 ICODER_SOFT_HSM_BOOTSTRAP_KEY=<base64url 32 bytes, injected separately>
 ICODER_SOFT_HSM_MIN_GENERATION=1
 ICODER_SOFT_HSM_REQUIRE_ENCRYPTED_KEYSTORE=true
+ICODER_SOFT_HSM_OPS_AUDIT_PATH=/var/lib/icoder-audit/software-hsm-ops.jsonl
+ICODER_SOFT_HSM_OPS_AUDIT_KEY=<independent base64url 32+ bytes>
+ICODER_SOFT_HSM_OPS_AUDIT_KEY_ID=soft-hsm-ops-audit-v1
 ```
 
 初始化必须在离线或受控 operator 环境执行：
 
 ```text
 python scripts/manage_soft_hsm_keystore.py create \
-  --path /run/secrets/icoder/software-hsm.keys --key-id soft-hsm-kek-v1
+  --path /run/secrets/icoder/software-hsm.keys --key-id soft-hsm-kek-v1 \
+  --change-ticket CHANGE-12345
 ```
 
 密钥库文件和 bootstrap key 必须分别备份。文件权限在 POSIX 上必须为当前 runtime owner 的
@@ -141,7 +145,8 @@ python scripts/manage_soft_hsm_keystore.py create \
 轮换步骤：
 
 1. 执行 `python scripts/manage_soft_hsm_keystore.py rotate --path <absolute-path>
-   --new-key-id soft-hsm-kek-v2 --expected-generation 1`。工具在 operator lock 内原子替换文件，
+   --new-key-id soft-hsm-kek-v2 --expected-generation 1 --change-ticket CHANGE-12345`。
+   工具在 operator lock 内原子替换文件，
    自动把旧 KEK 改为 `decrypt-only`、新 KEK 改为唯一 `active`。
 2. 将返回的 generation 更新到部署系统的 minimum generation，滚动部署并确认新写入引用新 key ID。
 3. 运行 `python scripts/rewrap_phi_deks.py`；dry-run 必须能解析所有旧 key ID。
@@ -162,3 +167,58 @@ execute 命令必须能使用 app 角色写入 `phi.key_rewrap.started/completed
 `phi.key_retirement.verified`。这些事件由现有签名链封装并追加到不可变审计归档；审计写入失败
 会阻断命令。PR 的 `P1 PHI / Multi-tenant Release Gate` 会从空库完成角色 provisioning、
 迁移到 072，并执行 PHI、RLS、在线轮换、回退和 artifact scanner 测试。
+
+## 8. bootstrap key 轮换
+
+bootstrap key 只负责加密 key store，不包装数据库 DEK。因此它可以在不扫描或更新数据库的
+情况下轮换：
+
+1. 从独立 secret manager 注入当前 `ICODER_SOFT_HSM_BOOTSTRAP_KEY`。
+2. 临时注入一次性 `ICODER_SOFT_HSM_NEW_BOOTSTRAP_KEY`，不得写入命令参数或日志。
+3. 执行：
+   `python scripts/manage_soft_hsm_keystore.py rotate-bootstrap --path <absolute-path>
+   --expected-generation <current> --change-ticket <ticket>`。
+4. 工具使用旧 bootstrap 解封，在内存中保持相同 KEK/key state，以新 bootstrap 重新 seal，
+   generation 加一后原子替换。
+5. 更新 secret manager 中的 active bootstrap 和独立 minimum generation，再滚动重启。
+6. 验证旧 bootstrap 报 authentication failed、新 bootstrap 能读取历史 PHI envelope。
+7. 保留旧 bootstrap 的受控恢复副本至完整回滚窗口结束，之后按双人审批销毁。
+
+bootstrap 轮换不改变数据库 v2 envelope 的任何字节，也不改变 active KEK ID。若 completed
+审计写入失败，密钥库可能已经原子更新，命令会返回失败；operator 必须依据 started 事件和
+密钥库 generation 执行对账，禁止盲目重跑旧 expected-generation。
+
+## 9. 独立不可变运维审计链
+
+所有 CLI 突变命令强制要求独立的 audit path、audit key、audit key ID 和 change ticket。每次
+操作写入 `started`，随后写入 `completed` 或 `failed`。事件只允许以下元数据：operation、phase、
+outcome、key-store 路径哈希标识、expected/result generation、active key ID、key states、异常类型
+和 change ticket。结构白名单阻止把 KEK、bootstrap key、PHI、ciphertext 或数据库 URL 写入。
+
+JSONL 每条记录绑定 event、recorded_at、event_id、sequence、previous hash 和 payload hash，使用
+独立 HMAC-SHA256 key 签名。写入使用 `O_APPEND`、文件锁、0600、fsync 和链头复验。验证：
+
+```text
+ICODER_SOFT_HSM_OPS_AUDIT_MIN_SEQUENCE=<外部保存的最小序号>
+python scripts/verify_soft_hsm_ops_audit.py \
+  --minimum-sequence "$ICODER_SOFT_HSM_OPS_AUDIT_MIN_SEQUENCE"
+```
+
+本地文件能检测插入、修改、重排、中段删除和错误签名；外部 minimum sequence 检测尾部回滚。
+它不能抵抗 privileged host administrator 同时删除文件和外部 checkpoint。生产必须持续将记录与
+chain head 复制到 object-lock/WORM 或独立审计系统，且 audit key 不能与 bootstrap key 相同。
+
+## 10. 灾备演练
+
+运行 `python scripts/rehearse_soft_hsm_disaster_recovery.py`。工具只使用一次性随机 key、临时目录
+和明确标记的 synthetic PHI，不连接生产数据库、不保留密钥或明文 artifact。通过条件：
+
+- key store 丢失时 fail closed；
+- bootstrap key 丢失时 fail closed；
+- generation 1 文件在 floor=2 时被识别为 rollback；
+- bootstrap generation 2→3 后旧 bootstrap 失败、新 bootstrap 能读取历史 PHI；
+- 审计链 mutation 和 tail rollback 均被识别；
+- 审计记录数和 head hash 通过独立验证。
+
+除自包含演练外，发布前还需在 disposable PostgreSQL 恢复库执行真实备份恢复测试。当前集成
+测试已验证 bootstrap 轮换不改变数据库 PHI envelope，并覆盖 072→070→072 populated 回退。

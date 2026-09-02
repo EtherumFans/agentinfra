@@ -75,7 +75,8 @@ python scripts/provision_postgresql_roles.py verify --json-output <受控报告�
 `verify` 会检查：
 
 - 两个角色存在、可登录，且均无 superuser、BYPASSRLS、建库、建角色和 replication
-  能力；
+  能力，同时必须为 `NOINHERIT`；
+- app 角色不存在任何父角色 membership，避免通过显式 `SET ROLE` 获得额外权限；
 - migration 角色拥有 schema 及其中的表、序列、视图和函数；
 - app 角色有 schema 使用权、无创建权；
 - app 对所有现有表、序列和函数拥有准确的运行权限；

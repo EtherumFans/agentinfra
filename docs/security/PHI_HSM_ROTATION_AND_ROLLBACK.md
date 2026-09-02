@@ -109,3 +109,40 @@ DLP、访问控制、备份加密、WAL 归档加密和定期人工审查。
 - 未排空 writer 就请求 plaintext compatibility execute；
 - 软件 HSM 被误称为真实生产 HSM。
 
+## 7. v2 KEK 在线轮换（只重包裹 DEK）
+
+Phase 4 使用一个受严格校验的 keyring 管理多个 KEK。配置必须恰好有一个 `active`，旧 KEK
+只能是 `decrypt-only`；`retired` 和 `revoked` 均拒绝解包。兼容的单 KEK 环境变量仍可用于
+首次部署，但正式轮换使用由 Secret Manager 注入的 JSON：
+
+```json
+{
+  "active_key_id": "soft-hsm-kek-v2",
+  "keys": {
+    "soft-hsm-kek-v1": {"key": "<base64url 32 bytes>", "state": "decrypt-only"},
+    "soft-hsm-kek-v2": {"key": "<base64url 32 bytes>", "state": "active"}
+  }
+}
+```
+
+JSON 通过 `ICODER_SOFT_HSM_KEYRING_JSON` 注入，禁止保存到仓库、镜像层、报告或任务日志。
+轮换步骤：
+
+1. 将旧 KEK 改为 `decrypt-only`、新 KEK 改为唯一 `active`，滚动部署并确认新写入引用新 key ID。
+2. 运行 `python scripts/rewrap_phi_deks.py`；dry-run 必须能解析所有旧 key ID。
+3. 设置 `P1_POSTGRES_APP_DATABASE_URL` 和审计签名密钥后，运行
+   `python scripts/rewrap_phi_deks.py --execute --batch-size 200`。
+4. 命令会再次全量扫描；只有 `post_verification.retirement_ready=true` 才会写入
+   `phi.key_retirement.verified`。
+5. 保留旧 KEK 为 `decrypt-only` 至少一个完整回滚窗口；确认无备份恢复、延迟副本或离线任务
+   仍引用旧 key ID 后，才能改为 `retired`，最终按审批流程销毁。
+
+重包裹不会解密 PHI ciphertext。它只在内存中短暂解包 32-byte DEK，再由新 KEK 包裹。
+envelope 的 `c`（数据密文）和 `n`（数据 nonce）保持不变；新增 `d` 固定原数据 AAD，`k`
+指向当前 wrapping KEK。每次 generate/wrap/unwrap 只产生 key ID、操作、结果和计数指标，
+不会记录 DEK、KEK、PHI、row ID 或 AAD 内容。
+
+execute 命令必须能使用 app 角色写入 `phi.key_rewrap.started/completed/failed` 和
+`phi.key_retirement.verified`。这些事件由现有签名链封装并追加到不可变审计归档；审计写入失败
+会阻断命令。PR 的 `P1 PHI / Multi-tenant Release Gate` 会从空库完成角色 provisioning、
+迁移到 072，并执行 PHI、RLS、在线轮换、回退和 artifact scanner 测试。

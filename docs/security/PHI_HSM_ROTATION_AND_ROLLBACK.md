@@ -18,7 +18,7 @@ KEK 不进入数据库 envelope。v2 metadata、key ID 和算法作为 AAD 参�
 
 ## 2. 演练配置
 
-以下变量必须由进程级 secret injection 提供，不写入 `.env`、报告或命令历史：
+单 KEK 环境变量只允许本地开发和兼容测试，不得用于 cloud 模式：
 
 ```dotenv
 ICODER_PHI_KEY_PROVIDER=software_hsm
@@ -27,6 +27,9 @@ ICODER_SOFT_HSM_MASTER_KEY=<base64url encoded 32 bytes>
 ICODER_PHI_ENCRYPTION_KEY_V1=<legacy Fernet key, rotation window only>
 P1_POSTGRES_MIGRATION_DATABASE_URL=<migration-role URL>
 ```
+
+cloud 模式使用第 7 节的加密密钥库。bootstrap key 必须通过独立 secret injection 提供，
+不得与密钥库文件保存在同一 volume、备份或配置对象中。
 
 生产接入真实 KMS/HSM 时应保留 `KeyWrappingProvider` 边界，将
 `generate_data_key`/`unwrap_data_key` 替换为供应商 API，并使用 workload identity、
@@ -112,30 +115,43 @@ DLP、访问控制、备份加密、WAL 归档加密和定期人工审查。
 ## 7. v2 KEK 在线轮换（只重包裹 DEK）
 
 Phase 4 使用一个受严格校验的 keyring 管理多个 KEK。配置必须恰好有一个 `active`，旧 KEK
-只能是 `decrypt-only`；`retired` 和 `revoked` 均拒绝解包。兼容的单 KEK 环境变量仍可用于
-首次部署，但正式轮换使用由 Secret Manager 注入的 JSON：
+只能是 `decrypt-only`；`retired` 和 `revoked` 均拒绝解包。Phase 5 将 keyring 保存为
+AES-256-GCM 认证加密文件，文件中不出现可搜索的 key ID 或 KEK。运行时配置：
 
-```json
-{
-  "active_key_id": "soft-hsm-kek-v2",
-  "keys": {
-    "soft-hsm-kek-v1": {"key": "<base64url 32 bytes>", "state": "decrypt-only"},
-    "soft-hsm-kek-v2": {"key": "<base64url 32 bytes>", "state": "active"}
-  }
-}
+```dotenv
+ICODER_SOFT_HSM_KEYSTORE_PATH=/run/secrets/icoder/software-hsm.keys
+ICODER_SOFT_HSM_BOOTSTRAP_KEY=<base64url 32 bytes, injected separately>
+ICODER_SOFT_HSM_MIN_GENERATION=1
+ICODER_SOFT_HSM_REQUIRE_ENCRYPTED_KEYSTORE=true
 ```
 
-JSON 通过 `ICODER_SOFT_HSM_KEYRING_JSON` 注入，禁止保存到仓库、镜像层、报告或任务日志。
+初始化必须在离线或受控 operator 环境执行：
+
+```text
+python scripts/manage_soft_hsm_keystore.py create \
+  --path /run/secrets/icoder/software-hsm.keys --key-id soft-hsm-kek-v1
+```
+
+密钥库文件和 bootstrap key 必须分别备份。文件权限在 POSIX 上必须为当前 runtime owner 的
+`0600` 或更严格；符号链接、非普通文件、超过 1 MiB 的文件均拒绝加载。Windows 部署必须由
+平台配置仅 service identity 可读写的 ACL；Python 的 POSIX mode 检查不能替代 Windows ACL。
+
+密钥库包含单调递增 `generation`。部署系统必须把成功操作返回的 generation 更新到独立的
+`ICODER_SOFT_HSM_MIN_GENERATION`；低于该值的历史文件会被判定为 rollback 并拒绝启动。
 轮换步骤：
 
-1. 将旧 KEK 改为 `decrypt-only`、新 KEK 改为唯一 `active`，滚动部署并确认新写入引用新 key ID。
-2. 运行 `python scripts/rewrap_phi_deks.py`；dry-run 必须能解析所有旧 key ID。
-3. 设置 `P1_POSTGRES_APP_DATABASE_URL` 和审计签名密钥后，运行
+1. 执行 `python scripts/manage_soft_hsm_keystore.py rotate --path <absolute-path>
+   --new-key-id soft-hsm-kek-v2 --expected-generation 1`。工具在 operator lock 内原子替换文件，
+   自动把旧 KEK 改为 `decrypt-only`、新 KEK 改为唯一 `active`。
+2. 将返回的 generation 更新到部署系统的 minimum generation，滚动部署并确认新写入引用新 key ID。
+3. 运行 `python scripts/rewrap_phi_deks.py`；dry-run 必须能解析所有旧 key ID。
+4. 设置 `P1_POSTGRES_APP_DATABASE_URL` 和审计签名密钥后，运行
    `python scripts/rewrap_phi_deks.py --execute --batch-size 200`。
-4. 命令会再次全量扫描；只有 `post_verification.retirement_ready=true` 才会写入
+5. 命令会再次全量扫描；只有 `post_verification.retirement_ready=true` 才会写入
    `phi.key_retirement.verified`。
-5. 保留旧 KEK 为 `decrypt-only` 至少一个完整回滚窗口；确认无备份恢复、延迟副本或离线任务
-   仍引用旧 key ID 后，才能改为 `retired`，最终按审批流程销毁。
+6. 保留旧 KEK 为 `decrypt-only` 至少一个完整回滚窗口；确认无备份恢复、延迟副本或离线任务
+   仍引用旧 key ID 后，执行 `set-state --state retired --authorization ZERO_REFERENCES_VERIFIED`
+   并更新 minimum generation。紧急撤销使用 `--state revoked --authorization EMERGENCY_REVOKE`。
 
 重包裹不会解密 PHI ciphertext。它只在内存中短暂解包 32-byte DEK，再由新 KEK 包裹。
 envelope 的 `c`（数据密文）和 `n`（数据 nonce）保持不变；新增 `d` 固定原数据 AAD，`k`

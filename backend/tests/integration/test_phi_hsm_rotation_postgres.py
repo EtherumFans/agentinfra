@@ -14,10 +14,14 @@ import psycopg
 import pytest
 from cryptography.fernet import Fernet
 
-from app.services.phi_encryption import encrypt_phi_v1
+from app.services.phi_encryption import decrypt_phi, encrypt_phi_v1
 from app.services.soft_hsm_keystore import seal_keyring
 from scripts.backfill_phi_envelopes import run as backfill
-from scripts.manage_soft_hsm_keystore import rotate as rotate_key_store
+from scripts.manage_soft_hsm_keystore import (
+    inspect as inspect_key_store,
+    rotate as rotate_key_store,
+    rotate_bootstrap,
+)
 from scripts.prepare_phi_070_compatibility import run as restore_070
 from scripts.rewrap_phi_deks import run as rewrap_deks
 from scripts.rotate_phi_envelopes import run as rotate
@@ -186,6 +190,26 @@ def test_v1_v2_online_rotation_and_populated_070_compatibility(
     assert before_payload["n"] == after_payload["n"]
     assert after_payload["k"] == "integration-kek-v2"
     assert after_payload["d"] == "integration-kek-v1"
+
+    new_bootstrap_key = bytearray(os.urandom(32))
+    bootstrap_rotation = rotate_bootstrap(
+        key_store, expected_generation=2, bootstrap_key=bootstrap_key,
+        new_bootstrap_key=new_bootstrap_key,
+    )
+    assert bootstrap_rotation["generation"] == 3
+    with pytest.raises(RuntimeError, match="authentication failed"):
+        inspect_key_store(key_store, bootstrap_key=bootstrap_key)
+    monkeypatch.setenv(
+        "ICODER_SOFT_HSM_BOOTSTRAP_KEY",
+        base64.urlsafe_b64encode(new_bootstrap_key).decode("ascii"),
+    )
+    monkeypatch.setenv("ICODER_SOFT_HSM_MIN_GENERATION", "3")
+    assert decrypt_phi(after_rewrap) == "rollback symptom"
+    with psycopg.connect(_raw(MIGRATION_URL)) as connection:
+        with connection.cursor() as cursor:
+            _set_tenant(cursor, organization_id)
+            cursor.execute("SELECT admission_reason FROM encounters WHERE id=%s", (row_id,))
+            assert str(cursor.fetchone()[0]) == after_rewrap
     blocked = _alembic("-071", expect_failure=True)
     assert "refuses downgrade while HSM v2 PHI remains" in blocked
 

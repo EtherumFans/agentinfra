@@ -42,7 +42,6 @@ jobs:
       ICODER_POSTGRES_MIGRATION_PASSWORD: ci_migration_only
       ICODER_POSTGRES_APP_PASSWORD: ci_app_only
       ICODER_PHI_KEY_PROVIDER: software_hsm
-      ICODER_SOFT_HSM_KEY_ID: ci-kek-v1
       ICODER_ALLOW_DEGRADED_NO_KEY: "0"
     defaults:
       run:
@@ -59,10 +58,18 @@ jobs:
           python - <<'PY'
           import base64, os, secrets
           with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as env:
-              env.write("ICODER_SOFT_HSM_MASTER_KEY=" + base64.urlsafe_b64encode(secrets.token_bytes(32)).decode() + "\n")
+              env.write("ICODER_SOFT_HSM_BOOTSTRAP_KEY=" + base64.urlsafe_b64encode(secrets.token_bytes(32)).decode() + "\n")
+              env.write("ICODER_SOFT_HSM_KEYSTORE_PATH=" + os.path.join(os.environ["RUNNER_TEMP"], "software-hsm.keys") + "\n")
+              env.write("ICODER_SOFT_HSM_MIN_GENERATION=1\n")
+              env.write("ICODER_SOFT_HSM_REQUIRE_ENCRYPTED_KEYSTORE=true\n")
               env.write("ICODER_AUDIT_SIGNING_KEY=" + secrets.token_urlsafe(64) + "\n")
               env.write("ICODER_AUDIT_SIGNING_KEY_ID=ci-audit-v1\n")
           PY
+      - name: Create encrypted software-HSM key store
+        run: >-
+          python scripts/manage_soft_hsm_keystore.py create
+          --path "$ICODER_SOFT_HSM_KEYSTORE_PATH"
+          --key-id ci-kek-v1
       - name: Provision least-privilege database identities
         run: >-
           python scripts/provision_postgresql_roles.py provision

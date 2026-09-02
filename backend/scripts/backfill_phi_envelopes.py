@@ -26,9 +26,9 @@ if str(BACKEND_ROOT) not in sys.path:
     sys.path.insert(0, str(BACKEND_ROOT))
 
 from app.services.phi_encryption import (
-    encrypt_phi,
+    encrypt_phi_v1,
     is_encrypted_value,
-    is_encryption_enabled,
+    is_legacy_v1_enabled,
 )
 
 
@@ -103,8 +103,8 @@ def _serialize_json(value: Any) -> str:
 
 
 def run(database_url: str, *, execute: bool) -> dict[str, Any]:
-    if not is_encryption_enabled():
-        raise RuntimeError("ICODER_PHI_ENCRYPTION_KEY must be configured")
+    if not is_legacy_v1_enabled():
+        raise RuntimeError("legacy v1 PHI encryption key must be configured")
     report: dict[str, Counts] = {}
     with psycopg.connect(_url(database_url)) as connection:
         with connection.cursor() as cursor:
@@ -145,7 +145,7 @@ def run(database_url: str, *, execute: bool) -> dict[str, Any]:
                                         continue
                                     counts.plaintext += 1
                                     if execute:
-                                        encrypted = encrypt_phi(serialized)
+                                        encrypted = encrypt_phi_v1(serialized)
                                         stored: Any = Jsonb(encrypted) if is_json else encrypted
                                         cursor.execute(
                                             sql.SQL("UPDATE {} SET {}=%s WHERE id=%s").format(

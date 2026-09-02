@@ -55,6 +55,13 @@ def test_provisioning_is_idempotent_and_defaults_cover_new_objects() -> None:
         assert report["ok"] is True, report
         assert report["objects_checked"] >= 2
         assert report["functions_checked"] == 1
+
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT rolinherit FROM pg_roles WHERE rolname = ANY(%s) ORDER BY rolname",
+                ([migration_role, app_role],),
+            )
+            assert all(row[0] is False for row in cursor.fetchall())
     finally:
         with connection.cursor() as cursor:
             cursor.execute("RESET ROLE")

@@ -284,7 +284,7 @@ def verify(connection: psycopg.Connection[Any], spec: RoleSpec) -> dict[str, Any
         cursor.execute(
             """
             SELECT rolname, rolsuper, rolbypassrls, rolcreatedb, rolcreaterole,
-                   rolreplication, rolcanlogin
+                   rolreplication, rolinherit, rolcanlogin
             FROM pg_roles WHERE rolname = ANY(%s)
             """,
             ([spec.migration_role, spec.app_role],),
@@ -296,12 +296,30 @@ def verify(connection: psycopg.Connection[Any], spec: RoleSpec) -> dict[str, Any
                 failures.append(f"role_missing:{name}")
                 continue
             for forbidden in (
-                "rolsuper", "rolbypassrls", "rolcreatedb", "rolcreaterole", "rolreplication"
+                "rolsuper", "rolbypassrls", "rolcreatedb", "rolcreaterole",
+                "rolreplication", "rolinherit",
             ):
                 if state[forbidden]:
                     failures.append(f"role_unsafe:{name}:{forbidden}")
             if not state["rolcanlogin"]:
                 failures.append(f"role_cannot_login:{name}")
+
+        # NOINHERIT is insufficient by itself: a runtime identity that is a
+        # member of another role can still explicitly SET ROLE. Runtime has no
+        # legitimate parent role, so any membership is release-blocking drift.
+        cursor.execute(
+            """
+            SELECT parent.rolname
+            FROM pg_auth_members membership
+            JOIN pg_roles child ON child.oid=membership.member
+            JOIN pg_roles parent ON parent.oid=membership.roleid
+            WHERE child.rolname=%s
+            ORDER BY parent.rolname
+            """,
+            (spec.app_role,),
+        )
+        for row in cursor.fetchall():
+            failures.append(f"app_role_membership_present:{row['rolname']}")
 
         cursor.execute(
             """

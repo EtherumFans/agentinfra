@@ -116,10 +116,11 @@ def test_encrypt_empty_string_passes_through(monkeypatch) -> None:
 
 
 def test_is_encrypted_value_detection() -> None:
-    """``is_encrypted_value`` correctly identifies the prefix."""
+    """Detection requires a complete supported envelope structure."""
     from app.services.phi_encryption import is_encrypted_value
-    assert is_encrypted_value("v1:gAAAAA==")
-    assert is_encrypted_value("v2:gAAAAA==")
+    assert is_encrypted_value("v1:gAAAAA" + "A" * 92 + "==")
+    assert is_encrypted_value("v2:" + "A" * 160)
+    assert not is_encrypted_value("v1:gAAAAA==")
     assert not is_encrypted_value("plain text")
     assert not is_encrypted_value("")
     assert not is_encrypted_value(None)
@@ -237,11 +238,13 @@ def test_cloud_mode_refuses_boot_without_encryption_key(monkeypatch) -> None:
     monkeypatch.setenv("RUNTRACE_STORE", "db")
     monkeypatch.setenv("RUNTRACE_FAIL_CLOSED", "0")
     monkeypatch.delenv("ICODER_PHI_ENCRYPTION_KEY", raising=False)
+    monkeypatch.delenv("ICODER_PHI_KEY_PROVIDER", raising=False)
+    monkeypatch.delenv("ICODER_SOFT_HSM_MASTER_KEY", raising=False)
     monkeypatch.delenv("ICODER_PHI_REDACTION_BYPASS", raising=False)
 
     with pytest.raises(RuntimeError) as exc_info:
         Settings()
-    assert "ICODER_PHI_ENCRYPTION_KEY" in str(exc_info.value)
+    assert "PHI key provider" in str(exc_info.value)
 
 
 def test_cloud_mode_refuses_boot_with_redaction_bypass(monkeypatch) -> None:

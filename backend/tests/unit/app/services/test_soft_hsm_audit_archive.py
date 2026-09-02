@@ -8,7 +8,11 @@ from datetime import UTC, datetime, timedelta
 import pytest
 
 import app.services.soft_hsm_ops_audit as audit_module
-from app.services.soft_hsm_audit_archive import ArchivePolicy, LocalWormAuditArchive
+from app.services.soft_hsm_audit_archive import (
+    ArchivePolicy,
+    LocalWormAuditArchive,
+    archive_from_environment,
+)
 from app.services.soft_hsm_ops_audit import append_event, key_store_identifier, verify_audit_file
 from scripts.manage_soft_hsm_keystore import _audited_mutation, create
 
@@ -47,6 +51,16 @@ def test_archive_detects_tamper_missing_duplicate_and_reorder(tmp_path) -> None:
     archive = _archive(tmp_path)
     archive.replicate_records([first, second])
     assert archive.verify(verification_keys={"audit-v1": key}, minimum_sequence=2)["status"] == "passed"
+
+    checkpoint_path = sorted((archive.root / "checkpoints").glob("*.json"))[-1]
+    original_checkpoint = checkpoint_path.read_bytes()
+    checkpoint = json.loads(original_checkpoint)
+    checkpoint["chain_hash"] = "0" * 64
+    checkpoint_path.chmod(0o600)
+    checkpoint_path.write_text(json.dumps(checkpoint), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="checkpoint verification"):
+        archive.verify(verification_keys={"audit-v1": key}, minimum_sequence=2)
+    checkpoint_path.write_bytes(original_checkpoint)
 
     object_paths = sorted((archive.root / "objects").glob("*.json"))
     original_second = object_paths[1].read_bytes()
@@ -203,3 +217,18 @@ def test_required_archive_is_replicated_before_and_after_mutation(tmp_path, monk
         archive_root, checkpoint_key=checkpoint_key, checkpoint_key_id="checkpoint-v1",
         policy=ArchivePolicy(retention_days=2555),
     ).verify(verification_keys={"audit-v1": audit_key}, minimum_sequence=2)["records"] == 2
+
+
+def test_local_worm_simulator_is_forbidden_in_cloud_mode(tmp_path, monkeypatch) -> None:
+    root = (tmp_path / "worm").resolve()
+    root.mkdir()
+    monkeypatch.setenv("ICODER_DEPLOYMENT_MODE", "cloud")
+    monkeypatch.setenv("ICODER_SOFT_HSM_AUDIT_ARCHIVE_ADAPTER", "local_worm_simulator")
+    monkeypatch.setenv("ICODER_SOFT_HSM_AUDIT_ARCHIVE_ROOT", str(root))
+    monkeypatch.setenv(
+        "ICODER_SOFT_HSM_AUDIT_CHECKPOINT_KEY",
+        base64.urlsafe_b64encode(b"checkpoint-independent-key-32-bytes").decode(),
+    )
+    monkeypatch.setenv("ICODER_SOFT_HSM_AUDIT_CHECKPOINT_KEY_ID", "checkpoint-v1")
+    with pytest.raises(RuntimeError, match="forbidden in cloud"):
+        archive_from_environment()

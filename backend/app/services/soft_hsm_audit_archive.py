@@ -260,6 +260,12 @@ def archive_from_environment() -> LocalWormAuditArchive:
     adapter = os.environ.get("ICODER_SOFT_HSM_AUDIT_ARCHIVE_ADAPTER", "").strip()
     if adapter != "local_worm_simulator":
         raise RuntimeError("a supported immutable software HSM audit archive is required")
+    if (
+        os.environ.get("ICODER_DEPLOYMENT_MODE", "local").strip().lower() == "cloud"
+        and os.environ.get("ICODER_ALLOW_LOCAL_WORM_SIMULATOR", "false").strip().lower()
+        not in {"1", "true", "yes", "on"}
+    ):
+        raise RuntimeError("local WORM simulator is forbidden in cloud mode")
     root_value = os.environ.get("ICODER_SOFT_HSM_AUDIT_ARCHIVE_ROOT", "").strip()
     raw_key = os.environ.get("ICODER_SOFT_HSM_AUDIT_CHECKPOINT_KEY", "").strip()
     key_id = os.environ.get("ICODER_SOFT_HSM_AUDIT_CHECKPOINT_KEY_ID", "").strip()

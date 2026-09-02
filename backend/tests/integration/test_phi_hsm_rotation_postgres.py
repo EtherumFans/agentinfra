@@ -17,6 +17,7 @@ from cryptography.fernet import Fernet
 from app.services.phi_encryption import encrypt_phi_v1
 from scripts.backfill_phi_envelopes import run as backfill
 from scripts.prepare_phi_070_compatibility import run as restore_070
+from scripts.rewrap_phi_deks import run as rewrap_deks
 from scripts.rotate_phi_envelopes import run as rotate
 
 
@@ -128,6 +129,43 @@ def test_v1_v2_online_rotation_and_populated_070_compatibility(monkeypatch, requ
     forward = rotate(MIGRATION_URL, target="v2", execute=True, batch_size=1)
     assert forward["values"] == 3
     assert rotate(MIGRATION_URL, target="v2", execute=False, batch_size=1)["values"] == 0
+
+    with psycopg.connect(_raw(MIGRATION_URL)) as connection:
+        with connection.cursor() as cursor:
+            _set_tenant(cursor, organization_id)
+            cursor.execute("SELECT admission_reason FROM encounters WHERE id=%s", (row_id,))
+            before_rewrap = str(cursor.fetchone()[0])
+    new_hsm_key = base64.urlsafe_b64encode(os.urandom(32)).decode("ascii")
+    monkeypatch.setenv(
+        "ICODER_SOFT_HSM_KEYRING_JSON",
+        json.dumps({
+            "active_key_id": "integration-kek-v2",
+            "keys": {
+                "integration-kek-v1": {"key": hsm_key, "state": "decrypt-only"},
+                "integration-kek-v2": {"key": new_hsm_key, "state": "active"},
+            },
+        }),
+    )
+    preview_rewrap = rewrap_deks(MIGRATION_URL, execute=False, batch_size=1)
+    assert preview_rewrap["values_to_rewrap"] == 3
+    applied_rewrap = rewrap_deks(MIGRATION_URL, execute=True, batch_size=1)
+    assert applied_rewrap["values_to_rewrap"] == 3
+    assert rewrap_deks(MIGRATION_URL, execute=False, batch_size=1)["retirement_ready"]
+    with psycopg.connect(_raw(MIGRATION_URL)) as connection:
+        with connection.cursor() as cursor:
+            _set_tenant(cursor, organization_id)
+            cursor.execute("SELECT admission_reason FROM encounters WHERE id=%s", (row_id,))
+            after_rewrap = str(cursor.fetchone()[0])
+
+    def envelope(value: str) -> dict:
+        encoded = value[3:] + "=" * (-len(value[3:]) % 4)
+        return json.loads(base64.urlsafe_b64decode(encoded))
+
+    before_payload, after_payload = envelope(before_rewrap), envelope(after_rewrap)
+    assert before_payload["c"] == after_payload["c"]
+    assert before_payload["n"] == after_payload["n"]
+    assert after_payload["k"] == "integration-kek-v2"
+    assert after_payload["d"] == "integration-kek-v1"
     blocked = _alembic("-071", expect_failure=True)
     assert "refuses downgrade while HSM v2 PHI remains" in blocked
 

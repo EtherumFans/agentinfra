@@ -204,6 +204,63 @@ python scripts/verify_soft_hsm_ops_audit.py \
   --minimum-sequence "$ICODER_SOFT_HSM_OPS_AUDIT_MIN_SEQUENCE"
 ```
 
+## Phase 7：不可变归档与签名轮换
+
+生产环境的密钥库突变必须设置 `ICODER_SOFT_HSM_AUDIT_ARCHIVE_REQUIRED=true`。
+当前仓库提供 `local_worm_simulator` 用于 CI 和开发验收；它验证 create-only object、保留期、
+Legal Hold、独立 checkpoint、恢复和导出契约，但不能抵抗拥有主机管理员权限的人直接修改磁盘，
+不得作为真实生产 WORM 的替代品。
+
+```text
+ICODER_SOFT_HSM_AUDIT_ARCHIVE_REQUIRED=true
+ICODER_SOFT_HSM_AUDIT_ARCHIVE_ADAPTER=local_worm_simulator
+ICODER_SOFT_HSM_AUDIT_ARCHIVE_ROOT=/var/lib/icoder-audit-worm
+ICODER_SOFT_HSM_AUDIT_CHECKPOINT_KEY=<independent base64url 32+ bytes>
+ICODER_SOFT_HSM_AUDIT_CHECKPOINT_KEY_ID=checkpoint-v1
+ICODER_SOFT_HSM_AUDIT_RETENTION_DAYS=2555
+ICODER_SOFT_HSM_AUDIT_LEGAL_HOLD=false
+ICODER_OPERATOR_IDENTITY=deployment-service
+ICODER_DEPLOYMENT_ENVIRONMENT=production
+ICODER_RELEASE_VERSION=<immutable release identifier>
+```
+
+checkpoint key 必须不同于 ops-audit key、当前 bootstrap key 和待轮换 bootstrap key。归档不可用、
+checkpoint 无法写入或归档复验失败时，started 事件之后、密钥库突变之前 fail closed。若突变完成后
+completed 事件归档失败，命令仍返回失败，值班人员必须按 generation、local chain 和 WORM objects
+执行对账。
+
+审计签名密钥轮换采用 active writer + historical verifier keyring：
+
+```text
+ICODER_SOFT_HSM_OPS_AUDIT_KEY=<active key bytes>
+ICODER_SOFT_HSM_OPS_AUDIT_KEY_ID=ops-audit-v2
+ICODER_SOFT_HSM_OPS_AUDIT_KEYS={"ops-audit-v1":"<old>","ops-audit-v2":"<active>"}
+```
+
+旧 key 必须保留在只读验证 keyring，直到其签名记录超过全部法定保留期且对应归档已依法处置。
+单个本地 JSONL segment 达到 16 MiB 时自动创建六位编号 segment；sequence、previous hash 和
+chain hash 跨 segment 连续。所有 segment 的总读取上限为 256 MiB；WORM object 是长期权威副本，
+本地 segment 只是可恢复 spool。
+
+验证本地链和不可变归档：
+
+```bash
+python scripts/verify_soft_hsm_ops_audit.py \
+  --minimum-sequence "$ICODER_SOFT_HSM_OPS_AUDIT_MIN_SEQUENCE" \
+  --verify-archive
+```
+
+导出工具只创建新文件，不覆盖既有证据；导出包含经签名的最小化运维记录，不包含 archive
+checkpoint key、audit key、bootstrap key、KEK、DEK、PHI、密文或数据库 URL：
+
+```bash
+python scripts/export_soft_hsm_ops_audit.py --output /secure/export/hsm-audit-evidence.json
+```
+
+真实生产适配器必须由选定云厂商或独立归档平台提供 compliance-mode object lock、独立 IAM、
+服务端 retention/Legal Hold 和跨区域复制，并通过与本地模拟器相同的契约测试。未完成真实适配器
+认证前，Phase 7 只能判定为“工程基线完成”，不能宣称生产 WORM 已上线。
+
 本地文件能检测插入、修改、重排、中段删除和错误签名；外部 minimum sequence 检测尾部回滚。
 它不能抵抗 privileged host administrator 同时删除文件和外部 checkpoint。生产必须持续将记录与
 chain head 复制到 object-lock/WORM 或独立审计系统，且 audit key 不能与 bootstrap key 相同。

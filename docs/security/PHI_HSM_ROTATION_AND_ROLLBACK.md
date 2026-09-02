@@ -1,6 +1,6 @@
 # PHI 软件 HSM、v1→v2 轮换、备份/WAL 扫描与回退手册
 
-适用 schema：revision 072。本文中的 `software_hsm` 只模拟 KMS/HSM 的
+适用 schema：revision 073（PHI envelope 存储契约由 revision 072 建立）。本文中的 `software_hsm` 只模拟 KMS/HSM 的
 wrapped-DEK 接口，不提供硬件隔离、抗侧信道、密钥不可导出认证或正式合规证明。
 
 ## 1. v2 envelope
@@ -260,6 +260,68 @@ python scripts/export_soft_hsm_ops_audit.py --output /secure/export/hsm-audit-ev
 真实生产适配器必须由选定云厂商或独立归档平台提供 compliance-mode object lock、独立 IAM、
 服务端 retention/Legal Hold 和跨区域复制，并通过与本地模拟器相同的契约测试。未完成真实适配器
 认证前，Phase 7 只能判定为“工程基线完成”，不能宣称生产 WORM 已上线。
+
+## Phase 7.1：AWS S3 Object Lock 生产适配器
+
+首个真实归档适配器为 `aws_s3_object_lock`。它只支持 AWS SDK 默认凭据链，不接受 access key 命令行
+参数或自定义 HTTP endpoint。bucket 必须启用 Versioning 和 Object Lock，默认 retention 必须是
+COMPLIANCE，并使用独立的 SSE-KMS customer-managed key。
+
+```text
+ICODER_DEPLOYMENT_MODE=cloud
+ICODER_SOFT_HSM_AUDIT_ARCHIVE_REQUIRED=true
+ICODER_SOFT_HSM_AUDIT_ARCHIVE_ADAPTER=aws_s3_object_lock
+ICODER_SOFT_HSM_AUDIT_S3_REGION=ap-east-1
+ICODER_SOFT_HSM_AUDIT_S3_BUCKET=<dedicated audit bucket>
+ICODER_SOFT_HSM_AUDIT_S3_PREFIX=software-hsm/v1
+ICODER_SOFT_HSM_AUDIT_S3_EXPECTED_OWNER=<12 digit AWS account ID>
+ICODER_SOFT_HSM_AUDIT_S3_KMS_KEY_ID=<full KMS key ARN>
+ICODER_SOFT_HSM_AUDIT_S3_EXPECTED_WRITER_ARN=<exact STS caller ARN>
+ICODER_SOFT_HSM_AUDIT_S3_REPLICA_BUCKET_ARN=<cross-region bucket ARN>
+```
+
+每次 PUT 必须同时满足：
+
+- `IfNoneMatch="*"`，拒绝已存在 object key；
+- `ObjectLockMode="COMPLIANCE"` 和不少于配置天数的 retain-until；
+- SHA-256 SDK checksum；
+- SSE-KMS 且返回的 KMS key ARN 与配置完全一致；
+- expected bucket owner 匹配；
+- 返回非空 VersionId；
+- 立即 HEAD 同一 VersionId，复验 retention、mode、Legal Hold（适用时）和加密信息。
+
+控制面验证：
+
+```bash
+python scripts/verify_soft_hsm_s3_archive.py
+```
+
+该命令验证精确 STS writer ARN、bucket owner、Versioning、默认 COMPLIANCE retention 和指定跨区域
+复制规则。仓库提供
+`deploy/security/aws-s3-object-lock-audit-writer-policy.template.json`；部署时必须替换占位符并由云安全
+团队审查。writer 显式拒绝 DeleteObject、DeleteObjectVersion、BypassGovernanceRetention、修改 bucket
+policy/versioning/Object Lock configuration，也不持有 `PutObjectLegalHold`。Legal Hold 由独立合规身份
+管理，不能与日常 writer 共用权限。
+
+归档对账命令：
+
+```bash
+python scripts/reconcile_soft_hsm_ops_audit.py --max-pending-seconds 900
+```
+
+输出 `checkpoint_lag_before/after`、是否修复、local/archive records、head hash 和告警代码。发现超过阈值
+的 `started` 无 `completed/failed` 时返回退出码 2 和
+`HSM_AUDIT_STARTED_WITHOUT_TERMINAL`。archive 超前于本地 spool 或双方同序号不同 head 时不会自动覆盖，
+必须进入恢复流程。
+
+revision 073 另增加两个最小披露 PostgreSQL bootstrap 函数：
+
+- `icoder_user_has_active_membership(...) -> boolean`；
+- `icoder_oauth_credential_is_active(...) -> boolean`。
+
+它们只在函数内部临时安装候选 tenant context，精确查询 FORCE RLS 表，然后在正常或异常返回前恢复
+原 setting。只有布尔验证成功后，应用层才调用 `bind_tenant_to_transaction`。函数归 migration role
+所有，app role 仅有 EXECUTE，PUBLIC 无 EXECUTE。
 
 本地文件能检测插入、修改、重排、中段删除和错误签名；外部 minimum sequence 检测尾部回滚。
 它不能抵抗 privileged host administrator 同时删除文件和外部 checkpoint。生产必须持续将记录与

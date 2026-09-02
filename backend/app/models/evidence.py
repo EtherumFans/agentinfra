@@ -4,6 +4,7 @@ from sqlalchemy import String, Float, Boolean, JSON, ForeignKey, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
 from app.models.base import TimestampMixin
+from app.services.phi_encryption import EncryptedPHIText
 
 class ClinicalEvidence(Base, TimestampMixin):
     __tablename__ = "clinical_evidences"
@@ -16,7 +17,7 @@ class ClinicalEvidence(Base, TimestampMixin):
         String(12), ForeignKey("documents.id"), nullable=False
     )
     doc_type: Mapped[str] = mapped_column(String(64), nullable=False)
-    text: Mapped[str] = mapped_column(Text, nullable=False)
+    text: Mapped[str] = mapped_column(EncryptedPHIText(), nullable=False)
     entity_type: Mapped[str] = mapped_column(String(64), nullable=False)
     # diagnosis_evidence, procedure_evidence, negation, anatomy, etiology, timing
     supports_codes: Mapped[dict] = mapped_column(JSON, default=list)  # list of code strings

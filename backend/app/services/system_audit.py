@@ -110,6 +110,12 @@ _SYSTEM_AUDIT_ACTIONS_EXTRA: frozenset[str] = frozenset({
     "api_client.rotate",
     # Gate 4.7 — retention purge events (per-tenant and system-scope)
     "retention.purge",
+    # Phase P1 Wave 5 Phase 4 — KEK lifecycle operations. These are
+    # system-scope events and are sealed into the append-only archive.
+    "phi.key_rewrap.started",
+    "phi.key_rewrap.completed",
+    "phi.key_rewrap.failed",
+    "phi.key_retirement.verified",
 })
 
 ALL_SYSTEM_AUDIT_ACTIONS: frozenset[str] = SYSTEM_AUDIT_ACTIONS | _SYSTEM_AUDIT_ACTIONS_EXTRA

@@ -15,7 +15,10 @@ from app.services.phi_encryption import (
     encrypt_phi_bytes,
     encrypt_phi_v1,
     is_encrypted_value,
+    phi_v2_key_id,
+    rewrap_phi_v2,
 )
+from app.services.soft_hsm import SoftwareHSMKeyring, key_operation_metrics_snapshot
 
 
 def _soft_hsm(monkeypatch) -> None:
@@ -24,6 +27,24 @@ def _soft_hsm(monkeypatch) -> None:
     monkeypatch.setenv(
         "ICODER_SOFT_HSM_MASTER_KEY",
         base64.urlsafe_b64encode(os.urandom(32)).decode("ascii"),
+    )
+
+
+def _keyring(monkeypatch, *, old_state: str = "decrypt-only") -> None:
+    keys = {
+        "test-kek-v1": {
+            "key": base64.urlsafe_b64encode(b"1" * 32).decode("ascii"),
+            "state": old_state,
+        },
+        "test-kek-v2": {
+            "key": base64.urlsafe_b64encode(b"2" * 32).decode("ascii"),
+            "state": "active",
+        },
+    }
+    monkeypatch.setenv("ICODER_PHI_KEY_PROVIDER", "software_hsm")
+    monkeypatch.setenv(
+        "ICODER_SOFT_HSM_KEYRING_JSON",
+        json.dumps({"active_key_id": "test-kek-v2", "keys": keys}),
     )
 
 
@@ -119,3 +140,49 @@ def test_postgresql_bind_authenticates_envelope_shaped_input(monkeypatch) -> Non
     _soft_hsm(monkeypatch)
     with pytest.raises(RuntimeError, match="metadata is malformed"):
         EncryptedPHIText().process_bind_param("v2:" + "A" * 200, postgresql.dialect())
+
+
+def test_software_hsm_keyring_rewraps_only_dek(monkeypatch) -> None:
+    monkeypatch.setenv("ICODER_PHI_KEY_PROVIDER", "software_hsm")
+    monkeypatch.setenv("ICODER_SOFT_HSM_KEY_ID", "test-kek-v1")
+    monkeypatch.setenv(
+        "ICODER_SOFT_HSM_MASTER_KEY",
+        base64.urlsafe_b64encode(b"1" * 32).decode("ascii"),
+    )
+    original = encrypt_phi("PHI that must not be data-reencrypted")
+    assert original
+
+    _keyring(monkeypatch)
+    rewrapped = rewrap_phi_v2(original)
+    assert rewrapped != original
+    assert phi_v2_key_id(rewrapped) == "test-kek-v2"
+    assert decrypt_phi(rewrapped) == "PHI that must not be data-reencrypted"
+
+    def payload(value: str) -> dict:
+        raw = value[3:] + "=" * (-len(value[3:]) % 4)
+        return json.loads(base64.urlsafe_b64decode(raw))
+
+    before, after = payload(original), payload(rewrapped)
+    assert after["c"] == before["c"]
+    assert after["n"] == before["n"]
+    assert after["d"] == "test-kek-v1"
+    assert after["w"] != before["w"]
+
+
+def test_software_hsm_key_states_fail_closed_and_emit_safe_metrics(monkeypatch) -> None:
+    _keyring(monkeypatch, old_state="retired")
+    keyring = SoftwareHSMKeyring.from_environment()
+    assert keyring.public_statuses() == {
+        "test-kek-v1": "retired", "test-kek-v2": "active",
+    }
+    with pytest.raises(RuntimeError, match="not enabled for decrypt"):
+        keyring.resolve("test-kek-v1", operation="unwrap")
+    with pytest.raises(RuntimeError, match="unavailable"):
+        keyring.resolve("unknown", operation="unwrap")
+
+    key_operation_metrics_snapshot(reset=True)
+    stored = encrypt_phi("metrics PHI")
+    assert stored and decrypt_phi(stored) == "metrics PHI"
+    metrics = key_operation_metrics_snapshot(reset=True)
+    assert {row["operation"] for row in metrics} == {"generate", "unwrap"}
+    assert all(set(row) == {"operation", "key_id", "status", "count"} for row in metrics)

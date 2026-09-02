@@ -101,6 +101,10 @@ SYSTEM_AUDIT_ACTIONS: frozenset[str] = frozenset({
     "api_client.rotate",
     # Phase A1A Gate 4.7 — retention purge events (per-tenant + system-scope).
     "retention.purge",
+    "phi.key_rewrap.started",
+    "phi.key_rewrap.completed",
+    "phi.key_rewrap.failed",
+    "phi.key_retirement.verified",
 })
 
 # Source string values, mirrored in model column comments.

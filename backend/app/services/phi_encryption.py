@@ -49,7 +49,7 @@ from typing import Optional
 from sqlalchemy import Text
 from sqlalchemy.types import TypeDecorator
 
-from app.services.soft_hsm import SoftwareHSM, zeroize
+from app.services.soft_hsm import SoftwareHSM, SoftwareHSMKeyring, zeroize
 
 logger = logging.getLogger(__name__)
 
@@ -172,6 +172,30 @@ def _v2_context(key_id: str) -> bytes:
     ).encode("utf-8")
 
 
+def _decode_v2_payload(stored: str) -> dict[str, str]:
+    if len(stored) > 64 * 1024 * 1024:
+        raise RuntimeError("PHI v2 envelope exceeds the maximum supported size")
+    try:
+        payload = json.loads(_b64decode(stored[3:]))
+    except Exception as exc:
+        raise RuntimeError("PHI v2 envelope metadata is malformed") from exc
+    allowed_fields = ({"a", "c", "k", "n", "s", "w"}, {"a", "c", "d", "k", "n", "s", "w"})
+    if not isinstance(payload, dict) or set(payload) not in allowed_fields:
+        raise RuntimeError("PHI v2 envelope metadata is invalid")
+    if not all(isinstance(payload[key], str) for key in payload):
+        raise RuntimeError("PHI v2 envelope metadata types are invalid")
+    if payload["a"] != "A256GCM" or payload["s"] != _V2_SCHEMA:
+        raise RuntimeError("PHI v2 envelope algorithm or schema is unsupported")
+    return payload
+
+
+def phi_v2_key_id(stored: str) -> str:
+    """Return KEK metadata without decrypting or exposing PHI."""
+    if not stored.startswith("v2:") or stored.startswith("v2:gAAAAA"):
+        raise RuntimeError("value is not a PHI v2 HSM envelope")
+    return _decode_v2_payload(stored)["k"]
+
+
 def _encrypt_v2(plaintext: bytes) -> str:
     from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
@@ -200,22 +224,10 @@ def _encrypt_v2(plaintext: bytes) -> str:
 def _decrypt_v2(stored: str) -> bytes:
     from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
-    if len(stored) > 64 * 1024 * 1024:
-        raise RuntimeError("PHI v2 envelope exceeds the maximum supported size")
-    try:
-        payload = json.loads(_b64decode(stored[3:]))
-    except Exception as exc:
-        raise RuntimeError("PHI v2 envelope metadata is malformed") from exc
-    if not isinstance(payload, dict) or set(payload) != {"a", "c", "k", "n", "s", "w"}:
-        raise RuntimeError("PHI v2 envelope metadata is invalid")
-    if not all(isinstance(payload[key], str) for key in payload):
-        raise RuntimeError("PHI v2 envelope metadata types are invalid")
-    if payload["a"] != "A256GCM" or payload["s"] != _V2_SCHEMA:
-        raise RuntimeError("PHI v2 envelope algorithm or schema is unsupported")
-    hsm = SoftwareHSM.from_environment()
-    if payload["k"] != hsm.key_id:
-        raise RuntimeError("PHI v2 envelope requires an unavailable HSM key id")
-    context = _v2_context(payload["k"])
+    payload = _decode_v2_payload(stored)
+    hsm = SoftwareHSM.for_key_id_from_environment(payload["k"])
+    wrap_context = _v2_context(payload["k"])
+    data_context = _v2_context(payload.get("d", payload["k"]))
     try:
         wrapped_key = _b64decode(payload["w"])
         nonce = _b64decode(payload["n"])
@@ -224,13 +236,47 @@ def _decrypt_v2(stored: str) -> bytes:
         raise RuntimeError("PHI v2 envelope binary fields are malformed") from exc
     if len(nonce) != 12 or len(ciphertext) < 16:
         raise RuntimeError("PHI v2 envelope binary fields are invalid")
-    data_key = hsm.unwrap_data_key(wrapped_key, context=context)
+    data_key = hsm.unwrap_data_key(wrapped_key, context=wrap_context)
     try:
-        return AESGCM(bytes(data_key)).decrypt(nonce, ciphertext, context)
+        return AESGCM(bytes(data_key)).decrypt(nonce, ciphertext, data_context)
     except Exception as exc:
         raise RuntimeError("PHI v2 envelope authentication failed") from exc
     finally:
         zeroize(data_key)
+
+
+def rewrap_phi_v2(stored: str) -> str:
+    """Rewrap an envelope DEK under the active KEK without decrypting PHI.
+
+    ``d`` preserves the immutable data-ciphertext AAD key id.  Existing
+    six-field envelopes implicitly use ``k`` for both wrapping and data AAD;
+    rewrapped envelopes separate the two so the PHI ciphertext and nonce stay
+    byte-for-byte unchanged.
+    """
+    payload = _decode_v2_payload(stored)
+    keyring = SoftwareHSMKeyring.from_environment()
+    if payload["k"] == keyring.active_key_id:
+        return stored
+    old_hsm = keyring.resolve(payload["k"], operation="unwrap")
+    active_hsm = keyring.active()
+    try:
+        wrapped_key = _b64decode(payload["w"])
+    except Exception as exc:
+        raise RuntimeError("PHI v2 envelope wrapped key is malformed") from exc
+    data_key = old_hsm.unwrap_data_key(wrapped_key, context=_v2_context(payload["k"]))
+    try:
+        rewrapped_key = active_hsm.wrap_data_key(
+            data_key, context=_v2_context(active_hsm.key_id)
+        )
+    finally:
+        zeroize(data_key)
+    payload["d"] = payload.get("d", payload["k"])
+    payload["k"] = active_hsm.key_id
+    payload["w"] = _b64encode(rewrapped_key)
+    encoded = json.dumps(
+        payload, sort_keys=True, separators=(",", ":"),
+    ).encode("utf-8")
+    return "v2:" + _b64encode(encoded)
 
 
 def encrypt_phi_v1(plaintext: Optional[str]) -> Optional[str]:
@@ -587,6 +633,8 @@ __all__ = [
     "generate_key",
     "active_envelope_version",
     "encrypt_phi_v1",
+    "phi_v2_key_id",
+    "rewrap_phi_v2",
     "rotate_encrypted_columns",
     "EncryptedPHIText",
     "EncryptedPHIJSON",

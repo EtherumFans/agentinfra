@@ -63,6 +63,29 @@ class _FakeS3:
         keys = sorted(key for key in self.objects if key.startswith(request["Prefix"]))
         return {"Contents": [{"Key": key} for key in keys], "IsTruncated": False}
 
+    def head_bucket(self, **request):
+        return {}
+
+    def get_bucket_versioning(self, **request):
+        return {"Status": "Enabled"}
+
+    def get_object_lock_configuration(self, **request):
+        return {"ObjectLockConfiguration": {
+            "ObjectLockEnabled": "Enabled",
+            "Rule": {"DefaultRetention": {"Mode": "COMPLIANCE", "Days": 2555}},
+        }}
+
+    def get_bucket_replication(self, **request):
+        return {"ReplicationConfiguration": {"Rules": [{
+            "Status": "Enabled",
+            "Destination": {"Bucket": "arn:aws:s3:::icoder-audit-replica"},
+        }]}}
+
+
+class _FakeSts:
+    def get_caller_identity(self):
+        return {"Arn": "arn:aws:sts::123456789012:assumed-role/audit-writer/release"}
+
 
 def _event(path, phase="started", outcome="pending") -> dict:
     return {
@@ -180,3 +203,15 @@ def test_cloud_environment_builds_real_s3_adapter(monkeypatch) -> None:
     archive = archive_from_environment()
     assert isinstance(archive, S3ObjectLockAuditArchive)
     assert archive.client is client
+
+
+def test_s3_control_plane_requires_compliance_lock_and_replication() -> None:
+    archive = _archive(_FakeS3())
+    report = archive.verify_control_plane(
+        sts_client=_FakeSts(),
+        expected_caller_arn="arn:aws:sts::123456789012:assumed-role/audit-writer/release",
+        replica_bucket_arn="arn:aws:s3:::icoder-audit-replica",
+    )
+    assert report["status"] == "passed"
+    assert report["default_retention_days"] == 2555
+    assert report["replication_rules"] == 1

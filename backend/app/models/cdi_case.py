@@ -39,6 +39,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
 from app.models.base import TimestampMixin
+from app.services.phi_encryption import EncryptedPHIJSON, EncryptedPHIText
 
 
 # ---------------------------------------------------------------------------
@@ -67,8 +68,8 @@ class CDICaseModel(Base, TimestampMixin):
     # Chart context (snapshot at time of CDI run)
     chart_excerpt_hash: Mapped[str] = mapped_column(String(64), default="", server_default="")
     chart_excerpt_length: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
-    encounter_metadata: Mapped[dict] = mapped_column(JSON, default=dict, server_default="{}")
-    draft_codes: Mapped[list] = mapped_column(JSON, default=list, server_default="[]")
+    encounter_metadata: Mapped[dict] = mapped_column(EncryptedPHIJSON(), default=dict)
+    draft_codes: Mapped[list] = mapped_column(EncryptedPHIJSON(), default=list)
 
     # Run linkage
     run_id: Mapped[str] = mapped_column(String(64), default="", server_default="", index=True)
@@ -80,12 +81,12 @@ class CDICaseModel(Base, TimestampMixin):
     )
 
     # Output (6 sections)
-    encounter_summary: Mapped[dict] = mapped_column(JSON, default=dict, server_default="{}")
-    coding_specificity_checklist: Mapped[list] = mapped_column(JSON, default=list, server_default="[]")
-    risk_flags: Mapped[list] = mapped_column(JSON, default=list, server_default="[]")
-    specialist_trace: Mapped[list] = mapped_column(JSON, default=list, server_default="[]")
+    encounter_summary: Mapped[dict] = mapped_column(EncryptedPHIJSON(), default=dict)
+    coding_specificity_checklist: Mapped[list] = mapped_column(EncryptedPHIJSON(), default=list)
+    risk_flags: Mapped[list] = mapped_column(EncryptedPHIJSON(), default=list)
+    specialist_trace: Mapped[list] = mapped_column(EncryptedPHIJSON(), default=list)
     query_rewrite_queue: Mapped[list] = mapped_column(
-        JSON, default=list, server_default="[]",
+        EncryptedPHIJSON(), default=list,
     )
 
     # Completion
@@ -127,13 +128,13 @@ class DocumentationGapModel(Base, TimestampMixin):
     | acuity_unspecified | anatomical_site_unspecified | clinical_correlation_unestablished
     | temporal_unspecified | conflicting_documentation"""
 
-    description: Mapped[str] = mapped_column(Text, nullable=False)
-    why_it_matters: Mapped[str] = mapped_column(Text, default="", server_default="")
-    minimal_clarification_needed: Mapped[str] = mapped_column(Text, default="", server_default="")
+    description: Mapped[str] = mapped_column(EncryptedPHIText(), nullable=False)
+    why_it_matters: Mapped[str] = mapped_column(EncryptedPHIText(), default="")
+    minimal_clarification_needed: Mapped[str] = mapped_column(EncryptedPHIText(), default="")
 
     # Evidence binding (red line: chart_evidence_required)
     evidence_document_id: Mapped[str] = mapped_column(String(256), nullable=False)
-    evidence_quote: Mapped[str] = mapped_column(Text, nullable=False)
+    evidence_quote: Mapped[str] = mapped_column(EncryptedPHIText(), nullable=False)
     evidence_char_start: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     evidence_char_end: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     evidence_documented_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
@@ -149,7 +150,7 @@ class DocumentationGapModel(Base, TimestampMixin):
     """OPEN | QUERY_DRAFTED | QUERY_SENT | RESOLVED | WONT_RESOLVE | SUPERSEDED"""
 
     # ICD-10-CN context (optional, for coding_specificity gap_type)
-    candidate_codes: Mapped[list] = mapped_column(JSON, default=list, server_default="[]")
+    candidate_codes: Mapped[list] = mapped_column(EncryptedPHIJSON(), default=list)
 
     # Audit
     superseded_by_id: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
@@ -187,18 +188,18 @@ class ProviderQueryModel(Base, TimestampMixin):
     )
 
     # Query content
-    topic: Mapped[str] = mapped_column(String(256), nullable=False)
-    reason: Mapped[str] = mapped_column(Text, default="", server_default="")
-    query_text: Mapped[str] = mapped_column(Text, nullable=False)
-    response_options: Mapped[list] = mapped_column(JSON, default=list, server_default="[]")
+    topic: Mapped[str] = mapped_column(EncryptedPHIText(), nullable=False)
+    reason: Mapped[str] = mapped_column(EncryptedPHIText(), default="")
+    query_text: Mapped[str] = mapped_column(EncryptedPHIText(), nullable=False)
+    response_options: Mapped[list] = mapped_column(EncryptedPHIJSON(), default=list)
 
     # Evidence binding (mirrors gap; query may cite different quote than gap)
     evidence_document_id: Mapped[str] = mapped_column(String(256), nullable=False)
-    evidence_quote: Mapped[str] = mapped_column(Text, nullable=False)
+    evidence_quote: Mapped[str] = mapped_column(EncryptedPHIText(), nullable=False)
     evidence_char_start: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     evidence_char_end: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     evidence_spans: Mapped[list] = mapped_column(
-        JSON, default=list, server_default="[]",
+        EncryptedPHIJSON(), default=list,
     )
 
     # Non-leading gate result (per query)
@@ -264,9 +265,9 @@ class ClinicianResponseModel(Base, TimestampMixin):
     )
 
     # Response content
-    selected_option: Mapped[Optional[str]] = mapped_column(String(512), nullable=True)
-    free_text_response: Mapped[str] = mapped_column(Text, default="", server_default="")
-    response_metadata: Mapped[dict] = mapped_column(JSON, default=dict, server_default="{}")
+    selected_option: Mapped[Optional[str]] = mapped_column(EncryptedPHIText(), nullable=True)
+    free_text_response: Mapped[str] = mapped_column(EncryptedPHIText(), default="")
+    response_metadata: Mapped[dict] = mapped_column(EncryptedPHIJSON(), default=dict)
 
     # Whether this response is the latest (for fast lookup)
     is_latest: Mapped[bool] = mapped_column(Boolean, default=True, server_default="1", index=True)
@@ -317,7 +318,7 @@ class DocumentVersionModel(Base, TimestampMixin):
     content_length: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
 
     # Diff summary (per Gate 7 UI)
-    diff_summary: Mapped[dict] = mapped_column(JSON, default=dict, server_default="{}")
+    diff_summary: Mapped[dict] = mapped_column(EncryptedPHIJSON(), default=dict)
     """e.g. {'added_sections': ['病原体'], 'modified_spans': [{'start': 234, 'end': 260, 'old': '肺炎', 'new': '肺炎链球菌性肺炎'}]}"""
 
     captured_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, index=True)

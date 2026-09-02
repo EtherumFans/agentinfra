@@ -13,10 +13,9 @@ must satisfy three constraints:
 1. **Cloud-mode fail-closed.** If no encryption key is configured
    in cloud mode, the platform refuses to boot. Plaintext PHI at
    rest is forbidden in cloud mode.
-2. **Local-dev works without a key.** Local mode defaults to
-   "transparent" (no encryption) so the existing docker-compose
-   workflow keeps working. Operators can opt in by setting
-   ``ICODER_PHI_ENCRYPTION_KEY``.
+2. **Local SQLite works without a key.** SQLite development and unit-test
+   databases retain the plaintext fallback. PostgreSQL is always strict for
+   mapped PHI columns, irrespective of deployment mode.
 3. **Key rotation is survivable.** Each encrypted value carries
    a ``key_id`` prefix (``v1:`` / ``v2:`` / ...) so the decrypt
    path can pick the right key. The ``rotate_encrypted_columns``
@@ -32,24 +31,30 @@ encrypted; anything else is treated as plaintext (local-dev
 fallback). This means encrypted and plaintext rows can coexist
 during the rotation window.
 
-Encrypt/decrypt is a service-layer responsibility. The model
-columns stay ``Text``; callers (e.g. ``EncounterService``,
-``CDICaseService``) wrap/unwrap values when reading/writing.
-Gate 4.4 wires the high-traffic write paths; subsequent gates
-can extend coverage.
+Revision 071 maps clinical PHI attributes through transparent SQLAlchemy
+types, stores JSON as one opaque encrypted text envelope, and adds matching
+PostgreSQL constraints. Existing explicitly encrypted repositories continue
+to use the same versioned envelope contract.
 """
 from __future__ import annotations
 
+import json
 import logging
 import os
 import re
 import secrets
 from typing import Optional
 
+from sqlalchemy import Text
+from sqlalchemy.types import TypeDecorator
+
 logger = logging.getLogger(__name__)
 
 # Versioned-key prefix. ``v1:`` / ``v2:`` / ...
 _ENCRYPTED_PREFIX_RE = re.compile(r"^v(\d+):")
+_ENCRYPTED_VALUE_RE = re.compile(
+    r"^v([1-9][0-9]*):gAAAAA[A-Za-z0-9_-]{90,}={0,2}$"
+)
 
 
 def _resolve_active_key() -> Optional[bytes]:
@@ -112,10 +117,10 @@ def is_encryption_enabled() -> bool:
 
 
 def is_encrypted_value(value: Optional[str]) -> bool:
-    """Sniff whether a stored value was encrypted by this module."""
+    """Return whether a value has the structural form of a Fernet envelope."""
     if not value or not isinstance(value, str):
         return False
-    return bool(_ENCRYPTED_PREFIX_RE.match(value))
+    return bool(_ENCRYPTED_VALUE_RE.fullmatch(value))
 
 
 def encrypt_phi(plaintext: Optional[str]) -> Optional[str]:
@@ -182,6 +187,70 @@ def decrypt_phi(stored: Optional[str]) -> Optional[str]:
     except Exception as e:
         logger.error("phi_encryption: decrypt failed for key_id=%d: %r", key_id, e)
         raise
+
+
+def _strict_postgresql_encrypt(value: Optional[str], dialect_name: str) -> Optional[str]:
+    """Return a storage value and forbid PostgreSQL plaintext fallback."""
+    if value is None or value == "":
+        return value
+    if is_encrypted_value(value):
+        return value
+    if dialect_name == "postgresql" and not is_encryption_enabled():
+        raise RuntimeError(
+            "PHI envelope encryption key is required for PostgreSQL writes"
+        )
+    encrypted = encrypt_phi(value)
+    if dialect_name == "postgresql" and not is_encrypted_value(encrypted):
+        raise RuntimeError("PostgreSQL PHI write did not produce an envelope")
+    return encrypted
+
+
+def _strict_postgresql_decrypt(value: Optional[str], dialect_name: str) -> Optional[str]:
+    """Decrypt a storage value and reject legacy plaintext on PostgreSQL."""
+    if value is None or value == "":
+        return value
+    if dialect_name == "postgresql" and not is_encrypted_value(value):
+        raise RuntimeError("plaintext PHI detected in PostgreSQL result")
+    return decrypt_phi(value)
+
+
+class EncryptedPHIText(TypeDecorator):
+    """Transparent versioned PHI envelope for SQLAlchemy text attributes.
+
+    SQLite retains the documented local-development fallback. PostgreSQL is
+    always strict: a missing key or plaintext row fails closed.
+    """
+
+    impl = Text
+    cache_ok = True
+
+    def process_bind_param(self, value, dialect):
+        return _strict_postgresql_encrypt(value, dialect.name)
+
+    def process_result_value(self, value, dialect):
+        return _strict_postgresql_decrypt(value, dialect.name)
+
+
+class EncryptedPHIJSON(TypeDecorator):
+    """JSON-compatible Python value stored as one encrypted text envelope."""
+
+    impl = Text
+    cache_ok = True
+
+    def process_bind_param(self, value, dialect):
+        if value is None:
+            return None
+        serialized = json.dumps(
+            value, ensure_ascii=False, sort_keys=True, separators=(",", ":"),
+            allow_nan=False,
+        )
+        return _strict_postgresql_encrypt(serialized, dialect.name)
+
+    def process_result_value(self, value, dialect):
+        if value is None:
+            return None
+        plaintext = _strict_postgresql_decrypt(value, dialect.name)
+        return json.loads(plaintext or "null")
 
 
 def encrypt_phi_bytes(plaintext: bytes) -> bytes:
@@ -381,4 +450,6 @@ __all__ = [
     "is_encryption_enabled",
     "generate_key",
     "rotate_encrypted_columns",
+    "EncryptedPHIText",
+    "EncryptedPHIJSON",
 ]

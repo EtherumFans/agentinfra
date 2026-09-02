@@ -4,6 +4,7 @@ from sqlalchemy import String, Float, JSON, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
 from app.models.base import TimestampMixin
+from app.services.phi_encryption import EncryptedPHIJSON, EncryptedPHIText
 
 class CodeCandidate(Base, TimestampMixin):
     __tablename__ = "code_candidates"
@@ -12,20 +13,20 @@ class CodeCandidate(Base, TimestampMixin):
     review_id: Mapped[str] = mapped_column(
         String(12), ForeignKey("coding_reviews.id"), nullable=False, index=True
     )
-    finding: Mapped[str] = mapped_column(String(512), nullable=False)
+    finding: Mapped[str] = mapped_column(EncryptedPHIText(), nullable=False)
     code_system: Mapped[str] = mapped_column(String(64), nullable=False)  # ICD10_CN, ICD9_CM3, LOCAL
     code: Mapped[str] = mapped_column(String(32), nullable=False)
     name: Mapped[str] = mapped_column(String(256), nullable=False)
     score: Mapped[float] = mapped_column(Float, default=0.0)
     chapter: Mapped[Optional[str]] = mapped_column(String(256), nullable=True)
-    evidence_ids: Mapped[dict] = mapped_column(JSON, default=list)
+    evidence_ids: Mapped[dict] = mapped_column(EncryptedPHIJSON(), default=list)
     status: Mapped[str] = mapped_column(String(32), default="pending")
     # pending, supported, unsupported, needs_review, rejected, confirmed
-    rule_checks: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
+    rule_checks: Mapped[Optional[dict]] = mapped_column(EncryptedPHIJSON(), nullable=True)
     # [{rule_name, status: pass/warn/fail, message}]
     human_decision: Mapped[Optional[str]] = mapped_column(String(32), nullable=True)
     # confirmed, rejected, modified
-    human_reason: Mapped[Optional[str]] = mapped_column(String(512), nullable=True)
+    human_reason: Mapped[Optional[str]] = mapped_column(EncryptedPHIText(), nullable=True)
     modified_code: Mapped[Optional[str]] = mapped_column(String(32), nullable=True)
     modified_name: Mapped[Optional[str]] = mapped_column(String(256), nullable=True)
 

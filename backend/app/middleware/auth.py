@@ -10,7 +10,7 @@ from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import jwt
 from jwt import PyJWTError as JWTError
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
@@ -45,30 +45,44 @@ async def _bind_live_user_membership(
                 detail="No organization selected.",
             )
         return False
-    # The asserted tenant narrows RLS visibility; the live membership query
-    # remains the authorization decision and rejects a forged JWT claim.
-    await bind_tenant_to_transaction(db, org_id)
-    membership = (
-        await db.execute(
-            select(OrganizationMember.id)
-            .join(
-                Organization,
-                Organization.id == OrganizationMember.organization_id,
+    bind = db.get_bind() if hasattr(db, "get_bind") else None
+    if bind is not None and bind.dialect.name == "postgresql":
+        # This SECURITY DEFINER bootstrap function returns one boolean and no
+        # tenant row.  The unverified claim never becomes RLS authority.
+        membership_exists = bool((
+            await db.execute(
+                text(
+                    "SELECT icoder_user_has_active_membership("
+                    ":user_id, :organization_id)"
+                ),
+                {"user_id": user_id, "organization_id": org_id},
             )
-            .where(
-                OrganizationMember.organization_id == org_id,
-                OrganizationMember.user_id == user_id,
-                Organization.is_active.is_(True),
+        ).scalar_one())
+    else:
+        # SQLite/hermetic test fallback; production PostgreSQL always uses the
+        # bounded bootstrap function above because FORCE RLS hides this table.
+        membership_exists = (
+            await db.execute(
+                select(OrganizationMember.id)
+                .join(
+                    Organization,
+                    Organization.id == OrganizationMember.organization_id,
+                )
+                .where(
+                    OrganizationMember.organization_id == org_id,
+                    OrganizationMember.user_id == user_id,
+                    Organization.is_active.is_(True),
+                )
             )
-        )
-    ).scalar_one_or_none()
-    if membership is None:
+        ).scalar_one_or_none() is not None
+    if not membership_exists:
         if required:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Organization membership required",
             )
         return False
+    await bind_tenant_to_transaction(db, org_id)
     return True
 
 
@@ -262,10 +276,6 @@ async def get_current_organization(
     if not org.is_active:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Organization is suspended")
 
-    # An org_id claim is context, not proof of tenant membership. Binding it
-    # first only narrows RLS visibility; the checks below remain authoritative.
-    await bind_tenant_to_transaction(db, org.id)
-
     # Validate the
     # principal here so organization-only dependencies cannot be used after
     # membership removal or with a refresh token.
@@ -279,14 +289,9 @@ async def get_current_organization(
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found or inactive")
         if token_type == "access" and user.token_version != payload.get("token_version", 0):
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token revoked. Please re-authenticate.")
-        membership_result = await db.execute(
-            select(OrganizationMember).where(
-                OrganizationMember.organization_id == org.id,
-                OrganizationMember.user_id == user_id,
-            )
+        await _bind_live_user_membership(
+            db, user_id=user_id, organization_id=org.id, required=True,
         )
-        if membership_result.scalar_one_or_none() is None:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Organization membership required")
     else:
         client = await get_current_client(credentials, db)
         if client.get("org_id") != org.id:
@@ -373,10 +378,24 @@ async def get_current_client(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid client credential attribution",
         )
-    # Enter the asserted tenant before touching protected OAuth state. The
-    # token/client/owner checks below prove whether that assertion is valid.
-    await bind_tenant_to_transaction(db, org_id)
     token_hash = hashlib.sha256(credentials.credentials.encode()).hexdigest()
+    bind = db.get_bind() if hasattr(db, "get_bind") else None
+    if bind is not None and bind.dialect.name == "postgresql":
+        credential_active = bool((
+            await db.execute(
+                text(
+                    "SELECT icoder_oauth_credential_is_active("
+                    ":token_hash, :client_id, :organization_id, :owner_id)"
+                ),
+                {
+                    "token_hash": token_hash, "client_id": client_id,
+                    "organization_id": org_id, "owner_id": owner_id,
+                },
+            )
+        ).scalar_one())
+        if not credential_active:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token revoked")
+    await bind_tenant_to_transaction(db, org_id)
     result = await db.execute(
         select(OAuthToken).where(
             OAuthToken.token_hash == token_hash,

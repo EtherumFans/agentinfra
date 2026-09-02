@@ -15,7 +15,7 @@ import os
 import secrets
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 
 BACKEND_ROOT = Path(__file__).resolve().parents[1]
@@ -29,6 +29,13 @@ from app.services.soft_hsm_keystore import (  # noqa: E402
     seal_keyring,
     unseal_keyring,
     validate_key_store_path,
+)
+from app.services.soft_hsm_ops_audit import (  # noqa: E402
+    append_event,
+    audit_config_from_environment,
+    audit_minimum_sequence_from_environment,
+    key_store_identifier,
+    zeroize as zeroize_audit_key,
 )
 
 
@@ -234,6 +241,31 @@ def set_state(
     return {"operation": f"set-state:{state}", **next_keyring.public_metadata()}
 
 
+def rotate_bootstrap(
+    path: Path, *, expected_generation: int, bootstrap_key: bytearray,
+    new_bootstrap_key: bytearray,
+) -> dict[str, Any]:
+    """Reseal the same KEKs under a new bootstrap key; database DEKs are untouched."""
+    if bootstrap_key == new_bootstrap_key:
+        raise RuntimeError("new software HSM bootstrap key must differ from the current key")
+    with _operator_lock(path):
+        current = _load(path, bootstrap_key)
+        _require_generation(current, expected_generation)
+        payload = _payload(current)
+        generation = current.generation + 1
+        next_keyring = SoftwareHSMKeyring.from_payload(
+            payload, generation=generation, source="encrypted_keystore",
+        )
+        _atomic_write(
+            path,
+            seal_keyring(
+                payload, bootstrap_key=new_bootstrap_key, generation=generation,
+            ),
+            must_not_exist=False,
+        )
+    return {"operation": "rotate-bootstrap", **next_keyring.public_metadata()}
+
+
 def inspect(path: Path, *, bootstrap_key: bytearray) -> dict[str, Any]:
     return {"operation": "inspect", **_load(path, bootstrap_key).public_metadata()}
 
@@ -243,39 +275,161 @@ def _zeroize(value: bytearray) -> None:
         value[index] = 0
 
 
+def _audit_event(
+    *, operation: str, phase: str, outcome: str, path: Path,
+    expected_generation: int | None, report: dict[str, Any] | None,
+    error_type: str | None, change_ticket: str,
+) -> dict[str, Any]:
+    return {
+        "operation": operation,
+        "phase": phase,
+        "outcome": outcome,
+        "key_store_id": key_store_identifier(path),
+        "expected_generation": expected_generation,
+        "resulting_generation": report.get("generation") if report else None,
+        "active_key_id": report.get("active_key_id") if report else None,
+        "key_states": report.get("key_states", {}) if report else {},
+        "error_type": error_type,
+        "change_ticket": change_ticket,
+    }
+
+
+def _audited_mutation(
+    *, operation: str, path: Path, expected_generation: int | None,
+    change_ticket: str, bootstrap_key: bytearray,
+    callback: Callable[[], dict[str, Any]],
+    additional_secret_key: bytearray | None = None,
+) -> dict[str, Any]:
+    if not change_ticket or len(change_ticket) > 128 or any(
+        character in change_ticket for character in "\r\n"
+    ):
+        raise RuntimeError("mutating software HSM operations require a valid change ticket")
+    audit_minimum_sequence = audit_minimum_sequence_from_environment()
+    audit_path, audit_key, audit_key_id = audit_config_from_environment()
+    if audit_key == bootstrap_key or (
+        additional_secret_key is not None and audit_key == additional_secret_key
+    ):
+        zeroize_audit_key(audit_key)
+        raise RuntimeError("software HSM operations audit key must differ from bootstrap key")
+    if os.path.normcase(os.path.abspath(audit_path)) == os.path.normcase(os.path.abspath(path)):
+        zeroize_audit_key(audit_key)
+        raise RuntimeError("software HSM key store and operations audit paths must differ")
+    try:
+        append_event(
+            audit_path,
+            _audit_event(
+                operation=operation, phase="started", outcome="pending", path=path,
+                expected_generation=expected_generation, report=None,
+                error_type=None, change_ticket=change_ticket,
+            ),
+            audit_key=audit_key, signing_key_id=audit_key_id,
+            minimum_sequence=audit_minimum_sequence,
+        )
+        try:
+            report = callback()
+        except Exception as exc:
+            append_event(
+                audit_path,
+                _audit_event(
+                    operation=operation, phase="failed", outcome="failure", path=path,
+                    expected_generation=expected_generation, report=None,
+                    error_type=type(exc).__name__, change_ticket=change_ticket,
+                ),
+                audit_key=audit_key, signing_key_id=audit_key_id,
+                minimum_sequence=audit_minimum_sequence,
+            )
+            raise
+        completed = append_event(
+            audit_path,
+            _audit_event(
+                operation=operation, phase="completed", outcome="success", path=path,
+                expected_generation=expected_generation, report=report,
+                error_type=None, change_ticket=change_ticket,
+            ),
+            audit_key=audit_key, signing_key_id=audit_key_id,
+            minimum_sequence=audit_minimum_sequence,
+        )
+        return {
+            **report,
+            "audit_sequence": completed["sequence"],
+            "audit_chain_hash": completed["chain_hash"],
+        }
+    finally:
+        zeroize_audit_key(audit_key)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=("create", "inspect", "rotate", "set-state"))
+    parser.add_argument(
+        "command", choices=("create", "inspect", "rotate", "rotate-bootstrap", "set-state")
+    )
     parser.add_argument("--path", required=True, type=Path)
     parser.add_argument("--key-id")
     parser.add_argument("--new-key-id")
     parser.add_argument("--state", choices=("retired", "revoked"))
     parser.add_argument("--expected-generation", type=int)
     parser.add_argument("--authorization", default="")
+    parser.add_argument("--change-ticket", default="")
     args = parser.parse_args()
     bootstrap_key = bootstrap_key_from_environment()
     try:
         if args.command == "create":
             if not args.key_id:
                 parser.error("create requires --key-id")
-            report = create(args.path, key_id=args.key_id, bootstrap_key=bootstrap_key)
+            report = _audited_mutation(
+                operation="create", path=args.path, expected_generation=0,
+                change_ticket=args.change_ticket, bootstrap_key=bootstrap_key,
+                callback=lambda: create(
+                    args.path, key_id=args.key_id, bootstrap_key=bootstrap_key,
+                ),
+            )
         elif args.command == "inspect":
             report = inspect(args.path, bootstrap_key=bootstrap_key)
         elif args.command == "rotate":
             if not args.new_key_id or args.expected_generation is None:
                 parser.error("rotate requires --new-key-id and --expected-generation")
-            report = rotate(
-                args.path, new_key_id=args.new_key_id,
+            report = _audited_mutation(
+                operation="rotate", path=args.path,
                 expected_generation=args.expected_generation,
-                bootstrap_key=bootstrap_key,
+                change_ticket=args.change_ticket, bootstrap_key=bootstrap_key,
+                callback=lambda: rotate(
+                    args.path, new_key_id=args.new_key_id,
+                    expected_generation=args.expected_generation,
+                    bootstrap_key=bootstrap_key,
+                ),
             )
+        elif args.command == "rotate-bootstrap":
+            if args.expected_generation is None:
+                parser.error("rotate-bootstrap requires --expected-generation")
+            new_bootstrap_key = bootstrap_key_from_environment(
+                "ICODER_SOFT_HSM_NEW_BOOTSTRAP_KEY"
+            )
+            try:
+                report = _audited_mutation(
+                    operation="rotate-bootstrap", path=args.path,
+                    expected_generation=args.expected_generation,
+                    change_ticket=args.change_ticket, bootstrap_key=bootstrap_key,
+                    additional_secret_key=new_bootstrap_key,
+                    callback=lambda: rotate_bootstrap(
+                        args.path, expected_generation=args.expected_generation,
+                        bootstrap_key=bootstrap_key,
+                        new_bootstrap_key=new_bootstrap_key,
+                    ),
+                )
+            finally:
+                _zeroize(new_bootstrap_key)
         else:
             if not args.key_id or not args.state or args.expected_generation is None:
                 parser.error("set-state requires --key-id, --state and --expected-generation")
-            report = set_state(
-                args.path, key_id=args.key_id, state=args.state,
+            report = _audited_mutation(
+                operation="set-state", path=args.path,
                 expected_generation=args.expected_generation,
-                bootstrap_key=bootstrap_key, authorization=args.authorization,
+                change_ticket=args.change_ticket, bootstrap_key=bootstrap_key,
+                callback=lambda: set_state(
+                    args.path, key_id=args.key_id, state=args.state,
+                    expected_generation=args.expected_generation,
+                    bootstrap_key=bootstrap_key, authorization=args.authorization,
+                ),
             )
     finally:
         _zeroize(bootstrap_key)

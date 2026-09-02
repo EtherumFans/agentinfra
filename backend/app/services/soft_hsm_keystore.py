@@ -39,16 +39,18 @@ def _b64decode(value: str) -> bytes:
     )
 
 
-def bootstrap_key_from_environment() -> bytearray:
-    raw = os.environ.get("ICODER_SOFT_HSM_BOOTSTRAP_KEY", "").strip()
+def bootstrap_key_from_environment(
+    variable_name: str = "ICODER_SOFT_HSM_BOOTSTRAP_KEY",
+) -> bytearray:
+    raw = os.environ.get(variable_name, "").strip()
     if not raw:
-        raise RuntimeError("ICODER_SOFT_HSM_BOOTSTRAP_KEY is required")
+        raise RuntimeError(f"{variable_name} is required")
     try:
         key = bytearray(_b64decode(raw))
     except Exception as exc:
-        raise RuntimeError("software HSM bootstrap key is not valid base64url") from exc
+        raise RuntimeError(f"{variable_name} is not valid base64url") from exc
     if len(key) != 32:
-        raise RuntimeError("software HSM bootstrap key must decode to 32 bytes")
+        raise RuntimeError(f"{variable_name} must decode to 32 bytes")
     return key
 
 

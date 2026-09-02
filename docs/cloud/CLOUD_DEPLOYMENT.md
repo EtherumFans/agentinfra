@@ -8,14 +8,18 @@
 
 This document is an architecture target, not evidence of a live production
 environment. A cloud process fails closed unless the hosted URL, region,
-tenant/API-client identity, strong `ICODER_SECRET_KEY`,
-`ICODER_PHI_ENCRYPTION_KEY`, and DB-backed RunTrace profile are supplied.
+tenant/API-client identity, strong `ICODER_SECRET_KEY`, a valid PHI key
+provider, and DB-backed RunTrace profile are supplied. The repository's
+`software_hsm` provider is a rehearsal boundary, not production HSM evidence.
 LLM credentials enter only through `ICODER_CREDENTIAL_LLM`/CredentialVault;
 `LLM_API_KEY` is not a supported deployment secret ingress.
 
 MedCodER 的 BGE/FAISS 原生栈也不得进入主 API 进程。Cloud 模式必须提供独立检索服务的 `MEDCODER_RETRIEVER_URL` 与 32–512 字符的 `MEDCODER_RETRIEVER_TOKEN`，URL 必须为无内嵌凭证、query 或 fragment 的绝对 HTTPS 地址，并保持 `MEDCODER_RETRIEVER_ALLOW_HTTP=false`。缺少上述任一项、索引/模型版本不匹配、readiness 降级或响应契约异常时，应用失败关闭，不能静默回退到 API 进程内加载原生模型。服务凭证必须由 KMS/Secret Manager 注入，不能提交到 `.env`、镜像或报告。
 
 DrugBank、POSOS 和 Web Search 同样不得由 Agent 自由直连。它们只通过固定 HTTPS 企业适配网关、Vault 凭证、精确 egress allowlist 和去标识化 Connector 执行；Web Search 另需平台/租户双重 opt-in。部署合同见 [EXTERNAL_REGISTRY_GATEWAYS.md](./EXTERNAL_REGISTRY_GATEWAYS.md)。开发环境真实 TCP fixture 只证明 iCoDer 合同与安全门禁，不代表已取得商业许可、供应商 DPA 或临床质量证据。
+
+PHI v1→v2 双读轮换、备份/WAL canary 扫描和 070 兼容回退的操作顺序见
+[PHI HSM 轮换与回退手册](../security/PHI_HSM_ROTATION_AND_ROLLBACK.md)。
 
 持久 Memory 的语义检索同样在隔离服务中运行。Cloud 必须配置 `ICODER_MEMORY_SEMANTIC_URL`、32–512 字符的 `ICODER_CREDENTIAL_MEMORY_SEMANTIC`，并设置 `ICODER_MEMORY_SEMANTIC_REQUIRED=true`；服务主机必须在精确 egress allowlist 内。请求只含再次脱敏的文本，不含租户、用户、患者或 consent 标识，向量随 Memory 行加密。当前 consent 仅为登录用户自助授权，不是患者权威授权，患者 PHI 存储保持失败关闭。完整合同见 [SEMANTIC_MEMORY_SERVICE.md](./SEMANTIC_MEMORY_SERVICE.md)。
 

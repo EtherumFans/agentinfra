@@ -1,0 +1,73 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ListOnlyTheDedicatedAuditPrefix",
+      "Effect": "Allow",
+      "Action": "s3:ListBucket",
+      "Resource": "${AUDIT_BUCKET_ARN}",
+      "Condition": {
+        "StringLike": {
+          "s3:prefix": [
+            "${AUDIT_PREFIX}/objects/*",
+            "${AUDIT_PREFIX}/checkpoints/*"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "ReadAuditObjectsAndLockMetadata",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:GetObjectRetention",
+        "s3:GetObjectLegalHold"
+      ],
+      "Resource": "${AUDIT_BUCKET_ARN}/${AUDIT_PREFIX}/*"
+    },
+    {
+      "Sid": "CreateComplianceLockedAuditObjects",
+      "Effect": "Allow",
+      "Action": [
+        "s3:PutObject",
+        "s3:PutObjectRetention"
+      ],
+      "Resource": "${AUDIT_BUCKET_ARN}/${AUDIT_PREFIX}/*",
+      "Condition": {
+        "StringEquals": {
+          "s3:x-amz-object-lock-mode": "COMPLIANCE",
+          "s3:x-amz-server-side-encryption": "aws:kms"
+        },
+        "NumericGreaterThanEquals": {
+          "s3:object-lock-remaining-retention-days": "${MIN_RETENTION_DAYS}"
+        }
+      }
+    },
+    {
+      "Sid": "UseOnlyTheDedicatedAuditKmsKey",
+      "Effect": "Allow",
+      "Action": [
+        "kms:Decrypt",
+        "kms:GenerateDataKey"
+      ],
+      "Resource": "${AUDIT_KMS_KEY_ARN}"
+    },
+    {
+      "Sid": "NeverDeleteOrBypassAuditRetention",
+      "Effect": "Deny",
+      "Action": [
+        "s3:BypassGovernanceRetention",
+        "s3:DeleteObject",
+        "s3:DeleteObjectVersion",
+        "s3:DeleteBucket",
+        "s3:PutBucketPolicy",
+        "s3:PutBucketVersioning",
+        "s3:PutBucketObjectLockConfiguration"
+      ],
+      "Resource": [
+        "${AUDIT_BUCKET_ARN}",
+        "${AUDIT_BUCKET_ARN}/*"
+      ]
+    }
+  ]
+}

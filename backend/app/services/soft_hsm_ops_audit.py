@@ -25,15 +25,19 @@ from typing import Any
 SCHEMA = "icoder.software-hsm-ops-audit/v1"
 GENESIS_HASH = "0" * 64
 _KEY_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._/-]{0,127}$")
-_MAX_AUDIT_BYTES = 16 * 1024 * 1024
+_MAX_SEGMENT_BYTES = 16 * 1024 * 1024
+_MAX_AUDIT_BYTES = 256 * 1024 * 1024
 _RECORD_FIELDS = {
     "schema", "sequence", "event_id", "recorded_at", "event", "payload_hash",
     "previous_hash", "chain_hash", "signature", "signing_algorithm", "signing_key_id",
 }
-_EVENT_FIELDS = {
+_EVENT_FIELDS_V1 = {
     "operation", "phase", "outcome", "key_store_id", "expected_generation",
     "resulting_generation", "active_key_id", "key_states", "error_type",
     "change_ticket",
+}
+_EVENT_FIELDS_V2 = _EVENT_FIELDS_V1 | {
+    "operator_identity", "deployment_environment", "release_version",
 }
 _KEY_STATES = {"active", "decrypt-only", "retired", "revoked"}
 
@@ -80,6 +84,44 @@ def audit_config_from_environment() -> tuple[Path, bytearray, str]:
     return Path(path_value), _decode_key(raw_key), key_id
 
 
+def audit_verification_keys_from_environment() -> dict[str, bytearray]:
+    """Load historical verifier keys without changing the active writer key.
+
+    The JSON keyring is optional for backward compatibility.  When present it
+    must contain the active key too, which prevents a rotation from silently
+    making the just-written records unverifiable.
+    """
+    _, active_key, active_key_id = audit_config_from_environment()
+    raw_keyring = os.environ.get("ICODER_SOFT_HSM_OPS_AUDIT_KEYS", "").strip()
+    if not raw_keyring:
+        return {active_key_id: active_key}
+    try:
+        document = json.loads(raw_keyring, object_pairs_hook=_reject_duplicate_json_keys)
+    except Exception as exc:
+        zeroize(active_key)
+        raise RuntimeError("software HSM operations audit keyring is invalid JSON") from exc
+    if not isinstance(document, dict) or not document or len(document) > 16:
+        zeroize(active_key)
+        raise RuntimeError("software HSM operations audit keyring is invalid")
+    result: dict[str, bytearray] = {}
+    try:
+        for key_id, encoded in document.items():
+            if _KEY_ID.fullmatch(key_id) is None or not isinstance(encoded, str):
+                raise RuntimeError("software HSM operations audit keyring is invalid")
+            result[key_id] = _decode_key(encoded)
+        if active_key_id not in result or not hmac.compare_digest(
+            result[active_key_id], active_key
+        ):
+            raise RuntimeError("active software HSM audit key is absent from keyring")
+        return result
+    except Exception:
+        for key in result.values():
+            zeroize(key)
+        raise
+    finally:
+        zeroize(active_key)
+
+
 def audit_minimum_sequence_from_environment() -> int:
     raw = os.environ.get("ICODER_SOFT_HSM_OPS_AUDIT_MIN_SEQUENCE", "").strip()
     if os.environ.get("ICODER_DEPLOYMENT_MODE", "local").strip().lower() == "cloud" and not raw:
@@ -113,7 +155,8 @@ def _sign(chain_hash: str, audit_key: bytes | bytearray) -> str:
 
 
 def _validate_event(event: dict[str, Any]) -> None:
-    if set(event) != _EVENT_FIELDS:
+    fields = set(event)
+    if fields != _EVENT_FIELDS_V1 and fields != _EVENT_FIELDS_V2:
         raise ValueError("software HSM audit event structure is invalid")
     if event["operation"] not in {"create", "rotate", "set-state", "rotate-bootstrap"}:
         raise ValueError("software HSM audit operation is invalid")
@@ -156,6 +199,14 @@ def _validate_event(event: dict[str, Any]) -> None:
             raise ValueError(f"software HSM audit {field} is invalid")
     if (event["phase"] == "failed") != (event["error_type"] is not None):
         raise ValueError("software HSM audit error type is inconsistent")
+    if fields == _EVENT_FIELDS_V2:
+        for field in ("operator_identity", "deployment_environment", "release_version"):
+            value = event[field]
+            if (
+                not isinstance(value, str) or not value or len(value) > 128
+                or _KEY_ID.fullmatch(value) is None
+            ):
+                raise ValueError(f"software HSM audit {field} is invalid")
 
 
 def create_record(
@@ -193,6 +244,7 @@ def create_record(
 def parse_and_verify(
     document: bytes, *, audit_key: bytes | bytearray, signing_key_id: str,
     minimum_sequence: int = 0,
+    verification_keys: dict[str, bytes | bytearray] | None = None,
 ) -> list[dict[str, Any]]:
     if _KEY_ID.fullmatch(signing_key_id) is None or len(audit_key) < 32:
         raise ValueError("invalid software HSM audit verifier")
@@ -216,6 +268,11 @@ def parse_and_verify(
             recorded_at = datetime.fromisoformat(record["recorded_at"])
         except (TypeError, ValueError) as exc:
             raise RuntimeError("software HSM operations audit record metadata is invalid") from exc
+        record_key_id = record.get("signing_key_id")
+        verifier_key = (
+            verification_keys.get(record_key_id) if verification_keys is not None
+            else audit_key if record_key_id == signing_key_id else None
+        )
         if (
             not isinstance(record["sequence"], int)
             or isinstance(record["sequence"], bool)
@@ -246,8 +303,8 @@ def parse_and_verify(
             or record["payload_hash"] != payload_hash
             or record["chain_hash"] != chain_hash
             or record["signing_algorithm"] != "HMAC-SHA256"
-            or record["signing_key_id"] != signing_key_id
-            or not hmac.compare_digest(record["signature"], _sign(chain_hash, audit_key))
+            or verifier_key is None
+            or not hmac.compare_digest(record["signature"], _sign(chain_hash, verifier_key))
         ):
             raise RuntimeError("software HSM operations audit verification failed")
         records.append(record)
@@ -299,7 +356,7 @@ def _read_descriptor(descriptor: int) -> bytes:
 
 
 def _validate_file_stat(file_stat: os.stat_result) -> None:
-    if not stat.S_ISREG(file_stat.st_mode) or file_stat.st_size > _MAX_AUDIT_BYTES:
+    if not stat.S_ISREG(file_stat.st_mode) or file_stat.st_size > _MAX_SEGMENT_BYTES:
         raise RuntimeError("software HSM operations audit file is invalid")
     if os.name != "nt" and (
         file_stat.st_uid != os.geteuid() or stat.S_IMODE(file_stat.st_mode) & 0o077
@@ -307,9 +364,44 @@ def _validate_file_stat(file_stat: os.stat_result) -> None:
         raise RuntimeError("software HSM operations audit ownership or permissions are unsafe")
 
 
+def _segment_path(path: Path, number: int) -> Path:
+    return path if number == 1 else path.with_name(f"{path.name}.{number:06d}")
+
+
+def _segment_paths(path: Path) -> list[Path]:
+    paths: list[Path] = []
+    number = 1
+    while _segment_path(path, number).exists():
+        candidate = _segment_path(path, number)
+        if candidate.is_symlink() or not candidate.is_file():
+            raise RuntimeError("software HSM operations audit segment is unsafe")
+        paths.append(candidate)
+        number += 1
+    # A gap followed by a segment is always suspicious.
+    if list(path.parent.glob(f"{path.name}.[0-9][0-9][0-9][0-9][0-9][0-9]")):
+        expected = set(paths[1:])
+        actual = set(path.parent.glob(f"{path.name}.[0-9][0-9][0-9][0-9][0-9][0-9]"))
+        if expected != actual:
+            raise RuntimeError("software HSM operations audit segment gap detected")
+    return paths
+
+
+def _read_segment(path: Path) -> bytes:
+    flags = os.O_RDONLY | getattr(os, "O_BINARY", 0)
+    if hasattr(os, "O_NOFOLLOW"):
+        flags |= os.O_NOFOLLOW
+    descriptor = os.open(path, flags)
+    try:
+        _validate_file_stat(os.fstat(descriptor))
+        return _read_descriptor(descriptor)
+    finally:
+        os.close(descriptor)
+
+
 def append_event(
     path: Path, event: dict[str, Any], *, audit_key: bytes | bytearray,
     signing_key_id: str, minimum_sequence: int = 0,
+    verification_keys: dict[str, bytes | bytearray] | None = None,
 ) -> dict[str, Any]:
     if not path.is_absolute() or not path.parent.is_dir():
         raise RuntimeError("software HSM operations audit path must be absolute with an existing parent")
@@ -332,13 +424,18 @@ def append_event(
             os.fsync(descriptor)
         _lock_file(descriptor)
         locked = True
-        current = _read_descriptor(descriptor)
-        if os.name == "nt" and current == b"\n":
-            current = b""
+        base_current = _read_descriptor(descriptor)
+        if os.name == "nt" and base_current == b"\n":
+            base_current = b""
             os.ftruncate(descriptor, 0)
+        segments = _segment_paths(path)
+        if not segments:
+            segments = [path]
+        documents = [base_current] + [_read_segment(item) for item in segments[1:]]
+        current = b"".join(documents)
         records = parse_and_verify(
             current, audit_key=audit_key, signing_key_id=signing_key_id,
-            minimum_sequence=minimum_sequence,
+            minimum_sequence=minimum_sequence, verification_keys=verification_keys,
         )
         previous_hash = records[-1]["chain_hash"] if records else GENESIS_HASH
         record = create_record(
@@ -347,10 +444,35 @@ def append_event(
         )
         encoded = _canonical(record) + b"\n"
         if len(current) + len(encoded) > _MAX_AUDIT_BYTES:
-            raise RuntimeError("software HSM operations audit capacity is exhausted")
-        os.lseek(descriptor, 0, os.SEEK_END)
-        os.write(descriptor, encoded)
-        os.fsync(descriptor)
+            raise RuntimeError("software HSM operations audit total capacity is exhausted")
+        active_document = documents[-1]
+        if len(active_document) + len(encoded) > _MAX_SEGMENT_BYTES:
+            next_path = _segment_path(path, len(segments) + 1)
+            next_flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_BINARY", 0)
+            if hasattr(os, "O_NOFOLLOW"):
+                next_flags |= os.O_NOFOLLOW
+            next_descriptor = os.open(next_path, next_flags, 0o600)
+            try:
+                os.write(next_descriptor, encoded)
+                os.fsync(next_descriptor)
+            finally:
+                os.close(next_descriptor)
+            os.chmod(next_path, 0o600)
+        elif len(segments) == 1:
+            os.lseek(descriptor, 0, os.SEEK_END)
+            os.write(descriptor, encoded)
+            os.fsync(descriptor)
+        else:
+            active_flags = os.O_WRONLY | os.O_APPEND | getattr(os, "O_BINARY", 0)
+            if hasattr(os, "O_NOFOLLOW"):
+                active_flags |= os.O_NOFOLLOW
+            active_descriptor = os.open(segments[-1], active_flags)
+            try:
+                _validate_file_stat(os.fstat(active_descriptor))
+                os.write(active_descriptor, encoded)
+                os.fsync(active_descriptor)
+            finally:
+                os.close(active_descriptor)
         return record
     finally:
         if locked:
@@ -361,6 +483,7 @@ def append_event(
 def verify_audit_file(
     path: Path, *, audit_key: bytes | bytearray, signing_key_id: str,
     minimum_sequence: int = 0,
+    verification_keys: dict[str, bytes | bytearray] | None = None,
 ) -> dict[str, Any]:
     if not path.is_absolute() or path.is_symlink():
         raise RuntimeError("software HSM operations audit path is unsafe")
@@ -376,9 +499,12 @@ def verify_audit_file(
         document = _read_descriptor(descriptor)
     finally:
         os.close(descriptor)
+    segments = _segment_paths(path)
+    if len(segments) > 1:
+        document += b"".join(_read_segment(item) for item in segments[1:])
     records = parse_and_verify(
         document, audit_key=audit_key, signing_key_id=signing_key_id,
-        minimum_sequence=minimum_sequence,
+        minimum_sequence=minimum_sequence, verification_keys=verification_keys,
     )
     return {
         "schema": SCHEMA,
@@ -386,8 +512,21 @@ def verify_audit_file(
         "records": len(records),
         "head_sequence": len(records),
         "head_hash": records[-1]["chain_hash"] if records else GENESIS_HASH,
-        "signing_key_id": signing_key_id,
+        "signing_key_id": records[-1]["signing_key_id"] if records else signing_key_id,
+        "signing_key_ids": sorted({record["signing_key_id"] for record in records}),
+        "segments": len(segments) or 1,
     }
+
+
+def read_audit_document(path: Path) -> bytes:
+    """Read all contiguous local segments using the same safety checks as verification."""
+    segments = _segment_paths(path)
+    if not segments:
+        raise RuntimeError("software HSM operations audit cannot be read")
+    document = b"".join(_read_segment(segment) for segment in segments)
+    if len(document) > _MAX_AUDIT_BYTES:
+        raise RuntimeError("software HSM operations audit exceeds maximum size")
+    return document
 
 
 def zeroize(value: bytearray) -> None:
@@ -397,6 +536,7 @@ def zeroize(value: bytearray) -> None:
 
 __all__ = [
     "GENESIS_HASH", "SCHEMA", "append_event", "audit_config_from_environment",
+    "audit_verification_keys_from_environment",
     "audit_minimum_sequence_from_environment", "create_record", "key_store_identifier",
-    "parse_and_verify", "verify_audit_file", "zeroize",
+    "parse_and_verify", "read_audit_document", "verify_audit_file", "zeroize",
 ]

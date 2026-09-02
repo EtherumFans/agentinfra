@@ -34,9 +34,13 @@ from app.services.soft_hsm_ops_audit import (  # noqa: E402
     append_event,
     audit_config_from_environment,
     audit_minimum_sequence_from_environment,
+    audit_verification_keys_from_environment,
     key_store_identifier,
+    parse_and_verify,
+    read_audit_document,
     zeroize as zeroize_audit_key,
 )
+from app.services.soft_hsm_audit_archive import archive_from_environment  # noqa: E402
 
 
 def _encode(value: bytes) -> str:
@@ -280,6 +284,16 @@ def _audit_event(
     expected_generation: int | None, report: dict[str, Any] | None,
     error_type: str | None, change_ticket: str,
 ) -> dict[str, Any]:
+    deployment_mode = os.environ.get("ICODER_DEPLOYMENT_MODE", "local").strip().lower()
+    operator_identity = os.environ.get("ICODER_OPERATOR_IDENTITY", "local-operator").strip()
+    deployment_environment = os.environ.get(
+        "ICODER_DEPLOYMENT_ENVIRONMENT", deployment_mode
+    ).strip()
+    release_version = os.environ.get("ICODER_RELEASE_VERSION", "development").strip()
+    if deployment_mode == "cloud" and (
+        not operator_identity or not deployment_environment or not release_version
+    ):
+        raise RuntimeError("cloud HSM audit requires operator, environment and release identity")
     return {
         "operation": operation,
         "phase": phase,
@@ -291,7 +305,37 @@ def _audit_event(
         "key_states": report.get("key_states", {}) if report else {},
         "error_type": error_type,
         "change_ticket": change_ticket,
+        "operator_identity": operator_identity,
+        "deployment_environment": deployment_environment,
+        "release_version": release_version,
     }
+
+
+def _archive_is_required() -> bool:
+    configured = os.environ.get("ICODER_SOFT_HSM_AUDIT_ARCHIVE_REQUIRED", "").strip().lower()
+    return configured in {"1", "true", "yes", "on"} or (
+        os.environ.get("ICODER_DEPLOYMENT_MODE", "local").strip().lower() == "cloud"
+    )
+
+
+def _replicate_audit_archive(
+    *, audit_path: Path, audit_key: bytearray, audit_key_id: str,
+    verification_keys: dict[str, bytearray], minimum_sequence: int,
+    forbidden_checkpoint_keys: tuple[bytes | bytearray, ...] = (),
+) -> dict[str, Any] | None:
+    if not _archive_is_required():
+        return None
+    archive = archive_from_environment()
+    if any(archive.uses_checkpoint_key(key) for key in forbidden_checkpoint_keys):
+        raise RuntimeError("audit archive checkpoint key must be independently managed")
+    document = read_audit_document(audit_path)
+    records = parse_and_verify(
+        document, audit_key=audit_key, signing_key_id=audit_key_id,
+        verification_keys=verification_keys, minimum_sequence=minimum_sequence,
+    )
+    replication = archive.replicate_records(records)
+    archive.verify(verification_keys=verification_keys, minimum_sequence=len(records))
+    return replication
 
 
 def _audited_mutation(
@@ -306,15 +350,17 @@ def _audited_mutation(
         raise RuntimeError("mutating software HSM operations require a valid change ticket")
     audit_minimum_sequence = audit_minimum_sequence_from_environment()
     audit_path, audit_key, audit_key_id = audit_config_from_environment()
-    if audit_key == bootstrap_key or (
-        additional_secret_key is not None and audit_key == additional_secret_key
-    ):
-        zeroize_audit_key(audit_key)
-        raise RuntimeError("software HSM operations audit key must differ from bootstrap key")
-    if os.path.normcase(os.path.abspath(audit_path)) == os.path.normcase(os.path.abspath(path)):
-        zeroize_audit_key(audit_key)
-        raise RuntimeError("software HSM key store and operations audit paths must differ")
+    verification_keys = audit_verification_keys_from_environment()
     try:
+        if audit_key == bootstrap_key or (
+            additional_secret_key is not None and audit_key == additional_secret_key
+        ):
+            raise RuntimeError("software HSM operations audit key must differ from bootstrap key")
+        if os.path.normcase(os.path.abspath(audit_path)) == os.path.normcase(os.path.abspath(path)):
+            raise RuntimeError("software HSM key store and operations audit paths must differ")
+        forbidden_checkpoint_keys = tuple(
+            key for key in (audit_key, bootstrap_key, additional_secret_key) if key is not None
+        )
         append_event(
             audit_path,
             _audit_event(
@@ -323,7 +369,12 @@ def _audited_mutation(
                 error_type=None, change_ticket=change_ticket,
             ),
             audit_key=audit_key, signing_key_id=audit_key_id,
-            minimum_sequence=audit_minimum_sequence,
+            minimum_sequence=audit_minimum_sequence, verification_keys=verification_keys,
+        )
+        _replicate_audit_archive(
+            audit_path=audit_path, audit_key=audit_key, audit_key_id=audit_key_id,
+            verification_keys=verification_keys, minimum_sequence=audit_minimum_sequence,
+            forbidden_checkpoint_keys=forbidden_checkpoint_keys,
         )
         try:
             report = callback()
@@ -336,7 +387,12 @@ def _audited_mutation(
                     error_type=type(exc).__name__, change_ticket=change_ticket,
                 ),
                 audit_key=audit_key, signing_key_id=audit_key_id,
-                minimum_sequence=audit_minimum_sequence,
+                minimum_sequence=audit_minimum_sequence, verification_keys=verification_keys,
+            )
+            _replicate_audit_archive(
+                audit_path=audit_path, audit_key=audit_key, audit_key_id=audit_key_id,
+                verification_keys=verification_keys, minimum_sequence=audit_minimum_sequence,
+                forbidden_checkpoint_keys=forbidden_checkpoint_keys,
             )
             raise
         completed = append_event(
@@ -347,15 +403,23 @@ def _audited_mutation(
                 error_type=None, change_ticket=change_ticket,
             ),
             audit_key=audit_key, signing_key_id=audit_key_id,
-            minimum_sequence=audit_minimum_sequence,
+            minimum_sequence=audit_minimum_sequence, verification_keys=verification_keys,
+        )
+        archive_report = _replicate_audit_archive(
+            audit_path=audit_path, audit_key=audit_key, audit_key_id=audit_key_id,
+            verification_keys=verification_keys, minimum_sequence=audit_minimum_sequence,
+            forbidden_checkpoint_keys=forbidden_checkpoint_keys,
         )
         return {
             **report,
             "audit_sequence": completed["sequence"],
             "audit_chain_hash": completed["chain_hash"],
+            "audit_archive": archive_report,
         }
     finally:
         zeroize_audit_key(audit_key)
+        for verifier_key in verification_keys.values():
+            zeroize_audit_key(verifier_key)
 
 
 def main() -> int:

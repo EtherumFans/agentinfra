@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 # Production schema changes are applied exclusively through Alembic.  Keeping
 # the expected revision explicit makes an application image fail closed when
 # it is started before (or against a database behind) its migration job.
-PRODUCTION_SCHEMA_REVISION = "070"
+PRODUCTION_SCHEMA_REVISION = "071"
 TENANT_POLICY_NAME = "icoder_tenant_isolation"
 PROTECTED_TENANT_TABLES = (
     "patient_contexts",
@@ -68,6 +68,7 @@ PROTECTED_TENANT_TABLES = (
 )
 SPLIT_POLICY_TENANT_TABLES = ("audit_logs",)
 IMMUTABLE_AUDIT_ARCHIVE_TABLE = "audit_integrity_archive"
+PHI_ENVELOPE_CONSTRAINT_COUNT = 71
 
 _is_sqlite = "sqlite" in settings.DATABASE_URL
 
@@ -300,6 +301,28 @@ async def verify_production_database() -> None:
         # cannot defer a missing signing key until the first audit event.
         from app.services.audit_integrity import configured_audit_signer
         configured_audit_signer()
+
+        phi_gate = (
+            await connection.execute(
+                text(
+                    "SELECT count(*) FROM pg_constraint con "
+                    "JOIN pg_class c ON c.oid=con.conrelid "
+                    "JOIN pg_namespace n ON n.oid=c.relnamespace "
+                    "WHERE n.nspname=current_schema() AND con.contype='c' "
+                    "AND con.conname LIKE 'ck_phi_envelope_%'"
+                )
+            )
+        ).scalar_one()
+        if int(phi_gate) != PHI_ENVELOPE_CONSTRAINT_COUNT:
+            raise RuntimeError(
+                "PHI envelope plaintext-clearance constraints are incomplete: "
+                f"expected {PHI_ENVELOPE_CONSTRAINT_COUNT}, found {phi_gate}"
+            )
+        from app.services.phi_encryption import is_encryption_enabled
+        if not is_encryption_enabled():
+            raise RuntimeError(
+                "PostgreSQL production runtime requires PHI envelope encryption"
+            )
 
 
 

@@ -22,6 +22,8 @@ from app.services.soft_hsm import SoftwareHSMKeyring, key_operation_metrics_snap
 
 
 def _soft_hsm(monkeypatch) -> None:
+    monkeypatch.delenv("ICODER_SOFT_HSM_KEYSTORE_PATH", raising=False)
+    monkeypatch.delenv("ICODER_SOFT_HSM_REQUIRE_ENCRYPTED_KEYSTORE", raising=False)
     monkeypatch.setenv("ICODER_PHI_KEY_PROVIDER", "software_hsm")
     monkeypatch.setenv("ICODER_SOFT_HSM_KEY_ID", "test-kek-v1")
     monkeypatch.setenv(
@@ -31,6 +33,8 @@ def _soft_hsm(monkeypatch) -> None:
 
 
 def _keyring(monkeypatch, *, old_state: str = "decrypt-only") -> None:
+    monkeypatch.delenv("ICODER_SOFT_HSM_KEYSTORE_PATH", raising=False)
+    monkeypatch.delenv("ICODER_SOFT_HSM_REQUIRE_ENCRYPTED_KEYSTORE", raising=False)
     keys = {
         "test-kek-v1": {
             "key": base64.urlsafe_b64encode(b"1" * 32).decode("ascii"),

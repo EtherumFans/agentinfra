@@ -9,13 +9,15 @@ disaster-recovery rehearsal before a real provider is connected.
 from __future__ import annotations
 
 import base64
+import hashlib
 import json
 import os
 import re
 import threading
 from collections import Counter
 from dataclasses import dataclass, field
-from typing import Any, Protocol
+from types import MappingProxyType
+from typing import Any, Mapping, Protocol
 
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
@@ -24,11 +26,24 @@ _KEY_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._/-]{0,127}$")
 _KEY_STATES = frozenset({"active", "decrypt-only", "retired", "revoked"})
 _METRICS_LOCK = threading.Lock()
 _KEY_OPERATION_METRICS: Counter[tuple[str, str, str]] = Counter()
+_KEYRING_CACHE_LOCK = threading.Lock()
+_KEYRING_CACHE: tuple[tuple[Any, ...], Any] | None = None
 
 
 def _b64decode(value: str) -> bytes:
     padding = "=" * (-len(value) % 4)
-    return base64.urlsafe_b64decode((value + padding).encode("ascii"))
+    return base64.b64decode(
+        (value + padding).encode("ascii"), altchars=b"-_", validate=True,
+    )
+
+
+def _reject_duplicate_json_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    result: dict[str, Any] = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError("duplicate JSON key")
+        result[key] = value
+    return result
 
 
 class KeyWrappingProvider(Protocol):
@@ -89,18 +104,64 @@ class SoftwareHSMKeyring:
     """Validated KEK registry with exactly one write-active key."""
 
     active_key_id: str
-    keys: dict[str, SoftwareHSMConfig]
+    keys: Mapping[str, SoftwareHSMConfig]
+    generation: int = 0
+    source: str = "environment"
 
     @classmethod
     def from_environment(cls) -> "SoftwareHSMKeyring":
+        global _KEYRING_CACHE
+        key_store_path = os.environ.get("ICODER_SOFT_HSM_KEYSTORE_PATH", "").strip()
+        deployment_mode = os.environ.get("ICODER_DEPLOYMENT_MODE", "local").strip().lower()
+        require_store = os.environ.get(
+            "ICODER_SOFT_HSM_REQUIRE_ENCRYPTED_KEYSTORE", ""
+        ).strip().lower()
+        if require_store not in {"", "0", "1", "false", "true"}:
+            raise RuntimeError("software HSM encrypted key store requirement is invalid")
+        if key_store_path:
+            from app.services.soft_hsm_keystore import load_keyring_from_environment
+
+            try:
+                file_stat = os.lstat(key_store_path)
+            except OSError as exc:
+                raise RuntimeError("software HSM key store cannot be inspected") from exc
+            bootstrap_fingerprint = hashlib.sha256(
+                os.environ.get("ICODER_SOFT_HSM_BOOTSTRAP_KEY", "").encode("utf-8")
+            ).digest()
+            signature = (
+                os.path.abspath(key_store_path), file_stat.st_dev, file_stat.st_ino,
+                file_stat.st_mtime_ns, file_stat.st_size, file_stat.st_mode,
+                os.environ.get("ICODER_SOFT_HSM_MIN_GENERATION", ""),
+                bootstrap_fingerprint,
+            )
+            with _KEYRING_CACHE_LOCK:
+                if _KEYRING_CACHE is not None and _KEYRING_CACHE[0] == signature:
+                    return _KEYRING_CACHE[1]
+            payload, generation = load_keyring_from_environment()
+            keyring = cls.from_payload(
+                payload, generation=generation, source="encrypted_keystore"
+            )
+            with _KEYRING_CACHE_LOCK:
+                _KEYRING_CACHE = (signature, keyring)
+            return keyring
+        if deployment_mode == "cloud" or require_store in {"1", "true"}:
+            raise RuntimeError("encrypted software HSM key store is required")
         raw = os.environ.get("ICODER_SOFT_HSM_KEYRING_JSON", "").strip()
         if not raw:
             config = SoftwareHSMConfig.from_environment()
             return cls(active_key_id=config.key_id, keys={config.key_id: config})
         try:
-            payload = json.loads(raw)
+            if len(raw) > 1024 * 1024:
+                raise ValueError("keyring too large")
+            payload = json.loads(raw, object_pairs_hook=_reject_duplicate_json_keys)
         except Exception as exc:
             raise RuntimeError("software HSM keyring is not valid JSON") from exc
+        return cls.from_payload(payload, generation=0, source="environment_json")
+
+    @classmethod
+    def from_payload(
+        cls, payload: object, *, generation: int, source: str,
+    ) -> "SoftwareHSMKeyring":
         if not isinstance(payload, dict) or set(payload) != {"active_key_id", "keys"}:
             raise RuntimeError("software HSM keyring structure is invalid")
         active_key_id = payload["active_key_id"]
@@ -109,6 +170,8 @@ class SoftwareHSMKeyring:
             raise RuntimeError("software HSM active key id is invalid")
         if not isinstance(entries, dict) or not entries:
             raise RuntimeError("software HSM keyring must contain keys")
+        if len(entries) > 64:
+            raise RuntimeError("software HSM keyring contains too many keys")
         keys: dict[str, SoftwareHSMConfig] = {}
         for key_id, entry in entries.items():
             if not isinstance(key_id, str) or _KEY_ID.fullmatch(key_id) is None:
@@ -129,7 +192,10 @@ class SoftwareHSMKeyring:
         active = [key_id for key_id, config in keys.items() if config.state == "active"]
         if active != [active_key_id]:
             raise RuntimeError("software HSM keyring must declare exactly one matching active key")
-        return cls(active_key_id=active_key_id, keys=keys)
+        return cls(
+            active_key_id=active_key_id, keys=MappingProxyType(keys),
+            generation=generation, source=source,
+        )
 
     def active(self) -> "SoftwareHSM":
         return SoftwareHSM(self.keys[self.active_key_id])
@@ -148,6 +214,14 @@ class SoftwareHSMKeyring:
 
     def public_statuses(self) -> dict[str, str]:
         return {key_id: config.state for key_id, config in sorted(self.keys.items())}
+
+    def public_metadata(self) -> dict[str, Any]:
+        return {
+            "active_key_id": self.active_key_id,
+            "generation": self.generation,
+            "source": self.source,
+            "key_states": self.public_statuses(),
+        }
 
 
 class SoftwareHSM:

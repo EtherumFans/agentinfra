@@ -125,6 +125,8 @@ def run(database_url: str, *, execute: bool, batch_size: int) -> dict:
         "schema_version": "icoder.phi-dek-rewrap/v1",
         "mode": "execute" if execute else "dry_run",
         "active_key_id": keyring.active_key_id,
+        "keyring_generation": keyring.generation,
+        "keyring_source": keyring.source,
         "key_states": keyring.public_statuses(),
         "organizations_scanned": len(organizations),
         "values_scanned": scanned,
@@ -180,7 +182,12 @@ def main() -> int:
             audit_url,
             action="phi.key_rewrap.started",
             key_id=keyring.active_key_id,
-            details={"batch_size": args.batch_size, "provider": "software_hsm"},
+            details={
+                "batch_size": args.batch_size,
+                "provider": "software_hsm",
+                "keyring_generation": keyring.generation,
+                "keyring_source": keyring.source,
+            },
         ))
     try:
         report = run(database_url, execute=args.execute, batch_size=args.batch_size)
@@ -200,6 +207,8 @@ def main() -> int:
                 details={
                     "values_rewrapped": report["values_to_rewrap"],
                     "organizations_scanned": report["organizations_scanned"],
+                    "keyring_generation": report["keyring_generation"],
+                    "keyring_source": report["keyring_source"],
                 },
             ))
             asyncio.run(_emit_audit(

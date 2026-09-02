@@ -362,9 +362,8 @@ class Settings(BaseSettings):
         from app.services.phi_encryption import is_encryption_enabled
         if not is_encryption_enabled():
             failures.append(
-                "ICODER_PHI_ENCRYPTION_KEY is empty; required in cloud mode "
-                "(generate: python -c \"from cryptography.fernet import Fernet; "
-                "print(Fernet.generate_key().decode())\")"
+                "a valid PHI key provider is required in cloud mode; configure "
+                "the software-HSM simulation or a supported production provider"
             )
         if self.ICODER_INVITE_DELIVERY_MODE != "webhook":
             failures.append(

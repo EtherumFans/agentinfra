@@ -6,9 +6,10 @@ mis-handling, dev-laptop theft, cloud-snapshot leak) yields all
 PHI columns without any further work. The risk score was 4.4 /
 5.0 — the highest in the threat model.
 
-This module implements envelope-style encryption for high-PHI
-columns using Fernet (AES-128-CBC + HMAC-SHA256). The design
-must satisfy three constraints:
+This module dual-reads legacy Fernet v1 and wrapped-DEK AES-256-GCM v2
+envelopes. The local software-HSM provider exercises the future external
+KMS/HSM boundary but is not a hardware security control. The design must
+satisfy three constraints:
 
 1. **Cloud-mode fail-closed.** If no encryption key is configured
    in cloud mode, the platform refuses to boot. Plaintext PHI at
@@ -16,20 +17,19 @@ must satisfy three constraints:
 2. **Local SQLite works without a key.** SQLite development and unit-test
    databases retain the plaintext fallback. PostgreSQL is always strict for
    mapped PHI columns, irrespective of deployment mode.
-3. **Key rotation is survivable.** Each encrypted value carries
-   a ``key_id`` prefix (``v1:`` / ``v2:`` / ...) so the decrypt
-   path can pick the right key. The ``rotate_encrypted_columns``
-   helper re-encrypts all rows from ``v1`` to ``v2`` on rotation.
+3. **Key rotation is survivable.** Each encrypted value carries a version
+   prefix. Revision 072 permits v1 and v2 concurrently so the operated raw-SQL
+   batch tool can rotate online and resume after interruption.
 
 Schema convention (stored in DB):
 
   - Plaintext: ``"free text"`` (length N)
-  - Encrypted: ``"v1:gAAAAA...=="`` (length ~N + 100 overhead)
+  - Legacy encrypted: ``"v1:gAAAAA...=="``
+  - HSM envelope: ``"v2:<base64url canonical metadata + ciphertext>"``
 
-The decrypt path sniffs the prefix: ``v`` + digit + ``:`` means
-encrypted; anything else is treated as plaintext (local-dev
-fallback). This means encrypted and plaintext rows can coexist
-during the rotation window.
+The decrypt path distinguishes the authenticated envelope structures;
+anything else is treated as plaintext only for the SQLite local-development
+fallback. PostgreSQL mapped PHI rejects plaintext.
 
 Revision 071 maps clinical PHI attributes through transparent SQLAlchemy
 types, stores JSON as one opaque encrypted text envelope, and adds matching
@@ -38,6 +38,7 @@ to use the same versioned envelope contract.
 """
 from __future__ import annotations
 
+import base64
 import json
 import logging
 import os
@@ -48,13 +49,40 @@ from typing import Optional
 from sqlalchemy import Text
 from sqlalchemy.types import TypeDecorator
 
+from app.services.soft_hsm import SoftwareHSM, zeroize
+
 logger = logging.getLogger(__name__)
 
 # Versioned-key prefix. ``v1:`` / ``v2:`` / ...
 _ENCRYPTED_PREFIX_RE = re.compile(r"^v(\d+):")
-_ENCRYPTED_VALUE_RE = re.compile(
+_LEGACY_ENCRYPTED_VALUE_RE = re.compile(
     r"^v([1-9][0-9]*):gAAAAA[A-Za-z0-9_-]{90,}={0,2}$"
 )
+_V2_ENCRYPTED_VALUE_RE = re.compile(r"^v2:[A-Za-z0-9_-]{160,}$")
+_V2_SCHEMA = "icoder.phi-envelope/v2"
+
+
+def _b64encode(value: bytes) -> str:
+    return base64.urlsafe_b64encode(value).decode("ascii").rstrip("=")
+
+
+def _b64decode(value: str) -> bytes:
+    padded = value + "=" * (-len(value) % 4)
+    return base64.urlsafe_b64decode(padded.encode("ascii"))
+
+
+def _key_provider_mode() -> str:
+    mode = os.environ.get("ICODER_PHI_KEY_PROVIDER", "legacy_fernet").strip().lower()
+    if mode not in {"legacy_fernet", "software_hsm", "soft_hsm"}:
+        raise RuntimeError(f"unsupported PHI key provider: {mode!r}")
+    return mode
+
+
+def active_envelope_version() -> int:
+    """Return the version emitted for new PHI writes."""
+    if _key_provider_mode() in {"software_hsm", "soft_hsm"}:
+        return 2
+    return _active_key_id()
 
 
 def _resolve_active_key() -> Optional[bytes]:
@@ -113,14 +141,108 @@ def is_encryption_enabled() -> bool:
     Cloud-mode Settings validation (Gate 4.4 §2) refuses to boot
     if this returns False in cloud mode.
     """
+    if _key_provider_mode() in {"software_hsm", "soft_hsm"}:
+        try:
+            SoftwareHSM.from_environment()
+            return True
+        except RuntimeError:
+            return False
     return _resolve_active_key() is not None
 
 
+def is_legacy_v1_enabled() -> bool:
+    """Return whether the rollback/backfill v1 key can be resolved."""
+    return (_resolve_key_by_id(1) or _resolve_active_key()) is not None
+
+
 def is_encrypted_value(value: Optional[str]) -> bool:
-    """Return whether a value has the structural form of a Fernet envelope."""
+    """Return whether a value has a supported encrypted envelope structure."""
     if not value or not isinstance(value, str):
         return False
-    return bool(_ENCRYPTED_VALUE_RE.fullmatch(value))
+    return bool(
+        _LEGACY_ENCRYPTED_VALUE_RE.fullmatch(value)
+        or _V2_ENCRYPTED_VALUE_RE.fullmatch(value)
+    )
+
+
+def _v2_context(key_id: str) -> bytes:
+    return json.dumps(
+        {"algorithm": "A256GCM", "key_id": key_id, "schema": _V2_SCHEMA},
+        sort_keys=True, separators=(",", ":"),
+    ).encode("utf-8")
+
+
+def _encrypt_v2(plaintext: bytes) -> str:
+    from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+
+    hsm = SoftwareHSM.from_environment()
+    context = _v2_context(hsm.key_id)
+    data_key, wrapped_key = hsm.generate_data_key(context=context)
+    nonce = secrets.token_bytes(12)
+    try:
+        ciphertext = AESGCM(bytes(data_key)).encrypt(nonce, plaintext, context)
+    finally:
+        zeroize(data_key)
+    payload = json.dumps(
+        {
+            "a": "A256GCM",
+            "c": _b64encode(ciphertext),
+            "k": hsm.key_id,
+            "n": _b64encode(nonce),
+            "s": _V2_SCHEMA,
+            "w": _b64encode(wrapped_key),
+        },
+        sort_keys=True, separators=(",", ":"),
+    ).encode("utf-8")
+    return "v2:" + _b64encode(payload)
+
+
+def _decrypt_v2(stored: str) -> bytes:
+    from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+
+    if len(stored) > 64 * 1024 * 1024:
+        raise RuntimeError("PHI v2 envelope exceeds the maximum supported size")
+    try:
+        payload = json.loads(_b64decode(stored[3:]))
+    except Exception as exc:
+        raise RuntimeError("PHI v2 envelope metadata is malformed") from exc
+    if not isinstance(payload, dict) or set(payload) != {"a", "c", "k", "n", "s", "w"}:
+        raise RuntimeError("PHI v2 envelope metadata is invalid")
+    if not all(isinstance(payload[key], str) for key in payload):
+        raise RuntimeError("PHI v2 envelope metadata types are invalid")
+    if payload["a"] != "A256GCM" or payload["s"] != _V2_SCHEMA:
+        raise RuntimeError("PHI v2 envelope algorithm or schema is unsupported")
+    hsm = SoftwareHSM.from_environment()
+    if payload["k"] != hsm.key_id:
+        raise RuntimeError("PHI v2 envelope requires an unavailable HSM key id")
+    context = _v2_context(payload["k"])
+    try:
+        wrapped_key = _b64decode(payload["w"])
+        nonce = _b64decode(payload["n"])
+        ciphertext = _b64decode(payload["c"])
+    except Exception as exc:
+        raise RuntimeError("PHI v2 envelope binary fields are malformed") from exc
+    if len(nonce) != 12 or len(ciphertext) < 16:
+        raise RuntimeError("PHI v2 envelope binary fields are invalid")
+    data_key = hsm.unwrap_data_key(wrapped_key, context=context)
+    try:
+        return AESGCM(bytes(data_key)).decrypt(nonce, ciphertext, context)
+    except Exception as exc:
+        raise RuntimeError("PHI v2 envelope authentication failed") from exc
+    finally:
+        zeroize(data_key)
+
+
+def encrypt_phi_v1(plaintext: Optional[str]) -> Optional[str]:
+    """Encrypt explicitly with the legacy v1 key for controlled rollback."""
+    if plaintext is None or plaintext == "":
+        return plaintext
+    key = _resolve_key_by_id(1) or _resolve_active_key()
+    if key is None:
+        raise RuntimeError("legacy v1 PHI key is required")
+    from cryptography.fernet import Fernet
+
+    return "v1:" + Fernet(key).encrypt(plaintext.encode("utf-8")).decode("ascii")
 
 
 def encrypt_phi(plaintext: Optional[str]) -> Optional[str]:
@@ -135,6 +257,8 @@ def encrypt_phi(plaintext: Optional[str]) -> Optional[str]:
         return None
     if not plaintext:
         return plaintext
+    if _key_provider_mode() in {"software_hsm", "soft_hsm"}:
+        return _encrypt_v2(plaintext.encode("utf-8"))
     key = _resolve_active_key()
     if key is None:
         # Local-dev fallback: store as plaintext. ``is_encrypted_value``
@@ -168,6 +292,8 @@ def decrypt_phi(stored: Optional[str]) -> Optional[str]:
         return None
     if not stored:
         return stored
+    if stored.startswith("v2:") and not stored.startswith("v2:gAAAAA"):
+        return _decrypt_v2(stored).decode("utf-8")
     match = _ENCRYPTED_PREFIX_RE.match(stored)
     if not match:
         # Plaintext fallback — local-dev or pre-migration row.
@@ -194,6 +320,11 @@ def _strict_postgresql_encrypt(value: Optional[str], dialect_name: str) -> Optio
     if value is None or value == "":
         return value
     if is_encrypted_value(value):
+        if dialect_name == "postgresql":
+            # Do not let an attacker bypass encryption by submitting a string
+            # that merely resembles an envelope. Authentication succeeds or
+            # the write fails before reaching the database.
+            decrypt_phi(value)
         return value
     if dialect_name == "postgresql" and not is_encryption_enabled():
         raise RuntimeError(
@@ -262,6 +393,8 @@ def encrypt_phi_bytes(plaintext: bytes) -> bytes:
     """
     if not plaintext:
         return b"plain:"
+    if _key_provider_mode() in {"software_hsm", "soft_hsm"}:
+        return _encrypt_v2(plaintext).encode("ascii")
     key = _resolve_active_key()
     if key is None:
         return b"plain:" + plaintext
@@ -275,6 +408,8 @@ def decrypt_phi_bytes(stored: bytes) -> bytes:
     """Decrypt bytes produced by :func:`encrypt_phi_bytes`."""
     if stored.startswith(b"plain:"):
         return stored[len(b"plain:"):]
+    if stored.startswith(b"v2:") and not stored.startswith(b"v2:gAAAAA"):
+        return _decrypt_v2(stored.decode("ascii"))
     match = re.match(br"^v(\d+):", stored)
     if not match:
         # Backward-compatible local rows written before the binary marker.
@@ -448,7 +583,10 @@ __all__ = [
     "decrypt_phi_bytes",
     "is_encrypted_value",
     "is_encryption_enabled",
+    "is_legacy_v1_enabled",
     "generate_key",
+    "active_envelope_version",
+    "encrypt_phi_v1",
     "rotate_encrypted_columns",
     "EncryptedPHIText",
     "EncryptedPHIJSON",

@@ -1,4 +1,4 @@
-"""Online KEK rotation by rewrapping PHI data keys at revision 072.
+"""Online KEK rotation by rewrapping PHI data keys at revisions 072 and 073.
 
 The command is dry-run by default.  It never decrypts PHI ciphertext: the old
 KEK unwraps only the 32-byte DEK and the active KEK immediately rewraps it.
@@ -52,8 +52,10 @@ def run(database_url: str, *, execute: bool, batch_size: int) -> dict:
         with connection.cursor() as cursor:
             cursor.execute("SELECT version_num FROM alembic_version")
             revision = str(cursor.fetchone()[0])
-            if revision != "072":
-                raise RuntimeError(f"PHI DEK rewrap requires revision 072; found {revision}")
+            if revision not in {"072", "073"}:
+                raise RuntimeError(
+                    f"PHI DEK rewrap requires compatible revision 072 or 073; found {revision}"
+                )
             cursor.execute("SELECT pg_try_advisory_lock(hashtext('icoder.phi.dek-rewrap.v2'))")
             if not cursor.fetchone()[0]:
                 raise RuntimeError("another PHI DEK rewrap process already holds the lock")

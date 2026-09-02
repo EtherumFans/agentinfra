@@ -56,16 +56,30 @@ jobs:
       - name: Generate job-scoped encryption and audit keys
         run: |
           python - <<'PY'
-          import base64, os, secrets
+          import base64, json, os, secrets
+          audit_key = base64.urlsafe_b64encode(secrets.token_bytes(32)).decode()
+          checkpoint_key = base64.urlsafe_b64encode(secrets.token_bytes(32)).decode()
+          archive_root = os.path.join(os.environ["RUNNER_TEMP"], "software-hsm-audit-worm")
+          os.makedirs(archive_root, mode=0o700)
           with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as env:
               env.write("ICODER_SOFT_HSM_BOOTSTRAP_KEY=" + base64.urlsafe_b64encode(secrets.token_bytes(32)).decode() + "\n")
               env.write("ICODER_SOFT_HSM_KEYSTORE_PATH=" + os.path.join(os.environ["RUNNER_TEMP"], "software-hsm.keys") + "\n")
               env.write("ICODER_SOFT_HSM_MIN_GENERATION=1\n")
               env.write("ICODER_SOFT_HSM_REQUIRE_ENCRYPTED_KEYSTORE=true\n")
-              env.write("ICODER_SOFT_HSM_OPS_AUDIT_KEY=" + base64.urlsafe_b64encode(secrets.token_bytes(32)).decode() + "\n")
+              env.write("ICODER_SOFT_HSM_OPS_AUDIT_KEY=" + audit_key + "\n")
               env.write("ICODER_SOFT_HSM_OPS_AUDIT_KEY_ID=ci-soft-hsm-audit-v1\n")
+              env.write("ICODER_SOFT_HSM_OPS_AUDIT_KEYS=" + json.dumps({"ci-soft-hsm-audit-v1": audit_key}, separators=(",", ":")) + "\n")
               env.write("ICODER_SOFT_HSM_OPS_AUDIT_PATH=" + os.path.join(os.environ["RUNNER_TEMP"], "software-hsm-ops.jsonl") + "\n")
               env.write("ICODER_SOFT_HSM_OPS_AUDIT_MIN_SEQUENCE=0\n")
+              env.write("ICODER_SOFT_HSM_AUDIT_ARCHIVE_REQUIRED=true\n")
+              env.write("ICODER_SOFT_HSM_AUDIT_ARCHIVE_ADAPTER=local_worm_simulator\n")
+              env.write("ICODER_SOFT_HSM_AUDIT_ARCHIVE_ROOT=" + archive_root + "\n")
+              env.write("ICODER_SOFT_HSM_AUDIT_CHECKPOINT_KEY=" + checkpoint_key + "\n")
+              env.write("ICODER_SOFT_HSM_AUDIT_CHECKPOINT_KEY_ID=ci-checkpoint-v1\n")
+              env.write("ICODER_SOFT_HSM_AUDIT_RETENTION_DAYS=2555\n")
+              env.write("ICODER_OPERATOR_IDENTITY=github-actions-phi-gate\n")
+              env.write("ICODER_DEPLOYMENT_ENVIRONMENT=ci\n")
+              env.write("ICODER_RELEASE_VERSION=" + os.environ.get("GITHUB_SHA", "unknown") + "\n")
               env.write("ICODER_AUDIT_SIGNING_KEY=" + secrets.token_urlsafe(64) + "\n")
               env.write("ICODER_AUDIT_SIGNING_KEY_ID=ci-audit-v1\n")
           PY
@@ -76,7 +90,9 @@ jobs:
           --key-id ci-kek-v1
           --change-ticket "CI-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
       - name: Verify independent software-HSM operations audit
-        run: python scripts/verify_soft_hsm_ops_audit.py --minimum-sequence 2
+        run: python scripts/verify_soft_hsm_ops_audit.py --minimum-sequence 2 --verify-archive
+      - name: Export minimum-necessary immutable audit evidence
+        run: python scripts/export_soft_hsm_ops_audit.py --output "$RUNNER_TEMP/software-hsm-audit-evidence.json"
       - name: Rehearse software-HSM disaster recovery
         run: python scripts/rehearse_soft_hsm_disaster_recovery.py
       - name: Provision least-privilege database identities
@@ -102,6 +118,7 @@ jobs:
           tests/unit/app/services/test_phi_envelope_types.py
           tests/unit/app/services/test_soft_hsm_keystore.py
           tests/unit/app/services/test_soft_hsm_ops_audit.py
+          tests/unit/app/services/test_soft_hsm_audit_archive.py
           tests/unit/app/services/test_phi_artifact_scanner.py
           tests/integration/test_postgresql_role_provisioning.py
           tests/integration/test_phi_envelope_postgres.py

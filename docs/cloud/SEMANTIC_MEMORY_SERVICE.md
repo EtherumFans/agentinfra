@@ -44,7 +44,7 @@ ICODER_MEMORY_SEMANTIC_URL=https://memory-embedding.example.cn/v1/embed
 ICODER_CREDENTIAL_MEMORY_SEMANTIC=<KMS/Secret Manager 注入的 32–512 字符服务凭据>
 ICODER_MEMORY_SEMANTIC_REQUIRED=true
 ICODER_CONNECTOR_EGRESS_ALLOWLIST=memory-embedding.example.cn
-ICODER_PHI_ENCRYPTION_KEY=<KMS 注入的 Fernet key>
+ICODER_PHI_KEY_PROVIDER=<approved KMS/HSM provider>
 ```
 
 Cloud 启动只接受 HTTPS 443、无内嵌凭据/query/fragment 的固定 URL，并要求其精确主机已进入 egress allowlist。语义服务凭据只由 `CredentialVault` 解析，不得写入 Connector config、日志、镜像、报告或 SDK。

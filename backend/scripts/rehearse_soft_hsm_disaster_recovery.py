@@ -160,6 +160,7 @@ def run() -> dict:
             tampered = bytearray(audit_path.read_bytes())
             tampered[len(tampered) // 2] ^= 1
             tampered_path.write_bytes(tampered)
+            os.chmod(tampered_path, 0o600)
             audit_tamper = _expect_failure(
                 lambda: verify_audit_file(
                     tampered_path, audit_key=audit_key,
@@ -169,6 +170,7 @@ def run() -> dict:
             )
             tail_path = root / "truncated-audit.jsonl"
             tail_path.write_bytes(b"\n".join(audit_path.read_bytes().splitlines()[:-1]) + b"\n")
+            os.chmod(tail_path, 0o600)
             audit_tail_rollback = _expect_failure(
                 lambda: verify_audit_file(
                     tail_path, audit_key=audit_key,

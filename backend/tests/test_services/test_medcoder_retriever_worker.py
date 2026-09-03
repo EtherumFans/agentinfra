@@ -262,13 +262,17 @@ def test_worker_exits_when_parent_watch_pipe_closes():
     q_in = context.Queue()
     q_out = context.Queue()
     watch_recv, watch_send = context.Pipe(duplex=False)
+    # Keep a parent-side reference alive until the spawned child has rebuilt
+    # the shared counters; an inline temporary may unlink its SemLocks while
+    # spawn is still unpickling on fast Linux runners.
+    retriever = FakeRetriever({}, context=context)
     proc = context.Process(
         target=MedCodERRetrieverWorker.run,
         args=(
             q_in,
             q_out,
             "unused",
-            FakeRetriever({}, context=context),
+            retriever,
             None,
             watch_recv,
         ),

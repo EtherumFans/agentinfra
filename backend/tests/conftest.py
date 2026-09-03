@@ -198,18 +198,27 @@ async def setup_db():
     # while the API reads test DB — the rows are invisible.
     _db_module.async_session_factory = _db_module.AsyncSessionLocal
 
+    use_premigrated_schema = (
+        os.environ.get("ICODER_TEST_USE_PREMIGRATED_SCHEMA") == "1"
+        and _parsed_test_db_url.get_backend_name() == "postgresql"
+    )
+
     # A prior interrupted pytest session cannot run the teardown below and
     # may leave fixed-id fixtures in data/test.db.  Start from a known-empty
     # schema so repeated and interrupted local runs remain deterministic.
     # This engine is already rebound to the dedicated test URL; the dev DB
     # guard below continues to prove data/icoder.db is untouched.
-    async with _test_engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
-    await init_db()
+    if not use_premigrated_schema:
+        async with _test_engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
+        await init_db()
     yield
-    # Drop tables from the test engine only — dev DB (data/icoder.db) is never touched.
-    async with _test_engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
+    # A pre-migrated PostgreSQL service is disposable and the app role must
+    # never acquire schema-owner DDL privileges merely for test cleanup.
+    if not use_premigrated_schema:
+        # Drop tables from the test engine only — dev DB is never touched.
+        async with _test_engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
     await _test_engine.dispose()
 
     # A1B-AE-RV.2 dev DB guard: assert dev DB untouched.

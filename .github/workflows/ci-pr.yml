@@ -37,6 +37,9 @@ jobs:
       P1_POSTGRES_APP_DATABASE_URL: postgresql+asyncpg://icoder_p1_app:ci_app_only@localhost:5432/icoder_phi_gate
       DATABASE_URL: postgresql+asyncpg://icoder_p1_app:ci_app_only@localhost:5432/icoder_phi_gate
       ICODER_DATABASE_URL: postgresql+asyncpg://icoder_p1_app:ci_app_only@localhost:5432/icoder_phi_gate
+      # Alembic prepares this disposable service database before pytest. Keep
+      # the application test session on the app role and skip ORM DDL cleanup.
+      ICODER_TEST_USE_PREMIGRATED_SCHEMA: "1"
       ICODER_POSTGRES_MIGRATION_ROLE: icoder_p1_migration
       ICODER_POSTGRES_APP_ROLE: icoder_p1_app
       ICODER_POSTGRES_MIGRATION_PASSWORD: ci_migration_only

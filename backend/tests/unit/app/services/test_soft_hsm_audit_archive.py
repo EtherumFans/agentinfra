@@ -128,6 +128,7 @@ def test_signing_key_rotation_and_host_journal_recovery(tmp_path) -> None:
         json.dumps(record, sort_keys=True, separators=(",", ":")).encode() + b"\n"
         for record in evidence["records"]
     ))
+    recovered.chmod(0o600)
     assert verify_audit_file(
         recovered, audit_key=new_key, signing_key_id="audit-v2",
         verification_keys={"audit-v1": old_key, "audit-v2": new_key}, minimum_sequence=2,

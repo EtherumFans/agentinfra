@@ -17,7 +17,7 @@ const API_SECTIONS = [
   { icon: FileText, title: 'Guided Documents', path: '/api/v2/tools/guided-documents', desc: 'templateRef / assemblyTemplate / dynamicTemplate，支持保存或文书零留存', method: 'POST' },
   { icon: Stethoscope, title: 'Medical Coding', path: '/api/v1/coding/predict', desc: 'ICD-10-CN / ICD-9-CM-3 编码', method: 'POST' },
   { icon: Sparkles, title: 'Agentic Framework', path: '/api/icoder/agents/{agent_id}/v1/message:stream', desc: '认证 A2A v0.3 流式调用', method: 'POST / SSE' },
-  { icon: Key, title: 'Authentication', path: '/api/auth/login', desc: 'JWT + OAuth 2.0 + PKCE', method: 'POST' },
+  { icon: Key, title: 'Authentication', path: '/api/auth/login', desc: 'JWT 用户会话 + OAuth 2.0 Client Credentials', method: 'POST' },
   { icon: Puzzle, title: 'Embedded Assistant', path: '/api/embedded', desc: 'Web Component 嵌入', method: 'GET' },
 ];
 

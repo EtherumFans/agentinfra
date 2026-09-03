@@ -1834,7 +1834,7 @@
           "oauth"
         ],
         "summary": "Token Endpoint",
-        "description": "OAuth 2.0 Token Endpoint.\n\nSupports three grant types:\n- client_credentials (RFC 6749 §4.4): M2M authentication\n- authorization_code (RFC 6749 §4.1): SPA/user authentication\n- authorization_code + PKCE (RFC 7636): SPA with code challenge\n\nThe ``Tenant-Name`` (or ``X-Tenant``) header is honored when present;\nmismatches with the bearer JWT's ``org_id`` claim return HTTP 400\n``tenant_header_mismatch`` (see ``TenantHeaderMiddleware``).",
+        "description": "OAuth 2.0 Token Endpoint.\n\nSupports only client_credentials (RFC 6749 §4.4).  The former incomplete\nauthorization-code endpoint minted codes without an authenticated resource\nowner or registered redirect URI.  Keep unsupported grants fail-closed\nuntil a complete authorization-server design is implemented.\n\nThe ``Tenant-Name`` (or ``X-Tenant``) header is honored when present;\nmismatches with the bearer JWT's ``org_id`` claim return HTTP 400\n``tenant_header_mismatch`` (see ``TenantHeaderMiddleware``).",
         "operationId": "token_endpoint_api_oauth_token_post",
         "requestBody": {
           "content": {
@@ -1935,108 +1935,6 @@
             "schema": {
               "type": "string",
               "title": "Realm"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/oauth/authorize": {
-      "get": {
-        "tags": [
-          "oauth"
-        ],
-        "summary": "Authorize Endpoint",
-        "description": "OAuth 2.0 Authorization Endpoint.\n\nFor SPAs: redirects user to login, then back with authorization code.\nPKCE: client sends code_challenge, later exchanges code with code_verifier.",
-        "operationId": "authorize_endpoint_api_oauth_authorize_get",
-        "parameters": [
-          {
-            "name": "response_type",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "default": "code",
-              "title": "Response Type"
-            }
-          },
-          {
-            "name": "client_id",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "default": "",
-              "title": "Client Id"
-            }
-          },
-          {
-            "name": "redirect_uri",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "default": "",
-              "title": "Redirect Uri"
-            }
-          },
-          {
-            "name": "scope",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "default": "api:read",
-              "title": "Scope"
-            }
-          },
-          {
-            "name": "code_challenge",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "default": "",
-              "title": "Code Challenge"
-            }
-          },
-          {
-            "name": "code_challenge_method",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "default": "S256",
-              "title": "Code Challenge Method"
-            }
-          },
-          {
-            "name": "state",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "default": "",
-              "title": "State"
             }
           }
         ],
@@ -20458,21 +20356,6 @@
           "client_secret": {
             "type": "string",
             "title": "Client Secret",
-            "default": ""
-          },
-          "code": {
-            "type": "string",
-            "title": "Code",
-            "default": ""
-          },
-          "code_verifier": {
-            "type": "string",
-            "title": "Code Verifier",
-            "default": ""
-          },
-          "redirect_uri": {
-            "type": "string",
-            "title": "Redirect Uri",
             "default": ""
           },
           "scope": {

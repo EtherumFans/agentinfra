@@ -40,8 +40,8 @@ TENANT_HEADERS: tuple[str, ...] = ("tenant-name", "x-tenant")
 # Paths where the tenant header is irrelevant (docs, health, OAuth itself).
 # OAuth is exempt because the *token-issuing* call must succeed even when a
 # caller has not yet been authenticated (otherwise no client could ever
-# bootstrap). Authorization Code flows carry the tenant via the
-# ``/api/oauth/realms/{realm}/token`` path instead.
+# bootstrap). The supported Client Credentials flow resolves its authoritative
+# tenant from the stored client before entering FORCE RLS.
 _TENANT_EXEMPT_PREFIXES: tuple[str, ...] = (
     "/api/health",
     "/docs",

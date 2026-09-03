@@ -29,6 +29,11 @@ SYSTEM_STREAM_ID = "system"
 SCHEMA_VERSION = "icoder.audit-archive.v1"
 
 
+def immutable_audit_archive_enabled() -> bool:
+    """Return whether the optional advanced audit archive is enabled."""
+    return bool(settings.ICODER_IMMUTABLE_AUDIT_ARCHIVE_ENABLED)
+
+
 class AuditSigner(Protocol):
     algorithm: str
     key_id: str
@@ -184,7 +189,9 @@ def verify_envelopes(
 async def archive_audit_log(
     db: AsyncSession, entry: AuditLog, *, signer: AuditSigner | None = None,
 ) -> AuditEnvelope | None:
-    """Atomically append a production audit event to its integrity stream."""
+    """Append to the optional integrity stream when the advanced feature is on."""
+    if not immutable_audit_archive_enabled():
+        return None
     if db.get_bind().dialect.name != "postgresql":
         return None
     if not entry.id:
@@ -226,5 +233,6 @@ async def archive_audit_log(
 __all__ = [
     "AuditEnvelope", "AuditSigner", "GENESIS_HASH", "HMACAuditSigner",
     "archive_audit_log", "audit_payload", "canonical_json",
-    "configured_audit_signer", "create_envelope", "verify_envelopes",
+    "configured_audit_signer", "create_envelope", "immutable_audit_archive_enabled",
+    "verify_envelopes",
 ]

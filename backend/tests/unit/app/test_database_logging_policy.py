@@ -30,6 +30,16 @@ def test_local_statement_echo_requires_an_explicit_switch(
     assert local.ICODER_DATABASE_SQL_ECHO is True
 
 
+def test_immutable_audit_archive_is_an_opt_in_advanced_feature(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("ICODER_IMMUTABLE_AUDIT_ARCHIVE_ENABLED", raising=False)
+    assert Settings(_env_file=None).ICODER_IMMUTABLE_AUDIT_ARCHIVE_ENABLED is False
+
+    monkeypatch.setenv("ICODER_IMMUTABLE_AUDIT_ARCHIVE_ENABLED", "true")
+    assert Settings(_env_file=None).ICODER_IMMUTABLE_AUDIT_ARCHIVE_ENABLED is True
+
+
 @pytest.mark.asyncio
 async def test_sqlalchemy_diagnostic_echo_never_logs_bound_clinical_text(
     caplog: pytest.LogCaptureFixture,

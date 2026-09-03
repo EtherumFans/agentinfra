@@ -674,6 +674,11 @@ class Settings(BaseSettings):
     # dev override via docker-compose.local-dev.yml to `disabled`.
     ICODER_PHI_REDACTION_MODE: str = "edge"   # edge | disabled
     ICODER_AUDIT_SINK: str = "cloud_audit"   # cloud_audit | local
+    # Optional advanced compliance feature. Standard audit_logs and the local
+    # signed software-HSM operations journal remain active when this is off.
+    # Enabling it adds the PostgreSQL cryptographic archive and requires the
+    # separately configured external WORM replication path for HSM mutations.
+    ICODER_IMMUTABLE_AUDIT_ARCHIVE_ENABLED: bool = False
 
     # ── Phase A1A Gate 4.2 — single-tenant org binding (local mode) ───────────
     # When ICODER_DEPLOYMENT_MODE=local and a request arrives without a bearer

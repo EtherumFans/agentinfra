@@ -1,10 +1,12 @@
 from dataclasses import replace
+from types import SimpleNamespace
 
 import pytest
 
 from app.services.audit_integrity import (
     GENESIS_HASH,
     HMACAuditSigner,
+    archive_audit_log,
     canonical_json,
     create_envelope,
     verify_envelopes,
@@ -59,3 +61,36 @@ def test_signing_key_is_minimum_32_bytes() -> None:
     with pytest.raises(ValueError, match="at least 32 bytes"):
         HMACAuditSigner(b"short", key_id="bad")
 
+
+@pytest.mark.asyncio
+async def test_immutable_archive_is_disabled_by_default(monkeypatch) -> None:
+    from app.services import audit_integrity
+
+    monkeypatch.setattr(
+        audit_integrity.settings, "ICODER_IMMUTABLE_AUDIT_ARCHIVE_ENABLED", False,
+    )
+
+    class DatabaseThatMustNotBeUsed:
+        def get_bind(self):
+            return SimpleNamespace(dialect=SimpleNamespace(name="postgresql"))
+
+        async def execute(self, *_args, **_kwargs):
+            raise AssertionError("disabled archive must not query PostgreSQL")
+
+    assert await archive_audit_log(
+        DatabaseThatMustNotBeUsed(), SimpleNamespace(id=None),
+    ) is None
+
+
+@pytest.mark.asyncio
+async def test_enabled_archive_keeps_fail_closed_validation(monkeypatch) -> None:
+    from app.services import audit_integrity
+
+    monkeypatch.setattr(
+        audit_integrity.settings, "ICODER_IMMUTABLE_AUDIT_ARCHIVE_ENABLED", True,
+    )
+    database = SimpleNamespace(
+        get_bind=lambda: SimpleNamespace(dialect=SimpleNamespace(name="postgresql")),
+    )
+    with pytest.raises(ValueError, match="must be flushed"):
+        await archive_audit_log(database, SimpleNamespace(id=None))

@@ -71,7 +71,6 @@ jobs:
               env.write("ICODER_SOFT_HSM_OPS_AUDIT_KEYS=" + json.dumps({"ci-soft-hsm-audit-v1": audit_key}, separators=(",", ":")) + "\n")
               env.write("ICODER_SOFT_HSM_OPS_AUDIT_PATH=" + os.path.join(os.environ["RUNNER_TEMP"], "software-hsm-ops.jsonl") + "\n")
               env.write("ICODER_SOFT_HSM_OPS_AUDIT_MIN_SEQUENCE=0\n")
-              env.write("ICODER_SOFT_HSM_AUDIT_ARCHIVE_REQUIRED=true\n")
               env.write("ICODER_SOFT_HSM_AUDIT_ARCHIVE_ADAPTER=local_worm_simulator\n")
               env.write("ICODER_SOFT_HSM_AUDIT_ARCHIVE_ROOT=" + archive_root + "\n")
               env.write("ICODER_SOFT_HSM_AUDIT_CHECKPOINT_KEY=" + checkpoint_key + "\n")
@@ -84,16 +83,26 @@ jobs:
               env.write("ICODER_AUDIT_SIGNING_KEY_ID=ci-audit-v1\n")
           PY
       - name: Create encrypted software-HSM key store
+        env:
+          # Exercise the optional add-on without changing the test job's
+          # default-disabled product configuration.
+          ICODER_IMMUTABLE_AUDIT_ARCHIVE_ENABLED: "true"
         run: >-
           python scripts/manage_soft_hsm_keystore.py create
           --path "$ICODER_SOFT_HSM_KEYSTORE_PATH"
           --key-id ci-kek-v1
           --change-ticket "CI-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
       - name: Verify independent software-HSM operations audit
+        env:
+          ICODER_IMMUTABLE_AUDIT_ARCHIVE_ENABLED: "true"
         run: python scripts/verify_soft_hsm_ops_audit.py --minimum-sequence 2 --verify-archive
-      - name: Reconcile immutable software-HSM audit archive
+      - name: Reconcile optional immutable software-HSM audit archive
+        env:
+          ICODER_IMMUTABLE_AUDIT_ARCHIVE_ENABLED: "true"
         run: python scripts/reconcile_soft_hsm_ops_audit.py --max-pending-seconds 0
-      - name: Export minimum-necessary immutable audit evidence
+      - name: Export optional minimum-necessary immutable audit evidence
+        env:
+          ICODER_IMMUTABLE_AUDIT_ARCHIVE_ENABLED: "true"
         run: python scripts/export_soft_hsm_ops_audit.py --output "$RUNNER_TEMP/software-hsm-audit-evidence.json"
       - name: Rehearse software-HSM disaster recovery
         run: python scripts/rehearse_soft_hsm_disaster_recovery.py

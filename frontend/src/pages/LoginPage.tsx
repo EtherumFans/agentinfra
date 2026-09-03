@@ -101,23 +101,6 @@ export default function LoginPage() {
                   {loading ? '登录中...' : '登 录'}
                 </button>
               </form>
-              {/* OAuth login */}
-              <div className="mt-4 pt-4 border-t border-border">
-                <p className="text-[10px] text-muted-foreground text-center mb-3">或使用第三方账号登录</p>
-                <div className="flex gap-2">
-                  <button onClick={() => window.location.href = '/api/oauth/authorize?response_type=code&client_id=google&redirect_uri=' + encodeURIComponent(window.location.origin + '/login')}
-                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-border text-xs hover:bg-accent transition-colors">
-                    <img src="https://cdn.simpleicons.org/google/4285F4" alt="Google" width="16" height="16" loading="lazy" />
-                    Google
-                  </button>
-                  <button onClick={() => window.location.href = '/api/oauth/authorize?response_type=code&client_id=github&redirect_uri=' + encodeURIComponent(window.location.origin + '/login')}
-                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-border text-xs hover:bg-accent transition-colors">
-                    <img src="https://cdn.simpleicons.org/github/181717" alt="GitHub" width="16" height="16" loading="lazy" className="dark:hidden" />
-                    <img src="https://cdn.simpleicons.org/github/ffffff" alt="GitHub" width="16" height="16" loading="lazy" className="hidden dark:block" />
-                    GitHub
-                  </button>
-                </div>
-              </div>
               <div className="flex justify-between mt-4">
                 <button onClick={() => switchMode('forgot')} className="text-xs text-muted-foreground hover:text-primary">忘记密码？</button>
                 <button onClick={() => switchMode('register')} className="text-xs text-muted-foreground hover:text-primary">没有账号？注册</button>

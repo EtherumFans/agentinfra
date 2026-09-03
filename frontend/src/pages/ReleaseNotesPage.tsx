@@ -26,7 +26,7 @@ const RELEASES = [
           '85 个 REST + WebSocket 端点全部可用',
           'DeepSeek V4 Pro 引擎驱动所有 AI 能力',
           'FunASR Paraformer + Whisper + Google STT 三层语音回退',
-          'OAuth 2.0 + PKCE 完整支持',
+          'OAuth 2.0 Client Credentials 短期令牌支持',
         ],
       },
       {
@@ -98,4 +98,3 @@ export default function ReleaseNotesPage() {
     </div>
   );
 }
-

@@ -139,7 +139,8 @@ Phase 1 (cloud-flip) 范围:
 
 Phase 2+:
 - ✅ 改 RS256 / EdDSA 配 JWKS endpoint
-- ✅ 引入 OAuth 2.1 (client_credentials + ROPC + PKCE for embedded)
+- ✅ 引入受治理的 OAuth 2.0 client_credentials
+- ⏸ 用户授权码/PKCE 流程在完成认证、consent 与 redirect URI 设计前保持关闭
 - ✅ 引入 scope 系统 + per-tenant JWT signing
 
 ## 7. References

@@ -1,0 +1,142 @@
+{
+  "phase": "a2a_v1_durable_async_task",
+  "generated_at": "2026-08-22T02:30:36+08:00",
+  "verdict": "development_launch_candidate",
+  "scope": {
+    "protocol": "A2A v1.0 JSON-RPC and HTTP+JSON",
+    "capabilities": [
+      "returnImmediately",
+      "GetTask",
+      "ListTasks",
+      "CancelTask_before_claim",
+      "SubscribeToTask",
+      "Last-Event-ID_resume",
+      "startup_recovery",
+      "lease_heartbeat",
+      "terminal_compare_and_swap"
+    ],
+    "external_llm_used": false,
+    "corti_called": false,
+    "real_credentials_used": false
+  },
+  "contracts": {
+    "alembic_head": "045",
+    "tables": [
+      "a2a_task_executions",
+      "a2a_task_events"
+    ],
+    "openapi_path_count": 253,
+    "subscribe_path": "/api/v2/agentic/agents/{agent_id}/tasks/{task_id}:subscribe",
+    "sdk_versions": {
+      "javascript": "1.0.0-beta.18",
+      "python": "1.0.0b18",
+      "dotnet": "1.0.0-beta.18"
+    }
+  },
+  "verification": [
+    {
+      "name": "backend_joint_regression",
+      "passed": 228,
+      "failed": 0,
+      "duration_seconds": 170.24
+    },
+    {
+      "name": "real_app_lifespan",
+      "passed": 3,
+      "failed": 0,
+      "duration_seconds": 15.22
+    },
+    {
+      "name": "python_sdk",
+      "passed": 41,
+      "failed": 0,
+      "duration_seconds": 49.77
+    },
+    {
+      "name": "javascript_sdk",
+      "passed": 34,
+      "failed": 0
+    },
+    {
+      "name": "frontend_openapi_contract",
+      "passed": 60,
+      "failed": 0
+    },
+    {
+      "name": "release_candidate_validator",
+      "passed": 5,
+      "failed": 0,
+      "normalized_version": "1.0.0-beta.18"
+    },
+    {
+      "name": "local_release_artifacts",
+      "passed": true,
+      "publication_performed": false,
+      "manifest": "reports/release-candidate/LOCAL_RELEASE_MANIFEST_BETA18.json",
+      "artifacts": [
+        {
+          "path": "icoder-sdk-1.0.0-beta.18.tgz",
+          "size_bytes": 35325,
+          "sha256": "ae145d41bc42851653ec0db0286f1c7914d8348345b7d2678c69ded2b5eea578"
+        },
+        {
+          "path": "icoder_sdk-1.0.0b18-py3-none-any.whl",
+          "size_bytes": 27054,
+          "sha256": "2da23e1c836c738f7c63e77c8ac4f4dea5f9f8495d88b007e3ccbce8a4aec17b"
+        }
+      ]
+    },
+    {
+      "name": "openapi_drift_check",
+      "passed": true,
+      "path_count": 253,
+      "subscribe_present": true
+    },
+    {
+      "name": "migration_upgrade_downgrade",
+      "passed": true,
+      "upgrade_revision": "045",
+      "upgrade_tables": [
+        "a2a_task_events",
+        "a2a_task_executions"
+      ],
+      "downgrade_revision": "044",
+      "downgrade_tables": []
+    },
+    {
+      "name": "python_compileall",
+      "passed": true
+    },
+    {
+      "name": "secret_shape_scan",
+      "matches": 0
+    },
+    {
+      "name": "dotnet_build_and_tests",
+      "passed": null,
+      "reason": "dotnet, csc, and msbuild are not installed on this host"
+    }
+  ],
+  "security_invariants": [
+    "tenant_and_agent_scoped_task_lookup",
+    "encrypted_persisted_payload_and_result",
+    "no_raw_google_rpc_details_in_sdks",
+    "input_injection_rejected_before_rows_are_created",
+    "hard_delete_scrubs_execution_and_event_rows",
+    "stale_worker_cannot_overwrite_current_lease_owner",
+    "working_cancel_is_rejected_instead_of_claiming_provider_termination"
+  ],
+  "remaining_gates": [
+    "production_queue_or_worker_fleet",
+    "postgresql_multi_process_and_multi_replica_validation",
+    "provider_side_running_task_cancellation",
+    "conditional_parallel_loop_planner",
+    "production_connector_transports_and_secret_resolver",
+    "openinference_context_trace_export",
+    "task_and_message_feedback",
+    "dotnet_net8_net10_ci",
+    "linux_docker_and_cloud_validation",
+    "hospital_interoperability",
+    "legal_compliance_certification_and_independent_clinical_review"
+  ]
+}

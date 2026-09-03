@@ -1,0 +1,89 @@
+{
+  "agent_id": "procedure-extractor",
+  "run_id": "run-8621748e-0078-4a15-b088-ccb6f6ab6deb",
+  "trace_id": "trace-24b87e0d4db44949",
+  "trace_url": "/ai-studio/runs/run-8621748e-0078-4a15-b088-ccb6f6ab6deb/trace",
+  "runtime_mode": "governed_local_explicit_procedure_baseline",
+  "latency_ms": 41,
+  "cost": {
+    "amount": 0.0,
+    "currency": "CNY"
+  },
+  "billing": {},
+  "summary": "已定位 1 个已实施术式和 0 个非计费状态提及；所有结果须编码员复核。",
+  "result": {
+    "status": "requires_review",
+    "markdown": "{\"issues_found\": [], \"manual_review_required\": true, \"non_billable_mentions\": [], \"procedures\": [{\"char_span\": [22, 38], \"code\": \"03.5304\", \"confidence\": 0.8, \"display\": \"胸椎骨折切开复位内固定术\", \"evidence_text\": \"行 T12 椎体切开复位内固定术\", \"status\": \"performed\", \"warnings\": [\"本地 ICD-9-CM-3 目录 authority_status=source_unverified、license_status=external_review_required；不得用于自动结算或写回。\", \"编码来自明示脊柱节段的有界目录规范化，必须人工确认术式与解剖部位。\"]}], \"total_count\": 1}",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.governed-procedure-extractor.v1",
+    "backend_type": "rule_engine",
+    "issues_found": [],
+    "manual_review_required": true,
+    "non_billable_mentions": [],
+    "procedures": [
+      {
+        "char_span": [
+          22,
+          38
+        ],
+        "code": "03.5304",
+        "confidence": 0.8,
+        "display": "胸椎骨折切开复位内固定术",
+        "evidence_text": "行 T12 椎体切开复位内固定术",
+        "status": "performed",
+        "warnings": [
+          "本地 ICD-9-CM-3 目录 authority_status=source_unverified、license_status=external_review_required；不得用于自动结算或写回。",
+          "编码来自明示脊柱节段的有界目录规范化，必须人工确认术式与解剖部位。"
+        ]
+      }
+    ],
+    "total_count": 1,
+    "structured_extraction": {
+      "contract": "icoder/ProcedureCodingOutput/v8",
+      "method": "json_block",
+      "warnings": [],
+      "required_fields": [
+        "procedures",
+        "non_billable_mentions",
+        "issues_found",
+        "manual_review_required"
+      ],
+      "optional_fields": [
+        "total_count"
+      ],
+      "missing_required_fields": [],
+      "invalid_field_types": [],
+      "invalid_field_schemas": [],
+      "invalid_cross_agent_relations": [],
+      "undeclared_output_fields": [],
+      "undeclared_output_field_count": 0,
+      "valid": true
+    }
+  },
+  "schema_ref": "icoder/ProcedureCodingOutput/v8",
+  "result_attestation": "eyJhIjoicHJvY2VkdXJlLWV4dHJhY3RvciIsImQiOiJhMmE5OTdjZWEwZDRlNDg0NTY5ZTgxMWE0ODhkNTJhZWQ5ZWNhZWY2MzJhMGZjMTA3Y2M5M2MyMTAwZThhZDQ1IiwiZSI6MTc4Nzc1NjQzNSwibyI6IjZiMThkZGE1YzdkYyIsInIiOiJydW4tODYyMTc0OGUtMDA3OC00YTE1LWIwODgtY2NiNmY2YWI2ZGViIiwicyI6Imljb2Rlci9Qcm9jZWR1cmVDb2RpbmdPdXRwdXQvdjgiLCJ2IjoxfQ.yuTCSpcxtr0fps-C-HUE7DvR9QwmKLYJFNEZNbfPoiw",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 41,
+      "metadata": {
+        "agent_id": "procedure-extractor",
+        "runtime_mode": "governed_local_explicit_procedure_baseline",
+        "latency_ms": 41
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 0.674
+}

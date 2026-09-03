@@ -1,7 +1,8 @@
 """iCoDer A2A v0.3 Protocol Implementation (SPEC §3).
 
-Phase 1 subset: ``message/send`` (inbound + outbound stub) +
-``tasks/get`` / ``tasks/cancel`` stubs + 4 Discovery endpoints.
+Implemented subset: ``message/send`` (inbound + in-process Expert dispatch),
+the persisted ``tasks/get`` / ``tasks/cancel`` state machine, and Discovery
+endpoints. Streaming remains outside the advertised protocol capabilities.
 
 Public API (re-exported):
 
@@ -49,7 +50,9 @@ from .errors import (
     JSON_RPC_PARSE_ERROR,
     agent_not_found,
     context_invalid,
+    context_not_found,
     internal_error,
+    input_safety_blocked,
     invalid_params,
     invalid_request,
     method_not_found,
@@ -101,10 +104,12 @@ from .version import (
     validate_version_header,
 )
 from .a2a_routes import build_a2a_routers, mount_a2a
+from .routes_context import build_context_router
 from .routes_discovery import AgentProvider, build_discovery_router
 from .routes_inbound import build_inbound_router
 from .routes_outbound import ExpertCaller, build_outbound_router
-from .routes_task_stub import build_task_stub_router
+from .routes_task import build_task_router
+from .v1 import A2A_V1_HEADER, A2A_V1_VERSION, build_v1_router
 
 __all__ = [
     # Errors
@@ -118,7 +123,9 @@ __all__ = [
     "JSON_RPC_PARSE_ERROR",
     "agent_not_found",
     "context_invalid",
+    "context_not_found",
     "internal_error",
+    "input_safety_blocked",
     "invalid_params",
     "invalid_request",
     "method_not_found",
@@ -185,9 +192,14 @@ __all__ = [
     "AgentProvider",
     "ExpertCaller",
     "build_a2a_routers",
+    "build_context_router",
     "build_discovery_router",
     "build_inbound_router",
     "build_outbound_router",
-    "build_task_stub_router",
+    "build_task_router",
     "mount_a2a",
+    # A2A v1.0 compatibility layer
+    "A2A_V1_HEADER",
+    "A2A_V1_VERSION",
+    "build_v1_router",
 ]

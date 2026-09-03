@@ -1,0 +1,231 @@
+{
+  "case_id": "G8-CDI-GAP-007",
+  "group": "clear_gap",
+  "variant": "",
+  "session_id": "32217e35-b4cb-4904-b619-36acac3c5d3c",
+  "attempt": 1,
+  "outcome": "SUCCESS",
+  "elapsed_s": 24.93,
+  "expected": {
+    "query_count_min": 1,
+    "query_count_max": 2,
+    "expected_no_query": false,
+    "expected_query_topics": [
+      "急性缺血性卒中",
+      "acute ischemic stroke",
+      "前循环 vs 后循环",
+      "anterior vs posterior circulation"
+    ],
+    "notes": "Acute ischemic stroke eligible for tPA but subtype and territory unspecified"
+  },
+  "text_length": 5998,
+  "first_token_at_s": 3.48,
+  "last_token_at_s": 24.93,
+  "event_count": 12,
+  "raw_events_preview": [
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"code_system\":\"icd-10-cm\",\"count\":1,\"next_steps\":[{\"reason\":\"Browse related codes and alternatives in the same category\",\"tool\":\"explore\"},{\"reason\":\"Read coding conventions relevant to these",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"I63.9\",\"code_system\":\"icd-10-cm\",\"description\":\"Cerebral infarction, unspecified\",\"next_steps\":[{\"reason\":\"Read coding conventions for this code area\",\"tool\":\"guidel",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"I63.9\",\"description\":\"Cerebral infarction, unspecified\",\"next_steps\":[{\"reason\":\"Compare with related codes if this isn't the best fit\",\"tool\":\"explore\"},{\"reason\":\"",
+    "message|{\"id\":\"fa5c5e20-ea3b-4bde-9d91-d261386c1376\",\"type\":\"text-start\"}",
+    "message|{\"delta\":\"Encounter Summary:\\n- 70-year-old female with acute neurologic symptoms: “sudden left-sided weakness for 2 hours.”\\n- Head CT reportedly showed “no hemorrhage.”\\n- Stroke severity documented",
+    "message|{\"id\":\"fa5c5e20-ea3b-4bde-9d91-d261386c1376\",\"type\":\"text-end\"}",
+    "message|{\"messageMetadata\":{\"contextId\":\"019f55c4-d566-782b-b41b-eff5f631dca0\",\"taskId\":\"019f55c4-d566-77b0-802c-01420b646fa3\",\"credits\":0.066884,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+    "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.066884},\"type\":\"finish\"}",
+    "message|[DONE]"
+  ],
+  "expert_events": [
+    {
+      "code_system": "icd-10-cm",
+      "count": 1,
+      "next_steps": [
+        {
+          "reason": "Browse related codes and alternatives in the same category",
+          "tool": "explore"
+        },
+        {
+          "reason": "Read coding conventions relevant to these codes",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "To assign the codes for a clinical note, use predict (optionally with include/exclude filters)",
+          "tool": "predict"
+        }
+      ],
+      "query": "cerebral infarction",
+      "results": [
+        {
+          "code": "I63.9",
+          "description": "Cerebral infarction, unspecified",
+          "match_path": "Infarct, infarction, cerebral",
+          "related_codes": {
+            "category": "I63",
+            "category_description": "Cerebral infarction",
+            "count": 9
+          }
+        }
+      ]
+    },
+    {
+      "assignable": true,
+      "code": "I63.9",
+      "code_system": "icd-10-cm",
+      "description": "Cerebral infarction, unspecified",
+      "next_steps": [
+        {
+          "reason": "Read coding conventions for this code area",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "Check whether a specific code is assignable",
+          "tool": "verify"
+        },
+        {
+          "reason": "Explore a related or more specific code",
+          "tool": "explore"
+        }
+      ],
+      "parent": {
+        "code": "I63",
+        "description": "Cerebral infarction"
+      },
+      "related_codes": [
+        {
+          "assignable": false,
+          "code": "I63.0",
+          "description": "Cerebral infarction due to thrombosis of precerebral arteries"
+        },
+        {
+          "assignable": false,
+          "code": "I63.1",
+          "description": "Cerebral infarction due to embolism of precerebral arteries"
+        },
+        {
+          "assignable": false,
+          "code": "I63.2",
+          "description": "Cerebral infarction due to unspecified occlusion or stenosis of precerebral arteries"
+        },
+        {
+          "assignable": false,
+          "code": "I63.3",
+          "description": "Cerebral infarction due to thrombosis of cerebral arteries"
+        },
+        {
+          "assignable": false,
+          "code": "I63.4",
+          "description": "Cerebral infarction due to embolism of cerebral arteries"
+        },
+        {
+          "assignable": false,
+          "code": "I63.5",
+          "description": "Cerebral infarction due to unspecified occlusion or stenosis of cerebral arteries"
+        },
+        {
+          "assignable": true,
+          "code": "I63.6",
+          "description": "Cerebral infarction due to cerebral venous thrombosis, nonpyogenic"
+        },
+        {
+          "assignable": false,
+          "code": "I63.8",
+          "description": "Other cerebral infarction"
+        }
+      ],
+      "total_related": 8
+    },
+    {
+      "assignable": true,
+      "code": "I63.9",
+      "description": "Cerebral infarction, unspecified",
+      "next_steps": [
+        {
+          "reason": "Compare with related codes if this isn't the best fit",
+          "tool": "explore"
+        },
+        {
+          "reason": "Check chapter-level coding conventions for this code area",
+          "tool": "guidelines"
+        }
+      ],
+      "parents": [
+        {
+          "code": "I63",
+          "description": "Cerebral infarction"
+        },
+        {
+          "code": "I60-I69",
+          "description": "Cerebrovascular diseases (I60-I69)"
+        },
+        {
+          "code": "9",
+          "description": "Diseases of the circulatory system (I00-I99)"
+        }
+      ]
+    }
+  ],
+  "status_events": [
+    {
+      "state": "working"
+    },
+    {
+      "state": "working"
+    },
+    {
+      "message": "Calling expert: coding-expert",
+      "state": "working"
+    }
+  ],
+  "finish_metadata": {
+    "contextId": "019f55c4-d566-782b-b41b-eff5f631dca0",
+    "taskId": "019f55c4-d566-77b0-802c-01420b646fa3",
+    "credits": 0.066884,
+    "state": "completed"
+  },
+  "parsed": {
+    "encounter_summary": "- 70-year-old female with acute neurologic symptoms: “sudden left-sided weakness for 2 hours.”\n- Head CT reportedly showed “no hemorrhage.”\n- Stroke severity documented as “NIHSS 8.”\n- Admission diagnosis is documented as “cerebral infarction.”",
+    "gaps": [
+      {
+        "idx": 1,
+        "text": "Stroke type/etiology is not specified beyond generic cerebral infarction.\n- Why it matters: The documented diagnosis maps only to unspecified cerebral infarction without additional detail. More specific documentation may support a more specific ICD-10-CM code than I63.9.\n- Evidence quote: “Admission diagnosis: cerebral infarction.”\n- Minimal clarification needed: Please clarify the type/etiology of the cerebral infarction if known and documented (for example, whether due to thrombosis, embolism,"
+      },
+      {
+        "idx": 2,
+        "text": "Vascular territory/affected vessel is not documented.\n- Why it matters: Cerebral infarction code selection may depend on the involved arterial territory/vessel when known.\n- Evidence quote: “Admission diagnosis: cerebral infarction.”\n- Minimal clarification needed: Please specify the involved vascular territory or vessel, if known and clinically documented."
+      },
+      {
+        "idx": 3,
+        "text": "Laterality/site of infarction is not documented.\n- Why it matters: The symptom is left-sided weakness, but the infarct location is not stated; symptom laterality should not be used as a surrogate for infarct site.\n- Evidence quote: “sudden left-sided weakness for 2 hours” and “Admission diagnosis: cerebral infarction.”\n- Minimal clarification needed: Please document the anatomic site/brain region and laterality of the infarction, if known."
+      },
+      {
+        "idx": 4,
+        "text": "Whether the diagnosis is confirmed versus suspected at admission is not explicit.\n- Why it matters: The excerpt presents an admission diagnosis but limited confirmatory detail beyond non-hemorrhagic CT and neurologic deficit.\n- Evidence quote: “Head CT: no hemorrhage.” and “Admission diagnosis: cerebral infarction.”\n- Minimal clarification needed: Please clarify the diagnostic status at the time of admission documentation (confirmed cerebral infarction, suspected/possible cerebral infarction, or"
+      }
+    ],
+    "gap_count": 4,
+    "queries": [
+      {
+        "idx": 1,
+        "text": "Specific type/etiology of cerebral infarction"
+      },
+      {
+        "idx": 2,
+        "text": "Involved vascular territory/site of infarction"
+      },
+      {
+        "idx": 3,
+        "text": "Diagnostic status of the admission stroke diagnosis"
+      }
+    ],
+    "query_count": 3,
+    "specialists_contacted": [
+      "Medical Coding Expert",
+      "Coding Expert"
+    ],
+    "specialist_trace_text": "- Medical Coding Expert: Consulted for coding specificity gaps related to “cerebral infarction.” Accepted: that the documented diagnosis corresponds to unspecified cerebral infarction (I63.9) when no further specificity is documented, and that more specific related cerebral infarction categories exist. Rejected: any patient-specific coding assignment beyond the documented excerpt, because the chart lacks mechanism/site detail.\n- AMBOSS Expert: Not consulted. Rationale: no clinical criteria clarification was necessary to identify the core CDI specificity gap in the excerpt.\n- CDI Web Search Expert: Not consulted. Rationale: current external guidance was not required to identify the documentation gaps supported directly by the excerpt and coding-expert output.\n\nUncertainty note:\n- This review is limited to the single excerpt provided. If additional imaging, neurology documentation, or vascular studies exist elsewhere in the chart, they may resolve some or all of these gaps.",
+    "has_specialist_trace": true
+  },
+  "error": "",
+  "text": "Encounter Summary:\n- 70-year-old female with acute neurologic symptoms: “sudden left-sided weakness for 2 hours.”\n- Head CT reportedly showed “no hemorrhage.”\n- Stroke severity documented as “NIHSS 8.”\n- Admission diagnosis is documented as “cerebral infarction.”\n\nDocumentation Gaps:\n1. Stroke type/etiology is not specified beyond generic cerebral infarction.\n- Why it matters: The documented diagnosis maps only to unspecified cerebral infarction without additional detail. More specific documentation may support a more specific ICD-10-CM code than I63.9.\n- Evidence quote: “Admission diagnosis: cerebral infarction.”\n- Minimal clarification needed: Please clarify the type/etiology of the cerebral infarction if known and documented (for example, whether due to thrombosis, embolism, unspecified occlusion/stenosis, venous thrombosis, or other specified mechanism).\n\n2. Vascular territory/affected vessel is not documented.\n- Why it matters: Cerebral infarction code selection may depend on the involved arterial territory/vessel when known.\n- Evidence quote: “Admission diagnosis: cerebral infarction.”\n- Minimal clarification needed: Please specify the involved vascular territory or vessel, if known and clinically documented.\n\n3. Laterality/site of infarction is not documented.\n- Why it matters: The symptom is left-sided weakness, but the infarct location is not stated; symptom laterality should not be used as a surrogate for infarct site.\n- Evidence quote: “sudden left-sided weakness for 2 hours” and “Admission diagnosis: cerebral infarction.”\n- Minimal clarification needed: Please document the anatomic site/brain region and laterality of the infarction, if known.\n\n4. Whether the diagnosis is confirmed versus suspected at admission is not explicit.\n- Why it matters: The excerpt presents an admission diagnosis but limited confirmatory detail beyond non-hemorrhagic CT and neurologic deficit.\n- Evidence quote: “Head CT: no hemorrhage.” and “Admission diagnosis: cerebral infarction.”\n- Minimal clarification needed: Please clarify the diagnostic status at the time of admission documentation (confirmed cerebral infarction, suspected/possible cerebral infarction, or other condition being evaluated), if applicable.\n\nProposed Provider Queries:\n1. Topic: Specific type/etiology of cerebral infarction\n- Reason: The current diagnosis is nonspecific and may only support unspecified cerebral infarction.\n- Evidence quote: “Admission diagnosis: cerebral infarction.”\n- Non-leading query text: Based on the documented admission diagnosis of “cerebral infarction,” please clarify the specific type/etiology of the infarction, if known.\n- Suggested response options:\n  - Cerebral infarction due to thrombosis\n  - Cerebral infarction due to embolism\n  - Cerebral infarction due to unspecified occlusion or stenosis\n  - Cerebral infarction due to cerebral venous thrombosis, nonpyogenic\n  - Other specified cerebral infarction\n  - Cerebral infarction, unspecified\n  - Clinically undetermined\n\n2. Topic: Involved vascular territory/site of infarction\n- Reason: No infarct territory or vessel is documented in the excerpt.\n- Evidence quote: “Admission diagnosis: cerebral infarction.”\n- Non-leading query text: Please clarify the documented site or vascular territory of the cerebral infarction, if known at this time.\n- Suggested response options:\n  - Precerebral artery territory\n  - Cerebral artery territory\n  - Other specified site/territory\n  - Site/territory not yet determined\n  - Clinically undetermined\n\n3. Topic: Diagnostic status of the admission stroke diagnosis\n- Reason: The excerpt includes symptoms and a non-hemorrhagic CT, but does not explicitly state whether the infarction is confirmed versus suspected on admission.\n- Evidence quote: “sudden left-sided weakness for 2 hours.” “Head CT: no hemorrhage.” “Admission diagnosis: cerebral infarction.”\n- Non-leading query text: For the admission diagnosis of cerebral infarction, please clarify the diagnostic status at the time of this note.\n- Suggested response options:\n  - Confirmed cerebral infarction\n  - Suspected/possible cerebral infarction under evaluation\n  - Symptoms due to another condition (please specify)\n  - Clinically undetermined\n\nCoding Specificity Checklist:\n- Mechanism/etiology of infarction\n- Involved vessel or vascular territory\n- Anatomic brain site and laterality, if known\n- Whether the infarction is confirmed or suspected at this stage\n- Any additional imaging-confirmed detail, if available in the record\n\nRisk Flags:\n- Limited specificity: “cerebral infarction” without mechanism/site supports unspecified coding only.\n- Potential ambiguity: “left-sided weakness” is a symptom and should not be assumed to identify infarct laterality/site.\n- No unsupported query proposed for hemorrhagic stroke because the only imaging statement is “no hemorrhage.”\n- Insufficient evidence in this excerpt to query complications, sequelae, altered mental status, dysphagia, or thrombolytic status.\n\nSpecialist Trace:\n- Medical Coding Expert: Consulted for coding specificity gaps related to “cerebral infarction.” Accepted: that the documented diagnosis corresponds to unspecified cerebral infarction (I63.9) when no further specificity is documented, and that more specific related cerebral infarction categories exist. Rejected: any patient-specific coding assignment beyond the documented excerpt, because the chart lacks mechanism/site detail.\n- AMBOSS Expert: Not consulted. Rationale: no clinical criteria clarification was necessary to identify the core CDI specificity gap in the excerpt.\n- CDI Web Search Expert: Not consulted. Rationale: current external guidance was not required to identify the documentation gaps supported directly by the excerpt and coding-expert output.\n\nUncertainty note:\n- This review is limited to the single excerpt provided. If additional imaging, neurology documentation, or vascular studies exist elsewhere in the chart, they may resolve some or all of these gaps."
+}

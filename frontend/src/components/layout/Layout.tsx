@@ -1,21 +1,21 @@
-// iCoDer Layout — iCoDer Console exact replica
+// iCoDer Layout
 // Global header (64px) + Sidebar (w/ project selector, nav groups, footer) + Main
-import { useState, useEffect } from 'react';
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { useAuthStore, useThemeStore, useCostStore } from '../../store';
-import { BACKEND_BASE_URL } from '../../config';
-import { oauthApi } from '../../services/api';
-import { useT, useLocaleStore } from '../../i18n';
-import OrgSwitcher from './OrgSwitcher';
-import { ErrorBoundary } from '../common/ErrorBoundary';
+import { useState, useEffect, Suspense } from 'react';
+import { Outlet, NavLink, useNavigate, Link } from 'react-router-dom';
 import {
   PanelLeftClose, PanelLeft, Home, FlaskConical,
-  Mic, AlignLeft, ListTree, Asterisk,
+  Mic, ListTree, Asterisk,
   KeyRound, Users, CreditCard, ChartNoAxesColumn, Settings,
   ArrowUpRight, Bell, BookOpen, RotateCcw,
-  ChevronDown, Rocket, Layers, Folder, ChevronsUpDown, Database,
-  Bot, Users2, FileText, MessageSquare,
+  ChevronDown, Rocket, Layers, Folder, ChevronsUpDown, Users2, FileText, MessageSquare, ShieldCheck, ClipboardCheck, Code2, Cpu,
 } from 'lucide-react';
+
+import { useAuthStore, useThemeStore, useCostStore } from '../../store';
+import { oauthApi, billingApi } from '../../services/api';
+import { useT, useLocaleStore } from '../../i18n';
+import { ErrorBoundary } from '../common/ErrorBoundary';
+
+import OrgSwitcher from './OrgSwitcher';
 
 const PROJECT_SLUG = 'icoder-medical-coding';
 const DEFAULT_PROJECT_NAME = 'iCoDer Console';
@@ -42,10 +42,11 @@ export default function Layout() {
   const [editingProjectName, setEditingProjectName] = useState(false);
   const navigate = useNavigate();
 
-  // Navigation matches Corti Console IA exactly
+  // Navigation IA
   const topItems = [
     { to: '/', label: t.home, icon: Home, end: true },
     { to: '/developer-quickstart', label: t.developerQuickstart, icon: Rocket },
+    { to: '/models', label: locale === 'zh-CN' ? '医疗模型' : 'Models', icon: Cpu },
   ];
 
   const navSections = [
@@ -55,12 +56,15 @@ export default function Layout() {
         { to: '/ai-studio', label: t.overview, icon: FlaskConical, end: true },
         { to: '/ai-studio/agents', label: t.agents, icon: Layers },
         { to: '/ai-studio/speech-to-text', label: t.speechToText, icon: Mic },
-        // Phase 3-B2 Loop 0 (2026-07-05): TextGeneration + EmbeddedAssistant
-        // sidebar entries removed (Corti parity). Old deep links redirect to
-        // /ai-studio/agents via App.tsx Navigate rules. TextGen backend
-        // capability (/api/v2/tools/*) is retained for implicit dependencies.
+        { to: '/ai-studio/text-generation', label: t.textGeneration, icon: BookOpen },
         { to: '/ai-studio/fact-extraction', label: t.factExtraction, icon: ListTree },
         { to: '/ai-studio/medical-coding', label: t.medicalCoding, icon: Asterisk },
+        // Phase 5 Track C Gate 5 — 7-stage coding compliance mainline
+        { to: '/ai-studio/coding-compliance', label: t.codingCompliance, icon: ShieldCheck },
+        // Phase 5 Track D Gate 7 — CDI Core Entry Agent workbench
+        { to: '/ai-studio/cdi', label: t.cdiWorkbench, icon: ClipboardCheck },
+        // Phase 7 Gate 13 — embedded assistant page
+        { to: '/ai-studio/embedded-assistant', label: t.embeddedAssistant, icon: Code2 },
       ],
     },
     {
@@ -73,6 +77,9 @@ export default function Layout() {
         { to: '/customers', label: t.customersTitle, icon: Users2 },
         { to: '/templates', label: t.templatesTitle, icon: FileText },
         { to: '/settings', label: t.settings, icon: Settings },
+        ...(user?.role === 'admin'
+          ? [{ to: '/platform-access', label: '平台访问控制', icon: ShieldCheck }]
+          : []),
       ],
     },
     {
@@ -91,6 +98,19 @@ export default function Layout() {
     }).catch(() => {});
   }, []);
 
+  // Phase 4-D: Fetch billing balance on mount - establish liveCost baseline + show credits link
+  const [balance, setBalance] = useState<number | null>(null);
+  const syncFromBalance = useCostStore(s => s.syncFromBalance);
+  useEffect(() => {
+    billingApi.balance().then((r: any) => {
+      const bal = r.data?.balance;
+      if (typeof bal === 'number') {
+        setBalance(bal);
+        syncFromBalance(bal);  // establish baseline
+      }
+    }).catch(() => {});
+  }, [syncFromBalance]);
+
   const initials = user?.full_name
     ? user.full_name.slice(0, 2).toUpperCase()
     : '??';
@@ -98,9 +118,20 @@ export default function Layout() {
   const theme = useThemeStore(s => s.theme);
   const toggleTheme = useThemeStore(s => s.toggleTheme);
 
-  // Live cost counter (Corti-style: $X.XXXXXX + Reset)
+  // Live cost counter (¥X.XXXXXX + Reset)
   const liveCost = useCostStore(s => s.liveCost);
   const resetCost = useCostStore(s => s.resetCost);
+  const handleResetCost = () => {
+    resetCost();
+    // Re-establish baseline from current balance
+    billingApi.balance().then((r: any) => {
+      const bal = r.data?.balance;
+      if (typeof bal === 'number') {
+        setBalance(bal);
+        syncFromBalance(bal);
+      }
+    }).catch(() => {});
+  };
 
   const ThemeToggle = () => (
     <button
@@ -132,17 +163,27 @@ export default function Layout() {
             iCoDer
           </a>
           <div className="flex items-center gap-2">
-            {/* Live cost counter + Reset (Corti IA) */}
+            {/* Live cost counter + Reset */}
             {liveCost > 0 && (
               <div className="flex items-center gap-1 px-2 py-1 rounded-md border border-border bg-background">
-                <span className="text-xs font-mono text-muted-foreground">${liveCost.toFixed(6)}</span>
-                <button onClick={resetCost} title="Reset live cost"
+                <span className="text-xs font-mono text-muted-foreground tabular-nums">¥{liveCost.toFixed(6)}</span>
+                <button onClick={handleResetCost} title={t.resetLiveCost ?? 'Reset live cost'}
                   className="p-0.5 text-muted-foreground hover:text-foreground transition-colors">
                   <RotateCcw size={10} />
                 </button>
               </div>
             )}
-            {/* Docs link (Corti IA — persistent in header) */}
+            {/* Available credits link (¥XX.XX → /billing) */}
+            {balance !== null && (
+              <Link
+                to="/billing"
+                className="text-xs px-2 py-1 rounded text-muted-foreground hover:text-foreground hover:bg-accent transition-colors flex items-center gap-1 font-mono"
+                title={t.agentChatAvailableCredits ?? 'Available credits'}
+              >
+                <CreditCard size={12} /> <span className="tabular-nums">¥{balance.toFixed(2)}</span>
+              </Link>
+            )}
+            {/* Docs link (persistent in header) */}
             <a href="/docs"
               className="text-xs px-2 py-1 rounded text-muted-foreground hover:text-foreground hover:bg-accent transition-colors flex items-center gap-1">
               <BookOpen size={12} /> {t.documentation ?? 'Docs'}
@@ -290,8 +331,8 @@ export default function Layout() {
 
           {/* Navigation */}
           <nav className="flex-1 overflow-y-auto py-2">
-            {/* Top items (Home, Developer quickstart) — no group label */}
-            {(!collapsed || true) && topItems.map((item) => (
+            {/* Top items (Home, Developer quickstart) - no group label */}
+            {topItems.map((item) => (
               <NavLink key={item.to} to={item.to} end={item.end}
                 className={({ isActive }) =>
                   `sidebar-item ${isActive ? 'active' : ''} ${collapsed ? 'justify-center px-1' : 'px-2 mx-2'}`
@@ -352,7 +393,13 @@ export default function Layout() {
         {/* Main content */}
         <main className="flex-1 min-h-0 overflow-y-auto bg-background flex flex-col">
           <ErrorBoundary>
-            <Outlet />
+            <Suspense fallback={
+              <div className="flex items-center justify-center min-h-[200px]">
+                <div className="text-xs text-muted-foreground">加载中…</div>
+              </div>
+            }>
+              <Outlet />
+            </Suspense>
           </ErrorBoundary>
         </main>
       </div>

@@ -1,0 +1,97 @@
+{
+  "schema_version": "icoder.sdk-cross-language-request-parity-phase/v1",
+  "generated_on": "2026-08-24",
+  "status": "development_candidate_passed",
+  "clinical_production_approved": false,
+  "versions": {
+    "javascript": "1.0.0-beta.29",
+    "python": "1.0.0b29",
+    "dotnet": "1.0.0-beta.29",
+    "normalized": "1.0.0-beta.29"
+  },
+  "tests": {
+    "javascript": {"passed": 74, "failed": 0},
+    "python": {"passed": 78, "failed": 0},
+    "dotnet_net8": {"passed": 61, "failed": 0},
+    "dotnet_net10": {"passed": 61, "failed": 0},
+    "backend_sdk_route_config_preflight": {"passed": 54, "failed": 0},
+    "release_candidate_validator": {"passed": 5, "failed": 0},
+    "deployment_preflight": {"passed": 83, "failed": 0},
+    "openapi_check": "current"
+  },
+  "e2e": {
+    "single_process": {
+      "artifact": "C:/codex-artifacts/icoder-sdk-e2e-b29.json",
+      "status": "passed",
+      "sdk_results": {"dotnet": "passed", "javascript": "passed", "python": "passed"}
+    },
+    "cross_worker": {
+      "artifact": "C:/codex-artifacts/icoder-sdk-e2e-cross-worker-b29.json",
+      "status": "passed",
+      "api_processes": 2,
+      "upstream_policy": "round_robin_across_independent_api_processes",
+      "sdk_results": {"dotnet": "passed", "javascript": "passed", "python": "passed"},
+      "agent_hub_visible_verified": 26,
+      "agent_run_without_real_llm": "deterministic_local_rule_completed",
+      "sse": {
+        "connection_attempts": 15,
+        "connections_accepted": 12,
+        "resumed_connections": 6,
+        "token_renew_success": 3,
+        "events_emitted": 27
+      },
+      "real_llm_used": false,
+      "realtime_audio_sent": false
+    }
+  },
+  "regressions_detected_and_resolved": [
+    "machine OAuth delegation lacked the exact Agent and purpose",
+    "dotnet AgentRunBilling required status although billing may be an empty object",
+    "three smoke consumers expected deterministic local Note Completeness to fail",
+    "python smoke caught the legacy httpx exception instead of iCoDerAPIError"
+  ],
+  "artifacts": [
+    {"path": "C:/codex-artifacts/release-b29-final/icoder-sdk-1.0.0-beta.29.tgz", "size_bytes": 65288, "sha256": "ec8ad8653db68332954f7a3bcc204d12e1b83e0ed2a3bf22337788fdda4d164b"},
+    {"path": "C:/codex-artifacts/release-b29-final/icoder_sdk-1.0.0b29-py3-none-any.whl", "size_bytes": 51027, "sha256": "a9425672a589c039b86a4b51da322b01d275771ed6182a419ef38f8c7ed45604"},
+    {"path": "C:/codex-artifacts/release-b29-final/iCoDer.Sdk.1.0.0-beta.29.nupkg", "size_bytes": 376882, "sha256": "43a4bae024bfcd827f7d5e94d39c8cde4f749665adf197b5ed3a12196b6ded97"},
+    {"path": "C:/codex-artifacts/release-b29-final/iCoDer.Sdk.1.0.0-beta.29.snupkg", "size_bytes": 80776, "sha256": "3da85dcdbb8c08e01c33bf508d924cf9c49e0dee772936210a10c7413eb8c9a6"}
+  ],
+  "release_manifest": {
+    "path": "C:/codex-artifacts/release-candidate-b29-final.json",
+    "source_revision": "4fc31b3c012c49d09c6b3b01d3c67e25049efe98",
+    "source_tree_state": "dirty",
+    "publication_performed": false
+  },
+  "corti_public_sources": [
+    "https://docs.corti.ai/sdk/dotnet/overview",
+    "https://docs.corti.ai/sdk/dotnet/reference"
+  ],
+  "intentional_security_differences": [
+    "no per-request cross-origin BaseUrl override",
+    "no per-request custom HttpClient override",
+    "no arbitrary AdditionalBodyProperties merge",
+    "identity tenant protocol signing and resource-owned fields fail closed on collision"
+  ],
+  "final_safety_state": {
+    "credential_environment_lengths": {
+      "ICODER_CREDENTIAL_LLM": {"process": 0, "user": 0, "machine": 0},
+      "DEEPSEEK_API_KEY": {"process": 0, "user": 0, "machine": 0}
+    },
+    "e2e_backend_child_processes": 0,
+    "python_listeners": 0,
+    "protected_database": {
+      "path": "E:/Corti4C/backend/data/icoder.db",
+      "size_bytes": 8536064,
+      "sha256": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e"
+    }
+  },
+  "external_gates_remaining": [
+    "Corti hosted-tenant bidirectional interoperability",
+    "recoverable server-side audio cursor after audio transmission",
+    "Corti private-preview Agent SDK interoperability",
+    "Linux CI Docker SBOM vulnerability and proxy validation",
+    "PostgreSQL multi-replica concurrency and production SSE/WebSocket validation",
+    "real regional LLM STT and clinical-quality evaluation",
+    "hospital legal certification and independent clinical review"
+  ]
+}

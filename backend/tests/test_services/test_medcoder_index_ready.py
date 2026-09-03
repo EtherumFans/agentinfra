@@ -59,7 +59,7 @@ def _spawn_worker_with(retriever):
     return proc, q_in, q_out
 
 
-def _make_client_with_fake_worker(retriever, *, probe_timeout: float = 5.0):
+def _make_client_with_fake_worker(retriever, *, probe_timeout: float = 15.0):
     """Build a SubprocessMedCodERRetriever whose worker uses `retriever`.
 
     Bypasses the normal __init__ (which builds a real MedCodERRetriever

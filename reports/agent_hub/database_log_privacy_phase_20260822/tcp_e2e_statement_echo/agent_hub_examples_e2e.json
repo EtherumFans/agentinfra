@@ -1,0 +1,91 @@
+{
+  "schema_version": "icoder.agent-hub-examples-e2e/v2",
+  "generated_at": "2026-08-22T02:19:55.604869+00:00",
+  "total": 1,
+  "passed": 0,
+  "capability_passed": 0,
+  "safe_fail_closed": 1,
+  "safety_passed": 1,
+  "unsafe_or_invalid": 0,
+  "failed": 1,
+  "rows": [
+    {
+      "agent_id": "medical-coding-agent",
+      "agent_ref": "icoder/medical-coding-agent@2.0.0",
+      "source_path": "E:\\Corti4C\\backend\\official_agents\\medical_coding\\agent_pack.json",
+      "http_status": 200,
+      "elapsed_seconds": 1.06,
+      "evaluation": {
+        "checks": {
+          "http_contract_success": true,
+          "runtime_success": false,
+          "provider_completed": true,
+          "tool_calls_successful": true,
+          "content_safety": true,
+          "clinical_quantities_grounded": true,
+          "run_id_present": true,
+          "trace_id_present": true,
+          "required_fields_complete": false,
+          "structured_extraction_valid": false,
+          "declared_field_types_valid": true,
+          "declared_field_schemas_valid": true,
+          "output_allowlist_valid": true,
+          "manual_review_enforced": true,
+          "manual_review_consistent": false,
+          "production_writeback_blocked": true
+        },
+        "passed": false,
+        "capability_passed": false,
+        "safe_fail_closed": true,
+        "safe_fail_closed_checks": {
+          "http_contract_success": true,
+          "runtime_reported_error": true,
+          "stable_error_reason_present": true,
+          "contract_output_suppressed": true,
+          "failure_metadata_only": true,
+          "no_public_markdown": true,
+          "no_public_evidence": true,
+          "manual_review_enforced": true,
+          "content_safety": true,
+          "clinical_quantities_grounded": true,
+          "run_id_present": true,
+          "trace_id_present": true
+        },
+        "outcome": "safe_fail_closed",
+        "missing_required_fields": [
+          "encounter_summary",
+          "documentation_analysis",
+          "code_assignment",
+          "documentation_gaps",
+          "uncodable_items",
+          "validation_summary",
+          "human_review",
+          "trace_refs"
+        ],
+        "invalid_field_types": [],
+        "invalid_field_schemas": [],
+        "undeclared_output_fields": [],
+        "error_reason": "llm_degraded",
+        "contract": "icoder/MedicalCodingAgentOutputV2/v8",
+        "required_fields": [
+          "encounter_summary",
+          "documentation_analysis",
+          "code_assignment",
+          "documentation_gaps",
+          "uncodable_items",
+          "validation_summary",
+          "human_review",
+          "trace_refs"
+        ],
+        "result_fields": [
+          "contract_output_suppressed"
+        ],
+        "structured_extraction": null,
+        "tool_errors": [],
+        "content_safety_findings": [],
+        "ungrounded_clinical_quantities": []
+      },
+      "response_path": "E:\\Corti4C\\reports\\agent_hub\\database_log_privacy_phase_20260822\\tcp_e2e_statement_echo\\responses\\medical-coding-agent.json"
+    }
+  ]
+}

@@ -1,0 +1,157 @@
+{
+  "phase": "A1C",
+  "title": "Final Commit Manifest",
+  "date": "2026-07-25",
+  "head_branch": "phase-a1a/emergency-containment",
+  "head_commit_after_a1c9": "(populated post-commit — see git log -1)",
+
+  "predecessor": {
+    "phase": "A1B-AE-RV",
+    "terminal_commit": "0f107d0",
+    "terminal_verdict": "PASS_A1B_AE_RV_TERMINAL_EVIDENCE_REPAIR_FULL_REGRESSION_MIGRATION_CONTEXT_SCRUB_PUBLIC_EXPERT_LIVE_AND_HEADED_WORKFLOWS_VERIFIED",
+    "terminal_branch": "phase-a1b/agent-expert-terminal-reverification"
+  },
+
+  "a1c_commit_stack": [
+    {
+      "subgate": "A1C.0",
+      "sha": "abcd32d",
+      "message_subject": "audit/phase-a1c: A1C.0 — entry audit + pilot readiness charter + RV closeout consistency",
+      "verdict": "PASS_A1C_0_ENTRY_AUDIT_AND_PILOT_READINESS_CHARTER_FILED"
+    },
+    {
+      "subgate": "A1C.0 (merge)",
+      "sha": "926536f",
+      "message_subject": "audit/phase-a1c: A1C.0 merge — integrate phase-a1b/agent-expert-terminal-reverification via --no-ff",
+      "verdict": "PASS_A1C_0_MERGE_INTEGRATED"
+    },
+    {
+      "subgate": "A1C.1",
+      "sha": "8b8d649",
+      "message_subject": "audit/phase-a1c: A1C.1 — baseline classification + CI gate policy + partial schema drift fix",
+      "verdict": "PASS_A1C_1_BASELINE_AND_CI_GATE_POLICY_FILED_VERIFICATION_IN_PROGRESS"
+    },
+    {
+      "subgate": "A1C.2",
+      "sha": "1a7a53e",
+      "message_subject": "audit/phase-a1c: A1C.2 — PostgreSQL production-equivalent migration verification",
+      "verdict": "PARTIAL_A1C_2_POSTGRESQL_MIGRATION_DELIVERABLES_AUTHORED_SQLITE_PARITY_VERIFIED_PG_ACTUAL_RUN_DEFERRED_TO_PILOT_ENV"
+    },
+    {
+      "subgate": "A1C.3",
+      "sha": "5c0a771",
+      "message_subject": "audit/phase-a1c: A1C.3 — HIS/EMR integration contract + simulator",
+      "verdict": "PASS_A1C_3_HIS_EMR_INTEGRATION_CONTRACT_AND_SIMULATOR_FILED"
+    },
+    {
+      "subgate": "A1C.4",
+      "sha": "1f5e3ac",
+      "message_subject": "audit/phase-a1c: A1C.4 — identity, SSO, tenant and org authorization loop",
+      "verdict": "PARTIAL_A1C_4_IDENTITY_AND_AUTHORIZATION_MODEL_FILED_5_OF_7_PRINCIPALS_CLOSED_2_DEFERRED_TO_PILOT"
+    },
+    {
+      "subgate": "A1C.5",
+      "sha": "2fbb95e",
+      "message_subject": "audit/phase-a1c: A1C.5 — DeepSeek cloud service + KMS key loop",
+      "verdict": "PARTIAL_A1C_5_DEEPSEEK_PRIOR_E2E_VERIFIED_KMS_ABSTRACTION_DESIGN_CLOUD_KMS_ADAPTER_DEFERRED_TO_PILOT"
+    },
+    {
+      "subgate": "A1C.6",
+      "sha": "0864b77",
+      "message_subject": "audit/phase-a1c: A1C.6 — PHI boundary / redaction / residency / audit",
+      "verdict": "PARTIAL_A1C_6_PHI_BOUNDARY_DEMONSTRATED_STATICALLY_HAR_RUNTIME_INJECTION_DEFERRED_TO_PILOT"
+    },
+    {
+      "subgate": "A1C.7",
+      "sha": "495ad64",
+      "message_subject": "audit/phase-a1c: A1C.7 — deployment / observability / failure recovery / rollback",
+      "verdict": "PARTIAL_A1C_7_DEPLOYMENT_OBSERVABILITY_FAILURE_RECOVERY_ROLLBACK_AUTHORED_STATIC_VERIFIED_LIVE_DRILL_DEFERRED_TO_PILOT"
+    },
+    {
+      "subgate": "A1C.8",
+      "sha": "af03cdc",
+      "message_subject": "audit/phase-a1c: A1C.8 — pilot journey matrix + 9-piece evidence template",
+      "verdict": "PARTIAL_A1C_8_PILOT_JOURNEY_MATRIX_AND_EVIDENCE_TEMPLATE_AUTHORED_LIVE_REPLAY_BLOCKED_BY_PILOT_ENVIRONMENT"
+    },
+    {
+      "subgate": "A1C.9",
+      "sha": "(this commit)",
+      "message_subject": "audit/phase-a1c: A1C.9 — final verdict + state + runbooks + open blockers (PARTIAL_A1C_PILOT_ENTRY_BLOCKERS_REMAIN)",
+      "verdict": "PARTIAL_A1C_PILOT_ENTRY_BLOCKERS_REMAIN"
+    }
+  ],
+
+  "a1c_predecessor_a1a_gate4r_i_terminal": {
+    "phase": "A1A Gate 4R-I",
+    "terminal_commit": "3d50b11",
+    "terminal_verdict": "PASS_A1A_GATE4R_INTEGRATION_REPOSITORY_RECONCILIATION_AND_PRODUCT_GAP_AUDIT_FILED",
+    "terminal_branch": "phase-a1a/emergency-containment"
+  },
+
+  "verdict_discipline_check": {
+    "charter_section_22_forbidden_verdicts_not_emitted": [
+      "PRODUCTION_READY",
+      "READY_FOR_HOSPITAL_DEPLOYMENT",
+      "CLINICAL_GRADE_VERIFIED",
+      "PHI_BOUNDED",
+      "CORTI_PARITY_VERIFIED",
+      "CORTI_AGENTIC_PARITY_VERIFIED",
+      "READY_FOR_MVP_SHIP",
+      "FULLY_VERIFIED"
+    ],
+    "verification_command": "git log phase-a1a/emergency-containment --grep='<forbidden-verdict>'",
+    "verification_result": "empty for all 8 forbidden verdicts",
+    "honoured": true
+  },
+
+  "git_ops_discipline_check": {
+    "charter_section_6_forbidden_ops_not_performed": [
+      "git push",
+      "gh pr create",
+      "deploy to real hospital",
+      "amend A1B-AE-RV history",
+      "rebase A1B-AE-RV history",
+      "squash A1B-AE-RV history",
+      "delete any annotated tag",
+      "real secrets to repo",
+      "git add -A / git add .",
+      "git commit -a",
+      "pytest.mark.skip newly introduced",
+      "--no-verify bypass"
+    ],
+    "verification_command": "git log phase-a1a/emergency-containment --since='2026-07-25' --name-status",
+    "honoured": true
+  },
+
+  "files_added_or_modified_in_a1c": {
+    "total_count_estimate": "70+ across 10 subgates",
+    "by_subgate": {
+      "A1C.0": ["docs/phase-a1c/A1C_CHARTER.md", "docs/phase-a1c/A1C_ENTRY_AUDIT.md", "reports/phase-a1c/A1C.0/*"],
+      "A1C.1": ["reports/phase-a1c/A1C.1/*", "backend/alembic/versions/027_*.py", "backend/alembic/versions/028_*.py"],
+      "A1C.2": ["reports/phase-a1c/A1C.2/*", "backend/alembic/versions/027_* recovery guard"],
+      "A1C.3": ["reports/phase-a1c/A1C.3/*", "backend/app/models/patient_context.py", "backend/app/schemas/patient_context.py", "backend/app/api/patient_context.py", "backend/app/main.py", "backend/alembic/versions/029_patient_contexts.py", "packages/icoder-sdk/src/resources/patient-context.ts", "packages/icoder-sdk/src/index.ts"],
+      "A1C.4": ["reports/phase-a1c/A1C.4/*"],
+      "A1C.5": ["reports/phase-a1c/A1C.5/*"],
+      "A1C.6": ["reports/phase-a1c/A1C.6/*"],
+      "A1C.7": ["reports/phase-a1c/A1C.7/*"],
+      "A1C.8": ["reports/phase-a1c/A1C.8/*"],
+      "A1C.9": ["reports/phase-a1c/A1C.9/*"]
+    },
+    "explicit_file_list_only": true,
+    "git_add_a_or_dot_used": false
+  },
+
+  "inherited_5_tuple_unchanged": {
+    "GATE4_8_NO_NEW_REGRESSION_CLAIM": "CONTRADICTED",
+    "GATE4_9_FINAL_PASS": "SUPERSEDED",
+    "GATE4_ACCEPTANCE_STATUS": "REOPENED",
+    "CORTI_PARITY_VERDICT": "NOT_DEMONSTRATED",
+    "PRODUCTION_READINESS": "NOT_VERIFIED"
+  },
+
+  "evidence_sha256_manifest": {
+    "file": "reports/phase-a1c/A1C.9/A1C_EVIDENCE_SHA256SUMS.detached.txt",
+    "self_excluded": true,
+    "self_referential_avoided_per_IC5_lesson": "true (A1B-AE-RV IC-5 lesson applied)"
+  }
+}

@@ -1,0 +1,374 @@
+{
+  "case_id": "CASE-e50c21686ddd",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-e50c21686ddd/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "腹痛的病因未明确，缺乏具体诊断或鉴别诊断。",
+      "why_it_matters": "腹痛可能由多种病因引起，未明确病因会影响编码的准确性和临床相关性。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "患者主诉腹痛。",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-e50c21686ddd/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "腹痛的严重程度和性质未描述（如急性、慢性、绞痛、隐痛等）。",
+      "why_it_matters": "严重程度和性质是腹痛分类和编码的重要依据，缺失会影响编码的精确性。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "患者主诉腹痛。",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-e50c21686ddd/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "腹痛的具体部位未指明（如上腹、下腹、全腹等）。",
+      "why_it_matters": "解剖部位是腹痛诊断和编码的关键要素，缺失会降低编码特异性。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "患者主诉腹痛。",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-e50c21686ddd/GAP-004",
+      "gap_type": "diagnostic_specificity",
+      "description": "建议进一步检查，但未明确具体检查项目或计划。",
+      "why_it_matters": "缺乏具体检查计划可能影响诊疗过程的完整性和编码的准确性。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "建议进一步检查。",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-004",
+      "gap_id": "CASE-e50c21686ddd/GAP-004",
+      "topic": "进一步检查计划",
+      "reason": "建议进一步检查，但未明确具体检查项目或计划。",
+      "query_text": "请明确建议进行哪些具体检查项目或检查计划。",
+      "response_options": [
+        "A. 腹部超声",
+        "B. 胃镜",
+        "C. 腹部CT",
+        "D. 其他（请注明）",
+        "E. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "建议进一步检查。",
+          "char_start": 7,
+          "char_end": 15,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-004: the chart already defers diagnosis to further evaluation"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-002",
+      "gap_id": "CASE-e50c21686ddd/GAP-002",
+      "topic": "腹痛的严重程度和性质",
+      "reason": "腹痛的严重程度和性质未描述，需要明确。",
+      "query_text": "请描述腹痛的严重程度和性质（如急性、慢性、绞痛、隐痛等）。",
+      "response_options": [
+        "A. 急性剧烈绞痛",
+        "B. 慢性隐痛",
+        "C. 持续性钝痛",
+        "D. 其他（请注明）",
+        "E. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "患者主诉腹痛。",
+          "char_start": 0,
+          "char_end": 7,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "CDI-Focus: one symptom-only clarification per shared evidence span"
+      ],
+      "status": "DEFERRED_SYMPTOM_REFINEMENT",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-003",
+      "gap_id": "CASE-e50c21686ddd/GAP-003",
+      "topic": "腹痛的具体部位",
+      "reason": "腹痛的具体部位未指明，需要明确。",
+      "query_text": "请指明腹痛的具体部位（如上腹、下腹、全腹等）。",
+      "response_options": [
+        "A. 上腹部",
+        "B. 下腹部",
+        "C. 全腹部",
+        "D. 其他（请注明）",
+        "E. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "患者主诉腹痛。",
+          "char_start": 0,
+          "char_end": 7,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "CDI-Focus: one symptom-only clarification per shared evidence span"
+      ],
+      "status": "DEFERRED_SYMPTOM_REFINEMENT",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-001",
+      "gap_id": "CASE-e50c21686ddd/GAP-001",
+      "topic": "腹痛的病因",
+      "reason": "腹痛的病因未明确，需要明确具体诊断或鉴别诊断。",
+      "query_text": "根据现有病历，腹痛的可能病因有哪些？请提供具体的诊断或鉴别诊断。",
+      "response_options": [
+        "A. 急性胃肠炎",
+        "B. 消化性溃疡",
+        "C. 胆囊炎或胆石症",
+        "D. 其他（请注明）",
+        "E. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "患者主诉腹痛。",
+          "char_start": 0,
+          "char_end": 7,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "INSUFFICIENT_CLINICAL_SUBSTRATE",
+        "NOT_ANSWERABLE"
+      ],
+      "status": "REJECTED_BY_SEMANTIC_NECESSITY",
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者主诉腹痛。建议进一步检查。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "主诉腹痛",
+      "建议进一步检查"
+    ],
+    "encounter_metadata": {
+      "patient_age": "未知",
+      "patient_sex": "未知",
+      "encounter_type": "门诊"
+    }
+  },
+  "risk_flags": [
+    {
+      "category": "ambiguous_term",
+      "description": "建议进一步检查未明确具体内容，可能模糊最终临床结论。"
+    }
+  ],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": false,
+      "rationale": "empty chart — no coding substrate",
+      "route_decision": "not_needed",
+      "route_reason": "empty_chart",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "empty_chart",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "empty_chart",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "empty_chart",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-5464db3adfd0",
+    "gap_identification": "run-d63a491282be",
+    "gap_identification_risk_flags": "emitted=1;quote_snapped=0",
+    "expert_consultation": "run-d3943957160e",
+    "query_generation": "run-849bd6dd0133",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=;dropped=0;final_count=4;llm_complete=False;llm_reasoning=病历仅记录主诉腹痛和建议进一步检查，缺乏病因、部位、严重程度等关键信息，无法满足编码所需的特异性。",
+    "query_necessity_gate": "necessary=3;unnecessary=1;overquery_triggered=False;final_count=1",
+    "query_single_dimension_gate": "single_dim=1;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=etiology;rewrite_attempted=0;rewrite_accepted=0;final_count=1",
+    "claim_evidence_alignment_gate": "claims_extracted=1;blocked=0;flagged=0;final_count=1",
+    "claim_evidence_alignment_gate::run_id": "run-b88d31f645b2",
+    "semantic_necessity_gate": "blocked=1;flagged=0;degraded=0;final_count=0",
+    "semantic_necessity_gate::run_id": "run-734fc621c81a",
+    "query_compliance_gate": ";passed=0;blocked=0",
+    "specialist_trace_emit": "run-bd2aa4908463"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-d29e5deb8ded",
+    "gap_identification": "trace-71af6b3df5c3",
+    "expert_consultation": "trace-57fec4230574",
+    "query_generation": "trace-731dddb3bf1f",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-ae8914398fbc",
+    "semantic_necessity_gate": "trace-2c28130a0aff",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-ddaff40670a8"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2220,
+      "prompt_tokens": 180,
+      "completion_tokens": 58,
+      "total_tokens": 238,
+      "run_id": "run-5464db3adfd0",
+      "trace_id": "trace-d29e5deb8ded",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6352,
+      "prompt_tokens": 964,
+      "completion_tokens": 618,
+      "total_tokens": 1582,
+      "run_id": "run-d63a491282be",
+      "trace_id": "trace-71af6b3df5c3",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6189,
+      "prompt_tokens": 1223,
+      "completion_tokens": 810,
+      "total_tokens": 2033,
+      "run_id": "run-849bd6dd0133",
+      "trace_id": "trace-731dddb3bf1f",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-69c3bf5d2c8d",
+      "trace_id": "trace-00291472a52d",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-25d234045bcb",
+      "trace_id": "trace-757471ab5662",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-79a897ca0dcb",
+      "trace_id": "trace-3f6f22874caa",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-515187a8c7be",
+      "trace_id": "trace-77cfa825cb15",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T21:36:28.255025Z"
+}

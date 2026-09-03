@@ -1,0 +1,406 @@
+{
+  "total_cases": 10,
+  "total_gaps": 33,
+  "total_queries": 4,
+  "avg_queries_per_case": 0.4,
+  "category_breakdown": {
+    "complete_chart": {
+      "n": 2,
+      "total_queries": 1,
+      "avg_queries": 0.5,
+      "in_range": 1,
+      "over_query": 1,
+      "under_query": 0,
+      "cea_blocked_total": 2,
+      "cea_claims_total": 13,
+      "single_dim_dropped_total": 0
+    },
+    "document_conflict": {
+      "n": 2,
+      "total_queries": 0,
+      "avg_queries": 0.0,
+      "in_range": 0,
+      "over_query": 0,
+      "under_query": 2,
+      "cea_blocked_total": 4,
+      "cea_claims_total": 14,
+      "single_dim_dropped_total": 3
+    },
+    "clear_gap": {
+      "n": 2,
+      "total_queries": 0,
+      "avg_queries": 0.0,
+      "in_range": 0,
+      "over_query": 0,
+      "under_query": 2,
+      "cea_blocked_total": 4,
+      "cea_claims_total": 16,
+      "single_dim_dropped_total": 1
+    },
+    "insufficient_evidence": {
+      "n": 1,
+      "total_queries": 0,
+      "avg_queries": 0.0,
+      "in_range": 1,
+      "over_query": 0,
+      "under_query": 0,
+      "cea_blocked_total": 4,
+      "cea_claims_total": 10,
+      "single_dim_dropped_total": 0
+    },
+    "lab_positive_uncertain": {
+      "n": 1,
+      "total_queries": 0,
+      "avg_queries": 0.0,
+      "in_range": 1,
+      "over_query": 0,
+      "under_query": 0,
+      "cea_blocked_total": 3,
+      "cea_claims_total": 10,
+      "single_dim_dropped_total": 0
+    },
+    "negation_history": {
+      "n": 2,
+      "total_queries": 3,
+      "avg_queries": 1.5,
+      "in_range": 1,
+      "over_query": 1,
+      "under_query": 0,
+      "cea_blocked_total": 6,
+      "cea_claims_total": 27,
+      "single_dim_dropped_total": 0
+    }
+  },
+  "results": [
+    {
+      "case_id": "G8-CDI-COMPLETE-011",
+      "category": "complete_chart",
+      "expected": {
+        "query_count_min": 0,
+        "query_count_max": 0,
+        "expected_no_query": true,
+        "expected_query_topics": [],
+        "notes": "Complete documentation: type, severity, etiology, procedure, pathology, complications, course all explicit"
+      },
+      "elapsed_s": 25.3,
+      "completion_state": "REVIEW_REQUIRED",
+      "degraded": false,
+      "final_queries": 1,
+      "gap_count": 3,
+      "stage_drops": {
+        "necessity_dropped": 0,
+        "necessity_final": 3,
+        "single_dim_dropped": 0,
+        "single_dim_final": 3,
+        "cea_blocked": 2,
+        "cea_claims_extracted": 13,
+        "cea_final": 1,
+        "semantic_blocked": 0,
+        "semantic_degraded": 1,
+        "semantic_final": 1
+      },
+      "query_topics": [
+        "疼痛持续时间"
+      ],
+      "range_status": "OVER_QUERY"
+    },
+    {
+      "case_id": "G8-CDI-COMPLETE-013",
+      "category": "complete_chart",
+      "expected": {
+        "query_count_min": 0,
+        "query_count_max": 0,
+        "expected_no_query": true,
+        "expected_query_topics": [],
+        "notes": "Healthy adult exam — nothing to query"
+      },
+      "elapsed_s": 3.4,
+      "completion_state": "AUTO_PASS",
+      "degraded": false,
+      "final_queries": 0,
+      "gap_count": 0,
+      "stage_drops": {
+        "necessity_dropped": 0,
+        "necessity_final": 0,
+        "single_dim_dropped": 0,
+        "single_dim_final": 0,
+        "cea_blocked": 0,
+        "cea_claims_extracted": 0,
+        "cea_final": 0,
+        "semantic_blocked": 0,
+        "semantic_degraded": 0,
+        "semantic_final": 0
+      },
+      "query_topics": [],
+      "range_status": "IN_RANGE"
+    },
+    {
+      "case_id": "G8-CDI-CONFLICT-031",
+      "category": "document_conflict",
+      "expected": {
+        "query_count_min": 1,
+        "query_count_max": 2,
+        "expected_no_query": false,
+        "expected_query_topics": [
+          "骨折侧别",
+          "laterality of fracture"
+        ],
+        "notes": "Left vs right inconsistency across documents"
+      },
+      "elapsed_s": 25.8,
+      "completion_state": "REVIEW_REQUIRED",
+      "degraded": false,
+      "final_queries": 0,
+      "gap_count": 4,
+      "stage_drops": {
+        "necessity_dropped": 0,
+        "necessity_final": 4,
+        "single_dim_dropped": 1,
+        "single_dim_final": 3,
+        "cea_blocked": 3,
+        "cea_claims_extracted": 11,
+        "cea_final": 0,
+        "semantic_blocked": 0,
+        "semantic_degraded": 0,
+        "semantic_final": 0
+      },
+      "query_topics": [],
+      "range_status": "UNDER_QUERY"
+    },
+    {
+      "case_id": "G8-CDI-CONFLICT-033",
+      "category": "document_conflict",
+      "expected": {
+        "query_count_min": 1,
+        "query_count_max": 2,
+        "expected_no_query": false,
+        "expected_query_topics": [
+          "加重严重程度",
+          "exacerbation severity"
+        ],
+        "notes": "Three different severity levels across documents"
+      },
+      "elapsed_s": 25.2,
+      "completion_state": "REVIEW_REQUIRED",
+      "degraded": false,
+      "final_queries": 0,
+      "gap_count": 3,
+      "stage_drops": {
+        "necessity_dropped": 0,
+        "necessity_final": 3,
+        "single_dim_dropped": 2,
+        "single_dim_final": 1,
+        "cea_blocked": 1,
+        "cea_claims_extracted": 3,
+        "cea_final": 0,
+        "semantic_blocked": 0,
+        "semantic_degraded": 0,
+        "semantic_final": 0
+      },
+      "query_topics": [],
+      "range_status": "UNDER_QUERY"
+    },
+    {
+      "case_id": "G8-CDI-GAP-001",
+      "category": "clear_gap",
+      "expected": {
+        "query_count_min": 1,
+        "query_count_max": 3,
+        "expected_no_query": false,
+        "expected_query_topics": [
+          "肺炎严重程度",
+          "pneumonia severity",
+          "CAP vs HAP",
+          "社区获得性 vs 医院获得性"
+        ],
+        "notes": "Severity (CURB-65 / PSI) not documented; type of pneumonia (CAP/HAP) ambiguous"
+      },
+      "elapsed_s": 22.5,
+      "completion_state": "REVIEW_REQUIRED",
+      "degraded": false,
+      "final_queries": 0,
+      "gap_count": 4,
+      "stage_drops": {
+        "necessity_dropped": 0,
+        "necessity_final": 4,
+        "single_dim_dropped": 1,
+        "single_dim_final": 3,
+        "cea_blocked": 3,
+        "cea_claims_extracted": 12,
+        "cea_final": 0,
+        "semantic_blocked": 0,
+        "semantic_degraded": 0,
+        "semantic_final": 0
+      },
+      "query_topics": [],
+      "range_status": "UNDER_QUERY"
+    },
+    {
+      "case_id": "G8-CDI-GAP-005",
+      "category": "clear_gap",
+      "expected": {
+        "query_count_min": 1,
+        "query_count_max": 2,
+        "expected_no_query": false,
+        "expected_query_topics": [
+          "II型呼吸衰竭",
+          "Type 2 respiratory failure",
+          "acute vs chronic respiratory failure"
+        ],
+        "notes": "Type 2 respiratory failure evident from ABG but not documented as diagnosis"
+      },
+      "elapsed_s": 18.2,
+      "completion_state": "REVIEW_REQUIRED",
+      "degraded": false,
+      "final_queries": 0,
+      "gap_count": 3,
+      "stage_drops": {
+        "necessity_dropped": 2,
+        "necessity_final": 1,
+        "single_dim_dropped": 0,
+        "single_dim_final": 1,
+        "cea_blocked": 1,
+        "cea_claims_extracted": 4,
+        "cea_final": 0,
+        "semantic_blocked": 0,
+        "semantic_degraded": 0,
+        "semantic_final": 0
+      },
+      "query_topics": [],
+      "range_status": "UNDER_QUERY"
+    },
+    {
+      "case_id": "G8-CDI-INSUF-021",
+      "category": "insufficient_evidence",
+      "expected": {
+        "query_count_min": 0,
+        "query_count_max": 1,
+        "expected_no_query": false,
+        "expected_query_topics": [],
+        "notes": "Minimal info — agent should NOT invent a diagnosis or generate specific-topic query"
+      },
+      "elapsed_s": 16.9,
+      "completion_state": "REVIEW_REQUIRED",
+      "degraded": false,
+      "final_queries": 0,
+      "gap_count": 4,
+      "stage_drops": {
+        "necessity_dropped": 0,
+        "necessity_final": 4,
+        "single_dim_dropped": 0,
+        "single_dim_final": 4,
+        "cea_blocked": 4,
+        "cea_claims_extracted": 10,
+        "cea_final": 0,
+        "semantic_blocked": 0,
+        "semantic_degraded": 0,
+        "semantic_final": 0
+      },
+      "query_topics": [],
+      "range_status": "IN_RANGE"
+    },
+    {
+      "case_id": "G8-CDI-LAB-036",
+      "category": "lab_positive_uncertain",
+      "expected": {
+        "query_count_min": 0,
+        "query_count_max": 1,
+        "expected_no_query": false,
+        "expected_query_topics": [],
+        "notes": "Single positive lab without supporting evidence — must not assume GI malignancy"
+      },
+      "elapsed_s": 18.2,
+      "completion_state": "REVIEW_REQUIRED",
+      "degraded": false,
+      "final_queries": 0,
+      "gap_count": 3,
+      "stage_drops": {
+        "necessity_dropped": 0,
+        "necessity_final": 3,
+        "single_dim_dropped": 0,
+        "single_dim_final": 3,
+        "cea_blocked": 3,
+        "cea_claims_extracted": 10,
+        "cea_final": 0,
+        "semantic_blocked": 0,
+        "semantic_degraded": 0,
+        "semantic_final": 0
+      },
+      "query_topics": [],
+      "range_status": "IN_RANGE"
+    },
+    {
+      "case_id": "G8-CDI-NEG-026",
+      "category": "negation_history",
+      "expected": {
+        "query_count_min": 0,
+        "query_count_max": 1,
+        "expected_no_query": false,
+        "expected_query_topics": [
+          "diabetes type confirmation"
+        ],
+        "notes": "Diagnosis marked uncertain (?); must not assume T2DM without workup"
+      },
+      "elapsed_s": 17.6,
+      "completion_state": "REVIEW_REQUIRED",
+      "degraded": false,
+      "final_queries": 0,
+      "gap_count": 3,
+      "stage_drops": {
+        "necessity_dropped": 0,
+        "necessity_final": 3,
+        "single_dim_dropped": 0,
+        "single_dim_final": 3,
+        "cea_blocked": 3,
+        "cea_claims_extracted": 11,
+        "cea_final": 0,
+        "semantic_blocked": 0,
+        "semantic_degraded": 0,
+        "semantic_final": 0
+      },
+      "query_topics": [],
+      "range_status": "IN_RANGE"
+    },
+    {
+      "case_id": "G8-CDI-NEG-030",
+      "category": "negation_history",
+      "expected": {
+        "query_count_min": 0,
+        "query_count_max": 1,
+        "expected_no_query": true,
+        "expected_query_topics": [],
+        "notes": "All red flags denied — agent should not generate migraine or intracranial lesion query"
+      },
+      "elapsed_s": 31.4,
+      "completion_state": "REVIEW_REQUIRED",
+      "degraded": false,
+      "final_queries": 3,
+      "gap_count": 6,
+      "stage_drops": {
+        "necessity_dropped": 0,
+        "necessity_final": 6,
+        "single_dim_dropped": 0,
+        "single_dim_final": 6,
+        "cea_blocked": 3,
+        "cea_claims_extracted": 16,
+        "cea_final": 3,
+        "semantic_blocked": 0,
+        "semantic_degraded": 0,
+        "semantic_final": 3
+      },
+      "query_topics": [
+        "头痛病因",
+        "头痛发作频率",
+        "头痛性质"
+      ],
+      "range_status": "OVER_QUERY"
+    }
+  ],
+  "gate_drop_totals": {
+    "cea_blocked": 23,
+    "cea_claims_extracted": 90,
+    "single_dim_dropped": 4,
+    "necessity_dropped": 2,
+    "semantic_blocked": 0
+  }
+}

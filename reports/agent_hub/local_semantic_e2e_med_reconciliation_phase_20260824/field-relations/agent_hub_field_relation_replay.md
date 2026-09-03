@@ -1,0 +1,90 @@
+# Agent Hub cross-field relation replay
+
+- Passed: `True`
+- Relation Agents: `13`
+- Relations: `44`
+- Adversarial assertions: `81/81`
+
+| Agent | Relation | Must # | Operator | Baseline | Detected |
+|---|---|---:|---|---|---|
+| claim-check | missing_policy_requires_review | 0 | equals | yes | yes |
+| claim-check | insufficient_evidence_requires_review | 0 | equals | yes | yes |
+| clinical-documentation-improvement-agent | withheld_query_requires_human_action | 0 | equals | yes | yes |
+| clinical-documentation-improvement-agent | withheld_query_requires_human_action | 1 | equals | yes | yes |
+| clinical-documentation-improvement-agent | draft_queries_require_traceable_content | 0 | non_empty | yes | yes |
+| clinical-documentation-improvement-agent | draft_queries_require_traceable_content | 1 | non_empty | yes | yes |
+| clinical-documentation-improvement-agent | draft_queries_require_traceable_content | 2 | non_empty | yes | yes |
+| clinical-documentation-improvement-agent | draft_queries_require_traceable_content | 3 | non_empty | yes | yes |
+| clinical-documentation-improvement-agent | draft_queries_require_traceable_content | 4 | non_empty | yes | yes |
+| clinical-education | insufficient_source_requires_limitations | 0 | non_empty | yes | yes |
+| clinical-education | insufficient_source_requires_limitations | 1 | equals | yes | yes |
+| clinical-guidelines | unmet_guideline_requires_deviation | 0 | non_empty | yes | yes |
+| clinical-guidelines | unmet_guideline_requires_deviation | 1 | equals | yes | yes |
+| clinical-guidelines | unmet_criterion_requires_deviation | 0 | non_empty | yes | yes |
+| clinical-guidelines | unmet_criterion_requires_deviation | 1 | non_empty | yes | yes |
+| clinical-guidelines | unassessable_criterion_requires_uncertainty | 0 | non_empty | yes | yes |
+| code-validation | failed_validation_requires_review | 0 | equals | yes | yes |
+| code-validation | valid_code_requires_catalog_assignability | 0 | equals | yes | yes |
+| code-validation | valid_code_requires_catalog_assignability | 1 | equals | yes | yes |
+| code-validation | invalid_code_requires_issue | 0 | equals | yes | yes |
+| code-validation | invalid_code_requires_issue | 1 | non_empty | yes | yes |
+| diagnosis-extractor | codable_diagnosis_requires_current_evidence | 0 | equals | yes | yes |
+| diagnosis-extractor | codable_diagnosis_requires_current_evidence | 1 | non_empty | yes | yes |
+| diagnosis-extractor | codable_diagnosis_requires_current_evidence | 2 | non_empty | yes | yes |
+| diagnosis-extractor | codable_diagnosis_requires_current_evidence | 3 | non_empty | yes | yes |
+| diagnosis-extractor | noncodable_mention_requires_reason | 0 | in | yes | yes |
+| diagnosis-extractor | noncodable_mention_requires_reason | 1 | non_empty | yes | yes |
+| diagnosis-extractor | noncodable_mention_requires_reason | 2 | non_empty | yes | yes |
+| diagnosis-extractor | codable_and_noncodable_evidence_are_disjoint | 0 | disjoint_fields | yes | yes |
+| evidence-ranker | input_required_has_no_ranked_evidence | 0 | empty | yes | yes |
+| evidence-ranker | ranked_status_has_evidence | 0 | non_empty | yes | yes |
+| evidence-ranker | ranked_with_gaps_has_evidence | 0 | non_empty | yes | yes |
+| evidence-ranker | documentation_ranking_requires_human_review | 0 | equals | yes | yes |
+| evidence_extractor | input_required_has_no_extraction_results | 0 | empty | yes | yes |
+| evidence_extractor | input_required_has_no_extraction_results | 1 | empty | yes | yes |
+| evidence_extractor | input_required_has_no_extraction_results | 2 | empty | yes | yes |
+| evidence_extractor | completed_extraction_has_input_codes | 0 | non_empty | yes | yes |
+| evidence_extractor | exact_mentions_are_traceable_not_clinical_support | 0 | non_empty | yes | yes |
+| evidence_extractor | exact_mentions_are_traceable_not_clinical_support | 1 | non_empty | yes | yes |
+| evidence_extractor | exact_mentions_are_traceable_not_clinical_support | 2 | equals | yes | yes |
+| evidence_extractor | exact_mention_policy_requires_manual_review | 0 | equals | yes | yes |
+| med_reconciliation | input_required_has_no_medication_claims | 0 | empty | yes | yes |
+| med_reconciliation | input_required_has_no_medication_claims | 1 | empty | yes | yes |
+| med_reconciliation | input_required_has_no_medication_claims | 2 | empty | yes | yes |
+| med_reconciliation | input_required_has_no_medication_claims | 3 | empty | yes | yes |
+| med_reconciliation | input_required_has_no_medication_claims | 4 | equals | yes | yes |
+| med_reconciliation | completed_comparison_has_sources_and_summary | 0 | equals | yes | yes |
+| med_reconciliation | completed_comparison_has_sources_and_summary | 1 | non_empty | yes | yes |
+| med_reconciliation | unlicensed_interaction_screen_is_empty_and_reviewed | 0 | empty | yes | yes |
+| med_reconciliation | unlicensed_interaction_screen_is_empty_and_reviewed | 1 | equals | yes | yes |
+| med_reconciliation | clarification_category_requires_clinician_confirmation | 0 | equals | yes | yes |
+| med_reconciliation | home_medication_is_traceable | 0 | equals | yes | yes |
+| med_reconciliation | home_medication_is_traceable | 1 | non_empty | yes | yes |
+| med_reconciliation | inpatient_medication_is_traceable | 0 | equals | yes | yes |
+| med_reconciliation | inpatient_medication_is_traceable | 1 | non_empty | yes | yes |
+| med_reconciliation | discharge_medication_is_traceable | 0 | equals | yes | yes |
+| med_reconciliation | discharge_medication_is_traceable | 1 | non_empty | yes | yes |
+| medical_coding | failed_rules_require_human_review | 0 | equals | yes | yes |
+| principal_diagnosis_review | draft_conflict_requires_reason | 0 | non_empty | yes | yes |
+| principal_diagnosis_review | draft_conflict_requires_reason | 1 | equals | yes | yes |
+| principal_diagnosis_review | recommended_candidate_requires_evidence | 0 | non_empty | yes | yes |
+| principal_diagnosis_review | recommended_candidate_requires_evidence | 1 | non_empty | yes | yes |
+| principal_diagnosis_review | recommended_candidate_requires_evidence | 2 | non_empty | yes | yes |
+| principal_diagnosis_review | nonrecommended_candidate_requires_rationale | 0 | non_empty | yes | yes |
+| principal_diagnosis_review | exactly_one_principal_candidate_recommended | 0 | count_where_equals | yes | yes |
+| principal_diagnosis_review | recommended_principal_matches_flagged_candidate | 0 | contains_field_equals_path | yes | yes |
+| procedure-extractor | procedure_count_matches_items | 0 | length_equals | yes | yes |
+| procedure-extractor | billable_procedure_requires_performed_evidence | 0 | equals | yes | yes |
+| procedure-extractor | billable_procedure_requires_performed_evidence | 1 | non_empty | yes | yes |
+| procedure-extractor | billable_procedure_requires_performed_evidence | 2 | non_empty | yes | yes |
+| procedure-extractor | billable_procedure_requires_performed_evidence | 3 | non_empty | yes | yes |
+| procedure-extractor | nonbillable_procedure_requires_status_evidence | 0 | in | yes | yes |
+| procedure-extractor | nonbillable_procedure_requires_status_evidence | 1 | non_empty | yes | yes |
+| procedure-extractor | billable_and_nonbillable_evidence_are_disjoint | 0 | disjoint_fields | yes | yes |
+| procedure-extractor | procedure_issues_require_review | 0 | equals | yes | yes |
+| rule_explainer | assignable_requires_catalog_leaf | 0 | equals | yes | yes |
+| rule_explainer | nonassignable_statuses_are_not_assignable | 0 | equals | yes | yes |
+| rule_explainer | missing_governed_rule_content_requires_review | 0 | non_empty | yes | yes |
+| rule_explainer | missing_governed_rule_content_requires_review | 1 | non_empty | yes | yes |
+| rule_explainer | missing_governed_rule_content_requires_review | 2 | equals | yes | yes |
+| rule_explainer | review_status_requires_review | 0 | equals | yes | yes |

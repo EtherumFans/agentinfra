@@ -1,0 +1,384 @@
+{
+  "case_id": "CASE-6b60a0b37733",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-6b60a0b37733/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "急性心肌梗死未明确具体类型（STEMI vs NSTEMI）",
+      "why_it_matters": "影响编码和临床管理，STEMI和NSTEMI的编码不同，且治疗和预后有差异。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "入院诊断:急性心肌梗死",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-6b60a0b37733/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "未明确心肌梗死的具体部位（如前壁、下壁等）",
+      "why_it_matters": "影响编码和临床管理，不同部位的心肌梗死编码不同，且预后有差异。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "2小时。心电图:前壁导联S",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-6b60a0b37733/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "未明确冠脉病变的血管（前降支）和闭塞程度（100%）",
+      "why_it_matters": "影响编码和临床管理，具体血管和闭塞程度对编码和预后有影响。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "白I升高。冠脉造影:前降支近段1",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-6b60a0b37733/GAP-004",
+      "gap_type": "diagnostic_specificity",
+      "description": "未明确PCI的具体类型（如支架植入、球囊扩张等）",
+      "why_it_matters": "影响编码和临床管理，具体操作类型对编码有影响。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "行PCI",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-6b60a0b37733/Q-001",
+      "gap_id": "CASE-6b60a0b37733/GAP-001",
+      "topic": "急性心肌梗死的具体类型",
+      "reason": "入院诊断为急性心肌梗死，但未明确具体类型（STEMI vs NSTEMI），需要明确以指导治疗。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "入院诊断:急性心肌梗死",
+        "char_start": 63,
+        "char_end": 74,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "入院诊断:急性心肌梗死",
+          "char_start": 63,
+          "char_end": 74,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "根据心电图和心肌损伤标志物结果，该急性心肌梗死应归类为哪种类型？",
+      "response_options": [
+        "A. ST段抬高型心肌梗死（STEMI）",
+        "B. 非ST段抬高型心肌梗死（NSTEMI）",
+        "C. 其他类型（请注明）",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "urgent",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    },
+    {
+      "query_id": "CASE-6b60a0b37733/Q-002",
+      "gap_id": "CASE-6b60a0b37733/GAP-002",
+      "topic": "心肌梗死的具体部位",
+      "reason": "心电图提示前壁导联ST段抬高，但未明确心肌梗死的具体部位，需要明确。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "心电图:前壁导联ST段抬高",
+        "char_start": 19,
+        "char_end": 32,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "心电图:前壁导联ST段抬高",
+          "char_start": 19,
+          "char_end": 32,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "根据心电图和冠脉造影结果，该心肌梗死的具体部位是哪里？",
+      "response_options": [
+        "A. 前壁心肌梗死",
+        "B. 下壁心肌梗死",
+        "C. 侧壁心肌梗死",
+        "D. 其他部位（请注明）",
+        "E. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "urgent",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    }
+  ],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-004",
+      "gap_id": "CASE-6b60a0b37733/GAP-004",
+      "topic": "PCI的具体类型",
+      "reason": "病历记录行PCI，但未明确具体类型（如支架植入、球囊扩张等），需要明确。",
+      "query_text": "该患者行PCI的具体类型是什么？",
+      "response_options": [
+        "A. 支架植入术",
+        "B. 球囊扩张术",
+        "C. 其他介入治疗（请注明）",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "行PCI",
+          "char_start": 58,
+          "char_end": 62,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-001: chart matches /急性[^,。、\\s]{0,8}(?:心肌梗死|阑尾炎|胆囊炎|胰腺炎|肺炎|胃肠炎)/ (急性类型已明确) and query asks for PCI的具体类型"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-003",
+      "gap_id": "CASE-6b60a0b37733/GAP-003",
+      "topic": "冠脉病变的血管和闭塞程度",
+      "reason": "冠脉造影显示前降支近段100%闭塞，但未明确病变血管和闭塞程度，需要明确。",
+      "query_text": "根据冠脉造影结果，请明确病变血管和闭塞程度。",
+      "response_options": [
+        "A. 前降支近段100%闭塞",
+        "B. 前降支中段闭塞（程度请注明）",
+        "C. 其他血管病变（请注明）",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "冠脉造影:前降支近段100%闭塞",
+          "char_start": 41,
+          "char_end": 57,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "REDUNDANT_WITH_CHART",
+        "CHART_ALREADY_COMPLETE"
+      ],
+      "status": "REJECTED_BY_SEMANTIC_NECESSITY",
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者男性, 58岁, 持续胸痛2小时。心电图:前壁导联ST段抬高。肌钙蛋白I升高。冠脉造影:前降支近段100%闭塞。行PCI。入院诊断:急性心肌梗死。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者男性，58岁",
+      "持续胸痛2小时",
+      "心电图示前壁导联ST段抬高",
+      "肌钙蛋白I升高",
+      "冠脉造影示前降支近段100%闭塞",
+      "行经皮冠状动脉介入治疗（PCI）",
+      "入院诊断：急性心肌梗死"
+    ],
+    "encounter_metadata": {
+      "patient_age": "58岁",
+      "patient_sex": "男性",
+      "encounter_type": "住院"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "For accurate coding, the chart must specify whether the acute myocardial infarction is STEMI or NSTEMI, and document the exact infarct location (e.g., anterior wall) as confirmed by ECG and biomarkers. Additionally, clarify the coronary artery involved (left anterior descending) with the degree of occlusion (100%), and detail the PCI procedure performed (e.g., stent type, balloon angioplasty, or thrombectomy) to capture the full clinical picture.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3097,
+      "tokens": 272
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-49f63c898fd2",
+    "gap_identification": "run-649512cef00f",
+    "gap_identification_risk_flags": "emitted=0;quote_snapped=2",
+    "expert_consultation": "run-92469e576d2b",
+    "query_generation": "run-42afdd98cc6e",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.25;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=Y,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=4;llm_complete=False;llm_reasoning=急性心肌梗死的类型（STEMI vs NSTEMI）和具体部位未明确，且PCI的具体操作类型未记录，这些是编码和临床管理的关键信息。",
+    "query_necessity_gate": "necessary=3;unnecessary=1;overquery_triggered=False;final_count=3",
+    "query_single_dimension_gate": "single_dim=3;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=type;rewrite_attempted=0;rewrite_accepted=0;final_count=3",
+    "claim_evidence_alignment_gate": "claims_extracted=6;blocked=0;flagged=0;final_count=3",
+    "claim_evidence_alignment_gate::run_id": "run-9a4c4c315ba0",
+    "semantic_necessity_gate": "blocked=1;flagged=0;degraded=0;final_count=2",
+    "semantic_necessity_gate::run_id": "run-dc61fac8ac32",
+    "query_compliance_gate": ";passed=2;blocked=0",
+    "specialist_trace_emit": "run-3bbfe0fa5576"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-c9399f14ff0f",
+    "gap_identification": "trace-eb5d71b86e77",
+    "expert_consultation": "trace-5ceff2455b83",
+    "query_generation": "trace-1514b7974282",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-a7ea2efb633c",
+    "semantic_necessity_gate": "trace-bc694409bb05",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-b12b6972ad80"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 1189,
+      "prompt_tokens": 224,
+      "completion_tokens": 119,
+      "total_tokens": 343,
+      "run_id": "run-49f63c898fd2",
+      "trace_id": "trace-c9399f14ff0f",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5516,
+      "prompt_tokens": 1067,
+      "completion_tokens": 577,
+      "total_tokens": 1644,
+      "run_id": "run-649512cef00f",
+      "trace_id": "trace-eb5d71b86e77",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6159,
+      "prompt_tokens": 1170,
+      "completion_tokens": 876,
+      "total_tokens": 2046,
+      "run_id": "run-42afdd98cc6e",
+      "trace_id": "trace-1514b7974282",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3097,
+      "prompt_tokens": 180,
+      "completion_tokens": 92,
+      "total_tokens": 272,
+      "run_id": "run-1a461d206ed0",
+      "trace_id": "trace-c82396e1bd23",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-ad0fa5f2b0b0",
+      "trace_id": "trace-d851d36c2196",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-f3465ad98049",
+      "trace_id": "trace-3da19d9185c3",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-263f48b77274",
+      "trace_id": "trace-8a8d4e367f5f",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T20:28:29.223940Z"
+}

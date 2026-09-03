@@ -1,22 +1,23 @@
 // iCoDer Documentation Hub
 import { BookOpen, Code, Key, Mic, FileText, Sparkles, Terminal, Puzzle, Stethoscope, ExternalLink } from 'lucide-react';
+
 import { useT } from '../i18n';
 import { BACKEND_BASE_URL } from '../config';
 
 const SDK_CARDS = [
   { icon: Code, title: 'JavaScript SDK', desc: 'Node.js + 浏览器。全 REST + WebSocket 支持。', cmd: 'npm install @icoder/sdk', href: '#js-sdk' },
-  { icon: Terminal, title: 'Python SDK', desc: 'Python 3.9+。httpx 异步 HTTP 客户端。', cmd: 'pip install icoder-sdk', href: '#python-sdk' },
-  { icon: Code, title: 'C# .NET SDK', desc: '.NET 8+。async/await + WebSocket。', cmd: 'dotnet add package iCoDer.Sdk', href: '#dotnet-sdk' },
+  { icon: Terminal, title: 'Python SDK', desc: 'Python 3.9+。httpx 同步 HTTP 客户端。', cmd: 'pip install icoder-sdk', href: '#python-sdk' },
+  { icon: Code, title: 'C# .NET SDK', desc: '.NET 8+。类型化 REST + A2A SSE。', cmd: 'dotnet add package iCoDer.Sdk', href: '#dotnet-sdk' },
   { icon: Puzzle, title: 'Web Components', desc: '零依赖。任意 HTML 页面一行标签嵌入。', cmd: 'npm install @icoder/web', href: '#web-components' },
 ];
 
 const API_SECTIONS = [
-  { icon: Mic, title: 'Speech To Text', path: '/api/v2/tools/interactions', desc: '实时语音识别，中英混合，语音指令', method: 'POST / WS' },
+  { icon: Mic, title: 'Speech To Text', path: '/api/v2/tools/interactions', desc: 'zh-CN 医疗语音识别、预录音生命周期与实时语音指令', method: 'POST / WS' },
   { icon: FileText, title: 'Fact Extraction', path: '/api/v2/tools/extract-facts', desc: '临床文本→结构化事实', method: 'POST' },
-  { icon: FileText, title: 'Guided Documents', path: '/api/v2/tools/guided-documents', desc: 'templateRef + ephemeral 文书生成', method: 'POST' },
-  { icon: Stethoscope, title: 'Medical Coding', path: '/api/v2/tools/coding/icoder/', desc: 'ICD-10-CN / ICD-9-CM-3 编码', method: 'POST' },
-  { icon: Sparkles, title: 'Agentic Framework', path: '/api/agents', desc: '智能体创建/管理/流式对话', method: 'POST / GET / SSE' },
-  { icon: Key, title: 'Authentication', path: '/api/auth/login', desc: 'JWT + OAuth 2.0 + PKCE', method: 'POST' },
+  { icon: FileText, title: 'Guided Documents', path: '/api/v2/tools/guided-documents', desc: 'templateRef / assemblyTemplate / dynamicTemplate，支持保存或文书零留存', method: 'POST' },
+  { icon: Stethoscope, title: 'Medical Coding', path: '/api/v1/coding/predict', desc: 'ICD-10-CN / ICD-9-CM-3 编码', method: 'POST' },
+  { icon: Sparkles, title: 'Agentic Framework', path: '/api/icoder/agents/{agent_id}/v1/message:stream', desc: '认证 A2A v0.3 流式调用', method: 'POST / SSE' },
+  { icon: Key, title: 'Authentication', path: '/api/auth/login', desc: 'JWT 用户会话 + OAuth 2.0 Client Credentials', method: 'POST' },
   { icon: Puzzle, title: 'Embedded Assistant', path: '/api/embedded', desc: 'Web Component 嵌入', method: 'GET' },
 ];
 
@@ -31,7 +32,7 @@ export default function DocsPage() {
           <div className="mb-10">
             <h1 className="text-2xl font-bold text-foreground mb-2">iCoDer 开发者文档</h1>
             <p className="text-sm text-muted-foreground max-w-2xl">
-              iCoDer — 可审计的临床AI。预置编码审核、语音转录、文书生成、事实提取和AI智能体。通过SDK、Web Components或REST API嵌入您的HIS/EMR系统。
+              iCoDer - 可审计的临床AI。预置编码审核、语音转录、文书生成、事实提取和AI智能体。通过SDK、Web Components或REST API嵌入您的HIS/EMR系统。
             </p>
             <div className="flex items-center gap-3 mt-4">
               <a href={`${BACKEND_BASE_URL}/docs`} target="_blank" rel="noopener noreferrer"
@@ -61,7 +62,7 @@ export default function DocsPage() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               {SDK_CARDS.map(card => (
-                <div key={card.title} className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-5">
+                <div key={card.title} className="bg-background rounded-xl shadow-sm p-5">
                   <div className="flex items-center gap-2 mb-2">
                     <card.icon size={18} className="text-primary" />
                     <h3 className="text-sm font-semibold text-foreground">{card.title}</h3>
@@ -81,7 +82,7 @@ export default function DocsPage() {
             </div>
             <div className="space-y-2">
               {API_SECTIONS.map(api => (
-                <div key={api.path} className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-4 flex items-center gap-4">
+                <div key={api.path} className="bg-background rounded-xl shadow-sm p-4 flex items-center gap-4">
                   <api.icon size={18} className="text-muted-foreground shrink-0" />
                   <div className="flex-1 min-w-0">
                     <h3 className="text-sm font-medium text-foreground">{api.title}</h3>
@@ -100,7 +101,7 @@ export default function DocsPage() {
               <div className="w-1 h-5 rounded-full bg-primary/40" />
               <h2 className="text-lg font-semibold text-foreground">5 分钟快速开始</h2>
             </div>
-            <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 p-6">
+            <div className="bg-background rounded-xl shadow-sm p-6">
               <div className="space-y-6">
                 <div>
                   <div className="flex items-center gap-2 mb-2">
@@ -136,7 +137,8 @@ const facts = await icoder.facts.extract(
   '患者因腰痛伴左下肢放射痛3月就诊。MRI示L4/5椎间盘突出。',
   'zh-CN'
 );
-console.log(facts.facts.diagnosis_facts);`}</pre>
+console.log(facts.facts);
+console.log(facts.usageInfo.creditsConsumed);`}</pre>
                 </div>
               </div>
             </div>

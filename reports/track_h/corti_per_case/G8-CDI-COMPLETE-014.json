@@ -1,0 +1,65 @@
+{
+  "case_id": "G8-CDI-COMPLETE-014",
+  "group": "complete_chart",
+  "variant": "",
+  "session_id": "b4a5d0c5-ba1d-4bf5-ada8-8f9f5361ef3c",
+  "attempt": 1,
+  "outcome": "SUCCESS",
+  "elapsed_s": 18.2,
+  "expected": {
+    "query_count_min": 0,
+    "query_count_max": 0,
+    "expected_no_query": true,
+    "expected_query_topics": [],
+    "notes": "Pediatric AOM with laterality, severity, etiology all explicit"
+  },
+  "text_length": 2318,
+  "first_token_at_s": 4.69,
+  "last_token_at_s": 18.2,
+  "event_count": 9,
+  "raw_events_preview": [
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"id\":\"c0f87e9a-b752-4062-aa0b-ddff3a1b8da0\",\"type\":\"text-start\"}",
+    "message|{\"delta\":\"Encounter Summary:\\n- Pediatric outpatient encounter for ear pain with documented acute otitis media of the right ear.\\n- Symptoms/findings documented: “Ear pain 2 days, T 38.0C” and “Otosco",
+    "message|{\"id\":\"c0f87e9a-b752-4062-aa0b-ddff3a1b8da0\",\"type\":\"text-end\"}",
+    "message|{\"messageMetadata\":{\"contextId\":\"019f55cc-630b-7ce7-9099-5ad132654c14\",\"taskId\":\"019f55cc-630b-7c62-86e7-360f6aa8ab76\",\"credits\":0.06989999999999999,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+    "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.06989999999999999},\"type\":\"finish\"}",
+    "message|[DONE]"
+  ],
+  "expert_events": [],
+  "status_events": [
+    {
+      "state": "working"
+    },
+    {
+      "state": "working"
+    },
+    {
+      "message": "Calling expert: coding-expert",
+      "state": "working"
+    }
+  ],
+  "finish_metadata": {
+    "contextId": "019f55cc-630b-7ce7-9099-5ad132654c14",
+    "taskId": "019f55cc-630b-7c62-86e7-360f6aa8ab76",
+    "credits": 0.06989999999999999,
+    "state": "completed"
+  },
+  "parsed": {
+    "encounter_summary": "- Pediatric outpatient encounter for ear pain with documented acute otitis media of the right ear.\n- Symptoms/findings documented: “Ear pain 2 days, T 38.0C” and “Otoscopy: right tympanic membrane erythematous and bulging, no perforation.”\n- Diagnosis documented as “acute purulent otitis media (right).”\n- Treatment/follow-up documented: “Prescribed amoxicillin-clavulanate orally for 7 days” and “Follow-up at 3 days showed symptom improvement.”",
+    "gaps": [],
+    "gap_count": 0,
+    "queries": [],
+    "query_count": 0,
+    "specialists_contacted": [
+      "Medical Coding Expert",
+      "Coding Expert"
+    ],
+    "specialist_trace_text": "- Medical Coding Expert: consulted for coding specificity review. Accepted the high-level conclusion that no additional compliant CDI query is clearly supported by the excerpt because the diagnosis is already specific. Rejected any unsupported expansion beyond the quoted chart facts.\n- AMBOSS Expert: not consulted; clinical diagnostic criteria clarification was not necessary for this excerpt.\n- CDI/Web Search Expert: not consulted; no current external guideline lookup was needed.",
+    "has_specialist_trace": true
+  },
+  "error": "",
+  "text": "Encounter Summary:\n- Pediatric outpatient encounter for ear pain with documented acute otitis media of the right ear.\n- Symptoms/findings documented: “Ear pain 2 days, T 38.0C” and “Otoscopy: right tympanic membrane erythematous and bulging, no perforation.”\n- Diagnosis documented as “acute purulent otitis media (right).”\n- Treatment/follow-up documented: “Prescribed amoxicillin-clavulanate orally for 7 days” and “Follow-up at 3 days showed symptom improvement.”\n\nDocumentation Gaps:\n- No clear CDI query identified from the excerpt.\n  - Why it matters: The diagnosis is already specific for laterality and suppurative/purulent character, and the exam documents absence of perforation.\n  - Evidence quote: “Diagnosis: acute purulent otitis media (right).” and “no perforation.”\n  - Minimal clarification needed: None apparent from the provided excerpt.\n\nProposed Provider Queries:\n- None recommended based on the available documentation.\n  - Reason: The note already supports a specific right-sided acute purulent/suppurative otitis media diagnosis with relevant otoscopic findings, and there is no compliant, evidence-supported ambiguity requiring clarification.\n  - Supporting evidence: “right tympanic membrane erythematous and bulging, no perforation” and “Diagnosis: acute purulent otitis media (right).”\n\nCoding Specificity Checklist:\n- Laterality: documented (right).\n- Acute versus chronic: documented as acute.\n- Suppurative/purulent character: documented.\n- Tympanic membrane perforation status: documented as absent.\n- Encounter status/follow-up response: improvement documented.\n\nRisk Flags:\n- No contradiction identified within the excerpt.\n- “Acute otitis media” and “acute purulent otitis media (right)” appear consistent rather than conflicting.\n- No unsupported secondary diagnoses identified.\n\nSpecialist Trace:\n- Medical Coding Expert: consulted for coding specificity review. Accepted the high-level conclusion that no additional compliant CDI query is clearly supported by the excerpt because the diagnosis is already specific. Rejected any unsupported expansion beyond the quoted chart facts.\n- AMBOSS Expert: not consulted; clinical diagnostic criteria clarification was not necessary for this excerpt.\n- CDI/Web Search Expert: not consulted; no current external guideline lookup was needed."
+}

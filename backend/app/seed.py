@@ -1,7 +1,7 @@
 # iCoDer - Database Seeding (Multi-Tenant)
 # Run with: python -m app.seed
 import asyncio
-from app.database import init_db, AsyncSessionLocal
+from app.database import init_db
 from app.models.user import User, UserRole
 from app.models.organization import Organization, OrganizationMember, OrgRole as OrgMemberRole
 from app.models.team import TeamMember, TeamRole
@@ -9,6 +9,7 @@ from app.models.billing import Transaction
 from app.models.expert import Expert
 from app.models.agent import Agent
 from app.middleware.auth import hash_password
+from app.services.database_tenancy import bind_tenant_to_transaction
 
 SAMPLE_USERS = [
     {"username": "admin", "password": "admin123", "email": "admin@icoder.ai", "full_name": "系统管理员", "role": UserRole.ADMIN, "department": "信息科"},
@@ -51,8 +52,13 @@ EXISTING_CODES = {
 
 
 async def seed():
+    # Resolve the session factory at call time. Test and embedded runtimes may
+    # rebind ``app.database.AsyncSessionLocal`` to a dedicated database;
+    # capturing it at import time would keep writing to the development DB.
+    from app import database as _database
+
     await init_db()
-    async with AsyncSessionLocal() as session:
+    async with _database.AsyncSessionLocal() as session:
         # Check if already seeded
         from sqlalchemy import select
         result = await session.execute(select(User).limit(1))
@@ -113,6 +119,7 @@ async def seed():
             print(f"Seeded {len(team_members)} team members.")
 
             # Seed initial credits
+            await bind_tenant_to_transaction(session, default_org.id)
             txn = Transaction(organization_id=default_org.id, user_id=admin.id, type="credit", amount=50.0, balance_after=50.0, description="Welcome credits", source="signup")
             session.add(txn)
             await session.commit()
@@ -120,8 +127,7 @@ async def seed():
 
             # Seed default OAuth client for Developer Quickstart
             from app.models.oauth import OAuthClient
-            import hashlib
-            plaintext, secret_hash = OAuthClient.generate_client_secret()
+            _plaintext, secret_hash = OAuthClient.generate_client_secret()
             default_client = OAuthClient(
                 name="Default client",
                 client_id=OAuthClient.generate_client_id("icoder"),
@@ -134,7 +140,10 @@ async def seed():
             )
             session.add(default_client)
             print(f"  Client ID: {default_client.client_id}")
-            print(f"  Client Secret: {plaintext}")
+            # Never print client secrets into developer terminals or CI logs.
+            # The seeded client is discovery-only; create a new client through
+            # the authenticated Console/API to receive a one-time secret.
+            print("  Client Secret: not logged; create a client to receive a one-time secret")
             await session.commit()
             print("Seeded default OAuth client (icoder_default_client).")
 
@@ -837,6 +846,13 @@ Maintain a professional, empathetic tone. Do not diagnose — present screening 
                     input_schema=edata.get("input_schema"),
                     output_schema=edata.get("output_schema"),
                     tags=edata.get("tags", []),
+                    # Phase A1D.5 — prebuilts seeded from agent packs are
+                    # PACK_DECLARED by definition (Migration 022 §5 backfill
+                    # only fires on existing rows at upgrade time; fresh
+                    # seed must set the origin explicitly so the test
+                    # ``test_migration_022_origin_backfill_for_prebuilts``
+                    # passes against a freshly-seeded test.db).
+                    origin="PACK_DECLARED",
                 )
                 session.add(exp)
                 new_count += 1
@@ -907,10 +923,14 @@ Maintain a professional, empathetic tone. Do not diagnose — present screening 
         for dc in DEMO_CASES:
             # Check if encounter already exists
             enc_result = await session.execute(
-                select(Encounter).where(Encounter.encounter_id == dc["encounter_id"])
+                select(Encounter).where(
+                    Encounter.encounter_id == dc["encounter_id"],
+                    Encounter.organization_id == default_org.id,
+                )
             )
             if not enc_result.scalar_one_or_none():
                 encounter = Encounter(
+                    organization_id=default_org.id,
                     encounter_id=dc["encounter_id"],
                     patient_id=f"PT-{dc['encounter_id']}",
                     department=dc["department"],
@@ -925,6 +945,7 @@ Maintain a professional, empathetic tone. Do not diagnose — present screening 
                 # Add documents
                 for i, doc_data in enumerate(dc["documents"]):
                     doc = Document(
+                        organization_id=default_org.id,
                         encounter_id=encounter.id,
                         doc_type=doc_data["doc_type"],
                         title=doc_data["title"],
@@ -1057,7 +1078,9 @@ async def seed_builtin_templates():
     )
     from sqlalchemy import select as _select
 
-    async with AsyncSessionLocal() as session:
+    from app import database as _database
+
+    async with _database.AsyncSessionLocal() as session:
         orgs = (await session.execute(_select(Organization))).scalars().all()
         if not orgs:
             return

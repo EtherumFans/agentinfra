@@ -1,0 +1,264 @@
+{
+  "audit": "Phase 4-H §14 — Corti × iCoDer Parity Matrix 2.0",
+  "audit_date": "2026-07-10",
+  "source_pdf": "Phase 4-H Audit Report.pdf §14",
+  "dev_mode": "FROZEN per §2.1 — READ-ONLY parity matrix",
+  "verdicts_used": ["PARITY", "CLOSE", "PARTIAL", "UI_ONLY", "MISSING", "ICODER_ADVANTAGE", "NOT_APPLICABLE", "UNKNOWN"],
+  "decisions_used": ["MUST_MATCH", "LOCALIZE_FOR_CHINA", "ICODER_ADVANTAGE", "DEFER", "DO_NOT_COPY"],
+  "summary": {
+    "by_verdict": {
+      "PARITY": 9,
+      "CLOSE": 2,
+      "PARTIAL": 4,
+      "ICODER_ADVANTAGE": 6,
+      "UI_ONLY": 0,
+      "MISSING": 0,
+      "NOT_APPLICABLE": 0,
+      "UNKNOWN": 0
+    },
+    "by_priority": {
+      "P0_critical_bugs": 2,
+      "P1_close_corti_gaps": 2,
+      "P2_polish": 3,
+      "P3_optional": 0,
+      "no_action_advantage_parity": 13
+    },
+    "by_decision": {
+      "MUST_MATCH": 12,
+      "LOCALIZE_FOR_CHINA": 2,
+      "ICODER_ADVANTAGE": 6,
+      "DEFER": 0,
+      "DO_NOT_COPY": 0
+    },
+    "total_dimensions": 20
+  },
+  "key_findings": {
+    "ui_only_shells": 0,
+    "icoder_advantages_count": 6,
+    "p0_critical_bugs_count": 2,
+    "p1_major_gaps_count": 1,
+    "p2_polish_count": 3
+  },
+  "dimensions": [
+    {
+      "id": 1,
+      "dimension": "Product Strategy",
+      "verdict": "PARITY",
+      "priority": null,
+      "decision": "MUST_MATCH",
+      "evidence": "Both cloud-hosted SaaS for healthcare AI agents; Corti EU/US regions, iCoDer EU/US/CN per CLAUDE.md; both have AI Studio + Manage sections with 1:1 mapping",
+      "impact": "Strategic alignment - no gap",
+      "root_cause": "iCoDer pivoted to Corti-style SaaS on 2026-06-17",
+      "recommendation": "No action needed"
+    },
+    {
+      "id": 2,
+      "dimension": "Information Architecture",
+      "verdict": "PARITY",
+      "priority": null,
+      "decision": "MUST_MATCH",
+      "evidence": "Corti left nav = Home + Developer + AI Studio + Manage + Support; iCoDer matches 1:1 with Chinese i18n",
+      "impact": "Users navigate identically",
+      "root_cause": "Phase 3-B2 / 4-D deliberate Corti replication",
+      "recommendation": "No action"
+    },
+    {
+      "id": 3,
+      "dimension": "Agent Discovery",
+      "verdict": "CLOSE",
+      "priority": "P2",
+      "decision": "MUST_MATCH",
+      "evidence": "Both have My agents + Pre-built tabs; Corti 20 pre-built agents across 4 use cases; iCoDer 8 iCoDer built agents (medical coding + 4 P0 + 3 P1)",
+      "impact": "iCoDer exposes 12 fewer out-of-box agents",
+      "root_cause": "iCoDer focused on coding/compliance vertical",
+      "recommendation": "Add 4-6 more pre-built agents (Denial Appeals + Patient Discharge Education + Referral Generator + Clinical Education)"
+    },
+    {
+      "id": 4,
+      "dimension": "Agent Detail",
+      "verdict": "PARITY",
+      "priority": null,
+      "decision": "MUST_MATCH",
+      "evidence": "Both have left chat panel + right Settings/Code tabs; iCoDer matches Corti 1:1",
+      "impact": "Identical detail page layout",
+      "root_cause": "Phase 4-D/E deliberate Corti replication",
+      "recommendation": "No action"
+    },
+    {
+      "id": 5,
+      "dimension": "Agent Configuration",
+      "verdict": "PARITY",
+      "priority": null,
+      "decision": "MUST_MATCH",
+      "evidence": "Both: Name (50-char) + System prompt + Experts (browse + custom + add); Tools bound via Expert mcpServers; iCoDer matches Corti per §7+§8 audits",
+      "impact": "Identical configuration UX",
+      "root_cause": "Phase 4-A backend provider arch + Phase 4-B/C migrations",
+      "recommendation": "No action"
+    },
+    {
+      "id": 6,
+      "dimension": "Agent Runtime",
+      "verdict": "ICODER_ADVANTAGE",
+      "priority": null,
+      "decision": "ICODER_ADVANTAGE",
+      "evidence": "iCoDer has unified Agent Run API POST /api/v1/agents/{id}/run with 13-field envelope + corti_like_fast mode (~9s T12) + A2A orchestrator + PureLLMProvider + RuleEngine + LLMWithToolsProvider; Corti runtime API opaque",
+      "impact": "iCoDer exposes more runtime knobs",
+      "root_cause": "Phase 4-A backend provider arch + Phase 4-F2 unified run API",
+      "recommendation": "Keep as iCoDer ADVANTAGE; document runtime_mode publicly"
+    },
+    {
+      "id": 7,
+      "dimension": "Agent Output",
+      "verdict": "PARITY",
+      "priority": null,
+      "decision": "MUST_MATCH",
+      "evidence": "Both: streamed chat + structured result envelope (summary + evidence + manual_review_required + warnings); iCoDer 13-field envelope matches Corti; Copy JSON/MD buttons (iCoDer ADVANTAGE)",
+      "impact": "Users extract structured output identically",
+      "root_cause": "Phase 4-F2 A2A-compatible envelope",
+      "recommendation": "No action"
+    },
+    {
+      "id": 8,
+      "dimension": "Expert Model",
+      "verdict": "PARITY",
+      "priority": null,
+      "decision": "MUST_MATCH",
+      "evidence": "Both: Expert = system-prompt-fragment + optional mcpServers + optional configSchema; Corti 13 Experts; iCoDer 8 iCoDer built Experts; both support expert rebinding",
+      "impact": "Identical Expert model",
+      "root_cause": "Phase 3-B1.5 Corti reverse engineering + Phase 4-A",
+      "recommendation": "No action"
+    },
+    {
+      "id": 9,
+      "dimension": "Tool Model",
+      "verdict": "PARITY",
+      "priority": null,
+      "decision": "MUST_MATCH",
+      "evidence": "Corti: Tools NOT first-class - bound inside Expert mcpServers (2 of 13 Experts have MCP); iCoDer FULL PARITY via Phase 3-C1 (4 auth types + 7 error codes) + Phase 4-A ToolMCPCompatLayer + Phase 4-C 4 MCP tools",
+      "impact": "iCoDer can mount any Corti-style MCP server",
+      "root_cause": "Phase 3-C1 MCP auth + Phase 4-A ToolMCPCompatLayer",
+      "recommendation": "No action"
+    },
+    {
+      "id": 10,
+      "dimension": "Context Model",
+      "verdict": "ICODER_ADVANTAGE",
+      "priority": "P2",
+      "decision": "ICODER_ADVANTAGE",
+      "evidence": "Corti 9 dims (JSON attachments + session SHARED + patient IMPLIED via template + encounter NOT OBSERVED + Agent-fixed + Pinned OBSERVED + EHR NOT OBSERVED + API Client combobox + Expert shared); iCoDer matches 5/9 + exceeds 4 (broader file support + RunHistory + explicit patient/encounter IDs via setPatientContext + GC policy)",
+      "impact": "iCoDer has more explicit context model + GC policy",
+      "root_cause": "Phase 1 A2A spec design (docs/ICODER_V1_CONTEXT_SPEC.md)",
+      "recommendation": "Add pinned_parts[] to pack v1.4 to close only Corti ADVANTAGE"
+    },
+    {
+      "id": 11,
+      "dimension": "Knowledge Model",
+      "verdict": "PARTIAL",
+      "priority": "P2",
+      "decision": "LOCALIZE_FOR_CHINA",
+      "evidence": "Corti: no explicit KB page (implicit in Experts + Tools); iCoDer: iCoDerA data assets (icd10cn_code_catalog 37,897 codes + evidence_anchoring_kb 972 codes x 6,490 patterns + coding_differentiation_kb 2,090 code-pair decisions + cot_generation_progress_v2 175/500 few-shot) used by MedCodER",
+      "impact": "iCoDer has stronger CN-specific medical coding KB; Corti has broader KB via third-party (PubMed/DrugBank)",
+      "root_cause": "iCoDer CN market focus demands ICD-10-CN coverage",
+      "recommendation": "Localize for China - keep iCoDerA assets; add Chinese medical KBs (CNKI/万方) as Expert-bound KBs"
+    },
+    {
+      "id": 12,
+      "dimension": "RunHistory",
+      "verdict": "ICODER_ADVANTAGE",
+      "priority": "P1",
+      "decision": "ICODER_ADVANTAGE",
+      "evidence": "Corti: NO dedicated RunHistory page (only aggregate /usage chart with date + API Client filters); iCoDer: run_history table (alembic 010) + GET /api/runtime/runs/history with agent_id+user_id+org_id filters + per-agent Recent runs dropdown; Cost/Latency/Error/Input/Output fields per run",
+      "impact": "iCoDer users can audit per-run history; Corti users only see aggregate",
+      "root_cause": "Phase 4-G #3 RunHistory table + Phase 4-F2 trace_events",
+      "recommendation": "Add Date filter (Corti has 30d preset; iCoDer only has limit); Add daily credits consumed chart (Corti has chart; iCoDer only metric cards)"
+    },
+    {
+      "id": 13,
+      "dimension": "Trace",
+      "verdict": "PARTIAL",
+      "priority": "P0",
+      "decision": "MUST_MATCH",
+      "evidence": "Corti: NO trace page; only streaming chat + per-run Credits consumed footer; iCoDer: 9-step Corti-parity timeline on RunTrace page + 15 trace fields; BUT 2 bugs: (a) step duration double-counted (7 steps for 3-step run; 3020ms x 3 = 9060ms phantom total); (b) inline trace vs persisted trace metadata mismatch",
+      "impact": "Trace UI misleading due to phantom duration; PDF §12.2 explicitly calls out",
+      "root_cause": "Inline emitter (real-time SSE) + persisted emitter (DB write) both writing to same trace_events[] array",
+      "recommendation": "P0 fix: consolidate inline + persisted emitters into single emitter with deferred duration computation; verify RunTrace shows 3 steps (not 7) with 3020ms total (not 9060ms)"
+    },
+    {
+      "id": 14,
+      "dimension": "Cost",
+      "verdict": "PARTIAL",
+      "priority": "P0",
+      "decision": "MUST_MATCH",
+      "evidence": "Corti: $0.034596 topbar + $48.69 billing + $0.83 /usage 30d + Reset live cost button + low balance alert + auto top-up + Plan/Billing History/Business info tabs; iCoDer: $50.00 topbar + ¥50.00 billing + ¥0.00 /usage 30d + low balance + auto top-up + tabs (matches); BUT 2 bugs: (a) currency mismatch ($ vs ¥); (b) /usage shows ¥0.00 consumed but real runs consumed credits",
+      "impact": "iCoDer /usage page broken - shows ¥0.00 after paid runs; TopBar currency inconsistent with /billing",
+      "root_cause": "(a) TopBar USD hardcoded; /billing yuan hardcoded; (b) /usage reads from different source than TopBar live cost counter",
+      "recommendation": "P0 fix: (a) Unify currency via ICODER_CURRENCY env var (default CNY); (b) Wire /usage to SELECT SUM(cost) FROM run_history WHERE created_at BETWEEN start AND end"
+    },
+    {
+      "id": 15,
+      "dimension": "API Client",
+      "verdict": "CLOSE",
+      "priority": "P2",
+      "decision": "MUST_MATCH",
+      "evidence": "Both: API Client page with OAuth2; Corti: 4+ action buttons per client (Copy ID / Regenerate / Show on-demand / Copy secret / Copy env ID / Copy tenant / Copy all as .env); iCoDer: Copy + Delete only (lacks Regenerate + Show-on-demand + Copy-all-as-.env on API Client page; has it only in Quickstart)",
+      "impact": "iCoDer users can't rotate secrets without deleting + recreating client",
+      "root_cause": "iCoDer APIClientsPage (Phase 4-G) shipped before all Corti action buttons replicated",
+      "recommendation": "Add 3 buttons: Regenerate secret + Show on-demand + Copy all as .env on API Client page"
+    },
+    {
+      "id": 16,
+      "dimension": "API / SDK",
+      "verdict": "PARITY",
+      "priority": null,
+      "decision": "MUST_MATCH",
+      "evidence": "Corti: JS SDK (@corti/sdk npm) + .NET SDK (Corti.Sdk NuGet) + Developer Quickstart 3-step + deep links (Claude/Cursor/Codex/Lovable) + Agent Skills at docs.corti.ai/.well-known/agent-skills/{slug}/SKILL.md; iCoDer: Quickstart 4 tabs + 4 use cases + 4 AI tool deep links + 4 SKILL.md files at public/.well-known/agent-skills/ + API Playground tab (iCoDer ADVANTAGE - Corti lacks)",
+      "impact": "Developer onboarding identical",
+      "root_cause": "Phase 4-D Developer Quickstart replication + Agent Skills program init",
+      "recommendation": "No action; iCoDer matches + exceeds (API Playground)"
+    },
+    {
+      "id": 17,
+      "dimension": "Third-party Integration",
+      "verdict": "PARTIAL",
+      "priority": "P1",
+      "decision": "MUST_MATCH",
+      "evidence": "Corti: Web Component <corti-embedded> + @corti/embedded-web npm + assistant.auth({access_token, refresh_token, mode:stateless}) + configureSession({defaultTemplateKey}) + configure({features, locale}) + addEventListener(embedded-event, {name, payload}) with account.creditsConsumed + error.triggered subtypes + Theme (Primary color) + Locale; iCoDer: HAS packages/icoder-embedded source (300 LOC) + @icoder/embedded package.json + <icoder-assistant> + /api/embedded/assistant.js + preview endpoints; BUT API surface DIFFERS - iCoDer uses attribute-based config (base-url + access-token + agent-ref + theme); Corti uses method-call config; iCoDer emits coding.completed + error directly; Corti emits unified embedded-event; iCoDer @icoder/embedded NOT published to npm",
+      "impact": "iCoDer can't be embedded in 3rd-party HIS/EMR frontends without custom integration code",
+      "root_cause": "iCoDer Web Component built stub-first (Phase 3-B2) but not updated to match Corti method-call API surface",
+      "recommendation": "P1: Rewrite <icoder-embedded> to match Corti API surface (rename tag + add assistant.auth() / configureSession() / configure() / show() methods + unified embedded-event with subtypes); P1: Publish @icoder/embedded to npm"
+    },
+    {
+      "id": 18,
+      "dimension": "Fork / Version / Publish",
+      "verdict": "ICODER_ADVANTAGE",
+      "priority": null,
+      "decision": "ICODER_ADVANTAGE",
+      "evidence": "Corti: Click pre-built agent -> /agents/new?preset=<slug> form -> Create agent button; no version field; no Draft/Published; no marketplace; no upstream link; iCoDer: Hub Chat/Use Agent CTA -> POST /api/agents/{id}/clone -> AgentChatPage; iCoDer ADVANTAGES: Forked-from badge (config.source_agent_ref preserved) + Name auto-copied on clone + Toast 已复制到我的智能体 + version field in agent_pack.json (display-only) + agent_ref with version suffix at embed time; iCoDer DELETED marketplace in Phase 1.2 (correct Corti-parity decision)",
+      "impact": "iCoDer users get clearer fork tracking; Corti users don't know which agent forked from which",
+      "root_cause": "Phase 4-G #4 Fork button + Forked-from badge",
+      "recommendation": "No action; iCoDer already leads"
+    },
+    {
+      "id": 19,
+      "dimension": "Security / Tenant / Audit",
+      "verdict": "ICODER_ADVANTAGE",
+      "priority": null,
+      "decision": "ICODER_ADVANTAGE",
+      "evidence": "Corti: OAuth2 Client Credentials + ROPC + region isolation (EU/US) + GDPR + no per-Client scope/rate-limit/Agent RBAC; iCoDer: Same OAuth2 + region isolation (EU/US/CN - iCoDer ADVANTAGE: CN region) + DataPolicy edge PHI redaction + redacted_view in trace + AuditLog + RunHistory with api_client_id attribution + 4 MCP auth types + 7 JSON-RPC error codes (Phase 3-C1)",
+      "impact": "iCoDer has stronger audit trail + CN region for Chinese hospital data residency",
+      "root_cause": "Phase 3-C1 MCP auth + Phase 4-G api_client_id + CLAUDE.md DataPolicy",
+      "recommendation": "No action; iCoDer leads"
+    },
+    {
+      "id": 20,
+      "dimension": "China Hospital Localization",
+      "verdict": "ICODER_ADVANTAGE",
+      "priority": "P1",
+      "decision": "LOCALIZE_FOR_CHINA",
+      "evidence": "Corti: ICD-10-CM (US) + ICD-10-PCS + CPT (US) - no ICD-10-CN / ICD-9-CM-3-CN / CN-DRG / DIP / CN region; iCoDer: ICD-10-CN (37,897 codes via icd10cn_code_catalog.json) + ICD-9-CM-3-CN (procedure coding) + CN-DRG/DIP rule structures reserved per CLAUDE.md + CN region (EU/US/CN) + Chinese hospital scenarios (HIS/EMR = API Client; 医院 = Tenant) + Simplified Chinese i18n + Chinese payment methods future",
+      "impact": "iCoDer is the only viable Corti alternative for Chinese hospitals",
+      "root_cause": "iCoDer's product strategy: Corti-style SaaS for China hospital market",
+      "recommendation": "Continue CN localization; Add CN-DRG/DIP rule engine; Add Chinese medical KBs (CNKI/万方)"
+    }
+  ]
+}

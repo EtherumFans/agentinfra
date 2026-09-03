@@ -1,0 +1,106 @@
+{
+  "schema_version": "icoder.governed-icu-summary-phase-evidence/v1",
+  "generated_at": "2026-08-24T11:24:55+08:00",
+  "status": "development_candidate_passed_external_gates_open",
+  "agent": {
+    "id": "icu-summary",
+    "ref": "icoder/icu-summary@1.1.0",
+    "provider": "icoder.governed-icu-summary.v1",
+    "output_contract": "icoder/IcuSummaryOutput/v3",
+    "runtime_mode": "governed_local_documented_icu_admission_summary",
+    "llm_required": false,
+    "network_required": false,
+    "clinical_scores_status": "NOT_CALCULATED_GOVERNED_CALCULATOR_REQUIRED",
+    "medication_screening_status": "NOT_SCREENED_LICENSED_DRUG_SOURCE_REQUIRED",
+    "clinical_recommendations_generated": false,
+    "production_writeback_blocked": true,
+    "manual_review_required": true
+  },
+  "http_e2e": {
+    "transport": "real_loopback_http",
+    "happy": {"passed": 13, "failed": 0},
+    "adversarial": {"passed": 13, "failed": 0},
+    "reference": {"passed": 13, "failed": 0},
+    "stability": {"passed": 78, "failed": 0, "fresh": 78, "seeded": 0, "repetitions": 3},
+    "temporary_database": "created_migrated_removed",
+    "real_llm_used": false,
+    "external_network_used": false
+  },
+  "test_evidence": {
+    "focused_contract_runtime_matrix_replay": {"passed": 75, "failed": 0},
+    "content_safety_and_adversarial_contract": {"passed": 26, "failed": 0},
+    "icu_summary_a2a": {"passed": 2, "failed": 0},
+    "all_visible_agent_offline_safety": {"passed": 78, "failed": 0},
+    "schema_generator_regression": {"passed": 6, "failed": 0},
+    "broad_relevant_regression": {"passed": 719, "failed": 0},
+    "evidence_binding_replay": {"agents": 9, "bindings": 18, "detected_assertions": 36, "expected_assertions": 36},
+    "field_relation_replay": {"agents": 15, "relations": 55, "detected_assertions": 112, "expected_assertions": 112},
+    "deployment_preflight": {"passed": 90, "failed": 0}
+  },
+  "runtime_matrix": {
+    "visible_agents": 26,
+    "external_model_required": 13,
+    "external_model_optional": 1,
+    "pure_local": 12,
+    "offline_local_baseline": 13,
+    "strict_26_agent_live_provider_semantic_verified": 0,
+    "production_ready_verified": 0
+  },
+  "contract_registry": {
+    "visible_contracts": 26,
+    "registered_contracts": 116,
+    "new_refs": [],
+    "changed_refs": [],
+    "invalid_refs": [],
+    "duplicate_refs": []
+  },
+  "corti_catalog": {
+    "catalog_entries": 20,
+    "development_verified": 20,
+    "china_profile_declared": 20,
+    "clinical_quality_verified": 0,
+    "production_ready_verified": 0
+  },
+  "safety": {
+    "protected_database": {
+      "path": "E:\\Corti4C\\backend\\data\\icoder.db",
+      "size_bytes": 8536064,
+      "sha256": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e",
+      "revision": "041",
+      "unchanged": true
+    },
+    "source_migration_head": "056",
+    "backend_process_count_after_tests": 0,
+    "port_8000_listener_count_after_tests": 0,
+    "llm_credential_present_in_test_process": false,
+    "docker_available": false,
+    "native_medcoder_faiss_bge_used": false,
+    "regenerable_test_directories_retained": [
+      "E:\\Corti4C\\reports\\test-temp\\icu-a2a-20260824",
+      "E:\\Corti4C\\reports\\test-temp\\icu-binding-count-20260824",
+      "E:\\Corti4C\\reports\\test-temp\\icu-broad-regression-20260824",
+      "E:\\Corti4C\\reports\\test-temp\\icu-broad-regression-final-20260824",
+      "E:\\Corti4C\\reports\\test-temp\\icu-offline-20260824",
+      "E:\\Corti4C\\reports\\test-temp\\icu-offline-fix-20260824",
+      "E:\\Corti4C\\reports\\test-temp\\icu-offline-full-20260824",
+      "E:\\Corti4C\\reports\\test-temp\\icu-relation-count-20260824"
+    ]
+  },
+  "artifact_sha256": {
+    "agent_pack.json": "9d86d915d7c263f43e1649c87525a63e936bb74858a6c17ba847d00cea2f165c",
+    "local_semantic_e2e_evidence.json": "5633888d4550330d6297fecb09171ab04a52c01a0f55327da93397402bdfcfda",
+    "agent_hub_evidence_binding_replay.json": "0019dad084c67df9e6e5f96eab1dfd230ed68cdb340b252d5c3bfea37f9c1549",
+    "agent_hub_field_relation_replay.json": "225cb4626840132735413003974e41645fabe6eaa8196a411c7752448bd8bf89",
+    "corti_prebuilt_agent_parity.json": "e5c963d4f32c9461a6629f15b9524ce67cc53fc367f280f285d73f227ef12ed7",
+    "deployment_preflight.json": "cf19a5ea7c7be1e306ab159c1f92122294e64b893065cfcc6e7d2993fd6ca5fb"
+  },
+  "claims_not_proven": [
+    "Corti product equivalence",
+    "independent ICU clinical quality",
+    "ICU clinician acceptance and workflow effectiveness",
+    "live EHR, MAR, laboratory, device, PubMed, DrugBank, or Medical Calculator integration",
+    "APACHE II, SOFA, GCS, mortality, medication, or threshold correctness",
+    "production cloud readiness",
+    "regulatory, legal, security certification, or hospital approval"
+  ]
+}

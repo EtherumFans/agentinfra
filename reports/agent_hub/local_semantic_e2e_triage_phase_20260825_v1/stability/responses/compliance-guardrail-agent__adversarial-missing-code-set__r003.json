@@ -1,0 +1,119 @@
+{
+  "agent_id": "compliance-guardrail-agent",
+  "run_id": "run-2da7afba-d648-43d6-8076-0fcbee8cfa49",
+  "trace_id": "trace-d56a127806c94735",
+  "trace_url": "/ai-studio/runs/run-2da7afba-d648-43d6-8076-0fcbee8cfa49/trace",
+  "runtime_mode": "rule_engine",
+  "latency_ms": 113,
+  "cost": {
+    "amount": 0.0,
+    "currency": "CNY"
+  },
+  "billing": {},
+  "summary": "Compliance guardrail FAIL: 2 issue(s).",
+  "result": {
+    "status": "fail",
+    "markdown": "{\"review_conclusion\": \"FAIL\", \"issues_found\": [{\"severity\": \"critical\", \"rule_id\": \"R001\", \"message\": \"主要诊断编码不能为空\", \"suggestion\": \"请指定主要诊断 ICD-10 编码\", \"category\": \"coding\"}, {\"severity\": \"critical\", \"rule_id\": \"CG-001\", \"message\": \"缺少主要诊断编码 — 医保结算清单必须包含主要诊断\", \"suggestion\": \"请补充主要诊断 ICD-10 编码\", \"category\": \"compliance\"}], \"manual_review_required\": true, \"drg_suggestion\": \"DRG 分组前必须补充主要诊断编码\", \"reviewed_codes\": [], \"compliance_checks\": {\"primary_dx_present\": false, \"no_upcoding_risk\": true, \"procedure_dx_consistency\": true, \"drg_readiness\": false}, \"rule_set\": \"medical_coding\", \"fired_rules\": [\"R001\", \"R002\", \"R003\", \"R004\", \"R005\", \"R006\", \"R007\", \"R008\", \"R009\", \"R010\", \"MC-R-M80-001\"], \"trace_refs\": {\"run_id\": \"run-2da7afba-d648-43d6-8076-0fcbee8cfa49\", \"agent_ref\": \"icoder/compliance-guardrail-agent@1.0.0\", \"rule_set\": \"medical_coding\"}}",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.rule-engine.v1",
+    "backend_type": "rule_engine",
+    "review_conclusion": "FAIL",
+    "issues_found": [
+      {
+        "severity": "critical",
+        "rule_id": "R001",
+        "message": "主要诊断编码不能为空",
+        "suggestion": "请指定主要诊断 ICD-10 编码",
+        "category": "coding"
+      },
+      {
+        "severity": "critical",
+        "rule_id": "CG-001",
+        "message": "缺少主要诊断编码 — 医保结算清单必须包含主要诊断",
+        "suggestion": "请补充主要诊断 ICD-10 编码",
+        "category": "compliance"
+      }
+    ],
+    "manual_review_required": true,
+    "drg_suggestion": "DRG 分组前必须补充主要诊断编码",
+    "reviewed_codes": [],
+    "compliance_checks": {
+      "primary_dx_present": false,
+      "no_upcoding_risk": true,
+      "procedure_dx_consistency": true,
+      "drg_readiness": false
+    },
+    "rule_set": "medical_coding",
+    "fired_rules": [
+      "R001",
+      "R002",
+      "R003",
+      "R004",
+      "R005",
+      "R006",
+      "R007",
+      "R008",
+      "R009",
+      "R010",
+      "MC-R-M80-001"
+    ],
+    "trace_refs": {
+      "run_id": "run-2da7afba-d648-43d6-8076-0fcbee8cfa49",
+      "trace_id": "trace-d56a127806c94735",
+      "provider_trace_refs": [
+        "run-2da7afba-d648-43d6-8076-0fcbee8cfa49"
+      ]
+    },
+    "structured_extraction": {
+      "contract": "icoder/ComplianceGuardrailOutput/v4",
+      "method": "json_block",
+      "warnings": [],
+      "required_fields": [
+        "review_conclusion",
+        "issues_found",
+        "manual_review_required",
+        "drg_suggestion",
+        "reviewed_codes",
+        "compliance_checks",
+        "rule_set",
+        "trace_refs"
+      ],
+      "optional_fields": [
+        "fired_rules"
+      ],
+      "missing_required_fields": [],
+      "invalid_field_types": [],
+      "invalid_field_schemas": [],
+      "invalid_cross_agent_relations": [],
+      "undeclared_output_fields": [],
+      "undeclared_output_field_count": 0,
+      "valid": true
+    }
+  },
+  "schema_ref": "icoder/ComplianceGuardrailOutput/v4",
+  "result_attestation": "eyJhIjoiY29tcGxpYW5jZS1ndWFyZHJhaWwtYWdlbnQiLCJkIjoiY2IwOTViNDNiODgyMDIwNDk5YzEwYjQ1ZDZjYWYyMDhmZGMyOTc1NzExY2MwNDRhZmY3NDIwYTYwMWVkOTdmNCIsImUiOjE3ODc2NzUyOTksIm8iOiI3YmFkNTI2ZmJiNWEiLCJyIjoicnVuLTJkYTdhZmJhLWQ2NDgtNDNkNi04MDc2LTBmY2JlZThjZmE0OSIsInMiOiJpY29kZXIvQ29tcGxpYW5jZUd1YXJkcmFpbE91dHB1dC92NCIsInYiOjF9.uUhhr3o9QRL8znEqiGat42wBK_c0R87S14RnOXwqfGA",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 113,
+      "metadata": {
+        "agent_id": "compliance-guardrail-agent",
+        "runtime_mode": "rule_engine",
+        "latency_ms": 113
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 0.201
+}

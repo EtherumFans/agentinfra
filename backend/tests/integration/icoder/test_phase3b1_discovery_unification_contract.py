@@ -18,8 +18,8 @@ Plus:
 5. Medical Coding Agent appears in Hub (Section B done) AND A2A
    discovery (Section D will add the card factory; this test documents
    the requirement).
-6. metadata-only packs visible in Hub but NOT in A2A runnable discovery.
-7. expert-stubs not in Hub, not in user-level A2A discovery.
+6. every Hub-visible pack is runnable and appears in A2A discovery.
+7. deprecated/internal metadata-only and expert-stub packs remain hidden.
 8. internal_engine not in Hub, but exists as internal dependency
    (registered for orchestrator internal use).
 9. seed.py PREBUILT_AGENTS keys vs agent_pack.json agent_refs — no
@@ -54,8 +54,9 @@ def test_hub_is_pack_mastered_and_no_auth(client):
     assert r.status_code == 200
     body = r.json()
     assert body["source"] == "official_agents/agent_pack.json"
-    # 11 visible packs (10 metadata-only + medical-coding-agent MVP)
-    assert body["total"] == 11
+    # 24 visible packs (10 runnable + 14 metadata-only) after Phase A1B-AE
+    # added 14 net-new Corti-parity stubs + Phase A1D.5 claim-check stub.
+    assert body["total"] == 26
 
 
 # --- Entry point 2: A2A discovery (pack-mastered via card factories) ---
@@ -76,41 +77,38 @@ def test_a2a_discovery_is_pack_mastered(client):
     assert "authorization" not in {k.lower() for k in r.request.headers.keys()}
 
 
-def test_a2a_discovery_does_not_include_metadata_only_packs(client):
-    """metadata-only packs (10 certified packs with no experts[]) must
-    NOT appear in A2A runnable discovery — they have no run path.
-    They DO appear in Hub (with Coming Soon badge), but A2A discovery
-    is for runnable agents only.
-    """
-    r = client.get("/api/icoder/agents")
-    body = r.json()
-    agent_ids = {a["id"] for a in body["agents"]}
-    metadata_only_refs = [
-        "cdi-review", "code-validation", "compliance-guardrail",
-        "denial-appeals", "diagnosis-extractor", "documentation-gap",
-        "drg-analyzer", "evidence-ranker", "note-completeness",
+def test_every_hub_visible_pack_appears_in_a2a_runnable_discovery(client):
+    """The current launch-candidate baseline has no visible Coming Soon pack."""
+    hub = client.get("/api/icoder/agents/hub").json()
+    a2a = client.get("/api/icoder/agents").json()
+    hub_ids = {
+        card["agent_ref"].rsplit("/", 1)[-1].split("@", 1)[0]
+        for card in hub["agents"]
+    }
+    agent_ids = {card["id"] for card in a2a["agents"]}
+
+    assert len(hub_ids) == 26
+    assert hub_ids <= agent_ids
+    for upgraded in {
+        "denial-appeals",
+        "diagnosis-extractor",
+        "drg-analyzer",
+        "evidence-ranker",
         "procedure-extractor",
-    ]
-    for ref in metadata_only_refs:
-        assert ref not in agent_ids, (
-            f"metadata-only pack {ref} must not appear in A2A runnable discovery "
-            f"(it has no run path; Hub shows it with Coming Soon badge instead)"
-        )
+    }:
+        assert upgraded in agent_ids
+
+    # Deprecated aliases remain hidden rather than masquerading as runnable.
+    assert {"cdi-review", "documentation-gap"}.isdisjoint(agent_ids)
 
 
-def test_a2a_discovery_does_not_include_expert_stubs(client):
-    """expert-stub packs (4 MedCodER pipeline stages) must NOT appear
-    in user-level A2A discovery — they're internal pipeline stages.
-    """
+def test_visible_evidence_extractor_is_runnable_but_internal_stubs_are_hidden(client):
+    """The promoted evidence Agent is public; three internal stubs stay hidden."""
     r = client.get("/api/icoder/agents")
     body = r.json()
     agent_ids = {a["id"] for a in body["agents"]}
-    for stub_id in [
-        "evidence-extractor",
-        "index-navigator",
-        "code-reconciler",
-        "tabular-validator",
-    ]:
+    assert "evidence-extractor" in agent_ids
+    for stub_id in ["index-navigator", "code-reconciler", "tabular-validator"]:
         assert stub_id not in agent_ids, (
             f"expert-stub {stub_id} must not appear in user-level A2A discovery"
         )
@@ -150,19 +148,54 @@ def test_agent_definitions_is_db_mastered(client):
                 )
 
 
-# --- Entry point 4: templates (DB-mastered, no auth, for wizard) ---
+# --- Entry point 4: templates (Pack-mastered + generic blanks, no auth) ---
 
 def test_templates_endpoint_no_auth(client):
-    """/api/rest/v1/agent_definitions/templates returns AGENT_TEMPLATES
-    (hardcoded list for "new agent" wizard). No auth — browsing templates
-    is allowed; creating from a template requires auth at the POST endpoint.
+    """The New Agent wizard mirrors Hub launch candidates without drift.
+
+    No auth is required to browse templates. Governed creation is performed
+    by the authenticated Hub clone endpoint; only generic blank templates use
+    the generic Agent create path.
     """
     r = client.get("/api/rest/v1/agent_definitions/templates")
     assert r.status_code == 200
     body = r.json()
     assert "templates" in body
     assert isinstance(body["templates"], list)
-    assert len(body["templates"]) >= 1, "templates list must not be empty"
+    governed = [
+        item for item in body["templates"]
+        if item.get("template_kind") == "governed_prebuilt"
+    ]
+    generic = [
+        item for item in body["templates"]
+        if item.get("template_kind") == "generic_blank"
+    ]
+    hub = client.get("/api/icoder/agents/hub").json()
+    assert {item["id"] for item in governed} == {
+        item["agent_id"] for item in hub["agents"]
+    }
+    assert len(governed) == 26
+    assert {item["id"] for item in generic} == {
+        "translator-blank",
+        "summarizer-blank",
+    }
+    assert len(body["templates"]) == 28
+
+    stale_aliases = {
+        "cdi",
+        "clinical-edu",
+        "code-validation",
+        "compliance-guardrail",
+        "medical-coding",
+        "note-completeness",
+    }
+    assert not stale_aliases & {item["id"] for item in body["templates"]}
+    for item in governed:
+        assert item["clone_transport"] == "agent_hub"
+        assert item["clone_url"] == (
+            f"/api/icoder/agents/{item['runtime_agent_id']}/clone"
+        )
+        assert item["source_agent_ref"].startswith("icoder/")
 
 
 def test_templates_are_not_runnable_agents(client):
@@ -179,6 +212,34 @@ def test_templates_are_not_runnable_agents(client):
         )
 
 
+def test_governed_template_download_is_the_canonical_pack(client):
+    response = client.get(
+        "/api/rest/v1/agent_definitions/templates/clinical-guidelines/download"
+    )
+    assert response.status_code == 200
+    downloaded = response.json()
+    assert downloaded["agent_ref"] == "icoder/clinical-guidelines@1.1.0"
+    assert downloaded["backend_provider"] == (
+        "icoder.governed-clinical-guidelines.v1"
+    )
+    assert downloaded["manifest"]["maturity"] == "runnable"
+    assert downloaded["manifest"]["production_ready"] is False
+    assert not any(str(key).startswith("_") for key in downloaded)
+
+
+def test_legacy_clone_path_fails_closed_for_governed_template(client):
+    response = client.post(
+        "/api/rest/v1/agent_definitions/clinical-guidelines/clone",
+        json={},
+    )
+    assert response.status_code == 409
+    detail = response.json()["detail"]
+    assert detail["error"] == "governed_template_clone_endpoint_required"
+    assert detail["clone_url"] == (
+        "/api/icoder/agents/clinical-guidelines/clone"
+    )
+
+
 # --- Cross-entry-point consistency ---
 
 def test_hub_and_a2a_discovery_are_both_pack_mastered(client):
@@ -188,11 +249,9 @@ def test_hub_and_a2a_discovery_are_both_pack_mastered(client):
     hub = client.get("/api/icoder/agents/hub").json()
     a2a = client.get("/api/icoder/agents").json()
 
-    # Hub has 11 visible packs
-    assert hub["total"] == 11
-    # A2A discovery currently has 1 (medcoder-coding-review) — Section D
-    # will add medical-coding-agent to bring it to 2
-    assert len(a2a["agents"]) >= 1
+    # All 26 Hub-visible packs are runnable launch candidates.
+    assert hub["total"] == 26
+    assert len(a2a["agents"]) >= 26
 
     # Hub cards have agent_ref (file-system canonical ref)
     for card in hub["agents"]:
@@ -254,14 +313,17 @@ def test_seed_prebuilt_agents_no_silent_collision_with_packs(client):
     # Hub shows pack-backed agents (file-system canonical)
     r = client.get("/api/icoder/agents/hub")
     pack_refs = {c["agent_ref"] for c in r.json()["agents"]}
-    # The 6 overlapping packs should appear in Hub with their pack-backed agent_ref
+    # The 6 overlapping packs should appear in Hub with their pack-backed agent_ref.
+    # Phase 3-D1 Task 5 (2026-07-06): 3 of these upgraded from metadata-only
+    # to runnable, so their agent_ref gained the -agent suffix (matching
+    # the medical-coding-agent convention).
     expected_pack_refs = [
-        "icoder/code-validation@1.0.0",
-        "icoder/compliance-guardrail@1.0.0",
-        "icoder/denial-appeals@1.0.0",
-        "icoder/diagnosis-extractor@1.0.0",
-        "icoder/note-completeness@1.0.0",
-        "icoder/procedure-extractor@1.0.0",
+        "icoder/code-validation-agent@2.0.0",
+        "icoder/compliance-guardrail-agent@1.0.0",
+        "icoder/denial-appeals@1.1.0",
+        "icoder/diagnosis-extractor@1.2.0",
+        "icoder/note-completeness-agent@1.0.0",
+        "icoder/procedure-extractor@1.1.0",
     ]
     for ref in expected_pack_refs:
         assert ref in pack_refs, (

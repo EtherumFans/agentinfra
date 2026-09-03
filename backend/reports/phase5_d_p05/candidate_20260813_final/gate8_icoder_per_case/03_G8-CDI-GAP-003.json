@@ -1,0 +1,390 @@
+{
+  "case_id": "CASE-af1a6bb415c6",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-af1a6bb415c6/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "The diagnosis of acute myocardial infarction lacks specification of ST-elevation vs non-ST-elevation, and the specific site (anterior) is not documented in the diagnosis.",
+      "why_it_matters": "Specificity of MI type and site is required for accurate coding and clinical management.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "入院诊断:急性心肌梗死",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-af1a6bb415c6/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "The severity of the coronary artery occlusion is documented as 100%, but the severity of the myocardial infarction (e.g., Killip class, ejection fraction) is not stated.",
+      "why_it_matters": "Severity of MI impacts prognosis and coding.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "冠脉造影:前降支近段100%闭塞",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-af1a6bb415c6/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "The clinical correlation of elevated troponin I with the ECG findings is not explicitly documented.",
+      "why_it_matters": "Clinical correlation is needed to confirm the diagnosis and rule out other causes.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "肌钙蛋白I升高",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-af1a6bb415c6/Q-001",
+      "gap_id": "CASE-af1a6bb415c6/GAP-001",
+      "topic": "type of acute myocardial infarction",
+      "reason": "The diagnosis of acute myocardial infarction lacks specification of ST-elevation vs non-ST-elevation.",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "心电图:前壁导联ST<REDACTED:NAME>",
+        "char_start": 19,
+        "char_end": 44,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "心电图:前壁导联ST<REDACTED:NAME>",
+          "char_start": 19,
+          "char_end": 44,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "根据心电图和临床资料，该急性心肌梗死的具体分型（ST段抬高型或非ST段抬高型）是什么？",
+      "response_options": [
+        "A. ST段抬高型心肌梗死",
+        "B. 非ST段抬高型心肌梗死",
+        "C. 其他（请注明）",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "urgent",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    }
+  ],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-002",
+      "gap_id": "CASE-af1a6bb415c6/GAP-002",
+      "topic": "心肌梗死的严重程度",
+      "reason": "冠脉造影显示前降支近段100%闭塞，但未记录心肌梗死的严重程度（如Killip分级或射血分数）。",
+      "query_text": "该患者心肌梗死的严重程度如何评估？",
+      "response_options": [
+        "A. Killip分级I级",
+        "B. Killip分级II级",
+        "C. Killip分级III级",
+        "D. Killip分级IV级",
+        "E. 射血分数降低",
+        "F. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "冠脉造影:前降支近段100%闭塞",
+          "char_start": 53,
+          "char_end": 69,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-001: chart matches /急性[^,。、\\s]{0,8}(?:心肌梗死|阑尾炎|胆囊炎|胰腺炎|肺炎|胃肠炎)/ (急性类型已明确) and query asks for 心肌梗死的严重程度"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-001",
+      "gap_id": "CASE-af1a6bb415c6/GAP-001",
+      "topic": "急性心肌梗死的分型和部位",
+      "reason": "入院诊断为急性心肌梗死，但未明确ST段抬高型或非ST段抬高型，也未明确梗死部位（如前壁）。",
+      "query_text": "根据心电图和临床资料，该急性心肌梗死的具体分型和部位是什么？",
+      "response_options": [
+        "A. ST段抬高型心肌梗死，前壁",
+        "B. ST段抬高型心肌梗死，其他部位",
+        "C. 非ST段抬高型心肌梗死，前壁",
+        "D. 非ST段抬高型心肌梗死，其他部位",
+        "E. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "入院诊断:急性心肌梗死",
+          "char_start": 75,
+          "char_end": 86,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "SD-001: topic axes = ['site', 'type']",
+        "SD-002: axes in 40-char window = ['site', 'type']"
+      ],
+      "status": "REWRITE_CANDIDATE_GENERATED",
+      "detected_axes": [
+        "site",
+        "type"
+      ],
+      "replacement_query_id": "Q-001-type",
+      "rewrite_attempt_status": "ACCEPTED_FOR_DOWNSTREAM_GATES",
+      "rewrite_attempt_reasons": [],
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-003",
+      "gap_id": "CASE-af1a6bb415c6/GAP-003",
+      "topic": "肌钙蛋白I升高与心电图的相关性",
+      "reason": "肌钙蛋白I升高和心电图改变均已记录，但未明确两者的临床相关性。",
+      "query_text": "肌钙蛋白I升高与心电图改变的相关性如何解释？",
+      "response_options": [
+        "A. 肌钙蛋白I升高与心电图改变一致，支持急性心肌梗死诊断",
+        "B. 肌钙蛋白I升高与心电图改变不一致，需进一步鉴别",
+        "C. 肌钙蛋白I升高与心电图改变无明确相关性",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "肌钙蛋白I升高",
+          "char_start": 45,
+          "char_end": 52,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "BEYOND_MINIMAL_DOCUMENTATION_NEED",
+        "CHART_ALREADY_COMPLETE"
+      ],
+      "status": "REJECTED_BY_SEMANTIC_NECESSITY",
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者男性, 58岁, 持续胸痛2小时。心电图:前壁导联ST<REDACTED:NAME>。肌钙蛋白I升高。冠脉造影:前降支近段100%闭塞。行PCI。入院诊断:急性心肌梗死。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者男性，58岁",
+      "持续胸痛2小时",
+      "心电图示前壁导联ST段抬高",
+      "肌钙蛋白I升高",
+      "冠脉造影示前降支近段100%闭塞",
+      "行经皮冠状动脉介入治疗（PCI）",
+      "入院诊断：急性心肌梗死"
+    ],
+    "encounter_metadata": {
+      "patient_age": "58岁",
+      "patient_sex": "男",
+      "encounter_type": "住院"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "To ensure accurate coding, the diagnosis must explicitly specify acute ST-elevation myocardial infarction (STEMI) of the anterior wall, as the ECG and 100% proximal LAD occlusion confirm this. Additionally, document the Killip class and left ventricular ejection fraction to capture severity, and explicitly state that the elevated troponin I is clinically consistent with the acute ischemic ECG changes and angiographic findings.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3120,
+      "tokens": 282
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-0f1eab8f52cd",
+    "gap_identification": "run-6293f3867f7c",
+    "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
+    "expert_consultation": "run-691297103e9a",
+    "query_generation": "run-7d3f2929dfc7",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.25;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=Y,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=3;llm_complete=False;llm_reasoning=The chart lacks specification of MI type (STEMI vs NSTEMI) and site in the diagn",
+    "query_necessity_gate": "necessary=2;unnecessary=1;overquery_triggered=False;final_count=2",
+    "query_dimension_rewrite": "run-16dc36523a92",
+    "query_single_dimension_gate": "single_dim=1;multi_dim=1;axis_cluster_triggered=False;axis_cluster_axis=type;rewrite_attempted=1;rewrite_accepted=1;final_count=2",
+    "claim_evidence_alignment_gate": "claims_extracted=6;blocked=0;flagged=0;final_count=2",
+    "claim_evidence_alignment_gate::run_id": "run-e0ee78935610",
+    "semantic_necessity_gate": "blocked=1;flagged=0;degraded=0;final_count=1",
+    "semantic_necessity_gate::run_id": "run-a1c329064cdc",
+    "query_compliance_gate": ";passed=1;blocked=0",
+    "specialist_trace_emit": "run-eb0ea03055f7"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-ce3c941dc774",
+    "gap_identification": "trace-ca70c4482b1b",
+    "expert_consultation": "trace-7ef2381dc91c",
+    "query_generation": "trace-5b3a6d57cb7e",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_dimension_rewrite": "trace-61b27fc1c048",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-88cba33a1029",
+    "semantic_necessity_gate": "trace-01ec4a040fb5",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-1059c978d748"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2674,
+      "prompt_tokens": 229,
+      "completion_tokens": 119,
+      "total_tokens": 348,
+      "run_id": "run-0f1eab8f52cd",
+      "trace_id": "trace-ce3c941dc774",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5306,
+      "prompt_tokens": 1072,
+      "completion_tokens": 475,
+      "total_tokens": 1547,
+      "run_id": "run-6293f3867f7c",
+      "trace_id": "trace-ca70c4482b1b",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6046,
+      "prompt_tokens": 1155,
+      "completion_tokens": 714,
+      "total_tokens": 1869,
+      "run_id": "run-7d3f2929dfc7",
+      "trace_id": "trace-5b3a6d57cb7e",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_dimension_rewrite",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3536,
+      "prompt_tokens": 667,
+      "completion_tokens": 247,
+      "total_tokens": 914,
+      "run_id": "run-16dc36523a92",
+      "trace_id": "trace-61b27fc1c048",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3120,
+      "prompt_tokens": 203,
+      "completion_tokens": 79,
+      "total_tokens": 282,
+      "run_id": "run-2e9304e40506",
+      "trace_id": "trace-f63f53c79b0f",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-541c5227b523",
+      "trace_id": "trace-313079f901b0",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-b1ba9a8f8ee6",
+      "trace_id": "trace-49b67a2a196c",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-7cae67ceb922",
+      "trace_id": "trace-4af6b6825b41",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T17:21:20.101039Z"
+}

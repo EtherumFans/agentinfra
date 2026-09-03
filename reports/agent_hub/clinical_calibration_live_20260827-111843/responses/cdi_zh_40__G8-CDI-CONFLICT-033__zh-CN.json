@@ -1,0 +1,229 @@
+{
+  "agent_id": "clinical-documentation-improvement-agent",
+  "run_id": "run-5bec12b0-c2b2-4bd2-a9a5-7273a6fa3d66",
+  "trace_id": "trace-0fb6e07f65114ef8",
+  "trace_url": "/ai-studio/runs/run-5bec12b0-c2b2-4bd2-a9a5-7273a6fa3d66/trace",
+  "runtime_mode": "cdi_real_orchestrator",
+  "latency_ms": 13643,
+  "cost": {
+    "amount": 0.00110614,
+    "currency": "CNY",
+    "source": "configured_usage_pricing_estimate",
+    "billing_authoritative": false
+  },
+  "billing": {},
+  "summary": "CDI review completed; specialist and clinician review remain required.",
+  "result": {
+    "encounter_summary": {
+      "key_points": [
+        "患者男性，70岁，有COPD病史",
+        "入院诊断：COPD急性加重，重度",
+        "血气分析：pH 7.38, PaCO2 56, PaO2 70",
+        "病程记录：COPD急性加重，轻度",
+        "出院诊断：COPD急性加重，中度"
+      ],
+      "encounter_metadata": {
+        "patient_age": "70岁",
+        "patient_sex": "男性",
+        "encounter_type": "住院"
+      }
+    },
+    "documentation_gaps": [
+      {
+        "gap_id": "gap-001",
+        "gap_type": "diagnostic_specificity",
+        "description": "The severity of COPD acute exacerbation is documented inconsistently across the chart: admission diagnosis states '重度' (severe), progress notes state '轻度' (mild), and discharge diagnosis states '中度' (moderate).",
+        "why_it_matters": "Severity is a key specifier for COPD exacerbation coding and affects DRG assignment and quality measures. Conflicting severity documentation creates ambiguity for coders and may lead to incorrect coding.",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": ":pH 7.38, PaCO2 56, PaO2 70。病程记录:COPD急性加重, 轻度。出院诊断:COP",
+          "char_start": 39,
+          "char_end": 93,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "urgent"
+      }
+    ],
+    "proposed_provider_queries": [
+      {
+        "query_id": "q-gap-001-severe",
+        "gap_id": "gap-001",
+        "topic": "COPD急性加重严重程度确认",
+        "reason": "入院诊断记录为重度，但病程记录和出院诊断分别记录为轻度和中度，严重程度不一致，需明确实际严重程度。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "入院诊断:COPD急性加重, 重度",
+          "char_start": 17,
+          "char_end": 34,
+          "documented_at": ""
+        },
+        "evidence_spans": [
+          {
+            "document_id": "chart-001",
+            "quote": "入院诊断:COPD急性加重, 重度",
+            "char_start": 17,
+            "char_end": 34,
+            "documented_at": ""
+          },
+          {
+            "document_id": "chart-001",
+            "quote": "病程记录:COPD急性加重, 轻度",
+            "char_start": 67,
+            "char_end": 84,
+            "documented_at": ""
+          },
+          {
+            "document_id": "chart-001",
+            "quote": "出院诊断:COPD急性加重, 中度",
+            "char_start": 85,
+            "char_end": 102,
+            "documented_at": ""
+          }
+        ],
+        "query_text": "根据血气分析结果（pH 7.38, PaCO2 56, PaO2 70）及临床病程，本次COPD急性加重的严重程度应如何分级？",
+        "response_options": [
+          "A. 重度",
+          "B. 中度",
+          "C. 轻度",
+          "D. 无法确定"
+        ],
+        "lifecycle_state": "DRAFT",
+        "priority": "urgent",
+        "nlq_gate_verdict": "PASS",
+        "nlq_gate_block_reasons": []
+      }
+    ],
+    "query_gate_summary": {
+      "withheld_count": 1,
+      "status_counts": {
+        "REWRITE_CANDIDATE_GENERATED": 0
+      },
+      "manual_cdi_action_required": true
+    },
+    "coding_specificity_checklist": [],
+    "risk_flags": [
+      {
+        "category": "contradiction",
+        "description": "The severity of COPD acute exacerbation is documented as severe, mild, and moderate in different sections of the chart, which is an internal conflict."
+      }
+    ],
+    "specialist_trace": [
+      {
+        "expert_id": "coding-expert",
+        "consulted": true,
+        "requested": "You are a coding-specialist Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "The clinical documentation must be reconciled to a single, unambiguous severity level for the acute exacerbation, as the conflicting terms (severe, mild, moderate) directly impact coding accuracy and treatment intensity. Please clarify whether the severity refers to the exacerbation itself (e.g., based on dyspnea, respiratory rate, or need for ventilatory support) or to the underlying COPD severity (e.g., GOLD stage), and specify the exact criteria used (e.g., blood gas values, clinical exam) to justify the final diagnosis. Without this, coders cannot determine the correct episode-of-care complexity or resource utilization.",
+        "route_decision": "needed",
+        "route_reason": "coding_relevant_gap",
+        "execution_mode": "LLM_KNOWLEDGE_ONLY",
+        "latency_ms": 2258,
+        "tokens": 290,
+        "run_id": "run-a18144293879",
+        "trace_id": "trace-c8ba20ab3cce"
+      },
+      {
+        "expert_id": "pubmed-expert",
+        "consulted": false,
+        "requested": "You are a PubMed literature Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-1c3abf40e0fc",
+        "trace_id": "trace-d4dd21423f03"
+      },
+      {
+        "expert_id": "web-search-expert",
+        "consulted": false,
+        "requested": "You are a clinical web-search Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-4d67aa0569d3",
+        "trace_id": "trace-5d06e182f160"
+      },
+      {
+        "expert_id": "medical-calculator-expert",
+        "consulted": false,
+        "requested": "You are a medical-calculator Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-fd61b058b43f",
+        "trace_id": "trace-4792ee616974"
+      }
+    ],
+    "human_review": {
+      "cdi_specialist_review_required": true,
+      "clinician_response_required": true,
+      "review_priority": "urgent"
+    },
+    "trace_refs": {
+      "run_id": "run-5bec12b0-c2b2-4bd2-a9a5-7273a6fa3d66",
+      "stage_trace": {
+        "encounter_synthesis": "trace-29f4d8f7c1fb",
+        "gap_identification": "trace-dc6af6b9d4ef",
+        "expert_consultation": "trace-48872eb0d219",
+        "query_generation": "trace-f9145821f410",
+        "query_eligibility_gate": "",
+        "query_necessity_gate": "",
+        "query_dimension_rewrite": "",
+        "query_single_dimension_gate": "",
+        "claim_evidence_alignment_gate": "trace-cb6ffe66d899",
+        "semantic_necessity_gate": "trace-972cb1b86d0e",
+        "query_compliance_gate": "",
+        "specialist_trace_emit": "trace-3ec139080a6b"
+      },
+      "experts_consulted": [
+        "coding-expert"
+      ],
+      "gate_results": {
+        "encounter_synthesis": "run-cd2070eec9c7",
+        "gap_identification": "run-59287de78428",
+        "gap_identification_risk_flags": "emitted=1;quote_snapped=1;withheld=0;quantity_redacted=0",
+        "expert_consultation": "run-3d8d9343d064",
+        "query_generation": "run-67d63ac7d5de",
+        "query_generation::quote_snapped": "0",
+        "query_generation::coverage_missing": "0",
+        "query_eligibility_gate": "chart_complete=False;completeness_score=0.25;dimensions=D1_type=N,D2_site=N,D3_severity=Y,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=Y;dropped=0;final_count=2;llm_complete=False;llm_reasoning=The chart lacks a consistent severity specification for COPD acute exacerbation,",
+        "query_necessity_gate": "necessary=1;unnecessary=1;overquery_triggered=False;final_count=1",
+        "query_dimension_rewrite": "not_executed",
+        "query_single_dimension_gate": "single_dim=1;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=course;rewrite_attempted=0;rewrite_accepted=0;final_count=1",
+        "claim_evidence_alignment_gate": "claims_extracted=2;degraded=0;blocked=0;flagged=0;final_count=1",
+        "claim_evidence_alignment_gate::run_id": "run-12fb0e0d43f4",
+        "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=1",
+        "semantic_necessity_gate::run_id": "run-36cafcbf6353",
+        "query_compliance_gate": ";passed=1;blocked=0",
+        "specialist_trace_emit": "run-9a3fed0c4dea"
+      },
+      "trace_id": "trace-0fb6e07f65114ef8"
+    }
+  },
+  "schema_ref": "icoder/CDIAgentOutputV1/v6",
+  "result_attestation": "eyJhIjoiY2xpbmljYWwtZG9jdW1lbnRhdGlvbi1pbXByb3ZlbWVudC1hZ2VudCIsImQiOiJlMjAyMDg2NDBiOTI4MWRiMzMzZTllMTQ1OGExMDE2NWI5MDk0Yjk0YTI4M2I3ZGMwNjIyMTUyMmQ4N2ViOTIxIiwiZSI6MTc4Nzg4NzU1MiwibyI6IjVmZWYzNzlmMjViZCIsInIiOiJydW4tNWJlYzEyYjAtYzJiMi00YmQyLWE5YTUtNzI3M2E2ZmEzZDY2IiwicyI6Imljb2Rlci9DRElBZ2VudE91dHB1dFYxL3Y2IiwidiI6MX0.xQZvDJhAYaYDfI_PiMMr7_yE9JsjgBT0T4Is0n-Cdbo",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 13.841
+}

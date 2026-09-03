@@ -1,0 +1,113 @@
+{
+  "schema_version": "icoder.agent-hub-phase-evidence/v1",
+  "generated_at": "2026-08-24T23:55:00+08:00",
+  "phase": "governed_drg_dip_risk_review",
+  "status": "development_launch_candidate_slice_verified",
+  "agent": {
+    "agent_id": "drg-analyzer",
+    "agent_ref": "icoder/drg-analyzer@1.1.3",
+    "provider_id": "icoder.governed-drg-dip-risk-review.v1",
+    "backend_type": "rule_engine",
+    "runtime_mode": "governed_local_explicit_coded_case_risk_review",
+    "output_contract": "icoder/DRGDIPRiskReview/v8",
+    "llm_required": false,
+    "network_required": false,
+    "cost_usd": 0,
+    "deterministic": true
+  },
+  "governance": {
+    "rule_pack_id": "cn.drg_dip.risk_heuristics",
+    "rule_pack_version": "1.0.0-development",
+    "jurisdiction": "CN_GENERIC_DEVELOPMENT",
+    "authority_status": "experimental_unverified",
+    "license_status": "external_review_required",
+    "official_grouping_performed": false,
+    "official_dip_scoring_performed": false,
+    "payment_calculation_performed": false,
+    "billing_authoritative": false,
+    "production_submission_blocked": true,
+    "production_writeback_blocked": true,
+    "manual_review_required": true
+  },
+  "contracts": {
+    "visible_contracts": 26,
+    "registered_contracts": 135,
+    "schema_dry_run_changed_agents": [],
+    "compatibility_passed": true,
+    "field_relations": 106,
+    "field_relation_adversarial_assertions": 323,
+    "field_relation_detected_assertions": 323,
+    "evidence_bindings": 29,
+    "evidence_binding_adversarial_assertions": 58,
+    "evidence_binding_detected_assertions": 58,
+    "cross_agent_relations": 10,
+    "cross_agent_adversarial_assertions": 20,
+    "cross_agent_detected_assertions": 20
+  },
+  "http_e2e": {
+    "local_agents_expected": 23,
+    "happy_passed": 23,
+    "adversarial_passed": 23,
+    "reference_passed": 23,
+    "stability_passed": 138,
+    "stability_repetitions_per_seed": 3,
+    "stability_p50_seconds": 0.212,
+    "stability_p95_seconds": 0.328,
+    "signed_bundle_valid": true,
+    "signed_bundle_declared_sha256": "7affbb0774a3d90b0108e93b0f64171c0c8c1fb149ef67b9eaaedf8d17a49165"
+  },
+  "runtime_matrix": {
+    "visible_agents": 26,
+    "visible_launch_candidate_ready": 26,
+    "visible_local_semantic_e2e_verified": 23,
+    "visible_external_semantic_live_e2e_pending": [
+      "clinical-documentation-improvement-agent",
+      "medical-coding-agent",
+      "triage"
+    ],
+    "visible_production_ready_verified": 0
+  },
+  "serial_regression": {
+    "targeted_provider_and_a2a_passed": 7,
+    "affected_regression_passed": 59,
+    "all_visible_agent_offline_safety_passed": 78,
+    "semantic_and_contract_focus_passed": 95,
+    "initial_broad_sweep": {
+      "passed": 2562,
+      "skipped": 5,
+      "deselected": 6,
+      "failed": 10,
+      "duration_seconds": 976.34
+    },
+    "phase_related_failures_closed_by_targeted_retest": 8,
+    "remaining_independent_failures": [
+      "test_note_completeness_passes_complete_emr",
+      "test_note_completeness_surgical_adds_operation_record_requirement"
+    ],
+    "process_crash_observed": false
+  },
+  "deployment_preflight": {
+    "passed": true,
+    "checks_passed": 90,
+    "checks_failed": 0,
+    "mode": "static_without_docker_cli"
+  },
+  "artifact_sha256": {
+    "agent_pack": "e7f1bb88d7c63cd7e84acb3b49d21fe1259a1bcf4426bdf4413958c71c0abc31",
+    "signed_bundle_file": "6ddefc19a7d08e6b6bcc07688c24b42550bae4e6b70d8edee30b6706b7552919",
+    "runtime_matrix": "a39c28f281480d60a40618a555debab006c9afd2d956f73691b6baf4af056194",
+    "deployment_preflight": "5b5daeb5f7a0708a493015d36e7d79a922d1e13f04ad544b3248f618dfdeebba",
+    "field_relation_replay": "d6ed4ebe7322a9cc36c1147ec6666ca259b323c44d340dc3c64dc1ea178aff14",
+    "evidence_binding_replay": "5fcd804929a172051ab869e886ba516f37a4f6d33bca9b9339ee20f78291c55c",
+    "cross_agent_relation_replay": "130e24d0d20ef1505884487e624e478263bc4876aff356afdda256802e1d491b"
+  },
+  "limitations": [
+    "The built-in DRG/DIP rules are development heuristics, not an official or licensed national, regional, payer, or hospital grouper.",
+    "The Agent accepts only explicitly labelled coder-supplied codes and exact evidence; it does not extract, assign, validate, or clinically infer codes.",
+    "No official DRG grouping, DIP scoring, relative weight, CMI, payment, settlement, submission, or production writeback is performed.",
+    "No hospital EHR/HIS, medical-record front page, payer, provincial DIP, or authorized DRG grouper integration was exercised.",
+    "No independent coder, clinician, hospital, legal, regulatory, security, or certification approval was obtained.",
+    "The signed local bundle covers 23 local semantic baselines, not the three external-model Agents and not production readiness.",
+    "Two independent Note Completeness regression expectations remain open and prevent claiming a completely green broad backend sweep."
+  ]
+}

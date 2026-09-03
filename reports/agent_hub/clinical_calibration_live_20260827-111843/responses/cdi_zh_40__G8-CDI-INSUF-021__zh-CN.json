@@ -1,0 +1,186 @@
+{
+  "agent_id": "clinical-documentation-improvement-agent",
+  "run_id": "run-cfefb9df-5ac1-4187-8b11-4e7d5bd0060d",
+  "trace_id": "trace-a641be0365614cfd",
+  "trace_url": "/ai-studio/runs/run-cfefb9df-5ac1-4187-8b11-4e7d5bd0060d/trace",
+  "runtime_mode": "cdi_real_orchestrator",
+  "latency_ms": 10645,
+  "cost": {
+    "amount": 0.00127246,
+    "currency": "CNY",
+    "source": "configured_usage_pricing_estimate",
+    "billing_authoritative": false
+  },
+  "billing": {},
+  "summary": "CDI review completed; specialist and clinician review remain required.",
+  "result": {
+    "encounter_summary": {
+      "key_points": [
+        "患者主诉腹痛",
+        "建议进一步检查"
+      ],
+      "encounter_metadata": {
+        "patient_age": "未知",
+        "patient_sex": "未知",
+        "encounter_type": "门诊"
+      }
+    },
+    "documentation_gaps": [
+      {
+        "gap_id": "GAP-001",
+        "gap_type": "diagnostic_specificity",
+        "description": "腹痛的具体部位、性质、持续时间、严重程度及伴随症状未描述，诊断特异性不足。",
+        "why_it_matters": "腹痛的病因多样，缺乏具体描述会影响诊断的准确性和编码的精确性，可能无法区分急腹症、慢性腹痛等不同情况。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "患者主诉腹痛",
+          "char_start": 0,
+          "char_end": 6,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "urgent"
+      },
+      {
+        "gap_id": "GAP-002",
+        "gap_type": "diagnostic_specificity",
+        "description": "腹痛的病因未明确，未记录任何相关检查结果或鉴别诊断。",
+        "why_it_matters": "未明确病因会导致编码时无法确定具体诊断，影响DRG分组和医疗资源分配。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "建议进一步检查",
+          "char_start": 7,
+          "char_end": 14,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "urgent"
+      }
+    ],
+    "proposed_provider_queries": [],
+    "query_gate_summary": {
+      "withheld_count": 2,
+      "status_counts": {
+        "REWRITE_CANDIDATE_GENERATED": 0
+      },
+      "manual_cdi_action_required": true
+    },
+    "coding_specificity_checklist": [],
+    "risk_flags": [],
+    "specialist_trace": [
+      {
+        "expert_id": "coding-expert",
+        "consulted": false,
+        "requested": "You are a coding-specialist Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "empty chart — no coding substrate",
+        "route_decision": "not_needed",
+        "route_reason": "empty_chart",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-576e22191c13",
+        "trace_id": "trace-2da9408bcada"
+      },
+      {
+        "expert_id": "pubmed-expert",
+        "consulted": false,
+        "requested": "You are a PubMed literature Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "empty_chart",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-1692c64631d1",
+        "trace_id": "trace-5683eb2fd3a1"
+      },
+      {
+        "expert_id": "web-search-expert",
+        "consulted": false,
+        "requested": "You are a clinical web-search Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "empty_chart",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-acbb9160f368",
+        "trace_id": "trace-c537f18623dd"
+      },
+      {
+        "expert_id": "medical-calculator-expert",
+        "consulted": false,
+        "requested": "You are a medical-calculator Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "empty_chart",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-26ad8ab3f697",
+        "trace_id": "trace-772cc6bb6038"
+      }
+    ],
+    "human_review": {
+      "cdi_specialist_review_required": true,
+      "clinician_response_required": true,
+      "review_priority": "routine"
+    },
+    "trace_refs": {
+      "run_id": "run-cfefb9df-5ac1-4187-8b11-4e7d5bd0060d",
+      "stage_trace": {
+        "encounter_synthesis": "trace-fd21bf8be790",
+        "gap_identification": "trace-75e34c1ec57c",
+        "expert_consultation": "trace-6216cccd4059",
+        "query_generation": "trace-efc2e0d047da",
+        "query_eligibility_gate": "",
+        "query_necessity_gate": "",
+        "query_dimension_rewrite": "",
+        "query_single_dimension_gate": "",
+        "claim_evidence_alignment_gate": "trace-16dc5ba21831",
+        "semantic_necessity_gate": "trace-7623cb30879c",
+        "query_compliance_gate": "",
+        "specialist_trace_emit": "trace-95e5ff29fb74"
+      },
+      "experts_consulted": [],
+      "gate_results": {
+        "encounter_synthesis": "run-024833b6e26b",
+        "gap_identification": "run-20774bd28b2d",
+        "gap_identification_risk_flags": "emitted=0;quote_snapped=0;withheld=0;quantity_redacted=0",
+        "expert_consultation": "run-111691bc7821",
+        "query_generation": "run-576e82df1d90",
+        "query_generation::quote_snapped": "0",
+        "query_generation::coverage_missing": "0",
+        "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=;dropped=0;final_count=2;llm_complete=False;llm_reasoning=病历仅记录主诉和检查建议，缺乏腹痛的具体特征、病因、相关检查结果及临床关联，无法满足编码所需的特异性要求。",
+        "query_necessity_gate": "necessary=2;unnecessary=0;overquery_triggered=False;final_count=2",
+        "query_dimension_rewrite": "not_executed",
+        "query_single_dimension_gate": "single_dim=2;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=etiology;rewrite_attempted=0;rewrite_accepted=0;final_count=2",
+        "claim_evidence_alignment_gate": "claims_extracted=2;degraded=0;blocked=0;flagged=0;final_count=2",
+        "claim_evidence_alignment_gate::run_id": "run-8900bb71bd48",
+        "semantic_necessity_gate": "blocked=2;flagged=0;degraded=0;final_count=0",
+        "semantic_necessity_gate::run_id": "run-8be2c9f645b8",
+        "query_compliance_gate": ";passed=0;blocked=0",
+        "specialist_trace_emit": "run-297b788d5e78"
+      },
+      "trace_id": "trace-a641be0365614cfd"
+    }
+  },
+  "schema_ref": "icoder/CDIAgentOutputV1/v6",
+  "result_attestation": "eyJhIjoiY2xpbmljYWwtZG9jdW1lbnRhdGlvbi1pbXByb3ZlbWVudC1hZ2VudCIsImQiOiI4ZTJkZDFlYmE1MDkwMDNhZTAyYmE2NjkxZTZhNDZiYTUzYjI0Njc2NWMwN2QwMWJkMGUxZjYzNDIwNjFjMTFhIiwiZSI6MTc4Nzg4NzQwMSwibyI6IjVmZWYzNzlmMjViZCIsInIiOiJydW4tY2ZlZmI5ZGYtNWFjMS00MTg3LThiMTEtNGU3ZDViZDAwNjBkIiwicyI6Imljb2Rlci9DRElBZ2VudE91dHB1dFYxL3Y2IiwidiI6MX0.0Nb00r7LXV3MocWM-MssU2rqJz7fOqYQ6WVPhJ3DCYY",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 10.845
+}

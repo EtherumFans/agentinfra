@@ -6,14 +6,10 @@ Per spec §7.2 retry table:
   - Critical expert → 2 retries, exp backoff (1s, 2s), total 30s
   - Non-critical expert → 1 retry, constant 1s backoff, total 15s
 
-Phase 1 does NOT actually call A2A over HTTP — the Expert invocation
-contract is a simple callable injected at construction time. The
-inbound handler wires this to either:
-  - A stub invoker (tests)
-  - The future A2A client (T5+)
-
-This keeps the Delegator unit-testable in isolation, and means a missing
-Expert implementation does not block Phase 1 PR sequencing.
+The Expert invocation contract is a callable injected at construction time.
+Tests inject deterministic local invokers. Runtime assembly must inject a real
+implementation or an explicit fail-closed callable; this module does not ship
+a synthetic-success fallback.
 """
 
 from __future__ import annotations
@@ -254,19 +250,3 @@ __all__ = [
     "ExpertInvocationError",
     "ExpertInvoker",
 ]
-
-
-# ---------------------------------------------------------------------------
-# Convenience: a no-op invoker for tests / when no experts are configured
-# ---------------------------------------------------------------------------
-
-
-def noop_invoker(invocation: ExpertInvocation) -> dict:
-    """Default invoker — returns an empty result. Used in dev when no
-    Expert is wired (Phase 1 placeholder)."""
-    logger.info(
-        "delegator.noop_invoker expert=%s subtask_len=%d",
-        invocation.expert_id,
-        len(invocation.subtask_input),
-    )
-    return {"expert_id": invocation.expert_id, "noop": True, "attempt": invocation.attempt}

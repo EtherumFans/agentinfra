@@ -1,0 +1,365 @@
+{
+  "case_id": "H-EXP-COD-009_R1",
+  "group": "EXPERT_ROUTING",
+  "variant": "CODING",
+  "session_id": "0ba6601a-7dab-4704-b52f-9a0151bb9d58",
+  "attempt": 1,
+  "outcome": "SUCCESS",
+  "elapsed_s": 32.81,
+  "expected": {
+    "query_count_min": 1,
+    "query_count_max": 2,
+    "expected_query_topics": [
+      "MI type documentation (NSTEMI vs STEMI)",
+      "ICD-10-CM specificity"
+    ],
+    "forbidden_query_topics": [],
+    "no_query_expected": false
+  },
+  "text_length": 5710,
+  "first_token_at_s": 3.7,
+  "last_token_at_s": 32.81,
+  "event_count": 14,
+  "raw_events_preview": [
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"code_system\":\"icd-10-cm\",\"count\":3,\"next_steps\":[{\"reason\":\"Browse related codes and alternatives in the same category\",\"tool\":\"explore\"},{\"reason\":\"Read coding conventions relevant to these",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"I21.4\",\"code_system\":\"icd-10-cm\",\"description\":\"Non-ST elevation (NSTEMI) myocardial infarction\",\"next_steps\":[{\"reason\":\"Read coding conventions for this code area\"",
+    "message|{\"data\":{\"chapter_guidelines\":[{\"codes\":[\"ICD\",\"I21.0\",\"I21.A1\",\"I24.89\",\"AMI\",\"I21.01\",\"I21.4\",\"I21.A9\"],\"content\":\"The ICD-10-CM provides codes for different types of myocardial \\ninfarction. Type 1",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"I22.2\",\"code_system\":\"icd-10-cm\",\"description\":\"Subsequent non-ST elevation (NSTEMI) myocardial infarction\",\"next_steps\":[{\"reason\":\"Read coding conventions for this",
+    "message|{\"data\":{\"chapter_guidelines\":[{\"codes\":[\"I21.9\",\"I21.3\"],\"content\":\"Code I21.9, Acute myocardial infarction, unspecified, is the default for \\nunspecified acute myocardial infarction or unspecified t",
+    "message|{\"id\":\"615e3bfe-e646-46e6-9e8f-e99ce687a9ca\",\"type\":\"text-start\"}",
+    "message|{\"delta\":\"Encounter Summary:\\n- Chart excerpt documents acute myocardial infarction with a cardiology note stating “NSTEMI.”\\n- Troponin is reported to have peaked at 4.2.\\n- No diagnosis code is docu",
+    "message|{\"id\":\"615e3bfe-e646-46e6-9e8f-e99ce687a9ca\",\"type\":\"text-end\"}",
+    "message|{\"messageMetadata\":{\"contextId\":\"019f5bd3-d1db-7231-bf72-196ee0a6d71b\",\"taskId\":\"019f5bd3-d1db-7190-bbbe-0bed4c2270ca\",\"credits\":0.090032,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+    "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.090032},\"type\":\"finish\"}",
+    "message|[DONE]"
+  ],
+  "expert_events": [
+    {
+      "code_system": "icd-10-cm",
+      "count": 3,
+      "next_steps": [
+        {
+          "reason": "Browse related codes and alternatives in the same category",
+          "tool": "explore"
+        },
+        {
+          "reason": "Read coding conventions relevant to these codes",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "To assign the codes for a clinical note, use predict (optionally with include/exclude filters)",
+          "tool": "predict"
+        }
+      ],
+      "query": "non-ST elevation myocardial infarction",
+      "results": [
+        {
+          "code": "I21.4",
+          "description": "Non-ST elevation (NSTEMI) myocardial infarction",
+          "match_path": "Infarct, infarction, myocardium, myocardial, non-ST elevation",
+          "related_codes": {
+            "category": "I21",
+            "category_description": "Acute myocardial infarction",
+            "count": 8
+          }
+        },
+        {
+          "code": "I22.2",
+          "description": "Subsequent non-ST elevation (NSTEMI) myocardial infarction",
+          "match_path": "Infarct, infarction, myocardium, myocardial, non-ST elevation, subsequent",
+          "related_codes": {
+            "category": "I22",
+            "category_description": "Subsequent ST elevation (STEMI) and non-ST elevation (NSTEMI) myocardial infarction",
+            "count": 5
+          }
+        },
+        {
+          "code": "I21.9",
+          "description": "Acute myocardial infarction, unspecified",
+          "match_path": "Myocardial infarction (acute) NOS",
+          "related_codes": {
+            "category": "I21",
+            "category_description": "Acute myocardial infarction",
+            "count": 8
+          }
+        }
+      ]
+    },
+    {
+      "assignable": true,
+      "code": "I21.4",
+      "code_system": "icd-10-cm",
+      "description": "Non-ST elevation (NSTEMI) myocardial infarction",
+      "next_steps": [
+        {
+          "reason": "Read coding conventions for this code area",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "Check whether a specific code is assignable",
+          "tool": "verify"
+        },
+        {
+          "reason": "Explore a related or more specific code",
+          "tool": "explore"
+        }
+      ],
+      "parent": {
+        "code": "I21",
+        "description": "Acute myocardial infarction"
+      },
+      "related_codes": [
+        {
+          "assignable": false,
+          "code": "I21.0",
+          "description": "ST elevation (STEMI) myocardial infarction of anterior wall"
+        },
+        {
+          "assignable": false,
+          "code": "I21.1",
+          "description": "ST elevation (STEMI) myocardial infarction of inferior wall"
+        },
+        {
+          "assignable": false,
+          "code": "I21.2",
+          "description": "ST elevation (STEMI) myocardial infarction of other sites"
+        },
+        {
+          "assignable": true,
+          "code": "I21.3",
+          "description": "ST elevation (STEMI) myocardial infarction of unspecified site"
+        },
+        {
+          "assignable": true,
+          "code": "I21.9",
+          "description": "Acute myocardial infarction, unspecified"
+        },
+        {
+          "assignable": false,
+          "code": "I21.A",
+          "description": "Other type of myocardial infarction"
+        },
+        {
+          "assignable": true,
+          "code": "I21.B",
+          "description": "Myocardial infarction with coronary microvascular dysfunction"
+        }
+      ],
+      "total_related": 7
+    },
+    {
+      "chapter_guidelines": [
+        {
+          "codes": [
+            "ICD",
+            "I21.0",
+            "I21.A1",
+            "I24.89",
+            "AMI",
+            "I21.01",
+            "I21.4",
+            "I21.A9"
+          ],
+          "content": "The ICD-10-CM provides codes for different types of myocardial \ninfarction. Type 1 myocardial infarctions are assigned to codes I21.0-\nI21.4. \n \nType 2 myocardial infarction (myocardial infarction due to demand \nischemia or secondary to ischemic imbalance) is assigned to code \nI21.A1, Myocardial infarction type 2 with the underlying cause coded \nfirst, if applicable. Do not assign code I24.89, Other forms of acute \nischemic heart disease, for the demand ischemia. If a type 2 AMI is \ndescribed as NSTEMI or STEMI, only assign code I21.A1. Codes \nI21.01-I21.4 should only be assigned for type 1 AMIs.  \n \nAcute myocardial infarctions type 3, 4a, 4b, 4c and 5 are assigned to \ncode I21.A9, Other myocardial infarction type. \n \n \n \n \n \nThe \"Code also\" and \"Code first\" notes should be followed related to \n \n \n \n complications, and for coding of postprocedural myocardial infarctions \n \n \n \n during or following cardiac surgery.",
+          "id": "icd-10-cm_section_I_C_9_e_5",
+          "kind": "guideline",
+          "number": "IC9e5",
+          "path": [
+            "I",
+            "C",
+            "9",
+            "e",
+            "5"
+          ],
+          "scope": "chapter",
+          "sections": [],
+          "title": "Other Types of Myocardial Infarction"
+        },
+        {
+          "codes": [
+            "ICD",
+            "AMI",
+            "I21.0",
+            "I21.2",
+            "I21.3",
+            "I21.4",
+            "III",
+            "I21",
+            "I25.2"
+          ],
+          "content": "infarction (STEMI) and non-\nST elevation myocardial infarction (NSTEMI) \nThe ICD-10-CM codes for type 1 acute myocardial infarction (AMI) \nidentify the site, such as anterolateral wall or true posterior wall. \nSubcategories I21.0-I21.2 and code I21.3 are used for type 1 ST \nelevation myocardial infarction (STEMI). Code I21.4, Non-ST elevation \n(NSTEMI) myocardial infarction, is used for type 1 non-ST elevation \nmyocardial infarction (NSTEMI) and nontransmural MIs. \n \nIf a type 1 NSTEMI evolves to STEMI, assign the STEMI code. If a type \n1 STEMI converts to NSTEMI due to thrombolytic therapy, it is still \ncoded as STEMI. \n \nFor encounters occurring while the myocardial infarction is equal to, or \nless than, four weeks old, including transfers to another acute setting or a \npostacute setting, and the myocardial infarction meets the definition for \n“other diagnoses” (see Section III, Reporting Additional Diagnoses), \ncodes from category I21 may continue to be reported. For encounters \nafter the 4-week time frame and the patient is still receiving care related \nto the myocardial infarction, the appropriate aftercare code should be \nassigned, rather than a code from category I21. For old or healed \nmyocardial infarctions not requiring further care, code I25.2, Old \nmyocardial infarction, may be assigned.",
+          "id": "icd-10-cm_section_I_C_9_e_1",
+          "kind": "guideline",
+          "number": "IC9e1",
+          "path": [
+            "I",
+            "C",
+            "9",
+            "e",
+            "1"
+          ],
+          "scope": "chapter",
+          "sections": [],
+          "title": "Type 1 ST elevation myocardial infarction (STEMI) and non-ST elevation myocardial infarction (NSTEMI)"
+        }
+      ],
+      "next_steps": [
+        {
+          "reason": "Check whether a specific code is assignable",
+          "tool": "verify"
+        },
+        {
+          "reason": "Browse the codes a guideline refers to",
+          "tool": "explore"
+        },
+        {
+          "reason": "To assign the codes for a clinical note, use predict (optionally with include/exclude filters)",
+          "tool": "predict"
+        }
+      ]
+    },
+    {
+      "assignable": true,
+      "code": "I22.2",
+      "code_system": "icd-10-cm",
+      "description": "Subsequent non-ST elevation (NSTEMI) myocardial infarction",
+      "next_steps": [
+        {
+          "reason": "Read coding conventions for this code area",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "Check whether a specific code is assignable",
+          "tool": "verify"
+        },
+        {
+          "reason": "Explore a related or more specific code",
+          "tool": "explore"
+        }
+      ],
+      "parent": {
+        "code": "I22",
+        "description": "Subsequent ST elevation (STEMI) and non-ST elevation (NSTEMI) myocardial infarction"
+      },
+      "related_codes": [
+        {
+          "assignable": true,
+          "code": "I22.0",
+          "description": "Subsequent ST elevation (STEMI) myocardial infarction of anterior wall"
+        },
+        {
+          "assignable": true,
+          "code": "I22.1",
+          "description": "Subsequent ST elevation (STEMI) myocardial infarction of inferior wall"
+        },
+        {
+          "assignable": true,
+          "code": "I22.8",
+          "description": "Subsequent ST elevation (STEMI) myocardial infarction of other sites"
+        },
+        {
+          "assignable": true,
+          "code": "I22.9",
+          "description": "Subsequent ST elevation (STEMI) myocardial infarction of unspecified site"
+        }
+      ],
+      "total_related": 4
+    },
+    {
+      "chapter_guidelines": [
+        {
+          "codes": [
+            "I21.9",
+            "I21.3"
+          ],
+          "content": "Code I21.9, Acute myocardial infarction, unspecified, is the default for \nunspecified acute myocardial infarction or unspecified type. If only type \n1 STEMI or transmural MI without the site is documented, assign code \nI21.3, ST elevation (STEMI) myocardial infarction of unspecified site.",
+          "id": "icd-10-cm_section_I_C_9_e_2",
+          "kind": "guideline",
+          "number": "IC9e2",
+          "path": [
+            "I",
+            "C",
+            "9",
+            "e",
+            "2"
+          ],
+          "scope": "chapter",
+          "sections": [],
+          "title": "Acute myocardial infarction, unspecified"
+        }
+      ],
+      "next_steps": [
+        {
+          "reason": "Check whether a specific code is assignable",
+          "tool": "verify"
+        },
+        {
+          "reason": "Browse the codes a guideline refers to",
+          "tool": "explore"
+        },
+        {
+          "reason": "To assign the codes for a clinical note, use predict (optionally with include/exclude filters)",
+          "tool": "predict"
+        }
+      ]
+    }
+  ],
+  "status_events": [
+    {
+      "state": "working"
+    },
+    {
+      "state": "working"
+    },
+    {
+      "message": "Calling expert: coding-expert",
+      "state": "working"
+    }
+  ],
+  "finish_metadata": {
+    "contextId": "019f5bd3-d1db-7231-bf72-196ee0a6d71b",
+    "taskId": "019f5bd3-d1db-7190-bbbe-0bed4c2270ca",
+    "credits": 0.090032,
+    "state": "completed"
+  },
+  "parsed": {
+    "encounter_summary": "- Chart excerpt documents acute myocardial infarction with a cardiology note stating “NSTEMI.”\n- Troponin is reported to have peaked at 4.2.\n- No diagnosis code is documented in the chart excerpt.",
+    "gaps": [
+      {
+        "idx": 1,
+        "text": "Gap: MI type/classification is not fully clarified beyond the label “NSTEMI.”\n   Why it matters: ICD-10-CM coding differs materially by MI type. Per coding guidance, I21.4 is for type 1 NSTEMI, while type 2 MI is coded to I21.A1 rather than I21.4 even if described as NSTEMI/STEMI.\n   Evidence quote: “Patient with acute myocardial infarction. Cardiology note says ‘NSTEMI’. Troponin peaked at 4.2.”\n   Minimal clarification needed: Whether the documented NSTEMI represents type 1 MI versus another M"
+      },
+      {
+        "idx": 2,
+        "text": "Gap: Timing/episode is not established well enough to exclude a subsequent MI code category.\n   Why it matters: A subsequent NSTEMI may code to I22.2 rather than I21.4 when clinically applicable.\n   Evidence quote: “Patient with acute myocardial infarction. Cardiology note says ‘NSTEMI’.”\n   Minimal clarification needed: Whether this is an initial acute NSTEMI or a subsequent MI episode."
+      },
+      {
+        "idx": 3,
+        "text": "Gap: There is no explicit coded diagnosis entry in the excerpt.\n   Why it matters: Although the diagnosis appears clinically documented, coding accuracy depends on a final, explicit provider diagnosis statement with adequate specificity.\n   Evidence quote: “No ICD coding documented in chart.”\n   Minimal clarification needed: Final provider diagnosis documentation with MI type/episode specificity."
+      }
+    ],
+    "gap_count": 3,
+    "queries": [
+      {
+        "idx": 1,
+        "text": "Clarification of myocardial infarction type"
+      },
+      {
+        "idx": 2,
+        "text": "Clarification of episode/status as initial vs subsequent MI"
+      }
+    ],
+    "query_count": 2,
+    "specialists_contacted": [
+      "Medical Coding Expert",
+      "Coding Expert"
+    ],
+    "specialist_trace_text": "- Medical Coding Expert: Consulted for ICD-10-CM specificity and MI coding distinctions. Accepted: I21.4 = non-ST elevation (NSTEMI) myocardial infarction; I22.2 = subsequent NSTEMI; I21.9 = acute MI unspecified; guideline that I21.4 applies to type 1 NSTEMI and type 2 MI is coded differently. Rejected: any unsupported patient-specific coding assignment beyond the excerpt.\n- AMBOSS Expert: Not consulted. The excerpt already documents AMI/NSTEMI, and no additional clinical criteria review was required to identify the documentation gap.\n- CDI Web Search Expert: Not consulted. Sufficient coding guidance was available from the coding expert output.\n\nLikely ICD-10-CM diagnosis category with specificity considerations:\n- Most likely supported category from the excerpt: I21.4 Non-ST elevation (NSTEMI) myocardial infarction, if the provider’s documented NSTEMI is a type 1 AMI.\n- Important alternative if clarified differently: I22.2 for subsequent NSTEMI if this is a subsequent MI; I21.9 only if acute MI remains unspecified; and per guideline, a documented type 2 MI would not be coded as I21.4.\n- Based on the excerpt alone, the safest chart-based conclusion is that NSTEMI is documented, but final code assignment still depends on provider clarification of MI type and episode if those are not established elsewhere in the record.",
+    "has_specialist_trace": true
+  },
+  "error": "",
+  "text": "Encounter Summary:\n- Chart excerpt documents acute myocardial infarction with a cardiology note stating “NSTEMI.”\n- Troponin is reported to have peaked at 4.2.\n- No diagnosis code is documented in the chart excerpt.\n\nDocumentation Gaps:\n1. Gap: MI type/classification is not fully clarified beyond the label “NSTEMI.”\n   Why it matters: ICD-10-CM coding differs materially by MI type. Per coding guidance, I21.4 is for type 1 NSTEMI, while type 2 MI is coded to I21.A1 rather than I21.4 even if described as NSTEMI/STEMI.\n   Evidence quote: “Patient with acute myocardial infarction. Cardiology note says ‘NSTEMI’. Troponin peaked at 4.2.”\n   Minimal clarification needed: Whether the documented NSTEMI represents type 1 MI versus another MI type, if clinically established.\n\n2. Gap: Timing/episode is not established well enough to exclude a subsequent MI code category.\n   Why it matters: A subsequent NSTEMI may code to I22.2 rather than I21.4 when clinically applicable.\n   Evidence quote: “Patient with acute myocardial infarction. Cardiology note says ‘NSTEMI’.”\n   Minimal clarification needed: Whether this is an initial acute NSTEMI or a subsequent MI episode.\n\n3. Gap: There is no explicit coded diagnosis entry in the excerpt.\n   Why it matters: Although the diagnosis appears clinically documented, coding accuracy depends on a final, explicit provider diagnosis statement with adequate specificity.\n   Evidence quote: “No ICD coding documented in chart.”\n   Minimal clarification needed: Final provider diagnosis documentation with MI type/episode specificity.\n\nProposed Provider Queries:\n1. Topic: Clarification of myocardial infarction type\n   Reason query is needed: “NSTEMI” is documented, but coding guidance distinguishes type 1 NSTEMI from other MI types.\n   Evidence quote: “Patient with acute myocardial infarction. Cardiology note says ‘NSTEMI’. Troponin peaked at 4.2.”\n   Non-leading query text: “The record documents acute myocardial infarction and a cardiology note stating ‘NSTEMI,’ with troponin peak 4.2. For documentation specificity, please clarify the type of myocardial infarction for this encounter, if known.”\n   Suggested response options:\n   - Type 1 NSTEMI\n   - Type 2 myocardial infarction\n   - Other myocardial infarction type\n   - Acute myocardial injury without myocardial infarction\n   - Clinically undetermined\n   - Other: ______\n   Note: Include “acute myocardial injury without myocardial infarction” only if the provider indicates MI is not actually established; otherwise this option may be omitted by local query policy.\n\n2. Topic: Clarification of episode/status as initial vs subsequent MI\n   Reason query is needed: Coding may differ if this represents a subsequent NSTEMI.\n   Evidence quote: “Patient with acute myocardial infarction. Cardiology note says ‘NSTEMI’.”\n   Non-leading query text: “For this documented NSTEMI, please clarify the episode/status of the myocardial infarction for this encounter.”\n   Suggested response options:\n   - Initial acute NSTEMI\n   - Subsequent NSTEMI\n   - Unable to determine\n   - Other: ______\n   Limitation: The excerpt does not provide prior-MI timing details, so this query is only appropriate if the full chart suggests a recent preceding MI.\n\nCoding Specificity Checklist:\n- Confirm MI type: type 1 vs type 2 vs other MI type.\n- Confirm whether diagnosis is NSTEMI vs another AMI category.\n- Confirm whether this is an initial acute MI or subsequent MI.\n- Ensure final provider diagnosis statement is present in the chart.\n- If MI is type 2 or other type, document the underlying cause/associated condition when clinically established.\n- Confirm encounter is within the acute MI timeframe if relevant to code selection.\n\nRisk Flags:\n- Potential ambiguity: “acute myocardial infarction” and “NSTEMI” support AMI, but the excerpt does not clarify MI type beyond the NSTEMI label.\n- Important coding distinction: official guidance states I21.4 is used for type 1 NSTEMI; if the MI is type 2, code I21.A1 is used instead of I21.4.\n- Possible overquery risk: There is not enough excerpted evidence to independently support querying for a specific etiology or underlying cause.\n- Possible unnecessary query risk: There is no evidence in the excerpt alone of a prior recent MI, so a “subsequent MI” query should only be asked if supported elsewhere in the chart.\n\nSpecialist Trace:\n- Medical Coding Expert: Consulted for ICD-10-CM specificity and MI coding distinctions. Accepted: I21.4 = non-ST elevation (NSTEMI) myocardial infarction; I22.2 = subsequent NSTEMI; I21.9 = acute MI unspecified; guideline that I21.4 applies to type 1 NSTEMI and type 2 MI is coded differently. Rejected: any unsupported patient-specific coding assignment beyond the excerpt.\n- AMBOSS Expert: Not consulted. The excerpt already documents AMI/NSTEMI, and no additional clinical criteria review was required to identify the documentation gap.\n- CDI Web Search Expert: Not consulted. Sufficient coding guidance was available from the coding expert output.\n\nLikely ICD-10-CM diagnosis category with specificity considerations:\n- Most likely supported category from the excerpt: I21.4 Non-ST elevation (NSTEMI) myocardial infarction, if the provider’s documented NSTEMI is a type 1 AMI.\n- Important alternative if clarified differently: I22.2 for subsequent NSTEMI if this is a subsequent MI; I21.9 only if acute MI remains unspecified; and per guideline, a documented type 2 MI would not be coded as I21.4.\n- Based on the excerpt alone, the safest chart-based conclusion is that NSTEMI is documented, but final code assignment still depends on provider clarification of MI type and episode if those are not established elsewhere in the record."
+}

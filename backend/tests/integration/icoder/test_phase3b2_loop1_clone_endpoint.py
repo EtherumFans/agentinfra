@@ -63,11 +63,7 @@ def _cleanup_cloned_agents():
                 delete(Agent).where(Agent.is_prebuilt == False)  # noqa: E712
             )
             await session.commit()
-    try:
-        asyncio.get_event_loop().run_until_complete(_purge())
-    except RuntimeError:
-        # No running loop in this thread — create one fresh.
-        asyncio.run(_purge())
+    asyncio.run(_purge())
     yield
 
 
@@ -116,26 +112,16 @@ def test_hub_card_includes_action_urls_for_runnable_agent(client):
     )
 
 
-def test_hub_card_action_urls_none_for_non_runnable(client):
+def test_hub_exposes_only_runnable_cards(client):
     """Non-runnable (metadata-only) packs must have null action URLs —
     no clone/chat/customize/run buttons on the frontend."""
     r = client.get("/api/icoder/agents/hub")
     cards = r.json()["agents"]
-    metadata_only_cards = [c for c in cards if not c["runnable"]]
-    assert len(metadata_only_cards) >= 1, "Hub must have at least 1 metadata-only pack"
-    for card in metadata_only_cards:
-        assert card.get("clone_url") is None, (
-            f"non-runnable {card['agent_ref']} must have clone_url=None"
-        )
-        assert card.get("chat_url") is None, (
-            f"non-runnable {card['agent_ref']} must have chat_url=None"
-        )
-        assert card.get("customize_url") is None, (
-            f"non-runnable {card['agent_ref']} must have customize_url=None"
-        )
-        assert card.get("run_url") is None, (
-            f"non-runnable {card['agent_ref']} must have run_url=None"
-        )
+    assert cards, "Hub must expose launch-candidate agents"
+    non_runnable_refs = [c["agent_ref"] for c in cards if not c["runnable"]]
+    assert non_runnable_refs == [], (
+        f"metadata-only/internal packs leaked into Hub: {non_runnable_refs}"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -144,7 +130,8 @@ def test_hub_card_action_urls_none_for_non_runnable(client):
 
 def test_clone_first_call_returns_201_with_all_url_fields(client):
     """First clone of medical-coding-agent must return 201 Created with
-    project_agent_id, runtime_agent_id, source_agent_ref, chat_url,
+    project_agent_id, runtime_agent_id, source_runtime_agent_id,
+    source_agent_ref, chat_url,
     customize_url, run_url, cloned=True."""
     r = _clone(client, "medical-coding-agent")
     assert r.status_code == 201, (
@@ -155,9 +142,10 @@ def test_clone_first_call_returns_201_with_all_url_fields(client):
     assert "project_agent_id" in body and body["project_agent_id"], (
         "project_agent_id must be a non-empty string (DB UUID)"
     )
-    assert body["runtime_agent_id"] == "medical-coding-agent", (
+    assert body["runtime_agent_id"] == body["project_agent_id"], (
         f"runtime_agent_id mismatch: {body.get('runtime_agent_id')!r}"
     )
+    assert body["source_runtime_agent_id"] == "medical-coding-agent"
     assert body["source_agent_ref"] == "icoder/medical-coding-agent@2.0.0", (
         f"source_agent_ref mismatch: {body.get('source_agent_ref')!r}"
     )
@@ -168,8 +156,10 @@ def test_clone_first_call_returns_201_with_all_url_fields(client):
         f"customize_url must point to /ai-studio/agents/<id>: "
         f"{body.get('customize_url')!r}"
     )
-    assert body["run_url"] is not None and "medical-coding-agent" in body["run_url"], (
-        f"run_url must reference medical-coding-agent A2A path: "
+    assert body["run_url"] == (
+        f"/api/icoder/agents/{body['project_agent_id']}/v1/message:send"
+    ), (
+        f"run_url must reference the project Agent A2A path: "
         f"{body.get('run_url')!r}"
     )
     assert body["cloned"] is True, "first clone must set cloned=True"
@@ -198,9 +188,11 @@ def test_clone_creates_org_scoped_agent_row_in_db(client):
                 len(prebuilt.scalars().all()),
                 len(cloned.scalars().all()),
             )
-    # Run inside the event loop that TestClient already has running
+    # TestClient owns a separate portal thread. Python 3.12 no longer creates
+    # a main-thread event loop implicitly, so run these direct DB assertions in
+    # explicit, short-lived loops.
     import asyncio
-    pre_before, cloned_before = asyncio.get_event_loop().run_until_complete(_count())
+    pre_before, cloned_before = asyncio.run(_count())
 
     # Clone
     r = _clone(client, "medical-coding-agent")
@@ -208,7 +200,7 @@ def test_clone_creates_org_scoped_agent_row_in_db(client):
     project_agent_id = r.json()["project_agent_id"]
 
     # Count after
-    pre_after, cloned_after = asyncio.get_event_loop().run_until_complete(_count())
+    pre_after, cloned_after = asyncio.run(_count())
     assert pre_after == pre_before, "prebuilt count must not change"
     assert cloned_after == cloned_before + 1, (
         f"cloned count must increase by 1: {cloned_before} → {cloned_after}"
@@ -220,7 +212,7 @@ def test_clone_creates_org_scoped_agent_row_in_db(client):
             q = select(Agent).where(Agent.id == project_agent_id)
             result = await session.execute(q)
             return result.scalar_one_or_none()
-    new_agent = asyncio.get_event_loop().run_until_complete(_get_cloned())
+    new_agent = asyncio.run(_get_cloned())
     assert new_agent is not None, f"new Agent row not found: id={project_agent_id}"
     assert new_agent.is_prebuilt is False, "cloned Agent must have is_prebuilt=False"
     assert new_agent.organization_id is not None, (
@@ -293,13 +285,11 @@ def test_clone_returns_404_for_stub_agent_id(client):
     internal_engine) must return 404 — those packs are not Hub-visible
     and have no prebuilt Agent row.
 
-    The medcoder-coding-review-agent pack is internal_engine, so it's
-    seeded as is_prebuilt=True but must NOT be cloneable as a Hub action
-    (the Hub doesn't show it). However, since it IS in the prebuilt DB,
-    the clone endpoint will find it. To honor the contract, this test
-    uses a totally fake agent_id that's guaranteed not in prebuilt.
+    The medcoder-coding-review-agent pack is internal_engine. It may have a
+    derived prebuilt DB projection for runtime administration, but the Hub
+    does not publish it and Clone must therefore reject the real short ID.
     """
-    r = _clone(client, "medcoder-coding-review-agent-should-not-clone")
+    r = _clone(client, "medcoder-coding-review-agent")
     assert r.status_code == 404, (
         f"unknown agent must return 404; got {r.status_code}: {r.text}"
     )
@@ -362,7 +352,7 @@ def test_clone_with_name_override(client):
             q = select(Agent).where(Agent.id == body["project_agent_id"])
             result = await session.execute(q)
             return result.scalar_one_or_none()
-    agent = asyncio.get_event_loop().run_until_complete(_get())
+    agent = asyncio.run(_get())
     assert agent is not None
     assert agent.name == "My Custom Coding Agent", (
         f"name override not applied: {agent.name!r}"

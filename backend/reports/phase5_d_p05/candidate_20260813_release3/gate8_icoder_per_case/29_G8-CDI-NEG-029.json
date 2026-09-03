@@ -1,0 +1,298 @@
+{
+  "case_id": "CASE-a705194eb35f",
+  "completion_state": "REVIEW_RECOMMENDED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-a705194eb35f/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "HbA1c 7.2 is documented but no clinical correlation or plan for management is stated.",
+      "why_it_matters": "An abnormal lab value without clinical correlation may lead to unspecified diabetes control and unclear plan, affecting coding for diabetes with complications or control status.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "HbA1c 7.2",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-a705194eb35f/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "Type 2 diabetes mellitus is documented without specifying presence of any complications or long-term use of insulin.",
+      "why_it_matters": "Diabetes documentation should specify whether there are complications (e.g., ophthalmic, neurological, renal) and whether insulin is used, as this affects coding specificity and severity.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "2型糖尿病20年",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-a705194eb35f/Q-001",
+      "gap_id": "CASE-a705194eb35f/GAP-001",
+      "topic": "HbA1c management plan",
+      "reason": "HbA1c 7.2 is documented but no clinical correlation or plan for management is stated.",
+      "evidence_span": {
+        "document_id": "unknown",
+        "quote": "HbA1c 7.2",
+        "char_start": 94,
+        "char_end": 103,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "unknown",
+          "quote": "HbA1c 7.2",
+          "char_start": 94,
+          "char_end": 103,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "What is the clinical significance and management plan for the documented HbA1c of 7.2?",
+      "response_options": [
+        "A. HbA1c is at goal; continue current management",
+        "B. HbA1c is above goal; intensification of therapy is planned",
+        "C. HbA1c is above goal; no change in therapy at this time",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    }
+  ],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-002",
+      "gap_id": "CASE-a705194eb35f/GAP-002",
+      "topic": "Diabetes complications and insulin use",
+      "reason": "Type 2 diabetes mellitus is documented without specifying presence of any complications or long-term use of insulin.",
+      "query_text": "What is the status of diabetic complications and long-term insulin use in this patient with type 2 diabetes?",
+      "response_options": [
+        "A. No diabetic complications; no long-term insulin use",
+        "B. Diabetic complications present; no long-term insulin use",
+        "C. No diabetic complications; long-term insulin use",
+        "D. Diabetic complications present; long-term insulin use",
+        "E. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "unknown",
+          "quote": "2型糖尿病20年",
+          "char_start": 11,
+          "char_end": 19,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-004: the chart explicitly documents type 2 diabetes"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者女性, 75岁, 2型糖尿病20年。近期失访。否认多饮多尿加重、视物模糊、肢体麻木、<REDACTED:NAME>、间歇性跛行。<REDACTED:NAME>:无糖尿病足, 触觉正常。HbA1c 7.2。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "2型糖尿病20年",
+      "近期失访",
+      "否认多饮多尿加重、视物模糊、肢体麻木、间歇性跛行",
+      "无糖尿病足，触觉正常",
+      "HbA1c 7.2"
+    ],
+    "encounter_metadata": {
+      "patient_age": "75岁",
+      "patient_sex": "女性",
+      "encounter_type": "门诊"
+    }
+  },
+  "risk_flags": [
+    {
+      "category": "ambiguous_term",
+      "description": "The phrase '近期失访' (recently lost to follow-up) is ambiguous regarding the duration and impact on current management."
+    }
+  ],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "The documentation must clarify whether the HbA1c of 7.2 represents an intentional target or an uncontrolled state, and specify the current treatment plan (e.g., lifestyle, oral agents, or insulin) to support accurate coding of diabetes management. Additionally, the absence of complications should be explicitly stated as “without complications” or list any specific diabetic complications (e.g., retinopathy, neuropathy, nephropathy) that are present, since the current note only implies their absence without a definitive statement.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3675,
+      "tokens": 268
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-3ea17851a4cb",
+    "gap_identification": "run-bc29b5f44ef4",
+    "gap_identification_risk_flags": "emitted=1;quote_snapped=0",
+    "expert_consultation": "run-17be26e81938",
+    "query_generation": "run-758b5fb18493",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=2;llm_complete=False;llm_reasoning=The chart lacks clinical correlation for the abnormal HbA1c and does not specify",
+    "query_necessity_gate": "necessary=1;unnecessary=1;overquery_triggered=False;final_count=1",
+    "query_single_dimension_gate": "single_dim=1;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;rewrite_attempted=0;rewrite_accepted=0;final_count=1",
+    "claim_evidence_alignment_gate": "claims_extracted=3;blocked=0;flagged=0;final_count=1",
+    "claim_evidence_alignment_gate::run_id": "run-e64a39be2fc9",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=1",
+    "semantic_necessity_gate::run_id": "run-4ec7c69b422d",
+    "query_compliance_gate": ";passed=1;blocked=0",
+    "specialist_trace_emit": "run-e29967e6dc32"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-c4bef58f13d5",
+    "gap_identification": "trace-413e443c30f5",
+    "expert_consultation": "trace-15b2e5bbcfe6",
+    "query_generation": "trace-9ea360aca20c",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-5b3f30be2312",
+    "semantic_necessity_gate": "trace-a387d849a8be",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-bbaaa5f81b09"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2611,
+      "prompt_tokens": 241,
+      "completion_tokens": 104,
+      "total_tokens": 345,
+      "run_id": "run-3ea17851a4cb",
+      "trace_id": "trace-c4bef58f13d5",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5580,
+      "prompt_tokens": 1069,
+      "completion_tokens": 434,
+      "total_tokens": 1503,
+      "run_id": "run-bc29b5f44ef4",
+      "trace_id": "trace-413e443c30f5",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5005,
+      "prompt_tokens": 1192,
+      "completion_tokens": 449,
+      "total_tokens": 1641,
+      "run_id": "run-758b5fb18493",
+      "trace_id": "trace-9ea360aca20c",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3675,
+      "prompt_tokens": 168,
+      "completion_tokens": 100,
+      "total_tokens": 268,
+      "run_id": "run-7959cc4636e5",
+      "trace_id": "trace-10ca23961c6d",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-6ba0df2341a4",
+      "trace_id": "trace-1e712870e176",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-a3b7774d3383",
+      "trace_id": "trace-eb753cc96ee4",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-a1a899429566",
+      "trace_id": "trace-5b191db58bde",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T20:08:19.575276Z"
+}

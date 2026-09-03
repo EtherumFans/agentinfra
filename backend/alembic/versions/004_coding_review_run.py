@@ -61,9 +61,9 @@ def upgrade() -> None:
         sa.Column("input_source", sa.String(length=32), nullable=False, server_default="manual"),
 
         sa.Column("status", sa.String(length=32), nullable=False, server_default="unavailable"),
-        sa.Column("degraded", sa.Boolean(), nullable=False, server_default=sa.text("0")),
-        sa.Column("business_result_generated", sa.Boolean(), nullable=False, server_default=sa.text("0")),
-        sa.Column("manual_review_required", sa.Boolean(), nullable=False, server_default=sa.text("0")),
+        sa.Column("degraded", sa.Boolean(), nullable=False, server_default=sa.false()),
+        sa.Column("business_result_generated", sa.Boolean(), nullable=False, server_default=sa.false()),
+        sa.Column("manual_review_required", sa.Boolean(), nullable=False, server_default=sa.false()),
         sa.Column("reason", sa.String(length=512), nullable=False, server_default=""),
 
         sa.Column("primary_diagnosis", sa.JSON(), nullable=True),

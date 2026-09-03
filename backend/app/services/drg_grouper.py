@@ -1,11 +1,12 @@
-"""DRG Grouper — CHS-DRG 1.1 grouping with surgery + diagnosis support.
+"""Development-only DRG/DIP candidate heuristic.
 
-Supports both surgical cases (procedure-code → ADRG/DRG) and medical cases
-(diagnosis-code → MDC → medical ADRG). CC/MCC level determined from secondary
-diagnoses when available.
+Supports deterministic risk-review candidates for surgical and medical cases.
+It is not an official national, provincial, municipal or hospital grouper and
+must not be used for payment, settlement or automatic coding decisions.
 
-KB source: bundled inline in `drg_kb.py` (CHS-DRG 1.1 高频手术 + DRG 名称字典).
-No external file dependency.
+The bundled terminology and mappings have unverified source/licence status.
+Every call is gated by ``china_clinical_assets_manifest.json`` and cloud use
+fails closed until an authoritative rule pack is installed and verified.
 """
 import logging
 import re
@@ -34,7 +35,7 @@ def _ensure_loaded():
 
 
 # ── MDC mapping: ICD-10 chapter letter → MDC ─────────────────────────────────
-# Based on CHS-DRG 1.1 MDC definitions
+# Development heuristic using common DRG MDC terminology; not an official map.
 # Special diagnosis code → MDC overrides (chapter A/B codes by body system)
 _MDC_OVERRIDES: dict[str, tuple[str, str]] = {
     "A41": ("MDCZ", "感染性疾病"),  # 败血症
@@ -206,7 +207,7 @@ def _assign_medical_adrg(primary_diag: str, mdc: str) -> tuple[str, str]:
 def _build_medical_drg(adrg: str, cc_level: int) -> str:
     """Build DRG code from ADRG + CC level suffix.
 
-    CHS-DRG convention:
+    Local candidate suffix convention:
     - ADRG + 1 = with MCC
     - ADRG + 3 = with CC
     - ADRG + 5 = without CC/MCC
@@ -225,7 +226,7 @@ def group_drg(
     diagnosis_codes: list[str],
     procedure_code: Optional[str] = None,
 ) -> dict:
-    """Group a case into DRG using CHS-DRG 1.1 rules.
+    """Produce a non-authoritative DRG risk-review candidate.
 
     Surgical cases: procedure_code → surgery-DRG mapping + CC refinement.
     Medical cases: primary diagnosis → MDC → medical ADRG + CC refinement.
@@ -240,15 +241,26 @@ def group_drg(
             "adrg": "FM1", "drg": "FM19",
             "drg_name": "...", "cc_level": "...",
             "grouping_method": "surgical" | "medical",
-            "coverage": True/False
+            "coverage": True/False,
+            "governance": {"billing_authoritative": False, ...}
         }
     """
+    from app.config import settings
+    from app.services.clinical_asset_governance import get_drg_risk_governance
+
+    governance = get_drg_risk_governance(
+        deployment_mode=settings.ICODER_DEPLOYMENT_MODE,
+    )
     _ensure_loaded()
 
     result = {
         "mdc": "", "mdc_name": "", "adrg": "", "drg": "",
         "drg_name": "", "cc_level": "", "grouping_method": "",
         "coverage": False,
+        "candidate_only": True,
+        "billing_authoritative": False,
+        "manual_review_required": True,
+        "governance": governance,
     }
 
     primary_diag = diagnosis_codes[0] if diagnosis_codes else ""
@@ -350,7 +362,7 @@ def group_drg(
 
 
 def get_adrg_list() -> list[dict]:
-    """Get all ADRG groups (bundled CHS-DRG 1.1)."""
+    """Get bundled development terminology candidates (not authoritative)."""
     from app.services.drg_kb import ADRG_LIST
     result = []
     for code, name, mdc, surgical in ADRG_LIST:
@@ -364,7 +376,7 @@ def get_adrg_list() -> list[dict]:
 
 
 def get_drg_list() -> list[dict]:
-    """Get all DRG groups (bundled CHS-DRG 1.1)."""
+    """Get bundled development terminology candidates (not authoritative)."""
     result = []
     for code, name in DRG_NAMES.items():
         result.append({"code": code, "name": name})

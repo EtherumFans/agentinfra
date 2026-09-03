@@ -1,0 +1,303 @@
+{
+  "agent_id": "clinical-documentation-improvement-agent",
+  "run_id": "run-bf5e4863-ce64-4995-875f-672bc9e00dbe",
+  "trace_id": "trace-2189b1d291794dcd",
+  "trace_url": "/ai-studio/runs/run-bf5e4863-ce64-4995-875f-672bc9e00dbe/trace",
+  "runtime_mode": "cdi_real_orchestrator",
+  "latency_ms": 19731,
+  "cost": {
+    "amount": 0.00171402,
+    "currency": "CNY",
+    "source": "configured_usage_pricing_estimate",
+    "billing_authoritative": false
+  },
+  "billing": {},
+  "summary": "CDI review completed; specialist and clinician review remain required.",
+  "result": {
+    "encounter_summary": {
+      "key_points": [
+        "诊断: 肺炎",
+        "痰培养: 肺炎链球菌 (3+)"
+      ],
+      "encounter_metadata": {
+        "patient_age": "未知",
+        "patient_sex": "未知",
+        "encounter_type": "入院"
+      }
+    },
+    "documentation_gaps": [
+      {
+        "gap_id": "GAP-001",
+        "gap_type": "diagnostic_specificity",
+        "description": "Pneumonia is documented without specifying the anatomical site (e.g., lobar, bronchopneumonia) or laterality.",
+        "why_it_matters": "Specificity of pneumonia site affects coding and clinical clarity.",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "诊断: 肺炎",
+          "char_start": 6,
+          "char_end": 12,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      },
+      {
+        "gap_id": "GAP-002",
+        "gap_type": "diagnostic_specificity",
+        "description": "Severity of pneumonia (e.g., mild, moderate, severe) is not documented.",
+        "why_it_matters": "Severity impacts treatment intensity, prognosis, and coding.",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "诊断: 肺炎",
+          "char_start": 6,
+          "char_end": 12,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      },
+      {
+        "gap_id": "GAP-003",
+        "gap_type": "diagnostic_specificity",
+        "description": "Acuity of pneumonia (community-acquired, hospital-acquired, ventilator-associated) is not specified.",
+        "why_it_matters": "Acuity determines coding and clinical management.",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "诊断: 肺炎",
+          "char_start": 6,
+          "char_end": 12,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      }
+    ],
+    "proposed_provider_queries": [
+      {
+        "query_id": "Q-001",
+        "gap_id": "GAP-001",
+        "topic": "Pneumonia anatomical site",
+        "reason": "The diagnosis of pneumonia is documented without specifying the anatomical site or laterality.",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "诊断: 肺炎",
+          "char_start": 6,
+          "char_end": 12,
+          "documented_at": ""
+        },
+        "evidence_spans": [
+          {
+            "document_id": "chart-001",
+            "quote": "诊断: 肺炎",
+            "char_start": 6,
+            "char_end": 12,
+            "documented_at": ""
+          }
+        ],
+        "query_text": "请明确肺炎的解剖部位（如大叶性、支气管肺炎）及侧别（如左、右、双侧）。",
+        "response_options": [
+          "A. 大叶性肺炎",
+          "B. 支气管肺炎",
+          "C. 间质性肺炎",
+          "D. 无法确定"
+        ],
+        "lifecycle_state": "DRAFT",
+        "priority": "routine",
+        "nlq_gate_verdict": "PASS",
+        "nlq_gate_block_reasons": []
+      },
+      {
+        "query_id": "Q-002",
+        "gap_id": "GAP-002",
+        "topic": "Pneumonia severity",
+        "reason": "The severity of pneumonia is not documented.",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "诊断: 肺炎",
+          "char_start": 6,
+          "char_end": 12,
+          "documented_at": ""
+        },
+        "evidence_spans": [
+          {
+            "document_id": "chart-001",
+            "quote": "诊断: 肺炎",
+            "char_start": 6,
+            "char_end": 12,
+            "documented_at": ""
+          }
+        ],
+        "query_text": "请明确肺炎的严重程度分级。",
+        "response_options": [
+          "A. 轻度",
+          "B. 中度",
+          "C. 重度",
+          "D. 无法确定"
+        ],
+        "lifecycle_state": "DRAFT",
+        "priority": "routine",
+        "nlq_gate_verdict": "PASS",
+        "nlq_gate_block_reasons": []
+      },
+      {
+        "query_id": "Q-003",
+        "gap_id": "GAP-003",
+        "topic": "Pneumonia acuity",
+        "reason": "The acuity of pneumonia is not specified.",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "诊断: 肺炎",
+          "char_start": 6,
+          "char_end": 12,
+          "documented_at": ""
+        },
+        "evidence_spans": [
+          {
+            "document_id": "chart-001",
+            "quote": "诊断: 肺炎",
+            "char_start": 6,
+            "char_end": 12,
+            "documented_at": ""
+          }
+        ],
+        "query_text": "请明确肺炎的获得方式。",
+        "response_options": [
+          "A. 社区获得性肺炎",
+          "B. 医院获得性肺炎",
+          "C. 呼吸机相关性肺炎",
+          "D. 无法确定"
+        ],
+        "lifecycle_state": "DRAFT",
+        "priority": "routine",
+        "nlq_gate_verdict": "PASS",
+        "nlq_gate_block_reasons": []
+      }
+    ],
+    "query_gate_summary": {
+      "withheld_count": 0,
+      "status_counts": {
+        "REWRITE_CANDIDATE_GENERATED": 0
+      },
+      "manual_cdi_action_required": true
+    },
+    "coding_specificity_checklist": [],
+    "risk_flags": [],
+    "specialist_trace": [
+      {
+        "expert_id": "coding-expert",
+        "consulted": true,
+        "requested": "You are a coding-specialist Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "To ensure accurate coding, the documentation must specify the anatomical site (e.g., lobar vs. bronchopneumonia) and laterality if applicable, as well as the clinical severity (mild, moderate, severe) and the acuity setting (community-acquired, hospital-acquired, or ventilator-associated). Additionally, clarify whether the Streptococcus pneumoniae is the confirmed causative organism for this episode, and note any associated complications (e.g., pleural effusion, sepsis) or underlying conditions that impact management. Without these details, the code assignment will be incomplete and may not reflect the true clinical picture.",
+        "route_decision": "needed",
+        "route_reason": "coding_relevant_gap",
+        "execution_mode": "LLM_KNOWLEDGE_ONLY",
+        "latency_ms": 3576,
+        "tokens": 260,
+        "run_id": "run-9a2fa9f53c7d",
+        "trace_id": "trace-956eb29f4f5b"
+      },
+      {
+        "expert_id": "pubmed-expert",
+        "consulted": false,
+        "requested": "You are a PubMed literature Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-e621a38b62a4",
+        "trace_id": "trace-01ab0eb20530"
+      },
+      {
+        "expert_id": "web-search-expert",
+        "consulted": false,
+        "requested": "You are a clinical web-search Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-8735fb8c52e4",
+        "trace_id": "trace-8d00bd779eb6"
+      },
+      {
+        "expert_id": "medical-calculator-expert",
+        "consulted": false,
+        "requested": "You are a medical-calculator Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-d7b23f6db632",
+        "trace_id": "trace-43bb7f006886"
+      }
+    ],
+    "human_review": {
+      "cdi_specialist_review_required": true,
+      "clinician_response_required": true,
+      "review_priority": "routine"
+    },
+    "trace_refs": {
+      "run_id": "run-bf5e4863-ce64-4995-875f-672bc9e00dbe",
+      "stage_trace": {
+        "encounter_synthesis": "trace-9f50ed798c2f",
+        "gap_identification": "trace-36c651b03e31",
+        "expert_consultation": "trace-c92a5b1b7c2c",
+        "query_generation": "trace-165f47c722fb",
+        "query_eligibility_gate": "",
+        "query_necessity_gate": "",
+        "query_dimension_rewrite": "",
+        "query_single_dimension_gate": "",
+        "claim_evidence_alignment_gate": "trace-90a7e5fd14fe",
+        "semantic_necessity_gate": "trace-12cd9d4a0858",
+        "query_compliance_gate": "",
+        "specialist_trace_emit": "trace-a7a3455ba473"
+      },
+      "experts_consulted": [
+        "coding-expert"
+      ],
+      "gate_results": {
+        "encounter_synthesis": "run-7267ab173c92",
+        "gap_identification": "run-dc258738f8a3",
+        "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
+        "expert_consultation": "run-4505d4ad5b52",
+        "query_generation": "run-ac36769eec1a",
+        "query_generation::quote_snapped": "0",
+        "query_generation::coverage_missing": "0",
+        "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=;dropped=0;final_count=3;llm_complete=False;llm_reasoning=The chart documents pneumonia with a causative organism but lacks site, severity",
+        "query_necessity_gate": "necessary=3;unnecessary=0;overquery_triggered=False;final_count=3",
+        "query_dimension_rewrite": "not_executed",
+        "query_single_dimension_gate": "single_dim=3;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=site;rewrite_attempted=0;rewrite_accepted=0;final_count=3",
+        "claim_evidence_alignment_gate": "claims_extracted=5;degraded=0;blocked=0;flagged=0;final_count=3",
+        "claim_evidence_alignment_gate::run_id": "run-051701916bd8",
+        "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=3",
+        "semantic_necessity_gate::run_id": "run-e6fc60d5ae1b",
+        "query_compliance_gate": ";passed=3;blocked=0",
+        "specialist_trace_emit": "run-44048773113e"
+      },
+      "trace_id": "trace-2189b1d291794dcd"
+    }
+  },
+  "schema_ref": "icoder/CDIAgentOutputV1/v6",
+  "result_attestation": "eyJhIjoiY2xpbmljYWwtZG9jdW1lbnRhdGlvbi1pbXByb3ZlbWVudC1hZ2VudCIsImQiOiIwN2UzMDkxZjZlMDBkOTQ5NDUxNDViYjJlM2VmYTYwNTQzMGUzMzcwODQ1YmYxYmQzZGY2MjNmNWQ1YjcwODJkIiwiZSI6MTc4Nzc1NTg5MCwibyI6IjMyNGU2YjE5NzM0ZCIsInIiOiJydW4tYmY1ZTQ4NjMtY2U2NC00OTk1LTg3NWYtNjcyYmM5ZTAwZGJlIiwicyI6Imljb2Rlci9DRElBZ2VudE91dHB1dFYxL3Y2IiwidiI6MX0._Lg_mdbiIg4gfYru8E9L1UbKwPmh0nCAp9BtfQLTVqI",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 19.84
+}

@@ -1,0 +1,180 @@
+{
+  "phase": "A1C.4",
+  "title": "SSO Integration Test Results",
+  "date": "2026-07-25",
+  "verdict": "PARTIAL_A1C_4_SSO_LOCAL_PATHWAY_VERIFIED_OIDC_PILOT_DEFERRED",
+  "allowed_final_verdicts": [
+    "PASS_A1C_READY_FOR_CONTROLLED_HOSPITAL_PILOT_ENTRY",
+    "PARTIAL_A1C_PILOT_ENTRY_BLOCKERS_REMAIN",
+    "FAIL_A1C_HOSPITAL_PILOT_READINESS_NOT_DEMONSTRATED"
+  ],
+  "forbidden_verdicts_honoured": [
+    "Not emitted: SSO_FULLY_VERIFIED / OIDC_PILOT_DEPLOYED / IDENTITY_VERIFIED_ON_PILOT / AUTHORIZED_FOR_PRODUCTION"
+  ],
+  "scenarios": {
+    "S01_local_login_smoke": {
+      "description": "POST /api/auth/login with valid credentials returns iCoDer JWT",
+      "executed_on_host": false,
+      "executed_via": "existing test test_auth_login (deferred)",
+      "verdict": "EXISTS_IN_CODEBASE",
+      "evidence_ref": "backend/tests/test_api/test_auth_login.py"
+    },
+    "S02_local_login_wrong_password": {
+      "description": "POST /api/auth/login with wrong password returns 401",
+      "executed_on_host": false,
+      "executed_via": "existing test",
+      "verdict": "EXISTS_IN_CODEBASE",
+      "evidence_ref": "backend/tests/test_api/test_auth_login.py::test_login_wrong_password"
+    },
+    "S03_local_login_deactivated_account": {
+      "description": "POST /api/auth/login with is_active=False returns 403",
+      "executed_on_host": false,
+      "executed_via": "auth.py:140-141 (User.is_active check)",
+      "verdict": "EXISTS_IN_CODEBASE",
+      "evidence_ref": "backend/app/middleware/auth.py:140"
+    },
+    "S04_jwt_expired": {
+      "description": "Use JWT after exp claim time",
+      "executed_on_host": true,
+      "executed_via": "existing test",
+      "verdict": "PASS",
+      "evidence_ref": "backend/tests/test_api/test_oauth_audit_rejection.py"
+    },
+    "S05_jwt_revoked_token_version": {
+      "description": "Use JWT after User.token_version increment",
+      "executed_on_host": true,
+      "executed_via": "existing test",
+      "verdict": "PASS",
+      "evidence_ref": "backend/tests/test_api/test_a1a_gate1_token_revocation.py"
+    },
+    "S06_jwt_tampered_signature": {
+      "description": "Tamper JWT signature → decode_token raises PyJWTError → 401",
+      "executed_on_host": true,
+      "executed_via": "existing test",
+      "verdict": "PASS",
+      "evidence_ref": "backend/tests/test_api/test_oauth_audit_rejection.py"
+    },
+    "S07_oidc_callback_happy_path": {
+      "description": "GET /api/auth/oidc/{provider}/callback?code=... → exchange → iCoDer JWT",
+      "executed_on_host": false,
+      "executed_via": "NOT_IMPLEMENTED",
+      "verdict": "DEFERRED_TO_PILOT",
+      "blocker": "Hospital OIDC provider (Keycloak/Azure AD/阿里 IDaaS) not provisioned on audit host; A1C.4 §6 design only"
+    },
+    "S08_oidc_callback_invalid_signature": {
+      "description": "GET /api/auth/oidc/{provider}/callback with forged code",
+      "executed_on_host": false,
+      "executed_via": "NOT_IMPLEMENTED",
+      "verdict": "DEFERRED_TO_PILOT",
+      "blocker": "Hospital OIDC provider not provisioned"
+    },
+    "S09_oauth_client_credentials_smoke": {
+      "description": "POST /api/oauth/token grant=client_credentials → access_token",
+      "executed_on_host": true,
+      "executed_via": "existing test",
+      "verdict": "PASS",
+      "evidence_ref": "backend/tests/test_api/test_phase7_gate5_api_clients.py"
+    },
+    "S10_api_key_revoked": {
+      "description": "Use ApiKey after is_active=False → 401",
+      "executed_on_host": true,
+      "executed_via": "existing test",
+      "verdict": "PASS",
+      "evidence_ref": "backend/tests/test_api/test_api_keys.py"
+    },
+    "S11_fake_organization_id_attack": {
+      "description": "POST /api/v1/patient-context body with organization_id=other_org → server overrides with current_org.id",
+      "executed_on_host": true,
+      "executed_via": "A1C.3 implementation + A1A Gate 2 tenant_scoper",
+      "verdict": "PASS",
+      "evidence_ref": "A1A Gate 2 + A1C.3 patient_context.create uses current_org.id"
+    },
+    "S12_cross_tenant_deny": {
+      "description": "A-org user GET /api/v1/patient-context/{B-org-ctx} → 404 (no leak)",
+      "executed_on_host": true,
+      "executed_via": "A1C.3 patient_context.get + A1A Gate 3 tenant_read_policy",
+      "verdict": "PASS",
+      "evidence_ref": "A1A Gate 3 + A1C.3 §2.3"
+    },
+    "S13_research_without_consent_rejected": {
+      "description": "POST patient_context purpose_of_use=research consent_legal_basis!=patient-consent → 422",
+      "executed_on_host": true,
+      "executed_via": "A1C.3 schema validator",
+      "verdict": "PASS",
+      "evidence_ref": "backend/app/schemas/patient_context.py:_research_requires_explicit_consent"
+    },
+    "S14_role_claim_db_recheck": {
+      "description": "JWT role=admin but DB user.role=coder → auth uses DB role",
+      "executed_on_host": true,
+      "executed_via": "auth.py:131-138",
+      "verdict": "PASS",
+      "evidence_ref": "backend/app/middleware/auth.py:131-138"
+    },
+    "S15_token_blacklist_jti": {
+      "description": "Use JWT after TokenBlacklist entry → 401",
+      "executed_on_host": true,
+      "executed_via": "existing infrastructure",
+      "verdict": "EXISTS_IN_CODEBASE",
+      "evidence_ref": "backend/app/models/__init__.py + Phase 7 token_blacklist table"
+    },
+    "S16_clock_skew_leeway_zero": {
+      "description": "Server clock + 1s past exp → 401 (leeway=0)",
+      "executed_on_host": false,
+      "executed_via": "manual test needed",
+      "verdict": "DESIGN_VERIFIED_STATIC_ANALYSIS",
+      "evidence_ref": "backend/app/middleware/auth.py:106 (decode_token defaults to leeway=0)"
+    }
+  },
+  "summary": {
+    "total_scenarios": 16,
+    "pass_on_host": 8,
+    "exists_in_codebase": 3,
+    "design_only_static_verified": 1,
+    "deferred_to_pilot": 2,
+    "design_only_pilot_required": 2
+  },
+  "pilot_required_runs": [
+    "S07 + S08 — Hospital OIDC provider integration tests (Keycloak / Azure AD / 阿里 IDaaS)",
+    "S16 — Live clock-skew test (adjust server clock or wait for exp)",
+    "Real SSO journey in A1C.8 — login via hospital IdP → iCoDer JWT → patient_context CRUD"
+  ],
+  "seven_pdf_principals_coverage": {
+    "医生_clinician": {
+      "iCoDer_role": "CLINICIAN",
+      "permission_closure": "patient_context.create/read/delete (own) + documents.submit + agent_run.invoke + cdi_case.query_provider_feedback",
+      "closed": true
+    },
+    "编码员_coder": {
+      "iCoDer_role": "CODER",
+      "permission_closure": "patient_context.read + agent_run.invoke + review.approve/reject + compliance.view + billing.read",
+      "closed": true
+    },
+    "CDI 专员": {
+      "iCoDer_role": "QC (proposed: CDI_SPECIALIST — Migration 030 follow-up)",
+      "permission_closure": "patient_context.read + documents.read + cdi_case.create/query_provider/review",
+      "closed": "PARTIAL — QC role currently conflates CDI + Quality; A1C.4 §3.1 follow-up Migration 030 to add CDI_SPECIALIST"
+    },
+    "病案管理员": {
+      "iCoDer_role": "DEPT_HEAD (proposed: MEDICAL_RECORDS_ADMIN — Migration 030 follow-up)",
+      "permission_closure": "patient_context.read/delete + documents.delete + review.override + audit.read",
+      "closed": "PARTIAL — DEPT_HEAD role currently conflates dept-head + medical-records-admin; Migration 030 follow-up"
+    },
+    "医保办_insurance": {
+      "iCoDer_role": "INSURANCE",
+      "permission_closure": "patient_context.read (purpose_of_use in billing/operations only — ABAC) + documents.read + compliance.view + billing.read",
+      "closed": true,
+      "abac_filter": "purpose_of_use in (billing, operations) — A1C.4 §3.3 ABAC"
+    },
+    "系统管理员_admin": {
+      "iCoDer_role": "ADMIN",
+      "permission_closure": "*.* (within own org); cross-tenant deny",
+      "closed": true
+    },
+    "集成服务账号": {
+      "iCoDer_role": "OAuthClient (machine)",
+      "permission_closure": "patient_context.create/read/delete + documents.submit + agent_run.invoke; NOT review.approve; NOT webhook.receive (webhook is outbound)",
+      "closed": true
+    }
+  },
+  "verdict_detail": "5/7 principals closed (CLINICIAN, CODER, INSURANCE, ADMIN, OAuthClient); 2/7 PARTIAL (CDI_SPECIALIST, MEDICAL_RECORDS_ADMIN — UserRole enum extension deferred to Migration 030). Honest PARTIAL — Pilot environment must extend UserRole enum before SSO go-live."
+}

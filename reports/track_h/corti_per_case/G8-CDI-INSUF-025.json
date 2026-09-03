@@ -1,0 +1,91 @@
+{
+  "case_id": "G8-CDI-INSUF-025",
+  "group": "insufficient_evidence",
+  "variant": "",
+  "session_id": "298af4cb-7ed7-4937-9346-04d6db4fc9c9",
+  "attempt": 1,
+  "outcome": "SUCCESS",
+  "elapsed_s": 20.18,
+  "expected": {
+    "query_count_min": 0,
+    "query_count_max": 1,
+    "expected_no_query": false,
+    "expected_query_topics": [],
+    "notes": "Symptom only, no workup, no diagnosis — agent should not propose cardiac query without evidence"
+  },
+  "text_length": 4719,
+  "first_token_at_s": 4.16,
+  "last_token_at_s": 20.18,
+  "event_count": 9,
+  "raw_events_preview": [
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"id\":\"cf6e449e-7e04-4aa2-898f-50eb4a9a81cd\",\"type\":\"text-start\"}",
+    "message|{\"delta\":\"Encounter Summary:\\n- Brief outpatient-style excerpt documents: \\\"35-year-old female with intermittent chest tightness.\\\"\\n- Exam is documented as: \\\"Normal exam.\\\"\\n- Plan documented as: \\\"",
+    "message|{\"id\":\"cf6e449e-7e04-4aa2-898f-50eb4a9a81cd\",\"type\":\"text-end\"}",
+    "message|{\"messageMetadata\":{\"contextId\":\"019f55de-075b-7169-9d4e-e9718210bacf\",\"taskId\":\"019f55de-075b-70ef-9a68-f3c9f2de2561\",\"credits\":0.045216,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+    "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.045216},\"type\":\"finish\"}",
+    "message|[DONE]"
+  ],
+  "expert_events": [],
+  "status_events": [
+    {
+      "state": "working"
+    },
+    {
+      "state": "working"
+    },
+    {
+      "message": "Calling expert: coding-expert",
+      "state": "working"
+    }
+  ],
+  "finish_metadata": {
+    "contextId": "019f55de-075b-7169-9d4e-e9718210bacf",
+    "taskId": "019f55de-075b-70ef-9a68-f3c9f2de2561",
+    "credits": 0.045216,
+    "state": "completed"
+  },
+  "parsed": {
+    "encounter_summary": "- Brief outpatient-style excerpt documents: \"35-year-old female with intermittent chest tightness.\"\n- Exam is documented as: \"Normal exam.\"\n- Plan documented as: \"Recommend follow-up.\"",
+    "gaps": [
+      {
+        "idx": 1,
+        "text": "Chief symptom lacks clinical specificity\n- Why it matters: \"Chest tightness\" is a nonspecific symptom description and may not support precise symptom coding or risk stratification without more detail.\n- Evidence quote: \"intermittent chest tightness\"\n- Minimal clarification needed: symptom characterization such as timing, duration, severity, location/radiation, associated symptoms, and suspected cause if known."
+      },
+      {
+        "idx": 2,
+        "text": "Assessment/diagnostic impression is not documented\n- Why it matters: The excerpt gives a symptom and normal exam but no documented assessment explaining the clinical impression.\n- Evidence quote: \"35-year-old female with intermittent chest tightness. Normal exam. Recommend follow-up.\"\n- Minimal clarification needed: whether the chest tightness is being assessed as a symptom only, ruled out concern, or another defined condition if clinically supported."
+      },
+      {
+        "idx": 3,
+        "text": "Follow-up plan lacks details\n- Why it matters: The plan is too general for documentation clarity.\n- Evidence quote: \"Recommend follow-up.\"\n- Minimal clarification needed: follow-up timeframe, return precautions, and whether additional evaluation was advised."
+      }
+    ],
+    "gap_count": 3,
+    "queries": [
+      {
+        "idx": 1,
+        "text": "Clarification of assessment for chest tightness"
+      },
+      {
+        "idx": 2,
+        "text": "Clarification of symptom specificity"
+      },
+      {
+        "idx": 3,
+        "text": "Clarification of follow-up plan"
+      }
+    ],
+    "query_count": 3,
+    "specialists_contacted": [
+      "Medical Coding Expert",
+      "Coding Expert"
+    ],
+    "specialist_trace_text": "- Medical Coding Expert: Consulted for coding specificity and query targets. Accepted only the high-level conclusion that the excerpt is too limited for diagnosis-specific CDI queries; no unsupported diagnosis-specific recommendations were used.\n- AMBOSS Expert: Not consulted because no diagnosis-specific clinical criteria question could be supported from the excerpt.\n- CDI Web Search Expert: Not consulted because current external guidance was not required to identify the basic documentation gaps in this minimal note.\n\nUncertainty:\n- This excerpt is too sparse to support any diagnosis-specific query. Only general clarification queries about the symptom, assessment, and follow-up plan are supported by the quoted documentation.",
+    "has_specialist_trace": true
+  },
+  "error": "",
+  "text": "Encounter Summary:\n- Brief outpatient-style excerpt documents: \"35-year-old female with intermittent chest tightness.\"\n- Exam is documented as: \"Normal exam.\"\n- Plan documented as: \"Recommend follow-up.\"\n\nDocumentation Gaps:\n1. Chief symptom lacks clinical specificity\n- Why it matters: \"Chest tightness\" is a nonspecific symptom description and may not support precise symptom coding or risk stratification without more detail.\n- Evidence quote: \"intermittent chest tightness\"\n- Minimal clarification needed: symptom characterization such as timing, duration, severity, location/radiation, associated symptoms, and suspected cause if known.\n\n2. Assessment/diagnostic impression is not documented\n- Why it matters: The excerpt gives a symptom and normal exam but no documented assessment explaining the clinical impression.\n- Evidence quote: \"35-year-old female with intermittent chest tightness. Normal exam. Recommend follow-up.\"\n- Minimal clarification needed: whether the chest tightness is being assessed as a symptom only, ruled out concern, or another defined condition if clinically supported.\n\n3. Follow-up plan lacks details\n- Why it matters: The plan is too general for documentation clarity.\n- Evidence quote: \"Recommend follow-up.\"\n- Minimal clarification needed: follow-up timeframe, return precautions, and whether additional evaluation was advised.\n\nProposed Provider Queries:\n1. Topic: Clarification of assessment for chest tightness\n- Reason: The note documents a symptom but no clear assessment.\n- Evidence quote: \"35-year-old female with intermittent chest tightness. Normal exam.\"\n- Non-leading query text: \"For this encounter, can you clarify the clinical assessment associated with the documented intermittent chest tightness? Please document whether this was evaluated as a symptom without a definitive diagnosis, attributed to a specific condition if clinically supported, ruled out after evaluation, or other assessment.\"\n- Suggested response options:\n  - Symptom only / no definitive diagnosis established at this encounter\n  - Attributed to a specific condition (please specify)\n  - Concern evaluated and ruled out for a specific condition (please specify if documented)\n  - Other (please specify)\n  - Clinically undetermined\n\n2. Topic: Clarification of symptom specificity\n- Reason: The symptom description is limited.\n- Evidence quote: \"intermittent chest tightness\"\n- Non-leading query text: \"Please clarify the documented chest tightness, if known, including any relevant descriptors such as location, duration, severity, associated symptoms, precipitating factors, or radiation.\"\n- Suggested response options:\n  - Additional symptom details added in note\n  - Unable to further characterize\n  - Clinically undetermined\n\n3. Topic: Clarification of follow-up plan\n- Reason: Plan lacks actionable specificity.\n- Evidence quote: \"Recommend follow-up.\"\n- Non-leading query text: \"Please clarify the recommended follow-up plan for this encounter, including timeframe and any specific return instructions if intended.\"\n- Suggested response options:\n  - Follow-up timeframe specified\n  - Return precautions specified\n  - Additional evaluation recommended (specify)\n  - No further clarification available\n\nCoding Specificity Checklist:\n- If documented, characterize chest symptom: pain vs tightness/pressure/discomfort\n- Timing: intermittent vs constant; onset and duration\n- Location and radiation\n- Severity\n- Associated symptoms\n- Clinical assessment/impression for the symptom\n- Any suspected or ruled-out etiology, if clinically supported\n- Specific follow-up timeframe and instructions\n\nRisk Flags:\n- Very limited excerpt; evidence is insufficient to support querying for specific diagnoses such as cardiac, pulmonary, gastrointestinal, or anxiety-related causes.\n- \"Normal exam\" is nonspecific and does not identify which systems were examined.\n- No objective testing, vitals, or differential assessment are documented in the excerpt.\n\nSpecialist Trace:\n- Medical Coding Expert: Consulted for coding specificity and query targets. Accepted only the high-level conclusion that the excerpt is too limited for diagnosis-specific CDI queries; no unsupported diagnosis-specific recommendations were used.\n- AMBOSS Expert: Not consulted because no diagnosis-specific clinical criteria question could be supported from the excerpt.\n- CDI Web Search Expert: Not consulted because current external guidance was not required to identify the basic documentation gaps in this minimal note.\n\nUncertainty:\n- This excerpt is too sparse to support any diagnosis-specific query. Only general clarification queries about the symptom, assessment, and follow-up plan are supported by the quoted documentation."
+}

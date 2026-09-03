@@ -1,0 +1,88 @@
+{
+  "case_id": "H-NEG-A-001_R1",
+  "group": "NEGATION",
+  "variant": "A",
+  "session_id": "eedea30f-8c33-4622-a6d9-ba22d8350784",
+  "attempt": 1,
+  "outcome": "SUCCESS",
+  "elapsed_s": 27.28,
+  "expected": {
+    "query_count_min": 0,
+    "query_count_max": 0,
+    "expected_query_topics": [],
+    "forbidden_query_topics": [
+      "migraine",
+      "intracranial lesion",
+      "CNS tumor",
+      "meningitis"
+    ],
+    "no_query_expected": true
+  },
+  "text_length": 4440,
+  "first_token_at_s": 4.22,
+  "last_token_at_s": 27.27,
+  "event_count": 9,
+  "raw_events_preview": [
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"id\":\"a5391530-282a-4f40-b4ed-248a9e67071f\",\"type\":\"text-start\"}",
+    "message|{\"delta\":\"Encounter Summary:\\n- 42-year-old female with intermittent headache for 2 weeks.\\n- Associated/red-flag symptoms denied: “nausea, vomiting, photophobia, phonophobia, visual aura, limb weakne",
+    "message|{\"id\":\"a5391530-282a-4f40-b4ed-248a9e67071f\",\"type\":\"text-end\"}",
+    "message|{\"messageMetadata\":{\"contextId\":\"019f5bce-6f12-7334-bfaf-243e7bf8175b\",\"taskId\":\"019f5bce-6f12-72c6-b324-8bfadb6d9d1a\",\"credits\":0.078,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+    "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.078},\"type\":\"finish\"}",
+    "message|[DONE]"
+  ],
+  "expert_events": [],
+  "status_events": [
+    {
+      "state": "working"
+    },
+    {
+      "state": "working"
+    },
+    {
+      "message": "Calling expert: coding-expert",
+      "state": "working"
+    }
+  ],
+  "finish_metadata": {
+    "contextId": "019f5bce-6f12-7334-bfaf-243e7bf8175b",
+    "taskId": "019f5bce-6f12-72c6-b324-8bfadb6d9d1a",
+    "credits": 0.078,
+    "state": "completed"
+  },
+  "parsed": {
+    "encounter_summary": "- 42-year-old female with intermittent headache for 2 weeks.\n- Associated/red-flag symptoms denied: “nausea, vomiting, photophobia, phonophobia, visual aura, limb weakness, neck stiffness.”\n- History noted: “No history of migraine. No family history of CNS disease.”\n- Exam/status: “Normal neurological exam. Normal vital signs.”",
+    "gaps": [
+      {
+        "idx": 1,
+        "text": "Gap: Headache diagnosis lacks clinical specificity.\n   - Why it matters: “Headache” is nonspecific for CDI/coding; documentation may need the provider’s diagnostic characterization if known.\n   - Evidence quote: “42-year-old female with intermittent headache for 2 weeks.”\n   - Minimal clarification needed: Whether the headache can be further characterized as a specific headache type/syndrome or remains unspecified."
+      },
+      {
+        "idx": 2,
+        "text": "Gap: Temporal/acuity description may need provider-level diagnostic framing.\n   - Why it matters: Duration is documented, but whether the condition is considered acute, subacute, recurrent, or otherwise classified by the provider is not stated.\n   - Evidence quote: “intermittent headache for 2 weeks.”\n   - Minimal clarification needed: Provider’s documented assessment of the headache episode/time course, if clinically determinable."
+      }
+    ],
+    "gap_count": 2,
+    "queries": [
+      {
+        "idx": 1,
+        "text": "Headache specificity"
+      },
+      {
+        "idx": 2,
+        "text": "Headache time course/episode characterization"
+      }
+    ],
+    "query_count": 2,
+    "specialists_contacted": [
+      "Medical Coding Expert",
+      "Coding Expert"
+    ],
+    "specialist_trace_text": "- Medical Coding Expert: Consulted. Requested review for CDI-relevant gaps and compliant query topics based only on the excerpt. Output was not usable because no substantive result was returned.\n- AMBOSS Expert: Not consulted; no defined AMBOSS tool was available in the environment.\n- CDI Web Search Expert: Not consulted; no external guideline lookup was necessary to provide a conservative, chart-grounded CDI review.",
+    "has_specialist_trace": true
+  },
+  "error": "",
+  "text": "Encounter Summary:\n- 42-year-old female with intermittent headache for 2 weeks.\n- Associated/red-flag symptoms denied: “nausea, vomiting, photophobia, phonophobia, visual aura, limb weakness, neck stiffness.”\n- History noted: “No history of migraine. No family history of CNS disease.”\n- Exam/status: “Normal neurological exam. Normal vital signs.”\n\nDocumentation Gaps:\n1. Gap: Headache diagnosis lacks clinical specificity.\n   - Why it matters: “Headache” is nonspecific for CDI/coding; documentation may need the provider’s diagnostic characterization if known.\n   - Evidence quote: “42-year-old female with intermittent headache for 2 weeks.”\n   - Minimal clarification needed: Whether the headache can be further characterized as a specific headache type/syndrome or remains unspecified.\n\n2. Gap: Temporal/acuity description may need provider-level diagnostic framing.\n   - Why it matters: Duration is documented, but whether the condition is considered acute, subacute, recurrent, or otherwise classified by the provider is not stated.\n   - Evidence quote: “intermittent headache for 2 weeks.”\n   - Minimal clarification needed: Provider’s documented assessment of the headache episode/time course, if clinically determinable.\n\nProposed Provider Queries:\n1. Topic: Headache specificity\n   - Reason query is needed: The note documents symptoms but does not state whether a more specific headache diagnosis is established.\n   - Evidence quote: “42-year-old female with intermittent headache for 2 weeks.”\n   - Non-leading query text: “The documentation notes ‘intermittent headache for 2 weeks’ with normal vital signs and a normal neurological exam. If clinically known, can you further clarify the patient’s headache diagnosis for this encounter?”\n   - Suggested response options:\n     - Headache, unspecified\n     - Migraine\n     - Tension-type headache\n     - Cluster headache\n     - Other specified headache diagnosis: ___\n     - Clinically undetermined / unable to determine\n   - Compliance note: Because the excerpt explicitly states “No history of migraine” and only lists symptom denials without diagnostic criteria, any specific headache type should only be selected if the provider independently supports it.\n\n2. Topic: Headache time course/episode characterization\n   - Reason query is needed: The symptom duration is documented, but the provider’s diagnostic time-course characterization is not.\n   - Evidence quote: “intermittent headache for 2 weeks.”\n   - Non-leading query text: “For this encounter, how would you characterize the documented headache episode/time course, if clinically known?”\n   - Suggested response options:\n     - Acute headache episode\n     - Subacute headache episode\n     - Recurrent headache\n     - Chronic headache\n     - Other characterization: ___\n     - Clinically undetermined / unable to determine\n   - Limitation: This should only be used if your organization/provider workflow supports querying time-course characterization, since the excerpt does not include a documented provider assessment beyond the symptom duration.\n\nCoding Specificity Checklist:\n- Final diagnostic term for the headache, if established\n- Specific headache type, if supported by provider assessment\n- Episode/time-course characterization, if clinically relevant and documented\n- Any known underlying cause, if identified and documented\n- Whether the condition remains unspecified after evaluation\n\nRisk Flags:\n- Limited evidence for advanced querying: The excerpt supports only a conservative query about headache specificity. There is insufficient evidence to query secondary causes, migraine with/without aura, neurologic complication, infection, hypertensive urgency, trauma-related headache, or other etiologies.\n- Potential unsupported options risk: Although diagnostic options can be offered in a compliant query, the chart itself does not document clinical features sufficient to support any specific headache subtype.\n- No contradiction identified within the excerpt.\n\nSpecialist Trace:\n- Medical Coding Expert: Consulted. Requested review for CDI-relevant gaps and compliant query topics based only on the excerpt. Output was not usable because no substantive result was returned.\n- AMBOSS Expert: Not consulted; no defined AMBOSS tool was available in the environment.\n- CDI Web Search Expert: Not consulted; no external guideline lookup was necessary to provide a conservative, chart-grounded CDI review."
+}

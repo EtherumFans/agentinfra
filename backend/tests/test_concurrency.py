@@ -13,10 +13,17 @@ import logging
 import sys
 import os
 
+import pytest
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger("concurrency_test")
+
+# This test drives a separately started server on localhost:8000 and therefore
+# must never be collected by the hermetic default suite. Run it explicitly in
+# a controlled live-server environment with ``pytest -m infra``.
+pytestmark = [pytest.mark.infra, pytest.mark.asyncio]
 
 
 CLINICAL_TEXTS = [
@@ -39,44 +46,83 @@ CLINICAL_TEXTS = [
 ]
 
 
-async def run_single_pipeline(encounter_text: str, index: int) -> dict:
+async def run_single_pipeline(encounter_text: str, index: int, token: str) -> dict:
     """Run one pipeline and return timing/stats."""
     import httpx
     start = time.time()
-    result = {"index": index, "success": False, "time_s": 0, "error": None}
+    result = {
+        "index": index,
+        "success": False,
+        "completed": False,
+        "clinical_success": False,
+        "safe_failure": False,
+        "time_s": 0,
+        "error": None,
+    }
 
     try:
         async with httpx.AsyncClient(timeout=httpx.Timeout(120.0)) as client:
-            # Login
-            r = await client.post(
-                "http://localhost:8000/api/auth/login",
-                json={"username": "admin", "password": "admin123"},
-            )
-            token = r.json()["access_token"]
             headers = {"Authorization": f"Bearer {token}"}
-
-            # Create encounter
+            # Run the current unified Agent API.  The legacy /api/reviews
+            # endpoint was removed; keeping it here made every task look like
+            # a concurrency failure when it was actually an HTTP 404.
             r = await client.post(
-                "http://localhost:8000/api/encounters/text",
-                json={"raw_text": encounter_text, "department": "test"},
-                headers=headers,
-            )
-            enc_id = r.json()["id"]
-
-            # Run pipeline
-            r = await client.post(
-                "http://localhost:8000/api/reviews",
-                json={"encounter_id": enc_id},
+                "http://localhost:8000/api/v1/agents/medical-coding-agent/run",
+                json={
+                    "input": {
+                        "text": encounter_text,
+                        "extra": {
+                            "region": "中国",
+                            "code_system": "ICD-10-CN/ICD-9-CM-3",
+                        },
+                    },
+                    "include_trace": True,
+                },
                 headers=headers,
             )
             review = r.json()
-            result["success"] = bool(review.get("review_id"))
+            result["http_status"] = r.status_code
+            result["completed"] = (
+                r.status_code == 200
+                and bool(review.get("run_id"))
+            )
+            result["clinical_success"] = (
+                result["completed"] and review.get("error") is False
+            )
+            error_reason = str(review.get("error_reason") or "")
+            safe_reasons = {
+                "llm_degraded",
+                "mock_provider",
+                "degraded:mock_provider",
+                "no_api_key",
+            }
+            result["safe_failure"] = (
+                result["completed"]
+                and review.get("error") is True
+                and error_reason in safe_reasons
+            )
+            # ``success`` means the concurrency contract completed safely.  A
+            # mock/no-key server must fail closed and is not a clinical success.
+            result["success"] = result["clinical_success"] or result["safe_failure"]
             result["time_s"] = round(time.time() - start, 2)
-            result["health"] = review.get("pipeline_health", "unknown")
-            result["candidates"] = len(review.get("candidates", []))
-            result["errors"] = len(review.get("error_message", "") or [])
+            payload = review.get("result") or {}
+            result["health"] = (
+                "clinical_success"
+                if result["clinical_success"]
+                else f"safe_failure:{error_reason}"
+                if result["safe_failure"]
+                else payload.get("finish_state", "unknown")
+            )
+            candidates = payload.get("candidates") or payload.get("codes") or []
+            result["candidates"] = len(candidates) if isinstance(candidates, list) else 0
+            if not result["success"]:
+                result["error"] = (
+                    review.get("error_reason")
+                    or review.get("detail")
+                    or f"HTTP {r.status_code}: {r.text[:160]}"
+                )
     except Exception as e:
-        result["error"] = str(e)[:100]
+        result["error"] = f"{type(e).__name__}: {e}"[:160]
         result["time_s"] = round(time.time() - start, 2)
 
     return result
@@ -91,8 +137,19 @@ async def test_concurrent_pipelines():
     print(f"Concurrency Test: {concurrency} simultaneous pipelines")
     print(f"{'='*60}\n")
 
+    import httpx
+    # Authenticate once.  Five simultaneous logins exercise the auth rate
+    # limiter instead of pipeline concurrency and can lock the test account.
+    async with httpx.AsyncClient(timeout=httpx.Timeout(30.0)) as client:
+        login = await client.post(
+            "http://localhost:8000/api/auth/login",
+            json={"username": "admin", "password": "admin123"},
+        )
+        login.raise_for_status()
+        token = login.json()["access_token"]
+
     t0 = time.time()
-    tasks = [run_single_pipeline(text, i) for i, text in enumerate(texts)]
+    tasks = [run_single_pipeline(text, i, token) for i, text in enumerate(texts)]
     results = await asyncio.gather(*tasks)
     total_time = round(time.time() - t0, 1)
 
@@ -107,12 +164,16 @@ async def test_concurrent_pipelines():
 
     success_count = sum(1 for r in results if r["success"])
     fail_count = len(results) - success_count
+    clinical_success_count = sum(1 for r in results if r["clinical_success"])
+    safe_failure_count = sum(1 for r in results if r["safe_failure"])
     avg_time = sum(r["time_s"] for r in results) / len(results)
 
     print(f"\n--- Summary ---")
     print(f"Total wall time: {total_time}s")
     print(f"Avg pipeline time: {avg_time:.1f}s")
     print(f"Successful: {success_count}/{len(results)}")
+    print(f"Clinical successes: {clinical_success_count}/{len(results)}")
+    print(f"Safe fail-closed completions: {safe_failure_count}/{len(results)}")
     print(f"Failed: {fail_count}/{len(results)}")
 
     # Assertions

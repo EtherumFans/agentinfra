@@ -1,0 +1,197 @@
+{
+  "_meta": {
+    "name": "iCoDer Held-out Bilingual Evaluation Set v1",
+    "version": "1.0.1",
+    "created": "2026-08-06",
+    "source_doc": "docs/governance/EVALUATION_CITATION_POLICY.md",
+    "purpose": "R2 mitigation — CN/EN asymmetry. Seed for held-out bilingual evaluation set, NOT derived from CCL 2026.",
+    "citation_policy": "Do NOT cite iCoDer F1 numbers vs Corti in user-visible surfaces. Corti comparison DEFERRED to pilot gate (5 conditions in EVALUATION_CITATION_POLICY.md §2 rule 3).",
+    "construction_method": "Synthetic but clinically-realistic cases constructed from public clinical guidelines (UpToDate / 默沙东诊疗手册 / 中国国家卫健委临床路径). Each case has parallel zh+en charts authored by iCoDer team. Expected codes were revalidated on 2026-08-27 against the governed runtime ICD-10-CN and ICD-9-CM-3 catalogs; this remains engineering-team-authored calibration, not independent clinical gold.",
+    "not_derived_from": [
+      "CCL 2026 train set",
+      "MIMIC-IV",
+      "Corti public demos",
+      "Any real patient data"
+    ],
+    "current_case_count": 5,
+    "target_case_count": 100,
+    "expansion_strategy_doc": "docs/governance/HELD_OUT_BILINGUAL_EVALUATION_STRATEGY.md",
+    "license": "Internal R&D — not for external distribution",
+    "phi_status": "PHI-free — all cases are synthetic"
+  },
+  "cases": [
+    {
+      "case_id": "HOBV1-001",
+      "department": "orthopedics",
+      "chart_zh": "患者男性, 78岁, 因腰背部疼痛 3 月, 加重 1 周入院。既往: 骨质疏松病史 5 年, 原发性高血压 10 年, 2 型糖尿病 5 年。查体: T12 棘突压痛叩痛阳性, 下肢肌力 5 级。MRI: T12 椎体压缩性骨折, 椎体高度丢失约 40%。入院诊断: T12 椎体压缩性骨折。行 T12 椎体切开复位内固定术, 手术顺利。术后给予抗骨质疏松药物治疗, 腰背支具佩戴。术后 7 天出院, 切口愈合良好。",
+      "chart_en": "78-year-old male admitted with lower back pain for 3 months, worsened for 1 week. History: osteoporosis for 5 years, essential hypertension for 10 years, type 2 diabetes for 5 years. Exam: T12 spinous process tenderness and percussion pain positive, lower extremity muscle strength 5/5. MRI: T12 vertebral compression fracture, approximately 40% height loss. Admission diagnosis: T12 vertebral compression fracture. Underwent T12 open reduction and internal fixation, surgery uneventful. Postoperatively given anti-osteoporosis medication and lumbar brace. Discharged on day 7, incision healing well.",
+      "expected_principal_diagnosis": {
+        "code": "S22.000",
+        "display_zh": "T12 椎体压缩性骨折",
+        "display_en": "T12 vertebral compression fracture"
+      },
+      "expected_secondary_diagnoses": [
+        {
+          "code": "M81.900",
+          "display_zh": "骨质疏松",
+          "display_en": "Osteoporosis"
+        },
+        {
+          "code": "I10.x09",
+          "display_zh": "原发性高血压",
+          "display_en": "Essential hypertension"
+        },
+        {
+          "code": "E11.900",
+          "display_zh": "2 型糖尿病",
+          "display_en": "Type 2 diabetes mellitus"
+        }
+      ],
+      "expected_primary_procedure": {
+        "code": "03.5301",
+        "display_zh": "脊椎骨折切开复位内固定术",
+        "display_en": "Open reduction and internal fixation of spinal fracture"
+      },
+      "evidence_spans": [
+        {
+          "field": "principal_diagnosis",
+          "evidence_zh": "MRI: T12 椎体压缩性骨折, 椎体高度丢失约 40%",
+          "evidence_en": "MRI: T12 vertebral compression fracture, approximately 40% height loss",
+          "strength": "direct"
+        },
+        {
+          "field": "primary_procedure",
+          "evidence_zh": "行 T12 椎体切开复位内固定术",
+          "evidence_en": "Underwent T12 open reduction and internal fixation",
+          "strength": "direct"
+        }
+      ],
+      "notes": "经典骨科 case。病历仅明确 T12 椎体压缩性骨折和骨质疏松，未明确病理性骨折因果关系；主诊断使用 S22.000，骨质疏松使用 M81.900 作为 secondary，不得推断 M80 病理性骨折。"
+    },
+    {
+      "case_id": "HOBV1-002",
+      "department": "general_surgery",
+      "chart_zh": "患者女性, 32岁, 转移性右下腹痛 1 天, 伴恶心呕吐 2 次。查体: T 38.5℃, McBurney 点压痛反跳痛阳性, Rovsing 征阳性。WBC 14.2, 中性 88%。腹部 CT: 阑尾肿胀, 周围渗出, 未见穿孔。入院诊断: 急性单纯性阑尾炎。行腹腔镜阑尾切除术, 手术顺利。术后病理: 急性单纯性阑尾炎, 浆膜层未累及。术后恢复良好, 第 3 天出院。",
+      "chart_en": "32-year-old female with migrating right lower quadrant pain for 1 day, accompanied by nausea and vomiting twice. Exam: T 38.5C, McBurney point tenderness and rebound tenderness positive, Rovsing sign positive. WBC 14.2, neutrophils 88%. Abdominal CT: swollen appendix with surrounding exudate, no perforation seen. Admission diagnosis: acute simple appendicitis. Underwent laparoscopic appendectomy, surgery uneventful. Postoperative pathology: acute simple appendicitis, serosa not involved. Recovered well, discharged on day 3.",
+      "expected_principal_diagnosis": {
+        "code": "K35.800x001",
+        "display_zh": "急性单纯性阑尾炎",
+        "display_en": "Acute simple appendicitis"
+      },
+      "expected_secondary_diagnoses": [],
+      "expected_primary_procedure": {
+        "code": "47.0100",
+        "display_zh": "腹腔镜阑尾切除术",
+        "display_en": "Laparoscopic appendectomy"
+      },
+      "evidence_spans": [
+        {
+          "field": "principal_diagnosis",
+          "evidence_zh": "腹部 CT: 阑尾肿胀, 周围渗出, 未见穿孔; 术后病理: 急性单纯性阑尾炎",
+          "evidence_en": "Abdominal CT: swollen appendix with surrounding exudate, no perforation; pathology: acute simple appendicitis",
+          "strength": "direct"
+        },
+        {
+          "field": "primary_procedure",
+          "evidence_zh": "行腹腔镜阑尾切除术",
+          "evidence_en": "Underwent laparoscopic appendectomy",
+          "strength": "direct"
+        }
+      ],
+      "notes": "无 secondary; 注意不要错编 K35.1 (伴穿孔) 或 K35.2 (伴脓肿) — 影像和病理都明确无穿孔"
+    },
+    {
+      "case_id": "HOBV1-003",
+      "department": "respiratory",
+      "chart_zh": "患者男性, 64岁, 咳嗽咳痰伴发热 3 天入院。胸片示右下肺浸润影。WBC 14.5, 中性 82%, PCT 0.5, CRP 65。CURB-65 评分 1 分。痰培养: 肺炎链球菌。既往: 2 型糖尿病 10 年, 吸烟史 30 年。入院诊断: 社区获得性肺炎 (CAP, PSI 中危)。予头孢曲松 + 阿奇霉素经验性治疗, 7 天后症状好转出院。",
+      "chart_en": "64-year-old male admitted with productive cough and fever for 3 days. Chest X-ray shows right lower lobe infiltrate. WBC 14.5, neutrophils 82%, PCT 0.5, CRP 65. CURB-65 score 1. Sputum culture: Streptococcus pneumoniae. History: type 2 diabetes for 10 years, 30 pack-year smoking. Admission diagnosis: community-acquired pneumonia (CAP, PSI intermediate risk). Started on ceftriaxone and azithromycin empirically, symptoms improved and discharged after 7 days.",
+      "expected_principal_diagnosis": {
+        "code": "J18.900",
+        "display_zh": "社区获得性肺炎",
+        "display_en": "Community-acquired pneumonia"
+      },
+      "expected_secondary_diagnoses": [
+        {
+          "code": "E11.900",
+          "display_zh": "2 型糖尿病",
+          "display_en": "Type 2 diabetes mellitus"
+        }
+      ],
+      "expected_primary_procedure": null,
+      "evidence_spans": [
+        {
+          "field": "principal_diagnosis",
+          "evidence_zh": "咳嗽咳痰伴发热 3 天; 胸片示右下肺浸润影; 痰培养: 肺炎链球菌",
+          "evidence_en": "productive cough and fever for 3 days; chest X-ray shows right lower lobe infiltrate; sputum culture: Streptococcus pneumoniae",
+          "strength": "direct"
+        }
+      ],
+      "notes": "J18.9 是未特指病原体的肺炎；糖尿病作为 secondary。吸烟史不等同于已确诊烟草依赖，不得仅凭吸烟史推断 F17.200。"
+    },
+    {
+      "case_id": "HOBV1-004",
+      "department": "endocrinology",
+      "chart_zh": "患者女性, 56岁, 多饮多尿伴乏力 2 周, 加重伴恶心呕吐 1 天入院。既往: 2 型糖尿病 8 年, 服用二甲双胍 + 格列美脲。查体: 嗜睡, 呼吸深快, 口腔黏膜干燥。血糖 28.5 mmol/L, pH 7.20, HCO3- 12 mmol/L, 尿酮 3+, 尿糖 4+。HbA1c 9.8%。入院诊断: 2 型糖尿病性酮症酸中毒。予小剂量胰岛素静脉滴定 + 补液 + 监测电解质, 36 小时后酮体转阴, 改皮下胰岛素。住院 7 天, 出院时血糖控制可。",
+      "chart_en": "56-year-old female with polydipsia, polyuria, and fatigue for 2 weeks, worsened with nausea and vomiting for 1 day. History: type 2 diabetes for 8 years, on metformin and glimepiride. Exam: drowsy, deep and rapid breathing, dry oral mucosa. Blood glucose 28.5 mmol/L, pH 7.20, HCO3- 12 mmol/L, urine ketone 3+, urine glucose 4+. HbA1c 9.8%. Admission diagnosis: type 2 diabetic ketoacidosis. Given low-dose insulin IV titration + fluid resuscitation + electrolyte monitoring, ketones cleared after 36 hours, switched to subcutaneous insulin. Hospitalized for 7 days, blood glucose well-controlled at discharge.",
+      "expected_principal_diagnosis": {
+        "code": "E11.100",
+        "display_zh": "2 型糖尿病伴酮症酸中毒",
+        "display_en": "Type 2 diabetes mellitus with ketoacidosis"
+      },
+      "expected_secondary_diagnoses": [],
+      "expected_primary_procedure": null,
+      "evidence_spans": [
+        {
+          "field": "principal_diagnosis",
+          "evidence_zh": "血糖 28.5 mmol/L, pH 7.20, HCO3- 12 mmol/L, 尿酮 3+; 入院诊断: 2 型糖尿病性酮症酸中毒",
+          "evidence_en": "blood glucose 28.5 mmol/L, pH 7.20, HCO3- 12 mmol/L, urine ketone 3+; admission diagnosis: type 2 diabetic ketoacidosis",
+          "strength": "direct"
+        }
+      ],
+      "notes": "E11.1 (伴酮症酸中毒); 注意不要错编 E11.9 (无并发症) 或 E10.1 (1型 DKA) — 既往 T2DM 病史明确"
+    },
+    {
+      "case_id": "HOBV1-005",
+      "department": "cardiology",
+      "chart_zh": "患者男性, 58岁, 持续性胸骨后压榨样疼痛 2 小时入院。疼痛向左肩放射, 伴大汗、恶心。既往: 原发性高血压 12 年, 高脂血症 5 年, 吸烟史 25 年。查体: BP 90/60, HR 110, 双肺底湿啰音。心电图: II, III, aVF ST 段抬高 0.3 mV, V1-V4 镜像压低。肌钙蛋白 I 8.5 ng/mL (参考 < 0.04)。入院诊断: 急性下壁 ST 段抬高型心肌梗死 (STEMI, Killip II 级)。急诊行 PCI + 药物涂层支架植入 (右冠状动脉近段 100% 闭塞 → TIMI 3 级血流恢复)。术后胸痛缓解, 心电图 ST 段回落。",
+      "chart_en": "58-year-old male with persistent substernal crushing pain for 2 hours. Pain radiates to left shoulder, accompanied by diaphoresis and nausea. History: essential hypertension for 12 years, hyperlipidemia for 5 years, 25 pack-year smoking. Exam: BP 90/60, HR 110, bibasilar moist rales. ECG: II, III, aVF ST elevation 0.3 mV, V1-V4 reciprocal depression. Troponin I 8.5 ng/mL (reference < 0.04). Admission diagnosis: acute inferior ST-elevation myocardial infarction (STEMI, Killip class II). Emergency PCI + drug-eluting stent implantation (proximal right coronary artery 100% occlusion → TIMI 3 flow restored). Postoperative chest pain relieved, ECG ST segment returned to baseline.",
+      "expected_principal_diagnosis": {
+        "code": "I21.100",
+        "display_zh": "急性下壁 ST 段抬高型心肌梗死",
+        "display_en": "Acute inferior ST-elevation myocardial infarction"
+      },
+      "expected_secondary_diagnoses": [
+        {
+          "code": "I10.x09",
+          "display_zh": "原发性高血压",
+          "display_en": "Essential hypertension"
+        },
+        {
+          "code": "E78.500",
+          "display_zh": "高脂血症",
+          "display_en": "Hyperlipidemia"
+        }
+      ],
+      "expected_primary_procedure": {
+        "code": "36.0601",
+        "display_zh": "经皮冠状动脉药物涂层支架植入术",
+        "display_en": "Percutaneous drug-eluting stent implantation of coronary artery"
+      },
+      "evidence_spans": [
+        {
+          "field": "principal_diagnosis",
+          "evidence_zh": "心电图: II, III, aVF ST 段抬高 0.3 mV; 肌钙蛋白 I 8.5 ng/mL; 入院诊断: 急性下壁 STEMI",
+          "evidence_en": "ECG: II, III, aVF ST elevation 0.3 mV; troponin I 8.5 ng/mL; admission diagnosis: acute inferior STEMI",
+          "strength": "direct"
+        },
+        {
+          "field": "primary_procedure",
+          "evidence_zh": "急诊行 PCI + 药物涂层支架植入 (右冠状动脉近段 100% 闭塞)",
+          "evidence_en": "Emergency PCI + drug-eluting stent implantation (proximal RCA 100% occlusion)",
+          "strength": "direct"
+        }
+      ],
+      "notes": "I21.1 (下壁) 注意区别于 I21.0 (前壁) / I21.2 (其他部位)；高血压和高脂血症为 secondary。吸烟史不等同于烟草依赖诊断，不得推断 F17.200。药物涂层支架按当前受控目录使用 36.0601。"
+    }
+  ]
+}

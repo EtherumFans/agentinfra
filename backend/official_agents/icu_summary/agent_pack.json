@@ -1,0 +1,1198 @@
+{
+  "format_version": "1.2",
+  "agent_type": "certified",
+  "agent_ref": "icoder/icu-summary@1.1.0",
+  "manifest": {
+    "name": "ICU 入院摘要智能体",
+    "version": "1.1.0",
+    "description": "只整理明确标注的 ICU 入院事实并绑定逐字证据；不计算临床评分、不应用异常阈值、不筛查药物、不生成治疗建议，所有输出须 ICU 医师复核。",
+    "category": "point-of-care",
+    "category_display": "Point of Care Tools / 床旁工具",
+    "icon": "Activity",
+    "tags": [
+      "corti-parity",
+      "china-icu",
+      "governed-local",
+      "evidence-bound"
+    ],
+    "maturity": "runnable",
+    "production_ready": false,
+    "hidden_from_hub": false,
+    "use_case": "point_of_care",
+    "human_review": "required"
+  },
+  "system_prompt": "你是中国医院 ICU 入院摘要智能体。本地受治理模式只接受明确字段标签，只重排逐字记录并保存 [start,end) 证据。禁止计算 APACHE II、SOFA、GCS 或死亡风险；禁止按常识或阈值判断生命体征/检验异常；禁止执行药物相互作用、剂量、肝肾调整或适应证审查；禁止补写诊断、病情轨迹、风险、治疗建议、医嘱、任务负责人或缺失状态；禁止写回 EHR/HIS。所有输出为草稿，manual_review_required 必须为 true。",
+  "backend_provider": "icoder.governed-icu-summary.v1",
+  "backend_config": {
+    "network_required": false,
+    "llm_required": false,
+    "runtime_mode": "governed_local_documented_icu_admission_summary",
+    "max_input_chars": 40000,
+    "max_evidence_items": 200
+  },
+  "experts": [],
+  "tools": [],
+  "model": null,
+  "permissions": {
+    "key": "icu-summary",
+    "name": "ICU 入院摘要智能体 权限",
+    "description": "只允许整理明确 ICU 入院字段；禁止评分、药物筛查、治疗建议和生产写回。",
+    "tools": {},
+    "no_upcoding": true,
+    "no_inference": true,
+    "evidence_required": true,
+    "production_writeback_blocked": true
+  },
+  "output_contract": {
+    "schema_ref": "icoder/IcuSummaryOutput/v3",
+    "required_fields": [
+      "summary_status",
+      "patient_background",
+      "admission_reason",
+      "admission_diagnoses",
+      "timeline",
+      "active_problems",
+      "organ_support",
+      "medications",
+      "vital_signs",
+      "laboratory_results",
+      "procedures",
+      "key_trends",
+      "pending_items",
+      "risks",
+      "conflicts",
+      "source_completeness",
+      "evidence_items",
+      "limitations",
+      "clinical_scores_status",
+      "medication_screening_status",
+      "clinical_recommendations_generated",
+      "production_writeback_blocked",
+      "manual_review_required",
+      "trace_refs"
+    ],
+    "optional_fields": [],
+    "field_types": {
+      "summary_status": "string",
+      "patient_background": "object",
+      "admission_reason": "string",
+      "admission_diagnoses": "array",
+      "timeline": "array",
+      "active_problems": "array",
+      "organ_support": "array",
+      "medications": "array",
+      "vital_signs": "array",
+      "laboratory_results": "array",
+      "procedures": "array",
+      "key_trends": "array",
+      "pending_items": "array",
+      "risks": "array",
+      "conflicts": "array",
+      "source_completeness": "object",
+      "evidence_items": "array",
+      "limitations": "array",
+      "clinical_scores_status": "string",
+      "medication_screening_status": "string",
+      "clinical_recommendations_generated": "boolean",
+      "production_writeback_blocked": "boolean",
+      "manual_review_required": "boolean",
+      "trace_refs": "object"
+    },
+    "field_schemas": {
+      "summary_status": {
+        "type": "string",
+        "maxLength": 32768,
+        "enum": [
+          "COMPLETED",
+          "PARTIAL",
+          "INPUT_REQUIRED"
+        ]
+      },
+      "patient_background": {
+        "type": "object",
+        "properties": {
+          "allergies": {
+            "type": "string",
+            "maxLength": 2048,
+            "minLength": 0
+          },
+          "medical_history": {
+            "type": "string",
+            "maxLength": 4096,
+            "minLength": 0
+          },
+          "patient_information": {
+            "type": "string",
+            "maxLength": 2048,
+            "minLength": 0
+          },
+          "social_history": {
+            "type": "string",
+            "maxLength": 4096,
+            "minLength": 0
+          },
+          "surgical_history": {
+            "type": "string",
+            "maxLength": 4096,
+            "minLength": 0
+          }
+        },
+        "required": [
+          "allergies",
+          "medical_history",
+          "patient_information",
+          "social_history",
+          "surgical_history"
+        ],
+        "additionalProperties": false
+      },
+      "admission_reason": {
+        "type": "string",
+        "maxLength": 4096,
+        "minLength": 0
+      },
+      "admission_diagnoses": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "assertion": {
+              "type": "string",
+              "maxLength": 32768,
+              "enum": [
+                "DOCUMENTED"
+              ]
+            },
+            "diagnosis": {
+              "type": "string",
+              "maxLength": 2048,
+              "minLength": 1
+            },
+            "evidence_ref": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1
+            }
+          },
+          "required": [
+            "assertion",
+            "diagnosis",
+            "evidence_ref"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100,
+        "minItems": 0
+      },
+      "timeline": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "event": {
+              "type": "string",
+              "maxLength": 4096,
+              "minLength": 1
+            },
+            "evidence_ref": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1
+            },
+            "time": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 0
+            }
+          },
+          "required": [
+            "event",
+            "evidence_ref",
+            "time"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100,
+        "minItems": 0
+      },
+      "active_problems": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "evidence_ref": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1
+            },
+            "problem": {
+              "type": "string",
+              "maxLength": 2048,
+              "minLength": 1
+            },
+            "status": {
+              "type": "string",
+              "maxLength": 32768,
+              "enum": [
+                "DOCUMENTED"
+              ]
+            }
+          },
+          "required": [
+            "evidence_ref",
+            "problem",
+            "status"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100,
+        "minItems": 0
+      },
+      "organ_support": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "detail": {
+              "type": "string",
+              "maxLength": 2048,
+              "minLength": 1
+            },
+            "evidence_ref": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1
+            },
+            "route": {
+              "type": "string",
+              "maxLength": 256,
+              "minLength": 0
+            },
+            "type": {
+              "type": "string",
+              "maxLength": 32768,
+              "enum": [
+                "DOCUMENTED_ORGAN_SUPPORT"
+              ]
+            }
+          },
+          "required": [
+            "detail",
+            "evidence_ref",
+            "route",
+            "type"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100,
+        "minItems": 0
+      },
+      "medications": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "documented_text": {
+              "type": "string",
+              "maxLength": 2048,
+              "minLength": 1
+            },
+            "dose": {
+              "type": "string",
+              "maxLength": 256,
+              "minLength": 0
+            },
+            "evidence_ref": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1
+            },
+            "route": {
+              "type": "string",
+              "maxLength": 256,
+              "minLength": 0
+            }
+          },
+          "required": [
+            "documented_text",
+            "dose",
+            "evidence_ref",
+            "route"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100,
+        "minItems": 0
+      },
+      "vital_signs": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "evidence_ref": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1
+            },
+            "text": {
+              "type": "string",
+              "maxLength": 2048,
+              "minLength": 1
+            }
+          },
+          "required": [
+            "evidence_ref",
+            "text"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100,
+        "minItems": 0
+      },
+      "laboratory_results": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "evidence_ref": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1
+            },
+            "text": {
+              "type": "string",
+              "maxLength": 2048,
+              "minLength": 1
+            }
+          },
+          "required": [
+            "evidence_ref",
+            "text"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100,
+        "minItems": 0
+      },
+      "procedures": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "evidence_ref": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1
+            },
+            "text": {
+              "type": "string",
+              "maxLength": 2048,
+              "minLength": 1
+            }
+          },
+          "required": [
+            "evidence_ref",
+            "text"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100,
+        "minItems": 0
+      },
+      "key_trends": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "evidence_ref": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1
+            },
+            "indicator": {
+              "type": "string",
+              "maxLength": 256,
+              "minLength": 1
+            },
+            "interpretation": {
+              "type": "string",
+              "maxLength": 512,
+              "minLength": 1
+            },
+            "trend": {
+              "type": "string",
+              "maxLength": 2048,
+              "minLength": 1
+            }
+          },
+          "required": [
+            "evidence_ref",
+            "indicator",
+            "interpretation",
+            "trend"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100,
+        "minItems": 0
+      },
+      "pending_items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "evidence_ref": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1
+            },
+            "item": {
+              "type": "string",
+              "maxLength": 2048,
+              "minLength": 1
+            },
+            "status": {
+              "type": "string",
+              "maxLength": 32768,
+              "enum": [
+                "DOCUMENTED_PENDING"
+              ]
+            }
+          },
+          "required": [
+            "evidence_ref",
+            "item",
+            "status"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100,
+        "minItems": 0
+      },
+      "risks": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "basis": {
+              "type": "string",
+              "maxLength": 512,
+              "minLength": 1
+            },
+            "evidence_ref": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1
+            },
+            "risk": {
+              "type": "string",
+              "maxLength": 2048,
+              "minLength": 1
+            }
+          },
+          "required": [
+            "basis",
+            "evidence_ref",
+            "risk"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100,
+        "minItems": 0
+      },
+      "conflicts": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string",
+              "maxLength": 2048,
+              "minLength": 1
+            },
+            "evidence": {
+              "type": "string",
+              "maxLength": 2048,
+              "minLength": 1
+            },
+            "evidence_ref": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1
+            },
+            "field": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1
+            }
+          },
+          "required": [
+            "description",
+            "evidence",
+            "evidence_ref",
+            "field"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100,
+        "minItems": 0
+      },
+      "source_completeness": {
+        "type": "object",
+        "properties": {
+          "evidence_item_count": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 200
+          },
+          "input_truncated": {
+            "type": "boolean"
+          },
+          "missing_sections": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1
+            },
+            "maxItems": 11,
+            "minItems": 0
+          }
+        },
+        "required": [
+          "evidence_item_count",
+          "input_truncated",
+          "missing_sections"
+        ],
+        "additionalProperties": false
+      },
+      "evidence_items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "char_span": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "maxItems": 2,
+              "minItems": 2,
+              "x-order": "nondecreasing"
+            },
+            "evidence_id": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1
+            },
+            "evidence_text": {
+              "type": "string",
+              "maxLength": 4096,
+              "minLength": 1
+            },
+            "field": {
+              "type": "string",
+              "maxLength": 32768,
+              "enum": [
+                "patient_information",
+                "admission_reason",
+                "admission_diagnoses",
+                "medical_history",
+                "surgical_history",
+                "allergies",
+                "social_history",
+                "timeline",
+                "active_problems",
+                "organ_support",
+                "medications",
+                "vital_signs",
+                "laboratory_results",
+                "procedures",
+                "key_trends",
+                "pending_items",
+                "risks",
+                "conflicts"
+              ]
+            },
+            "source_label": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1
+            }
+          },
+          "required": [
+            "char_span",
+            "evidence_id",
+            "evidence_text",
+            "field",
+            "source_label"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 200,
+        "minItems": 0
+      },
+      "limitations": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 2048,
+          "minLength": 1
+        },
+        "maxItems": 5,
+        "minItems": 5
+      },
+      "clinical_scores_status": {
+        "type": "string",
+        "maxLength": 32768,
+        "const": "NOT_CALCULATED_GOVERNED_CALCULATOR_REQUIRED"
+      },
+      "medication_screening_status": {
+        "type": "string",
+        "maxLength": 32768,
+        "const": "NOT_SCREENED_LICENSED_DRUG_SOURCE_REQUIRED"
+      },
+      "clinical_recommendations_generated": {
+        "type": "boolean",
+        "const": false
+      },
+      "production_writeback_blocked": {
+        "type": "boolean",
+        "const": true
+      },
+      "manual_review_required": {
+        "type": "boolean",
+        "const": true
+      },
+      "trace_refs": {
+        "type": "object",
+        "properties": {
+          "provider_trace_refs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 512,
+              "minLength": 1
+            },
+            "maxItems": 10,
+            "minItems": 0
+          },
+          "run_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1
+          },
+          "trace_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 0
+          }
+        },
+        "required": [
+          "run_id"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "field_relations": [
+      {
+        "id": "input_required_has_no_icu_fact_claims",
+        "when": [
+          {
+            "path": "summary_status",
+            "operator": "equals",
+            "value": "INPUT_REQUIRED"
+          }
+        ],
+        "must": [
+          {
+            "path": "admission_diagnoses",
+            "operator": "empty"
+          },
+          {
+            "path": "active_problems",
+            "operator": "empty"
+          },
+          {
+            "path": "organ_support",
+            "operator": "empty"
+          },
+          {
+            "path": "evidence_items",
+            "operator": "empty"
+          },
+          {
+            "path": "manual_review_required",
+            "operator": "equals",
+            "value": true
+          }
+        ]
+      },
+      {
+        "id": "completed_icu_summary_has_evidence",
+        "when": [
+          {
+            "path": "summary_status",
+            "operator": "equals",
+            "value": "COMPLETED"
+          }
+        ],
+        "must": [
+          {
+            "path": "admission_reason",
+            "operator": "non_empty"
+          },
+          {
+            "path": "admission_diagnoses",
+            "operator": "non_empty"
+          },
+          {
+            "path": "evidence_items",
+            "operator": "non_empty"
+          }
+        ]
+      },
+      {
+        "id": "partial_icu_summary_has_evidence",
+        "when": [
+          {
+            "path": "summary_status",
+            "operator": "equals",
+            "value": "PARTIAL"
+          }
+        ],
+        "must": [
+          {
+            "path": "evidence_items",
+            "operator": "non_empty"
+          }
+        ]
+      },
+      {
+        "id": "local_icu_summary_never_claims_expert_outputs",
+        "when": [
+          {
+            "path": "clinical_scores_status",
+            "operator": "equals",
+            "value": "NOT_CALCULATED_GOVERNED_CALCULATOR_REQUIRED"
+          }
+        ],
+        "must": [
+          {
+            "path": "medication_screening_status",
+            "operator": "equals",
+            "value": "NOT_SCREENED_LICENSED_DRUG_SOURCE_REQUIRED"
+          },
+          {
+            "path": "clinical_recommendations_generated",
+            "operator": "equals",
+            "value": false
+          },
+          {
+            "path": "production_writeback_blocked",
+            "operator": "equals",
+            "value": true
+          },
+          {
+            "path": "manual_review_required",
+            "operator": "equals",
+            "value": true
+          }
+        ]
+      },
+      {
+        "id": "icu_diagnosis_is_traceable",
+        "for_each": "admission_diagnoses",
+        "when": [
+          {
+            "path": "diagnosis",
+            "operator": "present"
+          }
+        ],
+        "must": [
+          {
+            "path": "diagnosis",
+            "operator": "non_empty"
+          },
+          {
+            "path": "evidence_ref",
+            "operator": "non_empty"
+          }
+        ]
+      },
+      {
+        "id": "icu_organ_support_is_traceable",
+        "for_each": "organ_support",
+        "when": [
+          {
+            "path": "detail",
+            "operator": "present"
+          }
+        ],
+        "must": [
+          {
+            "path": "detail",
+            "operator": "non_empty"
+          },
+          {
+            "path": "evidence_ref",
+            "operator": "non_empty"
+          }
+        ]
+      }
+    ],
+    "evidence_bindings": [
+      {
+        "id": "icu_summary_evidence_matches_input",
+        "for_each": "evidence_items",
+        "text_path": "evidence_text",
+        "span_path": "char_span"
+      }
+    ]
+  },
+  "phi_redaction": "required",
+  "context_required": true,
+  "recorder_required": true,
+  "metrics_required": true,
+  "requirements": {
+    "min_runtime_version": "1.0.0",
+    "icoder_runtime_modules": []
+  },
+  "non_goals": [
+    "不计算 APACHE II、SOFA、GCS、死亡风险或其他临床评分",
+    "不应用生命体征或检验阈值，不标记临床异常或危急值",
+    "不执行药物相互作用、剂量、适应证或肝肾调整审查",
+    "不调用 PubMed、DrugBank、Medical Calculator 或外部网络",
+    "不生成治疗建议、医嘱、诊断因果或临床优先级",
+    "不自动写回 EMR/HIS"
+  ],
+  "human_review_required_when": [
+    "all ICU summaries before clinical use",
+    "any source field is missing, conflicting, stale, truncated, or not explicitly labelled"
+  ],
+  "example_inputs": [
+    {
+      "title": "中国医院 AICU 明确字段入院摘要",
+      "input_text": "患者信息：患者编号已脱敏，AICU\n入ICU原因：术后循环监护\n入院诊断：主动脉夹层术后\n病史：高血压病史已记录\n手术史：2026-08-24主动脉置换术\n过敏史：原记录注明无已知药物过敏\n社会史：未记录吸烟饮酒情况\n活动问题：术后循环监护\n用药：去甲肾上腺素0.05μg/kg/min，给药途径未记录\n生命体征：血压110/68mmHg，心率88次/分\n检验结果：乳酸由4.2降至2.1mmol/L\n操作/手术：2026-08-24主动脉置换术\n器官支持：有创机械通气FiO2 40%\n时间线：08:30术后转入AICU\n趋势：乳酸由4.2降至2.1mmol/L\n待办：血气分析待回报\n风险：原记录标注出血风险\n矛盾/缺口：药物给药途径未记录",
+      "extra": {
+        "input_profile": "explicit_labelled_icu_admission",
+        "region": "cn"
+      }
+    }
+  ],
+  "metadata": {
+    "created_at": "2026-07-11",
+    "updated_at": "2026-08-24",
+    "author": "iCoDer",
+    "corti_match": "icu-admission-summary-agent",
+    "audit_note": "Governed local documented-fact baseline. It does not claim Corti PubMed, Medical Calculator, DrugBank, clinical scoring, threshold interpretation or EHR integration parity."
+  },
+  "built_by": "icoder",
+  "example_outputs": [
+    {
+      "summary_status": "COMPLETED",
+      "patient_background": {
+        "patient_information": "患者编号已脱敏，AICU",
+        "medical_history": "高血压病史已记录",
+        "surgical_history": "2026-08-24主动脉置换术",
+        "allergies": "原记录注明无已知药物过敏",
+        "social_history": "未记录吸烟饮酒情况"
+      },
+      "admission_reason": "术后循环监护",
+      "admission_diagnoses": [
+        {
+          "diagnosis": "主动脉夹层术后",
+          "assertion": "DOCUMENTED",
+          "evidence_ref": "icu-evidence-3"
+        }
+      ],
+      "timeline": [
+        {
+          "time": "",
+          "event": "08:30术后转入AICU",
+          "evidence_ref": "icu-evidence-14"
+        }
+      ],
+      "active_problems": [
+        {
+          "problem": "术后循环监护",
+          "status": "DOCUMENTED",
+          "evidence_ref": "icu-evidence-8"
+        }
+      ],
+      "organ_support": [
+        {
+          "type": "DOCUMENTED_ORGAN_SUPPORT",
+          "detail": "有创机械通气FiO2 40%",
+          "route": "",
+          "evidence_ref": "icu-evidence-13"
+        }
+      ],
+      "medications": [
+        {
+          "documented_text": "去甲肾上腺素0.05μg/kg/min，给药途径未记录",
+          "dose": "",
+          "route": "",
+          "evidence_ref": "icu-evidence-9"
+        }
+      ],
+      "vital_signs": [
+        {
+          "text": "血压110/68mmHg，心率88次/分",
+          "evidence_ref": "icu-evidence-10"
+        }
+      ],
+      "laboratory_results": [
+        {
+          "text": "乳酸由4.2降至2.1mmol/L",
+          "evidence_ref": "icu-evidence-11"
+        }
+      ],
+      "procedures": [
+        {
+          "text": "2026-08-24主动脉置换术",
+          "evidence_ref": "icu-evidence-12"
+        }
+      ],
+      "key_trends": [
+        {
+          "indicator": "原记录趋势",
+          "trend": "乳酸由4.2降至2.1mmol/L",
+          "interpretation": "未解释；仅保留原文记录。",
+          "evidence_ref": "icu-evidence-15"
+        }
+      ],
+      "pending_items": [
+        {
+          "item": "血气分析待回报",
+          "status": "DOCUMENTED_PENDING",
+          "evidence_ref": "icu-evidence-16"
+        }
+      ],
+      "risks": [
+        {
+          "risk": "原记录标注出血风险",
+          "basis": "原记录明确标注",
+          "evidence_ref": "icu-evidence-17"
+        }
+      ],
+      "conflicts": [
+        {
+          "description": "药物给药途径未记录",
+          "evidence": "药物给药途径未记录",
+          "field": "记录",
+          "evidence_ref": "icu-evidence-18"
+        }
+      ],
+      "source_completeness": {
+        "missing_sections": [],
+        "input_truncated": false,
+        "evidence_item_count": 18
+      },
+      "evidence_items": [
+        {
+          "evidence_id": "icu-evidence-1",
+          "field": "patient_information",
+          "source_label": "患者信息",
+          "evidence_text": "患者编号已脱敏，AICU",
+          "char_span": [
+            5,
+            17
+          ]
+        },
+        {
+          "evidence_id": "icu-evidence-2",
+          "field": "admission_reason",
+          "source_label": "入ICU原因",
+          "evidence_text": "术后循环监护",
+          "char_span": [
+            25,
+            31
+          ]
+        },
+        {
+          "evidence_id": "icu-evidence-3",
+          "field": "admission_diagnoses",
+          "source_label": "入院诊断",
+          "evidence_text": "主动脉夹层术后",
+          "char_span": [
+            37,
+            44
+          ]
+        },
+        {
+          "evidence_id": "icu-evidence-4",
+          "field": "medical_history",
+          "source_label": "病史",
+          "evidence_text": "高血压病史已记录",
+          "char_span": [
+            48,
+            56
+          ]
+        },
+        {
+          "evidence_id": "icu-evidence-5",
+          "field": "surgical_history",
+          "source_label": "手术史",
+          "evidence_text": "2026-08-24主动脉置换术",
+          "char_span": [
+            61,
+            77
+          ]
+        },
+        {
+          "evidence_id": "icu-evidence-6",
+          "field": "allergies",
+          "source_label": "过敏史",
+          "evidence_text": "原记录注明无已知药物过敏",
+          "char_span": [
+            82,
+            94
+          ]
+        },
+        {
+          "evidence_id": "icu-evidence-7",
+          "field": "social_history",
+          "source_label": "社会史",
+          "evidence_text": "未记录吸烟饮酒情况",
+          "char_span": [
+            99,
+            108
+          ]
+        },
+        {
+          "evidence_id": "icu-evidence-8",
+          "field": "active_problems",
+          "source_label": "活动问题",
+          "evidence_text": "术后循环监护",
+          "char_span": [
+            114,
+            120
+          ]
+        },
+        {
+          "evidence_id": "icu-evidence-9",
+          "field": "medications",
+          "source_label": "用药",
+          "evidence_text": "去甲肾上腺素0.05μg/kg/min，给药途径未记录",
+          "char_span": [
+            124,
+            151
+          ]
+        },
+        {
+          "evidence_id": "icu-evidence-10",
+          "field": "vital_signs",
+          "source_label": "生命体征",
+          "evidence_text": "血压110/68mmHg，心率88次/分",
+          "char_span": [
+            157,
+            177
+          ]
+        },
+        {
+          "evidence_id": "icu-evidence-11",
+          "field": "laboratory_results",
+          "source_label": "检验结果",
+          "evidence_text": "乳酸由4.2降至2.1mmol/L",
+          "char_span": [
+            183,
+            200
+          ]
+        },
+        {
+          "evidence_id": "icu-evidence-12",
+          "field": "procedures",
+          "source_label": "操作/手术",
+          "evidence_text": "2026-08-24主动脉置换术",
+          "char_span": [
+            207,
+            223
+          ]
+        },
+        {
+          "evidence_id": "icu-evidence-13",
+          "field": "organ_support",
+          "source_label": "器官支持",
+          "evidence_text": "有创机械通气FiO2 40%",
+          "char_span": [
+            229,
+            243
+          ]
+        },
+        {
+          "evidence_id": "icu-evidence-14",
+          "field": "timeline",
+          "source_label": "时间线",
+          "evidence_text": "08:30术后转入AICU",
+          "char_span": [
+            248,
+            261
+          ]
+        },
+        {
+          "evidence_id": "icu-evidence-15",
+          "field": "key_trends",
+          "source_label": "趋势",
+          "evidence_text": "乳酸由4.2降至2.1mmol/L",
+          "char_span": [
+            265,
+            282
+          ]
+        },
+        {
+          "evidence_id": "icu-evidence-16",
+          "field": "pending_items",
+          "source_label": "待办",
+          "evidence_text": "血气分析待回报",
+          "char_span": [
+            286,
+            293
+          ]
+        },
+        {
+          "evidence_id": "icu-evidence-17",
+          "field": "risks",
+          "source_label": "风险",
+          "evidence_text": "原记录标注出血风险",
+          "char_span": [
+            297,
+            306
+          ]
+        },
+        {
+          "evidence_id": "icu-evidence-18",
+          "field": "conflicts",
+          "source_label": "矛盾/缺口",
+          "evidence_text": "药物给药途径未记录",
+          "char_span": [
+            313,
+            322
+          ]
+        }
+      ],
+      "limitations": [
+        "仅解析明确字段标签；未标注自由文本不会被重写为 ICU 临床事实。",
+        "未计算 APACHE II、SOFA、GCS、死亡风险或其他临床评分。",
+        "未应用生命体征/检验参考范围，未执行药物相互作用、剂量或肝肾调整审查。",
+        "未调用 PubMed、DrugBank、Medical Calculator 或真实 EHR/MAR/LIS/监护设备。",
+        "未生成诊疗建议；所有字段须 ICU 医师对照原始记录复核。"
+      ],
+      "clinical_scores_status": "NOT_CALCULATED_GOVERNED_CALCULATOR_REQUIRED",
+      "medication_screening_status": "NOT_SCREENED_LICENSED_DRUG_SOURCE_REQUIRED",
+      "clinical_recommendations_generated": false,
+      "production_writeback_blocked": true,
+      "manual_review_required": true,
+      "trace_refs": {
+        "run_id": "example-icu-summary",
+        "provider_trace_refs": [
+          "example-icu-summary:governed-icu-summary"
+        ]
+      }
+    }
+  ],
+  "integrity": {
+    "sha256": "73bf8426f24ab6e3fcdbe8f6ca37a8486b97498f13164272537b09218f93778f"
+  }
+}

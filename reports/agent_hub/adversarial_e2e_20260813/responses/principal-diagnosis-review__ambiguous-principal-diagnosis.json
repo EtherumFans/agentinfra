@@ -1,0 +1,110 @@
+{
+  "agent_id": "principal-diagnosis-review",
+  "run_id": "run-7aa0b5e2-3794-4d69-a0c5-95f00b690d5f",
+  "trace_id": "trace-ead305229ccd4005",
+  "trace_url": "/ai-studio/runs/run-7aa0b5e2-3794-4d69-a0c5-95f00b690d5f/trace",
+  "runtime_mode": "a2a_pure_llm",
+  "latency_ms": 7404,
+  "cost": {
+    "amount": 0.00031,
+    "currency": "CNY"
+  },
+  "summary": "{",
+  "result": {
+    "status": "complete",
+    "markdown": "{\n  \"candidates\": [\n    {\n      \"code\": \"J18.9\",\n      \"display\": \"肺炎，未特指\",\n      \"evidence_text\": \"出院诊断列有肺炎\",\n      \"char_span\": [0, 2],\n      \"severity\": \"unknown\",\n      \"resource_usage\": \"unknown\",\n      \"primary_treatment\": \"unknown\",\n      \"recommended\": false,\n      \"rationale\": \"证据不足：仅出院诊断列出，无入院原因、诊疗经过或资源消耗信息，无法确认其为最严重或主要治疗诊断。\"\n    },\n    {\n      \"code\": \"I50.9\",\n      \"display\": \"心力衰竭，未特指\",\n      \"evidence_text\": \"出院诊断列有心力衰竭\",\n      \"char_span\": [5, 9],\n      \"severity\": \"unknown\",\n      \"resource_usage\": \"unknown\",\n      \"primary_treatment\": \"unknown\",\n      \"recommended\": false,\n      \"rationale\": \"证据不足：仅出院诊断列出，无入院原因、诊疗经过或资源消耗信息，无法确认其为最严重或主要治疗诊断。\"\n    }\n  ],\n  \"recommended\": {\n    \"code\": \"\",\n    \"display\": \"\",\n    \"rationale\": \"无法确定主诊断。病历仅提供出院诊断列表（肺炎、心力衰竭），但缺少入院原因、诊疗经过、检查证据、资源消耗和编码员初稿。根据主诊断选择准则，无法评估危害严重性、资源消耗或主要治疗对象。\"\n  },\n  \"not_recommended\": [\n    {\n      \"code\": \"J18.9\",\n      \"display\": \"肺炎，未特指\",\n      \"reason\": \"证据不足：仅出院诊断列出，无入院原因或诊疗经过支持其为主诊断。\"\n    },\n    {\n      \"code\": \"I50.9\",\n      \"display\": \"心力衰竭，未特指\",\n      \"reason\": \"证据不足：仅出院诊断列出，无入院原因或诊疗经过支持其为主诊断。\"\n    }\n  ],\n  \"coding_draft_consistent\": false,\n  \"conflict_reason\": \"未提供编码员初稿，无法判断一致性。\",\n  \"manual_review_required\": true,\n  \"rationale\": \"主诊断无法确定。病历仅列出肺炎和心力衰竭两个出院诊断，但缺少入院原因、诊疗经过、检查证据、资源消耗和编码员初稿。根据主诊断选择准则，无法评估哪个诊断对患者健康危害最严重、消耗资源最多或为主要治疗对象。需要补充病历信息（如入院记录、病程记录、检查报告、治疗记录）以进行准确判断。\",\n  \"manual_review_prompt\": \"请复核以下内容：1. 获取入院记录和出院小结，明确入院原因和主要诊疗经过。2. 获取检查证据（如胸部影像、心脏超声、实验室指标）以评估肺炎和心力衰竭的严重程度。3. 评估住院期间资源消耗（如ICU入住、机械通气、静脉用药、手术操作）和主要治疗对象。4. 若编码员初稿存在，请提供以进行一致性比对。5. 根据完整信息确定主诊断，并遵循主诊断选择准则。\"\n}",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.pure-llm.v1",
+    "backend_type": "pure_llm",
+    "candidates": [
+      {
+        "code": "J18.9",
+        "display": "肺炎，未特指",
+        "evidence_text": "出院诊断列有肺炎",
+        "char_span": [
+          0,
+          2
+        ],
+        "severity": "unknown",
+        "resource_usage": "unknown",
+        "primary_treatment": "unknown",
+        "recommended": false,
+        "rationale": "证据不足：仅出院诊断列出，无入院原因、诊疗经过或资源消耗信息，无法确认其为最严重或主要治疗诊断。"
+      },
+      {
+        "code": "I50.9",
+        "display": "心力衰竭，未特指",
+        "evidence_text": "出院诊断列有心力衰竭",
+        "char_span": [
+          5,
+          9
+        ],
+        "severity": "unknown",
+        "resource_usage": "unknown",
+        "primary_treatment": "unknown",
+        "recommended": false,
+        "rationale": "证据不足：仅出院诊断列出，无入院原因、诊疗经过或资源消耗信息，无法确认其为最严重或主要治疗诊断。"
+      }
+    ],
+    "recommended": {
+      "code": "",
+      "display": "",
+      "rationale": "无法确定主诊断。病历仅提供出院诊断列表（肺炎、心力衰竭），但缺少入院原因、诊疗经过、检查证据、资源消耗和编码员初稿。根据主诊断选择准则，无法评估危害严重性、资源消耗或主要治疗对象。"
+    },
+    "not_recommended": [
+      {
+        "code": "J18.9",
+        "display": "肺炎，未特指",
+        "reason": "证据不足：仅出院诊断列出，无入院原因或诊疗经过支持其为主诊断。"
+      },
+      {
+        "code": "I50.9",
+        "display": "心力衰竭，未特指",
+        "reason": "证据不足：仅出院诊断列出，无入院原因或诊疗经过支持其为主诊断。"
+      }
+    ],
+    "coding_draft_consistent": false,
+    "conflict_reason": "未提供编码员初稿，无法判断一致性。",
+    "manual_review_required": true,
+    "rationale": "主诊断无法确定。病历仅列出肺炎和心力衰竭两个出院诊断，但缺少入院原因、诊疗经过、检查证据、资源消耗和编码员初稿。根据主诊断选择准则，无法评估哪个诊断对患者健康危害最严重、消耗资源最多或为主要治疗对象。需要补充病历信息（如入院记录、病程记录、检查报告、治疗记录）以进行准确判断。",
+    "manual_review_prompt": "请复核以下内容：1. 获取入院记录和出院小结，明确入院原因和主要诊疗经过。2. 获取检查证据（如胸部影像、心脏超声、实验室指标）以评估肺炎和心力衰竭的严重程度。3. 评估住院期间资源消耗（如ICU入住、机械通气、静脉用药、手术操作）和主要治疗对象。4. 若编码员初稿存在，请提供以进行一致性比对。5. 根据完整信息确定主诊断，并遵循主诊断选择准则。",
+    "structured_extraction": {
+      "contract": "icoder/PrincipalDxReview/v1",
+      "method": "json_block",
+      "warnings": [],
+      "required_fields": [
+        "candidates",
+        "recommended",
+        "not_recommended",
+        "rationale",
+        "manual_review_prompt"
+      ],
+      "missing_required_fields": [],
+      "valid": true
+    }
+  },
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 7404,
+      "metadata": {
+        "agent_id": "principal-diagnosis-review",
+        "runtime_mode": "a2a_pure_llm",
+        "latency_ms": 7404
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 7.71
+}

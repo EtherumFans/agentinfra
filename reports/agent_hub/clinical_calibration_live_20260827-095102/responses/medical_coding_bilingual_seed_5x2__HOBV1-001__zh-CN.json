@@ -1,0 +1,273 @@
+{
+  "agent_id": "medical-coding-agent",
+  "run_id": "run-243cc6e4-dee3-453f-b64d-8aea536321f2",
+  "trace_id": "trace-02aa1cb2054645ea",
+  "trace_url": "/ai-studio/runs/run-243cc6e4-dee3-453f-b64d-8aea536321f2/trace",
+  "runtime_mode": "corti_like_fast",
+  "latency_ms": 6537,
+  "cost": {
+    "amount": 0.000328,
+    "currency": "CNY",
+    "source": "provider_token_usage",
+    "token_usage": {
+      "input_tokens": 1337,
+      "output_tokens": 502
+    }
+  },
+  "billing": {},
+  "summary": "主要诊断为骨质疏松性椎体压缩性骨折，符合组合编码原则。需人工复核骨质疏松类型及糖尿病并发症情况。",
+  "result": {
+    "encounter_summary": {
+      "chief_complaint": "",
+      "treatment_course": "",
+      "key_findings": [],
+      "document_sources": [],
+      "encounter_date": ""
+    },
+    "documentation_analysis": {
+      "diagnosis_evidence": [],
+      "procedure_evidence": [],
+      "negated_findings": [],
+      "historical_conditions": []
+    },
+    "code_assignment": {
+      "primary_diagnosis": {
+        "code": "M80.08",
+        "description": "骨质疏松性椎体压缩性骨折（T12）",
+        "confidence": 0.95,
+        "category": "principal",
+        "evidence": [
+          {
+            "text": "骨质疏松病史 5 年",
+            "kind": "auto_bootstrap"
+          },
+          {
+            "text": "MRI: T12 椎体压缩性骨折, 椎体高度丢失约 40%",
+            "kind": "auto_bootstrap"
+          },
+          {
+            "text": "入院诊断: T12 椎体压缩性骨折",
+            "kind": "auto_bootstrap"
+          }
+        ]
+      },
+      "secondary_diagnoses": [
+        {
+          "code": "I10.x00x002",
+          "description": "原发性高血压",
+          "confidence": 0.95,
+          "category": "comorbidity",
+          "evidence": [
+            {
+              "text": "原发性高血压 10 年",
+              "kind": "auto_bootstrap"
+            }
+          ]
+        },
+        {
+          "code": "E11.9",
+          "description": "2型糖尿病",
+          "confidence": 0.95,
+          "category": "comorbidity",
+          "evidence": [
+            {
+              "text": "2 型糖尿病 5 年",
+              "kind": "auto_bootstrap"
+            }
+          ]
+        }
+      ],
+      "procedures": []
+    },
+    "documentation_gaps": [],
+    "uncodable_items": [],
+    "validation_summary": {
+      "passed": false,
+      "issues_found": [
+        {
+          "severity": "medium",
+          "code": "RULE-001",
+          "message": "主要诊断编码 M80.08 为骨质疏松性骨折，但病历中未明确骨质疏松为原发性或继发性，且未提供骨密度检查结果，建议确认骨质疏松类型以选择更精确的编码。",
+          "suggestion": "若病历明确为原发性骨质疏松，可考虑 M80.08；若为继发性，需选择相应病因编码。"
+        },
+        {
+          "severity": "low",
+          "code": "RULE-002",
+          "message": "2型糖尿病编码 E11.9 为未特指类型，病历未提及并发症，若存在并发症应选择相应亚类编码。",
+          "suggestion": "检查病历中是否有糖尿病并发症描述，如有则选择更精确的编码。"
+        }
+      ],
+      "manual_review_required": true,
+      "rule_set": "MedCodERRetrievalRuleSet",
+      "fired_rules": [
+        "RULE-001",
+        "RULE-002"
+      ]
+    },
+    "human_review": {
+      "review_conclusion": "WARNING",
+      "review_required": true,
+      "review_focus": [],
+      "notes": "主要诊断为骨质疏松性椎体压缩性骨折，符合组合编码原则。需人工复核骨质疏松类型及糖尿病并发症情况。"
+    },
+    "trace_refs": {
+      "run_id": "run-243cc6e4-dee3-453f-b64d-8aea536321f2",
+      "stage_trace": [],
+      "rule_fired": [
+        "RULE-001",
+        "RULE-002"
+      ],
+      "mode": "Mode.UNSET",
+      "method_id": "",
+      "provider": "",
+      "model": "",
+      "trace_id": "trace-02aa1cb2054645ea"
+    },
+    "codes": [
+      {
+        "code": "M80.08",
+        "system": "ICD-10-CN",
+        "display": "骨质疏松性椎体压缩性骨折（T12）",
+        "type": "primary_diagnosis",
+        "confidence": 0.95,
+        "evidence": "骨质疏松病史 5 年; MRI: T12 椎体压缩性骨折, 椎体高度丢失约 40%; 入院诊断: T12 椎体压缩性骨折",
+        "rationale": "主要诊断 — 基于病历证据的优先编码候选,需结合 ICD-10-CN 本地目录复核具体亚目。",
+        "warnings": [
+          "需结合国家医保版 ICD-10-CN 目录进一步校验具体亚目"
+        ],
+        "alternatives": []
+      },
+      {
+        "code": "I10.x00x002",
+        "system": "ICD-10-CN",
+        "display": "原发性高血压",
+        "type": "secondary_diagnosis",
+        "confidence": 0.95,
+        "evidence": "原发性高血压 10 年",
+        "rationale": "次要诊断 (comorbidity) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。",
+        "warnings": [
+          "需结合 ICD-10-CN 本地目录进一步校验具体亚目"
+        ],
+        "alternatives": []
+      },
+      {
+        "code": "E11.9",
+        "system": "ICD-10-CN",
+        "display": "2型糖尿病",
+        "type": "secondary_diagnosis",
+        "confidence": 0.95,
+        "evidence": "2 型糖尿病 5 年",
+        "rationale": "次要诊断 (comorbidity) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。",
+        "warnings": [
+          "需结合 ICD-10-CN 本地目录进一步校验具体亚目"
+        ],
+        "alternatives": []
+      }
+    ],
+    "manual_review_required": true
+  },
+  "schema_ref": "icoder/MedicalCodingAgentOutputV2/v8",
+  "result_attestation": "eyJhIjoibWVkaWNhbC1jb2RpbmctYWdlbnQiLCJkIjoiMTkzNjM4OGM0NTQ1N2VhODk3MmQyNjFiZTYxNjkxZDYyNjQ2NzczYjU4M2QxZDU4ZTkxYzdjYWU0YTI0N2Y0MCIsImUiOjE3ODc4ODI1MTAsIm8iOiJiYzkyZWUwNmFmMGYiLCJyIjoicnVuLTI0M2NjNmU0LWRlZTMtNDUzZi1iNjRkLThhZWE1MzYzMjFmMiIsInMiOiJpY29kZXIvTWVkaWNhbENvZGluZ0FnZW50T3V0cHV0VjIvdjgiLCJ2IjoxfQ.0va7zpMzcTR1s2Fb79uQNKJdct9zWr4pJ8UrbP_E1W4",
+  "evidence": [
+    {
+      "code": "M80.08",
+      "system": "ICD-10-CN",
+      "type": "primary_diagnosis",
+      "text": "骨质疏松病史 5 年; MRI: T12 椎体压缩性骨折, 椎体高度丢失约 40%; 入院诊断: T12 椎体压缩性骨折",
+      "rationale": "主要诊断 — 基于病历证据的优先编码候选,需结合 ICD-10-CN 本地目录复核具体亚目。"
+    },
+    {
+      "code": "I10.x00x002",
+      "system": "ICD-10-CN",
+      "type": "secondary_diagnosis",
+      "text": "原发性高血压 10 年",
+      "rationale": "次要诊断 (comorbidity) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。"
+    },
+    {
+      "code": "E11.9",
+      "system": "ICD-10-CN",
+      "type": "secondary_diagnosis",
+      "text": "2 型糖尿病 5 年",
+      "rationale": "次要诊断 (comorbidity) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。"
+    }
+  ],
+  "warnings": [
+    "需结合国家医保版 ICD-10-CN 目录进一步校验具体亚目",
+    "需结合 ICD-10-CN 本地目录进一步校验具体亚目",
+    "需结合 ICD-10-CN 本地目录进一步校验具体亚目"
+  ],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "input_received",
+      "status": "ok",
+      "ts": 1787796103.692817,
+      "duration_ms": 0,
+      "metadata": {
+        "text_len": 234,
+        "mode": "corti_like_fast"
+      }
+    },
+    {
+      "step": "language_detect",
+      "status": "ok",
+      "ts": 1787796103.692817,
+      "duration_ms": 0,
+      "metadata": {
+        "language": "zh"
+      }
+    },
+    {
+      "step": "build_prompt",
+      "status": "ok",
+      "ts": 1787796103.692817,
+      "duration_ms": 0,
+      "metadata": {
+        "provider": "deepseek",
+        "language": "zh",
+        "system": "icd-10-cn"
+      }
+    },
+    {
+      "step": "llm_call",
+      "status": "ok",
+      "ts": 1787796110.2305338,
+      "duration_ms": 6537,
+      "metadata": {
+        "provider": "deepseek",
+        "model": "deepseek-chat",
+        "is_mock": false
+      }
+    },
+    {
+      "step": "parse_json",
+      "status": "ok",
+      "ts": 1787796110.2305338,
+      "duration_ms": 6537,
+      "metadata": {}
+    },
+    {
+      "step": "project_result",
+      "status": "ok",
+      "ts": 1787796110.2305338,
+      "duration_ms": 6537,
+      "metadata": {
+        "code_count": 3
+      }
+    },
+    {
+      "step": "return",
+      "status": "ok",
+      "ts": 1787796110.2305338,
+      "duration_ms": 6537,
+      "metadata": {
+        "latency_ms": 6537,
+        "code_count": 3
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 7.072
+}

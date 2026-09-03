@@ -37,6 +37,19 @@ class TestExtractKeywords:
     def test_empty_text(self):
         assert extract_keywords("") == []
 
+    def test_english_procedure_alias_maps_to_chinese_catalog_query(self):
+        kws = extract_keywords(
+            "Underwent laparoscopic appendectomy; surgery uneventful."
+        )
+        assert "腹腔镜下阑尾切除术" in kws
+
+    def test_parallel_chinese_chart_uses_same_canonical_queries(self):
+        kws = extract_keywords(
+            "2 型糖尿病性酮症酸中毒，行腹腔镜阑尾切除术"
+        )
+        assert "2型糖尿病伴有酮症酸中毒" in kws
+        assert "腹腔镜下阑尾切除术" in kws
+
     def test_no_clinical_terms_falls_back_to_ngrams(self):
         # No curated triggers, no obvious clinical terms — should still return
         # something (or empty) without crashing
@@ -59,13 +72,11 @@ class TestFormatCandidatesBlock:
         assert "M80.900" in block
         assert "老年性骨质疏松" in block
 
-    def test_soft_hint_message(self):
-        # The block must tell the LLM that candidates are reference only,
-        # not authoritative — prevents hallucination from candidates.
+    def test_catalog_boundary_message(self):
         cands = [{"code": "I50.9", "name": "心衰", "score": 0.8, "chapter": "I"}]
         block = format_candidates_block(cands)
-        assert "仅供参考" in block
         assert "病历证据为准" in block
+        assert "不得缩写、扩写" in block
 
     def test_score_rounded_to_2dp(self):
         cands = [{"code": "I10", "name": "高血压", "score": 0.8765, "chapter": "I"}]
@@ -94,14 +105,16 @@ class TestExtractUserText:
 
 @pytest.mark.asyncio
 class TestLookupCandidateCodes:
-    async def test_returns_M80_for_osteoporosis(self):
+    async def test_returns_catalog_osteoporosis_code_without_inferred_pathology(self):
         from icoder_runtime.providers.medical_coding.dictionary_rag import lookup_candidate_codes
         text = "重度骨质疏松伴椎体压缩骨折，高龄女性"
         cands = await lookup_candidate_codes(text, max_total=5)
         assert len(cands) > 0
-        # M80.x is the osteoporosis ICD-10 family
+        # The chart documents osteoporosis but does not explicitly call the
+        # fracture pathological. Retrieval must surface M81.900 rather than
+        # manufacturing an M80 causal linkage.
         codes = [c["code"] for c in cands]
-        assert any(c.startswith("M80") for c in codes), f"no M80 in {codes}"
+        assert "M81.900" in codes
 
     async def test_returns_I50_for_heart_failure(self):
         from icoder_runtime.providers.medical_coding.dictionary_rag import lookup_candidate_codes
@@ -121,3 +134,18 @@ class TestLookupCandidateCodes:
     async def test_empty_text_returns_empty(self):
         from icoder_runtime.providers.medical_coding.dictionary_rag import lookup_candidate_codes
         assert await lookup_candidate_codes("") == []
+
+    async def test_combined_request_returns_governed_procedure_candidate(self):
+        from icoder_runtime.providers.medical_coding.dictionary_rag import lookup_candidate_codes
+
+        cands = await lookup_candidate_codes(
+            "急性阑尾炎，行腹腔镜阑尾切除术。",
+            max_total=12,
+            coding_systems=("icd10cn", "icd9cm3"),
+        )
+
+        assert any(
+            item["coding_system"] == "icd9cm3"
+            and item["code"] == "47.0100"
+            for item in cands
+        )

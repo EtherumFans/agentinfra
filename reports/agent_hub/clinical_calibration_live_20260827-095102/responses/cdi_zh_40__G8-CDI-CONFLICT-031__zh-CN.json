@@ -1,0 +1,212 @@
+{
+  "agent_id": "clinical-documentation-improvement-agent",
+  "run_id": "run-092fb52a-0a37-4535-9ae4-9429cf850879",
+  "trace_id": "trace-44c68bf51ff54583",
+  "trace_url": "/ai-studio/runs/run-092fb52a-0a37-4535-9ae4-9429cf850879/trace",
+  "runtime_mode": "cdi_real_orchestrator",
+  "latency_ms": 17248,
+  "cost": {
+    "amount": 0.0012628,
+    "currency": "CNY",
+    "source": "configured_usage_pricing_estimate",
+    "billing_authoritative": false
+  },
+  "billing": {},
+  "summary": "CDI review completed; specialist and clinician review remain required.",
+  "result": {
+    "encounter_summary": {
+      "key_points": [
+        "患者男性，42岁",
+        "外伤入院",
+        "入院诊断：左侧肋骨骨折",
+        "出院诊断：右侧肋骨骨折",
+        "手术记录：右胸第5肋骨折固定术",
+        "CT报告：右侧肋骨骨折"
+      ],
+      "encounter_metadata": {
+        "patient_age": "42岁",
+        "patient_sex": "男性",
+        "encounter_type": "住院"
+      }
+    },
+    "documentation_gaps": [
+      {
+        "gap_id": "GAP-001",
+        "gap_type": "diagnostic_specificity",
+        "description": "入院诊断与出院诊断不一致：入院诊断为左侧肋骨骨折，出院诊断为右侧肋骨骨折，且手术记录和CT报告均支持右侧，需明确左侧是否也存在骨折或为笔误。",
+        "why_it_matters": "影响主要诊断的准确编码，左右侧混淆可能导致编码错误，影响DRG分组和医疗质量评价。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "入院诊断:左侧肋骨骨折。出院诊断:右侧肋骨骨折。",
+          "char_start": 16,
+          "char_end": 40,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "urgent"
+      },
+      {
+        "gap_id": "GAP-002",
+        "gap_type": "diagnostic_specificity",
+        "description": "手术记录未明确骨折的具体部位（如肋骨根数、是否多发性骨折）及手术方式细节（如内固定材料），影响手术操作编码的准确性。",
+        "why_it_matters": "手术编码需要具体的手术部位和方式，信息不足可能导致编码不精确。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "手术记录:右胸第5肋骨折固定术",
+          "char_start": 40,
+          "char_end": 55,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      },
+      {
+        "gap_id": "GAP-003",
+        "gap_type": "diagnostic_specificity",
+        "description": "CT报告仅描述右侧肋骨骨折，未提及骨折的具体类型（如单纯性、粉碎性）或有无并发症（如血气胸），影响骨折严重程度和并发症的编码。",
+        "why_it_matters": "骨折类型和并发症影响严重程度分级和编码，缺失可能导致编码不完整。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "CT报告:右侧肋骨骨折",
+          "char_start": 78,
+          "char_end": 89,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      }
+    ],
+    "proposed_provider_queries": [],
+    "query_gate_summary": {
+      "withheld_count": 3,
+      "status_counts": {
+        "REWRITE_CANDIDATE_GENERATED": 0
+      },
+      "manual_cdi_action_required": true
+    },
+    "coding_specificity_checklist": [],
+    "risk_flags": [
+      {
+        "category": "contradiction",
+        "description": "入院诊断与出院诊断左右侧矛盾，且手术和CT支持右侧，存在内部冲突。"
+      }
+    ],
+    "specialist_trace": [
+      {
+        "expert_id": "coding-expert",
+        "consulted": true,
+        "requested": "You are a coding-specialist Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "To ensure accurate coding, the clinical documentation must clarify whether the left rib fracture was a true finding or a transcription error, and explicitly state the laterality and number of fractured ribs (e.g., single vs. multiple) on the right side. The operative note should specify the exact rib(s) involved, the type of fracture (e.g., simple, comminuted), and the fixation method (e.g., plate, screw) to capture procedural detail. Additionally, the CT report must document fracture morphology and any associated complications such as hemothorax or pneumothorax, as these directly impact severity and comorbidity coding.",
+        "route_decision": "needed",
+        "route_reason": "coding_relevant_gap",
+        "execution_mode": "LLM_KNOWLEDGE_ONLY",
+        "latency_ms": 1946,
+        "tokens": 353,
+        "run_id": "run-8fdcaa0b3a4a",
+        "trace_id": "trace-1e7452dd1133"
+      },
+      {
+        "expert_id": "pubmed-expert",
+        "consulted": false,
+        "requested": "You are a PubMed literature Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-2d5162f2aa7d",
+        "trace_id": "trace-217b9bac7ac2"
+      },
+      {
+        "expert_id": "web-search-expert",
+        "consulted": false,
+        "requested": "You are a clinical web-search Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-245bd6fbbaa0",
+        "trace_id": "trace-ab8ef73c15a0"
+      },
+      {
+        "expert_id": "medical-calculator-expert",
+        "consulted": false,
+        "requested": "You are a medical-calculator Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "'分级' score — parameters absent from chart",
+        "route_decision": "missing_inputs",
+        "route_reason": "calculator_params_missing",
+        "execution_mode": "SKIPPED_MISSING_INPUTS",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-ba30a22bc2b1",
+        "trace_id": "trace-02dcdbd1b02b"
+      }
+    ],
+    "human_review": {
+      "cdi_specialist_review_required": true,
+      "clinician_response_required": true,
+      "review_priority": "routine"
+    },
+    "trace_refs": {
+      "run_id": "run-092fb52a-0a37-4535-9ae4-9429cf850879",
+      "stage_trace": {
+        "encounter_synthesis": "trace-ba8017216187",
+        "gap_identification": "trace-2ea7ff1c0a32",
+        "expert_consultation": "trace-879f693b9b52",
+        "query_generation": "trace-0c1d5ce165bc",
+        "query_eligibility_gate": "",
+        "query_necessity_gate": "",
+        "query_dimension_rewrite": "",
+        "query_single_dimension_gate": "",
+        "claim_evidence_alignment_gate": "trace-dd6fa7307f8c",
+        "semantic_necessity_gate": "trace-a688530f643e",
+        "query_compliance_gate": "",
+        "specialist_trace_emit": "trace-c8725e769ada"
+      },
+      "experts_consulted": [
+        "coding-expert"
+      ],
+      "gate_results": {
+        "encounter_synthesis": "run-0e8bd59a085c",
+        "gap_identification": "run-2261d32ae4fb",
+        "gap_identification_risk_flags": "emitted=1;quote_snapped=0",
+        "expert_consultation": "run-4cde42f0a795",
+        "query_generation": "run-24f153e2d3b3",
+        "query_generation::quote_snapped": "0",
+        "query_generation::coverage_missing": "0",
+        "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=Y;dropped=0;final_count=3;llm_complete=False;llm_reasoning=左右侧诊断矛盾未解决，且骨折类型、并发症等关键信息缺失，需澄清后才能准确编码。",
+        "query_necessity_gate": "necessary=3;unnecessary=0;overquery_triggered=False;final_count=1",
+        "query_dimension_rewrite": "not_executed",
+        "query_single_dimension_gate": "single_dim=1;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=site;rewrite_attempted=0;rewrite_accepted=0;final_count=1",
+        "claim_evidence_alignment_gate": "claims_extracted=3;degraded=0;blocked=0;flagged=0;final_count=1",
+        "claim_evidence_alignment_gate::run_id": "run-3259acd41d3f",
+        "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=1",
+        "semantic_necessity_gate::run_id": "run-c998139eb881",
+        "query_compliance_gate": ";passed=0;blocked=1",
+        "specialist_trace_emit": "run-eb1fe2b88ada"
+      },
+      "trace_id": "trace-44c68bf51ff54583"
+    }
+  },
+  "schema_ref": "icoder/CDIAgentOutputV1/v6",
+  "result_attestation": "eyJhIjoiY2xpbmljYWwtZG9jdW1lbnRhdGlvbi1pbXByb3ZlbWVudC1hZ2VudCIsImQiOiIyMWFjN2E0OGQ1MDE0Mzc4ZDdjNDAzYTBkMzFiMjllNWE2YzY4YjAzNjVlMDBmNTMxYjI3Njg2NDZiMzZlMGQ1IiwiZSI6MTc4Nzg4MjM1MiwibyI6ImJjOTJlZTA2YWYwZiIsInIiOiJydW4tMDkyZmI1MmEtMGEzNy00NTM1LTlhZTQtOTQyOWNmODUwODc5IiwicyI6Imljb2Rlci9DRElBZ2VudE91dHB1dFYxL3Y2IiwidiI6MX0.GGQCcfVR9RIBQ_1eCtKN2dzoYdJMujVPwQl3usa1x0I",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 17.36
+}

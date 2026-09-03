@@ -1,0 +1,250 @@
+{
+  "case_id": "CASE-232a898a9b52",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-232a898a9b52/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "肝硬化病因未明确（乙肝？但需确认是否代偿期/失代偿期）",
+      "why_it_matters": "肝硬化的分期（代偿期/失代偿期）影响预后和编码，失代偿期有腹水、肝性脑病等并发症需单独编码。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "乙肝肝硬化史"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-232a898a9b52/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "上消化道出血的病因已明确为食管静脉曲张出血，但未明确是否活动性出血或出血已停止",
+      "why_it_matters": "活动性出血与出血停止的编码不同，且影响治疗决策。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "胃镜:食管静脉曲张出血,已套扎"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-232a898a9b52/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "贫血严重程度未明确（Hb 75，但未描述为急性失血性贫血或慢性病贫血）",
+      "why_it_matters": "贫血的病因和严重程度影响编码，急性失血性贫血与慢性贫血不同。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "Hb 75"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-232a898a9b52/GAP-004",
+      "gap_type": "diagnostic_specificity",
+      "description": "低血压和心动过速未明确是否与失血性休克相关",
+      "why_it_matters": "失血性休克是严重并发症，需单独编码，且影响DRG分组。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "BP 95/60, HR 110"
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [],
+  "chart_excerpt_preview": "患者男性, 62岁, 乙肝肝硬化史, 呕血1天。Hb 75, BP 95/60, HR 110。胃镜:食管静脉曲张出血, 已套扎。入院诊断:上消化道出血。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "乙肝肝硬化史",
+      "呕血1天",
+      "Hb 75",
+      "BP 95/60",
+      "HR 110",
+      "胃镜:食管静脉曲张出血,已套扎",
+      "入院诊断:上消化道出血"
+    ],
+    "encounter_metadata": {
+      "patient_age": "62",
+      "patient_sex": "男",
+      "encounter_type": "住院"
+    }
+  },
+  "risk_flags": [
+    {
+      "category": "unsupported_diagnosis",
+      "description": "入院诊断'上消化道出血'虽合理，但胃镜已明确为食管静脉曲张出血，诊断不够精确，但并非无证据。"
+    }
+  ],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "建议明确肝硬化目前处于代偿期还是失代偿期，并注明食管静脉曲张出血是否已停止或仍有活动性出血。同时需区分贫血是急性失血所致还是慢性病引起，并明确低血压与心动过速是否构成失血性休克。这些临床细节将直接影响病情严重程度评估及治疗策略的精准记录。",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 2934,
+      "tokens": 274
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-0352a1f2178f",
+    "gap_identification": "run-f369e54184d5",
+    "gap_identification_risk_flags": "emitted=1",
+    "expert_consultation": "run-302ee32755e2",
+    "query_generation": "run-1a7b125f2fa1",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.25;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=Y,D8_course=N;dropped=0;final_count=4;llm_complete=False;llm_reasoning=虽然出血部位已明确，但肝硬化分期、出血活动性、贫血类型及休克状态均未明确，影响编码精确性。",
+    "query_necessity_gate": "necessary=4;unnecessary=0;overquery_triggered=False;final_count=4",
+    "query_single_dimension_gate": "single_dim=2;multi_dim=2;axis_cluster_triggered=False;axis_cluster_axis=etiology;final_count=2",
+    "claim_evidence_alignment_gate": "claims_extracted=9;blocked=2;flagged=0;final_count=0",
+    "claim_evidence_alignment_gate::run_id": "run-524658bc82ee",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+    "semantic_necessity_gate::run_id": "run-d18141fc08df",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "run-02502978b433"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-fbd58bceb81b",
+    "gap_identification": "trace-16cd96cdb3e7",
+    "expert_consultation": "trace-5a66d21d16e1",
+    "query_generation": "trace-775a2b2f3b57",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-af063132416f",
+    "semantic_necessity_gate": "trace-ac32dcbd8b8b",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-ec08ccf37365"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2531,
+      "prompt_tokens": 224,
+      "completion_tokens": 103,
+      "total_tokens": 327,
+      "run_id": "run-0352a1f2178f",
+      "trace_id": "trace-fbd58bceb81b",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6685,
+      "prompt_tokens": 858,
+      "completion_tokens": 704,
+      "total_tokens": 1562,
+      "run_id": "run-f369e54184d5",
+      "trace_id": "trace-16cd96cdb3e7",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6007,
+      "prompt_tokens": 975,
+      "completion_tokens": 730,
+      "total_tokens": 1705,
+      "run_id": "run-1a7b125f2fa1",
+      "trace_id": "trace-775a2b2f3b57",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2934,
+      "prompt_tokens": 200,
+      "completion_tokens": 74,
+      "total_tokens": 274,
+      "run_id": "run-8f41e9334d5b",
+      "trace_id": "trace-894252f24221",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-dce97755226a",
+      "trace_id": "trace-774641c5cb30",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-283ed35d7645",
+      "trace_id": "trace-ca14b661d1c7",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-794d37427102",
+      "trace_id": "trace-1d1ebe2cb477",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-07-13T00:33:25.548162Z"
+}

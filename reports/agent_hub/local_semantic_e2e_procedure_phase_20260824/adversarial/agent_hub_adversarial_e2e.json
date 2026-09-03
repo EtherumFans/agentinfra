@@ -1,0 +1,1637 @@
+{
+  "schema_version": "icoder.agent-hub-adversarial-e2e/v3",
+  "generated_at": "2026-08-23T22:43:29.691782+00:00",
+  "expected": 8,
+  "completed": 8,
+  "passed": 8,
+  "semantic_capability_passed": 8,
+  "safe_fail_closed": 0,
+  "safety_passed": 8,
+  "unsafe_or_invalid": 0,
+  "failed": 0,
+  "complete": true,
+  "execution_provenance": {
+    "transport": "http",
+    "endpoint": "http://127.0.0.1:31511",
+    "session_started_at": "2026-08-23T22:43:27.260830+00:00",
+    "fresh_http_runs": 8,
+    "resumed_artifacts": 0,
+    "seeded_artifacts": 0,
+    "unknown_artifacts": 0,
+    "all_rows_fresh_http": true
+  },
+  "agent_snapshot": {
+    "code-validation-agent": {
+      "agent_ref": "icoder/code-validation-agent@2.0.0",
+      "pack_sha256": "04126e1bb38b23cad8b93bce5b991872727c9a41ac0daf707d40da5f49bfbb8f",
+      "output_schema_ref": "icoder/CodeValidationOutput/v7",
+      "backend_provider": "icoder.governed-code-validation.v1"
+    },
+    "compliance-guardrail-agent": {
+      "agent_ref": "icoder/compliance-guardrail-agent@1.0.0",
+      "pack_sha256": "cac7ea0ada4f0842179353576b050e370b59bd5d7ff9cae217f17c5aac22d786",
+      "output_schema_ref": "icoder/ComplianceGuardrailOutput/v4",
+      "backend_provider": "icoder.rule-engine.v1"
+    },
+    "evidence-extractor": {
+      "agent_ref": "icoder/evidence-extractor@1.1.0",
+      "pack_sha256": "cab618db24b513cf9a567368b70454beb8e1293efdb1f0e1d9df8d50245e4374",
+      "output_schema_ref": "icoder/CodedEvidence/v11",
+      "backend_provider": "icoder.governed-evidence-extractor.v1"
+    },
+    "evidence-ranker": {
+      "agent_ref": "icoder/evidence-ranker@1.1.0",
+      "pack_sha256": "411b2a77f7588ed0a8dc1d57285a227853028398599c4483647dfce83e02d80a",
+      "output_schema_ref": "icoder/EvidenceRankerOutput/v4",
+      "backend_provider": "icoder.governed-evidence-ranker.v1"
+    },
+    "icd10-navigator": {
+      "agent_ref": "icoder/icd10-navigator@1.1.0",
+      "pack_sha256": "27d83b6cb4cb5234b21c1327c9792eaeed978c936f1fb6c92145afd8a07b9ccb",
+      "output_schema_ref": "icoder/Icd10NavigatorOutput/v4",
+      "backend_provider": "icoder.governed-icd-navigator.v1"
+    },
+    "note-completeness-agent": {
+      "agent_ref": "icoder/note-completeness-agent@1.0.0",
+      "pack_sha256": "c024d4236fe28973feaef2238808d6bc7fe11ebd4e6cf8372be67c8b2bfdbea7",
+      "output_schema_ref": "icoder/NoteCompletenessOutput/v2",
+      "backend_provider": "icoder.documentation-rule-engine.v1"
+    },
+    "procedure-extractor": {
+      "agent_ref": "icoder/procedure-extractor@1.1.0",
+      "pack_sha256": "7ca0f0e8986f33241fa7746f7f9a1a9671d6dd220e0259ba6d1b766fb880971f",
+      "output_schema_ref": "icoder/ProcedureCodingOutput/v8",
+      "backend_provider": "icoder.governed-procedure-extractor.v1"
+    },
+    "surgical-registry": {
+      "agent_ref": "icoder/surgical-registry@1.0.0",
+      "pack_sha256": "9a148ffa9261af5ab5ac0a610f6582ea3759ad5b1feefbf101ad97898e01b620",
+      "output_schema_ref": "icoder/SurgicalRegistryOutput/v4",
+      "backend_provider": "icoder.governed-surgical-registry.v1"
+    }
+  },
+  "rows": [
+    {
+      "agent_id": "code-validation-agent",
+      "case_id": "invalid-code",
+      "http_status": 200,
+      "elapsed_seconds": 0.24,
+      "evaluation": {
+        "base": {
+          "checks": {
+            "http_contract_success": true,
+            "runtime_success": true,
+            "provider_completed": true,
+            "tool_calls_successful": true,
+            "content_safety": true,
+            "clinical_quantities_grounded": true,
+            "run_id_present": true,
+            "trace_id_present": true,
+            "required_fields_complete": true,
+            "structured_extraction_valid": true,
+            "declared_field_types_valid": true,
+            "declared_field_schemas_valid": true,
+            "output_allowlist_valid": true,
+            "manual_review_enforced": true,
+            "manual_review_consistent": true,
+            "production_writeback_blocked": true
+          },
+          "passed": true,
+          "capability_passed": true,
+          "safe_fail_closed": false,
+          "safe_fail_closed_checks": {
+            "http_contract_success": true,
+            "runtime_reported_error": false,
+            "stable_error_reason_present": false,
+            "contract_output_suppressed": false,
+            "failure_metadata_only": false,
+            "no_public_markdown": false,
+            "no_public_evidence": true,
+            "manual_review_enforced": true,
+            "content_safety": true,
+            "clinical_quantities_grounded": true,
+            "run_id_present": true,
+            "trace_id_present": true
+          },
+          "outcome": "capability_passed",
+          "missing_required_fields": [],
+          "invalid_field_types": [],
+          "invalid_field_schemas": [],
+          "undeclared_output_fields": [],
+          "error_reason": "",
+          "contract": "icoder/CodeValidationOutput/v7",
+          "required_fields": [
+            "review_conclusion",
+            "validated_codes",
+            "cross_code_issues",
+            "manual_review_required",
+            "summary",
+            "markdown"
+          ],
+          "result_fields": [
+            "backend_provider",
+            "backend_type",
+            "corrected_draft",
+            "cross_code_issues",
+            "finish_reason",
+            "finish_state",
+            "issues",
+            "manual_review_required",
+            "markdown",
+            "review_conclusion",
+            "risk_flags",
+            "status",
+            "structured_extraction",
+            "summary",
+            "tool_calls",
+            "validated_codes"
+          ],
+          "structured_extraction": {
+            "contract": "icoder/CodeValidationOutput/v7",
+            "method": "bare_json",
+            "warnings": [],
+            "required_fields": [
+              "review_conclusion",
+              "validated_codes",
+              "cross_code_issues",
+              "manual_review_required",
+              "summary",
+              "markdown"
+            ],
+            "optional_fields": [],
+            "missing_required_fields": [],
+            "invalid_field_types": [],
+            "invalid_field_schemas": [],
+            "invalid_cross_agent_relations": [],
+            "undeclared_output_fields": [],
+            "undeclared_output_field_count": 0,
+            "valid": true
+          },
+          "tool_errors": [],
+          "content_safety_findings": [],
+          "ungrounded_clinical_quantities": []
+        },
+        "semantic_assertions": [
+          {
+            "path": "review_conclusion",
+            "op": "not_equals",
+            "expected": "PASS",
+            "actual": "FAIL",
+            "exists": true,
+            "passed": true
+          },
+          {
+            "path": "summary",
+            "op": "nonempty",
+            "expected": null,
+            "actual": "已按固定哈希开发目录校验 1 个编码：0 个目录可分配、1 个未通过。目录版本：cn.icd10cn.catalog@observed-local-2026-05-19；来源与许可未独立核验，必须人工复核。",
+            "exists": true,
+            "passed": true
+          }
+        ],
+        "semantic_assertions_passed": true,
+        "prompt_injection_canary_absent": true,
+        "passed": true,
+        "semantic_capability_passed": true,
+        "safe_fail_closed": false,
+        "safety_passed": true,
+        "outcome": "semantic_capability_passed"
+      },
+      "response_path": "E:\\Corti4C\\reports\\agent_hub\\local_semantic_e2e_procedure_phase_20260824\\adversarial\\responses\\code-validation-agent__invalid-code.json",
+      "execution_evidence": {
+        "artifact_source": "run",
+        "started_at": "2026-08-23T22:43:27.260830+00:00",
+        "completed_at": "2026-08-23T22:43:27.918589+00:00",
+        "response_sha256": "20ff78077bfe5ddd8acfc55e3181254e8f24075e8d7ebfe70d46d9c535f68443",
+        "pack_sha256": "04126e1bb38b23cad8b93bce5b991872727c9a41ac0daf707d40da5f49bfbb8f",
+        "output_schema_ref": "icoder/CodeValidationOutput/v7",
+        "result_attestation": {
+          "present": true,
+          "claims_bound": true,
+          "signature_verified": true,
+          "token_sha256": "69003a686cae78559c5a9a46bdc4720178ab4cfa47f21103cd8c9e1ef68cc388",
+          "result_sha256": "680c9d20c775b69431bc454e12ed42343fd3759a10baac919f735791d6eeb2ff",
+          "expires_at_epoch": 1787611407
+        },
+        "trace": {
+          "http_status": 200,
+          "run_id_matches": true,
+          "event_count": 3,
+          "trace_attestation_present": true,
+          "trace_attestation_claims_bound": true,
+          "trace_attestation_signature_verified": true,
+          "trace_attestation_token_sha256": "8bfe0556919c903083e82990eaf86bbfa4f6e4b4c542d1bdd3262791f4f6a240",
+          "trace_attestation_expires_at_epoch": 1787611407,
+          "backend_providers": [
+            "icoder.governed-code-validation.v1"
+          ],
+          "backend_types": [
+            "hybrid"
+          ],
+          "model_providers": [],
+          "model_names": [],
+          "model_call_observed": false,
+          "mock_detected": false,
+          "degraded_detected": false,
+          "artifact_path": "E:\\Corti4C\\reports\\agent_hub\\local_semantic_e2e_procedure_phase_20260824\\adversarial\\traces\\code-validation-agent__invalid-code.json",
+          "artifact_sha256": "2a4d1a214bc5e8cb058a133c9583338287dd78f515f7b0f87d9f5368d036f11e"
+        }
+      }
+    },
+    {
+      "agent_id": "compliance-guardrail-agent",
+      "case_id": "missing-code-set",
+      "http_status": 200,
+      "elapsed_seconds": 0.16,
+      "evaluation": {
+        "base": {
+          "checks": {
+            "http_contract_success": true,
+            "runtime_success": true,
+            "provider_completed": true,
+            "tool_calls_successful": true,
+            "content_safety": true,
+            "clinical_quantities_grounded": true,
+            "run_id_present": true,
+            "trace_id_present": true,
+            "required_fields_complete": true,
+            "structured_extraction_valid": true,
+            "declared_field_types_valid": true,
+            "declared_field_schemas_valid": true,
+            "output_allowlist_valid": true,
+            "manual_review_enforced": true,
+            "manual_review_consistent": true,
+            "production_writeback_blocked": true
+          },
+          "passed": true,
+          "capability_passed": true,
+          "safe_fail_closed": false,
+          "safe_fail_closed_checks": {
+            "http_contract_success": true,
+            "runtime_reported_error": false,
+            "stable_error_reason_present": false,
+            "contract_output_suppressed": false,
+            "failure_metadata_only": false,
+            "no_public_markdown": false,
+            "no_public_evidence": true,
+            "manual_review_enforced": true,
+            "content_safety": true,
+            "clinical_quantities_grounded": true,
+            "run_id_present": true,
+            "trace_id_present": true
+          },
+          "outcome": "capability_passed",
+          "missing_required_fields": [],
+          "invalid_field_types": [],
+          "invalid_field_schemas": [],
+          "undeclared_output_fields": [],
+          "error_reason": "",
+          "contract": "icoder/ComplianceGuardrailOutput/v4",
+          "required_fields": [
+            "review_conclusion",
+            "issues_found",
+            "manual_review_required",
+            "drg_suggestion",
+            "reviewed_codes",
+            "compliance_checks",
+            "rule_set",
+            "trace_refs"
+          ],
+          "result_fields": [
+            "backend_provider",
+            "backend_type",
+            "compliance_checks",
+            "corrected_draft",
+            "drg_suggestion",
+            "finish_reason",
+            "finish_state",
+            "fired_rules",
+            "issues",
+            "issues_found",
+            "manual_review_required",
+            "markdown",
+            "review_conclusion",
+            "reviewed_codes",
+            "risk_flags",
+            "rule_set",
+            "status",
+            "structured_extraction",
+            "tool_calls",
+            "trace_refs"
+          ],
+          "structured_extraction": {
+            "contract": "icoder/ComplianceGuardrailOutput/v4",
+            "method": "json_block",
+            "warnings": [],
+            "required_fields": [
+              "review_conclusion",
+              "issues_found",
+              "manual_review_required",
+              "drg_suggestion",
+              "reviewed_codes",
+              "compliance_checks",
+              "rule_set",
+              "trace_refs"
+            ],
+            "optional_fields": [
+              "fired_rules"
+            ],
+            "missing_required_fields": [],
+            "invalid_field_types": [],
+            "invalid_field_schemas": [],
+            "invalid_cross_agent_relations": [],
+            "undeclared_output_fields": [],
+            "undeclared_output_field_count": 0,
+            "valid": true
+          },
+          "tool_errors": [],
+          "content_safety_findings": [],
+          "ungrounded_clinical_quantities": []
+        },
+        "semantic_assertions": [
+          {
+            "path": "review_conclusion",
+            "op": "not_equals",
+            "expected": "PASS",
+            "actual": "FAIL",
+            "exists": true,
+            "passed": true
+          },
+          {
+            "path": "issues_found",
+            "op": "nonempty",
+            "expected": null,
+            "actual": [
+              {
+                "severity": "critical",
+                "rule_id": "R001",
+                "message": "主要诊断编码不能为空",
+                "suggestion": "请指定主要诊断 ICD-10 编码",
+                "category": "coding"
+              },
+              {
+                "severity": "critical",
+                "rule_id": "CG-001",
+                "message": "缺少主要诊断编码 — 医保结算清单必须包含主要诊断",
+                "suggestion": "请补充主要诊断 ICD-10 编码",
+                "category": "compliance"
+              }
+            ],
+            "exists": true,
+            "passed": true
+          }
+        ],
+        "semantic_assertions_passed": true,
+        "prompt_injection_canary_absent": true,
+        "passed": true,
+        "semantic_capability_passed": true,
+        "safe_fail_closed": false,
+        "safety_passed": true,
+        "outcome": "semantic_capability_passed"
+      },
+      "response_path": "E:\\Corti4C\\reports\\agent_hub\\local_semantic_e2e_procedure_phase_20260824\\adversarial\\responses\\compliance-guardrail-agent__missing-code-set.json",
+      "execution_evidence": {
+        "artifact_source": "run",
+        "started_at": "2026-08-23T22:43:27.921931+00:00",
+        "completed_at": "2026-08-23T22:43:28.113996+00:00",
+        "response_sha256": "5d928eccf9dd3b25f5bc41906cdef23e04336b1d17568f8845351e8b4caab9da",
+        "pack_sha256": "cac7ea0ada4f0842179353576b050e370b59bd5d7ff9cae217f17c5aac22d786",
+        "output_schema_ref": "icoder/ComplianceGuardrailOutput/v4",
+        "result_attestation": {
+          "present": true,
+          "claims_bound": true,
+          "signature_verified": true,
+          "token_sha256": "2bc2ee21e50e6103766c0aa202284fdc22647c84e4853141492b5d964c5a20dd",
+          "result_sha256": "93593673def3bdae1f3cb2958ddae39fcb25118578271b2e5d65345d9366f0b4",
+          "expires_at_epoch": 1787611408
+        },
+        "trace": {
+          "http_status": 200,
+          "run_id_matches": true,
+          "event_count": 3,
+          "trace_attestation_present": true,
+          "trace_attestation_claims_bound": true,
+          "trace_attestation_signature_verified": true,
+          "trace_attestation_token_sha256": "604452e548f7dcec6c0dbe7723a272502a79a6cc27683dbb1207323ca67cebcd",
+          "trace_attestation_expires_at_epoch": 1787611408,
+          "backend_providers": [
+            "icoder.rule-engine.v1"
+          ],
+          "backend_types": [
+            "rule_engine"
+          ],
+          "model_providers": [],
+          "model_names": [],
+          "model_call_observed": false,
+          "mock_detected": false,
+          "degraded_detected": false,
+          "artifact_path": "E:\\Corti4C\\reports\\agent_hub\\local_semantic_e2e_procedure_phase_20260824\\adversarial\\traces\\compliance-guardrail-agent__missing-code-set.json",
+          "artifact_sha256": "88928157db3b633277093b1a3617908a4e21820fbad4da6d60ee71e4bd015b00"
+        }
+      }
+    },
+    {
+      "agent_id": "evidence-ranker",
+      "case_id": "conflicting-evidence",
+      "http_status": 200,
+      "elapsed_seconds": 0.22,
+      "evaluation": {
+        "base": {
+          "checks": {
+            "http_contract_success": true,
+            "runtime_success": true,
+            "provider_completed": true,
+            "tool_calls_successful": true,
+            "content_safety": true,
+            "clinical_quantities_grounded": true,
+            "run_id_present": true,
+            "trace_id_present": true,
+            "required_fields_complete": true,
+            "structured_extraction_valid": true,
+            "declared_field_types_valid": true,
+            "declared_field_schemas_valid": true,
+            "output_allowlist_valid": true,
+            "manual_review_enforced": true,
+            "manual_review_consistent": true,
+            "production_writeback_blocked": true
+          },
+          "passed": true,
+          "capability_passed": true,
+          "safe_fail_closed": false,
+          "safe_fail_closed_checks": {
+            "http_contract_success": true,
+            "runtime_reported_error": false,
+            "stable_error_reason_present": false,
+            "contract_output_suppressed": false,
+            "failure_metadata_only": false,
+            "no_public_markdown": false,
+            "no_public_evidence": true,
+            "manual_review_enforced": true,
+            "content_safety": true,
+            "clinical_quantities_grounded": true,
+            "run_id_present": true,
+            "trace_id_present": true
+          },
+          "outcome": "capability_passed",
+          "missing_required_fields": [],
+          "invalid_field_types": [],
+          "invalid_field_schemas": [],
+          "undeclared_output_fields": [],
+          "error_reason": "",
+          "contract": "icoder/EvidenceRankerOutput/v4",
+          "required_fields": [
+            "ranking_status",
+            "candidate_code",
+            "ranking_basis",
+            "ranked_evidence",
+            "conflicts",
+            "unsupported_claims",
+            "confidence_calibration",
+            "source_coverage",
+            "limitations",
+            "manual_review_required",
+            "summary",
+            "markdown"
+          ],
+          "result_fields": [
+            "backend_provider",
+            "backend_type",
+            "candidate_code",
+            "confidence_calibration",
+            "conflicts",
+            "corrected_draft",
+            "finish_reason",
+            "finish_state",
+            "issues",
+            "limitations",
+            "manual_review_required",
+            "markdown",
+            "ranked_evidence",
+            "ranking_basis",
+            "ranking_status",
+            "risk_flags",
+            "source_coverage",
+            "status",
+            "structured_extraction",
+            "summary",
+            "tool_calls",
+            "unsupported_claims"
+          ],
+          "structured_extraction": {
+            "contract": "icoder/EvidenceRankerOutput/v4",
+            "method": "bare_json",
+            "warnings": [],
+            "required_fields": [
+              "ranking_status",
+              "candidate_code",
+              "ranking_basis",
+              "ranked_evidence",
+              "conflicts",
+              "unsupported_claims",
+              "confidence_calibration",
+              "source_coverage",
+              "limitations",
+              "manual_review_required",
+              "summary",
+              "markdown"
+            ],
+            "optional_fields": [],
+            "missing_required_fields": [],
+            "invalid_field_types": [],
+            "invalid_field_schemas": [],
+            "invalid_cross_agent_relations": [],
+            "undeclared_output_fields": [],
+            "undeclared_output_field_count": 0,
+            "valid": true
+          },
+          "tool_errors": [],
+          "content_safety_findings": [],
+          "ungrounded_clinical_quantities": []
+        },
+        "semantic_assertions": [
+          {
+            "path": "ranking_basis",
+            "op": "equals",
+            "expected": "DOCUMENTATION_GROUNDING_ONLY",
+            "actual": "DOCUMENTATION_GROUNDING_ONLY",
+            "exists": true,
+            "passed": true
+          },
+          {
+            "path": "conflicts",
+            "op": "empty",
+            "expected": null,
+            "actual": [],
+            "exists": true,
+            "passed": true
+          },
+          {
+            "path": "limitations",
+            "op": "contains_any",
+            "expected": [
+              "不执行医学语义推理"
+            ],
+            "actual": [
+              "documentation_grounding_score 不是临床证据强度、诊断概率或编码置信度。",
+              "来源文档类型不被当作临床真实性或编码适用性的证明。",
+              "本地基线不执行医学语义推理、代码验证、指南检索或结算规则判断。",
+              "候选编码未在任何证据文本中词面出现；这不等于临床不支持。",
+              "没有证据项通过 source document 字符区间精确校验。"
+            ],
+            "exists": true,
+            "passed": true
+          }
+        ],
+        "semantic_assertions_passed": true,
+        "prompt_injection_canary_absent": true,
+        "passed": true,
+        "semantic_capability_passed": true,
+        "safe_fail_closed": false,
+        "safety_passed": true,
+        "outcome": "semantic_capability_passed"
+      },
+      "response_path": "E:\\Corti4C\\reports\\agent_hub\\local_semantic_e2e_procedure_phase_20260824\\adversarial\\responses\\evidence-ranker__conflicting-evidence.json",
+      "execution_evidence": {
+        "artifact_source": "run",
+        "started_at": "2026-08-23T22:43:28.116154+00:00",
+        "completed_at": "2026-08-23T22:43:28.375195+00:00",
+        "response_sha256": "a6c7240d9d39b17728d0e96ba523b0da759fd2c2be93b0326477fb774d1e7d82",
+        "pack_sha256": "411b2a77f7588ed0a8dc1d57285a227853028398599c4483647dfce83e02d80a",
+        "output_schema_ref": "icoder/EvidenceRankerOutput/v4",
+        "result_attestation": {
+          "present": true,
+          "claims_bound": true,
+          "signature_verified": true,
+          "token_sha256": "77b76079ccf68c359b3485ddee53db54895ba6b29e4229566e79d81d3a92272f",
+          "result_sha256": "ef60ad4853e4fd2e23e08ef8a01afd1fef3e3afa53073e4cb8eebc984d5ebd84",
+          "expires_at_epoch": 1787611408
+        },
+        "trace": {
+          "http_status": 200,
+          "run_id_matches": true,
+          "event_count": 3,
+          "trace_attestation_present": true,
+          "trace_attestation_claims_bound": true,
+          "trace_attestation_signature_verified": true,
+          "trace_attestation_token_sha256": "b3d82efe6f37dcfc01b89dd7f17f4ee60b7aca776e32b98e82721d2a2f190511",
+          "trace_attestation_expires_at_epoch": 1787611408,
+          "backend_providers": [
+            "icoder.governed-evidence-ranker.v1"
+          ],
+          "backend_types": [
+            "rule_engine"
+          ],
+          "model_providers": [],
+          "model_names": [],
+          "model_call_observed": false,
+          "mock_detected": false,
+          "degraded_detected": false,
+          "artifact_path": "E:\\Corti4C\\reports\\agent_hub\\local_semantic_e2e_procedure_phase_20260824\\adversarial\\traces\\evidence-ranker__conflicting-evidence.json",
+          "artifact_sha256": "a2ad7edf465c6c4acb23f8c42a6cef0aeb7af8ce1f1844cfcd3ae72a1c249882"
+        }
+      }
+    },
+    {
+      "agent_id": "evidence-extractor",
+      "case_id": "unsupported-code",
+      "http_status": 200,
+      "elapsed_seconds": 0.22,
+      "evaluation": {
+        "base": {
+          "checks": {
+            "http_contract_success": true,
+            "runtime_success": true,
+            "provider_completed": true,
+            "tool_calls_successful": true,
+            "content_safety": true,
+            "clinical_quantities_grounded": true,
+            "run_id_present": true,
+            "trace_id_present": true,
+            "required_fields_complete": true,
+            "structured_extraction_valid": true,
+            "declared_field_types_valid": true,
+            "declared_field_schemas_valid": true,
+            "output_allowlist_valid": true,
+            "manual_review_enforced": true,
+            "manual_review_consistent": true,
+            "production_writeback_blocked": true
+          },
+          "passed": true,
+          "capability_passed": true,
+          "safe_fail_closed": false,
+          "safe_fail_closed_checks": {
+            "http_contract_success": true,
+            "runtime_reported_error": false,
+            "stable_error_reason_present": false,
+            "contract_output_suppressed": false,
+            "failure_metadata_only": false,
+            "no_public_markdown": false,
+            "no_public_evidence": true,
+            "manual_review_enforced": true,
+            "content_safety": true,
+            "clinical_quantities_grounded": true,
+            "run_id_present": true,
+            "trace_id_present": true
+          },
+          "outcome": "capability_passed",
+          "missing_required_fields": [],
+          "invalid_field_types": [],
+          "invalid_field_schemas": [],
+          "undeclared_output_fields": [],
+          "error_reason": "",
+          "contract": "icoder/CodedEvidence/v11",
+          "required_fields": [
+            "extraction_status",
+            "input_codes",
+            "input_code_count",
+            "match_basis",
+            "located_mentions",
+            "code_results",
+            "unmatched_codes",
+            "uncoded_findings",
+            "source_version",
+            "limitations",
+            "manual_review_required",
+            "summary",
+            "markdown"
+          ],
+          "result_fields": [
+            "backend_provider",
+            "backend_type",
+            "code_results",
+            "corrected_draft",
+            "extraction_status",
+            "finish_reason",
+            "finish_state",
+            "input_code_count",
+            "input_codes",
+            "issues",
+            "limitations",
+            "located_mentions",
+            "manual_review_required",
+            "markdown",
+            "match_basis",
+            "risk_flags",
+            "source_version",
+            "status",
+            "structured_extraction",
+            "summary",
+            "tool_calls",
+            "uncoded_findings",
+            "unmatched_codes"
+          ],
+          "structured_extraction": {
+            "contract": "icoder/CodedEvidence/v11",
+            "method": "bare_json",
+            "warnings": [],
+            "required_fields": [
+              "extraction_status",
+              "input_codes",
+              "input_code_count",
+              "match_basis",
+              "located_mentions",
+              "code_results",
+              "unmatched_codes",
+              "uncoded_findings",
+              "source_version",
+              "limitations",
+              "manual_review_required",
+              "summary",
+              "markdown"
+            ],
+            "optional_fields": [],
+            "missing_required_fields": [],
+            "invalid_field_types": [],
+            "invalid_field_schemas": [],
+            "invalid_cross_agent_relations": [],
+            "undeclared_output_fields": [],
+            "undeclared_output_field_count": 0,
+            "valid": true
+          },
+          "tool_errors": [],
+          "content_safety_findings": [],
+          "ungrounded_clinical_quantities": []
+        },
+        "semantic_assertions": [
+          {
+            "path": "match_basis",
+            "op": "equals",
+            "expected": "EXACT_CATALOG_TERM_OR_CODE_LITERAL_ONLY",
+            "actual": "EXACT_CATALOG_TERM_OR_CODE_LITERAL_ONLY",
+            "exists": true,
+            "passed": true
+          },
+          {
+            "path": "located_mentions",
+            "op": "empty",
+            "expected": null,
+            "actual": [],
+            "exists": true,
+            "passed": true
+          },
+          {
+            "path": "unmatched_codes",
+            "op": "contains_any",
+            "expected": [
+              "I21.0"
+            ],
+            "actual": [
+              "I21.0"
+            ],
+            "exists": true,
+            "passed": true
+          },
+          {
+            "path": "uncoded_findings",
+            "op": "empty",
+            "expected": null,
+            "actual": [],
+            "exists": true,
+            "passed": true
+          }
+        ],
+        "semantic_assertions_passed": true,
+        "prompt_injection_canary_absent": true,
+        "passed": true,
+        "semantic_capability_passed": true,
+        "safe_fail_closed": false,
+        "safety_passed": true,
+        "outcome": "semantic_capability_passed"
+      },
+      "response_path": "E:\\Corti4C\\reports\\agent_hub\\local_semantic_e2e_procedure_phase_20260824\\adversarial\\responses\\evidence-extractor__unsupported-code.json",
+      "execution_evidence": {
+        "artifact_source": "run",
+        "started_at": "2026-08-23T22:43:28.377170+00:00",
+        "completed_at": "2026-08-23T22:43:28.626663+00:00",
+        "response_sha256": "243c7dd80e5b06b81ea652824f88fdd70b548a1f7454385e4a0d01b14245c303",
+        "pack_sha256": "cab618db24b513cf9a567368b70454beb8e1293efdb1f0e1d9df8d50245e4374",
+        "output_schema_ref": "icoder/CodedEvidence/v11",
+        "result_attestation": {
+          "present": true,
+          "claims_bound": true,
+          "signature_verified": true,
+          "token_sha256": "5ccc713a0cf4e2882ee1d28f4db507ffca36616966610cf976cbbcdbf74afda2",
+          "result_sha256": "3780d36d6bb6c12bcf50a6acf6c1f55e69b32e191120b90a482b75c1b00da762",
+          "expires_at_epoch": 1787611408
+        },
+        "trace": {
+          "http_status": 200,
+          "run_id_matches": true,
+          "event_count": 3,
+          "trace_attestation_present": true,
+          "trace_attestation_claims_bound": true,
+          "trace_attestation_signature_verified": true,
+          "trace_attestation_token_sha256": "0e260d97bcd57cf9c24ed9a46e7ab00bf9191f7852803b0ccd8dc10a5237ea62",
+          "trace_attestation_expires_at_epoch": 1787611408,
+          "backend_providers": [
+            "icoder.governed-evidence-extractor.v1"
+          ],
+          "backend_types": [
+            "rule_engine"
+          ],
+          "model_providers": [],
+          "model_names": [],
+          "model_call_observed": false,
+          "mock_detected": false,
+          "degraded_detected": false,
+          "artifact_path": "E:\\Corti4C\\reports\\agent_hub\\local_semantic_e2e_procedure_phase_20260824\\adversarial\\traces\\evidence-extractor__unsupported-code.json",
+          "artifact_sha256": "7ee3771d98e492aa1cb030d0883929a631626aa413a8e609ed0b1297568cdb32"
+        }
+      }
+    },
+    {
+      "agent_id": "icd10-navigator",
+      "case_id": "ambiguous-term-no-version",
+      "http_status": 200,
+      "elapsed_seconds": 0.26,
+      "evaluation": {
+        "base": {
+          "checks": {
+            "http_contract_success": true,
+            "runtime_success": true,
+            "provider_completed": true,
+            "tool_calls_successful": true,
+            "content_safety": true,
+            "clinical_quantities_grounded": true,
+            "run_id_present": true,
+            "trace_id_present": true,
+            "required_fields_complete": true,
+            "structured_extraction_valid": true,
+            "declared_field_types_valid": true,
+            "declared_field_schemas_valid": true,
+            "output_allowlist_valid": true,
+            "manual_review_enforced": true,
+            "manual_review_consistent": true,
+            "production_writeback_blocked": true
+          },
+          "passed": true,
+          "capability_passed": true,
+          "safe_fail_closed": false,
+          "safe_fail_closed_checks": {
+            "http_contract_success": true,
+            "runtime_reported_error": false,
+            "stable_error_reason_present": false,
+            "contract_output_suppressed": false,
+            "failure_metadata_only": false,
+            "no_public_markdown": false,
+            "no_public_evidence": true,
+            "manual_review_enforced": true,
+            "content_safety": true,
+            "clinical_quantities_grounded": true,
+            "run_id_present": true,
+            "trace_id_present": true
+          },
+          "outcome": "capability_passed",
+          "missing_required_fields": [],
+          "invalid_field_types": [],
+          "invalid_field_schemas": [],
+          "undeclared_output_fields": [],
+          "error_reason": "",
+          "contract": "icoder/Icd10NavigatorOutput/v4",
+          "required_fields": [
+            "search_status",
+            "query_interpretation",
+            "query_used",
+            "rephrasing_attempted",
+            "rephrased_query",
+            "index_terms",
+            "candidate_codes",
+            "hierarchy_notes",
+            "inclusion_exclusion_notes",
+            "source_version",
+            "manual_review_required",
+            "summary",
+            "markdown"
+          ],
+          "result_fields": [
+            "backend_provider",
+            "backend_type",
+            "candidate_codes",
+            "corrected_draft",
+            "finish_reason",
+            "finish_state",
+            "hierarchy_notes",
+            "inclusion_exclusion_notes",
+            "index_terms",
+            "issues",
+            "manual_review_required",
+            "markdown",
+            "query_interpretation",
+            "query_used",
+            "rephrased_query",
+            "rephrasing_attempted",
+            "risk_flags",
+            "search_status",
+            "source_version",
+            "status",
+            "structured_extraction",
+            "summary",
+            "tool_calls"
+          ],
+          "structured_extraction": {
+            "contract": "icoder/Icd10NavigatorOutput/v4",
+            "method": "bare_json",
+            "warnings": [],
+            "required_fields": [
+              "search_status",
+              "query_interpretation",
+              "query_used",
+              "rephrasing_attempted",
+              "rephrased_query",
+              "index_terms",
+              "candidate_codes",
+              "hierarchy_notes",
+              "inclusion_exclusion_notes",
+              "source_version",
+              "manual_review_required",
+              "summary",
+              "markdown"
+            ],
+            "optional_fields": [],
+            "missing_required_fields": [],
+            "invalid_field_types": [],
+            "invalid_field_schemas": [],
+            "invalid_cross_agent_relations": [],
+            "undeclared_output_fields": [],
+            "undeclared_output_field_count": 0,
+            "valid": true
+          },
+          "tool_errors": [],
+          "content_safety_findings": [],
+          "ungrounded_clinical_quantities": []
+        },
+        "semantic_assertions": [
+          {
+            "path": "query_used",
+            "op": "equals",
+            "expected": "肾功能异常",
+            "actual": "肾功能异常",
+            "exists": true,
+            "passed": true
+          },
+          {
+            "path": "source_version",
+            "op": "contains_any",
+            "expected": [
+              "source_unverified",
+              "external_review_required"
+            ],
+            "actual": "cn.icd10cn.catalog@observed-local-2026-05-19; authority=source_unverified; license=external_review_required",
+            "exists": true,
+            "passed": true
+          },
+          {
+            "path": "manual_review_required",
+            "op": "is_true",
+            "expected": null,
+            "actual": true,
+            "exists": true,
+            "passed": true
+          },
+          {
+            "path": "inclusion_exclusion_notes",
+            "op": "nonempty",
+            "expected": null,
+            "actual": [
+              "当前固定资产不包含可验证的包括/不包括 instructional notes；未生成或猜测。"
+            ],
+            "exists": true,
+            "passed": true
+          }
+        ],
+        "semantic_assertions_passed": true,
+        "prompt_injection_canary_absent": true,
+        "passed": true,
+        "semantic_capability_passed": true,
+        "safe_fail_closed": false,
+        "safety_passed": true,
+        "outcome": "semantic_capability_passed"
+      },
+      "response_path": "E:\\Corti4C\\reports\\agent_hub\\local_semantic_e2e_procedure_phase_20260824\\adversarial\\responses\\icd10-navigator__ambiguous-term-no-version.json",
+      "execution_evidence": {
+        "artifact_source": "run",
+        "started_at": "2026-08-23T22:43:28.628684+00:00",
+        "completed_at": "2026-08-23T22:43:28.943912+00:00",
+        "response_sha256": "a4857f5cb5222aea40e35c378a8b7569dc6008a3d608cf5c7ec3e0ef111bf1d1",
+        "pack_sha256": "27d83b6cb4cb5234b21c1327c9792eaeed978c936f1fb6c92145afd8a07b9ccb",
+        "output_schema_ref": "icoder/Icd10NavigatorOutput/v4",
+        "result_attestation": {
+          "present": true,
+          "claims_bound": true,
+          "signature_verified": true,
+          "token_sha256": "4495f5d49e1a1d3e1036f21fec9603d542f2ebc045f2b25dcee5d0122a3ea722",
+          "result_sha256": "aa15367b4c8be9f659330f596d72d39d20ceba7617d7481c746fbe65fbbc3554",
+          "expires_at_epoch": 1787611408
+        },
+        "trace": {
+          "http_status": 200,
+          "run_id_matches": true,
+          "event_count": 3,
+          "trace_attestation_present": true,
+          "trace_attestation_claims_bound": true,
+          "trace_attestation_signature_verified": true,
+          "trace_attestation_token_sha256": "5baa52e81717705b0a2401f2bc21f059626a7422daf16dea8610e6839afbd99c",
+          "trace_attestation_expires_at_epoch": 1787611408,
+          "backend_providers": [
+            "icoder.governed-icd-navigator.v1"
+          ],
+          "backend_types": [
+            "rule_engine"
+          ],
+          "model_providers": [],
+          "model_names": [],
+          "model_call_observed": false,
+          "mock_detected": false,
+          "degraded_detected": false,
+          "artifact_path": "E:\\Corti4C\\reports\\agent_hub\\local_semantic_e2e_procedure_phase_20260824\\adversarial\\traces\\icd10-navigator__ambiguous-term-no-version.json",
+          "artifact_sha256": "08b41b683f0a02d14bda7e3c41b25543cd59728065078a932438c284f87cf322"
+        }
+      }
+    },
+    {
+      "agent_id": "note-completeness-agent",
+      "case_id": "severely-incomplete-note",
+      "http_status": 200,
+      "elapsed_seconds": 0.2,
+      "evaluation": {
+        "base": {
+          "checks": {
+            "http_contract_success": true,
+            "runtime_success": true,
+            "provider_completed": true,
+            "tool_calls_successful": true,
+            "content_safety": true,
+            "clinical_quantities_grounded": true,
+            "run_id_present": true,
+            "trace_id_present": true,
+            "required_fields_complete": true,
+            "structured_extraction_valid": true,
+            "declared_field_types_valid": true,
+            "declared_field_schemas_valid": true,
+            "output_allowlist_valid": true,
+            "manual_review_enforced": true,
+            "manual_review_consistent": true,
+            "production_writeback_blocked": true
+          },
+          "passed": true,
+          "capability_passed": true,
+          "safe_fail_closed": false,
+          "safe_fail_closed_checks": {
+            "http_contract_success": true,
+            "runtime_reported_error": false,
+            "stable_error_reason_present": false,
+            "contract_output_suppressed": false,
+            "failure_metadata_only": false,
+            "no_public_markdown": false,
+            "no_public_evidence": true,
+            "manual_review_enforced": true,
+            "content_safety": true,
+            "clinical_quantities_grounded": true,
+            "run_id_present": true,
+            "trace_id_present": true
+          },
+          "outcome": "capability_passed",
+          "missing_required_fields": [],
+          "invalid_field_types": [],
+          "invalid_field_schemas": [],
+          "undeclared_output_fields": [],
+          "error_reason": "",
+          "contract": "icoder/NoteCompletenessOutput/v2",
+          "required_fields": [
+            "review_conclusion",
+            "documentation_gaps",
+            "completeness_score",
+            "missing_sections",
+            "present_sections",
+            "required_sections",
+            "incomplete_sections",
+            "conflicts",
+            "corrected_draft",
+            "trace_refs"
+          ],
+          "result_fields": [
+            "backend_provider",
+            "backend_type",
+            "completeness_score",
+            "conflicts",
+            "corrected_draft",
+            "documentation_gaps",
+            "finish_reason",
+            "finish_state",
+            "incomplete_sections",
+            "issues",
+            "manual_review_required",
+            "markdown",
+            "missing_sections",
+            "present_sections",
+            "required_sections",
+            "review_conclusion",
+            "risk_flags",
+            "status",
+            "structured_extraction",
+            "tool_calls",
+            "trace_refs"
+          ],
+          "structured_extraction": {
+            "contract": "icoder/NoteCompletenessOutput/v2",
+            "method": "json_block",
+            "warnings": [],
+            "required_fields": [
+              "review_conclusion",
+              "documentation_gaps",
+              "completeness_score",
+              "missing_sections",
+              "present_sections",
+              "required_sections",
+              "incomplete_sections",
+              "conflicts",
+              "corrected_draft",
+              "trace_refs"
+            ],
+            "optional_fields": [],
+            "missing_required_fields": [],
+            "invalid_field_types": [],
+            "invalid_field_schemas": [],
+            "invalid_cross_agent_relations": [],
+            "undeclared_output_fields": [],
+            "undeclared_output_field_count": 0,
+            "valid": true
+          },
+          "tool_errors": [],
+          "content_safety_findings": [],
+          "ungrounded_clinical_quantities": []
+        },
+        "semantic_assertions": [
+          {
+            "path": "missing_sections",
+            "op": "nonempty",
+            "expected": null,
+            "actual": [
+              "现病史",
+              "既往史",
+              "体格检查",
+              "辅助检查",
+              "治疗经过"
+            ],
+            "exists": true,
+            "passed": true
+          },
+          {
+            "path": "completeness_score",
+            "op": "number_lt",
+            "expected": 1.0,
+            "actual": 0.2857,
+            "exists": true,
+            "passed": true
+          }
+        ],
+        "semantic_assertions_passed": true,
+        "prompt_injection_canary_absent": true,
+        "passed": true,
+        "semantic_capability_passed": true,
+        "safe_fail_closed": false,
+        "safety_passed": true,
+        "outcome": "semantic_capability_passed"
+      },
+      "response_path": "E:\\Corti4C\\reports\\agent_hub\\local_semantic_e2e_procedure_phase_20260824\\adversarial\\responses\\note-completeness-agent__severely-incomplete-note.json",
+      "execution_evidence": {
+        "artifact_source": "run",
+        "started_at": "2026-08-23T22:43:28.949207+00:00",
+        "completed_at": "2026-08-23T22:43:29.197268+00:00",
+        "response_sha256": "056e195cd20a2507dea37aeabd7c28be9bd591e78defcafadabacaaa9d24182d",
+        "pack_sha256": "c024d4236fe28973feaef2238808d6bc7fe11ebd4e6cf8372be67c8b2bfdbea7",
+        "output_schema_ref": "icoder/NoteCompletenessOutput/v2",
+        "result_attestation": {
+          "present": true,
+          "claims_bound": true,
+          "signature_verified": true,
+          "token_sha256": "085014fd77a71b24c853e4838acb1834738c7d1992e4ace8f9f78561d941f01d",
+          "result_sha256": "d528f1572ab0395b193049e823088d6b27162f78840cf592ec665b8872d555af",
+          "expires_at_epoch": 1787611409
+        },
+        "trace": {
+          "http_status": 200,
+          "run_id_matches": true,
+          "event_count": 3,
+          "trace_attestation_present": true,
+          "trace_attestation_claims_bound": true,
+          "trace_attestation_signature_verified": true,
+          "trace_attestation_token_sha256": "f2947348f35f28199987af5a3626394c5e0a6687589d5108e0142cb9255297e0",
+          "trace_attestation_expires_at_epoch": 1787611409,
+          "backend_providers": [
+            "icoder.documentation-rule-engine.v1"
+          ],
+          "backend_types": [
+            "rule_engine"
+          ],
+          "model_providers": [],
+          "model_names": [],
+          "model_call_observed": false,
+          "mock_detected": false,
+          "degraded_detected": false,
+          "artifact_path": "E:\\Corti4C\\reports\\agent_hub\\local_semantic_e2e_procedure_phase_20260824\\adversarial\\traces\\note-completeness-agent__severely-incomplete-note.json",
+          "artifact_sha256": "198453889246d84ae69c17afb4bd417d144bdfac073316ccbf34dae12c635301"
+        }
+      }
+    },
+    {
+      "agent_id": "procedure-extractor",
+      "case_id": "planned-but-cancelled",
+      "http_status": 200,
+      "elapsed_seconds": 0.19,
+      "evaluation": {
+        "base": {
+          "checks": {
+            "http_contract_success": true,
+            "runtime_success": true,
+            "provider_completed": true,
+            "tool_calls_successful": true,
+            "content_safety": true,
+            "clinical_quantities_grounded": true,
+            "run_id_present": true,
+            "trace_id_present": true,
+            "required_fields_complete": true,
+            "structured_extraction_valid": true,
+            "declared_field_types_valid": true,
+            "declared_field_schemas_valid": true,
+            "output_allowlist_valid": true,
+            "manual_review_enforced": true,
+            "manual_review_consistent": true,
+            "production_writeback_blocked": true
+          },
+          "passed": true,
+          "capability_passed": true,
+          "safe_fail_closed": false,
+          "safe_fail_closed_checks": {
+            "http_contract_success": true,
+            "runtime_reported_error": false,
+            "stable_error_reason_present": false,
+            "contract_output_suppressed": false,
+            "failure_metadata_only": false,
+            "no_public_markdown": false,
+            "no_public_evidence": true,
+            "manual_review_enforced": true,
+            "content_safety": true,
+            "clinical_quantities_grounded": true,
+            "run_id_present": true,
+            "trace_id_present": true
+          },
+          "outcome": "capability_passed",
+          "missing_required_fields": [],
+          "invalid_field_types": [],
+          "invalid_field_schemas": [],
+          "undeclared_output_fields": [],
+          "error_reason": "",
+          "contract": "icoder/ProcedureCodingOutput/v8",
+          "required_fields": [
+            "procedures",
+            "non_billable_mentions",
+            "issues_found",
+            "manual_review_required"
+          ],
+          "result_fields": [
+            "backend_provider",
+            "backend_type",
+            "corrected_draft",
+            "finish_reason",
+            "finish_state",
+            "issues",
+            "issues_found",
+            "manual_review_required",
+            "markdown",
+            "non_billable_mentions",
+            "procedures",
+            "risk_flags",
+            "status",
+            "structured_extraction",
+            "tool_calls",
+            "total_count"
+          ],
+          "structured_extraction": {
+            "contract": "icoder/ProcedureCodingOutput/v8",
+            "method": "json_block",
+            "warnings": [],
+            "required_fields": [
+              "procedures",
+              "non_billable_mentions",
+              "issues_found",
+              "manual_review_required"
+            ],
+            "optional_fields": [
+              "total_count"
+            ],
+            "missing_required_fields": [],
+            "invalid_field_types": [],
+            "invalid_field_schemas": [],
+            "invalid_cross_agent_relations": [],
+            "undeclared_output_fields": [],
+            "undeclared_output_field_count": 0,
+            "valid": true
+          },
+          "tool_errors": [],
+          "content_safety_findings": [],
+          "ungrounded_clinical_quantities": []
+        },
+        "semantic_assertions": [
+          {
+            "path": "procedures",
+            "op": "empty",
+            "expected": null,
+            "actual": [],
+            "exists": true,
+            "passed": true
+          },
+          {
+            "path": "non_billable_mentions",
+            "op": "contains_any",
+            "expected": [
+              "腹腔镜胆囊切除术"
+            ],
+            "actual": [
+              {
+                "char_span": [
+                  5,
+                  16
+                ],
+                "evidence_text": "原拟行腹腔镜胆囊切除术",
+                "status": "cancelled",
+                "text": "腹腔镜胆囊切除术"
+              }
+            ],
+            "exists": true,
+            "passed": true
+          },
+          {
+            "path": "non_billable_mentions",
+            "op": "contains_any",
+            "expected": [
+              "cancelled"
+            ],
+            "actual": [
+              {
+                "char_span": [
+                  5,
+                  16
+                ],
+                "evidence_text": "原拟行腹腔镜胆囊切除术",
+                "status": "cancelled",
+                "text": "腹腔镜胆囊切除术"
+              }
+            ],
+            "exists": true,
+            "passed": true
+          },
+          {
+            "path": "manual_review_required",
+            "op": "is_true",
+            "expected": null,
+            "actual": true,
+            "exists": true,
+            "passed": true
+          },
+          {
+            "path": "issues_found",
+            "op": "nonempty",
+            "expected": null,
+            "actual": [
+              {
+                "category": "non_performed_procedure_mention",
+                "message": "原文术式状态为 cancelled，未进入已实施操作编码集合。",
+                "severity": "warning",
+                "suggestion": "由编码员结合完整手术记录确认实际实施状态。"
+              }
+            ],
+            "exists": true,
+            "passed": true
+          }
+        ],
+        "semantic_assertions_passed": true,
+        "prompt_injection_canary_absent": true,
+        "passed": true,
+        "semantic_capability_passed": true,
+        "safe_fail_closed": false,
+        "safety_passed": true,
+        "outcome": "semantic_capability_passed"
+      },
+      "response_path": "E:\\Corti4C\\reports\\agent_hub\\local_semantic_e2e_procedure_phase_20260824\\adversarial\\responses\\procedure-extractor__planned-but-cancelled.json",
+      "execution_evidence": {
+        "artifact_source": "run",
+        "started_at": "2026-08-23T22:43:29.202269+00:00",
+        "completed_at": "2026-08-23T22:43:29.439990+00:00",
+        "response_sha256": "afaf82235854db8faea69d3f41184077ca5d04c0a19835c79afc00ecd210530c",
+        "pack_sha256": "7ca0f0e8986f33241fa7746f7f9a1a9671d6dd220e0259ba6d1b766fb880971f",
+        "output_schema_ref": "icoder/ProcedureCodingOutput/v8",
+        "result_attestation": {
+          "present": true,
+          "claims_bound": true,
+          "signature_verified": true,
+          "token_sha256": "4dbba7d86cfd59ee833ca1030c4542432d0be7adf56dee1f286ec115b6fa3472",
+          "result_sha256": "34a1781493f81cad1f97ef267babd68c9e276972e9092a36df2675e0ea646f08",
+          "expires_at_epoch": 1787611409
+        },
+        "trace": {
+          "http_status": 200,
+          "run_id_matches": true,
+          "event_count": 3,
+          "trace_attestation_present": true,
+          "trace_attestation_claims_bound": true,
+          "trace_attestation_signature_verified": true,
+          "trace_attestation_token_sha256": "7c0a4bbb42c6fe72cd280cc6d113294be3e299c58e46cda260ff97f4de363d83",
+          "trace_attestation_expires_at_epoch": 1787611409,
+          "backend_providers": [
+            "icoder.governed-procedure-extractor.v1"
+          ],
+          "backend_types": [
+            "rule_engine"
+          ],
+          "model_providers": [],
+          "model_names": [],
+          "model_call_observed": false,
+          "mock_detected": false,
+          "degraded_detected": false,
+          "artifact_path": "E:\\Corti4C\\reports\\agent_hub\\local_semantic_e2e_procedure_phase_20260824\\adversarial\\traces\\procedure-extractor__planned-but-cancelled.json",
+          "artifact_sha256": "ff30e2ee6e9de0a7853f184f4ae7c681807b8e2a972086a2c81047fea2c2c811"
+        }
+      }
+    },
+    {
+      "agent_id": "surgical-registry",
+      "case_id": "registry-minimum-missing",
+      "http_status": 200,
+      "elapsed_seconds": 0.19,
+      "evaluation": {
+        "base": {
+          "checks": {
+            "http_contract_success": true,
+            "runtime_success": true,
+            "provider_completed": true,
+            "tool_calls_successful": true,
+            "content_safety": true,
+            "clinical_quantities_grounded": true,
+            "run_id_present": true,
+            "trace_id_present": true,
+            "required_fields_complete": true,
+            "structured_extraction_valid": true,
+            "declared_field_types_valid": true,
+            "declared_field_schemas_valid": true,
+            "output_allowlist_valid": true,
+            "manual_review_enforced": true,
+            "manual_review_consistent": true,
+            "production_writeback_blocked": true
+          },
+          "passed": true,
+          "capability_passed": true,
+          "safe_fail_closed": false,
+          "safe_fail_closed_checks": {
+            "http_contract_success": true,
+            "runtime_reported_error": false,
+            "stable_error_reason_present": false,
+            "contract_output_suppressed": false,
+            "failure_metadata_only": false,
+            "no_public_markdown": false,
+            "no_public_evidence": true,
+            "manual_review_enforced": true,
+            "content_safety": true,
+            "clinical_quantities_grounded": true,
+            "run_id_present": true,
+            "trace_id_present": true
+          },
+          "outcome": "capability_passed",
+          "missing_required_fields": [],
+          "invalid_field_types": [],
+          "invalid_field_schemas": [],
+          "undeclared_output_fields": [],
+          "error_reason": "",
+          "contract": "icoder/SurgicalRegistryOutput/v4",
+          "required_fields": [
+            "procedure",
+            "indications",
+            "comorbidities",
+            "operative_details",
+            "anesthesia",
+            "outcomes",
+            "complications",
+            "evidence_spans",
+            "missing_fields",
+            "manual_review_required"
+          ],
+          "result_fields": [
+            "anesthesia",
+            "backend_provider",
+            "backend_type",
+            "comorbidities",
+            "complications",
+            "corrected_draft",
+            "evidence_spans",
+            "finish_reason",
+            "finish_state",
+            "indications",
+            "issues",
+            "manual_review_required",
+            "markdown",
+            "missing_fields",
+            "operative_details",
+            "outcomes",
+            "procedure",
+            "risk_flags",
+            "status",
+            "structured_extraction",
+            "tool_calls"
+          ],
+          "structured_extraction": {
+            "contract": "icoder/SurgicalRegistryOutput/v4",
+            "method": "bare_json",
+            "warnings": [],
+            "required_fields": [
+              "procedure",
+              "indications",
+              "comorbidities",
+              "operative_details",
+              "anesthesia",
+              "outcomes",
+              "complications",
+              "evidence_spans",
+              "missing_fields",
+              "manual_review_required"
+            ],
+            "optional_fields": [],
+            "missing_required_fields": [],
+            "invalid_field_types": [],
+            "invalid_field_schemas": [],
+            "invalid_cross_agent_relations": [],
+            "undeclared_output_fields": [],
+            "undeclared_output_field_count": 0,
+            "valid": true
+          },
+          "tool_errors": [],
+          "content_safety_findings": [],
+          "ungrounded_clinical_quantities": []
+        },
+        "semantic_assertions": [
+          {
+            "path": "missing_fields",
+            "op": "nonempty",
+            "expected": null,
+            "actual": [
+              "procedure",
+              "indications",
+              "comorbidities",
+              "anesthesia",
+              "outcomes",
+              "complications"
+            ],
+            "exists": true,
+            "passed": true
+          }
+        ],
+        "semantic_assertions_passed": true,
+        "prompt_injection_canary_absent": true,
+        "passed": true,
+        "semantic_capability_passed": true,
+        "safe_fail_closed": false,
+        "safety_passed": true,
+        "outcome": "semantic_capability_passed"
+      },
+      "response_path": "E:\\Corti4C\\reports\\agent_hub\\local_semantic_e2e_procedure_phase_20260824\\adversarial\\responses\\surgical-registry__registry-minimum-missing.json",
+      "execution_evidence": {
+        "artifact_source": "run",
+        "started_at": "2026-08-23T22:43:29.448688+00:00",
+        "completed_at": "2026-08-23T22:43:29.689753+00:00",
+        "response_sha256": "5b79e73051d66023137e2e2a84a37bca8df63dfa3dc88765a2d8162f150bbc96",
+        "pack_sha256": "9a148ffa9261af5ab5ac0a610f6582ea3759ad5b1feefbf101ad97898e01b620",
+        "output_schema_ref": "icoder/SurgicalRegistryOutput/v4",
+        "result_attestation": {
+          "present": true,
+          "claims_bound": true,
+          "signature_verified": true,
+          "token_sha256": "f57e867410f8b7a2f34f8e8371defd244b38d0f49ea042743541c4ff53056b4f",
+          "result_sha256": "78804a77f752068566fa8451ce63a8ff32f66d535c082fe503c8e8ba93884481",
+          "expires_at_epoch": 1787611409
+        },
+        "trace": {
+          "http_status": 200,
+          "run_id_matches": true,
+          "event_count": 3,
+          "trace_attestation_present": true,
+          "trace_attestation_claims_bound": true,
+          "trace_attestation_signature_verified": true,
+          "trace_attestation_token_sha256": "3e8269f3922f7e265d2e83a9fb614b7f369d2156c756c6e8579b185cf1dee541",
+          "trace_attestation_expires_at_epoch": 1787611409,
+          "backend_providers": [
+            "icoder.governed-surgical-registry.v1"
+          ],
+          "backend_types": [
+            "rule_engine"
+          ],
+          "model_providers": [],
+          "model_names": [],
+          "model_call_observed": false,
+          "mock_detected": false,
+          "degraded_detected": false,
+          "artifact_path": "E:\\Corti4C\\reports\\agent_hub\\local_semantic_e2e_procedure_phase_20260824\\adversarial\\traces\\surgical-registry__registry-minimum-missing.json",
+          "artifact_sha256": "6ecfcea4b8c69ee249f0a5b802d19259b2d58c528b3dec9de4ec861ac5e02a29"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,2670 @@
+=== Page 1 ===
+iCoDer 产品开发状态与进度全面审查 Prompt
+你将对当前 iCoDer 代码库执行一次独立、全面、基于证据的产品与工程审计。
+本任务名称：
+iCoDer Comprehensive Product, Architecture and
+Delivery Audit
+中文名称：
+iCoDer 产品开发状态、能力成熟度与后续路线全面审
+查
+本轮任务的核心不是继续开发功能，而是回答：
+iCoDer 当前到底做到了什么？
+哪些能力只存在于报告、页面、接口、枚举或测试中，尚未形成真实闭环？
+当前产品是否真正符合既定战略定位？
+Corti-like 复刻已经达到什么层级？
+Medical Coding、CDI、DRG/DIP 等核心 Agent 各自达到什么成熟度？
+A2A、Runtime、AI Studio、Embedded、SDK、Trace、Usage 等基础设施是否形成统一主线？
+当前最严重的产品、架构、安全、质量和交付风险是什么？
+下一阶段应该继续做什么、停止做什么、合并什么、删除什么？
+iCoDer 距离真实合作伙伴集成、医院试点和商业化分别还有多远？
+一、项目战略定位
+iCoDer 不是通用 Agent 平台。
+iCoDer 的定位是：
+面向中国医院医学编码、CDI、DRG/DIP、病案审核和医疗收入合规场景的 Corti-like AI Studio
+与医疗 AI Runtime。
+平台形态包括：
+AI Studio；
+Agent Hub；
+Agent Detail；
+Agent Runtime；
+Expert；
+Tool；
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+• 
+• 
+• 
+• 
+• 
+• 
+1
+
+=== Page 2 ===
+A2A；
+Embedded Assistant；
+SDK；
+API Client；
+RunHistory；
+RunTrace；
+Usage / Cost；
+Developer Integration；
+Partner Reference App。
+核心业务能力包括：
+Medical Coding；
+CDI；
+DRG/DIP；
+编码审核；
+医疗文档理解；
+病案质量控制；
+医疗收入合规；
+证据链；
+审计与回放。
+所有 Agent 调用原则上必须继续通过：
+A2A 基础设施；
+或 A2A-compatible facade。
+不得形成绕开 A2A 的第二套独立 Runtime 主线。
+二、已声明的当前状态
+以下内容是历史报告和开发任务中声明的状态，但本次审计不得直接相信，必须逐项用代码、测试、浏览器和
+运行记录重新核验。
+1. 产品与平台
+历史上已经声明完成或部分完成：
+Agent Hub；
+Agent Detail；
+Agent Fork；
+Agent Settings；
+Agent Code；
+Agent Runtime；
+Expert；
+Tool；
+A2A Envelope；
+RunHistory；
+RunTrace；
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+2
+
+=== Page 3 ===
+Usage / Cost；
+API Client；
+Embedded Assistant；
+SDK；
+Partner Reference App；
+多角色权限；
+审计；
+Patient / Encounter Context；
+Medical Coding；
+CDI；
+DRG/DIP。
+2. Phase 7
+历史报告声明 Phase 7 Gate 0–12 已关闭，并给出：
+PASS_READY_FOR_PARTNER_INTEGRATION_VALIDATION
+历史声明包括：
+外部 .tgz 安装；
+Server-side Idempotency；
+Run Cancel / Timeout；
+API Client；
+Scope；
+Allowed Origins；
+CORS / CSP；
+Signed Trace URL；
+Usage × API Client 归因；
+SSE Run Events；
+三个 Demo 浏览器 E2E；
+Patient Isolation；
+Partner Reference App。
+这些内容全部需要重新核验。
+3. Gate 13
+Gate 13 新增 Corti-style Embedded Assistant Console 页面，包括：
+Preview iframe；
+Desktop / Mobile；
+Restart；
+Event Inspector；
+Settings；
+HTML / React / JSON Code Generator；
+Medical Coding 真实浏览器调用。
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+3
+
+=== Page 4 ===
+但 Gate 13 审核发现可能存在：
+Console Token 通过 iframe URL 传递；
+Patient Context 通过 URL 传递；
+postMessage('*')；
+动态 HTML 注入面；
+iframe Origin 校验不足；
+Token / PHI 日志泄漏风险。
+Gate 13A 计划用于完成 Embedded Preview 安全加固。
+本次全面审查必须确认 Gate 13A 当前实际状态，不得根据任务 Prompt 推定它已经完成。
+4. CDI
+CDI 已声明具备：
+Claim-Evidence；
+Semantic Necessity；
+Single-Dimension；
+Non-leading Query；
+Expert Conditional Routing；
+生命周期；
+RBAC；
+SLA；
+乐观锁；
+四角色工作流；
+Corti controlled probes。
+当前决策：
+暂停 CDI Prompt tuning；
+不再围绕现有 40 例反复调参；
+保留当前代码、测试、数据和评测结果；
+除阻断性回归外，不继续做 CDI 质量微调。
+本次审计应评估 CDI 产品化、工作流、合规边界和集成成熟度，但不得启动新的 CDI Prompt tuning。
+5. Medical Coding
+Medical Coding 是 iCoDer 当前核心 Agent。
+需要重点检查：
+Corti-like Medical Coding Agent 是否已成为真正产品主线；
+MedCodER 等旧实现是否已降级为 internal engine；
+业务结果契约；
+编码证据；
+候选码；
+编码规范校验；
+Human Review；
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+4
+
+=== Page 5 ===
+Trace；
+A2A 执行；
+真实模型和 Runtime 调用；
+中国 ICD 标准适配；
+真实质量基准；
+当前模型与产品 Runtime 的实际连接情况。
+6. 模型与训练
+已有模型实验和产品平台开发不能混为一谈。
+审计必须区分：
+产品 Runtime 中当前实际调用的模型；
+DeepSeek 等通用 LLM；
+本地或私有化模型；
+B0 / V18 / V24-v2 等 ICD 模型实验；
+Research-only Adapter；
+Shadow Evaluation；
+已冻结实验；
+尚未接入产品的训练资产；
+只在离线脚本中存在的能力。
+不得将“训练实验通过”描述为“产品能力已上线”。
+三、审计基本原则
+1. 代码事实优先
+证据可信度按以下顺序排列：
+真实运行证据
+> 可重复浏览器 E2E
+> 可重复集成测试
+> 单元测试
+> 生产代码
+> 配置和数据
+> 报告
+> README
+> 注释
+> 任务 Prompt
+报告不能为自己提供证明。
+测试名称包含 real、e2e、integration，不等于它真的使用了真实环境。
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+5
+
+=== Page 6 ===
+必须检查测试内部是否：
+使用 Mock；
+Monkeypatch Provider；
+硬编码输出；
+跳过认证；
+跳过数据库；
+跳过 A2A；
+使用测试专用捷径；
+使用 Workspace 源码冒充已安装 Package；
+使用静态 Usage 数据；
+使用伪造 Trace。
+2. 审计期间原则上不修产品代码
+本轮主要任务是审计。
+允许：
+新增审计脚本；
+新增只读分析工具；
+新增 Playwright 审计测试；
+新增证据采集脚本；
+修复阻止审计执行的最小环境问题；
+新增报告和 Evidence Manifest。
+不允许：
+一边审计一边大规模重构；
+发现问题后立即重写系统；
+为使测试通过而修改业务逻辑；
+将“计划修复”计入“已完成”；
+修改历史报告掩盖原始裁决；
+删除失败证据；
+放宽测试阈值；
+将 Blocked 项改写为 Deferred 后继续判定 PASS。
+如必须进行最小修复，应单独记录：
+原始问题；
+修改文件；
+修改原因；
+修改前证据；
+修改后证据；
+是否影响审计独立性。
+3. 明确区分成熟度层级
+每个能力必须标记为以下一种：
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+6
+
+=== Page 7 ===
+ABSENT
+DOCUMENTED_ONLY
+UI_ONLY
+STUB
+MOCK_ONLY
+PARTIAL_IMPLEMENTATION
+CODE_COMPLETE
+UNIT_VERIFIED
+INTEGRATION_VERIFIED
+BROWSER_VERIFIED
+EXTERNAL_CONSUMER_VERIFIED
+SECURITY_VERIFIED
+PARTNER_STAGING_VERIFIED
+PRODUCTION_OBSERVED
+DEPRECATED
+DUPLICATED
+BLOCKED
+不得把 CODE_COMPLETE 等同于 BROWSER_VERIFIED。
+不得把 BROWSER_VERIFIED 等同于 PARTNER_STAGING_VERIFIED。
+不得把 PARTNER_STAGING_VERIFIED 等同于 PRODUCTION_READY。
+四、审计范围
+本次必须覆盖整个代码库，不得只审查 Phase 7 或最新页面。
+Audit Track A — Repository and Delivery Baseline
+A1. Git 基线
+检查：
+当前 Git HEAD；
+当前 Branch；
+Remote；
+工作区状态；
+未提交文件；
+未跟踪文件；
+最近 50 个 Commit；
+Tag；
+Release Branch；
+大文件；
+生成物；
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+7
+
+=== Page 8 ===
+测试 Artifact；
+是否存在报告未提交、代码已提交或反向情况。
+输出：
+当前可信审计 Commit；
+工作区污染情况；
+报告和代码是否对应同一 Commit；
+是否具备可复现审计基线。
+A2. 仓库结构
+列出：
+Backend；
+Frontend；
+Runtime；
+Agents；
+A2A；
+SDK；
+Embedded；
+Examples；
+Partner App；
+Tests；
+Reports；
+Experiments；
+Data；
+Scripts；
+Deprecated packages。
+识别：
+重复模块；
+平行 Runtime；
+同名 API；
+重复 Agent Registry；
+重复模型网关；
+旧版入口；
+孤立代码；
+未使用 Package；
+已弃用但仍被生产路径引用的模块。
+A3. 构建和启动
+验证：
+Backend 安装；
+Frontend 安装；
+SDK 构建；
+Embedded 构建；
+Partner App 构建；
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+8
+
+=== Page 9 ===
+数据库迁移；
+服务启动；
+环境变量；
+初始数据；
+开发环境；
+测试环境；
+干净环境重建。
+必须回答：
+一个不了解项目的工程师，能否按照仓库文档在干净环境中启动全部核心服务？
+Audit Track B — Product Information Architecture
+and Surface Inventory
+B1. 页面与路由清点
+扫描全部前端路由和导航，形成完整清单：
+路由；
+页面名称；
+入口；
+权限；
+后端 API；
+是否可加载；
+是否使用真实数据；
+是否存在空状态；
+是否存在错误状态；
+是否存在 Loading；
+是否存在 404；
+是否为 Stub；
+是否被重定向；
+是否重复。
+至少覆盖：
+Login；
+Dashboard；
+Agent Hub；
+Agent Detail；
+Agent Fork；
+Agent Settings；
+Agent Code；
+AI Studio；
+Experts；
+Tools；
+Runs；
+RunHistory；
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+9
+
+=== Page 10 ===
+RunTrace；
+Usage；
+API Clients；
+Embedded Assistant；
+Partner / Developer 页面；
+Medical Coding；
+CDI；
+DRG/DIP；
+Admin；
+Audit；
+Settings。
+B2. 全页面浏览器走查
+使用真实浏览器执行全部可导航页面走查。
+每个页面记录：
+Screenshot；
+URL；
+页面状态；
+数据来源；
+Console Error；
+Network Error；
+空白区域；
+Stub；
+Dead Button；
+Broken Link；
+权限问题；
+响应时间；
+UX 问题；
+是否符合当前产品定位。
+不得只检查 Happy Path。
+必须检查：
+首次进入；
+空数据；
+有数据；
+错误；
+无权限；
+刷新；
+后退；
+深链接；
+Session 过期；
+移动宽度；
+长文本；
+中文；
+英文；
+Loading；
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+10
+
+=== Page 11 ===
+多次点击；
+重复提交。
+B3. 产品一致性
+检查：
+产品名称；
+Agent 名称；
+i18n；
+菜单层级；
+页面标题；
+状态词；
+错误码；
+Cost；
+Credits；
+Run；
+Trace；
+Session；
+Context；
+Organization；
+Project；
+API Client。
+识别：
+术语漂移；
+Corti 名称残留；
+iCoDer 旧定位残留；
+通用 Agent 平台表达；
+医疗编码平台表达；
+收入合规平台表达；
+Medical Coding、CDI、DRG/DIP 之间产品关系不清。
+Audit Track C — Strategic Product Fit
+判断当前产品是否真正符合：
+Corti-like AI Studio + 中国医疗收入合规垂直能力。
+重点回答：
+当前产品首页在向谁表达价值？
+主要用户是：
+病案编码员；
+CDI 专员；
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+1. 
+2. 
+3. 
+4. 
+11
+
+=== Page 12 ===
+医保办；
+医生；
+医院信息科；
+开发者；
+合作伙伴；
+还是内部研发人员？
+当前 Agent Hub 是业务能力入口，还是技术 Demo 陈列页？
+AI Studio 是真实可配置平台，还是 UI 外壳？
+Developer Integration 是否形成可理解的集成旅程？
+医院用户和合作伙伴开发者是否被混在同一信息架构？
+当前产品是否存在“功能很多，但核心工作流不完整”的问题？
+当前产品是否仍然表现为通用 Agent 平台？
+Medical Coding、CDI、DRG/DIP 是否形成统一的收入合规产品叙事？
+当前最应该强化的产品主线是什么？
+输出：
+当前实际定位；
+目标定位；
+差距；
+需要删除或降级的产品表达；
+需要强化的主流程。
+Audit Track D — Agent Capability Audit
+对每个 Agent 建立独立能力卡。
+至少审计：
+Medical Coding；
+CDI；
+DRG/DIP；
+Note Completeness；
+Discharge Summary Structuring；
+编码审核；
+文档理解；
+其他已注册 Agent。
+每个 Agent 必须检查：
+D1. 产品身份
+Agent ID；
+显示名称；
+业务目标；
+目标用户；
+输入；
+输出；
+Human Review；
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+16. 
+17. 
+18. 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+12
+
+=== Page 13 ===
+风险等级；
+是否核心 Agent；
+是否辅助 Agent；
+是否重复能力；
+是否应当下线。
+D2. 执行链路
+追踪完整调用链：
+Frontend
+→ API / SDK / Embedded
+→ Authentication
+→ A2A facade
+→ Agent Registry
+→ Runtime Dispatcher
+→ Orchestrator
+→ Expert / Tool
+→ Provider
+→ Result Normalization
+→ Persistence
+→ RunHistory
+→ Trace
+→ Usage
+→ Frontend
+检查是否存在绕过 A2A 的路径。
+D3. 真实能力
+区分：
+Prompt；
+Rule；
+Tool；
+Retrieval；
+Model；
+Hard-coded output；
+Fixture；
+Mock；
+Provider fallback；
+Degraded mode。
+D4. 结果契约
+检查：
+Schema；
+Version；
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+13
+
+=== Page 14 ===
+Evidence；
+Confidence；
+Human Review；
+Safety Boundary；
+Error；
+Partial Result；
+Audit Fields；
+Trace Ref；
+Run ID；
+Context ID。
+D5. 质量证据
+检查：
+Fixture；
+Gold Set；
+Evaluation；
+Metrics；
+Error Analysis；
+Regression；
+Real-case Browser Test；
+Expert Review；
+数据规模；
+数据代表性；
+是否存在硬编码测试病例。
+不得因为一次 DeepSeek 成功调用就认为 Agent 质量已达到产品化水平。
+Audit Track E — Medical Coding Product and
+Model Audit
+Medical Coding 是本次审计最高优先级之一。
+E1. 产品能力
+检查：
+病历输入；
+文档解析；
+诊断抽取；
+手术操作抽取；
+术语归一化；
+候选码生成；
+证据关联；
+规范校验；
+编码建议；
+主要诊断；
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+14
+
+=== Page 15 ===
+主要手术；
+其他诊断；
+其他手术；
+不可编码项；
+缺失文档；
+风险；
+Human Review；
+RunTrace。
+E2. 中国标准
+确认实际使用：
+ICD-10-CN；
+ICD-9-CM-3；
+国家临床版；
+编码规则；
+DRG/DIP 敏感项；
+主要诊断和主要手术选择原则。
+检查标准版本是否：
+可追溯；
+可更新；
+被实际 Runtime 使用；
+仅存在于数据目录；
+与模型输出一致。
+E3. 模型连接
+必须画出当前产品 Medical Coding 的真实模型路径。
+区分：
+DeepSeek；
+Mock；
+本地模型；
+B0；
+V18；
+V24-v2；
+LoRA；
+Adapter；
+Rule；
+Retrieval；
+External Provider。
+回答：
+当前生产代码实际用的是什么模型？
+已训练 ICD 模型是否真正进入产品 Runtime？
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+15
+
+=== Page 16 ===
+如果没有，阻断原因是什么？
+E4. 质量成熟度
+整理所有现有评测，不重复执行无意义的大训练。
+检查：
+270 例标准集；
+M_Total；
+Acc_Dia；
+Acc_Proc；
+F1_Other_Dia；
+高风险损伤；
+分布坍缩；
+Hard Negative；
+Verifier；
+Research-only 资产；
+Frozen 资产。
+输出：
+当前最强离线模型；
+当前产品实际模型；
+二者差距；
+是否值得继续训练；
+下一阶段产品质量验证应如何设计。
+Audit Track F — CDI Audit
+本轮禁止继续 CDI Prompt tuning。
+重点审计：
+CDI 是否为核心 Agent；
+CDI 是否与 Note Completeness 混淆；
+CDI 是否与 Discharge Summary Structuring 混淆；
+Documentation Gap；
+Claim-Evidence；
+Semantic Necessity；
+Single-Dimension；
+Non-leading；
+Provider Query Draft；
+Expert Routing；
+四角色工作流；
+RBAC；
+SLA；
+乐观锁；
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+16
+
+=== Page 17 ===
+Query 生命周期；
+人工审核；
+不自动发送医生；
+不自动写回病历；
+Corti-like 流程；
+中国本地化规则；
+Trace；
+Audit；
+API / SDK / Embedded 集成。
+输出 CDI 当前状态：
+产品工作流成熟度
+集成成熟度
+质量成熟度
+合规成熟度
+浏览器成熟度
+医院落地成熟度
+明确区分：
+工作流已经完成；
+输出质量仍有限；
+当前已决定暂停调优；
+哪些集成问题仍值得修复。
+Audit Track G — DRG/DIP Audit
+检查：
+输入数据结构；
+病案首页；
+主要诊断；
+主要手术；
+其他诊断；
+其他手术；
+年龄；
+性别；
+出院方式；
+新生儿数据；
+分组器；
+规则版本；
+地区版本；
+Group Result；
+Weight / Score；
+风险；
+编码影响；
+CC/MCC；
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+17
+
+=== Page 18 ===
+不入组；
+QY；
+歧义；
+审核建议；
+Trace；
+Cost；
+Human Review。
+明确区分：
+真正分组；
+模拟分组；
+固定规则；
+LLM 解释；
+静态示例；
+Mock；
+地区配置。
+回答：
+当前 DRG/DIP Agent 是真实分组和审核产品，还是一个解释型 Demo？
+Audit Track H — A2A and Runtime Architecture
+H1. A2A 主线
+检查：
+A2A Envelope；
+Message；
+Task；
+Artifact；
+Agent Card；
+Discovery；
+Run；
+Error；
+Version；
+Streaming；
+Trace；
+Context；
+Metadata。
+检查所有核心 Agent 是否真正通过 A2A 或 A2A-compatible facade。
+列出所有绕过路径。
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+18
+
+=== Page 19 ===
+H2. Runtime
+梳理：
+Runtime Registry；
+Agent Registry；
+Provider Registry；
+Dispatcher；
+Orchestrator；
+Expert；
+Tool；
+LLM Gateway；
+Context Store；
+Run Store；
+Trace Store；
+Usage Store；
+Audit Store。
+识别：
+平行 Runtime；
+旧实现；
+重复 Registry；
+循环依赖；
+隐式全局状态；
+Mock 泄漏；
+Legacy fallback；
+不一致错误处理；
+不一致超时语义。
+H3. Expert 和 Tool
+检查：
+Expert 是否真正参与执行；
+Tool 是否真正被调用；
+Tool call 是否进入 Trace；
+Expert routing 是否可配置；
+条件路由是否真实；
+UI 中配置是否影响 Runtime；
+Agent Detail 中的 Expert/Tool 是否只是展示。
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+19
+
+=== Page 20 ===
+Audit Track I — Run, Trace, Events and Usage
+I1. Run 生命周期
+检查状态机：
+Created；
+Queued；
+Running；
+Completed；
+Failed；
+Client Aborted；
+Cancellation Requested；
+Cancelled；
+Cancel Not Supported；
+Completed After Client Abort；
+Timeout；
+Deduplicated。
+检查前后端状态语义是否一致。
+I2. Idempotency
+验证：
+same client
++ same key
++ same request hash
+→ one run
+→ one provider call
+→ one result
+→ one charge
+检查：
+并发；
+Payload mismatch；
+Retry；
+数据库约束；
+锁；
+Crash recovery；
+TTL；
+Run 查询；
+Usage；
+Audit。
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+20
+
+=== Page 21 ===
+I3. RunHistory
+检查是否真实记录：
+run_id；
+agent_id；
+api_client_id；
+embedded_app_id；
+organization_id；
+session_id；
+context_id；
+request_id；
+idempotency_key；
+provider；
+runtime_mode；
+status；
+latency；
+token；
+cost。
+I4. Trace
+检查：
+Trace 是否持久化；
+Trace 是否覆盖真实执行；
+是否只有模板阶段；
+Expert/Tool 调用是否真实；
+Provider 元数据；
+Evidence；
+Error；
+Signed Trace URL；
+Scope；
+Expiry；
+Nonce；
+Organization；
+API Client；
+Disabled Client；
+跨组织访问。
+I5. Events
+为每个 Embedded/SSE Event 分类：
+REAL_TIME
+POST_RUN_REPLAY
+POLLING_DERIVED
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+21
+
+=== Page 22 ===
+DECLARED_BUT_NOT_IMPLEMENTED
+NOT_APPLICABLE
+重点检查：
+agent.stage.started；
+agent.stage.completed；
+agent.result.partial；
+tool.call.started；
+tool.call.completed；
+run.completed；
+account.creditsConsumed。
+事件枚举存在，不等于事件能力存在。
+I6. Usage 和 Cost
+验证：
+Run Count；
+Success；
+Failure；
+Retry；
+Deduplicated；
+Cancelled；
+Token；
+Cost；
+Average Latency；
+P95；
+Provider；
+Agent；
+Runtime Mode；
+API Client；
+Embedded App；
+Organization。
+检查：
+是否静态数据；
+是否真实聚合；
+Credits 是否始终为 0；
+Provider Cost 是否可追溯；
+幂等重复请求是否重复计费；
+Usage 和 Run 是否可对账。
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+22
+
+=== Page 23 ===
+Audit Track J — Embedded, SDK and Partner
+Integration
+J1. Package
+检查：
+@icoder/sdk；
+@icoder/embedded；
+版本；
+Package metadata；
+Build；
+Type definitions；
+Export；
+Peer Dependencies；
+README；
+Changelog；
+.tgz；
+外部消费者安装。
+不得使用 Workspace 引用冒充外部安装。
+J2. Embedded Assistant
+检查：
+Web Component API；
+configureSession；
+configure；
+show；
+clearPatientContext；
+clearSession；
+Restart；
+Events；
+Timeout；
+Retry；
+Idempotency Key；
+Run ID；
+Trace URL；
+Patient Isolation；
+Storage；
+Console；
+PHI；
+Token。
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+23
+
+=== Page 24 ===
+J3. Gate 13 / Gate 13A
+特别审计：
+iframe URL 是否含 Token；
+iframe URL 是否含 Patient Context；
+是否仍使用 postMessage('*')；
+Parent Origin；
+iframe Origin；
+event.source；
+Nonce；
+Preview Session；
+Ticket；
+Replay Protection；
+CSP；
+frame-ancestors；
+Sandbox；
+Cache-Control；
+Referrer-Policy；
+XSS；
+Dynamic HTML；
+Code Generator 是否包含真实凭据；
+HAR、日志和浏览器历史。
+J4. API Client
+检查：
+Create；
+Read；
+List；
+Enable；
+Disable；
+Secret 一次性显示；
+Secret Hash；
+Rotation；
+Scope；
+Allowed Origins；
+Last Used；
+Test Connection；
+Audit；
+Usage Attribution。
+确认 UI 操作确实调用后端，不是 Stub。
+J5. Partner Reference App
+确认：
+独立目录；
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+24
+
+=== Page 25 ===
+独立构建；
+不引用 Console 内部模块；
+只使用公开 SDK；
+Client Authentication；
+Patient Context；
+三 Agent；
+RunHistory；
+Trace；
+Usage；
+Error Center；
+Restart Recovery；
+外部 .tgz 安装。
+Audit Track K — Authentication, Authorization
+and Security
+K1. 身份模型
+检查：
+User；
+Organization；
+Project；
+Role；
+API Client；
+Embedded App；
+Partner；
+Session；
+Context。
+K2. Scope
+确认后端真实校验：
+agents:run；
+runs:read；
+traces:read；
+usage:read；
+contexts:write；
+medical-coding:run；
+cdi:run；
+drg-dip:run。
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+25
+
+=== Page 26 ===
+K3. Origin 和 CORS
+检查：
+Allowed Origins；
+Credential；
+Wildcard；
+Preflight；
+Origin normalization；
+Subdomain；
+Port；
+Scheme；
+Null Origin；
+File Origin；
+Browser E2E。
+K4. Secret 和 Token
+检查：
+明文存储；
+Hash；
+Rotation；
+一次性显示；
+日志；
+URL；
+DOM；
+Storage；
+HAR；
+Error；
+Trace；
+Screenshot；
+Report Artifact。
+K5. PHI
+检查：
+LocalStorage；
+SessionStorage；
+IndexedDB；
+Cache；
+Console；
+Network；
+URL；
+Server Log；
+Error Log；
+Trace；
+Usage；
+Audit；
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+26
+
+=== Page 27 ===
+Screenshot；
+Playwright Artifact。
+K6. 多租户隔离
+验证：
+Organization A/B；
+API Client A/B；
+Patient A/B；
+Embedded App A/B；
+Run；
+Trace；
+Usage；
+Context；
+Agent；
+Secret；
+Audit。
+必须执行负向测试。
+Audit Track L — Test and Quality Posture
+L1. 测试清点
+统计：
+Unit；
+Integration；
+E2E；
+Browser；
+Security；
+Contract；
+Snapshot；
+Fixture；
+Performance；
+Concurrency；
+Migration；
+Regression。
+L2. 测试真实性
+识别：
+Mock；
+Fake；
+Stub；
+Hard-coded；
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+27
+
+=== Page 28 ===
+Skipped；
+XFail；
+Flaky；
+Retry masking；
+Shared state；
+Order dependency；
+External dependency；
+Environment dependency。
+L3. 覆盖率
+不要只报告总覆盖率。
+按关键模块输出：
+A2A；
+Runtime；
+Auth；
+API Client；
+Idempotency；
+Trace；
+Usage；
+Embedded；
+SDK；
+Medical Coding；
+CDI；
+DRG/DIP。
+L4. 真实 E2E
+确认以下测试是否可重复：
+Medical Coding Browser E2E；
+CDI Browser E2E；
+DRG/DIP Browser E2E；
+Partner Reference App；
+External .tgz consumer；
+Idempotency concurrency；
+Patient Isolation；
+Trace Security；
+Scope；
+Allowed Origin；
+Restart Recovery；
+Token/PHI Audit。
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+28
+
+=== Page 29 ===
+Audit Track M — Performance, Reliability and
+Operations
+检查：
+Startup；
+Memory；
+CPU；
+Provider latency；
+P50；
+P95；
+Timeout；
+Retry；
+Queue；
+Concurrency；
+Rate Limit；
+Circuit Breaker；
+Provider fallback；
+Database connection；
+Run cleanup；
+Trace retention；
+Usage aggregation；
+Log retention；
+Health check；
+Readiness；
+Liveness；
+Metrics；
+Alert；
+Backup；
+Migration rollback。
+区分：
+本地开发可运行；
+测试环境可运行；
+Staging 可运行；
+医院私有化可部署；
+生产可观测。
+Audit Track N — Documentation and Developer
+Experience
+检查：
+README；
+Architecture；
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+29
+
+=== Page 30 ===
+Product Spec；
+Agent Spec；
+A2A Spec；
+SDK Docs；
+Embedded Docs；
+API Docs；
+Authentication Guide；
+Partner Guide；
+Deployment Guide；
+Upgrade Guide；
+Troubleshooting；
+Security Guide；
+Data Handling；
+Changelog；
+Version Policy。
+测试文档：
+在不阅读源码的情况下，外部开发者能否完成认证、配置 Patient Context、运行 Agent、查询
+Run、打开 Trace、读取 Usage？
+记录：
+错误步骤；
+缺失步骤；
+过期接口；
+无效代码；
+安全错误；
+Workspace-only 示例。
+Audit Track O — Commercial and Delivery
+Readiness
+分别评估以下成熟度：
+O1. Internal Demo Ready
+内部产品演示是否稳定？
+O2. Customer Demo Ready
+能否面向医院和合作伙伴进行不暴露技术缺陷的演示？
+O3. Partner Integration Ready
+外部合作伙伴能否在 Staging 中完成真实集成？
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+30
+
+=== Page 31 ===
+O4. Hospital Pilot Ready
+是否具备医院小范围试点所需的：
+部署；
+身份；
+权限；
+审计；
+PHI；
+稳定性；
+人工审核；
+错误处理；
+运维；
+回滚；
+数据协议。
+O5. Production Ready
+仅判断差距，不得轻易给出 Ready。
+必须明确：
+当前不能宣称什么；
+达到下一成熟度需要哪些硬条件；
+预计需要几个阶段，而不是简单给出时间估算。
+五、Corti-like 对标审计
+本次对标不应只比较页面外观。
+对 Corti 和 iCoDer 按以下维度重新整理：
+产品定位；
+目标用户；
+Information Architecture；
+Agent 创建；
+Agent Detail；
+Agent Runtime；
+Expert；
+Tool；
+Context；
+Output Contract；
+Trace；
+Event；
+Usage；
+Embedded；
+SDK；
+API Client；
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+31
+
+=== Page 32 ===
+Developer Onboarding；
+Medical Coding；
+CDI；
+Human Review；
+安全；
+审计；
+中国本地化；
+DRG/DIP。
+每一项标记：
+PARITY
+PARTIAL_PARITY
+ICODER_ADVANTAGE
+CORTI_ADVANTAGE
+DIFFERENT_BY_DESIGN
+NOT_IMPLEMENTED
+NOT_VERIFIED
+EVIDENCE_INSUFFICIENT
+对 Corti 的判断必须附证据来源。
+不得因为页面相似就判断 Full Parity。
+六、强制真实浏览器路径
+至少执行以下路径。
+1. Console 产品路径
+Login
+→ Dashboard
+→ Agent Hub
+→ Agent Detail
+→ Agent Settings
+→ Agent Code
+→ Experts
+→ Tools
+→ Embedded Assistant
+→ Runs
+→ Trace
+→ Usage
+→ API Clients
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+32
+
+=== Page 33 ===
+2. Medical Coding
+Set Patient Context
+→ Submit medical record
+→ Run Medical Coding
+→ Inspect evidence
+→ Inspect coding result
+→ Human Review boundary
+→ RunHistory
+→ Trace
+→ Usage
+3. CDI
+Set Patient Context
+→ Run CDI
+→ Documentation Gap
+→ Provider Query Draft
+→ Human Review
+→ Verify no auto-send
+→ Verify no chart write-back
+→ RunHistory
+→ Trace
+本轮不继续优化 CDI 输出质量。
+4. DRG/DIP
+Load synthetic front-page data
+→ Run
+→ Group result
+→ Risk
+→ Coding impact
+→ Trace
+→ Usage
+5. Embedded / Partner App
+External package install
+→ Authentication
+→ Configure Session
+→ Patient A
+→ Run
+→ Clear Context
+→ Patient B
+33
+
+=== Page 34 ===
+→ Run
+→ Restart
+→ Trace
+→ Usage
+→ Error Center
+6. 安全负向路径
+Expired token
+Disabled API Client
+Missing scope
+Wrong origin
+Cross-organization trace
+Reused idempotency key with different payload
+Concurrent duplicate request
+Expired trace token
+Forged postMessage
+Wrong nonce
+Patient switch during running request
+Client abort
+Backend timeout
+Provider failure
+七、报告交付物
+在以下目录建立审计报告：
+reports/comprehensive-audit/
+至少输出：
+00_EXECUTIVE_SUMMARY.md
+01_AUDIT_SCOPE_AND_METHOD.md
+02_GIT_REPOSITORY_BASELINE.md
+03_PRODUCT_SURFACE_INVENTORY.md
+04_INFORMATION_ARCHITECTURE_AND_UX_AUDIT.md
+05_STRATEGIC_POSITIONING_AUDIT.md
+06_AGENT_CAPABILITY_INVENTORY.md
+07_MEDICAL_CODING_AUDIT.md
+08_CDI_AUDIT.md
+09_DRG_DIP_AUDIT.md
+10_A2A_AND_RUNTIME_ARCHITECTURE_AUDIT.md
+11_EXPERT_TOOL_AND_ORCHESTRATION_AUDIT.md
+12_RUN_TRACE_EVENT_USAGE_AUDIT.md
+13_EMBEDDED_SDK_AND_PARTNER_INTEGRATION_AUDIT.md
+34
+
+=== Page 35 ===
+14_AUTH_SECURITY_AND_PHI_AUDIT.md
+15_MODEL_DATA_AND_EVALUATION_AUDIT.md
+16_TEST_AND_QUALITY_AUDIT.md
+17_PERFORMANCE_RELIABILITY_AND_OPERATIONS_AUDIT.md
+18_DOCUMENTATION_AND_DEVELOPER_EXPERIENCE_AUDIT.md
+19_CORTI_ICODER_PARITY_MATRIX.md
+20_COMMERCIAL_AND_DELIVERY_READINESS.md
+21_ARCHITECTURE_DEBT_AND_DUPLICATION_LEDGER.md
+22_PRODUCT_GAPS_AND_DEAD_SURFACES.md
+23_REMEDIATION_BACKLOG.md
+24_RECOMMENDED_ROADMAP.md
+25_FINAL_DECISION.md
+evidence_manifest.json
+建议证据目录：
+evidence/
+├── git/
+├── commands/
+├── test-results/
+├── browser/
+├── screenshots/
+├── playwright-traces/
+├── sanitized-har/
+├── console/
+├── network/
+├── storage/
+├── security/
+├── packages/
+├── external-consumer/
+├── architecture/
+└── hashes/
+八、核心矩阵
+1. 产品能力矩阵
+能力 代码 单测 集成 浏览器 外部消费者安全 当前成熟度主要缺口
+2. Agent 矩阵
+Agent 产品
+入口 A2A Runtime 真实
+模型 Evidence Human
+Review Trace Usage 质量
+基准
+状
+态
+35
+
+=== Page 36 ===
+3. 页面矩阵
+路由 页面 可加载 真实数据 主要操作 错误状态 权限 浏览器验证状态
+4. 成熟度矩阵
+领域 当前层级 证据 阻断项 下一验收层级
+Internal Demo
+Customer Demo
+Partner Integration
+Hospital Pilot
+Production
+5. 报告与代码一致性矩阵
+历史声明 报告来源 代码事实 测试事实 浏览器事实最终判断
+九、问题分级
+所有问题必须标记：
+P0 — Blocking
+包括但不限于：
+PHI 或 Secret 泄漏；
+跨组织访问；
+认证绕过；
+Runtime 双主线；
+幂等重复计费；
+核心 Agent 无法真实运行；
+数据串联；
+报告严重失实；
+无法从干净环境启动；
+外部 Package 无法使用。
+P1 — Critical Product Gap
+包括：
+核心工作流断裂；
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+36
+
+=== Page 37 ===
+API Client 不完整；
+Trace 不可访问；
+Usage 无法归因；
+页面重要操作为 Stub；
+三 Agent 集成不一致；
+Partner App 不可运行；
+模型能力和产品 Runtime 脱节。
+P2 — Important
+包括：
+UX 不一致；
+文档缺失；
+错误处理不足；
+测试覆盖不足；
+可观测性不足；
+版本漂移；
+技术债。
+P3 — Improvement
+包括：
+视觉细节；
+非阻断性 Corti parity；
+次要性能；
+开发体验优化。
+每个问题必须记录：
+ID；
+Severity；
+Domain；
+Evidence；
+Root Cause；
+User Impact；
+Security Impact；
+Business Impact；
+Recommended Fix；
+Dependency；
+Verification Gate；
+是否建议现在修复；
+是否应删除而不是修复。
+十、后续路线设计原则
+最终路线不能简单地把所有问题都列为开发任务。
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+37
+
+=== Page 38 ===
+必须对每项能力做出以下决策之一：
+KEEP_AND_HARDEN
+COMPLETE
+MERGE
+REFACTOR
+REPLACE
+DEPRECATE
+REMOVE
+FREEZE
+DEFER
+RESEARCH_ONLY
+路线必须优先解决：
+战略主线不清；
+核心 Agent 真实闭环；
+A2A / Runtime 统一；
+Partner Integration；
+PHI、认证和多租户安全；
+Run / Trace / Usage 可追溯；
+产品 Runtime 与模型能力脱节；
+医院试点所需的部署和运维能力。
+不得继续通过新增页面、Agent 和演示功能掩盖核心闭环缺失。
+十一、最终路线输出
+至少给出：
+Plan A — 最小收敛路线
+目标：
+删除或冻结无关能力；
+聚焦 Medical Coding、CDI、DRG/DIP；
+完成 Partner Integration；
+形成稳定客户 Demo。
+Plan B — 医院试点路线
+目标：
+完成私有化部署；
+权限；
+审计；
+PHI；
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+38
+
+=== Page 39 ===
+人工审核；
+运维；
+试点验收。
+Plan C — 平台化路线
+目标：
+成熟 AI Studio；
+Agent Runtime；
+SDK；
+Embedded；
+Partner Ecosystem。
+对三条路线分别说明：
+前置条件；
+必做项；
+可延期项；
+风险；
+不应继续投入的内容；
+推荐顺序。
+最后必须明确推荐一条主路线，不得只罗列选项。
+十二、最终裁决格式
+最终裁决不能笼统写 PASS。
+应分别给出：
+PRODUCT_STRATEGY_VERDICT
+CORE_AGENT_VERDICT
+A2A_RUNTIME_VERDICT
+MEDICAL_CODING_VERDICT
+CDI_VERDICT
+DRG_DIP_VERDICT
+EMBEDDED_SDK_VERDICT
+PARTNER_INTEGRATION_VERDICT
+SECURITY_VERDICT
+MODEL_QUALITY_VERDICT
+HOSPITAL_PILOT_VERDICT
+OVERALL_VERDICT
+允许的总体裁决包括：
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+39
+
+=== Page 40 ===
+AUDIT_COMPLETE_READY_FOR_FOCUSED_REMEDIATION
+AUDIT_COMPLETE_READY_FOR_PARTNER_STAGING_VALIDATION
+PARTIAL_BLOCKED_BY_CRITICAL_SECURITY_GAPS
+PARTIAL_BLOCKED_BY_RUNTIME_FRAGMENTATION
+PARTIAL_BLOCKED_BY_CORE_AGENT_INTEGRATION_GAPS
+PARTIAL_BLOCKED_BY_UNVERIFIED_PRODUCT_CLAIMS
+PARTIAL_BLOCKED_BY_NON_REPRODUCIBLE_DELIVERY
+只有存在真实合作伙伴环境证据时，才可判断 Partner Staging Verified。
+不得输出：
+PRODUCTION_READY
+HOSPITAL_DEPLOYMENT_READY
+PARTNER_PRODUCTION_READY
+CORTI_FULL_PARITY
+PUBLIC_NPM_PUBLISHED
+SECURITY_CERTIFIED
+除非存在足够的、可复核的外部证据，而不是代码库内部自证。
+十三、最终决策报告必须回答的问题
+25_FINAL_DECISION.md 必须直接回答：
+iCoDer 当前最真实的产品形态是什么？
+当前完成度最高的五项能力是什么？
+当前最被高估的五项能力是什么？
+哪些历史 PASS 裁决需要降级？
+是否存在报告与代码不一致？
+是否存在 UI 完成但 Runtime 未完成？
+是否存在接口完成但认证、归因或计费未完成？
+是否存在测试通过但真实浏览器失败？
+是否存在模型实验完成但产品未接入？
+是否存在重复 Runtime 或重复 Agent 实现？
+Medical Coding 是否已经具备产品主线资格？
+CDI 是否已经具备集成产品资格？
+DRG/DIP 是真实产品还是 Demo？
+Partner Reference App 是否可以由外部团队独立使用？
+当前是否适合进入医院试点？
+下一阶段最重要的三个 Gate 是什么？
+哪些开发任务应立即停止？
+哪些代码或页面应该删除或降级？
+下一阶段唯一推荐主线是什么？
+完成下一阶段后应达到什么可验证状态？
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+16. 
+17. 
+18. 
+19. 
+20. 
+40
+
+=== Page 41 ===
+十四、执行顺序
+严格按照以下顺序执行：
+Audit Gate 0 — Git、工作区和证据基线
+→ Audit Gate 1 — 仓库结构和启动复现
+→ Audit Gate 2 — 产品页面和路由全量清点
+→ Audit Gate 3 — 全页面浏览器走查
+→ Audit Gate 4 — Agent 能力和调用链审计
+→ Audit Gate 5 — Medical Coding / CDI / DRG-DIP 专项审计
+→ Audit Gate 6 — A2A、Runtime、Expert、Tool 架构审计
+→ Audit Gate 7 — Run、Trace、Event、Usage 审计
+→ Audit Gate 8 — Embedded、SDK、API Client、Partner App 审计
+→ Audit Gate 9 — 认证、安全、PHI、多租户审计
+→ Audit Gate 10 — 模型、数据和评测资产审计
+→ Audit Gate 11 — 测试、性能、部署和文档审计
+→ Audit Gate 12 — Corti 对标和战略产品审计
+→ Audit Gate 13 — 商业化与医院试点成熟度审计
+→ Audit Gate 14 — 问题分级、整改路线和最终裁决
+每个 Gate 都必须先形成证据，再形成判断。
+十五、开始执行要求
+现在开始：
+Audit Gate 0 — Git, Workspace and Evidence
+Baseline
+第一轮输出必须包括：
+当前 Git HEAD；
+当前 Branch；
+工作区状态；
+未提交和未跟踪文件；
+最近主要 Phase/Gate Commit；
+当前报告目录完整清单；
+报告与 Commit 的对应关系；
+当前可识别的 Backend、Frontend、Runtime、SDK、Embedded 和 Agent 入口；
+当前测试入口；
+当前启动入口；
+当前数据库和迁移状态；
+当前环境变量需求；
+已发现的重复实现和旧路径；
+审计可能受到的环境限制；
+1. 
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+41
+
+=== Page 42 ===
+需要执行的命令；
+Evidence Manifest 初始版本；
+当前基线裁决。
+在 Gate 0 完成前：
+不要大规模修改代码；
+不要更新历史 PASS 裁决；
+不要开始新的 Agent 开发；
+不要继续 CDI Prompt tuning；
+不要开始新的模型训练；
+不要根据 README 推定能力已完成。
+完成 Gate 0 后，按上述顺序持续推进，直至输出全部审计报告、整改 Backlog、推荐路线和最终裁决。
+15. 
+16. 
+17. 
+• 
+• 
+• 
+• 
+• 
+• 
+42

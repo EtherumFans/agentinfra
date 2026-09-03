@@ -1,5 +1,7 @@
-// Settings/Code/Tools tab panel — iCoDer-style, used on all AI Studio pages
+// Settings/Code/Tools tab panel - iCoDer-style, used on all AI Studio pages
 import { useState } from 'react';
+
+import { useT } from '../../i18n';
 
 interface TabConfig {
   settings: React.ReactNode;
@@ -12,15 +14,16 @@ interface TabConfig {
 type TabName = 'settings' | 'code' | 'tools';
 
 export default function SettingsCodeTab({ settings, code, tools, defaultTab = 'settings', labels }: TabConfig) {
+  const t = useT();
   const [tab, setTab] = useState<TabName>(defaultTab);
 
   const tabs: { key: TabName; label: string; content: React.ReactNode }[] = [
-    { key: 'settings', label: labels?.settings || 'Settings', content: settings },
-    { key: 'code', label: labels?.code || 'Code', content: code },
+    { key: 'settings', label: labels?.settings || t.settingsCodeTabSettings, content: settings },
+    { key: 'code', label: labels?.code || t.settingsCodeTabCode, content: code },
   ];
 
   if (tools) {
-    tabs.push({ key: 'tools', label: labels?.tools || 'Tools', content: tools });
+    tabs.push({ key: 'tools', label: labels?.tools || t.settingsCodeTabTools, content: tools });
   }
 
   return (
@@ -46,3 +49,4 @@ export default function SettingsCodeTab({ settings, code, tools, defaultTab = 's
     </div>
   );
 }
+

@@ -1,0 +1,335 @@
+{
+  "case_id": "CASE-a77a46938699",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-a77a46938699/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "The diagnosis '急性心肌梗死' lacks specification of the type (ST-elevation vs non-ST-elevation) and anatomical site.",
+      "why_it_matters": "Coding requires specificity for myocardial infarction, including whether it is ST-elevation (STEMI) or non-ST-elevation (NSTEMI) and the specific wall involved. The chart mentions ST elevation in anterior leads, but the final diagnosis does not explicitly state STEMI or the site.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "入院诊断:急性心肌梗死",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-a77a46938699/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "The severity of the myocardial infarction (e.g., Killip class) is not documented.",
+      "why_it_matters": "Severity classification (e.g., Killip class) is important for risk stratification and may affect coding of complications or severity.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "持续胸痛2小时",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-a77a46938699/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "The clinical correlation of elevated troponin I is not explicitly stated; it is implied but not documented as a separate finding.",
+      "why_it_matters": "Troponin elevation is a key diagnostic criterion for MI, but the chart does not explicitly state that the elevation is consistent with acute MI. This could lead to ambiguity in coding.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "肌钙蛋白I升高",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-001",
+      "gap_id": "CASE-a77a46938699/GAP-001",
+      "topic": "急性心肌梗死的类型和部位",
+      "reason": "入院诊断为急性心肌梗死，但未明确是ST段抬高型还是非ST段抬高型，也未明确梗死部位。",
+      "query_text": "根据心电图和冠脉造影结果，请明确急性心肌梗死的类型和部位。",
+      "response_options": [
+        "A. ST段抬高型心肌梗死，前壁",
+        "B. 非ST段抬高型心肌梗死，前壁",
+        "C. ST段抬高型心肌梗死，其他部位",
+        "D. 非ST段抬高型心肌梗死，其他部位",
+        "E. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "入院诊断:急性心肌梗死",
+          "char_start": 75,
+          "char_end": 86,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-001: chart matches /急性[^,。、\\s]{0,8}(?:心肌梗死|阑尾炎|胆囊炎|胰腺炎|肺炎|胃肠炎)/ (急性类型已明确) and query asks for 急性心肌梗死的类型和部位"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-002",
+      "gap_id": "CASE-a77a46938699/GAP-002",
+      "topic": "心肌梗死的严重程度（Killip分级）",
+      "reason": "患者持续胸痛2小时，但未记录Killip分级，需明确心功能状态。",
+      "query_text": "请提供该患者心肌梗死后的Killip分级。",
+      "response_options": [
+        "A. Killip I级（无心力衰竭）",
+        "B. Killip II级（轻度心力衰竭）",
+        "C. Killip III级（肺水肿）",
+        "D. Killip IV级（心源性休克）",
+        "E. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "持续胸痛2小时",
+          "char_start": 11,
+          "char_end": 18,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-001: chart matches /急性[^,。、\\s]{0,8}(?:心肌梗死|阑尾炎|胆囊炎|胰腺炎|肺炎|胃肠炎)/ (急性类型已明确) and query asks for 心肌梗死的严重程度（Killip分级）"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-003",
+      "gap_id": "CASE-a77a46938699/GAP-003",
+      "topic": "肌钙蛋白I升高的临床意义",
+      "reason": "肌钙蛋白I升高已记录，但未明确其与急性心肌梗死的相关性。",
+      "query_text": "请明确肌钙蛋白I升高是否与急性心肌梗死相关。",
+      "response_options": [
+        "A. 与急性心肌梗死相关",
+        "B. 与急性心肌梗死无关，由其他原因引起",
+        "C. 尚不能确定其临床意义",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "肌钙蛋白I升高",
+          "char_start": 45,
+          "char_end": 52,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NLQ-001 (no_yes_no_opening): matched /(是不是|是否|是否为|能否|能不能|是不是说|是不是要|能否认为|是否可以)/ : '是否'"
+      ],
+      "status": "NEEDS_NON_LEADING_REWRITE",
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者男性, 58岁, 持续胸痛2小时。心电图:前壁导联ST<REDACTED:NAME>。肌钙蛋白I升高。冠脉造影:前降支近段100%闭塞。行PCI。入院诊断:急性心肌梗死。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者男性，58岁",
+      "持续胸痛2小时",
+      "心电图示前壁导联ST段抬高",
+      "肌钙蛋白I升高",
+      "冠脉造影示前降支近段100%闭塞",
+      "行经皮冠状动脉介入治疗（PCI）",
+      "入院诊断：急性心肌梗死"
+    ],
+    "encounter_metadata": {
+      "patient_age": "58岁",
+      "patient_sex": "男性",
+      "encounter_type": "住院"
+    }
+  },
+  "risk_flags": [
+    {
+      "category": "ambiguous_term",
+      "description": "The diagnosis '急性心肌梗死' is stated without specifying STEMI vs NSTEMI, which could be ambiguous given the ST elevation on ECG."
+    }
+  ],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "To ensure accurate coding, the diagnosis must specify the type (ST-elevation vs. non-ST-elevation) and anatomical site (e.g., anterior wall, left anterior descending artery territory), as well as document the Killip class to reflect severity. Additionally, explicitly state that the elevated troponin I is clinically correlated with the acute myocardial infarction, rather than implying it, to support the diagnosis as a distinct finding.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 2671,
+      "tokens": 271
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": true,
+      "rationale": "I do not have live PubMed search access, so I cannot provide verified PMIDs. Based on established cardiology literature, the chart’s findings (anterior ST-elevation, elevated troponin I, proximal LAD 100% occlusion) strongly support a type 1 STEMI (anterior wall), and the Killip class should be explicitly documented because it independently predicts mortality and guides early revascularization and hemodynamic support. The elevated troponin I is a direct biomarker of myocardial necrosis in this STEMI context, but it should be listed as a separate diagnostic criterion (e.g., “troponin I elevation consistent with acute myocardial injury”) to satisfy universal MI definitions and avoid ambiguity in coding.",
+      "route_decision": "needed",
+      "route_reason": "criteria_marker_present",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 2339,
+      "tokens": 343
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-83d2dfe2e2e2",
+    "gap_identification": "run-f72c61989090",
+    "gap_identification_risk_flags": "emitted=1;quote_snapped=0",
+    "expert_consultation": "run-0590af33fed9",
+    "query_generation": "run-4b1a4a7165cd",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.25;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=Y,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=3;llm_complete=False;llm_reasoning=The chart lacks explicit specification of the MI type (STEMI vs NSTEMI) and anat",
+    "query_necessity_gate": "necessary=1;unnecessary=2;overquery_triggered=False;final_count=1",
+    "query_single_dimension_gate": "single_dim=1;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;rewrite_attempted=0;rewrite_accepted=0;final_count=1",
+    "claim_evidence_alignment_gate": "claims_extracted=2;blocked=0;flagged=0;final_count=1",
+    "claim_evidence_alignment_gate::run_id": "run-c4f08da26e6f",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=1",
+    "semantic_necessity_gate::run_id": "run-3c2c4787080f",
+    "query_compliance_gate": ";passed=0;blocked=1",
+    "specialist_trace_emit": "run-d070db6b22a1"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-e716fe5c95c6",
+    "gap_identification": "trace-1668a786a520",
+    "expert_consultation": "trace-f360bd8e8e50",
+    "query_generation": "trace-ebfd70041723",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-d293b24266e1",
+    "semantic_necessity_gate": "trace-993d5393d5f6",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-044f1b0f6a2e"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2563,
+      "prompt_tokens": 229,
+      "completion_tokens": 119,
+      "total_tokens": 348,
+      "run_id": "run-83d2dfe2e2e2",
+      "trace_id": "trace-e716fe5c95c6",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5817,
+      "prompt_tokens": 1072,
+      "completion_tokens": 603,
+      "total_tokens": 1675,
+      "run_id": "run-f72c61989090",
+      "trace_id": "trace-1668a786a520",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5725,
+      "prompt_tokens": 1243,
+      "completion_tokens": 694,
+      "total_tokens": 1937,
+      "run_id": "run-4b1a4a7165cd",
+      "trace_id": "trace-ebfd70041723",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2671,
+      "prompt_tokens": 186,
+      "completion_tokens": 85,
+      "total_tokens": 271,
+      "run_id": "run-d88a8052f49b",
+      "trace_id": "trace-53392cdd9aab",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2339,
+      "prompt_tokens": 200,
+      "completion_tokens": 143,
+      "total_tokens": 343,
+      "run_id": "run-a28405d04b47",
+      "trace_id": "trace-f9adc1fd1088",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-0ffdde996c82",
+      "trace_id": "trace-a9c956a52156",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-deadd525d537",
+      "trace_id": "trace-61de670b1c16",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T18:51:00.146769Z"
+}

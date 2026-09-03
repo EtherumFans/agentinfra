@@ -1,0 +1,106 @@
+{
+  "schema_version": "icoder.governed-diagnosis-extractor-phase/v1",
+  "date": "2026-08-24",
+  "status": "development_verified",
+  "agent": {
+    "agent_id": "diagnosis-extractor",
+    "agent_ref": "icoder/diagnosis-extractor@1.2.0",
+    "backend_provider": "icoder.governed-diagnosis-extractor.v1",
+    "output_contract": "icoder/DiagnosisExtractionOutput/v7",
+    "pack_sha256": "26f03270be8e496259600d3255997b1c48594eca7c543ee52172ad085812a92d"
+  },
+  "runtime_matrix": {
+    "visible_agents": 26,
+    "local_baseline_agents": 9,
+    "external_model_agents": 17,
+    "strict_26_agent_live_provider_verified": 0,
+    "production_ready_verified": 0,
+    "local_gate_does_not_satisfy_full_gate": true
+  },
+  "diagnosis_semantics": {
+    "explicit_diagnosis_labels_only_for_current_entities": true,
+    "explicit_assertion_modifiers": [
+      "suspected",
+      "negated",
+      "history_of",
+      "family_history"
+    ],
+    "unique_assignable_catalog_entry_required_for_code": true,
+    "unmapped_explicit_diagnosis_preserved_as_unresolved": true,
+    "medication_test_procedure_inference_forbidden": true,
+    "clinical_diagnosis_assessed": false,
+    "billing_authoritative": false,
+    "manual_review_required": true,
+    "production_writeback_blocked": true
+  },
+  "defects_closed": {
+    "example_current_span_corrected_to_5_13": true,
+    "example_history_span_corrected_to_14_22": true,
+    "source_unverified_catalog_never_returns_pass": true,
+    "i21_001_selected_only_as_unique_exact_catalog_name": true,
+    "suspected_excluded_and_denied_entities_never_promoted": true,
+    "immutable_v6_contract_preserved_and_v7_appended": true,
+    "catalog_governance_emitted_in_trace": true,
+    "stale_procedure_pack_version_assertion_corrected": true
+  },
+  "e2e": {
+    "transport": "real_loopback_http",
+    "happy_passed": 9,
+    "adversarial_passed": 9,
+    "reference_passed": 9,
+    "stability_passed": 54,
+    "stability_repetitions": 3,
+    "stability_fresh_http_runs": 54,
+    "stability_seeded_runs": 0,
+    "real_llm_used": false,
+    "external_network_used": false,
+    "synthetic_pack_owned_cases_only": true
+  },
+  "tests": {
+    "focused_and_expanded_regression": {
+      "passed": 337,
+      "failed": 0
+    },
+    "catalog_and_preflight_unit": {
+      "passed": 4,
+      "failed": 0
+    },
+    "deployment_preflight_static": {
+      "passed": 90,
+      "failed": 0
+    }
+  },
+  "artifacts": {
+    "phase_e2e": {
+      "path": "local_semantic_e2e_evidence.json",
+      "sha256": "16e13f791b0cfb7637935442c952a3e8ddec85bc5483d13c8ebb898efbdfebdc"
+    },
+    "examples_sha256": "2ac12923397df09f320652a9cc3ac05c5fdf6ba9d4ccf07a0d7598631440fa53",
+    "adversarial_sha256": "67e3ae96f621c49abd31f4dd14548dc2fc35f1aea5028469b8e0c35fe4482be6",
+    "reference_sha256": "074fdfb5b9968bf3c96957b8731399c882d1bc31bf6de578495e0d48be2b9158",
+    "stability_sha256": "25c0a4acea3b9617879dddc94b990ec967ed8709248a9aa3c43a88c84d986e79",
+    "local_bundle_sha256": "579b11b603f0ba4f25554c7d8770a2bcca4177a7565c70d50ce0ff3724cbdc33",
+    "runtime_matrix_sha256": "396439942fb42da4f6be1ba08a7a84cdcf37ae9139f93e893a97be8b15935ece",
+    "deployment_preflight_sha256": "db9710244ef1220cceb47e36b0bce5c130597fa7d31280b1d68eb14d73c2388d"
+  },
+  "corti_public_sources": [
+    "https://corti.ai/agents/diagnostic-entity-extractor-agent",
+    "https://corti.ai/agents",
+    "https://docs.corti.ai/agentic/overview"
+  ],
+  "safety_audit": {
+    "protected_database_size_bytes": 8536064,
+    "protected_database_sha256": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e",
+    "protected_database_unchanged": true,
+    "protected_database_revision": "041",
+    "source_alembic_head": "056",
+    "remaining_backend_processes": 0,
+    "remaining_phase_temp_directories": 0,
+    "llm_key_environment_present": false,
+    "docker_cli_available": false
+  },
+  "independent_clinical_gold_used": false,
+  "corti_parity_proven": false,
+  "hospital_acceptance_proven": false,
+  "external_gates_remain_open": true
+}

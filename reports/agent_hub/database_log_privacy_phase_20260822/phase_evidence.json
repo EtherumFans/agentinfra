@@ -1,0 +1,167 @@
+{
+  "schema_version": "icoder.database-log-privacy-phase/v1",
+  "captured_at": "2026-08-22T10:18:00+08:00",
+  "scope": "Prevent clinical SQL bound parameters from entering application or platform logs",
+  "claims": {
+    "sql_echo_decoupled_from_debug": true,
+    "sql_echo_default": false,
+    "bound_parameters_always_hidden": true,
+    "cloud_sql_echo_forbidden": true,
+    "real_llm_credential_used": false,
+    "development_database_modified": false
+  },
+  "real_tcp_e2e": [
+    {
+      "name": "debug_enabled_default_sql_logging_off",
+      "base_url": "http://127.0.0.1:18023",
+      "debug_enabled": true,
+      "sql_echo_enabled": false,
+      "sqlalchemy_engine_log_count": 0,
+      "hidden_parameter_marker_count": 0,
+      "clinical_marker": "T12 椎体压缩性骨折",
+      "clinical_marker_count": 0,
+      "phone_sentinel_count": 0,
+      "agent_id": "medical-coding-agent",
+      "capability_passed": 0,
+      "safe_fail_closed": 1,
+      "unsafe_or_invalid": 0,
+      "runner_exit_code": 1,
+      "server_stopped": true,
+      "listener_remaining": false
+    },
+    {
+      "name": "explicit_local_statement_echo_parameters_hidden",
+      "base_url": "http://127.0.0.1:18024",
+      "debug_enabled": true,
+      "sql_echo_enabled": true,
+      "sqlalchemy_engine_log_count": 3680,
+      "hidden_parameter_marker_count": 1796,
+      "clinical_marker": "T12 椎体压缩性骨折",
+      "clinical_marker_count": 0,
+      "phone_sentinel_count": 0,
+      "agent_id": "medical-coding-agent",
+      "capability_passed": 0,
+      "safe_fail_closed": 1,
+      "unsafe_or_invalid": 0,
+      "runner_exit_code": 1,
+      "server_stopped": true,
+      "listener_remaining": false
+    }
+  ],
+  "verification": [
+    {
+      "name": "backend_joint_regression",
+      "passed": true,
+      "tests_passed": 179,
+      "tests_failed": 0,
+      "warnings": 68
+    },
+    {
+      "name": "configuration_database_logging_and_preflight_focus",
+      "passed": true,
+      "tests_passed": 55,
+      "tests_failed": 0
+    },
+    {
+      "name": "static_deployment_candidate_preflight",
+      "passed": true,
+      "checks_passed": 56,
+      "checks_failed": 0,
+      "mode": "static_without_docker_cli"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "backend/app/config.py",
+      "size_bytes": 32645,
+      "sha256": "7b65057f858f74da00da3f957e4bedf46ed0c2f457769052980f33f86badcf89"
+    },
+    {
+      "path": "backend/app/database.py",
+      "size_bytes": 3932,
+      "sha256": "fe1d04e7f9faf2ebbfdc5ff19ec48f574adf800cfcc6a9ae5c5c24dcf2844218"
+    },
+    {
+      "path": "docker-compose.local-dev.yml",
+      "size_bytes": 8270,
+      "sha256": "08e57f5d34930966996a38a8b1079ae7aa9eb31e8df3d8f6d9b64d1f078b153c"
+    },
+    {
+      "path": ".env.cloud.example",
+      "size_bytes": 9981,
+      "sha256": "9471c435b33b3a4b669f712057878a0b38f3cdf6c5d1418b0110f72c43063688"
+    },
+    {
+      "path": "backend/tests/unit/app/test_database_logging_policy.py",
+      "size_bytes": 1733,
+      "sha256": "293c5eb81f6f4739449316d71f16a7b46087dd17996fee95fbdb35579f63c90e"
+    },
+    {
+      "path": "backend/tests/unit/app/test_config_fail_closed.py",
+      "size_bytes": 14541,
+      "sha256": "d3f2fe99f91cf1e9b3d0b0761a02778ae629b98d61187eba736198ff223964a5"
+    },
+    {
+      "path": "backend/scripts/corti_parity/validate_deployment_candidate.py",
+      "size_bytes": 88432,
+      "sha256": "2a766c415426ecc3fe6a1d69eec8e390f40c10ccf3f879d5fe3fd06886f5ccb9"
+    },
+    {
+      "path": "docs/cloud/DATABASE_LOGGING_PRIVACY.md",
+      "size_bytes": 1303,
+      "sha256": "b29ad391e6fc874404a9200491752d385bb2a3c7c29d6e35451688579a48ac28"
+    },
+    {
+      "path": "docs/corti_parity/CORTI_ICODER_LIVE_GAP_MATRIX_2026-08-21.md",
+      "size_bytes": 34282,
+      "sha256": "1229ee7efd3417bfb2d69299b6381de50ffe5adb0a0ce202c0229d5b2a313aa6"
+    },
+    {
+      "path": "docs/corti_parity/ICODER_DATABASE_LOG_PRIVACY_PHASE_SUMMARY_2026-08-22.md",
+      "size_bytes": 3624,
+      "sha256": "9fddb65bc53753cac43cf6e8eddbca2ea6f9f59c2f26f3bc755e4b791edfa7ac"
+    },
+    {
+      "path": "reports/agent_hub/database_log_privacy_phase_20260822/tcp_e2e/agent_hub_examples_e2e.json",
+      "size_bytes": 3171,
+      "sha256": "dacd04d346f3d82023857c1ab93a3e89ab0b25673f2c164c8ae91c5d3617ef25"
+    },
+    {
+      "path": "reports/agent_hub/database_log_privacy_phase_20260822/tcp_e2e/backend.stdout.log",
+      "size_bytes": 934,
+      "sha256": "1de08b2ccc8c2e901d987e9807621f3efa316d832650a0583148b02d06313de3"
+    },
+    {
+      "path": "reports/agent_hub/database_log_privacy_phase_20260822/tcp_e2e/backend.stderr.log",
+      "size_bytes": 18932,
+      "sha256": "37c7ed7cde27b4edc1df6cce1a07a2bc89a31cf43a5e3a319f3c54bf3284a802"
+    },
+    {
+      "path": "reports/agent_hub/database_log_privacy_phase_20260822/tcp_e2e_statement_echo/agent_hub_examples_e2e.json",
+      "size_bytes": 3186,
+      "sha256": "0043a735f06bccaee610e0899669894fd2f45676d1800bd8e4882719e616ac6e"
+    },
+    {
+      "path": "reports/agent_hub/database_log_privacy_phase_20260822/tcp_e2e_statement_echo/backend.stdout.log",
+      "size_bytes": 391777,
+      "sha256": "dc43cc8f6ddf84802965fdd5dc0bf7b2250b0076d2c0c5ff39d6b806d41b5561"
+    },
+    {
+      "path": "reports/agent_hub/database_log_privacy_phase_20260822/tcp_e2e_statement_echo/backend.stderr.log",
+      "size_bytes": 415295,
+      "sha256": "a97822fae265c21ac37cafdc803c64df33bc4ad0453ab57dc9b2a36d4fb9b021"
+    },
+    {
+      "path": "reports/agent_hub/development_preflight_20260822_database_log_privacy/deployment_preflight.json",
+      "size_bytes": 4987,
+      "sha256": "8414af575597d23fa124addb1203d3684e1db7bc5ce6fcc54352906cecd993ba"
+    }
+  ],
+  "limitations": [
+    "No production APM, SQL proxy, log collector or SIEM/DLP environment was available.",
+    "Raw SQL must still never interpolate clinical values; this requires continuing code review and SAST.",
+    "The current development database was not migrated, modified or restarted.",
+    "Docker, PostgreSQL multi-replica, Linux native MedCoder and .NET remain unexecuted on this host.",
+    "Cloud logging retention, third-party processor, legal and hospital governance gates remain open."
+  ]
+}

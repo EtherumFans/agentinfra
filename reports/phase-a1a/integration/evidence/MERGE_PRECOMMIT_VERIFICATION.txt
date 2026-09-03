@@ -1,0 +1,39 @@
+=== MERGE_PRECOMMIT_VERIFICATION.txt ===
+
+--- Condition 1: 5 Gate 4R commits preserve original SHA ---
+  a2613b7 → a2613b7813f14a39bc8e71fc192aefe18a361a07
+    subject: audit/phase-a1a: Gate 4R.0 — evidence freeze + 7-point correction notice (GATE4_8_NO_NEW_REGRESSION_CLAIM=CONTRADICTED, GATE4_9_FINAL_PASS=SUPERSEDED)
+  e418020 → e41802052ffdea948bbc256f1101c8564ef9e5f8
+    subject: audit/phase-a1a: Gate 4R.1 — precise node-ID diff + transition ledger (77 new pass->fail vs 31 heals, +46 net; 70/77 = Rate Limiter 429)
+  fa676b3 → fa676b3b6a0e154d41ccc10806e5b23e836cddbd
+    subject: audit/phase-a1a: Gate 4R.2 — Rate Limiter hermeticity + asyncio_default_fixture_loop_scope (77/77 regressions healed; drift 4->1)
+  efbe96b → efbe96b277e72be210e320eac2e9a4815f32f40c
+    subject: audit/phase-a1a: Gate 4R.3 — per-regression liquidation ledger (89 residual nodes triaged; 1 P2, 88 P3, 0 P0/P1)
+  24967da → 24967daf6e52b06b984f2196e5db1ae2e5a6aac1
+    subject: audit/phase-a1a: Gate 4R P0-5 closure — 12/12 closure conditions MET, final 4R verdict issued
+
+--- Condition 2: merge will be no-squash (parents of MERGE_HEAD) ---
+  MERGE_HEAD: 24967daf6e52b06b984f2196e5db1ae2e5a6aac1
+  HEAD (left parent): 777d96d8262617b2254bfda734f45c74116e6981
+  expected merge commit: 2 parents = b3ea064 (current HEAD) + 24967da (MERGE_HEAD)
+
+--- Condition 3: b3ea064 preserved ---
+  b3ea064 EXISTS
+
+--- Condition 4: master / origin/master untouched ---
+  master:        c147d015455017bc1d8420cbdbd813b3b8ec23ce
+  origin/master: fe198825f1302abe9b9a188271a8d5813b8e6d54
+
+--- Condition 5: scan staged files for DBs/secrets/PHI patterns ---
+  NO MATCHES (clean)
+
+--- Condition 6: staged file count vs pre-merge diff ---
+  staged files:   44
+  b3ea064..24967da: 44
+  SETS MATCH
+
+--- Condition 7: scan staged content for PHI patterns (paths only, no content) ---
+  NO LIKELY PHI PATHS
+
+--- Condition 8: clinical prompt files NOT modified ---
+  NO CLINICAL PROMPT CHANGES

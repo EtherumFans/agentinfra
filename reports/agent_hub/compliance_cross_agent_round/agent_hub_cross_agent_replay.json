@@ -1,0 +1,148 @@
+{
+  "schema_version": "icoder.agent-hub-cross-agent-replay/v1",
+  "generated_at": "2026-08-15T02:46:24.420970+00:00",
+  "passed": true,
+  "relation_agents": 4,
+  "relations": 4,
+  "adversarial_assertions": 8,
+  "detected_assertions": 8,
+  "definition_errors": [],
+  "cases": [
+    {
+      "agent": "compliance-guardrail",
+      "schema_ref": "icoder/ComplianceGuardrailOutput/v3",
+      "relation_id": "reviewed_codes_match_code_validation",
+      "case": "value_conflict",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "reviewed_codes",
+          "keyword": "crossAgentRelation",
+          "expected": "reviewed_codes_match_code_validation",
+          "actual": "local_items_subset_upstream_items_violated"
+        }
+      ]
+    },
+    {
+      "agent": "compliance-guardrail",
+      "schema_ref": "icoder/ComplianceGuardrailOutput/v3",
+      "relation_id": "reviewed_codes_match_code_validation",
+      "case": "ambiguous_upstream",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "reviewed_codes",
+          "keyword": "crossAgentRelation",
+          "expected": "reviewed_codes_match_code_validation",
+          "actual": "upstream_result_ambiguous"
+        }
+      ]
+    },
+    {
+      "agent": "evidence_extractor",
+      "schema_ref": "icoder/CodedEvidence/v10",
+      "relation_id": "supported_codes_match_extracted_diagnoses",
+      "case": "value_conflict",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "supported_codes",
+          "keyword": "crossAgentRelation",
+          "expected": "supported_codes_match_extracted_diagnoses",
+          "actual": "local_items_subset_upstream_items_violated"
+        }
+      ]
+    },
+    {
+      "agent": "evidence_extractor",
+      "schema_ref": "icoder/CodedEvidence/v10",
+      "relation_id": "supported_codes_match_extracted_diagnoses",
+      "case": "ambiguous_upstream",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "supported_codes",
+          "keyword": "crossAgentRelation",
+          "expected": "supported_codes_match_extracted_diagnoses",
+          "actual": "upstream_result_ambiguous"
+        }
+      ]
+    },
+    {
+      "agent": "medical_coding",
+      "schema_ref": "icoder/MedicalCodingAgentOutputV2/v6",
+      "relation_id": "coding_primary_matches_principal_review",
+      "case": "value_conflict",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "code_assignment.primary_diagnosis.code",
+          "keyword": "crossAgentRelation",
+          "expected": "coding_primary_matches_principal_review",
+          "actual": "scalar_in_upstream_items_violated"
+        }
+      ]
+    },
+    {
+      "agent": "medical_coding",
+      "schema_ref": "icoder/MedicalCodingAgentOutputV2/v6",
+      "relation_id": "coding_primary_matches_principal_review",
+      "case": "ambiguous_upstream",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "code_assignment.primary_diagnosis.code",
+          "keyword": "crossAgentRelation",
+          "expected": "coding_primary_matches_principal_review",
+          "actual": "upstream_result_ambiguous"
+        }
+      ]
+    },
+    {
+      "agent": "principal_diagnosis_review",
+      "schema_ref": "icoder/PrincipalDxReview/v10",
+      "relation_id": "principal_code_matches_extracted_diagnosis",
+      "case": "value_conflict",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "recommended.code",
+          "keyword": "crossAgentRelation",
+          "expected": "principal_code_matches_extracted_diagnosis",
+          "actual": "scalar_in_upstream_items_violated"
+        }
+      ]
+    },
+    {
+      "agent": "principal_diagnosis_review",
+      "schema_ref": "icoder/PrincipalDxReview/v10",
+      "relation_id": "principal_code_matches_extracted_diagnosis",
+      "case": "ambiguous_upstream",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "recommended.code",
+          "keyword": "crossAgentRelation",
+          "expected": "principal_code_matches_extracted_diagnosis",
+          "actual": "upstream_result_ambiguous"
+        }
+      ]
+    }
+  ]
+}

@@ -8,18 +8,82 @@ from typing import Optional
 
 from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from jose import JWTError, jwt
-from sqlalchemy import select
+import jwt
+from jwt import PyJWTError as JWTError
+from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.database import get_db
+from app.services.database_tenancy import bind_tenant_to_transaction
 from app.models.user import User
 from app.models.organization import Organization, OrganizationMember
 
 logger = logging.getLogger(__name__)
 
 security = HTTPBearer(auto_error=False)
+
+
+async def _bind_live_user_membership(
+    db: AsyncSession,
+    *,
+    user_id: str,
+    organization_id: str | None,
+    required: bool = False,
+) -> bool:
+    """Bind only a currently active organization membership.
+
+    User-only dependencies are common across older routes.  A JWT org claim
+    is not authority, so the claim is promoted to PostgreSQL RLS context only
+    after this live membership and organization-status check.
+    """
+    org_id = str(organization_id or "").strip()
+    if not org_id:
+        if required:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="No organization selected.",
+            )
+        return False
+    bind = db.get_bind() if hasattr(db, "get_bind") else None
+    if bind is not None and bind.dialect.name == "postgresql":
+        # This SECURITY DEFINER bootstrap function returns one boolean and no
+        # tenant row.  The unverified claim never becomes RLS authority.
+        membership_exists = bool((
+            await db.execute(
+                text(
+                    "SELECT icoder_user_has_active_membership("
+                    ":user_id, :organization_id)"
+                ),
+                {"user_id": user_id, "organization_id": org_id},
+            )
+        ).scalar_one())
+    else:
+        # SQLite/hermetic test fallback; production PostgreSQL always uses the
+        # bounded bootstrap function above because FORCE RLS hides this table.
+        membership_exists = (
+            await db.execute(
+                select(OrganizationMember.id)
+                .join(
+                    Organization,
+                    Organization.id == OrganizationMember.organization_id,
+                )
+                .where(
+                    OrganizationMember.organization_id == org_id,
+                    OrganizationMember.user_id == user_id,
+                    Organization.is_active.is_(True),
+                )
+            )
+        ).scalar_one_or_none() is not None
+    if not membership_exists:
+        if required:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Organization membership required",
+            )
+        return False
+    await bind_tenant_to_transaction(db, org_id)
+    return True
 
 
 def hash_password(password: str) -> str:
@@ -51,6 +115,17 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         return False
 
 
+def jwt_registered_claims() -> dict[str, str]:
+    """Return the exact issuer/audience binding for locally issued JWTs."""
+    issuer = str(settings.JWT_ISSUER or "").strip()
+    audience = str(settings.JWT_AUDIENCE or "").strip()
+    if not issuer or not audience:
+        raise RuntimeError("JWT issuer and audience must be configured")
+    if issuer == audience:
+        raise RuntimeError("JWT issuer and audience must be distinct")
+    return {"iss": issuer, "aud": audience}
+
+
 def create_access_token(user_id: str, username: str, role: str, org_id: str = "", token_version: int = 0) -> str:
     expire = datetime.now(timezone.utc) + timedelta(minutes=settings.JWT_EXPIRE_MINUTES)
     payload = {
@@ -62,6 +137,7 @@ def create_access_token(user_id: str, username: str, role: str, org_id: str = ""
         "exp": expire,
         "iat": datetime.now(timezone.utc),
         "type": "access",
+        **jwt_registered_claims(),
     }
     return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
 
@@ -73,7 +149,9 @@ def create_refresh_token(user_id: str, org_id: str = "", token_version: int = 0)
         "org_id": org_id,
         "token_version": token_version,
         "exp": expire,
+        "iat": datetime.now(timezone.utc),
         "type": "refresh",
+        **jwt_registered_claims(),
     }
     return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
 
@@ -103,13 +181,50 @@ def create_delegation_token(
         "exp": expire,
         "iat": datetime.now(timezone.utc),
         "type": "delegation",
+        **jwt_registered_claims(),
     }
     return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
 
 
 def decode_token(token: str) -> dict:
+    # B-007 fix: Console preview iframe exchanges a Bootstrap Ticket for a
+    # Runtime Token (trace_token format: payload.signature, 2 segments,
+    # type='rt'). The widget then uses it as a Bearer for
+    # /api/v1/agents/{id}/run. PyJWT expects 3 segments and raises
+    # "Not enough segments" — route 2-segment tokens through
+    # verify_runtime_token and translate to a JWT-like payload so the
+    # rest of the auth pipeline (get_current_user_or_oauth_client,
+    # get_current_organization) works unchanged.
+    if token and token.count(".") == 1:
+        from app.services.preview_ticket import verify_runtime_token, PreviewTicketError
+        try:
+            claims = verify_runtime_token(token)
+        except PreviewTicketError as e:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail=f"Invalid runtime token: {e}",
+            )
+        return {
+            "type": "runtime_token",
+            "sub": claims.get("u") or None,
+            "org_id": claims.get("o") or None,
+            "scopes": claims.get("c") or [],
+            "exp": claims.get("e"),
+            "preview_session_id": claims.get("s"),
+        }
     try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+        registered = jwt_registered_claims()
+        payload = jwt.decode(
+            token,
+            settings.SECRET_KEY,
+            algorithms=[settings.JWT_ALGORITHM],
+            issuer=registered["iss"],
+            audience=registered["aud"],
+            options={
+                "require": ["iss", "aud", "sub", "exp", "iat", "type"],
+                "strict_aud": True,
+            },
+        )
         return payload
     except JWTError as e:
         raise HTTPException(
@@ -129,6 +244,11 @@ async def get_current_user(
             detail="Not authenticated. Please provide a valid Bearer token.",
         )
     payload = decode_token(credentials.credentials)
+    if payload.get("type") != "access":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Access token required",
+        )
     user_id = payload.get("sub")
     if user_id is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token payload")
@@ -141,8 +261,13 @@ async def get_current_user(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User account is deactivated")
     # Check token_version: if user's tokens have been revoked, reject
     token_version = payload.get("token_version", 0)
-    if user.token_version > token_version:
+    if user.token_version != token_version:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token revoked. Please re-authenticate.")
+    await _bind_live_user_membership(
+        db,
+        user_id=user.id,
+        organization_id=payload.get("org_id"),
+    )
     return user
 
 
@@ -157,6 +282,12 @@ async def get_current_organization(
             detail="Not authenticated.",
         )
     payload = decode_token(credentials.credentials)
+    token_type = payload.get("type")
+    if token_type not in {"access", "runtime_token", "client_credentials"}:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Organization access token required",
+        )
     org_id = payload.get("org_id")
     if not org_id:
         raise HTTPException(
@@ -170,6 +301,27 @@ async def get_current_organization(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organization not found")
     if not org.is_active:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Organization is suspended")
+
+    # Validate the
+    # principal here so organization-only dependencies cannot be used after
+    # membership removal or with a refresh token.
+    if token_type in {"access", "runtime_token"}:
+        user_id = payload.get("sub")
+        if not user_id:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token payload")
+        user_result = await db.execute(select(User).where(User.id == user_id))
+        user = user_result.scalar_one_or_none()
+        if user is None or not user.is_active:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found or inactive")
+        if token_type == "access" and user.token_version != payload.get("token_version", 0):
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token revoked. Please re-authenticate.")
+        await _bind_live_user_membership(
+            db, user_id=user_id, organization_id=org.id, required=True,
+        )
+    else:
+        client = await get_current_client(credentials, db)
+        if client.get("org_id") != org.id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Organization context mismatch")
     return org
 
 
@@ -233,25 +385,219 @@ async def get_current_client(
     if token_type != "client_credentials":
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Client credentials required")
 
-    # Verify token hasn't been revoked
+    # Verify token hasn't been revoked and still belongs to the asserted
+    # tenant. JWT claims are attribution hints; the current database rows are
+    # the authority for client state, owner and scopes.
     import hashlib
+    from app.models.oauth import OAuthClient
+    from app.services.oauth_delegation import (
+        OAuthDelegationValidationError,
+        normalize_agent_grants,
+        normalize_purpose_grants,
+    )
+
+    client_id = str(payload.get("sub") or "")
+    org_id = str(payload.get("org_id") or "")
+    owner_id = str(payload.get("owner_id") or "")
+    if not client_id or not org_id or not owner_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid client credential attribution",
+        )
     token_hash = hashlib.sha256(credentials.credentials.encode()).hexdigest()
+    bind = db.get_bind() if hasattr(db, "get_bind") else None
+    if bind is not None and bind.dialect.name == "postgresql":
+        credential_active = bool((
+            await db.execute(
+                text(
+                    "SELECT icoder_oauth_credential_is_active("
+                    ":token_hash, :client_id, :organization_id, :owner_id)"
+                ),
+                {
+                    "token_hash": token_hash, "client_id": client_id,
+                    "organization_id": org_id, "owner_id": owner_id,
+                },
+            )
+        ).scalar_one())
+        if not credential_active:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token revoked")
+    await bind_tenant_to_transaction(db, org_id)
     result = await db.execute(
         select(OAuthToken).where(
             OAuthToken.token_hash == token_hash,
             OAuthToken.is_revoked == False,
+            OAuthToken.client_id == client_id,
+            OAuthToken.organization_id == org_id,
         )
     )
     if not result.scalar_one_or_none():
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token revoked")
 
+    client = (
+        await db.execute(
+            select(OAuthClient).where(
+                OAuthClient.client_id == client_id,
+                OAuthClient.organization_id == org_id,
+            )
+        )
+    ).scalar_one_or_none()
+    if client is None or not client.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="API Client is disabled or unavailable",
+        )
+    if client.owner_id != owner_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="API Client owner attribution mismatch",
+        )
+    owner = await db.get(User, owner_id)
+    if owner is None or not owner.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Delegated subject is inactive",
+        )
+    membership = (
+        await db.execute(
+            select(OrganizationMember).where(
+                OrganizationMember.organization_id == org_id,
+                OrganizationMember.user_id == owner_id,
+            )
+        )
+    ).scalar_one_or_none()
+    if membership is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Delegated subject organization membership required",
+        )
+    token_scopes = {
+        str(item).strip()
+        for item in (payload.get("scopes") or "").split()
+        if str(item).strip()
+    }
+    current_scopes = client.granted_scopes()
+    if not token_scopes.issubset(current_scopes):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "code": "CLIENT_SCOPE_REVOKED",
+                "revoked_scopes": sorted(token_scopes - current_scopes),
+            },
+        )
+
+    try:
+        allowed_agent_ids = normalize_agent_grants(
+            list(client.allowed_agent_ids or [])
+        )
+        allowed_purposes = normalize_purpose_grants(
+            list(client.allowed_purposes or [])
+        )
+    except OAuthDelegationValidationError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={"code": "CLIENT_DELEGATION_INVALID"},
+        ) from exc
+
     return {
-        "client_id": payload.get("sub"),
-        "scopes": (payload.get("scopes") or "").split(),
-        "owner_id": payload.get("owner_id"),
-        "org_id": payload.get("org_id", ""),
+        "client_id": client_id,
+        "scopes": sorted(token_scopes),
+        "owner_id": owner_id,
+        "delegated_subject_id": owner_id,
+        "org_id": org_id,
+        "allowed_agent_ids": allowed_agent_ids,
+        "allowed_purposes": allowed_purposes,
         "token_type": "client_credentials",
     }
+
+
+async def get_current_user_or_oauth_client(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
+    db: AsyncSession = Depends(get_db),
+) -> tuple[Optional[User], Optional[dict]]:
+    """Phase 7 Gate 12 — hybrid auth for partner-invoke routes.
+
+    Partner HIS/EMR backends exchange ``client_credentials`` for a token
+    and pass it to the browser widget. The widget then calls
+    ``POST /api/v1/agents/{id}/run`` with that token. This dependency
+    accepts BOTH user JWTs (Console flow) and client_credentials tokens
+    (partner flow), returning ``(user, client)`` — exactly one will be
+    non-None.
+
+    Routes using this dependency must read identity from whichever value
+    is set. ``get_current_organization_compat`` below resolves org_id
+    from either side.
+    """
+    if credentials is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated. Please provide a valid Bearer token.",
+        )
+    payload = decode_token(credentials.credentials)
+    token_type = payload.get("type")
+
+    if token_type == "client_credentials":
+        # Reuse the existing client auth path (checks revocation, returns dict).
+        client = await get_current_client(credentials, db)
+        return None, client
+
+    if token_type == "runtime_token":
+        # B-007 fix: Console preview iframe Runtime Token (Bootstrap Ticket
+        # exchange). Identity is the Console user who triggered the preview;
+        # scopes are limited to agents:run / runs:read / traces:read /
+        # contexts:write and expire in 10min. Skip token_version check —
+        # Runtime Token is itself HMAC-signed + short-lived, so it does
+        # not need the long-lived JWT revocation gate.
+        user_id = payload.get("sub")
+        user = None
+        if user_id:
+            result = await db.execute(select(User).where(User.id == user_id))
+            user = result.scalar_one_or_none()
+            if user is None:
+                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
+            if not user.is_active:
+                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User account is deactivated")
+            await _bind_live_user_membership(
+                db,
+                user_id=user_id,
+                organization_id=payload.get("org_id"),
+                required=True,
+            )
+        return user, {
+            "type": "runtime_token",
+            "token_type": "runtime_token",
+            "preview_session_id": payload.get("preview_session_id"),
+            "scopes": payload.get("scopes") or [],
+            "organization_id": payload.get("org_id"),
+            "org_id": payload.get("org_id") or "",
+            "user_id": user_id,
+            # agent_run.py partner path reads client_id for audit; use a
+            # sentinel so the preview-session origin shows up in run rows
+            # without colliding with real API Client IDs.
+            "client_id": f"console-preview:{payload.get('preview_session_id') or 'unknown'}",
+        }
+
+    if token_type != "access":
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Access token required")
+
+    # User JWT path — same logic as get_current_user.
+    user_id = payload.get("sub")
+    if user_id is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token payload")
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
+    if not user.is_active:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User account is deactivated")
+    token_version = payload.get("token_version", 0)
+    if user.token_version != token_version:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token revoked. Please re-authenticate.")
+    await _bind_live_user_membership(
+        db,
+        user_id=user.id,
+        organization_id=payload.get("org_id"),
+    )
+    return user, None
 
 
 def require_scopes(*required_scopes: str):

@@ -1,12 +1,115 @@
-# iCoDer ICD Data — loaded from iCoDerA knowledge base
-# 33,304 ICD-10-CN diagnosis codes + 23,165 ICD-9-CM-3 procedure codes
+"""Integrity-checked, image-owned Chinese clinical code catalogs.
+
+The runtime must not depend on the sibling iCoDerA checkout.  These immutable
+assets are copied into the backend Docker build context and verified before any
+catalog content is exposed.  Missing, truncated, substituted, or malformed
+assets fail application startup instead of silently falling back to sample
+codes.
+"""
+
+from __future__ import annotations
+
+import hashlib
 import json
 import logging
 from pathlib import Path
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
-KB_ROOT = Path(__file__).parent.parent.parent.parent.parent / "iCoDerA" / "data"
+CATALOG_ASSET_ROOT = Path(__file__).resolve().parent / "assets"
+CATALOG_MANIFEST_PATH = CATALOG_ASSET_ROOT / "catalog_manifest.json"
+CATALOG_SCHEMA_VERSION = "icoder.code-catalog-assets/v1"
+CATALOG_RELEASE = "icoder-cn-runtime-2026-08-27.2"
+
+# This code-owned trust anchor prevents an edited manifest from authorizing an
+# edited catalog.  Updating a catalog is therefore an explicit reviewed code
+# change, not a runtime filesystem substitution.
+TRUSTED_CATALOG_FILES: dict[str, dict[str, int | str]] = {
+    "icd10_opendrg_v1.json": {
+        "size_bytes": 11_084_058,
+        "sha256": "4b99940b192794c5807270d37788d23bec294aca93a3f76456651760f60a42ec",
+        "record_count": 33_304,
+        "valid_record_count": 33_304,
+    },
+    "icd10_cn_standard_names.json": {
+        "size_bytes": 5_800_594,
+        "sha256": "82a2e34db9f2199c1e993a48767a638cac1c5bd7fc06ba09e37163270f0aef43",
+        "record_count": 37_897,
+        "valid_record_count": 37_897,
+        "merged_unique_code_count": 39_756,
+    },
+    "procedure_icd9cm3_knowledge_v8_with_opendrg.json": {
+        "size_bytes": 4_499_282,
+        "sha256": "408cda10f725d12326f1d810bfad7b32fe9a5d1f8c028d322bc20f47f5502f41",
+        "record_count": 17_436,
+        "valid_record_count": 16_561,
+        "unique_code_count": 14_353,
+    },
+    "surgery_to_drg_mapping.json": {
+        "size_bytes": 11_932_815,
+        "sha256": "82a50967cebb1d1ecf01ac55d96169bda479715d6adc4314ed8be66be20c3923",
+        "record_count": 23_165,
+        "valid_record_count": 23_165,
+    },
+    "icd9cm3_code_catalog.json": {
+        "size_bytes": 5_481_018,
+        "sha256": "088ebeddc27e24ada0a1da4f46b1e33c8e1db3fe9c3bf8a7266709f5dde94590",
+        "record_count": 13_617,
+        "valid_record_count": 13_617,
+        "merged_unique_code_count": 28_394,
+    },
+}
+
+
+class CatalogIntegrityError(RuntimeError):
+    """Raised when governed code catalog assets cannot be trusted."""
+
+
+def _sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _load_verified_assets(asset_root: Path) -> tuple[dict[str, Any], dict[str, Any]]:
+    manifest_path = asset_root / "catalog_manifest.json"
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        raise CatalogIntegrityError("Code catalog manifest is missing or invalid") from exc
+
+    declared = manifest.get("files")
+    if (
+        manifest.get("schema_version") != CATALOG_SCHEMA_VERSION
+        or manifest.get("catalog_release") != CATALOG_RELEASE
+        or not isinstance(declared, dict)
+        or set(declared) != set(TRUSTED_CATALOG_FILES)
+    ):
+        raise CatalogIntegrityError("Code catalog manifest does not match the trusted release")
+
+    loaded: dict[str, Any] = {}
+    for filename, expected in TRUSTED_CATALOG_FILES.items():
+        metadata = declared.get(filename)
+        path = asset_root / filename
+        if not isinstance(metadata, dict) or any(
+            metadata.get(field) != value for field, value in expected.items()
+        ):
+            raise CatalogIntegrityError(f"Code catalog metadata mismatch: {filename}")
+        try:
+            if path.stat().st_size != expected["size_bytes"]:
+                raise CatalogIntegrityError(f"Code catalog size mismatch: {filename}")
+            if _sha256(path) != expected["sha256"]:
+                raise CatalogIntegrityError(f"Code catalog digest mismatch: {filename}")
+            loaded[filename] = json.loads(path.read_text(encoding="utf-8"))
+        except CatalogIntegrityError:
+            raise
+        except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+            raise CatalogIntegrityError(f"Code catalog is missing or invalid: {filename}") from exc
+    return manifest, loaded
+
 
 ICD10_CN_CHAPTERS = {
     "A00-B99": "某些传染病和寄生虫病",
@@ -27,40 +130,133 @@ ICD10_CN_CHAPTERS = {
     "U00-U99": "用于特殊目的的编码",
 }
 
-def _load_icd10():
-    path = KB_ROOT / "icd10_opendrg_v1.json"
-    if not path.exists():
-        logger.warning("ICD-10 KB not found, using fallback")
-        return [("M80.900","重度骨质疏松症","肌肉骨骼系统和结缔组织疾病"),("I10.x02","高血压3级","循环系统疾病")]
-    with open(path, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    codes = [(item.get("icd10_code",""), item.get("disease_name",""), item.get("chapter_name","")) for item in data if item.get("icd10_code") and item.get("disease_name")]
-    logger.info("Loaded %d ICD-10-CN codes from knowledge base", len(codes))
-    return codes
+def load_catalogs(
+    asset_root: Path = CATALOG_ASSET_ROOT,
+) -> tuple[
+    list[tuple[str, str, str]],
+    list[tuple[str, str, str]],
+    dict[str, Any],
+]:
+    """Load one trusted catalog release or fail closed."""
 
-def _load_icd9():
-    names_path = KB_ROOT / "procedure_coding" / "procedure_icd9cm3_knowledge_v8_with_opendrg.json"
-    proc_path = KB_ROOT / "procedure_coding" / "surgery_to_drg_mapping.json"
-    
-    code_names = {}
-    if names_path.exists():
-        with open(names_path, "r", encoding="utf-8") as f:
-            for item in json.load(f):
-                c = item.get("icd9cm3_code","").strip()
-                n = item.get("procedure_name","").strip()
-                if c and n: code_names[c] = n
-    
-    codes = []
-    if proc_path.exists():
-        with open(proc_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        for item in data.get("surgery_to_drg", []):
-            code = item.get("icd9cm3_code","").strip()
-            name = code_names.get(code, "")
-            drg = item.get("drg_groups", [])
-            if code: codes.append((code, name, drg[0] if drg else ""))
-    logger.info("Loaded %d ICD-9-CM-3 codes from knowledge base", len(codes))
-    return codes if codes else [("81.6600x001","经皮椎体后凸成形术",""),("00.6600x002","经皮冠状动脉支架植入术","")]
+    manifest, assets = _load_verified_assets(asset_root)
+    diagnosis_rows = assets["icd10_opendrg_v1.json"]
+    diagnosis_standard_names = assets["icd10_cn_standard_names.json"]
+    procedure_name_rows = assets[
+        "procedure_icd9cm3_knowledge_v8_with_opendrg.json"
+    ]
+    procedure_mapping = assets["surgery_to_drg_mapping.json"]
+    procedure_catalog = assets["icd9cm3_code_catalog.json"]
+    mapping_rows = (
+        procedure_mapping.get("surgery_to_drg")
+        if isinstance(procedure_mapping, dict)
+        else None
+    )
+    if (
+        not isinstance(diagnosis_rows, list)
+        or len(diagnosis_rows) != 33_304
+        or not isinstance(diagnosis_standard_names, dict)
+        or not isinstance(diagnosis_standard_names.get("code_names"), dict)
+        or len(diagnosis_standard_names["code_names"]) != 37_897
+        or not isinstance(procedure_name_rows, list)
+        or len(procedure_name_rows) != 17_436
+        or not isinstance(mapping_rows, list)
+        or len(mapping_rows) != 23_165
+        or not isinstance(procedure_catalog, dict)
+        or not isinstance(procedure_catalog.get("codes"), list)
+        or len(procedure_catalog["codes"]) != 13_617
+    ):
+        raise CatalogIntegrityError(
+            "Code catalog record counts do not match the trusted release"
+        )
 
-ICD10_CN_CODES = _load_icd10()
-ICD9_CM3_CODES = _load_icd9()
+    diagnosis_codes = [
+        (
+            str(item.get("icd10_code") or ""),
+            str(item.get("disease_name") or ""),
+            str(item.get("chapter_name") or ""),
+        )
+        for item in diagnosis_rows
+        if isinstance(item, dict)
+        and item.get("icd10_code")
+        and item.get("disease_name")
+    ]
+    diagnosis_code_set = {code for code, _name, _chapter in diagnosis_codes}
+    diagnosis_codes.extend(
+        (str(code).strip(), str(name).strip(), "")
+        for code, name in diagnosis_standard_names["code_names"].items()
+        if str(code).strip()
+        and str(name).strip()
+        and str(code).strip() not in diagnosis_code_set
+    )
+    valid_procedure_name_rows = [
+        item
+        for item in procedure_name_rows
+        if isinstance(item, dict)
+        and str(item.get("icd9cm3_code") or "").strip()
+        and str(item.get("procedure_name") or "").strip()
+    ]
+    procedure_names = {
+        str(item.get("icd9cm3_code") or "").strip(): str(
+            item.get("procedure_name") or ""
+        ).strip()
+        for item in valid_procedure_name_rows
+    }
+    procedure_codes: list[tuple[str, str, str]] = []
+    for item in mapping_rows:
+        if not isinstance(item, dict):
+            continue
+        code = str(item.get("icd9cm3_code") or "").strip()
+        if not code:
+            continue
+        drg_groups = item.get("drg_groups")
+        first_drg = (
+            str(drg_groups[0])
+            if isinstance(drg_groups, list) and drg_groups
+            else ""
+        )
+        procedure_codes.append((code, procedure_names.get(code, ""), first_drg))
+
+    procedure_code_set = {code for code, _name, _drg in procedure_codes}
+    procedure_codes.extend(
+        (
+            str(item.get("code") or "").strip(),
+            str(item.get("name_cn") or item.get("name_en") or "").strip(),
+            str(item.get("chapter_name") or "").strip(),
+        )
+        for item in procedure_catalog["codes"]
+        if isinstance(item, dict)
+        and str(item.get("code") or "").strip()
+        and str(item.get("name_cn") or item.get("name_en") or "").strip()
+        and str(item.get("code") or "").strip() not in procedure_code_set
+    )
+
+    if (
+        len(diagnosis_codes) != 39_756
+        or len(valid_procedure_name_rows) != 16_561
+        or len(procedure_names) != 14_353
+        or len(procedure_codes) != 28_394
+    ):
+        raise CatalogIntegrityError(
+            "Code catalog valid-record counts do not match the trusted release"
+        )
+
+    status = {
+        "schema_version": CATALOG_SCHEMA_VERSION,
+        "catalog_release": manifest["catalog_release"],
+        "integrity_verified": True,
+        "diagnosis_count": len(diagnosis_codes),
+        "procedure_count": len(procedure_codes),
+        "diagnosis_supplement_added": 6_452,
+        "procedure_supplement_added": 5_229,
+    }
+    logger.info(
+        "Loaded integrity-verified catalog release %s (%d diagnoses, %d procedures)",
+        status["catalog_release"],
+        status["diagnosis_count"],
+        status["procedure_count"],
+    )
+    return diagnosis_codes, procedure_codes, status
+
+
+ICD10_CN_CODES, ICD9_CM3_CODES, CODE_CATALOG_STATUS = load_catalogs()

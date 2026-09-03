@@ -23,3 +23,6 @@
 | 19 | EvaluationPage | [19-Evaluation.md](19-Evaluation.md) |
 | 20 | ExpertLibraryPage | [20-ExpertLibrary.md](20-ExpertLibrary.md) |
 | 21 | SupportPage + TicketsPage | [21-Support.md](21-Support.md) |
+| 23 | PlatformAccessPage | [23-PlatformAccessControl.md](23-PlatformAccessControl.md) |
+| 24 | Organization Invite Delivery | [24-OrganizationInviteDelivery.md](24-OrganizationInviteDelivery.md) |
+| 25 | Agent Hub Typed Output Contracts | [25-AgentHubTypedOutputContracts.md](25-AgentHubTypedOutputContracts.md) |

@@ -1,0 +1,365 @@
+{
+  "case_id": "CASE-a4d1740bff87",
+  "completion_state": "REVIEW_RECOMMENDED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-a4d1740bff87/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "入院诊断与出院诊断不一致：入院诊断为左侧肋骨骨折，而出院诊断为右侧肋骨骨折，且手术记录和CT报告均支持右侧肋骨骨折。需明确最终诊断及原因。",
+      "why_it_matters": "诊断不一致会影响编码准确性，可能导致错误的DRG分组和统计，且可能反映临床记录错误或病情变化未充分说明。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "入院诊断:左侧肋骨骨折。出院诊断:右侧肋骨骨折。",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-a4d1740bff87/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "初步诊断被标记为<REDACTED:NAME>伤，未明确具体诊断名称，可能为肋骨骨折或其他损伤，需澄清。",
+      "why_it_matters": "初步诊断不明确会影响编码的准确性，且可能遗漏其他损伤的诊断。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "初步诊断:<REDACTED:NAME>伤。",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-a4d1740bff87/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "肋骨骨折的侧别和具体部位在入院诊断与出院诊断中不一致，且手术记录明确为右胸第5肋，但CT报告仅提及右侧肋骨骨折，未明确具体肋骨序号。",
+      "why_it_matters": "解剖部位不明确会影响编码的精确性，如肋骨骨折的编码需要具体到肋骨数量和位置。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "CT报告:右侧肋骨骨折。",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-a4d1740bff87/Q-001",
+      "gap_id": "CASE-a4d1740bff87/GAP-001",
+      "topic": "明确最终诊断及左右侧不一致的原因",
+      "reason": "入院诊断与出院诊断在肋骨骨折侧别上不一致，且手术记录和CT报告支持右侧，需明确最终诊断及原因。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "入院诊断:左侧肋骨骨折。出院诊断:右侧肋骨骨折。",
+        "char_start": 16,
+        "char_end": 40,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "入院诊断:左侧肋骨骨折。出院诊断:右侧肋骨骨折。",
+          "char_start": 16,
+          "char_end": 40,
+          "documented_at": ""
+        },
+        {
+          "document_id": "chart",
+          "quote": "手术记录:右胸第5肋骨折固定术。",
+          "char_start": 40,
+          "char_end": 56,
+          "documented_at": ""
+        },
+        {
+          "document_id": "chart",
+          "quote": "CT报告:右侧肋骨骨折。",
+          "char_start": 78,
+          "char_end": 90,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "根据现有资料，入院诊断与出院诊断在肋骨骨折侧别上不一致，手术记录和CT报告均支持右侧。请明确最终诊断的侧别，并说明不一致的原因。",
+      "response_options": [
+        "A. 最终诊断为右侧肋骨骨折，入院诊断有误",
+        "B. 最终诊断为左侧肋骨骨折，出院诊断及手术记录有误",
+        "C. 双侧肋骨骨折，但记录不完整",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "urgent",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    },
+    {
+      "query_id": "CASE-a4d1740bff87/Q-002",
+      "gap_id": "CASE-a4d1740bff87/GAP-003",
+      "topic": "明确肋骨骨折的具体侧别和部位",
+      "reason": "CT报告仅提及右侧肋骨骨折，未明确具体肋骨序号，而手术记录明确为右胸第5肋，需明确具体部位。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "CT报告:右侧肋骨骨折。",
+        "char_start": 78,
+        "char_end": 90,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "CT报告:右侧肋骨骨折。",
+          "char_start": 78,
+          "char_end": 90,
+          "documented_at": ""
+        },
+        {
+          "document_id": "chart",
+          "quote": "手术记录:右胸第5肋骨折固定术。",
+          "char_start": 40,
+          "char_end": 56,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "CT报告仅描述右侧肋骨骨折，未明确具体肋骨序号。请明确骨折的具体侧别和肋骨部位。",
+      "response_options": [
+        "A. 右侧第5肋骨折",
+        "B. 右侧其他肋骨骨折（请注明具体肋骨）",
+        "C. 左侧肋骨骨折",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    }
+  ],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-002",
+      "gap_id": "CASE-a4d1740bff87/GAP-002",
+      "topic": "澄清初步诊断的具体名称",
+      "reason": "初步诊断被标记为<REDACTED:NAME>伤，未明确具体诊断名称，需澄清。",
+      "query_text": "初步诊断记录为<REDACTED:NAME>伤，请明确该诊断的具体名称。",
+      "response_options": [
+        "A. 肋骨骨折",
+        "B. 软组织损伤",
+        "C. 其他损伤（请注明）",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "初步诊断:<REDACTED:NAME>伤。",
+          "char_start": 56,
+          "char_end": 78,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-004: query is grounded in or asks to decode a REDACTED placeholder"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者男性, 42岁, 外伤入院。入院诊断:左侧肋骨骨折。出院诊断:右侧肋骨骨折。手术记录:右胸第5肋骨折固定术。初步诊断:<REDACTED:NAME>伤。CT报告:右侧肋骨骨折。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者男性，42岁，外伤入院",
+      "入院诊断：左侧肋骨骨折",
+      "出院诊断：右侧肋骨骨折",
+      "手术记录：右胸第5肋骨折固定术",
+      "CT报告：右侧肋骨骨折"
+    ],
+    "encounter_metadata": {
+      "patient_age": "42岁",
+      "patient_sex": "男性",
+      "encounter_type": "住院"
+    }
+  },
+  "risk_flags": [
+    {
+      "category": "contradiction",
+      "description": "入院诊断与出院诊断存在矛盾，左侧与右侧肋骨骨折不一致。"
+    }
+  ],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "For accurate coding, the final diagnosis must be reconciled to the right-sided rib fracture, with explicit documentation of the specific rib number (e.g., 5th rib) and laterality, as confirmed by surgery and CT. The <REDACTED:NAME> injury must be clarified to a precise diagnosis (e.g., rib fracture or other trauma) to avoid ambiguity. Additionally, document the reason for the discrepancy between admission (left) and discharge (right) diagnoses, and specify whether the left-sided finding was ruled out or a separate injury.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3419,
+      "tokens": 338
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-753e2f464749",
+    "gap_identification": "run-422d39312c3a",
+    "gap_identification_risk_flags": "emitted=1;quote_snapped=0",
+    "expert_consultation": "run-6c79a00f34c7",
+    "query_generation": "run-72286d1a0692",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=Y;dropped=0;final_count=3;llm_complete=False;llm_reasoning=由于入院诊断与出院诊断存在矛盾，且初步诊断不明确，导致诊断不清晰，需要澄清才能进行准确编码。",
+    "query_necessity_gate": "necessary=2;unnecessary=1;overquery_triggered=False;final_count=2",
+    "query_single_dimension_gate": "single_dim=2;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=site;rewrite_attempted=0;rewrite_accepted=0;final_count=2",
+    "claim_evidence_alignment_gate": "claims_extracted=5;blocked=0;flagged=0;final_count=2",
+    "claim_evidence_alignment_gate::run_id": "run-a1efb76f1987",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=2",
+    "semantic_necessity_gate::run_id": "run-49af53420807",
+    "query_compliance_gate": ";passed=2;blocked=0",
+    "specialist_trace_emit": "run-970d675175b5"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-dacfcba6c8a3",
+    "gap_identification": "trace-933da2d61e0f",
+    "expert_consultation": "trace-914494938cce",
+    "query_generation": "trace-a97566fd8595",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-235d24615cce",
+    "semantic_necessity_gate": "trace-fdbbb812facf",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-3b807f4f642e"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2353,
+      "prompt_tokens": 226,
+      "completion_tokens": 99,
+      "total_tokens": 325,
+      "run_id": "run-753e2f464749",
+      "trace_id": "trace-dacfcba6c8a3",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6582,
+      "prompt_tokens": 1049,
+      "completion_tokens": 605,
+      "total_tokens": 1654,
+      "run_id": "run-422d39312c3a",
+      "trace_id": "trace-933da2d61e0f",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6526,
+      "prompt_tokens": 1302,
+      "completion_tokens": 810,
+      "total_tokens": 2112,
+      "run_id": "run-72286d1a0692",
+      "trace_id": "trace-a97566fd8595",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3419,
+      "prompt_tokens": 228,
+      "completion_tokens": 110,
+      "total_tokens": 338,
+      "run_id": "run-6866252ad898",
+      "trace_id": "trace-1c49bec497f2",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-f3b8290892d8",
+      "trace_id": "trace-7ab9fb83ab0a",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-d2065ba21d1a",
+      "trace_id": "trace-ff5ed43f183d",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-3e8088657adb",
+      "trace_id": "trace-0a4d16a7dd82",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T21:40:33.469627Z"
+}

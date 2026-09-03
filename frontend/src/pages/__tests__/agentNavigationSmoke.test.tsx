@@ -16,12 +16,14 @@
  * The vitest config already covers runtime rendering via React Testing
  * Library in other suites.
  */
-import { describe, it, expect } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 
+import { describe, it, expect } from 'vitest';
+
 const REPO_ROOT = path.resolve(__dirname, '..', '..', '..', '..');
 const APP_TSX = path.resolve(REPO_ROOT, 'frontend', 'src', 'App.tsx');
+const LAYOUT_TSX = path.resolve(REPO_ROOT, 'frontend', 'src', 'components', 'layout', 'Layout.tsx');
 
 interface RouteEntry {
   path: string;
@@ -58,7 +60,13 @@ function parsePageImports(): Record<string, string> {
   return imports;
 }
 
-const NON_PAGE_ELEMENTS = new Set(['Navigate', 'Outlet', 'Layout']);
+const NON_PAGE_ELEMENTS = new Set([
+  'Navigate',
+  'Outlet',
+  'Layout',
+  'ProtectedRoute',
+  'PlatformAdminRoute',
+]);
 
 describe('Phase 3-B0 — Agent navigation smoke', () => {
   const routes = parseRoutesFromAppTsx();
@@ -98,13 +106,14 @@ describe('Phase 3-B0 — Agent navigation smoke', () => {
     const deletedPages = [
       'DoctorPage',
       'MethodComparePage',
-      'RunTracePage',
       'MarketplacePage',
       'AgentHubPage',
-      // Phase 3-B2 Loop 0 (2026-07-05): EmbeddedAssistant physically deleted,
-      // TextGeneration route entries removed (file kept as orphan for implicit
-      // backend-capability dependencies).
-      'EmbeddedAssistantPage',
+      // Phase 7 Gate 13 (2026-07-14): EmbeddedAssistantPage restored for
+      // Corti parity at /ai-studio/embedded-assistant.
+      // Phase 4-F2 (2026-07-10): RunTracePage is KEPT — it's the dedicated
+      // trace viewer required by §4.3 ("Dedicated RunTrace page must be
+      // usable"). Previously listed as deleted (P1.2), but F2 restores it
+      // to display trace_events persisted by the unified endpoint.
     ];
     const appContent = fs.readFileSync(APP_TSX, 'utf-8');
     for (const deleted of deletedPages) {
@@ -135,22 +144,34 @@ describe('Phase 3-B0 — Agent navigation smoke', () => {
     }
   });
 
-  it('TextGeneration and EmbeddedAssistant routes are deprecated (Phase 3-B2 Loop 0)', () => {
-    // Phase 3-B2 Loop 0 (2026-07-05): TextGeneration route entries removed
-    // (file kept as orphan), EmbeddedAssistantPage physically deleted.
-    // Old paths now redirect to /ai-studio/agents via <Navigate> rules.
+  it('TextGeneration and EmbeddedAssistant standalone tools are routed for Corti parity', () => {
     const textGenRoutes = routes.filter((r) => r.element.includes('TextGeneration'));
-    const embeddedRoutes = routes.filter((r) => r.element.includes('EmbeddedAssistant'));
-    expect(textGenRoutes.length, 'TextGeneration routes must be removed').toBe(0);
-    expect(embeddedRoutes.length, 'EmbeddedAssistant routes must be removed').toBe(0);
+    expect(textGenRoutes.length).toBeGreaterThan(0);
+    expect(textGenRoutes.some(route => route.path === 'ai-studio/text-generation')).toBe(true);
 
-    // Verify old paths redirect to Agent Hub.
     const appContent = fs.readFileSync(APP_TSX, 'utf-8');
-    expect(appContent).toContain('ai-studio/text-generation');
-    expect(appContent).toContain('ai-studio/embedded-assistant');
-    const textGenRedirect = /path="ai-studio\/text-generation"[^>]*element=\{<Navigate[^>]+to="\/ai-studio\/agents"/;
-    const embeddedRedirect = /path="ai-studio\/embedded-assistant"[^>]*element=\{<Navigate[^>]+to="\/ai-studio\/agents"/;
-    expect(textGenRedirect.test(appContent), 'ai-studio/text-generation must redirect to /ai-studio/agents').toBe(true);
-    expect(embeddedRedirect.test(appContent), 'ai-studio/embedded-assistant must redirect to /ai-studio/agents').toBe(true);
+    expect(appContent).toContain("lazy(() => import('./pages/TextGenerationPage'))");
+    expect(appContent).not.toMatch(/path="ai-studio\/text-generation"[^>]*element=\{<Navigate/);
+
+    const layoutContent = fs.readFileSync(LAYOUT_TSX, 'utf-8');
+    expect(layoutContent).toContain("to: '/ai-studio/text-generation'");
+    expect(layoutContent).toContain('label: t.textGeneration');
+  });
+
+  it('AI Studio capability cards route to their live standalone workbenches', () => {
+    const overview = fs.readFileSync(
+      path.join(REPO_ROOT, 'frontend', 'src', 'pages', 'AIStudioOverviewPage.tsx'),
+      'utf-8',
+    );
+    for (const target of [
+      '/ai-studio/speech-to-text',
+      '/ai-studio/text-generation',
+      '/ai-studio/embedded-assistant',
+      '/ai-studio/fact-extraction',
+      '/ai-studio/medical-coding',
+    ]) {
+      expect(overview).toContain(`exploreHref: '${target}'`);
+    }
+    expect(overview).not.toContain('are placeholder entries routed');
   });
 });

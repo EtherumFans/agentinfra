@@ -1,0 +1,262 @@
+{
+  "case_id": "CASE-dcd2c68968b3",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-dcd2c68968b3/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "肺炎的病原体未明确，社区获得性肺炎还是医院获得性肺炎？",
+      "why_it_matters": "影响抗生素选择和编码准确性",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "入院诊断:肺炎"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-dcd2c68968b3/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "肺炎的严重程度未明确（如重症肺炎）",
+      "why_it_matters": "影响编码和资源分配",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "入院诊断:肺炎"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-dcd2c68968b3/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "2型糖尿病未明确是否有并发症或控制情况",
+      "why_it_matters": "影响编码和合并症管理",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "既往:2型糖尿病、高血压"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-dcd2c68968b3/GAP-004",
+      "gap_type": "diagnostic_specificity",
+      "description": "高血压未明确分级或是否有靶器官损害",
+      "why_it_matters": "影响编码和风险分层",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "既往:2型糖尿病、高血压"
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-dcd2c68968b3/Q-001",
+      "gap_id": "CASE-dcd2c68968b3/GAP-002",
+      "topic": "肺炎的严重程度未明确（如重症肺炎）",
+      "reason": "患者肺炎严重程度未明确，影响治疗强度及住院决策。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "WBC 14.5, T 38.3℃。胸片示右下肺浸润影。"
+      },
+      "query_text": "根据患者临床表现（体温38.3℃，WBC 14.5）及影像学，请评估肺炎严重程度：",
+      "response_options": [
+        "A. 非重症肺炎",
+        "B. 重症肺炎",
+        "C. 其他（如轻症）",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine"
+    }
+  ],
+  "chart_excerpt_preview": "患者男性, 64岁, 因咳嗽咳痰伴发热3天入院。胸片示右下肺浸润影。WBC 14.5, T 38.3℃。入院诊断:肺炎。予头孢曲松+阿奇霉素治疗。既往:2型糖尿病、高血压。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "咳嗽咳痰伴发热3天",
+      "胸片示右下肺浸润影",
+      "WBC 14.5",
+      "T 38.3℃",
+      "入院诊断:肺炎",
+      "予头孢曲松+阿奇霉素治疗",
+      "既往:2型糖尿病、高血压"
+    ],
+    "encounter_metadata": {
+      "patient_age": "64岁",
+      "patient_sex": "男性",
+      "encounter_type": "入院"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "建议明确肺炎的病原体类型（如细菌性、病毒性）及感染来源（社区获得性或医院获得性），并评估严重程度（如是否合并呼吸衰竭或脓毒症）。同时需明确2型糖尿病是否存在急性代谢并发症或慢性并发症（如肾病、视网膜病变），以及高血压的分级和是否伴有靶器官损害（如心脏、肾脏或脑血管病变）。这些信息对准确反映疾病复杂性和治疗需求至关重要。",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3606,
+      "tokens": 268
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "'分级' score — no deterministic calculator wired",
+      "route_decision": "tool_unavailable",
+      "route_reason": "no_real_tool_wired",
+      "execution_mode": "TOOL_UNAVAILABLE",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-17c1e4f6f9eb",
+    "gap_identification": "run-f184d9b917bc",
+    "expert_consultation": "run-a65ab90e526f",
+    "query_generation": "run-bfcbc71253b0",
+    "query_necessity_gate": "necessary=4;unnecessary=0;overquery_triggered=False;final_count=4",
+    "query_single_dimension_gate": "single_dim=4;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=severity;final_count=4",
+    "claim_evidence_alignment_gate": "claims_extracted=12;blocked=3;flagged=1;final_count=1",
+    "claim_evidence_alignment_gate::run_id": "run-5419178875bf",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=1;final_count=1",
+    "semantic_necessity_gate::run_id": "run-c1c59ac00f49",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "run-1901e0edfae3"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-2701d5d19f49",
+    "gap_identification": "trace-2ece5a5d8666",
+    "expert_consultation": "trace-cb5a5c21c2f4",
+    "query_generation": "trace-45b4db5e9080",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-70e3d3f38381",
+    "semantic_necessity_gate": "trace-7513d7261a62",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-998c6c5846a2"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 1877,
+      "prompt_tokens": 235,
+      "completion_tokens": 115,
+      "total_tokens": 350,
+      "run_id": "run-17c1e4f6f9eb",
+      "trace_id": "trace-2701d5d19f49",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 4905,
+      "prompt_tokens": 358,
+      "completion_tokens": 405,
+      "total_tokens": 763,
+      "run_id": "run-f184d9b917bc",
+      "trace_id": "trace-2ece5a5d8666",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 7957,
+      "prompt_tokens": 451,
+      "completion_tokens": 776,
+      "total_tokens": 1227,
+      "run_id": "run-bfcbc71253b0",
+      "trace_id": "trace-45b4db5e9080",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3606,
+      "prompt_tokens": 176,
+      "completion_tokens": 92,
+      "total_tokens": 268,
+      "run_id": "run-9e7863ba9eaf",
+      "trace_id": "trace-240a6296860e",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-31d63c095a6d",
+      "trace_id": "trace-4b6f7c94533f",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-273124adf173",
+      "trace_id": "trace-c9ddf0316f9c",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-7ddd7cb2c984",
+      "trace_id": "trace-aac9bc55b176",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-07-12T11:21:03.912780Z"
+}

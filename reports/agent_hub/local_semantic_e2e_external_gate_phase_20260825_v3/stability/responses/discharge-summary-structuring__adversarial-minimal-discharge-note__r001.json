@@ -1,0 +1,152 @@
+{
+  "agent_id": "discharge-summary-structuring",
+  "run_id": "run-bc7de0a8-305c-46b8-abfd-648c51cf6847",
+  "trace_id": "trace-75bb4332d64d46f6",
+  "trace_url": "/ai-studio/runs/run-bc7de0a8-305c-46b8-abfd-648c51cf6847/trace",
+  "runtime_mode": "rule_engine",
+  "latency_ms": 255,
+  "cost": {
+    "amount": 0.0,
+    "currency": "CNY"
+  },
+  "billing": {},
+  "summary": "请提供带明确章节标题的出院小结。",
+  "result": {
+    "status": "incomplete",
+    "markdown": "{\"admission_reason\": \"\", \"allergies\": \"\", \"clinical_inference_performed\": false, \"complications\": [], \"conflicts\": [], \"diagnoses\": [], \"discharge_orders\": [], \"discharge_status\": {\"documented_text\": \"\", \"evidence_ref\": \"\", \"normalized_status\": \"NOT_DOCUMENTED\"}, \"encounter_metadata\": {\"admission_date\": \"\", \"department\": \"\", \"discharge_date\": \"\", \"discharge_destination\": \"\"}, \"evidence_items\": [], \"follow_up_recommendations\": [], \"icd_codes_assigned\": false, \"key_results\": [], \"limitations\": [\"仅解析明确的中英文出院小结章节标题；未标注自由叙事不会被自动总结。\", \"仅逐字重排已记录内容；未推断诊断、因果、严重程度、预后或治疗意图。\", \"未分配或验证 ICD-10-CN/ICD-9-CM-3 编码。\", \"未执行药物重整、相互作用、禁忌、剂量或过敏匹配。\", \"未补充出院医嘱、复诊计划、返院条件或其他医疗建议。\", \"未连接真实 HIS/EMR、医嘱、MAR/药房、LIS/PACS 或患者门户。\", \"所有结构化内容必须由临床人员对照原始出院记录复核。\"], \"manual_review_required\": true, \"medication_reconciliation_performed\": false, \"missing_sections\": [\"出院诊断\", \"诊疗经过\", \"出院医嘱\", \"随访/复诊计划\", \"出院状态/转归\"], \"pending_results\": [], \"procedures\": [], \"production_writeback_blocked\": true, \"source_completeness\": {\"documented_sections\": [], \"evidence_item_count\": 0, \"input_truncated\": true, \"missing_sections\": [\"出院诊断\", \"诊疗经过\", \"出院医嘱\", \"随访/复诊计划\", \"出院状态/转归\"]}, \"structuring_status\": \"INPUT_REQUIRED\", \"summary_generation_status\": \"VERBATIM_SECTION_REORGANIZATION_ONLY\", \"trace_refs\": {\"provider_trace_refs\": [\"run-bc7de0a8-305c-46b8-abfd-648c51cf6847:governed-discharge-summary\"], \"run_id\": \"run-bc7de0a8-305c-46b8-abfd-648c51cf6847\"}, \"treatment_course\": \"\"}",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "input-required",
+    "finish_reason": "labelled_discharge_summary_sections_required",
+    "backend_provider": "icoder.governed-discharge-summary.v1",
+    "backend_type": "rule_engine",
+    "admission_reason": "",
+    "allergies": "",
+    "clinical_inference_performed": false,
+    "complications": [],
+    "conflicts": [],
+    "diagnoses": [],
+    "discharge_orders": [],
+    "discharge_status": {
+      "documented_text": "",
+      "evidence_ref": "",
+      "normalized_status": "NOT_DOCUMENTED"
+    },
+    "encounter_metadata": {
+      "admission_date": "",
+      "department": "",
+      "discharge_date": "",
+      "discharge_destination": ""
+    },
+    "evidence_items": [],
+    "follow_up_recommendations": [],
+    "icd_codes_assigned": false,
+    "key_results": [],
+    "limitations": [
+      "仅解析明确的中英文出院小结章节标题；未标注自由叙事不会被自动总结。",
+      "仅逐字重排已记录内容；未推断诊断、因果、严重程度、预后或治疗意图。",
+      "未分配或验证 ICD-10-CN/ICD-9-CM-3 编码。",
+      "未执行药物重整、相互作用、禁忌、剂量或过敏匹配。",
+      "未补充出院医嘱、复诊计划、返院条件或其他医疗建议。",
+      "未连接真实 HIS/EMR、医嘱、MAR/药房、LIS/PACS 或患者门户。",
+      "所有结构化内容必须由临床人员对照原始出院记录复核。"
+    ],
+    "manual_review_required": true,
+    "medication_reconciliation_performed": false,
+    "missing_sections": [
+      "出院诊断",
+      "诊疗经过",
+      "出院医嘱",
+      "随访/复诊计划",
+      "出院状态/转归"
+    ],
+    "pending_results": [],
+    "procedures": [],
+    "production_writeback_blocked": true,
+    "source_completeness": {
+      "documented_sections": [],
+      "evidence_item_count": 0,
+      "input_truncated": true,
+      "missing_sections": [
+        "出院诊断",
+        "诊疗经过",
+        "出院医嘱",
+        "随访/复诊计划",
+        "出院状态/转归"
+      ]
+    },
+    "structuring_status": "INPUT_REQUIRED",
+    "summary_generation_status": "VERBATIM_SECTION_REORGANIZATION_ONLY",
+    "trace_refs": {
+      "run_id": "run-bc7de0a8-305c-46b8-abfd-648c51cf6847",
+      "trace_id": "trace-75bb4332d64d46f6",
+      "provider_trace_refs": [
+        "run-bc7de0a8-305c-46b8-abfd-648c51cf6847:governed-discharge-summary"
+      ]
+    },
+    "treatment_course": "",
+    "structured_extraction": {
+      "contract": "icoder/DischargeSummaryStructured/v5",
+      "method": "json_block",
+      "warnings": [],
+      "required_fields": [
+        "structuring_status",
+        "encounter_metadata",
+        "admission_reason",
+        "diagnoses",
+        "procedures",
+        "treatment_course",
+        "key_results",
+        "discharge_orders",
+        "follow_up_recommendations",
+        "discharge_status",
+        "allergies",
+        "pending_results",
+        "complications",
+        "conflicts",
+        "missing_sections",
+        "source_completeness",
+        "evidence_items",
+        "limitations",
+        "summary_generation_status",
+        "icd_codes_assigned",
+        "medication_reconciliation_performed",
+        "clinical_inference_performed",
+        "production_writeback_blocked",
+        "manual_review_required",
+        "trace_refs"
+      ],
+      "optional_fields": [],
+      "missing_required_fields": [],
+      "invalid_field_types": [],
+      "invalid_field_schemas": [],
+      "invalid_cross_agent_relations": [],
+      "undeclared_output_fields": [],
+      "undeclared_output_field_count": 0,
+      "valid": true
+    }
+  },
+  "schema_ref": "icoder/DischargeSummaryStructured/v5",
+  "result_attestation": "eyJhIjoiZGlzY2hhcmdlLXN1bW1hcnktc3RydWN0dXJpbmciLCJkIjoiMzhiNDk0ZDNiYzFlNGU1MDI1NjNjNTYyZGMwNDk5YTljNWZhMzZiOTJjZjdjOGQ5YzhhOGZmMTZkODgwMDBmNCIsImUiOjE3ODc2Nzc4NTgsIm8iOiI2NzMwMDMxYjJkOWUiLCJyIjoicnVuLWJjN2RlMGE4LTMwNWMtNDZiOC1hYmZkLTY0OGM1MWNmNjg0NyIsInMiOiJpY29kZXIvRGlzY2hhcmdlU3VtbWFyeVN0cnVjdHVyZWQvdjUiLCJ2IjoxfQ.sERhKysS-SqK8rkKdvUgY3Pukz7VjoYJIgXN3tGCnLo",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 255,
+      "metadata": {
+        "agent_id": "discharge-summary-structuring",
+        "runtime_mode": "rule_engine",
+        "latency_ms": 255
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 0.486
+}

@@ -1,0 +1,155 @@
+{
+  "agent_id": "icd10-navigator",
+  "run_id": "run-a4feb60b-a882-441e-8357-dc70b386a8f2",
+  "trace_id": "trace-8efb3500caa94a09",
+  "trace_url": "/ai-studio/runs/run-a4feb60b-a882-441e-8357-dc70b386a8f2/trace",
+  "runtime_mode": "governed_local_index_navigation",
+  "latency_ms": 47,
+  "cost": {
+    "amount": 0.0,
+    "currency": "CNY"
+  },
+  "billing": {},
+  "summary": "固定目录索引返回 1 个未验证候选；仅完成导航和一层层级浏览。",
+  "result": {
+    "status": "requires_review",
+    "markdown": "# ICD-10-CN 索引导航\n\n**状态：** CANDIDATES_FOUND\n\n**检索词：** 肾功能异常\n\n## 候选与一层目录遍历\n\n1. **R94.401 — 肾小球滤过率下降**\n\n   - 匹配：`term_index` / 1.0000\n   - 可分配目录叶子：`true`\n   - 父类目：R94 \n   - 同层候选：10（仅展示最多 10 条）\n   - 子条目：0（仅展示最多 10 条）\n\n## 包括/不包括说明\n\n当前固定资产不包含可验证 instructional notes；本 Agent 不生成或猜测该信息。\n\n## 目录治理\n\n`cn.icd10cn.catalog@observed-local-2026-05-19`：authority=`source_unverified`，license=`external_review_required`，billing_authoritative=`false`。\n\n## 下一步\n\n所有候选均未验证。分配或提交前必须进入 Code Validation，并由编码员人工审核。",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.governed-icd-navigator.v1",
+    "backend_type": "rule_engine",
+    "candidate_codes": [
+      {
+        "assignable": true,
+        "children": [],
+        "code": "R94.401",
+        "description": "Abnormal results of kidney function studies",
+        "display": "肾小球滤过率下降",
+        "index_term": "肾功能异常",
+        "instructional_notes_available": false,
+        "match_score": 1.0,
+        "match_type": "term_index",
+        "parent": {
+          "code": "R94",
+          "display": ""
+        },
+        "rationale": "固定术语反向索引命中；候选尚未经过 Verify/Guidelines 校验。",
+        "related_codes_count": 35,
+        "siblings": [
+          {
+            "code": "R94.000",
+            "display": "中枢神经系统功能检查的异常结果"
+          },
+          {
+            "code": "R94.001",
+            "display": "脑电图异常"
+          },
+          {
+            "code": "R94.100",
+            "display": "周围神经系统和特殊感觉功能检查的异常结果"
+          },
+          {
+            "code": "R94.101",
+            "display": "视觉激发电位异常"
+          },
+          {
+            "code": "R94.102",
+            "display": "特殊感觉功能检查异常结果"
+          },
+          {
+            "code": "R94.103",
+            "display": "神经刺激反应异常"
+          },
+          {
+            "code": "R94.104",
+            "display": "肌电图异常"
+          },
+          {
+            "code": "R94.105",
+            "display": "眼电图异常"
+          },
+          {
+            "code": "R94.106",
+            "display": "视网膜电图异常"
+          },
+          {
+            "code": "R94.200",
+            "display": "肺功能检查的异常结果"
+          }
+        ],
+        "source_asset_id": "cn.icd10cn.catalog",
+        "source_version": "observed-local-2026-05-19"
+      }
+    ],
+    "hierarchy_notes": [
+      "R94.401：父类目 R94；同层候选 10 条；子条目 0 条；相关目录条目总数 35。"
+    ],
+    "inclusion_exclusion_notes": [
+      "当前固定资产不包含可验证的包括/不包括 instructional notes；未生成或猜测。"
+    ],
+    "index_terms": [
+      "肾功能异常"
+    ],
+    "manual_review_required": true,
+    "query_interpretation": "只按输入中的明确术语执行目录索引检索；未解释病历、未判断候选适用性。",
+    "query_used": "肾功能异常",
+    "rephrased_query": "",
+    "rephrasing_attempted": false,
+    "search_status": "CANDIDATES_FOUND",
+    "source_version": "cn.icd10cn.catalog@observed-local-2026-05-19; authority=source_unverified; license=external_review_required",
+    "summary": "固定目录索引返回 1 个未验证候选；仅完成导航和一层层级浏览。",
+    "structured_extraction": {
+      "contract": "icoder/Icd10NavigatorOutput/v4",
+      "method": "bare_json",
+      "warnings": [],
+      "required_fields": [
+        "search_status",
+        "query_interpretation",
+        "query_used",
+        "rephrasing_attempted",
+        "rephrased_query",
+        "index_terms",
+        "candidate_codes",
+        "hierarchy_notes",
+        "inclusion_exclusion_notes",
+        "source_version",
+        "manual_review_required",
+        "summary",
+        "markdown"
+      ],
+      "optional_fields": [],
+      "missing_required_fields": [],
+      "invalid_field_types": [],
+      "invalid_field_schemas": [],
+      "invalid_cross_agent_relations": [],
+      "undeclared_output_fields": [],
+      "undeclared_output_field_count": 0,
+      "valid": true
+    }
+  },
+  "schema_ref": "icoder/Icd10NavigatorOutput/v4",
+  "result_attestation": "eyJhIjoiaWNkMTAtbmF2aWdhdG9yIiwiZCI6ImFhMTUzNjdiNGM4YmU5ZjY1OTMzMGY1OTZkNzJkMzlkMjBjZWJhNzYxN2Q3NDgxYzc0NmZiZTY1ZmJiYzM1NTQiLCJlIjoxNzg3NjQ5MjU2LCJvIjoiMTU5YTY5M2E1MGQzIiwiciI6InJ1bi1hNGZlYjYwYi1hODgyLTQ0MWUtODM1Ny1kYzcwYjM4NmE4ZjIiLCJzIjoiaWNvZGVyL0ljZDEwTmF2aWdhdG9yT3V0cHV0L3Y0IiwidiI6MX0.tyoBkE9VcB98-0227PGbEgIgt9dukXgMkpNLPOsmZ7M",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 47,
+      "metadata": {
+        "agent_id": "icd10-navigator",
+        "runtime_mode": "governed_local_index_navigation",
+        "latency_ms": 47
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 0.22
+}

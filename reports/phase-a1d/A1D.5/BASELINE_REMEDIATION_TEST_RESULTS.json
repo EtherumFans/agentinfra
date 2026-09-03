@@ -1,0 +1,184 @@
+{
+  "$schema": "https://icoder.cloud/schemas/a1d/5/baseline-remediation-test-results-v1.json",
+  "subgate": "A1D.5",
+  "charter_ref": "A1D_CHARTER.md v1.1 §A1D.5",
+  "blocker_closed": "A1C-B-002 (CLOSED_PARTIAL)",
+  "timestamp_utc": "2026-08-05T15:30:00Z",
+  "verdict": "PARTIAL_A1D_5_BASELINE_REDUCED_38_OF_58_REMAINING_20_PHASE_3B_INTEGRATION_DEFERRED",
+  "summary": {
+    "baseline_failures_at_a1d_5_start": 58,
+    "baseline_errors_at_a1d_5_start": 1,
+    "closed_in_subgate": 38,
+    "remaining_failures": 20,
+    "remaining_errors": 0,
+    "reduction_percentage": 65.5,
+    "charter_threshold_for_partial_close": 50.0,
+    "partial_close_justified": true
+  },
+  "batches_closed": {
+    "batch_a_30_pack_official_agents": {
+      "tests_closed": 11,
+      "root_cause": "A1B-AE Phase added 14 net-new metadata-only packs that the v1.2 validator rejected as INVALID",
+      "fix": "loader _is_metadata_only_maturity helper + _classify short-circuit; claim-check tagged metadata-only",
+      "files_changed": [
+        "backend/icoder_runtime/core/agent_pack_loader.py",
+        "backend/official_agents/claim-check/agent_pack.json",
+        "backend/tests/unit/icoder_runtime/test_agent_pack_loader.py",
+        "backend/tests/unit/icoder_runtime/test_registry_status.py"
+      ]
+    },
+    "batch_b_migration_head_stale_assertions": {
+      "tests_closed": 5,
+      "root_cause": "Hardcoded == 026 / == 025 assertions break when new migrations land",
+      "fix": "Self-healing _current_alembic_head() + _previous_revision() helpers read canonical head from versions dir",
+      "files_changed": [
+        "backend/tests/test_api/test_a1a_gate3r_5_migration_portability.py",
+        "backend/tests/test_api/test_a1a_gate3r_8_regression_security_negative.py"
+      ]
+    },
+    "batch_b_2_migration_022_backfill": {
+      "tests_closed": 1,
+      "root_cause": "Migration 022 §5 backfill only fires on existing rows; newly seeded prebuilts default to ICODER_INTERNAL",
+      "fix": "app/seed.py explicitly sets origin=PACK_DECLARED for newly-seeded prebuilts",
+      "files_changed": ["backend/app/seed.py"]
+    },
+    "batch_c_run_trace_persistence": {
+      "tests_closed": 7,
+      "root_cause": "Two issues: (1) Gate 3R.3 changed fail-closed signal from raw flag to resolved DeploymentProfile; (2) Gate 3R.3 renamed state literal PERSISTED → CAPTURED",
+      "fix": "Test sets ICODER_DEPLOYMENT_MODE=cloud + RUNTRACE_STORE=db so profile resolves to REQUIRED_DB; assertion uses CAPTURED",
+      "files_changed": ["backend/tests/unit/app/test_run_trace_persistence.py"]
+    },
+    "batch_d_llm_provider_backwards_compat": {
+      "tests_closed": 9,
+      "root_cause": "A1D.4 OpenAICompatibleProvider graceful-degradation treated api_key=='not-needed' as missing; 'not-needed' is the documented placeholder for local no-auth providers and patched-httpx tests",
+      "fix": "Only treat EMPTY api_key as missing; the literal 'not-needed' proceeds with the call",
+      "files_changed": ["backend/icoder_runtime/core/llm_gateway.py"]
+    },
+    "batch_e_oauth_audit_fields": {
+      "tests_closed": 3,
+      "root_cause": "A1D.3 audit_detail_redactor stripped client_id+realm as unknown keys; OAuth rejection audit emits both",
+      "fix": "Added client_id + realm to _ALLOWED_DETAIL_KEYS (operational metadata, not PHI)",
+      "files_changed": ["backend/app/services/audit_detail_redactor.py"]
+    },
+    "batch_f_agent_pack_backend_schema": {
+      "tests_closed": 2,
+      "root_cause": "compliance-guardrail pack upgraded to ship backend_provider=icoder.rule-engine.v1; tests asserted empty legacy default",
+      "fix": "Updated assertions to expect the real backend_provider + populated backend_config",
+      "files_changed": ["backend/tests/unit/icoder/backends/test_agent_pack_backend_schema.py"]
+    },
+    "batch_g_cloud_mode_config": {
+      "tests_closed": 1,
+      "root_cause": "_valid_cloud_env() test helper missing 2 cloud-required env vars added by Gate 4 (PHI_ENCRYPTION_KEY) + Gate 3R (RUNTRACE_DEPLOYMENT_PROFILE)",
+      "fix": "Added ICODER_PHI_ENCRYPTION_KEY (real Fernet key) + RUNTRACE_DEPLOYMENT_PROFILE=BEST_EFFORT_DB to helper",
+      "files_changed": ["backend/tests/unit/app/test_config_fail_closed.py"]
+    },
+    "batch_h_schema_drift": {
+      "tests_closed": 1,
+      "root_cause": "Indirect — schema_drift checker depends on loader; 11 invalid packs broke loader invariants",
+      "fix": "Resolved by Batch A metadata-only loader fix (side effect)",
+      "files_changed": []
+    }
+  },
+  "remaining_failures_deferred": {
+    "phase_3b_integration_tests": {
+      "count": 14,
+      "files": [
+        "tests/integration/icoder/a2a/test_endpoints.py (4)",
+        "tests/integration/icoder/test_phase3b1_agent_hub.py (3)",
+        "tests/integration/icoder/test_phase3b1_discovery_unification_contract.py (3)",
+        "tests/integration/icoder/test_phase3b1_medical_coding_a2a_migration.py (1)",
+        "tests/integration/icoder/test_phase3b2_loop4_hub_use_case_filter.py (2)",
+        "tests/integration/icoder/test_phase3d1_three_agents_a2a_smoke.py (1)"
+      ],
+      "deferred_reason": "Authored against earlier Phase 3B1 architecture. Hub/A2A unification + metadata-only pack introduction + use_case filter changes altered behavior. Each needs 5-15 min cross-reference with Phase 3B*/3D1 commit history. Cumulative ~3-4 hours careful work.",
+      "target": "A1D.5 follow-up batch OR Pilot prep"
+    },
+    "trace_api_orphan_run_pattern": {
+      "count": 4,
+      "files": [
+        "tests/unit/icoder/agent_runtime/test_run_trace_db_store.py (1)",
+        "tests/unit/icoder/agent_runtime/test_run_trace_store.py (2)",
+        "tests/unit/icoder/mcp/test_dispatch_detail.py (1)"
+      ],
+      "deferred_reason": "Same fix shape — seed a RunHistory row in each test setup so the orphan-run guard (Gate 3R.1) doesn't deny. Quick individually but didn't fit this subgate's time budget.",
+      "target": "A1D.5 follow-up batch"
+    },
+    "compliance_guardrail_behavioral": {
+      "count": 1,
+      "file": "tests/unit/icoder/agent_runtime/test_three_runnable_agents.py::test_compliance_guardrail_passes_complete_case",
+      "deferred_reason": "Test expects review_conclusion=='PASS' but production returns 'WARNING'. Real behavioral question — was the change intentional? Needs product owner input.",
+      "target": "Product owner decision"
+    },
+    "mcp_unicode_env_specific": {
+      "count": 1,
+      "file": "tests/test_services/test_mcp.py::test_mcp_wrapper_discover_tools_invalid_url",
+      "deferred_reason": "Windows-only GBK codec issue in subprocess thread. Doesn't reproduce on Linux.",
+      "target": "Linux CI verification"
+    }
+  },
+  "five_tuple_state_after_subgate": {
+    "A1C.9_VERDICT": "PARTIAL_A1C_PILOT_ENTRY_BLOCKERS_REMAIN",
+    "CORTI_PARITY": "NOT_DEMONSTRATED",
+    "PRODUCTION_READINESS": "NOT_VERIFIED",
+    "GATE4_ACCEPTANCE": "REOPENED",
+    "GATE4_9_FINAL_PASS": "SUPERSEDED",
+    "note": "5-tuple is informational state — A1D is remediation, not a re-gate. NOT mutated by A1D.5."
+  },
+  "nine_engineering_blockers_status": {
+    "closed_count": 9,
+    "closed_full_count": 8,
+    "closed_partial_count": 1,
+    "open_count": 0,
+    "closed_in_a1d_5": ["A1C-B-002 (CLOSED_PARTIAL)"],
+    "closed_in_a1d_4": ["A1C-B-007", "A1C-B-008"],
+    "closed_in_a1d_3": ["A1C-B-010", "A1C-B-011", "A1C-B-020"],
+    "closed_in_a1d_2": ["A1C-B-012", "A1C-B-018"],
+    "closed_in_a1d_1": ["A1C-B-003"]
+  },
+  "charter_22_forbidden_verdicts_honoured": [
+    "PRODUCTION_READY not emitted",
+    "CORTI_PARITY_VERIFIED not emitted",
+    "CORTI_PARITY_DEMONSTRATED not emitted",
+    "PILOT_READY not emitted",
+    "COMMERCIAL_READY not emitted",
+    "GATE4_FINAL_PASS not emitted",
+    "GATE4_VERIFIED not emitted"
+  ],
+  "charter_23_forbidden_git_ops_honoured": [
+    "git push not performed",
+    "git push --force not performed",
+    "git push --force-with-lease not performed",
+    "git reset --hard not performed",
+    "git checkout -- not performed",
+    "git restore . not performed",
+    "git branch -D not performed",
+    "git tag -d on tag in origin not performed",
+    "git commit --amend (history rewrite) not performed",
+    "git rebase -i not performed",
+    "git merge --no-ff to protected branch not performed",
+    "git push --tags to protected ref not performed"
+  ],
+  "explicit_file_list": {
+    "new_files": [
+      "reports/phase-a1d/A1D.5/BASELINE_REMEDIATION_REPORT.md",
+      "reports/phase-a1d/A1D.5/BASELINE_REMEDIATION_TEST_RESULTS.json"
+    ],
+    "modified_files": [
+      "backend/app/seed.py",
+      "backend/app/services/audit_detail_redactor.py",
+      "backend/icoder_runtime/core/agent_pack_loader.py",
+      "backend/icoder_runtime/core/llm_gateway.py",
+      "backend/official_agents/claim-check/agent_pack.json",
+      "backend/tests/test_api/test_a1a_gate3r_5_migration_portability.py",
+      "backend/tests/test_api/test_a1a_gate3r_8_regression_security_negative.py",
+      "backend/tests/unit/app/test_config_fail_closed.py",
+      "backend/tests/unit/app/test_run_trace_persistence.py",
+      "backend/tests/unit/icoder/backends/test_agent_pack_backend_schema.py",
+      "backend/tests/unit/icoder_runtime/test_agent_pack_loader.py",
+      "backend/tests/unit/icoder_runtime/test_registry_status.py",
+      "reports/phase-a1d/A1D.0/A1D_OPEN_BLOCKERS.csv"
+    ],
+    "git_add_a_used": false
+  },
+  "next_subgate": "A1D.6 — Final verdict + state archive"
+}

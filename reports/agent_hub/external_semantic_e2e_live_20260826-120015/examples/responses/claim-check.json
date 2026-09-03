@@ -1,0 +1,523 @@
+{
+  "agent_id": "claim-check",
+  "run_id": "run-60429760-ad17-434e-95e2-ec25ec678c99",
+  "trace_id": "trace-e8cfdbed1a95401b",
+  "trace_url": "/ai-studio/runs/run-60429760-ad17-434e-95e2-ec25ec678c99/trace",
+  "runtime_mode": "rule_engine",
+  "latency_ms": 4,
+  "cost": {
+    "amount": 0.0,
+    "currency": "CNY"
+  },
+  "billing": {},
+  "summary": "已装配 27 条明确记录；未判断编码支持、待遇资格或支付结论，禁止自动提交。",
+  "result": {
+    "status": "requires_review",
+    "markdown": "{\"benefit_eligibility_determined\": false, \"billed_diagnoses\": [{\"documented_text\": \"K35.80 急性阑尾炎\", \"evidence_ref\": \"claim-check-evidence-13\"}], \"billed_items\": [{\"documented_text\": \"住院手术费 12000元\", \"evidence_ref\": \"claim-check-evidence-15\"}, {\"documented_text\": \"耗材费 4800元\", \"evidence_ref\": \"claim-check-evidence-16\"}], \"billed_procedures\": [{\"documented_text\": \"47.01 腹腔镜阑尾切除术\", \"evidence_ref\": \"claim-check-evidence-14\"}], \"claim_information\": {\"claim_id\": {\"documented_text\": \"CLAIM-CN-2026-001\", \"evidence_ref\": \"claim-check-evidence-1\"}, \"claim_type\": {\"documented_text\": \"城镇职工医保住院结算\", \"evidence_ref\": \"claim-check-evidence-3\"}, \"currency\": {\"documented_text\": \"CNY\", \"evidence_ref\": \"claim-check-evidence-18\"}, \"encounter_id\": {\"documented_text\": \"ENC-CN-2026-001\", \"evidence_ref\": \"claim-check-evidence-2\"}, \"service_date\": {\"documented_text\": \"2026-08-20\", \"evidence_ref\": \"claim-check-evidence-4\"}, \"total_billed_amount\": {\"documented_text\": \"16800.00\", \"evidence_ref\": \"claim-check-evidence-17\"}}, \"claim_review_packet\": \"## 结算提交前核查包\\n结算单号：CLAIM-CN-2026-001\\n就诊编号：ENC-CN-2026-001\\n结算类型：城镇职工医保住院结算\\n服务日期：2026-08-20\\n患者/参保编号：<REDACTED:NAME> / <REDACTED:INSURANCE_NO>\\n医师/执业编号：<REDACTED:NAME> / <REDACTED:PROVIDER_ID>\\n医疗机构：示例市第一人民医院\\n支付方/计划/统筹区：示例市医保经办机构 / 城镇职工基本医疗保险 / 示例市\\n拟报诊断：K35.80 急性阑尾炎\\n拟报手术：47.01 腹腔镜阑尾切除术\\n拟报项目：住院手术费 12000元；耗材费 4800元\\n总金额/币种：16800.00 / CNY\\n临床文书摘录：入院记录明确记载急性阑尾炎；手术记录明确记载腹腔镜阑尾切除术\\n支付方要求：条款A要求提交入院记录；条款B要求提交手术记录和费用明细\\n政策编号/版本/生效日期：CN-DEMO-CLAIM-2026 / 2026.1 / 2026-01-01\\n政策来源：用户提供的示例市医保结算规则节选\\n已记录拒付原因：未记录\\n政策状态：DOCUMENTED_POLICY_ONLY\\n声明：本核查包只呈现已提供材料，不构成编码支持、医疗必要性、待遇资格、支付或拒付结论；禁止自动提交或写回。\", \"clinical_documentation\": [{\"documented_text\": \"入院记录明确记载急性阑尾炎\", \"evidence_ref\": \"claim-check-evidence-19\"}, {\"documented_text\": \"手术记录明确记载腹腔镜阑尾切除术\", \"evidence_ref\": \"claim-check-evidence-20\"}], \"clinical_support_assessed\": false, \"code_assignment_performed\": false, \"comparison_basis\": \"DOCUMENTED_CLAIM_AND_POLICY_ONLY\", \"documented_denial_reason\": {\"documented_text\": \"未记录\", \"evidence_ref\": \"claim-check-evidence-27\"}, \"drg_dip_grouping_performed\": false, \"evidence_consistency_status\": \"NOT_ASSESSED_LITERAL_PACKET_ONLY\", \"evidence_items\": [{\"char_span\": [5, 22], \"evidence_id\": \"claim-check-evidence-1\", \"evidence_text\": \"CLAIM-CN-2026-001\", \"field\": \"claim_id\", \"source_label\": \"结算单号\"}, {\"char_span\": [28, 43], \"evidence_id\": \"claim-check-evidence-2\", \"evidence_text\": \"ENC-CN-2026-001\", \"field\": \"encounter_id\", \"source_label\": \"就诊编号\"}, {\"char_span\": [49, 59], \"evidence_id\": \"claim-check-evidence-3\", \"evidence_text\": \"城镇职工医保住院结算\", \"field\": \"claim_type\", \"source_label\": \"结算类型\"}, {\"char_span\": [65, 75], \"evidence_id\": \"claim-check-evidence-4\", \"evidence_text\": \"2026-08-20\", \"field\": \"service_date\", \"source_label\": \"服务日期\"}, {\"char_span\": [81, 96], \"evidence_id\": \"claim-check-evidence-5\", \"evidence_text\": \"<REDACTED:NAME>\", \"field\": \"patient_name\", \"source_label\": \"患者姓名\"}, {\"char_span\": [103, 126], \"evidence_id\": \"claim-check-evidence-6\", \"evidence_text\": \"<REDACTED:INSURANCE_NO>\", \"field\": \"member_id\", \"source_label\": \"参保人编号\"}, {\"char_span\": [132, 141], \"evidence_id\": \"claim-check-evidence-7\", \"evidence_text\": \"示例市第一人民医院\", \"field\": \"facility\", \"source_label\": \"医疗机构\"}, {\"char_span\": [147, 162], \"evidence_id\": \"claim-check-evidence-8\", \"evidence_text\": \"<REDACTED:NAME>\", \"field\": \"provider_name\", \"source_label\": \"申请医师\"}, {\"char_span\": [170, 192], \"evidence_id\": \"claim-check-evidence-9\", \"evidence_text\": \"<REDACTED:PROVIDER_ID>\", \"field\": \"provider_identifier\", \"source_label\": \"医师执业编号\"}, {\"char_span\": [197, 206], \"evidence_id\": \"claim-check-evidence-10\", \"evidence_text\": \"示例市医保经办机构\", \"field\": \"payer_name\", \"source_label\": \"支付方\"}, {\"char_span\": [212, 222], \"evidence_id\": \"claim-check-evidence-11\", \"evidence_text\": \"城镇职工基本医疗保险\", \"field\": \"plan_name\", \"source_label\": \"保险计划\"}, {\"char_span\": [227, 230], \"evidence_id\": \"claim-check-evidence-12\", \"evidence_text\": \"示例市\", \"field\": \"payer_region\", \"source_label\": \"统筹区\"}, {\"char_span\": [236, 248], \"evidence_id\": \"claim-check-evidence-13\", \"evidence_text\": \"K35.80 急性阑尾炎\", \"field\": \"billed_diagnoses\", \"source_label\": \"拟报诊断\"}, {\"char_span\": [254, 268], \"evidence_id\": \"claim-check-evidence-14\", \"evidence_text\": \"47.01 腹腔镜阑尾切除术\", \"field\": \"billed_procedures\", \"source_label\": \"拟报手术\"}, {\"char_span\": [274, 286], \"evidence_id\": \"claim-check-evidence-15\", \"evidence_text\": \"住院手术费 12000元\", \"field\": \"billed_items\", \"source_label\": \"拟报项目\"}, {\"char_span\": [287, 296], \"evidence_id\": \"claim-check-evidence-16\", \"evidence_text\": \"耗材费 4800元\", \"field\": \"billed_items\", \"source_label\": \"拟报项目\"}, {\"char_span\": [303, 311], \"evidence_id\": \"claim-check-evidence-17\", \"evidence_text\": \"16800.00\", \"field\": \"total_billed_amount\", \"source_label\": \"申报总金额\"}, {\"char_span\": [315, 318], \"evidence_id\": \"claim-check-evidence-18\", \"evidence_text\": \"CNY\", \"field\": \"currency\", \"source_label\": \"币种\"}, {\"char_span\": [326, 339], \"evidence_id\": \"claim-check-evidence-19\", \"evidence_text\": \"入院记录明确记载急性阑尾炎\", \"field\": \"clinical_documentation\", \"source_label\": \"临床文书摘录\"}, {\"char_span\": [340, 356], \"evidence_id\": \"claim-check-evidence-20\", \"evidence_text\": \"手术记录明确记载腹腔镜阑尾切除术\", \"field\": \"clinical_documentation\", \"source_label\": \"临床文书摘录\"}, {\"char_span\": [363, 374], \"evidence_id\": \"claim-check-evidence-21\", \"evidence_text\": \"条款A要求提交入院记录\", \"field\": \"payer_requirements\", \"source_label\": \"支付方要求\"}, {\"char_span\": [375, 391], \"evidence_id\": \"claim-check-evidence-22\", \"evidence_text\": \"条款B要求提交手术记录和费用明细\", \"field\": \"payer_requirements\", \"source_label\": \"支付方要求\"}, {\"char_span\": [399, 417], \"evidence_id\": \"claim-check-evidence-23\", \"evidence_text\": \"CN-DEMO-CLAIM-2026\", \"field\": \"policy_identifier\", \"source_label\": \"支付政策编号\"}, {\"char_span\": [425, 431], \"evidence_id\": \"claim-check-evidence-24\", \"evidence_text\": \"2026.1\", \"field\": \"policy_version\", \"source_label\": \"支付政策版本\"}, {\"char_span\": [439, 449], \"evidence_id\": \"claim-check-evidence-25\", \"evidence_text\": \"2026-01-01\", \"field\": \"policy_effective_date\", \"source_label\": \"政策生效日期\"}, {\"char_span\": [455, 471], \"evidence_id\": \"claim-check-evidence-26\", \"evidence_text\": \"用户提供的示例市医保结算规则节选\", \"field\": \"policy_source\", \"source_label\": \"政策来源\"}, {\"char_span\": [480, 483], \"evidence_id\": \"claim-check-evidence-27\", \"evidence_text\": \"未记录\", \"field\": \"denial_reason\", \"source_label\": \"已记录拒付原因\"}], \"external_knowledge_used\": false, \"limitations\": [\"仅解析明确的中英文结算、病历和政策字段标题；未标注自由叙事不会被自动总结。\", \"仅逐字装配已报账内容、病历摘录和用户提供的政策条款；未判断病历是否支持编码或费用。\", \"未调用医保/商保网站、药品耗材目录、编码目录、HCC映射、DRG/DIP分组器或其他外部知识。\", \"未判断医疗必要性、待遇资格、支付范围、拒付概率、高套/低套或收入机会。\", \"未新增或修改诊断、手术、项目、金额、编码、政策条款或拒付理由。\", \"未连接真实HIS/EMR、医保/商保结算平台、清单上传或申诉接口。\", \"核查包禁止自动提交或写回，必须由编码员、临床人员和医保/商保专员逐项复核。\"], \"manual_review_required\": true, \"medical_necessity_assessed\": false, \"missing_policy_items\": [], \"missing_required_fields\": [], \"patient_information\": {\"member_id\": {\"documented_text\": \"<REDACTED:INSURANCE_NO>\", \"evidence_ref\": \"claim-check-evidence-6\"}, \"name\": {\"documented_text\": \"<REDACTED:NAME>\", \"evidence_ref\": \"claim-check-evidence-5\"}}, \"payer_information\": {\"payer_name\": {\"documented_text\": \"示例市医保经办机构\", \"evidence_ref\": \"claim-check-evidence-10\"}, \"plan_name\": {\"documented_text\": \"城镇职工基本医疗保险\", \"evidence_ref\": \"claim-check-evidence-11\"}, \"region\": {\"documented_text\": \"示例市\", \"evidence_ref\": \"claim-check-evidence-12\"}}, \"policy_evaluation_status\": \"DOCUMENTED_POLICY_ONLY\", \"production_submission_blocked\": true, \"production_writeback_blocked\": true, \"provided_policy\": {\"effective_date\": {\"documented_text\": \"2026-01-01\", \"evidence_ref\": \"claim-check-evidence-25\"}, \"policy_identifier\": {\"documented_text\": \"CN-DEMO-CLAIM-2026\", \"evidence_ref\": \"claim-check-evidence-23\"}, \"requirements\": [{\"documented_text\": \"条款A要求提交入院记录\", \"evidence_ref\": \"claim-check-evidence-21\"}, {\"documented_text\": \"条款B要求提交手术记录和费用明细\", \"evidence_ref\": \"claim-check-evidence-22\"}], \"source\": {\"documented_text\": \"用户提供的示例市医保结算规则节选\", \"evidence_ref\": \"claim-check-evidence-26\"}, \"version\": {\"documented_text\": \"2026.1\", \"evidence_ref\": \"claim-check-evidence-24\"}}, \"provider_information\": {\"facility\": {\"documented_text\": \"示例市第一人民医院\", \"evidence_ref\": \"claim-check-evidence-7\"}, \"name\": {\"documented_text\": \"<REDACTED:NAME>\", \"evidence_ref\": \"claim-check-evidence-8\"}, \"provider_identifier\": {\"documented_text\": \"<REDACTED:PROVIDER_ID>\", \"evidence_ref\": \"claim-check-evidence-9\"}}, \"review_status\": \"READY_FOR_REVIEW\", \"trace_refs\": {\"provider_trace_refs\": [\"run-60429760-ad17-434e-95e2-ec25ec678c99:governed-claim-check\"], \"run_id\": \"run-60429760-ad17-434e-95e2-ec25ec678c99\"}}",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.governed-claim-check.v1",
+    "backend_type": "rule_engine",
+    "benefit_eligibility_determined": false,
+    "billed_diagnoses": [
+      {
+        "documented_text": "K35.80 急性阑尾炎",
+        "evidence_ref": "claim-check-evidence-13"
+      }
+    ],
+    "billed_items": [
+      {
+        "documented_text": "住院手术费 12000元",
+        "evidence_ref": "claim-check-evidence-15"
+      },
+      {
+        "documented_text": "耗材费 4800元",
+        "evidence_ref": "claim-check-evidence-16"
+      }
+    ],
+    "billed_procedures": [
+      {
+        "documented_text": "47.01 腹腔镜阑尾切除术",
+        "evidence_ref": "claim-check-evidence-14"
+      }
+    ],
+    "claim_information": {
+      "claim_id": {
+        "documented_text": "CLAIM-CN-2026-001",
+        "evidence_ref": "claim-check-evidence-1"
+      },
+      "claim_type": {
+        "documented_text": "城镇职工医保住院结算",
+        "evidence_ref": "claim-check-evidence-3"
+      },
+      "currency": {
+        "documented_text": "CNY",
+        "evidence_ref": "claim-check-evidence-18"
+      },
+      "encounter_id": {
+        "documented_text": "ENC-CN-2026-001",
+        "evidence_ref": "claim-check-evidence-2"
+      },
+      "service_date": {
+        "documented_text": "2026-08-20",
+        "evidence_ref": "claim-check-evidence-4"
+      },
+      "total_billed_amount": {
+        "documented_text": "16800.00",
+        "evidence_ref": "claim-check-evidence-17"
+      }
+    },
+    "claim_review_packet": "## 结算提交前核查包\n结算单号：CLAIM-CN-2026-001\n就诊编号：ENC-CN-2026-001\n结算类型：城镇职工医保住院结算\n服务日期：2026-08-20\n患者/参保编号：<REDACTED:NAME> / <REDACTED:INSURANCE_NO>\n医师/执业编号：<REDACTED:NAME> / <REDACTED:PROVIDER_ID>\n医疗机构：示例市第一人民医院\n支付方/计划/统筹区：示例市医保经办机构 / 城镇职工基本医疗保险 / 示例市\n拟报诊断：K35.80 急性阑尾炎\n拟报手术：47.01 腹腔镜阑尾切除术\n拟报项目：住院手术费 12000元；耗材费 4800元\n总金额/币种：16800.00 / CNY\n临床文书摘录：入院记录明确记载急性阑尾炎；手术记录明确记载腹腔镜阑尾切除术\n支付方要求：条款A要求提交入院记录；条款B要求提交手术记录和费用明细\n政策编号/版本/生效日期：CN-DEMO-CLAIM-2026 / 2026.1 / 2026-01-01\n政策来源：用户提供的示例市医保结算规则节选\n已记录拒付原因：未记录\n政策状态：DOCUMENTED_POLICY_ONLY\n声明：本核查包只呈现已提供材料，不构成编码支持、医疗必要性、待遇资格、支付或拒付结论；禁止自动提交或写回。",
+    "clinical_documentation": [
+      {
+        "documented_text": "入院记录明确记载急性阑尾炎",
+        "evidence_ref": "claim-check-evidence-19"
+      },
+      {
+        "documented_text": "手术记录明确记载腹腔镜阑尾切除术",
+        "evidence_ref": "claim-check-evidence-20"
+      }
+    ],
+    "clinical_support_assessed": false,
+    "code_assignment_performed": false,
+    "comparison_basis": "DOCUMENTED_CLAIM_AND_POLICY_ONLY",
+    "documented_denial_reason": {
+      "documented_text": "未记录",
+      "evidence_ref": "claim-check-evidence-27"
+    },
+    "drg_dip_grouping_performed": false,
+    "evidence_consistency_status": "NOT_ASSESSED_LITERAL_PACKET_ONLY",
+    "evidence_items": [
+      {
+        "char_span": [
+          5,
+          22
+        ],
+        "evidence_id": "claim-check-evidence-1",
+        "evidence_text": "CLAIM-CN-2026-001",
+        "field": "claim_id",
+        "source_label": "结算单号"
+      },
+      {
+        "char_span": [
+          28,
+          43
+        ],
+        "evidence_id": "claim-check-evidence-2",
+        "evidence_text": "ENC-CN-2026-001",
+        "field": "encounter_id",
+        "source_label": "就诊编号"
+      },
+      {
+        "char_span": [
+          49,
+          59
+        ],
+        "evidence_id": "claim-check-evidence-3",
+        "evidence_text": "城镇职工医保住院结算",
+        "field": "claim_type",
+        "source_label": "结算类型"
+      },
+      {
+        "char_span": [
+          65,
+          75
+        ],
+        "evidence_id": "claim-check-evidence-4",
+        "evidence_text": "2026-08-20",
+        "field": "service_date",
+        "source_label": "服务日期"
+      },
+      {
+        "char_span": [
+          81,
+          96
+        ],
+        "evidence_id": "claim-check-evidence-5",
+        "evidence_text": "<REDACTED:NAME>",
+        "field": "patient_name",
+        "source_label": "患者姓名"
+      },
+      {
+        "char_span": [
+          103,
+          126
+        ],
+        "evidence_id": "claim-check-evidence-6",
+        "evidence_text": "<REDACTED:INSURANCE_NO>",
+        "field": "member_id",
+        "source_label": "参保人编号"
+      },
+      {
+        "char_span": [
+          132,
+          141
+        ],
+        "evidence_id": "claim-check-evidence-7",
+        "evidence_text": "示例市第一人民医院",
+        "field": "facility",
+        "source_label": "医疗机构"
+      },
+      {
+        "char_span": [
+          147,
+          162
+        ],
+        "evidence_id": "claim-check-evidence-8",
+        "evidence_text": "<REDACTED:NAME>",
+        "field": "provider_name",
+        "source_label": "申请医师"
+      },
+      {
+        "char_span": [
+          170,
+          192
+        ],
+        "evidence_id": "claim-check-evidence-9",
+        "evidence_text": "<REDACTED:PROVIDER_ID>",
+        "field": "provider_identifier",
+        "source_label": "医师执业编号"
+      },
+      {
+        "char_span": [
+          197,
+          206
+        ],
+        "evidence_id": "claim-check-evidence-10",
+        "evidence_text": "示例市医保经办机构",
+        "field": "payer_name",
+        "source_label": "支付方"
+      },
+      {
+        "char_span": [
+          212,
+          222
+        ],
+        "evidence_id": "claim-check-evidence-11",
+        "evidence_text": "城镇职工基本医疗保险",
+        "field": "plan_name",
+        "source_label": "保险计划"
+      },
+      {
+        "char_span": [
+          227,
+          230
+        ],
+        "evidence_id": "claim-check-evidence-12",
+        "evidence_text": "示例市",
+        "field": "payer_region",
+        "source_label": "统筹区"
+      },
+      {
+        "char_span": [
+          236,
+          248
+        ],
+        "evidence_id": "claim-check-evidence-13",
+        "evidence_text": "K35.80 急性阑尾炎",
+        "field": "billed_diagnoses",
+        "source_label": "拟报诊断"
+      },
+      {
+        "char_span": [
+          254,
+          268
+        ],
+        "evidence_id": "claim-check-evidence-14",
+        "evidence_text": "47.01 腹腔镜阑尾切除术",
+        "field": "billed_procedures",
+        "source_label": "拟报手术"
+      },
+      {
+        "char_span": [
+          274,
+          286
+        ],
+        "evidence_id": "claim-check-evidence-15",
+        "evidence_text": "住院手术费 12000元",
+        "field": "billed_items",
+        "source_label": "拟报项目"
+      },
+      {
+        "char_span": [
+          287,
+          296
+        ],
+        "evidence_id": "claim-check-evidence-16",
+        "evidence_text": "耗材费 4800元",
+        "field": "billed_items",
+        "source_label": "拟报项目"
+      },
+      {
+        "char_span": [
+          303,
+          311
+        ],
+        "evidence_id": "claim-check-evidence-17",
+        "evidence_text": "16800.00",
+        "field": "total_billed_amount",
+        "source_label": "申报总金额"
+      },
+      {
+        "char_span": [
+          315,
+          318
+        ],
+        "evidence_id": "claim-check-evidence-18",
+        "evidence_text": "CNY",
+        "field": "currency",
+        "source_label": "币种"
+      },
+      {
+        "char_span": [
+          326,
+          339
+        ],
+        "evidence_id": "claim-check-evidence-19",
+        "evidence_text": "入院记录明确记载急性阑尾炎",
+        "field": "clinical_documentation",
+        "source_label": "临床文书摘录"
+      },
+      {
+        "char_span": [
+          340,
+          356
+        ],
+        "evidence_id": "claim-check-evidence-20",
+        "evidence_text": "手术记录明确记载腹腔镜阑尾切除术",
+        "field": "clinical_documentation",
+        "source_label": "临床文书摘录"
+      },
+      {
+        "char_span": [
+          363,
+          374
+        ],
+        "evidence_id": "claim-check-evidence-21",
+        "evidence_text": "条款A要求提交入院记录",
+        "field": "payer_requirements",
+        "source_label": "支付方要求"
+      },
+      {
+        "char_span": [
+          375,
+          391
+        ],
+        "evidence_id": "claim-check-evidence-22",
+        "evidence_text": "条款B要求提交手术记录和费用明细",
+        "field": "payer_requirements",
+        "source_label": "支付方要求"
+      },
+      {
+        "char_span": [
+          399,
+          417
+        ],
+        "evidence_id": "claim-check-evidence-23",
+        "evidence_text": "CN-DEMO-CLAIM-2026",
+        "field": "policy_identifier",
+        "source_label": "支付政策编号"
+      },
+      {
+        "char_span": [
+          425,
+          431
+        ],
+        "evidence_id": "claim-check-evidence-24",
+        "evidence_text": "2026.1",
+        "field": "policy_version",
+        "source_label": "支付政策版本"
+      },
+      {
+        "char_span": [
+          439,
+          449
+        ],
+        "evidence_id": "claim-check-evidence-25",
+        "evidence_text": "2026-01-01",
+        "field": "policy_effective_date",
+        "source_label": "政策生效日期"
+      },
+      {
+        "char_span": [
+          455,
+          471
+        ],
+        "evidence_id": "claim-check-evidence-26",
+        "evidence_text": "用户提供的示例市医保结算规则节选",
+        "field": "policy_source",
+        "source_label": "政策来源"
+      },
+      {
+        "char_span": [
+          480,
+          483
+        ],
+        "evidence_id": "claim-check-evidence-27",
+        "evidence_text": "未记录",
+        "field": "denial_reason",
+        "source_label": "已记录拒付原因"
+      }
+    ],
+    "external_knowledge_used": false,
+    "limitations": [
+      "仅解析明确的中英文结算、病历和政策字段标题；未标注自由叙事不会被自动总结。",
+      "仅逐字装配已报账内容、病历摘录和用户提供的政策条款；未判断病历是否支持编码或费用。",
+      "未调用医保/商保网站、药品耗材目录、编码目录、HCC映射、DRG/DIP分组器或其他外部知识。",
+      "未判断医疗必要性、待遇资格、支付范围、拒付概率、高套/低套或收入机会。",
+      "未新增或修改诊断、手术、项目、金额、编码、政策条款或拒付理由。",
+      "未连接真实HIS/EMR、医保/商保结算平台、清单上传或申诉接口。",
+      "核查包禁止自动提交或写回，必须由编码员、临床人员和医保/商保专员逐项复核。"
+    ],
+    "manual_review_required": true,
+    "medical_necessity_assessed": false,
+    "missing_policy_items": [],
+    "missing_required_fields": [],
+    "patient_information": {
+      "member_id": {
+        "documented_text": "<REDACTED:INSURANCE_NO>",
+        "evidence_ref": "claim-check-evidence-6"
+      },
+      "name": {
+        "documented_text": "<REDACTED:NAME>",
+        "evidence_ref": "claim-check-evidence-5"
+      }
+    },
+    "payer_information": {
+      "payer_name": {
+        "documented_text": "示例市医保经办机构",
+        "evidence_ref": "claim-check-evidence-10"
+      },
+      "plan_name": {
+        "documented_text": "城镇职工基本医疗保险",
+        "evidence_ref": "claim-check-evidence-11"
+      },
+      "region": {
+        "documented_text": "示例市",
+        "evidence_ref": "claim-check-evidence-12"
+      }
+    },
+    "policy_evaluation_status": "DOCUMENTED_POLICY_ONLY",
+    "production_submission_blocked": true,
+    "production_writeback_blocked": true,
+    "provided_policy": {
+      "effective_date": {
+        "documented_text": "2026-01-01",
+        "evidence_ref": "claim-check-evidence-25"
+      },
+      "policy_identifier": {
+        "documented_text": "CN-DEMO-CLAIM-2026",
+        "evidence_ref": "claim-check-evidence-23"
+      },
+      "requirements": [
+        {
+          "documented_text": "条款A要求提交入院记录",
+          "evidence_ref": "claim-check-evidence-21"
+        },
+        {
+          "documented_text": "条款B要求提交手术记录和费用明细",
+          "evidence_ref": "claim-check-evidence-22"
+        }
+      ],
+      "source": {
+        "documented_text": "用户提供的示例市医保结算规则节选",
+        "evidence_ref": "claim-check-evidence-26"
+      },
+      "version": {
+        "documented_text": "2026.1",
+        "evidence_ref": "claim-check-evidence-24"
+      }
+    },
+    "provider_information": {
+      "facility": {
+        "documented_text": "示例市第一人民医院",
+        "evidence_ref": "claim-check-evidence-7"
+      },
+      "name": {
+        "documented_text": "<REDACTED:NAME>",
+        "evidence_ref": "claim-check-evidence-8"
+      },
+      "provider_identifier": {
+        "documented_text": "<REDACTED:PROVIDER_ID>",
+        "evidence_ref": "claim-check-evidence-9"
+      }
+    },
+    "review_status": "READY_FOR_REVIEW",
+    "trace_refs": {
+      "run_id": "run-60429760-ad17-434e-95e2-ec25ec678c99",
+      "trace_id": "trace-e8cfdbed1a95401b",
+      "provider_trace_refs": [
+        "run-60429760-ad17-434e-95e2-ec25ec678c99:governed-claim-check"
+      ]
+    },
+    "structured_extraction": {
+      "contract": "icoder/ClaimCheckOutput/v4",
+      "method": "json_block",
+      "warnings": [],
+      "required_fields": [
+        "review_status",
+        "claim_information",
+        "patient_information",
+        "provider_information",
+        "payer_information",
+        "billed_diagnoses",
+        "billed_procedures",
+        "billed_items",
+        "clinical_documentation",
+        "provided_policy",
+        "documented_denial_reason",
+        "missing_required_fields",
+        "missing_policy_items",
+        "claim_review_packet",
+        "policy_evaluation_status",
+        "evidence_consistency_status",
+        "comparison_basis",
+        "evidence_items",
+        "limitations",
+        "clinical_support_assessed",
+        "medical_necessity_assessed",
+        "benefit_eligibility_determined",
+        "code_assignment_performed",
+        "drg_dip_grouping_performed",
+        "external_knowledge_used",
+        "production_submission_blocked",
+        "production_writeback_blocked",
+        "manual_review_required",
+        "trace_refs"
+      ],
+      "optional_fields": [],
+      "missing_required_fields": [],
+      "invalid_field_types": [],
+      "invalid_field_schemas": [],
+      "invalid_cross_agent_relations": [],
+      "undeclared_output_fields": [],
+      "undeclared_output_field_count": 0,
+      "valid": true
+    }
+  },
+  "schema_ref": "icoder/ClaimCheckOutput/v4",
+  "result_attestation": "eyJhIjoiY2xhaW0tY2hlY2siLCJkIjoiNTExYmEzOGQ3NmVlMzUyZTRmMzE0ZWJkMWI0MTMwZDI5YmNmMTdiNDRkMGUzOTlhMjJlNDlhYmYzYWY2NWIyYyIsImUiOjE3ODc4MDMyMzAsIm8iOiIzMjM2NzlmMmU4MGEiLCJyIjoicnVuLTYwNDI5NzYwLWFkMTctNDM0ZS05NWUyLWVjMjVlYzY3OGM5OSIsInMiOiJpY29kZXIvQ2xhaW1DaGVja091dHB1dC92NCIsInYiOjF9.l-Qxldz91GoooyrOTeGFjDn9tqD-lJV9TiTfZCYJB6w",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 4,
+      "metadata": {
+        "agent_id": "claim-check",
+        "runtime_mode": "rule_engine",
+        "latency_ms": 4
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 0.32
+}

@@ -1,0 +1,248 @@
+{
+  "agent_id": "clinical-documentation-improvement-agent",
+  "run_id": "run-f3fea997-6cd6-4849-a486-103b4bee669e",
+  "trace_id": "trace-cb498914da8642af",
+  "trace_url": "/ai-studio/runs/run-f3fea997-6cd6-4849-a486-103b4bee669e/trace",
+  "runtime_mode": "cdi_real_orchestrator",
+  "latency_ms": 14057,
+  "cost": {
+    "amount": 0.00116956,
+    "currency": "CNY",
+    "source": "configured_usage_pricing_estimate",
+    "billing_authoritative": false
+  },
+  "billing": {},
+  "summary": "CDI review completed; specialist and clinician review remain required.",
+  "result": {
+    "encounter_summary": {
+      "key_points": [
+        "患者男性，55岁，体检",
+        "无症状，无慢性病史",
+        "血脂：TC 5.8，LDL-C 3.6，HDL-C 1.0，TG 2.2",
+        "血压 130/85",
+        "BMI 25",
+        "10年心血管风险：5%",
+        "诊断：血脂异常",
+        "建议：饮食运动，3月后复查"
+      ],
+      "encounter_metadata": {
+        "patient_age": "55",
+        "patient_sex": "male",
+        "encounter_type": "体检"
+      }
+    },
+    "documentation_gaps": [
+      {
+        "gap_id": "GAP-001",
+        "gap_type": "diagnostic_specificity",
+        "description": "血脂异常未分型，未明确具体类型（如高胆固醇血症、高甘油三酯血症或混合型）",
+        "why_it_matters": "影响编码准确性和治疗针对性，不同分型对应不同管理策略",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "诊断:血脂异常",
+          "char_start": 94,
+          "char_end": 101,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      },
+      {
+        "gap_id": "GAP-002",
+        "gap_type": "diagnostic_specificity",
+        "description": "血脂异常未明确严重程度或风险分层（如中危、高危）",
+        "why_it_matters": "影响治疗决策和编码，需明确风险等级以指导干预强度",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "10年心血管风险:5%",
+          "char_start": 82,
+          "char_end": 93,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      },
+      {
+        "gap_id": "GAP-003",
+        "gap_type": "diagnostic_specificity",
+        "description": "血脂异常未明确病因或继发性因素（如原发性、饮食性、药物性等）",
+        "why_it_matters": "影响病因编码和后续管理，需排除继发性原因",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "诊断:血脂异常",
+          "char_start": 94,
+          "char_end": 101,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      }
+    ],
+    "proposed_provider_queries": [
+      {
+        "query_id": "Q-003",
+        "gap_id": "GAP-003",
+        "topic": "血脂异常的病因分类",
+        "reason": "病历未明确血脂异常是原发性还是继发性（如饮食性、药物性等），影响病因评估和治疗方案。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "诊断:血脂异常",
+          "char_start": 94,
+          "char_end": 101,
+          "documented_at": ""
+        },
+        "evidence_spans": [
+          {
+            "document_id": "chart-001",
+            "quote": "诊断:血脂异常",
+            "char_start": 94,
+            "char_end": 101,
+            "documented_at": ""
+          }
+        ],
+        "query_text": "该患者的血脂异常最可能属于以下哪种病因分类？",
+        "response_options": [
+          "A. 原发性（遗传性）",
+          "B. 继发性（如饮食、药物、疾病等）",
+          "C. 混合性（原发合并继发）",
+          "D. 无法确定"
+        ],
+        "lifecycle_state": "DRAFT",
+        "priority": "routine",
+        "nlq_gate_verdict": "PASS",
+        "nlq_gate_block_reasons": []
+      }
+    ],
+    "query_gate_summary": {
+      "withheld_count": 2,
+      "status_counts": {
+        "REWRITE_CANDIDATE_GENERATED": 0
+      },
+      "manual_cdi_action_required": true
+    },
+    "coding_specificity_checklist": [],
+    "risk_flags": [
+      {
+        "category": "unsupported_diagnosis",
+        "description": "血脂异常诊断有实验室证据支持，但未提供临床相关性或进一步评估，可能被视为不完整"
+      }
+    ],
+    "specialist_trace": [
+      {
+        "expert_id": "coding-expert",
+        "consulted": true,
+        "requested": "You are a coding-specialist Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "For accurate coding, the chart must specify the lipid abnormality type (e.g., mixed hyperlipidemia given elevated TC, LDL-C, and TG), the cardiovascular risk stratification (low risk per 10-year risk of 5%, but borderline due to HDL-C 1.0 and BMI 25), and whether this is primary (idiopathic) or secondary to lifestyle/diet, as no secondary causes are documented. Additionally, clarify if the borderline HDL-C and elevated TG warrant a distinct mixed pattern or if the clinician intends isolated hypercholesterolemia, and document the absence of secondary factors (e.g., hypothyroidism, medications) to support a primary diagnosis.",
+        "route_decision": "needed",
+        "route_reason": "coding_relevant_gap",
+        "execution_mode": "LLM_KNOWLEDGE_ONLY",
+        "latency_ms": 2211,
+        "tokens": 334,
+        "run_id": "run-c2aae73b8ade",
+        "trace_id": "trace-e1933d220ae7"
+      },
+      {
+        "expert_id": "pubmed-expert",
+        "consulted": false,
+        "requested": "You are a PubMed literature Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-e76b6794339c",
+        "trace_id": "trace-7525b9e4bf16"
+      },
+      {
+        "expert_id": "web-search-expert",
+        "consulted": false,
+        "requested": "You are a clinical web-search Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-6fc3624d7407",
+        "trace_id": "trace-655ee6995120"
+      },
+      {
+        "expert_id": "medical-calculator-expert",
+        "consulted": false,
+        "requested": "You are a medical-calculator Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "'BMI' score — no deterministic calculator wired",
+        "route_decision": "tool_unavailable",
+        "route_reason": "no_real_tool_wired",
+        "execution_mode": "TOOL_UNAVAILABLE",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-b8e21282a3fd",
+        "trace_id": "trace-79fe6ba067c6"
+      }
+    ],
+    "human_review": {
+      "cdi_specialist_review_required": true,
+      "clinician_response_required": true,
+      "review_priority": "routine"
+    },
+    "trace_refs": {
+      "run_id": "run-f3fea997-6cd6-4849-a486-103b4bee669e",
+      "stage_trace": {
+        "encounter_synthesis": "trace-5623609e3282",
+        "gap_identification": "trace-70c161cba476",
+        "expert_consultation": "trace-8ef8e86d092b",
+        "query_generation": "trace-3189b3b24996",
+        "query_eligibility_gate": "",
+        "query_necessity_gate": "",
+        "query_dimension_rewrite": "",
+        "query_single_dimension_gate": "",
+        "claim_evidence_alignment_gate": "trace-3188a5ef524b",
+        "semantic_necessity_gate": "trace-af04c2fe0a72",
+        "query_compliance_gate": "",
+        "specialist_trace_emit": "trace-0f4f46806bbf"
+      },
+      "experts_consulted": [
+        "coding-expert"
+      ],
+      "gate_results": {
+        "encounter_synthesis": "run-128137ebcc91",
+        "gap_identification": "run-544ce5826c2f",
+        "gap_identification_risk_flags": "emitted=1;quote_snapped=0;withheld=0;quantity_redacted=0",
+        "expert_consultation": "run-cff2e9d374e9",
+        "query_generation": "run-53f9b5bf9747",
+        "query_generation::quote_snapped": "0",
+        "query_generation::coverage_missing": "0",
+        "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=3;llm_complete=False;llm_reasoning=血脂异常诊断虽基于实验室值，但未明确分型、严重程度和病因，且未提供临床相关性，需进一步澄清才能编码。",
+        "query_necessity_gate": "necessary=1;unnecessary=2;overquery_triggered=False;final_count=1",
+        "query_dimension_rewrite": "not_executed",
+        "query_single_dimension_gate": "single_dim=1;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=etiology;rewrite_attempted=0;rewrite_accepted=0;final_count=1",
+        "claim_evidence_alignment_gate": "claims_extracted=2;degraded=0;blocked=0;flagged=0;final_count=1",
+        "claim_evidence_alignment_gate::run_id": "run-f6b2b40efd94",
+        "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=1",
+        "semantic_necessity_gate::run_id": "run-248938d11c94",
+        "query_compliance_gate": ";passed=1;blocked=0",
+        "specialist_trace_emit": "run-3d6445c06ee2"
+      },
+      "trace_id": "trace-cb498914da8642af"
+    }
+  },
+  "schema_ref": "icoder/CDIAgentOutputV1/v6",
+  "result_attestation": "eyJhIjoiY2xpbmljYWwtZG9jdW1lbnRhdGlvbi1pbXByb3ZlbWVudC1hZ2VudCIsImQiOiJlYzYwOTA1MTBkMjVlMGQ1NWUwN2Q5YmVhMTM5NjRkOWRhYmU2MzE2NGFiNjhjNTU3MzczMTk4ZjY4ZjFmMzJiIiwiZSI6MTc4Nzg4NzY0MCwibyI6IjVmZWYzNzlmMjViZCIsInIiOiJydW4tZjNmZWE5OTctNmNkNi00ODQ5LWE0ODYtMTAzYjRiZWU2NjllIiwicyI6Imljb2Rlci9DRElBZ2VudE91dHB1dFYxL3Y2IiwidiI6MX0.8wmLQEnQfaZTXwJYKdtRHwiktq4Sx9-cyz4vhjxuRUo",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 14.246
+}

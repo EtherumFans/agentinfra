@@ -1,0 +1,226 @@
+{
+  "S1_happy_pneumonia": {
+    "spec": {
+      "description": "Baseline — typical pneumonia admission with culture",
+      "chart_excerpt": "患者男性,58岁,因咳嗽咳痰伴发热3天入院。查体:T 38.5℃。痰培养:肺炎链球菌。入院诊断:肺炎。",
+      "expect_gaps": ">=1",
+      "expect_queries": ">=1"
+    },
+    "result": {
+      "status": 200,
+      "elapsed_s": 22.3,
+      "case_id": "CASE-59bac379afdf",
+      "completion_state": "BLOCKED",
+      "degraded": false,
+      "runtime_mode": "real",
+      "n_gaps": 3,
+      "n_queries": 3,
+      "gap_types": [
+        "diagnostic_specificity",
+        "diagnostic_specificity",
+        "diagnostic_specificity"
+      ],
+      "gap_descriptions": [
+        "肺炎未明确具体类型（如社区获得性肺炎、医院获得性肺炎）或部位（如左肺、右肺、双肺）",
+        "咳嗽咳痰的性状、持续时间、严重程度未描述",
+        "发热程度未明确（高热、低热）"
+      ],
+      "query_topics": [
+        "肺炎的具体类型和部位",
+        "咳嗽咳痰的性状、持续时间、严重程度",
+        "发热程度"
+      ],
+      "query_texts": [
+        "根据患者社区发病、痰培养肺炎链球菌，请明确肺炎的具体类型和部位：",
+        "请补充咳嗽咳痰的详细特征：",
+        "请明确发热程度分类："
+      ],
+      "n_stage_traces": 7,
+      "stage_latency": {
+        "encounter_synthesis": 2619,
+        "gap_identification": 4368,
+        "query_generation": 6200,
+        "expert_consultation": 1759
+      },
+      "stage_tokens": {
+        "encounter_synthesis": 272,
+        "gap_identification": 590,
+        "query_generation": 979,
+        "expert_consultation": 232
+      },
+      "total_tokens": 2791
+    }
+  },
+  "S2_missing_no_diagnosis": {
+    "spec": {
+      "description": "No diagnosis stated — system should not invent one",
+      "chart_excerpt": "患者女性,72岁,因反复头晕乏力1周入院。查体:BP 150/95 mmHg,HR 82次/分。辅助检查:血常规正常,心电图窦性心律。建议进一步检查。",
+      "expect_gaps": ">=1 (diagnostic specificity unknown)",
+      "expect_queries": "varies"
+    },
+    "result": {
+      "status": 200,
+      "elapsed_s": 22.5,
+      "case_id": "CASE-a56001ca01fe",
+      "completion_state": "REVIEW_REQUIRED",
+      "degraded": false,
+      "runtime_mode": "real",
+      "n_gaps": 3,
+      "n_queries": 3,
+      "gap_types": [
+        "diagnostic_specificity",
+        "diagnostic_specificity",
+        "diagnostic_specificity"
+      ],
+      "gap_descriptions": [
+        "头晕乏力的病因未明确，缺乏诊断特异性。",
+        "高血压未明确分期或分级，缺乏严重程度描述。",
+        "心电图窦性心律未描述是否正常或有无异常发现。"
+      ],
+      "query_topics": [
+        "头晕乏力病因",
+        "高血压分级",
+        "心电图窦性心律解读"
+      ],
+      "query_texts": [
+        "根据患者反复头晕乏力1周，血压150/95 mmHg，心电图窦性心律，血常规正常，请评估头晕乏力的最可能病因：",
+        "患者血压150/95 mmHg，请明确高血压的分级：",
+        "患者心电图报告为窦性心律，请描述心电图的具体发现："
+      ],
+      "n_stage_traces": 7,
+      "stage_latency": {
+        "encounter_synthesis": 2513,
+        "gap_identification": 4796,
+        "query_generation": 4974,
+        "expert_consultation": 2352
+      },
+      "stage_tokens": {
+        "encounter_synthesis": 290,
+        "gap_identification": 677,
+        "query_generation": 929,
+        "expert_consultation": 249
+      },
+      "total_tokens": 2837
+    }
+  },
+  "S3_negation_and_history": {
+    "spec": {
+      "description": "Negation + historical — must NOT invent active dx",
+      "chart_excerpt": "患者男性,65岁,因上腹痛2天入院。既往史:高血压10年,已治愈肺结核,否认糖尿病、冠心病。家族史:父亲高血压。查体:上腹压痛阳性。初步诊断:急性胃炎;排除急性胰腺炎。",
+      "expect_gaps": "must NOT claim patient has TB/diabetes/CHD",
+      "expect_queries": ">=1"
+    },
+    "result": {
+      "status": 200,
+      "elapsed_s": 32.3,
+      "case_id": "CASE-c4fe3d10032d",
+      "completion_state": "BLOCKED",
+      "degraded": false,
+      "runtime_mode": "real",
+      "n_gaps": 6,
+      "n_queries": 6,
+      "gap_types": [
+        "diagnostic_specificity",
+        "diagnostic_specificity",
+        "diagnostic_specificity",
+        "diagnostic_specificity",
+        "diagnostic_specificity",
+        "diagnostic_specificity"
+      ],
+      "gap_descriptions": [
+        "上腹痛的病因未明确，急性胃炎诊断缺乏内镜或病理支持，且未描述疼痛性质、放射痛等特征。",
+        "高血压病史10年，但未记录血压控制情况、用药方案或靶器官损害。",
+        "已治愈肺结核，但未说明治愈时间、治疗史或有无后遗症。",
+        "上腹压痛阳性，但未描述压痛部位（如左上腹、右上腹、中上腹）、有无反跳痛或肌紧张。",
+        "初步诊断急性胃炎，但未提供诊断依据（如内镜、实验室检查），且未排除其他病因（如药物、感染）。",
+        "排除急性胰腺炎，但未说明排除依据（如淀粉酶、脂肪酶、影像学结果）。"
+      ],
+      "query_topics": [
+        "上腹痛病因",
+        "高血压病史详情",
+        "已治愈肺结核详情",
+        "上腹压痛特征",
+        "急性胃炎诊断依据",
+        "排除急性胰腺炎依据"
+      ],
+      "query_texts": [
+        "请描述上腹痛的性质（如隐痛、绞痛、烧灼痛）、有无放射痛、与进食的关系，以及急性胃炎的诊断依据（如内镜、病理或实验室检查）。",
+        "请提供高血压病史的详细信息，包括血压控制水平、当前降压药物及剂量、有无靶器官损害（如心、脑、肾、眼底）。",
+        "请提供肺结核治愈的时间、治疗方案（药物及疗程）以及有无后遗症（如肺纤维化、支气管扩张）。",
+        "请描述上腹压痛的具体部位（如左上腹、右上腹、中上腹）、有无反跳痛及肌紧张。",
+        "请提供急性胃炎的诊断依据（如内镜、实验室检查）以及是否排除了其他病因（如药物、感染、应激）。",
+        "请提供排除急性胰腺炎的检查结果，如血淀粉酶、脂肪酶及腹部影像学。"
+      ],
+      "n_stage_traces": 7,
+      "stage_latency": {
+        "encounter_synthesis": 2682,
+        "gap_identification": 8582,
+        "query_generation": 11259,
+        "expert_consultation": 1998
+      },
+      "stage_tokens": {
+        "encounter_synthesis": 316,
+        "gap_identification": 1085,
+        "query_generation": 1871,
+        "expert_consultation": 327
+      },
+      "total_tokens": 4636
+    }
+  },
+  "S4_conflicting_documentation": {
+    "spec": {
+      "description": "Conflict between admission and discharge dx + laterality",
+      "chart_excerpt": "患者男性,45岁,因外伤入院。入院诊断:左侧肋骨骨折。出院诊断:右侧肋骨骨折。手术记录:右胸第5-7肋骨骨折固定术。主治医师记录:左胸外伤。",
+      "expect_gaps": "must surface laterality conflict (left vs right)",
+      "expect_queries": ">=1"
+    },
+    "result": {
+      "status": 200,
+      "elapsed_s": 27.6,
+      "case_id": "CASE-46915d5e9721",
+      "completion_state": "BLOCKED",
+      "degraded": false,
+      "runtime_mode": "real",
+      "n_gaps": 4,
+      "n_queries": 4,
+      "gap_types": [
+        "diagnostic_specificity",
+        "diagnostic_specificity",
+        "diagnostic_specificity",
+        "diagnostic_specificity"
+      ],
+      "gap_descriptions": [
+        "入院诊断与出院诊断不一致：左侧肋骨骨折 vs 右侧肋骨骨折，且未说明原因或演变过程。",
+        "手术记录与出院诊断部位一致（右侧），但主治医师记录为左胸外伤，存在矛盾。",
+        "未明确肋骨骨折的病因（如外伤具体机制）及是否伴有其他损伤。",
+        "未描述骨折的严重程度（如移位、粉碎性）或并发症（如血气胸）。"
+      ],
+      "query_topics": [
+        "肋骨骨折侧别不一致",
+        "手术与主治医师记录矛盾",
+        "骨折病因及伴随损伤",
+        "骨折严重程度及并发症"
+      ],
+      "query_texts": [
+        "患者入院诊断为左侧肋骨骨折，出院诊断为右侧肋骨骨折。请描述骨折侧别的演变过程及原因。",
+        "手术记录显示右胸肋骨骨折固定术，而主治医师记录为左胸外伤。请明确患者胸部外伤的具体侧别。",
+        "请描述导致肋骨骨折的外伤具体机制（如车祸、跌倒、撞击等）及是否伴有其他部位损伤。",
+        "请描述肋骨骨折的严重程度（如移位、粉碎性）及是否伴有血气胸等并发症。"
+      ],
+      "n_stage_traces": 7,
+      "stage_latency": {
+        "encounter_synthesis": 3481,
+        "gap_identification": 6569,
+        "query_generation": 7942,
+        "expert_consultation": 1518
+      },
+      "stage_tokens": {
+        "encounter_synthesis": 301,
+        "gap_identification": 805,
+        "query_generation": 1246,
+        "expert_consultation": 272
+      },
+      "total_tokens": 3481
+    }
+  }
+}

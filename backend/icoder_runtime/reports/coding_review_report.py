@@ -364,7 +364,7 @@ def render_report(
             {"k": "DRG 名称", "v": drg_route.get("drg_name", "")},
             {"k": "CC/MCC 等级", "v": drg_route.get("cc_level", "")},
             {"k": "分组方法", "v": drg_route.get("is_medical_or_surgical") or drg_route.get("grouping_method", "")},
-            {"k": "覆盖率 (CHS-DRG 1.1)", "v": "✅" if drg_route.get("coverage") else "❌"},
+            {"k": "开发期 DRG 候选覆盖", "v": "✅" if drg_route.get("coverage") else "❌"},
             {"k": "说明", "v": drg_route.get("reason", "")},
         ]
         drg_table = _table(drg_rows, [("k", "字段"), ("v", "值")])

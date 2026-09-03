@@ -1,0 +1,133 @@
+{
+  "page_slug": "03_agentic_experts",
+  "url": "https://docs.corti.ai/agentic/experts",
+  "page_title": "Experts - Corti API Documentation",
+  "captured_at": "2026-07-22T05:13:52Z",
+  "headings": [
+    "H1: Experts",
+    "H2: Expert Registry",
+    "H3: Common registry experts",
+    "H2: Bring Your Own Expert",
+    "H3: Expert Configuration",
+    "H3: MCP Server Requirements",
+    "H2: Multi-Agent Composition",
+    "H2: Direct Expert Calls"
+  ],
+  "clean_room_contracts_extracted": {
+    "expert_definition_CORTI_VERBATIM": "An Expert is an LLM-powered capability that an AI agent can utilize. Experts are designed to complete small, discrete tasks efficiently, enabling the Orchestrator to compose complex workflows by chaining multiple experts together.",
+    "icoder_charter_alignment": {
+      "corti_definition": "Expert = LLM-powered capability; small discrete tasks; composed by Orchestrator",
+      "icoder_charter_§9_definition": "Expert = discrete capability with structured I/O + declared dependencies + egress + citations + failure modes + deterministic/licence/maturity flags",
+      "alignment_verdict": "ALIGNED — Corti's public definition is consistent with iCoDer charter §9. iCoDer's clean-room taxonomy is a stricter superset (adds failure modes / licence / maturity)."
+    },
+    "expert_registry": {
+      "discovery_mechanisms": [
+        "Available Experts overview page (UI browse)",
+        "Expert Registry API endpoint (programmatic)"
+      ],
+      "registry_returns": ["capabilities", "descriptions", "configuration requirements"],
+      "registry_includes": ["first-party (Corti-built)", "third-party integrations"],
+      "use_case_categories_listed": [
+        "Clinical reference lookups",
+        "Medical coding",
+        "Document generation",
+        "Data extraction",
+        "And more"
+      ]
+    },
+    "OFFICIAL_CORTI_PUBLIC_EXPERT_LIST_9_KEYS": [
+      {"key": "memory-expert",            "purpose_corti_verbatim": "Recall and analyze content from large in-request contexts and files"},
+      {"key": "coding-expert",            "purpose_corti_verbatim": "Assign diagnosis and procedure codes from notes"},
+      {"key": "medical-calculator-expert","purpose_corti_verbatim": "Compute BMI, HbA1c, glucose conversions, etc."},
+      {"key": "drugbank-expert",          "purpose_corti_verbatim": "Drug information and interaction lookups"},
+      {"key": "posos-expert",             "purpose_corti_verbatim": "Medication guidance and prescribing decision support"},
+      {"key": "pubmed-expert",            "purpose_corti_verbatim": "PubMed literature search and abstracts"},
+      {"key": "clinical-trials-expert",   "purpose_corti_verbatim": "Search clinical trial registries"},
+      {"key": "web-search-expert",        "purpose_corti_verbatim": "Search and retrieve up-to-date web content"},
+      {"key": "interviewing-expert",      "purpose_corti_verbatim": "Drive structured questionnaire interviews"}
+    ],
+    "official_note": "Corti notes this is 'a minimal sample of frequently-used experts' and refers to 'Available Experts overview' for full list including all coding-expert variants. A1B-AE.1 must also crawl that page to discover additional variants.",
+    "bring_your_own_expert": {
+      "mechanism": "expose an MCP server; Corti wraps it in a custom LLM agent with a system prompt",
+      "capabilities": [
+        "Integrate own tools and data sources",
+        "Create domain-specific experts",
+        "Maintain control via custom system prompts",
+        "Leverage Corti orchestration + memory while using own tools"
+      ]
+    },
+    "expert_configuration_schema_PUBLIC": {
+      "type": "object",
+      "fields": [
+        {"name": "type", "type": "string", "example": "\"expert\""},
+        {"name": "id", "type": "string", "example": "\"ecg_interpreter\""},
+        {"name": "name", "type": "string", "example": "\"ECG Interpreter\""},
+        {"name": "description", "type": "string", "example": "\"Interprets 12 lead ECGs.\""},
+        {"name": "systemPrompt", "type": "string", "example": "\"You are an expert ECG interpreter.\""},
+        {"name": "mcpServers", "type": "array", "items": "McpServerConfig"}
+      ],
+      "example_verbatim": {
+        "type": "expert",
+        "id": "ecg_interpreter",
+        "name": "ECG Interpreter",
+        "description": "Interprets 12 lead ECGs.",
+        "systemPrompt": "You are an expert ECG interpreter.",
+        "mcpServers": [
+          {
+            "id": "srv1",
+            "name": "ECG API Svc",
+            "transportType": "streamable_http",
+            "authorizationType": "none",
+            "url": "https://api.ecg.com/x"
+          }
+        ]
+      }
+    },
+    "mcp_server_schema_PUBLIC": {
+      "fields": [
+        {"name": "id", "type": "string"},
+        {"name": "name", "type": "string"},
+        {"name": "transportType", "type": "string", "known_value": "streamable_http"},
+        {"name": "authorizationType", "type": "string", "known_value": "none"},
+        {"name": "url", "type": "string", "format": "URL"}
+      ],
+      "requirements_verbatim": [
+        "Implement the Model Context Protocol specification",
+        "Expose tools via the standard MCP tools/list and tools/call endpoints",
+        "Handle authentication"
+      ],
+      "icoder_note": "Charter §6.4 strictly forbids storing plaintext secret in MCP registry record. iCoDer McpServerRegistry will store secret_reference (lookup key) not the secret itself."
+    },
+    "multi_agent_composition": {
+      "corti_status": "COMING SOON (publicly announced, not yet shipped)",
+      "corti_plan_verbatim": [
+        "Direct agent-to-agent communication using the A2A protocol",
+        "Composition of complex workflows across multiple agents",
+        "Fine-grained control over agent interactions and data flow"
+      ],
+      "current_corti_behavior": "Orchestrator handles expert composition automatically",
+      "icoder_implication": "iCoDer A1B-AE can implement this clean-room without trailing Corti, but must NOT mark `CORTI_PARITY` since Corti itself has not shipped."
+    },
+    "direct_expert_calls": {
+      "corti_status": "COMING SOON (publicly announced, not yet shipped)",
+      "corti_plan_verbatim": [
+        "Direct API access to individual experts",
+        "Integration of experts into custom workflows",
+        "More flexible composition patterns beyond agent-based orchestration"
+      ],
+      "icoder_implication": "iCoDer A1B-AE.4 will offer Direct Expert Calls as part of Agent CRUD (clean-room lead over public Corti). Verdict must NOT claim Corti parity."
+    },
+    "api_first_positioning_verbatim": "The Corti Agentic Framework is API-first, enabling synchronous or async usage across a range of modalities: scheduled batch jobs, clinical event triggers, UI widgets, and direct EHR system calls."
+  },
+  "follow_up_required": [
+    "Crawl /agentic/available-experts (or similar) for full list including all coding-expert variants",
+    "Crawl individual Expert reference pages (memory-expert / medical-calculator-expert / drugbank-expert / etc.) for per-expert config requirements",
+    "Crawl /agentic/mcp-authentication for authorizationType enum",
+    "Crawl /agentic/agents/create-agent (Agent API) for Agent schema"
+  ],
+  "access_control": {
+    "page_public": true,
+    "login_required": false
+  },
+  "status": "PASS"
+}

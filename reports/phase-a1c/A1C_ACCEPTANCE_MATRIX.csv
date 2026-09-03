@@ -1,0 +1,32 @@
+gate_id,sub_gate,condition_text,verification_method,verdict,evidence_path,blocker_id,notes
+HG-01,A1C.2,"PostgreSQL all required scenarios PASS",docker-compose.a1c-postgres.yml + alembic upgrade head on PG16,PENDING,reports/phase-a1c/A1C.2/POSTGRES_MIGRATION_RESULTS.json,BLK-ENV-01,Host has no docker/psql; will build matrix+compose and defer real PG run to pilot env
+HG-02,A1C.1,"Default CI no unexplained failed/error",pytest tests/ + vitest + tsc + ESLint,PENDING,reports/phase-a1c/A1C.1/BASELINE_FAILURE_LEDGER.csv,,88 historical failures to be classified
+HG-03,A1C.1,"ESLint PASS",eslint . --ext ts,tsx,PENDING,reports/phase-a1c/A1C.1/ESLINT_INTRODUCTION_REPORT.md,,ESLint dep presence to be verified
+HG-04,A1C.1,"Dev DB fully isolated from test DB",per-test fixture + DevDbSessionGuard refactor,PENDING,reports/phase-a1c/A1C.1/DEV_DB_ISOLATION_REPORT.md,,DevDbSessionGuard has 1 teardown attribution noise (RV.6 finding)
+HG-05,A1C.3,"Context lifecycle (Create/Delete/Expire) closed",Context Create API + delete endpoint + expiry sweep,PENDING,reports/phase-a1c/A1C.3/HIS_EMR_INTEGRATION_CONTRACT.md,,Closes RV.5 BLOCKED_BY_NO_CONTEXT_CREATE_ENDPOINT (Journey J8)
+HG-06,A1C.3,"HIS/EMR contract + simulator completed",HIS_EMR_INTEGRATION_CONTRACT.md + 3 schema JSON + simulator/,PENDING,reports/phase-a1c/A1C.3/HIS_EMR_SCENARIO_MATRIX.csv,,15+ failure scenarios required
+HG-07,A1C.4,"Cross-tenant attack cases all rejected",CROSS_TENANT_ATTACK_MATRIX.csv + test execution,PENDING,reports/phase-a1c/A1C.4/CROSS_TENANT_ATTACK_MATRIX.csv,,Includes IDOR + forged organization_id + cross-tenant access
+HG-08,A1C.4,"Real SSO/OIDC flow completed",test IdP (dex/Keycloak) + real OIDC dance,PENDING,reports/phase-a1c/A1C.4/SSO_INTEGRATION_TEST_RESULTS.json,BLK-ENV-04,No hospital IdP; will spin up test IdP
+HG-09,A1C.5,"Real DeepSeek call completed",backend DeepSeek client + live API call + trace,PENDING,reports/phase-a1c/A1C.5/DEEPSEEK_LIVE_TEST_RESULTS.json,BLK-ENV-02,LLM_API_KEY not injected; verify wiring + placeholder
+HG-10,A1C.5,"Real KMS integration completed",secret loader + cloud KMS client + rotation audit,PENDING,reports/phase-a1c/A1C.5/KMS_INTEGRATION_REPORT.md,BLK-ENV-03,No cloud KMS credentials; verify abstraction + local envoy sim
+HG-11,A1C.5,"Secret leak count = 0",secret scan over logs/HAR/trace/screenshot,PENDING,reports/phase-a1c/A1C.5/SECRET_LEAK_SCAN_RESULTS.json,,Includes Playwright trace + HAR scrubbing
+HG-12,A1C.6,"PHI data flow + residency boundary explicit",PHI_DATA_FLOW_DIAGRAM.md + DATA_RESIDENCY_MATRIX.csv,PENDING,reports/phase-a1c/A1C.6/PHI_DATA_FLOW_DIAGRAM.md,,9 data classes + EU/US/CN residency routing
+HG-13,A1C.5,"AI disabled mode fully usable",AI_DISABLED_MODE_REPORT.md + browser journey w/o AI,PENDING,reports/phase-a1c/A1C.5/AI_DISABLED_MODE_REPORT.md,,Must not block deterministic workflow
+HG-14,A1C.6,"Audit events complete",AUDIT_EVENT_SCHEMA.json + AUDIT_COMPLETENESS_REPORT.md,PENDING,reports/phase-a1c/A1C.6/AUDIT_COMPLETENESS_REPORT.md,,Schema: actor/org/context/action/purpose/resource/result/ts/trace_id/source_ip/client/policy_decision
+HG-15,A1C.7,"Deployment repeatable",PILOT_DEPLOYMENT_ARCHITECTURE.md + DEPLOYMENT_RUNBOOK.md dry run,PENDING,reports/phase-a1c/A1C.7/PILOT_DEPLOYMENT_ARCHITECTURE.md,,Docker/Compose or K8s
+HG-16,A1C.7,"Health check accurate",liveness/readiness/startup separate probes,PENDING,reports/phase-a1c/A1C.7/OBSERVABILITY_SPEC.md,,Not 'process alive' == 'service available'
+HG-17,A1C.7,"Monitoring + alerting usable",metrics + alerting dry run,PENDING,reports/phase-a1c/A1C.7/OBSERVABILITY_SPEC.md,,structured logs + traces + request_id + run_id + context_id + tenant_id
+HG-18,A1C.7,"Failure injection completed",FAILURE_INJECTION_RESULTS.json (PG/Redis/DeepSeek/KMS/HIS/disk/net/restart/crash/token),PENDING,reports/phase-a1c/A1C.7/FAILURE_INJECTION_RESULTS.json,,10+ failure modes
+HG-19,A1C.7,"Rollback drill completed",ROLLBACK_DRILL_REPORT.md,PENDING,reports/phase-a1c/A1C.7/ROLLBACK_DRILL_REPORT.md,,App version + migration compat + config + model config + feature flag
+HG-20,A1C.8,">=15 real browser journeys all completed",Playwright headed +video +trace +screenshot +network +console +secret_scan,PENDING,reports/phase-a1c/A1C.8/journeys/,,Each journey 9 evidence files; BLOCKED_BY_* enters blocker ledger not PASS
+HG-21,A1C.9,"No P0 blocker",A1C_OPEN_BLOCKERS.csv review at A1C.9,PENDING,reports/phase-a1c/A1C.9/A1C_OPEN_BLOCKERS.csv,,Aggregated from all sub-gates
+A1C.0-AC-1,A1C.0,"Charter v1.0 frozen",A1C_CHARTER.md,PASS_A1C_0_ENTRY_AUDIT_AND_PILOT_READINESS_CHARTER_FILED,docs/phase-a1c/A1C_CHARTER.md,,
+A1C.0-AC-2,A1C.0,"Repository/worktree/branch/HEAD recorded",A1C_ENTRY_AUDIT.md §1-§2,PASS_A1C_0_...,docs/phase-a1c/A1C_ENTRY_AUDIT.md,,
+A1C.0-AC-3,A1C.0,"Runtime + OS versions recorded",A1C_ENTRY_AUDIT.md §4,PASS_A1C_0_...,docs/phase-a1c/A1C_ENTRY_AUDIT.md,,
+A1C.0-AC-4,A1C.0,"Capability inventory marked EXISTS_*/MISSING/BLOCKED_*",A1C_ENTRY_AUDIT.md §6,PASS_A1C_0_...,docs/phase-a1c/A1C_ENTRY_AUDIT.md,,
+A1C.0-AC-5,A1C.0,"A1B-AE-RV closeout consistency verified",A1B_AE_RV_CLOSEOUT_CONSISTENCY_REPORT.md,PASS_A1C_0_...,reports/phase-a1c/A1B_AE_RV_CLOSEOUT_CONSISTENCY_REPORT.md,,5 inconsistencies documented (IC-1..IC-5); no RV history rewritten
+A1C.0-AC-6,A1C.0,"PENDING_* placeholders all resolved or transferred to blocker ledger",A1C_BASELINE_STATE.json,PASS_A1C_0_...,reports/phase-a1c/A1C_BASELINE_STATE.json,,RV PENDING_RV7_COMMIT/PENDING_RV4_COMMIT documented in closeout report
+A1C.0-AC-7,A1C.0,"All final SHAs consistent",A1C_BASELINE_STATE.json + A1C_ENTRY_AUDIT.md §2,PASS_A1C_0_...,reports/phase-a1c/A1C_BASELINE_STATE.json,,RV HEAD = 0f107d0; tag target = 0f107d0; current HEAD = 3d50b11 (all verified)
+A1C.0-AC-8,A1C.0,"Evidence count uniquely defined (403)",A1C_BASELINE_STATE.json + closeout report,PASS_A1C_0_...,reports/phase-a1c/A1C_BASELINE_STATE.json,,truth = 403; docs error (400) documented; A1C uses 403
+A1C.0-AC-9,A1C.0,"SHA manifest not self-contradictory",A1C_ENTRY_SHA256SUMS.detached.txt,PASS_A1C_0_...,reports/phase-a1c/A1C_ENTRY_SHA256SUMS.detached.txt,,Detached (excludes itself)
+A1C.0-AC-10,A1C.0,"PASS/PARTIAL/FAIL rules frozen upfront",A1C_CHARTER.md §一+§九,PASS_A1C_0_...,docs/phase-a1c/A1C_CHARTER.md,,

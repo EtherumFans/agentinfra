@@ -1,0 +1,119 @@
+{
+  "schema_version": "icoder.incremental-artifact-stream-phase-evidence/v1",
+  "generated_at": "2026-08-22T13:09:17+08:00",
+  "result": "passed_with_native_provisional_token_and_external_runtime_gates_open",
+  "implementation": {
+    "alembic_head": "052",
+    "send_streaming_message_creates_durable_task": true,
+    "initial_snapshot_replays_from_submitted_sequence": true,
+    "multi_chunk_artifact_updates": true,
+    "append_reset_semantics": true,
+    "last_chunk_required_for_terminal_assembly": true,
+    "exact_event_payload_replay": true,
+    "event_payload_phi_encrypted": true,
+    "event_payload_plaintext_size_integrity": true,
+    "event_payload_sha256_integrity": true,
+    "event_payload_artifact_identity_integrity": true,
+    "maximum_stream_events": 256,
+    "validated_stream_artifact_is_task_owned": true,
+    "canonical_result_artifact_is_retained": true,
+    "provider_native_provisional_tokens_are_public": false,
+    "public_chunks_emitted_after_output_contract_audit_phi_and_context_persistence": true
+  },
+  "multi_chunk_test": {
+    "input_kind": "validated synthetic Chinese response",
+    "minimum_text_characters": 16401,
+    "chunk_count": 3,
+    "append": [false, true, true],
+    "last_chunk": [false, false, true],
+    "reassembled_message_parts_exact": true,
+    "tampered_digest_rejected": true
+  },
+  "sdk_contracts": {
+    "javascript": "messageStreamV1",
+    "python": "message_stream_v1",
+    "dotnet": ["MessageStreamV1Async", "MessageStreamV1TextAsync"]
+  },
+  "migration_reconciliation": {
+    "source_revision": "041",
+    "candidate_revision": "052",
+    "source_rows_preserved": 6090,
+    "candidate_foreign_key_violations": 0,
+    "candidate_orm_schema_drift": 0,
+    "candidate_columns_checked": 961,
+    "source_sha256_before": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e",
+    "source_sha256_after": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e",
+    "source_unchanged": true,
+    "cutover_performed": false,
+    "passed": true
+  },
+  "tests": {
+    "focused_artifact_task_provider": {
+      "passed": 58,
+      "failed": 0,
+      "warnings": 7
+    },
+    "full_a2a_migration_schema_and_preflight": {
+      "passed": 312,
+      "failed": 0,
+      "warnings": 9
+    },
+    "deployment_preflight": {
+      "passed": 62,
+      "failed": 0
+    },
+    "javascript_sdk": {
+      "build_passed": true,
+      "tests_passed": 42,
+      "tests_failed": 0
+    },
+    "python_sdk": {
+      "tests_passed": 49,
+      "tests_failed": 0
+    },
+    "dotnet_sdk": {
+      "source_and_test_contract_updated": true,
+      "locally_compiled": false,
+      "reason": "dotnet CLI is unavailable on this development host"
+    },
+    "openapi": {
+      "paths": 265,
+      "bytes": 826480,
+      "drift": false
+    },
+    "agent_hub_runtime_matrix": {
+      "hub_visible_agents": 26,
+      "launch_candidate_ready": 26,
+      "visible_not_ready": 0
+    }
+  },
+  "artifacts": {
+    "migration_report": {
+      "path": "reports/agent_hub/incremental_artifact_stream_phase_20260822/sqlite_migration/sqlite_migration_stage_report.json",
+      "sha256": "2a625d203bd43672f9167c9b8de911ddf101d74d0ab3ad8789a15c8ee9622972"
+    },
+    "deployment_preflight": {
+      "path": "reports/agent_hub/incremental_artifact_stream_phase_20260822/deployment_preflight/deployment_preflight.json",
+      "sha256": "d892de60b2466b1785fc71863a45dbb50d193f0b841d733aff6ce74f13f88677"
+    },
+    "runtime_matrix": {
+      "path": "reports/agent_hub/incremental_artifact_stream_phase_20260822/runtime_matrix/agent_hub_runtime_matrix.json",
+      "sha256": "207bdd3a7165a536505bda30f0d524880eb084ce4c71d7827b5b15910a19f974"
+    },
+    "openapi": {
+      "path": "docs/openapi/openapi.json",
+      "sha256": "a095196fe81a671d8c94f57ece85831d9346490deb5c49e5cf2b05cb661a8cfe"
+    },
+    "summary": {
+      "path": "docs/corti_parity/ICODER_INCREMENTAL_ARTIFACT_STREAM_PHASE_SUMMARY_2026-08-22.md",
+      "sha256": "d76d003ceea09a18da2f28c959c3afe4d8156ff9968e91e6ce83b839000bf039"
+    }
+  },
+  "limitations": [
+    "Provider-native provisional tokens are internal telemetry and are not claimed as validated public Artifact output.",
+    "No managed object upload, signed download authorization, malware scanning, file DLP pipeline, or object lifecycle evidence is implemented.",
+    "The current development database remains at revision 041 and was not cut over or restarted.",
+    "The .NET SDK requires CI compilation and test execution.",
+    "Corti tenant interoperability, multi-replica PostgreSQL and queue behavior, real Provider interruption, hospital integration, cloud infrastructure, legal, certification, and independent clinical review remain external gates."
+  ]
+}

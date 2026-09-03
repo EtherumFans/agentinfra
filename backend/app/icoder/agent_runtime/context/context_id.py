@@ -1,4 +1,8 @@
-"""contextId: UUID v4, server-generated, client-supplied ignored (Q4 / SPEC §3)."""
+"""Server-issued UUID v4 contextId generation and canonical validation.
+
+Clients omit the ID on the first turn and may reuse the returned ID on later
+turns. The transport validates tenant, agent and lifecycle before reuse.
+"""
 
 from __future__ import annotations
 

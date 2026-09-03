@@ -1,0 +1,359 @@
+{
+  "case_id": "CASE-35150fdebe45",
+  "completion_state": "REVIEW_RECOMMENDED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-35150fdebe45/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "Pneumonia diagnosis lacks specification of etiology (e.g., bacterial, viral, aspiration) and severity (e.g., severity score, need for ICU).",
+      "why_it_matters": "Specificity of pneumonia type and severity affects coding and treatment planning; unspecified pneumonia may lead to inaccurate coding and potential under- or over-treatment.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "入院诊断:肺炎",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-35150fdebe45/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "Abnormal lab value WBC 14.5 is documented without explicit clinical correlation or planned workup.",
+      "why_it_matters": "Abnormal lab values require clinical correlation to establish significance and guide further management; lack of correlation may lead to incomplete documentation and potential coding queries.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "WBC 14.5",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-35150fdebe45/Q-001",
+      "gap_id": "CASE-35150fdebe45/GAP-001",
+      "topic": "肺炎类型",
+      "reason": "肺炎诊断已记录，但临床类型尚未明确。",
+      "evidence_span": {
+        "document_id": "chart-001",
+        "quote": "入院诊断:肺炎",
+        "char_start": 52,
+        "char_end": 59,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "入院诊断:肺炎",
+          "char_start": 52,
+          "char_end": 59,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "请明确本次肺炎的具体类型。",
+      "response_options": [
+        "A. 社区获得性肺炎",
+        "B. 医院获得性肺炎",
+        "C. 吸入性肺炎",
+        "D. 其他类型（请注明）",
+        "E. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    }
+  ],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-002",
+      "gap_id": "CASE-35150fdebe45/GAP-002",
+      "topic": "WBC升高的临床意义及诊疗计划",
+      "reason": "WBC 14.5升高已记录，但未明确其临床意义或计划中的进一步检查。",
+      "query_text": "该患者WBC 14.5的临床意义及计划中的进一步检查是什么？",
+      "response_options": [
+        "A. 考虑为感染性白细胞增高，计划复查血常规并评估感染指标",
+        "B. 考虑为应激或药物相关白细胞增高，计划观察并复查",
+        "C. 考虑为血液系统疾病可能，计划进一步检查（如外周血涂片、骨髓检查）",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "WBC 14.5",
+          "char_start": 34,
+          "char_end": 42,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-004: the query asks for lab interpretation or planning rather than diagnosis clarification"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-PNA-8c043a5c",
+      "gap_id": "CASE-35150fdebe45/GAP-001",
+      "topic": "肺炎类型",
+      "reason": "肺炎诊断已记录，但临床类型尚未明确。",
+      "query_text": "请明确本次肺炎的具体类型。",
+      "response_options": [
+        "A. 社区获得性肺炎",
+        "B. 医院获得性肺炎",
+        "C. 吸入性肺炎",
+        "D. 其他类型（请注明）",
+        "E. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "入院诊断:肺炎",
+          "char_start": 52,
+          "char_end": 59,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "CDI-Coverage: pneumonia diagnosis lacks a documented clinical type"
+      ],
+      "status": "DETERMINISTIC_COVERAGE_GENERATED",
+      "rewrite_kind": "PNEUMONIA_TYPE",
+      "rewrite_attempt_status": "ACCEPTED_FOR_DOWNSTREAM_GATES",
+      "replacement_query_id": "Q-PNA-8c043a5c",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-001",
+      "gap_id": "CASE-35150fdebe45/GAP-001",
+      "topic": "肺炎的病因和严重程度",
+      "reason": "入院诊断为肺炎，但未明确病因（细菌性、病毒性、吸入性等）及严重程度（如严重程度评分、是否需要ICU）。",
+      "query_text": "该患者肺炎的病因分类和严重程度如何？",
+      "response_options": [
+        "A. 社区获得性肺炎，低严重程度（如PSI I-II级或CURB-65 0-1分），无需ICU",
+        "B. 社区获得性肺炎，中高严重程度（如PSI III-V级或CURB-65 ≥2分），需住院治疗但无需ICU",
+        "C. 吸入性肺炎或病毒性肺炎，严重程度需进一步评估",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "入院诊断:肺炎",
+          "char_start": 52,
+          "char_end": 59,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "CDI-Focus: resolve the core diagnosis/conflict before secondary refinements"
+      ],
+      "status": "DEFERRED_SECONDARY_TO_CORE_DIAGNOSIS",
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者男性, 64岁, 因咳嗽咳痰伴发热3天入院。胸片示右下肺浸润影。WBC 14.5, T 38.3℃。入院诊断:肺炎。予头孢曲松+阿奇霉素治疗。既往:2型糖尿病、高血压。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者男性，64岁",
+      "因咳嗽咳痰伴发热3天入院",
+      "胸片示右下肺浸润影",
+      "WBC 14.5",
+      "体温38.3℃",
+      "入院诊断：肺炎",
+      "予头孢曲松+阿奇霉素治疗",
+      "既往：2型糖尿病、高血压"
+    ],
+    "encounter_metadata": {
+      "patient_age": "64岁",
+      "patient_sex": "男性",
+      "encounter_type": "住院"
+    }
+  },
+  "risk_flags": [
+    {
+      "category": "unsupported_diagnosis",
+      "description": "Pneumonia diagnosis is asserted but lacks supporting evidence such as sputum culture, imaging details, or clinical correlation."
+    }
+  ],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "To accurately code this pneumonia, the clinician must specify the etiology (e.g., bacterial, viral, aspiration) and severity (e.g., CURB-65 score, ICU admission, or need for mechanical ventilation) to reflect the clinical complexity. Additionally, the abnormal WBC of 14.5 should be explicitly linked to the pneumonia as a sign of infection, with a documented plan for follow-up or repeat testing to clarify its clinical significance.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3329,
+      "tokens": 260
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "'score' score — no deterministic calculator wired",
+      "route_decision": "tool_unavailable",
+      "route_reason": "no_real_tool_wired",
+      "execution_mode": "TOOL_UNAVAILABLE",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-7dfad87cac5b",
+    "gap_identification": "run-5273fe35611c",
+    "gap_identification_risk_flags": "emitted=1;quote_snapped=0",
+    "expert_consultation": "run-8225612bec1d",
+    "query_generation": "run-dd417d89669e",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=2;llm_complete=False;llm_reasoning=The chart documents pneumonia but lacks specificity regarding etiology, severity",
+    "query_necessity_gate": "necessary=1;unnecessary=1;overquery_triggered=False;final_count=1",
+    "query_single_dimension_gate": "single_dim=1;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=type;rewrite_attempted=0;rewrite_accepted=0;final_count=1",
+    "claim_evidence_alignment_gate": "claims_extracted=2;blocked=0;flagged=0;final_count=1",
+    "claim_evidence_alignment_gate::run_id": "run-b2abbee02bd3",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=1",
+    "semantic_necessity_gate::run_id": "run-a80a2eb634ae",
+    "query_compliance_gate": ";passed=1;blocked=0",
+    "specialist_trace_emit": "run-87b59db7a9c4"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-d7d921b688e0",
+    "gap_identification": "trace-36c5775949a2",
+    "expert_consultation": "trace-51e84734e042",
+    "query_generation": "trace-51eb5dd5150a",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-a3f7943f1104",
+    "semantic_necessity_gate": "trace-82c32df63cec",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-ce53419da443"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 1884,
+      "prompt_tokens": 235,
+      "completion_tokens": 124,
+      "total_tokens": 359,
+      "run_id": "run-7dfad87cac5b",
+      "trace_id": "trace-d7d921b688e0",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5353,
+      "prompt_tokens": 1083,
+      "completion_tokens": 436,
+      "total_tokens": 1519,
+      "run_id": "run-5273fe35611c",
+      "trace_id": "trace-36c5775949a2",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5431,
+      "prompt_tokens": 1081,
+      "completion_tokens": 528,
+      "total_tokens": 1609,
+      "run_id": "run-dd417d89669e",
+      "trace_id": "trace-51eb5dd5150a",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3329,
+      "prompt_tokens": 171,
+      "completion_tokens": 89,
+      "total_tokens": 260,
+      "run_id": "run-99772aeea9a3",
+      "trace_id": "trace-00ddb186d9e0",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-2e61d2b79b75",
+      "trace_id": "trace-d99c0f5e9e7c",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-e0ccde68d623",
+      "trace_id": "trace-871d6e6d700e",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-6d30c9eeb6b2",
+      "trace_id": "trace-57f002680954",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T21:29:29.503967Z"
+}

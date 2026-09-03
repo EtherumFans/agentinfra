@@ -1,14 +1,14 @@
-// iCoDer Team Page — connected to real backend
+// iCoDer Team Page - connected to real backend
 import { Users, UserPlus, Shield, Trash2, Loader2, Mail, Clock } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
+
 import { useT } from '../i18n';
 import { teamApi } from '../services/api';
 
 const ROLE_LABELS: Record<string, string> = {
   owner: '拥有者',
   admin: '管理员',
-  coder: '编码员',
-  dept_head: '科室主任',
+  member: '成员',
   viewer: '查看者',
 };
 
@@ -19,7 +19,7 @@ export default function TeamPage() {
   const [error, setError] = useState('');
   const [showInvite, setShowInvite] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteRole, setInviteRole] = useState('coder');
+  const [inviteRole, setInviteRole] = useState('member');
   const [invitations, setInvitations] = useState<any[]>([]);
   const [activeSection, setActiveSection] = useState<'members' | 'invitations'>('members');
   const [removeConfirm, setRemoveConfirm] = useState<{id: string; name: string} | null>(null);
@@ -47,6 +47,7 @@ export default function TeamPage() {
       setShowInvite(false);
       setInviteEmail('');
       fetchMembers();
+      teamApi.invitations().then(r => setInvitations(r.data?.invitations || [])).catch(() => {});
     } catch (err: any) {
       if (err?.response?.status === 409) {
         setError('该成员已在团队中。');
@@ -78,7 +79,7 @@ export default function TeamPage() {
   );
 
   return (
-    <div className="bg-muted/20 min-h-screen p-6">
+    <div className="bg-muted/20 min-h-dvh p-6">
       {error && (
         <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-sm text-destructive flex items-center justify-between">
           <span>{error}</span>
@@ -97,7 +98,7 @@ export default function TeamPage() {
       </div>
 
       {showInvite && (
-        <div className="border border-border/20 rounded-xl shadow-sm ring-1 ring-border/20 p-5 mb-6 max-w-lg bg-background">
+        <div className="border border-border/20 rounded-xl shadow-sm p-5 mb-6 max-w-lg bg-background">
           <h3 className="text-sm font-semibold text-foreground mb-3">邀请团队成员</h3>
           <div className="space-y-3">
             <input
@@ -109,8 +110,8 @@ export default function TeamPage() {
               onKeyDown={(e) => e.key === 'Enter' && handleInvite()}
             />
             <select value={inviteRole} onChange={(e) => setInviteRole(e.target.value)} className="w-full text-sm border border-border/20 rounded-lg px-3 py-2 bg-transparent focus:outline-none focus:ring-1 focus:ring-ring">
-              <option value="coder">编码员</option>
-              <option value="dept_head">科室主任</option>
+              <option value="member">成员</option>
+              <option value="admin">管理员</option>
               <option value="viewer">查看者</option>
             </select>
             <div className="flex gap-2">
@@ -122,7 +123,7 @@ export default function TeamPage() {
       )}
 
       <div className="max-w-2xl">
-        {/* Tab switcher — iCoDer-style */}
+        {/* Tab switcher - iCoDer-style */}
         <div className="flex items-center gap-1 mb-4" role="tablist">
           <button role="tab" aria-selected={activeSection === 'members'} onClick={() => setActiveSection('members')}
             className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${activeSection === 'members' ? 'bg-accent text-foreground' : 'text-muted-foreground hover:text-foreground'}`}>团队成员</button>
@@ -136,7 +137,7 @@ export default function TeamPage() {
         {/* Members list */}
         {activeSection === 'members' && (
           members.length === 0 ? (
-            <div className="text-center py-12 border border-border/20 rounded-xl shadow-sm ring-1 ring-border/20 bg-background">
+            <div className="text-center py-12 border border-border/20 rounded-xl shadow-sm bg-background">
               <Users size={48} className="mx-auto mb-3 text-muted-foreground/30" />
               <p className="text-sm text-muted-foreground">暂无团队成员</p>
             </div>
@@ -167,7 +168,7 @@ export default function TeamPage() {
         {/* Invitations list */}
         {activeSection === 'invitations' && (
           invitations.length === 0 ? (
-            <div className="text-center py-12 border border-border/20 rounded-xl shadow-sm ring-1 ring-border/20 bg-background">
+            <div className="text-center py-12 border border-border/20 rounded-xl shadow-sm bg-background">
               <Mail size={48} className="mx-auto mb-3 text-muted-foreground/30" />
               <p className="text-sm text-muted-foreground">暂无待处理的邀请</p>
             </div>

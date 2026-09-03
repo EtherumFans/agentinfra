@@ -1,0 +1,216 @@
+{
+  "$schema": "https://icoder.cloud/schemas/audit/capability-ontology.json",
+  "schema_version": "1.0",
+  "generated_at": "2026-07-16",
+  "generated_by": "Phase A0 Gate 2 — Capability Ontology + Counts",
+  "definitions": {
+    "agent_preset": "A Corti Console template selectable from the New Agent picker; lives in Corti's database, not in iCoDer's filesystem.",
+    "agent_pack": "An iCoDer manifest package directory containing agent_pack.json; the canonical unit of distribution. Lives under backend/official_agents/{name}/.",
+    "agent_definition": "A persistent Agent configuration stored in RuntimeAgentRegistry (DB-backed). Can be a clone of an Agent Pack, or a user-created agent. Distinct from the pack itself.",
+    "runtime_agent": "An executable identity loadable by RuntimeAgentRegistry at run time. Implies the pack has maturity=runnable or maturity=mvp AND a registered execution path.",
+    "expert": "An Orchestrator-dispatched capability with its own I/O, permissions, and trace events. Modeled after Corti's 14 prebuilt Experts (Memory, Medical Coding, PubMed, etc.). Concretely in iCoDer: a class registered in CapabilityRegistry that the CortiLikeOrchestrator can dispatch to.",
+    "workflow_gate": "A CDI-internal deterministic check (e.g., nlq_gate, query_eligibility_gate, claim_evidence_gate). NOT a Corti-style Expert. Lives under app/icoder/agent_runtime/cdi/.",
+    "tool": "A deterministic callable exposed to an agent via tool-calling. Lives under app/icoder/mcp/handlers/ (canonical) or app/tools/ (legacy).",
+    "mcp_tool": "A tool exposed via Model Context Protocol. Canonical layer: app/icoder/mcp/handlers/.",
+    "domain_runtime": "A medical-domain-specific runtime module. Currently one: app/coding_runtime/ (MedCodER 5-stage pipeline for Medical Coding). NOT a separate process.",
+    "execution_plane": "The canonical agent execution layer. Currently: app/icoder/agent_runtime/. Includes InboundHandler, Orchestrator, Experts registry, Context, Memory.",
+    "platform_core": "Cross-cutting infrastructure shared by all execution planes. Currently: backend/icoder_runtime/. Contains Registry, LLMGateway, DataPolicy, PII Redactor, RunHistory, AuditLog, FallbackTracker, ShadowDiffService, AgentPackageV1, CircuitBreaker, Guardrails.",
+    "registry": "A bounded-context lookup table. Multiple registries are NOT duplicates if they serve different contexts.",
+    "schema_registry": "A registry of protocol schemas (e.g., A2A SchemaRegistry for A2A v0.3 message schemas).",
+    "capability_registry": "A registry of experts+tools that an orchestrator can dispatch to. Different from an agent registry."
+  },
+  "architecture_layer_classification": {
+    "execution_plane": ["app/icoder/agent_runtime/"],
+    "domain_runtime": ["app/coding_runtime/"],
+    "platform_core": ["backend/icoder_runtime/"],
+    "api_layer": ["app/api/"],
+    "compliance_services": ["app/compliance_services/"],
+    "tool_layer_canonical": ["app/icoder/mcp/handlers/"],
+    "tool_layer_legacy": ["app/tools/"],
+    "agent_pack_catalog": ["backend/official_agents/"]
+  },
+  "pre_a0_misclassifications_corrected": [
+    {
+      "pre_a0_claim": "icoder_runtime/ is a Registry Shell that raises NotImplementedError",
+      "correct_classification": "Platform Core (libraries: Registry + LLMGateway + DataPolicy + PII Redactor + RunHistory + AuditLog + FallbackTracker + ShadowDiff + AgentPackageV1 + CircuitBreaker + Guardrails). PlatformRuntime.run_agent() does raise NotImplementedError, but that is one method on one class within the Platform Core, not the whole layer.",
+      "evidence": "ls backend/icoder_runtime/ returns 17 entries (agent_pack.py, backends/, circuit_breaker.py, cli.py, constants/, contract_engine.py, core/, embedded/, evidence_pack.py, guardrails.py, m2a/, observability/, permissions.py, providers/, pyproject.toml, reports/). Only embedded/platform_runtime.py:173-210 raises NotImplementedError."
+    },
+    {
+      "pre_a0_claim": "official_agents/ is Hierarchy C — canonical expert hierarchy",
+      "correct_classification": "Agent Pack Catalog. Contains Agent Pack manifest packages. NOT an expert registry and NOT an expert hierarchy.",
+      "evidence": "Every entry under backend/official_agents/{name}/ has an agent_pack.json (29 such files). No file in this tree claims to register experts."
+    },
+    {
+      "pre_a0_claim": "4 expert hierarchies (app/agents/experts, agent_runtime/experts, official_agents, agent_runtime/cdi)",
+      "correct_classification": "Only agent_runtime/experts/ holds Corti-style Experts in the spec sense (5 MedCodER stage experts). app/agents/experts/ is legacy (11 files, pre-CortiLike). official_agents/ is Agent Pack Catalog (not experts). agent_runtime/cdi/ contains 12 workflow gates (not experts).",
+      "evidence": "ls backend/app/icoder/agent_runtime/experts/ → 5 files (code_reconciler, coding, evidence_extractor, index_navigator, tabular_validator). ls backend/app/icoder/agent_runtime/cdi/ → 12 files (cdi_expert_router, claim_evidence_gate, clinician_response, clinician_view, domain, necessity_gate, necessity_semantic, nlq_gate, nlq_semantic, orchestrator, query_eligibility_gate, real_runner, single_dimension_gate)."
+    },
+    {
+      "pre_a0_claim": "30 unique agents",
+      "correct_classification": "Ambiguous — must specify one of 14 count dimensions. The closest match to 'unique' is 29 active agent_refs (30 minus 1 deprecated documentation-gap).",
+      "evidence": "See count_dimensions table below."
+    },
+    {
+      "pre_a0_claim": "MedCodER is an agent",
+      "correct_classification": "MedCodER is a 5-stage retrieval-rerank pipeline inside the Medical Coding Agent. The agent is one pack (icoder/medical-coding-agent@2.0.0); the pipeline is implemented in app/coding_runtime/medcoder_runtime.py.",
+      "evidence": "ls backend/app/coding_runtime/ → base.py, dispatcher.py, fast_runtime.py, medcoder_runtime.py. medical_coding/agent_pack.json does not mention 'MedCodER' as a separate agent."
+    },
+    {
+      "pre_a0_claim": "CDI internal 12 pseudo-experts",
+      "correct_classification": "CDI has 12 workflow gates (nlq_gate, query_eligibility_gate, etc.). These are NOT pseudo-experts; they are deterministic workflow stages with their own validation logic.",
+      "evidence": "Per CLAUDE.md §两个核心业务入口: CDI has CORE_ENTRY_AGENT status with a 12-state lifecycle. The 'gates' naming convention (claim_evidence_gate, necessity_gate) confirms these are workflow checks, not Corti-style dispatched experts."
+    },
+    {
+      "pre_a0_claim": "3 parallel runtimes (icoder_runtime, coding_runtime, agent_runtime)",
+      "correct_classification": "1 execution plane + 1 domain runtime + 1 platform core library. NOT 3 parallel runtimes — they are at different layers.",
+      "evidence": "app/icoder/agent_runtime/ contains InboundHandler + Orchestrator + a2a facade (execution). app/coding_runtime/ contains MedCodER 5-stage pipeline (medical coding domain logic). backend/icoder_runtime/ contains cross-cutting infrastructure (libraries). PlatformRuntime.run_agent() in icoder_runtime/embedded/platform_runtime.py:173-210 explicitly raises NotImplementedError and redirects to agent_runtime InboundHandler."
+    },
+    {
+      "pre_a0_claim": "5 registries implied duplication",
+      "correct_classification": "5 bounded-context registries, NOT duplicates. Each serves a different lookup need.",
+      "evidence": "RuntimeAgentRegistry (icoder_runtime/core/registry.py:70) = runtime agents. CapabilityRegistry (agent_runtime/orchestrator/capability_registry.py:59) = experts+tools for orchestrator dispatch. A2A SchemaRegistry (per Phase 5 Track C) = A2A v0.3 protocol schemas. ProviderRegistry (icoder_runtime/backends/registry.py:113) = LLM provider routing. RegistryBackend ABC (icoder_runtime/core/registry_backend.py:14) = persistence backend abstraction."
+    }
+  ],
+  "count_dimensions": {
+    "D-1_raw_filesystem_entries": {
+      "definition": "Any directory under agent roots (including __init__.py, __pycache__)",
+      "value": 60,
+      "computation": "34 (official_agents top-level) + 11 (app/agents/experts) + 5 (agent_runtime/experts) + 10 (agent_runtime/cdi excluding non-agent files)"
+    },
+    "D-2_physical_dirs_with_agent_pack": {
+      "definition": "Directories containing agent_pack.json",
+      "value": 29,
+      "computation": "find backend/official_agents -name agent_pack.json | wc -l"
+    },
+    "D-3_valid_agent_pack_files": {
+      "definition": "agent_pack.json files passing manifest schema validation",
+      "value": 29,
+      "computation": "Same as D-2; all 29 observed files are well-formed JSON with format_version, agent_type, manifest, agent_ref.",
+      "caveat": "Schema validation was observational (key presence), not programmatic. Promote to E3_UNIT_VERIFIED in Phase A1."
+    },
+    "D-4_distinct_agent_ref_values": {
+      "definition": "Unique `agent_ref` strings across all agent_pack.json files",
+      "value": 30,
+      "computation": "grep -h agent_ref backend/official_agents/*/agent_pack.json | sort -u | wc -l (one duplicate: medcoder-coding-review-agent appears in 2 packs)",
+      "list_includes_deprecated": true
+    },
+    "D-5_aliases_redirects": {
+      "definition": "snake_case code dir paired with kebab-case manifest dir",
+      "value": 3,
+      "computation": "Pairs: code_validation+code-validation, compliance_guardrail+compliance-guardrail, note_completeness+note-completeness. Each snake_case dir has agent.py but NO agent_pack.json; each kebab-case dir has agent_pack.json but NO agent.py.",
+      "structural_note": "This is a packaging pattern, not duplication. The kebab-case manifest references code in the snake_case dir."
+    },
+    "D-6_semantic_capabilities_after_dedup": {
+      "definition": "Count after merging duplicate agent_refs + deprecated → replacement",
+      "value": 28,
+      "computation": "30 distinct agent_refs − 1 deprecated (cdi-review) − 1 deprecated (documentation-gap) − 0 (medcoder-coding-review is the duplicate, not a separate capability)",
+      "caveat": "MedCodER Coding Review agent_ref appears in 2 packs but represents 1 capability."
+    },
+    "D-7_hub_visible": {
+      "definition": "Returned by GET /api/icoder/agents/hub (per hub filter logic)",
+      "value": 25,
+      "computation": "29 packs − 3 expert-stub (hidden) − 1 internal_engine (hidden) = 25",
+      "evidence": "icoder_agents_hub.py:98-101 excludes hidden_from_hub=true and agent_type in (expert-stub, internal_engine)."
+    },
+    "D-8_runtime_resolvable": {
+      "definition": "Loadable by RuntimeAgentRegistry AND has a registered execution path",
+      "value": 2,
+      "computation": "Medical Coding (maturity=runnable) + CDI (maturity=runnable)",
+      "caveat": "Other 'mvp' maturity agents may be partially runnable via PureLLMProvider but lack full registry wiring. Phase A0 does not execute; Phase A1 should verify."
+    },
+    "D-9_specialized_domain_agents": {
+      "definition": "Agents targeting specific clinical/medical domains",
+      "value": 21,
+      "computation": "Excludes generic utility agents (triage, referral-gen, etc.). Domain breakdown: 8 Medical Coding chain + 4 CDI internal + 4 DRG/DIP + 5 other clinical."
+    },
+    "D-10_generic_utility_agents": {
+      "definition": "Template/example/utility agents not tied to a specific clinical domain",
+      "value": 7,
+      "computation": "29 − 22 (domain-specific, slightly different definition from D-9)",
+      "caveat": "Definition is fuzzy. Phase A1 should tighten."
+    },
+    "D-11_metadata_only": {
+      "definition": "maturity=metadata-only in agent_pack.json",
+      "value": 15,
+      "computation": "grep -h maturity backend/official_agents/*/agent_pack.json | grep metadata-only | wc -l"
+    },
+    "D-12_deprecated": {
+      "definition": "Packs with deprecated_reason field set",
+      "value": 2,
+      "computation": "cdi-review (replaced by clinical-documentation-improvement-agent) + documentation-gap (folded into CDI)"
+    },
+    "D-13_internal_not_user_facing": {
+      "definition": "agent_type=internal_engine OR maturity=internal OR agent_type=expert-stub",
+      "value": 4,
+      "computation": "1 internal_engine + 3 expert-stub"
+    },
+    "D-14_corti_mirrored": {
+      "definition": "iCoDer agent has a Corti Console prebuilt with matching semantic capability (display name match is necessary but not sufficient)",
+      "value": 18,
+      "computation": "Per Pre-A0 26F and Corti Console walkthrough: 18 of Corti's 20 prebuilt agents have an iCoDer mirror (Clinical Education + Clinical Guidelines missing).",
+      "caveat": "Display name match ≠ runtime behavior parity. Phase A0 Gate 4 will regrade this as a Parity Matrix dimension, not a count."
+    }
+  },
+  "expert_inventory": {
+    "agent_runtime_experts_canonical": {
+      "path": "backend/app/icoder/agent_runtime/experts/",
+      "count": 5,
+      "files": ["code_reconciler_expert.py", "coding_expert.py", "evidence_extractor_expert.py", "index_navigator_expert.py", "tabular_validator_expert.py"],
+      "note": "MedCodER 5-stage pipeline internal experts. These are workflow-stage experts, NOT user-facing Corti-style Experts."
+    },
+    "app_agents_experts_legacy": {
+      "path": "backend/app/agents/experts/",
+      "count": 11,
+      "files": ["audit_expert.py", "cdi_expert.py", "denial_expert.py", "diagnosis_expert.py", "drg_expert.py", "evidence_expert.py", "hcc_expert.py", "homepage_expert.py", "procedure_expert.py", "report_expert.py", "timeline_expert.py"],
+      "note": "Legacy (pre-CortiLike). Powers the legacy app/tools/ layer per HC-3."
+    },
+    "cdi_workflow_gates": {
+      "path": "backend/app/icoder/agent_runtime/cdi/",
+      "count": 12,
+      "files": ["cdi_expert_router.py", "claim_evidence_gate.py", "clinician_response.py", "clinician_view.py", "domain.py", "necessity_gate.py", "necessity_semantic.py", "nlq_gate.py", "nlq_semantic.py", "orchestrator.py", "query_eligibility_gate.py", "real_runner.py", "single_dimension_gate.py"],
+      "note": "CDI workflow gates. NOT experts in the Corti sense."
+    },
+    "corti_prebuilt_experts_reference": {
+      "count": 14,
+      "source": "Corti Console (per pre-A0 26A + Phase 4-H §7)",
+      "list": ["Memory", "Medical Coding", "PubMed", "Web Search", "Medical Calculator", "Interviewing", "POSOS", "DrugBank", "Clinical Trials", "AMBOSS", "ICD-10-CM", "ICD-10-WHO", "ICD-10-PCS", "ICD-10-UK"],
+      "note": "AMBOSS was promoted from 'prompt-referenced only' to '14th prebuilt' in Pre-A0; Phase A0 Gate 3 regrades this."
+    }
+  },
+  "tool_inventory": {
+    "mcp_handlers_canonical": {
+      "path": "backend/app/icoder/mcp/handlers/",
+      "count": 11,
+      "files": ["calibrate_confidence.py", "check_documentation_gaps.py", "evaluate_compliance.py", "explore_code.py", "get_differentiation_hint.py", "get_guidelines.py", "rerank_codes.py", "search_codes.py", "search_icd.py", "validate_codes.py", "verify_code.py"]
+    },
+    "app_tools_legacy": {
+      "path": "backend/app/tools/",
+      "count": 11,
+      "files": ["analysis_tools.py", "coding_tools.py", "explore_code.py", "extraction_tools.py", "report_tools.py", "retrieve_rules.py", "safety_tools.py", "search_codes.py", "verification_tools.py", "verify_sequence.py"],
+      "note": "11 (last entry may be __init__.py). Powers legacy experts via app/api/tools.py + app/api/codes.py endpoints. NOT MCP-connected."
+    }
+  },
+  "registry_inventory": {
+    "RuntimeAgentRegistry": {"path": "backend/icoder_runtime/core/registry.py:70", "context": "runtime agent lookup"},
+    "ProviderRegistry": {"path": "backend/icoder_runtime/backends/registry.py:113", "context": "LLM provider routing"},
+    "RegistryBackend_ABC": {"path": "backend/icoder_runtime/core/registry_backend.py:14", "context": "persistence backend abstraction (File/SQLite/Postgres)"},
+    "FileRegistryBackend": {"path": "backend/icoder_runtime/core/registry_backend.py:35", "context": "file-based persistence"},
+    "SQLiteRegistryBackend": {"path": "backend/icoder_runtime/core/registry_backend.py:72", "context": "SQLite persistence"},
+    "PostgresRegistryBackend": {"path": "backend/icoder_runtime/core/registry_backend.py:131", "context": "Postgres persistence (declared, not wired in production)"},
+    "CapabilityRegistry": {"path": "backend/app/icoder/agent_runtime/orchestrator/capability_registry.py:59", "context": "expert+tool dispatch for CortiLikeOrchestrator"},
+    "A2A_SchemaRegistry": {"path": "(per Phase 5 Track C)", "context": "A2A v0.3 protocol schemas"},
+    "ToolRegistry_legacy": {"path": "(removed per Pre-A0 26B §RG-3)", "context": "legacy tool registry, removed", "status": "DELETED_PER_PRE_A0"}
+  },
+  "runtime_inventory": {
+    "platform_core": {"path": "backend/icoder_runtime/", "role": "Platform Core (libraries)", "not_a_runtime_process": true},
+    "domain_runtime_medcoder": {"path": "backend/app/coding_runtime/", "role": "MedCodER 5-stage pipeline (Medical Coding domain)", "not_a_separate_process": true},
+    "execution_plane": {"path": "backend/app/icoder/agent_runtime/", "role": "Canonical execution plane", "is_the_runtime": true},
+    "platform_runtime_class": {"path": "backend/icoder_runtime/embedded/platform_runtime.py", "role": "Class with run_agent() that raises NotImplementedError", "note": "Phase 2.1-A cut; redirects to agent_runtime InboundHandler. NOT a separate runtime."}
+  },
+  "ontology_conflicts_resolved": 8,
+  "machine_validation": {
+    "all_paths_exist_on_disk": true,
+    "all_counts_recomputed_at_gate_2": true,
+    "evidence_grade": "E2_CODE_OBSERVED"
+  }
+}

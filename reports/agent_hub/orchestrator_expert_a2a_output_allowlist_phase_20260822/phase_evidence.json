@@ -1,0 +1,98 @@
+{
+  "schema_version": "icoder.orchestrator-expert-a2a-output-allowlist/v1",
+  "generated_at": "2026-08-22T16:41:06+08:00",
+  "result": "passed_with_real_model_clinical_and_external_release_gates_open",
+  "implementation": {
+    "runtime_noop_expert_exported": false,
+    "runtime_stub_expert_present": false,
+    "missing_or_unknown_expert_http_status": 503,
+    "mock_medical_coding_returns_clinical_result": false,
+    "mock_medical_coding_http_status": 503,
+    "provider_registry_a2a_agents_with_exact_declared_output_allowlist": 21,
+    "dedicated_simple_a2a_agents_with_exact_declared_output_allowlist": 3,
+    "a2a_attestation_signs_filtered_domain_result": true,
+    "provider_diagnostics_are_metadata_only": true,
+    "unified_run_engineering_metadata_preserved": true
+  },
+  "tests": {
+    "orchestrator_and_deployment_preflight": {
+      "passed": 334,
+      "failed": 0,
+      "duration_seconds": 3.96
+    },
+    "initial_expanded_a2a_diagnostic": {
+      "passed": 236,
+      "failed": 4,
+      "skipped": 5,
+      "duration_seconds": 61.48,
+      "all_failures_resolved": true
+    },
+    "focused_output_allowlist": {
+      "passed": 13,
+      "failed": 0,
+      "duration_seconds": 14.63
+    },
+    "final_expanded_a2a_api_visible_agent_contracts": {
+      "passed": 348,
+      "failed": 0,
+      "skipped": 5,
+      "warnings": 39,
+      "duration_seconds": 201.91,
+      "includes_native_deepseek_sse_shape_mock_transport": true,
+      "provisional_provider_content_exposed": false
+    },
+    "deployment_preflight": {
+      "passed": 72,
+      "failed": 0,
+      "mode": "static_without_docker_cli"
+    },
+    "openapi": {
+      "paths": 269,
+      "schemas": 288,
+      "bytes": 842015,
+      "drift": false
+    },
+    "real_llm_used": false,
+    "real_asr_used": false,
+    "external_llm_allowed": false,
+    "native_medcoder_used": false,
+    "independent_backend_started_or_restarted": false
+  },
+  "data_safety": {
+    "schema_change": false,
+    "source_database_path": "backend/data/icoder.db",
+    "source_database_sha256": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e",
+    "source_database_unchanged": true,
+    "cutover_performed": false,
+    "port_8000_listening_after_verification": false
+  },
+  "artifacts": {
+    "runtime_matrix": {
+      "path": "reports/agent_hub/visible_launch_candidate_enforcement_phase_20260822/current/agent_hub_runtime_matrix.json",
+      "sha256": "0e4cb75433af9c6af2d680d0b6af28cdd6ff1e9897b3366cff71ddc3648d7865"
+    },
+    "deployment_preflight": {
+      "path": "reports/agent_hub/orchestrator_expert_a2a_output_allowlist_phase_20260822/deployment-preflight/deployment_preflight.json",
+      "sha256": "53f4e9b1b2d92027a16387d4de1c8546c70df95e855303d98eafaf710fcbfd30"
+    },
+    "openapi": {
+      "path": "docs/openapi/openapi.json",
+      "sha256": "a095196fe81a671d8c94f57ece85831d9346490deb5c49e5cf2b05cb661a8cfe"
+    },
+    "summary": {
+      "path": "docs/corti_parity/ICODER_ORCHESTRATOR_EXPERT_A2A_OUTPUT_ALLOWLIST_PHASE_SUMMARY_2026-08-22.md",
+      "sha256": "32fb4ce7f486086ab675e95b71658a758e1ba7ab7958f76810b2f0563952ef74"
+    },
+    "live_gap_matrix": {
+      "path": "docs/corti_parity/CORTI_ICODER_LIVE_GAP_MATRIX_2026-08-21.md",
+      "sha256": "8adb841f11b4ef28d536c1c72eaa8800f6a54e7d3952441c3ac590119fcc6604",
+      "bytes": 34561
+    }
+  },
+  "limitations": [
+    "This phase proves runtime failure semantics and exact schema-labelled A2A domain projection; it does not prove clinical correctness or completeness.",
+    "No fresh 26-agent real-model happy, adversarial, repeatability, latency, or cost matrix was executed.",
+    "No authorized Chinese clinical gold set, bilateral Corti comparison, or independent clinical review was available.",
+    "No dotnet, Docker, or Nginx CLI is available locally; cloud, multi-replica, production queue, provider cancellation, external interoperability, hospital, legal, certification, and operational gates remain open."
+  ]
+}

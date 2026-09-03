@@ -1,0 +1,192 @@
+{
+  "audit": "iCoDer Comprehensive Product, Architecture and Delivery Audit",
+  "audit_started": "2026-07-15",
+  "trusted_commit": "c147d015455017bc1d8420cbdbd813b3b8ec23ce",
+  "branch": "master",
+  "remote": "https://github.com/EtherumFans/agentinfra.git",
+  "workspace_dirty": true,
+  "workspace_status_entries": 78,
+  "cdi_prompt_tuning_paused": true,
+  "model_training_paused": true,
+  "gates_completed": ["gate0"],
+  "gates_in_progress": [],
+  "gates_pending": [
+    "gate1", "gate2", "gate3", "gate4", "gate5", "gate6", "gate7",
+    "gate8", "gate9", "gate10", "gate11", "gate12", "gate13", "gate14"
+  ],
+  "evidence_index": {
+    "git": [
+      "evidence/git/head.txt",
+      "evidence/git/last_50_commits.txt",
+      "evidence/git/workspace_status.txt"
+    ],
+    "commands": [],
+    "test-results": [],
+    "browser": [],
+    "screenshots": [],
+    "playwright-traces": [],
+    "sanitized-har": [],
+    "console": [],
+    "network": [],
+    "storage": [],
+    "security": [],
+    "packages": [],
+    "external-consumer": [],
+    "architecture": [],
+    "hashes": []
+  },
+  "findings": {
+    "P0": [],
+    "P1": [
+      {
+        "id": "G0-001",
+        "severity": "P1",
+        "domain": "delivery",
+        "title": "Phase 6 and Phase 7 reports exist only in working copy, never committed",
+        "evidence": [
+          "git status --short shows reports/phase6/, reports/phase7/, reports/phase7/gate13a/ as ??",
+          "git log --all -- reports/phase7/PHASE7_FINAL_REPORT.md returns nothing"
+        ],
+        "impact": "Reproducibility from origin/master is broken. Anyone cloning the repo gets a project where Phase 6/7 PASS verdicts do not exist.",
+        "recommended_fix": "Commit reports/phase6/ + reports/phase7/ + supporting untracked code (alembic 012-015, services/*, examples/partner-reference-app/) as a Phase 7 closure commit before further feature work.",
+        "fix_now": false,
+        "delete_not_fix": false,
+        "verification_gate": "gate14"
+      }
+    ],
+    "P2": [
+      {
+        "id": "G0-002",
+        "severity": "P2",
+        "domain": "delivery",
+        "title": "Three parallel Web Component implementations still on disk despite DEPRECATED.md",
+        "evidence": [
+          "packages/icoder-web/DEPRECATED.md (Phase 6 Gate 1)",
+          "packages/web-components/DEPRECATED.md (Phase 6 Gate 1)",
+          "web-components/DEPRECATED.md (Phase 6 Gate 1)"
+        ],
+        "impact": "Consumer confusion; risk of importing wrong package.",
+        "recommended_fix": "Delete or move to archive/. Verify no imports.",
+        "fix_now": false,
+        "delete_not_fix": true,
+        "verification_gate": "gate21"
+      },
+      {
+        "id": "G0-003",
+        "severity": "P2",
+        "domain": "build-hygiene",
+        "title": "Inconsistent dist/ commit policy: embedded dist tracked, SDK dist untracked",
+        "evidence": [
+          "git ls-files packages/icoder-embedded/dist/ returns files",
+          "packages/icoder-sdk/dist/ is ?? in git status"
+        ],
+        "impact": "Inconsistent release story; SDK consumers must build locally.",
+        "recommended_fix": "Pick one policy, document in README.",
+        "fix_now": false,
+        "delete_not_fix": false,
+        "verification_gate": "gate8"
+      },
+      {
+        "id": "G0-004",
+        "severity": "P2",
+        "domain": "build-hygiene",
+        "title": "DB path mismatch — two empty .db files at backend root",
+        "evidence": [
+          "backend/app.db size 0 bytes",
+          "backend/icoder.db size 0 bytes",
+          "backend/alembic.ini: sqlalchemy.url = sqlite+aiosqlite:///./data/icoder.db"
+        ],
+        "impact": "Engineer inspecting backend/icoder.db sees empty DB.",
+        "recommended_fix": "Remove stray .db files; document canonical path.",
+        "fix_now": false,
+        "delete_not_fix": true,
+        "verification_gate": "gate1"
+      },
+      {
+        "id": "G0-005",
+        "severity": "P2",
+        "domain": "delivery",
+        "title": "Last 16 commits are CDI prompt tuning despite PDF-level pause on CDI prompt tuning",
+        "evidence": [
+          "git log --oneline -16 shows commits 4a5b28d..c147d01 all start with feat(track-h)",
+          "PDF §一.4 / §十五: 'current decision: pause CDI prompt tuning'"
+        ],
+        "impact": "The pause decision is more recent than the work; audit must verify the pause is actually in effect.",
+        "recommended_fix": "Confirm by checking whether any in-flight CDI prompt change exists in workspace (none observed — workspace changes are Phase 7, not Track H).",
+        "fix_now": false,
+        "delete_not_fix": false,
+        "verification_gate": "gate5"
+      }
+    ],
+    "P3": []
+  },
+  "verdicts_so_far": {
+    "gate0": "AUDIT_GATE0_BASELINE_ESTABLISHED_WITH_DELIVERY_DEBT",
+    "gate11": "TESTS_REAL_BUT_DEPLOYMENT_IS_LOCAL_DEV_ONLY_AND_CLOUD_IS_DOCS_ONLY",
+    "gate13": "NOT_COMMERCially_VIABLE_NO_CERTIFICATIONS_NO_LEGAL_DOCS_NO_DEPLOYMENT_PATH",
+    "gate14": "NOT_HOSPITAL_PILOT_READY",
+    "pre_a0_gate0": "PRE_A0_GATE_0_BASELINE_CAPTURED",
+    "pre_a0_gate1": "PRE_A0_GATE_1_CORTI_OFFICIAL_EVIDENCE_CATALOG_COMPLETE",
+    "pre_a0_gate2": "PRE_A0_GATE_2_ICODER_INVENTORY_COMPLETE",
+    "pre_a0_gate3": "PRE_A0_GATE_3_HISTORICAL_CLAIMS_REVERIFIED",
+    "pre_a0_gate4": "PRE_A0_GATE_4_PREBUILT_EXPERT_BUSINESS_RELEVANCE_COMPLETE",
+    "pre_a0_gate5": "PRE_A0_GATE_5_CHINA_MEDICAL_SCENARIO_MAPPING_COMPLETE",
+    "pre_a0_gate6": "PRE_A0_GATE6_AGENT_HUB_CONVERGENCE_REVIEW_COMPLETE",
+    "pre_a0_gate7": "PRE_A0_GATE7_PARITY_MATRIX_V2_PUBLISHED",
+    "pre_a0_gate8": "PRE_A0_GATE8_ISSUE_LEDGER_DEDUP_AND_V2_ROADMAP_COMPLETE",
+    "pre_a0_gate9": "PRE_A0_GATE9_CANONICAL_ARCHITECTURE_AND_DECISION_MATRIX_PUBLISHED",
+    "pre_a0_final": "PASS_PRE_A0_CORTI_FOUNDATION_RECONCILIATION_COMPLETE"
+  },
+  "pre_a0": {
+    "started": "2026-07-15",
+    "closed": "2026-07-16",
+    "head_at_start": "c147d015455017bc1d8420cbdbd813b3b8ec23ce",
+    "head_at_close": "c147d015455017bc1d8420cbdbd813b3b8ec23ce",
+    "baseline_drift": false,
+    "code_changes_by_pre_a0": 0,
+    "new_reports": [
+      "reports/comprehensive-audit/PRE_A0_GATE0_BASELINE.md",
+      "reports/comprehensive-audit/26A_CORTI_OFFICIAL_EVIDENCE_CATALOG.md",
+      "reports/comprehensive-audit/26B_ICODER_AGENT_EXPERT_TOOL_RUNTIME_INVENTORY.md",
+      "reports/comprehensive-audit/26C_GATE3_HISTORICAL_CLAIMS_REVERIFICATION.md",
+      "reports/comprehensive-audit/26D_GATE4_PREBUILT_EXPERT_BUSINESS_RELEVANCE.md",
+      "reports/comprehensive-audit/26E_GATE5_CHINA_MEDICAL_SCENARIO_MAPPING.md",
+      "reports/comprehensive-audit/26F_GATE6_AGENT_HUB_CONVERGENCE_REVIEW.md",
+      "reports/comprehensive-audit/26G_GATE7_PARITY_MATRIX_V2_DELTA.md",
+      "reports/comprehensive-audit/26H_GATE8_ISSUE_LEDGER_DEDUP.md",
+      "reports/comprehensive-audit/26I_GATE9_CANONICAL_ARCHITECTURE_DECISION_MATRIX.md",
+      "reports/comprehensive-audit/PRE_A0_FINAL_DECISION.md"
+    ],
+    "new_evidence": [
+      "reports/comprehensive-audit/evidence/corti-foundation/console-walkthrough/ (17 files: 10 PNG + 6 MD + 1 JSON)"
+    ],
+    "hard_checkpoints": {
+      "A_official_corti_evidence": "PASS",
+      "B_complete_icoder_inventory": "PASS",
+      "C_correct_classification": "PASS",
+      "D_no_feature_expansion": "PASS",
+      "E_ready_for_phase_a0": "PASS"
+    },
+    "v2_parity_summary": {
+      "total_dimensions": 51,
+      "favorable_to_icoder": 30,
+      "favorable_to_corti": 12,
+      "different_by_design": 6,
+      "not_implemented": 2,
+      "tech_debt": 1,
+      "favorable_percent": 59,
+      "v1_favorable_percent": 34,
+      "cn_scoped_favorable_percent": 77
+    },
+    "p0_blockers_unchanged": 4,
+    "new_p0_introduced_by_pre_a0": 0
+  },
+  "forbidden_verdicts": [
+    "PRODUCTION_READY",
+    "HOSPITAL_DEPLOYMENT_READY",
+    "PARTNER_PRODUCTION_READY",
+    "CORTI_FULL_PARITY",
+    "PUBLIC_NPM_PUBLISHED",
+    "SECURITY_CERTIFIED"
+  ]
+}

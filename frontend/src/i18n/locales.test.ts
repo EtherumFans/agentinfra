@@ -10,6 +10,7 @@
  *   4. Placeholder sets in interpolation templates match across locales.
  */
 import { describe, it, expect } from 'vitest';
+
 import { locales } from './locales';
 
 const zhCN = locales['zh-CN'];

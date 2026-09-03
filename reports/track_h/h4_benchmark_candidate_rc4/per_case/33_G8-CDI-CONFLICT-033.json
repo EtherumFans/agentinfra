@@ -1,0 +1,237 @@
+{
+  "case_id": "CASE-c852251d34f9",
+  "completion_state": "BLOCKED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-c852251d34f9/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "COPD急性加重的严重程度在入院诊断、病程记录和出院诊断中不一致（重度、轻度、中度），需明确最终严重程度。",
+      "why_it_matters": "严重程度影响DRG分组和编码准确性，不一致可能导致编码错误或合规风险。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": ":pH 7.38, PaCO2 56, PaO2 70。病程记录:COPD急性加重, 轻度。出院诊断:COP"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-c852251d34f9/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "血气分析显示PaCO2 56 mmHg（高碳酸血症），但未明确是否与COPD急性加重相关或需要其他诊断。",
+      "why_it_matters": "高碳酸血症是COPD急性加重的常见表现，但需临床确认其与当前加重的关系，避免遗漏其他病因。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "血气分析:pH 7.38, PaCO2 56, PaO2 70"
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-c852251d34f9/Q-001",
+      "gap_id": "CASE-c852251d34f9/GAP-002",
+      "topic": "高碳酸血症与COPD急性加重的关系",
+      "reason": "血气分析显示PaCO2 56 mmHg（高碳酸血症），但未明确是否与COPD急性加重相关或需要其他诊断。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "血气分析:pH 7.38, PaCO2 56, PaO2 70"
+      },
+      "query_text": "患者血气分析显示PaCO2 56 mmHg（高碳酸血症），请明确该高碳酸血症是否与COPD急性加重直接相关，或是否存在其他原因（如呼吸肌疲劳、中枢抑制等）？",
+      "response_options": [
+        "A. 与COPD急性加重直接相关",
+        "B. 存在其他原因（请说明）",
+        "C. 两者共同作用",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine"
+    }
+  ],
+  "chart_excerpt_preview": "患者男性, 70岁, COPD史。入院诊断:COPD急性加重, 重度。血气分析:pH 7.38, PaCO2 56, PaO2 70。病程记录:COPD急性加重, 轻度。出院诊断:COPD急性加重, 中度。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [],
+    "encounter_metadata": {}
+  },
+  "risk_flags": [
+    {
+      "category": "contradiction",
+      "description": "COPD急性加重的严重程度在入院诊断、病程记录和出院诊断中相互矛盾（重度、轻度、中度）。"
+    }
+  ],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "根据病历记录，COPD急性加重的严重程度在入院、病程和出院诊断中不一致，需由主治医师明确最终严重程度并统一记录。血气分析显示高碳酸血症（PaCO2 56 mmHg），需明确其是否由COPD急性加重直接导致，或需考虑其他病因如呼吸肌疲劳或合并症。建议在出院小结中清晰说明COPD急性加重的最终严重程度分级，并关联高碳酸血症的临床意义。",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3210,
+      "tokens": 279
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-499e3745b731",
+    "gap_identification": "run-9a4231380a79",
+    "gap_identification_risk_flags": "emitted=1;quote_snapped=1",
+    "expert_consultation": "run-685b88f4d2e2",
+    "query_generation": "run-b16af02bf22d",
+    "query_generation::quote_snapped": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.25;dimensions=D1_type=N,D2_site=N,D3_severity=Y,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=Y;dropped=0;final_count=2;llm_complete=False;llm_reasoning=COPD急性加重的严重程度存在矛盾，且血气分析异常（高碳酸血症）未明确临床意义，需要澄清才能准确编码。",
+    "query_necessity_gate": "necessary=2;unnecessary=0;overquery_triggered=False;final_count=2",
+    "query_single_dimension_gate": "single_dim=1;multi_dim=1;axis_cluster_triggered=False;axis_cluster_axis=course;final_count=1",
+    "claim_evidence_alignment_gate": "claims_extracted=3;blocked=0;flagged=0;final_count=1",
+    "claim_evidence_alignment_gate::run_id": "run-261cb7749091",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=1",
+    "semantic_necessity_gate::run_id": "run-6b6aee0d7c77",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "run-ecd27ec6c980"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-aa13c7807a98",
+    "gap_identification": "trace-688f4a480b58",
+    "expert_consultation": "trace-d1e28e87c478",
+    "query_generation": "trace-7adf5fc5971f",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-933cdf779c69",
+    "semantic_necessity_gate": "trace-48c306dd869a",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-11a000589d39"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3394,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-499e3745b731",
+      "trace_id": "trace-aa13c7807a98",
+      "degraded": true,
+      "error_reason": "LLM call failed after 3 attempts: Connection error.",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 4245,
+      "prompt_tokens": 1001,
+      "completion_tokens": 500,
+      "total_tokens": 1501,
+      "run_id": "run-9a4231380a79",
+      "trace_id": "trace-688f4a480b58",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5003,
+      "prompt_tokens": 1039,
+      "completion_tokens": 462,
+      "total_tokens": 1501,
+      "run_id": "run-b16af02bf22d",
+      "trace_id": "trace-7adf5fc5971f",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3210,
+      "prompt_tokens": 181,
+      "completion_tokens": 98,
+      "total_tokens": 279,
+      "run_id": "run-62c3f3929f25",
+      "trace_id": "trace-f130b025e693",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-64dd413eaf41",
+      "trace_id": "trace-88192d46b184",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-bc91b9c41db8",
+      "trace_id": "trace-e3cda3a62794",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-3b8975295fc6",
+      "trace_id": "trace-34ec460f53e4",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": true,
+  "runtime_mode": "real",
+  "generated_at": "2026-07-13T06:50:04.498042Z"
+}

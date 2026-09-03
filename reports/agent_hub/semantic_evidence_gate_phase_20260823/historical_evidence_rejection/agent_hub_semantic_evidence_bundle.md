@@ -1,0 +1,163 @@
+# Agent Hub semantic evidence bundle
+
+Generated: `2026-08-23T09:14:34.597676+00:00`
+
+Validation: **FAIL**
+
+Fresh synthetic live semantic evidence: **0/26**
+
+## Source artifacts
+
+- examples: `93c51906b96d8d592150cf59eaf62ce31b06b9f2dfe20d9db2108112867707ab` (icoder.agent-hub-examples-e2e/v1)
+- adversarial: `0cf51351956af6e91f741e71f247980e9981d94a6c7a96e93670f5eb300009f8` (icoder.agent-hub-adversarial-e2e/v1)
+- reference: `7192bf51058edd4403639286e7472adbd59a1af9283f109583ef1c885435074e` (icoder.agent-hub-reference-quality-replay/v1)
+- stability: `` (None)
+
+## Validation errors
+
+- adversarial: Agent Pack snapshot does not match current visible Packs
+- adversarial: capability counts are incomplete or include safe-fail results
+- adversarial: fresh HTTP run count does not match rows
+- adversarial: report contains resumed, seeded, or unknown artifacts
+- adversarial: report is stale
+- adversarial: unsupported schema_version
+- adversarial:claim-check: semantic evaluation did not pass
+- adversarial:clinical-documentation-improvement-agent: semantic evaluation did not pass
+- adversarial:code-validation-agent: semantic evaluation did not pass
+- adversarial:compliance-guardrail-agent: semantic evaluation did not pass
+- adversarial:diagnosis-extractor: semantic evaluation did not pass
+- adversarial:evidence-ranker: semantic evaluation did not pass
+- adversarial:med-reconciliation: semantic evaluation did not pass
+- adversarial:medical-coding-agent: semantic evaluation did not pass
+- adversarial:note-completeness-agent: semantic evaluation did not pass
+- adversarial:nursing-handoff: semantic evaluation did not pass
+- adversarial:principal-diagnosis-review: semantic evaluation did not pass
+- adversarial:prior-auth: semantic evaluation did not pass
+- adversarial:procedure-extractor: semantic evaluation did not pass
+- adversarial:referral-gen: semantic evaluation did not pass
+- adversarial:rule-explainer: semantic evaluation did not pass
+- adversarial:surgical-registry: semantic evaluation did not pass
+- agent_hub_adversarial_e2e.json:claim-check: execution_evidence is missing
+- agent_hub_adversarial_e2e.json:clinical-documentation-improvement-agent: execution_evidence is missing
+- agent_hub_adversarial_e2e.json:clinical-education: execution_evidence is missing
+- agent_hub_adversarial_e2e.json:clinical-guidelines: execution_evidence is missing
+- agent_hub_adversarial_e2e.json:code-validation-agent: execution_evidence is missing
+- agent_hub_adversarial_e2e.json:compliance-guardrail-agent: execution_evidence is missing
+- agent_hub_adversarial_e2e.json:denial-appeals: execution_evidence is missing
+- agent_hub_adversarial_e2e.json:diagnosis-extractor: execution_evidence is missing
+- agent_hub_adversarial_e2e.json:discharge-edu: execution_evidence is missing
+- agent_hub_adversarial_e2e.json:discharge-summary-structuring: execution_evidence is missing
+- agent_hub_adversarial_e2e.json:drg-analyzer: execution_evidence is missing
+- agent_hub_adversarial_e2e.json:evidence-extractor: execution_evidence is missing
+- agent_hub_adversarial_e2e.json:evidence-ranker: execution_evidence is missing
+- agent_hub_adversarial_e2e.json:icd10-navigator: execution_evidence is missing
+- agent_hub_adversarial_e2e.json:icu-summary: execution_evidence is missing
+- agent_hub_adversarial_e2e.json:med-reconciliation: execution_evidence is missing
+- agent_hub_adversarial_e2e.json:medical-coding-agent: execution_evidence is missing
+- agent_hub_adversarial_e2e.json:note-completeness-agent: execution_evidence is missing
+- agent_hub_adversarial_e2e.json:nursing-handoff: execution_evidence is missing
+- agent_hub_adversarial_e2e.json:principal-diagnosis-review: execution_evidence is missing
+- agent_hub_adversarial_e2e.json:prior-auth: execution_evidence is missing
+- agent_hub_adversarial_e2e.json:procedure-extractor: execution_evidence is missing
+- agent_hub_adversarial_e2e.json:referral-gen: execution_evidence is missing
+- agent_hub_adversarial_e2e.json:rule-explainer: execution_evidence is missing
+- agent_hub_adversarial_e2e.json:surgical-registry: execution_evidence is missing
+- agent_hub_adversarial_e2e.json:triage: execution_evidence is missing
+- agent_hub_examples_e2e.json:claim-check: execution_evidence is missing
+- agent_hub_examples_e2e.json:clinical-documentation-improvement-agent: execution_evidence is missing
+- agent_hub_examples_e2e.json:clinical-education: execution_evidence is missing
+- agent_hub_examples_e2e.json:clinical-guidelines: execution_evidence is missing
+- agent_hub_examples_e2e.json:code-validation-agent: execution_evidence is missing
+- agent_hub_examples_e2e.json:compliance-guardrail-agent: execution_evidence is missing
+- agent_hub_examples_e2e.json:denial-appeals: execution_evidence is missing
+- agent_hub_examples_e2e.json:diagnosis-extractor: execution_evidence is missing
+- agent_hub_examples_e2e.json:discharge-edu: execution_evidence is missing
+- agent_hub_examples_e2e.json:discharge-summary-structuring: execution_evidence is missing
+- agent_hub_examples_e2e.json:drg-analyzer: execution_evidence is missing
+- agent_hub_examples_e2e.json:evidence-extractor: execution_evidence is missing
+- agent_hub_examples_e2e.json:evidence-ranker: execution_evidence is missing
+- agent_hub_examples_e2e.json:icd10-navigator: execution_evidence is missing
+- agent_hub_examples_e2e.json:icu-summary: execution_evidence is missing
+- agent_hub_examples_e2e.json:med-reconciliation: execution_evidence is missing
+- agent_hub_examples_e2e.json:medical-coding-agent: execution_evidence is missing
+- agent_hub_examples_e2e.json:note-completeness-agent: execution_evidence is missing
+- agent_hub_examples_e2e.json:nursing-handoff: execution_evidence is missing
+- agent_hub_examples_e2e.json:principal-diagnosis-review: execution_evidence is missing
+- agent_hub_examples_e2e.json:prior-auth: execution_evidence is missing
+- agent_hub_examples_e2e.json:procedure-extractor: execution_evidence is missing
+- agent_hub_examples_e2e.json:referral-gen: execution_evidence is missing
+- agent_hub_examples_e2e.json:rule-explainer: execution_evidence is missing
+- agent_hub_examples_e2e.json:surgical-registry: execution_evidence is missing
+- agent_hub_examples_e2e.json:triage: execution_evidence is missing
+- examples: Agent Pack snapshot does not match current visible Packs
+- examples: capability counts are incomplete or include safe-fail results
+- examples: fresh HTTP run count does not match rows
+- examples: report contains resumed, seeded, or unknown artifacts
+- examples: report is stale
+- examples: unsupported schema_version
+- reference: all 26 Pack-owned semantic cases must pass
+- reference: cases digest does not match current reference cases
+- reference:claim-check: response binding or semantic assertions failed
+- reference:clinical-documentation-improvement-agent: response binding or semantic assertions failed
+- reference:clinical-education: response binding or semantic assertions failed
+- reference:clinical-guidelines: response binding or semantic assertions failed
+- reference:code-validation-agent: response binding or semantic assertions failed
+- reference:compliance-guardrail-agent: response binding or semantic assertions failed
+- reference:denial-appeals: response binding or semantic assertions failed
+- reference:diagnosis-extractor: response binding or semantic assertions failed
+- reference:discharge-edu: response binding or semantic assertions failed
+- reference:discharge-summary-structuring: response binding or semantic assertions failed
+- reference:drg-analyzer: response binding or semantic assertions failed
+- reference:evidence-extractor: response binding or semantic assertions failed
+- reference:evidence-ranker: response binding or semantic assertions failed
+- reference:icd10-navigator: response binding or semantic assertions failed
+- reference:icu-summary: response binding or semantic assertions failed
+- reference:med-reconciliation: response binding or semantic assertions failed
+- reference:medical-coding-agent: response binding or semantic assertions failed
+- reference:note-completeness-agent: response binding or semantic assertions failed
+- reference:nursing-handoff: response binding or semantic assertions failed
+- reference:principal-diagnosis-review: response binding or semantic assertions failed
+- reference:prior-auth: response binding or semantic assertions failed
+- reference:procedure-extractor: response binding or semantic assertions failed
+- reference:referral-gen: response binding or semantic assertions failed
+- reference:rule-explainer: response binding or semantic assertions failed
+- reference:surgical-registry: response binding or semantic assertions failed
+- reference:triage: response binding or semantic assertions failed
+- stability: Agent Pack snapshot does not match current visible Packs
+- stability: cannot read JSON report E:\Corti4C\reports\agent_hub\stability_benchmark\agent_hub_stability_benchmark.json: FileNotFoundError
+- stability: completeness, pass, Agent-set, or reliability gates failed
+- stability: generated_at is missing or invalid
+- stability: repetitions must be at least 2
+- stability: unsupported schema_version
+- stability:claim-check: scenarios are not repeatably complete
+- stability:clinical-documentation-improvement-agent: scenarios are not repeatably complete
+- stability:clinical-education: scenarios are not repeatably complete
+- stability:clinical-guidelines: scenarios are not repeatably complete
+- stability:code-validation-agent: scenarios are not repeatably complete
+- stability:compliance-guardrail-agent: scenarios are not repeatably complete
+- stability:denial-appeals: scenarios are not repeatably complete
+- stability:diagnosis-extractor: scenarios are not repeatably complete
+- stability:discharge-edu: scenarios are not repeatably complete
+- stability:discharge-summary-structuring: scenarios are not repeatably complete
+- stability:drg-analyzer: scenarios are not repeatably complete
+- stability:evidence-extractor: scenarios are not repeatably complete
+- stability:evidence-ranker: scenarios are not repeatably complete
+- stability:icd10-navigator: scenarios are not repeatably complete
+- stability:icu-summary: scenarios are not repeatably complete
+- stability:med-reconciliation: scenarios are not repeatably complete
+- stability:medical-coding-agent: scenarios are not repeatably complete
+- stability:note-completeness-agent: scenarios are not repeatably complete
+- stability:nursing-handoff: scenarios are not repeatably complete
+- stability:principal-diagnosis-review: scenarios are not repeatably complete
+- stability:prior-auth: scenarios are not repeatably complete
+- stability:procedure-extractor: scenarios are not repeatably complete
+- stability:referral-gen: scenarios are not repeatably complete
+- stability:rule-explainer: scenarios are not repeatably complete
+- stability:surgical-registry: scenarios are not repeatably complete
+- stability:triage: scenarios are not repeatably complete
+
+## Limitations
+
+- This proves fresh synthetic live semantic, adversarial, and stability gates; it is not an independent clinical-accuracy study.
+- It does not prove Corti parity, hospital integration, regulatory approval, production SLOs, or clinician acceptance.
+- Result tokens are HMAC-verified with the same ephemeral/server trust key; CI must keep that key process-scoped and out of artifacts.

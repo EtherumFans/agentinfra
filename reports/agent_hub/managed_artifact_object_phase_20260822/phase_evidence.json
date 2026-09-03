@@ -1,0 +1,165 @@
+{
+  "schema_version": "icoder.managed-artifact-object-phase-evidence/v2",
+  "generated_at": "2026-08-22T15:01:06+08:00",
+  "result": "passed_with_actor_bound_query_secret_free_download_and_external_gates_open",
+  "superseded_by": "reports/agent_hub/artifact_download_grant_privacy_phase_20260822/phase_evidence.json",
+  "implementation": {
+    "alembic_head": "053",
+    "tenant_context_task_artifact_binding": true,
+    "quarantine_committed_before_scan": true,
+    "encrypted_payload_at_rest": true,
+    "plaintext_filename_encrypted": true,
+    "canonical_base64_required": true,
+    "maximum_decoded_bytes": 5242880,
+    "maximum_objects_per_artifact": 16,
+    "fully_scanned_media_types": [
+      "text/plain",
+      "application/json",
+      "application/pdf"
+    ],
+    "signed_download_grant": false,
+    "query_secret_free_download_grant": true,
+    "download_grant_tenant_object_actor_and_expiry_bound": true,
+    "download_grant_single_use": true,
+    "download_grant_maximum_seconds": 300,
+    "download_purpose_required": [
+      "treatment",
+      "payment",
+      "healthcare_operations"
+    ],
+    "download_consumption_and_audit_committed_before_bytes": true,
+    "hard_delete_object_and_grants": true,
+    "required_audit_fail_closed": true,
+    "production_object_storage": false,
+    "independent_av_ocr_dlp": false
+  },
+  "scanner": {
+    "eicar_sha256_rejected": true,
+    "pe_and_elf_rejected": true,
+    "zip_rar_7z_rejected": true,
+    "extension_media_and_content_consistency_required": true,
+    "encrypted_pdf_rejected": true,
+    "pdf_maximum_pages": 100,
+    "pdf_active_content_rejected": true,
+    "chinese_resident_id_detected": true,
+    "chinese_mobile_detected": true,
+    "email_detected": true,
+    "explicit_patient_identifiers_detected": true,
+    "finding_values_persisted": false,
+    "deidentified_direct_identifier_payload_erased": true,
+    "clinical_sensitive_findings_restricted": true
+  },
+  "api": {
+    "upload_and_list_path": "/api/v2/agentic/contexts/{context}/tasks/{task}/artifacts/{artifact}/objects",
+    "authorize_download_path": "/api/v2/agentic/contexts/{context}/tasks/{task}/artifacts/{artifact}/objects/{object}:authorize-download",
+    "delete_path": "/api/v2/agentic/contexts/{context}/tasks/{task}/artifacts/{artifact}/objects/{object}",
+    "download_path": "/api/v2/agentic/artifact-objects/download/{grant_id}",
+    "download_requires_same_authenticated_actor": true,
+    "artifact_projection_managed_objects": true,
+    "download_response_no_store_private": true,
+    "download_response_nosniff_and_sandbox": true
+  },
+  "sdk_contracts": {
+    "javascript_version": "1.0.0-beta.24",
+    "python_version": "1.0.0b24",
+    "dotnet_version": "1.0.0-beta.24",
+    "upload_list_authorize_download_delete": true,
+    "download_auto_retry": false
+  },
+  "migration_reconciliation": {
+    "source_revision": "041",
+    "candidate_revision": "053",
+    "source_tables": 59,
+    "candidate_tables": 69,
+    "copied_preexisting_tables": 58,
+    "source_rows_preserved": 6090,
+    "candidate_orm_tables_checked": 68,
+    "candidate_columns_checked": 992,
+    "candidate_foreign_key_violations": 0,
+    "candidate_orm_schema_drift": 0,
+    "data_preservation_mismatches": 0,
+    "source_foreign_key_violations_before_quarantine": 827,
+    "quarantine_organization_count": 6,
+    "source_sha256_before": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e",
+    "source_sha256_after": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e",
+    "source_unchanged": true,
+    "cutover_performed": false,
+    "passed": true
+  },
+  "tests": {
+    "full_a2a_artifact_runtime_migration_schema": {
+      "passed": 384,
+      "failed": 0,
+      "warnings": 24,
+      "duration_seconds": 250.52
+    },
+    "deployment_preflight": {
+      "passed": 64,
+      "failed": 0
+    },
+    "javascript_sdk": {
+      "version": "1.0.0-beta.24",
+      "build_passed": true,
+      "tests_passed": 43,
+      "tests_failed": 0
+    },
+    "python_sdk": {
+      "version": "1.0.0b24",
+      "tests_passed": 50,
+      "tests_failed": 0
+    },
+    "dotnet_sdk": {
+      "version": "1.0.0-beta.24",
+      "source_and_test_contract_updated": true,
+      "locally_compiled": false,
+      "reason": "dotnet CLI is unavailable on this development host"
+    },
+    "openapi": {
+      "paths": 269,
+      "schemas": 288,
+      "bytes": 842015,
+      "drift": false
+    },
+    "credential_scan": {
+      "credential_shaped_sk_token_files": 0,
+      "hardcoded_llm_credential_assignment_files": 0
+    },
+    "real_llm_used": false,
+    "external_llm_allowed": false,
+    "native_medcoder_used": false,
+    "development_backend_restarted": false
+  },
+  "artifacts": {
+    "migration_report": {
+      "path": "reports/agent_hub/managed_artifact_object_phase_20260822/shadow-migration/sqlite_migration_stage_report.json",
+      "sha256": "d417f46f0586ab902b754ee3e47899717fb2d844f2fd98332b0675ae3956e346"
+    },
+    "deployment_preflight": {
+      "path": "reports/agent_hub/artifact_download_grant_privacy_phase_20260822/deployment-preflight/deployment_preflight.json",
+      "sha256": "869ab56097eadb96db10f7874dbe1cfcb7c8ffcee3ede1a90f9d3b68bffe7700"
+    },
+    "openapi": {
+      "path": "docs/openapi/openapi.json",
+      "sha256": "a095196fe81a671d8c94f57ece85831d9346490deb5c49e5cf2b05cb661a8cfe"
+    },
+    "summary": {
+      "path": "docs/corti_parity/ICODER_ARTIFACT_DOWNLOAD_GRANT_PRIVACY_PHASE_SUMMARY_2026-08-22.md",
+      "sha256": "d5205f4078ae14c40a99e23d56924c74c5fc750b431f9e199e6b24dcb433894d"
+    }
+  },
+  "corti_public_comparison": {
+    "filepart_publicly_documented": true,
+    "filepart_publicly_marked_not_fully_supported": true,
+    "managed_upload_av_dlp_pipeline_publicly_verified": false,
+    "parity_claim": "iCoDer development security hardening and China clinical adaptation; not verified one-to-one Corti managed-service parity"
+  },
+  "limitations": [
+    "The payload store is an encrypted database-backed development simulator, not production regional object storage.",
+    "Independent malware scanning, OCR/DLP, KMS/HSM, rescan orchestration, capacity, backup, disaster recovery, and SLA evidence remain open.",
+    "Production ingress, CDN, APM, WAF, SIEM, error aggregation, and support tooling must prove URL and header privacy.",
+    "Image, audio, DICOM, Office, OCR, and archive formats are not enabled as safe downloadable content.",
+    "The current development database remains at revision 041 and was not cut over or restarted.",
+    "The .NET SDK requires CI compilation and test execution.",
+    "Corti tenant interoperability, multi-replica PostgreSQL and queue behavior, hospital integration, authoritative patient consent, cloud infrastructure, legal, certification, and independent clinical review remain external gates."
+  ]
+}

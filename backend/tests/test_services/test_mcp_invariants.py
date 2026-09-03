@@ -117,7 +117,11 @@ class TestPHIRedactionMandatory:
         # Permissive: either success (redactor present) or -32004 (redactor missing)
         # but NEVER a silent pass-through that returns raw PHI in the result.
         if "error" in body:
-            assert body["error"]["code"] in (-32004, -32602, -32601), body
+            # A present redactor may process the request successfully before a
+            # separately unavailable retriever rejects it with -32002. That is
+            # also safe provided the original PHI never appears in the error.
+            assert body["error"]["code"] in (-32002, -32004, -32602, -32601), body
+            assert "张三" not in str(body["error"]), "PHI leaked into MCP error"
         else:
             # If the call succeeded, the result content must NOT contain
             # the original PHI input (no echo of "张三" in tool output).

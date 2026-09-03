@@ -1,0 +1,20 @@
+{
+  "title": "T12 骨折编码集 — upcoding 风险",
+  "agent_id": "compliance-guardrail-agent",
+  "input_text": "患者男性,78岁,MRI 显示 T12 椎体压缩性骨折。既往骨质疏松病史 5 年。",
+  "extra": {
+    "codes": ["M80.900"]
+  },
+  "runtime_mode": "rule_engine",
+  "expected_output_fields": [
+    "review_conclusion",
+    "issues_found",
+    "manual_review_required",
+    "drg_suggestion",
+    "compliance_checks",
+    "rule_set",
+    "trace_refs"
+  ],
+  "expected_latency_ms_max": 5000,
+  "expected_review_conclusion": "WARNING"
+}

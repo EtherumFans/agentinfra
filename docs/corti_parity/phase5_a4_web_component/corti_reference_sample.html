@@ -1,0 +1,84 @@
+<!--
+  Corti 官方 <corti-embedded> 样板 (取证时间 2026-07-10)
+  来源: https://console.corti.app/project/{id}/ai-studio/embedded-assistant
+        → Code tab → "HTML (web component)" 子标签 (默认选中)
+
+  本文件是 Corti Phase 5 A4 修复方向 (GAP-11-01) 的金标准参考。
+  iCoDer A4 实现的对照表见 PHASE5_A4_REPORT.md §"7 gaps closed"。
+-->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      corti-embedded {
+        width: 100%;
+        height: 100vh;
+      }
+    </style>
+  </head>
+  <body>
+    <corti-embedded id="corti-assistant" baseURL="https://assistant.eu.corti.app"></corti-embedded>
+
+    <script type="module">
+      import '@corti/embedded-web';
+
+      const TENANT = "base";
+      const ENVIRONMENT = "eu";
+
+      const assistant = document.getElementById('corti-assistant');
+
+      assistant.addEventListener('ready', async () => {
+        try {
+          // Replace with your authentication logic.
+          // Use TENANT and ENVIRONMENT to configure your auth provider.
+          await assistant.auth({
+            access_token: 'YOUR_ACCESS_TOKEN',
+            refresh_token: 'YOUR_REFRESH_TOKEN',
+            token_type: 'bearer',
+            mode: 'stateless',
+          });
+          await assistant.configureSession({
+            defaultLanguage: "en",
+            defaultMode: "in-person",
+            defaultOutputLanguage: "en",
+            defaultTemplateKey: "corti-patient-summary-legacy",
+          });
+          await assistant.configure({
+            features: {
+              aiChat: true,
+              documentFeedback: true,
+              interactionTitle: true,
+              navigation: false,
+              syncDocumentAction: false,
+              templateEditor: true,
+              virtualMode: true,
+            },
+            locale: {
+              dictationLanguage: "en",
+              interfaceLanguage: "auto",
+            },
+          });
+          await assistant.show();
+        } catch (error) {
+          console.log('Initialization error:', error);
+        }
+      });
+
+      assistant.addEventListener('embedded-event', (e) => {
+        const { name, payload } = e.detail;
+        switch (name) {
+          case 'account.creditsConsumed':
+            console.log('Credits consumed:', payload);
+            break;
+          case 'error.triggered':
+            console.log('Error:', payload);
+            break;
+          default:
+            console.log(name, payload);
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,232 @@
+{
+  "case_id": "CASE-6fc59341039f",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-6fc59341039f/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "糖尿病并发症评估不完整：缺乏眼底检查、肾功能、神经病变等筛查结果",
+      "why_it_matters": "糖尿病长期管理需定期评估并发症，缺少这些信息影响疾病严重程度和分型编码",
+      "evidence_span": {
+        "document_id": "DOC-001",
+        "quote": "2型糖尿病20年。近期失访。否认多饮多尿加重、视物模糊、肢体麻木、水肿、间歇性跛行。查体:无糖尿病足, 触觉正常。HbA1c 7.2"
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-6fc59341039f/Q-001",
+      "gap_id": "CASE-6fc59341039f/GAP-001",
+      "topic": "糖尿病并发症评估",
+      "reason": "患者2型糖尿病20年，近期失访，缺乏眼底检查、肾功能、神经病变等筛查结果，需明确并发症评估情况。",
+      "evidence_span": {
+        "document_id": "chart-001",
+        "quote": "2型糖尿病20年。近期失访。否认多饮多尿加重、视物模糊、肢体麻木、水肿、间歇性跛行。查体:无糖尿病足, 触觉正常。HbA1c 7.2"
+      },
+      "query_text": "患者2型糖尿病病史20年，近期失访。请补充糖尿病相关并发症的评估结果，包括但不限于眼底检查、肾功能、神经病变筛查等。",
+      "response_options": [
+        "A. 已完善眼底检查、肾功能、神经病变筛查，结果正常",
+        "B. 已完善部分检查，具体如下：________",
+        "C. 未完善相关检查，建议完善",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine"
+    }
+  ],
+  "chart_excerpt_preview": "患者女性, 75岁, 2型糖尿病20年。近期失访。否认多饮多尿加重、视物模糊、肢体麻木、水肿、间歇性跛行。查体:无糖尿病足, 触觉正常。HbA1c 7.2。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "2型糖尿病20年",
+      "近期失访",
+      "否认多饮多尿加重、视物模糊、肢体麻木、水肿、间歇性跛行",
+      "无糖尿病足",
+      "触觉正常",
+      "HbA1c 7.2"
+    ],
+    "encounter_metadata": {
+      "patient_age": "75",
+      "patient_sex": "女",
+      "encounter_type": "门诊"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "The chart lacks documentation of key screening results for diabetic complications, including dilated eye exam, urine albumin-to-creatinine ratio, serum creatinine/eGFR, and monofilament testing for peripheral neuropathy. To support accurate coding, the provider should specify whether these screenings were performed and their results, or document the rationale for not performing them (e.g., patient refusal or clinical insignificance). Additionally, clarify if the patient’s normal physical exam and lack of symptoms are sufficient to rule out complications, or if further testing is needed.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3382,
+      "tokens": 242
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-2d6bbe64c400",
+    "gap_identification": "run-790fd5e9f25e",
+    "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
+    "expert_consultation": "run-4b0d400426c4",
+    "query_generation": "run-bb5844617c7c",
+    "query_generation::quote_snapped": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=1;llm_complete=False;llm_reasoning=糖尿病病程长且近期失访，但未提供并发症筛查（如眼底、肾功能、神经病变）及治疗药物信息，无法确定糖尿病控制状态和并发症情况，影响编码准确性。",
+    "query_necessity_gate": "necessary=1;unnecessary=0;overquery_triggered=False;final_count=1",
+    "query_single_dimension_gate": "single_dim=1;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=complication;final_count=1",
+    "claim_evidence_alignment_gate": "claims_extracted=3;blocked=0;flagged=0;final_count=1",
+    "claim_evidence_alignment_gate::run_id": "run-867a15487b52",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=1",
+    "semantic_necessity_gate::run_id": "run-46535e37eae3",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "run-ebd62d8a93a1"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-af30c6edef02",
+    "gap_identification": "trace-c6341acfd0d5",
+    "expert_consultation": "trace-f154aca5e485",
+    "query_generation": "trace-9c038942638b",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-236e5bd67a19",
+    "semantic_necessity_gate": "trace-ab020ac546d4",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-058d6d14809f"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3128,
+      "prompt_tokens": 232,
+      "completion_tokens": 107,
+      "total_tokens": 339,
+      "run_id": "run-2d6bbe64c400",
+      "trace_id": "trace-af30c6edef02",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 4271,
+      "prompt_tokens": 1064,
+      "completion_tokens": 265,
+      "total_tokens": 1329,
+      "run_id": "run-790fd5e9f25e",
+      "trace_id": "trace-c6341acfd0d5",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5133,
+      "prompt_tokens": 848,
+      "completion_tokens": 267,
+      "total_tokens": 1115,
+      "run_id": "run-bb5844617c7c",
+      "trace_id": "trace-9c038942638b",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3382,
+      "prompt_tokens": 136,
+      "completion_tokens": 106,
+      "total_tokens": 242,
+      "run_id": "run-f43829d2ac12",
+      "trace_id": "trace-4c15d180aaea",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-4b24df23a43e",
+      "trace_id": "trace-fe34a64453c1",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-6118b4387a17",
+      "trace_id": "trace-462428087a57",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-1adaf337e801",
+      "trace_id": "trace-6ebe9fdcf30b",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-07-13T12:24:13.932690Z"
+}

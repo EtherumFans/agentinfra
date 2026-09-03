@@ -432,6 +432,44 @@ class TestPopulateProcedures:
             assert p.category == "therapeutic"
             assert p.evidence  # the mention is recorded
 
+    @pytest.mark.parametrize(
+        ("raw_score", "expected"),
+        [(-0.25, 0.0), (1.25, 1.0), (float("nan"), 0.0)],
+    )
+    def test_procedure_confidence_bounds_raw_retrieval_scores(
+        self,
+        raw_score,
+        expected,
+        empty_catalog_loader,
+    ):
+        """FAISS scores rank candidates but must not escape as confidence."""
+
+        from icoder_runtime.providers.medical_coding import (
+            medcoder_strategy as strat_mod,
+        )
+        from official_agents.medical_coding.schema import CandidateCode
+
+        class _FixedScoreProcedureRetriever:
+            async def retrieve_async(self, text, top_k=None):
+                return [
+                    CandidateCode(
+                        code="45.2301",
+                        name="结肠镜检查",
+                        score=raw_score,
+                        source="retrieve",
+                    )
+                ]
+
+        strategy = strat_mod.MedCodERStrategy(
+            procedure_retriever=_FixedScoreProcedureRetriever()
+        )
+        output = MedicalCodingOutputSchema()
+
+        asyncio.run(strategy._populate_procedures(output, ["结肠镜检查"]))
+
+        assert len(output.procedures) == 1
+        assert output.procedures[0].confidence == expected
+
     def test_dedup_on_duplicate_codes(self, tmp_icd9cm3_index_dir, empty_catalog_loader):
         """Two mentions mapping to the same top-1 code → 1 ProcedureEntry."""
         s = self._make_strategy_with_fake_proc_ret(tmp_icd9cm3_index_dir)

@@ -1,0 +1,360 @@
+{
+  "case_id": "CASE-e5cd99ec7ef9",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-e5cd99ec7ef9/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "The chart documents metabolic acidosis (pH 7.30, HCO3 16) and ketosis, but the type of diabetes is not specified beyond '2型糖尿病'. The presence of DKA suggests possible type 1 diabetes or latent autoimmune diabetes, which requires clarification.",
+      "why_it_matters": "Coding requires accurate diabetes type; DKA in a 45-year-old may indicate type 1 or LADA, affecting treatment and coding.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "pH 7.30, HCO3 16, 酮体阳性。入院诊断:2型糖尿病",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-e5cd99ec7ef9/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "The chart documents DKA (pH 7.30, HCO3 16, ketosis) but does not explicitly state the diagnosis of diabetic ketoacidosis (DKA) or its severity.",
+      "why_it_matters": "DKA is a specific complication that must be coded; severity (mild, moderate, severe) affects coding and treatment intensity.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "pH 7.30, HCO3 16, 酮体阳性",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-e5cd99ec7ef9/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "The chart does not specify whether the patient has any chronic complications of diabetes (e.g., nephropathy, retinopathy, neuropathy) or if this is a new diagnosis.",
+      "why_it_matters": "Coding requires specification of any diabetic complications; absence of documentation may lead to undercoding.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "入院诊断:2型糖尿病",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-001",
+      "gap_id": "CASE-e5cd99ec7ef9/GAP-001",
+      "topic": "糖尿病分型",
+      "reason": "患者存在酮症酸中毒表现，但入院诊断为2型糖尿病，需明确糖尿病具体分型。",
+      "query_text": "患者存在酮症酸中毒表现，请明确糖尿病的具体分型。",
+      "response_options": [
+        "A. 1型糖尿病",
+        "B. 2型糖尿病",
+        "C. 其他特殊类型糖尿病",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "pH 7.30, HCO3 16, 酮体阳性。入院诊断:2型糖尿病",
+          "char_start": 40,
+          "char_end": 73,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-001: chart explicitly documents diabetes type: '2型糖尿病'"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-003",
+      "gap_id": "CASE-e5cd99ec7ef9/GAP-003",
+      "topic": "糖尿病慢性并发症及病程",
+      "reason": "入院诊断为2型糖尿病，但未提及是否存在慢性并发症或为新发诊断。",
+      "query_text": "请明确该患者糖尿病慢性并发症情况及是否为初诊。",
+      "response_options": [
+        "A. 新诊断，无慢性并发症",
+        "B. 已有慢性并发症（如肾病、视网膜病变、神经病变等）",
+        "C. 既往已诊断，无慢性并发症",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "入院诊断:2型糖尿病",
+          "char_start": 63,
+          "char_end": 73,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "SD-001: topic axes = ['complication', 'course']"
+      ],
+      "status": "NEEDS_CDI_REWRITE",
+      "detected_axes": [
+        "complication",
+        "course"
+      ],
+      "rewrite_attempt_status": "REJECTED_BY_SAFETY_GATES",
+      "rewrite_attempt_reasons": [
+        "rewrite must address exactly the server-selected target axis: target=type, got=[]",
+        "NQ-004: the chart explicitly documents type 2 diabetes"
+      ],
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-002",
+      "gap_id": "CASE-e5cd99ec7ef9/GAP-002",
+      "topic": "DKA诊断及严重程度",
+      "reason": "患者存在代谢性酸中毒和酮症，但未明确诊断糖尿病酮症酸中毒及其严重程度。",
+      "query_text": "请明确患者是否存在糖尿病酮症酸中毒及其严重程度。",
+      "response_options": [
+        "A. 存在，轻度",
+        "B. 存在，中度",
+        "C. 存在，重度",
+        "D. 不存在",
+        "E. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "pH 7.30, HCO3 16, 酮体阳性",
+          "char_start": 40,
+          "char_end": 62,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NLQ-001 (no_yes_no_opening): matched /(是不是|是否|是否为|能否|能不能|是不是说|是不是要|能否认为|是否可以)/ : '是否'"
+      ],
+      "status": "NEEDS_NON_LEADING_REWRITE",
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者男性, 45岁, 多饮多尿1月。FPG 12.5, HbA1c 11.2, pH 7.30, HCO3 16, 酮体阳性。入院诊断:2型糖尿病。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者男性，45岁",
+      "主诉多饮多尿1月",
+      "空腹血糖12.5 mmol/L",
+      "糖化血红蛋白11.2%",
+      "pH 7.30",
+      "碳酸氢根16 mmol/L",
+      "酮体阳性",
+      "入院诊断：2型糖尿病"
+    ],
+    "encounter_metadata": {
+      "patient_age": "45岁",
+      "patient_sex": "男性",
+      "encounter_type": "入院"
+    }
+  },
+  "risk_flags": [
+    {
+      "category": "contradiction",
+      "description": "The diagnosis of type 2 diabetes is contradicted by the presence of DKA, which is more typical of type 1 diabetes or LADA."
+    }
+  ],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "To ensure accurate coding, the clinician must explicitly document the diagnosis of diabetic ketoacidosis (DKA) and its severity (e.g., mild, moderate, severe) based on pH and bicarbonate levels, rather than relying solely on lab values. Additionally, clarify the diabetes type—specifically whether this is type 1, type 2 with ketosis-prone features, or latent autoimmune diabetes—given the DKA presentation, and document any chronic diabetic complications (e.g., nephropathy, retinopathy, neuropathy) or if this is a new diagnosis. Without these specifics, the clinical picture remains ambiguous for precise code assignment.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3384,
+      "tokens": 369
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-07ac390857c3",
+    "gap_identification": "run-9bc4abc32a74",
+    "gap_identification_risk_flags": "emitted=1;quote_snapped=0",
+    "expert_consultation": "run-9a305f0f9ca8",
+    "query_generation": "run-56ed7ed0c166",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=3;llm_complete=False;llm_reasoning=The chart lacks specification of diabetes type (type 1 vs type 2) and explicit d",
+    "query_necessity_gate": "necessary=2;unnecessary=1;overquery_triggered=False;final_count=2",
+    "query_dimension_rewrite": "run-3fce3dd3b095",
+    "query_single_dimension_gate": "single_dim=1;multi_dim=1;axis_cluster_triggered=False;axis_cluster_axis=severity;rewrite_attempted=1;rewrite_accepted=0;final_count=1",
+    "claim_evidence_alignment_gate": "claims_extracted=2;blocked=0;flagged=0;final_count=1",
+    "claim_evidence_alignment_gate::run_id": "run-31808dae19a8",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=1",
+    "semantic_necessity_gate::run_id": "run-282c0f38be96",
+    "query_compliance_gate": ";passed=0;blocked=1",
+    "specialist_trace_emit": "run-5daaab0042b3"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-f4fffda74a30",
+    "gap_identification": "trace-9d87a71403fd",
+    "expert_consultation": "trace-4dbafa914c6e",
+    "query_generation": "trace-e1c06d827994",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_dimension_rewrite": "trace-fb87934d07eb",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-a16ee4496358",
+    "semantic_necessity_gate": "trace-ce750c5f63d2",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-017f15e0c15e"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2770,
+      "prompt_tokens": 226,
+      "completion_tokens": 118,
+      "total_tokens": 344,
+      "run_id": "run-07ac390857c3",
+      "trace_id": "trace-f4fffda74a30",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6593,
+      "prompt_tokens": 1067,
+      "completion_tokens": 674,
+      "total_tokens": 1741,
+      "run_id": "run-9bc4abc32a74",
+      "trace_id": "trace-9d87a71403fd",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6086,
+      "prompt_tokens": 1332,
+      "completion_tokens": 689,
+      "total_tokens": 2021,
+      "run_id": "run-56ed7ed0c166",
+      "trace_id": "trace-e1c06d827994",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_dimension_rewrite",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3169,
+      "prompt_tokens": 661,
+      "completion_tokens": 224,
+      "total_tokens": 885,
+      "run_id": "run-3fce3dd3b095",
+      "trace_id": "trace-fb87934d07eb",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3384,
+      "prompt_tokens": 244,
+      "completion_tokens": 125,
+      "total_tokens": 369,
+      "run_id": "run-7cba83a96d3d",
+      "trace_id": "trace-9f07542dd984",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-a38f9da8b678",
+      "trace_id": "trace-5157b8e4635f",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-57b3bd416db0",
+      "trace_id": "trace-60dc49e85cee",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-51af8b83f686",
+      "trace_id": "trace-507fa7a54e19",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T19:52:58.273758Z"
+}

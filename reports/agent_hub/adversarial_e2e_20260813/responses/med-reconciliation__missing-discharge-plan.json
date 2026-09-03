@@ -1,0 +1,106 @@
+{
+  "agent_id": "med-reconciliation",
+  "run_id": "run-05c65bba-a0a1-43f5-845f-c25e3469ad5a",
+  "trace_id": "trace-716ad91f323c4725",
+  "trace_url": "/ai-studio/runs/run-05c65bba-a0a1-43f5-845f-c25e3469ad5a/trace",
+  "runtime_mode": "pure_llm",
+  "latency_ms": 7312,
+  "cost": {
+    "amount": 0.00018,
+    "currency": "CNY"
+  },
+  "summary": "{",
+  "result": {
+    "status": "complete",
+    "markdown": "{\n  \"home_medications\": [\n    {\n      \"drug_name\": \"华法林\",\n      \"dosage\": \"未提供\",\n      \"frequency\": \"未提供\",\n      \"route\": \"未提供\",\n      \"notes\": \"入院前服用\"\n    }\n  ],\n  \"inpatient_medications\": [\n    {\n      \"drug_name\": \"华法林\",\n      \"status\": \"暂停\",\n      \"notes\": \"住院期间记录暂停，未提供暂停原因\"\n    }\n  ],\n  \"discharge_medications\": [],\n  \"discrepancies\": [\n    {\n      \"type\": \"停药/暂停原因缺失\",\n      \"description\": \"住院期间华法林暂停，但病历未记录暂停原因。\",\n      \"evidence\": \"住院期间记录'暂停'，未写暂停原因\"\n    },\n    {\n      \"type\": \"出院医嘱缺失\",\n      \"description\": \"出院医嘱中未包含华法林或其他抗凝药物的使用说明。\",\n      \"evidence\": \"出院医嘱缺失\"\n    },\n    {\n      \"type\": \"复查计划缺失\",\n      \"description\": \"未提供出院后复查计划（如INR监测等）。\",\n      \"evidence\": \"复查计划缺失\"\n    }\n  ],\n  \"interaction_risks\": [],\n  \"missing_rationale\": [\n    \"华法林住院期间暂停的原因未记录，需医师补充。\",\n    \"出院后华法林是否恢复、如何调整剂量及监测计划未明确，需医师明确。\"\n  ],\n  \"follow_up_items\": [\n    \"请医师明确华法林暂停的具体原因。\",\n    \"请医师制定出院后华法林用药方案（是否恢复、剂量、频次）。\",\n    \"请医师安排出院后复查计划（如INR监测频率和范围）。\"\n  ],\n  \"manual_review_required\": true\n}",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.pure-llm.v1",
+    "backend_type": "pure_llm",
+    "home_medications": [
+      {
+        "drug_name": "华法林",
+        "dosage": "未提供",
+        "frequency": "未提供",
+        "route": "未提供",
+        "notes": "入院前服用"
+      }
+    ],
+    "inpatient_medications": [
+      {
+        "drug_name": "华法林",
+        "status": "暂停",
+        "notes": "住院期间记录暂停，未提供暂停原因"
+      }
+    ],
+    "discharge_medications": [],
+    "discrepancies": [
+      {
+        "type": "停药/暂停原因缺失",
+        "description": "住院期间华法林暂停，但病历未记录暂停原因。",
+        "evidence": "住院期间记录'暂停'，未写暂停原因"
+      },
+      {
+        "type": "出院医嘱缺失",
+        "description": "出院医嘱中未包含华法林或其他抗凝药物的使用说明。",
+        "evidence": "出院医嘱缺失"
+      },
+      {
+        "type": "复查计划缺失",
+        "description": "未提供出院后复查计划（如INR监测等）。",
+        "evidence": "复查计划缺失"
+      }
+    ],
+    "interaction_risks": [],
+    "missing_rationale": [
+      "华法林住院期间暂停的原因未记录，需医师补充。",
+      "出院后华法林是否恢复、如何调整剂量及监测计划未明确，需医师明确。"
+    ],
+    "follow_up_items": [
+      "请医师明确华法林暂停的具体原因。",
+      "请医师制定出院后华法林用药方案（是否恢复、剂量、频次）。",
+      "请医师安排出院后复查计划（如INR监测频率和范围）。"
+    ],
+    "manual_review_required": true,
+    "structured_extraction": {
+      "contract": "icoder/MedicationReconciliationOutput/v1",
+      "method": "bare_json",
+      "warnings": [],
+      "required_fields": [
+        "home_medications",
+        "inpatient_medications",
+        "discharge_medications",
+        "discrepancies",
+        "interaction_risks",
+        "missing_rationale",
+        "follow_up_items",
+        "manual_review_required"
+      ],
+      "missing_required_fields": [],
+      "valid": true
+    }
+  },
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 7312,
+      "metadata": {
+        "agent_id": "med-reconciliation",
+        "runtime_mode": "pure_llm",
+        "latency_ms": 7312
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 7.65
+}

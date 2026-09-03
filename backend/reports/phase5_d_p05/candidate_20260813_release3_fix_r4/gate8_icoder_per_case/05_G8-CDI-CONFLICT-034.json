@@ -1,0 +1,422 @@
+{
+  "case_id": "CASE-a6c3a12d9876",
+  "completion_state": "REVIEW_RECOMMENDED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-a6c3a12d9876/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "出院诊断与入院诊断不一致，且未明确特发性胰腺炎的诊断依据。",
+      "why_it_matters": "影响胰腺炎病因编码的准确性，特发性胰腺炎需排除其他病因，需明确诊断依据。",
+      "evidence_span": {
+        "document_id": "discharge_summary",
+        "quote": "出院诊断:特发性胰腺炎",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-a6c3a12d9876/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "饮酒史与胆源性胰腺炎诊断并存，但未明确酒精性胰腺炎是否被排除。",
+      "why_it_matters": "酒精性胰腺炎与胆源性胰腺炎病因不同，影响病因编码和临床管理。",
+      "evidence_span": {
+        "document_id": "history_physical",
+        "quote": "饮酒史:每日白酒 100ml × 10年",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-a6c3a12d9876/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "MRI显示胰腺肿胀渗出，但未描述胰腺坏死的严重程度或并发症。",
+      "why_it_matters": "胰腺炎严重程度和并发症影响编码和预后，需明确是否伴有坏死或器官衰竭。",
+      "evidence_span": {
+        "document_id": "mri_report",
+        "quote": "MRI:未见胆总管结石, 胰腺肿胀渗出",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-a6c3a12d9876/Q-001",
+      "gap_id": "CASE-a6c3a12d9876/GAP-001",
+      "topic": "出院诊断特发性胰腺炎的诊断依据",
+      "reason": "出院诊断与入院诊断不一致，且未明确特发性胰腺炎的诊断依据。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "出院诊断:特发性胰腺炎",
+        "char_start": 70,
+        "char_end": 81,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "出院诊断:特发性胰腺炎",
+          "char_start": 70,
+          "char_end": 81,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "出院诊断为特发性胰腺炎，请明确其诊断依据。",
+      "response_options": [
+        "A. 特发性胰腺炎诊断明确，有充分依据（如排除其他病因后仍无法确定病因）",
+        "B. 特发性胰腺炎为推测性诊断，尚需进一步检查明确病因",
+        "C. 出院诊断仍为胆源性胰腺炎，特发性胰腺炎为笔误或记录错误",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "urgent",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    },
+    {
+      "query_id": "CASE-a6c3a12d9876/Q-002",
+      "gap_id": "CASE-a6c3a12d9876/GAP-001",
+      "topic": "急性胰腺炎病因",
+      "reason": "入院与出院诊断记录的病因不一致。",
+      "evidence_span": {
+        "document_id": "chart-001",
+        "quote": "入院诊断:胆源性胰腺炎",
+        "char_start": 17,
+        "char_end": 28,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "入院诊断:胆源性胰腺炎",
+          "char_start": 17,
+          "char_end": 28,
+          "documented_at": ""
+        },
+        {
+          "document_id": "chart-001",
+          "quote": "出院诊断:特发性胰腺炎",
+          "char_start": 70,
+          "char_end": 81,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "请明确本次急性胰腺炎的最终病因诊断。",
+      "response_options": [
+        "A. 胆源性",
+        "B. 酒精性",
+        "C. 特发性",
+        "D. 其他病因（请注明）",
+        "E. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    }
+  ],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-003",
+      "gap_id": "CASE-a6c3a12d9876/GAP-003",
+      "topic": "胰腺坏死严重程度及并发症",
+      "reason": "MRI显示胰腺肿胀渗出，但未描述胰腺坏死的严重程度或并发症。",
+      "query_text": "MRI显示胰腺肿胀渗出，请明确胰腺坏死的严重程度及有无并发症。",
+      "response_options": [
+        "A. 无胰腺坏死，无并发症",
+        "B. 存在胰腺坏死，但无并发症",
+        "C. 存在胰腺坏死，并伴有并发症（如感染、假性囊肿等）",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "MRI:未见胆总管结石, 胰腺肿胀渗出",
+          "char_start": 29,
+          "char_end": 48,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-001: chart matches /急性[^,。、\\s]{0,8}(?:心肌梗死|阑尾炎|胆囊炎|胰腺炎|肺炎|胃肠炎)/ (急性类型已明确) and query asks for 胰腺坏死严重程度及并发症"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-PANC-620ec28e",
+      "gap_id": "CASE-a6c3a12d9876/GAP-001",
+      "topic": "急性胰腺炎病因",
+      "reason": "入院与出院诊断记录的病因不一致。",
+      "query_text": "请明确本次急性胰腺炎的最终病因诊断。",
+      "response_options": [
+        "A. 胆源性",
+        "B. 酒精性",
+        "C. 特发性",
+        "D. 其他病因（请注明）",
+        "E. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "入院诊断:胆源性胰腺炎",
+          "char_start": 17,
+          "char_end": 28,
+          "documented_at": ""
+        },
+        {
+          "document_id": "chart-001",
+          "quote": "出院诊断:特发性胰腺炎",
+          "char_start": 70,
+          "char_end": 81,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "CDI-Coverage: admission and discharge pancreatitis etiologies conflict"
+      ],
+      "status": "DETERMINISTIC_COVERAGE_GENERATED",
+      "rewrite_kind": "PANCREATITIS_ETIOLOGY_CONFLICT",
+      "rewrite_attempt_status": "ACCEPTED_FOR_DOWNSTREAM_GATES",
+      "replacement_query_id": "Q-PANC-620ec28e",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-002",
+      "gap_id": "CASE-a6c3a12d9876/GAP-002",
+      "topic": "酒精性胰腺炎是否被排除",
+      "reason": "饮酒史与胆源性胰腺炎诊断并存，但未明确酒精性胰腺炎是否被排除。",
+      "query_text": "患者有长期饮酒史，请明确酒精性胰腺炎是否已被排除。",
+      "response_options": [
+        "A. 酒精性胰腺炎已排除，依据充分（如饮酒量未达诊断标准或已戒酒多年）",
+        "B. 酒精性胰腺炎不能排除，需进一步评估饮酒与胰腺炎的关系",
+        "C. 酒精性胰腺炎诊断明确，为主要病因",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "饮酒史:每日白酒 100ml × 10年",
+          "char_start": 49,
+          "char_end": 69,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "CDI-Focus: resolve the documented contradiction before ancillary refinement"
+      ],
+      "status": "DEFERRED_UNTIL_CONTRADICTION_RESOLVED",
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者女性, 50岁, 急性胰腺炎。入院诊断:胆源性胰腺炎。MRI:未见胆总管结石, 胰腺肿胀渗出。饮酒史:每日白酒 100ml × 10年。出院诊断:特发性胰腺炎。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者女性，50岁",
+      "急性胰腺炎",
+      "入院诊断：胆源性胰腺炎",
+      "MRI：未见胆总管结石，胰腺肿胀渗出",
+      "饮酒史：每日白酒100ml × 10年",
+      "出院诊断：特发性胰腺炎"
+    ],
+    "encounter_metadata": {
+      "patient_age": "50岁",
+      "patient_sex": "女性",
+      "encounter_type": "住院"
+    }
+  },
+  "risk_flags": [
+    {
+      "category": "contradiction",
+      "description": "入院诊断胆源性胰腺炎与出院诊断特发性胰腺炎矛盾，且MRI未见胆总管结石。"
+    },
+    {
+      "category": "unsupported_diagnosis",
+      "description": "出院诊断特发性胰腺炎缺乏支持证据，如排除其他病因的检查结果。"
+    }
+  ],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "For accurate coding, the discharge diagnosis of “idiopathic pancreatitis” must be supported by explicit documentation that excludes alcohol-induced and biliary etiologies—specifically, state whether the daily alcohol intake meets the threshold for alcoholic pancreatitis and whether the absence of choledocholithiasis on MRI rules out a biliary cause. Additionally, the severity of pancreatic necrosis (e.g., <30%, 30–50%, >50%) and any local complications (e.g., pseudocyst, walled-off necrosis, vascular involvement) must be documented, as these directly affect the clinical specificity and coding of the acute pancreatitis episode. Without these clarifications, the record lacks the necessary clinical detail to distinguish the underlying cause and severity, which is essential for accurate code assignment.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3541,
+      "tokens": 318
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-88bb9e7710ba",
+    "gap_identification": "run-2ecad48f08a4",
+    "gap_identification_risk_flags": "emitted=2;quote_snapped=0",
+    "expert_consultation": "run-4397d53c9518",
+    "query_generation": "run-7d757e6280e2",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.25;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=Y;dropped=0;final_count=3;llm_complete=False;llm_reasoning=胰腺炎病因诊断存在矛盾，且缺乏严重程度和并发症的明确记录，需进一步澄清。",
+    "query_necessity_gate": "necessary=2;unnecessary=1;overquery_triggered=False;final_count=2",
+    "query_single_dimension_gate": "single_dim=2;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=etiology;rewrite_attempted=0;rewrite_accepted=0;final_count=2",
+    "claim_evidence_alignment_gate": "claims_extracted=5;blocked=0;flagged=0;final_count=2",
+    "claim_evidence_alignment_gate::run_id": "run-d396081b6611",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=2",
+    "semantic_necessity_gate::run_id": "run-d1495a4a4763",
+    "query_compliance_gate": ";passed=2;blocked=0",
+    "specialist_trace_emit": "run-21986897140a"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-e5ba464b688c",
+    "gap_identification": "trace-60d06018aab7",
+    "expert_consultation": "trace-ff83586fce85",
+    "query_generation": "trace-c3d0d9b70c9c",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-b474f9faed96",
+    "semantic_necessity_gate": "trace-b2c1110711e1",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-5f2570ae5e44"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2418,
+      "prompt_tokens": 224,
+      "completion_tokens": 108,
+      "total_tokens": 332,
+      "run_id": "run-88bb9e7710ba",
+      "trace_id": "trace-e5ba464b688c",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5653,
+      "prompt_tokens": 1056,
+      "completion_tokens": 628,
+      "total_tokens": 1684,
+      "run_id": "run-2ecad48f08a4",
+      "trace_id": "trace-60d06018aab7",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6054,
+      "prompt_tokens": 1241,
+      "completion_tokens": 730,
+      "total_tokens": 1971,
+      "run_id": "run-7d757e6280e2",
+      "trace_id": "trace-c3d0d9b70c9c",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3541,
+      "prompt_tokens": 168,
+      "completion_tokens": 150,
+      "total_tokens": 318,
+      "run_id": "run-2e34e4c5ab50",
+      "trace_id": "trace-279d14d3b107",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-16bb27f5dec5",
+      "trace_id": "trace-54a732540775",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-bda14ec741ce",
+      "trace_id": "trace-0df90ead8e28",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-843126e2c51c",
+      "trace_id": "trace-5e829303a619",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T20:35:51.078563Z"
+}

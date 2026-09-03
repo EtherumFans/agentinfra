@@ -1,0 +1,75 @@
+{
+  "agent_id": "evidence-extractor",
+  "run_id": "run-0cd8f5a1-4a61-4241-a76d-1b2ad1cf72f4",
+  "trace_id": "trace-687978d630974cc1",
+  "trace_url": "/ai-studio/runs/run-0cd8f5a1-4a61-4241-a76d-1b2ad1cf72f4/trace",
+  "runtime_mode": "a2a_pure_llm",
+  "latency_ms": 4421,
+  "cost": {
+    "amount": 0.000186,
+    "currency": "CNY"
+  },
+  "summary": "```json",
+  "result": {
+    "status": "complete",
+    "markdown": "```json\n{\n  \"supported_codes\": [],\n  \"uncertain_candidates\": [],\n  \"rejected_candidates\": [\n    {\n      \"code\": \"I21.0\",\n      \"evidence_text\": \"腰痛\",\n      \"evidence_strength\": \"no_evidence\",\n      \"char_span\": [0, 2],\n      \"confidence\": 0.1,\n      \"manual_review_prompt\": \"病历仅记录腰痛，无心肌梗死相关症状、检查或诊断证据，该编码不应使用\"\n    }\n  ],\n  \"coded_evidence\": [],\n  \"uncoded_findings\": [],\n  \"review_summary\": \"supported=0, uncertain=0, rejected=1\"\n}\n```",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.pure-llm.v1",
+    "backend_type": "pure_llm",
+    "supported_codes": [],
+    "uncertain_candidates": [],
+    "rejected_candidates": [
+      {
+        "code": "I21.0",
+        "evidence_text": "腰痛",
+        "evidence_strength": "no_evidence",
+        "char_span": [
+          0,
+          2
+        ],
+        "confidence": 0.1,
+        "manual_review_prompt": "病历仅记录腰痛，无心肌梗死相关症状、检查或诊断证据，该编码不应使用"
+      }
+    ],
+    "coded_evidence": [],
+    "uncoded_findings": [],
+    "review_summary": "supported=0, uncertain=0, rejected=1",
+    "manual_review_required": true,
+    "structured_extraction": {
+      "contract": "icoder/CodedEvidence/v1",
+      "method": "json_block",
+      "warnings": [],
+      "required_fields": [
+        "coded_evidence",
+        "uncoded_findings",
+        "review_summary"
+      ],
+      "missing_required_fields": [],
+      "valid": true
+    }
+  },
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 4421,
+      "metadata": {
+        "agent_id": "evidence-extractor",
+        "runtime_mode": "a2a_pure_llm",
+        "latency_ms": 4421
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 4.71
+}

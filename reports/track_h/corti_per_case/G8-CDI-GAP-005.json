@@ -1,0 +1,87 @@
+{
+  "case_id": "G8-CDI-GAP-005",
+  "group": "clear_gap",
+  "variant": "",
+  "session_id": "6ee19385-9bc7-4e8a-a64e-630f2a899569",
+  "attempt": 1,
+  "outcome": "SUCCESS",
+  "elapsed_s": 24.0,
+  "expected": {
+    "query_count_min": 1,
+    "query_count_max": 2,
+    "expected_no_query": false,
+    "expected_query_topics": [
+      "II型呼吸衰竭",
+      "Type 2 respiratory failure",
+      "acute vs chronic respiratory failure"
+    ],
+    "notes": "Type 2 respiratory failure evident from ABG but not documented as diagnosis"
+  },
+  "text_length": 5004,
+  "first_token_at_s": 4.19,
+  "last_token_at_s": 24.0,
+  "event_count": 9,
+  "raw_events_preview": [
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"id\":\"ab4f0518-703b-46ce-96aa-1d6a1af01d60\",\"type\":\"text-start\"}",
+    "message|{\"delta\":\"Encounter Summary:\\n- 68-year-old male with a 10-year history of COPD.\\n- Presented with \\\"increased cough and dyspnea for 3 days.\\\"\\n- ABG shows \\\"pH 7.34, PaCO2 62, PaO2 55.\\\"\\n- Admission",
+    "message|{\"id\":\"ab4f0518-703b-46ce-96aa-1d6a1af01d60\",\"type\":\"text-end\"}",
+    "message|{\"messageMetadata\":{\"contextId\":\"019f55c2-03a3-7448-a522-bd04538adc41\",\"taskId\":\"019f55c2-03a3-73d1-8728-b1dca42bf260\",\"credits\":0.064712,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+    "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.064712},\"type\":\"finish\"}",
+    "message|[DONE]"
+  ],
+  "expert_events": [],
+  "status_events": [
+    {
+      "state": "working"
+    },
+    {
+      "state": "working"
+    },
+    {
+      "message": "Calling expert: coding-expert",
+      "state": "working"
+    }
+  ],
+  "finish_metadata": {
+    "contextId": "019f55c2-03a3-7448-a522-bd04538adc41",
+    "taskId": "019f55c2-03a3-73d1-8728-b1dca42bf260",
+    "credits": 0.064712,
+    "state": "completed"
+  },
+  "parsed": {
+    "encounter_summary": "- 68-year-old male with a 10-year history of COPD.\n- Presented with \"increased cough and dyspnea for 3 days.\"\n- ABG shows \"pH 7.34, PaCO2 62, PaO2 55.\"\n- Admission diagnosis documented as \"COPD acute exacerbation.\"",
+    "gaps": [
+      {
+        "idx": 1,
+        "text": "Respiratory failure status is not documented despite abnormal ABG findings.\n   - Why it matters: In a patient admitted for COPD exacerbation, documentation may need to clarify whether any acute respiratory failure, acute-on-chronic respiratory failure, or chronic respiratory failure is present, if clinically supported by the provider.\n   - Evidence quote: \"ABG: pH 7.34, PaCO2 62, PaO2 55.\"\n   - Minimal clarification needed: Whether these ABG abnormalities represent no respiratory failure, chroni"
+      },
+      {
+        "idx": 2,
+        "text": "COPD specificity is limited to acute exacerbation without additional type/severity detail.\n   - Why it matters: Greater specificity may support accurate code assignment and a clearer clinical picture.\n   - Evidence quote: \"COPD for 10 years\" and \"Admission diagnosis: COPD acute exacerbation.\"\n   - Minimal clarification needed: Whether there is additional clinically relevant specificity documented for the COPD, such as chronic bronchitis/emphysema phenotype if known and documented by the provider"
+      }
+    ],
+    "gap_count": 2,
+    "queries": [
+      {
+        "idx": 1,
+        "text": "Clarification of respiratory status during COPD exacerbation"
+      },
+      {
+        "idx": 2,
+        "text": "Additional COPD specificity"
+      }
+    ],
+    "query_count": 2,
+    "specialists_contacted": [
+      "Medical Coding Expert",
+      "Coding Expert"
+    ],
+    "specialist_trace_text": "- Medical Coding Expert: Consulted for coding specificity and compliant query targets.\n  - Requested: Review of the excerpt for CDI gaps and coding specificity using only chart-supported facts.\n  - Accepted: General coding-focused need to clarify respiratory status and COPD specificity because these are directly supported by the excerpt.\n  - Rejected/Omitted: Any unsupported diagnosis assumptions or coding conclusions not explicitly grounded in the chart excerpt.\n- AMBOSS Expert: Not consulted.\n  - Rationale: Clinical criteria support was not required to identify the conservative documentation clarification opportunity already evident from the excerpt.\n- CDI Web Search Expert: Not consulted.\n  - Rationale: No current external guideline citation was necessary to produce a conservative, chart-grounded CDI review.\n\nUncertainty note:\n- The excerpt supports a query for clarification of respiratory status, but does not by itself prove a specific respiratory failure diagnosis. Provider clarification is required.",
+    "has_specialist_trace": true
+  },
+  "error": "",
+  "text": "Encounter Summary:\n- 68-year-old male with a 10-year history of COPD.\n- Presented with \"increased cough and dyspnea for 3 days.\"\n- ABG shows \"pH 7.34, PaCO2 62, PaO2 55.\"\n- Admission diagnosis documented as \"COPD acute exacerbation.\"\n\nDocumentation Gaps:\n1. Respiratory failure status is not documented despite abnormal ABG findings.\n   - Why it matters: In a patient admitted for COPD exacerbation, documentation may need to clarify whether any acute respiratory failure, acute-on-chronic respiratory failure, or chronic respiratory failure is present, if clinically supported by the provider.\n   - Evidence quote: \"ABG: pH 7.34, PaCO2 62, PaO2 55.\"\n   - Minimal clarification needed: Whether these ABG abnormalities represent no respiratory failure, chronic respiratory failure, acute respiratory failure, acute-on-chronic respiratory failure, or another respiratory condition.\n\n2. COPD specificity is limited to acute exacerbation without additional type/severity detail.\n   - Why it matters: Greater specificity may support accurate code assignment and a clearer clinical picture.\n   - Evidence quote: \"COPD for 10 years\" and \"Admission diagnosis: COPD acute exacerbation.\"\n   - Minimal clarification needed: Whether there is additional clinically relevant specificity documented for the COPD, such as chronic bronchitis/emphysema phenotype if known and documented by the provider. \n   - Limitation: The excerpt does not provide enough evidence to query tobacco use, infection, pneumonia, ventilatory support, or other COPD-related complications.\n\nProposed Provider Queries:\n1. Topic: Clarification of respiratory status during COPD exacerbation\n   - Reason query is needed: ABG abnormalities are present, but no respiratory failure diagnosis is documented.\n   - Evidence quote: \"ABG: pH 7.34, PaCO2 62, PaO2 55\" with \"Admission diagnosis: COPD acute exacerbation.\"\n   - Non-leading query text:\n     \"Based on the documented COPD acute exacerbation and ABG results (pH 7.34, PaCO2 62, PaO2 55), please clarify the patient’s respiratory status for this admission, if clinically applicable.\"\n   - Suggested response options:\n     - COPD acute exacerbation without respiratory failure\n     - Acute respiratory failure\n     - Chronic respiratory failure\n     - Acute-on-chronic respiratory failure\n     - Other respiratory condition (please specify)\n     - Clinically undetermined / unable to determine\n\n2. Topic: Additional COPD specificity\n   - Reason query is needed: COPD is documented, but no further type/detail is provided.\n   - Evidence quote: \"COPD for 10 years\" and \"Admission diagnosis: COPD acute exacerbation.\"\n   - Non-leading query text:\n     \"For the documented COPD acute exacerbation, please clarify whether there is any additional COPD specificity that should be captured in the record, if known.\"\n   - Suggested response options:\n     - COPD with chronic bronchitis\n     - COPD with emphysema\n     - Other specified COPD type (please specify)\n     - No additional specificity clinically relevant\n     - Clinically undetermined / unable to determine\n\nCoding Specificity Checklist:\n- Whether respiratory failure is present, and if so whether acute, chronic, or acute-on-chronic\n- Whether hypoxemia/hypercapnia reflects a defined reportable respiratory condition, if clinically supported\n- Any additional COPD type/phenotype documented by the provider\n- Clear linkage between the COPD exacerbation and the documented respiratory status, if applicable\n\nRisk Flags:\n- Potential unsupported omission: ABG abnormalities may indicate a more specific respiratory diagnosis, but none is documented.\n- Limited evidence: There is not enough documentation in the excerpt to support queries regarding infection, pneumonia, sepsis, tobacco use, ventilator dependence, or home oxygen use.\n- Ambiguity: The ABG values are abnormal, but the excerpt alone does not establish whether findings are acute, chronic, or acute-on-chronic without provider clarification.\n\nSpecialist Trace:\n- Medical Coding Expert: Consulted for coding specificity and compliant query targets.\n  - Requested: Review of the excerpt for CDI gaps and coding specificity using only chart-supported facts.\n  - Accepted: General coding-focused need to clarify respiratory status and COPD specificity because these are directly supported by the excerpt.\n  - Rejected/Omitted: Any unsupported diagnosis assumptions or coding conclusions not explicitly grounded in the chart excerpt.\n- AMBOSS Expert: Not consulted.\n  - Rationale: Clinical criteria support was not required to identify the conservative documentation clarification opportunity already evident from the excerpt.\n- CDI Web Search Expert: Not consulted.\n  - Rationale: No current external guideline citation was necessary to produce a conservative, chart-grounded CDI review.\n\nUncertainty note:\n- The excerpt supports a query for clarification of respiratory status, but does not by itself prove a specific respiratory failure diagnosis. Provider clarification is required."
+}

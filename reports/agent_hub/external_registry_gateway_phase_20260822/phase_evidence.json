@@ -1,0 +1,69 @@
+{
+  "schema_version": "icoder.external-registry-phase-evidence/v1",
+  "generated_at": "2026-08-22T08:56:44+08:00",
+  "phase": "external_registry_gateway",
+  "status": "development_candidate_complete_external_gates_open",
+  "providers": {
+    "drugbank": {
+      "operation": "lookup",
+      "development_gateway_executable": true,
+      "real_commercial_licence_verified": false,
+      "llm_fallback_allowed": false
+    },
+    "posos": {
+      "operation": "guide",
+      "development_gateway_executable": true,
+      "real_commercial_licence_verified": false,
+      "llm_fallback_allowed": false
+    },
+    "web-search": {
+      "operation": "search",
+      "development_gateway_executable": true,
+      "real_privacy_provider_verified": false,
+      "dual_opt_in_required": true
+    }
+  },
+  "contracts": {
+    "request": "icoder.external-registry.gateway-request/v1",
+    "response": "icoder.external-registry.gateway-response/v1",
+    "deidentified_only": true,
+    "fixed_https_origin": true,
+    "redirects_allowed": false,
+    "unknown_vendor_fields_projected": false,
+    "connector_audit_required": true
+  },
+  "verification": {
+    "backend_related": {"passed": 111, "failed": 0},
+    "real_tcp_specialist": {"passed": 1, "failed": 0},
+    "mainline_health": {"passed": 6, "failed": 0},
+    "javascript_sdk": {"passed": 41, "failed": 0, "build": "passed"},
+    "python_sdk": {"passed": 48, "failed": 0},
+    "deployment_preflight": {"passed": 53, "failed": 0},
+    "deployment_preflight_test": {"passed": 1, "failed": 0},
+    "real_llm_called": false,
+    "native_medcoder_loaded": false
+  },
+  "security_negatives": [
+    "phi_rejected_before_socket",
+    "wrong_gateway_credential_returns_stable_401",
+    "missing_endpoint_or_credential_fails_closed",
+    "web_search_requires_provider_and_exact_tenant_opt_in",
+    "unsafe_reference_url_rejected",
+    "wrong_contract_or_provider_rejected",
+    "credential_and_endpoint_absent_from_health_output"
+  ],
+  "artifacts": [
+    "backend/app/services/connector_external_registry.py",
+    "backend/tests/integration/icoder/test_external_registry_remote_http_e2e.py",
+    "backend/tests/fixtures/external_registry_http_gateway.py",
+    "docs/cloud/EXTERNAL_REGISTRY_GATEWAYS.md",
+    "docs/corti_parity/ICODER_EXTERNAL_REGISTRY_GATEWAY_PHASE_SUMMARY_2026-08-22.md",
+    "reports/agent_hub/external_registry_gateway_phase_20260822/deployment-preflight/deployment_preflight.json"
+  ],
+  "external_gates": [
+    "drugbank_and_posos_commercial_licences_and_vendor_mappings",
+    "privacy_search_provider_dpa_and_china_region_assessment",
+    "production_kms_certificates_dns_capacity_and_multi_replica_validation",
+    "independent_pharmacist_clinician_hospital_legal_and_certification_review"
+  ]
+}

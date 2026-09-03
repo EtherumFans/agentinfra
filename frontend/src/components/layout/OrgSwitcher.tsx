@@ -1,11 +1,14 @@
 import { useState } from 'react';
+
 import { useAuthStore, OrgInfo } from '../../store';
 import { authApi } from '../../services/api';
+import { useT } from '../../i18n';
 
 export default function OrgSwitcher() {
   const { organizations, currentOrgId, setOrganizations } = useAuthStore();
   const [open, setOpen] = useState(false);
   const [switching, setSwitching] = useState(false);
+  const t = useT();
 
   const currentOrg = organizations.find((o) => o.id === currentOrgId);
   const otherOrgs = organizations.filter((o) => o.id !== currentOrgId);
@@ -42,7 +45,7 @@ export default function OrgSwitcher() {
             d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
         </svg>
         <span className="max-w-[120px] truncate">
-          {currentOrg?.name || (organizations.length === 0 ? 'No Organization' : 'Select Org')}
+          {currentOrg?.name || (organizations.length === 0 ? t.orgSwitcherNoOrg : t.orgSwitcherSelectOrg)}
         </span>
         {organizations.length > 1 && (
           <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -56,7 +59,7 @@ export default function OrgSwitcher() {
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
           <div className="absolute right-0 mt-1 w-64 z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-1">
             <div className="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
-              Organizations
+              {t.orgSwitcherOrganizations}
             </div>
             {organizations.map((org) => (
               <button
@@ -77,7 +80,7 @@ export default function OrgSwitcher() {
               </button>
             ))}
             {otherOrgs.length === 0 && organizations.length === 0 && (
-              <div className="px-3 py-2 text-sm text-gray-400">No organizations found</div>
+              <div className="px-3 py-2 text-sm text-gray-400">{t.orgSwitcherNoOrgsFound}</div>
             )}
             <div className="border-t border-gray-100 dark:border-gray-700 mt-1 pt-1">
               <a
@@ -85,7 +88,7 @@ export default function OrgSwitcher() {
                 className="block w-full text-left px-3 py-2 text-sm text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-750"
                 onClick={(e) => { e.preventDefault(); setOpen(false); window.location.href = '/settings?tab=organization'; }}
               >
-                + Create or manage organizations
+                {t.orgSwitcherCreateManage}
               </a>
             </div>
           </div>
@@ -94,3 +97,4 @@ export default function OrgSwitcher() {
     </div>
   );
 }
+

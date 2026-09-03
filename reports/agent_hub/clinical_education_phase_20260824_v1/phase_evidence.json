@@ -1,0 +1,213 @@
+{
+  "schema_version": "icoder.governed-clinical-education-phase-evidence/v1",
+  "generated_at": "2026-08-24T19:45:58+08:00",
+  "status": "development_candidate_slice_passed_external_gates_open",
+  "agent": {
+    "agent_id": "clinical-education",
+    "agent_ref": "icoder/clinical-education@1.1.0",
+    "provider": "icoder.governed-clinical-education.v1",
+    "backend_type": "rule_engine",
+    "runtime_mode": "governed_local_approved_source_clinical_education",
+    "output_contract": "icoder/ClinicalEducationOutput/v6",
+    "required_output_fields": 30,
+    "field_relations": 7,
+    "evidence_bindings": 1,
+    "network_required": false,
+    "llm_required": false,
+    "external_knowledge_used": false,
+    "content_generation_status": "SOURCE_BOUND_TEMPLATE_ONLY",
+    "question_classification_performed": false,
+    "clinical_reasoning_performed": false,
+    "diagnosis_or_treatment_advice_generated": false,
+    "drug_interaction_assessed": false,
+    "source_retrieval_or_validation_performed": false,
+    "learner_adaptation_performed": false,
+    "manual_review_required": true,
+    "production_writeback_blocked": true
+  },
+  "verification": {
+    "focused_provider_and_projector": {
+      "passed": 41,
+      "failed": 0
+    },
+    "redaction_a2a_and_native_stream": {
+      "passed": 35,
+      "failed": 0
+    },
+    "runtime_matrix_and_semantic_bundle": {
+      "passed": 21,
+      "failed": 0
+    },
+    "offline_api_targeted": {
+      "passed": 11,
+      "failed": 0
+    },
+    "stale_baseline_regressions": {
+      "passed": 5,
+      "failed": 0
+    },
+    "broad_regression": {
+      "passed": 1176,
+      "skipped": 5,
+      "deselected": 6,
+      "failed": 0,
+      "duration_seconds": 668.05,
+      "junit": "reports/agent_hub/clinical_education_phase_20260824_v1/broad_regression_final_junit.xml"
+    },
+    "loopback_http": {
+      "transport": "real_loopback_http",
+      "happy": {"passed": 20, "failed": 0},
+      "adversarial": {"passed": 20, "failed": 0},
+      "reference": {
+        "passed": 20,
+        "failed": 0,
+        "quality_scope": "pack_owned_synthetic_reference_semantics_not_independent_clinical_gold"
+      },
+      "stability": {
+        "passed": 120,
+        "failed": 0,
+        "repetitions": 3,
+        "p50_seconds": 0.213,
+        "p95_seconds": 0.32
+      },
+      "signed_bundle_verified": 20,
+      "external_model_agents_not_evaluated": 6
+    },
+    "field_relation_replay": {
+      "passed": true,
+      "agents": 20,
+      "relations": 95,
+      "detected_adversarial_assertions": 262,
+      "expected_adversarial_assertions": 262
+    },
+    "evidence_binding_replay": {
+      "passed": true,
+      "agents": 16,
+      "bindings": 25,
+      "detected_adversarial_assertions": 50,
+      "expected_adversarial_assertions": 50
+    },
+    "schema_generator_dry_run": {
+      "changed_agents": []
+    },
+    "contract_compatibility": {
+      "passed": true,
+      "visible_contracts": 26,
+      "registered_contracts": 128,
+      "new_refs": [],
+      "changed_refs": [],
+      "invalid_refs": [],
+      "duplicate_refs": []
+    },
+    "corti_catalog_gate": {
+      "passed": true,
+      "expected_corti_agents": 20,
+      "catalog_mapped": 20,
+      "development_verified": 20,
+      "china_profile_declared": 20,
+      "clinical_quality_verified": 0,
+      "production_ready_verified": 0
+    },
+    "deployment_preflight": {
+      "passed": true,
+      "checks": 90,
+      "failed": 0
+    },
+    "runtime_matrix": {
+      "visible_agents": 26,
+      "provider_resolvable": 26,
+      "launch_candidate_ready": 26,
+      "external_llm_required": 6,
+      "external_llm_optional": 1,
+      "pure_local": 19,
+      "local_baseline": 20,
+      "offline_fail_closed": 6,
+      "local_semantic_verified": 20,
+      "strict_live_provider_verified": 0,
+      "production_ready_verified": 0,
+      "field_relations": 95,
+      "evidence_bindings": 25,
+      "registered_visible_contracts": 26
+    }
+  },
+  "regressions_found_and_closed": [
+    {
+      "id": "duplicate_clinical_education_relation_override",
+      "finding": "A duplicate clinical-education schema dictionary key silently replaced five safety relations in the generator.",
+      "resolution": "The duplicate was removed, all seven relations are generated, and the corrected immutable current contract was registered as v6 while v4 and v5 were retained."
+    },
+    {
+      "id": "clinical_phrase_name_false_positive",
+      "finding": "The broad Chinese surname detector redacted the source phrase 应立即 as a person name.",
+      "resolution": "The clinical phrase is protected while actual identifiers remain redacted, with a regression test."
+    },
+    {
+      "id": "native_stream_test_used_migrated_agent",
+      "finding": "A pure-LLM native stream test still selected Clinical Education after it became governed local.",
+      "resolution": "The native stream test now uses the still external Clinical Guidelines Agent."
+    },
+    {
+      "id": "stale_local_external_count_assertions",
+      "finding": "Offline and runtime-matrix tests still expected nineteen local baselines and seven external-model Agents.",
+      "resolution": "The assertions now require twenty local baselines and six external-model Agents."
+    }
+  ],
+  "artifact_hashes": {
+    "agent_pack.json": "f13626bb1d75f515705ebd4c23cc7aefacfa9810b82992dd6e7cf10f7bc28a68",
+    "agent.py": "4b781a3393692fb97d5f63d874b26ea3b2c48686ef66273a6342a0ec56123c90",
+    "governed_clinical_education_provider.py": "09222c1416f76e1feafd7ebf7a392874902fed162899f788ae761e45000171bc",
+    "output_contract_registry.json": "1c8a702dbdb3617decda15717b6f5b78fb3935c48e833c66ac1a808795218d37",
+    "phi_redactor.py": "4319296c6722ab4d1ee36805814ce29b5cea40215b3e6cad25156e7e1eb1c3b5",
+    "agent_hub_examples_e2e.json": "f4559e9c44eb4f064ca25643acc756c8503862db5063bb0400a3f929f0253ebf",
+    "agent_hub_adversarial_e2e.json": "585b016bac8c287a0b44a0efe7d66cb7ff96439d2d5107df0d4fe0c2ed52553d",
+    "agent_hub_reference_quality_replay.json": "582b3d1e11c71fc5f05ee21f1dc711eafc79789fcab6303c7ccfb5514179abc8",
+    "agent_hub_stability_benchmark.json": "6a39499944ff5be25465602c333e6abf0c606f63be0b8b6a4e3c575c1b9253ac",
+    "agent_hub_local_semantic_evidence_bundle.json": "4dc67b4ce0360aef1b8d2fb78dd338c97155b517db3b43274bb002c6c1dbdb2e",
+    "agent_hub_runtime_matrix.json": "30e90eb0c976cc714822ca3a943c46484e73c470b978f2d3a40aed0ed2581d54",
+    "agent_hub_field_relation_replay.json": "3a0b93cc4e89d76c0f562a06a0c686516877b33c23619127e80931930f817ff8",
+    "agent_hub_evidence_binding_replay.json": "bc97326e7b41644f57913195ae5f88bca81103853b063679675e72ab6c63426a",
+    "broad_regression_final_junit.xml": "4d86d02016e27682c98863a80215a7379ac66f006babe3a7b6212a0e4b826325",
+    "deployment_preflight.json": "4f56ba2cfcc15448b6d9f5c6c6c8b2225fc7efa2ef5f6f46d9f4bfedf17a5a5a",
+    "corti_prebuilt_agent_parity.json": "d8a8469b28e9a0c787900795bd4b44724e34b1b013a73d39a2ba13c0bd7808ea"
+  },
+  "operational_findings": {
+    "protected_database_bytes": 8536064,
+    "protected_database_sha256": "2f1e5af01aac020cdd0eadac51b3ea65ba5b2e714d9f6ea3707992e829692877",
+    "uvicorn_processes_remaining": false,
+    "unrelated_python_process_observed": "scripts/986_build_e557a_md_mp_exact_name_listwise_assets.py",
+    "memory_access_violation_observed_during_phase": false,
+    "native_medcoder_disabled": true,
+    "local_stt_disabled": true,
+    "real_llm_used": false,
+    "external_network_used_by_e2e": false,
+    "llm_environment_key_lengths_process_user_machine": [0, 0, 0]
+  },
+  "corti_public_comparators": [
+    "https://corti.ai/agents/clinical-education-agent",
+    "https://corti.ai/agents/clinical-guidelines-agent",
+    "https://corti.ai/agents",
+    "https://corti.ai/agentic-framework",
+    "https://docs.corti.ai/agentic/overview"
+  ],
+  "claims_not_proven": [
+    "question_classification",
+    "quick_tutor_or_board_style_adaptive_modes",
+    "diagnostic_mechanism_differential_or_clinical_reasoning",
+    "drug_interaction_reasoning",
+    "pubmed_web_or_medical_calculator_routing",
+    "source_retrieval_validation_or_citation_quality",
+    "personalized_learner_level_adaptation",
+    "board_style_question_generation_or_assessment_quality",
+    "lms_or_training_outcome_integration",
+    "strict_26_agent_live_provider_semantic_quality",
+    "corti_product_or_model_equivalence",
+    "independent_clinical_education_quality",
+    "hospital_acceptance_or_production_cloud_readiness",
+    "legal_regulatory_or_certification_approval"
+  ],
+  "real_llm_used": false,
+  "independent_clinical_gold_used": false,
+  "corti_parity_proven": false,
+  "hospital_acceptance_proven": false,
+  "production_ready": false
+}

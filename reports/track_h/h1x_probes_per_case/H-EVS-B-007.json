@@ -1,0 +1,99 @@
+{
+  "case_id": "H-EVS-B-007",
+  "group": "EVIDENCE_STRENGTH",
+  "variant": "B",
+  "session_id": "e0e1b3ae-3778-47d0-9e0b-5bc26e62b23c",
+  "attempt": 1,
+  "outcome": "SUCCESS",
+  "elapsed_s": 35.69,
+  "expected": {
+    "query_count_min": 1,
+    "query_count_max": 2,
+    "expected_query_topics": [
+      "AKI etiology",
+      "AKI stage"
+    ],
+    "forbidden_query_topics": [],
+    "no_query_expected": false
+  },
+  "text_length": 6609,
+  "first_token_at_s": 3.43,
+  "last_token_at_s": 35.69,
+  "event_count": 9,
+  "raw_events_preview": [
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"id\":\"cc391bfe-9ad5-496e-a9ac-f59e0f6b06da\",\"type\":\"text-start\"}",
+    "message|{\"delta\":\"Encounter Summary:\\n- Chart excerpt documents significant acute renal dysfunction with \\\"creatinine 2.8 mg/dL (baseline 0.9)\\\" and \\\"BUN 65.\\\"\\n- Additional renal-related clinical indicators",
+    "message|{\"id\":\"cc391bfe-9ad5-496e-a9ac-f59e0f6b06da\",\"type\":\"text-end\"}",
+    "message|{\"messageMetadata\":{\"contextId\":\"019f5bc7-f38a-750a-bd8c-b37765a2cd16\",\"taskId\":\"019f5bc7-f38a-748c-ae5c-9d3761b87a64\",\"credits\":0.076992,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+    "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.076992},\"type\":\"finish\"}",
+    "message|[DONE]"
+  ],
+  "expert_events": [],
+  "status_events": [
+    {
+      "state": "working"
+    },
+    {
+      "state": "working"
+    },
+    {
+      "message": "Calling expert: coding-expert",
+      "state": "working"
+    }
+  ],
+  "finish_metadata": {
+    "contextId": "019f5bc7-f38a-750a-bd8c-b37765a2cd16",
+    "taskId": "019f5bc7-f38a-748c-ae5c-9d3761b87a64",
+    "credits": 0.076992,
+    "state": "completed"
+  },
+  "parsed": {
+    "encounter_summary": "- Chart excerpt documents significant acute renal dysfunction with \"creatinine 2.8 mg/dL (baseline 0.9)\" and \"BUN 65.\"\n- Additional renal-related clinical indicators include \"K+ 5.6,\" \"urine output 0.3 mL/kg/h × 8 hours,\" and \"CKD-EPI eGFR 22.\"\n- \"Renal consult placed\" and \"no dialysis yet\" are documented.",
+    "gaps": [
+      {
+        "idx": 1,
+        "text": "Gap: The excerpt shows renal dysfunction indicators but does not state the diagnosis being treated.\n   - Why it matters: Coding and CDI require the provider to document the condition being evaluated/managed rather than relying on labs alone.\n   - Evidence quote: \"creatinine 2.8 mg/dL (baseline 0.9), BUN 65\"; \"urine output 0.3 mL/kg/h × 8 hours\"; \"CKD-EPI eGFR 22\"; \"Renal consult placed.\"\n   - Minimal clarification needed: Whether there is a documented renal diagnosis/condition responsible for th"
+      },
+      {
+        "idx": 2,
+        "text": "Gap: Severity/staging of the renal dysfunction is not documented.\n   - Why it matters: Specificity affects accurate code assignment and reflects clinical severity.\n   - Evidence quote: \"creatinine 2.8 mg/dL (baseline 0.9)\"; \"urine output 0.3 mL/kg/h × 8 hours\"; \"CKD-EPI eGFR 22.\"\n   - Minimal clarification needed: Severity/stage if the provider determines a renal condition is present."
+      },
+      {
+        "idx": 3,
+        "text": "Gap: Clinical significance of hyperkalemia is not documented.\n   - Why it matters: Abnormal potassium may be separately reportable/clinically relevant if assessed and monitored, but should not be assumed from the lab alone.\n   - Evidence quote: \"K+ 5.6.\"\n   - Minimal clarification needed: Whether the elevated potassium is clinically significant and being monitored/managed."
+      },
+      {
+        "idx": 4,
+        "text": "Gap: Relationship to any chronic kidney disease is unclear.\n   - Why it matters: The excerpt includes \"CKD-EPI eGFR 22,\" but no chronic diagnosis, chronicity, or baseline CKD stage is documented.\n   - Evidence quote: \"baseline 0.9\"; \"CKD-EPI eGFR 22.\"\n   - Minimal clarification needed: Whether any chronic kidney disease is present, and if so, the stage; or whether the low eGFR reflects the current acute process only."
+      },
+      {
+        "idx": 5,
+        "text": "Gap: Need for renal replacement therapy is mentioned indirectly but current status is unclear.\n   - Why it matters: \"no dialysis yet\" suggests this issue is being considered, but the record does not clarify whether dialysis is anticipated, ruled out, or not clinically indicated.\n   - Evidence quote: \"no dialysis yet.\"\n   - Minimal clarification needed: Current clinical status regarding renal replacement therapy consideration, if relevant to the encounter documentation."
+      }
+    ],
+    "gap_count": 5,
+    "queries": [
+      {
+        "idx": 1,
+        "text": "Clarification of renal diagnosis"
+      },
+      {
+        "idx": 2,
+        "text": "Clarification of severity/stage"
+      },
+      {
+        "idx": 3,
+        "text": "Clinical significance of elevated potassium"
+      }
+    ],
+    "query_count": 3,
+    "specialists_contacted": [],
+    "specialist_trace_text": "- Medical Coding Expert: Consult requested for coding specificity, compliant query topics, and CDI gaps based only on the excerpt. No usable expert output was returned, so no expert-derived content was accepted.\n- AMBOSS-type clinical criteria expert: Not consulted because no such tool is available in this environment.\n- CDI web/guidance expert: Not consulted because the excerpt contains enough chart evidence to identify conservative, chart-grounded clarification opportunities without external guidance.\n\nUncertainty note:\n- This review is limited to the single provided excerpt. No assumptions were made about diagnosis, etiology, chronicity, or treatment beyond what is explicitly documented.",
+    "has_specialist_trace": true
+  },
+  "error": "",
+  "text": "Encounter Summary:\n- Chart excerpt documents significant acute renal dysfunction with \"creatinine 2.8 mg/dL (baseline 0.9)\" and \"BUN 65.\"\n- Additional renal-related clinical indicators include \"K+ 5.6,\" \"urine output 0.3 mL/kg/h × 8 hours,\" and \"CKD-EPI eGFR 22.\"\n- \"Renal consult placed\" and \"no dialysis yet\" are documented.\n\nDocumentation Gaps:\n1. Gap: The excerpt shows renal dysfunction indicators but does not state the diagnosis being treated.\n   - Why it matters: Coding and CDI require the provider to document the condition being evaluated/managed rather than relying on labs alone.\n   - Evidence quote: \"creatinine 2.8 mg/dL (baseline 0.9), BUN 65\"; \"urine output 0.3 mL/kg/h × 8 hours\"; \"CKD-EPI eGFR 22\"; \"Renal consult placed.\"\n   - Minimal clarification needed: Whether there is a documented renal diagnosis/condition responsible for these findings, if any.\n\n2. Gap: Severity/staging of the renal dysfunction is not documented.\n   - Why it matters: Specificity affects accurate code assignment and reflects clinical severity.\n   - Evidence quote: \"creatinine 2.8 mg/dL (baseline 0.9)\"; \"urine output 0.3 mL/kg/h × 8 hours\"; \"CKD-EPI eGFR 22.\"\n   - Minimal clarification needed: Severity/stage if the provider determines a renal condition is present.\n\n3. Gap: Clinical significance of hyperkalemia is not documented.\n   - Why it matters: Abnormal potassium may be separately reportable/clinically relevant if assessed and monitored, but should not be assumed from the lab alone.\n   - Evidence quote: \"K+ 5.6.\"\n   - Minimal clarification needed: Whether the elevated potassium is clinically significant and being monitored/managed.\n\n4. Gap: Relationship to any chronic kidney disease is unclear.\n   - Why it matters: The excerpt includes \"CKD-EPI eGFR 22,\" but no chronic diagnosis, chronicity, or baseline CKD stage is documented.\n   - Evidence quote: \"baseline 0.9\"; \"CKD-EPI eGFR 22.\"\n   - Minimal clarification needed: Whether any chronic kidney disease is present, and if so, the stage; or whether the low eGFR reflects the current acute process only.\n\n5. Gap: Need for renal replacement therapy is mentioned indirectly but current status is unclear.\n   - Why it matters: \"no dialysis yet\" suggests this issue is being considered, but the record does not clarify whether dialysis is anticipated, ruled out, or not clinically indicated.\n   - Evidence quote: \"no dialysis yet.\"\n   - Minimal clarification needed: Current clinical status regarding renal replacement therapy consideration, if relevant to the encounter documentation.\n\nProposed Provider Queries:\n1. Topic: Clarification of renal diagnosis\n   - Reason query is needed: The excerpt documents significant renal-related abnormalities without a clearly stated diagnosis.\n   - Evidence quote: \"creatinine 2.8 mg/dL (baseline 0.9), BUN 65, K+ 5.6, urine output 0.3 mL/kg/h × 8 hours, no dialysis yet. Renal consult placed. CKD-EPI eGFR 22.\"\n   - Non-leading query text: \"Based on the documented renal-related findings, including creatinine 2.8 mg/dL from baseline 0.9, BUN 65, urine output 0.3 mL/kg/h for 8 hours, eGFR 22, and renal consultation, please clarify the renal condition being evaluated or treated during this encounter, if any.\"\n   - Suggested response options: \"Acute kidney injury\"; \"Chronic kidney disease\"; \"Acute kidney injury on chronic kidney disease\"; \"Other renal condition (please specify)\"; \"Abnormal renal labs only/no definitive renal diagnosis\"; \"Clinically undetermined.\"\n\n2. Topic: Clarification of severity/stage\n   - Reason query is needed: Renal dysfunction severity is not explicitly documented.\n   - Evidence quote: \"creatinine 2.8 mg/dL (baseline 0.9)\"; \"urine output 0.3 mL/kg/h × 8 hours\"; \"CKD-EPI eGFR 22.\"\n   - Non-leading query text: \"If a renal condition is present, please clarify the severity/stage of the condition being monitored or treated during this encounter.\"\n   - Suggested response options: \"Please specify severity/stage\"; \"Unable to determine\"; \"Not clinically applicable.\"\n\n3. Topic: Clinical significance of elevated potassium\n   - Reason query is needed: The record documents potassium 5.6 but does not indicate whether this represents a clinically significant condition.\n   - Evidence quote: \"K+ 5.6.\"\n   - Non-leading query text: \"Please clarify the clinical significance, if any, of the documented potassium level of 5.6 during this encounter.\"\n   - Suggested response options: \"Clinically significant electrolyte abnormality (please specify)\"; \"Not clinically significant\"; \"Other explanation (please specify)\"; \"Clinically undetermined.\"\n\nCoding Specificity Checklist:\n- Document the definitive renal diagnosis, if one is being treated/evaluated.\n- Clarify whether the process is acute, chronic, or acute on chronic.\n- If chronic kidney disease is present, document the CKD stage.\n- If a renal injury/failure diagnosis is present, document severity/stage if clinically determined.\n- Clarify whether oliguria is clinically significant and part of the diagnosed condition.\n- Clarify whether hyperkalemia or another electrolyte disorder is clinically significant.\n- If dialysis becomes relevant, document whether renal replacement therapy is indicated, initiated, or not indicated.\n\nRisk Flags:\n- Unsupported diagnosis risk: The excerpt contains strong renal dysfunction indicators, but no explicit diagnosis is documented; labs alone should not be coded as a diagnosis.\n- Ambiguity risk: \"CKD-EPI eGFR 22\" may reflect current renal dysfunction, but does not by itself establish chronic kidney disease stage without provider documentation.\n- Ambiguity risk: \"no dialysis yet\" implies consideration of dialysis, but the clinical significance and current plan are not documented.\n- Potential query scope limit: There is insufficient evidence in the excerpt to query etiology of the renal dysfunction, because no cause or precipitating condition is documented.\n\nSpecialist Trace:\n- Medical Coding Expert: Consult requested for coding specificity, compliant query topics, and CDI gaps based only on the excerpt. No usable expert output was returned, so no expert-derived content was accepted.\n- AMBOSS-type clinical criteria expert: Not consulted because no such tool is available in this environment.\n- CDI web/guidance expert: Not consulted because the excerpt contains enough chart evidence to identify conservative, chart-grounded clarification opportunities without external guidance.\n\nUncertainty note:\n- This review is limited to the single provided excerpt. No assumptions were made about diagnosis, etiology, chronicity, or treatment beyond what is explicitly documented."
+}

@@ -1,0 +1,894 @@
+{
+  "format_version": "1.2",
+  "agent_type": "certified",
+  "agent_ref": "icoder/discharge-edu@1.1.0",
+  "manifest": {
+    "name": "出院宣教智能体",
+    "version": "1.1.0",
+    "description": "只整理明确标注的出院事实并绑定逐字证据；不解释医学意义、不执行药物重整、不补充医嘱，所有患者可见内容须临床人员复核。",
+    "category": "care-coordination",
+    "category_display": "Care Coordination / 护理协同",
+    "icon": "HeartHandshake",
+    "tags": [
+      "corti-parity",
+      "china-localized",
+      "governed-local",
+      "evidence-bound"
+    ],
+    "maturity": "runnable",
+    "production_ready": false,
+    "hidden_from_hub": false,
+    "use_case": "care_coordination",
+    "human_review": "required"
+  },
+  "system_prompt": "你是中国医院出院患者宣教智能体。本地受治理模式只接受明确字段标签，只逐字重排已记录的出院事实并保存 [start,end) 证据。禁止解释检验或影像意义，禁止执行药物重整、相互作用、剂量、禁忌或肝肾调整审查，禁止补写诊断、预后、警示症状、返院条件、随访步骤或其他医疗建议，禁止调用外部知识或写回 EHR/HIS/患者门户。所有输出为草稿，manual_review_required 必须为 true。",
+  "backend_provider": "icoder.governed-discharge-education.v1",
+  "backend_config": {
+    "network_required": false,
+    "llm_required": false,
+    "runtime_mode": "governed_local_documented_discharge_education",
+    "max_input_chars": 40000,
+    "max_evidence_items": 200,
+    "max_questions": 30
+  },
+  "experts": [],
+  "tools": [],
+  "model": null,
+  "permissions": {
+    "key": "discharge-edu",
+    "name": "出院宣教智能体 权限",
+    "description": "只允许逐字整理明确出院字段；禁止医学释义、药物重整、新增建议和生产写回。",
+    "tools": {},
+    "no_upcoding": true,
+    "no_inference": true,
+    "evidence_required": true,
+    "production_writeback_blocked": true
+  },
+  "output_contract": {
+    "schema_ref": "icoder/DischargeEducationOutput/v3",
+    "required_fields": [
+      "education_status",
+      "diagnosis_summary",
+      "encounter_summary",
+      "key_results",
+      "medication_instructions",
+      "medication_reconciliation_status",
+      "follow_up",
+      "warning_signs",
+      "lifestyle",
+      "pending_results",
+      "teach_back_questions",
+      "clarification_questions",
+      "contradictions",
+      "missing_items",
+      "source_completeness",
+      "evidence_items",
+      "limitations",
+      "translation_status",
+      "external_knowledge_used",
+      "clinical_interpretation_performed",
+      "clinical_recommendations_generated",
+      "production_writeback_blocked",
+      "manual_review_required",
+      "trace_refs"
+    ],
+    "optional_fields": [],
+    "field_types": {
+      "education_status": "string",
+      "diagnosis_summary": "string",
+      "encounter_summary": "object",
+      "key_results": "array",
+      "medication_instructions": "string",
+      "medication_reconciliation_status": "string",
+      "follow_up": "string",
+      "warning_signs": "string",
+      "lifestyle": "string",
+      "pending_results": "string",
+      "teach_back_questions": "array",
+      "clarification_questions": "array",
+      "contradictions": "array",
+      "missing_items": "array",
+      "source_completeness": "object",
+      "evidence_items": "array",
+      "limitations": "array",
+      "translation_status": "string",
+      "external_knowledge_used": "boolean",
+      "clinical_interpretation_performed": "boolean",
+      "clinical_recommendations_generated": "boolean",
+      "production_writeback_blocked": "boolean",
+      "manual_review_required": "boolean",
+      "trace_refs": "object"
+    },
+    "field_schemas": {
+      "education_status": {
+        "type": "string",
+        "maxLength": 32768,
+        "enum": [
+          "COMPLETED",
+          "PARTIAL",
+          "INPUT_REQUIRED"
+        ]
+      },
+      "diagnosis_summary": {
+        "type": "string",
+        "maxLength": 4096,
+        "minLength": 0
+      },
+      "encounter_summary": {
+        "type": "object",
+        "properties": {
+          "discharge_destination": {
+            "type": "string",
+            "maxLength": 1024,
+            "minLength": 0
+          },
+          "reason_for_visit": {
+            "type": "string",
+            "maxLength": 4096,
+            "minLength": 0
+          },
+          "treatment_course": {
+            "type": "string",
+            "maxLength": 4096,
+            "minLength": 0
+          }
+        },
+        "required": [
+          "discharge_destination",
+          "reason_for_visit",
+          "treatment_course"
+        ],
+        "additionalProperties": false
+      },
+      "key_results": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "category": {
+              "type": "string",
+              "maxLength": 32768,
+              "enum": [
+                "LABORATORY_RESULT",
+                "IMAGING_RESULT",
+                "PROCEDURE"
+              ]
+            },
+            "documented_result": {
+              "type": "string",
+              "maxLength": 4096,
+              "minLength": 1
+            },
+            "evidence_ref": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1
+            },
+            "interpretation": {
+              "type": "string",
+              "maxLength": 512,
+              "minLength": 1
+            }
+          },
+          "required": [
+            "category",
+            "documented_result",
+            "evidence_ref",
+            "interpretation"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100,
+        "minItems": 0
+      },
+      "medication_instructions": {
+        "type": "string",
+        "maxLength": 4096,
+        "minLength": 0
+      },
+      "medication_reconciliation_status": {
+        "type": "string",
+        "maxLength": 32768,
+        "const": "NOT_RECONCILED_GOVERNED_MEDICATION_RECONCILIATION_REQUIRED"
+      },
+      "follow_up": {
+        "type": "string",
+        "maxLength": 4096,
+        "minLength": 0
+      },
+      "warning_signs": {
+        "type": "string",
+        "maxLength": 4096,
+        "minLength": 0
+      },
+      "lifestyle": {
+        "type": "string",
+        "maxLength": 4096,
+        "minLength": 0
+      },
+      "pending_results": {
+        "type": "string",
+        "maxLength": 4096,
+        "minLength": 0
+      },
+      "teach_back_questions": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 1024,
+          "minLength": 1
+        },
+        "maxItems": 30,
+        "minItems": 0
+      },
+      "clarification_questions": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 1024,
+          "minLength": 1
+        },
+        "maxItems": 30,
+        "minItems": 0
+      },
+      "contradictions": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string",
+              "maxLength": 2048,
+              "minLength": 1
+            },
+            "resolution": {
+              "type": "string",
+              "maxLength": 32768,
+              "enum": [
+                "UNRESOLVED_CLINICAL_REVIEW_REQUIRED"
+              ]
+            },
+            "evidence_ref": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1
+            }
+          },
+          "required": [
+            "description",
+            "resolution",
+            "evidence_ref"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100,
+        "minItems": 0
+      },
+      "missing_items": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 128,
+          "minLength": 1
+        },
+        "maxItems": 5,
+        "minItems": 0
+      },
+      "source_completeness": {
+        "type": "object",
+        "properties": {
+          "documented_sections": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1
+            },
+            "maxItems": 13,
+            "minItems": 0,
+            "uniqueItems": true
+          },
+          "evidence_item_count": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 200
+          },
+          "input_truncated": {
+            "type": "boolean"
+          },
+          "missing_sections": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1
+            },
+            "maxItems": 5,
+            "minItems": 0,
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "documented_sections",
+          "evidence_item_count",
+          "input_truncated",
+          "missing_sections"
+        ],
+        "additionalProperties": false
+      },
+      "evidence_items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "char_span": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "maxItems": 2,
+              "minItems": 2,
+              "x-order": "nondecreasing"
+            },
+            "evidence_id": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1
+            },
+            "evidence_text": {
+              "type": "string",
+              "maxLength": 4096,
+              "minLength": 1
+            },
+            "field": {
+              "type": "string",
+              "maxLength": 32768,
+              "enum": [
+                "diagnosis_summary",
+                "reason_for_visit",
+                "treatment_course",
+                "discharge_destination",
+                "laboratory_result",
+                "imaging_result",
+                "procedure",
+                "medication_instructions",
+                "follow_up",
+                "warning_signs",
+                "lifestyle",
+                "pending_results",
+                "contradiction"
+              ]
+            },
+            "source_label": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1
+            }
+          },
+          "required": [
+            "char_span",
+            "evidence_id",
+            "evidence_text",
+            "field",
+            "source_label"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 200,
+        "minItems": 0
+      },
+      "limitations": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 2048,
+          "minLength": 1
+        },
+        "maxItems": 6,
+        "minItems": 6
+      },
+      "translation_status": {
+        "type": "string",
+        "maxLength": 32768,
+        "const": "VERBATIM_DOCUMENTED_CONTENT_ONLY"
+      },
+      "external_knowledge_used": {
+        "type": "boolean",
+        "const": false
+      },
+      "clinical_interpretation_performed": {
+        "type": "boolean",
+        "const": false
+      },
+      "clinical_recommendations_generated": {
+        "type": "boolean",
+        "const": false
+      },
+      "production_writeback_blocked": {
+        "type": "boolean",
+        "const": true
+      },
+      "manual_review_required": {
+        "type": "boolean",
+        "const": true
+      },
+      "trace_refs": {
+        "type": "object",
+        "properties": {
+          "provider_trace_refs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 512,
+              "minLength": 1
+            },
+            "maxItems": 10,
+            "minItems": 0
+          },
+          "run_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1
+          },
+          "trace_id": {
+            "type": "string",
+            "maxLength": 32768
+          }
+        },
+        "required": [
+          "run_id"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "field_relations": [
+      {
+        "id": "input_required_has_no_discharge_fact_claims",
+        "when": [
+          {
+            "path": "education_status",
+            "operator": "equals",
+            "value": "INPUT_REQUIRED"
+          }
+        ],
+        "must": [
+          {
+            "path": "diagnosis_summary",
+            "operator": "equals",
+            "value": ""
+          },
+          {
+            "path": "medication_instructions",
+            "operator": "equals",
+            "value": ""
+          },
+          {
+            "path": "follow_up",
+            "operator": "equals",
+            "value": ""
+          },
+          {
+            "path": "warning_signs",
+            "operator": "equals",
+            "value": ""
+          },
+          {
+            "path": "lifestyle",
+            "operator": "equals",
+            "value": ""
+          },
+          {
+            "path": "pending_results",
+            "operator": "equals",
+            "value": ""
+          },
+          {
+            "path": "key_results",
+            "operator": "empty"
+          },
+          {
+            "path": "evidence_items",
+            "operator": "empty"
+          }
+        ]
+      },
+      {
+        "id": "completed_discharge_education_has_core_evidence",
+        "when": [
+          {
+            "path": "education_status",
+            "operator": "equals",
+            "value": "COMPLETED"
+          }
+        ],
+        "must": [
+          {
+            "path": "diagnosis_summary",
+            "operator": "non_empty"
+          },
+          {
+            "path": "medication_instructions",
+            "operator": "non_empty"
+          },
+          {
+            "path": "follow_up",
+            "operator": "non_empty"
+          },
+          {
+            "path": "warning_signs",
+            "operator": "non_empty"
+          },
+          {
+            "path": "lifestyle",
+            "operator": "non_empty"
+          },
+          {
+            "path": "missing_items",
+            "operator": "empty"
+          },
+          {
+            "path": "evidence_items",
+            "operator": "non_empty"
+          }
+        ]
+      },
+      {
+        "id": "partial_discharge_education_has_evidence_and_gaps",
+        "when": [
+          {
+            "path": "education_status",
+            "operator": "equals",
+            "value": "PARTIAL"
+          }
+        ],
+        "must": [
+          {
+            "path": "missing_items",
+            "operator": "non_empty"
+          },
+          {
+            "path": "evidence_items",
+            "operator": "non_empty"
+          }
+        ]
+      },
+      {
+        "id": "documented_contradictions_require_clarification",
+        "when": [
+          {
+            "path": "contradictions",
+            "operator": "non_empty"
+          }
+        ],
+        "must": [
+          {
+            "path": "clarification_questions",
+            "operator": "non_empty"
+          },
+          {
+            "path": "manual_review_required",
+            "operator": "equals",
+            "value": true
+          }
+        ]
+      },
+      {
+        "id": "local_discharge_education_never_claims_expert_outputs",
+        "when": [
+          {
+            "path": "translation_status",
+            "operator": "equals",
+            "value": "VERBATIM_DOCUMENTED_CONTENT_ONLY"
+          }
+        ],
+        "must": [
+          {
+            "path": "external_knowledge_used",
+            "operator": "equals",
+            "value": false
+          },
+          {
+            "path": "clinical_interpretation_performed",
+            "operator": "equals",
+            "value": false
+          },
+          {
+            "path": "clinical_recommendations_generated",
+            "operator": "equals",
+            "value": false
+          },
+          {
+            "path": "production_writeback_blocked",
+            "operator": "equals",
+            "value": true
+          },
+          {
+            "path": "manual_review_required",
+            "operator": "equals",
+            "value": true
+          }
+        ]
+      },
+      {
+        "id": "discharge_key_result_is_traceable",
+        "for_each": "key_results",
+        "when": [
+          {
+            "path": "documented_result",
+            "operator": "present"
+          }
+        ],
+        "must": [
+          {
+            "path": "documented_result",
+            "operator": "non_empty"
+          },
+          {
+            "path": "evidence_ref",
+            "operator": "non_empty"
+          }
+        ]
+      }
+    ],
+    "evidence_bindings": [
+      {
+        "id": "discharge_education_evidence_matches_input",
+        "for_each": "evidence_items",
+        "text_path": "evidence_text",
+        "span_path": "char_span"
+      }
+    ]
+  },
+  "phi_redaction": "required",
+  "context_required": true,
+  "recorder_required": true,
+  "metrics_required": true,
+  "requirements": {
+    "min_runtime_version": "1.0.0",
+    "icoder_runtime_modules": []
+  },
+  "non_goals": [
+    "不把逐字记录改写为通俗医学释义，不提供阅读等级或多语言翻译",
+    "不解释检验、影像、操作结果的临床意义或预后",
+    "不执行药物重整、相互作用、剂量、禁忌、过敏或肝肾功能审查",
+    "不补充未记录的警示症状、返院条件、随访、生活方式或其他医疗建议",
+    "不调用 PubMed、Web Search、Medical Calculator 或外部网络",
+    "不自动写回 EMR/HIS 或患者门户"
+  ],
+  "human_review_required_when": [
+    "all patient-facing discharge content before release",
+    "any source field is missing, conflicting, stale, truncated, or not explicitly labelled"
+  ],
+  "example_inputs": [
+    {
+      "title": "中国医院明确字段出院宣教草稿",
+      "input_text": "出院诊断：慢性心力衰竭\n就诊原因：活动后气促\n诊疗经过：住院期间按原记录完成评估与治疗\n出院去向：回家\n检验结果：血钾4.1mmol/L\n影像结果：原记录注明胸片已完成\n操作/手术：无\n出院用药：呋塞米20mg，每日一次\n复诊计划：7日后心内科复诊\n警示症状：呼吸困难加重时按出院医嘱及时就医\n生活方式：低盐饮食；每日晨起称重\n待回结果：无",
+      "extra": {
+        "input_profile": "explicit_labelled_discharge_record",
+        "language": "zh-CN",
+        "region": "cn"
+      }
+    }
+  ],
+  "metadata": {
+    "created_at": "2026-07-11",
+    "updated_at": "2026-08-24",
+    "author": "iCoDer",
+    "corti_match": "patient-discharge-education-agent",
+    "audit_note": "Governed local documented-fact baseline. It does not claim Corti patient-friendly medical translation, PubMed/Web Search/Medical Calculator experts, medication-change explanation, portal integration, or clinical interpretation parity."
+  },
+  "built_by": "icoder",
+  "example_outputs": [
+    {
+      "education_status": "COMPLETED",
+      "diagnosis_summary": "慢性心力衰竭",
+      "encounter_summary": {
+        "reason_for_visit": "活动后气促",
+        "treatment_course": "住院期间按原记录完成评估与治疗",
+        "discharge_destination": "回家"
+      },
+      "key_results": [
+        {
+          "category": "LABORATORY_RESULT",
+          "documented_result": "血钾4.1mmol/L",
+          "interpretation": "未解释；仅保留原文记录。",
+          "evidence_ref": "discharge-edu-evidence-5"
+        },
+        {
+          "category": "IMAGING_RESULT",
+          "documented_result": "原记录注明胸片已完成",
+          "interpretation": "未解释；仅保留原文记录。",
+          "evidence_ref": "discharge-edu-evidence-6"
+        },
+        {
+          "category": "PROCEDURE",
+          "documented_result": "无",
+          "interpretation": "未解释；仅保留原文记录。",
+          "evidence_ref": "discharge-edu-evidence-7"
+        }
+      ],
+      "medication_instructions": "呋塞米20mg，每日一次",
+      "medication_reconciliation_status": "NOT_RECONCILED_GOVERNED_MEDICATION_RECONCILIATION_REQUIRED",
+      "follow_up": "7日后心内科复诊",
+      "warning_signs": "呼吸困难加重时按出院医嘱及时就医",
+      "lifestyle": "低盐饮食；每日晨起称重",
+      "pending_results": "无",
+      "teach_back_questions": [
+        "请用自己的话复述病历中记录的出院诊断。",
+        "请对照出院医嘱复述用药名称、剂量、途径和频次。",
+        "请复述已经记录的复诊或随访安排。",
+        "请复述出院记录中写明的警示症状和返院提示。",
+        "请复述出院记录中写明的生活方式或家庭护理事项。",
+        "请说明记录中哪些结果仍待回报，以及应向谁确认。"
+      ],
+      "clarification_questions": [],
+      "contradictions": [],
+      "missing_items": [],
+      "source_completeness": {
+        "documented_sections": [
+          "diagnosis_summary",
+          "discharge_destination",
+          "follow_up",
+          "imaging_result",
+          "laboratory_result",
+          "lifestyle",
+          "medication_instructions",
+          "pending_results",
+          "procedure",
+          "reason_for_visit",
+          "treatment_course",
+          "warning_signs"
+        ],
+        "missing_sections": [],
+        "input_truncated": false,
+        "evidence_item_count": 12
+      },
+      "evidence_items": [
+        {
+          "evidence_id": "discharge-edu-evidence-1",
+          "field": "diagnosis_summary",
+          "source_label": "出院诊断",
+          "evidence_text": "慢性心力衰竭",
+          "char_span": [
+            5,
+            11
+          ]
+        },
+        {
+          "evidence_id": "discharge-edu-evidence-2",
+          "field": "reason_for_visit",
+          "source_label": "就诊原因",
+          "evidence_text": "活动后气促",
+          "char_span": [
+            17,
+            22
+          ]
+        },
+        {
+          "evidence_id": "discharge-edu-evidence-3",
+          "field": "treatment_course",
+          "source_label": "诊疗经过",
+          "evidence_text": "住院期间按原记录完成评估与治疗",
+          "char_span": [
+            28,
+            43
+          ]
+        },
+        {
+          "evidence_id": "discharge-edu-evidence-4",
+          "field": "discharge_destination",
+          "source_label": "出院去向",
+          "evidence_text": "回家",
+          "char_span": [
+            49,
+            51
+          ]
+        },
+        {
+          "evidence_id": "discharge-edu-evidence-5",
+          "field": "laboratory_result",
+          "source_label": "检验结果",
+          "evidence_text": "血钾4.1mmol/L",
+          "char_span": [
+            57,
+            68
+          ]
+        },
+        {
+          "evidence_id": "discharge-edu-evidence-6",
+          "field": "imaging_result",
+          "source_label": "影像结果",
+          "evidence_text": "原记录注明胸片已完成",
+          "char_span": [
+            74,
+            84
+          ]
+        },
+        {
+          "evidence_id": "discharge-edu-evidence-7",
+          "field": "procedure",
+          "source_label": "操作/手术",
+          "evidence_text": "无",
+          "char_span": [
+            91,
+            92
+          ]
+        },
+        {
+          "evidence_id": "discharge-edu-evidence-8",
+          "field": "medication_instructions",
+          "source_label": "出院用药",
+          "evidence_text": "呋塞米20mg，每日一次",
+          "char_span": [
+            98,
+            110
+          ]
+        },
+        {
+          "evidence_id": "discharge-edu-evidence-9",
+          "field": "follow_up",
+          "source_label": "复诊计划",
+          "evidence_text": "7日后心内科复诊",
+          "char_span": [
+            116,
+            124
+          ]
+        },
+        {
+          "evidence_id": "discharge-edu-evidence-10",
+          "field": "warning_signs",
+          "source_label": "警示症状",
+          "evidence_text": "呼吸困难加重时按出院医嘱及时就医",
+          "char_span": [
+            130,
+            146
+          ]
+        },
+        {
+          "evidence_id": "discharge-edu-evidence-11",
+          "field": "lifestyle",
+          "source_label": "生活方式",
+          "evidence_text": "低盐饮食；每日晨起称重",
+          "char_span": [
+            152,
+            163
+          ]
+        },
+        {
+          "evidence_id": "discharge-edu-evidence-12",
+          "field": "pending_results",
+          "source_label": "待回结果",
+          "evidence_text": "无",
+          "char_span": [
+            169,
+            170
+          ]
+        }
+      ],
+      "limitations": [
+        "仅解析明确字段标签；未标注自由文本不会被重写为患者宣教事实。",
+        "仅逐字重排已记录内容；未执行通俗化医学释义、阅读等级改写或多语言翻译。",
+        "未解释检验/影像意义，未补充诊断、预后、警示症状、返院条件或随访步骤。",
+        "未执行药物重整、相互作用、剂量、禁忌、过敏或肝肾功能审查。",
+        "未调用 PubMed、Web Search、Medical Calculator、患者门户或真实 EHR/MAR/LIS/PACS。",
+        "所有患者可见内容必须由临床人员对照原始出院记录复核后发布。"
+      ],
+      "translation_status": "VERBATIM_DOCUMENTED_CONTENT_ONLY",
+      "external_knowledge_used": false,
+      "clinical_interpretation_performed": false,
+      "clinical_recommendations_generated": false,
+      "production_writeback_blocked": true,
+      "manual_review_required": true,
+      "trace_refs": {
+        "run_id": "example-discharge-edu",
+        "provider_trace_refs": [
+          "example-discharge-edu:governed-discharge-education"
+        ]
+      }
+    }
+  ],
+  "integrity": {
+    "sha256": "f4fd4935094c260577d46f508f7d22e3173f8fc97a8f6a5bd70610a704ee2968"
+  }
+}

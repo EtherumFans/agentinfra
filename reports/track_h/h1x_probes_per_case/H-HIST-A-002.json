@@ -1,0 +1,97 @@
+{
+  "case_id": "H-HIST-A-002",
+  "group": "HISTORY",
+  "variant": "A",
+  "session_id": "16da888b-3710-4d14-a67c-7e103900a298",
+  "attempt": 1,
+  "outcome": "SUCCESS",
+  "elapsed_s": 27.91,
+  "expected": {
+    "query_count_min": 0,
+    "query_count_max": 1,
+    "expected_query_topics": [],
+    "forbidden_query_topics": [
+      "diabetes complication"
+    ],
+    "no_query_expected": false
+  },
+  "text_length": 4875,
+  "first_token_at_s": 4.61,
+  "last_token_at_s": 27.91,
+  "event_count": 9,
+  "raw_events_preview": [
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"id\":\"a1e5e59a-e209-4ee7-b960-22d655e8ec62\",\"type\":\"text-start\"}",
+    "message|{\"delta\":\"Encounter Summary:\\n- 68-year-old male admitted for elective hip replacement.\\n- Documented history includes type 2 diabetes mellitus, hypertension, and hyperlipidemia.\\n- Diabetes is descri",
+    "message|{\"id\":\"a1e5e59a-e209-4ee7-b960-22d655e8ec62\",\"type\":\"text-end\"}",
+    "message|{\"messageMetadata\":{\"contextId\":\"019f5bc3-1aa5-79b1-89b2-c86f6cb5de76\",\"taskId\":\"019f5bc3-1aa5-793f-b673-7c210fca8e33\",\"credits\":0.06809599999999999,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+    "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.06809599999999999},\"type\":\"finish\"}",
+    "message|[DONE]"
+  ],
+  "expert_events": [],
+  "status_events": [
+    {
+      "state": "working"
+    },
+    {
+      "state": "working"
+    },
+    {
+      "message": "Calling expert: coding-expert",
+      "state": "working"
+    }
+  ],
+  "finish_metadata": {
+    "contextId": "019f5bc3-1aa5-79b1-89b2-c86f6cb5de76",
+    "taskId": "019f5bc3-1aa5-793f-b673-7c210fca8e33",
+    "credits": 0.06809599999999999,
+    "state": "completed"
+  },
+  "parsed": {
+    "encounter_summary": "- 68-year-old male admitted for elective hip replacement.\n- Documented history includes type 2 diabetes mellitus, hypertension, and hyperlipidemia.\n- Diabetes is described as “well-controlled on metformin.”\n- “Postoperative course unremarkable.”\n- Discharged on post-op day 3.",
+    "gaps": [
+      {
+        "idx": 1,
+        "text": "Underlying reason/diagnosis for the hip replacement is not documented.\n   - Why it matters: The principal condition prompting the admission and procedure is not stated, which limits accurate diagnosis capture.\n   - Evidence quote: “admitted for elective hip replacement.”\n   - Minimal clarification needed: The specific hip condition/indication for surgery."
+      },
+      {
+        "idx": 2,
+        "text": "Procedure specificity is incomplete.\n   - Why it matters: Procedure detail affects coding specificity and record clarity.\n   - Evidence quote: “elective hip replacement.”\n   - Minimal clarification needed: Laterality, total vs partial replacement, and any operative approach/device details if documented elsewhere."
+      },
+      {
+        "idx": 3,
+        "text": "Diabetes documentation lacks complication/specificity detail.\n   - Why it matters: Type 2 diabetes may require additional specificity if any manifestations or complications are present; none are documented here.\n   - Evidence quote: “History of type 2 diabetes mellitus (well-controlled on metformin)”\n   - Minimal clarification needed: Whether diabetes had any associated complications/manifestations during this encounter; if none, documentation can remain uncomplicated."
+      },
+      {
+        "idx": 4,
+        "text": "Hypertension documentation lacks specificity.\n   - Why it matters: Greater specificity may be needed if there is associated heart/kidney disease or another defined type, but none is documented here.\n   - Evidence quote: “hypertension”\n   - Minimal clarification needed: Type/associated conditions only if clinically documented elsewhere."
+      },
+      {
+        "idx": 5,
+        "text": "Hyperlipidemia documentation lacks specificity.\n   - Why it matters: If a specific lipid disorder is known, documenting it can improve specificity.\n   - Evidence quote: “hyperlipidemia”\n   - Minimal clarification needed: Specific lipid disorder, if documented elsewhere."
+      }
+    ],
+    "gap_count": 5,
+    "queries": [
+      {
+        "idx": 1,
+        "text": "Indication for hip replacement"
+      },
+      {
+        "idx": 2,
+        "text": "Hip replacement procedure specificity"
+      }
+    ],
+    "query_count": 2,
+    "specialists_contacted": [
+      "Medical Coding Expert",
+      "Coding Expert"
+    ],
+    "specialist_trace_text": "- Medical Coding Expert: Consulted for coding specificity and CDI gap identification. Accepted findings regarding missing surgical indication, incomplete procedure specificity, and limited specificity for chronic conditions because they were supported by exact chart wording. Rejected any expansion beyond the excerpt; no unsupported diagnoses were added.\n- AMBOSS Expert: Not consulted because no clinical criteria question required external diagnostic definitions.\n- CDI Web Search Expert: Not consulted because no current external guideline or official reference was required to answer based on the excerpt alone.",
+    "has_specialist_trace": true
+  },
+  "error": "",
+  "text": "Encounter Summary:\n- 68-year-old male admitted for elective hip replacement.\n- Documented history includes type 2 diabetes mellitus, hypertension, and hyperlipidemia.\n- Diabetes is described as “well-controlled on metformin.”\n- “Postoperative course unremarkable.”\n- Discharged on post-op day 3.\n\nDocumentation Gaps:\n1. Underlying reason/diagnosis for the hip replacement is not documented.\n   - Why it matters: The principal condition prompting the admission and procedure is not stated, which limits accurate diagnosis capture.\n   - Evidence quote: “admitted for elective hip replacement.”\n   - Minimal clarification needed: The specific hip condition/indication for surgery.\n\n2. Procedure specificity is incomplete.\n   - Why it matters: Procedure detail affects coding specificity and record clarity.\n   - Evidence quote: “elective hip replacement.”\n   - Minimal clarification needed: Laterality, total vs partial replacement, and any operative approach/device details if documented elsewhere.\n\n3. Diabetes documentation lacks complication/specificity detail.\n   - Why it matters: Type 2 diabetes may require additional specificity if any manifestations or complications are present; none are documented here.\n   - Evidence quote: “History of type 2 diabetes mellitus (well-controlled on metformin)”\n   - Minimal clarification needed: Whether diabetes had any associated complications/manifestations during this encounter; if none, documentation can remain uncomplicated.\n\n4. Hypertension documentation lacks specificity.\n   - Why it matters: Greater specificity may be needed if there is associated heart/kidney disease or another defined type, but none is documented here.\n   - Evidence quote: “hypertension”\n   - Minimal clarification needed: Type/associated conditions only if clinically documented elsewhere.\n\n5. Hyperlipidemia documentation lacks specificity.\n   - Why it matters: If a specific lipid disorder is known, documenting it can improve specificity.\n   - Evidence quote: “hyperlipidemia”\n   - Minimal clarification needed: Specific lipid disorder, if documented elsewhere.\n\nProposed Provider Queries:\n1. Topic: Indication for hip replacement\n   - Reason query is needed: The admission/procedure is documented, but the underlying diagnosis is not.\n   - Evidence quote: “admitted for elective hip replacement.”\n   - Non-leading query text: “For this admission for elective hip replacement, please clarify the condition/diagnosis that was the indication for the procedure.”\n   - Suggested response options: osteoarthritis of hip; fracture-related condition; avascular necrosis; inflammatory/degenerative joint disease; other specified condition; clinically undetermined.\n\n2. Topic: Hip replacement procedure specificity\n   - Reason query is needed: The procedure is named, but key details are not present in the excerpt.\n   - Evidence quote: “elective hip replacement.”\n   - Non-leading query text: “Please clarify the specific hip replacement procedure performed during this admission, including laterality and whether the procedure was total or partial, if known from the operative documentation.”\n   - Suggested response options: right total hip replacement; left total hip replacement; right partial hip replacement; left partial hip replacement; other specified procedure; unable to determine from available documentation.\n\nCoding Specificity Checklist:\n- Underlying diagnosis/indication for hip replacement\n- Laterality of the affected hip\n- Total vs partial hip replacement\n- Any additional operative specificity documented elsewhere\n- For diabetes: presence or absence of any documented complications/manifestations during the encounter\n- For hypertension: any documented associated heart/kidney involvement, if present\n- For hyperlipidemia: specific type, if documented\n\nRisk Flags:\n- No postoperative complication is supported by this excerpt.\n- “Postoperative course unremarkable” argues against querying postoperative complications.\n- Evidence is limited to a very brief summary; no operative note, discharge diagnoses, labs, or imaging were provided.\n- Hypertension, hyperlipidemia, and diabetes specificity should not be queried further unless additional chart evidence supports a more specific clarification.\n\nSpecialist Trace:\n- Medical Coding Expert: Consulted for coding specificity and CDI gap identification. Accepted findings regarding missing surgical indication, incomplete procedure specificity, and limited specificity for chronic conditions because they were supported by exact chart wording. Rejected any expansion beyond the excerpt; no unsupported diagnoses were added.\n- AMBOSS Expert: Not consulted because no clinical criteria question required external diagnostic definitions.\n- CDI Web Search Expert: Not consulted because no current external guideline or official reference was required to answer based on the excerpt alone."
+}

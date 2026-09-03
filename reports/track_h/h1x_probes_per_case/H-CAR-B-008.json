@@ -1,0 +1,100 @@
+{
+  "case_id": "H-CAR-B-008",
+  "group": "QUERY_CARDINALITY",
+  "variant": "B",
+  "session_id": "57316d00-c293-498c-8bf4-3b5e2de1301b",
+  "attempt": 1,
+  "outcome": "SUCCESS",
+  "elapsed_s": 33.82,
+  "expected": {
+    "query_count_min": 2,
+    "query_count_max": 4,
+    "expected_query_topics": [
+      "severity",
+      "type",
+      "organism",
+      "oxygenation"
+    ],
+    "forbidden_query_topics": [],
+    "no_query_expected": false
+  },
+  "text_length": 5417,
+  "first_token_at_s": 3.53,
+  "last_token_at_s": 33.82,
+  "event_count": 9,
+  "raw_events_preview": [
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"id\":\"6394fd30-cd5e-4bb5-b388-4c6ba4b6b7ac\",\"type\":\"text-start\"}",
+    "message|{\"delta\":\"Encounter Summary:\\n- Documentation excerpt describes a patient with pneumonia noted as \\\"CAP,\\\" with several potential CDI issues called out in the excerpt itself.\\n- The excerpt also state",
+    "message|{\"id\":\"6394fd30-cd5e-4bb5-b388-4c6ba4b6b7ac\",\"type\":\"text-end\"}",
+    "message|{\"messageMetadata\":{\"contextId\":\"019f5bc9-2532-794c-a794-ff23edbaa51e\",\"taskId\":\"019f5bc9-2532-78c1-af32-5b8c4061da4e\",\"credits\":0.068444,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+    "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.068444},\"type\":\"finish\"}",
+    "message|[DONE]"
+  ],
+  "expert_events": [],
+  "status_events": [
+    {
+      "state": "working"
+    },
+    {
+      "state": "working"
+    },
+    {
+      "message": "Calling expert: coding-expert",
+      "state": "working"
+    }
+  ],
+  "finish_metadata": {
+    "contextId": "019f5bc9-2532-794c-a794-ff23edbaa51e",
+    "taskId": "019f5bc9-2532-78c1-af32-5b8c4061da4e",
+    "credits": 0.068444,
+    "state": "completed"
+  },
+  "parsed": {
+    "encounter_summary": "- Documentation excerpt describes a patient with pneumonia noted as \"CAP,\" with several potential CDI issues called out in the excerpt itself.\n- The excerpt also states that a sputum culture was ordered and oxygen saturation was \"SpO2 88%.\"\n- The excerpt contains an internal inconsistency: it says the patient has \"CAP\" while also stating the pneumonia type is \"not specified\" as CAP vs HAP.",
+    "gaps": [
+      {
+        "idx": 1,
+        "text": "Pneumonia type/classification is internally inconsistent / needs clarification\n- Why it matters: Pneumonia classification affects diagnostic specificity and coding accuracy.\n- Evidence quote: \"Patient with CAP\" and \"type of pneumonia (CAP vs HAP) not specified\"\n- Minimal clarification needed: Please clarify the pneumonia type/classification, if clinically determinable."
+      },
+      {
+        "idx": 2,
+        "text": "Causative organism not documented\n- Why it matters: Organism specificity can materially affect code assignment and documentation accuracy when supported clinically.\n- Evidence quote: \"causative organism not identified despite sputum culture ordered\"\n- Minimal clarification needed: Please document the organism/etiology if known or suspected, or indicate if unknown."
+      },
+      {
+        "idx": 3,
+        "text": "Oxygenation/respiratory status not documented\n- Why it matters: Low oxygen saturation may support additional documentation of oxygenation status when clinically evaluated and documented by the provider.\n- Evidence quote: \"oxygenation status not documented despite SpO2 88%.\"\n- Minimal clarification needed: Please clarify the clinical significance of the documented low oxygen saturation."
+      },
+      {
+        "idx": 4,
+        "text": "Severity score not documented\n- Why it matters: Limited CDI relevance from this excerpt alone. A missing CURB-65/PSI score is not, by itself, a diagnosis clarification opportunity unless required by local policy or supported by additional severity indicators.\n- Evidence quote: \"severity score (CURB-65/PSI) not documented\"\n- Minimal clarification needed: None supported from this excerpt alone beyond noting that additional severity indicators would be needed to justify a compliant provider query."
+      }
+    ],
+    "gap_count": 4,
+    "queries": [
+      {
+        "idx": 1,
+        "text": "Pneumonia type/classification"
+      },
+      {
+        "idx": 2,
+        "text": "Pneumonia etiology / organism"
+      },
+      {
+        "idx": 3,
+        "text": "Oxygenation status / significance of low SpO2"
+      }
+    ],
+    "query_count": 3,
+    "specialists_contacted": [
+      "Medical Coding Expert",
+      "Coding Expert"
+    ],
+    "specialist_trace_text": "- Medical Coding Expert: Consulted for coding specificity and compliant query targets.\n- Requested: Review excerpted pneumonia-related documentation gaps and identify compliant, non-leading query targets using only the stated facts.\n- Accepted:\n  - Clarification of pneumonia classification/type\n  - Clarification of organism/etiology if known\n  - Clarification of oxygenation/respiratory status related to SpO2 88%\n  - Rejection of severity score omission as a strong standalone CDI gap\n- Rejected: Any escalation from SpO2 88% alone to a specific diagnosis such as acute respiratory failure without additional chart evidence.",
+    "has_specialist_trace": true
+  },
+  "error": "",
+  "text": "Encounter Summary:\n- Documentation excerpt describes a patient with pneumonia noted as \"CAP,\" with several potential CDI issues called out in the excerpt itself.\n- The excerpt also states that a sputum culture was ordered and oxygen saturation was \"SpO2 88%.\"\n- The excerpt contains an internal inconsistency: it says the patient has \"CAP\" while also stating the pneumonia type is \"not specified\" as CAP vs HAP.\n\nDocumentation Gaps:\n1. Pneumonia type/classification is internally inconsistent / needs clarification\n- Why it matters: Pneumonia classification affects diagnostic specificity and coding accuracy.\n- Evidence quote: \"Patient with CAP\" and \"type of pneumonia (CAP vs HAP) not specified\"\n- Minimal clarification needed: Please clarify the pneumonia type/classification, if clinically determinable.\n\n2. Causative organism not documented\n- Why it matters: Organism specificity can materially affect code assignment and documentation accuracy when supported clinically.\n- Evidence quote: \"causative organism not identified despite sputum culture ordered\"\n- Minimal clarification needed: Please document the organism/etiology if known or suspected, or indicate if unknown.\n\n3. Oxygenation/respiratory status not documented\n- Why it matters: Low oxygen saturation may support additional documentation of oxygenation status when clinically evaluated and documented by the provider.\n- Evidence quote: \"oxygenation status not documented despite SpO2 88%.\"\n- Minimal clarification needed: Please clarify the clinical significance of the documented low oxygen saturation.\n\n4. Severity score not documented\n- Why it matters: Limited CDI relevance from this excerpt alone. A missing CURB-65/PSI score is not, by itself, a diagnosis clarification opportunity unless required by local policy or supported by additional severity indicators.\n- Evidence quote: \"severity score (CURB-65/PSI) not documented\"\n- Minimal clarification needed: None supported from this excerpt alone beyond noting that additional severity indicators would be needed to justify a compliant provider query.\n\nProposed Provider Queries:\n1. Topic: Pneumonia type/classification\n- Reason query is needed: The excerpt is internally inconsistent, stating both \"Patient with CAP\" and that CAP vs HAP is not specified.\n- Evidence quote: \"Patient with CAP\"; \"type of pneumonia (CAP vs HAP) not specified\"\n- Non-leading query text: \"The documentation references pneumonia and also contains conflicting wording regarding whether the pneumonia is community-acquired or another type. Based on your clinical assessment, can you clarify the type/classification of pneumonia for this encounter?\"\n- Suggested response options:\n  - Community-acquired pneumonia\n  - Hospital-acquired pneumonia\n  - Other specified pneumonia type\n  - Unable to determine\n\n2. Topic: Pneumonia etiology / organism\n- Reason query is needed: Organism is not documented, and the excerpt notes that a sputum culture was ordered.\n- Evidence quote: \"causative organism not identified despite sputum culture ordered\"\n- Non-leading query text: \"Pneumonia is documented, and a sputum culture was ordered. If clinically known or suspected, can you clarify the causative organism or etiology of the pneumonia for this encounter?\"\n- Suggested response options:\n  - Organism identified and documented by provider\n  - Organism suspected clinically but not confirmed\n  - Other specified etiology\n  - Unknown / unable to determine\n\n3. Topic: Oxygenation status / significance of low SpO2\n- Reason query is needed: The excerpt reports low oxygen saturation without provider clarification of its significance.\n- Evidence quote: \"oxygenation status not documented despite SpO2 88%.\"\n- Non-leading query text: \"The record notes SpO2 88%. Based on your clinical assessment, can you clarify the patient’s oxygenation/respiratory status associated with this finding, if any?\"\n- Suggested response options:\n  - Hypoxemia\n  - Other specified oxygenation/respiratory abnormality\n  - Clinically not significant\n  - Unable to determine\n\nCoding Specificity Checklist:\n- Pneumonia classification/type: CAP, HAP, or other specified type\n- Pneumonia etiology/organism: identified, suspected, or unknown\n- Oxygenation status associated with SpO2 88%\n- If relevant elsewhere in the chart, any additional documented severity indicators for pneumonia\n\nRisk Flags:\n- Internal contradiction: the excerpt says \"Patient with CAP\" while also saying CAP vs HAP is not specified.\n- Severity score gap is weakly supported as a CDI query target from this excerpt alone; a missing CURB-65/PSI or PSI score is not itself a diagnosis clarification.\n- Evidence is insufficient from the excerpt alone to support a query specifically for acute respiratory failure; only low SpO2 is provided.\n\nSpecialist Trace:\n- Medical Coding Expert: Consulted for coding specificity and compliant query targets.\n- Requested: Review excerpted pneumonia-related documentation gaps and identify compliant, non-leading query targets using only the stated facts.\n- Accepted:\n  - Clarification of pneumonia classification/type\n  - Clarification of organism/etiology if known\n  - Clarification of oxygenation/respiratory status related to SpO2 88%\n  - Rejection of severity score omission as a strong standalone CDI gap\n- Rejected: Any escalation from SpO2 88% alone to a specific diagnosis such as acute respiratory failure without additional chart evidence."
+}

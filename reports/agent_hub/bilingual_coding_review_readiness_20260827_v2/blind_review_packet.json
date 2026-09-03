@@ -1,0 +1,109 @@
+{
+  "schema_version": "icoder.bilingual-coding-blind-review-packet/v1",
+  "protocol_version": "icoder.bilingual-coding-gold-review/2026-08-27",
+  "generated_at": "2026-08-27T09:41:45.857360+00:00",
+  "source_fixture": {
+    "relative_path": "backend/tests/fixtures/held_out_bilingual_v1.json",
+    "sha256": "42ff7ec7cc2c0771886ec10456347d590729b89011ab74a0a5cfdbaa6e2dfb4b",
+    "case_count": 5
+  },
+  "catalog_snapshot": {
+    "schema_version": "icoder.code-catalog-assets/v1",
+    "catalog_release": "icoder-cn-runtime-2026-08-27.2",
+    "manifest_sha256": "c0dd9d437bcf83c94dc3a4bc749edc0fe50a446ca9202912e8dedead2a20d8ce",
+    "diagnosis_count": 39756,
+    "procedure_count": 28394,
+    "file_sha256": {
+      "icd10_cn_standard_names.json": "7aa0c2acab61596eb5e8b304ee891b06b94d788f87a17b97660ab1043806f0f9",
+      "icd10_opendrg_v1.json": "3edb02423b30fa408f983a02941979955a3c0a36950974d52d1ff7e99b3dba09",
+      "icd9cm3_code_catalog.json": "4d0af72f8d5c3da5008741378ab97373f87f13775487cf5adcee6974cb4bca69",
+      "procedure_icd9cm3_knowledge_v8_with_opendrg.json": "59d0accce8660da9d98e933b50b391cebb9c29357ee767148c878d834f42ac87",
+      "surgery_to_drg_mapping.json": "e9f5b3a1c7a23b6063f336930f3d59c7def1b9ef5fbbc947f30982a64fe1675b"
+    }
+  },
+  "blinding": {
+    "engineering_expected_codes_removed": true,
+    "engineering_notes_removed": true,
+    "engineering_evidence_spans_removed": true,
+    "model_outputs_included": false
+  },
+  "review_policy": {
+    "minimum_independent_reviewers": 2,
+    "distinct_reviewer_ids_required": true,
+    "reviewers_must_not_view_model_outputs": true,
+    "reviewers_must_not_view_engineering_gold": true,
+    "exact_bilingual_evidence_anchor_required_per_code": true,
+    "catalog_membership_required": true,
+    "adjudicator_required_for_any_disagreement": true,
+    "external_identity_and_qualification_verification_required": true
+  },
+  "cases": [
+    {
+      "case_id": "HOBV1-001",
+      "department": "orthopedics",
+      "chart_zh": "患者男性, 78岁, 因腰背部疼痛 3 月, 加重 1 周入院。既往: 骨质疏松病史 5 年, 原发性高血压 10 年, 2 型糖尿病 5 年。查体: T12 棘突压痛叩痛阳性, 下肢肌力 5 级。MRI: T12 椎体压缩性骨折, 椎体高度丢失约 40%。入院诊断: T12 椎体压缩性骨折。行 T12 椎体切开复位内固定术, 手术顺利。术后给予抗骨质疏松药物治疗, 腰背支具佩戴。术后 7 天出院, 切口愈合良好。",
+      "chart_en": "78-year-old male admitted with lower back pain for 3 months, worsened for 1 week. History: osteoporosis for 5 years, essential hypertension for 10 years, type 2 diabetes for 5 years. Exam: T12 spinous process tenderness and percussion pain positive, lower extremity muscle strength 5/5. MRI: T12 vertebral compression fracture, approximately 40% height loss. Admission diagnosis: T12 vertebral compression fracture. Underwent T12 open reduction and internal fixation, surgery uneventful. Postoperatively given anti-osteoporosis medication and lumbar brace. Discharged on day 7, incision healing well.",
+      "requested_coding_tasks": [
+        "principal_diagnosis_icd10_cn",
+        "secondary_diagnoses_icd10_cn",
+        "primary_procedure_icd9_cm_3_or_null"
+      ],
+      "case_sha256": "adbbaea66a2c75fde233f9296e3f90781fdeac60f0c3f79e2e2c5dbf406bc706"
+    },
+    {
+      "case_id": "HOBV1-002",
+      "department": "general_surgery",
+      "chart_zh": "患者女性, 32岁, 转移性右下腹痛 1 天, 伴恶心呕吐 2 次。查体: T 38.5℃, McBurney 点压痛反跳痛阳性, Rovsing 征阳性。WBC 14.2, 中性 88%。腹部 CT: 阑尾肿胀, 周围渗出, 未见穿孔。入院诊断: 急性单纯性阑尾炎。行腹腔镜阑尾切除术, 手术顺利。术后病理: 急性单纯性阑尾炎, 浆膜层未累及。术后恢复良好, 第 3 天出院。",
+      "chart_en": "32-year-old female with migrating right lower quadrant pain for 1 day, accompanied by nausea and vomiting twice. Exam: T 38.5C, McBurney point tenderness and rebound tenderness positive, Rovsing sign positive. WBC 14.2, neutrophils 88%. Abdominal CT: swollen appendix with surrounding exudate, no perforation seen. Admission diagnosis: acute simple appendicitis. Underwent laparoscopic appendectomy, surgery uneventful. Postoperative pathology: acute simple appendicitis, serosa not involved. Recovered well, discharged on day 3.",
+      "requested_coding_tasks": [
+        "principal_diagnosis_icd10_cn",
+        "secondary_diagnoses_icd10_cn",
+        "primary_procedure_icd9_cm_3_or_null"
+      ],
+      "case_sha256": "adddaeb4732d414543879667302e46393965605bc3bbd9baa53262fadcab4ec9"
+    },
+    {
+      "case_id": "HOBV1-003",
+      "department": "respiratory",
+      "chart_zh": "患者男性, 64岁, 咳嗽咳痰伴发热 3 天入院。胸片示右下肺浸润影。WBC 14.5, 中性 82%, PCT 0.5, CRP 65。CURB-65 评分 1 分。痰培养: 肺炎链球菌。既往: 2 型糖尿病 10 年, 吸烟史 30 年。入院诊断: 社区获得性肺炎 (CAP, PSI 中危)。予头孢曲松 + 阿奇霉素经验性治疗, 7 天后症状好转出院。",
+      "chart_en": "64-year-old male admitted with productive cough and fever for 3 days. Chest X-ray shows right lower lobe infiltrate. WBC 14.5, neutrophils 82%, PCT 0.5, CRP 65. CURB-65 score 1. Sputum culture: Streptococcus pneumoniae. History: type 2 diabetes for 10 years, 30 pack-year smoking. Admission diagnosis: community-acquired pneumonia (CAP, PSI intermediate risk). Started on ceftriaxone and azithromycin empirically, symptoms improved and discharged after 7 days.",
+      "requested_coding_tasks": [
+        "principal_diagnosis_icd10_cn",
+        "secondary_diagnoses_icd10_cn",
+        "primary_procedure_icd9_cm_3_or_null"
+      ],
+      "case_sha256": "9eb5607bdf898a05cf2090d9b1ae6d0b3a33507b45df65ebe73dc145fd9512d8"
+    },
+    {
+      "case_id": "HOBV1-004",
+      "department": "endocrinology",
+      "chart_zh": "患者女性, 56岁, 多饮多尿伴乏力 2 周, 加重伴恶心呕吐 1 天入院。既往: 2 型糖尿病 8 年, 服用二甲双胍 + 格列美脲。查体: 嗜睡, 呼吸深快, 口腔黏膜干燥。血糖 28.5 mmol/L, pH 7.20, HCO3- 12 mmol/L, 尿酮 3+, 尿糖 4+。HbA1c 9.8%。入院诊断: 2 型糖尿病性酮症酸中毒。予小剂量胰岛素静脉滴定 + 补液 + 监测电解质, 36 小时后酮体转阴, 改皮下胰岛素。住院 7 天, 出院时血糖控制可。",
+      "chart_en": "56-year-old female with polydipsia, polyuria, and fatigue for 2 weeks, worsened with nausea and vomiting for 1 day. History: type 2 diabetes for 8 years, on metformin and glimepiride. Exam: drowsy, deep and rapid breathing, dry oral mucosa. Blood glucose 28.5 mmol/L, pH 7.20, HCO3- 12 mmol/L, urine ketone 3+, urine glucose 4+. HbA1c 9.8%. Admission diagnosis: type 2 diabetic ketoacidosis. Given low-dose insulin IV titration + fluid resuscitation + electrolyte monitoring, ketones cleared after 36 hours, switched to subcutaneous insulin. Hospitalized for 7 days, blood glucose well-controlled at discharge.",
+      "requested_coding_tasks": [
+        "principal_diagnosis_icd10_cn",
+        "secondary_diagnoses_icd10_cn",
+        "primary_procedure_icd9_cm_3_or_null"
+      ],
+      "case_sha256": "5c11e05c1ad5f75f6f51559811c38195d55ba5f58131d666d3fd9807fc5e687a"
+    },
+    {
+      "case_id": "HOBV1-005",
+      "department": "cardiology",
+      "chart_zh": "患者男性, 58岁, 持续性胸骨后压榨样疼痛 2 小时入院。疼痛向左肩放射, 伴大汗、恶心。既往: 原发性高血压 12 年, 高脂血症 5 年, 吸烟史 25 年。查体: BP 90/60, HR 110, 双肺底湿啰音。心电图: II, III, aVF ST 段抬高 0.3 mV, V1-V4 镜像压低。肌钙蛋白 I 8.5 ng/mL (参考 < 0.04)。入院诊断: 急性下壁 ST 段抬高型心肌梗死 (STEMI, Killip II 级)。急诊行 PCI + 药物涂层支架植入 (右冠状动脉近段 100% 闭塞 → TIMI 3 级血流恢复)。术后胸痛缓解, 心电图 ST 段回落。",
+      "chart_en": "58-year-old male with persistent substernal crushing pain for 2 hours. Pain radiates to left shoulder, accompanied by diaphoresis and nausea. History: essential hypertension for 12 years, hyperlipidemia for 5 years, 25 pack-year smoking. Exam: BP 90/60, HR 110, bibasilar moist rales. ECG: II, III, aVF ST elevation 0.3 mV, V1-V4 reciprocal depression. Troponin I 8.5 ng/mL (reference < 0.04). Admission diagnosis: acute inferior ST-elevation myocardial infarction (STEMI, Killip class II). Emergency PCI + drug-eluting stent implantation (proximal right coronary artery 100% occlusion → TIMI 3 flow restored). Postoperative chest pain relieved, ECG ST segment returned to baseline.",
+      "requested_coding_tasks": [
+        "principal_diagnosis_icd10_cn",
+        "secondary_diagnoses_icd10_cn",
+        "primary_procedure_icd9_cm_3_or_null"
+      ],
+      "case_sha256": "4aad206484fa7bf1500225a4a702ce551396fc7e3f5df4b636daa0bab0980d38"
+    }
+  ],
+  "claim_boundaries": {
+    "independent_gold_ready": false,
+    "clinical_accuracy_proven": false,
+    "corti_parity_proven": false,
+    "production_ready_proven": false
+  },
+  "packet_sha256": "50fff665cb062e83f848e04b986b23638d6e4fb2d33cca7285064bd4e1506515"
+}

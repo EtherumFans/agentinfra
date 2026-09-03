@@ -1,0 +1,253 @@
+{
+  "case_id": "CASE-952d85f65c56",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-952d85f65c56/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "未明确阑尾炎的病因（如粪石、淋巴增生等）",
+      "why_it_matters": "病因特异性影响编码准确性，例如粪石性阑尾炎有单独编码",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "CT:阑尾肿胀, 周围渗出"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-952d85f65c56/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "未明确阑尾炎的严重程度分级（如单纯性、化脓性、坏疽性）",
+      "why_it_matters": "严重程度影响编码和DRG分组",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "术前诊断:急性阑尾炎(单纯性, 无穿孔)"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-952d85f65c56/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "未明确阑尾炎的解剖部位（如阑尾根部、体部、尖端）",
+      "why_it_matters": "解剖部位特异性影响手术编码和临床描述",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "行腹腔镜阑尾切除术"
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-952d85f65c56/Q-001",
+      "gap_id": "CASE-952d85f65c56/GAP-003",
+      "topic": "阑尾炎解剖部位",
+      "reason": "未明确阑尾炎的解剖部位（如阑尾根部、体部、尖端）",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "行腹腔镜阑尾切除术。术后病理:急性单纯性阑尾炎。"
+      },
+      "query_text": "根据手术所见，阑尾炎的解剖部位主要位于？",
+      "response_options": [
+        "A. 阑尾根部",
+        "B. 阑尾体部",
+        "C. 阑尾尖端",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine"
+    }
+  ],
+  "chart_excerpt_preview": "患者男性, 45岁, 转移性右下腹痛1天, mcburney点压痛反跳痛阳性。WBC 13.2, 中性 85%。CT:阑尾肿胀, 周围渗出。术前诊断:急性阑尾炎(单纯性, 无穿孔)。行腹腔镜阑尾切除术。术后病理:急性单纯性阑尾炎。无并发症。术后恢复良好, 第3天出院。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "转移性右下腹痛1天",
+      "McBurney点压痛反跳痛阳性",
+      "WBC 13.2, 中性85%",
+      "CT:阑尾肿胀, 周围渗出",
+      "术前诊断:急性阑尾炎(单纯性, 无穿孔)",
+      "行腹腔镜阑尾切除术",
+      "术后病理:急性单纯性阑尾炎",
+      "无并发症",
+      "术后恢复良好, 第3天出院"
+    ],
+    "encounter_metadata": {
+      "patient_age": "45岁",
+      "patient_sex": "男性",
+      "encounter_type": "住院"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "根据病历记录，已明确阑尾炎为急性单纯性，且无穿孔，但需补充病因（如粪石、淋巴增生等）及解剖部位（如阑尾根部、体部或尖端）的临床描述，以确保编码的完整性和准确性。建议在病程记录或手术记录中明确这些细节，以支持更精确的临床分类。",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3416,
+      "tokens": 282
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "'分级' score — parameters absent from chart",
+      "route_decision": "missing_inputs",
+      "route_reason": "calculator_params_missing",
+      "execution_mode": "SKIPPED_MISSING_INPUTS",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-0909b9674677",
+    "gap_identification": "run-7b6b2a08c261",
+    "expert_consultation": "run-4dc1904ec4cc",
+    "query_generation": "run-dc70aa062729",
+    "query_necessity_gate": "necessary=2;unnecessary=1;overquery_triggered=False;final_count=2",
+    "query_single_dimension_gate": "single_dim=2;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=etiology;final_count=2",
+    "claim_evidence_alignment_gate": "claims_extracted=5;blocked=1;flagged=0;final_count=1",
+    "claim_evidence_alignment_gate::run_id": "run-af117522f299",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=1",
+    "semantic_necessity_gate::run_id": "run-f77739e0ae8e",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "run-7aa8af515346"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-7f5477ea130f",
+    "gap_identification": "trace-f799e4b85444",
+    "expert_consultation": "trace-b345f316dd02",
+    "query_generation": "trace-a637ea0818a1",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-f333ca66f82f",
+    "semantic_necessity_gate": "trace-d5b29b3d0259",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-26f542b4ca63"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5047,
+      "prompt_tokens": 263,
+      "completion_tokens": 149,
+      "total_tokens": 412,
+      "run_id": "run-0909b9674677",
+      "trace_id": "trace-7f5477ea130f",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5246,
+      "prompt_tokens": 418,
+      "completion_tokens": 344,
+      "total_tokens": 762,
+      "run_id": "run-7b6b2a08c261",
+      "trace_id": "trace-f799e4b85444",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5685,
+      "prompt_tokens": 472,
+      "completion_tokens": 555,
+      "total_tokens": 1027,
+      "run_id": "run-dc70aa062729",
+      "trace_id": "trace-a637ea0818a1",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3416,
+      "prompt_tokens": 206,
+      "completion_tokens": 76,
+      "total_tokens": 282,
+      "run_id": "run-6307b4da4a1d",
+      "trace_id": "trace-5b7f4fa43dff",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-e88a93b8a6bc",
+      "trace_id": "trace-41f8719f524a",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-112447485193",
+      "trace_id": "trace-1613a6448c21",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-20ead6fa290e",
+      "trace_id": "trace-58e600b9c06b",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-07-12T11:26:05.408165Z"
+}

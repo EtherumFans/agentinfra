@@ -1,0 +1,98 @@
+{
+  "case_id": "H-FH-B-003",
+  "group": "FAMILY_HISTORY",
+  "variant": "B",
+  "session_id": "338c1819-dd28-4404-9a14-6e1e53590dbd",
+  "attempt": 1,
+  "outcome": "SUCCESS",
+  "elapsed_s": 30.84,
+  "expected": {
+    "query_count_min": 1,
+    "query_count_max": 2,
+    "expected_query_topics": [
+      "breast mass characterization",
+      "BI-RADS / pathology correlation"
+    ],
+    "forbidden_query_topics": [],
+    "no_query_expected": false
+  },
+  "text_length": 6290,
+  "first_token_at_s": 3.47,
+  "last_token_at_s": 30.84,
+  "event_count": 9,
+  "raw_events_preview": [
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"id\":\"26e4981f-0407-4f57-8aa5-2192cb37c564\",\"type\":\"text-start\"}",
+    "message|{\"delta\":\"Encounter Summary:\\n- 55-year-old female with a newly discovered palpable right breast mass.\\n- Mass was found on self-exam 1 week ago.\\n- Family history documents breast cancer in the patie",
+    "message|{\"id\":\"26e4981f-0407-4f57-8aa5-2192cb37c564\",\"type\":\"text-end\"}",
+    "message|{\"messageMetadata\":{\"contextId\":\"019f5bc4-cc40-7738-b9b2-64c088d3625b\",\"taskId\":\"019f5bc4-cc40-76b9-9be3-e005419838c6\",\"credits\":0.07183200000000001,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+    "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.07183200000000001},\"type\":\"finish\"}",
+    "message|[DONE]"
+  ],
+  "expert_events": [],
+  "status_events": [
+    {
+      "state": "working"
+    },
+    {
+      "state": "working"
+    },
+    {
+      "message": "Calling expert: coding-expert",
+      "state": "working"
+    }
+  ],
+  "finish_metadata": {
+    "contextId": "019f5bc4-cc40-7738-b9b2-64c088d3625b",
+    "taskId": "019f5bc4-cc40-76b9-9be3-e005419838c6",
+    "credits": 0.07183200000000001,
+    "state": "completed"
+  },
+  "parsed": {
+    "encounter_summary": "- 55-year-old female with a newly discovered palpable right breast mass.\n- Mass was found on self-exam 1 week ago.\n- Family history documents breast cancer in the patient's mother.\n- Ultrasound documents a \"2.1 cm irregular mass at 2 o'clock position.\"\n- Mammogram is pending.",
+    "gaps": [
+      {
+        "idx": 1,
+        "text": "Gap: The breast mass is documented as a finding, but the assessment/diagnostic impression is not stated.\n   Why it matters: Coding specificity depends on whether this is being documented as a breast lump/mass, abnormal imaging finding, suspected neoplasm, or another clinical impression. Without a provider-stated assessment, coding support is limited.\n   Evidence quote: \"palpable right breast mass found on self-exam 1 week ago\" and \"Ultrasound shows 2.1 cm irregular mass at 2 o'clock position.\"\n "
+      },
+      {
+        "idx": 2,
+        "text": "Gap: The anatomic detail is incomplete for fullest specificity.\n   Why it matters: The note gives laterality and clock-face location, but does not clearly document the specific breast quadrant/upper-inner vs other region in provider assessment terms if that is clinically intended.\n   Evidence quote: \"right breast mass\" and \"2.1 cm irregular mass at 2 o'clock position.\"\n   Minimal clarification needed: Clarify the exact anatomic site/region of the right breast lesion if clinically known and docum"
+      },
+      {
+        "idx": 3,
+        "text": "Gap: Family history is present but not fully specified in standardized documentation terms.\n   Why it matters: Family history may support risk-related documentation when clearly stated with relationship and, if known, relevant details.\n   Evidence quote: \"Family history of breast cancer (mother).\"\n   Minimal clarification needed: Confirm family history of malignant neoplasm of breast in a first-degree relative, if that is the intended documentation."
+      },
+      {
+        "idx": 4,
+        "text": "Gap: Diagnostic workup status is incomplete.\n   Why it matters: The record notes ongoing evaluation, but no documented provider plan/impression ties the ultrasound finding to pending mammography or next diagnostic step in documentation terms.\n   Evidence quote: \"Mammogram pending. Ultrasound shows 2.1 cm irregular mass at 2 o'clock position.\"\n   Minimal clarification needed: Clarify whether the mass is considered an abnormal breast imaging finding under active diagnostic evaluation."
+      }
+    ],
+    "gap_count": 4,
+    "queries": [
+      {
+        "idx": 1,
+        "text": "Clinical assessment of the right breast mass"
+      },
+      {
+        "idx": 2,
+        "text": "Anatomic site specificity of the right breast lesion"
+      },
+      {
+        "idx": 3,
+        "text": "Family history specificity"
+      }
+    ],
+    "query_count": 3,
+    "specialists_contacted": [
+      "Medical Coding Expert",
+      "Coding Expert"
+    ],
+    "specialist_trace_text": "- Medical Coding Expert: Consulted for coding specificity and compliant query targets. Accepted only conservative, evidence-supported themes consistent with the excerpt. No unsupported diagnosis or treatment content incorporated.\n- AMBOSS Expert: Not consulted because no clinical criteria clarification was necessary to produce conservative CDI queries from the excerpt alone.\n- CDI Web Search Expert: Not consulted because no current external guideline citation was required for this chart-limited clarification task.\n\nLimitation:\n- Evidence is insufficient to query malignancy, staging, later episode of care, histology, receptor status, or complications because none of these are documented in the excerpt.",
+    "has_specialist_trace": true
+  },
+  "error": "",
+  "text": "Encounter Summary:\n- 55-year-old female with a newly discovered palpable right breast mass.\n- Mass was found on self-exam 1 week ago.\n- Family history documents breast cancer in the patient's mother.\n- Ultrasound documents a \"2.1 cm irregular mass at 2 o'clock position.\"\n- Mammogram is pending.\n\nDocumentation Gaps:\n1. Gap: The breast mass is documented as a finding, but the assessment/diagnostic impression is not stated.\n   Why it matters: Coding specificity depends on whether this is being documented as a breast lump/mass, abnormal imaging finding, suspected neoplasm, or another clinical impression. Without a provider-stated assessment, coding support is limited.\n   Evidence quote: \"palpable right breast mass found on self-exam 1 week ago\" and \"Ultrasound shows 2.1 cm irregular mass at 2 o'clock position.\"\n   Minimal clarification needed: Provider clarification of the current clinical assessment/impression for the right breast finding.\n\n2. Gap: The anatomic detail is incomplete for fullest specificity.\n   Why it matters: The note gives laterality and clock-face location, but does not clearly document the specific breast quadrant/upper-inner vs other region in provider assessment terms if that is clinically intended.\n   Evidence quote: \"right breast mass\" and \"2.1 cm irregular mass at 2 o'clock position.\"\n   Minimal clarification needed: Clarify the exact anatomic site/region of the right breast lesion if clinically known and documented elsewhere.\n\n3. Gap: Family history is present but not fully specified in standardized documentation terms.\n   Why it matters: Family history may support risk-related documentation when clearly stated with relationship and, if known, relevant details.\n   Evidence quote: \"Family history of breast cancer (mother).\"\n   Minimal clarification needed: Confirm family history of malignant neoplasm of breast in a first-degree relative, if that is the intended documentation.\n\n4. Gap: Diagnostic workup status is incomplete.\n   Why it matters: The record notes ongoing evaluation, but no documented provider plan/impression ties the ultrasound finding to pending mammography or next diagnostic step in documentation terms.\n   Evidence quote: \"Mammogram pending. Ultrasound shows 2.1 cm irregular mass at 2 o'clock position.\"\n   Minimal clarification needed: Clarify whether the mass is considered an abnormal breast imaging finding under active diagnostic evaluation.\n\nProposed Provider Queries:\n1. Topic: Clinical assessment of the right breast mass\n   Reason query is needed: The chart documents a palpable mass and abnormal ultrasound finding, but no provider-stated diagnostic impression.\n   Evidence quote: \"palpable right breast mass found on self-exam 1 week ago\"; \"Ultrasound shows 2.1 cm irregular mass at 2 o'clock position.\"\n   Non-leading query text: \"Based on the documented palpable right breast mass and ultrasound finding of a 2.1 cm irregular mass at 2 o'clock, please clarify your current clinical assessment of this breast finding.\"\n   Suggested response options:\n   - Right breast mass/lump under evaluation\n   - Abnormal breast imaging finding under evaluation\n   - Neoplasm of breast under evaluation, type not yet determined\n   - Other clinical assessment (please specify)\n   - Clinically undetermined at this time\n\n2. Topic: Anatomic site specificity of the right breast lesion\n   Reason query is needed: Laterality and clock-face position are documented, but the precise anatomic region may not be explicitly stated in the assessment.\n   Evidence quote: \"right breast mass\"; \"2.1 cm irregular mass at 2 o'clock position.\"\n   Non-leading query text: \"For the documented right breast mass at 2 o'clock, please clarify the anatomic site/region of the lesion if clinically known.\"\n   Suggested response options:\n   - Upper inner quadrant/right breast\n   - Upper outer quadrant/right breast\n   - Central/subareolar/right breast\n   - Overlapping sites of right breast\n   - Other site (please specify)\n   - Unable to determine\n\n3. Topic: Family history specificity\n   Reason query is needed: Family history is documented but may benefit from standardized clarification for coding specificity.\n   Evidence quote: \"Family history of breast cancer (mother).\"\n   Non-leading query text: \"Please clarify the documented family history of breast cancer in the patient's mother, if intended for the assessment.\"\n   Suggested response options:\n   - Family history of malignant neoplasm of breast in mother\n   - Family history of other cancer (please specify)\n   - Family history reviewed but not clinically relevant to this encounter\n   - Other (please specify)\n   - Unable to determine\n\nCoding Specificity Checklist:\n- Provider-stated assessment/impression for the right breast finding\n- Laterality\n- Exact anatomic site/region or quadrant, if clinically known\n- Whether the finding is documented as palpable mass/lump vs abnormal imaging finding vs neoplasm under evaluation\n- Size of lesion, if incorporated into assessment\n- Associated abnormal imaging characterization, if provider adopts it in impression\n- Family history relationship and condition specificity\n- Status of diagnostic evaluation (pending mammogram/workup)\n\nRisk Flags:\n- No pathology, mammogram result, or provider diagnostic impression is documented; malignancy cannot be inferred or queried as established.\n- \"Irregular mass\" on ultrasound is abnormal but does not by itself support assuming cancer.\n- Anatomic quadrant is not explicitly documented in provider assessment terms.\n- Workup is incomplete: \"Mammogram pending.\"\n\nSpecialist Trace:\n- Medical Coding Expert: Consulted for coding specificity and compliant query targets. Accepted only conservative, evidence-supported themes consistent with the excerpt. No unsupported diagnosis or treatment content incorporated.\n- AMBOSS Expert: Not consulted because no clinical criteria clarification was necessary to produce conservative CDI queries from the excerpt alone.\n- CDI Web Search Expert: Not consulted because no current external guideline citation was required for this chart-limited clarification task.\n\nLimitation:\n- Evidence is insufficient to query malignancy, staging, later episode of care, histology, receptor status, or complications because none of these are documented in the excerpt."
+}

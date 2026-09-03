@@ -16,6 +16,8 @@ import logging
 import re
 from typing import Iterable
 
+from rapidfuzz import fuzz
+
 logger = logging.getLogger(__name__)
 
 
@@ -85,6 +87,25 @@ _STOPWORDS = {
     "今日", "昨日", "前日", "目前", "既往", "否认", "无明显", "无特殊", "无诉",
 }
 
+# Cross-language clinical aliases are retrieval queries, not coding rules.
+# They let parallel English records reach the same governed Chinese catalogs
+# as their Chinese counterparts, reducing language-dependent code drift.
+_BILINGUAL_SEARCH_ALIASES: tuple[tuple[tuple[str, ...], str], ...] = (
+    (("vertebral compression fracture", "t12 compression fracture", "椎体压缩性骨折", "t12椎体压缩性骨折"), "胸椎压缩性骨折"),
+    (("osteoporosis", "骨质疏松"), "骨质疏松"),
+    (("essential hypertension", "原发性高血压"), "原发性高血压"),
+    (("type 2 diabetes", "type 2 diabetes mellitus", "2型糖尿病"), "2型糖尿病"),
+    (("acute simple appendicitis", "acute appendicitis", "急性单纯性阑尾炎"), "急性阑尾炎"),
+    (("community-acquired pneumonia", "社区获得性肺炎"), "肺炎"),
+    (("diabetic ketoacidosis", "type 2 diabetic ketoacidosis", "2型糖尿病性酮症酸中毒"), "2型糖尿病伴有酮症酸中毒"),
+    (("inferior st-elevation myocardial infarction", "inferior stemi", "急性下壁st段抬高型心肌梗死"), "下壁急性透壁性心肌梗死"),
+    (("hyperlipidemia", "高脂血症"), "高脂血症"),
+    (("tobacco dependence",), "烟草依赖"),
+    (("open reduction and internal fixation", "脊椎骨折切开复位内固定术", "椎体切开复位内固定术"), "脊椎骨折切开复位内固定术"),
+    (("laparoscopic appendectomy", "腹腔镜阑尾切除术"), "腹腔镜下阑尾切除术"),
+    (("drug-eluting stent", "drug eluting stent", "药物涂层支架植入"), "冠状动脉药物涂层支架置入术"),
+)
+
 
 def extract_keywords(encounter_text: str, max_keywords: int = 8) -> list[str]:
     """Return top medical noun phrases (longest match first)."""
@@ -93,6 +114,17 @@ def extract_keywords(encounter_text: str, max_keywords: int = 8) -> list[str]:
     seen: set[str] = set()
     out: list[str] = []
 
+    # Equivalent Chinese and English charts frequently differ only in spaces
+    # around Latin letters or digits ("2 型" vs "type 2").  Alias matching
+    # must not let that typography select a different coding catalog path.
+    folded = re.sub(r"\s+", "", encounter_text.casefold())
+    for aliases, search_term in _BILINGUAL_SEARCH_ALIASES:
+        if any(re.sub(r"\s+", "", alias.casefold()) in folded for alias in aliases) and search_term not in seen:
+            seen.add(search_term)
+            out.append(search_term)
+            if len(out) >= max_keywords:
+                return out
+
     # Prefer trigger terms first (high specificity)
     for term in _TRIGGER_TERMS:
         if term in encounter_text and term not in seen:
@@ -100,6 +132,13 @@ def extract_keywords(encounter_text: str, max_keywords: int = 8) -> list[str]:
             out.append(term)
             if len(out) >= max_keywords:
                 return out
+
+    # When curated bilingual aliases or clinical triggers matched, avoid
+    # sending arbitrary English word fragments into the Chinese catalogs;
+    # those fragments can receive spuriously high fuzzy scores and displace
+    # the exact governed procedure candidate.
+    if out:
+        return out[:max_keywords]
 
     # Fallback: longest unique tokens not in stopwords
     tokens = re.findall(r"[一-鿿A-Za-z]{2,8}", encounter_text)
@@ -117,8 +156,9 @@ def extract_keywords(encounter_text: str, max_keywords: int = 8) -> list[str]:
 
 async def lookup_candidate_codes(
     encounter_text: str,
-    top_k_per_keyword: int = 2,
+    top_k_per_keyword: int = 3,
     max_total: int = 8,
+    coding_systems: Iterable[str] | None = None,
 ) -> list[dict]:
     """Run dictionary search for each keyword, return deduplicated candidates.
 
@@ -143,23 +183,66 @@ async def lookup_candidate_codes(
     if not keywords:
         return []
 
-    candidates: dict[str, dict] = {}
-    for kw in keywords:
-        try:
-            results = await code_dict_service.search_codes(kw, "ICD10_CN", top_k=top_k_per_keyword)
-        except Exception as e:
-            logger.debug("dictionary_rag: search failed for %r: %s", kw, e)
-            continue
-        for r in results:
-            code = r.get("code", "")
-            if not code:
+    requested = {str(item).lower() for item in (coding_systems or ("icd10cn",))}
+    systems = [
+        pair for pair in (("icd10cn", "ICD10_CN"), ("icd9cm3", "ICD9_CM3"))
+        if pair[0] in requested
+    ] or [("icd10cn", "ICD10_CN")]
+    per_system: dict[str, dict[str, dict]] = {key: {} for key, _ in systems}
+    for system_key, dictionary_key in systems:
+        candidates = per_system[system_key]
+        for kw in keywords:
+            try:
+                results = await code_dict_service.search_codes(
+                    kw, dictionary_key, top_k=top_k_per_keyword
+                )
+            except Exception as e:
+                logger.debug(
+                    "dictionary_rag: search failed for %r system=%s: %s",
+                    kw, system_key, e,
+                )
                 continue
-            # Keep highest score per code
-            if code not in candidates or r.get("score", 0) > candidates[code].get("score", 0):
-                candidates[code] = r
+            for result in results:
+                code = result.get("code", "")
+                if not code:
+                    continue
+                # CodeDictionaryService uses partial-ratio search.  Without a
+                # full-string component, a short parent label (for example
+                # "阑尾炎") scores 1.0 and displaces the explicitly documented
+                # child ("急性阑尾炎").  Re-rank locally by both partial and
+                # whole-name similarity; exact names remain 1.0.
+                name = str(result.get("name") or "")
+                normalized_kw = re.sub(r"\s+", "", kw.casefold())
+                normalized_name = re.sub(r"\s+", "", name.casefold())
+                if normalized_kw and normalized_name:
+                    whole = fuzz.ratio(normalized_kw, normalized_name) / 100.0
+                    partial = float(result.get("score", 0) or 0)
+                    reranked_score = round((0.35 * partial) + (0.65 * whole), 4)
+                else:
+                    reranked_score = float(result.get("score", 0) or 0)
+                item = {
+                    **result,
+                    "score": reranked_score,
+                    "coding_system": system_key,
+                }
+                if (
+                    code not in candidates
+                    or item.get("score", 0) > candidates[code].get("score", 0)
+                ):
+                    candidates[code] = item
 
-    ranked = sorted(candidates.values(), key=lambda x: x.get("score", 0), reverse=True)[:max_total]
-    return ranked
+    # Preserve representation from every explicitly requested system. A
+    # single global sort could otherwise spend the entire budget on common
+    # diagnosis candidates and starve procedure retrieval.
+    quota = max(1, max_total // len(systems))
+    ranked: list[dict] = []
+    for system_key, _ in systems:
+        ranked.extend(sorted(
+            per_system[system_key].values(),
+            key=lambda item: item.get("score", 0),
+            reverse=True,
+        )[:quota])
+    return ranked[:max_total]
 
 
 def format_candidates_block(candidates: Iterable[dict]) -> str:
@@ -173,17 +256,22 @@ def format_candidates_block(candidates: Iterable[dict]) -> str:
         return ""
 
     lines = [
-        "候选编码参考（基于病历关键词检索 ICD-10 字典，仅供参考，必须以病历证据为准）：",
+        "候选编码参考（来自受控 ICD-10-CN / ICD-9-CM-3 目录；仍须以病历证据为准）：",
     ]
     for i, c in enumerate(candidates, 1):
         code = c.get("code", "")
         name = c.get("name", "")
         score = c.get("score", 0)
         chapter = c.get("chapter", "")
-        lines.append(f"  {i}. {code}  {name}  (relevance={score:.2f}, chapter={chapter})")
+        system = c.get("coding_system", "icd10cn")
+        lines.append(
+            f"  {i}. [{system}] {code}  {name}  "
+            f"(relevance={score:.2f}, chapter={chapter})"
+        )
     lines.append(
-        "提示：以上为候选，请核对病历证据后选择最匹配的精确编码。"
-        "避免使用 .9（未特指）编码，除非病历确实未指明具体类型。"
+        "提示：优先从以上候选中选择，并原样复制完整编码（包括 x 占位位），"
+        "不得缩写、扩写或凭记忆制造目录外编码。只有病历明确支持时才可选择更具体子码；"
+        "病历未指明具体类型时允许使用未特指编码。"
     )
     return "\n".join(lines)
 

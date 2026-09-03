@@ -1,0 +1,634 @@
+{
+  "agents": [
+    {
+      "name": "MedCodER 编码审核智能体",
+      "description": "iCoDer Runtime 标准编码审核 Agent。基于 MedCodER 5 阶段管线 (NAACL 2025) 从中文病历抽取诊断 + 证据, 经 BGE-M3 + FAISS 检索 ICD 候选, RankGPT 重排, 输出 per-disease ExtractedDiagnosis + 人工复核提示。AI-assisted coding, 非 fully automated, 低置信度编码必须人工确认。",
+      "url": "/api/icoder/agents/medcoder-coding-review/v1/message:send",
+      "version": "1.0.0",
+      "provider": "iCoDer",
+      "documentationUrl": "/docs/agents/medcoder-coding-review",
+      "capabilities": {
+        "streaming": false,
+        "pushNotifications": false,
+        "stateTransitionHistory": true,
+        "extensions": []
+      },
+      "skills": [
+        {
+          "id": "search_icd",
+          "name": "ICD-10-CN / ICD-9-CM-3 检索",
+          "description": "Stage 2 — BGE-M3 + FAISS 检索 top-20 候选编码, 含 similarity_score + chapter metadata。",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string"
+              },
+              "top_k": {
+                "type": "integer",
+                "default": 20
+              }
+            },
+            "required": [
+              "query"
+            ]
+          },
+          "outputSchema": {
+            "type": "array",
+            "items": {
+              "$ref": "icoder/CandidateCode/v1"
+            }
+          },
+          "examples": [
+            {
+              "input": {
+                "query": "椎体压缩性骨折",
+                "top_k": 5
+              },
+              "output": [
+                {
+                  "code": "M48.4",
+                  "description": "椎体疲劳性骨折"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "verify_code",
+          "name": "ICD 编码合规校验",
+          "description": "Stage 5 — catalog membership + similarity >= 0.5 + chapter metadata 校验, 违规返回 rule_flags 列表 (MR-001/002/003)。",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "code"
+            ]
+          },
+          "outputSchema": {
+            "$ref": "icoder/CodeVerificationResult/v1"
+          },
+          "examples": []
+        },
+        {
+          "id": "rerank_codes",
+          "name": "RankGPT-style 重排序",
+          "description": "Stage 4 — 给定 disease_text + evidence + candidates (<=30), 输出 top-5 排序 + per-disease final_confidence。",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "disease_text": {
+                "type": "string"
+              },
+              "candidates": {
+                "type": "array"
+              }
+            },
+            "required": [
+              "disease_text",
+              "candidates"
+            ]
+          },
+          "outputSchema": {
+            "$ref": "icoder/RerankResult/v1"
+          },
+          "examples": []
+        },
+        {
+          "id": "get_differentiation_hint",
+          "name": "编码区分提示 (P0/P1 hints)",
+          "description": "Stage 3 merge — 读 coding_differentiation_kb.json (2,090 P0/P1 code-pair 决策), 注入 Stage 4 rerank prompt。",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "candidate_codes": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "candidate_codes"
+            ]
+          },
+          "outputSchema": {
+            "type": "array",
+            "items": {
+              "$ref": "icoder/DifferentiationHint/v1"
+            }
+          },
+          "examples": []
+        },
+        {
+          "id": "calibrate_confidence",
+          "name": "per-disease 置信度校准",
+          "description": "Stage 5 校准 — 输入 ExtractedDiagnosis.final_confidence, 输出 manual_review_required + risk_tier (auto/review/escalate)。",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "diagnosis": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "diagnosis"
+            ]
+          },
+          "outputSchema": {
+            "$ref": "icoder/CalibrationResult/v1"
+          },
+          "examples": []
+        },
+        {
+          "id": "medcoder_5_stage_pipeline",
+          "name": "MedCodER 5 阶段管线 (orchestration)",
+          "description": "编排 Stage 1-5: extraction -> retrieval -> merge -> rerank -> calibration。输出 MedicalCodingOutputSchema 含 extracted_diagnoses。",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string"
+              },
+              "context_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "text"
+            ]
+          },
+          "outputSchema": {
+            "$ref": "icoder/MedicalCodingOutputSchema/v1"
+          },
+          "examples": [
+            {
+              "input": {
+                "text": "老年患者, 骨质疏松, 椎体压缩性骨折, 行椎体成形术。"
+              },
+              "output": {
+                "primary_diagnosis": {
+                  "code": "M80.0"
+                },
+                "extracted_diagnoses": [],
+                "manual_review_required": true
+              }
+            }
+          ]
+        }
+      ],
+      "defaultInputModes": [
+        "text"
+      ],
+      "defaultOutputModes": [
+        "application/json"
+      ],
+      "securitySchemes": {
+        "bearer": {
+          "type": "apiKey",
+          "description": "Phase 4 才校验, Phase 2 接受任意 bearer"
+        }
+      },
+      "metadata": {
+        "icoder": {
+          "agent_ref": "icoder/medcoder-coding-review-agent@1.0.0",
+          "rule_sets": [
+            "medical_coding",
+            "drg_dip",
+            "audit"
+          ],
+          "experts": [
+            "coding-expert"
+          ],
+          "mcp_tools": [
+            "search_icd",
+            "verify_code",
+            "get_differentiation_hint",
+            "rerank_codes",
+            "calibrate_confidence"
+          ],
+          "pipeline": {
+            "name": "medcoder-5-stage",
+            "stages": [
+              "extraction",
+              "retrieval",
+              "merge",
+              "rerank",
+              "calibration"
+            ],
+            "replaces": "homepage-coding-review 14-stage cosmetic (deprecated)"
+          },
+          "non_goals": [
+            "不直接做最终诊断决策",
+            "不写回 EMR / HIS / 医保",
+            "不评估模型效果",
+            "不声称 fully automated coding",
+            "不绕过 PHI redaction",
+            "不并行运行 14-stage cosmetic trace"
+          ],
+          "production_writeback_blocked": true,
+          "phi_redaction": "required",
+          "context_required": true,
+          "recorder_required": true,
+          "metrics_required": true,
+          "output_contract": {
+            "schema_ref": "icoder/MedicalCodingOutputSchema/v1",
+            "extracted_diagnoses_required": true,
+            "human_review_required_when": [
+              "manual_review_required == true",
+              "issues_found non-empty",
+              "primary_diagnosis.code missing",
+              "extracted_diagnoses empty"
+            ]
+          },
+          "runtime_version": "2.0.0"
+        }
+      }
+    },
+    {
+      "name": "医学编码智能体",
+      "description": "iCoDer 官方医学编码 Agent (Corti-style MVP)。基于病历证据生成 ICD-10-CN 诊断编码与 ICD-9-CM-3 手术操作编码建议, 输出 Corti-style 8-field 结构化结果 (encounter_summary / documentation_analysis / code_assignment / documentation_gaps / uncodable_items / validation_summary / human_review / trace_refs)。AI-assisted coding — 不替代编码员, 不自动写回, 不 upcoding, 不推断未记录的诊断/手术。MVP maturity: production_ready=false, human_review=required。",
+      "url": "/api/icoder/agents/medical-coding-agent/v1/message:send",
+      "version": "2.0.0",
+      "provider": "iCoDer",
+      "documentationUrl": "/docs/agents/medical-coding-agent",
+      "capabilities": {
+        "streaming": false,
+        "pushNotifications": false,
+        "stateTransitionHistory": true,
+        "extensions": []
+      },
+      "skills": [
+        {
+          "id": "corti_7_step_workflow",
+          "name": "Corti 7-step Medical Coding Workflow",
+          "description": "Synthesize Encounter → Extract Evidence → Search Candidates → Assign Codes → Validate Coding → Identify Documentation Gaps → Generate Review Summary. Outputs 8-field MedicalCodingAgentOutputV2.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string"
+              },
+              "context_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "text"
+            ]
+          },
+          "outputSchema": {
+            "$ref": "icoder/MedicalCodingAgentOutputV2/v1"
+          },
+          "examples": []
+        }
+      ],
+      "defaultInputModes": [
+        "text"
+      ],
+      "defaultOutputModes": [
+        "application/json"
+      ],
+      "securitySchemes": {
+        "bearer": {
+          "type": "apiKey",
+          "description": "Phase 4 才校验, Phase 2 接受任意 bearer"
+        }
+      },
+      "metadata": {
+        "icoder": {
+          "agent_ref": "icoder/medical-coding-agent@2.0.0",
+          "rule_sets": [
+            "medical_coding"
+          ],
+          "experts": [
+            "coding-expert"
+          ],
+          "mcp_tools": [
+            "search_icd",
+            "verify_code",
+            "get_differentiation_hint",
+            "rerank_codes",
+            "calibrate_confidence"
+          ],
+          "internal_engine": {
+            "name": "MedCodER 5-stage pipeline",
+            "agent_ref": "icoder/medcoder-coding-review-agent@1.0.0",
+            "stages": [
+              "extraction",
+              "retrieval",
+              "merge",
+              "rerank",
+              "calibration"
+            ]
+          },
+          "non_goals": [
+            "不替代编码员 — 所有编码建议需经编码员人工确认",
+            "不 upcoding — 不优先选择高补偿编码",
+            "不推断未记录的诊断 / 手术 (evidence-first)",
+            "不写回 EMR / HIS / 医保结算系统",
+            "不声称 fully automated coding",
+            "不绕过 PHI redaction",
+            "不输出 F1 / 模型效果指标给最终用户"
+          ],
+          "production_writeback_blocked": true,
+          "phi_redaction": "required",
+          "context_required": true,
+          "recorder_required": true,
+          "metrics_required": true,
+          "no_upcoding": true,
+          "no_inference": true,
+          "evidence_required": true,
+          "output_contract": {
+            "schema_ref": "icoder/MedicalCodingAgentOutputV2/v1",
+            "required_fields": [
+              "encounter_summary",
+              "documentation_analysis",
+              "code_assignment",
+              "documentation_gaps",
+              "uncodable_items",
+              "validation_summary",
+              "human_review",
+              "trace_refs"
+            ],
+            "human_review_required_when": [
+              "manual_review_required == true",
+              "issues_found non-empty",
+              "primary_diagnosis.code missing",
+              "documentation_gaps non-empty",
+              "uncodable_items non-empty",
+              "review_conclusion == FAIL"
+            ]
+          },
+          "maturity": "mvp",
+          "production_ready": false,
+          "human_review": "required",
+          "runtime_version": "2.0.0"
+        }
+      }
+    },
+    {
+      "name": "编码校验智能体",
+      "description": "iCoDer 编码校验 Agent — 按官方 ICD-10/ICD-9-CM-3 编码规则 (R001-R010 + MC-R-M80-001) 验证编码集，发现格式错误、重复编码、低置信度、证据缺失等问题。纯确定性规则引擎，无 LLM。",
+      "url": "/api/icoder/agents/code-validation-agent/v1/message:send",
+      "version": "1.0.0",
+      "provider": "iCoDer",
+      "documentationUrl": "/docs/agents/code-validation-agent",
+      "capabilities": {
+        "streaming": false,
+        "pushNotifications": false,
+        "stateTransitionHistory": true,
+        "extensions": []
+      },
+      "skills": [
+        {
+          "id": "validate_coding_set",
+          "name": "Validate Coding Set",
+          "description": "Parse a coding set (JSON or text) and run MedicalCodingRuleSet (R001-R010 + MC-R-M80-001). Returns review_conclusion + issues_found + fired_rules + code_assignment_summary.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "coding_set": {
+                "type": "object"
+              },
+              "encounter_text": {
+                "type": "string"
+              }
+            }
+          },
+          "outputSchema": {
+            "$ref": "icoder/CodeValidationOutput/v1"
+          },
+          "examples": []
+        }
+      ],
+      "defaultInputModes": [
+        "text"
+      ],
+      "defaultOutputModes": [
+        "application/json"
+      ],
+      "securitySchemes": {
+        "bearer": {
+          "type": "apiKey",
+          "description": "Phase 4 才校验, Phase 2 接受任意 bearer"
+        }
+      },
+      "metadata": {
+        "icoder": {
+          "agent_ref": "icoder/code-validation-agent@1.0.0",
+          "rule_sets": [
+            "medical_coding"
+          ],
+          "experts": [
+            "rule-engine"
+          ],
+          "mcp_tools": [
+            "validate_codes"
+          ],
+          "non_goals": [
+            "不调用 LLM — 纯规则引擎",
+            "不修改编码集 — 只校验",
+            "不写回 EMR / HIS / 医保结算",
+            "不分配编码"
+          ],
+          "production_writeback_blocked": true,
+          "phi_redaction": "required",
+          "maturity": "runnable",
+          "production_ready": false,
+          "human_review": "optional",
+          "output_contract": {
+            "schema_ref": "icoder/CodeValidationOutput/v1",
+            "required_fields": [
+              "review_conclusion",
+              "issues_found",
+              "manual_review_required",
+              "rule_set",
+              "fired_rules",
+              "code_assignment_summary",
+              "trace_refs"
+            ]
+          },
+          "runtime_version": "2.0.0"
+        }
+      }
+    },
+    {
+      "name": "合规护栏智能体",
+      "description": "iCoDer 合规护栏 Agent — 在提交医保结算清单前，按 MedicalCodingRuleSet + 合规护栏启发式 (主诊断非空 / no upcoding / 手术-诊断一致 / DRG 就绪) 评估编码集。纯确定性，无 LLM。",
+      "url": "/api/icoder/agents/compliance-guardrail-agent/v1/message:send",
+      "version": "1.0.0",
+      "provider": "iCoDer",
+      "documentationUrl": "/docs/agents/compliance-guardrail-agent",
+      "capabilities": {
+        "streaming": false,
+        "pushNotifications": false,
+        "stateTransitionHistory": true,
+        "extensions": []
+      },
+      "skills": [
+        {
+          "id": "evaluate_compliance",
+          "name": "Evaluate Compliance",
+          "description": "Run MedicalCodingRuleSet + compliance guardrail heuristics (CG-001 primary dx present / CG-002 no upcoding / CG-003 procedure-dx consistency / CG-004 DRG readiness). Returns review_conclusion + issues_found + drg_suggestion + compliance_checks.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "coding_set": {
+                "type": "object"
+              },
+              "encounter_text": {
+                "type": "string"
+              }
+            }
+          },
+          "outputSchema": {
+            "$ref": "icoder/ComplianceGuardrailOutput/v1"
+          },
+          "examples": []
+        }
+      ],
+      "defaultInputModes": [
+        "text"
+      ],
+      "defaultOutputModes": [
+        "application/json"
+      ],
+      "securitySchemes": {
+        "bearer": {
+          "type": "apiKey",
+          "description": "Phase 4 才校验, Phase 2 接受任意 bearer"
+        }
+      },
+      "metadata": {
+        "icoder": {
+          "agent_ref": "icoder/compliance-guardrail-agent@1.0.0",
+          "rule_sets": [
+            "medical_coding"
+          ],
+          "experts": [
+            "rule-engine"
+          ],
+          "mcp_tools": [
+            "evaluate_compliance"
+          ],
+          "non_goals": [
+            "不调用 LLM",
+            "不修改编码集 — 只评估",
+            "不写回医保结算",
+            "不分配 DRG 分组 — 仅输出 drg_suggestion"
+          ],
+          "production_writeback_blocked": true,
+          "no_upcoding": true,
+          "phi_redaction": "required",
+          "maturity": "runnable",
+          "production_ready": false,
+          "human_review": "required",
+          "output_contract": {
+            "schema_ref": "icoder/ComplianceGuardrailOutput/v1",
+            "required_fields": [
+              "review_conclusion",
+              "issues_found",
+              "manual_review_required",
+              "drg_suggestion",
+              "compliance_checks",
+              "rule_set",
+              "trace_refs"
+            ]
+          },
+          "runtime_version": "2.0.0"
+        }
+      }
+    },
+    {
+      "name": "病历完整性智能体",
+      "description": "iCoDer 病历完整性 Agent — 按《病历书写基本规范》检查入院记录的必填章节 (主诉/现病史/既往史/体格检查/辅助检查/诊断/治疗经过 + 手术记录 for surgical cases)。输出缺失章节列表 + completeness_score。纯确定性 regex 检测，无 LLM。",
+      "url": "/api/icoder/agents/note-completeness-agent/v1/message:send",
+      "version": "1.0.0",
+      "provider": "iCoDer",
+      "documentationUrl": "/docs/agents/note-completeness-agent",
+      "capabilities": {
+        "streaming": false,
+        "pushNotifications": false,
+        "stateTransitionHistory": true,
+        "extensions": []
+      },
+      "skills": [
+        {
+          "id": "check_documentation_gaps",
+          "name": "Check Documentation Gaps",
+          "description": "Detect missing required sections in an EMR note per 《病历书写基本规范》. Returns documentation_gaps + completeness_score + missing_sections + review_conclusion.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "emr_text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "emr_text"
+            ]
+          },
+          "outputSchema": {
+            "$ref": "icoder/NoteCompletenessOutput/v1"
+          },
+          "examples": []
+        }
+      ],
+      "defaultInputModes": [
+        "text"
+      ],
+      "defaultOutputModes": [
+        "application/json"
+      ],
+      "securitySchemes": {
+        "bearer": {
+          "type": "apiKey",
+          "description": "Phase 4 才校验, Phase 2 接受任意 bearer"
+        }
+      },
+      "metadata": {
+        "icoder": {
+          "agent_ref": "icoder/note-completeness-agent@1.0.0",
+          "rule_sets": [
+            "documentation_completeness"
+          ],
+          "experts": [
+            "section-detector"
+          ],
+          "mcp_tools": [
+            "check_documentation_gaps"
+          ],
+          "non_goals": [
+            "不调用 LLM — 纯 regex 检测",
+            "不修改病历 — 只评估",
+            "不写回 EMR",
+            "不评估编码正确性"
+          ],
+          "production_writeback_blocked": true,
+          "phi_redaction": "required",
+          "maturity": "runnable",
+          "production_ready": false,
+          "human_review": "optional",
+          "output_contract": {
+            "schema_ref": "icoder/NoteCompletenessOutput/v1",
+            "required_fields": [
+              "review_conclusion",
+              "documentation_gaps",
+              "completeness_score",
+              "missing_sections",
+              "present_sections",
+              "required_sections",
+              "trace_refs"
+            ]
+          },
+          "runtime_version": "2.0.0"
+        }
+      }
+    }
+  ]
+}

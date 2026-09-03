@@ -1,0 +1,54 @@
+{
+  "fixture_id": "05_oncology",
+  "tag": "SYNTHETIC_FIXTURE",
+  "department": "肿瘤科",
+  "intended_agents": [
+    "medical-coding-agent",
+    "code-validation-agent",
+    "compliance-guardrail-agent",
+    "note-completeness-agent",
+    "procedure-extractor",
+    "evidence-extractor",
+    "principal-diagnosis-review",
+    "discharge-summary-structuring",
+    "drg-analyzer"
+  ],
+  "input_text": "患者男性,58岁,因「胃癌术后 4 月,拟行第 3 周期化疗」入院。4 月前因「胃窦腺癌(cT3N2M0,III A 期)」行远端胃切除术(Billroth II),术后病理:胃窦低分化腺癌,侵及浆膜层,淋巴结 5/16 转移,切缘阴性。术后行 SOX 方案化疗 2 周期(奥沙利铂 + 替吉奥),无明显不良反应,KPS 评分 80 分。本次为行第 3 周期化疗入院。既往:否认高血压、糖尿病、冠心病史。否认药物过敏史。查体:T 36.4℃,P 76 次/分,R 16 次/分,BP 118/72mmHg。神清,营养中等,浅表淋巴结未及肿大。腹平,上腹正中见手术瘢痕,愈合好,腹软,无压痛,肝脾肋下未及,移动性浊音(-)。辅助检查:血常规、肝肾功能基本正常。CEA 2.1 ng/mL(参考值 <5),CA19-9 14 U/mL。腹部 CT:胃癌术后改变,未见明显复发或转移征象。入院诊断:胃窦低分化腺癌(pT3N2M0 III A 期,术后);化疗后。计划:完善化疗前评估,行第 3 周期 SOX 方案化疗。",
+  "structured_context": {
+    "age": 58,
+    "sex": "男",
+    "encounter_type": "inpatient",
+    "admission_type": "择期化疗",
+    "primary_complaint": "胃癌术后 4 月,化疗入院",
+    "procedure": "远端胃切除术(Billroth II) + SOX 化疗",
+    "los_days": 5
+  },
+  "known_facts": [
+    "胃窦低分化腺癌",
+    "pT3N2M0 III A 期",
+    "淋巴结 5/16 转移",
+    "SOX 方案化疗 2 周期完成",
+    "KPS 80 分"
+  ],
+  "negated_facts": [
+    "否认高血压",
+    "否认糖尿病",
+    "否认冠心病"
+  ],
+  "historical_facts": [
+    "4 月前远端胃切除术"
+  ],
+  "missing_information": [],
+  "expected_risks": [
+    "chemotherapy_myelosuppression",
+    "tumor_recurrence",
+    "post_gastrectomy_nutrition_deficiency"
+  ],
+  "gold_codes": [
+    "C16.200",
+    "Z51.100",
+    "Z85.000"
+  ],
+  "not_for_quality_scoring": false,
+  "notes": "Oncology case with chemo admission; primary C16.200 (gastric antrum cancer)."
+}

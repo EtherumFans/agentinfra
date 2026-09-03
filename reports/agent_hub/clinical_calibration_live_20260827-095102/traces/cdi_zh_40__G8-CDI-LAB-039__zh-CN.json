@@ -1,0 +1,128 @@
+{
+  "run_id": "run-cfb3865c-ed93-4954-ab9d-2223fba1fe3b",
+  "events": [
+    {
+      "run_id": "run-cfb3865c-ed93-4954-ab9d-2223fba1fe3b",
+      "step": "user_message_received",
+      "status": "ok",
+      "ts": 1787796061.5454044,
+      "duration_ms": 0.0,
+      "safe_metadata": {
+        "agent_id": "clinical-documentation-improvement-agent",
+        "input_parts": 2,
+        "_trace_id": "trace-77f7f3c4f86e4404",
+        "_organization_id": "bc92ee06af0f",
+        "_user_id": "4f7fd9cb40ce",
+        "_actor_id": "4f7fd9cb40ce"
+      },
+      "event_id": "25b5361b-0cd4-422f-a4e8-7e814459878c",
+      "sequence_number": 1,
+      "trace_id": "trace-77f7f3c4f86e4404"
+    },
+    {
+      "run_id": "run-cfb3865c-ed93-4954-ab9d-2223fba1fe3b",
+      "step": "output_generated",
+      "status": "ok",
+      "ts": 1787796084.843622,
+      "duration_ms": 23269.0,
+      "safe_metadata": {
+        "backend_provider": "cdi_real_orchestrator",
+        "backend_type": "cdi_orchestrator",
+        "provider_latency_ms": 23173,
+        "provider_status": "complete",
+        "provider_deterministic": false,
+        "supports_tool_calling": true,
+        "fallback_used": false,
+        "output_contract": "icoder/CDIAgentOutputV1/v6",
+        "tool_rounds": 2,
+        "model_deployment_id": "",
+        "model_routing_mode": "",
+        "model_selection_version": 0,
+        "model_routing_decision": "",
+        "model_provider": "deepseek",
+        "model_system": "deepseek",
+        "model_name": "deepseek-chat",
+        "clinical_asset_integrity_verified": false,
+        "semantic_enhancement_used": false,
+        "rephrasing_attempted": false,
+        "input_tokens": 5211,
+        "output_tokens": 2104,
+        "total_tokens": 7315,
+        "llm_call_count": 7,
+        "model_call_latency_sum_ms": 23173,
+        "parallel_model_calls_observed": false,
+        "orchestration_latency_ms": 23269,
+        "provider_latency_exceeds_wall_time": false,
+        "non_provider_wall_latency_known": true,
+        "non_provider_wall_latency_ms": 96,
+        "instrumented_stage_latency_ms": 23184,
+        "slowest_stage": "expert_consultation",
+        "slowest_stage_latency_ms": 7347,
+        "latency_budget_ms": 30000,
+        "latency_budget_exceeded": false,
+        "cost_amount": 0.00131866,
+        "cost_currency": "CNY",
+        "cost_source": "configured_usage_pricing_estimate",
+        "billing_authoritative": false,
+        "_trace_id": "trace-77f7f3c4f86e4404",
+        "_organization_id": "bc92ee06af0f",
+        "_user_id": "4f7fd9cb40ce",
+        "_actor_id": "4f7fd9cb40ce"
+      },
+      "event_id": "48eb7358-c0ac-4ae7-8229-a4605f11530f",
+      "sequence_number": 2,
+      "trace_id": "trace-77f7f3c4f86e4404"
+    },
+    {
+      "run_id": "run-cfb3865c-ed93-4954-ab9d-2223fba1fe3b",
+      "step": "contract_validation",
+      "status": "failed",
+      "ts": 1787796084.8670359,
+      "duration_ms": 0.0,
+      "safe_metadata": {
+        "agent_id": "clinical-documentation-improvement-agent",
+        "input_parts": 2,
+        "_trace_id": "trace-77f7f3c4f86e4404",
+        "_organization_id": "bc92ee06af0f",
+        "_user_id": "4f7fd9cb40ce",
+        "_actor_id": "4f7fd9cb40ce",
+        "error_code": "OUTPUT_CONTRACT_VIOLATION",
+        "missing_required_fields": [],
+        "invalid_field_type_count": 0,
+        "invalid_field_schema_count": 1,
+        "invalid_cross_agent_relation_count": 0,
+        "invalid_paths": [
+          "documentation_gaps[].evidence_span.document_id"
+        ],
+        "invalid_keywords": [
+          "evidenceBinding"
+        ]
+      },
+      "event_id": "6d4b3b24-02e2-4130-8b58-6266e97fad66",
+      "sequence_number": 3,
+      "trace_id": "trace-77f7f3c4f86e4404"
+    }
+  ],
+  "trace_attestation": "eyJkIjoiNGUxNmE1NWU1MWNhZGE3NjAzMGNlYjNkYmE3MDFhNzg0YmQ2MjhjNzJjNDUxMmM5MDRhOTUzNDc1NjMxN2Y2ZCIsImUiOjE3ODc4ODI0ODUsIm8iOiJiYzkyZWUwNmFmMGYiLCJyIjoicnVuLWNmYjM4NjVjLWVkOTMtNDk1NC1hYjlkLTIyMjNmYmExZmUzYiIsInYiOjF9.C4BYNkfOO9jgqU-AxgZ8n3ZzZ9KM9GZtTj7Yni0AP2M",
+  "summary": {
+    "agent_id": "clinical-documentation-improvement-agent",
+    "trace_id": "trace-77f7f3c4f86e4404",
+    "run_status": "FAILED",
+    "runtime_mode": "cdi_real_orchestrator",
+    "latency_ms": 23446,
+    "cost": {
+      "amount": 0.00131866,
+      "currency": "CNY"
+    },
+    "error": true,
+    "error_reason": "output_contract_violation",
+    "trace_capture_status": "FALLBACK_MEMORY",
+    "created_at": "2026-08-27T02:01:01.465488",
+    "review_signal": {
+      "state": "not_recorded",
+      "sources": [],
+      "authoritative": false
+    }
+  },
+  "_http_status": 200
+}

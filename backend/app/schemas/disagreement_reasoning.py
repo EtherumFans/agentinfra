@@ -1,5 +1,5 @@
 # Disagreement Reasoning — taxonomy, correction model, DRG sensitivity
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Optional
 from pydantic import BaseModel, Field
@@ -35,7 +35,7 @@ class CorrectionRecord(BaseModel):
     rule_reference: list[str] = Field(default_factory=list, description="Rules that explain the correction")
     evidence_support: str = Field(default="", description="Evidence that supports the correction")
     reviewer: str = Field(default="system", description="Who made the correction")
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
     learnable: bool = Field(default=True, description="Can this pattern be reused for future cases?")
 
 

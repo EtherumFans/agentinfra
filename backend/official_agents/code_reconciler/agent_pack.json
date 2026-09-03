@@ -3,7 +3,7 @@
   "agent_type": "expert-stub",
   "agent_ref": "icoder/code-reconciler@1.0.0",
   "manifest": {
-    "name": "Code Reconciler",
+    "name": "编码核对智能体",
     "version": "1.0.0",
     "description": "Stage 4 of MedCodER 5-stage pipeline (Re-Rank). 协调并最终确定编码集：RankGPT-style 重排 top-K 候选、确定主诊断、排序编码、生成审计就绪输出。LLM 主路径 (DeepSeek V4) + 离线 deterministic 兜底 (按 score 排序选 top-1 primary)。",
     "category": "medical-coding",
@@ -62,8 +62,8 @@
     }
   ],
   "model": {
-    "primary": "deepseek-v4",
-    "fallback": "deepseek-v4-flash",
+    "primary": "deepseek-chat",
+    "fallback": "deepseek-chat",
     "temperature": 0.0,
     "max_tokens": 4096,
     "json_mode": true
@@ -79,7 +79,7 @@
       {
         "name": "llm_rerank",
         "engine": "llm",
-        "model": "deepseek-v4",
+        "model": "deepseek-chat",
         "top_k": 5,
         "few_shot_source": "cot_generation_progress_v2.json",
         "fallback": "offline_score_rank"
@@ -163,7 +163,7 @@
   "llm_capabilities": {
     "required_models": [
       {
-        "name": "deepseek-v4",
+        "name": "deepseek-chat",
         "purpose": "stage4_rerank (RankGPT-style + few-shot from cot_generation_progress_v2.json)"
       }
     ],
@@ -179,6 +179,6 @@
   },
   "code": {},
   "integrity": {
-    "sha256": "PLACEHOLDER_RECOMPUTED_AT_PUBLISH"
+    "sha256": "8ff7025af21369dc5075ebeea8273e30ceea822654490d7aca47a8948644ec7a"
   }
 }

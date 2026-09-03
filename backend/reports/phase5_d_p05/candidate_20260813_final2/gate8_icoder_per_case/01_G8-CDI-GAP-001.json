@@ -1,0 +1,412 @@
+{
+  "case_id": "CASE-cd46a7dde1bf",
+  "completion_state": "REVIEW_RECOMMENDED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-cd46a7dde1bf/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "Pneumonia diagnosis lacks specification of etiology (e.g., bacterial, viral, aspiration) and severity (e.g., severity score, need for ICU).",
+      "why_it_matters": "Specificity of pneumonia type and severity affects coding, treatment, and prognosis; unspecified pneumonia may lead to query for clarification.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "入院诊断:肺炎",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-cd46a7dde1bf/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "The anatomical site of pneumonia is documented as '右下肺浸润影' on chest X-ray, but the diagnosis statement does not specify the lobe or segment.",
+      "why_it_matters": "Anatomical site specificity is required for accurate coding of pneumonia; lack of site may lead to unspecified code.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "胸片示右下肺浸润影",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-cd46a7dde1bf/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "The chart does not document the clinical correlation of the abnormal WBC count (14.5) with the infection, nor does it specify the type of white blood cells (e.g., neutrophilia).",
+      "why_it_matters": "Abnormal lab values need clinical correlation to support the diagnosis and to rule out other etiologies; lack of correlation may affect coding and clinical accuracy.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "WBC 14.5",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-cd46a7dde1bf/GAP-004",
+      "gap_type": "diagnostic_specificity",
+      "description": "The chart does not specify the severity of pneumonia (e.g., CURB-65 score, PSI) or whether the patient has any complications (e.g., pleural effusion, sepsis).",
+      "why_it_matters": "Severity and complications are key for coding and risk adjustment; unspecified severity may lead to under-coding.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "予头孢曲松+阿奇霉素治疗",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-cd46a7dde1bf/Q-001",
+      "gap_id": "CASE-cd46a7dde1bf/GAP-001",
+      "topic": "肺炎的病原学类型",
+      "reason": "入院诊断为肺炎，但未明确病原学类型（如细菌性、病毒性、吸入性），影响治疗方案的针对性。",
+      "evidence_span": {
+        "document_id": "chart-001",
+        "quote": "入院诊断:肺炎",
+        "char_start": 52,
+        "char_end": 59,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "入院诊断:肺炎",
+          "char_start": 52,
+          "char_end": 59,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "根据患者临床表现和辅助检查，该肺炎的病原学类型最可能属于以下哪一类？",
+      "response_options": [
+        "A. 细菌性肺炎",
+        "B. 病毒性肺炎",
+        "C. 吸入性肺炎",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "urgent",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    },
+    {
+      "query_id": "CASE-cd46a7dde1bf/Q-002",
+      "gap_id": "CASE-cd46a7dde1bf/GAP-002",
+      "topic": "肺炎的解剖部位",
+      "reason": "胸片示右下肺浸润影，但诊断未明确具体肺叶或肺段，影响病情评估和记录。",
+      "evidence_span": {
+        "document_id": "chart-001",
+        "quote": "胸片示右下肺浸润影",
+        "char_start": 24,
+        "char_end": 33,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "胸片示右下肺浸润影",
+          "char_start": 24,
+          "char_end": 33,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "根据胸片结果，该肺炎的具体解剖部位是以下哪一项？",
+      "response_options": [
+        "A. 右肺下叶",
+        "B. 右肺中叶",
+        "C. 右肺上叶",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    }
+  ],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-004",
+      "gap_id": "CASE-cd46a7dde1bf/GAP-004",
+      "topic": "肺炎严重程度及并发症",
+      "reason": "病历未记录肺炎严重程度评分或并发症情况，需明确以指导治疗和监护级别。",
+      "query_text": "根据患者当前情况，肺炎的严重程度及是否存在并发症，以下哪项描述最恰当？",
+      "response_options": [
+        "A. 轻度肺炎，无并发症",
+        "B. 中度肺炎，存在胸腔积液等并发症",
+        "C. 重度肺炎，需考虑ICU监护",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "予头孢曲松+阿奇霉素治疗",
+          "char_start": 60,
+          "char_end": 72,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "SD-001: topic axes = ['complication', 'severity']"
+      ],
+      "status": "NEEDS_CDI_REWRITE",
+      "detected_axes": [
+        "complication",
+        "severity"
+      ],
+      "rewrite_attempt_status": "NO_SAFE_CANDIDATE_RETURNED",
+      "rewrite_attempt_reasons": [
+        "rewrite model returned no candidate for this compound draft"
+      ],
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-003",
+      "gap_id": "CASE-cd46a7dde1bf/GAP-003",
+      "topic": "白细胞异常的临床意义",
+      "reason": "WBC 14.5提示感染可能，但未明确白细胞分类或与感染的关联，需进一步明确。",
+      "query_text": "关于WBC 14.5的临床意义，以下哪项描述最符合当前情况？",
+      "response_options": [
+        "A. 白细胞升高，以中性粒细胞为主，支持细菌感染",
+        "B. 白细胞升高，以淋巴细胞为主，支持病毒感染",
+        "C. 白细胞升高，但分类未明确，需进一步检查",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "WBC 14.5",
+          "char_start": 34,
+          "char_end": 42,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "BEYOND_MINIMAL_DOCUMENTATION_NEED"
+      ],
+      "status": "REJECTED_BY_SEMANTIC_NECESSITY",
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者男性, 64岁, 因咳嗽咳痰伴发热3天入院。胸片示右下肺浸润影。WBC 14.5, T 38.3℃。入院诊断:肺炎。予头孢曲松+阿奇霉素治疗。既往:2型糖尿病、<REDACTED:NAME>。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者男性，64岁",
+      "因咳嗽咳痰伴发热3天入院",
+      "胸片示右下肺浸润影",
+      "WBC 14.5",
+      "体温38.3℃",
+      "入院诊断：肺炎",
+      "予头孢曲松+阿奇霉素治疗",
+      "既往：2型糖尿病"
+    ],
+    "encounter_metadata": {
+      "patient_age": "64岁",
+      "patient_sex": "男性",
+      "encounter_type": "住院"
+    }
+  },
+  "risk_flags": [
+    {
+      "category": "unsupported_diagnosis",
+      "description": "The diagnosis of pneumonia is supported by chest X-ray and symptoms, but the specific type (e.g., community-acquired) is not explicitly stated; however, the diagnosis is supported by evidence, so this flag may not apply. Instead, note that the diagnosis is not fully specified."
+    }
+  ],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "To ensure accurate coding, the pneumonia diagnosis must specify the etiology (e.g., bacterial vs. viral vs. aspiration) and severity indicators such as CURB-65 score, PSI, or ICU admission, as well as any complications like pleural effusion or sepsis. Additionally, the anatomical site should be clarified to the specific lobe or segment (e.g., right lower lobe) and the WBC abnormality should be linked to neutrophilia or other differential counts to reflect the infectious process. Without these details, the clinical picture remains incomplete for precise code assignment.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3817,
+      "tokens": 380
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "'score' score — no deterministic calculator wired",
+      "route_decision": "tool_unavailable",
+      "route_reason": "no_real_tool_wired",
+      "execution_mode": "TOOL_UNAVAILABLE",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-f91e8ec8badb",
+    "gap_identification": "run-6ddc067c9eee",
+    "gap_identification_risk_flags": "emitted=1;quote_snapped=0",
+    "expert_consultation": "run-e77ff1e96829",
+    "query_generation": "run-7840c69b2891",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=4;llm_complete=False;llm_reasoning=The chart documents pneumonia with supporting evidence (symptoms, imaging, labs)",
+    "query_necessity_gate": "necessary=4;unnecessary=0;overquery_triggered=False;final_count=4",
+    "query_dimension_rewrite": "run-9c56ccebe430",
+    "query_single_dimension_gate": "single_dim=3;multi_dim=1;axis_cluster_triggered=False;axis_cluster_axis=type;rewrite_attempted=1;rewrite_accepted=0;final_count=3",
+    "claim_evidence_alignment_gate": "claims_extracted=8;blocked=0;flagged=0;final_count=3",
+    "claim_evidence_alignment_gate::run_id": "run-4f6c77a30178",
+    "semantic_necessity_gate": "blocked=1;flagged=0;degraded=0;final_count=2",
+    "semantic_necessity_gate::run_id": "run-942d143899e9",
+    "query_compliance_gate": ";passed=2;blocked=0",
+    "specialist_trace_emit": "run-9c62c47cc2f5"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-d3026b1d4947",
+    "gap_identification": "trace-6308ebf3b60a",
+    "expert_consultation": "trace-2e6a66b0aec7",
+    "query_generation": "trace-f39a15faa7cf",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_dimension_rewrite": "trace-cce6645856bb",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-58f1cf6b4942",
+    "semantic_necessity_gate": "trace-c4e2c42da3ec",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-c83a58f279bf"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2388,
+      "prompt_tokens": 241,
+      "completion_tokens": 122,
+      "total_tokens": 363,
+      "run_id": "run-f91e8ec8badb",
+      "trace_id": "trace-d3026b1d4947",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 8047,
+      "prompt_tokens": 1087,
+      "completion_tokens": 780,
+      "total_tokens": 1867,
+      "run_id": "run-6ddc067c9eee",
+      "trace_id": "trace-6308ebf3b60a",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 7496,
+      "prompt_tokens": 1255,
+      "completion_tokens": 841,
+      "total_tokens": 2096,
+      "run_id": "run-7840c69b2891",
+      "trace_id": "trace-f39a15faa7cf",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_dimension_rewrite",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2498,
+      "prompt_tokens": 697,
+      "completion_tokens": 8,
+      "total_tokens": 705,
+      "run_id": "run-9c56ccebe430",
+      "trace_id": "trace-cce6645856bb",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3817,
+      "prompt_tokens": 269,
+      "completion_tokens": 111,
+      "total_tokens": 380,
+      "run_id": "run-770b1a7f164c",
+      "trace_id": "trace-8234e1a7a714",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-b056a375d560",
+      "trace_id": "trace-fc26d8d0f0ae",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-3bd30b621354",
+      "trace_id": "trace-c20fe11e3c81",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-0d84dcbda6d9",
+      "trace_id": "trace-c9cf0f2b6653",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T17:52:47.281330Z"
+}

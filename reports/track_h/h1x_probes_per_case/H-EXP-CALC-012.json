@@ -1,0 +1,311 @@
+{
+  "case_id": "H-EXP-CALC-012",
+  "group": "EXPERT_ROUTING",
+  "variant": "CALCULATOR",
+  "session_id": "0cccfc66-81a1-4957-b618-3b3134e4e8b7",
+  "attempt": 1,
+  "outcome": "SUCCESS",
+  "elapsed_s": 34.78,
+  "expected": {
+    "query_count_min": 1,
+    "query_count_max": 2,
+    "expected_query_topics": [
+      "CHA2DS2-VASc score",
+      "anticoagulation adequacy"
+    ],
+    "forbidden_query_topics": [],
+    "no_query_expected": false
+  },
+  "text_length": 6830,
+  "first_token_at_s": 3.7,
+  "last_token_at_s": 34.78,
+  "event_count": 13,
+  "raw_events_preview": [
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"code_system\":\"icd-10-cm\",\"count\":3,\"next_steps\":[{\"reason\":\"Browse related codes and alternatives in the same category\",\"tool\":\"explore\"},{\"reason\":\"Read coding conventions relevant to these",
+    "message|{\"data\":{\"code_system\":\"icd-10-cm\",\"count\":3,\"next_steps\":[{\"reason\":\"Browse related codes and alternatives in the same category\",\"tool\":\"explore\"},{\"reason\":\"Read coding conventions relevant to these",
+    "message|{\"data\":{\"code_system\":\"icd-10-cm\",\"count\":2,\"next_steps\":[{\"reason\":\"Browse related codes and alternatives in the same category\",\"tool\":\"explore\"},{\"reason\":\"Read coding conventions relevant to these",
+    "message|{\"data\":{\"codes\":[\"FOR\",\"ICD\"],\"content\":\"GENERAL RULES FOR OTHER (ADDITIONAL) DIAGNOSES \\n \\nFor reporting purposes, the definition for “other diagnoses” is interpreted as additional clinically \\nsig",
+    "message|{\"id\":\"c2aab144-8d65-44f9-b6cc-9749ac0983ca\",\"type\":\"text-start\"}",
+    "message|{\"delta\":\"Encounter Summary:\\n- Chart excerpt documents atrial fibrillation.\\n- Stroke-risk components explicitly listed: hypertension, diabetes, age 75, female sex, and prior TIA.\\n- The excerpt stat",
+    "message|{\"id\":\"c2aab144-8d65-44f9-b6cc-9749ac0983ca\",\"type\":\"text-end\"}",
+    "message|{\"messageMetadata\":{\"contextId\":\"019f5bcb-bfb4-77ac-80f2-5cf2bcb67895\",\"taskId\":\"019f5bcb-bfb4-7732-9f34-7a6fec588525\",\"credits\":0.11590399999999998,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+    "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.11590399999999998},\"type\":\"finish\"}",
+    "message|[DONE]"
+  ],
+  "expert_events": [
+    {
+      "code_system": "icd-10-cm",
+      "count": 3,
+      "next_steps": [
+        {
+          "reason": "Browse related codes and alternatives in the same category",
+          "tool": "explore"
+        },
+        {
+          "reason": "Read coding conventions relevant to these codes",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "To assign the codes for a clinical note, use predict (optionally with include/exclude filters)",
+          "tool": "predict"
+        }
+      ],
+      "query": "atrial fibrillation",
+      "results": [
+        {
+          "code": "I48.91",
+          "description": "Unspecified atrial fibrillation",
+          "match_path": "Fibrillation, atrial or auricular",
+          "related_codes": {
+            "category": "I48.9",
+            "category_description": "Unspecified atrial fibrillation and atrial flutter",
+            "count": 2
+          }
+        },
+        {
+          "code": "I49.8",
+          "description": "Other specified cardiac arrhythmias",
+          "match_path": "Fibrillation, cardiac",
+          "related_codes": {
+            "category": "I49",
+            "category_description": "Other cardiac arrhythmias",
+            "count": 8
+          }
+        },
+        {
+          "code": "I49.9",
+          "description": "Cardiac arrhythmia, unspecified",
+          "match_path": "Arrhythmia",
+          "related_codes": {
+            "category": "I49",
+            "category_description": "Other cardiac arrhythmias",
+            "count": 8
+          }
+        }
+      ]
+    },
+    {
+      "code_system": "icd-10-cm",
+      "count": 3,
+      "next_steps": [
+        {
+          "reason": "Browse related codes and alternatives in the same category",
+          "tool": "explore"
+        },
+        {
+          "reason": "Read coding conventions relevant to these codes",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "To assign the codes for a clinical note, use predict (optionally with include/exclude filters)",
+          "tool": "predict"
+        }
+      ],
+      "query": "transient ischemic attack",
+      "results": [
+        {
+          "code": "G45.9",
+          "description": "Transient cerebral ischemic attack, unspecified",
+          "match_path": "Attack, attacks, transient ischemic",
+          "related_codes": {
+            "category": "G45",
+            "category_description": "Transient cerebral ischemic attacks and related syndromes",
+            "count": 7
+          }
+        },
+        {
+          "code": "G45.8",
+          "description": "Other transient cerebral ischemic attacks and related syndromes",
+          "match_path": "Attack, attacks, transient ischemic, specified, other specified",
+          "related_codes": {
+            "category": "G45",
+            "category_description": "Transient cerebral ischemic attacks and related syndromes",
+            "count": 7
+          }
+        },
+        {
+          "code": "R55",
+          "description": "Syncope and collapse",
+          "match_path": "Attack, attacks, unconsciousness",
+          "related_codes": {
+            "category": "R50-R69",
+            "category_description": "General symptoms and signs (R50-R69)",
+            "count": 18
+          }
+        }
+      ]
+    },
+    {
+      "code_system": "icd-10-cm",
+      "count": 2,
+      "next_steps": [
+        {
+          "reason": "Browse related codes and alternatives in the same category",
+          "tool": "explore"
+        },
+        {
+          "reason": "Read coding conventions relevant to these codes",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "To assign the codes for a clinical note, use predict (optionally with include/exclude filters)",
+          "tool": "predict"
+        }
+      ],
+      "query": "long term current use of anticoagulants",
+      "results": [
+        {
+          "code": "Z79.01",
+          "description": "Long term (current) use of anticoagulants",
+          "match_path": "Long-term drug therapy, anticoagulants",
+          "related_codes": {
+            "category": "Z79.0",
+            "category_description": "Long term (current) use of anticoagulants and antithrombotics/antiplatelets",
+            "count": 2
+          }
+        },
+        {
+          "code": "Z79.02",
+          "description": "Long term (current) use of antithrombotics/antiplatelets",
+          "match_path": "Long-term drug therapy, antithrombotics",
+          "related_codes": {
+            "category": "Z79.0",
+            "category_description": "Long term (current) use of anticoagulants and antithrombotics/antiplatelets",
+            "count": 2
+          }
+        }
+      ]
+    },
+    {
+      "codes": [
+        "FOR",
+        "ICD"
+      ],
+      "content": "GENERAL RULES FOR OTHER (ADDITIONAL) DIAGNOSES \n \nFor reporting purposes, the definition for “other diagnoses” is interpreted as additional clinically \nsignificant conditions that affect patient care in terms of requiring: \n \nclinical evaluation; or \ntherapeutic treatment; or \ndiagnostic procedures; or \nextended length of hospital stay; or \nincreased nursing care and/or monitoring. \n \nThe UHDDS item #11-b defines Other Diagnoses as “all conditions that coexist at the time of admission, \nthat develop subsequently, or that affect the treatment received and/or the length of stay. Diagnoses that \nrelate to an earlier episode which have no bearing on the current hospital stay are to be excluded.” UHDDS \ndefinitions apply to inpatients in acute care, short-term, long term care and psychiatric hospital setting. The \nUHDDS definitions are used by acute care short-term hospitals to report inpatient data elements in a \nstandardized manner. These data elements and their definitions can be found in the July 31, 1985, Federal \nRegister (Vol. 50, No, 147), pp. 31038-40. \n \nSince that time, the application of the UHDDS definitions has been expanded to include all non-outpatient \nsettings (acute care, short term, long term care and psychiatric hospitals; home health agencies; rehab \nfacilities; nursing homes, etc.). The UHDDS definitions also apply to hospice services (all levels of care). \n \nThe following guidelines are to be applied in designating “other diagnoses” when neither the Alphabetic \nIndex nor the Tabular List in ICD-10-CM provide direction. The listing of the diagnoses in the patient \nrecord is the responsibility of the provider.",
+      "id": "icd-10-cm_section_III",
+      "kind": "rule",
+      "next_steps": [
+        {
+          "reason": "Check whether a specific code is assignable",
+          "tool": "verify"
+        },
+        {
+          "reason": "Browse the codes a guideline refers to",
+          "tool": "explore"
+        },
+        {
+          "reason": "To assign the codes for a clinical note, use predict (optionally with include/exclude filters)",
+          "tool": "predict"
+        }
+      ],
+      "number": "III",
+      "path": [],
+      "scope": "universal",
+      "sections": [
+        {
+          "codes": [
+            "Z80",
+            "Z87"
+          ],
+          "content": "If the provider has included a diagnosis in the final diagnostic statement, such as the discharge \nsummary or the face sheet, it should ordinarily be coded. Some providers include in the \ndiagnostic statement resolved conditions or diagnoses and status-post procedures from previous \nadmissions that have no bearing on the current stay. Such conditions are not to be reported and \nare coded only if required by hospital policy. \n \nHowever, history codes (categories Z80-Z87) may be used as secondary codes if the historical \ncondition or family history has an impact on current care or influences treatment.",
+          "id": "icd-10-cm_section_III_A",
+          "kind": "rule",
+          "number": "IIIA",
+          "path": [],
+          "scope": "universal",
+          "sections": [],
+          "title": "Previous conditions"
+        },
+        {
+          "codes": [],
+          "content": "Abnormal findings (laboratory, x-ray, pathologic, and other diagnostic results) are not coded \nand reported unless the provider indicates their clinical significance. If the findings are outside \nthe normal range and the provider has ordered other tests to evaluate the condition or prescribed \ntreatment, it is appropriate to ask the provider whether the abnormal finding should be added. \n \nPlease note: This differs from the coding practices in the outpatient setting for coding \nencounters for diagnostic tests that have been interpreted by a provider.",
+          "id": "icd-10-cm_section_III_B",
+          "kind": "rule",
+          "number": "IIIB",
+          "path": [],
+          "scope": "universal",
+          "sections": [],
+          "title": "Abnormal findings"
+        },
+        {
+          "codes": [],
+          "content": "If the diagnosis documented at the time of discharge is qualified as “probable,” “suspected,” \n“likely,” “questionable,” “possible,” or “still to be ruled out,” “compatible with,” “consistent \nwith,” or other similar terms indicating uncertainty, code the condition as if it existed or was \nestablished. The bases for these guidelines are the diagnostic workup, arrangements for further \nworkup or observation, and initial therapeutic approach that correspond most closely with the \nestablished diagnosis. \n \nNote: This guideline is applicable only to inpatient admissions to short-term, acute, long-term \ncare and psychiatric hospitals.",
+          "id": "icd-10-cm_section_III_C",
+          "kind": "rule",
+          "number": "IIIC",
+          "path": [],
+          "scope": "universal",
+          "sections": [],
+          "title": "Uncertain Diagnosis"
+        }
+      ],
+      "title": "Reporting Additional Diagnoses"
+    }
+  ],
+  "status_events": [
+    {
+      "state": "working"
+    },
+    {
+      "state": "working"
+    },
+    {
+      "message": "Calling expert: coding-expert",
+      "state": "working"
+    }
+  ],
+  "finish_metadata": {
+    "contextId": "019f5bcb-bfb4-77ac-80f2-5cf2bcb67895",
+    "taskId": "019f5bcb-bfb4-7732-9f34-7a6fec588525",
+    "credits": 0.11590399999999998,
+    "state": "completed"
+  },
+  "parsed": {
+    "encounter_summary": "- Chart excerpt documents atrial fibrillation.\n- Stroke-risk components explicitly listed: hypertension, diabetes, age 75, female sex, and prior TIA.\n- The excerpt states the CHA2DS2-VASc score was not calculated in the chart.\n- Patient is on warfarin, and INR is documented as 1.8, described as subtherapeutic.",
+    "gaps": [
+      {
+        "idx": 1,
+        "text": "Gap: Atrial fibrillation lacks type/specification.\n- Why it matters: ICD-10-CM specificity for atrial fibrillation depends on whether it is paroxysmal, persistent, longstanding persistent, chronic/permanent, etc. Without this, documentation supports only unspecified atrial fibrillation.\n- Evidence quote: \"Patient with atrial fibrillation\"\n- Minimal clarification needed: AF type/temporal pattern."
+      },
+      {
+        "idx": 2,
+        "text": "Gap: Prior neurologic event is not fully characterized beyond \"prior TIA.\"\n- Why it matters: More specific characterization may affect coding precision if the provider can identify a more specific transient cerebral ischemic syndrome rather than unspecified TIA.\n- Evidence quote: \"prior TIA\"\n- Minimal clarification needed: whether a more specific TIA subtype/syndrome is known and clinically relevant to current care.\n- Limitation: If no greater specificity is documented or known, no further query"
+      },
+      {
+        "idx": 3,
+        "text": "Gap: Anticoagulation status is present, but the long-term/current use indication may not be explicitly documented as a reportable status condition.\n- Why it matters: Long-term anticoagulant use may support additional coding when clinically relevant to the encounter.\n- Evidence quote: \"On warfarin with INR 1.8 (subtherapeutic).\"\n- Minimal clarification needed: confirm ongoing long-term/current anticoagulant therapy if this status is intended to be captured."
+      },
+      {
+        "idx": 4,
+        "text": "Gap: Subtherapeutic INR is documented as an abnormal finding, but its clinical significance is not stated.\n- Why it matters: Per ICD-10-CM guideline III.B, abnormal findings are not coded unless the provider indicates their clinical significance. CDI can clarify significance only if it affected evaluation/management.\n- Evidence quote: \"INR 1.8 (subtherapeutic)\"\n- Minimal clarification needed: whether the subtherapeutic INR had clinical significance for this encounter and, if so, how it should be"
+      }
+    ],
+    "gap_count": 4,
+    "queries": [
+      {
+        "idx": 1,
+        "text": "Atrial fibrillation type"
+      },
+      {
+        "idx": 2,
+        "text": "Clinical significance of subtherapeutic INR"
+      },
+      {
+        "idx": 3,
+        "text": "Long-term anticoagulant use status"
+      }
+    ],
+    "query_count": 3,
+    "specialists_contacted": [
+      "Medical Coding Expert",
+      "Coding Expert"
+    ],
+    "specialist_trace_text": "- Medical Coding Expert: Consulted for coding specificity, compliant query opportunities, and code-related risk areas. Accepted: need to clarify AF type; potential relevance of TIA specificity; long-term anticoagulant use status; coding guideline that abnormal findings are not coded without provider-documented significance. Rejected/limited: no diagnosis or complication was added for the subtherapeutic INR because the excerpt does not support that inference.\n- AMBOSS Expert: Not consulted. Reason: no clinical diagnostic criteria clarification was required to produce a conservative CDI review from this excerpt.\n- CDI Web Search Expert: Not consulted. Reason: no current external compliance guidance was required beyond the coding-guideline content already retrieved.\n\nConservative note:\n- Based on the excerpt alone, the strongest CDI opportunity is clarification of the atrial fibrillation type. Queries regarding subtherapeutic INR or long-term anticoagulant use should be used only if those issues affected the encounter and need provider confirmation.",
+    "has_specialist_trace": true
+  },
+  "error": "",
+  "text": "Encounter Summary:\n- Chart excerpt documents atrial fibrillation.\n- Stroke-risk components explicitly listed: hypertension, diabetes, age 75, female sex, and prior TIA.\n- The excerpt states the CHA2DS2-VASc score was not calculated in the chart.\n- Patient is on warfarin, and INR is documented as 1.8, described as subtherapeutic.\n\nDocumentation Gaps:\n1. Gap: Atrial fibrillation lacks type/specification.\n- Why it matters: ICD-10-CM specificity for atrial fibrillation depends on whether it is paroxysmal, persistent, longstanding persistent, chronic/permanent, etc. Without this, documentation supports only unspecified atrial fibrillation.\n- Evidence quote: \"Patient with atrial fibrillation\"\n- Minimal clarification needed: AF type/temporal pattern.\n\n2. Gap: Prior neurologic event is not fully characterized beyond \"prior TIA.\"\n- Why it matters: More specific characterization may affect coding precision if the provider can identify a more specific transient cerebral ischemic syndrome rather than unspecified TIA.\n- Evidence quote: \"prior TIA\"\n- Minimal clarification needed: whether a more specific TIA subtype/syndrome is known and clinically relevant to current care.\n- Limitation: If no greater specificity is documented or known, no further query may be appropriate.\n\n3. Gap: Anticoagulation status is present, but the long-term/current use indication may not be explicitly documented as a reportable status condition.\n- Why it matters: Long-term anticoagulant use may support additional coding when clinically relevant to the encounter.\n- Evidence quote: \"On warfarin with INR 1.8 (subtherapeutic).\"\n- Minimal clarification needed: confirm ongoing long-term/current anticoagulant therapy if this status is intended to be captured.\n\n4. Gap: Subtherapeutic INR is documented as an abnormal finding, but its clinical significance is not stated.\n- Why it matters: Per ICD-10-CM guideline III.B, abnormal findings are not coded unless the provider indicates their clinical significance. CDI can clarify significance only if it affected evaluation/management.\n- Evidence quote: \"INR 1.8 (subtherapeutic)\"\n- Minimal clarification needed: whether the subtherapeutic INR had clinical significance for this encounter and, if so, how it should be documented.\n- Limitation: The excerpt alone does not support querying a complication, adverse effect, bleeding, thrombosis, or treatment failure.\n\nProposed Provider Queries:\n1. Topic: Atrial fibrillation type\n- Reason query is needed: AF is documented without type, limiting coding specificity.\n- Evidence quote: \"Patient with atrial fibrillation\"\n- Non-leading query text: \"Atrial fibrillation is documented in the record. For documentation specificity, can you clarify the type/pattern of the patient’s atrial fibrillation for this encounter?\"\n- Suggested response options:\n  - Paroxysmal atrial fibrillation\n  - Persistent atrial fibrillation\n  - Longstanding persistent atrial fibrillation\n  - Chronic/permanent atrial fibrillation\n  - Other type (please specify)\n  - Clinically undetermined\n\n2. Topic: Clinical significance of subtherapeutic INR\n- Reason query is needed: INR is documented as \"subtherapeutic,\" but abnormal findings are not coded unless the provider indicates clinical significance.\n- Evidence quote: \"On warfarin with INR 1.8 (subtherapeutic).\"\n- Non-leading query text: \"The record notes warfarin therapy with INR 1.8 described as subtherapeutic. If clinically significant for this encounter, please clarify the significance of this finding and whether it should be documented as affecting patient care/monitoring.\"\n- Suggested response options:\n  - Clinically significant abnormal anticoagulation monitoring finding affecting this encounter\n  - Not clinically significant for this encounter\n  - Other (please specify)\n  - Clinically undetermined\n\n3. Topic: Long-term anticoagulant use status\n- Reason query is needed: Warfarin use is documented, but if ongoing long-term/current use is intended to be captured, explicit status documentation may improve coding completeness.\n- Evidence quote: \"On warfarin\"\n- Non-leading query text: \"The record documents warfarin therapy. For documentation completeness, can you clarify whether the patient is on long-term/current anticoagulant therapy at this encounter?\"\n- Suggested response options:\n  - Long-term/current anticoagulant use\n  - Temporary/short-term anticoagulant use\n  - Other (please specify)\n  - Clinically undetermined\n\nCoding Specificity Checklist:\n- Atrial fibrillation: type/pattern (paroxysmal, persistent, longstanding persistent, chronic/permanent, other, unspecified).\n- TIA/history of neurologic event: whether a more specific transient cerebral ischemic syndrome is known, if clinically relevant and documented.\n- Anticoagulant therapy: confirm long-term/current use status when clinically relevant.\n- Abnormal INR: document clinical significance only if it affected evaluation, monitoring, or management.\n\nRisk Flags:\n- Unsupported calculation risk: The excerpt lists CHA2DS2-VASc components and states the score was not calculated in the chart. A numeric score should not be inserted into the record unless the provider documents it or the organization permits derived score capture outside provider documentation.\n- Abnormal-lab coding risk: \"INR 1.8 (subtherapeutic)\" alone should not be coded as a separate condition without provider-documented clinical significance.\n- No support for complication/adverse event query: The excerpt does not support querying warfarin complication, hemorrhage, hypercoagulable state, embolism, or anticoagulation failure.\n- History/status ambiguity: \"prior TIA\" may represent historical information; whether it is reportable depends on current relevance to care and setting.\n\nSpecialist Trace:\n- Medical Coding Expert: Consulted for coding specificity, compliant query opportunities, and code-related risk areas. Accepted: need to clarify AF type; potential relevance of TIA specificity; long-term anticoagulant use status; coding guideline that abnormal findings are not coded without provider-documented significance. Rejected/limited: no diagnosis or complication was added for the subtherapeutic INR because the excerpt does not support that inference.\n- AMBOSS Expert: Not consulted. Reason: no clinical diagnostic criteria clarification was required to produce a conservative CDI review from this excerpt.\n- CDI Web Search Expert: Not consulted. Reason: no current external compliance guidance was required beyond the coding-guideline content already retrieved.\n\nConservative note:\n- Based on the excerpt alone, the strongest CDI opportunity is clarification of the atrial fibrillation type. Queries regarding subtherapeutic INR or long-term anticoagulant use should be used only if those issues affected the encounter and need provider confirmation."
+}

@@ -151,9 +151,45 @@ class NormalizedPack:
     human_review_required_when: list[str] = field(default_factory=list)
     a2a: dict[str, Any] = field(default_factory=dict)
 
+    # ── Phase 4-A (2026-07-07): Agent Backend Provider ──
+    # ``backend_provider`` selects the agent's backend form
+    # declaratively (e.g. "icoder.rule-engine.v1"). When absent, the
+    # runtime falls back to ``DEFAULT_FALLBACK_PROVIDER_ID`` (legacy
+    # v1.0/v1.1/v1.2 packs). ``backend_config`` carries provider-specific
+    # options (LLM model, tool scope, placeholder_values, etc.).
+    backend_provider: str = ""
+    backend_config: dict[str, Any] = field(default_factory=dict)
+
+    # ── Phase 4-F (2026-07-09): Prebuilt Agent System spec fields ──
+    # ``default_runtime_mode`` names the runtime this agent dispatches to
+    # by default (e.g. "corti_like_fast" for medical coding fast path,
+    # "a2a_pure_llm" for single-LLM agents, "rule_engine_with_llm" for
+    # deterministic rule + LLM explainer). Renamed from ``runtime_mode``
+    # to avoid collision with the medical-coding-specific ``RuntimeMode``
+    # enum in ``app/coding_runtime/base.py``.
+    # ``available_runtime_modes`` lists alternate modes the user can
+    # switch to (e.g. ["corti_like_fast", "medcoder_deep"] for Medical
+    # Coding Agent). ``example_inputs`` carries demo cases for the
+    # frontend "Try" button. ``example_outputs`` is optional (can be
+    # derived from ``output_contract``). ``built_by`` is "icoder" for
+    # first-party prebuilt agents, "community" for user-contributed.
+    default_runtime_mode: str = ""
+    available_runtime_modes: list[str] = field(default_factory=list)
+    example_inputs: list[dict[str, Any]] = field(default_factory=list)
+    example_outputs: list[dict[str, Any]] = field(default_factory=list)
+    built_by: str = ""
+
     # ── Classification (set by loader, not from raw) ──
     status: PackStatus = PackStatus.INVALID
     production_ready: bool = False
+    # Development-environment release gate.  This is deliberately separate
+    # from ``production_ready``: it answers whether the pack has all
+    # machine-verifiable wiring and safety contracts needed to enter an
+    # external clinical/security/integration validation cycle.  It must never
+    # be presented as regulatory or hospital production approval.
+    launch_candidate_ready: bool = False
+    launch_candidate_blockers: list[str] = field(default_factory=list)
+    external_release_gates: list[str] = field(default_factory=list)
     experimental: bool = False
     enabled_by_default: bool = True
     validation_errors: list[str] = field(default_factory=list)
@@ -213,6 +249,9 @@ class NormalizedPack:
             "tool_count": self.tool_count,
             "status": self.status.value,
             "production_ready": self.production_ready,
+            "launch_candidate_ready": self.launch_candidate_ready,
+            "launch_candidate_blockers": list(self.launch_candidate_blockers),
+            "external_release_gates": list(self.external_release_gates),
             "experimental": self.experimental,
             "enabled_by_default": self.enabled_by_default,
             "tier": self.tier,
@@ -220,6 +259,13 @@ class NormalizedPack:
             "phi_redaction": self.phi_redaction,
             "context_required": self.context_required,
             "recorder_required": self.recorder_required,
+            "backend_provider": self.backend_provider,
+            "has_backend_config": bool(self.backend_config),
+            "default_runtime_mode": self.default_runtime_mode,
+            "available_runtime_modes": list(self.available_runtime_modes),
+            "example_inputs": list(self.example_inputs),
+            "example_outputs": list(self.example_outputs),
+            "built_by": self.built_by,
             "validation_errors": list(self.validation_errors),
             "validation_warnings": list(self.validation_warnings),
         }

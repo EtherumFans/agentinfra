@@ -3,9 +3,9 @@
   "agent_type": "internal_engine",
   "agent_ref": "icoder/medcoder-coding-review-agent@1.0.0",
   "manifest": {
-    "name": "Medical Coding Agent — Internal Engine (MedCodER 5-stage)",
+    "name": "MedCodER 编码审核智能体",
     "version": "1.0.0",
-    "description": "iCoDer Medical Coding Agent 的内部实现引擎。基于 MedCodER 5 阶段管线 (NAACL 2025 Industry Track): Extraction → Retrieval → Merge → Re-Rank → Calibration。此 Agent 不是面向最终用户的产品 Agent, 仅供 icoder/medical-coding-agent@2.0.0 作为 internal_engine 调用。最终用户应使用 Medical Coding Agent (Corti-style 7-step workflow, 8-field output)。AI-assisted coding, 所有低置信度 / 证据不足 / 规则冲突的编码均需人工复核。",
+    "description": "iCoDer Medical Coding Agent 的内部实现引擎。基于 MedCodER 5 阶段管线 (NAACL 2025 Industry Track): Extraction → Retrieval → Merge → Re-Rank → Calibration。此 Agent 不是面向最终用户的产品 Agent, 仅供 icoder/medical-coding-agent@2.0.0 作为 internal_engine 调用。最终用户应使用 Medical Coding Agent (7-step workflow, 8-field output)。AI-assisted coding, 所有低置信度 / 证据不足 / 规则冲突的编码均需人工复核。",
     "category": "medical-coding",
     "category_display": "Internal Engine",
     "icon": "Cog",
@@ -30,7 +30,7 @@
       "description": "Stage 1: 从病历抽取 diagnosis_facts / procedure_facts / negated_findings / historical_conditions, 每个 fact 含 evidence_text + char_start/char_end。LLM-backed (DeepSeek V4) with deterministic offline fallback.",
       "system_prompt": "你是一个病历证据提取专家。从病历中提取诊断事实、手术事实、否定发现、既往病史。输出 JSON，必须包含 diagnosis_facts / procedure_facts / negated_findings / historical_conditions 四个数组，每个 fact 必须附 evidence_text 和 char_start/char_end。",
       "tools": [],
-      "model": "deepseek-v4",
+      "model": "deepseek-chat",
       "non_goals": [
         "不直接做最终诊断决策",
         "不写回 EMR/HIS/医保",
@@ -86,7 +86,7 @@
         "get_differentiation_hint",
         "rerank_codes"
       ],
-      "model": "deepseek-v4",
+      "model": "deepseek-chat",
       "non_goals": [
         "不直接做最终诊断决策",
         "不写回 EMR/HIS",
@@ -171,8 +171,8 @@
     }
   ],
   "model": {
-    "primary": "deepseek-v4",
-    "fallback": "deepseek-v4-flash",
+    "primary": "deepseek-chat",
+    "fallback": "deepseek-chat",
     "embedding": "BAAI/bge-m3",
     "embedding_dim": 1024,
     "temperature": 0.0,
@@ -184,7 +184,7 @@
       {
         "name": "extraction",
         "engine": "llm",
-        "model": "deepseek-v4",
+        "model": "deepseek-chat",
         "input_count_target": "n_diagnoses_in_emr",
         "output_count_target": "n_diagnoses_in_emr"
       },
@@ -204,7 +204,7 @@
       {
         "name": "rerank",
         "engine": "llm",
-        "model": "deepseek-v4",
+        "model": "deepseek-chat",
         "top_k": 5,
         "few_shot_source": "cot_generation_progress_v2.json (Phase 2 wire)"
       },
@@ -276,6 +276,16 @@
     "primary_diagnosis.code missing",
     "extracted_diagnoses empty"
   ],
+  "example_inputs": [
+    {
+      "title": "中国住院病案首页诊断编码审核",
+      "input_text": "患者因胸痛入院，冠脉造影提示前降支急性闭塞，行经皮冠状动脉支架植入。出院诊断记录急性前壁心肌梗死、高血压3级。请提取证据并给出 ICD-10-CN 与 ICD-9-CM-3 编码审核建议。",
+      "extra": {
+        "code_system": "ICD-10-CN",
+        "procedure_code_system": "ICD-9-CM-3"
+      }
+    }
+  ],
   "requirements": {
     "min_runtime_version": "2.0.0",
     "icoder_runtime_modules": [
@@ -288,7 +298,7 @@
   "llm_capabilities": {
     "required_models": [
       {
-        "name": "deepseek-v4",
+        "name": "deepseek-chat",
         "purpose": "stage1_extraction + stage4_rerank"
       },
       {
@@ -308,6 +318,6 @@
   },
   "code": {},
   "integrity": {
-    "sha256": "PLACEHOLDER_RECOMPUTED_AT_PUBLISH"
+    "sha256": "5758aaf71f79bb0c7234d77a62a2d726ad6d5de2f08df6161b7fb54595c521b9"
   }
 }

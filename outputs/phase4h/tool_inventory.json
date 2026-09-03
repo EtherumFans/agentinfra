@@ -1,0 +1,105 @@
+{
+  "audit": {
+    "captured_at": "2026-07-10T07:25:00Z",
+    "source_url_observed": "https://api.eu.corti.app/agents/registry/experts",
+    "source_ui": "Corti Console /ai-studio/agents/{agent_id} → Settings tab → Add expert (Custom) → MCP Servers (Optional) sub-form",
+    "method": "Browser probe via Playwright (combobox <select> option enumeration) + runtime API response inspection",
+    "total_first_class_tools_visible": 0,
+    "total_mcp_server_bindings_in_registry": 2,
+    "transport_types_supported": 3,
+    "authorization_types_supported": 4
+  },
+  "transport_types": [
+    {"value": "stdio", "note": "Standard MCP stdio transport (subprocess IPC)"},
+    {"value": "streamable_http", "note": "Default. HTTP streaming transport per MCP spec"},
+    {"value": "sse", "note": "Server-Sent Events transport"}
+  ],
+  "authorization_types": [
+    {"value": "None", "note": "No auth header. Default for public/open MCP servers"},
+    {"value": "Bearer", "note": "Static bearer token (resolved via CredentialVault in iCoDer parity)"},
+    {"value": "Inherit", "note": "Inherit token from RunContext.auth_context (e.g., from upstream API Client)"},
+    {"value": "OAuth 2.0", "note": "OAuth 2.0 token exchange with in-memory cache + near-expiry refresh"}
+  ],
+  "mcp_servers_in_expert_registry": [
+    {
+      "expert_name": "posos-expert",
+      "expert_displayName": "POSOS",
+      "mcpServer_name": "posos",
+      "mcpServer_authorizationType": "oauth2.0",
+      "data_source": "POSOS medication database + clinical decision platform",
+      "description": "Primary source of truth for medication intelligence and prescription decision support, backed by POSOS. Retrieves structured medication and CDSS content including medication database entities, interaction/contraindication signals, patient-specific prescribing considerations, and interoperability-friendly structured outputs (e.g., SNOMED/FHIR-aligned concepts where available), with clear traceability to POSOS entities suitable for clinician-facing and EHR-embedded decision support use.",
+      "public_doc_url": "https://www.corti.ai/experts/posos-expert"
+    },
+    {
+      "expert_name": "drugbank-expert",
+      "expert_displayName": "DrugBank",
+      "mcpServer_name": "drugbank",
+      "mcpServer_authorizationType": "bearer",
+      "data_source": "DrugBank API",
+      "description": "Retrieves structured drug information from the DrugBank API. Suited for product concepts, product details, drug profiles, and interaction lookups. Returns source-grounded results without speculation.",
+      "public_doc_url": "https://www.corti.ai/experts/drugbank-expert"
+    }
+  ],
+  "coding_expert_tool_surface": {
+    "source": "configSchema on coding-expert-icd-10-cm/pcs/int/uk + coding-expert (General)",
+    "operations": [
+      {"operation": "verify", "parameter": "code_system", "description": "Verify a proposed code against catalog + assignability + hierarchy"},
+      {"operation": "guidelines", "parameter": "code_system", "description": "Retrieve chapter + general coding conventions for a code"},
+      {"operation": "predict", "parameter": "code_system", "description": "Predict the appropriate code for clinical input (the actual coding-prediction call)"},
+      {"operation": "search", "parameter": "code_system", "description": "Search the code catalog (Corti-style alias to search_icd)"},
+      {"operation": "explore", "parameter": "code_system", "description": "Traverse parent / siblings / children of a code"}
+    ],
+    "code_systems_supported": ["icd-10-cm", "icd-10-pcs", "icd-10-who", "icd-10-uk", "icd-10-int (predict only on int variant)"]
+  },
+  "custom_expert_mcp_server_form_schema": {
+    "source": "Add custom expert drawer → MCP Servers (Optional) → Add MCP Server sub-form",
+    "fields": [
+      {"name": "Server Name", "type": "string", "placeholder": "e.g., my-mcp-server", "required": true},
+      {"name": "URL", "type": "string", "placeholder": "https://example.com/mcp", "required": true},
+      {"name": "Transport Type", "type": "combobox", "options": ["stdio", "streamable_http", "sse"], "default": "streamable_http", "required": true},
+      {"name": "Authorization Type", "type": "combobox", "options": ["None", "Bearer", "Inherit", "OAuth 2.0"], "default": "None", "required": true},
+      {"name": "Description (Optional)", "type": "textarea", "required": false}
+    ],
+    "supports_multiple_per_expert": true,
+    "add_button_label": "Add MCP Server"
+  },
+  "tool_lifecycle_visibility": {
+    "tool_introspection_ui": "NONE — Corti Console does not expose a per-MCP-server tool list. The user cannot see which JSON-RPC methods (tools) an MCP server exposes without invoking it at runtime.",
+    "tool_call_visibility_in_chat_ui": "NONE — agent detail page chat shows only user message → assistant response; no intermediate tool-call logs visible (confirmed by §7.3.3 test run)",
+    "tool_call_trace_endpoint": "NOT OBSERVED in the agent detail page UI. The 200-OK runtime GET to api.eu.corti.app/agents/registry/experts is the registry fetch only; no per-run trace endpoint surfaced in the agent detail page UI."
+  },
+  "tool_invocation_pattern": {
+    "model": "LLM-driven tool-calling (ReAct-style)",
+    "orchestrator": "Corti Symphony LLM (per /corti-models page)",
+    "flow": [
+      "1. User sends A2A v0.3 Message{role:user, parts:[{text, kind:text}], messageId, kind:message}",
+      "2. Runtime constructs orchestrator LLM context: Agent.systemPrompt + each attached Expert.description as tool definition + user Message",
+      "3. Orchestrator LLM either: (a) directly produces output text (no tool call), or (b) emits tool_call(s) to invoke one or more Experts",
+      "4. For invoked Experts with bound MCP servers: runtime dispatches JSON-RPC tool call to the MCP server (with resolved auth header per Authorization Type)",
+      "5. MCP server returns tool result; appended to shared session context",
+      "6. Orchestrator LLM re-invokes with updated context (ReAct loop, possibly multiple rounds)",
+      "7. Final response returned as A2A v0.3 Message{role:assistant, parts:[...]}"
+    ]
+  },
+  "tool_state_distinguisher": {
+    "TOOL_CONFIGURED": "User has added the MCP server to an Expert via the Add custom expert drawer (visible in agent JSON Config as mcpServers[] entry)",
+    "TOOL_AVAILABLE": "Runtime resolves the MCP server URL + auth_type, confirms reachability (this is NOT visible in UI; happens at runtime)",
+    "TOOL_INVOKED": "Orchestrator LLM emitted a tool_call to this Expert's bound MCP server during a run (NOT visible in chat UI per §7.3.3)",
+    "TOOL_RESULT_CONSUMED": "Tool result was used by the orchestrator LLM in synthesizing the final response (NOT visible in chat UI)"
+  },
+  "icoder_parity_check": {
+    "icoder_mcp_servers_table": "alembic/versions/afeb04d02665_001_initial_all_tables.py:343 — table `mcp_servers` with columns: expert_id, name, url, transport_type, description, auth_type, auth_header, is_active, id, created_at, updated_at",
+    "icoder_auth_types_implemented": ["none", "bearer", "inherit", "oauth2.0"],
+    "icoder_auth_resolver_file": "backend/app/icoder/mcp/auth_resolver.py",
+    "icoder_transport_types_implemented": "Not directly observed in source grep — appears to assume HTTP-based transport (matches Corti's streamable_http default). iCoDer is a server-side MCP server implementation, not a client connecting to arbitrary external MCP servers, so stdio/sse are less relevant.",
+    "icoder_mcp_tools_registry": "backend/app/icoder/mcp/tool_registry.py:400-438 — 4 MCP tools: verify_code, get_guidelines, explore_code, search_codes",
+    "icoder_mcp_tool_parity_vs_corti_coding_expert": {
+      "corti_verify": "icoder_verify_code (exact match)",
+      "corti_guidelines": "icoder_get_guidelines (exact match)",
+      "corti_explore": "icoder_explore_code (exact match)",
+      "corti_search": "icoder_search_codes (exact match)",
+      "corti_predict": "icoder: served by parent agent run endpoint, NOT as MCP tool (iCoDer's coding_predict endpoint). Semantic difference: Corti exposes predict as an Expert operation; iCoDer serves it as the main agent run."
+    },
+    "verdict": "iCoDer Phase 3-C1 (4 auth types + 7 error codes -32006..-32012) + Phase 4-A (ToolMCPCompatLayer) + Phase 4-C (LLMWithToolsProvider with 4 MCP tools) = FULL PARITY with Corti Tool mechanism"
+  }
+}

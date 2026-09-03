@@ -1,0 +1,281 @@
+{
+  "case_id": "G8-CDI-LAB-039",
+  "group": "lab_positive_uncertain",
+  "variant": "",
+  "session_id": "3afb3e8f-9cf4-499c-b5a5-f2936f7e9468",
+  "attempt": 1,
+  "outcome": "SUCCESS",
+  "elapsed_s": 23.97,
+  "expected": {
+    "query_count_min": 0,
+    "query_count_max": 1,
+    "expected_no_query": false,
+    "expected_query_topics": [],
+    "notes": "Borderline GDM with single abnormal OGTT value — already managed; agent should not propose insulin query"
+  },
+  "text_length": 4561,
+  "first_token_at_s": 4.33,
+  "last_token_at_s": 23.97,
+  "event_count": 12,
+  "raw_events_preview": [
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"code_system\":\"icd-10-cm\",\"count\":8,\"next_steps\":[{\"reason\":\"Browse related codes and alternatives in the same category\",\"tool\":\"explore\"},{\"reason\":\"Read coding conventions relevant to these",
+    "message|{\"data\":{\"assignable\":false,\"code\":\"O24.41\",\"code_system\":\"icd-10-cm\",\"description\":\"Gestational diabetes mellitus in pregnancy\",\"next_steps\":[{\"reason\":\"Read coding conventions for this code area\",\"t",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"O24.410\",\"description\":\"Gestational diabetes mellitus in pregnancy, diet controlled\",\"next_steps\":[{\"reason\":\"Compare with related codes if this isn't the best fit\",",
+    "message|{\"id\":\"dc02cae7-5958-4c6c-9412-2768a3b7d307\",\"type\":\"text-start\"}",
+    "message|{\"delta\":\"Encounter Summary:\\n- Prenatal visit for a 35-year-old female at 28 weeks gestation.\\n- Documented diagnosis: “gestational diabetes mellitus (single abnormal value).”\\n- OGTT values document",
+    "message|{\"id\":\"dc02cae7-5958-4c6c-9412-2768a3b7d307\",\"type\":\"text-end\"}",
+    "message|{\"messageMetadata\":{\"contextId\":\"019f55e7-6498-7214-becf-37337f6d06ec\",\"taskId\":\"019f55e7-6498-7163-97d4-1be6637346b3\",\"credits\":0.072412,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+    "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.072412},\"type\":\"finish\"}",
+    "message|[DONE]"
+  ],
+  "expert_events": [
+    {
+      "code_system": "icd-10-cm",
+      "count": 8,
+      "next_steps": [
+        {
+          "reason": "Browse related codes and alternatives in the same category",
+          "tool": "explore"
+        },
+        {
+          "reason": "Read coding conventions relevant to these codes",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "To assign the codes for a clinical note, use predict (optionally with include/exclude filters)",
+          "tool": "predict"
+        }
+      ],
+      "query": "gestational diabetes mellitus diet controlled pregnancy",
+      "results": [
+        {
+          "code": "O24.410",
+          "description": "Gestational diabetes mellitus in pregnancy, diet controlled",
+          "match_path": "Diabetes, diabetic, gestational, diet controlled",
+          "related_codes": {
+            "category": "O24.41",
+            "category_description": "Gestational diabetes mellitus in pregnancy",
+            "count": 4
+          }
+        },
+        {
+          "code": "O24.420",
+          "description": "Gestational diabetes mellitus in childbirth, diet controlled",
+          "match_path": "Diabetes, diabetic, gestational, in childbirth, diet controlled",
+          "related_codes": {
+            "category": "O24.42",
+            "category_description": "Gestational diabetes mellitus in childbirth",
+            "count": 4
+          }
+        },
+        {
+          "code": "O24.415",
+          "description": "Gestational diabetes mellitus in pregnancy, controlled by oral hypoglycemic drugs",
+          "match_path": "Gestational diabetes mellitus in pregnancy, controlled by oral antidiabetic drugs",
+          "related_codes": {
+            "category": "O24.41",
+            "category_description": "Gestational diabetes mellitus in pregnancy",
+            "count": 4
+          }
+        },
+        {
+          "code": "O24.430",
+          "description": "Gestational diabetes mellitus in the puerperium, diet controlled",
+          "match_path": "Diabetes, diabetic, gestational, puerperal, diet controlled",
+          "related_codes": {
+            "category": "O24.43",
+            "category_description": "Gestational diabetes mellitus in the puerperium",
+            "count": 4
+          }
+        },
+        {
+          "code": "O24.425",
+          "description": "Gestational diabetes mellitus in childbirth, controlled by oral hypoglycemic drugs",
+          "match_path": "Gestational diabetes mellitus in childbirth, controlled by oral antidiabetic drugs",
+          "related_codes": {
+            "category": "O24.42",
+            "category_description": "Gestational diabetes mellitus in childbirth",
+            "count": 4
+          }
+        },
+        {
+          "code": "O24.435",
+          "description": "Gestational diabetes mellitus in puerperium, controlled by oral hypoglycemic drugs",
+          "match_path": "Gestational diabetes mellitus in puerperium, controlled by oral antidiabetic drugs",
+          "related_codes": {
+            "category": "O24.43",
+            "category_description": "Gestational diabetes mellitus in the puerperium",
+            "count": 4
+          }
+        },
+        {
+          "code": "P70.0",
+          "description": "Syndrome of infant of mother with gestational diabetes",
+          "match_path": "Infant, of diabetic mother, gestational diabetes",
+          "related_codes": {
+            "category": "P70",
+            "category_description": "Transitory disorders of carbohydrate metabolism specific to newborn",
+            "count": 7
+          }
+        },
+        {
+          "code": "Z86.32",
+          "description": "Personal history of gestational diabetes",
+          "match_path": "History, personal, gestational diabetes",
+          "related_codes": {
+            "category": "Z86.3",
+            "category_description": "Personal history of endocrine, nutritional and metabolic diseases",
+            "count": 3
+          }
+        }
+      ]
+    },
+    {
+      "assignable": false,
+      "code": "O24.41",
+      "code_system": "icd-10-cm",
+      "description": "Gestational diabetes mellitus in pregnancy",
+      "next_steps": [
+        {
+          "reason": "Read coding conventions for this code area",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "Check whether a specific code is assignable",
+          "tool": "verify"
+        },
+        {
+          "reason": "Explore a related or more specific code",
+          "tool": "explore"
+        }
+      ],
+      "parent": {
+        "code": "O24.4",
+        "description": "Gestational diabetes mellitus"
+      },
+      "related_codes": [
+        {
+          "assignable": false,
+          "code": "O24.42",
+          "description": "Gestational diabetes mellitus in childbirth"
+        },
+        {
+          "assignable": false,
+          "code": "O24.43",
+          "description": "Gestational diabetes mellitus in the puerperium"
+        }
+      ],
+      "specific_codes": [
+        {
+          "assignable": true,
+          "code": "O24.410",
+          "description": "Gestational diabetes mellitus in pregnancy, diet controlled"
+        },
+        {
+          "assignable": true,
+          "code": "O24.414",
+          "description": "Gestational diabetes mellitus in pregnancy, insulin controlled"
+        },
+        {
+          "assignable": true,
+          "code": "O24.415",
+          "description": "Gestational diabetes mellitus in pregnancy, controlled by oral hypoglycemic drugs"
+        },
+        {
+          "assignable": true,
+          "code": "O24.419",
+          "description": "Gestational diabetes mellitus in pregnancy, unspecified control"
+        }
+      ],
+      "total_related": 2,
+      "total_specific": 4
+    },
+    {
+      "assignable": true,
+      "code": "O24.410",
+      "description": "Gestational diabetes mellitus in pregnancy, diet controlled",
+      "next_steps": [
+        {
+          "reason": "Compare with related codes if this isn't the best fit",
+          "tool": "explore"
+        },
+        {
+          "reason": "Check chapter-level coding conventions for this code area",
+          "tool": "guidelines"
+        }
+      ],
+      "parents": [
+        {
+          "code": "O24.41",
+          "description": "Gestational diabetes mellitus in pregnancy"
+        },
+        {
+          "code": "O24.4",
+          "description": "Gestational diabetes mellitus"
+        },
+        {
+          "code": "O24",
+          "description": "Diabetes mellitus in pregnancy, childbirth, and the puerperium"
+        },
+        {
+          "code": "O20-O29",
+          "description": "Other maternal disorders predominantly related to pregnancy (O20-O29)"
+        },
+        {
+          "code": "15",
+          "description": "Pregnancy, childbirth and the puerperium (O00-O9A)"
+        }
+      ]
+    }
+  ],
+  "status_events": [
+    {
+      "state": "working"
+    },
+    {
+      "state": "working"
+    },
+    {
+      "message": "Calling expert: coding-expert",
+      "state": "working"
+    }
+  ],
+  "finish_metadata": {
+    "contextId": "019f55e7-6498-7214-becf-37337f6d06ec",
+    "taskId": "019f55e7-6498-7163-97d4-1be6637346b3",
+    "credits": 0.072412,
+    "state": "completed"
+  },
+  "parsed": {
+    "encounter_summary": "- Prenatal visit for a 35-year-old female at 28 weeks gestation.\n- Documented diagnosis: “gestational diabetes mellitus (single abnormal value).”\n- OGTT values documented: “0h 4.5, 1h 9.2, 2h 7.8.”\n- Management documented as “Diet and exercise management” with “Recommendation: glucose monitoring.”",
+    "gaps": [
+      {
+        "idx": 1,
+        "text": "Control/status specificity for gestational diabetes should be documented clearly in a codable form.\n- Why it matters: ICD-10-CM requires specificity for gestational diabetes in pregnancy by control/treatment status.\n- Evidence quote: “Diagnosis: gestational diabetes mellitus (single abnormal value). Diet and exercise management. Recommendation: glucose monitoring.”\n- Minimal clarification needed: Confirm whether the gestational diabetes is diet controlled versus another control status, using exp"
+      },
+      {
+        "idx": 2,
+        "text": "The phrase “single abnormal value” may be locally meaningful but is not the coding specificity element used for ICD-10-CM assignment.\n- Why it matters: Coding is driven by the documented pregnancy timeframe and treatment/control status, not by the phrase “single abnormal value.”\n- Evidence quote: “gestational diabetes mellitus (single abnormal value).”\n- Minimal clarification needed: Retain or clarify the diagnostic basis if desired, but document the condition in codable terms with explicit cont"
+      }
+    ],
+    "gap_count": 2,
+    "queries": [
+      {
+        "idx": 1,
+        "text": "Gestational diabetes control status in pregnancy"
+      }
+    ],
+    "query_count": 1,
+    "specialists_contacted": [
+      "Medical Coding Expert",
+      "Coding Expert"
+    ],
+    "specialist_trace_text": "- Medical Coding Expert: Consulted for coding specificity, possible CDI gaps, and compliant query opportunities. Accepted: need to clarify gestational diabetes control status in pregnancy and relevant ICD-10-CM specificity options supported by the documented diet/exercise management and pregnancy context. Rejected/omitted: any unsupported diagnostic expansion beyond the excerpt.\n- AMBOSS Expert: Not consulted. Reason: no clinical criteria clarification was necessary to identify the main coding specificity gap from the excerpt alone.\n- CDI Web Search Expert: Not consulted. Reason: no current external guideline lookup was required to answer the coding-specific documentation question from the provided excerpt.\n\nCoding note:\n- Based on documented pregnancy context and diet/exercise management, the coding expert returned ICD-10-CM code option O24.410, “Gestational diabetes mellitus in pregnancy, diet controlled,” when that control status is explicitly documented.",
+    "has_specialist_trace": true
+  },
+  "error": "",
+  "text": "Encounter Summary:\n- Prenatal visit for a 35-year-old female at 28 weeks gestation.\n- Documented diagnosis: “gestational diabetes mellitus (single abnormal value).”\n- OGTT values documented: “0h 4.5, 1h 9.2, 2h 7.8.”\n- Management documented as “Diet and exercise management” with “Recommendation: glucose monitoring.”\n\nDocumentation Gaps:\n1. Control/status specificity for gestational diabetes should be documented clearly in a codable form.\n- Why it matters: ICD-10-CM requires specificity for gestational diabetes in pregnancy by control/treatment status.\n- Evidence quote: “Diagnosis: gestational diabetes mellitus (single abnormal value). Diet and exercise management. Recommendation: glucose monitoring.”\n- Minimal clarification needed: Confirm whether the gestational diabetes is diet controlled versus another control status, using explicit terminology in the assessment.\n\n2. The phrase “single abnormal value” may be locally meaningful but is not the coding specificity element used for ICD-10-CM assignment.\n- Why it matters: Coding is driven by the documented pregnancy timeframe and treatment/control status, not by the phrase “single abnormal value.”\n- Evidence quote: “gestational diabetes mellitus (single abnormal value).”\n- Minimal clarification needed: Retain or clarify the diagnostic basis if desired, but document the condition in codable terms with explicit control status.\n\nProposed Provider Queries:\n1. Topic: Gestational diabetes control status in pregnancy\n- Reason query is needed: The note documents gestational diabetes during pregnancy and management with diet/exercise, but coding specificity depends on explicit control/treatment status.\n- Evidence quote: “28 weeks”; “Diagnosis: gestational diabetes mellitus (single abnormal value). Diet and exercise management. Recommendation: glucose monitoring.”\n- Non-leading query text: \n  “For this 28-week prenatal visit, the note documents ‘gestational diabetes mellitus (single abnormal value)’ with ‘diet and exercise management’ and recommendation for glucose monitoring. For documentation specificity, please clarify the gestational diabetes status during this pregnancy.”\n- Suggested response options:\n  - Gestational diabetes mellitus in pregnancy, diet controlled\n  - Gestational diabetes mellitus in pregnancy, insulin controlled\n  - Gestational diabetes mellitus in pregnancy, controlled by oral hypoglycemic drug(s)\n  - Gestational diabetes mellitus in pregnancy, control status unspecified\n  - Other\n  - Clinically undetermined / unable to determine\n\nCoding Specificity Checklist:\n- Confirm the condition is gestational diabetes mellitus in pregnancy.\n- Document the control/treatment status explicitly:\n  - diet controlled\n  - insulin controlled\n  - controlled by oral hypoglycemic drugs\n  - unspecified control if not further defined\n- Keep the pregnancy timeframe/current encounter context clear (here, prenatal visit at 28 weeks).\n- If the provider intends “single abnormal value” to be clinically significant, document that as clinical context, but not in place of treatment/control specificity.\n\nRisk Flags:\n- Ambiguous term for coding specificity: “single abnormal value” is not itself the control-status element needed for code selection.\n- No contradiction identified within the excerpt.\n- No supported query identified regarding urinary issues; the note explicitly states “No urinary symptoms,” and there is no evidence of a urinary diagnosis.\n- Limited excerpt: no additional query should be raised beyond gestational diabetes specificity based on the provided text alone.\n\nSpecialist Trace:\n- Medical Coding Expert: Consulted for coding specificity, possible CDI gaps, and compliant query opportunities. Accepted: need to clarify gestational diabetes control status in pregnancy and relevant ICD-10-CM specificity options supported by the documented diet/exercise management and pregnancy context. Rejected/omitted: any unsupported diagnostic expansion beyond the excerpt.\n- AMBOSS Expert: Not consulted. Reason: no clinical criteria clarification was necessary to identify the main coding specificity gap from the excerpt alone.\n- CDI Web Search Expert: Not consulted. Reason: no current external guideline lookup was required to answer the coding-specific documentation question from the provided excerpt.\n\nCoding note:\n- Based on documented pregnancy context and diet/exercise management, the coding expert returned ICD-10-CM code option O24.410, “Gestational diabetes mellitus in pregnancy, diet controlled,” when that control status is explicitly documented."
+}

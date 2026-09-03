@@ -1,0 +1,48 @@
+{
+  "schema_version": "icoder.agent-hub-health-billing-phase/v1",
+  "generated_at": "2026-08-21",
+  "scope": "development-only health probe and billing/quota simulation",
+  "credential_policy": {
+    "real_llm_key_used": false,
+    "external_model_requests": false,
+    "patient_data_used": false
+  },
+  "health_probe": {
+    "endpoint": "POST /api/v1/model-catalog/health-probe",
+    "probe_mode": "configuration",
+    "network_call": false,
+    "billing_side_effect": false,
+    "tenant_visibility": true,
+    "audit_action": "model.health.probe",
+    "secret_or_endpoint_returned": false,
+    "tests": "backend/tests/test_api/test_model_catalog.py",
+    "result": "4 passed"
+  },
+  "billing_simulation": {
+    "balance_without_transactions": 0.0,
+    "ledger_scope": "organization plus user",
+    "development_mutations": [
+      "POST /api/billing/credits",
+      "POST /api/billing/simulation/debit"
+    ],
+    "low_balance_alert": true,
+    "overdraft_fail_closed": true,
+    "cloud_mutations_rejected": true,
+    "tests": "backend/tests/test_api/test_billing_simulation.py",
+    "result": "2 passed"
+  },
+  "regression_suite": {
+    "backend_targeted": "19 passed",
+    "frontend": "125 passed",
+    "frontend_build": "passed",
+    "javascript_sdk": "24 passed",
+    "python_sdk": "32 passed",
+    "openapi_check": "passed"
+  },
+  "remaining_gates": [
+    "real provider network canary with explicit budget and authorization",
+    "per-run idempotent budget preauthorization and settlement",
+    "Corti-equivalent hosted model pool, billing, invoices and SLA",
+    "hospital interoperability, clinical reviewer and China compliance certification"
+  ]
+}

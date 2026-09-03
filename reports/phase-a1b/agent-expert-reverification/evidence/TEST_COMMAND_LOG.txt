@@ -1,0 +1,95 @@
+Phase A1B-AE-RV.6 — Full Regression Test Command Log
+====================================================
+captured_at: 2026-07-25
+worktree:    E:/Corti4C-agent-expert-reverification
+branch:      phase-a1b/agent-expert-terminal-reverification
+head:        af6aacf
+baseline:    8546184 (prior terminal, A1B-AE-R.6)
+
+================================================
+1. Backend full pytest (HEAD af6aacf)
+================================================
+command:
+  cd backend
+  ICODER_DISABLE_AUTH_FOR_TESTS=1 python -m pytest tests/ \
+    --tb=no -q \
+    --junitxml=/tmp/rv6_head_af6aacf_junit.xml
+log:     /tmp/rv6_head_af6aacf.log
+junit:   /tmp/rv6_head_af6aacf_junit.xml
+verdict: 103 failed, 3818 passed, 14 skipped, 28 errors in 966s (first run)
+         Re-run with JUnit XML in background (task btkxlmvo3)
+
+================================================
+2. Backend full pytest (BASELINE 8546184)
+================================================
+command:
+  cd E:/Corti4C-agent-expert-runtime/backend
+  ICODER_DISABLE_AUTH_FOR_TESTS=1 python -m pytest tests/ \
+    --tb=no -q \
+    --junitxml=/tmp/rv6_baseline8546184_junit.xml
+log:     /tmp/rv6_baseline8546184.log
+junit:   /tmp/rv6_baseline8546184_junit.xml
+task:    bub5w838c (background)
+
+================================================
+3. Frontend typecheck
+================================================
+command: cd frontend && npx tsc --noEmit
+exit:    0 (clean, 0 lines output)
+log:     /tmp/rv6_tsc.log
+
+================================================
+4. Frontend build
+================================================
+command: cd frontend && npm run build
+exit:    0 (19.95s)
+output:  frontend/dist/ (index.html, vite.svg, assets/)
+log:     /tmp/rv6_build.log
+
+================================================
+5. Frontend vitest
+================================================
+command: cd frontend && npx vitest run
+exit:    0
+result:  78/78 PASS (after OpenAPI refresh fixed 2 apiContract drift failures)
+log:     /tmp/rv6_vitest.log
+
+================================================
+6. OpenAPI regeneration
+================================================
+command: cd backend && python scripts/export_openapi.py
+output:  docs/openapi/openapi.json (526530 bytes, 208 paths)
+prior:   162 paths (stale snapshot)
+log:     /tmp/rv6_openapi.log
+
+================================================
+7. SDK build
+================================================
+command: cd packages/icoder-sdk && npm install && npm run build
+exit:    0
+output:  packages/icoder-sdk/dist/ (29 files: 6 top-level + 11 resources × 2)
+
+================================================
+8. SQLite migration safety (fresh DB)
+================================================
+DB:       C:/temp/rv6_migrate.db (sqlite)
+commands:
+  python -m alembic upgrade head    # applied 27 migrations, head=026
+  python -m alembic downgrade -1    # head=025
+  python -m alembic upgrade head    # re-applied 026
+verdict: PASS (up/down/up roundtrip OK)
+
+================================================
+9. PostgreSQL migration scenarios
+================================================
+verdict: BLOCKED_BY_ENVIRONMENT
+reason:  no psql / docker / podman available on host
+note:    Per Charter §20 permitted blockers — recorded but cannot execute
+
+================================================
+10. Frontend ESLint
+================================================
+command: cd frontend && npm run lint
+verdict: BLOCKED_BY_MISSING_DEV_DEPENDENCY
+reason:  eslint not in package.json; no .eslintrc config file
+note:    Pre-existing project gap; not introduced by RV.*

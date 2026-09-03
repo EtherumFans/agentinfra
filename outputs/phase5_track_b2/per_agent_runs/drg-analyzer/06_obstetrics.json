@@ -1,0 +1,62 @@
+{
+  "agent_id": "drg-analyzer",
+  "run_id": "run-07ca6fdf-218f-490a-9b6e-27d8f51c8723",
+  "trace_id": "trace-b2f8b566d8f04f61",
+  "runtime_mode": "corti_like_fast",
+  "latency_ms": 11044,
+  "cost": {
+    "amount": 0.000353,
+    "currency": "CNY"
+  },
+  "summary": "{",
+  "result": {
+    "status": "complete",
+    "markdown": "{\n  \"risk_points\": [\n    {\n      \"risk_type\": \"downcoding\",\n      \"code\": \"O72.000\",\n      \"evidence_text\": \"术中子宫收缩乏力，出血约800mL，总出血约1200mL，输红细胞悬液2U，血浆400mL，符合产后出血（中度）诊断，但O72.000（第三产程出血）可能未充分反映出血严重程度或需考虑O72.100（即时性产后出血）或O72.200（迟发性产后出血）等更具体编码，且未编码失血性贫血（D62）或输血相关编码（如Z51.3）\",\n      \"char_span\": \"出血约800mL，总出血约1200mL。术中输红细胞悬液2U，血浆400mL\",\n      \"severity\": \"high\",\n      \"suggestion\": \"建议复核产后出血编码：若出血发生在产后24小时内，考虑O72.100（即时性产后出血）；若出血量≥1000mL且需输血，可补充编码D62（急性失血性贫血）及Z51.3（输血）以完整反映并发症\"\n    },\n    {\n      \"risk_type\": \"missing_complication\",\n      \"code\": \"O62.100\",\n      \"evidence_text\": \"活跃期停滞（宫口开大6cm后4小时无进展）已编码O62.100（继发性宫缩乏力），但病历中提及疑头盆不仲，未编码O33.900（母体骨盆异常，未特指）或O33.0（骨盆入口狭窄）等头盆不仲相关编码，可能遗漏重要并发症\",\n      \"char_span\": \"疑头盆不称\",\n      \"severity\": \"medium\",\n      \"suggestion\": \"建议补充头盆不仲相关编码（如O33.900），以完整反映剖宫产指征，避免DRG分组时遗漏并发症/合并症\"\n    },\n    {\n      \"risk_type\": \"inconsistency\",\n      \"code\": \"O82.000\",\n      \"evidence_text\": \"主诊断O82.000（经剖宫产术分娩）与手术操作一致，但活跃期停滞（O62.100）和产后出血（O72.000）作为并发症未作为主诊断，可能影响DRG分组权重；若产后出血为主要治疗焦点，主诊断应为O72.100\",\n      \"char_span\": \"急诊行子宫下段剖宫产术；产后出血（中度）\",\n      \"severity\": \"medium\",\n      \"suggestion\": \"建议评估主诊断选择：若产后出血为主要资源消耗，可考虑将O72.100作为主诊断；否则当前O82.000合理，但需确保并发症编码完整\"\n    },\n    {\n      \"risk_type\": \"missing_complication\",\n      \"code\": \"D62\",\n      \"evidence_text\": \"总出血1200mL，输红细胞悬液2U，血浆400mL，符合急性失血性贫血诊断标准，但未编码D62\",\n      \"char_span\": \"总出血约1200mL。术中输红细胞悬液2U，血浆400mL\",\n      \"severity\": \"high\",\n      \"suggestion\": \"建议补充编码D62（急性失血性贫血）及Z51.3（输血），以完整反映并发症和资源消耗，避免downcoding\"\n    }\n  ],\n  \"high_risk_codes\": [],\n  \"review_suggestions\": \"编码集存在2处高严重度downcoding风险：1）产后出血编码O72.000可能未充分反映出血严重程度，建议考虑O72.100并补充D62及Z51.3；2）活跃期停滞相关头盆不仲未编码（O33.900），可能遗漏并发症。主诊断O82.000合理但需确保并发症编码完整。建议复核编码方案，补充失血性贫血和输血编码。\",\n  \"drg_dip_rule_reservation_note\": \"DRG分组由医保结算侧引擎完成，本Agent仅评估编码方案对分组的影响。\",\n  \"manual_review_required\": true\n}",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.pure-llm.v1",
+    "backend_type": "pure_llm",
+    "raw_provider_response": {
+      "content": "{\n  \"risk_points\": [\n    {\n      \"risk_type\": \"downcoding\",\n      \"code\": \"O72.000\",\n      \"evidence_text\": \"术中子宫收缩乏力，出血约800mL，总出血约1200mL，输红细胞悬液2U，血浆400mL，符合产后出血（中度）诊断，但O72.000（第三产程出血）可能未充分反映出血严重程度或需考虑O72.100（即时性产后出血）或O72.200（迟发性产后出血）等更具体编码，且未编码失血性贫血（D62）或输血相关编码（如Z51.3）\",\n      \"char_span\": \"出血约800mL，总出血约1200mL。术中输红细胞悬液2U，血浆400mL\",\n      \"severity\": \"high\",\n      \"suggestion\": \"建议复核产后出血编码：若出血发生在产后24小时内，考虑O72.100（即时性产后出血）；若出血量≥1000mL且需输血，可补充编码D62（急性失血性贫血）及Z51.3（输血）以完整反映并发症\"\n    },\n    {\n      \"risk_type\": \"missing_complication\",\n      \"code\": \"O62.100\",\n      \"evidence_text\": \"活跃期停滞（宫口开大6cm后4小时无进展）已编码O62.100（继发性宫缩乏力），但病历中提及疑头盆不仲，未编码O33.900（母体骨盆异常，未特指）或O33.0（骨盆入口狭窄）等头盆不仲相关编码，可能遗漏重要并发症\",\n      \"char_span\": \"疑头盆不称\",\n      \"severity\": \"medium\",\n      \"suggestion\": \"建议补充头盆不仲相关编码（如O33.900），以完整反映剖宫产指征，避免DRG分组时遗漏并发症/合并症\"\n    },\n    {\n      \"risk_type\": \"inconsistency\",\n      \"code\": \"O82.000\",\n      \"evidence_text\": \"主诊断O82.000（经剖宫产术分娩）与手术操作一致，但活跃期停滞（O62.100）和产后出血（O72.000）作为并发症未作为主诊断，可能影响DRG分组权重；若产后出血为主要治疗焦点，主诊断应为O72.100\",\n      \"char_span\": \"急诊行子宫下段剖宫产术；产后出血（中度）\",\n      \"severity\": \"medium\",\n      \"suggestion\": \"建议评估主诊断选择：若产后出血为主要资源消耗，可考虑将O72.100作为主诊断；否则当前O82.000合理，但需确保并发症编码完整\"\n    },\n    {\n      \"risk_type\": \"missing_complication\",\n      \"code\": \"D62\",\n      \"evidence_text\": \"总出血1200mL，输红细胞悬液2U，血浆400mL，符合急性失血性贫血诊断标准，但未编码D62\",\n      \"char_span\": \"总出血约1200mL。术中输红细胞悬液2U，血浆400mL\",\n      \"severity\": \"high\",\n      \"suggestion\": \"建议补充编码D62（急性失血性贫血）及Z51.3（输血），以完整反映并发症和资源消耗，避免downcoding\"\n    }\n  ],\n  \"high_risk_codes\": [],\n  \"review_suggestions\": \"编码集存在2处高严重度downcoding风险：1）产后出血编码O72.000可能未充分反映出血严重程度，建议考虑O72.100并补充D62及Z51.3；2）活跃期停滞相关头盆不仲未编码（O33.900），可能遗漏并发症。主诊断O82.000合理但需确保并发症编码完整。建议复核编码方案，补充失血性贫血和输血编码。\",\n  \"drg_dip_rule_reservation_note\": \"DRG分组由医保结算侧引擎完成，本Agent仅评估编码方案对分组的影响。\",\n  \"manual_review_required\": true\n}",
+      "model": "deepseek-v4-flash",
+      "usage": {
+        "input_tokens": 762,
+        "output_tokens": 878
+      },
+      "cost_usd": 0.000353,
+      "latency_ms": 11044
+    }
+  },
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": false,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 11044,
+      "metadata": {
+        "agent_id": "drg-analyzer",
+        "runtime_mode": "corti_like_fast",
+        "latency_ms": 11044
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_input_shape": "augmented_text (518 chars) + codes (4)",
+  "_gold_codes": [
+    "O82.000",
+    "O72.000",
+    "O62.100",
+    "Z37.000"
+  ],
+  "_client_wall_ms": 11212,
+  "_fixture": "fixtures/phase5_track_b2/06_obstetrics.json",
+  "_tag": "06_obstetrics",
+  "_ts": "2026-07-11T14:36:21"
+}

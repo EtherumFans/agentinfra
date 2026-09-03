@@ -1,0 +1,210 @@
+{
+  "agent_id": "clinical-documentation-improvement-agent",
+  "run_id": "run-3e3a0d85-df44-4cda-b4a7-de8c3f172107",
+  "trace_id": "trace-fffadc734a9a4edf",
+  "trace_url": "/ai-studio/runs/run-3e3a0d85-df44-4cda-b4a7-de8c3f172107/trace",
+  "runtime_mode": "cdi_real_orchestrator",
+  "latency_ms": 18313,
+  "cost": {
+    "amount": 0.00150934,
+    "currency": "CNY",
+    "source": "configured_usage_pricing_estimate",
+    "billing_authoritative": false
+  },
+  "billing": {},
+  "summary": "CDI review completed; specialist and clinician review remain required.",
+  "result": {
+    "encounter_summary": {
+      "key_points": [
+        "患者女性，45岁",
+        "主诉：头晕",
+        "既往史不详",
+        "建议完善相关检查"
+      ],
+      "encounter_metadata": {
+        "patient_age": "45岁",
+        "patient_sex": "女性",
+        "encounter_type": "门诊"
+      }
+    },
+    "documentation_gaps": [
+      {
+        "gap_id": "gap_001",
+        "gap_type": "diagnostic_specificity",
+        "description": "头晕的病因未明确，缺乏具体诊断或鉴别诊断。",
+        "why_it_matters": "编码时需要明确头晕的具体病因或类型（如中枢性、耳源性等），否则无法准确编码，影响DRG分组和医疗质量评估。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "头晕",
+          "char_start": 11,
+          "char_end": 13,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "urgent"
+      },
+      {
+        "gap_id": "gap_002",
+        "gap_type": "diagnostic_specificity",
+        "description": "头晕的严重程度和持续时间未描述，无法判断是否为急性或慢性。",
+        "why_it_matters": "严重程度和病程影响编码和医疗资源分配，急性与慢性头晕的编码不同。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "头晕",
+          "char_start": 11,
+          "char_end": 13,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      },
+      {
+        "gap_id": "gap_003",
+        "gap_type": "diagnostic_specificity",
+        "description": "既往史不详，缺乏相关病史信息，可能影响诊断和编码。",
+        "why_it_matters": "既往史（如高血压、糖尿病、耳部疾病等）对头晕的病因诊断至关重要，缺失可能导致诊断不明确。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "既往史不详",
+          "char_start": 14,
+          "char_end": 19,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      }
+    ],
+    "proposed_provider_queries": [],
+    "query_gate_summary": {
+      "withheld_count": 3,
+      "status_counts": {
+        "REWRITE_CANDIDATE_GENERATED": 0
+      },
+      "manual_cdi_action_required": true
+    },
+    "coding_specificity_checklist": [],
+    "risk_flags": [
+      {
+        "category": "ambiguous_term",
+        "description": "建议完善相关检查，未明确具体检查项目或诊断方向，存在模糊性。"
+      }
+    ],
+    "specialist_trace": [
+      {
+        "expert_id": "coding-expert",
+        "consulted": true,
+        "requested": "You are a coding-specialist Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "For accurate coding, the clinical documentation must specify the underlying etiology of the dizziness (e.g., vestibular, cardiovascular, neurological, or metabolic) and include a definitive diagnosis or differential diagnosis. Additionally, document the severity, onset, and duration (acute vs. chronic) of the symptom, along with a complete past medical history, to support the correct classification of the condition.",
+        "route_decision": "needed",
+        "route_reason": "coding_relevant_gap",
+        "execution_mode": "LLM_KNOWLEDGE_ONLY",
+        "latency_ms": 1605,
+        "tokens": 198,
+        "run_id": "run-c51abe5f98d4",
+        "trace_id": "trace-7ac73f66a680"
+      },
+      {
+        "expert_id": "pubmed-expert",
+        "consulted": false,
+        "requested": "You are a PubMed literature Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-593729c8565c",
+        "trace_id": "trace-8334fa6f7424"
+      },
+      {
+        "expert_id": "web-search-expert",
+        "consulted": false,
+        "requested": "You are a clinical web-search Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-7ca5e64ab687",
+        "trace_id": "trace-ba2a3c51aec8"
+      },
+      {
+        "expert_id": "medical-calculator-expert",
+        "consulted": false,
+        "requested": "You are a medical-calculator Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-127de5be30ae",
+        "trace_id": "trace-1755648e840f"
+      }
+    ],
+    "human_review": {
+      "cdi_specialist_review_required": true,
+      "clinician_response_required": true,
+      "review_priority": "routine"
+    },
+    "trace_refs": {
+      "run_id": "run-3e3a0d85-df44-4cda-b4a7-de8c3f172107",
+      "stage_trace": {
+        "encounter_synthesis": "trace-71861a55b32f",
+        "gap_identification": "trace-4393707144e5",
+        "expert_consultation": "trace-f922c15b6eb7",
+        "query_generation": "trace-cc18615fbf89",
+        "query_eligibility_gate": "",
+        "query_necessity_gate": "",
+        "query_dimension_rewrite": "trace-25c805acde09",
+        "query_single_dimension_gate": "",
+        "claim_evidence_alignment_gate": "trace-179dddd8ffd3",
+        "semantic_necessity_gate": "trace-8d1a054c7c0a",
+        "query_compliance_gate": "",
+        "specialist_trace_emit": "trace-c6e3a244a985"
+      },
+      "experts_consulted": [
+        "coding-expert"
+      ],
+      "gate_results": {
+        "encounter_synthesis": "run-a8132dcdf19f",
+        "gap_identification": "run-47fc53f58715",
+        "gap_identification_risk_flags": "emitted=1;quote_snapped=0",
+        "expert_consultation": "run-b4114be771e8",
+        "query_generation": "run-000948398f7a",
+        "query_generation::quote_snapped": "0",
+        "query_generation::coverage_missing": "0",
+        "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=;dropped=0;final_count=3;llm_complete=False;llm_reasoning=该图表仅记录了症状'头晕'，未提供病因、严重程度、既往史或任何检查结果，无法支持具体诊断编码，需要进一步澄清。",
+        "query_necessity_gate": "necessary=3;unnecessary=0;overquery_triggered=False;final_count=3",
+        "query_dimension_rewrite": "run-b828590ea098",
+        "query_single_dimension_gate": "single_dim=2;multi_dim=1;axis_cluster_triggered=False;axis_cluster_axis=etiology;rewrite_attempted=1;rewrite_accepted=0;final_count=2",
+        "claim_evidence_alignment_gate": "claims_extracted=3;degraded=0;blocked=0;flagged=0;final_count=2",
+        "claim_evidence_alignment_gate::run_id": "run-f6a32ef30083",
+        "semantic_necessity_gate": "blocked=2;flagged=0;degraded=0;final_count=0",
+        "semantic_necessity_gate::run_id": "run-efae2a8e56a5",
+        "query_compliance_gate": ";passed=0;blocked=0",
+        "specialist_trace_emit": "run-e3e1fa945971"
+      },
+      "trace_id": "trace-fffadc734a9a4edf"
+    }
+  },
+  "schema_ref": "icoder/CDIAgentOutputV1/v6",
+  "result_attestation": "eyJhIjoiY2xpbmljYWwtZG9jdW1lbnRhdGlvbi1pbXByb3ZlbWVudC1hZ2VudCIsImQiOiIxMmE2YjVmMWY5MmUwNDI1ZWU3NDc3MTkwNjA5ZmFlMTcyNmFhMzAwYjkwMGJmNmU2NzUxZmMzMDEyNmQ1NzM2IiwiZSI6MTc4Nzg4MjIzOCwibyI6ImJjOTJlZTA2YWYwZiIsInIiOiJydW4tM2UzYTBkODUtZGY0NC00Y2RhLWI0YTctZGU4YzNmMTcyMTA3IiwicyI6Imljb2Rlci9DRElBZ2VudE91dHB1dFYxL3Y2IiwidiI6MX0.phqdEfAEr0r-7MXZEC-D_QxGJAPNQmP2vnrOYqJR5wM",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 18.432
+}

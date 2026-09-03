@@ -41,6 +41,7 @@ os.environ.setdefault("LLM_PROVIDER", "mock")
 os.environ.setdefault("ICODER_DISABLE_AUTH_FOR_TESTS", "1")
 os.environ.setdefault("ICODER_CREDENTIAL_LLM", "test-fake-key-cycle10")
 os.environ.setdefault("ICODER_ALLOW_DEGRADED_NO_KEY", "1")
+os.environ.setdefault("ICODER_ENABLE_PROTOCOL_FIXTURES", "1")
 
 
 def _find_repo_root() -> Path:

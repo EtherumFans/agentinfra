@@ -19,10 +19,17 @@ logger = logging.getLogger(__name__)
 class ThreadState:
     """A single conversation thread with message history and metadata."""
 
-    def __init__(self, thread_id: str, agent_id: str, user_id: str = ""):
+    def __init__(
+        self,
+        thread_id: str,
+        agent_id: str,
+        user_id: str = "",
+        organization_id: str = "",
+    ):
         self.thread_id = thread_id
         self.agent_id = agent_id
         self.user_id = user_id
+        self.organization_id = organization_id
         self.messages: list[dict] = []
         self.metadata: dict = {}
         self.created_at = time.time()
@@ -57,6 +64,7 @@ class ThreadState:
             "thread_id": self.thread_id,
             "agent_id": self.agent_id,
             "user_id": self.user_id,
+            "organization_id": self.organization_id,
             "messages": self.messages,
             "message_count": len(self.messages),
             "metadata": self.metadata,
@@ -70,16 +78,23 @@ class ThreadState:
 class ThreadStateManager:
     """In-memory thread state registry with governed access.
 
-    Production deployment should use Redis/DB persistence.
+    Compatibility-only in-memory registry. Production conversations use the
+    durable encrypted A2A Context repository.
     """
 
     def __init__(self):
         self._threads: dict[str, ThreadState] = {}
         self._access_log: list[dict] = []
 
-    def create(self, agent_id: str, user_id: str = "", thread_id: str = "") -> ThreadState:
+    def create(
+        self,
+        agent_id: str,
+        user_id: str = "",
+        thread_id: str = "",
+        organization_id: str = "",
+    ) -> ThreadState:
         tid = thread_id or f"thread-{uuid.uuid4().hex[:12]}"
-        ts = ThreadState(tid, agent_id, user_id)
+        ts = ThreadState(tid, agent_id, user_id, organization_id)
         self._threads[tid] = ts
         self._log_access(tid, "create", user_id)
         return ts
@@ -97,8 +112,20 @@ class ThreadStateManager:
             return True
         return False
 
-    def list_by_agent(self, agent_id: str) -> list[dict]:
-        return [t.to_dict() for t in self._threads.values() if t.agent_id == agent_id]
+    def list_by_agent(
+        self,
+        agent_id: str,
+        *,
+        user_id: str = "",
+        organization_id: str = "",
+    ) -> list[dict]:
+        return [
+            t.to_dict()
+            for t in self._threads.values()
+            if t.agent_id == agent_id
+            and (not user_id or t.user_id == user_id)
+            and (not organization_id or t.organization_id == organization_id)
+        ]
 
     def list_by_user(self, user_id: str) -> list[dict]:
         return [t.to_dict() for t in self._threads.values() if t.user_id == user_id]

@@ -1,0 +1,299 @@
+{
+  "summary": {
+    "total_cases": 10,
+    "cases_with_queries": 10,
+    "cases_with_overquery_ge4": 2,
+    "cases_zero_gap_with_queries": 0,
+    "cases_with_multi_dim_query": 0,
+    "total_gaps": 35,
+    "total_queries": 26,
+    "total_multi_dim_queries": 0,
+    "avg_queries_per_case": 2.6,
+    "avg_gaps_per_case": 3.5,
+    "multi_dim_query_rate": 0.0
+  },
+  "cases": [
+    {
+      "case_id": "C01_pneumonia_simple",
+      "note": "Simple pneumonia — should not generate 4+ queries",
+      "status": 200,
+      "elapsed_s": 20.3,
+      "internal_case_id": "CASE-c41fe09afb3e",
+      "completion_state": "REVIEW_REQUIRED",
+      "n_gaps": 3,
+      "n_queries": 1,
+      "multi_dim_queries": 0,
+      "no_evidence_gaps": 0,
+      "topics": [
+        "咳嗽咳痰的持续时间"
+      ],
+      "query_texts": [
+        "根据患者咳嗽咳痰病程3天，请明确其持续时间分类："
+      ],
+      "tokens": 2956,
+      "experts_invoked": [
+        "coding-expert",
+        "pubmed-expert",
+        "web-search-expert",
+        "medical-calculator-expert"
+      ]
+    },
+    {
+      "case_id": "C02_cholecystitis",
+      "note": "Surgical case — single dx, expect 0-1 queries",
+      "status": 200,
+      "elapsed_s": 26.0,
+      "internal_case_id": "CASE-02881bd20ad6",
+      "completion_state": "BLOCKED",
+      "n_gaps": 5,
+      "n_queries": 3,
+      "multi_dim_queries": 0,
+      "no_evidence_gaps": 0,
+      "topics": [
+        "胆囊壁增厚程度",
+        "胆囊炎并发症",
+        "胆道梗阻或胆管炎"
+      ],
+      "query_texts": [
+        "根据B超测量结果，胆囊壁增厚的程度属于以下哪种？",
+        "根据临床表现和影像学检查，急性胆囊炎是否伴有以下并发症？",
+        "根据临床表现和实验室检查，胆囊结石是否伴有以下情况？"
+      ],
+      "tokens": 3684,
+      "experts_invoked": [
+        "coding-expert",
+        "pubmed-expert",
+        "web-search-expert",
+        "medical-calculator-expert"
+      ]
+    },
+    {
+      "case_id": "C03_hypertension_workup",
+      "note": "Hypertension — should NOT query severity without end-organ evidence",
+      "status": 200,
+      "elapsed_s": 21.7,
+      "internal_case_id": "CASE-02535ca7c6bb",
+      "completion_state": "BLOCKED",
+      "n_gaps": 3,
+      "n_queries": 3,
+      "multi_dim_queries": 0,
+      "no_evidence_gaps": 0,
+      "topics": [
+        "高血压病分级或分期",
+        "头晕乏力病因",
+        "高血压急症或亚急症"
+      ],
+      "query_texts": [
+        "根据患者血压160/95 mmHg及现有检查结果，请明确高血压病的分级或分期：",
+        "患者头晕乏力1月，血压160/95 mmHg，心电图及心脏彩超正常。请评估头晕乏力的可能病因：",
+        "患者血压160/95 mmHg，无靶器官损害证据（心电图、心脏彩超正常）。请判断是否为高血压急症或亚急症："
+      ],
+      "tokens": 2795,
+      "experts_invoked": [
+        "coding-expert",
+        "pubmed-expert",
+        "web-search-expert",
+        "medical-calculator-expert"
+      ]
+    },
+    {
+      "case_id": "C04_diabetes_negation",
+      "note": "Negation — must NOT claim patient has CHD",
+      "status": 200,
+      "elapsed_s": 24.2,
+      "internal_case_id": "CASE-add09e09aa17",
+      "completion_state": "BLOCKED",
+      "n_gaps": 4,
+      "n_queries": 4,
+      "multi_dim_queries": 0,
+      "no_evidence_gaps": 0,
+      "topics": [
+        "2型糖尿病诊断确认",
+        "多饮多尿与糖尿病关联",
+        "高血压病史详情",
+        "父亲糖尿病类型"
+      ],
+      "query_texts": [
+        "根据患者多饮多尿症状及父亲糖尿病史，请评估患者目前糖尿病诊断及分型情况。",
+        "患者多饮多尿症状，请结合血糖或糖化血红蛋白结果，评估是否由糖尿病引起。",
+        "请提供患者高血压病史的详细信息，包括血压控制水平、用药方案及有无并发症。",
+        "请明确患者父亲糖尿病的具体类型。"
+      ],
+      "tokens": 3380,
+      "experts_invoked": [
+        "coding-expert",
+        "pubmed-expert",
+        "web-search-expert",
+        "medical-calculator-expert"
+      ]
+    },
+    {
+      "case_id": "C05_fracture_conflict",
+      "note": "Laterality conflict — must surface left vs right",
+      "status": 200,
+      "elapsed_s": 23.8,
+      "internal_case_id": "CASE-1925f6ee6fad",
+      "completion_state": "BLOCKED",
+      "n_gaps": 3,
+      "n_queries": 2,
+      "multi_dim_queries": 0,
+      "no_evidence_gaps": 0,
+      "topics": [
+        "损伤结构明确",
+        "肋骨骨折具体信息"
+      ],
+      "query_texts": [
+        "患者初步诊断为左胸外伤，但出院诊断为右侧肋骨骨折，且手术为右胸第5肋骨折固定术。请明确患者的具体损伤结构及侧别。",
+        "出院诊断为右侧肋骨骨折，但未明确具体肋骨编号及是否为多发性骨折。请补充肋骨骨折的侧别、具体肋骨编号及是否为多发性骨折。"
+      ],
+      "tokens": 3184,
+      "experts_invoked": [
+        "coding-expert",
+        "pubmed-expert",
+        "web-search-expert",
+        "medical-calculator-expert"
+      ]
+    },
+    {
+      "case_id": "C06_appendicitis",
+      "note": "Clean surgical case — should mostly pass",
+      "status": 200,
+      "elapsed_s": 20.7,
+      "internal_case_id": "CASE-9c0ddac7d8f9",
+      "completion_state": "REVIEW_REQUIRED",
+      "n_gaps": 2,
+      "n_queries": 1,
+      "multi_dim_queries": 0,
+      "no_evidence_gaps": 0,
+      "topics": [
+        "手术所见及病理结果"
+      ],
+      "query_texts": [
+        "腹腔镜阑尾切除术中阑尾的外观表现及术后病理检查结果如何？"
+      ],
+      "tokens": 2585,
+      "experts_invoked": [
+        "coding-expert",
+        "pubmed-expert",
+        "web-search-expert",
+        "medical-calculator-expert"
+      ]
+    },
+    {
+      "case_id": "C07_copd_exacerbation",
+      "note": "COPD with explicit historical — must not elevate",
+      "status": 200,
+      "elapsed_s": 23.9,
+      "internal_case_id": "CASE-4a68ec441606",
+      "completion_state": "BLOCKED",
+      "n_gaps": 3,
+      "n_queries": 2,
+      "multi_dim_queries": 0,
+      "no_evidence_gaps": 0,
+      "topics": [
+        "是否合并呼吸衰竭",
+        "慢性阻塞性肺疾病的临床分型"
+      ],
+      "query_texts": [
+        "根据动脉血气结果（pH 7.35, PaCO2 60mmHg），患者是否存在呼吸衰竭？",
+        "根据患者既往病史及本次临床表现，慢性阻塞性肺疾病的临床分型属于以下哪种？"
+      ],
+      "tokens": 3437,
+      "experts_invoked": [
+        "coding-expert",
+        "pubmed-expert",
+        "web-search-expert",
+        "medical-calculator-expert"
+      ]
+    },
+    {
+      "case_id": "C08_stemi_pci",
+      "note": "STEMI PCI — clean explicit dx",
+      "status": 200,
+      "elapsed_s": 27.9,
+      "internal_case_id": "CASE-67997317445f",
+      "completion_state": "REVIEW_REQUIRED",
+      "n_gaps": 5,
+      "n_queries": 3,
+      "multi_dim_queries": 0,
+      "no_evidence_gaps": 0,
+      "topics": [
+        "心肌梗死具体前壁节段",
+        "Killip分级或心功能状态",
+        "既往史（高血压、糖尿病、冠心病史等）"
+      ],
+      "query_texts": [
+        "根据心电图和冠脉造影结果，请明确前壁心肌梗死的具体节段（如广泛前壁、前间壁、前侧壁等）。",
+        "请评估患者入院时的心功能状态，提供Killip分级（如Killip I级：无心力衰竭体征；Killip II级：肺部啰音<50%肺野；Killip III级：肺水肿；Killip IV级：心源性休克）。",
+        "请补充患者既往病史，包括高血压、糖尿病、冠心病、高脂血症、吸烟史等。"
+      ],
+      "tokens": 4115,
+      "experts_invoked": [
+        "coding-expert",
+        "pubmed-expert",
+        "web-search-expert",
+        "medical-calculator-expert"
+      ]
+    },
+    {
+      "case_id": "C09_minimal_info",
+      "note": "Minimal info — should NOT invent diagnoses",
+      "status": 200,
+      "elapsed_s": 22.0,
+      "internal_case_id": "CASE-2dd3e00b3dca",
+      "completion_state": "REVIEW_REQUIRED",
+      "n_gaps": 4,
+      "n_queries": 4,
+      "multi_dim_queries": 0,
+      "no_evidence_gaps": 0,
+      "topics": [
+        "腹痛病因",
+        "腹痛严重程度",
+        "腹痛起病时间或病程",
+        "腹痛具体解剖部位"
+      ],
+      "query_texts": [
+        "根据患者腹痛表现，请评估最可能的病因：",
+        "根据患者腹痛对日常生活的影响及查体表现，请评估腹痛严重程度：",
+        "根据患者病史，请描述腹痛的起病方式和病程特点：",
+        "根据患者主诉和查体，请明确腹痛的具体部位："
+      ],
+      "tokens": 2858,
+      "experts_invoked": [
+        "coding-expert",
+        "pubmed-expert",
+        "web-search-expert",
+        "medical-calculator-expert"
+      ]
+    },
+    {
+      "case_id": "C10_peds_pneumonia",
+      "note": "Pediatric pneumonia — should be clean",
+      "status": 200,
+      "elapsed_s": 20.9,
+      "internal_case_id": "CASE-998feea6be31",
+      "completion_state": "REVIEW_REQUIRED",
+      "n_gaps": 3,
+      "n_queries": 3,
+      "multi_dim_queries": 0,
+      "no_evidence_gaps": 0,
+      "topics": [
+        "病原体未明确",
+        "严重程度未明确",
+        "解剖部位未明确"
+      ],
+      "query_texts": [
+        "根据临床表现和检查结果，该支气管肺炎最可能的病原体是？",
+        "根据现有资料，该支气管肺炎的严重程度分级是？",
+        "根据胸片结果，支气管肺炎的具体解剖部位是？"
+      ],
+      "tokens": 2545,
+      "experts_invoked": [
+        "coding-expert",
+        "pubmed-expert",
+        "web-search-expert",
+        "medical-calculator-expert"
+      ]
+    }
+  ]
+}

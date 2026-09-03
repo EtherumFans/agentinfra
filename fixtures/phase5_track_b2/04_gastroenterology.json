@@ -1,0 +1,54 @@
+{
+  "fixture_id": "04_gastroenterology",
+  "tag": "SYNTHETIC_FIXTURE",
+  "department": "肝胆外科",
+  "intended_agents": [
+    "medical-coding-agent",
+    "code-validation-agent",
+    "compliance-guardrail-agent",
+    "note-completeness-agent",
+    "procedure-extractor",
+    "evidence-extractor",
+    "principal-diagnosis-review",
+    "discharge-summary-structuring",
+    "drg-analyzer"
+  ],
+  "input_text": "患者女性,45岁,因「右上腹持续性疼痛伴恶心、呕吐 1 天」入院。1 天前饱餐后突发右上腹持续性绞痛,向右肩背部放射,伴恶心、呕吐胃内容物 3 次。无发热、寒战,无皮肤巩膜黄染。既往:2 型糖尿病 5 年,口服二甲双胍控制可。否认手术史。查体:T 37.8℃,P 90 次/分,BP 125/75mmHg。皮肤巩膜无黄染,腹平,右上腹压痛(+),Murphy 征(+),反跳痛(-)。血常规:WBC 11.5×10^9/L,N 78%。肝功能:ALT 56 U/L,AST 45 U/L,TBIL 22 μmol/L。腹部超声:胆囊 9×4cm,壁厚 5mm,胆囊颈部见 1 枚 1.5cm 强回声光团伴声影,胆总管 6mm。入院诊断:急性结石性胆囊炎;2 型糖尿病。治疗:入院第 2 天行腹腔镜胆囊切除术,手术顺利,术中见胆囊与大网膜粘连,胆囊壁充血水肿,胆囊颈部结石嵌顿,胆囊内另见 3 枚小结石(0.5-0.8cm)。术后病理:急性胆囊炎,胆固醇性息肉。术后第 3 天出院。",
+  "structured_context": {
+    "age": 45,
+    "sex": "女",
+    "encounter_type": "inpatient",
+    "admission_type": "择期手术",
+    "primary_complaint": "右上腹痛伴恶心呕吐 1 天",
+    "procedure": "腹腔镜胆囊切除术",
+    "los_days": 5
+  },
+  "known_facts": [
+    "急性结石性胆囊炎",
+    "胆囊颈部结石嵌顿",
+    "Murphy 征阳性",
+    "腹腔镜胆囊切除术"
+  ],
+  "negated_facts": [
+    "无发热寒战",
+    "无黄疸",
+    "否认手术史"
+  ],
+  "historical_facts": [
+    "2 型糖尿病 5 年"
+  ],
+  "missing_information": [],
+  "expected_risks": [
+    "bile_duct_injury",
+    "post_op_bleeding",
+    "diabetes_wound_healing_delay"
+  ],
+  "gold_codes": [
+    "K81.000",
+    "K80.000",
+    "E11.900",
+    "Z90.700"
+  ],
+  "not_for_quality_scoring": false,
+  "notes": "Acute cholecystitis + lap cholecystectomy; primary K81.000."
+}

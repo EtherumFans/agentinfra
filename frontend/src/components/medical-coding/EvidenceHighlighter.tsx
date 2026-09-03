@@ -1,13 +1,13 @@
 /**
- * EvidenceHighlighter — wraps <mark> around EvidenceSpan char ranges in source text.
+ * EvidenceHighlighter - wraps <mark> around EvidenceSpan char ranges in source text.
  *
  * Used to visualize Medical Coding Agent output: which sentence in the EMR
  * supports which diagnosis. Falls back to fuzzy substring match if the
  * stored char_start/char_end don't match exactly (server-side fuzzy).
  *
  * When `focusedSpanIndex` is provided, the matching span is rendered with
- * a distinct (green) class to indicate user focus — matches Corti
- * screenshot where clicking a code highlights its evidence in green while
+ * a distinct (green) class to indicate user focus -
+ * clicking a code highlights its evidence in green while
  * the rest stay yellow.
  */
 import React, { useMemo } from 'react';

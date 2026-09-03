@@ -1,0 +1,63 @@
+{
+  "phase": "medcoder_remote_http_wiring",
+  "date": "2026-08-22",
+  "status": "development_contract_verified",
+  "fixed_defects": [
+    "compose_profile_started_worker_without_backend_url",
+    "remote_worker_health_did_not_replace_local_mcp_health_gate",
+    "worker_and_client_tests_did_not_cross_real_tcp_or_backend_lifespan"
+  ],
+  "runtime_e2e": {
+    "transport": "real_loopback_tcp",
+    "processes": ["fixture_medcoder_worker_uvicorn", "real_backend_uvicorn"],
+    "native_ml_imported": false,
+    "llm_provider": "mock",
+    "external_llm_allowed": false,
+    "real_llm_called": false,
+    "worker_ready": true,
+    "code_systems": ["ICD-10-CN", "ICD-9-CM-3-CN"],
+    "wrong_token_rejected": true,
+    "backend_remote_health_attributed": true,
+    "mcp_search_icd_remote_candidate": "I50.900",
+    "lexical_fallback_used": false,
+    "residual_processes": 0
+  },
+  "deployment": {
+    "overlay": "docker-compose.medcoder.yml",
+    "backend_url": "http://medcoder-retriever:8100",
+    "worker_health_dependency": true,
+    "token_required_at_compose_configuration": true,
+    "api_native_medcoder_disabled": true,
+    "static_checks": {"passed": 52, "failed": 0},
+    "docker_cli_available": false,
+    "image_built": false,
+    "linux_native_worker_started": false
+  },
+  "tests": {
+    "expanded_related": {"passed": 93, "failed": 0},
+    "initial_worker_remote_deployment_e2e": {"passed": 24, "failed": 0},
+    "compose_and_ci_yaml": "valid"
+  },
+  "assets": {
+    "manifest_schema": "icoder.medcoder-assets/v1",
+    "index_version": "cn-catalog-2026-06-26-bge-m3-5617a9f6",
+    "artifact_count": 4,
+    "size_and_sha256_verified": true
+  },
+  "agent_hub": {
+    "disk_packs": 32,
+    "visible_agents": 26,
+    "visible_launch_candidate_ready": 26,
+    "hidden_packs": 6,
+    "hidden_metadata_only_or_stub": 5,
+    "hidden_internal_engine": 1,
+    "visible_stub_agents": 0
+  },
+  "limitations": [
+    "fixture_retriever_does_not_prove_bge_or_faiss_quality",
+    "no_docker_image_build_or_linux_native_runtime",
+    "no_sbom_or_image_vulnerability_scan",
+    "no_capacity_latency_or_fault_injection",
+    "no_hospital_or_clinical_validation"
+  ]
+}

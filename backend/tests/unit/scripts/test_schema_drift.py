@@ -86,40 +86,66 @@ print("DRIFT_OK: 0 divergences")
 
 
 def test_drift_checker_detects_missing_column(tmp_path):
-    """Sanity check: if we drop a column from the DB, the checker should flag it."""
-    from app.services.schema_drift_service import check_drift
-    from sqlalchemy import create_engine, text
+    """Sanity check: if we drop a column from the DB, the checker should flag it.
 
+    Runs alembic + ALTER + check_drift in a single subprocess so ORM
+    ``Base.metadata`` is populated fresh — no pollution from prior tests
+    in the parent pytest session. A1B-AE-RV.6 added the subprocess wrapper
+    because RV.3's expanded model imports made the parent-process metadata
+    noisy enough to mask the expected users.department divergence.
+    """
     db_path = tmp_path / "missing_col.db"
     db_path_str = str(db_path).replace("\\", "/")
     async_db_url = f"sqlite+aiosqlite:///{db_path_str}"
     sync_db_url = f"sqlite:///{db_path_str}"
 
-    # Run alembic to set up the schema
-    env = os.environ.copy()
-    env["DATABASE_URL"] = async_db_url
-    subprocess.run(
-        [sys.executable, "-m", "alembic", "upgrade", "head"],
-        cwd=_BACKEND_DIR,
-        env=env,
+    script = f"""
+import os, sys
+sys.path.insert(0, {str(_BACKEND_DIR)!r})
+os.environ["DATABASE_URL"] = {async_db_url!r}
+
+# Step 1: alembic upgrade head
+import subprocess
+result = subprocess.run(
+    [sys.executable, "-m", "alembic", "upgrade", "head"],
+    cwd={str(_BACKEND_DIR)!r},
+    env={{**os.environ, "DATABASE_URL": {async_db_url!r}}},
+    capture_output=True, text=True,
+)
+if result.returncode != 0:
+    print("ALEMBIC_FAIL_STDOUT:", result.stdout)
+    print("ALEMBIC_FAIL_STDERR:", result.stderr)
+    sys.exit(2)
+
+# Step 2: rename users.department to break ORM match
+from sqlalchemy import create_engine, text
+engine = create_engine({sync_db_url!r})
+with engine.connect() as conn:
+    conn.execute(text("ALTER TABLE users RENAME COLUMN department TO department_renamed"))
+    conn.commit()
+engine.dispose()
+
+# Step 3: check_drift (fresh import — Base.metadata is clean)
+from app.services.schema_drift_service import check_drift
+report = check_drift({sync_db_url!r})
+dept_divergences = [d for d in report.divergences if d.table == "users" and d.column == "department"]
+if len(dept_divergences) < 1:
+    types = [d.type for d in report.divergences if d.table == 'users']
+    print("NO_DRIFT_DETECTED; user-table divergences:", types)
+    sys.exit(1)
+print("DRIFT_OK: users.department divergence detected")
+"""
+
+    result = subprocess.run(
+        [sys.executable, "-c", script],
         capture_output=True,
         text=True,
-        check=True,
     )
-
-    # Drop a column that the ORM declares (e.g. users.department)
-    engine = create_engine(sync_db_url)
-    with engine.connect() as conn:
-        # SQLite doesn't support DROP COLUMN directly — use batch via raw SQL
-        # Easier: rename the column to break the ORM match
-        conn.execute(text("ALTER TABLE users RENAME COLUMN department TO department_renamed"))
-        conn.commit()
-    engine.dispose()
-
-    report = check_drift(sync_db_url)
-    # We expect at least one divergence related to users.department
-    dept_divergences = [d for d in report.divergences if d.table == "users" and d.column == "department"]
-    assert len(dept_divergences) >= 1, (
-        f"Expected drift on users.department after rename, got: "
-        f"{[d.type for d in report.divergences if d.table == 'users']}"
+    if result.returncode != 0:
+        pytest.fail(
+            f"drift detection failed (exit {result.returncode}):\n"
+            f"stdout: {result.stdout}\nstderr: {result.stderr}"
+        )
+    assert "DRIFT_OK: users.department divergence detected" in result.stdout, (
+        f"Expected DRIFT_OK marker, got:\n{result.stdout}\n{result.stderr}"
     )

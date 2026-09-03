@@ -1,0 +1,172 @@
+{
+  "case_id": "H-EXP-PUB-010",
+  "group": "EXPERT_ROUTING",
+  "variant": "PUBMED",
+  "session_id": "cb2e965e-64ef-4c67-b798-aa47027fffe4",
+  "attempt": 1,
+  "outcome": "SUCCESS",
+  "elapsed_s": 30.16,
+  "expected": {
+    "query_count_min": 1,
+    "query_count_max": 2,
+    "expected_query_topics": [
+      "clinical diagnostic criteria for anti-NMDA receptor encephalitis"
+    ],
+    "forbidden_query_topics": [],
+    "no_query_expected": false
+  },
+  "text_length": 6163,
+  "first_token_at_s": 3.57,
+  "last_token_at_s": 30.16,
+  "event_count": 11,
+  "raw_events_preview": [
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"code_system\":\"icd-10-cm\",\"count\":2,\"next_steps\":[{\"reason\":\"Browse related codes and alternatives in the same category\",\"tool\":\"explore\"},{\"reason\":\"Read coding conventions relevant to these",
+    "message|{\"data\":{\"sections\":[{\"id\":\"icd-10-cm_section_0\",\"number\":null,\"title\":\"ICD-10-CM Official Guidelines for Coding and Reporting\"},{\"id\":\"icd-10-cm_section_I\",\"number\":\"I\",\"title\":\"Conventions, general ",
+    "message|{\"id\":\"93cdd905-fdae-4f67-aadc-a78e32676386\",\"type\":\"text-start\"}",
+    "message|{\"delta\":\"Encounter Summary:\\n- Chart excerpt documents: \\\"Patient with rare autoimmune encephalitis.\\\"\\n- A diagnosis is stated as: \\\"anti-NMDA receptor encephalitis.\\\"\\n- The excerpt also states: \\\"",
+    "message|{\"id\":\"93cdd905-fdae-4f67-aadc-a78e32676386\",\"type\":\"text-end\"}",
+    "message|{\"messageMetadata\":{\"contextId\":\"019f5bca-3f50-759a-b9d9-494c2ad9abea\",\"taskId\":\"019f5bca-3f50-74fc-afa0-2d7e3bc53db3\",\"credits\":0.08430399999999999,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+    "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.08430399999999999},\"type\":\"finish\"}",
+    "message|[DONE]"
+  ],
+  "expert_events": [
+    {
+      "code_system": "icd-10-cm",
+      "count": 2,
+      "next_steps": [
+        {
+          "reason": "Browse related codes and alternatives in the same category",
+          "tool": "explore"
+        },
+        {
+          "reason": "Read coding conventions relevant to these codes",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "To assign the codes for a clinical note, use predict (optionally with include/exclude filters)",
+          "tool": "predict"
+        }
+      ],
+      "query": "anti-NMDA receptor encephalitis",
+      "results": [
+        {
+          "code": "G92.8",
+          "description": "Other toxic encephalopathy",
+          "match_path": "Encephalitis, toxic, other specified",
+          "related_codes": {
+            "category": "G92",
+            "category_description": "Toxic encephalopathy",
+            "count": 3
+          }
+        },
+        {
+          "code": "G92.00",
+          "description": "Immune effector cell-associated neurotoxicity syndrome, grade unspecified",
+          "match_path": "Syndrome, immune effector cell-associated neurotoxicity",
+          "related_codes": {
+            "category": "G92.0",
+            "category_description": "Immune effector cell-associated neurotoxicity syndrome",
+            "count": 6
+          }
+        }
+      ]
+    },
+    {
+      "sections": [
+        {
+          "id": "icd-10-cm_section_0",
+          "number": null,
+          "title": "ICD-10-CM Official Guidelines for Coding and Reporting"
+        },
+        {
+          "id": "icd-10-cm_section_I",
+          "number": "I",
+          "title": "Conventions, general coding guidelines and chapter specific guidelines"
+        },
+        {
+          "id": "icd-10-cm_section_II",
+          "number": "II",
+          "title": "Selection of Principal Diagnosis"
+        },
+        {
+          "id": "icd-10-cm_section_III",
+          "number": "III",
+          "title": "Reporting Additional Diagnoses"
+        },
+        {
+          "id": "icd-10-cm_section_IV",
+          "number": "IV",
+          "title": "Diagnostic Coding and Reporting Guidelines for Outpatient Services"
+        },
+        {
+          "id": "icd-10-cm_section_490",
+          "number": null,
+          "title": "Appendix I"
+        },
+        {
+          "id": "icd-10-cm_section_491",
+          "number": null,
+          "title": "Present on Admission Reporting Guidelines"
+        }
+      ]
+    }
+  ],
+  "status_events": [
+    {
+      "state": "working"
+    },
+    {
+      "state": "working"
+    },
+    {
+      "message": "Calling expert: coding-expert",
+      "state": "working"
+    }
+  ],
+  "finish_metadata": {
+    "contextId": "019f5bca-3f50-759a-b9d9-494c2ad9abea",
+    "taskId": "019f5bca-3f50-74fc-afa0-2d7e3bc53db3",
+    "credits": 0.08430399999999999,
+    "state": "completed"
+  },
+  "parsed": {
+    "encounter_summary": "- Chart excerpt documents: \"Patient with rare autoimmune encephalitis.\"\n- A diagnosis is stated as: \"anti-NMDA receptor encephalitis.\"\n- The excerpt also states: \"clinical criteria not listed in chart.\"\n- The excerpt also states: \"No antibody titer documented.\"",
+    "gaps": [
+      {
+        "idx": 1,
+        "text": "Gap: Basis for the documented diagnosis is not described.\n- Why it matters: The chart contains a specific autoimmune encephalitis label, but the supporting diagnostic basis is not documented in the excerpt. For CDI purposes, this limits traceability of the diagnosis and may create audit risk if the record does not show how the diagnosis was established.\n- Evidence quote: \"Diagnosis of 'anti-NMDA receptor encephalitis' documented but clinical criteria not listed in chart.\"\n- Minimal clarification"
+      },
+      {
+        "idx": 2,
+        "text": "Gap: Serologic/CSF antibody documentation is absent in the excerpt.\n- Why it matters: The diagnosis name references a specific antibody-mediated condition, but the excerpt states no antibody titer is documented. This creates ambiguity about whether the diagnosis is confirmed by testing, based on outside records, or documented clinically without available antibody results.\n- Evidence quote: \"No antibody titer documented.\"\n- Minimal clarification needed: Clarify whether antibody testing exists, wh"
+      },
+      {
+        "idx": 3,
+        "text": "Gap: Diagnostic status is ambiguous.\n- Why it matters: The excerpt does not distinguish between confirmed diagnosis, presumed diagnosis, history of disease, or rule-out/working diagnosis. This distinction affects documentation integrity and code assignment.\n- Evidence quote: \"Diagnosis of 'anti-NMDA receptor encephalitis' documented...\"\n- Minimal clarification needed: Clarify whether anti-NMDA receptor encephalitis is current/active, historical, suspected, or clinically undetermined in this enco"
+      }
+    ],
+    "gap_count": 3,
+    "queries": [
+      {
+        "idx": 1,
+        "text": "Diagnostic basis/status of anti-NMDA receptor encephalitis"
+      },
+      {
+        "idx": 2,
+        "text": "Supporting diagnostic documentation"
+      }
+    ],
+    "query_count": 2,
+    "specialists_contacted": [
+      "Medical Coding Expert",
+      "Coding Expert"
+    ],
+    "specialist_trace_text": "- Medical Coding Expert: Consulted for coding specificity opportunities and compliant query targets. Accepted only the high-level takeaway that the excerpt lacks sufficient support/specification for code-ready diagnosis documentation. Rejected the returned code suggestions because they pointed to toxic encephalopathy categories not supported by the excerpt and therefore were not appropriate for this case.\n- AMBOSS Expert: Not consulted. Reason: the user asked about absent diagnostic criteria documentation, but no patient-specific clinical findings were provided to compare against formal criteria.\n- CDI Web Search Expert: Not consulted. Reason: current external guidance was not required to identify the chart-supported documentation gaps in this excerpt.\n\nBottom line:\n- A compliant CDI query is supportable to clarify the status and documentary basis of the anti-NMDA receptor encephalitis diagnosis.\n- It is not supportable from this excerpt to query for additional patient-specific manifestations or complications because none are documented here.",
+    "has_specialist_trace": true
+  },
+  "error": "",
+  "text": "Encounter Summary:\n- Chart excerpt documents: \"Patient with rare autoimmune encephalitis.\"\n- A diagnosis is stated as: \"anti-NMDA receptor encephalitis.\"\n- The excerpt also states: \"clinical criteria not listed in chart.\"\n- The excerpt also states: \"No antibody titer documented.\"\n\nDocumentation Gaps:\n1. Gap: Basis for the documented diagnosis is not described.\n- Why it matters: The chart contains a specific autoimmune encephalitis label, but the supporting diagnostic basis is not documented in the excerpt. For CDI purposes, this limits traceability of the diagnosis and may create audit risk if the record does not show how the diagnosis was established.\n- Evidence quote: \"Diagnosis of 'anti-NMDA receptor encephalitis' documented but clinical criteria not listed in chart.\"\n- Minimal clarification needed: Clarify the documented basis for the diagnosis as supported in the record, such as whether it is clinically diagnosed, antibody-confirmed, previously established, or still suspected/evaluated.\n\n2. Gap: Serologic/CSF antibody documentation is absent in the excerpt.\n- Why it matters: The diagnosis name references a specific antibody-mediated condition, but the excerpt states no antibody titer is documented. This creates ambiguity about whether the diagnosis is confirmed by testing, based on outside records, or documented clinically without available antibody results.\n- Evidence quote: \"No antibody titer documented.\"\n- Minimal clarification needed: Clarify whether antibody testing exists, whether results are pending/unavailable/not performed, or whether the diagnosis is based on prior confirmed history or clinical assessment.\n\n3. Gap: Diagnostic status is ambiguous.\n- Why it matters: The excerpt does not distinguish between confirmed diagnosis, presumed diagnosis, history of disease, or rule-out/working diagnosis. This distinction affects documentation integrity and code assignment.\n- Evidence quote: \"Diagnosis of 'anti-NMDA receptor encephalitis' documented...\"\n- Minimal clarification needed: Clarify whether anti-NMDA receptor encephalitis is current/active, historical, suspected, or clinically undetermined in this encounter.\n\nProposed Provider Queries:\n1. Topic: Diagnostic basis/status of anti-NMDA receptor encephalitis\n- Reason query is needed: The diagnosis is named, but the chart excerpt states that the clinical criteria are not listed and no antibody titer is documented.\n- Evidence quote: \"Diagnosis of 'anti-NMDA receptor encephalitis' documented but clinical criteria not listed in chart. No antibody titer documented.\"\n- Non-leading query text:\n  \"A diagnosis of anti-NMDA receptor encephalitis is documented in the record. For documentation clarity, please clarify the status and basis of this diagnosis for this encounter.\"\n- Suggested response options:\n  - Current/active anti-NMDA receptor encephalitis, previously established/confirmed\n  - Current/active anti-NMDA receptor encephalitis, clinically diagnosed this encounter\n  - Suspected/possible anti-NMDA receptor encephalitis under evaluation\n  - History of anti-NMDA receptor encephalitis, not active this encounter\n  - Unable to determine\n  - Other: ______\n\n2. Topic: Supporting diagnostic documentation\n- Reason query is needed: The excerpt explicitly notes that supporting criteria are not listed and no antibody titer is documented.\n- Evidence quote: \"clinical criteria not listed in chart\" and \"No antibody titer documented.\"\n- Non-leading query text:\n  \"To support the documented diagnosis, please clarify what diagnostic evidence is available in the record for anti-NMDA receptor encephalitis, if any.\"\n- Suggested response options:\n  - Antibody testing confirmed and available in record\n  - Antibody testing confirmed by outside records/history but not available in current chart excerpt\n  - Antibody testing pending\n  - No antibody confirmation documented; diagnosis based on clinical assessment\n  - Diagnosis remains under evaluation / clinically undetermined\n  - Other: ______\n\nCoding Specificity Checklist:\n- Whether the condition is current/active, historical, suspected, or ruled out\n- Whether the diagnosis was previously established versus newly diagnosed this encounter\n- Whether there is documented supporting evidence in the record\n- Whether antibody testing was performed, pending, unavailable, or not documented\n- Whether supporting information comes from current chart data versus outside records\n- Whether the provider intends this as a definitive diagnosis or a working diagnosis\n\nRisk Flags:\n- Audit/support risk: A highly specific diagnosis label is documented, but the excerpt states that supporting clinical criteria are not listed.\n- Evidence gap: \"No antibody titer documented\" creates ambiguity regarding confirmation status.\n- Ambiguity: The excerpt does not establish whether this is an active condition, historical diagnosis, or suspected condition.\n- Coding caution: The coding expert search results returned unrelated toxic encephalopathy codes (for example G92.8), which are not supported by this excerpt and should be rejected for this case.\n\nSpecialist Trace:\n- Medical Coding Expert: Consulted for coding specificity opportunities and compliant query targets. Accepted only the high-level takeaway that the excerpt lacks sufficient support/specification for code-ready diagnosis documentation. Rejected the returned code suggestions because they pointed to toxic encephalopathy categories not supported by the excerpt and therefore were not appropriate for this case.\n- AMBOSS Expert: Not consulted. Reason: the user asked about absent diagnostic criteria documentation, but no patient-specific clinical findings were provided to compare against formal criteria.\n- CDI Web Search Expert: Not consulted. Reason: current external guidance was not required to identify the chart-supported documentation gaps in this excerpt.\n\nBottom line:\n- A compliant CDI query is supportable to clarify the status and documentary basis of the anti-NMDA receptor encephalitis diagnosis.\n- It is not supportable from this excerpt to query for additional patient-specific manifestations or complications because none are documented here."
+}

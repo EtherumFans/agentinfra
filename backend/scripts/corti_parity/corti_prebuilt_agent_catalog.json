@@ -1,0 +1,200 @@
+{
+  "schema_version": "icoder.corti-prebuilt-agent-catalog/v1",
+  "observed_at": "2026-08-15",
+  "source": "Authenticated, read-only Corti Console observation; no prediction request or credit use.",
+  "catalog_claim": "Corti Console exposes 20 pre-built Agents in the observed project.",
+  "verification_boundaries": {
+    "catalog_mapping": "A stable one-to-one mapping exists from every observed Corti pre-built Agent to a Hub-visible iCoDer Agent.",
+    "development_verified": "The mapped iCoDer Pack is executable, provider-resolvable, contract-complete, example-backed, writeback-blocked and passes local runtime gates.",
+    "clinical_quality_verified": false,
+    "production_ready_verified": false,
+    "external_gates": [
+      "independent clinical-quality benchmark on representative de-identified records",
+      "real hospital workflow and upstream/downstream integration validation",
+      "security, privacy, regulatory and clinical-governance approval",
+      "production infrastructure, observability, disaster recovery and operations validation"
+    ]
+  },
+  "agents": [
+    {
+      "order": 1,
+      "corti_agent_id": "icd-10-index-navigator",
+      "corti_name": "ICD-10 Index Navigator",
+      "icoder_agent_id": "icd10-navigator",
+      "required_output_fields": ["candidate_codes", "source_version", "manual_review_required"],
+      "china_adaptation": {"profile": "ICD-10-CN", "required_markers": ["ICD-10-CN"]},
+      "remaining_capability_gap": "Corti global coding-system breadth and same-dataset navigation quality are not independently benchmarked."
+    },
+    {
+      "order": 2,
+      "corti_agent_id": "rule-explainer",
+      "corti_name": "Rule Explainer",
+      "icoder_agent_id": "rule-explainer",
+      "required_output_fields": ["catalog_status", "guideline_basis", "evidence_refs", "unsupported_scope", "manual_review_required"],
+      "china_adaptation": {"profile": "Governed ICD-10-CN catalog-fact explanation with explicit rule-source gaps", "required_markers": ["ICD-10-CN", "cn.icd10cn.catalog"]},
+      "remaining_capability_gap": "The governed local asset does not contain Includes/Excludes, Code First, Use Additional Code, Code Also, combination/sequencing rules, CPT, ICD-10-CM/PCS or authoritative China payment policy. Authoritative licensed rule assets and an independent coder benchmark remain external gates."
+    },
+    {
+      "order": 3,
+      "corti_agent_id": "compliance-guardrail",
+      "corti_name": "Compliance Guardrail",
+      "icoder_agent_id": "compliance-guardrail-agent",
+      "required_output_fields": ["reviewed_codes", "compliance_checks", "rule_set", "trace_refs"],
+      "china_adaptation": {"profile": "China coding and DRG compliance", "required_markers": ["MedicalCodingRuleSet", "DRG"]},
+      "remaining_capability_gap": "Payer-specific live rules, charge compliance depth and hospital claim integration remain external or incomplete."
+    },
+    {
+      "order": 4,
+      "corti_agent_id": "code-validation",
+      "corti_name": "Code Validation",
+      "icoder_agent_id": "code-validation-agent",
+      "required_output_fields": ["validated_codes", "cross_code_issues", "manual_review_required"],
+      "china_adaptation": {"profile": "China diagnosis and procedure code validation", "required_markers": ["中国医疗编码", "icd-9-cm-3"]},
+      "remaining_capability_gap": "No independent clinical coding accuracy benchmark or production catalog service SLO."
+    },
+    {
+      "order": 5,
+      "corti_agent_id": "procedure-entity-extractor",
+      "corti_name": "Procedure Entity Extractor",
+      "icoder_agent_id": "procedure-extractor",
+      "required_output_fields": ["procedures", "non_billable_mentions", "manual_review_required"],
+      "china_adaptation": {"profile": "Governed local ICD-9-CM-3 explicit-procedure baseline", "required_markers": ["ICD-9-CM-3", "cn.icd9cm3.catalog"]},
+      "remaining_capability_gap": "Only explicit status extraction and unique lexical catalog matches are locally verified; comprehensive procedure normalization, clinical appropriateness, authoritative catalog licensing and representative hospital benchmarking remain open."
+    },
+    {
+      "order": 6,
+      "corti_agent_id": "diagnostic-entity-extractor",
+      "corti_name": "Diagnostic Entity Extractor",
+      "icoder_agent_id": "diagnosis-extractor",
+      "required_output_fields": ["diagnoses", "non_codable_mentions", "manual_review_required"],
+      "china_adaptation": {"profile": "Governed local ICD-10-CN explicit-diagnosis and assertion baseline", "required_markers": ["ICD-10-CN", "cn.icd10cn.catalog"]},
+      "remaining_capability_gap": "Only explicit diagnosis labels and explicit suspected/negated/history/family-history states are locally verified. Full-note entity and symptom recall, implied-condition review, combination/sequencing/Excludes/guideline verification, authoritative catalog licensing and real de-identified chart benchmarking remain open."
+    },
+    {
+      "order": 7,
+      "corti_agent_id": "surgical-registry-intelligence",
+      "corti_name": "Surgical Registry Intelligence",
+      "icoder_agent_id": "surgical-registry",
+      "required_output_fields": ["operative_details", "evidence_spans", "missing_fields"],
+      "china_adaptation": {"profile": "China hospital surgical quality registry", "required_markers": ["中国医院", "外科质控登记"]},
+      "remaining_capability_gap": "No production surgical registry connector or registry-specific validation set."
+    },
+    {
+      "order": 8,
+      "corti_agent_id": "icu-admission-summary",
+      "corti_name": "ICU Admission Summary",
+      "icoder_agent_id": "icu-summary",
+      "required_output_fields": ["summary_status", "patient_background", "admission_reason", "admission_diagnoses", "timeline", "active_problems", "organ_support", "medications", "vital_signs", "laboratory_results", "procedures", "key_trends", "pending_items", "risks", "conflicts", "source_completeness", "evidence_items", "clinical_scores_status", "medication_screening_status", "clinical_recommendations_generated", "production_writeback_blocked", "manual_review_required"],
+      "china_adaptation": {"profile": "China governed ICU admission documentation baseline", "required_markers": ["中国医院 ICU", "明确字段标签", "逐字证据", "APACHE II", "SOFA", "DrugBank"]},
+      "remaining_capability_gap": "The local baseline only reorganizes explicitly labelled documented facts. Corti-style EHR/device/MAR/LIS synthesis, institution-configured templates and thresholds, PubMed/DrugBank/Medical Calculator integration, APACHE II/SOFA/GCS calculation, medication screening, approval workflow, longitudinal clinical validation and independent ICU-clinician review remain unavailable or external gates."
+    },
+    {
+      "order": 9,
+      "corti_agent_id": "triage-and-initial-assessment",
+      "corti_name": "Triage and Initial Assessment",
+      "icoder_agent_id": "triage",
+      "required_output_fields": ["acuity_level", "red_flags", "manual_review_required"],
+      "china_adaptation": {"profile": "China emergency triage boundary", "required_markers": ["中国医院急诊分诊", "现场分诊"]},
+      "remaining_capability_gap": "Cannot be treated as an autonomous triage device; local protocol validation and safety approval are required."
+    },
+    {
+      "order": 10,
+      "corti_agent_id": "note-completeness",
+      "corti_name": "Note Completeness",
+      "icoder_agent_id": "note-completeness-agent",
+      "required_output_fields": ["documentation_gaps", "completeness_score", "trace_refs"],
+      "china_adaptation": {"profile": "China medical-record writing rules", "required_markers": ["病历书写基本规范"]},
+      "remaining_capability_gap": "Hospital-template coverage and specialty-specific completeness scoring need local validation."
+    },
+    {
+      "order": 11,
+      "corti_agent_id": "medication-reconciliation",
+      "corti_name": "Medication Reconciliation",
+      "icoder_agent_id": "med-reconciliation",
+      "required_output_fields": ["reconciliation_status", "home_medications", "inpatient_medications", "discharge_medications", "reconciliation_summary", "discrepancies", "interaction_screening_status", "interaction_risks", "allergy_review_status", "allergy_conflicts", "missing_rationale", "follow_up_items", "manual_review_required"],
+      "china_adaptation": {"profile": "China hospital documented-source medication reconciliation baseline", "required_markers": ["入院前", "住院", "出院", "DrugBank", "医院药品库"]},
+      "remaining_capability_gap": "Only exact documented-name alignment and literal allergy matching are available locally. Licensed DrugBank/hospital formulary integration, brand-generic normalization, interaction/contraindication screening, dose suitability, prescribing workflow and independent pharmacist validation remain external gates."
+    },
+    {
+      "order": 12,
+      "corti_agent_id": "denial-appeals",
+      "corti_name": "Denial Appeals",
+      "icoder_agent_id": "denial-appeals",
+      "required_output_fields": ["appeal_status", "denial_snapshot", "payer_information", "documented_resolution_path", "provided_policy", "missing_policy_items", "appeal_letter_draft", "corrected_claim_checklist", "evidence_items", "denial_classification_status", "draft_generation_status", "production_submission_blocked", "production_writeback_blocked", "manual_review_required"],
+      "china_adaptation": {"profile": "China insurance denial appeal draft", "required_markers": ["中国医疗场景", "医保拒付申诉"]},
+      "remaining_capability_gap": "Automatic denial classification and root-cause inference, code/modifier/unit validation, regional payer-policy and deadline retrieval, PubMed/Web/medical-coding experts, claim/EOB/ERA integration, submission, outcome analytics and independent validation remain unavailable or external gates."
+    },
+    {
+      "order": 13,
+      "corti_agent_id": "patient-discharge-education",
+      "corti_name": "Patient Discharge Education",
+      "icoder_agent_id": "discharge-edu",
+      "required_output_fields": ["education_status", "diagnosis_summary", "encounter_summary", "key_results", "medication_instructions", "medication_reconciliation_status", "follow_up", "warning_signs", "lifestyle", "pending_results", "teach_back_questions", "clarification_questions", "contradictions", "missing_items", "source_completeness", "evidence_items", "limitations", "translation_status", "external_knowledge_used", "clinical_interpretation_performed", "clinical_recommendations_generated", "production_writeback_blocked", "manual_review_required", "trace_refs"],
+      "china_adaptation": {"profile": "China hospital documented-source discharge education baseline", "required_markers": ["中国医院出院患者宣教", "明确字段标签", "患者门户"]},
+      "remaining_capability_gap": "The local baseline only reorganizes explicitly labelled verbatim discharge facts. Corti-style patient-friendly medical translation, reading-level and language adaptation, conservative result explanation, medication-change explanation, PubMed/Web Search/Medical Calculator experts, EHR/AVS/patient-portal integration, accessibility/comprehension studies and prospective outcome validation remain unavailable or external gates."
+    },
+    {
+      "order": 14,
+      "corti_agent_id": "nursing-shift-handoff",
+      "corti_name": "Nursing Shift Handoff",
+      "icoder_agent_id": "nursing-handoff",
+      "required_output_fields": ["assignment_summary", "patient_handoffs", "situation", "safety_risks", "lines_devices", "pending_tasks", "evidence_items", "clinical_priority_assessed"],
+      "china_adaptation": {"profile": "China nursing SBAR handoff", "required_markers": ["中国医院护理交班", "SBAR"]},
+      "remaining_capability_gap": "Local baseline requires explicit labels and does not provide Corti-style free-text/multi-source synthesis, Medical Calculator results, live nursing/MAR/lab integration or prospective nurse handoff safety validation."
+    },
+    {
+      "order": 15,
+      "corti_agent_id": "prior-authorization",
+      "corti_name": "Prior Authorization",
+      "icoder_agent_id": "prior-auth",
+      "required_output_fields": ["requested_item", "clinical_documentation", "payer_policy", "authorization_packet_draft", "medical_necessity_assessment_status"],
+      "china_adaptation": {"profile": "China payer pre-authorization draft", "required_markers": ["中国医疗场景", "支付方要求"]},
+      "remaining_capability_gap": "No real-time payer eligibility, policy or submission connector."
+    },
+    {
+      "order": 16,
+      "corti_agent_id": "referral-generator",
+      "corti_name": "Referral Generator",
+      "icoder_agent_id": "referral-gen",
+      "required_output_fields": ["referral_reason", "receiving_party", "missing_supporting_items"],
+      "china_adaptation": {"profile": "China two-way referral", "required_markers": ["中国医院双向转诊"]},
+      "remaining_capability_gap": "No regional referral-platform delivery or closed-loop receipt tracking."
+    },
+    {
+      "order": 17,
+      "corti_agent_id": "clinical-education",
+      "corti_name": "Clinical Education",
+      "icoder_agent_id": "clinical-education",
+      "required_output_fields": ["education_status", "topic", "audience", "approved_source", "source_statements", "learning_objectives", "key_points", "evidence_citations", "knowledge_checks", "evidence_items", "missing_required_fields", "missing_source_metadata", "limitations", "source_insufficient", "source_sufficiency_status", "content_generation_status", "question_classification_performed", "clinical_reasoning_performed", "diagnostic_advice_generated", "treatment_advice_generated", "drug_interaction_assessed", "medical_calculator_used", "pubmed_lookup_performed", "web_search_performed", "external_knowledge_used", "production_writeback_blocked", "manual_review_required", "trace_refs"],
+      "china_adaptation": {"profile": "Hospital-approved China clinical education", "required_markers": ["中国医疗场景", "医院批准"]},
+      "remaining_capability_gap": "The governed local baseline only copies explicitly labelled, user-supplied hospital-approved source statements into fixed learning-objective, key-point and open-response recall templates. Corti-style question classification, adaptive Quick/Tutor/Board-style teaching, diagnostic and mechanistic explanation, differential reasoning, drug-interaction support, PubMed/Web Search/Medical Calculator routing, source retrieval/validation, LMS integration, curriculum governance, learner-outcome validation and independent clinical-education review remain unavailable or external gates."
+    },
+    {
+      "order": 18,
+      "corti_agent_id": "medical-coding",
+      "corti_name": "Medical Coding",
+      "icoder_agent_id": "medical-coding-agent",
+      "required_output_fields": ["code_assignment", "documentation_gaps", "human_review"],
+      "china_adaptation": {"profile": "ICD-10-CN and ICD-9-CM-3", "required_markers": ["ICD-10-CN", "ICD-9-CM-3"]},
+      "remaining_capability_gap": "Corti global coding-system breadth and independent same-dataset accuracy/cost/latency parity are unverified."
+    },
+    {
+      "order": 19,
+      "corti_agent_id": "clinical-guidelines",
+      "corti_name": "Clinical Guidelines",
+      "icoder_agent_id": "clinical-guidelines",
+      "required_output_fields": ["guideline_status", "guideline_source", "criteria_checked", "deviations", "evidence_citations", "evidence_items", "manual_review_required"],
+      "china_adaptation": {"profile": "Hospital-approved China guideline evaluation", "required_markers": ["中国医疗场景", "医院批准"]},
+      "remaining_capability_gap": "The local baseline compares supplied approved-source rules and documented facts, but does not perform Corti-like configured-domain Web Search, source authenticity/currency validation, free-form multi-document synthesis, clinical applicability/significance reasoning, or an independent specialty benchmark."
+    },
+    {
+      "order": 20,
+      "corti_agent_id": "clinical-documentation-improvement",
+      "corti_name": "Clinical Documentation Improvement (CDI)",
+      "icoder_agent_id": "clinical-documentation-improvement-agent",
+      "required_output_fields": ["documentation_gaps", "proposed_provider_queries", "query_gate_summary"],
+      "china_adaptation": {"profile": "China CDI and non-leading provider query", "required_markers": ["localized-for-china", "非诱导式"]},
+      "remaining_capability_gap": "Hospital CDI-team acceptance, documentation improvement outcomes and frozen benchmark parity are not complete."
+    }
+  ]
+}

@@ -1,0 +1,373 @@
+{
+  "agent_id": "drg-analyzer",
+  "run_id": "run-c6aff66b-dd81-48a8-9b38-0e33e0cd694a",
+  "trace_id": "trace-f4755512b6464bd3",
+  "trace_url": "/ai-studio/runs/run-c6aff66b-dd81-48a8-9b38-0e33e0cd694a/trace",
+  "runtime_mode": "governed_local_explicit_coded_case_risk_review",
+  "latency_ms": 80,
+  "cost": {
+    "amount": 0.0,
+    "currency": "CNY"
+  },
+  "billing": {},
+  "summary": "已对 2 个明确诊断编码及 1 个明确手术编码执行开发期风险复核；候选分组非官方结果，必须由授权引擎和编码员复核。",
+  "result": {
+    "status": "requires_review",
+    "markdown": "{\"billing_authoritative\": false, \"clinical_inference_performed\": false, \"code_assignment_performed\": false, \"code_extraction_performed\": false, \"code_validation_performed\": false, \"coded_case\": {\"diagnosis_coding_standard\": {\"system\": {\"documented_text\": \"ICD-10-CN\", \"evidence_ref\": \"drg-evidence-2\"}, \"version\": {\"documented_text\": \"医院批准版2026.1\", \"evidence_ref\": \"drg-evidence-3\"}}, \"patient_age\": {\"documented_text\": \"58\", \"evidence_ref\": \"drg-evidence-7\"}, \"patient_gender\": {\"documented_text\": \"M\", \"evidence_ref\": \"drg-evidence-6\"}, \"primary_diagnosis\": {\"char_span\": [136, 150], \"code\": \"I21.0\", \"display\": \"急性前壁心肌梗死\", \"evidence_ref\": \"drg-evidence-8\", \"evidence_status\": \"EXACT_INPUT_SPAN\", \"evidence_text\": \"I21.0 急性前壁心肌梗死\", \"source_document\": \"病案首页\"}, \"procedure_coding_standard\": {\"system\": {\"documented_text\": \"ICD-9-CM-3\", \"evidence_ref\": \"drg-evidence-4\"}, \"version\": {\"documented_text\": \"医院批准版2026.1\", \"evidence_ref\": \"drg-evidence-5\"}}, \"procedures\": [{\"char_span\": [227, 255], \"code\": \"00.66\", \"display\": \"<REDACTED:NAME>状动脉介入治疗\", \"evidence_ref\": \"drg-evidence-10\", \"evidence_status\": \"EXACT_INPUT_SPAN\", \"evidence_text\": \"00.66 <REDACTED:NAME>状动脉介入治疗\", \"source_document\": \"手术记录\"}], \"review_purpose\": {\"documented_text\": \"开发期DRG/DIP编码风险复核\", \"evidence_ref\": \"drg-evidence-1\"}, \"secondary_diagnoses\": [{\"char_span\": [174, 184], \"code\": \"I10\", \"display\": \"原发性高血压\", \"evidence_ref\": \"drg-evidence-9\", \"evidence_status\": \"EXACT_INPUT_SPAN\", \"evidence_text\": \"I10 原发性高血压\", \"source_document\": \"病案首页\"}]}, \"development_candidate_group\": {\"adrg\": \"EC1\", \"candidate_drg\": \"EC13\", \"candidate_name\": \"经皮冠状动脉支架植入伴 CC\", \"cc_level\": \"伴一般合并症/并发症 (CC)\", \"coverage\": true, \"grouping_method\": \"surgical\", \"mdc\": \"MDCE\", \"mdc_name\": \"循环系统疾病及功能障碍\", \"result_status\": \"EXPERIMENTAL_UNVERIFIED_CANDIDATE\"}, \"dip_review\": {\"note\": \"存在开发期候选匹配；未安装经授权的地区 DIP 目录，因此不计算分值或支付金额。\", \"status\": \"NO_AUTHORIZED_REGIONAL_DIP_PACK\"}, \"evidence_items\": [{\"char_span\": [5, 21], \"evidence_id\": \"drg-evidence-1\", \"field\": \"review_purpose\", \"label\": \"审核目的\", \"text\": \"开发期DRG/DIP编码风险复核\"}, {\"char_span\": [29, 38], \"evidence_id\": \"drg-evidence-2\", \"field\": \"diagnosis_coding_system\", \"label\": \"诊断编码标准\", \"text\": \"ICD-10-CN\"}, {\"char_span\": [46, 57], \"evidence_id\": \"drg-evidence-3\", \"field\": \"diagnosis_coding_version\", \"label\": \"诊断编码版本\", \"text\": \"医院批准版2026.1\"}, {\"char_span\": [65, 75], \"evidence_id\": \"drg-evidence-4\", \"field\": \"procedure_coding_system\", \"label\": \"手术编码标准\", \"text\": \"ICD-9-CM-3\"}, {\"char_span\": [83, 94], \"evidence_id\": \"drg-evidence-5\", \"field\": \"procedure_coding_version\", \"label\": \"手术编码版本\", \"text\": \"医院批准版2026.1\"}, {\"char_span\": [100, 101], \"evidence_id\": \"drg-evidence-6\", \"field\": \"patient_gender\", \"label\": \"患者性别\", \"text\": \"M\"}, {\"char_span\": [107, 109], \"evidence_id\": \"drg-evidence-7\", \"field\": \"patient_age\", \"label\": \"患者年龄\", \"text\": \"58\"}, {\"char_span\": [136, 150], \"evidence_id\": \"drg-evidence-8\", \"field\": \"primary_diagnosis\", \"label\": \"primary_diagnosis\", \"text\": \"I21.0 急性前壁心肌梗死\"}, {\"char_span\": [174, 184], \"evidence_id\": \"drg-evidence-9\", \"field\": \"secondary_diagnosis\", \"label\": \"secondary_diagnosis\", \"text\": \"I10 原发性高血压\"}, {\"char_span\": [227, 255], \"evidence_id\": \"drg-evidence-10\", \"field\": \"procedure\", \"label\": \"procedure\", \"text\": \"00.66 <REDACTED:NAME>状动脉介入治疗\"}], \"governance\": {\"authority_status\": \"experimental_unverified\", \"jurisdiction\": \"CN_GENERIC_DEVELOPMENT\", \"license_status\": \"external_review_required\", \"rule_pack_id\": \"cn.drg_dip.risk_heuristics\", \"rule_pack_version\": \"1.0.0-development\", \"use_restriction\": \"development_risk_review_only_not_for_grouping_payment_or_settlement\"}, \"input_conflicts\": [], \"limitations\": [\"仅处理编码员明确提供的结构化诊断/手术编码及逐字证据，不从自由文本提取或新增编码。\", \"内置规则和术语映射未经官方来源、许可、地区版本或医院版本独立验证，仅供开发期风险复核。\", \"候选 DRG 不是官方分组，不计算或输出权重、CMI、DIP 分值、支付或结算金额。\", \"不判断诊断成立、编码正确性、临床合理性、医疗必要性或医保支付资格。\", \"READY_FOR_CODER_REVIEW 只表示本地启发式运行完成，不表示可用于编码、报送、支付或结算。\", \"结果必须由获授权的地区/医院分组器和人工编码员独立复核，禁止自动提交和写回。\"], \"local_development_rules_used\": true, \"manual_review_required\": true, \"missing_required_fields\": [], \"official_dip_scoring_performed\": false, \"official_grouping_performed\": false, \"payment_calculation_performed\": false, \"production_submission_blocked\": true, \"production_writeback_blocked\": true, \"quality_flags\": {\"candidate_coverage\": true, \"candidate_only\": true, \"rule_pack_integrity_verified\": true}, \"review_actions\": [\"请使用获授权的本地区/医院分组器复核；不得为改变分组而调整缺乏病历证据的编码。\", \"编码特异性通过开发期格式检查，仍需人工复核。\", \"请交由获授权的地区/医院引擎复核，不得使用本结果计算 DIP 分值。\", \"必须人工复核，并使用获授权的本地区/医院规则包完成最终分组。\"], \"review_conclusion\": \"WARNING\", \"review_method\": \"EXPLICIT_CODED_CASE_DETERMINISTIC_UNVERIFIED_RISK_REVIEW\", \"review_status\": \"READY_FOR_CODER_REVIEW\", \"risk_findings\": [{\"category\": \"grouping\", \"input_evidence_refs\": [\"drg-evidence-8\"], \"message\": \"主诊断 I21.0 的开发期候选组为 EC13 (经皮冠状动脉支架植入伴 CC)，该结果非结算依据。\", \"review_action\": \"请使用获授权的本地区/医院分组器复核；不得为改变分组而调整缺乏病历证据的编码。\", \"rule_id\": \"DRG001\", \"severity\": \"info\"}, {\"category\": \"grouping\", \"input_evidence_refs\": [\"drg-evidence-8\", \"drg-evidence-9\"], \"message\": \"主诊断 I21.0 特异性 4 位字符。\", \"review_action\": \"编码特异性通过开发期格式检查，仍需人工复核。\", \"rule_id\": \"DIP001\", \"severity\": \"low\"}, {\"category\": \"grouping\", \"input_evidence_refs\": [\"drg-evidence-8\", \"drg-evidence-10\"], \"message\": \"主诊 I21.0 + 主操 00.66 通过开发期启发式匹配，候选组: EC13；并非官方验证。\", \"review_action\": \"请交由获授权的地区/医院引擎复核，不得使用本结果计算 DIP 分值。\", \"rule_id\": \"DIP003\", \"severity\": \"info\"}, {\"category\": \"grouping\", \"input_evidence_refs\": [], \"message\": \"当前 DRG/DIP 规则包为未验证的开发期风险启发式，不能用于支付或结算。\", \"review_action\": \"必须人工复核，并使用获授权的本地区/医院规则包完成最终分组。\", \"rule_id\": \"DRG_GOVERNANCE\", \"severity\": \"info\"}], \"trace_refs\": {\"provider_trace_refs\": [\"run-c6aff66b-dd81-48a8-9b38-0e33e0cd694a:governed-drg-dip-risk-review\"], \"run_id\": \"run-c6aff66b-dd81-48a8-9b38-0e33e0cd694a\"}}",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.governed-drg-dip-risk-review.v1",
+    "backend_type": "rule_engine",
+    "billing_authoritative": false,
+    "clinical_inference_performed": false,
+    "code_assignment_performed": false,
+    "code_extraction_performed": false,
+    "code_validation_performed": false,
+    "coded_case": {
+      "diagnosis_coding_standard": {
+        "system": {
+          "documented_text": "ICD-10-CN",
+          "evidence_ref": "drg-evidence-2"
+        },
+        "version": {
+          "documented_text": "医院批准版2026.1",
+          "evidence_ref": "drg-evidence-3"
+        }
+      },
+      "patient_age": {
+        "documented_text": "58",
+        "evidence_ref": "drg-evidence-7"
+      },
+      "patient_gender": {
+        "documented_text": "M",
+        "evidence_ref": "drg-evidence-6"
+      },
+      "primary_diagnosis": {
+        "char_span": [
+          136,
+          150
+        ],
+        "code": "I21.0",
+        "display": "急性前壁心肌梗死",
+        "evidence_ref": "drg-evidence-8",
+        "evidence_status": "EXACT_INPUT_SPAN",
+        "evidence_text": "I21.0 急性前壁心肌梗死",
+        "source_document": "病案首页"
+      },
+      "procedure_coding_standard": {
+        "system": {
+          "documented_text": "ICD-9-CM-3",
+          "evidence_ref": "drg-evidence-4"
+        },
+        "version": {
+          "documented_text": "医院批准版2026.1",
+          "evidence_ref": "drg-evidence-5"
+        }
+      },
+      "procedures": [
+        {
+          "char_span": [
+            227,
+            255
+          ],
+          "code": "00.66",
+          "display": "<REDACTED:NAME>状动脉介入治疗",
+          "evidence_ref": "drg-evidence-10",
+          "evidence_status": "EXACT_INPUT_SPAN",
+          "evidence_text": "00.66 <REDACTED:NAME>状动脉介入治疗",
+          "source_document": "手术记录"
+        }
+      ],
+      "review_purpose": {
+        "documented_text": "开发期DRG/DIP编码风险复核",
+        "evidence_ref": "drg-evidence-1"
+      },
+      "secondary_diagnoses": [
+        {
+          "char_span": [
+            174,
+            184
+          ],
+          "code": "I10",
+          "display": "原发性高血压",
+          "evidence_ref": "drg-evidence-9",
+          "evidence_status": "EXACT_INPUT_SPAN",
+          "evidence_text": "I10 原发性高血压",
+          "source_document": "病案首页"
+        }
+      ]
+    },
+    "development_candidate_group": {
+      "adrg": "EC1",
+      "candidate_drg": "EC13",
+      "candidate_name": "经皮冠状动脉支架植入伴 CC",
+      "cc_level": "伴一般合并症/并发症 (CC)",
+      "coverage": true,
+      "grouping_method": "surgical",
+      "mdc": "MDCE",
+      "mdc_name": "循环系统疾病及功能障碍",
+      "result_status": "EXPERIMENTAL_UNVERIFIED_CANDIDATE"
+    },
+    "dip_review": {
+      "note": "存在开发期候选匹配；未安装经授权的地区 DIP 目录，因此不计算分值或支付金额。",
+      "status": "NO_AUTHORIZED_REGIONAL_DIP_PACK"
+    },
+    "evidence_items": [
+      {
+        "char_span": [
+          5,
+          21
+        ],
+        "evidence_id": "drg-evidence-1",
+        "field": "review_purpose",
+        "label": "审核目的",
+        "text": "开发期DRG/DIP编码风险复核"
+      },
+      {
+        "char_span": [
+          29,
+          38
+        ],
+        "evidence_id": "drg-evidence-2",
+        "field": "diagnosis_coding_system",
+        "label": "诊断编码标准",
+        "text": "ICD-10-CN"
+      },
+      {
+        "char_span": [
+          46,
+          57
+        ],
+        "evidence_id": "drg-evidence-3",
+        "field": "diagnosis_coding_version",
+        "label": "诊断编码版本",
+        "text": "医院批准版2026.1"
+      },
+      {
+        "char_span": [
+          65,
+          75
+        ],
+        "evidence_id": "drg-evidence-4",
+        "field": "procedure_coding_system",
+        "label": "手术编码标准",
+        "text": "ICD-9-CM-3"
+      },
+      {
+        "char_span": [
+          83,
+          94
+        ],
+        "evidence_id": "drg-evidence-5",
+        "field": "procedure_coding_version",
+        "label": "手术编码版本",
+        "text": "医院批准版2026.1"
+      },
+      {
+        "char_span": [
+          100,
+          101
+        ],
+        "evidence_id": "drg-evidence-6",
+        "field": "patient_gender",
+        "label": "患者性别",
+        "text": "M"
+      },
+      {
+        "char_span": [
+          107,
+          109
+        ],
+        "evidence_id": "drg-evidence-7",
+        "field": "patient_age",
+        "label": "患者年龄",
+        "text": "58"
+      },
+      {
+        "char_span": [
+          136,
+          150
+        ],
+        "evidence_id": "drg-evidence-8",
+        "field": "primary_diagnosis",
+        "label": "primary_diagnosis",
+        "text": "I21.0 急性前壁心肌梗死"
+      },
+      {
+        "char_span": [
+          174,
+          184
+        ],
+        "evidence_id": "drg-evidence-9",
+        "field": "secondary_diagnosis",
+        "label": "secondary_diagnosis",
+        "text": "I10 原发性高血压"
+      },
+      {
+        "char_span": [
+          227,
+          255
+        ],
+        "evidence_id": "drg-evidence-10",
+        "field": "procedure",
+        "label": "procedure",
+        "text": "00.66 <REDACTED:NAME>状动脉介入治疗"
+      }
+    ],
+    "governance": {
+      "authority_status": "experimental_unverified",
+      "jurisdiction": "CN_GENERIC_DEVELOPMENT",
+      "license_status": "external_review_required",
+      "rule_pack_id": "cn.drg_dip.risk_heuristics",
+      "rule_pack_version": "1.0.0-development",
+      "use_restriction": "development_risk_review_only_not_for_grouping_payment_or_settlement"
+    },
+    "input_conflicts": [],
+    "limitations": [
+      "仅处理编码员明确提供的结构化诊断/手术编码及逐字证据，不从自由文本提取或新增编码。",
+      "内置规则和术语映射未经官方来源、许可、地区版本或医院版本独立验证，仅供开发期风险复核。",
+      "候选 DRG 不是官方分组，不计算或输出权重、CMI、DIP 分值、支付或结算金额。",
+      "不判断诊断成立、编码正确性、临床合理性、医疗必要性或医保支付资格。",
+      "READY_FOR_CODER_REVIEW 只表示本地启发式运行完成，不表示可用于编码、报送、支付或结算。",
+      "结果必须由获授权的地区/医院分组器和人工编码员独立复核，禁止自动提交和写回。"
+    ],
+    "local_development_rules_used": true,
+    "manual_review_required": true,
+    "missing_required_fields": [],
+    "official_dip_scoring_performed": false,
+    "official_grouping_performed": false,
+    "payment_calculation_performed": false,
+    "production_submission_blocked": true,
+    "production_writeback_blocked": true,
+    "quality_flags": {
+      "candidate_coverage": true,
+      "candidate_only": true,
+      "rule_pack_integrity_verified": true
+    },
+    "review_actions": [
+      "请使用获授权的本地区/医院分组器复核；不得为改变分组而调整缺乏病历证据的编码。",
+      "编码特异性通过开发期格式检查，仍需人工复核。",
+      "请交由获授权的地区/医院引擎复核，不得使用本结果计算 DIP 分值。",
+      "必须人工复核，并使用获授权的本地区/医院规则包完成最终分组。"
+    ],
+    "review_conclusion": "WARNING",
+    "review_method": "EXPLICIT_CODED_CASE_DETERMINISTIC_UNVERIFIED_RISK_REVIEW",
+    "review_status": "READY_FOR_CODER_REVIEW",
+    "risk_findings": [
+      {
+        "category": "grouping",
+        "input_evidence_refs": [
+          "drg-evidence-8"
+        ],
+        "message": "主诊断 I21.0 的开发期候选组为 EC13 (经皮冠状动脉支架植入伴 CC)，该结果非结算依据。",
+        "review_action": "请使用获授权的本地区/医院分组器复核；不得为改变分组而调整缺乏病历证据的编码。",
+        "rule_id": "DRG001",
+        "severity": "info"
+      },
+      {
+        "category": "grouping",
+        "input_evidence_refs": [
+          "drg-evidence-8",
+          "drg-evidence-9"
+        ],
+        "message": "主诊断 I21.0 特异性 4 位字符。",
+        "review_action": "编码特异性通过开发期格式检查，仍需人工复核。",
+        "rule_id": "DIP001",
+        "severity": "low"
+      },
+      {
+        "category": "grouping",
+        "input_evidence_refs": [
+          "drg-evidence-8",
+          "drg-evidence-10"
+        ],
+        "message": "主诊 I21.0 + 主操 00.66 通过开发期启发式匹配，候选组: EC13；并非官方验证。",
+        "review_action": "请交由获授权的地区/医院引擎复核，不得使用本结果计算 DIP 分值。",
+        "rule_id": "DIP003",
+        "severity": "info"
+      },
+      {
+        "category": "grouping",
+        "input_evidence_refs": [],
+        "message": "当前 DRG/DIP 规则包为未验证的开发期风险启发式，不能用于支付或结算。",
+        "review_action": "必须人工复核，并使用获授权的本地区/医院规则包完成最终分组。",
+        "rule_id": "DRG_GOVERNANCE",
+        "severity": "info"
+      }
+    ],
+    "trace_refs": {
+      "run_id": "run-c6aff66b-dd81-48a8-9b38-0e33e0cd694a",
+      "trace_id": "trace-f4755512b6464bd3",
+      "provider_trace_refs": [
+        "run-c6aff66b-dd81-48a8-9b38-0e33e0cd694a:governed-drg-dip-risk-review"
+      ]
+    },
+    "structured_extraction": {
+      "contract": "icoder/DRGDIPRiskReview/v8",
+      "method": "json_block",
+      "warnings": [],
+      "required_fields": [
+        "review_status",
+        "review_conclusion",
+        "review_method",
+        "coded_case",
+        "development_candidate_group",
+        "dip_review",
+        "risk_findings",
+        "review_actions",
+        "quality_flags",
+        "governance",
+        "evidence_items",
+        "missing_required_fields",
+        "input_conflicts",
+        "limitations",
+        "code_extraction_performed",
+        "code_assignment_performed",
+        "code_validation_performed",
+        "clinical_inference_performed",
+        "local_development_rules_used",
+        "official_grouping_performed",
+        "official_dip_scoring_performed",
+        "payment_calculation_performed",
+        "billing_authoritative",
+        "production_submission_blocked",
+        "production_writeback_blocked",
+        "manual_review_required",
+        "trace_refs"
+      ],
+      "optional_fields": [],
+      "missing_required_fields": [],
+      "invalid_field_types": [],
+      "invalid_field_schemas": [],
+      "invalid_cross_agent_relations": [],
+      "undeclared_output_fields": [],
+      "undeclared_output_field_count": 0,
+      "valid": true
+    }
+  },
+  "schema_ref": "icoder/DRGDIPRiskReview/v8",
+  "result_attestation": "eyJhIjoiZHJnLWFuYWx5emVyIiwiZCI6IjJkZTg4YWM1ODgyZDYxMmQyZWZmNzcyYmI1ODJkYzA5ZDliYWY1MjZhMDIxNmVkMGE4NDM0YWM0MzFkZjEwZTQiLCJlIjoxNzg3ODcwNDI3LCJvIjoiOGI2MzA0Y2UwY2RjIiwiciI6InJ1bi1jNmFmZjY2Yi1kZDgxLTQ4YTgtOWIzOC0wZTMzZTBjZDY5NGEiLCJzIjoiaWNvZGVyL0RSR0RJUFJpc2tSZXZpZXcvdjgiLCJ2IjoxfQ.92X6OAnMG_x9qiRqRp6VmBE8zJlngIHxct9S4PJbhls",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 80,
+      "metadata": {
+        "agent_id": "drg-analyzer",
+        "runtime_mode": "governed_local_explicit_coded_case_risk_review",
+        "latency_ms": 80
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 0.53
+}

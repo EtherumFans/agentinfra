@@ -1,0 +1,161 @@
+{
+  "agent_id": "clinical-documentation-improvement-agent",
+  "run_id": "run-c52049dc-ea23-4309-a57f-b39f4b9643d6",
+  "trace_id": "trace-c5c9b5f8d8e3457b",
+  "trace_url": "/ai-studio/runs/run-c52049dc-ea23-4309-a57f-b39f4b9643d6/trace",
+  "runtime_mode": "cdi_real_orchestrator",
+  "latency_ms": 4641,
+  "cost": {
+    "amount": 0.00025536,
+    "currency": "CNY",
+    "source": "configured_usage_pricing_estimate",
+    "billing_authoritative": false
+  },
+  "billing": {},
+  "summary": "CDI review completed; specialist and clinician review remain required.",
+  "result": {
+    "encounter_summary": {
+      "key_points": [
+        "患者女性，32岁",
+        "第2胎，孕39周",
+        "自然分娩，男活婴，体重3350g",
+        "产程顺利，出血200ml",
+        "Apgar评分1/5/10分钟均10分",
+        "产后恢复好，母乳喂养",
+        "第3天出院",
+        "诊断：足月顺产，活婴"
+      ],
+      "encounter_metadata": {
+        "patient_age": "32岁",
+        "patient_sex": "女性",
+        "encounter_type": "分娩"
+      }
+    },
+    "documentation_gaps": [],
+    "proposed_provider_queries": [],
+    "query_gate_summary": {
+      "withheld_count": 0,
+      "status_counts": {
+        "REWRITE_CANDIDATE_GENERATED": 0
+      },
+      "manual_cdi_action_required": false
+    },
+    "coding_specificity_checklist": [],
+    "risk_flags": [],
+    "specialist_trace": [
+      {
+        "expert_id": "coding-expert",
+        "consulted": false,
+        "requested": "You are a coding-specialist Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "no coding-relevant gaps survived earlier gates",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-a8349deb8b43",
+        "trace_id": "trace-479145fbd4e5"
+      },
+      {
+        "expert_id": "pubmed-expert",
+        "consulted": false,
+        "requested": "You are a PubMed literature Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-a8c839e84084",
+        "trace_id": "trace-58b9b73e5bde"
+      },
+      {
+        "expert_id": "web-search-expert",
+        "consulted": false,
+        "requested": "You are a clinical web-search Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-ce0e405fcf9c",
+        "trace_id": "trace-076491f774b8"
+      },
+      {
+        "expert_id": "medical-calculator-expert",
+        "consulted": false,
+        "requested": "You are a medical-calculator Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "'评分' score — no deterministic calculator wired",
+        "route_decision": "tool_unavailable",
+        "route_reason": "no_real_tool_wired",
+        "execution_mode": "TOOL_UNAVAILABLE",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-cc42bfed09b6",
+        "trace_id": "trace-d851b6e4033d"
+      }
+    ],
+    "human_review": {
+      "cdi_specialist_review_required": true,
+      "clinician_response_required": true,
+      "review_priority": "routine"
+    },
+    "trace_refs": {
+      "run_id": "run-c52049dc-ea23-4309-a57f-b39f4b9643d6",
+      "stage_trace": {
+        "encounter_synthesis": "trace-ceaa31651c59",
+        "gap_identification": "trace-cc8ea187a998",
+        "expert_consultation": "trace-a561a9662a66",
+        "query_generation": "",
+        "query_eligibility_gate": "",
+        "query_necessity_gate": "",
+        "query_dimension_rewrite": "",
+        "query_single_dimension_gate": "",
+        "claim_evidence_alignment_gate": "trace-aa8b8f999c70",
+        "semantic_necessity_gate": "trace-6b0d4a5aa967",
+        "query_compliance_gate": "",
+        "specialist_trace_emit": "trace-55e3587b9710"
+      },
+      "experts_consulted": [],
+      "gate_results": {
+        "encounter_synthesis": "run-7431235800ba",
+        "gap_identification": "run-a3642a89f900",
+        "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
+        "expert_consultation": "run-df068dbd7348",
+        "query_generation": "",
+        "query_generation::quote_snapped": "0",
+        "query_generation::coverage_missing": "0",
+        "query_eligibility_gate": "chart_complete=True;completeness_score=0.25;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=Y,D8_course=Y;dropped=0;final_count=0;llm_complete=True;llm_reasoning=The chart documents a normal spontaneous vaginal delivery at term with a live ma",
+        "query_necessity_gate": "necessary=0;unnecessary=0;overquery_triggered=False;final_count=0",
+        "query_dimension_rewrite": "not_executed",
+        "query_single_dimension_gate": "single_dim=0;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;rewrite_attempted=0;rewrite_accepted=0;final_count=0",
+        "claim_evidence_alignment_gate": "claims_extracted=0;degraded=0;blocked=0;flagged=0;final_count=0",
+        "claim_evidence_alignment_gate::run_id": "run-539bea8d37ac",
+        "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+        "semantic_necessity_gate::run_id": "run-eefda9a80749",
+        "query_compliance_gate": ";passed=0;blocked=0",
+        "specialist_trace_emit": "run-8b4a6bf2c722"
+      },
+      "trace_id": "trace-c5c9b5f8d8e3457b"
+    }
+  },
+  "schema_ref": "icoder/CDIAgentOutputV1/v6",
+  "result_attestation": "eyJhIjoiY2xpbmljYWwtZG9jdW1lbnRhdGlvbi1pbXByb3ZlbWVudC1hZ2VudCIsImQiOiIxZjBlYjU1ZTYwMDVlYzE4ZjIxYWQwN2FmM2Y3ZTI5NmFhYjFkYWExMmM2ZTZlZDQ1MmY4NjU3MzM0OGJjMTc1IiwiZSI6MTc4Nzg4MjE0MSwibyI6ImJjOTJlZTA2YWYwZiIsInIiOiJydW4tYzUyMDQ5ZGMtZWEyMy00MzA5LWE1N2YtYjM5ZjRiOTY0M2Q2IiwicyI6Imljb2Rlci9DRElBZ2VudE91dHB1dFYxL3Y2IiwidiI6MX0.G7KexA4neSRx3HPq0nQsoR0QhFchrtsgcPk7x9bxT7o",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 4.768
+}

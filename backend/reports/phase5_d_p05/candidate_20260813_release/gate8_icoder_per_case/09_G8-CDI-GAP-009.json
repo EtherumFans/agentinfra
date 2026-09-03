@@ -1,0 +1,459 @@
+{
+  "case_id": "CASE-36c03e4cdbe1",
+  "completion_state": "REVIEW_RECOMMENDED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-36c03e4cdbe1/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "Acute cholecystitis is documented without specifying severity (e.g., mild, moderate, severe) or presence of complications such as gangrene, perforation, or empyema.",
+      "why_it_matters": "Severity and complications affect treatment planning, prognosis, and coding accuracy.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "入院诊断:急性胆囊炎",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-36c03e4cdbe1/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "The etiology of the acute cholecystitis is not explicitly stated; although gallstones are present, the clinical correlation between the gallstones and the acute inflammation is not documented.",
+      "why_it_matters": "Clarifying the etiology (e.g., calculous vs. acalculous) is important for coding and clinical management.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "B超:胆囊壁增厚, 胆囊多发结石",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-36c03e4cdbe1/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "The abnormal liver function tests (ALT, AST, ALP, TBIL) are documented but their clinical significance is not correlated with the diagnosis; possible choledocholithiasis or biliary obstruction is not addressed.",
+      "why_it_matters": "Abnormal labs may indicate a more complex condition (e.g., choledocholithiasis) that requires further workup and affects coding.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "肝功能:ALT 120, AST 95, ALP 280, TBIL 45",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-36c03e4cdbe1/GAP-004",
+      "gap_type": "diagnostic_specificity",
+      "description": "The dilated common bile duct (9mm) is documented but its clinical significance is not explained; it may indicate obstruction or choledocholithiasis.",
+      "why_it_matters": "A dilated CBD may require additional procedures (e.g., ERCP) and affects coding and management.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "胆总管直径 9mm",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-36c03e4cdbe1/Q-001",
+      "gap_id": "CASE-36c03e4cdbe1/GAP-003",
+      "topic": "肝功能异常临床意义",
+      "reason": "肝功能异常提示可能存在胆道梗阻，但未与诊断关联。",
+      "evidence_span": {
+        "document_id": "chart-001",
+        "quote": "肝功能:ALT 120, AST 95, ALP 280, TBIL 45",
+        "char_start": 56,
+        "char_end": 93,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "肝功能:ALT 120, AST 95, ALP 280, TBIL 45",
+          "char_start": 56,
+          "char_end": 93,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "肝功能异常（ALT、AST、ALP、TBIL升高）的临床意义是什么？",
+      "response_options": [
+        "A. 肝功能异常与急性胆囊炎相关，无胆道梗阻证据",
+        "B. 肝功能异常提示存在胆总管结石或胆道梗阻",
+        "C. 肝功能异常由其他原因引起（如药物、肝炎等）",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "urgent",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    },
+    {
+      "query_id": "CASE-36c03e4cdbe1/Q-002",
+      "gap_id": "CASE-36c03e4cdbe1/GAP-004",
+      "topic": "胆总管扩张临床意义",
+      "reason": "胆总管直径9mm，但未解释其临床意义。",
+      "evidence_span": {
+        "document_id": "chart-001",
+        "quote": "胆总管直径 9mm",
+        "char_start": 46,
+        "char_end": 55,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "胆总管直径 9mm",
+          "char_start": 46,
+          "char_end": 55,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "胆总管扩张（9mm）的临床意义是什么？",
+      "response_options": [
+        "A. 胆总管扩张，提示存在胆道梗阻或胆总管结石",
+        "B. 胆总管扩张，但无梗阻证据，可能为生理性扩张",
+        "C. 胆总管扩张，由其他原因引起（如肿瘤、炎症等）",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "urgent",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    }
+  ],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-001",
+      "gap_id": "CASE-36c03e4cdbe1/GAP-001",
+      "topic": "急性胆囊炎严重程度",
+      "reason": "入院诊断为急性胆囊炎，但未明确严重程度及有无并发症（如坏疽、穿孔、积脓）。",
+      "query_text": "根据患者临床表现和影像学检查，急性胆囊炎的严重程度及有无并发症（如坏疽、穿孔、积脓）如何？",
+      "response_options": [
+        "A. 轻度急性胆囊炎，无并发症",
+        "B. 中度急性胆囊炎，伴有并发症（如坏疽、穿孔、积脓）",
+        "C. 重度急性胆囊炎，伴有并发症",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "入院诊断:急性胆囊炎",
+          "char_start": 94,
+          "char_end": 104,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-001: chart matches /急性[^,。、\\s]{0,8}(?:心肌梗死|阑尾炎|胆囊炎|胰腺炎|肺炎|胃肠炎)/ (急性类型已明确) and query asks for 急性胆囊炎严重程度"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-002",
+      "gap_id": "CASE-36c03e4cdbe1/GAP-002",
+      "topic": "急性胆囊炎病因",
+      "reason": "B超发现胆囊多发结石，但未明确结石与急性炎症的因果关系。",
+      "query_text": "根据影像学发现，急性胆囊炎的病因是否与胆囊结石相关？",
+      "response_options": [
+        "A. 急性结石性胆囊炎",
+        "B. 急性非结石性胆囊炎",
+        "C. 其他病因（如感染、缺血等）",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "B超:胆囊壁增厚, 胆囊多发结石",
+          "char_start": 28,
+          "char_end": 44,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NLQ-001 (no_yes_no_opening): matched /(是不是|是否|是否为|能否|能不能|是不是说|是不是要|能否认为|是否可以)/ : '是否'"
+      ],
+      "status": "NEEDS_NON_LEADING_REWRITE",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-003",
+      "gap_id": "CASE-36c03e4cdbe1/GAP-003",
+      "topic": "肝功能异常临床意义",
+      "reason": "肝功能异常提示可能存在胆道梗阻，但未与诊断关联。",
+      "query_text": "肝功能异常（ALT、AST、ALP、TBIL升高）的临床意义是什么？是否提示存在胆总管结石或胆道梗阻？",
+      "response_options": [
+        "A. 肝功能异常与急性胆囊炎相关，无胆道梗阻证据",
+        "B. 肝功能异常提示存在胆总管结石或胆道梗阻",
+        "C. 肝功能异常由其他原因引起（如药物、肝炎等）",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "肝功能:ALT 120, AST 95, ALP 280, TBIL 45",
+          "char_start": 56,
+          "char_end": 93,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NLQ-001 (no_yes_no_opening): matched /(是不是|是否|是否为|能否|能不能|是不是说|是不是要|能否认为|是否可以)/ : '是否'"
+      ],
+      "status": "AUTOMATIC_COMPLIANCE_REWRITE",
+      "rewrite_kind": "REMOVE_REDUNDANT_YES_NO_TAIL",
+      "replacement_query_id": "Q-003",
+      "rewrite_attempt_status": "ACCEPTED_AFTER_FULL_NLQ_RECHECK",
+      "rewritten_query_text": "肝功能异常（ALT、AST、ALP、TBIL升高）的临床意义是什么？",
+      "rewritten_response_options": [
+        "A. 肝功能异常与急性胆囊炎相关，无胆道梗阻证据",
+        "B. 肝功能异常提示存在胆总管结石或胆道梗阻",
+        "C. 肝功能异常由其他原因引起（如药物、肝炎等）",
+        "D. 无法确定"
+      ],
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-004",
+      "gap_id": "CASE-36c03e4cdbe1/GAP-004",
+      "topic": "胆总管扩张临床意义",
+      "reason": "胆总管直径9mm，但未解释其临床意义。",
+      "query_text": "胆总管扩张（9mm）的临床意义是什么？是否提示存在胆道梗阻或胆总管结石？",
+      "response_options": [
+        "A. 胆总管扩张，提示存在胆道梗阻或胆总管结石",
+        "B. 胆总管扩张，但无梗阻证据，可能为生理性扩张",
+        "C. 胆总管扩张，由其他原因引起（如肿瘤、炎症等）",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "胆总管直径 9mm",
+          "char_start": 46,
+          "char_end": 55,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NLQ-001 (no_yes_no_opening): matched /(是不是|是否|是否为|能否|能不能|是不是说|是不是要|能否认为|是否可以)/ : '是否'"
+      ],
+      "status": "AUTOMATIC_COMPLIANCE_REWRITE",
+      "rewrite_kind": "REMOVE_REDUNDANT_YES_NO_TAIL",
+      "replacement_query_id": "Q-004",
+      "rewrite_attempt_status": "ACCEPTED_AFTER_FULL_NLQ_RECHECK",
+      "rewritten_query_text": "胆总管扩张（9mm）的临床意义是什么？",
+      "rewritten_response_options": [
+        "A. 胆总管扩张，提示存在胆道梗阻或胆总管结石",
+        "B. 胆总管扩张，但无梗阻证据，可能为生理性扩张",
+        "C. 胆总管扩张，由其他原因引起（如肿瘤、炎症等）",
+        "D. 无法确定"
+      ],
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者女性, 50岁, 右上腹痛2天。Murphy征阳性。B超:胆囊壁增厚, 胆囊多发结石, 胆总管直径 9mm。肝功能:ALT 120, AST 95, ALP 280, TBIL 45。入院诊断:急性胆囊炎。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "右上腹痛2天",
+      "Murphy征阳性",
+      "B超示胆囊壁增厚、胆囊多发结石、胆总管直径9mm",
+      "肝功能异常：ALT 120, AST 95, ALP 280, TBIL 45",
+      "入院诊断：急性胆囊炎"
+    ],
+    "encounter_metadata": {
+      "patient_age": "50岁",
+      "patient_sex": "女性",
+      "encounter_type": "入院"
+    }
+  },
+  "risk_flags": [
+    {
+      "category": "unsupported_diagnosis",
+      "description": "The diagnosis of acute cholecystitis is supported by clinical signs and imaging, but the abnormal liver function tests and dilated CBD are not integrated into the diagnosis, potentially indicating an unsupported or incomplete diagnosis."
+    }
+  ],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "To ensure accurate coding, the documentation must explicitly state the severity of acute cholecystitis (mild, moderate, or severe) and rule out or confirm complications like gangrene, perforation, or empyema. Additionally, the clinical correlation between the gallstones and the acute inflammation, as well as the significance of the dilated CBD and abnormal LFTs (e.g., whether they indicate choledocholithiasis or biliary obstruction), must be clearly documented to capture the full clinical picture.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 2991,
+      "tokens": 369
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-368269d9cb5c",
+    "gap_identification": "run-61575de3da2f",
+    "gap_identification_risk_flags": "emitted=1;quote_snapped=0",
+    "expert_consultation": "run-66f2f061298b",
+    "query_generation": "run-5a4cd21513d0",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=4;llm_complete=False;llm_reasoning=The chart lacks specification of severity, complications, and clinical correlati",
+    "query_necessity_gate": "necessary=3;unnecessary=1;overquery_triggered=False;final_count=3",
+    "query_single_dimension_gate": "single_dim=3;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=etiology;rewrite_attempted=0;rewrite_accepted=0;final_count=3",
+    "claim_evidence_alignment_gate": "claims_extracted=7;blocked=0;flagged=0;final_count=3",
+    "claim_evidence_alignment_gate::run_id": "run-eec54713c43b",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=3",
+    "semantic_necessity_gate::run_id": "run-1873f38d7b96",
+    "query_compliance_gate": ";passed=2;blocked=1",
+    "specialist_trace_emit": "run-2e4b0aa76a16"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-8f049a88d3fe",
+    "gap_identification": "trace-4e97047cde35",
+    "expert_consultation": "trace-77f094889d7b",
+    "query_generation": "trace-4b079d8a3c3a",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-6e2cb2734abe",
+    "semantic_necessity_gate": "trace-837e89c10bec",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-56937f02eb7c"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2540,
+      "prompt_tokens": 237,
+      "completion_tokens": 113,
+      "total_tokens": 350,
+      "run_id": "run-368269d9cb5c",
+      "trace_id": "trace-8f049a88d3fe",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6593,
+      "prompt_tokens": 1072,
+      "completion_tokens": 772,
+      "total_tokens": 1844,
+      "run_id": "run-61575de3da2f",
+      "trace_id": "trace-4e97047cde35",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 7430,
+      "prompt_tokens": 1272,
+      "completion_tokens": 967,
+      "total_tokens": 2239,
+      "run_id": "run-5a4cd21513d0",
+      "trace_id": "trace-4b079d8a3c3a",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2991,
+      "prompt_tokens": 269,
+      "completion_tokens": 100,
+      "total_tokens": 369,
+      "run_id": "run-09fd5c994245",
+      "trace_id": "trace-3ab4a23ba39f",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-e3c9aefce24d",
+      "trace_id": "trace-ba72c3863f73",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-ddb7a96b5600",
+      "trace_id": "trace-8c6dff4cdf07",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-5760581d9d41",
+      "trace_id": "trace-32e3b0776669",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T18:53:50.115743Z"
+}

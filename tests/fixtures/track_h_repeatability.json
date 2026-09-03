@@ -1,0 +1,337 @@
+{
+  "_meta": {
+    "source": "Track H1.4 — repeatability probes (3× each on 5 base cases)",
+    "base_case_ids": [
+      "H-NEG-A-001",
+      "H-CMP-A-005",
+      "H-CTR-A-006",
+      "H-EXP-COD-009",
+      "H-EVS-B-007"
+    ],
+    "runs_per_case": 3,
+    "case_count": 15
+  },
+  "cases": [
+    {
+      "case_id": "H-NEG-A-001_R1",
+      "group": "NEGATION",
+      "variant": "A",
+      "chart_en": "42-year-old female with intermittent headache for 2 weeks. Denies nausea, vomiting, photophobia, phonophobia, visual aura, limb weakness, neck stiffness. No history of migraine. No family history of CNS disease. Normal neurological exam. Normal vital signs.",
+      "chart_zh": "42岁女性，间歇性头痛2周。否认恶心、呕吐、畏光、畏声、视觉先兆、肢体无力、颈项强直。无偏头痛史。无家族CNS疾病史。神经查体正常。生命体征正常。",
+      "expected": {
+        "query_count_min": 0,
+        "query_count_max": 0,
+        "expected_query_topics": [],
+        "forbidden_query_topics": [
+          "migraine",
+          "intracranial lesion",
+          "CNS tumor",
+          "meningitis"
+        ],
+        "no_query_expected": true
+      },
+      "variable_under_test": "denied_symptoms",
+      "notes": "All red flags denied — should NOT generate any query",
+      "base_case_id": "H-NEG-A-001",
+      "run_idx": 1
+    },
+    {
+      "case_id": "H-NEG-A-001_R2",
+      "group": "NEGATION",
+      "variant": "A",
+      "chart_en": "42-year-old female with intermittent headache for 2 weeks. Denies nausea, vomiting, photophobia, phonophobia, visual aura, limb weakness, neck stiffness. No history of migraine. No family history of CNS disease. Normal neurological exam. Normal vital signs.",
+      "chart_zh": "42岁女性，间歇性头痛2周。否认恶心、呕吐、畏光、畏声、视觉先兆、肢体无力、颈项强直。无偏头痛史。无家族CNS疾病史。神经查体正常。生命体征正常。",
+      "expected": {
+        "query_count_min": 0,
+        "query_count_max": 0,
+        "expected_query_topics": [],
+        "forbidden_query_topics": [
+          "migraine",
+          "intracranial lesion",
+          "CNS tumor",
+          "meningitis"
+        ],
+        "no_query_expected": true
+      },
+      "variable_under_test": "denied_symptoms",
+      "notes": "All red flags denied — should NOT generate any query",
+      "base_case_id": "H-NEG-A-001",
+      "run_idx": 2
+    },
+    {
+      "case_id": "H-NEG-A-001_R3",
+      "group": "NEGATION",
+      "variant": "A",
+      "chart_en": "42-year-old female with intermittent headache for 2 weeks. Denies nausea, vomiting, photophobia, phonophobia, visual aura, limb weakness, neck stiffness. No history of migraine. No family history of CNS disease. Normal neurological exam. Normal vital signs.",
+      "chart_zh": "42岁女性，间歇性头痛2周。否认恶心、呕吐、畏光、畏声、视觉先兆、肢体无力、颈项强直。无偏头痛史。无家族CNS疾病史。神经查体正常。生命体征正常。",
+      "expected": {
+        "query_count_min": 0,
+        "query_count_max": 0,
+        "expected_query_topics": [],
+        "forbidden_query_topics": [
+          "migraine",
+          "intracranial lesion",
+          "CNS tumor",
+          "meningitis"
+        ],
+        "no_query_expected": true
+      },
+      "variable_under_test": "denied_symptoms",
+      "notes": "All red flags denied — should NOT generate any query",
+      "base_case_id": "H-NEG-A-001",
+      "run_idx": 3
+    },
+    {
+      "case_id": "H-CMP-A-005_R1",
+      "group": "COMPLETE_CHART",
+      "variant": "A",
+      "chart_en": "45-year-old male with migrating right lower quadrant pain for 1 day. McBurney point tenderness and rebound positive. WBC 13.2, neutrophils 85%. CT: swollen appendix with surrounding exudate, no perforation. Pre-op diagnosis: acute appendicitis (simple, no perforation). Underwent laparoscopic appendectomy. Pathology: acute simple appendicitis. No complications. Recovered well, discharged on day 3.",
+      "chart_zh": "45岁男性，转移性右下腹痛1天。McBurney点压痛反跳痛阳性。WBC 13.2，中性85%。CT:阑尾肿胀伴周围渗出，无穿孔。术前诊断:急性阑尾炎（单纯性，无穿孔）。行腹腔镜阑尾切除术。病理:急性单纯性阑尾炎。无并发症。恢复良好，第3天出院。",
+      "expected": {
+        "query_count_min": 0,
+        "query_count_max": 0,
+        "expected_query_topics": [],
+        "forbidden_query_topics": [
+          "peritoneal involvement",
+          "gangrene",
+          "pain duration"
+        ],
+        "no_query_expected": true
+      },
+      "variable_under_test": "complete_chart_overquery",
+      "notes": "Already-complete chart — query would be over-query (this is the COMPLETE-011 case)",
+      "base_case_id": "H-CMP-A-005",
+      "run_idx": 1
+    },
+    {
+      "case_id": "H-CMP-A-005_R2",
+      "group": "COMPLETE_CHART",
+      "variant": "A",
+      "chart_en": "45-year-old male with migrating right lower quadrant pain for 1 day. McBurney point tenderness and rebound positive. WBC 13.2, neutrophils 85%. CT: swollen appendix with surrounding exudate, no perforation. Pre-op diagnosis: acute appendicitis (simple, no perforation). Underwent laparoscopic appendectomy. Pathology: acute simple appendicitis. No complications. Recovered well, discharged on day 3.",
+      "chart_zh": "45岁男性，转移性右下腹痛1天。McBurney点压痛反跳痛阳性。WBC 13.2，中性85%。CT:阑尾肿胀伴周围渗出，无穿孔。术前诊断:急性阑尾炎（单纯性，无穿孔）。行腹腔镜阑尾切除术。病理:急性单纯性阑尾炎。无并发症。恢复良好，第3天出院。",
+      "expected": {
+        "query_count_min": 0,
+        "query_count_max": 0,
+        "expected_query_topics": [],
+        "forbidden_query_topics": [
+          "peritoneal involvement",
+          "gangrene",
+          "pain duration"
+        ],
+        "no_query_expected": true
+      },
+      "variable_under_test": "complete_chart_overquery",
+      "notes": "Already-complete chart — query would be over-query (this is the COMPLETE-011 case)",
+      "base_case_id": "H-CMP-A-005",
+      "run_idx": 2
+    },
+    {
+      "case_id": "H-CMP-A-005_R3",
+      "group": "COMPLETE_CHART",
+      "variant": "A",
+      "chart_en": "45-year-old male with migrating right lower quadrant pain for 1 day. McBurney point tenderness and rebound positive. WBC 13.2, neutrophils 85%. CT: swollen appendix with surrounding exudate, no perforation. Pre-op diagnosis: acute appendicitis (simple, no perforation). Underwent laparoscopic appendectomy. Pathology: acute simple appendicitis. No complications. Recovered well, discharged on day 3.",
+      "chart_zh": "45岁男性，转移性右下腹痛1天。McBurney点压痛反跳痛阳性。WBC 13.2，中性85%。CT:阑尾肿胀伴周围渗出，无穿孔。术前诊断:急性阑尾炎（单纯性，无穿孔）。行腹腔镜阑尾切除术。病理:急性单纯性阑尾炎。无并发症。恢复良好，第3天出院。",
+      "expected": {
+        "query_count_min": 0,
+        "query_count_max": 0,
+        "expected_query_topics": [],
+        "forbidden_query_topics": [
+          "peritoneal involvement",
+          "gangrene",
+          "pain duration"
+        ],
+        "no_query_expected": true
+      },
+      "variable_under_test": "complete_chart_overquery",
+      "notes": "Already-complete chart — query would be over-query (this is the COMPLETE-011 case)",
+      "base_case_id": "H-CMP-A-005",
+      "run_idx": 3
+    },
+    {
+      "case_id": "H-CTR-A-006_R1",
+      "group": "CONTRADICTION",
+      "variant": "A",
+      "chart_en": "ED note: 'Patient with left wrist fracture after fall, splint applied.' Orthopedic note (same day): 'Right wrist fracture, cast applied.' Radiology report: 'Linear fracture distal radius, side not specified.' Patient reports pain on right wrist.",
+      "chart_zh": "ED记录：'患者左腕骨折后跌倒，已夹板固定。'骨科记录（同日）：'右腕骨折，已石膏固定。'放射科报告：'桡骨远端线性骨折，侧别未指定。'患者诉右腕疼痛。",
+      "expected": {
+        "query_count_min": 1,
+        "query_count_max": 2,
+        "expected_query_topics": [
+          "fracture laterality reconciliation"
+        ],
+        "forbidden_query_topics": [],
+        "no_query_expected": false
+      },
+      "variable_under_test": "doc_contradiction",
+      "notes": "A vs B laterality conflict — query REQUIRED",
+      "base_case_id": "H-CTR-A-006",
+      "run_idx": 1
+    },
+    {
+      "case_id": "H-CTR-A-006_R2",
+      "group": "CONTRADICTION",
+      "variant": "A",
+      "chart_en": "ED note: 'Patient with left wrist fracture after fall, splint applied.' Orthopedic note (same day): 'Right wrist fracture, cast applied.' Radiology report: 'Linear fracture distal radius, side not specified.' Patient reports pain on right wrist.",
+      "chart_zh": "ED记录：'患者左腕骨折后跌倒，已夹板固定。'骨科记录（同日）：'右腕骨折，已石膏固定。'放射科报告：'桡骨远端线性骨折，侧别未指定。'患者诉右腕疼痛。",
+      "expected": {
+        "query_count_min": 1,
+        "query_count_max": 2,
+        "expected_query_topics": [
+          "fracture laterality reconciliation"
+        ],
+        "forbidden_query_topics": [],
+        "no_query_expected": false
+      },
+      "variable_under_test": "doc_contradiction",
+      "notes": "A vs B laterality conflict — query REQUIRED",
+      "base_case_id": "H-CTR-A-006",
+      "run_idx": 2
+    },
+    {
+      "case_id": "H-CTR-A-006_R3",
+      "group": "CONTRADICTION",
+      "variant": "A",
+      "chart_en": "ED note: 'Patient with left wrist fracture after fall, splint applied.' Orthopedic note (same day): 'Right wrist fracture, cast applied.' Radiology report: 'Linear fracture distal radius, side not specified.' Patient reports pain on right wrist.",
+      "chart_zh": "ED记录：'患者左腕骨折后跌倒，已夹板固定。'骨科记录（同日）：'右腕骨折，已石膏固定。'放射科报告：'桡骨远端线性骨折，侧别未指定。'患者诉右腕疼痛。",
+      "expected": {
+        "query_count_min": 1,
+        "query_count_max": 2,
+        "expected_query_topics": [
+          "fracture laterality reconciliation"
+        ],
+        "forbidden_query_topics": [],
+        "no_query_expected": false
+      },
+      "variable_under_test": "doc_contradiction",
+      "notes": "A vs B laterality conflict — query REQUIRED",
+      "base_case_id": "H-CTR-A-006",
+      "run_idx": 3
+    },
+    {
+      "case_id": "H-EXP-COD-009_R1",
+      "group": "EXPERT_ROUTING",
+      "variant": "CODING",
+      "chart_en": "Patient with acute myocardial infarction. Cardiology note says 'NSTEMI'. Troponin peaked at 4.2. No ICD coding documented in chart.",
+      "chart_zh": "急性心肌梗死患者。心内科记录'NSTEMI'。肌钙蛋白峰值4.2。病历中无ICD编码记录。",
+      "expected": {
+        "query_count_min": 1,
+        "query_count_max": 2,
+        "expected_query_topics": [
+          "MI type documentation (NSTEMI vs STEMI)",
+          "ICD-10-CM specificity"
+        ],
+        "forbidden_query_topics": [],
+        "no_query_expected": false
+      },
+      "variable_under_test": "trigger_coding_expert",
+      "notes": "Should trigger coding-expert (ICD coding-relevant gap)",
+      "base_case_id": "H-EXP-COD-009",
+      "run_idx": 1
+    },
+    {
+      "case_id": "H-EXP-COD-009_R2",
+      "group": "EXPERT_ROUTING",
+      "variant": "CODING",
+      "chart_en": "Patient with acute myocardial infarction. Cardiology note says 'NSTEMI'. Troponin peaked at 4.2. No ICD coding documented in chart.",
+      "chart_zh": "急性心肌梗死患者。心内科记录'NSTEMI'。肌钙蛋白峰值4.2。病历中无ICD编码记录。",
+      "expected": {
+        "query_count_min": 1,
+        "query_count_max": 2,
+        "expected_query_topics": [
+          "MI type documentation (NSTEMI vs STEMI)",
+          "ICD-10-CM specificity"
+        ],
+        "forbidden_query_topics": [],
+        "no_query_expected": false
+      },
+      "variable_under_test": "trigger_coding_expert",
+      "notes": "Should trigger coding-expert (ICD coding-relevant gap)",
+      "base_case_id": "H-EXP-COD-009",
+      "run_idx": 2
+    },
+    {
+      "case_id": "H-EXP-COD-009_R3",
+      "group": "EXPERT_ROUTING",
+      "variant": "CODING",
+      "chart_en": "Patient with acute myocardial infarction. Cardiology note says 'NSTEMI'. Troponin peaked at 4.2. No ICD coding documented in chart.",
+      "chart_zh": "急性心肌梗死患者。心内科记录'NSTEMI'。肌钙蛋白峰值4.2。病历中无ICD编码记录。",
+      "expected": {
+        "query_count_min": 1,
+        "query_count_max": 2,
+        "expected_query_topics": [
+          "MI type documentation (NSTEMI vs STEMI)",
+          "ICD-10-CM specificity"
+        ],
+        "forbidden_query_topics": [],
+        "no_query_expected": false
+      },
+      "variable_under_test": "trigger_coding_expert",
+      "notes": "Should trigger coding-expert (ICD coding-relevant gap)",
+      "base_case_id": "H-EXP-COD-009",
+      "run_idx": 3
+    },
+    {
+      "case_id": "H-EVS-B-007_R1",
+      "group": "EVIDENCE_STRENGTH",
+      "variant": "B",
+      "chart_en": "Patient with creatinine 2.8 mg/dL (baseline 0.9), BUN 65, K+ 5.6, urine output 0.3 mL/kg/h × 8 hours, no dialysis yet. Renal consult placed. CKD-EPI eGFR 22.",
+      "chart_zh": "患者肌酐2.8 mg/dL（基线0.9），BUN 65，K+ 5.6，尿量0.3 mL/kg/h ×8小时，尚未透析。肾内科会诊。CKD-EPI eGFR 22。",
+      "expected": {
+        "query_count_min": 1,
+        "query_count_max": 2,
+        "expected_query_topics": [
+          "AKI etiology",
+          "AKI stage"
+        ],
+        "forbidden_query_topics": [],
+        "no_query_expected": false
+      },
+      "variable_under_test": "evidence_strength",
+      "notes": "Strong multi-source evidence — query REQUIRED",
+      "base_case_id": "H-EVS-B-007",
+      "run_idx": 1
+    },
+    {
+      "case_id": "H-EVS-B-007_R2",
+      "group": "EVIDENCE_STRENGTH",
+      "variant": "B",
+      "chart_en": "Patient with creatinine 2.8 mg/dL (baseline 0.9), BUN 65, K+ 5.6, urine output 0.3 mL/kg/h × 8 hours, no dialysis yet. Renal consult placed. CKD-EPI eGFR 22.",
+      "chart_zh": "患者肌酐2.8 mg/dL（基线0.9），BUN 65，K+ 5.6，尿量0.3 mL/kg/h ×8小时，尚未透析。肾内科会诊。CKD-EPI eGFR 22。",
+      "expected": {
+        "query_count_min": 1,
+        "query_count_max": 2,
+        "expected_query_topics": [
+          "AKI etiology",
+          "AKI stage"
+        ],
+        "forbidden_query_topics": [],
+        "no_query_expected": false
+      },
+      "variable_under_test": "evidence_strength",
+      "notes": "Strong multi-source evidence — query REQUIRED",
+      "base_case_id": "H-EVS-B-007",
+      "run_idx": 2
+    },
+    {
+      "case_id": "H-EVS-B-007_R3",
+      "group": "EVIDENCE_STRENGTH",
+      "variant": "B",
+      "chart_en": "Patient with creatinine 2.8 mg/dL (baseline 0.9), BUN 65, K+ 5.6, urine output 0.3 mL/kg/h × 8 hours, no dialysis yet. Renal consult placed. CKD-EPI eGFR 22.",
+      "chart_zh": "患者肌酐2.8 mg/dL（基线0.9），BUN 65，K+ 5.6，尿量0.3 mL/kg/h ×8小时，尚未透析。肾内科会诊。CKD-EPI eGFR 22。",
+      "expected": {
+        "query_count_min": 1,
+        "query_count_max": 2,
+        "expected_query_topics": [
+          "AKI etiology",
+          "AKI stage"
+        ],
+        "forbidden_query_topics": [],
+        "no_query_expected": false
+      },
+      "variable_under_test": "evidence_strength",
+      "notes": "Strong multi-source evidence — query REQUIRED",
+      "base_case_id": "H-EVS-B-007",
+      "run_idx": 3
+    }
+  ]
+}

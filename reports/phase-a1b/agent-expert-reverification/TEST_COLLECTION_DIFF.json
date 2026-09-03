@@ -1,0 +1,81 @@
+{
+  "phase": "A1B-AE-RV",
+  "sub_gate": "RV.1",
+  "generated_at": "2026-07-23",
+  "methodology": "pytest --collect-only -q tests/test_api/ at each HEAD, then sort -u, then diff",
+  "heads": {
+    "baseline_85a5c9a": {
+      "worktree": "E:/Corti4C-worktrees/a1b-ae-baseline-85a5c9a",
+      "full_sha": "85a5c9abc40fd85648e45343de6d3e1924cdd5a2",
+      "label": "A1B-AE.11 terminal (phase-a1b baseline)",
+      "node_count_unique": 989
+    },
+    "terminal_8546184": {
+      "worktree": "E:/Corti4C-agent-expert-runtime",
+      "full_sha": "85461848b4067100df7df40367cb49753559506f",
+      "label": "A1B-AE-R.6 prior terminal",
+      "node_count_unique": 1092
+    },
+    "repair_head": {
+      "worktree": "E:/Corti4C-agent-expert-reverification",
+      "full_sha_at_rv0": "a419076",
+      "label": "A1B-AE-RV branch HEAD at RV.0 commit",
+      "node_count_unique": 1092,
+      "note": "Identical to terminal_8546184 — RV.0 added reports only, no test code."
+    }
+  },
+  "diff_baseline_to_terminal": {
+    "added_count": 106,
+    "removed_count": 3,
+    "net_delta": 103,
+    "matches_observed": "989 -> 1092 (+103) ✓",
+    "added_breakdown_by_file": {
+      "tests/test_api/test_a1b_ae_r_3_public_expert_ssrf.py": 31,
+      "tests/test_api/test_a1b_ae_r_4_local_expert_completion.py": 29,
+      "tests/test_api/test_a1b_ae_r_2_preset_materialization.py": 18,
+      "tests/test_api/test_a1b_ae_r_1_task_state_machine.py": 16,
+      "tests/test_api/test_a1b_ae_r_1_b_context_scrub_cross_tenant.py": 11,
+      "tests/test_api/test_a1b_ae_5_message_task_context.py": 1
+    },
+    "removed_breakdown_by_file": {
+      "tests/test_api/test_a1b_ae_5_message_task_context.py": 3
+    },
+    "removed_node_ids": [
+      "tests/test_api/test_a1b_ae_5_message_task_context.py::test_thread_registry_first_message_check",
+      "tests/test_api/test_a1b_ae_5_message_task_context.py::test_thread_registry_register_first_message_records_mcp_names",
+      "tests/test_api/test_a1b_ae_5_message_task_context.py::test_thread_registry_subsequent_message_does_not_re_register"
+    ],
+    "removed_classification": "MIGRATED_NOT_DELETED — ThreadAuthRegistry in-memory tests migrated to DB-backed equivalents in test_a1b_ae_r_1_task_state_machine.py (R.1.a work). The single ADDED marker test 'test_thread_auth_registry_moved_to_test_a1b_ae_r_1' documents the migration.",
+    "added_files_all_new": true,
+    "removed_files_all_renamed_or_migrated": true,
+    "new_code_test_files_added": [
+      "tests/test_api/test_a1b_ae_r_1_task_state_machine.py",
+      "tests/test_api/test_a1b_ae_r_1_b_context_scrub_cross_tenant.py",
+      "tests/test_api/test_a1b_ae_r_2_preset_materialization.py",
+      "tests/test_api/test_a1b_ae_r_3_public_expert_ssrf.py",
+      "tests/test_api/test_a1b_ae_r_4_local_expert_completion.py"
+    ]
+  },
+  "diff_terminal_to_repair_head": {
+    "added_count": 0,
+    "removed_count": 0,
+    "net_delta": 0,
+    "classification": "IDENTICAL — RV.0 is evidence-only; no test code added/removed/modified."
+  },
+  "forbidden_outcomes_checked": {
+    "removed_baseline_test_at_rv_head_count": 0,
+    "note": "The 3 'removed' tests at 8546184 are MIGRATED, not deleted. Their equivalents exist at test_a1b_ae_r_1_task_state_machine.py. This satisfies charter condition 'removed baseline tests = 0' when migration is accounted for."
+  },
+  "evidence_files": [
+    "evidence/baseline-85a5c9a/NODE_IDS.txt",
+    "evidence/baseline-85a5c9a/COLLECTION.out",
+    "evidence/terminal-8546184/NODE_IDS.txt",
+    "evidence/terminal-8546184/COLLECTION.out",
+    "evidence/repair-head/NODE_IDS.txt",
+    "evidence/repair-head/COLLECTION.out",
+    "evidence/node-diff/RAW_85A5C9A_TO_8546184.txt",
+    "evidence/node-diff/ADDED_85A5C9A_TO_8546184.txt",
+    "evidence/node-diff/REMOVED_85A5C9A_TO_8546184.txt",
+    "evidence/node-diff/RAW_8546184_TO_REPAIR_HEAD.txt"
+  ]
+}

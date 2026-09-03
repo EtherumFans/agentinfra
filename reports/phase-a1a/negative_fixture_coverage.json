@@ -1,0 +1,91 @@
+{
+  "generated_at": "2026-07-17T12:40:00Z",
+  "spec": "Phase A1A Gate 0 §3 (12-item coverage table requested)",
+  "actual_phase_a0_1r_fixture_count": 11,
+  "charter_mentioned_count": 12,
+  "discrepancy_note": "Phase A0.1R Gate 7 produced 11 negative fixtures (NF01-NF11). The A1A charter text mentioned '12-item coverage table'; this appears to be a charter-text discrepancy rather than a missing fixture. A1A Gate 0 documents 11 actual fixtures and does not fabricate a 12th. A1A may add a 12th fixture in Gate 1 if validator coverage expands (e.g., a fixture for secret-in-git-object if a hash-based check is added).",
+  "fixtures": [
+    {
+      "id": "NF01",
+      "defect_class": "ledger.open_count_strict drift",
+      "injection": "P0_aggregate_open_strict = 99",
+      "validator_check": "check_ledger_open_count_strict",
+      "result": "PASS (defect caught: claim=99 actual=22)"
+    },
+    {
+      "id": "NF02",
+      "defect_class": "ledger.p0_s_open_strict drift",
+      "injection": "P0-S_open = 99",
+      "validator_check": "check_ledger_p0_s_open_strict",
+      "result": "PASS (defect caught: claim=99 actual=10)"
+    },
+    {
+      "id": "NF03",
+      "defect_class": "ledger.primary_phase_complete missing",
+      "injection": "remove A0-P0-021 from A2_commercial_deferred.explicit_ids",
+      "validator_check": "check_ledger_primary_phase_complete",
+      "result": "PASS (defect caught: A0-P0-021 not in mapping)"
+    },
+    {
+      "id": "NF04",
+      "defect_class": "ledger.billing_theater_split missing",
+      "injection": "remove split_status from A0-P0-004",
+      "validator_check": "check_ledger_billing_theater_split",
+      "result": "PASS (defect caught: split_status missing)"
+    },
+    {
+      "id": "NF05",
+      "defect_class": "ledger.npm_reframed missing",
+      "injection": "remove phase_a0_1r_reframe from A0-P0-009",
+      "validator_check": "check_ledger_npm_reframed",
+      "result": "PASS (defect caught: reframed not true)"
+    },
+    {
+      "id": "NF06",
+      "defect_class": "ledger.cdi_bounded missing",
+      "injection": "remove phase_a0_1r_boundary from A0-P0-007",
+      "validator_check": "check_ledger_cdi_bounded",
+      "result": "PASS (defect caught: boundary_applied not true)"
+    },
+    {
+      "id": "NF07",
+      "defect_class": "parity.no_illegal_statuses",
+      "injection": "restore ICODER_TECH_DEBT on D-05",
+      "validator_check": "check_parity_no_illegal_statuses",
+      "result": "PASS (defect caught: D-05:ICODER_TECH_DEBT)"
+    },
+    {
+      "id": "NF08",
+      "defect_class": "parity.symmetric_thresholds",
+      "injection": "F-03 restored to CORTI_ADVANTAGE at corti_evidence_grade=E1",
+      "validator_check": "check_parity_symmetric_thresholds",
+      "result": "PASS (defect caught: F-03 CORTI_ADVANTAGE Corti=E1<E7)"
+    },
+    {
+      "id": "NF09",
+      "defect_class": "maturity.7_axes",
+      "injection": "remove security axis from CN-01",
+      "validator_check": "check_maturity_7_axes",
+      "result": "PASS (defect caught: missing axes: ['CN-01:security'])"
+    },
+    {
+      "id": "NF10",
+      "defect_class": "manifest.empty_dirs",
+      "injection": "set exists=false on phase7/gate13a/screenshots/",
+      "validator_check": "check_manifest_empty_dirs",
+      "result": "PASS (defect caught: exists=false for dir)"
+    },
+    {
+      "id": "NF11",
+      "defect_class": "manifest.storage_mode illegal",
+      "injection": "storage_mode = 'SECRET_LEAKED'",
+      "validator_check": "check_manifest_storage_mode",
+      "result": "PASS (defect caught: storage_mode='SECRET_LEAKED')"
+    }
+  ],
+  "validator_post_tag_mode_total_checks": 15,
+  "validator_post_tag_mode_pass_count": 15,
+  "negative_fixture_runner_exit_code": 0,
+  "verdict": "NEGATIVE_FIXTURE_COVERAGE_VERIFIED_11_OF_11_PASSING",
+  "charter_count_discrepancy_disclosed": true
+}

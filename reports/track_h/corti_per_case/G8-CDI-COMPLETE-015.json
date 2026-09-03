@@ -1,0 +1,365 @@
+{
+  "case_id": "G8-CDI-COMPLETE-015",
+  "group": "complete_chart",
+  "variant": "",
+  "session_id": "65442250-b783-49ac-ad0c-cbdafec2a077",
+  "attempt": 1,
+  "outcome": "SUCCESS",
+  "elapsed_s": 39.99,
+  "expected": {
+    "query_count_min": 0,
+    "query_count_max": 0,
+    "expected_no_query": true,
+    "expected_query_topics": [],
+    "notes": "Elective uncomplicated cholecystectomy with full documentation"
+  },
+  "text_length": 4468,
+  "first_token_at_s": 3.55,
+  "last_token_at_s": 39.99,
+  "event_count": 13,
+  "raw_events_preview": [
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"message\":\"Calling expert: coding-expert\",\"state\":\"working\"},\"type\":\"data-status-update\"}",
+    "message|{\"data\":{\"codes\":[{\"alternatives\":[{\"code\":\"K80.10\",\"display\":\"Calculus of gallbladder with chronic cholecystitis without obstruction\"}],\"code\":\"K80.80\",\"display\":\"Other cholelithiasis without obstruc",
+    "message|{\"data\":{\"codes\":[{\"alternatives\":[],\"code\":\"0FT44ZZ\",\"display\":\"Resection of Gallbladder, Percutaneous Endoscopic Approach\",\"evidences\":[{\"contextIndex\":0,\"end\":132,\"start\":94,\"text\":\"Elective laparo",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"K80.10\",\"code_system\":\"icd-10-cm\",\"description\":\"Calculus of gallbladder with chronic cholecystitis without obstruction\",\"next_steps\":[{\"reason\":\"Read coding convent",
+    "message|{\"data\":{\"assignable\":true,\"code\":\"0FT44ZZ\",\"code_system\":\"icd-10-pcs\",\"description\":\"Medical and Surgical, Hepatobiliary System and Pancreas, Resection, Gallbladder, Percutaneous Endoscopic, No Devic",
+    "message|{\"id\":\"b8d89439-dfd8-4bd3-b623-308ef4a265df\",\"type\":\"text-start\"}",
+    "message|{\"delta\":\"Encounter Summary:\\n- 40-year-old female with documented \\\"cholelithiasis for 2 years\\\" and \\\"intermittent right upper quadrant discomfort.\\\"\\n- Underwent \\\"Elective laparoscopic cholecystec",
+    "message|{\"id\":\"b8d89439-dfd8-4bd3-b623-308ef4a265df\",\"type\":\"text-end\"}",
+    "message|{\"messageMetadata\":{\"contextId\":\"019f55cc-c187-73ab-8f82-2a396c0d08ac\",\"taskId\":\"019f55cc-c187-730e-bedb-d3a0d811fe9f\",\"credits\":0.092024,\"state\":\"completed\"},\"type\":\"message-metadata\"}",
+    "message|{\"finishReason\":\"stop\",\"messageMetadata\":{\"credits\":0.092024},\"type\":\"finish\"}",
+    "message|[DONE]"
+  ],
+  "expert_events": [
+    {
+      "codes": [
+        {
+          "alternatives": [
+            {
+              "code": "K80.10",
+              "display": "Calculus of gallbladder with chronic cholecystitis without obstruction"
+            }
+          ],
+          "code": "K80.80",
+          "display": "Other cholelithiasis without obstruction",
+          "evidences": [
+            {
+              "contextIndex": 0,
+              "end": 46,
+              "start": 20,
+              "text": "cholelithiasis for 2 years"
+            },
+            {
+              "contextIndex": 0,
+              "end": 218,
+              "start": 188,
+              "text": "single 1.5cm cholesterol stone"
+            }
+          ],
+          "system": "icd10cm-inpatient"
+        },
+        {
+          "alternatives": [
+            {
+              "code": "K81.2",
+              "display": "Acute cholecystitis with chronic cholecystitis"
+            },
+            {
+              "code": "K81.9",
+              "display": "Cholecystitis, unspecified"
+            }
+          ],
+          "code": "K81.1",
+          "display": "Chronic cholecystitis",
+          "evidences": [
+            {
+              "contextIndex": 0,
+              "end": 329,
+              "start": 273,
+              "text": "Pathology: chronic cholecystitis with cholesterol stone."
+            }
+          ],
+          "system": "icd10cm-inpatient"
+        }
+      ],
+      "next_steps": [
+        {
+          "reason": "See related codes and alternatives around each predicted code",
+          "tool": "explore"
+        },
+        {
+          "reason": "Check chapter-level coding conventions and rules",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "Confirm each code is assignable and check instructional notes",
+          "tool": "verify"
+        }
+      ],
+      "potential_codes": [],
+      "usage": null
+    },
+    {
+      "codes": [
+        {
+          "alternatives": [],
+          "code": "0FT44ZZ",
+          "display": "Resection of Gallbladder, Percutaneous Endoscopic Approach",
+          "evidences": [
+            {
+              "contextIndex": 0,
+              "end": 132,
+              "start": 94,
+              "text": "Elective laparoscopic cholecystectomy."
+            }
+          ],
+          "system": "icd10pcs"
+        }
+      ],
+      "next_steps": [
+        {
+          "reason": "See related codes and alternatives around each predicted code",
+          "tool": "explore"
+        },
+        {
+          "reason": "Check chapter-level coding conventions and rules",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "Confirm each code is assignable and check instructional notes",
+          "tool": "verify"
+        }
+      ],
+      "potential_codes": [],
+      "usage": null
+    },
+    {
+      "assignable": true,
+      "code": "K80.10",
+      "code_system": "icd-10-cm",
+      "description": "Calculus of gallbladder with chronic cholecystitis without obstruction",
+      "next_steps": [
+        {
+          "reason": "Read coding conventions for this code area",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "Check whether a specific code is assignable",
+          "tool": "verify"
+        },
+        {
+          "reason": "Explore a related or more specific code",
+          "tool": "explore"
+        }
+      ],
+      "parent": {
+        "code": "K80.1",
+        "description": "Calculus of gallbladder with other cholecystitis"
+      },
+      "related_codes": [
+        {
+          "assignable": true,
+          "code": "K80.11",
+          "description": "Calculus of gallbladder with chronic cholecystitis with obstruction"
+        },
+        {
+          "assignable": true,
+          "code": "K80.12",
+          "description": "Calculus of gallbladder with acute and chronic cholecystitis without obstruction"
+        },
+        {
+          "assignable": true,
+          "code": "K80.13",
+          "description": "Calculus of gallbladder with acute and chronic cholecystitis with obstruction"
+        },
+        {
+          "assignable": true,
+          "code": "K80.18",
+          "description": "Calculus of gallbladder with other cholecystitis without obstruction"
+        },
+        {
+          "assignable": true,
+          "code": "K80.19",
+          "description": "Calculus of gallbladder with other cholecystitis with obstruction"
+        }
+      ],
+      "total_related": 5
+    },
+    {
+      "assignable": true,
+      "code": "0FT44ZZ",
+      "code_system": "icd-10-pcs",
+      "description": "Medical and Surgical, Hepatobiliary System and Pancreas, Resection, Gallbladder, Percutaneous Endoscopic, No Device, No Qualifier",
+      "next_steps": [
+        {
+          "reason": "Read coding conventions for this code area",
+          "tool": "guidelines"
+        },
+        {
+          "reason": "Check whether a specific code is assignable",
+          "tool": "verify"
+        },
+        {
+          "reason": "Explore a related or more specific code",
+          "tool": "explore"
+        }
+      ],
+      "parent": {
+        "code": "0FT",
+        "description": "Medical and Surgical, Hepatobiliary System and Pancreas, Resection"
+      },
+      "related_codes": [
+        {
+          "assignable": true,
+          "code": "0FT00ZZ",
+          "description": "Medical and Surgical, Hepatobiliary System and Pancreas, Resection, Liver, Open, No Device, No Qualifier"
+        },
+        {
+          "assignable": true,
+          "code": "0FT10ZZ",
+          "description": "Medical and Surgical, Hepatobiliary System and Pancreas, Resection, Liver, Right Lobe, Open, No Device, No Qualifier"
+        },
+        {
+          "assignable": true,
+          "code": "0FT20ZZ",
+          "description": "Medical and Surgical, Hepatobiliary System and Pancreas, Resection, Liver, Left Lobe, Open, No Device, No Qualifier"
+        },
+        {
+          "assignable": true,
+          "code": "0FT40ZZ",
+          "description": "Medical and Surgical, Hepatobiliary System and Pancreas, Resection, Gallbladder, Open, No Device, No Qualifier"
+        },
+        {
+          "assignable": true,
+          "code": "0FTG0ZZ",
+          "description": "Medical and Surgical, Hepatobiliary System and Pancreas, Resection, Pancreas, Open, No Device, No Qualifier"
+        },
+        {
+          "assignable": true,
+          "code": "0FT04ZG",
+          "description": "Medical and Surgical, Hepatobiliary System and Pancreas, Resection, Liver, Percutaneous Endoscopic, No Device, Hand-Assisted"
+        },
+        {
+          "assignable": true,
+          "code": "0FT04ZZ",
+          "description": "Medical and Surgical, Hepatobiliary System and Pancreas, Resection, Liver, Percutaneous Endoscopic, No Device, No Qualifier"
+        },
+        {
+          "assignable": true,
+          "code": "0FT14ZG",
+          "description": "Medical and Surgical, Hepatobiliary System and Pancreas, Resection, Liver, Right Lobe, Percutaneous Endoscopic, No Device, Hand-Assisted"
+        },
+        {
+          "assignable": true,
+          "code": "0FT14ZZ",
+          "description": "Medical and Surgical, Hepatobiliary System and Pancreas, Resection, Liver, Right Lobe, Percutaneous Endoscopic, No Device, No Qualifier"
+        },
+        {
+          "assignable": true,
+          "code": "0FT24ZG",
+          "description": "Medical and Surgical, Hepatobiliary System and Pancreas, Resection, Liver, Left Lobe, Percutaneous Endoscopic, No Device, Hand-Assisted"
+        },
+        {
+          "assignable": true,
+          "code": "0FT24ZZ",
+          "description": "Medical and Surgical, Hepatobiliary System and Pancreas, Resection, Liver, Left Lobe, Percutaneous Endoscopic, No Device, No Qualifier"
+        },
+        {
+          "assignable": true,
+          "code": "0FT44ZG",
+          "description": "Medical and Surgical, Hepatobiliary System and Pancreas, Resection, Gallbladder, Percutaneous Endoscopic, No Device, Hand-Assisted"
+        },
+        {
+          "assignable": true,
+          "code": "0FTG4ZG",
+          "description": "Medical and Surgical, Hepatobiliary System and Pancreas, Resection, Pancreas, Percutaneous Endoscopic, No Device, Hand-Assisted"
+        },
+        {
+          "assignable": true,
+          "code": "0FTG4ZZ",
+          "description": "Medical and Surgical, Hepatobiliary System and Pancreas, Resection, Pancreas, Percutaneous Endoscopic, No Device, No Qualifier"
+        },
+        {
+          "assignable": true,
+          "code": "0FT50ZZ",
+          "description": "Medical and Surgical, Hepatobiliary System and Pancreas, Resection, Hepatic Duct, Right, Open, No Device, No Qualifier"
+        },
+        {
+          "assignable": true,
+          "code": "0FT54ZZ",
+          "description": "Medical and Surgical, Hepatobiliary System and Pancreas, Resection, Hepatic Duct, Right, Percutaneous Endoscopic, No Device, No Qualifier"
+        },
+        {
+          "assignable": true,
+          "code": "0FT57ZZ",
+          "description": "Medical and Surgical, Hepatobiliary System and Pancreas, Resection, Hepatic Duct, Right, Via Natural or Artificial Opening, No Device, No Qualifier"
+        },
+        {
+          "assignable": true,
+          "code": "0FT58ZZ",
+          "description": "Medical and Surgical, Hepatobiliary System and Pancreas, Resection, Hepatic Duct, Right, Via Natural or Artificial Opening Endoscopic, No Device, No Qualifier"
+        },
+        {
+          "assignable": true,
+          "code": "0FT60ZZ",
+          "description": "Medical and Surgical, Hepatobiliary System and Pancreas, Resection, Hepatic Duct, Left, Open, No Device, No Qualifier"
+        },
+        {
+          "assignable": true,
+          "code": "0FT64ZZ",
+          "description": "Medical and Surgical, Hepatobiliary System and Pancreas, Resection, Hepatic Duct, Left, Percutaneous Endoscopic, No Device, No Qualifier"
+        }
+      ],
+      "total_related": 46
+    }
+  ],
+  "status_events": [
+    {
+      "state": "working"
+    },
+    {
+      "state": "working"
+    },
+    {
+      "message": "Calling expert: coding-expert",
+      "state": "working"
+    }
+  ],
+  "finish_metadata": {
+    "contextId": "019f55cc-c187-73ab-8f82-2a396c0d08ac",
+    "taskId": "019f55cc-c187-730e-bedb-d3a0d811fe9f",
+    "credits": 0.092024,
+    "state": "completed"
+  },
+  "parsed": {
+    "encounter_summary": "- 40-year-old female with documented \"cholelithiasis for 2 years\" and \"intermittent right upper quadrant discomfort.\"\n- Underwent \"Elective laparoscopic cholecystectomy.\"\n- Operative findings: \"normal-sized gallbladder with single 1.5cm cholesterol stone, no adhesions\" and \"Procedure uneventful, blood loss 50ml.\"\n- Final pathology documents \"chronic cholecystitis with cholesterol stone.\"\n- Discharged on post-op day 2.",
+    "gaps": [
+      {
+        "idx": 1,
+        "text": "Principal gallbladder diagnosis should be stated as a combined condition rather than as separate stone and inflammation diagnoses.\n- Why it matters: The documented pathology supports a more specific combined diagnosis code rather than separate nonspecific cholelithiasis/chronic cholecystitis reporting.\n- Evidence quote: \"Pathology: chronic cholecystitis with cholesterol stone.\" and \"cholelithiasis for 2 years\"\n- Minimal clarification needed: Confirm the final diagnosis reflecting gallbladder cal"
+      },
+      {
+        "idx": 2,
+        "text": "Obstruction status is not explicitly documented.\n- Why it matters: Coding specificity for cholelithiasis with cholecystitis depends on whether obstruction is present.\n- Evidence quote: \"single 1.5cm cholesterol stone\"; no statement of obstruction is documented.\n- Minimal clarification needed: Whether the gallbladder calculus/chronic cholecystitis was with or without obstruction."
+      }
+    ],
+    "gap_count": 2,
+    "queries": [
+      {
+        "idx": 1,
+        "text": "Final gallbladder diagnosis / obstruction status"
+      }
+    ],
+    "query_count": 1,
+    "specialists_contacted": [
+      "Medical Coding Expert",
+      "Coding Expert"
+    ],
+    "specialist_trace_text": "- Medical Coding Expert: Consulted for coding specificity and CDI query targets. Accepted: likely combined diagnosis specificity issue, obstruction-status clarification, and laparoscopic cholecystectomy procedure specificity. Rejected/omitted: any unsupported diagnoses beyond the excerpt.\n- AMBOSS Expert: Not consulted because the excerpt already contains pathology-confirmed chronic cholecystitis and no clinical criteria dispute required external diagnostic definitions.\n- CDI Web Search Expert: Not consulted because no current external compliance rule was necessary to answer conservatively from the chart.\n\nCoding note grounded in expert output:\n- Supported diagnosis code option if clarified/documented: K80.10 \"Calculus of gallbladder with chronic cholecystitis without obstruction\" (tool-supported assignable code).\n- Supported procedure code based on documented laparoscopic cholecystectomy: 0FT44ZZ \"Resection of Gallbladder, Percutaneous Endoscopic Approach.\"\n- Uncertainty: Because obstruction is not explicitly documented in the excerpt, the diagnosis should not be assumed beyond the documented evidence without provider clarification.",
+    "has_specialist_trace": true
+  },
+  "error": "",
+  "text": "Encounter Summary:\n- 40-year-old female with documented \"cholelithiasis for 2 years\" and \"intermittent right upper quadrant discomfort.\"\n- Underwent \"Elective laparoscopic cholecystectomy.\"\n- Operative findings: \"normal-sized gallbladder with single 1.5cm cholesterol stone, no adhesions\" and \"Procedure uneventful, blood loss 50ml.\"\n- Final pathology documents \"chronic cholecystitis with cholesterol stone.\"\n- Discharged on post-op day 2.\n\nDocumentation Gaps:\n1. Principal gallbladder diagnosis should be stated as a combined condition rather than as separate stone and inflammation diagnoses.\n- Why it matters: The documented pathology supports a more specific combined diagnosis code rather than separate nonspecific cholelithiasis/chronic cholecystitis reporting.\n- Evidence quote: \"Pathology: chronic cholecystitis with cholesterol stone.\" and \"cholelithiasis for 2 years\"\n- Minimal clarification needed: Confirm the final diagnosis reflecting gallbladder calculus with chronic cholecystitis and whether any obstruction was present.\n\n2. Obstruction status is not explicitly documented.\n- Why it matters: Coding specificity for cholelithiasis with cholecystitis depends on whether obstruction is present.\n- Evidence quote: \"single 1.5cm cholesterol stone\"; no statement of obstruction is documented.\n- Minimal clarification needed: Whether the gallbladder calculus/chronic cholecystitis was with or without obstruction.\n\nProposed Provider Queries:\n1. Topic: Final gallbladder diagnosis / obstruction status\n- Reason query is needed: The record documents both gallbladder stone and chronic cholecystitis, but does not explicitly state whether the condition should be characterized as calculus of gallbladder with chronic cholecystitis and whether obstruction was present.\n- Evidence quote: \"cholelithiasis for 2 years\"; \"Pathology: chronic cholecystitis with cholesterol stone.\"\n- Non-leading query text: \n  \"For this admission and cholecystectomy, please clarify the final gallbladder diagnosis based on the operative and pathology findings. Specifically, can the condition be further characterized, if clinically appropriate, and was any obstruction present?\"\n- Suggested response options:\n  - Calculus of gallbladder with chronic cholecystitis, without obstruction\n  - Calculus of gallbladder with chronic cholecystitis, with obstruction\n  - Chronic cholecystitis without a reportable calculus-related combined diagnosis\n  - Cholelithiasis without cholecystitis\n  - Other diagnosis: ____\n  - Clinically undetermined\n\nCoding Specificity Checklist:\n- Final diagnosis should link stone disease and chronic cholecystitis if clinically supported.\n- Document obstruction status if present or absent.\n- Retain approach specificity for procedure: laparoscopic cholecystectomy is documented.\n- If any intraoperative complication, conversion to open, bile duct exploration, or additional procedure occurred, document explicitly; none is documented here.\n\nRisk Flags:\n- No clear contradiction identified.\n- There is an ambiguity risk if stone disease and chronic cholecystitis are coded separately rather than as a combined condition when supported by pathology.\n- No evidence in the excerpt supports querying acute cholecystitis, gangrene, perforation, bile duct stone, or postoperative complication.\n\nSpecialist Trace:\n- Medical Coding Expert: Consulted for coding specificity and CDI query targets. Accepted: likely combined diagnosis specificity issue, obstruction-status clarification, and laparoscopic cholecystectomy procedure specificity. Rejected/omitted: any unsupported diagnoses beyond the excerpt.\n- AMBOSS Expert: Not consulted because the excerpt already contains pathology-confirmed chronic cholecystitis and no clinical criteria dispute required external diagnostic definitions.\n- CDI Web Search Expert: Not consulted because no current external compliance rule was necessary to answer conservatively from the chart.\n\nCoding note grounded in expert output:\n- Supported diagnosis code option if clarified/documented: K80.10 \"Calculus of gallbladder with chronic cholecystitis without obstruction\" (tool-supported assignable code).\n- Supported procedure code based on documented laparoscopic cholecystectomy: 0FT44ZZ \"Resection of Gallbladder, Percutaneous Endoscopic Approach.\"\n- Uncertainty: Because obstruction is not explicitly documented in the excerpt, the diagnosis should not be assumed beyond the documented evidence without provider clarification."
+}

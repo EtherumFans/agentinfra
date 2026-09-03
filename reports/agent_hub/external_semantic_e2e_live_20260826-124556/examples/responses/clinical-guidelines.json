@@ -1,0 +1,449 @@
+{
+  "agent_id": "clinical-guidelines",
+  "run_id": "run-4dc45cbb-17ef-4f86-a57f-aee5668b7d15",
+  "trace_id": "trace-54995566159f4dee",
+  "trace_url": "/ai-studio/runs/run-4dc45cbb-17ef-4f86-a57f-aee5668b7d15/trace",
+  "runtime_mode": "rule_engine",
+  "latency_ms": 5,
+  "cost": {
+    "amount": 0.0,
+    "currency": "CNY"
+  },
+  "billing": {},
+  "summary": "已按声明规则评估 1 项指南条款；未检索外部指南或生成治疗建议，必须人工复核。",
+  "result": {
+    "status": "requires_review",
+    "markdown": "{\"aligned_items\": [], \"applicability_status\": \"DOCUMENTED_POPULATION_MATCH\", \"clinical_inference_performed\": false, \"clinical_question\": {\"documented_text\": \"住院患者VTE风险评估时限\", \"evidence_ref\": \"clinical-guidelines-evidence-1\"}, \"clinical_significance_assessed\": false, \"criteria_checked\": [{\"assessment\": \"NOT_MET\", \"citations\": \"C1\", \"computed_value\": \"30小时\", \"criterion_id\": \"C1\", \"deviations\": \"已记录时间间隔为30小时，超过声明规则阈值24小时。\", \"evaluation_rule\": \"C1|TIME_WINDOW_HOURS|入院时间|VTE风险评估完成时间|24\", \"guideline_criteria\": \"所有成年住院患者<REDACTED:NAME>院24小时内完成VTE风险评估\", \"observed_evidence\": [{\"documented_value\": \"2026-08-01 10:00\", \"field\": \"入院时间\", \"source_document\": \"入院记录\"}, {\"documented_value\": \"2026-08-02 16:00\", \"field\": \"VTE风险评估完成时间\", \"source_document\": \"VTE评估记录\"}], \"patient_evidence_refs\": [\"clinical-guidelines-evidence-17\", \"clinical-guidelines-evidence-18\"], \"rule_evidence_ref\": \"clinical-guidelines-evidence-16\", \"source_criterion_evidence_ref\": \"clinical-guidelines-evidence-15\", \"uncertainty\": \"仅比较用户提供的记录时间与声明阈值，未验证临床适用性或记录真实性。\"}], \"deviations\": [{\"criterion_id\": \"C1\", \"documented_deviation\": \"已记录时间间隔为30小时，超过声明规则阈值24小时。\"}], \"document_consistency_status\": \"NO_CONFLICTS_DETECTED\", \"documentation_conflicts\": [], \"documentation_scope\": {\"documented_text\": \"入院记录与VTE评估记录\", \"evidence_ref\": \"clinical-guidelines-evidence-14\"}, \"documented_facts\": [{\"documented_value\": \"2026-08-01 10:00\", \"evidence_ref\": \"clinical-guidelines-evidence-17\", \"evidence_text\": \"入院记录|入院时间=2026-08-01 10:00\", \"fact_id\": \"fact-1\", \"field\": \"入院时间\", \"source_document\": \"入院记录\"}, {\"documented_value\": \"2026-08-02 16:00\", \"evidence_ref\": \"clinical-guidelines-evidence-18\", \"evidence_text\": \"VTE评估记录|VTE风险评估完成时间=2026-08-02 16:00\", \"fact_id\": \"fact-2\", \"field\": \"VTE风险评估完成时间\", \"source_document\": \"VTE评估记录\"}], \"evaluation_method\": \"DECLARED_RULES_DETERMINISTIC_COMPARISON\", \"evidence_citations\": [{\"criterion_id\": \"C1\", \"evidence_ref\": \"clinical-guidelines-evidence-15\", \"guideline_text\": \"所有成年住院患者<REDACTED:NAME>院24小时内完成VTE风险评估\", \"source_title\": \"本院《住院患者VTE防治规范》\", \"source_url\": \"hospital-internal://clinical-guidelines/vte/2026.1\", \"source_version\": \"2026.1\"}], \"evidence_items\": [{\"char_span\": [5, 18], \"evidence_id\": \"clinical-guidelines-evidence-1\", \"field\": \"clinical_question\", \"label\": \"临床问题\", \"text\": \"住院患者VTE风险评估时限\"}, {\"char_span\": [24, 63], \"evidence_id\": \"clinical-guidelines-evidence-2\", \"field\": \"guideline_domain\", \"label\": \"指南领域\", \"text\": \"hospital-internal://clinical-guidelines\"}, {\"char_span\": [69, 84], \"evidence_id\": \"clinical-guidelines-evidence-3\", \"field\": \"source_title\", \"label\": \"指南名称\", \"text\": \"本院《住院患者VTE防治规范》\"}, {\"char_span\": [90, 96], \"evidence_id\": \"clinical-guidelines-evidence-4\", \"field\": \"source_version\", \"label\": \"指南版本\", \"text\": \"2026.1\"}, {\"char_span\": [102, 112], \"evidence_id\": \"clinical-guidelines-evidence-5\", \"field\": \"publication_date\", \"label\": \"发布日期\", \"text\": \"2026-07-01\"}, {\"char_span\": [120, 123], \"evidence_id\": \"clinical-guidelines-evidence-6\", \"field\": \"approval_status\", \"label\": \"医院批准状态\", \"text\": \"已批准\"}, {\"char_span\": [131, 141], \"evidence_id\": \"clinical-guidelines-evidence-7\", \"field\": \"approval_date\", \"label\": \"医院批准日期\", \"text\": \"2026-07-15\"}, {\"char_span\": [147, 160], \"evidence_id\": \"clinical-guidelines-evidence-8\", \"field\": \"approval_organization\", \"label\": \"批准机构\", \"text\": \"示例医院医疗质量管理委员会\"}, {\"char_span\": [166, 170], \"evidence_id\": \"clinical-guidelines-evidence-9\", \"field\": \"source_organization\", \"label\": \"来源机构\", \"text\": \"示例医院\"}, {\"char_span\": [176, 226], \"evidence_id\": \"clinical-guidelines-evidence-10\", \"field\": \"source_url\", \"label\": \"来源网址\", \"text\": \"hospital-internal://clinical-guidelines/vte/2026.1\"}, {\"char_span\": [234, 252], \"evidence_id\": \"clinical-guidelines-evidence-11\", \"field\": \"guideline_population\", \"label\": \"指南适用人群\", \"text\": \"<REDACTED:NAME>院患者\"}, {\"char_span\": [260, 278], \"evidence_id\": \"clinical-guidelines-evidence-12\", \"field\": \"patient_population\", \"label\": \"病例适用人群\", \"text\": \"<REDACTED:NAME>院患者\"}, {\"char_span\": [284, 286], \"evidence_id\": \"clinical-guidelines-evidence-13\", \"field\": \"source_scope\", \"label\": \"指南范围\", \"text\": \"完整\"}, {\"char_span\": [294, 306], \"evidence_id\": \"clinical-guidelines-evidence-14\", \"field\": \"documentation_scope\", \"label\": \"病例文档范围\", \"text\": \"入院记录与VTE评估记录\"}, {\"char_span\": [316, 354], \"evidence_id\": \"clinical-guidelines-evidence-15\", \"field\": \"guideline_criteria\", \"label\": \"指南条款\", \"text\": \"所有成年住院患者<REDACTED:NAME>院24小时内完成VTE风险评估\"}, {\"char_span\": [361, 401], \"evidence_id\": \"clinical-guidelines-evidence-16\", \"field\": \"evaluation_rules\", \"label\": \"评估规则\", \"text\": \"C1|TIME_WINDOW_HOURS|入院时间|VTE风险评估完成时间|24\"}, {\"char_span\": [408, 434], \"evidence_id\": \"clinical-guidelines-evidence-17\", \"field\": \"documented_facts\", \"label\": \"病例事实\", \"text\": \"入院记录|入院时间=2026-08-01 10:00\"}, {\"char_span\": [435, 471], \"evidence_id\": \"clinical-guidelines-evidence-18\", \"field\": \"documented_facts\", \"label\": \"病例事实\", \"text\": \"VTE评估记录|VTE风险评估完成时间=2026-08-02 16:00\"}], \"external_knowledge_used\": false, \"guideline_availability_status\": \"DOCUMENTED_GUIDELINE_AVAILABLE\", \"guideline_criteria\": [{\"criterion_id\": \"C1\", \"evidence_ref\": \"clinical-guidelines-evidence-15\", \"guideline_text\": \"所有成年住院患者<REDACTED:NAME>院24小时内完成VTE风险评估\"}], \"guideline_domain\": {\"documented_text\": \"hospital-internal://clinical-guidelines\", \"evidence_ref\": \"clinical-guidelines-evidence-2\"}, \"guideline_population\": {\"documented_text\": \"<REDACTED:NAME>院患者\", \"evidence_ref\": \"clinical-guidelines-evidence-11\"}, \"guideline_retrieval_performed\": false, \"guideline_source\": {\"approval_date\": {\"documented_text\": \"2026-07-15\", \"evidence_ref\": \"clinical-guidelines-evidence-7\"}, \"approval_organization\": {\"documented_text\": \"示例医院医疗质量管理委员会\", \"evidence_ref\": \"clinical-guidelines-evidence-8\"}, \"approval_status\": {\"documented_text\": \"已批准\", \"evidence_ref\": \"clinical-guidelines-evidence-6\"}, \"domain_match\": true, \"publication_date\": {\"documented_text\": \"2026-07-01\", \"evidence_ref\": \"clinical-guidelines-evidence-5\"}, \"scope\": {\"documented_text\": \"完整\", \"evidence_ref\": \"clinical-guidelines-evidence-13\"}, \"source_organization\": {\"documented_text\": \"示例医院\", \"evidence_ref\": \"clinical-guidelines-evidence-9\"}, \"source_url\": {\"documented_text\": \"hospital-internal://clinical-guidelines/vte/2026.1\", \"evidence_ref\": \"clinical-guidelines-evidence-10\"}, \"title\": {\"documented_text\": \"本院《住院患者VTE防治规范》\", \"evidence_ref\": \"clinical-guidelines-evidence-3\"}, \"version\": {\"documented_text\": \"2026.1\", \"evidence_ref\": \"clinical-guidelines-evidence-4\"}}, \"guideline_source_eligible_for_review\": true, \"guideline_status\": \"READY_FOR_REVIEW\", \"limitations\": [\"仅评估明确标题字段、结构化病例事实和用户提供的确定性评估规则。\", \"未联网检索指南，未独立验证来源真实性、许可、批准权限、版本时效或是否为最新版本。\", \"精确人群文本匹配不等于临床适用性判断；不推断诊断、病情、禁忌证或未记录行为。\", \"只支持 PRESENT、EQUALS 和 TIME_WINDOW_HOURS 规则；未提供或冲突事实返回 NOT_ASSESSABLE。\", \"偏差表示记录事实与声明规则不一致，不表示医疗错误，也不评估临床意义或建议治疗。\", \"结果仅供临床治理人工复核，不自动处罚、发布、修改病历或写回系统。\"], \"manual_review_required\": true, \"missing_patient_information\": [], \"missing_required_fields\": [], \"missing_source_metadata\": [], \"not_assessable_items\": [], \"overall_assessment\": \"NOT_MET\", \"patient_population\": {\"documented_text\": \"<REDACTED:NAME>院患者\", \"evidence_ref\": \"clinical-guidelines-evidence-12\"}, \"production_writeback_blocked\": true, \"source_authenticity_status\": \"USER_DOCUMENTED_METADATA_ONLY_NOT_INDEPENDENTLY_VERIFIED\", \"source_currency_verified\": false, \"trace_refs\": {\"provider_trace_refs\": [\"run-4dc45cbb-17ef-4f86-a57f-aee5668b7d15:governed-clinical-guidelines\"], \"run_id\": \"run-4dc45cbb-17ef-4f86-a57f-aee5668b7d15\"}, \"treatment_recommendations_generated\": false, \"web_search_performed\": false}",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.governed-clinical-guidelines.v1",
+    "backend_type": "rule_engine",
+    "aligned_items": [],
+    "applicability_status": "DOCUMENTED_POPULATION_MATCH",
+    "clinical_inference_performed": false,
+    "clinical_question": {
+      "documented_text": "住院患者VTE风险评估时限",
+      "evidence_ref": "clinical-guidelines-evidence-1"
+    },
+    "clinical_significance_assessed": false,
+    "criteria_checked": [
+      {
+        "assessment": "NOT_MET",
+        "citations": "C1",
+        "computed_value": "30小时",
+        "criterion_id": "C1",
+        "deviations": "已记录时间间隔为30小时，超过声明规则阈值24小时。",
+        "evaluation_rule": "C1|TIME_WINDOW_HOURS|入院时间|VTE风险评估完成时间|24",
+        "guideline_criteria": "所有成年住院患者<REDACTED:NAME>院24小时内完成VTE风险评估",
+        "observed_evidence": [
+          {
+            "documented_value": "2026-08-01 10:00",
+            "field": "入院时间",
+            "source_document": "入院记录"
+          },
+          {
+            "documented_value": "2026-08-02 16:00",
+            "field": "VTE风险评估完成时间",
+            "source_document": "VTE评估记录"
+          }
+        ],
+        "patient_evidence_refs": [
+          "clinical-guidelines-evidence-17",
+          "clinical-guidelines-evidence-18"
+        ],
+        "rule_evidence_ref": "clinical-guidelines-evidence-16",
+        "source_criterion_evidence_ref": "clinical-guidelines-evidence-15",
+        "uncertainty": "仅比较用户提供的记录时间与声明阈值，未验证临床适用性或记录真实性。"
+      }
+    ],
+    "deviations": [
+      {
+        "criterion_id": "C1",
+        "documented_deviation": "已记录时间间隔为30小时，超过声明规则阈值24小时。"
+      }
+    ],
+    "document_consistency_status": "NO_CONFLICTS_DETECTED",
+    "documentation_conflicts": [],
+    "documentation_scope": {
+      "documented_text": "入院记录与VTE评估记录",
+      "evidence_ref": "clinical-guidelines-evidence-14"
+    },
+    "documented_facts": [
+      {
+        "documented_value": "2026-08-01 10:00",
+        "evidence_ref": "clinical-guidelines-evidence-17",
+        "evidence_text": "入院记录|入院时间=2026-08-01 10:00",
+        "fact_id": "fact-1",
+        "field": "入院时间",
+        "source_document": "入院记录"
+      },
+      {
+        "documented_value": "2026-08-02 16:00",
+        "evidence_ref": "clinical-guidelines-evidence-18",
+        "evidence_text": "VTE评估记录|VTE风险评估完成时间=2026-08-02 16:00",
+        "fact_id": "fact-2",
+        "field": "VTE风险评估完成时间",
+        "source_document": "VTE评估记录"
+      }
+    ],
+    "evaluation_method": "DECLARED_RULES_DETERMINISTIC_COMPARISON",
+    "evidence_citations": [
+      {
+        "criterion_id": "C1",
+        "evidence_ref": "clinical-guidelines-evidence-15",
+        "guideline_text": "所有成年住院患者<REDACTED:NAME>院24小时内完成VTE风险评估",
+        "source_title": "本院《住院患者VTE防治规范》",
+        "source_url": "hospital-internal://clinical-guidelines/vte/2026.1",
+        "source_version": "2026.1"
+      }
+    ],
+    "evidence_items": [
+      {
+        "char_span": [
+          5,
+          18
+        ],
+        "evidence_id": "clinical-guidelines-evidence-1",
+        "field": "clinical_question",
+        "label": "临床问题",
+        "text": "住院患者VTE风险评估时限"
+      },
+      {
+        "char_span": [
+          24,
+          63
+        ],
+        "evidence_id": "clinical-guidelines-evidence-2",
+        "field": "guideline_domain",
+        "label": "指南领域",
+        "text": "hospital-internal://clinical-guidelines"
+      },
+      {
+        "char_span": [
+          69,
+          84
+        ],
+        "evidence_id": "clinical-guidelines-evidence-3",
+        "field": "source_title",
+        "label": "指南名称",
+        "text": "本院《住院患者VTE防治规范》"
+      },
+      {
+        "char_span": [
+          90,
+          96
+        ],
+        "evidence_id": "clinical-guidelines-evidence-4",
+        "field": "source_version",
+        "label": "指南版本",
+        "text": "2026.1"
+      },
+      {
+        "char_span": [
+          102,
+          112
+        ],
+        "evidence_id": "clinical-guidelines-evidence-5",
+        "field": "publication_date",
+        "label": "发布日期",
+        "text": "2026-07-01"
+      },
+      {
+        "char_span": [
+          120,
+          123
+        ],
+        "evidence_id": "clinical-guidelines-evidence-6",
+        "field": "approval_status",
+        "label": "医院批准状态",
+        "text": "已批准"
+      },
+      {
+        "char_span": [
+          131,
+          141
+        ],
+        "evidence_id": "clinical-guidelines-evidence-7",
+        "field": "approval_date",
+        "label": "医院批准日期",
+        "text": "2026-07-15"
+      },
+      {
+        "char_span": [
+          147,
+          160
+        ],
+        "evidence_id": "clinical-guidelines-evidence-8",
+        "field": "approval_organization",
+        "label": "批准机构",
+        "text": "示例医院医疗质量管理委员会"
+      },
+      {
+        "char_span": [
+          166,
+          170
+        ],
+        "evidence_id": "clinical-guidelines-evidence-9",
+        "field": "source_organization",
+        "label": "来源机构",
+        "text": "示例医院"
+      },
+      {
+        "char_span": [
+          176,
+          226
+        ],
+        "evidence_id": "clinical-guidelines-evidence-10",
+        "field": "source_url",
+        "label": "来源网址",
+        "text": "hospital-internal://clinical-guidelines/vte/2026.1"
+      },
+      {
+        "char_span": [
+          234,
+          252
+        ],
+        "evidence_id": "clinical-guidelines-evidence-11",
+        "field": "guideline_population",
+        "label": "指南适用人群",
+        "text": "<REDACTED:NAME>院患者"
+      },
+      {
+        "char_span": [
+          260,
+          278
+        ],
+        "evidence_id": "clinical-guidelines-evidence-12",
+        "field": "patient_population",
+        "label": "病例适用人群",
+        "text": "<REDACTED:NAME>院患者"
+      },
+      {
+        "char_span": [
+          284,
+          286
+        ],
+        "evidence_id": "clinical-guidelines-evidence-13",
+        "field": "source_scope",
+        "label": "指南范围",
+        "text": "完整"
+      },
+      {
+        "char_span": [
+          294,
+          306
+        ],
+        "evidence_id": "clinical-guidelines-evidence-14",
+        "field": "documentation_scope",
+        "label": "病例文档范围",
+        "text": "入院记录与VTE评估记录"
+      },
+      {
+        "char_span": [
+          316,
+          354
+        ],
+        "evidence_id": "clinical-guidelines-evidence-15",
+        "field": "guideline_criteria",
+        "label": "指南条款",
+        "text": "所有成年住院患者<REDACTED:NAME>院24小时内完成VTE风险评估"
+      },
+      {
+        "char_span": [
+          361,
+          401
+        ],
+        "evidence_id": "clinical-guidelines-evidence-16",
+        "field": "evaluation_rules",
+        "label": "评估规则",
+        "text": "C1|TIME_WINDOW_HOURS|入院时间|VTE风险评估完成时间|24"
+      },
+      {
+        "char_span": [
+          408,
+          434
+        ],
+        "evidence_id": "clinical-guidelines-evidence-17",
+        "field": "documented_facts",
+        "label": "病例事实",
+        "text": "入院记录|入院时间=2026-08-01 10:00"
+      },
+      {
+        "char_span": [
+          435,
+          471
+        ],
+        "evidence_id": "clinical-guidelines-evidence-18",
+        "field": "documented_facts",
+        "label": "病例事实",
+        "text": "VTE评估记录|VTE风险评估完成时间=2026-08-02 16:00"
+      }
+    ],
+    "external_knowledge_used": false,
+    "guideline_availability_status": "DOCUMENTED_GUIDELINE_AVAILABLE",
+    "guideline_criteria": [
+      {
+        "criterion_id": "C1",
+        "evidence_ref": "clinical-guidelines-evidence-15",
+        "guideline_text": "所有成年住院患者<REDACTED:NAME>院24小时内完成VTE风险评估"
+      }
+    ],
+    "guideline_domain": {
+      "documented_text": "hospital-internal://clinical-guidelines",
+      "evidence_ref": "clinical-guidelines-evidence-2"
+    },
+    "guideline_population": {
+      "documented_text": "<REDACTED:NAME>院患者",
+      "evidence_ref": "clinical-guidelines-evidence-11"
+    },
+    "guideline_retrieval_performed": false,
+    "guideline_source": {
+      "approval_date": {
+        "documented_text": "2026-07-15",
+        "evidence_ref": "clinical-guidelines-evidence-7"
+      },
+      "approval_organization": {
+        "documented_text": "示例医院医疗质量管理委员会",
+        "evidence_ref": "clinical-guidelines-evidence-8"
+      },
+      "approval_status": {
+        "documented_text": "已批准",
+        "evidence_ref": "clinical-guidelines-evidence-6"
+      },
+      "domain_match": true,
+      "publication_date": {
+        "documented_text": "2026-07-01",
+        "evidence_ref": "clinical-guidelines-evidence-5"
+      },
+      "scope": {
+        "documented_text": "完整",
+        "evidence_ref": "clinical-guidelines-evidence-13"
+      },
+      "source_organization": {
+        "documented_text": "示例医院",
+        "evidence_ref": "clinical-guidelines-evidence-9"
+      },
+      "source_url": {
+        "documented_text": "hospital-internal://clinical-guidelines/vte/2026.1",
+        "evidence_ref": "clinical-guidelines-evidence-10"
+      },
+      "title": {
+        "documented_text": "本院《住院患者VTE防治规范》",
+        "evidence_ref": "clinical-guidelines-evidence-3"
+      },
+      "version": {
+        "documented_text": "2026.1",
+        "evidence_ref": "clinical-guidelines-evidence-4"
+      }
+    },
+    "guideline_source_eligible_for_review": true,
+    "guideline_status": "READY_FOR_REVIEW",
+    "limitations": [
+      "仅评估明确标题字段、结构化病例事实和用户提供的确定性评估规则。",
+      "未联网检索指南，未独立验证来源真实性、许可、批准权限、版本时效或是否为最新版本。",
+      "精确人群文本匹配不等于临床适用性判断；不推断诊断、病情、禁忌证或未记录行为。",
+      "只支持 PRESENT、EQUALS 和 TIME_WINDOW_HOURS 规则；未提供或冲突事实返回 NOT_ASSESSABLE。",
+      "偏差表示记录事实与声明规则不一致，不表示医疗错误，也不评估临床意义或建议治疗。",
+      "结果仅供临床治理人工复核，不自动处罚、发布、修改病历或写回系统。"
+    ],
+    "manual_review_required": true,
+    "missing_patient_information": [],
+    "missing_required_fields": [],
+    "missing_source_metadata": [],
+    "not_assessable_items": [],
+    "overall_assessment": "NOT_MET",
+    "patient_population": {
+      "documented_text": "<REDACTED:NAME>院患者",
+      "evidence_ref": "clinical-guidelines-evidence-12"
+    },
+    "production_writeback_blocked": true,
+    "source_authenticity_status": "USER_DOCUMENTED_METADATA_ONLY_NOT_INDEPENDENTLY_VERIFIED",
+    "source_currency_verified": false,
+    "trace_refs": {
+      "run_id": "run-4dc45cbb-17ef-4f86-a57f-aee5668b7d15",
+      "trace_id": "trace-54995566159f4dee",
+      "provider_trace_refs": [
+        "run-4dc45cbb-17ef-4f86-a57f-aee5668b7d15:governed-clinical-guidelines"
+      ]
+    },
+    "treatment_recommendations_generated": false,
+    "web_search_performed": false,
+    "structured_extraction": {
+      "contract": "icoder/ClinicalGuidelinesOutput/v6",
+      "method": "json_block",
+      "warnings": [],
+      "required_fields": [
+        "guideline_status",
+        "clinical_question",
+        "guideline_domain",
+        "guideline_source",
+        "guideline_population",
+        "patient_population",
+        "documentation_scope",
+        "guideline_source_eligible_for_review",
+        "source_authenticity_status",
+        "source_currency_verified",
+        "applicability_status",
+        "document_consistency_status",
+        "evaluation_method",
+        "guideline_criteria",
+        "documented_facts",
+        "documentation_conflicts",
+        "criteria_checked",
+        "aligned_items",
+        "deviations",
+        "not_assessable_items",
+        "overall_assessment",
+        "guideline_availability_status",
+        "evidence_citations",
+        "evidence_items",
+        "missing_required_fields",
+        "missing_source_metadata",
+        "missing_patient_information",
+        "limitations",
+        "guideline_retrieval_performed",
+        "web_search_performed",
+        "clinical_inference_performed",
+        "clinical_significance_assessed",
+        "treatment_recommendations_generated",
+        "external_knowledge_used",
+        "production_writeback_blocked",
+        "manual_review_required",
+        "trace_refs"
+      ],
+      "optional_fields": [],
+      "missing_required_fields": [],
+      "invalid_field_types": [],
+      "invalid_field_schemas": [],
+      "invalid_cross_agent_relations": [],
+      "undeclared_output_fields": [],
+      "undeclared_output_field_count": 0,
+      "valid": true
+    }
+  },
+  "schema_ref": "icoder/ClinicalGuidelinesOutput/v6",
+  "result_attestation": "eyJhIjoiY2xpbmljYWwtZ3VpZGVsaW5lcyIsImQiOiJlODQzMDgyZDZlOGE1ZDZmMTUxY2U1MDg1NjA5NTE4Nzc2NmEzZTEzM2ExNzAxZTEwYmQ1ZWMzNjgzN2EwYWIzIiwiZSI6MTc4NzgwNjAxNCwibyI6ImJhNDg5M2Q1NDIzNiIsInIiOiJydW4tNGRjNDVjYmItMTdlZi00Zjg2LWE1N2YtYWVlNTY2OGI3ZDE1IiwicyI6Imljb2Rlci9DbGluaWNhbEd1aWRlbGluZXNPdXRwdXQvdjYiLCJ2IjoxfQ.abgY1EmHHBw8ALZHcxDtLIn2wK9E7OuvzUY0DRmO5Kw",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 5,
+      "metadata": {
+        "agent_id": "clinical-guidelines",
+        "runtime_mode": "rule_engine",
+        "latency_ms": 5
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 0.15
+}

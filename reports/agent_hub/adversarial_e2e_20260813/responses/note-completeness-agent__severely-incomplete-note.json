@@ -1,0 +1,98 @@
+{
+  "agent_id": "note-completeness-agent",
+  "run_id": "run-15dcfeae-d15e-4c8b-a97d-f20d4d88b177",
+  "trace_id": "trace-243bfce1638e4da7",
+  "trace_url": "/ai-studio/runs/run-15dcfeae-d15e-4c8b-a97d-f20d4d88b177/trace",
+  "runtime_mode": "a2a_pure_llm",
+  "latency_ms": 5050,
+  "cost": {
+    "amount": 0.000182,
+    "currency": "CNY"
+  },
+  "summary": "{",
+  "result": {
+    "status": "complete",
+    "markdown": "{\n  \"review_conclusion\": \"病历严重不完整，仅包含主诉和诊断，缺少现病史、既往史、体格检查、辅助检查及治疗经过等必填章节。\",\n  \"documentation_gaps\": [\n    \"缺少现病史（HPI）\",\n    \"缺少既往史（PMH）\",\n    \"缺少体格检查（PE）\",\n    \"缺少辅助检查（AUX）\",\n    \"缺少治疗经过（Tx）\",\n    \"诊断部分未区分入院诊断与出院诊断\"\n  ],\n  \"completeness_score\": 0.25,\n  \"missing_sections\": [\n    \"现病史\",\n    \"既往史\",\n    \"体格检查\",\n    \"辅助检查\",\n    \"治疗经过\"\n  ],\n  \"present_sections\": [\n    \"主诉\",\n    \"诊断\"\n  ],\n  \"required_sections\": [\n    \"主诉\",\n    \"现病史\",\n    \"既往史\",\n    \"体格检查\",\n    \"辅助检查\",\n    \"诊断\",\n    \"治疗经过\"\n  ]\n}",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.pure-llm.v1",
+    "backend_type": "pure_llm",
+    "review_conclusion": "病历严重不完整，仅包含主诉和诊断，缺少现病史、既往史、体格检查、辅助检查及治疗经过等必填章节。",
+    "documentation_gaps": [
+      "缺少现病史（HPI）",
+      "缺少既往史（PMH）",
+      "缺少体格检查（PE）",
+      "缺少辅助检查（AUX）",
+      "缺少治疗经过（Tx）",
+      "诊断部分未区分入院诊断与出院诊断"
+    ],
+    "completeness_score": 0.25,
+    "missing_sections": [
+      "现病史",
+      "既往史",
+      "体格检查",
+      "辅助检查",
+      "治疗经过"
+    ],
+    "present_sections": [
+      "主诉",
+      "诊断"
+    ],
+    "required_sections": [
+      "主诉",
+      "现病史",
+      "既往史",
+      "体格检查",
+      "辅助检查",
+      "诊断",
+      "治疗经过"
+    ],
+    "trace_refs": {
+      "run_id": "run-15dcfeae-d15e-4c8b-a97d-f20d4d88b177",
+      "trace_id": "trace-243bfce1638e4da7",
+      "provider_trace_refs": [
+        "run-15dcfeae-d15e-4c8b-a97d-f20d4d88b177"
+      ]
+    },
+    "structured_extraction": {
+      "contract": "icoder/NoteCompletenessOutput/v1",
+      "method": "json_block",
+      "warnings": [],
+      "required_fields": [
+        "review_conclusion",
+        "documentation_gaps",
+        "completeness_score",
+        "missing_sections",
+        "present_sections",
+        "required_sections",
+        "trace_refs"
+      ],
+      "missing_required_fields": [],
+      "valid": true
+    },
+    "manual_review_required": true
+  },
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 5050,
+      "metadata": {
+        "agent_id": "note-completeness-agent",
+        "runtime_mode": "a2a_pure_llm",
+        "latency_ms": 5050
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 5.48
+}

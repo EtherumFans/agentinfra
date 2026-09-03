@@ -1,0 +1,244 @@
+{
+  "agent_id": "medical-coding-agent",
+  "run_id": "run-c73071f0-c055-41f9-b2a4-ab28bc3d7be6",
+  "trace_id": "trace-9c9c752151d24f93",
+  "trace_url": "/ai-studio/runs/run-c73071f0-c055-41f9-b2a4-ab28bc3d7be6/trace",
+  "runtime_mode": "corti_like_fast",
+  "latency_ms": 4009,
+  "cost": {
+    "amount": 0.000286,
+    "currency": "CNY",
+    "source": "provider_token_usage",
+    "token_usage": {
+      "input_tokens": 1304,
+      "output_tokens": 371
+    }
+  },
+  "billing": {},
+  "summary": "主要诊断为社区获得性肺炎，非重症，依据CURB-65评分1分及PSI中危。病原体为肺炎链球菌，但ICD-10中J15.902已涵盖常见病原体，无需额外编码。2型糖尿病作为合并症编码。",
+  "result": {
+    "encounter_summary": {
+      "chief_complaint": "",
+      "treatment_course": "",
+      "key_findings": [],
+      "document_sources": [],
+      "encounter_date": ""
+    },
+    "documentation_analysis": {
+      "diagnosis_evidence": [],
+      "procedure_evidence": [],
+      "negated_findings": [],
+      "historical_conditions": []
+    },
+    "code_assignment": {
+      "primary_diagnosis": {
+        "code": "J15.902",
+        "description": "社区获得性肺炎，非重症",
+        "confidence": 0.95,
+        "category": "principal",
+        "evidence": [
+          {
+            "text": "Admission diagnosis: community-acquired pneumonia (CAP, PSI intermediate risk)",
+            "kind": "auto_bootstrap",
+            "char_start": 281,
+            "char_end": 359,
+            "doc_id": "input"
+          },
+          {
+            "text": "CURB-65 score 1",
+            "kind": "auto_bootstrap",
+            "char_start": 161,
+            "char_end": 176,
+            "doc_id": "input"
+          },
+          {
+            "text": "Sputum culture: Streptococcus pneumoniae",
+            "kind": "auto_bootstrap",
+            "char_start": 178,
+            "char_end": 218,
+            "doc_id": "input"
+          }
+        ]
+      },
+      "secondary_diagnoses": [
+        {
+          "code": "E11.900",
+          "description": "2型糖尿病",
+          "confidence": 0.95,
+          "category": "comorbidity",
+          "evidence": [
+            {
+              "text": "History: type 2 diabetes for 10 years",
+              "kind": "auto_bootstrap",
+              "char_start": 220,
+              "char_end": 257,
+              "doc_id": "input"
+            }
+          ]
+        }
+      ],
+      "procedures": []
+    },
+    "documentation_gaps": [],
+    "uncodable_items": [],
+    "validation_summary": {
+      "passed": false,
+      "issues_found": [
+        {
+          "severity": "low",
+          "code": "SMOKING_HISTORY",
+          "message": "病历提及30包年吸烟史，但未作为诊断编码。",
+          "suggestion": "如病历明确记录吸烟史，可考虑补充Z72.0（烟草使用）作为附加编码。"
+        }
+      ],
+      "manual_review_required": true,
+      "rule_set": "MedCodERRetrievalRuleSet",
+      "fired_rules": [
+        "SMOKING_HISTORY"
+      ]
+    },
+    "human_review": {
+      "review_conclusion": "PASS",
+      "review_required": true,
+      "review_focus": [],
+      "notes": "主要诊断为社区获得性肺炎，非重症，依据CURB-65评分1分及PSI中危。病原体为肺炎链球菌，但ICD-10中J15.902已涵盖常见病原体，无需额外编码。2型糖尿病作为合并症编码。"
+    },
+    "trace_refs": {
+      "run_id": "run-c73071f0-c055-41f9-b2a4-ab28bc3d7be6",
+      "stage_trace": [],
+      "rule_fired": [
+        "SMOKING_HISTORY"
+      ],
+      "mode": "Mode.UNSET",
+      "method_id": "",
+      "provider": "",
+      "model": "",
+      "trace_id": "trace-9c9c752151d24f93"
+    },
+    "codes": [
+      {
+        "code": "J15.902",
+        "system": "ICD-10-CN",
+        "display": "社区获得性肺炎，非重症",
+        "type": "primary_diagnosis",
+        "confidence": 0.95,
+        "evidence": "Admission diagnosis: community-acquired pneumonia (CAP, PSI intermediate risk); CURB-65 score 1; Sputum culture: Streptococcus pneumoniae",
+        "rationale": "主要诊断 — 基于病历证据的优先编码候选,需结合 ICD-10-CN 本地目录复核具体亚目。",
+        "warnings": [
+          "需结合国家医保版 ICD-10-CN 目录进一步校验具体亚目"
+        ],
+        "alternatives": []
+      },
+      {
+        "code": "E11.900",
+        "system": "ICD-10-CN",
+        "display": "2型糖尿病",
+        "type": "secondary_diagnosis",
+        "confidence": 0.95,
+        "evidence": "History: type 2 diabetes for 10 years",
+        "rationale": "次要诊断 (comorbidity) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。",
+        "warnings": [
+          "需结合 ICD-10-CN 本地目录进一步校验具体亚目"
+        ],
+        "alternatives": []
+      }
+    ],
+    "manual_review_required": true
+  },
+  "schema_ref": "icoder/MedicalCodingAgentOutputV2/v8",
+  "result_attestation": "eyJhIjoibWVkaWNhbC1jb2RpbmctYWdlbnQiLCJkIjoiNGNlYWYzOTQ2ODA5MjlmYzI4MWVkYjdhZTNmYmVmMDBiOWNhNDcxZmY5M2M1OTA5ZmEyYTE3NzRlOTY1ZDE4MiIsImUiOjE3ODc4ODc2NzgsIm8iOiI1ZmVmMzc5ZjI1YmQiLCJyIjoicnVuLWM3MzA3MWYwLWMwNTUtNDFmOS1iMmE0LWFiMjhiYzNkN2JlNiIsInMiOiJpY29kZXIvTWVkaWNhbENvZGluZ0FnZW50T3V0cHV0VjIvdjgiLCJ2IjoxfQ.2H1pbpv0vgdB-udJXFBSfGFpRTayo2QrOXy7bGMP1i8",
+  "evidence": [
+    {
+      "code": "J15.902",
+      "system": "ICD-10-CN",
+      "type": "primary_diagnosis",
+      "text": "Admission diagnosis: community-acquired pneumonia (CAP, PSI intermediate risk); CURB-65 score 1; Sputum culture: Streptococcus pneumoniae",
+      "rationale": "主要诊断 — 基于病历证据的优先编码候选,需结合 ICD-10-CN 本地目录复核具体亚目。"
+    },
+    {
+      "code": "E11.900",
+      "system": "ICD-10-CN",
+      "type": "secondary_diagnosis",
+      "text": "History: type 2 diabetes for 10 years",
+      "rationale": "次要诊断 (comorbidity) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。"
+    }
+  ],
+  "warnings": [
+    "需结合国家医保版 ICD-10-CN 目录进一步校验具体亚目",
+    "需结合 ICD-10-CN 本地目录进一步校验具体亚目"
+  ],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "input_received",
+      "status": "ok",
+      "ts": 1787801274.4329565,
+      "duration_ms": 0,
+      "metadata": {
+        "text_len": 460,
+        "mode": "corti_like_fast"
+      }
+    },
+    {
+      "step": "language_detect",
+      "status": "ok",
+      "ts": 1787801274.4329565,
+      "duration_ms": 0,
+      "metadata": {
+        "language": "en"
+      }
+    },
+    {
+      "step": "build_prompt",
+      "status": "ok",
+      "ts": 1787801274.4329565,
+      "duration_ms": 0,
+      "metadata": {
+        "provider": "deepseek",
+        "language": "en",
+        "system": "icd-10-cn"
+      }
+    },
+    {
+      "step": "llm_call",
+      "status": "ok",
+      "ts": 1787801278.446246,
+      "duration_ms": 4009,
+      "metadata": {
+        "provider": "deepseek",
+        "model": "deepseek-chat",
+        "is_mock": false
+      }
+    },
+    {
+      "step": "parse_json",
+      "status": "ok",
+      "ts": 1787801278.446246,
+      "duration_ms": 4009,
+      "metadata": {}
+    },
+    {
+      "step": "project_result",
+      "status": "ok",
+      "ts": 1787801278.446246,
+      "duration_ms": 4009,
+      "metadata": {
+        "code_count": 2
+      }
+    },
+    {
+      "step": "return",
+      "status": "ok",
+      "ts": 1787801278.446246,
+      "duration_ms": 4009,
+      "metadata": {
+        "latency_ms": 4009,
+        "code_count": 2
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 4.995
+}

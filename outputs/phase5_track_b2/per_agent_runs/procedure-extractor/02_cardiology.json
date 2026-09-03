@@ -1,0 +1,56 @@
+{
+  "agent_id": "procedure-extractor",
+  "run_id": "run-1845d12d-ced1-4a8a-9a6e-75d6936d0a87",
+  "trace_id": "trace-8853abf7745f41f7",
+  "runtime_mode": "corti_like_fast",
+  "latency_ms": 12298,
+  "cost": {
+    "amount": 0.000143,
+    "currency": "CNY"
+  },
+  "summary": "```json",
+  "result": {
+    "status": "warning",
+    "markdown": "```json\n{\n  \"procedures\": [\n    {\n      \"code\": \"88.5500\",\n      \"display\": \"冠状动脉造影术\",\n      \"evidence_text\": \"急诊冠脉造影\",\n      \"char_span\": [119, 126],\n      \"confidence\": 0.95,\n      \"warnings\": []\n    },\n    {\n      \"code\": \"36.0600\",\n      \"display\": \"冠状动脉药物洗脱支架置入术\",\n      \"evidence_text\": \"行 LAD PCI 术,植入药物洗脱支架 1 枚\",\n      \"char_span\": [127, 155],\n      \"confidence\": 0.92,\n      \"warnings\": []\n    }\n  ],\n  \"issues_found\": [\n    \"手术记录中未提及 RCA 中段 80% 狭窄是否同期处理,需确认是否遗漏手术操作\",\n    \"诊断中提及 '冠状动脉单支病变(PCI 术后)',但造影显示多支病变(LAD+RCA+LCX),存在诊断-手术不一致\"\n  ],\n  \"manual_review_required\": true\n}\n```",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.pure-llm.v1",
+    "backend_type": "pure_llm",
+    "raw_provider_response": {
+      "content": "```json\n{\n  \"procedures\": [\n    {\n      \"code\": \"88.5500\",\n      \"display\": \"冠状动脉造影术\",\n      \"evidence_text\": \"急诊冠脉造影\",\n      \"char_span\": [119, 126],\n      \"confidence\": 0.95,\n      \"warnings\": []\n    },\n    {\n      \"code\": \"36.0600\",\n      \"display\": \"冠状动脉药物洗脱支架置入术\",\n      \"evidence_text\": \"行 LAD PCI 术,植入药物洗脱支架 1 枚\",\n      \"char_span\": [127, 155],\n      \"confidence\": 0.92,\n      \"warnings\": []\n    }\n  ],\n  \"issues_found\": [\n    \"手术记录中未提及 RCA 中段 80% 狭窄是否同期处理,需确认是否遗漏手术操作\",\n    \"诊断中提及 '冠状动脉单支病变(PCI 术后)',但造影显示多支病变(LAD+RCA+LCX),存在诊断-手术不一致\"\n  ],\n  \"manual_review_required\": true\n}\n```",
+      "model": "deepseek-v4-flash",
+      "usage": {
+        "input_tokens": 549,
+        "output_tokens": 235
+      },
+      "cost_usd": 0.000143,
+      "latency_ms": 12298
+    }
+  },
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": false,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 12298,
+      "metadata": {
+        "agent_id": "procedure-extractor",
+        "runtime_mode": "corti_like_fast",
+        "latency_ms": 12298
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_client_wall_ms": 15979,
+  "_fixture": "fixtures/phase5_track_b2/02_cardiology.json",
+  "_agent": "procedure-extractor",
+  "_tag": "02_cardiology",
+  "_ts": "2026-07-11T14:11:11"
+}

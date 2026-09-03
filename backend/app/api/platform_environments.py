@@ -1,69 +1,140 @@
-"""Platform Environments API (Phase 1 cloud-flip 2026-06-27 stub).
+"""Development-verifiable platform Environment and Region catalog APIs.
 
-Stub endpoints for the iCoDer 托管云 Environment layer (EU/US/CN).
-Phase 1 returns 501 Not Implemented + a link to the design intent doc.
-Phase 2 will implement real provisioning / region routing logic.
-
-Design contract: docs/cloud/CLOUD_DEPLOYMENT.md §2.1 (Environment)
-                  docs/cloud/MULTI_REGION.md §1 (Region Catalog)
+The catalog is mastered by ``deploy/cloud/regions.yaml``.  This module never
+claims that declared regions are provisioned: creation produces a dry-run
+deployment plan only.  Real cloud changes remain an external operations gate.
 """
-from fastapi import APIRouter, HTTPException
+
+from __future__ import annotations
+
+import os
+from pathlib import Path
+from typing import Any
+
+import yaml
+from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel, Field
+
+from app.middleware.auth import get_current_user
+from app.models.user import User
+
 
 router = APIRouter(prefix="/api/platform", tags=["platform-environments"])
-
-_NOT_IMPLEMENTED_MSG = (
-    "Platform Environments API 是 Phase 1 cloud-flip 设计意图 stub。"
-    "当前 ICODER_DEPLOYMENT_MODE=local 不需要此 API。"
-    "Phase 2 实装: 见 docs/cloud/CLOUD_DEPLOYMENT.md §7 (Migration Path)。"
-)
-_DESIGN_DOC_URL = "https://github.com/iCoDer/docs/blob/cloud/CLOUD_DEPLOYMENT.md"
+CATALOG_PATH = Path(__file__).resolve().parents[3] / "deploy" / "cloud" / "regions.yaml"
 
 
-@router.get("/environments", summary="List Environments (Phase 1 stub)")
-async def list_environments():
-    """列出所有 Environments (EU / US / CN)。
+class EnvironmentPlanRequest(BaseModel):
+    environment_code: str = Field(..., pattern="^(eu|us|cn)$")
+    region_code: str
+    tenant_id: str | None = None
+    dry_run: bool = True
 
-    Phase 1 stub: 返 501 + 设计意图 doc-link。Phase 2 实装按
-    `ICODER_DEPLOYMENT_MODE=cloud` 启用。
-    """
-    raise HTTPException(
-        status_code=501,
-        detail={
-            "message": _NOT_IMPLEMENTED_MSG,
-            "design_doc": _DESIGN_DOC_URL,
-            "phase": "Phase 2",
-        },
+
+def _catalog() -> dict[str, Any]:
+    try:
+        catalog = yaml.safe_load(CATALOG_PATH.read_text(encoding="utf-8"))
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Region catalog unavailable: {type(exc).__name__}",
+        ) from exc
+    if not isinstance(catalog, dict) or not isinstance(catalog.get("environments"), list):
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Region catalog is invalid",
+        )
+    return catalog
+
+
+def _environment_view(environment: dict[str, Any]) -> dict[str, Any]:
+    regions = environment.get("regions") or []
+    return {
+        **environment,
+        "provisioned": any(bool(region.get("enabled")) for region in regions),
+        "runtime_state": (
+            "provisioned" if any(bool(region.get("enabled")) for region in regions)
+            else "declared_not_provisioned"
+        ),
+    }
+
+
+@router.get("/environments", summary="List declared platform Environments")
+async def list_environments(
+    _current_user: User = Depends(get_current_user),
+) -> dict[str, Any]:
+    catalog = _catalog()
+    return {
+        "deployment_mode": os.getenv("ICODER_DEPLOYMENT_MODE", "local"),
+        "source": "deploy/cloud/regions.yaml",
+        "environments": [_environment_view(item) for item in catalog["environments"]],
+    }
+
+
+@router.post("/environments", summary="Build an Environment deployment plan")
+async def create_environment_plan(
+    data: EnvironmentPlanRequest,
+    current_user: User = Depends(get_current_user),
+) -> dict[str, Any]:
+    if getattr(current_user.role, "value", current_user.role) != "admin":
+        raise HTTPException(status_code=403, detail="Platform admin role required")
+    if not data.dry_run:
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                "Direct cloud provisioning is disabled. Run with dry_run=true, "
+                "then obtain production infrastructure approval."
+            ),
+        )
+
+    catalog = _catalog()
+    environment = next(
+        (item for item in catalog["environments"] if item.get("code") == data.environment_code),
+        None,
     )
-
-
-@router.post("/environments", summary="Create Environment (Phase 1 stub)")
-async def create_environment():
-    """创建新 Environment。Phase 2 实装,仅 platform admin 可调用。
-
-    Phase 1 stub: 返 501。
-    """
-    raise HTTPException(
-        status_code=501,
-        detail={
-            "message": _NOT_IMPLEMENTED_MSG,
-            "design_doc": _DESIGN_DOC_URL,
-            "phase": "Phase 2",
-        },
+    region = next(
+        (item for item in (environment or {}).get("regions", []) if item.get("code") == data.region_code),
+        None,
     )
+    if environment is None or region is None:
+        raise HTTPException(status_code=404, detail="Environment or region not found in catalog")
+
+    return {
+        "kind": "environment_deployment_plan",
+        "dry_run": True,
+        "environment_code": data.environment_code,
+        "region_code": data.region_code,
+        "tenant_id": data.tenant_id,
+        "cloud_provider": region.get("cloud_provider"),
+        "data_residency_required": environment.get("data_residency_required", True),
+        "cross_environment_replication": environment.get("cross_environment_replication"),
+        "steps": [
+            "validate_tenant_data_residency",
+            "provision_network_and_secrets",
+            "provision_database_and_object_storage",
+            "deploy_runtime_and_region_assets",
+            "run_security_privacy_and_disaster_recovery_gates",
+            "obtain_production_operations_approval",
+        ],
+        "external_approval_required": True,
+        "provisioned": False,
+    }
 
 
-@router.get("/regions", summary="List Regions (Phase 1 stub)")
-async def list_regions():
-    """列出所有 region 状态 / SLA / data-residency metadata。
-
-    Phase 1 stub: 返 501。Phase 2 实装读取 deploy/cloud/regions.yaml
-    并叠加运行时健康状态。
-    """
-    raise HTTPException(
-        status_code=501,
-        detail={
-            "message": _NOT_IMPLEMENTED_MSG,
-            "design_doc": "https://github.com/iCoDer/docs/blob/cloud/MULTI_REGION.md",
-            "phase": "Phase 2",
-        },
-    )
+@router.get("/regions", summary="List declared Regions and readiness")
+async def list_regions(
+    _current_user: User = Depends(get_current_user),
+) -> dict[str, Any]:
+    catalog = _catalog()
+    regions = []
+    for environment in catalog["environments"]:
+        for region in environment.get("regions") or []:
+            regions.append({
+                **region,
+                "environment_code": environment.get("code"),
+                "compliance": list(environment.get("compliance") or []),
+                "data_residency_required": environment.get("data_residency_required", True),
+                "runtime_state": (
+                    "provisioned" if region.get("enabled") else "declared_not_provisioned"
+                ),
+            })
+    return {"source": "deploy/cloud/regions.yaml", "regions": regions}

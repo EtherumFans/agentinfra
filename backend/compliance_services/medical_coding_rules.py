@@ -1,6 +1,8 @@
 """Medical Coding RuleSet — ICD-10/ICD-9-CM-3 coding compliance rules.
 
 Implements the BaseRuleSet interface from compliance_services.rule_engine.
+
+Phase 5 Track C Gate 2 §7.2 (2026-07-11): R002 split per code-system.
 """
 
 import re
@@ -9,8 +11,117 @@ from compliance_services.rule_engine import BaseRuleSet, RuleValidationResult, R
 
 logger = logging.getLogger(__name__)
 
-ICD10_PATTERN = re.compile(r"^[A-Z]\d{2}(\.\d{1,4})?$")
-ICD9_PROCEDURE_PATTERN = re.compile(r"^\d{2}\.\d{1,4}$")
+# ── Per-code-system patterns (Phase 5 Track C Gate 2 §7.2) ──────────────
+# China hospital code systems. Each must be validated separately — no
+# single regex can validate all of them.
+
+# WHO ICD-10 (international, 3-5 chars): A00, I21, I21.9, I21.19
+# Allows 0-2 decimals (China's mandatory 3-decimal form is captured
+# separately as ICD10_CN_6DIGIT_PATTERN).
+ICD10_WHO_PATTERN = re.compile(r"^[A-Z]\d{2}(\.\d{1,2})?$")
+
+# ICD-10-CN 6-digit (China national clinical, e.g. J15.900, I21.100, S22.000)
+# Mandatory exactly 3 digits after the dot (zero-padded to 3).
+ICD10_CN_6DIGIT_PATTERN = re.compile(r"^[A-Z]\d{2}\.\d{3}$")
+
+# ICD-10 with x-placeholder (e.g. I21.x00, M80.x01) — used in some
+# national clinical versions before subdivision is filled in.
+ICD10_X_PLACEHOLDER_PATTERN = re.compile(r"^[A-Z]\d{2}\.x\d{0,3}$", re.IGNORECASE)
+
+# ICD-9-CM-3 procedure (China national 4-digit, e.g. 81.0100, 84.5100)
+ICD9_CM3_PATTERN = re.compile(r"^\d{2}\.\d{4}$")
+
+# National clinical version extension (long-form codes with >3 decimals
+# or alphanumeric suffixes).
+ICD10_CN_CLINICAL_EXT_PATTERN = re.compile(r"^[A-Z]\d{2}\.\d{4,}[A-Za-z0-9]{0,2}$")
+
+# Legacy fallback — kept for backwards compatibility with non-China callers.
+ICD10_PATTERN = ICD10_WHO_PATTERN
+ICD9_PROCEDURE_PATTERN = ICD9_CM3_PATTERN
+
+
+def classify_code_system(code: str) -> str:
+    """Identify which code-system a code belongs to.
+
+    Returns one of:
+      - ``icd10_who``           — WHO ICD-10 (international)
+      - ``icd10_cn_6digit``     — China national clinical 6-digit
+      - ``icd10_cn_x``          — China x-placeholder (pre-subdivision)
+      - ``icd10_cn_clinical_ext`` — China national clinical extension
+      - ``icd9_cm3``            — ICD-9-CM-3 procedure
+      - ``unknown``             — doesn't match any known system
+    """
+    if not code:
+        return "unknown"
+    code = str(code).strip()
+    if ICD9_CM3_PATTERN.match(code):
+        return "icd9_cm3"
+    if ICD10_CN_6DIGIT_PATTERN.match(code):
+        return "icd10_cn_6digit"
+    if ICD10_X_PLACEHOLDER_PATTERN.match(code):
+        return "icd10_cn_x"
+    if ICD10_CN_CLINICAL_EXT_PATTERN.match(code):
+        return "icd10_cn_clinical_ext"
+    if ICD10_WHO_PATTERN.match(code):
+        return "icd10_who"
+    return "unknown"
+
+
+def normalize_code(code: str, target_system: str = "icd10_cn_6digit") -> str:
+    """Best-effort normalization to a canonical form.
+
+    For icd10_cn_6digit target, pads the decimal part to 3 digits:
+      I21.9 → I21.900
+      I21.19 → I21.190
+      J15.900 → J15.900 (already 3)
+    """
+    if not code:
+        return ""
+    code = str(code).strip()
+    if target_system == "icd10_cn_6digit":
+        m = re.match(r"^([A-Z]\d{2})\.(\d+)$", code)
+        if m:
+            prefix, decimal = m.group(1), m.group(2)
+            return f"{prefix}.{decimal.ljust(3, '0')[:3]}"
+    return code
+
+
+def validate_code_per_system(code: str) -> dict:
+    """Phase 5 Track C Gate 2 §7.2 structured code validation.
+
+    Returns:
+        {
+            "code": str,
+            "code_system": str,
+            "normalized_code": str,
+            "format_valid": bool,
+            "catalog_valid": bool | None,  # requires catalog lookup
+            "assignable": bool,            # True iff format_valid AND not x-placeholder
+        }
+    """
+    if not code:
+        return {
+            "code": "",
+            "code_system": "unknown",
+            "normalized_code": "",
+            "format_valid": False,
+            "catalog_valid": None,
+            "assignable": False,
+        }
+    code = str(code).strip()
+    system = classify_code_system(code)
+    format_valid = system != "unknown"
+    # x-placeholder is format-valid but NOT assignable (incomplete code).
+    assignable = format_valid and system != "icd10_cn_x"
+    normalized = normalize_code(code) if system.startswith("icd10") else code
+    return {
+        "code": code,
+        "code_system": system,
+        "normalized_code": normalized,
+        "format_valid": format_valid,
+        "catalog_valid": None,  # set later by catalog-aware caller
+        "assignable": assignable,
+    }
 
 MEDICAL_CODING_RULES = {
     "R001": {"name": "主诊断不能为空", "severity": "critical", "category": "coding"},
@@ -57,13 +168,26 @@ class MedicalCodingRuleSet(BaseRuleSet):
                 message="主要诊断编码不能为空", suggestion="请指定主要诊断 ICD-10 编码", category="coding"))
             quality["primary_diagnosis_missing"] = True
 
-        # R002: ICD-10 format
+        # R002: ICD-10 per-code-system format (Phase 5 Track C Gate 2 §7.2)
         fired.append("R002")
         for dx in all_dx:
-            if isinstance(dx, dict) and dx.get("code") and not ICD10_PATTERN.match(str(dx["code"])):
-                issues.append(RuleIssue(severity="high", rule_id="R002",
-                    message=f"诊断编码格式无效: {dx['code']}", suggestion="应符合 ICD-10 格式", category="coding"))
-                quality["invalid_code_format"] = True
+            if isinstance(dx, dict) and dx.get("code"):
+                validation = validate_code_per_system(str(dx["code"]))
+                # Skip ICD-9-CM-3 here (handled by R004 for procedures).
+                if validation["code_system"] == "icd9_cm3":
+                    continue
+                if not validation["format_valid"]:
+                    issues.append(RuleIssue(severity="high", rule_id="R002",
+                        message=f"诊断编码格式无效: {dx['code']} (无法识别编码体系)",
+                        suggestion="应符合 ICD-10 (WHO/CN-6位/x占位/临床版扩展) 之一",
+                        category="coding"))
+                    quality["invalid_code_format"] = True
+                elif not validation["assignable"]:
+                    issues.append(RuleIssue(severity="medium", rule_id="R002",
+                        message=f"诊断编码不完整: {dx['code']} (x占位码不可作为最终编码)",
+                        suggestion="请补全为 ICD-10-CN 6位码 (例: I21.x00 → I21.100)",
+                        category="coding"))
+                    quality["invalid_code_format"] = True
 
         # R003: Duplicate detection
         fired.append("R003")
@@ -77,12 +201,17 @@ class MedicalCodingRuleSet(BaseRuleSet):
                     message=f"诊断编码重复: {code} 出现 {cnt} 次", suggestion="请删除重复编码", category="coding"))
                 quality["duplicate_codes"] = True
 
-        # R004: ICD-9-CM-3 procedure format
+        # R004: ICD-9-CM-3 procedure per-code-system format (Phase 5 Track C Gate 2 §7.2)
         fired.append("R004")
         for proc in structured_output.get("procedures", []):
-            if isinstance(proc, dict) and proc.get("code") and not ICD9_PROCEDURE_PATTERN.match(str(proc["code"])):
-                issues.append(RuleIssue(severity="high", rule_id="R004",
-                    message=f"手术编码格式无效: {proc['code']}", suggestion="应符合 ICD-9-CM-3 格式", category="coding"))
+            if isinstance(proc, dict) and proc.get("code"):
+                validation = validate_code_per_system(str(proc["code"]))
+                # Must be icd9_cm3 specifically (not icd10_*, not unknown).
+                if validation["code_system"] != "icd9_cm3":
+                    issues.append(RuleIssue(severity="high", rule_id="R004",
+                        message=f"手术编码格式无效: {proc['code']} (体系={validation['code_system']})",
+                        suggestion="应符合 ICD-9-CM-3 格式 (例: 81.0100)",
+                        category="coding"))
 
         # R005: Duplicate procedures
         fired.append("R005")

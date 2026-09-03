@@ -1,0 +1,247 @@
+{
+  "agent_id": "clinical-documentation-improvement-agent",
+  "run_id": "run-4923accd-17ca-4b49-849b-bceeee9d95aa",
+  "trace_id": "trace-fcefed7b33de4944",
+  "trace_url": "/ai-studio/runs/run-4923accd-17ca-4b49-849b-bceeee9d95aa/trace",
+  "runtime_mode": "cdi_real_orchestrator",
+  "latency_ms": 18840,
+  "cost": {
+    "amount": 0.0014735,
+    "currency": "CNY",
+    "source": "configured_usage_pricing_estimate",
+    "billing_authoritative": false
+  },
+  "billing": {},
+  "summary": "CDI review completed; specialist and clinician review remain required.",
+  "result": {
+    "encounter_summary": {
+      "key_points": [
+        "患者女性，55岁",
+        "上腹痛2天",
+        "淀粉酶580",
+        "CT示胰腺肿胀伴渗出",
+        "入院诊断：急性胰腺炎",
+        "既往史：胆石症"
+      ],
+      "encounter_metadata": {
+        "patient_age": "55岁",
+        "patient_sex": "女性",
+        "encounter_type": "入院"
+      }
+    },
+    "documentation_gaps": [
+      {
+        "gap_id": "GAP-001",
+        "gap_type": "diagnostic_specificity",
+        "description": "急性胰腺炎的严重程度未明确（如轻症、中重症、重症）",
+        "why_it_matters": "严重程度影响治疗和预后，且是编码和DRG分组的重要依据。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "入院诊断:急性胰腺炎",
+          "char_start": 37,
+          "char_end": 47,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "urgent"
+      },
+      {
+        "gap_id": "GAP-002",
+        "gap_type": "diagnostic_specificity",
+        "description": "急性胰腺炎的病因未明确（胆源性、高脂血症性、酒精性等）",
+        "why_it_matters": "病因影响治疗策略和编码，胆源性胰腺炎需考虑胆道干预。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "既往:胆石症",
+          "char_start": 48,
+          "char_end": 54,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "urgent"
+      },
+      {
+        "gap_id": "GAP-003",
+        "gap_type": "diagnostic_specificity",
+        "description": "淀粉酶升高未明确临床关联，未说明是否已考虑其他可能原因或已排除其他诊断",
+        "why_it_matters": "淀粉酶升高可见于多种情况，需明确其与急性胰腺炎的关联，避免编码不准确。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "淀粉酶 580",
+          "char_start": 18,
+          "char_end": 25,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      }
+    ],
+    "proposed_provider_queries": [
+      {
+        "query_id": "Q-002",
+        "gap_id": "GAP-002",
+        "topic": "急性胰腺炎病因",
+        "reason": "患者有胆石症病史，但未明确本次胰腺炎病因。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "既往:胆石症",
+          "char_start": 48,
+          "char_end": 54,
+          "documented_at": ""
+        },
+        "evidence_spans": [
+          {
+            "document_id": "chart-001",
+            "quote": "既往:胆石症",
+            "char_start": 48,
+            "char_end": 54,
+            "documented_at": ""
+          }
+        ],
+        "query_text": "结合患者胆石症病史，请明确本次急性胰腺炎的病因。",
+        "response_options": [
+          "A. 胆源性胰腺炎",
+          "B. 高脂血症性胰腺炎",
+          "C. 酒精性胰腺炎",
+          "D. 其他病因",
+          "E. 无法确定"
+        ],
+        "lifecycle_state": "DRAFT",
+        "priority": "urgent",
+        "nlq_gate_verdict": "PASS",
+        "nlq_gate_block_reasons": []
+      }
+    ],
+    "query_gate_summary": {
+      "withheld_count": 2,
+      "status_counts": {
+        "REWRITE_CANDIDATE_GENERATED": 0
+      },
+      "manual_cdi_action_required": true
+    },
+    "coding_specificity_checklist": [],
+    "risk_flags": [
+      {
+        "category": "unsupported_diagnosis",
+        "description": "急性胰腺炎诊断有CT和淀粉酶支持，但缺乏症状细节（如恶心呕吐）和体格检查发现，可能证据不足。"
+      }
+    ],
+    "specialist_trace": [
+      {
+        "expert_id": "coding-expert",
+        "consulted": true,
+        "requested": "You are a coding-specialist Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "请明确急性胰腺炎的严重程度分级（轻症、中重症或重症），并注明病因（结合胆石症病史，需确认是否为胆源性），同时说明淀粉酶升高是否已排除其他病因（如肠梗阻、肾功能不全等）并记录其与胰腺炎的临床关联。",
+        "route_decision": "needed",
+        "route_reason": "coding_relevant_gap",
+        "execution_mode": "LLM_KNOWLEDGE_ONLY",
+        "latency_ms": 2116,
+        "tokens": 219,
+        "run_id": "run-d9c95c653349",
+        "trace_id": "trace-3ef30122f3eb"
+      },
+      {
+        "expert_id": "pubmed-expert",
+        "consulted": false,
+        "requested": "You are a PubMed literature Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-c5bebcd23a79",
+        "trace_id": "trace-d77e8accee24"
+      },
+      {
+        "expert_id": "web-search-expert",
+        "consulted": false,
+        "requested": "You are a clinical web-search Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-1be8b94f900c",
+        "trace_id": "trace-d0c3aaecfb77"
+      },
+      {
+        "expert_id": "medical-calculator-expert",
+        "consulted": false,
+        "requested": "You are a medical-calculator Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-428fc9de1223",
+        "trace_id": "trace-3d4db4b41adf"
+      }
+    ],
+    "human_review": {
+      "cdi_specialist_review_required": true,
+      "clinician_response_required": true,
+      "review_priority": "urgent"
+    },
+    "trace_refs": {
+      "run_id": "run-4923accd-17ca-4b49-849b-bceeee9d95aa",
+      "stage_trace": {
+        "encounter_synthesis": "trace-ae2d42338d60",
+        "gap_identification": "trace-a231602907c0",
+        "expert_consultation": "trace-bafb37d7dacd",
+        "query_generation": "trace-aa2d969b4a29",
+        "query_eligibility_gate": "",
+        "query_necessity_gate": "",
+        "query_dimension_rewrite": "",
+        "query_single_dimension_gate": "",
+        "claim_evidence_alignment_gate": "trace-659bf9767df8",
+        "semantic_necessity_gate": "trace-6c6587318c36",
+        "query_compliance_gate": "",
+        "specialist_trace_emit": "trace-9159b3171361"
+      },
+      "experts_consulted": [
+        "coding-expert"
+      ],
+      "gate_results": {
+        "encounter_synthesis": "run-e39e2ebf44ea",
+        "gap_identification": "run-4f6352db3282",
+        "gap_identification_risk_flags": "emitted=1;quote_snapped=0",
+        "expert_consultation": "run-7f3f241cdd3f",
+        "query_generation": "run-c74e96b2bb61",
+        "query_generation::quote_snapped": "0",
+        "query_generation::coverage_missing": "0",
+        "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=3;llm_complete=False;llm_reasoning=急性胰腺炎的诊断已明确，但严重程度和病因未记录，且淀粉酶升高的临床关联未明确，需要澄清才能准确编码。",
+        "query_necessity_gate": "necessary=2;unnecessary=1;overquery_triggered=False;final_count=2",
+        "query_dimension_rewrite": "not_executed",
+        "query_single_dimension_gate": "single_dim=2;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=etiology;rewrite_attempted=0;rewrite_accepted=0;final_count=2",
+        "claim_evidence_alignment_gate": "claims_extracted=5;degraded=0;blocked=0;flagged=0;final_count=2",
+        "claim_evidence_alignment_gate::run_id": "run-3a2b27b2a34f",
+        "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=2",
+        "semantic_necessity_gate::run_id": "run-a245bcff99a4",
+        "query_compliance_gate": ";passed=1;blocked=1",
+        "specialist_trace_emit": "run-498ca08103e5"
+      },
+      "trace_id": "trace-fcefed7b33de4944"
+    }
+  },
+  "schema_ref": "icoder/CDIAgentOutputV1/v6",
+  "result_attestation": "eyJhIjoiY2xpbmljYWwtZG9jdW1lbnRhdGlvbi1pbXByb3ZlbWVudC1hZ2VudCIsImQiOiIxZTA1ZGVjM2MxMGQ0N2I4ZmFmZDdjZTlhODQxMWMwY2Y3MWQwMzA5ZDJkZDY3NmRkNWJjZDdjMDcwOWZlZDUxIiwiZSI6MTc4Nzg4MTk5NiwibyI6ImJjOTJlZTA2YWYwZiIsInIiOiJydW4tNDkyM2FjY2QtMTdjYS00YjQ5LTg0OWItYmNlZWVlOWQ5NWFhIiwicyI6Imljb2Rlci9DRElBZ2VudE91dHB1dFYxL3Y2IiwidiI6MX0.w5PShjLjFzTr5gul3FUT2HRNnIY-gws0jJAYp8zT5-s",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 18.958
+}

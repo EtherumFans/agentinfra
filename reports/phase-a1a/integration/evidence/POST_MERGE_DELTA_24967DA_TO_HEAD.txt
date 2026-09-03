@@ -1,0 +1,36 @@
+=== POST_MERGE_DELTA_24967DA_TO_HEAD.txt ===
+
+Per Charter §6: 'git diff --name-status 24967da..HEAD' must show only docs/index/metadata.
+Any product code delta other than merge metadata = UNEXPECTED_INTEGRATION_CODE_DELTA
+
+--- git diff --name-status 24967da..HEAD ---
+A	reports/phase-a1a/integration/A1A_GATE4R_I_0_INTEGRATION_CHARTER.md
+A	reports/phase-a1a/integration/evidence/MERGE_PRECOMMIT_VERIFICATION.txt
+A	reports/phase-a1a/integration/evidence/POST_TAG_CREATION_VERIFICATION.txt
+A	reports/phase-a1a/integration/evidence/PRE_MERGE_BRANCH_REFS.txt
+A	reports/phase-a1a/integration/evidence/PRE_MERGE_DIFF_B3EA064_TO_24967DA.txt
+A	reports/phase-a1a/integration/evidence/PRE_MERGE_GIT_STATE.txt
+A	reports/phase-a1a/integration/evidence/PRE_MERGE_SHA256SUMS.txt
+A	reports/phase-a1a/integration/evidence/PRE_MERGE_WORKTREE_STATE.txt
+A	reports/phase-a1a/integration/evidence/SCATTERED_EVIDENCE_PRE_MERGE_HASH_COMPARE.txt
+A	reports/phase-a1a/integration/evidence/scattered-evidence-pre-merge/SCATTERED_EVIDENCE_DISPOSITION.md
+A	reports/phase-a1a/integration/evidence/scattered-evidence-pre-merge/gate4r_diff__common_nodeids__main-untracked.txt
+A	reports/phase-a1a/integration/evidence/scattered-evidence-pre-merge/gate4r_diff__gate4_only_nodeids__main-untracked.txt
+
+--- git diff --stat 24967da..HEAD ---
+ .../A1A_GATE4R_I_0_INTEGRATION_CHARTER.md          |  201 ++
+ .../evidence/MERGE_PRECOMMIT_VERIFICATION.txt      |   39 +
+ .../evidence/POST_TAG_CREATION_VERIFICATION.txt    |   28 +
+ .../integration/evidence/PRE_MERGE_BRANCH_REFS.txt |   20 +
+ .../evidence/PRE_MERGE_DIFF_B3EA064_TO_24967DA.txt |  102 +
+ .../integration/evidence/PRE_MERGE_GIT_STATE.txt   |   25 +
+ .../integration/evidence/PRE_MERGE_SHA256SUMS.txt  |   37 +
+ .../evidence/PRE_MERGE_WORKTREE_STATE.txt          |    8 +
+ .../SCATTERED_EVIDENCE_PRE_MERGE_HASH_COMPARE.txt  |   42 +
+ .../SCATTERED_EVIDENCE_DISPOSITION.md              |   26 +
+ ...gate4r_diff__common_nodeids__main-untracked.txt | 3591 ++++++++++++++++++++
+ ...4r_diff__gate4_only_nodeids__main-untracked.txt |   77 +
+ 12 files changed, 4196 insertions(+)
+
+--- git diff --name-only 24967da..HEAD | wc -l ---
+12

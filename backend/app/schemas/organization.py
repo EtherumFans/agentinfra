@@ -46,3 +46,27 @@ class InviteMemberRequest(BaseModel):
 
 class UpdateMemberRoleRequest(BaseModel):
     role: str = Field(..., pattern="^(admin|member|viewer)$")
+
+
+class AcceptOrganizationInviteRequest(BaseModel):
+    token: str = Field(..., min_length=32, max_length=256)
+
+
+class OrganizationInviteResponse(BaseModel):
+    id: str
+    email: EmailStr
+    role: str
+    status: str
+    delivery_status: Optional[str] = None
+    expires_at: datetime
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class OrganizationInviteCreateResponse(BaseModel):
+    invite_id: str
+    invite_token: Optional[str] = None
+    expires_at: datetime
+    delivery: str
+    message: str

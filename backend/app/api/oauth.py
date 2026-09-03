@@ -1,4 +1,4 @@
-"""OAuth 2.0 endpoints — Client Credentials + Authorization Code + PKCE.
+"""OAuth 2.0 endpoints — governed Client Credentials only.
 
 Corti parity (2026-06-30, Phase 1.0): implements the four enforcement points
 documented in ``docs/corti-reverse-engineered/SUMMARY.md`` §13.2:
@@ -12,33 +12,93 @@ documented in ``docs/corti-reverse-engineered/SUMMARY.md`` §13.2:
    client's granted scopes (uniform across both endpoints below).
 4. **Realm-based URL** — ``POST /api/oauth/realms/{realm}/token`` mirrors
    the ``https://auth.{env}.corti.app/realms/{tenant}/protocol/...`` pattern.
+
+A1A Gate 1 Step 5 (2026-07-17): every 401 ``invalid_client`` is now
+preceded by an ``api_client.authentication_rejected`` audit log entry
+containing ``client_id``, ``reason``, source IP, and user-agent. Audit
+failure is swallowed (never blocks the rejection).
 """
 import hashlib
-import base64
+import logging
 import secrets
 from datetime import datetime, timedelta, timezone
-from fastapi import APIRouter, Depends, HTTPException, Form, Request
-from fastapi.responses import RedirectResponse
-from jose import jwt
-from sqlalchemy import select
+from fastapi import APIRouter, Depends, HTTPException, Form, Request, Query
+import jwt
+from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
 from app.database import get_db
-from app.middleware.auth import get_current_user
+from app.middleware.audit import log_action
+from app.middleware.auth import (
+    get_current_organization,
+    get_current_user,
+    jwt_registered_claims,
+)
+from app.models.organization import Organization
 from app.models.oauth import OAuthClient, OAuthToken
+from app.services.database_tenancy import bind_tenant_to_transaction
+from app.services.oauth_delegation import (
+    OAuthDelegationValidationError,
+    normalize_purpose_grants,
+    parse_grant_list,
+    validate_agent_grants_exist,
+)
 from app.models.user import User
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/oauth", tags=["oauth"])
 
-# In-memory authorization code store (production: use DB)
-_auth_codes: dict[str, dict] = {}
 
+async def _emit_auth_rejection(
+    db: AsyncSession,
+    *,
+    client_id: str,
+    reason: str,
+    request: Request | None = None,
+    realm: str | None = None,
+) -> None:
+    """A1A Gate 1 Step 5 — record api_client.authentication_rejected audit event.
 
-def _pkce_challenge(verifier: str) -> str:
-    """Compute PKCE S256 code_challenge from code_verifier."""
-    digest = hashlib.sha256(verifier.encode()).digest()
-    return base64.urlsafe_b64encode(digest).rstrip(b"=").decode()
+    Best-effort: if DB write fails, log the error and continue (the 401
+    response MUST still be returned). Commits immediately so the audit row
+    survives the HTTPException that the caller is about to raise.
+    """
+    try:
+        ip = None
+        ua = None
+        if request is not None:
+            ip = request.client.host if request.client else None
+            ua = request.headers.get("user-agent")
+        from app.services.system_audit import system_audit
 
+        await system_audit(
+            db,
+            action="api_client.authentication_rejected",
+            resource_type="api_client",
+            resource_id=client_id or None,
+            details={
+                "client_id": client_id or None,
+                "reason": reason,
+                "realm": realm,
+                "endpoint": "token_endpoint" if realm is None else "realm_token_endpoint",
+            },
+            ip_address=ip,
+            user_agent=ua,
+            status="failure",
+            error_message=reason,
+        )
+        await db.commit()
+    except Exception as e:
+        logger.error(
+            "audit emit failed for api_client.authentication_rejected "
+            "(client_id=%s reason=%s): %s",
+            client_id, reason, e,
+        )
+        try:
+            await db.rollback()
+        except Exception:
+            pass
 
 def _create_oauth_token(
     client_id: str,
@@ -71,6 +131,7 @@ def _create_oauth_token(
         "jti": secrets.token_urlsafe(16),
         "exp": expire,
         "iat": datetime.now(timezone.utc),
+        **jwt_registered_claims(),
     }
     return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
 
@@ -103,76 +164,80 @@ def _default_oauth_ttl() -> int:
     return int(getattr(settings, "OAUTH_CLIENT_EXPIRE_SECONDS", 300) or 300)
 
 
+async def _resolve_and_bind_client_tenant(
+    db: AsyncSession,
+    *,
+    client_id: str,
+) -> str | None:
+    """Resolve only the bootstrap tenant mapping, then enter FORCE RLS."""
+    if db.get_bind().dialect.name == "postgresql":
+        organization_id = (
+            await db.execute(
+                text("SELECT icoder_resolve_oauth_client_tenant(:client_id)"),
+                {"client_id": client_id},
+            )
+        ).scalar_one_or_none()
+        if organization_id:
+            await bind_tenant_to_transaction(db, str(organization_id))
+        return str(organization_id) if organization_id else None
+    client = (
+        await db.execute(
+            select(OAuthClient).where(
+                OAuthClient.client_id == client_id,
+                OAuthClient.is_active.is_(True),
+            )
+        )
+    ).scalar_one_or_none()
+    return client.organization_id if client else None
+
+
 @router.post("/token")
 async def token_endpoint(
+    request: Request,
     grant_type: str = Form(...),
     client_id: str = Form(...),
     client_secret: str = Form(""),
-    code: str = Form(""),
-    code_verifier: str = Form(""),
-    redirect_uri: str = Form(""),
     scope: str = Form("api:read api:write"),
     db: AsyncSession = Depends(get_db),
 ):
     """OAuth 2.0 Token Endpoint.
 
-    Supports three grant types:
-    - client_credentials (RFC 6749 §4.4): M2M authentication
-    - authorization_code (RFC 6749 §4.1): SPA/user authentication
-    - authorization_code + PKCE (RFC 7636): SPA with code challenge
+    Supports only client_credentials (RFC 6749 §4.4).  The former incomplete
+    authorization-code endpoint minted codes without an authenticated resource
+    owner or registered redirect URI.  Keep unsupported grants fail-closed
+    until a complete authorization-server design is implemented.
 
     The ``Tenant-Name`` (or ``X-Tenant``) header is honored when present;
     mismatches with the bearer JWT's ``org_id`` claim return HTTP 400
     ``tenant_header_mismatch`` (see ``TenantHeaderMiddleware``).
     """
-    # Find client first
+    if grant_type != "client_credentials":
+        raise HTTPException(status_code=400, detail="unsupported_grant_type")
+
+    organization_id = await _resolve_and_bind_client_tenant(
+        db, client_id=client_id,
+    )
+    # Read the client only after PostgreSQL is narrowed to its tenant.
     result = await db.execute(
-        select(OAuthClient).where(OAuthClient.client_id == client_id, OAuthClient.is_active == True)
+        select(OAuthClient).where(
+            OAuthClient.client_id == client_id,
+            OAuthClient.organization_id == organization_id,
+            OAuthClient.is_active == True,
+        )
     )
     client = result.scalar_one_or_none()
     if not client:
+        await _emit_auth_rejection(
+            db, client_id=client_id, reason="client_not_found_or_inactive", request=request,
+        )
         raise HTTPException(status_code=401, detail="invalid_client")
 
-    if grant_type == "client_credentials":
-        # RFC 6749 §4.4 — Client Credentials
-        if not client_secret or not OAuthClient.verify_secret(client_secret, client.client_secret_hash):
-            raise HTTPException(status_code=401, detail="invalid_client")
-        return await _handle_client_credentials(client, scope, db, realm="")
-
-    elif grant_type == "authorization_code":
-        # RFC 6749 §4.1 + RFC 7636 PKCE
-        if not code or code not in _auth_codes:
-            raise HTTPException(status_code=400, detail="invalid_grant")
-
-        stored = _auth_codes.pop(code)
-
-        # Verify client match
-        if stored["client_id"] != client_id:
-            raise HTTPException(status_code=400, detail="invalid_grant")
-
-        # PKCE verification (if code_challenge was used)
-        if stored.get("code_challenge"):
-            if not code_verifier:
-                raise HTTPException(status_code=400, detail="code_verifier_required")
-            expected = _pkce_challenge(code_verifier)
-            if expected != stored["code_challenge"]:
-                raise HTTPException(status_code=400, detail="invalid_grant")
-
-        # Generate token for the user (also uses the short-lived TTL)
-        ttl = _default_oauth_ttl()
-        effective_scope = _intersect_scopes(stored.get("scope", scope), client.granted_scopes())
-        access_token = _create_oauth_token(
-            client_id, effective_scope, client.owner_id, ttl
+    if not client_secret or not OAuthClient.verify_secret(client_secret, client.client_secret_hash):
+        await _emit_auth_rejection(
+            db, client_id=client_id, reason="secret_mismatch_or_empty", request=request,
         )
-        return {
-            "access_token": access_token,
-            "token_type": "Bearer",
-            "expires_in": ttl,
-            "scope": effective_scope,
-            "refresh_token": secrets.token_urlsafe(32),  # For SPA refresh
-        }
-
-    raise HTTPException(status_code=400, detail="unsupported_grant_type")
+        raise HTTPException(status_code=401, detail="invalid_client")
+    return await _handle_client_credentials(client, scope, db, realm="")
 
 
 # === Realm-based token URL (Corti parity) =====================================
@@ -186,6 +251,7 @@ async def token_endpoint(
 @router.post("/realms/{realm}/token")
 async def realm_token_endpoint(
     realm: str,
+    request: Request,
     grant_type: str = Form(...),
     client_id: str = Form(...),
     client_secret: str = Form(""),
@@ -202,17 +268,32 @@ async def realm_token_endpoint(
     if not realm or not realm.replace("-", "").replace("_", "").isalnum():
         raise HTTPException(status_code=400, detail="invalid_realm")
 
+    organization_id = await _resolve_and_bind_client_tenant(
+        db, client_id=client_id,
+    )
     result = await db.execute(
-        select(OAuthClient).where(OAuthClient.client_id == client_id, OAuthClient.is_active == True)
+        select(OAuthClient).where(
+            OAuthClient.client_id == client_id,
+            OAuthClient.organization_id == organization_id,
+            OAuthClient.is_active == True,
+        )
     )
     client = result.scalar_one_or_none()
     if not client:
+        await _emit_auth_rejection(
+            db, client_id=client_id, reason="client_not_found_or_inactive",
+            request=request, realm=realm,
+        )
         raise HTTPException(status_code=401, detail="invalid_client")
 
     if grant_type != "client_credentials":
         raise HTTPException(status_code=400, detail="realm_token_supports_client_credentials_only")
 
     if not client_secret or not OAuthClient.verify_secret(client_secret, client.client_secret_hash):
+        await _emit_auth_rejection(
+            db, client_id=client_id, reason="secret_mismatch_or_empty",
+            request=request, realm=realm,
+        )
         raise HTTPException(status_code=401, detail="invalid_client")
 
     return await _handle_client_credentials(client, scope, db, realm=realm)
@@ -229,53 +310,13 @@ async def realm_discovery(realm: str):
     if not realm:
         raise HTTPException(status_code=400, detail="invalid_realm")
     return {
-        "issuer": f"local://icoder/realms/{realm}",
+        "issuer": settings.JWT_ISSUER,
+        "audience": settings.JWT_AUDIENCE,
         "token_endpoint": f"/api/oauth/realms/{realm}/token",
         "revocation_endpoint": "/api/oauth/token/revoke",
         "grant_types_supported": ["client_credentials"],
         "token_endpoint_auth_methods_supported": ["client_secret_post"],
         "scopes_supported": sorted({"api:read", "api:write", *getattr(settings, "OAUTH_CAPABILITY_SCOPES", [])}),
-    }
-
-
-@router.get("/authorize")
-async def authorize_endpoint(
-    response_type: str = "code",
-    client_id: str = "",
-    redirect_uri: str = "",
-    scope: str = "api:read",
-    code_challenge: str = "",  # PKCE S256
-    code_challenge_method: str = "S256",
-    state: str = "",
-):
-    """OAuth 2.0 Authorization Endpoint.
-
-    For SPAs: redirects user to login, then back with authorization code.
-    PKCE: client sends code_challenge, later exchanges code with code_verifier.
-    """
-    if response_type != "code":
-        raise HTTPException(status_code=400, detail="unsupported_response_type")
-
-    # Generate authorization code
-    code = secrets.token_urlsafe(32)
-    _auth_codes[code] = {
-        "client_id": client_id,
-        "redirect_uri": redirect_uri,
-        "scope": scope,
-        "code_challenge": code_challenge,
-        "created_at": datetime.now(timezone.utc).isoformat(),
-    }
-
-    # In production, redirect to a login page. Here we return the code directly.
-    redirect = f"{redirect_uri or '/callback'}?code={code}"
-    if state:
-        redirect += f"&state={state}"
-
-    return {
-        "authorization_code": code,
-        "redirect": redirect,
-        "expires_in": 600,  # 10 minutes
-        "pkce_enabled": bool(code_challenge),
     }
 
 
@@ -333,7 +374,10 @@ async def create_client(
     description: str = Form(""),
     scopes: str = Form("api:read api:write"),
     token_expires_seconds: int | None = Form(None),
+    allowed_agent_ids: str = Form(""),
+    allowed_purposes: str = Form(""),
     current_user: User = Depends(get_current_user),
+    current_org: Organization = Depends(get_current_organization),
     db: AsyncSession = Depends(get_db),
 ):
     """Create a new OAuth 2.0 client (requires user auth).
@@ -345,6 +389,21 @@ async def create_client(
     """
     client_id = OAuthClient.generate_client_id()
     secret_plaintext, secret_hash = OAuthClient.generate_client_secret()
+
+    try:
+        delegated_agents = await validate_agent_grants_exist(
+            db,
+            organization_id=current_org.id,
+            agent_ids=parse_grant_list(allowed_agent_ids),
+        )
+        delegated_purposes = normalize_purpose_grants(
+            parse_grant_list(allowed_purposes)
+        )
+    except OAuthDelegationValidationError as exc:
+        raise HTTPException(
+            status_code=400,
+            detail={"code": exc.code, "values": exc.values},
+        ) from exc
 
     default_ttl = _default_oauth_ttl()
     if token_expires_seconds is None:
@@ -361,7 +420,10 @@ async def create_client(
         description=description,
         scopes=scopes,
         owner_id=current_user.id,
+        organization_id=current_org.id,
         token_expires_seconds=effective_ttl,
+        allowed_agent_ids=delegated_agents,
+        allowed_purposes=delegated_purposes,
     )
     db.add(client)
     await db.commit()
@@ -375,21 +437,37 @@ async def create_client(
         "description": client.description,
         "scopes": client.scopes,
         "token_expires_seconds": client.token_expires_seconds,
+        "allowed_agent_ids": sorted(client.delegated_agent_ids()),
+        "allowed_purposes": sorted(client.delegated_purposes()),
         "created_at": client.created_at.isoformat(),
     }
 
 
 @router.get("/clients")
 async def list_clients(
+    include_disabled: bool = Query(
+        True,
+        description="Include disabled (is_active=False) clients in the response. "
+                    "Default True so Console can render the disabled badge + re-enable "
+                    "action. Pass ?include_disabled=false for partner-facing listings.",
+    ),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """List OAuth clients for the current user."""
+    """List OAuth clients for the current user.
+
+    B-005 follow-up: previously this endpoint filtered ``is_active == True``
+    unconditionally, so once a client was disabled it disappeared from Console.
+    The frontend (APIClientsPage.tsx:180-181) already had a disabled badge
+    ready, but the backend hid the row — making the only re-enable path a
+    direct DB UPDATE. Now we surface disabled clients by default so the
+    Console can show them with their badge + enable action.
+    """
+    filters = [OAuthClient.owner_id == current_user.id]
+    if not include_disabled:
+        filters.append(OAuthClient.is_active == True)
     result = await db.execute(
-        select(OAuthClient).where(
-            OAuthClient.owner_id == current_user.id,
-            OAuthClient.is_active == True,
-        ).order_by(OAuthClient.created_at.desc())
+        select(OAuthClient).where(*filters).order_by(OAuthClient.created_at.desc())
     )
     clients = result.scalars().all()
     return {
@@ -400,7 +478,10 @@ async def list_clients(
                 "client_id": c.client_id,
                 "description": c.description,
                 "scopes": c.scopes,
+                "is_active": c.is_active,
                 "last_used_at": c.last_used_at.isoformat() if c.last_used_at else None,
+                "allowed_agent_ids": sorted(c.delegated_agent_ids()),
+                "allowed_purposes": sorted(c.delegated_purposes()),
                 "created_at": c.created_at.isoformat(),
             }
             for c in clients

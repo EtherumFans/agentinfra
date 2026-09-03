@@ -1,0 +1,90 @@
+{
+  "agent_id": "procedure-extractor",
+  "run_id": "run-32c6337e-e19b-41c0-9d86-79201927eda9",
+  "trace_id": "trace-407a0a6c2b954219",
+  "trace_url": "/ai-studio/runs/run-32c6337e-e19b-41c0-9d86-79201927eda9/trace",
+  "runtime_mode": "governed_local_explicit_procedure_baseline",
+  "latency_ms": 8,
+  "cost": {
+    "amount": 0.0,
+    "currency": "CNY"
+  },
+  "billing": {},
+  "summary": "已定位 0 个已实施术式和 1 个非计费状态提及；所有结果须编码员复核。",
+  "result": {
+    "status": "requires_review",
+    "markdown": "{\"issues_found\": [{\"category\": \"non_performed_procedure_mention\", \"message\": \"原文术式状态为 cancelled，未进入已实施操作编码集合。\", \"severity\": \"warning\", \"suggestion\": \"由编码员结合完整手术记录确认实际实施状态。\"}], \"manual_review_required\": true, \"non_billable_mentions\": [{\"char_span\": [5, 16], \"evidence_text\": \"原拟行腹腔镜胆囊切除术\", \"status\": \"cancelled\", \"text\": \"腹腔镜胆囊切除术\"}], \"procedures\": [], \"total_count\": 0}",
+    "issues": [],
+    "corrected_draft": null,
+    "risk_flags": [],
+    "tool_calls": [],
+    "finish_state": "completed",
+    "finish_reason": null,
+    "backend_provider": "icoder.governed-procedure-extractor.v1",
+    "backend_type": "rule_engine",
+    "issues_found": [
+      {
+        "category": "non_performed_procedure_mention",
+        "message": "原文术式状态为 cancelled，未进入已实施操作编码集合。",
+        "severity": "warning",
+        "suggestion": "由编码员结合完整手术记录确认实际实施状态。"
+      }
+    ],
+    "manual_review_required": true,
+    "non_billable_mentions": [
+      {
+        "char_span": [
+          5,
+          16
+        ],
+        "evidence_text": "原拟行腹腔镜胆囊切除术",
+        "status": "cancelled",
+        "text": "腹腔镜胆囊切除术"
+      }
+    ],
+    "procedures": [],
+    "total_count": 0,
+    "structured_extraction": {
+      "contract": "icoder/ProcedureCodingOutput/v8",
+      "method": "json_block",
+      "warnings": [],
+      "required_fields": [
+        "procedures",
+        "non_billable_mentions",
+        "issues_found",
+        "manual_review_required"
+      ],
+      "optional_fields": [
+        "total_count"
+      ],
+      "missing_required_fields": [],
+      "invalid_field_types": [],
+      "invalid_field_schemas": [],
+      "invalid_cross_agent_relations": [],
+      "undeclared_output_fields": [],
+      "undeclared_output_field_count": 0,
+      "valid": true
+    }
+  },
+  "schema_ref": "icoder/ProcedureCodingOutput/v8",
+  "result_attestation": "eyJhIjoicHJvY2VkdXJlLWV4dHJhY3RvciIsImQiOiIzNGExNzgxNDkzZjgxY2FkMWY5N2VmMjY3YmFiZDY4YzllMjc2OTcyZTkwOTJhMzZkZjI2NzVlMGVhNjQ2ZjA4IiwiZSI6MTc4NzY1NjYyMywibyI6ImIxNmIwZmE0Mjc3NiIsInIiOiJydW4tMzJjNjMzN2UtZTE5Yi00MWMwLTlkODYtNzkyMDE5MjdlZGE5IiwicyI6Imljb2Rlci9Qcm9jZWR1cmVDb2RpbmdPdXRwdXQvdjgiLCJ2IjoxfQ.uShvsqKfvLjJr2vsH8Yf8MrUKxc72mErZdibtT0OhI0",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "completion",
+      "status": "ok",
+      "duration_ms": 8,
+      "metadata": {
+        "agent_id": "procedure-extractor",
+        "runtime_mode": "governed_local_explicit_procedure_baseline",
+        "latency_ms": 8
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 0.226
+}

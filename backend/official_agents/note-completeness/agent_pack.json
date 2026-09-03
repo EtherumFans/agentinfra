@@ -1,67 +1,356 @@
 {
-  "format_version": "1.1",
+  "format_version": "1.2",
   "agent_type": "certified",
-  "agent_ref": "icoder/note-completeness@1.0.0",
+  "agent_ref": "icoder/note-completeness-agent@1.0.0",
   "manifest": {
-    "name": "病历完整性",
+    "name": "病历完整性智能体",
     "version": "1.0.0",
-    "description": "实时检查病历完整性、准确性和合规性。",
-    "category": "质控",
+    "description": "iCoDer 病历完整性 Agent — 在本地按《病历书写基本规范》检查入院记录 7+1 个必填章节是否存在且包含有效内容，输出缺失/空章节与 completeness_score。确定性执行，不调用外部 LLM；语义冲突与临床正确性必须人工复核。",
+    "category": "medical-coding",
+    "category_display": "Documentation / 病历完整性",
     "icon": "FileCheck",
-    "maturity": "metadata-only",
+    "tags": [
+      "documentation",
+      "completeness",
+      "deterministic",
+      "local-rule-engine",
+      "chart-review",
+      "corti-parity"
+    ],
+    "maturity": "runnable",
     "production_ready": false,
+    "human_review": "required",
     "hidden_from_hub": false,
     "use_case": "coding_revenue_cycle"
   },
-  "system_prompt": "你是病历质量审核专家。对照《病历书写基本规范》检查病历的完整性和准确性。",
-  "experts": [],
-  "tools": [
-    "check_documentation_gaps",
-    "cdi_review",
-    "extract_evidence",
-    "verify_evidence",
-    "guard_input",
-    "guard_output"
+  "backend_provider": "icoder.documentation-rule-engine.v1",
+  "backend_config": {
+    "rules": {
+      "implementation": "official_agents.note_completeness.agent.run_deterministic",
+      "standard": "病历书写基本规范（2010年版）",
+      "required_sections": "7+1",
+      "network_required": false
+    }
+  },
+  "system_prompt": "本 Agent 的用户运行路径不调用 LLM。请在本地识别主诉、现病史、既往史、体格检查、辅助检查、诊断、治疗经过，以及手术病例的手术记录；仅判断章节存在且内容非空。不得推断语义冲突、临床正确性或编码正确性，不得修改或写回病历。所有结果必须人工复核。",
+  "experts": [
+    {
+      "expert_id": "section-detector",
+      "name": "Section Detector",
+      "role": "primary",
+      "description": "Regex-based EMR section detector — 主诉/现病史/既往史/体格检查/辅助检查/诊断/治疗经过/手术记录"
+    }
   ],
-  "permissions": {
-    "key": "note-completeness",
-    "name": "病历完整性权限",
-    "description": "实时检查病历完整性、准确性和合规性。",
-    "tools": {
-      "check_documentation_gaps": {
-        "allowed": true
+  "tools": [],
+  "model": {},
+  "non_goals": [
+    "不调用外部 LLM 或网络服务",
+    "不声称识别文档内部语义冲突、否定/时态/归属或临床正确性",
+    "不修改病历 — 只评估完整性",
+    "不写回 EMR / HIS",
+    "不评估编码正确性 — 编码由 Medical Coding Agent / Code Validation Agent 完成",
+    "不在缺少独立临床标注集时输出 F1 / 效果声明"
+  ],
+  "output_contract": {
+    "schema_ref": "icoder/NoteCompletenessOutput/v2",
+    "a2a_parts": [
+      "DataPart"
+    ],
+    "required_fields": [
+      "review_conclusion",
+      "documentation_gaps",
+      "completeness_score",
+      "missing_sections",
+      "present_sections",
+      "required_sections",
+      "incomplete_sections",
+      "conflicts",
+      "corrected_draft",
+      "trace_refs"
+    ],
+    "field_definitions": {
+      "review_conclusion": "PASS (>=0.85) | WARNING (>=0.5) | FAIL (<0.5)",
+      "documentation_gaps": "list[{gap_type='missing_section', description, section, suggestion}]",
+      "completeness_score": "float 0..1 — present_sections / required_sections",
+      "missing_sections": "list[str]",
+      "present_sections": "list[str]",
+      "required_sections": "list[str] — 主诉/现病史/既往史/体格检查/辅助检查/诊断/治疗经过 (+手术记录 for surgical)",
+      "trace_refs": "TraceRefs — run_id / agent_ref / rule_set='documentation_completeness'"
+    },
+    "field_types": {
+      "review_conclusion": "string",
+      "documentation_gaps": "array",
+      "completeness_score": "number",
+      "missing_sections": "array",
+      "present_sections": "array",
+      "required_sections": "array",
+      "incomplete_sections": "array",
+      "conflicts": "array",
+      "corrected_draft": "string",
+      "trace_refs": "object"
+    },
+    "field_schemas": {
+      "review_conclusion": {
+        "type": "string",
+        "maxLength": 32768
       },
-      "cdi_review": {
-        "allowed": true
+      "documentation_gaps": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "gap_type": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "section": {
+              "type": "string",
+              "maxLength": 32768
+            }
+          },
+          "required": [
+            "description",
+            "gap_type",
+            "section"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100
       },
-      "extract_evidence": {
-        "allowed": true
+      "completeness_score": {
+        "type": "number"
       },
-      "verify_evidence": {
-        "allowed": true
+      "missing_sections": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 32768
+        },
+        "maxItems": 100
       },
-      "guard_input": {
-        "allowed": true
+      "present_sections": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 32768
+        },
+        "maxItems": 100
       },
-      "guard_output": {
-        "allowed": true
+      "required_sections": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 32768
+        },
+        "maxItems": 100
+      },
+      "incomplete_sections": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "deficit_note": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "section": {
+              "type": "string",
+              "maxLength": 32768
+            }
+          },
+          "required": [
+            "deficit_note",
+            "section"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100
+      },
+      "conflicts": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "note": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "section": {
+              "type": "string",
+              "maxLength": 32768
+            }
+          },
+          "required": [
+            "note",
+            "section"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100
+      },
+      "corrected_draft": {
+        "type": "string",
+        "maxLength": 32768
+      },
+      "trace_refs": {
+        "type": "object",
+        "properties": {
+          "provider_trace_refs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "maxItems": 100
+          },
+          "run_id": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "trace_id": {
+            "type": "string",
+            "maxLength": 32768
+          }
+        },
+        "required": [
+          "run_id"
+        ],
+        "additionalProperties": false
       }
     }
   },
+  "permissions": {
+    "key": "note-completeness-default",
+    "name": "病历完整性智能体 默认权限",
+    "description": "允许读取病历文本进行章节检测。禁止写回，禁止编码分配。",
+    "tools": {},
+    "writeback": "blocked",
+    "production_writeback_blocked": true
+  },
+  "phi_redaction": "required",
+  "context_required": false,
+  "recorder_required": true,
+  "metrics_required": true,
+  "human_review_required_when": [
+    "review_conclusion != PASS",
+    "manual_review_required == true",
+    "a required documentation element is missing or contradictory",
+    "the note contains ambiguous temporality, negation, or attribution"
+  ],
   "requirements": {
-    "min_runtime_version": "1.0.0"
+    "min_runtime_version": "2.0.0",
+    "icoder_runtime_modules": [
+      "icoder_runtime.backends.documentation_rule_engine_provider",
+      "official_agents.note_completeness.agent"
+    ]
   },
   "llm_capabilities": {
-    "required_models": [
-      {
-        "name": "deepseek-v4"
-      }
-    ],
+    "required_models": [],
     "supports_tool_calling": false,
-    "supports_json_mode": true
+    "supports_json_mode": false,
+    "supports_mcp_tools": false
   },
+  "a2a": {
+    "protocol_version": "0.3",
+    "endpoint": "/api/icoder/agents/note-completeness-agent/v1/message:send",
+    "discovery": "/api/icoder/agents",
+    "agent_card_ref": "icoder/note-completeness-agent@1.0.0"
+  },
+  "default_runtime_mode": "local_documentation_rules",
+  "available_runtime_modes": [
+    "local_documentation_rules"
+  ],
+  "example_inputs": [
+    {
+      "title": "病案首页字段缺失样本",
+      "input_text": "主诉: 腰背部疼痛 3 月。现病史: 患者 3 月前无明显诱因出现腰背部疼痛, 活动后加重。既往史: 高血压 10 年。体格检查: 腰椎压痛阳性。辅助检查: X 线示 L1 椎体压缩性骨折。诊断: L1 椎体压缩性骨折。治疗经过: 行 T12 椎体切开复位内固定术, 术后恢复良好。"
+    },
+    {
+      "title": "病案首页主诊手术不一致",
+      "input_text": "主诉: 腰背痛。诊断: 骨质疏松。手术记录: T12 椎体切开复位内固定术。"
+    }
+  ],
+  "example_outputs": [
+    {
+      "review_conclusion": "WARNING",
+      "documentation_gaps": [
+        {
+          "gap_type": "missing_section",
+          "description": "病历缺少必填章节: 手术记录",
+          "section": "手术记录"
+        },
+        {
+          "section": "诊断",
+          "gap_type": "incomplete_section",
+          "description": "诊断章节未明确区分入院诊断与出院诊断。"
+        },
+        {
+          "section": "治疗经过",
+          "gap_type": "incomplete_section",
+          "description": "手术病例的治疗经过缺少明确的术前准备或术中情况。"
+        },
+        {
+          "section": "诊断与治疗经过",
+          "gap_type": "conflict",
+          "description": "诊断记录的脊柱节段为 L1，治疗/手术记录为 T12；存在显式节段冲突，需人工核对。"
+        }
+      ],
+      "completeness_score": 0.875,
+      "missing_sections": [
+        "手术记录"
+      ],
+      "present_sections": [
+        "主诉",
+        "现病史",
+        "既往史",
+        "体格检查",
+        "辅助检查",
+        "诊断",
+        "治疗经过"
+      ],
+      "required_sections": [
+        "主诉",
+        "现病史",
+        "既往史",
+        "体格检查",
+        "辅助检查",
+        "诊断",
+        "治疗经过",
+        "手术记录"
+      ],
+      "incomplete_sections": [
+        {
+          "section": "诊断",
+          "deficit_note": "诊断章节未明确区分入院诊断与出院诊断。"
+        },
+        {
+          "section": "治疗经过",
+          "deficit_note": "手术病例的治疗经过缺少明确的术前准备或术中情况。"
+        }
+      ],
+      "conflicts": [
+        {
+          "section": "诊断与治疗经过",
+          "note": "诊断记录的脊柱节段为 L1，治疗/手术记录为 T12；存在显式节段冲突，需人工核对。"
+        }
+      ],
+      "corrected_draft": "",
+      "trace_refs": {
+        "run_id": "sample-run",
+        "trace_id": "sample-trace",
+        "provider_trace_refs": [
+          "sample-run:documentation-rules"
+        ]
+      }
+    }
+  ],
+  "built_by": "icoder",
   "code": {},
   "integrity": {
-    "sha256": ""
+    "sha256": "c024d4236fe28973feaef2238808d6bc7fe11ebd4e6cf8372be67c8b2bfdbea7"
   }
 }

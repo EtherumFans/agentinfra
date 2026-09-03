@@ -96,6 +96,21 @@ async def test_get_by_context_returns_only_matching(session):
     assert {r.original_input for r in b_rows} == {"beta"}
 
 
+async def test_same_timestamp_writes_receive_distinct_audit_ids(session):
+    audit = ContextAudit(session)
+    cid = "550e8400-e29b-41d4-a716-446655440010"
+    fixed_now = _now()
+
+    first = await audit.record_original_input(cid, "first", now=fixed_now)
+    second = await audit.record_original_input(cid, "second", now=fixed_now)
+
+    assert first.id != second.id
+    assert {row.original_input for row in await audit.get_by_context(cid)} == {
+        "first",
+        "second",
+    }
+
+
 async def test_get_by_context_rejects_invalid_id(session):
     audit = ContextAudit(session)
     with pytest.raises(ContextIsolationError):
@@ -173,6 +188,7 @@ async def test_audit_survives_context_deletion(session):
         updated_at=now,
         expires_at=now + timedelta(hours=24),
         agent_id="a",
+        organization_id="test-org",
         status=ContextStatus.ACTIVE,
     )
     await repo.create_context(ctx)

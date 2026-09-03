@@ -1,0 +1,343 @@
+{
+  "schema_version": "icoder.agent-hub-reference-quality-cases/v1",
+  "scope": "pack_owned_synthetic_reference_semantics_not_independent_clinical_gold",
+  "cases": [
+    {
+      "agent_id": "claim-check",
+      "example_index": 0,
+      "assertions": [
+        {"path": "review_status", "op": "equals", "value": "READY_FOR_REVIEW"},
+        {"path": "policy_evaluation_status", "op": "equals", "value": "DOCUMENTED_POLICY_ONLY"},
+        {"path": "billed_diagnoses", "op": "contains_all", "value": ["K35.80"]},
+        {"path": "billed_procedures", "op": "contains_all", "value": ["47.01"]},
+        {"path": "clinical_support_assessed", "op": "is_false"},
+        {"path": "production_submission_blocked", "op": "is_true"}
+      ]
+    },
+    {
+      "agent_id": "clinical-documentation-improvement-agent",
+      "example_index": 0,
+      "assertions": [
+        {"path": "documentation_gaps", "op": "contains_any", "value": ["肺炎", "Pneumonia", "specificity"]},
+        {"path": "proposed_provider_queries", "op": "nonempty"},
+        {"path": "query_gate_summary", "op": "contains_all", "value": ["manual_cdi_action_required", "true"]},
+        {"path": "human_review", "op": "nonempty"}
+      ]
+    },
+    {
+      "agent_id": "clinical-education",
+      "example_index": 0,
+      "assertions": [
+        {"path": "education_status", "op": "equals", "value": "READY_FOR_REVIEW"},
+        {"path": "topic.documented_text", "op": "equals", "value": "脓毒症早期识别"},
+        {"path": "approved_source.approval_status.documented_text", "op": "equals", "value": "已批准"},
+        {"path": "key_points", "op": "contains_all", "value": ["器官功能障碍", "脓毒症评估"]},
+        {"path": "evidence_citations", "op": "contains_any", "value": ["脓毒症诊疗规范"]},
+        {"path": "source_insufficient", "op": "is_false"},
+        {"path": "clinical_reasoning_performed", "op": "is_false"},
+        {"path": "manual_review_required", "op": "is_true"}
+      ]
+    },
+    {
+      "agent_id": "clinical-guidelines",
+      "example_index": 0,
+      "assertions": [
+        {"path": "guideline_status", "op": "equals", "value": "READY_FOR_REVIEW"},
+        {"path": "guideline_source_eligible_for_review", "op": "is_true"},
+        {"path": "overall_assessment", "op": "equals", "value": "NOT_MET"},
+        {"path": "criteria_checked", "op": "contains_all", "value": ["30小时", "NOT_MET"]},
+        {"path": "deviations", "op": "contains_all", "value": ["超过", "24小时"]},
+        {"path": "guideline_retrieval_performed", "op": "is_false"},
+        {"path": "clinical_inference_performed", "op": "is_false"},
+        {"path": "manual_review_required", "op": "is_true"}
+      ]
+    },
+    {
+      "agent_id": "code-validation-agent",
+      "example_index": 0,
+      "assertions": [
+        {"path": "review_conclusion", "op": "equals", "value": "WARNING"},
+        {"path": "validated_codes", "op": "contains_all", "value": ["I50.900"]},
+        {"path": "summary", "op": "contains_all", "value": ["固定哈希", "人工复核"]},
+        {"path": "manual_review_required", "op": "is_true"}
+      ]
+    },
+    {
+      "agent_id": "compliance-guardrail-agent",
+      "example_index": 0,
+      "assertions": [
+        {"path": "review_conclusion", "op": "equals", "value": "PASS"},
+        {"path": "reviewed_codes", "op": "contains_all", "value": ["M80.900", "ICD-10-CN"]},
+        {"path": "issues_found", "op": "nonempty"},
+        {"path": "manual_review_required", "op": "is_true"}
+      ]
+    },
+    {
+      "agent_id": "denial-appeals",
+      "example_index": 0,
+      "assertions": [
+        {"path": "appeal_status", "op": "equals", "value": "READY_FOR_REVIEW"},
+        {"path": "denial_snapshot", "op": "contains_all", "value": ["TEST-CLAIM-001", "TEST-DENIAL-CODE", "2026-09-01"]},
+        {"path": "clinical_documentation", "op": "contains_all", "value": ["示例服务已实施", "示例检查结果"]},
+        {"path": "policy_evaluation_status", "op": "equals", "value": "DOCUMENTED_POLICY_ONLY"},
+        {"path": "appeal_letter_draft", "op": "contains_all", "value": ["拒付申诉草案", "请求人工复核", "禁止"]},
+        {"path": "denial_classification_status", "op": "equals", "value": "DOCUMENTED_ONLY_NO_INFERENCE"},
+        {"path": "denial_root_cause_inferred", "op": "is_false"},
+        {"path": "medical_coding_validation_performed", "op": "is_false"},
+        {"path": "production_submission_blocked", "op": "is_true"},
+        {"path": "evidence_items", "op": "nonempty"},
+        {"path": "limitations", "op": "nonempty"},
+        {"path": "manual_review_required", "op": "is_true"}
+      ]
+    },
+    {
+      "agent_id": "diagnosis-extractor",
+      "example_index": 0,
+      "assertions": [
+        {"path": "status", "op": "equals", "value": "WARNING"},
+        {"path": "diagnoses", "op": "contains_all", "value": ["急性前壁心肌梗死", "I21.001", "present"]},
+        {"path": "non_codable_mentions", "op": "contains_all", "value": ["高血压", "history_of"]},
+        {"path": "issues_found", "op": "contains_all", "value": ["source_unverified", "external_review_required"]},
+        {"path": "manual_review_required", "op": "is_true"}
+      ]
+    },
+    {
+      "agent_id": "discharge-edu",
+      "example_index": 0,
+      "assertions": [
+        {"path": "education_status", "op": "equals", "value": "COMPLETED"},
+        {"path": "diagnosis_summary", "op": "equals", "value": "慢性心力衰竭"},
+        {"path": "medication_instructions", "op": "contains_all", "value": ["呋塞米", "20mg", "每日一次"]},
+        {"path": "follow_up", "op": "contains_all", "value": ["7日", "心内科"]},
+        {"path": "warning_signs", "op": "contains_all", "value": ["呼吸困难加重", "及时就医"]},
+        {"path": "key_results", "op": "contains_all", "value": ["血钾4.1mmol/L", "未解释；仅保留原文记录。"]},
+        {"path": "missing_items", "op": "empty"},
+        {"path": "translation_status", "op": "equals", "value": "VERBATIM_DOCUMENTED_CONTENT_ONLY"},
+        {"path": "external_knowledge_used", "op": "is_false"},
+        {"path": "clinical_interpretation_performed", "op": "is_false"},
+        {"path": "clinical_recommendations_generated", "op": "is_false"},
+        {"path": "production_writeback_blocked", "op": "is_true"},
+        {"path": "evidence_items", "op": "nonempty"},
+        {"path": "manual_review_required", "op": "is_true"}
+      ]
+    },
+    {
+      "agent_id": "discharge-summary-structuring",
+      "example_index": 0,
+      "assertions": [
+        {"path": "structuring_status", "op": "equals", "value": "COMPLETED"},
+        {"path": "diagnoses", "op": "contains_all", "value": ["慢性心力衰竭", "原发性高血压", "DOCUMENTED_UNSPECIFIED"]},
+        {"path": "procedures", "op": "contains_all", "value": ["冠状动脉造影"]},
+        {"path": "treatment_course", "op": "contains_all", "value": ["按原记录治疗", "症状好转"]},
+        {"path": "discharge_orders", "op": "contains_all", "value": ["呋塞米20mg，每日一次", "低盐饮食"]},
+        {"path": "follow_up_recommendations", "op": "contains_all", "value": ["7日后心内科复诊", "复查电解质"]},
+        {"path": "discharge_status.normalized_status", "op": "equals", "value": "IMPROVED"},
+        {"path": "missing_sections", "op": "empty"},
+        {"path": "summary_generation_status", "op": "equals", "value": "VERBATIM_SECTION_REORGANIZATION_ONLY"},
+        {"path": "icd_codes_assigned", "op": "is_false"},
+        {"path": "medication_reconciliation_performed", "op": "is_false"},
+        {"path": "clinical_inference_performed", "op": "is_false"},
+        {"path": "production_writeback_blocked", "op": "is_true"},
+        {"path": "evidence_items", "op": "nonempty"},
+        {"path": "manual_review_required", "op": "is_true"}
+      ]
+    },
+    {
+      "agent_id": "drg-analyzer",
+      "example_index": 0,
+      "assertions": [
+        {"path": "review_status", "op": "equals", "value": "READY_FOR_CODER_REVIEW"},
+        {"path": "coded_case.primary_diagnosis.code", "op": "equals", "value": "I21.0"},
+        {"path": "development_candidate_group", "op": "contains_all", "value": ["EC13", "EXPERIMENTAL_UNVERIFIED_CANDIDATE"]},
+        {"path": "dip_review.status", "op": "equals", "value": "NO_AUTHORIZED_REGIONAL_DIP_PACK"},
+        {"path": "governance.authority_status", "op": "equals", "value": "experimental_unverified"},
+        {"path": "official_grouping_performed", "op": "is_false"},
+        {"path": "payment_calculation_performed", "op": "is_false"},
+        {"path": "billing_authoritative", "op": "is_false"},
+        {"path": "manual_review_required", "op": "is_true"}
+      ]
+    },
+    {
+      "agent_id": "evidence-extractor",
+      "example_index": 0,
+      "assertions": [
+        {"path": "extraction_status", "op": "equals", "value": "COMPLETED"},
+        {"path": "match_basis", "op": "equals", "value": "EXACT_CATALOG_TERM_OR_CODE_LITERAL_ONLY"},
+        {"path": "located_mentions", "op": "contains_all", "value": ["N18.803", "慢性肾脏病3期", "E11.900", "2型糖尿病", "historical"]},
+        {"path": "code_results", "op": "contains_all", "value": ["EXACT_MENTION_FOUND", "clinical_support_assessed"]},
+        {"path": "uncoded_findings", "op": "empty"}
+      ]
+    },
+    {
+      "agent_id": "evidence-ranker",
+      "example_index": 0,
+      "assertions": [
+        {"path": "ranked_evidence", "op": "contains_all", "value": ["A", "前壁ST段抬高"]},
+        {"path": "ranking_basis", "op": "equals", "value": "DOCUMENTATION_GROUNDING_ONLY"},
+        {"path": "conflicts", "op": "contains_all", "value": ["B", "duplicate_evidence_id"]},
+        {"path": "unsupported_claims", "op": "contains_any", "value": ["C"]},
+        {"path": "manual_review_required", "op": "is_true"}
+      ]
+    },
+    {
+      "agent_id": "icd10-navigator",
+      "example_index": 0,
+      "assertions": [
+        {"path": "search_status", "op": "equals", "value": "CANDIDATES_FOUND"},
+        {"path": "index_terms", "op": "contains_all", "value": ["慢性肾脏病3期"]},
+        {"path": "candidate_codes", "op": "contains_all", "value": ["N18.803", "term_index", "cn.icd10cn.catalog"]},
+        {"path": "source_version", "op": "contains_all", "value": ["observed-local-2026-05-19", "source_unverified", "external_review_required"]}
+      ]
+    },
+    {
+      "agent_id": "icu-summary",
+      "example_index": 0,
+      "assertions": [
+        {"path": "summary_status", "op": "equals", "value": "COMPLETED"},
+        {"path": "admission_reason", "op": "equals", "value": "术后循环监护"},
+        {"path": "organ_support", "op": "contains_all", "value": ["有创机械通气", "FiO2 40%", "icu-evidence-13"]},
+        {"path": "vital_signs", "op": "contains_all", "value": ["血压110/68mmHg", "心率88次/分"]},
+        {"path": "clinical_scores_status", "op": "equals", "value": "NOT_CALCULATED_GOVERNED_CALCULATOR_REQUIRED"},
+        {"path": "medication_screening_status", "op": "equals", "value": "NOT_SCREENED_LICENSED_DRUG_SOURCE_REQUIRED"},
+        {"path": "clinical_recommendations_generated", "op": "is_false"},
+        {"path": "evidence_items", "op": "nonempty"}
+      ]
+    },
+    {
+      "agent_id": "med-reconciliation",
+      "example_index": 0,
+      "assertions": [
+        {"path": "home_medications", "op": "contains_all", "value": ["二甲双胍", "0.5g", "bid"]},
+        {"path": "inpatient_medications", "op": "contains_all", "value": ["二甲双胍", "暂停", "造影"]},
+        {"path": "discrepancies", "op": "contains_all", "value": ["胰岛素", "出院"]},
+        {"path": "missing_rationale", "op": "nonempty"}
+      ]
+    },
+    {
+      "agent_id": "medical-coding-agent",
+      "example_index": 0,
+      "assertions": [
+        {"path": "code_assignment", "op": "contains_all", "value": ["S22.000x003", "胸椎压缩性骨折"]},
+        {"path": "validation_summary", "op": "contains_all", "value": ["RULE-001", "manual_review_required"]},
+        {"path": "human_review", "op": "contains_all", "value": ["WARNING", "review_required"]},
+        {"path": "uncodable_items", "op": "empty"}
+      ]
+    },
+    {
+      "agent_id": "note-completeness-agent",
+      "example_index": 0,
+      "assertions": [
+        {"path": "review_conclusion", "op": "equals", "value": "WARNING"},
+        {"path": "conflicts", "op": "contains_all", "value": ["T12", "L1"]},
+        {"path": "incomplete_sections", "op": "nonempty"},
+        {"path": "missing_sections", "op": "contains_all", "value": ["手术记录"]},
+        {"path": "completeness_score", "op": "equals", "value": 0.875}
+      ]
+    },
+    {
+      "agent_id": "nursing-handoff",
+      "example_index": 0,
+      "assertions": [
+        {"path": "situation", "op": "contains_all", "value": ["术后第1天", "38.2℃"]},
+        {"path": "safety_risks", "op": "contains_all", "value": ["跌倒风险评估", "核验"]},
+        {"path": "lines_devices", "op": "contains_all", "value": ["右颈内静脉置管"]},
+        {"path": "pending_tasks", "op": "nonempty"},
+        {"path": "evidence_items", "op": "nonempty"},
+        {"path": "clinical_priority_assessed", "op": "equals", "value": false},
+        {"path": "manual_review_required", "op": "equals", "value": true}
+      ]
+    },
+    {
+      "agent_id": "principal-diagnosis-review",
+      "example_index": 0,
+      "assertions": [
+        {"path": "review_status", "op": "equals", "value": "READY_FOR_CODER_REVIEW"},
+        {"path": "documented_coding_draft.code", "op": "equals", "value": "S22.000"},
+        {"path": "candidates", "op": "contains_all", "value": ["S22.000", "M80.900", "EXACT_INPUT_SPAN"]},
+        {"path": "draft_in_candidate_set", "op": "is_true"},
+        {"path": "draft_evidence_complete", "op": "is_true"},
+        {"path": "selection_basis_status", "op": "equals", "value": "DOCUMENTED"},
+        {"path": "diagnosis_extraction_performed", "op": "is_false"},
+        {"path": "code_assignment_performed", "op": "is_false"},
+        {"path": "principal_diagnosis_selection_performed", "op": "is_false"},
+        {"path": "production_writeback_blocked", "op": "is_true"},
+        {"path": "manual_review_required", "op": "is_true"}
+      ]
+    },
+    {
+      "agent_id": "prior-auth",
+      "example_index": 0,
+      "assertions": [
+        {"path": "authorization_status", "op": "equals", "value": "READY_FOR_REVIEW"},
+        {"path": "requested_item", "op": "contains_all", "value": ["阿达木单抗", "40mg", "皮下注射", "每两周一次"]},
+        {"path": "payer_policy", "op": "contains_all", "value": ["TEST-PA-001", "2026.1", "2026-07-01"]},
+        {"path": "policy_evaluation_status", "op": "equals", "value": "DOCUMENTED_POLICY_ONLY"},
+        {"path": "medical_necessity_assessment_status", "op": "equals", "value": "NOT_ASSESSED_POLICY_AND_CLINICAL_REVIEW_REQUIRED"},
+        {"path": "clinical_inference_performed", "op": "is_false"},
+        {"path": "production_submission_blocked", "op": "is_true"},
+        {"path": "manual_review_required", "op": "is_true"}
+      ]
+    },
+    {
+      "agent_id": "procedure-extractor",
+      "example_index": 0,
+      "assertions": [
+        {"path": "procedures", "op": "contains_all", "value": ["03.5304", "胸椎骨折切开复位内固定术", "T12", "performed", "source_unverified"]},
+        {"path": "total_count", "op": "equals", "value": 1},
+        {"path": "non_billable_mentions", "op": "empty"},
+        {"path": "issues_found", "op": "empty"}
+      ]
+    },
+      {
+        "agent_id": "referral-gen",
+        "example_index": 0,
+        "assertions": [
+          {"path": "referral_status", "op": "equals", "value": "READY_FOR_REVIEW"},
+          {"path": "referral_reason.documented_text", "op": "contains_all", "value": ["反复晕厥"]},
+          {"path": "receiving_party.specialty.documented_text", "op": "equals", "value": "心内科"},
+          {"path": "clinical_summary.working_assessment.documented_text", "op": "contains_all", "value": ["二度Ⅱ型房室传导阻滞"]},
+          {"path": "missing_required_fields", "op": "empty"},
+          {"path": "missing_supporting_items", "op": "empty"},
+          {"path": "referral_letter_draft", "op": "contains_all", "value": ["转诊信草案", "禁止自动发送"]},
+          {"path": "draft_generation_status", "op": "equals", "value": "VERBATIM_TEMPLATE_ASSEMBLY_ONLY"}
+        ]
+      },
+    {
+      "agent_id": "rule-explainer",
+      "example_index": 0,
+      "assertions": [
+        {"path": "status", "op": "equals", "value": "REQUIRES_REVIEW"},
+        {"path": "code", "op": "equals", "value": "I50.9"},
+        {"path": "assignable", "op": "is_false"},
+        {"path": "explanation_summary", "op": "contains_all", "value": ["I50.9", "不可直接赋码"]}
+      ]
+    },
+    {
+      "agent_id": "surgical-registry",
+      "example_index": 0,
+      "assertions": [
+        {"path": "procedure", "op": "equals", "value": "腹腔镜胆囊切除术"},
+        {"path": "anesthesia", "op": "equals", "value": "全麻"},
+        {"path": "complications", "op": "contains_any", "value": ["无胆管损伤", "未见胆管损伤"]},
+        {"path": "missing_fields", "op": "contains_all", "value": ["indications", "comorbidities", "outcomes"]}
+      ]
+    },
+    {
+      "agent_id": "triage",
+      "example_index": 0,
+      "assertions": [
+        {"path": "assessment_status", "op": "equals", "value": "READY_FOR_ONSITE_REVIEW"},
+        {"path": "review_method", "op": "equals", "value": "EXPLICIT_ANSWER_DETERMINISTIC_QUESTIONNAIRE_PATH_REVIEW"},
+        {"path": "acuity_level", "op": "equals", "value": "DEVELOPMENT_PROTOCOL_CANDIDATE_IMMEDIATE"},
+        {"path": "protocol_candidate.candidate_level", "op": "equals", "value": "IMMEDIATE"},
+        {"path": "red_flags", "op": "contains_all", "value": ["RF_CHEST_PAIN_HYPOTENSION"]},
+        {"path": "recommended_disposition", "op": "contains_any", "value": ["抢救", "紧急评估"]},
+        {"path": "missing_information", "op": "empty"},
+        {"path": "transcript_extraction_performed", "op": "equals", "value": false},
+        {"path": "clinical_inference_performed", "op": "equals", "value": false},
+        {"path": "final_acuity_assignment_performed", "op": "equals", "value": false},
+        {"path": "production_action_blocked", "op": "equals", "value": true}
+      ]
+    }
+  ]
+}

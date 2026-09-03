@@ -1,0 +1,1022 @@
+{
+  "format_version": "1.2",
+  "agent_type": "certified",
+  "agent_ref": "icoder/principal-diagnosis-review@1.1.0",
+  "manifest": {
+    "name": "主诊断复核智能体",
+    "version": "1.1.0",
+    "description": "对编码员明确提供的主诊断初稿、候选集合和逐字证据执行确定性集合与证据完整性复核；不提取、分配、推荐或替换主诊断。",
+    "category": "medical-coding",
+    "category_display": "Coding and Revenue Cycle / 编码与收入周期",
+    "icon": "Stethoscope",
+    "tags": [
+      "principal-diagnosis",
+      "documented-draft-review",
+      "evidence-first",
+      "no-upcoding",
+      "china-hospital"
+    ],
+    "maturity": "runnable",
+    "production_ready": false,
+    "human_review": "required",
+    "hidden_from_hub": false,
+    "use_case": "coding_revenue_cycle"
+  },
+  "system_prompt": "你是 iCoDer 受治理主诊断初稿证据复核智能体。只处理明确标签输入：审核目的、编码标准、编码版本、病案文档范围、编码员主诊断初稿、主诊断候选和选择依据。候选格式为 candidate_id|code|display|source_document|evidence_text；选择依据格式为 candidate_id|ADMISSION_REASON/MAIN_TREATMENT/RESOURCE_USE/HOSPITAL_APPROVED_OTHER|source_document|evidence_text。你只核对初稿是否存在于候选集合、逐项证据是否精确回链、依据是否引用已知候选及输入是否冲突。不得从病历提取新诊断，不得分配、选择、排序、推荐或替换主诊断，不得判断诊断成立、严重程度、病因、主要治疗、资源消耗、编码规则正确性或结算有效性。READY_FOR_CODER_REVIEW 只表示输入和证据结构完整，始终要求编码员人工复核，禁止提交和写回。",
+  "model": null,
+  "backend_provider": "icoder.governed-principal-diagnosis-review.v1",
+  "backend_config": {},
+  "experts": [],
+  "tools": [],
+  "permissions": {
+    "key": "principal-diagnosis-draft-review",
+    "name": "主诊断初稿证据复核默认权限",
+    "description": "只读核对编码员初稿、候选集合和输入证据，不执行诊断选择、编码分配、提交或写回。",
+    "no_upcoding": true,
+    "no_inference": true,
+    "evidence_required": true,
+    "production_submission_blocked": true,
+    "production_writeback_blocked": true
+  },
+  "output_contract": {
+    "schema_ref": "icoder/PrincipalDxReview/v11",
+    "a2a_parts": [
+      "DataPart"
+    ],
+    "required_fields": [
+      "review_status",
+      "review_purpose",
+      "coding_standard",
+      "documentation_scope",
+      "documented_coding_draft",
+      "candidates",
+      "declared_selection_basis",
+      "candidate_evidence_gaps",
+      "input_conflicts",
+      "draft_in_candidate_set",
+      "draft_evidence_complete",
+      "draft_consistency_status",
+      "selection_basis_status",
+      "review_method",
+      "evidence_items",
+      "missing_required_fields",
+      "limitations",
+      "diagnosis_extraction_performed",
+      "code_assignment_performed",
+      "principal_diagnosis_selection_performed",
+      "clinical_inference_performed",
+      "external_rules_used",
+      "production_submission_blocked",
+      "production_writeback_blocked",
+      "manual_review_required",
+      "trace_refs"
+    ],
+    "optional_fields": [],
+    "field_definitions": {
+      "review_status": "输入与证据完整性状态，不是主诊断正确性结论",
+      "documented_coding_draft": "编码员明确提供的初稿，不是 Agent 推荐",
+      "candidates": "调用方明确提供且逐字回链的候选集合",
+      "declared_selection_basis": "调用方声明的依据原文，不做语义真实性判断",
+      "draft_consistency_status": "初稿与候选集合/证据的确定性一致性状态",
+      "review_method": "固定为仅核对声明初稿、证据和集合"
+    },
+    "field_types": {
+      "review_status": "string",
+      "review_purpose": "object",
+      "coding_standard": "object",
+      "documentation_scope": "object",
+      "documented_coding_draft": "object",
+      "candidates": "array",
+      "declared_selection_basis": "array",
+      "candidate_evidence_gaps": "array",
+      "input_conflicts": "array",
+      "draft_in_candidate_set": "boolean",
+      "draft_evidence_complete": "boolean",
+      "draft_consistency_status": "string",
+      "selection_basis_status": "string",
+      "review_method": "string",
+      "evidence_items": "array",
+      "missing_required_fields": "array",
+      "limitations": "array",
+      "diagnosis_extraction_performed": "boolean",
+      "code_assignment_performed": "boolean",
+      "principal_diagnosis_selection_performed": "boolean",
+      "clinical_inference_performed": "boolean",
+      "external_rules_used": "boolean",
+      "production_submission_blocked": "boolean",
+      "production_writeback_blocked": "boolean",
+      "manual_review_required": "boolean",
+      "trace_refs": "object"
+    },
+    "field_schemas": {
+      "review_status": {
+        "type": "string",
+        "maxLength": 32768,
+        "enum": [
+          "INPUT_REQUIRED",
+          "EVIDENCE_REVIEW_REQUIRED",
+          "READY_FOR_CODER_REVIEW"
+        ]
+      },
+      "review_purpose": {
+        "type": "object",
+        "properties": {
+          "documented_text": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "evidence_ref": {
+            "type": "string",
+            "maxLength": 32768
+          }
+        },
+        "required": [
+          "documented_text",
+          "evidence_ref"
+        ],
+        "additionalProperties": false
+      },
+      "coding_standard": {
+        "type": "object",
+        "properties": {
+          "system": {
+            "type": "object",
+            "properties": {
+              "documented_text": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "evidence_ref": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "documented_text",
+              "evidence_ref"
+            ],
+            "additionalProperties": false
+          },
+          "version": {
+            "type": "object",
+            "properties": {
+              "documented_text": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "evidence_ref": {
+                "type": "string",
+                "maxLength": 32768
+              }
+            },
+            "required": [
+              "documented_text",
+              "evidence_ref"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "system",
+          "version"
+        ],
+        "additionalProperties": false
+      },
+      "documentation_scope": {
+        "type": "object",
+        "properties": {
+          "documented_text": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "evidence_ref": {
+            "type": "string",
+            "maxLength": 32768
+          }
+        },
+        "required": [
+          "documented_text",
+          "evidence_ref"
+        ],
+        "additionalProperties": false
+      },
+      "documented_coding_draft": {
+        "type": "object",
+        "properties": {
+          "authority_status": {
+            "type": "string",
+            "maxLength": 32768,
+            "const": "CODER_DOCUMENTED_DRAFT_NOT_CLINICALLY_VALIDATED"
+          },
+          "candidate_id": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "display": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "evidence_ref": {
+            "type": "string",
+            "maxLength": 32768
+          }
+        },
+        "required": [
+          "authority_status",
+          "candidate_id",
+          "code",
+          "display",
+          "evidence_ref"
+        ],
+        "additionalProperties": false
+      },
+      "candidates": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "candidate_id": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "char_span": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "maxItems": 2,
+              "minItems": 2,
+              "x-order": "nondecreasing"
+            },
+            "code": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "display": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "evidence_ref": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "evidence_status": {
+              "type": "string",
+              "maxLength": 32768,
+              "enum": [
+                "EXACT_INPUT_SPAN"
+              ]
+            },
+            "evidence_text": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "is_documented_draft": {
+              "type": "boolean"
+            },
+            "source_document": {
+              "type": "string",
+              "maxLength": 32768
+            }
+          },
+          "required": [
+            "candidate_id",
+            "char_span",
+            "code",
+            "display",
+            "evidence_ref",
+            "evidence_status",
+            "evidence_text",
+            "is_documented_draft",
+            "source_document"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100,
+        "minItems": 0
+      },
+      "declared_selection_basis": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "basis_type": {
+              "type": "string",
+              "maxLength": 32768,
+              "enum": [
+                "ADMISSION_REASON",
+                "MAIN_TREATMENT",
+                "RESOURCE_USE",
+                "HOSPITAL_APPROVED_OTHER"
+              ]
+            },
+            "candidate_id": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "char_span": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "maxItems": 2,
+              "minItems": 2,
+              "x-order": "nondecreasing"
+            },
+            "evidence_ref": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "evidence_text": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "source_document": {
+              "type": "string",
+              "maxLength": 32768
+            }
+          },
+          "required": [
+            "basis_type",
+            "candidate_id",
+            "char_span",
+            "evidence_ref",
+            "evidence_text",
+            "source_document"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100,
+        "minItems": 0
+      },
+      "candidate_evidence_gaps": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 32768
+        },
+        "maxItems": 100,
+        "minItems": 0
+      },
+      "input_conflicts": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "field": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "documented_value": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "reason": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "evidence_refs": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 32768
+              },
+              "maxItems": 100,
+              "minItems": 1
+            }
+          },
+          "required": [
+            "field",
+            "documented_value",
+            "reason",
+            "evidence_refs"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 100,
+        "minItems": 0
+      },
+      "draft_in_candidate_set": {
+        "type": "boolean"
+      },
+      "draft_evidence_complete": {
+        "type": "boolean"
+      },
+      "draft_consistency_status": {
+        "type": "string",
+        "maxLength": 32768,
+        "enum": [
+          "NOT_ASSESSABLE",
+          "DRAFT_NOT_IN_CANDIDATE_SET",
+          "DECLARED_INPUT_CONFLICT",
+          "DOCUMENTED_DRAFT_EVIDENCE_INCOMPLETE",
+          "DOCUMENTED_DRAFT_AND_EVIDENCE_PRESENT"
+        ]
+      },
+      "selection_basis_status": {
+        "type": "string",
+        "maxLength": 32768,
+        "enum": [
+          "NOT_PROVIDED",
+          "DOCUMENTED",
+          "CONFLICTING"
+        ]
+      },
+      "review_method": {
+        "type": "string",
+        "maxLength": 32768,
+        "const": "DOCUMENTED_DRAFT_EVIDENCE_AND_SET_CONSISTENCY_ONLY"
+      },
+      "evidence_items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "char_span": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "maxItems": 2,
+              "minItems": 2,
+              "x-order": "nondecreasing"
+            },
+            "evidence_id": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "field": {
+              "type": "string",
+              "maxLength": 32768,
+              "enum": [
+                "review_purpose",
+                "coding_system",
+                "coding_version",
+                "documentation_scope",
+                "documented_draft",
+                "candidate_evidence",
+                "selection_basis"
+              ]
+            },
+            "label": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "text": {
+              "type": "string",
+              "maxLength": 32768
+            }
+          },
+          "required": [
+            "char_span",
+            "evidence_id",
+            "field",
+            "label",
+            "text"
+          ],
+          "additionalProperties": false
+        },
+        "maxItems": 300,
+        "minItems": 0
+      },
+      "missing_required_fields": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 32768
+        },
+        "maxItems": 20,
+        "minItems": 0
+      },
+      "limitations": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 32768
+        },
+        "maxItems": 6,
+        "minItems": 6
+      },
+      "diagnosis_extraction_performed": {
+        "type": "boolean",
+        "const": false
+      },
+      "code_assignment_performed": {
+        "type": "boolean",
+        "const": false
+      },
+      "principal_diagnosis_selection_performed": {
+        "type": "boolean",
+        "const": false
+      },
+      "clinical_inference_performed": {
+        "type": "boolean",
+        "const": false
+      },
+      "external_rules_used": {
+        "type": "boolean",
+        "const": false
+      },
+      "production_submission_blocked": {
+        "type": "boolean",
+        "const": true
+      },
+      "production_writeback_blocked": {
+        "type": "boolean",
+        "const": true
+      },
+      "manual_review_required": {
+        "type": "boolean",
+        "const": true
+      },
+      "trace_refs": {
+        "type": "object",
+        "properties": {
+          "provider_trace_refs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 32768
+            },
+            "maxItems": 20,
+            "minItems": 0
+          },
+          "run_id": {
+            "type": "string",
+            "maxLength": 32768
+          },
+          "trace_id": {
+            "type": "string",
+            "maxLength": 32768
+          }
+        },
+        "required": [
+          "run_id"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "field_relations": [
+      {
+        "id": "ready_principal_draft_review_has_complete_evidence",
+        "when": [
+          {
+            "path": "review_status",
+            "operator": "equals",
+            "value": "READY_FOR_CODER_REVIEW"
+          }
+        ],
+        "must": [
+          {
+            "path": "missing_required_fields",
+            "operator": "empty"
+          },
+          {
+            "path": "candidates",
+            "operator": "non_empty"
+          },
+          {
+            "path": "input_conflicts",
+            "operator": "empty"
+          },
+          {
+            "path": "candidate_evidence_gaps",
+            "operator": "empty"
+          },
+          {
+            "path": "draft_in_candidate_set",
+            "operator": "equals",
+            "value": true
+          },
+          {
+            "path": "draft_evidence_complete",
+            "operator": "equals",
+            "value": true
+          },
+          {
+            "path": "selection_basis_status",
+            "operator": "equals",
+            "value": "DOCUMENTED"
+          }
+        ]
+      },
+      {
+        "id": "complete_principal_draft_status_matches_evidence",
+        "when": [
+          {
+            "path": "draft_consistency_status",
+            "operator": "equals",
+            "value": "DOCUMENTED_DRAFT_AND_EVIDENCE_PRESENT"
+          }
+        ],
+        "must": [
+          {
+            "path": "draft_in_candidate_set",
+            "operator": "equals",
+            "value": true
+          },
+          {
+            "path": "draft_evidence_complete",
+            "operator": "equals",
+            "value": true
+          },
+          {
+            "path": "selection_basis_status",
+            "operator": "equals",
+            "value": "DOCUMENTED"
+          }
+        ]
+      },
+      {
+        "id": "matched_draft_has_exactly_one_candidate_flag",
+        "when": [
+          {
+            "path": "draft_in_candidate_set",
+            "operator": "equals",
+            "value": true
+          }
+        ],
+        "must": [
+          {
+            "path": "candidates",
+            "operator": "count_where_equals",
+            "where": [
+              {
+                "path": "is_documented_draft",
+                "operator": "equals",
+                "value": true
+              }
+            ],
+            "value": 1
+          }
+        ]
+      },
+      {
+        "id": "draft_candidate_requires_exact_evidence",
+        "for_each": "candidates",
+        "when": [
+          {
+            "path": "is_documented_draft",
+            "operator": "equals",
+            "value": true
+          }
+        ],
+        "must": [
+          {
+            "path": "evidence_text",
+            "operator": "non_empty"
+          },
+          {
+            "path": "evidence_ref",
+            "operator": "non_empty"
+          },
+          {
+            "path": "evidence_status",
+            "operator": "equals",
+            "value": "EXACT_INPUT_SPAN"
+          }
+        ]
+      },
+      {
+        "id": "governed_principal_review_never_selects_or_writes",
+        "when": [
+          {
+            "path": "review_method",
+            "operator": "equals",
+            "value": "DOCUMENTED_DRAFT_EVIDENCE_AND_SET_CONSISTENCY_ONLY"
+          }
+        ],
+        "must": [
+          {
+            "path": "diagnosis_extraction_performed",
+            "operator": "equals",
+            "value": false
+          },
+          {
+            "path": "code_assignment_performed",
+            "operator": "equals",
+            "value": false
+          },
+          {
+            "path": "principal_diagnosis_selection_performed",
+            "operator": "equals",
+            "value": false
+          },
+          {
+            "path": "clinical_inference_performed",
+            "operator": "equals",
+            "value": false
+          },
+          {
+            "path": "external_rules_used",
+            "operator": "equals",
+            "value": false
+          },
+          {
+            "path": "production_submission_blocked",
+            "operator": "equals",
+            "value": true
+          },
+          {
+            "path": "production_writeback_blocked",
+            "operator": "equals",
+            "value": true
+          },
+          {
+            "path": "manual_review_required",
+            "operator": "equals",
+            "value": true
+          }
+        ]
+      }
+    ],
+    "evidence_bindings": [
+      {
+        "id": "principal_review_evidence_items_match_input",
+        "for_each": "evidence_items",
+        "text_path": "text",
+        "span_path": "char_span"
+      },
+      {
+        "id": "principal_candidate_evidence_matches_input",
+        "for_each": "candidates",
+        "text_path": "evidence_text",
+        "span_path": "char_span"
+      },
+      {
+        "id": "principal_selection_basis_matches_input",
+        "for_each": "declared_selection_basis",
+        "text_path": "evidence_text",
+        "span_path": "char_span"
+      }
+    ],
+    "cross_agent_relations": [
+      {
+        "id": "documented_draft_code_matches_extracted_diagnosis",
+        "local_path": "documented_coding_draft.code",
+        "upstream_agent_id": "diagnosis-extractor",
+        "upstream_path": "diagnoses",
+        "upstream_item_path": "icd10_cn_code",
+        "operator": "scalar_in_upstream_items",
+        "normalization": "medical_code",
+        "required": false
+      }
+    ]
+  },
+  "phi_redaction": "required",
+  "context_required": true,
+  "recorder_required": true,
+  "metrics_required": true,
+  "requirements": {
+    "min_runtime_version": "1.0.0",
+    "icoder_runtime_modules": [
+      "official_agents.principal_diagnosis_review.agent",
+      "icoder_runtime.backends.governed_principal_diagnosis_review_provider"
+    ]
+  },
+  "non_goals": [
+    "不从自由文本提取、补全或推断诊断",
+    "不分配、排序、选择、推荐或替换主诊断",
+    "不判断严重程度、病因、主要治疗、资源消耗或主诊断选择正确性",
+    "不验证 ICD 目录、国家/医保/病案首页规则、医院政策授权或结算有效性",
+    "不提交、不修改病历、不写回 EMR/HIS/医保系统"
+  ],
+  "human_review_required_when": [
+    "every result before coding, billing, quality, audit or submission action",
+    "the documented draft, candidate set, evidence, coding version or declared selection basis is incomplete or conflicting"
+  ],
+  "example_inputs": [
+    {
+      "title": "医院编码员主诊断初稿证据复核",
+      "input_text": "审核目的：住院病案首页主诊断初稿证据复核\n编码标准：ICD-10-CN\n编码版本：医院批准版2026.1\n病案文档范围：入院记录、出院记录、手术记录\n编码员主诊断初稿：D1|S22.000|T12椎体压缩性骨折\n主诊断候选：\nD1|S22.000|T12椎体压缩性骨折|出院记录|出院诊断记录T12椎体压缩性骨折\nD2|M80.900|骨质疏松伴病理性骨折|出院记录|出院诊断记录骨质疏松伴病理性骨折\n选择依据：\nD1|ADMISSION_REASON|入院记录|因腰背痛入院\nD1|MAIN_TREATMENT|手术记录|行T12椎体骨折切开复位内固定术",
+      "extra": {
+        "language": "zh-CN",
+        "source_policy": "coder_documented_draft_and_exact_evidence_only"
+      }
+    }
+  ],
+  "metadata": {
+    "created_at": "2026-07-07",
+    "updated_at": "2026-08-24",
+    "author": "iCoDer",
+    "corti_match": "china-specific-medical-coding-adjacent",
+    "audit_note": "Governed local documented-draft evidence review; no principal diagnosis selection or Corti Medical Coding semantic equivalence is claimed."
+  },
+  "built_by": "icoder",
+  "example_outputs": [
+    {
+      "review_status": "READY_FOR_CODER_REVIEW",
+      "review_purpose": {
+        "documented_text": "住院病案首页主诊断初稿证据复核",
+        "evidence_ref": "principal-dx-evidence-1"
+      },
+      "coding_standard": {
+        "system": {
+          "documented_text": "ICD-10-CN",
+          "evidence_ref": "principal-dx-evidence-2"
+        },
+        "version": {
+          "documented_text": "医院批准版2026.1",
+          "evidence_ref": "principal-dx-evidence-3"
+        }
+      },
+      "documentation_scope": {
+        "documented_text": "入院记录、出院记录、手术记录",
+        "evidence_ref": "principal-dx-evidence-4"
+      },
+      "documented_coding_draft": {
+        "candidate_id": "D1",
+        "code": "S22.000",
+        "display": "T12椎体压缩性骨折",
+        "evidence_ref": "principal-dx-evidence-5",
+        "authority_status": "CODER_DOCUMENTED_DRAFT_NOT_CLINICALLY_VALIDATED"
+      },
+      "candidates": [
+        {
+          "candidate_id": "D1",
+          "code": "S22.000",
+          "display": "T12椎体压缩性骨折",
+          "source_document": "出院记录",
+          "evidence_text": "出院诊断记录T12椎体压缩性骨折",
+          "char_span": [
+            140,
+            156
+          ],
+          "evidence_ref": "principal-dx-evidence-6",
+          "evidence_status": "EXACT_INPUT_SPAN",
+          "is_documented_draft": true
+        },
+        {
+          "candidate_id": "D2",
+          "code": "M80.900",
+          "display": "骨质疏松伴病理性骨折",
+          "source_document": "出院记录",
+          "evidence_text": "出院诊断记录骨质疏松伴病理性骨折",
+          "char_span": [
+            184,
+            200
+          ],
+          "evidence_ref": "principal-dx-evidence-7",
+          "evidence_status": "EXACT_INPUT_SPAN",
+          "is_documented_draft": false
+        }
+      ],
+      "declared_selection_basis": [
+        {
+          "candidate_id": "D1",
+          "basis_type": "ADMISSION_REASON",
+          "source_document": "入院记录",
+          "evidence_text": "因腰背痛入院",
+          "char_span": [
+            232,
+            238
+          ],
+          "evidence_ref": "principal-dx-evidence-8"
+        },
+        {
+          "candidate_id": "D1",
+          "basis_type": "MAIN_TREATMENT",
+          "source_document": "手术记录",
+          "evidence_text": "行T12椎体骨折切开复位内固定术",
+          "char_span": [
+            262,
+            278
+          ],
+          "evidence_ref": "principal-dx-evidence-9"
+        }
+      ],
+      "candidate_evidence_gaps": [],
+      "input_conflicts": [],
+      "draft_in_candidate_set": true,
+      "draft_evidence_complete": true,
+      "draft_consistency_status": "DOCUMENTED_DRAFT_AND_EVIDENCE_PRESENT",
+      "selection_basis_status": "DOCUMENTED",
+      "review_method": "DOCUMENTED_DRAFT_EVIDENCE_AND_SET_CONSISTENCY_ONLY",
+      "evidence_items": [
+        {
+          "evidence_id": "principal-dx-evidence-1",
+          "field": "review_purpose",
+          "label": "审核目的",
+          "text": "住院病案首页主诊断初稿证据复核",
+          "char_span": [
+            5,
+            20
+          ]
+        },
+        {
+          "evidence_id": "principal-dx-evidence-2",
+          "field": "coding_system",
+          "label": "编码标准",
+          "text": "ICD-10-CN",
+          "char_span": [
+            26,
+            35
+          ]
+        },
+        {
+          "evidence_id": "principal-dx-evidence-3",
+          "field": "coding_version",
+          "label": "编码版本",
+          "text": "医院批准版2026.1",
+          "char_span": [
+            41,
+            52
+          ]
+        },
+        {
+          "evidence_id": "principal-dx-evidence-4",
+          "field": "documentation_scope",
+          "label": "病案文档范围",
+          "text": "入院记录、出院记录、手术记录",
+          "char_span": [
+            60,
+            74
+          ]
+        },
+        {
+          "evidence_id": "principal-dx-evidence-5",
+          "field": "documented_draft",
+          "label": "编码员主诊断初稿",
+          "text": "D1|S22.000|T12椎体压缩性骨折",
+          "char_span": [
+            84,
+            105
+          ]
+        },
+        {
+          "evidence_id": "principal-dx-evidence-6",
+          "field": "candidate_evidence",
+          "label": "主诊断候选",
+          "text": "出院诊断记录T12椎体压缩性骨折",
+          "char_span": [
+            140,
+            156
+          ]
+        },
+        {
+          "evidence_id": "principal-dx-evidence-7",
+          "field": "candidate_evidence",
+          "label": "主诊断候选",
+          "text": "出院诊断记录骨质疏松伴病理性骨折",
+          "char_span": [
+            184,
+            200
+          ]
+        },
+        {
+          "evidence_id": "principal-dx-evidence-8",
+          "field": "selection_basis",
+          "label": "选择依据",
+          "text": "因腰背痛入院",
+          "char_span": [
+            232,
+            238
+          ]
+        },
+        {
+          "evidence_id": "principal-dx-evidence-9",
+          "field": "selection_basis",
+          "label": "选择依据",
+          "text": "行T12椎体骨折切开复位内固定术",
+          "char_span": [
+            262,
+            278
+          ]
+        }
+      ],
+      "missing_required_fields": [],
+      "limitations": [
+        "仅核对编码员明确提供的主诊断初稿、候选集合、选择依据和原文证据。",
+        "不从自由文本提取或新增诊断，不分配、推荐、替换或排序主诊断编码。",
+        "不判断诊断成立、临床严重程度、病因关系、主要治疗、资源消耗或主诊断选择正确性。",
+        "不验证编码目录、国家/医保/病案首页规则版本、医院政策授权或结算有效性。",
+        "READY_FOR_CODER_REVIEW 只表示输入集合与证据完整，不表示主诊断正确或可提交。",
+        "结果只供编码员人工复核，不自动提交、处罚、修改病历或写回系统。"
+      ],
+      "diagnosis_extraction_performed": false,
+      "code_assignment_performed": false,
+      "principal_diagnosis_selection_performed": false,
+      "clinical_inference_performed": false,
+      "external_rules_used": false,
+      "production_submission_blocked": true,
+      "production_writeback_blocked": true,
+      "manual_review_required": true,
+      "trace_refs": {
+        "run_id": "sample-run",
+        "provider_trace_refs": [
+          "sample-run:governed-principal-diagnosis-review"
+        ]
+      }
+    }
+  ],
+  "integrity": {
+    "sha256": "6ec3a55425dbf3e65c99a178e80f6a20f8732de7ef0d79dfeedbe540e8048685"
+  }
+}

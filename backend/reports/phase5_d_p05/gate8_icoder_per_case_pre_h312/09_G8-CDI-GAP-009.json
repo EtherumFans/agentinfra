@@ -1,0 +1,221 @@
+{
+  "case_id": "CASE-fd7312582eb1",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-fd7312582eb1/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "急性胆囊炎的严重程度未明确（如轻度、中度、重度）",
+      "why_it_matters": "影响治疗方案选择和编码准确性",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "入院诊断:急性胆囊炎"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-fd7312582eb1/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "胆总管扩张（9mm）的病因未明确，是否合并胆总管结石或梗阻",
+      "why_it_matters": "影响手术方式（如是否需ERCP）和编码",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "胆总管直径 9mm"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-fd7312582eb1/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "肝功能异常（ALT 120, AST 95, ALP 280, TBIL 45）的病因未明确，是否与胆道梗阻相关",
+      "why_it_matters": "影响诊断完整性和治疗决策",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "肝功能:ALT 120, AST 95, ALP 280, TBIL 45"
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [],
+  "chart_excerpt_preview": "患者女性, 50岁, 右上腹痛2天。Murphy征阳性。B超:胆囊壁增厚, 胆囊多发结石, 胆总管直径 9mm。肝功能:ALT 120, AST 95, ALP 280, TBIL 45。入院诊断:急性胆囊炎。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [],
+    "encounter_metadata": {}
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "根据临床记录，需明确急性胆囊炎的严重程度分级（如轻度、中度或重度），并说明胆总管扩张（9mm）是否由胆总管结石或梗阻引起。同时，需明确肝功能异常（ALT 120, AST 95, ALP 280, TBIL 45）是否与胆道梗阻直接相关，例如是否存在胆总管结石或狭窄导致的胆汁淤积。",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 2741,
+      "tokens": 278
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-1f1dbe424d94",
+    "gap_identification": "run-cd926521e7bd",
+    "expert_consultation": "run-e69471f84719",
+    "query_generation": "run-3ab5fac58b6a",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=3",
+    "query_necessity_gate": "necessary=2;unnecessary=1;overquery_triggered=False;final_count=2",
+    "query_single_dimension_gate": "single_dim=2;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=etiology;final_count=2",
+    "claim_evidence_alignment_gate": "claims_extracted=8;blocked=2;flagged=0;final_count=0",
+    "claim_evidence_alignment_gate::run_id": "run-0c476245097e",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+    "semantic_necessity_gate::run_id": "run-e574262c12c1",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "run-5eb3fb724419"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-43b7400d430f",
+    "gap_identification": "trace-b6bd46f422cd",
+    "expert_consultation": "trace-0a7c9319ba17",
+    "query_generation": "trace-659cd2ad69d5",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-859cc70d060b",
+    "semantic_necessity_gate": "trace-5a49c562d56e",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-89e2aa8f9865"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3671,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-1f1dbe424d94",
+      "trace_id": "trace-43b7400d430f",
+      "degraded": true,
+      "error_reason": "LLM call failed after 3 attempts: Connection error.",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3091,
+      "prompt_tokens": 288,
+      "completion_tokens": 361,
+      "total_tokens": 649,
+      "run_id": "run-cd926521e7bd",
+      "trace_id": "trace-b6bd46f422cd",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5843,
+      "prompt_tokens": 736,
+      "completion_tokens": 604,
+      "total_tokens": 1340,
+      "run_id": "run-3ab5fac58b6a",
+      "trace_id": "trace-659cd2ad69d5",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2741,
+      "prompt_tokens": 195,
+      "completion_tokens": 83,
+      "total_tokens": 278,
+      "run_id": "run-87c227e2525a",
+      "trace_id": "trace-db377d1b031c",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-921c49a2770e",
+      "trace_id": "trace-46c8b6ec1be9",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-5e9f80d292fe",
+      "trace_id": "trace-147ca5b61dff",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-5ae0dbb49252",
+      "trace_id": "trace-06fe974efc55",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": true,
+  "runtime_mode": "real",
+  "generated_at": "2026-07-12T13:23:19.011142Z"
+}

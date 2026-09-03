@@ -1,0 +1,360 @@
+{
+  "agent_id": "medical-coding-agent",
+  "run_id": "run-840da486-ae5e-4af0-9232-7195418a3ba1",
+  "trace_id": "trace-79b7e964c9d844ed",
+  "trace_url": "/ai-studio/runs/run-840da486-ae5e-4af0-9232-7195418a3ba1/trace",
+  "runtime_mode": "corti_like_fast",
+  "latency_ms": 7449,
+  "cost": {
+    "amount": 0.00038,
+    "currency": "CNY",
+    "source": "provider_token_usage",
+    "token_usage": {
+      "input_tokens": 1393,
+      "output_tokens": 661
+    }
+  },
+  "billing": {},
+  "summary": "主要诊断依据心电图下壁导联ST段抬高及肌钙蛋白升高明确为急性下壁STEMI，选择I21.1（急性透壁性下壁心肌梗死）。Killip II级提示心力衰竭，编码I50.0（充血性心力衰竭）作为并发症。手术编码36.06对应药物涂层支架置入术。",
+  "result": {
+    "encounter_summary": {
+      "chief_complaint": "",
+      "treatment_course": "",
+      "key_findings": [],
+      "document_sources": [],
+      "encounter_date": ""
+    },
+    "documentation_analysis": {
+      "diagnosis_evidence": [],
+      "procedure_evidence": [],
+      "negated_findings": [],
+      "historical_conditions": []
+    },
+    "code_assignment": {
+      "primary_diagnosis": {
+        "code": "I21.1",
+        "description": "急性透壁性下壁心肌梗死",
+        "confidence": 0.98,
+        "category": "principal",
+        "evidence": [
+          {
+            "text": "ECG: II, III, aVF ST elevation 0.3 mV",
+            "kind": "auto_bootstrap",
+            "char_start": 285,
+            "char_end": 322,
+            "doc_id": "input"
+          },
+          {
+            "text": "Admission diagnosis: acute inferior ST-elevation myocardial infarction (STEMI, Killip class II)",
+            "kind": "auto_bootstrap",
+            "char_start": 394,
+            "char_end": 489,
+            "doc_id": "input"
+          },
+          {
+            "text": "Troponin I 8.5 ng/mL",
+            "kind": "auto_bootstrap",
+            "char_start": 353,
+            "char_end": 373,
+            "doc_id": "input"
+          }
+        ]
+      },
+      "secondary_diagnoses": [
+        {
+          "code": "I10.x09",
+          "description": "原发性高血压",
+          "confidence": 0.95,
+          "category": "comorbidity",
+          "evidence": [
+            {
+              "text": "History: essential hypertension for 12 years",
+              "kind": "auto_bootstrap",
+              "char_start": 142,
+              "char_end": 186,
+              "doc_id": "input"
+            }
+          ]
+        },
+        {
+          "code": "E78.500",
+          "description": "高脂血症",
+          "confidence": 0.95,
+          "category": "comorbidity",
+          "evidence": [
+            {
+              "text": "hyperlipidemia for 5 years",
+              "kind": "auto_bootstrap",
+              "char_start": 188,
+              "char_end": 214,
+              "doc_id": "input"
+            }
+          ]
+        },
+        {
+          "code": "I50.0",
+          "description": "充血性心力衰竭",
+          "confidence": 0.85,
+          "category": "complication",
+          "evidence": [
+            {
+              "text": "Exam: BP 90/60, HR 110, bibasilar moist rales",
+              "kind": "auto_bootstrap",
+              "char_start": 238,
+              "char_end": 283,
+              "doc_id": "input"
+            },
+            {
+              "text": "Killip class II",
+              "kind": "auto_bootstrap",
+              "char_start": 473,
+              "char_end": 488,
+              "doc_id": "input"
+            }
+          ]
+        }
+      ],
+      "procedures": [
+        {
+          "code": "36.06",
+          "description": "冠状动脉药物涂层支架置入术",
+          "confidence": 0.97,
+          "category": "principal",
+          "evidence": [
+            {
+              "text": "Emergency PCI + drug-eluting stent implantation (proximal right coronary artery 100% occlusion → TIMI 3 flow restored)",
+              "kind": "auto_bootstrap",
+              "char_start": 491,
+              "char_end": 609,
+              "doc_id": "input"
+            }
+          ]
+        }
+      ]
+    },
+    "documentation_gaps": [],
+    "uncodable_items": [],
+    "validation_summary": {
+      "passed": false,
+      "issues_found": [
+        {
+          "severity": "low",
+          "code": "RULE-001",
+          "message": "病历中未明确记录吸烟史相关诊断编码，但吸烟史作为危险因素可在病程记录中体现。",
+          "suggestion": "建议在病程记录中补充吸烟史相关描述，必要时可编码Z72.0（烟草使用）。"
+        }
+      ],
+      "manual_review_required": true,
+      "rule_set": "MedCodERRetrievalRuleSet",
+      "fired_rules": [
+        "RULE-001"
+      ]
+    },
+    "human_review": {
+      "review_conclusion": "PASS",
+      "review_required": true,
+      "review_focus": [],
+      "notes": "主要诊断依据心电图下壁导联ST段抬高及肌钙蛋白升高明确为急性下壁STEMI，选择I21.1（急性透壁性下壁心肌梗死）。Killip II级提示心力衰竭，编码I50.0（充血性心力衰竭）作为并发症。手术编码36.06对应药物涂层支架置入术。"
+    },
+    "trace_refs": {
+      "run_id": "run-840da486-ae5e-4af0-9232-7195418a3ba1",
+      "stage_trace": [],
+      "rule_fired": [
+        "RULE-001"
+      ],
+      "mode": "Mode.UNSET",
+      "method_id": "",
+      "provider": "",
+      "model": "",
+      "trace_id": "trace-79b7e964c9d844ed"
+    },
+    "codes": [
+      {
+        "code": "I21.1",
+        "system": "ICD-10-CN",
+        "display": "急性透壁性下壁心肌梗死",
+        "type": "primary_diagnosis",
+        "confidence": 0.98,
+        "evidence": "ECG: II, III, aVF ST elevation 0.3 mV; Admission diagnosis: acute inferior ST-elevation myocardial infarction (STEMI, Killip class II); Troponin I 8.5 ng/mL",
+        "rationale": "主要诊断 — 基于病历证据的优先编码候选,需结合 ICD-10-CN 本地目录复核具体亚目。",
+        "warnings": [
+          "需结合国家医保版 ICD-10-CN 目录进一步校验具体亚目"
+        ],
+        "alternatives": []
+      },
+      {
+        "code": "I10.x09",
+        "system": "ICD-10-CN",
+        "display": "原发性高血压",
+        "type": "secondary_diagnosis",
+        "confidence": 0.95,
+        "evidence": "History: essential hypertension for 12 years",
+        "rationale": "次要诊断 (comorbidity) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。",
+        "warnings": [
+          "需结合 ICD-10-CN 本地目录进一步校验具体亚目"
+        ],
+        "alternatives": []
+      },
+      {
+        "code": "E78.500",
+        "system": "ICD-10-CN",
+        "display": "高脂血症",
+        "type": "secondary_diagnosis",
+        "confidence": 0.95,
+        "evidence": "History: hyperlipidemia for 5 years",
+        "rationale": "次要诊断 (comorbidity) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。",
+        "warnings": [
+          "需结合 ICD-10-CN 本地目录进一步校验具体亚目"
+        ],
+        "alternatives": []
+      },
+      {
+        "code": "I50.0",
+        "system": "ICD-10-CN",
+        "display": "充血性心力衰竭",
+        "type": "complication",
+        "confidence": 0.85,
+        "evidence": "Exam: BP 90/60, HR 110, bibasilar moist rales; Killip class II",
+        "rationale": "次要诊断 (complication) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。",
+        "warnings": [
+          "需结合 ICD-10-CN 本地目录进一步校验具体亚目"
+        ],
+        "alternatives": []
+      },
+      {
+        "code": "36.06",
+        "system": "ICD-9-CM-3-CN",
+        "display": "冠状动脉药物涂层支架置入术",
+        "type": "procedure",
+        "confidence": 0.97,
+        "evidence": "Emergency PCI + drug-eluting stent implantation (proximal right coronary artery 100% occlusion → TIMI 3 flow restored)",
+        "rationale": "手术/操作 (principal) — 基于 ICD-9-CM-3-CN 编码候选,需结合本地手术目录复核。",
+        "warnings": [
+          "需结合 ICD-9-CM-3-CN 本地目录进一步校验具体亚目"
+        ],
+        "alternatives": []
+      }
+    ],
+    "manual_review_required": true
+  },
+  "schema_ref": "icoder/MedicalCodingAgentOutputV2/v8",
+  "result_attestation": "eyJhIjoibWVkaWNhbC1jb2RpbmctYWdlbnQiLCJkIjoiYmExMTRjMDI4MTgyYzQ4MmYzNDhkMTZjMmVlOWQ1NGNlZjYwODkxNTEzMTA2M2NlMTQ4MzBiOTdmZWYwM2M1MiIsImUiOjE3ODc4ODc3MTIsIm8iOiI1ZmVmMzc5ZjI1YmQiLCJyIjoicnVuLTg0MGRhNDg2LWFlNWUtNGFmMC05MjMyLTcxOTU0MThhM2JhMSIsInMiOiJpY29kZXIvTWVkaWNhbENvZGluZ0FnZW50T3V0cHV0VjIvdjgiLCJ2IjoxfQ.k6d5yTpQ6ls6AjcIy-PfIAFDvYp__MVuT3zIiH29WCI",
+  "evidence": [
+    {
+      "code": "I21.1",
+      "system": "ICD-10-CN",
+      "type": "primary_diagnosis",
+      "text": "ECG: II, III, aVF ST elevation 0.3 mV; Admission diagnosis: acute inferior ST-elevation myocardial infarction (STEMI, Killip class II); Troponin I 8.5 ng/mL",
+      "rationale": "主要诊断 — 基于病历证据的优先编码候选,需结合 ICD-10-CN 本地目录复核具体亚目。"
+    },
+    {
+      "code": "I10.x09",
+      "system": "ICD-10-CN",
+      "type": "secondary_diagnosis",
+      "text": "History: essential hypertension for 12 years",
+      "rationale": "次要诊断 (comorbidity) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。"
+    },
+    {
+      "code": "E78.500",
+      "system": "ICD-10-CN",
+      "type": "secondary_diagnosis",
+      "text": "History: hyperlipidemia for 5 years",
+      "rationale": "次要诊断 (comorbidity) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。"
+    },
+    {
+      "code": "I50.0",
+      "system": "ICD-10-CN",
+      "type": "complication",
+      "text": "Exam: BP 90/60, HR 110, bibasilar moist rales; Killip class II",
+      "rationale": "次要诊断 (complication) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。"
+    },
+    {
+      "code": "36.06",
+      "system": "ICD-9-CM-3-CN",
+      "type": "procedure",
+      "text": "Emergency PCI + drug-eluting stent implantation (proximal right coronary artery 100% occlusion → TIMI 3 flow restored)",
+      "rationale": "手术/操作 (principal) — 基于 ICD-9-CM-3-CN 编码候选,需结合本地手术目录复核。"
+    }
+  ],
+  "warnings": [
+    "需结合国家医保版 ICD-10-CN 目录进一步校验具体亚目",
+    "需结合 ICD-10-CN 本地目录进一步校验具体亚目",
+    "需结合 ICD-10-CN 本地目录进一步校验具体亚目",
+    "需结合 ICD-10-CN 本地目录进一步校验具体亚目",
+    "需结合 ICD-9-CM-3-CN 本地目录进一步校验具体亚目"
+  ],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "input_received",
+      "status": "ok",
+      "ts": 1787801304.3184328,
+      "duration_ms": 0,
+      "metadata": {
+        "text_len": 682,
+        "mode": "corti_like_fast"
+      }
+    },
+    {
+      "step": "language_detect",
+      "status": "ok",
+      "ts": 1787801304.3184328,
+      "duration_ms": 0,
+      "metadata": {
+        "language": "en"
+      }
+    },
+    {
+      "step": "build_prompt",
+      "status": "ok",
+      "ts": 1787801304.3184328,
+      "duration_ms": 0,
+      "metadata": {
+        "provider": "deepseek",
+        "language": "en",
+        "system": "icd-10-cn"
+      }
+    },
+    {
+      "step": "llm_call",
+      "status": "ok",
+      "ts": 1787801311.7664845,
+      "duration_ms": 7449,
+      "metadata": {
+        "provider": "deepseek",
+        "model": "deepseek-chat",
+        "is_mock": false
+      }
+    },
+    {
+      "step": "parse_json",
+      "status": "ok",
+      "ts": 1787801311.7664845,
+      "duration_ms": 7449,
+      "metadata": {}
+    },
+    {
+      "step": "project_result",
+      "status": "ok",
+      "ts": 1787801311.7664845,
+      "duration_ms": 7449,
+      "metadata": {
+        "code_count": 5
+      }
+    },
+    {
+      "step": "return",
+      "status": "ok",
+      "ts": 1787801311.7664845,
+      "duration_ms": 7449,
+      "metadata": {
+        "latency_ms": 7449,
+        "code_count": 5
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 8.381
+}

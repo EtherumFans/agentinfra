@@ -1,6 +1,8 @@
-// Edit System Prompt modal — iCoDer-style, opens from agent detail Settings panel
+// Edit System Prompt modal - iCoDer-style, opens from agent detail Settings panel
 import { useState } from 'react';
 import { X, Sparkles, Loader2 } from 'lucide-react';
+
+import { useT } from '../i18n';
 
 interface Props {
   value: string;
@@ -12,6 +14,7 @@ interface Props {
 }
 
 export default function EditSystemPromptModal({ value, onSave, onCancel, agentName, agentDesc, agentCategory }: Props) {
+  const t = useT();
   const [text, setText] = useState(value);
   const [generating, setGenerating] = useState(false);
 
@@ -32,8 +35,8 @@ export default function EditSystemPromptModal({ value, onSave, onCancel, agentNa
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-border shrink-0">
           <div>
-            <h2 className="text-base font-semibold text-foreground">Edit system prompt</h2>
-            <p className="text-xs text-muted-foreground mt-0.5">Define the agent's role and style.</p>
+            <h2 className="text-base font-semibold text-foreground">{t.editSystemPromptTitle}</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">{t.editSystemPromptSubtitle}</p>
           </div>
           <button onClick={onCancel} className="p-1.5 rounded-lg hover:bg-accent transition-colors">
             <X size={16} className="text-muted-foreground" />
@@ -56,9 +59,7 @@ export default function EditSystemPromptModal({ value, onSave, onCancel, agentNa
             <span className="text-primary font-medium">&lt;quality_standards&gt;</span>
           </div>
           <p className="text-[10px] text-muted-foreground mt-1">
-            Use XML-style tags to structure sections. The <code className="text-primary font-mono">&lt;role&gt;</code> and{' '}
-            <code className="text-primary font-mono">&lt;output_format&gt;</code> sections are required.
-            Include an <code className="text-primary font-mono">Example Output</code> block within output_format for guidance.
+            {t.editSystemPromptTemplateHint}
           </p>
         </div>
 
@@ -157,7 +158,7 @@ Before processing, confirm:
 - ...
 </quality_standards>`}
             rows={22}
-            className="w-full h-full min-h-[320px] border border-border rounded-lg p-4 text-xs font-mono bg-transparent text-foreground placeholder:text-muted-foreground resize-none focus:outline-none focus:ring-1 focus:ring-ring leading-relaxed"
+            className="w-full h-full min-h-[320px] border border-border rounded-lg p-4 text-xs font-mono bg-transparent text-foreground placeholder:text-foreground/70 resize-none focus:outline-none focus:ring-1 focus:ring-ring leading-relaxed"
           />
         </div>
 
@@ -169,9 +170,9 @@ Before processing, confirm:
             className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-border/50 hover:bg-accent hover:border-border disabled:opacity-40 transition-all text-muted-foreground hover:text-foreground"
           >
             {generating ? (
-              <><Loader2 size={12} className="animate-spin" /> Generating...</>
+              <><Loader2 size={12} className="animate-spin" /> {t.editSystemPromptGenerating}</>
             ) : (
-              <><Sparkles size={12} /> AI generate</>
+              <><Sparkles size={12} /> {t.editSystemPromptAIGenerate}</>
             )}
           </button>
           <div className="flex items-center gap-2">
@@ -179,13 +180,13 @@ Before processing, confirm:
               onClick={onCancel}
               className="text-sm px-4 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
             >
-              Cancel
+              {t.editSystemPromptCancel}
             </button>
             <button
               onClick={() => onSave(text)}
               className="text-sm px-5 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium"
             >
-              Save
+              {t.editSystemPromptSave}
             </button>
           </div>
         </div>
@@ -193,3 +194,4 @@ Before processing, confirm:
     </div>
   );
 }
+

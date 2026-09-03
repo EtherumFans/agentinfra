@@ -1,23 +1,59 @@
 /**
- * <icoder-assistant> — Embeddable AI coding assistant Web Component.
+ * <icoder-embedded> — Embeddable AI coding assistant Web Component.
  *
- * Usage:
- *   <icoder-assistant
- *     base-url="http://icoder-server:8000"
- *     access-token="<jwt>"
- *     agent-ref="medical-coding-agent-1.0.0"
- *     theme="light"
- *     locale="zh-CN"
- *   ></icoder-assistant>
+ * Phase 5 A4 (2026-07-10): refactored from attribute-based config to
+ * Corti-compatible method-based API (`auth()/configureSession()/configure()/
+ * show()/addEventListener('embedded-event')`). Tag renamed from
+ * `<icoder-assistant>` to `<icoder-embedded>` to match Corti's
+ * `<corti-embedded>` pattern. The old tag is kept as a deprecated alias
+ * (prints a console warning) for the 2.0.x deprecation window.
  *
- * Events:
- *   coding.completed → { codes, review_id }
- *   error → { message }
- *   ready → {}
+ * Usage (Corti-compatible):
+ *   <icoder-embedded id="icoder-assistant" baseURL="http://localhost:8000"></icoder-embedded>
+ *   <script type="module">
+ *     import '@icoder/embedded';
+ *     const assistant = document.getElementById('icoder-assistant');
+ *     assistant.addEventListener('ready', async () => {
+ *       await assistant.auth({
+ *         access_token: 'YOUR_ACCESS_TOKEN',
+ *         refresh_token: 'YOUR_REFRESH_TOKEN',  // optional
+ *         token_type: 'bearer',
+ *         mode: 'stateless',  // or 'session'
+ *       });
+ *       await assistant.configureSession({
+ *         defaultTemplateKey: 'medical-coding-agent',  // agent_id
+ *         defaultLanguage: 'zh-CN',
+ *         defaultOutputLanguage: 'zh-CN',
+ *         // iCoDer ADVANTAGE: explicit patient context (Corti uses template key only)
+ *         patientId: 'P001', name: '张三', encounterId: 'E2026071001',
+ *       });
+ *       await assistant.configure({
+ *         features: { aiChat: true, documentFeedback: true, virtualMode: false },
+ *         locale: { dictationLanguage: 'zh-CN', interfaceLanguage: 'auto' },
+ *       });
+ *       await assistant.show();
+ *     });
+ *     assistant.addEventListener('embedded-event', (e) => {
+ *       const { name, payload } = e.detail;
+ *       switch (name) {
+ *         case 'account.creditsConsumed': console.log('Cost:', payload); break;
+ *         case 'run.completed': console.log('Run done:', payload); break;  // iCoDer-specific
+ *         case 'error.triggered': console.error('Error:', payload); break;
+ *         case 'patient.context.cleared': console.log('PHI flushed'); break;  // Phase 6 Gate 2
+ *         case 'session.cleared': console.log('Full reset'); break;          // Phase 6 Gate 2
+ *         default: console.log(name, payload);
+ *       }
+ *     });
+ *   </script>
  *
- * Methods:
- *   element.setPatientContext({ patientId, name, encounterId })
- *   element.ask("这个患者的编码有什么问题?")
+ * iCoDer ADVANTAGE methods kept (Corti does not have these):
+ *   - setPatientContext({ patientId, name, encounterId })
+ *   - clearPatientContext()              // Phase 6 Gate 2 — flush PHI on patient switch
+ *   - clearSession()                     // Phase 6 Gate 2 — full reset (auth + messages + PHI)
+ *   - ask(question)
+ * See memory `feedback_corti_alignment.md` ("勿为像 Corti 删 iCoDer 差异化能力").
+ *
+ * Migration guide: see packages/icoder-embedded/MIGRATION-2.0.md.
  */
 
 const TEMPLATE = `
@@ -136,7 +172,7 @@ const TEMPLATE = `
   <div class="quick-actions" data-actions>
     <button data-action="review">审核编码</button>
     <button data-action="gaps">检查文档缺口</button>
-    <button data-action="drg">DRG 分析</button>
+    <button data-action="drg">DRG/DIP 风险复核</button>
   </div>
   <div class="input-area">
     <textarea rows="1" placeholder="输入消息..." data-input></textarea>
@@ -147,34 +183,350 @@ const TEMPLATE = `
 </div>
 `;
 
-class iCoDerAssistant extends HTMLElement {
+// ── Type definitions (Corti-compatible) ─────────────────────────────────
+
+export interface AuthOptions {
+  access_token: string;
+  refresh_token?: string;
+  token_type?: string;  // 'bearer' | 'basic'
+  mode?: string;        // 'stateless' | 'session'
+}
+
+export interface SessionConfig {
+  defaultTemplateKey?: string;       // agent_id (e.g. 'medical-coding-agent')
+  defaultLanguage?: string;          // 'zh-CN' | 'en-US'
+  defaultMode?: string;              // 'in-person' | 'remote' | 'telehealth'
+  defaultOutputLanguage?: string;
+  // iCoDer ADVANTAGE: explicit patient context fields (Corti uses only templateKey).
+  patientId?: string;
+  name?: string;
+  encounterId?: string;
+}
+
+export interface ConfigureOptions {
+  features?: Record<string, boolean>;  // { aiChat, documentFeedback, interactionTitle, navigation, syncDocumentAction, templateEditor, virtualMode }
+  locale?: { dictationLanguage?: string; interfaceLanguage?: string };  // 'auto' = follow browser
+}
+
+export interface EmbeddedEvent {
+  name: string;       // 'account.creditsConsumed' | 'error.triggered' | 'run.completed' | 'message.received' | 'ready' | 'patient.context.cleared' | 'session.cleared'
+  payload: any;
+}
+
+// Phase 6 Gate 3 — unified event envelope meta. Every embedded-event now
+// carries `meta` with version + eventId (UUID) + timestamp (ISO) + sessionId
+// (stable per widget instance) + contextId (the current patient contextId,
+// or '' if cleared). Embedders can rely on meta.eventId for deduplication
+// and meta.contextId for PHI-scoped event correlation.
+export interface EmbeddedEventMeta {
+  version: '1.0';
+  eventId: string;        // crypto.randomUUID() per event
+  timestamp: string;      // new Date().toISOString()
+  sessionId: string;      // stable per widget instance (random UUID on construct)
+  contextId: string;      // current patientContext id, or '' if cleared
+}
+
+export interface EmbeddedEventDetail extends EmbeddedEvent {
+  meta: EmbeddedEventMeta;
+}
+
+// ── Web Component ───────────────────────────────────────────────────────
+
+class iCoDerEmbedded extends HTMLElement {
+  // Auth + config state (Corti-compatible method-based API)
+  private _auth: AuthOptions | null = null;
+  private _sessionConfig: SessionConfig = {};
+  private _config: ConfigureOptions = {};
+
+  // iCoDer ADVANTAGE: explicit patient context (kept; not in Corti API)
+  private _patientContext: { patientId?: string; name?: string; encounterId?: string } = {};
+
+  // Connection config
   private _baseUrl = '';
-  private _token = '';
-  private _agentRef = 'medical-coding-agent-1.0.0';
-  private _patientContext: Record<string, string> = {};
+
+  // Phase 6 Gate 3 — sessionId is stable per widget instance; contextId is
+  // the current patient context (or '' when cleared). meta is built per-event.
+  private _sessionId: string;
+  private _contextId: string = '';
+
+  // Visibility (hidden until show() is called, matching Corti pattern)
+  private _visible = false;
+
+  // Shadow DOM root
   private _shadow: ShadowRoot;
 
   static get observedAttributes() {
-    return ['base-url', 'access-token', 'agent-ref', 'theme', 'locale'];
+    // baseURL is the only attribute in the new API (it's connection config,
+    // not auth/session config — those go through methods). The legacy
+    // attribute-based keys are still observed for the 2.0.x deprecation window.
+    return ['baseURL', 'base-url', 'access-token', 'agent-ref', 'theme', 'locale'];
   }
 
   constructor() {
     super();
     this._shadow = this.attachShadow({ mode: 'open' });
     this._shadow.innerHTML = TEMPLATE;
+    // Phase 6 Gate 3 — sessionId stable per widget instance. contextId
+    // starts empty (no patient set yet) and is updated by
+    // configureSession/setPatientContext/clearPatientContext/clearSession.
+    this._sessionId = (typeof crypto !== 'undefined' && crypto.randomUUID)
+      ? crypto.randomUUID()
+      : `sid-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    // Note: per custom element spec, constructor() must not set attributes
+    // (including style). The initial visibility:hidden is set via
+    // connectedCallback() instead.
   }
 
   connectedCallback() {
-    this._baseUrl = this.getAttribute('base-url') || '';
-    this._token = this.getAttribute('access-token') || '';
-    this._agentRef = this.getAttribute('agent-ref') || 'medical-coding-agent-1.0.0';
+    // Initial hidden state — matches Corti pattern where the widget stays
+    // invisible until configuration is complete. Set here (not in constructor)
+    // because the custom element spec forbids setting attributes in constructor.
+    if (!this._visible) {
+      this.style.display = 'none';
+    }
+    // Legacy attribute-based config (deprecated in 2.0, removed in 2.1)
+    const baseUrlAttr = this.getAttribute('base-url') || this.getAttribute('baseurl') || this.getAttribute('baseURL') || '';
+    const tokenAttr = this.getAttribute('access-token') || '';
+    const agentRefAttr = this.getAttribute('agent-ref') || '';
+    const themeAttr = this.getAttribute('theme') || '';
 
-    const badge = this._shadow.querySelector('[data-ref]')!;
-    badge.textContent = this._agentRef;
+    if (baseUrlAttr) this._baseUrl = baseUrlAttr;
+    if (tokenAttr) {
+      console.warn(
+        '[icoder-embedded] attribute "access-token" is deprecated; use assistant.auth({access_token, ...}) instead. ' +
+        'See MIGRATION-2.0.md. Will be removed in 2.1.'
+      );
+      this._auth = { access_token: tokenAttr, token_type: 'bearer', mode: 'stateless' };
+    }
+    if (agentRefAttr) {
+      console.warn(
+        '[icoder-embedded] attribute "agent-ref" is deprecated; use assistant.configureSession({defaultTemplateKey: ...}) instead. ' +
+        'See MIGRATION-2.0.md. Will be removed in 2.1.'
+      );
+      this._sessionConfig.defaultTemplateKey = agentRefAttr;
+    }
+    if (themeAttr) {
+      this._shadow.host.classList.toggle('dark', themeAttr === 'dark');
+    }
 
-    // Setup event handlers
+    this._setupUIHandlers();
+    this._renderBadge();
+
+    // Auto-show if auth was provided via attribute (backward-compat).
+    // For the new method-based API, the consumer must call show() explicitly.
+    if (this._auth) {
+      void this.show();
+    } else {
+      this._emitReady();
+    }
+  }
+
+  attributeChangedCallback(name: string, _old: string, _new: string) {
+    if (name === 'access-token' && _new) {
+      // Legacy path — deprecation warning already printed in connectedCallback
+      this._auth = { access_token: _new, token_type: 'bearer', mode: 'stateless' };
+    }
+    if (name === 'agent-ref' && _new) {
+      this._sessionConfig.defaultTemplateKey = _new;
+      this._renderBadge();
+    }
+    if (name === 'base-url' || name === 'baseurl' || name === 'baseURL') {
+      this._baseUrl = _new;
+    }
+    if (name === 'theme') {
+      this._shadow!.host.classList.toggle('dark', _new === 'dark');
+    }
+  }
+
+  // ── Corti-compatible method-based API ─────────────────────────────────
+
+  /**
+   * Set auth credentials. Must be called before show() if not using
+   * the deprecated access-token attribute.
+   */
+  async auth(opts: AuthOptions): Promise<void> {
+    this._auth = opts;
+  }
+
+  /**
+   * Configure session-level defaults (agent + patient context).
+   * iCoDer ADVANTAGE: patientId/name/encounterId as explicit fields
+   * (Corti uses defaultTemplateKey only).
+   */
+  async configureSession(opts: SessionConfig): Promise<void> {
+    this._sessionConfig = { ...this._sessionConfig, ...opts };
+    if (opts.patientId || opts.name || opts.encounterId) {
+      if (this._patientContext.patientId && opts.patientId && this._patientContext.patientId !== opts.patientId) {
+        console.warn(
+          `[icoder-embedded] configureSession() called with a different patientId ` +
+          `(${opts.patientId}) without first calling clearPatientContext(). ` +
+          `Cross-patient PHI bleed risk — call clearPatientContext() on patient switch.`
+        );
+      }
+      this._patientContext = {
+        patientId: opts.patientId,
+        name: opts.name,
+        encounterId: opts.encounterId,
+      };
+      // Phase 6 Gate 3 — contextId follows the current patient. Stable
+      // within one patient session, changes on switch, cleared on clear().
+      this._contextId = opts.encounterId || opts.patientId || '';
+      this._renderPatientBar();
+    }
+    this._renderBadge();
+  }
+
+  /**
+   * Configure feature flags + locale (interface language).
+   */
+  async configure(opts: ConfigureOptions): Promise<void> {
+    this._config = { ...this._config, ...opts };
+    // Apply theme based on interfaceLanguage (zh-CN / en-US / auto)
+    const lang = opts.locale?.interfaceLanguage;
+    if (lang && lang !== 'auto') {
+      // Update quick-action labels + textarea placeholder
+      this._applyInterfaceLanguage(lang);
+    }
+    // Toggle features (e.g. aiChat, documentFeedback)
+    if (opts.features) {
+      this._applyFeatures(opts.features);
+    }
+  }
+
+  /**
+   * Show the widget. Should be called after auth() + configureSession() +
+   * configure(). If auth() was not called, prints a warning and the widget
+   * will render but API calls will fail with 401.
+   */
+  async show(): Promise<void> {
+    if (!this._auth) {
+      console.warn('[icoder-embedded] show() called before auth() — widget will render but API calls will fail.');
+    }
+    if (!this._baseUrl) {
+      console.warn('[icoder-embedded] baseURL attribute not set — API calls will use relative path.');
+    }
+    this._visible = true;
+    this.style.display = 'block';
+    if (!this._readyEmitted) {
+      this._emitReady();
+      this._readyEmitted = true;
+    }
+  }
+
+  // ── iCoDer ADVANTAGE methods (Corti does not have these) ──────────────
+
+  /**
+   * Set patient context explicitly. iCoDer-specific — Corti uses
+   * configureSession({defaultTemplateKey}) instead.
+   *
+   * Phase 6 Gate 2 — PHI safety: patient context is held in-memory only.
+   * It is NEVER written to localStorage, sessionStorage, or cookies.
+   * When the host HIS/EMR switches patients, it MUST call
+   * ``clearPatientContext()`` to flush the in-memory PHI. Otherwise the
+   * previous patient's name/ID will leak into the next run's enriched
+   * input prefix.
+   */
+  setPatientContext(ctx: { patientId?: string; name?: string; encounterId?: string }) {
+    if (this._patientContext.patientId && ctx.patientId && this._patientContext.patientId !== ctx.patientId) {
+      console.warn(
+        `[icoder-embedded] setPatientContext() called with a different patientId ` +
+        `(${ctx.patientId}) without first calling clearPatientContext(). ` +
+        `Previous context (${this._patientContext.patientId}) is being overwritten. ` +
+        `HIS/EMR hosts should call clearPatientContext() on patient switch ` +
+        `to prevent cross-patient PHI bleed.`
+      );
+    }
+    this._patientContext = ctx;
+    this._contextId = ctx.encounterId || ctx.patientId || '';
+    this._renderPatientBar();
+    this._emitEmbeddedEvent('patient.context.set', {
+      hasPatientId: Boolean(ctx.patientId),
+      hasEncounterId: Boolean(ctx.encounterId),
+    });
+  }
+
+  /**
+   * Clear patient context (PHI). MUST be called by HIS/EMR hosts when:
+   *
+   * 1. The user navigates to a different patient chart.
+   * 2. The user logs out.
+   * 3. The widget is being torn down (e.g. via ``element.remove()``).
+   *
+   * After this call, the widget's in-memory PHI (``patientId``, ``name``,
+   * ``encounterId``) is set to ``{}`` and the patient bar is hidden.
+   * Messages history is preserved (per Corti pattern); call
+   * ``clearSession()`` to also clear messages + auth.
+   */
+  clearPatientContext(): void {
+    this._patientContext = { patientId: undefined, name: undefined, encounterId: undefined };
+    this._contextId = '';
+    this._renderPatientBar();
+    this._emitEmbeddedEvent('patient.context.cleared', { reason: 'host_invoked_clear' });
+  }
+
+  /**
+   * Clear the full session: patient context + auth + agent config + message
+   * history. Use this on logout or when reusing the widget for a different
+   * user/agent pair. After this call, the widget returns to the
+   * pre-``auth()`` state and ``show()`` must be called again to use it.
+   */
+  clearSession(): void {
+    this._patientContext = { patientId: undefined, name: undefined, encounterId: undefined };
+    this._contextId = '';
+    this._auth = null;
+    this._sessionConfig = {};
+    this._config = {};
+    this._renderPatientBar();
+    this._renderBadge();
+    const messages = this._shadow.querySelector('[data-messages]') as HTMLElement | null;
+    if (messages) messages.innerHTML = '';
+    this._emitEmbeddedEvent('session.cleared', { reason: 'host_invoked_clear' });
+  }
+
+  /**
+   * Send a question to the agent. Shortcut for the user typing into the
+   * input box. Returns the agent's response.
+   */
+  async ask(question: string): Promise<any> {
+    this._addMessage('user', question);
+    return this._callAgent(question);
+  }
+
+  // ── Unified event emission (Corti-compatible) ──────────────────────────
+
+  private _readyEmitted = false;
+
+  private _emitEmbeddedEvent(name: string, payload: any): void {
+    // Phase 6 Gate 3 — unified envelope with meta. Embedders use:
+    //   meta.eventId   — dedup (idempotency)
+    //   meta.timestamp — ordering across multiple widgets
+    //   meta.sessionId — correlate events from one widget instance
+    //   meta.contextId — PHI-scoped correlation (current patient)
+    //   meta.version   — envelope schema version (currently '1.0')
+    const meta = {
+      version: '1.0' as const,
+      eventId: (typeof crypto !== 'undefined' && crypto.randomUUID)
+        ? crypto.randomUUID()
+        : `evt-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+      timestamp: new Date().toISOString(),
+      sessionId: this._sessionId,
+      contextId: this._contextId,
+    };
+    this.dispatchEvent(new CustomEvent('embedded-event', {
+      bubbles: true, composed: true,
+      detail: { name, payload, meta } as EmbeddedEventDetail,
+    }));
+  }
+
+  private _emitReady(): void {
+    this.dispatchEvent(new CustomEvent('ready', { bubbles: true, composed: true }));
+  }
+
+  // ── UI setup ──────────────────────────────────────────────────────────
+
+  private _setupUIHandlers() {
     const input = this._shadow.querySelector('[data-input]') as HTMLTextAreaElement;
-    const sendBtn = this._shadow.querySelector('[data-send]')!;
+    const sendBtn = this._shadow.querySelector('[data-send]') as HTMLButtonElement;
     const actions = this._shadow.querySelectorAll('[data-action]');
 
     sendBtn.addEventListener('click', () => this._send(input));
@@ -192,46 +544,59 @@ class iCoDerAssistant extends HTMLElement {
         const prompts: Record<string, string> = {
           review: '请审核当前患者的编码，检查是否有错误、遗漏或合规风险。',
           gaps: '请检查当前患者的病历文档完整性，列出缺失的关键信息。',
-          drg: '请分析当前患者的编码对 DRG 分组和医保支付的影响。',
+          drg: '请仅依据病历证据复核当前编码的 DRG/DIP 风险；不要预测官方分组、权重、分值或支付金额，并明确要求人工复核。',
         };
         const msg = prompts[action] || action;
         this._addMessage('user', msg);
-        this._callAgent(msg);
+        void this._callAgent(msg);
       });
     });
-
-    this.dispatchEvent(new CustomEvent('ready', { bubbles: true, composed: true }));
   }
 
-  attributeChangedCallback(name: string, _old: string, _new: string) {
-    if (name === 'access-token') this._token = _new;
-    if (name === 'agent-ref') this._agentRef = _new;
-    if (name === 'base-url') this._baseUrl = _new;
-    if (name === 'theme') {
-      this._shadow!.host.classList.toggle('dark', _new === 'dark');
-    }
+  private _renderBadge() {
+    const badge = this._shadow.querySelector('[data-ref]')!;
+    badge.textContent = this._sessionConfig.defaultTemplateKey || 'medical-coding-agent';
   }
 
-  // ── Public API ──
-
-  setPatientContext(ctx: { patientId?: string; name?: string; encounterId?: string }) {
-    this._patientContext = ctx;
+  private _renderPatientBar() {
     const bar = this._shadow.querySelector('[data-patient-bar]')!;
     const nameEl = this._shadow.querySelector('[data-pt-name]')!;
     const idEl = this._shadow.querySelector('[data-pt-id]')!;
-    if (ctx.name || ctx.patientId) {
+    if (this._patientContext.name || this._patientContext.patientId) {
       bar.classList.add('visible');
-      nameEl.textContent = ctx.name || '';
-      idEl.textContent = ctx.patientId ? `#${ctx.patientId}` : '';
+      nameEl.textContent = this._patientContext.name || '';
+      idEl.textContent = this._patientContext.patientId ? `#${this._patientContext.patientId}` : '';
+    } else {
+      bar.classList.remove('visible');
     }
   }
 
-  async ask(question: string) {
-    this._addMessage('user', question);
-    await this._callAgent(question);
+  private _applyInterfaceLanguage(lang: string) {
+    const input = this._shadow.querySelector('[data-input]') as HTMLTextAreaElement;
+    const actions = this._shadow.querySelectorAll('[data-action]');
+    const labels: Record<string, Record<string, string>> = {
+      'zh-CN': { placeholder: '输入消息...', review: '审核编码', gaps: '检查文档缺口', drg: 'DRG/DIP 风险复核' },
+      'en-US': { placeholder: 'Type a message...', review: 'Review Codes', gaps: 'Check Doc Gaps', drg: 'DRG/DIP Risk Review' },
+    };
+    const set = labels[lang] || labels['zh-CN'];
+    input.placeholder = set.placeholder;
+    actions.forEach(btn => {
+      const action = btn.getAttribute('data-action') || '';
+      if (set[action]) btn.textContent = set[action];
+    });
   }
 
-  // ── Private ──
+  private _applyFeatures(features: Record<string, boolean>) {
+    const actions = this._shadow.querySelector('[data-actions]') as HTMLElement;
+    // If aiChat is false, hide the input area + quick actions
+    const inputArea = this._shadow.querySelector('.input-area') as HTMLElement;
+    if (typeof features.aiChat === 'boolean') {
+      inputArea.style.display = features.aiChat ? 'flex' : 'none';
+      actions.style.display = features.aiChat ? 'flex' : 'none';
+    }
+  }
+
+  // ── Messaging ─────────────────────────────────────────────────────────
 
   private _addMessage(role: 'user' | 'agent', content: string) {
     const container = this._shadow.querySelector('[data-messages]')!;
@@ -240,47 +605,132 @@ class iCoDerAssistant extends HTMLElement {
     div.textContent = content;
     container.appendChild(div);
     container.scrollTop = container.scrollHeight;
+    // iCoDer-specific event: notify host app that a message was rendered
+    this._emitEmbeddedEvent('message.received', { role, content });
   }
 
-  private async _callAgent(input: string) {
+  private async _callAgent(input: string): Promise<any> {
     const loading = this._shadow.querySelector('[data-loading]') as HTMLElement;
     const sendBtn = this._shadow.querySelector('[data-send]') as HTMLButtonElement;
     loading.style.display = 'flex';
     sendBtn.disabled = true;
 
+    // Phase 6 Gate 3 — per-call AbortController. Default timeout 90s
+    // (backend medical-coding corti_like_fast ~9s, medcoder_deep 30-60s+).
+    // Embedders may override by setting the `request-timeout-ms` attribute.
+    const timeoutMs = parseInt(this.getAttribute('request-timeout-ms') || '90000', 10);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
     try {
-      // Build patient-enriched input
-      let enrichedInput = input;
-      if (this._patientContext.name || this._patientContext.patientId) {
-        enrichedInput = `[患者: ${this._patientContext.name||''} ID:${this._patientContext.patientId||''}]\n${input}`;
+      if (!this._auth) {
+        throw new Error('Not authenticated — call assistant.auth({access_token, ...}) before sending messages.');
       }
 
-      const resp = await fetch(`${this._baseUrl}/api/runtime/agents/${encodeURIComponent(this._agentRef)}/run`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${this._token}` },
-        body: JSON.stringify({ input: enrichedInput }),
-      });
+      // Build patient-enriched input (iCoDer ADVANTAGE)
+      let enrichedInput = input;
+      if (this._patientContext.name || this._patientContext.patientId) {
+        enrichedInput = `[患者: ${this._patientContext.name || ''} ID:${this._patientContext.patientId || ''}]\n${input}`;
+      }
+
+      // Phase 5 B-2 AUDIT_BLOCKER_FIX #3: normalize full agent_ref
+      // (e.g. `icoder/medical-coding-agent@2.0.0`) to the short agent_id
+      // (`medical-coding-agent`) the backend route expects. Backend's route
+      // pattern /api/v1/agents/{agent_id}/run treats %2F as a path separator
+      // and 404s on the full ref. Mirrors the frontend normalize in
+      // frontend/src/services/runtimeApi.ts:agentRun().
+      const rawAgentId = this._sessionConfig.defaultTemplateKey || 'medical-coding-agent';
+      const agentId = rawAgentId.split('/').pop()!.split('@')[0];
+      const url = `${this._baseUrl}/api/v1/agents/${encodeURIComponent(agentId)}/run`;
+
+      // Phase 6 Gate 3 — idempotency-key + 1 retry on transient errors.
+      // Embedders can use the idempotency-key to safely retry a request
+      // without re-charging (server-side dedup is Phase 7).
+      const idempotencyKey = (typeof crypto !== 'undefined' && crypto.randomUUID)
+        ? crypto.randomUUID()
+        : `idem-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+
+      const doFetch = async (attempt: 1 | 2): Promise<Response> => {
+        return fetch(url, {
+          method: 'POST',
+          signal: controller.signal,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `${this._auth!.token_type || 'Bearer'} ${this._auth!.access_token}`,
+            'Idempotency-Key': idempotencyKey,
+            'X-Attempt': String(attempt),
+          },
+          body: JSON.stringify({ input: { text: enrichedInput } }),
+        });
+      };
+
+      let resp: Response;
+      try {
+        resp = await doFetch(1);
+      } catch (networkErr: any) {
+        // Phase 6 Gate 3 — 1 automatic retry on network error (transient).
+        // Only retried forAbortError-name!=='AbortError' (timeout) and
+        // TypeError (most likely DNS/connection reset). 4xx/5xx HTTP responses
+        // are NOT retried (they indicate server-side rejection that won't
+        // change with a retry).
+        if (controller.signal.aborted) throw networkErr;
+        try {
+          resp = await doFetch(2);
+        } catch (retryErr: any) {
+          throw new Error(`Network error after retry: ${retryErr.message}`);
+        }
+      }
+
+      clearTimeout(timeoutId);
 
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({}));
-        throw new Error(err.detail || `HTTP ${resp.status}`);
+        throw new Error(err.detail || err.error_reason || `HTTP ${resp.status}`);
       }
 
       const data = await resp.json();
-      const output = data.output || JSON.stringify(data.primary_diagnosis || data, null, 2);
+      const output = data.summary || data.output || JSON.stringify(data.result || data, null, 2);
       this._addMessage('agent', output);
 
-      this.dispatchEvent(new CustomEvent('coding.completed', {
-        bubbles: true, composed: true,
-        detail: { codes: data, review_id: data.review_id },
-      }));
+      // Emit unified embedded-event with run.completed + account.creditsConsumed
+      // (Corti-compatible envelope: {name, payload})
+      // Phase 6 Gate 5: include trace_id + trace_url so embedders can deep-link
+      // to the iCoDer RunTrace viewer (frontend route, opened in a new tab).
+      const traceUrl = data.trace_url
+        ? `${this._baseUrl}${data.trace_url}`
+        : '';
+      this._emitEmbeddedEvent('run.completed', {
+        run_id: data.run_id,
+        agent_id: data.agent_id,
+        trace_id: data.trace_id || '',
+        trace_url: traceUrl,
+        latency_ms: data.latency_ms,
+        output,
+        cost: data.cost,
+      });
+      if (data.cost && typeof data.cost.amount === 'number') {
+        this._emitEmbeddedEvent('account.creditsConsumed', {
+          amount: data.cost.amount,
+          currency: data.cost.currency || 'CNY',
+          run_id: data.run_id,
+        });
+      }
+
+      return data;
     } catch (e: any) {
-      this._addMessage('agent', `错误: ${e.message}`);
-      this.dispatchEvent(new CustomEvent('error', {
-        bubbles: true, composed: true,
-        detail: { message: e.message },
-      }));
+      const isAbort = e.name === 'AbortError';
+      const msg = isAbort
+        ? `请求超时 (>${timeoutMs}ms)。请在 backend config 检查 agent runtime 模式或增加 request-timeout-ms 属性。`
+        : e.message;
+      this._addMessage('agent', `错误: ${msg}`);
+      this._emitEmbeddedEvent('error.triggered', {
+        message: msg,
+        kind: isAbort ? 'timeout' : 'runtime',
+        retriable: !isAbort,
+      });
+      throw e;
     } finally {
+      clearTimeout(timeoutId);
       loading.style.display = 'none';
       sendBtn.disabled = false;
     }
@@ -292,9 +742,26 @@ class iCoDerAssistant extends HTMLElement {
     input.value = '';
     input.style.height = 'auto';
     this._addMessage('user', text);
-    this._callAgent(text);
+    void this._callAgent(text);
   }
 }
 
-customElements.define('icoder-assistant', iCoDerAssistant);
-export { iCoDerAssistant };
+// Register the new primary tag. Also keep <icoder-assistant> as a deprecated
+// alias so existing embeds keep working during the 2.0.x migration window.
+//
+// Chrome's CustomElementRegistry spec forbids using the same constructor for
+// two different tag names ("this constructor has already been used with this
+// registry"). So we create an anonymous subclass for the deprecated alias.
+// See https://developer.mozilla.org/en-US/docs/Web/API/CustomElementRegistry/define
+customElements.define('icoder-embedded', iCoDerEmbedded);
+const _deprecatedAlias = customElements.get('icoder-assistant');
+if (!_deprecatedAlias) {
+  // Subclass so the registry sees a different constructor.
+  class _iCoDerAssistantAlias extends iCoDerEmbedded {}
+  customElements.define('icoder-assistant', _iCoDerAssistantAlias);
+} else if (typeof window !== 'undefined' && window.console && typeof window.console.warn === 'function') {
+  console.warn('[icoder-embedded] <icoder-assistant> tag is a deprecated alias for <icoder-embedded>; please rename. Will be removed in 2.1.');
+}
+
+export { iCoDerEmbedded };
+export default iCoDerEmbedded;

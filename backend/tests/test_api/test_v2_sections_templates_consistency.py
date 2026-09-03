@@ -25,13 +25,17 @@ Dynamic fields ignored (per the parity policy):
 
 from __future__ import annotations
 
+import asyncio
 import os
 import re
+import uuid
 from pathlib import Path
 from typing import Any
 
 import pytest
 import yaml
+from cryptography.fernet import Fernet
+from sqlalchemy import select
 
 # Required env for the dev escape hatch.
 os.environ.setdefault("APP_ENV", "development")
@@ -213,7 +217,6 @@ def test_v2_templates_list_shape_matches_corti_spec(icoder_client, templates_spe
     assert r.status_code == 200, r.text
     body = r.json()
     assert isinstance(body, list), f"expected array, got {type(body)}"
-    assert len(body) >= 1, "expected at least one stub template"
     errs: list[str] = []
     for i, item in enumerate(body):
         _check_shape(item, item_schema, templates_spec, f"$.response[{i}]", errs)
@@ -253,10 +256,235 @@ def test_v2_sections_filter_specialty_cardiology(icoder_client, sections_spec):
         f"expected only cardiology sections, got {body}"
 
 
+def test_v2_china_section_catalog_is_complete_versioned_and_grounded(icoder_client):
+    response = icoder_client.get(
+        "/api/v2/tools/sections/",
+        params={
+            "lang": "zh-CN",
+            "region": "CHN",
+            "source": "project",
+            "label": "regulatory_basis:CN-medical-record-standard",
+        },
+    )
+    assert response.status_code == 200, response.text
+    rows = response.json()
+    assert {row["name"] for row in rows} == {
+        "主诉",
+        "现病史",
+        "既往史",
+        "过敏史",
+        "体格检查",
+        "辅助检查",
+        "诊断与评估",
+        "诊疗计划",
+        "出院情况与医嘱",
+    }
+    for row in rows:
+        assert row["languages"] == ["zh-CN"]
+        assert row["regions"] == ["CHN"]
+        assert row["createdBy"] is None
+        assert row["versionId"]
+        assert row["generation"]["outputSchema"] == {"type": "string"}
+        prompt = row["generation"]["instructions"]["contentPrompt"]
+        assert any(term in prompt for term in ("仅", "不得", "来源"))
+
+
+def test_v2_china_builtin_sections_are_write_protected(icoder_client):
+    sections = icoder_client.get(
+        "/api/v2/tools/sections/",
+        params={
+            "lang": "zh-CN",
+            "source": "project",
+            "label": "regulatory_basis:CN-medical-record-standard",
+        },
+    ).json()
+    section_id = sections[0]["id"]
+    updated = icoder_client.patch(
+        f"/api/v2/tools/sections/{section_id}", json={"name": "禁止修改"}
+    )
+    deleted = icoder_client.delete(f"/api/v2/tools/sections/{section_id}")
+    assert updated.status_code == 403, updated.text
+    assert deleted.status_code == 403, deleted.text
+
+
 def test_v2_templates_invalid_source_422(icoder_client):
     """Contract: ``source=invalid`` (not in the GuidedSourceFilter enum) is 422."""
     r = icoder_client.get("/api/v2/tools/templates/?source=invalid")
     assert r.status_code == 422, r.text
+
+
+def test_v2_templates_discovery_uses_persisted_tenant_rows(icoder_client):
+    """A template created through the product CRUD is visible on the Corti surface."""
+    name = f"Persisted template {uuid.uuid4()}"
+    created = icoder_client.post(
+        "/api/templates",
+        json={
+            "name": name,
+            "description": "Tenant-owned persisted template.",
+            "content": "assessment and plan",
+            "category": "outpatient",
+            "language": "zh-CN",
+        },
+    )
+    assert created.status_code == 201, created.text
+    response = icoder_client.get("/api/v2/tools/templates/?source=user")
+    assert response.status_code == 200, response.text
+    matches = [row for row in response.json() if row["name"] == name]
+    assert len(matches) == 1
+    assert matches[0]["languages"] == ["zh-CN"]
+    assert matches[0]["regions"] == ["CHN"]
+    uuid.UUID(matches[0]["id"])
+
+
+def test_v2_template_single_resource_round_trip(icoder_client):
+    name = f"Single template {uuid.uuid4()}"
+    created = icoder_client.post(
+        "/api/templates",
+        json={"name": name, "content": "assessment", "language": "zh-CN"},
+    )
+    assert created.status_code == 201, created.text
+    listed = icoder_client.get("/api/v2/tools/templates/?source=user")
+    public_row = next(row for row in listed.json() if row["name"] == name)
+
+    response = icoder_client.get(f"/api/v2/tools/templates/{public_row['id']}")
+    assert response.status_code == 200, response.text
+    assert response.json() == public_row
+
+
+def test_v2_section_single_resource_round_trip(icoder_client):
+    listed = icoder_client.get("/api/v2/tools/sections/")
+    assert listed.status_code == 200, listed.text
+    section = listed.json()[0]
+
+    response = icoder_client.get(f"/api/v2/tools/sections/{section['id']}")
+    assert response.status_code == 200, response.text
+    assert response.json() == section
+
+
+def test_v2_tenant_section_crud_is_encrypted_audited_and_soft_deleted(
+    icoder_client, monkeypatch
+):
+    from app.database import AsyncSessionLocal
+    from app.models.audit_log import AuditLog
+    from app.models.guided_document import GuidedSectionRecord
+    from app.services.phi_encryption import is_encrypted_value
+
+    # Do not rotate the process key in the middle of the shared database
+    # session: rows created by earlier tests may legitimately be encrypted
+    # under the existing key.  An isolated invocation still provisions a
+    # temporary key when the harness did not provide one.
+    if not os.environ.get("ICODER_PHI_ENCRYPTION_KEY", "").strip():
+        monkeypatch.setenv(
+            "ICODER_PHI_ENCRYPTION_KEY", Fernet.generate_key().decode()
+        )
+    secret_description = f"Sensitive section prompt {uuid.uuid4()}"
+    created = icoder_client.post(
+        "/api/v2/tools/sections/",
+        json={
+            "name": "病案首页诊断依据",
+            "description": secret_description,
+            "language": "zh-CN",
+            "specialties": ["medical-records", "coding"],
+            "labels": [{"key": "cn_scene", "value": "front-sheet"}],
+            "outputSchema": {"type": "string"},
+        },
+    )
+    assert created.status_code == 201, created.text
+    section_id = created.json()["id"]
+    assert created.json()["source"] == "user"
+    assert created.json()["autoGenerated"] is False
+    assert created.json()["languages"] == ["zh-CN"]
+
+    updated = icoder_client.patch(
+        f"/api/v2/tools/sections/{section_id}",
+        json={
+            "name": "病案首页主要诊断依据",
+            "description": "仅提取病历中明确记录的主要诊断依据。",
+            "outputSchema": {
+                "type": "object",
+                "fields": [{"key": "依据", "value": {"type": "string"}}],
+            },
+        },
+    )
+    assert updated.status_code == 200, updated.text
+    assert updated.json()["name"] == "病案首页主要诊断依据"
+
+    async def _stored_evidence():
+        async with AsyncSessionLocal() as db:
+            row = await db.scalar(select(GuidedSectionRecord).where(
+                GuidedSectionRecord.section_id == section_id
+            ))
+            actions = list((await db.scalars(select(AuditLog.action).where(
+                AuditLog.resource_id == section_id
+            ))).all())
+            return row.encrypted_definition_json, actions
+
+    encrypted_definition, actions = asyncio.run(_stored_evidence())
+    assert is_encrypted_value(encrypted_definition)
+    assert secret_description not in encrypted_definition
+    assert "guided_section.create" in actions
+    assert "guided_section.update" in actions
+
+    deleted = icoder_client.delete(f"/api/v2/tools/sections/{section_id}")
+    assert deleted.status_code == 204, deleted.text
+    assert icoder_client.get(f"/api/v2/tools/sections/{section_id}").status_code == 404
+    listed = icoder_client.get("/api/v2/tools/sections/")
+    assert section_id not in {row["id"] for row in listed.json()}
+
+    async def _deleted_evidence():
+        async with AsyncSessionLocal() as db:
+            row = await db.scalar(select(GuidedSectionRecord).where(
+                GuidedSectionRecord.section_id == section_id
+            ))
+            actions = list((await db.scalars(select(AuditLog.action).where(
+                AuditLog.resource_id == section_id
+            ))).all())
+            return row.deleted_at, actions
+
+    deleted_at, actions = asyncio.run(_deleted_evidence())
+    assert deleted_at is not None
+    assert "guided_section.delete" in actions
+
+
+def test_v2_curated_sections_are_write_protected(icoder_client):
+    curated = icoder_client.get("/api/v2/tools/sections/?source=corti").json()[0]
+    updated = icoder_client.patch(
+        f"/api/v2/tools/sections/{curated['id']}", json={"name": "Forbidden"}
+    )
+    deleted = icoder_client.delete(f"/api/v2/tools/sections/{curated['id']}")
+    assert updated.status_code == 403, updated.text
+    assert deleted.status_code == 403, deleted.text
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"name": "   "},
+        {"name": "Invalid schema", "outputSchema": {"type": "array"}},
+        {"name": "Invalid type", "outputSchema": {"type": "binary"}},
+    ],
+)
+def test_v2_section_create_rejects_invalid_definition(icoder_client, payload):
+    response = icoder_client.post("/api/v2/tools/sections/", json=payload)
+    assert response.status_code == 422, response.text
+
+
+@pytest.mark.parametrize("kind", ["templates", "sections"])
+def test_v2_single_discovery_unknown_resource_is_404(icoder_client, kind):
+    response = icoder_client.get(f"/api/v2/tools/{kind}/{uuid.uuid4()}")
+    assert response.status_code == 404, response.text
+    assert response.json()["detail"]["error"] == (
+        "template_not_found" if kind == "templates" else "section_not_found"
+    )
+
+
+def test_v2_template_and_section_discovery_does_not_require_llm_key(
+    icoder_client, monkeypatch
+):
+    monkeypatch.delenv("ICODER_CREDENTIAL_LLM", raising=False)
+    monkeypatch.delenv("ICODER_ALLOW_DEGRADED_NO_KEY", raising=False)
+    assert icoder_client.get("/api/v2/tools/templates/").status_code == 200
+    assert icoder_client.get("/api/v2/tools/sections/").status_code == 200
 
 
 def test_v2_templates_reference_round_trip(templates_spec):

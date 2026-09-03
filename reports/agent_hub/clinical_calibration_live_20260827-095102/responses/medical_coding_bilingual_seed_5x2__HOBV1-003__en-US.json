@@ -1,0 +1,269 @@
+{
+  "agent_id": "medical-coding-agent",
+  "run_id": "run-4437c03b-5c57-4241-90c1-8451a62d1bbb",
+  "trace_id": "trace-5c10dc7590924409",
+  "trace_url": "/ai-studio/runs/run-4437c03b-5c57-4241-90c1-8451a62d1bbb/trace",
+  "runtime_mode": "corti_like_fast",
+  "latency_ms": 6206,
+  "cost": {
+    "amount": 0.000339,
+    "currency": "CNY",
+    "source": "provider_token_usage",
+    "token_usage": {
+      "input_tokens": 1355,
+      "output_tokens": 533
+    }
+  },
+  "billing": {},
+  "summary": "主要诊断编码需人工复核，以确定是否使用更精确的病原体编码；次要诊断'肺气肿'证据不足，建议核实病历",
+  "result": {
+    "encounter_summary": {
+      "chief_complaint": "",
+      "treatment_course": "",
+      "key_findings": [],
+      "document_sources": [],
+      "encounter_date": ""
+    },
+    "documentation_analysis": {
+      "diagnosis_evidence": [],
+      "procedure_evidence": [],
+      "negated_findings": [],
+      "historical_conditions": []
+    },
+    "code_assignment": {
+      "primary_diagnosis": {
+        "code": "J18.1",
+        "description": "大叶性肺炎",
+        "confidence": 0.85,
+        "category": "principal",
+        "evidence": [
+          {
+            "text": "Chest X-ray shows right lower lobe infiltrate",
+            "kind": "auto_bootstrap"
+          },
+          {
+            "text": "Admission diagnosis: community-acquired pneumonia (CAP, PSI intermediate risk)",
+            "kind": "auto_bootstrap"
+          }
+        ]
+      },
+      "secondary_diagnoses": [
+        {
+          "code": "E11.9",
+          "description": "2型糖尿病",
+          "confidence": 0.9,
+          "category": "comorbidity",
+          "evidence": [
+            {
+              "text": "History: type 2 diabetes for 10 years",
+              "kind": "auto_bootstrap"
+            }
+          ]
+        },
+        {
+          "code": "J43.9",
+          "description": "肺气肿",
+          "confidence": 0.7,
+          "category": "comorbidity",
+          "evidence": [
+            {
+              "text": "30 pack-year smoking",
+              "kind": "auto_bootstrap"
+            }
+          ]
+        }
+      ],
+      "procedures": []
+    },
+    "documentation_gaps": [],
+    "uncodable_items": [],
+    "validation_summary": {
+      "passed": false,
+      "issues_found": [
+        {
+          "severity": "medium",
+          "code": "DIAG-001",
+          "message": "主要诊断编码J18.1（大叶性肺炎）与病历描述'社区获得性肺炎'不完全匹配，且未明确具体病原体，建议考虑使用J18.9（肺炎，未特指）或根据病原体结果使用J15.9（细菌性肺炎，未特指）",
+          "suggestion": "若病历明确为社区获得性肺炎且病原体为肺炎链球菌，可考虑编码J15.9（细菌性肺炎，未特指）或J13（肺炎链球菌性肺炎）；若未明确病原体，建议使用J18.9"
+        },
+        {
+          "severity": "low",
+          "code": "DIAG-002",
+          "message": "次要诊断'肺气肿'证据不足，仅依据吸烟史推断，病历中未明确诊断肺气肿",
+          "suggestion": "若无明确肺气肿诊断依据，建议删除该编码"
+        }
+      ],
+      "manual_review_required": true,
+      "rule_set": "MedCodERRetrievalRuleSet",
+      "fired_rules": [
+        "DIAG-001",
+        "DIAG-002"
+      ]
+    },
+    "human_review": {
+      "review_conclusion": "PASS",
+      "review_required": true,
+      "review_focus": [],
+      "notes": "主要诊断编码需人工复核，以确定是否使用更精确的病原体编码；次要诊断'肺气肿'证据不足，建议核实病历"
+    },
+    "trace_refs": {
+      "run_id": "run-4437c03b-5c57-4241-90c1-8451a62d1bbb",
+      "stage_trace": [],
+      "rule_fired": [
+        "DIAG-001",
+        "DIAG-002"
+      ],
+      "mode": "Mode.UNSET",
+      "method_id": "",
+      "provider": "",
+      "model": "",
+      "trace_id": "trace-5c10dc7590924409"
+    },
+    "codes": [
+      {
+        "code": "J18.1",
+        "system": "ICD-10-CN",
+        "display": "大叶性肺炎",
+        "type": "primary_diagnosis",
+        "confidence": 0.85,
+        "evidence": "Chest X-ray shows right lower lobe infiltrate; Admission diagnosis: community-acquired pneumonia (CAP, PSI intermediate risk)",
+        "rationale": "主要诊断 — 基于病历证据的优先编码候选,需结合 ICD-10-CN 本地目录复核具体亚目。",
+        "warnings": [
+          "需结合国家医保版 ICD-10-CN 目录进一步校验具体亚目"
+        ],
+        "alternatives": []
+      },
+      {
+        "code": "E11.9",
+        "system": "ICD-10-CN",
+        "display": "2型糖尿病",
+        "type": "secondary_diagnosis",
+        "confidence": 0.9,
+        "evidence": "History: type 2 diabetes for 10 years",
+        "rationale": "次要诊断 (comorbidity) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。",
+        "warnings": [
+          "需结合 ICD-10-CN 本地目录进一步校验具体亚目"
+        ],
+        "alternatives": []
+      },
+      {
+        "code": "J43.9",
+        "system": "ICD-10-CN",
+        "display": "肺气肿",
+        "type": "secondary_diagnosis",
+        "confidence": 0.7,
+        "evidence": "30 pack-year smoking",
+        "rationale": "次要诊断 (comorbidity) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。",
+        "warnings": [
+          "需结合 ICD-10-CN 本地目录进一步校验具体亚目"
+        ],
+        "alternatives": []
+      }
+    ],
+    "manual_review_required": true
+  },
+  "schema_ref": "icoder/MedicalCodingAgentOutputV2/v8",
+  "result_attestation": "eyJhIjoibWVkaWNhbC1jb2RpbmctYWdlbnQiLCJkIjoiMWQzNTBjOTJlZTZjZGU0MTkyMGZjNjE5ZDVmZWU3ZjkwNTcxNjkzYTY0OTk3NGMxMmZmZDg1MTE0MjAyYTFiZiIsImUiOjE3ODc4ODI1NDYsIm8iOiJiYzkyZWUwNmFmMGYiLCJyIjoicnVuLTQ0MzdjMDNiLTVjNTctNDI0MS05MGMxLTg0NTFhNjJkMWJiYiIsInMiOiJpY29kZXIvTWVkaWNhbENvZGluZ0FnZW50T3V0cHV0VjIvdjgiLCJ2IjoxfQ.jMw7lEC5JDFhMNea_u4GIAHSKIIVNW_h8as-xrrWgR0",
+  "evidence": [
+    {
+      "code": "J18.1",
+      "system": "ICD-10-CN",
+      "type": "primary_diagnosis",
+      "text": "Chest X-ray shows right lower lobe infiltrate; Admission diagnosis: community-acquired pneumonia (CAP, PSI intermediate risk)",
+      "rationale": "主要诊断 — 基于病历证据的优先编码候选,需结合 ICD-10-CN 本地目录复核具体亚目。"
+    },
+    {
+      "code": "E11.9",
+      "system": "ICD-10-CN",
+      "type": "secondary_diagnosis",
+      "text": "History: type 2 diabetes for 10 years",
+      "rationale": "次要诊断 (comorbidity) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。"
+    },
+    {
+      "code": "J43.9",
+      "system": "ICD-10-CN",
+      "type": "secondary_diagnosis",
+      "text": "30 pack-year smoking",
+      "rationale": "次要诊断 (comorbidity) — 基于病历证据的候选编码,需结合 ICD-10-CN 本地目录复核。"
+    }
+  ],
+  "warnings": [
+    "需结合国家医保版 ICD-10-CN 目录进一步校验具体亚目",
+    "需结合 ICD-10-CN 本地目录进一步校验具体亚目",
+    "需结合 ICD-10-CN 本地目录进一步校验具体亚目"
+  ],
+  "manual_review_required": true,
+  "trace_events": [
+    {
+      "step": "input_received",
+      "status": "ok",
+      "ts": 1787796139.7236547,
+      "duration_ms": 0,
+      "metadata": {
+        "text_len": 460,
+        "mode": "corti_like_fast"
+      }
+    },
+    {
+      "step": "language_detect",
+      "status": "ok",
+      "ts": 1787796139.7236547,
+      "duration_ms": 0,
+      "metadata": {
+        "language": "en"
+      }
+    },
+    {
+      "step": "build_prompt",
+      "status": "ok",
+      "ts": 1787796139.7236547,
+      "duration_ms": 0,
+      "metadata": {
+        "provider": "deepseek",
+        "language": "en",
+        "system": "icd-10-cn"
+      }
+    },
+    {
+      "step": "llm_call",
+      "status": "ok",
+      "ts": 1787796145.930414,
+      "duration_ms": 6206,
+      "metadata": {
+        "provider": "deepseek",
+        "model": "deepseek-chat",
+        "is_mock": false
+      }
+    },
+    {
+      "step": "parse_json",
+      "status": "ok",
+      "ts": 1787796145.930414,
+      "duration_ms": 6206,
+      "metadata": {}
+    },
+    {
+      "step": "project_result",
+      "status": "ok",
+      "ts": 1787796145.930414,
+      "duration_ms": 6206,
+      "metadata": {
+        "code_count": 3
+      }
+    },
+    {
+      "step": "return",
+      "status": "ok",
+      "ts": 1787796145.930414,
+      "duration_ms": 6206,
+      "metadata": {
+        "latency_ms": 6206,
+        "code_count": 3
+      }
+    }
+  ],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 6.7
+}

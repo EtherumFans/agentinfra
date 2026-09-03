@@ -1,0 +1,242 @@
+{
+  "case_id": "CASE-a9bce4bde478",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-a9bce4bde478/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "Conflicting documentation:入院记录 states '既往无糖尿病史, 本次为初次发现' while 出院小结 states '糖尿病史10年'. This inconsistency affects the accuracy of the diagnosis and coding.",
+      "why_it_matters": "The conflicting information creates uncertainty about the patient's true diabetes history, which impacts coding for diabetes type, duration, and associated complications. It may lead to incorrect DRG assignment and affect quality measures.",
+      "evidence_span": {
+        "document_id": "入院记录",
+        "quote": "既往无糖尿病史, 本次为初次发现"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-a9bce4bde478/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "Conflicting documentation:出院小结 states '糖尿病史10年' while 门诊病历 states '新发糖尿病'. This inconsistency needs clarification.",
+      "why_it_matters": "The discrepancy between a 10-year history and new-onset diabetes affects coding for chronicity and may impact treatment plans and follow-up. It also raises compliance concerns.",
+      "evidence_span": {
+        "document_id": "出院小结",
+        "quote": "糖尿病史10年"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-a9bce4bde478/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "Diagnostic specificity: The diagnosis is documented as '2型糖尿病' without specifying whether it is insulin-dependent or non-insulin-dependent, or if there are any complications.",
+      "why_it_matters": "Lack of specificity may lead to incorrect coding. Diabetes mellitus type 2 requires documentation of any complications (e.g., ophthalmic, renal, neurological) and whether it is controlled or uncontrolled.",
+      "evidence_span": {
+        "document_id": "入院诊断",
+        "quote": "2型糖尿病"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-a9bce4bde478/GAP-004",
+      "gap_type": "diagnostic_specificity",
+      "description": "Severity unspecified: '血糖控制不佳' is documented but not quantified (e.g., HbA1c level, frequency of hypoglycemia/hyperglycemia).",
+      "why_it_matters": "Without specific metrics, the severity of poor control cannot be accurately coded. This may affect risk adjustment and quality reporting.",
+      "evidence_span": {
+        "document_id": "出院小结",
+        "quote": "平素血糖控制不佳"
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [],
+  "chart_excerpt_preview": "患者女性, 65岁, 入院诊断:2型糖尿病。入院记录:既往无糖尿病史, 本次为初次发现。出院小结:糖尿病史10年, 平素血糖控制不佳。门诊病历:新发糖尿病。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "2型糖尿病",
+      "初次发现",
+      "糖尿病史10年",
+      "血糖控制不佳",
+      "新发糖尿病"
+    ],
+    "encounter_metadata": {
+      "patient_age": "65",
+      "patient_sex": "女",
+      "encounter_type": "入院"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "The documentation must be reconciled to clarify whether this is a new-onset or long-standing diabetes, as the conflicting histories directly impact coding accuracy. Additionally, specify the type of diabetes (e.g., insulin-dependent or non-insulin-dependent) and quantify \"血糖控制不佳\" with objective measures such as HbA1c levels or documented episodes of hypoglycemia/hyperglycemia. Resolving these gaps ensures the clinical picture is precise for accurate code assignment.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3566,
+      "tokens": 334
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-81ab4c191ef1",
+    "gap_identification": "run-903363874a26",
+    "expert_consultation": "run-4ab379cb3da9",
+    "query_generation": "run-7956bb132868",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=Y;dropped=0;final_count=4",
+    "query_necessity_gate": "necessary=3;unnecessary=1;overquery_triggered=False;final_count=3",
+    "query_single_dimension_gate": "single_dim=2;multi_dim=1;axis_cluster_triggered=False;axis_cluster_axis=course;final_count=2",
+    "claim_evidence_alignment_gate": "claims_extracted=8;blocked=2;flagged=0;final_count=0",
+    "claim_evidence_alignment_gate::run_id": "run-ac18e311bf1c",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+    "semantic_necessity_gate::run_id": "run-d1c2cb46be06",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "run-1091fa03f56f"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-15edee45a8b8",
+    "gap_identification": "trace-9f6e4ff22daa",
+    "expert_consultation": "trace-71a18fcf26ec",
+    "query_generation": "trace-15cb6ad72fbc",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-18a9b7537a1a",
+    "semantic_necessity_gate": "trace-3b19cb4f5559",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-52428f364c5b"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2478,
+      "prompt_tokens": 222,
+      "completion_tokens": 76,
+      "total_tokens": 298,
+      "run_id": "run-81ab4c191ef1",
+      "trace_id": "trace-15edee45a8b8",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 8166,
+      "prompt_tokens": 309,
+      "completion_tokens": 605,
+      "total_tokens": 914,
+      "run_id": "run-903363874a26",
+      "trace_id": "trace-9f6e4ff22daa",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 7832,
+      "prompt_tokens": 535,
+      "completion_tokens": 771,
+      "total_tokens": 1306,
+      "run_id": "run-7956bb132868",
+      "trace_id": "trace-15cb6ad72fbc",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3566,
+      "prompt_tokens": 245,
+      "completion_tokens": 89,
+      "total_tokens": 334,
+      "run_id": "run-55722a7e0314",
+      "trace_id": "trace-78b9720699a5",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-cc455d41e1eb",
+      "trace_id": "trace-2481e88fe66b",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-f92799a50f04",
+      "trace_id": "trace-5618d1b61203",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-7f6b36d340a4",
+      "trace_id": "trace-3729b9f377dd",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-07-12T12:16:45.389042Z"
+}

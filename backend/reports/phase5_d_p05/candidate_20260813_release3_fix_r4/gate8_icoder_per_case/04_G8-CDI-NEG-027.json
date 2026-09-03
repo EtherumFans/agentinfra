@@ -1,0 +1,286 @@
+{
+  "case_id": "CASE-f88a5f18b083",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-f88a5f18b083/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "咳嗽的病因未明确，未说明是急性支气管炎、上呼吸道感染或其他诊断。",
+      "why_it_matters": "缺乏具体诊断会影响编码的准确性和临床相关性。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "咳嗽1周",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-f88a5f18b083/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "高血压未指明是原发性还是继发性，也未说明是否有并发症或靶器官损害。",
+      "why_it_matters": "高血压的病因和并发症信息影响编码的精确性和严重程度分级。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "既往:高血压",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-002",
+      "gap_id": "CASE-f88a5f18b083/GAP-002",
+      "topic": "高血压分型及并发症",
+      "reason": "病历中记录既往高血压，但未明确是原发性还是继发性，也未说明有无并发症或靶器官损害。",
+      "query_text": "患者既往有高血压，请明确高血压的类型及有无相关并发症或靶器官损害。",
+      "response_options": [
+        "A. 原发性高血压，无并发症或靶器官损害",
+        "B. 原发性高血压，有并发症或靶器官损害（请具体说明）",
+        "C. 继发性高血压（请具体说明病因）",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "既往:高血压",
+          "char_start": 31,
+          "char_end": 37,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "CDI-Focus: keep one symptom clarification; defer unrelated chronic-history refinement"
+      ],
+      "status": "DEFERRED_LOW_RISK_SYMPTOM_FOCUS",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-001",
+      "gap_id": "CASE-f88a5f18b083/GAP-001",
+      "topic": "咳嗽病因",
+      "reason": "病历中咳嗽症状已记录，但未明确具体病因诊断。",
+      "query_text": "根据患者咳嗽1周，双肺清晰，胸片未见活动性病变，请明确咳嗽的病因诊断。",
+      "response_options": [
+        "A. 急性支气管炎",
+        "B. 上呼吸道感染",
+        "C. 其他诊断（请在病程记录中具体说明）",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart",
+          "quote": "咳嗽1周",
+          "char_start": 11,
+          "char_end": 15,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NOT_ANSWERABLE",
+        "POSSIBLE_DIAGNOSIS_INVENTION"
+      ],
+      "status": "REJECTED_BY_SEMANTIC_NECESSITY",
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者女性, 60岁, 咳嗽1周。否认发热、咳脓痰、咯血、胸痛。既往:高血压。<REDACTED:NAME>:双肺清晰。胸片:未见活动性病变。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "60岁女性，咳嗽1周",
+      "否认发热、咳脓痰、咯血、胸痛",
+      "既往高血压",
+      "双肺清晰",
+      "胸片未见活动性病变"
+    ],
+    "encounter_metadata": {
+      "patient_age": "60岁",
+      "patient_sex": "女性",
+      "encounter_type": "门诊"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "For accurate coding, the clinician must specify the definitive etiology of the cough (e.g., acute bronchitis, upper respiratory infection, or other diagnosis) based on clinical findings, as the current chart only documents symptoms and a normal chest X-ray. Additionally, the hypertension requires clarification of whether it is primary or secondary, and documentation of any associated complications or target organ damage (e.g., heart, kidney, eye) is essential to reflect the true severity and clinical status.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 2842,
+      "tokens": 236
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "'分级' score — no deterministic calculator wired",
+      "route_decision": "tool_unavailable",
+      "route_reason": "no_real_tool_wired",
+      "execution_mode": "TOOL_UNAVAILABLE",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-ce776f0d7ae2",
+    "gap_identification": "run-3b49e947e1ac",
+    "gap_identification_risk_flags": "emitted=0;quote_snapped=0",
+    "expert_consultation": "run-91376a27e3eb",
+    "query_generation": "run-155a457cd91d",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=2;llm_complete=False;llm_reasoning=咳嗽的病因未明确，高血压缺乏具体类型和并发症信息，需要进一步澄清才能准确编码。",
+    "query_necessity_gate": "necessary=2;unnecessary=0;overquery_triggered=False;final_count=1",
+    "query_single_dimension_gate": "single_dim=1;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=etiology;rewrite_attempted=0;rewrite_accepted=0;final_count=1",
+    "claim_evidence_alignment_gate": "claims_extracted=3;blocked=0;flagged=0;final_count=1",
+    "claim_evidence_alignment_gate::run_id": "run-3f4df9325def",
+    "semantic_necessity_gate": "blocked=1;flagged=0;degraded=0;final_count=0",
+    "semantic_necessity_gate::run_id": "run-b5032938b359",
+    "query_compliance_gate": ";passed=0;blocked=0",
+    "specialist_trace_emit": "run-8da4d808616b"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-f0c2ac2816ca",
+    "gap_identification": "trace-8c82767d8710",
+    "expert_consultation": "trace-d7dfce0c8f4c",
+    "query_generation": "trace-d8fdf65f3449",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-9ebadabc652f",
+    "semantic_necessity_gate": "trace-a8c8900dad49",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-7c74737a8186"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 7860,
+      "prompt_tokens": 218,
+      "completion_tokens": 92,
+      "total_tokens": 310,
+      "run_id": "run-ce776f0d7ae2",
+      "trace_id": "trace-f0c2ac2816ca",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 4093,
+      "prompt_tokens": 1035,
+      "completion_tokens": 304,
+      "total_tokens": 1339,
+      "run_id": "run-3b49e947e1ac",
+      "trace_id": "trace-8c82767d8710",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 4337,
+      "prompt_tokens": 1048,
+      "completion_tokens": 427,
+      "total_tokens": 1475,
+      "run_id": "run-155a457cd91d",
+      "trace_id": "trace-d8fdf65f3449",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2842,
+      "prompt_tokens": 143,
+      "completion_tokens": 93,
+      "total_tokens": 236,
+      "run_id": "run-e338fd91c97b",
+      "trace_id": "trace-c8ee857eb826",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-f7454eae09ae",
+      "trace_id": "trace-9601f806142e",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-1e91db89f70f",
+      "trace_id": "trace-d4837e771e51",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-a9bbc8e266b6",
+      "trace_id": "trace-fe410b4d8504",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T20:35:23.147940Z"
+}

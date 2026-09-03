@@ -1,11 +1,14 @@
-// iCoDer API Clients — API Keys + OAuth 2.0 Client management
-import { Key, Plus, Trash2, Clock, Loader2, Copy, Check, Shield } from 'lucide-react';
+// iCoDer API Clients - API Keys + OAuth 2.0 Client management
+import { Key, Plus, Trash2, Clock, Loader2, Copy, Check, Shield, RefreshCw, Power } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
+
 import { keysApi, oauthApi } from '../services/api';
+import { useT } from '../i18n';
 
 type Tab = 'api-keys' | 'oauth-clients';
 
 export default function APIClientsPage() {
+  const t = useT();
   const [activeTab, setActiveTab] = useState<Tab>('oauth-clients');
   const [keys, setKeys] = useState<any[]>([]);
   const [clients, setClients] = useState<any[]>([]);
@@ -15,10 +18,15 @@ export default function APIClientsPage() {
   const [newName, setNewName] = useState('');
   const [newDesc, setNewDesc] = useState('');
   const [newScopes, setNewScopes] = useState('api:read api:write');
+  const [newAgentIds, setNewAgentIds] = useState('');
+  const [newPurposes, setNewPurposes] = useState('');
   const [newSecret, setNewSecret] = useState<string | null>(null);
   const [newClientId, setNewClientId] = useState<string | null>(null);
   const [copied, setCopied] = useState('');
   const [confirmDelete, setConfirmDelete] = useState<{clientId: string; name: string} | null>(null);
+  // Sprint 2 Goal D — Rotate / Disable state
+  const [rotatingId, setRotatingId] = useState<string | null>(null);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
 
   const fetchAll = useCallback(async () => {
     setLoading(true); setError('');
@@ -26,21 +34,33 @@ export default function APIClientsPage() {
       const [kRes, cRes] = await Promise.allSettled([keysApi.list(), oauthApi.list()]);
       if (kRes.status === 'fulfilled') setKeys(kRes.value.data.keys || []);
       if (cRes.status === 'fulfilled') setClients(cRes.value.data.clients || []);
-    } catch (err: any) { setError(err?.message || '加载失败'); }
+    } catch (err: any) { setError(err?.message || t.apiClientsLoadFailed); }
     finally { setLoading(false); }
-  }, []);
+  }, [t]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
   const handleCreateOAuth = async () => {
     if (!newName.trim()) return;
     try {
-      const res = await oauthApi.create(newName.trim(), newDesc.trim(), newScopes);
+      const parseGrants = (value: string) => value
+        .split(/[\s,]+/)
+        .map(item => item.trim())
+        .filter(Boolean);
+      const res = await oauthApi.create(
+        newName.trim(),
+        newDesc.trim(),
+        newScopes,
+        3600,
+        parseGrants(newAgentIds),
+        parseGrants(newPurposes),
+      );
       setNewClientId(res.data.client_id);
       setNewSecret(res.data.client_secret);
       setShowNew(false); setNewName(''); setNewDesc('');
+      setNewAgentIds(''); setNewPurposes('');
       fetchAll();
-    } catch (err: any) { setError(err?.response?.data?.detail || '创建失败'); }
+    } catch (err: any) { setError(err?.response?.data?.detail || t.apiClientsCreateFailed); }
   };
 
   const handleDeleteOAuth = (clientId: string, name: string) => {
@@ -49,10 +69,44 @@ export default function APIClientsPage() {
 
   const handleCopy = (text: string, key: string) => { navigator.clipboard.writeText(text); setCopied(key); setTimeout(() => setCopied(''), 2000); };
 
+  // Sprint 2 Goal D — Rotate secret + Disable / Enable client handlers.
+  // These call the partner endpoint family (platform_api_clients.py)
+  // which shares the oauth_clients DB table with oauth.py.
+  const handleRotate = async (clientId: string) => {
+    setRotatingId(clientId);
+    try {
+      const res = await oauthApi.rotate(clientId);
+      // Reuse the secret-reveal modal (same UX as create).
+      setNewClientId(res.data.client_id);
+      setNewSecret(res.data.client_secret);
+      fetchAll();
+    } catch (err: any) {
+      setError(err?.response?.data?.detail || 'Rotate failed');
+    } finally {
+      setRotatingId(null);
+    }
+  };
+
+  const handleToggleActive = async (clientId: string, currentlyActive: boolean) => {
+    setTogglingId(clientId);
+    try {
+      if (currentlyActive) {
+        await oauthApi.disable(clientId);
+      } else {
+        await oauthApi.enable(clientId);
+      }
+      fetchAll();
+    } catch (err: any) {
+      setError(err?.response?.data?.detail || 'Toggle failed');
+    } finally {
+      setTogglingId(null);
+    }
+  };
+
   if (loading) return <div className="flex items-center justify-center h-64"><Loader2 className="animate-spin h-8 w-8 text-muted-foreground" /></div>;
 
   return (
-    <div className="bg-muted/20 min-h-screen p-6">
+    <div className="bg-muted/20 min-h-dvh p-6">
       {error && (
         <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-sm text-destructive flex items-center justify-between">
           <span>{error}</span>
@@ -63,11 +117,11 @@ export default function APIClientsPage() {
       {/* OAuth Secret reveal */}
       {newSecret && (
         <div className="mb-6 p-5 border-2 border-warning/30 bg-warning/10 rounded-xl shadow-sm ring-1 ring-warning/20 max-w-lg">
-          <h3 className="text-sm font-semibold text-warning-foreground mb-2">OAuth客户端已创建</h3>
-          <p className="text-xs text-warning-foreground/70 mb-3">复制Client Secret — 它不会再次显示。</p>
+          <h3 className="text-sm font-semibold text-warning-foreground mb-2">{t.apiClientsOAuthCreated}</h3>
+          <p className="text-xs text-warning-foreground/70 mb-3">{t.apiClientsCopySecret}</p>
           <div className="space-y-2">
             <div className="flex items-center justify-between bg-background rounded p-2 border border-warning/20">
-              <code className="text-xs font-mono">Client ID: {newClientId}</code>
+              <code className="text-xs font-mono">{t.apiClientsClientId}: {newClientId}</code>
               <button onClick={() => handleCopy(newClientId!, 'cid')} className="p-1">{copied === 'cid' ? <Check size={12} className="text-success" /> : <Copy size={12} />}</button>
             </div>
             <div className="flex items-center justify-between bg-background rounded p-2 border border-warning/20">
@@ -75,17 +129,17 @@ export default function APIClientsPage() {
               <button onClick={() => handleCopy(newSecret!, 'secret')} className="p-1">{copied === 'secret' ? <Check size={12} className="text-success" /> : <Copy size={12} />}</button>
             </div>
           </div>
-          <button onClick={() => { setNewSecret(null); setNewClientId(null); }} className="text-xs text-warning-foreground/70 hover:underline mt-3">完成</button>
+          <button onClick={() => { setNewSecret(null); setNewClientId(null); }} className="text-xs text-warning-foreground/70 hover:underline mt-3">{t.apiClientsDone}</button>
         </div>
       )}
 
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-foreground mb-2">API 客户端</h2>
-          <p className="text-sm text-muted-foreground">管理 API 密钥和 OAuth 2.0 客户端凭证</p>
+          <h2 className="text-2xl font-bold text-foreground mb-2">{t.apiClientsTitle}</h2>
+          <p className="text-sm text-muted-foreground">{t.apiClientsSubtitle}</p>
         </div>
         <button onClick={() => setShowNew(!showNew)} className="bg-primary text-primary-foreground rounded-lg flex items-center gap-2 px-4 py-2 text-sm font-medium hover:bg-primary/90 transition-colors">
-          <Plus size={16} /> 创建OAuth客户端
+          <Plus size={16} /> {t.apiClientsCreateOAuth}
         </button>
       </div>
 
@@ -94,26 +148,43 @@ export default function APIClientsPage() {
         <div className="flex items-center rounded-lg border border-border/20 p-0.5 bg-background">
           <button onClick={() => setActiveTab('oauth-clients')}
             className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${activeTab === 'oauth-clients' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}>
-            <Shield size={14} className="inline mr-1.5" /> OAuth 2.0 客户端
+            <Shield size={14} className="inline mr-1.5" /> {t.apiClientsTabOAuth}
           </button>
           <button onClick={() => setActiveTab('api-keys')}
             className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${activeTab === 'api-keys' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}>
-            <Key size={14} className="inline mr-1.5" /> API 密钥
+            <Key size={14} className="inline mr-1.5" /> {t.apiClientsTabKeys}
           </button>
         </div>
       </div>
 
       {/* Create form */}
       {showNew && (
-        <div className="border border-border/20 rounded-xl shadow-sm ring-1 ring-border/20 p-5 mb-6 max-w-lg bg-background">
-          <h3 className="text-sm font-semibold text-foreground mb-3">创建 OAuth 2.0 客户端 (Client Credentials)</h3>
+        <div className="border border-border/20 rounded-xl shadow-sm p-5 mb-6 max-w-lg bg-background">
+          <h3 className="text-sm font-semibold text-foreground mb-3">{t.apiClientsCreateTitle}</h3>
           <div className="space-y-3">
-            <input value={newName} onChange={e => setNewName(e.target.value)} placeholder="客户端名称（如：生产环境SDK）" className="w-full text-sm border border-border/20 rounded-lg px-3 py-2 bg-transparent focus:outline-none focus:ring-1 focus:ring-ring" onKeyDown={e => e.key === 'Enter' && handleCreateOAuth()} />
-            <input value={newDesc} onChange={e => setNewDesc(e.target.value)} placeholder="描述（可选）" className="w-full text-sm border border-border/20 rounded-lg px-3 py-2 bg-transparent focus:outline-none focus:ring-1 focus:ring-ring" />
-            <input value={newScopes} onChange={e => setNewScopes(e.target.value)} placeholder="Scopes（空格分隔）" className="w-full text-sm border border-border/20 rounded-lg px-3 py-2 bg-transparent focus:outline-none focus:ring-1 focus:ring-ring font-mono text-xs" />
+            <input value={newName} onChange={e => setNewName(e.target.value)} placeholder={t.apiClientsNamePlaceholder} className="w-full text-sm border border-border/20 rounded-lg px-3 py-2 bg-transparent focus:outline-none focus:ring-1 focus:ring-ring" onKeyDown={e => e.key === 'Enter' && handleCreateOAuth()} />
+            <input value={newDesc} onChange={e => setNewDesc(e.target.value)} placeholder={t.apiClientsDescPlaceholder} className="w-full text-sm border border-border/20 rounded-lg px-3 py-2 bg-transparent focus:outline-none focus:ring-1 focus:ring-ring" />
+            <input value={newScopes} onChange={e => setNewScopes(e.target.value)} placeholder={t.apiClientsScopesPlaceholder} className="w-full text-sm border border-border/20 rounded-lg px-3 py-2 bg-transparent focus:outline-none focus:ring-1 focus:ring-ring font-mono text-xs" />
+            <input
+              value={newAgentIds}
+              onChange={e => setNewAgentIds(e.target.value)}
+              placeholder="允许的 Agent ID（逗号分隔；agents:run 必填）"
+              className="w-full text-sm border border-border/20 rounded-lg px-3 py-2 bg-transparent focus:outline-none focus:ring-1 focus:ring-ring font-mono text-xs"
+            />
+            <input
+              value={newPurposes}
+              onChange={e => setNewPurposes(e.target.value)}
+              placeholder="用途：treatment, payment, healthcare_operations…"
+              className="w-full text-sm border border-border/20 rounded-lg px-3 py-2 bg-transparent focus:outline-none focus:ring-1 focus:ring-ring font-mono text-xs"
+            />
+            {newScopes.split(/\s+/).includes('agents:run') && (!newAgentIds.trim() || !newPurposes.trim()) && (
+              <p className="text-xs text-warning-foreground">
+                Agent Run 默认拒绝：必须同时配置精确 Agent ID 和用途授权。
+              </p>
+            )}
             <div className="flex gap-2">
-              <button onClick={handleCreateOAuth} className="bg-primary text-primary-foreground rounded-lg text-sm px-4 py-2 font-medium hover:bg-primary/90 transition-colors disabled:opacity-50" disabled={!newName.trim()}>创建</button>
-              <button onClick={() => { setShowNew(false); setNewName(''); }} className="px-4 py-2 text-sm rounded-lg border border-border/20 hover:bg-accent transition-colors text-muted-foreground">取消</button>
+              <button onClick={handleCreateOAuth} className="bg-primary text-primary-foreground rounded-lg text-sm px-4 py-2 font-medium hover:bg-primary/90 transition-colors disabled:opacity-50" disabled={!newName.trim()}>{t.apiClientsCreate}</button>
+              <button onClick={() => { setShowNew(false); setNewName(''); }} className="px-4 py-2 text-sm rounded-lg border border-border/20 hover:bg-accent transition-colors text-muted-foreground">{t.apiClientsCancel}</button>
             </div>
           </div>
         </div>
@@ -122,14 +193,14 @@ export default function APIClientsPage() {
       <div className="max-w-2xl">
         {activeTab === 'oauth-clients' ? (
           clients.length === 0 ? (
-            <div className="text-center py-12 border border-border/20 rounded-xl shadow-sm ring-1 ring-border/20 bg-background">
+            <div className="text-center py-12 border border-border/20 rounded-xl shadow-sm bg-background">
               <Shield size={48} className="mx-auto mb-3 text-muted-foreground/20" />
-              <p className="text-sm text-muted-foreground">暂无OAuth客户端</p>
-              <p className="text-xs text-muted-foreground mt-1">创建客户端以使用 client_credentials 认证</p>
+              <p className="text-sm text-muted-foreground">{t.apiClientsNoOAuth}</p>
+              <p className="text-xs text-muted-foreground mt-1">{t.apiClientsNoOAuthHint}</p>
             </div>
           ) : (
             clients.map((c: any) => (
-              <div key={c.client_id} className="border border-border/20 rounded-xl shadow-sm ring-1 ring-border/20 p-4 mb-3 bg-background hover:bg-accent/50 transition-colors">
+              <div key={c.client_id} className="border border-border/20 rounded-xl shadow-sm p-4 mb-3 bg-background hover:bg-accent/50 transition-colors">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center"><Shield size={14} className="text-primary" /></div>
@@ -137,25 +208,63 @@ export default function APIClientsPage() {
                       <p className="text-sm font-medium text-foreground">{c.name}</p>
                       <p className="text-xs font-mono text-muted-foreground">{c.client_id}</p>
                     </div>
+                    {/* Sprint 2 Goal D — disabled indicator */}
+                    {c.is_active === false && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-destructive/10 text-destructive font-mono">DISABLED</span>
+                    )}
                   </div>
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
                     <span className="font-mono text-[10px] bg-muted px-1.5 py-0.5 rounded">{c.scopes}</span>
                     {c.last_used_at && <span className="flex items-center gap-1"><Clock size={12} /> {c.last_used_at?.split('T')[0]}</span>}
+                    {/* Sprint 2 Goal D — Rotate secret button */}
+                    <button
+                      onClick={() => handleRotate(c.client_id)}
+                      disabled={rotatingId === c.client_id}
+                      title="Rotate secret"
+                      className="text-muted-foreground hover:text-warning transition-colors disabled:opacity-40"
+                    >
+                      {rotatingId === c.client_id ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
+                    </button>
+                    {/* Sprint 2 Goal D — Disable / Enable toggle */}
+                    <button
+                      onClick={() => handleToggleActive(c.client_id, c.is_active !== false)}
+                      disabled={togglingId === c.client_id}
+                      title={c.is_active === false ? 'Enable' : 'Disable'}
+                      className={`transition-colors disabled:opacity-40 ${c.is_active === false ? 'text-success hover:text-success/80' : 'text-muted-foreground hover:text-warning'}`}
+                    >
+                      {togglingId === c.client_id ? <Loader2 size={14} className="animate-spin" /> : <Power size={14} />}
+                    </button>
                     <button onClick={() => handleDeleteOAuth(c.client_id, c.name)} className="text-destructive hover:text-destructive/80"><Trash2 size={14} /></button>
                   </div>
                 </div>
+                {String(c.scopes || '').split(/\s+/).includes('agents:run') && (
+                  <div className="mt-3 border-t border-border/20 pt-3 text-[11px] text-muted-foreground space-y-1">
+                    <div>
+                      <span className="font-medium text-foreground">Agents: </span>
+                      {(c.allowed_agent_ids || []).length
+                        ? c.allowed_agent_ids.join(', ')
+                        : <span className="text-destructive">未授权（运行默认拒绝）</span>}
+                    </div>
+                    <div>
+                      <span className="font-medium text-foreground">Purposes: </span>
+                      {(c.allowed_purposes || []).length
+                        ? c.allowed_purposes.join(', ')
+                        : <span className="text-destructive">未授权（运行默认拒绝）</span>}
+                    </div>
+                  </div>
+                )}
               </div>
             ))
           )
         ) : (
           keys.length === 0 ? (
-            <div className="text-center py-12 border border-border/20 rounded-xl shadow-sm ring-1 ring-border/20 bg-background">
+            <div className="text-center py-12 border border-border/20 rounded-xl shadow-sm bg-background">
               <Key size={48} className="mx-auto mb-3 text-muted-foreground/20" />
-              <p className="text-sm text-muted-foreground">暂无API密钥</p>
+              <p className="text-sm text-muted-foreground">{t.apiClientsNoKeys}</p>
             </div>
           ) : (
             keys.map((k: any) => (
-              <div key={k.id} className="border border-border/20 rounded-xl shadow-sm ring-1 ring-border/20 p-4 mb-3 bg-background hover:bg-accent/50 transition-colors">
+              <div key={k.id} className="border border-border/20 rounded-xl shadow-sm p-4 mb-3 bg-background hover:bg-accent/50 transition-colors">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center"><Key size={14} className="text-primary-foreground" /></div>
@@ -179,23 +288,23 @@ export default function APIClientsPage() {
       {/* Confirm delete modal */}
       {confirmDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setConfirmDelete(null)}>
-          <div className="bg-background rounded-xl shadow-sm ring-1 ring-border/20 w-full max-w-sm p-6 mx-4" onClick={e => e.stopPropagation()}>
+          <div className="bg-background rounded-xl shadow-sm w-full max-w-sm p-6 mx-4" onClick={e => e.stopPropagation()}>
             <div className="w-1 h-4 rounded-full bg-primary/40 mb-3" />
-            <h3 className="text-sm font-semibold text-foreground mb-2">确认撤销</h3>
+            <h3 className="text-sm font-semibold text-foreground mb-2">{t.apiClientsConfirmRevokeTitle}</h3>
             <p className="text-sm text-muted-foreground mb-4">
-              撤销OAuth客户端 "{confirmDelete.name}"？使用此客户端的应用将无法认证。
+              {t.apiClientsRevokeConfirm} "{confirmDelete.name}"? {t.apiClientsRevokeHint}
             </p>
             <div className="flex gap-2 justify-end">
-              <button onClick={() => setConfirmDelete(null)} className="px-3 py-1.5 text-xs rounded-lg border border-border/20 hover:bg-accent transition-colors text-muted-foreground">取消</button>
+              <button onClick={() => setConfirmDelete(null)} className="px-3 py-1.5 text-xs rounded-lg border border-border/20 hover:bg-accent transition-colors text-muted-foreground">{t.apiClientsCancel}</button>
               <button onClick={async () => {
                 try {
                   await oauthApi.delete(confirmDelete.clientId);
                   setClients(clients.filter(c => c.client_id !== confirmDelete.clientId));
                 } catch (err: any) {
-                  setError(err?.response?.data?.detail || '删除失败');
+                  setError(err?.response?.data?.detail || t.apiClientsDeleteFailed);
                 }
                 setConfirmDelete(null);
-              }} className="px-3 py-1.5 text-xs rounded-lg bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors">确认撤销</button>
+              }} className="px-3 py-1.5 text-xs rounded-lg bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors">{t.apiClientsConfirmRevoke}</button>
             </div>
           </div>
         </div>

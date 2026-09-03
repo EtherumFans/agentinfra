@@ -1,0 +1,271 @@
+{
+  "agent_id": "clinical-documentation-improvement-agent",
+  "run_id": "run-074f159e-14da-4442-82f8-0b66149eafd7",
+  "trace_id": "trace-88b56f80c22a4de4",
+  "trace_url": "/ai-studio/runs/run-074f159e-14da-4442-82f8-0b66149eafd7/trace",
+  "runtime_mode": "cdi_real_orchestrator",
+  "latency_ms": 28032,
+  "cost": {},
+  "billing": {},
+  "summary": "CDI review completed; specialist and clinician review remain required.",
+  "result": {
+    "encounter_summary": {
+      "key_points": [
+        "诊断: 肺炎",
+        "痰培养: 肺炎链球菌 (3+)"
+      ],
+      "encounter_metadata": {
+        "patient_age": "未知",
+        "patient_sex": "未知",
+        "encounter_type": "入院"
+      }
+    },
+    "documentation_gaps": [
+      {
+        "gap_id": "gap-001",
+        "gap_type": "diagnostic_specificity",
+        "description": "Pneumonia diagnosis lacks specification of type (e.g., community-acquired, hospital-acquired) and anatomical site (e.g., lobar, bronchopneumonia).",
+        "why_it_matters": "Specificity of pneumonia type and site affects coding and clinical management.",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "诊断: 肺炎",
+          "char_start": 6,
+          "char_end": 12,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      },
+      {
+        "gap_id": "gap-002",
+        "gap_type": "diagnostic_specificity",
+        "description": "Severity of pneumonia is not documented (e.g., mild, moderate, severe, or presence of hypoxia, respiratory failure).",
+        "why_it_matters": "Severity impacts treatment intensity, prognosis, and coding.",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "诊断: 肺炎",
+          "char_start": 6,
+          "char_end": 12,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      },
+      {
+        "gap_id": "gap-003",
+        "gap_type": "diagnostic_specificity",
+        "description": "Clinical correlation of positive sputum culture with pneumonia is not explicitly stated; the culture result is documented but its significance is not clarified.",
+        "why_it_matters": "A positive sputum culture may represent colonization or contamination; clinical correlation is needed to confirm it as the causative pathogen.",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "痰培养: 肺炎链球菌 (3+)",
+          "char_start": 13,
+          "char_end": 28,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      }
+    ],
+    "proposed_provider_queries": [
+      {
+        "query_id": "q-gap-002",
+        "gap_id": "gap-002",
+        "topic": "肺炎严重程度",
+        "reason": "入院诊断仅记录为'肺炎'，未明确严重程度（如轻、中、重度）或是否存在低氧血症、呼吸衰竭等表现，影响病情评估。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "诊断: 肺炎",
+          "char_start": 6,
+          "char_end": 12,
+          "documented_at": ""
+        },
+        "evidence_spans": [
+          {
+            "document_id": "chart-001",
+            "quote": "诊断: 肺炎",
+            "char_start": 6,
+            "char_end": 12,
+            "documented_at": ""
+          }
+        ],
+        "query_text": "根据现有临床资料，该肺炎的严重程度应如何分级？",
+        "response_options": [
+          "A. 轻度",
+          "B. 中度",
+          "C. 重度",
+          "D. 存在低氧血症",
+          "E. 无法确定"
+        ],
+        "lifecycle_state": "DRAFT",
+        "priority": "routine",
+        "nlq_gate_verdict": "PASS",
+        "nlq_gate_block_reasons": []
+      },
+      {
+        "query_id": "q-gap-003",
+        "gap_id": "gap-003",
+        "topic": "痰培养结果与肺炎的临床相关性",
+        "reason": "痰培养结果已记录为肺炎链球菌(3+)，但未明确该结果与肺炎诊断的临床相关性，即是否考虑为致病菌、定植或污染。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "痰培养: 肺炎链球菌 (3+)",
+          "char_start": 13,
+          "char_end": 28,
+          "documented_at": ""
+        },
+        "evidence_spans": [
+          {
+            "document_id": "chart-001",
+            "quote": "痰培养: 肺炎链球菌 (3+)",
+            "char_start": 13,
+            "char_end": 28,
+            "documented_at": ""
+          }
+        ],
+        "query_text": "根据现有临床资料，该痰培养结果（肺炎链球菌 3+）与肺炎的临床相关性应如何解释？",
+        "response_options": [
+          "A. 考虑为肺炎的致病菌",
+          "B. 考虑为呼吸道定植菌",
+          "C. 考虑为标本污染",
+          "D. 无法确定"
+        ],
+        "lifecycle_state": "DRAFT",
+        "priority": "routine",
+        "nlq_gate_verdict": "PASS",
+        "nlq_gate_block_reasons": []
+      }
+    ],
+    "query_gate_summary": {
+      "withheld_count": 2,
+      "status_counts": {
+        "REWRITE_CANDIDATE_GENERATED": 0
+      },
+      "manual_cdi_action_required": true
+    },
+    "coding_specificity_checklist": [],
+    "risk_flags": [
+      {
+        "category": "unsupported_diagnosis",
+        "description": "The diagnosis of pneumonia is asserted without supporting clinical evidence such as symptoms, imaging, or labs."
+      }
+    ],
+    "specialist_trace": [
+      {
+        "expert_id": "coding-expert",
+        "consulted": true,
+        "requested": "You are a coding-specialist Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "To ensure accurate coding, the pneumonia diagnosis must specify the clinical type (e.g., community-acquired vs. hospital-acquired) and anatomical pattern (e.g., lobar vs. bronchopneumonia), as these directly affect severity and treatment pathways. Additionally, document the severity (mild, moderate, severe) and any associated hypoxia or respiratory failure, and explicitly state whether the sputum culture growth of *Streptococcus pneumoniae* is the confirmed causative pathogen for the current pneumonia episode, not just a colonizer or contaminant.",
+        "route_decision": "needed",
+        "route_reason": "coding_relevant_gap",
+        "execution_mode": "LLM_KNOWLEDGE_ONLY",
+        "latency_ms": 2951,
+        "tokens": 271,
+        "run_id": "run-455fcea873e7",
+        "trace_id": "trace-2b1ef041d507"
+      },
+      {
+        "expert_id": "pubmed-expert",
+        "consulted": false,
+        "requested": "You are a PubMed literature Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-7cd9cd14b85b",
+        "trace_id": "trace-534b3dd60035"
+      },
+      {
+        "expert_id": "web-search-expert",
+        "consulted": false,
+        "requested": "You are a clinical web-search Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-4ffa04391a5e",
+        "trace_id": "trace-70155ee2106d"
+      },
+      {
+        "expert_id": "medical-calculator-expert",
+        "consulted": false,
+        "requested": "You are a medical-calculator Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-dba7342d8b3b",
+        "trace_id": "trace-c4346ba2ed5a"
+      }
+    ],
+    "human_review": {
+      "cdi_specialist_review_required": true,
+      "clinician_response_required": true,
+      "review_priority": "routine"
+    },
+    "trace_refs": {
+      "run_id": "run-074f159e-14da-4442-82f8-0b66149eafd7",
+      "stage_trace": {
+        "encounter_synthesis": "trace-e95f6a569dde",
+        "gap_identification": "trace-b08178045f8c",
+        "expert_consultation": "trace-6cbf5d9a262b",
+        "query_generation": "trace-713ee2d82995",
+        "query_eligibility_gate": "",
+        "query_necessity_gate": "",
+        "query_dimension_rewrite": "trace-4cdfe48829dd",
+        "query_single_dimension_gate": "",
+        "claim_evidence_alignment_gate": "trace-37f4b7718b38",
+        "semantic_necessity_gate": "trace-02b019c8dbf5",
+        "query_compliance_gate": "",
+        "specialist_trace_emit": "trace-7d3291f41916"
+      },
+      "experts_consulted": [
+        "coding-expert"
+      ],
+      "gate_results": {
+        "encounter_synthesis": "run-971dc6550554",
+        "gap_identification": "run-3684167e0f24",
+        "gap_identification_risk_flags": "emitted=1;quote_snapped=0",
+        "expert_consultation": "run-16144be383ab",
+        "query_generation": "run-8699c34025f1",
+        "query_generation::quote_snapped": "0",
+        "query_generation::coverage_missing": "0",
+        "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=;dropped=0;final_count=3;llm_complete=False;llm_reasoning=The chart documents a diagnosis of pneumonia and a positive sputum culture, but ",
+        "query_necessity_gate": "necessary=3;unnecessary=0;overquery_triggered=False;final_count=3",
+        "query_dimension_rewrite": "run-1cfabc86b3ea",
+        "query_single_dimension_gate": "single_dim=2;multi_dim=1;axis_cluster_triggered=False;axis_cluster_axis=type;rewrite_attempted=1;rewrite_accepted=0;final_count=2",
+        "claim_evidence_alignment_gate": "claims_extracted=5;degraded=0;blocked=0;flagged=0;final_count=2",
+        "claim_evidence_alignment_gate::run_id": "run-a1cc232cb16c",
+        "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=2",
+        "semantic_necessity_gate::run_id": "run-a31a8fe33de5",
+        "query_compliance_gate": ";passed=2;blocked=0",
+        "specialist_trace_emit": "run-c0fa1b78d8f8"
+      },
+      "trace_id": "trace-88b56f80c22a4de4"
+    }
+  },
+  "schema_ref": "icoder/CDIAgentOutputV1/v6",
+  "result_attestation": "eyJhIjoiY2xpbmljYWwtZG9jdW1lbnRhdGlvbi1pbXByb3ZlbWVudC1hZ2VudCIsImQiOiJkNjdlNmMwOGE4YjE4NTMyMzg4N2ZiYWUxMzM0YTU1Yjc3YjA3NjE5ZjcyNzI0OTljMDgyZDIzNDQ5OTEwMjczIiwiZSI6MTc4Nzc0Nzc3NywibyI6ImJmYTQ1OTQ4ZjkxOSIsInIiOiJydW4tMDc0ZjE1OWUtMTRkYS00NDQyLTgyZjgtMGI2NjE0OWVhZmQ3IiwicyI6Imljb2Rlci9DRElBZ2VudE91dHB1dFYxL3Y2IiwidiI6MX0.40Jxmmzdoz7Qd6x_ywa96J6ohnsahCuQLlz9lLfPnpk",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 28.1
+}

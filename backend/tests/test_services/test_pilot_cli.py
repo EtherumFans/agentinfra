@@ -14,7 +14,8 @@ SCRIPT = BACKEND_DIR / "scripts" / "pilot_eval_runbook.py"
 def _run_cli(*args):
     result = subprocess.run(
         [sys.executable, str(SCRIPT)] + list(args),
-        capture_output=True, text=True, cwd=str(BACKEND_DIR),
+        capture_output=True, text=True, encoding="utf-8", errors="replace",
+        cwd=str(BACKEND_DIR),
         timeout=60, env={**os.environ, "PYTHONIOENCODING": "utf-8"},
     )
     return result

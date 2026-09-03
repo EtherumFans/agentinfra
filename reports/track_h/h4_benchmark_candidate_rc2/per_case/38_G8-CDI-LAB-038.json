@@ -1,0 +1,188 @@
+{
+  "case_id": "CASE-b17ff74d7a46",
+  "completion_state": "AUTO_PASS",
+  "documentation_gaps": [],
+  "proposed_provider_queries": [],
+  "chart_excerpt_preview": "患者男性, 50岁, 体检。无症状。HBsAg 阳性, Anti-HBs 阴性, HBeAg 阴性, Anti-HBe 阳性, HBV-DNA < 500。肝功能正常。腹部B超:肝脏回声均匀, 无肝硬化征象。既往:无。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "HBsAg 阳性",
+      "Anti-HBs 阴性",
+      "HBeAg 阴性",
+      "Anti-HBe 阳性",
+      "HBV-DNA < 500",
+      "肝功能正常",
+      "腹部B超:肝脏回声均匀, 无肝硬化征象",
+      "无症状",
+      "体检"
+    ],
+    "encounter_metadata": {
+      "patient_age": "50岁",
+      "patient_sex": "男性",
+      "encounter_type": "体检"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": false,
+      "rationale": "no coding-relevant gaps survived earlier gates",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-25f0bba1eb0a",
+    "gap_identification": "run-acb30f0e5dc1",
+    "gap_identification_risk_flags": "emitted=0",
+    "expert_consultation": "run-f45ffab6d10f",
+    "query_generation": "",
+    "query_eligibility_gate": "chart_complete=True;completeness_score=0.12;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=0;llm_complete=True;llm_reasoning=The chart documents a chronic HBV carrier state (HBsAg positive, HBeAg negative,",
+    "query_necessity_gate": "necessary=0;unnecessary=0;overquery_triggered=False;final_count=0",
+    "query_single_dimension_gate": "single_dim=0;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;final_count=0",
+    "claim_evidence_alignment_gate": "claims_extracted=0;blocked=0;flagged=0;final_count=0",
+    "claim_evidence_alignment_gate::run_id": "run-6fabe81ee7a4",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+    "semantic_necessity_gate::run_id": "run-f081eeae76df",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "run-76c71d7256f2"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-ba96aa2a3ca5",
+    "gap_identification": "trace-67768c20862e",
+    "expert_consultation": "trace-2acc443a63a4",
+    "query_generation": "",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-35f17982a72c",
+    "semantic_necessity_gate": "trace-d627b054cf00",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-84a8bf47fc91"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 4748,
+      "prompt_tokens": 234,
+      "completion_tokens": 117,
+      "total_tokens": 351,
+      "run_id": "run-25f0bba1eb0a",
+      "trace_id": "trace-ba96aa2a3ca5",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2868,
+      "prompt_tokens": 878,
+      "completion_tokens": 97,
+      "total_tokens": 975,
+      "run_id": "run-acb30f0e5dc1",
+      "trace_id": "trace-67768c20862e",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-49e50a3c4d4e",
+      "trace_id": "trace-50bc04cb366f",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-b496cdf6f97d",
+      "trace_id": "trace-49ed5b9cc22a",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-d00fd8b3b9bb",
+      "trace_id": "trace-e09e2797a3c3",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-b491ffd3400f",
+      "trace_id": "trace-20822e9499bf",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-07-13T00:41:15.167064Z"
+}

@@ -14,7 +14,13 @@
 # iCoDer extension: a CN-friendly category taxonomy is exposed; the
 # `language` field defaults to zh-CN since Cloud SaaS serves 中国医院.
 import enum
-from sqlalchemy import String, Enum, Boolean, ForeignKey, Text, Index
+import uuid
+from datetime import datetime
+
+from sqlalchemy import (
+    String, Enum, Boolean, ForeignKey, Text, Index, DateTime, Integer,
+    UniqueConstraint, func,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 from app.database import Base
 from app.models.base import TimestampMixin
@@ -50,6 +56,7 @@ class Template(Base, TimestampMixin):
     __table_args__ = (
         Index("ix_templates_org_id", "organization_id"),
         Index("ix_templates_category", "category"),
+        Index("ix_templates_deleted_at", "deleted_at"),
     )
 
     organization_id: Mapped[str] = mapped_column(
@@ -67,4 +74,43 @@ class Template(Base, TimestampMixin):
     is_builtin: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     scope: Mapped[TemplateScope] = mapped_column(
         Enum(TemplateScope), default=TemplateScope.ALL_CUSTOMERS, nullable=False
+    )
+    deleted_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, default=None
+    )
+
+
+class TemplateVersion(Base):
+    """Immutable, tenant-scoped snapshot created by an explicit publish.
+
+    Draft edits remain on :class:`Template`.  Published rows are intentionally
+    append-only: the API exposes only create/read operations and every lookup is
+    constrained by both organization and template identifiers.
+    """
+
+    __tablename__ = "template_versions"
+    __table_args__ = (
+        UniqueConstraint(
+            "template_id", "version_number", name="uq_template_version_number"
+        ),
+        Index("ix_template_versions_org_template", "organization_id", "template_id"),
+    )
+
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    organization_id: Mapped[str] = mapped_column(
+        ForeignKey("organizations.id"), nullable=False
+    )
+    template_id: Mapped[str] = mapped_column(
+        ForeignKey("templates.id"), nullable=False
+    )
+    version_number: Mapped[int] = mapped_column(Integer, nullable=False)
+    generation_json: Mapped[str] = mapped_column(Text, nullable=False)
+    snapshot_json: Mapped[str] = mapped_column(Text, nullable=False)
+    published_by_user_id: Mapped[str | None] = mapped_column(
+        ForeignKey("users.id"), nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
     )

@@ -1,0 +1,210 @@
+{
+  "agent_id": "clinical-documentation-improvement-agent",
+  "run_id": "run-9d8e0ddf-3e08-45d4-a9f3-b2d938875069",
+  "trace_id": "trace-26a0b7e55d954b36",
+  "trace_url": "/ai-studio/runs/run-9d8e0ddf-3e08-45d4-a9f3-b2d938875069/trace",
+  "runtime_mode": "cdi_real_orchestrator",
+  "latency_ms": 11679,
+  "cost": {
+    "amount": 0.00076902,
+    "currency": "CNY",
+    "source": "configured_usage_pricing_estimate",
+    "billing_authoritative": false
+  },
+  "billing": {},
+  "summary": "CDI review completed; specialist and clinician review remain required.",
+  "result": {
+    "encounter_summary": {
+      "key_points": [
+        "患者男性，70岁",
+        "食欲下降1月",
+        "体重减轻5kg",
+        "建议进一步检查"
+      ],
+      "encounter_metadata": {
+        "patient_age": "70岁",
+        "patient_sex": "男性",
+        "encounter_type": "门诊"
+      }
+    },
+    "documentation_gaps": [
+      {
+        "gap_id": "gap_1",
+        "gap_type": "diagnostic_specificity",
+        "description": "食欲下降和体重减轻的病因未明确，需要进一步检查以确定诊断。",
+        "why_it_matters": "食欲下降和体重减轻是非特异性症状，可能由多种病因引起，如恶性肿瘤、内分泌疾病、消化系统疾病等。缺乏明确的病因诊断会影响编码的准确性和临床治疗的针对性。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "食欲下降1月, 体重减轻5kg",
+          "char_start": 11,
+          "char_end": 26,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "urgent"
+      },
+      {
+        "gap_id": "gap_2",
+        "gap_type": "diagnostic_specificity",
+        "description": "食欲下降和体重减轻的严重程度未量化，如体重减轻的百分比或BMI变化。",
+        "why_it_matters": "严重程度影响病情评估和编码，例如体重减轻的百分比可能提示营养不良或恶病质，需要更具体的描述。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "体重减轻5kg",
+          "char_start": 19,
+          "char_end": 26,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      },
+      {
+        "gap_id": "gap_3",
+        "gap_type": "diagnostic_specificity",
+        "description": "食欲下降和体重减轻的病程时间未明确，仅提及'1月'，但未说明是急性还是慢性。",
+        "why_it_matters": "病程的急慢性影响诊断和治疗决策，编码时也需要区分。",
+        "evidence_span": {
+          "document_id": "chart-001",
+          "quote": "食欲下降1月",
+          "char_start": 11,
+          "char_end": 17,
+          "documented_at": ""
+        },
+        "minimal_clarification_needed": "",
+        "priority": "routine"
+      }
+    ],
+    "proposed_provider_queries": [],
+    "query_gate_summary": {
+      "withheld_count": 3,
+      "status_counts": {
+        "REWRITE_CANDIDATE_GENERATED": 0
+      },
+      "manual_cdi_action_required": true
+    },
+    "coding_specificity_checklist": [],
+    "risk_flags": [
+      {
+        "category": "ambiguous_term",
+        "description": "建议进一步检查'未明确具体检查项目，可能掩盖诊断结论。"
+      }
+    ],
+    "specialist_trace": [
+      {
+        "expert_id": "coding-expert",
+        "consulted": true,
+        "requested": "You are a coding-specialist Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "For accurate coding, the clinical documentation must specify the underlying cause of the anorexia and weight loss (e.g., malignancy, gastrointestinal disorder, endocrine, or psychiatric condition) based on completed diagnostic workup, as well as quantify the severity (e.g., percentage of body weight lost, current BMI) and clarify the temporal pattern (acute vs. chronic) with a clear onset and duration. Without these details, the condition remains a symptom cluster rather than a codable diagnosis, and the clinical picture is insufficient to assign a specific code.",
+        "route_decision": "needed",
+        "route_reason": "coding_relevant_gap",
+        "execution_mode": "LLM_KNOWLEDGE_ONLY",
+        "latency_ms": 1657,
+        "tokens": 267,
+        "run_id": "run-563021dc4ce2",
+        "trace_id": "trace-2f55edc26609"
+      },
+      {
+        "expert_id": "pubmed-expert",
+        "consulted": false,
+        "requested": "You are a PubMed literature Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-0edc8333d37b",
+        "trace_id": "trace-3cc5c6a6b5d1"
+      },
+      {
+        "expert_id": "web-search-expert",
+        "consulted": false,
+        "requested": "You are a clinical web-search Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "",
+        "route_decision": "not_needed",
+        "route_reason": "no_relevant_gap",
+        "execution_mode": "SKIPPED_NOT_NEEDED",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-5e18e351c64b",
+        "trace_id": "trace-5086ab2d0561"
+      },
+      {
+        "expert_id": "medical-calculator-expert",
+        "consulted": false,
+        "requested": "You are a medical-calculator Expert",
+        "accepted": [],
+        "rejected": [],
+        "rationale": "'BMI' score — no deterministic calculator wired",
+        "route_decision": "tool_unavailable",
+        "route_reason": "no_real_tool_wired",
+        "execution_mode": "TOOL_UNAVAILABLE",
+        "latency_ms": 0,
+        "tokens": 0,
+        "run_id": "run-21d589e6a8a5",
+        "trace_id": "trace-3d0c69e438b4"
+      }
+    ],
+    "human_review": {
+      "cdi_specialist_review_required": true,
+      "clinician_response_required": true,
+      "review_priority": "routine"
+    },
+    "trace_refs": {
+      "run_id": "run-9d8e0ddf-3e08-45d4-a9f3-b2d938875069",
+      "stage_trace": {
+        "encounter_synthesis": "trace-ec00d5ca65b5",
+        "gap_identification": "trace-c75649735f95",
+        "expert_consultation": "trace-33c6713ee451",
+        "query_generation": "trace-575e70f9ebb4",
+        "query_eligibility_gate": "",
+        "query_necessity_gate": "",
+        "query_dimension_rewrite": "",
+        "query_single_dimension_gate": "",
+        "claim_evidence_alignment_gate": "trace-1b2b1baa3ec2",
+        "semantic_necessity_gate": "trace-4997c5873bda",
+        "query_compliance_gate": "",
+        "specialist_trace_emit": "trace-f117f8f0f921"
+      },
+      "experts_consulted": [
+        "coding-expert"
+      ],
+      "gate_results": {
+        "encounter_synthesis": "run-3bb70fed5a2f",
+        "gap_identification": "run-df433664986d",
+        "gap_identification_risk_flags": "emitted=1;quote_snapped=0;withheld=0;quantity_redacted=0",
+        "expert_consultation": "run-533ae0484172",
+        "query_generation": "run-3cf4927edf1a",
+        "query_generation::quote_snapped": "0",
+        "query_generation::coverage_missing": "0",
+        "query_eligibility_gate": "chart_complete=False;completeness_score=0.00;dimensions=D1_type=N,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=3;llm_complete=False;llm_reasoning=该图表仅记录了非特异性症状和体重减轻，未提供任何病因、严重程度或具体检查计划，因此对于CDI目的而言不完整。",
+        "query_necessity_gate": "necessary=0;unnecessary=3;overquery_triggered=False;final_count=0",
+        "query_dimension_rewrite": "not_executed",
+        "query_single_dimension_gate": "single_dim=0;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;rewrite_attempted=0;rewrite_accepted=0;final_count=0",
+        "claim_evidence_alignment_gate": "claims_extracted=0;degraded=0;blocked=0;flagged=0;final_count=0",
+        "claim_evidence_alignment_gate::run_id": "run-d1a915a0606d",
+        "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=0",
+        "semantic_necessity_gate::run_id": "run-259a78be4a06",
+        "query_compliance_gate": ";passed=0;blocked=0",
+        "specialist_trace_emit": "run-a67eb51db4c4"
+      },
+      "trace_id": "trace-26a0b7e55d954b36"
+    }
+  },
+  "schema_ref": "icoder/CDIAgentOutputV1/v6",
+  "result_attestation": "eyJhIjoiY2xpbmljYWwtZG9jdW1lbnRhdGlvbi1pbXByb3ZlbWVudC1hZ2VudCIsImQiOiI0Njc3YTcyNGFlZDQyYmMyNDA3ZDUwZmY3MjU4MTA1NzdjNDdmYjIwMjAyNzgwOGViOTAxMTljNTZhZDYwNzgwIiwiZSI6MTc4Nzg4NzQzNywibyI6IjVmZWYzNzlmMjViZCIsInIiOiJydW4tOWQ4ZTBkZGYtM2UwOC00NWQ0LWE5ZjMtYjJkOTM4ODc1MDY5IiwicyI6Imljb2Rlci9DRElBZ2VudE91dHB1dFYxL3Y2IiwidiI6MX0.CX9Ahp7virSU68qdX69zcWI64hfX61YKxbaIY7MmxdM",
+  "evidence": [],
+  "warnings": [],
+  "manual_review_required": true,
+  "trace_events": [],
+  "error": false,
+  "error_reason": "",
+  "_http_status": 200,
+  "_elapsed_seconds": 11.822
+}

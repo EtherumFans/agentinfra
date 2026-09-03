@@ -1,0 +1,112 @@
+{
+  "schema_version": "icoder.standard-artifact-stream-phase-evidence/v1",
+  "generated_at": "2026-08-22T12:35:06+08:00",
+  "result": "passed_with_incremental_producer_and_external_runtime_gates_open",
+  "implementation": {
+    "alembic_head": "051",
+    "event_table": "a2a_task_events",
+    "durable_artifact_identity": true,
+    "durable_append_semantics": true,
+    "durable_last_chunk_semantics": true,
+    "initial_task_snapshot": true,
+    "standard_status_update": true,
+    "standard_artifact_update": true,
+    "sse_sequence_resume": true,
+    "jsonrpc_result_wrapper": true,
+    "artifact_before_terminal_status": true,
+    "complete_artifact_event_append": false,
+    "complete_artifact_event_last_chunk": true,
+    "provider_driven_multi_chunk_producer": false,
+    "artifact_description": true,
+    "artifact_absolute_uri_extensions": true
+  },
+  "identifier_evidence_correction": {
+    "typed_uuidv7_public_requirement_found": false,
+    "public_contract": "server-generated opaque string identifiers",
+    "sources": [
+      "https://docs.corti.ai/agentic/core-concepts",
+      "https://a2a-protocol.org/dev/specification/",
+      "https://a2a-protocol.org/latest/whats-new-v1/"
+    ],
+    "live_gap_matrix_corrected": true
+  },
+  "migration_reconciliation": {
+    "source_revision": "041",
+    "candidate_revision": "051",
+    "source_rows_preserved": 6090,
+    "candidate_foreign_key_violations": 0,
+    "candidate_orm_schema_drift": 0,
+    "candidate_columns_checked": 958,
+    "source_sha256_before": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e",
+    "source_sha256_after": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e",
+    "source_unchanged": true,
+    "quarantine_parent_count_on_candidate_only": 6,
+    "historical_orphan_foreign_keys_on_source": 827,
+    "cutover_performed": false,
+    "passed": true
+  },
+  "tests": {
+    "full_a2a_migration_schema_and_preflight": {
+      "passed": 310,
+      "failed": 0,
+      "warnings": 9
+    },
+    "deployment_preflight": {
+      "passed": 61,
+      "failed": 0
+    },
+    "javascript_sdk": {
+      "build_passed": true,
+      "tests_passed": 42,
+      "tests_failed": 0
+    },
+    "python_sdk": {
+      "tests_passed": 49,
+      "tests_failed": 0
+    },
+    "dotnet_sdk": {
+      "source_contract_updated": true,
+      "locally_compiled": false,
+      "reason": "dotnet CLI is unavailable on this development host"
+    },
+    "openapi": {
+      "paths": 265,
+      "bytes": 826480,
+      "drift": false
+    },
+    "agent_hub_runtime_matrix": {
+      "hub_visible_agents": 26,
+      "launch_candidate_ready": 26,
+      "visible_not_ready": 0
+    }
+  },
+  "artifacts": {
+    "migration_report": {
+      "path": "reports/agent_hub/standard_artifact_stream_phase_20260822/sqlite_migration/sqlite_migration_stage_report.json",
+      "sha256": "94545c8047c0ab2e83d88dd76b3e8e0755ed604d75be7a5be6a8586509119321"
+    },
+    "deployment_preflight": {
+      "path": "reports/agent_hub/standard_artifact_stream_phase_20260822/deployment_preflight/deployment_preflight.json",
+      "sha256": "7681ba2546a6c757bdc98a1ff42c033687e3578338920daf03c356f1c0e48e4b"
+    },
+    "runtime_matrix": {
+      "path": "reports/agent_hub/standard_artifact_stream_phase_20260822/runtime_matrix/agent_hub_runtime_matrix.json",
+      "sha256": "329d462ab68abd7c168e202d2e0e9b01833eb97ab4e28a7c1ec607eee995a83f"
+    },
+    "openapi": {
+      "path": "docs/openapi/openapi.json",
+      "sha256": "a095196fe81a671d8c94f57ece85831d9346490deb5c49e5cf2b05cb661a8cfe"
+    },
+    "summary": {
+      "path": "docs/corti_parity/ICODER_STANDARD_ARTIFACT_STREAM_PHASE_SUMMARY_2026-08-22.md",
+      "sha256": "f1d7853fd5e96ae43809809e44bea52571ebfed900a6753fc80171175ac7fbd3"
+    }
+  },
+  "limitations": [
+    "The runtime currently emits one complete Artifact update with append=false and lastChunk=true; provider-driven multi-chunk production is not implemented or claimed.",
+    "No managed object upload, signed download authorization, malware scanning, file DLP pipeline, or object lifecycle evidence is implemented.",
+    "The current development database remains at revision 041 and was not cut over or restarted.",
+    "The .NET SDK requires CI compilation and test execution.",
+    "Corti tenant interoperability, multi-replica PostgreSQL and queue behavior, real Provider interruption, hospital integration, cloud infrastructure, legal, certification, and independent clinical review remain external gates."
+  ]
+}

@@ -1,0 +1,470 @@
+{
+  "format_version": "1.2",
+  "agent_type": "certified",
+  "agent_ref": "icoder/rule-explainer@1.2.0",
+  "manifest": {
+    "name": "规则解释智能体",
+    "version": "1.2.0",
+    "description": "基于固定 SHA-256 的 ICD-10-CN 开发目录解释编码存在性、名称、章节、层级和目录叶子状态；明确拒绝生成资产未覆盖的 Includes/Excludes、排序、组合码、医保或地方规则。",
+    "category": "medical-coding",
+    "category_display": "Coding and Revenue Cycle / 编码与收入周期",
+    "icon": "BookOpen",
+    "tags": [
+      "corti-parity",
+      "icd-10-cn",
+      "catalog-grounded",
+      "governed-assets",
+      "deterministic"
+    ],
+    "maturity": "runnable",
+    "production_ready": false,
+    "hidden_from_hub": false,
+    "use_case": "coding_revenue_cycle",
+    "human_review": "required"
+  },
+  "system_prompt": "你是 iCoDer 受治理本地规则解释智能体。只接收一个明确的 ICD-10-CN 编码，只使用经 manifest 固定大小和 SHA-256 的本地开发目录，解释精确成员关系、规范名称、章节、类别/前缀、子条目以及是否为目录可分配叶子。当前资产没有可验证的 Includes/Excludes1/Excludes2、Code First、Use Additional Code、Code Also、组合码、排序或医保/DRG/DIP/地方结算规则；必须逐项标记 unsupported_scope，禁止调用 legacy get_guidelines 内嵌知识库，禁止根据模型记忆或输入病历补写规则。不得分配替代编码，不判断编码对具体就诊的临床适用性，不写回业务系统。目录 authority_status=source_unverified、license_status=external_review_required、billing_authoritative=false，manual_review_required 始终为 true。",
+  "experts": [],
+  "tools": [],
+  "backend_provider": "icoder.governed-rule-explainer.v1",
+  "backend_config": {
+    "catalog_rule_explanation": {
+      "asset_id": "cn.icd10cn.catalog",
+      "version": "observed-local-2026-05-19",
+      "integrity_required": true,
+      "network_required": false,
+      "llm_required": false,
+      "maximum_codes": 1,
+      "maximum_children": 10,
+      "instructional_notes_available": false,
+      "clinical_applicability_assessed": false,
+      "billing_authoritative": false
+    }
+  },
+  "model": null,
+  "output_contract": {
+    "schema_ref": "icoder/RuleExplanationOutput/v4",
+    "a2a_parts": [
+      "DataPart"
+    ],
+    "required_fields": [
+      "status",
+      "code",
+      "code_system",
+      "catalog_status",
+      "assignable",
+      "catalog_name",
+      "chapter",
+      "hierarchy",
+      "explanation_summary",
+      "catalog_facts",
+      "rule_content_status",
+      "guideline_basis",
+      "evidence_refs",
+      "unsupported_scope",
+      "limitations",
+      "source_version",
+      "manual_review_required"
+    ],
+    "field_definitions": {
+      "status": "本地基线仅返回 WARNING 或 REQUIRES_REVIEW，不发布生产 PASS",
+      "code": "从结构化字段或原文逐字提取的一个待解释编码",
+      "code_system": "固定为 ICD-10-CN",
+      "catalog_status": "ASSIGNABLE | CATEGORY_OR_PREFIX | NOT_FOUND | INPUT_REQUIRED | CATALOG_UNAVAILABLE",
+      "assignable": "仅表示固定开发目录中的非生成叶子条目，不表示病历适用或结算有效",
+      "catalog_name": "固定目录中的中文名称；未命中时为空",
+      "chapter": "固定目录返回的章节；不可确认时为空",
+      "hierarchy": "章节号、类别码和最多十个更具体目录条目",
+      "explanation_summary": "仅基于目录事实的中文说明",
+      "catalog_facts": "可审计的目录成员关系、叶子状态和层级事实",
+      "rule_content_status": "固定说明受治理规则内容在当前资产中不可用",
+      "guideline_basis": "明确说明未覆盖的规则资产，不包含模型生成规则",
+      "evidence_refs": "目录资产版本与本次查询事实引用",
+      "unsupported_scope": "instructional notes、跨编码语义、其他编码体系和中国支付政策等未覆盖范围",
+      "limitations": "目录权威、许可、临床适用性和结算边界",
+      "source_version": "资产标识、版本、权威、许可和结算属性",
+      "manual_review_required": "固定为 true，必须由具备授权来源的编码员复核"
+    },
+    "field_types": {
+      "status": "string",
+      "code": "string",
+      "code_system": "string",
+      "catalog_status": "string",
+      "assignable": "boolean",
+      "catalog_name": "string",
+      "chapter": "string",
+      "hierarchy": "object",
+      "explanation_summary": "string",
+      "catalog_facts": "array",
+      "rule_content_status": "string",
+      "guideline_basis": "array",
+      "evidence_refs": "array",
+      "unsupported_scope": "array",
+      "limitations": "array",
+      "source_version": "string",
+      "manual_review_required": "boolean"
+    },
+    "field_schemas": {
+      "status": {
+        "type": "string",
+        "maxLength": 32768,
+        "enum": [
+          "WARNING",
+          "REQUIRES_REVIEW"
+        ]
+      },
+      "code": {
+        "type": "string",
+        "maxLength": 32,
+        "minLength": 0
+      },
+      "code_system": {
+        "type": "string",
+        "maxLength": 32768,
+        "const": "ICD-10-CN"
+      },
+      "catalog_status": {
+        "type": "string",
+        "maxLength": 32768,
+        "enum": [
+          "ASSIGNABLE",
+          "CATEGORY_OR_PREFIX",
+          "NOT_FOUND",
+          "INPUT_REQUIRED",
+          "CATALOG_UNAVAILABLE"
+        ]
+      },
+      "assignable": {
+        "type": "boolean"
+      },
+      "catalog_name": {
+        "type": "string",
+        "maxLength": 512,
+        "minLength": 0
+      },
+      "chapter": {
+        "type": "string",
+        "maxLength": 512,
+        "minLength": 0
+      },
+      "hierarchy": {
+        "type": "object",
+        "properties": {
+          "category_code": {
+            "type": "string",
+            "maxLength": 32,
+            "minLength": 0
+          },
+          "chapter_no": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 0
+          },
+          "children": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "maxLength": 32,
+                  "minLength": 1
+                },
+                "display": {
+                  "type": "string",
+                  "maxLength": 512,
+                  "minLength": 0
+                }
+              },
+              "required": [
+                "code",
+                "display"
+              ],
+              "additionalProperties": false
+            },
+            "maxItems": 10,
+            "minItems": 0
+          },
+          "children_truncated": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "category_code",
+          "chapter_no",
+          "children",
+          "children_truncated"
+        ],
+        "additionalProperties": false
+      },
+      "explanation_summary": {
+        "type": "string",
+        "maxLength": 1024,
+        "minLength": 1
+      },
+      "catalog_facts": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 1024,
+          "minLength": 1
+        },
+        "maxItems": 20,
+        "minItems": 0
+      },
+      "rule_content_status": {
+        "type": "string",
+        "maxLength": 32768,
+        "enum": [
+          "UNAVAILABLE_IN_GOVERNED_ASSET"
+        ],
+        "const": "UNAVAILABLE_IN_GOVERNED_ASSET"
+      },
+      "guideline_basis": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 2048,
+          "minLength": 1
+        },
+        "maxItems": 10,
+        "minItems": 1
+      },
+      "evidence_refs": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 1024,
+          "minLength": 1
+        },
+        "maxItems": 10,
+        "minItems": 0
+      },
+      "unsupported_scope": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 1024,
+          "minLength": 1
+        },
+        "maxItems": 10,
+        "minItems": 1
+      },
+      "limitations": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 2048,
+          "minLength": 1
+        },
+        "maxItems": 10,
+        "minItems": 1
+      },
+      "source_version": {
+        "type": "string",
+        "maxLength": 512,
+        "minLength": 0
+      },
+      "manual_review_required": {
+        "type": "boolean",
+        "const": true
+      }
+    },
+    "field_relations": [
+      {
+        "id": "assignable_requires_catalog_leaf",
+        "when": [
+          {
+            "path": "assignable",
+            "operator": "equals",
+            "value": true
+          }
+        ],
+        "must": [
+          {
+            "path": "catalog_status",
+            "operator": "equals",
+            "value": "ASSIGNABLE"
+          }
+        ]
+      },
+      {
+        "id": "nonassignable_statuses_are_not_assignable",
+        "when": [
+          {
+            "path": "catalog_status",
+            "operator": "in",
+            "value": [
+              "CATEGORY_OR_PREFIX",
+              "NOT_FOUND",
+              "INPUT_REQUIRED",
+              "CATALOG_UNAVAILABLE"
+            ]
+          }
+        ],
+        "must": [
+          {
+            "path": "assignable",
+            "operator": "equals",
+            "value": false
+          }
+        ]
+      },
+      {
+        "id": "missing_governed_rule_content_requires_review",
+        "when": [
+          {
+            "path": "rule_content_status",
+            "operator": "equals",
+            "value": "UNAVAILABLE_IN_GOVERNED_ASSET"
+          }
+        ],
+        "must": [
+          {
+            "path": "guideline_basis",
+            "operator": "non_empty"
+          },
+          {
+            "path": "unsupported_scope",
+            "operator": "non_empty"
+          },
+          {
+            "path": "manual_review_required",
+            "operator": "equals",
+            "value": true
+          }
+        ]
+      },
+      {
+        "id": "review_status_requires_review",
+        "when": [
+          {
+            "path": "status",
+            "operator": "equals",
+            "value": "REQUIRES_REVIEW"
+          }
+        ],
+        "must": [
+          {
+            "path": "manual_review_required",
+            "operator": "equals",
+            "value": true
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "key": "rule-explainer-v1-2",
+    "name": "规则解释智能体默认权限",
+    "description": "只读查询固定 ICD-10-CN 开发目录并解释可验证目录事实；禁止生成规则、分配编码和写回。",
+    "tools": {},
+    "no_upcoding": true,
+    "no_inference": true,
+    "evidence_required": true,
+    "production_writeback_blocked": true
+  },
+  "phi_redaction": "required",
+  "context_required": true,
+  "recorder_required": true,
+  "metrics_required": true,
+  "requirements": {
+    "min_runtime_version": "2.0.0",
+    "icoder_runtime_modules": [
+      "icoder_runtime.backends.governed_rule_explainer_provider",
+      "official_agents.rule_explainer.agent",
+      "app.services.clinical_asset_governance",
+      "app.services.icd10cn_loader"
+    ]
+  },
+  "llm_capabilities": {
+    "required_models": [],
+    "supports_tool_calling": false,
+    "supports_json_mode": true,
+    "supports_mcp_tools": false
+  },
+  "non_goals": [
+    "不分配、推荐或替换编码",
+    "不生成当前资产未收录的 Includes/Excludes、组合码、排序或其他规则",
+    "不判断编码对具体病历或就诊的临床适用性",
+    "不解释 CPT、ICD-10-CM、ICD-10-PCS、医保、DRG/DIP 或地方结算政策",
+    "不自动写回 EMR/HIS/医保系统"
+  ],
+  "human_review_required_when": [
+    "所有本地基线输出",
+    "编码不存在、是类别/前缀或目录不可用",
+    "用户请求 instructional notes、组合码、排序或支付政策",
+    "目录来源、许可或结算权威尚未取得外部证明"
+  ],
+  "default_runtime_mode": "governed_local_catalog_rule_explanation",
+  "available_runtime_modes": [
+    "governed_local_catalog_rule_explanation"
+  ],
+  "example_inputs": [
+    {
+      "text": "请解释 ICD-10-CN 编码 I50.9 的含义、是否可直接赋码，并说明当前资产能验证哪些规则。",
+      "code": "I50.9",
+      "code_system": "ICD-10-CN"
+    }
+  ],
+  "example_outputs": [
+    {
+      "status": "REQUIRES_REVIEW",
+      "code": "I50.9",
+      "code_system": "ICD-10-CN",
+      "catalog_status": "CATEGORY_OR_PREFIX",
+      "assignable": false,
+      "catalog_name": "",
+      "chapter": "第9章 循环系统疾病",
+      "hierarchy": {
+        "chapter_no": "第9章",
+        "category_code": "I50",
+        "children": [
+          {
+            "code": "I50.900",
+            "display": "心力衰竭"
+          }
+        ],
+        "children_truncated": true
+      },
+      "explanation_summary": "编码 I50.9 对应目录前缀并存在更具体条目，因此据当前开发目录不可直接赋码，也未自动选择任何替代条目。",
+      "catalog_facts": [
+        "catalog_membership=false",
+        "catalog_status=CATEGORY_OR_PREFIX",
+        "assignable_leaf=false",
+        "descendant_rows_total=19"
+      ],
+      "rule_content_status": "UNAVAILABLE_IN_GOVERNED_ASSET",
+      "guideline_basis": [
+        "当前固定开发资产未收录可验证的 Includes/Excludes、Code First、Use Additional Code、Code Also、组合码或排序规则；未生成或猜测。"
+      ],
+      "evidence_refs": [
+        "cn.icd10cn.catalog@observed-local-2026-05-19:code=I50.9",
+        "catalog_integrity_sha256_verified=true; catalog_status=CATEGORY_OR_PREFIX"
+      ],
+      "unsupported_scope": [
+        "Includes/Excludes1/Excludes2 与 instructional notes",
+        "Code First/Use Additional Code/Code Also、组合码与排序规则",
+        "CPT、ICD-10-CM、ICD-10-PCS 及中国医保、DRG/DIP、地方结算政策",
+        "编码对具体病历或就诊的临床适用性"
+      ],
+      "limitations": [
+        "目录 authority_status=source_unverified、license_status=external_review_required；本结果不是结算权威。",
+        "未调用 legacy get_guidelines 内嵌知识库，也未使用 LLM 或外部网络。",
+        "只解释目录事实；所有规则内容与就诊适用性必须由具备授权来源的编码员复核。"
+      ],
+      "source_version": "cn.icd10cn.catalog@observed-local-2026-05-19; authority=source_unverified; license=external_review_required; billing_authoritative=false",
+      "manual_review_required": true
+    }
+  ],
+  "metadata": {
+    "created_at": "2026-08-24",
+    "author": "iCoDer",
+    "corti_match": "rule-explainer-agent",
+    "audit_note": "Deterministic catalog-only baseline. Corti instructional-note and guideline parity remains an explicit external data gap."
+  },
+  "built_by": "icoder",
+  "code": {},
+  "integrity": {
+    "sha256": "dbaad7592eae9d25a662c1c4b8c99125847bf8e33fea9a51721efacf99d97fbd"
+  }
+}

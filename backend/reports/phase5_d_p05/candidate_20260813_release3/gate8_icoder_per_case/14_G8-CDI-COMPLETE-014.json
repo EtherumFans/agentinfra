@@ -1,0 +1,293 @@
+{
+  "case_id": "CASE-ea91581d6046",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-ea91581d6046/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "The diagnosis states '急性化脓性中耳炎' but the ear exam only documents '鼓膜充血膨隆' without mention of purulent discharge or other signs of suppuration, which may not support the '化脓性' specificity.",
+      "why_it_matters": "The term '化脓性' implies a specific type of otitis media with purulent effusion, which may affect coding and treatment decisions. Without explicit evidence of purulence, the diagnosis may be over-specified.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "耳镜:右耳鼓膜充血膨隆, 无穿孔。诊断:急性化脓性中耳炎(右)。",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-ea91581d6046/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "The chart does not document the severity of the acute otitis media (e.g., mild, moderate, severe) or any complications.",
+      "why_it_matters": "Severity and complications are important for coding and clinical management. Lack of documentation may lead to unspecified codes and incomplete clinical picture.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "耳痛2天, T 38.0℃。耳镜:右耳鼓膜充血膨隆, 无穿孔。",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [],
+  "query_rewrite_queue": [
+    {
+      "query_id": "Q-002",
+      "gap_id": "CASE-ea91581d6046/GAP-002",
+      "topic": "急性中耳炎严重程度及并发症",
+      "reason": "病历未记录急性中耳炎的严重程度（轻、中、重度）或并发症情况，需明确以完善诊断。",
+      "query_text": "该患者急性中耳炎的严重程度（如轻度、中度、重度）及有无并发症（如乳突炎、脑膜炎等）在病历中未明确，请提供相关信息。",
+      "response_options": [
+        "A. 轻度，无并发症",
+        "B. 中度，无并发症",
+        "C. 重度或存在并发症",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "耳痛2天, T 38.0℃。耳镜:右耳鼓膜充血膨隆, 无穿孔。",
+          "char_start": 19,
+          "char_end": 50,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-004: acute suppurative diagnosis is already explicit"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    },
+    {
+      "query_id": "Q-001",
+      "gap_id": "CASE-ea91581d6046/GAP-001",
+      "topic": "中耳炎化脓性诊断依据",
+      "reason": "耳镜检查仅描述鼓膜充血膨隆，未提及脓性分泌物或化脓征象，与诊断'急性化脓性中耳炎'的化脓性特征不完全一致，需明确是否存在化脓性依据。",
+      "query_text": "该患者右耳急性中耳炎的化脓性特征（如脓性分泌物、鼓膜膨隆伴脓液等）在耳镜检查中未明确记录，请明确是否存在化脓性依据。",
+      "response_options": [
+        "A. 存在化脓性依据（如脓性分泌物、鼓膜膨隆伴脓液等）",
+        "B. 无化脓性依据，为非化脓性中耳炎",
+        "C. 化脓性依据不明确，但临床考虑化脓性",
+        "D. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart-001",
+          "quote": "耳镜:右耳鼓膜充血膨隆, 无穿孔。诊断:急性化脓性中耳炎(右)。",
+          "char_start": 33,
+          "char_end": 65,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NLQ-001 (no_yes_no_opening): matched /(是不是|是否|是否为|能否|能不能|是不是说|是不是要|能否认为|是否可以)/ : '是否'"
+      ],
+      "status": "NEEDS_NON_LEADING_REWRITE",
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者男性, 5岁, 因急性中耳炎就诊。耳痛2天, T 38.0℃。耳镜:右耳鼓膜充血膨隆, 无穿孔。诊断:急性化脓性中耳炎(右)。予阿莫西林克拉维酸钾口服7天。3天后复诊症状缓解。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者男性，5岁",
+      "因急性中耳炎就诊",
+      "耳痛2天",
+      "体温38.0℃",
+      "耳镜检查：右耳鼓膜充血膨隆，无穿孔",
+      "诊断：急性化脓性中耳炎（右）",
+      "予阿莫西林克拉维酸钾口服7天",
+      "3天后复诊症状缓解"
+    ],
+    "encounter_metadata": {
+      "patient_age": "5岁",
+      "patient_sex": "男性",
+      "encounter_type": "门诊"
+    }
+  },
+  "risk_flags": [
+    {
+      "category": "unsupported_diagnosis",
+      "description": "The diagnosis '急性化脓性中耳炎' is asserted without explicit evidence of purulence (e.g., purulent discharge, otorrhea, or bulging with purulent effusion). The ear exam only notes erythema and bulging, which are consistent with acute otitis media but not specifically suppurative."
+    }
+  ],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "The documentation must explicitly describe purulent findings—such as otorrhea, purulent drainage, or a bulging tympanic membrane with visible pus—to support the “化脓性” (suppurative) specificity, as the current exam only notes erythema and bulging without suppuration. Additionally, specify the severity (e.g., mild, moderate, severe) and explicitly rule out or document any complications (e.g., mastoiditis, perforation, facial nerve involvement) to ensure the code reflects the true clinical picture and acuity. Without these details, the diagnosis cannot be accurately coded as acute suppurative otitis media.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3487,
+      "tokens": 329
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-0e5fca35416d",
+    "gap_identification": "run-a0669b0cf1fc",
+    "gap_identification_risk_flags": "emitted=1;quote_snapped=0",
+    "expert_consultation": "run-7861da7a10f4",
+    "query_generation": "run-6f36074f6445",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.25;dimensions=D1_type=Y,D2_site=N,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=Y;dropped=0;final_count=2;llm_complete=False;llm_reasoning=The chart lacks explicit evidence for the '化脓性' specificity and does not documen",
+    "query_necessity_gate": "necessary=1;unnecessary=1;overquery_triggered=False;final_count=1",
+    "query_single_dimension_gate": "single_dim=1;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=;rewrite_attempted=0;rewrite_accepted=0;final_count=1",
+    "claim_evidence_alignment_gate": "claims_extracted=2;blocked=0;flagged=0;final_count=1",
+    "claim_evidence_alignment_gate::run_id": "run-fe28d1af9d33",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=1",
+    "semantic_necessity_gate::run_id": "run-5eb5c94bd334",
+    "query_compliance_gate": ";passed=0;blocked=1",
+    "specialist_trace_emit": "run-6bd186234059"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-2dbf879a4d53",
+    "gap_identification": "trace-4c825ed98859",
+    "expert_consultation": "trace-f42f41613188",
+    "query_generation": "trace-d2db53198515",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-0a440f5dd0a4",
+    "semantic_necessity_gate": "trace-0b5cdcadda23",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-96eb82ca8514"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2700,
+      "prompt_tokens": 243,
+      "completion_tokens": 132,
+      "total_tokens": 375,
+      "run_id": "run-0e5fca35416d",
+      "trace_id": "trace-2dbf879a4d53",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 5852,
+      "prompt_tokens": 1099,
+      "completion_tokens": 560,
+      "total_tokens": 1659,
+      "run_id": "run-a0669b0cf1fc",
+      "trace_id": "trace-4c825ed98859",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6016,
+      "prompt_tokens": 1156,
+      "completion_tokens": 612,
+      "total_tokens": 1768,
+      "run_id": "run-6f36074f6445",
+      "trace_id": "trace-d2db53198515",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3487,
+      "prompt_tokens": 204,
+      "completion_tokens": 125,
+      "total_tokens": 329,
+      "run_id": "run-998497b9b400",
+      "trace_id": "trace-40f7e3675e0d",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-fda9f600df5e",
+      "trace_id": "trace-f69d765e82e5",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-f37c81761c18",
+      "trace_id": "trace-493c6b86a500",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-ad3c2c915612",
+      "trace_id": "trace-4e4fca9e3899",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T20:03:59.812554Z"
+}

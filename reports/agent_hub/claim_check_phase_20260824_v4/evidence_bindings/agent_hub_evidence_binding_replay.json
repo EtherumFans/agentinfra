@@ -1,0 +1,794 @@
+{
+  "schema_version": "icoder.agent-hub-evidence-binding-replay/v1",
+  "generated_at": "2026-08-24T08:21:21.879339+00:00",
+  "passed": true,
+  "binding_agents": 14,
+  "bindings": 23,
+  "adversarial_assertions": 46,
+  "detected_assertions": 46,
+  "definition_errors": [],
+  "cases": [
+    {
+      "agent": "claim-check",
+      "schema_ref": "icoder/ClaimCheckOutput/v4",
+      "binding_id": "claim_check_evidence_matches_input",
+      "case": "source_text_mismatch",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "evidence_items[].evidence_text",
+          "keyword": "evidenceBinding",
+          "expected": "claim_check_evidence_matches_input",
+          "actual": "source_text_mismatch"
+        }
+      ]
+    },
+    {
+      "agent": "claim-check",
+      "schema_ref": "icoder/ClaimCheckOutput/v4",
+      "binding_id": "claim_check_evidence_matches_input",
+      "case": "out_of_source_bounds",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "evidence_items[].char_span",
+          "keyword": "evidenceBinding",
+          "expected": "claim_check_evidence_matches_input",
+          "actual": "out_of_source_bounds"
+        }
+      ]
+    },
+    {
+      "agent": "clinical-documentation-improvement-agent",
+      "schema_ref": "icoder/CDIAgentOutputV1/v6",
+      "binding_id": "cdi_gap_evidence_matches_document",
+      "case": "source_text_mismatch",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "documentation_gaps[].evidence_span.quote",
+          "keyword": "evidenceBinding",
+          "expected": "cdi_gap_evidence_matches_document",
+          "actual": "source_text_mismatch"
+        }
+      ]
+    },
+    {
+      "agent": "clinical-documentation-improvement-agent",
+      "schema_ref": "icoder/CDIAgentOutputV1/v6",
+      "binding_id": "cdi_gap_evidence_matches_document",
+      "case": "out_of_source_bounds",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "documentation_gaps[].evidence_span.char_start",
+          "keyword": "evidenceBinding",
+          "expected": "cdi_gap_evidence_matches_document",
+          "actual": "out_of_source_bounds"
+        }
+      ]
+    },
+    {
+      "agent": "clinical-documentation-improvement-agent",
+      "schema_ref": "icoder/CDIAgentOutputV1/v6",
+      "binding_id": "cdi_query_evidence_matches_document",
+      "case": "source_text_mismatch",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "proposed_provider_queries[].evidence_span.quote",
+          "keyword": "evidenceBinding",
+          "expected": "cdi_query_evidence_matches_document",
+          "actual": "source_text_mismatch"
+        }
+      ]
+    },
+    {
+      "agent": "clinical-documentation-improvement-agent",
+      "schema_ref": "icoder/CDIAgentOutputV1/v6",
+      "binding_id": "cdi_query_evidence_matches_document",
+      "case": "out_of_source_bounds",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "proposed_provider_queries[].evidence_span.char_start",
+          "keyword": "evidenceBinding",
+          "expected": "cdi_query_evidence_matches_document",
+          "actual": "out_of_source_bounds"
+        }
+      ]
+    },
+    {
+      "agent": "diagnosis-extractor",
+      "schema_ref": "icoder/DiagnosisExtractionOutput/v7",
+      "binding_id": "diagnosis_evidence_matches_input",
+      "case": "source_text_mismatch",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "diagnoses[].evidence_text",
+          "keyword": "evidenceBinding",
+          "expected": "diagnosis_evidence_matches_input",
+          "actual": "source_text_mismatch"
+        }
+      ]
+    },
+    {
+      "agent": "diagnosis-extractor",
+      "schema_ref": "icoder/DiagnosisExtractionOutput/v7",
+      "binding_id": "diagnosis_evidence_matches_input",
+      "case": "out_of_source_bounds",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "diagnoses[].char_span",
+          "keyword": "evidenceBinding",
+          "expected": "diagnosis_evidence_matches_input",
+          "actual": "out_of_source_bounds"
+        }
+      ]
+    },
+    {
+      "agent": "diagnosis-extractor",
+      "schema_ref": "icoder/DiagnosisExtractionOutput/v7",
+      "binding_id": "noncodable_evidence_matches_input",
+      "case": "source_text_mismatch",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "non_codable_mentions[].evidence_text",
+          "keyword": "evidenceBinding",
+          "expected": "noncodable_evidence_matches_input",
+          "actual": "source_text_mismatch"
+        }
+      ]
+    },
+    {
+      "agent": "diagnosis-extractor",
+      "schema_ref": "icoder/DiagnosisExtractionOutput/v7",
+      "binding_id": "noncodable_evidence_matches_input",
+      "case": "out_of_source_bounds",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "non_codable_mentions[].char_span",
+          "keyword": "evidenceBinding",
+          "expected": "noncodable_evidence_matches_input",
+          "actual": "out_of_source_bounds"
+        }
+      ]
+    },
+    {
+      "agent": "discharge_edu",
+      "schema_ref": "icoder/DischargeEducationOutput/v3",
+      "binding_id": "discharge_education_evidence_matches_input",
+      "case": "source_text_mismatch",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "evidence_items[].evidence_text",
+          "keyword": "evidenceBinding",
+          "expected": "discharge_education_evidence_matches_input",
+          "actual": "source_text_mismatch"
+        }
+      ]
+    },
+    {
+      "agent": "discharge_edu",
+      "schema_ref": "icoder/DischargeEducationOutput/v3",
+      "binding_id": "discharge_education_evidence_matches_input",
+      "case": "out_of_source_bounds",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "evidence_items[].char_span",
+          "keyword": "evidenceBinding",
+          "expected": "discharge_education_evidence_matches_input",
+          "actual": "out_of_source_bounds"
+        }
+      ]
+    },
+    {
+      "agent": "discharge_summary_structuring",
+      "schema_ref": "icoder/DischargeSummaryStructured/v5",
+      "binding_id": "discharge_summary_evidence_matches_input",
+      "case": "source_text_mismatch",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "evidence_items[].evidence_text",
+          "keyword": "evidenceBinding",
+          "expected": "discharge_summary_evidence_matches_input",
+          "actual": "source_text_mismatch"
+        }
+      ]
+    },
+    {
+      "agent": "discharge_summary_structuring",
+      "schema_ref": "icoder/DischargeSummaryStructured/v5",
+      "binding_id": "discharge_summary_evidence_matches_input",
+      "case": "out_of_source_bounds",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "evidence_items[].char_span",
+          "keyword": "evidenceBinding",
+          "expected": "discharge_summary_evidence_matches_input",
+          "actual": "out_of_source_bounds"
+        }
+      ]
+    },
+    {
+      "agent": "evidence_extractor",
+      "schema_ref": "icoder/CodedEvidence/v11",
+      "binding_id": "located_mention_matches_input",
+      "case": "source_text_mismatch",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "located_mentions[].evidence_text",
+          "keyword": "evidenceBinding",
+          "expected": "located_mention_matches_input",
+          "actual": "source_text_mismatch"
+        }
+      ]
+    },
+    {
+      "agent": "evidence_extractor",
+      "schema_ref": "icoder/CodedEvidence/v11",
+      "binding_id": "located_mention_matches_input",
+      "case": "out_of_source_bounds",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "located_mentions[].char_span",
+          "keyword": "evidenceBinding",
+          "expected": "located_mention_matches_input",
+          "actual": "out_of_source_bounds"
+        }
+      ]
+    },
+    {
+      "agent": "icu_summary",
+      "schema_ref": "icoder/IcuSummaryOutput/v3",
+      "binding_id": "icu_summary_evidence_matches_input",
+      "case": "source_text_mismatch",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "evidence_items[].evidence_text",
+          "keyword": "evidenceBinding",
+          "expected": "icu_summary_evidence_matches_input",
+          "actual": "source_text_mismatch"
+        }
+      ]
+    },
+    {
+      "agent": "icu_summary",
+      "schema_ref": "icoder/IcuSummaryOutput/v3",
+      "binding_id": "icu_summary_evidence_matches_input",
+      "case": "out_of_source_bounds",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "evidence_items[].char_span",
+          "keyword": "evidenceBinding",
+          "expected": "icu_summary_evidence_matches_input",
+          "actual": "out_of_source_bounds"
+        }
+      ]
+    },
+    {
+      "agent": "med_reconciliation",
+      "schema_ref": "icoder/MedicationReconciliationOutput/v4",
+      "binding_id": "home_medication_evidence_matches_input",
+      "case": "source_text_mismatch",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "home_medications[].evidence_text",
+          "keyword": "evidenceBinding",
+          "expected": "home_medication_evidence_matches_input",
+          "actual": "source_text_mismatch"
+        }
+      ]
+    },
+    {
+      "agent": "med_reconciliation",
+      "schema_ref": "icoder/MedicationReconciliationOutput/v4",
+      "binding_id": "home_medication_evidence_matches_input",
+      "case": "out_of_source_bounds",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "home_medications[].char_span",
+          "keyword": "evidenceBinding",
+          "expected": "home_medication_evidence_matches_input",
+          "actual": "out_of_source_bounds"
+        }
+      ]
+    },
+    {
+      "agent": "med_reconciliation",
+      "schema_ref": "icoder/MedicationReconciliationOutput/v4",
+      "binding_id": "inpatient_medication_evidence_matches_input",
+      "case": "source_text_mismatch",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "inpatient_medications[].evidence_text",
+          "keyword": "evidenceBinding",
+          "expected": "inpatient_medication_evidence_matches_input",
+          "actual": "source_text_mismatch"
+        }
+      ]
+    },
+    {
+      "agent": "med_reconciliation",
+      "schema_ref": "icoder/MedicationReconciliationOutput/v4",
+      "binding_id": "inpatient_medication_evidence_matches_input",
+      "case": "out_of_source_bounds",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "inpatient_medications[].char_span",
+          "keyword": "evidenceBinding",
+          "expected": "inpatient_medication_evidence_matches_input",
+          "actual": "out_of_source_bounds"
+        }
+      ]
+    },
+    {
+      "agent": "med_reconciliation",
+      "schema_ref": "icoder/MedicationReconciliationOutput/v4",
+      "binding_id": "discharge_medication_evidence_matches_input",
+      "case": "source_text_mismatch",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "discharge_medications[].evidence_text",
+          "keyword": "evidenceBinding",
+          "expected": "discharge_medication_evidence_matches_input",
+          "actual": "source_text_mismatch"
+        }
+      ]
+    },
+    {
+      "agent": "med_reconciliation",
+      "schema_ref": "icoder/MedicationReconciliationOutput/v4",
+      "binding_id": "discharge_medication_evidence_matches_input",
+      "case": "out_of_source_bounds",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "discharge_medications[].char_span",
+          "keyword": "evidenceBinding",
+          "expected": "discharge_medication_evidence_matches_input",
+          "actual": "out_of_source_bounds"
+        }
+      ]
+    },
+    {
+      "agent": "med_reconciliation",
+      "schema_ref": "icoder/MedicationReconciliationOutput/v4",
+      "binding_id": "unresolved_medication_evidence_matches_input",
+      "case": "source_text_mismatch",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "unresolved_mentions[].evidence_text",
+          "keyword": "evidenceBinding",
+          "expected": "unresolved_medication_evidence_matches_input",
+          "actual": "source_text_mismatch"
+        }
+      ]
+    },
+    {
+      "agent": "med_reconciliation",
+      "schema_ref": "icoder/MedicationReconciliationOutput/v4",
+      "binding_id": "unresolved_medication_evidence_matches_input",
+      "case": "out_of_source_bounds",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "unresolved_mentions[].char_span",
+          "keyword": "evidenceBinding",
+          "expected": "unresolved_medication_evidence_matches_input",
+          "actual": "out_of_source_bounds"
+        }
+      ]
+    },
+    {
+      "agent": "medical_coding",
+      "schema_ref": "icoder/MedicalCodingAgentOutputV2/v8",
+      "binding_id": "coding_diagnosis_evidence_matches_document",
+      "case": "source_text_mismatch",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "documentation_analysis.diagnosis_evidence[].text",
+          "keyword": "evidenceBinding",
+          "expected": "coding_diagnosis_evidence_matches_document",
+          "actual": "source_text_mismatch"
+        }
+      ]
+    },
+    {
+      "agent": "medical_coding",
+      "schema_ref": "icoder/MedicalCodingAgentOutputV2/v8",
+      "binding_id": "coding_diagnosis_evidence_matches_document",
+      "case": "out_of_source_bounds",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "documentation_analysis.diagnosis_evidence[].char_start",
+          "keyword": "evidenceBinding",
+          "expected": "coding_diagnosis_evidence_matches_document",
+          "actual": "out_of_source_bounds"
+        }
+      ]
+    },
+    {
+      "agent": "medical_coding",
+      "schema_ref": "icoder/MedicalCodingAgentOutputV2/v8",
+      "binding_id": "coding_procedure_evidence_matches_document",
+      "case": "source_text_mismatch",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "documentation_analysis.procedure_evidence[].text",
+          "keyword": "evidenceBinding",
+          "expected": "coding_procedure_evidence_matches_document",
+          "actual": "source_text_mismatch"
+        }
+      ]
+    },
+    {
+      "agent": "medical_coding",
+      "schema_ref": "icoder/MedicalCodingAgentOutputV2/v8",
+      "binding_id": "coding_procedure_evidence_matches_document",
+      "case": "out_of_source_bounds",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "documentation_analysis.procedure_evidence[].char_start",
+          "keyword": "evidenceBinding",
+          "expected": "coding_procedure_evidence_matches_document",
+          "actual": "out_of_source_bounds"
+        }
+      ]
+    },
+    {
+      "agent": "medical_coding",
+      "schema_ref": "icoder/MedicalCodingAgentOutputV2/v8",
+      "binding_id": "coding_negated_evidence_matches_document",
+      "case": "source_text_mismatch",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "documentation_analysis.negated_findings[].text",
+          "keyword": "evidenceBinding",
+          "expected": "coding_negated_evidence_matches_document",
+          "actual": "source_text_mismatch"
+        }
+      ]
+    },
+    {
+      "agent": "medical_coding",
+      "schema_ref": "icoder/MedicalCodingAgentOutputV2/v8",
+      "binding_id": "coding_negated_evidence_matches_document",
+      "case": "out_of_source_bounds",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "documentation_analysis.negated_findings[].char_start",
+          "keyword": "evidenceBinding",
+          "expected": "coding_negated_evidence_matches_document",
+          "actual": "out_of_source_bounds"
+        }
+      ]
+    },
+    {
+      "agent": "medical_coding",
+      "schema_ref": "icoder/MedicalCodingAgentOutputV2/v8",
+      "binding_id": "coding_history_evidence_matches_document",
+      "case": "source_text_mismatch",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "documentation_analysis.historical_conditions[].text",
+          "keyword": "evidenceBinding",
+          "expected": "coding_history_evidence_matches_document",
+          "actual": "source_text_mismatch"
+        }
+      ]
+    },
+    {
+      "agent": "medical_coding",
+      "schema_ref": "icoder/MedicalCodingAgentOutputV2/v8",
+      "binding_id": "coding_history_evidence_matches_document",
+      "case": "out_of_source_bounds",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "documentation_analysis.historical_conditions[].char_start",
+          "keyword": "evidenceBinding",
+          "expected": "coding_history_evidence_matches_document",
+          "actual": "out_of_source_bounds"
+        }
+      ]
+    },
+    {
+      "agent": "nursing_handoff",
+      "schema_ref": "icoder/NursingHandoffOutput/v4",
+      "binding_id": "nursing_handoff_evidence_matches_input",
+      "case": "source_text_mismatch",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "evidence_items[].evidence_text",
+          "keyword": "evidenceBinding",
+          "expected": "nursing_handoff_evidence_matches_input",
+          "actual": "source_text_mismatch"
+        }
+      ]
+    },
+    {
+      "agent": "nursing_handoff",
+      "schema_ref": "icoder/NursingHandoffOutput/v4",
+      "binding_id": "nursing_handoff_evidence_matches_input",
+      "case": "out_of_source_bounds",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "evidence_items[].char_span",
+          "keyword": "evidenceBinding",
+          "expected": "nursing_handoff_evidence_matches_input",
+          "actual": "out_of_source_bounds"
+        }
+      ]
+    },
+    {
+      "agent": "principal_diagnosis_review",
+      "schema_ref": "icoder/PrincipalDxReview/v10",
+      "binding_id": "principal_candidate_evidence_matches_input",
+      "case": "source_text_mismatch",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "candidates[].evidence_text",
+          "keyword": "evidenceBinding",
+          "expected": "principal_candidate_evidence_matches_input",
+          "actual": "source_text_mismatch"
+        }
+      ]
+    },
+    {
+      "agent": "principal_diagnosis_review",
+      "schema_ref": "icoder/PrincipalDxReview/v10",
+      "binding_id": "principal_candidate_evidence_matches_input",
+      "case": "out_of_source_bounds",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "candidates[].char_span",
+          "keyword": "evidenceBinding",
+          "expected": "principal_candidate_evidence_matches_input",
+          "actual": "out_of_source_bounds"
+        }
+      ]
+    },
+    {
+      "agent": "prior_auth",
+      "schema_ref": "icoder/PriorAuthorizationOutput/v5",
+      "binding_id": "prior_authorization_evidence_matches_input",
+      "case": "source_text_mismatch",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "evidence_items[].evidence_text",
+          "keyword": "evidenceBinding",
+          "expected": "prior_authorization_evidence_matches_input",
+          "actual": "source_text_mismatch"
+        }
+      ]
+    },
+    {
+      "agent": "prior_auth",
+      "schema_ref": "icoder/PriorAuthorizationOutput/v5",
+      "binding_id": "prior_authorization_evidence_matches_input",
+      "case": "out_of_source_bounds",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "evidence_items[].char_span",
+          "keyword": "evidenceBinding",
+          "expected": "prior_authorization_evidence_matches_input",
+          "actual": "out_of_source_bounds"
+        }
+      ]
+    },
+    {
+      "agent": "procedure-extractor",
+      "schema_ref": "icoder/ProcedureCodingOutput/v8",
+      "binding_id": "procedure_evidence_matches_input",
+      "case": "source_text_mismatch",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "procedures[].evidence_text",
+          "keyword": "evidenceBinding",
+          "expected": "procedure_evidence_matches_input",
+          "actual": "source_text_mismatch"
+        }
+      ]
+    },
+    {
+      "agent": "procedure-extractor",
+      "schema_ref": "icoder/ProcedureCodingOutput/v8",
+      "binding_id": "procedure_evidence_matches_input",
+      "case": "out_of_source_bounds",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "procedures[].char_span",
+          "keyword": "evidenceBinding",
+          "expected": "procedure_evidence_matches_input",
+          "actual": "out_of_source_bounds"
+        }
+      ]
+    },
+    {
+      "agent": "procedure-extractor",
+      "schema_ref": "icoder/ProcedureCodingOutput/v8",
+      "binding_id": "nonbillable_evidence_matches_input",
+      "case": "source_text_mismatch",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "non_billable_mentions[].evidence_text",
+          "keyword": "evidenceBinding",
+          "expected": "nonbillable_evidence_matches_input",
+          "actual": "source_text_mismatch"
+        }
+      ]
+    },
+    {
+      "agent": "procedure-extractor",
+      "schema_ref": "icoder/ProcedureCodingOutput/v8",
+      "binding_id": "nonbillable_evidence_matches_input",
+      "case": "out_of_source_bounds",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "non_billable_mentions[].char_span",
+          "keyword": "evidenceBinding",
+          "expected": "nonbillable_evidence_matches_input",
+          "actual": "out_of_source_bounds"
+        }
+      ]
+    },
+    {
+      "agent": "referral_gen",
+      "schema_ref": "icoder/ReferralOutput/v3",
+      "binding_id": "referral_evidence_matches_input",
+      "case": "source_text_mismatch",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "evidence_items[].evidence_text",
+          "keyword": "evidenceBinding",
+          "expected": "referral_evidence_matches_input",
+          "actual": "source_text_mismatch"
+        }
+      ]
+    },
+    {
+      "agent": "referral_gen",
+      "schema_ref": "icoder/ReferralOutput/v3",
+      "binding_id": "referral_evidence_matches_input",
+      "case": "out_of_source_bounds",
+      "schema_valid": true,
+      "baseline_valid": true,
+      "detected": true,
+      "violations": [
+        {
+          "path": "evidence_items[].char_span",
+          "keyword": "evidenceBinding",
+          "expected": "referral_evidence_matches_input",
+          "actual": "out_of_source_bounds"
+        }
+      ]
+    }
+  ]
+}

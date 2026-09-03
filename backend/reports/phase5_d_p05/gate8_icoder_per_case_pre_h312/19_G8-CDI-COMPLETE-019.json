@@ -1,0 +1,286 @@
+{
+  "case_id": "CASE-263a6006f202",
+  "completion_state": "REVIEW_REQUIRED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-263a6006f202/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "高血压病程未明确具体年份，仅描述为10年，但未说明是否持续或间断，以及血压控制情况的历史变化。",
+      "why_it_matters": "高血压的病程长短和既往控制情况对评估心血管风险和治疗方案调整有重要意义，缺乏此信息可能影响风险分层和编码准确性。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "高血压10年"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-263a6006f202/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "未记录高血压的家族史、生活方式因素（如吸烟、饮酒、饮食、运动）以及既往并发症史（如卒中、冠心病、肾病等）。",
+      "why_it_matters": "这些信息是评估高血压患者整体心血管风险和制定个体化治疗计划的关键，缺失可能导致风险低估或治疗不足。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "患者男性, 65岁, 高血压10年, 缬沙坦 80mg qd 治疗。BP 132/82。心超:左室射血分数 65%, 室壁运动正常, 无左室肥厚。心电图:窦性心律。诊断:原发性高血压1级(控制良好), 无靶器官损害。"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-263a6006f202/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "未记录患者是否进行过动态血压监测或家庭血压监测，以确认诊室外血压控制情况。",
+      "why_it_matters": "诊室血压正常不代表全天血压控制良好，白大衣高血压或隐匿性高血压可能影响诊断和治疗决策。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "BP 132/82"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-263a6006f202/GAP-004",
+      "gap_type": "diagnostic_specificity",
+      "description": "未记录肾功能相关检查结果（如血肌酐、eGFR、尿蛋白等），以确认无肾脏靶器官损害。",
+      "why_it_matters": "高血压常导致肾脏损害，缺乏肾功能评估无法完全排除靶器官损害，影响诊断的完整性和编码的准确性。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "无靶器官损害"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-263a6006f202/GAP-005",
+      "gap_type": "diagnostic_specificity",
+      "description": "未记录眼底检查结果，以排除高血压视网膜病变。",
+      "why_it_matters": "视网膜病变是高血压靶器官损害的常见表现，缺乏眼底检查可能遗漏早期损害，影响风险分层。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "无靶器官损害"
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-263a6006f202/GAP-006",
+      "gap_type": "diagnostic_specificity",
+      "description": "未记录患者是否进行过血脂、血糖等心血管危险因素筛查。",
+      "why_it_matters": "高血压患者常合并其他心血管危险因素，如高脂血症、糖尿病，这些因素共同影响风险和治疗策略，缺失可能导致综合管理不足。",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "诊断:原发性高血压1级(控制良好), 无靶器官损害"
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-263a6006f202/Q-001",
+      "gap_id": "CASE-263a6006f202/GAP-001",
+      "topic": "高血压病程详情",
+      "reason": "病历中仅描述高血压10年，但未明确病程是否持续、血压控制情况的历史变化。",
+      "evidence_span": {
+        "document_id": "chart",
+        "quote": "高血压10年"
+      },
+      "query_text": "请描述患者高血压的病程特点：",
+      "response_options": [
+        "A. 持续10年，血压控制良好",
+        "B. 持续10年，血压控制不佳",
+        "C. 间断性高血压，具体不详",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine"
+    }
+  ],
+  "chart_excerpt_preview": "患者男性, 65岁, 高血压10年, 缬沙坦 80mg qd 治疗。BP 132/82。心超:左室射血分数 65%, 室壁运动正常, 无左室肥厚。心电图:窦性心律。诊断:原发性高血压1级(控制良好), 无靶器官损害。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "男性, 65岁",
+      "高血压10年",
+      "缬沙坦 80mg qd 治疗",
+      "BP 132/82",
+      "心超:左室射血分数 65%, 室壁运动正常, 无左室肥厚",
+      "心电图:窦性心律",
+      "诊断:原发性高血压1级(控制良好), 无靶器官损害"
+    ],
+    "encounter_metadata": {
+      "patient_age": "65",
+      "patient_sex": "男",
+      "encounter_type": "门诊"
+    }
+  },
+  "risk_flags": [],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "The chart lacks documentation of the specific duration and pattern of hypertension (continuous vs. intermittent) and historical blood pressure control trends, which are essential for staging disease severity. Additionally, missing details on family history, lifestyle factors, prior complications, and out-of-office blood pressure monitoring (e.g., ambulatory or home monitoring) limit the ability to confirm sustained control and assess overall cardiovascular risk. To ensure accurate coding, the clinical record should explicitly state the absence or presence of target organ damage through documented renal function tests, urinalysis, and fundoscopic findings.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3556,
+      "tokens": 374
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-daae9ff55409",
+    "gap_identification": "run-64228ea8701a",
+    "expert_consultation": "run-8418f5d8576c",
+    "query_generation": "run-1a0ef0edb463",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=N,D3_severity=Y,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=6",
+    "query_necessity_gate": "necessary=6;unnecessary=0;overquery_triggered=True;final_count=6",
+    "query_single_dimension_gate": "single_dim=6;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=course;final_count=6",
+    "claim_evidence_alignment_gate": "claims_extracted=24;blocked=5;flagged=0;final_count=1",
+    "claim_evidence_alignment_gate::run_id": "run-6b60e0cc08a7",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=1;final_count=1",
+    "semantic_necessity_gate::run_id": "run-95d41c6df64e",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "run-274bd4a50566"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-8453f5b6ac5c",
+    "gap_identification": "trace-35be18cdd2c5",
+    "expert_consultation": "trace-0c377c347394",
+    "query_generation": "trace-a28ad91dadcf",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-3dc8b30e91fc",
+    "semantic_necessity_gate": "trace-e1f2de2b6df5",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-231ceae25377"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2629,
+      "prompt_tokens": 248,
+      "completion_tokens": 134,
+      "total_tokens": 382,
+      "run_id": "run-daae9ff55409",
+      "trace_id": "trace-8453f5b6ac5c",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 8180,
+      "prompt_tokens": 392,
+      "completion_tokens": 882,
+      "total_tokens": 1274,
+      "run_id": "run-64228ea8701a",
+      "trace_id": "trace-35be18cdd2c5",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 7503,
+      "prompt_tokens": 860,
+      "completion_tokens": 998,
+      "total_tokens": 1858,
+      "run_id": "run-1a0ef0edb463",
+      "trace_id": "trace-a28ad91dadcf",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3556,
+      "prompt_tokens": 263,
+      "completion_tokens": 111,
+      "total_tokens": 374,
+      "run_id": "run-a2b7972b892b",
+      "trace_id": "trace-d0addcd20fe9",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-ca4868722185",
+      "trace_id": "trace-8606605a3471",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-d67a700c9593",
+      "trace_id": "trace-441bf7e2dbfa",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-b40bbe798b50",
+      "trace_id": "trace-021d18cfe19d",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-07-12T13:26:55.015622Z"
+}

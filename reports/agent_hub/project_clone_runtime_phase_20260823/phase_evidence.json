@@ -1,0 +1,150 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-08-23T14:33:00+08:00",
+  "phase": "agent_hub_project_clone_runtime",
+  "scope": "development_environment_only",
+  "verdict": "development_capability_gates_passed_with_full_suite_environment_teardown_warning_and_external_semantic_gaps",
+  "runtime_chain": {
+    "scenario": "Hub Clone -> Connector create -> Connector Graph configure -> project A2A -> Provider -> Trace/Run/Connector audit",
+    "test": "backend/tests/integration/icoder/test_project_clone_runtime_e2e.py::test_project_clone_connector_graph_executes_over_a2a_with_one_audit_chain",
+    "proved": [
+      "project_agent_id remains the public and audit identity",
+      "source_runtime_agent_id selects the immutable source Pack runtime",
+      "server-governed Connector output is redacted and injected as untrusted data",
+      "unselected DataPart fields do not reach the Connector",
+      "A2A response, Trace, RunHistory and ConnectorExecutionAudit share one run_id",
+      "tenant ownership remains org_default1"
+    ]
+  },
+  "verification": {
+    "project_clone_e2e": {
+      "result": "passed",
+      "passed": 13,
+      "failed": 0,
+      "duration_seconds": 37.30,
+      "coverage": [
+        "Connector Graph to A2A to Provider to Trace/Run/Audit",
+        "Medical Coding dedicated project policy to runtime to project attestation and Trace",
+        "CDI dedicated project policy to LLM to project attestation and Trace",
+        "external A2A JSON cannot spoof dedicated project policy"
+      ]
+    },
+    "focused_dedicated_trace_offline_regression": {
+      "result": "passed",
+      "passed": 214,
+      "failed": 0,
+      "working_directory": "backend"
+    },
+    "full_backend_default_safe": {
+      "result": "business_assertions_passed_with_environment_teardown_error",
+      "passed": 5224,
+      "skipped": 20,
+      "deselected": 11,
+      "failed": 0,
+      "errors": 1,
+      "duration_seconds": 2154.44,
+      "error": "SQLite Base.metadata.drop_all teardown reported database or disk is full while E: had approximately 73 MB free",
+      "isolated_recheck": "The same test and teardown subsequently passed 1/1 in 3.78 seconds",
+      "required_follow_up": "Free at least 1-2 GB on E: and rerun the complete suite before treating this gate as fully green"
+    },
+    "native_guard_and_deployment_contract": {
+      "result": "passed",
+      "passed": 5,
+      "failed": 0
+    },
+    "openapi_export_check": {
+      "result": "passed",
+      "artifact": "docs/openapi/openapi.json"
+    },
+    "python_sdk": {
+      "result": "passed",
+      "passed": 55,
+      "failed": 0
+    },
+    "typescript_sdk": {
+      "result": "passed",
+      "passed": 54,
+      "failed": 0,
+      "build": "passed"
+    },
+    "dotnet_sdk": {
+      "result": "not_executed",
+      "reason": "dotnet executable is unavailable on this development host",
+      "static_clone_contract": "implemented",
+      "required_gate": "CI or a host with the matching .NET SDK must build and run ClientContractTests"
+    },
+    "frontend": {
+      "result": "passed",
+      "test_files": 23,
+      "passed": 142,
+      "failed": 0,
+      "production_build": "passed",
+      "warnings": "existing Vite dynamic/static import chunk notices only"
+    },
+    "runtime_matrix": {
+      "artifact": "reports/agent_hub/project_clone_runtime_phase_20260823/runtime-matrix/agent_hub_runtime_matrix.json",
+      "disk_packs": 32,
+      "hub_visible": 26,
+      "visible_executable": 26,
+      "visible_provider_resolvable": 26,
+      "visible_launch_candidate_ready": 26,
+      "provider_registry_routes": 21,
+      "dedicated_routes": 5,
+      "local_baseline_available": 6,
+      "offline_safe_fail_closed_expected": 20,
+      "semantic_live_e2e_verified": 0,
+      "production_ready_verified": 0
+    },
+    "deployment_preflight": {
+      "artifact": "reports/agent_hub/project_clone_runtime_phase_20260823/preflight/deployment_preflight.json",
+      "mode": "static_without_docker_cli",
+      "passed": true,
+      "checks": 81,
+      "failed_checks": 0
+    }
+  },
+  "dedicated_project_customization": {
+    "runtimes": [
+      "Medical Coding",
+      "Clinical Documentation Improvement"
+    ],
+    "system_prompt_mode": "additive_project_policy",
+    "expert_binding_mode": "immutable_source_graph_plus_additive_published_tenant_experts",
+    "integrity": "SHA-256 digest is mandatory when policy instructions exist; mismatch fails closed",
+    "privacy": "Trace and Agent Card expose no prompt or Expert content",
+    "boundary": "Only an in-process DedicatedProjectPolicy object constructed by the tenant clone dispatcher is honored; client JSON dictionaries are ignored",
+    "management_contract": "Agent detail and UI separate locked source Experts from editable project Experts; empty source graph removal is rejected"
+  },
+  "windows_runtime_findings": {
+    "unsafe_exact_builds_on_host": [
+      "pyarrow 24.0.0",
+      "torch 2.11.0 with sentence-transformers 3.2.1"
+    ],
+    "guard": "backend/app/native_import_guard.py installs before application modules and fails closed unless an explicit unsafe override is set",
+    "pytest_crash_root_cause_in_this_phase": "Unix backslash line continuation was used in PowerShell, causing pytest to collect E:\\ and import unrelated native ML modules",
+    "uvicorn_minus_one_conclusion": "The 2026-08-21 uvicorn -1 exit remains unattributed; its preceding Trace request returned 200. A separate 2026-08-23 Windows Error Reporting event proves python.exe crashed in pyarrow\\arrow.dll with 0xc0000005, but the timestamp mismatch prevents attributing the earlier uvicorn exit to it.",
+    "full_suite_environment_error": "The latest complete suite reached 100% with 5224 passed and no assertion failures, then one SQLite drop_all teardown reported database or disk is full while E: had approximately 73 MB free; isolated recheck passed."
+  },
+  "safety": {
+    "llm_provider": "mock",
+    "external_llm_allowed": false,
+    "real_llm_key_used": false,
+    "credential_environment_lengths": {
+      "ICODER_CREDENTIAL_LLM": 0,
+      "DEEPSEEK_API_KEY": 0
+    },
+    "protected_database": "backend/data/icoder.db",
+    "protected_database_sha256": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e",
+    "ports_8000_18022_listening_after_tests": false,
+    "corti_console_used_in_phase": false
+  },
+  "open_gaps": [
+    "0 of 26 visible Agents have semantic live E2E evidence in the current runtime matrix",
+    "0 of 26 visible Agents are production-ready verified",
+    "full custom Expert lifecycle with tenant-created MCP Expert parity is not proven",
+    "Corti-equivalent arbitrary custom logic and workflow-authoring UX is not implemented beyond the governed Connector Graph",
+    ".NET SDK was not built or tested locally",
+    "real Chinese hospital datasets, ICD/医保/DRG/DIP authority validation and clinical acceptance remain external",
+    "production cloud, PostgreSQL multi-worker, GPU, capacity, SLA, legal, regulatory and independent security gates remain external"
+  ]
+}

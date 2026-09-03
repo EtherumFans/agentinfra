@@ -19,6 +19,7 @@ Configuration via environment variables (fallback to app config):
 from __future__ import annotations
 
 import asyncio
+from functools import lru_cache
 import json
 import logging
 import os
@@ -27,13 +28,14 @@ from typing import Any
 
 from official_agents.medical_coding.schema import (
     CodingEngineAdapter, MedicalCodingOutputSchema,
-    DiagnosisEntry, ProcedureEntry, CodingIssue,
+    CodingIssue, DiagnosisEntry, ProcedureEntry,
 )
 from .dictionary_rag import (
     lookup_candidate_codes,
     format_candidates_block,
     _extract_user_text,
 )
+from .project_policy import apply_medical_coding_project_policy
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +55,7 @@ CODING_SYSTEM_PROMPT = """你是中国医院病案编码审核助手。你必须
 {
   "review_conclusion": "PASS" | "WARNING" | "FAIL",
   "primary_diagnosis": {
-    "code": "ICD-10 code, e.g. I21.0",
+    "code": "完整 ICD-10-CN code, e.g. I21.100",
     "description": "Chinese diagnosis name",
     "confidence": 0.0-1.0,
     "category": "principal",
@@ -61,7 +63,7 @@ CODING_SYSTEM_PROMPT = """你是中国医院病案编码审核助手。你必须
   },
   "secondary_diagnoses": [
     {
-      "code": "ICD-10 code",
+      "code": "完整 ICD-10-CN code",
       "description": "Chinese diagnosis name",
       "confidence": 0.0-1.0,
       "category": "comorbidity" | "complication" | "secondary",
@@ -70,7 +72,7 @@ CODING_SYSTEM_PROMPT = """你是中国医院病案编码审核助手。你必须
   ],
   "procedures": [
     {
-      "code": "ICD-9-CM-3 code, e.g. 00.66",
+      "code": "完整 ICD-9-CM-3 code, e.g. 36.0601",
       "description": "Chinese procedure name",
       "confidence": 0.0-1.0,
       "category": "principal" | "secondary" | "diagnostic" | "therapeutic",
@@ -93,23 +95,39 @@ CODING_SYSTEM_PROMPT = """你是中国医院病案编码审核助手。你必须
 }
 
 编码规则：
-- ICD-10 编码格式：字母 + 2位数字 + 可选小数点 + 1-4位数字，如 I21.0、J44.9
-- ICD-9-CM-3 手术编码格式：2位数字 + 小数点 + 1-4位数字，如 00.66、39.95
+- 只能输出受控候选目录中的完整编码字符串，必须原样保留大小写、x 占位位和所有尾码，不得缩写或自行补位
+- ICD-10-CN 示例：I21.100、S22.000x003；ICD-9-CM-3 示例：36.0601、47.0100
 - primary_diagnosis 只有一个（主要诊断）
 - 次要诊断可以有多个
 - evidence 必须从病历原文中引用，不得自己编造
 
 编码精度要求（重要）：
-- 优先使用最高精度的子类编码（4位或5位），避免使用 .9（未特指）编码
-- 如果病历明确描述了疾病的具体类型、部位、病因、分期或并发症，必须选择对应的精准编码
-- 示例：心衰有明确"充血性"描述 → I50.0 而非 I50.9
-- 示例：房颤明确"阵发性" → I48.0 而非 I48.9
-- 示例：哮喘明确"过敏性" → J45.0 而非 J45.9
-- 示例：糖尿病明确"周围神经病变" → E11.4 而非 E11.9
-- 示例：骨关节炎明确"原发性双侧膝" → M17.0 而非 M17.9
-- 示例：骨质疏松症 + 椎体压缩骨折 + 高龄 → M80.0 而非 M48.56
-- 只在确实无法从病历中确定具体类型时，才使用 .8（其他特指）或 .9（未特指）
-- 对于存在组合编码的情况，优先使用组合编码而非多个独立编码"""
+- 仅在病历明确描述具体类型、部位、病因、分期或并发症时选择对应子码；不得为了“更精确”而推断未记录事实
+- 病历只支持未特指诊断时，允许且应当使用目录中的未特指编码
+- 具体类型（如充血性心衰、阵发性房颤、过敏性哮喘、糖尿病周围神经病变）只能在原文明确记载且候选目录提供完整子码时编码
+- 示例：只有病历明确记载“骨质疏松性/病理性骨折”或明确因果关系时才可使用 M80 组合编码；骨质疏松与骨折并存不得自动推断因果
+- 组合编码同样要求病历明确支持其因果关系，不得仅因两个诊断同时出现就合并"""
+
+
+@lru_cache(maxsize=1)
+def _governed_catalog_maps() -> tuple[dict[str, str], dict[str, str]]:
+    """Return case-insensitive maps to canonical governed catalog codes."""
+
+    try:
+        from data.code_dicts.icd_data import ICD10_CN_CODES, ICD9_CM3_CODES
+    except Exception:
+        return {}, {}
+    diagnosis = {
+        str(code).strip().upper(): str(code).strip()
+        for code, _name, _group in ICD10_CN_CODES
+        if str(code).strip()
+    }
+    procedures = {
+        str(code).strip().upper(): str(code).strip()
+        for code, _name, _group in ICD9_CM3_CODES
+        if str(code).strip()
+    }
+    return diagnosis, procedures
 
 
 # ── DeepSeekCodingAdapter ──
@@ -154,7 +172,12 @@ class DeepSeekCodingAdapter(CodingEngineAdapter):
             "ICODER_DEEPSEEK_REQUIRE_STRUCTURED_OUTPUT", "true"
         ).lower() == "true"
 
-    async def _build_prompt_with_candidates(self, base_prompt: str, encounter_text: str) -> str:
+    async def _build_prompt_with_candidates(
+        self,
+        base_prompt: str,
+        encounter_text: str,
+        coding_systems: set[str] | None = None,
+    ) -> str:
         """Inject ICD-10 candidate codes (RAG) into the system prompt.
 
         If RAG fails or returns no candidates, the base prompt is returned
@@ -163,7 +186,11 @@ class DeepSeekCodingAdapter(CodingEngineAdapter):
         if not encounter_text:
             return base_prompt
         try:
-            candidates = await lookup_candidate_codes(encounter_text, max_total=8)
+            candidates = await lookup_candidate_codes(
+                encounter_text,
+                max_total=12,
+                coding_systems=coding_systems,
+            )
         except Exception as e:
             logger.warning(f"DeepSeekCodingAdapter: RAG lookup failed: {e}")
             return base_prompt
@@ -186,52 +213,225 @@ class DeepSeekCodingAdapter(CodingEngineAdapter):
 
         # RAG: inject candidate ICD-10 codes from dictionary lookup
         encounter_text = _extract_user_text(messages)
-        system_prompt = await self._build_prompt_with_candidates(CODING_SYSTEM_PROMPT, encounter_text)
+        requested_systems = set((context or {}).get("coding_systems") or [])
+        system_prompt = await self._build_prompt_with_candidates(
+            CODING_SYSTEM_PROMPT,
+            encounter_text,
+            requested_systems,
+        )
+        system_prompt = apply_medical_coding_project_policy(
+            system_prompt,
+            str((context or {}).get("project_policy") or ""),
+        )
+        if requested_systems == {"icd10cn"}:
+            system_prompt += (
+                "\n\n本次仅请求 ICD-10-CN 诊断编码。必须将 procedures 设为空数组，"
+                "不得返回 ICD-9-CM-3 手术或操作编码。"
+            )
+        elif requested_systems == {"icd9cm3"}:
+            system_prompt += (
+                "\n\n本次仅请求 ICD-9-CM-3 手术与操作编码。必须将 primary_diagnosis "
+                "设为空对象、secondary_diagnoses 设为空数组，只在 procedures 返回编码。"
+            )
+        elif requested_systems == {"icd10cn", "icd9cm3"}:
+            system_prompt += (
+                "\n\n本次同时请求 ICD-10-CN 诊断和 ICD-9-CM-3 手术操作编码，"
+                "分别填入诊断字段与 procedures。"
+            )
         full_messages = [{"role": "system", "content": system_prompt}] + list(messages)
 
         last_error = None
-        for attempt in range(self._max_retries + 1):
+        provider_failures = 0
+        structured_retry_used = False
+        while True:
             try:
                 result = await self._gateway.generate(
                     full_messages,
                     provider="deepseek",
                 )
-                return self._parse_response(result)
+                schema = self._parse_response(result)
+                invalid_response = (
+                    not bool(getattr(schema, "is_mock", False))
+                    and getattr(schema, "degraded_reason", "") == "invalid_response"
+                )
+                if invalid_response and not structured_retry_used:
+                    structured_retry_used = True
+                    full_messages = [
+                        {
+                            "role": "system",
+                            "content": (
+                                system_prompt
+                                + "\n\nThe prior response did not satisfy the JSON contract. "
+                                "Return exactly one valid JSON object matching the schema; "
+                                "do not add markdown or prose."
+                            ),
+                        },
+                        *list(messages),
+                    ]
+                    logger.warning(
+                        "DeepSeekCodingAdapter: invalid structured output; "
+                        "performing one bounded repair retry"
+                    )
+                    continue
+                return self._enforce_governed_catalog(schema)
             except Exception as e:
                 last_error = e
-                logger.warning(f"DeepSeekCodingAdapter attempt {attempt + 1}/{self._max_retries + 1} failed: {e}")
-                if attempt < self._max_retries:
-                    await asyncio.sleep(1 * (attempt + 1))  # backoff
+                provider_failures += 1
+                logger.warning(
+                    "DeepSeekCodingAdapter provider attempt %s/%s failed: type=%s",
+                    provider_failures,
+                    self._max_retries + 1,
+                    type(e).__name__,
+                )
+                if provider_failures <= self._max_retries:
+                    await asyncio.sleep(provider_failures)  # bounded backoff
+                    continue
+                break
 
-        # All retries exhausted — try repair from raw text
-        logger.error(f"DeepSeekCodingAdapter: all {self._max_retries + 1} attempts failed: {last_error}")
-        return self._error_schema(f"DeepSeek V4 call failed after {self._max_retries + 1} attempts: {last_error}")
+        logger.error(
+            "DeepSeekCodingAdapter: provider retries exhausted: attempts=%s type=%s",
+            provider_failures,
+            type(last_error).__name__ if last_error is not None else "unknown",
+        )
+        return self._error_schema("provider_call_failed")
 
     def _parse_response(self, result: dict) -> MedicalCodingOutputSchema:
-        """Parse DeepSeek response into MedicalCodingOutputSchema. Includes JSON repair."""
+        """Parse DeepSeek response into MedicalCodingOutputSchema. Includes JSON repair.
+
+        B-003 layer 2: propagate the LLM gateway's ``degraded`` / ``is_mock``
+        flags onto the schema. Previously the gateway's mock fallback envelope
+        (no_api_key / provider_http_4xx / network_error / 429_503 / circuit_open)
+        was parsed into a real-looking schema with ``is_mock=False``, which then
+        tripped a false-success cascade through CodingResult → AgentRunResponse →
+        frontend "通过" badge. Per Charter §二十六.24 ZERO TOLERANCE for
+        false-success UI, the mock envelope MUST be visible end-to-end.
+        """
         content = result.get("content", "")
+        # Gateway-side mock markers (see LLMGateway._mock_fallback_response).
+        gateway_mock = bool(result.get("degraded") or result.get("is_mock"))
+        gateway_reason = result.get("degraded_reason", "")
 
         # Try direct JSON parse
         data = self._extract_json(content)
         if data:
-            return MedicalCodingOutputSchema.from_dict(
+            schema = MedicalCodingOutputSchema.from_dict(
                 data,
                 provider="deepseek_coding_adapter",
-                is_mock=False,
+                is_mock=gateway_mock,
             )
+            return self._attach_gateway_accounting(schema, result)
 
         # Try JSON repair — fix common LLM output issues
         repaired = self._repair_json(content)
         if repaired:
             logger.warning("DeepSeekCodingAdapter: JSON repaired after initial parse failure")
-            return MedicalCodingOutputSchema.from_dict(
+            schema = MedicalCodingOutputSchema.from_dict(
                 repaired,
                 provider="deepseek_coding_adapter",
-                is_mock=False,
+                is_mock=gateway_mock,
             )
+            return self._attach_gateway_accounting(schema, result)
 
-        logger.error(f"DeepSeekCodingAdapter: failed to parse response: {content[:200]}")
-        return self._error_schema("Failed to parse DeepSeek response as JSON")
+        logger.error(
+            "DeepSeekCodingAdapter: failed to parse structured response: length=%s",
+            len(content) if isinstance(content, str) else 0,
+        )
+        schema = self._error_schema(
+            "Failed to parse DeepSeek response as JSON",
+            is_mock=gateway_mock,
+            degraded_reason=gateway_reason,
+        )
+        if not gateway_mock:
+            schema.degraded_reason = "invalid_response"
+        return schema
+
+    @staticmethod
+    def _enforce_governed_catalog(
+        schema: MedicalCodingOutputSchema,
+    ) -> MedicalCodingOutputSchema:
+        """Canonicalize catalog codes and withhold every directory miss.
+
+        The model is a candidate generator, never the source of truth for a
+        billable code.  Exact catalog membership is therefore a publication
+        boundary, not a warning-only validation rule.
+        """
+
+        diagnosis_catalog, procedure_catalog = _governed_catalog_maps()
+        withheld: list[tuple[str, str]] = []
+
+        def canonical(code: str, catalog: dict[str, str], kind: str) -> str:
+            raw = str(code or "").strip()
+            if not raw:
+                return ""
+            value = catalog.get(raw.upper())
+            if value is None:
+                withheld.append((kind, raw))
+                return ""
+            return value
+
+        primary = schema.primary_diagnosis
+        primary_code = canonical(primary.code, diagnosis_catalog, "diagnosis")
+        if primary.code and not primary_code:
+            schema.primary_diagnosis = DiagnosisEntry(category="principal")
+        else:
+            primary.code = primary_code
+
+        retained_diagnoses = []
+        for diagnosis in schema.secondary_diagnoses:
+            diagnosis_code = canonical(
+                diagnosis.code, diagnosis_catalog, "diagnosis"
+            )
+            if not diagnosis_code:
+                continue
+            diagnosis.code = diagnosis_code
+            retained_diagnoses.append(diagnosis)
+        schema.secondary_diagnoses = retained_diagnoses
+
+        retained_procedures = []
+        for procedure in schema.procedures:
+            procedure_code = canonical(
+                procedure.code, procedure_catalog, "procedure"
+            )
+            if not procedure_code:
+                continue
+            procedure.code = procedure_code
+            retained_procedures.append(procedure)
+        schema.procedures = retained_procedures
+
+        if withheld:
+            for kind, code in withheld:
+                schema.issues_found.append(CodingIssue(
+                    severity="high",
+                    code="CATALOG_CODE_WITHHELD",
+                    message=(
+                        f"The proposed {kind} code {code} is absent from the "
+                        "governed local catalog and was withheld."
+                    ),
+                    suggestion=(
+                        "Select an exact code from the approved ICD-10-CN or "
+                        "ICD-9-CM-3 catalog and retain source evidence."
+                    ),
+                ))
+            schema.manual_review_required = True
+            if str(schema.review_conclusion).upper() == "PASS":
+                schema.review_conclusion = "WARNING"
+        return schema
+
+    @staticmethod
+    def _attach_gateway_accounting(
+        schema: MedicalCodingOutputSchema,
+        result: dict,
+    ) -> MedicalCodingOutputSchema:
+        """Preserve provider-reported usage without mutable adapter state."""
+
+        usage = result.get("usage") if isinstance(result, dict) else None
+        if isinstance(usage, dict):
+            schema.token_usage = {
+                "input_tokens": int(usage.get("input_tokens", 0) or 0),
+                "output_tokens": int(usage.get("output_tokens", 0) or 0),
+            }
+        schema.cost_usd = max(float(result.get("cost_usd", 0.0) or 0.0), 0.0)
+        return schema
 
     def _extract_json(self, text: str) -> dict | None:
         """Extract JSON object from text (handles markdown code blocks)."""
@@ -302,18 +502,46 @@ class DeepSeekCodingAdapter(CodingEngineAdapter):
         except json.JSONDecodeError:
             return None
 
-    def _error_schema(self, message: str) -> MedicalCodingOutputSchema:
-        """Return an error schema when inference fails."""
-        schema = MedicalCodingOutputSchema.mock_result()
-        schema.review_conclusion = "FAIL"
-        schema.issues_found = [
-            CodingIssue(severity="critical", code="DS001",
-                        message=f"DeepSeekCodingAdapter 错误: {message}",
-                        suggestion="请检查 DeepSeek API 配置或切换到其他 coding mode")
-        ]
-        schema.manual_review_required = True
-        schema.confidence = 0.0
-        schema.notes = f"DeepSeek inference failed: {message}"
+    def _error_schema(
+        self,
+        message: str,
+        *,
+        is_mock: bool = False,
+        degraded_reason: str = "",
+    ) -> MedicalCodingOutputSchema:
+        """Return an error schema when inference fails.
+
+        B-003 layer 2b: ``is_mock`` / ``degraded_reason`` kwargs let callers
+        that received a gateway-side mock envelope propagate the marker onto
+        the error schema, so downstream consumers (FastCodingRuntime /
+        MedCoderRuntime) can short-circuit on ``schema.is_mock``.
+        """
+        schema = MedicalCodingOutputSchema.failure_result(
+            self.name,
+            reason=degraded_reason or "deepseek_inference_failed",
+            issue_code="DS001",
+        )
+        if is_mock:
+            # Preserve the gateway-side mock marker + reason so downstream
+            # runtimes can branch on schema.is_mock without re-reading the
+            # gateway envelope.
+            schema.is_mock = True
+            schema.degraded_reason = degraded_reason or "mock_provider"
+            schema.notes = (
+                "[DeepSeek degraded] "
+                f"reason={schema.degraded_reason}; no clinical result was produced."
+            )
+        else:
+            # Reset is_mock=False to override mock_result()'s default True,
+            # so legitimate DeepSeek failures (HTTP 5xx after retries, parse
+            # failure on a real LLM response, etc.) do NOT trigger the
+            # B-003 layer 4 short-circuit. Only gateway-side mock envelopes
+            # should short-circuit; real-call failures go through the normal
+            # error path (FastCodingRuntime returns error_reason="llm_call_failed"
+            # or "schema_returned_error").
+            schema.is_mock = False
+            schema.degraded_reason = ""
+            schema.notes = "DeepSeek inference failed; no clinical result was produced."
         return schema
 
     @property

@@ -1,0 +1,86 @@
+{
+  "schema_version": "icoder.governed-procedure-extractor-phase/v1",
+  "date": "2026-08-24",
+  "status": "development_verified",
+  "agent": {
+    "agent_id": "procedure-extractor",
+    "agent_ref": "icoder/procedure-extractor@1.1.0",
+    "backend_provider": "icoder.governed-procedure-extractor.v1",
+    "output_contract": "icoder/ProcedureCodingOutput/v8",
+    "pack_sha256": "7ca0f0e8986f33241fa7746f7f9a1a9671d6dd220e0259ba6d1b766fb880971f"
+  },
+  "runtime_matrix": {
+    "visible_agents": 26,
+    "local_baseline_agents": 8,
+    "external_model_agents": 18,
+    "strict_26_agent_live_provider_verified": 0,
+    "production_ready_verified": 0,
+    "local_gate_does_not_satisfy_full_gate": true
+  },
+  "procedure_semantics": {
+    "explicit_source_span_required": true,
+    "performed_only_in_procedures": true,
+    "nonbillable_statuses": ["planned", "historical", "cancelled", "negated", "unknown"],
+    "unique_catalog_match_required_for_generated_code": true,
+    "unmapped_performed_procedure_preserved_with_empty_code": true,
+    "clinical_appropriateness_assessed": false,
+    "billing_authoritative": false,
+    "manual_review_required": true,
+    "production_writeback_blocked": true
+  },
+  "defects_closed": {
+    "incorrect_example_code_81_0100_removed": true,
+    "t12_example_maps_to_catalog_03_5304": true,
+    "example_evidence_span_corrected_to_22_38": true,
+    "planned_then_cancelled_never_promoted_to_performed": true,
+    "catalog_governance_emitted_in_trace": true
+  },
+  "e2e": {
+    "transport": "real_loopback_http",
+    "happy_passed": 8,
+    "adversarial_passed": 8,
+    "reference_passed": 8,
+    "stability_passed": 48,
+    "stability_repetitions": 3,
+    "stability_fresh_http_runs": 48,
+    "stability_seeded_runs": 0,
+    "real_llm_used": false,
+    "external_network_used": false,
+    "synthetic_pack_owned_cases_only": true
+  },
+  "tests": {
+    "focused_and_expanded_regression": {"passed": 305, "failed": 0},
+    "catalog_and_preflight_unit": {"passed": 4, "failed": 0},
+    "deployment_preflight_static": {"passed": 90, "failed": 0}
+  },
+  "artifacts": {
+    "phase_e2e": "local_semantic_e2e_evidence.json",
+    "examples_sha256": "af3160ed2a35d4e8edbcc8c702ce0873ec1a59e1f275099ea99ad0ade979d2a5",
+    "adversarial_sha256": "f51e949ee92f8b90acc8fab8acc13fa72808b61d50bbd29445bef527bc7682c5",
+    "reference_sha256": "a58ddc3bc95e6b16cabb75b9d5123c2e0fcbce05c356165dc9e3955625a3da56",
+    "stability_sha256": "58960f956f0ad6cb547302f94a109a1aaa72ddf69611c90ff32e539aa6c85d98",
+    "local_bundle_sha256": "b567e06e5b05643c512cc1470a4904b5f627a4137c914d0500fa74f92b4dcfc8",
+    "runtime_matrix_sha256": "627729bcaf3f7119aa888d2ca8bd81e3ae6bf3d4237faad9f26707ac7b0f2aa1",
+    "deployment_preflight_sha256": "3a70bc619c512548a603770dcb126493e3a1fb5ae22865cd0e4cbe472a9c86a0"
+  },
+  "corti_public_sources": [
+    "https://corti.ai/agents/procedure-entity-extractor-agent",
+    "https://corti.ai/agents",
+    "https://docs.corti.ai/agentic/overview"
+  ],
+  "safety_audit": {
+    "protected_database_size_bytes": 8536064,
+    "protected_database_sha256": "9547e301cca78695f983d837c91ab45819db5440c0f90a3b3bc80f34cb71bb3e",
+    "protected_database_unchanged": true,
+    "protected_database_revision": "041",
+    "source_alembic_head": "056",
+    "remaining_backend_processes": 0,
+    "remaining_phase_temp_directories": 0,
+    "llm_key_environment_present": false,
+    "docker_cli_available": false
+  },
+  "independent_clinical_gold_used": false,
+  "corti_parity_proven": false,
+  "hospital_acceptance_proven": false,
+  "external_gates_remain_open": true
+}

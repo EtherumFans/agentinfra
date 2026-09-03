@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import os
 import re
+import uuid
 from pathlib import Path
 from typing import Any
 
@@ -102,21 +103,26 @@ def test_facts_list_spec_is_real_and_cached(facts_list_spec):
     assert "FactsListResponse" in str(op["responses"]["200"])
 
 
-def test_v2_facts_list_default_returns_2(icoder_client):
-    """回环: default list-facts returns 2 facts (path-echo)."""
-    interaction_id = "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+def test_v2_facts_list_unknown_interaction_is_empty(icoder_client):
+    """Unknown interactions never materialize synthetic clinical facts."""
+    interaction_id = "unknown-f47ac10b-58cc-4372-a567-0e02b2c3d479"
     r = icoder_client.get(f"/api/v2/tools/interactions/{interaction_id}/facts/")
     assert r.status_code == 200, r.text
     j = r.json()
     assert "facts" in j
     assert isinstance(j["facts"], list)
-    assert len(j["facts"]) == 2
+    assert j["facts"] == []
 
 
 def test_v2_facts_list_item_shape(icoder_client):
     """Each fact carries the spec-required optional fields (id/text/group/
     groupId/isDiscarded/source/createdAt/updatedAt/evidence)."""
-    interaction_id = "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+    interaction_id = f"shape-{uuid.uuid4()}"
+    created = icoder_client.post(
+        f"/api/v2/tools/interactions/{interaction_id}/facts/",
+        json={"facts": [{"text": "BP 140/90.", "group": "vital-signs"}]},
+    )
+    assert created.status_code == 200, created.text
     r = icoder_client.get(f"/api/v2/tools/interactions/{interaction_id}/facts/")
     assert r.status_code == 200, r.text
     for f in r.json()["facts"]:
@@ -126,35 +132,45 @@ def test_v2_facts_list_item_shape(icoder_client):
         ):
             assert key in f, f"missing {key} in fact {f.get('id')!r}"
         assert isinstance(f["evidence"], list)
-        assert len(f["evidence"]) >= 1
         for ev in f["evidence"]:
             for key in ("type", "reference", "quote"):
                 assert key in ev, f"missing {key} in evidence of fact {f.get('id')!r}"
 
 
-def test_v2_facts_list_path_echo(icoder_client):
-    """Path-echo contract: fact ids / groupIds / evidence.references all
-    carry the interaction_id prefix so SDK callers can verify the contract."""
-    interaction_id = "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+def test_v2_facts_list_server_assigned_ids(icoder_client):
+    """Persisted facts expose opaque UUID identifiers, not path-derived IDs."""
+    interaction_id = f"ids-{uuid.uuid4()}"
+    created = icoder_client.post(
+        f"/api/v2/tools/interactions/{interaction_id}/facts/",
+        json={"facts": [{"text": "Penicillin allergy.", "group": "allergies"}]},
+    )
+    assert created.status_code == 200, created.text
     r = icoder_client.get(f"/api/v2/tools/interactions/{interaction_id}/facts/")
     assert r.status_code == 200, r.text
     facts = r.json()["facts"]
+    assert len(facts) == 1
     for f in facts:
-        assert f["id"].startswith(interaction_id), f["id"]
-        assert f["groupId"].startswith(interaction_id), f["groupId"]
+        uuid.UUID(f["id"])
+        uuid.UUID(f["groupId"])
         for ev in f["evidence"]:
-            assert interaction_id in ev["reference"], ev["reference"]
+            assert ev["reference"]
 
 
 def test_v2_facts_list_source_enum(icoder_client):
-    """Stub exercises at least 2 of the 3 source enum values
-    (core/system/user)."""
-    interaction_id = "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+    """Persisted facts retain the caller-supplied source enum."""
+    interaction_id = "source-enum-f47ac10b-58cc-4372-a567-0e02b2c3d479"
+    created = icoder_client.post(
+        f"/api/v2/tools/interactions/{interaction_id}/facts/",
+        json={"facts": [
+            {"text": "Core fact.", "group": "assessment", "source": "core"},
+            {"text": "System fact.", "group": "imaging-results", "source": "system"},
+        ]},
+    )
+    assert created.status_code == 200, created.text
     r = icoder_client.get(f"/api/v2/tools/interactions/{interaction_id}/facts/")
     assert r.status_code == 200, r.text
     sources = {f["source"] for f in r.json()["facts"]}
     assert sources <= {"core", "system", "user"}, sources
-    # Default stub has core + system.
     assert sources == {"core", "system"}, sources
 
 

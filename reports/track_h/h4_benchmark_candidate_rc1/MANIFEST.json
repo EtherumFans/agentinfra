@@ -1,0 +1,347 @@
+{
+  "candidate_version": "icoder-cdi-agent-v1.0.0-rc1",
+  "frozen_at_utc": "2026-07-12T23:41:31Z",
+  "git_commit": "01c8448bda8b5bf2239365adbccbebfe149f9315",
+  "iter": 3,
+  "tier": "PASS_CALIBRATION_TUNING_ITERATION_3",
+  "case_count": 40,
+  "description": "Frozen iter 3 baseline of iCoDer CDI Agent on the 40-case Corti/iCoDer cross-platform calibration fixture. This snapshot is the reference point for Track H formal closure; future iterations (H3.13 LLM-backed chart completeness, H3.14 contradiction amplifier, H1.2-H1.4 Corti controlled probes) measure their deltas against this artifact.",
+  "headline_metrics": {
+    "iter_3_avg_queries_per_case": 0.875,
+    "iter_3_icoder_range_conformance": "28/40 (70%)",
+    "iter_3_agreement_rate_vs_corti": 0.57,
+    "iter_3_avg_abs_query_count_delta": 1.23,
+    "iter_3_multi_dim_leaked_total": 0,
+    "iter_3_complete_chart_over_query": "4/10",
+    "iter_3_clear_gap_under_query": "1/10"
+  },
+  "h4_1_quality_summary": {
+    "total_queries": 35,
+    "evidence_quote_present_rate": 1.0,
+    "evidence_quote_verbatim_rate": 0.9714,
+    "avg_evidence_quote_fuzz_score": 0.9896,
+    "response_options_4plus_rate": 0.9714,
+    "response_options_escape_hatch_rate": 1.0,
+    "non_leading_query_rate": 0.9714,
+    "leading_query_count": 1
+  },
+  "h4_1_safety_summary": {
+    "multi_dim_input_per_case": 0.375,
+    "multi_dim_input_total": 15,
+    "multi_dim_leaked_total": 0,
+    "multi_dim_leaked_rate": 0.0,
+    "cases_with_multi_dim_input": 13,
+    "unsupported_query_rate": 0.0286,
+    "leading_query_rate": 0.0286,
+    "document_conflict_cases_total": 5,
+    "document_conflict_emit_cases": 2,
+    "contradiction_risk_flag_cases": 0,
+    "document_conflict_emit_rate": 0.4
+  },
+  "h4_1_expert_summary": {
+    "coding-expert": {
+      "route_needed_count": 33,
+      "consulted_count": 33,
+      "invoke_rate": 0.825,
+      "avg_latency_ms_when_consulted": 3320.8,
+      "avg_tokens_when_consulted": 276.8,
+      "rejection_count": 0,
+      "rejection_rate": 0.0
+    },
+    "medical-calculator-expert": {
+      "route_needed_count": 0,
+      "consulted_count": 0,
+      "invoke_rate": 0.0,
+      "avg_latency_ms_when_consulted": 0.0,
+      "avg_tokens_when_consulted": 0.0,
+      "rejection_count": 0,
+      "rejection_rate": 0.0
+    },
+    "pubmed-expert": {
+      "route_needed_count": 7,
+      "consulted_count": 7,
+      "invoke_rate": 0.175,
+      "avg_latency_ms_when_consulted": 2634.0,
+      "avg_tokens_when_consulted": 337.9,
+      "rejection_count": 0,
+      "rejection_rate": 0.0
+    },
+    "web-search-expert": {
+      "route_needed_count": 0,
+      "consulted_count": 0,
+      "invoke_rate": 0.0,
+      "avg_latency_ms_when_consulted": 0.0,
+      "avg_tokens_when_consulted": 0.0,
+      "rejection_count": 0,
+      "rejection_rate": 0.0
+    }
+  },
+  "cross_platform_normalizer": {
+    "section_9_9_cross_platform": {
+      "avg_abs_query_count_delta": 1.23,
+      "agreement_rate_delta_le_1": 0.57,
+      "icoder_range_conformance": {
+        "conformant": 28,
+        "total": 40,
+        "rate": 0.7
+      },
+      "corti_range_conformance": {
+        "conformant": 20,
+        "total": 40,
+        "rate": 0.5
+      }
+    },
+    "section_9_10_icoder_safety": {
+      "over_query_complete_chart": {
+        "count": 4,
+        "total": 10,
+        "rate": 0.4,
+        "target": 0
+      },
+      "under_query_clear_gap": {
+        "count": 1,
+        "total": 10,
+        "rate": 0.1,
+        "target": 0
+      },
+      "multi_dimension_query_rate": 0.0,
+      "multi_dimension_note": "Single-dim gate is deterministic; multi-dim queries are caught pre-output. Slipped-through = 0 by construction."
+    }
+  },
+  "caveats": [
+    "complete_chart over-query 4/10 (target 0) — H3.13 carry-forward",
+    "document_conflict emit rate 0.40 (target ≥ 0.80) — H3.10 override dormant on iter 3",
+    "lab_positive_uncertain under-query — H3.14 carry-forward",
+    "expert_rejection behavior not exercised (EXP-005) — H1.3 carry-forward",
+    "multi_dim_leaked = 0 is structural (deterministic gate), not statistical"
+  ],
+  "files": [
+    {
+      "path": "gate8_icoder_40case_results.json",
+      "source": "backend\\reports\\phase5_d_p05\\gate8_icoder_40case_results.json",
+      "sha256": "17a85b26b3124b309c6685ffc7415bd8051693ad3301d2adfc5ccbcabe0de957",
+      "size_bytes": 3584
+    },
+    {
+      "path": "h34_normalizer_40case.json",
+      "source": "reports\\track_h\\h34_normalizer_40case.json",
+      "sha256": "7fb8a8ee17ed790a2ab6ef16a7ce785684a3d6edaf995f9ac044145e392aa6c3",
+      "size_bytes": 54573
+    },
+    {
+      "path": "h41_quality_safety_expert_40case.json",
+      "source": "reports\\track_h\\h41_quality_safety_expert_40case.json",
+      "sha256": "3c56de62c74470428afae65a4646f0c91f25a1fd955b58eadca71bc4b8054ddd",
+      "size_bytes": 77368
+    },
+    {
+      "path": "corti_40_summary.json",
+      "source": "reports\\track_h\\corti_40_summary.json",
+      "sha256": "c76e524f32c541589ceabdb9a75b540c3fd8f40078dd2b3228824f034907c5f5",
+      "size_bytes": 31856
+    }
+  ],
+  "per_case_files": [
+    {
+      "path": "per_case/01_G8-CDI-GAP-001.json",
+      "sha256": "38932f3327cc975b82af38cb29644f5aad295e6702bd3dcba51c4eb2717e2635",
+      "size_bytes": 10545
+    },
+    {
+      "path": "per_case/02_G8-CDI-GAP-002.json",
+      "sha256": "a30716977a5a5f647dfa9ae09f08713c5ef7c31b188452caea09ad10891eec83",
+      "size_bytes": 11243
+    },
+    {
+      "path": "per_case/03_G8-CDI-GAP-003.json",
+      "sha256": "c012d8cb851b0f887dba10718f06e2d5bb309f98b39dd11a57c0d23863ea7f0d",
+      "size_bytes": 9980
+    },
+    {
+      "path": "per_case/04_G8-CDI-GAP-004.json",
+      "sha256": "20630d0806543f569d1361993a8c5df6f8a65ffbf914ca5aa77f97bdc6f04d83",
+      "size_bytes": 8254
+    },
+    {
+      "path": "per_case/05_G8-CDI-GAP-005.json",
+      "sha256": "5589975cb29fcc14c85246c98dbab51c3b9e6a009772060527eac53dcb287cad",
+      "size_bytes": 9612
+    },
+    {
+      "path": "per_case/06_G8-CDI-GAP-006.json",
+      "sha256": "35b3d7246cbb8cc954b0ec2dcc08636a032df596223253acc1a1b3f0c7bcc298",
+      "size_bytes": 11306
+    },
+    {
+      "path": "per_case/07_G8-CDI-GAP-007.json",
+      "sha256": "dce252341826d7f7f1fb85f0fbbe6a86f4561c2ed27edd7346494429bfe04c4b",
+      "size_bytes": 9122
+    },
+    {
+      "path": "per_case/08_G8-CDI-GAP-008.json",
+      "sha256": "e7fef004c3a96af372e2458173bd1235dadf341dbb8522b9fe0ff8933fffc448",
+      "size_bytes": 11322
+    },
+    {
+      "path": "per_case/09_G8-CDI-GAP-009.json",
+      "sha256": "b0be74f0bb8036f87bdd7615ff418c4fa77061916683b2a5087871443ec5c11d",
+      "size_bytes": 8777
+    },
+    {
+      "path": "per_case/10_G8-CDI-GAP-010.json",
+      "sha256": "112b38ae25e7882cc4d4b2314418912b315c4ed5752f8101d5820402c16305b1",
+      "size_bytes": 11069
+    },
+    {
+      "path": "per_case/11_G8-CDI-COMPLETE-011.json",
+      "sha256": "af93d34b754e4c15ab6818254eb04bfef44708165eefb37088cabe2026a90ad3",
+      "size_bytes": 8946
+    },
+    {
+      "path": "per_case/12_G8-CDI-COMPLETE-012.json",
+      "sha256": "ebe69cc0ced19cf7aa27e74b1971bb2ef18093790382dfd12a96747fd4b6dfd2",
+      "size_bytes": 10320
+    },
+    {
+      "path": "per_case/13_G8-CDI-COMPLETE-013.json",
+      "sha256": "556a448ab14ea4f611d5c1455b8a9a2476c49f7ff94a9137e51bd555a28e12ef",
+      "size_bytes": 6177
+    },
+    {
+      "path": "per_case/14_G8-CDI-COMPLETE-014.json",
+      "sha256": "92840c590a1293f940c4356cc8729d84882bb79e206a3f507dccad0b03783686",
+      "size_bytes": 10394
+    },
+    {
+      "path": "per_case/15_G8-CDI-COMPLETE-015.json",
+      "sha256": "d74c8849d68675c76e022588a735ccbaa1d302906c5fec358464cf8e523e26f4",
+      "size_bytes": 10017
+    },
+    {
+      "path": "per_case/16_G8-CDI-COMPLETE-016.json",
+      "sha256": "95ed2b8c9860085125ab266bff7b3e4db6bbece6c1970c26dc9de79f46cb007e",
+      "size_bytes": 9485
+    },
+    {
+      "path": "per_case/17_G8-CDI-COMPLETE-017.json",
+      "sha256": "f3f1ca17025b03460d2b1ed51bc197054ae14b78f47893a9bf2dceca3052cddb",
+      "size_bytes": 8974
+    },
+    {
+      "path": "per_case/18_G8-CDI-COMPLETE-018.json",
+      "sha256": "823a694ab84b47c42f31e71cb97f47b1cba0f028b45f61c39457d2976a017f1c",
+      "size_bytes": 6225
+    },
+    {
+      "path": "per_case/19_G8-CDI-COMPLETE-019.json",
+      "sha256": "4434b4ecafb6d39805f81eed9bb7de1af83fd96e3fef1c0ee63a910c6b373582",
+      "size_bytes": 8609
+    },
+    {
+      "path": "per_case/20_G8-CDI-COMPLETE-020.json",
+      "sha256": "8e07b20342bf5cc3b4892f40b2ca98105ee077bc4af00c48f6b13845769e859e",
+      "size_bytes": 5793
+    },
+    {
+      "path": "per_case/21_G8-CDI-INSUF-021.json",
+      "sha256": "01432a6f684377014b77090b20ba21ff9915c6c11304d9204a738ab6130f64ef",
+      "size_bytes": 7763
+    },
+    {
+      "path": "per_case/22_G8-CDI-INSUF-022.json",
+      "sha256": "657ac3e65c82652f98cb75a0c7f3b6245651ce2bc63077dd730f6b7c84e284e9",
+      "size_bytes": 6968
+    },
+    {
+      "path": "per_case/23_G8-CDI-INSUF-023.json",
+      "sha256": "3d2e9ef7c0a9769e7cc23a6b9824a40822401234e56c3bbb7bd8a0dcaff60f6c",
+      "size_bytes": 8236
+    },
+    {
+      "path": "per_case/24_G8-CDI-INSUF-024.json",
+      "sha256": "66d8e118eb2fa78bf25b1858296ccb1e659ba49816b371ae3c0c8ea1191c3744",
+      "size_bytes": 9932
+    },
+    {
+      "path": "per_case/25_G8-CDI-INSUF-025.json",
+      "sha256": "8a62c90359805e6013645c2cf9b52e12aca758b0c1e784ff3dd7d5438d572421",
+      "size_bytes": 10402
+    },
+    {
+      "path": "per_case/26_G8-CDI-NEG-026.json",
+      "sha256": "f4768c06bf931b26d1546d3d11cb49665e3645bc020559177dd16de720b3523e",
+      "size_bytes": 8961
+    },
+    {
+      "path": "per_case/27_G8-CDI-NEG-027.json",
+      "sha256": "31bc520aa86408bbebb150ffaf077e3fd6a5a88a66dbe68942bcd59e40c033a2",
+      "size_bytes": 5745
+    },
+    {
+      "path": "per_case/28_G8-CDI-NEG-028.json",
+      "sha256": "536b76a212ae241ab9886e632ed480ee12994d2641af4c6864f262213ad5a18c",
+      "size_bytes": 7678
+    },
+    {
+      "path": "per_case/29_G8-CDI-NEG-029.json",
+      "sha256": "aa0db139886c28b942e71aa4fc3979e07afe97a488ffcef90bd4b7d7b9201826",
+      "size_bytes": 9329
+    },
+    {
+      "path": "per_case/30_G8-CDI-NEG-030.json",
+      "sha256": "b25031858f65ff78628cff9788f83d843c4c123456f9522e7cf38543edfa9e10",
+      "size_bytes": 12414
+    },
+    {
+      "path": "per_case/31_G8-CDI-CONFLICT-031.json",
+      "sha256": "1275ad8cf02268fc49211611f162ccb3bc53f59db63bdb519c5e846803d8dfc4",
+      "size_bytes": 9552
+    },
+    {
+      "path": "per_case/32_G8-CDI-CONFLICT-032.json",
+      "sha256": "ba636b5d42b843bea4046f5b41c5354bee26a838ea10650460a129f1fa16f9db",
+      "size_bytes": 8353
+    },
+    {
+      "path": "per_case/33_G8-CDI-CONFLICT-033.json",
+      "sha256": "6ee0d1fa5e096aee2a519b47afe4225e8251ef3400e8d546a6d1f3e3a2aa178a",
+      "size_bytes": 7491
+    },
+    {
+      "path": "per_case/34_G8-CDI-CONFLICT-034.json",
+      "sha256": "555394f9679f0a5e1f9b4076894e4d7aa7466f780af7d09f672f880d3a7e9800",
+      "size_bytes": 10207
+    },
+    {
+      "path": "per_case/35_G8-CDI-CONFLICT-035.json",
+      "sha256": "252a934ce65e4fae2ffa79e91c3b0bcc3256a57a90969187de528d97488ee78c",
+      "size_bytes": 11155
+    },
+    {
+      "path": "per_case/36_G8-CDI-LAB-036.json",
+      "sha256": "6028c0cb76d922852bbe4ee9cb972493dc879e1a57ff68caffa4b981f0211b50",
+      "size_bytes": 7549
+    },
+    {
+      "path": "per_case/37_G8-CDI-LAB-037.json",
+      "sha256": "082d99f3f37c56ca3f4144defd3dffeaaa8e5d8c80e65a9cd6746697e6e6a36c",
+      "size_bytes": 11617
+    },
+    {
+      "path": "per_case/38_G8-CDI-LAB-038.json",
+      "sha256": "f560d17c3ba29195c8e9ef7550edc6b175a79a51c4f2074f56089e447bf41f89",
+      "size_bytes": 7949
+    },
+    {
+      "path": "per_case/39_G8-CDI-LAB-039.json",
+      "sha256": "401dc4f7dc80f09c0ccac1318d4d9b7be7916c8eb03fa540491377ac4e63ffbf",
+      "size_bytes": 9940
+    },
+    {
+      "path": "per_case/40_G8-CDI-LAB-040.json",
+      "sha256": "3d21cae2dde65ba0f43306429d00c160facbd417b940fc539658c842271040a4",
+      "size_bytes": 7602
+    }
+  ],
+  "file_count_total": 44
+}

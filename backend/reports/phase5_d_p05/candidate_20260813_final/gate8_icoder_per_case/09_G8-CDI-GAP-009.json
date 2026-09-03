@@ -1,0 +1,353 @@
+{
+  "case_id": "CASE-47aa92821751",
+  "completion_state": "REVIEW_RECOMMENDED",
+  "documentation_gaps": [
+    {
+      "gap_id": "CASE-47aa92821751/GAP-001",
+      "gap_type": "diagnostic_specificity",
+      "description": "Acute cholecystitis severity not specified (e.g., acute, chronic, with or without obstruction).",
+      "why_it_matters": "Severity and presence of obstruction affect coding and treatment planning.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "入院诊断:急性胆囊炎",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-47aa92821751/GAP-002",
+      "gap_type": "diagnostic_specificity",
+      "description": "Etiology of acute cholecystitis not explicitly stated (e.g., calculous vs acalculous).",
+      "why_it_matters": "Etiology is a key differentiator in coding and clinical management.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "B超:胆囊壁增厚, 胆囊多发结石",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    },
+    {
+      "gap_id": "CASE-47aa92821751/GAP-003",
+      "gap_type": "diagnostic_specificity",
+      "description": "Clinical correlation of abnormal liver function tests and dilated common bile duct not established.",
+      "why_it_matters": "Abnormal LFTs and CBD dilation may indicate choledocholithiasis or other biliary pathology; lack of correlation affects coding and management.",
+      "evidence_span": {
+        "document_id": "encounter_summary",
+        "quote": "肝功能:ALT 120, AST 95, ALP 280, TBIL 45",
+        "char_start": 0,
+        "char_end": 0,
+        "documented_at": ""
+      },
+      "minimal_clarification_needed": ""
+    }
+  ],
+  "proposed_provider_queries": [
+    {
+      "query_id": "CASE-47aa92821751/Q-001",
+      "gap_id": "CASE-47aa92821751/GAP-002",
+      "topic": "急性胆囊炎病因",
+      "reason": "B超提示胆囊多发结石，但未明确胆囊炎是否由结石引起（结石性 vs 非结石性）。",
+      "evidence_span": {
+        "document_id": "chart_001",
+        "quote": "B超:胆囊壁增厚, 胆囊多发结石",
+        "char_start": 28,
+        "char_end": 44,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart_001",
+          "quote": "B超:胆囊壁增厚, 胆囊多发结石",
+          "char_start": 28,
+          "char_end": 44,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "根据影像学及临床资料，请明确急性胆囊炎的病因分类：",
+      "response_options": [
+        "A. 结石性胆囊炎",
+        "B. 非结石性胆囊炎",
+        "C. 两者并存",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "routine",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    },
+    {
+      "query_id": "CASE-47aa92821751/Q-002",
+      "gap_id": "CASE-47aa92821751/GAP-003",
+      "topic": "肝功能异常与胆总管扩张的临床相关性",
+      "reason": "肝功能异常及胆总管扩张提示可能存在胆道梗阻，但未明确其临床相关性。",
+      "evidence_span": {
+        "document_id": "chart_001",
+        "quote": "肝功能:ALT 120, AST 95, ALP 280, TBIL 45",
+        "char_start": 56,
+        "char_end": 93,
+        "documented_at": ""
+      },
+      "evidence_spans": [
+        {
+          "document_id": "chart_001",
+          "quote": "肝功能:ALT 120, AST 95, ALP 280, TBIL 45",
+          "char_start": 56,
+          "char_end": 93,
+          "documented_at": ""
+        },
+        {
+          "document_id": "chart_001",
+          "quote": "胆总管直径 9mm",
+          "char_start": 46,
+          "char_end": 55,
+          "documented_at": ""
+        }
+      ],
+      "query_text": "结合肝功能异常及胆总管扩张，请明确其临床相关性：",
+      "response_options": [
+        "A. 考虑胆总管结石伴梗阻",
+        "B. 考虑胆囊炎所致反应性肝功能异常",
+        "C. 考虑其他原因（如肝脏疾病）",
+        "D. 无法确定"
+      ],
+      "lifecycle_state": "DRAFT",
+      "priority": "urgent",
+      "nlq_gate_verdict": "PASS",
+      "nlq_gate_block_reasons": []
+    }
+  ],
+  "query_rewrite_queue": [
+    {
+      "query_id": "q_gap_1",
+      "gap_id": "CASE-47aa92821751/GAP-001",
+      "topic": "急性胆囊炎严重程度",
+      "reason": "入院诊断为急性胆囊炎，但未明确其严重程度（如急性、慢性，是否伴有梗阻）。",
+      "query_text": "根据患者临床表现及辅助检查，请明确急性胆囊炎的严重程度分类：",
+      "response_options": [
+        "A. 急性单纯性胆囊炎",
+        "B. 急性化脓性胆囊炎",
+        "C. 急性坏疽性胆囊炎",
+        "D. 慢性胆囊炎急性发作",
+        "E. 无法确定"
+      ],
+      "evidence_spans": [
+        {
+          "document_id": "chart_001",
+          "quote": "入院诊断:急性胆囊炎",
+          "char_start": 94,
+          "char_end": 104,
+          "documented_at": ""
+        }
+      ],
+      "gate_reasons": [
+        "NQ-001: chart matches /急性[^,。、\\s]{0,8}(?:心肌梗死|阑尾炎|胆囊炎|胰腺炎|肺炎|胃肠炎)/ (急性类型已明确) and query asks for 急性胆囊炎严重程度"
+      ],
+      "status": "REJECTED_AS_UNNECESSARY",
+      "gap_reference_valid": true
+    }
+  ],
+  "chart_excerpt_preview": "患者女性, 50岁, 右上腹痛2天。Murphy征阳性。B超:胆囊壁增厚, 胆囊多发结石, 胆总管直径 9mm。肝功能:ALT 120, AST 95, ALP 280, TBIL 45。入院诊断:急性胆囊炎。",
+  "patient_ref": "DEID",
+  "encounter_ref": "DEID",
+  "encounter_summary": {
+    "key_points": [
+      "患者女性，50岁",
+      "右上腹痛2天",
+      "Murphy征阳性",
+      "B超示胆囊壁增厚，胆囊多发结石，胆总管直径9mm",
+      "肝功能异常：ALT 120，AST 95，ALP 280，TBIL 45",
+      "入院诊断：急性胆囊炎"
+    ],
+    "encounter_metadata": {
+      "patient_age": "50岁",
+      "patient_sex": "女性",
+      "encounter_type": "入院"
+    }
+  },
+  "risk_flags": [
+    {
+      "category": "unsupported_diagnosis",
+      "description": "Diagnosis of acute cholecystitis is supported by symptoms and imaging, but the severity and etiology are not specified."
+    }
+  ],
+  "specialist_trace": [
+    {
+      "expert_id": "coding-expert",
+      "consulted": true,
+      "rationale": "To ensure accurate coding, the documentation must explicitly state whether the cholecystitis is acute or chronic, and specify if it is calculous (with gallstones) or acalculous, as well as whether there is any mention of obstruction. Additionally, the clinical significance of the dilated common bile duct (9mm) and abnormal liver enzymes must be clarified—specifically, whether these findings represent choledocholithiasis, cholangitis, or a separate biliary pathology—since this directly impacts the principal diagnosis and procedure coding. Without this correlation, the record lacks the specificity needed to distinguish between a simple acute cholecystitis and a more complex biliary disease process.",
+      "route_decision": "needed",
+      "route_reason": "coding_relevant_gap",
+      "execution_mode": "LLM_KNOWLEDGE_ONLY",
+      "latency_ms": 3369,
+      "tokens": 317
+    },
+    {
+      "expert_id": "pubmed-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "web-search-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    },
+    {
+      "expert_id": "medical-calculator-expert",
+      "consulted": false,
+      "rationale": "",
+      "route_decision": "not_needed",
+      "route_reason": "no_relevant_gap",
+      "execution_mode": "SKIPPED_NOT_NEEDED",
+      "latency_ms": 0,
+      "tokens": 0
+    }
+  ],
+  "stage_run_ids": {
+    "encounter_synthesis": "run-cf0dbee097a3",
+    "gap_identification": "run-3d6f1a240706",
+    "gap_identification_risk_flags": "emitted=1;quote_snapped=0",
+    "expert_consultation": "run-37141fe48ba6",
+    "query_generation": "run-725dd8d4f012",
+    "query_generation::quote_snapped": "0",
+    "query_generation::coverage_missing": "0",
+    "query_eligibility_gate": "chart_complete=False;completeness_score=0.12;dimensions=D1_type=N,D2_site=Y,D3_severity=N,D4_etiology=N,D5_procedure=N,D6_pathology=N,D7_complications=N,D8_course=N;dropped=0;final_count=3;llm_complete=False;llm_reasoning=The chart documents acute cholecystitis with supporting findings, but lacks spec",
+    "query_necessity_gate": "necessary=2;unnecessary=1;overquery_triggered=False;final_count=2",
+    "query_single_dimension_gate": "single_dim=2;multi_dim=0;axis_cluster_triggered=False;axis_cluster_axis=etiology;rewrite_attempted=0;rewrite_accepted=0;final_count=2",
+    "claim_evidence_alignment_gate": "claims_extracted=6;blocked=0;flagged=0;final_count=2",
+    "claim_evidence_alignment_gate::run_id": "run-17e73ca2ae41",
+    "semantic_necessity_gate": "blocked=0;flagged=0;degraded=0;final_count=2",
+    "semantic_necessity_gate::run_id": "run-71449aff3fae",
+    "query_compliance_gate": ";passed=2;blocked=0",
+    "specialist_trace_emit": "run-37eb0a05c861"
+  },
+  "stage_trace_ids": {
+    "encounter_synthesis": "trace-16877650dca7",
+    "gap_identification": "trace-50d8d9f9d489",
+    "expert_consultation": "trace-9c89900f460e",
+    "query_generation": "trace-5001d19da325",
+    "query_eligibility_gate": "",
+    "query_necessity_gate": "",
+    "query_single_dimension_gate": "",
+    "claim_evidence_alignment_gate": "trace-280d9e8c6aea",
+    "semantic_necessity_gate": "trace-e861c3dd480d",
+    "query_compliance_gate": "",
+    "specialist_trace_emit": "trace-c7438307b02e"
+  },
+  "stage_traces": [
+    {
+      "stage": "encounter_synthesis",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 2373,
+      "prompt_tokens": 237,
+      "completion_tokens": 121,
+      "total_tokens": 358,
+      "run_id": "run-cf0dbee097a3",
+      "trace_id": "trace-16877650dca7",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "gap_identification",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6182,
+      "prompt_tokens": 1080,
+      "completion_tokens": 558,
+      "total_tokens": 1638,
+      "run_id": "run-3d6f1a240706",
+      "trace_id": "trace-50d8d9f9d489",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "query_generation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 6167,
+      "prompt_tokens": 1146,
+      "completion_tokens": 720,
+      "total_tokens": 1866,
+      "run_id": "run-725dd8d4f012",
+      "trace_id": "trace-5001d19da325",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": ""
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 3369,
+      "prompt_tokens": 183,
+      "completion_tokens": 134,
+      "total_tokens": 317,
+      "run_id": "run-b5d0484c7120",
+      "trace_id": "trace-4a1d63424a92",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "coding-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-886fbac20da2",
+      "trace_id": "trace-158918658044",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "pubmed-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-92a7f3478de1",
+      "trace_id": "trace-d09a79fcd216",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "web-search-expert"
+    },
+    {
+      "stage": "expert_consultation",
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "latency_ms": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "run_id": "run-4fdc18298ec5",
+      "trace_id": "trace-e96c67e4e419",
+      "degraded": false,
+      "error_reason": "",
+      "expert_id": "medical-calculator-expert"
+    }
+  ],
+  "degraded": false,
+  "runtime_mode": "real",
+  "generated_at": "2026-08-12T17:24:01.578795Z"
+}

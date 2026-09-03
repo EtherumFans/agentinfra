@@ -1,0 +1,52 @@
+Corti 3 Agents Reverse Engineering + iCoDer Backend Compatibility Design
+你现在是 iCoDer 项目的 Corti reverse engineering 负责人、医疗 Agent Runtime 架构师、Agent 后台能力设计负责人。
+背景
+iCoDer 已复刻并实现了 3 个对应 Corti 的 Agent：
+1. Code Validation Agent2. Compliance Guardrail Agent3. Note Completeness Agent
+但当前 iCoDer 的实现主要是：
+规则引擎 + heuristics + regex + MCP dispatcher + RunTrace
+现在需要进一步弄清楚：
+Corti 这 3 个 Agent 的后台技术原理到底更接近什么？是纯规则？是 LLM？是 LLM + tools？是 Symphony / 医疗能力层？是多阶段 pipeline？
+然后再设计 iCoDer 的 Agent 后台，使其具备更好的兼容性和灵活性。
+
+目标
+本轮任务分两步：
+Part A：逆向分析 Corti 这 3 个 Agent 的后台技术原理Part B：基于分析结果，设计 iCoDer Agent Backend Compatibility Architecture
+先输出 research / audit plan，再开始执行。
+
+Part A — Corti 3 Agents 后台技术原理逆向分析
+重点分析：
+1. Corti Code Validation Agent2. Corti Compliance Guardrail Agent3. Corti Note Completeness Agent
+请使用 browser / Playwright / network inspection / repeated prompt probing / output comparison / latency observation 等方式进行分析。
+每个 Agent 至少测试 8 类输入：
+1. 标准完整输入2. 缺少关键字段输入3. 模糊自然语言输入4. 结构化 JSON 输入5. 明显错误编码输入6. 边界病例输入7. 中英文混合输入8. 对抗性输入 / prompt injection 输入
+每个 Agent 要记录：
+1. 输入样例2. 输出结构3. 响应时间4. 是否出现 LLM 风格解释5. 是否稳定复现6. 是否对格式敏感7. 是否能处理自然语言8. 是否能处理结构化 JSON9. 是否存在规则模板痕迹10. 是否存在模型推理痕迹11. 是否调用工具 / API12. Network response shape13. 是否返回 run_id / trace / hidden metadata14. 与 iCoDer 当前实现的差异
+
+重点判断问题
+请重点回答：
+1. Corti 这 3 个 Agent 是否可能是纯规则实现？2. 是否依赖 LLM？3. 是否存在多阶段 pipeline？4. 是否存在工具调用 / function calling？5. 是否明显依赖某个后台医疗能力层，如 Symphony？6. 是否有统一 output schema？7. 是否有统一 agent runtime contract？8. 是否区分 deterministic validation 和 generative reasoning？9. 是否有 evidence extraction / validation / explanation 分层？10. 哪些能力 iCoDer 当前已经具备，哪些明显缺失？
+注意：不能臆断 Corti 内部源码。所有结论必须分级：
+CONFIRMED：浏览器 / network / response 直接证据支持LIKELY：多轮输出行为高度支持POSSIBLE：有迹象但证据不足UNKNOWN：无法判断
+
+Part B — iCoDer Agent Backend Compatibility Architecture
+基于 Part A 的发现，设计 iCoDer 的 Agent 后台兼容架构。
+目标不是立刻提升模型质量，而是让 iCoDer 的 Agent 后台能力具备：
+1. 可替换2. 可组合3. 可配置4. 可审计5. 可版本化6. 可接入外部能力7. 可接入本地模型8. 可接入规则引擎9. 可接入 LLM10. 可接入未来 Symphony-like 医疗能力层
+请设计：
+1. AgentBackendProvider 接口2. Capability Adapter 层3. Tool / MCP 兼容层4. OutputContract 标准化层5. RunTrace / Tool Dispatch Detail 记录规范6. Provider registry7. Agent config 中 backend_provider 配置8. fallback / ensemble / hybrid 策略9. deterministic agent 与 LLM agent 的统一执行模型10. Medical Coding Agent backend decoupling 方案
+
+建议 Provider 类型
+至少考虑：
+1. rule_based_provider2. llm_provider3. retrieval_augmented_provider4. local_finetuned_model_provider5. external_api_provider6. symphony_like_provider7. hybrid_pipeline_provider8. mock_provider
+每种 provider 要说明：
+适用场景输入输出优点缺点是否适合 Code Validation是否适合 Compliance Guardrail是否适合 Note Completeness是否适合 Medical Coding Agent
+
+输出文档
+完成后输出：
+docs/reverse_engineering/corti_3_agents/CORTI_3_AGENTS_BACKEND_RE_REPORT.mddocs/reverse_engineering/corti_3_agents/CORTI_3_AGENTS_PROBING_LOG.mddocs/reverse_engineering/corti_3_agents/CORTI_3_AGENTS_TECHNICAL_INFERENCE_MATRIX.mddocs/architecture/agent_backend/ICODER_AGENT_BACKEND_COMPATIBILITY_ARCHITECTURE.mddocs/architecture/agent_backend/ICODER_AGENT_BACKEND_PROVIDER_SPEC.mddocs/architecture/agent_backend/ICODER_MEDICAL_CODING_BACKEND_DECOUPLING_PLAN.md
+
+最终输出总结
+最后给出一个简短结论：
+1. Corti 这 3 个 Agent 最可能的后台技术形态是什么？2. iCoDer 当前规则型实现是否合理？3. iCoDer 是否需要立即改成 LLM / Symphony-like？4. 最推荐的 iCoDer Agent 后台架构是什么？5. 下一步应该先改哪几个文件 / 模块？
+开始执行。

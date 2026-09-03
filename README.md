@@ -1,23 +1,38 @@
 # iCoDer — Clinical AI Platform
 
-Corti-competitive 临床 AI 平台。Agent Runtime + 编码审核 + 语音转录 + 文书生成 + 事实提取 + 嵌入助手，即开即用。SDK/API/Web Components 供 HIS 厂商和第三方深度集成。
+面向中国医院场景的医疗合规 AI 平台。Agent Runtime + 编码审核 + 语音转录 + 文书生成 + 事实提取 + 嵌入助手，即开即用。SDK/API/Web Components 供 HIS 厂商和第三方深度集成。
 
-**无限逼近 Corti**，但每条决策链可审计、可溯源、可重放。
+**每条决策链可审计、可溯源、可重放**。
 
 ## Overview
 
-iCoDer is a production-grade clinical AI platform competing with Corti. Core capabilities:
+iCoDer is a development release-candidate medical compliance AI platform for Chinese hospital scenarios. It is not yet approved for production clinical use; current evidence and external gates are tracked in the [current Corti parity status](./docs/corti_parity/CORTI_PARITY_STATUS_2026-08-14.md). Core capabilities:
 
+- **Clinical Documentation Improvement (CDI)**: Core entry agent #1 — identifies clinical documentation gaps, generates non-leading Provider Queries, drives clinician response → documentation revision → re-coding loop. NOT the same as note-completeness or discharge structuring.
+- **Medical Coding**: Core entry agent #2 — evidence-based ICD-10-CN / ICD-9-CM-3 coding with full audit trail (Phase 5 Track C: 7-stage mainline complete).
 - **Agent Runtime**: Multi-tenant, contract-enforced tool system, Deny-First security, Marketplace
-- **Medical Coding**: Evidence-based ICD-10-CN / ICD-9-CM-3 coding with full audit trail
-- **Speech-to-Text**: Real-time clinical dictation with speaker diarization
+- **Speech-to-Text**: Real Chinese ASR paths for prerecorded and Ambient workflows; prerecorded spoken punctuation, ordered keyterms, isolated stereo WAV/encoded-container attribution with provider-grounded millisecond phrase timestamps, and governed PCM multichannel Streams are implemented, while multilingual, diarization, clinical audio quality, and same-audio Corti comparison remain external gaps
 - **Text Generation**: Template-driven clinical document generation
 - **Fact Extraction**: Structured clinical entity extraction from unstructured text
 - **Embedded Assistant**: Web Component for EHR/EMR integration
-- **SDK/API**: Python & JavaScript SDKs for HIS vendor integration
+- **SDK/API**: Python, JavaScript/TypeScript and .NET SDKs for HIS vendor integration
 - **Auditable**: Every code traces to source evidence, every decision chain is SHA-256 verifiable
 
+## Two Core Entry Agents (Phase 5 Track D)
+
+```
+Clinical Documentation Improvement (CDI)
+  让临床事实被写清楚
+       ↓
+Medical Coding
+  将已经写清楚的事实准确编码
+```
+
+CDI and Medical Coding are the two `CORE_ENTRY_AGENT`s. All other agents (note-completeness, discharge-summary-structuring, evidence-extractor, principal-diagnosis-review, code-validation, compliance-guardrail, drg-analyzer, procedure-extractor) are `SPECIALIZED_AGENT` or `ORCHESTRATED_CAPABILITY` supporting the two entries.
+
 ## Architecture
+
+Repository ownership and file-placement rules are documented in [docs/PROJECT_STRUCTURE.md](./docs/PROJECT_STRUCTURE.md). Generated evidence follows [reports/README.md](./reports/README.md).
 
 ```
 iCoDer/
@@ -44,6 +59,8 @@ iCoDer/
 
 > 5 分钟快速入门：[QUICKSTART.md](./docs/QUICKSTART.md)
 > 云端部署：[docs/cloud/CLOUD_DEPLOYMENT.md](./docs/cloud/CLOUD_DEPLOYMENT.md)
+> 商业/隐私 Registry 网关：[docs/cloud/EXTERNAL_REGISTRY_GATEWAYS.md](./docs/cloud/EXTERNAL_REGISTRY_GATEWAYS.md)
+> 隔离 Semantic Memory：[docs/cloud/SEMANTIC_MEMORY_SERVICE.md](./docs/cloud/SEMANTIC_MEMORY_SERVICE.md)
 
 ### Prerequisites
 
@@ -75,9 +92,17 @@ docker compose -f docker-compose.local-dev.yml up --build
 # 仅本地开发;绝不允许用于生产或医院部署
 ```
 
+需要隔离 MedCodER BGE/FAISS Worker 时，使用显式 overlay，不能只启动
+`ml` profile（那不会配置 Backend 服务地址）：
+
+```bash
+export MEDCODER_RETRIEVER_TOKEN='<32-512 字符随机服务凭证>'
+docker compose -f docker-compose.local-dev.yml -f docker-compose.medcoder.yml up --build
+```
+
 ### Cloud SaaS Deployment (生产)
 
-iCoDer v1 以**托管云 SaaS** 形式交付 (Corti-style: Environment EU/US/CN → Tenant → API Client)。
+iCoDer v1 以**托管云 SaaS** 形式交付 (Environment EU/US/CN → Tenant → API Client)。
 医院 / ISV 通过 onboarding intake 获取 Tenant 后,从 `https://{tenant_slug}.{region}.icoder.cloud` 接入。
 **不再**支持医院内网 Docker 部署。详见 [docs/cloud/CLOUD_DEPLOYMENT.md](./docs/cloud/CLOUD_DEPLOYMENT.md)。
 
@@ -99,12 +124,12 @@ Access the app at `http://localhost:80` (local dev) and the API docs at `http://
 ### Core Capabilities
 - **Agent Runtime**: Multi-tenant, contract-enforced tool system (Hoare-style pre/post conditions), Deny-First security model, runtime persistence
 - **Medical Coding**: Evidence-based ICD-10-CN / ICD-9-CM-3 coding, 9-step pipeline, evidence ranking, confidence calibration, disagreement analysis
-- **Speech-to-Text**: Real-time clinical dictation, speaker diarization, Medvoice/Web engines
+- **Speech-to-Text**: Encrypted prerecorded lifecycle, durable Chinese dictation punctuation/keyterms, stereo WAV and encoded-container channel attribution, provider-grounded millisecond phrase timestamps, asynchronous recovery and real Chinese Ambient ASR; diarization and clinical quality remain unverified
 - **Text Generation**: Template-driven clinical document generation
 - **Fact Extraction**: Structured clinical entity extraction from unstructured text
 - **Embedded Assistant**: Web Component for EHR/EMR integration, Context tag system
-- **Marketplace**: Agent registration, discovery, installation
-- **SDK/API**: Python & JavaScript SDKs, REST API, OAuth 2.0, API client management
+- **Agent Hub**: Governed Agent discovery, tenant readiness and project cloning
+- **SDK/API**: Python, JavaScript/TypeScript and [.NET SDK](./packages/icoder-dotnet/README.md), REST API, OAuth 2.0, API client management
 
 ### Platform Pages (21 pages)
 AI Studio (Overview, Agents, Speech-to-Text, Text Generation, Fact Extraction, Medical Coding, Embedded Assistant), API Clients, Team, Billing, Usage, Settings, Gold Cases, Evaluation, Expert Library, Developer Quickstart, Docs, Release Notes, Tickets, Support
@@ -117,8 +142,8 @@ AI Studio (Overview, Agents, Speech-to-Text, Text Generation, Fact Extraction, M
 - Complete audit logging, input validation, bcrypt password hashing
 
 ### Testing
-- Backend: 579 tests passed, 10 skipped
-- Frontend: 21-page smoke test, auth gate tests, Playwright project mode
+- Current Agent Hub/backend/frontend/OpenAPI/SDK evidence and excluded infrastructure scopes are recorded in the [current Corti parity status](./docs/corti_parity/CORTI_PARITY_STATUS_2026-08-14.md).
+- Passing development tests do not replace real-hospital validation, independent security review, production cloud operations or regulatory approval.
 
 ## API Endpoints
 
@@ -127,9 +152,10 @@ AI Studio (Overview, Agents, Speech-to-Text, Text Generation, Fact Extraction, M
 | `/api/auth` | Authentication (login, register, forgot/reset/change password, revoke tokens) |
 | `/api/organizations` | Multi-tenant org management |
 | `/api/encounters` | Case management |
-| `/api/reviews` | Coding review lifecycle |
-| `/api/agents` | Agent CRUD & Marketplace |
-| `/api/experts` | Expert library |
+| `/api/v1/agents/{agent_id}/run` | Unified governed Agent execution |
+| `/api/rest/v1/agent_definitions` | Project Agent definitions |
+| `/api/icoder/agents/hub` | Governed Agent Hub discovery and cloning |
+| `/api/v1/experts` | Read-only Expert registry |
 | `/api/codes` | Code dictionary search (33K ICD-10-CN + 23K ICD-9-CM-3) |
 | `/api/gold-cases` | Gold standard case management |
 | `/api/evaluation` | Agent evaluation metrics |

@@ -75,10 +75,22 @@ def _asset_manifest_is_valid(index_dir: Path) -> bool:
             return False
         for name, metadata in artifacts.items():
             path = index_dir / name
+            expected_size = metadata.get("size_bytes")
+            expected_hash = str(metadata.get("sha256") or "").casefold()
             if (
+                not isinstance(expected_size, int)
+                or expected_size <= 0
+                or re.fullmatch(r"[0-9a-f]{64}", expected_hash) is None
+            ):
+                return False
+            # Native ML artifacts are deliberately excluded from Git and the
+            # API image. A clean-checkout preflight validates their pinned
+            # inventory; when deployment assets are mounted, it additionally
+            # verifies the actual bytes and rejects partial/tampered mounts.
+            if path.exists() and (
                 not path.is_file()
-                or path.stat().st_size != metadata.get("size_bytes")
-                or _sha256(path) != str(metadata.get("sha256") or "").casefold()
+                or path.stat().st_size != expected_size
+                or _sha256(path) != expected_hash
             ):
                 return False
     except (KeyError, OSError, TypeError, ValueError):
@@ -95,28 +107,28 @@ def _code_catalog_assets_are_image_owned_and_fail_closed(root: Path) -> bool:
     dockerignore_path = backend_root / ".dockerignore"
     expected = {
         "icd10_opendrg_v1.json": (
-            11_417_099,
-            "3edb02423b30fa408f983a02941979955a3c0a36950974d52d1ff7e99b3dba09",
+            11_084_058,
+            "4b99940b192794c5807270d37788d23bec294aca93a3f76456651760f60a42ec",
             33_304,
         ),
         "icd10_cn_standard_names.json": (
-            5_990_261,
-            "7aa0c2acab61596eb5e8b304ee891b06b94d788f87a17b97660ab1043806f0f9",
+            5_800_594,
+            "82a2e34db9f2199c1e993a48767a638cac1c5bd7fc06ba09e37163270f0aef43",
             37_897,
         ),
         "procedure_icd9cm3_knowledge_v8_with_opendrg.json": (
-            4_644_580,
-            "59d0accce8660da9d98e933b50b391cebb9c29357ee767148c878d834f42ac87",
+            4_499_282,
+            "408cda10f725d12326f1d810bfad7b32fe9a5d1f8c028d322bc20f47f5502f41",
             17_436,
         ),
         "surgery_to_drg_mapping.json": (
-            12_692_746,
-            "e9f5b3a1c7a23b6063f336930f3d59c7def1b9ef5fbbc947f30982a64fe1675b",
+            11_932_815,
+            "82a50967cebb1d1ecf01ac55d96169bda479715d6adc4314ed8be66be20c3923",
             23_165,
         ),
         "icd9cm3_code_catalog.json": (
-            5_658_170,
-            "4d0af72f8d5c3da5008741378ab97373f87f13775487cf5adcee6974cb4bca69",
+            5_481_018,
+            "088ebeddc27e24ada0a1da4f46b1e33c8e1db3fe9c3bf8a7266709f5dde94590",
             13_617,
         ),
     }
@@ -2365,7 +2377,8 @@ def validate(root: Path = REPO_ROOT) -> dict[str, Any]:
             and "OrganizationMember.organization_id == current_org.id" in team_api
         ),
         "organization_invites_are_hashed_one_time_and_audited": (
-            'OrganizationInvite.token == _token_digest(data.token)' in organization_api
+            "token_digest = _token_digest(data.token)" in organization_api
+            and "OrganizationInvite.token == token_digest" in organization_api
             and "token=_token_digest(raw_token)" in organization_api
             and 'response.headers["Cache-Control"] = "no-store"' in organization_api
             and 'invite.status = "accepted"' in organization_api

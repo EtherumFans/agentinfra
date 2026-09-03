@@ -126,8 +126,8 @@ test.describe('Phase 3-B2 Loop 2 — Click-to-Chat UX', () => {
     await prebuiltTab.click();
     await page.waitForTimeout(300);
 
-    // 2. Find the Medical Coding Agent card and click "Chat / Use Agent".
-    const chatCta = page.getByRole('button', { name: /Chat \/ Use Agent/ }).first();
+    // 2. Find the Medical Coding Agent card and click its current localized CTA.
+    const chatCta = page.getByRole('button', { name: /Use Agent/ }).first();
     await expect(chatCta).toBeVisible();
     await chatCta.click();
 

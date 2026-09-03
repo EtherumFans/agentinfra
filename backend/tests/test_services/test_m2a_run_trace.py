@@ -27,6 +27,16 @@ def m2a_dir():
     shutil.rmtree(tmp, ignore_errors=True)
 
 
+def test_default_store_uses_configured_registry_dir(tmp_path, monkeypatch):
+    registry_dir = tmp_path / "registry"
+    monkeypatch.setenv("ICODER_REGISTRY_DIR", str(registry_dir))
+
+    store = M2aStore()
+
+    assert store._dir == registry_dir / "m2a"
+    assert store._dir.is_dir()
+
+
 def test_run_trace_created_for_real_run(m2a_dir):
     """真实 run 应当生成 run_id 和 trace_id。"""
     svc = RunTraceService(store=M2aStore(m2a_dir))

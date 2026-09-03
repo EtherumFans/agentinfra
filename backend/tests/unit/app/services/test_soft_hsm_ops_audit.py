@@ -57,6 +57,7 @@ def test_append_verify_tamper_and_tail_rollback(tmp_path) -> None:
     with pytest.raises(RuntimeError, match="tail rollback"):
         truncated = (tmp_path / "truncated.jsonl").resolve()
         truncated.write_bytes(lines[0] + b"\n")
+        truncated.chmod(0o600)
         verify_audit_file(
             truncated, audit_key=key, signing_key_id="audit-v1", minimum_sequence=2,
         )
@@ -69,9 +70,11 @@ def test_append_verify_tamper_and_tail_rollback(tmp_path) -> None:
     record = json.loads(lines[1])
     record["recorded_at"] = "2000-01-01T00:00:00+00:00"
     path.write_text(json.dumps(record) + "\n", encoding="utf-8")
+    path.chmod(0o600)
     with pytest.raises(RuntimeError, match="verification failed"):
         verify_audit_file(path, audit_key=key, signing_key_id="audit-v1")
     path.write_bytes(original)
+    path.chmod(0o600)
     with pytest.raises(RuntimeError, match="verification failed"):
         verify_audit_file(path, audit_key=b"x" * 32, signing_key_id="audit-v1")
 

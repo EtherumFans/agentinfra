@@ -80,7 +80,8 @@ const MOCK_A2A_ENVELOPE = {
 async function mockBackend(page: Page) {
   // 1. Hub cards — keep the test independent from live readiness/assets.
   await page.route('**/api/icoder/agents/hub*', (route) => {
-    const isReadiness = new URL(route.request().url()).pathname.endsWith('/readiness');
+    const pathname = new URL(route.request().url()).pathname.replace(/\/+$/, '');
+    const isReadiness = pathname.endsWith('/hub/readiness');
     const executionTarget = 'local_test';
     const runtimeReadiness = {
       structural_status: 'ready',
@@ -193,8 +194,9 @@ test.describe('Phase 3-B2 Loop 2 — Click-to-Chat UX', () => {
     await page.waitForTimeout(300);
 
     // 2. Find the Medical Coding Agent card and click its current localized CTA.
-    const chatCta = page.getByRole('button', { name: /Use Agent/ }).first();
+    const chatCta = page.getByRole('button', { name: /Use Agent|使用智能体/ }).first();
     await expect(chatCta).toBeVisible();
+    await expect(chatCta).toBeEnabled();
     await chatCta.click();
 
     // 3. URL should now point at the chat page with preset query param.

@@ -248,10 +248,14 @@ def test_worker_sentinel_none_terminates_cleanly():
 
 def test_worker_exits_when_parent_watch_pipe_closes():
     """An abruptly terminated parent must not leave a native model worker."""
-    q_in: multiprocessing.Queue = multiprocessing.Queue()
-    q_out: multiprocessing.Queue = multiprocessing.Queue()
-    watch_recv, watch_send = multiprocessing.Pipe(duplex=False)
-    proc = multiprocessing.Process(
+    # The production worker is a Windows/spawn isolation boundary. Using
+    # Linux fork here leaks the pipe's write descriptor into the child, so
+    # closing the parent writer can never produce EOF in the worker.
+    context = multiprocessing.get_context("spawn")
+    q_in = context.Queue()
+    q_out = context.Queue()
+    watch_recv, watch_send = context.Pipe(duplex=False)
+    proc = context.Process(
         target=MedCodERRetrieverWorker.run,
         args=(q_in, q_out, "unused", FakeRetriever({}), None, watch_recv),
         daemon=True,
